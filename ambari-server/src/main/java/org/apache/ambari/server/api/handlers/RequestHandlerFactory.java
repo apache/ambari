@@ -35,9 +35,9 @@ public class RequestHandlerFactory {
     switch (requestType) {
       case GET:
         return new ReadHandler();
-      case PUT:
-        return new CreateHandler();
       case POST:
+        return new CreateHandler();
+      case PUT:
         return new UpdateHandler();
       case DELETE:
         return new DeleteHandler();

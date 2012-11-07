@@ -32,6 +32,7 @@ import junit.framework.Assert;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.agent.DiskInfo;
 import org.apache.ambari.server.agent.HostInfo;
+import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.controller.ClusterResponse;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
@@ -46,7 +47,7 @@ import org.apache.ambari.server.state.ServiceComponentFactory;
 import org.apache.ambari.server.state.ServiceComponentHost;
 import org.apache.ambari.server.state.ServiceComponentHostFactory;
 import org.apache.ambari.server.state.ServiceFactory;
-import org.apache.ambari.server.state.StackVersion;
+import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.fsm.InvalidStateTransitionException;
 import org.apache.ambari.server.state.host.HostHealthyHeartbeatEvent;
 import org.apache.ambari.server.state.host.HostRegistrationRequestEvent;
@@ -62,9 +63,10 @@ public class ClusterTest {
   private ServiceFactory serviceFactory;
   private ServiceComponentFactory serviceComponentFactory;
   private ServiceComponentHostFactory serviceComponentHostFactory;
+  private AmbariMetaInfo metaInfo;
 
   @Before
-  public void setup() throws AmbariException {
+  public void setup() throws Exception {
     injector = Guice.createInjector(new InMemoryDefaultTestModule());
     injector.getInstance(GuiceJpaInitializer.class);
     clusters = injector.getInstance(Clusters.class);
@@ -73,6 +75,8 @@ public class ClusterTest {
         ServiceComponentFactory.class);
     serviceComponentHostFactory = injector.getInstance(
         ServiceComponentHostFactory.class);
+    metaInfo = injector.getInstance(AmbariMetaInfo.class);
+    metaInfo.init();
     clusters.addCluster("c1");
     c1 = clusters.getCluster("c1");
     Assert.assertEquals("c1", c1.getClusterName());
@@ -83,6 +87,7 @@ public class ClusterTest {
     host.setIPv6("ipv6");
     host.persist();
     clusters.mapHostToCluster("h1", "c1");
+    c1.setDesiredStackVersion(new StackId("HDP-0.1"));
   }
 
   @After
@@ -177,11 +182,11 @@ public class ClusterTest {
     Assert.assertEquals("foo2", c2.getClusterName());
 
     Assert.assertNotNull(c2.getDesiredStackVersion());
-    Assert.assertEquals("", c2.getDesiredStackVersion().getStackVersion());
+    Assert.assertEquals("", c2.getDesiredStackVersion().getStackId());
 
-    StackVersion stackVersion = new StackVersion("1.0");
+    StackId stackVersion = new StackId("HDP-1.0");
     c2.setDesiredStackVersion(stackVersion);
-    Assert.assertEquals("1.0", c2.getDesiredStackVersion().getStackVersion());
+    Assert.assertEquals("HDP-1.0", c2.getDesiredStackVersion().getStackId());
   }
 
   @Test
@@ -233,10 +238,10 @@ public class ClusterTest {
     // TODO write unit tests
     // public List<ServiceComponentHost> getServiceComponentHosts(String hostname);
 
-    Service s = serviceFactory.createNew(c1, "s");
+    Service s = serviceFactory.createNew(c1, "HDFS");
     c1.addService(s);
     s.persist();
-    ServiceComponent sc = serviceComponentFactory.createNew(s, "sc");
+    ServiceComponent sc = serviceComponentFactory.createNew(s, "NAMENODE");
     s.addServiceComponent(sc);
     sc.persist();
     ServiceComponentHost sch =

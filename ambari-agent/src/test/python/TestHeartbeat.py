@@ -21,12 +21,16 @@ limitations under the License.
 from unittest import TestCase
 from ambari_agent.Heartbeat import Heartbeat
 from ambari_agent.ActionQueue import ActionQueue
-from ambari_agent.AmbariConfig import AmbariConfig
+from ambari_agent import AmbariConfig
 import socket
+import os
 
 class TestHeartbeat(TestCase):
   def test_build(self):
-    actionQueue = ActionQueue(AmbariConfig().getConfig())
+    testsPath = os.path.dirname(os.path.realpath(__file__))
+    dictPath = testsPath + os.sep + '..' + os.sep + '..' + os.sep + 'main' + os.sep + 'python' + os.sep + 'ambari_agent' + os.sep + 'servicesToPidNames.dict'
+    AmbariConfig.config.set('services','serviceToPidMapFile', dictPath)
+    actionQueue = ActionQueue(AmbariConfig.AmbariConfig().getConfig())
     heartbeat = Heartbeat(actionQueue)
     result = heartbeat.build(100)
   

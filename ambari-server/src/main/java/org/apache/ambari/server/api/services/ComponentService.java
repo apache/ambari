@@ -84,7 +84,7 @@ public class ComponentService extends BaseService {
   }
 
   /**
-   * Handles: PUT /clusters/{clusterID}/services/{serviceID}/components/{componentID}
+   * Handles: POST /clusters/{clusterID}/services/{serviceID}/components/{componentID}
    * Create a specific component.
    *
    * @param body          http body
@@ -94,35 +94,53 @@ public class ComponentService extends BaseService {
    *
    * @return information regarding the created component
    */
-  @PUT
+  @POST
   @Path("{componentName}")
   @Produces("text/plain")
   public Response createComponent(String body, @Context HttpHeaders headers, @Context UriInfo ui,
                                 @PathParam("componentName") String componentName) {
 
-    return handleRequest(headers, body, ui, Request.Type.PUT,
+    return handleRequest(headers, body, ui, Request.Type.POST,
         createResourceDefinition(componentName, m_clusterName, m_serviceName));
   }
 
   /**
-   * Handles: POST /clusters/{clusterID}/services/{serviceID}/components/{componentID}
+   * Handles: PUT /clusters/{clusterID}/services/{serviceID}/components/{componentID}
    * Update a specific component.
    *
-   * @param body                http body
+   * @param body          http body
    * @param headers       http headers
    * @param ui            uri info
    * @param componentName component id
    *
    * @return information regarding the updated component
    */
-  @POST
+  @PUT
   @Path("{componentName}")
   @Produces("text/plain")
   public Response updateComponent(String body, @Context HttpHeaders headers, @Context UriInfo ui,
                                 @PathParam("componentName") String componentName) {
 
-    return handleRequest(headers, body, ui, Request.Type.POST, createResourceDefinition(
+    return handleRequest(headers, body, ui, Request.Type.PUT, createResourceDefinition(
         componentName, m_clusterName, m_serviceName));
+  }
+
+  /**
+   * Handles: PUT /clusters/{clusterID}/services/{serviceID}/components
+   * Update multiple components.
+   *
+   * @param body          http body
+   * @param headers       http headers
+   * @param ui            uri info
+   *
+   * @return information regarding the updated component
+   */
+  @PUT
+  @Produces("text/plain")
+  public Response updateComponents(String body, @Context HttpHeaders headers, @Context UriInfo ui) {
+
+    return handleRequest(headers, body, ui, Request.Type.PUT, createResourceDefinition(
+        null, m_clusterName, m_serviceName));
   }
 
   /**

@@ -21,15 +21,16 @@ limitations under the License.
 import json
 import os.path
 import logging
+from uuid import getnode as get_mac
 
 logger = logging.getLogger()
 
-xml_configurations_keys= ["hdfs_site", "hdfs_site", "core_site", 
-                          "mapred_queue_acls",
-                             "hadoop_policy", "mapred_site", 
-                             "capacity_scheduler", "hbase_site",
-                             "hbase_policy", "hive_site", "oozie_site", 
-                             "templeton_site"]
+xml_configurations_keys= ["hdfs-site", "core-site", 
+                          "mapred-queue-acls",
+                             "hadoop-policy", "mapred-site", 
+                             "capacity-scheduler", "hbase-site",
+                             "hbase-policy", "hive-site", "oozie-site", 
+                             "templeton-site"]
 
 #read static imports from file and write them to manifest
 def writeImports(outputFile, modulesdir, inputFileName='imports.txt'):
@@ -43,16 +44,31 @@ def writeImports(outputFile, modulesdir, inputFileName='imports.txt'):
   inputFile.close()
 
 def generateManifest(parsedJson, fileName, modulesdir):
+  logger.info("JSON Received:")
+  logger.info(json.dumps(parsedJson, sort_keys=True, indent=4))
 #reading json
   hostname = parsedJson['hostname']
-  clusterHostInfo = parsedJson['clusterHostInfo']
-  params = parsedJson['hostLevelParams']
-  configurations = parsedJson['configurations']
+  clusterHostInfo = {} 
+  if 'clusterHostInfo' in parsedJson:
+    if parsedJson['clusterHostInfo']:
+      clusterHostInfo = parsedJson['clusterHostInfo']
+  params = {}
+  if 'hostLevelParams' in parsedJson: 
+    if parsedJson['hostLevelParams']:
+      params = parsedJson['hostLevelParams']
+  configurations = {}
+  if 'configurations' in parsedJson:
+    if parsedJson['configurations']:
+      configurations = parsedJson['configurations']
   xmlConfigurationsKeys = xml_configurations_keys
   #hostAttributes = parsedJson['hostAttributes']
+  roleParams = {}
+  if 'roleParams' in parsedJson:
+    if parsedJson['roleParams']:
+      roleParams = parsedJson['roleParams']
   roles = [{'role' : parsedJson['role'],
             'cmd' : parsedJson['roleCommand'],
-            'roleParams' : parsedJson['roleParams']}]
+            'roleParams' : roleParams}]
   #writing manifest
   manifest = open(fileName, 'w')
 
@@ -69,15 +85,18 @@ def generateManifest(parsedJson, fileName, modulesdir):
   xmlConfigurations = {}
   flatConfigurations = {}
 
-  for configKey in configurations.iterkeys():
-    if configKey in xmlConfigurationsKeys:
-      xmlConfigurations[configKey] = configurations[configKey]
-    else:
-      flatConfigurations[configKey] = configurations[configKey]
+  if configurations: 
+    for configKey in configurations.iterkeys():
+      if configKey in xmlConfigurationsKeys:
+        xmlConfigurations[configKey] = configurations[configKey]
+      else:
+        flatConfigurations[configKey] = configurations[configKey]
       
   #writing config maps
-  writeXmlConfigurations(manifest, xmlConfigurations)
-  writeFlatConfigurations(manifest, flatConfigurations)
+  if (xmlConfigurations):
+    writeXmlConfigurations(manifest, xmlConfigurations)
+  if (flatConfigurations):
+    writeFlatConfigurations(manifest, flatConfigurations)
 
   #writing host attributes
   #writeHostAttributes(manifest, hostAttributes)
@@ -115,6 +134,9 @@ def writeNodes(outputFile, clusterHostInfo):
 def writeParams(outputFile, params):
 
   for paramName in params.iterkeys():
+    # todo handle repo information properly
+    if paramName == 'repo_info':
+      continue
 
     param = params[paramName]
     if type(param) is dict:
@@ -179,13 +201,17 @@ def writeTasks(outputFile, roles):
   serviceStatesFile.close()
 
   outputFile.write('node /default/ {\n ')
-  writeStages(outputFile, len(roles))
+  writeStages(outputFile, len(roles) + 1)
   stageNum = 1
+  outputFile.write('class {\'hdp\': stage => ' + str(stageNum) + '}\n')
+  stageNum = stageNum + 1
 
   for role in roles :
     rolename = role['role']
     command = role['cmd']
     taskParams = role['roleParams']
+    if (rolename == 'ZOOKEEPER_SERVER'):
+      taskParams['myid'] = str(get_mac())
     taskParamsNormalized = normalizeTaskParams(taskParams)
     taskParamsPostfix = ''
     
@@ -193,10 +219,15 @@ def writeTasks(outputFile, roles):
       taskParamsPostfix = ', ' + taskParamsNormalized
     
     className = rolesToClass[rolename]
-    serviceState = serviceStates[command]
-    
-    outputFile.write('class {\'' + className + '\':' + ' stage => ' + str(stageNum) + 
+   
+    if command in serviceStates:
+      serviceState = serviceStates[command] 
+      outputFile.write('class {\'' + className + '\':' + ' stage => ' + str(stageNum) + 
                      ', service_state => ' + serviceState + taskParamsPostfix + '}\n')
+    else:
+      outputFile.write('class {\'' + className + '\':' + ' stage => ' + str(stageNum) + 
+                     taskParamsPostfix + '}\n')
+
     stageNum = stageNum + 1
   outputFile.write('}\n')
 def normalizeTaskParams(taskParams):

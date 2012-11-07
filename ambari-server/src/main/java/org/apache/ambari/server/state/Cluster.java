@@ -72,13 +72,13 @@ public interface Cluster {
    * Get Stack Version
    * @return
    */
-  public StackVersion getDesiredStackVersion();
+  public StackId getDesiredStackVersion();
 
   /**
    * Set stack version
    * @param stackVersion
    */
-  public void setDesiredStackVersion(StackVersion stackVersion);
+  public void setDesiredStackVersion(StackId stackVersion);
 
   public Map<String, Config> getDesiredConfigsByType(String configType);
 

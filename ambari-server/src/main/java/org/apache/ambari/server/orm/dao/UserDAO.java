@@ -26,16 +26,25 @@ import org.apache.ambari.server.orm.entities.UserEntityPK;
 import javax.persistence.EntityManager;
 import javax.persistence.NoResultException;
 import javax.persistence.TypedQuery;
+import java.util.List;
 
 public class UserDAO {
 
   @Inject
   Provider<EntityManager> entityManagerProvider;
+  @Inject
+  DaoUtils daoUtils;
 
   @Transactional
   public UserEntity findByPK(UserEntityPK userPK) {
     userPK.setUserName(userPK.getUserName().toLowerCase());
     return entityManagerProvider.get().find(UserEntity.class, userPK);
+  }
+
+  @Transactional
+  public List<UserEntity> findAll() {
+    TypedQuery<UserEntity> query = entityManagerProvider.get().createQuery("SELECT user FROM UserEntity user", UserEntity.class);
+    return daoUtils.selectList(query);
   }
 
   @Transactional
@@ -49,6 +58,7 @@ public class UserDAO {
     }
   }
 
+  @Transactional
   public UserEntity findLdapUserByName(String userName) {
     TypedQuery<UserEntity> query = entityManagerProvider.get().createNamedQuery("ldapUserByName", UserEntity.class);
     query.setParameter("username", userName.toLowerCase());
@@ -72,8 +82,8 @@ public class UserDAO {
   }
 
   @Transactional
-  public void remove(UserEntity userName) {
-    entityManagerProvider.get().remove(userName);
+  public void remove(UserEntity user) {
+    entityManagerProvider.get().remove(merge(user));
   }
 
   @Transactional

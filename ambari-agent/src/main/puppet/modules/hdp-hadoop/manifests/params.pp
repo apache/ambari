@@ -95,7 +95,7 @@ class hdp-hadoop::params(
   }
 
   ### core-site
-  $fs_checkpoint_dir = hdp_default("hadoop/core-site/fs_checkpoint_dir","/tmp/dfs/namesecondary")
+  $fs_checkpoint_dir = hdp_default("hadoop/core-site/fs_checkpoint_dir","/tmp/hadoop-hdfs/dfs/namesecondary")
 
   $proxyuser_group = hdp_default("hadoop/core-site/proxyuser_group","users")
 

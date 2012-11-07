@@ -65,7 +65,7 @@ public interface ClusterController {
    *
    * @throws AmbariException thrown if the resources cannot be created
    */
-  public void createResources(Resource.Type type, Request request) throws AmbariException;
+  public RequestStatus createResources(Resource.Type type, Request request) throws AmbariException;
 
   /**
    * Update the resources selected by the given predicate with the properties
@@ -79,7 +79,7 @@ public interface ClusterController {
    *
    * @throws AmbariException thrown if the resource cannot be updated
    */
-  public void updateResources(Resource.Type type, Request request,
+  public RequestStatus updateResources(Resource.Type type, Request request,
                               Predicate predicate) throws AmbariException;
 
   /**
@@ -91,6 +91,6 @@ public interface ClusterController {
    *
    * @throws AmbariException thrown if the resource cannot be deleted
    */
-  public void deleteResources(Resource.Type type,
+  public RequestStatus deleteResources(Resource.Type type,
                               Predicate predicate) throws AmbariException;
 }

@@ -29,6 +29,7 @@ public abstract class PropertyPredicate implements BasePredicate {
   private final PropertyId propertyId;
 
   public PropertyPredicate(PropertyId propertyId) {
+    assert (propertyId != null);
     this.propertyId = propertyId;
   }
 

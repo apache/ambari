@@ -19,26 +19,26 @@
 
 
 "configurations" : {
-"hdfs_site" : { "dfs.block.size" : "256000000", "dfs.replication" : "1" } ,
-"core_site" :  { "fs.default.name" : "hrt8n36.cc1.ygridcore.net" } ,
-"mapred_queue_acls" : {"mapred.queue.default.acl-submit-job" : "*",
+"hdfs-site" : { "dfs.block.size" : "256000000", "dfs.replication" : "1" } ,
+"core-site" :  { "fs.default.name" : "hrt8n36.cc1.ygridcore.net" } ,
+"mapred-queue-acls" : {"mapred.queue.default.acl-submit-job" : "*",
 		       "mapred.queue.default.acl-administer-jobs" : "*"},
-"hadoop_policy" : {"security.client.protocol.acl" : "*",
+"hadoop-policy" : {"security.client.protocol.acl" : "*",
 		   "security.client.datanode.protocol.acl" : "*"},
-"mapred_site" : {"mapred.jobtracker.taskScheduler" : "org.apache.hadoop.mapred.CapacityTaskScheduler",
+"mapred-site" : {"mapred.jobtracker.taskScheduler" : "org.apache.hadoop.mapred.CapacityTaskScheduler",
 		 "mapred.queue.names" : "hive,pig,default"},
-"capacity_scheduler" : {"mapred.capacity-scheduler.queue.default.capacity" : "100",
+"capacity-scheduler" : {"mapred.capacity-scheduler.queue.default.capacity" : "100",
 			"mapred.capacity-scheduler.queue.default.supports-priorit" : "false"},
 "health_check" : {"security_enabled" : "true",
                   "task_bin_exe" : "ls"},
 "hadoop_env" : {"hadoop_piddirprefix" : "/tmp"},
 
-"hbase_site" : {"hbase.cluster.distributed" : "true"},
-"hbase_policy" : {"security.client.protocol.acl" : "*"},
+"hbase-site" : {"hbase.cluster.distributed" : "true"},
+"hbase-policy" : {"security.client.protocol.acl" : "*"},
 "hadoop_metrics" : {"ganglia_server_host" : "localhost"},
-"hive_site" : {"hive.exec.scratchdir" : "/tmp"},
-"oozie_site" : {"oozie.service.ActionService.executor.ext.classes" : "org.apache.oozie.action.hadoop.HiveActionExecutor, org.apache.oozie.action.hadoop.SqoopActionExecutor,org.apache.oozie.action.email.EmailActionExecutor,"},
-"templeton_site" : {"templeton.override.enabled" : "true"}
+"hive-site" : {"hive.exec.scratchdir" : "/tmp"},
+"oozie-site" : {"oozie.service.ActionService.executor.ext.classes" : "org.apache.oozie.action.hadoop.HiveActionExecutor, org.apache.oozie.action.hadoop.SqoopActionExecutor,org.apache.oozie.action.email.EmailActionExecutor,"},
+"templeton-site" : {"templeton.override.enabled" : "true"}
 },
 
 "role": "NAMENODE",

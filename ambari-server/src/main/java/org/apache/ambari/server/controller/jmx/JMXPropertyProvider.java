@@ -39,6 +39,7 @@ import java.util.Set;
  */
 public class JMXPropertyProvider implements PropertyProvider {
 
+  protected static final PropertyId HOST_COMPONENT_CLUSTER_NAME_PROPERTY_ID = PropertyHelper.getPropertyId("cluster_name", "HostRoles");
   protected static final PropertyId HOST_COMPONENT_HOST_NAME_PROPERTY_ID = PropertyHelper.getPropertyId("host_name", "HostRoles");
   protected static final PropertyId HOST_COMPONENT_COMPONENT_NAME_PROPERTY_ID = PropertyHelper.getPropertyId("component_name", "HostRoles");
 
@@ -54,7 +55,7 @@ public class JMXPropertyProvider implements PropertyProvider {
 
   private final StreamProvider streamProvider;
 
-  private final Map<String, String> hostMapping;
+  private final JMXHostProvider jmxHostProvider;
 
   private static final Map<String, String> JMX_PORTS = new HashMap<String, String>();
 
@@ -74,13 +75,13 @@ public class JMXPropertyProvider implements PropertyProvider {
    *
    * @param componentMetrics the map of supported metrics
    * @param streamProvider   the stream provider
-   * @param hostMapping      the host mapping
+   * @param jmxHostProvider      the host mapping
    */
   public JMXPropertyProvider(Map<String, Map<PropertyId, String>> componentMetrics, StreamProvider streamProvider,
-                             Map<String, String> hostMapping) {
+                             JMXHostProvider jmxHostProvider) {
     this.componentMetrics = componentMetrics;
     this.streamProvider   = streamProvider;
-    this.hostMapping      = hostMapping;
+    this.jmxHostProvider  = jmxHostProvider;
 
     propertyIds = new HashSet<PropertyId>();
     for (Map.Entry<String, Map<PropertyId, String>> entry : componentMetrics.entrySet()) {
@@ -135,7 +136,15 @@ public class JMXPropertyProvider implements PropertyProvider {
 
     Set<PropertyId> ids = PropertyHelper.getRequestPropertyIds(getPropertyIds(), request, predicate);
 
-    String hostName      = hostMapping.get(resource.getPropertyValue(HOST_COMPONENT_HOST_NAME_PROPERTY_ID));
+    String clusterName   = (String) resource.getPropertyValue(HOST_COMPONENT_CLUSTER_NAME_PROPERTY_ID);
+
+    // TODO : what should we do if the host mapping is null?
+    if (jmxHostProvider.getHostMapping(clusterName) == null) {
+      return true;
+    }
+
+
+    String hostName      = jmxHostProvider.getHostMapping(clusterName).get(resource.getPropertyValue(HOST_COMPONENT_HOST_NAME_PROPERTY_ID));
     String componentName = (String) resource.getPropertyValue(HOST_COMPONENT_COMPONENT_NAME_PROPERTY_ID);
     String port          = JMX_PORTS.get(componentName);
 
@@ -181,7 +190,8 @@ public class JMXPropertyProvider implements PropertyProvider {
         }
       }
     } catch (IOException e) {
-      throw new AmbariException("Can't get metrics : " + spec, e);
+      // TODO : log this
+//      throw new AmbariException("Can't get metrics : " + spec, e);
     }
 
     return true;
@@ -202,6 +212,7 @@ public class JMXPropertyProvider implements PropertyProvider {
    * @return the spec
    */
   protected String getSpec(String jmxSource) {
-    return "http://" + jmxSource + "/jmx?qry=Hadoop:*";
+//    return "http://" + jmxSource + "/jmx?qry=Hadoop:*";
+    return "http://" + jmxSource + "/jmx";
   }
 }

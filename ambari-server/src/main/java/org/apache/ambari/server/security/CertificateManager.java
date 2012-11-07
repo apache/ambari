@@ -21,6 +21,7 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.nio.charset.Charset;
 import java.text.MessageFormat;
 import java.util.Map;
 
@@ -96,13 +97,14 @@ public class CertificateManager {
    * @return command execution exit code
    */
   private int runCommand(String command) {
-	  LOG.info("Executing command:" + command);
-	  String line = null;
-      Process process = null;
-      try {
-        process = Runtime.getRuntime().exec(command);
-        BufferedReader br = new BufferedReader(new InputStreamReader(
-            process.getInputStream()));
+    LOG.info("Executing command:" + command);
+    String line = null;
+    Process process = null;
+    BufferedReader br= null;
+    try {
+      process = Runtime.getRuntime().exec(command);
+      br = new BufferedReader(new InputStreamReader(
+          process.getInputStream(), Charset.forName("UTF8")));
 
       while ((line = br.readLine()) != null) {
         LOG.info(line);
@@ -110,14 +112,23 @@ public class CertificateManager {
 
       try {
         process.waitFor();
-        ShellCommandUtil.LogOpenSslExitCode(command, process.exitValue());
+        ShellCommandUtil.logOpenSslExitCode(command, process.exitValue());
         return process.exitValue(); //command is executed
       } catch (InterruptedException e) {
         e.printStackTrace();
       }
     } catch (IOException e) {
       e.printStackTrace();
+    } finally {
+      if (br != null) {
+        try {
+          br.close();
+        } catch (IOException ioe) {
+          ioe.printStackTrace();
+        }
+      }
     }
+
     return -1;//some exception occurred
 
   }

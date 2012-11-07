@@ -62,7 +62,6 @@ public class HostRequest {
   }
 
   public String toString() {
-    // FIXME check if clusters and host attrs is non null before printing
     StringBuilder sb = new StringBuilder();
     sb.append("{"
         + ", hostname=" + hostname

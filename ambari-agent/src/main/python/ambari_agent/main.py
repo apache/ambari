@@ -32,6 +32,7 @@ from shell import getTempFiles
 from shell import killstaleprocesses 
 import AmbariConfig
 from security import CertificateManager
+from NetUtil import NetUtil
 
 logger = logging.getLogger()
 agentPid = os.getpid()
@@ -79,6 +80,9 @@ def debug(sig, frame):
     message += ''.join(traceback.format_stack(frame))
     logger.info(message)
 
+
+
+
 def main():
   global config
   default_cfg = { 'agent' : { 'prefix' : '/home/ambari' } }
@@ -111,8 +115,7 @@ def main():
     #retCode = createDaemon()
     pid = str(os.getpid())
     file(pidfile, 'w').write(pid)
-
-
+    
   logger.setLevel(logging.INFO)
   formatter = logging.Formatter("%(asctime)s %(filename)s:%(lineno)d - %(message)s")
   rotateLog = logging.handlers.RotatingFileHandler(logfile, "a", 10000000, 10)
@@ -123,7 +126,7 @@ def main():
   # Check for ambari configuration file.
   try:
     config = AmbariConfig.config
-    if(os.path.exists('/etc/ambari/ambari.ini')):
+    if os.path.exists('/etc/ambari/ambari.ini'):
       config.read('/etc/ambari/ambari.ini')
       AmbariConfig.setConfig(config)
     else:
@@ -132,8 +135,13 @@ def main():
     logger.warn(err)
 
   killstaleprocesses()
-  logger.info("Connecting to Server at: "+config.get('server', 'url'))
 
+  server_url = 'https://' + config.get('server', 'hostname') + ':' + config.get('server', 'url_port')
+  logger.info('Connecting to Server at: ' + server_url)
+
+  # Wait until server is reachable
+  netutil = NetUtil()
+  netutil.try_to_connect(server_url, -1, logger)
 
   #Initiate security
   """ Check if security is enable if not then disable it"""
@@ -142,8 +150,9 @@ def main():
   certMan.initSecurity()
   
   # Launch Controller communication
-  controller = Controller(config) 
+  controller = Controller(config)
   controller.start()
+  # TODO: is run() call necessary?
   controller.run()
   logger.info("finished")
     

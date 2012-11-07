@@ -87,7 +87,9 @@ public class RoleCommandOrder {
         RoleCommand.START);
     addDependency(Role.JOBTRACKER, RoleCommand.START, Role.DATANODE,
         RoleCommand.START);
-    addDependency(Role.TASKTRACKER, RoleCommand.START, Role.JOBTRACKER,
+    addDependency(Role.TASKTRACKER, RoleCommand.START, Role.NAMENODE,
+        RoleCommand.START);
+    addDependency(Role.TASKTRACKER, RoleCommand.START, Role.DATANODE,
         RoleCommand.START);
     addDependency(Role.OOZIE_SERVER, RoleCommand.START, Role.JOBTRACKER,
         RoleCommand.START);
@@ -95,6 +97,55 @@ public class RoleCommandOrder {
         RoleCommand.START);
     addDependency(Role.TEMPLETON_SERVER, RoleCommand.START, Role.TASKTRACKER,
         RoleCommand.START);
+
+    // Service checks
+    addDependency(Role.HDFS_SERVICE_CHECK, RoleCommand.EXECUTE, Role.NAMENODE,
+        RoleCommand.START);
+    addDependency(Role.HDFS_SERVICE_CHECK, RoleCommand.EXECUTE, Role.DATANODE,
+        RoleCommand.START);
+    addDependency(Role.MAPREDUCE_SERVICE_CHECK, RoleCommand.EXECUTE,
+        Role.JOBTRACKER, RoleCommand.START);
+    addDependency(Role.MAPREDUCE_SERVICE_CHECK, RoleCommand.EXECUTE,
+        Role.TASKTRACKER, RoleCommand.START);
+    addDependency(Role.OOZIE_SERVICE_CHECK, RoleCommand.EXECUTE,
+        Role.OOZIE_SERVER, RoleCommand.START);
+    addDependency(Role.TEMPLETON_SERVICE_CHECK, RoleCommand.EXECUTE,
+        Role.TEMPLETON_SERVER, RoleCommand.START);
+    addDependency(Role.HBASE_SERVICE_CHECK, RoleCommand.EXECUTE,
+        Role.HBASE_MASTER, RoleCommand.START);
+    addDependency(Role.HBASE_SERVICE_CHECK, RoleCommand.EXECUTE,
+        Role.HBASE_REGIONSERVER, RoleCommand.START);
+    addDependency(Role.HIVE_SERVICE_CHECK, RoleCommand.EXECUTE,
+        Role.HIVE_SERVER, RoleCommand.START);
+    addDependency(Role.HCAT_SERVICE_CHECK, RoleCommand.EXECUTE,
+        Role.HIVE_SERVER, RoleCommand.START);
+    addDependency(Role.PIG_SERVICE_CHECK, RoleCommand.EXECUTE,
+        Role.JOBTRACKER, RoleCommand.START);
+    addDependency(Role.PIG_SERVICE_CHECK, RoleCommand.EXECUTE,
+        Role.TASKTRACKER, RoleCommand.START);
+    addDependency(Role.SQOOP_SERVICE_CHECK, RoleCommand.EXECUTE,
+        Role.JOBTRACKER, RoleCommand.START);
+    addDependency(Role.SQOOP_SERVICE_CHECK, RoleCommand.EXECUTE,
+        Role.TASKTRACKER, RoleCommand.START);
+    
+    addDependency(Role.ZOOKEEPER_SERVER, RoleCommand.STOP,
+        Role.HBASE_MASTER, RoleCommand.STOP);
+    addDependency(Role.ZOOKEEPER_SERVER, RoleCommand.STOP,
+        Role.HBASE_REGIONSERVER, RoleCommand.STOP);
+    addDependency(Role.NAMENODE, RoleCommand.STOP,
+        Role.HBASE_MASTER, RoleCommand.STOP);
+    addDependency(Role.DATANODE, RoleCommand.STOP,
+        Role.HBASE_MASTER, RoleCommand.STOP);
+    addDependency(Role.HBASE_MASTER, RoleCommand.STOP,
+        Role.HBASE_REGIONSERVER, RoleCommand.STOP);
+    addDependency(Role.NAMENODE, RoleCommand.STOP,
+        Role.JOBTRACKER, RoleCommand.STOP);
+    addDependency(Role.NAMENODE, RoleCommand.STOP,
+        Role.TASKTRACKER, RoleCommand.STOP);
+    addDependency(Role.DATANODE, RoleCommand.STOP,
+        Role.JOBTRACKER, RoleCommand.STOP);
+    addDependency(Role.DATANODE, RoleCommand.STOP,
+        Role.TASKTRACKER, RoleCommand.STOP);
   }
 
   /**
@@ -116,25 +167,32 @@ public class RoleCommandOrder {
         && (dependencies.get(rcp2).contains(rcp1))) {
       return -1;
     } else if (!rgn2.getCommand().equals(rgn1.getCommand())) {
-      return compareCommands(rgn1.getCommand(), rgn2.getCommand());
+      return compareCommands(rgn1, rgn2);
     }
     return 0;
   }
 
-  private int compareCommands(RoleCommand rc1, RoleCommand rc2) {
+  private int compareCommands(RoleGraphNode rgn1, RoleGraphNode rgn2) {
+    RoleCommand rc1 = rgn1.getCommand();
+    RoleCommand rc2 = rgn2.getCommand();
     if (rc1.equals(rc2)) {
-      throw new IllegalArgumentException("rc1 and rc2 are same");
-    } else if (rc1.equals(RoleCommand.INSTALL)) {
+      //If its coming here means roles have no dependencies.
+      return 0;
+    }
+   
+    if ((rc1.equals(RoleCommand.START) && rc2.equals(RoleCommand.EXECUTE)) ||
+        (rc2.equals(RoleCommand.START) && rc1.equals(RoleCommand.EXECUTE))) {
+      //START and execute are independent, role order matters
+      return 0;
+    }
+    
+    if (rc1.equals(RoleCommand.INSTALL)) {
       return -1;
     } else if (rc2.equals(RoleCommand.INSTALL)) {
       return 1;
-    } else if (rc1.equals(RoleCommand.START)) {
+    } else if (rc1.equals(RoleCommand.START) || rc1.equals(RoleCommand.EXECUTE)) {
       return -1;
-    } else if (rc2.equals(RoleCommand.START)) {
-      return 1;
-    } else if (rc1.equals(RoleCommand.EXECUTE)) {
-      return -1;
-    } else if (rc2.equals(RoleCommand.EXECUTE)) {
+    } else if (rc2.equals(RoleCommand.START) || rc2.equals(RoleCommand.EXECUTE)) {
       return 1;
     } else if (rc1.equals(RoleCommand.STOP)) {
       return -1;

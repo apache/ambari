@@ -28,12 +28,15 @@ public class ClusterResponse {
 
   private final Set<String> hostNames;
 
+  private final String desiredStackVersion;
+
   public ClusterResponse(Long clusterId, String clusterName,
-      Set<String> hostNames) {
+      Set<String> hostNames, String desiredStackVersion) {
     super();
     this.clusterId = clusterId;
     this.clusterName = clusterName;
     this.hostNames = hostNames;
+    this.desiredStackVersion = desiredStackVersion;
   }
 
   /**
@@ -63,6 +66,7 @@ public class ClusterResponse {
     sb.append("{"
         + " clusterName=" + clusterName
         + ", clusterId=" + clusterId
+        + ", desiredStackVersion=" + desiredStackVersion
         + ", hosts=[");
     if (hostNames != null) {
       int i = 0;
@@ -102,6 +106,13 @@ public class ClusterResponse {
     int result = clusterId != null ? clusterId.intValue() : 0;
     result = 71 * result + (clusterName != null ? clusterName.hashCode() : 0);
     return result;
+  }
+
+  /**
+   * @return the desiredStackVersion
+   */
+  public String getDesiredStackVersion() {
+    return desiredStackVersion;
   }
 
 }

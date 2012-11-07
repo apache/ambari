@@ -1,6 +1,11 @@
 {
   "Cluster":[
       {
+        "name":"cluster_id",
+        "category":"Clusters",
+        "temporal":false
+      },
+      {
         "name":"cluster_name",
         "category":"Clusters",
         "temporal":false
@@ -165,5 +170,101 @@
         "category":"Config",
         "temporal":false
       }
-    ]
+    ],
+  "Action":[
+      {
+        "name":"cluster_name",
+        "category":"Actions",
+        "temporal":false
+      },
+      {
+      	"name":"service_name",
+      	"category":"Actions",
+      	"temporal":false
+      },
+      {
+        "name":"action_name",
+        "category":"Actions",
+        "temporal":false
+      }
+  ],
+  "Request":[
+    {
+      "name":"id",
+      "category":"Requests",
+      "temporal":false
+    },
+    {
+      "name":"cluster_name",
+      "category":"Requests",
+      "temporal":false
+    }
+  ],
+  "Task":[
+    {
+      "name":"id",
+      "category":"Tasks",
+      "temporal":false
+    },
+    {
+      "name":"request_id",
+      "category":"Tasks",
+      "temporal":false
+    },
+    {
+      "name":"cluster_name",
+      "category":"Tasks",
+      "temporal":false
+    },
+    {
+      "name":"stage_id",
+      "category":"Tasks",
+      "temporal":false
+    },
+    {
+      "name":"host_name",
+      "category":"Tasks",
+      "temporal":false
+    },
+    {
+      "name":"role",
+      "category":"Tasks",
+      "temporal":false
+    },
+    {
+      "name":"command",
+      "category":"Tasks",
+      "temporal":false
+    },
+    {
+      "name":"status",
+      "category":"Tasks",
+      "temporal":false
+    },
+    {
+      "name":"exit_code",
+      "category":"Tasks",
+      "temporal":false
+    },
+    {
+      "name":"stderr",
+      "category":"Tasks",
+      "temporal":false
+    },
+    {
+      "name":"stdout",
+      "category":"Tasks",
+      "temporal":false
+    },
+    {
+      "name":"start_time",
+      "category":"Tasks",
+      "temporal":false
+    },
+    {
+      "name":"attempt_cnt",
+      "category":"Tasks",
+      "temporal":false
+    }
+  ]
 }

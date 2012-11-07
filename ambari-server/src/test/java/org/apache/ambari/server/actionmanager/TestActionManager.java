@@ -17,14 +17,13 @@
  */
 package org.apache.ambari.server.actionmanager;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import com.google.inject.Guice;
-import com.google.inject.Injector;
-import com.google.inject.persist.PersistService;
+import junit.framework.Assert;
+
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.Role;
 import org.apache.ambari.server.RoleCommand;
@@ -39,18 +38,30 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
+import com.google.inject.Guice;
+import com.google.inject.Inject;
+import com.google.inject.Injector;
+import com.google.inject.persist.PersistService;
+
 public class TestActionManager {
 
   private long requestId = 23;
   private long stageId = 31;
   private Injector injector;
-  private Clusters clusters;
+  private String hostname = "host1";
+  private String clusterName = "cluster1";
 
+  @Inject
+  private Clusters clusters;
+  
   @Before
   public void setup() throws AmbariException {
     injector = Guice.createInjector(new InMemoryDefaultTestModule());
     injector.getInstance(GuiceJpaInitializer.class);
     clusters = injector.getInstance(Clusters.class);
+    clusters.addHost(hostname);
+    clusters.getHost(hostname).persist();
+    clusters.addCluster(clusterName);
   }
 
   @After
@@ -60,16 +71,22 @@ public class TestActionManager {
 
   @Test
   public void testActionResponse() {
-    ActionDBAccessor db = new ActionDBInMemoryImpl();
+    ActionDBAccessor db = injector.getInstance(ActionDBAccessorImpl.class);
     ActionManager am = new ActionManager(5000, 1200000, new ActionQueue(),
         clusters, db);
-    String hostname = "host1";
     populateActionDB(db, hostname);
+    Stage stage = db.getAllStages(requestId).get(0);
+    Assert.assertEquals(stageId, stage.getStageId());
+    stage.setHostRoleStatus(hostname, "HBASE_MASTER", HostRoleStatus.QUEUED);
+    db.hostRoleScheduled(stage, hostname, "HBASE_MASTER");
     List<CommandReport> reports = new ArrayList<CommandReport>();
     CommandReport cr = new CommandReport();
+    cr.setTaskId(1);
     cr.setActionId(StageUtils.getActionId(requestId, stageId));
     cr.setRole("HBASE_MASTER");
     cr.setStatus("COMPLETED");
+    cr.setStdErr("");
+    cr.setStdOut("");
     cr.setExitCode(215);
     reports.add(cr);
     am.processTaskResponse(hostname, reports);

@@ -38,6 +38,7 @@ from ActionQueue import ActionQueue
 from optparse import OptionParser
 from wsgiref.simple_server import ServerHandler
 import security
+from NetUtil import NetUtil
 
 logger = logging.getLogger()
 
@@ -52,10 +53,10 @@ class Controller(threading.Thread):
     self.credential = None
     self.config = config
     self.hostname = socket.gethostname()
-    self.registerUrl = config.get('server', 'secured_url') + \
-      '/agent/register/' + self.hostname
-    self.heartbeatUrl = config.get('server', 'secured_url') + \
-       '/agent/heartbeat/' + self.hostname
+    server_secured_url = 'https://' + config.get('server', 'hostname') + ':' + config.get('server', 'secured_url_port')
+    self.registerUrl = server_secured_url + '/agent/register/' + self.hostname
+    self.heartbeatUrl = server_secured_url + '/agent/heartbeat/' + self.hostname
+    self.netutil = NetUtil()
      
   def start(self):
     self.actionQueue = ActionQueue(self.config)
@@ -88,9 +89,10 @@ class Controller(threading.Thread):
         registered = True
         pass
       except Exception, err:
+        delay = self.netutil.CONNECT_SERVER_RETRY_INTERVAL_SEC
         logger.info("Unable to connect to: " + self.registerUrl, exc_info = True)
-        """ sleep for 30 seconds and then retry again """
-        time.sleep(30)
+        """ Sleeping for {0} seconds and then retrying again """.format(delay)
+        time.sleep(delay)
         pass
       pass  
     return ret
@@ -111,18 +113,30 @@ class Controller(threading.Thread):
         pass
       pass
     pass
-  
+
+  # For testing purposes
+  DEBUG_HEARTBEAT_RETRIES = 0
+  DEBUG_SUCCESSFULL_HEARTBEATS = 0
+  DEBUG_STOP_HEARTBITTING = False
+
   def heartbeatWithServer(self):
+    self.DEBUG_HEARTBEAT_RETRIES = 0
+    self.DEBUG_SUCCESSFULL_HEARTBEATS = 0
     retry = False
     #TODO make sure the response id is monotonically increasing
     id = 0
     while True:
       try:
-        if retry==False:
+        if self.DEBUG_STOP_HEARTBITTING:
+          return
+
+        if not retry:
           data = json.dumps(self.heartbeat.build(id))
           pass
-        logger.info("Sending HeartBeat " + pprint.pformat(data))
-        req = urllib2.Request(self.heartbeatUrl, data, {'Content-Type': 
+        else:
+          self.DEBUG_HEARTBEAT_RETRIES += 1
+
+        req = urllib2.Request(self.heartbeatUrl, data, {'Content-Type':
                                                         'application/json'})
         f = security.secured_url_open(req)
         response = f.read()
@@ -137,6 +151,8 @@ class Controller(threading.Thread):
           logger.info("No commands sent from the Server.")
           pass
         retry=False
+        self.DEBUG_SUCCESSFULL_HEARTBEATS += 1
+        self.DEBUG_HEARTBEAT_RETRIES = 0
       except Exception, err:
         retry=True
         if "code" in err:
@@ -145,9 +161,9 @@ class Controller(threading.Thread):
           logger.error("Unable to connect to: "+ 
                        self.heartbeatUrl,exc_info=True)
       if self.actionQueue.isIdle():
-        time.sleep(3)
+        time.sleep(self.netutil.HEARTBEAT_IDDLE_INTERVAL_SEC)
       else:
-        time.sleep(1) 
+        time.sleep(self.netutil.HEARTBEAT_NOT_IDDLE_INTERVAL_SEC)
     pass
 
   def run(self):

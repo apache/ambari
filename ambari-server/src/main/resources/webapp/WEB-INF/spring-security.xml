@@ -25,8 +25,8 @@
   <http use-expressions="true" auto-config="true"
         disable-url-rewriting="true">
     <http-basic/>
-    <intercept-url pattern="/api/*" access="hasRole('ADMIN')"/>
-    <intercept-url pattern="/**" access="isAuthenticated()"/>
+    <intercept-url pattern="/**" access="isAuthenticated()" method="GET"/>
+    <intercept-url pattern="/**" access="hasRole('ADMIN')"/>
   </http>
 
   <!--<ldap-server id="ldapServer" root="dc=ambari,dc=apache,dc=org"/>-->
@@ -34,29 +34,11 @@
   <authentication-manager>
 
     <authentication-provider user-service-ref="ambariLocalUserService">
-      <password-encoder ref="standardPasswordEncoder"/>
+      <password-encoder ref="passwordEncoder"/>
     </authentication-provider>
 
     <authentication-provider ref="ambariLdapAuthenticationProvider"/>
 
   </authentication-manager>
 
-  <beans:bean id="ambariLocalUserService"
-              class="org.apache.ambari.server.security.authorization.AmbariLocalUserDetailsService"
-              factory-bean="guiceInjector"
-              factory-method="getInstance">
-    <beans:constructor-arg type="java.lang.Class"
-                           value="org.apache.ambari.server.security.authorization.AmbariLocalUserDetailsService"/>
-  </beans:bean>
-
-  <beans:bean id="ambariLdapAuthenticationProvider"
-              class="org.apache.ambari.server.security.authorization.AmbariLdapAuthenticationProvider"
-              factory-bean="guiceInjector"
-              factory-method="getInstance">
-    <beans:constructor-arg type="java.lang.Class"
-                           value="org.apache.ambari.server.security.authorization.AmbariLdapAuthenticationProvider"/>
-  </beans:bean>
-
-  <beans:bean id="standardPasswordEncoder"
-              class="org.springframework.security.crypto.password.StandardPasswordEncoder"/>
 </beans:beans>

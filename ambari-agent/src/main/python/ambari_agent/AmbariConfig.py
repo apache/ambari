@@ -27,11 +27,16 @@ config = ConfigParser.RawConfigParser()
 content = """
 
 [server]
-url=https://localhost:4080
-secured_url=https://localhost:8443
+hostname=localhost
+url_port=4080
+secured_url_port=8443
 
 [agent]
 prefix=/tmp/ambari-agent
+
+[services]
+serviceToPidMapFile=servicesToPidNames.dict
+pidLookupPath=/var/run/
 
 [stack]
 installprefix=/var/ambari/

@@ -45,6 +45,7 @@ public class Configuration {
 
   public static final String CONFIG_FILE = "ambari.properties";
   public static final String BOOTSTRAP_DIR = "bootstrap.dir";
+  public static final String API_AUTHENTICATE = "api.authenticate";
   public static final String BOOTSTRAP_SCRIPT = "bootstrap.script";
   public static final String SRVR_KSTR_DIR_KEY = "security.server.keys_dir";
   public static final String SRVR_CRT_NAME_KEY = "security.server.cert_name";
@@ -78,8 +79,11 @@ public class Configuration {
       "authorization.ldap.managerPassword";
   public static final String LDAP_USERNAME_ATTRIBUTE_KEY =
       "authorization.ldap.usernameAttribute";
-  public static final String LDAP_USER_DEFAULT_ROLE_KEY =
-      "authorization.ldap.userDefaultRole";
+
+  public static final String USER_ROLE_NAME_KEY =
+      "authorization.userRoleName";
+  public static final String ADMIN_ROLE_NAME_KEY =
+      "authorization.adminRoleName";
 
   public static final String PERSISTENCE_IN_MEMORY_KEY =
       "server.persistence.inMemory";
@@ -96,7 +100,8 @@ public class Configuration {
 
   private static final String CLIENT_SECURITY_DEFAULT = "local";
 
-  private static final String LDAP_USER_DEFAULT_ROLE_DEFAULT = "user";
+  private static final String USER_ROLE_NAME_DEFAULT = "user";
+  private static final String ADMIN_ROLE_NAME_DEFAULT = "admin";
   private static final String LDAP_BIND_ANONYMOUSLY_DEFAULT = "true";
 
   //TODO For embedded server only - should be removed later
@@ -146,10 +151,10 @@ public class Configuration {
         PASSPHRASE_ENV_KEY, PASSPHRASE_ENV_DEFAULT));
     configsMap.put(PASSPHRASE_KEY, System.getenv(configsMap.get(
         PASSPHRASE_ENV_KEY)));
-    configsMap.put(CLIENT_SECURITY_KEY, properties.getProperty(
-        CLIENT_SECURITY_KEY, CLIENT_SECURITY_DEFAULT));
-    configsMap.put(LDAP_USER_DEFAULT_ROLE_KEY, properties.getProperty(
-        LDAP_USER_DEFAULT_ROLE_KEY, LDAP_USER_DEFAULT_ROLE_DEFAULT));
+    configsMap.put(USER_ROLE_NAME_KEY, properties.getProperty(
+        USER_ROLE_NAME_KEY, USER_ROLE_NAME_DEFAULT));
+    configsMap.put(ADMIN_ROLE_NAME_KEY, properties.getProperty(
+        ADMIN_ROLE_NAME_KEY, ADMIN_ROLE_NAME_DEFAULT));
     configsMap.put(RESOURCES_DIR_KEY, properties.getProperty(
         RESOURCES_DIR_KEY, RESOURCES_DIR_DEFAULT));
     configsMap.put(SRVR_CRT_PASS_LEN_KEY, properties.getProperty(
@@ -253,9 +258,17 @@ public class Configuration {
    */
   public String getMetadataPath() {
     return properties.getProperty(METADETA_DIR_PATH);
-//    return "src/main/resources/stacks";
   }
 
+  /**
+   * Check to see if the API should be authenticated or not
+   * @return false if not, true if the authentication is enabled.
+   */
+  public boolean getApiAuthentication() {
+    return ("true".equals(properties.getProperty(API_AUTHENTICATE, "false")));
+  }
+  
+  
   public PersistenceType getPersistenceType() {
     String value = properties.getProperty(PERSISTENCE_IN_MEMORY_KEY, PERSISTENCE_IN_MEMORY_DEFAULT);
     if ("true".equalsIgnoreCase(value)) {

@@ -27,11 +27,25 @@ public class ResponseFactory {
   /**
    * Create a response from a provided result.
    *
-   * @param result  the result to wrap
+   * @param requestType  request type
+   * @param result       the result to wrap
+   * @param synchronous  if the request has been handled synchronously
    *
    * @return a new jax-rs Response instance for the provided result
    */
-  public Response createResponse(Object result) {
-    return Response.ok(result).build();
+  public Response createResponse(Request.Type requestType, Object result, boolean synchronous) {
+
+    int status = 200;
+
+    if (synchronous) {
+      if (requestType == Request.Type.POST) {
+        //todo: for now not providing a url for create
+        status = 201;
+      }
+    } else {
+      status = 202;
+    }
+
+    return Response.status(status).entity(result).build();
   }
 }

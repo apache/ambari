@@ -20,7 +20,6 @@ package org.apache.ambari.server.actionmanager;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.apache.ambari.server.agent.AgentCommand;
 import org.apache.ambari.server.agent.ExecutionCommand;
 import org.apache.ambari.server.utils.StageUtils;
 

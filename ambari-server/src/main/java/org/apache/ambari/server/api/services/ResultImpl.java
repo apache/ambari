@@ -30,14 +30,27 @@ import org.apache.ambari.server.api.util.TreeNodeImpl;
 public class ResultImpl implements Result {
 
   /**
+   * Whether the request was handled synchronously.
+   */
+  private boolean m_synchronous;
+
+  /**
    * Tree structure which holds the results
    */
   private TreeNode<Resource> m_tree = new TreeNodeImpl<Resource>(null, null, null);
 
+  public ResultImpl(boolean synchronous) {
+    m_synchronous = synchronous;
+  }
 
   @Override
   public TreeNode<Resource> getResultTree() {
     return m_tree;
+  }
+
+  @Override
+  public boolean isSynchronous() {
+    return m_synchronous;
   }
 }
 

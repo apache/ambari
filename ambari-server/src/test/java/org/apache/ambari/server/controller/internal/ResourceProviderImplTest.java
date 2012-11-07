@@ -18,14 +18,10 @@
 
 package org.apache.ambari.server.controller.internal;
 
+import org.apache.ambari.server.controller.*;
 import org.apache.ambari.server.controller.utilities.PredicateBuilder;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
-import org.apache.ambari.server.controller.AmbariManagementController;
-import org.apache.ambari.server.controller.ClusterRequest;
-import org.apache.ambari.server.controller.ClusterResponse;
-import org.apache.ambari.server.controller.ServiceRequest;
-import org.apache.ambari.server.controller.ServiceResponse;
-import org.apache.ambari.server.controller.TrackActionResponse;
+import org.apache.ambari.server.controller.RequestStatusResponse;
 import org.apache.ambari.server.controller.spi.Predicate;
 import org.apache.ambari.server.controller.spi.PropertyId;
 import org.apache.ambari.server.controller.spi.Request;
@@ -34,6 +30,7 @@ import org.apache.ambari.server.controller.spi.ResourceProvider;
 import org.easymock.EasyMock;
 import org.easymock.IArgumentMatcher;
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import static org.easymock.EasyMock.anyObject;
@@ -59,7 +56,7 @@ public class ResourceProviderImplTest {
     Resource.Type type = Resource.Type.Cluster;
 
     AmbariManagementController managementController = createMock(AmbariManagementController.class);
-    TrackActionResponse response = createNiceMock(TrackActionResponse.class);
+    RequestStatusResponse response = createNiceMock(RequestStatusResponse.class);
 
     managementController.createCluster(Matchers.clusterRequest(null, "Cluster100", "4.02", null));
     managementController.createCluster(Matchers.clusterRequest(99L, null, "4.03", null));
@@ -114,22 +111,22 @@ public class ResourceProviderImplTest {
     AmbariManagementController managementController = createMock(AmbariManagementController.class);
 
     Set<ClusterResponse> allResponse = new HashSet<ClusterResponse>();
-    allResponse.add(new ClusterResponse(100L, "Cluster100", null));
-    allResponse.add(new ClusterResponse(101L, "Cluster101", null));
-    allResponse.add(new ClusterResponse(102L, "Cluster102", null));
-    allResponse.add(new ClusterResponse(103L, "Cluster103", null));
-    allResponse.add(new ClusterResponse(104L, "Cluster104", null));
+    allResponse.add(new ClusterResponse(100L, "Cluster100", null, null));
+    allResponse.add(new ClusterResponse(101L, "Cluster101", null, null));
+    allResponse.add(new ClusterResponse(102L, "Cluster102", null, null));
+    allResponse.add(new ClusterResponse(103L, "Cluster103", null, null));
+    allResponse.add(new ClusterResponse(104L, "Cluster104", null, null));
 
     Set<ClusterResponse> nameResponse = new HashSet<ClusterResponse>();
-    nameResponse.add(new ClusterResponse(102L, "Cluster102", null));
+    nameResponse.add(new ClusterResponse(102L, "Cluster102", null, null));
 
     Set<ClusterResponse> idResponse = new HashSet<ClusterResponse>();
-    idResponse.add(new ClusterResponse(103L, "Cluster103", null));
+    idResponse.add(new ClusterResponse(103L, "Cluster103", null, null));
 
     // set expectations
-    expect(managementController.getClusters(Matchers.clusterRequest(null, null, null, null))).andReturn(allResponse).once();
-    expect(managementController.getClusters(Matchers.clusterRequest(null, "Cluster102", null, null))).andReturn(nameResponse).once();
-    expect(managementController.getClusters(Matchers.clusterRequest(103L, null, null, null))).andReturn(idResponse).once();
+    expect(managementController.getClusters(anyObject(Set.class))).andReturn(allResponse).once();
+    expect(managementController.getClusters(anyObject(Set.class))).andReturn(nameResponse).once();
+    expect(managementController.getClusters(anyObject(Set.class))).andReturn(idResponse).once();
 
     // replay
     replay(managementController);
@@ -183,13 +180,13 @@ public class ResourceProviderImplTest {
     Resource.Type type = Resource.Type.Cluster;
 
     AmbariManagementController managementController = createMock(AmbariManagementController.class);
-    TrackActionResponse response = createNiceMock(TrackActionResponse.class);
+    RequestStatusResponse response = createNiceMock(RequestStatusResponse.class);
 
     Set<ClusterResponse> nameResponse = new HashSet<ClusterResponse>();
-    nameResponse.add(new ClusterResponse(102L, "Cluster102", null));
+    nameResponse.add(new ClusterResponse(102L, "Cluster102", null, null));
 
     // set expectations
-    expect(managementController.getClusters(Matchers.clusterRequest(null, "Cluster102", null, null))).andReturn(nameResponse).once();
+    expect(managementController.getClusters(anyObject(Set.class))).andReturn(nameResponse).once();
     expect(managementController.updateCluster(Matchers.clusterRequest(102L, null, "4.02", null))).andReturn(response).once();
     expect(managementController.updateCluster(Matchers.clusterRequest(103L, null, "4.02", null))).andReturn(response).once();
 
@@ -226,15 +223,15 @@ public class ResourceProviderImplTest {
     Resource.Type type = Resource.Type.Cluster;
 
     AmbariManagementController managementController = createMock(AmbariManagementController.class);
-    TrackActionResponse response = createNiceMock(TrackActionResponse.class);
+    RequestStatusResponse response = createNiceMock(RequestStatusResponse.class);
 
     Set<ClusterResponse> nameResponse = new HashSet<ClusterResponse>();
-    nameResponse.add(new ClusterResponse(102L, "Cluster102", null));
+    nameResponse.add(new ClusterResponse(102L, "Cluster102", null, null));
 
     // set expectations
-    expect(managementController.getClusters(Matchers.clusterRequest(null, "Cluster102", null, null))).andReturn(nameResponse).once();
-    managementController.deleteCluster(Matchers.clusterRequest(102L, null, null, null));
-    managementController.deleteCluster(Matchers.clusterRequest(103L, null, null, null));
+    expect(managementController.getClusters(anyObject(Set.class))).andReturn(nameResponse).once();
+    managementController.deleteCluster(Matchers.clusterRequest(102L, null, "HDP-0.1", null));
+    managementController.deleteCluster(Matchers.clusterRequest(103L, null, "HDP-0.1", null));
 
     // replay
     replay(managementController, response);
@@ -262,7 +259,7 @@ public class ResourceProviderImplTest {
     Resource.Type type = Resource.Type.Service;
 
     AmbariManagementController managementController = createMock(AmbariManagementController.class);
-    TrackActionResponse response = createNiceMock(TrackActionResponse.class);
+    RequestStatusResponse response = createNiceMock(RequestStatusResponse.class);
 
 //    Set<ServiceRequest> requests = new HashSet<ServiceRequest>();
 //    requests.add(Matchers.serviceRequest("Cluster100", "Service100", null, "DEPLOYED"));
@@ -321,9 +318,9 @@ public class ResourceProviderImplTest {
     stateResponse.add(new ServiceResponse(100L, "Cluster100", "Service104", null, "4.02", null));
 
     // set expectations
-    expect(managementController.getServices(Matchers.serviceRequest(null, null, null, null))).andReturn(allResponse).once();
-    expect(managementController.getServices(Matchers.serviceRequest(null, "Service102", null, null))).andReturn(nameResponse).once();
-    expect(managementController.getServices(Matchers.serviceRequest(null, null, null, "DEPLOYED"))).andReturn(stateResponse).once();
+    expect(managementController.getServices(anyObject(Set.class))).andReturn(allResponse).once();
+    expect(managementController.getServices(anyObject(Set.class))).andReturn(nameResponse).once();
+    expect(managementController.getServices(anyObject(Set.class))).andReturn(stateResponse).once();
 
     // replay
     replay(managementController);
@@ -390,7 +387,7 @@ public class ResourceProviderImplTest {
     Resource.Type type = Resource.Type.Service;
 
     AmbariManagementController managementController = createMock(AmbariManagementController.class);
-    TrackActionResponse response = createNiceMock(TrackActionResponse.class);
+    RequestStatusResponse response = createNiceMock(RequestStatusResponse.class);
 
     // set expectations
     expect(managementController.updateServices(anyObject(Set.class))).andReturn(response).once();

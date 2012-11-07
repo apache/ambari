@@ -43,57 +43,57 @@ class hdp-hadoop::initialize()
 debug('##Configs generation for hdp-hadoop')
 
 
-  if has_key($configuration, 'mapred_queue_acls') {
-    configgenerator::configfile{'mapred_queue_acls': 
+  if has_key($configuration, 'mapred-queue-acls') {
+    configgenerator::configfile{'mapred-queue-acls': 
       modulespath => $hdp-hadoop::params::conf_dir,
       filename => 'mapred-queue-acls.xml',
       module => 'hdp-hadoop',
-      configuration => $configuration['mapred_queue_acls']
+      configuration => $configuration['mapred-queue-acls']
     }
   }
   
-  if has_key($configuration, 'hadoop_policy') {
-    configgenerator::configfile{'hadoop_policy': 
+  if has_key($configuration, 'hadoop-policy') {
+    configgenerator::configfile{'hadoop-policy': 
       modulespath => $hdp-hadoop::params::conf_dir,
       filename => 'hadoop-policy.xml',
       module => 'hdp-hadoop',
-      configuration => $configuration['hadoop_policy']
+      configuration => $configuration['hadoop-policy']
     }
   }
 
-  if has_key($configuration, 'core_site') {
-      configgenerator::configfile{'core_site': 
+  if has_key($configuration, 'core-site') {
+      configgenerator::configfile{'core-site': 
         modulespath => $hdp-hadoop::params::conf_dir,
         filename => 'core-site.xml',
         module => 'hdp-hadoop',
-        configuration => $configuration['core_site']
+        configuration => $configuration['core-site']
       }
     }
 
-  if has_key($configuration, 'mapred_site') {
-    configgenerator::configfile{'mapred_site': 
+  if has_key($configuration, 'mapred-site') {
+    configgenerator::configfile{'mapred-site': 
       modulespath => $hdp-hadoop::params::conf_dir,
       filename => 'mapred-site.xml',
       module => 'hdp-hadoop',
-      configuration => $configuration['mapred_site']
+      configuration => $configuration['mapred-site']
     }
   }
   
-  if has_key($configuration, 'capacity_scheduler') {
-    configgenerator::configfile{'capacity_scheduler': 
+  if has_key($configuration, 'capacity-scheduler') {
+    configgenerator::configfile{'capacity-scheduler': 
       modulespath => $hdp-hadoop::params::conf_dir,
       filename => 'capacity-scheduler.xml',
       module => 'hdp-hadoop',
-      configuration => $configuration['capacity_scheduler']
+      configuration => $configuration['capacity-scheduler']
     }
   }
 
-  if has_key($configuration, 'hdfs_site') {
-    configgenerator::configfile{'hdfs_site': 
+  if has_key($configuration, 'hdfs-site') {
+    configgenerator::configfile{'hdfs-site': 
       modulespath => $hdp-hadoop::params::conf_dir,
       filename => 'hdfs-site.xml',
       module => 'hdp-hadoop',
-      configuration => $configuration['hdfs_site']
+      configuration => $configuration['hdfs-site']
     }
   }
 }

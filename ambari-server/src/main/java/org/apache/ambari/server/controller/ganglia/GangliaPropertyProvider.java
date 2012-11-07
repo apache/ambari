@@ -46,7 +46,9 @@ public class GangliaPropertyProvider implements PropertyProvider {
 
   private final StreamProvider streamProvider;
 
-  private final String gangliaCollectorHostName;
+  private final GangliaHostProvider hostProvider;
+
+  private final PropertyId clusterNamePropertyId;
 
   private final PropertyId hostNamePropertyId;
 
@@ -56,15 +58,16 @@ public class GangliaPropertyProvider implements PropertyProvider {
   /**
    * Map of Ganglia cluster names keyed by component type.
    */
-  private static final Map<String, String> GANGLIA_CLUSTER_NAMES = new HashMap<String, String>();
+  public static final Map<String, String> GANGLIA_CLUSTER_NAMES = new HashMap<String, String>();
 
   static {
-    GANGLIA_CLUSTER_NAMES.put("NAMENODE",     "HDPNameNode");
-    GANGLIA_CLUSTER_NAMES.put("DATANODE",     "HDPSlaves");
-    GANGLIA_CLUSTER_NAMES.put("JOBTRACKER",   "HDPJobTracker");
-    GANGLIA_CLUSTER_NAMES.put("TASKTRACKER",  "HDPSlaves");
-    GANGLIA_CLUSTER_NAMES.put("HBASE_MASTER", "HDPHBaseMaster");
-    GANGLIA_CLUSTER_NAMES.put("HBASE_CLIENT", "HDPSlaves");
+    GANGLIA_CLUSTER_NAMES.put("NAMENODE",           "HDPNameNode");
+    GANGLIA_CLUSTER_NAMES.put("DATANODE",           "HDPSlaves");
+    GANGLIA_CLUSTER_NAMES.put("JOBTRACKER",         "HDPJobTracker");
+    GANGLIA_CLUSTER_NAMES.put("TASKTRACKER",        "HDPSlaves");
+    GANGLIA_CLUSTER_NAMES.put("HBASE_MASTER",       "HDPHBaseMaster");
+    GANGLIA_CLUSTER_NAMES.put("HBASE_CLIENT",       "HDPSlaves");
+    GANGLIA_CLUSTER_NAMES.put("HBASE_REGIONSERVER", "HDPSlaves");
   }
 
 
@@ -72,12 +75,14 @@ public class GangliaPropertyProvider implements PropertyProvider {
 
   public GangliaPropertyProvider(Map<String, Map<PropertyId, String>> componentMetrics,
                                  StreamProvider streamProvider,
-                                 String gangliaCollectorHostName,
+                                 GangliaHostProvider hostProvider,
+                                 PropertyId clusterNamePropertyId,
                                  PropertyId hostNamePropertyId,
                                  PropertyId componentNamePropertyId) {
     this.componentMetrics         = componentMetrics;
     this.streamProvider           = streamProvider;
-    this.gangliaCollectorHostName = gangliaCollectorHostName;
+    this.hostProvider             = hostProvider;
+    this.clusterNamePropertyId    = clusterNamePropertyId;
     this.hostNamePropertyId       = hostNamePropertyId;
     this.componentNamePropertyId  = componentNamePropertyId;
 
@@ -125,17 +130,32 @@ public class GangliaPropertyProvider implements PropertyProvider {
     if (getPropertyIds().isEmpty()) {
       return true;
     }
+    String clusterName = (String) resource.getPropertyValue(clusterNamePropertyId);
 
-    String componentName      = (String) resource.getPropertyValue(componentNamePropertyId);
-    String gangliaClusterName = GANGLIA_CLUSTER_NAMES.get(componentName);
+    // TODO : what should we do if there is no Ganglia server?
+    if (hostProvider.getGangliaHostClusterMap(clusterName) == null ||
+        hostProvider.getGangliaCollectorHostName(clusterName) == null) {
+      return true;
+    }
+
+    String hostName = hostNamePropertyId == null ?
+        null : (String) resource.getPropertyValue(hostNamePropertyId);
+
+    String componentName;
+    String gangliaClusterName;
+    if (componentNamePropertyId == null) {
+      componentName = "*";
+      gangliaClusterName = hostProvider.getGangliaHostClusterMap(clusterName).get(hostName);
+    } else {
+      componentName = (String) resource.getPropertyValue(componentNamePropertyId);
+      gangliaClusterName = GANGLIA_CLUSTER_NAMES.get(componentName);
+    }
+
     Map<PropertyId, String> metrics = componentMetrics.get(componentName);
 
     if (metrics == null || gangliaClusterName == null) {
       return true;
     }
-
-    String hostName = hostNamePropertyId == null ?
-        null : PropertyHelper.fixHostName((String) resource.getPropertyValue(hostNamePropertyId));
 
     Set<PropertyId> ids = PropertyHelper.getRequestPropertyIds(getPropertyIds(), request, predicate);
 
@@ -146,7 +166,8 @@ public class GangliaPropertyProvider implements PropertyProvider {
       if (metricName != null) {
         boolean temporal = propertyId.isTemporal();
 
-        String spec = getSpec(gangliaClusterName, hostName, metricName,
+        String spec = getSpec(clusterName, gangliaClusterName,
+            hostName == null ? null : PropertyHelper.fixHostName(hostName), metricName,
             temporal ? request.getTemporalInfo(propertyId) : null);
 
         try {
@@ -157,7 +178,8 @@ public class GangliaPropertyProvider implements PropertyProvider {
             resource.setProperty(propertyId, getValue(properties.get(0), temporal));
           }
         } catch (IOException e) {
-          throw new AmbariException("Can't get metric : " + metricName, e);
+          // TODO : log this
+//          throw new AmbariException("Can't get metric : " + metricName, e);
         }
       }
     }
@@ -206,6 +228,7 @@ public class GangliaPropertyProvider implements PropertyProvider {
    * Get the spec to locate the Ganglia stream from the given
    * request info.
    *
+   * @param clusterName     the cluster name
    * @param gangliaCluster  the ganglia cluster name
    * @param host            the host name
    * @param metric          the metric
@@ -213,7 +236,7 @@ public class GangliaPropertyProvider implements PropertyProvider {
    *
    * @return the spec
    */
-  protected String getSpec(String gangliaCluster,
+  protected String getSpec(String clusterName, String gangliaCluster,
                                   String host,
                                   String metric,
                                   TemporalInfo temporalInfo) {
@@ -221,7 +244,7 @@ public class GangliaPropertyProvider implements PropertyProvider {
     StringBuilder sb = new StringBuilder();
 
     sb.append("http://").
-        append(gangliaCollectorHostName).
+        append(hostProvider.getGangliaCollectorHostName(clusterName)).
         append("/ganglia/graph.php?c=").
         append(gangliaCluster);
 

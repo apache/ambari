@@ -19,12 +19,14 @@
 package org.apache.ambari.server.controller.jdbc;
 
 import org.apache.ambari.server.controller.internal.PropertyIdImpl;
+import org.apache.ambari.server.controller.internal.RequestStatusImpl;
 import org.apache.ambari.server.controller.internal.ResourceImpl;
 import org.apache.ambari.server.controller.predicate.BasePredicate;
 import org.apache.ambari.server.controller.predicate.PredicateVisitorAcceptor;
 import org.apache.ambari.server.controller.spi.Predicate;
 import org.apache.ambari.server.controller.spi.PropertyId;
 import org.apache.ambari.server.controller.spi.Request;
+import org.apache.ambari.server.controller.spi.RequestStatus;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.spi.ResourceProvider;
 import org.apache.ambari.server.controller.utilities.PredicateHelper;
@@ -36,6 +38,7 @@ import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -77,6 +80,9 @@ public class JDBCResourceProvider implements ResourceProvider {
     Set<Resource> resources = new HashSet<Resource>();
     Set<PropertyId> propertyIds = PropertyHelper.getRequestPropertyIds(this.propertyIds, request, predicate);
 
+    // Can't allow cluster_id with the old schema...
+    propertyIds.remove(PropertyHelper.getPropertyId("cluster_id", "Clusters"));
+
     try {
       Connection connection = connectionFactory.getConnection();
 
@@ -105,19 +111,21 @@ public class JDBCResourceProvider implements ResourceProvider {
           resources.add(resource);
         }
 
+        statement.close();
       } finally {
         connection.close();
       }
 
     } catch (SQLException e) {
-      throw new IllegalStateException("DB error : ", e);
+//      throw new IllegalStateException("DB error : ", e);
+      return Collections.emptySet();
     }
 
     return resources;
   }
 
   @Override
-  public void createResources(Request request) {
+  public RequestStatus createResources(Request request) {
     try {
       Connection connection = connectionFactory.getConnection();
 
@@ -131,6 +139,8 @@ public class JDBCResourceProvider implements ResourceProvider {
           Statement statement = connection.createStatement();
 
           statement.execute(sql);
+
+          statement.close();
         }
       } finally {
         connection.close();
@@ -139,10 +149,12 @@ public class JDBCResourceProvider implements ResourceProvider {
     } catch (SQLException e) {
       throw new IllegalStateException("DB error : ", e);
     }
+
+    return getRequestStatus();
   }
 
   @Override
-  public void updateResources(Request request, Predicate predicate) {
+  public RequestStatus updateResources(Request request, Predicate predicate) {
 
     try {
       Connection connection = connectionFactory.getConnection();
@@ -156,6 +168,8 @@ public class JDBCResourceProvider implements ResourceProvider {
         Statement statement = connection.createStatement();
 
         statement.execute(sql);
+
+        statement.close();
       } finally {
         connection.close();
       }
@@ -163,10 +177,12 @@ public class JDBCResourceProvider implements ResourceProvider {
     } catch (SQLException e) {
       throw new IllegalStateException("DB error : ", e);
     }
+
+    return getRequestStatus();
   }
 
   @Override
-  public void deleteResources(Predicate predicate) {
+  public RequestStatus deleteResources(Predicate predicate) {
     try {
       Connection connection = connectionFactory.getConnection();
       try {
@@ -174,6 +190,7 @@ public class JDBCResourceProvider implements ResourceProvider {
 
         Statement statement = connection.createStatement();
         statement.execute(sql);
+        statement.close();
       } finally {
         connection.close();
       }
@@ -181,6 +198,8 @@ public class JDBCResourceProvider implements ResourceProvider {
     } catch (SQLException e) {
       throw new IllegalStateException("DB error : ", e);
     }
+
+    return getRequestStatus();
   }
 
 
@@ -376,6 +395,15 @@ public class JDBCResourceProvider implements ResourceProvider {
         importedKeys.put(pkPropertyId, fkPropertyId);
       }
     }
+  }
+
+  /**
+   * Get a request status
+   *
+   * @return the request status
+   */
+  private RequestStatus getRequestStatus() {
+    return new RequestStatusImpl(null);
   }
 
   /**

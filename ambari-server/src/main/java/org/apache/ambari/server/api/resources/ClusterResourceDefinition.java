@@ -21,7 +21,6 @@ package org.apache.ambari.server.api.resources;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.apache.ambari.server.controller.spi.PropertyId;
 import org.apache.ambari.server.controller.spi.Resource;
 
 /**
@@ -58,22 +57,24 @@ public class ClusterResourceDefinition extends BaseResourceDefinition {
     Map<String, ResourceDefinition> mapChildren = new HashMap<String, ResourceDefinition>();
 
     ServiceResourceDefinition serviceResource = new ServiceResourceDefinition(null, getId());
-    PropertyId serviceIdProperty = getClusterController().getSchema(
-        Resource.Type.Service).getKeyPropertyId(Resource.Type.Service);
-    serviceResource.getQuery().addProperty(serviceIdProperty);
+    serviceResource.getQuery().addProperty(getClusterController().getSchema(
+        Resource.Type.Service).getKeyPropertyId(Resource.Type.Service));
     mapChildren.put(serviceResource.getPluralName(), serviceResource);
 
     HostResourceDefinition hostResource = new HostResourceDefinition(null, getId());
-    PropertyId hostIdProperty = getClusterController().getSchema(
-        Resource.Type.Host).getKeyPropertyId(Resource.Type.Host);
-    hostResource.getQuery().addProperty(hostIdProperty);
+    hostResource.getQuery().addProperty(getClusterController().getSchema(
+        Resource.Type.Host).getKeyPropertyId(Resource.Type.Host));
     mapChildren.put(hostResource.getPluralName(), hostResource);
     
     ConfigurationResourceDefinition configResource = new ConfigurationResourceDefinition(null, null, getId());
-    PropertyId configIdProperty = getClusterController().getSchema(
-        Resource.Type.Configuration).getKeyPropertyId(Resource.Type.Configuration);
-    configResource.getQuery().addProperty(configIdProperty);
+    configResource.getQuery().addProperty(getClusterController().getSchema(
+        Resource.Type.Configuration).getKeyPropertyId(Resource.Type.Configuration));
     mapChildren.put(configResource.getPluralName(), configResource);
+
+    RequestResourceDefinition requestResource = new RequestResourceDefinition(null, getId());
+    requestResource.getQuery().addProperty(getClusterController().getSchema(
+        Resource.Type.Request).getKeyPropertyId(Resource.Type.Request));
+    mapChildren.put(requestResource.getPluralName(), requestResource);
 
     return mapChildren;
   }

@@ -132,14 +132,14 @@ public class BootStrapImpl {
     }
 
     private String createHostString(List<String> list) {
-      String ret = "";
+      StringBuilder ret = new StringBuilder();
       if (list == null) {
-        return ret;
+        return "";
       }
       for (String host: list) {
-        ret = ret + host + ",";
+        ret.append(host).append(",");
       }
-      return ret;
+      return ret.toString();
     }
 
     /** Create request id dir for each bootstrap call **/
@@ -201,11 +201,11 @@ public class BootStrapImpl {
           StringWriter writer_1 = new StringWriter();
           IOUtils.copy(process.getInputStream(), writer_1);
           String outMesg = writer_1.toString();
-          if (outMesg == null)  outMesg = "";
+          //if (outMesg == null)  outMesg = "";
           StringWriter writer_2 = new StringWriter();
           IOUtils.copy(process.getErrorStream(), writer_2);
           String errMesg = writer_2.toString();
-          if (errMesg == null)  errMesg = "";
+          //if (errMesg == null)  errMesg = "";
           scriptlog = outMesg + "\n" + errMesg;
           if (exitCode != 0) {
             stat = BSStat.ERROR;

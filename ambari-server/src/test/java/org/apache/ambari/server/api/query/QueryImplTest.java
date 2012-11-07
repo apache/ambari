@@ -62,7 +62,7 @@ public class QueryImplTest {
     expect(componentSchema.getCategories()).andReturn(Collections.<String, Set<String>>emptyMap());
     expect(componentResourceDef.getSubResources()).andReturn(mapChildren);
     expect(componentResourceDef.getType()).andReturn(Resource.Type.Component).atLeastOnce();
-    expect(componentResourceDef.getResourceIds()).andReturn(mapResourceIds);
+    expect(componentResourceDef.getResourceIds()).andReturn(mapResourceIds).atLeastOnce();
     expect(componentSchema.getKeyPropertyId(Resource.Type.Cluster)).andReturn(new PropertyIdImpl("clusterId", "", false));
     expect(componentSchema.getKeyPropertyId(Resource.Type.Service)).andReturn(new PropertyIdImpl("serviceId", "", false));
     expect(componentSchema.getKeyPropertyId(Resource.Type.Component)).andReturn(componentPropertyId).atLeastOnce();
@@ -73,6 +73,12 @@ public class QueryImplTest {
     expect(result.getResultTree()).andReturn(tree);
     expect(componentResource.getPropertyValue(componentPropertyId)).andReturn("componentName");
     hostComponentResourceDef.setParentId(Resource.Type.Component, "componentName");
+
+    //todo: debug output
+    expect(hostComponentResourceDef.getId()).andReturn(null).anyTimes();
+    expect(hostComponentResourceDef.getResourceIds()).andReturn(mapResourceIds).anyTimes();
+    // end todo
+
     expect(hostComponentResourceDef.getQuery()).andReturn(hostComponentQuery);
     expect(hostComponentQuery.execute()).andReturn(hostComponentQueryResult);
     expect(hostComponentQueryResult.getResultTree()).andReturn(hostComponentResultNode);

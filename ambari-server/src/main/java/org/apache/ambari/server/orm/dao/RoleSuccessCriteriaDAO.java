@@ -31,7 +31,9 @@ public class RoleSuccessCriteriaDAO {
   @Inject
   Provider<EntityManager> entityManagerProvider;
 
+  @Transactional
   public RoleSuccessCriteriaEntity findByPK(RoleSuccessCriteriaEntityPK roleSuccessCriteriaEntityPK) {
+    entityManagerProvider.get().clear();
     return entityManagerProvider.get().find(RoleSuccessCriteriaEntity.class, roleSuccessCriteriaEntityPK);
   }
 
@@ -47,7 +49,7 @@ public class RoleSuccessCriteriaDAO {
 
   @Transactional
   public void remove(RoleSuccessCriteriaEntity stageEntity) {
-    entityManagerProvider.get().remove(stageEntity);
+    entityManagerProvider.get().remove(merge(stageEntity));
   }
 
   @Transactional

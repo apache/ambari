@@ -21,12 +21,17 @@ package org.apache.ambari.server.state;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.codehaus.jackson.annotate.JsonIgnore;
+import org.codehaus.jackson.map.annotate.JsonFilter;
+
+@JsonFilter("propertiesfilter")
 public class ServiceInfo {
   private String name;
     private String version;
     private String user;
     private String comment;
   private List<PropertyInfo> properties;
+  private List<ComponentInfo> components;
 
   public String getName() {
     return name;
@@ -60,24 +65,44 @@ public class ServiceInfo {
     this.comment = comment;
   }
 
-  public synchronized List<PropertyInfo> getProperties() {
+  public List<PropertyInfo> getProperties() {
     if (properties == null) properties = new ArrayList<PropertyInfo>();
     return properties;
   }
 
-  public void setProperties(List<PropertyInfo> properties) {
-    this.properties = properties;
+  public List<ComponentInfo> getComponents() {
+    if (components == null) components = new ArrayList<ComponentInfo>();
+    return components;
   }
 
+  public ComponentInfo getClientComponent() {
+    if (components == null || components.isEmpty()) {
+      return null;
+    }
+    for (ComponentInfo compInfo : components) {
+      if (compInfo.isClient()) {
+        return compInfo;
+      }
+    }
+    return components.get(0);
+  }
 
   @Override
   public String toString() {
     StringBuilder sb = new StringBuilder();
-    sb.append("Service name:" + name + "\nversion:" + version + "\nuser:" + user + "\ncomment:" + comment);
+    sb.append("Service name:" + name + "\nversion:" + version +
+        "\nuser:" + user + "\ncomment:" + comment);
 //    if(properties != null)
 //    for (PropertyInfo property : properties) {
-//      sb.append("\tProperty name=" + property.getName() + "\nproperty value=" + property.getValue() + "\ndescription=" + property.getDescription());
+//      sb.append("\tProperty name=" + property.getName() +
+    //"\nproperty value=" + property.getValue() + "\ndescription=" + property.getDescription());
 //    }
+    for(ComponentInfo component : components){
+      sb.append("\n\n\nComponent:\n");
+      sb.append("name="+ component.getName());
+      sb.append("\tcategory="+ component.getCategory() );
+    }
+
     return sb.toString();
   }
 }

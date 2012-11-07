@@ -1,3 +1,22 @@
+/**
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+
 package org.apache.ambari.server.api.services;
 
 import org.apache.ambari.server.api.handlers.RequestHandler;
@@ -15,11 +34,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertSame;
 
 /**
- * Created with IntelliJ IDEA.
- * User: john
- * Date: 9/12/12
- * Time: 11:56 AM
- * To change this template use File | Settings | File Templates.
+ * Unit tests for HostComponentService.
  */
 public class HostComponentServiceTest {
   @Test
@@ -48,7 +63,8 @@ public class HostComponentServiceTest {
     expect(requestHandler.handleRequest(request)).andReturn(result);
     expect(request.getResultSerializer()).andReturn(resultSerializer);
     expect(resultSerializer.serialize(result, uriInfo)).andReturn(serializedResult);
-    expect(responseFactory.createResponse(serializedResult)).andReturn(response);
+    expect(result.isSynchronous()).andReturn(true).atLeastOnce();
+    expect(responseFactory.createResponse(Request.Type.GET, serializedResult, true)).andReturn(response);
 
     replay(resourceDef, resultSerializer, requestFactory, responseFactory, request, requestHandler,
         result, response, httpHeaders, uriInfo);
@@ -87,7 +103,8 @@ public class HostComponentServiceTest {
     expect(requestHandler.handleRequest(request)).andReturn(result);
     expect(request.getResultSerializer()).andReturn(resultSerializer);
     expect(resultSerializer.serialize(result, uriInfo)).andReturn(serializedResult);
-    expect(responseFactory.createResponse(serializedResult)).andReturn(response);
+    expect(result.isSynchronous()).andReturn(true).atLeastOnce();
+    expect(responseFactory.createResponse(Request.Type.GET, serializedResult, true)).andReturn(response);
 
     replay(resourceDef, resultSerializer, requestFactory, responseFactory, request, requestHandler,
         result, response, httpHeaders, uriInfo);
@@ -102,47 +119,7 @@ public class HostComponentServiceTest {
   }
 
   @Test
-  public void testPutHostComponent() {
-    ResourceDefinition resourceDef = createStrictMock(ResourceDefinition.class);
-    ResultSerializer resultSerializer = createStrictMock(ResultSerializer.class);
-    Object serializedResult = new Object();
-    RequestFactory requestFactory = createStrictMock(RequestFactory.class);
-    ResponseFactory responseFactory = createStrictMock(ResponseFactory.class);
-    Request request = createNiceMock(Request.class);
-    RequestHandler requestHandler = createStrictMock(RequestHandler.class);
-    Result result = createStrictMock(Result.class);
-    Response response = createStrictMock(Response.class);
-
-    HttpHeaders httpHeaders = createNiceMock(HttpHeaders.class);
-    UriInfo uriInfo = createNiceMock(UriInfo.class);
-
-    String clusterName = "clusterName";
-    String hostName = "hostName";
-    String hostComponentName = "hostComponentName";
-
-    // expectations
-    expect(requestFactory.createRequest(eq(httpHeaders), eq("body"), eq(uriInfo), eq(Request.Type.PUT),
-        eq(resourceDef))).andReturn(request);
-
-    expect(requestHandler.handleRequest(request)).andReturn(result);
-    expect(request.getResultSerializer()).andReturn(resultSerializer);
-    expect(resultSerializer.serialize(result, uriInfo)).andReturn(serializedResult);
-    expect(responseFactory.createResponse(serializedResult)).andReturn(response);
-
-    replay(resourceDef, resultSerializer, requestFactory, responseFactory, request, requestHandler,
-        result, response, httpHeaders, uriInfo);
-
-    //test
-    HostComponentService hostComponentService = new TestHostComponentService(resourceDef, clusterName, hostName, hostComponentName,
-        requestFactory, responseFactory, requestHandler);
-    assertSame(response, hostComponentService.createHostComponent("body", httpHeaders, uriInfo, hostComponentName));
-
-    verify(resourceDef, resultSerializer, requestFactory, responseFactory, request, requestHandler,
-        result, response, httpHeaders, uriInfo);
-  }
-
-  @Test
-  public void testPostHostComponent() {
+  public void testCreateHostComponent() {
     ResourceDefinition resourceDef = createStrictMock(ResourceDefinition.class);
     ResultSerializer resultSerializer = createStrictMock(ResultSerializer.class);
     Object serializedResult = new Object();
@@ -167,7 +144,49 @@ public class HostComponentServiceTest {
     expect(requestHandler.handleRequest(request)).andReturn(result);
     expect(request.getResultSerializer()).andReturn(resultSerializer);
     expect(resultSerializer.serialize(result, uriInfo)).andReturn(serializedResult);
-    expect(responseFactory.createResponse(serializedResult)).andReturn(response);
+    expect(result.isSynchronous()).andReturn(false).atLeastOnce();
+    expect(responseFactory.createResponse(Request.Type.POST, serializedResult, false)).andReturn(response);
+
+    replay(resourceDef, resultSerializer, requestFactory, responseFactory, request, requestHandler,
+        result, response, httpHeaders, uriInfo);
+
+    //test
+    HostComponentService hostComponentService = new TestHostComponentService(resourceDef, clusterName, hostName, hostComponentName,
+        requestFactory, responseFactory, requestHandler);
+    assertSame(response, hostComponentService.createHostComponent("body", httpHeaders, uriInfo, hostComponentName));
+
+    verify(resourceDef, resultSerializer, requestFactory, responseFactory, request, requestHandler,
+        result, response, httpHeaders, uriInfo);
+  }
+
+  @Test
+  public void testUpdateHostComponent() {
+    ResourceDefinition resourceDef = createStrictMock(ResourceDefinition.class);
+    ResultSerializer resultSerializer = createStrictMock(ResultSerializer.class);
+    Object serializedResult = new Object();
+    RequestFactory requestFactory = createStrictMock(RequestFactory.class);
+    ResponseFactory responseFactory = createStrictMock(ResponseFactory.class);
+    Request request = createNiceMock(Request.class);
+    RequestHandler requestHandler = createStrictMock(RequestHandler.class);
+    Result result = createStrictMock(Result.class);
+    Response response = createStrictMock(Response.class);
+
+    HttpHeaders httpHeaders = createNiceMock(HttpHeaders.class);
+    UriInfo uriInfo = createNiceMock(UriInfo.class);
+
+    String clusterName = "clusterName";
+    String hostName = "hostName";
+    String hostComponentName = "hostComponentName";
+
+    // expectations
+    expect(requestFactory.createRequest(eq(httpHeaders), eq("body"), eq(uriInfo), eq(Request.Type.PUT),
+        eq(resourceDef))).andReturn(request);
+
+    expect(requestHandler.handleRequest(request)).andReturn(result);
+    expect(request.getResultSerializer()).andReturn(resultSerializer);
+    expect(resultSerializer.serialize(result, uriInfo)).andReturn(serializedResult);
+    expect(result.isSynchronous()).andReturn(false).atLeastOnce();
+    expect(responseFactory.createResponse(Request.Type.PUT, serializedResult, false)).andReturn(response);
 
     replay(resourceDef, resultSerializer, requestFactory, responseFactory, request, requestHandler,
         result, response, httpHeaders, uriInfo);
@@ -176,6 +195,46 @@ public class HostComponentServiceTest {
     HostComponentService hostComponentService = new TestHostComponentService(resourceDef, clusterName, hostName, hostComponentName,
         requestFactory, responseFactory, requestHandler);
     assertSame(response, hostComponentService.updateHostComponent("body", httpHeaders, uriInfo, hostComponentName));
+
+    verify(resourceDef, resultSerializer, requestFactory, responseFactory, request, requestHandler,
+        result, response, httpHeaders, uriInfo);
+  }
+
+  @Test
+  public void testUpdateHostComponents() {
+    ResourceDefinition resourceDef = createStrictMock(ResourceDefinition.class);
+    ResultSerializer resultSerializer = createStrictMock(ResultSerializer.class);
+    Object serializedResult = new Object();
+    RequestFactory requestFactory = createStrictMock(RequestFactory.class);
+    ResponseFactory responseFactory = createStrictMock(ResponseFactory.class);
+    Request request = createNiceMock(Request.class);
+    RequestHandler requestHandler = createStrictMock(RequestHandler.class);
+    Result result = createStrictMock(Result.class);
+    Response response = createStrictMock(Response.class);
+
+    HttpHeaders httpHeaders = createNiceMock(HttpHeaders.class);
+    UriInfo uriInfo = createNiceMock(UriInfo.class);
+
+    String clusterName = "clusterName";
+    String hostName = "hostName";
+
+    // expectations
+    expect(requestFactory.createRequest(eq(httpHeaders), eq("body"), eq(uriInfo), eq(Request.Type.PUT),
+        eq(resourceDef))).andReturn(request);
+
+    expect(requestHandler.handleRequest(request)).andReturn(result);
+    expect(request.getResultSerializer()).andReturn(resultSerializer);
+    expect(resultSerializer.serialize(result, uriInfo)).andReturn(serializedResult);
+    expect(result.isSynchronous()).andReturn(false).atLeastOnce();
+    expect(responseFactory.createResponse(Request.Type.PUT, serializedResult, false)).andReturn(response);
+
+    replay(resourceDef, resultSerializer, requestFactory, responseFactory, request, requestHandler,
+        result, response, httpHeaders, uriInfo);
+
+    //test
+    HostComponentService hostComponentService = new TestHostComponentService(resourceDef, clusterName, hostName, null,
+        requestFactory, responseFactory, requestHandler);
+    assertSame(response, hostComponentService.updateHostComponents("body", httpHeaders, uriInfo));
 
     verify(resourceDef, resultSerializer, requestFactory, responseFactory, request, requestHandler,
         result, response, httpHeaders, uriInfo);
@@ -207,7 +266,8 @@ public class HostComponentServiceTest {
     expect(requestHandler.handleRequest(request)).andReturn(result);
     expect(request.getResultSerializer()).andReturn(resultSerializer);
     expect(resultSerializer.serialize(result, uriInfo)).andReturn(serializedResult);
-    expect(responseFactory.createResponse(serializedResult)).andReturn(response);
+    expect(result.isSynchronous()).andReturn(false).atLeastOnce();
+    expect(responseFactory.createResponse(Request.Type.DELETE, serializedResult, false)).andReturn(response);
 
     replay(resourceDef, resultSerializer, requestFactory, responseFactory, request, requestHandler,
         result, response, httpHeaders, uriInfo);

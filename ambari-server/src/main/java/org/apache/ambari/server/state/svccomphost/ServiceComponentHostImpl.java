@@ -28,7 +28,6 @@ import org.apache.ambari.server.orm.dao.*;
 import org.apache.ambari.server.orm.entities.*;
 import org.apache.ambari.server.state.*;
 import org.apache.ambari.server.state.fsm.*;
-import org.apache.ambari.server.state.job.Job;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -126,6 +125,10 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
          State.INSTALLING,
          ServiceComponentHostEventType.HOST_SVCCOMP_INSTALL,
          new ServiceComponentHostOpStartedTransition())
+     .addTransition(State.INSTALLED,
+         State.STOPPING,
+         ServiceComponentHostEventType.HOST_SVCCOMP_STOP,
+         new ServiceComponentHostOpStartedTransition())
 
      .addTransition(State.STARTING,
          State.STARTING,
@@ -147,6 +150,10 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
      .addTransition(State.START_FAILED,
          State.STARTING,
          ServiceComponentHostEventType.HOST_SVCCOMP_START,
+         new ServiceComponentHostOpStartedTransition())
+     .addTransition(State.START_FAILED,
+         State.STOPPING,
+         ServiceComponentHostEventType.HOST_SVCCOMP_STOP,
          new ServiceComponentHostOpStartedTransition())
 
      .addTransition(State.STARTED,
@@ -442,7 +449,7 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
     stateEntity.setServiceName(serviceComponent.getServiceName());
     stateEntity.setHostName(hostName);
     stateEntity.setCurrentState(stateMachine.getCurrentState());
-    stateEntity.setCurrentStackVersion(gson.toJson(new StackVersion("")));
+    stateEntity.setCurrentStackVersion(gson.toJson(new StackId()));
 
     desiredStateEntity = new HostComponentDesiredStateEntity();
     desiredStateEntity.setClusterId(serviceComponent.getClusterId());
@@ -450,7 +457,8 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
     desiredStateEntity.setServiceName(serviceComponent.getServiceName());
     desiredStateEntity.setHostName(hostName);
     desiredStateEntity.setDesiredState(State.INIT);
-    desiredStateEntity.setDesiredStackVersion(gson.toJson(new StackVersion("")));
+    desiredStateEntity.setDesiredStackVersion(
+        gson.toJson(serviceComponent.getDesiredStackVersion()));
 
     try {
       this.host = clusters.getHost(hostName);
@@ -564,12 +572,6 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
             + ", event=" + event);
       }
     }
-  }
-
-  @Override
-  public List<Job> getJobs() {
-    // TODO Auto-generated method stub
-    return null;
   }
 
   @Override
@@ -696,10 +698,10 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
   }
 
   @Override
-  public StackVersion getStackVersion() {
+  public StackId getStackVersion() {
     try {
       readLock.lock();
-      return gson.fromJson(stateEntity.getCurrentStackVersion(), StackVersion.class);
+      return gson.fromJson(stateEntity.getCurrentStackVersion(), StackId.class);
     }
     finally {
       readLock.unlock();
@@ -707,7 +709,7 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
   }
 
   @Override
-  public void setStackVersion(StackVersion stackVersion) {
+  public void setStackVersion(StackId stackVersion) {
     try {
       writeLock.lock();
       stateEntity.setCurrentStackVersion(gson.toJson(stackVersion));
@@ -809,10 +811,10 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
   }
 
   @Override
-  public StackVersion getDesiredStackVersion() {
+  public StackId getDesiredStackVersion() {
     try {
       readLock.lock();
-      return gson.fromJson(desiredStateEntity.getDesiredStackVersion(), StackVersion.class);
+      return gson.fromJson(desiredStateEntity.getDesiredStackVersion(), StackId.class);
     }
     finally {
       readLock.unlock();
@@ -820,7 +822,7 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
   }
 
   @Override
-  public void setDesiredStackVersion(StackVersion stackVersion) {
+  public void setDesiredStackVersion(StackId stackVersion) {
     try {
       writeLock.lock();
       desiredStateEntity.setDesiredStackVersion(gson.toJson(stackVersion));
@@ -856,7 +858,7 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
           getHostName(),
           getConfigVersions(),
           getState().toString(),
-          getStackVersion().getStackVersion(),
+          getStackVersion().getStackId(),
           getDesiredState().toString());
       return r;
     }
@@ -900,36 +902,12 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
   }
 
   @Override
-  @Transactional
   public void persist() {
     try {
       writeLock.lock();
       if (!persisted) {
-        HostEntity hostEntity = hostDAO.findByName(getHostName());
-        hostEntity.getHostComponentStateEntities().add(stateEntity);
-        hostEntity.getHostComponentDesiredStateEntities().add(desiredStateEntity);
-
-        ServiceComponentDesiredStateEntityPK dpk = new ServiceComponentDesiredStateEntityPK();
-        dpk.setClusterId(serviceComponent.getClusterId());
-        dpk.setServiceName(serviceComponent.getServiceName());
-        dpk.setComponentName(serviceComponent.getName());
-
-        ServiceComponentDesiredStateEntity serviceComponentDesiredStateEntity = serviceComponentDesiredStateDAO.findByPK(dpk);
-        serviceComponentDesiredStateEntity.getHostComponentDesiredStateEntities().add(desiredStateEntity);
-
-        desiredStateEntity.setServiceComponentDesiredStateEntity(serviceComponentDesiredStateEntity);
-        desiredStateEntity.setHostEntity(hostEntity);
-        stateEntity.setServiceComponentDesiredStateEntity(serviceComponentDesiredStateEntity);
-        stateEntity.setHostEntity(hostEntity);
-
-        hostComponentStateDAO.create(stateEntity);
-        hostComponentDesiredStateDAO.create(desiredStateEntity);
-
-        serviceComponentDesiredStateDAO.merge(serviceComponentDesiredStateEntity);
-        hostDAO.merge(hostEntity);
-        stateEntity = hostComponentStateDAO.merge(stateEntity);
-        desiredStateEntity = hostComponentDesiredStateDAO.merge(desiredStateEntity);
-
+        persistEntities();
+        refresh();
         host.refresh();
         serviceComponent.refresh();
         persisted = true;
@@ -941,7 +919,34 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
     }
   }
 
+  @Transactional
+  protected void persistEntities() {
+    HostEntity hostEntity = hostDAO.findByName(getHostName());
+    hostEntity.getHostComponentStateEntities().add(stateEntity);
+    hostEntity.getHostComponentDesiredStateEntities().add(desiredStateEntity);
+
+    ServiceComponentDesiredStateEntityPK dpk = new ServiceComponentDesiredStateEntityPK();
+    dpk.setClusterId(serviceComponent.getClusterId());
+    dpk.setServiceName(serviceComponent.getServiceName());
+    dpk.setComponentName(serviceComponent.getName());
+
+    ServiceComponentDesiredStateEntity serviceComponentDesiredStateEntity = serviceComponentDesiredStateDAO.findByPK(dpk);
+    serviceComponentDesiredStateEntity.getHostComponentDesiredStateEntities().add(desiredStateEntity);
+
+    desiredStateEntity.setServiceComponentDesiredStateEntity(serviceComponentDesiredStateEntity);
+    desiredStateEntity.setHostEntity(hostEntity);
+    stateEntity.setServiceComponentDesiredStateEntity(serviceComponentDesiredStateEntity);
+    stateEntity.setHostEntity(hostEntity);
+
+    hostComponentStateDAO.create(stateEntity);
+    hostComponentDesiredStateDAO.create(desiredStateEntity);
+
+    serviceComponentDesiredStateDAO.merge(serviceComponentDesiredStateEntity);
+    hostDAO.merge(hostEntity);
+  }
+
   @Override
+  @Transactional
   public synchronized void refresh() {
     if (isPersisted()) {
       HostComponentStateEntityPK pk = new HostComponentStateEntityPK();
@@ -961,6 +966,7 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
     }
   }
 
+  @Transactional
   private void saveIfPersisted() {
     if (isPersisted()) {
       hostComponentStateDAO.merge(stateEntity);

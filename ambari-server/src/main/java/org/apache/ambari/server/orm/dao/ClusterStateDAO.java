@@ -29,10 +29,12 @@ public class ClusterStateDAO {
   @Inject
   Provider<EntityManager> entityManagerProvider;
 
+  @Transactional
   public ClusterStateEntity findByPK(String clusterName) {
     return entityManagerProvider.get().find(ClusterStateEntity.class, clusterName);
   }
 
+  @Transactional
   public void refresh(ClusterStateEntity clusterStateEntity) {
     entityManagerProvider.get().refresh(clusterStateEntity);
   }
@@ -49,7 +51,7 @@ public class ClusterStateDAO {
 
   @Transactional
   public void remove(ClusterStateEntity clusterStateEntity) {
-    entityManagerProvider.get().remove(clusterStateEntity);
+    entityManagerProvider.get().remove(merge(clusterStateEntity));
   }
 
   @Transactional

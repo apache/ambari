@@ -51,9 +51,9 @@ public interface Service {
 
   public void updateDesiredConfigs(Map<String, Config> configs);
 
-  public StackVersion getDesiredStackVersion();
+  public StackId getDesiredStackVersion();
 
-  public void setDesiredStackVersion(StackVersion stackVersion);
+  public void setDesiredStackVersion(StackId stackVersion);
 
   public ServiceResponse convertToResponse();
 

@@ -37,8 +37,8 @@ public interface Request {
    */
   public enum Type {
     GET,
-    PUT,
     POST,
+    PUT,
     DELETE
   }
 

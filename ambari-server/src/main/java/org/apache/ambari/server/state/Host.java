@@ -25,7 +25,6 @@ import org.apache.ambari.server.agent.DiskInfo;
 import org.apache.ambari.server.agent.HostInfo;
 import org.apache.ambari.server.controller.HostResponse;
 import org.apache.ambari.server.state.fsm.InvalidStateTransitionException;
-import org.apache.ambari.server.state.job.Job;
 
 public interface Host {
 
@@ -210,13 +209,6 @@ public interface Host {
    * @param agentVersion the agentVersion to set
    */
   public void setAgentVersion(AgentVersion agentVersion);
-
-  /**
-   * Get the list of Jobs that are currently being tracked at the
-   * Host level
-   * @return List of Jobs
-   */
-  public List<Job> getJobs();
 
   /**
    * Get Current Host State

@@ -89,11 +89,15 @@ public class PropertyIdImpl implements PropertyId {
   @Override
   public boolean equals(Object o) {
 
+    if (o == null) {
+      return false;
+    }
+
     if (this == o) {
       return true;
     }
 
-    if (!(o.getClass().equals(PropertyIdImpl.class))) {
+    if (! (o instanceof  PropertyIdImpl)) {
       return false;
     }
 

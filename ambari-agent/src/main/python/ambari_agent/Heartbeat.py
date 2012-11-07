@@ -19,11 +19,30 @@ limitations under the License.
 '''
 
 import json
+import logging
 from Hardware import Hardware
 from ActionQueue import ActionQueue
 from ServerStatus import ServerStatus
+from StatusCheck import StatusCheck
+import AmbariConfig
 import socket
 import time
+import traceback
+from pprint import pprint, pformat
+
+logger = logging.getLogger()
+
+COMPONENTS = [
+               {"serviceName" : "HDFS",
+                "componentName" : "DATANODE"},
+               {"serviceName" : "HDFS",
+                "componentName" : "NAMENODE"},
+               {"serviceName" : "HDFS",
+                "componentName" : "SECONDARYNAMENODE"}
+]
+
+LIVE_STATUS = "LIVE"
+DEAD_STATUS = "DEAD"
 
 firstContact = True
 class Heartbeat:
@@ -31,7 +50,6 @@ class Heartbeat:
   def __init__(self, actionQueue):
     self.actionQueue = actionQueue
     self.reports = []
-    self.componentStatus = []
 
   def build(self, id='-1'):
     global clusterId, clusterDefinitionRevision, firstContact
@@ -39,6 +57,22 @@ class Heartbeat:
     timestamp = int(time.time()*1000)
     queueResult = self.actionQueue.result()
     installedRoleStates = serverStatus.build()
+    pidLookupPath = AmbariConfig.config.get('services','pidLookupPath')
+    serviceToPidMapFile = AmbariConfig.config.get('services','serviceToPidMapFile')
+    statusCheck = StatusCheck(pidLookupPath, serviceToPidMapFile)
+    servicesStatusesDict = {}
+    componentStatus = []
+    for component in COMPONENTS:
+      serviceStatus = statusCheck.getStatus(component["componentName"])
+      if serviceStatus == None:
+        logger.warn("There is no service to pid mapping for " + component["componentName"])
+      status = LIVE_STATUS if serviceStatus else DEAD_STATUS 
+      componentStatus.append({"componentName" : component["componentName"],
+                                   "msg" : "",
+                                   "status" : status,
+                                   "serviceName" : component["serviceName"],
+                                   "clusterName" : ""})
+     
     
     nodeStatus = { "status" : "HEALTHY",
                    "cause" : "NONE"}
@@ -46,13 +80,13 @@ class Heartbeat:
     heartbeat = { 'responseId'        : int(id),
                   'timestamp'         : timestamp,
                   'hostname'          : socket.gethostname(),
-                 # 'componentStatus'   : self.componentStatus,
+                  'componentStatus'   : componentStatus,
                   'nodeStatus'        : nodeStatus
                 }
     if len(queueResult) != 0:
       heartbeat['reports'] = queueResult
       pass
-    
+    logger.info("Status for node heartbeat: " + pformat(nodeStatus))
     return heartbeat
 
 def main(argv=None):

@@ -23,6 +23,7 @@ import java.util.Set;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.HostNotFoundException;
+import org.apache.ambari.server.ServiceComponentNotFoundException;
 import org.apache.ambari.server.actionmanager.ActionManager;
 import org.apache.ambari.server.agent.AgentCommand.AgentCommandType;
 import org.apache.ambari.server.state.AgentVersion;
@@ -76,16 +77,13 @@ public class HeartBeatHandler {
   public HeartBeatResponse handleHeartBeat(HeartBeat heartbeat)
       throws AmbariException {
     HeartBeatResponse response = new HeartBeatResponse();
- response.setResponseId(0L);
+    response.setResponseId(0L);
     String hostname = heartbeat.getHostname();
     LOG.info("Action queue reference = "+actionQueue);
     LOG.info("Heartbeat received from host " + heartbeat.getHostname()
         + " responseId=" + heartbeat.getResponseId());
     Host hostObject = clusterFsm.getHost(hostname);
-    // FIXME need to remove this hack
-    hostObject.refresh();
     long now = System.currentTimeMillis();
-    hostObject.refresh();
 
     try {
       if (heartbeat.getNodeStatus().getStatus()
@@ -114,12 +112,10 @@ public class HeartBeatHandler {
       if (service == null || "".equals(service)) {
         throw new AmbariException("Invalid command report, service: "+service);
       }
-      Service svc = cl.getService(service);
-      ServiceComponent svcComp = svc.getServiceComponent(
-          report.getRole());
-      ServiceComponentHost scHost = svcComp.getServiceComponentHost(
-          hostname);
       try {
+        Service svc = cl.getService(service);
+        ServiceComponent svcComp = svc.getServiceComponent(report.getRole());
+        ServiceComponentHost scHost = svcComp.getServiceComponentHost(hostname);
         if (report.getStatus().equals("COMPLETED")) {
           scHost.handleEvent(new ServiceComponentHostOpSucceededEvent(scHost
               .getServiceComponentName(), hostname, now));
@@ -128,6 +124,8 @@ public class HeartBeatHandler {
           scHost.handleEvent(new ServiceComponentHostOpFailedEvent(scHost
               .getServiceComponentName(), hostname, now));
         }
+      } catch (ServiceComponentNotFoundException scnex) {
+        LOG.info("Not a service component, assuming its an action", scnex);
       } catch (InvalidStateTransitionException ex) {
         LOG.warn("State machine exception", ex);
       }

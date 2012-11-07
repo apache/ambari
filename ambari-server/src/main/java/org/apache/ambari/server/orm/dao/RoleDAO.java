@@ -29,12 +29,14 @@ public class RoleDAO {
   @Inject
   Provider<EntityManager> entityManagerProvider;
 
+  @Transactional
   public RoleEntity findByName(String roleName) {
-    return entityManagerProvider.get().find(RoleEntity.class, roleName);
+    return entityManagerProvider.get().find(RoleEntity.class, roleName.toLowerCase());
   }
 
   @Transactional
   public void create(RoleEntity role) {
+    role.setRoleName(role.getRoleName().toLowerCase());
     entityManagerProvider.get().persist(role);
   }
 
@@ -45,7 +47,7 @@ public class RoleDAO {
 
   @Transactional
   public void remove(RoleEntity role) {
-    entityManagerProvider.get().remove(role);
+    entityManagerProvider.get().remove(merge(role));
   }
 
   @Transactional

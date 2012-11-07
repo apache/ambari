@@ -20,6 +20,7 @@ package org.apache.ambari.server.controller.jdbc;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.controller.ganglia.GangliaPropertyProvider;
+import org.apache.ambari.server.controller.internal.DefaultProviderModule;
 import org.apache.ambari.server.controller.internal.URLStreamProvider;
 import org.apache.ambari.server.controller.jmx.JMXPropertyProvider;
 import org.apache.ambari.server.controller.spi.Predicate;
@@ -46,31 +47,7 @@ import java.util.Set;
 /**
  * The default provider module implementation.
  */
-public class JDBCProviderModule implements ProviderModule {
-
-  private static final PropertyId HOST_ATTRIBUTES_PROPERTY_ID               = PropertyHelper.getPropertyId("attributes", "Hosts");
-  private static final PropertyId HOST_COMPONENT_HOST_NAME_PROPERTY_ID      = PropertyHelper.getPropertyId("host_name", "HostRoles");
-  private static final PropertyId HOST_COMPONENT_COMPONENT_NAME_PROPERTY_ID = PropertyHelper.getPropertyId("component_name", "HostRoles");
-
-  /**
-   * The map of resource providers.
-   */
-  private final Map<Resource.Type, ResourceProvider> resourceProviders = new HashMap<Resource.Type, ResourceProvider>();
-
-  /**
-   * The map of lists of property providers.
-   */
-  private final Map<Resource.Type,List<PropertyProvider>> propertyProviders = new HashMap<Resource.Type, List<PropertyProvider>>();
-
-  /**
-   * The map of hosts.
-   */
-  private Map<String, String> hostMapping;
-
-  /**
-   * The host name of the Ganglia collector.
-   */
-  private String gangliaCollectorHostName;
+public class JDBCProviderModule extends DefaultProviderModule {
 
 
   // ----- Constructors ------------------------------------------------------
@@ -79,111 +56,15 @@ public class JDBCProviderModule implements ProviderModule {
    * Create a default provider module.
    */
   public JDBCProviderModule() {
-    // First create all of the resource providers...
-    for (Resource.Type type : Resource.Type.values()){
-      createResourceProvider(type);
-    }
-
-    // ... then create the things needed to create the property providers ...
-    try {
-      hostMapping              = getHostMap();
-      gangliaCollectorHostName = getGangliaCollectorHost();
-    } catch (AmbariException e) {
-      // TODO ...
-    }
-
-    // ... then create all of the property providers
-    for (Resource.Type type : Resource.Type.values()){
-      createPropertyProviders(type);
-    }
+    super();
   }
-
-
-  // ----- ProviderModule ----------------------------------------------------
-
-  @Override
-  public ResourceProvider getResourceProvider(Resource.Type type) {
-    return resourceProviders.get(type);
-  }
-
-  @Override
-  public List<PropertyProvider> getPropertyProviders(Resource.Type type) {
-    return propertyProviders.get(type);
-  }
-
 
   // ----- utility methods ---------------------------------------------------
 
-  private void createResourceProvider(Resource.Type type) {
-    resourceProviders.put( type, new JDBCResourceProvider(DBHelper.CONNECTION_FACTORY, type,
+  @Override
+  protected void createResourceProvider(Resource.Type type) {
+    putResourceProvider( type, new JDBCResourceProvider(DBHelper.CONNECTION_FACTORY, type,
         PropertyHelper.getPropertyIds(type),
         PropertyHelper.getKeyPropertyIds(type)));
   }
-
-  private void createPropertyProviders(Resource.Type type) {
-    List<PropertyProvider> providers = new LinkedList<PropertyProvider>();
-
-
-    if (type == Resource.Type.Component) {
-      providers.add(new GangliaPropertyProvider(
-          PropertyHelper.getGangliaPropertyIds(type),
-          new URLStreamProvider(),
-          gangliaCollectorHostName,
-          null,
-          PropertyHelper.getPropertyId("component_name", "ServiceComponentInfo")));
-    }
-
-    if (type == Resource.Type.HostComponent) {
-      providers.add(new JMXPropertyProvider(
-          PropertyHelper.getJMXPropertyIds(type),
-          new URLStreamProvider(),
-          hostMapping));
-
-      providers.add(new GangliaPropertyProvider(
-          PropertyHelper.getGangliaPropertyIds(type),
-          new URLStreamProvider(),
-          gangliaCollectorHostName,
-          PropertyHelper.getPropertyId("host_name", "HostRoles"),
-          PropertyHelper.getPropertyId("component_name", "HostRoles")));
-    }
-    propertyProviders.put(type, providers);
-  }
-
-  public Map<String, String> getHostMap() throws AmbariException {
-    Map<String, String> hostMap      = new HashMap<String, String>();
-    ResourceProvider    hostProvider = getResourceProvider(Resource.Type.Host);
-    ObjectMapper mapper       = new ObjectMapper();
-    Request request      = PropertyHelper.getReadRequest(Collections.singleton(HOST_ATTRIBUTES_PROPERTY_ID));
-
-    Set<Resource> hosts = hostProvider.getResources(request, null);
-    for (Resource host : hosts) {
-      String attributes = (String) host.getPropertyValue(HOST_ATTRIBUTES_PROPERTY_ID);
-      if (attributes != null && !attributes.startsWith("[]")) {
-        try {
-          Map<String, String> attributeMap = mapper.readValue(attributes, new TypeReference<Map<String, String>>() {});
-          hostMap.put(attributeMap.get("privateFQDN"), attributeMap.get("publicFQDN"));
-        } catch (IOException e) {
-          throw new IllegalStateException("Can't read hosts " + attributes, e);
-        }
-      }
-    }
-    return hostMap;
-  }
-
-  public String getGangliaCollectorHost() throws AmbariException {
-    ResourceProvider provider = getResourceProvider(Resource.Type.HostComponent);
-    Request          request  = PropertyHelper.getReadRequest(Collections.singleton(HOST_COMPONENT_HOST_NAME_PROPERTY_ID));
-
-    Predicate predicate = new PredicateBuilder().property(HOST_COMPONENT_COMPONENT_NAME_PROPERTY_ID).
-        equals("GANGLIA_MONITOR_SERVER").toPredicate();
-
-    Set<Resource> hostComponents = provider.getResources(request, predicate);
-    for (Resource hostComponent : hostComponents) {
-      String hostName = (String) hostComponent.getPropertyValue(HOST_COMPONENT_HOST_NAME_PROPERTY_ID);
-      return hostMapping.get(hostName);
-    }
-
-    return null;
-  }
-
 }

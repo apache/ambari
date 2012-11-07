@@ -11,6 +11,12 @@ public class InMemoryDefaultTestModule extends AbstractModule {
   protected void configure() {
     Properties properties = new Properties();
     properties.setProperty(Configuration.PERSISTENCE_IN_MEMORY_KEY, "true");
-    install(new ControllerModule(properties));
+    properties.setProperty(Configuration.METADETA_DIR_PATH,
+        "src/test/resources/stacks");
+    try {
+      install(new ControllerModule(properties));
+    } catch (Exception e) {
+      throw new RuntimeException(e);
+    }
   }
 }

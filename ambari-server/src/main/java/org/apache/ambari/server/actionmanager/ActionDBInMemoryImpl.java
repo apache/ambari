@@ -18,7 +18,10 @@
 package org.apache.ambari.server.actionmanager;
 
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import org.apache.ambari.server.Role;
 import org.apache.ambari.server.agent.CommandReport;
@@ -117,7 +120,7 @@ public class ActionDBInMemoryImpl implements ActionDBAccessor {
       }
     }
   }
-  
+
   @Override
   public void abortHostRole(String host, long requestId, long stageId, Role role) {
     CommandReport report = new CommandReport();
@@ -132,9 +135,53 @@ public class ActionDBInMemoryImpl implements ActionDBAccessor {
   public synchronized long getLastPersistedRequestIdWhenInitialized() {
     return lastRequestId;
   }
-  
+
   @Override
   public void hostRoleScheduled(Stage s, String hostname, String roleStr) {
     //Nothing needed for in-memory implementation
+  }
+
+  @Override
+  public List<HostRoleCommand> getRequestTasks(long requestId) {
+    return null;
+  }
+
+  @Override
+  public Collection<HostRoleCommand> getTasks(Collection<Long> taskIds) {
+    return null;
+  }
+  
+  @Override
+  public List<Stage> getStagesByHostRoleStatus(Set<HostRoleStatus> statuses) {
+    List<Stage> l = new ArrayList<Stage>();
+    for (Stage s: stageList) {
+      if (s.doesStageHaveHostRoleStatus(statuses)) {
+        l.add(s);
+      }
+    }
+    return l;
+  }
+  @Override
+  public synchronized List<Long> getRequests() {
+    Set<Long> requestIds = new HashSet<Long>();
+    for (Stage s: stageList) {
+      requestIds.add(s.getRequestId());
+    }
+    List<Long> ids = new ArrayList<Long>();
+    ids.addAll(requestIds);
+    return ids;
+  }
+
+  public HostRoleCommand getTask(long taskId) {
+    for (Stage s : stageList) {
+      for (String host : s.getHosts()) {
+        for (ExecutionCommand cmd : s.getExecutionCommands(host)) {
+          if (cmd.getTaskId() == taskId) {
+            return s.getHostRoleCommand(host, cmd.getRole().toString());
+          }
+        }
+      }
+    }
+    return null;
   }
 }

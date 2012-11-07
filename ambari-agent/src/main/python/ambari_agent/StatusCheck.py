@@ -28,15 +28,17 @@ logger = logging.getLogger()
 
 
 
-def get_pair(line):
-  key, sep, value = line.strip().partition("=")
-  return key, value
+
 
 class StatusCheck:
 
+  def get_pair(self, line):
+    key, sep, value = line.strip().partition("=")
+    return key, value
+
   def listFiles(self, dir):
     basedir = dir
-    logger.info("Files in ", os.path.abspath(dir), ": ")
+    logger.debug("Files in " + os.path.abspath(dir) + ": ")
     subdirlist = []
     try:
       if os.path.isdir(dir):
@@ -53,28 +55,33 @@ class StatusCheck:
     except OSError as e:
       logger.info(e.strerror + ' to ' + e.filename)
 
-  def __init__(self, path):
+  def __init__(self, path, mappingFilePath):
+    if not os.path.isdir(path):
+      raise ValueError("Path argument must be valid directory")
+
+    if not os.path.exists(mappingFilePath):
+      raise IOError("File with services to pid mapping doesn't exists")
     self.path = path
+    self.mappingFilePath = mappingFilePath
     self.sh = shellRunner()
     self.pidFilesDict = {}
     self.listFiles(self.path)
 
 
-    with open("servicesToPidNames.dict") as fd:    
-      self.serToPidDict = dict(get_pair(line) for line in fd)
+    with open(self.mappingFilePath) as fd:    
+      self.serToPidDict = dict(self.get_pair(line) for line in fd)
 
   def getIsLive(self, pidPath):
     isLive = False
     pidFile = open(pidPath, 'r')
     pid = int(pidFile.readline())
     res = self.sh.run(['ps -p', str(pid), '-f'])
-    lines = res['output'].split('\n')
+    lines = res['output'].strip().split(os.linesep)
     try:
       procInfo = lines[1]
       isLive = not procInfo == None
     except IndexError:
       logger.info('Process is dead')
-
     return isLive
 
   def getStatus(self, serviceCode):
@@ -93,12 +100,6 @@ class StatusCheck:
       logger.info('Pid file was not found')
       return False
 
-#Temporary, for testing from console
-def main(argv=None):
-  statusCheck = StatusCheck('/var/')
-  isLive = statusCheck.getStatus(argv[1])
-  print isLive
-
-if __name__ == '__main__':
-  main(sys.argv)
+  def getSerToPidDict(self):
+    return self.serToPidDict
 

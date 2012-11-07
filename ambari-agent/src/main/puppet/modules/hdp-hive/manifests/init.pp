@@ -30,12 +30,12 @@ class hdp-hive(
 
 # Configs generation  
 
-  if has_key($configuration, 'hive_site') {
-    configgenerator::configfile{'hive_site':
+  if has_key($configuration, 'hive-site') {
+    configgenerator::configfile{'hive-site':
       modulespath => $hdp-hive::params::hive_conf_dir, 
       filename => 'hive-site.xml',
       module => 'hdp-hive',
-      configuration => $configuration['hive_site']
+      configuration => $configuration['hive-site']
     }
   }
 

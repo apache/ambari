@@ -24,10 +24,14 @@ import com.google.inject.Injector;
 import com.google.inject.persist.PersistService;
 
 import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.ServiceComponentNotFoundException;
+import org.apache.ambari.server.ServiceNotFoundException;
+import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.controller.ServiceComponentHostResponse;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
 import org.apache.ambari.server.state.*;
+import org.apache.ambari.server.state.fsm.InvalidStateTransitionException;
 import org.apache.ambari.server.state.svccomphost.ServiceComponentHostImpl;
 import org.apache.ambari.server.state.svccomphost.ServiceComponentHostInstallEvent;
 import org.apache.ambari.server.state.svccomphost.ServiceComponentHostOpFailedEvent;
@@ -42,6 +46,7 @@ import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+import org.mortbay.log.Log;
 
 public class ServiceComponentHostTest {
 
@@ -55,15 +60,21 @@ public class ServiceComponentHostTest {
   private ServiceComponentFactory serviceComponentFactory;
   @Inject
   private ServiceComponentHostFactory serviceComponentHostFactory;
+  @Inject
+  private AmbariMetaInfo metaInfo;
 
   @Before
-  public void setup() throws AmbariException {
+  public void setup() throws Exception {
     injector = Guice.createInjector(new InMemoryDefaultTestModule());
     injector.getInstance(GuiceJpaInitializer.class);
     injector.injectMembers(this);
     clusters.addCluster("C1");
     clusters.addHost("h1");
     clusters.mapHostToCluster("h1","C1");
+    clusters.getHost("h1").persist();
+    clusters.getCluster("C1").setDesiredStackVersion(
+        new StackId("HDP-0.1"));
+    metaInfo.init();
   }
 
   @After
@@ -76,10 +87,30 @@ public class ServiceComponentHostTest {
       String svcComponent,
       String hostName, boolean isClient) throws AmbariException{
     Cluster c = clusters.getCluster("C1");
-    Service s = serviceFactory.createNew(c, svc);
-    ServiceComponent sc = serviceComponentFactory.createNew(s, svcComponent);
+    Service s = null;
+
+    try {
+      s = c.getService(svc);
+    } catch (ServiceNotFoundException e) {
+      Log.debug("Calling service create"
+          + ", serviceName=" + svc);
+      s = serviceFactory.createNew(c, svc);
+      c.addService(s);
+      s.persist();
+    }
+
+    ServiceComponent sc = null;
+    try {
+      sc = s.getServiceComponent(svcComponent);
+    } catch (ServiceComponentNotFoundException e) {
+      sc = serviceComponentFactory.createNew(s, svcComponent);
+      s.addServiceComponent(sc);
+      sc.persist();
+    }
+
     ServiceComponentHost impl = serviceComponentHostFactory.createNew(
         sc, hostName, isClient);
+    impl.persist();
     Assert.assertEquals(State.INIT,
         impl.getState());
     Assert.assertEquals(State.INIT,
@@ -89,17 +120,17 @@ public class ServiceComponentHostTest {
     Assert.assertEquals(s.getName(), impl.getServiceName());
     Assert.assertEquals(sc.getName(), impl.getServiceComponentName());
     Assert.assertEquals(hostName, impl.getHostName());
-    Assert.assertTrue(
-        impl.getDesiredStackVersion().getStackVersion().isEmpty());
-    Assert.assertTrue(impl.getStackVersion().getStackVersion().isEmpty());
+    Assert.assertFalse(
+        impl.getDesiredStackVersion().getStackId().isEmpty());
+    Assert.assertTrue(impl.getStackVersion().getStackId().isEmpty());
 
     return impl;
   }
 
   @Test
-  public void testNewServiceComponentHostImpl() throws AmbariException{
-    createNewServiceComponentHost("svc", "svcComp", "h1", false);
-    createNewServiceComponentHost("svc", "svcComp", "h1", true);
+  public void testNewServiceComponentHost() throws AmbariException{
+    createNewServiceComponentHost("HDFS", "NAMENODE", "h1", false);
+    createNewServiceComponentHost("HDFS", "HDFS_CLIENT", "h1", true);
   }
 
   private ServiceComponentHostEvent createEvent(ServiceComponentHostImpl impl,
@@ -272,7 +303,7 @@ public class ServiceComponentHostTest {
   @Test
   public void testClientStateFlow() throws Exception {
     ServiceComponentHostImpl impl = (ServiceComponentHostImpl)
-        createNewServiceComponentHost("svc", "svcComp", "h1", true);
+        createNewServiceComponentHost("HDFS", "HDFS_CLIENT", "h1", true);
 
     runStateChanges(impl, ServiceComponentHostEventType.HOST_SVCCOMP_INSTALL,
         State.INIT,
@@ -310,7 +341,7 @@ public class ServiceComponentHostTest {
   @Test
   public void testDaemonStateFlow() throws Exception {
     ServiceComponentHostImpl impl = (ServiceComponentHostImpl)
-        createNewServiceComponentHost("svc", "svcComp", "h1", false);
+        createNewServiceComponentHost("HDFS", "DATANODE", "h1", false);
 
     runStateChanges(impl, ServiceComponentHostEventType.HOST_SVCCOMP_INSTALL,
         State.INIT,
@@ -363,42 +394,92 @@ public class ServiceComponentHostTest {
   @Test
   public void testGetAndSetBasicInfo() throws AmbariException {
     ServiceComponentHost sch =
-        createNewServiceComponentHost("svc", "svcComp", "h1", false);
+        createNewServiceComponentHost("HDFS", "NAMENODE", "h1", false);
     sch.setDesiredState(State.INSTALLED);
     sch.setState(State.INSTALLING);
-    sch.setStackVersion(new StackVersion("1.0.0"));
-    sch.setDesiredStackVersion(new StackVersion("1.1.0"));
+    sch.setStackVersion(new StackId("HDP-1.0.0"));
+    sch.setDesiredStackVersion(new StackId("HDP-1.1.0"));
 
     Assert.assertEquals(State.INSTALLING, sch.getState());
     Assert.assertEquals(State.INSTALLED, sch.getDesiredState());
-    Assert.assertEquals("1.0.0",
-        sch.getStackVersion().getStackVersion());
-    Assert.assertEquals("1.1.0",
-        sch.getDesiredStackVersion().getStackVersion());
+    Assert.assertEquals("HDP-1.0.0",
+        sch.getStackVersion().getStackId());
+    Assert.assertEquals("HDP-1.1.0",
+        sch.getDesiredStackVersion().getStackId());
   }
 
   @Test
   public void testConvertToResponse() throws AmbariException {
     ServiceComponentHost sch =
-        createNewServiceComponentHost("svc", "svcComp", "h1", false);
+        createNewServiceComponentHost("HDFS", "DATANODE", "h1", false);
     sch.setDesiredState(State.INSTALLED);
     sch.setState(State.INSTALLING);
-    sch.setStackVersion(new StackVersion("1.0.0"));
+    sch.setStackVersion(new StackId("HDP-1.0.0"));
     ServiceComponentHostResponse r =
         sch.convertToResponse();
-    Assert.assertEquals("svc", r.getServiceName());
-    Assert.assertEquals("svcComp", r.getComponentName());
+    Assert.assertEquals("HDFS", r.getServiceName());
+    Assert.assertEquals("DATANODE", r.getComponentName());
     Assert.assertEquals("h1", r.getHostname());
     Assert.assertEquals("C1", r.getClusterName());
     Assert.assertEquals(State.INSTALLED.toString(), r.getDesiredState());
     Assert.assertEquals(State.INSTALLING.toString(), r.getLiveState());
-    Assert.assertEquals("1.0.0", r.getStackVersion());
+    Assert.assertEquals("HDP-1.0.0", r.getStackVersion());
 
     // TODO check configs
 
     StringBuilder sb = new StringBuilder();
     sch.debugDump(sb);
     Assert.assertFalse(sb.toString().isEmpty());
+  }
+
+  @Test
+  public void testStopInVariousStates() throws AmbariException,
+      InvalidStateTransitionException {
+    ServiceComponentHost sch =
+        createNewServiceComponentHost("HDFS", "DATANODE", "h1", false);
+    ServiceComponentHostImpl impl =  (ServiceComponentHostImpl) sch;
+
+    sch.setDesiredState(State.STARTED);
+    sch.setState(State.START_FAILED);
+
+    long timestamp = 0;
+
+    ServiceComponentHostEvent stopEvent = createEvent(impl, ++timestamp,
+        ServiceComponentHostEventType.HOST_SVCCOMP_STOP);
+
+    long startTime = timestamp;
+    impl.handleEvent(stopEvent);
+    Assert.assertEquals(startTime, impl.getLastOpStartTime());
+    Assert.assertEquals(-1, impl.getLastOpLastUpdateTime());
+    Assert.assertEquals(-1, impl.getLastOpEndTime());
+    Assert.assertEquals(State.STOPPING,
+        impl.getState());
+
+    sch.setState(State.INSTALL_FAILED);
+
+    boolean exceptionThrown = false;
+    try {
+      impl.handleEvent(stopEvent);
+    } catch (Exception e) {
+      exceptionThrown = true;
+    }
+    Assert.assertTrue("Exception not thrown on invalid event", exceptionThrown);
+
+    Assert.assertEquals(startTime, impl.getLastOpStartTime());
+    Assert.assertEquals(-1, impl.getLastOpLastUpdateTime());
+    Assert.assertEquals(-1, impl.getLastOpEndTime());
+
+    sch.setState(State.INSTALLED);
+    ServiceComponentHostEvent stopEvent2 = createEvent(impl, ++timestamp,
+        ServiceComponentHostEventType.HOST_SVCCOMP_STOP);
+
+    startTime = timestamp;
+    impl.handleEvent(stopEvent2);
+    Assert.assertEquals(startTime, impl.getLastOpStartTime());
+    Assert.assertEquals(-1, impl.getLastOpLastUpdateTime());
+    Assert.assertEquals(-1, impl.getLastOpEndTime());
+    Assert.assertEquals(State.STOPPING,
+        impl.getState());
   }
 
 }

@@ -68,7 +68,7 @@ public class AmbariLdapAuthoritiesPopulator implements LdapAuthoritiesPopulator 
       newUser.setLdapUser(true);
       newUser.setUserName(username);
 
-      String roleName = (configuration.getConfigsMap().get(Configuration.LDAP_USER_DEFAULT_ROLE_KEY));
+      String roleName = (configuration.getConfigsMap().get(Configuration.USER_ROLE_NAME_KEY));
       log.info("Using default role name " + roleName);
 
       RoleEntity role = roleDAO.findByName(roleName);

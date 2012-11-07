@@ -21,7 +21,7 @@ package org.apache.ambari.server;
 @SuppressWarnings("serial")
 public class HostNotFoundException extends AmbariException {
 
-  public HostNotFoundException(String hostName) {
-    super("Host not found, hostName=" + hostName);
+  public HostNotFoundException(String hostname) {
+    super("Host not found, hostname=" + hostname);
   }
 }

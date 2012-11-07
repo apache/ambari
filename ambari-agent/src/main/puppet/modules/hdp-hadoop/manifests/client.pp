@@ -20,7 +20,7 @@
 #
 class hdp-hadoop::client(
   $service_state = $hdp::params::cluster_client_state
-) inherits hdp::params
+) inherits hdp-hadoop::params
 {
   $hdp::params::service_exists['hdp-hadoop::client'] = true
 

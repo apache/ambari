@@ -77,7 +77,7 @@ public class ServiceService extends BaseService {
   }
 
   /**
-   * Handles: PUT /clusters/{clusterId}/services/{serviceId}
+   * Handles: POST /clusters/{clusterId}/services/{serviceId}
    * Create a specific service.
    *
    * @param body        http body
@@ -86,18 +86,35 @@ public class ServiceService extends BaseService {
    * @param serviceName service id
    * @return information regarding the created service
    */
-  @PUT
+  @POST
   @Path("{serviceName}")
   @Produces("text/plain")
   public Response createService(String body, @Context HttpHeaders headers, @Context UriInfo ui,
                                 @PathParam("serviceName") String serviceName) {
 
-    return handleRequest(headers, body, ui, Request.Type.PUT,
+    return handleRequest(headers, body, ui, Request.Type.POST,
         createResourceDefinition(serviceName, m_clusterName));
   }
 
   /**
-   * Handles: POST /clusters/{clusterId}/services/{serviceId}
+   * Handles: POST /clusters/{clusterId}/services
+   * Create multiple services.
+   *
+   * @param body        http body
+   * @param headers     http headers
+   * @param ui          uri info
+   * @return information regarding the created services
+   */
+  @POST
+  @Produces("text/plain")
+  public Response createServices(String body, @Context HttpHeaders headers, @Context UriInfo ui) {
+
+    return handleRequest(headers, body, ui, Request.Type.POST,
+        createResourceDefinition(null, m_clusterName));
+  }
+
+  /**
+   * Handles: PUT /clusters/{clusterId}/services/{serviceId}
    * Update a specific service.
    *
    * @param body        http body
@@ -106,13 +123,29 @@ public class ServiceService extends BaseService {
    * @param serviceName service id
    * @return information regarding the updated service
    */
-  @POST
+  @PUT
   @Path("{serviceName}")
   @Produces("text/plain")
   public Response updateService(String body, @Context HttpHeaders headers, @Context UriInfo ui,
                                 @PathParam("serviceName") String serviceName) {
 
-    return handleRequest(headers, body, ui, Request.Type.POST, createResourceDefinition(serviceName, m_clusterName));
+    return handleRequest(headers, body, ui, Request.Type.PUT, createResourceDefinition(serviceName, m_clusterName));
+  }
+
+  /**
+   * Handles: PUT /clusters/{clusterId}/services
+   * Update multiple services.
+   *
+   * @param body        http body
+   * @param headers     http headers
+   * @param ui          uri info
+   * @return information regarding the updated service
+   */
+  @PUT
+  @Produces("text/plain")
+  public Response updateServices(String body, @Context HttpHeaders headers, @Context UriInfo ui) {
+
+    return handleRequest(headers, body, ui, Request.Type.PUT, createResourceDefinition(null, m_clusterName));
   }
 
   /**
@@ -144,12 +177,24 @@ public class ServiceService extends BaseService {
 
     return new ComponentService(m_clusterName, serviceName);
   }
+  
+  /**
+   * Get the components sub-resource.
+   *
+   * @param serviceName service id
+   * @return the action service
+   */
+  @Path("{serviceName}/actions")
+  public ActionService getActionHandler(@PathParam("serviceName") String serviceName) {
+    return new ActionService(m_clusterName, serviceName);
+  }
 
   /**
    * Create a service resource definition.
    *
-   * @param serviceName host name
-   * @param clusterName cluster name
+   * @param serviceName  service name
+   * @param clusterName  cluster name
+   *
    * @return a service resource definition
    */
   ResourceDefinition createResourceDefinition(String serviceName, String clusterName) {

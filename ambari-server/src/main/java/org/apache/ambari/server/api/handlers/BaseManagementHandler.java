@@ -22,6 +22,12 @@ import org.apache.ambari.server.api.resources.ResourceDefinition;
 import org.apache.ambari.server.api.services.Request;
 import org.apache.ambari.server.api.services.Result;
 import org.apache.ambari.server.api.services.ResultImpl;
+import org.apache.ambari.server.api.util.TreeNode;
+import org.apache.ambari.server.controller.spi.RequestStatus;
+import org.apache.ambari.server.controller.spi.Resource;
+import org.apache.ambari.server.controller.utilities.PropertyHelper;
+
+import java.util.Set;
 
 /**
  * Base handler for operations that persist state to the back-end.
@@ -31,9 +37,59 @@ public class BaseManagementHandler implements RequestHandler {
   public Result handleRequest(Request request) {
     ResourceDefinition resource = request.getResourceDefinition();
     resource.setProperties(request.getHttpBodyProperties());
-    request.getPersistenceManager().persist(resource);
+    RequestStatus status = request.getPersistenceManager().persist(resource);
 
-    //todo: what to return from persist?  Possibly just the href of the updated resource.
-    return new ResultImpl();
+    return createResult(request, status);
+  }
+
+  private Result createResult(Request request, RequestStatus requestStatus) {
+    boolean isSynchronous = requestStatus.getStatus() == RequestStatus.Status.Complete;
+
+    Result result = new ResultImpl(isSynchronous);
+    TreeNode<Resource> tree = result.getResultTree();
+
+    Set<Resource> setResources = requestStatus.getAssociatedResources();
+    TreeNode<Resource> resourcesNode = null;
+    if (! setResources.isEmpty()) {
+      resourcesNode = tree.addChild(null, "resources");
+    }
+    int count = 1;
+    for (Resource resource : setResources) {
+      //todo: provide a more meaningful node name
+      resourcesNode.addChild(resource, resource.getType() + ":" + count++);
+    }
+
+    if (! isSynchronous) {
+      Resource requestResource = requestStatus.getRequestResource();
+      TreeNode<Resource> r = tree.addChild(requestResource, "request");
+      String requestHref = buildRequestHref(request, requestStatus);
+      r.setProperty("href", requestHref);
+    }
+
+    return result;
+  }
+
+  //todo: this needs to be rewritten and needs to support operating on clusters collection
+  private String buildRequestHref(Request request, RequestStatus requestStatus) {
+    StringBuilder sb = new StringBuilder();
+    String origHref = request.getURI();
+    String[] toks = origHref.split("/");
+
+    for (int i = 0; i < toks.length; ++i) {
+      String s = toks[i];
+      sb.append(s).append('/');
+      if ("clusters".equals(s)) {
+        sb.append(toks[i + 1]).append('/');
+        break;
+      }
+    }
+
+    //todo: shouldn't know property name
+    Object requestId = requestStatus.getRequestResource().getPropertyValue(
+        PropertyHelper.getPropertyId("id", "Requests"));
+
+    sb.append("requests/").append(requestId);
+
+    return sb.toString();
   }
 }

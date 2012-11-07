@@ -20,17 +20,26 @@ package org.apache.ambari.server.controller;
 
 
 import java.io.File;
-import java.io.IOException;
 import java.util.Map;
 
+import com.google.inject.persist.Transactional;
+import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.actionmanager.ActionManager;
 import org.apache.ambari.server.agent.HeartBeatHandler;
 import org.apache.ambari.server.agent.rest.AgentResource;
+import org.apache.ambari.server.api.services.AmbariMetaInfo;
+import org.apache.ambari.server.api.services.AmbariMetaService;
+import org.apache.ambari.server.api.services.PersistKeyValueImpl;
+import org.apache.ambari.server.api.services.PersistKeyValueService;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
+import org.apache.ambari.server.orm.PersistenceType;
 import org.apache.ambari.server.resources.ResourceManager;
 import org.apache.ambari.server.resources.api.rest.GetResource;
 import org.apache.ambari.server.security.CertificateManager;
+import org.apache.ambari.server.security.authorization.AmbariLdapAuthenticationProvider;
+import org.apache.ambari.server.security.authorization.AmbariLocalUserDetailsService;
+import org.apache.ambari.server.security.authorization.Users;
 import org.apache.ambari.server.security.unsecured.rest.CertificateDownload;
 import org.apache.ambari.server.security.unsecured.rest.CertificateSign;
 import org.apache.ambari.server.state.Clusters;
@@ -39,11 +48,13 @@ import org.mortbay.jetty.handler.ResourceHandler;
 import org.mortbay.jetty.security.SslSocketConnector;
 import org.mortbay.jetty.servlet.Context;
 import org.mortbay.jetty.servlet.DefaultServlet;
+import org.mortbay.jetty.servlet.FilterHolder;
 import org.mortbay.jetty.servlet.ServletHolder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.context.WebApplicationContext;
 import org.springframework.web.context.support.GenericWebApplicationContext;
 import org.springframework.web.filter.DelegatingFilterProxy;
@@ -75,8 +86,11 @@ public class AmbariServer {
   CertificateManager certMan;
   @Inject
   Injector injector;
+  @Inject
+  AmbariMetaInfo ambariMetaInfo;
+
   private static AmbariManagementController clusterController = null;
-  
+
   public static AmbariManagementController getController() {
     return clusterController;
   }
@@ -89,6 +103,7 @@ public class AmbariServer {
 
   public void run() {
     performStaticInjection();
+    addInMemoryUsers();
     server = new Server(CLIENT_API_PORT);
     serverForAgent = new Server();
 
@@ -98,7 +113,14 @@ public class AmbariServer {
       parentSpringAppContext.refresh();
       ConfigurableListableBeanFactory factory = parentSpringAppContext.
           getBeanFactory();
-      factory.registerSingleton("guiceInjector", injector);
+      factory.registerSingleton("guiceInjector",
+          injector);
+      factory.registerSingleton("passwordEncoder",
+          injector.getInstance(PasswordEncoder.class));
+      factory.registerSingleton("ambariLocalUserService",
+          injector.getInstance(AmbariLocalUserDetailsService.class));
+      factory.registerSingleton("ambariLdapAuthenticationProvider",
+          injector.getInstance(AmbariLdapAuthenticationProvider.class));
       //Spring Security xml config depends on this Bean
 
       String[] contextLocations = {SPRING_CONTEXT_LOCATION};
@@ -131,8 +153,10 @@ public class AmbariServer {
       //Spring Security Filter initialization
       DelegatingFilterProxy springSecurityFilter = new DelegatingFilterProxy();
       springSecurityFilter.setTargetBeanName("springSecurityFilterChain");
-      //root.addFilter(new FilterHolder(springSecurityFilter), "/*", 1);
 
+      if (configs.getApiAuthentication()) {
+        root.addFilter(new FilterHolder(springSecurityFilter), "/api/*", 1);
+      }
       //Secured connector for 2-way auth
       SslSocketConnector sslConnectorTwoWay = new SslSocketConnector();
       sslConnectorTwoWay.setPort(CLIENT_TWO_WAY);
@@ -207,9 +231,17 @@ public class AmbariServer {
       serverForAgent.setStopAtShutdown(true);
       springAppContext.start();
 
+      LOG.info("********* Initializing Meta Info **********");
+      ambariMetaInfo.init();
+
       //Start action scheduler
       LOG.info("********* Initializing Clusters **********");
       Clusters clusters = injector.getInstance(Clusters.class);
+      StringBuilder clusterDump = new StringBuilder();
+      clusters.debugDump(clusterDump);
+      LOG.info("********* Current Clusters State *********");
+      LOG.info(clusterDump.toString());
+
       LOG.info("********* Initializing ActionManager **********");
       ActionManager manager = injector.getInstance(ActionManager.class);
       LOG.info("********* Initializing Controller **********");
@@ -217,7 +249,7 @@ public class AmbariServer {
           AmbariManagementController.class);
 
       clusterController = controller;
-      
+
       // FIXME need to figure out correct order of starting things to
       // handle restart-recovery correctly
 
@@ -235,11 +267,31 @@ public class AmbariServer {
 //      RequestInjectorForTest testInjector = new RequestInjectorForTest(controller, clusters);
 //      Thread testInjectorThread = new Thread(testInjector);
 //      testInjectorThread.start();
-      
+
       server.join();
       LOG.info("Joined the Server");
     } catch (Exception e) {
       LOG.error("Error in the server", e);
+    }
+  }
+
+  /**
+   * Creates default users and roles if in-memory database is used
+   */
+  @Transactional
+  protected void addInMemoryUsers() {
+    if (configs.getPersistenceType() == PersistenceType.IN_MEMORY) {
+      LOG.info("In-memory database is used - creating default users");
+      Users users = injector.getInstance(Users.class);
+
+      users.createDefaultRoles();
+      users.createUser("admin", "admin");
+      users.createUser("user", "user");
+      try {
+        users.promoteToAdmin(users.getLocalUser("admin"));
+      } catch (AmbariException e) {
+        throw new RuntimeException(e);
+      }
     }
   }
 
@@ -259,12 +311,14 @@ public class AmbariServer {
     CertificateDownload.init(injector.getInstance(CertificateManager.class));
     CertificateSign.init(injector.getInstance(CertificateManager.class));
     GetResource.init(injector.getInstance(ResourceManager.class));
+    PersistKeyValueService.init(injector.getInstance(PersistKeyValueImpl.class));
+    AmbariMetaService.init(injector.getInstance(AmbariMetaInfo.class));
   }
 
-  public static void main(String[] args) throws IOException {
+  public static void main(String[] args) throws Exception {
 
     Injector injector = Guice.createInjector(new ControllerModule());
-    
+
     try {
       LOG.info("Getting the controller");
       injector.getInstance(GuiceJpaInitializer.class);

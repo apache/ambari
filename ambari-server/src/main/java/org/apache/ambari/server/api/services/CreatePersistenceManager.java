@@ -21,6 +21,7 @@ package org.apache.ambari.server.api.services;
 import org.apache.ambari.server.api.resources.ResourceDefinition;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.controller.spi.ClusterController;
+import org.apache.ambari.server.controller.spi.RequestStatus;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.spi.Schema;
 
@@ -31,7 +32,7 @@ import java.util.Map;
  */
 public class CreatePersistenceManager extends BasePersistenceManager {
   @Override
-  public void persist(ResourceDefinition resource) {
+  public RequestStatus persist(ResourceDefinition resource) {
     ClusterController controller = getClusterController();
     Map<Resource.Type, String> mapResourceIds = resource.getResourceIds();
     Resource.Type type = resource.getType();
@@ -41,11 +42,10 @@ public class CreatePersistenceManager extends BasePersistenceManager {
       resource.setProperty(schema.getKeyPropertyId(entry.getKey()), entry.getValue());
     }
     try {
-      controller.createResources(type, createControllerRequest(resource.getProperties()));
+      return controller.createResources(type, createControllerRequest(resource.getProperties()));
     } catch (AmbariException e) {
       //todo: handle exception
       throw new RuntimeException("Create of resource failed: " + e, e);
-
     }
   }
 }

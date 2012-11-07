@@ -20,12 +20,23 @@ package org.apache.ambari.server.agent;
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import junit.framework.Assert;
+
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.google.inject.persist.PersistService;
 import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.Role;
+import org.apache.ambari.server.RoleCommand;
+import org.apache.ambari.server.actionmanager.ActionDBAccessor;
+import org.apache.ambari.server.actionmanager.ActionDBAccessorImpl;
 import org.apache.ambari.server.actionmanager.ActionDBInMemoryImpl;
 import org.apache.ambari.server.actionmanager.ActionManager;
+import org.apache.ambari.server.actionmanager.HostRoleStatus;
+import org.apache.ambari.server.actionmanager.Stage;
 import org.apache.ambari.server.agent.HostStatus.Status;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
@@ -33,6 +44,8 @@ import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.HostState;
 import org.apache.ambari.server.state.fsm.InvalidStateTransitionException;
+import org.apache.ambari.server.state.svccomphost.ServiceComponentHostStartEvent;
+import org.apache.ambari.server.utils.StageUtils;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -41,6 +54,8 @@ public class TestHeartbeatHandler {
 
   private Injector injector;
   private Clusters clusters;
+  long requestId = 23;
+  long stageId = 31;
 
   @Before
   public void setup() throws AmbariException{
@@ -79,6 +94,55 @@ public class TestHeartbeatHandler {
   }
 
   @Test
+  public void testCommandReport() throws AmbariException {
+    String hostname = "host1";
+    String clusterName = "cluster1";
+    injector.injectMembers(this);
+    clusters.addHost(hostname);
+    clusters.getHost(hostname).persist();
+    clusters.addCluster(clusterName);
+    ActionDBAccessor db = injector.getInstance(ActionDBAccessorImpl.class);
+    ActionManager am = new ActionManager(5000, 1200000, new ActionQueue(), clusters, db);
+    populateActionDB(db, hostname);
+    Stage stage = db.getAllStages(requestId).get(0);
+    Assert.assertEquals(stageId, stage.getStageId());
+    stage.setHostRoleStatus(hostname, "HBASE_MASTER", HostRoleStatus.QUEUED);
+    db.hostRoleScheduled(stage, hostname, "HBASE_MASTER");
+    List<CommandReport> reports = new ArrayList<CommandReport>();
+    CommandReport cr = new CommandReport();
+    cr.setActionId(StageUtils.getActionId(requestId, stageId));
+    cr.setTaskId(1);
+    cr.setRole("HBASE_MASTER");
+    cr.setStatus("COMPLETED");
+    cr.setStdErr("");
+    cr.setStdOut("");
+    cr.setExitCode(215);
+    reports.add(cr);
+    am.processTaskResponse(hostname, reports);
+    assertEquals(215,
+        am.getAction(requestId, stageId).getExitCode(hostname, "HBASE_MASTER"));
+    assertEquals(HostRoleStatus.COMPLETED, am.getAction(requestId, stageId)
+        .getHostRoleStatus(hostname, "HBASE_MASTER"));
+    Stage s = db.getAllStages(requestId).get(0);
+    assertEquals(HostRoleStatus.COMPLETED,
+        s.getHostRoleStatus(hostname, "HBASE_MASTER"));
+    assertEquals(215,
+        s.getExitCode(hostname, "HBASE_MASTER"));
+  }
+
+  private void populateActionDB(ActionDBAccessor db, String hostname) {
+    Stage s = new Stage(requestId, "/a/b", "cluster1");
+    s.setStageId(stageId);
+    s.addHostRoleExecutionCommand(hostname, Role.HBASE_MASTER,
+        RoleCommand.START,
+        new ServiceComponentHostStartEvent(Role.HBASE_MASTER.toString(),
+            hostname, System.currentTimeMillis()), "cluster1", "HBASE");
+    List<Stage> stages = new ArrayList<Stage>();
+    stages.add(s);
+    db.persistActions(stages);
+  }
+
+  @Test
   public void testRegistration() throws AmbariException,
       InvalidStateTransitionException {
     ActionManager am = new ActionManager(0, 0, null, null,
@@ -99,7 +163,7 @@ public class TestHeartbeatHandler {
     reg.setHardwareProfile(hi);
     handler.handleRegistration(reg);
     assertEquals(hostObject.getState(), HostState.HEALTHY);
-    assertEquals("MegaOperatingSystem", hostObject.getOsType());
+    assertEquals("megaoperatingsystem", hostObject.getOsType());
   }
 
   @Test
@@ -123,7 +187,7 @@ public class TestHeartbeatHandler {
     RegistrationResponse response = handler.handleRegistration(reg);
 
     assertEquals(hostObject.getState(), HostState.HEALTHY);
-    assertEquals("MegaOperatingSystem", hostObject.getOsType());
+    assertEquals("megaoperatingsystem", hostObject.getOsType());
     assertEquals(RegistrationStatus.OK, response.getResponseStatus());
     assertEquals(0, response.getResponseId());
     assertEquals(null, response.getCommands());

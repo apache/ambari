@@ -26,9 +26,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import com.google.inject.Inject;
-import com.google.inject.Injector;
-import com.google.inject.Singleton;
+import javax.persistence.RollbackException;
+
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.ClusterNotFoundException;
 import org.apache.ambari.server.HostNotFoundException;
@@ -49,7 +48,9 @@ import org.apache.ambari.server.state.host.HostImpl;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.persistence.RollbackException;
+import com.google.inject.Inject;
+import com.google.inject.Injector;
+import com.google.inject.Singleton;
 
 @Singleton
 public class ClustersImpl implements Clusters {
@@ -134,6 +135,8 @@ public class ClustersImpl implements Clusters {
         Cluster cluster = clusterFactory.create(clusterEntity);
         clustersById.put(cluster.getClusterId(), cluster);
         clusters.put(clusterEntity.getClusterName(), cluster);
+        if (!clusterHostMap.containsKey(clusterEntity.getClusterName()))
+          clusterHostMap.put(clusterEntity.getClusterName(), new HashSet<Host>());
       } else {
         throw new ClusterNotFoundException("clusterID=" + id);
       }
@@ -236,7 +239,9 @@ public class ClustersImpl implements Clusters {
     host.addToCluster(cluster);
 
     hostClusterMap.get(hostname).add(cluster);
+    
     clusterHostMap.get(clusterName).add(host);
+    
     if (LOG.isDebugEnabled()) {
       LOG.debug("Mapping a host to a cluster"
           + ", clusterName=" + clusterName
@@ -291,11 +296,15 @@ public class ClustersImpl implements Clusters {
   @Override
   public Map<String, Host> getHostsForCluster(String clusterName)
       throws AmbariException {
+    
     getCluster(clusterName);
+    
     Map<String, Host> hosts = new HashMap<String, Host>();
+    
     for (Host h : clusterHostMap.get(clusterName)) {
       hosts.put(h.getHostName(), h);
     }
+    
     return hosts;
   }
 

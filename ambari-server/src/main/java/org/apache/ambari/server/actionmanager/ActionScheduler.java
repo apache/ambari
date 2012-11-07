@@ -23,6 +23,7 @@ import java.util.Map;
 import java.util.TreeMap;
 
 import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.ServiceComponentNotFoundException;
 import org.apache.ambari.server.agent.ActionQueue;
 import org.apache.ambari.server.agent.ExecutionCommand;
 import org.apache.ambari.server.state.Cluster;
@@ -89,10 +90,14 @@ class ActionScheduler implements Runnable {
 
   private void doWork() throws AmbariException {
     List<Stage> stages = db.getStagesInProgress();
-    LOG.info("Scheduler wakes up");
+    if (LOG.isDebugEnabled()) {
+      LOG.info("Scheduler wakes up");
+    }
     if (stages == null || stages.isEmpty()) {
       //Nothing to do
-      LOG.info("No stage in progress..nothing to do");
+      if (LOG.isDebugEnabled()) {
+        LOG.info("No stage in progress..nothing to do");
+      }
       return;
     }
 
@@ -186,6 +191,8 @@ class ActionScheduler implements Runnable {
               ServiceComponentHost svcCompHost =
                   svcComp.getServiceComponentHost(host);
               svcCompHost.handleEvent(timeoutEvent);
+            } catch (ServiceComponentNotFoundException scnex) {
+              LOG.info("Not a service component, assuming its an action", scnex);
             } catch (InvalidStateTransitionException e) {
               LOG.info("Transition failed for host: "+host+", role: "+roleStr, e);
             } catch (AmbariException ex) {
@@ -235,8 +242,8 @@ class ActionScheduler implements Runnable {
         ServiceComponentHost svcCompHost =
             svcComp.getServiceComponentHost(hostname);
         svcCompHost.handleEvent(s.getFsmEvent(hostname, roleStr));
-        s.setStartTime(hostname,roleStr, now);
-        s.setHostRoleStatus(hostname, roleStr, HostRoleStatus.QUEUED);
+      } catch (ServiceComponentNotFoundException scnex) {
+        LOG.info("Not a service component, assuming its an action", scnex);
       } catch (InvalidStateTransitionException e) {
         LOG.info(
             "Transition failed for host: " + hostname + ", role: "
@@ -247,6 +254,8 @@ class ActionScheduler implements Runnable {
             e);
         throw e;
       }
+      s.setStartTime(hostname,roleStr, now);
+      s.setHostRoleStatus(hostname, roleStr, HostRoleStatus.QUEUED);
     }
     s.setLastAttemptTime(hostname, roleStr, now);
     s.incrementAttemptCount(hostname, roleStr);
@@ -279,6 +288,9 @@ class ActionScheduler implements Runnable {
       break;
     case ABORTED:
       rs.numAborted++;
+      break;
+    default:
+      LOG.error("Unknown status " + status.name());
     }
   }
 

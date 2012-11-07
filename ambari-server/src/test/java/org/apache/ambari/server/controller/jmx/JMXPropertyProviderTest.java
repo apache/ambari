@@ -38,12 +38,12 @@ public class JMXPropertyProviderTest {
   public void testGetResources() throws Exception {
 
     TestStreamProvider  streamProvider = new TestStreamProvider();
-    Map<String, String> hostMap        = TestHostMappingProvider.getHostMap();
+      TestJMXHostProvider hostProvider = new TestJMXHostProvider();
 
     JMXPropertyProvider propertyProvider = new JMXPropertyProvider(
         PropertyHelper.getJMXPropertyIds(Resource.Type.HostComponent),
         streamProvider,
-        hostMap);
+        hostProvider);
 
     // namenode
     Resource resource = new ResourceImpl(Resource.Type.HostComponent);
@@ -100,5 +100,14 @@ public class JMXPropertyProviderTest {
     Assert.assertEquals(3, PropertyHelper.getProperties(resource).size());
     Assert.assertEquals(59, resource.getPropertyValue(PropertyHelper.getPropertyId("threadsWaiting", "metrics/jvm")));
     Assert.assertNull(resource.getPropertyValue(PropertyHelper.getPropertyId("gcCount", "metrics/jvm")));
+  }
+
+
+
+  private static class TestJMXHostProvider implements JMXHostProvider {
+    @Override
+    public Map<String, String> getHostMapping(String hostName) {
+      return TestHostMappingProvider.getHostMap();
+    }
   }
 }

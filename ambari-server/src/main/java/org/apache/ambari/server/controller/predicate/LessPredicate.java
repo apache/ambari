@@ -32,7 +32,7 @@ public class LessPredicate<T> extends ComparisonPredicate {
   @Override
   public boolean evaluate(Resource resource) {
     Object propertyValue = resource.getPropertyValue(getPropertyId());
-    return propertyValue != null && getValue().compareTo(propertyValue) > 0;
+    return propertyValue != null && compareValueTo(propertyValue) > 0;
   }
 
   @Override

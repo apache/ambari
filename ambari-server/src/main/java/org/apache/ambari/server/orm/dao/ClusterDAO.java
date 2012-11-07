@@ -45,10 +45,12 @@ public class ClusterDAO {
    * @param id ID of Cluster
    * @return Found entity or NULL
    */
+  @Transactional
   public ClusterEntity findById(long id) {
     return entityManagerProvider.get().find(ClusterEntity.class, id);
   }
 
+  @Transactional
   public ClusterEntity findByName(String clusterName) {
     TypedQuery<ClusterEntity> query = entityManagerProvider.get().createNamedQuery("clusterByName", ClusterEntity.class);
     query.setParameter("clusterName", clusterName);
@@ -59,6 +61,7 @@ public class ClusterDAO {
     }
   }
 
+  @Transactional
   public List<ClusterEntity> findAll() {
     TypedQuery<ClusterEntity> query = entityManagerProvider.get().createNamedQuery("allClusters", ClusterEntity.class);
     try {
@@ -89,6 +92,7 @@ public class ClusterDAO {
    * Retrieve entity data from DB
    * @param clusterEntity entity to refresh
    */
+  @Transactional
   public void refresh(ClusterEntity clusterEntity) {
     entityManagerProvider.get().refresh(clusterEntity);
   }
@@ -100,21 +104,12 @@ public class ClusterDAO {
 
   @Transactional
   public void remove(ClusterEntity clusterEntity) {
-    entityManagerProvider.get().remove(clusterEntity);
+    entityManagerProvider.get().remove(merge(clusterEntity));
   }
 
   @Transactional
   public void removeByName(String clusterName) {
     remove(findByName(clusterName));
-  }
-
-  @Transactional
-  public void rename(ClusterEntity clusterEntity, String newName) {
-    entityManagerProvider.get().unwrap(JpaEntityManager.class).getUnitOfWork().setShouldPerformDeletesFirst(true);
-    remove(clusterEntity);
-    entityManagerProvider.get().detach(clusterEntity);
-    clusterEntity.setClusterName(newName);
-    create(clusterEntity);
   }
 
 }

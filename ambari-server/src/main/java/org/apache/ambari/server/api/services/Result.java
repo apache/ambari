@@ -32,4 +32,12 @@ public interface Result {
    * @return the results of the request a a Tree structure
    */
   public TreeNode<Resource> getResultTree();
+
+  /**
+   * Determine whether the request was handle synchronously.
+   * If the request is synchronous, all work was completed prior to returning.
+   *
+   * @return true if the request was synchronous, false if it was asynchronous
+   */
+  public boolean isSynchronous();
 }

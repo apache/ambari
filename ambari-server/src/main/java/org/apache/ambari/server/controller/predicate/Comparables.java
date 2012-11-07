@@ -30,6 +30,32 @@ public class Comparables {
       public int compareTo(String s) {
         return value.compareTo(Integer.valueOf(s));
       }
+
+      @Override
+      public boolean equals(Object obj) {
+        if (obj == null) {
+          return false;
+        }
+        if (obj == value) {
+          return true;
+        }
+        if (obj instanceof String) {
+          try {
+            return value.equals(Integer.valueOf((String)obj));
+          } catch (NumberFormatException nfe) {
+            return false;
+          }
+        }
+        if (obj instanceof  Integer) {
+          return value.equals((Integer)obj);
+        }
+        return  false;
+      }
+
+      @Override
+      public int hashCode() {
+        return value.toString().hashCode();
+      }
     };
   }
 
@@ -39,6 +65,32 @@ public class Comparables {
       @Override
       public int compareTo(String s) {
         return value.compareTo(Float.valueOf(s));
+      }
+
+      @Override
+      public boolean equals(Object obj) {
+        if (obj == null) {
+          return false;
+        }
+        if (obj == value) {
+          return true;
+        }
+        if (obj instanceof String) {
+          try {
+            return value.equals(Float.valueOf((String)obj));
+          } catch (NumberFormatException nfe) {
+            return false;
+          }
+        }
+        if (obj instanceof  Float) {
+          return value.equals((Float)obj);
+        }
+        return  false;
+      }
+
+      @Override
+      public int hashCode() {
+        return value.toString().hashCode();
       }
     };
   }
@@ -50,6 +102,33 @@ public class Comparables {
       public int compareTo(String s) {
         return value.compareTo(Double.valueOf(s));
       }
+
+      @Override
+      public boolean equals(Object obj) {
+        if (obj == null) {
+          return false;
+        }
+        if (obj == value) {
+          return true;
+        }
+        if (obj instanceof String) {
+          try {
+            return value.equals(Double.valueOf((String)obj));
+          } catch (NumberFormatException nfe) {
+            return false;
+          }
+        }
+        if (obj instanceof  Double) {
+          return value.equals((Double)obj);
+        }
+        return  false;
+      }
+
+      @Override
+      public int hashCode() {
+        return value.toString().hashCode();
+      }
+
     };
   }
 
@@ -59,6 +138,32 @@ public class Comparables {
       @Override
       public int compareTo(String s) {
         return value.compareTo(Long.valueOf(s));
+      }
+
+      @Override
+      public boolean equals(Object obj) {
+        if (obj == null) {
+          return false;
+        }
+        if (obj == value) {
+          return true;
+        }
+        if (obj instanceof String) {
+          try {
+            return value.equals(Long.valueOf((String)obj));
+          } catch (NumberFormatException nfe) {
+            return false;
+          }
+        }
+        if (obj instanceof  Long) {
+          return value.equals((Long)obj);
+        }
+        return  false;
+      }
+
+      @Override
+      public int hashCode() {
+        return value.toString().hashCode();
       }
     };
   }

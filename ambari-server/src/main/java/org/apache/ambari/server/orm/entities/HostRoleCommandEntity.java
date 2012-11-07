@@ -25,18 +25,19 @@ import javax.persistence.*;
 
 @Table(name = "host_role_command", schema = "ambari", catalog = "")
 @Entity
+@Cacheable(false)
 @SequenceGenerator(name = "ambari.host_role_command_task_id_seq", allocationSize = 1)
 public class HostRoleCommandEntity {
-  private Integer taskId;
+  private Long taskId;
 
   @Column(name = "task_id")
   @Id
   @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "ambari.host_role_command_task_id_seq")
-  public Integer getTaskId() {
+  public Long getTaskId() {
     return taskId;
   }
 
-  public void setTaskId(Integer taskId) {
+  public void setTaskId(Long taskId) {
     this.taskId = taskId;
   }
 
@@ -138,7 +139,7 @@ public class HostRoleCommandEntity {
 
   private String stdError = "";
 
-  @Column(name = "std_error", nullable = false)
+  @Column(name = "std_error", nullable = false, length=32000)
   @Basic
   public String getStdError() {
     return stdError;
@@ -150,7 +151,7 @@ public class HostRoleCommandEntity {
 
   private String stdOut = "";
 
-  @Column(name = "std_out", nullable = false)
+  @Column(name = "std_out", nullable = false, length=32000)
   @Basic
   public String getStdOut() {
     return stdOut;

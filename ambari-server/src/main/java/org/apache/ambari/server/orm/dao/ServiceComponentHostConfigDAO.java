@@ -29,10 +29,12 @@ public class ServiceComponentHostConfigDAO {
   @Inject
   Provider<EntityManager> entityManagerProvider;
 
+  @Transactional
   public ServiceComponentHostConfigEntity findByPK(Integer primaryKey) {
     return entityManagerProvider.get().find(ServiceComponentHostConfigEntity.class, primaryKey);
   }
 
+  @Transactional
   public void refresh(ServiceComponentHostConfigEntity serviceComponentHostConfigEntity) {
     entityManagerProvider.get().refresh(serviceComponentHostConfigEntity);
   }
@@ -49,7 +51,7 @@ public class ServiceComponentHostConfigDAO {
 
   @Transactional
   public void remove(ServiceComponentHostConfigEntity serviceComponentHostConfigEntity) {
-    entityManagerProvider.get().remove(serviceComponentHostConfigEntity);
+    entityManagerProvider.get().remove(merge(serviceComponentHostConfigEntity));
   }
 
   @Transactional

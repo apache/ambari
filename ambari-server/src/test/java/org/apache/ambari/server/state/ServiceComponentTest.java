@@ -26,6 +26,7 @@ import java.util.Map;
 import junit.framework.Assert;
 
 import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.controller.ServiceComponentResponse;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
@@ -57,9 +58,10 @@ public class ServiceComponentTest {
   private ServiceFactory serviceFactory;
   private ServiceComponentFactory serviceComponentFactory;
   private ServiceComponentHostFactory serviceComponentHostFactory;
+  private AmbariMetaInfo metaInfo;
 
   @Before
-  public void setup() throws AmbariException {
+  public void setup() throws Exception {
     injector = Guice.createInjector(new InMemoryDefaultTestModule());
     injector.getInstance(GuiceJpaInitializer.class);
     clusters = injector.getInstance(Clusters.class);
@@ -68,10 +70,14 @@ public class ServiceComponentTest {
         ServiceComponentFactory.class);
     serviceComponentHostFactory = injector.getInstance(
         ServiceComponentHostFactory.class);
+    metaInfo = injector.getInstance(AmbariMetaInfo.class);
+    metaInfo.init();
+
     clusterName = "foo";
-    serviceName = "s1";
+    serviceName = "HDFS";
     clusters.addCluster(clusterName);
     cluster = clusters.getCluster(clusterName);
+    cluster.setDesiredStackVersion(new StackId("HDP-0.1"));
     Assert.assertNotNull(cluster);
     Service s = serviceFactory.createNew(cluster, serviceName);
     cluster.addService(s);
@@ -87,7 +93,7 @@ public class ServiceComponentTest {
 
   @Test
   public void testCreateServiceComponent() throws AmbariException {
-    String componentName = "sc1";
+    String componentName = "DATANODE2";
     ServiceComponent component = serviceComponentFactory.createNew(service,
         componentName);
     service.addServiceComponent(component);
@@ -103,14 +109,14 @@ public class ServiceComponentTest {
     Assert.assertEquals(cluster.getClusterName(),
         sc.getClusterName());
     Assert.assertEquals(State.INIT, sc.getDesiredState());
-    Assert.assertTrue(
-        sc.getDesiredStackVersion().getStackVersion().isEmpty());
+    Assert.assertFalse(
+        sc.getDesiredStackVersion().getStackId().isEmpty());
   }
 
 
   @Test
   public void testGetAndSetServiceComponentInfo() throws AmbariException {
-    String componentName = "sc1";
+    String componentName = "NAMENODE";
     ServiceComponent component = serviceComponentFactory.createNew(service,
         componentName);
     service.addServiceComponent(component);
@@ -123,8 +129,8 @@ public class ServiceComponentTest {
     sc.setDesiredState(State.INSTALLED);
     Assert.assertEquals(State.INSTALLED, sc.getDesiredState());
 
-    sc.setDesiredStackVersion(new StackVersion("1.0.0"));
-    Assert.assertEquals("1.0.0", sc.getDesiredStackVersion().getStackVersion());
+    sc.setDesiredStackVersion(new StackId("HDP-1.0.0"));
+    Assert.assertEquals("HDP-1.0.0", sc.getDesiredStackVersion().getStackId());
 
     ServiceComponentDesiredStateDAO serviceComponentDesiredStateDAO =
         injector.getInstance(ServiceComponentDesiredStateDAO.class);
@@ -142,8 +148,8 @@ public class ServiceComponentTest {
         serviceComponentDesiredStateEntity);
     Assert.assertNotNull(sc1);
     Assert.assertEquals(State.INSTALLED, sc1.getDesiredState());
-    Assert.assertEquals("1.0.0",
-        sc1.getDesiredStackVersion().getStackVersion());
+    Assert.assertEquals("HDP-1.0.0",
+        sc1.getDesiredStackVersion().getStackId());
 
   }
 
@@ -168,7 +174,7 @@ public class ServiceComponentTest {
 
   @Test
   public void testAddAndGetServiceComponentHosts() throws AmbariException {
-    String componentName = "sc1";
+    String componentName = "NAMENODE";
     ServiceComponent component = serviceComponentFactory.createNew(service,
         componentName);
     service.addServiceComponent(component);
@@ -229,9 +235,9 @@ public class ServiceComponentTest {
     sch3.persist();
     Assert.assertNotNull(sc.getServiceComponentHost("h3"));
 
-    sch1.setDesiredStackVersion(new StackVersion("1.1.0"));
+    sch1.setDesiredStackVersion(new StackId("HDP-1.1.0"));
     sch1.setState(State.STARTING);
-    sch1.setStackVersion(new StackVersion("1.0.0"));
+    sch1.setStackVersion(new StackId("HDP-1.0.0"));
     sch1.setDesiredState(State.STARTED);
 
     HostComponentDesiredStateDAO desiredStateDAO = injector.getInstance(
@@ -263,15 +269,15 @@ public class ServiceComponentTest {
     Assert.assertNotNull(sch);
     Assert.assertEquals(State.STARTING, sch.getState());
     Assert.assertEquals(State.STARTED, sch.getDesiredState());
-    Assert.assertEquals("1.0.0",
-        sch.getStackVersion().getStackVersion());
-    Assert.assertEquals("1.1.0",
-        sch.getDesiredStackVersion().getStackVersion());
+    Assert.assertEquals("HDP-1.0.0",
+        sch.getStackVersion().getStackId());
+    Assert.assertEquals("HDP-1.1.0",
+        sch.getDesiredStackVersion().getStackId());
   }
 
   @Test
   public void testConvertToResponse() throws AmbariException {
-    String componentName = "sc1";
+    String componentName = "NAMENODE";
     ServiceComponent component = serviceComponentFactory.createNew(service,
         componentName);
     service.addServiceComponent(component);
@@ -280,14 +286,14 @@ public class ServiceComponentTest {
     ServiceComponent sc = service.getServiceComponent(componentName);
     Assert.assertNotNull(sc);
     sc.setDesiredState(State.INSTALLED);
-    sc.setDesiredStackVersion(new StackVersion("1.0.0"));
+    sc.setDesiredStackVersion(new StackId("HDP-1.0.0"));
 
     ServiceComponentResponse r = sc.convertToResponse();
     Assert.assertEquals(sc.getClusterName(), r.getClusterName());
     Assert.assertEquals(sc.getClusterId(), r.getClusterId().longValue());
     Assert.assertEquals(sc.getName(), r.getComponentName());
     Assert.assertEquals(sc.getServiceName(), r.getServiceName());
-    Assert.assertEquals(sc.getDesiredStackVersion().getStackVersion(),
+    Assert.assertEquals(sc.getDesiredStackVersion().getStackId(),
         r.getDesiredStackVersion());
     Assert.assertEquals(sc.getDesiredState().toString(),
         r.getDesiredState());

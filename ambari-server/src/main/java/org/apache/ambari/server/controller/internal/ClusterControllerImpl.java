@@ -25,10 +25,13 @@ import org.apache.ambari.server.controller.spi.ClusterController;
 import org.apache.ambari.server.controller.spi.Predicate;
 import org.apache.ambari.server.controller.spi.PropertyProvider;
 import org.apache.ambari.server.controller.spi.Request;
+import org.apache.ambari.server.controller.spi.RequestStatus;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.spi.ResourceProvider;
 import org.apache.ambari.server.controller.spi.Schema;
 import org.apache.ambari.server.controller.utilities.PredicateHelper;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Collections;
 import java.util.HashMap;
@@ -43,7 +46,9 @@ import java.util.Set;
  * Default cluster controller implementation.
  */
 public class ClusterControllerImpl implements ClusterController {
-
+  private final static Logger LOG =
+      LoggerFactory.getLogger(ClusterControllerImpl.class);
+  
   /**
    * Module of providers for this controller.
    */
@@ -72,8 +77,6 @@ public class ClusterControllerImpl implements ClusterController {
     resourceProviders   = new HashMap<Resource.Type, ResourceProvider>();
     propertyProviders   = new HashMap<Resource.Type, List<PropertyProvider>>();
     schemas             = new HashMap<Resource.Type, Schema>();
-
-    setProviders();
   }
 
 
@@ -82,12 +85,16 @@ public class ClusterControllerImpl implements ClusterController {
   @Override
   public Iterable<Resource> getResources(Resource.Type type, Request request, Predicate predicate)
       throws AmbariException{
-    ResourceProvider provider = resourceProviders.get(type);
+    ResourceProvider provider = ensureResourceProvider(type);
+    ensurePropertyProviders(type);
     Set<Resource> resources;
 
     if (provider == null) {
       resources = Collections.emptySet();
     } else {
+      LOG.info("Using resource provider "
+          + provider.getClass().getName()
+          + " for request type " + type.toString());
       resources = provider.getResources(request, predicate);
       resources = populateResources(type, resources, request, predicate);
     }
@@ -102,7 +109,7 @@ public class ClusterControllerImpl implements ClusterController {
     synchronized (schemas) {
       schema = schemas.get(type);
       if (schema == null) {
-        schema = new SchemaImpl(resourceProviders.get(type), propertyProviders.get(type));
+        schema = new SchemaImpl(ensureResourceProvider(type), ensurePropertyProviders(type));
         schemas.put(type, schema);
       }
     }
@@ -110,27 +117,31 @@ public class ClusterControllerImpl implements ClusterController {
   }
 
   @Override
-  public void createResources(Resource.Type type, Request request) throws AmbariException {
-    ResourceProvider provider = resourceProviders.get(type);
+  public RequestStatus createResources(Resource.Type type, Request request) throws AmbariException {
+    ResourceProvider provider = ensureResourceProvider(type);
     if (provider != null) {
-      provider.createResources(request);
+      return provider.createResources(request);
     }
+    return null;
   }
 
   @Override
-  public void updateResources(Resource.Type type, Request request, Predicate predicate) throws AmbariException {
-    ResourceProvider provider = resourceProviders.get(type);
+  public RequestStatus updateResources(Resource.Type type, Request request, Predicate predicate) throws AmbariException {
+    ResourceProvider provider = ensureResourceProvider(type);
     if (provider != null) {
-      provider.updateResources(request, predicate);
+      return provider.updateResources(request, predicate);
     }
+    return null;
   }
 
   @Override
-  public void deleteResources(Resource.Type type, Predicate predicate) throws AmbariException {
-    ResourceProvider provider = resourceProviders.get(type);
+  public RequestStatus deleteResources(Resource.Type type, Predicate predicate) throws AmbariException {
+
+    ResourceProvider provider = ensureResourceProvider(type);
     if (provider != null) {
-      provider.deleteResources(predicate);
+      return provider.deleteResources(predicate);
     }
+    return null;
   }
 
 
@@ -171,22 +182,19 @@ public class ClusterControllerImpl implements ClusterController {
     return !requestPropertyIds.isEmpty();
   }
 
-  private void setProviders() {
-    resourceProviders.put(Resource.Type.Cluster, providerModule.getResourceProvider(Resource.Type.Cluster));
-    resourceProviders.put(Resource.Type.Service, providerModule.getResourceProvider(Resource.Type.Service));
-    resourceProviders.put(Resource.Type.Host, providerModule.getResourceProvider(Resource.Type.Host));
-    resourceProviders.put(Resource.Type.Component, providerModule.getResourceProvider(Resource.Type.Component));
-    resourceProviders.put(Resource.Type.HostComponent, providerModule.getResourceProvider(Resource.Type.HostComponent));
-    resourceProviders.put(Resource.Type.Configuration, providerModule.getResourceProvider(Resource.Type.Configuration));
-
-    propertyProviders.put(Resource.Type.Cluster, providerModule.getPropertyProviders(Resource.Type.Cluster));
-    propertyProviders.put(Resource.Type.Service, providerModule.getPropertyProviders(Resource.Type.Service));
-    propertyProviders.put(Resource.Type.Host, providerModule.getPropertyProviders(Resource.Type.Host));
-    propertyProviders.put(Resource.Type.Component, providerModule.getPropertyProviders(Resource.Type.Component));
-    propertyProviders.put(Resource.Type.HostComponent, providerModule.getPropertyProviders(Resource.Type.HostComponent));
-    propertyProviders.put(Resource.Type.Configuration, providerModule.getPropertyProviders(Resource.Type.Configuration));
+  private ResourceProvider ensureResourceProvider(Resource.Type type) {
+    if (!resourceProviders.containsKey(type)) {
+      resourceProviders.put(type, providerModule.getResourceProvider(type));
+    }
+    return resourceProviders.get(type);
   }
 
+  private List<PropertyProvider> ensurePropertyProviders(Resource.Type type) {
+    if (!propertyProviders.containsKey(type)) {
+      propertyProviders.put(type, providerModule.getPropertyProviders(type));
+    }
+    return propertyProviders.get(type);
+  }
 
   // ----- ResourceIterable inner class --------------------------------------
 

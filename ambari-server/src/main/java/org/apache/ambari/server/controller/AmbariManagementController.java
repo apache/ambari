@@ -45,7 +45,7 @@ public interface AmbariManagementController {
    *
    * @throws AmbariException thrown if the service cannot be created
    */
-  public void createServices(Set<ServiceRequest> request)
+  public void createServices(Set<ServiceRequest> requests)
       throws AmbariException;
 
   /**
@@ -55,7 +55,7 @@ public interface AmbariManagementController {
    *
    * @throws AmbariException thrown if the component cannot be created
    */
-  public void createComponents(Set<ServiceComponentRequest> request)
+  public void createComponents(Set<ServiceComponentRequest> requests)
       throws AmbariException;
 
   /**
@@ -65,7 +65,7 @@ public interface AmbariManagementController {
    *
    * @throws AmbariException thrown if the host cannot be created
    */
-  public void createHosts(Set<HostRequest> request)
+  public void createHosts(Set<HostRequest> requests)
       throws AmbariException;
 
   /**
@@ -76,83 +76,74 @@ public interface AmbariManagementController {
    * @throws AmbariException thrown if the host component cannot be created
    */
   public void createHostComponents(
-      Set<ServiceComponentHostRequest> request) throws AmbariException;
+      Set<ServiceComponentHostRequest> requests) throws AmbariException;
 
   /**
    * Creates a configuration.
    *
    * @param request the request object which defines the configuration.
    *
-   * @return a track action response
-   *
    * @throws AmbariException when the configuration cannot be created.
    */
-  public TrackActionResponse createConfiguration(ConfigurationRequest request) throws AmbariException;
+  public void createConfiguration(ConfigurationRequest request)
+      throws AmbariException;
 
 
   // ----- Read -------------------------------------------------------------
 
   /**
-   * Get the clusters identified by the given request object.
+   * Get the clusters identified by the given request objects.
    *
-   * @param request  the request object which identifies the clusters to be returned
+   * @param requests  the request objects which identify the clusters to be returned
    *
    * @return a set of cluster responses
    *
    * @throws AmbariException thrown if the resource cannot be read
    */
-  public Set<ClusterResponse> getClusters(ClusterRequest request)
-      throws AmbariException;
   public Set<ClusterResponse> getClusters(Set<ClusterRequest> requests)
       throws AmbariException;
 
   /**
-   * Get the services identified by the given request object.
+   * Get the services identified by the given request objects.
    *
-   * @param request  the request object which identifies the services
+   * @param requests  the request objects which identify the services
    * to be returned
    *
    * @return a set of service responses
    *
    * @throws AmbariException thrown if the resource cannot be read
    */
-  public Set<ServiceResponse> getServices(ServiceRequest request)
-      throws AmbariException;
   public Set<ServiceResponse> getServices(Set<ServiceRequest> requests)
       throws AmbariException;
 
   /**
-   * Get the components identified by the given request object.
+   * Get the components identified by the given request objects.
    *
-   * @param request  the request object which identifies the components to be returned
+   * @param requests  the request objects which identify the components to be returned
    *
    * @return a set of component responses
    *
    * @throws AmbariException thrown if the resource cannot be read
    */
   public Set<ServiceComponentResponse> getComponents(
-      ServiceComponentRequest request) throws AmbariException;
-  public Set<ServiceComponentResponse> getComponents(
       Set<ServiceComponentRequest> requests) throws AmbariException;
 
   /**
-   * Get the hosts identified by the given request object.
+   * Get the hosts identified by the given request objects.
    *
-   * @param request  the request object which identifies the hosts to be returned
+   * @param requests  the request objects which identify the hosts to be returned
    *
    * @return a set of host responses
    *
    * @throws AmbariException thrown if the resource cannot be read
    */
-  public Set<HostResponse> getHosts(HostRequest request)
-      throws AmbariException;
   public Set<HostResponse> getHosts(Set<HostRequest> requests)
       throws AmbariException;
 
   /**
-   * Get the host components identified by the given request object.
+   * Get the host components identified by the given request objects.
    *
-   * @param request  the request object which identifies the host components
+   * @param requests  the request objects which identify the host components
    * to be returned
    *
    * @return a set of host component responses
@@ -160,23 +151,43 @@ public interface AmbariManagementController {
    * @throws AmbariException thrown if the resource cannot be read
    */
   public Set<ServiceComponentHostResponse> getHostComponents(
-      ServiceComponentHostRequest request) throws AmbariException;
-  public Set<ServiceComponentHostResponse> getHostComponents(
       Set<ServiceComponentHostRequest> requests) throws AmbariException;
 
   /**
-   * Gets the configurations identified by the given request object.
+   * Gets the configurations identified by the given request objects.
    *
-   * @param request   the request object
+   * @param requests   the request objects
    *
    * @return  a set of configuration responses
    *
    * @throws AmbariException if the configurations could not be read
    */
   public Set<ConfigurationResponse> getConfigurations(
-      ConfigurationRequest request) throws AmbariException;
-  public Set<ConfigurationResponse> getConfigurations(
       Set<ConfigurationRequest> requests) throws AmbariException;
+
+  /**
+   * Gets the request status identified by the given request object.
+   *
+   * @param request   the request object
+   *
+   * @return  a set of request status responses
+   *
+   * @throws AmbariException if the request status could not be read
+   */
+  public Set<RequestStatusResponse> getRequestStatus(RequestStatusRequest request)
+      throws AmbariException;
+
+  /**
+   * Gets the task status identified by the given request objects.
+   *
+   * @param requests   the request objects
+   *
+   * @return  a set of task status responses
+   *
+   * @throws AmbariException if the configurations could not be read
+   */
+  public Set<TaskStatusResponse> getTaskStatus(Set<TaskStatusRequest> requests)
+      throws AmbariException;
 
 
   // ----- Update -----------------------------------------------------------
@@ -192,7 +203,7 @@ public interface AmbariManagementController {
    *
    * @throws AmbariException thrown if the resource cannot be updated
    */
-  public TrackActionResponse updateCluster(ClusterRequest request)
+  public RequestStatusResponse updateCluster(ClusterRequest request)
       throws AmbariException;
 
   /**
@@ -206,7 +217,7 @@ public interface AmbariManagementController {
    *
    * @throws AmbariException thrown if the resource cannot be updated
    */
-  public TrackActionResponse updateServices(Set<ServiceRequest> request)
+  public RequestStatusResponse updateServices(Set<ServiceRequest> requests)
       throws AmbariException;
 
   /**
@@ -220,8 +231,8 @@ public interface AmbariManagementController {
    *
    * @throws AmbariException thrown if the resource cannot be updated
    */
-  public TrackActionResponse updateComponents(
-      Set<ServiceComponentRequest> request) throws AmbariException;
+  public RequestStatusResponse updateComponents(
+      Set<ServiceComponentRequest> requests) throws AmbariException;
 
   /**
    * Update the host identified by the given request object with the
@@ -232,7 +243,7 @@ public interface AmbariManagementController {
    *
    * @throws AmbariException thrown if the resource cannot be updated
    */
-  public void updateHosts(Set<HostRequest> request)
+  public void updateHosts(Set<HostRequest> requests)
       throws AmbariException;
 
   /**
@@ -246,8 +257,8 @@ public interface AmbariManagementController {
    *
    * @throws AmbariException thrown if the resource cannot be updated
    */
-  public TrackActionResponse updateHostComponents(
-      Set<ServiceComponentHostRequest> request) throws AmbariException;
+  public RequestStatusResponse updateHostComponents(
+      Set<ServiceComponentHostRequest> requests) throws AmbariException;
 
 
   // ----- Delete -----------------------------------------------------------
@@ -257,8 +268,6 @@ public interface AmbariManagementController {
    *
    * @param request  the request object which identifies which cluster to delete
    *
-   * @return a track action response
-   *
    * @throws AmbariException thrown if the resource cannot be deleted
    */
   public void deleteCluster(ClusterRequest request) throws AmbariException;
@@ -266,26 +275,26 @@ public interface AmbariManagementController {
   /**
    * Delete the service identified by the given request object.
    *
-   * @return a track action response
-   *
    * @param requests  the request object which identifies which service to delete
+   *
+   * @return a track action response
    *
    * @throws AmbariException thrown if the resource cannot be deleted
    */
-  public TrackActionResponse deleteServices(Set<ServiceRequest> request)
+  public RequestStatusResponse deleteServices(Set<ServiceRequest> requests)
       throws AmbariException;
 
   /**
    * Delete the component identified by the given request object.
    *
-   * @return a track action response
-   *
    * @param requests  the request object which identifies which component to delete
+   *
+   * @return a track action response
    *
    * @throws AmbariException thrown if the resource cannot be deleted
    */
-  public TrackActionResponse deleteComponents(
-      Set<ServiceComponentRequest> request) throws AmbariException;
+  public RequestStatusResponse deleteComponents(
+      Set<ServiceComponentRequest> requests) throws AmbariException;
 
   /**
    * Delete the host identified by the given request object.
@@ -296,7 +305,7 @@ public interface AmbariManagementController {
    *
    * @throws AmbariException thrown if the resource cannot be deleted
    */
-  public void deleteHosts(Set<HostRequest> request)
+  public void deleteHosts(Set<HostRequest> requests)
       throws AmbariException;
 
   /**
@@ -308,12 +317,12 @@ public interface AmbariManagementController {
    *
    * @throws AmbariException thrown if the resource cannot be deleted
    */
-  public TrackActionResponse deleteHostComponents(
-      Set<ServiceComponentHostRequest> request) throws AmbariException;
+  public RequestStatusResponse deleteHostComponents(
+      Set<ServiceComponentHostRequest> requests) throws AmbariException;
 
-  public TrackActionResponse createOperations(Set<OperationRequest> request)
+  public RequestStatusResponse createActions(Set<ActionRequest> request)
       throws AmbariException;
 
-  public void getOperations(Set<OperationRequest> request)
+  public Set<ActionResponse> getActions(Set<ActionRequest> request)
       throws AmbariException;
 }

@@ -21,6 +21,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.TreeMap;
 
 import com.google.inject.Injector;
@@ -54,10 +55,11 @@ public class Stage {
   //Map of host to host-roles
   Map<String, Map<String, HostRoleCommand>> hostRoleCommands =
       new TreeMap<String, Map<String, HostRoleCommand>>();
-  private Map<String, List<ExecutionCommand>> commandsToSend = 
+  private Map<String, List<ExecutionCommand>> commandsToSend =
       new TreeMap<String, List<ExecutionCommand>>();
 
-  public Stage(long requestId, String logDir, String clusterName) {
+  @AssistedInject
+  public Stage(@Assisted long requestId, @Assisted("logDir") String logDir, @Assisted("clusterName") String clusterName) {
     this.requestId = requestId;
     this.logDir = logDir;
     this.clusterName = clusterName;
@@ -106,7 +108,7 @@ public class Stage {
   public StageEntity constructNewPersistenceEntity() {
     StageEntity stageEntity = new StageEntity();
     stageEntity.setRequestId(requestId);
-    stageEntity.setStageId(stageId);
+    stageEntity.setStageId(getStageId());
     stageEntity.setLogInfo(logDir);
     stageEntity.setHostRoleCommands(new ArrayList<HostRoleCommandEntity>());
     stageEntity.setRoleSuccessCriterias(new ArrayList<RoleSuccessCriteriaEntity>());
@@ -153,7 +155,7 @@ public class Stage {
   }
 
   public String getActionId() {
-    return StageUtils.getActionId(requestId, stageId);
+    return StageUtils.getActionId(requestId, getStageId());
   }
 
   /**
@@ -162,7 +164,7 @@ public class Stage {
    * adds them to the Stage. This should be called only once for a host-role
    * for a given stage.
    */
-  public synchronized void addHostRoleExecutionCommand(String host, Role role,  RoleCommand command, 
+  public synchronized void addHostRoleExecutionCommand(String host, Role role,  RoleCommand command,
       ServiceComponentHostEvent event, String clusterName, String serviceName) {
     Log.info("Adding host role command for role: "+role+", command: "+command
         +", event: "+event+", clusterName: "+clusterName+", serviceName: "+serviceName);
@@ -198,12 +200,12 @@ public class Stage {
     }
     execCmdList.add(cmd);
   }
-  
+
   /**
-   * 
+   *
    * @return list of hosts
    */
-  public synchronized List<String> getHosts() {
+  public synchronized List<String> getHosts() { // TODO: Check whether method should be synchronized
     List<String> hlist = new ArrayList<String>();
     for (String h : this.hostRoleCommands.keySet()) {
       hlist.add(h);
@@ -219,11 +221,11 @@ public class Stage {
       return f;
     }
   }
-  
+
   public synchronized void setSuccessFactors(Map<Role, Float> suc) {
     successFactors = suc;
   }
-  
+
   public synchronized Map<Role, Float> getSuccessFactors() {
     return successFactors;
   }
@@ -260,7 +262,7 @@ public class Stage {
     }
     return null;
   }
-  
+
   public List<ExecutionCommand> getExecutionCommands(String hostname) {
     return this.commandsToSend.get(hostname);
   }
@@ -268,29 +270,29 @@ public class Stage {
   public long getStartTime(String hostname, String role) {
     return this.hostRoleCommands.get(hostname).get(role).getStartTime();
   }
-  
+
   public void setStartTime(String hostname, String role, long startTime) {
     this.hostRoleCommands.get(hostname).get(role).setStartTime(startTime);
   }
-  
+
   public HostRoleStatus getHostRoleStatus(String hostname, String role) {
     return this.hostRoleCommands.get(hostname).get(role).getStatus();
   }
-  
+
   public void setHostRoleStatus(String host, String role,
       HostRoleStatus status) {
     this.hostRoleCommands.get(host).get(role).setStatus(status);
   }
-  
+
   public ServiceComponentHostEvent getFsmEvent(String hostname, String roleStr) {
     return this.hostRoleCommands.get(hostname).get(roleStr).getEvent();
   }
-  
+
 
   public void setExitCode(String hostname, String role, int exitCode) {
     this.hostRoleCommands.get(hostname).get(role).setExitCode(exitCode);
   }
-  
+
   public int getExitCode(String hostname, String role) {
     return this.hostRoleCommands.get(hostname).get(role).getExitCode();
   }
@@ -302,7 +304,7 @@ public class Stage {
   public void setStdout(String hostname, String role, String stdOut) {
     this.hostRoleCommands.get(hostname).get(role).setStdout(stdOut);
   }
-  
+
   public synchronized boolean isStageInProgress() {
     for(String host: hostRoleCommands.keySet()) {
       for (String role : hostRoleCommands.get(host).keySet()) {
@@ -311,8 +313,25 @@ public class Stage {
           return false;
         }
         if (hrc.getStatus().equals(HostRoleStatus.PENDING) ||
-            hrc.getStatus().equals(HostRoleStatus.QUEUED) || 
+            hrc.getStatus().equals(HostRoleStatus.QUEUED) ||
             hrc.getStatus().equals(HostRoleStatus.IN_PROGRESS)) {
+          return true;
+        }
+      }
+    }
+    return false;
+  }
+
+  public synchronized boolean doesStageHaveHostRoleStatus(
+      Set<HostRoleStatus> statuses) {
+    for(String host: hostRoleCommands.keySet()) {
+      for (String role : hostRoleCommands.get(host).keySet()) {
+        HostRoleCommand hrc = hostRoleCommands.get(host).get(role);
+        if (hrc == null) {
+          return false;
+        }
+        for (HostRoleStatus status : statuses)
+        if (hrc.getStatus().equals(status)) {
           return true;
         }
       }
@@ -331,7 +350,7 @@ public class Stage {
   /**
    * This method should be used only in stage planner. To add
    * a new execution command use
-   * {@link #addHostRoleExecutionCommand(String, Role, RoleCommand, 
+   * {@link #addHostRoleExecutionCommand(String, Role, RoleCommand,
    * ServiceComponentHostEvent, String, String)}
    */
   public synchronized void addExecutionCommand(Stage origStage,
@@ -353,7 +372,7 @@ public class Stage {
   HostRoleCommand getHostRoleCommand(String hostname, String role) {
     return hostRoleCommands.get(hostname).get(role);
   }
-  
+
   @Override //Object
   public String toString() {
     StringBuilder builder = new StringBuilder();

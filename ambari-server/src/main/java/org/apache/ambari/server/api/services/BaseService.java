@@ -37,13 +37,12 @@ public abstract class BaseService {
    * This consists of creating a {@link Request} instance, invoking the correct {@link RequestHandler} and
    * applying the proper {@link ResultSerializer} to the result.
    *
-   *
-   *
    * @param headers            http headers
-   * @param body
+   * @param body               http body
    * @param uriInfo            uri information
    * @param requestType        http request type
    * @param resourceDefinition resource definition that is being acted on
+   *
    * @return the response of the operation in serialized form
    */
   protected Response handleRequest(HttpHeaders headers, String body, UriInfo uriInfo, Request.Type requestType,
@@ -52,7 +51,9 @@ public abstract class BaseService {
     Request request = getRequestFactory().createRequest(headers, body, uriInfo, requestType, resourceDefinition);
     Result result = getRequestHandler().handleRequest(request);
 
-    return getResponseFactory().createResponse(request.getResultSerializer().serialize(result, uriInfo));
+    return getResponseFactory().createResponse(requestType,
+        request.getResultSerializer().serialize(result, uriInfo),
+        result.isSynchronous());
   }
 
   /**

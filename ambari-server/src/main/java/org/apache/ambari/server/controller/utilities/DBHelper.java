@@ -73,6 +73,7 @@ public class DBHelper {
           }
         }
 
+        statement.close();
       } finally {
         connection.close();
       }

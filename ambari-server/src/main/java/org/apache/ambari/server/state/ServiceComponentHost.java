@@ -18,13 +18,11 @@
 
 package org.apache.ambari.server.state;
 
-import java.util.List;
 import java.util.Map;
 
 import com.google.inject.persist.Transactional;
 import org.apache.ambari.server.controller.ServiceComponentHostResponse;
 import org.apache.ambari.server.state.fsm.InvalidStateTransitionException;
-import org.apache.ambari.server.state.job.Job;
 
 
 public interface ServiceComponentHost {
@@ -58,13 +56,6 @@ public interface ServiceComponentHost {
   public String getHostName();
 
   /**
-   * Get the list of Jobs that are currently being tracked at the
-   * ServiceComponentHost level
-   * @return List of Jobs
-   */
-  public List<Job> getJobs();
-
-  /**
    * Send a ServiceComponentHostState event to the StateMachine
    * @param event Event to handle
    * @throws InvalidStateTransitionException
@@ -80,9 +71,9 @@ public interface ServiceComponentHost {
 
   public void updateDesiredConfigs(Map<String, Config> configs);
 
-  public StackVersion getDesiredStackVersion();
+  public StackId getDesiredStackVersion();
 
-  public void setDesiredStackVersion(StackVersion stackVersion);
+  public void setDesiredStackVersion(StackId stackVersion);
 
   public State getState();
 
@@ -92,9 +83,9 @@ public interface ServiceComponentHost {
 
   public void updateConfigs(Map<String, Config> configs);
 
-  public StackVersion getStackVersion();
+  public StackId getStackVersion();
 
-  public void setStackVersion(StackVersion stackVersion);
+  public void setStackVersion(StackId stackVersion);
 
   public ServiceComponentHostResponse convertToResponse();
 

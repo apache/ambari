@@ -83,7 +83,8 @@ public class ServiceImpl implements Service {
   }
 
   @AssistedInject
-  public ServiceImpl(@Assisted Cluster cluster, @Assisted String serviceName, Injector injector) {
+  public ServiceImpl(@Assisted Cluster cluster, @Assisted String serviceName,
+      Injector injector) {
     this.injector = injector;
     injector.injectMembers(this);
     serviceEntity = new ClusterServiceEntity();
@@ -97,12 +98,13 @@ public class ServiceImpl implements Service {
     this.desiredConfigs = new HashMap<String, String>();
 
     this.components = new HashMap<String, ServiceComponent>();
-    setDesiredStackVersion(new StackVersion(""));
+    setDesiredStackVersion(cluster.getDesiredStackVersion());
     init();
   }
 
   @AssistedInject
-  public ServiceImpl(@Assisted Cluster cluster, @Assisted ClusterServiceEntity serviceEntity, Injector injector) {
+  public ServiceImpl(@Assisted Cluster cluster, @Assisted ClusterServiceEntity
+      serviceEntity, Injector injector) {
     this.injector = injector;
     injector.injectMembers(this);
     this.serviceEntity = serviceEntity;
@@ -118,14 +120,18 @@ public class ServiceImpl implements Service {
     this.configs = new HashMap<String, Config>();
 
     if (!serviceEntity.getServiceComponentDesiredStateEntities().isEmpty()) {
-      for (ServiceComponentDesiredStateEntity serviceComponentDesiredStateEntity : serviceEntity.getServiceComponentDesiredStateEntities()) {
+      for (ServiceComponentDesiredStateEntity serviceComponentDesiredStateEntity
+          : serviceEntity.getServiceComponentDesiredStateEntities()) {
         components.put(serviceComponentDesiredStateEntity.getComponentName(),
-            serviceComponentFactory.createExisting(this, serviceComponentDesiredStateEntity));
+            serviceComponentFactory.createExisting(this,
+                serviceComponentDesiredStateEntity));
       }
     }
 
-    for (ServiceConfigMappingEntity mappingEntity : serviceEntity.getServiceConfigMappings()) {
-      desiredConfigs.put(mappingEntity.getConfigType(), mappingEntity.getVersionTag());
+    for (ServiceConfigMappingEntity mappingEntity :
+        serviceEntity.getServiceConfigMappings()) {
+      desiredConfigs.put(mappingEntity.getConfigType(),
+          mappingEntity.getVersionTag());
     }
 
 
@@ -276,12 +282,12 @@ public class ServiceImpl implements Service {
   }
 
   @Override
-  public synchronized StackVersion getDesiredStackVersion() {
-    return gson.fromJson(serviceDesiredStateEntity.getDesiredStackVersion(), StackVersion.class);
+  public synchronized StackId getDesiredStackVersion() {
+    return gson.fromJson(serviceDesiredStateEntity.getDesiredStackVersion(), StackId.class);
   }
 
   @Override
-  public synchronized void setDesiredStackVersion(StackVersion stackVersion) {
+  public synchronized void setDesiredStackVersion(StackId stackVersion) {
     if (LOG.isDebugEnabled()) {
       LOG.debug("Setting DesiredStackVersion of Service"
           + ", clusterName=" + cluster.getClusterName()
@@ -311,7 +317,7 @@ public class ServiceImpl implements Service {
         cluster.getClusterName(),
         getName(),
         getConfigVersions(),
-        getDesiredStackVersion().getStackVersion(),
+        getDesiredStackVersion().getStackId(),
         getDesiredState().toString());
     return r;
   }
@@ -328,9 +334,9 @@ public class ServiceImpl implements Service {
         + ", clusterId=" + cluster.getClusterId()
         + ", desiredStackVersion=" + getDesiredStackVersion()
         + ", desiredState=" + getDesiredState().toString()
-        + ", configs = " + getConfigVersions() 
+        + ", configs = " + getConfigVersions()
         + ", components=[ ");
-    
+
     boolean first = true;
     for(ServiceComponent sc : components.values()) {
       if (!first) {
@@ -350,22 +356,27 @@ public class ServiceImpl implements Service {
   }
 
   @Override
-  @Transactional
   public synchronized void persist() {
     if (!persisted) {
-      ClusterEntity clusterEntity = clusterDAO.findById(cluster.getClusterId());
-      serviceEntity.setClusterEntity(clusterEntity);
-      clusterServiceDAO.create(serviceEntity);
-      serviceDesiredStateDAO.create(serviceDesiredStateEntity);
-      clusterEntity.getClusterServiceEntities().add(serviceEntity);
-      clusterDAO.merge(clusterEntity);
-      serviceEntity = clusterServiceDAO.merge(serviceEntity);
-      serviceDesiredStateEntity = serviceDesiredStateDAO.merge(serviceDesiredStateEntity);
+      persistEntities();
+      refresh();
       cluster.refresh();
       persisted = true;
     } else {
       saveIfPersisted();
     }
+  }
+
+  @Transactional
+  protected void persistEntities() {
+    ClusterEntity clusterEntity = clusterDAO.findById(cluster.getClusterId());
+    serviceEntity.setClusterEntity(clusterEntity);
+    clusterServiceDAO.create(serviceEntity);
+    serviceDesiredStateDAO.create(serviceDesiredStateEntity);
+    clusterEntity.getClusterServiceEntities().add(serviceEntity);
+    clusterDAO.merge(clusterEntity);
+    serviceEntity = clusterServiceDAO.merge(serviceEntity);
+    serviceDesiredStateEntity = serviceDesiredStateDAO.merge(serviceDesiredStateEntity);
   }
 
   @Transactional
@@ -377,6 +388,7 @@ public class ServiceImpl implements Service {
   }
 
   @Override
+  @Transactional
   public synchronized void refresh() {
     if (isPersisted()) {
       ClusterServiceEntityPK pk = new ClusterServiceEntityPK();

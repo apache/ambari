@@ -26,12 +26,17 @@ import org.apache.ambari.server.actionmanager.HostRoleStatus;
 import org.apache.ambari.server.orm.entities.HostEntity;
 import org.apache.ambari.server.orm.entities.HostRoleCommandEntity;
 import org.apache.ambari.server.orm.entities.StageEntity;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.persistence.EntityManager;
 import javax.persistence.Query;
 import javax.persistence.TypedQuery;
+
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Set;
 
 public class HostRoleCommandDAO {
 
@@ -39,11 +44,24 @@ public class HostRoleCommandDAO {
   Provider<EntityManager> entityManagerProvider;
   @Inject
   DaoUtils daoUtils;
+  private static Logger LOG = LoggerFactory.getLogger(HostRoleCommandDAO.class);
 
-  public HostRoleCommandEntity findByPK(int taskId) {
+  @Transactional
+  public HostRoleCommandEntity findByPK(long taskId) {
     return entityManagerProvider.get().find(HostRoleCommandEntity.class, taskId);
   }
 
+  @Transactional
+  public List<HostRoleCommandEntity> findByPKs(Collection<Long> taskIds) {
+    LOG.info("HostRole Command Entity  " + entityManagerProvider.get());
+    TypedQuery<HostRoleCommandEntity> query = entityManagerProvider.get().createQuery(
+        "SELECT task FROM HostRoleCommandEntity task WHERE task.taskId IN ?1 " +
+            "ORDER BY task.taskId",
+        HostRoleCommandEntity.class);
+    return daoUtils.selectList(query, taskIds);
+  }
+
+  @Transactional
   public List<HostRoleCommandEntity> findSortedCommandsByStageAndHost(StageEntity stageEntity, HostEntity hostEntity) {
     TypedQuery<HostRoleCommandEntity> query = entityManagerProvider.get().createQuery("SELECT hostRoleCommand " +
         "FROM HostRoleCommandEntity hostRoleCommand " +
@@ -52,13 +70,26 @@ public class HostRoleCommandDAO {
     return daoUtils.selectList(query, stageEntity, hostEntity);
   }
 
+  @Transactional
   public List<HostRoleCommandEntity> findByHostRole(String hostName, long requestId, long stageId, Role role) {
+    LOG.info("HostRole Command Entity  " + entityManagerProvider.get());
     TypedQuery<HostRoleCommandEntity> query = entityManagerProvider.get().createQuery("SELECT command " +
         "FROM HostRoleCommandEntity command " +
         "WHERE command.hostName=?1 AND command.requestId=?2 " +
-        "AND command.stageId=?3 AND command.role=?4", HostRoleCommandEntity.class);
+        "AND command.stageId=?3 AND command.role=?4 " +
+        "ORDER BY command.taskId", HostRoleCommandEntity.class);
 
     return daoUtils.selectList(query, hostName, requestId, stageId, role);
+  }
+
+  @Transactional
+  public List<Long> getRequests() {
+    String queryStr = "SELECT DISTINCT command.requestId " +
+        "FROM HostRoleCommandEntity command ORDER BY command.requestId DESC";
+    TypedQuery<Long> query = entityManagerProvider.get().createQuery(queryStr,
+        Long.class);
+    query.setMaxResults(20);
+    return daoUtils.selectList(query);
   }
 
   @Transactional
@@ -71,18 +102,28 @@ public class HostRoleCommandDAO {
   }
 
   @Transactional
+  public List<HostRoleCommandEntity> findByRequest(long requestId) {
+    TypedQuery<HostRoleCommandEntity> query = entityManagerProvider.get().createQuery("SELECT command " +
+        "FROM HostRoleCommandEntity command " +
+        "WHERE command.requestId=?1 ORDER BY command.taskId", HostRoleCommandEntity.class);
+    return daoUtils.selectList(query, requestId);
+  }
+
+  @Transactional
   public void create(HostRoleCommandEntity stageEntity) {
     entityManagerProvider.get().persist(stageEntity);
   }
 
   @Transactional
   public HostRoleCommandEntity merge(HostRoleCommandEntity stageEntity) {
-    return entityManagerProvider.get().merge(stageEntity);
+    HostRoleCommandEntity entity = entityManagerProvider.get().merge(stageEntity);
+    return entity;
+
   }
 
   @Transactional
   public void remove(HostRoleCommandEntity stageEntity) {
-    entityManagerProvider.get().remove(stageEntity);
+    entityManagerProvider.get().remove(merge(stageEntity));
   }
 
   @Transactional

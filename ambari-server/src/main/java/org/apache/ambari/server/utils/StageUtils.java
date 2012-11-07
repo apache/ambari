@@ -22,6 +22,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
+import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -67,7 +68,7 @@ public class StageUtils {
         "templeton_server_host");
     componentToClusterInfoKeyMap.put("DASHBOARD", "dashboard_host");
     componentToClusterInfoKeyMap.put("NAGIOS_SERVER", "nagios_server_host");
-    componentToClusterInfoKeyMap.put("GANGLIA_MONITOR_SERVER",
+    componentToClusterInfoKeyMap.put("GANGLIA_SERVER",
         "ganglia_server_host");
     componentToClusterInfoKeyMap.put("DATANODE", "slave_hosts");
     componentToClusterInfoKeyMap.put("TASKTRACKER", "slave_hosts");
@@ -143,7 +144,7 @@ public class StageUtils {
     ObjectMapper mapper = new ObjectMapper();
     mapper.configure(SerializationConfig.Feature.INDENT_OUTPUT, true);
     mapper.configure(SerializationConfig.Feature.USE_ANNOTATIONS, true);
-    InputStream is = new ByteArrayInputStream(json.getBytes());
+    InputStream is = new ByteArrayInputStream(json.getBytes(Charset.forName("UTF8")));
     return mapper.readValue(is, ExecutionCommand.class);
   }
 
@@ -151,7 +152,7 @@ public class StageUtils {
     ObjectMapper mapper = new ObjectMapper();
     mapper.configure(SerializationConfig.Feature.INDENT_OUTPUT, true);
     mapper.configure(SerializationConfig.Feature.USE_ANNOTATIONS, true);
-    InputStream is = new ByteArrayInputStream(json.getBytes());
+    InputStream is = new ByteArrayInputStream(json.getBytes(Charset.forName("UTF8")));
     return mapper.readValue(is, clazz);
   }
   

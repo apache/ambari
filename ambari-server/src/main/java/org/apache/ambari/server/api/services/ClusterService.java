@@ -64,7 +64,7 @@ public class ClusterService extends BaseService {
   }
 
   /**
-   * Handles: PUT /clusters/{clusterID}
+   * Handles: POST /clusters/{clusterID}
    * Create a specific cluster.
    *
    * @param headers     http headers
@@ -72,17 +72,17 @@ public class ClusterService extends BaseService {
    * @param clusterName cluster id
    * @return information regarding the created cluster
    */
-   @PUT
+   @POST
    @Path("{clusterName}")
    @Produces("text/plain")
    public Response createCluster(String body, @Context HttpHeaders headers, @Context UriInfo ui,
                                  @PathParam("clusterName") String clusterName) {
 
-    return handleRequest(headers, body, ui, Request.Type.PUT, createResourceDefinition(clusterName));
+    return handleRequest(headers, body, ui, Request.Type.POST, createResourceDefinition(clusterName));
   }
 
   /**
-   * Handles: POST /clusters/{clusterID}
+   * Handles: PUT /clusters/{clusterID}
    * Update a specific cluster.
    *
    * @param headers     http headers
@@ -90,13 +90,13 @@ public class ClusterService extends BaseService {
    * @param clusterName cluster id
    * @return information regarding the updated cluster
    */
-  @POST
+  @PUT
   @Path("{clusterName}")
   @Produces("text/plain")
   public Response updateCluster(String body, @Context HttpHeaders headers, @Context UriInfo ui,
                                 @PathParam("clusterName") String clusterName) {
 
-    return handleRequest(headers, body, ui, Request.Type.POST, createResourceDefinition(clusterName));
+    return handleRequest(headers, body, ui, Request.Type.PUT, createResourceDefinition(clusterName));
   }
 
   /**
@@ -145,6 +145,14 @@ public class ClusterService extends BaseService {
   @Path("{clusterName}/configurations")
   public ConfigurationService getConfigurationHandler(@PathParam("clusterName") String cluster) {
     return new ConfigurationService(cluster);
+  }
+
+  /**
+   * Gets the requests sub-resource.
+   */
+  @Path("{clusterName}/requests")
+  public RequestService getRequestHandler(@PathParam("clusterName") String clusterName) {
+    return new RequestService(clusterName);
   }
 
   /**

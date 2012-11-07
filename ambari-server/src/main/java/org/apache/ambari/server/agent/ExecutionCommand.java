@@ -41,7 +41,7 @@ public class ExecutionCommand extends AgentCommand {
     super(AgentCommandType.EXECUTION_COMMAND);
   }
   private String clusterName;
-  private int taskId;
+  private long taskId;
   private String commandId;
   private String hostname;
   private Role role;
@@ -91,12 +91,12 @@ public class ExecutionCommand extends AgentCommand {
   }
 
   @JsonProperty("taskId")
-  public int getTaskId() {
+  public long getTaskId() {
     return taskId;
   }
 
   @JsonProperty("taskId")
-  public void setTaskId(int taskId) {
+  public void setTaskId(long taskId) {
     this.taskId = taskId;
   }
 
@@ -189,4 +189,5 @@ public class ExecutionCommand extends AgentCommand {
   public void setServiceName(String serviceName) {
     this.serviceName = serviceName;
   }
+
 }

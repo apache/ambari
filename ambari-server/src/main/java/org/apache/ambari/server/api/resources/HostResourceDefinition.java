@@ -18,10 +18,13 @@
 
 package org.apache.ambari.server.api.resources;
 
-import org.apache.ambari.server.controller.spi.PropertyId;
-import org.apache.ambari.server.controller.spi.Resource;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.Map;
+
+import org.apache.ambari.server.controller.spi.Resource;
+import org.apache.ambari.server.controller.utilities.PropertyHelper;
+
 
 /**
  * Host resource definition.
@@ -43,6 +46,17 @@ public class HostResourceDefinition extends BaseResourceDefinition {
     super(Resource.Type.Host, id);
     m_clusterId = clusterId;
     setResourceId(Resource.Type.Cluster, m_clusterId);
+    
+    if (null != clusterId) {
+      getQuery().addProperty(PropertyHelper.getPropertyId("cluster_name", "Hosts"));      
+    }
+    
+    if (null == id) {
+      getQuery().addProperty(getClusterController().getSchema(
+          Resource.Type.Host).getKeyPropertyId(Resource.Type.Host));
+    } else {
+      getQuery().addProperty(null, "*", null);
+    }
   }
 
   @Override
@@ -59,12 +73,15 @@ public class HostResourceDefinition extends BaseResourceDefinition {
   public Map<String, ResourceDefinition> getSubResources() {
     Map<String, ResourceDefinition> mapChildren = new HashMap<String, ResourceDefinition>();
 
-    HostComponentResourceDefinition hostComponentResource = new HostComponentResourceDefinition(
-        null, m_clusterId, getId());
-    PropertyId hostComponentIdProperty = getClusterController().getSchema(
-        Resource.Type.HostComponent).getKeyPropertyId(Resource.Type.HostComponent);
-    hostComponentResource.getQuery().addProperty(hostComponentIdProperty);
-    mapChildren.put(hostComponentResource.getPluralName(), hostComponentResource);
+    // !!! is this a host for a cluster
+    if (null != m_clusterId) {
+      HostComponentResourceDefinition hostComponentResource =
+          new HostComponentResourceDefinition(null, m_clusterId, getId());
+      hostComponentResource.getQuery().addProperty(getClusterController().getSchema(
+          Resource.Type.HostComponent).getKeyPropertyId(Resource.Type.HostComponent));
+      mapChildren.put(hostComponentResource.getPluralName(), hostComponentResource);
+    }
+
     return mapChildren;
   }
 }

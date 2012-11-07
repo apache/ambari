@@ -84,29 +84,8 @@ public class HostComponentService extends BaseService {
   }
 
   /**
-   * Handles PUT /clusters/{clusterID}/hosts/{hostID}/host_components/{hostComponentID}
-   * Create a specific host_component.
-   *
-   * @param body              http body
-   * @param headers           http headers
-   * @param ui                uri info
-   * @param hostComponentName host_component id
-   *
-   * @return host_component resource representation
-   */
-  @PUT
-  @Path("{hostComponentName}")
-  @Produces("text/plain")
-  public Response createHostComponent(String body, @Context HttpHeaders headers, @Context UriInfo ui,
-                                   @PathParam("hostComponentName") String hostComponentName) {
-
-    return handleRequest(headers, body, ui, Request.Type.PUT,
-        createResourceDefinition(hostComponentName, m_clusterName, m_hostName));
-  }
-
-  /**
    * Handles POST /clusters/{clusterID}/hosts/{hostID}/host_components/{hostComponentID}
-   * Updates a specific host_component.
+   * Create a specific host_component.
    *
    * @param body              http body
    * @param headers           http headers
@@ -118,11 +97,50 @@ public class HostComponentService extends BaseService {
   @POST
   @Path("{hostComponentName}")
   @Produces("text/plain")
-  public Response updateHostComponent(String body, @Context HttpHeaders headers, @Context UriInfo ui,
-                                      @PathParam("hostComponentName") String hostComponentName) {
+  public Response createHostComponent(String body, @Context HttpHeaders headers, @Context UriInfo ui,
+                                   @PathParam("hostComponentName") String hostComponentName) {
 
     return handleRequest(headers, body, ui, Request.Type.POST,
         createResourceDefinition(hostComponentName, m_clusterName, m_hostName));
+  }
+
+  /**
+   * Handles PUT /clusters/{clusterID}/hosts/{hostID}/host_components/{hostComponentID}
+   * Updates a specific host_component.
+   *
+   * @param body              http body
+   * @param headers           http headers
+   * @param ui                uri info
+   * @param hostComponentName host_component id
+   *
+   * @return information regarding updated host_component
+   */
+  @PUT
+  @Path("{hostComponentName}")
+  @Produces("text/plain")
+  public Response updateHostComponent(String body, @Context HttpHeaders headers, @Context UriInfo ui,
+                                      @PathParam("hostComponentName") String hostComponentName) {
+
+    return handleRequest(headers, body, ui, Request.Type.PUT,
+        createResourceDefinition(hostComponentName, m_clusterName, m_hostName));
+  }
+
+  /**
+   * Handles PUT /clusters/{clusterID}/hosts/{hostID}/host_components
+   * Updates multiple host_component resources.
+   *
+   * @param body              http body
+   * @param headers           http headers
+   * @param ui                uri info
+   *
+   * @return information regarding updated host_component resources
+   */
+  @PUT
+  @Produces("text/plain")
+  public Response updateHostComponents(String body, @Context HttpHeaders headers, @Context UriInfo ui) {
+
+    return handleRequest(headers, body, ui, Request.Type.PUT,
+        createResourceDefinition(null, m_clusterName, m_hostName));
   }
 
   /**

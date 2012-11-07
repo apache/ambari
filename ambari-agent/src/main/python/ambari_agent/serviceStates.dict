@@ -1,2 +1,3 @@
 START = running
 INSTALL = installed_and_configured
+STOP = stopped

@@ -15,7 +15,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.apache.ambari.server.controller.spi;
+
 
 import org.apache.ambari.server.api.util.TreeNode;
 
@@ -76,6 +78,9 @@ public interface Resource {
     Host,
     Component,
     HostComponent,
-    Configuration
+    Configuration,
+    Action,
+    Request,
+    Task
   }
 }

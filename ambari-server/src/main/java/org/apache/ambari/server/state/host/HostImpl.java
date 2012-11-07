@@ -45,7 +45,6 @@ import org.apache.ambari.server.state.fsm.InvalidStateTransitionException;
 import org.apache.ambari.server.state.fsm.SingleArcTransition;
 import org.apache.ambari.server.state.fsm.StateMachine;
 import org.apache.ambari.server.state.fsm.StateMachineFactory;
-import org.apache.ambari.server.state.job.Job;
 import org.apache.ambari.server.orm.dao.HostDAO;
 import org.apache.ambari.server.orm.entities.HostEntity;
 import org.apache.commons.logging.Log;
@@ -204,6 +203,15 @@ public class HostImpl implements Host {
       host.importHostInfo(e.hostInfo);
       host.setLastRegistrationTime(e.registrationTime);
       host.setAgentVersion(e.agentVersion);
+
+      String agentVersion = null;
+      if (e.agentVersion != null) {
+        agentVersion = e.agentVersion.getVersion();
+      }
+      LOG.info("Received host registration, host="
+          + e.hostInfo.toString()
+          + ", registrationTime=" + e.registrationTime
+          + ", agentVersion=" + agentVersion);
       host.persist();
     }
   }
@@ -320,7 +328,14 @@ public class HostImpl implements Host {
 
       if (hostInfo.getOS() != null
           && !hostInfo.getOS().isEmpty()) {
-        setOsType(hostInfo.getOS());
+        String osType = hostInfo.getOS();
+        if (hostInfo.getOSRelease() != null) {
+          int pos = hostInfo.getOSRelease().indexOf('.');
+          if (pos > 0) {
+            osType += hostInfo.getOSRelease().substring(0, pos);
+          }
+        }
+        setOsType(osType.toLowerCase());
       }
 
       if (hostInfo.getMounts() != null
@@ -749,12 +764,6 @@ public class HostImpl implements Host {
   }
 
   @Override
-  public List<Job> getJobs() {
-    // TODO Auto-generated method stub
-    return null;
-  }
-
-  @Override
   public long getTimeInState() {
     // TODO Auto-generated method stub
     return 0;
@@ -826,38 +835,43 @@ public class HostImpl implements Host {
    * Save host to database and make all changes to be saved afterwards
    */
   @Override
-  @Transactional
   public void persist() {
     try {
       writeLock.lock();
       if (!persisted) {
-        hostDAO.create(hostEntity);
-        hostStateDAO.create(hostStateEntity);
-        if (!hostEntity.getClusterEntities().isEmpty()) {
-          for (ClusterEntity clusterEntity : hostEntity.getClusterEntities()) {
-            clusterEntity.getHostEntities().add(hostEntity);
-            clusterDAO.merge(clusterEntity);
-            try {
-              clusters.getClusterById(clusterEntity.getClusterId()).refresh();
-            } catch (AmbariException e) {
-              LOG.error(e);
-              throw new RuntimeException("Cluster '" + clusterEntity.getClusterId() + "' was removed", e);
-            }
+        persistEntities();
+        refresh();
+        for (ClusterEntity clusterEntity : hostEntity.getClusterEntities()) {
+          try {
+            clusters.getClusterById(clusterEntity.getClusterId()).refresh();
+          } catch (AmbariException e) {
+            LOG.error(e);
+            throw new RuntimeException("Cluster '" + clusterEntity.getClusterId() + "' was removed", e);
           }
         }
-        hostEntity = hostDAO.merge(hostEntity);
-        hostStateEntity = hostStateDAO.merge(hostStateEntity);
         persisted = true;
       } else {
-        hostDAO.merge(hostEntity);
-        hostStateDAO.merge(hostStateEntity);
+        saveIfPersisted();
       }
     } finally {
       writeLock.unlock();
     }
   }
 
+  @Transactional
+  protected void persistEntities() {
+    hostDAO.create(hostEntity);
+    hostStateDAO.create(hostStateEntity);
+    if (!hostEntity.getClusterEntities().isEmpty()) {
+      for (ClusterEntity clusterEntity : hostEntity.getClusterEntities()) {
+        clusterEntity.getHostEntities().add(hostEntity);
+        clusterDAO.merge(clusterEntity);
+      }
+    }
+  }
+
   @Override
+  @Transactional
   public void refresh() {
     try {
       writeLock.lock();
@@ -872,6 +886,7 @@ public class HostImpl implements Host {
     }
   }
 
+  @Transactional
   private void saveIfPersisted() {
     if (isPersisted()) {
       hostDAO.merge(hostEntity);

@@ -29,10 +29,12 @@ public class HostStateDAO {
   @Inject
   Provider<EntityManager> entityManagerProvider;
 
+  @Transactional
   public HostStateEntity findByHostName(String hostName) {
     return entityManagerProvider.get().find(HostStateEntity.class, hostName);
   }
 
+  @Transactional
   public void refresh(HostStateEntity hostStateEntity) {
     entityManagerProvider.get().refresh(hostStateEntity);
   }
@@ -49,7 +51,7 @@ public class HostStateDAO {
 
   @Transactional
   public void remove(HostStateEntity hostStateEntity) {
-    entityManagerProvider.get().remove(hostStateEntity);
+    entityManagerProvider.get().remove(merge(hostStateEntity));
   }
 
   @Transactional

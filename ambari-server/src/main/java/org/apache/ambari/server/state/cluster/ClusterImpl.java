@@ -32,6 +32,7 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
+import com.google.inject.persist.Transactional;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.ServiceComponentHostNotFoundException;
 import org.apache.ambari.server.ServiceNotFoundException;
@@ -47,7 +48,7 @@ import org.apache.ambari.server.state.ConfigFactory;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceComponentHost;
 import org.apache.ambari.server.state.ServiceFactory;
-import org.apache.ambari.server.state.StackVersion;
+import org.apache.ambari.server.state.StackId;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -63,7 +64,7 @@ public class ClusterImpl implements Cluster {
   @Inject
   private Clusters clusters;
 
-  private StackVersion desiredStackVersion;
+  private StackId desiredStackVersion;
 
   private Map<String, Service> services = new TreeMap<String, Service>();
 
@@ -118,7 +119,7 @@ public class ClusterImpl implements Cluster {
         Map<String,Map<String,ServiceComponentHost>>>();
     this.serviceComponentHostsByHost = new HashMap<String,
         List<ServiceComponentHost>>();
-    this.desiredStackVersion = new StackVersion("");
+    this.desiredStackVersion = new StackId();
 
     configs = new HashMap<String, Map<String,Config>>();
     if (!clusterEntity.getClusterConfigEntities().isEmpty()) {
@@ -307,12 +308,12 @@ public class ClusterImpl implements Cluster {
   }
 
   @Override
-  public synchronized StackVersion getDesiredStackVersion() {
+  public synchronized StackId getDesiredStackVersion() {
     return desiredStackVersion;
   }
 
   @Override
-  public synchronized void setDesiredStackVersion(StackVersion stackVersion) {
+  public synchronized void setDesiredStackVersion(StackId stackVersion) {
     if (LOG.isDebugEnabled()) {
       LOG.debug("Changing DesiredStackVersion of Cluster"
         + ", clusterName=" + getClusterName()
@@ -369,14 +370,15 @@ public class ClusterImpl implements Cluster {
   public synchronized ClusterResponse convertToResponse()
       throws AmbariException {
     ClusterResponse r = new ClusterResponse(getClusterId(), getClusterName(),
-        clusters.getHostsForCluster(getClusterName()).keySet());
+        clusters.getHostsForCluster(getClusterName()).keySet(),
+        getDesiredStackVersion().getStackId());
     return r;
   }
 
   public void debugDump(StringBuilder sb) {
     sb.append("Cluster={ clusterName=" + getClusterName()
         + ", clusterId=" + getClusterId()
-        + ", desiredStackVersion=" + desiredStackVersion.getStackVersion()
+        + ", desiredStackVersion=" + desiredStackVersion.getStackId()
         + ", services=[ ");
     boolean first = true;
     for(Service s : services.values()) {
@@ -392,6 +394,7 @@ public class ClusterImpl implements Cluster {
   }
 
   @Override
+  @Transactional
   public synchronized void refresh() {
     clusterEntity = clusterDAO.findById(clusterEntity.getClusterId());
     clusterDAO.refresh(clusterEntity);

@@ -59,13 +59,13 @@ public class SshHostInfo {
   }
 
   public String hostListAsString() {
-    String ret = "";
+    StringBuilder ret = new StringBuilder();
     if (this.hosts == null) {
       return "";
     }
     for (String host : this.hosts) {
-      ret = ret + host + ":";
+      ret.append(host).append(":");
     }
-    return ret;
+    return ret.toString();
   }
 }

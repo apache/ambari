@@ -12,6 +12,8 @@ AMBARI-666 branch (unreleased changes)
 
   NEW FEATURES
 
+  AMBARI-967. Enhance predicate comparison. (Tom Beerbower via mahadev)
+
   AMBARI-954. Support installation of Ganglia master and slaves via
   Ambari Web. (yusaku)
 

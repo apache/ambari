@@ -28,12 +28,12 @@ class hdp-oozie(
 
 # Configs generation  
 
-  if has_key($configuration, 'oozie_site') {
-    configgenerator::configfile{'oozie_site':
+  if has_key($configuration, 'oozie-site') {
+    configgenerator::configfile{'oozie-site':
       modulespath => $hdp-oozie::params::conf_dir, 
       filename => 'oozie-site.xml',
       module => 'hdp-oozie',
-      configuration => $configuration['oozie_site']
+      configuration => $configuration['oozie-site']
     }
   }
 

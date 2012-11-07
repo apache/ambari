@@ -32,10 +32,12 @@ public class ServiceConfigDAO {
   @Inject
   Provider<EntityManager> entityManagerProvider;
 
+  @Transactional
   public ServiceConfigEntity findByPK(Integer primaryKey) {
     return entityManagerProvider.get().find(ServiceConfigEntity.class, primaryKey);
   }
 
+  @Transactional
   public List<ServiceConfigEntity> findByClusterService(ClusterServiceEntity clusterServiceEntity) {
     TypedQuery<ServiceConfigEntity> query = entityManagerProvider.get().createQuery("select config " +
             "from ServiceConfigEntity config " +
@@ -45,12 +47,14 @@ public class ServiceConfigDAO {
     return query.getResultList();
   }
 
+  @Transactional
   public List<ServiceConfigEntity> findAll() {
     TypedQuery<ServiceConfigEntity> query = entityManagerProvider.get().createQuery("select c from ServiceConfigEntity c"
             , ServiceConfigEntity.class);
     return query.getResultList();
   }
 
+  @Transactional
   public void refresh(ServiceConfigEntity serviceConfigEntity) {
     entityManagerProvider.get().refresh(serviceConfigEntity);
   }
@@ -67,7 +71,7 @@ public class ServiceConfigDAO {
 
   @Transactional
   public void remove(ServiceConfigEntity serviceConfigEntity) {
-    entityManagerProvider.get().remove(serviceConfigEntity);
+    entityManagerProvider.get().remove(merge(serviceConfigEntity));
   }
 
   @Transactional

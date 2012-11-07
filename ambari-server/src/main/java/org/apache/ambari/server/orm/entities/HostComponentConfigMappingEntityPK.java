@@ -18,17 +18,14 @@
 package org.apache.ambari.server.orm.entities;
 
 import javax.persistence.Column;
-import javax.persistence.Entity;
 import javax.persistence.Id;
-import javax.persistence.IdClass;
-import javax.persistence.Table;
 
 public class HostComponentConfigMappingEntityPK {
   private Long clusterId;
   private String serviceName;
   private String componentName;
   private String hostName;
-  
+
   @Id
   @Column(name = "cluster_id", insertable = true, updatable = true, nullable = false, length = 10)
   public Long getClusterId() {
@@ -48,28 +45,28 @@ public class HostComponentConfigMappingEntityPK {
   public void setServiceName(String serviceName) {
     this.serviceName = serviceName;
   }
-  
+
   @Column(name = "component_name", insertable = true, updatable = true, nullable = false)
   @Id
   public String getComponentName() {
     return componentName;
   }
-  
+
   public void setComponentName(String name) {
     componentName = name;
   }
-  
+
   @Column(name = "host_name", insertable = true, updatable = true, nullable = false)
   @Id
   public String getHostName() {
     return hostName;
   }
-  
+
   public void setHostName(String name) {
     hostName = name;
   }
-  
-  
+
+
   @Override
   public boolean equals(Object o) {
     if (this == o) return true;
@@ -92,7 +89,7 @@ public class HostComponentConfigMappingEntityPK {
     result = 31 * result + (componentName != null ? componentName.hashCode() : 0);
     result = 31 * result + (hostName != null ? hostName.hashCode() : 0);
     return result;
-  }  
-  
-  
+  }
+
+
 }

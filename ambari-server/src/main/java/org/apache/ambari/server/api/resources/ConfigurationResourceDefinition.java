@@ -22,16 +22,13 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.ambari.server.api.resources.ResourceDefinition.PostProcessor;
 import org.apache.ambari.server.api.services.Request;
 import org.apache.ambari.server.api.util.TreeNode;
 import org.apache.ambari.server.controller.spi.Resource;
-import org.apache.ambari.server.controller.spi.Schema;
-import org.apache.ambari.server.controller.utilities.ClusterControllerHelper;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
 
 /**
- * Service resource definition.
+ * Configuration resource definition.
  */
 public class ConfigurationResourceDefinition extends BaseResourceDefinition {
 
@@ -40,28 +37,30 @@ public class ConfigurationResourceDefinition extends BaseResourceDefinition {
    */
   private String m_clusterId;
 
+
   /**
    * Constructor.
    *
-   * @param id        service id value
-   * @param clusterId cluster id value
+   * @param configType  configuration type
+   * @param configTag   configuration tag
+   * @param clusterId   cluster id value
    */
   public ConfigurationResourceDefinition(String configType, String configTag, String clusterId) {
     super(Resource.Type.Configuration, configType);
     m_clusterId = clusterId;
     setResourceId(Resource.Type.Cluster, m_clusterId);
-    
+
     if (null != configTag)
       setProperty(PropertyHelper.getPropertyId("tag", "Config"), configTag);
   }
-  
+
   @Override
   public List<PostProcessor> getPostProcessors() {
     List<PostProcessor> listProcessors = super.getPostProcessors();
     listProcessors.add(new HrefProcessor());
 
     return listProcessors;
-  }  
+  }
 
   @Override
   public String getPluralName() {
@@ -77,7 +76,7 @@ public class ConfigurationResourceDefinition extends BaseResourceDefinition {
   public Map<String, ResourceDefinition> getSubResources() {
     return new HashMap<String, ResourceDefinition>();
   }
-  
+
   private class HrefProcessor extends BaseHrefPostProcessor {
 
     @Override
@@ -87,15 +86,18 @@ public class ConfigurationResourceDefinition extends BaseResourceDefinition {
         String clusterId = getResourceIds().get(Resource.Type.Cluster);
         String type = (String) resultNode.getObject().getPropertyValue(PropertyHelper.getPropertyId("type"));
         String tag = (String) resultNode.getObject().getPropertyValue(PropertyHelper.getPropertyId("tag"));
-        
+
+        if (! href.endsWith("/")) {
+          href += '/';
+        }
         href = href.substring(0, href.indexOf(clusterId) + clusterId.length() + 1) +
             "configurations?type=" + type + "&tag=" + tag;
-        
+
         resultNode.setProperty("href", href);
       } else {
         super.process(request, resultNode, href);
       }
-      
+
     }
   }
 }

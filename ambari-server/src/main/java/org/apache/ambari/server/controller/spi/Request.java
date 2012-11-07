@@ -56,5 +56,11 @@ public interface Request {
    */
   public TemporalInfo getTemporalInfo(PropertyId id);
 
+  /**
+   * Set the {@link TemporalInfo temporal information} for the given properties
+   * on this request.
+   *
+   * @param mapTemporalInfo  the temporal data to associate with this request
+   */
   public void setTemporalInfo(Map<PropertyId, TemporalInfo> mapTemporalInfo);
 }

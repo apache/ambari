@@ -32,7 +32,6 @@ import java.util.Map;
  * JSON parser which parses a JSON string into a map of properties and values.
  */
 public class JsonPropertyParser implements RequestBodyParser {
-  //todo: change value type to String when it is supported in back end
   private Map<PropertyId, String> m_properties = new HashMap<PropertyId, String>();
 
   @Override

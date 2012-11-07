@@ -35,10 +35,12 @@ public class HostDAO {
   @Inject
   Provider<EntityManager> entityManagerProvider;
 
+  @Transactional
   public HostEntity findByName(String hostName) {
     return entityManagerProvider.get().find(HostEntity.class, hostName);
   }
 
+  @Transactional
   public List<HostEntity> findAll() {
     TypedQuery<HostEntity> query = entityManagerProvider.get().createQuery("SELECT host FROM HostEntity host", HostEntity.class);
     try {
@@ -48,6 +50,7 @@ public class HostDAO {
     }
   }
 
+  @Transactional
   public List<HostEntity> findByStage(StageEntity stageEntity) {
     TypedQuery<HostEntity> query = entityManagerProvider.get().createQuery(
         "SELECT DISTINCT host FROM HostEntity host JOIN host.hostRoleCommandEntities command JOIN command.stage stage " +
@@ -64,6 +67,7 @@ public class HostDAO {
    * Refreshes entity state from database
    * @param hostEntity entity to refresh
    */
+  @Transactional
   public void refresh(HostEntity hostEntity) {
     entityManagerProvider.get().refresh(hostEntity);
   }
@@ -80,7 +84,7 @@ public class HostDAO {
 
   @Transactional
   public void remove(HostEntity hostEntity) {
-    entityManagerProvider.get().remove(hostEntity);
+    entityManagerProvider.get().remove(merge(hostEntity));
   }
 
   @Transactional

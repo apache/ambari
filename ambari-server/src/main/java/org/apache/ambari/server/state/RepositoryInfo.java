@@ -19,46 +19,90 @@
 package org.apache.ambari.server.state;
 
 public class RepositoryInfo {
-  private String url;
-  private String os;
-  private String description;
-//  private String gpgKey;
+  private String baseUrl;
+  private String osType;
+  private String repoId;
+  private String repoName;
+  private String mirrorsList;
 
-  public String getUrl() {
-    return url;
+  /**
+   * @return the baseUrl
+   */
+  public String getBaseUrl() {
+    return baseUrl;
   }
 
-  public void setUrl(String url) {
-    this.url = url;
+  /**
+   * @param baseUrl the baseUrl to set
+   */
+  public void setBaseUrl(String baseUrl) {
+    this.baseUrl = baseUrl;
   }
 
-//  public String getGpgKey() {
-//    return gpgKey;
-//  }
-//
-//  public void setGpgKey(String gpgKey) {
-//    this.gpgKey = gpgKey;
-//  }
-
-
-  public String getOs() {
-    return os;
+  /**
+   * @return the osType
+   */
+  public String getOsType() {
+    return osType;
   }
 
-  public void setOs(String os) {
-    this.os = os;
+  /**
+   * @param osType the osType to set
+   */
+  public void setOsType(String osType) {
+    this.osType = osType;
   }
 
-  public String getDescription() {
-    return description;
+  /**
+   * @return the repoId
+   */
+  public String getRepoId() {
+    return repoId;
   }
 
-  public void setDescription(String description) {
-    this.description = description;
+  /**
+   * @param repoId the repoId to set
+   */
+  public void setRepoId(String repoId) {
+    this.repoId = repoId;
+  }
+
+  /**
+   * @return the repoName
+   */
+  public String getRepoName() {
+    return repoName;
+  }
+
+  /**
+   * @param repoName the repoName to set
+   */
+  public void setRepoName(String repoName) {
+    this.repoName = repoName;
+  }
+
+  /**
+   * @return the mirrorsList
+   */
+  public String getMirrorsList() {
+    return mirrorsList;
+  }
+
+  /**
+   * @param mirrorsList the mirrorsList to set
+   */
+  public void setMirrorsList(String mirrorsList) {
+    this.mirrorsList = mirrorsList;
   }
 
   @Override
   public String toString() {
-    return "url="+ url + "\tos="+os+"\tdescription="+ description;
+    return "[ repoInfo: "
+        + ", osType=" + osType
+        + ", repoId=" + repoId
+        + ", baseUrl=" + baseUrl
+        + ", repoName=" + repoName
+        + ", mirrorsList=" + mirrorsList
+        + " ]";
   }
 }

@@ -23,6 +23,7 @@ import org.apache.ambari.server.controller.spi.Request;
 import org.apache.ambari.server.controller.spi.TemporalInfo;
 
 import java.util.*;
+import java.util.Map.Entry;
 
 /**
  * Default request implementation.
@@ -108,4 +109,38 @@ public class RequestImpl implements Request {
     result = 31 * result + (properties != null ? properties.hashCode() : 0);
     return result;
   }
+
+  public String toString() {
+    StringBuilder sb = new StringBuilder();
+    sb.append("Request:"
+        + ", propertyIds=[");
+    for (PropertyId pId : propertyIds) {
+      sb.append(" { propertyName=" + pId.getName()
+          + ", propertyCategory=" + pId.getCategory()
+          + " }, ");
+    }
+    sb.append(" ], properties=[ ");
+    for (Map<PropertyId, Object> map : properties) {
+      for (Entry<PropertyId, Object> entry : map.entrySet()) {
+        sb.append(" { propertyName=" + entry.getKey().getName()
+          + ", propertyCategory=" + entry.getKey().getCategory()
+          + ", propertyValue=" + entry.getValue().toString()
+          + " }, ");
+      }
+    }
+    sb.append(" ], temporalInfo=[");
+    if (m_mapTemporalInfo == null) {
+      sb.append("null");
+    } else {
+      for (Entry<PropertyId, TemporalInfo> entry :
+        m_mapTemporalInfo.entrySet()) {
+        sb.append(" { propertyName=" + entry.getKey().getName()
+            + ", propertyCategory=" + entry.getKey().getCategory()
+            + ", temporalInfo=" + entry.getValue().toString());
+      }
+    }
+    sb.append(" ]");
+    return sb.toString();
+  }
+
 }

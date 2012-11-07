@@ -21,6 +21,7 @@ package org.apache.ambari.server.api.services;
 
 import org.apache.ambari.server.api.query.Query;
 import org.apache.ambari.server.api.resources.ResourceDefinition;
+import org.apache.ambari.server.controller.internal.RequestStatusImpl;
 import org.apache.ambari.server.controller.spi.*;
 import org.junit.Test;
 
@@ -44,7 +45,7 @@ public class DeletePersistenceManagerTest {
     expect(resource.getQuery()).andReturn(query);
     expect(query.getInternalPredicate()).andReturn(predicate);
 
-    controller.deleteResources(Resource.Type.Component, predicate);
+    expect(controller.deleteResources(Resource.Type.Component, predicate)).andReturn(new RequestStatusImpl(null));
 
     replay(resource, controller, schema, query, predicate);
 

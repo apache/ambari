@@ -16,17 +16,18 @@ public class ClusterResponseTest {
     hostNames.add("h1");
 
     ClusterResponse r1 =
-        new ClusterResponse(clusterId, clusterName, hostNames);
+        new ClusterResponse(clusterId, clusterName, hostNames, "bar");
 
     Assert.assertEquals(clusterId, r1.getClusterId());
     Assert.assertEquals(clusterName, r1.getClusterName());
     Assert.assertArrayEquals(hostNames.toArray(), r1.getHostNames().toArray());
+    Assert.assertEquals("bar", r1.getDesiredStackVersion());
 
   }
 
   @Test
   public void testToString() {
-    ClusterResponse r = new ClusterResponse(null, null, null);
+    ClusterResponse r = new ClusterResponse(null, null, null, null);
     r.toString();
   }
 }

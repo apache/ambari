@@ -35,12 +35,15 @@ public interface ResourceProvider {
   /**
    * Create the resources defined by the properties in the given request object.
    *
+   *
    * @param request  the request object which defines the set of properties
    *                 for the resources to be created
    *
+   * @return the request status
+   *
    * @throws AmbariException thrown if the resources cannot be created
    */
-  public void createResources(Request request) throws AmbariException;
+  public RequestStatus createResources(Request request) throws AmbariException;
 
   /**
    * Get a set of {@link Resource resources} based on the given request and predicate
@@ -71,24 +74,30 @@ public interface ResourceProvider {
    * Update the resources selected by the given predicate with the properties
    * from the given request object.
    *
+   *
    * @param request    the request object which defines the set of properties
    *                   for the resources to be updated
    * @param predicate  the predicate object which can be used to filter which
    *                   resources are updated
    *
+   * @return the request status
+   *
    * @throws AmbariException thrown if the resource cannot be updated
    */
-  public void updateResources(Request request, Predicate predicate) throws AmbariException;
+  public RequestStatus updateResources(Request request, Predicate predicate) throws AmbariException;
 
   /**
    * Delete the resources selected by the given predicate.
    *
+   *
    * @param predicate the predicate object which can be used to filter which
    *                  resources are deleted
    *
+   * @return the request status
+   *
    * @throws AmbariException thrown if the resource cannot be deleted
    */
-  public void deleteResources(Predicate predicate) throws AmbariException;
+  public RequestStatus deleteResources(Predicate predicate) throws AmbariException;
 
   /**
    * Get the set of property ids for the properties that this provider can provide.

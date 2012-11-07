@@ -45,7 +45,7 @@ public class AgentVersion {
       return true;
     }
     AgentVersion a = (AgentVersion) object;
-    return a.equals(this.version);
+    return a.version.equals(this.version);
   }
 
   @Override

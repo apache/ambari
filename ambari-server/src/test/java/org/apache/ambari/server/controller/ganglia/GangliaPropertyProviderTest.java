@@ -26,24 +26,28 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import java.util.Collections;
+import java.util.Map;
 
 /**
  * Test the Ganglia property provider.
  */
 public class GangliaPropertyProviderTest {
 
-  private static final PropertyId PROPERTY_ID = PropertyHelper.getPropertyId("bytes_out", "metrics", true);
+  private static final PropertyId PROPERTY_ID = PropertyHelper.getPropertyId("gcCount", "metrics/jvm", true);
+  private static final PropertyId CLUSTER_NAME_PROPERTY_ID = PropertyHelper.getPropertyId("cluster_name", "HostRoles");
   private static final PropertyId HOST_NAME_PROPERTY_ID = PropertyHelper.getPropertyId("host_name", "HostRoles");
   private static final PropertyId COMPONENT_NAME_PROPERTY_ID = PropertyHelper.getPropertyId("component_name", "HostRoles");
 
   @Test
   public void testGetResources() throws Exception {
     TestStreamProvider streamProvider  = new TestStreamProvider();
+    TestGangliaHostProvider hostProvider = new TestGangliaHostProvider();
 
     GangliaPropertyProvider propertyProvider = new GangliaPropertyProvider(
         PropertyHelper.getGangliaPropertyIds(Resource.Type.HostComponent),
         streamProvider,
-        "ec2-23-23-71-42.compute-1.amazonaws.com",
+        hostProvider,
+        CLUSTER_NAME_PROPERTY_ID,
         HOST_NAME_PROPERTY_ID,
         COMPONENT_NAME_PROPERTY_ID);
 
@@ -58,10 +62,28 @@ public class GangliaPropertyProviderTest {
 
     Assert.assertEquals(1, propertyProvider.populateResources(Collections.singleton(resource), request, null).size());
 
-    Assert.assertEquals("http://ec2-23-23-71-42.compute-1.amazonaws.com/ganglia/graph.php?c=HDPNameNode&h=domU-12-31-39-0E-34-E1.compute-1.internal&m=bytes_out&json=1",
+    Assert.assertEquals("http://ec2-23-23-71-42.compute-1.amazonaws.com/ganglia/graph.php?c=HDPNameNode&h=domU-12-31-39-0E-34-E1.compute-1.internal&m=jvm.metrics.gcCount&json=1",
         streamProvider.getLastSpec());
 
     Assert.assertEquals(3, PropertyHelper.getProperties(resource).size());
     Assert.assertNotNull(resource.getPropertyValue(PROPERTY_ID));
   }
+
+
+  private static class TestGangliaHostProvider implements GangliaHostProvider {
+
+    @Override
+    public String getGangliaCollectorHostName(String clusterName) {
+      return "ec2-23-23-71-42.compute-1.amazonaws.com";
+    }
+
+    @Override
+    public Map<String, String> getGangliaHostClusterMap(String clusterName) {
+      return Collections.emptyMap();
+    }
+  }
+
+
+
+
 }

@@ -21,6 +21,7 @@ package org.apache.ambari.server.api.query;
 import org.apache.ambari.server.api.resources.ResourceDefinition;
 import org.apache.ambari.server.api.services.ResultImpl;
 import org.apache.ambari.server.api.util.TreeNodeImpl;
+import org.apache.ambari.server.controller.internal.ClusterControllerImpl;
 import org.apache.ambari.server.controller.internal.PropertyIdImpl;
 import org.apache.ambari.server.controller.utilities.ClusterControllerHelper;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
@@ -31,6 +32,9 @@ import org.apache.ambari.server.controller.predicate.EqualsPredicate;
 import org.apache.ambari.server.api.services.Result;
 import org.apache.ambari.server.controller.spi.*;
 import org.apache.ambari.server.api.util.TreeNode;
+import org.mortbay.log.Log;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.*;
 
@@ -53,6 +57,9 @@ public class QueryImpl implements Query {
    */
   private Map<PropertyId, TemporalInfo> m_mapPropertyTemporalInfo = new HashMap<PropertyId, TemporalInfo>();
 
+  /**
+   * Map that associates categories with temporal data.
+   */
   private Map<String, TemporalInfo> m_mapCategoryTemporalInfo = new HashMap<String, TemporalInfo>();
 
   /**
@@ -75,7 +82,8 @@ public class QueryImpl implements Query {
    */
   private Predicate m_userPredicate;
 
-
+  private final static Logger LOG =
+      LoggerFactory.getLogger(QueryImpl.class);
   /**
    * Constructor.
    *
@@ -145,16 +153,23 @@ public class QueryImpl implements Query {
     int count = 1;
     for (Resource resource : iterResource) {
       // add a child node for the resource and provide a unique name.  The name is never used.
+      //todo: provide a more meaningful node name
       TreeNode<Resource> node = tree.addChild(resource, resource.getType() + ":" + count++);
-
-      for (Map.Entry<String, ResourceDefinition> entry : m_mapSubResources.entrySet()) {
+      LOG.info("Resource object resource " + resource);
+       for (Map.Entry<String, ResourceDefinition> entry : m_mapSubResources.entrySet()) {
         String subResCategory = entry.getKey();
         ResourceDefinition r = entry.getValue();
-
-        r.setParentId(m_resourceDefinition.getType(), (String) resource.getPropertyValue(
+        
+        r.setParentId(m_resourceDefinition.getType(), (String) (resource.getPropertyValue(
             getClusterController().getSchema(m_resourceDefinition.getType()).
-                getKeyPropertyId(m_resourceDefinition.getType())));
-
+                getKeyPropertyId(m_resourceDefinition.getType())).toString()));
+        
+        LOG.info("Setting various values for resource " + r.getId());
+        if (r.getResourceIds() != null) {
+          for (Map.Entry<Resource.Type, String> tentry: r.getResourceIds().entrySet()) {
+            LOG.info("Resource Id's " + tentry.getKey() + " value " + tentry.getValue());
+          }
+        }
         TreeNode<Resource> childResult = r.getQuery().execute().getResultTree();
         childResult.setName(subResCategory);
         childResult.setProperty("isCollection", "false");
@@ -344,6 +359,6 @@ public class QueryImpl implements Query {
   }
 
   Result createResult() {
-    return new ResultImpl();
+    return new ResultImpl(true);
   }
 }

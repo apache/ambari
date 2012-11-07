@@ -75,5 +75,51 @@
       "category":"Config",
       "temporal":false
     }
+  },
+  "Action":{
+    "Cluster":{
+        "name":"cluster_name",
+        "category":"Actions",
+        "temporal":false
+      },
+    "Service":{
+      	"name":"service_name",
+      	"category":"Actions",
+      	"temporal":false
+     },
+    "Action":{
+        "name":"action_name",
+      	"category":"Actions",
+      	"temporal":false
+    }
+  },
+  "Request":{
+    "Cluster":{
+      "name":"cluster_name",
+      "category":"Requests",
+      "temporal":false
+    },
+    "Request":{
+      "name":"id",
+      "category":"Requests",
+      "temporal":false
+    }
+  },
+  "Task":{
+    "Cluster":{
+      "name":"cluster_name",
+      "category":"Tasks",
+      "temporal":false
+    },
+    "Request":{
+      "name":"request_id",
+      "category":"Tasks",
+      "temporal":false
+    },
+    "Task":{
+      "name":"id",
+      "category":"Tasks",
+      "temporal":false
+    }
   }
 }

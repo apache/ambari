@@ -88,8 +88,10 @@ public class SchemaImpl implements Schema {
 
   private Set<PropertyId> getPropertyIds() {
     Set<PropertyId> propertyIds = new HashSet<PropertyId>(resourceProvider.getPropertyIds());
-    for (PropertyProvider propertyProvider : propertyProviders) {
-      propertyIds.addAll(propertyProvider.getPropertyIds());
+    if (propertyProviders != null) {
+      for (PropertyProvider propertyProvider : propertyProviders) {
+        propertyIds.addAll(propertyProvider.getPropertyIds());
+      }
     }
     return propertyIds;
   }

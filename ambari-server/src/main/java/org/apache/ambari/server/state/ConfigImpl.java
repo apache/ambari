@@ -118,10 +118,10 @@ public class ConfigImpl implements Config {
     entity.setClusterEntity(clusterEntity);
     entity.setClusterId(Long.valueOf(cluster.getClusterId()));
     entity.setType(type);
-    entity.setTag(versionTag);
+    entity.setTag(getVersionTag());
     entity.setTimestamp(new Date().getTime());
     
-    entity.setData(gson.toJson(properties));
+    entity.setData(gson.toJson(getProperties()));
     clusterDAO.createConfig(entity);
 
     clusterEntity.getClusterConfigEntities().add(entity);

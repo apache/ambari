@@ -124,6 +124,6 @@ public class CommandReport {
   
   @Override
   public String toString() {
-    return actionId + "-" + role;
+    return taskId + " " + role + " " + status + " "  + exitCode;
   }
 }

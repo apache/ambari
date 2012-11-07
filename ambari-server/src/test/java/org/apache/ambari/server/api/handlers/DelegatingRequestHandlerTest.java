@@ -49,8 +49,8 @@ public class DelegatingRequestHandlerTest {
     ResultPostProcessor resultProcessor = createStrictMock(ResultPostProcessor.class);
 
     // expectations
-    expect(request.getRequestType()).andReturn(Request.Type.PUT);
-    expect(factory.getRequestHandler(Request.Type.PUT)).andReturn(requestHandler);
+    expect(request.getRequestType()).andReturn(Request.Type.POST);
+    expect(factory.getRequestHandler(Request.Type.POST)).andReturn(requestHandler);
     expect(requestHandler.handleRequest(request)).andReturn(result);
     expect(request.getResultPostProcessor()).andReturn(resultProcessor);
     resultProcessor.process(result);
@@ -72,8 +72,8 @@ public class DelegatingRequestHandlerTest {
     ResultPostProcessor resultProcessor = createStrictMock(ResultPostProcessor.class);
 
     // expectations
-    expect(request.getRequestType()).andReturn(Request.Type.POST);
-    expect(factory.getRequestHandler(Request.Type.POST)).andReturn(requestHandler);
+    expect(request.getRequestType()).andReturn(Request.Type.PUT);
+    expect(factory.getRequestHandler(Request.Type.PUT)).andReturn(requestHandler);
     expect(requestHandler.handleRequest(request)).andReturn(result);
     expect(request.getResultPostProcessor()).andReturn(resultProcessor);
     resultProcessor.process(result);

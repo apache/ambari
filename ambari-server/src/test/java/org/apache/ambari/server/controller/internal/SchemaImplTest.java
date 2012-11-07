@@ -19,6 +19,7 @@
 package org.apache.ambari.server.controller.internal;
 
 import junit.framework.Assert;
+import org.apache.ambari.server.controller.spi.RequestStatus;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
 import org.apache.ambari.server.controller.spi.Predicate;
 import org.apache.ambari.server.controller.spi.PropertyId;
@@ -57,18 +58,18 @@ public class SchemaImplTest {
     }
 
     @Override
-    public void createResources(Request request) {
-
+    public RequestStatus createResources(Request request) {
+      return new RequestStatusImpl(null);
     }
 
     @Override
-    public void updateResources(Request request, Predicate predicate) {
-
+    public RequestStatus updateResources(Request request, Predicate predicate) {
+      return new RequestStatusImpl(null);
     }
 
     @Override
-    public void deleteResources(Predicate predicate) {
-
+    public RequestStatus deleteResources(Predicate predicate) {
+      return new RequestStatusImpl(null);
     }
 
     @Override

@@ -136,15 +136,15 @@ class hdp::params()
   $host_address = undef 
 
   ##### java 
-  $java32_home = hdp_default("java32_home","/usr/jdk32/jdk1.6.0_26")
-  $java64_home = hdp_default("java64_home","/usr/jdk64/jdk1.6.0_26")
+  $java32_home = hdp_default("java32_home","/usr/jdk32/jdk1.6.0_31")
+  $java64_home = hdp_default("java64_home","/usr/jdk64/jdk1.6.0_31")
   
   $wipeoff_data =  hdp_default("wipeoff_data",false) 
 
-  $jdk_location = hdp_default("jdk_location","http://download.oracle.com/otn-pub/java/jdk/6u26-b03")
+  $jdk_location = hdp_default("jdk_location","http://download.oracle.com/otn-pub/java/jdk/6u31-b03")
   $jdk_bins = hdp_default("jdk_bins",{
-    32 => "jdk-6u26-linux-i586.bin",
-    64 => "jdk-6u26-linux-x64.bin"
+    32 => "jdk-6u31-linux-i586.bin",
+    64 => "jdk-6u31-linux-x64.bin"
   })
 
   $jce_policy_zip = "jce_policy-6.zip"

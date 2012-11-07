@@ -18,6 +18,8 @@
 package org.apache.ambari.server.controller.predicate;
 
 import junit.framework.Assert;
+import org.apache.ambari.server.controller.internal.PropertyIdImpl;
+import org.apache.ambari.server.controller.internal.ResourceImpl;
 import org.apache.ambari.server.controller.spi.PropertyId;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.junit.Test;

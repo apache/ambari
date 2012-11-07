@@ -109,7 +109,7 @@ public class UserEntity {
           joinColumns = {@JoinColumn(name = "user_name", referencedColumnName = "user_name"),
                   @JoinColumn(name = "ldap_user", referencedColumnName = "ldap_user")},
           inverseJoinColumns = {@JoinColumn(name = "role_name", referencedColumnName = "role_name")})
-  @ManyToMany
+  @ManyToMany(cascade = CascadeType.ALL)
   public Set<RoleEntity> getRoleEntities() {
     return roleEntities;
   }

@@ -29,6 +29,8 @@ import threading
 import traceback
 from pprint import pformat
 
+AMBARI_PASSPHRASE_VAR = "AMBARI_PASSPHRASE"
+
 class SCP(threading.Thread):
   """ SCP implementation that is thread based. The status can be returned using
    status val """
@@ -62,10 +64,10 @@ class SCP(threading.Thread):
 
 class SSH(threading.Thread):
   """ Ssh implementation of this """
-  def __init__(self, sshKeyFile, host, command):
+  def __init__(self, sshKeyFile, host, commands):
     self.sshKeyFile = sshKeyFile
     self.host = host
-    self.command = command
+    self.commands = commands
     self.ret = {"exitstatus" : -1, "log": "FAILED"}
     threading.Thread.__init__(self)
     pass
@@ -79,7 +81,7 @@ class SSH(threading.Thread):
   def run(self):
     sshcommand = ["ssh", "-o", "ConnectTimeOut=3", "-o",
                    "StrictHostKeyChecking=no", "-i", self.sshKeyFile,
-                    self.host, self.command]
+                    self.host, ";".join(self.commands)]
     sshstat = subprocess.Popen(sshcommand, stdout=subprocess.PIPE,
                                   stderr=subprocess.PIPE)
     log = sshstat.communicate()
@@ -94,10 +96,10 @@ def splitlist(hosts, n):
 
 class PSSH:
   """Run SSH in parallel for a given list of hosts"""
-  def __init__(self, hosts, sshKeyFile, command):
+  def __init__(self, hosts, sshKeyFile, commands):
     self.hosts = hosts
     self.sshKeyFile = sshKeyFile
-    self.command = command
+    self.commands = commands
     self.ret = {}
     pass
     
@@ -110,11 +112,11 @@ class PSSH:
     for chunk in splitlist(self.hosts, 20):
       chunkstats = []
       for host in chunk:
-        ssh = SSH(self.sshKeyFile, host, self.command)
+        ssh = SSH(self.sshKeyFile, host, self.commands)
         ssh.start()
         chunkstats.append(ssh)
         pass
-      """ wait for the scp's to complete """
+      """ wait for the ssh's to complete """
       for chunkstat in chunkstats:
         chunkstat.join()
         self.ret[chunkstat.getHost()] = chunkstat.getStatus()
@@ -171,11 +173,19 @@ class BootStrap:
     return os.path.join(self.scriptDir, "setupAgent.py")
     
   def runSetupAgent(self):
-    pssh = PSSH(self.hostlist, self.sshkeyFile, "/tmp/setupAgent.py")
+    commands = ["export AMBARI_PASSPHRASE=" + os.environ[AMBARI_PASSPHRASE_VAR], "/tmp/setupAgent.py"]
+    pssh = PSSH(self.hostlist, self.sshkeyFile, commands)
     pssh.run()
     out = pssh.getstatus()
     logging.info("Parallel ssh returns " + pprint.pformat(out))
-    pass
+
+    """ Test code for setting env var on agent host before starting setupAgent.py
+    commands = ["export AMBARI_PASSPHRASE=" + os.environ[AMBARI_PASSPHRASE_VAR], "set"]
+    pssh = PSSH(self.hostlist, self.sshkeyFile, commands)
+    pssh.run()
+    out = pssh.getstatus()
+    logging.info("Look for AMBARI_PASSPHRASE in out " + pprint.pformat(out))
+    """
 
   def copyNeededFiles(self):
     try:

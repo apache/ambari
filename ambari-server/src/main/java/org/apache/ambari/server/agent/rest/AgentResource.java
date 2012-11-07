@@ -100,7 +100,7 @@ public class AgentResource {
   public HeartBeatResponse heartbeat(HeartBeat message)
       throws WebApplicationException {
     LOG.info("Received Heartbeat message " + message);
-    HeartBeatResponse heartBeatResponse = new HeartBeatResponse();
+    HeartBeatResponse heartBeatResponse;
     try {
       heartBeatResponse = hh.handleHeartBeat(message);
     } catch (Exception e) {

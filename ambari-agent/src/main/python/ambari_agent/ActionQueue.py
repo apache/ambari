@@ -126,6 +126,7 @@ class ActionQueue(threading.Thread):
     # assume some puppet pluing to run these commands
     roleResult = {'role' : command['role'],
                   'actionId' : commandId,
+                  'taskId' : command['taskId'],
                   'stdout' : commandresult['stdout'],
                   'clusterName' : clusterName,
                   'stderr' : commandresult['stderr'],

@@ -21,15 +21,33 @@ package org.apache.ambari.server.controller.predicate;
 import org.apache.ambari.server.controller.spi.PropertyId;
 import org.apache.ambari.server.controller.spi.Resource;
 
+import java.text.NumberFormat;
+import java.text.ParsePosition;
+
 /**
  * Predicate that compares a given value to a {@link Resource} property.
  */
 public abstract class ComparisonPredicate<T> extends PropertyPredicate implements BasePredicate {
   private final Comparable<T> value;
+  private final String stringValue;
+  private final Double doubleValue;
 
   public ComparisonPredicate(PropertyId propertyId, Comparable<T> value) {
     super(propertyId);
     this.value = value;
+
+    if (value instanceof Number) {
+      stringValue = null;
+      doubleValue = ((Number) value).doubleValue();
+    }
+    else if (value instanceof String) {
+      stringValue = (String) value;
+      doubleValue = stringToDouble(stringValue);
+    }
+    else {
+      stringValue = null;
+      doubleValue = null;
+    }
   }
 
   public Comparable<T> getValue() {
@@ -59,6 +77,33 @@ public abstract class ComparisonPredicate<T> extends PropertyPredicate implement
     visitor.acceptComparisonPredicate(this);
   }
 
+  protected int compareValueTo(Object propertyValue) throws ClassCastException{
+
+    if (doubleValue != null) {
+      if (propertyValue instanceof Number ) {
+        return (int) (doubleValue - ((Number) propertyValue).doubleValue());
+      }
+      else if (propertyValue instanceof String) {
+        Double doubleFromString = stringToDouble((String) propertyValue);
+        if (doubleFromString != null) {
+          return (int) (doubleValue - doubleFromString);
+        }
+      }
+    }
+    if (stringValue != null) {
+      return stringValue.compareTo(propertyValue.toString());
+    }
+
+    return getValue().compareTo((T) propertyValue);
+  }
+
+  private Double stringToDouble(String stringValue) {
+    ParsePosition parsePosition = new ParsePosition(0);
+    NumberFormat  numberFormat  = NumberFormat.getInstance();
+    Number        parsedNumber  = numberFormat.parse((String) value, parsePosition);
+
+    return parsePosition.getIndex() == stringValue.length() ? parsedNumber.doubleValue() : null;
+  }
 
   public abstract String getOperator();
 }

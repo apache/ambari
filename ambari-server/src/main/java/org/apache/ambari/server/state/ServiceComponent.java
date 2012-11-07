@@ -42,9 +42,9 @@ public interface ServiceComponent {
 
   public void updateDesiredConfigs(Map<String, Config> configs);
 
-  public StackVersion getDesiredStackVersion();
+  public StackId getDesiredStackVersion();
 
-  public void setDesiredStackVersion(StackVersion stackVersion);
+  public void setDesiredStackVersion(StackId stackVersion);
 
   public Map<String, ServiceComponentHost> getServiceComponentHosts();
 
@@ -77,4 +77,6 @@ public interface ServiceComponent {
   public void removeServiceComponentHosts(String hostname)
       throws AmbariException;
 
+  ServiceComponentHost addServiceComponentHost(
+      String hostName) throws AmbariException;
 }

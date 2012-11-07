@@ -29,8 +29,9 @@ public class ExecutionCommandDAO {
 
   @Inject
   Provider<EntityManager> entityManagerProvider;
-  
-  public ExecutionCommandEntity findByPK(int taskId) {
+
+  @Transactional
+  public ExecutionCommandEntity findByPK(long taskId) {
     return entityManagerProvider.get().find(ExecutionCommandEntity.class, taskId);
   }
 
@@ -46,7 +47,7 @@ public class ExecutionCommandDAO {
 
   @Transactional
   public void remove(ExecutionCommandEntity stageEntity) {
-    entityManagerProvider.get().remove(stageEntity);
+    entityManagerProvider.get().remove(merge(stageEntity));
   }
 
   @Transactional

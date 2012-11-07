@@ -30,6 +30,7 @@ import com.google.inject.persist.PersistService;
 import junit.framework.Assert;
 
 import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.controller.ServiceResponse;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
@@ -45,18 +46,22 @@ public class ServiceTest {
   private Injector injector;
   private ServiceFactory serviceFactory;
   private ServiceComponentFactory serviceComponentFactory;
+  private AmbariMetaInfo metaInfo;
 
   @Before
-  public void setup() throws AmbariException {
+  public void setup() throws Exception {
     injector = Guice.createInjector(new InMemoryDefaultTestModule());
     injector.getInstance(GuiceJpaInitializer.class);
     clusters = injector.getInstance(Clusters.class);
     serviceFactory = injector.getInstance(ServiceFactory.class);
     serviceComponentFactory = injector.getInstance(
         ServiceComponentFactory.class);
+    metaInfo = injector.getInstance(AmbariMetaInfo.class);
+    metaInfo.init();
     clusterName = "foo";
     clusters.addCluster(clusterName);
     cluster = clusters.getCluster(clusterName);
+    cluster.setDesiredStackVersion(new StackId("HDP-0.1"));
     Assert.assertNotNull(cluster);
   }
 
@@ -80,8 +85,8 @@ public class ServiceTest {
     Assert.assertEquals(cluster.getClusterName(),
         service.getCluster().getClusterName());
     Assert.assertEquals(State.INIT, service.getDesiredState());
-    Assert.assertTrue(
-        service.getDesiredStackVersion().getStackVersion().isEmpty());
+    Assert.assertFalse(
+        service.getDesiredStackVersion().getStackId().isEmpty());
   }
 
   @Test
@@ -94,9 +99,9 @@ public class ServiceTest {
     Service service = cluster.getService(serviceName);
     Assert.assertNotNull(service);
 
-    service.setDesiredStackVersion(new StackVersion("1.1.0"));
-    Assert.assertEquals("1.1.0",
-        service.getDesiredStackVersion().getStackVersion());
+    service.setDesiredStackVersion(new StackId("HDP-1.1.0"));
+    Assert.assertEquals("HDP-1.1.0",
+        service.getDesiredStackVersion().getStackId());
 
     service.setDesiredState(State.INSTALLING);
     Assert.assertEquals(State.INSTALLING, service.getDesiredState());
@@ -108,7 +113,7 @@ public class ServiceTest {
 
   @Test
   public void testAddAndGetServiceComponents() throws AmbariException {
-    String serviceName = "s1";
+    String serviceName = "HDFS";
     Service s = serviceFactory.createNew(cluster, serviceName);
     cluster.addService(s);
     s.persist();
@@ -120,11 +125,11 @@ public class ServiceTest {
     Assert.assertTrue(s.getServiceComponents().isEmpty());
 
     ServiceComponent sc1 =
-        serviceComponentFactory.createNew(s, "sc1");
+        serviceComponentFactory.createNew(s, "NAMENODE");
     ServiceComponent sc2 =
-        serviceComponentFactory.createNew(s, "sc2");
+        serviceComponentFactory.createNew(s, "DATANODE1");
     ServiceComponent sc3 =
-        serviceComponentFactory.createNew(s, "sc3");
+        serviceComponentFactory.createNew(s, "DATANODE2");
 
     Map<String, ServiceComponent> comps = new
         HashMap<String, ServiceComponent>();
@@ -150,10 +155,11 @@ public class ServiceTest {
     sc2.persist();
     sc3.persist();
 
-    ServiceComponent sc4 = s.addServiceComponent("sc4");
+    ServiceComponent sc4 = s.addServiceComponent("HDFS_CLIENT");
     Assert.assertNotNull(s.getServiceComponent(sc4.getName()));
     Assert.assertEquals(State.INIT,
-        s.getServiceComponent("sc4").getDesiredState());
+        s.getServiceComponent("HDFS_CLIENT").getDesiredState());
+    Assert.assertTrue(sc4.isClientComponent());
     sc4.persist();
 
     Assert.assertEquals(4, s.getServiceComponents().size());
@@ -168,7 +174,7 @@ public class ServiceTest {
 
     sc4.setDesiredState(State.INSTALLING);
     Assert.assertEquals(State.INSTALLING,
-        s.getServiceComponent("sc4").getDesiredState());
+        s.getServiceComponent("HDFS_CLIENT").getDesiredState());
 
   }
 
@@ -194,18 +200,18 @@ public class ServiceTest {
     Assert.assertEquals(s.getName(), r.getServiceName());
     Assert.assertEquals(s.getCluster().getClusterName(),
         r.getClusterName());
-    Assert.assertEquals(s.getDesiredStackVersion().getStackVersion(),
+    Assert.assertEquals(s.getDesiredStackVersion().getStackId(),
         r.getDesiredStackVersion());
     Assert.assertEquals(s.getDesiredState().toString(),
         r.getDesiredState());
 
-    service.setDesiredStackVersion(new StackVersion("1.1.0"));
+    service.setDesiredStackVersion(new StackId("HDP-1.1.0"));
     service.setDesiredState(State.INSTALLING);
     r = s.convertToResponse();
     Assert.assertEquals(s.getName(), r.getServiceName());
     Assert.assertEquals(s.getCluster().getClusterName(),
         r.getClusterName());
-    Assert.assertEquals(s.getDesiredStackVersion().getStackVersion(),
+    Assert.assertEquals(s.getDesiredStackVersion().getStackId(),
         r.getDesiredStackVersion());
     Assert.assertEquals(s.getDesiredState().toString(),
         r.getDesiredState());

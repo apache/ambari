@@ -57,7 +57,7 @@ public class StackInfo {
     return services;
   }
 
-  public void setServices(List<ServiceInfo> services) {
+  public synchronized void setServices(List<ServiceInfo> services) {
     this.services = services;
   }
 

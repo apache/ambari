@@ -35,7 +35,7 @@ public class ClusterControllerHelper {
   public static synchronized ClusterController getClusterController() {
     if (controller == null) {
       try {
-        Class implClass = Class.forName(PROVIDER_MODULE_CLASS);
+        Class<?> implClass = Class.forName(PROVIDER_MODULE_CLASS);
         ProviderModule providerModule = (ProviderModule) implClass.newInstance();
         controller = new ClusterControllerImpl(providerModule);
 

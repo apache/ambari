@@ -23,15 +23,15 @@ import javax.persistence.*;
 @Table(name = "execution_command", schema = "ambari", catalog = "")
 @Entity
 public class ExecutionCommandEntity {
-  private Integer taskId;
+  private Long taskId;
 
   @Column(name = "task_id", insertable = false, updatable = false, nullable = false)
   @Id
-  public Integer getTaskId() {
+  public Long getTaskId() {
     return taskId;
   }
 
-  public void setTaskId(Integer taskId) {
+  public void setTaskId(Long taskId) {
     this.taskId = taskId;
   }
 

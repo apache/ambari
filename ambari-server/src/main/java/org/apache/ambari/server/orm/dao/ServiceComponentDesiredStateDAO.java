@@ -30,10 +30,12 @@ public class ServiceComponentDesiredStateDAO {
   @Inject
   Provider<EntityManager> entityManagerProvider;
 
+  @Transactional
   public ServiceComponentDesiredStateEntity findByPK(ServiceComponentDesiredStateEntityPK primaryKey) {
     return entityManagerProvider.get().find(ServiceComponentDesiredStateEntity.class, primaryKey);
   }
 
+  @Transactional
   public void refresh(ServiceComponentDesiredStateEntity serviceComponentDesiredStateEntity) {
     entityManagerProvider.get().refresh(serviceComponentDesiredStateEntity);
   }
@@ -50,7 +52,7 @@ public class ServiceComponentDesiredStateDAO {
 
   @Transactional
   public void remove(ServiceComponentDesiredStateEntity serviceComponentDesiredStateEntity) {
-    entityManagerProvider.get().remove(serviceComponentDesiredStateEntity);
+    entityManagerProvider.get().remove(merge(serviceComponentDesiredStateEntity));
   }
 
   @Transactional

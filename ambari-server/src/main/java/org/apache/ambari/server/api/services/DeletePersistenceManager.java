@@ -20,15 +20,18 @@ package org.apache.ambari.server.api.services;
 
 import org.apache.ambari.server.api.resources.ResourceDefinition;
 import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.controller.spi.RequestStatus;
+
 
 /**
  * Responsible for persisting the deletion of a resource in the back end.
  */
 public class DeletePersistenceManager extends BasePersistenceManager {
   @Override
-  public void persist(ResourceDefinition resource) {
+  public RequestStatus persist(ResourceDefinition resource) {
     try {
-      getClusterController().deleteResources(resource.getType(),
+      //todo: need to account for multiple resources and user predicate
+      return getClusterController().deleteResources(resource.getType(),
           resource.getQuery().getInternalPredicate());
     } catch (AmbariException e) {
       //todo: handle exception

@@ -18,21 +18,38 @@
 
 package org.apache.ambari.server.api.services;
 
+import javax.ws.rs.DELETE;
+import javax.ws.rs.GET;
+import javax.ws.rs.POST;
+import javax.ws.rs.PUT;
+import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.Produces;
+import javax.ws.rs.core.Context;
+import javax.ws.rs.core.HttpHeaders;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.UriInfo;
+
 import org.apache.ambari.server.api.resources.HostResourceDefinition;
 import org.apache.ambari.server.api.resources.ResourceDefinition;
-
-import javax.ws.rs.*;
-import javax.ws.rs.core.*;
 
 /**
  * Service responsible for hosts resource requests.
  */
+@Path("/hosts/")
 public class HostService extends BaseService {
 
   /**
    * Parent cluster id.
    */
   private String m_clusterName;
+  
+  /**
+   * Constructor.
+   */
+  public HostService() {
+    m_clusterName = null;
+  }
 
   /**
    * Constructor.
@@ -77,30 +94,8 @@ public class HostService extends BaseService {
   }
 
   /**
-   * Handles PUT /clusters/{clusterID}/hosts/{hostID}
-   * Create a specific host.
-   *
-   * @param body     http body
-   * @param headers  http headers
-   * @param ui       uri info
-   * @param hostName host id
-   *
-   * @return host resource representation
-   */
-
-  @PUT
-  @Path("{hostName}")
-  @Produces("text/plain")
-  public Response createHost(String body, @Context HttpHeaders headers, @Context UriInfo ui,
-                          @PathParam("hostName") String hostName) {
-
-    return handleRequest(headers, body, ui, Request.Type.PUT,
-        createResourceDefinition(hostName, m_clusterName));
-  }
-
-  /**
    * Handles POST /clusters/{clusterID}/hosts/{hostID}
-   * Updates a specific host.
+   * Create a specific host.
    *
    * @param body     http body
    * @param headers  http headers
@@ -112,11 +107,50 @@ public class HostService extends BaseService {
   @POST
   @Path("{hostName}")
   @Produces("text/plain")
-  public Response updateHost(String body, @Context HttpHeaders headers, @Context UriInfo ui,
+  public Response createHost(String body, @Context HttpHeaders headers, @Context UriInfo ui,
                           @PathParam("hostName") String hostName) {
 
     return handleRequest(headers, body, ui, Request.Type.POST,
         createResourceDefinition(hostName, m_clusterName));
+  }
+
+  /**
+   * Handles PUT /clusters/{clusterID}/hosts/{hostID}
+   * Updates a specific host.
+   *
+   * @param body     http body
+   * @param headers  http headers
+   * @param ui       uri info
+   * @param hostName host id
+   *
+   * @return information regarding updated host
+   */
+  @PUT
+  @Path("{hostName}")
+  @Produces("text/plain")
+  public Response updateHost(String body, @Context HttpHeaders headers, @Context UriInfo ui,
+                          @PathParam("hostName") String hostName) {
+
+    return handleRequest(headers, body, ui, Request.Type.PUT,
+        createResourceDefinition(hostName, m_clusterName));
+  }
+
+  /**
+   * Handles PUT /clusters/{clusterID}/hosts
+   * Updates multiple hosts.
+   *
+   * @param body     http body
+   * @param headers  http headers
+   * @param ui       uri info
+   *
+   * @return information regarding updated host
+   */
+  @PUT
+  @Produces("text/plain")
+  public Response updateHosts(String body, @Context HttpHeaders headers, @Context UriInfo ui) {
+
+    return handleRequest(headers, body, ui, Request.Type.PUT,
+        createResourceDefinition(null, m_clusterName));
   }
 
   /**

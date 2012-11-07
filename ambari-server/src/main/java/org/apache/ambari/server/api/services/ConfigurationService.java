@@ -19,7 +19,7 @@
 package org.apache.ambari.server.api.services;
 
 import javax.ws.rs.GET;
-import javax.ws.rs.PUT;
+import javax.ws.rs.POST;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.HttpHeaders;
@@ -82,19 +82,21 @@ public class ConfigurationService extends BaseService {
    * @param ui      uri info
    * @return service collection resource representation
    */
-  @PUT
+  @POST
   @Produces("text/plain")
   public Response createConfigurations(String body,@Context HttpHeaders headers, @Context UriInfo ui) {
 
-    return handleRequest(headers, body, ui, Request.Type.PUT,
+    return handleRequest(headers, body, ui, Request.Type.POST,
         createResourceDefinition(null, null, m_clusterName));
   }
 
   /**
    * Create a service resource definition.
    *
-   * @param serviceName host name
+   * @param configType  configuration type
+   * @param configTag   tag applied to the configuration
    * @param clusterName cluster name
+   *
    * @return a service resource definition
    */
   ResourceDefinition createResourceDefinition(String configType, String configTag, String clusterName) {

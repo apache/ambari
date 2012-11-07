@@ -52,10 +52,143 @@
           </includes>
         </configuration>
       </plugin>
+
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>rpm-maven-plugin</artifactId>
+        <version>2.0.1</version>
+        <executions>
+          <execution>
+            <!-- unbinds rpm creation from maven lifecycle -->
+            <phase>none</phase>
+            <goals>
+              <goal>rpm</goal>
+            </goals>
+          </execution>
+
+        </executions>
+        <configuration>
+          <!-- places rpm to specified folder -->
+          <!--
+          <workarea>
+            rpm-target
+          </workarea>
+          -->
+          <copyright>2012, Apache Software Foundation</copyright>
+          <group>Development</group>
+          <description>Maven Recipe: RPM Package.</description>
+          <mappings>
+
+            <mapping>
+              <directory>/usr/lib/ambari-server</directory>
+              <dependency>
+              </dependency>
+            </mapping>
+
+            <mapping>
+              <directory>/usr/lib/ambari-server</directory>
+              <sources>
+                <source>
+                  <location>${project.build.directory}/${project.artifactId}-${project.version}.jar</location>
+                </source>
+              </sources>
+            </mapping>
+
+
+            <mapping>
+              <directory>/usr/sbin</directory>
+              <sources>
+                <source>
+                  <location>src/main/python/ambari-server.py</location>
+                </source>
+              </sources>
+            </mapping>
+
+            <mapping>
+              <directory>/usr/sbin</directory>
+              <filemode>744</filemode>
+              <sources>
+                <source>
+                  <location>conf/unix/ambari-server</location>
+                </source>
+              </sources>
+            </mapping>
+
+            <mapping>
+              <directory>/etc/ambari-server/conf</directory>
+              <configuration>true</configuration>
+              <sources>
+                <source>
+                  <location>conf/unix/ambari.properties</location>
+                </source>
+                <source>
+                  <location>conf/unix/log4j.properties</location>
+                </source>
+              </sources>
+            </mapping>
+
+            <mapping>
+              <directory>/var/lib/ambari-server/keys</directory>
+              <sources>
+                <source>
+                  <location>src/main/resources/ca.config</location>
+                </source>
+              </sources>
+            </mapping>
+
+            <mapping>
+              <directory>/var/lib/ambari-server/keys/db</directory>
+              <sources>
+                <source>
+                  <location>src/main/resources/db</location>
+                </source>
+              </sources>
+            </mapping>
+
+            <mapping>
+              <directory>/var/log/ambari</directory>
+            </mapping>
+
+            <mapping>
+              <directory>/var/lib/ambari-server/resources</directory>
+              <sources>
+                <source>
+                  <location>src/main/resources/Ambari-DDL.sql</location>
+                </source>
+              </sources>
+            </mapping>
+
+            <mapping>
+              <directory>/var/run/ambari-server</directory>
+            </mapping>
+
+          </mappings>
+        </configuration>
+      </plugin>
+
+      <plugin>
+          <groupId>org.codehaus.mojo</groupId>
+          <artifactId>findbugs-maven-plugin</artifactId>
+          <version>2.5.2</version>
+          <configuration>
+            <failOnError>false</failOnError>
+          </configuration>
+          <executions>
+            <execution>
+              <phase>verify</phase>
+              <goals>
+                <goal>check</goal>
+              </goals>
+            </execution>
+          </executions>
+      </plugin>
+
     </plugins>
   </build>
   <profiles>
   </profiles>
+
+
   <dependencies>
     <dependency>
       <groupId>commons-io</groupId>
@@ -76,10 +209,6 @@
     <dependency>
       <groupId>com.google.inject.extensions</groupId>
       <artifactId>guice-servlet</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>com.google.code.gson</groupId>
-      <artifactId>gson</artifactId>
     </dependency>
     <dependency>
       <groupId>org.apache.derby</groupId>
@@ -260,5 +389,25 @@
       <artifactId>guice</artifactId>
       <version>3.0</version>
     </dependency>
+    <dependency>
+      <groupId>com.google.code.gson</groupId>
+      <artifactId>gson</artifactId>
+      <version>2.2.2</version>
+    </dependency>
+    <dependency>
+      <groupId>postgresql</groupId>
+      <artifactId>postgresql</artifactId>
+      <version>8.3-603.jdbc4</version>
+    </dependency>
   </dependencies>
+
+    <!--<reporting>
+        <plugins>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>findbugs-maven-plugin</artifactId>
+                <version>2.5.2</version>
+            </plugin>
+        </plugins>
+    </reporting>-->
 </project>

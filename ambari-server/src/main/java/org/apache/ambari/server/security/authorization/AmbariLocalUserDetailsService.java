@@ -66,7 +66,7 @@ public class AmbariLocalUserDetailsService implements UserDetailsService {
     if (user == null) {
       log.info("user not found ");
       throw new UsernameNotFoundException("Username " + username + " not found");
-    } else if (user.getRoleEntities().isEmpty()) {
+    }else if (user.getRoleEntities().isEmpty()) {
       log.info("No authorities for user");
       throw new UsernameNotFoundException("Username " + username + " has no roles");
     }

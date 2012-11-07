@@ -32,21 +32,24 @@ class hdp-hbase(
 
   #Configs generation  
 
-  if has_key($configuration, 'hbase_site') {
-    configgenerator::configfile{'hbase_site': 
+  if has_key($configuration, 'hbase-site') {
+    configgenerator::configfile{'hbase-site': 
       modulespath => $hdp-hbase::params::conf_dir,
       filename => 'hbase-site.xml',
       module => 'hdp-hbase',
-      configuration => $configuration['hbase_site']
+      configuration => $configuration['hbase-site']
       }
     }
+    hdp-hbase::configfile { 'regionservers':}
+    Anchor['hdp-hbase::begin'] -> Hdp::Package['hbase'] -> Hdp::User[$hbase_user] -> Hdp::Directory[$config_dir] -> 
+    Hdp-hbase::Configfile<||> ->  Anchor['hdp-hbase::end']
 
-  if has_key($configuration, 'hbase_policy') {
-    configgenerator::configfile{'hbase_policy': 
+  if has_key($configuration, 'hbase-policy') {
+    configgenerator::configfile{'hbase-policy': 
       modulespath => $hdp-hbase::params::conf_dir,
       filename => 'hbase-policy.xml',
       module => 'hdp-hbase',
-      configuration => $configuration['hbase_policy']
+      configuration => $configuration['hbase-policy']
       }
     }
 

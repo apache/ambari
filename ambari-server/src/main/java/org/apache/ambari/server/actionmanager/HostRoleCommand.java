@@ -42,7 +42,8 @@ import java.io.IOException;
 public class HostRoleCommand {
   private static final Logger log = LoggerFactory.getLogger(HostRoleCommand.class);
 
-  private int taskId = -1;
+  private long taskId = -1;
+  private long stageId = -1;
   private String hostName;
   private final Role role;
   private HostRoleStatus status = HostRoleStatus.PENDING;
@@ -66,6 +67,7 @@ public class HostRoleCommand {
   @AssistedInject
   public HostRoleCommand(@Assisted HostRoleCommandEntity hostRoleCommandEntity, Injector injector) {
     taskId = hostRoleCommandEntity.getTaskId();
+    stageId = hostRoleCommandEntity.getStage().getStageId();
     this.hostName = hostRoleCommandEntity.getHostName();
     role = hostRoleCommandEntity.getRole();
     status = hostRoleCommandEntity.getStatus();
@@ -126,11 +128,11 @@ public class HostRoleCommand {
   }
 
 
-  public int getTaskId() {
+  public long getTaskId() {
     return taskId;
   }
 
-  public void setTaskId(int taskId) {
+  public void setTaskId(long taskId) {
       this.taskId = taskId;
       executionCommand.setTaskId(taskId);
   }
@@ -211,6 +213,14 @@ public class HostRoleCommand {
     this.executionCommand = executionCommand;
   }
 
+  public long getStageId() {
+    return stageId;
+  }
+
+  public void setStageId(long stageId) {
+    this.stageId = stageId;
+  }
+
   @Override
   public int hashCode() {
     return role.hashCode();
@@ -229,6 +239,7 @@ public class HostRoleCommand {
   public String toString() {
     StringBuilder builder = new StringBuilder();
     builder.append("HostRoleCommand State:\n");
+    builder.append("  TaskId: " + taskId + "\n");
     builder.append("  Role: " + role + "\n");
     builder.append("  Status: " + status + "\n");
     builder.append("  Event: " + event + "\n");

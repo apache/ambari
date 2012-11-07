@@ -17,7 +17,9 @@
  */
 package org.apache.ambari.server.actionmanager;
 
+import java.util.Collection;
 import java.util.List;
+import java.util.Set;
 
 import org.apache.ambari.server.Role;
 import org.apache.ambari.server.agent.CommandReport;
@@ -62,4 +64,13 @@ public interface ActionDBAccessor {
    */
   public void hostRoleScheduled(Stage s, String hostname, String roleStr);
 
+  public List<HostRoleCommand> getRequestTasks(long requestId);
+
+  public Collection<HostRoleCommand> getTasks(Collection<Long> taskIds);
+
+  public List<Stage> getStagesByHostRoleStatus(Set<HostRoleStatus> statuses);
+
+  public List<Long> getRequests();
+  
+  public HostRoleCommand getTask(long taskId);
 }

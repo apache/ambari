@@ -82,15 +82,19 @@ class puppetExecutor:
                                   env=puppetEnv)
     stderr_out = puppet.communicate()
     error = "none"
-    if puppet.returncode != 0:
+    returncode = 0
+    if (puppet.returncode != 0 and puppet.returncode != 2) :
+      returncode = puppet.returncode
       error = stderr_out[1]
-      result["stderr"] = error
-      logging.error("Error running puppet: " + stderr_out[1])
+      logging.error("Error running puppet: \n" + stderr_out[1])
       pass
+    result["stderr"] = error
     puppetOutput = stderr_out[0]
-    result["exitcode"] = puppet.returncode
-    result["stdout"] = puppetOutput
-    logger.info("ExitCode : \n"  + str(result["exitcode"]))
+    logger.info("Output from puppet :\n" + puppetOutput)
+    result["exitcode"] = returncode
+    
+    result["stdout"] = "Output"
+    logger.info("ExitCode : "  + str(result["exitcode"]))
     return result
  
 def main():

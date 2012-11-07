@@ -20,7 +20,6 @@ package org.apache.ambari.server.utils;
 import static org.junit.Assert.assertEquals;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -29,16 +28,19 @@ import javax.xml.bind.JAXBException;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.actionmanager.Stage;
 import org.apache.ambari.server.agent.ExecutionCommand;
+import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
+import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.cluster.ClustersImpl;
 import org.apache.ambari.server.state.svccomphost.ServiceComponentHostImpl;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.codehaus.jackson.JsonGenerationException;
 import org.codehaus.jackson.map.JsonMappingException;
+import org.junit.Before;
 import org.junit.Test;
 
 import com.google.inject.Guice;
@@ -46,13 +48,28 @@ import com.google.inject.Injector;
 
 public class TestStageUtils {
   private static Log LOG = LogFactory.getLog(TestStageUtils.class);
-  
+
+  private AmbariMetaInfo ambariMetaInfo;
+
+  private Injector injector;
+
+  @Before
+  public void setup() throws Exception {
+    injector = Guice.createInjector(new InMemoryDefaultTestModule());
+    injector.getInstance(GuiceJpaInitializer.class);
+    ambariMetaInfo = injector.getInstance(AmbariMetaInfo.class);
+    ambariMetaInfo.init();
+
+  }
+
+
   public static void addHdfsService(Cluster cl, String [] hostList,
       Injector injector) throws AmbariException {
+    cl.setDesiredStackVersion(new StackId("HDP-0.1"));
     cl.addService("HDFS");
     cl.getService("HDFS").addServiceComponent("NAMENODE");
     cl.getService("HDFS").addServiceComponent("DATANODE");
-    cl.getService("HDFS").addServiceComponent("SNAMENODE");
+    cl.getService("HDFS").addServiceComponent("SECONDARY_NAMENODE");
     cl.getService("HDFS")
         .getServiceComponent("NAMENODE")
         .addServiceComponentHost(
@@ -60,10 +77,10 @@ public class TestStageUtils {
                 .getServiceComponent("NAMENODE"), hostList[0], false,
                 injector));
     cl.getService("HDFS")
-        .getServiceComponent("SNAMENODE")
+        .getServiceComponent("SECONDARY_NAMENODE")
         .addServiceComponentHost(
             new ServiceComponentHostImpl(cl.getService("HDFS")
-                .getServiceComponent("SNAMENODE"), hostList[1], false,
+                .getServiceComponent("SECONDARY_NAMENODE"), hostList[1], false,
                 injector));
     for (int i = 1; i < hostList.length; i++) {
       cl.getService("HDFS")
@@ -74,9 +91,10 @@ public class TestStageUtils {
                   injector));
     }
   }
-  
+
   public static void addHbaseService(Cluster cl, String [] hostList,
       Injector injector) throws AmbariException {
+    cl.setDesiredStackVersion(new StackId("HDP-0.2"));
     cl.addService("HBASE");
     cl.getService("HBASE").addServiceComponent("HBASE_MASTER");
     cl.getService("HBASE").addServiceComponent("HBASE_REGIONSERVER");
@@ -95,7 +113,7 @@ public class TestStageUtils {
                   injector));
     }
   }
-  
+
   @Test
   public void testGetATestStage() {
     Stage s = StageUtils.getATestStage(1, 2, "host2");
@@ -107,7 +125,7 @@ public class TestStageUtils {
       assertEquals(hostname, cmd.getHostname());
     }
   }
-  
+
   @Test
   public void testJaxbToString() throws Exception {
     Stage s = StageUtils.getATestStage(1, 2, "host1");
@@ -129,12 +147,9 @@ public class TestStageUtils {
     assertEquals(cmd.toString(), cmdDes.toString());
     assertEquals(cmd, cmdDes);
   }
-  
+
   @Test
   public void testGetClusterHostInfo() throws AmbariException {
-    Injector injector;
-    injector = Guice.createInjector(new InMemoryDefaultTestModule());
-    injector.getInstance(GuiceJpaInitializer.class);
     Clusters fsm = new ClustersImpl(injector);
     fsm.addCluster("c1");
     fsm.addHost("h1");
@@ -146,7 +161,7 @@ public class TestStageUtils {
     String [] hostList = {"h1", "h2", "h3" };
     fsm.getHost("h1").persist();
     fsm.getHost("h2").persist();
-    fsm.getHost("h3").persist();    
+    fsm.getHost("h3").persist();
     addHdfsService(fsm.getCluster("c1"), hostList, injector);
     addHbaseService(fsm.getCluster("c1"), hostList, injector);
     Map<String, List<String>> info = StageUtils.getClusterHostInfo(fsm

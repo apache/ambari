@@ -21,21 +21,32 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
+import java.util.Set;
 
-import com.google.inject.Inject;
-import com.google.inject.Injector;
-import com.google.inject.persist.Transactional;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.Role;
 import org.apache.ambari.server.agent.CommandReport;
-
-import com.google.inject.Singleton;
-import org.apache.ambari.server.orm.dao.*;
-import org.apache.ambari.server.orm.entities.*;
+import org.apache.ambari.server.orm.dao.ClusterDAO;
+import org.apache.ambari.server.orm.dao.ExecutionCommandDAO;
+import org.apache.ambari.server.orm.dao.HostDAO;
+import org.apache.ambari.server.orm.dao.HostRoleCommandDAO;
+import org.apache.ambari.server.orm.dao.RoleSuccessCriteriaDAO;
+import org.apache.ambari.server.orm.dao.StageDAO;
+import org.apache.ambari.server.orm.entities.ClusterEntity;
+import org.apache.ambari.server.orm.entities.ExecutionCommandEntity;
+import org.apache.ambari.server.orm.entities.HostEntity;
+import org.apache.ambari.server.orm.entities.HostRoleCommandEntity;
+import org.apache.ambari.server.orm.entities.RoleSuccessCriteriaEntity;
+import org.apache.ambari.server.orm.entities.StageEntity;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.google.inject.Inject;
+import com.google.inject.Injector;
+import com.google.inject.Singleton;
+import com.google.inject.persist.Transactional;
 
 @Singleton
 public class ActionDBAccessorImpl implements ActionDBAccessor {
@@ -55,6 +66,8 @@ public class ActionDBAccessorImpl implements ActionDBAccessor {
   private RoleSuccessCriteriaDAO roleSuccessCriteriaDAO;
   @Inject
   private StageFactory stageFactory;
+  @Inject
+  private HostRoleCommandFactory hostRoleCommandFactory;
   @Inject
   private Clusters clusters;
 
@@ -192,7 +205,11 @@ public class ActionDBAccessorImpl implements ActionDBAccessor {
   @Transactional
   public void updateHostRoleState(String hostname, long requestId,
       long stageId, String role, CommandReport report) {
-    List<HostRoleCommandEntity> commands = hostRoleCommandDAO.findByHostRole(hostname, requestId, stageId, Role.valueOf(role));
+    LOG.info("Update HostRoleState: "
+        + "HostName " + hostname + " requestId " + requestId + " stageId "
+        + stageId + " role " + role + " report " + report);
+    List<HostRoleCommandEntity> commands = hostRoleCommandDAO.findByHostRole(
+        hostname, requestId, stageId, Role.valueOf(role));
     for (HostRoleCommandEntity command : commands) {
       command.setStatus(HostRoleStatus.valueOf(report.getStatus()));
       command.setStdOut(report.getStdOut());
@@ -232,5 +249,45 @@ public class ActionDBAccessorImpl implements ActionDBAccessor {
       throw new RuntimeException("HostRoleCommand is not persisted, cannot update:\n" + hostRoleCommand);
     }
 
+  }
+
+  @Override
+  public List<HostRoleCommand> getRequestTasks(long requestId) {
+    List<HostRoleCommand> tasks = new ArrayList<HostRoleCommand>();
+    for (HostRoleCommandEntity hostRoleCommandEntity : hostRoleCommandDAO.findByRequest(requestId)) {
+      tasks.add(hostRoleCommandFactory.createExisting(hostRoleCommandEntity));
+    }
+    return tasks;
+  }
+
+  @Override
+  public Collection<HostRoleCommand> getTasks(Collection<Long> taskIds) {
+    List<HostRoleCommand> commands = new ArrayList<HostRoleCommand>();
+    for (HostRoleCommandEntity commandEntity : hostRoleCommandDAO.findByPKs(taskIds)) {
+      commands.add(hostRoleCommandFactory.createExisting(commandEntity));
+    }
+    return commands;
+  }
+
+  @Override
+  public List<Stage> getStagesByHostRoleStatus(Set<HostRoleStatus> statuses) {
+    List<Stage> stages = new ArrayList<Stage>();
+    for (StageEntity stageEntity : stageDAO.findByCommandStatuses(statuses)) {
+      stages.add(stageFactory.createExisting(stageEntity));
+    }
+    return stages;
+  }
+
+  @Override
+  public List<Long> getRequests() {
+    return hostRoleCommandDAO.getRequests();
+  }
+    
+  public HostRoleCommand getTask(long taskId) {
+    HostRoleCommandEntity commandEntity = hostRoleCommandDAO.findByPK((int)taskId);
+    if (commandEntity == null) {
+      return null;
+    }
+    return hostRoleCommandFactory.createExisting(commandEntity);
   }
 }

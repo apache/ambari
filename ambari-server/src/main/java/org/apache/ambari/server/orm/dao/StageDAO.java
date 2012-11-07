@@ -38,6 +38,7 @@ public class StageDAO {
   @Inject
   DaoUtils daoUtils;
 
+  @Transactional
   public StageEntity findByPK(StageEntityPK stageEntityPK) {
     return entityManagerProvider.get().find(StageEntity.class, stageEntityPK);
   }
@@ -54,6 +55,7 @@ public class StageDAO {
     }
   }
 
+  @Transactional
   public StageEntity findByActionId(String actionId) {
     long[] ids = StageUtils.getRequestStage(actionId);
     StageEntityPK pk = new StageEntityPK();
@@ -62,15 +64,21 @@ public class StageDAO {
     return findByPK(pk);
   }
 
+  @Transactional
   public List<StageEntity> findByRequestId(long requestId) {
-    TypedQuery<StageEntity> query = entityManagerProvider.get().createQuery("SELECT stage FROM StageEntity stage WHERE stage.requestId=?1", StageEntity.class);
+    TypedQuery<StageEntity> query = entityManagerProvider.get().createQuery("SELECT stage " +
+        "FROM StageEntity stage " +
+        "WHERE stage.requestId=?1 " +
+        "ORDER BY stage.stageId", StageEntity.class);
     return daoUtils.selectList(query, requestId);
   }
 
+  @Transactional
   public List<StageEntity> findByCommandStatuses(Collection<HostRoleStatus> statuses) {
     TypedQuery<StageEntity> query = entityManagerProvider.get().createQuery("SELECT stage " +
         "FROM StageEntity stage JOIN stage.hostRoleCommands command " +
-        "WHERE command.status IN ?1", StageEntity.class);
+        "WHERE command.status IN ?1 " +
+        "ORDER BY stage.requestId, stage.stageId", StageEntity.class);
     return daoUtils.selectList(query, statuses);
   }
 
@@ -86,7 +94,7 @@ public class StageDAO {
 
   @Transactional
   public void remove(StageEntity stageEntity) {
-    entityManagerProvider.get().remove(stageEntity);
+    entityManagerProvider.get().remove(merge(stageEntity));
   }
 
   @Transactional

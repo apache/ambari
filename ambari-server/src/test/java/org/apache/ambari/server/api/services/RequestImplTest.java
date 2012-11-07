@@ -33,11 +33,19 @@ public class RequestImplTest {
   @Test
   public void testGetQueryPredicate() {
 
-    Request request = new TestRequest(null, null, null, Request.Type.GET, null);
+    String uri = "http://foo.bar.com/api/v1/clusters?foo=bar&orProp1=5|orProp2!=6|orProp3<100&prop!=5&prop2>10&prop3>=20&prop4<500&prop5<=1&fields=field1,category/field2";
+    Request request = new TestRequest(null, null, null, Request.Type.GET, null, uri);
     Predicate predicate = request.getQueryPredicate();
 
     Set<Predicate> setPredicates = new HashSet<Predicate>();
     setPredicates.add(new EqualsPredicate(PropertyHelper.getPropertyId("foo"), "bar"));
+
+    Set<Predicate> setOrPredicates = new HashSet<Predicate>();
+    setOrPredicates.add(new EqualsPredicate(PropertyHelper.getPropertyId("orProp1"), "5"));
+    setOrPredicates.add(new NotPredicate(new EqualsPredicate(PropertyHelper.getPropertyId("orProp2"), "6")));
+    setOrPredicates.add(new LessPredicate(PropertyHelper.getPropertyId("orProp3"), "100"));
+    setPredicates.add(new OrPredicate(setOrPredicates.toArray(new BasePredicate[3])));
+
     setPredicates.add(new NotPredicate(new EqualsPredicate(PropertyHelper.getPropertyId("prop"), "5")));
     setPredicates.add(new GreaterPredicate(PropertyHelper.getPropertyId("prop2"), "10"));
     setPredicates.add(new GreaterEqualsPredicate(PropertyHelper.getPropertyId("prop3"), "20"));
@@ -59,7 +67,7 @@ public class RequestImplTest {
 
     replay(uriInfo, mapQueryParams);
 
-    Request request =  new TestRequest(null, null, uriInfo, Request.Type.GET, null);
+    Request request =  new TestRequest(null, null, uriInfo, Request.Type.GET, null, null);
     Map<PropertyId, TemporalInfo> mapFields = request.getFields();
 
     assertEquals(7, mapFields.size());
@@ -98,13 +106,15 @@ public class RequestImplTest {
 
 
   private class TestRequest extends RequestImpl {
-    private TestRequest(HttpHeaders headers, String body, UriInfo uriInfo, Type requestType, ResourceDefinition resourceDefinition) {
+    private String m_uri;
+    private TestRequest(HttpHeaders headers, String body, UriInfo uriInfo, Type requestType, ResourceDefinition resourceDefinition, String uri) {
       super(headers, body, uriInfo, requestType, resourceDefinition);
+      m_uri = uri;
     }
 
     @Override
     public String getURI() {
-      return ("http://foo.bar.com/api/v1/clusters?foo=bar&prop!=5&prop2>10&prop3>=20&prop4<500&prop5<=1&fields=field1,category/field2");
+      return m_uri;
     }
   }
 }

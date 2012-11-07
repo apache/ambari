@@ -31,6 +31,7 @@ import com.google.inject.assistedinject.AssistedInject;
 import com.google.inject.persist.Transactional;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.ServiceComponentHostNotFoundException;
+import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.controller.ServiceComponentResponse;
 import org.apache.ambari.server.orm.dao.*;
 import org.apache.ambari.server.orm.entities.*;
@@ -57,6 +58,8 @@ public class ServiceComponentImpl implements ServiceComponent {
   private HostComponentDesiredStateDAO hostComponentDesiredStateDAO;
   @Inject
   private ServiceComponentHostFactory serviceComponentHostFactory;
+  @Inject
+  private AmbariMetaInfo ambariMetaInfo;
 
   boolean persisted = false;
   private ServiceComponentDesiredStateEntity desiredStateEntity;
@@ -68,6 +71,8 @@ public class ServiceComponentImpl implements ServiceComponent {
   private Injector injector;
 
   private final boolean isClientComponent;
+
+
 
   private void init() {
     // TODO load during restart
@@ -85,12 +90,23 @@ public class ServiceComponentImpl implements ServiceComponent {
     desiredStateEntity.setDesiredState(State.INIT);
 
     this.desiredConfigs = new HashMap<String, String>();
-    setDesiredStackVersion(new StackVersion(""));
+    setDesiredStackVersion(service.getDesiredStackVersion());
 
     this.hostComponents = new HashMap<String, ServiceComponentHost>();
 
-    // FIXME use meta data library to decide client or not
-    this.isClientComponent = false;
+    StackId stackId = service.getDesiredStackVersion();
+    ComponentInfo compInfo = ambariMetaInfo.getComponentCategory(
+        stackId.getStackName(), stackId.getStackVersion(), service.getName(),
+        componentName);
+    if (compInfo == null) {
+      throw new RuntimeException("Trying to create a ServiceComponent"
+          + " not recognized in stack info"
+          + ", clusterName=" + service.getCluster().getClusterName()
+          + ", serviceName=" + service.getName()
+          + ", componentName=" + componentName
+          + ", stackInfo=" + stackId.getStackId());
+    }
+    this.isClientComponent = compInfo.isClient();
 
     init();
   }
@@ -104,8 +120,6 @@ public class ServiceComponentImpl implements ServiceComponent {
     this.service = service;
     this.desiredStateEntity = serviceComponentDesiredStateEntity;
 
-    // FIXME use meta data library to decide client or not
-    this.isClientComponent = false;
 
     this.desiredConfigs = new HashMap<String, String>();
 
@@ -126,6 +140,20 @@ public class ServiceComponentImpl implements ServiceComponent {
     for (ComponentConfigMappingEntity entity : desiredStateEntity.getComponentConfigMappingEntities()) {
       desiredConfigs.put(entity.getConfigType(), entity.getVersionTag());
     }
+
+    StackId stackId = service.getDesiredStackVersion();
+    ComponentInfo compInfo = ambariMetaInfo.getComponentCategory(
+        stackId.getStackName(), stackId.getStackVersion(), service.getName(),
+        getName());
+    if (compInfo == null) {
+      throw new RuntimeException("Trying to create a ServiceComponent"
+          + " not recognized in stack info"
+          + ", clusterName=" + service.getCluster().getClusterName()
+          + ", serviceName=" + service.getName()
+          + ", componentName=" + getName()
+          + ", stackInfo=" + stackId.getStackId());
+    }
+    this.isClientComponent = compInfo.isClient();
 
     persisted = true;
   }
@@ -194,6 +222,7 @@ public class ServiceComponentImpl implements ServiceComponent {
     this.hostComponents.put(hostComponent.getHostName(), hostComponent);
   }
 
+  @Override
   public synchronized ServiceComponentHost addServiceComponentHost(
       String hostName) throws AmbariException {
     // TODO validation
@@ -303,12 +332,12 @@ public class ServiceComponentImpl implements ServiceComponent {
   }
 
   @Override
-  public synchronized StackVersion getDesiredStackVersion() {
-    return gson.fromJson(desiredStateEntity.getDesiredStackVersion(), StackVersion.class);
+  public synchronized StackId getDesiredStackVersion() {
+    return gson.fromJson(desiredStateEntity.getDesiredStackVersion(), StackId.class);
   }
 
   @Override
-  public synchronized void setDesiredStackVersion(StackVersion stackVersion) {
+  public synchronized void setDesiredStackVersion(StackId stackVersion) {
     if (LOG.isDebugEnabled()) {
       LOG.debug("Setting DesiredStackVersion of Service"
           + ", clusterName=" + service.getCluster().getClusterName()
@@ -322,21 +351,12 @@ public class ServiceComponentImpl implements ServiceComponent {
     saveIfPersisted();
   }
 
-  private synchronized Map<String, String> getConfigVersions() {
-    Map<String, String> configVersions = new HashMap<String, String>();
-//    for (Config c : desiredConfigs.values()) {
-//      configVersions.put(c.getType(), c.getVersionTag());
-//    }
-//    return configVersions;
-    return desiredConfigs;
-  }
-
   @Override
   public synchronized ServiceComponentResponse convertToResponse() {
     ServiceComponentResponse r  = new ServiceComponentResponse(
         getClusterId(), service.getCluster().getClusterName(),
-        service.getName(), getName(), getConfigVersions(),
-        getDesiredStackVersion().getStackVersion(),
+        service.getName(), getName(), this.desiredConfigs,
+        getDesiredStackVersion().getStackId(),
         getDesiredState().toString());
     return r;
   }
@@ -374,18 +394,10 @@ public class ServiceComponentImpl implements ServiceComponent {
   }
 
   @Override
-  @Transactional
   public synchronized void persist() {
     if (!persisted) {
-      ClusterServiceEntityPK pk = new ClusterServiceEntityPK();
-      pk.setClusterId(service.getClusterId());
-      pk.setServiceName(service.getName());
-      ClusterServiceEntity serviceEntity = clusterServiceDAO.findByPK(pk);
-
-      desiredStateEntity.setClusterServiceEntity(serviceEntity);
-      serviceComponentDesiredStateDAO.create(desiredStateEntity);
-      clusterServiceDAO.merge(serviceEntity);
-      desiredStateEntity = serviceComponentDesiredStateDAO.merge(desiredStateEntity);
+      persistEntities();
+      refresh();
       service.refresh();
       persisted = true;
     } else {
@@ -393,13 +405,27 @@ public class ServiceComponentImpl implements ServiceComponent {
     }
   }
 
+  @Transactional
+  protected void persistEntities() {
+    ClusterServiceEntityPK pk = new ClusterServiceEntityPK();
+    pk.setClusterId(service.getClusterId());
+    pk.setServiceName(service.getName());
+    ClusterServiceEntity serviceEntity = clusterServiceDAO.findByPK(pk);
+
+    desiredStateEntity.setClusterServiceEntity(serviceEntity);
+    serviceComponentDesiredStateDAO.create(desiredStateEntity);
+    clusterServiceDAO.merge(serviceEntity);
+  }
+
   @Override
+  @Transactional
   public void refresh() {
     if (isPersisted()) {
       ServiceComponentDesiredStateEntityPK pk = new ServiceComponentDesiredStateEntityPK();
       pk.setComponentName(getName());
       pk.setClusterId(getClusterId());
       pk.setServiceName(getServiceName());
+      // TODO: desiredStateEntity is assigned in unsynchronized way, may be a bug
       desiredStateEntity = serviceComponentDesiredStateDAO.findByPK(pk);
       serviceComponentDesiredStateDAO.refresh(desiredStateEntity);
     }

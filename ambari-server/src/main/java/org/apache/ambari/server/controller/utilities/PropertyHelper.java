@@ -27,6 +27,7 @@ import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.type.TypeReference;
 
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -232,6 +233,16 @@ public class PropertyHelper {
    */
   public static Request getReadRequest(Set<PropertyId> propertyIds) {
     return new RequestImpl(propertyIds,  null);
+  }
+
+  /**
+   * Factory method to create a read request from the given set of property ids.  The set of
+   * property ids represents the properties of interest for the query.
+   *
+   * @param propertyIds  the property ids associated with the request; may be null
+   */
+  public static Request getReadRequest(PropertyId ... propertyIds) {
+    return new RequestImpl(new HashSet<PropertyId>(Arrays.asList(propertyIds)),  null);
   }
 
   /**

@@ -20,6 +20,7 @@ package org.apache.ambari.server.api.services;
 
 
 import org.apache.ambari.server.api.resources.ResourceDefinition;
+import org.apache.ambari.server.controller.internal.RequestStatusImpl;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
 import org.apache.ambari.server.api.query.Query;
 import org.apache.ambari.server.controller.spi.*;
@@ -56,7 +57,7 @@ public class UpdatePersistenceManagerTest {
     expect(resource.getQuery()).andReturn(query);
     expect(query.getInternalPredicate()).andReturn(predicate);
 
-    controller.updateResources(Resource.Type.Component, serverRequest, predicate);
+    expect(controller.updateResources(Resource.Type.Component, serverRequest, predicate)).andReturn(new RequestStatusImpl(null));
 
     replay(resource, controller, schema, serverRequest, query, predicate);
 

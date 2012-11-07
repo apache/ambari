@@ -17,7 +17,9 @@
  */
 package org.apache.ambari.server.actionmanager;
 
+import java.util.Collection;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicLong;
 
 import org.apache.ambari.server.agent.ActionQueue;
@@ -84,12 +86,34 @@ public class ActionManager {
     }
     //persist the action response into the db.
     for (CommandReport report : reports) {
+      if (LOG.isDebugEnabled()) {
+        LOG.debug("Processing command report : " + report.toString());
+      }
       String actionId = report.getActionId();
       long [] requestStageIds = StageUtils.getRequestStage(actionId);
       long requestId = requestStageIds[0];
       long stageId = requestStageIds[1];
+      HostRoleCommand command = db.getTask(report.getTaskId());
+      if (command == null) {
+        LOG.warn("The task " + report.getTaskId()
+            + " is invalid");
+        continue;
+      }
+      if (!command.getStatus().equals(HostRoleStatus.IN_PROGRESS)
+          && !command.getStatus().equals(HostRoleStatus.QUEUED)) {
+        LOG.warn("The task " + command.getTaskId()
+            + " is not in progress, ignoring update");
+        continue;
+      }
       db.updateHostRoleState(hostname, requestId, stageId, report.getRole(),
           report);
+      List<HostRoleCommand> commands = db.getRequestTasks(requestId);
+      LOG.debug("List of commands " + (commands == null ? 0: commands.size()));
+      if (commands != null) {
+        for (HostRoleCommand cmd : commands) {
+          LOG.info("******COMMAND DUMP*****" + cmd);
+        }
+      }
     }
   }
 
@@ -104,4 +128,31 @@ public class ActionManager {
     return requestCounter.incrementAndGet();
   }
 
+  public List<HostRoleCommand> getRequestTasks(long requestId) {
+    List<HostRoleCommand> commands = db.getRequestTasks(requestId);
+    LOG.debug("GETTING List of commands for request Id " + requestId + " : " +
+        (commands == null ? 0: commands.size()));
+    if (commands != null) {
+      for (HostRoleCommand command : commands) {
+        LOG.info("******GETTING COMMAND DUMP*****" + command);
+      }
+    }
+    return commands;
+  }
+
+  public Collection<HostRoleCommand> getTasks(Collection<Long> taskIds) {
+    return db.getTasks(taskIds);
+  }
+
+  public List<Stage> getRequestsByHostRoleStatus(Set<HostRoleStatus> statuses) {
+    return db.getStagesByHostRoleStatus(statuses);
+  }
+
+  /**
+   * Returns last 20 requests
+   * @return
+   */
+  public List<Long> getRequests() {
+    return db.getRequests();
+  }
 }

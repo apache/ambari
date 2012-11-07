@@ -25,12 +25,12 @@ class hdp-templeton(
 {
 # Configs generation  
 
-  if has_key($configuration, 'templeton_site') {
-    configgenerator::configfile{'templeton_site': 
+  if has_key($configuration, 'templeton-site') {
+    configgenerator::configfile{'templeton-site': 
       modulespath => $hdp-templeton::params::conf_dir,
       filename => 'templeton-site.xml',
       module => 'hdp-templeton',
-      configuration => $configuration['templeton_site']
+      configuration => $configuration['templeton-site']
     }
   }
 

@@ -75,11 +75,11 @@
       <outputDirectory>/ambari-server-${project.version}/etc/ambari-server/conf</outputDirectory>
     </fileSet>
     <fileSet>
-      <directory>src/main/assemblies</directory>
-      <outputDirectory>/ambari-server-${project.version}/res</outputDirectory>
-      <excludes>
-        <exclude>*</exclude>
-      </excludes>
+      <directory>src/main/resources</directory>
+      <outputDirectory>/ambari-server-${project.version}/var/lib/ambari-server/resources/</outputDirectory>
+      <includes>
+        <include>stacks/**</include>
+      </includes>
     </fileSet>
   </fileSets>
   <dependencySets>

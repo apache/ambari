@@ -27,11 +27,11 @@ public class ShellCommandUtil {
   private static final Log LOG = LogFactory.getLog(ShellCommandUtil.class);
   /*
   public static String LogAndReturnOpenSslExitCode(String command, int exitCode) {
-    LogOpenSslExitCode(command, exitCode);
+    logOpenSslExitCode(command, exitCode);
     return getOpenSslCommandResult(command, exitCode);
   }
   */
-  public static void LogOpenSslExitCode(String command, int exitCode) {
+  public static void logOpenSslExitCode(String command, int exitCode) {
     if (exitCode == 0) {
       LOG.info(getOpenSslCommandResult(command, exitCode));
     } else {

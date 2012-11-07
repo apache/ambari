@@ -63,6 +63,11 @@ public class RequestImpl implements Request {
   private Type m_Type;
 
   /**
+   * Predicate operators.
+   */
+  private Pattern m_pattern = Pattern.compile("!=|>=|<=|=|>|<");
+
+  /**
    * Associated resource definition
    */
   private ResourceDefinition m_resourceDefinition;
@@ -116,19 +121,13 @@ public class RequestImpl implements Request {
 
     if (qsBegin == -1) return null;
 
-    Pattern pattern = Pattern.compile("!=|>=|<=|=|>|<");
-    String qs = uri.substring(qsBegin + 1);
-    String[] tokens = qs.split("&");
+    String[] tokens = uri.substring(qsBegin + 1).split("&");
 
     Set<Predicate> setPredicates = new HashSet<Predicate>();
     for (String outerToken : tokens) {
-      Matcher m = pattern.matcher(outerToken);
-      m.find();
-      String field = outerToken.substring(0, m.start());
-      if (! field.equals("fields")) {
-        int tokEnd = m.end();
-        String value = outerToken.substring(tokEnd);
-        setPredicates.add(createPredicate(field, m.group(), value));
+      if (outerToken != null &&  !outerToken.startsWith("fields")) {
+        setPredicates.add(outerToken.contains("|") ?
+            handleOrPredicate(outerToken) : createPredicate(outerToken));
       }
     }
 
@@ -206,15 +205,17 @@ public class RequestImpl implements Request {
 
   @Override
   public ResultPostProcessor getResultPostProcessor() {
-    return new ResultPostProcessorImpl(this);
+    //todo: Need to reconsider post processor creation and association with a resource type.
+    //todo: mutating operations return request resources which aren't children of all resources.
+    return getRequestType() == Type.GET ? new ResultPostProcessorImpl(this) : new NullPostProcessor();
   }
 
   @Override
   public PersistenceManager getPersistenceManager() {
     switch (getRequestType()) {
-      case PUT:
-        return new CreatePersistenceManager();
       case POST:
+        return new CreatePersistenceManager();
+      case PUT:
         return new UpdatePersistenceManager();
       case DELETE:
         return new DeletePersistenceManager();
@@ -225,8 +226,14 @@ public class RequestImpl implements Request {
     }
   }
 
-  private Predicate createPredicate(String field, String operator, String value) {
-    PropertyId propertyId = PropertyHelper.getPropertyId(field);
+  private Predicate createPredicate(String token) {
+
+    Matcher m = m_pattern.matcher(token);
+    m.find();
+
+    PropertyId propertyId = PropertyHelper.getPropertyId(token.substring(0, m.start()));
+    String     value      = token.substring(m.end());
+    String     operator   = m.group();
 
     if (operator.equals("=")) {
       return new EqualsPredicate(propertyId, value);
@@ -245,7 +252,24 @@ public class RequestImpl implements Request {
     }
   }
 
+  private Predicate handleOrPredicate(String predicate) {
+    Set<Predicate> setPredicates = new HashSet<Predicate>();
+    String[] tokens = predicate.split("\\|");
+    for (String tok : tokens) {
+      setPredicates.add(createPredicate(tok));
+    }
+
+    return new OrPredicate(setPredicates.toArray(new BasePredicate[setPredicates.size()]));
+  }
+
   private  RequestBodyParser getHttpBodyParser() {
     return new JsonPropertyParser();
+  }
+
+  private class NullPostProcessor implements ResultPostProcessor {
+    @Override
+    public void process(Result result) {
+      //no-op
+    }
   }
 }

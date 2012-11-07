@@ -32,10 +32,12 @@ public class ClusterServiceDAO {
   @Inject
   Provider<EntityManager> entityManagerProvider;
 
+  @Transactional
   public ClusterServiceEntity findByPK(ClusterServiceEntityPK clusterServiceEntityPK) {
     return entityManagerProvider.get().find(ClusterServiceEntity.class, clusterServiceEntityPK);
   }
 
+  @Transactional
   public ClusterServiceEntity findByClusterAndServiceNames(String  clusterName, String serviceName) {
     TypedQuery<ClusterServiceEntity> query = entityManagerProvider.get()
             .createNamedQuery("clusterServiceByClusterAndServiceNames", ClusterServiceEntity.class);
@@ -49,6 +51,7 @@ public class ClusterServiceDAO {
     }
   }
 
+  @Transactional
   public void refresh(ClusterServiceEntity clusterServiceEntity) {
     entityManagerProvider.get().refresh(clusterServiceEntity);
   }
@@ -65,7 +68,7 @@ public class ClusterServiceDAO {
 
   @Transactional
   public void remove(ClusterServiceEntity clusterServiceEntity) {
-    entityManagerProvider.get().remove(clusterServiceEntity);
+    entityManagerProvider.get().remove(merge(clusterServiceEntity));
   }
 
   @Transactional

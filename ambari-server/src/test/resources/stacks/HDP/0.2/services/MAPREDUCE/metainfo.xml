@@ -1,0 +1,21 @@
+<?xml version="1.0"?>
+<metainfo>
+  <user>root</user>
+  <comment>This is comment for Mapred service</comment>
+  <version>1.0</version>
+  <components>
+    <component>
+      <name>JOBTRACKER</name>
+      <category>MASTER</category>
+    </component>
+    <component>
+      <name>TASKTRACKER</name>
+      <category>SLAVE</category>
+    </component>
+    <component>
+      <name>MAPREDUCE_CLIENT</name>
+      <category>CLIENT</category>
+    </component>
+  </components>
+
+</metainfo>

@@ -30,10 +30,12 @@ public class HostComponentMappingDAO {
   @Inject
   Provider<EntityManager> entityManagerProvider;
 
+  @Transactional
   public HostComponentMappingEntity findByPK(HostComponentStateEntityPK primaryKey) {
     return entityManagerProvider.get().find(HostComponentMappingEntity.class, primaryKey);
   }
 
+  @Transactional
   public void refresh(HostComponentMappingEntity hostComponentMappingEntity) {
     entityManagerProvider.get().refresh(hostComponentMappingEntity);
   }
@@ -50,7 +52,7 @@ public class HostComponentMappingDAO {
 
   @Transactional
   public void remove(HostComponentMappingEntity hostComponentMappingEntity) {
-    entityManagerProvider.get().remove(hostComponentMappingEntity);
+    entityManagerProvider.get().remove(merge(hostComponentMappingEntity));
   }
 
   @Transactional

@@ -19,6 +19,7 @@
 package org.apache.ambari.server.api.services;
 
 import org.apache.ambari.server.api.resources.ResourceDefinition;
+import org.apache.ambari.server.controller.internal.RequestStatusImpl;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
 import org.apache.ambari.server.controller.spi.ClusterController;
 import org.apache.ambari.server.controller.spi.PropertyId;
@@ -66,7 +67,7 @@ public class CreatePersistenceManagerTest {
     resource.setProperty(serviceId, "serviceId");
     expect(resource.getProperties()).andReturn(mapProperties);
 
-    controller.createResources(Resource.Type.Component, serverRequest);
+    expect(controller.createResources(Resource.Type.Component, serverRequest)).andReturn(new RequestStatusImpl(null));
 
     replay(resource, controller, schema, clusterId, serviceId, serverRequest);
 
