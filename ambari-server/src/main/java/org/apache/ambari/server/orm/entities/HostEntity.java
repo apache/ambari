@@ -111,7 +111,7 @@ public class HostEntity {
   private String disksInfo = "";
 
   @javax.persistence.Column(name = "disks_info", nullable = false, insertable = true, 
-		  updatable = true, length = 2000)
+		  updatable = true, length = 20000)
   @Basic
   public String getDisksInfo() {
     return disksInfo;
@@ -123,7 +123,8 @@ public class HostEntity {
 
   private String osInfo = "";
 
-  @javax.persistence.Column(name = "os_info", nullable = false, insertable = true, updatable = true)
+  @javax.persistence.Column(name = "os_info", nullable = false, insertable = true, updatable = true,
+      length = 20000)
   @Basic
   public String getOsInfo() {
     return osInfo;
@@ -183,7 +184,8 @@ public class HostEntity {
 
   private String hostAttributes = "";
 
-  @javax.persistence.Column(name = "host_attributes", nullable = false, insertable = true, updatable = true)
+  @javax.persistence.Column(name = "host_attributes", nullable = false, insertable = true, updatable = true,
+      length = 20000)
   @Basic
   public String getHostAttributes() {
     return hostAttributes;

@@ -184,4 +184,21 @@ public class StageUtils {
     }
     return info;
   }
+
+  public static String getHostsToDecommission(List<String> hosts) {
+    StringBuilder builder = new StringBuilder();
+    builder.append("[");
+    boolean first = true;
+    for (String host : hosts) {
+      if (!first) {
+        builder.append(",");
+      } else {
+        first = false;
+      }
+      builder.append("'");
+      builder.append(host);
+      builder.append("'");
+    }
+    return builder.toString();
+  }
 }

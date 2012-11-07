@@ -2762,14 +2762,115 @@ public class AmbariManagementControllerImpl implements
     return null;
   }
 
+  private void addServiceCheckAction(ActionRequest actionRequest, Stage stage)
+      throws AmbariException {
+    String clusterName = actionRequest.getClusterName();
+    String componentName = actionMetadata.getClient(actionRequest
+        .getServiceName());
+
+    String hostName;
+    if (componentName != null) {
+      Map<String, ServiceComponentHost> components = clusters
+          .getCluster(clusterName).getService(actionRequest.getServiceName())
+          .getServiceComponent(componentName).getServiceComponentHosts();
+
+      if (components.isEmpty()) {
+        throw new AmbariException("Hosts not found, component="
+            + componentName + ", service=" + actionRequest.getServiceName()
+            + ", cluster=" + clusterName);
+      }
+
+      hostName = components.keySet().iterator().next();
+    } else {
+      Map<String, ServiceComponent> components = clusters
+          .getCluster(clusterName).getService(actionRequest.getServiceName())
+          .getServiceComponents();
+
+      if (components.isEmpty()) {
+        throw new AmbariException("Components not found, service="
+            + actionRequest.getServiceName() + ", cluster=" + clusterName);
+      }
+
+      ServiceComponent serviceComponent = components.values().iterator()
+          .next();
+
+      if (serviceComponent.getServiceComponentHosts().isEmpty()) {
+        throw new AmbariException("Hosts not found, component="
+            + serviceComponent.getName() + ", service="
+            + actionRequest.getServiceName() + ", cluster=" + clusterName);
+      }
+
+      hostName = serviceComponent.getServiceComponentHosts().keySet()
+          .iterator().next();
+    }
+
+    stage.addHostRoleExecutionCommand(hostName, Role.valueOf(actionRequest
+        .getActionName()), RoleCommand.EXECUTE,
+        new ServiceComponentHostOpInProgressEvent(componentName, hostName,
+            System.currentTimeMillis()), clusterName, actionRequest
+            .getServiceName());
+
+    stage.getExecutionCommand(hostName, actionRequest.getActionName())
+        .setRoleParams(actionRequest.getParameters());
+  }
+  
+  private void addDecommissionDatanodeAction(
+      ActionRequest decommissionRequest, Stage stage)
+      throws AmbariException {
+    // Find hdfs admin host, just decommission from namenode.
+    String clusterName = decommissionRequest.getClusterName();
+    String serviceName = decommissionRequest.getServiceName();
+    String namenodeHost = clusters.getCluster(clusterName)
+        .getService(serviceName).getServiceComponent(Role.NAMENODE.toString())
+        .getServiceComponentHosts().keySet().iterator().next();
+
+    Map<String, ServiceComponentHost> datanodeHostMap = clusters
+        .getCluster(clusterName).getService(serviceName)
+        .getServiceComponent(Role.DATANODE.toString())
+        .getServiceComponentHosts();
+
+    String excludeFileTag = null;
+    if (decommissionRequest.getParameters() != null
+        && (decommissionRequest.getParameters().get("excludeFileTag") != null)) {
+      excludeFileTag = decommissionRequest.getParameters()
+          .get("excludeFileTag");
+    }
+
+    if (excludeFileTag == null) {
+      throw new AmbariException("No exclude file specified");
+    }
+
+    Config config = clusters.getCluster(clusterName).getDesiredConfig(
+        "hdfs-exclude-file", excludeFileTag);
+    
+    Map<String, Map<String, String>> configurations =
+        new TreeMap<String, Map<String, String>>();
+    configurations.put(config.getType(), config.getProperties());
+
+    Config hdfsSiteConfig = clusters.getCluster(clusterName).getService("HDFS")
+        .getDesiredConfigs().get("hdfs-site");
+
+    configurations
+        .put(hdfsSiteConfig.getType(), hdfsSiteConfig.getProperties());
+
+    stage.addHostRoleExecutionCommand(
+        namenodeHost,
+        Role.DECOMMISSION_DATANODE,
+        RoleCommand.EXECUTE,
+        new ServiceComponentHostOpInProgressEvent(Role.DECOMMISSION_DATANODE
+            .toString(), namenodeHost, System.currentTimeMillis()),
+        clusterName, serviceName);
+    stage.getExecutionCommand(namenodeHost,
+        Role.DECOMMISSION_DATANODE.toString())
+        .setConfigurations(configurations);
+  }
+
   @Override
   public RequestStatusResponse createActions(Set<ActionRequest> request)
       throws AmbariException {
     String clusterName = null;
 
     String logDir = ""; //TODO empty for now
-
-    Stage stage = null;
 
     for (ActionRequest actionRequest : request) {
       if (actionRequest.getClusterName() == null
@@ -2782,73 +2883,36 @@ public class AmbariManagementControllerImpl implements
             + actionRequest.getClusterName() + ", service="
             + actionRequest.getServiceName() + ", action="
             + actionRequest.getActionName());
-      }
-    }
-
-    for (ActionRequest actionRequest : request) {
-      if (clusterName == null) {
+      } else if (clusterName == null) {
         clusterName = actionRequest.getClusterName();
-        if (clusterName == null || clusterName.isEmpty()) {
-          throw new AmbariException("Empty cluster name in request");
-        }
-        stage = stageFactory.createNew(actionManager.getNextRequestId(), logDir, clusterName);
-        stage.setStageId(0L);
-        if (LOG.isDebugEnabled()) {
-          LOG.debug("Creating Stage requestId={}, stageId={}, clusterName={}",
-            new Object[]{stage.getRequestId(), stage.getStageId(), stage.getClusterName()});
-        }
-      } else {
-        if (!clusterName.equals(actionRequest.getClusterName())) {
-          throw new AmbariException("Requests for different clusters found");
-        }
+      } else if (!clusterName.equals(actionRequest.getClusterName())) {
+        throw new AmbariException("Requests for different clusters found");
       }
-
-      String componentName = actionMetadata.getClient(actionRequest.getServiceName());
-
-      String hostName;
-      if (componentName != null) {
-        Map<String, ServiceComponentHost> components = clusters.getCluster(clusterName).
-            getService(actionRequest.getServiceName()).getServiceComponent(componentName).getServiceComponentHosts();
-
-        if (components.isEmpty()) {
-          throw new AmbariException("Hosts not found, component=" + componentName +
-              ", service=" + actionRequest.getServiceName() + ", cluster=" + clusterName);
-        }
-
-        hostName = components.keySet().iterator().next();
-      } else {
-        Map<String, ServiceComponent> components = clusters.getCluster(clusterName).
-            getService(actionRequest.getServiceName()).getServiceComponents();
-
-        if (components.isEmpty()) {
-          throw new AmbariException("Components not found, service=" + actionRequest.getServiceName() +
-              ", cluster=" + clusterName);
-        }
-
-        ServiceComponent serviceComponent = components.values().iterator().next();
-
-        if (serviceComponent.getServiceComponentHosts().isEmpty()) {
-          throw new AmbariException("Hosts not found, component=" + serviceComponent.getName() +
-              ", service=" + actionRequest.getServiceName() + ", cluster=" + clusterName);
-        }
-
-        hostName = serviceComponent.getServiceComponentHosts().keySet().iterator().next();
-      }
-
-      stage.addHostRoleExecutionCommand(hostName, Role.valueOf(actionRequest.getActionName()), RoleCommand.EXECUTE,
-          new ServiceComponentHostOpInProgressEvent(componentName, hostName, System.currentTimeMillis()),
-          clusterName, actionRequest.getServiceName());
-
-      stage.getExecutionCommand(hostName, actionRequest.getActionName()).setRoleParams(actionRequest.getParameters());
     }
 
-    if (stage != null) {
-      actionManager.sendActions(Arrays.asList(stage));
+    Stage stage = stageFactory.createNew(actionManager.getNextRequestId(),
+        logDir, clusterName);
+    stage.setStageId(0);
+    for (ActionRequest actionRequest : request) {
+      if (actionRequest.getActionName().contains("SERVICE_CHECK")) {
+        addServiceCheckAction(actionRequest, stage);
+      } else if (actionRequest.getActionName().equals("DECOMMISSION_DATANODE")) {
+        LOG.info("DEBUG : excludeFileTag :"+actionRequest.getParameters().get("excludeFileTag"));
+        addDecommissionDatanodeAction(actionRequest, stage);
+      } else {
+        throw new AmbariException("Unsupported action");
+      }
+    }
+    
+    RoleGraph rg = new RoleGraph(rco);
+    rg.build(stage);
+    List<Stage> stages = rg.getStages();
+    
+    if (stages != null && !stages.isEmpty()) {
+      actionManager.sendActions(stages);
       return getRequestStatusResponse(stage.getRequestId());
     } else {
       throw new AmbariException("Stage was not created");
     }
-
   }
-
 }

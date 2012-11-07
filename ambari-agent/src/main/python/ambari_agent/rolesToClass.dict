@@ -38,3 +38,4 @@ PIG_SERVICE_CHECK = hdp-pig::pig::service_check
 SQOOP_SERVICE_CHECK = hdp-sqoop::sqoop::service_check
 TEMPLETON_SERVICE_CHECK = hdp-templeton::templeton::service_check
 DASHBOARD_SERVICE_CHECK = hdp-dashboard::dashboard::service_check
+DECOMMISSION_DATANODE = hdp-hadoop::hdfs::decommission

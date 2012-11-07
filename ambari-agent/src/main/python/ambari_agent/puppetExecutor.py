@@ -130,17 +130,21 @@ class puppetExecutor:
 
     if error == self.NO_ERROR:
       if result.has_key("stdout"):
-        result["stdout"] = result["stdout"] + os.linesep + str(grep.tail(puppetOutput, self.OUTPUT_LAST_LINES))
+        result["stdout"] = result["stdout"] + os.linesep + \
+          str(grep.tail(puppetOutput, self.OUTPUT_LAST_LINES))
       else:
         result["stdout"] = grep.tail(puppetOutput, self.OUTPUT_LAST_LINES)
     else:
       if result.has_key("stdout"):
-        result["stdout"] = result["stdout"] + os.linesep + str(grep.grep(puppetOutput, "err", self.ERROR_LAST_LINES_BEFORE, self.ERROR_LAST_LINES_AFTER))
+        result["stdout"] = result["stdout"] + os.linesep + \
+        str(grep.grep(puppetOutput, "err", self.ERROR_LAST_LINES_BEFORE, 
+                      self.ERROR_LAST_LINES_AFTER))
       else:
-        result["stdout"] = str(grep.grep(puppetOutput, "err", self.ERROR_LAST_LINES_BEFORE, self.ERROR_LAST_LINES_AFTER))
+        result["stdout"] = str(grep.grep(puppetOutput, "err", 
+                                         self.ERROR_LAST_LINES_BEFORE, 
+                                         self.ERROR_LAST_LINES_AFTER))
 	
     logger.info("ExitCode : "  + str(result["exitcode"]))
-
     return result
  
 def main():

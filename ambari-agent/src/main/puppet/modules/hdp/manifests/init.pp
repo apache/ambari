@@ -232,7 +232,7 @@ define hdp::exec(
   $user = undef,
   $creates = undef,
   $tries = 1,
-  $timeout = 900,
+  $timeout = 300,
   $try_sleep = undef,
   $initial_wait = undef,
   $logoutput = 'on_failure',

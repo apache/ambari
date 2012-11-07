@@ -23,7 +23,8 @@ import os
 import json
 from shell import shellRunner
 from manifestGenerator import writeImports
-
+from pprint import pprint, pformat
+import ast
 
 PUPPET_EXT=".pp"
 
@@ -44,11 +45,13 @@ class RepoInstaller:
       params = self.parsedJson['hostLevelParams']
     if params.has_key('repo_info'):
       self.repoInfoList = params['repo_info']
+    self.repoInfoList = ast.literal_eval(self.repoInfoList)
 
   def generateFiles(self):
     repoPuppetFiles = []
     for repo in self.repoInfoList:
-      repoFile = open(self.path + os.sep + repo['repoId'] + '-' + str(self.taskId) + PUPPET_EXT, 'w+')
+      repoFile = open(self.path + os.sep + repo['repoId'] + '-' + 
+                      str(self.taskId) + PUPPET_EXT, 'w+')
       writeImports(repoFile, self.modulesdir, inputFileName='imports.txt')
       
       baseUrl = ''

@@ -12,6 +12,8 @@ AMBARI-666 branch (unreleased changes)
 
   NEW FEATURES
 
+  AMBARI-974. Decommissioning of datanodes. (Jitendra Pandey via mahadev)
+
   AMBARI-975. Fix support for cascading updates to configs. (Hitesh Shah
   via mahadev)
 

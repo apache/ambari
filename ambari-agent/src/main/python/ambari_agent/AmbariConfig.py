@@ -39,7 +39,7 @@ serviceToPidMapFile=servicesToPidNames.dict
 pidLookupPath=/var/run/
 
 [stack]
-installprefix=/var/ambari/
+installprefix=/tmp
 
 [puppet]
 puppetmodules=/var/lib/ambari-agent/puppet/

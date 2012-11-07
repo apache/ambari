@@ -30,8 +30,11 @@ import org.apache.ambari.server.controller.utilities.PropertyHelper;
 
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 
 /**
@@ -71,21 +74,7 @@ class ActionResourceProvider extends ResourceProviderImpl {
   @Override
   public Set<Resource> getResources(Request request, Predicate predicate)
       throws AmbariException {
-    ActionRequest actionRequest = getRequest(getProperties(predicate));
-
-    // TODO : handle multiple requests
-    Set<ActionResponse> responses = getManagementController().getActions(
-        Collections.singleton(actionRequest));
-
-    Set<Resource> resources = new HashSet<Resource>();
-    for (ActionResponse response : responses) {
-      Resource resource = new ResourceImpl(Resource.Type.Action);
-      resource.setProperty(ACTION_CLUSTER_NAME_PROPERTY_ID, response.getClusterName());
-      resource.setProperty(ACTION_SERVICE_NAME_PROPERTY_ID, response.getServiceName());
-      resource.setProperty(ACTION_ACTION_NAME_PROPERTY_ID, response.getActionName());
-      resources.add(resource);
-    }
-    return resources;
+    throw new UnsupportedOperationException("Not currently supported.");
   }
 
   @Override
@@ -105,10 +94,19 @@ class ActionResourceProvider extends ResourceProviderImpl {
   }
 
   private ActionRequest getRequest(Map<PropertyId, Object> properties) {
+    Map<String, String> params = new HashMap<String, String>();
+    Iterator<Entry<PropertyId, Object>> it1 = properties.entrySet().iterator();
+    while (it1.hasNext()) {
+      Entry<PropertyId, Object> entry = it1.next();
+      if (entry.getKey().getCategory().equals("parameters")
+          && null != entry.getValue()) {
+        params.put(entry.getKey().getName(), entry.getValue().toString());
+      }
+    }
     return new ActionRequest(
         (String)  properties.get(ACTION_CLUSTER_NAME_PROPERTY_ID),
         (String)  properties.get(ACTION_SERVICE_NAME_PROPERTY_ID),
         (String)  properties.get(ACTION_ACTION_NAME_PROPERTY_ID),
-        null);
+        params);
   }
 }
