@@ -12,6 +12,9 @@ AMBARI-666 branch (unreleased changes)
 
   NEW FEATURES
 
+  AMBARI-954. Support installation of Ganglia master and slaves via
+  Ambari Web. (yusaku)
+
   AMBARI-980. Allow installation of various service components. (yusaku)
 
   AMBARI-949. Provide metric graphs for individual hosts. (Srimanth

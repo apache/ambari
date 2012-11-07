@@ -349,7 +349,7 @@ App.WizardStep5Controller = Em.Controller.extend({
       this.renderComponents(zooKeeperHosts);
       var lastHost = zhosts[zhosts.length - 1];
       return lastHost;
-    } else if (componentName === 'GANGLIA_MONITOR_SERVER') {
+    } else if (componentName === 'GANGLIA_SERVER') {
       return this.getGangliaServer(noOfHosts);
     } else if (componentName === 'NAGIOS_SERVER') {
       return this.getNagiosServer(noOfHosts);

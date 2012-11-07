@@ -517,10 +517,6 @@ App.WizardStep8Controller = Em.Controller.extend({
         }
       }, this);
     }, this);
-    //TODO: Remove below code after hooking up with all services.
-   /* this.createComponent('HDFS','NAMENODE');
-    this.createComponent('HDFS','DATANODE'); */
-
   },
 
   createComponent: function (service, component) {
@@ -586,10 +582,12 @@ App.WizardStep8Controller = Em.Controller.extend({
 
     var masterHosts = this.get('content.masterComponentHosts');
     var slaveHosts = this.get('content.slaveComponentHosts');
+    var allHosts = this.get('content.hostsInfo');
 
     masterHosts.forEach(function (_masterHost) {
       this.createHostComponent(_masterHost);
     }, this);
+
     slaveHosts.forEach(function (_slaveHosts) {
       var slaveObj = {};
       if (_slaveHosts.componentName !== 'CLIENT') {
@@ -610,9 +608,12 @@ App.WizardStep8Controller = Em.Controller.extend({
       }
     }, this);
 
-    //TODO: Remove following code after hooking up with all services
-    //this.createHostComponent({hostName:'localhost.localdomain',component:'NAMENODE'});
-    //this.createHostComponent({hostName:'localhost.localdomain',component:'DATANODE'});
+    // add Ganglia Monitor (Slave) to all hosts
+    for (var hostName in allHosts) {
+      // TODO: filter for only confirmed hosts?
+      this.createHostComponent({ hostName: hostName, component: 'GANGLIA_MONITOR'});
+    }
+
   },
 
   createHostComponent: function (hostComponent) {

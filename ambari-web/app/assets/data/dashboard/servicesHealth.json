@@ -270,11 +270,11 @@
       },
       "components" : [
         {
-          "href" : "http://ambari/clusters/mycluster/services/GANGLIA/components/GANGLIA_MONITOR_SERVER",
+          "href" : "http://ambari/clusters/mycluster/services/GANGLIA/components/GANGLIA_SERVER",
           "ServiceComponentInfo" : {
             "cluster_name" : "mycluster",
             "state" : "STARTED",
-            "component_name" : "GANGLIA_MONITOR_SERVER",
+            "component_name" : "GANGLIA_SERVER",
             "service_name" : "GANGLIA"
           }
         },

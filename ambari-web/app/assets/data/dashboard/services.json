@@ -1023,28 +1023,28 @@
       },
       "components" : [
         {
-          "href" : "http://ambari/clusters/mycluster/services/GANGLIA/components/GANGLIA_MONITOR_SERVER",
+          "href" : "http://ambari/clusters/mycluster/services/GANGLIA/components/GANGLIA_SERVER",
           "ServiceComponentInfo" : {
             "cluster_name" : "mycluster",
-            "component_name" : "GANGLIA_MONITOR_SERVER",
+            "component_name" : "GANGLIA_SERVER",
             "service_name" : "GANGLIA"
           },
           "host_components" : [
             {
-              "href" : "http://ambari/clusters/mycluster/hosts/ip-10-38-5-128.ec2.internal/host_components/GANGLIA_MONITOR_SERVER",
+              "href" : "http://ambari/clusters/mycluster/hosts/ip-10-38-5-128.ec2.internal/host_components/GANGLIA_SERVER",
               "HostRoles" : {
                 "cluster_name" : "mycluster",
                 "role_id" : "9",
-                "component_name" : "GANGLIA_MONITOR_SERVER",
+                "component_name" : "GANGLIA_SERVER",
                 "state" : "STARTED",
                 "host_name" : "ip-10-38-5-128.ec2.internal"
               },
               "component" : [
                 {
-                  "href" : "http://ambari/clusters/mycluster/services/GANGLIA/components/GANGLIA_MONITOR_SERVER",
+                  "href" : "http://ambari/clusters/mycluster/services/GANGLIA/components/GANGLIA_SERVER",
                   "ServiceComponentInfo" : {
                     "cluster_name" : "mycluster",
-                    "component_name" : "GANGLIA_MONITOR_SERVER",
+                    "component_name" : "GANGLIA_SERVER",
                     "service_name" : "GANGLIA"
                   }
                 }
