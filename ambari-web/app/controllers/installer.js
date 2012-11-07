@@ -425,14 +425,16 @@ App.InstallerController = Em.Controller.extend({
   clearHosts: function () {
     var hosts = this.get('content').get('hosts');
     if (hosts) {
-      hosts.hostNames = '';
-      hosts.manualInstall = false;
-      hosts.localRepo = '';
-      hosts.localRepopath = '';
-      hosts.sshKey = '';
-      hosts.passphrase = '';
-      hosts.confirmPassphrase = '';
+      hosts.set('hostNames', '');
+      hosts.set('manualInstall', false);
+      hosts.set('localRepo', '');
+      hosts.set('localRepopath', '');
+      hosts.set('sshKey', '');
+      hosts.set('passphrase', '');
+      hosts.set('confirmPassphrase', '');
     }
+    App.db.setHosts(null);
+    App.db.setAllHostNames(null);
   },
 
   /**
@@ -591,12 +593,19 @@ App.InstallerController = Em.Controller.extend({
    */
   loadSlaveComponentHosts: function () {
     var slaveComponentHosts = App.db.getSlaveComponentHosts();
-    this.set("content.slaveComponentHosts", slaveComponentHosts);
-    console.log("InstallerController.loadSlaveComponentHosts: loaded hosts ", slaveComponentHosts);
-
+    if (slaveComponentHosts !== undefined) {
+      this.set("content.slaveComponentHosts", slaveComponentHosts);
+      console.log("InstallerController.loadSlaveComponentHosts: loaded hosts ", slaveComponentHosts);
+    } else {
+      this.set("content.slaveComponentHosts", null);
+    }
     var hostSlaveComponents = App.db.getHostSlaveComponents();
-    this.set('content.hostSlaveComponents', hostSlaveComponents);
-    console.log("InstallerController.loadSlaveComponentHosts: loaded hosts ", hostSlaveComponents);
+    if (hostSlaveComponents !== undefined) {
+      this.set('content.hostSlaveComponents', hostSlaveComponents);
+      console.log("InstallerController.loadSlaveComponentHosts: loaded hosts ", hostSlaveComponents);
+    } else {
+      this.set("content.hostSlaveComponents", null);
+    }
   },
 
   /**
@@ -682,10 +691,9 @@ App.InstallerController = Em.Controller.extend({
       case '7':
         this.loadServiceConfigProperties();
       case '6':
-        this.loadClients();
+        this.loadSlaveComponentHosts();
       case '5':
         this.loadMasterComponentHosts();
-        this.loadSlaveComponentHosts();
         this.loadHostToMasterComponent();
         this.loadConfirmedHosts();
       case '4':

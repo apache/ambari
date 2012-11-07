@@ -246,7 +246,7 @@ App.ServiceConfigMultipleHostsDisplay = Ember.Mixin.create(App.ServiceConfigHost
     console.log('view', this.get('viewName')); //to know which View cause errors
     console.log('controller', this.get('controller').name); //should be slaveComponentGroupsController
     if(!this.get('value')){
-      debugger;
+     // debugger;
     }
     return this.get('value').length === 0;
   }.property('value'),

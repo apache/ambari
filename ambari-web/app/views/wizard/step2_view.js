@@ -27,8 +27,7 @@ App.WizardStep2View = Em.View.extend({
   didInsertElement: function () {
     $("[rel=popover]").popover({'placement': 'right', 'trigger': 'hover'});
     this.set('hostNameErr', false);
-    this.set('controller.passphraseMatchErr', false);
-    this.set('controller.sshKeyNullErr', false);
+    //this.set('controller.sshKeyNullErr', false);
   },
 
 

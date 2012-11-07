@@ -407,6 +407,9 @@ AMBARI-666 branch (unreleased changes)
 
   BUG FIXES
 
+  AMBARI-953. Fix navigation issues in installer wizard due to regression.
+  (Jaimin Jetly via yusaku)
+
   AMBARI-899. Use slf4j-api 1.5.5 rather than 1.6.6. (yusaku)
 
   AMBARI-902. Fix ZooKeeper badge allocation logic for single host and 

@@ -105,13 +105,6 @@ App.WizardStep9Controller = Em.Controller.extend({
   replacePolledData: function (polledData) {
     this.polledData.clear;
     this.set('polledData', polledData);
-    console.log('*******/ In replace PolledData function **********/');
-    console.log("The value of polleddata is: " + polledData);
-    console.log("2.The value of polleddata is: " + this.get('polledData'));
-    this.get('polledData').forEach(function (_data) {
-      console.log('The name of the host is: ' + _data.Tasks.host_name);
-      console.log('The status of the task is: ' + _data.Tasks.status);
-    }, this);
   },
 
   displayMessage: function (task) {
@@ -550,7 +543,6 @@ App.WizardStep9Controller = Em.Controller.extend({
     this.hosts.clear();
     var hostInfo = this.mockHostData;
     this.renderHosts(hostInfo);
-
   },
 
   pollBtn: function () {

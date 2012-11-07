@@ -141,7 +141,7 @@ App.HostStatusView = Em.View.extend({
               tasks.filterProperty('Tasks.role', _role).forEach(function (_task) {
                 var statusObj = {};
                 statusObj.status = _task.Tasks.command;
-                statusObj.url = _task.Tasks.href;
+                statusObj.url = _task.href;
                 statusArr.pushObject(statusObj);
               }, this);
               roleObj.statusArr = statusArr;
@@ -150,15 +150,6 @@ App.HostStatusView = Em.View.extend({
           }
           return roleArr;
         }.property('tasks.@each'),
-
-        logState: function () {
-          var taskObj = {};
-          var tasks = this.get('tasks');
-          if (tasks) {
-            var taskarr = tasks.mapProperty('Tasks.command').uniq();
-
-          }
-        }.property('tasks.@each.Tasks.command'),
 
         didInsertElement: function () {
           console.log('The value of event context is: ' + host.name);

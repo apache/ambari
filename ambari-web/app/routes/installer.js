@@ -72,6 +72,7 @@ module.exports = Em.Route.extend({
       var installerController = router.get('installerController');
       var wizardStep1Controller = router.get('wizardStep1Controller');
       installerController.saveClusterInfo(wizardStep1Controller);
+      installerController.clearHosts();
       router.transitionTo('step2');
     }
   }),
@@ -183,6 +184,7 @@ module.exports = Em.Route.extend({
       var wizardStep5Controller = router.get('wizardStep5Controller');
       controller.saveMasterComponentHosts(wizardStep5Controller);
       App.db.setSlaveComponentHosts(undefined);
+      App.db.setHostSlaveComponents(undefined);
       router.transitionTo('step6');
     }
   }),
@@ -241,7 +243,7 @@ module.exports = Em.Route.extend({
     next: function (router) {
       var installerController = router.get('installerController');
       var wizardStep8Controller = router.get('wizardStep8Controller');
-      installerController.installServices();   //TODO: Uncomment for the actual hookup
+        installerController.installServices();   //TODO: Uncomment for the actual hookupq
       installerController.setInfoForStep9();
       router.transitionTo('step9');
     }
@@ -257,7 +259,7 @@ module.exports = Em.Route.extend({
       controller.connectOutlet('wizardStep9', controller.get('content'));
     },
     back: Em.Router.transitionTo('step8'),
-    retry: function(router,context) {
+    retry: function (router, context) {
       var installerController = router.get('installerController');
       var wizardStep9Controller = router.get('wizardStep9Controller');
       installerController.installServices();

@@ -75,7 +75,7 @@ App.WizardStep6Controller = Em.Controller.extend({
    */
   isHbSelected: function () {
     return this.get('content.services').findProperty('serviceName', 'HBASE').get('isSelected');
-  }.property('content'),
+  }.property('content.services'),
 
   /**
    * Return whether MapReduce service was selected or not.
@@ -84,7 +84,7 @@ App.WizardStep6Controller = Em.Controller.extend({
    */
 	isMrSelected: function () {
     return this.get('content.services').findProperty('serviceName', 'MAPREDUCE').get('isSelected');
-	}.property('content'),
+	}.property('content.services'),
 
   clearError: function () {
     if (this.get('isNoDataNodes') === false &&

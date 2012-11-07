@@ -34,6 +34,7 @@ App.WizardStep1Controller = Em.Controller.extend({
 
   loadStep: function () {
     var clusterName;
+    this.set('hasSubmitted',false);
     console.log('The value of the cluster name is: ' + App.db.getClusterName());
     if (App.db.getClusterName() !== undefined) {
       this.set('clusterName', App.db.getClusterName());
