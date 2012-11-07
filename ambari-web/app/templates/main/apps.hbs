@@ -23,7 +23,7 @@
   <table class="table table-bordered table-stripe avg-table" >
             <tbody>
             <tr >
-              <td rowspan="3" class="avg-star"><div class="icon-star a"></div></td>
+              <td rowspan="3" class="avg-star"><a href="#" {{action "avgStarClick" target="view"}} class="icon-star a"></a></td>
               <td></td>
               <td>Jobs</td>
               <td>Input</td>
@@ -34,27 +34,27 @@
             </tr>
             <tr class="avg-info">
               <td>Avg</td>
-              <td>{{view.stared.jobs.avg}}</td>
-              <td>{{view.stared.input.avg}}</td>
-              <td>{{view.stared.output.avg}}</td>
-              <td>{{view.stared.duration.avg}}</td>
-              <td>{{view.stared.times.oldest}}</td>
-              <td>{{view.stared.times.youngest}}</td>
+              <td>{{view.avgData.jobs.avg}}</td>
+              <td>{{view.avgData.input.avg}}</td>
+              <td>{{view.avgData.output.avg}}</td>
+              <td>{{view.avgData.duration.avg}}</td>
+              <td>{{view.avgData.times.oldest}}</td>
+              <td>{{view.avgData.times.youngest}}</td>
             </tr>
              <tr class="compare-info">
 
               <td>Min / Max</td>
-              <td>{{view.stared.jobs.min}} / {{view.stared.jobs.max}}</td>
-              <td>{{view.stared.input.min}} / {{view.stared.input.max}}</td>
-              <td>{{view.stared.output.min}} / {{view.stared.output.max}}</td>
-              <td>{{view.stared.duration.min}} / {{view.stared.duration.max}}</td>
+              <td>{{view.avgData.jobs.min}} / {{view.avgData.jobs.max}}</td>
+              <td>{{view.avgData.input.min}} / {{view.avgData.input.max}}</td>
+              <td>{{view.avgData.output.min}} / {{view.avgData.output.max}}</td>
+              <td>{{view.avgData.duration.min}} / {{view.avgData.duration.max}}</td>
               <td></td>
               <td></td>
              </tr>
             </tbody>
   </table>
     <div id="filter_info" class="row">
-      <div class="span3">Show: <a href="javascript:void(0)">Filtered ({{view.filtered}})</a>&nbsp;&#124;&nbsp;<a href="javascript:void(0)">Starred ({{view.stared.count}})</a></div>
+      <div class="span3">Show: <a href="javascript:void(0)">Filtered ({{view.filtered}})</a>&nbsp;&#124;&nbsp;<a href="javascript:void(0)">Starred ({{view.staredData.count}})</a></div>
       <div class="span2"><a href="#" {{action "clearFilters" target="view"}}>Clear filters</a>&nbsp;&#124;&nbsp;<a href="#" {{action "clearStars" target="controller"}}>Clear stars</a></div>
     </div>
     <div>

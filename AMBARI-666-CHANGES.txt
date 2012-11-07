@@ -368,6 +368,8 @@ AMBARI-666 branch (unreleased changes)
 
   IMPROVEMENTS
 
+  AMBARI-979. More refactoring of App Browser code. (yusaku)
+
   AMBARI-947. Make it easier to test Deploy (Install, Start + Test) step
   of the wizard. (yusaku)
 

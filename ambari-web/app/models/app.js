@@ -20,49 +20,55 @@
 var App = require('app');
 
 App.App = DS.Model.extend({
-  appName:DS.attr('string'),
-  type:DS.attr('string'),
-  numJobsTotal:DS.attr('number'),
-  userName:DS.attr('string'),
-  executionTime:DS.attr('string'),
-  runs:DS.hasMany('App.Run')
+  appName: DS.attr('string'),
+  type: DS.attr('string'),
+  numJobsTotal: DS.attr('number'),
+  userName: DS.attr('string'),
+  executionTime: DS.attr('string'),
+  runs: DS.hasMany('App.Run'),
+  isRunning: function () {
+    if (!this.get('isLoaded')) {
+      return false;
+    }
+    return this.get('runs').someProperty('isRunning', true);
+  }.property('runs.@each.isRunning')
 });
 
 App.App.FIXTURES = [
   {
-    id:1,
-    app_name:'pigs.sh',
-    type:'Hive',
-    num_jobs_total:5,
-    user_name:'root',
-    execution_time:'1347629541543',
-    runs:[1, 2, 3]
+    id: 1,
+    app_name: 'pigs.sh',
+    type: 'Hive',
+    num_jobs_total: 5,
+    user_name: 'root',
+    execution_time: '1347629541543',
+    runs: [1, 2, 3]
   },
   {
-    id:2,
-    app_name:'pigsm.sh',
-    type:'pig',
-    num_jobs_total:3,
-    user_name:'user1',
-    execution_time:'1347656741515',
-    runs:[6, 4, 5]
+    id: 2,
+    app_name: 'pigsm.sh',
+    type: 'pig',
+    num_jobs_total: 3,
+    user_name: 'user1',
+    execution_time: '1347656741515',
+    runs: [6, 4, 5]
   },
   {
-    id:3,
-    app_name:'pigsmo.sh',
-    type:'pig',
-    num_jobs_total:4,
-    user_name:'user3',
-    execution_time:'1347629587687',
-    runs:[7, 8, 9, 10, 11]
+    id: 3,
+    app_name: 'pigsmo.sh',
+    type: 'pig',
+    num_jobs_total: 4,
+    user_name: 'user3',
+    execution_time: '1347629587687',
+    runs: [7, 8, 9, 10, 11]
   },
   {
-    id:4,
-    app_name:'pigsmok.sh',
-    type:'MapReduce',
-    num_jobs_total:0,
-    user_name:'root',
-    execution_time:'134762957834',
-    runs:[]
+    id: 4,
+    app_name: 'pigsmok.sh',
+    type: 'MapReduce',
+    num_jobs_total: 0,
+    user_name: 'root',
+    execution_time: '134762957834',
+    runs: []
   }
 ]

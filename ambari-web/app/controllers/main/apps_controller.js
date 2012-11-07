@@ -24,6 +24,7 @@ App.MainAppsController = Em.ArrayController.extend({
   content:App.Run.find(),
   apps:App.App.find(),
   staredRuns: [],
+  filteredRuns: [],
   routeHome:function () {
     App.router.transitionTo('main.dashboard');
     var view = Ember.View.views['main_menu'];
@@ -31,6 +32,19 @@ App.MainAppsController = Em.ArrayController.extend({
       this.set('active', this.get('content.routing') == 'dashboard' ? "active" : "");
     });
   },
+  clearFilteredRuns: function() {
+    this.set('filteredRuns', []);
+    this.set('filteredRunsLength', 0);
+  },
+  addFilteredRun: function(id) {
+    this.get('filteredRuns').push(this.getRunById(id));
+    this.set('filteredRunsLength', this.get('filteredRuns').length);
+  },
+  /**
+   * Get run by id
+   * @param id run identifier (NOT runId)
+   * @return {*} run if exists, undefined - not exists
+   */
   getRunById: function(id) {
     var r;
     this.get('content').forEach(function(item){
@@ -40,6 +54,11 @@ App.MainAppsController = Em.ArrayController.extend({
     });
     return r;
   },
+  /**
+   * Check if run with such id exists
+   * @param id run identifier (NOT runId)
+   * @return {Boolean} true - record with this id exists, false - not exists
+   */
   issetStaredRun: function(id) {
     r = false;
     this.get('staredRuns').forEach(function(item){
@@ -49,8 +68,11 @@ App.MainAppsController = Em.ArrayController.extend({
     });
     return r;
   },
+  /**
+   * Click on star on table row
+   * @return {Boolean} false for prevent default event handler
+   */
   starClick: function() {
-    console.log(event);
     event.srcElement.classList.toggle('stared');
     var id = parseInt(event.srcElement.parentNode.childNodes[1].innerText);
     if (!this.issetStaredRun(id)) {
@@ -65,14 +87,11 @@ App.MainAppsController = Em.ArrayController.extend({
     this.set('staredRunsLength', this.get('staredRuns').length);
     return false;
   },
+  /**
+   * Flush all starred runs
+   */
   clearStars: function() {
     this.set('staredRuns', []);
     this.set('staredRunsLength', 0);
-    $('.icon-star').removeClass('stared');
-  },
-  /**
-   * Row, which is expanded at the moment, will update this property.
-   * Used to collapse rows, which are not used at the moment
-   */
-  expandedRowId : null
+  }
 })

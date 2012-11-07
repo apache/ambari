@@ -1,4 +1,7 @@
 #apps{
+  td .red {
+    color: red;
+  }
   .table thead th{
     vertical-align:top;
   }
@@ -21,9 +24,11 @@
       color: inherit;
     }
   }
-  .a {
+  a.a {
+    cursor: pointer;
     width:25px;
     height: 25px;
+    display: block;
     background-position: center center;
     background-repeat: no-repeat;
     position: relative;
@@ -31,7 +36,10 @@
     margin-left:-13px;
     margin-top: 36px;
     font-size:30px;
-    color:red;
+    color: gray;
+    &.active {
+      color: #08C;
+    }
   }
   .avg-info {
     font-size:16px;

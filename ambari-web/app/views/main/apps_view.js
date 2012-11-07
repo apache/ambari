@@ -18,42 +18,90 @@
 
 var App = require('app');
 var date = require('utils/date');
+var validator = require('utils/validator');
 
 App.MainAppsView = Em.View.extend({
   templateName:require('templates/main/apps'),
+  /**
+   * List of runs
+   */
   content:function () {
     var content =  this.get('controller').get('content');
     content.forEach(function(item){
       var app = App.store.find(App.App, item.get('appId'));
       item.set('appName', app.get('appName'));
       item.set('type', app.get('type'));
-      item.set('duration', date.dateFormatInterval(((item.get('lastUpdateTime') - item.get('startTime'))/1000)));
-      item.set('lastUpdateTime', date.dateFormat(item.get('lastUpdateTime')));
       item.set('numJobsTotal' ,item.get('jobs').get('content').length);
-      item.get('jobs').forEach(function(item){
-
+      item.get('jobs').forEach(function(item) {
       });
     });
     return content;
   }.property('App.router.mainAppsController.content'),
-  users: function(){
+  /**
+   * List of users
+   */
+  users: function() {
     var result = new Array();
-    this.get('content').forEach(function(item){
+    this.get('content').forEach(function(item) {
        result.push(item.get('userName'));
     });
     return jQuery.unique(result);
   }.property('content'),
+  /**
+   * jQuery dataTable object
+   */
   oTable:null,
+  /**
+   * jQuery collection of stars icons (in dataTables). Saved here for easy "turning off"
+   */
+  smallStarsIcons: null,
+  /**
+   * Count of filtered runs
+   */
   filtered:null,
-  stared: function() {
-    var content =  this.get('controller.staredRuns');
+  /**
+   * Flag for avgData
+   */
+  whatAvgShow: true, // true - for filtered data, false - for starred
+  /**
+   * avg data for display. Can be stared or filtered. Based on whatAvgShow
+   */
+  avgData: function() {
+    if (this.get('whatAvgShow')) {
+      return this.get('filteredData');
+    }
+    else {
+      return this.get('staredData');
+    }
+  }.property('filteredData', 'staredData', 'whatAvgShow'),
+  /**
+   * Avg data of filtered runs
+   */
+  filteredData: function() {
+    return this.getAvgData(this.get('controller.filteredRuns'));
+  }.property('controller.filteredRunsLength'),
+  /**
+   * Avg data of stared runs
+   */
+  staredData: function() {
+    return this.getAvgData(this.get('controller.staredRuns'));
+  }.property('controller.staredRunsLength'),
+  setFilteredRuns: function(data) {
+
+  },
+  /**
+   * Common method for calculation avg data (filtered or stored - based on param content)
+   * @param content data-array
+   * @return {*} array with calculated data
+   */
+  getAvgData: function(content) {
     var avgJobs = 0.0, minJobs = 0, maxJobs = 0, avgInput = 0, minInput = 0, maxInput = 0, avgOutput = 0, minOutput = 0, maxOutput = 0, avgDuration = 0.0, minDuration = 0, maxDuration = 0, oldest = 0, youngest = 0;
     if (content.length > 0) {
       minJobs = content[0].get('numJobsTotal');
       minInput = content[0].get('input');
       minOutput = content[0].get('output');
-      oldest = date.dateUnformat(content[0].get('lastUpdateTime'));
-      youngest = date.dateUnformat(content[0].get('lastUpdateTime'));
+      oldest = content[0].get('lastUpdateTime');
+      youngest = content[0].get('lastUpdateTime');
       minDuration = date.dateUnformatInterval(content[0].get('duration'));
     }
     content.forEach(function(item) {
@@ -93,17 +141,29 @@ App.MainAppsView = Em.View.extend({
           maxDuration = date.dateUnformatInterval(item.get('duration'));
         }
       }
-      if (date.dateUnformat(item.get('lastUpdateTime')) < oldest) {
-        oldest = date.dateUnformat(item.get('lastUpdateTime'));
+      if (item.get('lastUpdateTime') < oldest) {
+        oldest = item.get('lastUpdateTime');
       }
       else {
-        if (date.dateUnformat(item.get('lastUpdateTime')) > youngest) {
-          youngest = date.dateUnformat(item.get('lastUpdateTime'));
+        if (item.get('lastUpdateTime') > youngest) {
+          youngest = item.get('lastUpdateTime');
         }
       }
     });
-    oldest = oldest != 0 ? oldest.substring(0, 4) + '-' + oldest.substring(4, 6) + '-' + oldest.substring(6, 8) : '';
-    youngest = youngest != 0 ? youngest.substring(0, 4) + '-' + youngest.substring(4, 6) + '-' + youngest.substring(6, 8) : '';
+    if (oldest != 0) {
+      d = new Date(oldest*1);
+      oldest = d.toDateString();
+    }
+    else {
+      oldest = '0000-00-00';
+    }
+    if (youngest != 0) {
+      d = new Date(youngest*1);
+      youngest = d.toDateString();
+    }
+    else {
+      youngest = '0000-00-00';
+    }
     ret = {
       'count': this.get('controller.staredRuns').length,
       'jobs': {
@@ -132,16 +192,12 @@ App.MainAppsView = Em.View.extend({
       }
     };
     return ret;
-  }.property('controller.staredRunsLength'),
-  /*starsStats: function() {
-    var content =  this.get('controller.staredRuns');
-    var avgJobs = 0.0, minJobs = 0, maxJobs = 0, avgInput = 0, minInput = 0, maxInput = 0, avgOutput = 0, minOutput = 0, maxOutput = 0;
-    content.forEach(function(item) {
-      avgJobs += item.get('numJobsTotal') / content.length;
-    });
-    this.set('avgJobs', 1);
-  }.property('controller.staredRunsLength'),*/
-  clearFilters:function(event){
+  },
+  /**
+   * Reset filters
+   * @param event
+   */
+  clearFilters:function(event) {
     this._childViews.forEach(function(item){
       if(item.get('tagName') === 'input') {
           item.set('value','');
@@ -153,11 +209,32 @@ App.MainAppsView = Em.View.extend({
     this.get('oTable').fnFilterClear();
     this.set('filtered',this.get('oTable').fnSettings().fnRecordsDisplay());
   },
+  /**
+   * Click on big star on the avg block
+   */
+  avgStarClick: function() {
+    this.set('whatAvgShow', !this.get('whatAvgShow'));
+    event.srcElement.classList.toggle('active');
+  },
+  /**
+   * "turn off" stars in the table
+   */
+  clearStars: function(){
+    if (this.get('controller.staredRunsLength') == 0 && this.get('smallStarsIcons') != null) {
+      this.get('smallStarsIcons').removeClass('stared');
+    }
+  }.observes('controller.staredRunsLength'),
+  /**
+   * jQuery dataTable init
+   */
   didInsertElement:function () {
+    var smallStars = $('#dataTable .icon-star');
+    this.set('smallStarsIcons', smallStars);
     var oTable = this.$('#dataTable').dataTable({
       "sDom": '<"search-bar"f><"clear">rt<"page-bar"lip><"clear">',
       "fnDrawCallback": function( oSettings ) {
         //change average info after table filtering
+        // no need more. 31.10.2012
       },
       "oLanguage": {
         "sSearch": "<i class='icon-question-sign'>&nbsp;Search</i>",
@@ -192,8 +269,8 @@ App.MainAppsView = Em.View.extend({
    *
    * @param event
    */
-  clearFilters:function(event){
-    this._childViews.forEach(function(item){
+  clearFilters:function(event) {
+    this._childViews.forEach(function(item) {
     if(item.get('tagName') === 'input') {
       item.set('value','');
     }
@@ -206,6 +283,7 @@ App.MainAppsView = Em.View.extend({
     });
     this.get('oTable').fnFilterClear();
     this.set('filtered',this.get('oTable').fnSettings().fnRecordsDisplay());
+    this.setFilteredRuns(this.get('oTable')._('tr', {"filter":"applied"}));
   },
   /**
    * apply each filter to dataTable
@@ -214,7 +292,7 @@ App.MainAppsView = Em.View.extend({
    * @param {iColumn} number of column by which filter
    * @param {value}
    */
-  applyFilter:function(parentView, iColumn, value){
+  applyFilter:function(parentView, iColumn, value) {
       value = (value) ? value : '';
       parentView.get('oTable').fnFilter(value, iColumn);
       parentView.set('filtered',parentView.get('oTable').fnSettings().fnRecordsDisplay());
@@ -222,14 +300,18 @@ App.MainAppsView = Em.View.extend({
   /**
    * refresh average info in top block when filtered changes
    */
-  averageRefresh:function(){
-
+  averageRefresh:function() {
+    var rows = this.get('oTable')._('tr', {"filter":"applied"});
+    this.get('controller').clearFilteredRuns();
+    for(var i = 0; i < rows.length; i++) {
+      this.get('controller').addFilteredRun($(rows[i][0]).find('span.hidden').text());
+    }
   }.observes('filtered'),
   /**
    * dataTable filter views
    */
   typeSelectView: Em.Select.extend({
-    classNames:['input-small'],
+    classNames: ['input-small'],
     selected: 'Any',
     content:['Any', 'Pig', 'Hive', 'mapReduce'],
     change:function(event){
@@ -241,68 +323,70 @@ App.MainAppsView = Em.View.extend({
       this._parentView.set('filtered',this._parentView.get('oTable').fnSettings().fnRecordsDisplay());
     }
   }),
+  /**
+   * Filter-field for RunDate
+   */
   rundateSelectView: Em.Select.extend({
     change:function(e) {
       console.log(this.get('selection'));
     },
-    content: ['Any', 'Running Now', 'Past 1 Day', 'Past 2 Days', 'Past 7 Days', 'Past 14 Days', 'Past 30 Days', 'Custom'],
+    content: ['Any', 'Running Now', 'Past 1 Day', 'Past 2 Days', 'Past 7 Days', 'Past 14 Days', 'Past 30 Days'],
     selected: 'Any',
     classNames:['input-medium'],
     elementId: 'rundate_filter',
-    change:function(e) {
-      this._parentView.get('oTable').fnFilter('', 8);
+    change:function(event) {
+      this.get('parentView').get('applyFilter')(this.get('parentView'), 8);
     }
   }),
+  /**
+   * Filter-field for AppId
+   */
   appidFilterView: Em.TextField.extend({
     classNames:['input-small'],
     type:'text',
     placeholder: 'Any ID',
     filtering:function(){
-      console.log(this.get('value'));
-      this._parentView.get('oTable').fnFilter(this.get('value') ,0);
-      this._parentView.set('filtered',this._parentView.get('oTable').fnSettings().fnRecordsDisplay());
+        this.get('parentView').get('applyFilter')(this.get('parentView'), 0, this.get('value'));
     }.observes('value')
   }),
+  /**
+   * Filter-field for name
+   */
   nameFilterView: Em.TextField.extend({
     classNames:['input-small'],
     type:'text',
     placeholder: 'Any Name',
     filtering:function(){
-      this._parentView.get('oTable').fnFilter(this.get('value') ,1);
-      this._parentView.set('filtered',this._parentView.get('oTable').fnSettings().fnRecordsDisplay());
+      this.get('parentView').get('applyFilter')(this.get('parentView'), 1, this.get('value'));
     }.observes('value')
   }),
-  userFilterView: Em.View.extend({
-    classNames:['btn-group'],
-    template: Ember.Handlebars.compile(
-        '<a class="btn dropdown-toggle" data-toggle="dropdown" href="#">'+
-        'User<span class="caret"></span></a>'+
-        '<ul class="dropdown-menu filter-components">'+
-        '<li><a><input type="checkbox">1</a></li>'+
-        '<li><a><input type="checkbox">1</a></li>'+
-        '</ul>'
-    )
-  }),
+  /**
+   * Filter-field for jobs
+   */
   jobsFilterView: Em.TextField.extend({
     classNames:['input-mini'],
     type:'text',
     placeholder: 'Any ',
     elementId:'jobs_filter',
     filtering:function(){
-      this._parentView.get('oTable').fnFilter('', 4);
-      this._parentView.set('filtered',this._parentView.get('oTable').fnSettings().fnRecordsDisplay());
+      this.get('parentView').get('applyFilter')(this.get('parentView'), 4);
     }.observes('value')
   }),
+  /**
+   * Filter-field for Input
+   */
   inputFilterView: Em.TextField.extend({
     classNames:['input-mini'],
     type:'text',
     placeholder: 'Any ',
     elementId: 'input_filter',
     filtering:function(){
-      this._parentView.get('oTable').fnFilter('' ,5);
-      this._parentView.set('filtered',this._parentView.get('oTable').fnSettings().fnRecordsDisplay());
+      this.get('parentView').get('applyFilter')(this.get('parentView'), 5);
     }.observes('value')
   }),
+  /**
+   * Filter-field for Output
+   */
   outputFilterView: Em.TextField.extend({
     classNames:['input-mini'],
     type:'text',
@@ -312,6 +396,9 @@ App.MainAppsView = Em.View.extend({
         this.get('parentView').get('applyFilter')(this.get('parentView'), 6);
     }.observes('value')
   }),
+  /**
+   * Filter-field for Duration
+   */
   durationFilterView: Em.TextField.extend({
     classNames:['input-mini'],
     type:'text',
@@ -321,6 +408,9 @@ App.MainAppsView = Em.View.extend({
       this.get('parentView').get('applyFilter')(this.get('parentView'), 7);
     }.observes('value')
   }),
+  /**
+   * Filter-list for User
+   */
   userFilterView: Em.View.extend({
     classNames:['btn-group'],
     classNameBindings: ['open'],
@@ -351,17 +441,17 @@ App.MainAppsView = Em.View.extend({
       'Apply</button>'
     ),
     allComponentsChecked:false,
-    toggleAllComponents: function(){
+    toggleAllComponents: function() {
       var checked = this.get('allComponentsChecked');
       this.get('users').forEach(function(item){
         item.set('checked',checked);
       });
     }.observes('allComponentsChecked'),
-    clickFilterButton:function(event){
+    clickFilterButton:function(event) {
       this.set('open', !this.get('open'));
       this.set('isApplyDisabled', !this.get('isApplyDisabled'));
     },
-    clearFilter:function(self){
+    clearFilter:function(self) {
       self.set('allComponentsChecked', true);
       self.set('allComponentsChecked', false);
       jQuery('#user_filter').val([]);
@@ -379,6 +469,13 @@ App.MainAppsView = Em.View.extend({
     }
   }),
   /**
+   *  Object contain views of expanded row
+   */
+  expandedRow:Ember.Object.create({
+    rowView:null,
+    rowChildView:null
+  }),
+  /**
    * This Container View is used to render static table row(appTableRow) and additional dynamic content
    */
   containerRow : Em.ContainerView.extend({
@@ -389,42 +486,40 @@ App.MainAppsView = Em.View.extend({
     id: function(){
       return this.get('run.id');
     }.property("run.id"),
-    currentId: null,
-    /**
-     * Variable for dynamic view
-     */
-    contentView : null,
 
     /**
-     * Show additional content appropriated for this row
+     * Show/hide additional content appropriated for this row
      */
-    expand : function(){
-      var view = App.MainAppsItemView.create();
-      this.set('contentView', view);
-      this.get('childViews').pushObject(view);
-      this.set('currentId', this.get('id'));
-      //this.set('controller.expandedRowId', this.get('id'));
-    },
-
-    /**
-     * Check whether user opens another row. If yes - hide current content
-     */
-    hideExpand : function(){
-      var contentView = this.get('contentView');
-      if(this.get('controller.expandedRowId') !== this.get('id') && contentView){
-        this.get('childViews').removeObject(contentView);
-        contentView.destroy();
-        this.set('contentView', null);
+    expandToggle : function(){
+      var newView = App.MainAppsItemView.create();
+      var expandedView = this.get('parentView.expandedRow');
+      if(expandedView.get('rowView')) {
+        if(this === expandedView.get('rowView')) {
+          expandedView.get('rowView').get('childViews').removeObject(expandedView.get('rowChildView'));
+          expandedView.get('rowChildView').destroy();
+          expandedView.set('rowView', null);
+          expandedView.set('rowChildView', null);
+        } else {
+          //expandedView.get('rowView').get('childViews').removeObject(expandedView.get('rowChildView'));
+          expandedView.get('rowChildView').destroy();
+          expandedView.set('rowView', this);
+          expandedView.set('rowChildView', newView);
+          this.get('childViews').pushObject(newView);
+        }
+      } else {
+          expandedView.set('rowView', this);
+          expandedView.set('rowChildView', newView);
+          this.get('childViews').pushObject(newView);
       }
-    }.observes('controller.expandedRowId')
+    }
   }),
-
+  /**
+   * Table-row view
+   */
   appTableRow: Em.View.extend({
     templateName : require('templates/main/apps/list_row'),
     classNames:['app-table-row'],
-    classNameBindings: ['rowClass'],
     tagName: "tr",
-    rowOpened:0,
     mouseEnter: function(event, view){
       $(event.currentTarget).addClass("hover")
     },
@@ -432,16 +527,9 @@ App.MainAppsView = Em.View.extend({
       $(event.currentTarget).removeClass("hover");
     },
     click: function(event,view){
-      var target=$(event.currentTarget);
-      // if rowOpend=1 new value=0 and visaversa
-      this.set("rowOpened",1- this.get("rowOpened"));
+      this.get('parentView').expandToggle();
+    }
 
-      this.get('parentView').expand();
-
-    },
-    rowClass: function () {
-      return this.get('rowOpened') ? "row-opened" : "row-closed";
-    }.property('rowOpened')
 
   })
 

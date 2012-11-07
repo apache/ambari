@@ -24,11 +24,11 @@
   </button>
   <ul class="dropdown-menu">
     {{#each job in view.content}}
-    <li><a {{action "selectJob" job target="controller"}} href="javascript:void(null)">{{job.id}}</a></li>
+    <li><a {{action "selectJob" job target="view"}} href="javascript:void(null)">{{job.id}}</a></li>
     {{/each}}
   </ul>
 </div>
-<div>{{controller.activeJobId}}</div>
+<div></div>
 <div id="graph1">
   <div style="float:left">
     <div id="graph1_desc" class="graph_desc">

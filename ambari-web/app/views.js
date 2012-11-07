@@ -101,6 +101,8 @@ require('views/main/charts/heatmap/heatmap_host');
 require('views/main/charts/heatmap/heatmap_host_detail');
 require('views/main/apps_view');
 require('views/main/apps/item_view');
+require('views/main/apps/item/bar_view');
+require('views/main/apps/item/dag_view');
 require('views/installer');
 require('views/wizard/controls_view');
 require('views/wizard/step1_view');

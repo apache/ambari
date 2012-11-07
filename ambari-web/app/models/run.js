@@ -18,6 +18,7 @@
 
 
 var App = require('app');
+var date = require('utils/date');
 
 App.Run = DS.Model.extend({
   runId:DS.attr('string'),
@@ -31,7 +32,20 @@ App.Run = DS.Model.extend({
   input: DS.attr('number'),
   output: DS.attr('number'),
   appId:DS.attr('number'),
-  jobs:DS.hasMany('App.Job')
+  jobs:DS.hasMany('App.Job'),
+  duration: function() {
+    return date.dateFormatInterval(((parseInt(this.get('lastUpdateTime')) - parseInt(this.get('startTime')))/1000));
+  }.property('lastUpdateTime', 'startTime'),
+  isRunning: function () {
+    if (!this.get('isLoaded')) {
+      return false;
+    }
+    console.log('RUN: ' + this.get('id')+' '+this.get('jobs').someProperty('status', 'RUNNING'));
+    return this.get('jobs').someProperty('status', 'RUNNING');
+  }.property('jobs.@each.status'),
+  lastUpdateTimeFormatted: function() {
+    return date.dateFormat(this.get('lastUpdateTime'));
+  }.property('lastUpdateTime')
 });
 
 App.Run.FIXTURES = [
@@ -145,7 +159,7 @@ App.Run.FIXTURES = [
     run_id:'pig_5',
     parent_run_id:null,
     workflow_context:'{dag:{"1":["3","5"],"5":["7"],"3":["1"]}}',
-    user_name:'user1',
+    user_name:'jsmith',
     start_time:1347539541508,
     last_update_time:'1347639541508',
     num_jobs_total:4,

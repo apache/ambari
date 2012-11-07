@@ -18,21 +18,25 @@
 
 var App = require('app');
 var graph = require('utils/graph');
-App.MainAppsRunsJobsBarView = Em.View.extend({
-    templateName: require('templates/main/apps/runs/jobs/bar'),
+
+App.MainAppsItemBarView = Em.View.extend({
+    templateName: require('templates/main/apps/item/bar'),
     content:function(){
-        return App.router.get('mainAppsRunsItemController.content').get('jobs');
-    }.property('App.router.mainAppsRunsItemController.content'),
+        return this.get('parentView.jobs');
+    }.property('parentView.jobs'),
     firstJob: function() {
         return this.get('content').get('firstObject');
     }.property('content'),
+    activeJob:null,
+    selectJob: function(event) {
+        this.set('activeJob', event.context);
+
+    },
     didInsertElement:function (){
-        this.get('controller').set('activeJobId', this.get('firstJob').get('jobId'));
-        this.get('controller').set('job',this.get('firstJob'));
-        this.get('controller').set('job', null);
+        this.set('activeJob', this.get('firstJob'));
     },
     draw: function() {
-        if(!this.get('controller').get('job')){
+        if(!this.get('activeJob')){
             return;//when job is not defined
         }
         width = 500;
@@ -43,7 +47,9 @@ App.MainAppsRunsJobsBarView = Em.View.extend({
         if (null == desc1.html() || null == desc2.html()) return;
         desc1.css('display','block');
         desc2.css('display','block');
-        graph.drawJobTimeline(this.get('controller').get('job').get('jobTimeline'), width, height, '#chart', 'legend', 'timeline1');
-        graph.drawJobTasks(this.get('controller').get('job').get('jobTaskview'), width, height, '#job_tasks', 'tasks_legend', 'timeline2');
-    }.observes('controller.job')
+        graph.drawJobTimeline(this.get('activeJob').get('jobTimeline'), width, height, '#chart', 'legend', 'timeline1');
+        graph.drawJobTasks(this.get('activeJob').get('jobTaskview'), width, height, '#job_tasks', 'tasks_legend', 'timeline2');
+    }.observes('activeJob')
+
+
 });
