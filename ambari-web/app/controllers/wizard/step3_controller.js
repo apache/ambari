@@ -62,7 +62,6 @@ App.WizardStep3Controller = Em.Controller.extend({
   /* Loads the hostinfo from localStorage on the insertion of view. It's being called from view */
   loadHosts: function () {
     var hostInfo = [];
-    debugger;
     hostInfo = this.get('content.hostsInfo');
     var hosts = new Ember.Set();
     for (var index in hostInfo) {
@@ -181,7 +180,7 @@ App.WizardStep3Controller = Em.Controller.extend({
   },
 
   startBootstrap: function () {
-    // this.set('isSubmitDisabled', true);
+    //this.set('isSubmitDisabled', true);    //TODO: uncomment after actual hookup
     this.set('bootHosts', this.get('hosts'));
     this.doBootstrap();
   },

@@ -112,22 +112,58 @@ App.HostStatusView = Em.View.extend({
     }
   }.property('controller.isStepCompleted', 'controller.status'),
 
-  hostLogPopup: function (event) {
+  hostLogPopup: function (event, context) {
+    var self = this;
+    var host = event.context;
     App.ModalPopup.show({
-      header: Em.I18n.t('installer.step3.hostLog.popup.header'),
+      header: Em.I18n.t('installer.step9.hostLog.popup.header') + event.context.get('name'),
       onPrimary: function () {
         this.hide();
       },
+      controllerBinding: context,
       bodyClass: Ember.View.extend({
-        templateName: require('templates/installer/step3HostLogPopup'),
-        controllerBinding: 'parentView.controller',
-        polledData: function() {
-          return this.get('controller.polledData');
-        }.property('controller.polledData'),
-        didInsertElement: function() {
-          this.get('controller').getCompletedTasksForHost(this.get('parentView'));
-        }
+        templateName: require('templates/wizard/step9HostTasksLogPopup'),
 
+        hostObj: function () {
+          return this.get('parentView.obj');
+        }.property('parentView.obj'),
+        tasks: [],
+
+        roles: function () {
+          var roleArr = [];
+          var tasks = this.get('tasks');
+          if (tasks.length) {
+            var role = this.get('tasks').mapProperty('Tasks.role').uniq();
+            role.forEach(function (_role) {
+              var statusArr = [];
+              var roleObj = {};
+              roleObj.roleName = _role;
+              tasks.filterProperty('Tasks.role', _role).forEach(function (_task) {
+                var statusObj = {};
+                statusObj.status = _task.Tasks.command;
+                statusObj.url = _task.Tasks.href;
+                statusArr.pushObject(statusObj);
+              }, this);
+              roleObj.statusArr = statusArr;
+              roleArr.pushObject(roleObj);
+            }, this);
+          }
+          return roleArr;
+        }.property('tasks.@each'),
+
+        logState: function () {
+          var taskObj = {};
+          var tasks = this.get('tasks');
+          if (tasks) {
+            var taskarr = tasks.mapProperty('Tasks.command').uniq();
+
+          }
+        }.property('tasks.@each.Tasks.command'),
+
+        didInsertElement: function () {
+          console.log('The value of event context is: ' + host.name);
+          this.set('tasks', self.get('controller').getCompletedTasksForHost(event.context));
+        }
       })
     });
   }

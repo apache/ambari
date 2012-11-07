@@ -272,6 +272,7 @@ App.InstallerController = Em.Controller.extend({
     for (var index in hostInfo) {
       hostInfo[index].status = "pending";
       hostInfo[index].message = 'Waiting';
+      hostInfo[index].tasks = [];
       hostInfo[index].progress = '0';
     }
     App.db.setHosts(hostInfo);
@@ -412,10 +413,10 @@ App.InstallerController = Em.Controller.extend({
     var hostInfo = App.db.getHosts();
 
     for (var index in hostInfo) {
-      hostInfo[index].status = "pending";
       var host = hosts.findProperty('name', hostInfo[index].name);
       if (host) {
         hostInfo[index].status = host.status;
+        hostInfo[index].tasks = host.tasks;
         hostInfo[index].message = host.message;
         hostInfo[index].progress = host.progress;
       }

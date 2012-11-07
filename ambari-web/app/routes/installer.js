@@ -240,7 +240,7 @@ module.exports = Em.Route.extend({
     next: function (router) {
       var installerController = router.get('installerController');
       var wizardStep8Controller = router.get('wizardStep8Controller');
-      installerController.installServices();
+      installerController.installServices();   //TODO: Uncomment for the actual hookup
       installerController.setInfoForStep9();
       router.transitionTo('step9');
     }

@@ -18,107 +18,107 @@
 
 <div id="deploy">
 
-	<h2>{{t installer.step9.header}}</h2>
+  <h2>{{t installer.step9.header}}</h2>
 
-	<p class="alert alert-info">{{t installer.step9.body}}</p>
+  <p class="alert alert-info">{{t installer.step9.body}}</p>
 
-	<div id="overallProgress">
-		{{view.isStepCompleted}}
-		<div class="row-fluid">
-			<div class="span10">
-				<div {{bindAttr class="isStepCompleted::progress-striped isStepCompleted::active view.barColor :progress"}}>
-					<div class="bar" {{bindAttr style="view.barWidth"}}>
-						<!--<strong style="color: #00008b;">Overall Progress</strong>-->
-					</div>
-				</div>
-			</div>
-			<div class="span2">{{progress}}% overall</div>
-		</div>
-	</div>
+  <div id="overallProgress">
+    {{view.isStepCompleted}}
+    <div class="row-fluid">
+      <div class="span10">
+        <div {{bindAttr class="isStepCompleted::progress-striped isStepCompleted::active view.barColor :progress"}}>
+          <div class="bar" {{bindAttr style="view.barWidth"}}>
+            <!--<strong style="color: #00008b;">Overall Progress</strong>-->
+          </div>
+        </div>
+      </div>
+      <div class="span2">{{progress}}% overall</div>
+    </div>
+  </div>
 
-	<div class="box">
-		<div class="box-header">
-			<div class="pull-left">
-				<a
-								class="btn btn-primary " {{bindAttr disabled="isSubmitDisabled"}}
-								href="#" {{action retry }}><i
-								class="icon-repeat icon-white"></i>
-					Retry
-				</a>
-				<a
-								class="btn btn-info"
-								href="#" {{action mockBtn target="controller"}}>
-					mockData
-				</a>
-				<a
-								class="btn btn-primary "
-								href="#" {{action pollBtn target="controller"}}><i
-								class="icon-repeat icon-white"></i>
-					pollData
-				</a>
-			</div>
+  <div class="box">
+    <div class="box-header">
+      <div class="pull-left">
+        <a
+                class="btn btn-primary " {{bindAttr disabled="isSubmitDisabled"}}
+                href="#" {{action retry }}><i
+                class="icon-repeat icon-white"></i>
+          Retry
+        </a>
+        <a
+                class="btn btn-info"
+                href="#" {{action mockBtn target="controller"}}>
+          mockData
+        </a>
+        <a
+                class="btn btn-primary "
+                href="#" {{action pollBtn target="controller"}}><i
+                class="icon-repeat icon-white"></i>
+          pollData
+        </a>
+      </div>
 
-		</div>
-		<div class="pre-scrollable" style="max-height: 750px;">
-			<table id="deploy-status-by-host" class="table table-bordered table-striped">
-				<thead>
-				<tr>
-					<th class="host">
-						Host
-					</th>
-					<th class="status">Status</th>
-					<!--  given by the parsing function that parses data from bootstrap call -->
-					<th class="message">Message</th>
-					<!-- retrieved from local storage initially -->
-				</tr>
-				</thead>
+    </div>
+    <div class="pre-scrollable" style="max-height: 750px;">
+      <table id="deploy-status-by-host" class="table table-bordered table-striped">
+        <thead>
+        <tr>
+          <th class="host">
+            Host
+          </th>
+          <th class="status">Status</th>
+          <!--  given by the parsing function that parses data from bootstrap call -->
+          <th class="message">Message</th>
+          <!-- retrieved from local storage initially -->
+        </tr>
+        </thead>
 
-				<tbody>
-				{{#each host in controller.hosts}}
-				{{#view App.HostStatusView objBinding="host"}}
-				<td>
-					{{host.name}}
-				</td>
-				<td>
-					<div class="progress-bar pull-left">
-						<div {{bindAttr class="isStepCompleted::progress-striped isStepCompleted::active view.barColor :progress"}}>
-							<div class="bar" {{bindAttr style="view.barWidth"}}>
-							</div>
-						</div>
-					</div>
-					<div class="progress-percentage pull-left">{{host.progress}}%</div>
-				</td>
-				<td>
-					<a {{bindAttr class="view.isFailed:text-error view.isSuccess:text-success view.isWarning:text-warning"}}
-									href="javascript:void(null)"
-									data-toggle="modal" {{action "hostLogPopup" target="view"}}>{{host.message}}</a>
-				</td>
+        <tbody>
+        {{#each host in controller.hosts}}
+        {{#view App.HostStatusView objBinding="host"}}
+        <td>
+          {{host.name}}
+        </td>
+        <td>
+          <div class="progress-bar pull-left">
+            <div {{bindAttr class="isStepCompleted::progress-striped isStepCompleted::active view.barColor :progress"}}>
+              <div class="bar" {{bindAttr style="view.barWidth"}}>
+              </div>
+            </div>
+          </div>
+          <div class="progress-percentage pull-left">{{host.progress}}%</div>
+        </td>
+        <td>
+          <a {{bindAttr class="view.isFailed:text-error view.isSuccess:text-success view.isWarning:text-warning"}}
+                  href="javascript:void(null)"
+                  data-toggle="modal" {{action hostLogPopup host target="view"}}>{{host.message}}</a>
+        </td>
 
-				{{/view}}
-				{{/each}}
+        {{/view}}
+        {{/each}}
 
-				</tbody>
-			</table>
-			</div>
-			<div class="box-footer">
-				<hr/>
-				<div class="footer-pagination">
-				</div>
-			</div>
-		</div>
+        </tbody>
+      </table>
+    </div>
+    <div class="box-footer">
+      <hr/>
+      <div class="footer-pagination">
+      </div>
+    </div>
+  </div>
 
-		<div>
-			{{#if view.resultMsg}}
-			<p {{bindAttr class="view.resultMsgColor"}}>{{view.resultMsg}}</p>
-			{{/if}}
-			<div class="btn-area">
-				<a
-								class="btn pull-left" {{bindAttr disabled="isSubmitDisabled"}} {{action back target="controller"}}>&larr;
-					Back</a>
-				<a
-								class="btn btn-success pull-right" {{bindAttr disabled="isSubmitDisabled"}} {{action submit target="controller"}}>Next &rarr;</a>
-			</div>
-		</div>
+  <div>
+    {{#if view.resultMsg}}
+    <p {{bindAttr class="view.resultMsgColor"}}>{{view.resultMsg}}</p>
+    {{/if}}
+    <div class="btn-area">
+      <a
+              class="btn pull-left" {{bindAttr disabled="isSubmitDisabled"}} {{action back target="controller"}}>&larr;
+        Back</a>
+      <a
+              class="btn btn-success pull-right" {{bindAttr disabled="isSubmitDisabled"}} {{action submit target="controller"}}>Next &rarr;</a>
+    </div>
+  </div>
 
-	</div>
+</div>
 </div>

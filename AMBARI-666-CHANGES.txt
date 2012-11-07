@@ -12,6 +12,9 @@ AMBARI-666 branch (unreleased changes)
 
   NEW FEATURES
 
+  AMBARI-942. Integrate Install and Start APIs with the installer wizard.
+  (Jaimin Jetly via yusaku)
+
   AMBARI-936. Provide HBase service specific graphs. (Srimanth Gunturi
   via yusaku)
 

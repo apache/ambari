@@ -1,0 +1,15 @@
+<p>Click on the task to see the log: </p><br/>
+<ul>
+  {{#each item in view.roles}}
+  <li>{{item.roleName}}
+    <ul>
+      {{#each state in item.statusArr}}
+      <li>
+        <a {{bindAttr href="state.url"}}>{{state.status}}</a>
+      </li>
+      {{/each}}
+    </ul>
+  </li>
+  {{/each}}
+</ul>
+
