@@ -23,12 +23,52 @@ App.MainAppsController = Em.ArrayController.extend({
   name:'mainAppsController',
   content:App.Run.find(),
   apps:App.App.find(),
+  staredRuns: [],
   routeHome:function () {
     App.router.transitionTo('main.dashboard');
     var view = Ember.View.views['main_menu'];
     $.each(view._childViews, function () {
       this.set('active', this.get('content.routing') == 'dashboard' ? "active" : "");
     });
+  },
+  getRunById: function(id) {
+    var r;
+    this.get('content').forEach(function(item){
+      if (item.get('id') == id) {
+        r = item;
+      }
+    });
+    return r;
+  },
+  issetStaredRun: function(id) {
+    r = false;
+    this.get('staredRuns').forEach(function(item){
+      if (item.get('id') == id) {
+        r = true;
+      }
+    });
+    return r;
+  },
+  starClick: function() {
+    console.log(event);
+    event.srcElement.classList.toggle('stared');
+    var id = parseInt(event.srcElement.parentNode.childNodes[1].innerText);
+    if (!this.issetStaredRun(id)) {
+      this.get('staredRuns').push(this.getRunById(id));
+    }
+    else {
+      var key = this.get('staredRuns').indexOf(this.getRunById(id));
+      if (key != -1) {
+        this.get('staredRuns').splice(key, 1);
+      }
+    }
+    this.set('staredRunsLength', this.get('staredRuns').length);
+    return false;
+  },
+  clearStars: function() {
+    this.set('staredRuns', []);
+    this.set('staredRunsLength', 0);
+    $('.icon-star').removeClass('stared');
   },
   /**
    * Row, which is expanded at the moment, will update this property.

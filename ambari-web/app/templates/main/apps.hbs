@@ -16,9 +16,9 @@
 * limitations under the License.
 -->
 <div id="apps">
-  <div class="breadcrumbs">
-    <a href='#' {{action "routeHome" target="controller"}}><i class="icon-home"></i></a>&nbsp;&#47;&nbsp;
-    <strong>Apps</strong>
+  <div class="breadcrumb">
+    <li><a href='#' {{action "routeHome" target="controller"}}><i class="icon-home"></i></a><span class="divider">/</span></li>
+    <li class="active">Apps</li>
   </div>
   <table class="table table-bordered table-stripe avg-table" >
             <tbody>
@@ -34,28 +34,28 @@
             </tr>
             <tr class="avg-info">
               <td>Avg</td>
-              <td>43</td>
-              <td>200</td>
-              <td>10 mb</td>
-              <td>00:00:58</td>
-              <td>2012-07-22</td>
-              <td>2012-07-24</td>
+              <td>{{view.stared.jobs.avg}}</td>
+              <td>{{view.stared.input.avg}}</td>
+              <td>{{view.stared.output.avg}}</td>
+              <td>{{view.stared.duration.avg}}</td>
+              <td>{{view.stared.times.oldest}}</td>
+              <td>{{view.stared.times.youngest}}</td>
             </tr>
              <tr class="compare-info">
 
               <td>Min / Max</td>
-              <td>3 / 128</td>
-              <td>10kb / 248mb</td>
-              <td>5kb / 18mb</td>
-              <td>00:00:10 / 00:01:20</td>
+              <td>{{view.stared.jobs.min}} / {{view.stared.jobs.max}}</td>
+              <td>{{view.stared.input.min}} / {{view.stared.input.max}}</td>
+              <td>{{view.stared.output.min}} / {{view.stared.output.max}}</td>
+              <td>{{view.stared.duration.min}} / {{view.stared.duration.max}}</td>
               <td></td>
               <td></td>
              </tr>
             </tbody>
   </table>
     <div id="filter_info" class="row">
-      <div class="span3">Show: <a href="javascript:void(0)">Filtered ({{view.filtered}})</a>&nbsp;&#124;&nbsp;<a href="javascript:void(0)">Starred (20)</a></div>
-      <div class="span2"><a href="#" {{action "clearFilters" target="view"}}>Clear filters</a>&nbsp;&#124;&nbsp;<a href="javascript:void(0)">Clear stars</a></div>
+      <div class="span3">Show: <a href="javascript:void(0)">Filtered ({{view.filtered}})</a>&nbsp;&#124;&nbsp;<a href="javascript:void(0)">Starred ({{view.stared.count}})</a></div>
+      <div class="span2"><a href="#" {{action "clearFilters" target="view"}}>Clear filters</a>&nbsp;&#124;&nbsp;<a href="#" {{action "clearStars" target="controller"}}>Clear stars</a></div>
     </div>
     <div>
     </div>
@@ -76,7 +76,7 @@
           <th>{{view view.appidFilterView}}</th>
           <th>{{view view.nameFilterView}}</th>
           <th>{{view view.typeSelectView}}</th>
-          <th>{{view view.userFilterView}}</th>
+          <th>{{view view.userFilterView}}<input id="user_filter" type="hidden"></th>
           <th>{{view view.jobsFilterView}}</th>
           <th>{{view view.inputFilterView}}</th>
           <th>{{view view.outputFilterView}}</th>

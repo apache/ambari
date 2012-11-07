@@ -28,7 +28,7 @@ module.exports = {
   /**
    * Convert timestamp to date-string 'DAY_OF_THE_WEEK, MONTH DAY, YEAR HOURS:MINUTES'
    * @param timestamp
-   * @return date-string
+   * @return string date
    */
   dateFormat:function (timestamp) {
     if (!validator.isValidInt(timestamp)) return timestamp;
@@ -38,9 +38,27 @@ module.exports = {
     return days[date.getDay()] + ', ' + months[date.getMonth()] + ' ' + this.dateFormatZeroFirst(date.getDate()) + ', ' + date.getFullYear() + ' ' + this.dateFormatZeroFirst(date.getHours()) + ':' + this.dateFormatZeroFirst(date.getMinutes());
   },
   /**
+   * Convert date-string 'DAY_OF_THE_WEEK, MONTH DAY, YEAR HOURS:MINUTES' to timestamp
+   * @param date_string
+   * @return {String}
+   */
+  dateUnformat: function(date_string) {
+    var date = date_string.substring(4);
+    var month = date.substring(1, 4);
+    var day = date.substring(5, 7);
+    var year = date.substring(9, 13);
+    var hours = date.substring(14, 16);
+    var minutes = date.substring(17, 19);
+
+    var months = this.dateMonths;
+    month = months.indexOf(month) + 1;
+    if (month < 10) month = '0' + month;
+    return year + month + day + hours + minutes;
+  },
+  /**
    * Convert time in seconds to 'HOURS:MINUTES:SECONDS'
-   * @param seconds
-   * @return formatted date-string
+   * @param timestamp_interval
+   * @return string formatted date
    */
   dateFormatInterval:function (timestamp_interval) {
     if (!validator.isValidInt(timestamp_interval)) return timestamp_interval;
@@ -50,5 +68,17 @@ module.exports = {
     var divisor_for_seconds = divisor_for_minutes % 60;
     var seconds = Math.ceil(divisor_for_seconds);
     return (hours < 10 ? '0' : '') + hours + ':' + (minutes < 10 ? '0' : '') + minutes + ':' + (seconds < 10 ? '0' : '') + seconds;
+  },
+  /**
+   * Convert 'HOURS:MINUTES:SECONDS' to time in seconds
+   * @param formattedDate date string
+   * @return time in seconds
+   */
+  dateUnformatInterval: function(formattedDate) {
+    var d = formattedDate.split(':');
+    for (var k in d) {
+      d[k] = parseInt(d[k]);
+    }
+    return d[0]*3600+d[1]*60+d[2];
   }
 }

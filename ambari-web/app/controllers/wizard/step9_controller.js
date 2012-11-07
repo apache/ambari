@@ -421,7 +421,7 @@ App.WizardStep9Controller = Em.Controller.extend({
     this.hosts.forEach(function (_content) {
       var actionsPerHost = tasksData.filterProperty('Tasks.host_name', _content.name); // retrieved from polled Data
       if (actionsPerHost.length === 0) {
-        alert('For testing with mockData follow the sequence: hit referesh,"mockData btn", "pollData btn", again "pollData btn"');
+        //alert('For testing with mockData follow the sequence: hit referesh,"mockData btn", "pollData btn", again "pollData btn"');
         //exit();
       }
       if (actionsPerHost !== null && actionsPerHost !== undefined && actionsPerHost.length !== 0) {

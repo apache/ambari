@@ -362,6 +362,8 @@ AMBARI-666 branch (unreleased changes)
 
   IMPROVEMENTS
 
+  AMBARI-978. Refactor App Browser code. (yusaku)
+
   AMBARI-977. Refactor Wizard and Cluster Management code. (yusaku)
 
   AMBARI-941. More refactoring of Wizards in Ambari Web. (yusaku)

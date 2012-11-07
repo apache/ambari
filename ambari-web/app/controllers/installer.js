@@ -315,7 +315,7 @@ App.InstallerController = Em.Controller.extend({
       hostsInfo.localRepoPath = '';
     }
 
-    hostsInfo.sshKey = 'random';
+    hostsInfo.sshKey = '';
     hostsInfo.passphrase = '';
     hostsInfo.confirmPassphrase = '';
 

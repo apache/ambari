@@ -169,12 +169,6 @@ App.WizardStep3Controller = Em.Controller.extend({
     });
   },
 
-  startBootstrap: function () {
-    this.set('isSubmitDisabled', true);
-    this.set('bootHosts', this.get('content'));
-    this.doBootstrap();
-  },
-
   retryHost: function (hostInfo) {
     this.retryHosts([hostInfo]);
   },
@@ -187,7 +181,7 @@ App.WizardStep3Controller = Em.Controller.extend({
   },
 
   startBootstrap: function () {
-    this.set('isSubmitDisabled', true);
+    // this.set('isSubmitDisabled', true);
     this.set('bootHosts', this.get('hosts'));
     this.doBootstrap();
   },

@@ -16,12 +16,12 @@
 * limitations under the License.
 -->
 
-<td><i class="icon-star"></i>&nbsp;<a href="javascript:void(0)">ID&nbsp;{{run.appId}}</a></td>
+<td><a href='#' {{action "starClick" target="controller"}}"><span class="icon-star"></span><span class="hidden">{{run.id}}</span></a>&nbsp;<a href="javascript:void(0)">ID&nbsp;{{run.appId}}</a></td>
 <td>{{run.appName}}</td>
 <td>{{run.type}}</td>
 <td>{{run.userName}}</td>
 <td>{{run.numJobsTotal}}</td>
-<td>10MB</td>
-<td>30MB</td>
-<td>00:15:32</td>
+<td>{{run.input}}</td>
+<td>{{run.output}}</td>
+<td>{{run.duration}}</td>
 <td>{{run.lastUpdateTime}}</td>
