@@ -76,7 +76,7 @@ public class HostService extends BaseService {
                           @PathParam("hostName") String hostName) {
 
     return handleRequest(headers, null, ui, Request.Type.GET,
-        createResourceDefinition(hostName, m_clusterName));
+        createResourceDefinition(hostName, m_clusterName, ui));
   }
 
   /**
@@ -90,7 +90,26 @@ public class HostService extends BaseService {
   @GET
   @Produces("text/plain")
   public Response getHosts(@Context HttpHeaders headers, @Context UriInfo ui) {
-    return handleRequest(headers, null, ui, Request.Type.GET, createResourceDefinition(null, m_clusterName));
+    return handleRequest(headers, null, ui, Request.Type.GET, createResourceDefinition(null, m_clusterName, ui));
+  }
+
+  /**
+   * Handles POST /clusters/{clusterID}/hosts
+   * Create hosts by specifying an array of hosts in the http body.
+   * This is used to create multiple hosts in a single request.
+   *
+   * @param body     http body
+   * @param headers  http headers
+   * @param ui       uri info
+   *
+   * @return status code only, 201 if successful
+   */
+  @POST
+  @Produces("text/plain")
+  public Response createHosts(String body, @Context HttpHeaders headers, @Context UriInfo ui) {
+
+    return handleRequest(headers, body, ui, Request.Type.POST,
+        createResourceDefinition(null, m_clusterName, ui));
   }
 
   /**
@@ -111,7 +130,7 @@ public class HostService extends BaseService {
                           @PathParam("hostName") String hostName) {
 
     return handleRequest(headers, body, ui, Request.Type.POST,
-        createResourceDefinition(hostName, m_clusterName));
+        createResourceDefinition(hostName, m_clusterName, ui));
   }
 
   /**
@@ -132,7 +151,7 @@ public class HostService extends BaseService {
                           @PathParam("hostName") String hostName) {
 
     return handleRequest(headers, body, ui, Request.Type.PUT,
-        createResourceDefinition(hostName, m_clusterName));
+        createResourceDefinition(hostName, m_clusterName, ui));
   }
 
   /**
@@ -150,7 +169,7 @@ public class HostService extends BaseService {
   public Response updateHosts(String body, @Context HttpHeaders headers, @Context UriInfo ui) {
 
     return handleRequest(headers, body, ui, Request.Type.PUT,
-        createResourceDefinition(null, m_clusterName));
+        createResourceDefinition(null, m_clusterName, ui));
   }
 
   /**
@@ -170,7 +189,7 @@ public class HostService extends BaseService {
                              @PathParam("hostName") String hostName) {
 
     return handleRequest(headers, null, ui, Request.Type.DELETE,
-        createResourceDefinition(hostName, m_clusterName));
+        createResourceDefinition(hostName, m_clusterName, ui));
   }
 
   /**
@@ -187,11 +206,12 @@ public class HostService extends BaseService {
   /**
    * Create a host resource definition.
    *
-   * @param hostName    host name
-   * @param clusterName cluster name
+   * @param hostName     host name
+   * @param clusterName  cluster name
+   * @param ui           uri information
    * @return a host resource definition
    */
-  ResourceDefinition createResourceDefinition(String hostName, String clusterName) {
-    return new HostResourceDefinition(hostName, clusterName);
+  ResourceDefinition createResourceDefinition(String hostName, String clusterName, UriInfo ui) {
+    return new HostResourceDefinition(hostName, clusterName, ui.getRequestUri().toString().contains("/clusters/"));
   }
 }

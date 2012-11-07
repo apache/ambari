@@ -84,6 +84,25 @@ public class HostComponentService extends BaseService {
   }
 
   /**
+   * Handles POST /clusters/{clusterID}/hosts/{hostID}/host_components
+   * Create host components by specifying an array of host components in the http body.
+   * This is used to create multiple host components in a single request.
+   *
+   * @param body              http body
+   * @param headers           http headers
+   * @param ui                uri info
+   *
+   * @return status code only, 201 if successful
+   */
+  @POST
+  @Produces("text/plain")
+  public Response createHostComponents(String body, @Context HttpHeaders headers, @Context UriInfo ui) {
+
+    return handleRequest(headers, body, ui, Request.Type.POST,
+        createResourceDefinition(null, m_clusterName, m_hostName));
+  }
+
+  /**
    * Handles POST /clusters/{clusterID}/hosts/{hostID}/host_components/{hostComponentID}
    * Create a specific host_component.
    *

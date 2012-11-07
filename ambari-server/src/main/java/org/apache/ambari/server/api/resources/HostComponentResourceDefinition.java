@@ -38,11 +38,6 @@ public class HostComponentResourceDefinition extends BaseResourceDefinition {
    */
   private String m_clusterId;
 
-  /**
-   * value of host id foreign key
-   */
-  private String m_hostId;
-
 
   /**
    * Constructor.
@@ -54,9 +49,8 @@ public class HostComponentResourceDefinition extends BaseResourceDefinition {
   public HostComponentResourceDefinition(String id, String clusterId, String hostId) {
     super(Resource.Type.HostComponent, id);
     m_clusterId = clusterId;
-    m_hostId = hostId;
     setResourceId(Resource.Type.Cluster, m_clusterId);
-    setResourceId(Resource.Type.Host, m_hostId);
+    setResourceId(Resource.Type.Host, hostId);
   }
 
   @Override
@@ -94,12 +88,12 @@ public class HostComponentResourceDefinition extends BaseResourceDefinition {
   }
 
   @Override
-  public void setParentId(Resource.Type type, String value) {
-    if (type == Resource.Type.Component) {
-      setId(value);
-    } else {
-      super.setParentId(type, value);
+  public void setParentIds(Map<Resource.Type, String> mapIds) {
+    String id = mapIds.remove(Resource.Type.Component);
+    if (id != null) {
+      setId(id);
     }
+    super.setParentIds(mapIds);
   }
 
 
@@ -114,12 +108,11 @@ public class HostComponentResourceDefinition extends BaseResourceDefinition {
 
       if (parent.getParent() != null && parent.getParent().getObject().getType() == Resource.Type.Component) {
         Resource r = resultNode.getObject();
-        String clusterId = getResourceIds().get(Resource.Type.Cluster);
         Schema schema = ClusterControllerHelper.getClusterController().getSchema(r.getType());
         Object host = r.getPropertyValue(schema.getKeyPropertyId(Resource.Type.Host));
         Object hostComponent = r.getPropertyValue(schema.getKeyPropertyId(r.getType()));
 
-        href = href.substring(0, href.indexOf(clusterId) + clusterId.length() + 1) +
+        href = href.substring(0, href.indexOf("/services/") + 1) +
             "hosts/" + host + "/host_components/" + hostComponent;
 
         resultNode.setProperty("href", href);

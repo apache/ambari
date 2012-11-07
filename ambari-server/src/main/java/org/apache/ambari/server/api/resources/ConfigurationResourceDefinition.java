@@ -49,9 +49,6 @@ public class ConfigurationResourceDefinition extends BaseResourceDefinition {
     super(Resource.Type.Configuration, configType);
     m_clusterId = clusterId;
     setResourceId(Resource.Type.Cluster, m_clusterId);
-
-    if (null != configTag)
-      setProperty(PropertyHelper.getPropertyId("tag", "Config"), configTag);
   }
 
   @Override
@@ -83,15 +80,17 @@ public class ConfigurationResourceDefinition extends BaseResourceDefinition {
     public void process(Request request, TreeNode<Resource> resultNode, String href) {
       if (resultNode.getObject().getType() == Resource.Type.Configuration) {
 
-        String clusterId = getResourceIds().get(Resource.Type.Cluster);
-        String type = (String) resultNode.getObject().getPropertyValue(PropertyHelper.getPropertyId("type"));
-        String tag = (String) resultNode.getObject().getPropertyValue(PropertyHelper.getPropertyId("tag"));
-
         if (! href.endsWith("/")) {
           href += '/';
         }
-        href = href.substring(0, href.indexOf(clusterId) + clusterId.length() + 1) +
-            "configurations?type=" + type + "&tag=" + tag;
+
+        String clustersToken = "/clusters";
+        int idx = href.indexOf(clustersToken) + clustersToken.length() + 1;
+        idx = href.indexOf("/", idx) + 1;
+
+        String type = (String) resultNode.getObject().getPropertyValue(PropertyHelper.getPropertyId("type"));
+        String tag = (String) resultNode.getObject().getPropertyValue(PropertyHelper.getPropertyId("tag"));
+        href = href.substring(0, idx) + "configurations?type=" + type + "&tag=" + tag;
 
         resultNode.setProperty("href", href);
       } else {

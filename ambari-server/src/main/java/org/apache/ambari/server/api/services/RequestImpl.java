@@ -194,7 +194,7 @@ public class RequestImpl implements Request {
   }
 
   @Override
-  public Map<PropertyId, String> getHttpBodyProperties() {
+  public Set<Map<PropertyId, Object>> getHttpBodyProperties() {
     return getHttpBodyParser().parse(getHttpBody());
   }
 

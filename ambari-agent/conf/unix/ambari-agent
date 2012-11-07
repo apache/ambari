@@ -6,7 +6,6 @@
 case "$1" in
   start)
         echo -e "Starting ambari-agent"
-        export AMBARI_PASSPHRASE=pass_phrase
         python /usr/lib/python2.6/site-packages/ambari_agent/main.py
         ;;
   stop)

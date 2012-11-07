@@ -113,6 +113,9 @@
           <copyright>2012, Apache Software Foundation</copyright>
           <group>Development</group>
           <description>Maven Recipe: RPM Package.</description>
+          <requires>
+            <require>puppet = 2.7.9</require>
+          </requires>
           <mappings>
 
             <mapping>
@@ -125,7 +128,7 @@
             </mapping>
 
             <mapping>
-              <directory>/etc/${project.artifactId}/puppet</directory>
+              <directory>/var/lib/${project.artifactId}/puppet</directory>
               <sources>
                 <source>
                   <location>src/main/puppet</location>
@@ -155,9 +158,14 @@
             <mapping>
               <directory>/var/run/ambari</directory>
             </mapping>
-
             <mapping>
-              <directory>/etc/ambari-agent/keys</directory>
+              <directory>/var/lib/${project.artifactId}/keys</directory>
+            </mapping>
+            <mapping>
+              <directory>/var/log/ambari</directory>
+            </mapping>
+            <mapping>
+              <directory>/var/ambari</directory>
             </mapping>
 
             <!-- -->

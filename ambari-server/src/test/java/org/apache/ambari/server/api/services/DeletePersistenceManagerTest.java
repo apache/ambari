@@ -49,7 +49,7 @@ public class DeletePersistenceManagerTest {
 
     replay(resource, controller, schema, query, predicate);
 
-    new TestDeletePersistenceManager(controller).persist(resource);
+    new TestDeletePersistenceManager(controller).persist(resource, null);
 
     verify(resource, controller, schema, query, predicate);
   }

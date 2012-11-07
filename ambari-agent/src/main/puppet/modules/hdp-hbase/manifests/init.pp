@@ -40,9 +40,6 @@ class hdp-hbase(
       configuration => $configuration['hbase-site']
       }
     }
-    hdp-hbase::configfile { 'regionservers':}
-    Anchor['hdp-hbase::begin'] -> Hdp::Package['hbase'] -> Hdp::User[$hbase_user] -> Hdp::Directory[$config_dir] -> 
-    Hdp-hbase::Configfile<||> ->  Anchor['hdp-hbase::end']
 
   if has_key($configuration, 'hbase-policy') {
     configgenerator::configfile{'hbase-policy': 
@@ -91,7 +88,7 @@ define hdp-hbase::configfile(
   $mode = undef,
   $hbase_master_host = undef,
   $template_tag = undef,
-  $type = undef,
+  $type = undef
 ) 
 {
   if ($name == 'hadoop-metrics.properties') {

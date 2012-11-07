@@ -71,13 +71,8 @@ public class QueryImplTest {
         eq(predicate))).andReturn(listResources);
 
     expect(result.getResultTree()).andReturn(tree);
-    expect(componentResource.getPropertyValue(componentPropertyId)).andReturn("componentName");
-    hostComponentResourceDef.setParentId(Resource.Type.Component, "componentName");
 
-    //todo: debug output
-    expect(hostComponentResourceDef.getId()).andReturn(null).anyTimes();
-    expect(hostComponentResourceDef.getResourceIds()).andReturn(mapResourceIds).anyTimes();
-    // end todo
+    hostComponentResourceDef.setParentIds(mapResourceIds);
 
     expect(hostComponentResourceDef.getQuery()).andReturn(hostComponentQuery);
     expect(hostComponentQuery.execute()).andReturn(hostComponentQueryResult);

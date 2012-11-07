@@ -19,7 +19,11 @@
 package org.apache.ambari.server.api.services;
 
 import org.apache.ambari.server.api.resources.ResourceDefinition;
+import org.apache.ambari.server.controller.spi.PropertyId;
 import org.apache.ambari.server.controller.spi.RequestStatus;
+
+import java.util.Map;
+import java.util.Set;
 
 /**
  * Persistence manager which is responsible for persisting a resource state to the back end.
@@ -29,10 +33,12 @@ public interface PersistenceManager {
   /**
    * Persist a resource to the back end.
    *
-   * @param resource  the resource to persist
+   *
+   * @param resource       resource definition for request
+   * @param setProperties  properties to be persisted.
    *
    * @return the request state.
    *
    */
-  public RequestStatus persist(ResourceDefinition resource);
+  public RequestStatus persist(ResourceDefinition resource, Set<Map<PropertyId, Object>> setProperties);
 }

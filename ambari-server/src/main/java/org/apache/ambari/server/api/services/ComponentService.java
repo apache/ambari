@@ -84,6 +84,25 @@ public class ComponentService extends BaseService {
   }
 
   /**
+   * Handles: POST /clusters/{clusterID}/services/{serviceID}/components
+   * Create components by specifying an array of components in the http body.
+   * This is used to create multiple components in a single request.
+   *
+   * @param body          http body
+   * @param headers       http headers
+   * @param ui            uri info
+   *
+   * @return status code only, 201 if successful
+   */
+  @POST
+  @Produces("text/plain")
+  public Response createComponents(String body, @Context HttpHeaders headers, @Context UriInfo ui) {
+
+    return handleRequest(headers, body, ui, Request.Type.POST,
+        createResourceDefinition(null, m_clusterName, m_serviceName));
+  }
+
+  /**
    * Handles: POST /clusters/{clusterID}/services/{serviceID}/components/{componentID}
    * Create a specific component.
    *

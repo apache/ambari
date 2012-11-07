@@ -48,7 +48,7 @@ public class CreateHandlerTest {
     Resource resource1 = createMock(Resource.class);
     Resource resource2 = createMock(Resource.class);
 
-    Map<PropertyId, String> resourceProperties = new HashMap<PropertyId, String>();
+    Set<Map<PropertyId, Object>> setResourceProperties = new HashSet<Map<PropertyId, Object>>();
 
     Set<Resource> setResources = new HashSet<Resource>();
     setResources.add(resource1);
@@ -56,10 +56,9 @@ public class CreateHandlerTest {
 
     // expectations
     expect(request.getResourceDefinition()).andReturn(resource);
-    expect(request.getHttpBodyProperties()).andReturn(resourceProperties);
-    resource.setProperties(resourceProperties);
+    expect(request.getHttpBodyProperties()).andReturn(setResourceProperties);
     expect(request.getPersistenceManager()).andReturn(pm);
-    expect(pm.persist(resource)).andReturn(status);
+    expect(pm.persist(resource, setResourceProperties)).andReturn(status);
     expect(status.getStatus()).andReturn(RequestStatus.Status.Complete);
     expect(status.getAssociatedResources()).andReturn(setResources);
     expect(resource1.getType()).andReturn(Resource.Type.Cluster).anyTimes();
@@ -100,7 +99,7 @@ public class CreateHandlerTest {
     Resource resource2 = createMock(Resource.class);
     Resource requestResource = createMock(Resource.class);
 
-    Map<PropertyId, String> resourceProperties = new HashMap<PropertyId, String>();
+    Set<Map<PropertyId, Object>> setResourceProperties = new HashSet<Map<PropertyId, Object>>();
 
     Set<Resource> setResources = new HashSet<Resource>();
     setResources.add(resource1);
@@ -108,10 +107,9 @@ public class CreateHandlerTest {
 
     // expectations
     expect(request.getResourceDefinition()).andReturn(resource);
-    expect(request.getHttpBodyProperties()).andReturn(resourceProperties);
-    resource.setProperties(resourceProperties);
+    expect(request.getHttpBodyProperties()).andReturn(setResourceProperties);
     expect(request.getPersistenceManager()).andReturn(pm);
-    expect(pm.persist(resource)).andReturn(status);
+    expect(pm.persist(resource, setResourceProperties)).andReturn(status);
     expect(status.getStatus()).andReturn(RequestStatus.Status.Accepted);
     expect(status.getAssociatedResources()).andReturn(setResources);
     expect(resource1.getType()).andReturn(Resource.Type.Cluster).anyTimes();

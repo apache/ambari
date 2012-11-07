@@ -39,12 +39,6 @@ public class ComponentResourceDefinition extends BaseResourceDefinition {
   private String m_clusterId;
 
   /**
-   * value of serviceId foreign key
-   */
-  private String m_serviceId;
-
-
-  /**
    * Constructor.
    *
    * @param id        value of component id
@@ -54,9 +48,9 @@ public class ComponentResourceDefinition extends BaseResourceDefinition {
   public ComponentResourceDefinition(String id, String clusterId, String serviceId) {
     super(Resource.Type.Component, id);
     m_clusterId = clusterId;
-    m_serviceId = serviceId;
+
     setResourceId(Resource.Type.Cluster, m_clusterId);
-    setResourceId(Resource.Type.Service, m_serviceId);
+    setResourceId(Resource.Type.Service, serviceId);
   }
 
   @Override
@@ -94,17 +88,17 @@ public class ComponentResourceDefinition extends BaseResourceDefinition {
   }
 
   @Override
-  public void setParentId(Resource.Type type, String value) {
-    if (type == Resource.Type.HostComponent) {
-      setId(value);
-    } else {
-      super.setParentId(type, value);
+  public void setParentIds(Map<Resource.Type, String> mapIds) {
+    String id = mapIds.remove(Resource.Type.HostComponent);
+    if (id != null) {
+      setId(id);
     }
+    super.setParentIds(mapIds);
   }
 
   /**
-   * Base resource processor which generates href's.  This is called by the {@link org.apache.ambari.server.api.services.ResultPostProcessor} during post
-   * processing of a result.
+   * Base resource processor which generates href's.  This is called by the
+   * {@link org.apache.ambari.server.api.services.ResultPostProcessor} during post processing of a result.
    */
   private class ComponentHrefProcessor extends BaseHrefPostProcessor {
     @Override
@@ -113,12 +107,11 @@ public class ComponentResourceDefinition extends BaseResourceDefinition {
 
       if (parent.getParent() != null && parent.getParent().getObject().getType() == Resource.Type.HostComponent) {
         Resource r = resultNode.getObject();
-        String clusterId = getResourceIds().get(Resource.Type.Cluster);
         Schema schema = ClusterControllerHelper.getClusterController().getSchema(r.getType());
         Object serviceId = r.getPropertyValue(schema.getKeyPropertyId(Resource.Type.Service));
         Object componentId = r.getPropertyValue(schema.getKeyPropertyId(r.getType()));
 
-        href = href.substring(0, href.indexOf(clusterId) + clusterId.length() + 1) +
+        href = href.substring(0, href.indexOf("/hosts/") + 1) +
             "services/" + serviceId + "/components/" + componentId;
 
         resultNode.setProperty("href", href);

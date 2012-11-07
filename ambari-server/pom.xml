@@ -22,7 +22,7 @@
   <artifactId>ambari-server</artifactId>
   <packaging>jar</packaging>
   <name>Ambari Server</name>
-  <version>1.0.3-SNAPSHOT</version>
+  <version>1.0.3</version>
   <description>Ambari Server</description>
   <build>
     <plugins>
@@ -75,6 +75,7 @@
           </workarea>
           -->
           <copyright>2012, Apache Software Foundation</copyright>
+          <version>${project.version}</version>
           <group>Development</group>
           <description>Maven Recipe: RPM Package.</description>
           <mappings>
@@ -155,8 +156,24 @@
                 <source>
                   <location>src/main/resources/Ambari-DDL.sql</location>
                 </source>
+                <source>
+                  <location>src/main/resources/stacks</location>
+                </source>
               </sources>
             </mapping>
+
+            <mapping>
+              <directory>/usr/lib/python2.6/site-packages/ambari_server</directory>
+              <sources>
+                <source>
+                  <location>src/main/python/bootstrap.py</location>
+                </source>
+                <source>
+                  <location>src/main/python/setupAgent.py</location>
+                </source>
+              </sources>
+            </mapping>
+
 
             <mapping>
               <directory>/var/run/ambari-server</directory>

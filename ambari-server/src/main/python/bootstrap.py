@@ -64,10 +64,10 @@ class SCP(threading.Thread):
 
 class SSH(threading.Thread):
   """ Ssh implementation of this """
-  def __init__(self, sshKeyFile, host, commands):
+  def __init__(self, sshKeyFile, host, command):
     self.sshKeyFile = sshKeyFile
     self.host = host
-    self.commands = commands
+    self.command = command
     self.ret = {"exitstatus" : -1, "log": "FAILED"}
     threading.Thread.__init__(self)
     pass
@@ -81,7 +81,7 @@ class SSH(threading.Thread):
   def run(self):
     sshcommand = ["ssh", "-o", "ConnectTimeOut=3", "-o",
                    "StrictHostKeyChecking=no", "-i", self.sshKeyFile,
-                    self.host, ";".join(self.commands)]
+                    self.host, self.command]
     sshstat = subprocess.Popen(sshcommand, stdout=subprocess.PIPE,
                                   stderr=subprocess.PIPE)
     log = sshstat.communicate()
@@ -96,10 +96,10 @@ def splitlist(hosts, n):
 
 class PSSH:
   """Run SSH in parallel for a given list of hosts"""
-  def __init__(self, hosts, sshKeyFile, commands):
+  def __init__(self, hosts, sshKeyFile, command):
     self.hosts = hosts
     self.sshKeyFile = sshKeyFile
-    self.commands = commands
+    self.command = command
     self.ret = {}
     pass
     
@@ -112,7 +112,7 @@ class PSSH:
     for chunk in splitlist(self.hosts, 20):
       chunkstats = []
       for host in chunk:
-        ssh = SSH(self.sshKeyFile, host, self.commands)
+        ssh = SSH(self.sshKeyFile, host, self.command)
         ssh.start()
         chunkstats.append(ssh)
         pass
@@ -173,32 +173,41 @@ class BootStrap:
     return os.path.join(self.scriptDir, "setupAgent.py")
     
   def runSetupAgent(self):
-    commands = ["export AMBARI_PASSPHRASE=" + os.environ[AMBARI_PASSPHRASE_VAR], "/tmp/setupAgent.py"]
-    pssh = PSSH(self.hostlist, self.sshkeyFile, commands)
+    command = "python /tmp/setupAgent.py " + os.environ[AMBARI_PASSPHRASE_VAR]
+    pssh = PSSH(self.hostlist, self.sshkeyFile, command)
     pssh.run()
     out = pssh.getstatus()
     logging.info("Parallel ssh returns " + pprint.pformat(out))
-
-    """ Test code for setting env var on agent host before starting setupAgent.py
-    commands = ["export AMBARI_PASSPHRASE=" + os.environ[AMBARI_PASSPHRASE_VAR], "set"]
-    pssh = PSSH(self.hostlist, self.sshkeyFile, commands)
-    pssh.run()
-    out = pssh.getstatus()
-    logging.info("Look for AMBARI_PASSPHRASE in out " + pprint.pformat(out))
-    """
+    pass
 
   def copyNeededFiles(self):
     try:
       """Copying the files """
+      """ Uncomment when ambari.repo is ready
       fileToCopy = self.getRepoFile()
       pscp = PSCP(self.hostlist, self.sshkeyFile, fileToCopy, "/etc/yum.repos.d")
       pscp.run()
       out = pscp.getstatus()
       logging.info("Parallel scp return " + pprint.pformat(out))
+      """
+
+      """ Remove this block when ambari.repo is ready """
+      """ copy agent rpm to remote host """
+      pscp = PSCP(self.hostlist, self.sshkeyFile, "/home/centos/ambari/ambari-agent/target/rpm/ambari-agent/RPMS/noarch/ambari-agent*.rpm", "/tmp")
+      pscp.run()
+      out = pscp.getstatus()
+      logging.info("Parallel scp return " + pprint.pformat(out))
+
+
+      pscp = PSCP(self.hostlist, self.sshkeyFile, "/usr/lib/python2.6/site-packages/ambari_server/setupAgent.py", "/tmp")
+      pscp.run()
+      out = pscp.getstatus()
+      logging.info("Parallel scp return " + pprint.pformat(out))
+
     except Exception as e:
       logging.info("Traceback " + traceback.format_exc())
       pass
-       
+
     pass
   
   def run(self):

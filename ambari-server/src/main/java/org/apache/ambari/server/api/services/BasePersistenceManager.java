@@ -26,6 +26,7 @@ import org.apache.ambari.server.controller.spi.Request;
 
 import java.util.Collections;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * Base PersistenceManager functionality.
@@ -36,7 +37,7 @@ public abstract class BasePersistenceManager implements PersistenceManager {
     return ClusterControllerHelper.getClusterController();
   }
 
-  protected Request createControllerRequest(Map<PropertyId, Object> properties) {
-    return PropertyHelper.getCreateRequest(Collections.singleton(properties));
+  protected Request createControllerRequest(Set<Map<PropertyId, Object>> setProperties) {
+    return PropertyHelper.getCreateRequest(setProperties);
   }
 }

@@ -23,10 +23,13 @@ import org.apache.ambari.server.api.services.Request;
 import org.apache.ambari.server.api.services.Result;
 import org.apache.ambari.server.api.services.ResultImpl;
 import org.apache.ambari.server.api.util.TreeNode;
+import org.apache.ambari.server.controller.spi.PropertyId;
 import org.apache.ambari.server.controller.spi.RequestStatus;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
 
+import java.util.Collections;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -36,10 +39,8 @@ public class BaseManagementHandler implements RequestHandler {
   @Override
   public Result handleRequest(Request request) {
     ResourceDefinition resource = request.getResourceDefinition();
-    resource.setProperties(request.getHttpBodyProperties());
-    RequestStatus status = request.getPersistenceManager().persist(resource);
-
-    return createResult(request, status);
+    return createResult(request, request.getPersistenceManager().persist(
+        resource, request.getHttpBodyProperties()));
   }
 
   private Result createResult(Request request, RequestStatus requestStatus) {
@@ -62,14 +63,12 @@ public class BaseManagementHandler implements RequestHandler {
     if (! isSynchronous) {
       Resource requestResource = requestStatus.getRequestResource();
       TreeNode<Resource> r = tree.addChild(requestResource, "request");
-      String requestHref = buildRequestHref(request, requestStatus);
-      r.setProperty("href", requestHref);
+      r.setProperty("href", buildRequestHref(request, requestStatus));
     }
 
     return result;
   }
 
-  //todo: this needs to be rewritten and needs to support operating on clusters collection
   private String buildRequestHref(Request request, RequestStatus requestStatus) {
     StringBuilder sb = new StringBuilder();
     String origHref = request.getURI();

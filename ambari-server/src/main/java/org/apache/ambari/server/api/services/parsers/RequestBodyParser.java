@@ -21,6 +21,7 @@ package org.apache.ambari.server.api.services.parsers;
 import org.apache.ambari.server.controller.spi.PropertyId;
 
 import java.util.Map;
+import java.util.Set;
 
 /**
  * Parse the provided String into a map of properties and associated values.
@@ -32,7 +33,7 @@ public interface RequestBodyParser {
    *
    * @param s  the string body to be parsed
    *
-   * @return a map of properties or an empty map if no properties exist
+   * @return a set of maps of properties or an empty set if no properties exist
    */
-  public Map<PropertyId, String> parse(String s);
+  public Set<Map<PropertyId, Object>> parse(String s);
 }

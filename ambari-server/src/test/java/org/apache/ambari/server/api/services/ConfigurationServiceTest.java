@@ -96,7 +96,7 @@ public class ConfigurationServiceTest {
     
 
     @Override
-    ResourceDefinition createResourceDefinition(String type, String tag, String clusterName) {
+    ResourceDefinition createResourceDefinition(String type, String clusterName) {
       assertEquals(m_clusterId, clusterName);
       return m_resourceDef;
     }

@@ -21,14 +21,12 @@ package org.apache.ambari.server.api.services;
 import java.io.IOException;
 import java.util.Map;
 
-import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.WebApplicationException;
-import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
 import javax.xml.bind.JAXBException;
 
@@ -36,8 +34,6 @@ import org.apache.ambari.server.state.fsm.InvalidStateTransitionException;
 import org.apache.ambari.server.utils.StageUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.codehaus.jackson.JsonGenerationException;
-import org.codehaus.jackson.map.JsonMappingException;
 
 import com.google.inject.Inject;
 
@@ -53,10 +49,9 @@ public class PersistKeyValueService {
 
   @POST
   @Produces("text/plain")
-  public Response update(String keyValues,
-      @Context HttpServletRequest req)
+  public Response update(String keyValues)
       throws WebApplicationException, InvalidStateTransitionException,
-      JsonGenerationException, JsonMappingException, JAXBException, IOException {
+      JAXBException, IOException {
     LOG.info("Received message from UI " + keyValues);
     Map<String, String> keyValuesMap = StageUtils.fromJson(keyValues, Map.class);
     /* Call into the heartbeat handler */
@@ -77,8 +72,7 @@ public class PersistKeyValueService {
   
   @GET
   @Produces("text/plain")
-  public String getAllKeyValues() throws JsonGenerationException,
-    JsonMappingException, JAXBException, IOException {
+  public String getAllKeyValues() throws JAXBException, IOException {
     Map<String, String> ret = persistKeyVal.getAllKeyValues();
     String stringRet = StageUtils.jaxbToString(ret);
     LOG.info("Returning " + stringRet);

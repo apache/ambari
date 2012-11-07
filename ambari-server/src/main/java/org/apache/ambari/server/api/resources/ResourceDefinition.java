@@ -63,12 +63,11 @@ public interface ResourceDefinition {
   public Resource.Type getType();
 
   /**
-   * Set the value of the parent foreign key.
+   * Set the values of the parent foreign keys.
    *
-   * @param type  resource type of the parent
-   * @param value vale of the parent id
+   * @param mapIds  map of all parent foreign keys. Map from resource type to id value.
    */
-  public void setParentId(Resource.Type type, String value);
+  public void setParentIds(Map<Resource.Type, String> mapIds);
 
   /**
    * Obtain the primary and foreign key properties for the resource.
@@ -100,29 +99,6 @@ public interface ResourceDefinition {
    * @return list of resource specific result processors
    */
   public List<PostProcessor> getPostProcessors();
-
-  //TODO: refactor set/get Property methods out of this class
-  /**
-   * Set a property on this resource.
-   *
-   * @param property the property
-   * @param value    the value
-   */
-  public void setProperty(PropertyId property, String value);
-
-  /**
-   * Set a map of properties on the resource.
-   *
-   * @param mapProperties a map of properties
-   */
-  public void setProperties(Map<PropertyId, String> mapProperties);
-
-  /**
-   * Get the properties which have been set on this resource.
-   *
-   * @return the properties which have been set on this resource
-   */
-  public Map<PropertyId, Object> getProperties();
 
   /**
    * Resource specific result processor.

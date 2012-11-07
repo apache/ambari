@@ -24,42 +24,51 @@ import org.codehaus.jackson.JsonNode;
 import org.codehaus.jackson.map.ObjectMapper;
 
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map;
+import java.util.*;
 
 /**
  * JSON parser which parses a JSON string into a map of properties and values.
  */
 public class JsonPropertyParser implements RequestBodyParser {
-  private Map<PropertyId, String> m_properties = new HashMap<PropertyId, String>();
+  private Set<Map<PropertyId, Object>> m_setProperties = new HashSet<Map<PropertyId, Object>>();
+
 
   @Override
-  public Map<PropertyId, String> parse(String s) {
+  public Set<Map<PropertyId, Object>> parse(String s) {
+
     ObjectMapper mapper = new ObjectMapper();
 
     if (s != null && ! s.isEmpty()) {
+      s = ensureArrayFormat(s);
       try {
-        processNode(mapper.readValue(s, JsonNode.class), "");
+        JsonNode[] nodes = mapper.readValue(s, JsonNode[].class);
+        for(JsonNode node : nodes) {
+          Map<PropertyId, Object> mapProperties = new HashMap<PropertyId, Object>();
+          processNode(node, "", mapProperties);
+          m_setProperties.add(mapProperties);
+        }
       } catch (IOException e) {
         throw new RuntimeException("Unable to parse json: " + e, e);
       }
     }
-
-    return m_properties;
+    return m_setProperties;
   }
 
-  private void processNode(JsonNode node, String path) {
+  private void processNode(JsonNode node, String path, Map<PropertyId, Object> mapProperties) {
     Iterator<String> iter = node.getFieldNames();
     String name;
     while (iter.hasNext()) {
       name = iter.next();
       JsonNode child = node.get(name);
       if (child.isContainerNode()) {
-        processNode(child, path.isEmpty() ? name : path + '.' + name);
+        processNode(child, path.isEmpty() ? name : path + '.' + name, mapProperties);
       } else {
-        m_properties.put(PropertyHelper.getPropertyId(name, path), child.asText());
+        mapProperties.put(PropertyHelper.getPropertyId(name, path), child.asText());
       }
     }
+  }
+
+  private String ensureArrayFormat(String s) {
+    return s.startsWith("[") ? s : '[' + s + ']';
   }
 }

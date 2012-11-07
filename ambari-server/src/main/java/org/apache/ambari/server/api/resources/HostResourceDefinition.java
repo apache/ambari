@@ -37,13 +37,20 @@ public class HostResourceDefinition extends BaseResourceDefinition {
   private String m_clusterId;
 
   /**
+   * Whether the host resource is associated with a cluster.
+   */
+  private boolean m_attached;
+
+  /**
    * Constructor.
    *
    * @param id        host id value
    * @param clusterId cluster id value
+   * @param attached
    */
-  public HostResourceDefinition(String id, String clusterId) {
+  public HostResourceDefinition(String id, String clusterId, boolean attached) {
     super(Resource.Type.Host, id);
+    m_attached = attached;
     m_clusterId = clusterId;
     setResourceId(Resource.Type.Cluster, m_clusterId);
     
@@ -73,8 +80,7 @@ public class HostResourceDefinition extends BaseResourceDefinition {
   public Map<String, ResourceDefinition> getSubResources() {
     Map<String, ResourceDefinition> mapChildren = new HashMap<String, ResourceDefinition>();
 
-    // !!! is this a host for a cluster
-    if (null != m_clusterId) {
+    if (m_attached) {
       HostComponentResourceDefinition hostComponentResource =
           new HostComponentResourceDefinition(null, m_clusterId, getId());
       hostComponentResource.getQuery().addProperty(getClusterController().getSchema(

@@ -59,11 +59,12 @@ public class ConfigurationService extends BaseService {
   @Produces("text/plain")
   public Response getConfigurations(@Context HttpHeaders headers, @Context UriInfo ui) {
     return handleRequest(headers, null, ui, Request.Type.GET,
-        createResourceDefinition(null, null, m_clusterName));
+        createResourceDefinition(null, m_clusterName));
   }
 
   /**
-   * Handles URL: /clusters/{clusterId}/configurations.  The body should contain:
+   * Handles URL: /clusters/{clusterId}/configurations
+   * The body should contain:
    * <pre>
    * {
    *     "type":"type_string",
@@ -76,30 +77,30 @@ public class ConfigurationService extends BaseService {
    *     }
    * }
    * </pre>
-   * Get all services for a cluster.
+   *
+   * To create multiple configurations is a request, provide an array of configuration properties.
    *
    * @param headers http headers
    * @param ui      uri info
-   * @return service collection resource representation
+   * @return status code only, 201 if successful
    */
   @POST
   @Produces("text/plain")
   public Response createConfigurations(String body,@Context HttpHeaders headers, @Context UriInfo ui) {
 
     return handleRequest(headers, body, ui, Request.Type.POST,
-        createResourceDefinition(null, null, m_clusterName));
+        createResourceDefinition(null, m_clusterName));
   }
 
   /**
    * Create a service resource definition.
    *
    * @param configType  configuration type
-   * @param configTag   tag applied to the configuration
    * @param clusterName cluster name
    *
    * @return a service resource definition
    */
-  ResourceDefinition createResourceDefinition(String configType, String configTag, String clusterName) {
-    return new ConfigurationResourceDefinition(configType, configTag, clusterName);
+  ResourceDefinition createResourceDefinition(String configType, String clusterName) {
+    return new ConfigurationResourceDefinition(configType, null, clusterName);
   }
 }

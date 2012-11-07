@@ -12,6 +12,9 @@ AMBARI-666 branch (unreleased changes)
 
   NEW FEATURES
 
+  AMBARI-971. Add api support for creating multiple resources in a single
+  request. (John Speidel via mahadev)
+
   AMBARI-970. Add additional Ganglia metrics and JMX properties. (Tom
   Beerbower via mahadev)
 

@@ -20,7 +20,11 @@ package org.apache.ambari.server.api.services;
 
 import org.apache.ambari.server.api.resources.ResourceDefinition;
 import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.controller.spi.PropertyId;
 import org.apache.ambari.server.controller.spi.RequestStatus;
+
+import java.util.Map;
+import java.util.Set;
 
 
 /**
@@ -28,7 +32,7 @@ import org.apache.ambari.server.controller.spi.RequestStatus;
  */
 public class DeletePersistenceManager extends BasePersistenceManager {
   @Override
-  public RequestStatus persist(ResourceDefinition resource) {
+  public RequestStatus persist(ResourceDefinition resource, Set<Map<PropertyId, Object>> setProperties) {
     try {
       //todo: need to account for multiple resources and user predicate
       return getClusterController().deleteResources(resource.getType(),

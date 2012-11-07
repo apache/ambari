@@ -21,7 +21,6 @@ package org.apache.ambari.server.api.query;
 import org.apache.ambari.server.api.resources.ResourceDefinition;
 import org.apache.ambari.server.api.services.ResultImpl;
 import org.apache.ambari.server.api.util.TreeNodeImpl;
-import org.apache.ambari.server.controller.internal.ClusterControllerImpl;
 import org.apache.ambari.server.controller.internal.PropertyIdImpl;
 import org.apache.ambari.server.controller.utilities.ClusterControllerHelper;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
@@ -32,7 +31,6 @@ import org.apache.ambari.server.controller.predicate.EqualsPredicate;
 import org.apache.ambari.server.api.services.Result;
 import org.apache.ambari.server.controller.spi.*;
 import org.apache.ambari.server.api.util.TreeNode;
-import org.mortbay.log.Log;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -155,21 +153,12 @@ public class QueryImpl implements Query {
       // add a child node for the resource and provide a unique name.  The name is never used.
       //todo: provide a more meaningful node name
       TreeNode<Resource> node = tree.addChild(resource, resource.getType() + ":" + count++);
-      LOG.info("Resource object resource " + resource);
        for (Map.Entry<String, ResourceDefinition> entry : m_mapSubResources.entrySet()) {
         String subResCategory = entry.getKey();
         ResourceDefinition r = entry.getValue();
-        
-        r.setParentId(m_resourceDefinition.getType(), (String) (resource.getPropertyValue(
-            getClusterController().getSchema(m_resourceDefinition.getType()).
-                getKeyPropertyId(m_resourceDefinition.getType())).toString()));
-        
-        LOG.info("Setting various values for resource " + r.getId());
-        if (r.getResourceIds() != null) {
-          for (Map.Entry<Resource.Type, String> tentry: r.getResourceIds().entrySet()) {
-            LOG.info("Resource Id's " + tentry.getKey() + " value " + tentry.getValue());
-          }
-        }
+
+        setParentIdsOnSubResource(resource, r);
+
         TreeNode<Resource> childResult = r.getQuery().execute().getResultTree();
         childResult.setName(subResCategory);
         childResult.setProperty("isCollection", "false");
@@ -178,7 +167,6 @@ public class QueryImpl implements Query {
     }
     return result;
   }
-
   @Override
   public Predicate getInternalPredicate() {
     return createInternalPredicate(m_resourceDefinition);
@@ -272,7 +260,6 @@ public class QueryImpl implements Query {
   }
 
   private BasePredicate createInternalPredicate(ResourceDefinition resourceDefinition) {
-    //todo: account for user predicates
     Resource.Type resourceType = resourceDefinition.getType();
     Map<Resource.Type, String> mapResourceIds = resourceDefinition.getResourceIds();
     Schema schema = getClusterController().getSchema(resourceType);
@@ -283,7 +270,10 @@ public class QueryImpl implements Query {
       //todo: host_component queries and host is not available for component queries.
       //todo: this should be rectified when the data model is changed for host_component
       if (entry.getValue() != null) {
-        setPredicates.add(new EqualsPredicate(schema.getKeyPropertyId(entry.getKey()), entry.getValue()));
+        PropertyId keyPropertyId = schema.getKeyPropertyId(entry.getKey());
+        if (keyPropertyId != null) {
+          setPredicates.add(new EqualsPredicate(keyPropertyId, entry.getValue()));
+        }
       }
     }
 
@@ -356,6 +346,24 @@ public class QueryImpl implements Query {
     r.setTemporalInfo(m_mapPropertyTemporalInfo);
 
     return r;
+  }
+
+  private void setParentIdsOnSubResource(Resource resource, ResourceDefinition r) {
+    Map<Resource.Type, String> mapParentIds = m_resourceDefinition.getResourceIds();
+    Map<Resource.Type, String> mapResourceIds = new HashMap<Resource.Type, String>(mapParentIds.size());
+    for (Map.Entry<Resource.Type, String> resourceIdEntry : mapParentIds.entrySet()) {
+      Resource.Type type = resourceIdEntry.getKey();
+      String value = resourceIdEntry.getValue();
+
+      if (value == null) {
+        Object o = resource.getPropertyValue(getClusterController().getSchema(type).getKeyPropertyId(type));
+        value = o == null ? null : o.toString();
+      }
+      if (value != null) {
+        mapResourceIds.put(type, value);
+      }
+    }
+    r.setParentIds(mapResourceIds);
   }
 
   Result createResult() {

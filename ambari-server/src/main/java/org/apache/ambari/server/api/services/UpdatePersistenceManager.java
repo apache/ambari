@@ -21,7 +21,11 @@ package org.apache.ambari.server.api.services;
 
 import org.apache.ambari.server.api.resources.ResourceDefinition;
 import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.controller.spi.PropertyId;
 import org.apache.ambari.server.controller.spi.RequestStatus;
+
+import java.util.Map;
+import java.util.Set;
 
 
 /**
@@ -29,10 +33,10 @@ import org.apache.ambari.server.controller.spi.RequestStatus;
  */
 public class UpdatePersistenceManager extends BasePersistenceManager {
   @Override
-  public RequestStatus persist(ResourceDefinition resource) {
+  public RequestStatus persist(ResourceDefinition resource, Set<Map<PropertyId, Object>> setProperties) {
     try {
       return getClusterController().updateResources(resource.getType(), createControllerRequest(
-          resource.getProperties()), resource.getQuery().getInternalPredicate());
+          setProperties), resource.getQuery().getInternalPredicate());
     } catch (AmbariException e) {
       //todo: handle exception
       throw new RuntimeException("Update of resource failed: " + e, e);

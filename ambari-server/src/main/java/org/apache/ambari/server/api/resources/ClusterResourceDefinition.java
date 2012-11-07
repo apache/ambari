@@ -61,7 +61,7 @@ public class ClusterResourceDefinition extends BaseResourceDefinition {
         Resource.Type.Service).getKeyPropertyId(Resource.Type.Service));
     mapChildren.put(serviceResource.getPluralName(), serviceResource);
 
-    HostResourceDefinition hostResource = new HostResourceDefinition(null, getId());
+    HostResourceDefinition hostResource = new HostResourceDefinition(null, getId(), true);
     hostResource.getQuery().addProperty(getClusterController().getSchema(
         Resource.Type.Host).getKeyPropertyId(Resource.Type.Host));
     mapChildren.put(hostResource.getPluralName(), hostResource);

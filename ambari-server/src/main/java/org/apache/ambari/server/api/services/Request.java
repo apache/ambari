@@ -26,6 +26,7 @@ import org.apache.ambari.server.controller.spi.TemporalInfo;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * Provides information on the current request.
@@ -120,9 +121,9 @@ public interface Request {
   /**
    * Obtain the properties which have been parsed from the http body.
    *
-   * @return a map containing the properties contained in the http body
+   * @return a set of maps containing the properties contained in the http body
    */
-  public Map<PropertyId, String> getHttpBodyProperties();
+  public Set<Map<PropertyId, Object>> getHttpBodyProperties();
 
     //TODO: refactor persistence mechanism
   /**

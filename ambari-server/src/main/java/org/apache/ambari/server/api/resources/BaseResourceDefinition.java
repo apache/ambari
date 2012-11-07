@@ -56,10 +56,6 @@ public abstract class BaseResourceDefinition implements ResourceDefinition {
    */
   private Map<Resource.Type, String> m_mapResourceIds = new HashMap<Resource.Type, String>();
 
-  //TODO: Refactor out of this class when setProperties is moved.
-  private Map<PropertyId, Object> m_properties = new HashMap<PropertyId, Object>();
-
-
   /**
    * Constructor.
    *
@@ -73,8 +69,10 @@ public abstract class BaseResourceDefinition implements ResourceDefinition {
   }
 
   @Override
-  public void setParentId(Resource.Type type, String value) {
-    setResourceId(type, value);
+  public void setParentIds(Map<Resource.Type, String> mapIds) {
+    for (Map.Entry<Resource.Type, String> entry : mapIds.entrySet() ) {
+      setResourceId(entry.getKey(), entry.getValue());
+    }
   }
 
   @Override
@@ -117,22 +115,6 @@ public abstract class BaseResourceDefinition implements ResourceDefinition {
     listProcessors.add(new BaseHrefPostProcessor());
 
     return listProcessors;
-  }
-
-  //todo: refactor set/get property methods out of this class
-  @Override
-  public void setProperty(PropertyId property, String value) {
-    m_properties.put(property, value);
-  }
-
-  @Override
-  public void setProperties(Map<PropertyId, String> mapProperties) {
-    m_properties.putAll(mapProperties);
-  }
-
-  @Override
-  public Map<PropertyId, Object> getProperties() {
-    return m_properties;
   }
 
   @Override

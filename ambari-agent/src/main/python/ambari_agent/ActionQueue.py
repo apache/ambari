@@ -133,6 +133,10 @@ class ActionQueue(threading.Thread):
                   'exitCode' : commandresult['exitcode'],
                   'serviceName' : serviceName,
                   'status' : status}
+    if roleResult['stdout'] == '':
+      roleResult['stdout'] = 'None'
+    if roleResult['stderr'] == '':
+      roleResult['stderr'] = 'None'
     result.append(roleResult)
     pass
     return result

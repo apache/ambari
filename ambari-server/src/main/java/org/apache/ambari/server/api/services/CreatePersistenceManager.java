@@ -20,29 +20,38 @@ package org.apache.ambari.server.api.services;
 
 import org.apache.ambari.server.api.resources.ResourceDefinition;
 import org.apache.ambari.server.AmbariException;
-import org.apache.ambari.server.controller.spi.ClusterController;
-import org.apache.ambari.server.controller.spi.RequestStatus;
-import org.apache.ambari.server.controller.spi.Resource;
-import org.apache.ambari.server.controller.spi.Schema;
+import org.apache.ambari.server.controller.spi.*;
 
+import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * Responsible for persisting the creation of a resource in the back end.
  */
 public class CreatePersistenceManager extends BasePersistenceManager {
   @Override
-  public RequestStatus persist(ResourceDefinition resource) {
+  public RequestStatus persist(ResourceDefinition resource, Set<Map<PropertyId, Object>> setProperties) {
     ClusterController controller = getClusterController();
     Map<Resource.Type, String> mapResourceIds = resource.getResourceIds();
     Resource.Type type = resource.getType();
     Schema schema = controller.getSchema(type);
 
-    for (Map.Entry<Resource.Type, String> entry : mapResourceIds.entrySet()) {
-      resource.setProperty(schema.getKeyPropertyId(entry.getKey()), entry.getValue());
+    if (setProperties.size() == 0) {
+      setProperties.add(new HashMap<PropertyId, Object>());
     }
+
+    for (Map<PropertyId, Object> mapProperties : setProperties) {
+      for (Map.Entry<Resource.Type, String> entry : mapResourceIds.entrySet()) {
+        PropertyId property = schema.getKeyPropertyId(entry.getKey());
+        if (! mapProperties.containsKey(property)) {
+          mapProperties.put(property, entry.getValue());
+        }
+      }
+    }
+
     try {
-      return controller.createResources(type, createControllerRequest(resource.getProperties()));
+      return controller.createResources(type, createControllerRequest(setProperties));
     } catch (AmbariException e) {
       //todo: handle exception
       throw new RuntimeException("Create of resource failed: " + e, e);

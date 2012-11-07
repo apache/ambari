@@ -22,12 +22,16 @@ import os.path
 import logging
 import subprocess
 from manifestGenerator import generateManifest
+from RepoInstaller import RepoInstaller
 import pprint
 from Grep import Grep
 
 logger = logging.getLogger()
 
 class puppetExecutor:
+
+  """ Class that executes the commands that come from the server using puppet.
+  This is the class that provides the pluggable point for executing the puppet"""
 
   # How many lines from command output send to server
   OUTPUT_LAST_LINES = 10
@@ -38,9 +42,6 @@ class puppetExecutor:
 
   NO_ERROR = "none"
 
-  """ Class that executes the commands that come from the server using puppet.
-  This is the class that provides the pluggable point for executing the puppet"""
-  
   def __init__(self, puppetModule, puppetInstall, facterInstall, tmpDir):
     self.puppetModule = puppetModule
     self.puppetInstall = puppetInstall
@@ -76,39 +77,70 @@ class puppetExecutor:
       taskId = command['taskId']
       
     puppetEnv = os.environ
+    #Install repos
+    modulesdir = self.puppetModule + "/modules"
+    repoInstaller = RepoInstaller(command, self.tmpDir, modulesdir, taskId)
+
+    puppetFiles = repoInstaller.installRepos()
     siteppFileName = os.path.join(self.tmpDir, "site-" + str(taskId) + ".pp") 
-    generateManifest(command, siteppFileName, self.puppetModule + "/modules")
-    puppetcommand = self.puppetCommand(siteppFileName)
-    """ Run the command and make sure the output gets propagated"""
-    rubyLib = ""
-    if os.environ.has_key("RUBYLIB"):
-      rubyLib = os.environ["RUBYLIB"]
-      logger.info("Ruby Lib env from Env " + rubyLib)
-    rubyLib = rubyLib + ":" + self.facterLib() + ":" + self.puppetLib()
-    puppetEnv["RUBYLIB"] = rubyLib
-    logger.info("Setting RUBYLIB as: " + rubyLib)
-    logger.info("Running command " + pprint.pformat(puppetcommand))
-    puppet = subprocess.Popen(puppetcommand,
-                                  stdout=subprocess.PIPE,
-                                  stderr=subprocess.PIPE,
-                                  env=puppetEnv)
-    stderr_out = puppet.communicate()
-    error = self.NO_ERROR
-    returncode = 0
-    if puppet.returncode != 0 and puppet.returncode != 2:
-      returncode = puppet.returncode
-      error = stderr_out[1]
-      logging.error("Error running puppet: \n" + stderr_out[1])
-      pass
-    result["stderr"] = error
-    puppetOutput = stderr_out[0]
-    logger.info("Output from puppet :\n" + puppetOutput)
-    result["exitcode"] = returncode
+    puppetFiles.append(siteppFileName)
+    generateManifest(command, siteppFileName, modulesdir)
+    #Run all puppet commands, from manifest generator and for repos installation
+    #Appending outputs and errors, exitcode - maximal from all
+    for puppetFile in puppetFiles:
+      puppetcommand = self.puppetCommand(puppetFile)
+      """ Run the command and make sure the output gets propagated"""
+      rubyLib = ""
+      if os.environ.has_key("RUBYLIB"):
+        rubyLib = os.environ["RUBYLIB"]
+        logger.info("Ruby Lib env from Env " + rubyLib)
+      rubyLib = rubyLib + ":" + self.facterLib() + ":" + self.puppetLib()
+      puppetEnv["RUBYLIB"] = rubyLib
+      logger.info("Setting RUBYLIB as: " + rubyLib)
+      logger.info("Running command " + pprint.pformat(puppetcommand))
+      puppet = subprocess.Popen(puppetcommand,
+                                    stdout=subprocess.PIPE,
+                                    stderr=subprocess.PIPE,
+                                    env=puppetEnv)
+      stderr_out = puppet.communicate()
+      error = "none"
+      returncode = 0
+      if (puppet.returncode != 0 and puppet.returncode != 2) :
+        returncode = puppet.returncode
+        error = stderr_out[1]
+        logging.error("Error running puppet: \n" + stderr_out[1])
+        pass
+		
+      if result.has_key("stderr"):
+        result["stderr"] = result["stderr"] + os.linesep + error
+      else:
+        result["stderr"] = error
+      puppetOutput = stderr_out[0]
+      logger.info("Output from puppet :\n" + puppetOutput)
+      if result.has_key("exitcode"):
+        result["exitcode"] = max(returncode, result["exitcode"])
+      else:
+        result["exitcode"] = returncode
+        
+
+      if result.has_key("stdout"):
+        result["stdout"] = result["stdout"] + os.linesep + puppetOutput
+      else:
+        result["stdout"] = puppetOutput
+
     if error == self.NO_ERROR:
-      result["stdout"] = grep.tail(puppetOutput, self.OUTPUT_LAST_LINES)
+      if result.has_key("stdout"):
+        result["stdout"] = result["stdout"] + os.linesep + str(grep.tail(puppetOutput, self.OUTPUT_LAST_LINES))
+      else:
+        result["stdout"] = grep.tail(puppetOutput, self.OUTPUT_LAST_LINES)
     else:
-      result["stdout"] = grep.grep(puppetOutput, "err", self.ERROR_LAST_LINES_BEFORE, self.ERROR_LAST_LINES_AFTER)
+      if result.has_key("stdout"):
+        result["stdout"] = result["stdout"] + os.linesep + str(grep.grep(puppetOutput, "err", self.ERROR_LAST_LINES_BEFORE, self.ERROR_LAST_LINES_AFTER))
+      else:
+        result["stdout"] = str(grep.grep(puppetOutput, "err", self.ERROR_LAST_LINES_BEFORE, self.ERROR_LAST_LINES_AFTER))
+	
     logger.info("ExitCode : "  + str(result["exitcode"]))
+
     return result
  
 def main():
@@ -118,14 +150,15 @@ def main():
   jsonStr = jsonFile.read() 
   # Below is for testing only.
   
-  puppetInstance = puppetExecutor("/root/workspace/ambari-workspace/ambari-git/ambari-agent/src/main/puppet/",
-                                  "/root/workspace/puppet-install/puppet-2.7.9",
+  puppetInstance = puppetExecutor("/home/centos/ambari_repo_info/ambari-agent/src/main/puppet/",
+                                  "/usr/",
                                   "/root/workspace/puppet-install/facter-1.6.10/",
                                   "/tmp")
   jsonFile = open('test.json', 'r')
   jsonStr = jsonFile.read() 
   parsedJson = json.loads(jsonStr)
-  puppetInstance.runCommand(parsedJson)
+  result = puppetInstance.runCommand(parsedJson)
+  logger.debug(result)
   
 if __name__ == '__main__':
   main()

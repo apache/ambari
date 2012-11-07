@@ -41,6 +41,8 @@ IP_TBLS_ENABLED="Firewall is running"
 IP_TBLS_DISABLED="Firewall is not running"
 IP_TBLS_SRVC_NT_FND="iptables: unrecognized service"
 SERVER_START_CMD="{0}" + os.sep + "bin" + os.sep + "java -cp {1}"+ os.pathsep + ".." + os.sep + "lib" + os.sep + "ambari-server" + os.sep + "* org.apache.ambari.server.controller.AmbariServer"
+# uncomment for debug
+# SERVER_START_CMD="{0}" + os.sep + "bin" + os.sep + "java -Xdebug -Xrunjdwp:transport=dt_socket,address=5005,server=y,suspend=n -cp {1}"+ os.pathsep + ".." + os.sep + "lib" + os.sep + "ambari-server" + os.sep + "* org.apache.ambari.server.controller.AmbariServer"
 AMBARI_CONF_VAR="AMBARI_CONF_DIR"
 PG_ST_CMD = "service postgresql status"
 PG_START_CMD = "service postgresql start"

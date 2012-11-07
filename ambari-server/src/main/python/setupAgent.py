@@ -29,26 +29,57 @@ import threading
 import traceback
 from pprint import pformat
 
-def installAgent():
-  """ Run yum install and make sure the agent install alright """
-  # TODO replace echo with yum
-  yumcommand = ["echo", "install", "ambari-agent"]
-  yumstat = subprocess.Popen(yumcommand, stdout=subprocess.PIPE)
-  log = yumstat.communicate(0)
+AMBARI_PASSPHRASE_VAR = "AMBARI_PASSPHRASE"
+
+def execOsCommand(osCommand):
+  """ Run yum install and make sure the puppet install alright """
+  osStat = subprocess.Popen(osCommand, stdout=subprocess.PIPE)
+  log = osStat.communicate(0)
   ret = {}
-  ret["exitstatus"] = yumstat.returncode
+  ret["exitstatus"] = osStat.returncode
   ret["log"] = log
   return ret
+
+def installPreReq():
+  """ Adds hdp repo
+  rpmCommand = ["rpm", "-Uvh", "http://public-repo-1.hortonworks.com/HDP-1.1.1.16/repos/centos6/hdp-release-1.1.1.16-1.el6.noarch.rpm"]
+  execOsCommand(rpmCommand)
+  """
+  yumCommand = ["yum", "-y", "install", "epel-release"]
+  execOsCommand(yumCommand)
+
+def installPuppet():
+  """ Run yum install and make sure the puppet install alright """
+  osCommand = ["useradd", "-G", "puppet", "puppet"]
+  execOsCommand(osCommand)
+  yumCommand = ["yum", "-y", "install", "puppet"]
+  return execOsCommand(yumCommand)
+
+def installAgent():
+  """ Run yum install and make sure the agent install alright """
+  # TODO replace rpm with yum -y
+  rpmCommand = ["yum", "install", "-y", "/tmp/ambari-agent*.rpm"]
+  return execOsCommand(rpmCommand)
 
 def configureAgent():
   """ Configure the agent so that it has all the configs knobs properly 
   installed """
   return
 
+def runAgent(passPhrase):
+  os.environ[AMBARI_PASSPHRASE_VAR] = passPhrase
+  subprocess.call("/usr/sbin/ambari-agent start", shell=True)
+
 def main(argv=None):
   scriptDir = os.path.realpath(os.path.dirname(argv[0]))
+  """ Parse the input"""
+  onlyargs = argv[1:]
+  passPhrase = onlyargs[0]
+  installPreReq()
+  # installPuppet()
   installAgent()
   configureAgent()
+  runAgent(passPhrase)
   
 if __name__ == '__main__':
   logging.basicConfig(level=logging.DEBUG)

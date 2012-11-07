@@ -24,8 +24,6 @@ import logging
 from uuid import getnode as get_mac
 from shell import shellRunner
 
-REPO_INFO_DIR="repos_info"
-PUPPET_EXT=".pp"
 
 logger = logging.getLogger()
 
@@ -138,9 +136,7 @@ def writeNodes(outputFile, clusterHostInfo):
 def writeParams(outputFile, params, modulesdir):
 
   for paramName in params.iterkeys():
-    # todo handle repo information properly
-    if paramName == 'repo_info':
-      processRepo(params[paramName],modulesdir)      
+    if paramName == 'repo_info':     
       continue
       
 
@@ -257,39 +253,7 @@ def writeStages(outputFile, numStages):
   
   outputFile.write('\n')
 
-def processRepo(repoInfoList, modulesdir):
 
-  if not os.path.exists(REPO_INFO_DIR):
-    os.makedirs(REPO_INFO_DIR)
-
-  for repo in repoInfoList:
-
-    repoFile = open(REPO_INFO_DIR + os.sep + repo['repo_id'] + PUPPET_EXT, 'w+')
-    writeImports(repoFile, modulesdir, inputFileName='imports.txt')
-    repoFile.write('node /default/ {')
-    repoFile.write('class{ "hdp-repos::process_repo" : ' + ' os_type => "' + repo['os_type'] +
-    '", repo_id => "' + repo['repo_id'] + '", base_url => "' + repo['base_url'] +
-    '", repo_name => "' + repo['repo_name'] + '" }' )
-    repoFile.write('}')
-    repoFile.close()
-
-
-def installRepos():
-  sh = shellRunner()
-  agentdir = os.getcwd()
-  confdir = os.path.abspath(agentdir + ".." + os.sep + ".." + 
-                               os.sep + ".." + os.sep + "puppet")
-
-  for repo in os.listdir(REPO_INFO_DIR):
-    if not repo.endswith(PUPPET_EXT):
-      continue
-    logfile = repo + '_log.log'
-    res = sh.run(['puppet apply', '--confdir=' + confdir, REPO_INFO_DIR + os.sep + repo,
-    '--logdest=' + agentdir + os.sep + REPO_INFO_DIR + os.sep + logfile])
-    if res['exitCode'] == 0:
-      logger.info('Repository ' + repo + ' was installed')
-    else:
-      logger.error('Repository ' + repo + ' wasn''t installed. Please find detailed info in logfile:' + logfile)
   
 def main():
   logging.basicConfig(level=logging.DEBUG)    

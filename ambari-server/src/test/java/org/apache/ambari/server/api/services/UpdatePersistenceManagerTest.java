@@ -23,11 +23,14 @@ import org.apache.ambari.server.api.resources.ResourceDefinition;
 import org.apache.ambari.server.controller.internal.RequestStatusImpl;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
 import org.apache.ambari.server.api.query.Query;
+import org.apache.ambari.server.controller.spi.Request;
 import org.apache.ambari.server.controller.spi.*;
 import org.junit.Test;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 import static org.junit.Assert.*;
 
@@ -42,18 +45,17 @@ public class UpdatePersistenceManagerTest {
     ResourceDefinition resource = createMock(ResourceDefinition.class);
     ClusterController controller = createMock(ClusterController.class);
     Schema schema = createMock(Schema.class);
-    org.apache.ambari.server.controller.spi.Request serverRequest =
-        createStrictMock(org.apache.ambari.server.controller.spi.Request.class);
+    Request serverRequest = createStrictMock(Request.class);
     Query query = createMock(Query.class);
     Predicate predicate = createMock(Predicate.class);
 
-
+    Set<Map<PropertyId, Object>> setProperties = new HashSet<Map<PropertyId, Object>>();
     Map<PropertyId, Object> mapProperties = new HashMap<PropertyId, Object>();
     mapProperties.put(PropertyHelper.getPropertyId("bar", "foo"), "value");
+    setProperties.add(mapProperties);
 
     //expectations
     expect(resource.getType()).andReturn(Resource.Type.Component);
-    expect(resource.getProperties()).andReturn(mapProperties);
     expect(resource.getQuery()).andReturn(query);
     expect(query.getInternalPredicate()).andReturn(predicate);
 
@@ -61,7 +63,7 @@ public class UpdatePersistenceManagerTest {
 
     replay(resource, controller, schema, serverRequest, query, predicate);
 
-    new TestUpdatePersistenceManager(controller, mapProperties, serverRequest).persist(resource);
+    new TestUpdatePersistenceManager(controller, setProperties, serverRequest).persist(resource, setProperties);
 
     verify(resource, controller, schema, serverRequest, query, predicate);
   }
@@ -69,14 +71,14 @@ public class UpdatePersistenceManagerTest {
   private class TestUpdatePersistenceManager extends UpdatePersistenceManager {
 
     private ClusterController m_controller;
-    private org.apache.ambari.server.controller.spi.Request m_request;
-    private Map<PropertyId, Object> m_mapProperties;
+    private Request m_request;
+    private Set<Map<PropertyId, Object>> m_setProperties;
 
     private TestUpdatePersistenceManager(ClusterController controller,
-                                         Map<PropertyId, Object> mapProperties,
-                                         org.apache.ambari.server.controller.spi.Request controllerRequest) {
+                                         Set<Map<PropertyId, Object>> setProperties,
+                                         Request controllerRequest) {
       m_controller = controller;
-      m_mapProperties = mapProperties;
+      m_setProperties = setProperties;
       m_request = controllerRequest;
     }
 
@@ -86,8 +88,9 @@ public class UpdatePersistenceManagerTest {
     }
 
     @Override
-    protected org.apache.ambari.server.controller.spi.Request createControllerRequest(Map<PropertyId, Object> properties) {
-      assertEquals(m_mapProperties, properties);
+    protected Request createControllerRequest(Set<Map<PropertyId, Object>> setProperties) {
+      assertEquals(1, setProperties.size());
+      assertEquals(m_setProperties, setProperties);
       return m_request;
     }
   }

@@ -67,6 +67,9 @@ class hdp::params()
         /^6\..+$/: { $hdp_os_type = "rhel6" }
       }
     }
+    suse: {
+      $hdp_os_type = "suse"
+    }
     default: {
       hdp_fail("No support for os  ${hdp_os} ${hdp_os_version}")
     }
@@ -354,7 +357,8 @@ class hdp::params()
 
   $repos_paths = 
   {
-    centos6 => '/etc/yum.repos.d'
+    centos6 => '/etc/yum.repos.d',
+    suse => '/etc/zypp/repos.d'
   }
 
   }
