@@ -375,7 +375,7 @@ public class ClusterImpl implements Cluster {
     return r;
   }
 
-  public void debugDump(StringBuilder sb) {
+  public synchronized void debugDump(StringBuilder sb) {
     sb.append("Cluster={ clusterName=" + getClusterName()
         + ", clusterId=" + getClusterId()
         + ", desiredStackVersion=" + desiredStackVersion.getStackId()

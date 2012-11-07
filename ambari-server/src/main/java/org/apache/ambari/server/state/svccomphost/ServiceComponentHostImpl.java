@@ -64,6 +64,8 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
   ServiceComponentDesiredStateDAO serviceComponentDesiredStateDAO;
   @Inject
   Clusters clusters;
+  @Inject
+  private HostComponentConfigMappingDAO hostComponentConfigMappingDAO;
 
   private HostComponentStateEntity stateEntity;
   private HostComponentDesiredStateEntity desiredStateEntity;
@@ -990,4 +992,16 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
     return false;
   }
 
+  @Override
+  public void deleteDesiredConfigs(Set<String> configTypes) {
+    try {
+      writeLock.lock();
+      for (String configType : configTypes) {
+        desiredConfigs.remove(configType);
+      }
+      hostComponentConfigMappingDAO.removeByType(configTypes);
+    } finally {
+      writeLock.unlock();
+    }
+  }
 }

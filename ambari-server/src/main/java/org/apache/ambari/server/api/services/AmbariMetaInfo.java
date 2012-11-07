@@ -95,7 +95,7 @@ public class AmbariMetaInfo {
   private static final String PROPERTY_XML_PROPERTY_VALUE = "value";
   private static final String PROPERTY_XML_PROPERTY_DESCRIPTION = "description";
 
-  
+
   /**
    * Ambari Meta Info Object
    * @param conf Configuration API to be used.
@@ -106,7 +106,7 @@ public class AmbariMetaInfo {
     String stackPath = conf.getMetadataPath();
     this.stackRoot = new File(stackPath);
   }
-  
+
   @Inject
   public AmbariMetaInfo(File stackRoot) throws Exception {
     this.stackRoot = stackRoot;
@@ -542,7 +542,6 @@ public class AmbariMetaInfo {
           }
         }
       }
-
     } catch (Exception e) {
       e.printStackTrace();
     }

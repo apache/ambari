@@ -196,8 +196,8 @@ public class ClusterTest {
     // public Service getService(String serviceName) throws AmbariException;
     // public Map<String, Service> getServices();
 
-    Service s1 = serviceFactory.createNew(c1, "s1");
-    Service s2 = serviceFactory.createNew(c1, "s2");
+    Service s1 = serviceFactory.createNew(c1, "HDFS");
+    Service s2 = serviceFactory.createNew(c1, "MAPREDUCE");
 
     c1.addService(s1);
     c1.addService(s2);
@@ -205,7 +205,7 @@ public class ClusterTest {
     s1.persist();
     s2.persist();
 
-    Service s3 = serviceFactory.createNew(c1, "s2");
+    Service s3 = serviceFactory.createNew(c1, "MAPREDUCE");
 
     try {
       c1.addService(s3);
@@ -214,13 +214,13 @@ public class ClusterTest {
       // Expected
     }
 
-    Service s = c1.getService("s1");
+    Service s = c1.getService("HDFS");
     Assert.assertNotNull(s);
-    Assert.assertEquals("s1", s.getName());
+    Assert.assertEquals("HDFS", s.getName());
     Assert.assertEquals(c1.getClusterId(), s.getClusterId());
 
     try {
-      c1.getService("s3");
+      c1.getService("HBASE");
       fail("Expected error for unknown service");
     } catch (Exception e) {
       // Expected
@@ -228,8 +228,8 @@ public class ClusterTest {
 
     Map<String, Service> services = c1.getServices();
     Assert.assertEquals(2, services.size());
-    Assert.assertTrue(services.containsKey("s1"));
-    Assert.assertTrue(services.containsKey("s2"));
+    Assert.assertTrue(services.containsKey("HDFS"));
+    Assert.assertTrue(services.containsKey("MAPREDUCE"));
   }
 
 

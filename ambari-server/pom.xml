@@ -22,7 +22,7 @@
   <artifactId>ambari-server</artifactId>
   <packaging>jar</packaging>
   <name>Ambari Server</name>
-  <version>1.0.3</version>
+  <version>1.0.3-SNAPSHOT</version>
   <description>Ambari Server</description>
   <build>
     <plugins>
@@ -156,6 +156,12 @@
                 <source>
                   <location>src/main/resources/Ambari-DDL.sql</location>
                 </source>
+              </sources>
+            </mapping>
+
+            <mapping>
+              <directory>/var/lib/ambari-server/resources/stacks</directory>
+              <sources>
                 <source>
                   <location>src/main/resources/stacks</location>
                 </source>

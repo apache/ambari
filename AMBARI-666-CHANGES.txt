@@ -12,6 +12,9 @@ AMBARI-666 branch (unreleased changes)
 
   NEW FEATURES
 
+  AMBARI-975. Fix support for cascading updates to configs. (Hitesh Shah
+  via mahadev)
+
   AMBARI-971. Add api support for creating multiple resources in a single
   request. (John Speidel via mahadev)
 

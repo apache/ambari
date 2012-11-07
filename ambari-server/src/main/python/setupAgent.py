@@ -58,7 +58,7 @@ def installPuppet():
 def installAgent():
   """ Run yum install and make sure the agent install alright """
   # TODO replace rpm with yum -y
-  rpmCommand = ["yum", "install", "-y", "/tmp/ambari-agent*.rpm"]
+  rpmCommand = ["yum", "install", "-y", "--nogpgcheck", "/tmp/ambari-agent*.rpm"]
   return execOsCommand(rpmCommand)
 
 def configureAgent():

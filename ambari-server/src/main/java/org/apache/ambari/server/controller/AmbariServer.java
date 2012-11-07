@@ -68,9 +68,9 @@ import com.sun.jersey.spi.container.servlet.ServletContainer;
 @Singleton
 public class AmbariServer {
   private static Logger LOG = LoggerFactory.getLogger(AmbariServer.class);
-  public static int CLIENT_ONE_WAY = 4080;
-  public static int CLIENT_TWO_WAY = 8443;
-  public static int CLIENT_API_PORT = 8080;
+  public static final int CLIENT_ONE_WAY = 4080;
+  public static final int CLIENT_TWO_WAY = 8443;
+  public static final int CLIENT_API_PORT = 8080;
   private Server server = null;
   private Server serverForAgent = null;
 

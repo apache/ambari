@@ -75,6 +75,18 @@ public class ServiceInfo {
     return components;
   }
 
+  public boolean isClientOnlyService() {
+    if (components == null || components.isEmpty()) {
+      return false;
+    }
+    for (ComponentInfo compInfo : components) {
+      if (!compInfo.isClient()) {
+        return false;
+      }
+    }
+    return true;
+  }
+
   public ComponentInfo getClientComponent() {
     if (components == null || components.isEmpty()) {
       return null;

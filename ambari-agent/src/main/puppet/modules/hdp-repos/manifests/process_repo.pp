@@ -22,6 +22,7 @@ class hdp-repos::process_repo(
   $os_type,
   $repo_id,
   $base_url,
+  $mirror_list,
   $repo_name
 ) inherits hdp-hadoop::params
 {

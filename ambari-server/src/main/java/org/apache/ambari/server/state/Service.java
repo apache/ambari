@@ -81,4 +81,6 @@ public interface Service {
   public void deleteServiceComponent(String componentName)
       throws AmbariException;
 
+  public boolean isClientOnlyService();
+
 }

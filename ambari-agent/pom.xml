@@ -16,6 +16,12 @@
    See the License for the specific language governing permissions and
    limitations under the License.
 -->
+  <parent>
+    <groupId>org.apache.ambari</groupId>
+    <artifactId>ambari-project</artifactId>
+    <version>1.0.3-SNAPSHOT</version>
+    <relativePath>../ambari-project</relativePath>
+  </parent>
   <modelVersion>4.0.0</modelVersion>
   <groupId>org.apache.ambari</groupId>
   <artifactId>ambari-agent</artifactId>
@@ -96,7 +102,6 @@
           </execution>
         </executions>
       </plugin>
-
       <plugin>
         <groupId>org.codehaus.mojo</groupId>
         <artifactId>rpm-maven-plugin</artifactId>
@@ -117,7 +122,6 @@
             <require>puppet = 2.7.9</require>
           </requires>
           <mappings>
-
             <mapping>
               <directory>/usr/lib/python2.6/site-packages/ambari_agent</directory>
               <sources>
@@ -126,7 +130,6 @@
                 </source>
               </sources>
             </mapping>
-
             <mapping>
               <directory>/var/lib/${project.artifactId}/puppet</directory>
               <sources>
@@ -135,7 +138,6 @@
                 </source>
               </sources>
             </mapping>
-
             <mapping>
               <directory>/etc/ambari</directory>
               <sources>
@@ -144,7 +146,6 @@
                 </source>
               </sources>
             </mapping>
-
             <mapping>
               <directory>/usr/sbin</directory>
               <filemode>744</filemode>
@@ -154,7 +155,6 @@
                 </source>
               </sources>
             </mapping>
-
             <mapping>
               <directory>/var/run/ambari</directory>
             </mapping>
@@ -167,12 +167,10 @@
             <mapping>
               <directory>/var/ambari</directory>
             </mapping>
-
             <!-- -->
           </mappings>
         </configuration>
       </plugin>
-
     </plugins>
     <extensions>
       <extension>

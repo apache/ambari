@@ -127,6 +127,10 @@ public class RoleCommandOrder {
         Role.JOBTRACKER, RoleCommand.START);
     addDependency(Role.SQOOP_SERVICE_CHECK, RoleCommand.EXECUTE,
         Role.TASKTRACKER, RoleCommand.START);
+    addDependency(Role.ZOOKEEPER_SERVICE_CHECK, RoleCommand.EXECUTE,
+        Role.ZOOKEEPER_SERVER, RoleCommand.START);
+    addDependency(Role.ZOOKEEPER_QUORUM_SERVICE_CHECK, RoleCommand.EXECUTE,
+        Role.ZOOKEEPER_SERVER, RoleCommand.START);
     
     addDependency(Role.ZOOKEEPER_SERVER, RoleCommand.STOP,
         Role.HBASE_MASTER, RoleCommand.STOP);

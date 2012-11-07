@@ -25,6 +25,7 @@ import java.util.Map.Entry;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.ServiceComponentNotFoundException;
+import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.controller.ServiceResponse;
 import org.apache.ambari.server.orm.dao.ClusterDAO;
 import org.apache.ambari.server.orm.dao.ClusterServiceDAO;
@@ -58,10 +59,10 @@ public class ServiceImpl implements Service {
 
   private boolean persisted = false;
   private final Cluster cluster;
-  private Map<String, Config> configs;
   // [ String type -> Config Tag ], no need to hold the direct reference to the config
   private Map<String, String> desiredConfigs;
   private Map<String, ServiceComponent> components;
+  private final boolean isClientOnlyService;
 
   @Inject
   Gson gson;
@@ -77,6 +78,8 @@ public class ServiceImpl implements Service {
   private ClusterDAO clusterDAO;
   @Inject
   private ServiceComponentFactory serviceComponentFactory;
+  @Inject
+  private AmbariMetaInfo ambariMetaInfo;
 
   private void init() {
     // TODO load from DB during restart?
@@ -98,7 +101,14 @@ public class ServiceImpl implements Service {
     this.desiredConfigs = new HashMap<String, String>();
 
     this.components = new HashMap<String, ServiceComponent>();
-    setDesiredStackVersion(cluster.getDesiredStackVersion());
+
+    StackId stackId = cluster.getDesiredStackVersion();
+    setDesiredStackVersion(stackId);
+
+    ServiceInfo sInfo = ambariMetaInfo.getServiceInfo(stackId.getStackName(),
+        stackId.getStackVersion(), serviceName);
+    this.isClientOnlyService = sInfo.isClientOnlyService();
+
     init();
   }
 
@@ -117,8 +127,6 @@ public class ServiceImpl implements Service {
 
     this.components = new HashMap<String, ServiceComponent>();
 
-    this.configs = new HashMap<String, Config>();
-
     if (!serviceEntity.getServiceComponentDesiredStateEntities().isEmpty()) {
       for (ServiceComponentDesiredStateEntity serviceComponentDesiredStateEntity
           : serviceEntity.getServiceComponentDesiredStateEntities()) {
@@ -134,6 +142,10 @@ public class ServiceImpl implements Service {
           mappingEntity.getVersionTag());
     }
 
+    StackId stackId = getDesiredStackVersion();
+    ServiceInfo sInfo = ambariMetaInfo.getServiceInfo(stackId.getStackName(),
+        stackId.getStackVersion(), getName());
+    this.isClientOnlyService = sInfo.isClientOnlyService();
 
     persisted = true;
   }
@@ -463,6 +475,11 @@ public class ServiceImpl implements Service {
     component.removeAllServiceComponentHosts();
     components.remove(componentName);
     // FIXME update DB
+  }
+
+  @Override
+  public boolean isClientOnlyService() {
+    return isClientOnlyService;
   }
 
 }

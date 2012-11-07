@@ -48,12 +48,22 @@ class RepoInstaller:
   def generateFiles(self):
     repoPuppetFiles = []
     for repo in self.repoInfoList:
-      repoFile = open(self.path + os.sep + repo['repo_id'] + '-' + str(self.taskId) + PUPPET_EXT, 'w+')
+      repoFile = open(self.path + os.sep + repo['repoId'] + '-' + str(self.taskId) + PUPPET_EXT, 'w+')
       writeImports(repoFile, self.modulesdir, inputFileName='imports.txt')
+      
+      baseUrl = ''
+      mirrorList = ''
+      
+      if repo.has_key('baseUrl'):
+        baseUrl = repo['baseUrl']
+
+      if repo.has_key('mirrorsList'):
+        mirrorList = repo['mirrorsList']
+
       repoFile.write('node /default/ {')
-      repoFile.write('class{ "hdp-repos::process_repo" : ' + ' os_type => "' + repo['os_type'] +
-      '", repo_id => "' + repo['repo_id'] + '", base_url => "' + repo['base_url'] +
-      '", repo_name => "' + repo['repo_name'] + '" }' )
+      repoFile.write('class{ "hdp-repos::process_repo" : ' + ' os_type => "' + repo['osType'] +
+      '", repo_id => "' + repo['repoId'] + '", base_url => "' + baseUrl +
+      '", mirror_list => "' + mirrorList +'", repo_name => "' + repo['repoName'] + '" }' )
       repoFile.write('}')
       repoFile.close()
       repoPuppetFiles.append(repoFile.name)
@@ -70,7 +80,7 @@ def main():
   jsonFile = open('test.json', 'r')
   jsonStr = jsonFile.read() 
   parsedJson = json.loads(jsonStr)
-  repoInstaller = RepoInstaller(parsedJson, '/tmp', '/home/centos/ambari_repo_info/ambari-agent/src/main/puppet/modules')
+  repoInstaller = RepoInstaller(parsedJson, '/tmp', '/home/centos/ambari_ws/ambari-agent/src/main/puppet/modules')
   repoInstaller.installRepos()
   
 if __name__ == '__main__':

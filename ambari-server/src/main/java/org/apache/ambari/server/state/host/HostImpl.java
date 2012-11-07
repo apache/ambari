@@ -73,6 +73,24 @@ public class HostImpl implements Host {
 
   private boolean persisted = false;
 
+  private static final String HARDWAREISA = "hardware_isa";
+  private static final String HARDWAREMODEL = "hardware_model";
+  private static final String INTERFACES = "interfaces";
+  private static final String KERNEL = "kernel";
+  private static final String KERNELMAJOREVERSON = "kernel_majorversion";
+  private static final String KERNELRELEASE = "kernel_release";
+  private static final String KERNELVERSION = "kernel_version";
+  private static final String MACADDRESS = "mac_address";
+  private static final String NETMASK = "netmask";
+  private static final String OSFAMILY = "os_family";
+  private static final String PHYSICALPROCESSORCOUNT =
+      "physicalprocessors_count";
+  private static final String PROCESSORCOUNT = "processors_count";
+  private static final String SELINUXENABLED = "selinux_enabled";
+  private static final String SWAPSIZE = "swap_size";
+  private static final String SWAPFREE = "swap_free";
+  private static final String TIMEZONE = "timezone";
+
   private static final StateMachineFactory
     <HostImpl, HostState, HostEventType, HostEvent>
       stateMachineFactory
@@ -317,7 +335,7 @@ public class HostImpl implements Host {
         setIPv6(hostInfo.getIPAddress());
       }
 
-      setCpuCount(hostInfo.getProcessorCount());
+      setCpuCount(hostInfo.getPhysicalProcessorCount());
       setTotalMemBytes(hostInfo.getMemoryTotal());
       setAvailableMemBytes(hostInfo.getFreeMemory());
 
@@ -344,6 +362,61 @@ public class HostImpl implements Host {
       }
 
       // FIXME add all other information into host attributes
+      this.setAgentVersion(new AgentVersion(
+          hostInfo.getAgentUserId()));
+
+      Map<String, String> attrs = new HashMap<String, String>();
+      if (hostInfo.getHardwareIsa() != null) {
+        attrs.put(HARDWAREISA, hostInfo.getHardwareIsa());
+      }
+      if (hostInfo.getHardwareModel() != null) {
+        attrs.put(HARDWAREMODEL, hostInfo.getHardwareModel());
+      }
+      if (hostInfo.getInterfaces() != null) {
+        attrs.put(INTERFACES, hostInfo.getInterfaces());
+      }
+      if (hostInfo.getKernel() != null) {
+        attrs.put(KERNEL, hostInfo.getKernel());
+      }
+      if (hostInfo.getKernelMajVersion() != null) {
+        attrs.put(KERNELMAJOREVERSON, hostInfo.getKernelMajVersion());
+      }
+      if (hostInfo.getKernelRelease() != null) {
+        attrs.put(KERNELRELEASE, hostInfo.getKernelRelease());
+      }
+      if (hostInfo.getKernelVersion() != null) {
+        attrs.put(KERNELVERSION, hostInfo.getKernelVersion());
+      }
+      if (hostInfo.getMacAddress() != null) {
+        attrs.put(MACADDRESS, hostInfo.getMacAddress());
+      }
+      if (hostInfo.getNetMask() != null) {
+        attrs.put(NETMASK, hostInfo.getNetMask());
+      }
+      if (hostInfo.getOSFamily() != null) {
+        attrs.put(OSFAMILY, hostInfo.getOSFamily());
+      }
+      if (hostInfo.getPhysicalProcessorCount() != 0) {
+        attrs.put(PHYSICALPROCESSORCOUNT,
+          Long.toString(hostInfo.getPhysicalProcessorCount()));
+      }
+      if (hostInfo.getProcessorCount() != 0) {
+        attrs.put(PROCESSORCOUNT,
+          Long.toString(hostInfo.getProcessorCount()));
+      }
+      if (Boolean.toString(hostInfo.getSeLinux()) != null) {
+        attrs.put(SELINUXENABLED, Boolean.toString(hostInfo.getSeLinux()));
+      }
+      if (hostInfo.getSwapSize() != null) {
+        attrs.put(SWAPSIZE, hostInfo.getSwapSize());
+      }
+      if (hostInfo.getSwapFree() != null) {
+        attrs.put(SWAPFREE, hostInfo.getSwapFree());
+      }
+      if (hostInfo.getTimeZone() != null) {
+        attrs.put(TIMEZONE, hostInfo.getTimeZone());
+      }
+      setHostAttributes(attrs);
 
       saveIfPersisted();
     }
@@ -665,8 +738,13 @@ public class HostImpl implements Host {
   public void setHostAttributes(Map<String, String> hostAttributes) {
     try {
       writeLock.lock();
-      //TODO should this add attributes and not replace them?
-      hostEntity.setHostAttributes(gson.toJson(hostAttributes,
+      Map<String, String> hostAttrs = gson.<Map<String, String>>
+          fromJson(hostEntity.getHostAttributes(), hostAttributesType);
+      if (hostAttrs == null) {
+        hostAttrs = new HashMap<String, String>();
+      }
+      hostAttrs.putAll(hostAttributes);
+      hostEntity.setHostAttributes(gson.toJson(hostAttrs,
           hostAttributesType));
       saveIfPersisted();
     } finally {

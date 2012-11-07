@@ -72,7 +72,7 @@ public class ServiceTest {
 
   @Test
   public void testCreateService() throws AmbariException {
-    String serviceName = "s1";
+    String serviceName = "HDFS";
     Service s = serviceFactory.createNew(cluster, serviceName);
     cluster.addService(s);
     s.persist();
@@ -91,7 +91,7 @@ public class ServiceTest {
 
   @Test
   public void testGetAndSetServiceInfo() throws AmbariException {
-    String serviceName = "s1";
+    String serviceName = "HDFS";
     Service s = serviceFactory.createNew(cluster, serviceName);
     cluster.addService(s);
     s.persist();
@@ -190,7 +190,7 @@ public class ServiceTest {
 
   @Test
   public void testConvertToResponse() throws AmbariException {
-    String serviceName = "s1";
+    String serviceName = "HDFS";
     Service s = serviceFactory.createNew(cluster, serviceName);
     cluster.addService(s);
     Service service = cluster.getService(serviceName);

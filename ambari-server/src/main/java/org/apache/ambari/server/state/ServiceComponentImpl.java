@@ -22,6 +22,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 
 import com.google.gson.Gson;
 import com.google.inject.Inject;
@@ -60,6 +61,8 @@ public class ServiceComponentImpl implements ServiceComponent {
   private ServiceComponentHostFactory serviceComponentHostFactory;
   @Inject
   private AmbariMetaInfo ambariMetaInfo;
+  @Inject
+  private ComponentConfigMappingDAO componentConfigMappingDAO;
 
   boolean persisted = false;
   private ServiceComponentDesiredStateEntity desiredStateEntity;
@@ -329,6 +332,7 @@ public class ServiceComponentImpl implements ServiceComponent {
 
       this.desiredConfigs.put(entry.getKey(), entry.getValue().getVersionTag());
     }
+    saveIfPersisted();
   }
 
   @Override
@@ -419,7 +423,7 @@ public class ServiceComponentImpl implements ServiceComponent {
 
   @Override
   @Transactional
-  public void refresh() {
+  public synchronized void refresh() {
     if (isPersisted()) {
       ServiceComponentDesiredStateEntityPK pk = new ServiceComponentDesiredStateEntityPK();
       pk.setComponentName(getName());
@@ -432,7 +436,7 @@ public class ServiceComponentImpl implements ServiceComponent {
   }
 
   @Transactional
-  private void saveIfPersisted() {
+  private synchronized void saveIfPersisted() {
     if (isPersisted()) {
       serviceComponentDesiredStateDAO.merge(desiredStateEntity);
     }
@@ -468,7 +472,8 @@ public class ServiceComponentImpl implements ServiceComponent {
   }
 
   @Override
-  public synchronized void removeAllServiceComponentHosts() throws AmbariException {
+  public synchronized void removeAllServiceComponentHosts()
+      throws AmbariException {
     LOG.info("Deleting all servicecomponenthosts for component"
         + ", clusterName=" + getClusterName()
         + ", serviceName=" + getServiceName()
@@ -506,6 +511,14 @@ public class ServiceComponentImpl implements ServiceComponent {
     }
     hostComponents.remove(hostname);
     // FIXME update DB
+  }
+
+  @Override
+  public synchronized void deleteDesiredConfigs(Set<String> configTypes) {
+    for (String configType : configTypes) {
+      desiredConfigs.remove(configType);
+    }
+    componentConfigMappingDAO.removeByType(configTypes);
   }
 
 }

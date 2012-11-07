@@ -164,22 +164,22 @@ public class AmbariManagementControllerImpl implements
     // FIXME add support for desired configs at cluster level
 
     boolean foundInvalidHosts = false;
-    String invalidHostsStr = "";
+    StringBuilder invalidHostsStr = new StringBuilder();
     if (request.getHostNames() != null) {
       for (String hostname : request.getHostNames()) {
         try {
           clusters.getHost(hostname);
         } catch (HostNotFoundException e) {
           if (foundInvalidHosts) {
-            invalidHostsStr += ",";
+            invalidHostsStr.append(",");
           }
           foundInvalidHosts = true;
-          invalidHostsStr += hostname;
+          invalidHostsStr.append(hostname);
         }
       }
     }
     if (foundInvalidHosts) {
-      throw new HostNotFoundException(invalidHostsStr);
+      throw new HostNotFoundException(invalidHostsStr.toString());
     }
 
     clusters.addCluster(request.getClusterName());
@@ -818,23 +818,23 @@ public class AmbariManagementControllerImpl implements
 
     cluster.addDesiredConfig(config);
   }
-  
+
   @Override
   public void createUsers(Set<UserRequest> requests) throws AmbariException {
-    
+
     for (UserRequest request : requests) {
 
       if (null == request.getUsername() || request.getUsername().isEmpty() ||
           null == request.getPassword() || request.getPassword().isEmpty()) {
         throw new AmbariException("Username and password must be supplied.");
       }
-      
+
       User user = users.getAnyUser(request.getUsername());
       if (null != user)
         throw new AmbariException("User already exists.");
-      
+
       users.createUser(request.getUsername(), request.getPassword());
-      
+
       if (0 != request.getRoles().size()) {
         user = users.getAnyUser(request.getUsername());
         if (null != user) {
@@ -845,9 +845,9 @@ public class AmbariManagementControllerImpl implements
         }
       }
     }
-    
+
   }
-  
+
   private Stage createNewStage(Cluster cluster, long requestId) {
     String logDir = baseLogDir + "/" + requestId;
     Stage stage = new Stage(requestId, logDir, cluster.getClusterName());
@@ -1276,7 +1276,8 @@ public class AmbariManagementControllerImpl implements
     clusters.mapHostsToCluster(request.getHostNames(),
         request.getClusterName());
 
-    if (!request.getStackVersion().equals(c.getDesiredStackVersion())) {
+    if (!request.getStackVersion().equals(
+        c.getDesiredStackVersion().getStackId())) {
       throw new IllegalArgumentException("Update of desired stack version"
           + " not supported");
     }
@@ -1364,9 +1365,11 @@ public class AmbariManagementControllerImpl implements
       }
     }
 
-    for (String serviceName : changedComponentCount.keySet()) {
+    for (Entry<String, Map<String, Integer>> entry :
+        changedComponentCount.entrySet()) {
+      String serviceName = entry.getKey();
       // smoke test service if more than one component is started
-      if (changedComponentCount.get(serviceName).size() > 1) {
+      if (entry.getValue().size() > 1) {
         smokeTestServices.add(serviceName);
         continue;
       }
@@ -1388,7 +1391,7 @@ public class AmbariManagementControllerImpl implements
 
     if (!changedScHosts.isEmpty()) {
       long nowTimestamp = System.currentTimeMillis();
-      requestId = new Long(actionManager.getNextRequestId());
+      requestId = Long.valueOf(actionManager.getNextRequestId());
 
       // FIXME cannot work with a single stage
       // multiple stages may be needed for reconfigure
@@ -1518,6 +1521,10 @@ public class AmbariManagementControllerImpl implements
       for (Entry<State, List<Service>> entry : changedServices.entrySet()) {
         State newState = entry.getKey();
         for (Service s : entry.getValue()) {
+          if (s.isClientOnlyService()
+              && newState == State.STARTED) {
+            continue;
+          }
           s.setDesiredState(newState);
         }
       }
@@ -1879,14 +1886,21 @@ public class AmbariManagementControllerImpl implements
         for (Entry<String,String> entry : request.getConfigVersions().entrySet()) {
           Config config = cluster.getDesiredConfig(entry.getKey(), entry.getValue());
           updated.put(config.getType(), config);
-          if (!updated.isEmpty()) {
-            s.updateDesiredConfigs(updated);
-            s.persist();
-          }
+        }
 
-          // FIXME delete relevant config types at component
-          // and hostcomponent level
-          // handle recursive updates to all components and hostcomponents
+        if (!updated.isEmpty()) {
+          s.updateDesiredConfigs(updated);
+          s.persist();
+        }
+
+        for (ServiceComponent sc : s.getServiceComponents().values()) {
+          sc.deleteDesiredConfigs(updated.keySet());
+          for (ServiceComponentHost sch :
+            sc.getServiceComponentHosts().values()) {
+            sch.deleteDesiredConfigs(updated.keySet());
+            sch.persist();
+          }
+          sc.persist();
         }
       }
     }
@@ -2136,13 +2150,17 @@ public class AmbariManagementControllerImpl implements
           Config config = cluster.getDesiredConfig(
               entry.getKey(), entry.getValue());
           updated.put(config.getType(), config);
-          if (!updated.isEmpty()) {
-            sc.updateDesiredConfigs(updated);
-            sc.persist();
-          }
         }
 
-        // TODO handle recursive updates to all hostcomponents
+        if (!updated.isEmpty()) {
+          sc.updateDesiredConfigs(updated);
+          for (ServiceComponentHost sch :
+              sc.getServiceComponentHosts().values()) {
+            sch.deleteDesiredConfigs(updated.keySet());
+            sch.persist();
+          }
+          sc.persist();
+        }
       }
     }
 
@@ -2419,7 +2437,7 @@ public class AmbariManagementControllerImpl implements
     return doStageCreation(cluster, null,
         null, changedScHosts);
   }
-  
+
   @Override
   public synchronized void updateUsers(Set<UserRequest> requests) throws AmbariException {
     for (UserRequest request : requests) {
@@ -2431,17 +2449,17 @@ public class AmbariManagementControllerImpl implements
         users.modifyPassword(u.getUserName(), request.getOldPassword(),
             request.getPassword());
       }
-      
+
       if (request.getRoles().size() > 0) {
         for (String role : u.getRoles()) {
           users.removeRoleFromUser(u, role);
         }
-        
+
         for (String role : request.getRoles()) {
           users.addRoleToUser(u, role);
         }
       }
-      
+
     }
   }
 
@@ -2493,11 +2511,11 @@ public class AmbariManagementControllerImpl implements
     // TODO Auto-generated method stub
     throw new AmbariException("Delete host components not supported");
   }
-  
+
   @Override
   public void deleteUsers(Set<UserRequest> requests)
     throws AmbariException {
-    
+
     for (UserRequest r : requests) {
       User u = users.getAnyUser(r.getUsername());
       if (null != u)
@@ -2670,39 +2688,39 @@ public class AmbariManagementControllerImpl implements
     }
     return response;
   }
-  
+
   @Override
   public Set<UserResponse> getUsers(Set<UserRequest> requests)
       throws AmbariException {
-    
+
     Set<UserResponse> responses = new HashSet<UserResponse>();
 
     for (UserRequest r : requests) {
-      
+
       // get them all
       if (null == r.getUsername()) {
         for (User u : users.getAllUsers()) {
           responses.add(new UserResponse(u.getUserName()));
         }
       } else {
-        
+
         User u = users.getAnyUser(r.getUsername());
-        
+
         if (null == u) {
           throw new AmbariException("Cannot find user '" + r.getUsername() + "'");
         }
-        
+
         UserResponse resp = new UserResponse(u.getUserName());
         resp.setRoles(new HashSet<String>(u.getRoles()));
 
         responses.add(resp);
       }
     }
-    
+
     return responses;
   }
-  
-  
+
+
 
   private String getClientHostForRunningAction(Cluster cluster,
       Service service) throws AmbariException {

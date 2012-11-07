@@ -19,6 +19,7 @@
 package org.apache.ambari.server.state;
 
 import java.util.Map;
+import java.util.Set;
 
 import com.google.inject.persist.Transactional;
 import org.apache.ambari.server.controller.ServiceComponentHostResponse;
@@ -70,6 +71,8 @@ public interface ServiceComponentHost {
   public Map<String, Config> getDesiredConfigs();
 
   public void updateDesiredConfigs(Map<String, Config> configs);
+
+  public void deleteDesiredConfigs(Set<String> configTypes);
 
   public StackId getDesiredStackVersion();
 

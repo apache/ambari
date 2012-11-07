@@ -21,6 +21,6 @@
 #
 [<%=repo_id%>]
 name=<%=repo_name %>
-baseurl=<%=base_url %>
+<%if scope.function_hdp_is_empty(base_url)%>mirrorlist=<%=mirror_list %><% else %>baseurl=<%=base_url %><% end %>
 path=/
 enabled=1
