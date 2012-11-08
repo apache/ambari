@@ -91,7 +91,7 @@ App.WizardStep5Controller = Em.Controller.extend({
         componentInfo.forEach(function (_componentInfo) {
           console.log("TRACE: master component name is: " + _componentInfo.display_name);
           var componentObj = {};
-          componentObj.component_name =  _componentInfo.component_name;
+          componentObj.component_name = _componentInfo.component_name;
           componentObj.display_name = _componentInfo.display_name;
           componentObj.selectedHost = this.selectHost(_componentInfo.component_name);   // call the method that plays selectNode algorithm or fetches from server
           componentObj.availableHosts = [];
@@ -103,7 +103,7 @@ App.WizardStep5Controller = Em.Controller.extend({
 
       masterHosts.forEach(function (_masterComponentHost) {
         var componentObj = {};
-        componentObj.component_name =  _masterComponentHost.component_name;
+        componentObj.component_name = _masterComponentHost.component;
         componentObj.display_name = _masterComponentHost.display_name;
         componentObj.selectedHost = _masterComponentHost.hostName;
         componentObj.availableHosts = [];
@@ -140,7 +140,7 @@ App.WizardStep5Controller = Em.Controller.extend({
         zookeeperComponent.set('zId', this.get('zId'));
         zookeeperComponent.set("showRemoveControl", true);
         zookeeperComponent.set("availableHosts", this.get("hosts").slice(0));
-        this.get("selectedServicesMasters").pushObject(Ember.Object.create(zookeeperComponent));
+        this.get("selectedServicesMasters").pushObject(zookeeperComponent);
 
       } else {
         componentObj = Ember.Object.create(item);
