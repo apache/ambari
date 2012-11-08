@@ -388,6 +388,8 @@ AMBARI-666 branch (unreleased changes)
   AMBARI-676. Seperate directory for ambari-server. (jitendra)
 
   IMPROVEMENTS
+ 
+  AMBARI-990. Refactor App Browser. (yusaku)
 
   AMBARI-979. More refactoring of App Browser code. (yusaku)
 

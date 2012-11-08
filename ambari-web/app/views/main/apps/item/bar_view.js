@@ -20,6 +20,7 @@ var App = require('app');
 var graph = require('utils/graph');
 
 App.MainAppsItemBarView = Em.View.extend({
+    elementId: 'bars',
     templateName: require('templates/main/apps/item/bar'),
     content:function(){
         return this.get('parentView.jobs');

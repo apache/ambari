@@ -27,16 +27,26 @@ App.MainAppsView = Em.View.extend({
    */
   content:function () {
     var content =  this.get('controller').get('content');
-    content.forEach(function(item){
-      var app = App.store.find(App.App, item.get('appId'));
-      item.set('appName', app.get('appName'));
-      item.set('type', app.get('type'));
-      item.set('numJobsTotal' ,item.get('jobs').get('content').length);
-      item.get('jobs').forEach(function(item) {
+    content.forEach(function(run){
+      var app = App.store.find(App.App, run.get('appId'));
+      run.set('appName', app.get('appName'));
+      run.set('type', app.get('type'));
+      run.set('numJobsTotal' ,run.get('jobs').get('content').length);
+      run.get('jobs').forEach(function(job) {
+
       });
     });
     return content;
   }.property('App.router.mainAppsController.content'),
+
+  /**
+   * Choose view type for apps list:
+   * all - show all runs
+   * filtered - show only filtered runs
+   * starred - show only filtered runs with stars selected
+   */
+  viewType : 'all',
+
   /**
    * List of users
    */
@@ -194,36 +204,60 @@ App.MainAppsView = Em.View.extend({
     return ret;
   },
   /**
-   * Reset filters
-   * @param event
-   */
-  clearFilters:function(event) {
-    this._childViews.forEach(function(item){
-      if(item.get('tagName') === 'input') {
-          item.set('value','');
-      }
-      if(item.get('tagName') === 'select') {
-        item.set('value','Any');
-      }
-    });
-    this.get('oTable').fnFilterClear();
-    this.set('filtered',this.get('oTable').fnSettings().fnRecordsDisplay());
-  },
-  /**
    * Click on big star on the avg block
    */
   avgStarClick: function() {
     this.set('whatAvgShow', !this.get('whatAvgShow'));
-    event.srcElement.classList.toggle('active');
+    $('a.icon-star.a').toggleClass('active');
   },
   /**
    * "turn off" stars in the table
    */
-  clearStars: function(){
+  clearStars: function() {
     if (this.get('controller.staredRunsLength') == 0 && this.get('smallStarsIcons') != null) {
       this.get('smallStarsIcons').removeClass('stared');
+      this.set('whatAvgShow', true);
+      $('a.icon-star.a').removeClass('active');
     }
   }.observes('controller.staredRunsLength'),
+  /**
+   * Reset filters and "turn off" stars
+   */
+  showAll: function() {
+    this.clearFilters();
+    this.clearStars();
+  },
+
+  /**
+   * Onclick handler for <code>Show All/Filtered/Starred</code> links
+   */
+  changeViewType: function(event){
+    if($(event.toElement).hasClass('selected')){
+      return;
+    }
+
+    $(event.toElement).parent().children('.selected').removeClass('selected');
+    $(event.toElement).addClass('selected');
+
+    var viewType = $(event.toElement).data('view-type');
+    console.log(viewType);
+
+    switch(viewType){
+      case 'all':
+        //do stuff here
+        break;
+
+      case 'starred':
+        break;
+
+      case 'filtered':
+      default:
+        //do stuff here
+        break;
+    };
+
+  },
+
   /**
    * jQuery dataTable init
    */
@@ -237,9 +271,11 @@ App.MainAppsView = Em.View.extend({
         // no need more. 31.10.2012
       },
       "oLanguage": {
-        "sSearch": "<i class='icon-question-sign'>&nbsp;Search</i>",
+        "sSearch": "Search:",
         "sLengthMenu": "Show: _MENU_",
-        "sInfo": "_START_ - _END_ of _TOTAL_",
+        "sInfo": "_START_ - _END_ of _TOTAL_ (_TOTAL_ total)",
+        "sInfoEmpty": "0 - _END_ of _TOTAL_ (_TOTAL_ total)",
+        "sInfoFiltered": "",
         "oPaginate":{
           "sPrevious": "<i class='icon-arrow-left'></i>",
           "sNext": "<i class='icon-arrow-right'></i>"
@@ -249,6 +285,7 @@ App.MainAppsView = Em.View.extend({
       "iDisplayLength": 10,
       "aLengthMenu": [[10, 25, 50, 100, -1], [10, 25, 50, 100, "All"]],
       "aoColumns":[
+        { "bSortable": false  },
         null,
         null,
         null,
@@ -316,9 +353,9 @@ App.MainAppsView = Em.View.extend({
     content:['Any', 'Pig', 'Hive', 'mapReduce'],
     change:function(event){
       if(this.get('selection') === 'Any') {
-        this._parentView.get('oTable').fnFilter('', 2);
+        this._parentView.get('oTable').fnFilter('', 3);
       } else {
-      this._parentView.get('oTable').fnFilter(this.get('selection'), 2);
+      this._parentView.get('oTable').fnFilter(this.get('selection'), 3);
       }
       this._parentView.set('filtered',this._parentView.get('oTable').fnSettings().fnRecordsDisplay());
     }
@@ -335,7 +372,7 @@ App.MainAppsView = Em.View.extend({
     classNames:['input-medium'],
     elementId: 'rundate_filter',
     change:function(event) {
-      this.get('parentView').get('applyFilter')(this.get('parentView'), 8);
+      this.get('parentView').get('applyFilter')(this.get('parentView'), 9);
     }
   }),
   /**
@@ -345,8 +382,9 @@ App.MainAppsView = Em.View.extend({
     classNames:['input-small'],
     type:'text',
     placeholder: 'Any ID',
-    filtering:function(){
-        this.get('parentView').get('applyFilter')(this.get('parentView'), 0, this.get('value'));
+    elementId:'appid_filter',
+    filtering:function() {
+      this.get('parentView').get('applyFilter')(this.get('parentView'), 1, this.get('value'));
     }.observes('value')
   }),
   /**
@@ -357,7 +395,7 @@ App.MainAppsView = Em.View.extend({
     type:'text',
     placeholder: 'Any Name',
     filtering:function(){
-      this.get('parentView').get('applyFilter')(this.get('parentView'), 1, this.get('value'));
+      this.get('parentView').get('applyFilter')(this.get('parentView'), 2, this.get('value'));
     }.observes('value')
   }),
   /**
@@ -369,7 +407,7 @@ App.MainAppsView = Em.View.extend({
     placeholder: 'Any ',
     elementId:'jobs_filter',
     filtering:function(){
-      this.get('parentView').get('applyFilter')(this.get('parentView'), 4);
+      this.get('parentView').get('applyFilter')(this.get('parentView'), 5);
     }.observes('value')
   }),
   /**
@@ -381,7 +419,7 @@ App.MainAppsView = Em.View.extend({
     placeholder: 'Any ',
     elementId: 'input_filter',
     filtering:function(){
-      this.get('parentView').get('applyFilter')(this.get('parentView'), 5);
+      this.get('parentView').get('applyFilter')(this.get('parentView'), 6);
     }.observes('value')
   }),
   /**
@@ -393,7 +431,7 @@ App.MainAppsView = Em.View.extend({
     placeholder: 'Any ',
     elementId: 'output_filter',
     filtering:function(){
-        this.get('parentView').get('applyFilter')(this.get('parentView'), 6);
+        this.get('parentView').get('applyFilter')(this.get('parentView'), 7);
     }.observes('value')
   }),
   /**
@@ -405,7 +443,7 @@ App.MainAppsView = Em.View.extend({
     placeholder: 'Any ',
     elementId: 'duration_filter',
     filtering:function(){
-      this.get('parentView').get('applyFilter')(this.get('parentView'), 7);
+      this.get('parentView').get('applyFilter')(this.get('parentView'), 8);
     }.observes('value')
   }),
   /**
@@ -457,7 +495,7 @@ App.MainAppsView = Em.View.extend({
       jQuery('#user_filter').val([]);
       self.get('parentView').get('oTable').fnFilter('', 3);
     },
-    applyFilter:function(){
+    applyFilter:function() {
       var chosenUsers = new Array();
       this.set('open', !this.get('open'));
       this.set('isApplyDisabled', !this.get('isApplyDisabled'));
@@ -481,27 +519,33 @@ App.MainAppsView = Em.View.extend({
   containerRow : Em.ContainerView.extend({
 
     /**
-     * Uniq row id
+     * Unique row id
      */
-    id: function(){
+    id: function() {
       return this.get('run.id');
     }.property("run.id"),
-
+    /**
+     * Delete expanded row from table
+     *
+     * @param row
+     */
+    deleteRow:function(row){
+      row.get('rowChildView').destroy();
+      row.set('rowView', null);
+      row.set('rowChildView', null);
+    },
     /**
      * Show/hide additional content appropriated for this row
      */
     expandToggle : function(){
       var newView = App.MainAppsItemView.create();
       var expandedView = this.get('parentView.expandedRow');
+      App.router.get('mainAppsItemController').set('content', this.get('run'));
       if(expandedView.get('rowView')) {
         if(this === expandedView.get('rowView')) {
-          expandedView.get('rowView').get('childViews').removeObject(expandedView.get('rowChildView'));
-          expandedView.get('rowChildView').destroy();
-          expandedView.set('rowView', null);
-          expandedView.set('rowChildView', null);
+          this.get('deleteRow')(expandedView);
         } else {
-          //expandedView.get('rowView').get('childViews').removeObject(expandedView.get('rowChildView'));
-          expandedView.get('rowChildView').destroy();
+          this.get('deleteRow')(expandedView);
           expandedView.set('rowView', this);
           expandedView.set('rowChildView', newView);
           this.get('childViews').pushObject(newView);

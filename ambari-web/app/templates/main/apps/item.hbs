@@ -15,17 +15,17 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 -->
-<td colspan="9">
-<ul class="nav nav-tabs">
-  {{#each tab in view.menuTabs}}
-  <li {{bindAttr class="tab.active"}} {{action "switchTab" tab target="view" }}>
-  <a href="javascript:void(0)">{{tab.label}}</a>
-  </li>
-  {{/each}}
-</ul>
-<div id="content">
-  {{view view.containerView currentViewBinding="App.MainAppsItemDagView"}}
-</div>
+<td colspan="10">
+  <ul class="nav nav-tabs">
+    {{#each tab in view.menuTabs}}
+    <li {{bindAttr class="tab.active"}} {{action "switchTab" tab target="view" }}>
+      <a href="javascript:void(0)">{{tab.label}}</a>
+    </li>
+    {{/each}}
+  </ul>
+  <div class="content">
+    {{view view.containerView currentViewBinding="App.MainAppsItemDagView"}}
+  </div>
  </td>
 
 

@@ -113,12 +113,12 @@ jQuery.extend(jQuery.fn.dataTableExt.oApi, {
 jQuery.extend($.fn.dataTableExt.afnFiltering.push(
     function (oSettings, aData, iDataIndex) {
       var inputFilters = [
-        {iColumn: '3', elementId: 'user_filter', type: 'multiple'},
-        {iColumn: '4', elementId: 'jobs_filter', type: 'number' },
-        {iColumn: '5', elementId: 'input_filter', type: 'number' },
-        {iColumn: '6', elementId: 'output_filter', type: 'number' },
-        {iColumn: '7', elementId: 'duration_filter', type: 'time' },
-        {iColumn: '8', elementId: 'rundate_filter', type: 'date' }
+        {iColumn: '4', elementId: 'user_filter', type: 'multiple'},
+        {iColumn: '5', elementId: 'jobs_filter', type: 'number' },
+        {iColumn: '6', elementId: 'input_filter', type: 'number' },
+        {iColumn: '7', elementId: 'output_filter', type: 'number' },
+        {iColumn: '8', elementId: 'duration_filter', type: 'time' },
+        {iColumn: '9', elementId: 'rundate_filter', type: 'date' }
       ];
       var match = true;
       for (i = 0; i < inputFilters.length; i++) {
@@ -245,7 +245,6 @@ jQuery.extend($.fn.dataTableExt.afnFiltering.push(
     }
 )
 );
-
 
 jQuery.extend(jQuery.fn.dataTableExt.oApi, {
   "fnFilterClear": function (oSettings) {

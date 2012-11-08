@@ -34,7 +34,7 @@ App.Run = DS.Model.extend({
   appId:DS.attr('number'),
   jobs:DS.hasMany('App.Job'),
   duration: function() {
-    return date.dateFormatInterval(((parseInt(this.get('lastUpdateTime')) - parseInt(this.get('startTime')))/1000));
+    return date.dateFormatInterval(parseInt((parseInt(this.get('lastUpdateTime')) - parseInt(this.get('startTime')))/1000));
   }.property('lastUpdateTime', 'startTime'),
   isRunning: function () {
     if (!this.get('isLoaded')) {

@@ -16,10 +16,10 @@
 * limitations under the License.
 -->
 <div id="apps">
-  <div class="breadcrumb">
+  <!--<div class="breadcrumb">
     <li><a href='#' {{action "routeHome" target="controller"}}><i class="icon-home"></i></a><span class="divider">/</span></li>
     <li class="active">Apps</li>
-  </div>
+  </div>-->
   <table class="table table-bordered table-stripe avg-table" >
             <tbody>
             <tr >
@@ -54,7 +54,11 @@
             </tbody>
   </table>
     <div id="filter_info" class="row">
-      <div class="span3">Show: <a href="javascript:void(0)">Filtered ({{view.filtered}})</a>&nbsp;&#124;&nbsp;<a href="javascript:void(0)">Starred ({{view.staredData.count}})</a></div>
+      <div class="span3">Show:
+        <a href="javascript:void(0)" class="selected" {{action "changeViewType" target="view"}} data-view-type="all">All ({{view.content.length}})</a> &#124;
+        <a href="javascript:void(0)" {{action "changeViewType" target="view"}} data-view-type="filtered">Filtered ({{view.filtered}})</a> &#124;
+        <a href="javascript:void(0)" {{action "changeViewType" target="view"}} data-view-type="starred">Starred ({{view.staredData.count}})</a>
+      </div>
       <div class="span2"><a href="#" {{action "clearFilters" target="view"}}>Clear filters</a>&nbsp;&#124;&nbsp;<a href="#" {{action "clearStars" target="controller"}}>Clear stars</a></div>
     </div>
     <div>
@@ -62,27 +66,29 @@
     <table class="table table-striped" id="dataTable">
     <thead>
     <tr>
-      <th>App ID <i class="icon-question-sign"></i></th>
-      <th>Name <i class="icon-question-sign"></i></th>
-      <th>Type <i class="icon-question-sign"></i></th>
-      <th>User <i class="icon-question-sign"></i></th>
-      <th>Jobs <i class="icon-question-sign"></i></th>
-      <th>Input <i class="icon-question-sign"></i></th>
-      <th>Output <i class="icon-question-sign"></i></th>
-      <th>Duration <i class="icon-question-sign"></i></th>
+      <th></th>
+      <th>App ID</th>
+      <th>Name</th>
+      <th>Type</th>
+      <th>User</th>
+      <th>Jobs</th>
+      <th>Input</th>
+      <th>Output</th>
+      <th>Duration</th>
       <th>Run Date</th>
     </tr>
     <tr>
-          <th>{{view view.appidFilterView}}</th>
-          <th>{{view view.nameFilterView}}</th>
-          <th>{{view view.typeSelectView}}</th>
-          <th>{{view view.userFilterView}}<input id="user_filter" type="hidden"></th>
-          <th>{{view view.jobsFilterView}}</th>
-          <th>{{view view.inputFilterView}}</th>
-          <th>{{view view.outputFilterView}}</th>
-          <th>{{view view.durationFilterView}}</th>
-          <th>{{view view.rundateSelectView}}</th>
-        </tr>
+      <th></th>
+      <th>{{view view.appidFilterView}}</th>
+      <th>{{view view.nameFilterView}}</th>
+      <th>{{view view.typeSelectView}}</th>
+      <th>{{view view.userFilterView}}<input id="user_filter" type="hidden"></th>
+      <th>{{view view.jobsFilterView}}</th>
+      <th>{{view view.inputFilterView}}</th>
+      <th>{{view view.outputFilterView}}</th>
+      <th>{{view view.durationFilterView}}</th>
+      <th>{{view view.rundateSelectView}}</th>
+    </tr>
     </thead>
     <tbody>
     {{#each run in view.content}}

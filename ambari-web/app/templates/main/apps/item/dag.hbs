@@ -15,12 +15,8 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 -->
-<div id="jobs" class="box">
-  <div class="box-header">
-    <div>
-      <div id="dag_viewer"></div>
-    </div>
-    <h2>Jobs list</h2>
+    <div id="dag_viewer"></div>
+
     <table class="table table-bordered table-striped" id="innerTable">
       <thead>
       <tr>
@@ -40,15 +36,14 @@
         <td>{{job.id}}</td>
         <td>{{job.jobId}}</td>
         <td>{{job.status}}</td>
-        <td>{{job.maps}}</td>
-        <td>{{job.reduces}}</td>
+        <td>{{job.maps}}&nbsp;({{job.mapsProgress}}%)</td>
+        <td>{{job.reduces}}&nbsp;({{job.reducesProgress}}%)</td>
         <td>{{job.input}}</td>
         <td>{{job.output}}</td>
-        <td>{{job.mapsRuntime}}</td>
+        <td>{{job.duration}}</td>
       </tr>
       {{/each}}
       </tbody>
     </table>
-  </div>
-</div>
+
 
