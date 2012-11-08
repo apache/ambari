@@ -126,7 +126,10 @@ Em.I18n.translations = {
   'installer.step9.host.status.failed': 'failures encountered',
   'installer.step9.hostLog.popup.header': 'Tasks executed on ',
 
-'installer.step10.header': 'Summary',
+  'installer.step10.header': 'Summary',
+  'installer.step10.body': 'Here is the summary of the cluster install process.',
+
+
   'form.create': 'Create',
   'form.save': 'Save',
   'form.cancel': 'Cancel',

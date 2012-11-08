@@ -35,6 +35,7 @@ App.Router = Em.Router.extend({
 
   clearAllSteps: function() {
     this.get('installerController.content').set('cluster',null);
+    this.get('wizardStep2Controller').set('hasSubmitted',false);
     /*this.get('installerController.content').set({
       cluster: null,
       hosts: null,

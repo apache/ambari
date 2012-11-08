@@ -243,7 +243,7 @@ module.exports = Em.Route.extend({
     next: function (router) {
       var installerController = router.get('installerController');
       var wizardStep8Controller = router.get('wizardStep8Controller');
-        installerController.installServices();   //TODO: Uncomment for the actual hookupq
+      installerController.installServices();   //TODO: Uncomment for the actual hookup
       installerController.setInfoForStep9();
       router.transitionTo('step9');
     }
@@ -256,6 +256,9 @@ module.exports = Em.Route.extend({
       var controller = router.get('installerController');
       router.setInstallerCurrentStep('9', false);
       controller.loadAllPriorSteps();
+      if (!App.testMode) {              //if test mode is ON don't disable prior steps link.
+        controller.setLowerStepsDisable(9);
+      }
       controller.connectOutlet('wizardStep9', controller.get('content'));
     },
     back: Em.Router.transitionTo('step8'),
@@ -268,7 +271,7 @@ module.exports = Em.Route.extend({
     next: function (router) {
       var installerController = router.get('installerController');
       var wizardStep9Controller = router.get('wizardStep9Controller');
-      installerController.saveClusterInfo(wizardStep9Controller);
+     // installerController.saveClusterInfo(wizardStep9Controller);
       installerController.saveInstalledHosts(wizardStep9Controller);
       router.transitionTo('step10');
     }
@@ -281,7 +284,7 @@ module.exports = Em.Route.extend({
       var controller = router.get('installerController');
       router.setInstallerCurrentStep('10', false);
       controller.loadAllPriorSteps();
-      controller.connectOutlet('wizardStep10');
+      controller.connectOutlet('wizardStep10',controller.get('content'));
     },
     back: Em.Router.transitionTo('step9'),
     complete: function (router, context) {

@@ -17,10 +17,31 @@
 -->
 
 <h2>{{t installer.step10.header}}</h2>
+<div class="alert alert-info">
+  {{t installer.step10.body}}
+</div>
+<div id="step10-content" class="well pre-scrollable">
+  {{#each item in clusterInfo}}
+  <ul>
+    {{item.displayStatement}}
+    {{#each status in item.status}}
+    <ul>
+      {{status.displayStatement}}
+      {{#each statement in status.statements}}
+      <ul>
+        {{statement.displayStatement}}
+      </ul>
+      {{/each}}
+    </ul>
+    {{/each}}
+  </ul>
+  {{/each}}
+</div>
+
 <div class="btn-area">
   <a
-    class="btn pull-left" {{bindAttr disabled="isSubmitDisabled"}} {{action back}}>&larr;
+          class="btn pull-left" {{bindAttr disabled="isSubmitDisabled"}} {{action back}}>&larr;
     Back</a>
   <a
-    class="btn btn-success pull-right" {{bindAttr disabled="isSubmitDisabled"}} {{action complete}}>Complete &rarr;</a>
+          class="btn btn-success pull-right" {{bindAttr disabled="isSubmitDisabled"}} {{action complete}}>Complete &rarr;</a>
 </div>

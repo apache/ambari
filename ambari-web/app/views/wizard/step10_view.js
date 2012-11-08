@@ -25,7 +25,7 @@ App.WizardStep10View = Em.View.extend({
 
   didInsertElement: function () {
     var controller = this.get('controller');
-    controller.navigateStep();
+    controller.loadStep();
   }
 
 });

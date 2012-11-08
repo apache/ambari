@@ -127,13 +127,14 @@ App.HostStatusView = Em.View.extend({
         hostObj: function () {
           return this.get('parentView.obj');
         }.property('parentView.obj'),
-        tasks: [],
+
+        logTasks: [],
 
         roles: function () {
           var roleArr = [];
-          var tasks = this.get('tasks');
+          var tasks = this.get('logTasks');
           if (tasks.length) {
-            var role = this.get('tasks').mapProperty('Tasks.role').uniq();
+            var role = this.get('logTasks').mapProperty('Tasks.role').uniq();
             role.forEach(function (_role) {
               var statusArr = [];
               var roleObj = {};
@@ -149,11 +150,11 @@ App.HostStatusView = Em.View.extend({
             }, this);
           }
           return roleArr;
-        }.property('tasks.@each'),
+        }.property('logTasks.@each'),
 
         didInsertElement: function () {
           console.log('The value of event context is: ' + host.name);
-          this.set('tasks', self.get('controller').getCompletedTasksForHost(event.context));
+          this.set('logTasks', self.get('controller').getCompletedTasksForHost(event.context));
         }
       })
     });

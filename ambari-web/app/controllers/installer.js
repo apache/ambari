@@ -55,6 +55,13 @@ App.InstallerController = Em.Controller.extend({
     }
   }.observes('currentStep'),
 
+  setLowerStepsDisable: function (stepNo) {
+    for (var i = 1; i < stepNo; i++) {
+      var step = this.get('isStepDisabled').findProperty('step', i);
+      step.set('value', true);
+    }
+  },
+
   prevInstallStatus: function () {
     console.log('Inside the prevInstallStep function: The name is ' + App.router.get('loginController.loginName'));
     var result = App.db.isCompleted()
@@ -204,7 +211,7 @@ App.InstallerController = Em.Controller.extend({
     cluster: null,
     hosts: null,
     services: null,
-    hostsInfo: null,
+    hostsInfo: [],
     slaveComponentHosts: null,
     hostSlaveComponents: null,
     masterComponentHosts: null,
@@ -226,7 +233,6 @@ App.InstallerController = Em.Controller.extend({
 
     console.log("InstallerController:loadClusterInfo: loaded data ", cluster);
   },
-
 
   /**
    * Save all info about cluster to model
@@ -266,6 +272,7 @@ App.InstallerController = Em.Controller.extend({
     for (var index in hostInfo) {
       hostInfo[index].status = "pending";
       hostInfo[index].message = 'Waiting';
+      hostInfo[index].logTasks = [];
       hostInfo[index].tasks = [];
       hostInfo[index].progress = '0';
     }
@@ -410,13 +417,14 @@ App.InstallerController = Em.Controller.extend({
       var host = hosts.findProperty('name', hostInfo[index].name);
       if (host) {
         hostInfo[index].status = host.status;
+        hostInfo[index].logTasks = host.logTasks;
         hostInfo[index].tasks = host.tasks;
         hostInfo[index].message = host.message;
         hostInfo[index].progress = host.progress;
       }
     }
     App.db.setHosts(hostInfo);
-    console.log('installerController:saveInstalledHosts: save hosts ', hostInfo);
+    this.set('content.hostsInfo', hostInfo);
   },
 
   /**
@@ -677,7 +685,7 @@ App.InstallerController = Em.Controller.extend({
   loadHostToMasterComponent: function () {
     var list = App.db.getHostToMasterComponent();
     this.set('content.hostToMasterComponent', list);
-    console.log("AddHostController.loadHostToMasterComponent: loaded list ", list);
+    console.log("InstallerController.loadHostToMasterComponent: loaded list ", list);
   },
 
   /**
@@ -686,6 +694,7 @@ App.InstallerController = Em.Controller.extend({
   loadAllPriorSteps: function () {
     var step = this.get('currentStep');
     switch (step) {
+      case '10':
       case '9':
       case '8':
       case '7':
@@ -727,16 +736,19 @@ App.InstallerController = Em.Controller.extend({
       timeout: 5000,
       success: function (data) {
         var jsonData = jQuery.parseJSON(data);
+        var installSartTime = new Date().getTime();
         console.log("TRACE: STep8 -> In success function for the installService call");
         console.log("TRACE: STep8 -> value of the url is: " + url);
         if (jsonData) {
           var requestId = jsonData.href.match(/.*\/(.*)$/)[1];
+
           console.log('requestId is: ' + requestId);
           var clusterStatus = {
             status: 'PENDING',
             requestId: requestId,
             isInstallError: false,
-            isCompleted: false
+            isCompleted: false,
+            installStartTime: installSartTime
           };
           self.saveClusterStatus(clusterStatus);
         } else {
@@ -761,7 +773,5 @@ App.InstallerController = Em.Controller.extend({
     });
 
   }
-
-
 
 });
