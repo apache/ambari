@@ -429,6 +429,9 @@ AMBARI-666 branch (unreleased changes)
 
   BUG FIXES
 
+  AMBARI-957. Adding a host whose hostname is the same as the one the user 
+  is accessing Ambari Web with breaks the Installer. (yusaku)
+
   AMBARI-953. Fix navigation issues in installer wizard due to regression.
   (Jaimin Jetly via yusaku)
 

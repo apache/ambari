@@ -287,7 +287,7 @@ App.WizardStep5Controller = Em.Controller.extend({
       inc++;
     });
     var hostExcAmbari = hostnames.without(location.hostname);
-    if (hostExcAmbari !== null || hostExcAmbari !== undefined || hostExcAmbari.length !== 0) {
+    if (noOfHosts > 1) {
       return hostExcAmbari[0];
     } else {
       return hostnames[0];
@@ -303,7 +303,7 @@ App.WizardStep5Controller = Em.Controller.extend({
       inc++;
     });
     var hostExcAmbari = hostnames.without(location.hostname);
-    if (hostExcAmbari !== null || hostExcAmbari !== undefined || hostExcAmbari.length !== 0) {
+    if (noOfHosts > 1) {
       return hostExcAmbari[0];
     } else {
       return hostnames[0];
