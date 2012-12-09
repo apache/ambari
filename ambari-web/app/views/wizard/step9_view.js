@@ -198,7 +198,7 @@ App.HostStatusView = Em.View.extend({
           return roleArr;
         }.property('startedTasks.@each'),
 
-        didInsertElement: function () {debugger;
+        didInsertElement: function () {
           console.log('The value of event context is: ' + host.name);
           this.get('roles').forEach(function (role) {
             role.taskInfos.forEach(function (task) {

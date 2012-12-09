@@ -33,10 +33,12 @@ App.ModalPopup = Ember.View.extend({
     '{{#if bodyClass}}{{view bodyClass}}',
     '{{else}}{{#if encodeBody}}{{body}}{{else}}{{{body}}}{{/if}}{{/if}}',
     '</div>',
+    '{{#if showFooter}}',
     '<div class="modal-footer">',
     '{{#if view.secondary}}<a class="btn" {{action onSecondary target="view"}}>{{view.secondary}}</a>{{/if}}',
     '{{#if view.primary}}<a class="btn btn-success" {{action onPrimary target="view"}}>{{view.primary}}</a>{{/if}}',
     '</div>',
+    '{{/if}}',
     '</div>'
   ].join('\n')),
 
@@ -60,8 +62,15 @@ App.ModalPopup = Ember.View.extend({
 
   hide: function() {
     this.destroy();
-  }
+  },
 
+  showFooter: true,
+
+  didInsertElement: function(){
+    this._super();
+    var block = this.$().find('#modal').first();
+    block.css('max-height', $(window).height()-20); // fix popup height
+  }
 });
 
 App.ModalPopup.reopenClass({

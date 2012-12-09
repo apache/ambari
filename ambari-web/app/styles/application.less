@@ -52,10 +52,6 @@ footer {
   padding: 20px 0;
 }
 
-.modal-body {
-  max-height: 500px;
-}
-
 #top-nav {
   .navbar {
     font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
@@ -194,6 +190,22 @@ h1 {
   color: #5AB400;
 }
 
+.icon-empty {
+  height: 21px;
+  display: inline-block;
+  width: 8px;
+}
+
+.icon-caret-right {
+  min-width:8px;
+  padding-top: 2px;
+}
+
+.icon-caret-left {
+  min-width:8px;
+  padding-top: 2px;
+}
+
 .icon-remove {
   color: #FF4B4B;
 }
@@ -291,10 +303,10 @@ h1 {
         width: 30%;
       }
       th.status {
-        width: 40%;
+        width: 30%;
       }
       th.messgage {
-        width: 30%;
+        width: 40%;
       }
       .progress-bar {
         width: 80%;
@@ -528,7 +540,7 @@ a:focus {
     }
     table.table {
       margin-top: 14px;
-      color: #7b7b7b;
+      color: #666;
       font-size: 13px;
       //width: 80%;
       tr > td:first-child {
@@ -576,7 +588,7 @@ a:focus {
 #summary-info {
   border-top: none;
   border-collapse: collapse;
-  color: #7B7B7B;
+  color: #666;
   font-size: 13px;
 
   td.summary-label {
@@ -678,9 +690,10 @@ a:focus {
 }
 
 .modal-graph-line {
-  width: 750px;
+  width: 790px;
   .modal-body {
-    min-height: 320px !important;
+    min-height: 420px !important;
+    overflow: hidden;
   }
 }
 
@@ -691,16 +704,38 @@ a:focus {
   cursor: pointer;
   cursor:-moz-zoom-in;
   cursor:-webkit-zoom-in;
+
   &.chart-container-popup {
-    cursor: auto;
+    cursor: auto !important;
+    margin-left: 0;
+    overflow: visible;
+    width: 650px;
+    .chart {
+      left: 60px;
+      overflow: visible;
+      position: relative;
+    }
+    .chart-y-axis {
+      position: absolute;
+      top: -15px;
+      bottom: 0;
+      width: 60px;
+    }
+    .chart-legend {
+      left: 60px;
+      top: 245px;
+    }
+    .x_tick {
+      .title {
+        margin-top: 35px !important;
+      }
+    }
   }
   position: relative;
   margin: 20px 15px 0px 15px;
 
   .chart {
-    padding-bottom: 0px !important;
     position: relative;
-    height: 160px;
     z-index: 1;
   }
   .chart-y-axis {
@@ -718,11 +753,30 @@ a:focus {
     width: 30%;
     z-index: 2;
   }
+  .x_tick {
+    margin-top: 5px;
+    .title {
+      padding: 0 2px 0 2px;
+      opacity: 1 !important;
+      top: 148px;
+    }
+  }
+  svg {
+    g {
+      g:nth-child(1) {
+        display: none;
+      }
+    }
+  }
+  text{
+    font-weight: 700;
+    opacity: 1 !important;
+  }
   .chart-legend {
     font-family: 'Courier New';
     position: absolute;
     top: 180px;
-    z-index: 2;
+    z-index: 3;
   }
   .rickshaw_legend {
     background-color: #999999 !important;
@@ -984,6 +1038,9 @@ a:focus {
 
     div.view-wrapper {
       float: left;
+      .btn-group{
+        margin-bottom: 9px;
+      }
     }
 
     a.ui-icon-circle-close {
@@ -1193,6 +1250,12 @@ a:focus {
 }
 
 .background-operations {
+  .progress {
+    margin-bottom: 5px;
+    .bar {
+      width: 100%;
+    }
+  }
   .open-details {
     clear: left;
     display: block;
@@ -1835,6 +1898,14 @@ ul.inline li {
   }
 }
 
+.screensaver{
+  width: 90%;
+  height: 160px;
+  border: 1px solid silver;
+  margin: 20px 15px 10px 15px;
+  background: url(/img/spinner.gif) no-repeat center center;
+}
+
 /* TIME RANGE WIDGET END */
 
 #host-details .host-components .btn-group > .btn {
@@ -1926,4 +1997,47 @@ ul.inline li {
       width: 120px;
     }
   }
+}
+
+
+//
+// Gray palette
+//
+.nav-pills > .active > a, .nav-pills > .active > a:hover {
+    background-color: #666666;
+}
+
+.nav-list > .active > a, .nav-list > .active > a:hover {
+  background-color: #666666;
+}
+
+.alert-info {
+  background-color: #E6F1F6;
+  border-color: #D2D9DD;
+  color: #4E575B;
+  text-shadow: none;
+}
+
+/*
+.progress-striped .bar {
+  background-color: #A5A5A5;
+}
+
+.progress-info.progress-striped .bar, .progress-striped .bar-info {
+  background-color: #A5A5A5;
+}
+*/
+
+.btn-primary:active, .btn-primary.active, .btn-primary.disabled, .btn-primary[disabled] {
+  background-color: #555555;
+}
+
+#main-nav .brand {
+  background-color: #777777;
+  color: #FFFFFF;
+  text-shadow: none;
+}
+
+.modal-body {
+  max-height: none;
 }

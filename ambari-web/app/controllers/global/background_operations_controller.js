@@ -28,6 +28,11 @@ App.BackgroundOperationsController = Em.Controller.extend({
 
   allOperations: [],
   allOperationsCount : 0,
+  executeTasks: [],
+
+  getTasksByRole: function (role) {
+    return this.get('allOperations').filterProperty('role', role);
+  },
 
   getOperationsForRequestId: function(requestId){
     return this.get('allOperations').filterProperty('request_id', requestId);
@@ -129,45 +134,69 @@ App.BackgroundOperationsController = Em.Controller.extend({
   }.observes('isWorking'),
 
   /**
-   * Add new operations to <code>this.allOperations</code> variable
+   * Update info about background operations
+   * Put all tasks with command 'EXECUTE' into <code>executeTasks</code>, other tasks with it they are still running put into <code>runningTasks</code>
+   * Put all task that should be shown in popup modal window into <code>this.allOperations</code>
    * @param data json loaded from server
    */
-  updateBackgroundOperations : function(data){
+  updateBackgroundOperations: function (data) {
     var runningTasks = [];
+    var executeTasks = this.get('executeTasks');
     data.items.forEach(function (item) {
       item.tasks.forEach(function (task) {
-        if (task.Tasks.status == 'QUEUED' || task.Tasks.status == 'PENDING') {
-          runningTasks.push(task.Tasks);
+        if (task.Tasks.command == 'EXECUTE') {
+          if (!executeTasks.someProperty('id', task.Tasks.id)) {
+            executeTasks.push(task.Tasks);
+          }
+        } else {
+          if (task.Tasks.status == 'QUEUED' || task.Tasks.status == 'PENDING' || task.Tasks.status == 'IN_PROGRESS') {
+            runningTasks.push(task.Tasks);
+          }
         }
       });
     });
 
-    runningTasks = runningTasks.sort(function(a,b){
+    for (var i = 0; i < executeTasks.length; i++) {
+      if (executeTasks[i].status == 'QUEUED' || executeTasks[i].status == 'PENDING' || executeTasks[i].status == 'IN_PROGRESS') {
+        var url = App.testMode ? '/data/background_operations/list_on_start.json' :
+            App.apiPrefix + '/clusters/' + App.router.getClusterName() + '/requests/' + executeTasks[i].request_id + '/tasks/' + executeTasks[i].id;
+        var j = i;
+        $.ajax({
+          type: "GET",
+          url: url,
+          dataType: 'json',
+          timeout: App.timeout,
+          success: function (data) {
+            if (data) {
+              executeTasks[j] = data.Tasks;
+            }
+          },
+          error: function () {
+            console.log('ERROR: error during executeTask update');
+          },
+
+          statusCode: require('data/statusCodes')
+        });
+      }
+    }
+    ;
+    var currentTasks;
+    currentTasks = runningTasks.concat(executeTasks);
+    currentTasks = currentTasks.sort(function (a, b) {
       return a.id - b.id;
     });
 
-    var currentTasks = this.get('allOperations');
-
-    runningTasks.forEach(function(item){
-      var task = currentTasks.findProperty('id', item.id);
-      if(task){
-        currentTasks[currentTasks.indexOf(task)] = item;
-      } else {
-        currentTasks.pushObject(item);
+    this.get('allOperations').filterProperty('isOpen').mapProperty('id').forEach(function(id){
+      if (currentTasks.someProperty('id', id)) {
+        currentTasks.findProperty('id', id).isOpen = true;
       }
     });
 
-    for(var i = currentTasks.length-1; i>=0; i--){
-      var isTaskFinished = !runningTasks.someProperty('id', currentTasks[i].id);
-      if(isTaskFinished){
-        currentTasks.removeAt(i);
-      }
-    }
-
-    this.set('allOperationsCount', currentTasks.length);
+    this.set('allOperations', currentTasks);
+    this.set('allOperationsCount', runningTasks.length + executeTasks.filterProperty('status', 'PENDING').length + executeTasks.filterProperty('status', 'QUEUED').length + executeTasks.filterProperty('status', 'IN_PROGRESS').length);
 
     var eventsArray = this.get('eventsArray');
-    if(eventsArray.length){
+    if (eventsArray.length) {
 
       var itemsToRemove = [];
       eventsArray.forEach(function(item){
@@ -190,6 +219,7 @@ App.BackgroundOperationsController = Em.Controller.extend({
    * Onclick handler for background operations number located right to logo
    */
   showPopup: function(){
+    this.set('executeTasks', []);
     this.loadOperations();
     App.ModalPopup.show({
       headerClass: Ember.View.extend({

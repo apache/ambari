@@ -243,11 +243,11 @@ App.format = {
       case 'NAMENODE':
         return 'NameNode';
       case 'NAMENODE_SERVICE_CHECK':
-        return 'NameNode Service Check';
+        return 'NameNode Check';
       case 'DATANODE':
         return 'DataNode';
       case 'HDFS_SERVICE_CHECK':
-        return 'HDFS Service Check';
+        return 'HDFS Check';
       case 'SECONDARY_NAMENODE':
         return 'SNameNode';
       case 'HDFS_CLIENT':
@@ -275,15 +275,15 @@ App.format = {
       case 'HADOOP_CLIENT':
         return 'Hadoop Client';
       case 'JOBTRACKER_SERVICE_CHECK':
-        return 'JobTracker Service Check';
+        return 'JobTracker Check';
       case 'MAPREDUCE_SERVICE_CHECK':
-        return 'MapReduce Service Check';
+        return 'MapReduce Check';
       case 'ZOOKEEPER_SERVICE_CHECK':
-        return 'ZooKeeper Service Check';
+        return 'ZooKeeper Check';
       case 'ZOOKEEPER_QUORUM_SERVICE_CHECK':
-        return 'ZooKeeper Quorum Service Check';
+        return 'ZK Quorum Check';
       case  'HBASE_SERVICE_CHECK':
-        return 'HBase Service Check';
+        return 'HBase Check';
       case 'MYSQL_SERVER':
         return 'MySQL Server';
       case 'HIVE_SERVER':
@@ -291,31 +291,31 @@ App.format = {
       case 'HIVE_CLIENT':
         return 'Hive Client';
       case 'HIVE_SERVICE_CHECK':
-        return 'Hive Service Check';
+        return 'Hive Check';
       case 'HCAT':
         return 'HCat';
       case 'HCAT_SERVICE_CHECK':
-        return 'HCat Service Check';
+        return 'HCat Check';
       case 'OOZIE_CLIENT':
         return 'Oozie Client';
       case 'OOZIE_SERVER':
         return 'Oozie Server';
       case 'OOZIE_SERVICE_CHECK':
-        return 'Oozie Service Check';
+        return 'Oozie Check';
       case 'PIG':
         return 'Pig';
       case 'PIG_SERVICE_CHECK':
-        return 'Pig Service Check';
+        return 'Pig Check';
       case 'SQOOP':
         return 'Sqoop';
       case 'SQOOP_SERVICE_CHECK':
-        return 'Sqoop Service Check';
+        return 'Sqoop Check';
       case 'TEMPLETON_CLIENT':
         return 'Templeton Client';
       case 'TEMPLETON_SERVER':
         return 'Templeton Server';
       case 'TEMPLETON_SERVICE_CHECK':
-        return 'Templeton Service Check';
+        return 'Templeton Check';
       case 'NAGIOS_SERVER':
         return 'Nagios Server';
       case 'GANGLIA_SERVER':
@@ -323,9 +323,9 @@ App.format = {
       case 'GANGLIA_MONITOR':
         return 'Ganglia Monitor';
       case 'GMOND_SERVICE_CHECK':
-        return 'Gmond Service Check'
+        return 'Gmond Check'
       case 'GMETAD_SERVICE_CHECK':
-        return 'Gmetad Service Check';
+        return 'Gmetad Check';
       case 'DECOMMISSION_DATANODE':
         return 'Decommission DataNode';
     }
@@ -343,4 +343,12 @@ App.format = {
   taskStatus:function (_taskStatus) {
     return _taskStatus.replace('_', ' ').toLowerCase();
   }
+};
+
+Array.prototype.removeAll = function(array){
+  var temp = array;
+  for(var i = 0 ; i < array.length ; i++ ){
+    temp = temp.without(array[i]);
+  }
+  return temp;
 };

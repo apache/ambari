@@ -34,20 +34,20 @@
       </p>
 
       {{#if view.parentView.controller.hideBackButton}}
-        {{#if content.oldHostNames }}
+        {{#if content.hosts.oldHostNames }}
           <p class="alert alert-info">
             {{t hosts.add.step2.warning}}
             <br/>
-            {{{content.oldHostNames}}}
-              {{#if content.showMoreHostsText}}
-                <a href="" {{action showMoreHosts target="view.parentView.controller"}}>{{content.showMoreHostsText}}</a>
+            {{{content.hosts.oldHostNames}}}
+              {{#if content.hosts.showMoreHostsText}}
+                <a href="" {{action showMoreHosts target="view.parentView.controller"}}>{{content.hosts.showMoreHostsText}}</a>
               {{/if}}
           </p>
         {{/if}}
       {{/if}}
 
       <div class="controls">
-        {{view Ember.TextArea class="span6" valueBinding="content.hostNames" rows="5" placeholder="host names"}}
+        {{view Ember.TextArea class="span6" valueBinding="content.hosts.hostNames" rows="5" placeholder="host names"}}
         {{#if hostsError}}
         <p class="help-inline">{{hostsError}}</p>
         {{/if}}
@@ -64,10 +64,11 @@
       <div {{bindAttr class="sshKeyError:error :control-group"}}>
         {{#if view.isFileApi}}
           {{view App.SshKeyFileUploader}}
-          <pre {{bindAttr class="view.sshKeyPreviewClass"}}>{{content.sshKey}}</pre>
+          <pre {{bindAttr class="view.sshKeyPreviewClass"}}>{{content.hosts.sshKey}}</pre>
         {{/if}}
         <div class="controls">
-          {{view Ember.TextArea class="span6" rows="4" classBinding="view.sshKeyClass"  id="sshKey" placeholder="ssh private key" disabledBinding="view.sshKeyState" valueBinding="content.sshKey"}}
+          {{view Ember.TextArea class="span6" rows="4" classBinding="view.sshKeyClass"  id="sshKey"
+          placeholder="ssh private key" disabledBinding="view.sshKeyState" valueBinding="content.hosts.sshKey"}}
           {{#if sshKeyError}}
           <span class="help-inline">{{sshKeyError}}</span>
           {{/if}}
@@ -81,7 +82,7 @@
            rel="popover"
           {{translateAttr title="installer.step2.manualInstall.tooltip.title" data-content="installer.step2.manualInstall.tooltip.content"}}>
           Learn more</a>
-        {{view Ember.Checkbox checkedBinding="content.manualInstall"}}
+        {{view Ember.Checkbox checkedBinding="content.hosts.manualInstall"}}
       </label>
       </div>
 
@@ -92,11 +93,11 @@
       {{/if}}
 
       <!--
-    {{view Ember.TextField type="text" placeholder="passphrase" valueBinding="content.passphrase"}}
+    {{view Ember.TextField type="text" placeholder="passphrase" valueBinding="content.hosts.passphrase"}}
 
     <div {{bindAttr class="passphraseMatchErr:error :control-group :ambari-agents"}}>
       <div class="controls">
-        {{view Ember.TextField type="text" placeholder="confirm passphrase" valueBinding="content.confirmPassphrase"}}
+        {{view Ember.TextField type="text" placeholder="confirm passphrase" valueBinding="content.hosts.confirmPassphrase"}}
 
         {{#if passphraseMatchErr}}
         <p class="help-inline">{{t installer.step2.passphrase.error.match}}</p>
@@ -115,7 +116,7 @@
          rel="popover"
         {{translateAttr title="installer.step2.localRepo.tooltip.title" data-content="installer.step2.localRepo.tooltip.content"}}>
         Learn more</a>
-      {{view Ember.Checkbox checkedBinding="content.localRepo"}}
+      {{view Ember.Checkbox checkedBinding="content.hosts.localRepo"}}
     </label>
 
     {{#if "localRepo"}}
@@ -131,7 +132,7 @@
     <a class="btn pull-left" {{action back}}>&larr; Back</a>
     {{/unless}}
     <a class="btn btn-success pull-right" {{bindAttr disabled="isSubmitDisabled"}} {{action evaluateStep}}>
-      Discover and Validate &rarr;</a>
+      Register and Confirm &rarr;</a>
   </div>
 
 </div>

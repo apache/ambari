@@ -21,17 +21,13 @@
   <div class="navbar">
     <div class="navbar-inner">
       <a class="brand" href="#">
-        {{#if clusterName}}
-          {{clusterName}}
-        {{else}}
-          My Cluster
-        {{/if}}
-          {{#view App.EmptyView controllerBinding="App.router.backgroundOperationsController"}}
-            {{#if allOperationsCount}}
-              <span class="label operations-count" {{action "showPopup" target="controller"}}>{{allOperationsCount}}</span>
-            {{/if}}
-          {{/view}}
+        {{clusterName}}
 
+        {{#view App.EmptyView controllerBinding="App.router.backgroundOperationsController"}}
+          {{#if allOperationsCount}}
+            <span class="label operations-count" {{action "showPopup" target="controller"}}>{{allOperationsCount}}</span>
+          {{/if}}
+        {{/view}}
       </a>
       {{view App.MainMenuView}}
     </div>

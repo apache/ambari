@@ -27,9 +27,9 @@ App.MainServiceItemView = Em.View.extend({
 //      case 'HDFS':
 //        options.push({action: 'runRebalancer', 'label': Em.I18n.t('services.service.actions.run.rebalancer')});
 //        break;
-      case 'HBASE':
-        options.push({action: 'runCompaction', 'label': Em.I18n.t('services.service.actions.run.compaction')});
-        break;
+//      case 'HBASE':
+//        options.push({action: 'runCompaction', 'label': Em.I18n.t('services.service.actions.run.compaction')});
+//        break;
       default:
         options.push({action: 'runSmokeTest', 'label': Em.I18n.t('services.service.actions.run.smoke')});
     }

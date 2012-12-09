@@ -140,9 +140,9 @@
       <div class="accordion-group">
         <div class="accordion-heading">
           {{#if category.isCollapsed}}
-          <i class='icon-caret-left pull-right accordion-toggle'></i>
+          <i class='icon-caret-right pull-left accordion-toggle'></i>
           {{else}}
-          <i class='icon-caret-down pull-right accordion-toggle'></i>
+          <i class='icon-caret-down pull-left accordion-toggle'></i>
           {{/if}}
           <a class="accordion-toggle" {{action "onToggleBlock" category target="view"}}>
             {{category.name}}

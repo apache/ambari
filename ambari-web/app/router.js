@@ -255,18 +255,53 @@ App.Router = Em.Router.extend({
       return 'installer';
     }
   },
+
   logOff: function(context){
-    console.log('logging off');
+    var hash = window.btoa(this.get('loginController.loginName') + ":" + this.get('loginController.password'));
+
     // App.db.cleanUp() must be called before router.clearAllSteps().
     // otherwise, this.set('installerController.currentStep, 0) would have no effect
     // since it's a computed property but we are not setting it as a dependent of App.db.
     App.db.cleanUp();
     this.clearAllSteps();
-    console.log("Log off: " + App.db.getClusterName());
+    console.log("Log off: " + App.router.getClusterName());
     this.set('loginController.loginName', '');
     this.set('loginController.password', '');
+
+    if (!App.testMode) {
+      $.ajax({
+        url: App.apiPrefix + '/logout',
+        dataType: 'json',
+        type: 'GET',
+        beforeSend: function (xhr) {
+          xhr.setRequestHeader("Authorization", "Basic " + hash);
+        },
+        statusCode: {
+          200: function () {
+            console.log("Status code 200: Success.");
+          },
+          401: function () {
+            console.log("Error code 401: Unauthorized.");
+          },
+          403: function () {
+            console.log("Error code 403: Forbidden.");
+          }
+        },
+        success: function (data) {
+          console.log("invoked logout on the server successfully");
+        },
+        error: function (data) {
+          console.log("failed to invoke logout on the server");
+        },
+        complete: function () {
+          console.log('done');
+        }
+      });
+    }
+
     this.transitionTo('login', context);
   },
+
   root: Em.Route.extend({
     index: Em.Route.extend({
       route: '/',

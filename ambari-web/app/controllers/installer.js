@@ -38,38 +38,8 @@ App.InstallerController = App.WizardController.extend({
     controllerName: 'installerController'
   }),
 
-  /**
-   * Load clusterInfo(step1) to model
-   */
-  loadClusterInfo: function () {
-    var cStatus = App.db.getClusterStatus() || {status: "", isCompleted: false};
-    var cluster = {
-      name: App.db.getClusterName() || "",
-      status: cStatus.status,
-      isCompleted: cStatus.isCompleted,
-      requestId: cStatus.requestId,
-      installStartTime: cStatus.installStartTime,
-      installTime: cStatus.installTime
-    };
-    this.set('content.cluster', cluster);
-
-    console.log("InstallerController:loadClusterInfo: loaded data ", cluster);
-  },
-
-  /**
-   * Save all info about cluster to model
-   * @param stepController Step1WizardController
-   */
-  saveClusterInfo: function (stepController) {
-    var cluster = stepController.get('content.cluster');
-    var clusterStatus = {
-      status: cluster.status,
-      isCompleted: cluster.isCompleted
-    };
-    App.db.setClusterName(cluster.name);
-    App.db.setClusterStatus(clusterStatus);
-
-    console.log("InstallerController:saveClusterInfo: saved data ", cluster);
+  getCluster: function(){
+    return jQuery.extend(this.get('clusterStatusTemplate'), {});
   },
 
   /**
@@ -95,7 +65,7 @@ App.InstallerController = App.WizardController.extend({
     //TODO : rewire it as model. or not :)
     var hostsInfo = Em.Object.create();
 
-    hostsInfo.hostNames = App.db.getAllHostNames() || ''; //empty string if undefined
+    hostsInfo.hostNames = App.db.getAllHostNamesPattern() || ''; //empty string if undefined
 
     //TODO : should we check installType for add host wizard????
     var installType = App.db.getInstallType();
@@ -128,7 +98,8 @@ App.InstallerController = App.WizardController.extend({
     //TODO: put data to content.hosts and only then save it)
 
     //App.db.setBootStatus(false);
-    App.db.setAllHostNames(stepController.get('hostNames'));
+    App.db.setAllHostNames(stepController.get('hostNameArr').join("\n"));
+    App.db.setAllHostNamesPattern(stepController.get('hostNames'));
     App.db.setBootRequestId(stepController.get('bootRequestId'));
     App.db.setHosts(stepController.getHostInfo());
     if (stepController.get('manualInstall') === false) {
@@ -164,6 +135,7 @@ App.InstallerController = App.WizardController.extend({
         name: _host.name,
         cpu: _host.cpu,
         memory: _host.memory,
+        disk_info: _host.disk_info,
         bootStatus: _host.bootStatus,
         isInstalled: false
       };
@@ -361,7 +333,7 @@ App.InstallerController = App.WizardController.extend({
       _content.get('configs').forEach(function (_configProperties) {
         var displayType = _configProperties.get('displayType');
         if (displayType === 'directories' || displayType === 'directory') {
-          var value = _configProperties.get('value').split(/\s+/g).join(',');
+          var value = _configProperties.get('value').trim().split(/\s+/g).join(',');
           _configProperties.set('value', value);
         }
         var configProperty = {
@@ -370,6 +342,7 @@ App.InstallerController = App.WizardController.extend({
           value: _configProperties.get('value'),
           defaultValue: _configProperties.get('defaultValue'),
           service: _configProperties.get('serviceName'),
+          domain:  _configProperties.get('domain'),
           filename: _configProperties.get('filename')
         };
         serviceConfigProperties.push(configProperty);
@@ -386,12 +359,17 @@ App.InstallerController = App.WizardController.extend({
         var slaveCategory = _content.get('configCategories').findProperty('isForSlaveComponent', true);
         slaveCategory.get('slaveConfigs.groups').forEach(function (_group) {
           _group.get('properties').forEach(function (_property) {
+            var displayType = _property.get('displayType');
+            if (displayType === 'directories' || displayType === 'directory') {
+              var value = _property.get('value').trim().split(/\s+/g).join(',');
+              _property.set('value', value);
+            }
             _property.set('storeValue', _property.get('value'));
           }, this);
         }, this);
         slaveConfigProperties.pushObject(slaveCategory.get('slaveConfigs'));
       }
-    }, this)
+    }, this);
     App.db.setSlaveProperties(slaveConfigProperties);
     this.set('content.slaveGroupProperties', slaveConfigProperties);
   },
@@ -492,7 +470,7 @@ App.InstallerController = App.WizardController.extend({
       case '2':
         this.loadInstallOptions();
       case '1':
-        this.loadClusterInfo();
+        this.load('cluster');
     }
   },
 
@@ -609,49 +587,20 @@ App.InstallerController = App.WizardController.extend({
     return serviceComponents;
   },
 
-
-  /*
-   Bootstrap selected hosts.
-   */
-  launchBootstrap: function (bootStrapData) {
-    var self = this;
-    var requestId = null;
-    var method = App.testMode ? 'GET' : 'POST';
-    var url = App.testMode ? '/data/wizard/bootstrap/bootstrap.json' : App.apiPrefix + '/bootstrap';
-    $.ajax({
-      type: method,
-      url: url,
-      async: false,
-      data: bootStrapData,
-      timeout: App.timeout,
-      contentType: 'application/json',
-      success: function (data) {
-        console.log("TRACE: POST bootstrap succeeded");
-        requestId = data.requestId;
-      },
-      error: function () {
-        console.log("ERROR: POST bootstrap failed");
-        alert('Bootstrap call failed.  Please try again.');
-      },
-      statusCode: require('data/statusCodes')
-    });
-    return requestId;
-  },
-
-
   /**
    * Clear all temporary data
    */
   finish: function () {
-    this.setCurrentStep('1', false);
+    this.setCurrentStep('1');
     App.db.setService(undefined); //not to use this data at AddService page
     App.db.setHosts(undefined);
     App.db.setMasterComponentHosts(undefined);
     App.db.setSlaveComponentHosts(undefined);
-    App.db.setClusterStatus(undefined);
+    App.db.setCluster(undefined);
     App.db.setAllHostNames(undefined);
+    App.db.setSlaveProperties(undefined);
+    App.db.setSshKey(undefined);
   }
 
-})
-;
+});
 

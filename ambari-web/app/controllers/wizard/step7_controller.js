@@ -52,7 +52,7 @@ App.WizardStep7Controller = Em.Controller.extend({
 
   slaveComponentHosts: function () {
     return this.get('content.slaveGroupProperties');
-  }.property('content.slaveGroupProperties','content.slaveComponentHosts'),
+  }.property('content.slaveGroupProperties', 'content.slaveComponentHosts'),
 
   serviceConfigs: require('data/service_configs'),
   configMapping: require('data/config_mapping'),
@@ -71,29 +71,8 @@ App.WizardStep7Controller = Em.Controller.extend({
     this.clearStep();
     var serviceConfigs = this.get('serviceConfigs');
     var advancedConfig = this.get('content.advancedServiceConfig') || [];
-    advancedConfig.forEach(function (_config) {
-      if (_config) {
-        var service = serviceConfigs.findProperty('serviceName', _config.serviceName);
-        if (service) {
-          if (this.get('configMapping').someProperty('name', _config.name)) {
-          } else if (!(service.configs.someProperty('name', _config.name))) {
-            _config.id = "site property";
-            _config.category = 'Advanced';
-            _config.displayName = _config.name;
-            _config.defaultValue = _config.value;
-            if (/\${.*}/.test(_config.value) || (service.serviceName !== 'OOZIE' && service.serviceName !== 'HBASE')) {
-              _config.isRequired = false;
-              _config.value = '';
-            } else if (/^\s+$/.test(_config.value)) {
-              _config.isRequired = false;
-            }
-            _config.isVisible = true;
-            _config.displayType = 'advanced';
-            service.configs.pushObject(_config);
-          }
-        }
-      }
-    }, this);
+    this.loadAdvancedConfig(serviceConfigs,advancedConfig);
+    this.loadHostConfigs();
     this.loadCustomConfig();
     this.renderServiceConfigs(serviceConfigs);
     var storedServices = this.get('content.serviceConfigProperties');
@@ -116,6 +95,47 @@ App.WizardStep7Controller = Em.Controller.extend({
       }, this);
 
     }
+  },
+
+  /*
+  Loads the advanced configs fetched from the server metadata libarary
+   */
+
+  loadAdvancedConfig: function (serviceConfigs,advancedConfig) {
+    advancedConfig.forEach(function (_config) {
+      if (_config) {
+        var service = serviceConfigs.findProperty('serviceName', _config.serviceName);
+        if (service) {
+          if (this.get('configMapping').someProperty('name', _config.name)) {
+          } else if (!(service.configs.someProperty('name', _config.name))) {
+            _config.id = "site property";
+            _config.category = 'Advanced';
+            _config.displayName = _config.name;
+            _config.defaultValue = _config.value;
+            // make all advanced configs optional and populated by default
+            /*
+            if (/\${.*}/.test(_config.value) || (service.serviceName !== 'OOZIE' && service.serviceName !== 'HBASE')) {
+              _config.isRequired = false;
+              _config.value = '';
+            } else if (/^\s+$/.test(_config.value)) {
+              _config.isRequired = false;
+            }
+            */
+            _config.isRequired = false;
+            _config.isVisible = true;
+            _config.displayType = 'advanced';
+            service.configs.pushObject(_config);
+          }
+        }
+      }
+    }, this);
+  },
+
+  /*
+  loads host related configs obtained from server.
+   */
+  loadHostConfigs: function() {
+
   },
 
 

@@ -305,7 +305,6 @@ App.MainHostView = Em.View.extend({
       self.get('parentView').get('oTable').fnFilter('', 6);
       jQuery('#components_filter').closest('th').addClass('notActive');
     },
-
     closeFilters:function () {
       $(document).unbind('click');
       this.clickFilterButton();
@@ -333,12 +332,10 @@ App.MainHostView = Em.View.extend({
         });
       }
     },
-    /*closeFilter: function(){
-     this.set('open', false);
-     },*/
     applyFilter:function() {
       var chosenComponents = new Array();
-      this.set('open', !this.get('open'));
+
+      this.set('isFilterOpen', !this.get('isFilterOpen'));
       this.get('masterComponents').forEach(function(item){
         if(item.get('checkedForHostFilter')) chosenComponents.push(item.get('displayName'));
       });

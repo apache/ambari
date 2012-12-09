@@ -30,7 +30,7 @@ App.ChartServiceMetricsMapReduce_JVMHeap = App.ChartLinearTimeView.extend({
   id: "service-metrics-mapreduce-jvm-heap",
   title: "JVM Memory Status",
   yAxisFormatter: App.ChartLinearTimeView.BytesFormatter,
-
+  renderer: 'line',
   url: function () {
     var mrService = App.MapReduceService.find().objectAt(0);
     var jtHostName = mrService.get('jobTracker').get('hostName');

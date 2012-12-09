@@ -62,6 +62,7 @@ Em.I18n.translations = {
   'installer.step2.hostName.error.required':'You must specify at least one host name',
   'installer.step2.hostName.error.notRequired':'Host Names will be ignored if not using SSH to automatically configure hosts',
   'installer.step2.hostName.error.invalid':'Invalid Host Name(s) - cannot start or end with a hyphen',
+  'installer.step2.hostName.pattern.header':'Host name pattern expressions',
   'installer.step2.sshKey':'Host Connectivity Information',
   'installer.step2.sshKey.info':'Provide your SSH Private Key (<b>id_rsa</b> for <b>root</b>)',
   'installer.step2.sshKey.error.required':'SSH Private Key is required',
@@ -74,13 +75,11 @@ Em.I18n.translations = {
   'installer.step2.localRepo.header':'Software Repository',
   'installer.step2.localRepo.label':'Use a local software repository',
   'installer.step2.localRepo.error.required':'Local repository file path is required',
-  'installer.step2.localRepo.info':'The repository configuration file should be installed on each host in your cluster. ' +
-    'This file instructs the package manager to use your local software repository to retrieve software packages, instead of ' +
-    'downloading them from the internet.',
+  'installer.step2.localRepo.info':'Instructs the package manager to use your local software repository to retrieve software packages, instead of ' +
+    'downloading from the internet.',
   'installer.step2.localRepo.tooltip.title':'Local Software Repository',
-  'installer.step2.localRepo.tooltip.content':'The repository configuration file should be installed on each host ' +
-    'in your cluster. This file instructs package manager to use your local' +
-    'software repository to retrieve software packages, instead of using the internet.',
+  'installer.step2.localRepo.tooltip.content':'Instructs the package manager to use your local software repository to retrieve software packages, instead of' +
+    'downloading from the internet.',
   'installer.step2.manualInstall.tooltip.title':'Not Using SSH (Manual Install)',
   'installer.step2.manualInstall.tooltip.content':'If you do not wish Ambari to automatically configure the target hosts via SSH,' +
     ' you have the option of configuring them yourself.  This involves installing and starting Ambari Agent on each of your target hosts.',
@@ -88,17 +87,18 @@ Em.I18n.translations = {
   'installer.step2.manualInstall.popup.body':'You must install Ambari Agents on each host you want to manage before you proceed.  <a href="#" target="_blank">Learn more</a>',
 
   'installer.step3.header':'Confirm Hosts',
-  'installer.step3.body':'Here are the results of the host discovery process.<br>' +
-    'Please verify and remove the ones that you do not want to be part of the cluster.',
-  'installer.step3.hostLog.popup.header':'Bootstrap log for {0}',
+  'installer.step3.body':'Registering your hosts.<br>' +
+    'Please confirm the host list and remove any hosts you do not want to include the cluster.',
+  'installer.step3.hostLog.popup.header':'Registration log for {0}',
   'installer.step3.hosts.remove.popup.header':'Remove Hosts',
   'installer.step3.hosts.remove.popup.body':'Are you sure you want to remove the selected host(s)?',
   'installer.step3.hosts.retry.popup.header':'Retry Host Discovery',
   'installer.step3.hosts.retry.popup.body':'Are you sure you want to retry discovery of the selected host(s)?',
+  'installer.step3.hosts.summary' : 'Installing: %@, Registering: %@, Successful: %@, Failed: %@ ',
   'installer.step3.hostInformation.popup.header':'Error in retrieving host Information',
   'installer.step3.hostInformation.popup.body' : 'All bootstrapped hosts registered but unable to retrieve cpu and memory related information',
   'installer.step4.header':'Choose Services',
-  'installer.step4.body':'Choose which services you want to install on your cluster.<br>Note that some services have dependencies (e.g., HBase requires ZooKeeper.)',
+  'installer.step4.body':'Choose which services you want to install on your cluster.',
   'installer.step4.mapreduceCheck.popup.header':'MapReduce Needed',
   'installer.step4.mapreduceCheck.popup.body':'You did not select MapReduce, but it is needed by other services you selected.  We will automatically add MapReduce.  Is this OK?',
   'installer.step4.monitoringCheck.popup.header':'Limited Functionality Warning',
@@ -109,7 +109,7 @@ Em.I18n.translations = {
   'installer.step5.body':'Assign master components to hosts you want to run them on.',
 
   'installer.step6.header':'Assign Slaves and Clients',
-  'installer.step6.body':'Assign slave and client components to hosts you want to run them on. <br/>Client component will install ',
+  'installer.step6.body':'Assign slave and client components to hosts you want to run them on.<br/>Hosts that are assigned master components are shown with <i class=icon-asterisks>&#10037</i>. <br/>&quot;Client&quot; will install ',
   'installer.step6.error.mustSelectOne':'You must assign at least one host to each.',
 
   'installer.step7.header':'Customize Services',

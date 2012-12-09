@@ -27,14 +27,31 @@ App.MainBackgroundOperation = Em.View.extend({
   content: null,
   classNames: ['background-operations'],
   classNameBindings: ['isOpen'],
-  isOpen: false,
+  isOpen: function () {
+    return this.get('content.isOpen');
+  }.property('content.isOpen'),
   iconClass: function(){
     return this.get('isOpen') ? 'icon-minus' : 'icon-plus';
   }.property('isOpen'),
   showOperationLog:function(){
-    this.set('isOpen', !this.get('isOpen'));
+    this.set('content.isOpen', !this.get('content.isOpen'));
     this.set('isTextArea', false);
   },
+  hasProgressBar: function () {
+    return this.get('content.command') == 'EXECUTE';
+  }.property('content.command'),
+  isInProgress: function () {
+    var status = this.get('content.status');
+    return status == 'IN_PROGRESS' || status == 'QUEUED' || status == 'PENDING';
+  }.property('content.status'),
+  barColor: function () {
+    if (this.get('isInProgress')) {
+      return 'progress-info';
+    } else {
+      if (this.get('content.status') == 'COMPLETED') return 'progress-success';
+      return 'progress-danger';
+    }
+  }.property('isInProgress'),
   buttonLabel:function(){
     var button = $(this.get('element')).find('.textTrigger');
     if(this.get('isTextArea')){

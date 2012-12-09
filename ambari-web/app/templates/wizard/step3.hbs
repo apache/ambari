@@ -20,20 +20,22 @@
   <h2>{{t installer.step3.header}}</h2>
 
   <p class="alert alert-info">{{t installer.step3.body}}</p>
-
+  <div>{{controller.hostStatusSummary}}</div>
   <div class="box">
     <div class="box-header">
       <div class="button-section">
-        <a class="btn btn-primary decommission" {{bindAttr disabled="isRetryDisabled"}}
-           href="#" {{action retrySelectedHosts target="controller"}}><i
-                class="icon-repeat icon-white"></i>
-          Retry
-        </a>
         <a class="btn btn-primary" {{bindAttr disabled="noHostsSelected"}}
            href="#" {{action removeSelectedHosts target="controller" }}><i
                 class="icon-trash icon-white"></i>
-          Remove
+          Remove Selected
         </a>
+        {{#unless isRetryDisabled}}
+        <a class="btn btn-primary decommission"
+           href="#" {{action retrySelectedHosts target="controller"}}><i
+          class="icon-repeat icon-white"></i>
+          Retry Failed
+        </a>
+        {{/unless}}
         {{#if App.testMode}}
         <a class="btn btn-info"
            href="#" {{action mockBtn target="controller" }}>
@@ -47,12 +49,13 @@
 
         <div id="host-filter" class="dropdown pull-right">
           {{view Ember.Select class="pull-right"
-       contentBinding="controller.categories"
-       selectionBinding="controller.category"
-       }}
+              contentBinding="controller.categories"
+              optionValuePath="content.value"
+              optionLabelPath="content.label"
+              selectionBinding="controller.category"
+          }}
           <h5 class="pull-right">Show:</h5>
         </div>
-
       </div>
     </div>
 

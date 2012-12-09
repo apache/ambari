@@ -23,12 +23,12 @@ App.ApplicationController = Em.Controller.extend({
 
   name: 'applicationController',
   clusterName: function () {
-    var name = App.db.getClusterName();
+    var name = App.router.get('clusterController.clusterName');
     if (name) {
       return name.capitalize();
     }
-    return '';
-  }.property(),
+    return Em.I18n.t('installer.header');
+  }.property('App.router.clusterController.clusterName'),
   isClusterDataLoaded: function() {
     return App.router.get('clusterController.isLoaded');
   }.property('App.router.clusterController.isLoaded'),

@@ -35,7 +35,8 @@ App.WizardStep1View = Em.View.extend({
   }.property('controller.clusterNameError'),
 
   submit: function(event) {
-    App.router.wizardStep1Controller.submit();
+    this.get('controller').submit();
+    return false;
   }
 
 });

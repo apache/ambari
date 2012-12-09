@@ -32,6 +32,7 @@ module.exports = Em.Route.extend({
         }),
         primary:Em.I18n.t('form.cancel'),
         secondary: null,
+        showFooter: false,
 
         onPrimary:function () {
           this.hide();
@@ -57,15 +58,19 @@ module.exports = Em.Route.extend({
     connectOutlets: function (router) {
       console.log('in addHost.step1:connectOutlets');
       var controller = router.get('addHostController');
-      controller.setCurrentStep('1', false);
+      controller.setCurrentStep('1');
       controller.set('hideBackButton', true);
       controller.dataLoading().done(function () {
-      controller.loadAllPriorSteps();
-      controller.connectOutlet('wizardStep2', controller.get('content.hosts'));
+        controller.loadAllPriorSteps();
+        controller.connectOutlet('wizardStep2', controller.get('content'));
       })
     },
 
     next: function (router) {
+      var controller = router.get('addHostController');
+      var wizardStep2Controller = router.get('wizardStep2Controller');
+      wizardStep2Controller.patternExpression();
+      controller.saveHosts(wizardStep2Controller);
       router.transitionTo('step2');
       App.db.setBootStatus(false);
     },
@@ -77,7 +82,6 @@ module.exports = Em.Route.extend({
       wizardStep2Controller.set('hasSubmitted', true);
 
       if (!wizardStep2Controller.get('isSubmitDisabled')) {
-        addHostController.saveHosts(wizardStep2Controller);
         wizardStep2Controller.evaluateStep();
       }
     }
@@ -88,7 +92,7 @@ module.exports = Em.Route.extend({
     connectOutlets: function (router) {
       console.log('in addHost.step2:connectOutlets');
       var controller = router.get('addHostController');
-      controller.setCurrentStep('2', false);
+      controller.setCurrentStep('2');
       controller.dataLoading().done(function () {
       controller.loadAllPriorSteps();
       controller.connectOutlet('wizardStep3', controller.get('content'));
@@ -122,7 +126,7 @@ module.exports = Em.Route.extend({
     connectOutlets: function (router, context) {
       console.log('in addHost.step3:connectOutlets');
       var controller = router.get('addHostController');
-      controller.setCurrentStep('3', false);
+      controller.setCurrentStep('3');
       controller.dataLoading().done(function () {
         controller.loadAllPriorSteps();
         controller.connectOutlet('wizardStep6', controller.get('content'));
@@ -148,7 +152,7 @@ module.exports = Em.Route.extend({
     connectOutlets: function (router) {
       console.log('in addHost.step4:connectOutlets');
       var controller = router.get('addHostController');
-      controller.setCurrentStep('4', false);
+      controller.setCurrentStep('4');
       controller.dataLoading().done(function () {
         controller.loadAllPriorSteps();
         controller.connectOutlet('wizardStep7', controller.get('content'));
@@ -168,7 +172,7 @@ module.exports = Em.Route.extend({
     connectOutlets: function (router, context) {
       console.log('in addHost.step5:connectOutlets');
       var controller = router.get('addHostController');
-      controller.setCurrentStep('5', false);
+      controller.setCurrentStep('5');
       controller.dataLoading().done(function () {
         controller.loadAllPriorSteps();
         controller.connectOutlet('wizardStep8', controller.get('content'));
@@ -189,7 +193,7 @@ module.exports = Em.Route.extend({
     connectOutlets: function (router, context) {
       console.log('in addHost.step6:connectOutlets');
       var controller = router.get('addHostController');
-      controller.setCurrentStep('6', false);
+      controller.setCurrentStep('6');
       controller.dataLoading().done(function () {
         controller.loadAllPriorSteps();
         if (!App.testMode) {              //if test mode is ON don't disable prior steps link.
@@ -228,7 +232,7 @@ module.exports = Em.Route.extend({
     connectOutlets: function (router, context) {
       console.log('in addHost.step7:connectOutlets');
       var controller = router.get('addHostController');
-      controller.setCurrentStep('7', false);
+      controller.setCurrentStep('7');
       controller.dataLoading().done(function () {
         controller.loadAllPriorSteps();
         controller.connectOutlet('wizardStep10', controller.get('content'));

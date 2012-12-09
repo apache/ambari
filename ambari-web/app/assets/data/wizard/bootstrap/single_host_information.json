@@ -1,12 +1,70 @@
 {
-  "href" : "http://localhost:8080/api/v1/hosts?fields=Hosts/total_mem,Hosts/cpu_count",
-  "items" : [
+  "href": "http://localhost:8080/api/v1/hosts?fields=Hosts/total_mem,Hosts/cpu_count",
+  "items": [
     {
-      "href" : "http://localhost:8080/api/v1/hosts/localhost.localdomain",
-      "Hosts" : {
-        "cpu_count" : 1,
-        "total_mem" : 4057989,
-        "host_name" : "localhost.localdomain"
+      "href": "http://localhost:8080/api/v1/hosts/localhost.localdomain",
+      "Hosts": {
+        "cpu_count": 1,
+        "total_mem": 4057989,
+        "host_name": "localhost.localdomain",
+        "disk_info": [
+          {
+            "available": "47574176",
+            "used": "3507828",
+            "percent": "7%",
+            "size": "51606140",
+            "type": "ext4",
+            "mountpoint": "/"
+          },
+          {
+            "available": "47574176",
+            "used": "3507828",
+            "percent": "7%",
+            "size": "51606140",
+            "type": "ext4",
+            "mountpoint": "/grid/0"
+          },
+          {
+            "available": "1027204",
+            "used": "260",
+            "percent": "1%",
+            "size": "1027464",
+            "type": "tmpfs",
+            "mountpoint": "/dev/shm"
+          },
+          {
+            "available": "432210",
+            "used": "38034",
+            "percent": "9%",
+            "size": "495844",
+            "type": "ext4",
+            "mountpoint": "/boot"
+          },
+          {
+            "available": "44459872",
+            "used": "184220",
+            "percent": "1%",
+            "size": "47033288",
+            "type": "ext4",
+            "mountpoint": "/home"
+          },
+          {
+            "available": "450200708",
+            "used": "281534268",
+            "percent": "39%",
+            "size": "731734976",
+            "type": "vboxsf",
+            "mountpoint": "/media/sf_ambari"
+          },
+          {
+            "available": "450200708",
+            "used": "281534268",
+            "percent": "39%",
+            "size": "731734976",
+            "type": "vboxsf",
+            "mountpoint": "/host"
+          }
+        ]
       }
     }
   ]

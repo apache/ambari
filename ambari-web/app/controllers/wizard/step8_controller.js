@@ -48,66 +48,15 @@ App.WizardStep8Controller = Em.Controller.extend({
     this.loadGlobals();
     this.loadConfigs();
     this.setCustomConfigs();
-    this.loadClusterInfo();
     this.loadSlaveConfiguration();
+    this.loadClusterInfo();
     this.loadServices();
-  },
-
-  loadSlaveConfiguration: function () {
-    var slaveComponentConfig = this.convertSlaveConfig(this.get('content.slaveGroupProperties'));
-    this.set("slaveComponentConfig", slaveComponentConfig);
-  },
-
-  convertSlaveConfig: function (slaveContent) {
-    var dest = {
-      "version": "1.0",
-      "components": [
-      ]
-    };
-
-    slaveContent.forEach(function (_slaveContent) {
-      var newComponent = {};
-      newComponent.componentName = _slaveContent.componentName;
-      newComponent.serviceName = this.getServiceName(newComponent.componentName);
-      newComponent.groups = [];
-      _slaveContent.groups.forEach(function (_group) {
-        var newGroup = {};
-        newGroup.groupName = _group.name;
-        newGroup.configVersion = "1.0"; // TODO : every time a new version should be generated
-        newGroup.hostNames = _slaveContent.hosts.filterProperty("group", newGroup.groupName);
-        newGroup.properties = _group.properties;
-        if (!Ember.empty(newGroup.hostNames)) {
-          newComponent.groups.push(newGroup);
-        }
-      }, this);
-      dest.components.push(newComponent);
-    }, this);
-    return dest;
-
-  },
-
-  getServiceName: function (componentName) {
-    var serviceName = null
-    switch (componentName) {
-      case 'DATANODE':
-        serviceName = 'HDFS';
-        break;
-      case 'TASKTRACKER':
-        serviceName = 'MAPREDUCE';
-        break;
-      case 'HBASE_REGIONSERVER':
-        serviceName = 'HBASE';
-        break;
-      default:
-        serviceName = null;
-    }
-    return serviceName;
   },
 
   loadGlobals: function () {
     var globals = this.get('content.serviceConfigProperties').filterProperty('id', 'puppet var');
     if (globals.someProperty('name', 'hive_database')) {
-      //TODO: Hive host depends on the type of db selected. Change puppet variable name if postgress is not the default db
+      //TODO: Hive host depends on the type of db selected. Change puppet variable name if postgres is not the default db
       var hiveDb = globals.findProperty('name', 'hive_database');
       if (hiveDb.value === 'New PostgreSQL Database') {
         globals.findProperty('name', 'hive_ambari_host').name = 'hive_mysql_host';
@@ -284,6 +233,100 @@ App.WizardStep8Controller = Em.Controller.extend({
     }
   },
 
+  loadSlaveConfiguration: function () {
+
+    var slaveComponentConfig = this.convertSlaveConfig(this.get('content.slaveGroupProperties'));
+    this.set("slaveComponentConfig", slaveComponentConfig);
+  },
+
+  convertSlaveConfig: function (slaveContent) {
+    var dest = {
+      "version": "1.0",
+      "components": [
+      ],
+      "slaveHostComponents": []
+    };
+
+    slaveContent.forEach(function (_slaveContent) {
+      var newComponent = {};
+      newComponent.componentName = _slaveContent.componentName;
+      newComponent.serviceName = this.getServiceInfo(newComponent.componentName).name;
+      newComponent.groups = [];
+      var index = 2;
+      _slaveContent.groups.forEach(function (_group) {
+        var newGroup = {};
+        newGroup.groupName = _group.name;
+        newGroup.configVersion = {config: {'global': 'version1', 'core-site': 'version1'}}; // TODO : every time a new version should be generated
+        if (this.getServiceInfo(_slaveContent.componentName)) {
+          newGroup.configVersion.config[this.getServiceInfo(_slaveContent.componentName).domain] = 'version' + index;
+          newGroup.configVersion.config[this.getServiceInfo(_slaveContent.componentName).siteName] = 'version' + index;
+        }
+        newGroup.siteVersion = 'version' + index;
+        newGroup.hostNames = _slaveContent.hosts.filterProperty("group", newGroup.groupName).mapProperty('hostName');
+        newGroup.properties = _group.properties;
+        if (!Ember.empty(newGroup.hostNames)) {
+          newComponent.groups.push(newGroup);
+        }
+        index++;
+      }, this);
+      dest.components.push(newComponent);
+    }, this);
+    var hostsInfo = this.get('content.hostsInfo');
+
+    for (var index in hostsInfo) {
+      var hostIndex = 2;
+      var slaveHost = {name: null, configVersion: null, slaveComponents: []};
+      dest.components.forEach(function (_component) {
+        _component.groups.forEach(function (_group) {
+          if (_group.hostNames.contains(hostsInfo[index].name)) {
+            var slaveComponent = {};
+            slaveHost.name = hostsInfo[index].name;
+            slaveComponent.componentName = _component.componentName;
+            slaveComponent.groupName = _group.groupName;
+            slaveComponent.properties = _group.properties;
+            slaveHost.slaveComponents.pushObject(slaveComponent);
+          }
+        }, this);
+      }, this);
+      hostIndex++;
+      if (!Ember.none(slaveHost.name)) {
+        dest.slaveHostComponents.pushObject(slaveHost);
+      }
+
+    }
+    return dest;
+  },
+
+  getServiceInfo: function (componentName) {
+    var serviceConfig;
+    switch (componentName) {
+      case 'DATANODE':
+        serviceConfig = {
+          name: 'HDFS',
+          siteName: 'hdfs-site',
+          domain: 'datanode-global'
+        };
+        break;
+      case 'TASKTRACKER':
+        serviceConfig = {
+          name: 'MAPREDUCE',
+          siteName: 'mapred-site',
+          domain: 'tasktracker-global'
+        };
+        break;
+      case 'HBASE_REGIONSERVER':
+        serviceConfig = {
+          name: 'HBASE',
+          siteName: 'hbase-site',
+          domain: 'regionserver-global'
+        };
+        break;
+      default:
+        serviceConfig = null;
+    }
+    return serviceConfig;
+  },
+
   /**
    * Load all info about cluster to <code>clusterInfo</code> variable
    */
@@ -406,7 +449,7 @@ App.WizardStep8Controller = Em.Controller.extend({
   loadDnValue: function (dnComponent) {
     var dnHosts = this.get('content.slaveComponentHosts').findProperty('displayName', 'DataNode');
     var totalDnHosts = dnHosts.hosts.length;
-    var totalGroups = this.get('slaveComponentConfig.components').findProperty('componentName','DATANODE').groups.length;
+    var totalGroups = this.get('slaveComponentConfig.components').findProperty('componentName', 'DATANODE').groups.length;
     var groupLabel;
     if (totalGroups == 1) {
       groupLabel = 'group';
@@ -444,7 +487,7 @@ App.WizardStep8Controller = Em.Controller.extend({
   loadTtValue: function (ttComponent) {
     var ttHosts = this.get('content.slaveComponentHosts').findProperty('displayName', 'TaskTracker');
     var totalTtHosts = ttHosts.hosts.length;
-    var totalGroups = this.get('slaveComponentConfig.components').findProperty('componentName','TASKTRACKER').groups.length;
+    var totalGroups = this.get('slaveComponentConfig.components').findProperty('componentName', 'TASKTRACKER').groups.length;
     var groupLabel;
     if (totalGroups == 1) {
       groupLabel = 'group';
@@ -522,7 +565,7 @@ App.WizardStep8Controller = Em.Controller.extend({
   loadRegionServerValue: function (rsComponent) {
     var rsHosts = this.get('content.slaveComponentHosts').findProperty('displayName', 'RegionServer');
     var totalRsHosts = rsHosts.hosts.length;
-    var totalGroups = this.get('slaveComponentConfig.components').findProperty('componentName','HBASE_REGIONSERVER').groups.length;
+    var totalGroups = this.get('slaveComponentConfig.components').findProperty('componentName', 'HBASE_REGIONSERVER').groups.length;
     var groupLabel;
     if (totalGroups == 1) {
       groupLabel = 'group';
@@ -667,33 +710,35 @@ App.WizardStep8Controller = Em.Controller.extend({
       this.createComponents();
       this.registerHostsToCluster();
       this.createAllHostComponents();
+      this.applyCreatedConfToSlaveGroups();
+      this.ajaxQueueFinished = function(){
+        console.log('everything is loaded')
+        App.router.send('next');
+      };
+      this.doNextAjaxCall();
+    } else {
+      App.router.send('next');
     }
-
-    App.router.send('next');
   },
 
   setAmbariUIDb: function () {
+    var dbContent =  this.get('content.slaveGroupProperties');
     var slaveComponentConfig = this.get("slaveComponentConfig");
-    this.persistKeyValues(slaveComponentConfig.version, slaveComponentConfig);
+    this.persistKeyValues(slaveComponentConfig.version, dbContent);
+    this.persistKeyValues('current_version',slaveComponentConfig.version);
   },
 
   persistKeyValues: function (key, value) {
 
     var str = "{ '" + key + "' : '" + JSON.stringify(value) + "'}";
     var obj = eval("(" + str + ")");
-    $.ajax({
+
+    this.ajax({
       type: "POST",
       url: App.apiPrefix + '/persist',
       data: JSON.stringify(obj),
-      async: false,
-      dataType: 'text',
-      timeout: App.timeout,
-      success: function (data) {
-        console.debug('success...ajax call returned');
-      },
-
-      error: function (request, ajaxOptions, error) {
-        console.log('Step8: Error message is: ' + request.responseText);
+      beforeSend: function () {
+        console.log('BeforeSend: persistKeyValues', obj);
       }
     });
   },
@@ -712,61 +757,35 @@ App.WizardStep8Controller = Em.Controller.extend({
       return false;
     }
 
-    var url = App.apiPrefix + '/clusters/' + this.get('clusterName');
+    var clusterName = this.get('clusterName');
+    var url = App.apiPrefix + '/clusters/' + clusterName;
 
     var stackVersion = (App.db.getSoftRepo().repoType == 'local') ? App.defaultLocalStackVersion : App.defaultStackVersion;
 
-    $.ajax({
+    this.ajax({
       type: 'POST',
       url: url,
-      async: false,
-      //accepts: 'text',
-      dataType: 'text',
       data: JSON.stringify({ "Clusters": {"version": stackVersion }}),
-      timeout: App.timeout,
-      success: function (data) {
-        var jsonData = jQuery.parseJSON(data);
-        console.log("TRACE: Step8 -> In success function for createCluster call");
-        console.log("TRACE: Step8 -> value of the received data is: " + jsonData);
-      },
-
-      error: function (request, ajaxOptions, error) {
-        console.log('Step8: In Error ');
-        console.log('Step8: Error message is: ' + request.responseText);
-      },
-
-      statusCode: require('data/statusCodes')
+      beforeSend: function () {
+        console.log("BeforeSend: createCluster for " + clusterName);
+      }
     });
-    console.log("Exiting createCluster");
 
   },
 
-  createSelectedServices: function (service, httpMethod) {
+  createSelectedServices: function () {
 
     var url = App.apiPrefix + '/clusters/' + this.get('clusterName') + '/services';
     var data = this.createServiceData();
     var httpMethod = 'POST';
-    $.ajax({
+
+    this.ajax({
       type: httpMethod,
       url: url,
       data: JSON.stringify(data),
-      async: false,
-      dataType: 'text',
-      timeout: App.timeout,
-      success: function (data) {
-        var jsonData = jQuery.parseJSON(data);
-        console.log("TRACE: Step8 -> In success function for the createSelectedServices call");
-        console.log("TRACE: Step8 -> value of the url is: " + url);
-        console.log("TRACE: Step8 -> value of the received data is: " + jsonData);
-
-      },
-
-      error: function (request, ajaxOptions, error) {
-        console.log('Step8: In Error ');
-        console.log('Step8: Error message is: ' + request.responseText);
-      },
-
-      statusCode: require('data/statusCodes')
+      beforeSend: function () {
+        console.log('BeforeSend: createSelectedServices ', data);
+      }
     });
   },
 
@@ -795,26 +814,14 @@ App.WizardStep8Controller = Em.Controller.extend({
       var data = {
         "components": componentsData
       }
-      $.ajax({
+
+      this.ajax({
         type: 'POST',
         url: url,
-        async: false,
-        dataType: 'text',
         data: JSON.stringify(data),
-        timeout: App.timeout,
-        success: function (data) {
-          var jsonData = jQuery.parseJSON(data);
-          console.log("TRACE: Step8 -> In success function for createComponents");
-          console.log("TRACE: Step8 -> value of the url is: " + url);
-          console.log("TRACE: Step8 -> value of the received data is: " + jsonData);
-        },
-
-        error: function (request, ajaxOptions, error) {
-          console.log('Step8: In Error ');
-          console.log('Step8: Error message is: ' + request.responseText);
-        },
-
-        statusCode: require('data/statusCodes')
+        beforeSend: function () {
+          console.log('BeforeSend: createComponents for ' + _service, componentsData);
+        }
       });
     }, this);
 
@@ -829,27 +836,13 @@ App.WizardStep8Controller = Em.Controller.extend({
       return;
     }
 
-    $.ajax({
+    this.ajax({
       type: 'POST',
       url: url,
       data: JSON.stringify(data),
-      async: false,
-      dataType: 'text',
-      timeout: App.timeout,
-      success: function (data) {
-        var jsonData = jQuery.parseJSON(data);
-        console.log("TRACE: Step8 -> In success function for registerHostsToCluster");
-        console.log("TRACE: Step8 -> value of the url is: " + url);
-        console.log("TRACE: Step8 -> value of the received data is: " + jsonData);
-
-      },
-
-      error: function (request, ajaxOptions, error) {
-        console.log('Step8: In Error ');
-        console.log('Step8: Error message is: ' + request.responseText);
-      },
-
-      statusCode: require('data/statusCodes')
+      beforeSend: function () {
+        console.log('BeforeSend: registerHostsToCluster', data);
+      }
     });
   },
 
@@ -933,7 +926,7 @@ App.WizardStep8Controller = Em.Controller.extend({
     //   return 'Hosts/host_name=' + hostName;
     // }).join('|');
 
-    var queryStrArr = []
+    var queryStrArr = [];
     var queryStr = '';
     hostNames.forEach(function (hostName) {
       queryStr += 'Hosts/host_name=' + hostName + '|';
@@ -960,26 +953,13 @@ App.WizardStep8Controller = Em.Controller.extend({
         ]
       };
 
-      $.ajax({
+      this.ajax({
         type: 'POST',
         url: url,
-        async: false,
-        dataType: 'text',
-        timeout: App.timeout,
         data: JSON.stringify(data),
-        success: function (data) {
-          var jsonData = jQuery.parseJSON(data);
-          console.log("TRACE: Step8 -> In success function for the registerHostsToComponent");
-          console.log("TRACE: Step8 -> value of the url is: " + url);
-          console.log("TRACE: Step8 -> value of the received data is: " + jsonData);
-        },
-
-        error: function (request, ajaxOptions, error) {
-          console.log('Step8: In Error ');
-          console.log('Step8: Error message is: ' + request.responseText);
-        },
-
-        statusCode: require('data/statusCodes')
+        beforeSend: function () {
+          console.log('BeforeSend: registerHostsToComponent for ' + queryStr + ' and component ' + componentName);
+        }
       });
     }, this);
   },
@@ -987,69 +967,91 @@ App.WizardStep8Controller = Em.Controller.extend({
   createConfigurations: function () {
     var selectedServices = this.get('selectedServices');
     if (!this.get('content.isWizard')) {
-      this.createConfigSite(this.createGlobalSiteObj());
-      this.createConfigSite(this.createCoreSiteObj());
-      this.createConfigSite(this.createHdfsSiteObj('HDFS'));
+      this.createConfigSiteForService(this.createGlobalSiteObj());
+      this.createGlobalSitePerSlaveGroup();
+      this.createConfigSiteForService(this.createCoreSiteObj());
+      this.createConfigSiteForService(this.createHdfsSiteObj());
+      this.createHdfsSitePerSlaveGroup('HDFS');
     }
     if (selectedServices.someProperty('serviceName', 'MAPREDUCE')) {
-      this.createConfigSite(this.createMrSiteObj('MAPREDUCE'));
+      this.createConfigSiteForService(this.createMrSiteObj());
+      this.createMrSitePerSlaveGroup('MAPREDUCE');
     }
     if (selectedServices.someProperty('serviceName', 'HBASE')) {
-      this.createConfigSite(this.createHbaseSiteObj('HBASE'));
+      this.createConfigSiteForService(this.createHbaseSiteObj());
+      this.createHbaseSitePerSlaveGroup('HBASE');
     }
     if (selectedServices.someProperty('serviceName', 'OOZIE')) {
-      this.createConfigSite(this.createOozieSiteObj('OOZIE'));
+      this.createConfigSiteForService(this.createOozieSiteObj('OOZIE'));
     }
     if (selectedServices.someProperty('serviceName', 'HIVE')) {
-      // TODO
-      // this.createConfigSite(this.createHiveSiteObj('HIVE'));
+      this.createConfigSiteForService(this.createHiveSiteObj('HIVE'));
     }
   },
 
-  createConfigSite: function (data) {
-    console.log("Inside createConfigSite");
+  createConfigSiteForService: function (data) {
+    console.log("Inside createConfigSiteForService");
 
     var url = App.apiPrefix + '/clusters/' + this.get('clusterName') + '/configurations';
-    $.ajax({
+
+    this.ajax({
       type: 'POST',
       url: url,
       data: JSON.stringify(data),
-      async: false,
-      dataType: 'text',
-      timeout: App.timeout,
-      success: function (data) {
-        var jsonData = jQuery.parseJSON(data);
-        console.log("TRACE: STep8 -> In success function for the createConfigSite");
-        console.log("TRACE: STep8 -> value of the url is: " + url);
-        console.log("TRACE: STep8 -> value of the received data is: " + jsonData);
-      },
-
-      error: function (request, ajaxOptions, error) {
-        console.log('Step8: In Error ');
-        console.log('Step8: Error message is: ' + request.responseText);
-        console.log("TRACE: STep8 -> value of the url is: " + url);
-      },
-
-      statusCode: require('data/statusCodes')
+      beforeSend: function () {
+        console.log("BeforeSend: createConfigSiteForService for " + data.type);
+      }
     });
-    console.log("Exiting createConfigSite");
   },
 
   createGlobalSiteObj: function () {
     var globalSiteProperties = {};
-    this.get('globals').forEach(function (_globalSiteObj) {
+    this.get('globals').filterProperty('domain', 'global').forEach(function (_globalSiteObj) {
       // do not pass any globals whose name ends with _host or _hosts
       if (!/_hosts?$/.test(_globalSiteObj.name)) {
         // append "m" to JVM memory options
+        var value = null;
         if (/_heapsize|_newsize|_maxnewsize$/.test(_globalSiteObj.name)) {
-          _globalSiteObj.value += "m";
+          value = _globalSiteObj.value + "m";
+          globalSiteProperties[_globalSiteObj.name] = value;
+        } else {
+          globalSiteProperties[_globalSiteObj.name] = _globalSiteObj.value;
         }
-        globalSiteProperties[_globalSiteObj.name] = _globalSiteObj.value;
         console.log("STEP8: name of the global property is: " + _globalSiteObj.name);
         console.log("STEP8: value of the global property is: " + _globalSiteObj.value);
       }
     }, this);
     return {"type": "global", "tag": "version1", "properties": globalSiteProperties};
+  },
+
+  createGlobalSitePerSlaveGroup: function () {
+    this.get('slaveComponentConfig.components').forEach(function (_component) {
+      _component.groups.forEach(function (_group) {
+        var globalSiteProperties = {};
+        var properties = _group.properties;
+        properties.forEach(function (_property) {
+          if (!/_hosts?$/.test(_property.name)) {
+            // append "m" to JVM memory options
+            var value = null;
+            if (/_heapsize|_newsize|_maxnewsize$/.test(_property.name)) {
+              value = _property.value + "m";
+              globalSiteProperties[_property.name] = value;
+            } else {
+              globalSiteProperties[_property.name] = _property.storeValue;
+            }
+            console.log("STEP8: name of the global property is: " + _property.name);
+            console.log("STEP8: value of the global property is: " + _property.storeValue);
+          }
+        }, this);
+        var config = _group.configVersion.config;
+        for (var index in config) {
+          if (index === 'datanode-global' || index === 'tasktracker-global' || index === 'regionserver-global') {
+            var data = {"type": index, "tag": config[index], "properties": globalSiteProperties};
+            this.createConfigSiteForService(data);
+          }
+        }
+      }, this);
+    }, this);
   },
 
   createCoreSiteObj: function () {
@@ -1067,7 +1069,7 @@ App.WizardStep8Controller = Em.Controller.extend({
     return {"type": "core-site", "tag": "version1", "properties": coreSiteProperties};
   },
 
-  createHdfsSiteObj: function (serviceName) {
+  createHdfsSiteObj: function () {
     var hdfsSiteObj = this.get('configs').filterProperty('filename', 'hdfs-site.xml');
     var hdfsProperties = {};
     hdfsSiteObj.forEach(function (_configProperty) {
@@ -1078,7 +1080,29 @@ App.WizardStep8Controller = Em.Controller.extend({
     return {"type": "hdfs-site", "tag": "version1", "properties": hdfsProperties };
   },
 
-  createMrSiteObj: function (serviceName) {
+  createHdfsSitePerSlaveGroup: function (serviceName) {
+    var hdfsSite = this.createHdfsSiteObj();
+    var component = this.get('slaveComponentConfig.components').findProperty('serviceName', serviceName);
+    component.groups.forEach(function (_group) {
+      var siteProperties = hdfsSite.properties;
+      _group.properties.forEach(function (_property) {
+        this.get('configMapping').forEach(function (_config) {
+          if (_config.templateName.contains(_property.name)) {
+            this.get('globals').findProperty('name', _property.name).value = _property.storeValue;
+            var value = this.getGlobConfigValue(_config.templateName, _config.value);
+            if (siteProperties[_config.name]) {
+              siteProperties[_config.name] = value;
+            }
+          }
+        }, this);
+      }, this);
+      var data = {"type": hdfsSite.type, "tag": _group.siteVersion, "properties": siteProperties};
+      console.log("The value of globalConfig is: " + JSON.stringify(siteProperties));
+      this.createConfigSiteForService(data);
+    }, this);
+  },
+
+  createMrSiteObj: function () {
     var configs = this.get('configs').filterProperty('filename', 'mapred-site.xml');
     var mrProperties = {};
     configs.forEach(function (_configProperty) {
@@ -1089,7 +1113,28 @@ App.WizardStep8Controller = Em.Controller.extend({
     return {type: 'mapred-site', tag: 'version1', properties: mrProperties};
   },
 
-  createHbaseSiteObj: function (serviceName) {
+  createMrSitePerSlaveGroup: function (serviceName) {
+    var mrSite = this.createMrSiteObj();
+    var component = this.get('slaveComponentConfig.components').findProperty('serviceName', serviceName);
+    component.groups.forEach(function (_group) {
+      var siteProperties = mrSite.properties;
+      _group.properties.forEach(function (_property) {
+        this.get('configMapping').forEach(function (_config) {
+          if (_config.templateName.contains(_property.name)) {
+            this.get('globals').findProperty('name', _property.name).value = _property.storeValue;
+            var value = this.getGlobConfigValue(_config.templateName, _config.value);
+            if (siteProperties[_config.name]) {
+              siteProperties[_config.name] = value;
+            }
+          }
+        }, this);
+      }, this);
+      var data = {"type": mrSite.type, "tag": _group.siteVersion, "properties": siteProperties};
+      this.createConfigSiteForService(data);
+    }, this);
+  },
+
+  createHbaseSiteObj: function () {
     var configs = this.get('configs').filterProperty('filename', 'hbase-site.xml');
     var hbaseProperties = {};
     configs.forEach(function (_configProperty) {
@@ -1102,17 +1147,38 @@ App.WizardStep8Controller = Em.Controller.extend({
     return {type: 'hbase-site', tag: 'version1', properties: hbaseProperties};
   },
 
+  createHbaseSitePerSlaveGroup: function (serviceName) {
+    var hbaseSite = this.createHbaseSiteObj();
+    var component = this.get('slaveComponentConfig.components').findProperty('serviceName', serviceName);
+    component.groups.forEach(function (_group) {
+      var siteProperties = hbaseSite.properties;
+      _group.properties.forEach(function (_property) {
+        this.get('configMapping').forEach(function (_config) {
+          if (_config.templateName.contains(_property.name)) {
+            this.get('globals').findProperty('name', _property.name).value = _property.storeValue;
+            var value = this.getGlobConfigValue(_config.templateName, _config.value);
+            if (siteProperties[_config.name]) {
+              siteProperties[_config.name] = value;
+            }
+          }
+        }, this);
+      }, this);
+      var data = {"type": hbaseSite.type, "tag": _group.siteVersion, "properties": siteProperties};
+      this.createConfigSiteForService(data);
+    }, this);
+  },
+
   createOozieSiteObj: function (serviceName) {
     var configs = this.get('configs').filterProperty('filename', 'oozie-site.xml');
     var oozieProperties = {};
     configs.forEach(function (_configProperty) {
       oozieProperties[_configProperty.name] = _configProperty.value;
     }, this);
-    var baseUrl = oozieProperties['oozie.base.url'];
-    oozieProperties = {
-      "oozie.service.JPAService.jdbc.password": " ", "oozie.db.schema.name": "oozie", "oozie.service.JPAService.jdbc.url": "jdbc:derby:/var/data/oozie/oozie-db;create=true", "oozie.service.JPAService.jdbc.driver": "org.apache.derby.jdbc.EmbeddedDriver", "oozie.service.WorkflowAppService.system.libpath": "/user/oozie/share/lib", "oozie.service.JPAService.jdbc.username": "sa", "oozie.service.SchemaService.wf.ext.schemas": "shell-action-0.1.xsd,email-action-0.1.xsd,hive-action-0.2.xsd,sqoop-action-0.2.xsd,ssh-action-0.1.xsd,distcp-action-0.1.xsd", "oozie.service.JPAService.create.db.schema": "false", "use.system.libpath.for.mapreduce.and.pig.jobs": "false", "oozie.service.ActionService.executor.ext.classes": "org.apache.oozie.action.email.EmailActionExecutor,org.apache.oozie.action.hadoop.HiveActionExecutor,org.apache.oozie.action.hadoop.ShellActionExecutor,org.apache.oozie.action.hadoop.SqoopActionExecutor,org.apache.oozie.action.hadoop.DistcpActionExecutor", "oozie.service.HadoopAccessorService.hadoop.configurations": "*=/etc/hadoop/conf"
-    };
-    oozieProperties['oozie.base.url'] = baseUrl;
+    // var baseUrl = oozieProperties['oozie.base.url'];
+    // oozieProperties = {
+    //   "oozie.service.JPAService.jdbc.password": " ", "oozie.db.schema.name": "oozie", "oozie.service.JPAService.jdbc.url": "jdbc:derby:/var/data/oozie/oozie-db;create=true", "oozie.service.JPAService.jdbc.driver": "org.apache.derby.jdbc.EmbeddedDriver", "oozie.service.WorkflowAppService.system.libpath": "/user/oozie/share/lib", "oozie.service.JPAService.jdbc.username": "sa", "oozie.service.SchemaService.wf.ext.schemas": "shell-action-0.1.xsd,email-action-0.1.xsd,hive-action-0.2.xsd,sqoop-action-0.2.xsd,ssh-action-0.1.xsd,distcp-action-0.1.xsd", "oozie.service.JPAService.create.db.schema": "false", "use.system.libpath.for.mapreduce.and.pig.jobs": "false", "oozie.service.ActionService.executor.ext.classes": "org.apache.oozie.action.email.EmailActionExecutor,org.apache.oozie.action.hadoop.HiveActionExecutor,org.apache.oozie.action.hadoop.ShellActionExecutor,org.apache.oozie.action.hadoop.SqoopActionExecutor,org.apache.oozie.action.hadoop.DistcpActionExecutor", "oozie.service.HadoopAccessorService.hadoop.configurations": "*=/etc/hadoop/conf"
+    // };
+    // oozieProperties['oozie.base.url'] = baseUrl;
     return {type: 'oozie-site', tag: 'version1', properties: oozieProperties};
   },
 
@@ -1122,7 +1188,7 @@ App.WizardStep8Controller = Em.Controller.extend({
     configs.forEach(function (_configProperty) {
       hiveProperties[_configProperty.name] = _configProperty.value;
     }, this);
-    return {type: 'hbase-site', tag: 'version1', properties: hiveProperties};
+    return {type: 'hive-site', tag: 'version1', properties: hiveProperties};
   },
 
   applyCreatedConfToServices: function () {
@@ -1138,28 +1204,45 @@ App.WizardStep8Controller = Em.Controller.extend({
 
     var url = App.apiPrefix + '/clusters/' + this.get('clusterName') + '/services/' + service;
 
-    $.ajax({
+    this.ajax({
       type: httpMethod,
       url: url,
-      async: false,
-      dataType: 'text',
       data: JSON.stringify(data),
-      timeout: App.timeout,
-      success: function (data) {
-        var jsonData = jQuery.parseJSON(data);
-        console.log("TRACE: STep8 -> In success function for the applyCreatedConfToService call");
-        console.log("TRACE: STep8 -> value of the url is: " + url);
-        console.log("TRACE: STep8 -> value of the received data is: " + jsonData);
-      },
-
-      error: function (request, ajaxOptions, error) {
-        console.log('Step8: In Error ');
-        console.log('Step8: Error message is: ' + request.responseText);
-      },
-
-      statusCode: require('data/statusCodes')
+      beforeSend: function () {
+        console.log("BeforeSend: applyCreatedConfToService for " + service);
+      }
     });
-    console.log("Exiting applyCreatedConfToService");
+  },
+
+
+  applyCreatedConfToSlaveGroups: function () {
+    this.get('slaveComponentConfig.components').forEach(function (_component) {
+      _component.groups.forEach(function (_group) {
+        var aggregatedHostNames = '';
+        _group.hostNames.forEach(function (_hostName, index) {
+          aggregatedHostNames += 'HostRoles/host_name=' + _hostName;
+          if (index !== _group.hostNames.length-1) {
+            aggregatedHostNames += '|';
+          }
+        }, this);
+        console.log("The aggregated hostNames value is: " + aggregatedHostNames);
+        this.applyCreatedConfToSlaveGroup(aggregatedHostNames, 'PUT', _group.configVersion,_group.groupName);
+      }, this);
+    }, this);
+  },
+
+  applyCreatedConfToSlaveGroup: function (aggregatedHostNames, httpMethod, data, groupName) {
+    console.log("Inside applyCreatedConfToHost");
+    var url = App.apiPrefix + '/clusters/' + this.get('clusterName') + '/host_components?' + aggregatedHostNames;
+
+    this.ajax({
+      type: httpMethod,
+      url: url,
+      data: JSON.stringify(data),
+      beforeSend: function () {
+        console.log("BeforeSend: applyCreatedConfToSlaveGroup for group: " + groupName);
+      }
+    });
   },
 
   getConfigForService: function (serviceName) {
@@ -1175,6 +1258,85 @@ App.WizardStep8Controller = Em.Controller.extend({
       default:
         return {config: {'global': 'version1'}};
     }
+  },
+
+  ajaxQueue: [],
+
+  ajaxQueueFinished: function () {
+    //do something
+  },
+
+  doNextAjaxCall: function () {
+
+    if (this.get('ajaxBusy')) {
+      return;
+    }
+
+    var queue = this.get('ajaxQueue');
+    if (!queue.length) {
+      this.ajaxQueueFinished();
+      return;
+    }
+
+    var first = queue[0];
+    this.set('ajaxQueue', queue.slice(1));
+
+    this.set('ajaxBusy', true);
+    console.log('AJAX send ' + first.url);
+    $.ajax(first);
+
+  },
+
+  /**
+   * We need to do a lot of ajax calls(about 10 or more) async in special order.
+   * To do this i generate array of ajax objects and then send requests step by step.
+   * All ajax objects are stored in <code>ajaxQueue</code>
+   * @param params
+   */
+
+  ajax: function(params){
+    if(App.testMode) return;
+
+    var self = this;
+    params = jQuery.extend({
+      async: true,
+      dataType: 'text',
+      statusCode: require('data/statusCodes'),
+      timeout: App.timeout,
+      error: function (request, ajaxOptions, error) {
+        console.log('Step8: In Error ');
+        console.log('Step8: Error message is: ' + request.responseText);
+      },
+      success: function (data) {
+        var jsonData = jQuery.parseJSON(data);
+        console.log("TRACE: STep8 -> In success function");
+        console.log("TRACE: STep8 -> value of the url is: " + params.url);
+        console.log("TRACE: STep8 -> value of the received data is: " + jsonData);
+      }
+    }, params);
+
+    var success = params.success;
+    var error = params.error;
+
+    params.success = function () {
+      if (success) {
+        success();
+      }
+      ;
+      self.set('ajaxBusy', false);
+      self.doNextAjaxCall();
+    }
+
+    params.error = function () {
+      if (error) {
+        error();
+      }
+      ;
+      self.set('ajaxBusy', false);
+      self.doNextAjaxCall();
+    }
+
+    this.get('ajaxQueue').pushObject(params);
   }
 
 })

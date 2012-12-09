@@ -47,10 +47,14 @@ App.SlaveComponentGroupsController = Em.ArrayController.extend({
       var categoryConfig = _serviceConfig.get('configCategories');
       if (categoryConfig.someProperty('isForSlaveComponent', true)) {
         var slaveCategory = categoryConfig.findProperty('isForSlaveComponent', true);
+        // this.get('content') -> Output of Step 6: Mapping of each slave component and set of hosts it runs on
         if (this.get('content')) {
           if (this.get('content').someProperty('componentName', slaveCategory.get('primaryName'))) {
+            // component --> each column in Step 6 is a component ( slave component )
             var component = this.get('content').findProperty('componentName', slaveCategory.get('primaryName'));
+            // slaveConfigs --> originally set as null in the class App.SlaveCategory in model/service_config.js
             var slaveConfigs = slaveCategory.get('slaveConfigs');
+            
             slaveCategory.set('slaveConfigs', App.SlaveConfigs.create(component));
             var slaveGroups = [];
             if (component.groups) {
@@ -77,6 +81,7 @@ App.SlaveComponentGroupsController = Em.ArrayController.extend({
     }, this);
   },
 
+  // returns key-value pairs i.e. all fields for slave component for this specific service.
   componentProperties: function (serviceName) {
 
     var serviceConfigs = require('data/service_configs').findProperty('serviceName', serviceName);
@@ -96,6 +101,15 @@ App.SlaveComponentGroupsController = Em.ArrayController.extend({
     var slaveConfigs = serviceConfigs.configs.filterProperty('category', componentName);
     slaveConfigs.forEach(function (_serviceConfigProperty) {
       var serviceConfigProperty = App.ServiceConfigProperty.create(_serviceConfigProperty);
+
+      switch(serviceConfigProperty.name){
+        case 'dfs_data_dir' :
+          serviceConfigProperty.initialValue();
+          break;
+        case 'mapred_local_dir' :
+          serviceConfigProperty.initialValue();
+          break;
+      }
       configs.pushObject(serviceConfigProperty);
       serviceConfigProperty.validate();
     }, this);

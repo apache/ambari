@@ -294,7 +294,7 @@ module.exports = [
     "value": "http://<templateName[0]>:11000/oozie",
     "filename": "oozie-site.xml"
   },
-  //TODO: Oozie configs hardcoded for now. Map them to templates later
+  /*
   {
     "name": "oozie.service.JPAService.jdbc.password",
     "templateName": [],
@@ -323,6 +323,7 @@ module.exports = [
     "value": " ",
     "filename": "oozie-site.xml"
   },
+  */
   {
     "name": "javax.jdo.option.ConnectionURL",
     "templateName": ["hive_mysql_host", "hive_database_name"],

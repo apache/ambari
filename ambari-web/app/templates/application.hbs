@@ -23,15 +23,11 @@
         <div class="container">
           <a {{translateAttr href="topnav.logo.href"}} target="_blank"><img id="logo" src="/img/logo-small.gif"></a>
           <a class="brand" {{translateAttr href="topnav.logo.href"}} target="_blank">{{t app.name}}</a>
-          {{#if isClusterDataLoaded}}
-            <a class="brand cluster-name" href="#">
-              - {{clusterName}}
-            </a>
-          {{else}}
-            <a class="brand cluster-name" href="#">
-              - Install Wizard
-            </a>
-          {{/if}}
+            {{#if App.router.loggedIn}}
+              <a class="brand cluster-name" href="#">
+                - {{clusterName}}
+              </a>
+            {{/if}}
           <ul class="nav">
             <li class="right"><a class="help" {{translateAttr href="topnav.help.href"}} target="_blank">Help</a></li>
             {{#if App.router.loggedIn}}

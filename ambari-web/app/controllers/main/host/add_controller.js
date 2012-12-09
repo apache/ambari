@@ -54,24 +54,10 @@ App.AddHostController = App.WizardController.extend({
     isWizard: true
   }),
 
-  /**
-   * Load clusterInfo(step1) to model
-   */
-  loadClusterInfo: function () {
-    var cluster = App.db.getClusterStatus();
-    if (!cluster) {
-      cluster = {
-        name: App.router.getClusterName(),
-        status: undefined,
-        isCompleted: false,
-        requestId: undefined,
-        installStartTime: undefined,
-        installTime: undefined
-      };
-      App.db.setClusterStatus(cluster);
-    }
-    this.set('content.cluster', cluster);
-    console.log("AddHostController:loadClusterInfo: loaded data ", cluster);
+  getCluster: function(){
+    return jQuery.extend(this.get('clusterStatusTemplate'), {
+      name: App.router.getClusterName()
+    });
   },
 
   showMoreHosts: function () {
@@ -149,7 +135,7 @@ App.AddHostController = App.WizardController.extend({
       hostsInfo.showMoreHostsText = "...and %@ more".fmt(moreHostNames.length);
     }
 
-    hostsInfo.hostNames = App.db.getAllHostNames() || ''; //empty string if undefined
+    hostsInfo.hostNames = App.db.getAllHostNamesPattern() || ''; //empty string if undefined
 
     var installType = App.db.getInstallType();
     //false if installType not equals 'manual'
@@ -164,6 +150,7 @@ App.AddHostController = App.WizardController.extend({
       hostsInfo.localRepoPath = '';
     }
 
+    hostsInfo.bootRequestId = App.db.getBootRequestId() || null;
     hostsInfo.sshKey = '';
     hostsInfo.passphrase = '';
     hostsInfo.confirmPassphrase = '';
@@ -180,7 +167,9 @@ App.AddHostController = App.WizardController.extend({
     //TODO: put data to content.hosts and only then save it)
 
     //App.db.setBootStatus(false);
-    App.db.setAllHostNames(stepController.get('hostNames'));
+    App.db.setAllHostNames(stepController.get('hostNameArr').join("\n"));
+    App.db.setAllHostNamesPattern(stepController.get('hostNames'));
+    App.db.setBootRequestId(stepController.get('bootRequestId'));
     App.db.setHosts(stepController.getHostInfo());
     if (stepController.get('manualInstall') === false) {
       App.db.setInstallType({installType: 'ambari' });
@@ -559,7 +548,7 @@ App.AddHostController = App.WizardController.extend({
       case '1':
         this.loadInstallOptions();
       case '0':
-        this.loadClusterInfo();
+        this.load('cluster');
     }
   },
 
@@ -625,12 +614,12 @@ App.AddHostController = App.WizardController.extend({
    * Clear all temporary data
    */
   finish: function () {
-    this.setCurrentStep('1', false);
+    this.setCurrentStep('1');
     App.db.setService(undefined); //not to use this data at AddService page
     App.db.setHosts(undefined);
     App.db.setMasterComponentHosts(undefined);
     App.db.setSlaveComponentHosts(undefined);
-    App.db.setClusterStatus(undefined);
+    App.db.setCluster(undefined);
     App.router.get('updateController').updateAll();
   }
 

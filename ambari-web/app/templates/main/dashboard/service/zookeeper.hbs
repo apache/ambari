@@ -16,8 +16,9 @@
 * limitations under the License.
 }}
 
-<div class="clearfix like_pointer">
+<div class="clearfix">
   <div class="name span2">
+    <i class="pull-left icon-empty"></i>
     {{view App.MainDashboardServiceHealthView serviceBinding="view.service"}}
     <a {{action selectService view.service href=true}}>{{view.service.displayName}}</a>
     {{#if view.criticalAlertsCount}}

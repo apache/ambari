@@ -40,6 +40,7 @@ App.ChartClusterMetricsCPU = App.ChartLinearTimeView.extend({
   transformToSeries: function (jsonData) {
     var seriesArray = [];
     if (jsonData && jsonData.metrics && jsonData.metrics.cpu) {
+      var cpu_idle;
       for ( var name in jsonData.metrics.cpu) {
         var displayName = name;
         var seriesData = jsonData.metrics.cpu[name];
@@ -58,9 +59,15 @@ App.ChartClusterMetricsCPU = App.ChartLinearTimeView.extend({
               y: seriesData[index][0]
             });
           }
-          seriesArray.push(series);
+          if (name != 'Idle') {
+            seriesArray.push(series);
+          }
+          else {
+            cpu_idle = series;
+          }
         }
       }
+      seriesArray.push(cpu_idle);
     }
     return seriesArray;
   },

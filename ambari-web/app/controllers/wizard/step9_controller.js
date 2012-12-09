@@ -70,6 +70,7 @@ App.WizardStep9Controller = Em.Controller.extend({
         this.launchStartServices();
       } else {
         this.loadStep();
+        this.loadLogData(this.get('content.cluster.requestId'));
         this.startPolling();
       }
     } else {
@@ -240,13 +241,11 @@ App.WizardStep9Controller = Em.Controller.extend({
         console.log("TRACE: Step9 -> In success function for the startService call");
         console.log("TRACE: Step9 -> value of the url is: " + url);
         console.log("TRACE: Step9 -> value of the received data is: " + jsonData);
-        var requestId = jsonData.href.match(/.*\/(.*)$/)[1];
+        var requestId = jsonData.Requests.id;
         console.log('requestId is: ' + requestId);
         var clusterStatus = {
-          name: clusterName,
           status: 'INSTALLED',
           requestId: requestId,
-          installStartTime: self.get('content.cluster').installStartTime,
           isStartError: false,
           isCompleted: false
         };
@@ -258,9 +257,7 @@ App.WizardStep9Controller = Em.Controller.extend({
       error: function () {
         console.log("ERROR");
         var clusterStatus = {
-          name: clusterName,
           status: 'START FAILED',
-          installStartTime: self.get('content.cluster').installStartTime,
           isStartError: true,
           isCompleted: false
         };
@@ -387,8 +384,7 @@ App.WizardStep9Controller = Em.Controller.extend({
         clusterStatus = {
           status: 'INSTALLED',
           requestId: requestId,
-          isCompleted: true,
-          installStartTime: this.get('content.cluster.installStartTime')
+          isCompleted: true
         }
         if (this.isSuccess(polledData)) {
           clusterStatus.status = 'STARTED';
@@ -414,8 +410,7 @@ App.WizardStep9Controller = Em.Controller.extend({
         clusterStatus = {
           status: 'PENDING',
           requestId: requestId,
-          isCompleted: false,
-          installStartTime: this.get('content.cluster.installStartTime')
+          isCompleted: false
         }
         if (this.isStepFailed(polledData)) {
           console.log("In installation failure");
@@ -525,25 +520,28 @@ App.WizardStep9Controller = Em.Controller.extend({
 
   loadLogData:function(requestId){
     var url = this.getUrl(requestId);
-
+    var requestsId = App.db.getCluster().oldRequestsId;
     if (App.testMode) {
       this.POLL_INTERVAL = 1;
       this.numPolls++;
-      if (this.numPolls == 5) {
-        url = this.get('mockDataPrefix') + '/poll_5.json';
-        // url = this.get('mockDataPrefix') + '/poll_5_failed.json';
-      } else {
-        url = this.get('mockDataPrefix') + '/poll_' + this.numPolls + '.json';
-      }
     }
-    this.getLogsByRequest(url);
 
-    if(typeof(requestId) === 'number' && requestId > 1){
-      requestId--;
-      this.loadLogData(requestId);
-    }
+    requestsId.forEach(function(requestId) {
+      url = this.getUrl(requestId);
+      if (App.testMode) {
+        this.POLL_INTERVAL = 1;
+
+        if (requestId == 1) {
+          url = this.get('mockDataPrefix') + '/poll_' + this.numPolls + '.json';
+          // url = this.get('mockDataPrefix') + '/poll_5_failed.json';
+        } else {
+          url = this.get('mockDataPrefix') + '/poll_9.json';
+        }
+      }
+      this.getLogsByRequest(url, false);
+    }, this);
   },
-  getLogsByRequest: function(url){
+  getLogsByRequest: function(url, polling){
     var self = this;
     $.ajax({
       type: 'GET',
@@ -555,6 +553,9 @@ App.WizardStep9Controller = Em.Controller.extend({
         console.log("TRACE: In success function for the GET logs data");
         console.log("TRACE: STep9 -> The value is: ", jQuery.parseJSON(data));
         var result = self.parseHostInfo(jQuery.parseJSON(data));
+        if(!polling){
+          return;
+        }
         if (result !== true) {
           window.setTimeout(function () {
             self.doPolling();
@@ -578,16 +579,10 @@ App.WizardStep9Controller = Em.Controller.extend({
     var url = this.getUrl();
 
     if (App.testMode) {
-      this.POLL_INTERVAL = 1;
       this.numPolls++;
-      if (this.numPolls == 5) {
-        url = this.get('mockDataPrefix') + '/poll_5.json';
-        // url = this.get('mockDataPrefix') + '/poll_5_failed.json';
-      } else {
-        url = this.get('mockDataPrefix') + '/poll_' + this.numPolls + '.json';
-      }
+      url = this.get('mockDataPrefix') + '/poll_' + this.get('numPolls') + '.json';
     }
-    this.getLogsByRequest(url);
+    this.getLogsByRequest(url, true);
   },
 
   stopPolling: function () {
@@ -597,8 +592,6 @@ App.WizardStep9Controller = Em.Controller.extend({
 
   submit: function () {
     if (!this.get('isSubmitDisabled')) {
-      this.set('content.cluster.status', this.get('status'));
-      this.set('content.cluster.isCompleted', true);
       App.router.send('next');
     }
   },

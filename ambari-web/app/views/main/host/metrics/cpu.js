@@ -31,6 +31,7 @@ App.ChartHostMetricsCPU = App.ChartLinearTimeView.extend({
   title: "CPU Usage",
   yAxisFormatter: App.ChartLinearTimeView.PercentageFormatter,
 
+
   url: function () {
     return App.formatUrl(App.apiPrefix + "/clusters/{clusterName}/hosts/{hostName}?fields=metrics/cpu/cpu_user[{fromSeconds},{toSeconds},{stepSeconds}],metrics/cpu/cpu_wio[{fromSeconds},{toSeconds},{stepSeconds}],metrics/cpu/cpu_nice[{fromSeconds},{toSeconds},{stepSeconds}],metrics/cpu/cpu_aidle[{fromSeconds},{toSeconds},{stepSeconds}],metrics/cpu/cpu_system[{fromSeconds},{toSeconds},{stepSeconds}],metrics/cpu/cpu_idle[{fromSeconds},{toSeconds},{stepSeconds}]", {
       clusterName: App.router.get('clusterController.clusterName'),
@@ -41,6 +42,7 @@ App.ChartHostMetricsCPU = App.ChartLinearTimeView.extend({
   transformToSeries: function (jsonData) {
     var seriesArray = [];
     if (jsonData && jsonData.metrics && jsonData.metrics.cpu) {
+      var cpu_idle;
       for ( var name in jsonData.metrics.cpu) {
         var displayName;
         var seriesData = jsonData.metrics.cpu[name];
@@ -81,9 +83,15 @@ App.ChartHostMetricsCPU = App.ChartLinearTimeView.extend({
               y: seriesData[index][0]
             });
           }
-          seriesArray.push(series);
+          if (name != 'cpu_idle') {
+            seriesArray.push(series);
+          }
+          else {
+            cpu_idle = series;
+          }
         }
       }
+      seriesArray.push(cpu_idle);
     }
     return seriesArray;
   },

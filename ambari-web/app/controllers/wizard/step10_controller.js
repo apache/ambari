@@ -115,11 +115,11 @@ App.WizardStep10Controller = Em.Controller.extend({
 
         var timedOutTasks = _host.tasks.filterProperty('Tasks.status', 'TIMEDOUT');
         timedOutTasks.forEach(function (_task) {
-          var abortStatement = clusterState + App.format.role(_task.Tasks.role) + ' timed out on ' + _host.name;
+          var timedOutStatement = clusterState + App.format.role(_task.Tasks.role) + ' timed out on ' + _host.name;
           this.get('clusterInfo').findProperty('id', 1).get('status').findProperty('id', 2).get('statements').pushObject(Ember.Object.create({
             status: 'timedout',
             color: 'text-info',
-            displayStatement: timedOutTasks
+            displayStatement: timedOutStatement
           }));
         }, this);
       }, this);

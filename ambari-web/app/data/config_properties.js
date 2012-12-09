@@ -73,6 +73,7 @@ module.exports =
       "description": "The host that has been assigned to run HBase Master",
       "displayType": "masterHost",
       "isVisible": true,
+      "domain": "global",
       "serviceName": "HBASE",
       "category": "HBase Master"
     },
@@ -86,6 +87,7 @@ module.exports =
       "displayType": "slaveHosts",
       "isVisible": true,
       "isRequired": false,
+      "domain": "regionserver-global",
       "serviceName": "HBASE",
       "category": "RegionServer"
     },
@@ -98,6 +100,7 @@ module.exports =
       "isReconfigurable": false,
       "displayType": "directory",
       "isVisible": true,
+      "domain": "global",
       "serviceName": "HBASE",
       "category": "Advanced"
     },
@@ -110,6 +113,7 @@ module.exports =
       "isReconfigurable": false,
       "displayType": "directory",
       "isVisible": true,
+      "domain": "global",
       "serviceName": "HBASE",
       "category": "Advanced"
     },
@@ -122,6 +126,7 @@ module.exports =
       "displayType": "int",
       "unit": "MB",
       "isVisible": true,
+      "domain": "regionserver-global",
       "serviceName": "HBASE",
       "category": "RegionServer"
     },
@@ -134,6 +139,7 @@ module.exports =
       "displayType": "int",
       "unit": "MB",
       "isVisible": true,
+      "domain": "global",
       "serviceName": "HBASE",
       "category": "HBase Master"
     },
@@ -145,6 +151,7 @@ module.exports =
       "defaultValue": "3",
       "displayType": "int",
       "isVisible": true,
+      "domain": "global",
       "serviceName": "HBASE"
     },
     {
@@ -155,6 +162,7 @@ module.exports =
       "defaultValue": "0.25",
       "displayType": "float",
       "isVisible": true,
+      "domain": "global",
       "serviceName": "HBASE"
     },
     {
@@ -166,6 +174,7 @@ module.exports =
       "displayType": "int",
       "unit": "bytes",
       "isVisible": true,
+      "domain": "global",
       "serviceName": "HBASE"
     },
     {
@@ -176,6 +185,7 @@ module.exports =
       "defaultValue": "30",
       "displayType": "int",
       "isVisible": true,
+      "domain": "regionserver-global",
       "serviceName": "HBASE",
       "category": "RegionServer"
     },
@@ -188,6 +198,7 @@ module.exports =
       "displayType": "int",
       "unit": "ms",
       "isVisible": true,
+      "domain": "regionserver-global",
       "serviceName": "HBASE",
       "category": "RegionServer"
     },
@@ -199,6 +210,7 @@ module.exports =
       "defaultValue": "2",
       "displayType": "int",
       "isVisible": true,
+      "domain": "regionserver-global",
       "serviceName": "HBASE",
       "category": "RegionServer"
     },
@@ -211,6 +223,7 @@ module.exports =
       "displayType": "int",
       "unit": "bytes",
       "isVisible": true,
+      "domain": "regionserver-global",
       "serviceName": "HBASE",
       "category": "RegionServer"
     },
@@ -223,6 +236,7 @@ module.exports =
       "displayType": "int",
       "unit": "rows",
       "isVisible": true,
+      "domain": "global",
       "serviceName": "HBASE"
     },
     {
@@ -234,6 +248,7 @@ module.exports =
       "displayType": "int",
       "unit": "ms",
       "isVisible": true,
+      "domain": "global",
       "serviceName": "HBASE"
     },
     {
@@ -245,6 +260,7 @@ module.exports =
       "displayType": "int",
       "unit": "bytes",
       "isVisible": true,
+      "domain": "global",
       "serviceName": "HBASE"
     },
    /* {
@@ -268,6 +284,7 @@ module.exports =
       "isRequired": true,
       "displayType": "advanced",
       "isVisible": false,
+      "domain": "global",
       "serviceName": "HBASE",
       "category": "Advanced"
     },
@@ -280,6 +297,7 @@ module.exports =
       "isRequired": false,
       "displayType": "advanced",
       "isVisible": false,
+      "domain": "global",
       "serviceName": "HBASE",
       "category": "Advanced"
     },
@@ -292,6 +310,7 @@ module.exports =
       "isRequired": false,
       "displayType": "checkbox",
       "isVisible": true,
+      "domain": "global",
       "serviceName": "HBASE",
       "category": "Advanced"
     },
@@ -304,6 +323,7 @@ module.exports =
       "isRequired": false,
       "displayType": "checkbox",
       "isVisible": true,
+      "domain": "global",
       "serviceName": "HBASE",
       "category": "Advanced"
     },
@@ -316,6 +336,7 @@ module.exports =
       "isRequired": false,
       "displayType": "checkbox",
       "isVisible": true,
+      "domain": "global",
       "serviceName": "HBASE",
       "category": "Advanced"
     },
@@ -330,6 +351,7 @@ module.exports =
       "isRequired": true,
       "displayType": "init",
       "isVisible": true,
+      "domain": "global",
       "serviceName": "HBASE",
       "category": "Advanced"
     },
@@ -342,6 +364,7 @@ module.exports =
       "isRequired": false,
       "displayType": "checkbox",
       "isVisible": false,
+      "domain": "global",
       "serviceName": "HBASE",
       "category": "Advanced"
     },
@@ -354,6 +377,7 @@ module.exports =
       "isRequired": false,
       "displayType": "float",
       "isVisible": false,
+      "domain": "global",
       "serviceName": "HBASE",
       "category": "Advanced"
     },
@@ -366,6 +390,7 @@ module.exports =
       "isRequired": true,
       "displayType": "float",
       "isVisible": false,
+      "domain": "global",
       "serviceName": "HBASE",
       "category": "Advanced"
     },
@@ -378,6 +403,7 @@ module.exports =
       "isRequired": false,
       "displayType": "directory",
       "isVisible": false,
+      "domain": "global",
       "serviceName": "MISC",
       "category": "General"
     },
@@ -390,6 +416,7 @@ module.exports =
       "description": "The host that has been assigned to run NameNode",
       "displayType": "masterHost",
       "isVisible": true,
+      "domain": "global",
       "serviceName": "HDFS",
       "category": "NameNode"
     },
@@ -399,9 +426,11 @@ module.exports =
       "displayName": "NameNode directories",
       "description": "NameNode directories for HDFS to store the file system image",
       "defaultValue": "/grid/0/hadoop/hdfs/namenode\n/grid/1/hadoop/hdfs/namenode\n",
+      "defaultDirectory": "hadoop/hdfs/namenode",
       "isReconfigurable": false,
       "displayType": "directories",
       "isVisible": true,
+      "domain": "global",
       "serviceName": "HDFS",
       "category": "NameNode"
     },
@@ -414,6 +443,7 @@ module.exports =
       "description": "The host that has been assigned to run SecondaryNameNode",
       "displayType": "masterHost",
       "isVisible": true,
+      "domain": "global",
       "serviceName": "HDFS",
       "category": "SNameNode"
     },
@@ -423,9 +453,11 @@ module.exports =
       "displayName": "SecondaryNameNode Checkpoint directory",
       "description": "Directory on the local filesystem where the Secondary NameNode should store the temporary images to merge",
       "defaultValue": "/grid/0/hadoop/hdfs/namesecondary",
+      "defaultDirectory": "hadoop/hdfs/namesecondary",
       "isReconfigurable": false,
       "displayType": "directory",
       "isVisible": true,
+      "domain": "global",
       "serviceName": "HDFS",
       "category": "SNameNode"
     },
@@ -439,6 +471,7 @@ module.exports =
       "displayType": "slaveHosts",
       "isRequired": false,
       "isVisible": true,
+      "domain": "datanode-global",
       "serviceName": "HDFS",
       "category": "DataNode"
     },
@@ -448,9 +481,11 @@ module.exports =
       "displayName": "DataNode directories",
       "description": "DataNode directories for HDFS to store the data blocks",
       "defaultValue": "/tmp/hadoop-hdfs/dfs/data",
+      "defaultDirectory": "hadoop-hdfs/dfs/data",
       "isReconfigurable": false,
       "displayType": "directories",
       "isVisible": true,
+      "domain": "datanode-global",
       "serviceName": "HDFS",
       "category": "DataNode"
     },
@@ -463,6 +498,7 @@ module.exports =
       "isReconfigurable": false,
       "displayType": "directory",
       "isVisible": true,
+      "domain": "global",
       "serviceName": "HDFS",
       "category": "Advanced"
     },
@@ -475,6 +511,7 @@ module.exports =
       "isReconfigurable": false,
       "displayType": "directory",
       "isVisible": true,
+      "domain": "global",
       "serviceName": "HDFS",
       "category": "Advanced"
     },
@@ -486,6 +523,7 @@ module.exports =
       "defaultValue": true,
       "displayType": "checkbox",
       "isVisible": true,
+      "domain": "global",
       "serviceName": "HDFS"
     },
     {
@@ -496,6 +534,7 @@ module.exports =
       "defaultValue": false,
       "displayType": "checkbox",
       "isVisible": true,
+      "domain": "global",
       "serviceName": "HDFS"
     },
     {
@@ -507,6 +546,7 @@ module.exports =
       "displayType": "int",
       "unit": "MB",
       "isVisible": true,
+      "domain": "global",
       "serviceName": "HDFS"
     },
     {
@@ -518,6 +558,7 @@ module.exports =
       "displayType": "int",
       "unit": "MB",
       "isVisible": true,
+      "domain": "global",
       "serviceName": "HDFS",
       "category": "NameNode"
     },
@@ -530,6 +571,7 @@ module.exports =
       "displayType": "int",
       "unit": "MB",
       "isVisible": true,
+      "domain": "global",
       "serviceName": "HDFS",
       "category": "NameNode"
     },
@@ -542,6 +584,7 @@ module.exports =
       "displayType": "int",
       "unit": "MB",
       "isVisible": false,
+      "domain": "global",
       "serviceName": "HDFS",
       "category": "NameNode"
     },
@@ -554,6 +597,7 @@ module.exports =
       "displayType": "int",
       "unit": "GB",
       "isVisible": true,
+      "domain": "global",
       "serviceName": "HDFS"
     },
     {
@@ -565,6 +609,7 @@ module.exports =
       "displayType": "int",
       "unit": "MB",
       "isVisible": true,
+      "domain": "datanode-global",
       "serviceName": "HDFS",
       "category": "DataNode"
     },
@@ -576,6 +621,7 @@ module.exports =
       "defaultValue": "0",
       "displayType": "int",
       "isVisible": true,
+      "domain": "datanode-global",
       "serviceName": "HDFS",
       "category": "DataNode"
     },
@@ -589,6 +635,7 @@ module.exports =
       "displayType": "int",
       "unit": "seconds",
       "isVisible": true,
+      "domain": "global",
       "filename": "core-site.xml",
       "serviceName": "HDFS"
     },
@@ -603,6 +650,7 @@ module.exports =
       "displayType": "float",
       "unit": "GB",
       "isVisible": true,
+      "domain": "global",
       "filename": "core-site.xml",
       "serviceName": "HDFS"
     },
@@ -616,6 +664,7 @@ module.exports =
       "displayType": "advanced",
       "isVisible": true,
       "filename": "core-site.xml",
+      "domain": "global",
       "serviceName": "MISC",
       "category": "Users and Groups"
     },
@@ -629,6 +678,7 @@ module.exports =
       "displayType": "advanced",
       "isVisible": true,
       "filename": "hdfs-site.xml",
+      "domain": "global",
       "serviceName": "HDFS",
       "category": "Advanced"
     },
@@ -642,6 +692,7 @@ module.exports =
       "displayType": "advanced",
       "isVisible": true,
       "filename": "hdfs-site.xml",
+      "domain": "global",
       "serviceName": "HDFS",
       "category": "Advanced"
     },
@@ -655,6 +706,7 @@ module.exports =
       "isReconfigurable": false,
       "isVisible": true,
       "filename": "hdfs-site.xml",
+      "domain": "global",
       "serviceName": "HDFS",
       "category": "Advanced"
     },
@@ -668,6 +720,7 @@ module.exports =
       "isReconfigurable": false,
       "isVisible": true,
       "filename": "hdfs-site.xml",
+      "domain": "global",
       "serviceName": "HDFS",
       "category": "Advanced"
     },
@@ -681,6 +734,7 @@ module.exports =
       "displayType": "int",
       "isVisible": true,
       "filename": "hdfs-site.xml",
+      "domain": "global",
       "serviceName": "MISC",
       "category": "Advanced"
     },
@@ -694,6 +748,7 @@ module.exports =
       "displayType": "int",
       "isVisible": true,
       "filename": "hdfs-site.xml",
+      "domain": "global",
       "serviceName": "MISC",
       "category": "Advanced"
     },
@@ -707,6 +762,7 @@ module.exports =
       "displayType": "int",
       "isVisible": true,
       "filename": "hdfs-site.xml",
+      "domain": "global",
       "serviceName": "MISC",
       "category": "Advanced"
     },
@@ -720,6 +776,7 @@ module.exports =
       "displayType": "int",
       "isVisible": false,
       "filename": "hdfs-site.xml",
+      "domain": "global",
       "serviceName": "HDFS",
       "category": "Advanced"
     },
@@ -732,6 +789,7 @@ module.exports =
       "isRequired": false,
       "displayType": "checkbox",
       "isVisible": false,
+      "domain": "global",
       "serviceName": "HDFS",
       "category": "Advanced"
     },
@@ -743,6 +801,7 @@ module.exports =
       "defaultValue": "EXAMPLE.COM",
       "isRequired": true,
       "isVisible": false,
+      "domain": "global",
       "serviceName": "HDFS",
       "category": "Advanced"
     },
@@ -755,6 +814,7 @@ module.exports =
       "isRequired": true,
       "displayType": "password",
       "isVisible": false,
+      "domain": "global",
       "serviceName": "HDFS",
       "category": "Advanced"
     },
@@ -767,6 +827,7 @@ module.exports =
       "isRequired": true,
       "displayType": "advanced",
       "isVisible": false,
+      "domain": "global",
       "serviceName": "HDFS",
       "category": "Advanced"
     },
@@ -794,6 +855,7 @@ module.exports =
       "serviceName": "HIVE",
       "category": "Hive Metastore"
     },
+    /* Comment out the other hive_database and uncomment this for Hive with Postgres support
     {
       "id": "puppet var",
       "name": "hive_database",
@@ -810,10 +872,64 @@ module.exports =
           foreignKeys: ['hive_existing_database', 'hive_existing_host']
         }
       ],
-      "description": "PostgreSQL will be installed by ambari. Any other database will have to be installed by the user.",
+      "description": "PostgreSQL will be installed by Ambari. Any other database will have to be installed by the user.",
       "displayType": "radio button",
       "radioName": "hive-database",
       "isVisible": true,
+      "domain": "global",
+      "serviceName": "HIVE",
+      "category": "Hive Metastore"
+    },
+    */
+    {
+      "id": "puppet var",
+      "name": "hive_database",
+      "displayName": "Hive Database",
+      "value": "",
+      "defaultValue": "New MySQL Database",
+      "options": [
+        {
+          displayName: 'New MySQL Database',
+          foreignKeys: ['hive_ambari_database', 'hive_ambari_host']
+        },
+        {
+          displayName: 'Existing MySQL Database',
+          foreignKeys: ['hive_existing_database', 'hive_existing_host']
+        }
+      ],
+      "description": "MySQL will be installed by Ambari",
+      "displayType": "radio button",
+      "radioName": "hive-database",
+      "isVisible": true,
+      "domain": "global",
+      "serviceName": "HIVE",
+      "category": "Hive Metastore"
+    },
+    {
+      "id": "puppet var",
+      "name": "hive_existing_database",
+      "displayName": "Database Type",
+      "value": "",
+      "defaultValue": "MySQL",
+      "description": "Using an existing database for Hive Metastore",
+      "displayType": "masterHost",
+      "isVisible": false,
+      "domain": "global",
+      "serviceName": "HIVE",
+      "category": "Hive Metastore"
+    },
+    /* Uncomment for Hive with Postgres support
+    {
+      "id": "puppet var",
+      "name": "hive_existing_database",
+      "displayName": "Hive Database",
+      "value": "",
+      "defaultValue": "MySQL",
+      "description": "Select the database, if you already have existing one for Hive Metastore.",
+      "displayType": "string",
+      "isVisible": false,
+      "options": ['MySQL', 'PostgreSQL'],
+      "domain": "global",
       "serviceName": "HIVE",
       "category": "Hive Metastore"
     },
@@ -827,30 +943,34 @@ module.exports =
       "displayType": "combobox",
       "isVisible": false,
       "options": ['MySQL', 'PostgreSQL'],
+      "domain": "global",
       "serviceName": "HIVE",
       "category": "Hive Metastore"
     },
+    */
     {
       "id": "puppet var",
       "name": "hive_existing_host",
       "displayName": "Database host",
-      "description": "Select the host on which the existing database is hosted.",
+      "description": "Specify the host on which the existing database is hosted",
       "defaultValue": "",
       "isReconfigurable": false,
       "displayType": "host",
       "isVisible": false,
+      "domain": "global",
       "serviceName": "HIVE",
       "category": "Hive Metastore"
     },
     {
       "id": "puppet var",
       "name": "hive_ambari_database",
-      "displayName": "Hive Database",
+      "displayName": "Database Type",
       "value": "",
-      "defaultValue": "PostgreSQL",
-      "description": "PostgreSQL will be installed by ambari.",
+      "defaultValue": "MySQL",
+      "description": "MySQL will be installed by Ambari",
       "displayType": "masterHost",
       "isVisible": true,
+      "domain": "global",
       "serviceName": "HIVE",
       "category": "Hive Metastore"
     },
@@ -860,10 +980,11 @@ module.exports =
       "value": "",
       "defaultValue": "",
       "displayName": "PostgreSQL host",
-      "description": "Host  on which the PostgreSQL database will be created by ambari. ",
+      "description": "Host on which the PostgreSQL database will be created by Ambari",
       "isReconfigurable": false,
       "displayType": "masterHost",
       "isVisible": true,
+      "domain": "global",
       "serviceName": "HIVE",
       "category": "Hive Metastore"
     },
@@ -876,6 +997,7 @@ module.exports =
       "isReconfigurable": false,
       "displayType": "host",
       "isVisible": true,
+      "domain": "global",
       "serviceName": "HIVE",
       "category": "Hive Metastore"
     },
@@ -888,6 +1010,7 @@ module.exports =
       "isReconfigurable": false,
       "displayType": "user",
       "isVisible": true,
+      "domain": "global",
       "serviceName": "HIVE",
       "category": "Hive Metastore"
     },
@@ -900,6 +1023,7 @@ module.exports =
       "isReconfigurable": false,
       "displayType": "password",
       "isVisible": true,
+      "domain": "global",
       "serviceName": "HIVE",
       "category": "Hive Metastore"
     },
@@ -912,6 +1036,7 @@ module.exports =
       "isReconfigurable": false,
       "displayType": "int",
       "isVisible": false,
+      "domain": "global",
       "serviceName": "HIVE",
       "category": "Advanced"
     },
@@ -924,6 +1049,7 @@ module.exports =
       "isReconfigurable": false,
       "displayType": "directory",
       "isVisible": false,
+      "domain": "global",
       "serviceName": "HIVE",
       "category": "Advanced"
     },
@@ -936,6 +1062,7 @@ module.exports =
       "isReconfigurable": false,
       "displayType": "directory",
       "isVisible": false,
+      "domain": "global",
       "serviceName": "HIVE",
       "category": "Advanced"
     },
@@ -948,6 +1075,7 @@ module.exports =
       "isReconfigurable": false,
       "displayType": "directory",
       "isVisible": false,
+      "domain": "global",
       "serviceName": "HIVE",
       "category": "Advanced"
     },
@@ -960,6 +1088,7 @@ module.exports =
       "isReconfigurable": false,
       "displayType": "directory",
       "isVisible": false,
+      "domain": "global",
       "serviceName": "HIVE",
       "category": "Advanced"
     },
@@ -972,6 +1101,7 @@ module.exports =
       "isReconfigurable": false,
       "displayType": "directory",
       "isVisible": true,
+      "domain": "global",
       "serviceName": "HIVE",
       "category": "Advanced"
     },
@@ -984,6 +1114,7 @@ module.exports =
       "isReconfigurable": false,
       "displayType": "advanced",
       "isVisible": false,
+      "domain": "global",
       "serviceName": "MISC",
       "category": "General"
     },
@@ -996,6 +1127,7 @@ module.exports =
       "isReconfigurable": false,
       "displayType": "advanced",
       "isVisible": false,
+      "domain": "global",
       "serviceName": "MISC",
       "category": "General"
     },
@@ -1008,6 +1140,7 @@ module.exports =
       "isReconfigurable": false,
       "displayType": "directory",
       "isVisible": false,
+      "domain": "global",
       "serviceName": "HIVE",
       "category": "Advanced"
     },
@@ -1020,6 +1153,7 @@ module.exports =
       "isReconfigurable": false,
       "displayType": "directory",
       "isVisible": false,
+      "domain": "global",
       "serviceName": "HIVE",
       "category": "Advanced"
     },
@@ -1032,6 +1166,7 @@ module.exports =
       "isReconfigurable": false,
       "displayType": "directory",
       "isVisible": false,
+      "domain": "global",
       "serviceName": "GANGLIA",
       "category": "Advanced"
     },
@@ -1044,6 +1179,7 @@ module.exports =
       "isReconfigurable": false,
       "displayType": "directory",
       "isVisible": false,
+      "domain": "global",
       "serviceName": "MISC",
       "category": "General"
     },
@@ -1056,6 +1192,7 @@ module.exports =
       "isReconfigurable": false,
       "displayType": "advanced",
       "isVisible": false,
+      "domain": "global",
       "serviceName": "MISC",
       "category": "Users and Groups"
     },
@@ -1068,6 +1205,7 @@ module.exports =
       "isReconfigurable": false,
       "displayType": "advanced",
       "isVisible": false,
+      "domain": "global",
       "serviceName": "MISC",
       "category": "Users and Groups"
     },
@@ -1080,6 +1218,7 @@ module.exports =
       "isReconfigurable": false,
       "displayType": "directory",
       "isVisible": false,
+      "domain": "global",
       "serviceName": "MISC",
       "category": "General"
     },
@@ -1092,6 +1231,7 @@ module.exports =
       "isReconfigurable": false,
       "displayType": "advanced",
       "isVisible": false,
+      "domain": "global",
       "serviceName": "MISC",
       "category": "General"
     },
@@ -1104,6 +1244,7 @@ module.exports =
       "isReconfigurable": false,
       "displayType": "directory",
       "isVisible": true,
+      "domain": "global",
       "serviceName": "HIVE",
       "category": "Advanced"
     },
@@ -1116,6 +1257,7 @@ module.exports =
       "isReconfigurable": false,
       "displayType": "directory",
       "isVisible": true,
+      "domain": "global",
       "serviceName": "HIVE",
       "category": "Advanced"
     },
@@ -1140,6 +1282,7 @@ module.exports =
       "description": "The host that has been assigned to run JobTracker",
       "displayType": "masterHost",
       "isVisible": true,
+      "domain": "global",
       "serviceName": "MAPREDUCE",
       "category": "JobTracker"
     },
@@ -1153,6 +1296,7 @@ module.exports =
       "displayType": "slaveHosts",
       "isVisible": true,
       "isRequired": false,
+      "domain": "tasktracker-global",
       "serviceName": "MAPREDUCE",
       "category": "TaskTracker"
     },
@@ -1162,9 +1306,11 @@ module.exports =
       "displayName": "MapReduce local directories",
       "description": "Directories for MapReduce to store intermediate data files",
       "defaultValue": "/grid/0/hadoop/mapred\n/grid/1/hadoop/mapred\n",
+      "defaultDirectory": "hadoop/mapred",
       "displayType": "directories",
       "isReconfigurable": false,
       "isVisible": true,
+      "domain": "tasktracker-global",
       "serviceName": "MAPREDUCE",
       "category": "TaskTracker"
     },
@@ -1178,6 +1324,7 @@ module.exports =
       "isReconfigurable": false,
       "isVisible": true,
       "isRequired": false,
+      "domain": "global",
       "serviceName": "MAPREDUCE",
       "category": "Advanced"
     },
@@ -1200,6 +1347,7 @@ module.exports =
       "displayType": "int",
       "unit": "MB",
       "isVisible": true,
+      "domain": "global",
       "serviceName": "MAPREDUCE",
       "category": "JobTracker"
     },
@@ -1212,6 +1360,7 @@ module.exports =
       "displayType": "int",
       "unit": "MB",
       "isVisible": true,
+      "domain": "global",
       "serviceName": "MAPREDUCE",
       "category": "JobTracker"
     },
@@ -1224,6 +1373,7 @@ module.exports =
       "displayType": "int",
       "unit": "MB",
       "isVisible": true,
+      "domain": "global",
       "serviceName": "MAPREDUCE",
       "category": "JobTracker"
     },
@@ -1235,6 +1385,7 @@ module.exports =
       "defaultValue": "4",
       "displayType": "int",
       "isVisible": true,
+      "domain": "tasktracker-global",
       "serviceName": "MAPREDUCE",
       "category": "TaskTracker"
     },
@@ -1247,6 +1398,7 @@ module.exports =
       "displayType": "int",
       "isVisible": true,
       "isRequired": false,
+      "domain": "tasktracker-global",
       "serviceName": "MAPREDUCE",
       "category": "TaskTracker"
     },
@@ -1259,6 +1411,7 @@ module.exports =
       "displayType": "int",
       "unit": "MB",
       "isVisible": true,
+      "domain": "global",
       "serviceName": "MAPREDUCE"
     },
     {
@@ -1270,6 +1423,7 @@ module.exports =
       "displayType": "int",
       "unit": "MB",
       "isVisible": true,
+      "domain": "global",
       "serviceName": "MAPREDUCE"
     },
     {
@@ -1281,6 +1435,7 @@ module.exports =
       "displayType": "int",
       "unit": "MB",
       "isVisible": true,
+      "domain": "global",
       "serviceName": "MAPREDUCE"
     },
     {
@@ -1292,6 +1447,7 @@ module.exports =
       "displayType": "int",
       "unit": "MB",
       "isVisible": true,
+      "domain": "global",
       "serviceName": "MAPREDUCE"
     },
     {
@@ -1303,6 +1459,7 @@ module.exports =
       "displayType": "int",
       "unit": "MB",
       "isVisible": true,
+      "domain": "global",
       "serviceName": "MAPREDUCE"
     },
     {
@@ -1314,6 +1471,7 @@ module.exports =
       "displayType": "int",
       "unit": "MB",
       "isVisible": true,
+      "domain": "global",
       "serviceName": "MAPREDUCE"
     },
     {
@@ -1325,6 +1483,7 @@ module.exports =
       "displayType": "int",
       "unit": "MB",
       "isVisible": true,
+      "domain": "tasktracker-global",
       "serviceName": "MAPREDUCE",
       "category": "TaskTracker"
     },
@@ -1337,6 +1496,7 @@ module.exports =
       "displayType": "int",
       "unit": "MB",
       "isVisible": true,
+      "domain": "global",
       "serviceName": "MAPREDUCE"
     },
     {
@@ -1347,6 +1507,7 @@ module.exports =
       "defaultValue": "0.9",
       "displayType": "float",
       "isVisible": true,
+      "domain": "global",
       "serviceName": "MAPREDUCE"
     },
     {
@@ -1358,6 +1519,7 @@ module.exports =
       "displayType": "int",
       "unit": "hours",
       "isVisible": true,
+      "domain": "global",
       "serviceName": "MAPREDUCE"
     },
     {
@@ -1368,6 +1530,7 @@ module.exports =
       "defaultValue": "-1",
       "displayType": "int",
       "isVisible": true,
+      "domain": "global",
       "serviceName": "MAPREDUCE"
     },
     {
@@ -1378,6 +1541,7 @@ module.exports =
       "defaultValue": false,
       "displayType": "checkbox",
       "isVisible": true,
+      "domain": "global",
       "serviceName": "MAPREDUCE"
     },
     {
@@ -1389,6 +1553,7 @@ module.exports =
       "isReconfigurable": false,
       "displayType": "checkbox",
       "isVisible": true,
+      "domain": "global",
       "serviceName": "MAPREDUCE"
     },
     {
@@ -1400,6 +1565,7 @@ module.exports =
       "isReconfigurable": true,
       "displayType": "checkbox",
       "isVisible": true,
+      "domain": "global",
       "serviceName": "MAPREDUCE"
     },
     /*{
@@ -1423,6 +1589,7 @@ module.exports =
       "displayType": "directories",
       "isVisible": false,
       "serviceName": "MAPREDUCE",
+      "domain": "global",
       "category": "Advanced"
     },
     {
@@ -1434,6 +1601,7 @@ module.exports =
       "displayType": "directories",
       "isVisible": false,
       "serviceName": "MAPREDUCE",
+      "domain": "global",
       "category": "Advanced"
     },
     {
@@ -1445,6 +1613,7 @@ module.exports =
       "displayType": "advanced",
       "isVisible": false,
       "serviceName": "MAPREDUCE",
+      "domain": "global",
       "category": "Advanced"
     },
     {
@@ -1456,6 +1625,7 @@ module.exports =
       "displayType": "advanced",
       "isVisible": false,
       "serviceName": "MAPREDUCE",
+      "domain": "global",
       "category": "Advanced"
     },
     /*
@@ -1476,12 +1646,13 @@ module.exports =
       "id": "puppet var",
       "name": "java64_home",
       "displayName": "Path to 64-bit JAVA_HOME",
-      "description": "Path to 64-bit JAVA_HOME",
-      "defaultValue": "",
-      "isRequired": false,
+      "description": "Path to 64-bit JAVA_HOME.  /usr/jdk/jdk1.6.0_31 is the default used by Ambari.  You can override this to a specific path that contains the JDK.  Note that the path must be valid on ALL hosts in your cluster.",
+      "defaultValue": "/usr/jdk64/jdk1.6.0_31",
+      "isRequired": true,
       "isReconfigurable": false,
       "displayType": "directory",
       "isVisible": true,
+      "domain": "global",
       "serviceName": "MISC"
     },
     {
@@ -1494,6 +1665,7 @@ module.exports =
       "isReconfigurable": false,
       "displayType": "directory",
       "isVisible": false,
+      "domain": "global",
       "serviceName": "MISC",
       "category": "Advanced"
     },
@@ -1507,6 +1679,7 @@ module.exports =
       "isReconfigurable": false,
       "displayType": "directory",
       "isVisible": false,
+      "domain": "global",
       "serviceName": "MISC",
       "category": "Advanced"
     },
@@ -1520,6 +1693,7 @@ module.exports =
       "isReconfigurable": false,
       "displayType": "directory",
       "isVisible": false,
+      "domain": "global",
       "serviceName": "HDFS",
       "category": "NameNode"
     },
@@ -1533,6 +1707,7 @@ module.exports =
       "isReconfigurable": false,
       "displayType": "directory",
       "isVisible": false,
+      "domain": "global",
       "serviceName": "HDFS",
       "category": "Advanced"
     },
@@ -1546,6 +1721,7 @@ module.exports =
       "isReconfigurable": false,
       "displayType": "directory",
       "isVisible": false,
+      "domain": "global",
       "serviceName": "MISC"
     },
     {
@@ -1558,6 +1734,7 @@ module.exports =
       "isReconfigurable": false,
       "displayType": "directory",
       "isVisible": false,
+      "domain": "global",
       "serviceName": "MISC"
     },
     {
@@ -1570,6 +1747,7 @@ module.exports =
       "isReconfigurable": false,
       "displayType": "directory",
       "isVisible": false,
+      "domain": "global",
       "serviceName": "MISC"
     },
     {
@@ -1582,6 +1760,7 @@ module.exports =
       "isReconfigurable": false,
       "displayType": "directory",
       "isVisible": false,
+      "domain": "global",
       "serviceName": "MISC"
     },
     /*
@@ -1607,7 +1786,6 @@ module.exports =
      "isVisible":  true, "serviceName": "MISC",
      "category": "Advanced"
      },
-     */
     {
       "id": "puppet var",
       "name": "using_local_repo",
@@ -1616,7 +1794,8 @@ module.exports =
       "defaultValue": false,
       "isReconfigurable": false,
       "displayType": "checkbox",
-      "isVisible": true,
+      "isVisible": false,
+      "domain": "global",
       "serviceName": "MISC"
     },
     {
@@ -1628,8 +1807,10 @@ module.exports =
       "isReconfigurable": false,
       "displayType": "directory",
       "isVisible": true,
+      "domain": "global",
       "serviceName": "MISC"
     },
+    */
     {
       "id": "puppet var",
       "name": "hdfs_user",
@@ -1640,6 +1821,7 @@ module.exports =
       "displayType": "user",
       "isVisible": true,
       "serviceName": "MISC",
+      "domain": "global",
       "category": "Users and Groups"
     },
     {
@@ -1651,6 +1833,7 @@ module.exports =
       "isReconfigurable": false,
       "displayType": "user",
       "isVisible": true,
+      "domain": "global",
       "serviceName": "MISC",
       "category": "Users and Groups"
     },
@@ -1663,6 +1846,7 @@ module.exports =
       "isReconfigurable": false,
       "displayType": "user",
       "isVisible": true,
+      "domain": "global",
       "serviceName": "MISC",
       "category": "Users and Groups"
     },
@@ -1675,6 +1859,7 @@ module.exports =
       "isReconfigurable": false,
       "displayType": "user",
       "isVisible": true,
+      "domain": "global",
       "serviceName": "MISC",
       "category": "Users and Groups"
     },
@@ -1687,6 +1872,7 @@ module.exports =
       "isReconfigurable": false,
       "displayType": "user",
       "isVisible": true,
+      "domain": "global",
       "serviceName": "MISC",
       "category": "Users and Groups"
     },
@@ -1699,6 +1885,7 @@ module.exports =
       "isReconfigurable": false,
       "displayType": "user",
       "isVisible": true,
+      "domain": "global",
       "serviceName": "MISC",
       "category": "Users and Groups"
     },
@@ -1711,6 +1898,7 @@ module.exports =
       "isReconfigurable": false,
       "displayType": "user",
       "isVisible": true,
+      "domain": "global",
       "serviceName": "MISC",
       "category": "Users and Groups"
     },
@@ -1723,6 +1911,7 @@ module.exports =
       "isReconfigurable": false,
       "displayType": "directory",
       "isVisible": false,
+      "domain": "global",
       "serviceName": "MISC",
       "category": "General"
     },
@@ -1735,6 +1924,7 @@ module.exports =
       "isReconfigurable": false,
       "displayType": "directory",
       "isVisible": false,
+      "domain": "global",
       "serviceName": "MISC",
       "category": "General"
     },
@@ -1747,6 +1937,7 @@ module.exports =
       "isReconfigurable": false,
       "displayType": "user",
       "isVisible": true,
+      "domain": "global",
       "serviceName": "MISC",
       "category": "Users and Groups"
     },
@@ -1759,6 +1950,7 @@ module.exports =
       "isReconfigurable": false,
       "displayType": "directory",
       "isVisible": false,
+      "domain": "global",
       "serviceName": "MISC",
       "category": "General"
     },
@@ -1771,6 +1963,7 @@ module.exports =
       "isReconfigurable": false,
       "displayType": "directory",
       "isVisible": false,
+      "domain": "global",
       "serviceName": "MISC",
       "category": "General"
     },
@@ -1783,6 +1976,7 @@ module.exports =
       "isReconfigurable": false,
       "displayType": "user",
       "isVisible": true,
+      "domain": "global",
       "serviceName": "MISC",
       "category": "Users and Groups"
     },
@@ -1795,6 +1989,7 @@ module.exports =
       "isReconfigurable": false,
       "displayType": "user",
       "isVisible": true,
+      "domain": "global",
       "serviceName": "MISC",
       "category": "Users and Groups"
     },
@@ -1807,6 +2002,7 @@ module.exports =
       "isReconfigurable": false,
       "displayType": "user",
       "isVisible": true,
+      "domain": "global",
       "serviceName": "MISC",
       "category": "Users and Groups"
     },
@@ -1818,6 +2014,7 @@ module.exports =
       "defaultValue": "nagios",
       "isReconfigurable": false,
       "displayType": "user",
+      "domain": "global",
       "isVisible": false,
       "serviceName": "NAGIOS"
     },
@@ -1829,6 +2026,7 @@ module.exports =
       "defaultValue": "nagios",
       "isReconfigurable": false,
       "displayType": "user",
+      "domain": "global",
       "isVisible": false,
       "serviceName": "NAGIOS"
     },
@@ -1840,6 +2038,7 @@ module.exports =
       "defaultValue": "nagiosadmin",
       "isReconfigurable": false,
       "displayType": "user",
+      "domain": "global",
       "isVisible": true,
       "serviceName": "NAGIOS"
     },
@@ -1852,6 +2051,7 @@ module.exports =
       "isReconfigurable": false,
       "displayType": "password",
       "isVisible": true,
+      "domain": "global",
       "serviceName": "NAGIOS"
     },
     {
@@ -1862,6 +2062,7 @@ module.exports =
       "defaultValue": "",
       "displayType": "email",
       "isVisible": true,
+      "domain": "global",
       "serviceName": "NAGIOS"
     },
     {
@@ -1873,6 +2074,7 @@ module.exports =
       "description": "The host that has been assigned to run Oozie Server",
       "displayType": "masterHost",
       "isVisible": true,
+      "domain": "global",
       "serviceName": "OOZIE",
       "category": "Oozie Server"
     },
@@ -1997,6 +2199,7 @@ module.exports =
       "displayType": "directory",
       "isVisible": true,
       "isRequired": false,
+      "domain": "global",
       "serviceName": "OOZIE",
       "category": "Oozie Server"
     },
@@ -2009,6 +2212,7 @@ module.exports =
       "isReconfigurable": false,
       "displayType": "directory",
       "isVisible": true,
+      "domain": "global",
       "serviceName": "OOZIE",
       "category": "Advanced"
     },
@@ -2021,6 +2225,7 @@ module.exports =
       "isReconfigurable": false,
       "displayType": "directory",
       "isVisible": true,
+      "domain": "global",
       "serviceName": "OOZIE",
       "category": "Advanced"
     },
@@ -2043,9 +2248,11 @@ module.exports =
       "displayName": "ZooKeeper directory",
       "description": "Data directory for ZooKeeper",
       "defaultValue": "/grid/0/hadoop/zookeeper",
+      "defaultDirectory": "hadoop/zookeeper",
       "isReconfigurable": false,
       "displayType": "directory",
       "isVisible": true,
+      "domain": "global",
       "serviceName": "ZOOKEEPER",
       "category": "ZooKeeper Server"
     },
@@ -2058,6 +2265,7 @@ module.exports =
       "isReconfigurable": false,
       "displayType": "directory",
       "isVisible": true,
+      "domain": "global",
       "serviceName": "ZOOKEEPER",
       "category": "Advanced"
     },
@@ -2070,6 +2278,7 @@ module.exports =
       "isReconfigurable": false,
       "displayType": "directory",
       "isVisible": true,
+      "domain": "global",
       "serviceName": "ZOOKEEPER",
       "category": "Advanced"
     },
@@ -2082,6 +2291,7 @@ module.exports =
       "isReconfigurable": false,
       "displayType": "directory",
       "isVisible": false,
+      "domain": "global",
       "serviceName": "ZOOKEEPER",
       "category": "Advanced"
     },
@@ -2094,6 +2304,7 @@ module.exports =
       "displayType": "int",
       "unit": "ms",
       "isVisible": true,
+      "domain": "global",
       "serviceName": "ZOOKEEPER",
       "category": "ZooKeeper Server"
     },
@@ -2105,6 +2316,7 @@ module.exports =
       "defaultValue": "10",
       "displayType": "int",
       "isVisible": true,
+      "domain": "global",
       "serviceName": "ZOOKEEPER",
       "category": "ZooKeeper Server"
     },
@@ -2116,6 +2328,7 @@ module.exports =
       "defaultValue": "5",
       "displayType": "int",
       "isVisible": true,
+      "domain": "global",
       "serviceName": "ZOOKEEPER",
       "category": "ZooKeeper Server"
     },
@@ -2127,6 +2340,7 @@ module.exports =
       "defaultValue": "2181",
       "displayType": "int",
       "isVisible": true,
+      "domain": "global",
       "serviceName": "ZOOKEEPER",
       "category": "ZooKeeper Server"
     },
@@ -2138,6 +2352,7 @@ module.exports =
       "defaultValue": "/etc/conf/",
       "displayType": "directory",
       "isVisible": false,
+      "domain": "global",
       "serviceName": "MISC",
       "category": "General"
     }

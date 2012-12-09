@@ -164,11 +164,19 @@ module.exports = new Ember.Set([
   },
   {
     service_name: 'HIVE',
-    component_name: 'HIVE_MYSQL',
+    component_name: 'MYSQL_SERVER',
     display_name: 'MySql Server for Hive',
     isMaster: false,
     isClient: false,
     description: 'The slave for HBase'
+  },
+  {
+    service_name: 'HCATALOG',
+    component_name: 'HCAT',
+    display_name: 'HCat Client',
+    isMaster: false,
+    isClient: true,
+    description: ''
   },
   {
     service_name: 'TEMPLETON',

@@ -31,6 +31,7 @@ module.exports = Em.Route.extend({
             controllerBinding: 'App.router.addServiceController'
           }),
           primary:Em.I18n.t('form.cancel'),
+          showFooter: false,
           secondary: null,
 
           onPrimary:function () {
@@ -62,7 +63,7 @@ module.exports = Em.Route.extend({
     connectOutlets: function (router) {
       console.log('in addService.step1:connectOutlets');
       var controller = router.get('addServiceController');
-      controller.setCurrentStep('1', false);
+      controller.setCurrentStep('1');
       controller.set('hideBackButton', true);
       controller.dataLoading().done(function () {
         controller.loadAllPriorSteps();
@@ -84,7 +85,7 @@ module.exports = Em.Route.extend({
     connectOutlets: function (router) {
       console.log('in addService.step2:connectOutlets');
       var controller = router.get('addServiceController');
-      controller.setCurrentStep('2', false);
+      controller.setCurrentStep('2');
       controller.set('hideBackButton', false);
       controller.dataLoading().done(function () {
         controller.loadAllPriorSteps();
@@ -107,7 +108,7 @@ module.exports = Em.Route.extend({
     connectOutlets: function (router) {
       console.log('in addService.step3:connectOutlets');
       var controller = router.get('addServiceController');
-      controller.setCurrentStep('3', false);
+      controller.setCurrentStep('3');
       controller.dataLoading().done(function () {
         controller.loadAllPriorSteps();
         controller.connectOutlet('wizardStep6', controller.get('content'));
@@ -140,7 +141,7 @@ module.exports = Em.Route.extend({
     connectOutlets: function (router) {
       console.log('in addService.step4:connectOutlets');
       var controller = router.get('addServiceController');
-      controller.setCurrentStep('4', false);
+      controller.setCurrentStep('4');
       controller.dataLoading().done(function () {
         controller.loadAllPriorSteps();
         controller.connectOutlet('wizardStep7', controller.get('content'));
@@ -169,7 +170,7 @@ module.exports = Em.Route.extend({
     connectOutlets: function (router, context) {
       console.log('in addService.step5:connectOutlets');
       var controller = router.get('addServiceController');
-      controller.setCurrentStep('5', false);
+      controller.setCurrentStep('5');
       controller.dataLoading().done(function () {
         controller.loadAllPriorSteps();
         controller.connectOutlet('wizardStep8', controller.get('content'));
@@ -190,7 +191,7 @@ module.exports = Em.Route.extend({
     connectOutlets: function (router, context) {
       console.log('in addService.step6:connectOutlets');
       var controller = router.get('addServiceController');
-      controller.setCurrentStep('6', false);
+      controller.setCurrentStep('6');
       controller.dataLoading().done(function () {
         controller.loadAllPriorSteps();
         if (!App.testMode) {              //if test mode is ON don't disable prior steps link.
@@ -229,7 +230,7 @@ module.exports = Em.Route.extend({
     connectOutlets: function (router, context) {
       console.log('in addService.step7:connectOutlets');
       var controller = router.get('addServiceController');
-      controller.setCurrentStep('7', false);
+      controller.setCurrentStep('7');
       controller.dataLoading().done(function () {
         controller.loadAllPriorSteps();
         controller.connectOutlet('wizardStep10', controller.get('content'));

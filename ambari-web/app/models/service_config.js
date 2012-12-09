@@ -106,6 +106,7 @@ App.ServiceConfigProperty = Ember.Object.extend({
   displayName: '',
   value: '',
   defaultValue: '',
+  defaultDirectory: '',
   description: '',
   displayType: 'string', // string, digits, number, directories, custom
   unit: '',
@@ -127,6 +128,8 @@ App.ServiceConfigProperty = Ember.Object.extend({
   initialValue: function () {
     var masterComponentHostsInDB = App.db.getMasterComponentHosts();
     //console.log("value in initialvalue: " + JSON.stringify(masterComponentHostsInDB));
+    var hostsInfo = App.db.getHosts(); // which we are setting in installerController in step3.
+    var isOnlyFirstOneNeeded = true;
     switch (this.get('name')) {
       case 'namenode_host':
         var temp = masterComponentHostsInDB.findProperty('component', 'NAMENODE');
@@ -156,9 +159,112 @@ App.ServiceConfigProperty = Ember.Object.extend({
       case 'zookeeperserver_hosts':
         this.set('value', masterComponentHostsInDB.findProperty('component', 'ZOOKEEPER_SERVER').hostName);
         break;
+      case 'dfs_name_dir':
+      case 'dfs_data_dir':
+      case 'mapred_local_dir':
+         this.unionAllMountPoints( !isOnlyFirstOneNeeded );
+      break;
+      case 'fs_checkpoint_dir':
+      case 'zk_data_dir' :
+        this.unionAllMountPoints( isOnlyFirstOneNeeded );
+        break;
     }
   },
+  unionAllMountPoints : function( isOnlyFirstOneNeeded ){
+    var datanode_hostname = '';
+    var mountPointsPerHost = [];
+    var mountPointsAsRoot =   [];
+    var mountPointsAsBoot =   [];
+    var mountPointsAsHome =   [];
+    var mountPointsFortmpfs =   [];
+    var mountPointsForVboxsf =   [];
+    var masterComponentHostsInDB = App.db.getMasterComponentHosts();
+    var slaveComponentHostsInDB = App.db.getSlaveComponentHosts();
+    var hostsInfo = App.db.getHosts(); // which we are setting in installerController in step3.
+    var temp = '';
+    var setOfHostNames = [];
+    switch(this.get('name')){
+      case 'dfs_name_dir':
+        var components = masterComponentHostsInDB.filterProperty('component', 'NAMENODE');
+        components.forEach(function(component){
+          setOfHostNames.push(component.hostName);
+        },this);
+        break;
+      case 'fs_checkpoint_dir':
+        var components = masterComponentHostsInDB.filterProperty('component', 'SECONDARY_NAMENODE');
+        components.forEach(function(component){
+          setOfHostNames.push(component.hostName);
+        },this);
+        break;
+      case 'dfs_data_dir':
+        temp = slaveComponentHostsInDB.findProperty('componentName', 'DATANODE');
+        temp.hosts.forEach(function(host){
+          setOfHostNames.push(host.hostName);
+        },this);
+        break;
 
+      case 'mapred_local_dir':
+        temp = slaveComponentHostsInDB.findProperty('componentName', 'TASKTRACKER');
+        temp.hosts.forEach(function(host){
+          setOfHostNames.push(host.hostName);
+        },this);
+        break;
+
+      case 'zk_data_dir':
+        var components = masterComponentHostsInDB.filterProperty('component', 'ZOOKEEPER_SERVER');
+        components.forEach(function(component){
+          setOfHostNames.push(component.hostName);
+        },this);
+        break;
+    }
+
+    var allMountPoints = [];
+    for(var i = 0; i < setOfHostNames.length; i++ ){
+      datanode_hostname = setOfHostNames[i];
+      mountPointsPerHost = hostsInfo[datanode_hostname].disk_info;
+      mountPointsAsRoot =   mountPointsPerHost.filterProperty('mountpoint', '/');
+      mountPointsAsBoot =   mountPointsPerHost.filterProperty('mountpoint', '/boot');
+      mountPointsAsHome =   mountPointsPerHost.filterProperty('mountpoint', '/home');
+      mountPointsFortmpfs =   mountPointsPerHost.filterProperty('type', 'tmpfs');
+      mountPointsForVboxsf =   mountPointsPerHost.filterProperty('type', 'vboxsf');
+
+      var mountPointsToBeIgnored = [];
+      mountPointsToBeIgnored.push(mountPointsAsRoot);
+      mountPointsToBeIgnored.push(mountPointsAsBoot);
+      mountPointsToBeIgnored.push(mountPointsAsHome);
+
+      mountPointsFortmpfs.forEach(function(mpoint){
+        mountPointsToBeIgnored.push(mpoint);
+      },this);
+      mountPointsForVboxsf.forEach(function(mpoint){
+        mountPointsToBeIgnored.push(mpoint);
+      },this);
+
+      mountPointsPerHost = mountPointsPerHost.removeAll(mountPointsToBeIgnored);
+
+      mountPointsPerHost.forEach(function(mPoint){
+        allMountPoints.push(mPoint);
+      },this);
+    }
+    if( allMountPoints.length == 0 ){
+      allMountPoints.push(mountPointsAsRoot[0]);
+    }
+    this.set('value','');
+    if( !isOnlyFirstOneNeeded ){
+      allMountPoints.forEach(function(eachDrive){
+          var mPoint = this.get('value');
+          if(!mPoint)
+            mPoint = "";
+          mPoint += ( eachDrive.mountpoint + this.get('defaultDirectory') + "\n" );
+          this.set('value', mPoint);
+          this.set('defaultValue', mPoint );
+      },this);
+    } else{
+      this.set('value', allMountPoints[0].mountpoint + this.get('defaultDirectory') );
+      this.set('defaultValue', allMountPoints[0].mountpoint + this.get('defaultDirectory')  );
+    }
+
+  },
   isValid: function () {
     return this.get('errorMessage') === '';
   }.property('errorMessage'),

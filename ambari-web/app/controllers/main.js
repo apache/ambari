@@ -22,13 +22,25 @@ require('models/background_operation');
 App.MainController = Em.Controller.extend({
   name: 'mainController',
   clusterName: function () {
-    var name = App.db.getClusterName();
+    var name = App.router.get('clusterController.clusterName');
     if (name) {
       var displayName = name.length > 13 ? name.substr(0, 10) + "..." : name;
       return displayName.capitalize();
     }
-    return '';
-  }.property(),
+    return 'My Cluster';
+  }.property('App.router.clusterController.clusterName'),
+
+  updateTitle: function(){
+    var name = App.router.get('clusterController.clusterName');
+    if (name) {
+      name = name.length > 13 ? name.substr(0, 10) + "..." : name;
+      name = name.capitalize();
+    } else{
+      name = 'Loading';
+    }
+    $('title').text('Ambari - ' + name);
+  }.observes('App.router.clusterController.clusterName'),
+
   isClusterDataLoaded: function(){
       return App.router.get('clusterController.isLoaded');
   }.property('App.router.clusterController.isLoaded'),
@@ -40,7 +52,6 @@ App.MainController = Em.Controller.extend({
     App.router.get('clusterController').loadClusterData();
     App.router.get('updateController').updateServiceMetric();
     setInterval( this.updateAll , App.contentUpdateInterval);
-    $('title').text('Ambari - ' + this.get('clusterName'));
   },
   updateAll: function(){
     App.router.get('updateController').updateAll();

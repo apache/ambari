@@ -15,7 +15,11 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 }}
-<div id="{{unbound view.id}}-container" class="chart-container" {{action showGraphInPopup target="view"}} title="Click to zoom">
+
+<div class="screensaver chart-container" {{bindAttr class="view.isReady:hide"}} >
+  <div id="{{unbound view.id}}-title" class="chart-title">{{view.title}}</div>
+</div>
+<div  id="{{unbound view.id}}-container" class="chart-container hide" {{bindAttr class="view.isReady:show"}}  {{action showGraphInPopup target="view"}} title="Click to zoom">
   <div id="{{unbound view.id}}-yaxis" class="chart-y-axis"></div>
   <div id="{{unbound view.id}}-xaxis" class="chart-x-axis"></div>
   <div id="{{unbound view.id}}-legend" class="chart-legend"></div>

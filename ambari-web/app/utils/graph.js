@@ -169,7 +169,8 @@ module.exports = {
 
     var yAxis = new Rickshaw.Graph.Axis.Y({
       graph:graph,
-      ticksTreatment:ticksTreatment
+      ticksTreatment:ticksTreatment,
+      tickFormat: function(y) { return y / 1000 + 's' }
     });
     yAxis.render();
 

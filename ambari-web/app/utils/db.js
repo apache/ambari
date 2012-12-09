@@ -106,17 +106,17 @@ App.db.setAuthenticated = function (authenticated) {
   console.log('Now present value of authentication is: ' + App.db.data.app.authenticated);
 };
 
-App.db.setClusterName = function (name) {
-  console.log('TRACE: Entering db:setClusterName function');
-  App.db.data = localStorage.getObject('ambari');
-  App.db.data.Installer.ClusterName = name;
-  localStorage.setObject('ambari', App.db.data);
-};
-
 App.db.setAllHostNames = function (hostNames) {
   console.log('TRACE: Entering db:setAllHostNames function');
   App.db.data = localStorage.getObject('ambari');
   App.db.data.Installer.hostNames = hostNames;
+  localStorage.setObject('ambari', App.db.data);
+};
+
+App.db.setAllHostNamesPattern = function (hostNames) {
+  console.log('TRACE: Entering db:setAllHostNamesPattern function');
+  App.db.data = localStorage.getObject('ambari');
+  App.db.data.Installer.hostNamesPattern = hostNames;
   localStorage.setObject('ambari', App.db.data);
 };
 
@@ -225,7 +225,7 @@ App.db.setServiceConfigProperties = function (configProperties) {
   localStorage.setObject('ambari', App.db.data);
 };
 
-App.db.setClusterStatus = function (status) {
+App.db.setCluster = function (status) {
   App.db.data = localStorage.getObject('ambari');
   App.db.data.Installer.clusterStatus = status;
   console.log('db.setClusterStatus called: ' + JSON.stringify(status));
@@ -236,13 +236,11 @@ App.db.setClusterStatus = function (status) {
  * Set current step value for specified Wizard Type
  * @param wizardType
  * @param currentStep
- * @param completed
  */
-App.db.setWizardCurrentStep = function (wizardType, currentStep, completed) {
+App.db.setWizardCurrentStep = function (wizardType, currentStep) {
   console.log('TRACE: Entering db:setWizardCurrentStep function');
 
   App.db.data[wizardType.capitalize()].currentStep = currentStep;
-  App.db.data[wizardType.capitalize()].completed = completed;
 
   localStorage.setObject('ambari', App.db.data);
 };
@@ -274,12 +272,6 @@ App.db.getAuthenticated = function () {
   return App.db.data.app.authenticated;
 };
 
-App.db.getClusterName = function () {
-  console.log('Trace: Entering db:getClusterName function');
-  App.db.data = localStorage.getObject('ambari');
-  return App.db.data.Installer.ClusterName;
-};
-
 App.db.getAmbariStacks = function () {
   console.log('TRACE: Entering db:setAmbariStacks function');
   App.db.data = localStorage.getObject('ambari');
@@ -303,6 +295,12 @@ App.db.getAllHostNames = function () {
   console.log('TRACE: Entering db:getHostNames function');
   App.db.data = localStorage.getObject('ambari');
   return App.db.data.Installer.hostNames;
+};
+
+App.db.getAllHostNamesPattern = function () {
+  console.log('TRACE: Entering db:getHostNamesPattern function');
+  App.db.data = localStorage.getObject('ambari');
+  return App.db.data.Installer.hostNamesPattern;
 };
 
 App.db.getInstallType = function () {
@@ -390,7 +388,7 @@ App.db.getSlaveProperties = function () {
   return App.db.data.Installer.slaveProperties;
 };
 
-App.db.getClusterStatus = function () {
+App.db.getCluster = function () {
   console.log('TRACE: Entering db:getClusterStatus function');
   App.db.data = localStorage.getObject('ambari');
   return App.db.data.Installer.clusterStatus;

@@ -31,7 +31,7 @@ App.MainMenuView = Em.CollectionView.extend({
       { label:'Charts', routing:'charts'},
       { label:'Services', routing:'services'},
       { label:'Hosts', routing:'hosts'},
-      { label:'Apps', routing:'apps'}
+      { label:'Jobs', routing:'apps'}
 
     ];
       if(App.db.getUser().admin) result.push({ label:'Admin', routing:'admin'});

@@ -21,32 +21,33 @@ var App = require('app');
 App.WizardStep2Controller = Em.Controller.extend({
   name: 'wizardStep2Controller',
   hostNameArr: [],
+  isPattern: false,
   bootRequestId:  null,
   hasSubmitted: false,
 
   hostNames: function () {
-    return this.get('content.hostNames');
-  }.property('content.hostNames'),
+    return this.get('content.hosts.hostNames');
+  }.property('content.hosts.hostNames'),
 
   manualInstall: function () {
-    return this.get('content.manualInstall');
-  }.property('content.manualInstall'),
+    return this.get('content.hosts.manualInstall');
+  }.property('content.hosts.manualInstall'),
 
   localRepo: function () {
-    return this.get('content.localRepo');
-  }.property('content.localRepo'),
+    return this.get('content.hosts.localRepo');
+  }.property('content.hosts.localRepo'),
 
   sshKey: function () {
-    return this.get('content.sshKey');
-  }.property('content.sshKey'),
+    return this.get('content.hosts.sshKey');
+  }.property('content.hosts.sshKey'),
 
   passphrase: function () {
-    return this.get('content.passphrase');
-  }.property('content.passphrase'),
+    return this.get('content.hosts.passphrase');
+  }.property('content.hosts.passphrase'),
 
   confirmPassphrase: function () {
-    return this.get('content.confirmPassphrase');
-  }.property('content.confirmPassphrase'),
+    return this.get('content.hosts.confirmPassphrase');
+  }.property('content.hosts.confirmPassphrase'),
 
   installType: function () {
     if (this.get('manualInstall') === true) {
@@ -98,7 +99,7 @@ App.WizardStep2Controller = Em.Controller.extend({
       hostInfo[hostNameArr[i]] = {
         name: hostNameArr[i],
         installType: this.get('installType'),
-        bootStatus: 'pending'
+        bootStatus: 'PENDING'
       };
     }
 
@@ -117,6 +118,45 @@ App.WizardStep2Controller = Em.Controller.extend({
       return false;
     }
 
+    if(this.isPattern)
+    {
+      this.hostNamePatternPopup(this.hostNameArr);
+      return false;
+    }
+
+    this.proceedNext();
+
+  },
+
+  patternExpression: function(){
+    var self = this;
+    var hostNames = [];
+    $.each(this.hostNameArr, function(e,a){
+      var start, end, extra = "";
+      if(/\[\d*\-\d*\]/.test(a)){
+        start=a.match(/\[\d*/);
+        end=a.match(/\-\d*/);
+        start=start[0].substr(1);
+        end=end[0].substr(1);
+
+        if(parseInt(start) <= parseInt(end) && parseInt(start) >= 0){
+          self.isPattern = true;
+          if(start[0] == "0" && start.length > 1)
+          {
+            extra = start[0];
+          }
+          for (var i = parseInt(start); i < parseInt(end) + 1; i++) {
+            hostNames.push(a.replace(/\[\d*\-\d*\]/, extra+i ))
+          }
+        }
+      }else{
+        hostNames.push(a);
+      }
+    });
+    this.hostNameArr =  hostNames;
+  },
+
+  proceedNext: function(){
     if (this.get('manualInstall') === true) {
       this.manualInstallPopup();
       return false;
@@ -129,11 +169,26 @@ App.WizardStep2Controller = Em.Controller.extend({
       return true;
     }
 
-    var requestId = App.get('router.installerController').launchBootstrap(bootStrapData);
+    var requestId = App.router.get(this.get('content.controllerName')).launchBootstrap(bootStrapData);
     if(requestId) {
-    this.set('bootRequestId',requestId);
-    App.router.send('next');
+      this.set('bootRequestId',requestId);
+      App.router.send('next');
     }
+  },
+
+  hostNamePatternPopup: function (hostNames) {
+    var self = this;
+    App.ModalPopup.show({
+      header: Em.I18n.t('installer.step2.hostName.pattern.header'),
+      onPrimary: function () {
+        self.proceedNext();
+        this.hide();
+      },
+      bodyClass: Ember.View.extend({
+        template: Ember.Handlebars.compile(['{{#each host in view.hostNames}}<p>{{host}}</p>{{/each}}'].join('\n')),
+        hostNames: hostNames
+      })
+    });
   },
 
   manualInstallPopup: function (event) {

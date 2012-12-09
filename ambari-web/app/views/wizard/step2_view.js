@@ -32,7 +32,7 @@ App.SshKeyFileUploader = Ember.View.extend({
         return function(e) {
           $('#sshKey').html(e.target.result);
           //$('.sshKey-file-view').html(e.target.result);
-          self.set("controller.content.sshKey", e.target.result);
+          self.set("controller.content.hosts.sshKey", e.target.result);
         };
       })(file);
       reader.readAsText(file);
@@ -62,8 +62,8 @@ App.WizardStep2View = Em.View.extend({
   }.observes('controller.hostNameEmptyError', 'controller.hostNameNotRequiredErr', 'controller.hostNameErr'),
 
   sshKeyState: function(){
-    return this.get("controller").get("content.manualInstall");
-  }.property("controller.content.manualInstall"),
+    return this.get("controller.content.hosts.manualInstall");
+  }.property("controller.content.hosts.manualInstall"),
 
   sshKeyClass:function() {
     //alert(this.get("isFileApi"))
@@ -75,8 +75,8 @@ App.WizardStep2View = Em.View.extend({
   }.property(),
 
   sshKeyPreviewClass: function() {
-    if (this.get('controller.content.sshKey').trim() != '') {
-      if (this.get('controller.content.manualInstall')) {
+    if (this.get('controller.content.hosts.sshKey').trim() != '') {
+      if (this.get('controller.content.hosts.manualInstall')) {
         return 'sshKey-file-view disabled';
       } else {
         return 'sshKey-file-view';
@@ -84,7 +84,7 @@ App.WizardStep2View = Em.View.extend({
     } else {
       return 'hidden';
     }
-  }.property('controller.content.sshKey', 'controller.content.manualInstall')
+  }.property('controller.content.hosts.sshKey', 'controller.content.hosts.manualInstall')
 
 });
 

@@ -220,15 +220,29 @@ App.WizardController = Em.Controller.extend({
     App.db.setAllHostNames(null);
   },
 
+  toObject: function(object){
+    var result = {};
+    for(var i in object){
+      if(object.hasOwnProperty(i)){
+        result[i] = object[i];
+      }
+    }
+    return result;
+  },
+
   /**
    * save status of the cluster. This is called from step8 and step9 to persist install and start requestId
    * @param clusterStatus object with status, isCompleted, requestId, isInstallError and isStartError field.
    */
   saveClusterStatus: function (clusterStatus) {
-    clusterStatus.name = this.get('content.cluster.name');
+    var oldStatus = this.toObject(this.get('content.cluster'));
+    clusterStatus = jQuery.extend(oldStatus, clusterStatus);
+    if(clusterStatus.requestId &&
+      clusterStatus.oldRequestsId.indexOf(clusterStatus.requestId) === -1){
+      clusterStatus.oldRequestsId.push(clusterStatus.requestId);
+    }
     this.set('content.cluster', clusterStatus);
-    console.log(this.get('name') + '.saveClusterStatus: ' + JSON.stringify(clusterStatus));
-    App.db.setClusterStatus(clusterStatus);
+    this.save('cluster');
   },
 
   /**
@@ -242,7 +256,7 @@ App.WizardController = Em.Controller.extend({
 
     var self = this;
     var clusterName = this.get('content.cluster.name');
-    var url = (App.testMode) ? '/data/wizard/deploy/poll_1.json' : App.apiPrefix + '/clusters/' + clusterName + '/services?ServiceInfo/state=INIT';
+    var url = (App.testMode) ? '/data/wizard/deploy/2_hosts/poll_1.json' : App.apiPrefix + '/clusters/' + clusterName + '/services?ServiceInfo/state=INIT';
     var method = (App.testMode) ? 'GET' : 'PUT';
     var data = '{"ServiceInfo": {"state": "INSTALLED"}}';
     $.ajax({
@@ -258,7 +272,7 @@ App.WizardController = Em.Controller.extend({
         console.log("TRACE: In success function for the installService call");
         console.log("TRACE: value of the url is: " + url);
         if (jsonData) {
-          var requestId = jsonData.href.match(/.*\/(.*)$/)[1];
+          var requestId = jsonData.Requests.id;
           console.log('requestId is: ' + requestId);
           var clusterStatus = {
             status: 'PENDING',
@@ -292,13 +306,70 @@ App.WizardController = Em.Controller.extend({
 
   },
 
+  /*
+   Bootstrap selected hosts.
+   */
+  launchBootstrap: function (bootStrapData) {
+    var self = this;
+    var requestId = null;
+    var method = App.testMode ? 'GET' : 'POST';
+    var url = App.testMode ? '/data/wizard/bootstrap/bootstrap.json' : App.apiPrefix + '/bootstrap';
+    $.ajax({
+      type: method,
+      url: url,
+      async: false,
+      data: bootStrapData,
+      timeout: App.timeout,
+      contentType: 'application/json',
+      success: function (data) {
+        console.log("TRACE: POST bootstrap succeeded");
+        requestId = data.requestId;
+      },
+      error: function () {
+        console.log("ERROR: POST bootstrap failed");
+        alert('Bootstrap call failed.  Please try again.');
+      },
+      statusCode: require('data/statusCodes')
+    });
+    return requestId;
+  },
+
+  /**
+   * Load <code>content.<name></code> variable from localStorage, if wasn't loaded before.
+   * If you specify <code>reload</code> to true - it will reload it.
+   * @param name
+   * @param reload
+   * @return {Boolean}
+   */
   load: function (name, reload) {
     if (this.get('content.' + name) && !reload) {
       return false;
     }
-    var result = App.db['get' + name.capitalize()];
-    if (!result) result = this['get' + name.capitalize()];
+    var result = App.db['get' + name.capitalize()]();
+    if (!result){
+      result = this['get' + name.capitalize()]();
+      App.db['set' + name.capitalize()](result);
+      console.log(this.get('name') + ": created " + name, result);
+    }
     this.set('content.' + name, result);
-    console.log("Installer controller: loaded" + name, result);
+    console.log(this.get('name') + ": loaded " + name, result);
+  },
+
+  save: function(name){
+    var value = this.toObject(this.get('content.' + name));
+    App.db['set' + name.capitalize()](value);
+    console.log(this.get('name') + ": saved " + name, value);
+  },
+
+  clusterStatusTemplate : {
+    name: "",
+    status: "PENDING",
+    isCompleted: false,
+    requestId: null,
+    installStartTime: null,
+    installTime: null,
+    isInstallError: false,
+    isStartError: false,
+    oldRequestsId: []
   }
 })

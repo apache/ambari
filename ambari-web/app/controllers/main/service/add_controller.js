@@ -54,21 +54,10 @@ App.AddServiceController = App.WizardController.extend({
     isWizard: true
   }),
 
-  /**
-   * Load clusterInfo(step1) to model
-   */
-  loadClusterInfo: function(){
-    var cluster = App.db.getClusterStatus();
-    if(!cluster){
-      cluster = {
-        name: App.router.getClusterName(),
-        status: "",
-        isCompleted: false
-      };
-      App.db.setClusterStatus(cluster);
-    }
-    this.set('content.cluster', cluster);
-    console.log("AddServiceController:loadClusterInfo: loaded data ", cluster);
+  getCluster: function(){
+    return jQuery.extend(this.get('clusterStatusTemplate'), {
+      name: App.router.getClusterName()
+    });
   },
 
   /**
@@ -462,7 +451,7 @@ App.AddServiceController = App.WizardController.extend({
       case '7':
       case '6':
       case '5':
-        this.loadClusterInfo();
+        this.load('cluster');
       case '4':
         this.loadServiceConfigProperties();
       case '3':
@@ -539,12 +528,12 @@ App.AddServiceController = App.WizardController.extend({
    * Clear all temporary data
    */
   finish: function(){
-    this.setCurrentStep('1', false);
+    this.setCurrentStep('1');
     App.db.setService(undefined); //not to use this data at AddService page
     App.db.setHosts(undefined);
     App.db.setMasterComponentHosts(undefined);
     App.db.setSlaveComponentHosts(undefined);
-    App.db.setClusterStatus(undefined);
+    App.db.setCluster(undefined);
     App.db.setAllHostNames(undefined);
   }
 

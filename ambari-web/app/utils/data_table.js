@@ -58,9 +58,11 @@ jQuery.extend(jQuery.fn.dataTableExt.oSort, {
    * Custom methods for correct bandwidth sorting
    */
   "ambari-bandwidth-pre": function (bandwidth_string) {
-    bandwidth_string = (jQuery(bandwidth_string).text()) ? jQuery(bandwidth_string).text() : bandwidth_string;
     var convertedRowValue;
-    if (bandwidth_string === '<1KB') {
+    if (Boolean(bandwidth_string.match(/<.*>/g))) {
+        bandwidth_string = jQuery(bandwidth_string).text();
+    }
+    if (bandwidth_string === '<1KB' || bandwidth_string === '&lt;1KB') {
       convertedRowValue = 1;
     } else {
       var rowValueScale = bandwidth_string.substr(bandwidth_string.length - 2, 2);
@@ -252,7 +254,7 @@ jQuery.extend($.fn.dataTableExt.afnFiltering.push(
       }
 
       function bandwidthFilter(rangeExp, rowValue) {
-        rowValue = $(rowValue).text();
+        //rowValue = $(rowValue).text();
         var compareChar = rangeExp.charAt(0);
         var compareScale = rangeExp.charAt(rangeExp.length - 1);
         var compareValue = isNaN(parseFloat(compareScale)) ? parseFloat(rangeExp.substr(1, rangeExp.length - 2)) : parseFloat(rangeExp.substr(1, rangeExp.length - 1));
@@ -264,6 +266,7 @@ jQuery.extend($.fn.dataTableExt.afnFiltering.push(
             compareValue *= 1024;
         }
         rowValue = (jQuery(rowValue).text()) ? jQuery(rowValue).text() : rowValue;
+
         var convertedRowValue;
         if (rowValue === '<1KB') {
           convertedRowValue = 1;
