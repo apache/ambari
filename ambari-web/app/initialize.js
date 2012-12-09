@@ -42,8 +42,7 @@ App.initialize();
 /**
  * Test Mode values
  */
-//App.Cluster.FIXTURES[0].cluster_name = 'vmc';
-//App.test_hostname = 'hostname';
+App.test_hostname = 'hostname';
 
 console.log('after initialize');
 console.log('TRACE: app.js-> localStorage:Ambari.authenticated=' + localStorage.getItem('Ambari' + 'authenticated'));

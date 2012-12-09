@@ -33,9 +33,9 @@ App.ChartServiceMetricsHDFS_IO = App.ChartLinearTimeView.extend({
 
   url: function () {
     return App.formatUrl("/api/clusters/{clusterName}/services/HDFS/components/DATANODE?fields=metrics/dfs/datanode/bytes_written[{fromSeconds},{toSeconds},{stepSeconds}],metrics/dfs/datanode/bytes_read[{fromSeconds},{toSeconds},{stepSeconds}]", {
-      clusterName: App.router.get('mainController.cluster').get('clusterName')
+      clusterName: App.router.get('clusterController.clusterName')
     }, "/data/services/metrics/hdfs/io.json");
-  }.property('App.router.mainController.cluster'),
+  }.property('App.router.clusterController.clusterName'),
 
   transformToSeries: function (jsonData) {
     var seriesArray = [];

@@ -32,9 +32,9 @@ App.ChartServiceMetricsMapReduce_JobsRunningWaiting = App.ChartLinearTimeView.ex
 
   url: function () {
     return App.formatUrl("/api/clusters/{clusterName}/services/MAPREDUCE/components/JOBTRACKER?fields=metrics/mapred/jobtracker/running_maps[{fromSeconds},{toSeconds},{stepSeconds}],metrics/mapred/jobtracker/running_reduces[{fromSeconds},{toSeconds},{stepSeconds}],metrics/mapred/jobtracker/waiting_maps[{fromSeconds},{toSeconds},{stepSeconds}],metrics/mapred/jobtracker/waiting_reduces[{fromSeconds},{toSeconds},{stepSeconds}]", {
-      clusterName: App.router.get('mainController.cluster').get('clusterName')
+      clusterName: App.router.get('clusterController.clusterName')
     }, "/data/services/metrics/mapreduce/jobs_running_waiting.json");
-  }.property('App.router.mainController.cluster'),
+  }.property('App.router.clusterController.clusterName'),
 
   transformToSeries: function (jsonData) {
     var seriesArray = [];

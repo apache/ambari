@@ -33,9 +33,9 @@ App.ChartServiceMetricsHDFS_JVMHeap = App.ChartLinearTimeView.extend({
 
   url: function () {
     return App.formatUrl("/api/clusters/{clusterName}/hosts/{hostName}/host_components/NAMENODE?fields=metrics/jvm/memNonHeapUsedM[{fromSeconds},{toSeconds},{stepSeconds}],metrics/jvm/memNonHeapCommittedM[{fromSeconds},{toSeconds},{stepSeconds}],metrics/jvm/memHeapUsedM[{fromSeconds},{toSeconds},{stepSeconds}],metrics/jvm/memHeapCommittedM[{fromSeconds},{toSeconds},{stepSeconds}]", {
-      clusterName: App.router.get('mainController.cluster').get('clusterName')
+      clusterName: App.router.get('clusterController.clusterName')
     }, "/data/services/metrics/hdfs/jvm_heap.json");
-  }.property('App.router.mainController.cluster'),
+  }.property('App.router.clusterController.clusterName'),
 
   transformToSeries: function (jsonData) {
     var seriesArray = [];

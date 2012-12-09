@@ -32,9 +32,9 @@ App.ChartServiceMetricsMapReduce_MapSlots = App.ChartLinearTimeView.extend({
 
   url: function () {
     return App.formatUrl("/api/clusters/{clusterName}/services/MAPREDUCE/components/JOBTRACKER?fields=metrics/mapred/jobtracker/occupied_map_slots[{fromSeconds},{toSeconds},{stepSeconds}],metrics/mapred/jobtracker/reserved_map_slots[{fromSeconds},{toSeconds},{stepSeconds}]", {
-      clusterName: App.router.get('mainController.cluster').get('clusterName')
+      clusterName: App.router.get('clusterController.clusterName')
     }, "/data/services/metrics/mapreduce/map_slots.json");
-  }.property('App.router.mainController.cluster'),
+  }.property('App.router.clusterController.clusterName'),
 
   transformToSeries: function (jsonData) {
     var seriesArray = [];

@@ -33,9 +33,9 @@ App.ChartServiceMetricsHBASE_HlogSplitSize = App.ChartLinearTimeView.extend({
 
   url: function () {
     return App.formatUrl("/api/clusters/{clusterName}/services/HBASE/components/HBASE_MASTER?fields=metrics/hbase/master/splitSize_avg_time[{fromSeconds},{toSeconds},{stepSeconds}]", {
-      clusterName: App.router.get('mainController.cluster').get('clusterName')
+      clusterName: App.router.get('clusterController.clusterName')
     }, "/data/services/metrics/hbase/hlog_split_size.json");
-  }.property('App.router.mainController.cluster'),
+  }.property('App.router.clusterController.clusterName'),
 
   transformToSeries: function (jsonData) {
     var seriesArray = [];

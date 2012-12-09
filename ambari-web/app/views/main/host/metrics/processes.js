@@ -32,9 +32,9 @@ App.ChartHostMetricsProcesses = App.ChartLinearTimeView.extend({
 
   url: function () {
     return App.formatUrl("/api/clusters/{clusterName}/hosts/{hostName}?fields=metrics/processes/proc_total[{fromSeconds},{toSeconds},{stepSeconds}],metrics/processes/proc_run[{fromSeconds},{toSeconds},{stepSeconds}]", {
-      clusterName: App.router.get('mainController.cluster').get('clusterName')
+      clusterName: App.router.get('clusterController.clusterName')
     }, "/data/hosts/metrics/processes.json");
-  }.property('App.router.mainController.cluster'),
+  }.property('App.router.clusterController.clusterName'),
 
   transformToSeries: function (jsonData) {
     var seriesArray = [];
