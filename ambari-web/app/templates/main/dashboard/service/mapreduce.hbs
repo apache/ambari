@@ -36,7 +36,7 @@
   <!-- JobTracker -->
   <tr>
     <td>{{t services.service.summary.jobTracker}}</td>
-    <td><a href="#" {{action showDetails view.service.jobTracker}}>{{view.service.jobTracker.hostName}}</a></td>
+    <td><a href="#" {{action showDetails view.service.jobTracker}}>{{view.service.jobTracker.publicHostName}}</a></td>
   </tr>
   <!-- TaskTrackers -->
   <tr>
@@ -51,7 +51,7 @@
   <!-- JobTracker Web UI -->
   <tr>
     <td>{{t services.service.summary.jobTrackerWebUI}}</td>
-    <td><a {{bindAttr href="view.jobTrackerWebUrl"}}>{{view.service.jobTracker.hostName}}:50030</a>
+    <td><a {{bindAttr href="view.jobTrackerWebUrl"}} target="_blank">{{view.service.jobTracker.publicHostName}}:50030</a>
     </td>
   </tr>
   <!-- Job Tracker Uptime -->

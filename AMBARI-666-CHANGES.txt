@@ -424,6 +424,9 @@ AMBARI-666 branch (unreleased changes)
 
   IMPROVEMENTS
 
+  AMBARI-1036. Service Info/Quick Links do not display external hostnames.
+  (Srimanth Gunturi via yusaku)
+
   AMBARI-1035. Aggregate creation of multiple services and assignment of host
   to cluster. (Jaimin Jetly via yusaku)
 

@@ -36,7 +36,7 @@ App.MainDashboardServiceHdfsView = App.MainDashboardServiceView.extend({
   }.property("service.nameNodeStartTime"),
   
   nodeWebUrl: function(){
-    return "http://"+this.get('service').get('nameNode').get('hostName')+":50070";
+    return "http://"+this.get('service').get('nameNode').get('publicHostName')+":50070";
   }.property('service.nameNode'),
 
   nodeHeap:function () {

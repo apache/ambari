@@ -36,7 +36,7 @@
   <!-- HBase Master Server -->
   <tr>
     <td>{{t dashboard.services.hbase.masterServer}}</td>
-    <td><a href="#" {{action showDetails view.service.master}}>{{view.service.master.hostName}}</a></td>
+    <td><a href="#" {{action showDetails view.service.master}}>{{view.service.master.publicHostName}}</a></td>
   </tr>
   <!-- RegionServers -->
   <tr>
@@ -51,7 +51,7 @@
   <!-- HBaseMaster Web UI -->
   <tr>
     <td>{{t dashboard.services.hbase.masterWebUI}}</td>
-    <td><a {{bindAttr href="view.hbaseMasterWebUrl"}}>{{view.service.master.hostName}}:60010</a>
+    <td><a {{bindAttr href="view.hbaseMasterWebUrl"}} target="_blank">{{view.service.master.publicHostName}}:60010</a>
     </td>
   </tr>
   <!-- Regions in Transition -->
@@ -95,7 +95,7 @@
     </a>
     <ul class="dropdown-menu">
       {{#each view.quickLinks}}
-      <li><a {{bindAttr href="url"}}>{{label}}</a></li>
+        <li><a {{bindAttr href="url"}} target="_blank">{{label}}</a></li>
       {{/each}}
     </ul>
   </div>

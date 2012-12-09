@@ -37,12 +37,12 @@
   <!-- NameNode -->
   <tr>
     <td>{{t dashboard.services.hdfs.nanmenode}}</td>
-    <td><a href="#" {{action showDetails view.service.nameNode}}>{{view.service.nameNode.hostName}}</a></td>
+    <td><a href="#" {{action showDetails view.service.nameNode}}>{{view.service.nameNode.publicHostName}}</a></td>
   </tr>
   <!-- SecondaryNameNode -->
   <tr>
     <td>{{t dashboard.services.hdfs.snanmenode}}</td>
-    <td><a href="#" {{action showDetails view.service.snameNode}}>{{view.service.snameNode.hostName}}</a></td>
+    <td><a href="#" {{action showDetails view.service.snameNode}}>{{view.service.snameNode.publicHostName}}</a></td>
   </tr>
   <!-- Data Nodes -->
   <tr>
@@ -59,7 +59,7 @@
   <!-- NameNode Web UI -->
   <tr>
     <td>{{t dashboard.services.hdfs.nameNodeWebUI}}</td>
-    <td><a {{bindAttr href="view.nodeWebUrl"}}>{{view.service.nameNode.hostName}}:50070</a>
+    <td><a {{bindAttr href="view.nodeWebUrl"}} target="_blank">{{view.service.nameNode.publicHostName}}:50070</a>
     </td>
   </tr>
   <!-- NameNode Uptime -->

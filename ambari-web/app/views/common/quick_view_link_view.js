@@ -29,11 +29,11 @@ App.QuickViewLinks = Em.View.extend({
     var host;
 
     if (serviceName === 'HDFS') {
-      host = components.filterProperty('id', 'NAMENODE').objectAt(0).get('host.hostName');
+      host = components.filterProperty('id', 'NAMENODE').objectAt(0).get('host.publicHostName');
     } else if (serviceName === 'MAPREDUCE') {
-      host = components.filterProperty('id', 'JOBTRACKER').objectAt(0).get('host.hostName');
+      host = components.filterProperty('id', 'JOBTRACKER').objectAt(0).get('host.publicHostName');
     } else if (serviceName === 'HBASE') {
-      host = components.filterProperty('id', 'HBASE_MASTER').objectAt(0).get('host.hostName');
+      host = components.filterProperty('id', 'HBASE_MASTER').objectAt(0).get('host.publicHostName');
     }
     if (!host) {
       return [];
@@ -50,6 +50,7 @@ App.QuickViewLinks = Em.View.extend({
     switch (this.get('content.serviceName').toLowerCase()) {
       case "hdfs":
       case "mapreduce":
+      case "hbase":
         return "_blank";
         break;
       default:

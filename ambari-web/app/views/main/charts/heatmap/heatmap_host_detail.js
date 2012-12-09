@@ -24,6 +24,7 @@ App.MainChartsHeatmapHostDetailView = Em.View.extend({
   /** @private */ elementId:'heatmapDetailsBlock',
   /** @private */ details:{
     hostName:'test node',
+    publicHostName:'test node',
     osType: 'OS',
     ip: '192.168.0.0',
     metricName: 'metric-name',

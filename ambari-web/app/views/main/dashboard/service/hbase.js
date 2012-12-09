@@ -35,7 +35,7 @@ App.MainDashboardServiceHbaseView = App.MainDashboardServiceView.extend({
   }.property('service'),
 
   hbaseMasterWebUrl: function () {
-    return "http://" + this.get('service').get('master').get('hostName') + ":60010";
+    return "http://" + this.get('service').get('master').get('publicHostName') + ":60010";
   }.property('service.master'),
 
   averageLoad: function () {

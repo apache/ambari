@@ -50,7 +50,7 @@
       <tr>
         {{#if component.isMaster}}
         <td class="summary-label">{{component.displayName}}</td>
-        <td><a {{action selectHost component.host}} href="javascript:void(null)">{{component.host.hostName}}</a></td>
+        <td><a {{action selectHost component.host}} href="javascript:void(null)">{{component.host.publicHostName}}</a></td>
         {{else}}
         <td class="summary-label">{{component.displayName}}s</td>
         <td><a {{action filterHosts component}} href="javascript:void(null)">{{component.displayName}}s</a></td>
@@ -77,7 +77,7 @@
           <td class="summary-label">Hosts</td>
           <td>
             {{#each component in controller.content.components}}
-              <a {{action selectHost component.host}} href="javascript:void(null)">{{component.host.hostName}}</a>
+              <a {{action selectHost component.host}} href="javascript:void(null)">{{component.host.publicHostName}}</a>
            {{/each}}
           </td>
         </tr>
@@ -87,7 +87,7 @@
           <td class="summary-label">Hosts</td>
           <td>
             {{#each component in controller.content.components}}
-              <a {{action selectHost component.host}} href="javascript:void(null)">{{component.host.hostName}}</a>
+              <a {{action selectHost component.host}} href="javascript:void(null)">{{component.host.publicHostName}}</a>
            {{/each}}
           </td>
         </tr>
@@ -97,7 +97,7 @@
           <td class="summary-label">Host</td>
           <td>
             {{#each component in controller.content.components}}
-              <a {{action selectHost component.host}} href="javascript:void(null)">{{component.host.hostName}}</a>
+              <a {{action selectHost component.host}} href="javascript:void(null)">{{component.host.publicHostName}}</a>
            {{/each}}
           </td>
         </tr>
