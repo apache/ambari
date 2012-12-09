@@ -51,6 +51,30 @@ App.servicesMapper = App.QuickDataMapper.create({
     upgradeStatus: 'nameNodeComponent.ServiceComponentInfo.UpgradeFinalized',
     safeModeStatus: 'nameNodeComponent.ServiceComponentInfo.Safemode'
   },
+  
+  mapReduceConfig: {
+    version: 'jobTrackerComponent.ServiceComponentInfo.Version',
+    job_tracker_id: 'jobTrackerComponent.host_components[0].HostRoles.host_name',
+    task_trackers: 'task_trackers',
+    job_tracker_start_time: 'jobTrackerComponent.ServiceComponentInfo.StartTime',
+    job_tracker_heap_used: 'jobTrackerComponent.ServiceComponentInfo.HeapMemoryUsed',
+    job_tracker_heap_max: 'jobTrackerComponent.ServiceComponentInfo.HeapMemoryMax',
+    alive_trackers: 'alive_trackers',
+    black_list_trackers: 'black_list_trackers',
+    gray_list_trackers: 'gray_list_trackers',
+    map_slots: 'map_slots',
+    reduce_slots: 'reduce_slots'
+//    jobsSubmitted: DS.attr('number'),
+//    jobsCompleted: DS.attr('number'),
+//    mapSlotsOccupied: DS.attr('number'),
+//    mapSlotsReserved: DS.attr('number'),
+//    reduceSlotsOccupied: DS.attr('number'),
+//    reduceSlotsReserved: DS.attr('number'),
+//    mapsRunning: DS.attr('number'),
+//    mapsWaiting: DS.attr('number'),
+//    reducesRunning: DS.attr('number'),
+//    reducesWaiting: DS.attr('number')
+  },
 
   model2: App.Component,
   config2: {
@@ -79,9 +103,9 @@ App.servicesMapper = App.QuickDataMapper.create({
               item.nameNodeComponent = component;
               finalConfig = jQuery.extend(finalConfig, hdfsConfig);
               // Get the live, dead & decommision nodes from string json
-              liveNodesJson = jQuery.parseJSON(component.ServiceComponentInfo.LiveNodes);
-              deadNodesJson = jQuery.parseJSON(component.ServiceComponentInfo.DeadNodes);
-              decommisionNodesJson = jQuery.parseJSON(component.ServiceComponentInfo.DecomNodes);
+              var liveNodesJson = jQuery.parseJSON(component.ServiceComponentInfo.LiveNodes);
+              var deadNodesJson = jQuery.parseJSON(component.ServiceComponentInfo.DeadNodes);
+              var decommisionNodesJson = jQuery.parseJSON(component.ServiceComponentInfo.DecomNodes);
               item.live_data_nodes = [];
               item.dead_data_nodes = [];
               item.decommision_data_nodes = [];
@@ -109,6 +133,51 @@ App.servicesMapper = App.QuickDataMapper.create({
           var finalJson = this.parseIt(item, finalConfig);
           result.push(finalJson);
           App.store.load(App.HDFSService, finalJson);
+        } else if (item && item.ServiceInfo && item.ServiceInfo.service_name == "MAPREDUCE") {
+            // Change the JSON so that it is easy to map
+            var mapReduceConfig = this.mapReduceConfig;
+            item.components.forEach(function (component) {
+              if (component.ServiceComponentInfo && component.ServiceComponentInfo.component_name == "JOBTRACKER") {
+                item.jobTrackerComponent = component;
+                finalConfig = jQuery.extend(finalConfig, mapReduceConfig);
+                // Get the live, gray & black nodes from string json
+                item.map_slots = 0;
+                item.reduce_slots = 0;
+                var liveNodesJson = jQuery.parseJSON(component.ServiceComponentInfo.AliveNodes);
+                var grayNodesJson = jQuery.parseJSON(component.ServiceComponentInfo.GrayListedNodes);
+                var blackNodesJson = jQuery.parseJSON(component.ServiceComponentInfo.BlackListedNodes);
+                item.alive_trackers = [];
+                item.gray_list_trackers = [];
+                item.black_list_trackers = [];
+                liveNodesJson.forEach(function(nj){
+                  item.alive_trackers.push(nj.hostname);
+                  if(nj.slots && nj.slots.map_slots)
+                    item.map_slots += nj.slots.map_slots;
+                  if(nj.slots && nj.slots.map_slots_used)
+                    item.map_slots_used += nj.slots.map_slots_used;
+                  if(nj.slots && nj.slots.reduce_slots)
+                    item.reduce_slots += nj.slots.reduce_slots;
+                  if(nj.slots && nj.slots.reduce_slots_used)
+                    item.reduce_slots_used += nj.slots.reduce_slots_used;
+                });
+                grayNodesJson.forEach(function(nj){
+                  item.gray_list_trackers.push(nj.hostname);
+                });
+                blackNodesJson.forEach(function(nj){
+                  item.black_list_trackers.push(nj.hostname);
+                });
+              }
+              if (component.ServiceComponentInfo && component.ServiceComponentInfo.component_name == "TASKTRACKER") {
+                if(!item.task_trackers){
+                  item.task_trackers = [];
+                }
+                item.task_trackers.push(component.host_components[0].HostRoles.host_name);
+              }
+            });
+            // Map
+            finalJson = this.parseIt(item, finalConfig);
+            result.push(finalJson);
+            App.store.load(App.MapReduceService, finalJson);
         } else {
           result.push(this.parseIt(item, this.config));
         }

@@ -229,30 +229,50 @@ App.ClusterController = Em.Controller.extend({
           if(metricsJson!=null && serviceComponentJson!=null){
             var hdfsSvc1 = null;
             var hdfsSvc2 = null;
+            var mrSvc1 = null;
+            var mrSvc2 = null;
             metricsJson.items.forEach(function(svc){
               if(svc.ServiceInfo.service_name=="HDFS"){
                 hdfsSvc1 = svc;
+              }
+              if(svc.ServiceInfo.service_name=="MAPREDUCE"){
+                mrSvc1 = svc;
               }
             });
             serviceComponentJson.items.forEach(function(svc){
               if(svc.ServiceInfo.service_name=="HDFS"){
                 hdfsSvc2 = svc;
               }
+              if(svc.ServiceInfo.service_name=="MAPREDUCE"){
+                mrSvc2 = svc;
+              }
             });
-            var nameNode1 = null;
-            var nameNode2 = null;
+            var nnC1 = null;
+            var nnC2 = null;
+            var jtC1 = null;
+            var jtC2 = null;
             hdfsSvc1.components.forEach(function(c){
               if(c.ServiceComponentInfo.component_name=="NAMENODE"){
-                nameNode1 = c;
+                nnC1 = c;
               }
             });
             hdfsSvc2.components.forEach(function(c){
               if(c.ServiceComponentInfo.component_name=="NAMENODE"){
-                nameNode2 = c;
+                nnC2 = c;
               }
             });
-            nameNode1.ServiceComponentInfo = nameNode2.ServiceComponentInfo;
-
+            mrSvc1.components.forEach(function(c){
+              if(c.ServiceComponentInfo.component_name=="JOBTRACKER"){
+                jtC1 = c;
+              }
+            });
+            mrSvc2.components.forEach(function(c){
+              if(c.ServiceComponentInfo.component_name=="JOBTRACKER"){
+                jtC2 = c;
+              }
+            });
+            nnC1.ServiceComponentInfo = nnC2.ServiceComponentInfo;
+            jtC1.ServiceComponentInfo = jtC2.ServiceComponentInfo;
             App.servicesMapper.map(metricsJson);
             self.updateLoadStatus('services');
           }

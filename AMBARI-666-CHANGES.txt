@@ -12,6 +12,9 @@ AMBARI-666 branch (unreleased changes)
 
   NEW FEATURES
 
+  AMBARI-1008. Populate dashboard>MapReduce section with API data.
+  (Srimanth Gunturi via yusaku)
+
   AMBARI-1006. Populate dashboard>HDFS section with API data.
   (Srimanth Gunturi via yusaku)
 

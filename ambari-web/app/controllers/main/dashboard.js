@@ -24,31 +24,6 @@ App.MainDashboardController = Em.Controller.extend({
     return App.router.get('clusterController.alerts');
   }.property('App.router.clusterController.alerts'),
   data: {
-    MAPREDUCE: {
-      "jobtracker_addr": "jobtracker:50030",
-      "jobtracker_starttime": 1348935243,
-      "running_jobs": 1,
-      "waiting_jobs": 0,
-      "trackers_total": "1",
-      "trackers_live": 1,
-      "trackers_graylisted": 0,
-      "trackers_blacklisted": 0,
-      "chart": [4,8,7,2,1,4,3,3,3],
-      // additionals
-      "map_slots_occuped": 4,
-      "map_slots_reserved": 8,
-      "map_slots_total": 12,
-
-      "reduce_slots_occuped": 3,
-      "reduce_slots_reserved": 7,
-      "reduce_slots_total": 11,
-
-      "completed_jobs": 3,
-      "failed_jobs": 2,
-
-      "trackers_heap_used": 1348935243,
-      "trackers_heap_total": 6648935243
-    },
     hbase : {
       "hbasemaster_addr": "hbasemaster:60010",
       "total_regionservers": "1",
