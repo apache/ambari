@@ -112,7 +112,7 @@ Number.prototype.countPercentageRatio = function (maxValue) {
 App.formatUrl = function (urlTemplate, substitutes, testUrl) {
   var formatted = urlTemplate;
   if (urlTemplate) {
-    if (!App.testMode) {
+    if (App.testMode) {
       var toSeconds = Math.round(new Date().getTime() / 1000);
       var allSubstitutes = {
         toSeconds: toSeconds,
