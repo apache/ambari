@@ -114,11 +114,12 @@ module.exports = [
           Ember.Object.create({
             display_name: 'Server',
             component_value: ''
-          }),
-          Ember.Object.create({
-            display_name: 'Database',
-            component_value: ''
           })
+          // TODO: uncomment when ready to integrate with database other than Derby
+          // Ember.Object.create({
+          //   display_name: 'Database',
+          //   component_value: ''
+          // })
         ]
       }),
       Ember.Object.create({

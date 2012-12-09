@@ -97,8 +97,7 @@ App.ClusterController = Em.Controller.extend({
           if (nagiosSvcComponent) {
             var hostName = nagiosSvcComponent.get('host.hostName');
             if (hostName) {
-              return null;
-              //return "http://"+hostName+"/nagios";
+              return "http://"+hostName+"/nagios";
             }
           }
         }
@@ -198,7 +197,7 @@ App.ClusterController = Em.Controller.extend({
         console.log('update finished')
         setTimeout(function(){
           self.updateStatus();
-        }, 1000);
+        }, 3000);
       }
     }, null);
   },
@@ -370,7 +369,7 @@ App.ClusterController = Em.Controller.extend({
 
     setTimeout(function(){
       self.updateStatus();
-    }, 1000);
+    }, 8000);
 
   },
 

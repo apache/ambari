@@ -275,7 +275,7 @@ App.WizardStep10Controller = Em.Controller.extend({
 
   loadOozieServer: function (component) {
     if (component.get('hostName')) {
-      var statement = 'Hive Metastore installed on ' + component.get('hostName');
+      var statement = 'Oozie Server installed on ' + component.get('hostName');
       this.get('clusterInfo').findProperty('id', 2).get('status').pushObject(Ember.Object.create({
         id: 1,
         color: 'text-info',

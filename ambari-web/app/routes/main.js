@@ -97,7 +97,7 @@ module.exports = Em.Route.extend({
 
     showDetails:function (router, event) {
       router.get('mainHostDetailsController').setBack(true);
-      router.transitionTo('hostDetails.summary', event.context)
+      router.transitionTo('hostDetails.index', event.context)
     },
 
     addHost:function (router) {
@@ -279,6 +279,9 @@ module.exports = Em.Route.extend({
     service:Em.Route.extend({
       route:'/:service_id',
       connectOutlets:function (router, service) {
+        if (service && service.get('id') == 'Clients') {
+          service = App.router.get('mainServiceController.additionalMenuItem');
+        }
         router.get('mainServiceController').connectOutlet('mainServiceItem', service);
         router.transitionTo('summary');
       },
@@ -289,6 +292,7 @@ module.exports = Em.Route.extend({
         route:'/summary',
         connectOutlets:function (router, context) {
           var item = router.get('mainServiceItemController.content');
+          var viewName = 'mainServiceInfoSummary';
           router.get('mainServiceItemController').connectOutlet('mainServiceInfoSummary', item);
         }
       }),

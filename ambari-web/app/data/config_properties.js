@@ -1874,6 +1874,7 @@ module.exports =
       "serviceName": "OOZIE",
       "category": "Oozie Server"
     },
+    /*
     {
       "id": "puppet var",
       "name": "oozie_database",
@@ -1947,7 +1948,6 @@ module.exports =
       "serviceName": "OOZIE",
       "category": "Oozie Server"
     },
-
     {
       "id": "puppet var",
       "name": "oozie_database_name",
@@ -1984,6 +1984,7 @@ module.exports =
       "serviceName": "OOZIE",
       "category": "Oozie Server"
     },
+    */
     {
       "id": "puppet var",
       "name": "oozie_data_dir",
@@ -2021,18 +2022,6 @@ module.exports =
       "serviceName": "OOZIE",
       "category": "Advanced"
     },
-    /*{
-      "id": "puppet var",
-      "name": "oozie-site.xml",
-      "displayName": "Custom Oozie Configs",
-      "description": "If you wish to set configuration parameters not exposed through this page, you can specify them here.<br>The text you specify here will be injected into oozie-site.xml verbatim.",
-      "defaultValue": "",
-      "isRequired": false,
-      "displayType": "custom",
-      "isVisible": true,
-      "serviceName": "OOZIE",
-      "category": "Advanced"
-    },*/
     {
       "id": "puppet var",
       "name": "zookeeperserver_hosts",

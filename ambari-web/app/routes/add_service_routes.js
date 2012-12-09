@@ -92,7 +92,7 @@ module.exports = Em.Route.extend({
     },
     back: function(router){
       var controller = router.get('addServiceController');
-      if(controller.get('content.masterComponentHosts').someProperty('isInstalled', false)){
+      if(!controller.get('content.missMasterStep')){
         router.transitionTo('step2');
       } else {
         router.transitionTo('step1');
@@ -123,7 +123,16 @@ module.exports = Em.Route.extend({
         controller.connectOutlet('wizardStep7', controller.get('content'));
       })
     },
-    back: Em.Router.transitionTo('step3'),
+    back: function(router){
+      var controller = router.get('addServiceController');
+      if(!controller.get('content.missSlavesStep')){
+        router.transitionTo('step3');
+      } else if(!controller.get('content.missMasterStep')) {
+        router.transitionTo('step2');
+      } else {
+        router.transitionTo('step1');
+      }
+    },
     next: function (router) {
       var addServiceController = router.get('addServiceController');
       var wizardStep7Controller = router.get('wizardStep7Controller');
@@ -169,7 +178,7 @@ module.exports = Em.Route.extend({
       var addServiceController = router.get('addServiceController');
       var wizardStep9Controller = router.get('wizardStep9Controller');
       if (!wizardStep9Controller.get('isSubmitDisabled')) {
-        addServiceController.installServices();
+        addServiceController.installServices(true);
         addServiceController.setInfoForStep9();
         wizardStep9Controller.navigateStep();
       }

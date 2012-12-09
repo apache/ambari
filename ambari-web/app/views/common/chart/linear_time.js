@@ -81,6 +81,10 @@ App.ChartLinearTimeView = Ember.View.extend({
        */
       _graph: null,
 
+      popupSuffix: '-popup',
+
+      isPopup: false,
+
       /**
        * Color palette used for this chart
        * 
@@ -103,6 +107,10 @@ App.ChartLinearTimeView = Ember.View.extend({
 
       didInsertElement: function () {
         this._super();
+        this.loadData();
+      },
+
+      loadData: function() {
         var validUrl = this.get('url');
         if (validUrl) {
           var hash = {};
@@ -129,6 +137,9 @@ App.ChartLinearTimeView = Ember.View.extend({
        */
       _showMessage: function(type, title, message){
         var chartOverlayId = '#' + this.id + '-chart';
+        if (this.get('isPopup')) {
+          chartOverlayId += this.get('popupSuffix');
+        }
         var typeClass;
         switch (type) {
           case 'error':
@@ -209,6 +220,41 @@ App.ChartLinearTimeView = Ember.View.extend({
       _refreshGraph: function (jsonData) {
         var seriesData = this.transformToSeries(jsonData);
         if (seriesData instanceof Array && seriesData.length>0) {
+            this.draw(seriesData);
+        }
+        else {
+          this._showMessage('info', 'No Data', 'There was no data available.');
+        }
+      },
+
+      /**
+       * @private
+       * 
+       * When a graph is given a particular width and height,the lines are drawn
+       * in a slightly bigger area thereby chopping off some of the UI. Hence
+       * after the rendering, we adjust the SVGs size in the DOM to compensate.
+       * 
+       * Opened https://github.com/shutterstock/rickshaw/issues/141
+       * 
+       * @type Function
+       */
+      _adjustSVGHeight: function () {
+        if (this._graph && this._graph.element
+            && this._graph.element.firstChild) {
+          var svgElement = this._graph.element.firstChild;
+          svgElement.setAttribute('height', $(this._graph.element).height()
+              + "px");
+          svgElement.setAttribute('width', $(this._graph.element).width()
+              + "px");
+        }
+      },
+
+      draw: function(seriesData) {
+          var isPopup = this.get('isPopup');
+          var p = '';
+          if (isPopup) {
+            p = this.get('popupSuffix');
+          }
           var palette = new Rickshaw.Color.Palette({
             scheme: this._paletteScheme
           });
@@ -216,19 +262,17 @@ App.ChartLinearTimeView = Ember.View.extend({
             series.color = this.colorForSeries(series) || palette.color();
             series.stroke = 'rgba(0,0,0,0.3)';
           }.bind(this));
-          
-          if (this._graph == null) {
-            var chartId = "#" + this.id + "-chart";
-            var chartOverlayId = "#" + this.id + "-overlay";
-            var xaxisElementId = "#" + this.id + "-xaxis";
-            var yaxisElementId = "#" + this.id + "-yaxis";
-            var legendElementId = "#" + this.id + "-legend";
+            var chartId = "#" + this.id + "-chart" + p;
+            var chartOverlayId = "#" + this.id + "-overlay" + p;
+            var xaxisElementId = "#" + this.id + "-xaxis" + p;
+            var yaxisElementId = "#" + this.id + "-yaxis" + p;
+            var legendElementId = "#" + this.id + "-legend" + p;
+
             var chartElement = document.querySelector(chartId);
             var overlayElement = document.querySelector(chartOverlayId);
             var xaxisElement = document.querySelector(xaxisElementId);
             var yaxisElement = document.querySelector(yaxisElementId);
             var legendElement = document.querySelector(legendElementId);
-
             this._graph = new Rickshaw.Graph({
               height: 150,
               element: chartElement,
@@ -276,33 +320,44 @@ App.ChartLinearTimeView = Ember.View.extend({
             // this._graph.onUpdate(jQuery.proxy(function () {
             // this._adjustSVGHeight();
             // }, this));
-          }
-          this._graph.render();
-        }else{
-          this._showMessage('info', 'No Data', 'There was no data available.');
-        }
+
+        this._graph.render();
+        this._graph = null;
+        this.set('isPopup', false);
       },
 
-      /**
-       * @private
-       * 
-       * When a graph is given a particular width and height,the lines are drawn
-       * in a slightly bigger area thereby chopping off some of the UI. Hence
-       * after the rendering, we adjust the SVGs size in the DOM to compensate.
-       * 
-       * Opened https://github.com/shutterstock/rickshaw/issues/141
-       * 
-       * @type Function
-       */
-      _adjustSVGHeight: function () {
-        if (this._graph && this._graph.element
-            && this._graph.element.firstChild) {
-          var svgElement = this._graph.element.firstChild;
-          svgElement.setAttribute('height', $(this._graph.element).height()
-              + "px");
-          svgElement.setAttribute('width', $(this._graph.element).width()
-              + "px");
-        }
+      showGraphInPopup: function() {
+        this.set('isPopup', true);
+        App.ModalPopup.show({
+          template: Ember.Handlebars.compile([
+            '<div class="modal-backdrop"></div><div class="modal modal-graph-line" id="modal" tabindex="-1" role="dialog" aria-labelledby="modal-label" aria-hidden="true">',
+            '<div class="modal-header">',
+            '<a class="close" {{action onClose target="view"}}>x</a>',
+            '<h3 id="modal-label">',
+            '{{#if headerClass}}{{view headerClass}}',
+            '{{else}}{{header}}{{/if}}',
+            '</h3>',
+            '</div>',
+            '<div class="modal-body">',
+            '{{#if bodyClass}}{{view bodyClass}}',
+            '{{else}}<div id="'+this.get('id')+'-container'+this.get('popupSuffix')+'" class="chart-container"><div id="'+this.get('id')+'-yaxis'+this.get('popupSuffix')+'" class="'+this.get('id')+'-yaxis chart-y-axis"></div><div id="'+this.get('id')+'-xaxis'+this.get('popupSuffix')+'" class="'+this.get('id')+'-xaxis chart-x-axis"></div><div id="'+this.get('id')+'-legend'+this.get('popupSuffix')+'" class="'+this.get('id')+'-legend chart-legend"></div><div id="'+this.get('id')+'-overlay'+this.get('popupSuffix')+'" class="'+this.get('id')+'-overlay chart-overlay"></div><div id="'+this.get('id')+'-chart'+this.get('popupSuffix')+'" class="'+this.get('id')+'-chart chart"></div><div id="'+this.get('id')+'-title'+this.get('popupSuffix')+'" class="'+this.get('id')+'-title chart-title">{{view.title}}</div></div>{{/if}}',
+            '</div>',
+            '<div class="modal-footer">',
+            '{{#if view.primary}}<a class="btn btn-success" {{action onPrimary target="view"}}>{{view.primary}}</a>{{/if}}',
+            '</div>',
+            '</div>'
+          ].join('\n')),
+
+          header: this.get('title'),
+          primary: 'OK',
+          onPrimary: function() {
+            this.hide();
+          }
+        });
+        var self = this;
+        Ember.run.next(function() {
+          self.loadData();
+        });
       }
     });
 

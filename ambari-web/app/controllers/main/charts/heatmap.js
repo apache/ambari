@@ -27,7 +27,13 @@ App.MainChartsHeatmapController = Em.Controller.extend({
   }) ],
 
   selectedMetric: null,
-
+  /**
+   *  route on host detail page
+   * @param event
+   */
+  routeHostDetail: function(event){
+    App.router.transitionTo('main.hostDetails.summary', event.context)
+  },
   showHeatMapMetric: function (event) {
     var metricItem = event.context;
     if (metricItem) {

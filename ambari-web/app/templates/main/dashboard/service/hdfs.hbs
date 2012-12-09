@@ -22,7 +22,7 @@
     {{view App.MainDashboardServiceHealthView serviceBinding="view.service"}}
     <a {{action selectService view.service href=true}}>{{view.service.displayName}}</a>
     {{#if view.criticalAlertsCount}}
-    <span class="label label-important alerts-count">{{view.criticalAlertsCount}}</span>
+      <a {{action selectService view.service href=true}} class="label label-important">{{view.criticalAlertsCount}}</a>
     {{/if}}
   </div>
   <div class="summary span">

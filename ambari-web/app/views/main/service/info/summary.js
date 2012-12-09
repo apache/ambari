@@ -5,9 +5,9 @@
  * licenses this file to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
  * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
@@ -18,28 +18,31 @@
 var App = require('app');
 
 App.MainServiceInfoSummaryView = Em.View.extend({
-  templateName: require('templates/main/service/info/summary'),
-  attributes: null,
-  serviceStatus: {
-    hdfs: false,
-    mapreduce: false,
-    hbase: false,
-    zookeeper: false,
-    oozie: false,
-    hive: false
+  templateName:function () {
+    var service = this.get('controller.content');
+    return require(service.get('isClients') ? 'templates/main/service/info/client_summary' : 'templates/main/service/info/summary');
+  }.property('controller.content'),
+  attributes:null,
+  serviceStatus:{
+    hdfs:false,
+    mapreduce:false,
+    hbase:false,
+    zookeeper:false,
+    oozie:false,
+    hive:false
   },
 
   data:{
     hive:{
-      "database"     : "PostgreSQL",
-      "databaseName" : "hive",
-      "user"         : "hive"
+      "database":"PostgreSQL",
+      "databaseName":"hive",
+      "user":"hive"
     }
   },
-  service: function () {
+  service:function () {
     var svc = this.get('controller.content');
     var svcName = svc.get('serviceName');
-    if(svcName){
+    if (svcName) {
       switch (svcName.toLowerCase()) {
         case 'hdfs':
           svc = App.HDFSService.find().objectAt(0);
@@ -57,60 +60,60 @@ App.MainServiceInfoSummaryView = Em.View.extend({
     return svc;
   }.property('controller.content'),
 
-  isHide: true,
-  moreStatsView: Em.View.extend({
-    tagName: "a",
-    template: Ember.Handlebars.compile('{{t services.service.summary.moreStats}}'),
-    attributeBindings: [ 'href' ],
-    classNames: [ 'more-stats' ],
-    click: function (event) {
+  isHide:true,
+  moreStatsView:Em.View.extend({
+    tagName:"a",
+    template:Ember.Handlebars.compile('{{t services.service.summary.moreStats}}'),
+    attributeBindings:[ 'href' ],
+    classNames:[ 'more-stats' ],
+    click:function (event) {
       this._parentView._parentView.set('isHide', false);
       this.remove();
     },
-    href: 'javascript:void(null)'
+    href:'javascript:void(null)'
   }),
 
-  serviceName: function () {
+  serviceName:function () {
     return this.get('service.serviceName');
   }.property('service'),
 
-  oldServiceName : '',
-  
+  oldServiceName:'',
+
   /**
    * Contains graphs for this particular service
    */
-  serviceMetricGraphs: function(){
+  serviceMetricGraphs:function () {
     var svcName = this.get('service.serviceName');
     var graphs = [];
-    if(svcName){
+    if (svcName) {
       switch (svcName.toLowerCase()) {
         case 'hdfs':
           graphs = [ App.ChartServiceMetricsHDFS_SpaceUtilization.extend(),
-                     App.ChartServiceMetricsHDFS_FileOperations.extend(), 
-                     App.ChartServiceMetricsHDFS_BlockStatus.extend(), 
-                     App.ChartServiceMetricsHDFS_IO.extend(), 
-                     App.ChartServiceMetricsHDFS_RPC.extend(), 
-                     App.ChartServiceMetricsHDFS_GC.extend(), 
-                     App.ChartServiceMetricsHDFS_JVMHeap.extend(), 
-                     App.ChartServiceMetricsHDFS_JVMThreads.extend()];
+            App.ChartServiceMetricsHDFS_FileOperations.extend(),
+            App.ChartServiceMetricsHDFS_BlockStatus.extend(),
+            App.ChartServiceMetricsHDFS_IO.extend(),
+            App.ChartServiceMetricsHDFS_RPC.extend(),
+            App.ChartServiceMetricsHDFS_GC.extend(),
+            App.ChartServiceMetricsHDFS_JVMHeap.extend(),
+            App.ChartServiceMetricsHDFS_JVMThreads.extend()];
           break;
         case 'mapreduce':
-          graphs = [ App.ChartServiceMetricsMapReduce_JobsStatus.extend(), 
-                     App.ChartServiceMetricsMapReduce_JobsRunningWaiting.extend(), 
-                     App.ChartServiceMetricsMapReduce_MapSlots.extend(), 
-                     App.ChartServiceMetricsMapReduce_ReduceSlots.extend(), 
-                     App.ChartServiceMetricsMapReduce_GC.extend(), 
-                     App.ChartServiceMetricsMapReduce_RPC.extend(), 
-                     App.ChartServiceMetricsMapReduce_JVMHeap.extend(), 
-                     App.ChartServiceMetricsMapReduce_JVMThreads.extend()];
+          graphs = [ App.ChartServiceMetricsMapReduce_JobsStatus.extend(),
+            App.ChartServiceMetricsMapReduce_JobsRunningWaiting.extend(),
+            App.ChartServiceMetricsMapReduce_MapSlots.extend(),
+            App.ChartServiceMetricsMapReduce_ReduceSlots.extend(),
+            App.ChartServiceMetricsMapReduce_GC.extend(),
+            App.ChartServiceMetricsMapReduce_RPC.extend(),
+            App.ChartServiceMetricsMapReduce_JVMHeap.extend(),
+            App.ChartServiceMetricsMapReduce_JVMThreads.extend()];
           break;
         case 'hbase':
           graphs = [  App.ChartServiceMetricsHBASE_ClusterRequests.extend(),
-                      App.ChartServiceMetricsHBASE_RegionServerReadWriteRequests.extend(),
-                      App.ChartServiceMetricsHBASE_RegionServerRegions.extend(),
-                      App.ChartServiceMetricsHBASE_RegionServerQueueSize.extend(),
-                      App.ChartServiceMetricsHBASE_HlogSplitTime.extend(),
-                      App.ChartServiceMetricsHBASE_HlogSplitSize.extend()];
+            App.ChartServiceMetricsHBASE_RegionServerReadWriteRequests.extend(),
+            App.ChartServiceMetricsHBASE_RegionServerRegions.extend(),
+            App.ChartServiceMetricsHBASE_RegionServerQueueSize.extend(),
+            App.ChartServiceMetricsHBASE_HlogSplitTime.extend(),
+            App.ChartServiceMetricsHBASE_HlogSplitSize.extend()];
           break;
         default:
           break;
@@ -119,14 +122,14 @@ App.MainServiceInfoSummaryView = Em.View.extend({
     return graphs;
   }.property('service'),
 
-  loadServiceSummary: function (serviceName) {
+  loadServiceSummary:function (serviceName) {
 
     var serviceName = this.get('serviceName');
-    if(!serviceName){
+    if (!serviceName) {
       return;
     }
 
-    if(this.get('oldServiceName')){
+    if (this.get('oldServiceName')) {
       // do not delete it!
       return;
     }
@@ -145,8 +148,8 @@ App.MainServiceInfoSummaryView = Em.View.extend({
     this.set('oldServiceName', serviceName);
     serviceName = serviceName.toLowerCase();
   }.observes('serviceName'),
-  
-  didInsertElement: function () {
+
+  didInsertElement:function () {
     // We have to make the height of the Alerts section
     // match the height of the Summary section.
     var summaryTable = document.getElementById('summary-info');
@@ -160,5 +163,28 @@ App.MainServiceInfoSummaryView = Em.View.extend({
         $(summaryTable).attr('style', "height:" + alertsList.clientHeight + "px;");
       }
     }
-  }
+  },
+
+
+  clientHosts:App.Host.find(),
+
+  clientHostsLength:function () {
+    var text = this.t('services.service.summary.clientCount');
+    var self = this;
+    return text.format(self.get('clientHosts.length'));
+  }.property('clientHosts'),
+
+  clientComponents:function () {
+    return App.HostComponent.find().filterProperty('isClient', true);
+  }.property(),
+
+  clientComponentsString:function () {
+    var components = this.get('clientComponents');
+    var names = [];
+    components.forEach(function (component) {
+      names.push(component.get('displayName'));
+    });
+
+    return names.length ? names.join(', ') : false;
+  }.property('clientComponents')
 });

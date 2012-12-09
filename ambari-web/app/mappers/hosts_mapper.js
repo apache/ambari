@@ -39,7 +39,9 @@ App.hostsMapper = App.QuickDataMapper.create({
     disk_info: 'Hosts.disk_info',
     $disk_usage: '-',
     health_status: 'Hosts.host_status',
-    $load_avg: '-',
+    load_one: 'Hosts.load.load_one',
+    load_five: 'Hosts.load.load_five',
+    load_fifteen: 'Hosts.load.load_fifteen',
     $cpu_usage: 33,
     $memory_usage: 26,
     $network_usage: 36,
@@ -53,7 +55,6 @@ App.hostsMapper = App.QuickDataMapper.create({
     if (!this.get('model')) {
       return;
     }
-
     if (json.items) {
       var result = [];
 

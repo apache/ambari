@@ -87,7 +87,7 @@ App.MainDashboardServiceView = Em.View.extend({
   }.property('controller.data'),
 
   criticalAlertsCount: function () {
-    var alerts = this.get('controller.alerts');
+    var alerts = App.router.get('clusterController.alerts');
     return alerts.filterProperty('serviceType', this.get('service.id')).filterProperty('status', '1').length;
   }.property('service.alerts')
 

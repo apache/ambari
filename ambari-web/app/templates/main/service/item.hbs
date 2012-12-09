@@ -16,8 +16,10 @@
 * limitations under the License.
 }}
 
-{{view App.MainServiceInfoMenuView}}
+{{view App.MainServiceInfoMenuView configTabBinding="view.hasConfigTab"}}
+{{#unless controller.content.isClients}}
 <div class="service-button">
+  {{#if view.hasMaintenanceControl}}
   <div class="btn-group display-inline-block">
     <a class="btn dropdown-toggle" data-toggle="dropdown" href="#">
       {{t services.service.actions.maintenance}}
@@ -32,6 +34,7 @@
       {{/each}}
     </ul>
   </div>
+  {{/if}}
   <a href="javascript:void(null)" {{bindAttr class=":btn controller.content.isRunning:disabled:btn-success" }}
      data-toggle="modal" {{action "startService" target="controller"}}>
     <i class="icon-play"></i>
@@ -43,4 +46,5 @@
     Stop
   </a>
 </div>
+{{/unless}}
 {{outlet}}

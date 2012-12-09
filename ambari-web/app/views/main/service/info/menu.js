@@ -21,11 +21,14 @@ var App = require('app');
 App.MainServiceInfoMenuView = Em.CollectionView.extend({
   tagName: 'ul',
   classNames: ["nav", "nav-tabs"],
-  content:[
-    { label:'Summary', routing:'summary', active:"active"},
-    { label:'Configs', routing:'configs'}/*,
-    { label:'Audit', routing:'audit'}*/
-  ],
+  content:function(){
+    var menuItems = [
+      { label:'Summary', routing:'summary', active:"active"}
+      //{ label:'Audit', routing:'audit'}
+    ];
+    if(this.get('configTab')) menuItems.push({ label:'Configs', routing:'configs'});
+    return menuItems;
+  }.property(),
 
   init: function(){ this._super(); this.activateView(); },
 

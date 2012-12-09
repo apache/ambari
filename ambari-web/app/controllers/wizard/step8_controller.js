@@ -514,7 +514,8 @@ App.WizardStep8Controller = Em.Controller.extend({
           this.loadOozieServerValue(_component);
           break;
         case 'Database':
-          this.loadOozieDbValue(_component);
+          // TODO: uncomment when ready to integrate with Oozie Database other than Derby
+          // this.loadOozieDbValue(_component);
           break;
         default:
       }
@@ -600,13 +601,15 @@ App.WizardStep8Controller = Em.Controller.extend({
       //return;
     }
 
-    this.createCluster();
-    this.createSelectedServices();
-    this.createConfigurations();
-    this.applyCreatedConfToServices();
-    this.createComponents();
-    this.registerHostsToCluster();
-    this.createHostComponents();
+    if(!this.get('content.cluster.requestId')){
+      this.createCluster();
+      this.createSelectedServices();
+      this.createConfigurations();
+      this.applyCreatedConfToServices();
+      this.createComponents();
+      this.registerHostsToCluster();
+      this.createHostComponents();
+    }
 
     App.router.send('next');
   },

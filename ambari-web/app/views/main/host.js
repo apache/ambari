@@ -52,7 +52,7 @@ App.MainHostView = Em.View.extend({
         { "sType":"num-html" },
         { "sType":"ambari-bandwidth" },
         { "sType":"string" },
-        { "sType":"string" },
+        { "sType":"num-html" },
         { "sType":"string", "bSortable": false  }
       ]
     });
@@ -149,6 +149,24 @@ App.MainHostView = Em.View.extend({
     type:'text',
     placeholder: 'Any ',
     elementId:'cpu_filter',
+    filtering:function(){
+      if (this.get('value') == '') {
+        this.$().closest('th').addClass('notActive');
+      }
+      else {
+        this.$().closest('th').removeClass('notActive');
+      }
+      this.get('parentView').get('applyFilter')(this.get('parentView'), 2);
+    }.observes('value')
+  }),
+  /**
+   * Filter-field for load avg
+   */
+  loadAvgFilterView: Em.TextField.extend({
+    classNames:['input-mini'],
+    type:'text',
+    placeholder: 'Any ',
+    elementId:'load_avg_filter',
     filtering:function(){
       if (this.get('value') == '') {
         this.$().closest('th').addClass('notActive');

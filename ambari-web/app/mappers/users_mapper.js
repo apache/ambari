@@ -22,6 +22,6 @@ App.usersMapper = App.QuickDataMapper.create({
   config : {
     user_name : 'Users.user_name',
     roles : 'Users.roles',
-    type: 'Users.type'
+    is_ldap: 'Users.ldap_user'
   }
 });

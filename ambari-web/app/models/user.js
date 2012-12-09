@@ -27,7 +27,13 @@ App.UserModel = Em.Object.extend({
 App.User = DS.Model.extend({
   userName:DS.attr('string'),
   roles:DS.attr('string'),
-  type:DS.attr('string'),
+  isLdap:DS.attr('boolean'),
+  type: function(){
+    if(this.get('isLdap')){
+      return 'LDAP';
+    }
+    return 'Local';
+  }.property('isLdap'),
   auditItems:DS.hasMany('App.ServiceAudit'),
   admin:function () {
     return !!(/^admin/.test(this.get('roles')))
@@ -45,7 +51,8 @@ App.EditUserForm = App.Form.extend({
     { name:"old_password", displayName:"Old Password", displayType:"password", isRequired: function(){ return this.get('form.isObjectNew'); }.property('form.isObjectNew') },
     { name:"new_password", displayName:"New Password", displayType:"password",  isRequired: false },
     { name:"admin", displayName:"Admin", displayType:"checkbox", isRequired:false },
-    { name:"roles", displayName:"Role", isRequired:false, isHidden:true }
+    { name:"roles", displayName:"Role", isRequired:false, isHidden:true },
+    { name:"isLdap", displayName:"Type", isRequired:false, isHidden:true }
   ],
   fields:[],
   disableUsername:function () {

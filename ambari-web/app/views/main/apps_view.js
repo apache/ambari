@@ -823,13 +823,7 @@ App.MainAppsView = Em.View.extend({
       }
     }
   }),
-  /**
-   *  Object contain views of expanded row
-   */
-  expandedRow:Ember.Object.create({
-    rowView:null,
-    rowChildView:null
-  }),
+
   /**
    * This Container View is used to render static table row(appTableRow) and additional dynamic content
    */
@@ -841,44 +835,23 @@ App.MainAppsView = Em.View.extend({
     id: function() {
       return this.get('run.id');
     }.property("run.id"),
-    /**
-     * Delete expanded row from table
-     *
-     * @param row
-     */
-    deleteRow:function(row){
-      row.get('rowChildView').destroy();
-      row.get('rowView').set('expanded', false);
-      row.set('rowView', null);
-      row.set('rowChildView', null);
-    },
-    viewCreate:function(){
-      App.router.get('mainAppsItemController').set('content', this.get('run'));
-      var newView = App.MainAppsItemView.create({
-        controllerBinding: 'App.router.mainAppsItemController'
-      });
-      return newView;
-    },
-    expanded : false,
+
     /**
      * Show/hide additional content appropriated for this row
      */
     expandToggle : function(){
-      var newView;
-      var expandedView = this.get('parentView.expandedRow');
-      if(expandedView.get('rowView')) {
-        if(this.get('expanded')){
-          this.deleteRow(expandedView);
-          return;
-        }
-        this.deleteRow(expandedView);
-      }
-
-      newView = this.viewCreate();
-      this.set('expanded', true);
-      expandedView.set('rowView', this);
-      expandedView.set('rowChildView', newView);
-      this.get('childViews').pushObject(newView);
+      App.router.get('mainAppsItemController').set('content', this.get('run'));
+      App.ModalPopup.show({
+        classNames: ['big-modal'],
+        header: Em.I18n.t('apps.dagCharts.popup'),
+        bodyClass: App.MainAppsItemView.extend({
+          controllerBinding: 'App.router.mainAppsItemController'
+        }),
+        onPrimary: function() {
+          this.hide();
+        },
+        secondary : null
+      });
     }
   }),
   /**

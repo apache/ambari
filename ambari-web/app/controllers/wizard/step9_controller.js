@@ -43,6 +43,10 @@ App.WizardStep9Controller = Em.Controller.extend({
     }
   }.property('hosts.@each.status'),
 
+  showRetry: function(){
+    return this.get('status') == 'failed';
+  }.property('status'),
+
   navigateStep: function () {
     if (this.get('content.cluster.isCompleted') === false) {
       this.loadStep();

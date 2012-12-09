@@ -152,6 +152,10 @@ App.WizardStep6Controller = Em.Controller.extend({
     console.log("WizardStep6Controller: Loading step6: Assign Slaves");
     this.clearStep();
     this.renderSlaveHosts();
+
+    if(this.get('content.missSlavesStep')){
+      App.router.send('next');
+    }
   },
 
   /**

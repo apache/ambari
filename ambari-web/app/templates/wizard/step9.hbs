@@ -39,10 +39,12 @@
   <div class="box">
     <div class="box-header">
       <div class="pull-left">
+        {{#if controller.showRetry}}
         <a class="btn btn-primary" {{bindAttr disabled="isSubmitDisabled"}}
            href="#" {{action retry}}><i class="icon-repeat icon-white"></i>
           Retry
         </a>
+        {{/if}}
         {{#if App.testMode}}
         <a class="btn btn-info" href="#" {{action mockBtn target="controller"}}>
           mockData

@@ -23,7 +23,9 @@ App.HostComponent = DS.Model.extend({
   componentName: DS.attr('string'),
   host: DS.belongsTo('App.Host'),
   service: DS.belongsTo('App.Service'),
-
+  isClient:function () {
+    return Boolean(this.get('componentName').match(/_client/gi));
+  }.property('componentName'),
   isRunning: function(){
     return (this.get('workStatus') == 'STARTED' || this.get('workStatus') == 'STARTING');
   }.property('workStatus'),

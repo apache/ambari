@@ -231,6 +231,7 @@ Em.I18n.translations = {
   'services.service.summary.averageLoad':'Average Load',
   'services.service.summary.masterHeap':'Master Heap',
   'services.service.summary.moreStats':'more stats here',
+  'services.service.summary.clientCount': '{0} Client Hosts',
   'services.service.actions.run.rebalancer':'Run Rebalancer',
   'services.service.actions.run.compaction':'Run Compaction',
   'services.service.actions.run.smoke':'Run Smoke Test',
@@ -351,5 +352,6 @@ Em.I18n.translations = {
   'timeRange.presets.1month':'1mo',
   'timeRange.presets.1year':'1yr',
 
-  'apps.filters.customRunDate':'Run Date custom filter'
+  'apps.filters.customRunDate':'Run Date custom filter',
+  'apps.dagCharts.popup':'DAG/Charts'
 };

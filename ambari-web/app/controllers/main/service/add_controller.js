@@ -287,7 +287,11 @@ App.AddServiceController = Em.Controller.extend({
     });
     this.set('content.services', servicesInfo);
     console.log('AddServiceController.loadServices: loaded data ', servicesInfo);
-    console.log('selected services ', servicesInfo.filterProperty('isSelected', true).filterProperty('isDisabled', false).mapProperty('serviceName'));
+
+    var serviceNames = servicesInfo.filterProperty('isSelected', true).filterProperty('isDisabled', false).mapProperty('serviceName');
+    console.log('selected services ', serviceNames);
+
+    this.set('content.missSlavesStep', !serviceNames.contains('MAPREDUCE') && !serviceNames.contains('HBASE'));
   },
 
   /**
@@ -304,6 +308,8 @@ App.AddServiceController = Em.Controller.extend({
     this.set('content.selectedServiceNames', serviceNames);
     App.db.setSelectedServiceNames(serviceNames);
     console.log('AddServiceController.selectedServiceNames:', serviceNames);
+
+    this.set('content.missSlavesStep', !serviceNames.contains('MAPREDUCE') && !serviceNames.contains('HBASE'));
   },
 
   /**
@@ -328,6 +334,8 @@ App.AddServiceController = Em.Controller.extend({
     console.log("AddServiceController.saveMasterComponentHosts: saved hosts ", masterComponentHosts);
     App.db.setMasterComponentHosts(masterComponentHosts);
     this.set('content.masterComponentHosts', masterComponentHosts);
+
+    this.set('content.missMasterStep', this.get('content.masterComponentHosts').everyProperty('isInstalled', true));
   },
 
   /**
@@ -348,6 +356,8 @@ App.AddServiceController = Em.Controller.extend({
     }
     this.set("content.masterComponentHosts", masterComponentHosts);
     console.log("AddServiceController.loadMasterComponentHosts: loaded hosts ", masterComponentHosts);
+
+    this.set('content.missMasterStep', this.get('content.masterComponentHosts').everyProperty('isInstalled', true));
   },
 
   /**
@@ -556,12 +566,16 @@ App.AddServiceController = Em.Controller.extend({
   dataLoading: function(){
     var dfd = $.Deferred();
     this.connectOutlet('loading');
-    var interval = setInterval(function(){
-      if (App.router.get('clusterController.isLoaded')){
-        dfd.resolve();
-        clearInterval(interval);
-      }
-    },50);
+    if (App.router.get('clusterController.isLoaded')){
+      dfd.resolve();
+    } else{
+      var interval = setInterval(function(){
+        if (App.router.get('clusterController.isLoaded')){
+          dfd.resolve();
+          clearInterval(interval);
+        }
+      },50);
+    }
     return dfd.promise();
   },
   /**
@@ -666,7 +680,11 @@ App.AddServiceController = Em.Controller.extend({
    * Generate clients list for selected services and save it to model
    * @param stepController step8WizardController or step9WizardController
    */
-  installServices: function () {
+  installServices: function (isRetry) {
+    if(!isRetry && this.get('content.cluster.requestId')){
+      return;
+    }
+
     var self = this;
     var clusterName = this.get('content.cluster.name');
     var url = (App.testMode) ? '/data/wizard/deploy/poll_1.json' : App.apiPrefix + '/clusters/' + clusterName + '/services?state=INIT';

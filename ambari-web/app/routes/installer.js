@@ -271,7 +271,7 @@ module.exports = Em.Route.extend({
       var installerController = router.get('installerController');
       var wizardStep9Controller = router.get('wizardStep9Controller');
       if (!wizardStep9Controller.get('isSubmitDisabled')) {
-        installerController.installServices();
+        installerController.installServices(true);
         installerController.setInfoForStep9();
         wizardStep9Controller.navigateStep();
       }

@@ -772,7 +772,11 @@ App.InstallerController = Em.Controller.extend({
    * Generate clients list for selected services and save it to model
    * called form stepController step8WizardController or step9WizardController
    */
-  installServices: function () {
+  installServices: function (isRetry) {
+    if(!isRetry && this.get('content.cluster.requestId')){
+      return;
+    }
+
     var self = this;
     var clusterName = this.get('content.cluster.name');
     var url = (App.testMode) ? '/data/wizard/deploy/poll_1.json' : App.apiPrefix + '/clusters/' + clusterName + '/services?state=INIT';

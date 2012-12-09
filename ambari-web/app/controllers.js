@@ -42,7 +42,6 @@ require('controllers/main/alert');
 require('controllers/main/host');
 require('controllers/main/host/details');
 require('controllers/main/host/add_controller');
-require('controllers/main/dashboard');
 require('controllers/main/charts');
 require('controllers/main/charts/heatmap_metrics/heatmap_metric');
 require('controllers/main/charts/heatmap_metrics/heatmap_metric_processrun');

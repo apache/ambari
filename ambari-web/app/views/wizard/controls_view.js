@@ -148,7 +148,6 @@ App.ServiceConfigCheckbox = Ember.Checkbox.extend(App.ServiceConfigPopoverSuppor
 
 });
 
-<!-- {{bindAttr name="view.name" value="option"}}  '<input type="radio" {{bindAttr name = "view.name" value="view.obj"}}>',-->
 App.ServiceConfigRadioButtons = Ember.View.extend({
   template: Ember.Handlebars.compile([
     '{{#each option in view.options}}',
@@ -303,7 +302,8 @@ App.ServiceConfigMasterHostsView = Ember.View.extend(App.ServiceConfigMultipleHo
       }),
       onPrimary:function(){
         this.hide();
-      }
+      },
+      secondary: null
     });
   }
 

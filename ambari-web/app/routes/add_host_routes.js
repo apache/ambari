@@ -209,8 +209,11 @@ module.exports = Em.Route.extend({
     retry: function(router,context) {
       var addHostController = router.get('addHostController');
       var wizardStep9Controller = router.get('wizardStep9Controller');
-      addHostController.installServices();
-      wizardStep9Controller.navigateStep();
+      if (!wizardStep9Controller.get('isSubmitDisabled')) {
+        addHostController.installServices(true);
+        addHostController.setInfoForStep9();
+        wizardStep9Controller.navigateStep();
+      }
     },
     next: function (router) {
       var addHostController = router.get('addHostController');

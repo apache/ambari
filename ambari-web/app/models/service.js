@@ -55,7 +55,37 @@ App.Service = DS.Model.extend({
     var components = this.get('components').filterProperty('isMaster', true);
     return components.everyProperty('workStatus', App.Component.Status.started);
   }.property('components.@each.workStatus'),
-
+  isMaintained: function(){
+    var maintainedServices = [
+      "HDFS",
+      "MAPREDUCE",
+      "HBASE",
+      "OOZIE",
+      "HIVE",
+      "ZOOKEEPER",
+      "PIG",
+      "SQOOP"
+    ];
+    for(var i in maintainedServices){
+      if(this.get('serviceName') == maintainedServices[i]) return true;
+    }
+  }.property('serviceName'),
+  isConfigurable:function(){
+    var configurableServices = [
+      "HDFS",
+      "MAPREDUCE",
+      "HBASE",
+      "OOZIE",
+      "HIVE",
+      "ZOOKEEPER",
+      "PIG",
+      "SQOOP",
+      "NAGIOS"
+    ];
+    for(var i in configurableServices){
+      if(this.get('serviceName') == configurableServices[i]) return true;
+    }
+  }.property('serviceName'),
   displayName: function () {
     switch (this.get('serviceName').toLowerCase()) {
       case 'hdfs':

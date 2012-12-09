@@ -28,7 +28,6 @@ App.Host = DS.Model.extend({
   cpu: DS.attr('string'),
   memory: DS.attr('string'),
   diskUsage: DS.attr('string'),
-  loadAvg: DS.attr('string'),
   osArch: DS.attr('string'),
   ip: DS.attr('string'),
   rack: DS.attr('string'),
@@ -40,6 +39,9 @@ App.Host = DS.Model.extend({
   lastHeartBeatTime: DS.attr('number'),
   osType: DS.attr("string"),
   diskInfo: DS.attr('string'),
+  loadOne:DS.attr('number'),
+  loadFive:DS.attr('number'),
+  loadFifteen:DS.attr('number'),
 
 
   /**
@@ -54,6 +56,13 @@ App.Host = DS.Model.extend({
   isNotHeartBeating : function(){
     return ((new Date()).getTime() - this.get('lastHeartBeatTime')) > 180 * 1000;
   }.property('lastHeartBeatTime'),
+
+  loadAvg: function() {
+    console.log(this.get('loadOne'), this.get('loadFive'), this.get('loadFifteen'));
+    if (this.get('loadOne') != null) return this.get('loadOne');
+    if (this.get('loadFive') != null) return this.get('loadFive');
+    if (this.get('loadFifteen') != null) return this.get('loadFifteen');
+  }.property('loadOne', 'loadFive', 'loadFifteen'),
 
   updateHostStatus: function(){
 

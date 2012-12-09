@@ -24,16 +24,23 @@ App.MainServiceItemView = Em.View.extend({
     var options = [];
     var service = this.get('controller.content');
     switch(service.get('serviceName')) {
-      case 'hdfs':
+      case 'HDFS':
         options.push({action: 'runRebalancer', 'label': Em.I18n.t('services.service.actions.run.rebalancer')});
         break;
-      case 'hbase':
+      case 'HBASE':
         options.push({action: 'runCompaction', 'label': Em.I18n.t('services.service.actions.run.compaction')});
         break;
+      default:
+        options.push({action: 'runSmokeTest', 'label': Em.I18n.t('services.service.actions.run.smoke')});
     }
-    options.push({action: 'runSmokeTest', 'label': Em.I18n.t('services.service.actions.run.smoke')});
     return options;
-  }.property('controller.content')
+  }.property('controller.content'),
+  hasMaintenanceControl: function(){
+    return this.get("controller.content.isMaintained");
+  }.property('controller.content.isMaintained'),
+  hasConfigTab: function(){
+    return this.get("controller.content.isConfigurable");
+  }.property('controller.content.isConfigurable')
 });
 
 App.MainServiceItemOperations = Em.View.extend({

@@ -125,6 +125,7 @@ App.HostStatusView = Em.View.extend({
       onPrimary: function () {
         this.hide();
       },
+      secondary: null,
       controllerBinding: context,
       bodyClass: Ember.View.extend({
         templateName: require('templates/wizard/step9HostTasksLogPopup'),

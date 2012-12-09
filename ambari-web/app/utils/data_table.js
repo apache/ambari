@@ -20,7 +20,7 @@ jQuery.extend(jQuery.fn.dataTableExt.oSort, {
 
   "num-html-pre": function(date_string) {
     date_string = $(date_string).text();
-    return parseInt(date_string, 10);
+    return parseFloat(date_string, 10);
   },
 
   "num-html-asc": function (a, b) {
@@ -156,6 +156,7 @@ jQuery.extend($.fn.dataTableExt.afnFiltering.push(
       var inputFilters = [
         {iColumn: '0', elementId: 'star_filter', type: 'star'},
         {iColumn: '2', elementId: 'cpu_filter', type: 'number'},
+        {iColumn: '5', elementId: 'load_avg_filter', type: 'number'},
         {iColumn: '4', elementId: 'user_filter', type: 'multiple'},
         {iColumn: '6', elementId: 'components_filter', type: 'multiple'},
         {iColumn: '5', elementId: 'jobs_filter', type: 'number' },
@@ -350,7 +351,7 @@ jQuery.extend($.fn.dataTableExt.afnFiltering.push(
 
       function numberFilter(rangeExp, rowValue) {
         var compareChar = rangeExp.charAt(0);
-        var compareValue = parseInt(rangeExp.substr(1, rangeExp.length - 1));
+        var compareValue = parseFloat(rangeExp.substr(1, rangeExp.length - 1));
         rowValue = (jQuery(rowValue).text()) ? jQuery(rowValue).text() : rowValue;
         match = false;
         switch (compareChar) {

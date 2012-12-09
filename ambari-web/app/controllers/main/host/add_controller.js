@@ -199,6 +199,17 @@ App.AddHostController = Em.Controller.extend({
   },
 
   /**
+   * save status of the cluster. This is called from step8 and step9 to persist install and start requestId
+   * @param clusterStatus object with status, isCompleted, requestId, isInstallError and isStartError field.
+   */
+  saveClusterStatus: function (clusterStatus) {
+    clusterStatus.name = this.get('content.cluster.name');
+    this.set('content.cluster', clusterStatus);
+    console.log('called saveClusterStatus ' + JSON.stringify(clusterStatus));
+    App.db.setClusterStatus(clusterStatus);
+  },
+
+  /**
    * Temporary function for wizardStep9, before back-end integration
    */
   setInfoForStep9: function () {
@@ -728,7 +739,11 @@ App.AddHostController = Em.Controller.extend({
    * Generate clients list for selected services and save it to model
    * @param stepController step8WizardController or step9WizardController
    */
-  installServices: function () {
+  installServices: function (isRetry) {
+    if(!isRetry && this.get('content.cluster.requestId')){
+      return;
+    }
+
     var self = this;
     var clusterName = this.get('content.cluster.name');
     var url = (App.testMode) ? '/data/wizard/deploy/poll_1.json' : App.apiPrefix + '/clusters/' + clusterName + '/services?state=INIT';
@@ -757,7 +772,7 @@ App.AddHostController = Em.Controller.extend({
             isCompleted: false,
             installStartTime: installSartTime
           };
-          //self.saveClusterStatus(clusterStatus);
+          self.saveClusterStatus(clusterStatus);
         } else {
           console.log('ERROR: Error occurred in parsing JSON data');
         }
@@ -773,7 +788,7 @@ App.AddHostController = Em.Controller.extend({
           isInstallError: true,
           isCompleted: false
         };
-        //self.saveClusterStatus(clusterStatus);
+        self.saveClusterStatus(clusterStatus);
       },
 
       statusCode: require('data/statusCodes')

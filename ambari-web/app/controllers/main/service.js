@@ -20,5 +20,6 @@ var App = require('app');
 
 App.MainServiceController = Em.ArrayController.extend({
   name:'mainServiceController',
-  content: App.Service.find()
+  content: App.Service.find(),
+  additionalMenuItem:Em.Object.create({ id:'Clients', displayName:'Clients', isClients:true })
 })
