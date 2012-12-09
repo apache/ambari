@@ -32,20 +32,11 @@ App.Router = Em.Router.extend({
     var previousStep = parseInt(this.getInstallerCurrentStep());
     this.set('isFwdNavigation', newStep >= previousStep);
   },
+
   clearAllSteps: function() {
-    this.get('installerController.content').set('cluster',null);
-    this.get('wizardStep2Controller').set('hasSubmitted',false);
-    /*this.get('installerController.content').set({
-      cluster: null,
-      hosts: null,
-      services: null,
-      hostsInfo: null,
-      slaveComponentHosts: null,
-      hostSlaveComponents: null,
-      masterComponentHosts: null,
-      hostToMasterComponent : null,
-      serviceConfigProperties: null
-    });*/
+    this.set('installerController.content', []);
+    this.set('installerController.currentStep', 0);
+    this.set('wizardStep2Controller.hasSubmitted', false);
   },
 
   /**
@@ -234,8 +225,11 @@ App.Router = Em.Router.extend({
 
     logoff: function (router, context) {
       console.log('logging off');
-      router.clearAllSteps();
+      // App.db.cleanUp() must be called before router.clearAllSteps().
+      // otherwise, this.set('installerController.currentStep, 0) would have no effect
+      // since it's a computed property but we are not setting it as a dependent of App.db.
       App.db.cleanUp();
+      router.clearAllSteps();
       console.log("Log off: " + App.db.getClusterName());
       router.set('loginController.loginName', '');
       router.set('loginController.password', '');

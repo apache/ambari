@@ -28,7 +28,7 @@ module.exports = Em.Route.extend({
     if (router.getAuthenticated()) {
       router.get('mainController').stopLoadOperationsPeriodically();
       console.log('In installer with successful authenticated');
-
+      console.log('current step=' + router.get('installerController.currentStep'));
       Ember.run.next(function () {
         var installerController = router.get('installerController');
         router.transitionTo('step' + installerController.get('currentStep'));

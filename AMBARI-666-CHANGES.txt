@@ -442,6 +442,8 @@ AMBARI-666 branch (unreleased changes)
 
   BUG FIXES
 
+  AMBARI-992. Logout does not clean application state properly. (yusaku)
+
   AMBARI-957. Adding a host whose hostname is the same as the one the user 
   is accessing Ambari Web with breaks the Installer. (yusaku)
 
