@@ -65,7 +65,6 @@ App.Host = DS.Model.extend({
   }.property('loadOne', 'loadFive', 'loadFifteen'),
 
   updateHostStatus: function(){
-
     /**
      * Do nothing until load
      */
@@ -77,7 +76,7 @@ App.Host = DS.Model.extend({
     var status;
 
     var masterComponents = components.filterProperty('isMaster', true);
-    if(components.everyProperty('workStatus', App.Component.Status.started)){
+    if(components.filterProperty('isClient', false).everyProperty('workStatus', App.Component.Status.started)){
       status = 'LIVE';
     } else if(this.get('isNotHeartBeating')){
       status = 'DEAD-YELLOW';

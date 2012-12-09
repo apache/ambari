@@ -29,7 +29,7 @@ var App = require('app');
 App.ChartHostMetricsLoad = App.ChartLinearTimeView.extend({
   id: "host-metrics-load",
   title: "Load",
-
+  renderer: 'line',
   url: function () {
     return App.formatUrl(App.apiPrefix + "/clusters/{clusterName}/hosts/{hostName}?fields=metrics/load/load_fifteen[{fromSeconds},{toSeconds},{stepSeconds}],metrics/load/load_one[{fromSeconds},{toSeconds},{stepSeconds}],metrics/load/load_five[{fromSeconds},{toSeconds},{stepSeconds}]", {
       clusterName: App.router.get('clusterController.clusterName'),

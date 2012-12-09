@@ -17,7 +17,7 @@
 }}
 
 {{#unless view.showOnlyRows}}
-<div class="clearfix" {{action toggleInfoView target="view"}}>
+<div class="clearfix like_pointer" {{action toggleInfoView target="view"}}>
   <div class="name span2">
     {{#if view.isCollapsed}}
     <i class="icon-caret-down pull-left"></i>
@@ -35,89 +35,91 @@
   </div>
 </div>
 <div id="mapreduce-info">
-<table class="table no-borders">
-  <tbody>
-{{/unless}}
-  <!-- JobTracker -->
-  <tr>
-    <td>{{t services.service.summary.jobTracker}}</td>
-    <td><a href="#" {{action showDetails view.service.jobTracker}}>{{view.service.jobTracker.publicHostName}}</a></td>
-  </tr>
-  <!-- TaskTrackers -->
-  <tr>
-    <td>{{t dashboard.services.mapreduce.taskTrackers}}</td>
-    <td><a href="#" {{action filterHosts view.taskTrackerComponent}}>{{view.service.taskTrackers.length}} {{t dashboard.services.mapreduce.taskTrackers}}</a></td>
-  </tr>
-  <!-- Version -->
-  <tr>
-    <td>{{t dashboard.services.hdfs.version}}</td>
-    <td>{{view.service.version}}</td>
-  </tr>
-  <!-- JobTracker Web UI -->
-  <tr>
-    <td>{{t services.service.summary.jobTrackerWebUI}}</td>
-    <td><a {{bindAttr href="view.jobTrackerWebUrl"}} target="_blank">{{view.service.jobTracker.publicHostName}}:50030</a>
-    </td>
-  </tr>
-  <!-- Job Tracker Uptime -->
-  <tr>
-    <td>{{t dashboard.services.mapreduce.jobTrackerUptime}}</td>
-    <td>{{view.jobTrackerUptime}}</td>
-  </tr>
-  <!-- Trackers -->
-  <tr>
-    <td>{{t dashboard.services.mapreduce.trackers}}</td>
-    <td>{{view.trackersSummary}}</td>
-  </tr>
-  <!-- TaskTracker Counts -->
-  <tr>
-    <td>{{t dashboard.services.mapreduce.taskTrackerCounts}}</td>
-    <td>
-      {{view.service.grayListTrackers.length}} {{t dashboard.services.mapreduce.nodes.blacklist}} /
-      {{view.service.blackListTrackers.length}} {{t dashboard.services.mapreduce.nodes.graylist}} /
-      {{view.service.trackersDecommisioned}} {{t dashboard.services.hdfs.nodes.decom}} 
-    </td>
-  </tr>
-  <!-- JobTracker Heap -->
-  <tr>
-    <td>{{t dashboard.services.mapreduce.jobTrackerHeap}}</td>
-    <td>{{view.trackersHeapSummary}}</td>
-  </tr>
-  <!-- Total slots capacity -->
-  <tr>
-    <td>{{t dashboard.services.mapreduce.slotCapacity}}</td>
-    <td>{{view.slotsCapacitySummary}}</td>
-  </tr>
-  <!-- Jobs -->
-  <tr>
-    <td>{{t dashboard.services.mapreduce.jobs}}</td>
-    <td>{{view.jobsSummary}}</td>
-  </tr>
-  <!-- Map Slots -->
-  <tr>
-    <td>{{t dashboard.services.mapreduce.mapSlots}}</td>
-    <td>{{view.mapSlotsSummary}}</td>
-  </tr>
-  <!-- Reduce Slots -->
-  <tr>
-    <td>{{t dashboard.services.mapreduce.reduceSlots}}</td>
-    <td>{{view.reduceSlotsSummary}}</td>
-  </tr>
-  <!-- Tasks:Maps -->
-  <tr>
-    <td>{{t dashboard.services.mapreduce.tasks.maps}}</td>
-    <td>{{view.mapTasksSummary}}</td>
-  </tr>
-  <!-- Tasks:Reduces -->
-  <tr>
-    <td>{{t dashboard.services.mapreduce.tasks.reduces}}</td>
-    <td>{{view.reduceTasksSummary}}</td>
-  </tr>
-  
-{{#unless view.showOnlyRows}}
-  </tbody>
-</table>
-<div class="dashboard-mini-chart">
+  <div class="span4">
+    <table class="table no-borders">
+      <tbody>
+    {{/unless}}
+      <!-- JobTracker -->
+      <tr>
+        <td>{{t services.service.summary.jobTracker}}</td>
+        <td><a href="#" {{action showDetails view.service.jobTracker}}>{{view.service.jobTracker.publicHostName}}</a></td>
+      </tr>
+      <!-- TaskTrackers -->
+      <tr>
+        <td>{{t dashboard.services.mapreduce.taskTrackers}}</td>
+        <td><a href="#" {{action filterHosts view.taskTrackerComponent}}>{{view.service.taskTrackers.length}} {{t dashboard.services.mapreduce.taskTrackers}}</a></td>
+      </tr>
+      <!-- Version -->
+      <tr>
+        <td>{{t dashboard.services.hdfs.version}}</td>
+        <td>{{view.service.version}}</td>
+      </tr>
+      <!-- JobTracker Web UI -->
+      <tr>
+        <td>{{t services.service.summary.jobTrackerWebUI}}</td>
+        <td><a {{bindAttr href="view.jobTrackerWebUrl"}} target="_blank">{{view.service.jobTracker.publicHostName}}:50030</a>
+        </td>
+      </tr>
+      <!-- Job Tracker Uptime -->
+      <tr>
+        <td>{{t dashboard.services.mapreduce.jobTrackerUptime}}</td>
+        <td>{{view.jobTrackerUptime}}</td>
+      </tr>
+      <!-- Trackers -->
+      <tr>
+        <td>{{t dashboard.services.mapreduce.trackers}}</td>
+        <td>{{view.trackersSummary}}</td>
+      </tr>
+      <!-- TaskTracker Counts -->
+      <tr>
+        <td>{{t dashboard.services.mapreduce.taskTrackerCounts}}</td>
+        <td>
+          {{view.service.grayListTrackers.length}} {{t dashboard.services.mapreduce.nodes.blacklist}} /
+          {{view.service.blackListTrackers.length}} {{t dashboard.services.mapreduce.nodes.graylist}} /
+          {{view.service.trackersDecommisioned}} {{t dashboard.services.hdfs.nodes.decom}}
+        </td>
+      </tr>
+      <!-- JobTracker Heap -->
+      <tr>
+        <td>{{t dashboard.services.mapreduce.jobTrackerHeap}}</td>
+        <td>{{view.trackersHeapSummary}}</td>
+      </tr>
+      <!-- Total slots capacity -->
+      <tr>
+        <td>{{t dashboard.services.mapreduce.slotCapacity}}</td>
+        <td>{{view.slotsCapacitySummary}}</td>
+      </tr>
+      <!-- Jobs -->
+      <tr>
+        <td>{{t dashboard.services.mapreduce.jobs}}</td>
+        <td>{{view.jobsSummary}}</td>
+      </tr>
+      <!-- Map Slots -->
+      <tr>
+        <td>{{t dashboard.services.mapreduce.mapSlots}}</td>
+        <td>{{view.mapSlotsSummary}}</td>
+      </tr>
+      <!-- Reduce Slots -->
+      <tr>
+        <td>{{t dashboard.services.mapreduce.reduceSlots}}</td>
+        <td>{{view.reduceSlotsSummary}}</td>
+      </tr>
+      <!-- Tasks:Maps -->
+      <tr>
+        <td>{{t dashboard.services.mapreduce.tasks.maps}}</td>
+        <td>{{view.mapTasksSummary}}</td>
+      </tr>
+      <!-- Tasks:Reduces -->
+      <tr>
+        <td>{{t dashboard.services.mapreduce.tasks.reduces}}</td>
+        <td>{{view.reduceTasksSummary}}</td>
+      </tr>
+
+    {{#unless view.showOnlyRows}}
+      </tbody>
+    </table>
+  </div>
+<div class="dashboard-mini-chart span2">
   {{view App.ChartServiceMetricsMapReduce_JobsRunningWaiting}}
   
   {{#if view.service.quickLinks.length}}

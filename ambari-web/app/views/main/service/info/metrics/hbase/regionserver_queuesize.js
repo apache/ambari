@@ -29,7 +29,7 @@ var App = require('app');
 App.ChartServiceMetricsHBASE_RegionServerQueueSize = App.ChartLinearTimeView.extend({
   id: "service-metrics-hbase-regionserver-queuesize",
   title: "RegionServer Queue Size",
-
+  renderer: 'line',
   url: function () {
     return App.formatUrl(App.apiPrefix + "/clusters/{clusterName}/services/HBASE/components/HBASE_REGIONSERVER?fields=metrics/hbase/regionserver/flushQueueSize[{fromSeconds},{toSeconds},{stepSeconds}],metrics/hbase/regionserver/compactionQueueSize[{fromSeconds},{toSeconds},{stepSeconds}]", {
       clusterName: App.router.get('clusterController.clusterName')

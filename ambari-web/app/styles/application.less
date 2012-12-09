@@ -498,7 +498,9 @@ a:focus {
   dd {
     margin-left: 145px;
   }
-
+  .like_pointer {
+    cursor: pointer;
+  }
   .service {
     position: relative;
     margin-top: 10px;
@@ -528,7 +530,7 @@ a:focus {
       margin-top: 14px;
       color: #7b7b7b;
       font-size: 13px;
-      width: 80%;
+      //width: 80%;
       tr > td:first-child {
         padding-right: 10px;
         text-align: right !important;
@@ -540,12 +542,16 @@ a:focus {
 
     .dashboard-mini-chart {
       right: 0;
+      float: right;
       top: 7px;
       position: absolute;
       overflow: visible; // for quick links
       text-align: center;
-      width: 180px;
+      //width: 180px;
       height: 200px;
+      .dropdown-menu {
+        text-align: left;
+      }
       .chart-container{
         .chart-x-axis{
           left: 0%;
@@ -556,6 +562,12 @@ a:focus {
       .chartLabel {
         font-size: 11px;
         color: #7b7b7b;
+      }
+      .chart-legend {
+        left: -205px;
+        text-align: left;
+        top: 0;
+        width: 185px;
       }
     }
   }

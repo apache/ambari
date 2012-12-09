@@ -222,6 +222,7 @@ module.exports = Em.Route.extend({
         controller.get('content').set('serviceConfigProperties', null);
         App.db.setServiceConfigProperties(null);
         App.db.setSlaveProperties(null);
+        controller.loadSlaveGroupProperties();
         controller.loadAdvancedConfigs();
         router.transitionTo('step7');
       }
@@ -262,6 +263,7 @@ module.exports = Em.Route.extend({
     next: function (router) {
       var installerController = router.get('installerController');
       var wizardStep8Controller = router.get('wizardStep8Controller');
+      // invoke API call to install selected services
       installerController.installServices();
       installerController.setInfoForStep9();
       router.transitionTo('step9');
@@ -275,7 +277,7 @@ module.exports = Em.Route.extend({
       var controller = router.get('installerController');
       controller.setCurrentStep('9', false);
       controller.loadAllPriorSteps();
-      if (!App.testMode) {              //if test mode is ON don't disable prior steps link.
+      if (!App.testMode) { // if test mode is ON don't disable prior steps link.
         controller.setLowerStepsDisable(9);
       }
       controller.connectOutlet('wizardStep9', controller.get('content'));
@@ -286,15 +288,15 @@ module.exports = Em.Route.extend({
       var wizardStep9Controller = router.get('wizardStep9Controller');
       if (!wizardStep9Controller.get('isSubmitDisabled')) {
         if (wizardStep9Controller.get('content.cluster.status') !== 'START FAILED') {
-        installerController.installServices(true);
-        installerController.setInfoForStep9();
+          installerController.installServices(true);
+          installerController.setInfoForStep9();
         } else {
           wizardStep9Controller.set('content.cluster.isCompleted', false);
         }
         wizardStep9Controller.navigateStep();
       }
     },
-    unroutePath: function() {
+    unroutePath: function () {
       return false;
     },
     next: function (router) {

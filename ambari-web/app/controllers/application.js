@@ -27,7 +27,7 @@ App.ApplicationController = Em.Controller.extend({
     if (name) {
       return name.capitalize();
     }
-    return 'My Cluster';
+    return '';
   }.property(),
   isClusterDataLoaded: function() {
     return App.router.get('clusterController.isLoaded');
@@ -35,6 +35,5 @@ App.ApplicationController = Em.Controller.extend({
 
   init: function(){
     this._super();
-    $('title').text('Ambari - ' + this.get('clusterName'));
   }
 });

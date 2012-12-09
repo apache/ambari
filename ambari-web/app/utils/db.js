@@ -51,9 +51,9 @@ App.db.cleanUp = function () {
       'loginName': '',
       'authenticated': false
     },
-    'Installer': {},
-    'AddHost': {},
-    'AddService': {}
+    'Installer' : {},
+    'AddHost' : {},
+    'AddService' : {}
   };
   console.log("In cleanup./..");
   localStorage.setObject('ambari', App.db.data);
@@ -195,13 +195,19 @@ App.db.setSlaveComponentHosts = function (slaveComponentHosts) {
   localStorage.setObject('ambari', App.db.data);
 };
 
+App.db.setSlaveProperties = function (slaveProperties) {
+  App.db.data = localStorage.getObject('ambari');
+  App.db.data.Installer.slaveProperties = slaveProperties;
+  localStorage.setObject('ambari', App.db.data);
+};
+
 App.db.setServiceConfigs = function (serviceConfigs) {
   App.db.data = localStorage.getObject('ambari');
   App.db.data.Installer.serviceConfigs = serviceConfigs;
   localStorage.setObject('ambari', App.db.data);
 };
 
-App.db.setAdvancedServiceConfig = function (serviceConfigs) {
+App.db.setAdvancedServiceConfig = function(serviceConfigs) {
   App.db.data = localStorage.getObject('ambari');
   App.db.data.Installer.advanceServiceConfigs = serviceConfigs;
   localStorage.setObject('ambari', App.db.data);
@@ -210,12 +216,6 @@ App.db.setAdvancedServiceConfig = function (serviceConfigs) {
 App.db.setServiceConfigProperties = function (configProperties) {
   App.db.data = localStorage.getObject('ambari');
   App.db.data.Installer.configProperties = configProperties;
-  localStorage.setObject('ambari', App.db.data);
-};
-
-App.db.setSlaveProperties = function (slaveProperties) {
-  App.db.data = localStorage.getObject('ambari');
-  App.db.data.Installer.slaveProperties = slaveProperties;
   localStorage.setObject('ambari', App.db.data);
 };
 
@@ -364,7 +364,7 @@ App.db.getServiceConfigs = function () {
   return App.db.data.Installer.serviceConfigs;
 };
 
-App.db.getAdvancedServiceConfig = function () {
+App.db.getAdvancedServiceConfig = function() {
   App.db.data = localStorage.getObject('ambari');
   return App.db.data.Installer.advanceServiceConfigs;
 };
@@ -378,7 +378,6 @@ App.db.getSlaveProperties = function () {
   App.db.data = localStorage.getObject('ambari');
   return App.db.data.Installer.slaveProperties;
 };
-
 
 App.db.getClusterStatus = function () {
   console.log('TRACE: Entering db:getClusterStatus function');

@@ -44,15 +44,6 @@ App.WizardStep3Controller = Em.Controller.extend({
 
   navigateStep: function () {
     this.loadStep();
-    if (App.testMode && App.skipBootstrap) {
-      this.get('hosts').forEach(function (_host) {
-        _host.set('bootStatus', 'REGISTERED');
-        _host.set('bootLog', 'Success');
-      }, this);
-      this.set('bootHosts', this.get('hosts'));
-      this.stopRegistration();
-      return;
-    }
     if (this.get('content.hosts.manualInstall') !== true) {
       if (App.db.getBootStatus() === false) {
         this.startBootstrap();
@@ -79,10 +70,14 @@ App.WizardStep3Controller = Em.Controller.extend({
 
   loadStep: function () {
     console.log("TRACE: Loading step3: Confirm Hosts");
-    this.clearStep();
-    var hosts = this.loadHosts();
-    // hosts.setEach('bootStatus', 'RUNNING');
-    this.renderHosts(hosts);
+    if(!this.get('hosts').length){
+      this.clearStep();
+      var hosts = this.loadHosts();
+      // hosts.setEach('bootStatus', 'RUNNING');
+      this.renderHosts(hosts);
+    } else {
+      this.set('isSubmitDisabled', false);
+    }
   },
 
   /* Loads the hostinfo from localStorage on the insertion of view. It's being called from view */
@@ -254,7 +249,7 @@ App.WizardStep3Controller = Em.Controller.extend({
     //TODO: uncomment following line after the hook up with the API call
     console.log('stopBootstrap() called');
     // this.set('isSubmitDisabled',false);
-    Ember.run.later(this, function () {
+    Ember.run.later(this, function(){
       this.startRegistration();
     }, 1000);
   },
@@ -412,7 +407,7 @@ App.WizardStep3Controller = Em.Controller.extend({
           var self = this;
           var button = $(this.get('element')).find('.textTrigger');
           button.click(function () {
-            if (self.get('isTextArea')) {
+            if(self.get('isTextArea')){
               $(this).text('click to highlight');
             } else {
               $(this).text('press CTRL+C');
@@ -433,7 +428,7 @@ App.WizardStep3Controller = Em.Controller.extend({
         },
         isTextArea: false,
         textArea: Em.TextArea.extend({
-          didInsertElement: function () {
+          didInsertElement: function(){
             var element = $(this.get('element'));
             element.width($(this.get('parentView').get('element')).width() - 10);
             element.height($(this.get('parentView').get('element')).height());

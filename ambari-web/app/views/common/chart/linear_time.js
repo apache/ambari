@@ -86,6 +86,8 @@ App.ChartLinearTimeView = Ember.View.extend({
 
       _seriesProperties: null,
 
+      renderer: 'area',
+
       popupSuffix: '-popup',
 
       isPopup: false,
@@ -362,14 +364,19 @@ App.ChartLinearTimeView = Ember.View.extend({
         var legendElement = document.querySelector(legendElementId);
         var timelineElement = document.querySelector(timelineElementId);
 
+        var strokeWidth = 1;
+        if (this.get('renderer') != 'area') {
+          strokeWidth = 2;
+        }
+
         var _graph = new Rickshaw.Graph({
           height: 150,
           element: chartElement,
           series: seriesData,
           interpolation: 'step-after',
           stroke: true,
-          renderer: 'area',
-          strokeWidth: 1
+          renderer: this.get('renderer'),
+          strokeWidth: strokeWidth
         });
         _graph.renderer.unstack = false;
 

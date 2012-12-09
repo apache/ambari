@@ -60,7 +60,6 @@ App.WizardStep7.ServiceConfigsByCategoryView = Ember.View.extend({
       this.set('category.isCollapsed', false);
     }
   },
-
   layout: Ember.Handlebars.compile('<div {{bindAttr id="view.category.name"}} class="accordion-body collapse in"><div class="accordion-inner">{{yield}}</div></div>')
 });
 

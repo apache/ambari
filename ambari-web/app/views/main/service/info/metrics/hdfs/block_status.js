@@ -29,7 +29,7 @@ var App = require('app');
 App.ChartServiceMetricsHDFS_BlockStatus = App.ChartLinearTimeView.extend({
   id: "service-metrics-hdfs-block-status",
   title: "Block Status",
-
+  renderer: 'line',
   url: function () {
     var hdfsService = App.HDFSService.find().objectAt(0);
     var nameNodeHostName = hdfsService.get('nameNode').get('hostName');

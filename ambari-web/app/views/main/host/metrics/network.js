@@ -30,7 +30,7 @@ App.ChartHostMetricsNetwork = App.ChartLinearTimeView.extend({
   id: "host-metrics-network",
   title: "Network Usage",
   yAxisFormatter: App.ChartLinearTimeView.BytesFormatter,
-
+  renderer: 'line',
   url: function () {
     return App.formatUrl(App.apiPrefix + "/clusters/{clusterName}/hosts/{hostName}?fields=metrics/network/bytes_in[{fromSeconds},{toSeconds},{stepSeconds}],metrics/network/bytes_out[{fromSeconds},{toSeconds},{stepSeconds}],metrics/network/pkts_in[{fromSeconds},{toSeconds},{stepSeconds}],metrics/network/pkts_out[{fromSeconds},{toSeconds},{stepSeconds}]", {
       clusterName: App.router.get('clusterController.clusterName'),

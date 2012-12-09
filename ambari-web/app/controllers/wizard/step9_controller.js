@@ -28,6 +28,7 @@ App.WizardStep9Controller = Em.Controller.extend({
   }.property('isStepCompleted'),
 
   mockHostData: require('data/mock/step9_hosts'),
+  mockDataPrefix: '/data/wizard/deploy/5_hosts',
   pollDataCounter: 0,
   polledData: [],
 
@@ -47,7 +48,13 @@ App.WizardStep9Controller = Em.Controller.extend({
     return this.get('status') == 'failed';
   }.property('status'),
 
+  // called by App.WizardStep9View's didInsertElement and "retry" from router.
   navigateStep: function () {
+    if (App.testMode) {
+      // this is for repeatedly testing out installs in test mode
+      this.set('content.cluster.status', 'PENDING');
+      this.set('content.cluster.isCompleted', false);
+    }
     if (this.get('content.cluster.isCompleted') === false) {
       if (this.get('content.cluster.status') === 'INSTALL FAILED') {
         this.loadStep();
@@ -211,8 +218,8 @@ App.WizardStep9Controller = Em.Controller.extend({
     var method = 'PUT';
 
     if (App.testMode) {
-      //debugger;
-      url = '/data/wizard/deploy/poll_6.json';
+      debugger;
+      url = this.get('mockDataPrefix') + '/poll_6.json';
       method = 'GET';
       this.numPolls = 6;
     }
@@ -468,7 +475,7 @@ App.WizardStep9Controller = Em.Controller.extend({
     var tasksData = polledData.tasks;
     console.log("The value of tasksData is: ", tasksData);
     if (!tasksData) {
-      console.log("Step9: ERROR: NO tasks availaible to process");
+      console.log("Step9: ERROR: NO tasks available to process");
     }
     this.replacePolledData(tasksData);
     this.hosts.forEach(function (_host) {
@@ -479,7 +486,7 @@ App.WizardStep9Controller = Em.Controller.extend({
       if (actionsPerHost !== null && actionsPerHost !== undefined && actionsPerHost.length !== 0) {
         this.setLogTasksStatePerHost(actionsPerHost, _host);
         this.onSuccessPerHost(actionsPerHost, _host);     // every action should be a success
-        this.onWarningPerHost(actionsPerHost, _host);     // any action should be a faliure
+        this.onWarningPerHost(actionsPerHost, _host);     // any action should be a failure
         this.onInProgressPerHost(actionsPerHost, _host);  // current running action for a host
         totalProgress += self.progressPerHost(actionsPerHost, _host);
       }
@@ -515,11 +522,12 @@ App.WizardStep9Controller = Em.Controller.extend({
       this.POLL_INTERVAL = 1;
       this.numPolls++;
       if (this.numPolls == 5) {
-        url = 'data/wizard/deploy/poll_5.json';
-        // url = 'data/wizard/deploy/poll_5_failed.json';
+        url = this.get('mockDataPrefix') + '/poll_5.json';
+        // url = this.get('mockDataPrefix') + '/poll_5_failed.json';
       } else {
-        url = 'data/wizard/deploy/poll_' + this.numPolls + '.json';
+        url = this.get('mockDataPrefix') + '/poll_' + this.numPolls + '.json';
       }
+      debugger;
     }
 
     $.ajax({

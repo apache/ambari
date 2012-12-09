@@ -36,7 +36,8 @@ App.ChartClusterMetricsNetwork = App.ChartLinearTimeView.extend({
   }.property('App.router.clusterController.clusterName'),
   title: "Network Usage",
   yAxisFormatter: App.ChartLinearTimeView.BytesFormatter,
-  
+  renderer: 'line',
+
   transformToSeries : function (jsonData) {
     var seriesArray = [];
     if (jsonData && jsonData.metrics && jsonData.metrics.network) {

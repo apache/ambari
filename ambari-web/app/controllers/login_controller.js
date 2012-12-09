@@ -32,9 +32,8 @@ App.LoginController = Em.Object.extend({
     this.set('errorMessage', '');
 
     var self = this;
-    var loginFunc =  App.get('router').login;
 
-    var user = loginFunc.call(App.get('router'), function (isAuthenticated) {
+    App.get('router').login(function (isAuthenticated) {
       if (!isAuthenticated) {
         console.log('Failed to login as: ' + self.get('loginName'));
         self.set('errorMessage', Em.I18n.t('login.error'));

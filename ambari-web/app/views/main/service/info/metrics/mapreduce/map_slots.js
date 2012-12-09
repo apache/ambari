@@ -29,7 +29,7 @@ var App = require('app');
 App.ChartServiceMetricsMapReduce_MapSlots = App.ChartLinearTimeView.extend({
   id: "service-metrics-mapreduce-map-slots",
   title: "Map Slot Utilization",
-
+  renderer: 'line',
   url: function () {
     return App.formatUrl(App.apiPrefix + "/clusters/{clusterName}/services/MAPREDUCE/components/JOBTRACKER?fields=metrics/mapred/jobtracker/occupied_map_slots[{fromSeconds},{toSeconds},{stepSeconds}],metrics/mapred/jobtracker/reserved_map_slots[{fromSeconds},{toSeconds},{stepSeconds}]", {
       clusterName: App.router.get('clusterController.clusterName')

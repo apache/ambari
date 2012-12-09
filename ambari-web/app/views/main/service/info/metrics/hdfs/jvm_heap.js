@@ -30,7 +30,7 @@ App.ChartServiceMetricsHDFS_JVMHeap = App.ChartLinearTimeView.extend({
   id: "service-metrics-hdfs-jvm-heap",
   title: "JVM Memory Status",
   yAxisFormatter: App.ChartLinearTimeView.BytesFormatter,
-
+  renderer: 'line',
   url: function () {
     var hdfsService = App.HDFSService.find().objectAt(0);
     var nameNodeHostName = hdfsService.get('nameNode').get('hostName');

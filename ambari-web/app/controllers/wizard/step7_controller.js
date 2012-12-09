@@ -40,7 +40,7 @@ App.WizardStep7Controller = Em.Controller.extend({
 
   isSubmitDisabled: function () {
     return !this.stepConfigs.everyProperty('errorCount', 0);
-  }.property('stepConfigs.@each.errorCount','content.slaveGroupProperties.@each.groups.@each.errorCount'),
+  }.property('stepConfigs.@each.errorCount'),
 
   selectedServiceNames: function () {
     return this.get('content.services').filterProperty('isSelected', true).filterProperty('isInstalled', false).mapProperty('serviceName');
@@ -117,6 +117,7 @@ App.WizardStep7Controller = Em.Controller.extend({
 
     }
   },
+
 
   /**
    * Render a custom conf-site box for entering properties that will be written in *-site.xml files of the services

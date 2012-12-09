@@ -141,27 +141,7 @@
 		<ul id='summary-alerts-list' class="alerts">
 		  {{#if controller.alerts.length}}
 				{{#each controller.alerts}}
-				 <li class="status-{{unbound status}}">
-	          <div class="container-fluid">
-	            <div class="row-fluid">
-	              <div class="span1 status-icon">
-	                {{#if isOk}}
-	                  <i class="icon-ok icon-large"></i>
-	                {{else}}
-	                  <i class="icon-remove icon-large"></i>
-	                {{/if}}
-	              </div>
-	              <div class="span11">
-	                <div class="row-fluid">
-	                  <div class="span7 title">{{title}}
-	                  </div>
-	                  <div rel="tooltip" {{bindAttr data-title="timeSinceAlertDetails"}} data-placement="right" class="span5 date-time">{{timeSinceAlert}}</div>
-	                </div>
-	                <div class="row-fluid message">{{message}}</div>
-	              </div>
-	            </div>
-	          </div>
-	        </li>
+          {{view view.alertItemView contentBinding="this"}}
 				{{/each}}
 			{{else}}
 		    {{#if controller.isNagiosInstalled}}

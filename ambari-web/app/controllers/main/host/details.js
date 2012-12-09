@@ -97,8 +97,8 @@ App.MainHostDetailsController = Em.Controller.extend({
             setTimeout(function(){
               component.set('workStatus', App.Component.Status.started);
             },10000);
-          } else{
-            App.router.get('clusterController').loadUpdatedStatus();
+          } else {
+            App.router.get('clusterController').loadUpdatedStatusDelayed(500);
             App.router.get('backgroundOperationsController.eventsArray').push({
               "when" : function(controller){
                 var result = (controller.getOperationsForRequestId(requestId).length == 0);

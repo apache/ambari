@@ -19,11 +19,12 @@
 {{#if view.hasNoHosts}}
 No host assigned
 {{else}}
-<a href="#" {{action showEditSlaveComponentGroups view.serviceConfig.category target="controller"}}>
+<a
+  href="#" {{action showEditSlaveComponentGroups view.serviceConfig.category target="controller"}}>
   {{#if view.hasMultipleHosts}}
   {{hosts.firstObject.hostName}} and {{view.otherLength}}
   {{else}}
   {{hosts.firstObject.hostName}}
   {{/if}}
 </a>
-{{/if}}
+  {{/if}}

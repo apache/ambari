@@ -29,7 +29,7 @@ var App = require('app');
 App.ChartHostMetricsProcesses = App.ChartLinearTimeView.extend({
   id: "host-metrics-processes",
   title: "Processes",
-
+  renderer: 'line',
   url: function () {
     return App.formatUrl(App.apiPrefix + "/clusters/{clusterName}/hosts/{hostName}?fields=metrics/process/proc_total[{fromSeconds},{toSeconds},{stepSeconds}],metrics/process/proc_run[{fromSeconds},{toSeconds},{stepSeconds}]", {
       clusterName: App.router.get('clusterController.clusterName'),

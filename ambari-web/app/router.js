@@ -153,13 +153,13 @@ App.Router = Em.Router.extend({
       },
       statusCode: {
         200: function () {
-          console.log('Authorization status: 200');
+          console.log("Status code 200: Success.");
         },
         401: function () {
-          console.log('Authorization status: 401');
+          console.log("Error code 401: Unauthorized.");
         },
         403: function () {
-          console.log('Authorization status: 403');
+          console.log("Error code 403: Forbidden.");
         }
       },
       success: function (data) {
@@ -255,7 +255,18 @@ App.Router = Em.Router.extend({
       return 'installer';
     }
   },
-
+  logOff: function(context){
+    console.log('logging off');
+    // App.db.cleanUp() must be called before router.clearAllSteps().
+    // otherwise, this.set('installerController.currentStep, 0) would have no effect
+    // since it's a computed property but we are not setting it as a dependent of App.db.
+    App.db.cleanUp();
+    this.clearAllSteps();
+    console.log("Log off: " + App.db.getClusterName());
+    this.set('loginController.loginName', '');
+    this.set('loginController.password', '');
+    this.transitionTo('login', context);
+  },
   root: Em.Route.extend({
     index: Em.Route.extend({
       route: '/',
@@ -290,16 +301,7 @@ App.Router = Em.Router.extend({
     main: require('routes/main'),
 
     logoff: function (router, context) {
-      console.log('logging off');
-      // App.db.cleanUp() must be called before router.clearAllSteps().
-      // otherwise, this.set('installerController.currentStep, 0) would have no effect
-      // since it's a computed property but we are not setting it as a dependent of App.db.
-      App.db.cleanUp();
-      router.clearAllSteps();
-      console.log("Log off: " + App.db.getClusterName());
-      router.set('loginController.loginName', '');
-      router.set('loginController.password', '');
-      router.transitionTo('login', context);
+      router.logOff(context);
     }
 
   })

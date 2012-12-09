@@ -331,7 +331,7 @@ App.SlaveComponentGroupsMenu = Em.CollectionView.extend({
 
     errorCount: function () {
       return this.get('content.properties').filterProperty('isValid', false).filterProperty('isVisible', true).get('length');
-    }.property('content.properties.@each.isValid','content.properties.@each.isVisible'),
+    }.property('content.properties.@each.isValid', 'content.properties.@each.isVisible'),
 
     template: Ember.Handlebars.compile('<a {{action showSlaveComponentGroup view.content target="controller"}} href="#"> {{view.content.name}}{{#if view.errorCount}}<span class="badge badge-important">{{view.errorCount}}</span>{{/if}}</a><i {{action removeSlaveComponentGroup view.content target="controller"}} class="icon-remove"></i>')
   })
@@ -468,3 +468,4 @@ App.SlaveComponentChangeGroupNameView = Ember.View.extend({
     }
   }
 });
+

@@ -32,7 +32,7 @@ App.ServiceConfig = Ember.Object.extend({
     var masterErrors = this.get('configs').filterProperty('isValid', false).filterProperty('isVisible', true).get('length');
     var slaveErrors = 0;
     this.get('configCategories').forEach(function(_category){
-    slaveErrors += _category.get('slaveErrorCount');
+      slaveErrors += _category.get('slaveErrorCount');
     },this);
     return masterErrors + slaveErrors;
   }.property('configs.@each.isValid', 'configs.@each.isVisible', 'configCategories.@each.slaveErrorCount')
@@ -40,7 +40,21 @@ App.ServiceConfig = Ember.Object.extend({
 
 App.ServiceConfigCategory = Ember.Object.extend({
   name: null,
+
   slaveConfigs: null,
+  primaryName: function () {
+    switch (this.get('name')) {
+      case 'DataNode':
+        return 'DATANODE';
+        break;
+      case 'TaskTracker':
+        return 'TASKTRACKER';
+        break;
+      case 'RegionServer':
+        return 'HBASE_REGIONSERVER';
+    }
+  }.property('name'),
+
 
   isForMasterComponent: function () {
     var masterServices = [ 'NameNode', 'SNameNode', 'JobTracker', 'HBase Master', 'Oozie Master',
@@ -63,6 +77,14 @@ App.ServiceConfigCategory = Ember.Object.extend({
     }
     return length;
   }.property('slaveConfigs.groups.@each.errorCount')
+});
+
+
+App.SlaveConfigs = Ember.Object.extend({
+  componentName: null,
+  displayName: null,
+  hosts: null,
+  groups: null
 });
 
 App.Group = Ember.Object.extend({

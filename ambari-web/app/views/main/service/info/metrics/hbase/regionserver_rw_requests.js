@@ -29,7 +29,7 @@ var App = require('app');
 App.ChartServiceMetricsHBASE_RegionServerReadWriteRequests = App.ChartLinearTimeView.extend({
   id: "service-metrics-hbase-regionserver-rw-requests",
   title: "RegionServer Requests",
-
+  renderer: 'line',
   url: function () {
     return App.formatUrl(App.apiPrefix + "/clusters/{clusterName}/services/HBASE/components/HBASE_REGIONSERVER?fields=metrics/hbase/regionserver/readRequestsCount[{fromSeconds},{toSeconds},{stepSeconds}],metrics/hbase/regionserver/writeRequestsCount[{fromSeconds},{toSeconds},{stepSeconds}]", {
       clusterName: App.router.get('clusterController.clusterName')

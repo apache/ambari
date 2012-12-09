@@ -29,7 +29,7 @@ var App = require('app');
 App.ChartServiceMetricsHDFS_JVMThreads = App.ChartLinearTimeView.extend({
   id: "service-metrics-hdfs-jvm-threads",
   title: "JVM Thread Status",
-
+  renderer: 'line',
   url: function () {
     var hdfsService = App.HDFSService.find().objectAt(0);
     var nameNodeHostName = hdfsService.get('nameNode').get('hostName');

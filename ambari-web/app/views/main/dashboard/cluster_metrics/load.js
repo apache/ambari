@@ -35,7 +35,7 @@ App.ChartClusterMetricsLoad = App.ChartLinearTimeView.extend({
       clusterName: App.router.get('clusterController.clusterName')
     }, "/data/cluster_metrics/load_1hr.json");
   }.property('App.router.clusterController.clusterName'),
-  
+  renderer: 'line',
   title: "Cluster Load",
   
   transformToSeries: function(jsonData){

@@ -1165,7 +1165,8 @@ module.exports =
       "displayType": "directories",
       "isReconfigurable": false,
       "isVisible": true,
-      "serviceName": "MAPREDUCE"
+      "serviceName": "MAPREDUCE",
+      "category": "TaskTracker"
     },
     {
       "id": "puppet var",
@@ -1324,7 +1325,8 @@ module.exports =
       "displayType": "int",
       "unit": "MB",
       "isVisible": true,
-      "serviceName": "MAPREDUCE"
+      "serviceName": "MAPREDUCE",
+      "category": "TaskTracker"
     },
     {
       "id": "puppet var",
@@ -1394,7 +1396,7 @@ module.exports =
       "name": "rca_enabled",
       "displayName": "Enable RCA",
       "description": "Enable RCA",
-      "defaultValue": false,
+      "defaultValue": true,
       "isReconfigurable": true,
       "displayType": "checkbox",
       "isVisible": true,

@@ -27,8 +27,9 @@ App.WizardStep8Controller = Em.Controller.extend({
   configs: [],
   globals: [],
   configMapping: require('data/config_mapping'),
+  slaveComponentConfig: null,
+  isSubmitDisabled: false,
 
-  isSubmitDisabled : false,
 
   selectedServices: function () {
     return this.get('content.services').filterProperty('isSelected', true).filterProperty('isInstalled', false);
@@ -48,7 +49,59 @@ App.WizardStep8Controller = Em.Controller.extend({
     this.loadConfigs();
     this.setCustomConfigs();
     this.loadClusterInfo();
+    this.loadSlaveConfiguration();
     this.loadServices();
+  },
+
+  loadSlaveConfiguration: function () {
+    var slaveComponentConfig = this.convertSlaveConfig(this.get('content.slaveGroupProperties'));
+    this.set("slaveComponentConfig", slaveComponentConfig);
+  },
+
+  convertSlaveConfig: function (slaveContent) {
+    var dest = {
+      "version": "1.0",
+      "components": [
+      ]
+    };
+
+    slaveContent.forEach(function (_slaveContent) {
+      var newComponent = {};
+      newComponent.componentName = _slaveContent.componentName;
+      newComponent.serviceName = this.getServiceName(newComponent.componentName);
+      newComponent.groups = [];
+      _slaveContent.groups.forEach(function (_group) {
+        var newGroup = {};
+        newGroup.groupName = _group.name;
+        newGroup.configVersion = "1.0"; // TODO : every time a new version should be generated
+        newGroup.hostNames = _slaveContent.hosts.filterProperty("group", newGroup.groupName);
+        newGroup.properties = _group.properties;
+        if (!Ember.empty(newGroup.hostNames)) {
+          newComponent.groups.push(newGroup);
+        }
+      }, this);
+      dest.components.push(newComponent);
+    }, this);
+    return dest;
+
+  },
+
+  getServiceName: function (componentName) {
+    var serviceName = null
+    switch (componentName) {
+      case 'DATANODE':
+        serviceName = 'HDFS';
+        break;
+      case 'TASKTRACKER':
+        serviceName = 'MAPREDUCE';
+        break;
+      case 'HBASE_REGIONSERVER':
+        serviceName = 'HBASE';
+        break;
+      default:
+        serviceName = null;
+    }
+    return serviceName;
   },
 
   loadGlobals: function () {
@@ -100,7 +153,7 @@ App.WizardStep8Controller = Em.Controller.extend({
     return uiConfig;
   },
 
-  getRegisteredHosts: function() {
+  getRegisteredHosts: function () {
     var allHosts = this.get('content.hostsInfo');
     var hosts = [];
     for (var hostName in allHosts) {
@@ -353,12 +406,7 @@ App.WizardStep8Controller = Em.Controller.extend({
   loadDnValue: function (dnComponent) {
     var dnHosts = this.get('content.slaveComponentHosts').findProperty('displayName', 'DataNode');
     var totalDnHosts = dnHosts.hosts.length;
-    var dnHostGroups = [];
-    dnHosts.hosts.forEach(function (_dnHost) {
-      dnHostGroups.push(_dnHost.group);
-
-    }, this);
-    var totalGroups = dnHostGroups.uniq().length;
+    var totalGroups = this.get('slaveComponentConfig.components').findProperty('componentName','DATANODE').groups.length;
     var groupLabel;
     if (totalGroups == 1) {
       groupLabel = 'group';
@@ -367,6 +415,7 @@ App.WizardStep8Controller = Em.Controller.extend({
     }
     dnComponent.set('component_value', totalDnHosts + ' hosts ' + '(' + totalGroups + ' ' + groupLabel + ')');
   },
+
 
   /**
    * Load all info about mapReduce service
@@ -395,11 +444,7 @@ App.WizardStep8Controller = Em.Controller.extend({
   loadTtValue: function (ttComponent) {
     var ttHosts = this.get('content.slaveComponentHosts').findProperty('displayName', 'TaskTracker');
     var totalTtHosts = ttHosts.hosts.length;
-    var ttHostGroups = [];
-    ttHosts.hosts.forEach(function (_ttHost) {
-      ttHostGroups.push(_ttHost.group);
-    }, this);
-    var totalGroups = ttHostGroups.uniq().length;
+    var totalGroups = this.get('slaveComponentConfig.components').findProperty('componentName','TASKTRACKER').groups.length;
     var groupLabel;
     if (totalGroups == 1) {
       groupLabel = 'group';
@@ -477,11 +522,7 @@ App.WizardStep8Controller = Em.Controller.extend({
   loadRegionServerValue: function (rsComponent) {
     var rsHosts = this.get('content.slaveComponentHosts').findProperty('displayName', 'RegionServer');
     var totalRsHosts = rsHosts.hosts.length;
-    var rsHostGroups = [];
-    rsHosts.hosts.forEach(function (_ttHost) {
-      rsHostGroups.push(_ttHost.group);
-    }, this);
-    var totalGroups = rsHostGroups.uniq().length;
+    var totalGroups = this.get('slaveComponentConfig.components').findProperty('componentName','HBASE_REGIONSERVER').groups.length;
     var groupLabel;
     if (totalGroups == 1) {
       groupLabel = 'group';
@@ -620,6 +661,7 @@ App.WizardStep8Controller = Em.Controller.extend({
     if (App.testMode || !this.get('content.cluster.requestId')) {
       this.createCluster();
       this.createSelectedServices();
+      this.setAmbariUIDb();
       this.createConfigurations();
       this.applyCreatedConfToServices();
       this.createComponents();
@@ -630,7 +672,33 @@ App.WizardStep8Controller = Em.Controller.extend({
     App.router.send('next');
   },
 
-  clusterName: function() {
+  setAmbariUIDb: function () {
+    var slaveComponentConfig = this.get("slaveComponentConfig");
+    this.persistKeyValues(slaveComponentConfig.version, slaveComponentConfig);
+  },
+
+  persistKeyValues: function (key, value) {
+
+    var str = "{ '" + key + "' : '" + JSON.stringify(value) + "'}";
+    var obj = eval("(" + str + ")");
+    $.ajax({
+      type: "POST",
+      url: App.apiPrefix + '/persist',
+      data: JSON.stringify(obj),
+      async: false,
+      dataType: 'text',
+      timeout: App.timeout,
+      success: function (data) {
+        console.debug('success...ajax call returned');
+      },
+
+      error: function (request, ajaxOptions, error) {
+        console.log('Step8: Error message is: ' + request.responseText);
+      }
+    });
+  },
+
+  clusterName: function () {
     return this.get('content.cluster.name');
   }.property('content.cluster.name'),
 
@@ -654,7 +722,7 @@ App.WizardStep8Controller = Em.Controller.extend({
       async: false,
       //accepts: 'text',
       dataType: 'text',
-      data: JSON.stringify({ "Clusters": {"version" : stackVersion }}),
+      data: JSON.stringify({ "Clusters": {"version": stackVersion }}),
       timeout: App.timeout,
       success: function (data) {
         var jsonData = jQuery.parseJSON(data);
@@ -786,7 +854,7 @@ App.WizardStep8Controller = Em.Controller.extend({
   },
 
   createRegisterHostData: function () {
-    return this.getRegisteredHosts().map(function(host) {
+    return this.getRegisteredHosts().map(function (host) {
       if (!host.isInstalled) {
         return {"Hosts": { "host_name": host.hostName}};
       }
@@ -804,7 +872,7 @@ App.WizardStep8Controller = Em.Controller.extend({
     // note: masterHosts has 'component' vs slaveHosts has 'componentName'
     var masterComponents = masterHosts.mapProperty('component').uniq();
 
-    masterComponents.forEach(function(component) {
+    masterComponents.forEach(function (component) {
       var hostNames = masterHosts.filterProperty('component', component).filterProperty('isInstalled', false).mapProperty('hostName');
       this.registerHostsToComponent(hostNames, component);
     }, this);
@@ -835,7 +903,7 @@ App.WizardStep8Controller = Em.Controller.extend({
                 masterHosts.filterProperty('component', 'OOZIE_SERVER').filterProperty('isInstalled', false).forEach(function (_masterHost) {
                   hostNames.pushObject(_masterHost.hostName);
                 }, this);
-               break;
+                break;
             }
             hostNames = hostNames.uniq();
             this.registerHostsToComponent(hostNames, _client.component_name);
@@ -858,17 +926,19 @@ App.WizardStep8Controller = Em.Controller.extend({
     }
     console.log('registering ' + componentName + ' to ' + JSON.stringify(hostNames));
 
-    var hostsPredicate = hostNames.map(function(hostName) {
+    var hostsPredicate = hostNames.map(function (hostName) {
       return 'Hosts/host_name=' + hostName;
     }).join('|');
 
     var url = App.apiPrefix + '/clusters/' + this.get('clusterName') + '/hosts?' + hostsPredicate;
     var data = {
-      "host_components": [{
-        "HostRoles": {
-          "component_name": componentName
+      "host_components": [
+        {
+          "HostRoles": {
+            "component_name": componentName
+          }
         }
-      }]
+      ]
     };
 
     $.ajax({

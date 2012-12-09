@@ -20,7 +20,7 @@ var App = require('app');
  * Used to manage slave component config. User could create different settings for separate group
  * @type {*}
  */
-App.SlaveComponentGroupsController = Em.Controller.extend({
+App.SlaveComponentGroupsController = Em.ArrayController.extend({
 
   name: 'slaveComponentGroupsController',
 
@@ -48,10 +48,10 @@ App.SlaveComponentGroupsController = Em.Controller.extend({
       if (categoryConfig.someProperty('isForSlaveComponent', true)) {
         var slaveCategory = categoryConfig.findProperty('isForSlaveComponent', true);
         if (this.get('content')) {
-          if (this.get('content').someProperty('componentName', slaveCategory.get('name').toUpperCase())) {
-            var component = this.get('content').findProperty('componentName', slaveCategory.get('name').toUpperCase());
+          if (this.get('content').someProperty('componentName', slaveCategory.get('primaryName'))) {
+            var component = this.get('content').findProperty('componentName', slaveCategory.get('primaryName'));
             var slaveConfigs = slaveCategory.get('slaveConfigs');
-            slaveCategory.set('slaveConfigs', component);
+            slaveCategory.set('slaveConfigs', App.SlaveConfigs.create(component));
             var slaveGroups = [];
             if (component.groups) {
               component.groups.forEach(function (_group) {
@@ -75,7 +75,6 @@ App.SlaveComponentGroupsController = Em.Controller.extend({
         }
       }
     }, this);
-    debugger;
   },
 
   componentProperties: function (serviceName) {
@@ -121,43 +120,45 @@ App.SlaveComponentGroupsController = Em.Controller.extend({
 
   }.property('App.router.wizardStep7Controller.selectedService'),
 
-  selectedComponentDisplayName: function () {
-    return App.format.role(this.get('selectedComponentName').name);
+  selectedComponentDisplayName: function() {
+    return App.format.role(this.get('selectedComponentName'));
   }.property('selectedComponentName'),
 
   selectedSlaveComponent: function () {
-    var selectedComponentName = this.get('selectedComponentName').displayName;
+    var selectedComponentName = this.get('selectedComponentName') ? this.get('selectedComponentName').displayName : null;
     var configs = null;
-    this.get('stepConfigs').forEach(function (_serviceConfig) {
-      var categoryConfig = _serviceConfig.get('configCategories');
-      if (categoryConfig.someProperty('name', selectedComponentName)) {
-        configs = categoryConfig.findProperty('name', selectedComponentName).get('slaveConfigs');
-      }
-    }, this);
-    debugger;
+    if (selectedComponentName) {
+      App.router.get('wizardStep7Controller.stepConfigs').forEach(function (_serviceConfig) {
+        var categoryConfig = _serviceConfig.get('configCategories');
+        if (categoryConfig.someProperty('name', selectedComponentName)) {
+          configs = categoryConfig.findProperty('name', selectedComponentName).get('slaveConfigs');
+        }
+      }, this);
+    }
     return configs;
-  }.property('selectedComponentName', 'stepConfigs.@each.configCategories','stepConfigs.@each.configCategories.@each.slaveConfigs'),
+  }.property('selectedComponentName', 'stepConfigs.@each.configCategories', 'stepConfigs.@each.configCategories.@each.slaveConfigs'),
 
   hosts: function () {
     if (this.get('selectedSlaveComponent')) {
-      return this.get('selectedSlaveComponent').hosts;
+      return this.get('selectedSlaveComponent').get('hosts');
     }
   }.property('selectedSlaveComponent'),
 
   groups: function () {
     var hosts = this.get('hosts');
-    if (hosts) {
+    if(hosts){
       return hosts.mapProperty('group').uniq();
     }
   }.property('hosts'),
 
   componentGroups: function () {
     var component = this.get('selectedSlaveComponent');
-    if (component && component.groups) {
-      return component.groups;
+    if (component && component.get('groups')) {
+      return component.get('groups');
     }
     return [];
-  }.property('selectedSlaveComponent', 'selectedSlaveComponent.groups','stepConfigs.@each'),
+  }.property('selectedSlaveComponent', 'selectedSlaveComponent.groups', 'stepConfigs.@each.configCategories.@each.slaveConfigs.groups.@each.properties.@each.value'),
+
 
   getGroupsForDropDown: function () {
     return this.get('componentGroups').getEach('name');
@@ -167,12 +168,12 @@ App.SlaveComponentGroupsController = Em.Controller.extend({
     var componentGroups = this.get('componentGroups');
     if (componentGroups) {
       var active = componentGroups.findProperty('active', true);
-      if (active) {
+      if (active){
         return active;
       }
     }
     return null;
-  }.property('componentGroups.@each.active', 'componentGroups.@each.name'),
+  }.property('componentGroups.@each.active', 'componentGroups.@each.name', 'componentGroups.@each.properties.@each.value'),
 
 
   /**
@@ -191,7 +192,7 @@ App.SlaveComponentGroupsController = Em.Controller.extend({
       onPrimary: function (event) {
         if (component.tempSelectedGroups && component.tempSelectedGroups.length) {
           component.tempSelectedGroups.forEach(function (item) {
-            var changed = component.hosts.filterProperty('hostName', item.hostName);
+            var changed = component.get('hosts').filterProperty('hostName', item.hostName);
             changed.setEach('group', item.groupName);
           })
         }
@@ -233,9 +234,9 @@ App.SlaveComponentGroupsController = Em.Controller.extend({
   addSlaveComponentGroup: function () {
     var component = this.get('selectedSlaveComponent');
     var newGroupName = 'New Group';
-    component.groups.setEach('active', false);
-    var newGroups = component.groups.filterProperty('name', newGroupName);
-    if (newGroups.length === 0) {
+    component.get('groups').setEach('active', false);
+    var newGroups = component.get('groups').filterProperty('name', newGroupName);
+    if (newGroups.length === 0){
       component.newGroupIndex = 0;
     }
     else {
@@ -252,7 +253,7 @@ App.SlaveComponentGroupsController = Em.Controller.extend({
     var component = this.get('selectedSlaveComponent');
     component.newGroupIndex++;
     var newGroupName = 'New Group ' + component.newGroupIndex;
-    var groups = component.groups.filterProperty('name', newGroupName);
+    var groups = component.get('groups').filterProperty('name', newGroupName);
     if (groups.length !== 0) {
       this.checkGroupName();
     }
@@ -268,7 +269,7 @@ App.SlaveComponentGroupsController = Em.Controller.extend({
 
   getHostsByGroup: function (group) {
     var hosts = this.get('hosts');
-    if (hosts) {
+    if(hosts){
       return hosts.filterProperty('group', group.name);
     }
   },
@@ -279,12 +280,13 @@ App.SlaveComponentGroupsController = Em.Controller.extend({
    */
   showSlaveComponentGroup: function (event) {
     var component = this.get('selectedSlaveComponent');
-    if (!component.groups) {
+    if(!component.groups){
+
     }
-    component.groups.setEach('active', false);
-    var group = component.groups.filterProperty('name', event.context.name);
+    component.get('groups').setEach('active', false);
+    var group = component.get('groups').filterProperty('name', event.context.name);
     group.setEach('active', true);
-    var assignedHosts = component.hosts.filterProperty('group', event.context.name);
+    var assignedHosts = component.get('hosts').filterProperty('group', event.context.name);
     if (assignedHosts.length === 0) {
       $('.remove-group-error').hide();
     }
@@ -297,7 +299,7 @@ App.SlaveComponentGroupsController = Em.Controller.extend({
   removeSlaveComponentGroup: function (event) {
     var group = event.context;
     var component = this.get('selectedSlaveComponent');
-    var assignedHosts = component.hosts.filterProperty('group', group.name);
+    var assignedHosts = component.get('hosts').filterProperty('group', group.name);
     if (assignedHosts.length !== 0) {
       $('.remove-group-error').show();
     } else {
@@ -330,17 +332,18 @@ App.SlaveComponentGroupsController = Em.Controller.extend({
    */
   changeSlaveGroupName: function (group, newGroupName) {
     var component = this.get('selectedSlaveComponent');
-    var isExist = component.groups.filterProperty('name', newGroupName);
+    var isExist = component.get('groups').filterProperty('name', newGroupName);
     if (isExist.length !== 0)
       return true;
     else {
-      var assignedHosts = component.hosts.filterProperty('group', group.name);
-      if (assignedHosts.length !== 0) {
+      var assignedHosts = component.get('hosts').filterProperty('group', group.name);
+      if (assignedHosts.length !== 0){
         assignedHosts.setEach('group', newGroupName);
       }
-      var groupFilter = component.groups.filterProperty('name', group.name);
+      var groupFilter = component.get('groups').filterProperty('name', group.name);
       groupFilter.setEach('name', newGroupName);
     }
     return false;
   }
+
 });

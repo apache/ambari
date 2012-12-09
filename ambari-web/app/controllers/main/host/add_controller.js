@@ -218,7 +218,6 @@ App.AddHostController = App.WizardController.extend({
       var host = hosts.findProperty('name', hostInfo[index].name);
       if (host) {
         hostInfo[index].status = host.status;
-        hostInfo[index].logTasks = host.logTasks;
         hostInfo[index].tasks = host.tasks;
         hostInfo[index].message = host.message;
         hostInfo[index].progress = host.progress;
@@ -600,8 +599,8 @@ App.AddHostController = App.WizardController.extend({
   },
 
   /**
-   * Generate clients list for selected services and save it to model
-   * @param stepController step8WizardController or step9WizardController
+   * Invoke installation of selected services to the server and saves the request id returned by the server.
+   * @param isRetry
    */
   installServices: function (isRetry) {
     if(!isRetry && this.get('content.cluster.requestId')){

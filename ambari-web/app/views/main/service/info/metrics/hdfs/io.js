@@ -30,7 +30,7 @@ App.ChartServiceMetricsHDFS_IO = App.ChartLinearTimeView.extend({
   id: "service-metrics-hdfs-io",
   title: "HDFS I/O",
   yAxisFormatter: App.ChartLinearTimeView.BytesFormatter,
-
+  renderer: 'line',
   url: function () {
     return App.formatUrl(App.apiPrefix + "/clusters/{clusterName}/services/HDFS/components/DATANODE?fields=metrics/dfs/datanode/bytes_written[{fromSeconds},{toSeconds},{stepSeconds}],metrics/dfs/datanode/bytes_read[{fromSeconds},{toSeconds},{stepSeconds}]", {
       clusterName: App.router.get('clusterController.clusterName')

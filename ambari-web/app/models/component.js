@@ -54,6 +54,13 @@ App.Component = DS.Model.extend({
     return this.get('componentName');
   }.property('componentName'),
 
+  isClient: function () {
+    if (!this.get('componentName')) {
+      return false;
+    }
+    return Boolean(this.get('componentName').match(/_client/gi));
+  }.property('componentName'),
+
   decommissioned: DS.attr('boolean')
 });
 

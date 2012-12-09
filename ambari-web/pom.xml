@@ -45,6 +45,21 @@
         <version>1.7</version>
         <executions>
           <execution>
+            <id>clean</id>
+            <phase>clean</phase>
+            <goals>
+              <goal>run</goal>
+            </goals>
+            <configuration>
+              <target name="ambari-web-clean">
+                <exec dir="${basedir}" executable="rm" failonerror="false">
+                  <arg value="-rf"/>
+                  <arg value="public"/>
+                </exec>
+              </target>
+            </configuration>
+          </execution>
+          <execution>
             <id>compile</id>
             <phase>compile</phase>
             <goals>

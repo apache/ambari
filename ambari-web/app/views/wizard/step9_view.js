@@ -67,6 +67,7 @@ App.HostStatusView = Em.View.extend({
     var controller = this.get('controller');
     this.onStatus();
   },
+
   barWidth: function () {
     var barWidth = 'width: ' + this.get('obj.progress') + '%;';
     return barWidth;
@@ -116,6 +117,10 @@ App.HostStatusView = Em.View.extend({
       return false;
     }
   }.property('controller.isStepCompleted', 'controller.status'),
+
+  isHostCompleted: function () {
+    return this.get('obj.progress') == 100 || this.get('controller.isStepCompleted');
+  }.property('controller.isStepCompleted', 'obj.progress'),
 
   hostLogPopup: function (event, context) {
     var self = this;

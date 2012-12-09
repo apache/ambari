@@ -27,7 +27,7 @@ App.MainController = Em.Controller.extend({
       var displayName = name.length > 13 ? name.substr(0, 10) + "..." : name;
       return displayName.capitalize();
     }
-    return 'My Cluster';
+    return '';
   }.property(),
   isClusterDataLoaded: function(){
       return App.router.get('clusterController.isLoaded');
@@ -40,6 +40,7 @@ App.MainController = Em.Controller.extend({
     App.router.get('clusterController').loadClusterData();
     App.router.get('updateController').updateServiceMetric();
     setInterval( this.updateAll , App.contentUpdateInterval);
+    $('title').text('Ambari - ' + this.get('clusterName'));
   },
   updateAll: function(){
     App.router.get('updateController').updateAll();

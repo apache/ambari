@@ -30,7 +30,7 @@ App.ChartServiceMetricsHDFS_SpaceUtilization = App.ChartLinearTimeView.extend({
   id: "service-metrics-hdfs-space-utilization",
   title: "Total Space Utilization",
   yAxisFormatter: App.ChartLinearTimeView.BytesFormatter,
-
+  renderer: 'line',
   url: function () {
     var hdfsService = App.HDFSService.find().objectAt(0);
     var nameNodeHostName = hdfsService.get('nameNode').get('hostName');
