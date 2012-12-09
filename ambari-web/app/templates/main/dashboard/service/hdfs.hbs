@@ -31,53 +31,92 @@
 <table class="table no-borders">
   <tbody>
 
-  <!-- HDFS Capacity -->
+  <!-- NameNode -->
   <tr>
-    <td>{{t dashboard.services.hdfs.capacity}}</td>
-    <td>{{view.capacity}}</td>
+    <td>{{t dashboard.services.hdfs.nanmenode}}</td>
+    <td><a href="#" {{action showDetails view.service.nameNode}}>{{view.service.nameNode.hostName}}</a></td>
   </tr>
-
+  <!-- SecondaryNameNode -->
+  <tr>
+    <td>{{t dashboard.services.hdfs.snanmenode}}</td>
+    <td><a href="#" {{action showDetails view.service.snameNode}}>{{view.service.snameNode.hostName}}</a></td>
+  </tr>
   <!-- Data Nodes -->
   <tr>
-    <td>{{t dashboard.services.hdfs.nodes}}</td>
+    <td>{{t dashboard.services.hdfs.datanodes}}</td>
     <td>
-      {{view.data.live_nodes}} {{t dashboard.services.hdfs.nodes.live}} /
-      {{view.data.dead_nodes}} {{t dashboard.services.hdfs.nodes.dead}} /
-      {{view.data.decommissioning_nodes}} {{t dashboard.services.hdfs.nodes.decom}}
+      <a href="#" {{action filterHosts view.dataNodeComponent}}>{{view.service.dataNodes.length}} {{t dashboard.services.hdfs.datanodes}}</a>
     </td>
   </tr>
-
-  <!-- Total Files And Directories -->
+  <!-- Version -->
   <tr>
-    <td>{{t dashboard.services.hdfs.totalFilesAndDirs}}</td>
-    <td>{{view.data.total_files_and_dirs}}</td>
+    <td>{{t dashboard.services.hdfs.version}}</td>
+    <td>{{view.service.version}}</td>
   </tr>
-
+  <!-- NameNode Web UI -->
+  <tr>
+    <td>{{t dashboard.services.hdfs.nameNodeWebUI}}</td>
+    <td><a {{bindAttr href="view.nodeWebUrl"}}>{{view.service.nameNode.hostName}}:50070</a>
+    </td>
+  </tr>
   <!-- NameNode Uptime -->
   <tr>
     <td>{{t dashboard.services.hdfs.nodes.uptime}}</td>
     <td>{{view.nodeUptime}}</td>
   </tr>
-
   <!-- NameNode Heap -->
   <tr>
     <td>{{t dashboard.services.hdfs.nodes.heap}}</td>
     <td>{{view.nodeHeap}}</td>
   </tr>
-
-
-  <!-- Hosts -->
+  <!-- Data Node Counts -->
   <tr>
-    <td>{{t dashboard.services.hosts}}</td>
+    <td>{{t dashboard.services.hdfs.datanodecounts}}</td>
     <td>
-      {{#each component in view.service.components}}
-      {{#if component.type}}
-      <a href="#" {{action selectHost component.host}}>{{component.displayName}}</a>,
-      {{else}}
-      <a href="#" {{action filterHosts component}}>{{component.displayName}}</a>
-      {{/if}}
-      {{/each}}
+      {{view.service.liveDataNodes.length}} {{t dashboard.services.hdfs.nodes.live}} /
+      {{view.service.deadDataNodes.length}} {{t dashboard.services.hdfs.nodes.dead}} /
+      {{view.service.decommisionDataNodes.length}} {{t dashboard.services.hdfs.nodes.decom}}
     </td>
+  </tr>
+  <!-- HDFS Capacity -->
+  <tr>
+    <td>{{t dashboard.services.hdfs.capacity}}</td>
+    <td>{{view.capacity}}</td>
+  </tr>
+  <!-- Blocks Total -->
+  <tr>
+    <td>{{t services.service.summary.blocksTotal}}</td>
+    <td>{{view.service.dfsTotalBlocks}}</td>
+  </tr>
+  <!-- Block Errors -->
+  <tr>
+    <td>{{t services.service.summary.blockErrors}}</td>
+    <td>
+      {{view.service.dfsCorruptBlocks}} corrupt / 
+      {{view.service.dfsMissingBlocks}} missing / 
+      {{view.service.dfsUnderReplicatedBlocks}} under replicated
+    </td>
+  </tr>
+  <!-- Total Files And Directories -->
+  <tr>
+    <td>{{t dashboard.services.hdfs.totalFilesAndDirs}}</td>
+    <td>{{view.service.dfsTotalFiles}}</td>
+  </tr>
+  <!-- Upgrade Status -->
+  <tr>
+    <td>{{t services.service.summary.pendingUpgradeStatus}}</td>
+    <td>
+      {{#if view.service.upgradeStatus}}
+        <div>Pending upgrade</div>
+      {{else}}
+        <div>No pending upgrade</div>
+      {{/if}}
+    </td>
+  </tr>
+  <!-- Safe Mode Status -->
+  <tr>
+    <td>{{t services.service.summary.safeModeStatus}}</td>
+    <td>{{view.service.safeModeStatus}}</td>
   </tr>
   </tbody>
 </table>

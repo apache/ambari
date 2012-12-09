@@ -176,7 +176,8 @@ App.ClusterController = Em.Controller.extend({
 
      var clusterUrl = this.getUrl('/data/clusters/cluster.json', '?fields=Clusters');
      var hostsUrl = this.getUrl('/data/hosts/hosts.json', '/hosts?fields=*');
-     var servicesUrl = this.getUrl('/data/dashboard/services.json', '/services?ServiceInfo/service_name!=MISCELLANEOUS&ServiceInfo/service_name!=DASHBOARD&fields=components/host_components/*');
+     var servicesUrl1 = this.getUrl('/data/dashboard/services.json', '/services?ServiceInfo/service_name!=MISCELLANEOUS&ServiceInfo/service_name!=DASHBOARD&fields=components/host_components/*');
+     var servicesUrl2 = this.getUrl('/data/dashboard/services.json', '/services?ServiceInfo/service_name!=MISCELLANEOUS&ServiceInfo/service_name!=DASHBOARD&fields=components/ServiceComponentInfo');
 
      var runsUrl = App.testMode ? "/data/apps/runs.json" : "/api/jobhistory/workflow";
 
@@ -204,11 +205,64 @@ App.ClusterController = Em.Controller.extend({
         self.updateLoadStatus('hosts');
       }
     });
-    App.HttpClient.get(servicesUrl, App.servicesMapper,{
+    
+    //////////////////////////////
+    // Hack for services START  //
+    //////////////////////////////
+    var metricsJson = null;
+    var serviceComponentJson = null;
+    var metricsMapper = {
+        map: function(data){
+          metricsJson = data;
+        }
+    };
+    var serviceComponentMapper = {
+        map: function(data){
+          serviceComponentJson = data;
+          if(metricsJson!=null && serviceComponentJson!=null){
+            var hdfsSvc1 = null;
+            var hdfsSvc2 = null;
+            metricsJson.items.forEach(function(svc){
+              if(svc.ServiceInfo.service_name=="HDFS"){
+                hdfsSvc1 = svc;
+              }
+            });
+            serviceComponentJson.items.forEach(function(svc){
+              if(svc.ServiceInfo.service_name=="HDFS"){
+                hdfsSvc2 = svc;
+              }
+            });
+            var nameNode1 = null;
+            var nameNode2 = null;
+            hdfsSvc1.components.forEach(function(c){
+              if(c.ServiceComponentInfo.component_name=="NAMENODE"){
+                nameNode1 = c;
+              }
+            });
+            hdfsSvc2.components.forEach(function(c){
+              if(c.ServiceComponentInfo.component_name=="NAMENODE"){
+                nameNode2 = c;
+              }
+            });
+            nameNode1.ServiceComponentInfo = nameNode2.ServiceComponentInfo;
+            
+            App.servicesMapper.map(metricsJson);
+            self.updateLoadStatus('services');
+          }
+        }
+    }
+    App.HttpClient.get(servicesUrl1, metricsMapper,{
       complete:function(jqXHR, textStatus){
-        self.updateLoadStatus('services');
+        App.HttpClient.get(servicesUrl2, serviceComponentMapper,{
+          complete:function(jqXHR, textStatus){
+          }
+        });
       }
     });
+    /////////////////////////////
+    // Hack for services END   //
+    /////////////////////////////
+    
   }.observes('clusterName'),
   clusterName: function(){
     return (this.get('cluster')) ? this.get('cluster').Clusters.cluster_name : 'mycluster';

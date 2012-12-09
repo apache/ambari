@@ -24,29 +24,6 @@ App.MainDashboardController = Em.Controller.extend({
     return App.router.get('clusterController.alerts');
   }.property('App.router.clusterController.alerts'),
   data: {
-    HDFS:{
-      "namenode_addr":"namenode:50070",
-      "secondary_namenode_addr":"snamenode:50090",
-      "namenode_starttime":1348935028,
-      "total_nodes":"1",
-      "live_nodes":1,
-      "dead_nodes":0,
-      "decommissioning_nodes":0,
-      "dfs_blocks_underreplicated":145,
-      "safemode":false,
-      "pending_upgrades":false,
-      "dfs_configured_capacity":885570207744,
-      "dfs_percent_used":0.01,
-      "dfs_percent_remaining":95.09,
-      "dfs_total_bytes":885570207744,
-      "dfs_used_bytes":104898560,
-      "nondfs_used_bytes":43365113856,
-      "dfs_free_bytes":842100195328,
-      // additionals
-      "total_files_and_dirs": 1354,
-      "namenode_heap_used":63365113856,
-      "namenode_heap_total": 163365113856
-    },
     MAPREDUCE: {
       "jobtracker_addr": "jobtracker:50030",
       "jobtracker_starttime": 1348935243,
@@ -125,4 +102,4 @@ App.MainDashboardController = Em.Controller.extend({
     var alerts = this.get('alerts');
     return alerts ? alerts.filterProperty('status', 'corrupt').length : 0;
   }.property('alerts')
-})
+});

@@ -242,6 +242,14 @@ module.exports = Em.Route.extend({
     route:'/dashboard',
     connectOutlets:function (router, context) {
       router.get('mainController').connectOutlet('mainDashboard');
+    },
+    showDetails:function (router, event) {
+      router.get('mainHostDetailsController').setBack(true);
+      router.transitionTo('hostDetails.index', event.context)
+    },
+    filterHosts:function (router, component) {
+      router.get('mainHostController').filterByComponent(component.context);
+      router.transitionTo('hosts');
     }
   }),
 

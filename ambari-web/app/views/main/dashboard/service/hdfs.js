@@ -24,37 +24,55 @@ App.MainDashboardServiceHdfsView = App.MainDashboardServiceView.extend({
 
   Chart:App.ChartPieView.extend({
     data:function () {
-      return [ this.get('_parentView.data.dfs_used_bytes') + this.get('_parentView.data.nondfs_used_bytes'), this.get('_parentView.data.dfs_free_bytes') ];
-    }.property('_parentView.data')
+      return [ this.get('_parentView.service.capacityUsed'), this.get('_parentView.service.capacityTotal') ];
+    }.property('_parentView.service')
   }),
 
   nodeUptime:function () {
-    var uptime = this.get('data.namenode_starttime');
-    var formatted = uptime.toDaysHoursMinutes();
+    var uptime = this.get('service').get('nameNodeStartTime');
+    var formatted = (new Date().getTime() - uptime).toDaysHoursMinutes();
     return this.t('dashboard.services.uptime').format(formatted.d, formatted.h, formatted.m);
-  }.property("data"),
+  }.property("service.nameNodeStartTime"),
+  
+  service: function(){
+    return App.HDFSService.find().objectAt(0);
+  }.property('App.router.clusterController.dataLoadList.services'),
+  
+  nodeWebUrl: function(){
+    return "http://"+this.get('service').get('nameNode').get('hostName')+":50070";
+  }.property('service.nameNode'),
 
   nodeHeap:function () {
 
     var percent = this.get('data.namenode_heap_total') > 0 ? 100 * this.get('data.namenode_heap_used') / this.get('data.namenode_heap_total') : 0;
 
     return this.t('dashboard.services.hdfs.nodes.heapUsed').format(
-      this.get('data.namenode_heap_used').bytesToSize(1, 'parseFloat'),
-      this.get('data.namenode_heap_total').bytesToSize(1, 'parseFloat')
+      (this.get('service').get('jvmMemoryHeapUsed')*1000000).bytesToSize(1, 'parseFloat'),
+      (this.get('service').get('jvmMemoryHeapCommitted')*1000000).bytesToSize(1, 'parseFloat')
       , percent.toFixed(1));
 
-  }.property('data'),
+  }.property('service'),
 
   summaryHeader:function () {
     var text = this.t("dashboard.services.hdfs.summary");
-    return text.format(this.get('data.live_nodes'), this.get('data.total_nodes'), this.get('data.dfs_percent_remaining'));
-  }.property('data'),
+    var svc = this.get('service');
+    var liveCount = svc.get('liveDataNodes').get('length');
+    var totalCount = svc.get('dataNodes').get('length');
+    var total = svc.get('capacityTotal') + 0;
+    var used = svc.get('capacityUsed') + 0;
+    var percentRemaining = (100-Math.round((used*100)/total)).toFixed(1);
+    return text.format(liveCount, totalCount, percentRemaining);
+  }.property('service'),
 
   capacity:function () {
     var text = this.t("dashboard.services.hdfs.capacityUsed");
-    var total = this.get('data.dfs_total_bytes') + 0;
-    var used = this.get('data.dfs_used_bytes') + this.get('data.nondfs_used_bytes');
-
-    return text.format(used.bytesToSize(1), total.bytesToSize(1), this.get('data.dfs_percent_used'));
-  }.property('data')
+    var total = this.get('service').get('capacityTotal') + 0;
+    var used = this.get('service').get('capacityUsed') + 0;
+    var percent = Math.round((used*100)/total).toFixed(1);
+    return text.format(used.bytesToSize(1), total.bytesToSize(1), percent);
+  }.property('service'),
+  
+  dataNodeComponent: function(){
+    return App.Component.find().findProperty('componentName', 'DATANODE');
+  }.property('components')
 });
