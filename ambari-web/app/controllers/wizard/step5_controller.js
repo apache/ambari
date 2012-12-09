@@ -58,7 +58,7 @@ App.WizardStep5Controller = Em.Controller.extend({
 
     for (var index in hostInfo) {
       var _host = hostInfo[index];
-      if (_host.bootStatus === 'success' || true) {  // TODO: remove "true" after integrating with bootstrap
+      if (_host.bootStatus === 'DONE') {  // TODO: remove "true" after integrating with bootstrap
         var hostObj = Ember.Object.create({
           host_name:_host.name,
 

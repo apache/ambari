@@ -247,20 +247,30 @@ App.WizardStep3Controller = Em.Controller.extend({
   isHostsRegistered: function (callback) {
     var self = this;
     var hosts = this.get('bootHosts');
-    var url = App.apiPrefix + '/hosts';
+    var url = App.testMode ? '/data/wizard/bootstrap/single_host_registration.json' : App.apiPrefix + '/hosts';
     var method = 'GET';
     $.ajax({
       type: 'GET',
       url: url,
       timeout: App.timeout,
       success: function (data) {
-        var jsonData = jQuery.parseJSON(data);
-        if (jsonData && jsonData.items.length === 0) {
+        var jsonData;
+        if (App.testMode) {
+          jsonData = data;
+        } else {
+          jsonData = jQuery.parseJSON(data);
+        }
+        if (!jsonData) {
+          console.log("Error: jsonData is null");
+          return;
+        }
+        if (jsonData.items.length === 0) {
           if (self.get('registrationAttempt') !== 0) {
             count--;
             window.setTimeout(function () {
               self.isHostsRegistered(callback);
             }, 3000);
+            return;
           } else {
             self.registerErrPopup(Em.I18n.t('installer.step3.hostRegister.popup.header'), Em.I18n.t('installer.step3.hostRegister.popup.body'));
             return;
@@ -303,7 +313,7 @@ App.WizardStep3Controller = Em.Controller.extend({
     var self = this;
     var kbPerGb = 1024;
     var hosts = this.get('bootHosts');
-    var url = App.apiPrefix + '/hosts?fields=Hosts/total_mem,Hosts/cpu_count';
+    var url = App.testMode ? '/data/wizard/bootstrap/single_host_information.json' : App.apiPrefix + '/hosts?fields=Hosts/total_mem,Hosts/cpu_count';
     var method = 'GET';
     $.ajax({
       type: 'GET',
@@ -311,16 +321,21 @@ App.WizardStep3Controller = Em.Controller.extend({
       contentType: 'application/json',
       timeout: App.timeout,
       success: function (data) {
-        var jsonData = jQuery.parseJSON(data);
+        var jsonData;
+        if (App.testMode) {
+          jsonData = data;
+        } else {
+          jsonData = jQuery.parseJSON(data);
+        }
         hosts.forEach(function (_host) {
           if (jsonData.items.someProperty('Hosts.host_name', _host.name)) {
             var host = jsonData.items.findProperty('Hosts.host_name', _host.name);
             _host.cpu = host.Hosts.cpu_count;
-            _host.memory = ((parseInt(host.Hosts.total_mem)) / kbPerGb).toFixed(2);
+            _host.memory = ((parseInt(host.Hosts.total_mem))).toFixed(2);
             console.log("The value of memory is: " + _host.memory);
           }
         }, this);
-        self.set('bootHosts',hosts);
+        self.set('bootHosts', hosts);
         console.log("The value of hosts: " + JSON.stringify(hosts));
         self.stopRegistrataion();
       },

@@ -2,13 +2,8 @@
   "status": "SUCCESS",
   "hostsStatus": [
     {
-      "status": "FAILED",
-      "hostName": "dev001",
-      "log": "STDOUT\n\nSTDERR\nWarning: Permanently added 'dev001,10.0.2.15' (RSA) to the list of known hosts.\r\n/etc/yum.repos.d/ambari.repo: No such file or directory\nSTDOUT\n\nSTDERR\nPermission denied, please try again.\r\nConnection closed by UNKNOWN\r\nlost connection\nSTDOUT\n\nSTDERR\npython: can't open file '/tmp/setupAgent.py': [Errno 2] No such file or directory\n"
-    },
-    {
       "status": "DONE",
-      "hostName": "dev002",
+      "hostName": "localhost.localdomain",
       "log": "STDOUT\n\nSTDERR\nWarning: Permanently added 'dev002,10.0.2.16' (RSA) to the list of known hosts.\r\n/etc/yum.repos.d/ambari.repo: No such file or directory\nSTDOUT\n\nSTDERR\nPermission denied, please try again.\r\nConnection closed by UNKNOWN\r\nlost connection\nSTDOUT\n\nSTDERR\npython: can't open file '/tmp/setupAgent.py': [Errno 2] No such file or directory\n"
     }
   ],

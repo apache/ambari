@@ -3,13 +3,8 @@
   "hostsStatus": [
     {
       "status": "RUNNING",
-      "hostName": "dev001",
+      "hostName": "localhost.localdomain",
       "log": "STDOUT\n\nSTDERR\nWarning: Permanently added 'dev001,10.0.2.15' (RSA) to the list of known hosts.\n"
-    },
-    {
-      "status": "RUNNING",
-      "hostName": "dev002",
-      "log": "STDOUT\n\nSTDERR\nWarning: Permanently added 'dev002,10.0.2.16' (RSA) to the list of known hosts.\n"
     }
   ],
   "log": ""

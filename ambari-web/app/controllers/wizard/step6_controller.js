@@ -166,7 +166,7 @@ App.WizardStep6Controller = Em.Controller.extend({
     var hostInfo = this.get('content.hostsInfo');
     var hostNames = [];
     for (var index in hostInfo) {
-      if (hostInfo[index].bootStatus === 'success' || true) //TODO: remove true after integration with bootstrap
+      if (hostInfo[index].bootStatus === 'DONE') //TODO: remove true after integration with bootstrap
         hostNames.push(hostInfo[index].name);
     }
     return hostNames;
