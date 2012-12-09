@@ -20,6 +20,7 @@
 window.App = require('app');
 
 App.testMode = false;
+App.skipBootstrap = false;
 
 require('messages');
 require('utils/data_table');

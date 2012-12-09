@@ -52,3 +52,5 @@ App.WizardHostView = Em.View.extend({
   }.property('hostInfo.bootStatus')
 
 });
+
+

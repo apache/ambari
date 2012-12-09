@@ -42,8 +42,16 @@ App.WizardStep3Controller = Em.Controller.extend({
 
   navigateStep: function () {
     this.loadStep();
-    if (App.db.getBootStatus() === false) {
-      this.startBootstrap();
+    if (App.db.getInstallType().installType !== 'manual') {
+      if (App.db.getBootStatus() === false) {
+        this.startBootstrap();
+      }
+    } else {
+      // TODO: assume manually bootstrapped hosts are all successful for now
+      this.get('hosts').forEach(function (_host) {
+        _host.set('bootStatus', 'DONE');
+        _host.set('bootLog', 'Success');
+      });
     }
   },
 
@@ -55,7 +63,7 @@ App.WizardStep3Controller = Em.Controller.extend({
     console.log("TRACE: Loading step3: Confirm Hosts");
     this.clearStep();
     var hosts = this.loadHosts();
-    // hosts.setEach('bootStatus', 'pending');
+    // hosts.setEach('bootStatus', 'RUNNING');
     this.renderHosts(hosts);
   },
 
@@ -88,30 +96,27 @@ App.WizardStep3Controller = Em.Controller.extend({
   },
 
   /**
-   * Parses and updates the content, and governs the possibility
-   * of the next doBootstrap (polling) call.
-   * Returns true if polling should stop (no hosts are in "pending" state); false otherwise
+   * Parses and updates the content based on bootstrap API response.
+   * Returns true if polling should continue (some hosts are in "RUNNING" state); false otherwise
    */
-  parseHostInfo: function (hostsFromServer, hostsFromContent) {
-    var result = true;  // default value as true implies
-    hostsFromServer.forEach(function (_hostFromServer) {
-      var host = hostsFromContent.findProperty('name', _hostFromServer.name);
+  parseHostInfo: function (hostsStatusFromServer) {
+    hostsStatusFromServer.forEach(function (_hostStatus) {
+      var host = this.get('bootHosts').findProperty('name', _hostStatus.hostName);
       if (host !== null && host !== undefined) { // check if hostname extracted from REST API data matches any hostname in content
-        host.set('bootStatus', _hostFromServer.status);
-        host.set('cpu', _hostFromServer.cpu);
-        host.set('memory', _hostFromServer.memory);
+        host.set('bootStatus', _hostStatus.status);
+        host.set('bootLog', _hostStatus.log);
       }
-    });
-    // if the data rendered by REST API has no hosts or no hosts are in "pending" state, polling will stop
-    return this.hosts.length == 0 || !this.hosts.someProperty('bootStatus', 'pending');
+    }, this);
+    // if the data rendered by REST API has hosts in "RUNNING" state, polling will continue
+    return this.get('bootHosts').length != 0 && this.get('bootHosts').someProperty('bootStatus', 'RUNNING');
   },
 
   /* Returns the current set of visible hosts on view (All, Succeeded, Failed) */
   visibleHosts: function () {
     if (this.get('category') === 'Success') {
-      return (this.hosts.filterProperty('bootStatus', 'success'));
+      return (this.hosts.filterProperty('bootStatus', 'DONE'));
     } else if (this.get('category') === 'Error') {
-      return (this.hosts.filterProperty('bootStatus', 'error'));
+      return (this.hosts.filterProperty('bootStatus', 'FAILED'));
     } else { // if (this.get('category') === 'All Hosts')
       return this.hosts;
     }
@@ -179,27 +184,42 @@ App.WizardStep3Controller = Em.Controller.extend({
     }
   },
 
+  numPolls: 0,
+
   startBootstrap: function () {
     //this.set('isSubmitDisabled', true);    //TODO: uncomment after actual hookup
+    this.numPolls = 0;
     this.set('bootHosts', this.get('hosts'));
     this.doBootstrap();
   },
 
   doBootstrap: function () {
+    this.numPolls++;
     var self = this;
-    var url = '/api/bootstrap';
+    var url = App.testMode ? '/data/wizard/bootstrap/poll_' + this.numPolls + '.json' : '/api/bootstrap/1';
     $.ajax({
       type: 'GET',
       url: url,
       timeout: 5000,
       success: function (data) {
-        console.log("TRACE: In success function for the GET bootstrap call");
-        var result = self.parseHostInfo(data, this.get('bootHosts'));
-        window.setTimeout(self.doBootstrap, 3000);
+        if (data.hostsStatus !== null) {
+          // in case of bootstrapping just one server, the server returns an object rather than an array...
+          if (!(data.hostsStatus instanceof Array)) {
+            data.hostsStatus = [ data.hostsStatus ];
+          }
+          console.log("TRACE: In success function for the GET bootstrap call");
+          var result = self.parseHostInfo(data.hostsStatus);
+          if (result) {
+            window.setTimeout(function () { self.doBootstrap() }, 3000);
+            return;
+          }
+        }
+        console.log('Bootstrap failed');
+        self.stopBootstrap();
       },
 
       error: function () {
-        console.log("ERROR");
+        console.log('Bootstrap failed');
         self.stopBootstrap();
       },
 
@@ -210,6 +230,7 @@ App.WizardStep3Controller = Em.Controller.extend({
 
   stopBootstrap: function () {
     //TODO: uncomment following line after the hook up with the API call
+    console.log('stopBootstrap() called');
     // this.set('isSubmitDisabled',false);
   },
 
@@ -220,14 +241,21 @@ App.WizardStep3Controller = Em.Controller.extend({
     }
   },
 
-  hostLogPopup: function (event) {
+  hostLogPopup: function (event, context) {
+    var host = event.context;
+
     App.ModalPopup.show({
-      header: Em.I18n.t('installer.step3.hostLog.popup.header'),
+
+      header: Em.I18n.t('installer.step3.hostLog.popup.header').format(host.get('name')),
+      secondary: null,
+
       onPrimary: function () {
         this.hide();
       },
+
       bodyClass: Ember.View.extend({
-        templateName: require('templates/wizard/step3HostLogPopup')
+        templateName: require('templates/wizard/step3_host_log_popup'),
+        host: host
       })
     });
   },

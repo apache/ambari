@@ -140,15 +140,17 @@ App.WizardStep2Controller = Em.Controller.extend({
 
     var bootStrapData = JSON.stringify({'verbose': true, 'sshKey': this.get('sshKey'), hosts: this.get('hostNameArr')});
 
-    // TODO: skipping bootstrap for now
-    if (true) {
+    if (App.skipBootstrap) {
       App.router.send('next');
       return true;
     }
 
+    var method = App.testMode ? 'GET' : 'POST';
+    var url = App.testMode ? '/data/wizard/bootstrap/bootstrap.json' : '/api/bootstrap';
+
     $.ajax({
-      type: 'POST',
-      url: '/api/bootstrap',
+      type: method,
+      url: url,
       data: bootStrapData,
       timeout: 10000,
       contentType: 'application/json',

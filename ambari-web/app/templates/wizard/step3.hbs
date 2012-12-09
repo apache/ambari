@@ -61,11 +61,10 @@
         <thead>
         <tr>
           <th class="span1">{{view Ember.Checkbox checkedBinding="allChecked"}}</th>
-          <th class="span2">Status</th>
-          <!--  given by the parsing function that parses data from bootstrap call -->
-          <th class="span4">Host</th>
+          <th class="span3">Host</th>
           <!-- retrieved from local storage initially -->
-          <th class="span2">Message</th>
+          <th class="span3">Progress</th>
+          <th class="span2">Status</th>
           <!-- given by the parsing function that parses data from bootstrap call, dynamically assign the color -->
           <th class="span3">Action</th>
           <!-- trash icon -->
@@ -81,14 +80,17 @@
           {{view Ember.Checkbox checkedBinding="host.isChecked"}}
         </td>
         <td>
-          {{host.bootStatus}}
-        </td>
-        <td>
           {{host.name}}
         </td>
         <td>
+          <div {{bindAttr class="host.bootBarColor host.isBootDone::progress-striped host.isBootDone::active :progress"}}>
+            <div class="bar" style="width:100%">
+            </div>
+          </div>
+        </td>
+        <td>
           <a href="javascript:void(null)"
-             data-toggle="modal" {{action hostLogPopup target="controller"}}>{{host.message}}</a>
+             data-toggle="modal" {{action hostLogPopup host target="controller"}}>{{host.bootStatusForDisplay}}</a>
         </td>
         <td>
           {{#if view.isRemovable}}<a class="btn btn-mini" {{action remove target="view"}}><i class="icon-trash"></i>
