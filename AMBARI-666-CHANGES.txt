@@ -424,6 +424,9 @@ AMBARI-666 branch (unreleased changes)
 
   IMPROVEMENTS
 
+  AMBARI-1035. Aggregate creation of multiple services and assignment of host
+  to cluster. (Jaimin Jetly via yusaku)
+
   AMBARI-1034. Metric Charts - display local time rather than UTC.
   (Srimanth Gunturi via yusaku)
 

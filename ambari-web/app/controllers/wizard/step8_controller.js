@@ -192,7 +192,7 @@ App.WizardStep8Controller = Em.Controller.extend({
           var key = _keyValue.match(/(.+)=/);
           var value = _keyValue.match(/=(.*)/);
           if (key) {
-            this.setSiteProperty(key[1], value[1],_site.filename);
+            this.setSiteProperty(key[1], value[1], _site.filename);
           }
 
         }, this);
@@ -203,17 +203,17 @@ App.WizardStep8Controller = Em.Controller.extend({
   /**
    * Set property of the site variable
    */
-  setSiteProperty: function(key,value,filename) {
-     if(this.get('configs').someProperty('name',key)) {
-       this.get('configs').findProperty('name',key).value = value;
-     } else {
-       this.get('configs').pushObject({
-         "id": "site property",
-         "name": key,
-         "value": value,
-         "filename": filename
-       });
-     }
+  setSiteProperty: function (key, value, filename) {
+    if (this.get('configs').someProperty('name', key)) {
+      this.get('configs').findProperty('name', key).value = value;
+    } else {
+      this.get('configs').pushObject({
+        "id": "site property",
+        "name": key,
+        "value": value,
+        "filename": filename
+      });
+    }
   },
 
   /**
@@ -597,11 +597,11 @@ App.WizardStep8Controller = Em.Controller.extend({
   submit: function () {
 
     if (App.testMode) {
-      // App.router.send('next');
-      //return;
+      App.router.send('next');
+      return;
     }
 
-    if(!this.get('content.cluster.requestId')){
+    if (!this.get('content.cluster.requestId')) {
       this.createCluster();
       this.createSelectedServices();
       this.createConfigurations();
@@ -619,7 +619,7 @@ App.WizardStep8Controller = Em.Controller.extend({
 
   createCluster: function () {
 
-    if (this.get('content.isWizard')){
+    if (this.get('content.isWizard')) {
       return false;
     }
 
@@ -651,20 +651,15 @@ App.WizardStep8Controller = Em.Controller.extend({
 
   },
 
-  // TODO: aggregate create calls.  doesn't seem like backend supports creating multiple services at the same time yet.
-  createSelectedServices: function () {
-    var services = this.get('selectedServices').mapProperty('serviceName');
-    services.forEach(function (_service) {
-      this.createService(_service, 'POST');
-    }, this);
-  },
-
-  createService: function (service, httpMethod) {
+  createSelectedServices: function (service, httpMethod) {
     var clusterName = this.get('clusterInfo').findProperty('config_name', 'cluster').config_value;
-    var url = App.apiPrefix + '/clusters/' + clusterName + '/services/' + service;
+    var url = App.apiPrefix + '/clusters/' + clusterName + '/services';
+    var data = this.createServiceData();
+    var httpMethod = 'POST';
     $.ajax({
       type: httpMethod,
       url: url,
+      data: JSON.stringify(data),
       async: false,
       dataType: 'text',
       timeout: App.timeout,
@@ -685,13 +680,22 @@ App.WizardStep8Controller = Em.Controller.extend({
     });
   },
 
+  createServiceData: function () {
+    var services = this.get('selectedServices').mapProperty('serviceName');
+    var data = [];
+    services.forEach(function (_service) {
+      data.pushObject({"ServiceInfo": { "service_name": _service }});
+    }, this);
+    return data;
+  },
+
   createComponents: function () {
 
     var serviceComponents = require('data/service_components');
     var services = this.get('selectedServices').mapProperty('serviceName');
     services.forEach(function (_service) {
       var components = serviceComponents.filterProperty('service_name', _service);
-      var componentsData = components.map(function(_component) {
+      var componentsData = components.map(function (_component) {
         return { "ServiceComponentInfo": { "component_name": _component.component_name } };
       });
       var clusterName = this.get('clusterInfo').findProperty('config_name', 'cluster').config_value;
@@ -726,21 +730,14 @@ App.WizardStep8Controller = Em.Controller.extend({
 
   },
 
-  registerHostsToCluster: function() {
-    var allHosts = this.get('content.hostsInfo');
-    for(var hostName in allHosts){
-      if(!allHosts[hostName].isInstalled){
-        this.registerHostToCluster(hostName);
-      }
-    }
-  },
-
-  registerHostToCluster: function (hostName) {
+  registerHostsToCluster: function (hostName) {
     var clusterName = this.get('clusterInfo').findProperty('config_name', 'cluster').config_value;
-    var url = App.apiPrefix + '/clusters/' + clusterName + '/hosts/' + hostName;
+    var url = App.apiPrefix + '/clusters/' + clusterName + '/hosts';
+    var data = this.createRegisterHostData();
     $.ajax({
       type: 'POST',
       url: url,
+      data: JSON.stringify(data),
       async: false,
       dataType: 'text',
       timeout: App.timeout,
@@ -759,6 +756,17 @@ App.WizardStep8Controller = Em.Controller.extend({
 
       statusCode: require('data/statusCodes')
     });
+  },
+
+  createRegisterHostData: function () {
+    var allHosts = this.get('content.hostsInfo');
+    var data = [];
+    for (var hostName in allHosts) {
+      if (!allHosts[hostName].isInstalled) {
+        data.pushObject({"Hosts": { "host_name": hostName}});
+      }
+    }
+    return data;
   },
 
   createHostComponents: function () {
@@ -809,7 +817,7 @@ App.WizardStep8Controller = Em.Controller.extend({
 
 
     slaveHosts.filterProperty('componentName', "HBASE_REGIONSERVER").forEach(function (slave) {
-      slave.hosts.forEach(function(_slaveHost){
+      slave.hosts.forEach(function (_slaveHost) {
         var hosts = slaveClient.hosts.filterProperty('hostName', _slaveHost.hostName);
         if (!hosts.length) {
           var slaveObj = {};
@@ -853,7 +861,7 @@ App.WizardStep8Controller = Em.Controller.extend({
   },
 
   createHostComponent: function (hostComponent) {
-    console.log('try to install', hostComponent.component, 'on host',  hostComponent.hostName, 'isInstalled', hostComponent.isInstalled);
+    console.log('try to install', hostComponent.component, 'on host', hostComponent.hostName, 'isInstalled', hostComponent.isInstalled);
     if (hostComponent.isInstalled) {
       return false;
     }
@@ -885,7 +893,7 @@ App.WizardStep8Controller = Em.Controller.extend({
 
   createConfigurations: function () {
     var selectedServices = this.get('selectedServices');
-    if (!this.get('content.isWizard')){
+    if (!this.get('content.isWizard')) {
       this.createConfigSite(this.createGlobalSiteObj());
       this.createConfigSite(this.createCoreSiteObj());
       this.createConfigSite(this.createHdfsSiteObj('HDFS'));
@@ -1009,7 +1017,7 @@ App.WizardStep8Controller = Em.Controller.extend({
     }, this);
     var baseUrl = oozieProperties['oozie.base.url'];
     oozieProperties = {
-      "oozie.service.JPAService.jdbc.password" : " ", "oozie.db.schema.name" : "oozie", "oozie.service.JPAService.jdbc.url" : "jdbc:derby:/var/data/oozie/oozie-db;create=true", "oozie.service.JPAService.jdbc.driver" : "org.apache.derby.jdbc.EmbeddedDriver", "oozie.service.WorkflowAppService.system.libpath" : "/user/oozie/share/lib", "oozie.service.JPAService.jdbc.username" : "sa", "oozie.service.SchemaService.wf.ext.schemas" : "shell-action-0.1.xsd,email-action-0.1.xsd,hive-action-0.2.xsd,sqoop-action-0.2.xsd,ssh-action-0.1.xsd,distcp-action-0.1.xsd", "oozie.service.JPAService.create.db.schema" : "false",   "use.system.libpath.for.mapreduce.and.pig.jobs" : "false", "oozie.service.ActionService.executor.ext.classes" : "org.apache.oozie.action.email.EmailActionExecutor,org.apache.oozie.action.hadoop.HiveActionExecutor,org.apache.oozie.action.hadoop.ShellActionExecutor,org.apache.oozie.action.hadoop.SqoopActionExecutor,org.apache.oozie.action.hadoop.DistcpActionExecutor", "oozie.service.HadoopAccessorService.hadoop.configurations" : "*=/etc/hadoop/conf"
+      "oozie.service.JPAService.jdbc.password": " ", "oozie.db.schema.name": "oozie", "oozie.service.JPAService.jdbc.url": "jdbc:derby:/var/data/oozie/oozie-db;create=true", "oozie.service.JPAService.jdbc.driver": "org.apache.derby.jdbc.EmbeddedDriver", "oozie.service.WorkflowAppService.system.libpath": "/user/oozie/share/lib", "oozie.service.JPAService.jdbc.username": "sa", "oozie.service.SchemaService.wf.ext.schemas": "shell-action-0.1.xsd,email-action-0.1.xsd,hive-action-0.2.xsd,sqoop-action-0.2.xsd,ssh-action-0.1.xsd,distcp-action-0.1.xsd", "oozie.service.JPAService.create.db.schema": "false", "use.system.libpath.for.mapreduce.and.pig.jobs": "false", "oozie.service.ActionService.executor.ext.classes": "org.apache.oozie.action.email.EmailActionExecutor,org.apache.oozie.action.hadoop.HiveActionExecutor,org.apache.oozie.action.hadoop.ShellActionExecutor,org.apache.oozie.action.hadoop.SqoopActionExecutor,org.apache.oozie.action.hadoop.DistcpActionExecutor", "oozie.service.HadoopAccessorService.hadoop.configurations": "*=/etc/hadoop/conf"
     };
     oozieProperties['oozie.base.url'] = baseUrl;
     return {type: 'oozie-site', tag: 'version1', properties: oozieProperties};
