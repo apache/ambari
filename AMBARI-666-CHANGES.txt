@@ -12,6 +12,10 @@ AMBARI-666 branch (unreleased changes)
 
   NEW FEATURES
 
+  AMBARI-1004. Allow properties entered in custom config
+  (ex: hdfs-site.xml) to override existing or create new properties.
+  (Jaimin Jetly via yusaku)
+
   AMBARI-1002. Integrate Installer with config APIs. (Jaimin Jetly
   via yusaku)
 

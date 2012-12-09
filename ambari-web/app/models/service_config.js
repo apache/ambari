@@ -80,7 +80,6 @@ App.ServiceConfigProperty = Ember.Object.extend({
     switch (this.get('name')) {
       case 'namenode_host':
         var temp = masterComponentHostsInDB.findProperty('component', 'NAMENODE');
-        console.log("********The value of namemenode host is: " + temp.hostName);
         this.set('value', temp.hostName);
         break;
       case 'snamenode_host':

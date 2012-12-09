@@ -181,19 +181,36 @@ App.WizardStep8Controller = Em.Controller.extend({
   setCustomConfigs: function () {
     var site = this.get('content.serviceConfigProperties').filterProperty('id', 'conf-site');
     site.forEach(function (_site) {
-      var keys = _site.value.match(/[\s]*(\w*)=/g);
-      var configs = [];
-      if (keys) {
-        keys.forEach(function (_key) {
-          _key = _key.trim();
-          console.log("Value of key is: " + _key.substring(0, _key.length - 1));
-          var configKey = _key.substring(0, _key.length - 1);
-          if (configKey) {
-            configs.pushObject({key: configKey});
+      var keyValue = _site.value.split(/\n+/);
+      if (keyValue) {
+        keyValue.forEach(function (_keyValue) {
+          console.log("The value of the keyValue is: " + _keyValue.trim());
+          _keyValue = _keyValue.trim();
+          var key = _keyValue.match(/(.+)=/);
+          var value = _keyValue.match(/=(.*)/);
+          if (key) {
+            this.setSiteProperty(key[1], value[1],_site.filename);
           }
+
         }, this);
       }
-    }, this)
+    }, this);
+  },
+
+  /**
+   * Set property of the site variable
+   */
+  setSiteProperty: function(key,value,filename) {
+     if(this.get('configs').someProperty('name',key)) {
+       this.get('configs').findProperty('name',key).value = value;
+     } else {
+       this.get('configs').pushObject({
+         "id": "site property",
+         "name": key,
+         "value": value,
+         "filename": filename
+       });
+     }
   },
 
   /**
