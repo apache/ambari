@@ -42,7 +42,7 @@ App.MainChartsHeatmapHostView = Em.View.extend({
       if (h2vMap && metricName) {
         var value = h2vMap[host.get('hostName')];
         if (value == undefined || value == null) {
-          value = "Unknown";
+          value = this.t('charts.heatmap.unknown');
         } else {
           value = value + selectedMetric.get('units')
         }

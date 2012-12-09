@@ -277,6 +277,7 @@ Em.I18n.translations = {
   'charts.heatmap.item.host.process':'Total Running Processes',
   'charts.heatmap.category.hdfs':'HDFS',
   'charts.heatmap.category.mapreduce': 'MapReduce',
+  'charts.heatmap.unknown': 'Unknown',
 
   'metric.default':'combined',
   'metric.cpu':'cpu',

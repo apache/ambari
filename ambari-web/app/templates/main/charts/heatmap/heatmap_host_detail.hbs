@@ -20,8 +20,14 @@
 OS: {{view.details.osType}}<br/>
 IP: {{view.details.ip}}<br/>
 {{#if view.details.metricName}}
-{{view.details.metricName}}: {{view.details.metricValue}}<br/>
+  {{view.details.metricName}}: {{view.details.metricValue}}<br/>
 {{/if}}
-Disk: {{view.details.diskUsage}}% <br/>
-CPU: {{view.details.cpuUsage}}%<br/>
-Memory: {{view.details.memoryUsage}}%<br/>
+{{#if view.details.diskUsage}}
+  Disk: {{view.details.diskUsage}}% <br/>
+{{/if}}
+{{#if view.details.cpuUsage}}
+  CPU: {{view.details.cpuUsage}}%<br/>
+{{/if}}
+{{#if view.details.memoryUsage}}
+  Memory: {{view.details.memoryUsage}}%<br/>
+{{/if}}

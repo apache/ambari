@@ -511,6 +511,9 @@ AMBARI-666 branch (unreleased changes)
   OPTIMIZATIONS
 
   BUG FIXES
+ 
+  AMBARI-1046. Heatmap with no numbers on the hover. (Srimanth Gunturi via
+  yusaku)
 
   AMBARI-1045. Service summary sections have incorrect values displayed.
   (Srimanth Gunturi via yusaku)
