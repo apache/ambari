@@ -55,6 +55,9 @@ App.WizardStep7Controller = Em.Controller.extend({
   }.property('content.slaveComponentHosts'),
 
   serviceConfigs: require('data/service_configs'),
+  configMapping: require('data/configMapping'),
+  customConfigs: require('data/custom_configs'),
+  customData: [],
 
   clearStep: function () {
     this.get('stepConfigs').clear();
@@ -65,10 +68,28 @@ App.WizardStep7Controller = Em.Controller.extend({
    */
   loadStep: function () {
     console.log("TRACE: Loading step7: Configure Services");
-
     this.clearStep();
-    this.renderServiceConfigs(this.serviceConfigs);
-
+    var serviceConfigs = this.get('serviceConfigs');
+    var advancedConfig = this.get('content.advancedServiceConfig');
+    advancedConfig.forEach(function(_config){
+      var service = serviceConfigs.findProperty('serviceName',_config.serviceName);
+      if(service) {
+        if(this.get('configMapping').someProperty('name',_config.name)) {
+        } else if(!(service.configs.someProperty('name',_config.name))) {
+          _config.id = "site property";
+          _config.category = 'Advanced';
+          _config.displayName = _config.name;
+          _config.defaultValue = _config.value;
+          _config.value = '',
+          _config.isVisible = true;
+          _config.isRequired = false;
+          _config.displayType = 'advanced';
+          service.configs.pushObject(_config);
+        }
+      }
+    },this);
+    this.loadCustomConfig();
+    this.renderServiceConfigs(serviceConfigs);
     var storedServices = this.get('content.serviceConfigProperties');
     if (storedServices) {
       var configs = new Ember.Set();
@@ -81,7 +102,6 @@ App.WizardStep7Controller = Em.Controller.extend({
           var componentVal = storedServices.findProperty('name', _config.get('name'));
           //if we have config for specified component
           if(componentVal){
-
             //set it
             _config.set('value', componentVal.value)
           }
@@ -92,6 +112,18 @@ App.WizardStep7Controller = Em.Controller.extend({
     }
   },
 
+  loadCustomConfig: function() {
+    var serviceConfigs = this.get('serviceConfigs');
+    this.get('customConfigs').forEach(function(_config){
+      var service = serviceConfigs.findProperty('serviceName',_config.serviceName);
+        if(service) {
+          if(!(service.configs.someProperty('name',_config.name))) {
+            service.configs.pushObject(_config);
+          }
+        }
+    },this);
+  },
+
   /**
    * Render configs for active services
    * @param serviceConfigs
@@ -99,6 +131,8 @@ App.WizardStep7Controller = Em.Controller.extend({
   renderServiceConfigs: function (serviceConfigs) {
     serviceConfigs.forEach(function (_serviceConfig) {
       var serviceConfig = App.ServiceConfig.create({
+        id: _serviceConfig.id,
+        filename: _serviceConfig.filename,
         serviceName: _serviceConfig.serviceName,
         displayName: _serviceConfig.displayName,
         configCategories: _serviceConfig.configCategories,
@@ -129,6 +163,7 @@ App.WizardStep7Controller = Em.Controller.extend({
       var serviceConfigProperty = App.ServiceConfigProperty.create(_serviceConfigProperty);
       serviceConfigProperty.serviceConfig = componentConfig;
       serviceConfigProperty.initialValue();
+
       componentConfig.configs.pushObject(serviceConfigProperty);
       serviceConfigProperty.validate();
     }, this);

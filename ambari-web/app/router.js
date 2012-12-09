@@ -33,6 +33,7 @@ App.Router = Em.Router.extend({
     this.set('isFwdNavigation', newStep >= previousStep);
   },
 
+
   clearAllSteps: function() {
     this.set('installerController.content', []);
     this.set('installerController.currentStep', 0);
@@ -43,6 +44,7 @@ App.Router = Em.Router.extend({
    * Temporary fix for getting cluster name
    * @return {*}
    */
+
   getClusterName: function(){
     return App.router.get('clusterController').get('clusterName');
   },
@@ -110,7 +112,7 @@ App.Router = Em.Router.extend({
   },
 
   resetAuth: function (authenticated) {
-    if (!authenticated){
+    if (!authenticated) {
       App.db.cleanUp();
       this.set('loggedIn', false);
       this.set('loginController.loginName', '');
@@ -130,17 +132,17 @@ App.Router = Em.Router.extend({
       url : '/api/users/' + loginName,
       dataType : 'text',
       type: 'GET',
-      beforeSend: function(xhr) {
+      beforeSend: function (xhr) {
         xhr.setRequestHeader("Authorization", "Basic " + hash);
       },
       statusCode: {
-        200: function() {
+        200: function () {
           console.log('Authorization status: 200');
         },
-        401: function() {
+        401: function () {
           console.log('Authorization status: 401');
         },
-        403: function(){
+        403: function () {
           console.log('Authorization status: 403');
         }
       },
@@ -165,6 +167,42 @@ App.Router = Em.Router.extend({
     });
   },
 
+  setAmbariStacks: function () {
+    var self = this;
+    var method = 'GET';
+    var url = (App.testMode) ? '/data/wizard/stack/stacks.json' : '/api/stacks';
+    $.ajax({
+      type: method,
+      url: url,
+      async: false,
+      dataType: 'text',
+      timeout: 5000,
+      success: function (data) {
+        var jsonData = jQuery.parseJSON(data);
+        console.log("TRACE: In success function for the setAmbariStacks call");
+        console.log("TRACE: value of the url is: " + url);
+        var stacks = [];
+        jsonData.forEach(function (_stack) {
+         stacks.pushObject({
+           name:_stack.name,
+           version: _stack.version
+         });
+        }, this);
+        App.db.setAmbariStacks(stacks);
+        console.log('TRACEIINNGG: ambaristacks: ' + JSON.stringify(App.db.getAmbariStacks()));
+      },
+
+      error: function (request, ajaxOptions, error) {
+        console.log("TRACE: In error function for the setAmbariStacks call");
+        console.log("TRACE: value of the url is: " + url);
+        console.log("TRACE: error code status is: " + request.status);
+        console.log('Error message is: ' + request.responseText);
+      },
+
+      statusCode: require('data/statusCodes')
+    });
+  },
+
   mockLogin: function (postLogin) {
     var controller = this.get('loginController');
     var loginName = controller.get('loginName');
@@ -174,6 +212,7 @@ App.Router = Em.Router.extend({
       this.setAuthenticated(true);
       this.setLoginName(loginName);
       this.setUser(App.store.createRecord(App.User, { userName: loginName, admin: loginName === 'admin' }));
+      this.setAmbariStacks();
       this.transitionTo(this.getSection());
       postLogin(true);
     } else {

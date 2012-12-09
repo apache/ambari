@@ -15,12 +15,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
+String.prototype.trim = function () {
+  return this.replace(/^\s\s*/, '').replace(/\s\s*$/, '');
+};
+
 String.prototype.capitalize = function () {
   return this.charAt(0).toUpperCase() + this.slice(1);
 }
 
 Em.CoreObject.reopen({
-  t:function (key, attrs) {
+  t: function (key, attrs) {
     return Em.I18n.t(key, attrs)
   }
 });
@@ -89,13 +94,13 @@ Number.prototype.countPercentageRatio = function (maxValue) {
 }
 
 /**
- * Formats the given URL template by replacing keys in 'substitutes' 
+ * Formats the given URL template by replacing keys in 'substitutes'
  * with their values. If not in App.testMode, the testUrl is used.
- * 
+ *
  * The substitution points in urlTemplate should be of format "...{key}..."
- * For example "http://apache.org/{projectName}". 
- * The substitutes can then be{projectName: "Ambari"}. 
- * 
+ * For example "http://apache.org/{projectName}".
+ * The substitutes can then be{projectName: "Ambari"}.
+ *
  * Keys which will be automatically taken care of are:
  * {
  *  hostName: App.test_hostname,
@@ -103,7 +108,7 @@ Number.prototype.countPercentageRatio = function (maxValue) {
  *  toSeconds: ..., // now
  *  stepSeconds: ..., // 15 seconds by default
  * }
- * 
+ *
  * @param {String} urlTemplate  URL template on which substitutions are to be made
  * @param substitutes Object containing keys to be replaced with respective values
  * @param {String} testUrl  URL to be used if app is not in test mode (!App.testMode)
@@ -133,7 +138,7 @@ App.formatUrl = function (urlTemplate, substitutes, testUrl) {
 }
 
 App.format = {
-  role: function(role) {
+  role: function (role) {
     switch (role) {
       case 'ZOOKEEPER_SERVER':
         return 'ZooKeeper Server';
@@ -245,7 +250,7 @@ App.format = {
    * TIMEDOUT - Host did not respond in time
    * ABORTED - Operation was abandoned
    */
-  taskStatus: function(_taskStatus) {
+  taskStatus: function (_taskStatus) {
     return _taskStatus.replace('_', ' ').toLowerCase();
   }
 };

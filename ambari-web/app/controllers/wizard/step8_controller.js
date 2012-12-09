@@ -24,6 +24,9 @@ App.WizardStep8Controller = Em.Controller.extend({
   totalHosts: [],
   clusterInfo: [],
   services: [],
+  configs: [],
+  globals: [],
+  configMapping: require('data/configMapping'),
 
   selectedServices: function () {
     return this.get('content.services').filterProperty('isSelected', true);
@@ -31,14 +34,166 @@ App.WizardStep8Controller = Em.Controller.extend({
 
   clearStep: function () {
     this.get('services').clear();
+    this.get('configs').clear();
+    this.get('globals').clear();
     this.get('clusterInfo').clear();
   },
 
   loadStep: function () {
     console.log("TRACE: Loading step8: Review Page");
     this.clearStep();
+    this.loadGlobals();
+    this.loadConfigs();
+    this.setCustomConfigs();
     this.loadClusterInfo();
     this.loadServices();
+  },
+
+  loadGlobals: function () {
+    var globals = this.get('content.serviceConfigProperties').filterProperty('id', 'puppet var');
+    if (globals.someProperty('name', 'hive_database')) {
+      //TODO: Hive host depends on the type of db selected. Change puppet variable name if postgress is not the default db
+      var hiveDb = globals.findProperty('name', 'hive_database');
+      if (hiveDb.value === 'New PostgreSQL Database') {
+        globals.findProperty('name', 'hive_ambari_host').name = 'hive_mysql_host';
+        globals.without(globals.findProperty('name', 'hive_existing_host'));
+        globals.without(globals.findProperty('name', 'hive_existing_database'));
+      } else {
+        globals.findProperty('name', 'hive_existing_host').name = 'hive_mysql_host';
+        globals.without(globals.findProperty('name', 'hive_ambari_host'));
+        globals.without(globals.findProperty('name', 'hive_ambari_database'));
+      }
+    }
+    this.set('globals', globals);
+  },
+
+  loadConfigs: function () {
+    var storedConfigs = this.get('content.serviceConfigProperties').filterProperty('id', 'site property').filterProperty('value');
+    var uiConfigs = this.loadUiSideConfigs();
+    this.set('configs', storedConfigs.concat(uiConfigs));
+  },
+
+  loadUiSideConfigs: function () {
+    var uiConfig = [];
+    var configs = this.get('configMapping').filterProperty('foreignKey', null);
+    configs.forEach(function (_config) {
+      var value = this.getGlobConfigValue(_config.templateName, _config.value);
+      uiConfig.pushObject({
+        "id": "site property",
+        "name": _config.name,
+        "value": value,
+        "filename": _config.filename
+      });
+    }, this);
+    var dependentConfig = this.get('configMapping').filterProperty('foreignKey');
+    dependentConfig.forEach(function (_config) {
+      this.setConfigValue(uiConfig, _config);
+      uiConfig.pushObject({
+        "id": "site property",
+        "name": _config.name,
+        "value": _config.value,
+        "filename": _config.filename
+      });
+    }, this);
+    return uiConfig;
+  },
+  /**
+   * Set all site property that are derived from other puppet-variable
+   */
+
+  getGlobConfigValue: function (templateName, expression) {
+    var express = expression.match(/<(.*?)>/g);
+    var value = expression;
+    express.forEach(function (_express) {
+      //console.log("The value of template is: " + _express);
+      var index = parseInt(_express.match(/\[([\d]*)(?=\])/)[1]);
+      if (this.get('globals').someProperty('name', templateName[index])) {
+        //console.log("The name of the variable is: " + this.get('content.serviceConfigProperties').findProperty('name', templateName[index]).name);
+        var globValue = this.get('globals').findProperty('name', templateName[index]).value;
+        value = value.replace(_express, globValue);
+      } else {
+        /*
+         console.log("ERROR: The variable name is: " + templateName[index]);
+         console.log("ERROR: mapped config from configMapping file has no corresponding variable in " +
+         "content.serviceConfigProperties. Two possible reasons for the error could be: 1) The service is not selected. " +
+         "and/OR 2) The service_config metadata file has no corresponding global var for the site property variable");
+         */
+        value = null;
+      }
+    }, this);
+    return value;
+  },
+  /**
+   * Set all site property that are derived from other site-properties
+   */
+  setConfigValue: function (uiConfig, config) {
+    var fkValue = config.value.match(/<(foreignKey.*?)>/g);
+    if (fkValue) {
+      fkValue.forEach(function (_fkValue) {
+        var index = parseInt(_fkValue.match(/\[([\d]*)(?=\])/)[1]);
+        if (uiConfig.someProperty('name', config.foreignKey[index])) {
+          var globalValue = uiConfig.findProperty('name', config.foreignKey[index]).value;
+          config.value = config.value.replace(_fkValue, globalValue);
+        } else if (this.get('content.serviceConfigProperties').someProperty('name', config.foreignKey[index])) {
+          var globalValue;
+          if (this.get('content.serviceConfigProperties').findProperty('name', config.foreignKey[index]).value === '') {
+            globalValue = this.get('content.serviceConfigProperties').findProperty('name', config.foreignKey[index]).defaultValue;
+          } else {
+            globalValue = this.get('content.serviceConfigProperties').findProperty('name', config.foreignKey[index]).value;
+          }
+          config.value = config.value.replace(_fkValue, globalValue);
+        }
+      }, this);
+    }
+    if (fkValue = config.name.match(/<(foreignKey.*?)>/g)) {
+      fkValue.forEach(function (_fkValue) {
+        var index = parseInt(_fkValue.match(/\[([\d]*)(?=\])/)[1]);
+        if (uiConfig.someProperty('name', config.foreignKey[index])) {
+          var globalValue = uiConfig.findProperty('name', config.foreignKey[index]).value;
+          config.name = config.name.replace(_fkValue, globalValue);
+        } else if (this.get('content.serviceConfigProperties').someProperty('name', config.foreignKey[index])) {
+          var globalValue;
+          if (this.get('content.serviceConfigProperties').findProperty('name', config.foreignKey[index]).value === '') {
+            globalValue = this.get('content.serviceConfigProperties').findProperty('name', config.foreignKey[index]).defaultValue;
+          } else {
+            globalValue = this.get('content.serviceConfigProperties').findProperty('name', config.foreignKey[index]).value;
+          }
+          config.name = config.name.replace(_fkValue, globalValue);
+        }
+      }, this);
+    }
+    //For properties in the configMapping file having foreignKey and templateName properties.
+    var templateValue = config.value.match(/<(templateName.*?)>/g);
+    if (templateValue) {
+      templateValue.forEach(function (_value) {
+        var index = parseInt(_value.match(/\[([\d]*)(?=\])/)[1]);
+        if (this.get('globals').someProperty('name', config.templateName[index])) {
+          var globalValue = this.get('globals').findProperty('name', config.templateName[index]).value;
+          config.value = config.value.replace(_value, globalValue);
+        }
+      }, this);
+    }
+  },
+
+  /**
+   * override site properties with the entered key-value pair in *-site.xml
+   */
+  setCustomConfigs: function () {
+    var site = this.get('content.serviceConfigProperties').filterProperty('id', 'conf-site');
+    site.forEach(function (_site) {
+      var keys = _site.value.match(/[\s]*(\w*)=/g);
+      var configs = [];
+      if (keys) {
+        keys.forEach(function (_key) {
+          _key = _key.trim();
+          console.log("Value of key is: " + _key.substring(0, _key.length - 1));
+          var configKey = _key.substring(0, _key.length - 1);
+          if (configKey) {
+            configs.pushObject({key: configKey});
+          }
+        }, this);
+      }
+    }, this)
   },
 
   /**
@@ -64,7 +219,7 @@ App.WizardStep8Controller = Em.Controller.extend({
     slaveHosts = hostObj.mapProperty('hostname').uniq();
 
     var totalHosts = masterHosts.concat(slaveHosts).uniq();
-    this.set('totalHosts',totalHosts);
+    this.set('totalHosts', totalHosts);
     var totalHostsObj = this.rawContent.findProperty('config_name', 'hosts');
     totalHostsObj.config_value = totalHosts.length;
     this.get('clusterInfo').pushObject(Ember.Object.create(totalHostsObj));
@@ -123,9 +278,6 @@ App.WizardStep8Controller = Em.Controller.extend({
           default:
         }
       }
-      //serviceObj.displayName = tempObj.service_name;
-      //serviceObj.componentNames =  tempObj.service_components;
-
     }, this);
   },
 
@@ -423,8 +575,8 @@ App.WizardStep8Controller = Em.Controller.extend({
   submit: function () {
 
     if (App.testMode) {
-      App.router.send('next');
-      return;
+      // App.router.send('next');
+      //return;
     }
 
     this.createCluster();
@@ -543,13 +695,13 @@ App.WizardStep8Controller = Em.Controller.extend({
     });
   },
 
-  registerHostsToCluster: function() {
-    this.get('totalHosts').forEach(function(_hostname){
+  registerHostsToCluster: function () {
+    this.get('totalHosts').forEach(function (_hostname) {
       this.registerHostToCluster(_hostname);
-    },this);
+    }, this);
   },
 
-  registerHostToCluster: function(hostname) {
+  registerHostToCluster: function (hostname) {
     var clusterName = this.get('clusterInfo').findProperty('config_name', 'cluster').config_value;
     var url = '/api/clusters/' + clusterName + '/hosts/' + hostname;
     $.ajax({
@@ -642,6 +794,7 @@ App.WizardStep8Controller = Em.Controller.extend({
 
   createConfigurations: function () {
     var selectedServices = this.get('selectedServices');
+    this.createConfigSite(this.createGlobalSiteObj());
     this.createConfigSite(this.createCoreSiteObj());
     this.createConfigSite(this.createHdfsSiteObj('HDFS'));
     if (selectedServices.someProperty('serviceName', 'MAPREDUCE')) {
@@ -649,7 +802,7 @@ App.WizardStep8Controller = Em.Controller.extend({
     }
     if (selectedServices.someProperty('serviceName', 'HBASE')) {
       // TODO
-      // this.createConfigSite(this.createHbaseSiteObj('HBASE'));
+      this.createConfigSite(this.createHbaseSiteObj('HBASE'));
     }
     if (selectedServices.someProperty('serviceName', 'HIVE')) {
       // TODO
@@ -686,23 +839,40 @@ App.WizardStep8Controller = Em.Controller.extend({
     console.log("Exiting createConfigSite");
   },
 
+  createGlobalSiteObj: function () {
+    var globalSiteProperties = {};
+    this.get('globals').forEach(function (_globalSiteObj) {
+      globalSiteProperties[_globalSiteObj.name] = _globalSiteObj.value;
+      console.log("STEP8: name of the global property is: " + _globalSiteObj.name);
+      console.log("STEP8: value of the global property is: " + _globalSiteObj.value);
+    }, this);
+    return {"type": "global", "tag": "version1", "properties": globalSiteProperties};
+  },
+
   createCoreSiteObj: function () {
-    return {"type": "core-site", "tag": "version1", "properties": { "fs.default.name": "localhost:8020"}};
+    var coreSiteObj = this.get('configs').filterProperty('filename', 'core-site.xml');
+    var coreSiteProperties = {};
+    coreSiteObj.forEach(function (_coreSiteObj) {
+      coreSiteProperties[_coreSiteObj.name] = _coreSiteObj.value;
+      console.log("STEP*: name of the property is: " + _coreSiteObj.name);
+      console.log("STEP8: value of the property is: " + _coreSiteObj.value);
+    }, this);
+    return {"type": "core-site", "tag": "version1", "properties": coreSiteProperties};
   },
 
   createHdfsSiteObj: function (serviceName) {
-    var configs = App.db.getServiceConfigProperties().filterProperty('serviceName', serviceName);
+    var hdfsSiteObj = this.get('configs').filterProperty('filename', 'hdfs-site.xml');
     var hdfsProperties = {};
-    configs.forEach(function (_configProperty) {
+    hdfsSiteObj.forEach(function (_configProperty) {
       hdfsProperties[_configProperty.name] = _configProperty.value;
+      console.log("STEP*: name of the property is: " + _configProperty.name);
+      console.log("STEP8: value of the property is: " + _configProperty.value);
     }, this);
-    // TODO: Using hardcoded params until meta data API becomes available
-    hdfsProperties = {"dfs.datanode.data.dir.perm": "750"};
     return {"type": "hdfs-site", "tag": "version1", "properties": hdfsProperties };
   },
 
   createMrSiteObj: function (serviceName) {
-    var configs = App.db.getServiceConfigProperties().filterProperty('serviceName', serviceName);
+    var configs = this.get('configs').filterProperty('filename', 'mapred-site.xml');
     var mrProperties = {};
     configs.forEach(function (_configProperty) {
       mrProperties[_configProperty.name] = _configProperty.value;
@@ -717,7 +887,7 @@ App.WizardStep8Controller = Em.Controller.extend({
   },
 
   createHbaseSiteObj: function (serviceName) {
-    var configs = App.db.getServiceConfigProperties().filterProperty('serviceName', serviceName);
+    var configs = this.get('configs').filterProperty('filename', 'hbase-site.xml');
     var hbaseProperties = {};
     configs.forEach(function (_configProperty) {
       hbaseProperties[_configProperty.name] = _configProperty.value;
@@ -726,7 +896,7 @@ App.WizardStep8Controller = Em.Controller.extend({
   },
 
   createHiveSiteObj: function (serviceName) {
-    var configs = App.db.getServiceConfigProperties().filterProperty('serviceName', serviceName);
+    var configs = this.get('configs').filterProperty('filename', 'hive-site.xml');
     var hiveProperties = {};
     configs.forEach(function (_configProperty) {
       hiveProperties[_configProperty.name] = _configProperty.value;
@@ -775,9 +945,11 @@ App.WizardStep8Controller = Em.Controller.extend({
   getConfigForService: function (serviceName) {
     switch (serviceName) {
       case 'HDFS':
-        return {config: {'core-site': 'version1', 'hdfs-site': 'version1'}};
+        return {config: {'global': 'version1', 'core-site': 'version1', 'hdfs-site': 'version1'}};
       case 'MAPREDUCE':
-        return {config: {'core-site': 'version1', 'mapred-site': 'version1'}};
+        return {config: {'global': 'version1', 'core-site': 'version1', 'mapred-site': 'version1'}};
+      case 'HBASE' :
+        return {config: {'global': 'version1', 'core-site': 'version1', 'hbase-site': 'version1'}};
     }
   }
 

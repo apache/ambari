@@ -12,6 +12,9 @@ AMBARI-666 branch (unreleased changes)
 
   NEW FEATURES
 
+  AMBARI-1002. Integrate Installer with config APIs. (Jaimin Jetly
+  via yusaku)
+
   AMBARI-989. Show task logs for each host in the Deploy step of the
   wizard. (yusaku)
 

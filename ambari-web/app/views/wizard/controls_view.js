@@ -51,12 +51,15 @@ App.ServiceConfigTextField = Ember.TextField.extend(App.ServiceConfigPopoverSupp
 
   valueBinding: 'serviceConfig.value',
   classNameBindings: 'textFieldClassName',
+  placeholderBinding: 'serviceConfig.defaultValue',
 
   textFieldClassName: function () {
     // sets the width of the field depending on display type
     if (['directory', 'url', 'email', 'user', 'host'].contains(this.get('serviceConfig.displayType'))) {
       return ['span6'];
-    } else {
+    } else if(this.get('serviceConfig.displayType') === 'advanced'){
+      return ['span6'];
+    } else{
       return ['input-small'];
     }
   }.property('serviceConfig.displayType'),
@@ -74,6 +77,7 @@ App.ServiceConfigTextField = Ember.TextField.extend(App.ServiceConfigPopoverSupp
 App.ServiceConfigTextFieldWithUnit = Ember.View.extend(App.ServiceConfigPopoverSupport, {
   valueBinding: 'serviceConfig.value',
   classNames: [ 'input-append' ],
+  placeholderBinding: 'serviceConfig.defaultValue',
 
   template: Ember.Handlebars.compile('{{view App.ServiceConfigTextField serviceConfigBinding="view.serviceConfig" isPopoverEnabled="false"}}<span class="add-on">{{view.serviceConfig.unit}}</span>'),
 
@@ -114,6 +118,7 @@ App.ServiceConfigTextArea = Ember.TextArea.extend(App.ServiceConfigPopoverSuppor
   valueBinding: 'serviceConfig.value',
   rows: 4,
   classNames: ['span6'],
+  placeholderBinding: 'serviceConfig.defaultValue',
 
   disabled: function () {
     return !this.get('serviceConfig.isEditable');

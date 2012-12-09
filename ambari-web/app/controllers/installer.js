@@ -227,7 +227,8 @@ App.InstallerController = Em.Controller.extend({
     hostSlaveComponents: null,
     masterComponentHosts: null,
     hostToMasterComponent: null,
-    serviceConfigProperties: null
+    serviceConfigProperties: null,
+    advancedServiceConfig: null
   }),
 
   /**
@@ -613,10 +614,18 @@ App.InstallerController = Em.Controller.extend({
     var serviceConfigProperties = [];
     stepController.get('stepConfigs').forEach(function (_content) {
       _content.get('configs').forEach(function (_configProperties) {
+        var displayType =  _configProperties.get('displayType');
+        if(displayType === 'directories' || displayType === 'advanced' || displayType === 'directory') {
+          var value = _configProperties.get('value').replace(/[\s,]+/g,',');
+          _configProperties.set('value',value);
+        }
         var configProperty = {
+          id: _configProperties.get('id'),
           name: _configProperties.get('name'),
           value: _configProperties.get('value'),
-          service: _configProperties.get('serviceName')
+          defaultValue: _configProperties.get('defaultValue'),
+          service: _configProperties.get('serviceName'),
+          filename: _configProperties.get('filename')
         };
         serviceConfigProperties.push(configProperty);
       }, this);
@@ -707,8 +716,95 @@ App.InstallerController = Em.Controller.extend({
   },
 
   /**
+   * Generate serviceComponents as pr the stack definition  and save it to localdata
+   * called form stepController step4WizardController
+   */
+  loadComponents: function (stepController) {
+    var self = this;
+    var method = 'GET';
+    var url = (App.testMode) ? '/data/wizard/stack/hdp/version0.1.json' : '/api/stacks/HDP/version/0.1'; // TODO: get this url from the stack selected by the user in Install Options page
+    $.ajax({
+      type: method,
+      url: url,
+      async: false,
+      dataType: 'text',
+      timeout: 5000,
+      success: function (data) {
+        var jsonData = jQuery.parseJSON(data);
+        console.log("TRACE: STep5 -> In success function for the getServiceComponents call");
+        console.log("TRACE: STep5 -> value of the url is: " + url);
+        var serviceComponents = [];
+        jsonData.services.forEach(function (_service) {
+
+        }, this);
+        stepController.set('components', jsonData.services);
+        console.log('TRACE: service components: ' + JSON.stringify(stepController.get('components')));
+      },
+
+      error: function (request, ajaxOptions, error) {
+        console.log("TRACE: STep5 -> In error function for the getServiceComponents call");
+        console.log("TRACE: STep5 -> value of the url is: " + url);
+        console.log("TRACE: STep5 -> error code status is: " + request.status);
+        console.log('Step8: Error message is: ' + request.responseText);
+      },
+
+      statusCode: require('data/statusCodes')
+    });
+
+  },
+
+  loadAdvancedConfigs: function () {
+    App.db.getSelectedServiceNames().forEach(function (_serviceName) {
+      this.loadAdvancedConfig(_serviceName);
+    }, this);
+  },
+  /**
+   * Generate serviceProperties save it to localdata
+   * called form stepController step6WizardController
+   */
+
+  loadAdvancedConfig: function (serviceName) {
+    var self = this;
+    var url = (App.testMode) ? '/data/wizard/stack/hdp/version01/' + serviceName + '.json' : '/api/stacks/HDP/version/0.1/services/' + serviceName; // TODO: get this url from the stack selected by the user in Install Options page
+    var method = 'GET';
+    $.ajax({
+      type: method,
+      url: url,
+      async: false,
+      dataType: 'text',
+      timeout: 5000,
+      success: function (data) {
+        var jsonData = jQuery.parseJSON(data);
+        console.log("TRACE: Step6 submit -> In success function for the loadAdvancedConfig call");
+        console.log("TRACE: Step6 submit -> value of the url is: " + url);
+        var serviceComponents = jsonData.properties;
+        serviceComponents.setEach('serviceName', serviceName);
+        var configs;
+        if (App.db.getAdvancedServiceConfig()) {
+          configs = App.db.getAdvancedServiceConfig();
+        } else {
+          configs = [];
+        }
+        configs = configs.concat(serviceComponents);
+        self.set('content.advancedServiceConfig', configs);
+        App.db.setAdvancedServiceConfig(configs);
+        console.log('TRACE: servicename: ' + serviceName);
+      },
+
+      error: function (request, ajaxOptions, error) {
+        console.log("TRACE: STep6 submit -> In error function for the loadAdvancedConfig call");
+        console.log("TRACE: STep6 submit-> value of the url is: " + url);
+        console.log("TRACE: STep6 submit-> error code status is: " + request.status);
+        console.log('Step6 submit: Error message is: ' + request.responseText);
+      },
+
+      statusCode: require('data/statusCodes')
+    });
+  },
+
+  /**
    * Generate clients list for selected services and save it to model
-   * @param stepController step8WizardController or step9WizardController
+   * called form stepController step8WizardController or step9WizardController
    */
   installServices: function () {
     var self = this;
@@ -726,8 +822,8 @@ App.InstallerController = Em.Controller.extend({
       success: function (data) {
         var jsonData = jQuery.parseJSON(data);
         var installSartTime = new Date().getTime();
-        console.log("TRACE: STep8 -> In success function for the installService call");
-        console.log("TRACE: STep8 -> value of the url is: " + url);
+        console.log("TRACE: In success function for the installService call");
+        console.log("TRACE: value of the url is: " + url);
         if (jsonData) {
           var requestId = jsonData.href.match(/.*\/(.*)$/)[1];
 

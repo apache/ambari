@@ -25,6 +25,7 @@ module.exports = [
   {
     serviceName: 'HDFS',
     displayName: 'HDFS',
+    filename: 'hdfs-site',
     configCategories: [
       App.ServiceConfigCategory.create({ name: 'NameNode'}),
       App.ServiceConfigCategory.create({ name: 'SNameNode'}),
@@ -38,6 +39,7 @@ module.exports = [
   {
     serviceName: 'MAPREDUCE',
     displayName: 'MapReduce',
+    filename: 'mapred-site',
     configCategories: [
       App.ServiceConfigCategory.create({ name: 'JobTracker'}),
       App.ServiceConfigCategory.create({ name: 'TaskTracker'}),
@@ -50,6 +52,7 @@ module.exports = [
   {
     serviceName: 'HIVE',
     displayName: 'Hive/HCat',
+    filename: 'hive-site',
     configCategories: [
       App.ServiceConfigCategory.create({ name: 'Hive Metastore'}),
       App.ServiceConfigCategory.create({ name: 'Advanced'})
@@ -60,6 +63,7 @@ module.exports = [
   {
     serviceName: 'HBASE',
     displayName: 'HBase',
+    filename: 'hbase-site',
     configCategories: [
       App.ServiceConfigCategory.create({ name: 'HBase Master'}),
       App.ServiceConfigCategory.create({ name: 'RegionServer'}),
@@ -82,6 +86,7 @@ module.exports = [
   {
     serviceName: 'OOZIE',
     displayName: 'Oozie',
+    filename: 'oozie-site',
     configCategories: [
       App.ServiceConfigCategory.create({ name: 'Oozie Server'}),
       App.ServiceConfigCategory.create({ name: 'Advanced'})

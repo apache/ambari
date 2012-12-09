@@ -178,6 +178,7 @@ module.exports = Em.Route.extend({
       router.setNavigationFlow('step5');
 
       var controller = router.get('installerController');
+      var wizardStep5Controller = router.get('wizardStep5Controller');
       controller.setCurrentStep('5', false);
       controller.loadAllPriorSteps();
       controller.connectOutlet('wizardStep5', controller.get('content'));
@@ -213,6 +214,7 @@ module.exports = Em.Route.extend({
         controller.saveSlaveComponentHosts(wizardStep6Controller);
         controller.get('content').set('serviceConfigProperties', null);
         App.db.setServiceConfigProperties(null);
+        controller.loadAdvancedConfigs();
         router.transitionTo('step7');
       }
     }
