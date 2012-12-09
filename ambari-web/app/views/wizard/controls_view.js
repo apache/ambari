@@ -57,9 +57,9 @@ App.ServiceConfigTextField = Ember.TextField.extend(App.ServiceConfigPopoverSupp
     // sets the width of the field depending on display type
     if (['directory', 'url', 'email', 'user', 'host'].contains(this.get('serviceConfig.displayType'))) {
       return ['span6'];
-    } else if(this.get('serviceConfig.displayType') === 'advanced'){
+    } else if (this.get('serviceConfig.displayType') === 'advanced') {
       return ['span6'];
-    } else{
+    } else {
       return ['input-small'];
     }
   }.property('serviceConfig.displayType'),
@@ -249,8 +249,8 @@ App.ServiceConfigMultipleHostsDisplay = Ember.Mixin.create(App.ServiceConfigHost
   hasNoHosts: function () {
     console.log('view', this.get('viewName')); //to know which View cause errors
     console.log('controller', this.get('controller').name); //should be slaveComponentGroupsController
-    if(!this.get('value')){
-     // debugger;
+    if (!this.get('value')) {
+      // debugger;
       return true;
     }
     return this.get('value').length === 0;
@@ -283,7 +283,7 @@ App.ServiceConfigMultipleHostsDisplay = Ember.Mixin.create(App.ServiceConfigHost
  */
 App.ServiceConfigMasterHostsView = Ember.View.extend(App.ServiceConfigMultipleHostsDisplay, {
 
-  viewName : "serviceConfigMasterHostsView",
+  viewName: "serviceConfigMasterHostsView",
   valueBinding: 'serviceConfig.value',
 
   classNames: ['master-hosts', 'span6'],
@@ -295,12 +295,12 @@ App.ServiceConfigMasterHostsView = Ember.View.extend(App.ServiceConfigMultipleHo
   showHosts: function () {
     var serviceConfig = this.get('serviceConfig');
     App.ModalPopup.show({
-      header: serviceConfig.  category + ' Hosts',
+      header: serviceConfig.category + ' Hosts',
       bodyClass: Ember.View.extend({
         serviceConfig: serviceConfig,
         templateName: require('templates/wizard/master_hosts_popup')
       }),
-      onPrimary:function(){
+      onPrimary: function () {
         this.hide();
       },
       secondary: null
@@ -315,21 +315,25 @@ App.ServiceConfigMasterHostsView = Ember.View.extend(App.ServiceConfigMultipleHo
  */
 App.SlaveComponentGroupsMenu = Em.CollectionView.extend({
 
-  content: function(){
+  content: function () {
     return this.get('controller.componentGroups');
   }.property('controller.componentGroups'),
 
-  tagName:'ul',
+  tagName: 'ul',
   classNames: ["nav", "nav-tabs"],
 
-  itemViewClass:Em.View.extend({
-    classNameBindings:["active"],
+  itemViewClass: Em.View.extend({
+    classNameBindings: ["active"],
 
-    active:function(){
+    active: function () {
       return this.get('content.active');
     }.property('content.active'),
 
-    template:Ember.Handlebars.compile('<a {{action showSlaveComponentGroup view.content target="controller"}} href="#"> {{view.content.name}}</a><i {{action removeSlaveComponentGroup view.content target="controller"}} class="icon-remove"></i>')
+    errorCount: function () {
+      return this.get('content.properties').filterProperty('isValid', false).filterProperty('isVisible', true).get('length');
+    }.property('content.properties.@each.isValid','content.properties.@each.isVisible'),
+
+    template: Ember.Handlebars.compile('<a {{action showSlaveComponentGroup view.content target="controller"}} href="#"> {{view.content.name}}{{#if view.errorCount}}<span class="badge badge-important">{{view.errorCount}}</span>{{/if}}</a><i {{action removeSlaveComponentGroup view.content target="controller"}} class="icon-remove"></i>')
   })
 });
 
@@ -360,17 +364,17 @@ App.AddSlaveComponentGroupButton = Ember.View.extend({
  */
 App.ServiceConfigSlaveHostsView = Ember.View.extend(App.ServiceConfigMultipleHostsDisplay, {
 
-  viewName : 'serviceConfigSlaveHostsView',
+  viewName: 'serviceConfigSlaveHostsView',
 
   classNames: ['slave-hosts', 'span6'],
   valueBinding: 'hosts',
 
-  group: function(){
+  group: function () {
     return this.get('controller.activeGroup');
   }.property('controller.activeGroup'),
 
-  hosts: function(){
-    if (this.get('group')){
+  hosts: function () {
+    if (this.get('group')) {
       return this.get('controller').getHostsByGroup(this.get('group'))
     }
   }.property('controller.hosts.@each.group', 'group'),
@@ -383,20 +387,44 @@ App.ServiceConfigSlaveHostsView = Ember.View.extend(App.ServiceConfigMultipleHos
 });
 
 /**
+ * properties for present active slave group
+ * @type {*}
+ */
+App.SlaveGroupPropertiesView = Ember.View.extend({
+
+  viewName: 'serviceConfigSlaveHostsView',
+
+  group: function () {
+    return this.get('controller.activeGroup');
+  }.property('controller.activeGroup'),
+
+  groupConfigs: function () {
+    console.log("************************************************************************");
+    console.log("The value of group is: " + this.get('group'));
+    console.log("************************************************************************");
+    return this.get('group.properties');
+  }.property('group.properties.@each').cacheable(),
+
+  errorCount: function () {
+    return this.get('group.properties').filterProperty('isValid', false).filterProperty('isVisible', true).get('length');
+  }.property('configs.@each.isValid', 'configs.@each.isVisible')
+});
+
+/**
  * DropDown component for <code>select hosts for groups</code> popup
  * @type {*}
  */
 App.SlaveComponentDropDownGroupView = Ember.View.extend({
 
-  viewName : "slaveComponentDropDownGroupView",
+  viewName: "slaveComponentDropDownGroupView",
 
   /**
    * On change handler for <code>select hosts for groups</code> popup
    * @param event
    */
-  changeGroup: function(event) {
+  changeGroup: function (event) {
     var host = this.get('content');
-    var groupName = $('#'+this.get('elementId') + ' select').val();
+    var groupName = $('#' + this.get('elementId') + ' select').val();
     this.get('controller').changeHostGroup(host, groupName);
   },
 
@@ -405,7 +433,7 @@ App.SlaveComponentDropDownGroupView = Ember.View.extend({
     /**
      * Whether current value(OptionTag value) equals to host value(assigned to SlaveComponentDropDownGroupView.content)
      */
-    selected: function(){
+    selected: function () {
       return this.get('parentView.content.group') === this.get('content');
     }.property('content')
   })
@@ -421,10 +449,10 @@ App.SlaveComponentChangeGroupNameView = Ember.View.extend({
   classNames: ['control-group'],
   classNameBindings: 'error',
   error: false,
-  setError: function(){
+  setError: function () {
     this.set('error', false);
   }.observes('controller.activeGroup'),
-  errorMessage: function(){
+  errorMessage: function () {
     return this.get('error') ? 'group with this name already exist' : '';
   }.property('error'),
 
@@ -432,9 +460,9 @@ App.SlaveComponentChangeGroupNameView = Ember.View.extend({
    * Onclick handler for saving updated group name
    * @param event
    */
-  changeGroupName: function(event) {
-    var inputVal = $('#'+this.get('elementId') + ' input[type="text"]').val();
-    if (inputVal !== this.get('content.name')){
+  changeGroupName: function (event) {
+    var inputVal = $('#' + this.get('elementId') + ' input[type="text"]').val();
+    if (inputVal !== this.get('content.name')) {
       var result = this.get('controller').changeSlaveGroupName(this.get('content'), inputVal);
       this.set('error', result);
     }

@@ -221,6 +221,7 @@ module.exports = Em.Route.extend({
         controller.saveSlaveComponentHosts(wizardStep6Controller);
         controller.get('content').set('serviceConfigProperties', null);
         App.db.setServiceConfigProperties(null);
+        App.db.setSlaveProperties(null);
         controller.loadAdvancedConfigs();
         router.transitionTo('step7');
       }
@@ -229,10 +230,14 @@ module.exports = Em.Route.extend({
 
   step7: Em.Route.extend({
     route: '/step7',
-    connectOutlets: function (router, context) {
+    enter: function (router) {
+      console.log('in /wizardStep7Controller:enter');
       var controller = router.get('installerController');
       controller.setCurrentStep('7', false);
       controller.loadAllPriorSteps();
+    },
+    connectOutlets: function (router, context) {
+      var controller = router.get('installerController');
       controller.connectOutlet('wizardStep7', controller.get('content'));
     },
     back: Em.Router.transitionTo('step6'),
@@ -257,7 +262,7 @@ module.exports = Em.Route.extend({
     next: function (router) {
       var installerController = router.get('installerController');
       var wizardStep8Controller = router.get('wizardStep8Controller');
-      installerController.installServices();   //TODO: Uncomment for the actual hookup
+      installerController.installServices();
       installerController.setInfoForStep9();
       router.transitionTo('step9');
     }

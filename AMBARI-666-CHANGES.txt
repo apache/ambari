@@ -12,6 +12,9 @@ AMBARI-666 branch (unreleased changes)
 
   NEW FEATURES
 
+  AMBARI-1048. Integrate slave configuration parameters with respective
+  service on step7 of installer wizard. (Jaimin Jetly via yusaku)
+
   AMBARI-1031. Check for host registration at step3 of installer wizard 
   and retrieve information for RAM and no. of cores. (Jaimin Jetly via
   yusaku)

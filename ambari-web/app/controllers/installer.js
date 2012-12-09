@@ -34,6 +34,7 @@ App.InstallerController = App.WizardController.extend({
     masterComponentHosts: null,
     serviceConfigProperties: null,
     advancedServiceConfig: null,
+    slaveGroupProperties: null,
     controllerName: 'installerController'
   }),
 
@@ -135,7 +136,7 @@ App.InstallerController = App.WizardController.extend({
       hostsInfo.localRepo = false;
       hostsInfo.localRepoPath = '';
     }
-    hostsInfo.bootRequestId =  App.db.getBootRequestId() || null;
+    hostsInfo.bootRequestId = App.db.getBootRequestId() || null;
     hostsInfo.sshKey = '';
     hostsInfo.passphrase = '';
     hostsInfo.confirmPassphrase = '';
@@ -255,7 +256,8 @@ App.InstallerController = App.WizardController.extend({
       servicesInfo[index].isInstalled = false;
     });
     this.set('content.services', servicesInfo);
-    console.log('installerController.loadServices: loaded data ', servicesInfo);
+    console.log('installerController.loadServices: loaded data ', JSON.stringify(servicesInfo));
+    console.log("The type odf serviceInfo: " + typeof servicesInfo);
     console.log('selected services ', servicesInfo.filterProperty('isSelected', true).mapProperty('serviceName'));
   },
 
@@ -308,7 +310,7 @@ App.InstallerController = App.WizardController.extend({
 
   /**
    * Save slaveHostComponents to main controller
-   * @param stepController
+   * @param stepController called at the submission of step6
    */
   saveSlaveComponentHosts: function (stepController) {
 
@@ -420,6 +422,21 @@ App.InstallerController = App.WizardController.extend({
 
     App.db.setServiceConfigProperties(serviceConfigProperties);
     this.set('content.serviceConfigProperties', serviceConfigProperties);
+
+    var slaveConfigProperties = [];
+    stepController.get('stepConfigs').forEach(function (_content) {
+      if (_content.get('configCategories').someProperty('isForSlaveComponent', true)) {
+        var slaveCategory = _content.get('configCategories').findProperty('isForSlaveComponent', true);
+        slaveCategory.get('slaveConfigs.groups').forEach(function (_group) {
+          _group.get('properties').forEach(function (_property) {
+            _property.set('storeValue', _property.get('value'));
+          }, this);
+        }, this);
+        slaveConfigProperties.pushObject(slaveCategory.get('slaveConfigs'));
+      }
+    }, this)
+    App.db.setSlaveProperties(slaveConfigProperties);
+    this.set('content.slaveGroupProperties', slaveConfigProperties);
   },
 
   /**
@@ -432,6 +449,33 @@ App.InstallerController = App.WizardController.extend({
 
     this.set('content.advancedServiceConfig', App.db.getAdvancedServiceConfig());
   },
+
+  /**
+   * Load properties for group of slaves to model
+   */
+  loadSlaveGroupProperties: function () {
+    var groupConfigProperties = App.db.getSlaveProperties() ? App.db.getSlaveProperties() : this.get('content.slaveComponentHosts');
+    if (groupConfigProperties) {
+      groupConfigProperties.forEach(function (_slaveComponentObj) {
+        if (_slaveComponentObj.groups) {
+          var groups = [];
+          _slaveComponentObj.groups.forEach(function (_group) {
+            var properties = [];
+            _group.properties.forEach(function (_property) {
+              var property = App.ServiceConfigProperty.create(_property);
+              property.set('value', _property.storeValue);
+              properties.pushObject(property);
+            }, this);
+            _group.properties = properties;
+            groups.pushObject(App.Group.create(_group));
+          }, this);
+          _slaveComponentObj.groups = groups;
+        }
+      }, this);
+    }
+    this.set('content.slaveGroupProperties', groupConfigProperties);
+  },
+
 
   /**
    * Load information about hosts with clients components
@@ -477,6 +521,7 @@ App.InstallerController = App.WizardController.extend({
       case '8':
       case '7':
         this.loadServiceConfigProperties();
+        this.loadSlaveGroupProperties();
       case '6':
         this.loadSlaveComponentHosts();
         this.loadClients();
@@ -498,7 +543,7 @@ App.InstallerController = App.WizardController.extend({
    * Generate serviceComponents as pr the stack definition  and save it to localdata
    * called form stepController step4WizardController
    */
-  loadServiceComponents : function (stepController, displayOrderConfig, apiUrl) {
+  loadServiceComponents: function (stepController, displayOrderConfig, apiUrl) {
     var self = this;
     var method = 'GET';
     var testUrl = '/data/wizard/stack/hdp/version/1.2.0.json';
@@ -520,8 +565,8 @@ App.InstallerController = App.WizardController.extend({
           displayName: null,
           isDisabled: true,
           isSelected: true,
-          description:null,
-          version:null
+          description: null,
+          version: null
         });
 
         var data = [];
@@ -533,7 +578,7 @@ App.InstallerController = App.WizardController.extend({
           var myService = Service.create({
             serviceName: entry.name,
             displayName: displayOrderConfig[i].displayName,
-            isDisabled: i === 0 ,
+            isDisabled: i === 0,
             isSelected: true,
             isHidden: displayOrderConfig[i].isHidden,
             description: entry.comment,
@@ -611,7 +656,7 @@ App.InstallerController = App.WizardController.extend({
    * called form stepController step8WizardController or step9WizardController
    */
   installServices: function (isRetry) {
-    if(!isRetry && this.get('content.cluster.requestId')){
+    if (!isRetry && this.get('content.cluster.requestId')) {
       return;
     }
 
@@ -653,11 +698,11 @@ App.InstallerController = App.WizardController.extend({
         console.log("TRACE: value of the url is: " + url);
         console.log("TRACE: error code status is: " + request.status);
         console.log('Error message is: ' + request.responseText);
-          var clusterStatus = {
-            status: 'PENDING',
-            isInstallError: false,
-            isCompleted: false
-          };
+        var clusterStatus = {
+          status: 'PENDING',
+          isInstallError: false,
+          isCompleted: false
+        };
 
         self.saveClusterStatus(clusterStatus);
       },

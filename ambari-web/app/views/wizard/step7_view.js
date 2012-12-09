@@ -25,7 +25,9 @@ App.WizardStep7View = Em.View.extend({
 
   didInsertElement: function () {
     var controller = this.get('controller');
+    var slaveController = App.router.get('slaveComponentGroupsController');
     controller.loadStep();
+    slaveController.loadStep();
   },
   onToggleBlock: function(event){
     $(document.getElementById(event.context.name)).toggle('blind', 500);
@@ -58,6 +60,7 @@ App.WizardStep7.ServiceConfigsByCategoryView = Ember.View.extend({
       this.set('category.isCollapsed', false);
     }
   },
+
   layout: Ember.Handlebars.compile('<div {{bindAttr id="view.category.name"}} class="accordion-body collapse in"><div class="accordion-inner">{{yield}}</div></div>')
 });
 

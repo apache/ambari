@@ -17,14 +17,13 @@
 }}
 
 {{#if view.hasNoHosts}}
-  No host assigned
+No host assigned
 {{else}}
-  <a href="#" {{action showEditSlaveComponentGroups view.serviceConfig.category target="controller"}}>
-    {{#if view.hasOneHost}}
-      {{hosts.firstObject.hostName}}
-    {{/if}}
-    {{#if view.hasMultipleHosts}}
-      {{hosts.firstObject.hostName}} and {{view.otherLength}}
-    {{/if}}
-  </a>
+<a href="#" {{action showEditSlaveComponentGroups view.serviceConfig.category target="controller"}}>
+  {{#if view.hasMultipleHosts}}
+  {{hosts.firstObject.hostName}} and {{view.otherLength}}
+  {{else}}
+  {{hosts.firstObject.hostName}}
+  {{/if}}
+</a>
 {{/if}}

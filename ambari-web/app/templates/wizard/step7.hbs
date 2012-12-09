@@ -25,12 +25,12 @@
 
   <ul class="nav nav-tabs">
     {{#each service in controller.stepConfigs}}
-      {{#view App.WizardStep7.ServiceConfigTab}}
-        <a class="active" href="#{{unbound service.serviceName}}"
-           data-toggle="tab" {{action selectService service target="view"}}>
-          {{service.displayName}}{{#if service.errorCount}}<span
-          class="badge badge-important">{{service.errorCount}}</span>{{/if}}</a>
-      {{/view}}
+    {{#view App.WizardStep7.ServiceConfigTab}}
+    <a class="active" href="#{{unbound service.serviceName}}"
+       data-toggle="tab" {{action selectService service target="view"}}>
+      {{service.displayName}}{{#if service.errorCount}}<span
+      class="badge badge-important">{{service.errorCount}}</span>{{/if}}</a>
+    {{/view}}
     {{/each}}
   </ul>
 
@@ -49,73 +49,72 @@
       </div>
 
       {{#unless category.isForSlaveComponent}}
-        {{#view App.WizardStep7.ServiceConfigsByCategoryView categoryBinding="category" serviceConfigsBinding="selectedService.configs"}}
-          <form class="form-horizontal">
+      {{#view App.WizardStep7.ServiceConfigsByCategoryView categoryBinding="category" serviceConfigsBinding="selectedService.configs"}}
+      <form class="form-horizontal">
 
-            {{#each view.categoryConfigs}}
-              {{#if isVisible}}
-              <div {{bindAttr class="errorMessage:error: :control-group"}}>
-                <label class="control-label">{{displayName}}</label>
+        {{#each view.categoryConfigs}}
+        {{#if isVisible}}
+        <div {{bindAttr class="errorMessage:error: :control-group"}}>
+          <label class="control-label">{{displayName}}</label>
 
-                <div class="controls">
-                  {{view viewClass serviceConfigBinding="this" categoryConfigsBinding="view.categoryConfigs"}}
-                  <span class="help-inline">{{errorMessage}}</span>
-                </div>
-              </div>
-              {{/if}}
-            {{/each}}
+          <div class="controls">
+            {{view viewClass serviceConfigBinding="this" categoryConfigsBinding="view.categoryConfigs"}}
+            <span class="help-inline">{{errorMessage}}</span>
+          </div>
+        </div>
+        {{/if}}
+        {{/each}}
 
-          </form>
-        {{/view}}
+      </form>
+      {{/view}}
       {{/unless}}
 
       {{#if category.isForSlaveComponent}}
-        {{#view App.WizardStep7.ServiceConfigsByCategoryView categoryBinding="category" serviceConfigsBinding="selectedService.configs" controllerBinding="App.router.slaveComponentGroupsController"}}
-            <div class="slave-component-group-menu">
-              {{view App.SlaveComponentGroupsMenu}}
-            </div>
+      {{#view App.WizardStep7.ServiceConfigsByCategoryView categoryBinding="category" serviceConfigsBinding="selectedService.configs" controllerBinding="App.router.slaveComponentGroupsController"}}
+      <div class="slave-component-group-menu">
+        {{view App.SlaveComponentGroupsMenu}}
+      </div>
 
-            {{#view App.AddSlaveComponentGroupButton slaveComponentNameBinding="category.name"}}
-            <a
-              class="btn add-slave-component-group btn-large" {{action addSlaveComponentGroup target="controller"}}><i
-              class="icon-plus"></i></a>
-            {{/view}}
-            <div class="remove-group-error control-group warning">
-              <span class="help-inline">You cannot delete this group since there are hosts assigned to it. You must assign them to another group before you can delete this group.</span>
-            </div>
+      {{#view App.AddSlaveComponentGroupButton slaveComponentNameBinding="category.name"}}
+      <a
+        class="btn add-slave-component-group btn-large" {{action addSlaveComponentGroup target="controller"}}><i
+        class="icon-plus"></i></a>
+      {{/view}}
+      <div class="remove-group-error control-group warning">
+        <span class="help-inline">You cannot delete this group since there are hosts assigned to it. You must assign them to another group before you can delete this group.</span>
+      </div>
 
-            <form class="form-horizontal">
+      <form class="form-horizontal">
 
-              {{#view App.SlaveComponentChangeGroupNameView}}
-                <label class="control-label">Group name</label>
+        {{#view App.SlaveComponentChangeGroupNameView}}
+        <label class="control-label">Group name</label>
 
-                <div class="controls">
-                  <div class="span6">
-                    <input class="span9" type="text" {{bindAttr value="view.content.name"}}>
-                    <button class="btn" {{action changeGroupName target="view"}}>Save</button>
-                  </div>
-                  <span class="help-inline">{{view.errorMessage}}</span>
-                </div>
-              {{/view}}
-
-
-              {{#each view.categoryConfigs}}
-                {{#if isVisible}}
-                <div {{bindAttr class="errorMessage:error: :control-group"}}>
-                  <label class="control-label">{{displayName}}</label>
-
-                  <div class="controls">
-                    {{view viewClass serviceConfigBinding="this" categoryConfigsBinding="view.categoryConfigs"}}
-                    <span class="help-inline">{{errorMessage}}</span>
-                  </div>
-                </div>
-                {{/if}}
-              {{/each}}
-
-            </form>
-
-
+        <div class="controls">
+          <div class="span6">
+            <input class="span9"
+                   type="text" {{bindAttr value="view.content.name"}}>
+            <button class="btn" {{action changeGroupName target="view"}}>Save
+            </button>
+          </div>
+          <span class="help-inline">{{view.errorMessage}}</span>
+        </div>
         {{/view}}
+
+        {{#view App.SlaveGroupPropertiesView}}
+        {{#each view.groupConfigs}}
+        {{#if this.isVisible}}
+        <div {{bindAttr class="errorMessage:error: :control-group"}}>
+          <label class="control-label">{{this.displayName}}</label>
+          <div class="controls">
+            {{view this.viewClass serviceConfigBinding="this"}}
+            <span class="help-inline">{{this.errorMessage}}</span>
+          </div>
+        </div>
+        {{/if}}
+        {{/each}}
+        {{/view}}
+      </form>
+      {{/view}}
       {{/if}}
     </div>
     {{/each}}
@@ -128,7 +127,8 @@
   <div class="btn-area">
     <a class="btn" {{action back}}>&larr; Back</a>
 
-    <a class="btn btn-success pull-right" {{bindAttr disabled="isSubmitDisabled"}}
+    <a
+      class="btn btn-success pull-right" {{bindAttr disabled="isSubmitDisabled"}}
       {{action submit target="controller"}}>Next &rarr;</a>
   </div>
 </div>

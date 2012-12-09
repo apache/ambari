@@ -29,12 +29,18 @@ App.ServiceConfig = Ember.Object.extend({
   configs: null,
 
   errorCount: function () {
-    return this.get('configs').filterProperty('isValid', false).filterProperty('isVisible', true).get('length');
-  }.property('configs.@each.isValid', 'configs.@each.isVisible')
+    var masterErrors = this.get('configs').filterProperty('isValid', false).filterProperty('isVisible', true).get('length');
+    var slaveErrors = 0;
+    this.get('configCategories').forEach(function(_category){
+    slaveErrors += _category.get('slaveErrorCount');
+    },this);
+    return masterErrors + slaveErrors;
+  }.property('configs.@each.isValid', 'configs.@each.isVisible', 'configCategories.@each.slaveErrorCount')
 });
 
 App.ServiceConfigCategory = Ember.Object.extend({
   name: null,
+  slaveConfigs: null,
 
   isForMasterComponent: function () {
     var masterServices = [ 'NameNode', 'SNameNode', 'JobTracker', 'HBase Master', 'Oozie Master',
@@ -46,8 +52,30 @@ App.ServiceConfigCategory = Ember.Object.extend({
   isForSlaveComponent: function () {
     return this.get('name') === 'DataNode' || this.get('name') === 'TaskTracker' ||
       this.get('name') === 'RegionServer';
-  }.property('name')
+  }.property('name'),
+
+  slaveErrorCount: function () {
+    var length = 0;
+    if (this.get('slaveConfigs.groups')) {
+      this.get('slaveConfigs.groups').forEach(function (_group) {
+        length += _group.get('errorCount');
+      }, this);
+    }
+    return length;
+  }.property('slaveConfigs.groups.@each.errorCount')
 });
+
+App.Group = Ember.Object.extend({
+  name: null,
+  hostNames: null,
+  properties: null,
+  errorCount: function () {
+    if (this.get('properties')) {
+      return this.get('properties').filterProperty('isValid', false).filterProperty('isVisible', true).get('length');
+    }
+  }.property('properties.@each.isValid', 'properties.@each.isVisible')
+});
+
 
 App.ServiceConfigProperty = Ember.Object.extend({
 
