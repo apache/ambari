@@ -20,44 +20,74 @@ var App = require('app');
 var graph = require('utils/graph');
 
 App.MainAppsItemBarView = Em.View.extend({
-    elementId: 'bars',
-    templateName: require('templates/main/apps/item/bar'),
-    content:function(){
-        return this.get('controller.content.jobs');
-    }.property('controller.content.jobs'),
-    firstJob: function() {
-        return this.get('content').get('firstObject');
-    }.property('content'),
-    activeJob:null,
-    selectJob: function(event) {
-        this.set('activeJob', event.context);
+  elementId:'bars',
+  templateName:require('templates/main/apps/item/bar'),
+  width:300,
+  height:210,
 
-    },
-    onLoad:function () {
-        if(!this.get('controller.content.loadAllJobs') || this.get('activeJob')){
-          return;
-        }
+  content:function () {
+    return this.get('controller.content.jobs');
+  }.property('controller.content.jobs'),
+  firstJob:function () {
+    return this.get('content').get('firstObject');
+  }.property('content'),
+  activeJob:null,
+  selectJob:function (event) {
+    this.set('activeJob', event.context);
 
-        this.set('activeJob', this.get('firstJob'));
-    }.observes('controller.content.loadAllJobs'),
-    didInsertElement: function(){
-      this.onLoad();
-    },
-    draw: function() {
-        if(!this.get('activeJob')){
-            return;//when job is not defined
-        }
-        width = 300;
-        height = 210;
-        var desc1 = $('#graph1_desc');
-        var desc2 = $('#graph2_desc');
-        $('.rickshaw_graph, .rickshaw_legend, .rickshaw_annotation_timeline').html('');
-        if (null == desc1.html() || null == desc2.html()) return;
-        desc1.css('display','block');
-        desc2.css('display','block');
-        graph.drawJobTimeLine(this.get('activeJob').get('jobTimeLine'), width, height, '#chart', 'legend', 'timeline1');
-        graph.drawJobTasks(this.get('activeJob').get('jobTaskView'), width, height, '#job_tasks', 'tasks_legend', 'timeline2');
-    }.observes('activeJob')
+  },
+  onLoad:function () {
+    if (!this.get('controller.content.loadAllJobs') || this.get('activeJob')) {
+      return;
+    }
 
+    this.set('activeJob', this.get('firstJob'));
+  }.observes('controller.content.loadAllJobs'),
+  didInsertElement:function () {
+    this.onLoad();
+  },
+  draw:function () {
+    var self = this;
+    if (!this.get('activeJob')) {
+      return;//when job is not defined
+    }
+
+    var desc1 = $('#graph1_desc');
+    var desc2 = $('#graph2_desc');
+    $('.rickshaw_graph, .rickshaw_legend, .rickshaw_annotation_timeline').html('');
+    if (null == desc1.html() || null == desc2.html()) return;
+    desc1.css('display', 'block');
+    desc2.css('display', 'block');
+
+    this.propertyDidChange('getChartData');
+
+  }.observes('activeJob'),
+
+  jobTimeLine:false,
+  jobTaskView:false,
+
+  updateTimeLine:function () {
+    var url = App.testMode ? '/data/apps/jobs/timeline.json' : "urlTBD" + this.get('activeJob').get('jobName');
+    var mapper = App.jobTimeLineMapper;
+    mapper.set('model', this);
+    App.HttpClient.get(url, mapper);
+  }.observes('getChartData'),
+
+  updateTasksView:function () {
+    var url = App.testMode ? '/data/apps/jobs/taskview.json' : "urlTBD" + this.get('activeJob').get('jobName');
+    var mapper = App.jobTasksMapper;
+    mapper.set('model', this);
+    App.HttpClient.get(url, mapper);
+  }.observes('getChartData'),
+
+  drawJobTimeline:function () {
+    var timeline = JSON.stringify(this.get('jobTimeLine'));
+    graph.drawJobTimeLine(timeline, this.get('width'), this.get('height'), '#chart', 'legend', 'timeline1');
+  }.observes('jobTimeLine'),
+
+  drawJobTasks:function () {
+    var taskview = JSON.stringify(this.get('jobTaskView'));
+    graph.drawJobTasks(taskview, this.get('width'), this.get('height'), '#job_tasks', 'tasks_legend', 'timeline2');
+  }.observes('jobTaskView')
 
 });

@@ -220,10 +220,6 @@ App.format = {
         return 'Templeton Server';
       case 'TEMPLETON_SERVICE_CHECK':
         return 'Templeton Service Check';
-      case 'DASHBOARD':
-        return 'Dashboard';
-      case 'DASHBOARD_SERVICE_CHECK':
-        return 'Dashboard Service Check';
       case 'NAGIOS_SERVER':
         return 'Nagios Server';
       case 'GANGLIA_SERVER':
@@ -234,8 +230,6 @@ App.format = {
         return 'Gmond Service Check'
       case 'GMETAD_SERVICE_CHECK':
         return 'Gmetad Service Check';
-      case 'MONTOR_WEBSERVER':
-        return 'Monitor Webserver'
       case 'DECOMMISSION_DATANODE':
         return 'Decommission DataNode';
     }

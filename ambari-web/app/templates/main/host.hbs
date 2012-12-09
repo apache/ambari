@@ -19,16 +19,6 @@
 <div id="hosts" class="box">
   <div class="box-header">
     <div class="button-section">
-      <div>
-        <div class="span3">
-          {{view view.RackCombobox}}
-        </div>
-        <div class="span">
-          <button {{bindAttr disabled="view.assignRackButtonDisabled"}} class="btn" {{action assignHostsToRack target="App.router.mainHostController"}}>
-            Assign
-          </button>
-        </div>
-      </div>
       <button class="btn btn-inverse add-host-button" {{action addHost}}>
         <i class="icon-plus icon-white"></i>
         Add New Hosts
@@ -149,7 +139,7 @@
     <hr/>
     <div class="footer-pagination">
       <ul class="nav nav-pills">
-        <li class="disabled">Show Hosts</li>
+        <li class="disabled">Show: </li>
         <li class="dropdown">
           {{view Em.Select contentBinding="pageSizeRange"
                     selectionBinding="pageSize"

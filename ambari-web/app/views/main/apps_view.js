@@ -452,7 +452,7 @@ App.MainAppsView = Em.View.extend({
   typeSelectView: Em.Select.extend({
     classNames: ['input-small'],
     selected: 'Any',
-    content:['Any', 'Pig', 'Hive', 'mapReduce'],
+    content:['Any', 'Pig', 'Hive', 'MapReduce'],
     change:function(event){
       if(this.get('selection') === 'Any') {
         this.$().closest('th').addClass('notActive');

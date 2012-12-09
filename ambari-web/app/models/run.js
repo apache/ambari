@@ -96,7 +96,7 @@ App.Run = DS.Model.extend({
       return 'Hive';
     }
     if (this.get('id').indexOf('mr_') === 0) {
-      return 'mapReduce';
+      return 'MapReduce';
     }
   }.property('id')
 });

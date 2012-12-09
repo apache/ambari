@@ -597,7 +597,6 @@ App.WizardStep8Controller = Em.Controller.extend({
    * Onclick handler for <code>next</code> button
    */
   submit: function () {
-    debugger;
 
     if (App.testMode) {
       // App.router.send('next');

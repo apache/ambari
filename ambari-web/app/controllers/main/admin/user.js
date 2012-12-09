@@ -21,6 +21,7 @@ var App = require('app');
 App.MainAdminUserController = Em.Controller.extend({
   name:'mainAdminUserController',
   deleteRecord:function (event) {
+    var self = this;
     if (event.context.get('userName') == App.get('router').getLoginName()) {
       App.ModalPopup.show({
         header:Em.I18n.t('admin.users.delete.yourself.header'),
@@ -36,35 +37,63 @@ App.MainAdminUserController = Em.Controller.extend({
     ;
 
     App.ModalPopup.show({
-      itemToDelete:event.context,
       header:Em.I18n.t('admin.users.delete.header').format(event.context.get('userName')),
       body:Em.I18n.t('question.sure'),
       primary:Em.I18n.t('yes'),
       secondary:Em.I18n.t('no'),
-      controller:this.controllers.mainAdminUserEditController,
-      onPrimary:function (event) {
 
-        //TODO: change sendCommandToServer parametrs for proper API request
-        this.get('controller').sendCommandToServer('/users/delete/' + this.get('itemToDelete').context.get("userName"), {
-            Users:{ /* password: form.getValues().password, roles: form.getValues().roles*/ }
-          },
+      onPrimary:function () {
+        self.sendCommandToServer('/users/' +  event.context.get("userName"),"DELETE" ,{},
           function (requestId) {
 
             if (!requestId) {
               return;
             }
 
-            this.get('itemToDelete').context.deleteRecord();
+            event.context.deleteRecord();
+
             try {
               App.store.commit()
             } catch (err) {
+
             }
-            ;
           })
+        this.hide();
       },
-      onSecondary:function (event) {
+      onSecondary:function () {
         this.hide();
       }
+    });
+  },
+  sendCommandToServer : function(url, method, postData, callback){
+    var url =  (App.testMode) ?
+        '/data/wizard/deploy/poll_1.json' : //content is the same as ours
+        '/api/' + url;
+
+    var method = App.testMode ? 'GET' : method;
+
+    $.ajax({
+      type: method,
+      url: url,
+      data: JSON.stringify(postData),
+      dataType: 'json',
+      timeout: 5000,
+      success: function(data){
+        if(data && data.Requests){
+          callback(data.Requests.id);
+        } else{
+          callback(null);
+          console.log('cannot get request id from ', data);
+        }
+      },
+
+      error: function (request, ajaxOptions, error) {
+        //do something
+        callback(null);
+        console.log('error on change component host status')
+      },
+
+      statusCode: require('data/statusCodes')
     });
   }
 })

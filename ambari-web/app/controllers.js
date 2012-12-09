@@ -28,6 +28,7 @@ require('controllers/main/admin');
 require('controllers/main/admin/item');
 require('controllers/main/admin/user');
 require('controllers/main/admin/user/edit');
+require('controllers/main/admin/user/create');
 require('controllers/main/admin/advanced');
 require('controllers/main/admin/authentication');
 require('controllers/main/service');

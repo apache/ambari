@@ -28,6 +28,11 @@ App.hostsMapper = App.QuickDataMapper.create({
     components: {
       item : 'HostRoles.component_name'
     },
+    host_components_key: 'host_components',
+    host_components_type: 'array',
+    host_components: {
+      item: 'id'
+    },
     cpu : 'Hosts.cpu_count',
     memory : 'Hosts.total_mem',
     disk_info: 'Hosts.disk_info',
@@ -42,6 +47,25 @@ App.hostsMapper = App.QuickDataMapper.create({
     os_arch : 'Hosts.os_arch',
     os_type : 'Hosts.os_type',
     ip : 'Hosts.ip'
+  },
+  map: function (json) {
+    if (!this.get('model')) {
+      return;
+    }
+
+    if (json.items) {
+      var result = [];
+
+      json.items.forEach(function (item) {
+        item.host_components.forEach(function(host_component){
+          host_component.id = host_component.HostRoles.component_name + "_" + host_component.HostRoles.host_name;
+        }, this);
+        result.push(this.parseIt(item, this.config));
+      }, this);
+
+      //console.log(this.get('model'), result);
+      App.store.loadMany(this.get('model'), result);
+    }
   }
 
 });

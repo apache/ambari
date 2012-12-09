@@ -28,9 +28,29 @@ App.Service = DS.Model.extend({
   alerts: DS.hasMany('App.Alert'),
   quickLinks: DS.hasMany('App.QuickLinks'),
   components: DS.hasMany('App.Component'),
+  hostComponents: DS.hasMany('App.HostComponent'),
+  isRunning: function(){
+    var workStatus = this.get('workStatus');
+    if([App.Service.Health.live, App.Service.Health.starting].contains(workStatus) ){
+      return true;
+    }
+    return false;
+  }.property('workStatus'),
+
+  healthStatus: function(){
+    var components = this.get('components').filterProperty('isMaster', true);
+    if(components.everyProperty('workStatus', App.Component.Status.started)){
+      return 'green';
+    } else if(components.someProperty('workStatus', App.Component.Status.stopped)){
+      return 'red';
+    } else if(components.someProperty('workStatus', App.Component.Status.starting)){
+      return 'green-blinking';
+    }
+    return 'red-blinking';
+  }.property('components.@each.workStatus'),
 
   displayName: function () {
-    switch (this.get('serviceName')) {
+    switch (this.get('serviceName').toLowerCase()) {
       case 'hdfs':
         return 'HDFS';
       case 'mapreduce':

@@ -399,7 +399,7 @@ App.WizardStep9Controller = Em.Controller.extend({
         } else {
           clusterStatus.status = 'INSTALLED';
           this.set('progress', '34');
-          this.launchStartServices();  //TODO: uncomment after the actual hookup
+          this.launchStartServices();
         }
         this.setTasksPerHost();
         App.router.get(this.get('content.controllerName')).saveInstalledHosts(this);
@@ -471,7 +471,7 @@ App.WizardStep9Controller = Em.Controller.extend({
         this.onSuccessPerHost(actionsPerHost, _host);     // every action should be a success
         this.onWarningPerHost(actionsPerHost, _host);     // any action should be a faliure
         this.onInProgressPerHost(actionsPerHost, _host);  // current running action for a host
-        totalProgress = self.progressPerHost(actionsPerHost, _host);
+        totalProgress += self.progressPerHost(actionsPerHost, _host);
       }
     }, this);
     totalProgress = Math.floor(totalProgress / this.hosts.length);
@@ -505,10 +505,10 @@ App.WizardStep9Controller = Em.Controller.extend({
       this.POLL_INTERVAL = 1;
       this.numPolls++;
       if (this.numPolls == 5) {
-        // url = 'data/wizard/deploy/poll_5.json';
-        url = 'data/wizard/deploy/poll_5_failed.json';
+        url = 'data/wizard/deploy/multi_5.json';
+        //url = 'data/wizard/deploy/poll_5_failed.json';
       } else {
-        url = 'data/wizard/deploy/poll_' + this.numPolls + '.json';
+        url = 'data/wizard/deploy/multi_' + this.numPolls + '.json';
       }
       debugger;
     }

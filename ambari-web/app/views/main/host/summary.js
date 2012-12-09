@@ -87,7 +87,10 @@ App.MainHostSummaryView = Em.View.extend({
      * Shows whether we need to show health status
      */
     isClient: function() {
-      return this.get('content.componentName').substr(-7) === '_CLIENT';
+      var componentName = this.get('content.componentName');
+      return componentName.substr(-7) === '_CLIENT' ||
+        componentName === 'PIG' ||
+        componentName === 'SQOOP';
     }.property('content')
   })
 

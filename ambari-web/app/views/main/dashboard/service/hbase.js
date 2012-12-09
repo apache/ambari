@@ -25,7 +25,9 @@ App.MainDashboardServiceHbaseView = App.MainDashboardServiceView.extend({
     var heapUsed = this.get('service').get('heapMemoryUsed');
     var heapMax = this.get('service').get('heapMemoryMax');
     var percent = heapMax > 0 ? 100 * heapUsed / heapMax : 0;
-    return this.t('dashboard.services.hbase.masterServerHeap.summary').format(heapUsed.bytesToSize(1, "parseFloat"), heapMax.bytesToSize(1, "parseFloat"), percent.toFixed(1));
+    var heapString = heapUsed>0 ? heapUsed.bytesToSize(1, "parseFloat") : 0;
+    var heapMaxString = heapMax>0 ? heapMax.bytesToSize(1, "parseFloat") : 0;
+    return this.t('dashboard.services.hbase.masterServerHeap.summary').format(heapString, heapMaxString, percent.toFixed(1));
   }.property('service'),
 
   summaryHeader: function () {

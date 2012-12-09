@@ -32,12 +32,12 @@
       {{/each}}
     </ul>
   </div>
-  <a href="javascript:void(null)" {{bindAttr class=":btn controller.content.workStatus:disabled:btn-success" }}
+  <a href="javascript:void(null)" {{bindAttr class=":btn controller.content.isRunning:disabled:btn-success" }}
      data-toggle="modal" {{action "startService" target="controller"}}>
     <i class="icon-play"></i>
     Start
   </a>
-  <a href="javascript:void(null)" {{bindAttr class=":btn controller.content.workStatus:btn-danger:disabled" }}
+  <a href="javascript:void(null)" {{bindAttr class=":btn controller.content.isRunning:btn-danger:disabled" }}
      data-toggle="modal" {{action "stopService" target="controller"}}>
     <i class="icon-stop icon-white"></i>
     Stop

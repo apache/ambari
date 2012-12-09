@@ -33,10 +33,6 @@ App.MainDashboardServiceHealthView = Em.View.extend({
    */
   showOnlyRows: false,
 
-  status: function () {
-    return this.get('service.workStatus');
-  }.property('service.workStatus'),
-
   startBlink: function () {
     this.set('blink', true);
   },
@@ -55,26 +51,30 @@ App.MainDashboardServiceHealthView = Em.View.extend({
   },
 
   healthStatus: function () {
-    var status = this.get('status');
+    var status = this.get('service.healthStatus');
     switch (status) {
-      case App.Service.Health.start:
+      case 'green':
+        status = App.Service.Health.live;
+        this.stopBlink();
+        break;
+      case 'green-blinking':
         status = App.Service.Health.live;
         this.startBlink();
         break;
-      case App.Service.Health.stop:
+      case 'red-blinking':
         status = App.Service.Health.dead;
         this.startBlink();
         break;
       default:
+        status = App.Service.Health.dead;
         this.stopBlink();
         break;
     }
 
     return 'health-status-' + status + " span";
-  }.property('status'),
+  }.property('service.healthStatus'),
 
   didInsertElement: function () {
-    this._super();
     this.doBlink(); // check for blink availability
   }
 });

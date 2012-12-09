@@ -20,8 +20,15 @@ var App = require('app');
 
 App.MainDashboardView = Em.View.extend({
   templateName: require('templates/main/dashboard'),
+  didInsertElement: function() {
+      this.services();
+  },
   content : [],
   services:function(){
+    if( this.get('content').length > 0)
+    {
+      return false;
+    }
     var services = App.Service.find();
     services.forEach(function(item){
       var vName;

@@ -24,6 +24,7 @@ App.Host = DS.Model.extend({
   hostName: DS.attr('string'),
   cluster: DS.belongsTo('App.Cluster'),
   components: DS.hasMany('App.Component'),
+  hostComponents: DS.hasMany('App.HostComponent'),
   cpu: DS.attr('string'),
   memory: DS.attr('string'),
   diskUsage: DS.attr('string'),
@@ -39,11 +40,12 @@ App.Host = DS.Model.extend({
   osType: DS.attr("string"),
   diskInfo: DS.attr('string'),
 
+
   /**
    * formatted bytes to appropriate value
    */
   memoryFormatted: function () {
-    return misc.formatBandwidth(this.get('memory'));
+    return misc.formatBandwidth(this.get('memory') * 1000);
   }.property('memory'),
   /**
    * Return true if host not heartbeating last 180 seconds

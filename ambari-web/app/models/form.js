@@ -35,13 +35,10 @@ App.Form = Em.View.extend({
 
   init:function () {
     var thisForm = this;
-    console.warn("FIELDS LEN:", this.fields.length);
-
     if (!this.fields.length) {
       this.fieldsOptions.forEach(
         function (options) {
           var field = App.FormField.create(options);
-          console.warn("CREATED FIELD VALUE:", field.get('value'));
           field.set('form', thisForm);
           thisForm.fields.push(field);
           thisForm.set("field." + field.get('name'), field);
@@ -290,7 +287,7 @@ App.FormField = Em.Object.extend({ // try to realize this as view
     if (!isError) {
       this.set('errorMessage', '');
     }
-  }.observes('value'),
+  },
 
   isHiddenField:function () {
     return this.get('displayType') == 'hidden';

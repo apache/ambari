@@ -18,14 +18,13 @@
 
 var App = require('app');
 
-App.MainAdminUserEditView = Em.View.extend({
-  templateName: require('templates/main/admin/user/edit'),
+App.MainAdminUserCreateView = Em.View.extend({
+  templateName: require('templates/main/admin/user/create'),
   userId: false,
-  edit: function(event){
+  create: function(event){
     var parent_controller=this.get("controller").controllers.mainAdminUserController;
     var form = this.get("userForm");
     if(form.isValid()) {
-      var Users={};
       if(form.getValues().admin === "" || form.getValues().admin == true) {
         form.getField("roles").set("value","admin");
         form.getField("admin").set("value","true");
@@ -33,15 +32,11 @@ App.MainAdminUserEditView = Em.View.extend({
         form.getField("roles").set("value","user");
       }
 
-      Users.roles = form.getValues().roles;
-
-      if(form.getValues().new_password != "" && form.getValues().old_password != ""){
-        Users.password=form.getValues().new_password;
-        Users.old_password=form.getValues().old_password;
-      }
-
-      parent_controller.sendCommandToServer('users/' + form.getValues().userName, "PUT" , {
-       Users:Users
+      parent_controller.sendCommandToServer('users/' + form.getValues().userName, "POST" , {
+        Users: {
+          password: form.getValues().password,
+          roles: form.getValues().roles
+        }
       }, function (requestId) {
 
         if (!requestId) {
@@ -55,7 +50,7 @@ App.MainAdminUserEditView = Em.View.extend({
     }
   },
 
-  userForm: App.EditUserForm.create({}),
+  userForm: App.CreateUserForm.create({}),
 
   didInsertElement: function(){
     this.get('userForm').propertyDidChange('object');

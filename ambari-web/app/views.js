@@ -58,6 +58,7 @@ require('views/main/admin/authentication');
 require('views/main/admin/menu');
 require('views/main/admin/security');
 require('views/main/admin/user');
+require('views/main/admin/user/create');
 require('views/main/admin/user/edit');
 require('views/main/admin/user/row');
 require('views/main/dashboard');

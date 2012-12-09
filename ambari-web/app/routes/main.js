@@ -188,7 +188,7 @@ module.exports = Em.Route.extend({
       createUser:Em.Route.extend({
         route:'/create',
         connectOutlets:function (router) {
-          router.get('mainAdminController').connectOutlet('mainAdminUserEdit', {});
+          router.get('mainAdminController').connectOutlet('mainAdminUserCreate', {});
         }
       }),
 

@@ -16,29 +16,9 @@
  * limitations under the License.
  */
 
+var App = require('app');
 
-// load all models here
-
-require('models/form'); // should be the 1st
-require('models/authentication');
-require('models/cluster');
-require('models/hosts');
-require('models/quick_links');
-require('models/service');
-require('models/component');
-require('models/service_config');
-require('models/service_audit');
-require('models/service_metrics');
-require('models/service/hdfs');
-require('models/service/mapreduce');
-require('models/service/hbase');
-require('models/alert');
-require('models/user');
-require('models/pagination');
-require('models/host');
-require('models/rack');
-require('models/job');
-require('models/run');
-require('models/app');
-require('models/background_operation');
-require('models/host_component');
+App.MainAdminUserCreateController = Em.Controller.extend({
+  name:'mainAdminUserCreateController',
+  content:false
+})

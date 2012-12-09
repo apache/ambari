@@ -26,12 +26,12 @@ App.MainServiceItemController = Em.Controller.extend({
    * @param url
    * @param data Object to send
    */
-  sendCommandToServer : function(url, postData, callback){
+  sendCommandToServer : function(url, method,postData, callback){
     var url =  (App.testMode) ?
       '/data/wizard/deploy/poll_1.json' : //content is the same as ours
       '/api/clusters/' + App.router.getClusterName() + url;
 
-    var method = App.testMode ? 'GET' : 'PUT';
+    method = App.testMode ? 'GET' : method;
 
     $.ajax({
       type: method,
@@ -74,7 +74,7 @@ App.MainServiceItemController = Em.Controller.extend({
       primary: 'Yes',
       secondary: 'No',
       onPrimary: function () {
-        self.sendCommandToServer('/services/' + self.get('content.serviceName').toUpperCase(), {
+        self.sendCommandToServer('/services/' + self.get('content.serviceName').toUpperCase(), "PUT", {
           ServiceInfo: {
             state: 'STARTED'
           }
@@ -128,7 +128,7 @@ App.MainServiceItemController = Em.Controller.extend({
       primary: 'Yes',
       secondary: 'No',
       onPrimary: function() {
-        self.sendCommandToServer('/services/' + self.get('content.serviceName').toUpperCase(),{
+        self.sendCommandToServer('/services/' + self.get('content.serviceName').toUpperCase(), "PUT",{
           ServiceInfo:{
             state: 'INSTALLED'
           }
@@ -208,7 +208,7 @@ App.MainServiceItemController = Em.Controller.extend({
 
         var serviceName = self.get('content.serviceName').toUpperCase();
         var smokeName = serviceName + "_SERVICE_CHECK";
-        self.sendCommandToServer('/services/' + serviceName + '/actions/' + smokeName,
+        self.sendCommandToServer('/services/' + serviceName + '/actions/' + smokeName, "POST",
             null,
             function (requestId) {
 
