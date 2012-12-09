@@ -16,13 +16,13 @@
 * limitations under the License.
 }}
 
-<td><a href="#" {{action "starClick" target="controller"}}"><span class="icon-star"></span><span class="hidden">{{run.workflowId}}</span></a></td>
-<td><a href="javascript:void(0)">ID&nbsp;{{run.appId}}</a></td>
-<td>{{run.appName}}</td>
-<td>{{run.type}}</td>
-<td>{{run.userName}}</td>
-<td>{{run.numJobsTotal}}</td>
-<td>{{run.inputFormatted}}</td>
-<td>{{run.outputFormatted}}</td>
-<td>{{run.duration}}</td>
-<td>{{run.lastUpdateTimeFormatted}} {{#if run.isRunning}}<b class='red'>*</b>{{/if}}</td>
+<td><a href="#" {{action "starClick" target="controller"}}><span class="icon-star"></span></a></td>
+<td class="appId">{{unbound run.id}}</td>
+<td>{{unbound run.appName}}</td>
+<td>{{unbound run.type}}</td>
+<td>{{unbound run.userName}}</td>
+<td>{{unbound run.numJobsTotal}}</td>
+<td>{{unbound run.inputFormatted}}</td>
+<td>{{unbound run.outputFormatted}}</td>
+<td>{{unbound run.duration}}</td>
+<td>{{unbound run.lastUpdateTimeFormatted}} {{#if run.isRunning}}<b class='red'>*</b>{{/if}}</td>

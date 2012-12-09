@@ -20,15 +20,13 @@ var App = require('app');
 require('utils/jquery.unique');
 
 App.MainAppsController = Em.ArrayController.extend({
+
   name:'mainAppsController',
-  content:App.Run.find(),
-  apps:App.App.find(),
+  content: App.Run.find(),
+
   staredRuns: [],
   filteredRuns: [],
-  routeHome:function () {
-    App.router.transitionTo('main.dashboard');
-    var view = Ember.View.views['main_menu'];
-  },
+
   clearFilteredRuns: function() {
     this.set('filteredRuns', []);
     this.set('filteredRunsLength', 0);
@@ -43,13 +41,7 @@ App.MainAppsController = Em.ArrayController.extend({
    * @return {*} run if exists, undefined - not exists
    */
   getRunById: function(id) {
-    var r;
-    this.get('content').forEach(function(item){
-      if (item.get('workflowId') == id) {
-        r = item;
-      }
-    });
-    return r;
+    return this.get('content').findProperty('id', id);
   },
   /**
    * Check if run with such id exists
@@ -57,13 +49,7 @@ App.MainAppsController = Em.ArrayController.extend({
    * @return {Boolean} true - record with this id exists, false - not exists
    */
   issetStaredRun: function(id) {
-    var r = false;
-    this.get('staredRuns').forEach(function(item){
-      if (item.get('workflowId') == id) {
-        r = true;
-      }
-    });
-    return r;
+    return this.get('staredRuns').someProperty('id', id);
   },
   /**
    * Identifier of the last starred/unstarred run
@@ -76,9 +62,8 @@ App.MainAppsController = Em.ArrayController.extend({
   starClick: function(event) {
     $(event.target).closest('table').find('.containerRow').remove(); // hack for valid "turning-off" star in table, where graphs row where enabled. We remove it
     event.target.classList.toggle('stared');
-    var cell = event.target.parentNode.parentNode;
-    var row = cell.parentNode;
-    var id = jQuery(event.target).parent().children(1).text();
+
+    var id = jQuery(event.target).parent().parent().parent().find('.appId').text();
     if (!this.issetStaredRun(id)) {
       this.get('staredRuns').push(this.getRunById(id));
     }

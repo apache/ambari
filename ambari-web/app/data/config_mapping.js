@@ -21,7 +21,7 @@ module.exports = [
     "name": "fs.default.name",
     "templateName": ["namenode_host"],
     "foreignKey": null,
-    "value": "<templateName[0]>:8020",
+    "value": "hdfs://<templateName[0]>:8020",
     "filename": "core-site.xml"
   },
   {

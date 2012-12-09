@@ -66,7 +66,7 @@ module.exports =
   "configProperties": [
     {
       "id": "puppet var",
-      "name": "hbasemaster.host",
+      "name": "hbasemaster_host",
       "displayName": "HBase Master host",
       "value": "",
       "defaultValue": "",
@@ -609,8 +609,8 @@ module.exports =
     {
       "id": "puppet var",
       "name": "proxyuser_group",
-      "displayName": "Proxy group for Hive, templeton and oozie.",
-      "description": "Maximum size of the edits log file that forces an urgent checkpoint even if the maximum checkpoint delay is not reached",
+      "displayName": "Proxy group for Hive, Templeton and Oozie.",
+      "description": "",
       "defaultValue": "users",
       "isReconfigurable": false,
       "displayType": "advanced",
@@ -784,7 +784,7 @@ module.exports =
     }, */
     {
       "id": "puppet var",
-      "name": "hivemetastore.host",
+      "name": "hivemetastore_host",
       "displayName": "Hive Metastore host",
       "value": "",
       "defaultValue": "",
@@ -1025,18 +1025,6 @@ module.exports =
     },
     {
       "id": "puppet var",
-      "name": "proxyuser_group",
-      "displayName": "Proxy group for Hive, templeton and oozie.",
-      "description": "Maximum size of the edits log file that forces an urgent checkpoint even if the maximum checkpoint delay is not reached",
-      "defaultValue": "users",
-      "isReconfigurable": false,
-      "displayType": "advanced",
-      "isVisible": false,
-      "serviceName": "Hive",
-      "category": "Advanced"
-    },
-    {
-      "id": "puppet var",
       "name": "ganglia_conf_dir",
       "displayName": "Ganglia conf directory",
       "description": "",
@@ -1145,7 +1133,7 @@ module.exports =
     },*/
     {
       "id": "puppet var",
-      "name": "jobtracker.host",
+      "name": "jobtracker_host",
       "displayName": "JobTracker host",
       "value": "",
       "defaultValue": "",
@@ -1457,6 +1445,7 @@ module.exports =
       "serviceName": "MAPREDUCE",
       "category": "Advanced"
     },
+    /*
     {
       "id": "puppet var",
       "name": "jdk_location",
@@ -1469,6 +1458,7 @@ module.exports =
       "isVisible": true,
       "serviceName": "MISC"
     },
+    */
     {
       "id": "puppet var",
       "name": "java64_home",
@@ -1579,7 +1569,7 @@ module.exports =
       "isReconfigurable": false,
       "displayType": "directory",
       "isVisible": false,
-      "serviceName": "MISC",
+      "serviceName": "MISC"
     },
     /*
      {
@@ -1681,6 +1671,18 @@ module.exports =
       "displayName": "HCat User",
       "description": "User to run HCatalog as",
       "defaultValue": "hcat",
+      "isReconfigurable": false,
+      "displayType": "user",
+      "isVisible": true,
+      "serviceName": "MISC",
+      "category": "Users/Groups"
+    },
+    {
+      "id": "puppet var",
+      "name": "templeton_user",
+      "displayName": "Templeton User",
+      "description": "User to run Templeton as",
+      "defaultValue": "templeton",
       "isReconfigurable": false,
       "displayType": "user",
       "isVisible": true,
@@ -1851,7 +1853,7 @@ module.exports =
     },
     {
       "id": "puppet var",
-      "name": "oozieserver.host",
+      "name": "oozieserver_host",
       "displayName": "Oozie Server host",
       "value": "",
       "defaultValue": "",

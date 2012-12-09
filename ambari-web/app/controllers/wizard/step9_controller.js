@@ -118,7 +118,7 @@ App.WizardStep9Controller = Em.Controller.extend({
           case 'PENDING':
             return 'Preparing to install ' + role;
           case 'QUEUED' :
-            return role + ' is queued for installation';
+            return 'Waiting to install ' + role;
           case 'IN_PROGRESS':
             return 'Installing ' + role;
           case 'COMPLETED' :
@@ -131,7 +131,7 @@ App.WizardStep9Controller = Em.Controller.extend({
           case 'PENDING':
             return 'Preparing to uninstall ' + role;
           case 'QUEUED' :
-            return role + ' is queued for uninstallation';
+            return 'Waiting to uninstall ' + role;
           case 'IN_PROGRESS':
             return 'Uninstalling ' + role;
           case 'COMPLETED' :
@@ -144,7 +144,7 @@ App.WizardStep9Controller = Em.Controller.extend({
           case 'PENDING':
             return 'Preparing to start ' + role;
           case 'QUEUED' :
-            return role + ' is queued for starting';
+            return 'Waiting to start ' + role;
           case 'IN_PROGRESS':
             return 'Starting ' + role;
           case 'COMPLETED' :
@@ -157,7 +157,7 @@ App.WizardStep9Controller = Em.Controller.extend({
           case 'PENDING':
             return 'Preparing to stop ' + role;
           case 'QUEUED' :
-            return role + ' is queued for stopping';
+            return 'Waiting to stop ' + role;
           case 'IN_PROGRESS':
             return 'Stopping ' + role;
           case 'COMPLETED' :
@@ -170,9 +170,9 @@ App.WizardStep9Controller = Em.Controller.extend({
           case 'PENDING':
             return 'Preparing to execute ' + role;
           case 'QUEUED' :
-            return role + ' is queued for execution';
+            return 'Waiting to execute ' + role;
           case 'IN_PROGRESS':
-            return 'Execution of ' + role + ' in progress';
+            return 'Executing ' + role;
           case 'COMPLETED' :
             return role + ' executed successfully';
           case 'FAILED':
@@ -183,7 +183,7 @@ App.WizardStep9Controller = Em.Controller.extend({
           case 'PENDING':
             return 'Preparing to abort ' + role;
           case 'QUEUED' :
-            return role + ' is queued for aborting';
+            return 'Waiting to abort ' + role;
           case 'IN_PROGRESS':
             return 'Aborting ' + role;
           case 'COMPLETED' :

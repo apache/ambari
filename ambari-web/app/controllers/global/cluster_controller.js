@@ -35,7 +35,6 @@ App.ClusterController = Em.Controller.extend({
   },
   dataLoadList: Em.Object.create({
     'hosts': false,
-    'jobs': false,
     'runs': false,
     'services': false,
     'cluster' : false,
@@ -179,8 +178,7 @@ App.ClusterController = Em.Controller.extend({
      var hostsUrl = this.getUrl('/data/hosts/hosts.json', '/hosts?fields=*');
      var servicesUrl = this.getUrl('/data/dashboard/services.json', '/services?ServiceInfo/service_name!=MISCELLANEOUS&ServiceInfo/service_name!=DASHBOARD&fields=components/host_components/*');
 
-     var jobsUrl = "/data/apps/jobs.json";
-     var runsUrl = "/data/apps/runs.json";
+     var runsUrl = App.testMode ? "/data/apps/runs.json" : "/api/jobhistory/workflow";
 
      var racksUrl = "/data/racks/racks.json";
 
@@ -194,16 +192,13 @@ App.ClusterController = Em.Controller.extend({
         self.updateLoadStatus('cluster');
       }
     });
-     App.HttpClient.get(jobsUrl, App.jobsMapper,{
+
+     App.HttpClient.get(runsUrl, App.runsMapper,{
        complete:function(jqXHR, textStatus) {
-         self.updateLoadStatus('jobs');
-         App.HttpClient.get(runsUrl, App.runsMapper,{
-           complete:function(jqXHR, textStatus) {
-             self.updateLoadStatus('runs');
-           }
-         });
+         self.updateLoadStatus('runs');
        }
      });
+
     App.HttpClient.get(hostsUrl, App.hostsMapper,{
       complete:function(jqXHR, textStatus){
         self.updateLoadStatus('hosts');

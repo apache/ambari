@@ -16,6 +16,7 @@
  * limitations under the License.
  */
 
+/*
 var App = require('app');
 
 require('models/alert'); 
@@ -32,3 +33,4 @@ describe('MainDashboard', function () {
     })
   })
 })
+*/

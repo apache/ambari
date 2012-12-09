@@ -47,14 +47,15 @@ App.runsMapper = App.QuickDataMapper.create({
     }
   },
   config : {
-    run_id: 'workflowName',
-    workflow_id: 'workflowId',
-    $parent_run_id: null,
-    //workflow_context:'{dag: {"1":["2","3"],"2":["3","4"],"4":["2","5"]}}',
-    //last_update_time:'1347639541501',
+    id: 'workflowId',
+    app_name: 'workflowName',
+    $type: 'Pig',
+    num_jobs_total: 'numJobsTotal',
+    num_jobs_completed: 'numJobsCompleted',
     user_name:'userName',
     start_time: 'startTime',
     elapsed_time: 'elapsedTime',
-    $app_id: 1
+    $input: 9403,
+    $output: 1230
   }
 });

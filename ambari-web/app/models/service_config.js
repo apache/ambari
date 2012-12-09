@@ -86,22 +86,19 @@ App.ServiceConfigProperty = Ember.Object.extend({
       case 'snamenode_host':
         this.set('value', masterComponentHostsInDB.findProperty('component', 'SECONDARY_NAMENODE').hostName);
         break;
-      case 'jobtracker.host':
+      case 'jobtracker_host':
         this.set('value', masterComponentHostsInDB.findProperty('component', 'JOBTRACKER').hostName);
         break;
-      case 'hbasemaster.host':
+      case 'hbasemaster_host':
         this.set('value', masterComponentHostsInDB.findProperty('component', 'HBASE_MASTER').hostName);
         break;
-      case 'zookeeperserver.hosts':
-        this.set('value', masterComponentHostsInDB.filterProperty('component', 'ZOOKEEPER_SERVER').mapProperty('hostName'));
-        break;
-      case 'hivemetastore.host':
+      case 'hivemetastore_host':
         this.set('value', masterComponentHostsInDB.findProperty('component', 'HIVE_SERVER').hostName);
         break;
       case 'hive_ambari_host':
         this.set('value', masterComponentHostsInDB.findProperty('component', 'HIVE_SERVER').hostName);
         break;
-      case 'oozieserver.host':
+      case 'oozieserver_host':
         this.set('value', masterComponentHostsInDB.findProperty('component', 'OOZIE_SERVER').hostName);
         break;
       case 'oozie_ambari_host':

@@ -15,6 +15,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
+/*
 var App = require('app');
 require('views/common/modal_popup');
 require('controllers/main/service/item');
@@ -30,3 +32,4 @@ describe('App.MainServiceItemController', function () {
         })
     })
 })
+*/

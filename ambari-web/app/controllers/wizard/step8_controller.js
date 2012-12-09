@@ -26,7 +26,7 @@ App.WizardStep8Controller = Em.Controller.extend({
   services: [],
   configs: [],
   globals: [],
-  configMapping: require('data/configMapping'),
+  configMapping: require('data/config_mapping'),
 
   selectedServices: function () {
     return this.get('content.services').filterProperty('isSelected', true);
@@ -56,12 +56,12 @@ App.WizardStep8Controller = Em.Controller.extend({
       var hiveDb = globals.findProperty('name', 'hive_database');
       if (hiveDb.value === 'New PostgreSQL Database') {
         globals.findProperty('name', 'hive_ambari_host').name = 'hive_mysql_host';
-        globals.without(globals.findProperty('name', 'hive_existing_host'));
-        globals.without(globals.findProperty('name', 'hive_existing_database'));
+        globals = globals.without(globals.findProperty('name', 'hive_existing_host'));
+        globals = globals.without(globals.findProperty('name', 'hive_existing_database'));
       } else {
         globals.findProperty('name', 'hive_existing_host').name = 'hive_mysql_host';
-        globals.without(globals.findProperty('name', 'hive_ambari_host'));
-        globals.without(globals.findProperty('name', 'hive_ambari_database'));
+        globals = globals.without(globals.findProperty('name', 'hive_ambari_host'));
+        globals = globals.without(globals.findProperty('name', 'hive_ambari_database'));
       }
     }
     this.set('globals', globals);
@@ -603,7 +603,7 @@ App.WizardStep8Controller = Em.Controller.extend({
       async: false,
       //accepts: 'text',
       dataType: 'text',
-      data: '{"Clusters": {"version" : "HDP-0.1"}}',
+      data: '{"Clusters": {"version" : "HDP-1.2.0"}}',
       timeout: 5000,
       success: function (data) {
         var jsonData = jQuery.parseJSON(data);
@@ -842,9 +842,15 @@ App.WizardStep8Controller = Em.Controller.extend({
   createGlobalSiteObj: function () {
     var globalSiteProperties = {};
     this.get('globals').forEach(function (_globalSiteObj) {
-      globalSiteProperties[_globalSiteObj.name] = _globalSiteObj.value;
-      console.log("STEP8: name of the global property is: " + _globalSiteObj.name);
-      console.log("STEP8: value of the global property is: " + _globalSiteObj.value);
+      // do not pass any globals whose name ends with _host or _hosts
+      if (!_globalSiteObj.name.match(/_hosts?$/)) {
+        if (_globalSiteObj.name.match(/_heapsize|_newsize|_maxnewsize$/)) {
+          _globalSiteObj.value += "m";
+        }
+        globalSiteProperties[_globalSiteObj.name] = _globalSiteObj.value;
+        console.log("STEP8: name of the global property is: " + _globalSiteObj.name);
+        console.log("STEP8: value of the global property is: " + _globalSiteObj.value);
+      }
     }, this);
     return {"type": "global", "tag": "version1", "properties": globalSiteProperties};
   },

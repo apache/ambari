@@ -318,7 +318,7 @@ App.WizardStep10Controller = Em.Controller.extend({
     var statement = 'Install and start of all services completed in '  + this.get('content.cluster.serviceStartTime') + ' minutes';
     this.get('clusterInfo').pushObject(Ember.Object.create({
       id: 5,
-      displayStatement: 'All services started',
+      displayStatement: statement,
       status: []
     }));
   }

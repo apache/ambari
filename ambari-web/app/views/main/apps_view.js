@@ -27,16 +27,8 @@ App.MainAppsView = Em.View.extend({
    * List of runs
    */
   content:function () {
-    var content =  this.get('controller').get('content');
-    content.forEach(function(run){
-      var app = App.store.find(App.App, run.get('appId'));
-      /*run.set('appName', app.get('appName'));
-      run.set('type', app.get('type'));*/
-      run.set('appName', 'pig.sh');
-      run.set('type', 'Pig');
-    });
-    return content;
-  }.property('App.router.mainAppsController.content'),
+    return this.get('controller.content');
+  }.property('controller.content'),
 
   /**
    * Choose view type for apps list:
@@ -222,9 +214,9 @@ App.MainAppsView = Em.View.extend({
     if (!this.get('oTable')) return;
     var rowIndex = -1;
     // Get real row index
-    var column = this.get('oTable').fnGetColumnData(0);
+    var column = this.get('oTable').fnGetColumnData(1);
     for (var i = 0; i < column.length; i++) {
-      if (runIndex == $(column[i]).text()) {
+      if (runIndex == column[i]) {
         rowIndex = i;
         break;
       }
@@ -423,7 +415,7 @@ App.MainAppsView = Em.View.extend({
     var rows = this.get('oTable')._('tr', {"filter":"applied"});
     this.get('controller').clearFilteredRuns();
     for(var i = 0; i < rows.length; i++) {
-      this.get('controller').addFilteredRun($(rows[i][0]).find('span.hidden').text());
+      this.get('controller').addFilteredRun(rows[i][1]);
     }
   }.observes('filtered'),
   /**
@@ -550,7 +542,7 @@ App.MainAppsView = Em.View.extend({
     open: false,
     isApplyDisabled:true,
     users:function(){
-      var users = new Array();
+      var users = [];
       for(var i = 0; i < this.get('parentView').get('users').length; i++)
         users.push(Ember.Object.create({
           name:this.get('parentView').get('users')[i],

@@ -55,7 +55,7 @@ App.WizardStep7Controller = Em.Controller.extend({
   }.property('content.slaveComponentHosts'),
 
   serviceConfigs: require('data/service_configs'),
-  configMapping: require('data/configMapping'),
+  configMapping: require('data/config_mapping'),
   customConfigs: require('data/custom_configs'),
   customData: [],
 

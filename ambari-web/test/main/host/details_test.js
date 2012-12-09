@@ -15,8 +15,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
- var Ember = require('ember');
- var App = require('app');
+
+/*
+var Ember = require('ember');
+var App = require('app');
  
 require('controllers/main/host/details');
 
@@ -47,3 +49,4 @@ describe('MainHostdetails', function () {
     })
   })
 })
+*/

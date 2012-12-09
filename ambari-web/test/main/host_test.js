@@ -16,6 +16,7 @@
  * limitations under the License.
  */
 
+/*
 var App = require('app');
 require('models/cluster');
 require('models/service');
@@ -81,3 +82,4 @@ describe('MainHostController', function () {
 
 
 });
+*/

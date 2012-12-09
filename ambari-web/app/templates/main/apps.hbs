@@ -17,54 +17,53 @@
 }}
 
 <div id="apps">
-  <!--<div class="breadcrumb">
-    <li><a href='#' {{action "routeHome" target="controller"}}><i class="icon-home"></i></a><span class="divider">/</span></li>
-    <li class="active">Apps</li>
-  </div>-->
-  <table class="table table-bordered table-stripe avg-table" >
-            <tbody>
-            <tr >
-              <td rowspan="3" class="avg-star"><a href="#" {{action "avgStarClick" target="view"}} class="icon-star a"></a></td>
-              <td></td>
-              <td>Jobs</td>
-              <td>Input</td>
-              <td>Output</td>
-              <td>Duration</td>
-              <td>Oldest</td>
-              <td>Most Recent</td>
-            </tr>
-            <tr class="avg-info">
-              <td>Avg</td>
-              <td>{{view.avgData.jobs.avg}}</td>
-              <td>{{view.avgData.input.avg}}</td>
-              <td>{{view.avgData.output.avg}}</td>
-              <td>{{view.avgData.duration.avg}}</td>
-              <td>{{view.avgData.times.oldest}}</td>
-              <td>{{view.avgData.times.youngest}}</td>
-            </tr>
-             <tr class="compare-info">
-
-              <td>Min / Max</td>
-              <td>{{view.avgData.jobs.min}} / {{view.avgData.jobs.max}}</td>
-              <td>{{view.avgData.input.min}} / {{view.avgData.input.max}}</td>
-              <td>{{view.avgData.output.min}} / {{view.avgData.output.max}}</td>
-              <td>{{view.avgData.duration.min}} / {{view.avgData.duration.max}}</td>
-              <td></td>
-              <td></td>
-             </tr>
-            </tbody>
+  <table class="table table-bordered table-stripe avg-table">
+    <tbody>
+    <tr>
+      <td rowspan="3" class="avg-star"><a href="#" {{action "avgStarClick" target="view"}} class="icon-star a"></a></td>
+      <td></td>
+      <td>Jobs</td>
+      <td>Input</td>
+      <td>Output</td>
+      <td>Duration</td>
+      <td>Oldest</td>
+      <td>Most Recent</td>
+    </tr>
+    <tr class="avg-info">
+      <td>Avg</td>
+      <td>{{view.avgData.jobs.avg}}</td>
+      <td>{{view.avgData.input.avg}}</td>
+      <td>{{view.avgData.output.avg}}</td>
+      <td>{{view.avgData.duration.avg}}</td>
+      <td>{{view.avgData.times.oldest}}</td>
+      <td>{{view.avgData.times.youngest}}</td>
+    </tr>
+    <tr class="compare-info">
+      <td>Min / Max</td>
+      <td>{{view.avgData.jobs.min}} / {{view.avgData.jobs.max}}</td>
+      <td>{{view.avgData.input.min}} / {{view.avgData.input.max}}</td>
+      <td>{{view.avgData.output.min}} / {{view.avgData.output.max}}</td>
+      <td>{{view.avgData.duration.min}} / {{view.avgData.duration.max}}</td>
+      <td></td>
+      <td></td>
+    </tr>
+    </tbody>
   </table>
-    <div id="filter_info" class="row">
-      <div class="span3" id="filter_buttons">Show:
-        <a href="javascript:void(0)" class="all selected" {{action "clickViewType" target="view"}} data-view-type="all">All ({{view.content.length}})</a> &#124;
-        <a href="javascript:void(0)" class="filtered" {{action "clickViewType" target="view"}} data-view-type="filtered">Filtered ({{view.filtered}})</a> &#124;
-        <a href="javascript:void(0)" class="stared" {{action "clickViewType" target="view"}} data-view-type="starred">Starred ({{view.staredData.count}})</a>
-      </div>
-      <div class="span2"><a href="#" {{action "clearFilters" target="view"}}>Clear filters</a>&nbsp;&#124;&nbsp;<a href="#" {{action "clearStars" target="view"}}>Clear stars</a></div>
+  <div id="filter_info" class="row">
+    <div class="span3" id="filter_buttons">Show:
+      <a href="javascript:void(0)" class="all selected" {{action "clickViewType" target="view"}} data-view-type="all">All
+        ({{view.content.length}})</a> &#124;
+      <a href="javascript:void(0)" class="filtered" {{action "clickViewType" target="view"}} data-view-type="filtered">Filtered
+        ({{view.filtered}})</a> &#124;
+      <a href="javascript:void(0)" class="stared" {{action "clickViewType" target="view"}} data-view-type="starred">Starred
+        ({{view.staredData.count}})</a>
     </div>
-    <div>
-    </div>
-    <table class="table table-striped" id="dataTable">
+    <div class="span2"><a href="#" {{action "clearFilters" target="view"}}>Clear filters</a>&nbsp;&#124;&nbsp;<a
+      href="#" {{action "clearStars" target="view"}}>Clear stars</a></div>
+  </div>
+  <div>
+  </div>
+  <table class="table table-striped" id="dataTable">
     <thead>
     <tr>
       <th></th>
@@ -96,6 +95,6 @@
       {{view view.containerRow runBinding="run" currentViewBinding="view.appTableRow"}}
     {{/each}}
     </tbody>
-    </table>
+  </table>
 </div>
 
