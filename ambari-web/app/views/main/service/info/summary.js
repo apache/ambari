@@ -37,7 +37,21 @@ App.MainServiceInfoSummaryView = Em.View.extend({
     }
   },
   service: function () {
-    return this.get('controller.content');
+    var svc = this.get('controller.content');
+    var svcName = svc.get('serviceName');
+    if(svcName){
+      switch (svcName.toLowerCase()) {
+        case 'hdfs':
+          svc = App.HDFSService.find().objectAt(0);
+          break;
+        case 'mapreduce':
+          svc = App.MapReduceService.find().objectAt(0);
+          break;
+        default:
+          break;
+      }
+    }
+    return svc;
   }.property('controller.content'),
 
   isHide: true,
@@ -58,6 +72,49 @@ App.MainServiceInfoSummaryView = Em.View.extend({
   }.property('service'),
 
   oldServiceName : '',
+  
+  /**
+   * Contains graphs for this particular service
+   */
+  serviceMetricGraphs: function(){
+    var svcName = this.get('service.serviceName');
+    var graphs = [];
+    if(svcName){
+      switch (svcName.toLowerCase()) {
+        case 'hdfs':
+          graphs = [ App.ChartServiceMetricsHDFS_SpaceUtilization.extend(),
+                     App.ChartServiceMetricsHDFS_FileOperations.extend(), 
+                     App.ChartServiceMetricsHDFS_BlockStatus.extend(), 
+                     App.ChartServiceMetricsHDFS_IO.extend(), 
+                     App.ChartServiceMetricsHDFS_RPC.extend(), 
+                     App.ChartServiceMetricsHDFS_GC.extend(), 
+                     App.ChartServiceMetricsHDFS_JVMHeap.extend(), 
+                     App.ChartServiceMetricsHDFS_JVMThreads.extend()];
+          break;
+        case 'mapreduce':
+          graphs = [ App.ChartServiceMetricsMapReduce_JobsStatus.extend(), 
+                     App.ChartServiceMetricsMapReduce_JobsRunningWaiting.extend(), 
+                     App.ChartServiceMetricsMapReduce_MapSlots.extend(), 
+                     App.ChartServiceMetricsMapReduce_ReduceSlots.extend(), 
+                     App.ChartServiceMetricsMapReduce_GC.extend(), 
+                     App.ChartServiceMetricsMapReduce_RPC.extend(), 
+                     App.ChartServiceMetricsMapReduce_JVMHeap.extend(), 
+                     App.ChartServiceMetricsMapReduce_JVMThreads.extend()];
+          break;
+        case 'hbase':
+          graphs = [  App.ChartServiceMetricsHBASE_ClusterRequests.extend(),
+                      App.ChartServiceMetricsHBASE_RegionServerReadWriteRequests.extend(),
+                      App.ChartServiceMetricsHBASE_RegionServerRegions.extend(),
+                      App.ChartServiceMetricsHBASE_RegionServerQueueSize.extend(),
+                      App.ChartServiceMetricsHBASE_HlogSplitTime.extend(),
+                      App.ChartServiceMetricsHBASE_HlogSplitSize.extend()];
+          break;
+        default:
+          break;
+      }
+    }
+    return graphs;
+  }.property('service'),
 
   loadServiceSummary: function (serviceName) {
 
@@ -84,56 +141,24 @@ App.MainServiceInfoSummaryView = Em.View.extend({
     console.log('load ', serviceName, ' info');
     this.set('oldServiceName', serviceName);
     serviceName = serviceName.toLowerCase();
-    jQuery.getJSON('data/services/summary/' + serviceName + '.json', function (data) {
-      if (data[serviceName]) {
-        var summary = data[serviceName];
-        if (serviceName == 'hdfs') {
-          summary['start_time'] = summary['start_time'].toDaysHoursMinutes();
-          summary['memory_heap_percent_used'] = summary['memory_heap_used'].countPercentageRatio(summary['memory_heap_max']);
-          summary['memory_heap_used'] = summary['memory_heap_used'].bytesToSize(2, 'parseFloat');
-          summary['memory_heap_max'] = summary['memory_heap_max'].bytesToSize(2, 'parseFloat');
-          summary['dfs_percent_disk_used'] = parseFloat((100 - summary['dfs_percent_remaining']).toFixed(2)) + "%";
-          summary['used_bytes'] = (summary['dfs_used_bytes'] + summary['nondfs_used_bytes']).bytesToSize(2, 'parseFloat');
-          summary['dfs_total_bytes'] = summary['dfs_total_bytes'].bytesToSize(2, 'parseFloat');
-          summary['metric_graph_views'] = [ App.ChartServiceMetricsHDFS_SpaceUtilization.extend(),
-                                            App.ChartServiceMetricsHDFS_FileOperations.extend(), 
-                                            App.ChartServiceMetricsHDFS_BlockStatus.extend(), 
-                                            App.ChartServiceMetricsHDFS_IO.extend(), 
-                                            App.ChartServiceMetricsHDFS_RPC.extend(), 
-                                            App.ChartServiceMetricsHDFS_GC.extend(), 
-                                            App.ChartServiceMetricsHDFS_JVMHeap.extend(), 
-                                            App.ChartServiceMetricsHDFS_JVMThreads.extend()];
-        } else if (serviceName == 'mapreduce') {
-          summary['start_time'] = summary['start_time'].toDaysHoursMinutes();
-          summary['memory_heap_percent_used'] = summary['memory_heap_used'].countPercentageRatio(summary['memory_heap_max']);
-          summary['memory_heap_used'] = summary['memory_heap_used'].bytesToSize(2, 'parseFloat');
-          summary['memory_heap_max'] = summary['memory_heap_max'].bytesToSize(2, 'parseFloat');
-          summary['metric_graph_views'] = [ App.ChartServiceMetricsMapReduce_JobsStatus.extend(), 
-                                            App.ChartServiceMetricsMapReduce_JobsRunningWaiting.extend(), 
-                                            App.ChartServiceMetricsMapReduce_MapSlots.extend(), 
-                                            App.ChartServiceMetricsMapReduce_ReduceSlots.extend(), 
-                                            App.ChartServiceMetricsMapReduce_GC.extend(), 
-                                            App.ChartServiceMetricsMapReduce_RPC.extend(), 
-                                            App.ChartServiceMetricsMapReduce_JVMHeap.extend(), 
-                                            App.ChartServiceMetricsMapReduce_JVMThreads.extend()];
-        } else if (serviceName == 'hbase') {
-          summary['memory_heap_percent_used'] = summary['memory_heap_used'].countPercentageRatio(summary['memory_heap_max']);
-          summary['memory_heap_used'] = summary['memory_heap_used'].bytesToSize(2, 'parseFloat');
-          summary['memory_heap_max'] = summary['memory_heap_max'].bytesToSize(2, 'parseFloat');
-          summary['start_time'] = summary['start_time'].toDaysHoursMinutes();
-          summary['active_time'] = summary['active_time'].toDaysHoursMinutes();
-          summary['metric_graph_views'] = [ App.ChartServiceMetricsHBASE_ClusterRequests.extend(),
-                                            App.ChartServiceMetricsHBASE_RegionServerReadWriteRequests.extend(),
-                                            App.ChartServiceMetricsHBASE_RegionServerRegions.extend(),
-                                            App.ChartServiceMetricsHBASE_RegionServerQueueSize.extend(),
-                                            App.ChartServiceMetricsHBASE_HlogSplitTime.extend(),
-                                            App.ChartServiceMetricsHBASE_HlogSplitSize.extend()
-                                            ];
+    if(serviceName=='hbase'){
+      jQuery.getJSON('data/services/summary/' + serviceName + '.json', function (data) {
+        if (data[serviceName]) {
+          var summary = data[serviceName];
+          if (serviceName == 'hbase') {
+            summary['memory_heap_percent_used'] = summary['memory_heap_used'].countPercentageRatio(summary['memory_heap_max']);
+            summary['memory_heap_used'] = summary['memory_heap_used'].bytesToSize(2, 'parseFloat');
+            summary['memory_heap_max'] = summary['memory_heap_max'].bytesToSize(2, 'parseFloat');
+            summary['start_time'] = summary['start_time'].toDaysHoursMinutes();
+            summary['active_time'] = summary['active_time'].toDaysHoursMinutes();
+          }
+          summaryView.set('attributes', summary);
         }
-        summaryView.set('attributes', summary);
-      }
-    })
+      })
+    }
   }.observes('serviceName'),
+  
+  
 
   didInsertElement: function () {
     // We have to make the height of the Alerts section

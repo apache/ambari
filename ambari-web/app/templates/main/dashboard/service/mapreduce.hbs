@@ -16,6 +16,7 @@
 * limitations under the License.
 }}
 
+{{#unless view.showOnlyRows}}
 <div class="clearfix">
   <div class="name span2">
     {{view App.MainDashboardServiceHealthView serviceBinding="view.service"}}
@@ -30,7 +31,7 @@
 </div>
 <table class="table no-borders">
   <tbody>
-
+{{/unless}}
   <!-- JobTracker -->
   <tr>
     <td>{{t services.service.summary.jobTracker}}</td>
@@ -106,6 +107,8 @@
     <td>{{t dashboard.services.mapreduce.tasks.reduces}}</td>
     <td>{{view.reduceTasksSummary}}</td>
   </tr>
+  
+{{#unless view.showOnlyRows}}
   </tbody>
 </table>
 <div class="dashboard-mini-chart">
@@ -127,3 +130,4 @@
   {{/view}}
   {{/if}}
 </div>
+{{/unless}}

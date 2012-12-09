@@ -25,6 +25,13 @@ App.MainDashboardServiceHealthView = Em.View.extend({
   template: Em.Handlebars.compile(""),
   blink: false,
   tagName: 'span',
+  
+  /**
+   * When set to true, extending classes should
+   * show only tabular rows as they will be 
+   * embedded into other tables.
+   */
+  showOnlyRows: false,
 
   status: function () {
     return this.get('service.workStatus');

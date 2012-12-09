@@ -180,7 +180,7 @@ App.ClusterController = Em.Controller.extend({
      var clusterUrl = this.getUrl('/data/clusters/cluster.json', '?fields=Clusters');
      var hostsUrl = this.getUrl('/data/hosts/hosts.json', '/hosts?fields=*');
      var servicesUrl1 = this.getUrl('/data/dashboard/services.json', '/services?ServiceInfo/service_name!=MISCELLANEOUS&ServiceInfo/service_name!=DASHBOARD&fields=components/host_components/*');
-     var servicesUrl2 = this.getUrl('/data/dashboard/services.json', '/services?ServiceInfo/service_name!=MISCELLANEOUS&ServiceInfo/service_name!=DASHBOARD&fields=components/ServiceComponentInfo');
+     var servicesUrl2 = this.getUrl('/data/dashboard/serviceComponents.json', '/services?ServiceInfo/service_name!=MISCELLANEOUS&ServiceInfo/service_name!=DASHBOARD&fields=components/ServiceComponentInfo');
      var usersUrl = App.testMode ? '/data/users/users.json' : '/api/users/?fields=*';
      var runsUrl = App.testMode ? "/data/apps/runs.json" : "/api/jobhistory/workflow";
 

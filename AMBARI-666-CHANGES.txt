@@ -12,6 +12,9 @@ AMBARI-666 branch (unreleased changes)
 
   NEW FEATURES
 
+  AMBARI-1014. Hook service summary sections in service pages to API.
+  (Srimanth Gunturi via yusaku)
+
   AMBARI-1008. Populate dashboard>MapReduce section with API data.
   (Srimanth Gunturi via yusaku)
 

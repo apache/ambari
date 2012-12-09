@@ -23,9 +23,10 @@ App.MainDashboardServiceHdfsView = App.MainDashboardServiceView.extend({
   serviceName:'HDFS',
 
   Chart:App.ChartPieView.extend({
+    service: null,
     data:function () {
-      return [ this.get('_parentView.service.capacityUsed'), this.get('_parentView.service.capacityTotal') ];
-    }.property('_parentView.service')
+      return [ this.get('service.capacityUsed'), this.get('service.capacityTotal') ];
+    }.property('service')
   }),
 
   nodeUptime:function () {
