@@ -60,7 +60,7 @@ App.UpdateController = Em.Controller.extend({
   },
 
   updateHost:function(){
-      var hostsUrl = this.getUrl('/data/hosts/hosts.json', '/hosts?fields=*');
+      var hostsUrl = this.getUrl('/data/hosts/hosts.json', '/hosts?fields=Hosts,host_components,metrics/cpu,metrics/disk,metrics/load,metrics/memory');
       App.HttpClient.get(hostsUrl, App.hostsMapper, {
         complete:function (jqXHR, textStatus) {}
       });

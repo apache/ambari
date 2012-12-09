@@ -313,7 +313,7 @@ App.ClusterController = Em.Controller.extend({
     }
 
     var clusterUrl = this.getUrl('/data/clusters/cluster.json', '?fields=Clusters');
-    var hostsUrl = this.getUrl('/data/hosts/hosts.json', '/hosts?fields=*');
+    var hostsUrl = this.getUrl('/data/hosts/hosts.json', '/hosts?fields=Hosts,host_components');
     var usersUrl = App.testMode ? '/data/users/users.json' : App.apiPrefix + '/users/?fields=*';
     var racksUrl = "/data/racks/racks.json";
 

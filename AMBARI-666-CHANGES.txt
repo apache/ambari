@@ -426,6 +426,9 @@ AMBARI-666 branch (unreleased changes)
   AMBARI-676. Seperate directory for ambari-server. (jitendra)
 
   IMPROVEMENTS
+  
+  AMBARI-1053. Dashboard page loads very slow due to hosts?fields=* API call
+  (Srimanth Gunturi via yusaku)
 
   AMBARI-1051. Dashboard page takes long time to load. (Srimanth Gunturi via
   yusaku)
