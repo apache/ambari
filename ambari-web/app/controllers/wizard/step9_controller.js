@@ -203,7 +203,7 @@ App.WizardStep9Controller = Em.Controller.extend({
   launchStartServices: function () {
     var self = this;
     var clusterName = this.get('content.cluster.name');
-    var url = App.apiPrefix + '/clusters/' + clusterName + '/services?state=INSTALLED';
+    var url = App.apiPrefix + '/clusters/' + clusterName + '/services?ServiceInfo/state=INSTALLED';
     var data = '{"ServiceInfo": {"state": "STARTED"}}';
     var method = 'PUT';
 
