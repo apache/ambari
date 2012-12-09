@@ -28,25 +28,39 @@ var App = require('app');
  */
 App.ChartClusterMetricsCPU = App.ChartLinearTimeView.extend({
   id: "cluster-metrics-cpu",
-  url: "/data/cluster_metrics/cpu_1hr.json",
+  url: function () {
+    return App.formatUrl("/api/clusters/{clusterName}?fields=metrics/cpu[{fromSeconds},{toSeconds},{stepSeconds}]", {
+      clusterName: App.router.get('clusterController.clusterName')
+    }, "/data/cluster_metrics/cpu_1hr.json");
+  }.property('App.router.clusterController.clusterName'),
+
   title: "CPU Usage",
   yAxisFormatter: App.ChartLinearTimeView.PercentageFormatter,
   
   transformToSeries: function (jsonData) {
     var seriesArray = [];
-    if (jsonData instanceof Array) {
-      jsonData.forEach(function (data) {
-        var series = {};
-        series.name = data.metric_name.replace(/\\g/, '');
-        series.data = [];
-        for ( var index = 0; index < data.datapoints.length; index++) {
-          series.data.push({
-            x: data.datapoints[index][1],
-            y: data.datapoints[index][0]
-          });
+    if (jsonData && jsonData.metrics && jsonData.metrics.cpu) {
+      for ( var name in jsonData.metrics.cpu) {
+        var displayName = name;
+        var seriesData = jsonData.metrics.cpu[name];
+        if (seriesData) {
+          // Is it a string?
+          if ("string" == typeof seriesData) {
+            seriesData = JSON.parse(seriesData);
+          }
+          // We have valid data
+          var series = {};
+          series.name = displayName;
+          series.data = [];
+          for ( var index = 0; index < seriesData.length; index++) {
+            series.data.push({
+              x: seriesData[index][1],
+              y: seriesData[index][0]
+            });
+          }
+          seriesArray.push(series);
         }
-        seriesArray.push(series);
-      });
+      }
     }
     return seriesArray;
   },

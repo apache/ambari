@@ -30,23 +30,38 @@ var App = require('app');
 App.ChartClusterMetricsLoad = App.ChartLinearTimeView.extend({
   id: "cluster-metrics-load",
   url: "/data/cluster_metrics/load_1hr.json",
+  url: function () {
+    return App.formatUrl("/api/clusters/{clusterName}?fields=metrics/load[{fromSeconds},{toSeconds},{stepSeconds}]", {
+      clusterName: App.router.get('clusterController.clusterName')
+    }, "/data/cluster_metrics/load_1hr.json");
+  }.property('App.router.clusterController.clusterName'),
+  
   title: "Cluster Load",
   
   transformToSeries: function(jsonData){
     var seriesArray = [];
-    if(jsonData instanceof Array){
-      jsonData.forEach(function(data){
-        var series = {};
-        series.name = data.metric_name;
-        series.data = [];
-        for(var index=0; index<data.datapoints.length; index++){
-          series.data.push({
-            x: data.datapoints[index][1],
-            y: data.datapoints[index][0]
-          });
+    if (jsonData && jsonData.metrics && jsonData.metrics.load) {
+      for ( var name in jsonData.metrics.load) {
+        var displayName = name;
+        var seriesData = jsonData.metrics.load[name];
+        if (seriesData) {
+          // Is it a string?
+          if ("string" == typeof seriesData) {
+            seriesData = JSON.parse(seriesData);
+          }
+          // We have valid data
+          var series = {};
+          series.name = displayName;
+          series.data = [];
+          for ( var index = 0; index < seriesData.length; index++) {
+            series.data.push({
+              x: seriesData[index][1],
+              y: seriesData[index][0]
+            });
+          }
+          seriesArray.push(series);
         }
-        seriesArray.push(series);
-      });
+      }
     }
     return seriesArray;
   }
