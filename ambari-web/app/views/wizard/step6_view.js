@@ -61,7 +61,7 @@ App.WizardStep6HostView = Em.View.extend({
     if(components){
       components = components.join(" /\n");
       this.$().popover({
-        title: 'master components hosted on ' + this.get('host.hostName'),
+        title: 'master components hosted on ' + this.get('host.hostname'),
         content: components,
         placement: 'right',
         trigger: 'hover'

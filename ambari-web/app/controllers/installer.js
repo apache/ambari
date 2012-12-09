@@ -440,7 +440,6 @@ App.InstallerController = Em.Controller.extend({
     var servicesInfo = App.db.getService();
     servicesInfo.forEach(function (item, index) {
       servicesInfo[index] = Em.Object.create(item);
-      servicesInfo[index].isInstalled = false;
     });
     this.set('content.services', servicesInfo);
     console.log('installerController.loadServices: loaded data ', servicesInfo);
@@ -488,7 +487,7 @@ App.InstallerController = Em.Controller.extend({
    * Load master component hosts data for using in required step controllers
    */
   loadMasterComponentHosts: function () {
-    var masterComponentHosts = App.db.getMasterComponentHosts() || [];
+    var masterComponentHosts = App.db.getMasterComponentHosts();
     this.set("content.masterComponentHosts", masterComponentHosts);
     console.log("InstallerController.loadMasterComponentHosts: loaded hosts ", masterComponentHosts);
   },
@@ -837,7 +836,6 @@ App.InstallerController = Em.Controller.extend({
   finish: function(){
     this.setCurrentStep('1', false);
     App.db.setService(undefined); //not to use this data at AddService page
-    App.db.setHosts(undefined);
   }
 
 });
