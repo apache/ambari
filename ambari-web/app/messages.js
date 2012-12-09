@@ -208,7 +208,11 @@ Em.I18n.translations = {
   'services.service.summary.nameNodeUptime':'NameNode Uptime',
   'services.service.summary.nameNodeHeap':'NameNode Heap',
   'services.service.summary.pendingUpgradeStatus':'Upgrade Status',
+  'services.service.summary.pendingUpgradeStatus.pending':'Pending upgrade',
+  'services.service.summary.pendingUpgradeStatus.notPending':'No pending upgrade',
   'services.service.summary.safeModeStatus':'Safe Mode Status',
+  'services.service.summary.safeModeStatus.inSafeMode':'In safe mode',
+  'services.service.summary.safeModeStatus.notInSafeMode':'Not in safe mode',
   'services.service.summary.dataNodes':'DataNodes',
   'services.service.summary.diskCapacity':'HDFS Disk Capacity',
   'services.service.summary.blocksTotal':'Blocks (total)',
@@ -239,6 +243,7 @@ Em.I18n.translations = {
   'services.service.actions.run.compaction':'Run Compaction',
   'services.service.actions.run.smoke':'Run Smoke Test',
   'services.service.actions.maintenance':'Maintenance',
+  'services.service.summary.unknown':'unknown',
 
   'services.add.header':'Add Service Wizard',
 

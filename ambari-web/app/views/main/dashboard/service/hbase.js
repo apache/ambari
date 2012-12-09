@@ -25,13 +25,17 @@ App.MainDashboardServiceHbaseView = App.MainDashboardServiceView.extend({
     var heapUsed = this.get('service').get('heapMemoryUsed');
     var heapMax = this.get('service').get('heapMemoryMax');
     var percent = heapMax > 0 ? 100 * heapUsed / heapMax : 0;
-    var heapString = heapUsed>0 ? heapUsed.bytesToSize(1, "parseFloat") : 0;
-    var heapMaxString = heapMax>0 ? heapMax.bytesToSize(1, "parseFloat") : 0;
+    var heapString = heapUsed > 0 ? heapUsed.bytesToSize(1, "parseFloat") : 0;
+    var heapMaxString = heapMax > 0 ? heapMax.bytesToSize(1, "parseFloat") : 0;
     return this.t('dashboard.services.hbase.masterServerHeap.summary').format(heapString, heapMaxString, percent.toFixed(1));
   }.property('service.heapMemoryUsed', 'service.heapMemoryMax'),
 
   summaryHeader: function () {
-    return this.t("dashboard.services.hbase.summary").format(this.get('service.regionServers.length'), this.get('service.averageLoad'));
+    var avgLoad = this.get('service.averageLoad');
+    if (avgLoad == null) {
+      avgLoad = this.t("services.service.summary.unknown");
+    }
+    return this.t("dashboard.services.hbase.summary").format(this.get('service.regionServers.length'), avgLoad);
   }.property('service.regionServers', 'service.averageLoad'),
 
   hbaseMasterWebUrl: function () {
@@ -39,19 +43,29 @@ App.MainDashboardServiceHbaseView = App.MainDashboardServiceView.extend({
   }.property('service.master'),
 
   averageLoad: function () {
-    return this.t('dashboard.services.hbase.averageLoadPerServer').format(this.get('service.averageLoad'));
+    var avgLoad = this.get('service.averageLoad');
+    if (avgLoad == null) {
+      avgLoad = this.t('services.service.summary.unknown');
+    }
+    return this.t('dashboard.services.hbase.averageLoadPerServer').format(avgLoad);
   }.property("service.averageLoad"),
 
   masterStartedTime: function () {
     var uptime = this.get('service').get('masterStartTime');
-    var formatted = (new Date().getTime() - uptime).toDaysHoursMinutes();
-    return this.t('dashboard.services.uptime').format(formatted.d, formatted.h, formatted.m);
+    if (uptime && uptime > 0) {
+      var formatted = (new Date().getTime() - uptime).toDaysHoursMinutes();
+      return this.t('dashboard.services.uptime').format(formatted.d, formatted.h, formatted.m);
+    }
+    return this.t('services.service.summary.unknown');
   }.property("service.masterStartTime"),
 
   masterActivatedTime: function () {
     var uptime = this.get('service').get('masterActiveTime');
-    var formatted = (new Date().getTime() - uptime).toDaysHoursMinutes();
-    return this.t('dashboard.services.uptime').format(formatted.d, formatted.h, formatted.m);
+    if (uptime && uptime > 0) {
+      var formatted = (new Date().getTime() - uptime).toDaysHoursMinutes();
+      return this.t('dashboard.services.uptime').format(formatted.d, formatted.h, formatted.m);
+    }
+    return this.t('services.service.summary.unknown');
   }.property("service.masterActiveTime"),
 
   regionServerComponent: function () {
@@ -60,7 +74,7 @@ App.MainDashboardServiceHbaseView = App.MainDashboardServiceView.extend({
 
   isCollapsed: false,
 
-  toggleInfoView: function() {
+  toggleInfoView: function () {
     $('#hbase-info').toggle('blind', 200);
     this.set('isCollapsed', !this.isCollapsed);
   }

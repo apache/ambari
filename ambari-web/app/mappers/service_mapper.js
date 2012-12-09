@@ -219,7 +219,7 @@ App.servicesMapper = App.QuickDataMapper.create({
         finalJson = this.mapreduceMapper(service);
         App.MapReduceService.find().map(function (e) {
           e.set("version", finalJson.version);
-          e.set("jobTrackerStartTime", 1111111);
+          e.set("jobTrackerStartTime", finalJson.job_tracker_start_time);
           e.set("jobTrackerHeapUsed", finalJson.job_tracker_heap_used);
           e.set("jobTrackerHeapMax", finalJson.job_tracker_heap_max);
           e.set("mapSlots", finalJson.map_slots);
