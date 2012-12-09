@@ -424,6 +424,9 @@ AMBARI-666 branch (unreleased changes)
 
   IMPROVEMENTS
 
+  AMBARI-1040. Cluster heatmap: green should always mean "good". (Srimanth
+  Gunturi via yusaku)
+
   AMBARI-1039. Improve Nagios alerts time display. (Srimanth Gunturi via yusaku)
 
   AMBARI-1036. Service Info/Quick Links do not display external hostnames.

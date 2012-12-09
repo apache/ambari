@@ -23,7 +23,7 @@ App.MainChartsHeatmapController = Em.Controller.extend({
   allMetrics: [ Em.Object.create({
     label: Em.I18n.t('charts.heatmap.category.host'),
     category: 'host',
-    items: [ App.MainChartHeatmapProcessRunMetric.create(), App.MainChartHeatmapDiskSpaceUsedMetric.create(), App.MainChartHeatmapMemoryFreeMetric.create() ]
+    items: [ App.MainChartHeatmapDiskSpaceUsedMetric.create(), App.MainChartHeatmapMemoryUsedMetric.create() /*, App.MainChartHeatmapProcessRunMetric.create()*/ ]
   }) ],
 
   selectedMetric: null,
@@ -67,4 +67,4 @@ App.MainChartsHeatmapController = Em.Controller.extend({
       return "span4";
     }
   }.property('cluster')
-})
+});

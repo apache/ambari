@@ -46,7 +46,7 @@ require('controllers/main/charts');
 require('controllers/main/charts/heatmap_metrics/heatmap_metric');
 require('controllers/main/charts/heatmap_metrics/heatmap_metric_processrun');
 require('controllers/main/charts/heatmap_metrics/heatmap_metric_diskspaceused');
-require('controllers/main/charts/heatmap_metrics/heatmap_metric_memoryfree');
+require('controllers/main/charts/heatmap_metrics/heatmap_metric_memoryused');
 require('controllers/main/charts/heatmap');
 require('controllers/main/charts/horizon_chart');
 require('controllers/main/rack');

@@ -29,8 +29,8 @@ var App = require('app');
  * </ul>
  * 
  */
-App.MainChartHeatmapMemoryFreeMetric = App.MainChartHeatmapMetric.extend({
-  name: 'Memory Free %',
+App.MainChartHeatmapMemoryUsedMetric = App.MainChartHeatmapMetric.extend({
+  name: 'Memory Used %',
   maximumValue: 100,
   defaultMetric: 'metrics.memory',
   units: '%',
@@ -47,8 +47,8 @@ App.MainChartHeatmapMemoryFreeMetric = App.MainChartHeatmapMetric.extend({
         });
 
         var total = value.mem_total;
-        var free = value.mem_free;
-        value = ((free * 100) / total).toFixed(1);
+        var used = value.mem_total - value.mem_free;
+        value = ((used * 100) / total).toFixed(1);
 
         var hostName = item.Hosts.host_name;
         hostToValueMap[hostName] = value;
@@ -56,4 +56,4 @@ App.MainChartHeatmapMemoryFreeMetric = App.MainChartHeatmapMetric.extend({
     }
     return hostToValueMap;
   }
-})
+});
