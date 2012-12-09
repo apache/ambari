@@ -76,6 +76,19 @@ App.servicesMapper = App.QuickDataMapper.create({
     reduces_waiting: 'jobTrackerComponent.host_components[0].metrics.mapred.jobtracker.waiting_reduces',
     trackers_decommisioned: 'jobTrackerComponent.host_components[0].metrics.mapred.jobtracker.trackers_decommissioned'
   },
+  
+  hbaseConfig: {
+    version: 'masterComponent.ServiceComponentInfo.Version',
+    master_id: 'masterComponent.host_components[0].HostRoles.host_name',
+    region_servers: 'region_servers',
+    master_start_time: 'masterComponent.ServiceComponentInfo.MasterStartTime',
+    master_active_time: 'masterComponent.ServiceComponentInfo.MasterActiveTime',
+    average_load: 'masterComponent.ServiceComponentInfo.AverageLoad',
+    regions_in_transition: 'regions_in_transition',
+    revision: 'masterComponent.ServiceComponentInfo.Revision',
+    heap_memory_used: 'masterComponent.ServiceComponentInfo.HeapMemoryUsed',
+    heap_memory_max: 'masterComponent.ServiceComponentInfo.HeapMemoryMax'
+  },
 
   model2: App.Component,
   config2: {
@@ -127,7 +140,11 @@ App.servicesMapper = App.QuickDataMapper.create({
               if(!item.data_nodes){
                 item.data_nodes = [];
               }
-              item.data_nodes.push(component.host_components[0].HostRoles.host_name);
+              if(component.host_components){
+                component.host_components.forEach(function(hc){
+                  item.data_nodes.push(hc.HostRoles.host_name);
+                });
+              }
             }
           });
           // Map
@@ -178,13 +195,42 @@ App.servicesMapper = App.QuickDataMapper.create({
                 if(!item.task_trackers){
                   item.task_trackers = [];
                 }
-                item.task_trackers.push(component.host_components[0].HostRoles.host_name);
+                if(component.host_components){
+                  component.host_components.forEach(function(hc){
+                    item.task_trackers.push(hc.HostRoles.host_name);
+                  });
+                }
               }
             });
             // Map
             finalJson = this.parseIt(item, finalConfig);
             result.push(finalJson);
             App.store.load(App.MapReduceService, finalJson);
+        } else if (item && item.ServiceInfo && item.ServiceInfo.service_name == "HBASE") {
+          // Change the JSON so that it is easy to map
+          var hbaseConfig = this.hbaseConfig;
+          item.components.forEach(function (component) {
+            if (component.ServiceComponentInfo && component.ServiceComponentInfo.component_name == "HBASE_MASTER") {
+              item.masterComponent = component;
+              finalConfig = jQuery.extend(finalConfig, hbaseConfig);
+              var regionsArray = jQuery.parseJSON(component.ServiceComponentInfo.RegionsInTransition);
+              item.regions_in_transition = regionsArray == null ? 0 : regionsArray.length;
+            }
+            if (component.ServiceComponentInfo && component.ServiceComponentInfo.component_name == "HBASE_REGIONSERVER") {
+              if (!item.region_servers) {
+                item.region_servers = [];
+              }
+              if(component.host_components){
+                component.host_components.forEach(function(hc){
+                  item.region_servers.push(hc.HostRoles.host_name);
+                });
+              }
+            }
+          });
+          // Map
+          finalJson = this.parseIt(item, finalConfig);
+          result.push(finalJson);
+          App.store.load(App.HBaseService, finalJson);
         } else {
           result.push(this.parseIt(item, this.config));
         }

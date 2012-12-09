@@ -23,22 +23,6 @@ App.MainDashboardController = Em.Controller.extend({
   alerts: function(){
     return App.router.get('clusterController.alerts');
   }.property('App.router.clusterController.alerts'),
-  data: {
-    hbase : {
-      "hbasemaster_addr": "hbasemaster:60010",
-      "total_regionservers": "1",
-      "hbasemaster_starttime": 1348935496,
-      "live_regionservers": 1,
-      "dead_regionservers": 0,
-      "regions_in_transition_count": 0,
-      "chart": [3,7,7,5,5,3,5,3,7],
-
-      "master_server_heap_used": 2348935243,
-      "master_server_heap_total": 5648935243,
-      "average_load": 1.4
-    }
-  },
-
 
   alertsFilteredBy: 'All',
   alertsFilter: function(event) {

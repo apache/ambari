@@ -154,6 +154,50 @@
           }
         }
       ]
+    },
+    {
+      "href" : "http://ambari/clusters/vmc/services/HBASE",
+      "ServiceInfo" : {
+        "cluster_name" : "vmc",
+        "service_name" : "HBASE"
+      },
+      "components" : [
+        {
+          "href" : "http://ambari/clusters/vmc/services/HBASE/components/HBASE_MASTER",
+          "ServiceComponentInfo" : {
+            "MasterStartTime" : 1350859237269,
+            "cluster_name" : "vmc",
+            "RegionsInTransition" : "[]",
+            "MasterActiveTime" : 1350859237344,
+            "component_name" : "HBASE_MASTER",
+            "state" : "STARTED",
+            "HeapMemoryUsed" : 9864776,
+            "Revision" : "Unknown",
+            "service_name" : "HBASE",
+            "HeapMemoryMax" : 1807613952,
+            "Version" : "0.92.1.14",
+            "AverageLoad" : 1.0
+          }
+        },
+        {
+          "href" : "http://ambari/clusters/vmc/services/HBASE/components/HBASE_CLIENT",
+          "ServiceComponentInfo" : {
+            "cluster_name" : "vmc",
+            "component_name" : "HBASE_CLIENT",
+            "state" : "INSTALLED",
+            "service_name" : "HBASE"
+          }
+        },
+        {
+          "href" : "http://ambari/clusters/vmc/services/HBASE/components/HBASE_REGIONSERVER",
+          "ServiceComponentInfo" : {
+            "cluster_name" : "vmc",
+            "component_name" : "HBASE_REGIONSERVER",
+            "state" : "STARTED",
+            "service_name" : "HBASE"
+          }
+        }
+      ]
     }
   ]
 }

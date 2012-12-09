@@ -1,63 +1,58 @@
 /**
- * Licensed to the Apache Software Foundation (ASF) under one
- * or more contributor license agreements.  See the NOTICE file
- * distributed with this work for additional information
- * regarding copyright ownership.  The ASF licenses this file
- * to you under the Apache License, Version 2.0 (the
- * "License"); you may not use this file except in compliance
- * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * Licensed to the Apache Software Foundation (ASF) under one or more
+ * contributor license agreements. See the NOTICE file distributed with this
+ * work for additional information regarding copyright ownership. The ASF
+ * licenses this file to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ * 
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * 
  * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+ * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+ * License for the specific language governing permissions and limitations under
+ * the License.
  */
 
 var App = require('app');
 
 App.MainDashboardServiceHbaseView = App.MainDashboardServiceView.extend({
-  templateName:require('templates/main/dashboard/service/hbase'),
-  serviceName:'hbase',
+  templateName: require('templates/main/dashboard/service/hbase'),
+  serviceName: 'hbase',
 
-  Chart:App.ChartLinearView.extend({
-    data:function () {
-      return this.get('_parentView.data.chart');
-    }.property('_parentView.data.chart')
-  }),
+  masterServerHeapSummary: function () {
+    var heapUsed = this.get('service').get('heapMemoryUsed');
+    var heapMax = this.get('service').get('heapMemoryMax');
+    var percent = heapMax > 0 ? 100 * heapUsed / heapMax : 0;
+    return this.t('dashboard.services.hbase.masterServerHeap.summary').format(heapUsed.bytesToSize(1, "parseFloat"), heapMax.bytesToSize(1, "parseFloat"), percent.toFixed(1));
+  }.property('service'),
 
-  masterServerHeapSummary:function () {
-    var percent = this.get('data.master_server_heap_total') > 0
-      ? 100 * this.get('data.master_server_heap_used') / this.get('data.master_server_heap_total')
-      : 0;
+  summaryHeader: function () {
+    return this.t("dashboard.services.hbase.summary").format(this.get('service.regionServers.length'), this.get('service.averageLoad'));
+  }.property('service'),
 
-    return this.t('dashboard.services.hbase.masterServerHeap.summary').format(
-      this.get('data.master_server_heap_used').bytesToSize(1, 'parseFloat'),
-      this.get('data.master_server_heap_total').bytesToSize(1, 'parseFloat'),
-      percent.toFixed(1)
-    );
-  }.property('data'),
+  hbaseMasterWebUrl: function () {
+    return "http://" + this.get('service').get('master').get('hostName') + ":60010";
+  }.property('service.master'),
 
-  summaryHeader:function () {
-    return this.t("dashboard.services.hbase.summary").format(
-      this.get('data.live_regionservers'),
-      this.get('data.total_regionservers'),
-      this.get('data.average_load')
-    );
-  }.property('data'),
+  averageLoad: function () {
+    return this.t('dashboard.services.hbase.averageLoadPerServer').format(this.get('service.averageLoad'));
+  }.property("service"),
 
-  regionServers:function () {
-    return this.t('dashboard.services.hbase.regionServersSummary').format(
-      this.get('data.live_regionservers'), this.get('data.total_regionservers')
-    );
-
-  }.property('data'),
-
-  masterServerUptime:function () {
-    var uptime = this.get('data.hbasemaster_starttime');
-    var formatted = uptime.toDaysHoursMinutes();
+  masterStartedTime: function () {
+    var uptime = this.get('service').get('masterStartTime');
+    var formatted = (new Date().getTime() - uptime).toDaysHoursMinutes();
     return this.t('dashboard.services.uptime').format(formatted.d, formatted.h, formatted.m);
-  }.property("data")
+  }.property("service"),
+
+  masterActivatedTime: function () {
+    var uptime = this.get('service').get('masterActiveTime');
+    var formatted = (new Date().getTime() - uptime).toDaysHoursMinutes();
+    return this.t('dashboard.services.uptime').format(formatted.d, formatted.h, formatted.m);
+  }.property("service"),
+
+  regionServerComponent: function () {
+    return App.Component.find().findProperty('componentName', 'HBASE_REGIONSERVER');
+  }.property('components')
 });

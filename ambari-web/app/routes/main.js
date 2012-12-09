@@ -313,6 +313,10 @@ module.exports = Em.Route.extend({
         parent.deactivateChildViews();
         event.view.set('active', "active");
         router.transitionTo(event.context);
+      },
+      showDetails:function (router, event) {
+        router.get('mainHostDetailsController').setBack(true);
+        router.transitionTo('hostDetails.index', event.context)
       }
     }),
     showService:Em.Router.transitionTo('service'),

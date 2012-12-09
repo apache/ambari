@@ -47,6 +47,9 @@ App.MainServiceInfoSummaryView = Em.View.extend({
         case 'mapreduce':
           svc = App.MapReduceService.find().objectAt(0);
           break;
+        case 'hbase':
+          svc = App.HBaseService.find().objectAt(0);
+          break;
         default:
           break;
       }
@@ -141,25 +144,8 @@ App.MainServiceInfoSummaryView = Em.View.extend({
     console.log('load ', serviceName, ' info');
     this.set('oldServiceName', serviceName);
     serviceName = serviceName.toLowerCase();
-    if(serviceName=='hbase'){
-      jQuery.getJSON('data/services/summary/' + serviceName + '.json', function (data) {
-        if (data[serviceName]) {
-          var summary = data[serviceName];
-          if (serviceName == 'hbase') {
-            summary['memory_heap_percent_used'] = summary['memory_heap_used'].countPercentageRatio(summary['memory_heap_max']);
-            summary['memory_heap_used'] = summary['memory_heap_used'].bytesToSize(2, 'parseFloat');
-            summary['memory_heap_max'] = summary['memory_heap_max'].bytesToSize(2, 'parseFloat');
-            summary['start_time'] = summary['start_time'].toDaysHoursMinutes();
-            summary['active_time'] = summary['active_time'].toDaysHoursMinutes();
-          }
-          summaryView.set('attributes', summary);
-        }
-      })
-    }
   }.observes('serviceName'),
   
-  
-
   didInsertElement: function () {
     // We have to make the height of the Alerts section
     // match the height of the Summary section.

@@ -95,7 +95,7 @@ App.MainDashboardServiceMapreduceView = App.MainDashboardServiceView.extend({
     var mapSlots = this.get('service').get('mapSlots');
     var reduceSlots = this.get('service').get('reduceSlots');
     var liveNodeCount = this.get('service').get('aliveTrackers').get('length');
-    var avg = (mapSlots + reduceSlots)/liveNodeCount;
+    var avg = (mapSlots + reduceSlots) / liveNodeCount;
     return this.t('dashboard.services.mapreduce.slotCapacitySummary').format(mapSlots, reduceSlots, avg);
   }.property('service'),
 

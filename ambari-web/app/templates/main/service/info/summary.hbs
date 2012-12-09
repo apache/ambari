@@ -45,6 +45,7 @@
       {{#unless view.serviceStatus.zookeeper}}
       {{#unless view.serviceStatus.hdfs}}
       {{#unless view.serviceStatus.mapreduce}}
+      {{#unless view.serviceStatus.hbase}}
       {{#each component in controller.content.components}}
       <tr>
         {{#if component.isMaster}}
@@ -61,6 +62,7 @@
       {{/unless}}
       {{/unless}}
       {{/unless}}
+      {{/unless}}
       {{#if view.serviceStatus.hdfs}}
         {{view App.MainDashboardServiceHdfsView showOnlyRows=true serviceBinding="view.service"}}
       {{/if}}
@@ -68,43 +70,7 @@
         {{view App.MainDashboardServiceMapreduceView showOnlyRows=true serviceBinding="view.service"}}
       {{/if}}
       {{#if view.serviceStatus.hbase}}
-      <tr>
-        <td>{{t services.service.summary.version}}</td>
-        <td>{{view.attributes.version}}</td>
-      </tr>
-      <tr>
-        <td>{{t services.service.summary.hbaseMaster}}</td>
-        <td><a {{bindAttr href="view.attributes.hbasemaster_addr"}}>{{view.attributes.hbasemaster_addr}}</a></td>
-      </tr>
-      <tr>
-        <td>{{t services.service.summary.regionServerCount}}</td>
-        <td>
-          <a href="javascript:void(null)">{{view.attributes.live_regionservers}} live</a> / <a
-            href="javascript:void(null)">{{view.attributes.dead_regionservers}} dead</a>
-        </td>
-      </tr>
-      <tr>
-        <td>{{t services.service.summary.regionInTransition}}</td>
-        <td>{{view.attributes.regions_in_transition_count}}</td>
-      </tr>
-      <tr>
-        <td>{{t services.service.summary.masterStarted}}</td>
-        <td>{{view.attributes.start_time.d}}day {{view.attributes.start_time.h}}hr {{view.attributes.start_time.m}}min</td>
-      </tr>
-      <tr>
-        <td>{{t services.service.summary.masterActivated}}</td>
-        <td>{{view.attributes.active_time.d}}day {{view.attributes.active_time.h}}hr {{view.attributes.active_time.m}}min</td>
-      </tr>
-      <tr>
-        <td>{{t services.service.summary.averageLoad}}</td>
-        <td>{{view.attributes.average_load}} regions per RegionServer</td>
-      </tr>
-      <tr>
-        <td>{{t services.service.summary.masterHeap}}</td>
-        <td>{{view.attributes.memory_heap_used}} / {{view.attributes.memory_heap_max}} ({{view.attributes.memory_heap_percent_used}}
-          used)
-        </td>
-      </tr>
+        {{view App.MainDashboardServiceHbaseView showOnlyRows=true serviceBinding="view.service"}}
       {{/if}}
       {{#if view.serviceStatus.zookeeper}}
         <tr>

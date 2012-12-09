@@ -16,6 +16,7 @@
 * limitations under the License.
 }}
 
+{{#unless view.showOnlyRows}}
 <div class="clearfix">
   <div class="name span2">
     {{view App.MainDashboardServiceHealthView serviceBinding="view.service"}}
@@ -30,49 +31,60 @@
 </div>
 <table class="table no-borders">
   <tbody>
-
+{{/unless}}
+  <!-- HBase Master Server -->
+  <tr>
+    <td>{{t dashboard.services.hbase.masterServer}}</td>
+    <td><a href="#" {{action showDetails view.service.master}}>{{view.service.master.hostName}}</a></td>
+  </tr>
+  <!-- RegionServers -->
+  <tr>
+    <td>{{t dashboard.services.hbase.regionServers}}</td>
+    <td><a href="#" {{action filterHosts view.regionServerComponent}}>{{view.service.regionServers.length}} {{t dashboard.services.hbase.regionServers}}</a></td>
+  </tr>
+  <!-- Version -->
+  <tr>
+    <td>{{t dashboard.services.hbase.version}}</td>
+    <td>{{view.service.version}} {{view.service.revision}}</td>
+  </tr>
+  <!-- HBaseMaster Web UI -->
+  <tr>
+    <td>{{t dashboard.services.hbase.masterWebUI}}</td>
+    <td><a {{bindAttr href="view.hbaseMasterWebUrl"}}>{{view.service.master.hostName}}:60010</a>
+    </td>
+  </tr>
+  <!-- Regions in Transition -->
+  <tr>
+    <td>{{t dashboard.services.hbase.regions.transition}}</td>
+    <td>{{view.service.regionsInTransition}}</td>
+  </tr>
+  <!-- HBase Master Started Time -->
+  <tr>
+    <td>{{t dashboard.services.hbase.masterStarted}}</td>
+    <td>{{view.masterStartedTime}}</td>
+  </tr>
+  <!-- HBase Master Activated Time -->
+  <tr>
+    <td>{{t dashboard.services.hbase.masterActivated}}</td>
+    <td>{{view.masterStartedTime}}</td>
+  </tr>
+  <!-- Average Load -->
+  <tr>
+    <td>{{t dashboard.services.hbase.averageLoad}}</td>
+    <td>{{view.averageLoad}}</td>
+  </tr>
   <!-- Master Server Heap -->
   <tr>
     <td>{{t dashboard.services.hbase.masterServerHeap}}</td>
     <td>{{view.masterServerHeapSummary}}</td>
   </tr>
-
-  <!-- Average load -->
-  <tr>
-    <td>{{t dashboard.services.hbase.averageLoad}}</td>
-    <td>{{view.data.average_load}}</td>
-  </tr>
-
-  <!-- Region Servers -->
-  <tr>
-    <td>{{t dashboard.services.hbase.regionServers}}</td>
-    <td>{{view.regionServers}}</td>
-  </tr>
-
-  <!-- Master Server Uptime -->
-  <tr>
-    <td>{{t dashboard.services.hbase.masterServerUptime}}</td>
-    <td>{{view.masterServerUptime}}</td>
-  </tr>
-
-  <!-- Hosts -->
-  <tr>
-    <td>{{t dashboard.services.hosts}}</td>
-    <td>
-      {{#each component in view.service.components}}
-      {{#if component.type}}
-      <a href="#" {{action selectHost component.host}}>{{component.displayName}}</a>,
-      {{else}}
-      <a href="#" {{action filterHosts component}}>{{component.displayName}}</a>
-      {{/if}}
-      {{/each}}
-    </td>
-  </tr>
+  
+{{#unless view.showOnlyRows}}
   </tbody>
 </table>
 <div class="dashboard-mini-chart">
-  {{view view.Chart}}
-  <div class="chartLabel">{{t dashboard.services.hbase.chart.label}}</div>
+  {{view App.ChartServiceMetricsHBASE_RegionServerReadWriteRequests}}
+  
   {{#if view.service.quickLinks.length}}
   {{#view App.QuickViewLinks contentBinding="view.service"}}
   <div class="btn-group">
@@ -89,3 +101,4 @@
   {{/view}}
   {{/if}}
 </div>
+{{/unless}}

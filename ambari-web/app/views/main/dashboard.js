@@ -37,6 +37,7 @@ App.MainDashboardView = Em.View.extend({
           break;
         case "HBASE":
           vName = App.MainDashboardServiceHbaseView;
+          item2 = App.HBaseService.find(item.get('id'));
           break;
         case "HIVE":
           vName = App.MainDashboardServiceHiveView ;

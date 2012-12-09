@@ -897,6 +897,984 @@
           ]
         }
       ]
+    },
+    {
+      "href" : "http://ambari/clusters/vmc/services/HBASE",
+      "ServiceInfo" : {
+        "cluster_name" : "vmc",
+        "service_name" : "HBASE"
+      },
+      "components" : [
+        {
+          "href" : "http://ambari/clusters/vmc/services/HBASE/components/HBASE_CLIENT",
+          "ServiceComponentInfo" : {
+            "cluster_name" : "vmc",
+            "component_name" : "HBASE_CLIENT",
+            "service_name" : "HBASE"
+          },
+          "host_components" : [
+            {
+              "href" : "http://ambari/clusters/vmc/hosts/ip-10-72-35-220.ec2.internal/host_components/HBASE_CLIENT",
+              "HostRoles" : {
+                "cluster_name" : "vmc",
+                "role_id" : "45",
+                "state" : "INSTALLED",
+                "component_name" : "HBASE_CLIENT",
+                "host_name" : "ip-10-72-35-220.ec2.internal"
+              },
+              "metrics" : {
+                "boottime" : 1.35085738E9,
+                "process" : {
+                  "proc_total" : 256.0,
+                  "proc_run" : 0.0
+                },
+                "rpc" : {
+                  "rpcAuthorizationSuccesses" : 0.0,
+                  "SentBytes" : 0.0,
+                  "rpcAuthorizationFailures" : 0.0,
+                  "ReceivedBytes" : 0.0,
+                  "NumOpenConnections" : 0.0,
+                  "callQueueLen" : 0.0,
+                  "rpcAuthenticationSuccesses" : 0.0,
+                  "RpcQueueTime_num_ops" : 0.0,
+                  "RpcProcessingTime_num_ops" : 0.0,
+                  "RpcProcessingTime_avg_time" : 0.833333333,
+                  "rpcAuthenticationFailures" : 0.0,
+                  "RpcQueueTime_avg_time" : 0.0
+                },
+                "ugi" : {
+                  "loginSuccess_num_ops" : 0.0,
+                  "loginFailure_num_ops" : 0.0,
+                  "loginSuccess_avg_time" : 0.0,
+                  "loginFailure_avg_time" : 0.0
+                },
+                "disk" : {
+                  "disk_total" : 0.0,
+                  "disk_free" : 845.273,
+                  "part_max_used" : 0.0
+                },
+                "cpu" : {
+                  "cpu_speed" : 2266.0,
+                  "cpu_num" : 2.0,
+                  "cpu_wio" : 0.0,
+                  "cpu_idle" : 0.0,
+                  "cpu_nice" : 0.0,
+                  "cpu_aidle" : 0.0,
+                  "cpu_system" : 0.0,
+                  "cpu_user" : 0.0
+                },
+                "jvm" : {
+                  "memHeapCommittedM" : 0.0,
+                  "logFatal" : 0.0,
+                  "threadsBlocked" : 0.0,
+                  "threadsWaiting" : 0.0,
+                  "gcCount" : 4.00522301E7,
+                  "logError" : 0.0,
+                  "logWarn" : 0.0,
+                  "memNonHeapCommittedM" : 0.0,
+                  "gcTimeMillis" : 4.00522105E7,
+                  "memNonHeapUsedM" : 0.0,
+                  "logInfo" : 0.0,
+                  "threadsNew" : 0.0,
+                  "memHeapUsedM" : 25.1243319,
+                  "threadsTerminated" : 0.0,
+                  "threadsTimedWaiting" : 7.86944444,
+                  "maxMemoryM" : 0.0,
+                  "threadsRunnable" : 12.0861111
+                },
+                "load" : {
+                  "load_fifteen" : 0.0,
+                  "load_one" : 0.0,
+                  "load_five" : 0.0
+                },
+                "memory" : {
+                  "mem_total" : 0.0,
+                  "swap_free" : 0.0,
+                  "mem_buffers" : 274835.867,
+                  "mem_shared" : 0.0,
+                  "mem_cached" : 0.0,
+                  "mem_free" : 4953373.72,
+                  "swap_total" : 0.0
+                },
+                "network" : {
+                  "pkts_out" : 85.1731944,
+                  "bytes_in" : 0.0,
+                  "bytes_out" : 16002.9854,
+                  "pkts_in" : 2.26458333
+                }
+              },
+              "component" : [
+                {
+                  "href" : "http://ambari/clusters/vmc/services/HBASE/components/HBASE_CLIENT",
+                  "ServiceComponentInfo" : {
+                    "cluster_name" : "vmc",
+                    "component_name" : "HBASE_CLIENT",
+                    "service_name" : "HBASE"
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "href" : "http://ambari/clusters/vmc/services/HBASE/components/HBASE_MASTER",
+          "ServiceComponentInfo" : {
+            "cluster_name" : "vmc",
+            "component_name" : "HBASE_MASTER",
+            "service_name" : "HBASE"
+          },
+          "host_components" : [
+            {
+              "href" : "http://ambari/clusters/vmc/hosts/dev.hortonworks.com/host_components/HBASE_MASTER",
+              "HostRoles" : {
+                "cluster_name" : "vmc",
+                "role_id" : "7",
+                "state" : "STARTED",
+                "component_name" : "HBASE_MASTER",
+                "host_name" : "dev.hortonworks.com"
+              },
+              "metrics" : {
+                "boottime" : 1.35085737E9,
+                "process" : {
+                  "proc_total" : 351.569444,
+                  "proc_run" : 0.688888889
+                },
+                "hbase" : {
+                  "master" : {
+                    "splitSize_avg_time" : 0.0,
+                    "splitTime_avg_time" : 0.0,
+                    "cluster_requests" : 0.0138888892,
+                    "splitTime_num_ops" : 0.0,
+                    "splitSize_num_ops" : 0.0
+                  }
+                },
+                "disk" : {
+                  "disk_total" : 893.764,
+                  "disk_free" : 844.711,
+                  "part_max_used" : 58.6
+                },
+                "cpu" : {
+                  "cpu_speed" : 2659.0,
+                  "cpu_num" : 2.0,
+                  "cpu_wio" : 0.0730555556,
+                  "cpu_idle" : 99.8522222,
+                  "cpu_nice" : 0.0,
+                  "cpu_aidle" : 0.0,
+                  "cpu_system" : 0.0247222222,
+                  "cpu_user" : 0.0747222222
+                },
+                "jvm" : {
+                  "memHeapCommittedM" : 81.0625,
+                  "logFatal" : 0.0,
+                  "threadsBlocked" : 0.0,
+                  "threadsWaiting" : 41.0,
+                  "gcCount" : 15276.8639,
+                  "logError" : 0.0,
+                  "logWarn" : 0.0,
+                  "memNonHeapCommittedM" : 40.242188,
+                  "gcTimeMillis" : 24517.1361,
+                  "memNonHeapUsedM" : 27.285767,
+                  "logInfo" : 0.0,
+                  "threadsNew" : 0.0,
+                  "memHeapUsedM" : 12.2370905,
+                  "threadsTerminated" : 0.0,
+                  "threadsTimedWaiting" : 12.1666667,
+                  "maxMemoryM" : 1723.875,
+                  "threadsRunnable" : 17.0
+                },
+                "load" : {
+                  "load_fifteen" : 0.0,
+                  "load_one" : 0.035,
+                  "load_five" : 0.0196388889
+                },
+                "memory" : {
+                  "mem_total" : 7864320.0,
+                  "swap_free" : 0.0,
+                  "mem_buffers" : 227652.0,
+                  "mem_shared" : 0.0,
+                  "mem_cached" : 1911099.56,
+                  "mem_free" : 4251389.64,
+                  "swap_total" : 0.0
+                },
+                "network" : {
+                  "pkts_out" : 58.7640278,
+                  "bytes_in" : 1492.3225,
+                  "bytes_out" : 11377.1212,
+                  "pkts_in" : 10.5369167
+                }
+              },
+              "component" : [
+                {
+                  "href" : "http://ambari/clusters/vmc/services/HBASE/components/HBASE_MASTER",
+                  "ServiceComponentInfo" : {
+                    "cluster_name" : "vmc",
+                    "component_name" : "HBASE_MASTER",
+                    "service_name" : "HBASE"
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "href" : "http://ambari/clusters/vmc/services/HBASE/components/HBASE_REGIONSERVER",
+          "ServiceComponentInfo" : {
+            "cluster_name" : "vmc",
+            "component_name" : "HBASE_REGIONSERVER",
+            "service_name" : "HBASE"
+          },
+          "host_components" : [
+            {
+              "href" : "http://ambari/clusters/vmc/hosts/domu-12-31-39-15-6d-4a.compute-1.internal/host_components/HBASE_REGIONSERVER",
+              "HostRoles" : {
+                "cluster_name" : "vmc",
+                "role_id" : "36",
+                "state" : "STARTED",
+                "component_name" : "HBASE_REGIONSERVER",
+                "host_name" : "domu-12-31-39-15-6d-4a.compute-1.internal"
+              },
+              "metrics" : {
+                "boottime" : 0.0,
+                "process" : {
+                  "proc_total" : 0.0,
+                  "proc_run" : 0.0
+                },
+                "rpc" : {
+                  "rpcAuthorizationSuccesses" : 0.0,
+                  "SentBytes" : 0.0,
+                  "rpcAuthorizationFailures" : 0.0,
+                  "ReceivedBytes" : 0.0,
+                  "NumOpenConnections" : 0.0,
+                  "callQueueLen" : 0.0,
+                  "rpcAuthenticationSuccesses" : 0.0,
+                  "RpcQueueTime_num_ops" : 0.0,
+                  "RpcProcessingTime_num_ops" : 0.0,
+                  "RpcProcessingTime_avg_time" : 0.333333333,
+                  "rpcAuthenticationFailures" : 0.0,
+                  "RpcQueueTime_avg_time" : 37.6666667
+                },
+                "ugi" : {
+                  "loginSuccess_num_ops" : 0.0,
+                  "loginFailure_num_ops" : 0.0,
+                  "loginSuccess_avg_time" : 0.0,
+                  "loginFailure_avg_time" : 0.0
+                },
+                "hbase" : {
+                  "regionserver" : {
+                    "compactionSize_avg_time" : 0.0,
+                    "deleteRequestLatency_min" : 0.0,
+                    "getRequestLatency_95th_percentile" : 0.0,
+                    "getRequestLatency_min" : 0.0,
+                    "fsReadLatencyHistogram_99th_percentile" : 0.0,
+                    "fsWriteLatencyHistogram_median" : 0.0,
+                    "getRequestLatency_num_ops" : 0.0,
+                    "hlogFileCount" : 1.0,
+                    "requests" : 0.0,
+                    "fsReadLatencyHistogram_num_ops" : 0.0,
+                    "hdfsBlocksLocalityIndex" : 0.0,
+                    "fsWriteLatencyHistogram_std_dev" : 0.0,
+                    "writeRequestsCount" : 0.0,
+                    "flushSize_avg_time" : 0.0,
+                    "fsWriteLatencyHistogram_max" : 0.0,
+                    "deleteRequestLatency_max" : 0.0,
+                    "deleteRequestLatency_std_dev" : 0.0,
+                    "getRequestLatency_75th_percentile" : 0.0,
+                    "fsSyncLatency_num_ops" : 1996062.63,
+                    "putRequestLatency_max" : 0.0,
+                    "getRequestLatency_mean" : 0.0,
+                    "fsWriteLatencyHistogram_95th_percentile" : 0.0,
+                    "fsSyncLatency_avg_time" : 0.0,
+                    "deleteRequestLatency_num_ops" : 0.0,
+                    "deleteRequestLatency_median" : 0.0,
+                    "compactionTime_num_ops" : 0.0,
+                    "compactionSize_num_ops" : 0.0,
+                    "deleteRequestLatency_mean" : 0.0,
+                    "putRequestLatency_num_ops" : 0.0,
+                    "blockCacheEvictedCount" : 0.0,
+                    "fsReadLatencyHistogram_mean" : 0.0,
+                    "storefileIndexSizeMB" : 0.0,
+                    "fsWriteLatencyHistogram_75th_percentile" : 0.0,
+                    "fsWriteLatency_avg_time" : 0.0,
+                    "fsReadLatencyHistogram_max" : 0.0,
+                    "compactionQueueSize" : 0.0,
+                    "fsWriteLatencyHistogram_min" : 0.0,
+                    "getRequestLatency_99th_percentile" : 0.0,
+                    "fsWriteLatencyHistogram_mean" : 0.0,
+                    "totalStaticBloomSizeKB" : 0.0,
+                    "deleteRequestLatency_99th_percentile" : 0.0,
+                    "putRequestLatency_75th_percentile" : 0.0,
+                    "totalStaticIndexSizeKB" : 0.0,
+                    "putRequestLatency_mean" : 0.0,
+                    "blockCacheFree" : 5.85715584E8,
+                    "fsReadLatency_avg_time" : 0.0,
+                    "deleteRequestLatency_95th_percentile" : 0.0,
+                    "fsWriteLatency_num_ops" : 0.0,
+                    "memstoreSizeMB" : 0.0,
+                    "blockCacheCount" : 0.0,
+                    "regions" : 0.0,
+                    "blockCacheHitRatio" : 0.0,
+                    "flushQueueSize" : 0.0,
+                    "fsReadLatencyHistogram_95th_percentile" : 0.0,
+                    "blockCacheHitCount" : 0.0,
+                    "blockCacheHitCachingRatio" : 0.0,
+                    "flushTime_avg_time" : 0.0,
+                    "putRequestLatency_min" : 0.0,
+                    "fsReadLatencyHistogram_min" : 0.0,
+                    "flushTime_num_ops" : 0.0,
+                    "putRequestLatency_median" : 0.0,
+                    "compactionTime_avg_time" : 0.0,
+                    "getRequestLatency_median" : 0.0,
+                    "fsReadLatency_num_ops" : 0.0,
+                    "readRequestsCount" : 0.0,
+                    "blockCacheSize" : 4845696.0,
+                    "rootIndexSizeKB" : 0.0,
+                    "fsReadLatencyHistogram_std_dev" : 0.0,
+                    "fsReadLatencyHistogram_75th_percentile" : 0.0,
+                    "putRequestLatency_std_dev" : 0.0,
+                    "getRequestLatency_max" : 0.0,
+                    "getRequestLatency_std_dev" : 0.0,
+                    "putRequestLatency_95th_percentile" : 0.0,
+                    "blockCacheMissCount" : 0.0,
+                    "deleteRequestLatency_75th_percentile" : 0.0,
+                    "storefiles" : 1.0,
+                    "fsWriteLatencyHistogram_num_ops" : 0.0,
+                    "flushSize_num_ops" : 0.0,
+                    "putRequestLatency_99th_percentile" : 0.0,
+                    "fsWriteLatencyHistogram_99th_percentile" : 0.0,
+                    "stores" : 0.0,
+                    "fsReadLatencyHistogram_median" : 0.0
+                  }
+                },
+                "disk" : {
+                  "disk_total" : 0.0,
+                  "disk_free" : 845.541,
+                  "part_max_used" : 0.0
+                },
+                "cpu" : {
+                  "cpu_speed" : 0.0,
+                  "cpu_num" : 2.0,
+                  "cpu_wio" : 0.0508333333,
+                  "cpu_idle" : 0.0,
+                  "cpu_nice" : 0.0,
+                  "cpu_aidle" : 0.0,
+                  "cpu_system" : 0.0,
+                  "cpu_user" : 0.0
+                },
+                "jvm" : {
+                  "memHeapCommittedM" : 0.0,
+                  "logFatal" : 0.0,
+                  "threadsBlocked" : 0.0,
+                  "threadsWaiting" : 0.0,
+                  "gcCount" : 0.0,
+                  "logError" : 0.0,
+                  "logWarn" : 0.0,
+                  "memNonHeapCommittedM" : 39.6960069,
+                  "gcTimeMillis" : 8.3513253E7,
+                  "memNonHeapUsedM" : 21.8612905,
+                  "logInfo" : 0.0,
+                  "threadsNew" : 0.0,
+                  "memHeapUsedM" : 54.834693,
+                  "threadsTerminated" : 0.0,
+                  "threadsTimedWaiting" : 0.0,
+                  "maxMemoryM" : 2252.8125,
+                  "threadsRunnable" : 15.6027778
+                },
+                "load" : {
+                  "load_fifteen" : 0.0,
+                  "load_one" : 0.0,
+                  "load_five" : 0.0
+                },
+                "memory" : {
+                  "mem_total" : 7864320.0,
+                  "swap_free" : 0.0,
+                  "mem_buffers" : 0.0,
+                  "mem_shared" : 0.0,
+                  "mem_cached" : 0.0,
+                  "mem_free" : 5216872.38,
+                  "swap_total" : 0.0
+                },
+                "network" : {
+                  "pkts_out" : 0.0,
+                  "bytes_in" : 473.845167,
+                  "bytes_out" : 17525.4473,
+                  "pkts_in" : 0.0
+                }
+              },
+              "component" : [
+                {
+                  "href" : "http://ambari/clusters/vmc/services/HBASE/components/HBASE_REGIONSERVER",
+                  "ServiceComponentInfo" : {
+                    "cluster_name" : "vmc",
+                    "component_name" : "HBASE_REGIONSERVER",
+                    "service_name" : "HBASE"
+                  }
+                }
+              ]
+            },
+            {
+              "href" : "http://ambari/clusters/vmc/hosts/domu-12-31-39-0b-0c-21.compute-1.internal/host_components/HBASE_REGIONSERVER",
+              "HostRoles" : {
+                "cluster_name" : "vmc",
+                "role_id" : "37",
+                "state" : "STARTED",
+                "component_name" : "HBASE_REGIONSERVER",
+                "host_name" : "domu-12-31-39-0b-0c-21.compute-1.internal"
+              },
+              "metrics" : {
+                "boottime" : 1.35085738E9,
+                "process" : {
+                  "proc_total" : 746.186111,
+                  "proc_run" : 2.74166667
+                },
+                "rpc" : {
+                  "rpcAuthorizationSuccesses" : 0.0,
+                  "SentBytes" : 0.0,
+                  "rpcAuthorizationFailures" : 0.0,
+                  "ReceivedBytes" : 0.0,
+                  "NumOpenConnections" : 0.0,
+                  "callQueueLen" : 0.0,
+                  "rpcAuthenticationSuccesses" : 0.0,
+                  "RpcQueueTime_num_ops" : 0.0,
+                  "RpcProcessingTime_num_ops" : 0.0,
+                  "RpcProcessingTime_avg_time" : 0.0,
+                  "rpcAuthenticationFailures" : 0.0,
+                  "RpcQueueTime_avg_time" : 0.0
+                },
+                "ugi" : {
+                  "loginSuccess_num_ops" : 0.0,
+                  "loginFailure_num_ops" : 0.0,
+                  "loginSuccess_avg_time" : 0.0,
+                  "loginFailure_avg_time" : 0.0
+                },
+                "hbase" : {
+                  "regionserver" : {
+                    "compactionSize_avg_time" : 0.0,
+                    "deleteRequestLatency_min" : 0.0,
+                    "getRequestLatency_95th_percentile" : 0.0,
+                    "getRequestLatency_min" : 0.0,
+                    "fsReadLatencyHistogram_99th_percentile" : 0.0,
+                    "fsWriteLatencyHistogram_median" : 0.0,
+                    "getRequestLatency_num_ops" : 0.0,
+                    "hlogFileCount" : 2.0,
+                    "requests" : 0.0416666667,
+                    "fsReadLatencyHistogram_num_ops" : 0.0,
+                    "hdfsBlocksLocalityIndex" : 0.0,
+                    "fsWriteLatencyHistogram_std_dev" : 0.0,
+                    "writeRequestsCount" : 3.0,
+                    "flushSize_avg_time" : 0.0,
+                    "fsWriteLatencyHistogram_max" : 0.0,
+                    "deleteRequestLatency_max" : 0.0,
+                    "deleteRequestLatency_std_dev" : 0.0,
+                    "getRequestLatency_75th_percentile" : 0.0,
+                    "fsSyncLatency_num_ops" : 0.0,
+                    "putRequestLatency_max" : 0.0,
+                    "getRequestLatency_mean" : 0.0,
+                    "fsWriteLatencyHistogram_95th_percentile" : 0.0,
+                    "fsSyncLatency_avg_time" : 0.0,
+                    "deleteRequestLatency_num_ops" : 0.0,
+                    "deleteRequestLatency_median" : 0.0,
+                    "compactionTime_num_ops" : 0.0,
+                    "compactionSize_num_ops" : 0.0,
+                    "deleteRequestLatency_mean" : 0.0,
+                    "putRequestLatency_num_ops" : 0.0,
+                    "blockCacheEvictedCount" : 0.0,
+                    "fsReadLatencyHistogram_mean" : 0.0,
+                    "storefileIndexSizeMB" : 0.0,
+                    "fsWriteLatencyHistogram_75th_percentile" : 0.0,
+                    "fsWriteLatency_avg_time" : 0.0,
+                    "fsReadLatencyHistogram_max" : 0.0,
+                    "compactionQueueSize" : 0.0,
+                    "fsWriteLatencyHistogram_min" : 0.0,
+                    "getRequestLatency_99th_percentile" : 0.0,
+                    "fsWriteLatencyHistogram_mean" : 0.0,
+                    "totalStaticBloomSizeKB" : 0.0,
+                    "deleteRequestLatency_99th_percentile" : 0.0,
+                    "putRequestLatency_75th_percentile" : 0.0,
+                    "totalStaticIndexSizeKB" : 0.0,
+                    "putRequestLatency_mean" : 0.0,
+                    "blockCacheFree" : 0.0,
+                    "fsReadLatency_avg_time" : 0.0,
+                    "deleteRequestLatency_95th_percentile" : 0.0,
+                    "fsWriteLatency_num_ops" : 3.0,
+                    "memstoreSizeMB" : 0.0,
+                    "blockCacheCount" : 0.0,
+                    "regions" : 1.0,
+                    "blockCacheHitRatio" : 0.0,
+                    "flushQueueSize" : 0.0,
+                    "fsReadLatencyHistogram_95th_percentile" : 0.0,
+                    "blockCacheHitCount" : 0.0,
+                    "blockCacheHitCachingRatio" : 0.0,
+                    "flushTime_avg_time" : 0.0,
+                    "putRequestLatency_min" : 0.0,
+                    "fsReadLatencyHistogram_min" : 0.0,
+                    "flushTime_num_ops" : 0.0,
+                    "putRequestLatency_median" : 0.0,
+                    "compactionTime_avg_time" : 0.0,
+                    "getRequestLatency_median" : 0.0,
+                    "fsReadLatency_num_ops" : 0.0,
+                    "readRequestsCount" : 13386.15,
+                    "blockCacheSize" : 4845696.0,
+                    "rootIndexSizeKB" : 0.0,
+                    "fsReadLatencyHistogram_std_dev" : 0.0,
+                    "fsReadLatencyHistogram_75th_percentile" : 0.0,
+                    "putRequestLatency_std_dev" : 0.0,
+                    "getRequestLatency_max" : 0.0,
+                    "getRequestLatency_std_dev" : 0.0,
+                    "putRequestLatency_95th_percentile" : 0.0,
+                    "blockCacheMissCount" : 0.0,
+                    "deleteRequestLatency_75th_percentile" : 0.0,
+                    "storefiles" : 0.0,
+                    "fsWriteLatencyHistogram_num_ops" : 0.0,
+                    "flushSize_num_ops" : 0.0,
+                    "putRequestLatency_99th_percentile" : 0.0,
+                    "fsWriteLatencyHistogram_99th_percentile" : 0.0,
+                    "stores" : 1.0,
+                    "fsReadLatencyHistogram_median" : 0.0
+                  }
+                },
+                "disk" : {
+                  "disk_total" : 0.0,
+                  "disk_free" : 0.0,
+                  "part_max_used" : 0.0
+                },
+                "cpu" : {
+                  "cpu_speed" : 2659.0,
+                  "cpu_num" : 0.0,
+                  "cpu_wio" : 0.675,
+                  "cpu_idle" : 92.6127778,
+                  "cpu_nice" : 0.0,
+                  "cpu_aidle" : 0.0,
+                  "cpu_system" : 1.85166667,
+                  "cpu_user" : 4.88055556
+                },
+                "jvm" : {
+                  "memHeapCommittedM" : 0.0,
+                  "logFatal" : 0.0,
+                  "threadsBlocked" : 0.0,
+                  "threadsWaiting" : 25.1083333,
+                  "gcCount" : 1.19304645E8,
+                  "logError" : 0.0,
+                  "logWarn" : 0.0,
+                  "memNonHeapCommittedM" : 42.1007488,
+                  "gcTimeMillis" : 1.19304642E8,
+                  "memNonHeapUsedM" : 0.0,
+                  "logInfo" : 1.19304647E8,
+                  "threadsNew" : 0.0,
+                  "memHeapUsedM" : 0.0,
+                  "threadsTerminated" : 0.0,
+                  "threadsTimedWaiting" : 11.2666667,
+                  "maxMemoryM" : 0.0,
+                  "threadsRunnable" : 0.0
+                },
+                "load" : {
+                  "load_fifteen" : 0.0,
+                  "load_one" : 0.0,
+                  "load_five" : 0.0
+                },
+                "memory" : {
+                  "mem_total" : 0.0,
+                  "swap_free" : 0.0,
+                  "mem_buffers" : 485391.389,
+                  "mem_shared" : 0.0,
+                  "mem_cached" : 2576214.31,
+                  "mem_free" : 543601.533,
+                  "swap_total" : 0.0
+                },
+                "network" : {
+                  "pkts_out" : 18.29375,
+                  "bytes_in" : 0.0,
+                  "bytes_out" : 1883.8725,
+                  "pkts_in" : 315.4695
+                }
+              },
+              "component" : [
+                {
+                  "href" : "http://ambari/clusters/vmc/services/HBASE/components/HBASE_REGIONSERVER",
+                  "ServiceComponentInfo" : {
+                    "cluster_name" : "vmc",
+                    "component_name" : "HBASE_REGIONSERVER",
+                    "service_name" : "HBASE"
+                  }
+                }
+              ]
+            },
+            {
+              "href" : "http://ambari/clusters/vmc/hosts/ip-10-72-35-220.ec2.internal/host_components/HBASE_REGIONSERVER",
+              "HostRoles" : {
+                "cluster_name" : "vmc",
+                "role_id" : "34",
+                "state" : "STARTED",
+                "component_name" : "HBASE_REGIONSERVER",
+                "host_name" : "ip-10-72-35-220.ec2.internal"
+              },
+              "metrics" : {
+                "boottime" : 0.0,
+                "process" : {
+                  "proc_total" : 0.0,
+                  "proc_run" : 0.0
+                },
+                "rpc" : {
+                  "rpcAuthorizationSuccesses" : 0.0,
+                  "SentBytes" : 0.0,
+                  "rpcAuthorizationFailures" : 0.0,
+                  "ReceivedBytes" : 0.0,
+                  "NumOpenConnections" : 0.0,
+                  "callQueueLen" : 0.0,
+                  "rpcAuthenticationSuccesses" : 0.0,
+                  "RpcQueueTime_num_ops" : 0.0,
+                  "RpcProcessingTime_num_ops" : 0.0,
+                  "RpcProcessingTime_avg_time" : 0.0,
+                  "rpcAuthenticationFailures" : 0.0,
+                  "RpcQueueTime_avg_time" : 0.0
+                },
+                "ugi" : {
+                  "loginSuccess_num_ops" : 0.0,
+                  "loginFailure_num_ops" : 0.0,
+                  "loginSuccess_avg_time" : 0.0,
+                  "loginFailure_avg_time" : 0.0
+                },
+                "hbase" : {
+                  "regionserver" : {
+                    "compactionSize_avg_time" : 0.0,
+                    "deleteRequestLatency_min" : 0.0,
+                    "getRequestLatency_95th_percentile" : 0.0,
+                    "getRequestLatency_min" : 0.0,
+                    "fsReadLatencyHistogram_99th_percentile" : 0.0,
+                    "fsWriteLatencyHistogram_median" : 0.0,
+                    "getRequestLatency_num_ops" : 0.0,
+                    "hlogFileCount" : 0.0,
+                    "requests" : 0.0,
+                    "fsReadLatencyHistogram_num_ops" : 0.0,
+                    "hdfsBlocksLocalityIndex" : 0.0,
+                    "fsWriteLatencyHistogram_std_dev" : 0.0,
+                    "writeRequestsCount" : 0.0,
+                    "flushSize_avg_time" : 0.0,
+                    "fsWriteLatencyHistogram_max" : 0.0,
+                    "deleteRequestLatency_max" : 0.0,
+                    "deleteRequestLatency_std_dev" : 0.0,
+                    "getRequestLatency_75th_percentile" : 0.0,
+                    "fsSyncLatency_num_ops" : 0.0,
+                    "putRequestLatency_max" : 0.0,
+                    "getRequestLatency_mean" : 0.0,
+                    "fsWriteLatencyHistogram_95th_percentile" : 0.0,
+                    "fsSyncLatency_avg_time" : 0.0,
+                    "deleteRequestLatency_num_ops" : 0.0,
+                    "deleteRequestLatency_median" : 0.0,
+                    "compactionTime_num_ops" : 0.0,
+                    "compactionSize_num_ops" : 0.0,
+                    "deleteRequestLatency_mean" : 0.0,
+                    "putRequestLatency_num_ops" : 0.0,
+                    "blockCacheEvictedCount" : 0.0,
+                    "fsReadLatencyHistogram_mean" : 0.0,
+                    "storefileIndexSizeMB" : 0.0,
+                    "fsWriteLatencyHistogram_75th_percentile" : 0.0,
+                    "fsWriteLatency_avg_time" : 0.0,
+                    "fsReadLatencyHistogram_max" : 0.0,
+                    "compactionQueueSize" : 0.0,
+                    "fsWriteLatencyHistogram_min" : 0.0,
+                    "getRequestLatency_99th_percentile" : 0.0,
+                    "fsWriteLatencyHistogram_mean" : 0.0,
+                    "totalStaticBloomSizeKB" : 0.0,
+                    "deleteRequestLatency_99th_percentile" : 0.0,
+                    "putRequestLatency_75th_percentile" : 0.0,
+                    "totalStaticIndexSizeKB" : 0.0,
+                    "putRequestLatency_mean" : 0.0,
+                    "blockCacheFree" : 0.0,
+                    "fsReadLatency_avg_time" : 0.0,
+                    "deleteRequestLatency_95th_percentile" : 0.0,
+                    "fsWriteLatency_num_ops" : 0.0,
+                    "memstoreSizeMB" : 0.0,
+                    "blockCacheCount" : 0.0,
+                    "regions" : 0.0,
+                    "blockCacheHitRatio" : 0.0,
+                    "flushQueueSize" : 0.0,
+                    "fsReadLatencyHistogram_95th_percentile" : 0.0,
+                    "blockCacheHitCount" : 0.0,
+                    "blockCacheHitCachingRatio" : 0.0,
+                    "flushTime_avg_time" : 0.0,
+                    "putRequestLatency_min" : 0.0,
+                    "fsReadLatencyHistogram_min" : 0.0,
+                    "flushTime_num_ops" : 0.0,
+                    "putRequestLatency_median" : 0.0,
+                    "compactionTime_avg_time" : 0.0,
+                    "getRequestLatency_median" : 0.0,
+                    "fsReadLatency_num_ops" : 0.0,
+                    "readRequestsCount" : 0.0,
+                    "blockCacheSize" : 0.0,
+                    "rootIndexSizeKB" : 0.0,
+                    "fsReadLatencyHistogram_std_dev" : 0.0,
+                    "fsReadLatencyHistogram_75th_percentile" : 0.0,
+                    "putRequestLatency_std_dev" : 0.0,
+                    "getRequestLatency_max" : 0.0,
+                    "getRequestLatency_std_dev" : 0.0,
+                    "putRequestLatency_95th_percentile" : 0.0,
+                    "blockCacheMissCount" : 0.0,
+                    "deleteRequestLatency_75th_percentile" : 0.0,
+                    "storefiles" : 0.0,
+                    "fsWriteLatencyHistogram_num_ops" : 0.0,
+                    "flushSize_num_ops" : 0.0,
+                    "putRequestLatency_99th_percentile" : 0.0,
+                    "fsWriteLatencyHistogram_99th_percentile" : 0.0,
+                    "stores" : 0.0,
+                    "fsReadLatencyHistogram_median" : 0.0
+                  }
+                },
+                "disk" : {
+                  "disk_total" : 0.0,
+                  "disk_free" : 0.0,
+                  "part_max_used" : 0.0
+                },
+                "cpu" : {
+                  "cpu_speed" : 0.0,
+                  "cpu_num" : 2.0,
+                  "cpu_wio" : 0.0,
+                  "cpu_idle" : 0.0,
+                  "cpu_nice" : 0.0,
+                  "cpu_aidle" : 0.0,
+                  "cpu_system" : 0.0,
+                  "cpu_user" : 0.0
+                },
+                "jvm" : {
+                  "memHeapCommittedM" : 0.0,
+                  "logFatal" : 0.0,
+                  "threadsBlocked" : 0.0,
+                  "threadsWaiting" : 0.0,
+                  "gcCount" : 0.0,
+                  "logError" : 0.0,
+                  "logWarn" : 0.0,
+                  "memNonHeapCommittedM" : 0.0,
+                  "gcTimeMillis" : 0.0,
+                  "memNonHeapUsedM" : 0.0,
+                  "logInfo" : 0.0,
+                  "threadsNew" : 0.0,
+                  "memHeapUsedM" : 0.0,
+                  "threadsTerminated" : 0.0,
+                  "threadsTimedWaiting" : 7.86944444,
+                  "maxMemoryM" : 0.0,
+                  "threadsRunnable" : 12.0861111
+                },
+                "load" : {
+                  "load_fifteen" : 0.0,
+                  "load_one" : 0.0,
+                  "load_five" : 0.0
+                },
+                "memory" : {
+                  "mem_total" : 0.0,
+                  "swap_free" : 0.0,
+                  "mem_buffers" : 274835.867,
+                  "mem_shared" : 0.0,
+                  "mem_cached" : 0.0,
+                  "mem_free" : 0.0,
+                  "swap_total" : 0.0
+                },
+                "network" : {
+                  "pkts_out" : 0.0,
+                  "bytes_in" : 0.0,
+                  "bytes_out" : 0.0,
+                  "pkts_in" : 0.0
+                }
+              },
+              "component" : [
+                {
+                  "href" : "http://ambari/clusters/vmc/services/HBASE/components/HBASE_REGIONSERVER",
+                  "ServiceComponentInfo" : {
+                    "cluster_name" : "vmc",
+                    "component_name" : "HBASE_REGIONSERVER",
+                    "service_name" : "HBASE"
+                  }
+                }
+              ]
+            },
+            {
+              "href" : "http://ambari/clusters/vmc/hosts/hostname/host_components/HBASE_REGIONSERVER",
+              "HostRoles" : {
+                "cluster_name" : "vmc",
+                "role_id" : "35",
+                "state" : "STARTED",
+                "component_name" : "HBASE_REGIONSERVER",
+                "host_name" : "hostname"
+              },
+              "metrics" : {
+                "boottime" : 1.35085737E9,
+                "process" : {
+                  "proc_total" : 261.0,
+                  "proc_run" : 0.202777778
+                },
+                "rpc" : {
+                  "rpcAuthorizationSuccesses" : 0.0,
+                  "SentBytes" : 0.0,
+                  "rpcAuthorizationFailures" : 0.0,
+                  "ReceivedBytes" : 0.0,
+                  "NumOpenConnections" : 0.0,
+                  "callQueueLen" : 0.0,
+                  "rpcAuthenticationSuccesses" : 0.0,
+                  "RpcQueueTime_num_ops" : 0.0,
+                  "RpcProcessingTime_num_ops" : 0.0,
+                  "RpcProcessingTime_avg_time" : 0.0,
+                  "rpcAuthenticationFailures" : 0.0,
+                  "RpcQueueTime_avg_time" : 0.0
+                },
+                "ugi" : {
+                  "loginSuccess_num_ops" : 0.0,
+                  "loginFailure_num_ops" : 0.0,
+                  "loginSuccess_avg_time" : 0.0,
+                  "loginFailure_avg_time" : 0.0
+                },
+                "hbase" : {
+                  "regionserver" : {
+                    "compactionSize_avg_time" : 0.0,
+                    "deleteRequestLatency_min" : 0.0,
+                    "getRequestLatency_95th_percentile" : 1.112125E7,
+                    "getRequestLatency_min" : 294000.0,
+                    "fsReadLatencyHistogram_99th_percentile" : 1153000.0,
+                    "fsWriteLatencyHistogram_median" : 113000.0,
+                    "getRequestLatency_num_ops" : 28.0,
+                    "hlogFileCount" : 2.0,
+                    "requests" : 0.0,
+                    "fsReadLatencyHistogram_num_ops" : 1.0,
+                    "hdfsBlocksLocalityIndex" : 100.0,
+                    "fsWriteLatencyHistogram_std_dev" : 0.0,
+                    "writeRequestsCount" : 1.0,
+                    "flushSize_avg_time" : 0.0,
+                    "fsWriteLatencyHistogram_max" : 113000.0,
+                    "deleteRequestLatency_max" : 0.0,
+                    "deleteRequestLatency_std_dev" : 0.0,
+                    "getRequestLatency_75th_percentile" : 375500.0,
+                    "fsSyncLatency_num_ops" : 1996190.99,
+                    "putRequestLatency_max" : 0.0,
+                    "getRequestLatency_mean" : 1040142.9,
+                    "fsWriteLatencyHistogram_95th_percentile" : 113000.0,
+                    "fsSyncLatency_avg_time" : 0.0,
+                    "deleteRequestLatency_num_ops" : 0.0,
+                    "deleteRequestLatency_median" : 0.0,
+                    "compactionTime_num_ops" : 0.0,
+                    "compactionSize_num_ops" : 0.0,
+                    "deleteRequestLatency_mean" : 0.0,
+                    "putRequestLatency_num_ops" : 0.0,
+                    "blockCacheEvictedCount" : 0.0,
+                    "fsReadLatencyHistogram_mean" : 1153000.0,
+                    "storefileIndexSizeMB" : 0.0,
+                    "fsWriteLatencyHistogram_75th_percentile" : 0.0,
+                    "fsWriteLatency_avg_time" : 0.0,
+                    "fsReadLatencyHistogram_max" : 1153000.0,
+                    "compactionQueueSize" : 0.0,
+                    "fsWriteLatencyHistogram_min" : 113000.0,
+                    "getRequestLatency_99th_percentile" : 1.8661E7,
+                    "fsWriteLatencyHistogram_mean" : 113000.0,
+                    "totalStaticBloomSizeKB" : 0.0,
+                    "deleteRequestLatency_99th_percentile" : 0.0,
+                    "putRequestLatency_75th_percentile" : 0.0,
+                    "totalStaticIndexSizeKB" : 0.0,
+                    "putRequestLatency_mean" : 0.0,
+                    "blockCacheFree" : 5.85715E8,
+                    "fsReadLatency_avg_time" : 0.0,
+                    "deleteRequestLatency_95th_percentile" : 0.0,
+                    "fsWriteLatency_num_ops" : 4.0,
+                    "memstoreSizeMB" : 0.0,
+                    "blockCacheCount" : 1.0,
+                    "regions" : 1.0,
+                    "blockCacheHitRatio" : 97.0,
+                    "flushQueueSize" : 0.0,
+                    "fsReadLatencyHistogram_95th_percentile" : 1153000.0,
+                    "blockCacheHitCount" : 0.0,
+                    "blockCacheHitCachingRatio" : 97.0,
+                    "flushTime_avg_time" : 0.0,
+                    "putRequestLatency_min" : 0.0,
+                    "fsReadLatencyHistogram_min" : 1153000.0,
+                    "flushTime_num_ops" : 0.0,
+                    "putRequestLatency_median" : 0.0,
+                    "compactionTime_avg_time" : 0.0,
+                    "getRequestLatency_median" : 310500.0,
+                    "fsReadLatency_num_ops" : 1.0,
+                    "readRequestsCount" : 70.0,
+                    "blockCacheSize" : 4846280.0,
+                    "rootIndexSizeKB" : 0.0,
+                    "fsReadLatencyHistogram_std_dev" : 0.0,
+                    "fsReadLatencyHistogram_75th_percentile" : 1153000.0,
+                    "putRequestLatency_std_dev" : 0.0,
+                    "getRequestLatency_max" : 1.8661E7,
+                    "getRequestLatency_std_dev" : 3466455.8,
+                    "putRequestLatency_95th_percentile" : 0.0,
+                    "blockCacheMissCount" : 1.0,
+                    "deleteRequestLatency_75th_percentile" : 0.0,
+                    "storefiles" : 1.0,
+                    "fsWriteLatencyHistogram_num_ops" : 1.0,
+                    "flushSize_num_ops" : 0.0,
+                    "putRequestLatency_99th_percentile" : 0.0,
+                    "fsWriteLatencyHistogram_99th_percentile" : 0.0,
+                    "stores" : 1.0,
+                    "fsReadLatencyHistogram_median" : 1153000.0
+                  }
+                },
+                "disk" : {
+                  "disk_total" : 893.764,
+                  "disk_free" : 845.558,
+                  "part_max_used" : 42.9
+                },
+                "cpu" : {
+                  "cpu_speed" : 2000.0,
+                  "cpu_num" : 2.0,
+                  "cpu_wio" : 0.0,
+                  "cpu_idle" : 99.9469444,
+                  "cpu_nice" : 0.0,
+                  "cpu_aidle" : 0.0,
+                  "cpu_system" : 0.0244444444,
+                  "cpu_user" : 0.0
+                },
+                "jvm" : {
+                  "memHeapCommittedM" : 33.8524306,
+                  "logFatal" : 0.0,
+                  "threadsBlocked" : 0.0,
+                  "threadsWaiting" : 12.2638889,
+                  "gcCount" : 1.19304738E8,
+                  "logError" : 0.0,
+                  "logWarn" : 0.0,
+                  "memNonHeapCommittedM" : 35.3826389,
+                  "gcTimeMillis" : 1.19304747E8,
+                  "memNonHeapUsedM" : 0.0,
+                  "logInfo" : 1.2899815E8,
+                  "threadsNew" : 0.0,
+                  "memHeapUsedM" : 22.6797313,
+                  "threadsTerminated" : 0.0,
+                  "threadsTimedWaiting" : 7.54722222,
+                  "maxMemoryM" : 2252.8125,
+                  "threadsRunnable" : 0.0
+                },
+                "load" : {
+                  "load_fifteen" : 0.0,
+                  "load_one" : 0.00416666667,
+                  "load_five" : 0.00908333333
+                },
+                "memory" : {
+                  "mem_total" : 7864320.0,
+                  "swap_free" : 0.0,
+                  "mem_buffers" : 260466.489,
+                  "mem_shared" : 0.0,
+                  "mem_cached" : 1054178.51,
+                  "mem_free" : 5277641.9,
+                  "swap_total" : 0.0
+                },
+                "network" : {
+                  "pkts_out" : 85.3823333,
+                  "bytes_in" : 263.160583,
+                  "bytes_out" : 16061.1182,
+                  "pkts_in" : 2.33475
+                }
+              },
+              "component" : [
+                {
+                  "href" : "http://ambari/clusters/vmc/services/HBASE/components/HBASE_REGIONSERVER",
+                  "ServiceComponentInfo" : {
+                    "cluster_name" : "vmc",
+                    "component_name" : "HBASE_REGIONSERVER",
+                    "service_name" : "HBASE"
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      ]
     }
   ]
 }

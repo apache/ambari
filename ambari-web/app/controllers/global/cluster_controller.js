@@ -244,12 +244,17 @@ App.ClusterController = Em.Controller.extend({
           var hdfsSvc2 = null;
           var mrSvc1 = null;
           var mrSvc2 = null;
+          var hbaseSvc1 = null;
+          var hbaseSvc2 = null;
           metricsJson.items.forEach(function (svc) {
             if (svc.ServiceInfo.service_name == "HDFS") {
               hdfsSvc1 = svc;
             }
             if (svc.ServiceInfo.service_name == "MAPREDUCE") {
               mrSvc1 = svc;
+            }
+            if (svc.ServiceInfo.service_name == "HBASE") {
+              hbaseSvc1 = svc;
             }
           });
           serviceComponentJson.items.forEach(function (svc) {
@@ -259,11 +264,16 @@ App.ClusterController = Em.Controller.extend({
             if (svc.ServiceInfo.service_name == "MAPREDUCE") {
               mrSvc2 = svc;
             }
+            if (svc.ServiceInfo.service_name == "HBASE") {
+              hbaseSvc2 = svc;
+            }
           });
           var nnC1 = null;
           var nnC2 = null;
           var jtC1 = null;
           var jtC2 = null;
+          var hbm1 = null;
+          var hbm2 = null;
           if (hdfsSvc1) {
             hdfsSvc1.components.forEach(function (c) {
               if (c.ServiceComponentInfo.component_name == "NAMENODE") {
@@ -292,11 +302,28 @@ App.ClusterController = Em.Controller.extend({
               }
             });
           }
+          if (hbaseSvc1) {
+            hbaseSvc1.components.forEach(function (c) {
+              if (c.ServiceComponentInfo.component_name == "HBASE_MASTER") {
+                hbm1 = c;
+              }
+            });
+          }
+          if (hbaseSvc2) {
+            hbaseSvc2.components.forEach(function (c) {
+              if (c.ServiceComponentInfo.component_name == "HBASE_MASTER") {
+                hbm2 = c;
+              }
+            });
+          }
           if (nnC1 && nnC2) {
             nnC1.ServiceComponentInfo = nnC2.ServiceComponentInfo;
           }
           if (jtC1 && jtC2) {
             jtC1.ServiceComponentInfo = jtC2.ServiceComponentInfo;
+          }
+          if (hbm1 && hbm2) {
+            hbm1.ServiceComponentInfo = hbm2.ServiceComponentInfo;
           }
           App.servicesMapper.map(metricsJson);
           self.updateLoadStatus('services');
