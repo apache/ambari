@@ -72,23 +72,25 @@ App.WizardStep7Controller = Em.Controller.extend({
     var serviceConfigs = this.get('serviceConfigs');
     var advancedConfig = this.get('content.advancedServiceConfig');
     advancedConfig.forEach(function (_config) {
-      var service = serviceConfigs.findProperty('serviceName', _config.serviceName);
-      if (service) {
-        if (this.get('configMapping').someProperty('name', _config.name)) {
-        } else if (!(service.configs.someProperty('name', _config.name))) {
-          _config.id = "site property";
-          _config.category = 'Advanced';
-          _config.displayName = _config.name;
-          _config.defaultValue = _config.value;
-          if (/\${.*}/.test(_config.value) || (service.serviceName !== 'OOZIE' && service.serviceName !== 'HBASE')) {
-            _config.isRequired = false;
-            _config.value = '';
-          } else if(/^\s+$/.test(_config.value)){
-            _config.isRequired = false;
+      if (_config) {
+        var service = serviceConfigs.findProperty('serviceName', _config.serviceName);
+        if (service) {
+          if (this.get('configMapping').someProperty('name', _config.name)) {
+          } else if (!(service.configs.someProperty('name', _config.name))) {
+            _config.id = "site property";
+            _config.category = 'Advanced';
+            _config.displayName = _config.name;
+            _config.defaultValue = _config.value;
+            if (/\${.*}/.test(_config.value) || (service.serviceName !== 'OOZIE' && service.serviceName !== 'HBASE')) {
+              _config.isRequired = false;
+              _config.value = '';
+            } else if (/^\s+$/.test(_config.value)) {
+              _config.isRequired = false;
+            }
+            _config.isVisible = true;
+            _config.displayType = 'advanced';
+            service.configs.pushObject(_config);
           }
-          _config.isVisible = true;
-          _config.displayType = 'advanced';
-          service.configs.pushObject(_config);
         }
       }
     }, this);
@@ -115,7 +117,6 @@ App.WizardStep7Controller = Em.Controller.extend({
 
     }
   },
-
 
 
   /**

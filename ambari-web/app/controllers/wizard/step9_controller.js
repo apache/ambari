@@ -228,6 +228,7 @@ App.WizardStep9Controller = Em.Controller.extend({
           name: clusterName,
           status: 'INSTALLED',
           requestId: requestId,
+          installStartTime: self.get('content.cluster').installStartTime,
           isStartError: false,
           isCompleted: false
         };
@@ -240,6 +241,7 @@ App.WizardStep9Controller = Em.Controller.extend({
         var clusterStatus = {
           name: clusterName,
           status: 'START FAILED',
+          installStartTime: self.get('content.cluster').installStartTime,
           isStartError: true,
           isCompleted: false
         };
@@ -346,9 +348,9 @@ App.WizardStep9Controller = Em.Controller.extend({
   setHostsStatus: function (hostNames, status) {
     hostNames.forEach(function (_hostName) {
       var host = this.hosts.findProperty('name', _hostName);
-      if(host){
+      if (host) {
         host.set('status', status)
-            .set('progress', '100');
+          .set('progress', '100');
       }
     }, this);
   },
@@ -369,7 +371,7 @@ App.WizardStep9Controller = Em.Controller.extend({
         if (this.isSuccess(polledData)) {
           clusterStatus.status = 'STARTED';
           var serviceStartTime = new Date().getTime();
-          var timeToStart = Math.floor((serviceStartTime - this.get('content.cluster.installStartTime')) / 60000);
+          var timeToStart = ((parseInt(serviceStartTime) - parseInt(this.get('content.cluster.installStartTime'))) / 60000).toFixed(2);
           clusterStatus.installTime = timeToStart;
           this.set('status', 'success');
         } else {
@@ -390,7 +392,7 @@ App.WizardStep9Controller = Em.Controller.extend({
         clusterStatus = {
           status: 'PENDING',
           requestId: requestId,
-          isCompleted: true,
+          isCompleted: false,
           installStartTime: this.get('content.cluster.installStartTime')
         }
         if (this.isStepFailed(polledData)) {
@@ -467,8 +469,7 @@ App.WizardStep9Controller = Em.Controller.extend({
     this.hosts.forEach(function (_host) {
       var actionsPerHost = tasksData.filterProperty('Tasks.host_name', _host.name); // retrieved from polled Data
       if (actionsPerHost.length === 0) {
-        //alert('For testing with mockData follow the sequence: hit referesh,"mockData btn", "pollData btn", again "pollData btn"');
-        //exit();
+        console.log("Error: No task is hosted on the host");
       }
       if (actionsPerHost !== null && actionsPerHost !== undefined && actionsPerHost.length !== 0) {
         this.setLogTasksStatePerHost(actionsPerHost, _host);
@@ -509,10 +510,10 @@ App.WizardStep9Controller = Em.Controller.extend({
       this.POLL_INTERVAL = 1;
       this.numPolls++;
       if (this.numPolls == 5) {
-        url = 'data/wizard/deploy/multi_5.json';
-        //url = 'data/wizard/deploy/poll_5_failed.json';
+        url = 'data/wizard/deploy/poll_5.json';
+        // url = 'data/wizard/deploy/poll_5_failed.json';
       } else {
-        url = 'data/wizard/deploy/multi_' + this.numPolls + '.json';
+        url = 'data/wizard/deploy/poll_' + this.numPolls + '.json';
       }
       debugger;
     }

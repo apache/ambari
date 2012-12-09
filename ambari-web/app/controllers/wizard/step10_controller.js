@@ -48,6 +48,7 @@ App.WizardStep10Controller = Em.Controller.extend({
     var registerHostsStatement = registeredHosts.length + ' hosts registered to the cluster.';
     var registerHostsObj = Ember.Object.create({
       id: 1,
+      color: 'text-info',
       displayStatement: registerHostsStatement,
       status: []
     });
@@ -74,6 +75,7 @@ App.WizardStep10Controller = Em.Controller.extend({
       }
       this.get('clusterInfo').findProperty('id', 1).get('status').pushObject(Ember.Object.create({
         id: 1,
+        color: 'text-success',
         displayStatement: successStatement
       }));
     }
@@ -82,6 +84,7 @@ App.WizardStep10Controller = Em.Controller.extend({
       var warnStatement = warnedHosts.length + ' warnings';
       this.get('clusterInfo').findProperty('id', 1).get('status').pushObject(Ember.Object.create({
         id: 2,
+        color: 'text-warning',
         displayStatement: warnStatement,
         statements: []
       }));
@@ -98,9 +101,9 @@ App.WizardStep10Controller = Em.Controller.extend({
         var failedTasks = _host.tasks.filterProperty('Tasks.status', 'FAILED');
         failedTasks.forEach(function (_task) {
           var taskStatement = clusterState + _task.Tasks.role + ' failed on ' + _host.name;
-          console.log('Over here in SUMMARY page...');
           this.get('clusterInfo').findProperty('id', 1).get('status').findProperty('id', 2).get('statements').pushObject(Ember.Object.create({
             status: 'failed',
+            color: 'text-info',
             displayStatement: taskStatement
           }));
         }, this);
@@ -110,6 +113,7 @@ App.WizardStep10Controller = Em.Controller.extend({
           var abortStatement = clusterState + _task.Tasks.role + ' aborted on ' + _host.name;
           this.get('clusterInfo').findProperty('id', 1).get('status').findProperty('id', 2).get('statements').pushObject(Ember.Object.create({
             status: 'aborted',
+            color: 'text-info',
             displayStatement: abortStatement
           }));
         }, this);
@@ -119,6 +123,7 @@ App.WizardStep10Controller = Em.Controller.extend({
           var abortStatement = clusterState + _task.Tasks.role + ' timed out on ' + _host.name;
           this.get('clusterInfo').findProperty('id', 1).get('status').findProperty('id', 2).get('statements').pushObject(Ember.Object.create({
             status: 'timedout',
+            color: 'text-info',
             displayStatement: timedOutTasks
           }));
         }, this);
@@ -133,6 +138,7 @@ App.WizardStep10Controller = Em.Controller.extend({
       this.get('clusterInfo').pushObject(Ember.Object.create({
         id: 2,
         displayStatement: 'Installing master services failed',
+        color: 'text-error',
         status: []
       }));
       return false;
@@ -140,6 +146,7 @@ App.WizardStep10Controller = Em.Controller.extend({
       this.get('clusterInfo').pushObject(Ember.Object.create({
         id: 2,
         displayStatement: 'Master services installed',
+        color: 'text-success',
         status: []
       }));
     }
@@ -186,6 +193,7 @@ App.WizardStep10Controller = Em.Controller.extend({
       var statement = 'NameNode installed on ' + component.get('hostName');
       this.get('clusterInfo').findProperty('id', 2).get('status').pushObject(Ember.Object.create({
         id: 1,
+        color: 'text-info',
         displayStatement: statement
       }));
     } else {
@@ -198,6 +206,7 @@ App.WizardStep10Controller = Em.Controller.extend({
       var statement = 'SecondaryNameNode installed on ' + component.get('hostName');
       this.get('clusterInfo').findProperty('id', 2).get('status').pushObject(Ember.Object.create({
         id: 1,
+        color: 'text-info',
         displayStatement: statement
       }));
     } else {
@@ -210,6 +219,7 @@ App.WizardStep10Controller = Em.Controller.extend({
       var statement = 'JobTracker installed on ' + component.get('hostName');
       this.get('clusterInfo').findProperty('id', 2).get('status').pushObject(Ember.Object.create({
         id: 1,
+        color: 'text-info',
         displayStatement: statement
       }));
     } else {
@@ -229,6 +239,7 @@ App.WizardStep10Controller = Em.Controller.extend({
       var statement = 'ZooKeeper installed on ' + component.get('hostName').length + ' ' + hostVal;
       this.get('clusterInfo').findProperty('id', 2).get('status').pushObject(Ember.Object.create({
         id: 1,
+        color: 'text-info',
         displayStatement: statement
       }));
     } else {
@@ -241,6 +252,7 @@ App.WizardStep10Controller = Em.Controller.extend({
       var statement = 'HBase Master installed on ' + component.get('hostName');
       this.get('clusterInfo').findProperty('id', 2).get('status').pushObject(Ember.Object.create({
         id: 1,
+        color: 'text-info',
         displayStatement: statement
       }));
     } else {
@@ -253,6 +265,7 @@ App.WizardStep10Controller = Em.Controller.extend({
       var statement = 'Hive Metastore installed on ' + component.get('hostName');
       this.get('clusterInfo').findProperty('id', 2).get('status').pushObject(Ember.Object.create({
         id: 1,
+        color: 'text-info',
         displayStatement: statement
       }));
     } else {
@@ -265,6 +278,7 @@ App.WizardStep10Controller = Em.Controller.extend({
       var statement = 'Hive Metastore installed on ' + component.get('hostName');
       this.get('clusterInfo').findProperty('id', 2).get('status').pushObject(Ember.Object.create({
         id: 1,
+        color: 'text-info',
         displayStatement: statement
       }));
     } else {
@@ -277,6 +291,7 @@ App.WizardStep10Controller = Em.Controller.extend({
       var statement = 'Ganglia Server installed on ' + component.get('hostName');
       this.get('clusterInfo').findProperty('id', 2).get('status').pushObject(Ember.Object.create({
         id: 1,
+        color: 'text-info',
         displayStatement: statement
       }));
     } else {
@@ -289,6 +304,7 @@ App.WizardStep10Controller = Em.Controller.extend({
       var statement = 'Nagios Server installed on ' + component.get('hostName');
       this.get('clusterInfo').findProperty('id', 2).get('status').pushObject(Ember.Object.create({
         id: 1,
+        color: 'text-info',
         displayStatement: statement
       }));
     } else {
@@ -298,14 +314,16 @@ App.WizardStep10Controller = Em.Controller.extend({
 
   loadStartedServices: function (component) {
     if (this.get('content.cluster.status') === 'STARTED') {
-      var statement = 'All services started'
+      var statement = 'All services started';
       this.get('clusterInfo').pushObject(Ember.Object.create({
         id: 3,
+        color: 'text-success',
         displayStatement: 'All services started',
         status: []
       }));
       this.get('clusterInfo').pushObject(Ember.Object.create({
         id: 4,
+        color: 'text-success',
         displayStatement: 'All tests passed',
         status: []
       }));
@@ -313,6 +331,7 @@ App.WizardStep10Controller = Em.Controller.extend({
     } else {
       this.get('clusterInfo').pushObject(Ember.Object.create({
         id: 3,
+        color: 'text-error',
         displayStatement: 'Starting services failed',
         status: []
       }));
@@ -321,16 +340,24 @@ App.WizardStep10Controller = Em.Controller.extend({
   },
 
   loadInstallTime: function () {
+    var secondsPerMinute = 60;
+    var statement;
     if (this.get('content.cluster.installTime')) {
-      var statement = 'Install and start of all services completed in ' + this.get('content.cluster.installTime') + ' minutes';
+      var minutes = Math.floor(this.get('content.cluster.installTime'));
+      var seconds = Math.floor((this.get('content.cluster.installTime') - minutes) * secondsPerMinute);
+      var statement;
+      if (minutes !== 0) {
+        statement = 'Install and start of all services completed in ' + minutes + ' minutes and ' + seconds + ' seconds';
+      } else {
+        statement = 'Install and start of all services completed in ' + seconds + ' seconds';
+      }
       this.get('clusterInfo').pushObject(Ember.Object.create({
         id: 5,
+        color: 'text-info',
         displayStatement: statement,
         status: []
       }));
     }
   }
-
-
 });
 

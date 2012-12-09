@@ -420,6 +420,9 @@ AMBARI-666 branch (unreleased changes)
 
   IMPROVEMENTS
 
+  AMBARI-1025. Display total install and start services time on summary page
+  and polish summary page ui. (Jaimin Jetly via yusaku)
+
   AMBARI-1023. Dashboard page should handle API sending JSON as strings and
   object. (Srimanth Gunturi via yusaku)
 

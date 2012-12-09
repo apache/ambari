@@ -239,7 +239,9 @@ App.InstallerController = Em.Controller.extend({
       name: App.db.getClusterName() || "",
       status: cStatus.status,
       isCompleted: cStatus.isCompleted,
-      requestId: cStatus.requestId
+      requestId: cStatus.requestId,
+      installStartTime: cStatus.installStartTime,
+      installTime: cStatus.installTime
     };
     this.set('content.cluster', cluster);
 
@@ -785,19 +787,18 @@ App.InstallerController = Em.Controller.extend({
       timeout: App.timeout,
       success: function (data) {
         var jsonData = jQuery.parseJSON(data);
-        var installSartTime = new Date().getTime();
+        var installStartTime = new Date().getTime();
         console.log("TRACE: In success function for the installService call");
         console.log("TRACE: value of the url is: " + url);
         if (jsonData) {
           var requestId = jsonData.href.match(/.*\/(.*)$/)[1];
-
           console.log('requestId is: ' + requestId);
           var clusterStatus = {
             status: 'PENDING',
             requestId: requestId,
             isInstallError: false,
             isCompleted: false,
-            installStartTime: installSartTime
+            installStartTime: installStartTime
           };
           self.saveClusterStatus(clusterStatus);
         } else {

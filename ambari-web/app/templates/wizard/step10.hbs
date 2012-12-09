@@ -23,13 +23,13 @@
 <div id="step10-content" class="well pre-scrollable">
   {{#each item in clusterInfo}}
   <ul>
-    {{item.displayStatement}}
+    <span {{bindAttr class="item.color"}}>{{item.displayStatement}}</span>
     {{#each status in item.status}}
     <ul>
-      {{status.displayStatement}}
+      <span {{bindAttr class="status.color"}}>{{status.displayStatement}}</span>
       {{#each statement in status.statements}}
       <ul>
-        {{statement.displayStatement}}
+        <span {{bindAttr class="status.color"}}>{{statement.displayStatement}}</span>
       </ul>
       {{/each}}
     </ul>
