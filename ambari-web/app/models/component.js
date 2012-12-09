@@ -37,7 +37,7 @@ App.Component = DS.Model.extend({
   isMaster: function () {
     switch (this.get('componentName')) {
       case 'NAMENODE':
-      case 'SNAMENODE':
+      case 'SECONDARY_NAMENODE':
       case 'JOBTRACKER':
       case 'ZOOKEEPER_SERVER':
       case 'HIVE_SERVER':

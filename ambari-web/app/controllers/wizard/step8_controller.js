@@ -29,10 +29,6 @@ App.WizardStep8Controller = Em.Controller.extend({
   configMapping: require('data/config_mapping'),
 
   selectedServices: function () {
-    var services = App.Service.find();
-    this.get('content.services').forEach(function (item) {
-      item.set('isInstalled', services.someProperty('serviceName', item.get('serviceName')));
-    });
     return this.get('content.services').filterProperty('isSelected', true).filterProperty('isInstalled', false);
   }.property('content.services').cacheable(),
 

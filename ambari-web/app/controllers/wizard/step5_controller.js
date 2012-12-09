@@ -74,46 +74,35 @@ App.WizardStep5Controller = Em.Controller.extend({
   loadComponents: function () {
 
     var services = this.get('content.services')
-      .filterProperty('isSelected', true).mapProperty('serviceName');
+      .filterProperty('isSelected', true).mapProperty('serviceName'); //list of shown services
 
     services.forEach(function (item) {
       this.get("selectedServices").pushObject(Ember.Object.create({service_name: item}));
     }, this);
 
-    var masterHosts = this.get('content.masterComponentHosts');
+    var masterHosts = this.get('content.masterComponentHosts'); //saved to local storadge info
 
-    var components = new Ember.Set();
-    if (!masterHosts) {
+    var resultComponents = new Ember.Set();
 
-      var masterComponents = this.get('components').filterProperty('isMaster', true);
-      for (var index in services) {
-        var componentInfo = masterComponents.filterProperty('service_name', services[index]);
-        componentInfo.forEach(function (_componentInfo) {
-          console.log("TRACE: master component name is: " + _componentInfo.display_name);
-          var componentObj = {};
-          componentObj.component_name = _componentInfo.component_name;
-          componentObj.display_name = _componentInfo.display_name;
-          componentObj.selectedHost = this.selectHost(_componentInfo.component_name);   // call the method that plays selectNode algorithm or fetches from server
-          componentObj.isInstalled = App.Component.find().someProperty('componentName', _componentInfo.component_name);
-          componentObj.availableHosts = [];
-          components.add(componentObj);
-        }, this);
-      }
+    var masterComponents = this.get('components').filterProperty('isMaster', true); //get full list from mock data
 
-    } else {
+    for (var index in services) {
+      var componentInfo = masterComponents.filterProperty('service_name', services[index]);
 
-      masterHosts.forEach(function (_masterComponentHost) {
+      componentInfo.forEach(function (_componentInfo) {
+
+        var savedComponent = masterHosts.findProperty('component', _componentInfo.component_name);
         var componentObj = {};
-        componentObj.component_name = _masterComponentHost.component;
-        componentObj.display_name = _masterComponentHost.display_name;
-        componentObj.selectedHost = _masterComponentHost.hostName;
-        componentObj.isInstalled = _masterComponentHost.isInstalled;
+        componentObj.component_name = _componentInfo.component_name;
+        componentObj.display_name = _componentInfo.display_name;
+        componentObj.selectedHost = savedComponent ? savedComponent.hostName : this.selectHost(_componentInfo.component_name);   // call the method that plays selectNode algorithm or fetches from server
+        componentObj.isInstalled = savedComponent ? savedComponent.isInstalled : App.Component.find().someProperty('componentName', _componentInfo.component_name);
         componentObj.availableHosts = [];
-        components.add(componentObj);
+        resultComponents.add(componentObj);
       }, this);
-
     }
-    return components;
+
+    return resultComponents;
   },
 
   /**
@@ -150,6 +139,12 @@ App.WizardStep5Controller = Em.Controller.extend({
         this.get("selectedServicesMasters").pushObject(componentObj);
       }
     }, this);
+
+    // if no new master nodes
+    if(!masterComponents.filterProperty('isInstalled', false).length){
+      console.log('no master components to add')
+      App.router.send('next');
+    }
   },
 
   getKerberosServer: function (noOfHosts) {
