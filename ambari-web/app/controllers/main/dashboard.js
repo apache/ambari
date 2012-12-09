@@ -20,7 +20,9 @@ var App = require('app');
 
 App.MainDashboardController = Em.Controller.extend({
   name:'mainDashboardController',
-  alerts: App.Alert.find(),
+  alerts: function(){
+    return App.router.get('clusterController.alerts');
+  }.property('App.router.clusterController.alerts'),
   data: {
     HDFS:{
       "namenode_addr":"namenode:50070",
@@ -86,16 +88,12 @@ App.MainDashboardController = Em.Controller.extend({
   },
 
   services:function(){
-
-    /* TODO: create Lasy loading
-    setTimeout(function(){console.log(App.Service.find().objectAt(0).get("id"))}, 20);
-    */
     return App.router.get('mainServiceController.content');
   }.property('App.router.mainServiceController.content'),
   alertsFilteredBy: 'All',
   alertsFilter: function(event) {
     if (event.context)
-      this.set('alertsFilteredBy', event.context.get('label'));
+      this.set('alertsFilteredBy', event.context.get('serviceName'));
     else
       this.set('alertsFilteredBy', 'All');
   },
@@ -110,11 +108,21 @@ App.MainDashboardController = Em.Controller.extend({
     else
       var type = this.get('alertsFilteredBy').toLowerCase();
       return this.get('alerts').filter(function(item){
-        return item.get('serviceType').toLowerCase()==type;
+        var serviceType = item.get('serviceType');
+        return serviceType && serviceType.toLowerCase()==type.toLowerCase();
       });
   }.property('alerts', 'alertsFilteredBy'),
   
+  nagiosUrl: function(){
+    return App.router.get('clusterController.nagiosUrl');
+  }.property('App.router.clusterController.nagiosUrl'),
+  
+  isNagiosInstalled: function(){
+    return App.router.get('clusterController.isNagiosInstalled');
+  }.property('App.router.clusterController.isNagiosInstalled'),
+  
   alertsCount: function() {
-    return this.get('alerts').filterProperty('status', 'corrupt').length;
+    var alerts = this.get('alerts');
+    return alerts ? alerts.filterProperty('status', 'corrupt').length : 0;
   }.property('alerts')
 })

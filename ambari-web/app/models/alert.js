@@ -86,7 +86,7 @@ App.Alert = DS.Model.extend({
           return 'Hive';
       }
     }
-    return 'unknown';
+    return null;
   }.property('serviceType'),
 
   /**
@@ -97,20 +97,20 @@ App.Alert = DS.Model.extend({
       var type = this.get('serviceType').toLowerCase();
       switch (type) {
         case 'mapreduce':
-          return '#/main/services/2';
+          return '#/main/services/MAPREDUCE/summary';
         case 'hdfs':
-          return '#/main/services/1';
+          return '#/main/services/HDFS/summary';
         case 'hbase':
-          return '#/main/services/3';
+          return '#/main/services/HBASE/summary';
         case 'zookeeper':
-          return '#/main/services/4';
+          return '#/main/services/ZOOKEEPER/summary';
         case 'oozie':
-          return '#/main/services/5';
+          return '#/main/services/OOZIE/summary';
         case 'hive':
-          return '#/main/services/6';
+          return '#/main/services/HIVE/summary';
       }
     }
-    return '';
+    return null;
   }.property('serviceType')
 
 });

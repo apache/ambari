@@ -69,7 +69,103 @@ App.ClusterController = Em.Controller.extend({
   getUrl: function(testUrl, url){
     return (App.testMode) ? testUrl: '/api/clusters/' + this.get('clusterName') + url;
   },
-   /**
+
+  /**
+   * Provides the URL to use for NAGIOS server. This URL
+   * is helpful in getting alerts data from server and also
+   * in populating links in UI. 
+   * 
+   * If null is returned, it means NAGIOS service is not installed.
+   */
+  nagiosUrl: function () {
+    if (App.testMode) {
+      return 'http://nagiosserver/nagios';
+    } else {
+      // We want live data here
+      var svcs = App.Service.find();
+      var nagiosSvc = svcs.findProperty("serviceName", "NAGIOS");
+      if (nagiosSvc) {
+        var svcComponents = nagiosSvc.get('components');
+        if (svcComponents) {
+          var nagiosSvcComponent = svcComponents.findProperty("componentName", "NAGIOS_SERVER");
+          if(nagiosSvcComponent){
+            var hostName = nagiosSvcComponent.get('host_name');
+            if(hostName){
+              return "http://"+hostName+"/nagios";
+            }
+          }
+        }
+      }
+      return null;
+    }
+  }.property('dataLoadList.services'),
+  
+  isNagiosInstalled: function(){
+    if(App.testMode){
+      return true;
+    }else{
+      var svcs = App.Service.find();
+      var nagiosSvc = svcs.findProperty("serviceName", "NAGIOS");
+      return nagiosSvc!=null;
+    }
+  }.property('dataLoadList.services'),
+  
+  /**
+   * Sorted list of alerts.
+   * Changes whenever alerts are loaded.
+   */
+  alerts: function(){
+    var alerts = App.Alert.find();
+    var alertsArray = alerts.toArray();
+    var sortedArray = alertsArray.sort(function(left, right){
+      var statusDiff = right.get('status') - left.get('status');
+      if(statusDiff==0){ // same error severity - sort by time
+        var rightTime = right.get('date');
+        var leftTime = left.get('time');
+        rightTime = rightTime ? rightTime.getTime() : 0;
+        leftTime = leftTime ? leftTime.getTime() : 0;
+        statusDiff = rightTime - leftTime;
+      }
+      return statusDiff;
+    });
+    return sortedArray;
+  }.property('dataLoadList.alerts'),
+  
+  /**
+   * This method automatically loads alerts when Nagios URL 
+   * changes. Once done it will trigger dataLoadList.alerts
+   * property, which will trigger the alerts property.
+   */
+  loadAlerts: function () {
+    var nagiosUrl = this.get('nagiosUrl');
+    if (nagiosUrl) {
+      var lastSlash = nagiosUrl.lastIndexOf('/');
+      if (lastSlash > -1) {
+        nagiosUrl = nagiosUrl.substring(0, lastSlash);
+      }
+      var dataUrl;
+      var ajaxOptions = {
+          dataType: "jsonp",
+          jsonp: "jsonp",
+          context: this,
+          complete: function (jqXHR, textStatus) {
+            this.updateLoadStatus('alerts')
+          }
+        };
+      if(App.testMode){
+        dataUrl = "/data/alerts/alerts.jsonp";
+        ajaxOptions.jsonpCallback = "jQuery172040994187095202506_1352498338217";
+      }else{
+        dataUrl = nagiosUrl + "/hdp/nagios/nagios_alerts.php?q1=alerts&alert_type=all";
+      }
+      App.HttpClient.get(dataUrl, App.alertsMapper, ajaxOptions);
+    }else{
+      this.updateLoadStatus('alerts');
+      console.log("No Nagios URL provided.")
+    }
+  }.observes('nagiosUrl'),
+  
+  /**
    *
    *  load all data and update load status
    */
@@ -79,7 +175,6 @@ App.ClusterController = Em.Controller.extend({
         return;
     }
 
-     var alertsUrl = "/data/alerts/alerts.json";
      var clusterUrl = this.getUrl('/data/clusters/cluster.json', '?fields=Clusters');
      var hostsUrl = this.getUrl('/data/hosts/hosts.json', '/hosts?fields=*');
      var servicesUrl = this.getUrl('/data/dashboard/services.json', '/services?ServiceInfo/service_name!=MISCELLANEOUS&ServiceInfo/service_name!=DASHBOARD&fields=components/host_components/*');
@@ -89,11 +184,6 @@ App.ClusterController = Em.Controller.extend({
 
      var racksUrl = "/data/racks/racks.json";
 
-    App.HttpClient.get(alertsUrl, App.alertsMapper,{
-      complete:function(jqXHR, textStatus){
-        self.updateLoadStatus('alerts');
-      }
-    });
     App.HttpClient.get(racksUrl, App.racksMapper,{
       complete:function(jqXHR, textStatus){
         self.updateLoadStatus('racks');

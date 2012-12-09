@@ -401,6 +401,9 @@ AMBARI-666 branch (unreleased changes)
 
   IMPROVEMENTS
 
+  AMBARI-1003. Nagios sections should use backend API to populate. (Srimanth
+  Gunturi via yusaku)
+
   AMBARI-1062. Convert Apache license header comment style in Handlebars files
   to Handlebars comments rather than JavaScript comments. (yusaku)
 

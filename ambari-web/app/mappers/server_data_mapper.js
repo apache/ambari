@@ -59,20 +59,28 @@ App.QuickDataMapper = App.ServerDataMapper.extend({
 
   parseIt: function (data, config) {
     var result = {};
-    for (var i in config) {
+    for ( var i in config) {
       if (i.substr(0, 1) === '$') {
         i = i.substr(1, i.length);
         result[i] = config['$' + i];
       } else {
-        if (i.substr(-5) !== '_type' && i.substr(-4) !== '_key' && typeof config[i] == 'string') {
+        var isSpecial = false;
+        if (i.substr(-5) == '_type') {
+          var prefix = i.substr(0, i.length - 5);
+          isSpecial = config[prefix + '_key'] != null;
+        } else if (i.substr(-4) == '_key') {
+          var prefix = i.substr(0, i.length - 4);
+          isSpecial = config[prefix + '_type'] != null;
+        }
+        if (!isSpecial && typeof config[i] == 'string') {
           result[i] = this.getJsonProperty(data, config[i]);
         } else if (typeof config[i] == 'object') {
           result[i] = [];
-          var _data = this.getJsonProperty(data, config[i+'_key']);
+          var _data = this.getJsonProperty(data, config[i + '_key']);
           var _type = config[i + '_type'];
           var l = _data.length;
-          for (var index = 0; index < l; index++) {
-            if(_type == 'array'){
+          for ( var index = 0; index < l; index++) {
+            if (_type == 'array') {
               result[i].push(this.getJsonProperty(_data[index], config[i].item));
             } else {
               result[i].push(this.parseIt(_data[index], config[i]));
