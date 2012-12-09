@@ -140,6 +140,7 @@
 .open.btn-group .combobox-clear {
     opacity: 1;
     filter: alpha(opacity = 100);
+
 }
 
 .typeahead-long {

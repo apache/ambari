@@ -60,7 +60,7 @@ App.MainAppsController = Em.ArrayController.extend({
    * @return {Boolean} true - record with this id exists, false - not exists
    */
   issetStaredRun: function(id) {
-    r = false;
+    var r = false;
     this.get('staredRuns').forEach(function(item){
       if (item.get('id') == id) {
         r = true;
@@ -68,12 +68,16 @@ App.MainAppsController = Em.ArrayController.extend({
     });
     return r;
   },
+  /**
+   * Identifier of the last starred/unstarred run
+   */
   lastStarClicked: -1,
   /**
    * Click on star on table row
    * @return {Boolean} false for prevent default event handler
    */
   starClick: function(event) {
+    $(event.target).closest('table').find('.containerRow').remove(); // hack for valid "turning-off" star in table, where graphs row where enabled. We remove it
     event.target.classList.toggle('stared');
     var cell = event.target.parentNode.parentNode;
     var row = cell.parentNode;

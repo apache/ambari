@@ -59,9 +59,17 @@ App.Combobox = Em.Select.extend({
     this.get('combobox').clearTarget();
 
   },
+
+  test:function () {
+    console.warn("qwerty");
+  },
+
   didInsertElement:function () {
     this._super();
-    this.set('combobox', this.$().combobox().data('combobox'));
+
+    this.set('combobox', this.$().combobox({
+      template:'<div class="combobox-container"><input type="text" autocomplete="off" /><button class="add-on btn dropdown-toggle" data-dropdown="dropdown"><span class="caret"/><span class="combobox-clear"><i class="icon-remove"/></span></button></div>'
+    }).data('combobox'));
 
     this.clearTextFieldValue(); // fix of script tags in
 

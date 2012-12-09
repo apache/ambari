@@ -108,10 +108,6 @@ App.HttpClient = Em.Object.create({
 //  }
 });
 
-//App.HttpClient.get("/data/hosts/hosts.json", App.hostsMapper);
-
-App.HttpClient.get("/data/dashboard/services.json", App.servicesMapper);
-
 /*App.HttpClient.get(
   'http://nagiosserver/hdp/nagios/nagios_alerts.php?q1=alerts&alert_type=all',
   App.alertsMapper,

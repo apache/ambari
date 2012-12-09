@@ -237,6 +237,8 @@ App.MainAppsView = Em.View.extend({
     if (perPage !== -1) { // Change page after reDraw (if show All is selected this will not happens)
       this.get('oTable').fnPageChange(Math.floor(rowIndex / perPage));
     }
+    var d = this.get('oTable').fnGetData();
+    console.log(this.get('oTable').fnSettings()['aiDisplay']);
   }.observes('controller.lastStarClicked'),
   /**
    * Flush all starred runs

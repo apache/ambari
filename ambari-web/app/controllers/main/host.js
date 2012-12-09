@@ -36,6 +36,7 @@ App.MainHostController = Em.ArrayController.extend(App.Pagination, {
   allChecked:false,
   selectedHostsIds:[],
   selectedRack:null,
+
   assignHostsToRack:function () {
     var selectedRack = this.get('selectedRack');
     var sureMessage = this.t('hosts.assignToRack.sure');
@@ -54,7 +55,7 @@ App.MainHostController = Em.ArrayController.extend(App.Pagination, {
       this.set('selectedHostsIds', []);
     }
 
-  }.observes('selectedRack'),
+  },
 
   sortingAsc:true,
   isSort:false,

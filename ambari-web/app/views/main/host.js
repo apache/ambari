@@ -143,6 +143,16 @@ App.MainHostView = Em.View.extend({
     placeholderText:Em.I18n.t('hosts.assignRack'),
     selectionBinding:"App.router.mainHostController.selectedRack",
     optionLabelPath:"content.clusterName",
-    optionValuePath:"content.id"
-  })
+    optionValuePath:"content.id",
+    didInsertElement:function () {
+      this._super();
+      App.router.get('mainHostController').propertyDidChange('selectedHostsIds');
+    }
+  }),
+
+  assignRackButtonDisabled:function () {
+    var selectedHostsIds = App.router.get('mainHostController.selectedHostsIds');
+    var rack = App.router.get('mainHostController.selectedRack');
+    return (selectedHostsIds.length && rack && rack.constructor == 'App.Cluster') ? false : "disabled";
+  }.property('App.router.mainHostController.selectedHostsIds', 'App.router.mainHostController.selectedRack')
 });

@@ -62,10 +62,9 @@ App.MainServiceMenuView = Em.CollectionView.extend({
     classNameBindings: ["active"],
     active: "",
     serviceOperationsCount: function () {
-      if (this.get('content.id') == App.router.get('mainServiceItemController.content.id')) {
-        return App.router.get('mainServiceItemController.serviceOperationsCount');
-      }
-    }.property('App.router.mainServiceItemController.serviceOperationsCount'),
+      var operations = App.router.get('backgroundOperationsController').getOperationsFor(this.get('content.serviceName'));
+      return operations.length;
+    }.property('App.router.backgroundOperationsController.serviceOperationsChangeTime'),
 
     templateName: require('templates/main/service/menu_item')
   })

@@ -18,6 +18,7 @@
 
 var App = require('app');
 
-App.MainServiceInfoAuditController = Em.Controller.extend({
-  name: 'mainServiceInfoAuditController'
+App.EmptyView = Em.View.extend({
+  tagName : ''
 });
+

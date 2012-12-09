@@ -22,6 +22,7 @@
 require('controllers/application');
 require('controllers/login_controller');
 require('controllers/installer');
+require('controllers/global/background_operations_controller');
 require('controllers/main');
 require('controllers/main/admin');
 require('controllers/main/admin/item');
@@ -59,3 +60,5 @@ require('controllers/wizard/step7_controller');
 require('controllers/wizard/step8_controller');
 require('controllers/wizard/step9_controller');
 require('controllers/wizard/step10_controller');
+require('controllers/cluster_controller');
+require('controllers/cluster_controller');

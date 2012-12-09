@@ -18,21 +18,5 @@
 
 //todo: refactor it
 App.hostsMapper = App.ServerDataMapper.create({
-  map: function (json) {
-    if (json.items) {
-      json.items.forEach(function (data) {
-        if (data.Hosts) {
-          App.store.createRecord(App.Host, {
-            id: data.Hosts.host_name,
-            hostName: data.Hosts.host_name,
-            cpuCount: data.Hosts.cpu_count,
-            totalMem: data.Hosts.total_mem,
-            osArch: data.Hosts.os_arch,
-            osType: data.Hosts.os_type,
-            ip: data.Hosts.ip
-          });
-        }
-      });
-    }
-  }
+  config: {}
 });

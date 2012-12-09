@@ -32,7 +32,6 @@ App.Router = Em.Router.extend({
     var previousStep = parseInt(this.getInstallerCurrentStep());
     this.set('isFwdNavigation', newStep >= previousStep);
   },
-
   clearAllSteps: function() {
     this.get('installerController.content').set('cluster',null);
     this.get('wizardStep2Controller').set('hasSubmitted',false);
@@ -54,7 +53,7 @@ App.Router = Em.Router.extend({
    * @return {*}
    */
   getClusterName: function(){
-    return App.db.getClusterName();
+    return App.router.get('clusterController').get('clusterName');
   },
 
 

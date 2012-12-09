@@ -15,7 +15,7 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 -->
-{{#each operation in backgroundOperations}}
+{{#each operation in allOperations}}
   {{#view App.MainBackgroundOperation contentBinding="operation"}}
     <a class="open-details" {{action openDetails target="view"}} href="#">
       <i {{bindAttr class="view.iconClass"}}></i>

@@ -20,55 +20,7 @@ var App = require('app');
 
 App.MainServiceItemController = Em.Controller.extend({
   name: 'mainServiceItemController',
-  backgroundOperations: [],
-  taskId: 0,
-  intervalId: false,
-  checkOperationsInterval: 5000,
-  init: function(){
-    this._super();
-    this.startCheckOperationsLifeTime();
-  },
-  startCheckOperationsLifeTime: function () {
-    this.intervalId = setInterval(this.checkOperationsLifeTime, this.get('checkOperationsInterval'));
-  },
-  stopCheckOperationsLifeTime:function () {
-    if(this.intervalId) {
-      clearInterval(this.intervalId);
-    }
-    this.intervalId = false;
-  },
 
-  checkOperationsLifeTime: function () {
-    var self = App.router.get('mainServiceItemController');
-    var backgroundOperations = self.get('backgroundOperations');
-    var time = new Date().getTime();
-    if(backgroundOperations.length){
-      backgroundOperations.forEach(function (operation) {
-        if (time - operation.startTime >= 60*1000){
-          backgroundOperations.removeObject(operation);
-        }
-      })
-    }
-  },
-  createBackgroundOperation: function (role, command) {
-    var newTaskId = this.get('taskId') + 1;
-    this.set('taskId', newTaskId);
-    var operation = Em.Object.create({
-      taskId: newTaskId,
-      stageId: null,
-      serviceName: this.content.get('serviceName'),
-      role: role,
-      command: command,
-      status: null,
-      exitcode: 404,
-      stderror: 27,
-      stdout: 501,
-      startTime: new Date().getTime(),
-      attemptCount: null
-    })
-
-    return operation;
-  },
   /**
    * Send specific command to server
    * @param url
@@ -123,9 +75,7 @@ App.MainServiceItemController = Em.Controller.extend({
           }
         });
 
-        var newOperation = self.createBackgroundOperation('Service', 'Start');
-        newOperation.detail = "Another detail info";
-        self.addBackgroundOperation(newOperation);
+        App.router.get('backgroundOperationsController').showPopup();
         this.hide();
       },
       onSecondary: function() {
@@ -158,9 +108,7 @@ App.MainServiceItemController = Em.Controller.extend({
           }
         });
 
-        var newOperation = self.createBackgroundOperation('Service', 'Stop');
-        newOperation.detail = "Another detail info";
-        self.addBackgroundOperation(newOperation);
+        App.router.get('backgroundOperationsController').showPopup();
         this.hide();
       },
       onSecondary: function() {
@@ -177,9 +125,7 @@ App.MainServiceItemController = Em.Controller.extend({
       secondary: 'No',
       onPrimary: function() {
         self.content.set('runRebalancer', true);
-        var newOperation = self.createBackgroundOperation('Service', 'Run Rebalancer');
-        newOperation.detail = "Some detail info";
-        self.addBackgroundOperation(newOperation);
+        App.router.get('backgroundOperationsController').showPopup();
         this.hide();
       },
       onSecondary: function() {
@@ -196,8 +142,7 @@ App.MainServiceItemController = Em.Controller.extend({
       secondary: 'No',
       onPrimary: function() {
         self.content.set('runCompaction', true);
-        var newOperation = self.createBackgroundOperation('Service', 'Run Compaction');
-        self.addBackgroundOperation(newOperation);
+        App.router.get('backgroundOperationsController').showPopup();
         this.hide();
       },
       onSecondary: function() {
@@ -214,8 +159,7 @@ App.MainServiceItemController = Em.Controller.extend({
       secondary: 'No',
       onPrimary: function() {
         self.content.set('runSmokeTest', true);
-        var newOperation = self.createBackgroundOperation('Service', 'Run Smoke Test');
-        self.addBackgroundOperation(newOperation);
+        App.router.get('backgroundOperationsController').showPopup();
         this.hide();
       },
       onSecondary: function() {
@@ -236,33 +180,5 @@ App.MainServiceItemController = Em.Controller.extend({
         this.runSmokeTest();
         break;
     }
-  },
-  serviceOperations: function(){
-    var serviceName = this.get('content.serviceName');
-    return this.get('backgroundOperations').filterProperty('serviceName', serviceName);
-  }.property('backgroundOperations.length', 'content'),
-  serviceOperationsCount: function() {
-    return this.get('serviceOperations.length');
-  }.property('serviceOperations'),
-  showBackgroundOperationsPopup: function(){
-    console.log(this.get('backgroundOperations'));
-    App.ModalPopup.show({
-      headerClass: Ember.View.extend({
-        controllerBinding: 'App.router.mainServiceItemController',
-        template:Ember.Handlebars.compile('{{serviceOperationsCount}} Background Operations Running')
-      }),
-      bodyClass: Ember.View.extend({
-        controllerBinding: 'App.router.mainServiceItemController',
-        templateName: require('templates/main/service/background_operations_popup')
-      }),
-      onPrimary: function() {
-        this.hide();
-      }
-    });
-  },
-  addBackgroundOperation: function (operation) {
-    var backgroundOperations = this.get('backgroundOperations');
-    backgroundOperations.pushObject(operation);
-    this.showBackgroundOperationsPopup();
   }
 })

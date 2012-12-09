@@ -75,8 +75,16 @@ App.WizardStep2View = Em.View.extend({
   }.property(),
 
   sshKeyPreviewClass: function() {
-    return (this.get('controller.content.sshKey').trim() != '') ? 'sshKey-file-view help-inline' : 'hidden';
-  }.property('controller.content.sshKey')
+    if (this.get('controller.content.sshKey').trim() != '') {
+      if (this.get('controller.content.manualInstall')) {
+        return 'sshKey-file-view disabled';
+      } else {
+        return 'sshKey-file-view';
+      }
+    } else {
+      return 'hidden';
+    }
+  }.property('controller.content.sshKey', 'controller.content.manualInstall')
 
 });
 

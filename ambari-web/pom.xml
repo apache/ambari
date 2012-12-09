@@ -9,14 +9,19 @@
   License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS 
   OF ANY KIND, either express or implied. See the License for the specific 
   language governing permissions and limitations under the License. -->
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+  <parent>
+    <groupId>org.apache.ambari</groupId>
+    <artifactId>ambari-project</artifactId>
+    <version>1.0.3-SNAPSHOT</version>
+    <relativePath>../ambari-project</relativePath>
+  </parent>
   <modelVersion>4.0.0</modelVersion>
   <groupId>org.apache.ambari</groupId>
   <artifactId>ambari-web</artifactId>
   <packaging>pom</packaging>
   <name>Ambari Web</name>
-  <version>1.0.3</version>
+  <version>1.0.3-SNAPSHOT</version>
   <description>Ambari Web</description>
   <dependencies>
     <dependency>
@@ -40,6 +45,9 @@
             </goals>
             <configuration>
               <target name="ambari-web-compile">
+                <exec dir="${basedir}" executable="npm" failonerror="false">
+                  <arg value="install"/>
+                </exec>
                 <exec dir="${basedir}" executable="brunch" failonerror="false">
                   <arg value="build"/>
                 </exec>
@@ -73,7 +81,7 @@
                   <fileset dir="${basedir}/../ambari-web/public"/>
                 </copy>
                 -->
-                <symlink overwrite="true" link="${basedir}/../ambari-server/target/ambari-server-${project.version}/ambari-server-${project.version}/web" resource="${basedir}/public" failonerror="false" />
+                <symlink overwrite="true" link="${basedir}/../ambari-server/target/ambari-server-${project.version}-dist/ambari-server-${project.version}/web" resource="${basedir}/public" failonerror="false"/>
               </target>
             </configuration>
           </execution>

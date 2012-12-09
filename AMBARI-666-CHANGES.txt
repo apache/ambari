@@ -12,6 +12,9 @@ AMBARI-666 branch (unreleased changes)
 
   NEW FEATURES
 
+  AMBARI-976.  Hook HDFS/MapReduce/HBase/Host graphs to backend API
+  (Srimanth Gunturi via yusaku)
+
   AMBARI-964. Implement summary page of installer wizard. (Jaimin Jetly
   via yusaku)
 
@@ -392,7 +395,9 @@ AMBARI-666 branch (unreleased changes)
 
   IMPROVEMENTS
 
-  AMBARI-1058. Implement data loading (yusaku)
+  AMBARI-1059. Refactor cluster management. (yusaku)
+
+  AMBARI-1058. Implement data loading. (yusaku)
 
   AMBARI-956. On unavailability of non-master components, host with least
   number of master components should install all slave and client components. 

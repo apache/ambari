@@ -19,5 +19,5 @@
 var App = require('app');
 
 App.MainChartsHorizonChartController = Em.Controller.extend({
-  name:'mainChartsHorizonChartController'
-})
+  name: 'mainChartsHorizonChartController'
+});

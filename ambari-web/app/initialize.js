@@ -33,6 +33,7 @@ require('router');
 
 require('mappers/server_data_mapper');
 require('mappers/services_mapper');
+require('mappers/hosts_mapper');
 
 require('utils/http_client');
 

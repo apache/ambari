@@ -15,17 +15,25 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 -->
+{{#if isClusterDataLoaded}}
 <div id="main-nav">
   <div class="navbar">
     <div class="navbar-inner">
       <a class="brand" href="#">
         My Cluster
-          {{#if backgroundOperationsCount}}
-            <span class="label operations-count" {{action "showBackgroundOperationsPopup" target="controller"}}>{{backgroundOperationsCount}}</span>
-          {{/if}}
+
+          {{#view App.EmptyView controllerBinding="App.router.backgroundOperationsController"}}
+            {{#if allOperationsCount}}
+              <span class="label operations-count" {{action "showPopup" target="controller"}}>{{allOperationsCount}}</span>
+            {{/if}}
+          {{/view}}
+
       </a>
       {{view App.MainMenuView}}
     </div>
   </div>
 </div>
 {{outlet}}
+{{else}}
+<h2>loading...</h2>
+{{/if}}

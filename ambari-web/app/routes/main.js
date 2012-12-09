@@ -21,7 +21,7 @@ module.exports = Em.Route.extend({
   enter:function (router) {
     console.log('in /main:enter');
     if (router.getAuthenticated()) {
-      router.get('mainController').startLoadOperationsPeriodically();
+      router.get('mainController').initialize();
       // TODO: redirect to last known state
     } else {
       Ember.run.next(function () {

@@ -135,6 +135,14 @@
         this.$element.on('keydown', $.proxy(this.keypress, this))
       }
 
+//      hide menu hack
+      this.$button.on('mouseenter', $.proxy(this.addClassOnMouseEnter, this.$button))
+        .on('mouseleave', $.proxy(this.addClassOnMouseLeave, this.$button));
+
+      $(window).on('click', $.proxy(this.hideList, this));
+//      hide menu hack end
+
+
       this.$menu
         .on('click', $.proxy(this.click, this))
         .on('mouseenter', 'li', $.proxy(this.mouseenter, this))
@@ -173,10 +181,20 @@
 
       e.stopPropagation()
       e.preventDefault()
-    }
+    },
+
+    addClassOnMouseEnter:function (e) {
+      console.warn("Enter");
+      this.addClass('hover');
+    },
+
+    addClassOnMouseLeave:function (e) {
+      console.warn("Leave");
+      this.removeClass('hover');
+    },
 
     // modified typeahead function to only hide menu if it is visible
-    , blur:function (e) {
+    blur:function (e) {
       var that = this
       e.stopPropagation()
       e.preventDefault()
@@ -189,6 +207,21 @@
         setTimeout(function () {
           that.hide()
         }, 150)
+      }
+    },
+
+    /**
+     * hide list
+     * @param e
+     */
+    hideList:function (e) {
+      if (!this.$button.is(".hover")) {
+        var that = this;
+        if (this.shown) {
+          setTimeout(function () {
+            that.hide()
+          }, 150)
+        }
       }
     }
   })
@@ -207,7 +240,7 @@
   }
 
   $.fn.combobox.defaults = {
-    template:'<div class="combobox-container"><input type="text" autocomplete="off" /><button class="add-on btn dropdown-toggle" data-dropdown="dropdown"><span class="caret"/><span class="combobox-clear"><i class="icon-remove"/></span></button></div>',
+    template:'<div class="combobox-container"><input type="text" autocomplete="off" /><span class="add-on btn dropdown-toggle" data-dropdown="dropdown"><span class="caret"/><span class="combobox-clear"><i class="icon-remove"/></span></span></div>',
     menu:'<ul class="typeahead typeahead-long dropdown-menu"></ul>',
     item:'<li><a href="#"></a></li>', placeholder:null
   }
