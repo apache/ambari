@@ -102,13 +102,6 @@ module.exports = [
     "filename": "hdfs-site.xml"
   },
   {
-    "name": "dfs.webhdfs.enabled",
-    "templateName": ["dfs_webhdfs_enabled"],
-    "foreignKey": null,
-    "value": "<templateName[0]>",
-    "filename": "hdfs-site.xml"
-  },
-  {
     "name": "dfs.datanode.failed.volumes.tolerated",
     "templateName": ["dfs_datanode_failed_volume_tolerated"],
     "foreignKey": null,

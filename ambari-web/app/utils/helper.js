@@ -25,7 +25,7 @@ String.prototype.capitalize = function () {
 }
 
 Em.CoreObject.reopen({
-  t: function (key, attrs) {
+  t:function (key, attrs) {
     return Em.I18n.t(key, attrs)
   }
 });
@@ -38,11 +38,48 @@ Handlebars.registerHelper('warn', function (variable) {
   console.warn(variable);
 });
 
+Handlebars.registerHelper('highlight', function (variable, words) {
+  words = words.split(";");
+
+//  var self = this;
+//  if (highlightTemplate == undefined) {
+  var highlightTemplate = "<b>{0}</b>";
+//  }
+
+  words.forEach(function (word) {
+    var searchRegExp = new RegExp("\\b" + word + "\\b", "gi");
+    variable = variable.replace(searchRegExp, function (found) {
+      return highlightTemplate.format(found);
+    });
+  });
+
+  return new Handlebars.SafeString(variable);
+})
+/**
+ * Replace {i} with argument. where i is number of argument to replace with
+ * @return {String}
+ */
 String.prototype.format = function () {
   var args = arguments;
   return this.replace(/{(\d+)}/g, function (match, number) {
     return typeof args[number] != 'undefined' ? args[number] : match;
   });
+};
+
+String.prototype.highlight = function (words, highlightTemplate) {
+  var self = this;
+  if (highlightTemplate == undefined) {
+    var highlightTemplate = "<b>{0}</b>";
+  }
+
+  words.forEach(function (word) {
+    var searchRegExp = new RegExp("\\b" + word + "\\b", "gi");
+    self = self.replace(searchRegExp, function (found) {
+      return highlightTemplate.format(found);
+    });
+  });
+
+  return self;
 };
 
 /**
@@ -120,10 +157,10 @@ App.formatUrl = function (urlTemplate, substitutes, testUrl) {
     if (!App.testMode) {
       var toSeconds = Math.round(new Date().getTime() / 1000);
       var allSubstitutes = {
-        toSeconds: toSeconds,
-        fromSeconds: toSeconds - 3600, // 1 hour back
-        stepSeconds: 15, // 15 seconds
-        hostName: App.test_hostname
+        toSeconds:toSeconds,
+        fromSeconds:toSeconds - 3600, // 1 hour back
+        stepSeconds:15, // 15 seconds
+        hostName:App.test_hostname
       };
       jQuery.extend(allSubstitutes, substitutes);
       for (key in allSubstitutes) {
@@ -141,15 +178,15 @@ App.formatUrl = function (urlTemplate, substitutes, testUrl) {
  * Certain variables can have JSON in string
  * format, or in JSON format itself.
  */
-App.parseJSON = function(value){
-  if(typeof value == "string"){
+App.parseJSON = function (value) {
+  if (typeof value == "string") {
     return jQuery.parseJSON(value);
   }
   return value;
 };
 
 App.format = {
-  role: function (role) {
+  role:function (role) {
     switch (role) {
       case 'ZOOKEEPER_SERVER':
         return 'ZooKeeper Server';
@@ -255,7 +292,7 @@ App.format = {
    * TIMEDOUT - Host did not respond in time
    * ABORTED - Operation was abandoned
    */
-  taskStatus: function (_taskStatus) {
+  taskStatus:function (_taskStatus) {
     return _taskStatus.replace('_', ' ').toLowerCase();
   }
 };

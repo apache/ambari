@@ -154,7 +154,7 @@ module.exports = Em.Route.extend({
     },
     back: Em.Router.transitionTo('step5'),
     retry: function(router,context) {
-      var addServiceController = router.get('addSrviceController');
+      var addServiceController = router.get('addServiceController');
       var wizardStep9Controller = router.get('wizardStep9Controller');
       if (!wizardStep9Controller.get('isSubmitDisabled')) {
         addServiceController.installServices();
@@ -165,7 +165,6 @@ module.exports = Em.Route.extend({
     next: function (router) {
       var addServiceController = router.get('addServiceController');
       var wizardStep9Controller = router.get('wizardStep9Controller');
-      //addServiceController.saveClusterInfo(wizardStep9Controller);
       addServiceController.saveInstalledHosts(wizardStep9Controller);
       router.transitionTo('step7');
     }

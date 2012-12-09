@@ -27,7 +27,7 @@ App.MainAdminUserEditView = Em.View.extend({
     if(form.isValid()) {
       var Users={};
       if(form.getValues().admin === "" || form.getValues().admin == true) {
-        form.getField("roles").set("value","admin");
+        form.getField("roles").set("value","admin,user");
         form.getField("admin").set("value","true");
       } else{
         form.getField("roles").set("value","user");
@@ -40,11 +40,11 @@ App.MainAdminUserEditView = Em.View.extend({
         Users.old_password=form.getValues().old_password;
       }
 
-      parent_controller.sendCommandToServer('users/' + form.getValues().userName, "PUT" , {
+      parent_controller.sendCommandToServer('/users/' + form.getValues().userName, "PUT" , {
        Users:Users
-      }, function (requestId) {
+      }, function (success) {
 
-        if (!requestId) {
+        if (!success) {
           return;
         }
 

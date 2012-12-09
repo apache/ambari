@@ -43,7 +43,8 @@ App.AddServiceController = Em.Controller.extend({
     masterComponentHosts: null,
     serviceConfigProperties: null,
     advancedServiceConfig: null,
-    controllerName: 'addServiceController'
+    controllerName: 'addServiceController',
+    isWizard: true
   }),
 
   /**
@@ -166,13 +167,28 @@ App.AddServiceController = Em.Controller.extend({
    * Load clusterInfo(step1) to model
    */
   loadClusterInfo: function(){
-    var cluster = {
-      name: App.router.getClusterName(),
-      status: "",
-      isCompleted: true
-    };
+    var cluster = App.db.getClusterStatus();
+    if(!cluster){
+      cluster = {
+        name: App.router.getClusterName(),
+        status: "",
+        isCompleted: false
+      };
+      App.db.setClusterStatus(cluster);
+    }
     this.set('content.cluster', cluster);
     console.log("AddServiceController:loadClusterInfo: loaded data ", cluster);
+  },
+
+  /**
+   * save status of the cluster. This is called from step8 and step9 to persist install and start requestId
+   * @param clusterStatus object with status, isCompleted, requestId, isInstallError and isStartError field.
+   */
+  saveClusterStatus: function (clusterStatus) {
+    clusterStatus.name = this.get('content.cluster.name');
+    this.set('content.cluster', clusterStatus);
+    console.log('called saveClusterStatus ' + JSON.stringify(clusterStatus));
+    App.db.setClusterStatus(clusterStatus);
   },
 
   /**
@@ -441,19 +457,29 @@ App.AddServiceController = Em.Controller.extend({
       var service = services.findProperty('id', comp.service);
       var hosts = [];
 
-      service.get('hostComponents').filterProperty('componentName', comp.name).forEach(function (host_component) {
+      if(!service){
+        service = services.findProperty('id', 'HDFS');
+        service.get('hostComponents').filterProperty('componentName', 'DATANODE').forEach(function (host_component) {
+          hosts.push({
+            group: "Default",
+            hostName: host_component.get('host.id'),
+            isInstalled: false
+          });
+        }, this);
+      } else {
+        service.get('hostComponents').filterProperty('componentName', comp.name).forEach(function (host_component) {
           hosts.push({
             group: "Default",
             hostName: host_component.get('host.id'),
             isInstalled: true
           });
-      }, this);
+        }, this);
+      }
 
       result.push({
         componentName: comp.name,
         displayName: App.format.role(comp.name),
-        hosts: hosts,
-        isInstalled: true
+        hosts: hosts
       })
     }
 
@@ -471,8 +497,7 @@ App.AddServiceController = Em.Controller.extend({
     result.push({
       componentName: 'CLIENT',
       displayName: 'client',
-      hosts: hosts,
-      isInstalled: true
+      hosts: hosts
     })
 
     return result;
@@ -658,7 +683,7 @@ App.AddServiceController = Em.Controller.extend({
             isCompleted: false,
             installStartTime: installSartTime
           };
-          //self.saveClusterStatus(clusterStatus);
+          self.saveClusterStatus(clusterStatus);
         } else {
           console.log('ERROR: Error occurred in parsing JSON data');
         }
@@ -674,7 +699,7 @@ App.AddServiceController = Em.Controller.extend({
           isInstallError: true,
           isCompleted: false
         };
-        //self.saveClusterStatus(clusterStatus);
+        self.saveClusterStatus(clusterStatus);
       },
 
       statusCode: require('data/statusCodes')
@@ -700,6 +725,7 @@ App.AddServiceController = Em.Controller.extend({
     App.db.setHosts(undefined);
     App.db.setMasterComponentHosts(undefined);
     App.db.setSlaveComponentHosts(undefined);
+    App.db.setClusterStatus(undefined);
   }
 
 });

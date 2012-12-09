@@ -41,7 +41,9 @@ App.AddHostController = Em.Controller.extend({
     hostsInfo: null,
     slaveComponentHosts: null,
     masterComponentHosts: null,
-    serviceConfigProperties: null
+    serviceConfigProperties: null,
+    advancedServiceConfig: null,
+    controllerName: 'addHostController'
   }),
 
   /**
@@ -187,42 +189,13 @@ App.AddHostController = Em.Controller.extend({
    * Load clusterInfo(step1) to model
    */
   loadClusterInfo: function(){
-    var cStatus = App.db.getClusterStatus() || {status: "", isCompleted: false};
     var cluster = {
-      name: App.db.getClusterName() || "",
-      status: cStatus.status,
-      isCompleted: cStatus.isCompleted
+      name: App.router.getClusterName(),
+      status: "",
+      isCompleted: true
     };
     this.set('content.cluster', cluster);
     console.log("AddHostController:loadClusterInfo: loaded data ", cluster);
-  },
-
-  /**
-   * Save all info about claster to model
-   * @param stepController Step1WizardController
-   */
-  saveClusterInfo: function (stepController) {
-    var cluster = stepController.get('content.cluster');
-    var clusterStatus = {
-      status: cluster.status,
-      isCompleted: cluster.isCompleted
-    }
-    App.db.setClusterName(cluster.name);
-    App.db.setClusterStatus(clusterStatus);
-
-    console.log("AddHostController:saveClusterInfo: saved data ", cluster);
-
-    //probably next line is extra work - need to check it
-    this.set('content.cluster', cluster);
-  },
-
-  /**
-   * save status of the cluster. This is called from step8 and step9 to persist install and start requestId
-   * @param clusterStatus object with status, isCompleted, requestId, isInstallError and isStartError field.
-   */
-  saveClusterStatus: function (clusterStatus) {
-    this.set('content.cluster', clusterStatus);
-    App.db.setClusterStatus(clusterStatus);
   },
 
   /**
@@ -232,7 +205,7 @@ App.AddHostController = Em.Controller.extend({
     var hostInfo = App.db.getHosts();
     for (var index in hostInfo) {
       hostInfo[index].status = "pending";
-      hostInfo[index].message = 'Waiting';
+      hostInfo[index].message = 'Information';
       hostInfo[index].progress = '0';
     }
     App.db.setHosts(hostInfo);
@@ -374,6 +347,7 @@ App.AddHostController = Em.Controller.extend({
       }
     }
     App.db.setHosts(hostInfo);
+    this.set('content.hostsInfo', hostInfo);
     console.log('addHostController:saveInstalledHosts: save hosts ', hostInfo);
   },
 
@@ -391,6 +365,8 @@ App.AddHostController = Em.Controller.extend({
       hosts.passphrase = '';
       hosts.confirmPassphrase = '';
     }
+    App.db.setHosts(null);
+    App.db.setAllHostNames(null);
   },
 
   /**
@@ -467,28 +443,33 @@ App.AddHostController = Em.Controller.extend({
     var clientHosts = [];
 
     hosts.forEach(function (host) {
+
       if (host.get('isDataNode')) {
         dataNodeHosts.push({
           hostName: host.hostName,
-          group: 'Default'
+          group: 'Default',
+          isInstalled: host.get('isDataNodeInstalled')
         });
       }
       if (isMrSelected && host.get('isTaskTracker')) {
         taskTrackerHosts.push({
           hostName: host.hostName,
-          group: 'Default'
+          group: 'Default',
+          isInstalled: host.get('isTaskTrackerInstalled')
         });
       }
       if (isHbSelected && host.get('isRegionServer')) {
         regionServerHosts.push({
           hostName: host.hostName,
-          group: 'Default'
+          group: 'Default',
+          isInstalled: host.get('isRegionServerInstalled')
         });
       }
       if (host.get('isClient')) {
         clientHosts.pushObject({
           hostName: host.hostName,
-          group: 'Default'
+          group: 'Default',
+          isInstalled: host.get('isClientInstalled')
         });
       }
     }, this);
@@ -520,14 +501,83 @@ App.AddHostController = Em.Controller.extend({
     });
 
     App.db.setSlaveComponentHosts(slaveComponentHosts);
+    console.log('addHostController.slaveComponentHosts: saved hosts', slaveComponentHosts);
     this.set('content.slaveComponentHosts', slaveComponentHosts);
   },
+  /**
+   * return slaveComponents bound to hosts
+   * @return {Array}
+   */
+  getSlaveComponentHosts: function () {
+    var components = [{
+      name : 'DATANODE',
+      service : 'HDFS'
+    },
+    {
+      name: 'TASKTRACKER',
+      service: 'MAPREDUCE'
+    },{
+      name: 'HBASE_REGIONSERVER',
+      service: 'HBASE'
+    }];
 
+    var result = [];
+    var services = App.Service.find();
+    var selectedServices = this.get('content.services').filterProperty('isSelected', true).mapProperty('serviceName');
+    for(var index=0; index < components.length; index++){
+      var comp = components[index];
+      if(!selectedServices.contains(comp.service)){
+        continue;
+      }
+
+
+      var service = services.findProperty('id', comp.service);
+      var hosts = [];
+
+      service.get('hostComponents').filterProperty('componentName', comp.name).forEach(function (host_component) {
+          hosts.push({
+            group: "Default",
+            hostName: host_component.get('host.id'),
+            isInstalled: true
+          });
+      }, this);
+
+      result.push({
+        componentName: comp.name,
+        displayName: App.format.role(comp.name),
+        hosts: hosts,
+        isInstalled: true
+      })
+    }
+
+    var clientsHosts = App.HostComponent.find().filterProperty('componentName', 'HDFS_CLIENT');
+    var hosts = [];
+
+    clientsHosts.forEach(function (host_component) {
+        hosts.push({
+          group: "Default",
+          hostName: host_component.get('host.id'),
+          isInstalled: true
+        });
+    }, this);
+
+    result.push({
+      componentName: 'CLIENT',
+      displayName: 'client',
+      hosts: hosts,
+      isInstalled: true
+    })
+
+    return result;
+  },
   /**
    * Load master component hosts data for using in required step controllers
    */
   loadSlaveComponentHosts: function () {
     var slaveComponentHosts = App.db.getSlaveComponentHosts();
+    if(!slaveComponentHosts){
+      slaveComponentHosts = this.getSlaveComponentHosts();
+    }
     this.set("content.slaveComponentHosts", slaveComponentHosts);
     console.log("AddHostController.loadSlaveComponentHosts: loaded hosts ", slaveComponentHosts);
   },
@@ -542,7 +592,8 @@ App.AddHostController = Em.Controller.extend({
       _content.get('configs').forEach(function (_configProperties) {
         var configProperty = {
           name: _configProperties.get('name'),
-          value: _configProperties.get('value')
+          value: _configProperties.get('value'),
+          service: _configProperties.get('serviceName')
         };
         serviceConfigProperties.push(configProperty);
       }, this);
@@ -578,13 +629,15 @@ App.AddHostController = Em.Controller.extend({
   saveClients: function(stepController){
     var clients = [];
     var serviceComponents = require('data/service_components');
+    var hostComponents = App.HostComponent.find();
 
     stepController.get('content').filterProperty('isSelected',true).forEach(function (_service) {
       var client = serviceComponents.filterProperty('service_name', _service.serviceName).findProperty('isClient', true);
       if (client) {
         clients.pushObject({
           component_name: client.component_name,
-          display_name: client.display_name
+          display_name: client.display_name,
+          isInstalled: hostComponents.filterProperty('componentName', client.component_name).length > 0
         });
       }
     }, this);
@@ -622,6 +675,55 @@ App.AddHostController = Em.Controller.extend({
     }
   },
 
+  loadAdvancedConfigs: function () {
+    App.db.getSelectedServiceNames().forEach(function (_serviceName) {
+      this.loadAdvancedConfig(_serviceName);
+    }, this);
+  },
+  /**
+   * Generate serviceProperties save it to localdata
+   * called form stepController step6WizardController
+   */
+
+  loadAdvancedConfig: function (serviceName) {
+    var self = this;
+    var url = (App.testMode) ? '/data/wizard/stack/hdp/version01/' + serviceName + '.json' : App.apiPrefix + '/stacks/HDP/version/1.2.0/services/' + serviceName; // TODO: get this url from the stack selected by the user in Install Options page
+    var method = 'GET';
+    $.ajax({
+      type: method,
+      url: url,
+      async: false,
+      dataType: 'text',
+      timeout: App.timeout,
+      success: function (data) {
+        var jsonData = jQuery.parseJSON(data);
+        console.log("TRACE: Step6 submit -> In success function for the loadAdvancedConfig call");
+        console.log("TRACE: Step6 submit -> value of the url is: " + url);
+        var serviceComponents = jsonData.properties;
+        serviceComponents.setEach('serviceName', serviceName);
+        var configs;
+        if (App.db.getAdvancedServiceConfig()) {
+          configs = App.db.getAdvancedServiceConfig();
+        } else {
+          configs = [];
+        }
+        configs = configs.concat(serviceComponents);
+        self.set('content.advancedServiceConfig', configs);
+        App.db.setAdvancedServiceConfig(configs);
+        console.log('TRACE: servicename: ' + serviceName);
+      },
+
+      error: function (request, ajaxOptions, error) {
+        console.log("TRACE: STep6 submit -> In error function for the loadAdvancedConfig call");
+        console.log("TRACE: STep6 submit-> value of the url is: " + url);
+        console.log("TRACE: STep6 submit-> error code status is: " + request.status);
+        console.log('Step6 submit: Error message is: ' + request.responseText);
+      },
+
+      statusCode: require('data/statusCodes')
+    });
+  },
+
   /**
    * Generate clients list for selected services and save it to model
    * @param stepController step8WizardController or step9WizardController
@@ -629,10 +731,11 @@ App.AddHostController = Em.Controller.extend({
   installServices: function () {
     var self = this;
     var clusterName = this.get('content.cluster.name');
-    var url = App.apiPrefix + '/clusters/' + clusterName + '/services?state=INIT';
+    var url = (App.testMode) ? '/data/wizard/deploy/poll_1.json' : App.apiPrefix + '/clusters/' + clusterName + '/services?state=INIT';
+    var method = (App.testMode) ? 'GET' : 'PUT';
     var data = '{"ServiceInfo": {"state": "INSTALLED"}}';
     $.ajax({
-      type: 'PUT',
+      type: method,
       url: url,
       data: data,
       async: false,
@@ -640,18 +743,21 @@ App.AddHostController = Em.Controller.extend({
       timeout: App.timeout,
       success: function (data) {
         var jsonData = jQuery.parseJSON(data);
+        var installSartTime = new Date().getTime();
         console.log("TRACE: STep8 -> In success function for the installService call");
         console.log("TRACE: STep8 -> value of the url is: " + url);
         if (jsonData) {
           var requestId = jsonData.href.match(/.*\/(.*)$/)[1];
+
           console.log('requestId is: ' + requestId);
           var clusterStatus = {
             status: 'PENDING',
             requestId: requestId,
             isInstallError: false,
-            isCompleted: false
+            isCompleted: false,
+            installStartTime: installSartTime
           };
-          self.saveClusterStatus(clusterStatus);
+          //self.saveClusterStatus(clusterStatus);
         } else {
           console.log('ERROR: Error occurred in parsing JSON data');
         }
@@ -667,7 +773,7 @@ App.AddHostController = Em.Controller.extend({
           isInstallError: true,
           isCompleted: false
         };
-        self.saveClusterStatus(clusterStatus);
+        //self.saveClusterStatus(clusterStatus);
       },
 
       statusCode: require('data/statusCodes')
@@ -682,6 +788,17 @@ App.AddHostController = Em.Controller.extend({
   clearAllSteps: function () {
     this.clearHosts();
     //todo it)
+  },
+
+  /**
+   * Clear all temporary data
+   */
+  finish: function(){
+    this.setCurrentStep('1', false);
+    App.db.setService(undefined); //not to use this data at AddService page
+    App.db.setHosts(undefined);
+    App.db.setMasterComponentHosts(undefined);
+    App.db.setSlaveComponentHosts(undefined);
   }
 
 });

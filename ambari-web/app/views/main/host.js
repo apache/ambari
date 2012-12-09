@@ -17,6 +17,7 @@
  */
 
 var App = require('app');
+require('utils/data_table');
 
 App.MainHostView = Em.View.extend({
   templateName:require('templates/main/host'),
@@ -28,7 +29,7 @@ App.MainHostView = Em.View.extend({
     return App.router.get('mainHostController.content');
   }.property('App.router.mainHostController.content'),
   componentsIds:[1, 2, 3, 4, 5, 6, 7, 8],
-
+  oTable: null,
   isFilterOpen:false,
 
 //  isApplyDisabled:function () {
@@ -68,6 +69,33 @@ App.MainHostView = Em.View.extend({
   }.observes('slaveComponentsChecked'),
 
   didInsertElement:function () {
+    var oTable = $('#hosts-table').dataTable({
+      "sDom": '<"search-bar"f><"clear">rt<"page-bar"lip><"clear">',
+      "oLanguage": {
+        "sSearch": "Search:",
+        "sLengthMenu": "Show: _MENU_",
+        "sInfo": "_START_ - _END_ of _TOTAL_ (_TOTAL_ total)",
+        "sInfoEmpty": "0 - _END_ of _TOTAL_ (_TOTAL_ total)",
+        "sInfoFiltered": "",
+        "oPaginate":{
+          "sPrevious": "<i class='icon-arrow-left'></i>",
+          "sNext": "<i class='icon-arrow-right'></i>"
+        }
+      },
+      "bSortCellsTop": true,
+      "iDisplayLength": 10,
+      "aLengthMenu": [[10, 25, 50, 100, -1], [10, 25, 50, 100, "All"]],
+      "aoColumns":[
+        { "sType":"html" },
+        { "sType":"html" },
+        { "sType":"num-html" },
+        { "sType":"ambari-bandwidth" },
+        { "sType":"string" },
+        { "sType":"string" },
+        { "sType":"string", "bSortable": false  }
+      ]
+    });
+    this.set('oTable', oTable);
     this.set('allComponentsChecked', true); // select all components (checkboxes) on start.
   },
 
@@ -111,7 +139,8 @@ App.MainHostView = Em.View.extend({
     }.property('content.components.@each'),
 
     usageStyle:function () {
-      return "width:" + this.get('content.diskUsage') + "%";
+      //return "width:" + this.get('content.diskUsage') + "%";
+      return "width:" + (25+Math.random()*50) + "%"; // Just for tests purposes
     }.property('content.diskUsage')
 
 //    HostCheckboxView:Em.Checkbox.extend({
@@ -152,5 +181,101 @@ App.MainHostView = Em.View.extend({
     var selectedHostsIds = App.router.get('mainHostController.selectedHostsIds');
     var rack = App.router.get('mainHostController.selectedRack');
     return (selectedHostsIds.length && rack && rack.constructor == 'App.Cluster') ? false : "disabled";
-  }.property('App.router.mainHostController.selectedHostsIds', 'App.router.mainHostController.selectedRack')
+  }.property('App.router.mainHostController.selectedHostsIds', 'App.router.mainHostController.selectedRack'),
+
+  nameFilterView: Em.TextField.extend({
+    classNames:['input-medium'],
+    type:'text',
+    placeholder: 'Any Name',
+    filtering:function(){
+      if (this.get('value') == '') {
+        this.$().closest('th').addClass('notActive');
+      }
+      else {
+        this.$().closest('th').removeClass('notActive');
+      }
+      this.get('parentView').get('applyFilter')(this.get('parentView'), 0, this.get('value'));
+    }.observes('value')
+  }),
+
+  rackFilterView: Em.TextField.extend({
+    classNames:['input-medium'],
+    type:'text',
+    placeholder: 'Any Name',
+    filtering:function(){
+      if (this.get('value') == '') {
+        this.$().closest('th').addClass('notActive');
+      }
+      else {
+        this.$().closest('th').removeClass('notActive');
+      }
+      this.get('parentView').get('applyFilter')(this.get('parentView'), 1, this.get('value'));
+    }.observes('value')
+  }),
+  /**
+   * Filter-field for cpu
+   */
+  cpuFilterView: Em.TextField.extend({
+    classNames:['input-mini'],
+    type:'text',
+    placeholder: 'Any ',
+    elementId:'cpu_filter',
+    filtering:function(){
+      if (this.get('value') == '') {
+        this.$().closest('th').addClass('notActive');
+      }
+      else {
+        this.$().closest('th').removeClass('notActive');
+      }
+      this.get('parentView').get('applyFilter')(this.get('parentView'), 2);
+    }.observes('value')
+  }),
+  /**
+   * Filter-field for RAM
+   */
+  ramFilterView: Em.TextField.extend({
+    classNames:['input-mini'],
+    type:'text',
+    placeholder: 'Any ',
+    elementId: 'ram_filter',
+    filtering:function(){
+      if (this.get('value') == '') {
+        this.$().closest('th').addClass('notActive');
+      }
+      else {
+        this.$().closest('th').removeClass('notActive');
+      }
+      this.get('parentView').get('applyFilter')(this.get('parentView'), 3);
+    }.observes('value')
+  }),
+  /**
+   * Clear selected filter
+   * @param event
+   */
+  clearFilterButtonClick: function(event) {
+    var viewName = event.target.id.replace('view_', '');
+    var elementId = this.get(viewName).get('elementId');
+    if(this.get(viewName).get('tagName') === 'input') {
+      this.get(viewName).set('value', '');
+    }
+    if(this.get(viewName).get('tagName') === 'select') {
+      this.get(viewName).set('value', 'Any');
+      this.get(viewName).change();
+    }
+    if(this.get(viewName).get('multiple')) {
+      this.get(viewName).get('clearFilter')(this.get(viewName));
+    }
+  },
+  /**
+   * apply each filter to dataTable
+   *
+   * @param {parentView}
+   * @param {iColumn} number of column by which filter
+   * @param {value}
+   */
+  applyFilter:function(parentView, iColumn, value) {
+    value = (value) ? value : '';
+    parentView.get('oTable').fnFilter(value, iColumn);
+  }
+
 });

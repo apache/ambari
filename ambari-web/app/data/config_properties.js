@@ -609,7 +609,7 @@ module.exports =
     {
       "id": "puppet var",
       "name": "proxyuser_group",
-      "displayName": "Proxy group for Hive, Templeton and Oozie.",
+      "displayName": "Proxy group for Hive, Templeton, and Oozie",
       "description": "",
       "defaultValue": "users",
       "isReconfigurable": false,
@@ -648,8 +648,8 @@ module.exports =
     {
       "id": "puppet var",
       "name": "dfs_replication",
-      "displayName": "Include hosts",
-      "description": "Include entered hosts",
+      "displayName": "Block replication",
+      "description": "Default block replication.",
       "displayType": "int",
       "defaultValue": "3",
       "isReconfigurable": false,

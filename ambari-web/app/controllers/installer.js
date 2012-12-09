@@ -238,7 +238,8 @@ App.InstallerController = Em.Controller.extend({
     var cluster = {
       name: App.db.getClusterName() || "",
       status: cStatus.status,
-      isCompleted: cStatus.isCompleted
+      isCompleted: cStatus.isCompleted,
+      requestId: cStatus.requestId
     };
     this.set('content.cluster', cluster);
 
@@ -513,28 +514,28 @@ App.InstallerController = Em.Controller.extend({
         dataNodeHosts.push({
           hostName: host.hostName,
           group: 'Default',
-          isInstalled : false
+          isInstalled: false
         });
       }
       if (isMrSelected && host.get('isTaskTracker')) {
         taskTrackerHosts.push({
           hostName: host.hostName,
           group: 'Default',
-          isInstalled : false
+          isInstalled: false
         });
       }
       if (isHbSelected && host.get('isRegionServer')) {
         regionServerHosts.push({
           hostName: host.hostName,
           group: 'Default',
-          isInstalled : false
+          isInstalled: false
         });
       }
       if (host.get('isClient')) {
         clientHosts.pushObject({
           hostName: host.hostName,
           group: 'Default',
-          isInstalled : false
+          isInstalled: false
         });
       }
     }, this);
@@ -587,10 +588,10 @@ App.InstallerController = Em.Controller.extend({
     var serviceConfigProperties = [];
     stepController.get('stepConfigs').forEach(function (_content) {
       _content.get('configs').forEach(function (_configProperties) {
-        var displayType =  _configProperties.get('displayType');
-        if(displayType === 'directories' || displayType === 'directory') {
+        var displayType = _configProperties.get('displayType');
+        if (displayType === 'directories' || displayType === 'directory') {
           var value = _configProperties.get('value').split(/\s+/g).join(',');
-          _configProperties.set('value',value);
+          _configProperties.set('value', value);
         }
         var configProperty = {
           id: _configProperties.get('id'),
@@ -720,9 +721,13 @@ App.InstallerController = Em.Controller.extend({
   },
 
   loadAdvancedConfigs: function () {
+    var configs = [];
     App.db.getSelectedServiceNames().forEach(function (_serviceName) {
-      this.loadAdvancedConfig(_serviceName);
+      var serviceComponents = this.loadAdvancedConfig(_serviceName);
+      configs = configs.concat(serviceComponents);
     }, this);
+    this.set('content.advancedServiceConfig', configs);
+    App.db.setAdvancedServiceConfig(configs);
   },
   /**
    * Generate serviceProperties save it to localdata
@@ -733,6 +738,7 @@ App.InstallerController = Em.Controller.extend({
     var self = this;
     var url = (App.testMode) ? '/data/wizard/stack/hdp/version01/' + serviceName + '.json' : App.apiPrefix + '/stacks/HDP/version/1.2.0/services/' + serviceName; // TODO: get this url from the stack selected by the user in Install Options page
     var method = 'GET';
+    var serviceComponents;
     $.ajax({
       type: method,
       url: url,
@@ -743,17 +749,8 @@ App.InstallerController = Em.Controller.extend({
         var jsonData = jQuery.parseJSON(data);
         console.log("TRACE: Step6 submit -> In success function for the loadAdvancedConfig call");
         console.log("TRACE: Step6 submit -> value of the url is: " + url);
-        var serviceComponents = jsonData.properties;
+        serviceComponents = jsonData.properties;
         serviceComponents.setEach('serviceName', serviceName);
-        var configs;
-        if (App.db.getAdvancedServiceConfig()) {
-          configs = App.db.getAdvancedServiceConfig();
-        } else {
-          configs = [];
-        }
-        configs = configs.concat(serviceComponents);
-        self.set('content.advancedServiceConfig', configs);
-        App.db.setAdvancedServiceConfig(configs);
         console.log('TRACE: servicename: ' + serviceName);
       },
 
@@ -766,6 +763,7 @@ App.InstallerController = Em.Controller.extend({
 
       statusCode: require('data/statusCodes')
     });
+    return serviceComponents;
   },
 
   /**
@@ -812,11 +810,12 @@ App.InstallerController = Em.Controller.extend({
         console.log("TRACE: STep8 -> value of the url is: " + url);
         console.log("TRACE: STep8 -> error code status is: " + request.status);
         console.log('Step8: Error message is: ' + request.responseText);
-        var clusterStatus = {
-          status: 'PENDING',
-          isInstallError: true,
-          isCompleted: false
-        };
+          var clusterStatus = {
+            status: 'PENDING',
+            isInstallError: false,
+            isCompleted: false
+          };
+
         self.saveClusterStatus(clusterStatus);
       },
 
@@ -828,12 +827,13 @@ App.InstallerController = Em.Controller.extend({
   /**
    * Clear all temporary data
    */
-  finish: function(){
+  finish: function () {
     this.setCurrentStep('1', false);
     App.db.setService(undefined); //not to use this data at AddService page
     App.db.setHosts(undefined);
     App.db.setMasterComponentHosts(undefined);
     App.db.setSlaveComponentHosts(undefined);
+    App.db.setClusterStatus(undefined);
   }
 
 });

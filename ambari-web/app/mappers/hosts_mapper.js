@@ -28,6 +28,7 @@ App.hostsMapper = App.QuickDataMapper.create({
     components: {
       item : 'HostRoles.component_name'
     },
+    rack: 'Hosts.rack_info',
     host_components_key: 'host_components',
     host_components_type: 'array',
     host_components: {

@@ -18,11 +18,13 @@
 
 
 module.exports = {
-  drawJobTimeLine:function (json_str, w, h, element, legend_id, timeline_id) {
-    var json = $.parseJSON(json_str);
-    console.log('json', json);
-    if (!json) {
-      return new Error("unable to load data");
+  drawJobTimeLine:function (map, shuffle, reduce, w, h, element, legend_id, timeline_id) {
+    var map = $.parseJSON(map);
+    var shuffle = $.parseJSON(shuffle);
+    var reduce = $.parseJSON(reduce);
+    if (!map || !shuffle || !reduce) {
+      console.warn('drawJobTimeLine');
+      return;
     }
 
     var graph = new Rickshaw.Graph({
@@ -33,17 +35,17 @@ module.exports = {
       stroke:true,
       series:[
         {
-          data:json[0],
+          data:map,
           color:'green',
           name:'maps'
         },
         {
-          data:json[1],
+          data:shuffle,
           color:'lightblue',
           name:'shuffles'
         },
         {
-          data:json[2],
+          data:reduce,
           color:'steelblue',
           name:'reduces'
         }
@@ -97,10 +99,15 @@ module.exports = {
       element:document.getElementById(timeline_id)
     });
   },
-  drawJobTasks:function (json_str, w, h, element, legend_id, timeline_id) {
-    var json = $.parseJSON(json_str);
-    if (!json) {
-      return new Error("unable to load data");
+  drawJobTasks:function (mapNodeLocal, mapRackLocal, mapOffSwitch, reduceOffSwitch, w, h, element, legend_id, timeline_id) {
+    var mapNodeLocal = $.parseJSON(mapNodeLocal);
+    var mapRackLocal = $.parseJSON(mapRackLocal);
+    var mapOffSwitch = $.parseJSON(mapOffSwitch);
+    var reduceOffSwitch = $.parseJSON(reduceOffSwitch);
+    console.log(mapNodeLocal, mapRackLocal, mapOffSwitch, reduceOffSwitch);
+    if (!mapNodeLocal || !mapRackLocal || !mapOffSwitch || !reduceOffSwitch) {
+      console.warn('drawJobTasks');
+      return;
     }
 
     var graph = new Rickshaw.Graph({
@@ -111,22 +118,22 @@ module.exports = {
       stroke:true,
       series:[
         {
-          data:json[0],
+          data:mapNodeLocal,
           color:'green',
           name:'node_local_map'
         },
         {
-          data:json[1],
+          data:mapRackLocal,
           color:'lightblue',
           name:'rack_local_map'
         },
         {
-          data:json[2],
+          data:mapOffSwitch,
           color:'brown',
           name:'off_switch_map'
         },
         {
-          data:json[3],
+          data:reduceOffSwitch,
           color:'red',
           name:'reduce'
         }
@@ -157,20 +164,20 @@ module.exports = {
 
     var xAxis = new Rickshaw.Graph.Axis.Time({
       graph:graph,
-      ticksTreatment:ticksTreatment,
+      ticksTreatment:ticksTreatment
     });
     xAxis.render();
 
     var yAxis = new Rickshaw.Graph.Axis.Y({
       graph:graph,
-      ticksTreatment:ticksTreatment,
+      ticksTreatment:ticksTreatment
     });
     yAxis.render();
 
     var hoverDetail = new Rickshaw.Graph.HoverDetail({
       graph:graph,
       xFormatter:function (x) {
-        return (x - json[4].submitTime) / 1000 + 's'
+        return (x - json.submitTime) + 's'
       },
       yFormatter:function (y) {
         return y / 1000 + 's'
@@ -186,7 +193,6 @@ module.exports = {
       graph:graph,
       element:document.getElementById(timeline_id)
     });
-    annotator.add(1337970759432, 'Lost tasktracker');
     graph.update();
   }
 }

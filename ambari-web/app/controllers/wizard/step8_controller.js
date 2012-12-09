@@ -293,6 +293,7 @@ App.WizardStep8Controller = Em.Controller.extend({
             break;
           case 'GANGLIA':
             this.loadGanglia(serviceObj);
+            break;
           case 'HCATALOG':
             break;
           default:
@@ -615,7 +616,7 @@ App.WizardStep8Controller = Em.Controller.extend({
 
   createCluster: function () {
 
-    if (this.get('content.cluster.isCompleted')){
+    if (this.get('content.isWizard')){
       return false;
     }
 
@@ -829,7 +830,7 @@ App.WizardStep8Controller = Em.Controller.extend({
 
   createConfigurations: function () {
     var selectedServices = this.get('selectedServices');
-    if (!this.get('content.cluster.isCompleted')){
+    if (!this.get('content.isWizard')){
       this.createConfigSite(this.createGlobalSiteObj());
       this.createConfigSite(this.createCoreSiteObj());
       this.createConfigSite(this.createHdfsSiteObj('HDFS'));

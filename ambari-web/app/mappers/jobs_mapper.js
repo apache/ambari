@@ -57,7 +57,9 @@ App.jobsMapper = App.QuickDataMapper.create({
 
 App.jobTimeLineMapper = App.QuickDataMapper.create({
   config:{
-    jobTimeLine:'items'
+    map:'map',
+    shuffle:'shuffle',
+    reduce:'reduce'
   },
   map:function (json) {
     var job = this.get('model'); // @model App.MainAppsItemBarView
@@ -71,7 +73,12 @@ App.jobTimeLineMapper = App.QuickDataMapper.create({
 
 App.jobTasksMapper = App.QuickDataMapper.create({
   config:{
-    jobTaskView:'items'
+    mapNodeLocal:'mapNodeLocal',
+    mapRackLocal:'mapRackLocal',
+    mapOffSwitch:'mapOffSwitch',
+    reduceOffSwitch:'reduceOffSwitch',
+    submitTime:'submitTime',
+    finishTime:'finishTime'
   },
   map:function (json) {
     var job = this.get('model'); // @model App.MainAppsItemBarView

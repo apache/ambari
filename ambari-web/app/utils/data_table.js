@@ -17,6 +17,20 @@
  */
 
 jQuery.extend(jQuery.fn.dataTableExt.oSort, {
+
+  "num-html-pre": function(date_string) {
+    date_string = $(date_string).text();
+    return parseInt(date_string, 10);
+  },
+
+  "num-html-asc": function (a, b) {
+    return a - b;
+  },
+
+  "num-html-desc": function (a, b) {
+    return b - a;
+  },
+
   // @see utils/date.js
   "ambari-date-pre": function (date_string) {
     date_string = $(date_string).text(); // strip Ember script tags
@@ -141,17 +155,19 @@ jQuery.extend($.fn.dataTableExt.afnFiltering.push(
     function (oSettings, aData, iDataIndex) {
       var inputFilters = [
         {iColumn: '0', elementId: 'star_filter', type: 'star'},
+        {iColumn: '2', elementId: 'cpu_filter', type: 'number'},
         {iColumn: '4', elementId: 'user_filter', type: 'multiple'},
         {iColumn: '5', elementId: 'jobs_filter', type: 'number' },
-        {iColumn: '6', elementId: 'input_filter', type: 'bandwidth' },
-        {iColumn: '7', elementId: 'output_filter', type: 'bandwidth' },
+        {iColumn: '3', elementId: 'ram_filter', type: 'ambari-bandwidth' },
+        {iColumn: '6', elementId: 'input_filter', type: 'ambari-bandwidth' },
+        {iColumn: '7', elementId: 'output_filter', type: 'ambari-bandwidth' },
         {iColumn: '8', elementId: 'duration_filter', type: 'time' },
-        {iColumn: '9', elementId: 'rundate_filter', type: 'date' }
+        //{iColumn: '9', elementId: 'rundate_filter', type: 'ambari-date' }
       ];
       var match = true;
-      for (i = 0; i < inputFilters.length; i++) {
+      for (var i = 0; i < inputFilters.length; i++) {
         switch (inputFilters[i].type) {
-          case 'date':
+          case 'ambari-date':
             if (jQuery('#' + inputFilters[i].elementId).val() !== 'Any' && match) {
               dateFilter(jQuery('#' + inputFilters[i].elementId).val(), aData[inputFilters[i].iColumn]);
             }
@@ -171,7 +187,7 @@ jQuery.extend($.fn.dataTableExt.afnFiltering.push(
               timeFilter(jQuery('#' + inputFilters[i].elementId).val(), aData[inputFilters[i].iColumn]);
             }
             break;
-          case 'bandwidth':
+          case 'ambari-bandwidth':
             if (jQuery('#' + inputFilters[i].elementId).val() && match) {
               bandwidthFilter(jQuery('#' + inputFilters[i].elementId).val(), aData[inputFilters[i].iColumn]);
             }
@@ -230,6 +246,7 @@ jQuery.extend($.fn.dataTableExt.afnFiltering.push(
       }
 
       function bandwidthFilter(rangeExp, rowValue) {
+        rowValue = $(rowValue).text();
         var compareChar = rangeExp.charAt(0);
         var compareScale = rangeExp.charAt(rangeExp.length - 1);
         var compareValue = isNaN(parseFloat(compareScale)) ? parseFloat(rangeExp.substr(1, rangeExp.length - 2)) : parseFloat(rangeExp.substr(1, rangeExp.length - 1));

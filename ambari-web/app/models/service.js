@@ -29,20 +29,31 @@ App.Service = DS.Model.extend({
   quickLinks: DS.hasMany('App.QuickLinks'),
   components: DS.hasMany('App.Component'),
   hostComponents: DS.hasMany('App.HostComponent'),
-  isRunning: function(){
-    return (this.get('healthStatus') == 'green' | this.get('healthStatus') == 'green-blinking');
+  isRunning: function () {
+    return (this.get('healthStatus') == 'green' || this.get('healthStatus') == 'green-blinking');
   }.property('healthStatus'),
 
-  healthStatus: function(){
+  healthStatus: function () {
     var components = this.get('components').filterProperty('isMaster', true);
-    if (components.everyProperty('workStatus', App.Component.Status.started)){
+    if (components.everyProperty('workStatus', App.Component.Status.started)) {
       return 'green';
-    } else if(components.someProperty('workStatus', App.Component.Status.stopped)){
-      return 'red';
-    } else if(components.someProperty('workStatus', App.Component.Status.starting)){
+    } else if (components.someProperty('workStatus', App.Component.Status.starting)) {
       return 'green-blinking';
+    } else if (components.someProperty('workStatus', App.Component.Status.stopped)) {
+      return 'red';
+    } else {
+      return 'red-blinking';
     }
-    return 'red-blinking';
+  }.property('components.@each.workStatus'),
+
+  isStopped: function () {
+    var components = this.get('components');
+    return components.everyProperty('workStatus', App.Component.Status.stopped);
+  }.property('components.@each.workStatus'),
+
+  isStarted: function () {
+    var components = this.get('components').filterProperty('isMaster', true);
+    return components.everyProperty('workStatus', App.Component.Status.started);
   }.property('components.@each.workStatus'),
 
   displayName: function () {
@@ -80,8 +91,8 @@ App.Service.Health = {
   starting: "STARTING",
   stopping: "STOPPING",
 
-  getKeyName:function(value){
-    switch(value){
+  getKeyName: function (value) {
+    switch (value) {
       case this.live:
         return 'live';
       case this.dead:

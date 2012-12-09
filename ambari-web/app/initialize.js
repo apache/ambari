@@ -22,7 +22,7 @@ window.App = require('app');
 App.testMode = false;
 App.skipBootstrap = false;
 App.alwaysGoToInstaller = false;
-App.apiPrefix = '/api';
+App.apiPrefix = '/api/v1';
 // default AJAX timeout
 App.timeout = 20000;
 

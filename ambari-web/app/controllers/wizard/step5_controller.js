@@ -64,7 +64,7 @@ App.WizardStep5Controller = Em.Controller.extend({
           host_name: _host.name,
           cpu: _host.cpu,
           memory: _host.memory,
-          host_info: "%@ ( %@GB %@cores )".fmt(_host.name, _host.memory, _host.cpu)
+          host_info: "%@ (%@, %@ cores)".fmt(_host.name, (_host.memory * 1024).bytesToSize(1, 'parseFloat'), _host.cpu)
         });
 
         this.get("hosts").pushObject(hostObj);
@@ -92,7 +92,7 @@ App.WizardStep5Controller = Em.Controller.extend({
     var masterComponents = this.get('components').filterProperty('isMaster', true); //get full list from mock data
 
     var servicesLength = services.length;
-    for (var index =0; index < servicesLength; index++) {
+    for (var index = 0; index < servicesLength; index++) {
       var componentInfo = masterComponents.filterProperty('service_name', services[index]);
 
       componentInfo.forEach(function (_componentInfo) {
@@ -383,11 +383,10 @@ App.WizardStep5Controller = Em.Controller.extend({
     mappedHosts.forEach(function (item) {
       hostObj = self.get("hosts").findProperty("host_name", item);
       console.log("Name of the host is: " + hostObj.host_name);
-      hostInfo = " ( " + hostObj.get("memory") + "GB" + " " + hostObj.get("cpu") + "cores )";
 
       mappingObject = Ember.Object.create({
         host_name: item,
-        hostInfo: hostInfo,
+        hostInfo: hostObj.host_info,
         masterServices: self.get("selectedServicesMasters").filterProperty("selectedHost", item)
       });
 

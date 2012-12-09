@@ -116,6 +116,11 @@ App.WizardStep7Controller = Em.Controller.extend({
     }
   },
 
+
+
+  /**
+   * Render a custom conf-site box for entering properties that will be written in *-site.xml files of the services
+   */
   loadCustomConfig: function () {
     var serviceConfigs = this.get('serviceConfigs');
     this.get('customConfigs').forEach(function (_config) {
@@ -134,8 +139,8 @@ App.WizardStep7Controller = Em.Controller.extend({
    */
   renderServiceConfigs: function (serviceConfigs) {
     serviceConfigs.forEach(function (_serviceConfig) {
+
       var serviceConfig = App.ServiceConfig.create({
-        id: _serviceConfig.id,
         filename: _serviceConfig.filename,
         serviceName: _serviceConfig.serviceName,
         displayName: _serviceConfig.displayName,
@@ -154,6 +159,21 @@ App.WizardStep7Controller = Em.Controller.extend({
       }
     }, this);
 
+    var miscConfigs = this.get('stepConfigs').findProperty('serviceName', 'MISC').configs;
+    var showProxyGroup = this.get('selectedServiceNames').contains('HIVE') ||
+      this.get('selectedServiceNames').contains('HCATALOG') ||
+      this.get('selectedServiceNames').contains('OOZIE');
+    miscConfigs.findProperty('name', 'proxyuser_group').set('isVisible', showProxyGroup);
+    miscConfigs.findProperty('name', 'hbase_user').set('isVisible', this.get('selectedServiceNames').contains('HBASE'));
+    miscConfigs.findProperty('name', 'mapred_user').set('isVisible', this.get('selectedServiceNames').contains('MAPREDUCE'));
+    miscConfigs.findProperty('name', 'hive_user').set('isVisible', this.get('selectedServiceNames').contains('HIVE'));
+    miscConfigs.findProperty('name', 'hcat_user').set('isVisible', this.get('selectedServiceNames').contains('HCATALOG'));
+    miscConfigs.findProperty('name', 'templeton_user').set('isVisible', this.get('selectedServiceNames').contains('HCATALOG'));
+    miscConfigs.findProperty('name', 'oozie_user').set('isVisible', this.get('selectedServiceNames').contains('OOZIE'));
+    miscConfigs.findProperty('name', 'pig_user').set('isVisible', this.get('selectedServiceNames').contains('PIG'));
+    miscConfigs.findProperty('name', 'sqoop_user').set('isVisible', this.get('selectedServiceNames').contains('SQOOP'));
+    miscConfigs.findProperty('name', 'zk_user').set('isVisible', this.get('selectedServiceNames').contains('ZOOKEEPER'));
+
     this.set('selectedService', this.get('stepConfigs').objectAt(0));
   },
 
@@ -167,7 +187,6 @@ App.WizardStep7Controller = Em.Controller.extend({
       var serviceConfigProperty = App.ServiceConfigProperty.create(_serviceConfigProperty);
       serviceConfigProperty.serviceConfig = componentConfig;
       serviceConfigProperty.initialValue();
-
       componentConfig.configs.pushObject(serviceConfigProperty);
       serviceConfigProperty.validate();
     }, this);

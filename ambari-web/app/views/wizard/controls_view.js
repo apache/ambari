@@ -28,7 +28,7 @@ App.ServiceConfigPopoverSupport = Ember.Mixin.create({
    * Config object. It will instance of App.ServiceConfigProperty
    */
   serviceConfig: null,
-
+  placeholderBinding: 'serviceConfig.defaultValue',
   isPopoverEnabled: true,
 
   didInsertElement: function () {
@@ -252,6 +252,7 @@ App.ServiceConfigMultipleHostsDisplay = Ember.Mixin.create(App.ServiceConfigHost
     console.log('controller', this.get('controller').name); //should be slaveComponentGroupsController
     if(!this.get('value')){
      // debugger;
+      return true;
     }
     return this.get('value').length === 0;
   }.property('value'),

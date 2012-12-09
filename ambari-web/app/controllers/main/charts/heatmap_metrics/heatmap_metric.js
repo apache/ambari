@@ -123,7 +123,7 @@ App.MainChartHeatmapMetric = Em.Object.extend({
     var clusterName = App.router.get('clusterController.clusterName');
     var fixedMetricName = this.get('defaultMetric');
     fixedMetricName = fixedMetricName.replace(/\./g, "/");
-    return App.formatUrl("/api/clusters/{clusterName}/hosts?fields={metricName}", {
+    return App.formatUrl(App.apiPrefix + "/clusters/{clusterName}/hosts?fields={metricName}", {
       clusterName: App.router.get('clusterController.clusterName'),
       metricName: fixedMetricName
     }, "/data/cluster_metrics/cpu_1hr.json");

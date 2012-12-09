@@ -20,15 +20,16 @@
   {{#view App.MainBackgroundOperation contentBinding="operation"}}
     <div>
       <a {{action showOperationLog target="view"}} href="#">
-        {{#if view.isOpenShowLog}}Hide{{else}}Show{{/if}} info about {{operation.command}} {{operation.role}} on {{operation.host_name}}
+        <i {{bindAttr class="view.iconClass"}}></i>
+        {{#if view.isOpen}}Hide{{else}}Show{{/if}} info about {{operation.command}} {{operation.role}} on {{operation.host_name}}
       </a>
-      {{#if view.isOpenShowLog}}
+      {{#if view.isOpen}}
         <h5>exitcode:</h5>
         <pre class="stderr">{{operation.exit_code}}</pre>
         <h5>stderr:</h5>
-        <pre class="stderr">{{operation.stderr}}</pre>
+        <pre class="stderr">{{highlight operation.stderr [err;fail]}}</pre>
         <h5>stdout:</h5>
-        <pre class="stdout">{{operation.stdout}}</pre>
+        <pre class="stdout">{{highlight operation.stdout [err;fail]}}</pre>
       {{/if}}
     </div>
   {{/view}}

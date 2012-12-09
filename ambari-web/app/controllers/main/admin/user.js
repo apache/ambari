@@ -43,10 +43,10 @@ App.MainAdminUserController = Em.Controller.extend({
       secondary:Em.I18n.t('no'),
 
       onPrimary:function () {
-        self.sendCommandToServer('/users/' +  event.context.get("userName"),"DELETE" ,{},
-          function (requestId) {
+        self.sendCommandToServer('/users/' +  event.context.get("userName"), "DELETE" ,{},
+          function (success) {
 
-            if (!requestId) {
+            if (!success) {
               return;
             }
 
@@ -68,7 +68,7 @@ App.MainAdminUserController = Em.Controller.extend({
   sendCommandToServer : function(url, method, postData, callback){
     var url =  (App.testMode) ?
         '/data/wizard/deploy/poll_1.json' : //content is the same as ours
-        App.apiPrefix + '/' + url;
+        App.apiPrefix + url;
 
     var method = App.testMode ? 'GET' : method;
 
@@ -79,17 +79,12 @@ App.MainAdminUserController = Em.Controller.extend({
       dataType: 'json',
       timeout: App.timeout,
       success: function(data){
-        if(data && data.Requests){
-          callback(data.Requests.id);
-        } else{
-          callback(null);
-          console.log('cannot get request id from ', data);
-        }
+          callback(true);
       },
 
       error: function (request, ajaxOptions, error) {
         //do something
-        callback(null);
+        callback(false);
         console.log('error on change component host status')
       },
 

@@ -7,7 +7,7 @@
         "cpu_count" : 1,
         "cluster_name" : "mycluster",
         "last_registration_time" : 1352386560520,
-        "rack_info" : "/default-rack",
+        "rack_info" : "/default-rack2",
         "total_mem" : 3082813,
         "os_arch" : "x86_64",
         "host_name" : "dev1.hortonworks.com",
@@ -83,7 +83,7 @@
         "cluster_name" : "mycluster",
         "last_registration_time" : 1352386560520,
         "rack_info" : "/default-rack",
-        "total_mem" : 3082813,
+        "total_mem" : 3086813,
         "os_arch" : "x86_64",
         "host_name" : "dev2.hortonworks.com",
         "disk_info" : "[{\"available\":\"47295056\",\"mountpoint\":\"/\",\"used\":\"3786948\",\"percent\":\"8%\",\"size\":\"51606140\",\"type\":\"ext4\"},{\"available\":\"1542800\",\"mountpoint\":\"/dev/shm\",\"used\":\"248\",\"percent\":\"1%\",\"size\":\"1543048\",\"type\":\"tmpfs\"},{\"available\":\"432210\",\"mountpoint\":\"/boot\",\"used\":\"38034\",\"percent\":\"9%\",\"size\":\"495844\",\"type\":\"ext4\"},{\"available\":\"44459872\",\"mountpoint\":\"/home\",\"used\":\"184220\",\"percent\":\"1%\",\"size\":\"47033288\",\"type\":\"ext4\"},{\"available\":\"902105496\",\"mountpoint\":\"/media/sf_ambari\",\"used\":\"74551908\",\"percent\":\"8%\",\"size\":\"976657404\",\"type\":\"vboxsf\"}]",
@@ -154,10 +154,10 @@
       
       "href" : "http://dev.hortonworks.com:8080/api/clusters/mycluster/hosts/dev3.hortonworks.com",
       "Hosts" : {
-        "cpu_count" : 1,
+        "cpu_count" : 16,
         "cluster_name" : "mycluster",
         "last_registration_time" : 1352386560520,
-        "rack_info" : "/default-rack",
+        "rack_info" : "/default-rack3",
         "total_mem" : 3082813,
         "os_arch" : "x86_64",
         "host_name" : "dev3.hortonworks.com",
@@ -221,6 +221,666 @@
             "cluster_name" : "mycluster",
             "component_name" : "MAPREDUCE_CLIENT",
             "host_name" : "dev3.hortonworks.com"
+          }
+        }
+      ]
+    },
+    {
+      "href" : "http://dev.hortonworks.com:8080/api/clusters/mycluster/hosts/dev.hortonworks.com",
+      "Hosts" : {
+        "cpu_count" : 5,
+        "cluster_name" : "mycluster",
+        "last_registration_time" : 1352386560520,
+        "rack_info" : "/default-rack8",
+        "total_mem" : 3082813,
+        "os_arch" : "x86_64",
+        "host_name" : "dev.hortonworks.com2",
+        "disk_info" : "[{\"available\":\"47295056\",\"mountpoint\":\"/\",\"used\":\"3786948\",\"percent\":\"8%\",\"size\":\"51606140\",\"type\":\"ext4\"},{\"available\":\"1542800\",\"mountpoint\":\"/dev/shm\",\"used\":\"248\",\"percent\":\"1%\",\"size\":\"1543048\",\"type\":\"tmpfs\"},{\"available\":\"432210\",\"mountpoint\":\"/boot\",\"used\":\"38034\",\"percent\":\"9%\",\"size\":\"495844\",\"type\":\"ext4\"},{\"available\":\"44459872\",\"mountpoint\":\"/home\",\"used\":\"184220\",\"percent\":\"1%\",\"size\":\"47033288\",\"type\":\"ext4\"},{\"available\":\"902105496\",\"mountpoint\":\"/media/sf_ambari\",\"used\":\"74551908\",\"percent\":\"8%\",\"size\":\"976657404\",\"type\":\"vboxsf\"}]",
+        "last_heartbeat_time" : 1352461939047,
+        "os_type" : "centos6",
+        "ip" : "10.0.2.15"
+      },
+      "host_components" : [
+        {
+          "href" : "http://dev.hortonworks.com:8080/api/clusters/mycluster/hosts/dev.hortonworks.com/host_components/SECONDARY_NAMENODE",
+          "HostRoles" : {
+            "cluster_name" : "mycluster",
+            "component_name" : "SECONDARY_NAMENODE",
+            "host_name" : "dev.hortonworks.com"
+          }
+        },
+        {
+          "href" : "http://dev.hortonworks.com:8080/api/clusters/mycluster/hosts/dev.hortonworks.com/host_components/JOBTRACKER",
+          "HostRoles" : {
+            "cluster_name" : "mycluster",
+            "component_name" : "JOBTRACKER",
+            "host_name" : "dev.hortonworks.com"
+          }
+        },
+        {
+          "href" : "http://dev.hortonworks.com:8080/api/clusters/mycluster/hosts/dev.hortonworks.com/host_components/HDFS_CLIENT",
+          "HostRoles" : {
+            "cluster_name" : "mycluster",
+            "component_name" : "HDFS_CLIENT",
+            "host_name" : "dev.hortonworks.com"
+          }
+        },
+        {
+          "href" : "http://dev.hortonworks.com:8080/api/clusters/mycluster/hosts/dev.hortonworks.com/host_components/TASKTRACKER",
+          "HostRoles" : {
+            "cluster_name" : "mycluster",
+            "component_name" : "TASKTRACKER",
+            "host_name" : "dev.hortonworks.com"
+          }
+        },
+        {
+          "href" : "http://dev.hortonworks.com:8080/api/clusters/mycluster/hosts/dev.hortonworks.com/host_components/NAMENODE",
+          "HostRoles" : {
+            "cluster_name" : "mycluster",
+            "component_name" : "NAMENODE",
+            "host_name" : "dev.hortonworks.com"
+          }
+        },
+        {
+          "href" : "http://dev.hortonworks.com:8080/api/clusters/mycluster/hosts/dev.hortonworks.com/host_components/MAPREDUCE_CLIENT",
+          "HostRoles" : {
+            "cluster_name" : "mycluster",
+            "component_name" : "MAPREDUCE_CLIENT",
+            "host_name" : "dev.hortonworks.com"
+          }
+        }
+      ]
+    },
+    {
+      "href" : "http://dev.hortonworks.com:8080/api/clusters/mycluster/hosts/dev.hortonworks.com",
+      "Hosts" : {
+        "cpu_count" : 2,
+        "cluster_name" : "mycluster",
+        "last_registration_time" : 1352386560520,
+        "rack_info" : "/default-rack1",
+        "total_mem" : 3082813,
+        "os_arch" : "x86_64",
+        "host_name" : "dev.hortonworks.com3",
+        "disk_info" : "[{\"available\":\"47295056\",\"mountpoint\":\"/\",\"used\":\"3786948\",\"percent\":\"8%\",\"size\":\"51606140\",\"type\":\"ext4\"},{\"available\":\"1542800\",\"mountpoint\":\"/dev/shm\",\"used\":\"248\",\"percent\":\"1%\",\"size\":\"1543048\",\"type\":\"tmpfs\"},{\"available\":\"432210\",\"mountpoint\":\"/boot\",\"used\":\"38034\",\"percent\":\"9%\",\"size\":\"495844\",\"type\":\"ext4\"},{\"available\":\"44459872\",\"mountpoint\":\"/home\",\"used\":\"184220\",\"percent\":\"1%\",\"size\":\"47033288\",\"type\":\"ext4\"},{\"available\":\"902105496\",\"mountpoint\":\"/media/sf_ambari\",\"used\":\"74551908\",\"percent\":\"8%\",\"size\":\"976657404\",\"type\":\"vboxsf\"}]",
+        "last_heartbeat_time" : 1352461939047,
+        "os_type" : "centos6",
+        "ip" : "10.0.2.15"
+      },
+      "host_components" : [
+        {
+          "href" : "http://dev.hortonworks.com:8080/api/clusters/mycluster/hosts/dev.hortonworks.com/host_components/SECONDARY_NAMENODE",
+          "HostRoles" : {
+            "cluster_name" : "mycluster",
+            "component_name" : "SECONDARY_NAMENODE",
+            "host_name" : "dev.hortonworks.com"
+          }
+        },
+        {
+          "href" : "http://dev.hortonworks.com:8080/api/clusters/mycluster/hosts/dev.hortonworks.com/host_components/JOBTRACKER",
+          "HostRoles" : {
+            "cluster_name" : "mycluster",
+            "component_name" : "JOBTRACKER",
+            "host_name" : "dev.hortonworks.com"
+          }
+        },
+        {
+          "href" : "http://dev.hortonworks.com:8080/api/clusters/mycluster/hosts/dev.hortonworks.com/host_components/HDFS_CLIENT",
+          "HostRoles" : {
+            "cluster_name" : "mycluster",
+            "component_name" : "HDFS_CLIENT",
+            "host_name" : "dev.hortonworks.com"
+          }
+        },
+        {
+          "href" : "http://dev.hortonworks.com:8080/api/clusters/mycluster/hosts/dev.hortonworks.com/host_components/TASKTRACKER",
+          "HostRoles" : {
+            "cluster_name" : "mycluster",
+            "component_name" : "TASKTRACKER",
+            "host_name" : "dev.hortonworks.com"
+          }
+        },
+        {
+          "href" : "http://dev.hortonworks.com:8080/api/clusters/mycluster/hosts/dev.hortonworks.com/host_components/NAMENODE",
+          "HostRoles" : {
+            "cluster_name" : "mycluster",
+            "component_name" : "NAMENODE",
+            "host_name" : "dev.hortonworks.com"
+          }
+        },
+        {
+          "href" : "http://dev.hortonworks.com:8080/api/clusters/mycluster/hosts/dev.hortonworks.com/host_components/MAPREDUCE_CLIENT",
+          "HostRoles" : {
+            "cluster_name" : "mycluster",
+            "component_name" : "MAPREDUCE_CLIENT",
+            "host_name" : "dev.hortonworks.com"
+          }
+        }
+      ]
+    },
+    {
+      "href" : "http://dev.hortonworks.com:8080/api/clusters/mycluster/hosts/dev.hortonworks.com",
+      "Hosts" : {
+        "cpu_count" : 1,
+        "cluster_name" : "mycluster",
+        "last_registration_time" : 1352386560520,
+        "rack_info" : "/default-rack",
+        "total_mem" : 3082813,
+        "os_arch" : "x86_64",
+        "host_name" : "dev.hortonworks.com4",
+        "disk_info" : "[{\"available\":\"47295056\",\"mountpoint\":\"/\",\"used\":\"3786948\",\"percent\":\"8%\",\"size\":\"51606140\",\"type\":\"ext4\"},{\"available\":\"1542800\",\"mountpoint\":\"/dev/shm\",\"used\":\"248\",\"percent\":\"1%\",\"size\":\"1543048\",\"type\":\"tmpfs\"},{\"available\":\"432210\",\"mountpoint\":\"/boot\",\"used\":\"38034\",\"percent\":\"9%\",\"size\":\"495844\",\"type\":\"ext4\"},{\"available\":\"44459872\",\"mountpoint\":\"/home\",\"used\":\"184220\",\"percent\":\"1%\",\"size\":\"47033288\",\"type\":\"ext4\"},{\"available\":\"902105496\",\"mountpoint\":\"/media/sf_ambari\",\"used\":\"74551908\",\"percent\":\"8%\",\"size\":\"976657404\",\"type\":\"vboxsf\"}]",
+        "last_heartbeat_time" : 1352461939047,
+        "os_type" : "centos6",
+        "ip" : "10.0.2.15"
+      },
+      "host_components" : [
+        {
+          "href" : "http://dev.hortonworks.com:8080/api/clusters/mycluster/hosts/dev.hortonworks.com/host_components/SECONDARY_NAMENODE",
+          "HostRoles" : {
+            "cluster_name" : "mycluster",
+            "component_name" : "SECONDARY_NAMENODE",
+            "host_name" : "dev.hortonworks.com"
+          }
+        },
+        {
+          "href" : "http://dev.hortonworks.com:8080/api/clusters/mycluster/hosts/dev.hortonworks.com/host_components/JOBTRACKER",
+          "HostRoles" : {
+            "cluster_name" : "mycluster",
+            "component_name" : "JOBTRACKER",
+            "host_name" : "dev.hortonworks.com"
+          }
+        },
+        {
+          "href" : "http://dev.hortonworks.com:8080/api/clusters/mycluster/hosts/dev.hortonworks.com/host_components/HDFS_CLIENT",
+          "HostRoles" : {
+            "cluster_name" : "mycluster",
+            "component_name" : "HDFS_CLIENT",
+            "host_name" : "dev.hortonworks.com"
+          }
+        },
+        {
+          "href" : "http://dev.hortonworks.com:8080/api/clusters/mycluster/hosts/dev.hortonworks.com/host_components/TASKTRACKER",
+          "HostRoles" : {
+            "cluster_name" : "mycluster",
+            "component_name" : "TASKTRACKER",
+            "host_name" : "dev.hortonworks.com"
+          }
+        },
+        {
+          "href" : "http://dev.hortonworks.com:8080/api/clusters/mycluster/hosts/dev.hortonworks.com/host_components/NAMENODE",
+          "HostRoles" : {
+            "cluster_name" : "mycluster",
+            "component_name" : "NAMENODE",
+            "host_name" : "dev.hortonworks.com"
+          }
+        },
+        {
+          "href" : "http://dev.hortonworks.com:8080/api/clusters/mycluster/hosts/dev.hortonworks.com/host_components/MAPREDUCE_CLIENT",
+          "HostRoles" : {
+            "cluster_name" : "mycluster",
+            "component_name" : "MAPREDUCE_CLIENT",
+            "host_name" : "dev.hortonworks.com"
+          }
+        }
+      ]
+    },
+    {
+      "href" : "http://dev.hortonworks.com:8080/api/clusters/mycluster/hosts/dev.hortonworks.com",
+      "Hosts" : {
+        "cpu_count" : 3,
+        "cluster_name" : "mycluster",
+        "last_registration_time" : 1352386560520,
+        "rack_info" : "/default-rack",
+        "total_mem" : 3082813,
+        "os_arch" : "x86_64",
+        "host_name" : "dev.hortonworks.com5",
+        "disk_info" : "[{\"available\":\"47295056\",\"mountpoint\":\"/\",\"used\":\"3786948\",\"percent\":\"8%\",\"size\":\"51606140\",\"type\":\"ext4\"},{\"available\":\"1542800\",\"mountpoint\":\"/dev/shm\",\"used\":\"248\",\"percent\":\"1%\",\"size\":\"1543048\",\"type\":\"tmpfs\"},{\"available\":\"432210\",\"mountpoint\":\"/boot\",\"used\":\"38034\",\"percent\":\"9%\",\"size\":\"495844\",\"type\":\"ext4\"},{\"available\":\"44459872\",\"mountpoint\":\"/home\",\"used\":\"184220\",\"percent\":\"1%\",\"size\":\"47033288\",\"type\":\"ext4\"},{\"available\":\"902105496\",\"mountpoint\":\"/media/sf_ambari\",\"used\":\"74551908\",\"percent\":\"8%\",\"size\":\"976657404\",\"type\":\"vboxsf\"}]",
+        "last_heartbeat_time" : 1352461939047,
+        "os_type" : "centos6",
+        "ip" : "10.0.2.15"
+      },
+      "host_components" : [
+        {
+          "href" : "http://dev.hortonworks.com:8080/api/clusters/mycluster/hosts/dev.hortonworks.com/host_components/SECONDARY_NAMENODE",
+          "HostRoles" : {
+            "cluster_name" : "mycluster",
+            "component_name" : "SECONDARY_NAMENODE",
+            "host_name" : "dev.hortonworks.com"
+          }
+        },
+        {
+          "href" : "http://dev.hortonworks.com:8080/api/clusters/mycluster/hosts/dev.hortonworks.com/host_components/JOBTRACKER",
+          "HostRoles" : {
+            "cluster_name" : "mycluster",
+            "component_name" : "JOBTRACKER",
+            "host_name" : "dev.hortonworks.com"
+          }
+        },
+        {
+          "href" : "http://dev.hortonworks.com:8080/api/clusters/mycluster/hosts/dev.hortonworks.com/host_components/HDFS_CLIENT",
+          "HostRoles" : {
+            "cluster_name" : "mycluster",
+            "component_name" : "HDFS_CLIENT",
+            "host_name" : "dev.hortonworks.com"
+          }
+        },
+        {
+          "href" : "http://dev.hortonworks.com:8080/api/clusters/mycluster/hosts/dev.hortonworks.com/host_components/TASKTRACKER",
+          "HostRoles" : {
+            "cluster_name" : "mycluster",
+            "component_name" : "TASKTRACKER",
+            "host_name" : "dev.hortonworks.com"
+          }
+        },
+        {
+          "href" : "http://dev.hortonworks.com:8080/api/clusters/mycluster/hosts/dev.hortonworks.com/host_components/NAMENODE",
+          "HostRoles" : {
+            "cluster_name" : "mycluster",
+            "component_name" : "NAMENODE",
+            "host_name" : "dev.hortonworks.com"
+          }
+        },
+        {
+          "href" : "http://dev.hortonworks.com:8080/api/clusters/mycluster/hosts/dev.hortonworks.com/host_components/MAPREDUCE_CLIENT",
+          "HostRoles" : {
+            "cluster_name" : "mycluster",
+            "component_name" : "MAPREDUCE_CLIENT",
+            "host_name" : "dev.hortonworks.com"
+          }
+        }
+      ]
+    },
+    {
+      "href" : "http://dev.hortonworks.com:8080/api/clusters/mycluster/hosts/dev.hortonworks.com",
+      "Hosts" : {
+        "cpu_count" : 1,
+        "cluster_name" : "mycluster",
+        "last_registration_time" : 1352386560520,
+        "rack_info" : "/default-rack",
+        "total_mem" : 3082813,
+        "os_arch" : "x86_64",
+        "host_name" : "dev.hortonworks.com6",
+        "disk_info" : "[{\"available\":\"47295056\",\"mountpoint\":\"/\",\"used\":\"3786948\",\"percent\":\"8%\",\"size\":\"51606140\",\"type\":\"ext4\"},{\"available\":\"1542800\",\"mountpoint\":\"/dev/shm\",\"used\":\"248\",\"percent\":\"1%\",\"size\":\"1543048\",\"type\":\"tmpfs\"},{\"available\":\"432210\",\"mountpoint\":\"/boot\",\"used\":\"38034\",\"percent\":\"9%\",\"size\":\"495844\",\"type\":\"ext4\"},{\"available\":\"44459872\",\"mountpoint\":\"/home\",\"used\":\"184220\",\"percent\":\"1%\",\"size\":\"47033288\",\"type\":\"ext4\"},{\"available\":\"902105496\",\"mountpoint\":\"/media/sf_ambari\",\"used\":\"74551908\",\"percent\":\"8%\",\"size\":\"976657404\",\"type\":\"vboxsf\"}]",
+        "last_heartbeat_time" : 1352461939047,
+        "os_type" : "centos6",
+        "ip" : "10.0.2.15"
+      },
+      "host_components" : [
+        {
+          "href" : "http://dev.hortonworks.com:8080/api/clusters/mycluster/hosts/dev.hortonworks.com/host_components/SECONDARY_NAMENODE",
+          "HostRoles" : {
+            "cluster_name" : "mycluster",
+            "component_name" : "SECONDARY_NAMENODE",
+            "host_name" : "dev.hortonworks.com"
+          }
+        },
+        {
+          "href" : "http://dev.hortonworks.com:8080/api/clusters/mycluster/hosts/dev.hortonworks.com/host_components/JOBTRACKER",
+          "HostRoles" : {
+            "cluster_name" : "mycluster",
+            "component_name" : "JOBTRACKER",
+            "host_name" : "dev.hortonworks.com"
+          }
+        },
+        {
+          "href" : "http://dev.hortonworks.com:8080/api/clusters/mycluster/hosts/dev.hortonworks.com/host_components/HDFS_CLIENT",
+          "HostRoles" : {
+            "cluster_name" : "mycluster",
+            "component_name" : "HDFS_CLIENT",
+            "host_name" : "dev.hortonworks.com"
+          }
+        },
+        {
+          "href" : "http://dev.hortonworks.com:8080/api/clusters/mycluster/hosts/dev.hortonworks.com/host_components/TASKTRACKER",
+          "HostRoles" : {
+            "cluster_name" : "mycluster",
+            "component_name" : "TASKTRACKER",
+            "host_name" : "dev.hortonworks.com"
+          }
+        },
+        {
+          "href" : "http://dev.hortonworks.com:8080/api/clusters/mycluster/hosts/dev.hortonworks.com/host_components/NAMENODE",
+          "HostRoles" : {
+            "cluster_name" : "mycluster",
+            "component_name" : "NAMENODE",
+            "host_name" : "dev.hortonworks.com"
+          }
+        },
+        {
+          "href" : "http://dev.hortonworks.com:8080/api/clusters/mycluster/hosts/dev.hortonworks.com/host_components/MAPREDUCE_CLIENT",
+          "HostRoles" : {
+            "cluster_name" : "mycluster",
+            "component_name" : "MAPREDUCE_CLIENT",
+            "host_name" : "dev.hortonworks.com"
+          }
+        }
+      ]
+    },
+    {
+      "href" : "http://dev.hortonworks.com:8080/api/clusters/mycluster/hosts/dev.hortonworks.com",
+      "Hosts" : {
+        "cpu_count" : 2,
+        "cluster_name" : "mycluster",
+        "last_registration_time" : 1352386560520,
+        "rack_info" : "/default-rack",
+        "total_mem" : 3082813,
+        "os_arch" : "x86_64",
+        "host_name" : "dev.hortonworks.com7",
+        "disk_info" : "[{\"available\":\"47295056\",\"mountpoint\":\"/\",\"used\":\"3786948\",\"percent\":\"8%\",\"size\":\"51606140\",\"type\":\"ext4\"},{\"available\":\"1542800\",\"mountpoint\":\"/dev/shm\",\"used\":\"248\",\"percent\":\"1%\",\"size\":\"1543048\",\"type\":\"tmpfs\"},{\"available\":\"432210\",\"mountpoint\":\"/boot\",\"used\":\"38034\",\"percent\":\"9%\",\"size\":\"495844\",\"type\":\"ext4\"},{\"available\":\"44459872\",\"mountpoint\":\"/home\",\"used\":\"184220\",\"percent\":\"1%\",\"size\":\"47033288\",\"type\":\"ext4\"},{\"available\":\"902105496\",\"mountpoint\":\"/media/sf_ambari\",\"used\":\"74551908\",\"percent\":\"8%\",\"size\":\"976657404\",\"type\":\"vboxsf\"}]",
+        "last_heartbeat_time" : 1352461939047,
+        "os_type" : "centos6",
+        "ip" : "10.0.2.15"
+      },
+      "host_components" : [
+        {
+          "href" : "http://dev.hortonworks.com:8080/api/clusters/mycluster/hosts/dev.hortonworks.com/host_components/SECONDARY_NAMENODE",
+          "HostRoles" : {
+            "cluster_name" : "mycluster",
+            "component_name" : "SECONDARY_NAMENODE",
+            "host_name" : "dev.hortonworks.com"
+          }
+        },
+        {
+          "href" : "http://dev.hortonworks.com:8080/api/clusters/mycluster/hosts/dev.hortonworks.com/host_components/JOBTRACKER",
+          "HostRoles" : {
+            "cluster_name" : "mycluster",
+            "component_name" : "JOBTRACKER",
+            "host_name" : "dev.hortonworks.com"
+          }
+        },
+        {
+          "href" : "http://dev.hortonworks.com:8080/api/clusters/mycluster/hosts/dev.hortonworks.com/host_components/HDFS_CLIENT",
+          "HostRoles" : {
+            "cluster_name" : "mycluster",
+            "component_name" : "HDFS_CLIENT",
+            "host_name" : "dev.hortonworks.com"
+          }
+        },
+        {
+          "href" : "http://dev.hortonworks.com:8080/api/clusters/mycluster/hosts/dev.hortonworks.com/host_components/TASKTRACKER",
+          "HostRoles" : {
+            "cluster_name" : "mycluster",
+            "component_name" : "TASKTRACKER",
+            "host_name" : "dev.hortonworks.com"
+          }
+        },
+        {
+          "href" : "http://dev.hortonworks.com:8080/api/clusters/mycluster/hosts/dev.hortonworks.com/host_components/NAMENODE",
+          "HostRoles" : {
+            "cluster_name" : "mycluster",
+            "component_name" : "NAMENODE",
+            "host_name" : "dev.hortonworks.com"
+          }
+        },
+        {
+          "href" : "http://dev.hortonworks.com:8080/api/clusters/mycluster/hosts/dev.hortonworks.com/host_components/MAPREDUCE_CLIENT",
+          "HostRoles" : {
+            "cluster_name" : "mycluster",
+            "component_name" : "MAPREDUCE_CLIENT",
+            "host_name" : "dev.hortonworks.com"
+          }
+        }
+      ]
+    },
+    {
+      "href" : "http://dev.hortonworks.com:8080/api/clusters/mycluster/hosts/dev.hortonworks.com",
+      "Hosts" : {
+        "cpu_count" : 3,
+        "cluster_name" : "mycluster",
+        "last_registration_time" : 1352386560520,
+        "rack_info" : "/default-rack",
+        "total_mem" : 3082813,
+        "os_arch" : "x86_64",
+        "host_name" : "dev.hortonworks.com8",
+        "disk_info" : "[{\"available\":\"47295056\",\"mountpoint\":\"/\",\"used\":\"3786948\",\"percent\":\"8%\",\"size\":\"51606140\",\"type\":\"ext4\"},{\"available\":\"1542800\",\"mountpoint\":\"/dev/shm\",\"used\":\"248\",\"percent\":\"1%\",\"size\":\"1543048\",\"type\":\"tmpfs\"},{\"available\":\"432210\",\"mountpoint\":\"/boot\",\"used\":\"38034\",\"percent\":\"9%\",\"size\":\"495844\",\"type\":\"ext4\"},{\"available\":\"44459872\",\"mountpoint\":\"/home\",\"used\":\"184220\",\"percent\":\"1%\",\"size\":\"47033288\",\"type\":\"ext4\"},{\"available\":\"902105496\",\"mountpoint\":\"/media/sf_ambari\",\"used\":\"74551908\",\"percent\":\"8%\",\"size\":\"976657404\",\"type\":\"vboxsf\"}]",
+        "last_heartbeat_time" : 1352461939047,
+        "os_type" : "centos6",
+        "ip" : "10.0.2.15"
+      },
+      "host_components" : [
+        {
+          "href" : "http://dev.hortonworks.com:8080/api/clusters/mycluster/hosts/dev.hortonworks.com/host_components/SECONDARY_NAMENODE",
+          "HostRoles" : {
+            "cluster_name" : "mycluster",
+            "component_name" : "SECONDARY_NAMENODE",
+            "host_name" : "dev.hortonworks.com"
+          }
+        },
+        {
+          "href" : "http://dev.hortonworks.com:8080/api/clusters/mycluster/hosts/dev.hortonworks.com/host_components/JOBTRACKER",
+          "HostRoles" : {
+            "cluster_name" : "mycluster",
+            "component_name" : "JOBTRACKER",
+            "host_name" : "dev.hortonworks.com"
+          }
+        },
+        {
+          "href" : "http://dev.hortonworks.com:8080/api/clusters/mycluster/hosts/dev.hortonworks.com/host_components/HDFS_CLIENT",
+          "HostRoles" : {
+            "cluster_name" : "mycluster",
+            "component_name" : "HDFS_CLIENT",
+            "host_name" : "dev.hortonworks.com"
+          }
+        },
+        {
+          "href" : "http://dev.hortonworks.com:8080/api/clusters/mycluster/hosts/dev.hortonworks.com/host_components/TASKTRACKER",
+          "HostRoles" : {
+            "cluster_name" : "mycluster",
+            "component_name" : "TASKTRACKER",
+            "host_name" : "dev.hortonworks.com"
+          }
+        },
+        {
+          "href" : "http://dev.hortonworks.com:8080/api/clusters/mycluster/hosts/dev.hortonworks.com/host_components/NAMENODE",
+          "HostRoles" : {
+            "cluster_name" : "mycluster",
+            "component_name" : "NAMENODE",
+            "host_name" : "dev.hortonworks.com"
+          }
+        },
+        {
+          "href" : "http://dev.hortonworks.com:8080/api/clusters/mycluster/hosts/dev.hortonworks.com/host_components/MAPREDUCE_CLIENT",
+          "HostRoles" : {
+            "cluster_name" : "mycluster",
+            "component_name" : "MAPREDUCE_CLIENT",
+            "host_name" : "dev.hortonworks.com"
+          }
+        }
+      ]
+    },
+    {
+      "href" : "http://dev.hortonworks.com:8080/api/clusters/mycluster/hosts/dev.hortonworks.com",
+      "Hosts" : {
+        "cpu_count" : 2,
+        "cluster_name" : "mycluster",
+        "last_registration_time" : 1352386560520,
+        "rack_info" : "/default-rack",
+        "total_mem" : 3082813,
+        "os_arch" : "x86_64",
+        "host_name" : "dev.hortonworks.com9",
+        "disk_info" : "[{\"available\":\"47295056\",\"mountpoint\":\"/\",\"used\":\"3786948\",\"percent\":\"8%\",\"size\":\"51606140\",\"type\":\"ext4\"},{\"available\":\"1542800\",\"mountpoint\":\"/dev/shm\",\"used\":\"248\",\"percent\":\"1%\",\"size\":\"1543048\",\"type\":\"tmpfs\"},{\"available\":\"432210\",\"mountpoint\":\"/boot\",\"used\":\"38034\",\"percent\":\"9%\",\"size\":\"495844\",\"type\":\"ext4\"},{\"available\":\"44459872\",\"mountpoint\":\"/home\",\"used\":\"184220\",\"percent\":\"1%\",\"size\":\"47033288\",\"type\":\"ext4\"},{\"available\":\"902105496\",\"mountpoint\":\"/media/sf_ambari\",\"used\":\"74551908\",\"percent\":\"8%\",\"size\":\"976657404\",\"type\":\"vboxsf\"}]",
+        "last_heartbeat_time" : 1352461939047,
+        "os_type" : "centos6",
+        "ip" : "10.0.2.15"
+      },
+      "host_components" : [
+        {
+          "href" : "http://dev.hortonworks.com:8080/api/clusters/mycluster/hosts/dev.hortonworks.com/host_components/SECONDARY_NAMENODE",
+          "HostRoles" : {
+            "cluster_name" : "mycluster",
+            "component_name" : "SECONDARY_NAMENODE",
+            "host_name" : "dev.hortonworks.com"
+          }
+        },
+        {
+          "href" : "http://dev.hortonworks.com:8080/api/clusters/mycluster/hosts/dev.hortonworks.com/host_components/JOBTRACKER",
+          "HostRoles" : {
+            "cluster_name" : "mycluster",
+            "component_name" : "JOBTRACKER",
+            "host_name" : "dev.hortonworks.com"
+          }
+        },
+        {
+          "href" : "http://dev.hortonworks.com:8080/api/clusters/mycluster/hosts/dev.hortonworks.com/host_components/HDFS_CLIENT",
+          "HostRoles" : {
+            "cluster_name" : "mycluster",
+            "component_name" : "HDFS_CLIENT",
+            "host_name" : "dev.hortonworks.com"
+          }
+        },
+        {
+          "href" : "http://dev.hortonworks.com:8080/api/clusters/mycluster/hosts/dev.hortonworks.com/host_components/TASKTRACKER",
+          "HostRoles" : {
+            "cluster_name" : "mycluster",
+            "component_name" : "TASKTRACKER",
+            "host_name" : "dev.hortonworks.com"
+          }
+        },
+        {
+          "href" : "http://dev.hortonworks.com:8080/api/clusters/mycluster/hosts/dev.hortonworks.com/host_components/NAMENODE",
+          "HostRoles" : {
+            "cluster_name" : "mycluster",
+            "component_name" : "NAMENODE",
+            "host_name" : "dev.hortonworks.com"
+          }
+        },
+        {
+          "href" : "http://dev.hortonworks.com:8080/api/clusters/mycluster/hosts/dev.hortonworks.com/host_components/MAPREDUCE_CLIENT",
+          "HostRoles" : {
+            "cluster_name" : "mycluster",
+            "component_name" : "MAPREDUCE_CLIENT",
+            "host_name" : "dev.hortonworks.com"
+          }
+        }
+      ]
+    },
+    {
+      "href" : "http://dev.hortonworks.com:8080/api/clusters/mycluster/hosts/dev.hortonworks.com",
+      "Hosts" : {
+        "cpu_count" : 3,
+        "cluster_name" : "mycluster",
+        "last_registration_time" : 1352386560520,
+        "rack_info" : "/default-rack",
+        "total_mem" : 3082813,
+        "os_arch" : "x86_64",
+        "host_name" : "dev.hortonworks.com10",
+        "disk_info" : "[{\"available\":\"47295056\",\"mountpoint\":\"/\",\"used\":\"3786948\",\"percent\":\"8%\",\"size\":\"51606140\",\"type\":\"ext4\"},{\"available\":\"1542800\",\"mountpoint\":\"/dev/shm\",\"used\":\"248\",\"percent\":\"1%\",\"size\":\"1543048\",\"type\":\"tmpfs\"},{\"available\":\"432210\",\"mountpoint\":\"/boot\",\"used\":\"38034\",\"percent\":\"9%\",\"size\":\"495844\",\"type\":\"ext4\"},{\"available\":\"44459872\",\"mountpoint\":\"/home\",\"used\":\"184220\",\"percent\":\"1%\",\"size\":\"47033288\",\"type\":\"ext4\"},{\"available\":\"902105496\",\"mountpoint\":\"/media/sf_ambari\",\"used\":\"74551908\",\"percent\":\"8%\",\"size\":\"976657404\",\"type\":\"vboxsf\"}]",
+        "last_heartbeat_time" : 1352461939047,
+        "os_type" : "centos6",
+        "ip" : "10.0.2.15"
+      },
+      "host_components" : [
+        {
+          "href" : "http://dev.hortonworks.com:8080/api/clusters/mycluster/hosts/dev.hortonworks.com/host_components/SECONDARY_NAMENODE",
+          "HostRoles" : {
+            "cluster_name" : "mycluster",
+            "component_name" : "SECONDARY_NAMENODE",
+            "host_name" : "dev.hortonworks.com"
+          }
+        },
+        {
+          "href" : "http://dev.hortonworks.com:8080/api/clusters/mycluster/hosts/dev.hortonworks.com/host_components/JOBTRACKER",
+          "HostRoles" : {
+            "cluster_name" : "mycluster",
+            "component_name" : "JOBTRACKER",
+            "host_name" : "dev.hortonworks.com"
+          }
+        },
+        {
+          "href" : "http://dev.hortonworks.com:8080/api/clusters/mycluster/hosts/dev.hortonworks.com/host_components/HDFS_CLIENT",
+          "HostRoles" : {
+            "cluster_name" : "mycluster",
+            "component_name" : "HDFS_CLIENT",
+            "host_name" : "dev.hortonworks.com"
+          }
+        },
+        {
+          "href" : "http://dev.hortonworks.com:8080/api/clusters/mycluster/hosts/dev.hortonworks.com/host_components/TASKTRACKER",
+          "HostRoles" : {
+            "cluster_name" : "mycluster",
+            "component_name" : "TASKTRACKER",
+            "host_name" : "dev.hortonworks.com"
+          }
+        },
+        {
+          "href" : "http://dev.hortonworks.com:8080/api/clusters/mycluster/hosts/dev.hortonworks.com/host_components/NAMENODE",
+          "HostRoles" : {
+            "cluster_name" : "mycluster",
+            "component_name" : "NAMENODE",
+            "host_name" : "dev.hortonworks.com"
+          }
+        },
+        {
+          "href" : "http://dev.hortonworks.com:8080/api/clusters/mycluster/hosts/dev.hortonworks.com/host_components/MAPREDUCE_CLIENT",
+          "HostRoles" : {
+            "cluster_name" : "mycluster",
+            "component_name" : "MAPREDUCE_CLIENT",
+            "host_name" : "dev.hortonworks.com"
+          }
+        }
+      ]
+    },
+    {
+      "href" : "http://dev.hortonworks.com:8080/api/clusters/mycluster/hosts/dev.hortonworks.com",
+      "Hosts" : {
+        "cpu_count" : 4,
+        "cluster_name" : "mycluster",
+        "last_registration_time" : 1352386560520,
+        "rack_info" : "/default-rack",
+        "total_mem" : 3082813,
+        "os_arch" : "x86_64",
+        "host_name" : "dev.hortonworks.com11",
+        "disk_info" : "[{\"available\":\"47295056\",\"mountpoint\":\"/\",\"used\":\"3786948\",\"percent\":\"8%\",\"size\":\"51606140\",\"type\":\"ext4\"},{\"available\":\"1542800\",\"mountpoint\":\"/dev/shm\",\"used\":\"248\",\"percent\":\"1%\",\"size\":\"1543048\",\"type\":\"tmpfs\"},{\"available\":\"432210\",\"mountpoint\":\"/boot\",\"used\":\"38034\",\"percent\":\"9%\",\"size\":\"495844\",\"type\":\"ext4\"},{\"available\":\"44459872\",\"mountpoint\":\"/home\",\"used\":\"184220\",\"percent\":\"1%\",\"size\":\"47033288\",\"type\":\"ext4\"},{\"available\":\"902105496\",\"mountpoint\":\"/media/sf_ambari\",\"used\":\"74551908\",\"percent\":\"8%\",\"size\":\"976657404\",\"type\":\"vboxsf\"}]",
+        "last_heartbeat_time" : 1352461939047,
+        "os_type" : "centos6",
+        "ip" : "10.0.2.15"
+      },
+      "host_components" : [
+        {
+          "href" : "http://dev.hortonworks.com:8080/api/clusters/mycluster/hosts/dev.hortonworks.com/host_components/SECONDARY_NAMENODE",
+          "HostRoles" : {
+            "cluster_name" : "mycluster",
+            "component_name" : "SECONDARY_NAMENODE",
+            "host_name" : "dev.hortonworks.com"
+          }
+        },
+        {
+          "href" : "http://dev.hortonworks.com:8080/api/clusters/mycluster/hosts/dev.hortonworks.com/host_components/JOBTRACKER",
+          "HostRoles" : {
+            "cluster_name" : "mycluster",
+            "component_name" : "JOBTRACKER",
+            "host_name" : "dev.hortonworks.com"
+          }
+        },
+        {
+          "href" : "http://dev.hortonworks.com:8080/api/clusters/mycluster/hosts/dev.hortonworks.com/host_components/HDFS_CLIENT",
+          "HostRoles" : {
+            "cluster_name" : "mycluster",
+            "component_name" : "HDFS_CLIENT",
+            "host_name" : "dev.hortonworks.com"
+          }
+        },
+        {
+          "href" : "http://dev.hortonworks.com:8080/api/clusters/mycluster/hosts/dev.hortonworks.com/host_components/TASKTRACKER",
+          "HostRoles" : {
+            "cluster_name" : "mycluster",
+            "component_name" : "TASKTRACKER",
+            "host_name" : "dev.hortonworks.com"
+          }
+        },
+        {
+          "href" : "http://dev.hortonworks.com:8080/api/clusters/mycluster/hosts/dev.hortonworks.com/host_components/NAMENODE",
+          "HostRoles" : {
+            "cluster_name" : "mycluster",
+            "component_name" : "NAMENODE",
+            "host_name" : "dev.hortonworks.com"
+          }
+        },
+        {
+          "href" : "http://dev.hortonworks.com:8080/api/clusters/mycluster/hosts/dev.hortonworks.com/host_components/MAPREDUCE_CLIENT",
+          "HostRoles" : {
+            "cluster_name" : "mycluster",
+            "component_name" : "MAPREDUCE_CLIENT",
+            "host_name" : "dev.hortonworks.com"
           }
         }
       ]

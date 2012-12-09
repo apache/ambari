@@ -77,11 +77,14 @@ App.WizardStep9Controller = Em.Controller.extend({
   },
 
   loadHosts: function () {
-    var hostInfo = [];
-    hostInfo = App.db.getHosts();
+    var hostInfo = this.get('content.hostsInfo');
+
     var hosts = new Ember.Set();
     for (var index in hostInfo) {
-      hosts.add(hostInfo[index]);
+      var obj = Em.Object.create(hostInfo[index]);
+      obj.tasks = [];
+      obj.logTasks = [];
+      hosts.add(obj);
       console.log("TRACE: host name is: " + hostInfo[index].name);
     }
     return hosts;
@@ -433,7 +436,6 @@ App.WizardStep9Controller = Em.Controller.extend({
 
   // This is done at HostRole level.
   setLogTasksStatePerHost: function (tasksPerHost, host) {
-    var tasks = [];
     console.log('In step9 setTasksStatePerHost function.');
     tasksPerHost.forEach(function (_task) {
       console.log('In step9 _taskPerHost function.');
@@ -491,7 +493,7 @@ App.WizardStep9Controller = Em.Controller.extend({
 
   getUrl: function () {
     var clusterName = this.get('content.cluster.name');
-    var requestId = App.db.getClusterStatus().requestId;
+    var requestId = this.get('content.cluster.requestId');
     var url = App.apiPrefix + '/clusters/' + clusterName + '/requests/' + requestId + '?fields=tasks/*';
     console.log("URL for step9 is: " + url);
     return url;

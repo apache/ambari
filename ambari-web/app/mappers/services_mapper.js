@@ -25,6 +25,7 @@ App.servicesMapper = App.QuickDataMapper.create({
     'OOZIE',
     'GANGLIA',
     'NAGIOS',
+    'ZOOKEEPER',
     'PIG',
     'SQOOP'
   ],

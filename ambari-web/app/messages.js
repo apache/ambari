@@ -340,7 +340,10 @@ Em.I18n.translations = {
   'dashboard.services.hbase.masterStarted':'Master Started',
   'dashboard.services.hbase.masterActivated':'Master Activated',
 
-
+  'dashboard.services.configs.popup.stopService.header':'Stop service',
+  'dashboard.services.configs.popup.stopService.body' : 'Service needs to be stopped for reconfiguration',
+  'dashboard.services.configs.popup.restartService.header' : 'Restart service',
+  'dashboard.services.configs.popup.restartService.body' : 'Service needs to be restarted for reconfiguration',
   'timeRange.presets.1hour':'1h',
   'timeRange.presets.12hour':'12h',
   'timeRange.presets.1day':'1d',

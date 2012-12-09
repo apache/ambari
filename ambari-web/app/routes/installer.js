@@ -279,7 +279,6 @@ module.exports = Em.Route.extend({
     next: function (router) {
       var installerController = router.get('installerController');
       var wizardStep9Controller = router.get('wizardStep9Controller');
-     // installerController.saveClusterInfo(wizardStep9Controller);
       installerController.saveInstalledHosts(wizardStep9Controller);
       router.transitionTo('step10');
     }

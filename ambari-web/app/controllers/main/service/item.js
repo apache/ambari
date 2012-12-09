@@ -26,7 +26,7 @@ App.MainServiceItemController = Em.Controller.extend({
    * @param url
    * @param data Object to send
    */
-  sendCommandToServer : function(url, method,postData, callback){
+  sendCommandToServer : function(url, method, postData, callback){
     var url =  (App.testMode) ?
       '/data/wizard/deploy/poll_1.json' : //content is the same as ours
       App.apiPrefix + '/clusters/' + App.router.getClusterName() + url;
@@ -36,7 +36,7 @@ App.MainServiceItemController = Em.Controller.extend({
     $.ajax({
       type: method,
       url: url,
-      data: JSON.stringify(postData),
+      data: (postData != null) ? JSON.stringify(postData) : null,
       dataType: 'json',
       timeout: App.timeout,
       success: function(data){

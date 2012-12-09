@@ -63,31 +63,47 @@ App.MainAppsItemBarView = Em.View.extend({
 
   }.observes('activeJob'),
 
-  jobTimeLine:false,
-  jobTaskView:false,
+  map:false,
+  shuffle:false,
+  reduce:false,
+
+  mapNodeLocal:false,
+  mapRackLocal:false,
+  mapOffSwitch:false,
+  reduceOffSwitch:false,
+  submitTime:false,
+  finishTime:false,
 
   updateTimeLine:function () {
-    var url = App.testMode ? '/data/apps/jobs/timeline.json' : "urlTBD" + this.get('activeJob').get('jobName');
+    var url = App.testMode ? '/data/apps/jobs/timeline.json' : App.apiPrefix + "/jobhistory/task?jobId=" + this.get('activeJob').get('id') + 
+      "&width=" + this.get('width');
     var mapper = App.jobTimeLineMapper;
     mapper.set('model', this);
     App.HttpClient.get(url, mapper);
   }.observes('getChartData'),
 
   updateTasksView:function () {
-    var url = App.testMode ? '/data/apps/jobs/taskview.json' : "urlTBD" + this.get('activeJob').get('jobName');
+    var url = App.testMode ? '/data/apps/jobs/taskview.json' : App.apiPrefix + "/jobhistory/tasklocality?jobId=" + this.get('activeJob').get('id');
     var mapper = App.jobTasksMapper;
     mapper.set('model', this);
     App.HttpClient.get(url, mapper);
   }.observes('getChartData'),
 
   drawJobTimeline:function () {
-    var timeline = JSON.stringify(this.get('jobTimeLine'));
-    graph.drawJobTimeLine(timeline, this.get('width'), this.get('height'), '#chart', 'legend', 'timeline1');
-  }.observes('jobTimeLine'),
+    var map = JSON.stringify(this.get('map'));
+    var shuffle = JSON.stringify(this.get('shuffle'));
+    var reduce = JSON.stringify(this.get('reduce'));
+    $('#chart, #legend, #timeline1').html('');
+    graph.drawJobTimeLine(map, shuffle, reduce, this.get('width'), this.get('height'), '#chart', 'legend', 'timeline1');
+  }.observes('map', 'shuffle', 'reduce'),
 
   drawJobTasks:function () {
-    var taskview = JSON.stringify(this.get('jobTaskView'));
-    graph.drawJobTasks(taskview, this.get('width'), this.get('height'), '#job_tasks', 'tasks_legend', 'timeline2');
-  }.observes('jobTaskView')
+    var mapNodeLocal = JSON.stringify(this.get('mapNodeLocal'));
+    var mapRackLocal = JSON.stringify(this.get('mapRackLocal'));
+    var mapOffSwitch = JSON.stringify(this.get('mapOffSwitch'));
+    var reduceOffSwitch = JSON.stringify(this.get('reduceOffSwitch'));
+    $('#job_tasks, #tasks_legend, #timeline2').html('');
+    graph.drawJobTasks(mapNodeLocal, mapRackLocal, mapOffSwitch, reduceOffSwitch, this.get('width'), this.get('height'), '#job_tasks', 'tasks_legend', 'timeline2');
+  }.observes('mapNodeLocal', 'mapRackLocal', 'mapOffSwitch', 'reduceOffSwitch')
 
 });

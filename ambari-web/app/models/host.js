@@ -31,6 +31,7 @@ App.Host = DS.Model.extend({
   loadAvg: DS.attr('string'),
   osArch: DS.attr('string'),
   ip: DS.attr('string'),
+  rack: DS.attr('string'),
   healthStatus: DS.attr('string'),
   cpuUsage: DS.attr('number'),
   memoryUsage: DS.attr('number'),

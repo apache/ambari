@@ -16,7 +16,7 @@
 * limitations under the License.
 }}
 
-<div id="hosts" class="box">
+<div id="hosts">
   <div class="box-header">
     <div class="button-section">
       <button class="btn btn-inverse add-host-button" {{action addHost}}>
@@ -25,27 +25,24 @@
       </button>
     </div>
   </div>
-  <table class="table table-bordered table-striped">
+  <table class="datatable table table-bordered table-striped" id="hosts-table">
     <thead>
     <tr>
-      <th class="name">
-        <div class="host-name-pos">
-          <a class="filter-label" href="#" {{action sortByName target="controller" }}>Name
-            {{#if controller.isSort}}
-            <i class="icon-arrow-up"{{bindAttr class="controller.sortClass"}}></i>
-            {{/if}}
-          </a>
-
-          {{view Ember.TextField class="host-name-search" placeholder="search" valueBinding="view.filterByName"}}
-        </div>
-
-      </th>
+      <th>Name</th>
       <th>Rack</th>
       <th>CPU</th>
       <th>RAM</th>
       <th>Disk Usage</th>
       <th>Load Avg</th>
-      <th>
+      <th>Components</th>
+    </tr>
+      <th class="notActive"><div class="view-wrapper">{{view view.nameFilterView viewName="nameFilterViewInstance"}}</div> <a href="#" {{action "clearFilterButtonClick" target="view"}} id="view_nameFilterViewInstance" class="ui-icon ui-icon-circle-close ui-name"></a></th>
+      <th class="notActive"><div class="view-wrapper">{{view view.rackFilterView viewName="rackFilterViewInstance"}}</div> <a href="#" {{action "clearFilterButtonClick" target="view"}} id="view_rackFilterViewInstance" class="ui-icon ui-icon-circle-close ui-rack"></a></th>
+      <th class="notActive"><div class="view-wrapper">{{view view.cpuFilterView viewName="cpuFilterViewInstance"}}</div> <a href="#" {{action "clearFilterButtonClick" target="view"}} id="view_cpuFilterViewInstance" class="ui-icon ui-icon-circle-close ui-cpu"></a></th>
+      <th class="notActive"><div class="view-wrapper">{{view view.ramFilterView viewName="ramFilterViewInstance"}}</div> <a href="#" {{action "clearFilterButtonClick" target="view"}} id="view_ramFilterViewInstance" class="ui-icon ui-icon-circle-close ui-ram"></a></th>
+      <th></th>
+      <th></th>
+      <th><input id="components_filter" type="hidden" />
         <div {{bindAttr class="view.btnGroupClass"}} >
           <button class="btn btn-info single-btn-group" {{action "clickFilterButton" target="view"}}>
             Components
@@ -104,11 +101,11 @@
     {{#each host in controller}}
     {{#view view.HostView contentBinding="host"}}
     <tr>
-      <td class="name">
+      <td>
         <span {{bindAttr class="host.healthClass"}}></span>
         <a href="#" {{action "showDetails" host}}>{{unbound host.hostName}}</a>
       </td>
-      <td>{{host.cluster.clusterName}}</td>
+      <td>{{host.rack}}</td>
       <td>{{host.cpu}}</td>
       <td>{{host.memoryFormatted}}</td>
       <td>
@@ -125,26 +122,4 @@
     {{/each}}
     </tbody>
   </table>
-  <div class="box-footer">
-    <hr/>
-    <div class="footer-pagination">
-      <ul class="nav nav-pills">
-        <li class="disabled">Show: </li>
-        <li class="dropdown">
-          {{view Em.Select contentBinding="pageSizeRange"
-                    selectionBinding="pageSize"
-                    optionValuePath="this"}}
-        </li>
-        <li class="disabled">{{startPosition}}-{{rangeStop}} of {{total}}</li>
-        <li class="disabled page-listing">
-          {{#if hasPrevious}}
-          <a href="#" {{action showPreviousPage target="controller"}}>previous</a>
-          {{/if}}
-          {{#if hasNext}}
-          <a href="#" {{action showNextPage target="controller"}}>next</a>
-          {{/if}}
-        </li>
-      </ul>
-    </div>
-  </div>
 </div>

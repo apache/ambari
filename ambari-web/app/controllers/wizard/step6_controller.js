@@ -231,7 +231,7 @@ App.WizardStep6Controller = Em.Controller.extend({
         var dataNode = hostsObj.findProperty('hostName', _dataNode.hostName);
         if (dataNode) {
           dataNode.set('isDataNode', true);
-          dataNode.set('isDataNodeInstalled', true);
+          dataNode.set('isDataNodeInstalled', _dataNode.isInstalled);
         }
       });
 
@@ -241,7 +241,7 @@ App.WizardStep6Controller = Em.Controller.extend({
           var taskTracker = hostsObj.findProperty('hostName', _taskTracker.hostName);
           if (taskTracker) {
             taskTracker.set('isTaskTracker', true);
-            taskTracker.set('isTaskTrackerInstalled', true);
+            taskTracker.set('isTaskTrackerInstalled', _taskTracker.isInstalled);
           }
         });
       }
@@ -252,7 +252,7 @@ App.WizardStep6Controller = Em.Controller.extend({
           var regionServer = hostsObj.findProperty('hostName', _regionServer.hostName);
           if (regionServer) {
             regionServer.set('isRegionServer', true);
-            regionServer.set('isRegionServerInstalled', true);
+            regionServer.set('isRegionServerInstalled', _regionServer.isInstalled);
           }
         });
       }
@@ -262,7 +262,7 @@ App.WizardStep6Controller = Em.Controller.extend({
         var client = hostsObj.findProperty('hostName', _client.hostName);
         if (client) {
           client.set('isClient', true);
-          client.set('isClientInstalled', true);
+          client.set('isClientInstalled', _client.isInstalled);
         }
       }, this);
 

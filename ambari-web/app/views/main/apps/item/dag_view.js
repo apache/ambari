@@ -98,8 +98,6 @@ App.MainAppsItemDagView = Em.View.extend({
     // Redraw table
     innerTable.fnDraw(false);
     innerTable.fnSettings().oFeatures.bFilter = false;
-
-    console.log(innerTable.fnSettings());
     var dagSchema = this.get('controller.content.workflowContext');
     var jobs = this.get('jobs');
     var graph = new DagViewer(false, 'dag_viewer')

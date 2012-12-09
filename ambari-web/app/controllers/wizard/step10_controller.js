@@ -66,7 +66,12 @@ App.WizardStep10Controller = Em.Controller.extend({
     var succededHosts = hostsInfo.filterProperty('status', 'success');
     var warnedHosts = hostsInfo.filterProperty('status', 'warning').concat(hostsInfo.filterProperty('status', 'failed'));
     if (succededHosts.length) {
-      var successStatement = succededHosts.length + ' nodes succeded completely to install and start all service components assigned to them.';
+      var successStatement;
+      if (succededHosts.length > 1) {
+        successStatement = succededHosts.length + ' nodes succeded completely to install and start all service components assigned to them.';
+      } else {
+        successStatement = succededHosts.length + ' node succeded completely to install and start all service components assigned to it.';
+      }
       this.get('clusterInfo').findProperty('id', 1).get('status').pushObject(Ember.Object.create({
         id: 1,
         displayStatement: successStatement
@@ -281,7 +286,7 @@ App.WizardStep10Controller = Em.Controller.extend({
 
   loadNagios: function (component) {
     if (component.get('hostName')) {
-      var statement = 'Ganglia Server installed on ' + component.get('hostName');
+      var statement = 'Nagios Server installed on ' + component.get('hostName');
       this.get('clusterInfo').findProperty('id', 2).get('status').pushObject(Ember.Object.create({
         id: 1,
         displayStatement: statement
@@ -315,13 +320,15 @@ App.WizardStep10Controller = Em.Controller.extend({
     }
   },
 
-  loadInstallTime: function() {
-    var statement = 'Install and start of all services completed in '  + this.get('content.cluster.serviceStartTime') + ' minutes';
-    this.get('clusterInfo').pushObject(Ember.Object.create({
-      id: 5,
-      displayStatement: statement,
-      status: []
-    }));
+  loadInstallTime: function () {
+    if (this.get('content.cluster.installTime')) {
+      var statement = 'Install and start of all services completed in ' + this.get('content.cluster.installTime') + ' minutes';
+      this.get('clusterInfo').pushObject(Ember.Object.create({
+        id: 5,
+        displayStatement: statement,
+        status: []
+      }));
+    }
   }
 
 

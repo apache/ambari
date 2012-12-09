@@ -34,26 +34,6 @@ module.exports = Em.Route.extend({
     router.get('mainController').connectOutlet('addHost');
   },
 
-  step0: Em.Route.extend({
-    route: '/step0',
-    connectOutlets: function (router) {
-      console.log('in addHost.step0:connectOutlets');
-      var controller = router.get('addHostController');
-      controller.setCurrentStep('0', false);
-      controller.loadAllPriorSteps();
-      controller.connectOutlet('wizardStep1', controller.get('content'));
-    },
-
-    next: function (router) {
-      var addHostController = router.get('addHostController');
-      var wizardStep1Controller = router.get('wizardStep1Controller');
-
-      addHostController.saveClusterInfo(wizardStep1Controller);
-
-      router.transitionTo('step1');
-    }
-  }),
-
   step1: Em.Route.extend({
     route: '/step1',
     connectOutlets: function (router) {
@@ -235,7 +215,6 @@ module.exports = Em.Route.extend({
     next: function (router) {
       var addHostController = router.get('addHostController');
       var wizardStep9Controller = router.get('wizardStep9Controller');
-      addHostController.saveClusterInfo(wizardStep9Controller);
       addHostController.saveInstalledHosts(wizardStep9Controller);
       router.transitionTo('step9');
     }
@@ -254,7 +233,7 @@ module.exports = Em.Route.extend({
     complete: function (router, context) {
       if (true) {   // this function will be moved to installerController where it will validate
         var addHostController = router.get('addHostController');
-        addHostController.setCurrentStep('1', false);
+        addHostController.finish();
         router.transitionTo('hosts');
       } else {
         console.log('cluster installation failure');
