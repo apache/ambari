@@ -398,6 +398,8 @@ AMBARI-666 branch (unreleased changes)
 
   IMPROVEMENTS
 
+  AMBARI-993. Hook up login with server authentication. (yusaku)
+
   AMBARI-1059. Refactor cluster management. (yusaku)
 
   AMBARI-1058. Implement data loading. (yusaku)

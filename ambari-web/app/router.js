@@ -122,12 +122,13 @@ App.Router = Em.Router.extend({
 
   login: function (postLogin) {
     var controller = this.get('loginController');
-    var hash = window.btoa(controller.get('loginName') + ":" + controller.get('password'));
+    var loginName = controller.get('loginName');
+    var hash = window.btoa(loginName + ":" + controller.get('password'));
     var router = this;
 
     $.ajax({
-      url : '/api/check',
-      dataType : 'json',
+      url : '/api/users/' + loginName,
+      dataType : 'text',
       type: 'GET',
       beforeSend: function(xhr) {
         xhr.setRequestHeader("Authorization", "Basic " + hash);
@@ -145,15 +146,19 @@ App.Router = Em.Router.extend({
       },
       success: function (data) {
         console.log('login success');
+
+        var resp = $.parseJSON(data);
+        var isAdmin = resp.Users.roles.indexOf('admin') >= 0;
+
         router.setAuthenticated(true);
         router.setLoginName(loginName);
-        // TODO: set real usr
-        router.setUser(App.User.find(1));
-        router.transitionTo(this.getSection());
+
+        router.setUser(App.store.createRecord(App.User, { userName: loginName, admin: isAdmin }));
+        router.transitionTo(router.getSection());
         postLogin(true);
       },
       error: function (req) {
-        console.log("login error: " + req.statusText);
+        console.log("login error: " + req.statusCode);
         router.setAuthenticated(false);
         postLogin(false);
       }
@@ -162,11 +167,13 @@ App.Router = Em.Router.extend({
 
   mockLogin: function (postLogin) {
     var controller = this.get('loginController');
+    var loginName = controller.get('loginName');
 
-    if (controller.get('loginName') === 'admin' && controller.get('password') === 'admin') {
+    if ((loginName === 'admin' && controller.get('password') === 'admin') ||
+        (loginName === 'user' && controller.get('password') === 'user')) {
       this.setAuthenticated(true);
-      this.setLoginName('admin');
-      this.setUser(App.User.find(1));
+      this.setLoginName(loginName);
+      this.setUser(App.store.createRecord(App.User, { userName: loginName, admin: loginName === 'admin' }));
       this.transitionTo(this.getSection());
       postLogin(true);
     } else {

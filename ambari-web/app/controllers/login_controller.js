@@ -21,18 +21,19 @@ var App = require('app');
 App.LoginController = Em.Object.extend({
 
   name: 'loginController',
+
   loginName: '',
   password: '',
+
   errorMessage: '',
 
   submit: function (e) {
-    // console.log('Login: ' + this.get('loginName') + ' Password: ' + this.get('password'));
-
     this.set('errorMessage', '');
 
     var self = this;
+    var loginFunc = (App.testMode) ? App.get('router').mockLogin : App.get('router').login;
 
-    var user = App.get('router').mockLogin(function (isAuthenticated) {
+    var user = loginFunc.call(App.get('router'), function (isAuthenticated) {
       if (!isAuthenticated) {
         console.log('Failed to login as: ' + self.get('loginName'));
         self.set('errorMessage', Em.I18n.t('login.error'));
