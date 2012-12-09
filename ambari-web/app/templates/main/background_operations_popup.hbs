@@ -15,30 +15,30 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 -->
-{{#each operation in backgroundOperations.tasks}}
-{{#view App.MainBackgroundOperation contentBinding="operation"}}
-<a class="open-details" {{action openDetails target="view"}} href="#">
-  <i {{bindAttr class="view.iconClass"}}></i>
-</a>
-{{operation.command}} {{operation.role}} on {{operation.hostname}}
-<div class="operation-details">
-  {{#if operation.details.length}}
-    {{#each detail in operation.details}}
-    <div>{{detail.startTime}}: {{detail.name}}</div>
-    {{/each}}
-  {{/if}}
-  <a {{action showOperationLog target="view"}} href="#">
-    {{#if view.isOpenShowLog}}Hide{{else}}Show{{/if}} operation log
-  </a>
-  {{#if view.isOpenShowLog}}
-  <div class="operation-log">
-    <dl class="dl-horizontal">
-      <dt>exitcode:</dt><dd>{{view.logDetails.exitcode}}</dd>
-      <dt>stdout:</dt><dd>{{view.logDetails.stdout}}</dd>
-      <dt>stderror:</dt><dd>{{view.logDetails.stderror}}</dd>
-    </dl>
-  </div>
-  {{/if}}
-</div>
-{{/view}}
+{{#each operation in backgroundOperations}}
+  {{#view App.MainBackgroundOperation contentBinding="operation"}}
+    <a class="open-details" {{action openDetails target="view"}} href="#">
+      <i {{bindAttr class="view.iconClass"}}></i>
+    </a>
+    {{operation.command}} {{operation.role}} on {{operation.host_name}}
+    <div class="operation-details">
+      {{#if operation.details.length}}
+        {{#each detail in operation.details}}
+        <div>{{detail.startTime}}: {{detail.name}}</div>
+        {{/each}}
+      {{/if}}
+      <a {{action showOperationLog target="view"}} href="#">
+        {{#if view.isOpenShowLog}}Hide{{else}}Show{{/if}} operation log
+      </a>
+      {{#if view.isOpenShowLog}}
+      <div class="operation-log">
+        <dl class="dl-horizontal">
+          <dt>exitcode:</dt><dd>{{view.logDetails.exitcode}}</dd>
+          <dt>stdout:</dt><dd>{{view.logDetails.stdout}}</dd>
+          <dt>stderror:</dt><dd>{{view.logDetails.stderror}}</dd>
+        </dl>
+      </div>
+      {{/if}}
+    </div>
+  {{/view}}
 {{/each}}

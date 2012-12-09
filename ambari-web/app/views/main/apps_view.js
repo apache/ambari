@@ -19,6 +19,7 @@
 var App = require('app');
 var date = require('utils/date');
 var validator = require('utils/validator');
+var misc = require('utils/misc');
 
 App.MainAppsView = Em.View.extend({
   templateName:require('templates/main/apps'),
@@ -31,10 +32,6 @@ App.MainAppsView = Em.View.extend({
       var app = App.store.find(App.App, run.get('appId'));
       run.set('appName', app.get('appName'));
       run.set('type', app.get('type'));
-      run.set('numJobsTotal' ,run.get('jobs').get('content').length);
-      run.get('jobs').forEach(function(job) {
-
-      });
     });
     return content;
   }.property('App.router.mainAppsController.content'),
@@ -46,7 +43,7 @@ App.MainAppsView = Em.View.extend({
    * starred - show only filtered runs with stars selected
    */
   viewType : 'all',
-
+  defaultViewType: 'all',
   /**
    * List of users
    */
@@ -174,6 +171,12 @@ App.MainAppsView = Em.View.extend({
     else {
       youngest = '0000-00-00';
     }
+    avgInput = misc.formatBandwidth(avgInput);
+    minInput = misc.formatBandwidth(minInput);
+    maxInput = misc.formatBandwidth(maxInput);
+    avgOutput = misc.formatBandwidth(avgOutput);
+    minOutput = misc.formatBandwidth(minOutput);
+    maxOutput = misc.formatBandwidth(maxOutput);
     ret = {
       'count': this.get('controller.staredRuns').length,
       'jobs': {
@@ -182,12 +185,12 @@ App.MainAppsView = Em.View.extend({
         'max': maxJobs
       },
       'input': {
-        'avg': avgInput.toFixed(2),
+        'avg': avgInput,
         'min': minInput,
         'max': maxInput
       },
       'output': {
-        'avg': avgOutput.toFixed(2),
+        'avg': avgOutput,
         'min': minOutput,
         'max': maxOutput
       },
@@ -207,17 +210,58 @@ App.MainAppsView = Em.View.extend({
    * Click on big star on the avg block
    */
   avgStarClick: function() {
+    if (this.get('viewType') === 'starred') return;
     this.set('whatAvgShow', !this.get('whatAvgShow'));
     $('a.icon-star.a').toggleClass('active');
+  },
+  starClicked: function() {
+    var runIndex = this.get('controller.lastStarClicked');
+    if (runIndex < 0) return;
+    if (!this.get('oTable')) return;
+    var rowIndex = -1;
+    // Get real row index
+    var column = this.get('oTable').fnGetColumnData(0);
+    for (var i = 0; i < column.length; i++) {
+      if (runIndex == $(column[i]).text()) {
+        rowIndex = i;
+        break;
+      }
+    }
+    var perPage = this.get('oTable').fnSettings()['_iDisplayLength']; // How many rows show per page
+    var rowIndexVisible = rowIndex; // rowIndexVisible - rowIndex in current visible part of the table
+    if (perPage !== -1) { // If not show All is selected we should recalculate row index according to other visible rows
+      rowIndexVisible = rowIndex % perPage;
+    }
+    // Update inner dataTable value
+    this.get('oTable').fnUpdate( $('#dataTable tbody tr:eq(' + rowIndexVisible + ') td:eq(0)').html(), this.get('oTable').fnSettings()['aiDisplay'][rowIndex], 0);
+    if (perPage !== -1) { // Change page after reDraw (if show All is selected this will not happens)
+      this.get('oTable').fnPageChange(Math.floor(rowIndex / perPage));
+    }
+  }.observes('controller.lastStarClicked'),
+  /**
+   * Flush all starred runs
+   */
+  clearStars: function() {
+    this.get('controller').set('staredRuns', []);
+    this.get('controller').set('staredRunsLength', 0);
+    this.set('viewType', this.get('defaultViewType'));
+    this.set('whatAvgShow', true);
+    $('a.icon-star.a').removeClass('active');
   },
   /**
    * "turn off" stars in the table
    */
-  clearStars: function() {
+  resetStars: function() {
+    var self = this;
     if (this.get('controller.staredRunsLength') == 0 && this.get('smallStarsIcons') != null) {
       this.get('smallStarsIcons').removeClass('stared');
-      this.set('whatAvgShow', true);
+      $('#dataTable .icon-star').removeClass('stared');
       $('a.icon-star.a').removeClass('active');
+      this.get('starFilterViewInstance').set('value', '');
+      $('#dataTable tbody tr').each(function(index) {
+        var td = $(this).find('td:eq(0)');
+        self.get('oTable').fnUpdate( td.html(), index, 0);
+      });
     }
   }.observes('controller.staredRunsLength'),
   /**
@@ -227,49 +271,71 @@ App.MainAppsView = Em.View.extend({
     this.clearFilters();
     this.clearStars();
   },
-
+  /**
+   * Display only stared rows
+   */
+  showStared: function() {
+    this.get('starFilterViewInstance').set('value', 'stared');
+    this.set('whatAvgShow', false);
+    $('a.icon-star.a').addClass('active');
+  },
   /**
    * Onclick handler for <code>Show All/Filtered/Starred</code> links
    */
-  changeViewType: function(event){
-    if($(event.toElement).hasClass('selected')){
-      return;
-    }
-
-    $(event.toElement).parent().children('.selected').removeClass('selected');
-    $(event.toElement).addClass('selected');
-
-    var viewType = $(event.toElement).data('view-type');
-    console.log(viewType);
-
-    switch(viewType){
-      case 'all':
-        //do stuff here
-        break;
-
-      case 'starred':
-        break;
-
-      case 'filtered':
-      default:
-        //do stuff here
-        break;
-    };
-
+  clickViewType: function(event) {
+    this.set('viewType', $(event.target).data('view-type'));
   },
+  onChangeViewType: function(){
+    var viewType = this.get('viewType');
+    var table = this.get('oTable');
+    var filterButtons = $("#filter_buttons").children();
+    filterButtons.each(function(index, element){
+      $(element).removeClass('selected');
+      if(viewType == $(element).data('view-type')){
+        $(element).addClass('selected');
+      }
+    });
+    console.log(viewType);
+    switch(viewType) {
+      case 'all':
+        table.fnSettings().oFeatures.bFilter = false;
+        table.fnDraw();
+        table.fnSettings().oFeatures.bFilter = true;
+        break;
+      case 'starred':
+        this.showStared();
+        break;
+      case 'filtered':
+        table.fnSettings().oFeatures.bFilter = true;
+        table.fnDraw();
+        break;
+      };
+
+
+  }.observes('viewType'),
 
   /**
    * jQuery dataTable init
    */
-  didInsertElement:function () {
+  createDataTable: function () {
     var smallStars = $('#dataTable .icon-star');
+    var self = this;
     this.set('smallStarsIcons', smallStars);
     var oTable = this.$('#dataTable').dataTable({
       "sDom": '<"search-bar"f><"clear">rt<"page-bar"lip><"clear">',
       "fnDrawCallback": function( oSettings ) {
-        //change average info after table filtering
-        // no need more. 31.10.2012
+        if(!self.get('oTable')){return}
+        if(self.get('viewType') !== 'all') {
+          if (self.get('viewType') !== 'starred') {
+            self.set('filtered', this.fnSettings().fnRecordsDisplay());
+          }
+        }
+        if(self.get('viewType') === 'all' && self.get('oTable').fnSettings().oFeatures.bFilter){
+          self.set('viewType', 'filtered');
+          self.set('filtered', this.fnSettings().fnRecordsDisplay());
+        }
       },
+      "aaSorting": [],
       "oLanguage": {
         "sSearch": "Search:",
         "sLengthMenu": "Show: _MENU_",
@@ -291,8 +357,8 @@ App.MainAppsView = Em.View.extend({
         null,
         null,
         null,
-        null,
-        null,
+        { "sType":"ambari-bandwidth" },
+        { "sType":"ambari-bandwidth" },
         null,
         { "sType":"ambari-date" }
       ]
@@ -300,6 +366,17 @@ App.MainAppsView = Em.View.extend({
     this.set('oTable', oTable);
     this.set('filtered', oTable.fnSettings().fnRecordsDisplay());
 
+  },
+  didInsertElement: function () {
+    var self = this;
+    /**
+     * Running datatable with delay to take time to load all data
+     */
+    Ember.run.next(function () {
+      Ember.run.next(function () {
+        self.createDataTable();
+      })
+    });
   },
   /**
    * reset all filters in dataTable
@@ -319,6 +396,7 @@ App.MainAppsView = Em.View.extend({
     }
     });
     this.get('oTable').fnFilterClear();
+    this.set('viewType', this.get('defaultViewType'));
     this.set('filtered',this.get('oTable').fnSettings().fnRecordsDisplay());
     this.setFilteredRuns(this.get('oTable')._('tr', {"filter":"applied"}));
   },
@@ -332,8 +410,8 @@ App.MainAppsView = Em.View.extend({
   applyFilter:function(parentView, iColumn, value) {
       value = (value) ? value : '';
       parentView.get('oTable').fnFilter(value, iColumn);
-      parentView.set('filtered',parentView.get('oTable').fnSettings().fnRecordsDisplay());
   },
+
   /**
    * refresh average info in top block when filtered changes
    */
@@ -353,11 +431,11 @@ App.MainAppsView = Em.View.extend({
     content:['Any', 'Pig', 'Hive', 'mapReduce'],
     change:function(event){
       if(this.get('selection') === 'Any') {
-        this._parentView.get('oTable').fnFilter('', 3);
+        this.get('parentView').get('oTable').fnFilter('', 3);
       } else {
-      this._parentView.get('oTable').fnFilter(this.get('selection'), 3);
+      this.get('parentView').get('oTable').fnFilter(this.get('selection'), 3);
       }
-      this._parentView.set('filtered',this._parentView.get('oTable').fnSettings().fnRecordsDisplay());
+      this.get('parentView').set('filtered',this.get('parentView').get('oTable').fnSettings().fnRecordsDisplay());
     }
   }),
   /**
@@ -374,6 +452,18 @@ App.MainAppsView = Em.View.extend({
     change:function(event) {
       this.get('parentView').get('applyFilter')(this.get('parentView'), 9);
     }
+  }),
+  /**
+   * Filter-field for Stars. hidden
+   */
+  starFilterView: Em.TextField.extend({
+    classNames:['input-small'],
+    type:'hidden',
+    placeholder: '',
+    elementId:'star_filter',
+    filtering:function() {
+      this.get('parentView').get('applyFilter')(this.get('parentView'), 0);
+    }.observes('value')
   }),
   /**
    * Filter-field for AppId

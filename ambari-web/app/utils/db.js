@@ -273,7 +273,7 @@ App.db.setServiceConfigProperties = function (configProperties) {
 App.db.setClusterStatus = function (status) {
   App.db.data = localStorage.getObject('ambari');
   var user = App.db.data.app.loginName;
-  App.db.data[user].Installer.clusterStatus = status;
+  App.db.data[user].clusterStatus = status;
   console.log('db.setClusterStatus called: ' + JSON.stringify(status));
   localStorage.setObject('ambari', App.db.data);
 }
@@ -315,7 +315,7 @@ App.db.getClusterName = function () {
   console.log('Trace: Entering db:getClusterName function');
   App.db.data = localStorage.getObject('ambari');
   var user = App.db.data.app.loginName;
-  if (user) {
+  if (user && App.db.data[user] && App.db.data[user].Installer) {
     return App.db.data[user].Installer.ClusterName;
   }
 };
@@ -450,7 +450,10 @@ App.db.getHostSlaveComponents = function () {
 App.db.getSlaveComponentHosts = function () {
   App.db.data = localStorage.getObject('ambari');
   var user = App.db.data.app.loginName;
-  return App.db.data[user].Installer.slaveComponentHosts;
+  if(App.db.data[user]&&App.db.data[user].Installer){
+    return App.db.data[user].Installer.slaveComponentHosts;
+  }
+  return null;
 }
 
 App.db.getServiceConfigs = function () {
@@ -469,7 +472,11 @@ App.db.getClusterStatus = function () {
   console.log('TRACE: Entering db:getClusterStatus function');
   App.db.data = localStorage.getObject('ambari');
   var user = App.db.data.app.loginName;
-  return App.db.data[user].Installer.clusterStatus;
+  if(App.db.data[user] && App.db.data[user].clusterStatus){
+    return App.db.data[user].clusterStatus;
+  } else {
+    return null;
+  }
 }
 
 module.exports = App.db;

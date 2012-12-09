@@ -25,13 +25,7 @@ App.App = DS.Model.extend({
   numJobsTotal: DS.attr('number'),
   userName: DS.attr('string'),
   executionTime: DS.attr('string'),
-  runs: DS.hasMany('App.Run'),
-  isRunning: function () {
-    if (!this.get('isLoaded')) {
-      return false;
-    }
-    return this.get('runs').someProperty('isRunning', true);
-  }.property('runs.@each.isRunning')
+  runs: DS.hasMany('App.Run')
 });
 
 App.App.FIXTURES = [

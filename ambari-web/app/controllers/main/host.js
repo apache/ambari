@@ -35,6 +35,27 @@ App.MainHostController = Em.ArrayController.extend(App.Pagination, {
   rangeStart:0,
   allChecked:false,
   selectedHostsIds:[],
+  selectedRack:null,
+  assignHostsToRack:function () {
+    var selectedRack = this.get('selectedRack');
+    var sureMessage = this.t('hosts.assignToRack.sure');
+    var hostsIds = this.get('selectedHostsIds');
+
+    var hostString = hostsIds.length + " " + this.t(hostsIds.length > 1 ? "host.plural" : "host.singular");
+
+    if (selectedRack.constructor == 'App.Cluster' && hostsIds.length
+      && confirm(sureMessage.format(hostString, selectedRack.get('clusterName')))) {
+      this.get('content').forEach(function (host) {
+        if (host.get('isChecked')) {
+          host.set('cluster', selectedRack);
+          host.set('isChecked', false);
+        }
+      })
+      this.set('selectedHostsIds', []);
+    }
+
+  }.observes('selectedRack'),
+
   sortingAsc:true,
   isSort:false,
   sortClass:function () {
@@ -83,12 +104,14 @@ App.MainHostController = Em.ArrayController.extend(App.Pagination, {
   onHostChecked:function (host) {
     var selected = this.get('selectedHostsIds');
     host.set('isChecked', !host.get('isChecked'));
-    if (host.get('isChecked')) selected.push(host.get('id'));
-    else {
+    if (host.get('isChecked')) {
+      selected.push(host.get('id'));
+    } else {
       var index = selected.indexOf(host.get('id'));
       if (index != -1) selected.splice(index, 1);
     }
     this.set('isDisabled', selected.length == 0);
+    this.propertyDidChange('selectedHostsIds');
   },
 
   changeSelectedHosts:function () {

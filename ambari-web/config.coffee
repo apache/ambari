@@ -39,6 +39,7 @@ exports.config =
           'vendor/scripts/ember-data-latest.js',
           'vendor/scripts/ember-i18n-1.2.0.js',
           'vendor/scripts/bootstrap.js',
+          'vendor/scripts/bootstrap-combobox.js'
           'vendor/scripts/d3.v2.js',
           'vendor/scripts/sinon-1.4.2.js',
           'vendor/scripts/cubism.v1.js',
@@ -66,6 +67,7 @@ exports.config =
           'vendor/styles/font-awesome-ie7.css',
           'vendor/styles/cubism.css',
           'vendor/styles/rickshaw.css'
+          'vendor/styles/bootstrap-combobox.css'
         ]
 
     templates:

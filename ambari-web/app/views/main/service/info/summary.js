@@ -23,12 +23,22 @@ App.MainServiceInfoSummaryView = Em.View.extend({
   serviceStatus: {
     hdfs: false,
     mapreduce: false,
-    hbase: false
+    hbase: false,
+    zookeeper: false,
+    oozie: false,
+    hive: false
   },
+
   controller: function () {
     return App.router.get('mainServiceInfoSummaryController');
   }.property(),
-
+  data:{
+    hive:{
+      "database"     : "PostgreSQL",
+      "databaseName" : "hive",
+      "user"         : "hive"
+    }
+  },
   service: function () {
     return this.get('controller.content');
   }.property('controller.content'),

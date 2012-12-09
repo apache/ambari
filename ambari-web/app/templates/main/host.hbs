@@ -18,31 +18,7 @@
 <div id="hosts" class="box">
   <div class="box-header">
     <div class="button-section">
-      <div class="btn-group">
-        <button {{bindAttr disabled="controller.isDisabled"}} class="btn btn-primary dropdown-toggle"
-                                                              data-toggle="dropdown">
-          Assign Rack
-          <span class="caret"></span>
-        </button>
-        <ul class="dropdown-menu">
-          {{#each clusters}}
-          <li>
-            <a href="javascript:void(null)"
-               data-toggle="modal" {{action "assignedToRackPopup" this target="controller"}}>
-              {{clusterName}}
-            </a>
-          </li>
-          {{/each}}
-        </ul>
-      </div>
-     <!-- <button {{bindAttr disabled="controller.isDisabled"}} class="btn btn-primary decommission"
-                                                            data-toggle="modal" {{action "decommissionButtonPopup" target="controller"}}>
-        Decommission
-      </button>
-      <button {{bindAttr disabled="controller.isDisabled"}} class="btn btn-primary"
-                                                            data-toggle="modal" {{action "deleteButtonPopup" target="controller"}}>
-        Delete
-      </button>-->
+      {{view view.RackCombobox}}
       <button class="btn btn-inverse add-host-button" {{action addHost}}>
         <i class="icon-plus icon-white"></i>
         Add New Hosts
@@ -58,15 +34,16 @@
         </label>
       </th>
       <th class="name">
-        <a class="filter-label" href="#" {{action sortByName target="controller" }}>Name
-          {{#if controller.isSort}}
-          <i class="icon-arrow-up"{{bindAttr class="controller.sortClass"}}></i>
-          {{/if}}
-        </a>
+        <div class="host-name-pos">
+          <a class="filter-label" href="#" {{action sortByName target="controller" }}>Name
+            {{#if controller.isSort}}
+            <i class="icon-arrow-up"{{bindAttr class="controller.sortClass"}}></i>
+            {{/if}}
+          </a>
 
-        <div class="span1">
-          {{view Ember.TextField placeholder="search" valueBinding="view.filterByName"}}
+          {{view Ember.TextField class="host-name-search" placeholder="search" valueBinding="view.filterByName"}}
         </div>
+
       </th>
       <th>Rack</th>
       <th>CPU</th>

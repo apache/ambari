@@ -20,7 +20,22 @@ var App = require('app');
 
 App.MainServiceInfoConfigsView = Em.View.extend({
   templateName: require('templates/main/service/info/configs'),
-  alerts: function(){
-    return App.router.get('mainAlertController.content');
-  }.property('App.router.mainAlertController.content')
+  didInsertElement: function () {
+    var controller = this.get('controller');
+    controller.loadStep();
+  }
+});
+
+App.ServiceConfigsByCategoryView = Ember.View.extend({
+
+  content: null,
+
+  category: null,
+  serviceConfigs: null, // General, Advanced, NameNode, SNameNode, DataNode, etc.
+
+  categoryConfigs: function () {
+    return this.get('serviceConfigs').filterProperty('category', this.get('category.name'))
+  }.property('serviceConfigs.@each').cacheable(),
+
+  layout: Ember.Handlebars.compile('<div class="accordion-body collapse in"><div class="accordion-inner">{{yield}}</div></div>')
 });

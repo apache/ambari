@@ -60,12 +60,22 @@ App.MainAppsItemDagView = Em.View.extend({
         }
       },
       "iDisplayLength": 5,
-      "aLengthMenu": [[5, 10, 25, 50, -1], [5, 10, 25, 50, "All"]]
+      "aLengthMenu": [[5, 10, 25, 50, -1], [5, 10, 25, 50, "All"]],
+      "aoColumns":[
+        null,
+        null,
+        null,
+        null,
+        null,
+        { "sType":"ambari-bandwidth" },
+        { "sType":"ambari-bandwidth" },
+        null
+      ]
     });
     var dagSchema = this.get('parentView.parentView.content').get('workflowContext');
     var jobs = this.get('jobs');
     var graph = new DagViewer(false, 'dag_viewer')
-        .setPhysicalParametrs(800, 250, -800, 0.01)
+        .setPhysicalParametrs(800, 300, -800, 0.01)
         .setData(dagSchema, jobs)
         .drawDag(10, 20, 100);
   }

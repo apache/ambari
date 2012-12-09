@@ -21,13 +21,13 @@ var App = require('app');
 App.MainHostView = Em.View.extend({
   templateName:require('templates/main/host'),
   filterByName:"",
-  controller: function(){
+  controller:function () {
     return App.router.get('mainHostController');
   }.property(),
   content:function () {
     return App.router.get('mainHostController.content');
   }.property('App.router.mainHostController.content'),
-  componentsIds: [1, 2, 3, 4, 5, 6, 7, 8],
+  componentsIds:[1, 2, 3, 4, 5, 6, 7, 8],
 
   isFilterOpen:false,
 
@@ -45,29 +45,29 @@ App.MainHostView = Em.View.extend({
     App.router.get('mainHostController').filterByComponentsIds();
   },
 
-  allComponentsChecked: false,
-  toggleAllComponents: function(){
+  allComponentsChecked:false,
+  toggleAllComponents:function () {
     this.set('masterComponentsChecked', this.get('allComponentsChecked'));
     this.set('slaveComponentsChecked', this.get('allComponentsChecked'));
   }.observes('allComponentsChecked'),
 
-  masterComponentsChecked: false,
-  toggleMasterComponents: function(){
+  masterComponentsChecked:false,
+  toggleMasterComponents:function () {
     var checked = this.get('masterComponentsChecked');
-    this.get('controller.masterComponents').forEach(function(comp){
+    this.get('controller.masterComponents').forEach(function (comp) {
       comp.set('checkedForHostFilter', checked);
     });
   }.observes('masterComponentsChecked'),
 
-  slaveComponentsChecked: false,
-  toggleSlaveComponents: function(){
+  slaveComponentsChecked:false,
+  toggleSlaveComponents:function () {
     var checked = this.get('slaveComponentsChecked');
-    this.get('controller.slaveComponents').forEach(function(comp){
+    this.get('controller.slaveComponents').forEach(function (comp) {
       comp.set('checkedForHostFilter', checked);
     });
   }.observes('slaveComponentsChecked'),
 
-  didInsertElement: function(){
+  didInsertElement:function () {
     this._super();
     this.set('allComponentsChecked', true); // select all components (checkboxes) on start.
   },
@@ -76,7 +76,7 @@ App.MainHostView = Em.View.extend({
     App.router.get('mainHostController').filterHostsBy('hostName', this.get('filterByName'));
   }.observes('filterByName'),
 
-  closeFilters: function(){
+  closeFilters:function () {
     $(document).unbind('click');
     this.clickFilterButton();
   },
@@ -124,5 +124,25 @@ App.MainHostView = Em.View.extend({
         App.router.get('mainHostController').onHostChecked(this.get('content'));
       }
     })
+  }),
+
+  RackCombobox:App.Combobox.extend({
+    disabled:function () {
+      var selectedHostsIds = App.router.get('mainHostController.selectedHostsIds');
+
+      // when user apply assigning and hosts become unchecked, we need to clear textfield
+      if (!selectedHostsIds.length) {
+        this.clearTextFieldValue();
+      }
+
+      return !selectedHostsIds.length;
+
+    }.property('App.router.mainHostController.selectedHostsIds'),
+
+    recordArray:App.Cluster.find(),
+    placeholderText:Em.I18n.t('hosts.assignRack'),
+    selectionBinding:"App.router.mainHostController.selectedRack",
+    optionLabelPath:"content.clusterName",
+    optionValuePath:"content.id"
   })
 });

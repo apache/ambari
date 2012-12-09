@@ -16,7 +16,7 @@
   <artifactId>ambari-web</artifactId>
   <packaging>pom</packaging>
   <name>Ambari Web</name>
-  <version>1.0.3-SNAPSHOT</version>
+  <version>1.0.3</version>
   <description>Ambari Web</description>
   <dependencies>
     <dependency>

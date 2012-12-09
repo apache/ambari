@@ -19,6 +19,7 @@
 
 var App = require('app');
 var date = require('utils/date');
+var misc = require('utils/misc');
 
 App.Run = DS.Model.extend({
   runId:DS.attr('string'),
@@ -27,22 +28,77 @@ App.Run = DS.Model.extend({
   userName:DS.attr('string'),
   startTime:DS.attr('string'),
   lastUpdateTime:DS.attr('string'),
-  numJobsTotal:DS.attr('number'),
-  numJobsCompleted:DS.attr('number'),
-  input: DS.attr('number'),
-  output: DS.attr('number'),
   appId:DS.attr('number'),
   jobs:DS.hasMany('App.Job'),
+  /**
+   * Number of comleted jobs.
+   * Field calculates dynamicaly using <code>jobs</code> property
+   */
+  numJobsCompleted: function() {
+    return this.get('jobs').filterProperty('status', 'RUNNING').length;
+  }.property('jobs.@each.status'),
   duration: function() {
     return date.dateFormatInterval(parseInt((parseInt(this.get('lastUpdateTime')) - parseInt(this.get('startTime')))/1000));
   }.property('lastUpdateTime', 'startTime'),
+  /**
+   * Status of running jobs
+   * Field calculates dynamicaly using <code>jobs</code> property
+   */
   isRunning: function () {
     if (!this.get('isLoaded')) {
       return false;
     }
-    console.log('RUN: ' + this.get('id')+' '+this.get('jobs').someProperty('status', 'RUNNING'));
     return this.get('jobs').someProperty('status', 'RUNNING');
   }.property('jobs.@each.status'),
+  /**
+   * Sum of input bandwidth for all jobs
+   * Field calculates dynamicaly using <code>jobs</code> property
+   */
+  input: function () {
+    var sum = 0;
+    this.get('jobs').forEach(
+        function(item){
+          sum += item.get('input') || 0;
+        });
+    return sum;
+  }.property('jobs.@each.input'),
+  /**
+   *  Sum of input bandwidth for all jobs with appropriate measure
+   * Field calculates dynamicaly using <code>jobs</code> property
+   */
+  inputFormatted: function () {
+    var input = this.get('input');
+    input = misc.formatBandwidth(input);
+    return input;
+  }.property('input'),
+  /**
+   * Sum of output bandwidth for all jobs
+   * Field calculates dynamicaly using <code>jobs</code> property
+   */
+  output: function () {
+    var sum = 0;
+    this.get('jobs').forEach(
+        function(item){
+          sum += item.get('output') || 0;
+        });
+    return sum;
+  }.property('jobs.@each.output'),
+  /**
+   *  Sum of output bandwidth for all jobs with appropriate measure
+   *  Field calculates dynamicaly using <code>jobs</code> property
+   */
+  outputFormatted: function () {
+    var output = this.get('output');
+    output = misc.formatBandwidth(output);
+    return output;
+  }.property('output'),
+  /**
+   * Number of jobs on this run
+   * Field calculates dynamicaly using <code>jobs</code> property
+   */
+  numJobsTotal: function() {
+    return this.get('jobs.content').length;
+  }.property('jobs'),
   lastUpdateTimeFormatted: function() {
     return date.dateFormat(this.get('lastUpdateTime'));
   }.property('lastUpdateTime')
@@ -57,10 +113,6 @@ App.Run.FIXTURES = [
     user_name:'user3',
     start_time:1347539541501,
     last_update_time:'1347639541501',
-    num_jobs_total:5,
-    num_jobs_completed:0,
-    input: 11,
-    output: 30,
     app_id:1,
     jobs:[1, 2, 3, 4, 5]
   },
@@ -72,10 +124,6 @@ App.Run.FIXTURES = [
     user_name:'user1',
     start_time:1347339951502,
     last_update_time:'1347439951502',
-    num_jobs_total:5,
-    num_jobs_completed:2,
-    input: 10,
-    output: 30,
     app_id:4,
     jobs:[4, 5, 1, 3, 6]
   },
@@ -87,10 +135,6 @@ App.Run.FIXTURES = [
     user_name:'user2',
     start_time:1341539841503,
     last_update_time:'1341639841503',
-    num_jobs_total:5,
-    num_jobs_completed:0,
-    input: 10,
-    output: 30,
     app_id:1,
     jobs:[6, 7, 8, 9, 10]
   },
@@ -102,10 +146,7 @@ App.Run.FIXTURES = [
     user_name:'user1',
     start_time:1347539591504,
     last_update_time:'1347639591504',
-    num_jobs_total:3,
     num_jobs_completed:0,
-    input: 10,
-    output: 30,
     app_id:2,
     jobs:[8, 9, 10]
   },
@@ -117,10 +158,6 @@ App.Run.FIXTURES = [
     user_name:'user5',
     start_time:1347531541505,
     last_update_time:'1347631541505',
-    num_jobs_total:3,
-    num_jobs_completed:0,
-    input: 10,
-    output: 30,
     app_id:2,
     jobs:[8, 9, 10]
   },
@@ -132,10 +169,6 @@ App.Run.FIXTURES = [
     user_name:'user1',
     start_time:1342439541506,
     last_update_time:'1342639541506',
-    num_jobs_total:3,
-    num_jobs_completed:0,
-    input: 10,
-    output: 30,
     app_id:2,
     jobs:[8, 9, 10]
   },
@@ -147,10 +180,6 @@ App.Run.FIXTURES = [
     user_name:'jsmith',
     start_time:1347539541507,
     last_update_time:'1347639541507',
-    num_jobs_total:4,
-    num_jobs_completed:0,
-    input: 10,
-    output: 30,
     app_id:4,
     jobs:[1, 3, 5, 7]
   },
@@ -162,10 +191,6 @@ App.Run.FIXTURES = [
     user_name:'jsmith',
     start_time:1347539541508,
     last_update_time:'1347639541508',
-    num_jobs_total:4,
-    num_jobs_completed:0,
-    input: 10,
-    output: 30,
     app_id:3,
     jobs:[1, 3, 5, 7]
   },
@@ -177,10 +202,6 @@ App.Run.FIXTURES = [
     user_name:'user1',
     start_time:1347539541509,
     last_update_time:'1347639541509',
-    num_jobs_total:4,
-    num_jobs_completed:0,
-    input: 10,
-    output: 30,
     app_id:3,
     jobs:[1, 3, 5, 7]
   },
@@ -192,10 +213,6 @@ App.Run.FIXTURES = [
     user_name:'user1',
     start_time:1347539541510,
     last_update_time:'1347639541510',
-    num_jobs_total:4,
-    num_jobs_completed:0,
-    input: 10,
-    output: 30,
     app_id:3,
     jobs:[1, 3, 5, 7]
   },
@@ -207,10 +224,6 @@ App.Run.FIXTURES = [
     user_name:'user1',
     start_time:1347539541511,
     last_update_time:'1347639541511',
-    num_jobs_total:4,
-    num_jobs_completed:0,
-    input: 10,
-    output: 30,
     app_id:3,
     jobs:[1, 3, 5, 7]
   }

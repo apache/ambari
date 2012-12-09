@@ -39,6 +39,34 @@ jQuery.extend(jQuery.fn.dataTableExt.oSort, {
 
   "ambari-date-desc": function (a, b) {
     return b - a;
+  },
+  /**
+   * Custom methods for correct bandwidth sorting
+   */
+  "ambari-bandwidth-pre": function (bandwidth_string) {
+    debugger;
+    bandwidth_string = (jQuery(bandwidth_string).text()) ? jQuery(bandwidth_string).text() : bandwidth_string;
+    var convertedRowValue;
+    if (bandwidth_string === '<1KB') {
+      convertedRowValue = 1;
+    } else {
+      var rowValueScale = bandwidth_string.substr(bandwidth_string.length - 2, 2);
+      switch (rowValueScale) {
+        case 'KB':
+          convertedRowValue = parseFloat(bandwidth_string)*1024;
+          break;
+        case 'MB':
+          convertedRowValue = parseFloat(bandwidth_string)*1048576;
+          break;
+      }
+    }
+    return convertedRowValue;
+  },
+  "ambari-bandwidth-asc": function (a, b) {
+    return a - b;
+  },
+  "ambari-bandwidth-desc": function (a, b) {
+    return b - a;
   }
 });
 
@@ -113,10 +141,11 @@ jQuery.extend(jQuery.fn.dataTableExt.oApi, {
 jQuery.extend($.fn.dataTableExt.afnFiltering.push(
     function (oSettings, aData, iDataIndex) {
       var inputFilters = [
+        {iColumn: '0', elementId: 'star_filter', type: 'star'},
         {iColumn: '4', elementId: 'user_filter', type: 'multiple'},
         {iColumn: '5', elementId: 'jobs_filter', type: 'number' },
-        {iColumn: '6', elementId: 'input_filter', type: 'number' },
-        {iColumn: '7', elementId: 'output_filter', type: 'number' },
+        {iColumn: '6', elementId: 'input_filter', type: 'bandwidth' },
+        {iColumn: '7', elementId: 'output_filter', type: 'bandwidth' },
         {iColumn: '8', elementId: 'duration_filter', type: 'time' },
         {iColumn: '9', elementId: 'rundate_filter', type: 'date' }
       ];
@@ -143,8 +172,25 @@ jQuery.extend($.fn.dataTableExt.afnFiltering.push(
               timeFilter(jQuery('#' + inputFilters[i].elementId).val(), aData[inputFilters[i].iColumn]);
             }
             break;
+          case 'bandwidth':
+            if (jQuery('#' + inputFilters[i].elementId).val() && match) {
+              bandwidthFilter(jQuery('#' + inputFilters[i].elementId).val(), aData[inputFilters[i].iColumn]);
+            }
+            break;
+          case 'star':
+            if (jQuery('#' + inputFilters[i].elementId).val() && match) {
+              starFilter(jQuery('#' + inputFilters[i].elementId).val(), aData[inputFilters[i].iColumn]);
+            }
+            break;
         }
       }
+
+      function starFilter(d, rowValue) {
+        match = false;
+        if (rowValue == null) return;
+        if (rowValue.indexOf(d) != -1) match = true;
+      }
+
       function multipleFilter(condition, rowValue) {
         var options = condition.split(',');
         match = false;
@@ -159,7 +205,7 @@ jQuery.extend($.fn.dataTableExt.afnFiltering.push(
         var compareScale = rangeExp.charAt(rangeExp.length - 1);
         var compareValue = isNaN(parseInt(compareScale)) ? parseInt(rangeExp.substr(1, rangeExp.length - 2)) : parseInt(rangeExp.substr(1, rangeExp.length - 1));
         rowValue = (jQuery(rowValue).text()) ? jQuery(rowValue).text() : rowValue;
-        var convertedRowValue = parseInt(rowValue.substr(0, 2)) * 3600 + parseInt(rowValue.substr(3, 5)) * 60 + parseInt(rowValue.substr(6, 8));
+        var convertedRowValue = parseInt(rowValue.substr(0, 2)) * 3600 + parseInt(rowValue.substr(3, 2)) * 60 + parseInt(rowValue.substr(6, 2));
         switch (compareScale) {
           case 'm':
             convertedRowValue /= 60;
@@ -167,6 +213,49 @@ jQuery.extend($.fn.dataTableExt.afnFiltering.push(
           case 'h':
             convertedRowValue /= 3600;
             break;
+        }
+        match = false;
+        switch (compareChar) {
+          case '<':
+            if (compareValue > convertedRowValue) match = true;
+            break;
+          case '>':
+            if (compareValue < convertedRowValue) match = true;
+            break;
+          case '=':
+            if (compareValue == convertedRowValue) match = true;
+            break;
+          default:
+            match = false;
+        }
+      }
+
+      function bandwidthFilter(rangeExp, rowValue) {
+        debugger;
+        var compareChar = rangeExp.charAt(0);
+        var compareScale = rangeExp.charAt(rangeExp.length - 1);
+        var compareValue = isNaN(parseFloat(compareScale)) ? parseFloat(rangeExp.substr(1, rangeExp.length - 2)) : parseFloat(rangeExp.substr(1, rangeExp.length - 1));
+        switch (compareScale) {
+          case 'm':
+            compareValue *= 1048576;
+            break;
+          default:
+            compareValue *= 1024;
+        }
+        rowValue = (jQuery(rowValue).text()) ? jQuery(rowValue).text() : rowValue;
+        var convertedRowValue;
+        if (rowValue === '<1KB') {
+          convertedRowValue = 1;
+        } else {
+          var rowValueScale = rowValue.substr(rowValue.length - 2, 2);
+          switch (rowValueScale) {
+            case 'KB':
+              convertedRowValue = parseFloat(rowValue)*1024;
+              break;
+            case 'MB':
+              convertedRowValue = parseFloat(rowValue)*1048576;
+              break;
+          }
         }
         match = false;
         switch (compareChar) {
@@ -271,6 +360,47 @@ jQuery.extend(jQuery.fn.dataTableExt.oApi, {
   }
 });
 
+
+jQuery.fn.dataTableExt.oApi.fnGetColumnData = function ( oSettings, iColumn, bUnique, bFiltered, bIgnoreEmpty ) {
+  // check that we have a column id
+  if ( typeof iColumn == "undefined" ) return [];
+
+  // by default we only wany unique data
+  if ( typeof bUnique == "undefined" ) bUnique = true;
+
+  // by default we do want to only look at filtered data
+  if ( typeof bFiltered == "undefined" ) bFiltered = true;
+
+  // by default we do not wany to include empty values
+  if ( typeof bIgnoreEmpty == "undefined" ) bIgnoreEmpty = true;
+
+  // list of rows which we're going to loop through
+  var aiRows;
+
+  // use only filtered rows
+  if (bFiltered == true) aiRows = oSettings.aiDisplay;
+  // use all rows
+  else aiRows = oSettings.aiDisplayMaster; // all row numbers
+
+  // set up data array
+  var asResultData = new Array();
+
+  for (var i=0,c=aiRows.length; i<c; i++) {
+    iRow = aiRows[i];
+    var sValue = this.fnGetData(iRow, iColumn);
+
+    // ignore empty values?
+    if (bIgnoreEmpty == true && sValue.length == 0) continue;
+
+    // ignore unique values?
+    else if (bUnique == true && jQuery.inArray(sValue, asResultData) > -1) continue;
+
+    // else push the value onto the result data array
+    else asResultData.push(sValue);
+  }
+
+  return asResultData;
+};
 
 
 

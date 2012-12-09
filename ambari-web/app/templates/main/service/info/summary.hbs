@@ -39,17 +39,23 @@
   <div class="service-content">
     <table id="summary-info" class="table table-bordered table-striped table-condensed">
       <tbody>
+      {{#unless view.serviceStatus.oozie}}
+      {{#unless view.serviceStatus.hive}}
+      {{#unless view.serviceStatus.zookeeper}}
       {{#each component in controller.content.components}}
       <tr>
-        {{#if component.type}}
-        <td class="summary-label">{{component.componentName}}</td>
-        <td><a {{action selectHost component.host}} href="javascript:void(null)">{{component.host.hostName}}</a></td>
+        {{#if component.isMaster}}
+        <td class="summary-label">{{component.displayName}}</td>
+        <td><a {{action selectHost component.host}} href="javascript:void(null)">{{component.hostComponents}}</a></td>
         {{else}}
-        <td class="summary-label">{{component.componentName}}s</td>
-        <td><a {{action filterHosts component}} href="javascript:void(null)">{{component.componentName}}s</a></td>
+        <td class="summary-label">{{component.displayName}}s</td>
+        <td><a {{action filterHosts component}} href="javascript:void(null)">{{component.displayName}}s</a></td>
         {{/if}}
       </tr>
       {{/each}}
+      {{/unless}}
+      {{/unless}}
+      {{/unless}}
       {{#if view.serviceStatus.hdfs}}
       <tr>
         <td>{{t services.service.summary.version}}</td>
@@ -220,6 +226,48 @@
           used)
         </td>
       </tr>
+      {{/if}}
+      {{#if view.serviceStatus.zookeeper}}
+        <tr>
+          <td class="summary-label">Hosts</td>
+          <td>
+            {{#each component in controller.content.components}}
+              <a {{action selectHost component.host}} href="javascript:void(null)">{{component.host.hostName}}</a>
+           {{/each}}
+          </td>
+        </tr>
+      {{/if}}
+      {{#if view.serviceStatus.oozie}}
+        <tr>
+          <td class="summary-label">Hosts</td>
+          <td>
+            {{#each component in controller.content.components}}
+              <a {{action selectHost component.host}} href="javascript:void(null)">{{component.host.hostName}}</a>
+           {{/each}}
+          </td>
+        </tr>
+      {{/if}}
+      {{#if view.serviceStatus.hive}}
+        <tr>
+          <td class="summary-label">Host</td>
+          <td>
+            {{#each component in controller.content.components}}
+              <a {{action selectHost component.host}} href="javascript:void(null)">{{component.host.hostName}}</a>
+           {{/each}}
+          </td>
+        </tr>
+        <tr>
+          <td>Database</td>
+          <td>{{view.data.hive.database}}</td>
+        </tr>
+        <tr>
+          <td>Database Name</td>
+          <td>{{view.data.hive.databaseName}}</td>
+        </tr>
+        <tr>
+          <td>User</td>
+          <td>{{view.data.hive.user}}</td>
+        </tr>
       {{/if}}
       </tbody>
     </table>

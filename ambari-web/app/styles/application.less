@@ -212,8 +212,23 @@ h1 {
     padding-left: 0;
   }
   #installOptions {
+    .sshKey-file-view {
+      width: 486px;
+      height: 200px;
+      overflow-y: auto;
+      border: 1px solid #ccc;
+      margin-top: 5px;
+      padding: 8px;
+      font-family: Consolas,"Liberation Mono",Courier,monospace;
+    }
+    .manual-install {
+      margin-top: 10px;
+    }
     #targetHosts {
 
+    }
+    .span6{
+      min-width: 504px;
     }
     #hostConnectivity {
       margin-top: 20px;
@@ -247,68 +262,6 @@ h1 {
   #step6 .pre-scrollable {
     max-height: 440px;
   }
-  #serviceConfig {
-    .accordion-heading {
-      background-color: #f0f0f0;
-    }
-    .accordion-group {
-      margin-bottom: 20px;
-      .control-group {
-        margin: 10px 0;
-      }
-      form {
-        margin-bottom: 0;
-      }
-    }
-    .badge {
-      margin-left: 4px;
-    }
-    .slave-component-group-menu {
-      float: left;
-      .nav {
-        margin-bottom: 10px;
-      }
-      .nav li {
-        position: relative;
-        a {
-          padding-right: 24px;
-        }
-        .icon-remove {
-          border: 1px solid white;
-          position: absolute;
-          right: 7px;
-          top: 10px;
-          z-index: 2;
-          cursor: default;
-          color: #555555;
-        }
-        .icon-remove:hover {
-          border: 1px solid grey;
-        }
-      }
-    }
-    .remove-group-error {
-      display: none;
-    }
-    .add-slave-component-group {
-      margin-bottom: 10px;
-    }
-    .master-host, .master-hosts, .slave-hosts {
-      padding-top: 5px;
-      line-height: 20px;
-    }
-    #attention {
-      margin: 20px 0;
-    }
-    .retyped-password {
-      margin-left: 14px;
-    }
-    #slave-hosts-popup {
-      ul {
-        list-style-type: none;
-      }
-    }
-  }
   #deploy {
     #overallProgress {
     }
@@ -332,6 +285,69 @@ h1 {
         margin-left: 10px;
         width: 20% - 10px;
       }
+    }
+  }
+}
+
+#serviceConfig {
+  .accordion-heading {
+    background-color: #f0f0f0;
+  }
+  .accordion-group {
+    margin-bottom: 20px;
+    .control-group {
+      margin: 10px 0;
+    }
+    form {
+      margin-bottom: 0;
+    }
+  }
+  .badge {
+    margin-left: 4px;
+  }
+  .slave-component-group-menu {
+    float: left;
+    .nav {
+      margin-bottom: 10px;
+    }
+    .nav li {
+      position: relative;
+      a {
+        padding-right: 24px;
+      }
+      .icon-remove {
+        border: 1px solid white;
+        position: absolute;
+        right: 7px;
+        top: 10px;
+        z-index: 2;
+        cursor: default;
+        color: #555555;
+      }
+      .icon-remove:hover {
+        border: 1px solid grey;
+      }
+    }
+  }
+  .remove-group-error {
+    display: none;
+  }
+  .add-slave-component-group {
+    margin-bottom: 10px;
+  }
+  .master-host, .master-hosts, .slave-hosts {
+    padding-top: 5px;
+    line-height: 20px;
+  }
+  #attention {
+    margin: 20px 0;
+  }
+  .retyped-password {
+    margin-left: 14px;
+  }
+  #slave-hosts-popup {
+    ul {
+      list-style-type: none;
     }
   }
 }
@@ -491,6 +507,7 @@ a:focus {
   border-collapse: collapse;
 
   td.summary-label {
+    width: 180px;
     text-align: right;
   }
 
@@ -628,16 +645,16 @@ a:focus {
 #services-menu {
   .nav-list {
     .tab-marker-position {
-
       background-position: 6px 5px;
       background-repeat: no-repeat;
       list-style: none;
       height: 20px;
       width: 20px;
-      margin-left: 0; //      padding-left: 30px;
-    //      padding-right: 30px;
-    //      background-position: 12px 9px;
-    //      background-repeat: no-repeat;
+      margin-left: 0;
+      // padding-left: 30px;
+      // padding-right: 30px;
+      // background-position: 12px 9px;
+      // background-repeat: no-repeat;
     }
     .health-status-LIVE {
       .tab-marker-position;
@@ -646,6 +663,9 @@ a:focus {
     .health-status-DEAD {
       .tab-marker-position;
       background-image: @status-dead-marker;
+    }
+    .health-status-undefined {
+      .tab-marker-position;
     }
     li {
       line-height: 24px;
@@ -749,6 +769,15 @@ a:focus {
   .health-status-DEAD-YELLOW {
     background-image: @status-dead-yellow-marker;
   }
+  .host-name-search{
+    position: relative;
+    top: 0px;
+    left: 10px;
+  }
+  .host-name-pos{
+    position: relative;
+    top: 10px;
+  }
   .box-header {
     .btn-group {
       float: left;
@@ -766,7 +795,7 @@ a:focus {
       background: #EDF5FC;
     }
     th, td {
-      width: 130px;
+      width: 82px;
     }
     th.first, td.first {
       width: 30px;
@@ -856,6 +885,9 @@ a:focus {
   }
 
   #host-details {
+
+    margin-top: 27px;
+
     .component-operation-button{
       background-color: #E5E5E5;
       background-image: -webkit-gradient(linear, 0 0, 0 100%, from(#E5E5E5), to(#F1F1F1));
@@ -1580,7 +1612,7 @@ ul.inline li {
 
 #host-details > .host-maintenance {
   text-align: right;
-  margin-top: -20px;
+  margin-top: -28px;
 }
 
 #host-details > .host-maintenance > div {
@@ -1626,9 +1658,8 @@ ul.inline li {
 }
 
 #step8-content {
-  max-height: 570px;
+  max-height: 440px;
 }
-
 #step10-content {
   max-height: 440px;
 }

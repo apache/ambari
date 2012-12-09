@@ -28,13 +28,13 @@ App.AlertStatus = {
  * which comes back from NAGIOS server.
  */
 App.Alert = DS.Model.extend({
-  title: DS.attr('string', {key: 'service_description'}),
-  serviceType: DS.attr('string', {key: 'service_type'}),
-  date: DS.attr('date', {key: 'last_hard_state_change'}),
-  status: DS.attr('string', {key: 'current_state'}),
-  message: DS.attr('string', {key: 'plugin_output'}),
-  primaryKey: 'last_hard_state_change',
-  alerts: DS.hasMany('App.Alert'),
+  alertId: DS.attr('string'),
+  title: DS.attr('string'),
+  serviceType: DS.attr('string'),
+  date: DS.attr('date'),
+  status: DS.attr('string'),
+  message: DS.attr('string'),
+  primaryKey: 'alertId',
 
   /**
    * Used to show correct icon in UI
@@ -113,104 +113,8 @@ App.Alert = DS.Model.extend({
  * RESTAdapter will contact server.
  */
 App.Alert.reopenClass({
-  url: "http://nagiosserver/hdp/nagios/nagios_alerts.php?q1=alerts&alert_type=all"
+//  url: "http://nagiosserver/hdp/nagios/nagios_alerts.php?q1=alerts&alert_type=all"
 });
 
 App.Alert.FIXTURES = [
-  {
-    id: 1,
-    title: 'Corrupt/Missing Block',
-    service_id: 1,
-    date: 'August 29, 2012 17:00',
-    status: 'corrupt',
-    message: 'message'
-  },
-  {
-    id: 2,
-    title: 'Corrupt/Missing Block',
-    service_id: 1,
-    date: 'August 30, 2012 17:00',
-    status: 'ok',
-    message: 'message'
-  },
-  {
-    id: 3,
-    title: 'Corrupt/Missing Block',
-    service_id: 2,
-    date: 'August 29, 2012 17:00',
-    status: 'corrupt',
-    message: 'message'
-  },
-  {
-    id: 4,
-    title: 'Corrupt/Missing Block',
-    service_id: 2,
-    date: 'August 30, 2012 17:00',
-    status: 'ok',
-    message: 'message'
-  },
-  {
-    id: 5,
-    title: 'Corrupt/Missing Block',
-    service_id: 3,
-    date: 'August 29, 2012 17:00',
-    status: 'corrupt',
-    message: 'message'
-  },
-  {
-    id: 6,
-    title: 'Corrupt/Missing Block',
-    service_id: 3,
-    date: 'August 30, 2012 17:00',
-    status: 'ok',
-    message: 'message'
-  },
-  {
-    id: 7,
-    title: 'Corrupt/Missing Block',
-    service_id: 4,
-    date: 'August 29, 2012 17:00',
-    status: 'corrupt',
-    message: 'message'
-  },
-  {
-    id: 8,
-    title: 'Corrupt/Missing Block',
-    service_id: 4,
-    date: 'August 30, 2012 17:00',
-    status: 'ok',
-    message: 'message'
-  },
-  {
-    id: 9,
-    title: 'Corrupt/Missing Block',
-    service_id: 5,
-    date: 'August 29, 2012 17:00',
-    status: 'corrupt',
-    message: 'message'
-  },
-  {
-    id: 10,
-    title: 'Corrupt/Missing Block',
-    service_id: 5,
-    date: 'August 30, 2012 17:00',
-    status: 'ok',
-    message: 'message'
-  },
-  {
-    id: 11,
-    title: 'Corrupt/Missing Block',
-    service_id: 6,
-    date: 'August 29, 2012 17:00',
-    status: 'corrupt',
-    message: 'message'
-  },
-  {
-    id: 12,
-    title: 'Corrupt/Missing Block',
-    service_id: 6,
-    date: 'August 30, 2012 17:00',
-    status: 'ok',
-    message: 'message'
-  }
 ];

@@ -21,33 +21,33 @@ var App = require('app');
 require('models/alert');
 
 App.MainDashboardServiceHealthView = Em.View.extend({
-  classNameBindings:["healthStatus"],
-  template:Em.Handlebars.compile(""),
-  blink:false,
+  classNameBindings: ["healthStatus"],
+  template: Em.Handlebars.compile(""),
+  blink: false,
   tagName: 'span',
 
-  status:function () {
+  status: function () {
     return this.get('service.healthStatus');
   }.property('service.healthStatus'),
 
-  startBlink:function () {
+  startBlink: function () {
     this.set('blink', true);
   },
 
-  doBlink:function () {
+  doBlink: function () {
     if (this.get('blink') && (this.get("state") == "inDOM")) {
-      this.$().effect("pulsate", { times:1 }, "slow", function () {
+      this.$().effect("pulsate", { times: 1 }, "slow", function () {
         var view = Em.View.views[$(this).attr('id')];
         view.doBlink();
       });
     }
   }.observes('blink'),
 
-  stopBlink:function () {
+  stopBlink: function () {
     this.set('blink', false);
   },
 
-  healthStatus:function () {
+  healthStatus: function () {
     var status = this.get('status');
     switch (status) {
       case App.Service.Health.start:
@@ -66,40 +66,36 @@ App.MainDashboardServiceHealthView = Em.View.extend({
     return 'health-status-' + status + " span";
   }.property('status'),
 
-  didInsertElement:function () {
+  didInsertElement: function () {
     this._super();
     this.doBlink(); // check for blink availability
   }
 });
 
 App.MainDashboardServiceView = Em.View.extend({
-  classNames:['service', 'clearfix'],
-  data:function () {
+  classNames: ['service', 'clearfix'],
+
+  data: function () {
     return this.get('controller.data.' + this.get('serviceName'));
   }.property('controller.data'),
-  service:function () {
+
+  service: function () {
     var services = this.get('controller.services');
     if (services) {
-      thisView = this;
-      var serviceProperty = false;
-      services.forEach(function (service) {
-        if (service.get('serviceName') == thisView.get('serviceName')) {
-          return serviceProperty = service;
-        }
-      })
+      return services.findProperty('serviceName', this.get('serviceName'));
     }
-
-    return serviceProperty;
   }.property('controller.services'),
 
-  criticalAlertsCount:function () {
+  criticalAlertsCount: function () {
     var alerts = this.get('service.alerts');
     var count = 0;
 
-    alerts.forEach(function (alert) {
-      count += (alert.get('status') == App.AlertStatus.negative);
-    });
-
+    if (alerts) {
+      alerts.forEach(function (alert) {
+        count += (alert.get('status') == App.AlertStatus.negative);
+      });
+    }
     return count;
   }.property('service.alerts')
+
 });

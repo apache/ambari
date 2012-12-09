@@ -32,26 +32,15 @@
       {{/each}}
     </ul>
   </div>
-  {{#if controller.content.workStatus}}
-    <a href="javascript:void(null)" class="btn disabled">
-      <i class="icon-play"></i>
-      Start
-    </a>
-    <a href="javascript:void(null)" class="btn btn-danger"
-       data-toggle="modal" {{action "stopService" target="controller"}}>
-      <i class="icon-stop icon-white"></i>
-      Stop
-    </a>
-  {{else}}
-    <a href="javascript:void(null)" class="btn btn-success"
-       data-toggle="modal" {{action "startService" target="controller"}}>
-      <i class="icon-play icon-white"></i>
-      Start
-    </a>
-    <a href="javascript:void(null)" class="btn disabled">
-      <i class="icon-stop"></i>
-      Stop
-    </a>
-  {{/if}}
+  <a href="javascript:void(null)" {{bindAttr class=":btn controller.content.workStatus:disabled:btn-success" }}
+     data-toggle="modal" {{action "startService" target="controller"}}>
+    <i class="icon-play"></i>
+    Start
+  </a>
+  <a href="javascript:void(null)" {{bindAttr class=":btn controller.content.workStatus:btn-danger:disabled" }}
+     data-toggle="modal" {{action "stopService" target="controller"}}>
+    <i class="icon-stop icon-white"></i>
+    Stop
+  </a>
 </div>
 {{outlet}}

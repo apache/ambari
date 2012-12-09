@@ -19,6 +19,27 @@
 
 var App = require('app');
 
+App.SshKeyFileUploader = Ember.View.extend({
+  template:Ember.Handlebars.compile('<input type="file" />'),
+
+  change: function (e) {
+    self=this;
+    if (e.target.files && e.target.files.length == 1) {
+      var file = e.target.files[0];
+      var reader = new FileReader();
+
+      reader.onload = (function(theFile) {
+        return function(e) {
+          $('#sshKey').html(e.target.result);
+          //$('.sshKey-file-view').html(e.target.result);
+          self.set("controller.content.sshKey", e.target.result);
+        };
+      })(file);
+      reader.readAsText(file);
+    }
+  }
+});
+
 App.WizardStep2View = Em.View.extend({
 
   templateName: require('templates/wizard/step2'),
@@ -38,7 +59,24 @@ App.WizardStep2View = Em.View.extend({
     } else {
       this.set('hostNameErr', true);
     }
-  }.observes('controller.hostNameEmptyError', 'controller.hostNameNotRequiredErr', 'controller.hostNameErr')
+  }.observes('controller.hostNameEmptyError', 'controller.hostNameNotRequiredErr', 'controller.hostNameErr'),
+
+  sshKeyState: function(){
+    return this.get("controller").get("content.manualInstall");
+  }.property("controller.content.manualInstall"),
+
+  sshKeyClass:function() {
+    //alert(this.get("isFileApi"))
+    return (this.get("isFileApi")) ? "hide" : "" ;
+  }.property("isFileApi"),
+
+  isFileApi: function () {
+    return (window.File && window.FileReader && window.FileList) ? true : false ;
+  }.property(),
+
+  sshKeyPreviewClass: function() {
+    return (this.get('controller.content.sshKey').trim() != '') ? 'sshKey-file-view help-inline' : 'hidden';
+  }.property('controller.content.sshKey')
 
 });
 

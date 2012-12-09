@@ -69,7 +69,45 @@ App.MainServiceItemController = Em.Controller.extend({
 
     return operation;
   },
+  /**
+   * Send specific command to server
+   * @param url
+   * @param data Object to send
+   */
+  sendCommandToServer : function(url, postData){
+    var url =  (App.testMode) ?
+      '/data/wizard/deploy/poll_1.json' : //content is the same as ours
+      '/api/clusters/' + App.router.getClusterName() + url; //'/services/' + this.get('content.serviceName').toUpperCase();
+
+    var method = App.testMode ? 'GET' : 'PUT';
+
+    $.ajax({
+      type: method,
+      url: url,
+      data: JSON.stringify(postData),
+      dataType: 'json',
+      timeout: 5000,
+      success: function (data) {
+        //do something
+      },
+
+      error: function (request, ajaxOptions, error) {
+        //do something
+      },
+
+      statusCode: require('data/statusCodes')
+    });
+  },
+
+  /**
+   * On click callback for <code>start service</code> button
+   * @param event
+   */
   startService: function (event) {
+    if($(event.target).hasClass('disabled')){
+      return;
+    }
+
     var self = this;
     App.ModalPopup.show({
       header: Em.I18n.t('services.service.confirmation.header'),
@@ -78,6 +116,13 @@ App.MainServiceItemController = Em.Controller.extend({
       secondary: 'No',
       onPrimary: function() {
         self.content.set('workStatus', true);
+
+        self.sendCommandToServer('/services/' + self.get('content.serviceName').toUpperCase(),{
+          ServiceInfo:{
+            state: 'STARTED'
+          }
+        });
+
         var newOperation = self.createBackgroundOperation('Service', 'Start');
         newOperation.detail = "Another detail info";
         self.addBackgroundOperation(newOperation);
@@ -88,7 +133,16 @@ App.MainServiceItemController = Em.Controller.extend({
       }
     });
   },
+
+  /**
+   * On click callback for <code>stop service</code> button
+   * @param event
+   */
   stopService: function (event) {
+    if($(event.target).hasClass('disabled')){
+      return;
+    }
+
     var self = this;
     App.ModalPopup.show({
       header: Em.I18n.t('services.service.confirmation.header'),
@@ -97,6 +151,13 @@ App.MainServiceItemController = Em.Controller.extend({
       secondary: 'No',
       onPrimary: function() {
         self.content.set('workStatus', false);
+
+        self.sendCommandToServer('/services/' + self.get('content.serviceName').toUpperCase(),{
+          ServiceInfo:{
+            state: 'INSTALLED'
+          }
+        });
+
         var newOperation = self.createBackgroundOperation('Service', 'Stop');
         newOperation.detail = "Another detail info";
         self.addBackgroundOperation(newOperation);

@@ -92,7 +92,12 @@ App.WizardStep2Controller = Em.Controller.extend({
   }.property('sshKey', 'manualInstall', 'hasSubmitted'),
 
   localRepoError: function () {
-    if (this.get('hasSubmitted') && this.get('localRepo') && this.get('localRepoPath').trim() === '') {
+    if (
+       // (typeof this.get('localRepoPath') === 'undefined') ||
+        !(/^([-a-z0-9._\/]|%[0-9a-f]{2})*$/i.test(this.get('localRepoPath')) ) ||
+        (this.get('hasSubmitted') && this.get('localRepo') && this.get('localRepoPath').trim() === '' )
+       )
+    {
       return Em.I18n.t('installer.step2.localRepo.error.required');
     }
     return null;

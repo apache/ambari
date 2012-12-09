@@ -26,8 +26,6 @@
     <label>{{t login.username}}</label>
     {{view Ember.TextField valueBinding="loginName" class="span4"}}
     <label>{{t login.password}}</label>
-    {{view Ember.TextField type="password" valueBinding="password" class="span4"}}
-    <div>
-        <a class="btn btn-success" {{action "submit" target="controller"}}>{{t login.loginButton}}</a>
-    </div>
+    {{view view.passTextField type="password" valueBinding="password" class="span4"}}
+        <button class="btn btn-success" {{action "submit" target="controller"}}>{{t login.loginButton}}</button>
 </div>

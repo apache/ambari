@@ -21,11 +21,14 @@ require('models/background_operation');
 
 App.MainController = Em.Controller.extend({
   name: 'mainController',
-  backgroundOperations: null,
+  backgroundOperations: [],
+  backgroundOperationsCount : 0,
+  backgroundOperationsUrl : '',
   intervalId: false,
-  updateOperationsInterval: 8000,
+  updateOperationsInterval: 6000,
 
   startLoadOperationsPeriodically: function() {
+    this.loadBackgroundOperations();
     this.intervalId = setInterval(this.loadBackgroundOperations, this.get('updateOperationsInterval'));
   },
   stopLoadOperationsPeriodically:function () {
@@ -36,19 +39,68 @@ App.MainController = Em.Controller.extend({
   },
   loadBackgroundOperations: function(){
     var self = App.router.get('mainController');
-    jQuery.getJSON('data/hosts/background_operations/bg_operations.json',
-      function (data) {
-        var backgroundOperations = self.get('backgroundOperations');
-        if(!backgroundOperations || self.get('backgroundOperationsCount') >= 6)
-          self.set('backgroundOperations', data);
-        else backgroundOperations.tasks.pushObjects(data['tasks'])
-      }
-    )
+
+    var url = self.get('backgroundOperationsUrl');
+    if(!url){
+      //cache url, not to execute <code>getClusterName</code> everytime
+      url = (App.testMode) ?
+        '/data/background_operations/list_on_start.json' :
+        '/api/clusters/' + App.router.getClusterName() + '/requests/?fields=tasks/*&tasks/Tasks/status!=COMPLETED';
+      self.set('backgroundOperationsUrl', url);
+    }
+
+    $.ajax({
+      type: "GET",
+      url: url,
+      dataType: 'json',
+      timeout: 5000,
+      success: function (data) {
+        self.updateBackgroundOperations(data);
+      },
+
+      error: function (request, ajaxOptions, error) {
+        //do something
+      },
+
+      statusCode: require('data/statusCodes')
+    });
   },
 
-  backgroundOperationsCount: function() {
-    return this.get('backgroundOperations.tasks.length');
-  }.property('backgroundOperations.tasks.length'),
+  /**
+   * Add new operations to <code>this.backgroundOperations</code> variable
+   * @param data json loaded from server
+   */
+  updateBackgroundOperations : function(data){
+    var runningTasks = [];
+    data.items.forEach(function (item) {
+      item.tasks.forEach(function (task) {
+        if (task.Tasks.status == 'QUEUED') {
+          runningTasks.push(task.Tasks);
+        }
+      });
+    });
+
+    var currentTasks = this.get('backgroundOperations');
+
+    runningTasks.forEach(function(item){
+      var task = currentTasks.findProperty('id', item.id);
+      if(task){
+        currentTasks[currentTasks.indexOf(task)] = item;
+      } else {
+        currentTasks.pushObject(item);
+      }
+    });
+
+    for(var i = currentTasks.length-1; i>=0; i--){
+      var isTaskFinished = !runningTasks.someProperty('id', currentTasks[i].id);
+      if(isTaskFinished){
+        currentTasks.removeAt(i);
+      }
+    }
+
+    this.set('backgroundOperationsCount', currentTasks.length);
+
+  },
 
   showBackgroundOperationsPopup: function(){
     App.ModalPopup.show({

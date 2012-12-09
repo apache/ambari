@@ -77,8 +77,19 @@ App.InstallerController = Em.Controller.extend({
    * @param completed
    */
   currentStep: function () {
-    return App.get('router').getInstallerCurrentStep();
+    return App.get('router').getWizardCurrentStep('installer');
   }.property(),
+
+  /**
+   * Set current step to new value.
+   * Method moved from App.router.setInstallerCurrentStep
+   * @param currentStep
+   * @param completed
+   */
+  setCurrentStep: function (currentStep, completed) {
+    App.db.setWizardCurrentStep('installer', currentStep, completed);
+    this.set('currentStep', currentStep);
+  },
 
   clusters: null,
 

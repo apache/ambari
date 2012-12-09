@@ -116,33 +116,33 @@ App.WizardStep9Controller = Em.Controller.extend({
           case 'PENDING':
             return 'Preparing to install ' + task.role;
           case 'QUEUED' :
-            return task.role + ' is Queued for installation';
+            return task.role + ' is queued for installation';
           case 'IN_PROGRESS':
             return 'Installing ' + task.role;
           case 'COMPLETED' :
             return 'Successfully installed ' + task.role;
           case 'FAILED':
-            return 'Faliure in installing ' + task.role;
+            return 'Failed to install ' + task.role;
         }
       case 'UNINSTALL':
         switch (task.status) {
           case 'PENDING':
             return 'Preparing to uninstall ' + task.role;
           case 'QUEUED' :
-            return task.role + ' is Queued for uninstallation';
+            return task.role + ' is queued for uninstallation';
           case 'IN_PROGRESS':
-            return 'Unnstalling ' + task.role;
+            return 'Uninstalling ' + task.role;
           case 'COMPLETED' :
             return 'Successfully uninstalled ' + task.role;
           case 'FAILED':
-            return 'Faliure in uninstalling ' + task.role;
+            return 'Failed to uninstall ' + task.role;
         }
       case 'START' :
         switch (task.status) {
           case 'PENDING':
             return 'Preparing to start ' + task.role;
           case 'QUEUED' :
-            return task.role + ' is Queued for starting';
+            return task.role + ' is queued for starting';
           case 'IN_PROGRESS':
             return 'Starting ' + task.role;
           case 'COMPLETED' :
@@ -153,13 +153,13 @@ App.WizardStep9Controller = Em.Controller.extend({
       case 'STOP' :
         switch (task.status) {
           case 'PENDING':
-            return 'Preparing to stop ' + role;
+            return 'Preparing to stop ' + task.role;
           case 'QUEUED' :
-            return task.role + ' is Queued for stopping';
+            return task.role + ' is queued for stopping';
           case 'IN_PROGRESS':
             return 'Stopping ' + task.role;
           case 'COMPLETED' :
-            return role + ' stoped successfully';
+            return role + ' stopped successfully';
           case 'FAILED':
             return role + ' failed to stop';
         }
@@ -168,7 +168,7 @@ App.WizardStep9Controller = Em.Controller.extend({
           case 'PENDING':
             return 'Preparing to execute' + task.role;
           case 'QUEUED' :
-            return task.role + ' is Queued for execution';
+            return task.role + ' is queued for execution';
           case 'IN_PROGRESS':
             return 'Execution of ' + task.role + ' in progress';
           case 'COMPLETED' :
@@ -181,7 +181,7 @@ App.WizardStep9Controller = Em.Controller.extend({
           case 'PENDING':
             return 'Preparing to abort ' + task.role;
           case 'QUEUED' :
-            return task.role + ' is Queued for Aborting';
+            return task.role + ' is queued for aborting';
           case 'IN_PROGRESS':
             return 'Aborting ' + task.role;
           case 'COMPLETED' :
@@ -500,7 +500,7 @@ App.WizardStep9Controller = Em.Controller.extend({
   getUrl: function () {
     var clusterName = this.get('content.cluster.name');
     var requestId = App.db.getClusterStatus().requestId;
-    var url = '/api/clusters/' + clusterName + '/requests/' + requestId;
+    var url = '/api/clusters/' + clusterName + '/requests/' + requestId + '?fields=tasks/*';
     console.log("URL for step9 is: " + url);
     return url;
   },

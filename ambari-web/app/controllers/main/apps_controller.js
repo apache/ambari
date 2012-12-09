@@ -68,13 +68,16 @@ App.MainAppsController = Em.ArrayController.extend({
     });
     return r;
   },
+  lastStarClicked: -1,
   /**
    * Click on star on table row
    * @return {Boolean} false for prevent default event handler
    */
-  starClick: function() {
-    event.srcElement.classList.toggle('stared');
-    var id = parseInt(event.srcElement.parentNode.childNodes[1].innerText);
+  starClick: function(event) {
+    event.target.classList.toggle('stared');
+    var cell = event.target.parentNode.parentNode;
+    var row = cell.parentNode;
+    var id = parseInt(jQuery(event.target).parent().children(1).text());
     if (!this.issetStaredRun(id)) {
       this.get('staredRuns').push(this.getRunById(id));
     }
@@ -85,13 +88,7 @@ App.MainAppsController = Em.ArrayController.extend({
       }
     }
     this.set('staredRunsLength', this.get('staredRuns').length);
+    this.set('lastStarClicked', id);
     return false;
-  },
-  /**
-   * Flush all starred runs
-   */
-  clearStars: function() {
-    this.set('staredRuns', []);
-    this.set('staredRunsLength', 0);
   }
 })

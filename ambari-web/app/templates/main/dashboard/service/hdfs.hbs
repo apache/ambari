@@ -19,7 +19,7 @@
 <div class="clearfix">
   <div class="name span2">
     {{view App.MainDashboardServiceHealthView serviceBinding="view.service"}}
-    <a {{action selectService view.service href=true}}>{{view.service.label}}</a>
+    <a {{action selectService view.service href=true}}>{{view.service.displayName}}</a>
     {{#if view.criticalAlertsCount}}
     <span class="label label-important alerts-count">{{view.criticalAlertsCount}}</span>
     {{/if}}
@@ -72,9 +72,9 @@
     <td>
       {{#each component in view.service.components}}
       {{#if component.type}}
-      <a href="#" {{action selectHost component.host}}>{{component.componentName}}</a>,
+      <a href="#" {{action selectHost component.host}}>{{component.displayName}}</a>,
       {{else}}
-      <a href="#" {{action filterHosts component}}>{{component.componentName}}</a>
+      <a href="#" {{action filterHosts component}}>{{component.displayName}}</a>
       {{/if}}
       {{/each}}
     </td>

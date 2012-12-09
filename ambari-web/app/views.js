@@ -22,6 +22,7 @@
 
 require('views/application');
 require('views/common/chart');
+require('views/common/combobox');
 require('views/common/chart/pie');
 require('views/common/chart/linear');
 require('views/common/chart/linear_time');
@@ -32,6 +33,7 @@ require('views/common/form/field');
 require('views/common/quick_view_link_view');
 require('views/login');
 require('views/main');
+require('views/main/test');
 require('views/main/menu');
 require('views/main/charts');
 require('views/main/host');

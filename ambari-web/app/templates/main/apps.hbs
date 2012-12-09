@@ -54,12 +54,12 @@
             </tbody>
   </table>
     <div id="filter_info" class="row">
-      <div class="span3">Show:
-        <a href="javascript:void(0)" class="selected" {{action "changeViewType" target="view"}} data-view-type="all">All ({{view.content.length}})</a> &#124;
-        <a href="javascript:void(0)" {{action "changeViewType" target="view"}} data-view-type="filtered">Filtered ({{view.filtered}})</a> &#124;
-        <a href="javascript:void(0)" {{action "changeViewType" target="view"}} data-view-type="starred">Starred ({{view.staredData.count}})</a>
+      <div class="span3" id="filter_buttons">Show:
+        <a href="javascript:void(0)" class="all selected" {{action "clickViewType" target="view"}} data-view-type="all">All ({{view.content.length}})</a> &#124;
+        <a href="javascript:void(0)" class="filtered" {{action "clickViewType" target="view"}} data-view-type="filtered">Filtered ({{view.filtered}})</a> &#124;
+        <a href="javascript:void(0)" class="stared" {{action "clickViewType" target="view"}} data-view-type="starred">Starred ({{view.staredData.count}})</a>
       </div>
-      <div class="span2"><a href="#" {{action "clearFilters" target="view"}}>Clear filters</a>&nbsp;&#124;&nbsp;<a href="#" {{action "clearStars" target="controller"}}>Clear stars</a></div>
+      <div class="span2"><a href="#" {{action "clearFilters" target="view"}}>Clear filters</a>&nbsp;&#124;&nbsp;<a href="#" {{action "clearStars" target="view"}}>Clear stars</a></div>
     </div>
     <div>
     </div>
@@ -78,7 +78,7 @@
       <th>Run Date</th>
     </tr>
     <tr>
-      <th></th>
+      <th>{{view view.starFilterView viewName="starFilterViewInstance"}}</th>
       <th>{{view view.appidFilterView}}</th>
       <th>{{view view.nameFilterView}}</th>
       <th>{{view view.typeSelectView}}</th>

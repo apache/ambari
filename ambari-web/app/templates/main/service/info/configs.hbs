@@ -16,121 +16,206 @@
 * limitations under the License.
 -->
 
+<!--<div>-->
+    <!--<fieldset class="fieldset">-->
+     <!--<legend>General</legend>-->
+        <!--<div class="row">-->
+           <!--<div class="span2"> <b>Some HDFS config</b> </div>-->
+           <!--<div class="span2"><input type="text"></div>-->
+        <!--</div>-->
+    <!--</fieldset>-->
 
-<div>
-    <fieldset class="fieldset">
-     <legend>General</legend>
-        <div class="row">
-           <div class="span2"> <b>Some HDFS config</b> </div>
-           <div class="span2"><input type="text"></div>
+<!--</div>-->
+
+<!--<br>-->
+
+<!--<div>-->
+       <!--<fieldset class="fieldset">-->
+        <!--<legend>NameNode</legend>-->
+          <!--<div class="row">-->
+            <!--<div class="span2"><b>NameNodeSet</b> </div>-->
+            <!--<div class="span2">host0001.com.com</div>-->
+
+        <!--</div>-->
+<!--<br>-->
+        <!--<div class="row">-->
+            <!--<div class="span2"><b>NameNode directories</b> dfs.name.dir </div>-->
+            <!--<div class="span2"><textarea placeholder="/grid/hadoop/namenode"></textarea></div>-->
+
+        <!--</div>-->
+<!--<br>-->
+        <!--<div class="row">-->
+            <!--<div class="span2"><b>Some NameNode config</b> dfs.name.some </div>-->
+            <!--<div class="span2 input-append"><input class="span2" id="appendedInput" type="text" placeholder="2048"><span class="add-on">MB</span></div>-->
+            <!--<div class="span2"></div>-->
+
+        <!--</div>-->
+    <!--</fieldset>-->
+<!--</div>-->
+<!--<br>-->
+<!--<div>-->
+    <!--<fieldset class="fieldset">-->
+        <!--<legend>SNameNode</legend>-->
+        <!--<div class="row">-->
+            <!--<div class="span2"><b>Some NameNode host</b> </div>-->
+            <!--<div class="span2">host0002.com.com</div>-->
+        <!--</div>-->
+    <!--</fieldset>-->
+<!--</div>-->
+<!--<br>-->
+<!--<div>-->
+    <!--<fieldset class="fieldset">-->
+        <!--<legend>DataNode (Default)</legend>-->
+        <!--<div class="row">-->
+            <!--<div class="span2"><b>DataNode hosts</b> </div>-->
+            <!--<div class="span3"><a href="#">host003.com.com and 89 more</a> </div>-->
+
+        <!--</div>-->
+        <!--<br>-->
+        <!--<div class="row">-->
+            <!--<div class="span2"><b>DataNode directories</b> dfs.data.dir</div>-->
+             <!--<div class="span2"><textarea placeholder="/grid/0/hadoop/datanode-->
+                                                      <!--/grid/1/hadoop/datanode-->
+                                                      <!--/grid/2/hadoop/datanode"></textarea></div>-->
+
+        <!--</div>-->
+        <!--<br>-->
+        <!--<div class="row">-->
+            <!--<div class="span2"><b>Some DataNode config</b> dfs.data.some </div>-->
+            <!--<div class="span2 input-append"><input class="span2" id="appendedInput" type="text" placeholder="1024"><span class="add-on">MB</span></div>-->
+            <!--<div class="span2"></div>-->
+
+        <!--</div>-->
+        <!--<br>-->
+        <!--<div class="row">-->
+            <!--<div class="span2"><b>Another DataNode config</b> dfs.data.another</div>-->
+            <!--<div class="span2 input-append"><input class="span2" id="appendedInput" type="text" placeholder="512"><span class="add-on">MB</span></div>-->
+
+        <!--</div>-->
+   <!--</fieldset>-->
+<!--</div>-->
+<!--<br>-->
+<!--<div>-->
+    <!--<fieldset class="fieldset">-->
+        <!--<legend>DataNode Group A</legend>-->
+        <!--<div class="row">-->
+            <!--<div class="span2"><b>DataNode hosts</b> </div>-->
+            <!--<div class="span3"><a href="#">host0090.com.com and 90 more</a> </div>-->
+
+        <!--</div>-->
+        <!--<br>-->
+        <!--<div class="row">-->
+            <!--<div class="span2"><b>DataNode directories</b> dfs.data.dir</div>-->
+            <!--<div class="span2"><textarea placeholder="/grid/0/hadoop/datanode-->
+                                                      <!--/grid/1/hadoop/datanode-->
+                                                      <!--/grid/2/hadoop/datanode-->
+                                                      <!--/grid/3/hadoop/datanode"></textarea></div>-->
+
+        <!--</div>-->
+        <!--<br>-->
+        <!--<div class="row">-->
+            <!--<div class="span2"><b>Some DataNode config</b> dfs.data.another</div>-->
+            <!--<div class="span2 input-append"><input class="span2" id="appendedInput" type="text" placeholder="2048"><span class="add-on">MB</span></div>-->
+            <!--<div class="span2"></div>-->
+        <!--</div>-->
+        <!--<br>-->
+        <!--<div class="row">-->
+            <!--<div class="span2"><b>Another DataNode config</b> dfs.data.another</div>-->
+            <!--<div class="span2 input-append"><input class="span2" id="appendedInput" type="text" placeholder="128"><span class="add-on">MB</span></div>-->
+        <!--</div>-->
+    <!--</fieldset>-->
+<!--</div>-->
+<!--<br>-->
+      <!--<p align="right"> Need a different settings on certain DataNodes? <a href="#">Add a DataNode group</a>-->
+      <!--<br>-->
+      <!--<br>-->
+      <!--<input class="btn btn-primary" type="button" value="Save and apply changes">-->
+    <!--</p>-->
+     <!--</div>-->
+{{!outlet}}
+<div id="serviceConfig">
+  <div class="accordion">
+    {{#each category in selectedService.configCategories}}
+      <div class="accordion-group">
+        <div class="accordion-heading">
+          <a class="accordion-toggle">
+            {{category.name}}
+          </a>
         </div>
-    </fieldset>
 
+        {{#unless category.isForSlaveComponent}}
+          {{#view App.ServiceConfigsByCategoryView categoryBinding="category" serviceConfigsBinding="selectedService.configs"}}
+            <form class="form-horizontal">
+
+              {{#each view.categoryConfigs}}
+                {{#if isVisible}}
+                  <div {{bindAttr class="errorMessage:error: :control-group"}}>
+                    <label class="control-label">{{displayName}}</label>
+
+                    <div class="controls">
+                      {{view viewClass serviceConfigBinding="this" categoryConfigsBinding="view.categoryConfigs"}}
+                      <span class="help-inline">{{errorMessage}}</span>
+                    </div>
+                  </div>
+                {{/if}}
+              {{/each}}
+
+            </form>
+          {{/view}}
+        {{/unless}}
+
+        {{#if category.isForSlaveComponent}}
+          {{#view App.ServiceConfigsByCategoryView categoryBinding="category" serviceConfigsBinding="selectedService.configs" controllerBinding="App.router.mainServiceSlaveComponentGroupsController"}}
+            <div class="slave-component-group-menu">
+              {{view App.SlaveComponentGroupsMenu}}
+            </div>
+
+            {{#view App.AddSlaveComponentGroupButton slaveComponentNameBinding="category.name"}}
+              <a class="btn add-slave-component-group btn-large" {{action addSlaveComponentGroup target="controller"}}><i
+                class="icon-plus"></i></a>
+            {{/view}}
+            <div class="remove-group-error control-group warning">
+              <span class="help-inline">You cannot delete this group since there are hosts assigned to it. You must assign them to another group before you can delete this group.</span>
+            </div>
+
+            <form class="form-horizontal">
+
+              {{#view App.SlaveComponentChangeGroupNameView}}
+                <label class="control-label">Group name</label>
+
+                <div class="controls">
+                  <div class="span6">
+                    <input class="span9" type="text" {{bindAttr value="view.content.name"}}>
+                    <button class="btn" {{action changeGroupName target="view"}}>Save</button>
+                  </div>
+                  <span class="help-inline">{{view.errorMessage}}</span>
+                </div>
+              {{/view}}
+
+
+              {{#each view.categoryConfigs}}
+                {{#if isVisible}}
+                  <div {{bindAttr class="errorMessage:error: :control-group"}}>
+                    <label class="control-label">{{displayName}}</label>
+
+                    <div class="controls">
+                      {{view viewClass serviceConfigBinding="this" categoryConfigsBinding="view.categoryConfigs"}}
+                      <span class="help-inline">{{errorMessage}}</span>
+                    </div>
+                  </div>
+                {{/if}}
+              {{/each}}
+
+            </form>
+
+          {{/view}}
+        {{/if}}
+      </div>
+    {{/each}}
+  </div>
+  <p class="pull-right">
+    <!--<input class="btn btn-primary" type="button" value="Save and apply changes" {{!bindAttr disabled="isSubmitDisabled"}} />-->
+    <a class="btn btn-primary" {{bindAttr disabled="isSubmitDisabled"}}
+      {{action saveServiceConfigProperties target="controller"}}>Save and apply changes</a>
+  </p>
 </div>
-
-<br>
-
-<div>
-       <fieldset class="fieldset">
-        <legend>NameNode</legend>
-          <div class="row">
-            <div class="span2"><b>NameNodeSet</b> </div>
-            <div class="span2">host0001.com.com</div>
-
-        </div>
-<br>
-        <div class="row">
-            <div class="span2"><b>NameNode directories</b> dfs.name.dir </div>
-            <div class="span2"><textarea placeholder="/grid/hadoop/namenode"></textarea></div>
-
-        </div>
-<br>
-        <div class="row">
-            <div class="span2"><b>Some NameNode config</b> dfs.name.some </div>
-            <div class="span2 input-append"><input class="span2" id="appendedInput" type="text" placeholder="2048"><span class="add-on">MB</span></div>
-            <div class="span2"></div>
-
-        </div>
-    </fieldset>
-</div>
-<br>
-<div>
-    <fieldset class="fieldset">
-        <legend>SNameNode</legend>
-        <div class="row">
-            <div class="span2"><b>Some NameNode host</b> </div>
-            <div class="span2">host0002.com.com</div>
-        </div>
-    </fieldset>
-</div>
-<br>
-<div>
-    <fieldset class="fieldset">
-        <legend>DataNode (Default)</legend>
-        <div class="row">
-            <div class="span2"><b>DataNode hosts</b> </div>
-            <div class="span3"><a href="#">host003.com.com and 89 more</a> </div>
-
-        </div>
-        <br>
-        <div class="row">
-            <div class="span2"><b>DataNode directories</b> dfs.data.dir</div>
-             <div class="span2"><textarea placeholder="/grid/0/hadoop/datanode
-                                                      /grid/1/hadoop/datanode
-                                                      /grid/2/hadoop/datanode"></textarea></div>
-
-        </div>
-        <br>
-        <div class="row">
-            <div class="span2"><b>Some DataNode config</b> dfs.data.some </div>
-            <div class="span2 input-append"><input class="span2" id="appendedInput" type="text" placeholder="1024"><span class="add-on">MB</span></div>
-            <div class="span2"></div>
-
-        </div>
-        <br>
-        <div class="row">
-            <div class="span2"><b>Another DataNode config</b> dfs.data.another</div>
-            <div class="span2 input-append"><input class="span2" id="appendedInput" type="text" placeholder="512"><span class="add-on">MB</span></div>
-
-        </div>
-   </fieldset>
-</div>
-<br>
-<div>
-    <fieldset class="fieldset">
-        <legend>DataNode Group A</legend>
-        <div class="row">
-            <div class="span2"><b>DataNode hosts</b> </div>
-            <div class="span3"><a href="#">host0090.com.com and 90 more</a> </div>
-
-        </div>
-        <br>
-        <div class="row">
-            <div class="span2"><b>DataNode directories</b> dfs.data.dir</div>
-            <div class="span2"><textarea placeholder="/grid/0/hadoop/datanode
-                                                      /grid/1/hadoop/datanode
-                                                      /grid/2/hadoop/datanode
-                                                      /grid/3/hadoop/datanode"></textarea></div>
-
-        </div>
-        <br>
-        <div class="row">
-            <div class="span2"><b>Some DataNode config</b> dfs.data.another</div>
-            <div class="span2 input-append"><input class="span2" id="appendedInput" type="text" placeholder="2048"><span class="add-on">MB</span></div>
-            <div class="span2"></div>
-        </div>
-        <br>
-        <div class="row">
-            <div class="span2"><b>Another DataNode config</b> dfs.data.another</div>
-            <div class="span2 input-append"><input class="span2" id="appendedInput" type="text" placeholder="128"><span class="add-on">MB</span></div>
-        </div>
-    </fieldset>
-</div>
-<br>
-      <p align="right"> Need a different settings on certain DataNodes? <a href="#">Add a DataNode group</a>
-      <br>
-      <br>
-      <input class="btn btn-primary" type="button" value="Save and apply changes">
-    </p>
-     </div>
-{{outlet}}

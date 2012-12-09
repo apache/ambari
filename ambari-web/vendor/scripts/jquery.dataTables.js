@@ -745,7 +745,7 @@
             };
           }
           else if (typeof mSource === 'string' && (mSource.indexOf('.') !== -1 || mSource.indexOf('[') !== -1)) {
-            /* If there is a . in the source string then the data source is in a 
+            /* If there is a . in the source string then the data source is in a
              * nested object so we loop over the data for each level to get the next
              * level down. On each loop we test for undefined, and if found immediately
              * return. This allows entire objects to be missing and sDefaultContent to
@@ -1336,9 +1336,9 @@
           _fnCallbackFire(oSettings, 'aoFooterCallback', 'footer', [ $(oSettings.nTFoot).children('tr')[0],
             _fnGetDataMaster(oSettings), oSettings._iDisplayStart, oSettings.fnDisplayEnd(), oSettings.aiDisplay ]);
 
-          /* 
+          /*
            * Need to remove any old row from the display - note we can't just empty the tbody using
-           * $().html('') since this will unbind the jQuery event handlers (even although the node 
+           * $().html('') since this will unbind the jQuery event handlers (even although the node
            * still exists!) - equally we can't use innerHTML, since IE throws an exception.
            */
           var
@@ -1422,7 +1422,7 @@
           var nHolding = $('<div></div>')[0];
           oSettings.nTable.parentNode.insertBefore(nHolding, oSettings.nTable);
 
-          /* 
+          /*
            * All DataTables are wrapped in a div
            */
           oSettings.nTableWrapper = $('<div id="' + oSettings.sTableId + '_wrapper" class="' + oSettings.oClasses.sWrapper + '" role="grid"></div>')[0];
@@ -1590,7 +1590,7 @@
                 iColspan = (!iColspan || iColspan === 0 || iColspan === 1) ? 1 : iColspan;
                 iRowspan = (!iRowspan || iRowspan === 0 || iRowspan === 1) ? 1 : iRowspan;
 
-                /* There might be colspan cells already in this row, so shift our target 
+                /* There might be colspan cells already in this row, so shift our target
                  * accordingly
                  */
                 iColShifted = fnShiftCol(aLayout, i, iColumn);
@@ -2015,7 +2015,7 @@
           }
           else {
             /*
-             * We are starting a new search or the new search string is smaller 
+             * We are starting a new search or the new search string is smaller
              * then the old one (i.e. delete). Search from the master array
              */
             if (oSettings.aiDisplay.length == oSettings.aiDisplayMaster.length ||
@@ -2028,7 +2028,7 @@
               _fnBuildSearchArray(oSettings, 1);
 
               /* Search through all records to populate the search array
-               * The the oSettings.aiDisplayMaster and asDataSearch arrays have 1 to 1 
+               * The the oSettings.aiDisplayMaster and asDataSearch arrays have 1 to 1
                * mapping
                */
               for (i = 0; i < oSettings.aiDisplayMaster.length; i++) {
@@ -2505,7 +2505,7 @@
 
 
         /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-         * Note that most of the paging logic is done in 
+         * Note that most of the paging logic is done in
          * DataTable.ext.oPagination
          */
 
@@ -2927,11 +2927,11 @@
            * set the width based on the real headers
            */
 
-          // Apply all styles in one pass. Invalidates layout only once because we don't read any 
+          // Apply all styles in one pass. Invalidates layout only once because we don't read any
           // DOM properties.
           _fnApplyToChildren(zeroOut, anHeadSizers);
 
-          // Read all widths in next pass. Forces layout only once because we do not change 
+          // Read all widths in next pass. Forces layout only once because we do not change
           // any DOM properties.
           _fnApplyToChildren(function (nSizer) {
             aApplied.push(_fnStringToCss($(nSizer).width()));
@@ -3165,8 +3165,8 @@
             }
           }
 
-          /* If the number of columns in the DOM equals the number that we have to process in 
-           * DataTables, then we can use the offsets that are created by the web-browser. No custom 
+          /* If the number of columns in the DOM equals the number that we have to process in
+           * DataTables, then we can use the offsets that are created by the web-browser. No custom
            * sizes can be set in order for this to happen, nor scrolling used
            */
           if (iColums == oHeaders.length && iUserInputs === 0 && iVisibleColumns == iColums &&
@@ -3275,7 +3275,7 @@
               oNodes = _fnGetUniqueThs(oSettings, $('thead', nCalcTmp)[0]);
             }
 
-            /* Browsers need a bit of a hand when a width is assigned to any columns when 
+            /* Browsers need a bit of a hand when a width is assigned to any columns when
              * x-scrolling as they tend to collapse the table to the min-width, even if
              * we sent the column widths. So we need to keep track of what the table width
              * should be by summing the user given values, and the automatic values
@@ -3542,7 +3542,7 @@
              *  	return oSort['numeric-asc']( aiOrig[a], aiOrig[b] );
              *  }
              * Basically we have a test for each sorting column, if the data in that column is equal,
-             * test the next column. If all columns match, then we use a numeric sort on the row 
+             * test the next column. If all columns match, then we use a numeric sort on the row
              * positions in the original data array to provide a stable sort.
              */
             oSettings.aiDisplayMaster.sort(function (a, b) {
@@ -3635,14 +3635,14 @@
 
             /*
              * This is a little bit odd I admit... I declare a temporary function inside the scope of
-             * _fnBuildHead and the click handler in order that the code presented here can be used 
-             * twice - once for when bProcessing is enabled, and another time for when it is 
+             * _fnBuildHead and the click handler in order that the code presented here can be used
+             * twice - once for when bProcessing is enabled, and another time for when it is
              * disabled, as we need to perform slightly different actions.
-             *   Basically the issue here is that the Javascript engine in modern browsers don't 
+             *   Basically the issue here is that the Javascript engine in modern browsers don't
              * appear to allow the rendering engine to update the display while it is still executing
-             * it's thread (well - it does but only after long intervals). This means that the 
+             * it's thread (well - it does but only after long intervals). This means that the
              * 'processing' display doesn't appear for a table sort. To break the js thread up a bit
-             * I force an execution break by using setTimeout - but this breaks the expected 
+             * I force an execution break by using setTimeout - but this breaks the expected
              * thread continuation for the end-developer's point of view (their code would execute
              * too early), so we only do it when we absolutely have to.
              */
@@ -3791,11 +3791,11 @@
             }
           }
 
-          /* 
+          /*
            * Apply the required classes to the table body
            * Note that this is given as a feature switch since it can significantly slow down a sort
            * on large data sets (adding and removing of classes is always slow at the best of times..)
-           * Further to this, note that this code is admittedly fairly ugly. It could be made a lot 
+           * Further to this, note that this code is admittedly fairly ugly. It could be made a lot
            * simpler using jQuery selectors and add/removeClass, but that is significantly slower
            * (on the order of 5 times slower) - hence the direct DOM manipulation here.
            * Note that for deferred drawing we do use jQuery - the reason being that taking the first
@@ -3948,7 +3948,7 @@
           var date = new Date();
           date.setTime(date.getTime() + (iSecs * 1000));
 
-          /* 
+          /*
            * Shocking but true - it would appear IE has major issues with having the path not having
            * a trailing slash on it. We need the cookie to be available based on the path, so we
            * have to append the file name to the cookie name. Appalling. Thanks to vex for adding the
@@ -4502,10 +4502,10 @@
          *    $(document).ready(function() {
 		 *      var oTable = $('#example').dataTable();
 		 *
-		 *      // Filter to 'Webkit' and get all data for 
+		 *      // Filter to 'Webkit' and get all data for
 		 *      oTable.fnFilter('Webkit');
 		 *      var data = oTable._('tr', {"filter": "applied"});
-		 *      
+		 *
 		 *      // Do something with the data
 		 *      alert( data.length+" rows matched the filter" );
 		 *    } );
@@ -4556,7 +4556,7 @@
 		 *        giCount+".3",
 		 *        giCount+".4" ]
 		 *      );
-		 *        
+		 *
 		 *      giCount++;
 		 *    }
          */
@@ -4612,7 +4612,7 @@
 		 *        "sScrollY": "200px",
 		 *        "bPaginate": false
 		 *      } );
-		 *      
+		 *
 		 *      $(window).bind('resize', function () {
 		 *        oTable.fnAdjustColumnSizing();
 		 *      } );
@@ -4640,7 +4640,7 @@
          *  @example
          *    $(document).ready(function() {
 		 *      var oTable = $('#example').dataTable();
-		 *      
+		 *
 		 *      // Immediately 'nuke' the current rows (perhaps waiting for an Ajax callback...)
 		 *      oTable.fnClearTable();
 		 *    } );
@@ -4666,7 +4666,7 @@
          *  @example
          *    $(document).ready(function() {
 		 *      var oTable;
-		 *      
+		 *
 		 *      // 'open' an information row when a row is clicked on
 		 *      $('#example tbody tr').click( function () {
 		 *        if ( oTable.fnIsOpen(this) ) {
@@ -4675,7 +4675,7 @@
 		 *          oTable.fnOpen( this, "Temporary row opened", "info_row" );
 		 *        }
 		 *      } );
-		 *      
+		 *
 		 *      oTable = $('#example').dataTable();
 		 *    } );
          */
@@ -4710,7 +4710,7 @@
          *  @example
          *    $(document).ready(function() {
 		 *      var oTable = $('#example').dataTable();
-		 *      
+		 *
 		 *      // Immediately remove the first row
 		 *      oTable.fnDeleteRow( 0 );
 		 *    } );
@@ -4896,7 +4896,7 @@
          *  @example
          *    $(document).ready(function() {
 		 *      var oTable = $('#example').dataTable();
-		 *      
+		 *
 		 *      // Re-draw the table - you wouldn't want to do it here, but it's an example :-)
 		 *      oTable.fnDraw();
 		 *    } );
@@ -4926,7 +4926,7 @@
          *  @example
          *    $(document).ready(function() {
 		 *      var oTable = $('#example').dataTable();
-		 *      
+		 *
 		 *      // Sometime later - filter...
 		 *      oTable.fnFilter( 'test string' );
 		 *    } );
@@ -5066,7 +5066,7 @@
          *  @example
          *    $(document).ready(function() {
 		 *      var oTable = $('#example').dataTable();
-		 *      
+		 *
 		 *      // Get the nodes from the table
 		 *      var nNodes = oTable.fnGetNodes( );
 		 *    } );
@@ -5096,15 +5096,15 @@
 		 *      $('#example tbody td').click( function () {
 		 *        // Get the position of the current data from the node
 		 *        var aPos = oTable.fnGetPosition( this );
-		 *        
+		 *
 		 *        // Get the data array for this row
 		 *        var aData = oTable.fnGetData( aPos[0] );
-		 *        
+		 *
 		 *        // Update the data array and return the value
 		 *        aData[ aPos[1] ] = 'clicked';
 		 *        this.innerHTML = 'clicked';
 		 *      } );
-		 *      
+		 *
 		 *      // Init DataTables
 		 *      oTable = $('#example').dataTable();
 		 *    } );
@@ -5134,7 +5134,7 @@
          *  @example
          *    $(document).ready(function() {
 		 *      var oTable;
-		 *      
+		 *
 		 *      // 'open' an information row when a row is clicked on
 		 *      $('#example tbody tr').click( function () {
 		 *        if ( oTable.fnIsOpen(this) ) {
@@ -5143,7 +5143,7 @@
 		 *          oTable.fnOpen( this, "Temporary row opened", "info_row" );
 		 *        }
 		 *      } );
-		 *      
+		 *
 		 *      oTable = $('#example').dataTable();
 		 *    } );
          */
@@ -5176,7 +5176,7 @@
          *  @example
          *    $(document).ready(function() {
 		 *      var oTable;
-		 *      
+		 *
 		 *      // 'open' an information row when a row is clicked on
 		 *      $('#example tbody tr').click( function () {
 		 *        if ( oTable.fnIsOpen(this) ) {
@@ -5185,7 +5185,7 @@
 		 *          oTable.fnOpen( this, "Temporary row opened", "info_row" );
 		 *        }
 		 *      } );
-		 *      
+		 *
 		 *      oTable = $('#example').dataTable();
 		 *    } );
          */
@@ -5266,7 +5266,7 @@
          *  @example
          *    $(document).ready(function() {
 		 *      var oTable = $('#example').dataTable();
-		 *      
+		 *
 		 *      // Hide the second column after initialisation
 		 *      oTable.fnSetColumnVis( 1, false );
 		 *    } );
@@ -5345,8 +5345,8 @@
             oSettings.aoOpenRows[i].nTr.colSpan = _fnVisbleColumns(oSettings);
           }
 
-          /* Do a redraw incase anything depending on the table columns needs it 
-           * (built-in: scrolling) 
+          /* Do a redraw incase anything depending on the table columns needs it
+           * (built-in: scrolling)
            */
           if (bRedraw === undefined || bRedraw) {
             _fnAdjustColumnSizing(oSettings);
@@ -5367,7 +5367,7 @@
          *    $(document).ready(function() {
 		 *      var oTable = $('#example').dataTable();
 		 *      var oSettings = oTable.fnSettings();
-		 *      
+		 *
 		 *      // Show an example parameter from the settings
 		 *      alert( oSettings._iDisplayStart );
 		 *    } );
@@ -5386,7 +5386,7 @@
          *  @example
          *    $(document).ready(function() {
 		 *      var oTable = $('#example').dataTable();
-		 *      
+		 *
 		 *      // Sort immediately with columns 0 and 1
 		 *      oTable.fnSort( [ [0,'asc'], [1,'asc'] ] );
 		 *    } );
@@ -5408,7 +5408,7 @@
          *  @example
          *    $(document).ready(function() {
 		 *      var oTable = $('#example').dataTable();
-		 *      
+		 *
 		 *      // Sort on column 1, when 'sorter' is clicked on
 		 *      oTable.fnSortListener( document.getElementById('sorter'), 1 );
 		 *    } );
@@ -5434,10 +5434,10 @@
          *
          *  @example
          *    $(document).ready(function() {
-		 *      var oTable = $('#example').dataTable();
-		 *      oTable.fnUpdate( 'Example update', 0, 0 ); // Single cell
-		 *      oTable.fnUpdate( ['a', 'b', 'c', 'd', 'e'], 1, 0 ); // Row
-		 *    } );
+         *      var oTable = $('#example').dataTable();
+         *      oTable.fnUpdate( 'Example update', 0, 0 ); // Single cell
+         *      oTable.fnUpdate( ['a', 'b', 'c', 'd', 'e'], 1, 0 ); // Row
+         *    } );
          */
         this.fnUpdate = function (mData, mRow, iColumn, bRedraw, bAction) {
           var oSettings = _fnSettingsFromNode(this[DataTable.ext.iApiIndex]);
@@ -5795,8 +5795,8 @@
           }
 
           if (oInit.bJQueryUI) {
-            /* Use the JUI classes object for display. You could clone the oStdClasses object if 
-             * you want to have multiple tables with multiple independent classes 
+            /* Use the JUI classes object for display. You could clone the oStdClasses object if
+             * you want to have multiple tables with multiple independent classes
              */
             $.extend(oSettings.oClasses, DataTable.ext.oJUIClasses);
 
@@ -5842,7 +5842,7 @@
           /* Language definitions */
           if (oInit.oLanguage.sUrl !== "") {
             /* Get the language definitions from a file - because this Ajax call makes the language
-             * get async to the remainder of this function we use bInitHandedOff to indicate that 
+             * get async to the remainder of this function we use bInitHandedOff to indicate that
              * _fnInitialise will be fired by the returned Ajax handler, rather than the constructor
              */
             oSettings.oLanguage.sUrl = oInit.oLanguage.sUrl;

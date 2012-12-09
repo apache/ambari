@@ -26,16 +26,16 @@ Em.I18n.translations = {
   'login.loginButton': 'Sign in',
   'login.error': 'Invalid username/password combination.',
 
-  'services.nagios.description': 'Nagios desc',
-  'services.ganglia.description': 'Ganglia desc',
-  'services.hdfs.description': 'HDFS desc',
-  'services.mapreduce.description': 'MapReduce desc',
-  'services.sqoop.description': 'Sqoop desc',
-  'services.pig.description': 'Pig desc',
-  'services.hive.description': 'Hive/HCat desc',
-  'services.oozie.description': 'Oozie desc',
+  'services.nagios.description': 'Nagios Monitoring and Alerting system',
+  'services.ganglia.description': 'Ganglia Metrics Collection system',
+  'services.hdfs.description': 'Apache Hadoop Distributed File System',
+  'services.mapreduce.description': 'Apache Hadoop Distributed Processing Framework',
+  'services.sqoop.description': 'Tool for transferring bulk data between Apache Hadoop and structured data stores such as relational databases',
+  'services.pig.description': 'Scripting platform for analyzing large datasets',
+  'services.hive.description': 'Data warehouse system for ad-hoc queries & analysis of large datasets and table & storage management service',
+  'services.oozie.description': 'System for workflow coordination and execution of Apache Hadoop jobs',
   'services.zookeeper.description': 'ZooKeeper desc',
-  'services.hbase.description': 'HBase desc',
+  'services.hbase.description': 'Non-relational distributed database and centralized service for configuration management & synchronization',
 
   'topnav.help.href': 'http://incubator.apache.org/ambari/install.html',
 
@@ -57,7 +57,7 @@ Em.I18n.translations = {
   'installer.step2.targetHosts.info': 'Enter a list of host names, one per line',
   'installer.step2.hostPattern.tooltip.title': 'Pattern Expressions',
   'installer.step2.hostPattern.tooltip.content': 'You can use pattern expressions to specify a number of target hosts.  Explain brackets.',
-  'installer.step2.hostName.error.required': 'Host Names cannot be left empty',
+  'installer.step2.hostName.error.required': 'You must specify at least one host name',
   'installer.step2.hostName.error.notRequired': 'Host Names will be ignored if not using SSH to automatically configure hosts',
   'installer.step2.hostName.error.invalid': 'Invalid Host Name(s) - cannot start or end with a hyphen',
   'installer.step2.sshKey': 'Host Connectivity Information',
@@ -69,7 +69,7 @@ Em.I18n.translations = {
     'Ambari Agent on each host in order for the wizard to perform the necessary configurations and software installs.',
   'installer.step2.advancedOption': 'Advanced Options',
   'installer.step2.repoConf': 'Software Repository Configuration File Path',
-  'installer.step2.localRepo.header': 'Software repository',
+  'installer.step2.localRepo.header': 'Software Repository',
   'installer.step2.localRepo.label': 'Use a local software repository',
   'installer.step2.localRepo.error.required': 'Local repository file path is required',
   'installer.step2.localRepo.info': 'The repository configuration file should be installed on each host in your cluster. ' +
@@ -121,9 +121,9 @@ Em.I18n.translations = {
   'installer.step9.body': 'Wait to complete the cluster installation. Installing, Starting and Testing selected services',
   'installer.step9.status.success': 'Successfully installed the cluster',
   'installer.step9.status.failed': 'Failure in installation',
-  'installer.step9.host.status.success': 'success',
-  'installer.step9.host.status.warning': 'tolerable failures encountered',
-  'installer.step9.host.status.failed': 'failures encountered',
+  'installer.step9.host.status.success': 'Success',
+  'installer.step9.host.status.warning': 'Warnings encountered',
+  'installer.step9.host.status.failed': 'Failures encountered',
   'installer.step9.hostLog.popup.header': 'Tasks executed on ',
 
   'installer.step10.header': 'Summary',
@@ -230,6 +230,9 @@ Em.I18n.translations = {
 
   'services.add.header': 'Add Service Wizard',
 
+  'host.singular': 'host',
+  'host.plural': 'hosts',
+
   'hosts.host.start.popup.header': 'Confirmation',
   'hosts.host.stop.popup.header': 'Confirmation',
   'hosts.host.start.popup.body': 'Are you sure?',
@@ -243,6 +246,10 @@ Em.I18n.translations = {
   'hosts.cant.do.popup.header': 'Operation not allowed',
   'hosts.cant.do.popup.masterList.body': 'You cannot delete this host because it is hosting following master services: {0}.',
   'hosts.cant.do.popup.workingList.body': 'You cannot delete this host because following slave services are not fully stopped or decommissioned: {0}.',
+  'hosts.assignToRack.sure': 'Sure you want to assign {0} to {1}?',
+  'hosts.add.header': 'Add Host Wizard',
+  'hosts.add.step2.warning': 'Hosts are already part of the cluster and will be ignored',
+  'hosts.assignRack': 'Assign Rack',
 
   'charts.horizon.chart.showText': 'show',
   'charts.horizon.chart.hideText': 'hide',
@@ -263,9 +270,6 @@ Em.I18n.translations = {
   'metric.more.memory':'Memory',
   'metric.more.network': 'Network',
   'metric.more.process': 'Process',
-
-  'hosts.add.header': 'Add Host Wizard',
-  'hosts.add.step2.warning': 'Hosts are already part of the cluster and will be ignored',
 
   'dashboard.services': 'Services',
   'dashboard.services.hosts': 'Hosts',
@@ -305,6 +309,7 @@ Em.I18n.translations = {
   'dashboard.services.hbase.regionServers': 'Region Servers',
   'dashboard.services.hbase.regionServersSummary': '{0} live / {1} total',
   'dashboard.services.hbase.chart.label': 'Request Count',
+
 
   'timeRange.presets.1hour': '1h',
   'timeRange.presets.12hour': '12h',

@@ -54,15 +54,19 @@
       <p>{{t installer.step2.sshKey.info}}</p>
 
       <div {{bindAttr class="sshKeyError:error :control-group"}}>
+        {{#if view.isFileApi}}
+          {{view App.SshKeyFileUploader}}
+          <div {{bindAttr class="view.sshKeyPreviewClass"}}>{{content.sshKey}}</div>
+        {{/if}}
         <div class="controls">
-          {{view Ember.TextArea class="span6" rows="4" placeholder="ssh private key" valueBinding="content.sshKey"}}
+          {{view Ember.TextArea class="span6" rows="4" classBinding="view.sshKeyClass"  id="sshKey" placeholder="ssh private key" disabledBinding="view.sshKeyState" valueBinding="content.sshKey"}}
           {{#if sshKeyError}}
-        <span
-          class="help-inline">{{sshKeyError}}</span>
+          <span class="help-inline">{{sshKeyError}}</span>
           {{/if}}
         </div>
       </div>
 
+      <div class="manual-install">
       <label class="checkbox">
         {{t installer.step2.manualInstall.label}}
         <a href="javascript:void(null)"
@@ -71,6 +75,7 @@
           Learn more</a>
         {{view Ember.Checkbox checkedBinding="content.manualInstall"}}
       </label>
+      </div>
 
       {{#if "manualInstall"}}
       <div class="alert">

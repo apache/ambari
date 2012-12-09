@@ -28,10 +28,12 @@ module.exports = Em.Route.extend({
     if (router.getAuthenticated()) {
       router.get('mainController').stopLoadOperationsPeriodically();
       console.log('In installer with successful authenticated');
-      // router.loadAllPriorSteps(router.getInstallerCurrentStep());
+
       Ember.run.next(function () {
-        router.transitionTo('step' + router.getInstallerCurrentStep());
+        var installerController = router.get('installerController');
+        router.transitionTo('step' + installerController.get('currentStep'));
       });
+
     } else {
       console.log('In installer but its not authenticated');
       console.log('value of authenticated is: ' + router.getAuthenticated());
@@ -49,7 +51,9 @@ module.exports = Em.Route.extend({
       this._super(router, event);
     } else {
       router.set('backBtnForHigherStep', true);
-      router.transitionTo('step' + router.getInstallerCurrentStep());
+
+      var installerController = router.get('installerController');
+      router.transitionTo('step' + installerController.get('currentStep'));
     }
   },
 
@@ -63,7 +67,7 @@ module.exports = Em.Route.extend({
     connectOutlets: function (router) {
       console.log('in installer.step1:connectOutlets');
       var controller = router.get('installerController');
-      router.setInstallerCurrentStep('1', false);
+      controller.setCurrentStep('1', false);
       controller.loadAllPriorSteps();
       controller.connectOutlet('wizardStep1', controller.get('content'));
     },
@@ -81,10 +85,9 @@ module.exports = Em.Route.extend({
     route: '/step2',
     connectOutlets: function (router, context) {
       router.setNavigationFlow('step2');
-      var controller = router.get('installerController');
-      router.setInstallerCurrentStep('2', false);
 
       var controller = router.get('installerController');
+      controller.setCurrentStep('2', false);
       controller.loadAllPriorSteps();
       controller.connectOutlet('wizardStep2', controller.get('content.hosts'));
     },
@@ -118,7 +121,7 @@ module.exports = Em.Route.extend({
     connectOutlets: function (router) {
       console.log('in installer.step3:connectOutlets');
       var controller = router.get('installerController');
-      router.setInstallerCurrentStep('3', false);
+      controller.setCurrentStep('3', false);
       controller.loadAllPriorSteps();
       controller.connectOutlet('wizardStep3', controller.get('content'));
     },
@@ -149,8 +152,8 @@ module.exports = Em.Route.extend({
     route: '/step4',
     connectOutlets: function (router, context) {
       router.setNavigationFlow('step4');
-      router.setInstallerCurrentStep('4', false);
       var controller = router.get('installerController');
+      controller.setCurrentStep('4', false);
       controller.loadAllPriorSteps();
       controller.loadServices();
       controller.connectOutlet('wizardStep4', controller.get('content.services'));
@@ -173,8 +176,9 @@ module.exports = Em.Route.extend({
     route: '/step5',
     connectOutlets: function (router, context) {
       router.setNavigationFlow('step5');
-      router.setInstallerCurrentStep('5', false);
+
       var controller = router.get('installerController');
+      controller.setCurrentStep('5', false);
       controller.loadAllPriorSteps();
       controller.connectOutlet('wizardStep5', controller.get('content'));
     },
@@ -193,8 +197,9 @@ module.exports = Em.Route.extend({
     route: '/step6',
     connectOutlets: function (router, context) {
       router.setNavigationFlow('step6');
-      router.setInstallerCurrentStep('6', false);
+
       var controller = router.get('installerController');
+      controller.setCurrentStep('6', false);
       controller.loadAllPriorSteps();
       controller.connectOutlet('wizardStep6', controller.get('content'));
     },
@@ -217,7 +222,7 @@ module.exports = Em.Route.extend({
     route: '/step7',
     connectOutlets: function (router, context) {
       var controller = router.get('installerController');
-      router.setInstallerCurrentStep('7', false);
+      controller.setCurrentStep('7', false);
       controller.loadAllPriorSteps();
       controller.connectOutlet('wizardStep7', controller.get('content'));
     },
@@ -235,7 +240,7 @@ module.exports = Em.Route.extend({
     connectOutlets: function (router, context) {
       console.log('in installer.step8:connectOutlets');
       var controller = router.get('installerController');
-      router.setInstallerCurrentStep('8', false);
+      controller.setCurrentStep('8', false);
       controller.loadAllPriorSteps();
       controller.connectOutlet('wizardStep8', controller.get('content'));
     },
@@ -254,7 +259,7 @@ module.exports = Em.Route.extend({
     connectOutlets: function (router, context) {
       console.log('in installer.step9:connectOutlets');
       var controller = router.get('installerController');
-      router.setInstallerCurrentStep('9', false);
+      controller.setCurrentStep('9', false);
       controller.loadAllPriorSteps();
       if (!App.testMode) {              //if test mode is ON don't disable prior steps link.
         controller.setLowerStepsDisable(9);
@@ -262,7 +267,7 @@ module.exports = Em.Route.extend({
       controller.connectOutlet('wizardStep9', controller.get('content'));
     },
     back: Em.Router.transitionTo('step8'),
-    retry: function (router, context) {
+    retry: function (router) {
       var installerController = router.get('installerController');
       var wizardStep9Controller = router.get('wizardStep9Controller');
       installerController.installServices();
@@ -282,16 +287,17 @@ module.exports = Em.Route.extend({
     connectOutlets: function (router, context) {
       console.log('in installer.step10:connectOutlets');
       var controller = router.get('installerController');
-      router.setInstallerCurrentStep('10', false);
+      controller.setCurrentStep('10', false);
       controller.loadAllPriorSteps();
       controller.connectOutlet('wizardStep10',controller.get('content'));
     },
     back: Em.Router.transitionTo('step9'),
     complete: function (router, context) {
       if (true) {   // this function will be moved to installerController where it will validate
-        router.setInstallerCurrentStep('1', true);
+        var controller = router.get('installerController');
+        controller.setCurrentStep('1', false);
         router.setSection('main');
-        router.transitionTo('main');
+        router.transitionTo('main.index');
       } else {
         console.log('cluster installation failure');
       }

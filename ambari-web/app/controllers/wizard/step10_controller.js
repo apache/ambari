@@ -141,33 +141,34 @@ App.WizardStep10Controller = Em.Controller.extend({
 
     console.log('STEP10 master components:  ' + JSON.stringify(components));
     components.forEach(function (_component) {
-      switch (_component.component) {
+      var component = Ember.Object.create(_component);
+      switch (component.component) {
         case 'NAMENODE':
-          this.loadNn(_component);
+          this.loadNn(component);
           break;
         case 'SECONDARY_NAMENODE':
-          this.loadSnn(_component);
+          this.loadSnn(component);
           break;
         case 'JOBTRACKER' :
-          this.loadJt(_component);
+          this.loadJt(component);
           break;
         case 'ZOOKEEPER_SERVER' :
-          this.loadZk(_component);
+          this.loadZk(component);
           break;
         case 'HBASE_MASTER':
-          this.loadHb(_component);
+          this.loadHb(component);
           break;
         case 'HIVE_SERVER':
-          this.loadHiveServer(_component);
+          this.loadHiveServer(component);
           break;
         case 'OOZIE_SERVER':
-          this.loadOozieServer(_component);
+          this.loadOozieServer(component);
           break;
         case 'GANGLIA_SERVER':
-          this.loadGanglia(_component)
+          this.loadGanglia(component)
           break;
         case 'NAGIOS_SERVER':
-          this.loadNagios(_component);
+          this.loadNagios(component);
           break;
       }
     }, this);

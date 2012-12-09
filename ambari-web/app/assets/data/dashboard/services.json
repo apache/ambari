@@ -1,408 +1,15 @@
 {
-  "href" : "http://ambari/clusters/mycluster/services?ServiceInfo/service_name!=MISCELLANEOUS&ServiceInfo/service_name!=DASHBOARD&fields=*,components/*,components/host_components/*",
+  "href" : "http://dev.hortonworks.com:8080/api/clusters/mycluster/services?ServiceInfo/service_name!=MISCELLANEOUS&ServiceInfo/service_name!=DASHBOARD&fields=components/host_components/*",
   "items" : [
     {
-      "href" : "http://ambari/clusters/mycluster/services/HBASE",
-      "Services" : {
-        "display_name" : "HBase",
-        "description" : "Apache HDFS-based Non-relational Distributed Database",
-        "attributes" : "{ \"runnable\": true, \"mustInstall\": false, \"editable\": true, \"noDisplay\": false }"
-      },
+      "href" : "http://dev.hortonworks.com:8080/api/clusters/mycluster/services/MAPREDUCE",
       "ServiceInfo" : {
         "cluster_name" : "mycluster",
-        "state" : "STARTED",
-        "service_name" : "HBASE"
-      },
-      "components" : [
-        {
-          "href" : "http://ambari/clusters/mycluster/services/HBASE/components/HBASE_MASTER",
-          "ServiceComponentInfo" : {
-            "cluster_name" : "mycluster",
-            "component_name" : "HBASE_MASTER",
-            "service_name" : "HBASE"
-          },
-          "host_components" : [
-            {
-              "href" : "http://ambari/clusters/mycluster/hosts/ip-10-38-5-128.ec2.internal/host_components/HBASE_MASTER",
-              "HostRoles" : {
-                "cluster_name" : "mycluster",
-                "role_id" : "5",
-                "component_name" : "HBASE_MASTER",
-                "state" : "STARTED",
-                "host_name" : "ip-10-38-5-128.ec2.internal"
-              },
-              "component" : [
-                {
-                  "href" : "http://ambari/clusters/mycluster/services/HBASE/components/HBASE_MASTER",
-                  "ServiceComponentInfo" : {
-                    "cluster_name" : "mycluster",
-                    "component_name" : "HBASE_MASTER",
-                    "service_name" : "HBASE"
-                  }
-                }
-              ]
-            }
-          ]
-        },
-        {
-          "href" : "http://ambari/clusters/mycluster/services/HBASE/components/HBASE_REGIONSERVER",
-          "ServiceComponentInfo" : {
-            "cluster_name" : "mycluster",
-            "component_name" : "HBASE_REGIONSERVER",
-            "service_name" : "HBASE"
-          },
-          "host_components" : [
-            {
-              "href" : "http://ambari/clusters/mycluster/hosts/ip-10-38-5-128.ec2.internal/host_components/HBASE_REGIONSERVER",
-              "HostRoles" : {
-                "cluster_name" : "mycluster",
-                "role_id" : "24",
-                "component_name" : "HBASE_REGIONSERVER",
-                "state" : "STARTED",
-                "host_name" : "ip-10-38-5-128.ec2.internal"
-              },
-              "component" : [
-                {
-                  "href" : "http://ambari/clusters/mycluster/services/HBASE/components/HBASE_REGIONSERVER",
-                  "ServiceComponentInfo" : {
-                    "cluster_name" : "mycluster",
-                    "component_name" : "HBASE_REGIONSERVER",
-                    "service_name" : "HBASE"
-                  }
-                }
-              ]
-            }
-          ]
-        },
-        {
-          "href" : "http://ambari/clusters/mycluster/services/HBASE/components/HBASE_CLIENT",
-          "ServiceComponentInfo" : {
-            "cluster_name" : "mycluster",
-            "component_name" : "HBASE_CLIENT",
-            "service_name" : "HBASE"
-          },
-          "host_components" : [
-            {
-              "href" : "http://ambari/clusters/mycluster/hosts/ip-10-38-5-128.ec2.internal/host_components/HBASE_CLIENT",
-              "HostRoles" : {
-                "cluster_name" : "mycluster",
-                "role_id" : "29",
-                "component_name" : "HBASE_CLIENT",
-                "state" : "INSTALLED",
-                "host_name" : "ip-10-38-5-128.ec2.internal"
-              },
-              "component" : [
-                {
-                  "href" : "http://ambari/clusters/mycluster/services/HBASE/components/HBASE_CLIENT",
-                  "ServiceComponentInfo" : {
-                    "cluster_name" : "mycluster",
-                    "component_name" : "HBASE_CLIENT",
-                    "service_name" : "HBASE"
-                  }
-                }
-              ]
-            }
-          ]
-        }
-      ]
-    },
-    {
-      "href" : "http://ambari/clusters/mycluster/services/PIG",
-      "Services" : {
-        "display_name" : "Pig",
-        "description" : "Platform for Analyzing Large Data Sets",
-        "attributes" : "{ \"runnable\": false, \"mustInstall\": false, \"editable\": true, \"noDisplay\": false }"
-      },
-      "ServiceInfo" : {
-        "cluster_name" : "mycluster",
-        "state" : "INSTALLED",
-        "service_name" : "PIG"
-      },
-      "components" : [
-        {
-          "href" : "http://ambari/clusters/mycluster/services/PIG/components/PIG_CLIENT",
-          "ServiceComponentInfo" : {
-            "cluster_name" : "mycluster",
-            "component_name" : "PIG_CLIENT",
-            "service_name" : "PIG"
-          },
-          "host_components" : [
-            {
-              "href" : "http://ambari/clusters/mycluster/hosts/ip-10-38-5-128.ec2.internal/host_components/PIG_CLIENT",
-              "HostRoles" : {
-                "cluster_name" : "mycluster",
-                "role_id" : "30",
-                "component_name" : "PIG_CLIENT",
-                "state" : "INSTALLED",
-                "host_name" : "ip-10-38-5-128.ec2.internal"
-              },
-              "component" : [
-                {
-                  "href" : "http://ambari/clusters/mycluster/services/PIG/components/PIG_CLIENT",
-                  "ServiceComponentInfo" : {
-                    "cluster_name" : "mycluster",
-                    "component_name" : "PIG_CLIENT",
-                    "service_name" : "PIG"
-                  }
-                }
-              ]
-            }
-          ]
-        }
-      ]
-    },
-    {
-      "href" : "http://ambari/clusters/mycluster/services/TEMPLETON",
-      "Services" : {
-        "display_name" : "Templeton",
-        "description" : "Webservice APIs for Apache Hadoop",
-        "attributes" : "{ \"runnable\": true, \"mustInstall\": false, \"editable\": true, \"noDisplay\": false }"
-      },
-      "ServiceInfo" : {
-        "cluster_name" : "mycluster",
-        "state" : "STARTED",
-        "service_name" : "TEMPLETON"
-      },
-      "components" : [
-        {
-          "href" : "http://ambari/clusters/mycluster/services/TEMPLETON/components/TEMPLETON_CLIENT",
-          "ServiceComponentInfo" : {
-            "cluster_name" : "mycluster",
-            "component_name" : "TEMPLETON_CLIENT",
-            "service_name" : "TEMPLETON"
-          },
-          "host_components" : [
-            {
-              "href" : "http://ambari/clusters/mycluster/hosts/ip-10-38-5-128.ec2.internal/host_components/TEMPLETON_CLIENT",
-              "HostRoles" : {
-                "cluster_name" : "mycluster",
-                "role_id" : "34",
-                "component_name" : "TEMPLETON_CLIENT",
-                "state" : "INSTALLED",
-                "host_name" : "ip-10-38-5-128.ec2.internal"
-              },
-              "component" : [
-                {
-                  "href" : "http://ambari/clusters/mycluster/services/TEMPLETON/components/TEMPLETON_CLIENT",
-                  "ServiceComponentInfo" : {
-                    "cluster_name" : "mycluster",
-                    "component_name" : "TEMPLETON_CLIENT",
-                    "service_name" : "TEMPLETON"
-                  }
-                }
-              ]
-            }
-          ]
-        },
-        {
-          "href" : "http://ambari/clusters/mycluster/services/TEMPLETON/components/TEMPLETON_SERVER",
-          "ServiceComponentInfo" : {
-            "cluster_name" : "mycluster",
-            "component_name" : "TEMPLETON_SERVER",
-            "service_name" : "TEMPLETON"
-          },
-          "host_components" : [
-            {
-              "href" : "http://ambari/clusters/mycluster/hosts/ip-10-38-5-128.ec2.internal/host_components/TEMPLETON_SERVER",
-              "HostRoles" : {
-                "cluster_name" : "mycluster",
-                "role_id" : "8",
-                "component_name" : "TEMPLETON_SERVER",
-                "state" : "STARTED",
-                "host_name" : "ip-10-38-5-128.ec2.internal"
-              },
-              "component" : [
-                {
-                  "href" : "http://ambari/clusters/mycluster/services/TEMPLETON/components/TEMPLETON_SERVER",
-                  "ServiceComponentInfo" : {
-                    "cluster_name" : "mycluster",
-                    "component_name" : "TEMPLETON_SERVER",
-                    "service_name" : "TEMPLETON"
-                  }
-                }
-              ]
-            }
-          ]
-        }
-      ]
-    },
-    {
-      "href" : "http://ambari/clusters/mycluster/services/ZOOKEEPER",
-      "Services" : {
-        "display_name" : "ZooKeeper",
-        "description" : "Centralized Service for Configuration Management and Distribution Synchronization",
-        "attributes" : "{ \"runnable\": true, \"mustInstall\": false, \"editable\": false, \"noDisplay\": false }"
-      },
-      "ServiceInfo" : {
-        "cluster_name" : "mycluster",
-        "state" : "STARTED",
-        "service_name" : "ZOOKEEPER"
-      },
-      "components" : [
-        {
-          "href" : "http://ambari/clusters/mycluster/services/ZOOKEEPER/components/ZOOKEEPER_SERVER",
-          "ServiceComponentInfo" : {
-            "cluster_name" : "mycluster",
-            "component_name" : "ZOOKEEPER_SERVER",
-            "service_name" : "ZOOKEEPER"
-          },
-          "host_components" : [
-            {
-              "href" : "http://ambari/clusters/mycluster/hosts/ip-10-38-5-128.ec2.internal/host_components/ZOOKEEPER_SERVER",
-              "HostRoles" : {
-                "cluster_name" : "mycluster",
-                "role_id" : "4",
-                "component_name" : "ZOOKEEPER_SERVER",
-                "state" : "STARTED",
-                "host_name" : "ip-10-38-5-128.ec2.internal"
-              },
-              "component" : [
-                {
-                  "href" : "http://ambari/clusters/mycluster/services/ZOOKEEPER/components/ZOOKEEPER_SERVER",
-                  "ServiceComponentInfo" : {
-                    "cluster_name" : "mycluster",
-                    "component_name" : "ZOOKEEPER_SERVER",
-                    "service_name" : "ZOOKEEPER"
-                  }
-                }
-              ]
-            }
-          ]
-        },
-        {
-          "href" : "http://ambari/clusters/mycluster/services/ZOOKEEPER/components/ZOOKEEPER_CLIENT",
-          "ServiceComponentInfo" : {
-            "cluster_name" : "mycluster",
-            "component_name" : "ZOOKEEPER_CLIENT",
-            "service_name" : "ZOOKEEPER"
-          },
-          "host_components" : [
-            {
-              "href" : "http://ambari/clusters/mycluster/hosts/ip-10-38-5-128.ec2.internal/host_components/ZOOKEEPER_CLIENT",
-              "HostRoles" : {
-                "cluster_name" : "mycluster",
-                "role_id" : "28",
-                "component_name" : "ZOOKEEPER_CLIENT",
-                "state" : "INSTALLED",
-                "host_name" : "ip-10-38-5-128.ec2.internal"
-              },
-              "component" : [
-                {
-                  "href" : "http://ambari/clusters/mycluster/services/ZOOKEEPER/components/ZOOKEEPER_CLIENT",
-                  "ServiceComponentInfo" : {
-                    "cluster_name" : "mycluster",
-                    "component_name" : "ZOOKEEPER_CLIENT",
-                    "service_name" : "ZOOKEEPER"
-                  }
-                }
-              ]
-            }
-          ]
-        }
-      ]
-    },
-    {
-      "href" : "http://ambari/clusters/mycluster/services/MAPREDUCE",
-      "Services" : {
-        "display_name" : "MapReduce",
-        "description" : "Apache Hadoop Distributed Processing Framework",
-        "attributes" : "{ \"runnable\": true, \"mustInstall\": true, \"editable\": false, \"noDisplay\": false }"
-      },
-      "ServiceInfo" : {
-        "cluster_name" : "mycluster",
-        "state" : "STARTED",
         "service_name" : "MAPREDUCE"
       },
       "components" : [
         {
-          "href" : "http://ambari/clusters/mycluster/services/MAPREDUCE/components/JOBTRACKER",
-          "ServiceComponentInfo" : {
-            "cluster_name" : "mycluster",
-            "component_name" : "JOBTRACKER",
-            "service_name" : "MAPREDUCE"
-          },
-          "host_components" : [
-            {
-              "href" : "http://ambari/clusters/mycluster/hosts/ip-10-38-5-128.ec2.internal/host_components/JOBTRACKER",
-              "HostRoles" : {
-                "cluster_name" : "mycluster",
-                "role_id" : "3",
-                "component_name" : "JOBTRACKER",
-                "state" : "STARTED",
-                "host_name" : "ip-10-38-5-128.ec2.internal"
-              },
-              "metrics" : {
-                "rpc" : {
-                  "rpcAuthorizationSuccesses" : 8,
-                  "SentBytes" : 187411672,
-                  "rpcAuthorizationFailures" : 0,
-                  "ReceivedBytes" : 570755511,
-                  "NumOpenConnections" : 0,
-                  "callQueueLen" : 0,
-                  "RpcQueueTime_num_ops" : 1751188,
-                  "rpcAuthenticationSuccesses" : 0,
-                  "RpcProcessingTime_num_ops" : 1751188,
-                  "RpcProcessingTime_avg_time" : 0.30303030303030304,
-                  "rpcAuthenticationFailures" : 0,
-                  "RpcQueueTime_avg_time" : 1.6969696969696975
-                },
-                "rpcdetailed" : {
-                  "getProtocolVersion_avg_time" : 0.0,
-                  "getProtocolVersion_num_ops" : 11
-                },
-                "jvm" : {
-                  "memHeapCommittedM" : 185.1875,
-                  "logFatal" : 0,
-                  "threadsBlocked" : 0,
-                  "gcCount" : 165,
-                  "threadsWaiting" : 59,
-                  "logWarn" : 0,
-                  "logError" : 0,
-                  "memNonHeapCommittedM" : 38.722656,
-                  "memNonHeapUsedM" : 25.408173,
-                  "gcTimeMillis" : 3812,
-                  "logInfo" : 3,
-                  "threadsNew" : 0,
-                  "memHeapUsedM" : 150.10947,
-                  "threadsTerminated" : 0,
-                  "threadsTimedWaiting" : 10,
-                  "threadsRunnable" : 6
-                },
-                "metricssystem" : {
-                  "dropped_pub_all" : 0,
-                  "num_sources" : 6,
-                  "publish_max_time" : 543.0,
-                  "publish_num_ops" : 55219,
-                  "snapshot_stdev_time" : 0.37796447300922725,
-                  "snapshot_num_ops" : 386539,
-                  "publish_stdev_time" : 0.0,
-                  "num_sinks" : 1,
-                  "publish_imin_time" : 0.0,
-                  "snapshot_min_time" : 0.0,
-                  "snapshot_imin_time" : 0.0,
-                  "snapshot_imax_time" : 1.0,
-                  "publish_avg_time" : 0.0,
-                  "publish_min_time" : 0.0,
-                  "snapshot_max_time" : 694.0,
-                  "publish_imax_time" : 1.401298464324817E-45,
-                  "snapshot_avg_time" : 0.14285714285714285
-                }
-              },
-              "component" : [
-                {
-                  "href" : "http://ambari/clusters/mycluster/services/MAPREDUCE/components/JOBTRACKER",
-                  "ServiceComponentInfo" : {
-                    "cluster_name" : "mycluster",
-                    "component_name" : "JOBTRACKER",
-                    "service_name" : "MAPREDUCE"
-                  }
-                }
-              ]
-            }
-          ]
-        },
-        {
-          "href" : "http://ambari/clusters/mycluster/services/MAPREDUCE/components/MAPREDUCE_CLIENT",
+          "href" : "http://dev.hortonworks.com:8080/api/clusters/mycluster/services/MAPREDUCE/components/MAPREDUCE_CLIENT",
           "ServiceComponentInfo" : {
             "cluster_name" : "mycluster",
             "component_name" : "MAPREDUCE_CLIENT",
@@ -410,17 +17,16 @@
           },
           "host_components" : [
             {
-              "href" : "http://ambari/clusters/mycluster/hosts/ip-10-38-5-128.ec2.internal/host_components/MAPREDUCE_CLIENT",
+              "href" : "http://dev.hortonworks.com:8080/api/clusters/mycluster/hosts/dev.hortonworks.com/host_components/MAPREDUCE_CLIENT",
               "HostRoles" : {
                 "cluster_name" : "mycluster",
-                "role_id" : "27",
-                "component_name" : "MAPREDUCE_CLIENT",
                 "state" : "INSTALLED",
-                "host_name" : "ip-10-38-5-128.ec2.internal"
+                "component_name" : "MAPREDUCE_CLIENT",
+                "host_name" : "dev.hortonworks.com"
               },
               "component" : [
                 {
-                  "href" : "http://ambari/clusters/mycluster/services/MAPREDUCE/components/MAPREDUCE_CLIENT",
+                  "href" : "http://dev.hortonworks.com:8080/api/clusters/mycluster/services/MAPREDUCE/components/MAPREDUCE_CLIENT",
                   "ServiceComponentInfo" : {
                     "cluster_name" : "mycluster",
                     "component_name" : "MAPREDUCE_CLIENT",
@@ -432,66 +38,61 @@
           ]
         },
         {
-          "href" : "http://ambari/clusters/mycluster/services/MAPREDUCE/components/TASKTRACKER",
+          "href" : "http://dev.hortonworks.com:8080/api/clusters/mycluster/services/MAPREDUCE/components/JOBTRACKER",
           "ServiceComponentInfo" : {
             "cluster_name" : "mycluster",
-            "component_name" : "TASKTRACKER",
+            "component_name" : "JOBTRACKER",
             "service_name" : "MAPREDUCE"
           },
           "host_components" : [
             {
-              "href" : "http://ambari/clusters/mycluster/hosts/ip-10-38-5-128.ec2.internal/host_components/TASKTRACKER",
+              "href" : "http://dev.hortonworks.com:8080/api/clusters/mycluster/hosts/dev.hortonworks.com/host_components/JOBTRACKER",
               "HostRoles" : {
                 "cluster_name" : "mycluster",
-                "role_id" : "22",
-                "component_name" : "TASKTRACKER",
                 "state" : "STARTED",
-                "host_name" : "ip-10-38-5-128.ec2.internal"
+                "component_name" : "JOBTRACKER",
+                "host_name" : "dev.hortonworks.com"
               },
               "metrics" : {
                 "rpc" : {
-                  "rpcAuthorizationSuccesses" : 14,
-                  "SentBytes" : 11141,
+                  "rpcAuthorizationSuccesses" : 0,
+                  "SentBytes" : 32961793,
                   "rpcAuthorizationFailures" : 0,
-                  "ReceivedBytes" : 40426,
+                  "ReceivedBytes" : 95243938,
                   "NumOpenConnections" : 0,
                   "callQueueLen" : 0,
-                  "RpcQueueTime_num_ops" : 93,
+                  "RpcQueueTime_num_ops" : 307991,
                   "rpcAuthenticationSuccesses" : 0,
-                  "RpcProcessingTime_num_ops" : 93,
-                  "RpcProcessingTime_avg_time" : 0.4,
+                  "RpcProcessingTime_num_ops" : 307991,
+                  "RpcProcessingTime_avg_time" : 0.02941176470588236,
                   "rpcAuthenticationFailures" : 0,
-                  "RpcQueueTime_avg_time" : 0.0
-                },
-                "rpcdetailed" : {
-                  "getProtocolVersion_avg_time" : 0.0,
-                  "getProtocolVersion_num_ops" : 14
+                  "RpcQueueTime_avg_time" : 0.14705882352941177
                 },
                 "jvm" : {
-                  "memHeapCommittedM" : 27.3125,
+                  "memHeapCommittedM" : 185.1875,
                   "logFatal" : 0,
                   "threadsBlocked" : 0,
-                  "gcCount" : 46316,
-                  "threadsWaiting" : 15,
+                  "gcCount" : 24,
+                  "threadsWaiting" : 22,
                   "logWarn" : 0,
                   "logError" : 0,
-                  "memNonHeapCommittedM" : 33.75,
-                  "memNonHeapUsedM" : 23.388573,
-                  "gcTimeMillis" : 367178,
+                  "memNonHeapCommittedM" : 23.625,
+                  "memNonHeapUsedM" : 23.226303,
+                  "gcTimeMillis" : 714,
                   "logInfo" : 3,
                   "threadsNew" : 0,
-                  "memHeapUsedM" : 23.116539,
+                  "memHeapUsedM" : 27.627754,
                   "threadsTerminated" : 0,
-                  "threadsTimedWaiting" : 7,
+                  "threadsTimedWaiting" : 8,
                   "threadsRunnable" : 6
                 },
                 "metricssystem" : {
                   "dropped_pub_all" : 0,
                   "num_sources" : 6,
-                  "publish_max_time" : 808.0,
-                  "publish_num_ops" : 55201,
+                  "publish_max_time" : 6.0,
+                  "publish_num_ops" : 9269,
                   "snapshot_stdev_time" : 0.0,
-                  "snapshot_num_ops" : 386413,
+                  "snapshot_num_ops" : 64889,
                   "publish_stdev_time" : 0.0,
                   "num_sinks" : 1,
                   "publish_imin_time" : 0.0,
@@ -500,14 +101,96 @@
                   "snapshot_imax_time" : 1.401298464324817E-45,
                   "publish_avg_time" : 0.0,
                   "publish_min_time" : 0.0,
-                  "snapshot_max_time" : 656.0,
+                  "snapshot_max_time" : 177.0,
                   "publish_imax_time" : 1.401298464324817E-45,
                   "snapshot_avg_time" : 0.0
                 }
               },
               "component" : [
                 {
-                  "href" : "http://ambari/clusters/mycluster/services/MAPREDUCE/components/TASKTRACKER",
+                  "href" : "http://dev.hortonworks.com:8080/api/clusters/mycluster/services/MAPREDUCE/components/JOBTRACKER",
+                  "ServiceComponentInfo" : {
+                    "cluster_name" : "mycluster",
+                    "component_name" : "JOBTRACKER",
+                    "service_name" : "MAPREDUCE"
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "href" : "http://dev.hortonworks.com:8080/api/clusters/mycluster/services/MAPREDUCE/components/TASKTRACKER",
+          "ServiceComponentInfo" : {
+            "cluster_name" : "mycluster",
+            "component_name" : "TASKTRACKER",
+            "service_name" : "MAPREDUCE"
+          },
+          "host_components" : [
+            {
+              "href" : "http://dev.hortonworks.com:8080/api/clusters/mycluster/hosts/dev.hortonworks.com/host_components/TASKTRACKER",
+              "HostRoles" : {
+                "cluster_name" : "mycluster",
+                "state" : "STARTED",
+                "component_name" : "TASKTRACKER",
+                "host_name" : "dev.hortonworks.com"
+              },
+              "metrics" : {
+                "rpc" : {
+                  "rpcAuthorizationSuccesses" : 0,
+                  "SentBytes" : 0,
+                  "rpcAuthorizationFailures" : 0,
+                  "ReceivedBytes" : 0,
+                  "NumOpenConnections" : 0,
+                  "callQueueLen" : 0,
+                  "RpcQueueTime_num_ops" : 0,
+                  "rpcAuthenticationSuccesses" : 0,
+                  "RpcProcessingTime_num_ops" : 0,
+                  "RpcProcessingTime_avg_time" : 0.0,
+                  "rpcAuthenticationFailures" : 0,
+                  "RpcQueueTime_avg_time" : 0.0
+                },
+                "jvm" : {
+                  "memHeapCommittedM" : 45.5625,
+                  "logFatal" : 0,
+                  "threadsBlocked" : 0,
+                  "gcCount" : 3433,
+                  "threadsWaiting" : 15,
+                  "logWarn" : 0,
+                  "logError" : 0,
+                  "memNonHeapCommittedM" : 23.1875,
+                  "memNonHeapUsedM" : 21.687134,
+                  "gcTimeMillis" : 2142,
+                  "logInfo" : 3,
+                  "threadsNew" : 0,
+                  "memHeapUsedM" : 3.5596008,
+                  "threadsTerminated" : 0,
+                  "threadsTimedWaiting" : 6,
+                  "threadsRunnable" : 6
+                },
+                "metricssystem" : {
+                  "dropped_pub_all" : 0,
+                  "num_sources" : 6,
+                  "publish_max_time" : 21.0,
+                  "publish_num_ops" : 9267,
+                  "snapshot_stdev_time" : 0.0,
+                  "snapshot_num_ops" : 64875,
+                  "publish_stdev_time" : 0.0,
+                  "num_sinks" : 1,
+                  "publish_imin_time" : 1.0,
+                  "snapshot_min_time" : 0.0,
+                  "snapshot_imin_time" : 0.0,
+                  "snapshot_imax_time" : 1.401298464324817E-45,
+                  "publish_avg_time" : 1.0,
+                  "publish_min_time" : 0.0,
+                  "snapshot_max_time" : 5.0,
+                  "publish_imax_time" : 1.0,
+                  "snapshot_avg_time" : 0.0
+                }
+              },
+              "component" : [
+                {
+                  "href" : "http://dev.hortonworks.com:8080/api/clusters/mycluster/services/MAPREDUCE/components/TASKTRACKER",
                   "ServiceComponentInfo" : {
                     "cluster_name" : "mycluster",
                     "component_name" : "TASKTRACKER",
@@ -521,65 +204,146 @@
       ]
     },
     {
-      "href" : "http://ambari/clusters/mycluster/services/SQOOP",
-      "Services" : {
-        "display_name" : "Sqoop",
-        "description" : "Tool for transferring bulk data between Apache Hadoop and structured datastores such as relational databases",
-        "attributes" : "{ \"runnable\": false, \"mustInstall\": false, \"editable\": true, \"noDisplay\": false }"
-      },
+      "href" : "http://dev.hortonworks.com:8080/api/clusters/mycluster/services/HDFS",
       "ServiceInfo" : {
         "cluster_name" : "mycluster",
-        "state" : "INSTALLED",
-        "service_name" : "SQOOP"
+        "service_name" : "HDFS"
       },
       "components" : [
         {
-          "href" : "http://ambari/clusters/mycluster/services/SQOOP/components/SQOOP_CLIENT",
+          "href" : "http://dev.hortonworks.com:8080/api/clusters/mycluster/services/HDFS/components/SECONDARY_NAMENODE",
           "ServiceComponentInfo" : {
             "cluster_name" : "mycluster",
-            "component_name" : "SQOOP_CLIENT",
-            "service_name" : "SQOOP"
+            "component_name" : "SECONDARY_NAMENODE",
+            "service_name" : "HDFS"
           },
           "host_components" : [
             {
-              "href" : "http://ambari/clusters/mycluster/hosts/ip-10-38-5-128.ec2.internal/host_components/SQOOP_CLIENT",
+              "href" : "http://dev.hortonworks.com:8080/api/clusters/mycluster/hosts/dev.hortonworks.com/host_components/SECONDARY_NAMENODE",
               "HostRoles" : {
                 "cluster_name" : "mycluster",
-                "role_id" : "31",
-                "component_name" : "SQOOP_CLIENT",
-                "state" : "INSTALLED",
-                "host_name" : "ip-10-38-5-128.ec2.internal"
+                "state" : "STARTED",
+                "component_name" : "SECONDARY_NAMENODE",
+                "host_name" : "dev.hortonworks.com"
               },
               "component" : [
                 {
-                  "href" : "http://ambari/clusters/mycluster/services/SQOOP/components/SQOOP_CLIENT",
+                  "href" : "http://dev.hortonworks.com:8080/api/clusters/mycluster/services/HDFS/components/SECONDARY_NAMENODE",
                   "ServiceComponentInfo" : {
                     "cluster_name" : "mycluster",
-                    "component_name" : "SQOOP_CLIENT",
-                    "service_name" : "SQOOP"
+                    "component_name" : "SECONDARY_NAMENODE",
+                    "service_name" : "HDFS"
                   }
                 }
               ]
             }
           ]
-        }
-      ]
-    },
-    {
-      "href" : "http://ambari/clusters/mycluster/services/HDFS",
-      "Services" : {
-        "display_name" : "HDFS",
-        "description" : "Apache Hadoop Distributed File System",
-        "attributes" : "{ \"runnable\": true, \"mustInstall\": true, \"editable\": false, \"noDisplay\": false }"
-      },
-      "ServiceInfo" : {
-        "cluster_name" : "mycluster",
-        "state" : "STARTED",
-        "service_name" : "HDFS"
-      },
-      "components" : [
+        },
         {
-          "href" : "http://ambari/clusters/mycluster/services/HDFS/components/DATANODE",
+          "href" : "http://dev.hortonworks.com:8080/api/clusters/mycluster/services/HDFS/components/NAMENODE",
+          "ServiceComponentInfo" : {
+            "cluster_name" : "mycluster",
+            "component_name" : "NAMENODE",
+            "service_name" : "HDFS"
+          },
+          "host_components" : [
+            {
+              "href" : "http://dev.hortonworks.com:8080/api/clusters/mycluster/hosts/dev.hortonworks.com/host_components/NAMENODE",
+              "HostRoles" : {
+                "cluster_name" : "mycluster",
+                "state" : "STARTED",
+                "component_name" : "NAMENODE",
+                "host_name" : "dev.hortonworks.com"
+              },
+              "metrics" : {
+                "rpc" : {
+                  "rpcAuthorizationSuccesses" : 0,
+                  "SentBytes" : 504011,
+                  "rpcAuthorizationFailures" : 0,
+                  "ReceivedBytes" : 1055599,
+                  "NumOpenConnections" : 0,
+                  "callQueueLen" : 0,
+                  "RpcQueueTime_num_ops" : 3468,
+                  "rpcAuthenticationSuccesses" : 0,
+                  "RpcProcessingTime_num_ops" : 3468,
+                  "RpcProcessingTime_avg_time" : 0.0,
+                  "rpcAuthenticationFailures" : 0,
+                  "RpcQueueTime_avg_time" : 0.6666666666666667
+                },
+                "dfs" : {
+                  "namenode" : {
+                    "AddBlockOps" : 0,
+                    "FileInfoOps" : 0,
+                    "CreateFileOps" : 0,
+                    "GetListingOps" : 0,
+                    "Transactions_num_ops" : 0,
+                    "GetBlockLocations" : 0,
+                    "Syncs_avg_time" : 0.0,
+                    "blockReport_num_ops" : 0,
+                    "Syncs_num_ops" : 0,
+                    "FilesInGetListingOps" : 0,
+                    "Transactions_avg_time" : 0.0,
+                    "FilesCreated" : 0,
+                    "blockReport_avg_time" : 0.0
+                  }
+                },
+                "rpcdetailed" : {
+                  "sendHeartbeat_avg_time" : 0.0,
+                  "sendHeartbeat_num_ops" : 3240
+                },
+                "jvm" : {
+                  "memHeapCommittedM" : 960.0,
+                  "logFatal" : 0,
+                  "threadsBlocked" : 0,
+                  "gcCount" : 1,
+                  "threadsWaiting" : 14,
+                  "logWarn" : 0,
+                  "logError" : 0,
+                  "memNonHeapCommittedM" : 23.1875,
+                  "memNonHeapUsedM" : 20.247017,
+                  "gcTimeMillis" : 55,
+                  "logInfo" : 3,
+                  "threadsNew" : 0,
+                  "memHeapUsedM" : 136.56186,
+                  "threadsTerminated" : 0,
+                  "threadsTimedWaiting" : 7,
+                  "threadsRunnable" : 6
+                },
+                "metricssystem" : {
+                  "dropped_pub_all" : 0,
+                  "num_sources" : 6,
+                  "publish_max_time" : 6.0,
+                  "publish_num_ops" : 972,
+                  "snapshot_stdev_time" : 0.37796447300922725,
+                  "snapshot_num_ops" : 6810,
+                  "publish_stdev_time" : 0.0,
+                  "num_sinks" : 1,
+                  "publish_imin_time" : 0.0,
+                  "snapshot_min_time" : 0.0,
+                  "snapshot_imin_time" : 0.0,
+                  "snapshot_imax_time" : 1.0,
+                  "publish_avg_time" : 0.0,
+                  "publish_min_time" : 0.0,
+                  "snapshot_max_time" : 10.0,
+                  "publish_imax_time" : 1.401298464324817E-45,
+                  "snapshot_avg_time" : 0.14285714285714288
+                }
+              },
+              "component" : [
+                {
+                  "href" : "http://dev.hortonworks.com:8080/api/clusters/mycluster/services/HDFS/components/NAMENODE",
+                  "ServiceComponentInfo" : {
+                    "cluster_name" : "mycluster",
+                    "component_name" : "NAMENODE",
+                    "service_name" : "HDFS"
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "href" : "http://dev.hortonworks.com:8080/api/clusters/mycluster/services/HDFS/components/DATANODE",
           "ServiceComponentInfo" : {
             "cluster_name" : "mycluster",
             "component_name" : "DATANODE",
@@ -587,74 +351,69 @@
           },
           "host_components" : [
             {
-              "href" : "http://ambari/clusters/mycluster/hosts/ip-10-38-5-128.ec2.internal/host_components/DATANODE",
+              "href" : "http://dev.hortonworks.com:8080/api/clusters/mycluster/hosts/dev.hortonworks.com/host_components/DATANODE",
               "HostRoles" : {
                 "cluster_name" : "mycluster",
-                "role_id" : "23",
-                "component_name" : "DATANODE",
                 "state" : "STARTED",
-                "host_name" : "ip-10-38-5-128.ec2.internal"
+                "component_name" : "DATANODE",
+                "host_name" : "dev.hortonworks.com"
               },
               "metrics" : {
                 "rpc" : {
-                  "rpcAuthorizationSuccesses" : 4,
-                  "SentBytes" : 1350,
+                  "rpcAuthorizationSuccesses" : 0,
+                  "SentBytes" : 0,
                   "rpcAuthorizationFailures" : 0,
-                  "ReceivedBytes" : 2006,
+                  "ReceivedBytes" : 0,
                   "NumOpenConnections" : 0,
                   "callQueueLen" : 0,
-                  "RpcQueueTime_num_ops" : 7,
+                  "RpcQueueTime_num_ops" : 0,
                   "rpcAuthenticationSuccesses" : 0,
-                  "RpcProcessingTime_num_ops" : 7,
-                  "RpcProcessingTime_avg_time" : 1.0,
+                  "RpcProcessingTime_num_ops" : 0,
+                  "RpcProcessingTime_avg_time" : 0.0,
                   "rpcAuthenticationFailures" : 0,
                   "RpcQueueTime_avg_time" : 0.0
                 },
-                "rpcdetailed" : {
-                  "getProtocolVersion_avg_time" : 0.0,
-                  "getProtocolVersion_num_ops" : 2
-                },
                 "jvm" : {
-                  "memHeapCommittedM" : 84.3125,
+                  "memHeapCommittedM" : 45.5625,
                   "logFatal" : 0,
                   "threadsBlocked" : 0,
-                  "gcCount" : 1229,
-                  "threadsWaiting" : 8,
+                  "gcCount" : 14,
+                  "threadsWaiting" : 7,
                   "logWarn" : 0,
                   "logError" : 0,
-                  "memNonHeapCommittedM" : 23.375,
-                  "memNonHeapUsedM" : 21.495056,
-                  "gcTimeMillis" : 8111,
+                  "memNonHeapCommittedM" : 23.1875,
+                  "memNonHeapUsedM" : 18.308372,
+                  "gcTimeMillis" : 67,
                   "logInfo" : 3,
                   "threadsNew" : 0,
-                  "memHeapUsedM" : 28.507965,
+                  "memHeapUsedM" : 2.4481506,
                   "threadsTerminated" : 0,
-                  "threadsTimedWaiting" : 8,
-                  "threadsRunnable" : 12
+                  "threadsTimedWaiting" : 7,
+                  "threadsRunnable" : 7
                 },
                 "metricssystem" : {
                   "dropped_pub_all" : 0,
                   "num_sources" : 5,
-                  "publish_max_time" : 501.0,
-                  "publish_num_ops" : 55260,
-                  "snapshot_stdev_time" : 0.408248290463863,
-                  "snapshot_num_ops" : 331565,
+                  "publish_max_time" : 3.0,
+                  "publish_num_ops" : 974,
+                  "snapshot_stdev_time" : 0.0,
+                  "snapshot_num_ops" : 5841,
                   "publish_stdev_time" : 0.0,
                   "num_sinks" : 1,
-                  "publish_imin_time" : 1.0,
+                  "publish_imin_time" : 0.0,
                   "snapshot_min_time" : 0.0,
                   "snapshot_imin_time" : 0.0,
-                  "snapshot_imax_time" : 1.0,
-                  "publish_avg_time" : 1.0,
+                  "snapshot_imax_time" : 1.401298464324817E-45,
+                  "publish_avg_time" : 0.0,
                   "publish_min_time" : 0.0,
-                  "snapshot_max_time" : 585.0,
-                  "publish_imax_time" : 1.0,
-                  "snapshot_avg_time" : 0.16666666666666669
+                  "snapshot_max_time" : 2.0,
+                  "publish_imax_time" : 1.401298464324817E-45,
+                  "snapshot_avg_time" : 0.0
                 }
               },
               "component" : [
                 {
-                  "href" : "http://ambari/clusters/mycluster/services/HDFS/components/DATANODE",
+                  "href" : "http://dev.hortonworks.com:8080/api/clusters/mycluster/services/HDFS/components/DATANODE",
                   "ServiceComponentInfo" : {
                     "cluster_name" : "mycluster",
                     "component_name" : "DATANODE",
@@ -666,7 +425,7 @@
           ]
         },
         {
-          "href" : "http://ambari/clusters/mycluster/services/HDFS/components/HDFS_CLIENT",
+          "href" : "http://dev.hortonworks.com:8080/api/clusters/mycluster/services/HDFS/components/HDFS_CLIENT",
           "ServiceComponentInfo" : {
             "cluster_name" : "mycluster",
             "component_name" : "HDFS_CLIENT",
@@ -674,483 +433,20 @@
           },
           "host_components" : [
             {
-              "href" : "http://ambari/clusters/mycluster/hosts/ip-10-38-5-128.ec2.internal/host_components/HDFS_CLIENT",
+              "href" : "http://dev.hortonworks.com:8080/api/clusters/mycluster/hosts/dev.hortonworks.com/host_components/HDFS_CLIENT",
               "HostRoles" : {
                 "cluster_name" : "mycluster",
-                "role_id" : "26",
-                "component_name" : "HDFS_CLIENT",
                 "state" : "INSTALLED",
-                "host_name" : "ip-10-38-5-128.ec2.internal"
+                "component_name" : "HDFS_CLIENT",
+                "host_name" : "dev.hortonworks.com"
               },
               "component" : [
                 {
-                  "href" : "http://ambari/clusters/mycluster/services/HDFS/components/HDFS_CLIENT",
+                  "href" : "http://dev.hortonworks.com:8080/api/clusters/mycluster/services/HDFS/components/HDFS_CLIENT",
                   "ServiceComponentInfo" : {
                     "cluster_name" : "mycluster",
                     "component_name" : "HDFS_CLIENT",
                     "service_name" : "HDFS"
-                  }
-                }
-              ]
-            }
-          ]
-        },
-        {
-          "href" : "http://ambari/clusters/mycluster/services/HDFS/components/SNAMENODE",
-          "ServiceComponentInfo" : {
-            "cluster_name" : "mycluster",
-            "component_name" : "SNAMENODE",
-            "service_name" : "HDFS"
-          },
-          "host_components" : [
-            {
-              "href" : "http://ambari/clusters/mycluster/hosts/ip-10-38-5-128.ec2.internal/host_components/SNAMENODE",
-              "HostRoles" : {
-                "cluster_name" : "mycluster",
-                "role_id" : "2",
-                "component_name" : "SNAMENODE",
-                "state" : "STARTED",
-                "host_name" : "ip-10-38-5-128.ec2.internal"
-              },
-              "component" : [
-                {
-                  "href" : "http://ambari/clusters/mycluster/services/HDFS/components/SNAMENODE",
-                  "ServiceComponentInfo" : {
-                    "cluster_name" : "mycluster",
-                    "component_name" : "SNAMENODE",
-                    "service_name" : "HDFS"
-                  }
-                }
-              ]
-            }
-          ]
-        },
-        {
-          "href" : "http://ambari/clusters/mycluster/services/HDFS/components/NAMENODE",
-          "ServiceComponentInfo" : {
-            "cluster_name" : "mycluster",
-            "component_name" : "NAMENODE",
-            "service_name" : "HDFS"
-          },
-          "host_components" : [
-            {
-              "href" : "http://ambari/clusters/mycluster/hosts/ip-10-38-5-128.ec2.internal/host_components/NAMENODE",
-              "HostRoles" : {
-                "cluster_name" : "mycluster",
-                "role_id" : "1",
-                "component_name" : "NAMENODE",
-                "state" : "STARTED",
-                "host_name" : "ip-10-38-5-128.ec2.internal"
-              },
-              "metrics" : {
-                "rpc" : {
-                  "rpcAuthorizationSuccesses" : 56734,
-                  "SentBytes" : 71919973,
-                  "rpcAuthorizationFailures" : 0,
-                  "ReceivedBytes" : 82615006,
-                  "NumOpenConnections" : 0,
-                  "callQueueLen" : 0,
-                  "RpcQueueTime_num_ops" : 407816,
-                  "rpcAuthenticationSuccesses" : 0,
-                  "RpcProcessingTime_num_ops" : 407816,
-                  "RpcProcessingTime_avg_time" : 0.0,
-                  "rpcAuthenticationFailures" : 0,
-                  "RpcQueueTime_avg_time" : 0.0
-                },
-                "dfs" : {
-                  "namenode" : {
-                    "AddBlockOps" : 178,
-                    "FileInfoOps" : 91688,
-                    "CreateFileOps" : 181,
-                    "GetListingOps" : 73730,
-                    "Transactions_num_ops" : 973,
-                    "GetBlockLocations" : 45,
-                    "Syncs_avg_time" : 4.0,
-                    "blockReport_num_ops" : 137,
-                    "Syncs_num_ops" : 587,
-                    "FilesInGetListingOps" : 188175,
-                    "Transactions_avg_time" : 0.0,
-                    "FilesCreated" : 314,
-                    "blockReport_avg_time" : 1.0
-                  }
-                },
-                "rpcdetailed" : {
-                  "addBlock_avg_time" : 0.0,
-                  "rollFsImage_num_ops" : 26,
-                  "getListing_num_ops" : 82658,
-                  "renewLease_avg_time" : 0.0,
-                  "sendHeartbeat_num_ops" : 183761,
-                  "create_avg_time" : 2.0,
-                  "fsync_num_ops" : 8,
-                  "blockReport_num_ops" : 154,
-                  "create_num_ops" : 181,
-                  "getEditLogSize_num_ops" : 1837,
-                  "rollEditLog_num_ops" : 26,
-                  "rollFsImage_avg_time" : 237.0,
-                  "getBlockLocations_num_ops" : 45,
-                  "getFileInfo_avg_time" : 0.0,
-                  "addBlock_num_ops" : 178,
-                  "getProtocolVersion_avg_time" : 0.0,
-                  "getListing_avg_time" : 0.33333333333333337,
-                  "rollEditLog_avg_time" : 36.0,
-                  "getBlockLocations_avg_time" : 0.0,
-                  "blockReceived_avg_time" : 0.0,
-                  "renewLease_num_ops" : 18186,
-                  "getEditLogSize_avg_time" : 0.0,
-                  "getFileInfo_num_ops" : 101504,
-                  "sendHeartbeat_avg_time" : 0.0,
-                  "complete_avg_time" : 12.0,
-                  "fsync_avg_time" : 0.0,
-                  "complete_num_ops" : 183,
-                  "blockReceived_num_ops" : 177,
-                  "getProtocolVersion_num_ops" : 18437,
-                  "blockReport_avg_time" : 1.0
-                },
-                "jvm" : {
-                  "memHeapCommittedM" : 432.0625,
-                  "logFatal" : 0,
-                  "threadsBlocked" : 0,
-                  "gcCount" : 194029,
-                  "threadsWaiting" : 104,
-                  "logWarn" : 0,
-                  "logError" : 0,
-                  "memNonHeapCommittedM" : 36.847656,
-                  "memNonHeapUsedM" : 23.048737,
-                  "gcTimeMillis" : 218543395,
-                  "logInfo" : 3,
-                  "threadsNew" : 0,
-                  "memHeapUsedM" : 93.0164,
-                  "threadsTerminated" : 0,
-                  "threadsTimedWaiting" : 8,
-                  "threadsRunnable" : 10
-                },
-                "metricssystem" : {
-                  "dropped_pub_all" : 0,
-                  "num_sources" : 6,
-                  "publish_max_time" : 2320.0,
-                  "publish_num_ops" : 55266,
-                  "snapshot_stdev_time" : 0.37796447300922725,
-                  "snapshot_num_ops" : 386868,
-                  "publish_stdev_time" : 0.0,
-                  "num_sinks" : 1,
-                  "publish_imin_time" : 0.0,
-                  "snapshot_min_time" : 0.0,
-                  "snapshot_imin_time" : 0.0,
-                  "snapshot_imax_time" : 1.0,
-                  "publish_avg_time" : 0.0,
-                  "publish_min_time" : 0.0,
-                  "snapshot_max_time" : 2770.0,
-                  "publish_imax_time" : 1.401298464324817E-45,
-                  "snapshot_avg_time" : 0.14285714285714288
-                }
-              },
-              "component" : [
-                {
-                  "href" : "http://ambari/clusters/mycluster/services/HDFS/components/NAMENODE",
-                  "ServiceComponentInfo" : {
-                    "cluster_name" : "mycluster",
-                    "component_name" : "NAMENODE",
-                    "service_name" : "HDFS"
-                  }
-                }
-              ]
-            }
-          ]
-        }
-      ]
-    },
-    {
-      "href" : "http://ambari/clusters/mycluster/services/NAGIOS",
-      "Services" : {
-        "display_name" : "Nagios",
-        "description" : "Nagios-based Monitoring for HDP",
-        "attributes" : "{ \"runnable\": true, \"mustInstall\": true, \"editable\": false, \"noDisplay\": false }"
-      },
-      "ServiceInfo" : {
-        "cluster_name" : "mycluster",
-        "state" : "STARTED",
-        "service_name" : "NAGIOS"
-      },
-      "components" : [
-        {
-          "href" : "http://ambari/clusters/mycluster/services/NAGIOS/components/NAGIOS_SERVER",
-          "ServiceComponentInfo" : {
-            "cluster_name" : "mycluster",
-            "component_name" : "NAGIOS_SERVER",
-            "service_name" : "NAGIOS"
-          },
-          "host_components" : [
-            {
-              "href" : "http://ambari/clusters/mycluster/hosts/ip-10-38-5-128.ec2.internal/host_components/NAGIOS_SERVER",
-              "HostRoles" : {
-                "cluster_name" : "mycluster",
-                "role_id" : "10",
-                "component_name" : "NAGIOS_SERVER",
-                "state" : "STARTED",
-                "host_name" : "ip-10-38-5-128.ec2.internal"
-              },
-              "component" : [
-                {
-                  "href" : "http://ambari/clusters/mycluster/services/NAGIOS/components/NAGIOS_SERVER",
-                  "ServiceComponentInfo" : {
-                    "cluster_name" : "mycluster",
-                    "component_name" : "NAGIOS_SERVER",
-                    "service_name" : "NAGIOS"
-                  }
-                }
-              ]
-            }
-          ]
-        }
-      ]
-    },
-    {
-      "href" : "http://ambari/clusters/mycluster/services/HIVE",
-      "Services" : {
-        "display_name" : "Hive/HCatalog",
-        "description" : "Hive - Data Warehouse system for Apache Hadoop, HCatalog - Table and Storage Management service for data created using Apache Hadoop",
-        "attributes" : "{ \"runnable\": true, \"mustInstall\": false, \"editable\": true, \"noDisplay\": false }"
-      },
-      "ServiceInfo" : {
-        "cluster_name" : "mycluster",
-        "state" : "STARTED",
-        "service_name" : "HIVE"
-      },
-      "components" : [
-        {
-          "href" : "http://ambari/clusters/mycluster/services/HIVE/components/HIVE_SERVER",
-          "ServiceComponentInfo" : {
-            "cluster_name" : "mycluster",
-            "component_name" : "HIVE_SERVER",
-            "service_name" : "HIVE"
-          },
-          "host_components" : [
-            {
-              "href" : "http://ambari/clusters/mycluster/hosts/ip-10-38-5-128.ec2.internal/host_components/HIVE_SERVER",
-              "HostRoles" : {
-                "cluster_name" : "mycluster",
-                "role_id" : "7",
-                "component_name" : "HIVE_SERVER",
-                "state" : "STARTED",
-                "host_name" : "ip-10-38-5-128.ec2.internal"
-              },
-              "component" : [
-                {
-                  "href" : "http://ambari/clusters/mycluster/services/HIVE/components/HIVE_SERVER",
-                  "ServiceComponentInfo" : {
-                    "cluster_name" : "mycluster",
-                    "component_name" : "HIVE_SERVER",
-                    "service_name" : "HIVE"
-                  }
-                }
-              ]
-            }
-          ]
-        },
-        {
-          "href" : "http://ambari/clusters/mycluster/services/HIVE/components/HIVE_CLIENT",
-          "ServiceComponentInfo" : {
-            "cluster_name" : "mycluster",
-            "component_name" : "HIVE_CLIENT",
-            "service_name" : "HIVE"
-          },
-          "host_components" : [
-            {
-              "href" : "http://ambari/clusters/mycluster/hosts/ip-10-38-5-128.ec2.internal/host_components/HIVE_CLIENT",
-              "HostRoles" : {
-                "cluster_name" : "mycluster",
-                "role_id" : "33",
-                "component_name" : "HIVE_CLIENT",
-                "state" : "INSTALLED",
-                "host_name" : "ip-10-38-5-128.ec2.internal"
-              },
-              "component" : [
-                {
-                  "href" : "http://ambari/clusters/mycluster/services/HIVE/components/HIVE_CLIENT",
-                  "ServiceComponentInfo" : {
-                    "cluster_name" : "mycluster",
-                    "component_name" : "HIVE_CLIENT",
-                    "service_name" : "HIVE"
-                  }
-                }
-              ]
-            }
-          ]
-        },
-        {
-          "href" : "http://ambari/clusters/mycluster/services/HIVE/components/HIVE_MYSQL",
-          "ServiceComponentInfo" : {
-            "cluster_name" : "mycluster",
-            "component_name" : "HIVE_MYSQL",
-            "service_name" : "HIVE"
-          },
-          "host_components" : [
-            {
-              "href" : "http://ambari/clusters/mycluster/hosts/ip-10-38-5-128.ec2.internal/host_components/HIVE_MYSQL",
-              "HostRoles" : {
-                "cluster_name" : "mycluster",
-                "role_id" : "35",
-                "component_name" : "HIVE_MYSQL",
-                "state" : "STARTED",
-                "host_name" : "ip-10-38-5-128.ec2.internal"
-              },
-              "component" : [
-                {
-                  "href" : "http://ambari/clusters/mycluster/services/HIVE/components/HIVE_MYSQL",
-                  "ServiceComponentInfo" : {
-                    "cluster_name" : "mycluster",
-                    "component_name" : "HIVE_MYSQL",
-                    "service_name" : "HIVE"
-                  }
-                }
-              ]
-            }
-          ]
-        }
-      ]
-    },
-    {
-      "href" : "http://ambari/clusters/mycluster/services/GANGLIA",
-      "Services" : {
-        "display_name" : "Ganglia",
-        "description" : "Ganglia-based Metrics Collection for HDP",
-        "attributes" : "{ \"runnable\": true, \"mustInstall\": true, \"editable\": false, \"noDisplay\": false }"
-      },
-      "ServiceInfo" : {
-        "cluster_name" : "mycluster",
-        "state" : "STARTED",
-        "service_name" : "GANGLIA"
-      },
-      "components" : [
-        {
-          "href" : "http://ambari/clusters/mycluster/services/GANGLIA/components/GANGLIA_SERVER",
-          "ServiceComponentInfo" : {
-            "cluster_name" : "mycluster",
-            "component_name" : "GANGLIA_SERVER",
-            "service_name" : "GANGLIA"
-          },
-          "host_components" : [
-            {
-              "href" : "http://ambari/clusters/mycluster/hosts/ip-10-38-5-128.ec2.internal/host_components/GANGLIA_SERVER",
-              "HostRoles" : {
-                "cluster_name" : "mycluster",
-                "role_id" : "9",
-                "component_name" : "GANGLIA_SERVER",
-                "state" : "STARTED",
-                "host_name" : "ip-10-38-5-128.ec2.internal"
-              },
-              "component" : [
-                {
-                  "href" : "http://ambari/clusters/mycluster/services/GANGLIA/components/GANGLIA_SERVER",
-                  "ServiceComponentInfo" : {
-                    "cluster_name" : "mycluster",
-                    "component_name" : "GANGLIA_SERVER",
-                    "service_name" : "GANGLIA"
-                  }
-                }
-              ]
-            }
-          ]
-        },
-        {
-          "href" : "http://ambari/clusters/mycluster/services/GANGLIA/components/GANGLIA_MONITOR",
-          "ServiceComponentInfo" : {
-            "cluster_name" : "mycluster",
-            "component_name" : "GANGLIA_MONITOR",
-            "service_name" : "GANGLIA"
-          },
-          "host_components" : [
-            {
-              "href" : "http://ambari/clusters/mycluster/hosts/ip-10-38-5-128.ec2.internal/host_components/GANGLIA_MONITOR",
-              "HostRoles" : {
-                "cluster_name" : "mycluster",
-                "role_id" : "25",
-                "component_name" : "GANGLIA_MONITOR",
-                "state" : "STARTED",
-                "host_name" : "ip-10-38-5-128.ec2.internal"
-              },
-              "component" : [
-                {
-                  "href" : "http://ambari/clusters/mycluster/services/GANGLIA/components/GANGLIA_MONITOR",
-                  "ServiceComponentInfo" : {
-                    "cluster_name" : "mycluster",
-                    "component_name" : "GANGLIA_MONITOR",
-                    "service_name" : "GANGLIA"
-                  }
-                }
-              ]
-            }
-          ]
-        }
-      ]
-    },
-    {
-      "href" : "http://ambari/clusters/mycluster/services/OOZIE",
-      "Services" : {
-        "display_name" : "Oozie",
-        "description" : "Workflow/Coordination system to manage Apache Hadoop jobs",
-        "attributes" : "{ \"runnable\": true, \"mustInstall\": false, \"editable\": true, \"noDisplay\": false }"
-      },
-      "ServiceInfo" : {
-        "cluster_name" : "mycluster",
-        "state" : "STARTED",
-        "service_name" : "OOZIE"
-      },
-      "components" : [
-        {
-          "href" : "http://ambari/clusters/mycluster/services/OOZIE/components/OOZIE_SERVER",
-          "ServiceComponentInfo" : {
-            "cluster_name" : "mycluster",
-            "component_name" : "OOZIE_SERVER",
-            "service_name" : "OOZIE"
-          },
-          "host_components" : [
-            {
-              "href" : "http://ambari/clusters/mycluster/hosts/ip-10-38-5-128.ec2.internal/host_components/OOZIE_SERVER",
-              "HostRoles" : {
-                "cluster_name" : "mycluster",
-                "role_id" : "6",
-                "component_name" : "OOZIE_SERVER",
-                "state" : "STARTED",
-                "host_name" : "ip-10-38-5-128.ec2.internal"
-              },
-              "component" : [
-                {
-                  "href" : "http://ambari/clusters/mycluster/services/OOZIE/components/OOZIE_SERVER",
-                  "ServiceComponentInfo" : {
-                    "cluster_name" : "mycluster",
-                    "component_name" : "OOZIE_SERVER",
-                    "service_name" : "OOZIE"
-                  }
-                }
-              ]
-            }
-          ]
-        },
-        {
-          "href" : "http://ambari/clusters/mycluster/services/OOZIE/components/OOZIE_CLIENT",
-          "ServiceComponentInfo" : {
-            "cluster_name" : "mycluster",
-            "component_name" : "OOZIE_CLIENT",
-            "service_name" : "OOZIE"
-          },
-          "host_components" : [
-            {
-              "href" : "http://ambari/clusters/mycluster/hosts/ip-10-38-5-128.ec2.internal/host_components/OOZIE_CLIENT",
-              "HostRoles" : {
-                "cluster_name" : "mycluster",
-                "role_id" : "32",
-                "component_name" : "OOZIE_CLIENT",
-                "state" : "INSTALLED",
-                "host_name" : "ip-10-38-5-128.ec2.internal"
-              },
-              "component" : [
-                {
-                  "href" : "http://ambari/clusters/mycluster/services/OOZIE/components/OOZIE_CLIENT",
-                  "ServiceComponentInfo" : {
-                    "cluster_name" : "mycluster",
-                    "component_name" : "OOZIE_CLIENT",
-                    "service_name" : "OOZIE"
                   }
                 }
               ]

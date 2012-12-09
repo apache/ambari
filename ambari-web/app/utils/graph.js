@@ -178,7 +178,7 @@ module.exports = {
         var swatch = '<span class="detail_swatch" style="background-color: ' + series.color + '"></span>';
         return swatch + d.label +
           '<br>Run-time: ' + formattedY + '<br>Wait-time: ' + formattedX;
-      },
+      }
 
     });
     var annotator = new Rickshaw.Graph.Annotate({

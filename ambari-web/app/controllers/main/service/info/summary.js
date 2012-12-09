@@ -24,7 +24,7 @@ App.MainServiceInfoSummaryController = Em.Controller.extend({
     var serviceId = this.get('content.serviceName');
     if (serviceId) {
       return this.get('allAlerts').filter(function (item) {
-        return item.get('serviceType').toLowerCase() == serviceId;
+        return item.get('serviceType') && item.get('serviceType').toLowerCase() == serviceId;
       });
     }
     return [];

@@ -24,7 +24,6 @@ module.exports = Em.Route.extend({
 
     Ember.run.next(function () {
       var addServiceController = router.get('addServiceController');
-      addServiceController.loadAllPriorSteps();
       router.transitionTo('step' + addServiceController.get('currentStep'));
     });
 

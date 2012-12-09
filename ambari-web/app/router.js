@@ -49,21 +49,21 @@ App.Router = Em.Router.extend({
     });*/
   },
 
-
-  setInstallerCurrentStep: function (currentStep, completed) {
-    App.db.setInstallerCurrentStep(currentStep, completed);
-    this.set('installerController.currentStep', currentStep);
+  /**
+   * Temporary fix for getting cluster name
+   * @return {*}
+   */
+  getClusterName: function(){
+    return App.db.getClusterName();
   },
 
+
+  /**
+   * Get current step of Installer wizard
+   * @return {*}
+   */
   getInstallerCurrentStep: function () {
-    var loginName = this.getLoginName();
-    var currentStep = App.db.getInstallerCurrentStep();
-    console.log('getInstallerCurrentStep: loginName=' + loginName + ", currentStep=" + currentStep);
-    if (!currentStep) {
-      currentStep = '1';
-    }
-    console.log('returning currentStep=' + currentStep);
-    return currentStep;
+    return this.getWizardCurrentStep('installer');
   },
 
   /**

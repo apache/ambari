@@ -33,15 +33,15 @@ App.MainAppsItemBarView = Em.View.extend({
         this.set('activeJob', event.context);
 
     },
-    didInsertElement:function (){
+    didInsertElement:function () {
         this.set('activeJob', this.get('firstJob'));
     },
     draw: function() {
         if(!this.get('activeJob')){
             return;//when job is not defined
         }
-        width = 500;
-        height = 420;
+        width = 300;
+        height = 210;
         var desc1 = $('#graph1_desc');
         var desc2 = $('#graph2_desc');
         $('.rickshaw_graph, .rickshaw_legend, .rickshaw_annotation_timeline').html('');

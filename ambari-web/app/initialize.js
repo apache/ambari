@@ -19,8 +19,8 @@
 
 window.App = require('app');
 
-//App.testMode = true;
-App.testMode = false;
+App.testMode = true;
+//App.testMode = false;
 
 require('messages');
 require('utils/data_table');
@@ -30,6 +30,11 @@ require('models');
 require('controllers');
 require('views');
 require('router');
+
+require('mappers/server_data_mapper');
+require('mappers/services_mapper');
+
+require('utils/http_client');
 
 App.initialize();
 

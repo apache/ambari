@@ -24,7 +24,6 @@ module.exports = Em.Route.extend({
 
     Ember.run.next(function () {
       var addHostController = router.get('addHostController');
-      addHostController.loadAllPriorSteps();
       router.transitionTo('step' + addHostController.get('currentStep'));
     });
 

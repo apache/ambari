@@ -45,7 +45,7 @@ module.exports = new Ember.Set([
   {
     service_name: 'HDFS',
     component_name: 'HDFS_CLIENT',
-    display_name: 'Hadoop Client',
+    display_name: 'HDFS Client',
     isMaster: false,
     isClient: true,
     description: 'Client component for HDFS'

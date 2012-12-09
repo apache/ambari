@@ -210,9 +210,10 @@ App.Service.FIXTURES = [
   {
     id:4,
     service_name:'zookeeper',
-    label:'Zookeeper',
+    label:'ZooKeeper',
     health_status:App.Service.Health.stop,
     work_status:false,
+    components:[1, 2, 3],
     alerts:[7, 8]
   },
   {
@@ -221,14 +222,16 @@ App.Service.FIXTURES = [
     label:'Oozie',
     health_status:App.Service.Health.dead,
     work_status:false,
+    components:[8],
     alerts:[9, 10]
   },
   {
     id:6,
     service_name:'hive',
-    label:'Hive',
+    label:'Hive + HCatalog',
     health_status:App.Service.Health.dead,
     work_status:false,
+    components:[5],
     alerts:[11, 12]
   }
 ];

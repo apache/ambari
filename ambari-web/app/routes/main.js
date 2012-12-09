@@ -23,9 +23,6 @@ module.exports = Em.Route.extend({
     if (router.getAuthenticated()) {
       router.get('mainController').startLoadOperationsPeriodically();
       // TODO: redirect to last known state
-       Ember.run.next(function () {
-         router.transitionTo('dashboard');
-       });
     } else {
       Ember.run.next(function () {
         router.transitionTo('login');
@@ -36,6 +33,13 @@ module.exports = Em.Route.extend({
   index:Ember.Route.extend({
     route:'/',
     redirectsTo:'dashboard'
+  }),
+
+  test: Em.Route.extend({
+    route: '/test',
+    connectOutlets:function (router, context) {
+      router.get('mainController').connectOutlet('mainTest');
+    }
   }),
 
   connectOutlets:function (router, context) {
@@ -320,9 +324,6 @@ module.exports = Em.Route.extend({
     service:Em.Route.extend({
       route:'/:service_id',
       connectOutlets:function (router, service) {
-//        if (service.name == "undefined") {
-//          service = App.Service.find(1);
-//        }
         router.get('mainServiceController').connectOutlet('mainServiceItem', service);
         router.transitionTo('summary');
       },

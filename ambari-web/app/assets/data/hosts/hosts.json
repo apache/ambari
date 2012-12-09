@@ -1,0 +1,126 @@
+{
+  "href" : "http://localhost:8080/api/hosts?fields=*",
+  "items" : [
+    {
+      "href" : "http://localhost:8080/api/hosts/host1",
+      "Hosts" : {
+        "cpu_count" : 1,
+        "total_mem" : 2055208,
+        "os_arch" : "x86_64",
+        "host_name" : "host01",
+        "os_type" : "centos6",
+        "ip" : "10.0.2.1"
+      }
+    },
+    {
+      "href" : "http://localhost:8080/api/hosts/host1",
+      "Hosts" : {
+        "cpu_count" : 1,
+        "total_mem" : 2055208,
+        "os_arch" : "x86_64",
+        "host_name" : "host02",
+        "os_type" : "centos6",
+        "ip" : "10.0.2.2"
+      }
+    },
+    {
+      "href" : "http://localhost:8080/api/hosts/host1",
+      "Hosts" : {
+        "cpu_count" : 1,
+        "total_mem" : 2055208,
+        "os_arch" : "x86_64",
+        "host_name" : "host03",
+        "os_type" : "centos6",
+        "ip" : "10.0.2.3"
+      }
+    },
+    {
+      "href" : "http://localhost:8080/api/hosts/host1",
+      "Hosts" : {
+        "cpu_count" : 1,
+        "total_mem" : 2055208,
+        "os_arch" : "x86_64",
+        "host_name" : "host04",
+        "os_type" : "centos6",
+        "ip" : "10.0.2.4"
+      }
+    },
+    {
+      "href" : "http://localhost:8080/api/hosts/host1",
+      "Hosts" : {
+        "cpu_count" : 1,
+        "total_mem" : 2055208,
+        "os_arch" : "x86_64",
+        "host_name" : "host05",
+        "os_type" : "centos6",
+        "ip" : "10.0.2.5"
+      }
+    },
+    {
+      "href" : "http://localhost:8080/api/hosts/host1",
+      "Hosts" : {
+        "cpu_count" : 1,
+        "total_mem" : 2055208,
+        "os_arch" : "x86_64",
+        "host_name" : "host06",
+        "os_type" : "centos6",
+        "ip" : "10.0.2.6"
+      }
+    },
+    {
+      "href" : "http://localhost:8080/api/hosts/host1",
+      "Hosts" : {
+        "cpu_count" : 1,
+        "total_mem" : 2055208,
+        "os_arch" : "x86_64",
+        "host_name" : "host07",
+        "os_type" : "centos6",
+        "ip" : "10.0.2.7"
+      }
+    },
+    {
+      "href" : "http://localhost:8080/api/hosts/host1",
+      "Hosts" : {
+        "cpu_count" : 1,
+        "total_mem" : 2055208,
+        "os_arch" : "x86_64",
+        "host_name" : "host08",
+        "os_type" : "centos6",
+        "ip" : "10.0.2.8"
+      }
+    },
+    {
+      "href" : "http://localhost:8080/api/hosts/host1",
+      "Hosts" : {
+        "cpu_count" : 1,
+        "total_mem" : 2055208,
+        "os_arch" : "x86_64",
+        "host_name" : "host09",
+        "os_type" : "centos6",
+        "ip" : "10.0.2.9"
+      }
+    },
+    {
+      "href" : "http://localhost:8080/api/hosts/host1",
+      "Hosts" : {
+        "cpu_count" : 1,
+        "total_mem" : 2055208,
+        "os_arch" : "x86_64",
+        "host_name" : "host10",
+        "os_type" : "centos6",
+        "ip" : "10.0.2.10"
+      }
+    },
+    {
+      "href" : "http://localhost:8080/api/hosts/host1",
+      "Hosts" : {
+        "cpu_count" : 1,
+        "total_mem" : 2055208,
+        "os_arch" : "x86_64",
+        "host_name" : "host11",
+        "os_type" : "centos6",
+        "ip" : "10.0.2.11"
+      }
+    }
+  ]
+}

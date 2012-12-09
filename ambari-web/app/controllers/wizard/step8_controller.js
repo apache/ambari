@@ -451,6 +451,7 @@ App.WizardStep8Controller = Em.Controller.extend({
       async: false,
       //accepts: 'text',
       dataType: 'text',
+      data: '{"Clusters": {"version" : "HDP-0.1"}}',
       timeout: 5000,
       success: function (data) {
         var jsonData = jQuery.parseJSON(data);
@@ -511,10 +512,7 @@ App.WizardStep8Controller = Em.Controller.extend({
       var components = serviceComponents.filterProperty('service_name', _service);
       components.forEach(function (_component) {
         console.log("value of component is: " + _component.component_name);
-        // TODO: Skipping CLIENT components as we have issues on the server side for integration purposes
-        if (!_component.component_name.match(/CLIENT$/)) {
-          this.createComponent(_service, _component.component_name);
-        }
+        this.createComponent(_service, _component.component_name);
       }, this);
     }, this);
   },
@@ -582,6 +580,7 @@ App.WizardStep8Controller = Em.Controller.extend({
 
     var masterHosts = this.get('content.masterComponentHosts');
     var slaveHosts = this.get('content.slaveComponentHosts');
+    var clients = this.get('content.clients');
     var allHosts = this.get('content.hostsInfo');
 
     masterHosts.forEach(function (_masterHost) {
@@ -601,8 +600,7 @@ App.WizardStep8Controller = Em.Controller.extend({
           slaveObj.component = _client.component_name;
           _slaveHosts.hosts.forEach(function (_slaveHost) {
             slaveObj.hostName = _slaveHost.hostname;
-            // TODO: Skip creation of clients for integration purposes
-            // this.createHostComponent(slaveObj);
+            this.createHostComponent(slaveObj);
           }, this);
         }, this);
       }
@@ -650,10 +648,12 @@ App.WizardStep8Controller = Em.Controller.extend({
       this.createConfigSite(this.createMrSiteObj('MAPREDUCE'));
     }
     if (selectedServices.someProperty('serviceName', 'HBASE')) {
-      this.createConfigSite(this.createHbaseSiteObj('HBASE'));
+      // TODO
+      // this.createConfigSite(this.createHbaseSiteObj('HBASE'));
     }
     if (selectedServices.someProperty('serviceName', 'HIVE')) {
-      this.createConfigSite(this.createHiveSiteObj('HIVE'));
+      // TODO
+      // this.createConfigSite(this.createHiveSiteObj('HIVE'));
     }
   },
 
