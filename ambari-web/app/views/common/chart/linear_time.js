@@ -253,6 +253,22 @@ App.ChartLinearTimeView = Ember.View.extend({
           this._showMessage('info', 'No Data', 'There was no data available.');
         }
       },
+      
+      /**
+       * Returns a custom time unit for the graph's X axis. This is needed
+       * as Rickshaw's default time X axis uses UTC time, which can be confusing
+       * for users expecting locale specific time. This value defaults to
+       * App.ChartLinearTimeView.FifteenMinuteTimeUnit.
+       * 
+       * If <code>null</code> is returned, Rickshaw's default time unit is used.
+       * 
+       * @type Function
+       * @return Rickshaw.Fixtures.Time
+       * @default App.ChartLinearTimeView.FifteenMinuteTimeUnit
+       */
+      localeTimeUnit: function(){
+        return App.ChartLinearTimeView.FifteenMinuteTimeUnit;
+      },
 
       /**
        * @private
@@ -333,7 +349,8 @@ App.ChartLinearTimeView = Ember.View.extend({
         _graph.renderer.unstack = false;
 
         xAxis = new Rickshaw.Graph.Axis.Time({
-          graph: _graph
+          graph: _graph,
+          timeUnit: this.localeTimeUnit()
         });
 
         yAxis = new Rickshaw.Graph.Axis.Y({
@@ -522,4 +539,17 @@ App.ChartLinearTimeView.TimeElapsedFormatter = function (millis) {
     }
   }
   return value;
+};
+
+/**
+ * A time unit which can be used for showing 15 minute intervals on X axis.
+ * 
+ * @type Rickshaw.Fixtures.Time
+ */
+App.ChartLinearTimeView.FifteenMinuteTimeUnit = {
+  name: '15 minute',
+  seconds: 60 * 15,
+  formatter: function (d) {
+    return d.toLocaleString().match(/(\d+:\d+):/)[1];
+  }
 };
