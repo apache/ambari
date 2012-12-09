@@ -201,7 +201,9 @@ App.MainServiceInfoSummaryView = Em.View.extend({
     var components = this.get('clientComponents');
     var names = [];
     components.forEach(function (component) {
-      names.push(component.get('displayName'));
+      if (names.indexOf(component.get('displayName')) == -1) {
+        names.push(component.get('displayName'));
+      }
     });
 
     return names.length ? names.join(', ') : false;

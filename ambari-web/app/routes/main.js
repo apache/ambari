@@ -92,8 +92,55 @@ module.exports = Em.Route.extend({
 
   hosts:Em.Route.extend({
     route:'/hosts',
-    connectOutlets:function (router, context) {
-      router.get('mainController').connectOutlet('mainHost');
+    index:Ember.Route.extend({
+      route:'/',
+      connectOutlets:function (router, context) {
+        router.get('mainController').connectOutlet('mainHost');
+      }
+    }),
+
+    hostDetails:Em.Route.extend({
+      route:'/:host_id',
+      connectOutlets:function (router, host) {
+        router.get('mainController').connectOutlet('mainHostDetails', host);
+      },
+
+      index:Ember.Route.extend({
+        route:'/',
+        redirectsTo:'summary'
+      }),
+
+      summary:Em.Route.extend({
+        route:'/summary',
+        connectOutlets:function (router, context) {
+          router.get('mainHostDetailsController').connectOutlet('mainHostSummary');
+        }
+      }),
+
+      metrics:Em.Route.extend({
+        route:'/metrics',
+        connectOutlets:function (router, context) {
+          router.get('mainHostDetailsController').connectOutlet('mainHostMetrics');
+        }
+      }),
+
+      audit:Em.Route.extend({
+        route:'/audit',
+        connectOutlets:function (router, context) {
+          router.get('mainHostDetailsController').connectOutlet('mainHostAudit');
+        }
+      }),
+
+      hostNavigate:function (router, event) {
+        var parent = event.view._parentView;
+        parent.deactivateChildViews();
+        event.view.set('active', "active");
+        router.transitionTo(event.context);
+      }
+    }),
+
+    backToHostsList:function (router, event) {
+      router.transitionTo('hosts.index');
     },
 
     showDetails:function (router, event) {
@@ -108,50 +155,6 @@ module.exports = Em.Route.extend({
   }),
 
   hostAdd:require('routes/add_host_routes'),
-
-  hostDetails:Em.Route.extend({
-    route:'/hosts/:host_id',
-    connectOutlets:function (router, host) {
-      router.get('mainController').connectOutlet('mainHostDetails', host);
-    },
-
-    index:Ember.Route.extend({
-      route:'/',
-      redirectsTo:'summary'
-    }),
-
-    backToHostsList:function (router, event) {
-      router.transitionTo('hosts');
-    },
-
-    summary:Em.Route.extend({
-      route:'/summary',
-      connectOutlets:function (router, context) {
-        router.get('mainHostDetailsController').connectOutlet('mainHostSummary');
-      }
-    }),
-
-    metrics:Em.Route.extend({
-      route:'/metrics',
-      connectOutlets:function (router, context) {
-        router.get('mainHostDetailsController').connectOutlet('mainHostMetrics');
-      }
-    }),
-
-    audit:Em.Route.extend({
-      route:'/audit',
-      connectOutlets:function (router, context) {
-        router.get('mainHostDetailsController').connectOutlet('mainHostAudit');
-      }
-    }),
-
-    hostNavigate:function (router, event) {
-      var parent = event.view._parentView;
-      parent.deactivateChildViews();
-      event.view.set('active', "active");
-      router.transitionTo(event.context);
-    }
-  }),
 
   admin:Em.Route.extend({
     route:'/admin',

@@ -44,7 +44,7 @@ App.MainDashboardServiceMapreduceView = App.MainDashboardServiceView.extend({
     var waitingCount = svc.get('mapsWaiting') + svc.get('reducesWaiting');
     var template = this.t('dashboard.services.mapreduce.summary');
     return template.format(liveCount, allCount, runningCount, waitingCount);
-  }.property('service'),
+  }.property('service.aliveTrackers', 'service.taskTrackers','service.mapsRunning', 'service.mapsWaiting', 'service.reducesRunning', 'service.reducesWaiting'),
 
   trackersSummary: function () {
     var svc = this.get('service');
@@ -52,52 +52,56 @@ App.MainDashboardServiceMapreduceView = App.MainDashboardServiceView.extend({
     var totalCount = svc.get('taskTrackers').get('length');
     var template = this.t('dashboard.services.mapreduce.trackersSummary');
     return template.format(liveCount, totalCount);
-  }.property('service'),
+  }.property('service.aliveTrackers', 'service.taskTrackers'),
 
   trackersHeapSummary: function () {
     var heapUsed = this.get('service').get('jobTrackerHeapUsed') || 90;
     var heapMax = this.get('service').get('jobTrackerHeapMax') || 90;
     var percent = heapMax > 0 ? 100 * heapUsed / heapMax : 0;
     return this.t('dashboard.services.mapreduce.jobTrackerHeapSummary').format(heapUsed.bytesToSize(1, "parseFloat"), heapMax.bytesToSize(1, "parseFloat"), percent.toFixed(1));
-  }.property('service'),
+  }.property('service.jobTrackerHeapUsed', 'service.jobTrackerHeapMax'),
 
   jobsSummary: function () {
     var svc = this.get('service');
     var template = this.t('dashboard.services.mapreduce.jobsSummary');
     return template.format(svc.get('jobsSubmitted'), svc.get('jobsCompleted'));
-  }.property('service'),
+  }.property('service.jobsSubmitted', 'service.jobsCompleted'),
 
   mapSlotsSummary: function () {
     var svc = this.get('service');
     var template = this.t('dashboard.services.mapreduce.mapSlotsSummary');
     return template.format(svc.get('mapSlotsOccupied'), svc.get('mapSlotsReserved'));
-  }.property('service'),
+  }.property('service.mapSlotsOccupied', 'service.mapSlotsReserved'),
 
   reduceSlotsSummary: function () {
     var svc = this.get('service');
     var template = this.t('dashboard.services.mapreduce.reduceSlotsSummary');
     return template.format(svc.get('reduceSlotsOccupied'), svc.get('reduceSlotsReserved'));
-  }.property('service'),
+  }.property('service.reduceSlotsOccupied', 'service.reduceSlotsReserved'),
 
   mapTasksSummary: function () {
     var svc = this.get('service');
     var template = this.t('dashboard.services.mapreduce.tasksSummary');
     return template.format(svc.get('mapsRunning'), svc.get('mapsWaiting'));
-  }.property('service'),
+  }.property('service.mapsRunning', 'service.mapsWaiting'),
 
   reduceTasksSummary: function () {
     var svc = this.get('service');
     var template = this.t('dashboard.services.mapreduce.tasksSummary');
     return template.format(svc.get('reducesRunning'), svc.get('reducesWaiting'));
-  }.property('service'),
+  }.property('service.reducesRunning', 'service.reducesWaiting'),
 
   slotsCapacitySummary: function () {
     var mapSlots = this.get('service').get('mapSlots');
     var reduceSlots = this.get('service').get('reduceSlots');
     var liveNodeCount = this.get('service').get('aliveTrackers').get('length');
-    var avg = (mapSlots + reduceSlots) / liveNodeCount;
+    if(liveNodeCount != 0){
+      var avg = (mapSlots + reduceSlots) / liveNodeCount;
+    }else{
+      avg = "n/a ";
+    }
     return this.t('dashboard.services.mapreduce.slotCapacitySummary').format(mapSlots, reduceSlots, avg);
-  }.property('service'),
+  }.property('service.mapSlots', 'service.reduceSlots', 'service.aliveTrackers'),
 
   taskTrackerComponent: function () {
     return App.Component.find().findProperty('componentName', 'TASKTRACKER');

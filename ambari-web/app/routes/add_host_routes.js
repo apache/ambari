@@ -182,8 +182,12 @@ module.exports = Em.Route.extend({
       var addHostController = router.get('addHostController');
       var wizardStep9Controller = router.get('wizardStep9Controller');
       if (!wizardStep9Controller.get('isSubmitDisabled')) {
+        if (wizardStep9Controller.get('content.cluster.status') !== 'START FAILED') {
         addHostController.installServices();
         addHostController.setInfoForStep9();
+        } else {
+          wizardStep9Controller.set('content.cluster.isCompleted', false);
+        }
         wizardStep9Controller.navigateStep();
       }
     },
@@ -219,7 +223,7 @@ module.exports = Em.Route.extend({
   }),
 
   backToHostsList: function (router, event) {
-    router.transitionTo('hosts');
+    router.transitionTo('hosts.index');
   },
 
   gotoStep1: Em.Router.transitionTo('step1'),

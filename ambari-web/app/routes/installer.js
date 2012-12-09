@@ -275,8 +275,12 @@ module.exports = Em.Route.extend({
       var installerController = router.get('installerController');
       var wizardStep9Controller = router.get('wizardStep9Controller');
       if (!wizardStep9Controller.get('isSubmitDisabled')) {
+        if (wizardStep9Controller.get('content.cluster.status') !== 'START FAILED') {
         installerController.installServices(true);
         installerController.setInfoForStep9();
+        } else {
+          wizardStep9Controller.set('content.cluster.isCompleted', false);
+        }
         wizardStep9Controller.navigateStep();
       }
     },

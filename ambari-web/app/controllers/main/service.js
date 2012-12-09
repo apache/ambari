@@ -20,7 +20,12 @@ var App = require('app');
 
 App.MainServiceController = Em.ArrayController.extend({
   name:'mainServiceController',
-  content: App.Service.find(),
+  content: function(){
+    if(!App.router.get('clusterController.isLoaded')){
+      return [];
+    }
+    return App.Service.find();
+  }.property('App.router.clusterController.isLoaded'),
   additionalMenuItem:Em.Object.create({ id:'Clients', displayName:'Clients', isClients:true }),
   isAdmin: function(){
     return App.db.getUser().admin;

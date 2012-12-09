@@ -49,15 +49,18 @@ App.WizardStep9Controller = Em.Controller.extend({
 
   navigateStep: function () {
     if (this.get('content.cluster.isCompleted') === false) {
-      this.loadStep();
       if (this.get('content.cluster.status') === 'INSTALL FAILED') {
+        this.loadStep();
         this.hosts.setEach('status', 'failed');
         this.set('progress', '100');
         this.set('isStepCompleted', true);
         //this.set('status', 'failed');
       } else if (this.get('content.cluster.status') === 'START FAILED') {
+        this.hosts.setEach('status', 'info');
+        this.set('isStepCompleted', false);
         this.launchStartServices();
       } else {
+        this.loadStep();
         this.startPolling();
       }
     } else {
@@ -288,7 +291,6 @@ App.WizardStep9Controller = Em.Controller.extend({
     var progress = 0;
     var actionsPerHost = actions.length;
     var completedActions = actions.filterProperty('Tasks.status', 'COMPLETED').length
-      + actions.filterProperty('Tasks.status', 'IN_PROGRESS').length
       + actions.filterProperty('Tasks.status', 'FAILED').length
       + actions.filterProperty('Tasks.status', 'ABORTED').length
       + actions.filterProperty('Tasks.status', 'TIMEDOUT').length;
@@ -421,7 +423,6 @@ App.WizardStep9Controller = Em.Controller.extend({
   },
 
   setTasksPerHost: function () {
-    console.log("In setTasksPerHost fo step9*****************");
     var tasksData = this.get('polledData');
     this.get('hosts').forEach(function (_host) {
       var tasksPerHost = tasksData.filterProperty('Tasks.host_name', _host.name); // retrieved from polled Data

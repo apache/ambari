@@ -211,17 +211,18 @@ App.AddServiceController = Em.Controller.extend({
   loadConfirmedHosts: function(){
     var hosts = App.db.getHosts();
     if(!hosts){
-    var hosts = {};
+      var hosts = {};
 
-    App.Host.find().forEach(function(item){
-      hosts[item.get('id')] = {
-        name: item.get('id'),
-        cpu: item.get('cpu'),
-        memory: item.get('memory'),
-        bootStatus: "success",
-        isInstalled: true
-      };
-    });
+      App.Host.find().forEach(function(item){
+        hosts[item.get('id')] = {
+          name: item.get('id'),
+          cpu: item.get('cpu'),
+          memory: item.get('memory'),
+          bootStatus: "DONE",
+          isInstalled: true
+        };
+      });
+      App.db.setHosts(hosts);
     }
 
     this.set('content.hostsInfo', hosts);

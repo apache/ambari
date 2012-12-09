@@ -77,33 +77,25 @@ App.UpdateController = Em.Controller.extend({
         if (view) {
           existedGraphs.push(_graph);
           console.log('updated graph', _graph.name);
-          view.$(".chart-container").children().each(function (index, value) {
-            $(value).children().remove();
-          });
           view.loadData();
-          //if graph opened as modal popup
-          if($(".modal-graph-line .modal-body #" + _graph.popupId + "-container-popup").length){
-            view.$(".chart-container").children().each(function (index, value) {
-              $(value).children().remove();
-            });
-            $(".modal-graph-line .modal-body #" + _graph.popupId + "-container-popup").children().each(function (index, value) {
-              $(value).children().remove();
-            });
-            view.set('isPopup', true);
+          //if graph opened as modal popup update it to
+          if($(".modal-graph-line .modal-body #" + _graph.popupId + "-container-popup").length) {
             view.loadData();
           }
         }
       });
       this.set('graphs', existedGraphs);
   },
-  updateServiceMetric:function(){
-
+  updateServiceMetric:function(callback){
+    var self = this;
+    self.set('isUpdated', false);
     var servicesUrl = this.getUrl('/data/dashboard/services.json', '/services?ServiceInfo/service_name!=MISCELLANEOUS&ServiceInfo/service_name!=DASHBOARD&fields=*,components/host_components/*');
+    var callback = callback || function(jqXHR, textStatus){
+      self.set('isUpdated', true);
+    };
 
     App.HttpClient.get(servicesUrl, App.servicesMapper, {
-      complete:function (jqXHR, textStatus) {
-
-      }
+      complete: callback
     });
   }
 

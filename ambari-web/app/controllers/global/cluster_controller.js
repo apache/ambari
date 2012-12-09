@@ -345,8 +345,9 @@ App.ClusterController = Em.Controller.extend({
       self.updateLoadStatus('users');
     });
 
-    //TODO: define dependencies and delete next line
-    self.updateLoadStatus('services');
+    App.router.get('updateController').updateServiceMetric(function(){
+      self.updateLoadStatus('services');
+    });
 
     setTimeout(function(){
       self.set('updateStatus', true);

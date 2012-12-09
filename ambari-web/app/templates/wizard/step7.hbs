@@ -36,8 +36,8 @@
 
   <div class="accordion">
     {{#each category in selectedService.configCategories}}
-    <div class="accordion-group">
-      <div class="accordion-heading">
+    <div class="accordion-group {{unbound category.name}}">
+      <div class="accordion-heading" {{action "onToggleBlock" category.name target="view"}}>
         <a class="accordion-toggle">
           {{category.name}}
         </a>

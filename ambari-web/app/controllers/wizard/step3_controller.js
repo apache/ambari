@@ -48,11 +48,6 @@ App.WizardStep3Controller = Em.Controller.extend({
         this.startBootstrap();
       }
     } else {
-      // TODO: assume manually bootstrapped hosts are all successful for now
-      this.get('hosts').forEach(function (_host) {
-        _host.set('bootStatus', 'DONE');
-        _host.set('bootLog', 'Success');
-      });
       this.set('bootHosts', this.get('hosts'));
       this.isHostsRegistered(this.getHostInfo);
     }
@@ -60,6 +55,7 @@ App.WizardStep3Controller = Em.Controller.extend({
 
   clearStep: function () {
     this.hosts.clear();
+    this.bootHosts.clear();
   },
 
   loadStep: function () {
@@ -166,10 +162,12 @@ App.WizardStep3Controller = Em.Controller.extend({
         });
 
         //TODO: uncomment below code to hookup with @GET bootstrap API
-        /*
-         self.set('bootHosts',selectedHosts);
-         self.doBootstrap();
-         */
+        self.set('bootHosts', hosts);
+        if (self.get('content.hosts.manualInstall') !== true) {
+          self.doBootstrap();
+        } else {
+          self.isHostsRegistered(self.getHostInfo);
+        }
         this.hide();
       },
       body: Em.I18n.t('installer.step3.hosts.retry.popup.body')
@@ -237,7 +235,9 @@ App.WizardStep3Controller = Em.Controller.extend({
     //TODO: uncomment following line after the hook up with the API call
     console.log('stopBootstrap() called');
     // this.set('isSubmitDisabled',false);
-    this.startRegistration();
+    Ember.run.later(this, function(){
+      this.startRegistration();
+    }, 1000);
   },
 
   startRegistration: function () {
@@ -255,7 +255,7 @@ App.WizardStep3Controller = Em.Controller.extend({
       timeout: App.timeout,
       success: function (data) {
         var jsonData;
-        if (App.testMode) {
+        if (App.testMode === true) {
           jsonData = data;
         } else {
           jsonData = jQuery.parseJSON(data);
@@ -276,7 +276,16 @@ App.WizardStep3Controller = Em.Controller.extend({
             return;
           }
         }
-        if (hosts.length === jsonData.items.length) {
+        var flag = true;
+        hosts.forEach(function (_host) {
+          if (jsonData.items.someProperty('Hosts.host_name', _host.name)) {
+            _host.set('bootStatus', 'DONE');
+            _host.set('bootLog', 'Success');
+          } else {
+            flag = false;
+          }
+        }, this);
+        if (flag) {
           callback.apply(self);
         } else {
           self.registerErrPopup(Em.I18n.t('installer.step3.hostRegister.popup.header'), Em.I18n.t('installer.step3.hostRegister.popup.body'));
@@ -284,7 +293,6 @@ App.WizardStep3Controller = Em.Controller.extend({
       },
       error: function () {
         console.log('Error: Getting registered host information from the server');
-        self.stopBootstrap();
       },
       statusCode: require('data/statusCodes')
     });

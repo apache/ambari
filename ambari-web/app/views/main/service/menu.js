@@ -20,14 +20,11 @@ var App = require('app');
 
 App.MainServiceMenuView = Em.CollectionView.extend({
   content:function () {
-    var items = App.router.get('mainServiceController.content').toArray();
-
-    var itemsToRemove = ['PIG', 'SQOOP'];
-
-    items.forEach(function (item) {
-      if (itemsToRemove.indexOf(item.get('serviceName')) != -1) {
-        items.removeObject(item);
+    var items = App.router.get('mainServiceController.content').filter(function(item){
+      if(['PIG', 'SQOOP'].contains(item.get('id'))){
+        return false;
       }
+      return true;
     });
 
     items.push(App.router.get('mainServiceController.additionalMenuItem'));

@@ -28,11 +28,11 @@ App.MainDashboardServiceHbaseView = App.MainDashboardServiceView.extend({
     var heapString = heapUsed>0 ? heapUsed.bytesToSize(1, "parseFloat") : 0;
     var heapMaxString = heapMax>0 ? heapMax.bytesToSize(1, "parseFloat") : 0;
     return this.t('dashboard.services.hbase.masterServerHeap.summary').format(heapString, heapMaxString, percent.toFixed(1));
-  }.property('service'),
+  }.property('service.heapMemoryUsed', 'service.heapMemoryMax'),
 
   summaryHeader: function () {
     return this.t("dashboard.services.hbase.summary").format(this.get('service.regionServers.length'), this.get('service.averageLoad'));
-  }.property('service'),
+  }.property('service.regionServers', 'service.averageLoad'),
 
   hbaseMasterWebUrl: function () {
     return "http://" + this.get('service').get('master').get('publicHostName') + ":60010";
@@ -40,19 +40,19 @@ App.MainDashboardServiceHbaseView = App.MainDashboardServiceView.extend({
 
   averageLoad: function () {
     return this.t('dashboard.services.hbase.averageLoadPerServer').format(this.get('service.averageLoad'));
-  }.property("service"),
+  }.property("service.averageLoad"),
 
   masterStartedTime: function () {
     var uptime = this.get('service').get('masterStartTime');
     var formatted = (new Date().getTime() - uptime).toDaysHoursMinutes();
     return this.t('dashboard.services.uptime').format(formatted.d, formatted.h, formatted.m);
-  }.property("service"),
+  }.property("service.masterStartTime"),
 
   masterActivatedTime: function () {
     var uptime = this.get('service').get('masterActiveTime');
     var formatted = (new Date().getTime() - uptime).toDaysHoursMinutes();
     return this.t('dashboard.services.uptime').format(formatted.d, formatted.h, formatted.m);
-  }.property("service"),
+  }.property("service.masterActiveTime"),
 
   regionServerComponent: function () {
     return App.Component.find().findProperty('componentName', 'HBASE_REGIONSERVER');

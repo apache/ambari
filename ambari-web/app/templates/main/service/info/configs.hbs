@@ -138,19 +138,11 @@
     {{#each category in selectedService.configCategories}}
 
       <div class="accordion-group">
-        {{#if category.isAdvanced}}
         <div class="accordion-heading">
           <a class="accordion-toggle" {{action "onToggleBlock" category.name target="view"}}>
             {{category.name}}
           </a>
         </div>
-        {{else}}
-        <div class="accordion-heading">
-          <a class="accordion-toggle">
-            {{category.name}}
-          </a>
-        </div>
-        {{/if}}
 
         {{#unless category.isForSlaveComponent}}
           {{#view App.ServiceConfigsByCategoryView categoryBinding="category" serviceConfigsBinding="selectedService.configs"}}

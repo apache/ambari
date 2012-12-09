@@ -23,8 +23,6 @@ App.MainServiceInfoConfigsView = Em.View.extend({
   didInsertElement: function () {
     var controller = this.get('controller');
     controller.loadStep();
-    var advanced = this.get('controller.selectedService.configCategories').filterProperty('name', 'Advanced');
-    if(advanced.length) advanced.objectAt(0).set('isAdvanced', true);
   },
   onToggleBlock: function(event){
     $("#" + event.context).toggle('blind', 500);

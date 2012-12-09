@@ -22,6 +22,8 @@ App.MainChartsHeatmapView = Em.View.extend({
     templateName: require('templates/main/charts/heatmap'),
     didInsertElement: function(){
       this._super();
+      // set default metric
+      this.set('controller.selectedMetric', this.get('controller.allMetrics')[0].get('items')[0]);
       $("#heatmapDetailsBlock").hide();
     }
 });

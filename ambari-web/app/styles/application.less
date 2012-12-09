@@ -321,11 +321,24 @@ h1 {
   }
   .accordion-group {
     margin-bottom: 20px;
+    .control-label {
+      text-align: left;
+    }
     .control-group {
       margin: 10px 0;
     }
     form {
       margin-bottom: 0;
+    }
+  }
+  .accordion-group.Advanced {
+    .control-label {
+      float: none;
+      text-align: left;
+      width: auto;
+    }
+    .controls {
+      margin-left: 0;
     }
   }
   .badge {

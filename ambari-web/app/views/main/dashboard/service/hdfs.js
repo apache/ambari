@@ -21,12 +21,11 @@ var App = require('app');
 App.MainDashboardServiceHdfsView = App.MainDashboardServiceView.extend({
   templateName:require('templates/main/dashboard/service/hdfs'),
   serviceName:'HDFS',
-
   Chart:App.ChartPieView.extend({
     service: null,
     data:function () {
       return [ this.get('service.capacityUsed'), this.get('service.capacityTotal') ];
-    }.property('service')
+    }.property('service.capacityUsed', 'service.capacityTotal')
   }),
 
   nodeUptime:function () {
@@ -48,7 +47,7 @@ App.MainDashboardServiceHdfsView = App.MainDashboardServiceView.extend({
       memCommitted.bytesToSize(1, 'parseFloat'),
       percent.toFixed(1));
 
-  }.property('service'),
+  }.property('service.jvmMemoryHeapUsed', 'service.jvmMemoryHeapCommitted'),
 
   summaryHeader:function () {
     var text = this.t("dashboard.services.hdfs.summary");
@@ -58,16 +57,23 @@ App.MainDashboardServiceHdfsView = App.MainDashboardServiceView.extend({
     var total = svc.get('capacityTotal') + 0;
     var used = svc.get('capacityUsed') + 0;
     var percentRemaining = (100-Math.round((used*100)/total)).toFixed(1);
+    if(percentRemaining == "NaN")
+    {
+      percentRemaining = "n/a ";
+    }
     return text.format(liveCount, totalCount, percentRemaining);
-  }.property('service'),
+  }.property('service.liveDataNodes', 'service.dataNodes', 'service.capacityUsed', 'service.capacityTotal'),
 
   capacity:function () {
     var text = this.t("dashboard.services.hdfs.capacityUsed");
     var total = this.get('service').get('capacityTotal') + 0;
     var used = this.get('service').get('capacityUsed') + 0;
     var percent = Math.round((used*100)/total).toFixed(1);
+    if(percent == "NaN"){
+      percent = "n/a ";
+    }
     return text.format(used.bytesToSize(1), total.bytesToSize(1), percent);
-  }.property('service'),
+  }.property('service.capacityUsed', 'service.capacityTotal'),
   
   dataNodeComponent: function(){
     return App.Component.find().findProperty('componentName', 'DATANODE');

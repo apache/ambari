@@ -26,6 +26,9 @@ App.WizardStep7View = Em.View.extend({
   didInsertElement: function () {
     var controller = this.get('controller');
     controller.loadStep();
+  },
+  onToggleBlock: function(event){
+    $("#" + event.context).toggle('blind', 500);
   }
 
 });
@@ -46,8 +49,10 @@ App.WizardStep7.ServiceConfigsByCategoryView = Ember.View.extend({
   categoryConfigs: function () {
     return this.get('serviceConfigs').filterProperty('category', this.get('category.name'))
   }.property('serviceConfigs.@each').cacheable(),
-
-  layout: Ember.Handlebars.compile('<div class="accordion-body collapse in"><div class="accordion-inner">{{yield}}</div></div>')
+  didInsertElement: function(){
+    $("#Advanced").hide();
+  },
+  layout: Ember.Handlebars.compile('<div {{bindAttr id="view.category.name"}} class="accordion-body collapse in"><div class="accordion-inner">{{yield}}</div></div>')
 });
 
 App.WizardStep7.ServiceConfigTab = Ember.View.extend({

@@ -43,7 +43,7 @@ App.WizardStep7Controller = Em.Controller.extend({
   }.property('stepConfigs.@each.errorCount'),
 
   selectedServiceNames: function () {
-    return this.get('content.services').filterProperty('isSelected', true).mapProperty('serviceName');
+    return this.get('content.services').filterProperty('isSelected', true).filterProperty('isInstalled', false).mapProperty('serviceName');
   }.property('content.services').cacheable(),
 
   masterComponentHosts: function () {

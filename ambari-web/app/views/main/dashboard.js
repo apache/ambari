@@ -24,11 +24,30 @@ App.MainDashboardView = Em.View.extend({
     this.services();
   },
   content:[],
-  services:function () {
-    if (this.get('content').length > 0) {
-      return false;
-    }
+  updateServices: function(){
     var services = App.Service.find();
+    services.forEach(function (item) {
+      var view;
+      switch (item.get('serviceName')) {
+        case "HDFS":
+          view = this.get('content').filterProperty('viewName', App.MainDashboardServiceHdfsView);
+          view.objectAt(0).set('model', App.HDFSService.find(item.get('id')));
+          break;
+        case "MAPREDUCE":
+          view = this.get('content').filterProperty('viewName', App.MainDashboardServiceMapreduceView);
+          view.objectAt(0).set('model', App.MapReduceService.find(item.get('id')));
+          break;
+        case "HBASE":
+          view = this.get('content').filterProperty('viewName', App.MainDashboardServiceHbaseView);
+          view.objectAt(0).set('model', App.HBaseService.find(item.get('id')));
+      }
+    }, this);
+  }.observes('App.router.updateController.isUpdate'),
+  services: function () {
+    var services = App.Service.find();
+    if (this.get('content').length > 0) {
+      return false
+    }
     services.forEach(function (item) {
       var vName;
       var item2;
@@ -57,14 +76,13 @@ App.MainDashboardView = Em.View.extend({
         default:
           vName = Em.View;
       }
-      this.get('content').pushObject({
-        viewName:vName,
-        model:item2 || item
-      })
+      this.get('content').pushObject(Em.Object.create({
+        viewName: vName,
+        model: item2
+      }))
     }, this);
+  },
 
-  }.observes('App.router.updateController.isUpdated'),
-  
   gangliaUrl: function () {
     return App.router.get('clusterController.gangliaUrl') + "/?r=hour&cs=&ce=&m=&s=by+name&c=HDPSlaves&tab=m&vn=";
   }.property('App.router.clusterController.gangliaUrl')

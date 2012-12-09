@@ -247,7 +247,20 @@ App.ChartLinearTimeView = Ember.View.extend({
       _refreshGraph: function (jsonData) {
         var seriesData = this.transformToSeries(jsonData);
         if (seriesData instanceof Array && seriesData.length>0) {
-            this.draw(seriesData);
+          //if graph opened as modal popup
+          var popup_path = $(".modal-graph-line .modal-body #" + this.id + "-container" + this.get('popupSuffix'));
+          if(popup_path.length) {
+            popup_path.children().each(function () {
+              $(this).children().remove();
+            });
+            this.set('isPopup', true);
+          }
+          else {
+            $("#" + this.id + "-container").children().each(function (index, value) {
+              $(value).children().remove();
+            });
+          }
+          this.draw(seriesData);
         }
         else {
           this._showMessage('info', 'No Data', 'There was no data available.');

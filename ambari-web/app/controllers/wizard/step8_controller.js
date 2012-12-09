@@ -734,6 +734,10 @@ App.WizardStep8Controller = Em.Controller.extend({
     var clusterName = this.get('clusterInfo').findProperty('config_name', 'cluster').config_value;
     var url = App.apiPrefix + '/clusters/' + clusterName + '/hosts';
     var data = this.createRegisterHostData();
+    if(data.length == 0){
+      return;
+    }
+
     $.ajax({
       type: 'POST',
       url: url,
@@ -1079,6 +1083,8 @@ App.WizardStep8Controller = Em.Controller.extend({
         return {config: {'global': 'version1', 'core-site': 'version1', 'hbase-site': 'version1'}};
       case 'OOZIE':
         return {config: {'global': 'version1', 'core-site': 'version1', 'oozie-site': 'version1'}};
+      default:
+        return {config: {'global': 'version1'}};
     }
   }
 
