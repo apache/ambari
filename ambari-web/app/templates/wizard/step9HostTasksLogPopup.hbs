@@ -19,17 +19,27 @@
 <p>Click on the task to see the log:</p>
 <div id="host-log">
   {{#each role in view.roles}}
-    {{#each taskInfo in role.taskInfos}}
-    <div>
-      <a href="#" {{action toggleTaskLog taskInfo}}>{{#if taskInfo.isLogHidden}}Show{{else}}Hide{{/if}} {{role.roleName}} {{taskInfo.command}} log ({{taskInfo.status}})</a>
-      <div {{bindAttr class="taskInfo.isLogHidden:hidden"}}>
+  {{#each taskInfo in role.taskInfos}}
+  <div>
+    <a href="#" {{action toggleTaskLog taskInfo}}>{{#if taskInfo.isLogHidden}}Show{{else}}Hide{{/if}} {{role.roleName}}
+      {{taskInfo.command}} log ({{taskInfo.status}})</a>
+    <div class="content-area" {{bindAttr class="taskInfo.isLogHidden:hidden"}}>
+      <div class="textTrigger" {{action "textTrigger" taskInfo target="view"}}>{{taskInfo.buttonLabel}}</div>
+      {{#if taskInfo.isTextArea}}
+      <div>
+        {{view view.textArea contentBinding="taskInfo" roleBinding="role"}}
+      </div>
+      {{else}}
+      <div>
         <h5>stderr:</h5>
         <pre class="stderr">{{taskInfo.stderr}}</pre>
         <h5>stdout:</h5>
         <pre class="stdout">{{taskInfo.stdout}}</pre>
       </div>
+      {{/if}}
     </div>
-    {{/each}}
+  </div>
+  {{/each}}
   {{/each}}
 </div>
 

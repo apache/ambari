@@ -271,7 +271,13 @@ App.WizardStep3Controller = Em.Controller.extend({
 
         // keep polling until all hosts are registered
         var allRegistered = true;
-        hosts.forEach(function (_host) {
+        hosts.forEach(function (_host, index) {
+          // Change name of first host for test mode.
+          if (App.testMode === true) {
+            if (index == 0) {
+              _host.set('name', 'localhost.localdomain');
+            }
+          }
           if (jsonData.items.someProperty('Hosts.host_name', _host.name)) {
             if (_host.get('bootStatus') != 'REGISTERED') {
               _host.set('bootStatus', 'REGISTERED');
@@ -398,7 +404,7 @@ App.WizardStep3Controller = Em.Controller.extend({
         host: host,
         didInsertElement: function () {
           var self = this;
-          var button = $(this.get('element')).find('#textTrigger');
+          var button = $(this.get('element')).find('.textTrigger');
           button.click(function () {
             if(self.get('isTextArea')){
               $(this).text('click to highlight');
@@ -428,7 +434,7 @@ App.WizardStep3Controller = Em.Controller.extend({
             element.select();
             element.css('resize', 'none');
           },
-          disabled: true,
+          readOnly: true,
           value: function(){
             return this.get('content');
           }.property('content')

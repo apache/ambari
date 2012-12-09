@@ -140,7 +140,7 @@ App.HostStatusView = Em.View.extend({
 
         roles: function () {
           var roleArr = [];
-          var tasks = this.get('startedTasks');
+          var tasks = this.getStartedTasks(host);
           if (tasks.length) {
             var _roles = tasks.mapProperty('Tasks.role').uniq();
             _roles.forEach(function (_role) {
@@ -148,11 +148,16 @@ App.HostStatusView = Em.View.extend({
               var roleObj = {};
               roleObj.roleName = App.format.role(_role);
               tasks.filterProperty('Tasks.role', _role).forEach(function (_task) {
-                var taskInfo = Ember.Object.create();
+                var taskInfo = Ember.Object.create({
+                  isTextArea: false,
+                  buttonLabel: function(){
+                    return (this.get('isTextArea')) ? 'Press CTRL+C': 'Click to highlight';
+                  }.property('isTextArea')
+                });
                 taskInfo.set('command', _task.Tasks.command.toLowerCase());
                 taskInfo.set('status', App.format.taskStatus(_task.Tasks.status));
                 taskInfo.set('url', _task.href);
-                taskInfo.set('isLogHidden', true);
+                taskInfo.set('isLogHidden', false);
                 taskInfos.pushObject(taskInfo);
               }, this);
               roleObj.taskInfos = taskInfos;
@@ -164,7 +169,26 @@ App.HostStatusView = Em.View.extend({
 
         didInsertElement: function () {
           console.log('The value of event context is: ' + host.name);
-          this.set('startedTasks', this.getStartedTasks(host));
+          this.get('roles').forEach(function(role){
+            role.taskInfos.forEach(function(task){
+              task.set('isLogHidden', true);
+            });
+          });
+          $(this.get('element')).find('.content-area').each(function(index, value){
+            var button = $(value).find('.textTrigger');
+            $(value).mouseenter(
+              function () {
+                var element = $(this);
+                element.css('border', '1px solid #dcdcdc');
+                button.css('visibility', 'visible');
+              }).mouseleave(
+              function () {
+                var element = $(this);
+                element.css('border', 'none');
+                button.css('visibility', 'hidden');
+              })
+          });
+
         },
 
         getStartedTasks: function (host) {
@@ -187,6 +211,7 @@ App.HostStatusView = Em.View.extend({
                 taskInfo.set('stdout', task.Tasks.stdout);
                 taskInfo.set('stderr', task.Tasks.stderr);
                 taskInfo.set('isLogHidden', false);
+                taskInfo.set('isTextArea', false);
               },
               error: function () {
                 alert('Failed to retrieve task log');
@@ -195,7 +220,29 @@ App.HostStatusView = Em.View.extend({
           } else {
             taskInfo.set('isLogHidden', true);
           }
-        }
+        },
+        textTrigger: function(event){
+          var task = event.context;
+          task.set('isTextArea', !task.get('isTextArea'));
+        },
+        textArea: Em.TextArea.extend({
+          didInsertElement: function(){
+            var element = $(this.get('element'));
+            element.width($(this.get('parentView').get('element')).width() - 10);
+            element.height($(this.get('parentView').get('element')).height());
+            element.select();
+            element.css('resize', 'none');
+          },
+          readOnly: true,
+          value: function(){
+            var taskInfo = this.get('content');
+            var content = "";
+            content += this.get('role').role  + " " + taskInfo.command + " log " + taskInfo.status + "\n";
+            content += "stderr: " + taskInfo.stderr + "\n";
+            content += "stdout: " + taskInfo.stdout + "\n";
+            return content;
+          }.property('content')
+        })
       })
     });
   }

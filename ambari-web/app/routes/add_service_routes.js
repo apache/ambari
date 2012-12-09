@@ -24,6 +24,24 @@ module.exports = Em.Route.extend({
     if (App.db.getUser().admin) {
       Em.run.next(function () {
         var addServiceController = router.get('addServiceController');
+        App.ModalPopup.show({
+          classNames: ['full-width-modal'],
+          header:Em.I18n.t('services.add.header'),
+          bodyClass:  App.AddServiceView.extend({
+            controllerBinding: 'App.router.addServiceController'
+          }),
+          primary:Em.I18n.t('form.cancel'),
+          secondary: null,
+
+          onPrimary:function () {
+            this.hide();
+            App.router.transitionTo('main.services');
+          },
+          onClose: function() {
+            this.hide();
+            App.router.transitionTo('main.services')
+          }
+        });
         router.transitionTo('step' + addServiceController.get('currentStep'));
       });
     } else {
@@ -34,10 +52,10 @@ module.exports = Em.Route.extend({
 
   },
 
-  connectOutlets: function (router) {
+  /*connectOutlets: function (router) {
     console.log('in /service/add:connectOutlets');
     router.get('mainController').connectOutlet('addService');
-  },
+  },*/
 
   step1: Em.Route.extend({
     route: '/step1',
@@ -221,7 +239,7 @@ module.exports = Em.Route.extend({
     complete: function (router, context) {
       if (true) {   // this function will be moved to installerController where it will validate
         router.get('addServiceController').finish();
-        router.transitionTo('services');
+        $(context.currentTarget).parents("#modal").find(".close").trigger('click');
       }
     }
   }),

@@ -359,6 +359,37 @@
   }
 }
 
+/*90% width modal window*/
+.full-width-modal {
+  .modal {
+    width: 90%;
+    margin: -350px 0 0 -45%;
+  }
+
+  .clear {
+    clear:both;
+  }
+  > div > .dataTable {
+    border: 1px solid silver;
+    th {
+      border-top:none;
+    }
+  }
+  .content {
+    padding: 0;
+  }
+
+
+//fix stripped in inner table
+  .table-striped tbody tr:nth-child(odd)
+  td .table-striped tbody
+  tr:nth-child(odd) td,
+  tr:nth-child(even) th{
+    background-color: none;
+  }
+
+}
+
 @media all and (max-width: 1024px) {
   .big-modal {
     .modal {

@@ -37,7 +37,8 @@ Em.I18n.translations = {
   'services.zookeeper.description':'ZooKeeper desc',
   'services.hbase.description':'Non-relational distributed database and centralized service for configuration management & synchronization',
 
-  'topnav.help.href':'http://incubator.apache.org/ambari/install.html',
+  'topnav.logo.href':'http://incubator.apache.org/ambari/',
+  'topnav.help.href':'https://cwiki.apache.org/confluence/display/AMBARI/Ambari',
 
   'installer.header':'Cluster Install Wizard',
   'installer.navigation.warning.header':'Navigation Warning',

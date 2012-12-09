@@ -527,19 +527,15 @@ App.InstallerController = App.WizardController.extend({
         var data = [];
 
         // loop through all the service components
-        for (var i = 0 ; i < displayOrderConfig.length ; i++) {
-          var entry = jsonData.services.filterProperty("name",displayOrderConfig[i].serviceName)[0];
-
-          // dont show the service whose isHidden is true
-          if ( displayOrderConfig[i].isHidden ) {
-            continue;
-          }
+        for (var i = 0; i < displayOrderConfig.length; i++) {
+          var entry = jsonData.services.findProperty("name", displayOrderConfig[i].serviceName);
 
           var myService = Service.create({
             serviceName: entry.name,
             displayName: displayOrderConfig[i].displayName,
             isDisabled: i === 0 ,
             isSelected: true,
+            isHidden: displayOrderConfig[i].isHidden,
             description: entry.comment,
             version: entry.version
           });

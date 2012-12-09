@@ -61,16 +61,21 @@ footer {
     font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
   }
 
-  .navbar .brand {
-    color: #666666;
-    display: block;
-    font-size: 16px;
-    font-weight: normal;
-    line-height: 1;
-    margin-left: 0;
-    margin-right: 40px;
-    margin-top: 3px;
-    padding: 14px 10px;
+  .navbar {
+    .brand {
+      color: #666666;
+      display: block;
+      font-size: 16px;
+      font-weight: normal;
+      line-height: 1;
+      margin-left: 0;
+      margin-top: 3px;
+      padding: 14px 5px 14px 10px;
+    }
+
+    .brand.cluster-name {
+      padding-left: 0px;
+    }
   }
 /*
   .navbar-inner {
@@ -110,10 +115,6 @@ footer {
     background-color: transparent;
     color: #999999;
     text-decoration: none;
-  }
-
-  .navbar .brand {
-    margin-right: 40px;
   }
 
   .navbar #logo {
@@ -1884,7 +1885,7 @@ ul.inline li {
 }
 .content-area {
   position: relative;
-  #textTrigger {
+  .textTrigger {
     cursor: pointer;
     position: absolute;
     right: 0;
@@ -1907,10 +1908,10 @@ ul.inline li {
   background-position: 0;
 }
 // COMBOBOX FIXES END
-@media all and (max-width: 1024px) {
+@media all and (max-width: 1152px) {
   #main-nav {
     li.span2 {
-      width: 125px;
+      width: 120px;
     }
   }
 }

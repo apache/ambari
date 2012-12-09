@@ -211,7 +211,7 @@ App.WizardStep9Controller = Em.Controller.extend({
     var method = 'PUT';
 
     if (App.testMode) {
-      debugger;
+      //debugger;
       url = '/data/wizard/deploy/poll_6.json';
       method = 'GET';
       this.numPolls = 6;

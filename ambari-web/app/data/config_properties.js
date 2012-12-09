@@ -617,7 +617,7 @@ module.exports =
       "isVisible": true,
       "filename": "core-site.xml",
       "serviceName": "MISC",
-      "category": "Users/Groups"
+      "category": "Users and Groups"
     },
     {
       "id": "puppet var",
@@ -1057,7 +1057,7 @@ module.exports =
       "displayType": "advanced",
       "isVisible": false,
       "serviceName": "MISC",
-      "category": "Users/Groups"
+      "category": "Users and Groups"
     },
     {
       "id": "puppet var",
@@ -1069,7 +1069,7 @@ module.exports =
       "displayType": "advanced",
       "isVisible": false,
       "serviceName": "MISC",
-      "category": "Users/Groups"
+      "category": "Users and Groups"
     },
     {
       "id": "puppet var",
@@ -1638,7 +1638,7 @@ module.exports =
       "displayType": "user",
       "isVisible": true,
       "serviceName": "MISC",
-      "category": "Users/Groups"
+      "category": "Users and Groups"
     },
     {
       "id": "puppet var",
@@ -1650,7 +1650,7 @@ module.exports =
       "displayType": "user",
       "isVisible": true,
       "serviceName": "MISC",
-      "category": "Users/Groups"
+      "category": "Users and Groups"
     },
     {
       "id": "puppet var",
@@ -1662,7 +1662,7 @@ module.exports =
       "displayType": "user",
       "isVisible": true,
       "serviceName": "MISC",
-      "category": "Users/Groups"
+      "category": "Users and Groups"
     },
     {
       "id": "puppet var",
@@ -1674,7 +1674,7 @@ module.exports =
       "displayType": "user",
       "isVisible": true,
       "serviceName": "MISC",
-      "category": "Users/Groups"
+      "category": "Users and Groups"
     },
     {
       "id": "puppet var",
@@ -1686,7 +1686,7 @@ module.exports =
       "displayType": "user",
       "isVisible": true,
       "serviceName": "MISC",
-      "category": "Users/Groups"
+      "category": "Users and Groups"
     },
     {
       "id": "puppet var",
@@ -1698,7 +1698,7 @@ module.exports =
       "displayType": "user",
       "isVisible": true,
       "serviceName": "MISC",
-      "category": "Users/Groups"
+      "category": "Users and Groups"
     },
     {
       "id": "puppet var",
@@ -1710,7 +1710,7 @@ module.exports =
       "displayType": "user",
       "isVisible": true,
       "serviceName": "MISC",
-      "category": "Users/Groups"
+      "category": "Users and Groups"
     },
     {
       "id": "puppet var",
@@ -1746,7 +1746,7 @@ module.exports =
       "displayType": "user",
       "isVisible": true,
       "serviceName": "MISC",
-      "category": "Users/Groups"
+      "category": "Users and Groups"
     },
     {
       "id": "puppet var",
@@ -1782,7 +1782,7 @@ module.exports =
       "displayType": "user",
       "isVisible": true,
       "serviceName": "MISC",
-      "category": "Users/Groups"
+      "category": "Users and Groups"
     },
     {
       "id": "puppet var",
@@ -1794,7 +1794,7 @@ module.exports =
       "displayType": "user",
       "isVisible": true,
       "serviceName": "MISC",
-      "category": "Users/Groups"
+      "category": "Users and Groups"
     },
     {
       "id": "puppet var",
@@ -1806,7 +1806,7 @@ module.exports =
       "displayType": "user",
       "isVisible": true,
       "serviceName": "MISC",
-      "category": "Users/Groups"
+      "category": "Users and Groups"
     },
     {
       "id": "puppet var",

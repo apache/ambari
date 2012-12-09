@@ -317,6 +317,7 @@ App.ChartLinearTimeView = Ember.View.extend({
           scheme: this._paletteScheme
         });
         var self = this;
+        var series_min_length = 100000000;
         seriesData.forEach(function (series, index) {
           series.color = /*this.colorForSeries(series) ||*/ palette.color();
           series.stroke = 'rgba(0,0,0,0.3)';
@@ -338,7 +339,15 @@ App.ChartLinearTimeView = Ember.View.extend({
             }
             series.name = string_utils.pad(series.name, 30, '&nbsp;', 2) + string_utils.pad('min', 5, '&nbsp;', 3) + string_utils.pad(this.get('yAxisFormatter')(min), 12, '&nbsp;', 3) + string_utils.pad('avg', 5, '&nbsp;', 3) + string_utils.pad(this.get('yAxisFormatter')(avg/series.data.length), 12, '&nbsp;', 3) + string_utils.pad('max', 12, '&nbsp;', 3) + string_utils.pad(this.get('yAxisFormatter')(max), 5, '&nbsp;', 3);
           }
+          if (series.data.length < series_min_length) {
+            series_min_length = series.data.length;
+          }
         }.bind(this));
+        seriesData.forEach(function(series, index) {
+          if (series.data.length > series_min_length) {
+            series.data.length = series_min_length;
+          }
+        });
         var chartId = "#" + this.id + "-chart" + p;
         var chartOverlayId = "#" + this.id + "-container" + p;
         var xaxisElementId = "#" + this.id + "-xaxis" + p;

@@ -24,7 +24,8 @@ App.MainController = Em.Controller.extend({
   clusterName: function () {
     var name = App.db.getClusterName();
     if (name) {
-      return name.capitalize();
+      var displayName = name.length > 13 ? name.substr(0, 10) + "..." : name;
+      return displayName.capitalize();
     }
     return 'My Cluster';
   }.property(),

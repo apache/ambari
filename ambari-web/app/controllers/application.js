@@ -21,6 +21,20 @@ var App = require('app');
 
 App.ApplicationController = Em.Controller.extend({
 
-  name: 'applicationController'
+  name: 'applicationController',
+  clusterName: function () {
+    var name = App.db.getClusterName();
+    if (name) {
+      return name.capitalize();
+    }
+    return 'My Cluster';
+  }.property(),
+  isClusterDataLoaded: function() {
+    return App.router.get('clusterController.isLoaded');
+  }.property('App.router.clusterController.isLoaded'),
 
+  init: function(){
+    this._super();
+    $('title').text('Ambari - ' + this.get('clusterName'));
+  }
 });

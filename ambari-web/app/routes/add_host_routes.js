@@ -24,15 +24,33 @@ module.exports = Em.Route.extend({
 
     Ember.run.next(function () {
       var addHostController = router.get('addHostController');
+      App.ModalPopup.show({
+        classNames: ['full-width-modal'],
+        header:Em.I18n.t('hosts.add.header'),
+        bodyClass:  App.AddHostView.extend({
+          controllerBinding: 'App.router.addHostController'
+        }),
+        primary:Em.I18n.t('form.cancel'),
+        secondary: null,
+
+        onPrimary:function () {
+          this.hide();
+          router.transitionTo('hosts.index');
+        },
+        onClose: function() {
+          this.hide();
+          router.transitionTo('hosts.index');
+        }
+      });
       router.transitionTo('step' + addHostController.get('currentStep'));
     });
 
   },
 
-  connectOutlets: function (router, context) {
+  /*connectOutlets: function (router, context) {
     console.log('in /hosts/add:connectOutlets');
     router.get('mainController').connectOutlet('addHost');
-  },
+  },*/
 
   step1: Em.Route.extend({
     route: '/step1',
@@ -221,9 +239,10 @@ module.exports = Em.Route.extend({
       if (true) {   // this function will be moved to installerController where it will validate
         var addHostController = router.get('addHostController');
         addHostController.finish();
-        router.transitionTo('hosts');
+        $(context.currentTarget).parents("#modal").find(".close").trigger('click');
       } else {
         console.log('cluster installation failure');
+        //$(context.currentTarget).parents("#modal").find(".close").trigger('click');
       }
     }
   }),

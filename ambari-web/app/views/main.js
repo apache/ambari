@@ -36,7 +36,7 @@ App.MainBackgroundOperation = Em.View.extend({
     this.set('isTextArea', false);
   },
   buttonLabel:function(){
-    var button = $(this.get('element')).find('#textTrigger');
+    var button = $(this.get('element')).find('.textTrigger');
     if(this.get('isTextArea')){
       button.text('press CTRL+C');
     } else {
@@ -45,7 +45,7 @@ App.MainBackgroundOperation = Em.View.extend({
   }.observes('isTextArea'),
   didInsertElement: function () {
     var self = this;
-    var button = $(this.get('element')).find('#textTrigger');
+    var button = $(this.get('element')).find('.textTrigger');
     button.click(function () {
       self.set('isTextArea', !self.get('isTextArea'));
     });
@@ -70,7 +70,7 @@ App.MainBackgroundOperation = Em.View.extend({
       element.select();
       element.css('resize', 'none');
     },
-    disabled: true,
+    readOnly: true,
     value: function(){
       var operation = this.get('content');
       var content = "";

@@ -25,9 +25,9 @@ module.exports = {
         value = '<1KB';
       } else {
         if (value < 1048576) {
-          value = Math.round(value / 102.4) / 10 + 'KB';
+          value = (Math.round(value / 102.4) / 10).toFixed(1) + 'KB';
         } else {
-          value = Math.round(value / 104857.6) / 10 + 'MB';
+          value = (Math.round(value / 104857.6) / 10).toFixed(1) + 'MB';
         }
       }
     }
