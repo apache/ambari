@@ -33,7 +33,8 @@ App.ChartHostMetricsNetwork = App.ChartLinearTimeView.extend({
 
   url: function () {
     return App.formatUrl("/api/clusters/{clusterName}/hosts/{hostName}?fields=metrics/network/bytes_in[{fromSeconds},{toSeconds},{stepSeconds}],metrics/network/bytes_out[{fromSeconds},{toSeconds},{stepSeconds}],metrics/network/pkts_in[{fromSeconds},{toSeconds},{stepSeconds}],metrics/network/pkts_out[{fromSeconds},{toSeconds},{stepSeconds}]", {
-      clusterName: App.router.get('clusterController.clusterName')
+      clusterName: App.router.get('clusterController.clusterName'),
+      hostName: this.get('content').get('hostName')
     }, "/data/hosts/metrics/network.json");
   }.property('App.router.clusterController.clusterName'),
 

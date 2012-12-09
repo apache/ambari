@@ -33,7 +33,8 @@ App.ChartHostMetricsCPU = App.ChartLinearTimeView.extend({
 
   url: function () {
     return App.formatUrl("/api/clusters/{clusterName}/hosts/{hostName}?fields=metrics/cpu/cpu_user[{fromSeconds},{toSeconds},{stepSeconds}],metrics/cpu/cpu_wio[{fromSeconds},{toSeconds},{stepSeconds}],metrics/cpu/cpu_nice[{fromSeconds},{toSeconds},{stepSeconds}],metrics/cpu/cpu_aidle[{fromSeconds},{toSeconds},{stepSeconds}],metrics/cpu/cpu_system[{fromSeconds},{toSeconds},{stepSeconds}],metrics/cpu/cpu_idle[{fromSeconds},{toSeconds},{stepSeconds}]", {
-      clusterName: App.router.get('clusterController.clusterName')
+      clusterName: App.router.get('clusterController.clusterName'),
+      hostName: this.get('content').get('hostName')
     }, "/data/hosts/metrics/cpu.json");
   }.property('App.router.clusterController.clusterName'),
 

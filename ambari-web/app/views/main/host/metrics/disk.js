@@ -32,14 +32,18 @@ App.ChartHostMetricsDisk = App.ChartLinearTimeView.extend({
   yAxisFormatter: App.ChartLinearTimeView.BytesFormatter,
 
   url: function () {
-    return App.formatUrl("/api/clusters/{clusterName}/hosts/{hostName}?fields=metrics/disk/disk_total[{fromSeconds},{toSeconds},{stepSeconds}],metrics/disk/part_max_used[{fromSeconds},{toSeconds},{stepSeconds}],metrics/disk/disk_free[{fromSeconds},{toSeconds},{stepSeconds}]", {
-      clusterName: App.router.get('clusterController.clusterName')
+    return App.formatUrl("/api/clusters/{clusterName}/hosts/{hostName}?fields=metrics/disk/disk_total[{fromSeconds},{toSeconds},{stepSeconds}],metrics/part_max_used[{fromSeconds},{toSeconds},{stepSeconds}],metrics/disk/disk_free[{fromSeconds},{toSeconds},{stepSeconds}]", {
+      clusterName: App.router.get('clusterController.clusterName'),
+      hostName: this.get('content').get('hostName')
     }, "/data/hosts/metrics/disk.json");
   }.property('App.router.clusterController.clusterName'),
 
   transformToSeries: function (jsonData) {
     var seriesArray = [];
     if (jsonData && jsonData.metrics && jsonData.metrics.disk) {
+      if(jsonData.metrics.part_max_used){
+        jsonData.metrics.disk.part_max_used = jsonData.metrics.part_max_used;
+      }
       for ( var name in jsonData.metrics.disk) {
         var displayName;
         var seriesData = jsonData.metrics.disk[name];

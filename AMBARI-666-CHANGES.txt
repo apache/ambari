@@ -470,6 +470,9 @@ AMBARI-666 branch (unreleased changes)
 
   BUG FIXES
 
+  AMBARI-1013. Host metrics charts should use live data. (Srimanth Gunturi
+  via yusaku)
+
   AMBARI-1009. Cluster level graphs need to use API for data. (Srimanth
   Gunturi via yusaku)
 
