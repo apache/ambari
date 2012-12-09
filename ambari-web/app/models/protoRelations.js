@@ -103,3 +103,5 @@ App.HostComponent1 = DS.Model.extend({
 App.Service1.FIXTURES = [];
 App.Service1Component.FIXTURES = [];
 App.HostComponent1.FIXTURES = [];
+
+

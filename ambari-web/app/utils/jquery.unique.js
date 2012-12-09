@@ -20,7 +20,7 @@
 
   var _old = $.unique;
 
-  $.unique = function(arr){
+  /*$.unique = function(arr){
 
     // do the default behavior only if we got an array of elements
     if (!!arr[0].nodeType){
@@ -31,5 +31,5 @@
         return $.inArray(v,arr) === k;
       });
     }
-  };
+  };*/
 })(jQuery);

@@ -39,23 +39,19 @@
   <div class="box">
     <div class="box-header">
       <div class="pull-left">
-        <a
-                class="btn btn-primary " {{bindAttr disabled="isSubmitDisabled"}}
-                href="#" {{action retry }}><i
-                class="icon-repeat icon-white"></i>
+        <a class="btn btn-primary" {{bindAttr disabled="isSubmitDisabled"}}
+           href="#" {{action retry}}><i class="icon-repeat icon-white"></i>
           Retry
         </a>
-        <a
-                class="btn btn-info"
-                href="#" {{action mockBtn target="controller"}}>
+        {{#if App.testMode}}
+        <a class="btn btn-info" href="#" {{action mockBtn target="controller"}}>
           mockData
         </a>
-        <a
-                class="btn btn-primary "
-                href="#" {{action pollBtn target="controller"}}><i
-                class="icon-repeat icon-white"></i>
+        <a class="btn btn-primary"
+           href="#" {{action pollBtn target="controller"}}><i class="icon-repeat icon-white"></i>
           pollData
         </a>
+        {{/if}}
       </div>
 
     </div>
@@ -90,8 +86,8 @@
         </td>
         <td>
           <a {{bindAttr class="view.isFailed:text-error view.isSuccess:text-success view.isWarning:text-warning"}}
-                  href="javascript:void(null)"
-                  data-toggle="modal" {{action hostLogPopup host target="view"}}>{{host.message}}</a>
+            href="javascript:void(null)"
+            data-toggle="modal" {{action hostLogPopup host target="view"}}>{{host.message}}</a>
         </td>
 
         {{/view}}
@@ -112,8 +108,7 @@
     <p {{bindAttr class="view.resultMsgColor :alert"}}>{{view.resultMsg}}</p>
     {{/if}}
     <div class="btn-area">
-      <a
-              class="btn btn-success pull-right" {{bindAttr disabled="isSubmitDisabled"}} {{action submit target="controller"}}>Next &rarr;</a>
+      <a class="btn btn-success pull-right" {{bindAttr disabled="isSubmitDisabled"}} {{action submit target="controller"}}>Next &rarr;</a>
     </div>
   </div>
 

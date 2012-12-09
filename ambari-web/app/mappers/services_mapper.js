@@ -59,6 +59,7 @@ App.servicesMapper = App.ServerDataMapper.create({
 });
 */
 App.servicesMapper = App.QuickDataMapper.create({
+  model : App.Service1,
   config : {
     id : 'ServiceInfo.service_name',
     service_name : 'ServiceInfo.service_name',

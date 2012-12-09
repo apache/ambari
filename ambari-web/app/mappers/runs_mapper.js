@@ -18,7 +18,30 @@
 
 var App = require('app');
 
-App.MainTestView = Em.View.extend({
-  templateName: require('templates/main/test'),
-  services: App.Service1.find()
+App.runsMapper = App.QuickDataMapper.create({
+  model : App.Run,
+  map : function(json) {
+    console.log('json', json.workflows);
+    if(!this.get('model')) {
+      return;
+    }
+    if(json.workflows) {
+      var result = [];
+      json.workflows.forEach(function(item) {
+        result.push(this.parseIt(item, this.config));
+      }, this);
+      console.log('result', result);
+      App.store.loadMany(this.get('model'), result);
+    }
+  },
+  config : {
+    run_id: 'workflowName',
+    $parent_run_id: null,
+    //workflow_context:'{dag: {"1":["2","3"],"2":["3","4"],"4":["2","5"]}}',
+    user_name:'userName',
+    start_time: 'startTime',
+    //last_update_time:'1347639541501',
+    app_id: 'workflowId'
+    //jobs:[1, 2, 3, 4, 5]
+  }
 });

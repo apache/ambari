@@ -39,27 +39,34 @@ App.ServerDataMapper = Em.Object.extend({
 
 App.QuickDataMapper = App.ServerDataMapper.extend({
   config : {},
+  model : null,
   map:function(json){
+    if(!this.get('model')) {return;}
     if(json.items){
       var result = [];
       json.items.forEach(function(item){
         result.push(this.parseIt(item, this.config));
-      }, this)
-    App.store.loadMany(App.Service1, result);
+    }, this)
+    App.store.loadMany(this.get('model'), result);
     }
   },
   parseIt : function(data, config){
     var result = {};
     for(var i in config){
+      if(i.substr(0, 1) === '$'){
+        i = i.substr(1, i.length);
+        result[i] = config['$'+i];
+      } else {
       if(i.substr(-4) !== '_key' && typeof config[i] == 'string'){
         result[i] = this.getJsonProperty(data, config[i]);
       } else if(typeof config[i] == 'object'){
-      result[i] = [];
-      var _data = data[config[i+'_key']];
-      var l = _data.length;
-      for(var index = 0; index<l; index++){
-        result[i].push(this.parseIt(_data[index], config[i]));
-      }
+        result[i] = [];
+        var _data = data[config[i+'_key']];
+        var l = _data.length;
+        for(var index = 0; index<l; index++){
+          result[i].push(this.parseIt(_data[index], config[i]));
+        }
+        }
       }
     }
     return result;

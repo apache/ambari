@@ -118,7 +118,7 @@ Em.I18n.translations = {
   'installer.step8.body': 'Please review the cluster configuration before installation',
 
   'installer.step9.header': 'Install, Start and Test',
-  'installer.step9.body': 'Wait to complete the cluster installation. Installing, Starting and Testing selected services',
+  'installer.step9.body': 'Please wait while the selected services are installed, started, and tested on your new cluster.',
   'installer.step9.status.success': 'Successfully installed the cluster',
   'installer.step9.status.failed': 'Failure in installation',
   'installer.step9.host.status.success': 'Success',

@@ -34,6 +34,7 @@
                 class="icon-trash icon-white"></i>
           Remove
         </a>
+        {{#if App.testMode}}
         <a class="btn btn-info"
            href="#" {{action mockBtn target="controller" }}>
           mockData
@@ -42,6 +43,7 @@
            href="#" {{action pollBtn target="controller" }}>
           pollData
         </a>
+        {{/if}}
 
         <div id="host-filter" class="dropdown pull-right">
           {{view Ember.Select class="pull-right"

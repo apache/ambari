@@ -1,0 +1,108 @@
+{"workflows": [
+    {
+      "elapsedTime": 693129,
+      "numJobsCompleted": 3,
+      "numJobsTotal": 3,
+      "startTime": 1352095518432,
+      "userName": "root",
+      "workflowContext": {
+        "workflowDag": {
+          "entries": [
+            {
+              "source": "89",
+              "targets": [
+                "97"
+              ]
+            },
+            {
+              "source": "97",
+              "targets": [
+                "103"
+              ]
+            }
+          ]
+        }
+      },
+      "workflowId": "pig_b6d5cc44-ac51-4ecd-92c7-2e477c2fbed6",
+      "workflowName": "script2-hadoop.pig"
+    },
+    {
+      "elapsedTime": 892896,
+      "numJobsCompleted": 5,
+      "numJobsTotal": 5,
+      "startTime": 1352015770967,
+      "userName": "root",
+      "workflowContext": {
+        "workflowDag": {
+          "entries": [
+            {
+              "source": "80",
+              "targets": [
+                "83"
+              ]
+            },
+            {
+              "source": "83",
+              "targets": [
+                "86"
+              ]
+            },
+            {
+              "source": "86",
+              "targets": [
+                "103"
+              ]
+            },
+            {
+              "source": "72",
+              "targets": [
+                "80"
+              ]
+            }
+          ]
+        }
+      },
+      "workflowId": "pig_7c779523-6bca-416e-89b3-b01b73a60174",
+      "workflowName": "script1-hadoop.pig"
+    },
+    {
+      "elapsedTime": 910360,
+      "numJobsCompleted": 5,
+      "numJobsTotal": 5,
+      "startTime": 1352012856094,
+      "userName": "root",
+      "workflowContext": {
+        "workflowDag": {
+          "entries": [
+            {
+              "source": "80",
+              "targets": [
+                "83"
+              ]
+            },
+            {
+              "source": "83",
+              "targets": [
+                "86"
+              ]
+            },
+            {
+              "source": "86",
+              "targets": [
+                "103"
+              ]
+            },
+            {
+              "source": "72",
+              "targets": [
+                "80"
+              ]
+            }
+          ]
+        }
+      },
+      "workflowId": "pig_5750f4cf-f0d2-4e3d-a7ce-90912b309c12",
+      "workflowName": "script1-hadoop.pig"
+    }
+  ]
+}

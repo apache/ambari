@@ -20,26 +20,66 @@ var App = require('app');
 
 App.MainHostSummaryView = Em.View.extend({
   templateName: require('templates/main/host/summary'),
+
   content:function(){
     return App.router.get('mainHostDetailsController.content');
   }.property('App.router.mainHostDetailsController.content'),
+
   ComponentButtonView: Em.View.extend({
     content: null,
+
+    /**
+     * Disable element while component is starting/stopping
+     */
+    disabledClass:function(){
+      var workStatus = this.get('content.workStatus');
+      if(['STARTING', 'STOPPING'].contains(workStatus) ){
+        return 'disabled';
+      } else {
+        return '';
+      }
+    }.property('content.workStatus'),
+
     adjustedIndex: function() {
       return this.get('_parentView.contentIndex') + 1;
     }.property(),
+
     positionButton: function() {
       return (this.get("adjustedIndex")%2 == 0) ? true : false;
     }.property('content.id') ,
+
     indicatorClass: function() {
-      return 'components-health health-status-' + this.get('content.workStatus');
+      return 'health-status-' + this.get('content.workStatus');
     }.property('content.workStatus'),
+
     componentCheckStatus : function() {
       return (this.get('content.workStatus') === "STARTED" || this.get('content.workStatus') === "STARTING");
     }.property('content.workStatus'),
-    buttonId: function() {
-      return "component-button-" + this.get('content.id');
-    }.property('content.workStatus'),
+
+    /**
+     * Do blinking for 1 minute
+     */
+    doBlinking : function(){
+      var workStatus = this.get('content.workStatus');
+      var self = this;
+
+      if(['STARTING', 'STOPPING'].contains(workStatus) ){
+        this.$('.components-health').effect("pulsate", null, 1000, function () {
+          self.doBlinking();
+        });
+      }
+    },
+
+    /**
+     * Start blinking when host component is starting/stopping
+     */
+    startBlinking:function(){
+      this.doBlinking();
+    }.observes('content.workStatus'),
+
+    /**
+     * Shows whether we need to show Decommision/Recomission buttons
+     */
     isDataNode: function() {
       return this.get('content.componentName') === 'DataNode';
     }.property('content')

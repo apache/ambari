@@ -30,12 +30,14 @@ App.ClusterController = Em.Controller.extend({
         loaded = false;
       }
     }
-
     return loaded;
   }.property('dataLoadList'),
   dataLoadList: Em.Object.create({
-    'hosts': true,
-    'services': false
+    'hosts': false,
+    'jobs': false,
+    'runs': false,
+    'services': false,
+    'cluster' : false
   }),
   /**
    * load cluster name
@@ -50,7 +52,6 @@ App.ClusterController = Em.Controller.extend({
       timeout: 5000,
       success: function (data) {
         self.set('cluster', data.items[0]);
-        self.loadClusterData();
       },
       error: function (request, ajaxOptions, error) {
         //do something
@@ -58,6 +59,10 @@ App.ClusterController = Em.Controller.extend({
       },
       statusCode: require('data/statusCodes')
     });
+  },
+
+  getUrl: function(testUrl, url){
+    return (App.testMode) ? testUrl: '/api/clusters/' + this.get('clusterName') + url;
   },
    /**
    *
@@ -68,13 +73,34 @@ App.ClusterController = Em.Controller.extend({
     if(!this.get('clusterName')){
         return;
     }
-    // TODO: load all models
-    /*App.HttpClient.get("/data/hosts/hosts.json", App.hostsMapper,{
+    var clusterUrl = (App.testMode) ? '/data/clusters/cluster.json': '/api/clusters/mycluster?fields=Clusters';
+    var jobsUrl = (App.testMode) ? "/data/apps/jobs.json" : "/api/jobs?fields=*";
+    var runsUrl = (App.testMode) ? "/data/apps/runs.json" : "/api/runs?fields=*";
+    var hostsUrl = (App.testMode) ? "/data/hosts/hosts.json" : "/api/hosts?fields=*";
+    var servicesUrl = (App.testMode) ?
+        "/data/dashboard/services.json" :
+        "/api/clusters/mycluster/services?ServiceInfo/service_name!=MISCELLANEOUS&ServiceInfo/service_name!=DASHBOARD&fields=components/host_components/*";
+    App.HttpClient.get(clusterUrl, App.clusterMapper,{
+      complete:function(jqXHR, textStatus){
+        self.set('dataLoadList.cluster', true);
+      }
+    });
+     App.HttpClient.get(jobsUrl, App.jobsMapper,{
+       complete:function(jqXHR, textStatus) {
+         self.set('dataLoadList.jobs', true);
+       }
+     });
+     App.HttpClient.get(runsUrl, App.runsMapper,{
+       complete:function(jqXHR, textStatus) {
+         self.set('dataLoadList.runs', true);
+       }
+     });
+    App.HttpClient.get(hostsUrl, App.hostsMapper,{
       complete:function(jqXHR, textStatus){
         self.set('dataLoadList.hosts', true);
       }
-    });*/
-    App.HttpClient.get("/data/dashboard/services.json", App.servicesMapper,{
+    });
+    App.HttpClient.get(servicesUrl, App.servicesMapper,{
       complete:function(jqXHR, textStatus){
         self.set('dataLoadList.services', true);
       }

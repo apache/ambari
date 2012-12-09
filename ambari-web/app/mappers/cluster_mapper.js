@@ -16,9 +16,25 @@
  * limitations under the License.
  */
 
-var App = require('app');
 
-App.MainTestView = Em.View.extend({
-  templateName: require('templates/main/test'),
-  services: App.Service1.find()
+App.clusterMapper = App.QuickDataMapper.create({
+    model : App.Cluster,
+    map:function(json){
+      if(!this.get('model')) {return;}
+      if(json){
+        var result = json;
+        result = this.parseIt(result, this.config);
+        App.store.load(this.get('model'), result);
+      }
+    },
+    config : {
+      id:'Clusters.cluster_id',
+      cluster_name: 'Clusters.cluster_name',
+      stackName: 'Clusters.stack_name',
+      version: 'Clusters.version',
+      $hosts: "",
+      $racks: [1,2,3,4],
+      maxHostsPerRack: 'Clusters.max_hosts_per_rack'
+    }
+
 });

@@ -39,8 +39,8 @@
     {{#each component in view.content.components}}
     {{#view view.ComponentButtonView contentBinding="component"}}
       <div {{bindAttr class=":btn-group view.positionButton:pull-right:pull-left"}}>
-        <button {{bindAttr id="view.buttonId"}} class="component-operation-button btn btn-success dropdown-toggle" data-toggle="dropdown">
-          <span {{bindAttr class="view.indicatorClass"}}></span>
+        <button {{bindAttr class=":component-operation-button :btn :btn-success :dropdown-toggle view.disabledClass"}} data-toggle="dropdown">
+          <span {{bindAttr class=":components-health view.indicatorClass"}}></span>
           {{unbound view.content.componentName}}
           <span class="caret"></span>
         </button>

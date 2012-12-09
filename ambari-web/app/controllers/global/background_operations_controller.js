@@ -72,6 +72,10 @@ App.BackgroundOperationsController = Em.Controller.extend({
     }
   },
 
+  getOperationsForRequestId: function(requestId){
+    return this.get('allOperations').filterProperty('request_id', requestId);
+  },
+
   updateInterval: 6000,
   url : '',
 
@@ -169,6 +173,25 @@ App.BackgroundOperationsController = Em.Controller.extend({
     }
 
     this.set('allOperationsCount', currentTasks.length);
+
+    var eventsArray = this.get('eventsArray');
+    if(eventsArray.length){
+
+      var itemsToRemove = [];
+      eventsArray.forEach(function(item){
+        //if when returns true
+        if(item.when(this)){
+          //fire do method
+          item.do();
+          //and remove it
+          itemsToRemove.push(item);
+        }
+      }, this);
+
+      itemsToRemove.forEach(function(item){
+        eventsArray.splice(eventsArray.indexOf(item), 1);
+      });
+    }
   },
 
   /**
@@ -189,6 +212,22 @@ App.BackgroundOperationsController = Em.Controller.extend({
       },
       secondary : null
     });
-  }
+  },
+
+  /**
+   * Exaple of data inside:
+   * {
+   *   when : function(backgroundOperationsController){
+   *     return backgroundOperationsController.getOperationsForRequestId(requestId).length == 0;
+   *   },
+   *   do : function(){
+   *     component.set('status', 'cool');
+   *   }
+   * }
+   *
+   * Function <code>do</code> will be fired once, when <code>when</code> returns true.
+   * Example, how to use it, you can see in app\controllers\main\host\details.js
+   */
+  eventsArray : []
 
 });

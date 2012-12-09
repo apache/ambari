@@ -270,8 +270,10 @@ module.exports = Em.Route.extend({
     retry: function (router) {
       var installerController = router.get('installerController');
       var wizardStep9Controller = router.get('wizardStep9Controller');
-      installerController.installServices();
-      wizardStep9Controller.navigateStep();
+      if (!wizardStep9Controller.get('isSubmitDisabled')) {
+        installerController.installServices();
+        wizardStep9Controller.navigateStep();
+      }
     },
     next: function (router) {
       var installerController = router.get('installerController');

@@ -19,46 +19,16 @@
 
 var App = require('app');
 
-App.User = Em.Object.extend({
-  username: DS.attr("string")
-});
-
-App.User.FIXTURES = [
-  {},
-  {}
-];
-
-App.ClusterModel = Em.Object.extend({
-    clusterName: null,
-    hosts: [],
-    services: []
-
-});
-
-// uncomment if column names are camelized in JSON (or fixture), rather than _ separated
-/*
-DS.Model.reopen({
-    namingConvention: {
-        keyToJSONKey: function(key) {
-            return key;
-        },
-
-        foreignKey: function(key) {
-            return key;
-        }
-    }
-});
-*/
-
 App.Cluster = DS.Model.extend({
   clusterName: DS.attr('string'),
   stackName: DS.attr('string'),
+  version: DS.attr('string'),
   hosts: DS.hasMany('App.Host'),
   racks: DS.hasMany('App.Rack'),
   maxHostsPerRack: DS.attr('number')
 });
 
-App.Cluster.FIXTURES = [
+App.Cluster.FIXTURES = [/*
   {
     id: 1,
     cluster_name: 'cluster1',
@@ -66,11 +36,5 @@ App.Cluster.FIXTURES = [
     hosts: [1, 2, 3, 4],
     racks: [1, 2, 3, 4, 5, 6],
     max_hosts_per_rack: 10
-  },
-  {
-    id: 2,
-    cluster_name: 'cluster2',
-    stack_name: 'BigTop',
-    hosts: [5, 6, 7]
-  }
+  }*/
 ];

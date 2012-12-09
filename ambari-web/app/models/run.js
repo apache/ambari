@@ -32,7 +32,7 @@ App.Run = DS.Model.extend({
   jobs:DS.hasMany('App.Job'),
   /**
    * Number of comleted jobs.
-   * Field calculates dynamicaly using <code>jobs</code> property
+   * Field calculates dynamically using <code>jobs</code> property
    */
   numJobsCompleted: function() {
     return this.get('jobs').filterProperty('status', 'RUNNING').length;
@@ -42,7 +42,7 @@ App.Run = DS.Model.extend({
   }.property('lastUpdateTime', 'startTime'),
   /**
    * Status of running jobs
-   * Field calculates dynamicaly using <code>jobs</code> property
+   * Field calculates dynamically using <code>jobs</code> property
    */
   isRunning: function () {
     if (!this.get('isLoaded')) {
@@ -52,19 +52,19 @@ App.Run = DS.Model.extend({
   }.property('jobs.@each.status'),
   /**
    * Sum of input bandwidth for all jobs
-   * Field calculates dynamicaly using <code>jobs</code> property
+   * Field calculates dynamically using <code>jobs</code> property
    */
   input: function () {
     var sum = 0;
     this.get('jobs').forEach(
-        function(item){
+        function(item) {
           sum += item.get('input') || 0;
         });
     return sum;
   }.property('jobs.@each.input'),
   /**
    *  Sum of input bandwidth for all jobs with appropriate measure
-   * Field calculates dynamicaly using <code>jobs</code> property
+   * Field calculates dynamically using <code>jobs</code> property
    */
   inputFormatted: function () {
     var input = this.get('input');
@@ -73,7 +73,7 @@ App.Run = DS.Model.extend({
   }.property('input'),
   /**
    * Sum of output bandwidth for all jobs
-   * Field calculates dynamicaly using <code>jobs</code> property
+   * Field calculates dynamically using <code>jobs</code> property
    */
   output: function () {
     var sum = 0;
@@ -85,7 +85,7 @@ App.Run = DS.Model.extend({
   }.property('jobs.@each.output'),
   /**
    *  Sum of output bandwidth for all jobs with appropriate measure
-   *  Field calculates dynamicaly using <code>jobs</code> property
+   *  Field calculates dynamically using <code>jobs</code> property
    */
   outputFormatted: function () {
     var output = this.get('output');
@@ -94,7 +94,7 @@ App.Run = DS.Model.extend({
   }.property('output'),
   /**
    * Number of jobs on this run
-   * Field calculates dynamicaly using <code>jobs</code> property
+   * Field calculates dynamically using <code>jobs</code> property
    */
   numJobsTotal: function() {
     return this.get('jobs.content').length;
@@ -105,7 +105,7 @@ App.Run = DS.Model.extend({
 });
 
 App.Run.FIXTURES = [
-  {
+  /*{
     id:1,
     run_id:'pig_1',
     parent_run_id:null,
@@ -226,5 +226,5 @@ App.Run.FIXTURES = [
     last_update_time:'1347639541511',
     app_id:3,
     jobs:[1, 3, 5, 7]
-  }
+  }*/
 ];

@@ -32,7 +32,7 @@ App.Rack.FIXTURES = [
   {
     id: 1,
     name: 'Rack-0',
-    hosts: [1, 2, 3, 4, 8, 9, 10],
+    hosts: ['host01', 'host06', 'host05'],
     status: 'LIVE',
     live_hosts_count: 5,
     critical_hosts_count: 0,
@@ -41,7 +41,7 @@ App.Rack.FIXTURES = [
   {
     id: 2,
     name: 'Rack-1',
-    hosts: [5, 6, 7],
+    hosts: ['host04', 'host02', 'host03'],
     status: 'LIVE',
     live_hosts_count: 2,
     critical_hosts_count: 0,

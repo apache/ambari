@@ -56,7 +56,7 @@
       <div {{bindAttr class="sshKeyError:error :control-group"}}>
         {{#if view.isFileApi}}
           {{view App.SshKeyFileUploader}}
-          <div {{bindAttr class="view.sshKeyPreviewClass"}}>{{content.sshKey}}</div>
+          <pre {{bindAttr class="view.sshKeyPreviewClass"}}>{{content.sshKey}}</pre>
         {{/if}}
         <div class="controls">
           {{view Ember.TextArea class="span6" rows="4" classBinding="view.sshKeyClass"  id="sshKey" placeholder="ssh private key" disabledBinding="view.sshKeyState" valueBinding="content.sshKey"}}

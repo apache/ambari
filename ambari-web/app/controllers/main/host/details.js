@@ -22,74 +22,49 @@ App.MainHostDetailsController = Em.Controller.extend({
   name: 'mainHostDetailsController',
   content: null,
   isFromHosts: false,
-  backgroundOperations: [],
-  isStarting: true,
-  isStopping: function(){
-    return !this.get('isStarting');
-  }.property('isStarting'),
-  intervalId: false,
-  checkOperationsInterval: 5000,
-  init: function(){
-    this._super();
-    this.startCheckOperationsLifeTime();
-  },
+
   routeHome:function () {
     App.router.transitionTo('main.dashboard');
-    var view = Ember.View.views['main_menu'];
-    $.each(view._childViews, function () {
-      this.set('active', this.get('content.routing') == 'dashboard' ? "active" : "");
-    });
   },
 
   setBack: function(isFromHosts){
     this.set('isFromHosts', isFromHosts);
   },
 
-  startCheckOperationsLifeTime: function() {
-    this.intervalId = setInterval(this.checkOperationsLifeTime, this.get('checkOperationsInterval'));
-  },
-  stopCheckOperationsLifeTime:function () {
-    if(this.intervalId) {
-      clearInterval(this.intervalId);
-    }
-    this.intervalId = false;
-  },
+  /**
+   * Send specific command to server
+   * @param url
+   * @param data Object to send
+   */
+  sendCommandToServer : function(url, postData, callback){
+    var url =  (App.testMode) ?
+      '/data/wizard/deploy/poll_1.json' : //content is the same as ours
+      '/api/clusters/' + App.router.getClusterName() + url;
 
-  checkOperationsLifeTime: function(){
-    var self = App.router.get('mainHostDetailsController');
-    var backgroundOperations = self.get('backgroundOperations');
-    var time = new Date().getTime();
-    if(backgroundOperations.length){
-      backgroundOperations.forEach(function(operation){
-        if (time - operation.time >= 60*1000){
-          backgroundOperations.removeObject(operation);
+    var method = App.testMode ? 'GET' : 'PUT';
+
+    $.ajax({
+      type: method,
+      url: url,
+      data: JSON.stringify(postData),
+      dataType: 'json',
+      timeout: 5000,
+      success: function(data){
+        if(data && data.Requests){
+          callback(data.Requests.id);
+        } else{
+          callback(null);
+          console.log('cannot get request id from ', data);
         }
-      })
-    }
-  },
+      },
 
-  hostOperations: function(){
-    var hostName = this.get('content.hostName');
-    return this.get('backgroundOperations').filterProperty('hostName', hostName);
-  }.property('backgroundOperations.length', 'content'),
+      error: function (request, ajaxOptions, error) {
+        //do something
+        callback(null);
+        console.log('error on change component host status')
+      },
 
-  hostOperationsCount: function() {
-    return this.get('hostOperations.length');
-  }.property('backgroundOperations.length', 'content'),
-
-  showBackgroundOperationsPopup: function(){
-    App.ModalPopup.show({
-      headerClass: Ember.View.extend({
-        controllerBinding: 'App.router.mainHostDetailsController',
-        template:Ember.Handlebars.compile('{{hostOperationsCount}} Background Operations Running')
-      }),
-      bodyClass: Ember.View.extend({
-        controllerBinding: 'App.router.mainHostDetailsController',
-        templateName: require('templates/main/host/background_operations_popup')
-      }),
-      onPrimary: function() {
-        this.hide();
-      }
+      statusCode: require('data/statusCodes')
     });
   },
 
@@ -102,30 +77,41 @@ App.MainHostDetailsController = Em.Controller.extend({
       secondary: 'No',
       onPrimary: function() {
         var component = event.context;
-        component.set('workStatus', "STARTING");
-        self.componentIndicatorBlink(component);
-        self.setComponentButtonStatus(component,"disabled");
-        //TODO: here must be call to server side
-        setTimeout(function(){
-          self.setComponentButtonStatus(component,"enabled");
-          component.set('workStatus', "STARTED");
-        },10000);
-        var backgroundOperations = self.get('backgroundOperations');
-        backgroundOperations.pushObject({
-          "hostName": self.get('content.hostName'),
-          "role":component.get('componentName'),
-          "command": "START",
-          "time": new Date().getTime(),
-          "details": [
-            {"startTime":"4 min ago", "name":"Some intermediate operation"},
-            {"startTime":"5 min ago", "name":"Component started"}
-          ],
-          "logs":{"exitcode":"404", "stdout":27, "stderror":501}
+
+        self.sendCommandToServer('/hosts/' + self.get('content.hostName') + '/host_components/' + component.get('componentName').toUpperCase(),{
+          HostRoles:{
+            state: 'STARTED'
+          }
+        }, function(requestId){
+
+          if(!requestId){
+            return;
+          }
+
+          console.log('Send request for STARTING successfully');
+          component.set('workStatus', "STARTING");
+
+          if(App.testMode){
+            setTimeout(function(){
+              component.set('workStatus', "STARTED");
+            },10000);
+          } else{
+            App.router.get('backgroundOperationsController.eventsArray').push({
+              "when" : function(controller){
+                var result = (controller.getOperationsForRequestId(requestId).length == 0);
+                console.log('startComponent.when = ', result)
+                return result;
+              },
+              "do" : function(){
+                component.set('workStatus', "STARTED");
+              }
+            });
+          }
+
+          App.router.get('backgroundOperationsController').showPopup();
+
         });
-        self.showBackgroundOperationsPopup();
-        var stopped = self.get('content.components').filterProperty('workStatus', "STOPPING");
-        if (stopped.length == 0)
-          self.set('isStarting', true);
+
         this.hide();
       },
       onSecondary: function() {
@@ -142,50 +128,46 @@ App.MainHostDetailsController = Em.Controller.extend({
       secondary: 'No',
       onPrimary: function() {
         var component = event.context;
-        component.set('workStatus', "STOPPING");
-        self.componentIndicatorBlink(component);
-        self.setComponentButtonStatus(component,"disabled");
-        //TODO: here must be call to server side
-        setTimeout(function(){
-          self.setComponentButtonStatus(component,"enabled");
-          component.set('workStatus', "STOPPED");
-        },10000);
-        var backgroundOperations = self.get('backgroundOperations');
-        backgroundOperations.pushObject({
-          "hostName": self.get('content.hostName'),
-          "role": component.get('componentName'),
-          "command": "STOP",
-          "time": new Date().getTime(),
-          "details": [
-            {"startTime":"4 min ago", "name":"Some intermediate operation"},
-            {"startTime":"5 min ago", "name":"Component stopped"}
-          ],
-          "logs":{"exitcode":"404", "stdout":15, "stderror":501}
+
+        self.sendCommandToServer('/hosts/' + self.get('content.hostName') + '/host_components/' + component.get('componentName').toUpperCase(),{
+          HostRoles:{
+            state: 'INSTALLED'
+          }
+        }, function(requestId){
+          if(!requestId){
+            return
+          }
+
+          console.log('Send request for STOPPING successfully');
+
+          component.set('workStatus', "STOPPING");
+
+          if(App.testMode){
+            setTimeout(function(){
+              component.set('workStatus', "STOPPED");
+            },10000);
+          } else{
+            App.router.get('backgroundOperationsController.eventsArray').push({
+              "when" : function(controller){
+                var result = (controller.getOperationsForRequestId(requestId).length == 0);
+                console.log('stopComponent.when = ', result)
+                return result;
+              },
+              "do" : function(){
+                component.set('workStatus', "STOPPED");
+              }
+            });
+          }
+
+          App.router.get('backgroundOperationsController').showPopup();
+
         });
-        self.showBackgroundOperationsPopup();
-        var started = self.get('content.components').filterProperty('workStatus', "STARTING");
-        if (started.length == 0)
-          self.set('isStarting', false);
+
         this.hide();
       },
       onSecondary: function() {
         this.hide();
       }
-    });
-  },
-
-  setComponentButtonStatus: function(component,status){
-    if(status=="disabled"){
-      $("#component-button-" + component.get("id") ).addClass("disabled");
-    }else{
-      $("#component-button-" + component.get("id") ).removeClass("disabled");
-    }
-  },
-  componentIndicatorBlink: function(component){
-    var self=this;
-    $("#component-button-"+component.get("id")).find(".components-health").effect("pulsate", { times:1 }, "slow", function () {
-      if(component.get('workStatus')==="STOPPING" || component.get('workStatus')==="STARTING")
-        self.componentIndicatorBlink(component);
     });
   },
 
@@ -199,19 +181,9 @@ App.MainHostDetailsController = Em.Controller.extend({
       onPrimary: function() {
         var component = event.context;
         component.set('decommissioned', true);
-        var backgroundOperations = self.get('backgroundOperations');
-        backgroundOperations.pushObject({
-          "hostName": self.get('content.hostName'),
-          "role":component.get('componentName'),
-          "command": "DECOMMISSION",
-          "time": new Date().getTime(),
-          "details": [
-            {"startTime":"4 min ago", "name":"Some intermediate operation"},
-            {"startTime":"5 min ago", "name":"Component decommissioned"}
-          ],
-          "logs":{"exitcode":"404", "stdout":27, "stderror":501}
-        });
-        self.showBackgroundOperationsPopup();
+
+        //todo:call to server
+        App.router.get('backgroundOperationsController').showPopup();
         this.hide();
       },
       onSecondary: function() {
@@ -230,53 +202,8 @@ App.MainHostDetailsController = Em.Controller.extend({
       onPrimary: function() {
         var component = event.context;
         component.set('decommissioned', false);
-        var backgroundOperations = self.get('backgroundOperations');
-        backgroundOperations.pushObject({
-          "hostName": self.get('content.hostName'),
-          "role":component.get('componentName'),
-          "command": "RECOMMISSION",
-          "time": new Date().getTime(),
-          "details": [
-            {"startTime":"4 min ago", "name":"Some intermediate operation"},
-            {"startTime":"5 min ago", "name":"Component recommissioned"}
-          ],
-          "logs":{"exitcode":"404", "stdout":27, "stderror":501}
-        });
-        self.showBackgroundOperationsPopup();
-        this.hide();
-      },
-      onSecondary: function() {
-        this.hide();
-      }
-    });
-  },
-  startConfirmPopup: function (event) {
-    var self = this;
-    App.ModalPopup.show({
-      header: Em.I18n.t('hosts.host.start.popup.header'),
-      body: Em.I18n.t('hosts.host.start.popup.body'),
-      primary: 'Yes',
-      secondary: 'No',
-      onPrimary: function() {
-        self.get('content.components').setEach('workStatus', "STARTING");
-        self.set('isStarting', !self.get('isStarting'));
-        this.hide();
-      },
-      onSecondary: function() {
-        this.hide();
-      }
-    });
-  },
-  stopConfirmPopup: function (event) {
-    var self = this;
-    App.ModalPopup.show({
-      header: Em.I18n.t('hosts.host.stop.popup.header'),
-      body: Em.I18n.t('hosts.host.stop.popup.body'),
-      primary: 'Yes',
-      secondary: 'No',
-      onPrimary: function() {
-        self.get('content.components').setEach('workStatus', "STOPPING");
-        self.set('isStarting', !self.get('isStarting'));
+        //todo: call to server
+        App.router.get('backgroundOperationsController').showPopup();
         this.hide();
       },
       onSecondary: function() {

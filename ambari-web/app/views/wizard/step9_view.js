@@ -16,7 +16,6 @@
  * limitations under the License.
  */
 
-
 var App = require('app');
 
 App.WizardStep9View = Em.View.extend({

@@ -3,12 +3,12 @@
   {{#each role in view.roles}}
     {{#each taskInfo in role.taskInfos}}
     <div>
-      <a {{action toggleTaskLog taskInfo}}>{{#if taskInfo.isLogHidden}}Show{{else}}Hide{{/if}} {{role.roleName}} {{taskInfo.status}} log</a>
+      <a href="#" {{action toggleTaskLog taskInfo}}>{{#if taskInfo.isLogHidden}}Show{{else}}Hide{{/if}} {{role.roleName}} {{taskInfo.status}} log</a>
       <div {{bindAttr class="taskInfo.isLogHidden:hidden"}}>
         <h5>stderr:</h5>
-        <div class="stderr">{{taskInfo.stderr}}</div>
+        <pre class="stderr">{{taskInfo.stderr}}</pre>
         <h5>stdout:</h5>
-        <div class="stdout">{{taskInfo.stdout}}</div>
+        <pre class="stdout">{{taskInfo.stdout}}</pre>
       </div>
     </div>
     {{/each}}

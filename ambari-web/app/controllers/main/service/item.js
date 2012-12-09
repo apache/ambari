@@ -31,7 +31,7 @@ App.MainServiceItemController = Em.Controller.extend({
       '/data/wizard/deploy/poll_1.json' : //content is the same as ours
       '/api/clusters/' + App.router.getClusterName() + url; //'/services/' + this.get('content.serviceName').toUpperCase();
 
-    var method = App.testMode ? 'GET' : 'PUT';
+    var method = App.testMode ? 'GET' : (postData ? 'PUT' : 'POST');
 
     $.ajax({
       type: method,
@@ -159,6 +159,11 @@ App.MainServiceItemController = Em.Controller.extend({
       secondary: 'No',
       onPrimary: function() {
         self.content.set('runSmokeTest', true);
+      
+        var serviceName = self.get('content.serviceName').toUpperCase();
+        var smokeName = serviceName + "_SERVICE_CHECK";
+        self.sendCommandToServer('/services/' + serviceName + '/actions/' + smokeName);
+
         App.router.get('backgroundOperationsController').showPopup();
         this.hide();
       },

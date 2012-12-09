@@ -16,7 +16,28 @@
  * limitations under the License.
  */
 
-//todo: refactor it
-App.hostsMapper = App.ServerDataMapper.create({
-  config: {}
+
+App.hostsMapper = App.QuickDataMapper.create({
+  model : App.Host,
+  config : {
+    id : 'Hosts.host_name',
+    host_name : 'Hosts.host_name',
+    cluster_id: 'Hosts.cluster_name',//1
+    $components: [1,2,3],
+    cpu : 'Hosts.cpu_count',
+    memory : 'Hosts.total_mem',
+    disk_info: 'Hosts.disk_info',
+    $disk_usage: '40',
+    $health_status: 'LIVE',
+    $load_avg: '0.2, 1.2, 2.4',
+    $cpu_usage: 33,
+    $memory_usage: 26,
+    $network_usage: 36,
+    $io_usage: 39,
+    last_heart_beat_time : "Hosts.last_heartbeat_time",
+    os : 'Hosts.os_arch',
+    os_type : 'Hosts.os_type',
+    ip : 'Hosts.ip'
+  }
+
 });

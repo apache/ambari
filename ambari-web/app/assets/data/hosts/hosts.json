@@ -2,122 +2,177 @@
   "href" : "http://localhost:8080/api/hosts?fields=*",
   "items" : [
     {
-      "href" : "http://localhost:8080/api/hosts/host1",
+      "href" : "http://localhost:8080/api/hosts/host01",
       "Hosts" : {
         "cpu_count" : 1,
+        "cluster_name" : "mycluster",
+        "last_registration_time" : 1352357436171,
+        "rack_info" : "/rack1",
         "total_mem" : 2055208,
         "os_arch" : "x86_64",
         "host_name" : "host01",
+        "disk_info" : "[{\"available\":\"47476780\",\"mountpoint\":\"/\",\"used\":\"3605224\",\"percent\":\"8%\",\"size\":\"51606140\",\"type\":\"ext4\"},{\"available\":\"1027100\",\"mountpoint\":\"/dev/shm\",\"used\":\"364\",\"percent\":\"1%\",\"size\":\"1027464\",\"type\":\"tmpfs\"},{\"available\":\"432210\",\"mountpoint\":\"/boot\",\"used\":\"38034\",\"percent\":\"9%\",\"size\":\"495844\",\"type\":\"ext4\"},{\"available\":\"44459808\",\"mountpoint\":\"/home\",\"used\":\"184284\",\"percent\":\"1%\",\"size\":\"47033288\",\"type\":\"ext4\"},{\"available\":\"0\",\"mountpoint\":\"/media/VBOXADDITIONS_4.1.23_80858\",\"used\":\"52206\",\"percent\":\"100%\",\"size\":\"52206\",\"type\":\"iso9660\"}]",
+        "last_heartbeat_time" : 1352357625241,
         "os_type" : "centos6",
         "ip" : "10.0.2.1"
       }
     },
     {
-      "href" : "http://localhost:8080/api/hosts/host1",
+      "href" : "http://localhost:8080/api/hosts/host02",
       "Hosts" : {
         "cpu_count" : 1,
+        "cluster_name" : "mycluster",
+        "last_registration_time" : 1352357436171,
+        "rack_info" : "/rack1",
         "total_mem" : 2055208,
         "os_arch" : "x86_64",
         "host_name" : "host02",
+        "disk_info" : "[{\"available\":\"47476780\",\"mountpoint\":\"/\",\"used\":\"3605224\",\"percent\":\"8%\",\"size\":\"51606140\",\"type\":\"ext4\"},{\"available\":\"1027100\",\"mountpoint\":\"/dev/shm\",\"used\":\"364\",\"percent\":\"1%\",\"size\":\"1027464\",\"type\":\"tmpfs\"},{\"available\":\"432210\",\"mountpoint\":\"/boot\",\"used\":\"38034\",\"percent\":\"9%\",\"size\":\"495844\",\"type\":\"ext4\"},{\"available\":\"44459808\",\"mountpoint\":\"/home\",\"used\":\"184284\",\"percent\":\"1%\",\"size\":\"47033288\",\"type\":\"ext4\"},{\"available\":\"0\",\"mountpoint\":\"/media/VBOXADDITIONS_4.1.23_80858\",\"used\":\"52206\",\"percent\":\"100%\",\"size\":\"52206\",\"type\":\"iso9660\"}]",
+        "last_heartbeat_time" : 1352357625241,
         "os_type" : "centos6",
         "ip" : "10.0.2.2"
       }
     },
     {
-      "href" : "http://localhost:8080/api/hosts/host1",
+      "href" : "http://localhost:8080/api/hosts/host03",
       "Hosts" : {
         "cpu_count" : 1,
+        "cluster_name" : "mycluster",
+        "last_registration_time" : 1352357436171,
+        "rack_info" : "/rack1",
         "total_mem" : 2055208,
         "os_arch" : "x86_64",
         "host_name" : "host03",
+        "disk_info" : "[{\"available\":\"47476780\",\"mountpoint\":\"/\",\"used\":\"3605224\",\"percent\":\"8%\",\"size\":\"51606140\",\"type\":\"ext4\"},{\"available\":\"1027100\",\"mountpoint\":\"/dev/shm\",\"used\":\"364\",\"percent\":\"1%\",\"size\":\"1027464\",\"type\":\"tmpfs\"},{\"available\":\"432210\",\"mountpoint\":\"/boot\",\"used\":\"38034\",\"percent\":\"9%\",\"size\":\"495844\",\"type\":\"ext4\"},{\"available\":\"44459808\",\"mountpoint\":\"/home\",\"used\":\"184284\",\"percent\":\"1%\",\"size\":\"47033288\",\"type\":\"ext4\"},{\"available\":\"0\",\"mountpoint\":\"/media/VBOXADDITIONS_4.1.23_80858\",\"used\":\"52206\",\"percent\":\"100%\",\"size\":\"52206\",\"type\":\"iso9660\"}]",
+        "last_heartbeat_time" : 1352357625241,
         "os_type" : "centos6",
         "ip" : "10.0.2.3"
       }
     },
     {
-      "href" : "http://localhost:8080/api/hosts/host1",
+      "href" : "http://localhost:8080/api/hosts/host04",
       "Hosts" : {
         "cpu_count" : 1,
+        "cluster_name" : "mycluster",
+        "last_registration_time" : 1352357436171,
+        "rack_info" : "/rack1",
         "total_mem" : 2055208,
         "os_arch" : "x86_64",
         "host_name" : "host04",
+        "disk_info" : "[{\"available\":\"47476780\",\"mountpoint\":\"/\",\"used\":\"3605224\",\"percent\":\"8%\",\"size\":\"51606140\",\"type\":\"ext4\"},{\"available\":\"1027100\",\"mountpoint\":\"/dev/shm\",\"used\":\"364\",\"percent\":\"1%\",\"size\":\"1027464\",\"type\":\"tmpfs\"},{\"available\":\"432210\",\"mountpoint\":\"/boot\",\"used\":\"38034\",\"percent\":\"9%\",\"size\":\"495844\",\"type\":\"ext4\"},{\"available\":\"44459808\",\"mountpoint\":\"/home\",\"used\":\"184284\",\"percent\":\"1%\",\"size\":\"47033288\",\"type\":\"ext4\"},{\"available\":\"0\",\"mountpoint\":\"/media/VBOXADDITIONS_4.1.23_80858\",\"used\":\"52206\",\"percent\":\"100%\",\"size\":\"52206\",\"type\":\"iso9660\"}]",
+        "last_heartbeat_time" : 1352357625241,
         "os_type" : "centos6",
         "ip" : "10.0.2.4"
       }
     },
     {
-      "href" : "http://localhost:8080/api/hosts/host1",
+      "href" : "http://localhost:8080/api/hosts/host05",
       "Hosts" : {
         "cpu_count" : 1,
+        "cluster_name" : "mycluster",
+        "last_registration_time" : 1352357436171,
+        "rack_info" : "/rack1",
         "total_mem" : 2055208,
         "os_arch" : "x86_64",
         "host_name" : "host05",
+        "disk_info" : "[{\"available\":\"47476780\",\"mountpoint\":\"/\",\"used\":\"3605224\",\"percent\":\"8%\",\"size\":\"51606140\",\"type\":\"ext4\"},{\"available\":\"1027100\",\"mountpoint\":\"/dev/shm\",\"used\":\"364\",\"percent\":\"1%\",\"size\":\"1027464\",\"type\":\"tmpfs\"},{\"available\":\"432210\",\"mountpoint\":\"/boot\",\"used\":\"38034\",\"percent\":\"9%\",\"size\":\"495844\",\"type\":\"ext4\"},{\"available\":\"44459808\",\"mountpoint\":\"/home\",\"used\":\"184284\",\"percent\":\"1%\",\"size\":\"47033288\",\"type\":\"ext4\"},{\"available\":\"0\",\"mountpoint\":\"/media/VBOXADDITIONS_4.1.23_80858\",\"used\":\"52206\",\"percent\":\"100%\",\"size\":\"52206\",\"type\":\"iso9660\"}]",
+        "last_heartbeat_time" : 1352357625241,
         "os_type" : "centos6",
         "ip" : "10.0.2.5"
       }
     },
     {
-      "href" : "http://localhost:8080/api/hosts/host1",
+      "href" : "http://localhost:8080/api/hosts/host06",
       "Hosts" : {
         "cpu_count" : 1,
+        "cluster_name" : "mycluster",
+        "last_registration_time" : 1352357436171,
+        "rack_info" : "/rack2",
         "total_mem" : 2055208,
         "os_arch" : "x86_64",
         "host_name" : "host06",
+        "disk_info" : "[{\"available\":\"47476780\",\"mountpoint\":\"/\",\"used\":\"3605224\",\"percent\":\"8%\",\"size\":\"51606140\",\"type\":\"ext4\"},{\"available\":\"1027100\",\"mountpoint\":\"/dev/shm\",\"used\":\"364\",\"percent\":\"1%\",\"size\":\"1027464\",\"type\":\"tmpfs\"},{\"available\":\"432210\",\"mountpoint\":\"/boot\",\"used\":\"38034\",\"percent\":\"9%\",\"size\":\"495844\",\"type\":\"ext4\"},{\"available\":\"44459808\",\"mountpoint\":\"/home\",\"used\":\"184284\",\"percent\":\"1%\",\"size\":\"47033288\",\"type\":\"ext4\"},{\"available\":\"0\",\"mountpoint\":\"/media/VBOXADDITIONS_4.1.23_80858\",\"used\":\"52206\",\"percent\":\"100%\",\"size\":\"52206\",\"type\":\"iso9660\"}]",
+        "last_heartbeat_time" : 1352357625241,
         "os_type" : "centos6",
         "ip" : "10.0.2.6"
       }
     },
     {
-      "href" : "http://localhost:8080/api/hosts/host1",
+      "href" : "http://localhost:8080/api/hosts/host07",
       "Hosts" : {
         "cpu_count" : 1,
+        "cluster_name" : "mycluster",
+        "last_registration_time" : 1352357436171,
+        "rack_info" : "/rack2",
         "total_mem" : 2055208,
         "os_arch" : "x86_64",
         "host_name" : "host07",
+        "disk_info" : "[{\"available\":\"47476780\",\"mountpoint\":\"/\",\"used\":\"3605224\",\"percent\":\"8%\",\"size\":\"51606140\",\"type\":\"ext4\"},{\"available\":\"1027100\",\"mountpoint\":\"/dev/shm\",\"used\":\"364\",\"percent\":\"1%\",\"size\":\"1027464\",\"type\":\"tmpfs\"},{\"available\":\"432210\",\"mountpoint\":\"/boot\",\"used\":\"38034\",\"percent\":\"9%\",\"size\":\"495844\",\"type\":\"ext4\"},{\"available\":\"44459808\",\"mountpoint\":\"/home\",\"used\":\"184284\",\"percent\":\"1%\",\"size\":\"47033288\",\"type\":\"ext4\"},{\"available\":\"0\",\"mountpoint\":\"/media/VBOXADDITIONS_4.1.23_80858\",\"used\":\"52206\",\"percent\":\"100%\",\"size\":\"52206\",\"type\":\"iso9660\"}]",
+        "last_heartbeat_time" : 1352357625241,
         "os_type" : "centos6",
         "ip" : "10.0.2.7"
       }
     },
     {
-      "href" : "http://localhost:8080/api/hosts/host1",
+      "href" : "http://localhost:8080/api/hosts/host08",
       "Hosts" : {
         "cpu_count" : 1,
+        "cluster_name" : "mycluster",
+        "last_registration_time" : 1352357436171,
+        "rack_info" : "/rack2",
         "total_mem" : 2055208,
         "os_arch" : "x86_64",
         "host_name" : "host08",
+        "disk_info" : "[{\"available\":\"47476780\",\"mountpoint\":\"/\",\"used\":\"3605224\",\"percent\":\"8%\",\"size\":\"51606140\",\"type\":\"ext4\"},{\"available\":\"1027100\",\"mountpoint\":\"/dev/shm\",\"used\":\"364\",\"percent\":\"1%\",\"size\":\"1027464\",\"type\":\"tmpfs\"},{\"available\":\"432210\",\"mountpoint\":\"/boot\",\"used\":\"38034\",\"percent\":\"9%\",\"size\":\"495844\",\"type\":\"ext4\"},{\"available\":\"44459808\",\"mountpoint\":\"/home\",\"used\":\"184284\",\"percent\":\"1%\",\"size\":\"47033288\",\"type\":\"ext4\"},{\"available\":\"0\",\"mountpoint\":\"/media/VBOXADDITIONS_4.1.23_80858\",\"used\":\"52206\",\"percent\":\"100%\",\"size\":\"52206\",\"type\":\"iso9660\"}]",
+        "last_heartbeat_time" : 1352357625241,
         "os_type" : "centos6",
         "ip" : "10.0.2.8"
       }
     },
     {
-      "href" : "http://localhost:8080/api/hosts/host1",
+      "href" : "http://localhost:8080/api/hosts/host09",
       "Hosts" : {
         "cpu_count" : 1,
+        "cluster_name" : "mycluster",
+        "last_registration_time" : 1352357436171,
+        "rack_info" : "/rack2",
         "total_mem" : 2055208,
         "os_arch" : "x86_64",
         "host_name" : "host09",
+        "disk_info" : "[{\"available\":\"47476780\",\"mountpoint\":\"/\",\"used\":\"3605224\",\"percent\":\"8%\",\"size\":\"51606140\",\"type\":\"ext4\"},{\"available\":\"1027100\",\"mountpoint\":\"/dev/shm\",\"used\":\"364\",\"percent\":\"1%\",\"size\":\"1027464\",\"type\":\"tmpfs\"},{\"available\":\"432210\",\"mountpoint\":\"/boot\",\"used\":\"38034\",\"percent\":\"9%\",\"size\":\"495844\",\"type\":\"ext4\"},{\"available\":\"44459808\",\"mountpoint\":\"/home\",\"used\":\"184284\",\"percent\":\"1%\",\"size\":\"47033288\",\"type\":\"ext4\"},{\"available\":\"0\",\"mountpoint\":\"/media/VBOXADDITIONS_4.1.23_80858\",\"used\":\"52206\",\"percent\":\"100%\",\"size\":\"52206\",\"type\":\"iso9660\"}]",
+        "last_heartbeat_time" : 1352357625241,
         "os_type" : "centos6",
         "ip" : "10.0.2.9"
       }
     },
     {
-      "href" : "http://localhost:8080/api/hosts/host1",
+      "href" : "http://localhost:8080/api/hosts/host10",
       "Hosts" : {
         "cpu_count" : 1,
+        "cluster_name" : "mycluster",
+        "last_registration_time" : 1352357436171,
+        "rack_info" : "/rack2",
         "total_mem" : 2055208,
         "os_arch" : "x86_64",
         "host_name" : "host10",
+        "disk_info" : "[{\"available\":\"47476780\",\"mountpoint\":\"/\",\"used\":\"3605224\",\"percent\":\"8%\",\"size\":\"51606140\",\"type\":\"ext4\"},{\"available\":\"1027100\",\"mountpoint\":\"/dev/shm\",\"used\":\"364\",\"percent\":\"1%\",\"size\":\"1027464\",\"type\":\"tmpfs\"},{\"available\":\"432210\",\"mountpoint\":\"/boot\",\"used\":\"38034\",\"percent\":\"9%\",\"size\":\"495844\",\"type\":\"ext4\"},{\"available\":\"44459808\",\"mountpoint\":\"/home\",\"used\":\"184284\",\"percent\":\"1%\",\"size\":\"47033288\",\"type\":\"ext4\"},{\"available\":\"0\",\"mountpoint\":\"/media/VBOXADDITIONS_4.1.23_80858\",\"used\":\"52206\",\"percent\":\"100%\",\"size\":\"52206\",\"type\":\"iso9660\"}]",
+        "last_heartbeat_time" : 1352357625241,
         "os_type" : "centos6",
         "ip" : "10.0.2.10"
       }
     },
     {
-      "href" : "http://localhost:8080/api/hosts/host1",
+      "href" : "http://localhost:8080/api/hosts/host11",
       "Hosts" : {
         "cpu_count" : 1,
+        "cluster_name" : "mycluster",
+        "last_registration_time" : 1352357436171,
+        "rack_info" : "/rack3",
         "total_mem" : 2055208,
         "os_arch" : "x86_64",
         "host_name" : "host11",
+        "disk_info" : "[{\"available\":\"47476780\",\"mountpoint\":\"/\",\"used\":\"3605224\",\"percent\":\"8%\",\"size\":\"51606140\",\"type\":\"ext4\"},{\"available\":\"1027100\",\"mountpoint\":\"/dev/shm\",\"used\":\"364\",\"percent\":\"1%\",\"size\":\"1027464\",\"type\":\"tmpfs\"},{\"available\":\"432210\",\"mountpoint\":\"/boot\",\"used\":\"38034\",\"percent\":\"9%\",\"size\":\"495844\",\"type\":\"ext4\"},{\"available\":\"44459808\",\"mountpoint\":\"/home\",\"used\":\"184284\",\"percent\":\"1%\",\"size\":\"47033288\",\"type\":\"ext4\"},{\"available\":\"0\",\"mountpoint\":\"/media/VBOXADDITIONS_4.1.23_80858\",\"used\":\"52206\",\"percent\":\"100%\",\"size\":\"52206\",\"type\":\"iso9660\"}]",
+        "last_heartbeat_time" : 1352357625241,
         "os_type" : "centos6",
         "ip" : "10.0.2.11"
       }

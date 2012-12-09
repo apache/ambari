@@ -28,9 +28,6 @@ App.MainAppsController = Em.ArrayController.extend({
   routeHome:function () {
     App.router.transitionTo('main.dashboard');
     var view = Ember.View.views['main_menu'];
-    $.each(view._childViews, function () {
-      this.set('active', this.get('content.routing') == 'dashboard' ? "active" : "");
-    });
   },
   clearFilteredRuns: function() {
     this.set('filteredRuns', []);
