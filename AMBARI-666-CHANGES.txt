@@ -476,6 +476,9 @@ AMBARI-666 branch (unreleased changes)
 
   BUG FIXES
 
+  AMBARI-1017. Alerts not showing up in Ambari UI due to model refactoring.
+  (Srimanth Gunturi via yusaku)
+
   AMBARI-1013. Host metrics charts should use live data. (Srimanth Gunturi
   via yusaku)
 

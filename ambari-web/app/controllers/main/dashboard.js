@@ -24,12 +24,16 @@ App.MainDashboardController = Em.Controller.extend({
     return App.router.get('clusterController.alerts');
   }.property('App.router.clusterController.alerts'),
 
-  alertsFilteredBy: 'All',
+  alertsFilteredByName: 'All',
+  alertsFilteredByType: 'All',
   alertsFilter: function(event) {
-    if (event.context)
-      this.set('alertsFilteredBy', event.context.get('serviceName'));
-    else
-      this.set('alertsFilteredBy', 'All');
+    if (event.context && event.context.model && event.context.model.get('serviceName')){
+      this.set('alertsFilteredByName', event.context.model.get('displayName'));
+      this.set('alertsFilteredByType', event.context.model.get('serviceName'));
+    } else {
+      this.set('alertsFilteredByName', 'All');
+      this.set('alertsFilteredByType', 'All');
+    }
   },
   /**
    * We do not want to re-get all the data everytime the filter
@@ -37,15 +41,15 @@ App.MainDashboardController = Em.Controller.extend({
    * load.
    */
   displayAlerts: function(){
-    if(this.get('alertsFilteredBy')=='All')
+    if(this.get('alertsFilteredByType')=='All')
       return this.get('alerts');
     else
-      var type = this.get('alertsFilteredBy').toLowerCase();
+      var type = this.get('alertsFilteredByType').toLowerCase();
       return this.get('alerts').filter(function(item){
         var serviceType = item.get('serviceType');
         return serviceType && serviceType.toLowerCase()==type.toLowerCase();
       });
-  }.property('alerts', 'alertsFilteredBy'),
+  }.property('alerts', 'alertsFilteredByType'),
   
   nagiosUrl: function(){
     return App.router.get('clusterController.nagiosUrl');

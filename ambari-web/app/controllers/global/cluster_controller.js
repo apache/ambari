@@ -91,7 +91,7 @@ App.ClusterController = Em.Controller.extend({
         if (svcComponents) {
           var nagiosSvcComponent = svcComponents.findProperty("componentName", "NAGIOS_SERVER");
           if(nagiosSvcComponent){
-            var hostName = nagiosSvcComponent.get('host_name');
+            var hostName = nagiosSvcComponent.get('host.hostName');
             if(hostName){
               return "http://"+hostName+"/nagios";
             }

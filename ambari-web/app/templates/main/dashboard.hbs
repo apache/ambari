@@ -64,12 +64,12 @@
       <div class="box-header">
         <h4>Alerts</h4>
         <div class="btn-group">
-          <button class="btn btn-primary dropdown-toggle" data-toggle="dropdown">{{controller.alertsFilteredBy}} <span class="caret"></span></button>
+          <button class="btn btn-primary dropdown-toggle" data-toggle="dropdown">{{controller.alertsFilteredByName}} <span class="caret"></span></button>
           <a class="btn" target="_blank" rel="tooltip" title="Go to Nagios" {{bindAttr href="controller.nagiosUrl"}}><i class="icon-link"></i></a>
           <ul class="dropdown-menu">
             <li><a {{action alertsFilter target="controller"}} href="javascript:void(null)">All</a></li>
-            {{#each service in controller.services}}
-              <li><a {{action alertsFilter service target="controller"}} href="javascript:void(null)">{{service.displayName}}</a></li>
+            {{#each service in view.content}}
+              <li><a {{action alertsFilter service target="controller"}} href="javascript:void(null)">{{service.model.displayName}}</a></li>
             {{/each}}
           </ul>
         </div>
