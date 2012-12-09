@@ -45,7 +45,7 @@ App.MainAppsController = Em.ArrayController.extend({
   getRunById: function(id) {
     var r;
     this.get('content').forEach(function(item){
-      if (item.get('id') == id) {
+      if (item.get('workflowId') == id) {
         r = item;
       }
     });
@@ -59,7 +59,7 @@ App.MainAppsController = Em.ArrayController.extend({
   issetStaredRun: function(id) {
     var r = false;
     this.get('staredRuns').forEach(function(item){
-      if (item.get('id') == id) {
+      if (item.get('workflowId') == id) {
         r = true;
       }
     });
@@ -78,7 +78,7 @@ App.MainAppsController = Em.ArrayController.extend({
     event.target.classList.toggle('stared');
     var cell = event.target.parentNode.parentNode;
     var row = cell.parentNode;
-    var id = parseInt(jQuery(event.target).parent().children(1).text());
+    var id = jQuery(event.target).parent().children(1).text();
     if (!this.issetStaredRun(id)) {
       this.get('staredRuns').push(this.getRunById(id));
     }

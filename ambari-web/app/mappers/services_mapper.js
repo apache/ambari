@@ -21,18 +21,48 @@ App.servicesMapper = App.QuickDataMapper.create({
   config : {
     id : 'ServiceInfo.service_name',
     service_name : 'ServiceInfo.service_name',
-    label : 'ServiceInfo.service_name',
-    $health_status: 'LIVE',
-    $work_status: 'true',
-    $serviceAudit: [1, 2, 3],
+    $work_status: 'DEAD',
+    $service_audit: [1, 2, 3],
+    $alerts: [1, 2, 3],
     components_key : 'components',
+    components_type : 'array',
     components : {
-        id : 'ServiceComponentInfo.component_name',
-        component_name : 'ServiceComponentInfo.component_name',
-        //service_id : 'ServiceComponentInfo.service_name',
-        service_name : 'ServiceComponentInfo.service_name',
-        state: 'host_components[0].HostRoles.state',
-        host_name: 'host_components[0].HostRoles.host_name'
-      }
+        item : 'ServiceComponentInfo.component_name'
+    }
+  },
+
+  model2 : App.Component,
+  config2: {
+    id : 'ServiceComponentInfo.component_name',
+    component_name : 'ServiceComponentInfo.component_name',
+    service_id : 'ServiceComponentInfo.service_name',
+    work_status: 'host_components[0].HostRoles.state',
+    host_id: 'host_components[0].HostRoles.host_name',
+    $decommissioned: false
+  },
+
+  map: function (json) {
+    if (!this.get('model')) {
+      return;
+    }
+
+    if (json.items) {
+      var result = [];
+
+      json.items.forEach(function (item) {
+        result.push(this.parseIt(item, this.config));
+      }, this)
+
+      App.store.loadMany(this.get('model'), result);
+
+      result = [];
+      json.items.forEach(function(item){
+        item.components.forEach(function(component){
+          result.push(this.parseIt(component, this.config2));
+        }, this)
+      }, this);
+
+      App.store.loadMany(this.get('model2'), result);
+    }
   }
 });

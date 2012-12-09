@@ -27,8 +27,8 @@ App.MainDashboardServiceHealthView = Em.View.extend({
   tagName: 'span',
 
   status: function () {
-    return this.get('service.healthStatus');
-  }.property('service.healthStatus'),
+    return this.get('service.workStatus');
+  }.property('service.workStatus'),
 
   startBlink: function () {
     this.set('blink', true);

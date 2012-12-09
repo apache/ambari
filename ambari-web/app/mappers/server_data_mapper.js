@@ -38,61 +38,64 @@ App.ServerDataMapper = Em.Object.extend({
 
 
 App.QuickDataMapper = App.ServerDataMapper.extend({
-  config : {},
-  model : null,
-  map:function(json){
-    if(!this.get('model')) {return;}
-    if(json.items){
+  config: {},
+  model: null,
+  map: function (json) {
+    if (!this.get('model')) {
+      return;
+    }
+
+    if (json.items) {
       var result = [];
-      if(this.get('model') != "App.Component" ){
-        json.items.forEach(function(item){
-          result.push(this.parseIt(item, this.config));
-        }, this)
-      }else{
-        json.items.forEach(function(item){
-          item.components.forEach(function(component){
-           // debugger;
-            result.push(this.parseIt(component, this.config));
-          }, this)
-        }, this)
-      }
-      //console.log(this.get('model') ,result);
-    App.store.loadMany(this.get('model'), result);
+
+      json.items.forEach(function (item) {
+        result.push(this.parseIt(item, this.config));
+      }, this)
+
+      //console.log(this.get('model'), result);
+      App.store.loadMany(this.get('model'), result);
     }
   },
-  parseIt : function(data, config){
+
+  parseIt: function (data, config) {
     var result = {};
-    for(var i in config){
-      if(i.substr(0, 1) === '$'){
+    for (var i in config) {
+      if (i.substr(0, 1) === '$') {
         i = i.substr(1, i.length);
-        result[i] = config['$'+i];
+        result[i] = config['$' + i];
       } else {
-      if(i.substr(-4) !== '_key' && typeof config[i] == 'string'){
-        result[i] = this.getJsonProperty(data, config[i]);
-      } else if(typeof config[i] == 'object'){
-        result[i] = [];
-        var _data = data[config[i+'_key']];
-        var l = _data.length;
-        for(var index = 0; index<l; index++){
-          result[i].push(this.parseIt(_data[index], config[i]));
-        }
+        if (i.substr(-5) !== '_type' && i.substr(-4) !== '_key' && typeof config[i] == 'string') {
+          result[i] = this.getJsonProperty(data, config[i]);
+        } else if (typeof config[i] == 'object') {
+          result[i] = [];
+          var _data = this.getJsonProperty(data, config[i+'_key']);
+          var _type = config[i + '_type'];
+          var l = _data.length;
+          for (var index = 0; index < l; index++) {
+            if(_type == 'array'){
+              result[i].push(this.getJsonProperty(_data[index], config[i].item));
+            } else {
+              result[i].push(this.parseIt(_data[index], config[i]));
+            }
+          }
         }
       }
     }
     return result;
   },
-  getJsonProperty:function(json, path){
+
+  getJsonProperty: function (json, path) {
     var pathArr = path.split('.');
     var current = json;
-    while(pathArr.length){
-      if(pathArr[0].substr(-1) == ']'){
-        var index = parseInt(pathArr[0].substr(-2,1));
-        var attr = pathArr[0].substr(0, pathArr[0].length-3);
+    while (pathArr.length) {
+      if (pathArr[0].substr(-1) == ']') {
+        var index = parseInt(pathArr[0].substr(-2, 1));
+        var attr = pathArr[0].substr(0, pathArr[0].length - 3);
         current = current[attr][index];
       } else {
         current = current[pathArr[0]];
       }
-      pathArr.splice(0,1);
+      pathArr.splice(0, 1);
     }
     return current;
   }

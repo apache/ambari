@@ -89,11 +89,11 @@ App.MainHostDetailsController = Em.Controller.extend({
           }
 
           console.log('Send request for STARTING successfully');
-          component.set('workStatus', "STARTING");
+          component.set('workStatus', App.Component.Status.starting);
 
           if(App.testMode){
             setTimeout(function(){
-              component.set('workStatus', "STARTED");
+              component.set('workStatus', App.Component.Status.started);
             },10000);
           } else{
             App.router.get('backgroundOperationsController.eventsArray').push({
@@ -103,7 +103,7 @@ App.MainHostDetailsController = Em.Controller.extend({
                 return result;
               },
               "do" : function(){
-                component.set('workStatus', "STARTED");
+                component.set('workStatus', App.Component.Status.started);
               }
             });
           }
@@ -140,11 +140,11 @@ App.MainHostDetailsController = Em.Controller.extend({
 
           console.log('Send request for STOPPING successfully');
 
-          component.set('workStatus', "STOPPING");
+          component.set('workStatus', App.Component.Status.stopping);
 
           if(App.testMode){
             setTimeout(function(){
-              component.set('workStatus', "STOPPED");
+              component.set('workStatus', App.Component.Status.stopped);
             },10000);
           } else{
             App.router.get('backgroundOperationsController.eventsArray').push({
@@ -154,7 +154,7 @@ App.MainHostDetailsController = Em.Controller.extend({
                 return result;
               },
               "do" : function(){
-                component.set('workStatus', "STOPPED");
+                component.set('workStatus', App.Component.Status.stopped);
               }
             });
           }
@@ -221,7 +221,7 @@ App.MainHostDetailsController = Em.Controller.extend({
     components.forEach(function(cInstance){
       var cName = cInstance.get('componentName');
       if(slaveComponents.contains(cName)) {
-        if(cInstance.get('workStatus')==="STOPPED" &&
+        if(cInstance.get('workStatus')===App.Component.Status.stopped &&
           !cInstance.get('decommissioned')){
           workingComponents.push(cName);
         }

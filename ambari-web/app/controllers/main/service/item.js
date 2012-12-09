@@ -26,12 +26,12 @@ App.MainServiceItemController = Em.Controller.extend({
    * @param url
    * @param data Object to send
    */
-  sendCommandToServer : function(url, postData){
+  sendCommandToServer : function(url, postData, callback){
     var url =  (App.testMode) ?
       '/data/wizard/deploy/poll_1.json' : //content is the same as ours
-      '/api/clusters/' + App.router.getClusterName() + url; //'/services/' + this.get('content.serviceName').toUpperCase();
+      '/api/clusters/' + App.router.getClusterName() + url;
 
-    var method = App.testMode ? 'GET' : (postData ? 'PUT' : 'POST');
+    var method = App.testMode ? 'GET' : 'PUT';
 
     $.ajax({
       type: method,
@@ -39,12 +39,19 @@ App.MainServiceItemController = Em.Controller.extend({
       data: JSON.stringify(postData),
       dataType: 'json',
       timeout: 5000,
-      success: function (data) {
-        //do something
+      success: function(data){
+        if(data && data.Requests){
+          callback(data.Requests.id);
+        } else{
+          callback(null);
+          console.log('cannot get request id from ', data);
+        }
       },
 
       error: function (request, ajaxOptions, error) {
         //do something
+        callback(null);
+        console.log('error on change component host status')
       },
 
       statusCode: require('data/statusCodes')
@@ -66,16 +73,37 @@ App.MainServiceItemController = Em.Controller.extend({
       body: Em.I18n.t('services.service.confirmation.body'),
       primary: 'Yes',
       secondary: 'No',
-      onPrimary: function() {
-        self.content.set('workStatus', true);
-
-        self.sendCommandToServer('/services/' + self.get('content.serviceName').toUpperCase(),{
-          ServiceInfo:{
+      onPrimary: function () {
+        self.sendCommandToServer('/services/' + self.get('content.serviceName').toUpperCase(), {
+          ServiceInfo: {
             state: 'STARTED'
           }
-        });
+        }, function (requestId) {
 
-        App.router.get('backgroundOperationsController').showPopup();
+          if (!requestId) {
+            return;
+          }
+
+          self.content.set('workStatus', App.Service.Health.starting);
+          console.log('Send request for STARTING successfully');
+          if (App.testMode) {
+            setTimeout(function () {
+              self.content.set('workStatus', App.Service.Health.live);
+            }, 10000);
+          } else {
+            App.router.get('backgroundOperationsController.eventsArray').push({
+              "when": function (controller) {
+                var result = (controller.getOperationsForRequestId(requestId).length == 0);
+                console.log('startService.when = ', result)
+                return result;
+              },
+              "do": function () {
+                self.content.set('workStatus', App.Service.Health.live);
+              }
+            });
+          }
+          App.router.get('backgroundOperationsController').showPopup();
+        });
         this.hide();
       },
       onSecondary: function() {
@@ -100,18 +128,37 @@ App.MainServiceItemController = Em.Controller.extend({
       primary: 'Yes',
       secondary: 'No',
       onPrimary: function() {
-        self.content.set('workStatus', false);
-
         self.sendCommandToServer('/services/' + self.get('content.serviceName').toUpperCase(),{
           ServiceInfo:{
             state: 'INSTALLED'
           }
+        }, function (requestId) {
+          if (!requestId) {
+            return
+          }
+          console.log('Send request for STOPPING successfully');
+          self.content.set('workStatus', App.Service.Health.stopping);
+          if (App.testMode) {
+            setTimeout(function () {
+              self.content.set('workStatus', App.Service.Health.dead);
+            }, 10000);
+          } else {
+            App.router.get('backgroundOperationsController.eventsArray').push({
+              "when": function (controller) {
+                var result = (controller.getOperationsForRequestId(requestId).length == 0);
+                console.log('stopService.when = ', result)
+                return result;
+              },
+              "do": function () {
+                self.content.set('workStatus', App.Service.Health.dead);
+              }
+            });
+          }
+          App.router.get('backgroundOperationsController').showPopup();
         });
-
-        App.router.get('backgroundOperationsController').showPopup();
         this.hide();
       },
-      onSecondary: function() {
+      onSecondary: function () {
         this.hide();
       }
     });
@@ -158,16 +205,23 @@ App.MainServiceItemController = Em.Controller.extend({
       primary: 'Yes',
       secondary: 'No',
       onPrimary: function() {
-        self.content.set('runSmokeTest', true);
-      
+
         var serviceName = self.get('content.serviceName').toUpperCase();
         var smokeName = serviceName + "_SERVICE_CHECK";
-        self.sendCommandToServer('/services/' + serviceName + '/actions/' + smokeName);
+        self.sendCommandToServer('/services/' + serviceName + '/actions/' + smokeName,
+            null,
+            function (requestId) {
 
-        App.router.get('backgroundOperationsController').showPopup();
+              if (!requestId) {
+                return;
+              }
+              self.content.set('runSmokeTest', true);
+              App.router.get('backgroundOperationsController').showPopup();
+            }
+        );
         this.hide();
       },
-      onSecondary: function() {
+      onSecondary: function () {
         this.hide();
       }
     });

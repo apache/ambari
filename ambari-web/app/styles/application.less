@@ -453,11 +453,11 @@ a:focus {
     min-width: 20px;
     margin-left: 0;
   }
-  .health-status-LIVE {
+  .health-status-LIVE, .health-status-STARTING {
     .tab-marker-position;
     background-image: @status-live-marker;
   }
-  .health-status-DEAD {
+  .health-status-DEAD, .health-status-STOPPING {
     .tab-marker-position;
     background-image: @status-dead-marker;
   }
@@ -679,11 +679,11 @@ a:focus {
       // background-position: 12px 9px;
       // background-repeat: no-repeat;
     }
-    .health-status-LIVE {
+    .health-status-LIVE , .health-status-STARTING {
       .tab-marker-position;
       background-image: @status-live-marker;
     }
-    .health-status-DEAD {
+    .health-status-DEAD, .health-status-STOPPING {
       .tab-marker-position;
       background-image: @status-dead-marker;
     }
@@ -925,12 +925,12 @@ a:focus {
     border-top-color: #000000;
     border-bottom-color: #000000;
   }
-  .health-status-STARTED, .health-status-STARTING {
+  .health-status-started, .health-status-starting {
     background-image: @status-live-marker;
     background-repeat: no-repeat;
     background-position: 0px 4px;
   }
-  .health-status-STOPPED, .health-status-STOPPING {
+  .health-status-installed, .health-status-stopping {
     background-image: @status-dead-marker;
     background-repeat: no-repeat;
     background-position: 0px 4px;

@@ -20,25 +20,27 @@ var App = require('app');
 
 App.ClusterController = Em.Controller.extend({
   name: 'clusterController',
-  cluster: null,
-  isLoaded: function(){
-    return true;
+  cluster:null,
+  isLoaded: false,
+  updateLoadStatus: function(item){
     var loadList = this.get('dataLoadList');
     var loaded = true;
+    loadList.set(item, true);
     for(var i in loadList){
-      if(loadList.hasOwnProperty(i) && !loadList[i]){
+      if(loadList.hasOwnProperty(i) && !loadList[i] && loaded){
         loaded = false;
       }
     }
-    return loaded;
-  }.property('dataLoadList'),
+    this.set('isLoaded', loaded);
+  },
   dataLoadList: Em.Object.create({
     'hosts': false,
     'jobs': false,
     'runs': false,
     'services': false,
-    'components': false,
-    'cluster' : false
+    'cluster' : false,
+    'racks' : false,
+    'alerts' : false
   }),
   /**
    * load cluster name
@@ -56,7 +58,9 @@ App.ClusterController = Em.Controller.extend({
       },
       error: function (request, ajaxOptions, error) {
         //do something
-        console.log('failed on loading cluster name')
+        console.log('failed on loading cluster name');
+        //hack skip loading when data ain't received
+        if(!App.testMode) self.set('isLoaded', true);
       },
       statusCode: require('data/statusCodes')
     });
@@ -74,43 +78,52 @@ App.ClusterController = Em.Controller.extend({
     if(!this.get('clusterName')){
         return;
     }
-    var clusterUrl = (App.testMode) ? '/data/clusters/cluster.json': '/api/clusters/mycluster?fields=Clusters';
-    var jobsUrl = (App.testMode) ? "/data/apps/jobs.json" : "/api/jobs?fields=*";
-    var runsUrl = (App.testMode) ? "/data/apps/runs.json" : "/api/runs?fields=*";
-    var hostsUrl = (App.testMode) ? "/data/hosts/hosts.json" : "/api/hosts?fields=*";
-    var servicesUrl = (App.testMode) ?
-        "/data/dashboard/services.json" :
-        "/api/clusters/mycluster/services?ServiceInfo/service_name!=MISCELLANEOUS&ServiceInfo/service_name!=DASHBOARD&fields=components/host_components/*";
+
+     var alertsUrl = "/data/alerts/alerts.json";
+     var clusterUrl = this.getUrl('/data/clusters/cluster.json', '?fields=Clusters');
+     var hostsUrl = this.getUrl('/data/hosts/hosts.json', '/hosts?fields=*');
+     var servicesUrl = this.getUrl('/data/dashboard/services.json', '/services?ServiceInfo/service_name!=MISCELLANEOUS&ServiceInfo/service_name!=DASHBOARD&fields=components/host_components/*');
+
+     var jobsUrl = "/data/apps/jobs.json";
+     var runsUrl = "/data/apps/runs.json";
+
+     var racksUrl = "/data/racks/racks.json";
+
+    App.HttpClient.get(alertsUrl, App.alertsMapper,{
+      complete:function(jqXHR, textStatus){
+        self.updateLoadStatus('alerts');
+      }
+    });
+    App.HttpClient.get(racksUrl, App.racksMapper,{
+      complete:function(jqXHR, textStatus){
+        self.updateLoadStatus('racks');
+      }
+    });
     App.HttpClient.get(clusterUrl, App.clusterMapper,{
       complete:function(jqXHR, textStatus){
-        self.set('dataLoadList.cluster', true);
+        self.updateLoadStatus('cluster');
       }
     });
      App.HttpClient.get(jobsUrl, App.jobsMapper,{
        complete:function(jqXHR, textStatus) {
-         self.set('dataLoadList.jobs', true);
-       }
-     });
-     App.HttpClient.get(runsUrl, App.runsMapper,{
-       complete:function(jqXHR, textStatus) {
-         self.set('dataLoadList.runs', true);
+         self.updateLoadStatus('jobs');
+         App.HttpClient.get(runsUrl, App.runsMapper,{
+           complete:function(jqXHR, textStatus) {
+             self.updateLoadStatus('runs');
+           }
+         });
        }
      });
     App.HttpClient.get(hostsUrl, App.hostsMapper,{
       complete:function(jqXHR, textStatus){
-        self.set('dataLoadList.hosts', true);
+        self.updateLoadStatus('hosts');
       }
     });
     App.HttpClient.get(servicesUrl, App.servicesMapper,{
       complete:function(jqXHR, textStatus){
-        self.set('dataLoadList.services', true);
+        self.updateLoadStatus('services');
       }
     });
-    /*App.HttpClient.get(servicesUrl, App.componentsMapper,{
-      complete:function(jqXHR, textStatus){
-        self.set('dataLoadList.components', true);
-      }
-    });*/
   }.observes('clusterName'),
   clusterName: function(){
     return (this.get('cluster')) ? this.get('cluster').Clusters.cluster_name : 'mycluster';

@@ -313,7 +313,7 @@ module.exports = Em.Route.extend({
       Ember.run.next(function () {
         var service = router.get('mainServiceItemController.content');
         if (!service) {
-          service = App.Service.find(1); // getting the first service to display
+          service = App.Service.find().objectAt(0); // getting the first service to display
         }
         router.transitionTo('service.summary', service);
       });

@@ -1,4 +1,4 @@
-<!--
+{{!
 * Licensed to the Apache Software Foundation (ASF) under one
 * or more contributor license agreements.  See the NOTICE file
 * distributed with this work for additional information
@@ -14,7 +14,8 @@
 * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 * See the License for the specific language governing permissions and
 * limitations under the License.
--->
+}}
+
 <div id="installOptions">
   <h2>{{t installer.step2.header}}</h2>
 
@@ -33,9 +34,13 @@
       </p>
 
       {{#if view.parentView.controller.hideBackButton}}
-      {{#if content.hostNames }}
-      <p class="alert alert-info">{{t hosts.add.step2.warning}}</p>
-      {{/if}}
+        {{#if content.oldHostNames }}
+          <p class="alert alert-info">
+            {{t hosts.add.step2.warning}}
+            <br/>
+            {{content.oldHostNames}}
+          </p>
+        {{/if}}
       {{/if}}
 
       <div class="controls">

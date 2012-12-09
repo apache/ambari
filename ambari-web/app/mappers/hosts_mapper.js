@@ -23,7 +23,11 @@ App.hostsMapper = App.QuickDataMapper.create({
     id : 'Hosts.host_name',
     host_name : 'Hosts.host_name',
     cluster_id: 'Hosts.cluster_name',//1
-    $components: [1,2,3],
+    components_key: 'host_components',
+    components_type: 'array',
+    components: {
+      item : 'HostRoles.component_name'
+    },
     cpu : 'Hosts.cpu_count',
     memory : 'Hosts.total_mem',
     disk_info: 'Hosts.disk_info',

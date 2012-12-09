@@ -30,8 +30,10 @@ App.MainAppsView = Em.View.extend({
     var content =  this.get('controller').get('content');
     content.forEach(function(run){
       var app = App.store.find(App.App, run.get('appId'));
-      run.set('appName', app.get('appName'));
-      run.set('type', app.get('type'));
+      /*run.set('appName', app.get('appName'));
+      run.set('type', app.get('type'));*/
+      run.set('appName', 'pig.sh');
+      run.set('type', 'Pig');
     });
     return content;
   }.property('App.router.mainAppsController.content'),

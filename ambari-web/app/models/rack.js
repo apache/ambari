@@ -29,7 +29,8 @@ App.Rack = DS.Model.extend({
 });
 
 App.Rack.FIXTURES = [
-  {
+  //here example of data
+  /*{
     id: 1,
     name: 'Rack-0',
     hosts: ['host01', 'host06', 'host05'],
@@ -37,50 +38,5 @@ App.Rack.FIXTURES = [
     live_hosts_count: 5,
     critical_hosts_count: 0,
     dead_hosts_count: 2
-  },
-  {
-    id: 2,
-    name: 'Rack-1',
-    hosts: ['host04', 'host02', 'host03'],
-    status: 'LIVE',
-    live_hosts_count: 2,
-    critical_hosts_count: 0,
-    dead_hosts_count: 1
-  },
-  {
-    id: 3,
-    name: 'Rack-2',
-    hosts: [1, 2, 3, 4, 8, 9, 10],
-    status: 'LIVE',
-    live_hosts_count: 5,
-    critical_hosts_count: 0,
-    dead_hosts_count: 2
-  },
-  {
-    id: 4,
-    name: 'Rack-3',
-    hosts: [5, 6, 7],
-    status: 'LIVE',
-    live_hosts_count: 2,
-    critical_hosts_count: 0,
-    dead_hosts_count: 1
-  },
-  {
-    id: 5,
-    name: 'Rack-4',
-    hosts: [1, 2, 3, 4, 8, 9, 10],
-    status: 'LIVE',
-    live_hosts_count: 5,
-    critical_hosts_count: 0,
-    dead_hosts_count: 2
-  },
-  {
-    id: 6,
-    name: 'Rack-5',
-    hosts: [5, 6, 7],
-    status: 'LIVE',
-    live_hosts_count: 2,
-    critical_hosts_count: 0,
-    dead_hosts_count: 1
-  }
+  }*/
 ];

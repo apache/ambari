@@ -33,7 +33,7 @@ App.MainHostSummaryView = Em.View.extend({
      */
     disabledClass:function(){
       var workStatus = this.get('content.workStatus');
-      if(['STARTING', 'STOPPING'].contains(workStatus) ){
+      if([App.Component.Status.starting, App.Component.Status.stopping].contains(workStatus) ){
         return 'disabled';
       } else {
         return '';
@@ -49,11 +49,11 @@ App.MainHostSummaryView = Em.View.extend({
     }.property('content.id') ,
 
     indicatorClass: function() {
-      return 'health-status-' + this.get('content.workStatus');
+      return 'health-status-' + App.Component.Status.getKeyName(this.get('content.workStatus'));
     }.property('content.workStatus'),
 
     componentCheckStatus : function() {
-      return (this.get('content.workStatus') === "STARTED" || this.get('content.workStatus') === "STARTING");
+      return (this.get('content.workStatus') === App.Component.Status.started || this.get('content.workStatus') === App.Component.Status.starting);
     }.property('content.workStatus'),
 
     /**
@@ -63,7 +63,7 @@ App.MainHostSummaryView = Em.View.extend({
       var workStatus = this.get('content.workStatus');
       var self = this;
 
-      if(['STARTING', 'STOPPING'].contains(workStatus) ){
+      if([App.Component.Status.starting, App.Component.Status.stopping].contains(workStatus) ){
         this.$('.components-health').effect("pulsate", null, 1000, function () {
           self.doBlinking();
         });

@@ -1,4 +1,4 @@
-<!--
+{{!
 * Licensed to the Apache Software Foundation (ASF) under one
 * or more contributor license agreements.  See the NOTICE file
 * distributed with this work for additional information
@@ -14,7 +14,7 @@
 * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 * See the License for the specific language governing permissions and
 * limitations under the License.
--->
+}}
 
 <div class="row">
   <div class="span6">
@@ -92,8 +92,8 @@
               <div class="span11">
                 <div class="row-fluid">
                   <div class="span8 title">{{title}}
-                    {{#if service.serviceName}}
-                      <a class="serviceLink" href="{{unbound serviceLink}}">{{service.serviceName}}</a>
+                    {{#if serviceName}}
+                      <a class="serviceLink" href="{{unbound serviceLink}}">{{serviceName}}</a>
                     {{/if}}
                   </div>
                   <div class="span4 date-time">{{dateDisplay}}</div>

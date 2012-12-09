@@ -16,14 +16,16 @@
  * limitations under the License.
  */
 
-App.componentsMapper = App.QuickDataMapper.create({
-  model : App.Component,
-  config : {
-    id : 'ServiceComponentInfo.component_name',
-    component_name : 'ServiceComponentInfo.component_name',
-    label : 'ServiceComponentInfo.component_name',
-    service_id: 'ServiceComponentInfo.service_name',
-    host_id: 'host_components[0].HostRoles.host_name',
-    $work_status: 'true'
+
+App.racksMapper = App.QuickDataMapper.create({
+  model: App.Rack,
+  config: {
+    id: "Racks.id",
+    name: "Racks.name",
+    $hosts: ["host01", "host06", "host05"],
+    status: "Racks.status",
+    live_hosts_count: "Racks.live_hosts_count",
+    critical_hosts_count: "Racks.critical_hosts_count",
+    dead_hosts_count: "Racks.dead_hosts_count"
   }
 });

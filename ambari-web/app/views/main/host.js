@@ -106,12 +106,11 @@ App.MainHostView = Em.View.extend({
   },
   HostView:Em.View.extend({
     content:null,
-    labels:'',
-    init:function () {
-      this._super();
-      var labels = this.get('content.components').getEach('label');
-      this.set('labels', labels.join(', '));
-    },
+
+    labels: function(){
+      return this.get('content.components').getEach('displayName').join(', ');
+    }.property('content.components.@each'),
+
     usageStyle:function () {
       return "width:" + this.get('content.diskUsage') + "%";
     }.property('content.diskUsage'),

@@ -23,6 +23,7 @@ require('models/form'); // should be the 1st
 require('models/authentication');
 require('models/cluster');
 require('models/hosts');
+require('models/quick_links');
 require('models/service');
 require('models/component');
 require('models/service_config');
@@ -37,4 +38,3 @@ require('models/job');
 require('models/run');
 require('models/app');
 require('models/background_operation');
-require('models/protoRelations');

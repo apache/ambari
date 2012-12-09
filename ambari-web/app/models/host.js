@@ -59,11 +59,11 @@ App.Host = DS.Model.extend({
     var status;
 
     var masterComponents = components.filterProperty('isMaster', true);
-    if(components.everyProperty('workStatus', "STARTED")){
+    if(components.everyProperty('workStatus', App.Component.Status.started)){
       status = 'LIVE';
     } else if(false && this.get('isNotHeartBeating')){ //todo uncomment on real data
       status = 'DEAD-YELLOW';
-    } else if(masterComponents.length > 0 && !masterComponents.everyProperty('workStatus', "STARTED")){
+    } else if(masterComponents.length > 0 && !masterComponents.everyProperty('workStatus', App.Component.Status.started)){
       status = 'DEAD';
     } else{
       status = 'DEAD-ORANGE';

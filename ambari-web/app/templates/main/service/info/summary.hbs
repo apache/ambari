@@ -1,4 +1,4 @@
-<!--
+{{!
 * Licensed to the Apache Software Foundation (ASF) under one
 * or more contributor license agreements.  See the NOTICE file
 * distributed with this work for additional information
@@ -14,7 +14,8 @@
 * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 * See the License for the specific language governing permissions and
 * limitations under the License.
--->
+}}
+
 <div class="row-fluid service-block">
 <div class="span6">
 {{#if view.service.quickLinks.length}}
@@ -46,7 +47,7 @@
       <tr>
         {{#if component.isMaster}}
         <td class="summary-label">{{component.displayName}}</td>
-        <td><a {{action selectHost component.host}} href="javascript:void(null)">{{component.hostComponents}}</a></td>
+        <td><a {{action selectHost component.host}} href="javascript:void(null)">{{component.host.hostName}}</a></td>
         {{else}}
         <td class="summary-label">{{component.displayName}}s</td>
         <td><a {{action filterHosts component}} href="javascript:void(null)">{{component.displayName}}s</a></td>

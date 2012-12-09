@@ -23,14 +23,12 @@ App.MainServiceMenuView = Em.CollectionView.extend({
     return App.router.get('mainServiceController.content');
   }.property('App.router.mainServiceController.content'),
 
-  init: function () {
-    this._super();
-    this.renderOnRoute();
-  },
   didInsertElement: function () {
     App.router.location.addObserver('lastSetURL', this, 'renderOnRoute');
     this.renderOnRoute();
   },
+
+  activeServiceId : null,
 
   /**
    *    Syncs navigation menu with requested URL
@@ -43,25 +41,18 @@ App.MainServiceMenuView = Em.CollectionView.extend({
     var reg = /^\/main\/services\/(\S+)\//g;
     var sub_url = reg.exec(last_url);
     var service_id = (null != sub_url) ? sub_url[1] : 1;
-    //TODO: fix this._childViews =[]
-    $.each(this._childViews, function () {
-      this.set('active', this.get('content.id') == service_id ? "active" : "");
-    });
+    this.set('activeServiceId', service_id);
+
   },
 
   tagName: 'ul',
   classNames: ["nav", "nav-list", "nav-services"],
 
-  activateView: function () {
-    var service = App.router.get('mainServiceItemController.content');
-    $.each(this._childViews, function () {
-      this.set('active', (this.get('content.serviceName') == service.get('serviceName') ? "active" : ""));
-    });
-  }.observes("App.router.mainServiceItemController.content"),
-
   itemViewClass: Em.View.extend({
     classNameBindings: ["active"],
-    active: "",
+    active: function(){
+      return this.get('content.id') == this.get('parentView.activeServiceId') ? 'active' : '';
+    }.property('parentView.activeServiceId'),
     serviceOperationsCount: function () {
       var operations = App.router.get('backgroundOperationsController').getOperationsFor(this.get('content.serviceName'));
       return operations.length;

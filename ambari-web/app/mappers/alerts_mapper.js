@@ -16,20 +16,37 @@
  * limitations under the License.
  */
 
-//todo: refactor it
-App.alertsMapper = App.ServerDataMapper.create({
+
+App.alertsMapper = App.QuickDataMapper.create({
+  model: App.Alert,
+  config:{
+    $alert_id:'' ,
+    title: "service_description",
+    service_type: "service_type",
+    date: "last_check",
+    status: "current_state",
+    message: "plugin_output",
+    host_name: "host_name",
+    current_attempt: "current_attempt",
+    last_hard_state_change: "last_hard_state_change",
+    last_hard_state: "last_hard_state",
+    last_time_ok: "last_time_ok",
+    last_wime_warning: "last_time_warning",
+    last_time_unknown: "last_time_unknown",
+    last_time_critical: "last_time_critical",
+    is_flapping: "is_flapping",
+    last_check: "last_check"
+  },
   map: function (json) {
+    if (!this.get('model')) {
+      return;
+    }
     if (json.alerts) {
-      $.each(json.alerts, function (i, _alert) {
-        var alert = App.store.createRecord(App.Alert, {
-          alertId: _alert.service_description,
-          title: _alert.service_description,
-          serviceType: _alert.service_type,
-          date: new Date(_alert.last_hard_state_change * 1000),
-          status: _alert.current_state,
-          message: _alert.plugin_output
-        });
-      });
+      var result = [];
+      json.alerts.forEach(function (item) {
+        result.push(this.parseIt(item, this.config));
+      }, this);
+      App.store.loadMany(this.get('model'), result);
     }
   }
 });

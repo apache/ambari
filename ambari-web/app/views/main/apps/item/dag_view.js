@@ -38,7 +38,7 @@ App.MainAppsItemDagView = Em.View.extend({
     var result = [];
     c.forEach(function(item, index){
       result[index] = new Object({
-        'name' : item.get('id'),
+        'name' : item.get('workflowEntityName'),
         'status' : item.get('status') == 'COMPLETE',
         'info' : [],
         'input' : 2,
@@ -47,7 +47,7 @@ App.MainAppsItemDagView = Em.View.extend({
     });
     return result;
   }.property('content'),
-  didInsertElement:function (){
+  didInsertElement:function (){;
     var innerTable = this.$('#innerTable').dataTable({
       "sDom": 'rt<"page-bar"lip><"clear">',
       "oLanguage": {
@@ -61,6 +61,7 @@ App.MainAppsItemDagView = Em.View.extend({
       },
       "iDisplayLength": 5,
       "aLengthMenu": [[5, 10, 25, 50, -1], [5, 10, 25, 50, "All"]],
+      "aaSorting": [],
       "aoColumns":[
         null,
         null,

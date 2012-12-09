@@ -1,4 +1,4 @@
-<!--
+{{!
 * Licensed to the Apache Software Foundation (ASF) under one
 * or more contributor license agreements.  See the NOTICE file
 * distributed with this work for additional information
@@ -14,10 +14,10 @@
 * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 * See the License for the specific language governing permissions and
 * limitations under the License.
--->
+}}
 
 <a href="#/main/services/{{unbound view.content.id}}/summary">
-  {{view App.MainDashboardServiceHealthView serviceBinding="view.content"}}&nbsp;<span>{{unbound view.content.label}}</span>
+  {{view App.MainDashboardServiceHealthView class="service-health" serviceBinding="view.content"}}&nbsp;<span>{{unbound view.content.displayName}}</span>
   {{#if view.serviceOperationsCount}}
     <span class="label operations-count" {{action "showPopup" target="App.router.backgroundOperationsController"}}>
       {{view.serviceOperationsCount}}

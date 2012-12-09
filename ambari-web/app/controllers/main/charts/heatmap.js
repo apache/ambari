@@ -27,7 +27,7 @@ App.MainChartsHeatmapController = Em.Controller.extend({
    * @this App.MainChartsHeatmapController
    */
   visualSchema: function() {
-    var maxHostsPerRack = this.cluster.get('maxHostsPerRack');
+    var maxHostsPerRack = this.get('cluster.maxHostsPerRack');
     switch(maxHostsPerRack) {
       case 10:
         return 'rack-5-2'

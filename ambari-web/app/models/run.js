@@ -24,12 +24,42 @@ var misc = require('utils/misc');
 App.Run = DS.Model.extend({
   runId:DS.attr('string'),
   parentRunId:DS.attr('string'),
-  workflowContext:DS.attr('string'),
+  workflowId:DS.attr('string'),
   userName:DS.attr('string'),
   startTime:DS.attr('string'),
-  lastUpdateTime:DS.attr('string'),
-  appId:DS.attr('number'),
-  jobs:DS.hasMany('App.Job'),
+  elapsedTime:DS.attr('string'),
+  appId:DS.attr('string'),
+  /**
+   *
+   */
+  /*workflowContext:function() {
+    var r = '{dag: {';
+    console.log('entries', this.get('entries'));
+    this.get('entries').forEach(function(item) {
+      r += '"' + item.source + '": [';
+      item.targets.forEach(function(target) {
+        r += '"' + target + '",';
+      });
+      r += '],';
+    });
+    r += '}}';
+    console.log('dag', r);
+    return r;
+  }.property('entries'),*/
+  workflowContext:DS.attr('string'),
+  /**
+   * Jobs in the current run
+   */
+  jobs: function() {
+    var self = this;
+    var r = Array();
+    App.Job.find().forEach(function(job) {
+      if (job.get('workflowId') == self.get('workflowId')) {
+        r.push(job);
+      }
+    });
+    return r;
+  }.property('workflowId'),
   /**
    * Number of comleted jobs.
    * Field calculates dynamically using <code>jobs</code> property
@@ -37,8 +67,15 @@ App.Run = DS.Model.extend({
   numJobsCompleted: function() {
     return this.get('jobs').filterProperty('status', 'RUNNING').length;
   }.property('jobs.@each.status'),
+  /**
+   * Sum of the child jobs duration
+   */
   duration: function() {
-    return date.dateFormatInterval(parseInt((parseInt(this.get('lastUpdateTime')) - parseInt(this.get('startTime')))/1000));
+    var d = 0;
+    this.get('jobs').forEach(function(job) {
+      d += job.get('elapsedTime') / 1000 || 0;
+    });
+    return date.dateFormatInterval(parseInt(d));
   }.property('lastUpdateTime', 'startTime'),
   /**
    * Status of running jobs
@@ -97,8 +134,17 @@ App.Run = DS.Model.extend({
    * Field calculates dynamically using <code>jobs</code> property
    */
   numJobsTotal: function() {
-    return this.get('jobs.content').length;
+    return this.get('jobs').length;
   }.property('jobs'),
+  /**
+   *
+   */
+  lastUpdateTime: function() {
+    return parseInt(this.get('startTime')) + parseInt(this.get('elapsedTime'));
+  }.property('elapsedTime', 'startTime'),
+  /**
+   *
+   */
   lastUpdateTimeFormatted: function() {
     return date.dateFormat(this.get('lastUpdateTime'));
   }.property('lastUpdateTime')

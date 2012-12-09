@@ -398,6 +398,9 @@ AMBARI-666 branch (unreleased changes)
 
   IMPROVEMENTS
 
+  AMBARI-1062. Convert Apache license header comment style in Handlebars files
+  to Handlebars comments rather than JavaScript comments. (yusaku)
+
   AMBARI-1061. Data loading refactoring for cluster management. (yusaku)
 
   AMBARI-1060. Data loading for App Browser. (yusaku)

@@ -30,11 +30,11 @@ App.clusterMapper = App.QuickDataMapper.create({
     config : {
       id:'Clusters.cluster_id',
       cluster_name: 'Clusters.cluster_name',
-      stackName: 'Clusters.stack_name',
+      stack_name: 'Clusters.stack_name',
       version: 'Clusters.version',
-      $hosts: "",
+      $hosts: [1, 2, 3, 4],
       $racks: [1,2,3,4],
-      maxHostsPerRack: 'Clusters.max_hosts_per_rack'
+      max_hosts_per_rack: 'Clusters.max_hosts_per_rack'
     }
 
 });

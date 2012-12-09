@@ -29,13 +29,22 @@ App.AlertStatus = {
  */
 App.Alert = DS.Model.extend({
   alertId: DS.attr('string'),
-  title: DS.attr('string'),
+  primaryKey: 'alertId',
+  title: DS.attr('string'),//service_description in ajax response
   serviceType: DS.attr('string'),
   date: DS.attr('date'),
-  status: DS.attr('string'),
-  message: DS.attr('string'),
-  primaryKey: 'alertId',
-
+  status: DS.attr('string'),//current_state in ajax response
+  message: DS.attr('string'),//plugin_output in ajax response
+  hostName: DS.attr('string'),
+  currentAttempt: DS.attr('string'),
+  lastHardStateChange: DS.attr('number'),
+  lastHardState: DS.attr('number'),
+  lastTimeOk: DS.attr('number'),
+  lastTimeWarning: DS.attr('number'),
+  lastTimeUnknown: DS.attr('number'),
+  lastTimeCritical: DS.attr('number'),
+  isFlapping: DS.attr('number'),
+  lastCheck: DS.attr('number'),
   /**
    * Used to show correct icon in UI
    */
@@ -77,7 +86,7 @@ App.Alert = DS.Model.extend({
           return 'Hive';
       }
     }
-    return '';
+    return 'unknown';
   }.property('serviceType'),
 
   /**
@@ -104,16 +113,6 @@ App.Alert = DS.Model.extend({
     return '';
   }.property('serviceType')
 
-});
-
-/*
- * App.Alert.reopenClass() has to be called as opposed
- * to DS.Model.extend() containing URL. Only then will
- * the 'url' property show up for the instance and the 
- * RESTAdapter will contact server.
- */
-App.Alert.reopenClass({
-//  url: "http://nagiosserver/hdp/nagios/nagios_alerts.php?q1=alerts&alert_type=all"
 });
 
 App.Alert.FIXTURES = [

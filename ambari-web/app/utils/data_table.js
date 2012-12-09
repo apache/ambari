@@ -44,7 +44,6 @@ jQuery.extend(jQuery.fn.dataTableExt.oSort, {
    * Custom methods for correct bandwidth sorting
    */
   "ambari-bandwidth-pre": function (bandwidth_string) {
-    debugger;
     bandwidth_string = (jQuery(bandwidth_string).text()) ? jQuery(bandwidth_string).text() : bandwidth_string;
     var convertedRowValue;
     if (bandwidth_string === '<1KB') {
@@ -231,7 +230,6 @@ jQuery.extend($.fn.dataTableExt.afnFiltering.push(
       }
 
       function bandwidthFilter(rangeExp, rowValue) {
-        debugger;
         var compareChar = rangeExp.charAt(0);
         var compareScale = rangeExp.charAt(rangeExp.length - 1);
         var compareValue = isNaN(parseFloat(compareScale)) ? parseFloat(rangeExp.substr(1, rangeExp.length - 2)) : parseFloat(rangeExp.substr(1, rangeExp.length - 1));

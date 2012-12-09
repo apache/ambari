@@ -20,7 +20,6 @@
 window.App = require('app');
 
 App.testMode = false;
-//App.testMode = true;
 
 require('messages');
 require('utils/data_table');
@@ -33,11 +32,12 @@ require('router');
 
 require('mappers/server_data_mapper');
 require('mappers/services_mapper');
-require('mappers/components_mapper');
 require('mappers/hosts_mapper');
 require('mappers/cluster_mapper');
 require('mappers/jobs_mapper');
 require('mappers/runs_mapper');
+require('mappers/racks_mapper');
+require('mappers/alerts_mapper');
 
 require('utils/http_client');
 

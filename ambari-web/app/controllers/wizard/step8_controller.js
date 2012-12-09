@@ -747,8 +747,6 @@ App.WizardStep8Controller = Em.Controller.extend({
     var clusterName = this.get('clusterInfo').findProperty('config_name', 'cluster').config_value;
     var url = '/api/clusters/' + clusterName + '/services/' + service;
 
-    debugger;
-
     $.ajax({
       type: httpMethod,
       url: url,

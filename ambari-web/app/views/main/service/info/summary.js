@@ -29,9 +29,6 @@ App.MainServiceInfoSummaryView = Em.View.extend({
     hive: false
   },
 
-  controller: function () {
-    return App.router.get('mainServiceInfoSummaryController');
-  }.property(),
   data:{
     hive:{
       "database"     : "PostgreSQL",
@@ -55,25 +52,38 @@ App.MainServiceInfoSummaryView = Em.View.extend({
     },
     href: 'javascript:void(null)'
   }),
+
   serviceName: function () {
-    return App.router.mainServiceInfoSummaryController.get('content.serviceName');
-  }.property('App.router.mainServiceInfoSummaryController.content'),
-  init: function () {
-    this._super();
-    if (this.get('serviceName'))
-      this.loadServiceSummary(this.get('serviceName'));
-  },
+    return this.get('service.serviceName');
+  }.property('service'),
+
+  oldServiceName : '',
+
   loadServiceSummary: function (serviceName) {
+
+    var serviceName = this.get('serviceName');
+    if(!serviceName){
+      return;
+    }
+
+    if(this.get('oldServiceName')){
+      // do not delete it!
+      return;
+    }
+
     var summaryView = this;
     var serviceStatus = summaryView.get('serviceStatus');
     $.each(serviceStatus, function (key, value) {
-      if (key == serviceName) {
+      if (key.toUpperCase() == serviceName) {
         summaryView.set('serviceStatus.' + key, true);
       } else {
         summaryView.set('serviceStatus.' + key, false);
       }
     });
 
+    console.log('load ', serviceName, ' info');
+    this.set('oldServiceName', serviceName);
+    serviceName = serviceName.toLowerCase();
     jQuery.getJSON('data/services/summary/' + serviceName + '.json', function (data) {
       if (data[serviceName]) {
         var summary = data[serviceName];
@@ -121,7 +131,7 @@ App.MainServiceInfoSummaryView = Em.View.extend({
         summaryView.set('attributes', summary);
       }
     })
-  },
+  }.observes('serviceName'),
 
   didInsertElement: function () {
     // We have to make the height of the Alerts section

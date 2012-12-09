@@ -286,28 +286,6 @@ App.AddServiceController = Em.Controller.extend({
   },
 
   /**
-   * Return hosts, which were add at <code>Specify Host(step2)</code> step
-   * @paramm isNew whether return all hosts or only new ones
-   */
-  getHostList: function (isNew) {
-    var hosts = [];
-    var hostArray = App.db.getHosts()
-    console.log('in AddServiceController.getHostList: host names is ', hostArray);
-
-    for (var i in hostArray) {
-      var hostInfo = App.HostInfo.create({
-        name: hostArray[i].name,
-        bootStatus: hostArray[i].bootStatus
-      });
-
-      hosts.pushObject(hostInfo);
-    }
-
-    console.log('TRACE: pushing ' + hosts);
-    return hosts;
-  },
-
-  /**
    * Remove host from model. Used at <code>Confirm hosts(step2)</code> step
    * @param hosts Array of hosts, which we want to delete
    */

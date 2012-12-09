@@ -115,6 +115,6 @@ App.MainDashboardController = Em.Controller.extend({
   }.property('alerts', 'alertsFilteredBy'),
   
   alertsCount: function() {
-    return this.alerts.filterProperty('status', 'corrupt').length;
-  }.property()
+    return this.get('alerts').filterProperty('status', 'corrupt').length;
+  }.property('alerts')
 })

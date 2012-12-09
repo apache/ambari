@@ -21,27 +21,40 @@ var App = require('app');
 App.runsMapper = App.QuickDataMapper.create({
   model : App.Run,
   map : function(json) {
-    console.log('json', json.workflows);
     if(!this.get('model')) {
       return;
     }
     if(json.workflows) {
       var result = [];
       json.workflows.forEach(function(item) {
-        result.push(this.parseIt(item, this.config));
+        var o = this.parseIt(item, this.config);
+
+        var r = '{dag: {';
+        item.workflowContext.workflowDag.entries.forEach(function(item) {
+          r += '"' + item.source + '": [';
+          item.targets.forEach(function(target) {
+            r += '"' + target + '",';
+          });
+          r = r.substr(0, r.length - 1);
+          r += '],';
+        });
+        r = r.substr(0, r.length - 1);
+        r += '}}';
+        o.workflow_context = r;
+        result.push(o);
       }, this);
-      console.log('result', result);
       App.store.loadMany(this.get('model'), result);
     }
   },
   config : {
     run_id: 'workflowName',
+    workflow_id: 'workflowId',
     $parent_run_id: null,
     //workflow_context:'{dag: {"1":["2","3"],"2":["3","4"],"4":["2","5"]}}',
+    //last_update_time:'1347639541501',
     user_name:'userName',
     start_time: 'startTime',
-    //last_update_time:'1347639541501',
-    app_id: 'workflowId'
-    //jobs:[1, 2, 3, 4, 5]
+    elapsed_time: 'elapsedTime',
+    $app_id: 1
   }
 });
