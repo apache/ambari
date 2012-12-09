@@ -420,6 +420,9 @@ AMBARI-666 branch (unreleased changes)
 
   IMPROVEMENTS
 
+  AMBARI-1030. Metrics links in web ui should link to Ganglia UI. (Srimanth
+  Gunturi via yusaku)
+
   AMBARI-1025. Display total install and start services time on summary page
   and polish summary page ui. (Jaimin Jetly via yusaku)
 

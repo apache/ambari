@@ -148,7 +148,28 @@ App.MainServiceInfoSummaryView = Em.View.extend({
     this.set('oldServiceName', serviceName);
     serviceName = serviceName.toLowerCase();
   }.observes('serviceName'),
-
+  
+  gangliaUrl: function () {
+    var gangliaUrl = App.router.get('clusterController.gangliaUrl');
+    var svcName = this.get('service.serviceName');
+    if (svcName) {
+      switch (svcName.toLowerCase()) {
+        case 'hdfs':
+          gangliaUrl += "/?r=hour&cs=&ce=&m=&s=by+name&c=HDPNameNode&tab=m&vn=";
+          break;
+        case 'mapreduce':
+          gangliaUrl += "/?r=hour&cs=&ce=&m=&s=by+name&c=HDPJobTracker&tab=m&vn=";
+          break;
+        case 'hbase':
+          gangliaUrl += "?r=hour&cs=&ce=&m=&s=by+name&c=HDPHBaseMaster&tab=m&vn=";
+          break;
+        default:
+          break;
+      }
+    }
+    return gangliaUrl;
+  }.property('App.router.clusterController.gangliaUrl', 'service.serviceName'),
+  
   didInsertElement:function () {
     // We have to make the height of the Alerts section
     // match the height of the Summary section.

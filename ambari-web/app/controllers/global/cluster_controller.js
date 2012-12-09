@@ -77,6 +77,35 @@ App.ClusterController = Em.Controller.extend({
   },
 
   /**
+   * Provides the URL to use for Ganglia server. This URL
+   * is helpful in populating links in UI.
+   *
+   * If null is returned, it means GANGLIA service is not installed.
+   */
+  gangliaUrl: function () {
+    if (App.testMode) {
+      return 'http://gangliaserver/ganglia/?t=yes';
+    } else {
+      // We want live data here
+      var svcs = App.Service.find();
+      var gangliaSvc = svcs.findProperty("serviceName", "GANGLIA");
+      if (gangliaSvc) {
+        var svcComponents = gangliaSvc.get('components');
+        if (svcComponents) {
+          var gangliaSvcComponent = svcComponents.findProperty("componentName", "GANGLIA_SERVER");
+          if (gangliaSvcComponent) {
+            var hostName = gangliaSvcComponent.get('host.hostName');
+            if (hostName) {
+              return "http://" + hostName + "/ganglia";
+            }
+          }
+        }
+      }
+      return null;
+    }
+  }.property('dataLoadList.services'),
+
+  /**
    * Provides the URL to use for NAGIOS server. This URL
    * is helpful in getting alerts data from server and also
    * in populating links in UI.
