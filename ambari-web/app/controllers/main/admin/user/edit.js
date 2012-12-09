@@ -20,5 +20,36 @@ var App = require('app');
 
 App.MainAdminUserEditController = Em.Controller.extend({
   name:'mainAdminUserEditController',
+  sendCommandToServer : function(url, postData, callback){
+    var url =  (App.testMode) ?
+        '/data/wizard/deploy/poll_1.json' : //content is the same as ours
+        '/api/clusters/' + App.router.getClusterName() + url;
+
+    var method = App.testMode ? 'GET' : 'PUT';
+
+    $.ajax({
+      type: method,
+      url: url,
+      data: JSON.stringify(postData),
+      dataType: 'json',
+      timeout: 5000,
+      success: function(data){
+        if(data && data.Requests){
+          callback(data.Requests.id);
+        } else{
+          callback(null);
+          console.log('cannot get request id from ', data);
+        }
+      },
+
+      error: function (request, ajaxOptions, error) {
+        //do something
+        callback(null);
+        console.log('error on change component host status')
+      },
+
+      statusCode: require('data/statusCodes')
+    });
+  },
   content:false
 })

@@ -104,6 +104,9 @@ App.WizardStep8Controller = Em.Controller.extend({
   getGlobConfigValue: function (templateName, expression) {
     var express = expression.match(/<(.*?)>/g);
     var value = expression;
+    if (express == null) {
+      return expression;
+    }
     express.forEach(function (_express) {
       //console.log("The value of template is: " + _express);
       var index = parseInt(_express.match(/\[([\d]*)(?=\])/)[1]);
@@ -907,7 +910,10 @@ App.WizardStep8Controller = Em.Controller.extend({
     var mrProperties = {};
     configs.forEach(function (_configProperty) {
       mrProperties[_configProperty.name] = _configProperty.value;
+      console.log("STEP*: name of the property is: " + _configProperty.name);
+      console.log("STEP8: value of the property is: " + _configProperty.value);
     }, this);
+
     return {type: 'mapred-site', tag: 'version1', properties: mrProperties};
   },
 

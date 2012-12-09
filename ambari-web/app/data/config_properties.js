@@ -1389,6 +1389,19 @@ module.exports =
       "isVisible": true,
       "serviceName": "MAPREDUCE"
     },
+    /* TODO: Uncomment when RCA integration is ready
+    {
+      "id": "puppet var",
+      "name": "enable_rca",
+      "displayName": "Enable RCA",
+      "description": "Enable RCA",
+      "defaultValue": true,
+      "isReconfigurable": true,
+      "displayType": "checkbox",
+      "isVisible": true,
+      "serviceName": "MAPREDUCE"
+    },
+    */
     /*{
       "id": "puppet var",
       "name": "mapred-site.xml",

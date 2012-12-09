@@ -444,10 +444,10 @@ module.exports = [
     "filename": "mapred-site.xml"
   },
   {
-    "name": "mapred.job.tracker.http.addres",
+    "name": "mapred.job.tracker.http.address",
     "templateName": ["jobtracker_host"],
     "foreignKey": null,
-    "value": "<templateName[0]>:50300",
+    "value": "<templateName[0]>:50030",
     "filename": "mapred-site.xml"
   },
   {
@@ -497,6 +497,13 @@ module.exports = [
     "templateName": ["keytab_path"],
     "foreignKey": null,
     "value": "<templateName[0]>\/tt.service.keytab",
+    "filename": "mapred-site.xml"
+  },
+  {
+    "name": "mapreduce.history.server.embedded",
+    "templateName": [],
+    "foreignKey": null,
+    "value": "false",
     "filename": "mapred-site.xml"
   },
   {

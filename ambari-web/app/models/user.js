@@ -26,9 +26,12 @@ App.UserModel = Em.Object.extend({
 
 App.User = DS.Model.extend({
   userName:DS.attr('string'),
-  admin:DS.attr('boolean'),
   password:DS.attr('string'),
-  auditItems:DS.hasMany('App.ServiceAudit')
+  roles:DS.attr('string'),
+  auditItems:DS.hasMany('App.ServiceAudit'),
+  admin: function () {
+    return !!(/^admin/.test(this.get('roles')))
+  }.property('userName')
 });
 
 App.UserForm = App.Form.extend({
@@ -88,7 +91,8 @@ App.UserForm = App.Form.extend({
     return isValid;
   }
 });
-
+App.User.FIXTURES = [];
+/*
 App.User.FIXTURES = [
   {
     id:1,
@@ -117,4 +121,4 @@ App.User.FIXTURES = [
     password:'test',
     admin:0
   }
-];
+];*/

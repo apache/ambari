@@ -138,7 +138,7 @@ App.WizardStep2Controller = Em.Controller.extend({
       return false;
     }
 
-    var bootStrapData = JSON.stringify({'sshKey': this.get('sshKey'), hosts: this.get('hostNameArr')});
+    var bootStrapData = JSON.stringify({'verbose': true, 'sshKey': this.get('sshKey'), hosts: this.get('hostNameArr')});
 
     // TODO: skipping bootstrap for now
     if (true) {

@@ -21,9 +21,6 @@ var App = require('app');
 App.MainAdminUserView = Em.View.extend({
   templateName: require('templates/main/admin/user'),
   users: App.User.find(),
-//  users: function(){
-//    return App.router.get('mainAdminUserController.content');
-//  }.property('mainAdminUserController.content'),
   delete: function(event, context){
     console.log("EVENT:");
     console.log(event);

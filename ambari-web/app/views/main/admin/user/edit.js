@@ -23,8 +23,27 @@ App.MainAdminUserEditView = Em.View.extend({
   userId: false,
   create: function(event){
     var form = this.get("userForm");
-    if(form.isValid() && form.save()) {
-      App.router.transitionTo("allUsers");
+    if(form.isValid()) {
+      var controller = this.get('controller');
+      var roles="user";
+      if(form.getValues().admin=="") roles="admin";
+      controller.sendCommandToServer('/users/' + form.getValues().userName, {
+        Users: {
+          password: form.getValues().password,
+          roles: roles
+        }
+      }, function (requestId) {
+
+        if (!requestId) {
+          return;
+        }
+
+        if(App.testMode)  form.save();
+
+        App.router.transitionTo("allUsers");
+      })
+
+
     }
   },
 

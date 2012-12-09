@@ -39,7 +39,8 @@ App.ClusterController = Em.Controller.extend({
     'services': false,
     'cluster' : false,
     'racks' : false,
-    'alerts' : false
+    'alerts' : false,
+    'users' : false
   }),
   /**
    * load cluster name
@@ -72,8 +73,8 @@ App.ClusterController = Em.Controller.extend({
   /**
    * Provides the URL to use for NAGIOS server. This URL
    * is helpful in getting alerts data from server and also
-   * in populating links in UI. 
-   * 
+   * in populating links in UI.
+   *
    * If null is returned, it means NAGIOS service is not installed.
    */
   nagiosUrl: function () {
@@ -98,7 +99,7 @@ App.ClusterController = Em.Controller.extend({
       return null;
     }
   }.property('dataLoadList.services'),
-  
+
   isNagiosInstalled: function(){
     if(App.testMode){
       return true;
@@ -108,7 +109,7 @@ App.ClusterController = Em.Controller.extend({
       return nagiosSvc!=null;
     }
   }.property('dataLoadList.services'),
-  
+
   /**
    * Sorted list of alerts.
    * Changes whenever alerts are loaded.
@@ -129,9 +130,9 @@ App.ClusterController = Em.Controller.extend({
     });
     return sortedArray;
   }.property('dataLoadList.alerts'),
-  
+
   /**
-   * This method automatically loads alerts when Nagios URL 
+   * This method automatically loads alerts when Nagios URL
    * changes. Once done it will trigger dataLoadList.alerts
    * property, which will trigger the alerts property.
    */
@@ -163,7 +164,7 @@ App.ClusterController = Em.Controller.extend({
       console.log("No Nagios URL provided.")
     }
   }.observes('nagiosUrl'),
-  
+
   /**
    *
    *  load all data and update load status
@@ -178,7 +179,7 @@ App.ClusterController = Em.Controller.extend({
      var hostsUrl = this.getUrl('/data/hosts/hosts.json', '/hosts?fields=*');
      var servicesUrl1 = this.getUrl('/data/dashboard/services.json', '/services?ServiceInfo/service_name!=MISCELLANEOUS&ServiceInfo/service_name!=DASHBOARD&fields=components/host_components/*');
      var servicesUrl2 = this.getUrl('/data/dashboard/services.json', '/services?ServiceInfo/service_name!=MISCELLANEOUS&ServiceInfo/service_name!=DASHBOARD&fields=components/ServiceComponentInfo');
-
+     var usersUrl = this.getUrl('/data/users/users.json', '/users/?fields=*');
      var runsUrl = App.testMode ? "/data/apps/runs.json" : "/api/jobhistory/workflow";
 
      var racksUrl = "/data/racks/racks.json";
@@ -205,7 +206,13 @@ App.ClusterController = Em.Controller.extend({
         self.updateLoadStatus('hosts');
       }
     });
-    
+
+    App.HttpClient.get(usersUrl, App.usersMapper,{
+      complete:function(jqXHR, textStatus){
+        self.updateLoadStatus('users');
+      }
+    });
+
     //////////////////////////////
     // Hack for services START  //
     //////////////////////////////
@@ -245,7 +252,7 @@ App.ClusterController = Em.Controller.extend({
               }
             });
             nameNode1.ServiceComponentInfo = nameNode2.ServiceComponentInfo;
-            
+
             App.servicesMapper.map(metricsJson);
             self.updateLoadStatus('services');
           }
@@ -262,7 +269,7 @@ App.ClusterController = Em.Controller.extend({
     /////////////////////////////
     // Hack for services END   //
     /////////////////////////////
-    
+
   }.observes('clusterName'),
   clusterName: function(){
     return (this.get('cluster')) ? this.get('cluster').Clusters.cluster_name : 'mycluster';

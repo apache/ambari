@@ -16,8 +16,12 @@
  * limitations under the License.
  */
 
-var App = require('app');
 
-App.MainAdminView = Em.View.extend({
-    templateName: require('templates/main/admin')
+App.usersMapper = App.QuickDataMapper.create({
+  model : App.User,
+  config : {
+    user_name : 'Users.user_name',
+    roles : 'Users.roles'
+  }
+
 });

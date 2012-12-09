@@ -1,0 +1,25 @@
+{
+  "href": "http://ambari:8080/api/clusters/mycluster/users",
+  "items": [
+    {
+      "href" : "http://ambari:8080/api/users/admin",
+      "Users" :
+      { "user_name" : "admin", "roles" : "admin,user" }
+    },
+    {
+      "href" : "http://ambari:8080/api/users/user",
+      "Users" :
+      { "user_name" : "user", "roles" : "user" }
+    },
+    {
+      "href" : "http://ambari:8080/api/users/john",
+      "Users" :
+      { "user_name" : "john", "roles" : "admin,user" }
+    },
+    {
+      "href" : "http://ambari:8080/api/users/mike",
+      "Users" :
+      { "user_name" : "mike", "roles" : "user" }
+    }
+  ]
+}

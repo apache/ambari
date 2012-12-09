@@ -681,6 +681,18 @@
       "value": "128",
       "description": "Limit on the length of counter group names in jobs. Names\n  exceeding this limit will be truncated.\n  ",
       "filename": "mapred-site.xml"
+    },
+    {
+      "name": "mapreduce.history.server.embedded",
+      "value": "false",
+      "description": "",
+      "filename": "mapred-site.xml"
+    },
+    {
+      "name": "mapreduce.history.server.http.address",
+      "value": "localhost:51111",
+      "description": "",
+      "filename": "mapred-site.xml"
     }
   ],
   "components": [
