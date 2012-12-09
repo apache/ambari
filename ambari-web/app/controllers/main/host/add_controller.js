@@ -787,6 +787,7 @@ App.AddHostController = Em.Controller.extend({
     App.db.setMasterComponentHosts(undefined);
     App.db.setSlaveComponentHosts(undefined);
     App.db.setClusterStatus(undefined);
+    App.router.get('updateController').updateAll();
   }
 
 });

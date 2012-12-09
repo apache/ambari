@@ -27,8 +27,7 @@ App.apiPrefix = '/api/v1';
 App.timeout = 20000;
 App.bgOperationsUpdateInterval = 6000;
 App.componentsUpdateInterval = 6000;
-App.graphUpdateInterval = 15000;
-App.services_update = 15000;
+App.contentUpdateInterval = 15000;
 
 require('messages');
 require('utils/data_table');
@@ -48,7 +47,7 @@ require('mappers/runs_mapper');
 require('mappers/racks_mapper');
 require('mappers/alerts_mapper');
 require('mappers/users_mapper');
-require('mappers/update_mapper');
+require('mappers/service_mapper');
 
 require('utils/http_client');
 

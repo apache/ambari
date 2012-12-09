@@ -356,5 +356,8 @@ Em.I18n.translations = {
   'timeRange.presets.1year':'1yr',
 
   'apps.filters.customRunDate':'Run Date custom filter',
-  'apps.dagCharts.popup':'DAG/Charts'
+  'apps.dagCharts.popup':'DAG/Charts',
+
+  'nagios.alerts.unavailable':'Alerts Unavailable'
+
 };

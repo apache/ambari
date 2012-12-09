@@ -26,11 +26,17 @@
   <link rel="stylesheet" href="stylesheets/app.css">
   <script src="javascripts/vendor.js"></script>
   <script src="javascripts/app.js"></script>
-  <script>require('initialize');</script>
+  <script>
+      $(document).ready(function() {
+          require('initialize');
+          $('#loading').remove();
+      });
+  </script>
   <title>Ambari</title>
   <link rel="shortcut icon" href="/img/logo-micro.gif">
 </head>
 <body>
+    <div id="loading">...Loading...</div>
     <div id="wrapper">
     <!-- ApplicationView -->
     </div>

@@ -111,14 +111,15 @@ App.ChartLinearTimeView = Ember.View.extend({
       didInsertElement: function () {
         this._super();
         this.loadData();
-        this.registerGraph()
+        this.registerGraph();
       },
       registerGraph: function(){
         var graph = {
           name: this.get('title'),
-          id: this.get('elementId')
+          id: this.get('elementId'),
+          popupId: this.get('id')
         };
-        App.router.get('clusterController.graphs').push(graph);
+        App.router.get('updateController.graphs').push(graph);
       },
 
       loadData: function() {
@@ -166,6 +167,7 @@ App.ChartLinearTimeView = Ember.View.extend({
             typeClass = '';
             break;
         }
+        $(chartOverlayId).html('');
         $(chartOverlayId).append('<div class=\"alert '+typeClass+'\"><strong>'+title+'</strong> '+message+'</div>');
       },
 
@@ -306,7 +308,7 @@ App.ChartLinearTimeView = Ember.View.extend({
           }
         }.bind(this));
         var chartId = "#" + this.id + "-chart" + p;
-        var chartOverlayId = "#" + this.id + "-overlay" + p;
+        var chartOverlayId = "#" + this.id + "-container" + p;
         var xaxisElementId = "#" + this.id + "-xaxis" + p;
         var yaxisElementId = "#" + this.id + "-yaxis" + p;
         var legendElementId = "#" + this.id + "-legend" + p;
@@ -361,33 +363,35 @@ App.ChartLinearTimeView = Ember.View.extend({
 
        var shelving = new Rickshaw.Graph.Behavior.Series.Toggle({
           graph: _graph,
-          legend:legend
+          legend: legend
         });
 
         var order = new Rickshaw.Graph.Behavior.Series.Order({
           graph: _graph,
-          legend:legend
+          legend: legend
         });
 
         var annotator = new Rickshaw.Graph.Annotate({
           graph: _graph,
-          element:timelineElement
+          element: timelineElement
         });
 
         _graph.render();
-
-        var hoverDetail = new Rickshaw.Graph.HoverDetail({
-          graph: _graph,
-          onShow: function() {
-            console.log('show');
-          },
-          onHide: function() {
-            console.log('hide');
-          },
-          onRender: function() {
-            console.log('render');
-          }
-        });
+        if (isPopup) {
+          var self = this;
+          var hoverDetail = new Rickshaw.Graph.HoverDetail({
+            graph: _graph,
+            yFormatter:function (y) {
+              return self.yAxisFormatter(y);
+            },
+            xFormatter:function (x) {
+              return (new Date(x)).toLocaleTimeString();
+            },
+            formatter:function (series, x, y, formattedX, formattedY, d) {
+              return formattedY + '<br />' + formattedX;
+            }
+          });
+        }
 
         if (isPopup) {
           this.set('_popupGraph', _graph);
@@ -402,6 +406,7 @@ App.ChartLinearTimeView = Ember.View.extend({
 
       showGraphInPopup: function() {
         this.set('isPopup', true);
+        var self = this;
         App.ModalPopup.show({
           template: Ember.Handlebars.compile([
             '<div class="modal-backdrop"></div><div class="modal modal-graph-line" id="modal" tabindex="-1" role="dialog" aria-labelledby="modal-label" aria-hidden="true">',
@@ -419,7 +424,6 @@ App.ChartLinearTimeView = Ember.View.extend({
                 '<div id="'+this.get('id')+'-yaxis'+this.get('popupSuffix')+'" class="'+this.get('id')+'-yaxis chart-y-axis"></div>'+
                 '<div id="'+this.get('id')+'-xaxis'+this.get('popupSuffix')+'" class="'+this.get('id')+'-xaxis chart-x-axis"></div>'+
                 '<div id="'+this.get('id')+'-legend'+this.get('popupSuffix')+'" class="'+this.get('id')+'-legend chart-legend"></div>'+
-                '<div id="'+this.get('id')+'-overlay'+this.get('popupSuffix')+'" class="'+this.get('id')+'-overlay chart-overlay"></div>'+
                 '<div id="'+this.get('id')+'-chart'+this.get('popupSuffix')+'" class="'+this.get('id')+'-chart chart"></div>'+
                 '<div id="'+this.get('id')+'-title'+this.get('popupSuffix')+'" class="'+this.get('id')+'-title chart-title">{{view.title}}</div>'+
                 '<div id="'+this.get('id')+'-timeline'+this.get('popupSuffix')+'" class="'+this.get('id')+'-timeline timeline"></div>'+
@@ -436,9 +440,9 @@ App.ChartLinearTimeView = Ember.View.extend({
           primary: 'OK',
           onPrimary: function() {
             this.hide();
+            self.set('isPopup', false);
           }
         });
-        var self = this;
         Ember.run.next(function() {
           self.loadData();
         });

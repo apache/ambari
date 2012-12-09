@@ -22,24 +22,6 @@ App.ClusterController = Em.Controller.extend({
   name:'clusterController',
   cluster:null,
   isLoaded:false,
-  graphs: [],
-  graphsUpdate: function () {
-    if (!this.get('isLoaded')) return;
-    var self = this;
-    console.log('graphs updated', self.get('graphs'));
-    var interval = setInterval(function () {
-      self.get('graphs').forEach(function (_graph) {
-        var view = Em.View.views[_graph.id];
-        if (view) {
-          console.log('updated graph', _graph.name);
-          view.$(".chart-container").children().each(function (index, value) {
-            $(value).children().remove();
-          });
-          view.loadData();
-        }
-      })
-    }, App.graphUpdateInterval);
-  }.observes('isLoaded'),
   updateLoadStatus:function (item) {
     var loadList = this.get('dataLoadList');
     var loaded = true;
@@ -220,6 +202,10 @@ App.ClusterController = Em.Controller.extend({
         context:this,
         complete:function (jqXHR, textStatus) {
           this.updateLoadStatus('alerts')
+        },
+        error: function(jqXHR, testStatus, error) {
+          this.showMessage(Em.I18n.t('nagios.alerts.unavailable'));
+          console.log('Nagios $.ajax() response:', error);
         }
       };
       if (App.testMode) {
@@ -234,6 +220,20 @@ App.ClusterController = Em.Controller.extend({
       console.log("No Nagios URL provided.")
     }
   }.observes('nagiosUrl'),
+
+  /**
+   * Show message in UI
+   */
+  showMessage: function(message){
+    App.ModalPopup.show({
+      header: 'Message',
+      body: message,
+      onPrimary: function() {
+        this.hide();
+      },
+      secondary : null
+    });
+  },
 
   componentsUpdateInterval: App.componentsUpdateInterval,
 

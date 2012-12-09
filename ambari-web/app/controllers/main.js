@@ -31,12 +31,10 @@ App.MainController = Em.Controller.extend({
     this.startLoadOperationsPeriodically();
     App.router.get('clusterController').loadClusterData();
     App.router.get('updateController').updateServiceMetric();
-    setInterval(
-      this.updateServiceMetric
-    , App.services_update);
+    setInterval( this.updateAll , App.contentUpdateInterval);
   },
-  updateServiceMetric: function(){
-    App.router.get('updateController').updateServiceMetric();
+  updateAll: function(){
+    App.router.get('updateController').updateAll();
   },
   startLoadOperationsPeriodically: function() {
       App.router.get('backgroundOperationsController').set('isWorking', true);

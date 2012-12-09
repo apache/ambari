@@ -22,6 +22,7 @@ module.exports = Em.Route.extend({
     console.log('in /main:enter');
     if (router.getAuthenticated()) {
       var clusterController = App.router.get('clusterController').loadClusterName(false);
+      App.router.get('updateController').loadClusterName(false);
       router.get('mainController').initialize();
       // TODO: redirect to last known state
     } else {

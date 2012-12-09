@@ -50,12 +50,15 @@ App.hostsMapper = App.QuickDataMapper.create({
     ip: 'Hosts.ip'
   },
   map: function (json) {
+    var self = this;
     if (!this.get('model')) {
       return;
     }
     if (json.items) {
-      var result = [];
+
       json.items.forEach(function (item) {
+        var result = [];
+
         // Disk Usage
         if (item.metrics && item.metrics.disk && item.metrics.disk.disk_total && item.metrics.disk.disk_free) {
           var diskUsed = item.metrics.disk.disk_total - item.metrics.disk.disk_free;
@@ -73,15 +76,56 @@ App.hostsMapper = App.QuickDataMapper.create({
           var memUsedPercent = (100 * memUsed) / item.metrics.memory.mem_total;
           item.memory_usage = memUsedPercent.toFixed(1);
         }
-        item.host_components.forEach(function (host_component) {
-          host_component.id = host_component.HostRoles.component_name + "_" + host_component.HostRoles.host_name;
-        }, this);
-        result.push(this.parseIt(item, this.config));
+
+        if(App.Host.find(item.Hosts.host_name).get("hostName") == item.Hosts.host_name){ // UPDATE
+
+         /* App.Host.find(item.Hosts.host_name).set("ip", item.Hosts.ip);
+          App.Host.find(item.Hosts.host_name).set("cpu", item.Hosts.cpu_count);
+          App.Host.find(item.Hosts.host_name).set("osArch", item.Hosts.os_arch);
+          App.Host.find(item.Hosts.host_name).set("osType", item.Hosts.os_type);
+          App.Host.find(item.Hosts.host_name).set("memory", item.Hosts.total_mem);
+          if(typeof item.Hosts.load !=="undefined"){
+            App.Host.find(item.Hosts.host_name).set("loadOne", item.Hosts.load.load_one);
+            App.Host.find(item.Hosts.host_name).set("loadFive", item.Hosts.load.load_five);
+            App.Host.find(item.Hosts.host_name).set("loadFifteen", item.Hosts.load.load_fifteen);
+          }
+          App.Host.find(item.Hosts.host_name).set("cpuUsage", item.cpu_usage);
+          App.Host.find(item.Hosts.host_name).set("diskUsage", item.disk_usage);
+          App.Host.find(item.Hosts.host_name).set("memoryUsage", item.memory_usage);*/
+
+          $.map(item.Hosts, function (e,a){
+            if(typeof(e) === "string" || typeof(e) === "number")
+            {
+              var modelName=self.parseName(a);
+              if(typeof(App.Host.find(item.Hosts.host_name).get(modelName)) !== "undefined"){
+                App.Host.find(item.Hosts.host_name).set(modelName, item.Hosts[a]);
+              }
+            }
+          })
+
+        }else{ // ADD
+
+          item.host_components.forEach(function (host_component) {
+            host_component.id = host_component.HostRoles.component_name + "_" + host_component.HostRoles.host_name;
+          }, this);
+          result.push(this.parseIt(item, this.config));
+          App.store.loadMany(this.get('model'), result);
+
+        }
       }, this);
 
       // console.log(this.get('model'), result);
-      App.store.loadMany(this.get('model'), result);
+
     }
+  },
+
+  parseName:function(name){
+    var new_name = name.replace(/_\w/g,replacer);
+    function replacer(str, p1, p2, offset, s)
+    {
+     return str[1].toUpperCase();
+    }
+    return new_name;
   }
 
 });

@@ -297,7 +297,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
    * @param _componentConfig
    * @param componentConfig
    */
-  loadComponentConfigs: function (_componentConfig, componentConfig) {debugger;
+  loadComponentConfigs: function (_componentConfig, componentConfig) {
     _componentConfig.configs.forEach(function (_serviceConfigProperty) {
       console.log("config", _serviceConfigProperty);
       if(!_serviceConfigProperty) return;
@@ -308,7 +308,6 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
       serviceConfigProperty.validate();
       console.log("config result", serviceConfigProperty);
     }, this);
-    console.log("+++++++++++++++++++++++++++++++++++++++++");
   },
 
   restartServicePopup: function (event) {

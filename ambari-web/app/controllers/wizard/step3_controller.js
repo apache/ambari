@@ -318,13 +318,10 @@ App.WizardStep3Controller = Em.Controller.extend({
             _host.cpu = host.Hosts.cpu_count;
             _host.memory = ((parseInt(host.Hosts.total_mem)) / kbPerGb).toFixed(2);
             console.log("The value of memory is: " + _host.memory);
-            alert ("The value of memory is: " + _host.memory);
-            debugger;
           }
         }, this);
         self.set('bootHosts',hosts);
         console.log("The value of hosts: " + JSON.stringify(hosts));
-        debugger;
         self.stopRegistrataion();
       },
 
