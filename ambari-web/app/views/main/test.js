@@ -20,5 +20,5 @@ var App = require('app');
 
 App.MainTestView = Em.View.extend({
   templateName: require('templates/main/test'),
-  services: App.Service1.find()
+  services: App.Service.find()
 });

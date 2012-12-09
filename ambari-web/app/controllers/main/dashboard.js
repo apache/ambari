@@ -22,7 +22,7 @@ App.MainDashboardController = Em.Controller.extend({
   name:'mainDashboardController',
   alerts: App.Alert.find(),
   data: {
-    hdfs:{
+    HDFS:{
       "namenode_addr":"namenode:50070",
       "secondary_namenode_addr":"snamenode:50090",
       "namenode_starttime":1348935028,
@@ -45,7 +45,7 @@ App.MainDashboardController = Em.Controller.extend({
       "namenode_heap_used":63365113856,
       "namenode_heap_total": 163365113856
     },
-    mapreduce: {
+    MAPREDUCE: {
       "jobtracker_addr": "jobtracker:50030",
       "jobtracker_starttime": 1348935243,
       "running_jobs": 1,
@@ -86,6 +86,10 @@ App.MainDashboardController = Em.Controller.extend({
   },
 
   services:function(){
+
+    /* TODO: create Lasy loading
+    setTimeout(function(){console.log(App.Service.find().objectAt(0).get("id"))}, 20);
+    */
     return App.router.get('mainServiceController.content');
   }.property('App.router.mainServiceController.content'),
   alertsFilteredBy: 'All',

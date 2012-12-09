@@ -15,24 +15,31 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+/*
+var App = require('app');
 
-App.servicesMapper = App.QuickDataMapper.create({
-  model : App.Service,
-  config : {
-    id : 'ServiceInfo.service_name',
-    service_name : 'ServiceInfo.service_name',
-    label : 'ServiceInfo.service_name',
-    $health_status: 'LIVE',
-    $work_status: 'true',
-    $serviceAudit: [1, 2, 3],
-    components_key : 'components',
-    components : {
-        id : 'ServiceComponentInfo.component_name',
-        component_name : 'ServiceComponentInfo.component_name',
-        //service_id : 'ServiceComponentInfo.service_name',
-        service_name : 'ServiceComponentInfo.service_name',
-        state: 'host_components[0].HostRoles.state',
-        host_name: 'host_components[0].HostRoles.host_name'
-      }
-  }
+App.Component = DS.Model.extend({
+  componentName:DS.attr('string'),
+  label:DS.attr('string'),
+  type:DS.attr('boolean'),
+  service:DS.belongsTo('App.Service'),
+  host:DS.belongsTo('App.Host'),
+  workStatus:DS.attr('string'),
+  isMaster:function () {
+    return this.get('type');
+  }.property('type'),
+  isSlave:function () {
+    return !this.get('type');
+  }.property('type'),
+  // checkedForHostFilter: true // this is for host page to set checkboxes checked
+  decommissioned: DS.attr('boolean')
 });
+
+App.Component.Status = {
+  started:"STARTED",
+  starting:"STARTING",
+  stopped:"STOPPED",
+  stopping:"STOPPING"
+}
+
+App.Component.FIXTURES = [];*/

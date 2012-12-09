@@ -20,7 +20,7 @@ var App = require('app');
 
 App.MainDashboardServiceMapreduceView = App.MainDashboardServiceView.extend({
   templateName:require('templates/main/dashboard/service/mapreduce'),
-  serviceName:'mapreduce',
+  serviceName:'MAPREDUCE',
 
   Chart:App.ChartLinearView.extend({
     data:function () {

@@ -20,7 +20,7 @@ var App = require('app');
 
 App.MainDashboardServiceHdfsView = App.MainDashboardServiceView.extend({
   templateName:require('templates/main/dashboard/service/hdfs'),
-  serviceName:'hdfs',
+  serviceName:'HDFS',
 
   Chart:App.ChartPieView.extend({
     data:function () {

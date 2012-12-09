@@ -18,14 +18,18 @@
 
 var App = require('app');
 
-App.Service1 = DS.Model.extend({
-  //primaryKey : 'serviceName',
+App.Service = DS.Model.extend({
   serviceName: DS.attr('string'),
-  description: DS.attr('string'),
-  components: DS.hasMany('App.Service1Component', { embedded: true }),
-
+  serviceAudit:DS.hasMany('App.ServiceAudit'),
+  label:DS.attr('string'),//
+  healthStatus:DS.attr('string'),
+  workStatus:DS.attr('boolean'),//
+  alerts:DS.hasMany('App.Alert'),
+  quickLinks:DS.hasMany('App.QuickLinks'),
+  components: DS.hasMany('App.ServiceComponent', { embedded: true }),
+  //components:DS.hasMany('App.Component'),
   displayName: function() {
-    switch (this.get('serviceName').toLowerCase()) {
+    switch (this.get('serviceName')) {
       case 'hdfs':
         return 'HDFS';
       case 'mapreduce':
@@ -53,14 +57,14 @@ App.Service1 = DS.Model.extend({
   }.property('serviceName')
 });
 
-App.Service1.Health = {
+App.Service.Health = {
   live:"LIVE",
   dead:"DEAD",
   start:"STARTING",
   stop:"STOPPING"
 };
 
-App.Service1Component = DS.Model.extend({
+App.ServiceComponent = DS.Model.extend({
   componentName: DS.attr('string'),
   hostComponents: DS.hasMany('App.HostComponent1'),
   service: DS.belongsTo('App.Service1'),
@@ -91,7 +95,7 @@ App.Service1Component = DS.Model.extend({
   }.property('componentName')
 });
 
-App.HostComponent1 = DS.Model.extend({
+App.HostComponent = DS.Model.extend({
   primaryKey: 'hostComponentId',
   hostComponentId: DS.attr('string'), // component_name + host_name
   state: DS.attr('string'),
@@ -99,9 +103,108 @@ App.HostComponent1 = DS.Model.extend({
   hostName: DS.attr('string')
 });
 
+App.QuickLinks = DS.Model.extend({
+  label:DS.attr('string'),
+  url:DS.attr('string')
+});
+
+App.QuickLinks.FIXTURES = [
+  {
+    id:1,
+    label:'NameNode UI',
+    url:'http://%@:50070/dfshealth.jsp'
+  },
+  {
+    id:2,
+    label:'NameNode logs',
+    url:'http://%@:50070/logs'
+  },
+  {
+    id:3,
+    label:'NameNode JMX',
+    url:'http://%@:50070/jmx'
+  },
+  {
+    id:4,
+    label:'Thread Stacks',
+    url:'http://%@:50070/stacks'
+  },
+  {
+    id:5,
+    label:'JobTracker UI',
+    url:'http://%@:50030/jobtracker.jsp'
+  },
+  {
+    id:6,
+    label:'Scheduling Info',
+    url:'http://%@:50030/scheduler'
+  },
+  {
+    id:7,
+    label:'Running Jobs',
+    url:'http://%@:50030/jobtracker.jsp#running_jobs'
+  },
+  {
+    id:8,
+    label:'Retired Jobs',
+    url:'http://%@:50030/jobtracker.jsp#retired_jobs'
+  },
+  {
+    id:9,
+    label:'JobHistory Server',
+    url:'http://%@:51111/jobhistoryhome.jsp'
+  },
+  {
+    id:10,
+    label:'JobTracker Logs',
+    url:'http://%@:50030/logs'
+  },
+  {
+    id:11,
+    label:'HBase Master UI',
+    url:'http://%@:60010/master-status'
+  },
+  {
+    id:12,
+    label:'HBase Logs',
+    url:'http://%@:60010/logs'
+  },
+  {
+    id:13,
+    label:'Zookeeper Info',
+    url:'http://%@:60010/zk.jsp'
+  },
+  {
+    id:14,
+    label:'HBase Master JMX',
+    url:'http://%@:60010/jmx'
+  },
+  {
+    id:15,
+    label:'Debug Dump',
+    url:'http://%@:60010/dump'
+  },
+  {
+    id:16,
+    label:'Thread Stacks',
+    url:'http://%@:60010/stacks'
+  },
+  {
+    id:17,
+    label:'JobTracker JMX',
+    url:'http://%@:50030/jmx'
+  },
+  {
+    id:18,
+    label:'Thread Stacks',
+    url:'http://%@:50030/stacks'
+  }
+];
+
+
 // A hack to allow App.<model>.find() with the DS.FixtureAdapter
-App.Service1.FIXTURES = [];
-App.Service1Component.FIXTURES = [];
-App.HostComponent1.FIXTURES = [];
+App.Service.FIXTURES = [];
+App.ServiceComponent.FIXTURES = [];
+App.HostComponent.FIXTURES = [];
 
 

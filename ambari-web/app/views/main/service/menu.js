@@ -40,9 +40,10 @@ App.MainServiceMenuView = Em.CollectionView.extend({
     if (last_url.substr(1, 4) !== 'main' || !this._childViews) {
       return;
     }
-    var reg = /^\/main\/services\/(\d+)/g;
+    var reg = /^\/main\/services\/(\S+)\//g;
     var sub_url = reg.exec(last_url);
     var service_id = (null != sub_url) ? sub_url[1] : 1;
+    //TODO: fix this._childViews =[]
     $.each(this._childViews, function () {
       this.set('active', this.get('content.id') == service_id ? "active" : "");
     });

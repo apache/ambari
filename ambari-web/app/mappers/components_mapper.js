@@ -16,23 +16,14 @@
  * limitations under the License.
  */
 
-App.servicesMapper = App.QuickDataMapper.create({
-  model : App.Service,
+App.componentsMapper = App.QuickDataMapper.create({
+  model : App.Component,
   config : {
-    id : 'ServiceInfo.service_name',
-    service_name : 'ServiceInfo.service_name',
-    label : 'ServiceInfo.service_name',
-    $health_status: 'LIVE',
-    $work_status: 'true',
-    $serviceAudit: [1, 2, 3],
-    components_key : 'components',
-    components : {
-        id : 'ServiceComponentInfo.component_name',
-        component_name : 'ServiceComponentInfo.component_name',
-        //service_id : 'ServiceComponentInfo.service_name',
-        service_name : 'ServiceComponentInfo.service_name',
-        state: 'host_components[0].HostRoles.state',
-        host_name: 'host_components[0].HostRoles.host_name'
-      }
+    id : 'ServiceComponentInfo.component_name',
+    component_name : 'ServiceComponentInfo.component_name',
+    label : 'ServiceComponentInfo.component_name',
+    service_id: 'ServiceComponentInfo.service_name',
+    host_id: 'host_components[0].HostRoles.host_name',
+    $work_status: 'true'
   }
 });

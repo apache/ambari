@@ -37,6 +37,7 @@ App.ClusterController = Em.Controller.extend({
     'jobs': false,
     'runs': false,
     'services': false,
+    'components': false,
     'cluster' : false
   }),
   /**
@@ -105,6 +106,11 @@ App.ClusterController = Em.Controller.extend({
         self.set('dataLoadList.services', true);
       }
     });
+    /*App.HttpClient.get(servicesUrl, App.componentsMapper,{
+      complete:function(jqXHR, textStatus){
+        self.set('dataLoadList.components', true);
+      }
+    });*/
   }.observes('clusterName'),
   clusterName: function(){
     return (this.get('cluster')) ? this.get('cluster').Clusters.cluster_name : 'mycluster';

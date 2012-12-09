@@ -44,9 +44,19 @@ App.QuickDataMapper = App.ServerDataMapper.extend({
     if(!this.get('model')) {return;}
     if(json.items){
       var result = [];
-      json.items.forEach(function(item){
-        result.push(this.parseIt(item, this.config));
-    }, this)
+      if(this.get('model') != "App.Component" ){
+        json.items.forEach(function(item){
+          result.push(this.parseIt(item, this.config));
+        }, this)
+      }else{
+        json.items.forEach(function(item){
+          item.components.forEach(function(component){
+           // debugger;
+            result.push(this.parseIt(component, this.config));
+          }, this)
+        }, this)
+      }
+      //console.log(this.get('model') ,result);
     App.store.loadMany(this.get('model'), result);
     }
   },
