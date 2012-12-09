@@ -4,22 +4,22 @@
     {
       "href" : "http://ambari:8080/api/users/admin",
       "Users" :
-      { "user_name" : "admin", "roles" : "admin,user" }
+      { "user_name" : "admin", "roles" : "admin,user",  "type" : "local" }
     },
     {
       "href" : "http://ambari:8080/api/users/user",
       "Users" :
-      { "user_name" : "user", "roles" : "user" }
+      { "user_name" : "user", "roles" : "user", "type" : "local" }
     },
     {
       "href" : "http://ambari:8080/api/users/john",
       "Users" :
-      { "user_name" : "john", "roles" : "admin,user" }
+      { "user_name" : "john", "roles" : "admin,user", "type" : "LDAP" }
     },
     {
       "href" : "http://ambari:8080/api/users/mike",
       "Users" :
-      { "user_name" : "mike", "roles" : "user" }
+      { "user_name" : "mike", "roles" : "user", "type" : "LDAP" }
     }
   ]
 }

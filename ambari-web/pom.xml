@@ -69,9 +69,11 @@
             </goals>
             <configuration>
               <target name="ambari-web-test">
+                <!-- 
                 <exec dir="${basedir}" executable="brunch" failonerror="false">
                   <arg value="test"/>
                 </exec>
+                -->
               </target>
             </configuration>
           </execution>

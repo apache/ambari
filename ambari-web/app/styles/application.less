@@ -487,7 +487,7 @@ a:focus {
     .name {
       line-height: 21px;
       margin-left: 0;
-      width: 130px;
+      width: 145px;
       a {
         margin-left: 5px
       }
@@ -510,13 +510,21 @@ a:focus {
       }
     }
 
-    .chart {
+    .dashboard-mini-chart {
       right: 0;
       top: 27px;
       position: absolute;
       overflow: visible; // for quick links
       text-align: center;
-
+      width: 200px;
+      height: 200px;
+      .chart-container{
+        .chart-x-axis{
+          left: 0%;
+          width: 100%;
+          text-align: left;
+        }
+      } 
       .chartLabel {
         font-size: 11px;
         color: #7b7b7b;
@@ -662,6 +670,14 @@ a:focus {
   }
 }
 
+.mini-chart{
+  position: absolute;
+  .chart-container{
+    width: 130px;
+    height: 130px;
+  }
+}
+
 /*end chart/graph styles*/
 
 /*****end styles for dashboard page*****/
@@ -694,6 +710,9 @@ a:focus {
     }
     li {
       line-height: 24px;
+      a {
+        padding: 3px 10px;
+      }
     }
   }
   .add-service-button {
@@ -913,6 +932,7 @@ a:focus {
 
   margin-top: 27px;
 
+  /*
   .component-operation-button {
     background-color: #E5E5E5;
     background-image: -webkit-gradient(linear, 0 0, 0 100%, from(#E5E5E5), to(#F1F1F1));
@@ -923,6 +943,7 @@ a:focus {
     background-repeat: repeat-x;
     color: #000000;
   }
+  */
   .caret {
     border-top-color: #000000;
     border-bottom-color: #000000;
@@ -1006,7 +1027,7 @@ a:focus {
     padding-bottom: 0;
     border: 1px solid #DEDEDE;
     border-radius: 4px;
-    background: #F5F5F5;
+    background: #FFF;
   }
   .host-components .btn-group {
     margin: 0 5px 10px 0;

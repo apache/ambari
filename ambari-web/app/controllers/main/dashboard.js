@@ -39,9 +39,7 @@ App.MainDashboardController = Em.Controller.extend({
     }
   },
 
-  services:function(){
-    return App.router.get('mainServiceController.content');
-  }.property('App.router.mainServiceController.content'),
+
   alertsFilteredBy: 'All',
   alertsFilter: function(event) {
     if (event.context)

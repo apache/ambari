@@ -43,6 +43,7 @@ App.SelectHostView = Em.Select.extend({
   zId: null,
   selectedHost: null,
   serviceName: null,
+  attributeBindings: ['disabled'],
 
   change: function () {
     this.get('controller').assignHostToMaster(this.get("serviceName"), this.get("value"), this.get("zId"));

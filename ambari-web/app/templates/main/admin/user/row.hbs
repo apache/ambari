@@ -19,6 +19,7 @@
 <tr>
   <td>{{user.userName}}</td>
   <td>{{view Ember.Checkbox disabledBinding="view.disableCheckBoxes" checkedBinding="user.admin"}}</td>
+  <td>{{user.type}}</td>
   <td>
     <a href="#" {{action gotoEditUser user on="click"}}>{{t admin.users.edit}}</a>&nbsp;
     <a href="#" {{action deleteRecord user target="App.router.mainAdminUserController" }}>{{t admin.users.delete}}</a>

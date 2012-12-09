@@ -283,6 +283,7 @@ module.exports = [
     "value": "<templateName[0]>",
     "filename": "mapred-site.xml"
   },
+  /*
   {
     "name": "oozie.service.StoreService.jdbc.url",
     "templateName": ["oozie_data_dir"],
@@ -290,9 +291,11 @@ module.exports = [
     "value": "<templateName[0]>\/<foreignKey[0]>",
     "filename": "oozie-site.xml"
   },
+  */
   {
     "name": "oozie.base.url",
     "templateName": ["oozieserver_host"],
+    "foreignKey": null,
     "value": "http://<templateName[0]>:11000/oozie",
     "filename": "oozie-site.xml"
   },
@@ -300,19 +303,29 @@ module.exports = [
   {
     "name": "oozie.service.JPAService.jdbc.password",
     "templateName": [],
+    "foreignKey": null,
     "value": " ",
     "filename": "oozie-site.xml"
   },
   {
     "name": "oozie.db.schema.name",
     "templateName": [],
+    "foreignKey": null,
     "value": "oozie",
     "filename": "oozie-site.xml"
   },
   {
     "name": "oozie.service.JPAService.jdbc.url",
     "templateName": [],
+    "foreignKey": null,
     "value": "jdbc:derby:/var/data/oozie/oozie-db;create=true",
+    "filename": "oozie-site.xml"
+  },
+  {
+    "name": "oozie.action.ssh.http.command.post.options",
+    "templateName": [],
+    "foreignKey": null,
+    "value": " ",
     "filename": "oozie-site.xml"
   },
   {

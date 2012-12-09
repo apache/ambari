@@ -18,6 +18,7 @@
 
 
 var App = require('app');
+var misc = require('utils/misc');
 
 App.Host = DS.Model.extend({
   hostName: DS.attr('string'),
@@ -27,7 +28,7 @@ App.Host = DS.Model.extend({
   memory: DS.attr('string'),
   diskUsage: DS.attr('string'),
   loadAvg: DS.attr('string'),
-  os: DS.attr('string'),
+  osArch: DS.attr('string'),
   ip: DS.attr('string'),
   healthStatus: DS.attr('string'),
   cpuUsage: DS.attr('number'),
@@ -38,7 +39,12 @@ App.Host = DS.Model.extend({
   osType: DS.attr("string"),
   diskInfo: DS.attr('string'),
 
-
+  /**
+   * formatted bytes to appropriate value
+   */
+  memoryFormatted: function () {
+    return misc.formatBandwidth(this.get('memory'));
+  }.property('memory'),
   /**
    * Return true if host not heartbeating last 180 seconds
    */

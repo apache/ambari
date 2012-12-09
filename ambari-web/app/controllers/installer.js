@@ -226,9 +226,9 @@ App.InstallerController = Em.Controller.extend({
     slaveComponentHosts: null,
     hostSlaveComponents: null,
     masterComponentHosts: null,
-    hostToMasterComponent: null,
     serviceConfigProperties: null,
-    advancedServiceConfig: null
+    advancedServiceConfig: null,
+    controllerName: 'installerController'
   }),
 
   /**
@@ -260,9 +260,6 @@ App.InstallerController = Em.Controller.extend({
     App.db.setClusterStatus(clusterStatus);
 
     console.log("InstallerController:saveClusterInfo: saved data ", cluster);
-
-    //probably next line is extra work - need to check it
-    //this.set('content.cluster', cluster);
   },
 
   /**
@@ -379,7 +376,8 @@ App.InstallerController = Em.Controller.extend({
         name: _host.name,
         cpu: _host.cpu,
         memory: _host.memory,
-        bootStatus: _host.bootStatus
+        bootStatus: _host.bootStatus,
+        isInstalled: false
       };
     });
     console.log('installerController:saveConfirmedHosts: save hosts ', hostInfo);
@@ -454,12 +452,11 @@ App.InstallerController = Em.Controller.extend({
    */
   saveServices: function (stepController) {
     var serviceNames = [];
-    // we can also do it without stepController since all data,
-    // changed at page, automatically changes in model(this.content.services)
     App.db.setService(stepController.get('content'));
     stepController.filterProperty('isSelected', true).forEach(function (item) {
       serviceNames.push(item.serviceName);
     });
+    this.set('content.selectedServiceNames', serviceNames);
     App.db.setSelectedServiceNames(serviceNames);
     console.log('installerController.saveServices: saved data ', serviceNames);
   },
@@ -470,32 +467,20 @@ App.InstallerController = Em.Controller.extend({
    */
   saveMasterComponentHosts: function (stepController) {
     var obj = stepController.get('selectedServicesMasters');
-    console.log("installerController.selectedServicesMasters: saved hosts ", stepController.get('selectedServicesMasters'));
+
     var masterComponentHosts = [];
     obj.forEach(function (_component) {
       masterComponentHosts.push({
         display_name: _component.get('display_name'),
         component: _component.get('component_name'),
-        hostName: _component.get('selectedHost')
+        hostName: _component.get('selectedHost'),
+        isInstalled: false
       });
     });
 
-    console.log("installerController.saveComponentHosts: saved hosts ", masterComponentHosts);
+    console.log("installerController.saveMasterComponentHosts: saved hosts ", masterComponentHosts);
     App.db.setMasterComponentHosts(masterComponentHosts);
     this.set('content.masterComponentHosts', masterComponentHosts);
-
-    var hosts = masterComponentHosts.mapProperty('hostName').uniq();
-    var hostsMasterServicesMapping = [];
-    hosts.forEach(function (_host) {
-      var componentsOnHost = masterComponentHosts.filterProperty('hostName', _host).mapProperty('component');
-      hostsMasterServicesMapping.push({
-        hostname: _host,
-        components: componentsOnHost
-      });
-    }, this);
-    console.log("installerController.setHostToMasterComponent: saved hosts ", hostsMasterServicesMapping);
-    App.db.setHostToMasterComponent(hostsMasterServicesMapping);
-    this.set('content.hostToMasterComponent', hostsMasterServicesMapping);
   },
 
   /**
@@ -505,10 +490,6 @@ App.InstallerController = Em.Controller.extend({
     var masterComponentHosts = App.db.getMasterComponentHosts();
     this.set("content.masterComponentHosts", masterComponentHosts);
     console.log("InstallerController.loadMasterComponentHosts: loaded hosts ", masterComponentHosts);
-
-    var hostsMasterServicesMapping = App.db.getHostToMasterComponent();
-    this.set("content.hostToMasterComponent", hostsMasterServicesMapping);
-    console.log("InstallerController.loadHostToMasterComponent: loaded hosts ", hostsMasterServicesMapping);
   },
 
   /**
@@ -532,25 +513,25 @@ App.InstallerController = Em.Controller.extend({
     hosts.forEach(function (host) {
       if (host.get('isDataNode')) {
         dataNodeHosts.push({
-          hostname: host.hostname,
+          hostName: host.hostName,
           group: 'Default'
         });
       }
       if (isMrSelected && host.get('isTaskTracker')) {
         taskTrackerHosts.push({
-          hostname: host.hostname,
+          hostName: host.hostName,
           group: 'Default'
         });
       }
       if (isHbSelected && host.get('isRegionServer')) {
         regionServerHosts.push({
-          hostname: host.hostname,
+          hostName: host.hostName,
           group: 'Default'
         });
       }
       if (host.get('isClient')) {
         clientHosts.pushObject({
-          hostname: host.hostname,
+          hostName: host.hostName,
           group: 'Default'
         });
       }
@@ -615,8 +596,8 @@ App.InstallerController = Em.Controller.extend({
     stepController.get('stepConfigs').forEach(function (_content) {
       _content.get('configs').forEach(function (_configProperties) {
         var displayType =  _configProperties.get('displayType');
-        if(displayType === 'directories' || displayType === 'advanced' || displayType === 'directory') {
-          var value = _configProperties.get('value').replace(/[\s,]+/g,',');
+        if(displayType === 'directories' || displayType === 'directory') {
+          var value = _configProperties.get('value').split(/\s+/g).join(',');
           _configProperties.set('value',value);
         }
         var configProperty = {
@@ -678,15 +659,6 @@ App.InstallerController = Em.Controller.extend({
   },
 
   /**
-   * Load HostToMasterComponent array
-   */
-  loadHostToMasterComponent: function () {
-    var list = App.db.getHostToMasterComponent();
-    this.set('content.hostToMasterComponent', list);
-    console.log("InstallerController.loadHostToMasterComponent: loaded list ", list);
-  },
-
-  /**
    * Load data for all steps until <code>current step</code>
    */
   loadAllPriorSteps: function () {
@@ -699,13 +671,12 @@ App.InstallerController = Em.Controller.extend({
         this.loadServiceConfigProperties();
       case '6':
         this.loadSlaveComponentHosts();
+        this.loadClients();
       case '5':
         this.loadMasterComponentHosts();
-        this.loadHostToMasterComponent();
         this.loadConfirmedHosts();
       case '4':
         this.loadServices();
-        this.loadClients();
       case '3':
         this.loadConfirmedHosts();
       case '2':
@@ -857,6 +828,14 @@ App.InstallerController = Em.Controller.extend({
       statusCode: require('data/statusCodes')
     });
 
+  },
+
+  /**
+   * Clear all temporary data
+   */
+  finish: function(){
+    this.setCurrentStep('1', false);
+    App.db.setService(undefined); //not to use this data at AddService page
   }
 
 });

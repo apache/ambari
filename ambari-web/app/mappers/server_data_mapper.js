@@ -95,7 +95,7 @@ App.QuickDataMapper = App.ServerDataMapper.extend({
   getJsonProperty: function (json, path) {
     var pathArr = path.split('.');
     var current = json;
-    while (pathArr.length) {
+    while (pathArr.length && current) {
       if (pathArr[0].substr(-1) == ']') {
         var index = parseInt(pathArr[0].substr(-2, 1));
         var attr = pathArr[0].substr(0, pathArr[0].length - 3);

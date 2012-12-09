@@ -20,11 +20,6 @@ var App = require('app');
 App.MainDashboardServiceMapreduceView = App.MainDashboardServiceView.extend({
   templateName: require('templates/main/dashboard/service/mapreduce'),
   serviceName: 'MAPREDUCE',
-
-  service: function () {
-    return App.MapReduceService.find().objectAt(0);
-  }.property('App.router.clusterController.dataLoadList.services'),
-
   jobTrackerWebUrl: function () {
     return "http://" + this.get('service').get('jobTracker').get('hostName') + ":50030";
   }.property('service.nameNode'),
@@ -60,31 +55,40 @@ App.MainDashboardServiceMapreduceView = App.MainDashboardServiceView.extend({
   }.property('service'),
 
   trackersHeapSummary: function () {
-    var heapUsed = this.get('service').get('jobTrackerHeapUsed');
-    var heapMax = this.get('service').get('jobTrackerHeapMax');
+    var heapUsed = this.get('service').get('jobTrackerHeapUsed') || 90;
+    var heapMax = this.get('service').get('jobTrackerHeapMax') || 90;
     var percent = heapMax > 0 ? 100 * heapUsed / heapMax : 0;
     return this.t('dashboard.services.mapreduce.jobTrackerHeapSummary').format(heapUsed.bytesToSize(1, "parseFloat"), heapMax.bytesToSize(1, "parseFloat"), percent.toFixed(1));
   }.property('service'),
 
   jobsSummary: function () {
+    var svc = this.get('service');
     var template = this.t('dashboard.services.mapreduce.jobsSummary');
-    return template.format(0, 0, 0);
+    return template.format(svc.get('jobsSubmitted'), svc.get('jobsCompleted'));
   }.property('service'),
 
   mapSlotsSummary: function () {
-    return this.t('dashboard.services.mapreduce.mapSlotsSummary').format(0,0);
+    var svc = this.get('service');
+    var template = this.t('dashboard.services.mapreduce.mapSlotsSummary');
+    return template.format(svc.get('mapSlotsOccupied'), svc.get('mapSlotsReserved'));
   }.property('service'),
 
   reduceSlotsSummary: function () {
-    return this.t('dashboard.services.mapreduce.reduceSlotsSummary').format(0,0);
+    var svc = this.get('service');
+    var template = this.t('dashboard.services.mapreduce.reduceSlotsSummary');
+    return template.format(svc.get('reduceSlotsOccupied'), svc.get('reduceSlotsReserved'));
   }.property('service'),
 
   mapTasksSummary: function () {
-    return this.t('dashboard.services.mapreduce.tasksSummary').format(0,0);
+    var svc = this.get('service');
+    var template = this.t('dashboard.services.mapreduce.tasksSummary');
+    return template.format(svc.get('mapsRunning'), svc.get('mapsWaiting'));
   }.property('service'),
 
   reduceTasksSummary: function () {
-    return this.t('dashboard.services.mapreduce.tasksSummary').format(0,0);
+    var svc = this.get('service');
+    var template = this.t('dashboard.services.mapreduce.tasksSummary');
+    return template.format(svc.get('reducesRunning'), svc.get('reducesWaiting'));
   }.property('service'),
 
   slotsCapacitySummary: function () {

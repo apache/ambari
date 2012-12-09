@@ -55,7 +55,6 @@ App.Run = DS.Model.extend({
   isRunning: function () {
     return !this.get('numJobsTotal') == this.get('numJobsCompleted');
   }.property('numJobsTotal', 'numJobsCompleted'),
-
   /**
    * Sum of input bandwidth for all jobs with appropriate measure
    */
@@ -85,7 +84,21 @@ App.Run = DS.Model.extend({
    */
   lastUpdateTimeFormatted: function() {
     return date.dateFormat(this.get('lastUpdateTime'));
-  }.property('lastUpdateTime')
+  }.property('lastUpdateTime'),
+  /**
+   * Type value based on first part of id
+   */
+  type: function() {
+    if (this.get('id').indexOf('pig_') === 0) {
+      return 'Pig';
+    }
+    if (this.get('id').indexOf('hive_') === 0) {
+      return 'Hive';
+    }
+    if (this.get('id').indexOf('mr_') === 0) {
+      return 'mapReduce';
+    }
+  }.property('id')
 });
 
 App.Run.FIXTURES = [];

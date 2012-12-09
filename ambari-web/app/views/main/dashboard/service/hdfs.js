@@ -34,22 +34,18 @@ App.MainDashboardServiceHdfsView = App.MainDashboardServiceView.extend({
     return this.t('dashboard.services.uptime').format(formatted.d, formatted.h, formatted.m);
   }.property("service.nameNodeStartTime"),
   
-  service: function(){
-    return App.HDFSService.find().objectAt(0);
-  }.property('App.router.clusterController.dataLoadList.services'),
-  
   nodeWebUrl: function(){
     return "http://"+this.get('service').get('nameNode').get('hostName')+":50070";
   }.property('service.nameNode'),
 
   nodeHeap:function () {
-
-    var percent = this.get('data.namenode_heap_total') > 0 ? 100 * this.get('data.namenode_heap_used') / this.get('data.namenode_heap_total') : 0;
-
+    var memUsed = this.get('service').get('jvmMemoryHeapUsed')*1000000;
+    var memCommitted = this.get('service').get('jvmMemoryHeapCommitted')*1000000;
+    var percent = memCommitted>0 ? ((100*memUsed)/memCommitted) : 0;
     return this.t('dashboard.services.hdfs.nodes.heapUsed').format(
-      (this.get('service').get('jvmMemoryHeapUsed')*1000000).bytesToSize(1, 'parseFloat'),
-      (this.get('service').get('jvmMemoryHeapCommitted')*1000000).bytesToSize(1, 'parseFloat')
-      , percent.toFixed(1));
+      memUsed.bytesToSize(1, 'parseFloat'),
+      memCommitted.bytesToSize(1, 'parseFloat'),
+      percent.toFixed(1));
 
   }.property('service'),
 
@@ -74,5 +70,5 @@ App.MainDashboardServiceHdfsView = App.MainDashboardServiceView.extend({
   
   dataNodeComponent: function(){
     return App.Component.find().findProperty('componentName', 'DATANODE');
-  }.property('components')
+  }.property('+')
 });

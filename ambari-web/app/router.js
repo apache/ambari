@@ -102,11 +102,18 @@ App.Router = Em.Router.extend({
     App.db.setLoginName(loginName);
   },
 
-  // that works incorrectly
+  /**
+   * Set user model to local storage
+   * @param user
+   */
   setUser: function (user) {
     App.db.setUser(user);
   },
-  // that works incorrectly
+
+  /**
+   * Get user model from local storage
+   * @return {*}
+   */
   getUser: function () {
     return App.db.getUser();
   },
@@ -221,19 +228,14 @@ App.Router = Em.Router.extend({
     }
   },
 
-  defaultSection: 'installer',
-
   getSection: function () {
-    var section = App.db.getSection();
-    console.log("The section is: " + section);
-    var section = localStorage.getItem(this.getLoginName() + 'section');
-
-    return section || this.defaultSection;
-
-  },
-
-  setSection: function (section) {
-    App.db.setSection(section);
+    var clusterController = App.router.get('clusterController');
+    clusterController.loadClusterName(false);
+    if (clusterController.get('clusterName')) {
+      return 'main.index';
+    } else {
+      return 'installer';
+    }
   },
 
   root: Em.Route.extend({

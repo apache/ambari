@@ -21,7 +21,7 @@ App.usersMapper = App.QuickDataMapper.create({
   model : App.User,
   config : {
     user_name : 'Users.user_name',
-    roles : 'Users.roles'
+    roles : 'Users.roles',
+    type: 'Users.type'
   }
-
 });

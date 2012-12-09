@@ -29,7 +29,11 @@ App.WizardStep8Controller = Em.Controller.extend({
   configMapping: require('data/config_mapping'),
 
   selectedServices: function () {
-    return this.get('content.services').filterProperty('isSelected', true);
+    var services = App.Service.find();
+    this.get('content.services').forEach(function (item) {
+      item.set('isInstalled', services.someProperty('serviceName', item.get('serviceName')));
+    });
+    return this.get('content.services').filterProperty('isSelected', true).filterProperty('isInstalled', false);
   }.property('content.services').cacheable(),
 
   clearStep: function () {
@@ -236,7 +240,7 @@ App.WizardStep8Controller = Em.Controller.extend({
       hostObj = hostObj.concat(_hosts.hosts);
     }, this);
 
-    slaveHosts = hostObj.mapProperty('hostname').uniq();
+    slaveHosts = hostObj.mapProperty('hostName').uniq();
 
     var totalHosts = masterHosts.concat(slaveHosts).uniq();
     this.set('totalHosts', totalHosts);
@@ -593,6 +597,7 @@ App.WizardStep8Controller = Em.Controller.extend({
    * Onclick handler for <code>next</code> button
    */
   submit: function () {
+    debugger;
 
     if (App.testMode) {
       // App.router.send('next');
@@ -614,7 +619,11 @@ App.WizardStep8Controller = Em.Controller.extend({
   /* Following create* functions are called on submitting step8 */
 
   createCluster: function () {
-    var self = this;
+
+    if (this.get('content.cluster.isCompleted')){
+      return false;
+    }
+
     var clusterName = this.get('clusterInfo').findProperty('config_name', 'cluster').config_value;
     var url = '/api/clusters/' + clusterName;
     $.ajax({
@@ -715,15 +724,18 @@ App.WizardStep8Controller = Em.Controller.extend({
     });
   },
 
-  registerHostsToCluster: function () {
-    this.get('totalHosts').forEach(function (_hostname) {
-      this.registerHostToCluster(_hostname);
-    }, this);
+  registerHostsToCluster: function() {
+    var allHosts = this.get('content.hostsInfo');
+    for(var hostName in allHosts){
+      if(!allHosts[hostName].isInstalled){
+        this.registerHostToCluster(hostName);
+      }
+    }
   },
 
-  registerHostToCluster: function (hostname) {
+  registerHostToCluster: function (hostName) {
     var clusterName = this.get('clusterInfo').findProperty('config_name', 'cluster').config_value;
-    var url = '/api/clusters/' + clusterName + '/hosts/' + hostname;
+    var url = '/api/clusters/' + clusterName + '/hosts/' + hostName;
     $.ajax({
       type: 'POST',
       url: url,
@@ -764,14 +776,16 @@ App.WizardStep8Controller = Em.Controller.extend({
       if (_slaveHosts.componentName !== 'CLIENT') {
         slaveObj.component = _slaveHosts.componentName;
         _slaveHosts.hosts.forEach(function (_slaveHost) {
-          slaveObj.hostName = _slaveHost.hostname;
+          slaveObj.hostName = _slaveHost.hostName;
+          slaveObj.isInstalled = _slaveHost.isInstalled;
           this.createHostComponent(slaveObj);
         }, this);
       } else {
         this.get('content.clients').forEach(function (_client) {
           slaveObj.component = _client.component_name;
           _slaveHosts.hosts.forEach(function (_slaveHost) {
-            slaveObj.hostName = _slaveHost.hostname;
+            slaveObj.hostName = _slaveHost.hostName;
+            slaveObj.isInstalled = _slaveHost.isInstalled;
             this.createHostComponent(slaveObj);
           }, this);
         }, this);
@@ -787,6 +801,11 @@ App.WizardStep8Controller = Em.Controller.extend({
   },
 
   createHostComponent: function (hostComponent) {
+    console.log(hostComponent);
+    if (hostComponent.isInstalled) {
+      return false;
+    }
+
     var clusterName = this.get('clusterInfo').findProperty('config_name', 'cluster').config_value;
     var url = '/api/clusters/' + clusterName + '/hosts/' + hostComponent.hostName + '/host_components/' + hostComponent.component;
 
@@ -814,9 +833,11 @@ App.WizardStep8Controller = Em.Controller.extend({
 
   createConfigurations: function () {
     var selectedServices = this.get('selectedServices');
-    this.createConfigSite(this.createGlobalSiteObj());
-    this.createConfigSite(this.createCoreSiteObj());
-    this.createConfigSite(this.createHdfsSiteObj('HDFS'));
+    if (!this.get('content.cluster.isCompleted')){
+      this.createConfigSite(this.createGlobalSiteObj());
+      this.createConfigSite(this.createCoreSiteObj());
+      this.createConfigSite(this.createHdfsSiteObj('HDFS'));
+    }
     if (selectedServices.someProperty('serviceName', 'MAPREDUCE')) {
       this.createConfigSite(this.createMrSiteObj('MAPREDUCE'));
     }

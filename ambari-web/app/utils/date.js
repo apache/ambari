@@ -77,7 +77,7 @@ module.exports = {
   dateUnformatInterval: function(formattedDate) {
     var d = formattedDate.split(':');
     for (var k in d) {
-      d[k] = parseInt(d[k]);
+      d[k] = parseInt(d[k], 10);
     }
     return d[0]*3600+d[1]*60+d[2];
   }

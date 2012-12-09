@@ -67,7 +67,8 @@
     <td>{{t dashboard.services.mapreduce.taskTrackerCounts}}</td>
     <td>
       {{view.service.grayListTrackers.length}} {{t dashboard.services.mapreduce.nodes.blacklist}} /
-      {{view.service.blackListTrackers.length}} {{t dashboard.services.mapreduce.nodes.graylist}}
+      {{view.service.blackListTrackers.length}} {{t dashboard.services.mapreduce.nodes.graylist}} /
+      {{view.service.trackersDecommisioned}} {{t dashboard.services.hdfs.nodes.decom}} 
     </td>
   </tr>
   <!-- JobTracker Heap -->
@@ -107,7 +108,7 @@
   </tr>
   </tbody>
 </table>
-<div class="chart">
+<div class="dashboard-mini-chart">
   {{view App.ChartServiceMetricsMapReduce_JobsRunningWaiting}}
   
   {{#if view.service.quickLinks.length}}

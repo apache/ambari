@@ -25,12 +25,16 @@ App.MainAdminUserEditView = Em.View.extend({
     var form = this.get("userForm");
     if(form.isValid()) {
       var controller = this.get('controller');
-      var roles="user";
-      if(form.getValues().admin=="") roles="admin";
+      if(form.getValues().admin === "" || form.getValues().admin == true) {
+        form.field.roles.set('value',"admin");
+        form.field.admin.set('value',"true");
+      } else{
+        form.field.roles.set('value',"user");
+      }
       controller.sendCommandToServer('/users/' + form.getValues().userName, {
         Users: {
           password: form.getValues().password,
-          roles: roles
+          roles: form.getValues().roles
         }
       }, function (requestId) {
 

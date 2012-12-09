@@ -19,7 +19,7 @@
         ]
       }
     },
-    "workflowId": "pig_b6d5cc44-ac51-4ecd-92c7-2e477c2fbed6",
+    "workflowId": "mr_b6d5cc44-ac51-4ecd-92c7-2e477c2fbed6",
     "workflowName": "script2-hadoop.pig"
   },
   {
@@ -50,7 +50,7 @@
         ]
       }
     },
-    "workflowId": "pig_7c779523-6bca-416e-89b3-b01b73a60174",
+    "workflowId": "hive_7c779523-6bca-416e-89b3-b01b73a60174",
     "workflowName": "script1-hadoop.pig"
   },
   {
@@ -112,7 +112,7 @@
         ]
       }
     },
-    "workflowId": "pig_25547729-88f9-4287-a45a-64901a82f22b",
+    "workflowId": "mr_25547729-88f9-4287-a45a-64901a82f22b",
     "workflowName": "script1-hadoop.pig"
   },
   {
@@ -135,7 +135,7 @@
         ]
       }
     },
-    "workflowId": "pig_a5b9c06f-96d2-4ea8-80e0-3c063ae831d4",
+    "workflowId": "hive_a5b9c06f-96d2-4ea8-80e0-3c063ae831d4",
     "workflowName": "script2-hadoop.pig"
   },
   {
@@ -189,7 +189,7 @@
         ]
       }
     },
-    "workflowId": "pig_c832f923-9bd4-421f-9a51-8f45991d91de",
+    "workflowId": "hive_c832f923-9bd4-421f-9a51-8f45991d91de",
     "workflowName": "script2-hadoop.pig"
   },
   {
@@ -220,7 +220,7 @@
         ]
       }
     },
-    "workflowId": "pig_a0aade31-47f8-475b-b887-60a79bcea5c4",
+    "workflowId": "mr_a0aade31-47f8-475b-b887-60a79bcea5c4",
     "workflowName": "script1-hadoop.pig"
   },
   {
@@ -282,7 +282,7 @@
         ]
       }
     },
-    "workflowId": "pig_b6bf29a4-324f-4435-8ed3-bee10622ea48",
+    "workflowId": "hive_b6bf29a4-324f-4435-8ed3-bee10622ea48",
     "workflowName": "script1-hadoop.pig"
   },
   {
@@ -367,7 +367,7 @@
         ]
       }
     },
-    "workflowId": "pig_73e04732-ea7f-43b8-9a2f-0f5a30e665da",
+    "workflowId": "mr_73e04732-ea7f-43b8-9a2f-0f5a30e665da",
     "workflowName": "script1-hadoop.pig"
   },
   {
@@ -421,7 +421,7 @@
         ]
       }
     },
-    "workflowId": "pig_097d0698-3620-4232-9c79-4deccbf6c98a",
+    "workflowId": "hive_097d0698-3620-4232-9c79-4deccbf6c98a",
     "workflowName": "script2-hadoop.pig"
   }
 ]}

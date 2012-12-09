@@ -50,7 +50,10 @@ App.db.cleanUp = function () {
     'app': {
       'loginName': '',
       'authenticated': false
-    }
+    },
+    'Installer' : {},
+    'AddHost' : {},
+    'AddService' : {}
   };
   console.log("In cleanup./..");
   localStorage.setObject('ambari', App.db.data);
@@ -80,7 +83,10 @@ App.db.setAmbariStacks = function (stacks) {
   localStorage.setObject('ambari', App.db.data);
 };
 
-// that works incorrectly
+/**
+ * Set user model to db
+ * @param user
+ */
 App.db.setUser = function (user) {
   console.log('TRACE: Entering db:setUser function');
   App.db.data = localStorage.getObject('ambari');
@@ -100,106 +106,45 @@ App.db.setAuthenticated = function (authenticated) {
   console.log('Now present value of authentication is: ' + App.db.data.app.authenticated);
 };
 
-App.db.setSection = function (section) {
-  console.log('TRACE: Entering db:setSection function');
-  App.db.data = localStorage.getObject('ambari');
-  var user = App.db.data.app.loginName;
-  if (App.db.data[user] == undefined) {
-    App.db.data[user] = {'name': user};
-  }
-  if (App.db.data[user].ClusterName == undefined) {
-    App.db.data[user].ClusterName = {};
-  }
-  App.db.data[user].section = section;
-  localStorage.setObject('ambari', App.db.data);
-};
-
-App.db.setInstallerCurrentStep = function (currentStep, completed) {
-  console.log('TRACE: Entering db:setInstallerCurrentStep function');
-  App.db.data = localStorage.getObject('ambari');
-  var user = App.db.data.app.loginName;
-  if (App.db.data[user] == undefined) {
-    console.log('In data[user] condition');
-    App.db.data[user] = {'name': user};
-    console.log('value of data[user].name: ' + App.db.data[user].name);
-  }
-  if (App.db.data[user].Installer == undefined) {
-    App.db.data[user].Installer = {};
-    console.log('');
-  }
-  App.db.data[user].Installer.currentStep = currentStep;
-  App.db.data[user].Installer.completed = completed;
-  localStorage.setObject('ambari', App.db.data);
-};
-
 App.db.setClusterName = function (name) {
   console.log('TRACE: Entering db:setClusterName function');
   App.db.data = localStorage.getObject('ambari');
-  var user = App.db.data.app.loginName;
-  // all information from Installer.ClusterName will be transferred to clusters[ClusterName] when app migrates from installer to main
-  if (App.db.data[user] == undefined) {
-    App.db.data[user] = {'name': user};
-  }
-  if (App.db.data[user].clusters == undefined) {
-    App.db.data[user].clusters = {};
-  }
-
-  if (App.db.data[user].Installer == undefined) {
-    App.db.data[user].Installer = {};
-  }
-  App.db.data[user].Installer.ClusterName = name;
+  App.db.data.Installer.ClusterName = name;
   localStorage.setObject('ambari', App.db.data);
 };
 
 App.db.setAllHostNames = function (hostNames) {
   console.log('TRACE: Entering db:setAllHostNames function');
   App.db.data = localStorage.getObject('ambari');
-  var user = App.db.data.app.loginName;
-  if (App.db.data[user] == undefined) {
-    App.db.data[user] = {'name': user};
-  }
-  App.db.data[user].Installer.hostNames = hostNames;
+  App.db.data.Installer.hostNames = hostNames;
   localStorage.setObject('ambari', App.db.data);
 };
 
 App.db.setHosts = function (hostInfo) {
   console.log('TRACE: Entering db:setHosts function');
   App.db.data = localStorage.getObject('ambari');
-  var user = App.db.data.app.loginName;
-  if (App.db.data[user] == undefined) {
-    App.db.data[user] = {'name': user};
-  }
-  App.db.data[user].Installer.hostInfo = hostInfo;
+  App.db.data.Installer.hostInfo = hostInfo;
   localStorage.setObject('ambari', App.db.data);
 };
 
 App.db.setInstallType = function (installType) {
   console.log('TRACE: Entering db:setInstallType function');
   App.db.data = localStorage.getObject('ambari');
-  var user = App.db.data.app.loginName;
-  if (App.db.data[user] == undefined) {
-    App.db.data[user] = {'name': user};
-  }
-  App.db.data[user].Installer.installType = installType;
+  App.db.data.Installer.installType = installType;
   localStorage.setObject('ambari', App.db.data);
 };
 
 App.db.setSoftRepo = function (softRepo) {
   console.log('TRACE: Entering db:setSoftRepo function');
   App.db.data = localStorage.getObject('ambari');
-  var user = App.db.data.app.loginName;
-  if (App.db.data[user] == undefined) {
-    App.db.data[user] = {'name': user};
-  }
-  App.db.data[user].Installer.softRepo = softRepo;
+  App.db.data.Installer.softRepo = softRepo;
   localStorage.setObject('ambari', App.db.data);
 };
 
 App.db.setBootStatus = function (status) {
   console.log('TRACE: Entering db:setBootStatus function');
   App.db.data = localStorage.getObject('ambari');
-  var user = App.db.data.app.loginName;
-  App.db.data[user].Installer.bootStatus = status;
+  App.db.data.Installer.bootStatus = status;
   localStorage.setObject('ambari', App.db.data);
 };
 
@@ -216,87 +161,89 @@ App.db.removeHosts = function (hostInfo) {
 App.db.setService = function (serviceInfo) {
   console.log('TRACE: Entering db:setService function');
   App.db.data = localStorage.getObject('ambari');
-  var user = App.db.data.app.loginName;
-  App.db.data[user].Installer.serviceInfo = serviceInfo;
+  App.db.data.Installer.serviceInfo = serviceInfo;
   localStorage.setObject('ambari', App.db.data);
 };
 
 App.db.setSelectedServiceNames = function (serviceNames) {
   App.db.data = localStorage.getObject('ambari');
-  var user = App.db.data.app.loginName;
-  App.db.data[user].Installer.selectedServiceNames = serviceNames;
+  App.db.data.Installer.selectedServiceNames = serviceNames;
   localStorage.setObject('ambari', App.db.data);
 };
 
 App.db.setClientsForSelectedServices = function (clientInfo) {
   App.db.data = localStorage.getObject('ambari');
-  var user = App.db.data.app.loginName;
-  App.db.data[user].Installer.clientInfo = clientInfo;
+  App.db.data.Installer.clientInfo = clientInfo;
   localStorage.setObject('ambari', App.db.data);
 };
 
 App.db.setMasterComponentHosts = function (masterComponentHosts) {
   App.db.data = localStorage.getObject('ambari');
-  var user = App.db.data.app.loginName;
-  App.db.data[user].Installer.masterComponentHosts = masterComponentHosts;
-  localStorage.setObject('ambari', App.db.data);
-};
-
-App.db.setHostToMasterComponent = function (hostToMasterComponent) {
-  App.db.data = localStorage.getObject('ambari');
-  var user = App.db.data.app.loginName;
-  App.db.data[user].Installer.hostToMasterComponent = hostToMasterComponent;
+  App.db.data.Installer.masterComponentHosts = masterComponentHosts;
   localStorage.setObject('ambari', App.db.data);
 };
 
 App.db.setHostSlaveComponents = function (hostSlaveComponents) {
   App.db.data = localStorage.getObject('ambari');
-  var user = App.db.data.app.loginName;
-  App.db.data[user].Installer.hostSlaveComponents = hostSlaveComponents;
+  App.db.data.Installer.hostSlaveComponents = hostSlaveComponents;
   localStorage.setObject('ambari', App.db.data);
 };
 
 App.db.setSlaveComponentHosts = function (slaveComponentHosts) {
   App.db.data = localStorage.getObject('ambari');
-  var user = App.db.data.app.loginName;
-  App.db.data[user].Installer.slaveComponentHosts = slaveComponentHosts;
+  App.db.data.Installer.slaveComponentHosts = slaveComponentHosts;
   localStorage.setObject('ambari', App.db.data);
 };
 
 App.db.setServiceConfigs = function (serviceConfigs) {
   App.db.data = localStorage.getObject('ambari');
-  var user = App.db.data.app.loginName;
-  App.db.data[user].Installer.serviceConfigs = serviceConfigs;
+  App.db.data.Installer.serviceConfigs = serviceConfigs;
   localStorage.setObject('ambari', App.db.data);
 };
 
 App.db.setAdvancedServiceConfig = function(serviceConfigs) {
   App.db.data = localStorage.getObject('ambari');
-  var user = App.db.data.app.loginName;
-  App.db.data[user].Installer.advanceServiceConfigs = serviceConfigs;
+  App.db.data.Installer.advanceServiceConfigs = serviceConfigs;
   localStorage.setObject('ambari', App.db.data);
 };
 
 App.db.setServiceConfigProperties = function (configProperties) {
   App.db.data = localStorage.getObject('ambari');
-  var user = App.db.data.app.loginName;
-  App.db.data[user].Installer.configProperties = configProperties;
+  App.db.data.Installer.configProperties = configProperties;
   localStorage.setObject('ambari', App.db.data);
 };
 
 App.db.setClusterStatus = function (status) {
   App.db.data = localStorage.getObject('ambari');
-  var user = App.db.data.app.loginName;
-  App.db.data[user].clusterStatus = status;
+  App.db.data.Installer.clusterStatus = status;
   console.log('db.setClusterStatus called: ' + JSON.stringify(status));
   localStorage.setObject('ambari', App.db.data);
 };
+
+/**
+ * Set current step value for specified Wizard Type
+ * @param wizardType
+ * @param currentStep
+ * @param completed
+ */
+App.db.setWizardCurrentStep = function (wizardType, currentStep, completed) {
+  console.log('TRACE: Entering db:setWizardCurrentStep function');
+
+  App.db.data[wizardType.capitalize()].currentStep = currentStep;
+  App.db.data[wizardType.capitalize()].completed = completed;
+
+  localStorage.setObject('ambari', App.db.data);
+};
+
 
 /*
  *  getter methods
  */
 
-// that works incorrectly
+/**
+ * Get user model from db
+ * @return {*}
+ */
 App.db.getUser = function () {
   console.log('TRACE: Entering db:getUser function');
   App.db.data = localStorage.getObject('ambari');
@@ -315,25 +262,10 @@ App.db.getAuthenticated = function () {
   return App.db.data.app.authenticated;
 };
 
-App.db.getSection = function () {
-  console.log('Trace: Entering db:getSection function');
-  App.db.data = localStorage.getObject('ambari');
-  var user = App.db.data.app.loginName
-  if (App.db.data[user] == undefined || App.db.data[user] == '') {
-    return 0;
-  }
-  return App.db.data[user].section;
-}
-
 App.db.getClusterName = function () {
   console.log('Trace: Entering db:getClusterName function');
   App.db.data = localStorage.getObject('ambari');
-  var user = App.db.data.app.loginName;
-  if (user && App.db.data[user] && App.db.data[user].Installer) {
-    return App.db.data[user].Installer.ClusterName;
-  } else {
-    return null;
-  }
+  return App.db.data.Installer.ClusterName;
 };
 
 App.db.getAmbariStacks = function () {
@@ -349,162 +281,97 @@ App.db.getAmbariStacks = function () {
  */
 App.db.getWizardCurrentStep = function (wizardType) {
   console.log('Trace: Entering db:getWizardCurrentStep function for ', wizardType);
-  var user = this.getUser();
-  if (App.db.data[user] && App.db.data[user][wizardType.capitalize()]) {
-    return App.db.data[user][wizardType.capitalize()].currentStep;
+  if (App.db.data[wizardType.capitalize()]) {
+    return App.db.data[wizardType.capitalize()].currentStep;
   }
   return 0;
-};
-
-/**
- * Set current step value for specified Wizard Type
- * @param wizardType
- * @param currentStep
- * @param completed
- */
-App.db.setWizardCurrentStep = function (wizardType, currentStep, completed) {
-  console.log('TRACE: Entering db:setWizardCurrentStep function');
-
-  var user = this.getUser();
-  if (!App.db.data[user]) {
-    App.db.data[user] = {name: user};
-    console.log('value of data[user].name: ' + App.db.data[user].name);
-  }
-  App.db.data[user][wizardType.capitalize()] = {
-    currentStep: currentStep,
-    completed: completed
-  };
-  localStorage.setObject('ambari', App.db.data);
-};
-
-App.db.getInstallerCurrentStep = function () {
-  console.log('Trace: Entering db:getInstallerCurrentStep function');
-  App.db.data = localStorage.getObject('ambari');
-  var user = App.db.data.app.loginName;
-  if (App.db.data[user] == undefined || App.db.data[user] == '') {
-    return 0;
-  }
-  return App.db.data[user].Installer.currentStep;
 };
 
 App.db.getAllHostNames = function () {
   console.log('TRACE: Entering db:getHostNames function');
   App.db.data = localStorage.getObject('ambari');
-  var user = App.db.data.app.loginName;
-  return App.db.data[user].Installer.hostNames;
+  return App.db.data.Installer.hostNames;
 };
 
 App.db.getInstallType = function () {
   console.log('TRACE: Entering db:getHostNames function');
   App.db.data = localStorage.getObject('ambari');
-  var user = App.db.data.app.loginName;
-  return App.db.data[user].Installer.installType;
+  return App.db.data.Installer.installType;
 };
 
 App.db.getSoftRepo = function () {
   console.log('TRACE: Entering db:getSoftRepo function');
   App.db.data = localStorage.getObject('ambari');
-  var user = App.db.data.app.loginName;
-  return App.db.data[user].Installer.softRepo;
+  return App.db.data.Installer.softRepo;
 };
 
 App.db.isCompleted = function () {
   App.db.data = localStorage.getObject('ambari');
-  var user = App.db.data.app.loginName;
-  return App.db.data[user].Installer.completed;
+  return App.db.data.Installer.completed;
 };
 
 App.db.getHosts = function () {
   console.log('TRACE: Entering db:getHosts function');
   App.db.data = localStorage.getObject('ambari');
-  var user = App.db.data.app.loginName;
-  if (App.db.data[user] == undefined || App.db.data[user] == '') {
-    console.log('ERROR: loginName required for storing host info');
-    return 0;
-  }
-  return App.db.data[user].Installer.hostInfo;
+  return App.db.data.Installer.hostInfo;
 };
 
 App.db.getBootStatus = function () {
   console.log('TRACE: Entering db:getBootStatus function');
   App.db.data = localStorage.getObject('ambari');
-  var user = App.db.data.app.loginName;
-  return App.db.data[user].Installer.bootStatus;
+  return App.db.data.Installer.bootStatus;
 };
 
 App.db.getService = function () {
   console.log('TRACE: Entering db:getService function');
   App.db.data = localStorage.getObject('ambari');
-  var user = App.db.data.app.loginName;
-  return App.db.data[user].Installer.serviceInfo;
+  return App.db.data.Installer.serviceInfo;
 };
 
 App.db.getSelectedServiceNames = function () {
   App.db.data = localStorage.getObject('ambari');
-  var user = App.db.data.app.loginName;
-  return App.db.data[user].Installer.selectedServiceNames;
+  return App.db.data.Installer.selectedServiceNames;
 };
 
 App.db.getClientsForSelectedServices = function () {
   App.db.data = localStorage.getObject('ambari');
-  var user = App.db.data.app.loginName;
-  return App.db.data[user].Installer.clientInfo;
+  return App.db.data.Installer.clientInfo;
 };
 
 App.db.getMasterComponentHosts = function () {
   App.db.data = localStorage.getObject('ambari');
-  var user = App.db.data.app.loginName;
-  return App.db.data[user].Installer.masterComponentHosts;
+  return App.db.data.Installer.masterComponentHosts;
 };
-
-App.db.getHostToMasterComponent = function () {
-  App.db.data = localStorage.getObject('ambari');
-  var user = App.db.data.app.loginName;
-  return App.db.data[user].Installer.hostToMasterComponent;
-}
 
 App.db.getHostSlaveComponents = function () {
   App.db.data = localStorage.getObject('ambari');
-  var user = App.db.data.app.loginName;
-  return App.db.data[user].Installer.hostSlaveComponents;
+  return App.db.data.Installer.hostSlaveComponents;
 };
 
 App.db.getSlaveComponentHosts = function () {
   App.db.data = localStorage.getObject('ambari');
-  var user = App.db.data.app.loginName;
-  if (App.db.data[user] && App.db.data[user].Installer) {
-    return App.db.data[user].Installer.slaveComponentHosts;
-  }
-  return null;
+  return App.db.data.Installer.slaveComponentHosts;
 };
 
 App.db.getServiceConfigs = function () {
   App.db.data = localStorage.getObject('ambari');
-  var user = App.db.data.app.loginName;
-  return App.db.data[user].Installer.serviceConfigs;
+  return App.db.data.Installer.serviceConfigs;
 };
 
 App.db.getAdvancedServiceConfig = function() {
   App.db.data = localStorage.getObject('ambari');
-  var user = App.db.data.app.loginName;
-  return App.db.data[user].Installer.advanceServiceConfigs;
+  return App.db.data.Installer.advanceServiceConfigs;
 };
 
 App.db.getServiceConfigProperties = function () {
   App.db.data = localStorage.getObject('ambari');
-  var user = App.db.data.app.loginName;
-  return App.db.data[user].Installer.configProperties;
+  return App.db.data.Installer.configProperties;
 };
 
 App.db.getClusterStatus = function () {
   console.log('TRACE: Entering db:getClusterStatus function');
   App.db.data = localStorage.getObject('ambari');
-  var user = App.db.data.app.loginName;
-  if (App.db.data[user] && App.db.data[user].clusterStatus) {
-    return App.db.data[user].clusterStatus;
-  } else {
-    return null;
-  }
+  return App.db.data.Installer.clusterStatus;
 };
 
 module.exports = App.db;

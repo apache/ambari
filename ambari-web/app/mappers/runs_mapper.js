@@ -24,7 +24,7 @@ App.runsMapper = App.QuickDataMapper.create({
     if(!this.get('model')) {
       return;
     }
-    if(json.workflows) {
+    if(json && json.workflows) {
       var result = [];
       json.workflows.forEach(function(item) {
         var o = this.parseIt(item, this.config);
@@ -41,6 +41,7 @@ App.runsMapper = App.QuickDataMapper.create({
         r = r.substr(0, r.length - 1);
         r += '}}';
         o.workflow_context = r;
+
         result.push(o);
       }, this);
       App.store.loadMany(this.get('model'), result);
@@ -49,7 +50,6 @@ App.runsMapper = App.QuickDataMapper.create({
   config : {
     id: 'workflowId',
     app_name: 'workflowName',
-    $type: 'Pig',
     num_jobs_total: 'numJobsTotal',
     num_jobs_completed: 'numJobsCompleted',
     user_name:'userName',

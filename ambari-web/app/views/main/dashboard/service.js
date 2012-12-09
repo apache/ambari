@@ -79,23 +79,9 @@ App.MainDashboardServiceView = Em.View.extend({
     return this.get('controller.data.' + this.get('serviceName'));
   }.property('controller.data'),
 
-  service: function () {
-    var services = this.get('controller.services');
-    if (services) {
-      return services.findProperty('serviceName', this.get('serviceName'));
-    }
-  }.property('controller.services'),
-
   criticalAlertsCount: function () {
-    var alerts = this.get('service.alerts');
-    var count = 0;
-
-    if (alerts) {
-      alerts.forEach(function (alert) {
-        count += (alert.get('status') == App.AlertStatus.negative);
-      });
-    }
-    return count;
+    var alerts = this.get('controller.alerts');
+    return alerts.filterProperty('serviceType', this.get('service.id')).filterProperty('status', '1').length;
   }.property('service.alerts')
 
 });

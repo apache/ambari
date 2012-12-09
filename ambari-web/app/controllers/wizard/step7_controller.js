@@ -80,8 +80,7 @@ App.WizardStep7Controller = Em.Controller.extend({
           _config.category = 'Advanced';
           _config.displayName = _config.name;
           _config.defaultValue = _config.value;
-          if (/\${.*}/.test(_config.value)) {
-            console.log("Step7: The name that matched regex: " + _config.name);
+          if (/\${.*}/.test(_config.value) || (service.serviceName !== 'OOZIE' && service.serviceName !== 'HBASE')) {
             _config.isRequired = false;
             _config.value = '';
           } else if(/^\s+$/.test(_config.value)){

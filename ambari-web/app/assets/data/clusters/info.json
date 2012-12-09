@@ -1,8 +1,8 @@
 {
-  "href" : "http://ec2-107-21-153-79.compute-1.amazonaws.com:9998/clusters",
+  "href" : "http://ambari:9998/clusters",
   "items" : [
     {
-      "href" : "http://ec2-107-21-153-79.compute-1.amazonaws.com:9998/clusters/mycluster",
+      "href" : "http://ambari:9998/clusters/mycluster",
       "Clusters" : {
         "cluster_name" : "mycluster"
       }

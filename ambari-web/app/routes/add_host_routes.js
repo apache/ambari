@@ -132,7 +132,6 @@ module.exports = Em.Route.extend({
       addHostController.saveServices(wizardStep4Controller);
       addHostController.saveClients(wizardStep4Controller);
       App.db.setMasterComponentHosts(undefined);
-      App.db.setHostToMasterComponent(undefined);
       router.transitionTo('step4');
     }
   }),

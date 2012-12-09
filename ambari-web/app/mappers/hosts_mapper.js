@@ -31,15 +31,15 @@ App.hostsMapper = App.QuickDataMapper.create({
     cpu : 'Hosts.cpu_count',
     memory : 'Hosts.total_mem',
     disk_info: 'Hosts.disk_info',
-    $disk_usage: '40',
+    $disk_usage: '-',
     $health_status: 'LIVE',
-    $load_avg: '0.2, 1.2, 2.4',
+    $load_avg: '-',
     $cpu_usage: 33,
     $memory_usage: 26,
     $network_usage: 36,
     $io_usage: 39,
     last_heart_beat_time : "Hosts.last_heartbeat_time",
-    os : 'Hosts.os_arch',
+    os_arch : 'Hosts.os_arch',
     os_type : 'Hosts.os_type',
     ip : 'Hosts.ip'
   }

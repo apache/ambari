@@ -19,5 +19,42 @@
 var App = require('app');
 
 App.MainDashboardView = Em.View.extend({
-  templateName: require('templates/main/dashboard')
+  templateName: require('templates/main/dashboard'),
+  content : [],
+  services:function(){
+    var services = App.Service.find();
+    services.forEach(function(item){
+      var vName;
+      var item2;
+      switch(item.get('serviceName')) {
+        case "HDFS":
+          vName = App.MainDashboardServiceHdfsView;
+          item2 = App.HDFSService.find(item.get('id'));
+          break;
+        case "MAPREDUCE":
+          vName = App.MainDashboardServiceMapreduceView;
+          item2 = App.MapReduceService.find(item.get('id'));
+          break;
+        case "HBASE":
+          vName = App.MainDashboardServiceHbaseView;
+          break;
+        case "HIVE":
+          vName = App.MainDashboardServiceHiveView ;
+          break;
+        case "ZOOKEEPER":
+          vName = App.MainDashboardServiceZookeperView;
+          break;
+        case "OOZIE":
+          vName = App.MainDashboardServiceOozieView;
+          break;
+        default:
+          vName = Em.View;
+      }
+      this.get('content').pushObject({
+        viewName : vName,
+        model: item2 || item
+      })
+    }, this);
+
+  }.observes('App.router.clusterController.dataLoadList.services')
 });

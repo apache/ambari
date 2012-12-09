@@ -44,14 +44,13 @@ App.WizardStep9Controller = Em.Controller.extend({
   }.property('hosts.@each.status'),
 
   navigateStep: function () {
-
-    //TODO: uncomment following line after the hook up with the API call
     if (this.get('content.cluster.isCompleted') === false) {
       this.loadStep();
       if (this.get('content.cluster.status') === 'INSTALL FAILED') {
-        this.set('isStepCompleted', true);
-        this.set('status', 'failed');
+        this.hosts.setEach('status', 'failed');
         this.set('progress', '100');
+        this.set('isStepCompleted', true);
+        //this.set('status', 'failed');
       } else if (this.get('content.cluster.status') === 'START FAILED') {
         this.launchStartServices();
       } else {
@@ -229,7 +228,7 @@ App.WizardStep9Controller = Em.Controller.extend({
           isStartError: false,
           isCompleted: false
         };
-        App.router.get('installerController').saveClusterStatus(clusterStatus);
+        App.router.get(self.get('content.controllerName')).saveClusterStatus(clusterStatus);
         self.startPolling();
       },
 
@@ -242,7 +241,7 @@ App.WizardStep9Controller = Em.Controller.extend({
           isCompleted: false
         };
 
-        App.router.get('installerController').saveClusterStatus(clusterStatus);
+        App.router.get(self.get('content.controllerName')).saveClusterStatus(clusterStatus);
       },
 
       statusCode: require('data/statusCodes')
@@ -364,8 +363,8 @@ App.WizardStep9Controller = Em.Controller.extend({
         }
         if (this.isSuccess(polledData)) {
           clusterStatus.status = 'STARTED';
-          var serviceSartTime = new Date().getTime();
-          var timeToStart = Math.floor((serviceSartTime - this.get('content.cluster.installStartTime')) / 60000);
+          var serviceStartTime = new Date().getTime();
+          var timeToStart = Math.floor((serviceStartTime - this.get('content.cluster.installStartTime')) / 60000);
           clusterStatus.installTime = timeToStart;
           this.set('status', 'success');
         } else {
@@ -375,10 +374,10 @@ App.WizardStep9Controller = Em.Controller.extend({
             this.setHostsStatus(this.getFailedHostsForFailedRoles(polledData));
           }
         }
-        App.router.get('installerController').saveClusterStatus(clusterStatus);
+        App.router.get(this.get('content.controllerName')).saveClusterStatus(clusterStatus);
         this.set('isStepCompleted', true);
         this.setTasksPerHost();
-        App.router.get('installerController').saveInstalledHosts(this);
+        App.router.get(this.get('content.controllerName')).saveInstalledHosts(this);
         return true;
       }
     } else if (this.get('content.cluster.status') === 'PENDING') {
@@ -389,16 +388,13 @@ App.WizardStep9Controller = Em.Controller.extend({
           isCompleted: true,
           installStartTime: this.get('content.cluster.installStartTime')
         }
-        var serviceSartTime = new Date().getTime();
-        var timeToStart = serviceSartTime - this.get('content.cluster.installStartTime');
-        console.log("STEP9: ********The time difference is = " + serviceSartTime / 60000);
         if (this.isStepFailed(polledData)) {
           console.log("In installation failure");
           clusterStatus.status = 'INSTALL FAILED';
           this.set('progress', '100');
           this.set('status', 'failed');
           this.setHostsStatus(this.getFailedHostsForFailedRoles(polledData), 'failed');
-          App.router.get('installerController').saveClusterStatus(clusterStatus);
+          App.router.get(this.get('content.controllerName')).saveClusterStatus(clusterStatus);
           this.set('isStepCompleted', true);
         } else {
           clusterStatus.status = 'INSTALLED';
@@ -406,7 +402,7 @@ App.WizardStep9Controller = Em.Controller.extend({
           this.launchStartServices();  //TODO: uncomment after the actual hookup
         }
         this.setTasksPerHost();
-        App.router.get('installerController').saveInstalledHosts(this);
+        App.router.get(this.get('content.controllerName')).saveInstalledHosts(this);
         return true;
       }
     }
@@ -459,7 +455,7 @@ App.WizardStep9Controller = Em.Controller.extend({
      totalProgress = 0;
      }  */
     var tasksData = polledData.tasks;
-    console.log("The value of tasksData is: " + tasksData);
+    console.log("The value of tasksData is: ", tasksData);
     if (!tasksData) {
       console.log("Step9: ERROR: NO tasks availaible to process");
     }
@@ -525,7 +521,7 @@ App.WizardStep9Controller = Em.Controller.extend({
       dataType: 'text',
       success: function (data) {
         console.log("TRACE: In success function for the GET bootstrap call");
-        console.log("TRACE: STep9 -> The value is: " + jQuery.parseJSON(data));
+        console.log("TRACE: STep9 -> The value is: ", jQuery.parseJSON(data));
         var result = self.parseHostInfo(jQuery.parseJSON(data));
         if (result !== true) {
           window.setTimeout(function () {

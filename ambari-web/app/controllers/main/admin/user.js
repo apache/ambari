@@ -21,15 +21,50 @@ var App = require('app');
 App.MainAdminUserController = Em.Controller.extend({
   name:'mainAdminUserController',
   deleteRecord:function (event) {
-
     if (event.context.get('userName') == App.get('router').getLoginName()) {
-      alert(Em.I18n.t('admin.users.deleteYourselfMessage'));
+      App.ModalPopup.show({
+        header:Em.I18n.t('admin.users.delete.yourself.header'),
+        body:Em.I18n.t('admin.users.delete.yourself.message'),
+        onPrimary:function (event) {
+          this.hide();
+        },
+        secondary:false
+      });
+
       return;
     }
+    ;
 
-    if (confirm(Em.I18n.t('question.sure'))) {
-      event.context.deleteRecord();
-      App.store.commit();
-    }
+    App.ModalPopup.show({
+      itemToDelete:event.context,
+      header:Em.I18n.t('admin.users.delete.header').format(event.context.get('userName')),
+      body:Em.I18n.t('question.sure'),
+      primary:Em.I18n.t('yes'),
+      secondary:Em.I18n.t('no'),
+      controller:this.controllers.mainAdminUserEditController,
+      onPrimary:function (event) {
+
+        //TODO: change sendCommandToServer parametrs for proper API request
+        this.get('controller').sendCommandToServer('/users/delete/' + this.get('itemToDelete').context.get("userName"), {
+            Users:{ /* password: form.getValues().password, roles: form.getValues().roles*/ }
+          },
+          function (requestId) {
+
+            if (!requestId) {
+              return;
+            }
+
+            this.get('itemToDelete').context.deleteRecord();
+            try {
+              App.store.commit()
+            } catch (err) {
+            }
+            ;
+          })
+      },
+      onSecondary:function (event) {
+        this.hide();
+      }
+    });
   }
 })

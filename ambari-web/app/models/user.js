@@ -26,17 +26,17 @@ App.UserModel = Em.Object.extend({
 
 App.User = DS.Model.extend({
   userName:DS.attr('string'),
-  password:DS.attr('string'),
   roles:DS.attr('string'),
+  type:DS.attr('string'),
   auditItems:DS.hasMany('App.ServiceAudit'),
-  admin: function () {
+  admin:function () {
     return !!(/^admin/.test(this.get('roles')))
   }.property('userName')
 });
 
 App.UserForm = App.Form.extend({
   className:App.User,
-  object: function(){
+  object:function () {
     return App.router.get('mainAdminUserEditController.content');
   }.property('App.router.mainAdminUserEditController.content'),
 
@@ -44,7 +44,8 @@ App.UserForm = App.Form.extend({
     { name:"userName", displayName:"Username" },
     { name:"password", displayName:"Password", displayType:"password", isRequired: function(){ return this.get('form.isObjectNew'); }.property('form.isObjectNew') },
     { name:"passwordRetype", displayName:"Retype Password", displayType:"password", validator:"passwordRetype", isRequired: false },
-    { name:"admin", displayName:"Admin", displayType:"checkbox", isRequired:false }
+    { name:"admin", displayName:"Admin", displayType:"checkbox", isRequired:false },
+    { name:"roles", displayName:"Role", isRequired:false, isHidden:true }
   ],
   fields:[],
   disableUsername:function () {
@@ -61,64 +62,70 @@ App.UserForm = App.Form.extend({
     }
   }.observes('isObjectNew'),
 
-  isValid: function(){
+  getValues:function () {
+    var values = this._super();
+    values.type = ['local'];
+    return values;
+  },
+
+  isValid:function () {
     var isValid = this._super();
     thisForm = this;
 
     var passField = this.get('field.password');
     var passRetype = this.get('field.passwordRetype');
 
-    if(!validator.empty(passField.get('value'))) {
-      if(passField.get('value') != passRetype.get('value')) {
+    if (!validator.empty(passField.get('value'))) {
+      if (passField.get('value') != passRetype.get('value')) {
         passRetype.set('errorMessage', "Passwords are different");
         isValid = false;
       }
     }
 
-    if(isValid && this.get('isObjectNew')) {
+    if (isValid && this.get('isObjectNew')) {
       var users = App.User.find();
       var userNameField = this.getField('userName');
       var userName = userNameField.get('value');
 
-      users.forEach(function(user){
-        if(userName == user.get('userName')) {
+      users.forEach(function (user) {
+        if (userName == user.get('userName')) {
           userNameField.set('errorMessage', 'User with the same name is already exists');
           return isValid = false;
         }
       });
     }
-    
+
     return isValid;
   }
 });
 App.User.FIXTURES = [];
 /*
-App.User.FIXTURES = [
-  {
-    id:1,
-    user_name:'admin',
-    password:'admin',
-    admin:1
-  },
-  {
-    id:2,
-    user_name:'vrossi',
-    admin:1
-  },
-  {
-    id:3,
-    user_name:'casey.stoner',
-    admin:0
-  },
-  {
-    id:4,
-    user_name:'danip',
-    admin:0
-  },
-  {
-    id:5,
-    user_name:'test',
-    password:'test',
-    admin:0
-  }
-];*/
+ App.User.FIXTURES = [
+ {
+ id:1,
+ user_name:'admin',
+ password:'admin',
+ admin:1
+ },
+ {
+ id:2,
+ user_name:'vrossi',
+ admin:1
+ },
+ {
+ id:3,
+ user_name:'casey.stoner',
+ admin:0
+ },
+ {
+ id:4,
+ user_name:'danip',
+ admin:0
+ },
+ {
+ id:5,
+ user_name:'test',
+ password:'test',
+ admin:0
+ }
+ ];*/

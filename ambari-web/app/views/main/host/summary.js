@@ -82,6 +82,12 @@ App.MainHostSummaryView = Em.View.extend({
      */
     isDataNode: function() {
       return this.get('content.componentName') === 'DataNode';
+    }.property('content'),
+    /**
+     * Shows whether we need to show health status
+     */
+    isClient: function() {
+      return this.get('content.componentName').substr(-7) === '_CLIENT';
     }.property('content')
   })
 

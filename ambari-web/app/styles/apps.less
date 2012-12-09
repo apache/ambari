@@ -1,4 +1,5 @@
 #apps{
+
   td .red {
     color: red;
   }
@@ -6,15 +7,27 @@
     vertical-align:top;
   }
   .avg-table {
+    table-layout: fixed;
     background-color: #F9F9F9;
     td {
       text-align:center;
       border:none;
+      &.avg-star{
+        border-left:1px solid #DDD;
+        width: 30px;
+      }
     }
   }
-  td.avg-star{
-    border-left:1px solid #DDD;
+
+  #dataTable {
+    table-layout: fixed;
+    td {
+      &.appId {
+        word-wrap: break-word;
+      }
+    }
   }
+
   .dropdown-menu label.checkbox {
     margin-left: 10px;
   }
@@ -126,7 +139,9 @@
   tr.containerRow > td{
     background: #f9f9f9;
   }
-
+  button {
+    margin: 0 2px;
+  }
   svg{
     vertical-align: top; //remove extra spaces after svg element
   }
@@ -141,6 +156,7 @@
     background: #fff;
     padding: 10px;
     box-sizing: border-box;
+    width: auto;
   }
 
   #jobs h2{
@@ -172,5 +188,29 @@
     }
   }
 
+  div.view-wrapper {
+    float: left;
+  }
+
+  a.ui-icon-circle-close {
+    float: right;
+    opacity: 0.2;
+    padding: 1px;
+    position: relative;
+    top: -32px;
+    &:hover {
+      opacity: 0.7;
+    }
+  }
+  .notActive {
+    a.ui-icon-circle-close {
+      visibility: hidden;
+    }
+  }
+}
+.btn-group button.single-btn-group{
+  -webkit-border-radius: 4px;
+  border-radius: 4px;
+  -moz-border-radius: 4px;
 }
 

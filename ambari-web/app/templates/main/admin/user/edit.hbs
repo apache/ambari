@@ -18,6 +18,7 @@
 
 <form class="form-horizontal">
   {{#each field in view.userForm.fields}}
+  {{#unless field.isHidden}}
   <div class="control-group">
     <label class="control-label" for="input{{unbound field.name}}">{{unbound field.displayName}}</label>
     <div class="controls">
@@ -25,6 +26,7 @@
       <span class="help-inline">{{field.errorMessage}}</span>
     </div>
   </div>
+  {{/unless}}
   {{/each}}
   <div class="control-group">
     <div class="controls">

@@ -322,9 +322,8 @@ jQuery.extend($.fn.dataTableExt.afnFiltering.push(
             break;
           case '=':
             if (compareValue == rowValue) match = true;
-            break;
           default:
-            match = false;
+            if (rangeExp == rowValue) match = true;
         }
       }
 

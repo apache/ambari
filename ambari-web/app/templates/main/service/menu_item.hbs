@@ -18,9 +18,9 @@
 
 <a href="#/main/services/{{unbound view.content.id}}/summary">
   {{view App.MainDashboardServiceHealthView class="service-health" serviceBinding="view.content"}}&nbsp;<span>{{unbound view.content.displayName}}</span>
-  {{#if view.serviceOperationsCount}}
-    <span class="label operations-count" {{action "showPopup" target="App.router.backgroundOperationsController"}}>
-      {{view.serviceOperationsCount}}
+  {{#if view.alertsCount}}
+    <span class="label operations-count">
+      {{view.alertsCount}}
     </span>
   {{/if}}
 </a>

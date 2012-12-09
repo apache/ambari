@@ -94,6 +94,7 @@ App.WizardStep5Controller = Em.Controller.extend({
           componentObj.component_name = _componentInfo.component_name;
           componentObj.display_name = _componentInfo.display_name;
           componentObj.selectedHost = this.selectHost(_componentInfo.component_name);   // call the method that plays selectNode algorithm or fetches from server
+          componentObj.isInstalled = App.Component.find().someProperty('componentName', _componentInfo.component_name);
           componentObj.availableHosts = [];
           components.add(componentObj);
         }, this);
@@ -106,6 +107,7 @@ App.WizardStep5Controller = Em.Controller.extend({
         componentObj.component_name = _masterComponentHost.component;
         componentObj.display_name = _masterComponentHost.display_name;
         componentObj.selectedHost = _masterComponentHost.hostName;
+        componentObj.isInstalled = _masterComponentHost.isInstalled;
         componentObj.availableHosts = [];
         components.add(componentObj);
       }, this);

@@ -26,7 +26,6 @@
     "chai":"1.2.0",
     "sinon":"1.4.2",
     "sinon-chai":"2.1.2",
-    "express":"2.5.8",
-    "jsdom":"0.2.19"
+    "express":"2.5.8"
   }
 }

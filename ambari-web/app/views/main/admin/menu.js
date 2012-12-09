@@ -23,11 +23,11 @@ App.MainAdminMenuView = Em.CollectionView.extend({
     {
       route:'user',
       label:'Users'
-    },
+    }/*,
     {
       route:'authentication',
       label:'Authentication'
-    }/*,
+    },
     {
       route:'security',
       label:'Security'

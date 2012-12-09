@@ -167,7 +167,6 @@ module.exports = Em.Route.extend({
       controller.saveClients(wizardStep4Controller);
 
       App.db.setMasterComponentHosts(undefined);
-      App.db.setHostToMasterComponent(undefined);
       router.transitionTo('step5');
     }
   }),
@@ -274,6 +273,7 @@ module.exports = Em.Route.extend({
       var wizardStep9Controller = router.get('wizardStep9Controller');
       if (!wizardStep9Controller.get('isSubmitDisabled')) {
         installerController.installServices();
+        installerController.setInfoForStep9();
         wizardStep9Controller.navigateStep();
       }
     },
@@ -299,8 +299,7 @@ module.exports = Em.Route.extend({
     complete: function (router, context) {
       if (true) {   // this function will be moved to installerController where it will validate
         var controller = router.get('installerController');
-        controller.setCurrentStep('1', false);
-        router.setSection('main');
+        controller.finish();
         router.transitionTo('main.index');
       } else {
         console.log('cluster installation failure');

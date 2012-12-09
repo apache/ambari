@@ -27,6 +27,7 @@ App.WizardStep9View = Em.View.extend({
 
   didInsertElement: function () {
     var controller = this.get('controller');
+    this.get('controller.hosts').setEach('status', 'info');
     this.onStatus();
     controller.navigateStep();
   },
@@ -55,7 +56,6 @@ App.WizardStep9View = Em.View.extend({
       this.set('resultMsgColor', 'alert-success');
     }
   }.observes('controller.status')
-
 });
 
 App.HostStatusView = Em.View.extend({
@@ -77,15 +77,21 @@ App.HostStatusView = Em.View.extend({
       this.set('barColor', 'progress-info');
     } else if (this.get('obj.status') === 'warning') {
       this.set('barColor', 'progress-warning');
-      this.set('obj.message', Em.I18n.t('installer.step9.host.status.warning'));
+      if (this.get('obj.progress') === '100') {
+        this.set('obj.message', Em.I18n.t('installer.step9.host.status.warning'));
+      }
     } else if (this.get('obj.status') === 'failed') {
       this.set('barColor', 'progress-danger');
-      this.set('obj.message', Em.I18n.t('installer.step9.host.status.failed'));
+      if (this.get('obj.progress') === '100') {
+        this.set('obj.message', Em.I18n.t('installer.step9.host.status.failed'));
+      }
     } else if (this.get('obj.status') === 'success') {
       this.set('barColor', 'progress-success');
-      this.set('obj.message', Em.I18n.t('installer.step9.host.status.success'));
+      if (this.get('obj.progress') === '100') {
+        this.set('obj.message', Em.I18n.t('installer.step9.host.status.success'));
+      }
     }
-  }.observes('obj.status'),
+  }.observes('obj.status', 'obj.progress'),
 
   isFailed: function () {
     if (this.get('controller.isStepCompleted') === true && this.get('obj.status') === 'failed') {
@@ -127,7 +133,7 @@ App.HostStatusView = Em.View.extend({
           return this.get('parentView.obj');
         }.property('parentView.obj'),
 
-        startedTasks: [],  // initialized in didInsertElement
+        startedTasks: [], // initialized in didInsertElement
 
         task: null, // set in showTaskLog; contains task info including stdout and stderr
 
@@ -175,13 +181,13 @@ App.HostStatusView = Em.View.extend({
               url: url,
               dataType: 'text',
               timeout: 10000,
-              success: function(data) {
+              success: function (data) {
                 var task = $.parseJSON(data);
                 taskInfo.set('stdout', task.Tasks.stdout);
                 taskInfo.set('stderr', task.Tasks.stderr);
                 taskInfo.set('isLogHidden', false);
               },
-              error: function() {
+              error: function () {
                 alert('Failed to retrieve task log');
               }
             });

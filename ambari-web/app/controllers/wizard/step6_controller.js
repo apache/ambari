@@ -97,11 +97,11 @@ App.WizardStep6Controller = Em.Controller.extend({
 
   /**
    * Check whether current host is currently selected as master
-   * @param hostname
+   * @param hostName
    * @return {Boolean}
    */
-  hasMasterComponents: function (hostname) {
-    return this.get('content.masterComponentHosts').someProperty('hostName', hostname);
+  hasMasterComponents: function (hostName) {
+    return this.get('content.masterComponentHosts').someProperty('hostName', hostName);
   },
 
   selectAllDataNodes: function () {
@@ -173,7 +173,7 @@ App.WizardStep6Controller = Em.Controller.extend({
 
     allHosts.forEach(function (_hostName) {
       hostsObj.push(Em.Object.create({
-        hostname: _hostName,
+        hostName: _hostName,
         isMaster: false,
         isDataNode: false,
         isTaskTracker: false,
@@ -185,7 +185,7 @@ App.WizardStep6Controller = Em.Controller.extend({
     if (!slaveHosts) { // we are at this page for the first time
       if (allHosts.length > 3) {             //multiple nodes scenario
         hostsObj.forEach(function (host) {
-          host.isMaster = this.hasMasterComponents(host.hostname);
+          host.isMaster = this.hasMasterComponents(host.hostName);
           host.isDataNode = host.isTaskTracker
             = host.isRegionServer = !host.isMaster;
         }, this);
@@ -199,9 +199,10 @@ App.WizardStep6Controller = Em.Controller.extend({
           masterComponents: maxNoofHostComponents
         };
         hostsObj.forEach(function (host) {
-          host.isMaster = this.hasMasterComponents(host.hostname);
-          if (this.getMasterComponentsForHost(host.hostname).length <= masterObj.masterComponents) {
-            masterObj.masterComponents = this.getMasterComponentsForHost(host.hostname).length;
+          host.isMaster = this.hasMasterComponents(host.hostName);
+          var countMasterComp = this.getMasterComponentsForHost(host.hostName).length;
+          if (countMasterComp <= masterObj.masterComponents) {
+            masterObj.masterComponents = countMasterComp;
             masterObj.host = host;
           }
         }, this);
@@ -216,7 +217,7 @@ App.WizardStep6Controller = Em.Controller.extend({
 
       var dataNodes = slaveHosts.findProperty('componentName', 'DATANODE');
       dataNodes.hosts.forEach(function (_dataNode) {
-        var dataNode = hostsObj.findProperty('hostname', _dataNode.hostname);
+        var dataNode = hostsObj.findProperty('hostName', _dataNode.hostName);
         if (dataNode) {
           dataNode.set('isDataNode', true);
         }
@@ -225,7 +226,7 @@ App.WizardStep6Controller = Em.Controller.extend({
       if (this.get('isMrSelected')) {
         var taskTrackers = slaveHosts.findProperty('componentName', 'TASKTRACKER');
         taskTrackers.hosts.forEach(function (_taskTracker) {
-          var taskTracker = hostsObj.findProperty('hostname', _taskTracker.hostname);
+          var taskTracker = hostsObj.findProperty('hostName', _taskTracker.hostName);
           if (taskTracker) {
             taskTracker.set('isTaskTracker', true);
           }
@@ -235,7 +236,7 @@ App.WizardStep6Controller = Em.Controller.extend({
       if (this.get('isHbSelected')) {
         var regionServers = slaveHosts.findProperty('componentName', 'HBASE_REGIONSERVER');
         regionServers.hosts.forEach(function (_regionServer) {
-          var regionServer = hostsObj.findProperty('hostname', _regionServer.hostname);
+          var regionServer = hostsObj.findProperty('hostName', _regionServer.hostName);
           if (regionServer) {
             regionServer.set('isRegionServer', true);
           }
@@ -244,14 +245,14 @@ App.WizardStep6Controller = Em.Controller.extend({
 
       var clients = slaveHosts.findProperty('componentName', 'CLIENT');
       clients.hosts.forEach(function (_client) {
-        var client = hostsObj.findProperty('hostname', _client.hostname);
+        var client = hostsObj.findProperty('hostName', _client.hostName);
         if (client) {
           client.set('isClient', true);
         }
       }, this);
 
       allHosts.forEach(function (_hostname) {
-        var host = hostsObj.findProperty('hostname', _hostname);
+        var host = hostsObj.findProperty('hostName', _hostname);
         if (host) {
           host.set('isMaster', this.hasMasterComponents(_hostname));
         }
@@ -266,16 +267,11 @@ App.WizardStep6Controller = Em.Controller.extend({
 
   /**
    * Return list of master components for specified <code>hostname</code>
-   * @param hostname
+   * @param hostName
    * @return {*}
    */
-  getMasterComponentsForHost: function (hostname) {
-    var hostInfo = this.get('content.hostToMasterComponent').findProperty('hostname', hostname);
-    if (hostInfo) {
-      return hostInfo.components;
-    }
-
-    return false;
+  getMasterComponentsForHost: function (hostName) {
+    return this.get('content.masterComponentHosts').filterProperty('hostName', hostName).mapProperty('component');
   },
 
 

@@ -43,13 +43,13 @@ App.servicesMapper = App.QuickDataMapper.create({
     decommision_data_nodes: 'decommission_data_nodes',
     capacity_used: 'nameNodeComponent.ServiceComponentInfo.CapacityUsed',
     capacity_total: 'nameNodeComponent.ServiceComponentInfo.CapacityTotal',
-    ///// dfsTotalBlocks: 'nameNodeComponent.host_components[0].metrics.dfs.namenode.????',
-    ///// dfsCorruptBlocks: DS.attr('number'),
-    ///// dfsMissingBlocks: DS.attr('number'),
-    ///// dfsUnderReplicatedBlocks: DS.attr('number'),
-    ///// dfsTotalFiles: DS.attr('number'),
-    upgradeStatus: 'nameNodeComponent.ServiceComponentInfo.UpgradeFinalized',
-    safeModeStatus: 'nameNodeComponent.ServiceComponentInfo.Safemode'
+    dfs_total_blocks: 'nameNodeComponent.host_components[0].metrics.dfs.FSNamesystem.BlocksTotal',
+    dfs_corrupt_blocks: 'nameNodeComponent.host_components[0].metrics.dfs.FSNamesystem.CorruptBlocks',
+    dfs_missing_blocks: 'nameNodeComponent.host_components[0].metrics.dfs.FSNamesystem.MissingBlocks',
+    dfs_under_replicated_blocks: 'nameNodeComponent.host_components[0].metrics.dfs.FSNamesystem.UnderReplicatedBlocks',
+    dfs_total_files: 'nameNodeComponent.host_components[0].metrics.dfs.FSNamesystem.FilesTotal',
+    upgrade_status: 'nameNodeComponent.ServiceComponentInfo.UpgradeFinalized',
+    safe_mode_status: 'nameNodeComponent.ServiceComponentInfo.Safemode'
   },
   
   mapReduceConfig: {
@@ -63,17 +63,18 @@ App.servicesMapper = App.QuickDataMapper.create({
     black_list_trackers: 'black_list_trackers',
     gray_list_trackers: 'gray_list_trackers',
     map_slots: 'map_slots',
-    reduce_slots: 'reduce_slots'
-//    jobsSubmitted: DS.attr('number'),
-//    jobsCompleted: DS.attr('number'),
-//    mapSlotsOccupied: DS.attr('number'),
-//    mapSlotsReserved: DS.attr('number'),
-//    reduceSlotsOccupied: DS.attr('number'),
-//    reduceSlotsReserved: DS.attr('number'),
-//    mapsRunning: DS.attr('number'),
-//    mapsWaiting: DS.attr('number'),
-//    reducesRunning: DS.attr('number'),
-//    reducesWaiting: DS.attr('number')
+    reduce_slots: 'reduce_slots',
+    jobs_submitted: 'jobTrackerComponent.host_components[0].metrics.mapred.jobtracker.jobs_submitted',
+    jobs_completed: 'jobTrackerComponent.host_components[0].metrics.mapred.jobtracker.jobs_completed',
+    map_slots_occupied: 'jobTrackerComponent.host_components[0].metrics.mapred.jobtracker.occupied_map_slots',
+    map_slots_reserved: 'jobTrackerComponent.host_components[0].metrics.mapred.jobtracker.reserved_map_slots',
+    reduce_slots_occupied: 'jobTrackerComponent.host_components[0].metrics.mapred.jobtracker.occupied_reduce_slots',
+    reduce_slots_reserved: 'jobTrackerComponent.host_components[0].metrics.mapred.jobtracker.reserved_reduce_slots',
+    maps_running: 'jobTrackerComponent.host_components[0].metrics.mapred.jobtracker.running_maps',
+    maps_waiting: 'jobTrackerComponent.host_components[0].metrics.mapred.jobtracker.waiting_maps',
+    reduces_running: 'jobTrackerComponent.host_components[0].metrics.mapred.jobtracker.running_reduces',
+    reduces_waiting: 'jobTrackerComponent.host_components[0].metrics.mapred.jobtracker.waiting_reduces',
+    trackers_decommisioned: 'jobTrackerComponent.host_components[0].metrics.mapred.jobtracker.trackers_decommissioned'
   },
 
   model2: App.Component,
@@ -149,23 +150,29 @@ App.servicesMapper = App.QuickDataMapper.create({
                 item.alive_trackers = [];
                 item.gray_list_trackers = [];
                 item.black_list_trackers = [];
-                liveNodesJson.forEach(function(nj){
-                  item.alive_trackers.push(nj.hostname);
-                  if(nj.slots && nj.slots.map_slots)
-                    item.map_slots += nj.slots.map_slots;
-                  if(nj.slots && nj.slots.map_slots_used)
-                    item.map_slots_used += nj.slots.map_slots_used;
-                  if(nj.slots && nj.slots.reduce_slots)
-                    item.reduce_slots += nj.slots.reduce_slots;
-                  if(nj.slots && nj.slots.reduce_slots_used)
-                    item.reduce_slots_used += nj.slots.reduce_slots_used;
-                });
-                grayNodesJson.forEach(function(nj){
-                  item.gray_list_trackers.push(nj.hostname);
-                });
-                blackNodesJson.forEach(function(nj){
-                  item.black_list_trackers.push(nj.hostname);
-                });
+                if (liveNodesJson != null) {
+                  liveNodesJson.forEach(function(nj){
+                    item.alive_trackers.push(nj.hostname);
+                    if(nj.slots && nj.slots.map_slots)
+                      item.map_slots += nj.slots.map_slots;
+                    if(nj.slots && nj.slots.map_slots_used)
+                      item.map_slots_used += nj.slots.map_slots_used;
+                    if(nj.slots && nj.slots.reduce_slots)
+                      item.reduce_slots += nj.slots.reduce_slots;
+                    if(nj.slots && nj.slots.reduce_slots_used)
+                      item.reduce_slots_used += nj.slots.reduce_slots_used;
+                  });
+                }
+                if (grayNodesJson != null) {
+                  grayNodesJson.forEach(function(nj){
+                    item.gray_list_trackers.push(nj.hostname);
+                  });
+                }
+                if (blackNodesJson != null) {
+                  blackNodesJson.forEach(function(nj){
+                    item.black_list_trackers.push(nj.hostname);
+                  });
+                }
               }
               if (component.ServiceComponentInfo && component.ServiceComponentInfo.component_name == "TASKTRACKER") {
                 if(!item.task_trackers){

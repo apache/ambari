@@ -35,7 +35,7 @@ App.ClusterController = Em.Controller.extend({
   },
   dataLoadList: Em.Object.create({
     'hosts': false,
-    //'runs': false,
+    'runs': false,
     'services': false,
     'cluster' : false,
     'racks' : false,
@@ -45,10 +45,14 @@ App.ClusterController = Em.Controller.extend({
   /**
    * load cluster name
    */
-  loadClusterName: function(){
+  loadClusterName: function(reload){
+    if(this.get('clusterName') && !reload){
+      return;
+    }
     var self = this;
     var url = (App.testMode) ? '/data/clusters/info.json' : '/api/clusters';
     $.ajax({
+      async: false,
       type: "GET",
       url: url,
       dataType: 'json',
@@ -57,10 +61,8 @@ App.ClusterController = Em.Controller.extend({
         self.set('cluster', data.items[0]);
       },
       error: function (request, ajaxOptions, error) {
-        //do something
         console.log('failed on loading cluster name');
-        //hack skip loading when data ain't received
-        if(!App.testMode) self.set('isLoaded', true);
+        self.set('isLoaded', true);
       },
       statusCode: require('data/statusCodes')
     });
@@ -114,12 +116,12 @@ App.ClusterController = Em.Controller.extend({
    * Sorted list of alerts.
    * Changes whenever alerts are loaded.
    */
-  alerts: function(){
+  alerts: function () {
     var alerts = App.Alert.find();
     var alertsArray = alerts.toArray();
-    var sortedArray = alertsArray.sort(function(left, right){
+    var sortedArray = alertsArray.sort(function (left, right) {
       var statusDiff = right.get('status') - left.get('status');
-      if(statusDiff==0){ // same error severity - sort by time
+      if (statusDiff == 0) { // same error severity - sort by time
         var rightTime = right.get('date');
         var leftTime = left.get('time');
         rightTime = rightTime ? rightTime.getTime() : 0;
@@ -145,21 +147,21 @@ App.ClusterController = Em.Controller.extend({
       }
       var dataUrl;
       var ajaxOptions = {
-          dataType: "jsonp",
-          jsonp: "jsonp",
-          context: this,
-          complete: function (jqXHR, textStatus) {
-            this.updateLoadStatus('alerts')
-          }
-        };
-      if(App.testMode){
+        dataType: "jsonp",
+        jsonp: "jsonp",
+        context: this,
+        complete: function (jqXHR, textStatus) {
+          this.updateLoadStatus('alerts')
+        }
+      };
+      if (App.testMode) {
         dataUrl = "/data/alerts/alerts.jsonp";
         ajaxOptions.jsonpCallback = "jQuery172040994187095202506_1352498338217";
-      }else{
+      } else {
         dataUrl = nagiosUrl + "/hdp/nagios/nagios_alerts.php?q1=alerts&alert_type=all";
       }
       App.HttpClient.get(dataUrl, App.alertsMapper, ajaxOptions);
-    }else{
+    } else {
       this.updateLoadStatus('alerts');
       console.log("No Nagios URL provided.")
     }
@@ -179,7 +181,7 @@ App.ClusterController = Em.Controller.extend({
      var hostsUrl = this.getUrl('/data/hosts/hosts.json', '/hosts?fields=*');
      var servicesUrl1 = this.getUrl('/data/dashboard/services.json', '/services?ServiceInfo/service_name!=MISCELLANEOUS&ServiceInfo/service_name!=DASHBOARD&fields=components/host_components/*');
      var servicesUrl2 = this.getUrl('/data/dashboard/services.json', '/services?ServiceInfo/service_name!=MISCELLANEOUS&ServiceInfo/service_name!=DASHBOARD&fields=components/ServiceComponentInfo');
-     var usersUrl = this.getUrl('/data/users/users.json', '/users/?fields=*');
+     var usersUrl = App.testMode ? '/data/users/users.json' : '/api/users/?fields=*';
      var runsUrl = App.testMode ? "/data/apps/runs.json" : "/api/jobhistory/workflow";
 
      var racksUrl = "/data/racks/racks.json";
@@ -188,29 +190,40 @@ App.ClusterController = Em.Controller.extend({
       complete:function(jqXHR, textStatus){
         self.updateLoadStatus('racks');
       }
+    },function(jqXHR, textStatus){
+      self.updateLoadStatus('racks');
     });
+
     App.HttpClient.get(clusterUrl, App.clusterMapper,{
       complete:function(jqXHR, textStatus){
         self.updateLoadStatus('cluster');
       }
+    },function(jqXHR, textStatus){
+      self.updateLoadStatus('cluster');
     });
 
-//     App.HttpClient.get(runsUrl, App.runsMapper,{
-//       complete:function(jqXHR, textStatus) {
-//         self.updateLoadStatus('runs');
-//       }
-//     });
+    App.HttpClient.get(runsUrl, App.runsMapper,{
+      complete:function(jqXHR, textStatus) {
+        self.updateLoadStatus('runs');
+      }
+    },function(jqXHR, textStatus){
+      self.updateLoadStatus('runs');
+    });
 
     App.HttpClient.get(hostsUrl, App.hostsMapper,{
       complete:function(jqXHR, textStatus){
         self.updateLoadStatus('hosts');
       }
+    },function(jqXHR, textStatus){
+      self.updateLoadStatus('hosts');
     });
 
     App.HttpClient.get(usersUrl, App.usersMapper,{
       complete:function(jqXHR, textStatus){
         self.updateLoadStatus('users');
       }
+    },function(jqXHR, textStatus){
+      self.updateLoadStatus('users');
     });
 
     //////////////////////////////
@@ -224,59 +237,71 @@ App.ClusterController = Em.Controller.extend({
         }
     };
     var serviceComponentMapper = {
-        map: function(data){
-          serviceComponentJson = data;
-          if(metricsJson!=null && serviceComponentJson!=null){
-            var hdfsSvc1 = null;
-            var hdfsSvc2 = null;
-            var mrSvc1 = null;
-            var mrSvc2 = null;
-            metricsJson.items.forEach(function(svc){
-              if(svc.ServiceInfo.service_name=="HDFS"){
-                hdfsSvc1 = svc;
-              }
-              if(svc.ServiceInfo.service_name=="MAPREDUCE"){
-                mrSvc1 = svc;
-              }
-            });
-            serviceComponentJson.items.forEach(function(svc){
-              if(svc.ServiceInfo.service_name=="HDFS"){
-                hdfsSvc2 = svc;
-              }
-              if(svc.ServiceInfo.service_name=="MAPREDUCE"){
-                mrSvc2 = svc;
-              }
-            });
-            var nnC1 = null;
-            var nnC2 = null;
-            var jtC1 = null;
-            var jtC2 = null;
-            hdfsSvc1.components.forEach(function(c){
-              if(c.ServiceComponentInfo.component_name=="NAMENODE"){
+      map: function (data) {
+        serviceComponentJson = data;
+        if (metricsJson != null && serviceComponentJson != null) {
+          var hdfsSvc1 = null;
+          var hdfsSvc2 = null;
+          var mrSvc1 = null;
+          var mrSvc2 = null;
+          metricsJson.items.forEach(function (svc) {
+            if (svc.ServiceInfo.service_name == "HDFS") {
+              hdfsSvc1 = svc;
+            }
+            if (svc.ServiceInfo.service_name == "MAPREDUCE") {
+              mrSvc1 = svc;
+            }
+          });
+          serviceComponentJson.items.forEach(function (svc) {
+            if (svc.ServiceInfo.service_name == "HDFS") {
+              hdfsSvc2 = svc;
+            }
+            if (svc.ServiceInfo.service_name == "MAPREDUCE") {
+              mrSvc2 = svc;
+            }
+          });
+          var nnC1 = null;
+          var nnC2 = null;
+          var jtC1 = null;
+          var jtC2 = null;
+          if (hdfsSvc1) {
+            hdfsSvc1.components.forEach(function (c) {
+              if (c.ServiceComponentInfo.component_name == "NAMENODE") {
                 nnC1 = c;
               }
             });
-            hdfsSvc2.components.forEach(function(c){
-              if(c.ServiceComponentInfo.component_name=="NAMENODE"){
+          }
+          if (hdfsSvc2) {
+            hdfsSvc2.components.forEach(function (c) {
+              if (c.ServiceComponentInfo.component_name == "NAMENODE") {
                 nnC2 = c;
               }
             });
-            mrSvc1.components.forEach(function(c){
-              if(c.ServiceComponentInfo.component_name=="JOBTRACKER"){
+          }
+          if (mrSvc1) {
+            mrSvc1.components.forEach(function (c) {
+              if (c.ServiceComponentInfo.component_name == "JOBTRACKER") {
                 jtC1 = c;
               }
             });
-            mrSvc2.components.forEach(function(c){
-              if(c.ServiceComponentInfo.component_name=="JOBTRACKER"){
+          }
+          if (mrSvc2) {
+            mrSvc2.components.forEach(function (c) {
+              if (c.ServiceComponentInfo.component_name == "JOBTRACKER") {
                 jtC2 = c;
               }
             });
-            nnC1.ServiceComponentInfo = nnC2.ServiceComponentInfo;
-            jtC1.ServiceComponentInfo = jtC2.ServiceComponentInfo;
-            App.servicesMapper.map(metricsJson);
-            self.updateLoadStatus('services');
           }
+          if (nnC1 && nnC2) {
+            nnC1.ServiceComponentInfo = nnC2.ServiceComponentInfo;
+          }
+          if (jtC1 && jtC2) {
+            jtC1.ServiceComponentInfo = jtC2.ServiceComponentInfo;
+          }
+          App.servicesMapper.map(metricsJson);
+          self.updateLoadStatus('services');
         }
+      }
     }
     App.HttpClient.get(servicesUrl1, metricsMapper,{
       complete:function(jqXHR, textStatus){
@@ -290,8 +315,9 @@ App.ClusterController = Em.Controller.extend({
     // Hack for services END   //
     /////////////////////////////
 
-  }.observes('clusterName'),
+  },
+
   clusterName: function(){
-    return (this.get('cluster')) ? this.get('cluster').Clusters.cluster_name : 'mycluster';
+    return (this.get('cluster')) ? this.get('cluster').Clusters.cluster_name : null;
   }.property('cluster')
 })
