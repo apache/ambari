@@ -19,6 +19,11 @@
 {{#unless view.showOnlyRows}}
 <div class="clearfix" {{action toggleInfoView target="view"}}>
   <div class="name span2">
+    {{#if view.isCollapsed}}
+    <i class="icon-arrow-down pull-left"></i>
+    {{else}}
+    <i class="icon-arrow-right pull-left"></i>
+    {{/if}}
     {{view App.MainDashboardServiceHealthView serviceBinding="view.service"}}
     <a {{action selectService view.service href=true}}>{{view.service.displayName}}</a>
     {{#if view.criticalAlertsCount}}

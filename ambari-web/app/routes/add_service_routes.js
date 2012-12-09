@@ -175,6 +175,9 @@ module.exports = Em.Route.extend({
       controller.setCurrentStep('6', false);
       controller.dataLoading().done(function () {
         controller.loadAllPriorSteps();
+        if (!App.testMode) {              //if test mode is ON don't disable prior steps link.
+          controller.setLowerStepsDisable(6);
+        }
         controller.connectOutlet('wizardStep9', controller.get('content'));
       })
     },
@@ -191,6 +194,9 @@ module.exports = Em.Route.extend({
         }
         wizardStep9Controller.navigateStep();
       }
+    },
+    unroutePath: function() {
+      return false;
     },
     next: function (router) {
       var addServiceController = router.get('addServiceController');

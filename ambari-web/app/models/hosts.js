@@ -31,33 +31,55 @@ App.HostInfo = Ember.Object.extend({
   
   bootStatusForDisplay:function () {
     switch (this.get('bootStatus')) {
-      case 'DONE':
+      case 'REGISTERED':
         return 'Success';
       case 'FAILED':
         return 'Failed';
       case 'RUNNING':
-        return 'Running';
+        return 'Installing';
+      case 'DONE':
+      case 'REGISTERING':
+      default:
+        return 'Registering';
     }
   }.property('bootStatus'),
 
   bootBarColor:function () {
     switch (this.get('bootStatus')) {
-      case 'DONE':
+      case 'REGISTERED':
         return 'progress-success';
       case 'FAILED':
         return 'progress-danger';
       case 'RUNNING':
+      case 'DONE':
+      case 'REGISTERING':
       default:
         return 'progress-info';
     }
   }.property('bootStatus'),
 
+  bootStatusColor:function () {
+    switch (this.get('bootStatus')) {
+      case 'REGISTERED':
+        return 'text-success';
+      case 'FAILED':
+        return 'text-error';
+      case 'RUNNING':
+      case 'DONE':
+      case 'REGISTERING':
+      default:
+        return 'text-info';
+    }
+  }.property('bootStatus'),
+
   isBootDone:function () {
     switch (this.get('bootStatus')) {
-      case 'DONE':
+      case 'REGISTERED':
       case 'FAILED':
         return true;
       case 'RUNNING':
+      case 'DONE':
+      case 'REGISTERING':
       default:
         return false;
     }

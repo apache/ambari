@@ -141,7 +141,7 @@ App.ClusterController = Em.Controller.extend({
       }
       return null;
     }
-  }.property('App.router.updateController.isUpdated', 'dataLoadList.hosts'),
+  }.property('App.router.updateController.isUpdated'),
 
   isNagiosInstalled:function () {
     if (App.testMode) {
@@ -157,7 +157,8 @@ App.ClusterController = Em.Controller.extend({
    * Sorted list of alerts.
    * Changes whenever alerts are loaded.
    */
-  alerts:function () {
+  alerts:[],
+  updateAlerts: function(){
     var alerts = App.Alert.find();
     var alertsArray = alerts.toArray();
     var sortedArray = alertsArray.sort(function (left, right) {
@@ -171,9 +172,8 @@ App.ClusterController = Em.Controller.extend({
       }
       return statusDiff;
     });
-    return sortedArray;
-  }.property('dataLoadList.alerts'),
-
+    this.set('alerts', sortedArray);
+  },
   loadRuns:function () {
     if (this.get('postLoadList.runs')) {
       return;
@@ -197,6 +197,9 @@ App.ClusterController = Em.Controller.extend({
    * property, which will trigger the alerts property.
    */
   loadAlerts:function () {
+    if(App.router.get('updateController.isUpdated')){
+      return;
+    }
     var nagiosUrl = this.get('nagiosUrl');
     if (nagiosUrl) {
       var lastSlash = nagiosUrl.lastIndexOf('/');
@@ -209,10 +212,11 @@ App.ClusterController = Em.Controller.extend({
         jsonp:"jsonp",
         context:this,
         complete:function (jqXHR, textStatus) {
-          this.updateLoadStatus('alerts')
+          this.updateLoadStatus('alerts');
+          this.updateAlerts();
         },
         error: function(jqXHR, testStatus, error) {
-          this.showMessage(Em.I18n.t('nagios.alerts.unavailable'));
+          // this.showMessage(Em.I18n.t('nagios.alerts.unavailable'));
           console.log('Nagios $.ajax() response:', error);
         }
       };

@@ -84,6 +84,8 @@ App.ChartLinearTimeView = Ember.View.extend({
 
       _popupGraph: null,
 
+      _seriesProperties: null,
+
       popupSuffix: '-popup',
 
       isPopup: false,
@@ -314,7 +316,8 @@ App.ChartLinearTimeView = Ember.View.extend({
         var palette = new Rickshaw.Color.Palette({
           scheme: this._paletteScheme
         });
-        seriesData.forEach(function (series) {
+        var self = this;
+        seriesData.forEach(function (series, index) {
           series.color = /*this.colorForSeries(series) ||*/ palette.color();
           series.stroke = 'rgba(0,0,0,0.3)';
           if (isPopup) {
@@ -424,12 +427,32 @@ App.ChartLinearTimeView = Ember.View.extend({
         }
 
         if (isPopup) {
+          var self = this;
+          // In popup save selected metrics and show only them after data update
+          _graph.series.forEach(function(series, index) {
+            if (self.get('_seriesProperties') !== null && self.get('_seriesProperties')[index] !== null) {
+              if(self.get('_seriesProperties')[self.get('_seriesProperties').length - index - 1].length > 1) {
+                $('#'+self.get('id')+'-container'+self.get('popupSuffix')+' a.action:eq('+(self.get('_seriesProperties').length - index - 1)+')').parent('li').addClass('disabled');
+                series.disable();
+              }
+            }
+          });
+          _graph.update();
+
+          $('#'+self.get('id')+'-container'+self.get('popupSuffix')+' a.action').click(function() {
+            var series = new Array();
+            $('#'+self.get('id')+'-container'+self.get('popupSuffix')+' a.action').each(function(index, v) {
+              series[index] = v.parentNode.classList;
+            });
+            self.set('_seriesProperties', series);
+          });
+
+
           this.set('_popupGraph', _graph);
         }
         else {
           this.set('_graph', _graph);
         }
-
         this.set('isPopup', false);
       },
 
@@ -450,7 +473,7 @@ App.ChartLinearTimeView = Ember.View.extend({
             '<div class="modal-body">',
             '{{#if bodyClass}}{{view bodyClass}}',
             '{{else}}'+
-              '<div id="'+this.get('id')+'-container'+this.get('popupSuffix')+'" class="chart-container">'+
+              '<div id="'+this.get('id')+'-container'+this.get('popupSuffix')+'" class="chart-container chart-container'+this.get('popupSuffix')+'">'+
                 '<div id="'+this.get('id')+'-yaxis'+this.get('popupSuffix')+'" class="'+this.get('id')+'-yaxis chart-y-axis"></div>'+
                 '<div id="'+this.get('id')+'-xaxis'+this.get('popupSuffix')+'" class="'+this.get('id')+'-xaxis chart-x-axis"></div>'+
                 '<div id="'+this.get('id')+'-legend'+this.get('popupSuffix')+'" class="'+this.get('id')+'-legend chart-legend"></div>'+

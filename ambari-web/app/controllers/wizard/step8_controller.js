@@ -28,6 +28,8 @@ App.WizardStep8Controller = Em.Controller.extend({
   globals: [],
   configMapping: require('data/config_mapping'),
 
+  isSubmitDisabled : false,
+
   selectedServices: function () {
     return this.get('content.services').filterProperty('isSelected', true).filterProperty('isInstalled', false);
   }.property('content.services').cacheable(),
@@ -595,6 +597,12 @@ App.WizardStep8Controller = Em.Controller.extend({
    * Onclick handler for <code>next</code> button
    */
   submit: function () {
+
+    if (this.get('isSubmitDisabled')) {
+      return;
+    }
+
+    this.set('isSubmitDisabled', true);
 
     if (App.testMode) {
       App.router.send('next');

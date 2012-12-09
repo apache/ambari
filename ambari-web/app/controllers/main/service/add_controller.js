@@ -19,7 +19,7 @@
 
 var App = require('app');
 
-App.AddServiceController = Em.Controller.extend({
+App.AddServiceController = App.WizardController.extend({
 
   name: 'addServiceController',
 
@@ -52,116 +52,7 @@ App.AddServiceController = Em.Controller.extend({
    */
   hideBackButton: true,
 
-  isStepDisabled: [],
-
-  totalSteps: 9,
-
-  init: function () {
-    this.isStepDisabled.pushObject(Ember.Object.create({
-      step: 1,
-      value: false
-    }));
-    for (var i = 2; i <= this.totalSteps; i++) {
-      this.isStepDisabled.pushObject(Ember.Object.create({
-        step: i,
-        value: true
-      }));
-    }
-  },
-
-  setStepsEnable: function () {
-    for (var i = 2; i <= this.totalSteps; i++) {
-      var step = this.get('isStepDisabled').findProperty('step', i);
-      if (i <= this.get('currentStep')) {
-        step.set('value', false);
-      } else {
-        step.set('value', true);
-      }
-    }
-  }.observes('currentStep'),
-
-  /**
-   * Return current step of Add Host Wizard
-   */
-  currentStep: function () {
-    return App.get('router').getWizardCurrentStep('addService');
-  }.property(),
-
-  clusters: null,
-
-  /**
-   * Set current step to new value.
-   * Method moved from App.router.setInstallerCurrentStep
-   * @param currentStep
-   * @param completed
-   */
-  setCurrentStep: function (currentStep, completed) {
-    App.db.setWizardCurrentStep('addService', currentStep, completed);
-    this.set('currentStep', currentStep);
-  },
-
-  isStep1: function () {
-    return this.get('currentStep') == 1;
-  }.property('currentStep'),
-
-  isStep2: function () {
-    return this.get('currentStep') == 2;
-  }.property('currentStep'),
-
-  isStep3: function () {
-    return this.get('currentStep') == 3;
-  }.property('currentStep'),
-
-  isStep4: function () {
-    return this.get('currentStep') == 4;
-  }.property('currentStep'),
-
-  isStep5: function () {
-    return this.get('currentStep') == 5;
-  }.property('currentStep'),
-
-  isStep6: function () {
-    return this.get('currentStep') == 6;
-  }.property('currentStep'),
-
-  isStep7: function () {
-    return this.get('currentStep') == 7;
-  }.property('currentStep'),
-
-  gotoStep: function (step) {
-    if (this.get('isStepDisabled').findProperty('step', step).get('value') === false) {
-      App.router.send('gotoStep' + step);
-    }
-  },
-
-  gotoStep1: function () {
-    this.gotoStep(1);
-  },
-
-  gotoStep2: function () {
-    this.gotoStep(2);
-  },
-
-  gotoStep3: function () {
-    this.gotoStep(3);
-  },
-
-  gotoStep4: function () {
-    this.gotoStep(4);
-  },
-
-  gotoStep5: function () {
-    this.gotoStep(5);
-  },
-
-  gotoStep6: function () {
-    this.gotoStep(6);
-  },
-
-  gotoStep7: function () {
-    this.gotoStep(7);
-  },
-
+  totalSteps: 7,
 
   /**
    * Load clusterInfo(step1) to model
@@ -275,7 +166,7 @@ App.AddServiceController = Em.Controller.extend({
   loadServices: function () {
     var servicesInfo = App.db.getService();
     if(!servicesInfo || !servicesInfo.length){
-      servicesInfo = require('data/mock/services').slice(0);
+      servicesInfo = require('data/services').slice(0);
       servicesInfo.forEach(function(item, index){
         servicesInfo[index].isSelected = App.Service.find().someProperty('id', item.serviceName);
         servicesInfo[index].isDisabled = servicesInfo[index].isSelected;

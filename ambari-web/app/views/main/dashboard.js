@@ -78,7 +78,7 @@ App.MainDashboardView = Em.View.extend({
       }
       this.get('content').pushObject(Em.Object.create({
         viewName: vName,
-        model: item2
+        model: item2 || item
       }))
     }, this);
   },

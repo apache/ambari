@@ -259,7 +259,7 @@ module.exports = Em.Route.extend({
     },
     showDetails:function (router, event) {
       router.get('mainHostDetailsController').setBack(true);
-      router.transitionTo('hostDetails.index', event.context)
+      router.transitionTo('hosts.hostDetails.index', event.context)
     },
     filterHosts:function (router, component) {
       router.transitionTo('hosts');
@@ -335,7 +335,7 @@ module.exports = Em.Route.extend({
       },
       showDetails:function (router, event) {
         router.get('mainHostDetailsController').setBack(true);
-        router.transitionTo('hostDetails.index', event.context)
+        router.transitionTo('hosts.hostDetails.index', event.context)
       }
     }),
     showService:Em.Router.transitionTo('service'),
@@ -347,10 +347,10 @@ module.exports = Em.Route.extend({
   selectService:Em.Route.transitionTo('services.service'),
   selectHost:function (router, event) {
     router.get('mainHostDetailsController').setBack(false);
-    router.transitionTo('hostDetails.index', event.context);
+    router.transitionTo('hosts.hostDetails.index', event.context);
   },
   filterHosts:function (router, component) {
     router.get('mainHostController').filterByComponent(component.context);
-    router.transitionTo('hosts');
+    router.transitionTo('hosts.index');
   }
 });

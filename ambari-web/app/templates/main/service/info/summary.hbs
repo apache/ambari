@@ -47,16 +47,22 @@
       {{#unless view.serviceStatus.mapreduce}}
       {{#unless view.serviceStatus.hbase}}
       {{#each component in controller.content.components}}
-      <tr>
-        {{#if component.isMaster}}
-        <td class="summary-label">{{component.displayName}}</td>
-        <td><a {{action selectHost component.host}} href="javascript:void(null)">{{component.host.publicHostName}}</a></td>
-        {{else}}
-        <td class="summary-label">{{component.displayName}}s</td>
-        <td><a {{action filterHosts component}} href="javascript:void(null)">{{component.displayName}}s</a></td>
-        {{/if}}
-      </tr>
+        <tr>
+          {{#if component.isMaster}}
+            <td class="summary-label">{{component.displayName}}</td>
+            <td><a {{action selectHost component.host}} href="javascript:void(null)">{{component.host.publicHostName}}</a></td>
+          {{else}}
+            <td class="summary-label">{{component.displayName}}s</td>
+            <td><a {{action filterHosts component}} href="javascript:void(null)">{{component.displayName}}s</a></td>
+          {{/if}}
+        </tr>
       {{/each}}
+      {{#if view.serviceStatus.ganglia}}
+        <tr>
+          <td class="summary-label">Ganglia Web UI</td>
+          <td><a target=_blank href="http://{{unbound view.gangliaServer}}/ganglia">{{view.gangliaServer}}/ganglia</a></td>
+        </tr>
+      {{/if}}
       {{/unless}}
       {{/unless}}
       {{/unless}}

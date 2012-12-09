@@ -79,7 +79,10 @@ App.MainDashboardServiceHdfsView = App.MainDashboardServiceView.extend({
     return App.Component.find().findProperty('componentName', 'DATANODE');
   }.property('+'),
 
+  isCollapsed: false,
+
   toggleInfoView: function() {
     $('#hdfs-info').toggle('blind', 200);
+    this.set('isCollapsed', !this.isCollapsed);
   }
 });

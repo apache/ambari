@@ -42,11 +42,26 @@ App.alertsMapper = App.QuickDataMapper.create({
       return;
     }
     if (json.alerts) {
-      var result = [];
-      json.alerts.forEach(function (item) {
-        result.push(this.parseIt(item, this.config));
-      }, this);
-      App.store.loadMany(this.get('model'), result);
+      if (App.Alert.find().content.length > 0) {
+        this.update(json);
+      } else {
+        var result = [];
+        json.alerts.forEach(function (item) {
+          result.push(this.parseIt(item, this.config));
+        }, this);
+        App.store.loadMany(this.get('model'), result);
+      }
     }
+  },
+  update: function(json){
+    var alerts = App.Alert.find();
+    var result = [];
+    json.alerts.forEach(function (item) {
+      if (!alerts.filterProperty('title', item.service_description).length) {
+        result.push(this.parseIt(item, this.config));
+      }
+    }, this);
+    App.store.loadMany(this.get('model'), result);
+
   }
 });

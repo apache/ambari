@@ -90,7 +90,7 @@
         </td>
         <td>
           <a href="javascript:void(null)"
-             data-toggle="modal" {{action hostLogPopup host target="controller"}}>{{host.bootStatusForDisplay}}</a>
+             data-toggle="modal" {{action hostLogPopup host target="controller"}}><span  {{bindAttr class="host.bootStatusColor"}}>{{host.bootStatusForDisplay}}</span></a>
         </td>
         <td>
           {{#if view.isRemovable}}<a class="btn btn-mini" {{action remove target="view"}}><i class="icon-trash"></i>

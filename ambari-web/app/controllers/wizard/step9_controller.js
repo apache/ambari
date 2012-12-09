@@ -95,7 +95,7 @@ App.WizardStep9Controller = Em.Controller.extend({
       console.log("TRACE: host name is: " + hostInfo[index].name);
     }
    // return hosts;
-    return hosts.filterProperty('bootStatus', 'DONE'); //TODO: uncomment after actual hookup with bootstrap
+    return hosts.filterProperty('bootStatus', 'REGISTERED');
   },
 
   renderHosts: function (hostsInfo) {

@@ -19,204 +19,11 @@
 
 var App = require('app');
 
-App.InstallerController = Em.Controller.extend({
+App.InstallerController = App.WizardController.extend({
 
   name: 'installerController',
 
-  isStepDisabled: [],
-
   totalSteps: 10,
-
-  init: function () {
-    this.clusters = App.Cluster.find();
-    this.isStepDisabled.pushObject(Ember.Object.create({
-      step: 1,
-      value: false
-    }));
-    for (var i = 2; i <= this.totalSteps; i++) {
-      this.isStepDisabled.pushObject(Ember.Object.create({
-        step: i,
-        value: true
-      }));
-    }
-    // window.onbeforeunload = function () {
-    // return "You have not saved your document yet.  If you continue, your work will not be saved."
-    //}
-  },
-
-  setStepsEnable: function () {
-    for (var i = 2; i <= this.totalSteps; i++) {
-      var step = this.get('isStepDisabled').findProperty('step', i);
-      if (i <= this.get('currentStep')) {
-        step.set('value', false);
-      } else {
-        step.set('value', true);
-      }
-    }
-  }.observes('currentStep'),
-
-  setLowerStepsDisable: function (stepNo) {
-    for (var i = 1; i < stepNo; i++) {
-      var step = this.get('isStepDisabled').findProperty('step', i);
-      step.set('value', true);
-    }
-  },
-
-  prevInstallStatus: function () {
-    console.log('Inside the prevInstallStep function: The name is ' + App.router.get('loginController.loginName'));
-    var result = App.db.isCompleted()
-    if (result == '1') {
-      return true;
-    }
-  }.property('App.router.loginController.loginName'),
-
-  /**
-   * Set current step to new value.
-   * Method moved from App.router.setInstallerCurrentStep
-   * @param currentStep
-   * @param completed
-   */
-  currentStep: function () {
-    return App.get('router').getWizardCurrentStep('installer');
-  }.property(),
-
-  /**
-   * Set current step to new value.
-   * Method moved from App.router.setInstallerCurrentStep
-   * @param currentStep
-   * @param completed
-   */
-  setCurrentStep: function (currentStep, completed) {
-    App.db.setWizardCurrentStep('installer', currentStep, completed);
-    this.set('currentStep', currentStep);
-  },
-
-  clusters: null,
-
-  isStep1: function () {
-    return this.get('currentStep') == 1;
-  }.property('currentStep'),
-
-  isStep2: function () {
-    return this.get('currentStep') == 2;
-  }.property('currentStep'),
-
-  isStep3: function () {
-    return this.get('currentStep') == 3;
-  }.property('currentStep'),
-
-  isStep4: function () {
-    return this.get('currentStep') == 4;
-  }.property('currentStep'),
-
-  isStep5: function () {
-    return this.get('currentStep') == 5;
-  }.property('currentStep'),
-
-  isStep6: function () {
-    return this.get('currentStep') == 6;
-  }.property('currentStep'),
-
-  isStep7: function () {
-    return this.get('currentStep') == 7;
-  }.property('currentStep'),
-
-  isStep8: function () {
-    return this.get('currentStep') == 8;
-  }.property('currentStep'),
-
-  isStep9: function () {
-    return this.get('currentStep') == 9;
-  }.property('currentStep'),
-
-  isStep10: function () {
-    return this.get('currentStep') == 10;
-  }.property('currentStep'),
-
-  gotoStep1: function () {
-    if (this.get('isStepDisabled').findProperty('step', 1).get('value') === true) {
-      return;
-    } else {
-      App.router.send('gotoStep1');
-    }
-
-  },
-
-  gotoStep2: function () {
-    if (this.get('isStepDisabled').findProperty('step', 2).get('value') === true) {
-      return;
-    } else {
-      App.router.send('gotoStep2');
-    }
-
-  },
-
-  gotoStep3: function () {
-    if (this.get('isStepDisabled').findProperty('step', 3).get('value') === true) {
-      return;
-    } else {
-      App.router.send('gotoStep3');
-    }
-
-  },
-
-  gotoStep4: function () {
-
-    if (this.get('isStepDisabled').findProperty('step', 4).get('value') === true) {
-      return;
-    } else {
-      App.router.send('gotoStep4');
-    }
-  },
-
-  gotoStep5: function () {
-    if (this.get('isStepDisabled').findProperty('step', 5).get('value') === true) {
-      return;
-    } else {
-      App.router.send('gotoStep5');
-    }
-  },
-
-  gotoStep6: function () {
-    if (this.get('isStepDisabled').findProperty('step', 6).get('value') === true) {
-      return;
-    } else {
-      App.router.send('gotoStep6');
-    }
-
-  },
-
-  gotoStep7: function () {
-    if (this.get('isStepDisabled').findProperty('step', 7).get('value') === true) {
-      return;
-    } else {
-      App.router.send('gotoStep7');
-    }
-  },
-
-  gotoStep8: function () {
-    if (this.get('isStepDisabled').findProperty('step', 8).get('value') === true) {
-      return;
-    } else {
-      App.router.send('gotoStep8');
-    }
-  },
-
-  gotoStep9: function () {
-    if (this.get('isStepDisabled').findProperty('step', 9).get('value') === true) {
-      return;
-    } else {
-      App.router.send('gotoStep9');
-    }
-  },
-
-  gotoStep10: function () {
-    if (this.get('isStepDisabled').findProperty('step', 10).get('value') === true) {
-      return;
-    } else {
-      App.router.send('gotoStep10');
-    }
-  },
 
   content: Em.Object.create({
     cluster: null,
@@ -691,10 +498,11 @@ App.InstallerController = Em.Controller.extend({
    * Generate serviceComponents as pr the stack definition  and save it to localdata
    * called form stepController step4WizardController
    */
-  loadComponents: function (stepController) {
+  loadServiceComponents : function (stepController, displayOrderConfig, apiUrl) {
     var self = this;
     var method = 'GET';
-    var url = (App.testMode) ? '/data/wizard/stack/hdp/version0.1.json' : App.apiPrefix + '/stacks/HDP/version/1.2.0'; // TODO: get this url from the stack selected by the user in Install Options page
+    var testUrl = '/data/wizard/stack/hdp/version/1.2.0.json';
+    var url = (App.testMode) ? testUrl : App.apiPrefix + apiUrl;
     $.ajax({
       type: method,
       url: url,
@@ -703,14 +511,45 @@ App.InstallerController = Em.Controller.extend({
       timeout: App.timeout,
       success: function (data) {
         var jsonData = jQuery.parseJSON(data);
-        console.log("TRACE: STep5 -> In success function for the getServiceComponents call");
-        console.log("TRACE: STep5 -> value of the url is: " + url);
-        var serviceComponents = [];
-        jsonData.services.forEach(function (_service) {
+        console.log("TRACE: getService ajax call  -> In success function for the getServiceComponents call");
+        console.log("TRACE: jsonData.services : " + jsonData.services);
 
-        }, this);
-        stepController.set('components', jsonData.services);
+        // Creating Model
+        var Service = Ember.Object.extend({
+          serviceName: null,
+          displayName: null,
+          isDisabled: true,
+          isSelected: true,
+          description:null,
+          version:null
+        });
+
+        var data = [];
+
+        // loop through all the service components
+        for (var i = 0 ; i < displayOrderConfig.length ; i++) {
+          var entry = jsonData.services.filterProperty("name",displayOrderConfig[i].serviceName)[0];
+
+          // dont show the service whose isHidden is true
+          if ( displayOrderConfig[i].isHidden ) {
+            continue;
+          }
+
+          var myService = Service.create({
+            serviceName: entry.name,
+            displayName: displayOrderConfig[i].displayName,
+            isDisabled: i === 0 ,
+            isSelected: true,
+            description: entry.comment,
+            version: entry.version
+          });
+
+          data.push(myService);
+        }
+
+        stepController.set('serviceComponents', data);
         console.log('TRACE: service components: ' + JSON.stringify(stepController.get('components')));
+
       },
 
       error: function (request, ajaxOptions, error) {

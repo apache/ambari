@@ -58,7 +58,10 @@ App.MainDashboardServiceHbaseView = App.MainDashboardServiceView.extend({
     return App.Component.find().findProperty('componentName', 'HBASE_REGIONSERVER');
   }.property('components'),
 
+  isCollapsed: false,
+
   toggleInfoView: function() {
     $('#hbase-info').toggle('blind', 200);
+    this.set('isCollapsed', !this.isCollapsed);
   }
 });

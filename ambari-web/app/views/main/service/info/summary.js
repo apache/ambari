@@ -28,7 +28,8 @@ App.MainServiceInfoSummaryView = Em.View.extend({
     hbase:false,
     zookeeper:false,
     oozie:false,
-    hive:false
+    hive:false,
+    ganglia:false
   },
 
   data:{
@@ -38,6 +39,14 @@ App.MainServiceInfoSummaryView = Em.View.extend({
       "user":"hive"
     }
   },
+  gangliaServer:function(){
+    var tmp=this.get('controller.content');
+    if(tmp.get("id") == "GANGLIA"){
+      return tmp.get("components").objectAt(0).get("host").get("id");
+    }else{
+      return "";
+    }
+  }.property('controller.content'),
   service:function () {
     var svc = this.get('controller.content');
     var svcName = svc.get('serviceName');

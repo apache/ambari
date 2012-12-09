@@ -89,7 +89,7 @@ App.UpdateController = Em.Controller.extend({
   updateServiceMetric:function(callback){
     var self = this;
     self.set('isUpdated', false);
-    var servicesUrl = this.getUrl('/data/dashboard/services.json', '/services?ServiceInfo/service_name!=MISCELLANEOUS&ServiceInfo/service_name!=DASHBOARD&fields=*,components/host_components/*');
+    var servicesUrl = this.getUrl('/data/dashboard/services.json', '/services?ServiceInfo/service_name!=MISCELLANEOUS&ServiceInfo/service_name!=DASHBOARD&fields=*,components/host_components/*,components/ServiceComponentInfo');
     var callback = callback || function(jqXHR, textStatus){
       self.set('isUpdated', true);
     };

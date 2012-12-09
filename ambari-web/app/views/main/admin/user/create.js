@@ -25,6 +25,7 @@ App.MainAdminUserCreateView = Em.View.extend({
     var parent_controller=this.get("controller").controllers.mainAdminUserController;
     var form = this.get("userForm");
     if(form.isValid()) {
+      form.getField("userName").set('value', form.getValues().userName.toLowerCase());
       if(form.getValues().admin === "" || form.getValues().admin == true) {
         form.getField("roles").set("value","admin,user");
         form.getField("admin").set("value","true");

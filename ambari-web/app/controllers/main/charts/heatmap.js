@@ -32,7 +32,7 @@ App.MainChartsHeatmapController = Em.Controller.extend({
    * @param event
    */
   routeHostDetail: function(event){
-    App.router.transitionTo('main.hostDetails.summary', event.context)
+    App.router.transitionTo('main.hosts.hostDetails.summary', event.context)
   },
   showHeatMapMetric: function (event) {
     var metricItem = event.context;

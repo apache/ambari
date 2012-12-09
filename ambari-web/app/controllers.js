@@ -21,6 +21,7 @@
 
 require('controllers/application');
 require('controllers/login_controller');
+require('controllers/wizard');
 require('controllers/installer');
 require('controllers/global/background_operations_controller');
 require('controllers/main');

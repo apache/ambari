@@ -182,9 +182,18 @@ module.exports = {
         return y / 1000 + 's'
       },
       formatter:function (series, x, y, formattedX, formattedY, d) {
+        var bytesFormatter = function(y) {
+          if (y >= 1125899906842624)  { return Math.floor(10 * y / 1125899906842624)/10 + " PB" }
+          else if (y >= 1099511627776){ return Math.floor(10 * y / 1099511627776)/10 + " TB" }
+          else if (y >= 1073741824)   { return Math.floor(10 * y / 1073741824)/10 + " GB" }
+          else if (y >= 1048576)      { return Math.floor(10 * y / 1048576)/10 + " MB" }
+          else if (y >= 1024)         { return Math.floor(10 * y / 1024)/10 + " KB" }
+          else                        { return y + " B"}
+        };
         var swatch = '<span class="detail_swatch" style="background-color: ' + series.color + '"></span>';
         return swatch + (d.label? d.label: d.name) +
-          '<br>Run-time: ' + formattedY + '<br>Wait-time: ' + formattedX;
+          '<br>Run-time: ' + formattedY + '<br>Wait-time: ' + formattedX +
+          '<br>I/O: ' + bytesFormatter(d.IO) + '<br>Status: ' + d.status;
       }
 
     });

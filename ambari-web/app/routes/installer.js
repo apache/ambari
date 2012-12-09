@@ -135,8 +135,13 @@ module.exports = Em.Route.extend({
       var wizardStep3Controller = router.get('wizardStep3Controller');
       installerController.saveConfirmedHosts(wizardStep3Controller);
 
+
       App.db.setBootStatus(true);
-      App.db.setService(require('data/mock/services'));
+      var displayOrderConfig = require('data/services');
+      var apiUrl = '/stacks/HDP/version/1.2.0';
+      router.get('installerController').loadServiceComponents(router.get('wizardStep4Controller'), displayOrderConfig, apiUrl);
+      var apiService = router.get('wizardStep4Controller').get('serviceComponents');
+      App.db.setService(apiService);
       router.transitionTo('step4');
     },
     /**
@@ -283,6 +288,9 @@ module.exports = Em.Route.extend({
         }
         wizardStep9Controller.navigateStep();
       }
+    },
+    unroutePath: function() {
+      return false;
     },
     next: function (router) {
       var installerController = router.get('installerController');

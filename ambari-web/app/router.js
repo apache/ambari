@@ -131,7 +131,8 @@ App.Router = Em.Router.extend({
 
   login: function (postLogin) {
     var controller = this.get('loginController');
-    var loginName = controller.get('loginName');
+    var loginName = controller.get('loginName').toLowerCase();
+    controller.set('loginName', loginName);
     var hash = window.btoa(loginName + ":" + controller.get('password'));
     var router = this;
     $.ajax({

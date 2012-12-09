@@ -40,6 +40,7 @@ Em.I18n.translations = {
   'topnav.help.href':'http://incubator.apache.org/ambari/install.html',
 
   'installer.header':'Cluster Install Wizard',
+  'installer.navigation.warning.header':'Navigation Warning',
   'installer.step1.header':'Welcome',
   'installer.step1.body.header':'Welcome to Apache Ambari!',
   'installer.step1.body':'Ambari makes it easy to install, manage, and monitor Hadoop clusters.<br>' +
@@ -93,8 +94,6 @@ Em.I18n.translations = {
   'installer.step3.hosts.remove.popup.body':'Are you sure you want to remove the selected host(s)?',
   'installer.step3.hosts.retry.popup.header':'Retry Host Discovery',
   'installer.step3.hosts.retry.popup.body':'Are you sure you want to retry discovery of the selected host(s)?',
-  'installer.step3.hostRegister.popup.header':'Error in Host Registration',
-  'installer.step3.hostRegister.popup.body':'All/Some hosts bootstrapped but unable to register with server',
   'installer.step3.hostInformation.popup.header':'Error in retrieving host Information',
   'installer.step3.hostInformation.popup.body' : 'All bootstrapped hosts registered but unable to retrieve cpu and memory related information',
   'installer.step4.header':'Choose Services',

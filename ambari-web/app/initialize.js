@@ -30,6 +30,7 @@ App.componentsUpdateInterval = 6000;
 App.contentUpdateInterval = 15000;
 
 require('messages');
+require('utils/base64');
 require('utils/data_table');
 require('utils/db');
 require('utils/helper');

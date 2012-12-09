@@ -674,6 +674,12 @@ a:focus {
 
 /*start chart/style graphs*/
 .chart-container {
+  cursor: pointer;
+  cursor:-moz-zoom-in;
+  cursor:-webkit-zoom-in;
+  &.chart-container-popup {
+    cursor: auto;
+  }
   position: relative;
   margin: 20px 15px 0px 15px;
 
@@ -706,6 +712,14 @@ a:focus {
   }
   .rickshaw_legend {
     background-color: #999999 !important;
+  }
+  .rickshaw_graph {
+    .x_tick{
+      .title {
+        bottom: -6px;
+        opacity: 0.75;
+      }
+    }
   }
   .chart-overlay {
     position: absolute;
@@ -773,6 +787,9 @@ a:focus {
   }
   .add-service-button {
     margin: 20px 20px 10px;
+  }
+  .operations-count{
+    background: #953B39;
   }
 }
 
@@ -1534,6 +1551,11 @@ ul.filter {
   h4{
     color: #777777;
     margin-top: 5px;
+  }
+  .heatmap-host {
+    display: block;
+    width: 100%;
+    height: 100%;
   }
 }
 

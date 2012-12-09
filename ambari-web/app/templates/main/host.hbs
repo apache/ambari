@@ -31,7 +31,7 @@
     <thead>
     <tr>
       <th>Name</th>
-      <th>Rack</th>
+      <th>Ip</th>
       <th>CPU</th>
       <th>RAM</th>
       <th>Disk Usage</th>
@@ -39,7 +39,7 @@
       <th>Components</th>
     </tr>
       <th class="notActive"><div class="view-wrapper">{{view view.nameFilterView viewName="nameFilterViewInstance"}}</div> <a href="#" {{action "clearFilterButtonClick" target="view"}} id="view_nameFilterViewInstance" class="ui-icon ui-icon-circle-close ui-name"></a></th>
-      <th class="notActive"><div class="view-wrapper">{{view view.rackFilterView viewName="rackFilterViewInstance"}}</div> <a href="#" {{action "clearFilterButtonClick" target="view"}} id="view_rackFilterViewInstance" class="ui-icon ui-icon-circle-close ui-rack"></a></th>
+      <th class="notActive"><div class="view-wrapper">{{view view.rackFilterView viewName="ipFilterViewInstance"}}</div> <a href="#" {{action "clearFilterButtonClick" target="view"}} id="view_ipFilterViewInstance" class="ui-icon ui-icon-circle-close ui-rack"></a></th>
       <th class="notActive"><div class="view-wrapper">{{view view.cpuFilterView viewName="cpuFilterViewInstance"}}</div> <a href="#" {{action "clearFilterButtonClick" target="view"}} id="view_cpuFilterViewInstance" class="ui-icon ui-icon-circle-close ui-cpu"></a></th>
       <th class="notActive"><div class="view-wrapper">{{view view.ramFilterView viewName="ramFilterViewInstance"}}</div> <a href="#" {{action "clearFilterButtonClick" target="view"}} id="view_ramFilterViewInstance" class="ui-icon ui-icon-circle-close ui-ram"></a></th>
       <th></th>
@@ -57,7 +57,7 @@
         <span {{bindAttr class="host.healthClass"}}></span>
         <a href="#" {{action "showDetails" host}}>{{unbound host.publicHostName}}</a>
       </td>
-      <td>{{host.rack}}</td>
+      <td>{{host.ip}}</td>
       <td>{{host.cpu}}</td>
       <td>{{host.memoryFormatted}}</td>
       <td>

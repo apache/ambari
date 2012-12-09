@@ -23,7 +23,8 @@ App.WizardStep3Controller = Em.Controller.extend({
   hosts: [],
   content: [],
   bootHosts: [],
-  registrationAttempt: 7,
+  maxRegistrationAttempts: 20,
+  registrationAttempts: null,
   isSubmitDisabled: true,
   categories: ['All Hosts', 'Success', 'Error'],
   category: 'All Hosts',
@@ -49,13 +50,15 @@ App.WizardStep3Controller = Em.Controller.extend({
       }
     } else {
       this.set('bootHosts', this.get('hosts'));
-      this.isHostsRegistered(this.getHostInfo);
+      this.isHostsRegistered();
     }
   },
 
   clearStep: function () {
     this.hosts.clear();
     this.bootHosts.clear();
+    this.set('isSubmitDisabled', true);
+    this.set('registrationAttempts', 1);
   },
 
   loadStep: function () {
@@ -113,7 +116,7 @@ App.WizardStep3Controller = Em.Controller.extend({
   /* Returns the current set of visible hosts on view (All, Succeeded, Failed) */
   visibleHosts: function () {
     if (this.get('category') === 'Success') {
-      return (this.hosts.filterProperty('bootStatus', 'DONE'));
+      return (this.hosts.filterProperty('bootStatus', 'REGISTERED'));
     } else if (this.get('category') === 'Error') {
       return (this.hosts.filterProperty('bootStatus', 'FAILED'));
     } else { // if (this.get('category') === 'All Hosts')
@@ -166,7 +169,7 @@ App.WizardStep3Controller = Em.Controller.extend({
         if (self.get('content.hosts.manualInstall') !== true) {
           self.doBootstrap();
         } else {
-          self.isHostsRegistered(self.getHostInfo);
+          self.isHostsRegistered();
         }
         this.hide();
       },
@@ -241,10 +244,10 @@ App.WizardStep3Controller = Em.Controller.extend({
   },
 
   startRegistration: function () {
-    this.isHostsRegistered(this.getHostInfo);
+    this.isHostsRegistered();
   },
 
-  isHostsRegistered: function (callback) {
+  isHostsRegistered: function () {
     var self = this;
     var hosts = this.get('bootHosts');
     var url = App.testMode ? '/data/wizard/bootstrap/single_host_registration.json' : App.apiPrefix + '/hosts';
@@ -254,6 +257,7 @@ App.WizardStep3Controller = Em.Controller.extend({
       url: url,
       timeout: App.timeout,
       success: function (data) {
+        console.log('registration attempt #' + self.get('registrationAttempts'));
         var jsonData;
         if (App.testMode === true) {
           jsonData = data;
@@ -264,31 +268,38 @@ App.WizardStep3Controller = Em.Controller.extend({
           console.log("Error: jsonData is null");
           return;
         }
-        if (jsonData.items.length === 0) {
-          if (self.get('registrationAttempt') !== 0) {
-            count--;
-            window.setTimeout(function () {
-              self.isHostsRegistered(callback);
-            }, 3000);
-            return;
-          } else {
-            self.registerErrPopup(Em.I18n.t('installer.step3.hostRegister.popup.header'), Em.I18n.t('installer.step3.hostRegister.popup.body'));
-            return;
-          }
-        }
-        var flag = true;
+
+        // keep polling until all hosts are registered
+        var allRegistered = true;
         hosts.forEach(function (_host) {
           if (jsonData.items.someProperty('Hosts.host_name', _host.name)) {
-            _host.set('bootStatus', 'DONE');
-            _host.set('bootLog', 'Success');
+            if (_host.get('bootStatus') != 'REGISTERED') {
+              _host.set('bootStatus', 'REGISTERED');
+              _host.set('bootLog', (_host.get('bootLog') != null ? _host.get('bootLog') : '') + '\nRegistration with the server succeeded.');
+            }
           } else {
-            flag = false;
+            allRegistered = false;
+            if (_host.get('bootStatus') != 'FAILED' && _host.get('bootStatus') != 'REGISTERING') {
+              _host.set('bootStatus', 'REGISTERING');
+              currentBootLog = _host.get('bootLog') != null ? _host.get('bootLog') : '';
+              _host.set('bootLog', (_host.get('bootLog') != null ? _host.get('bootLog') : '') + '\nRegistering with the server...');
+            }
           }
         }, this);
-        if (flag) {
-          callback.apply(self);
+        if (allRegistered) {
+          self.getHostInfo();
+        } else if (self.get('maxRegistrationAttempts') - self.get('registrationAttempts') >= 0) {
+          self.set('registrationAttempts', self.get('registrationAttempts') + 1);
+          window.setTimeout(function () {
+            self.isHostsRegistered();
+          }, 3000);
         } else {
-          self.registerErrPopup(Em.I18n.t('installer.step3.hostRegister.popup.header'), Em.I18n.t('installer.step3.hostRegister.popup.body'));
+          // maxed out on registration attempts.  mark all REGISTERING hosts to FAILED
+          hosts.filterProperty('bootStatus', 'REGISTERING').forEach(function (_host) {
+            _host.set('bootStatus', 'FAILED');
+            _host.set('bootLog', (_host.get('bootLog') != null ? _host.get('bootLog') : '') + '\nRegistration with the server failed.');
+          });
+          self.getHostInfo();
         }
       },
       error: function () {
@@ -315,8 +326,6 @@ App.WizardStep3Controller = Em.Controller.extend({
   /**
    * Get disk info and cpu count of booted hosts from server
    */
-
-
   getHostInfo: function () {
     var self = this;
     var kbPerGb = 1024;
@@ -336,16 +345,16 @@ App.WizardStep3Controller = Em.Controller.extend({
           jsonData = jQuery.parseJSON(data);
         }
         hosts.forEach(function (_host) {
-          if (jsonData.items.someProperty('Hosts.host_name', _host.name)) {
-            var host = jsonData.items.findProperty('Hosts.host_name', _host.name);
+          var host = jsonData.items.findProperty('Hosts.host_name', _host.name);
+          if (host) {
             _host.cpu = host.Hosts.cpu_count;
             _host.memory = ((parseInt(host.Hosts.total_mem))).toFixed(2);
             console.log("The value of memory is: " + _host.memory);
           }
-        }, this);
+        });
         self.set('bootHosts', hosts);
         console.log("The value of hosts: " + JSON.stringify(hosts));
-        self.stopRegistrataion();
+        self.stopRegistration();
       },
 
       error: function () {
@@ -356,7 +365,7 @@ App.WizardStep3Controller = Em.Controller.extend({
     });
   },
 
-  stopRegistrataion: function () {
+  stopRegistration: function () {
     this.set('isSubmitDisabled', false);
   },
 

@@ -21,6 +21,7 @@ var App = require('app');
 
 App.WizardStep1View = Em.View.extend({
 
+  tagName: "form",
   templateName: require('templates/wizard/step1'),
 
   didInsertElement: function () {
@@ -31,6 +32,10 @@ App.WizardStep1View = Em.View.extend({
 
   onError: function () {
     return this.get('controller.clusterNameError') !== '';
-  }.property('controller.clusterNameError')
+  }.property('controller.clusterNameError'),
+
+  submit: function(event) {
+    App.router.wizardStep1Controller.submit();
+  }
 
 });
