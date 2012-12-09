@@ -74,6 +74,13 @@ module.exports = [
     "filename": "core-site.xml"
   },
   {
+    "name": "hadoop.proxyuser.<foreignKey[0]>.hosts",
+    "templateName": ["oozieserver_host"],
+    "foreignKey": ["oozie_user"],
+    "value": "<templateName[0]>",
+    "filename": "core-site.xml"
+  },
+  {
     "name": "dfs.name.dir",
     "templateName": ["dfs_name_dir"],
     "foreignKey": null,
@@ -277,17 +284,16 @@ module.exports = [
     "filename": "mapred-site.xml"
   },
   {
-    "name": "mapred.local.dir",
-    "templateName": ["mapred_local_dir"],
-    "foreignKey": null,
-    "value": "<templateName[0]>",
-    "filename": "mapred-site.xml"
-  },
-  {
     "name": "oozie.service.StoreService.jdbc.url",
     "templateName": ["oozie_data_dir"],
     "foreignKey": ["oozie.db.schema.name"],
     "value": "<templateName[0]>\/<foreignKey[0]>",
+    "filename": "oozie-site.xml"
+  },
+  {
+    "name": "oozie.base.url",
+    "templateName": ["oozieserver_host"],
+    "value": "http://<templateName[0]>:11000/oozie",
     "filename": "oozie-site.xml"
   },
   {
@@ -326,8 +332,8 @@ module.exports = [
     "filename": "mapred-site.xml"
   },
   {
-    "name": "mapred.tasktracker.reduce.tasks.maximum",
-    "templateName": ["mapred_red_tasks_max"],
+    "name": "mapred.tasktracker.red.tasks.maximum",
+    "templateName": ["mapred_map_tasks_max"],
     "foreignKey": null,
     "value": "<templateName[0]>",
     "filename": "mapred-site.xml"
@@ -432,14 +438,14 @@ module.exports = [
   },
   {
     "name": "mapred.job.tracker",
-    "templateName": ["jobtracker.host"],
+    "templateName": ["jobtracker_host"],
     "foreignKey": null,
     "value": "<templateName[0]>:50300",
     "filename": "mapred-site.xml"
   },
   {
     "name": "mapred.job.tracker.http.addres",
-    "templateName": ["jobtracker.host"],
+    "templateName": ["jobtracker_host"],
     "foreignKey": null,
     "value": "<templateName[0]>:50300",
     "filename": "mapred-site.xml"
@@ -495,7 +501,7 @@ module.exports = [
   },
   {
     "name": "mapreduce.history.server.http.address",
-    "templateName": ["jobtracker.host"],
+    "templateName": ["jobtracker_host"],
     "foreignKey": null,
     "value": "<templateName[0]>:51111",
     "filename": "mapred-site.xml"

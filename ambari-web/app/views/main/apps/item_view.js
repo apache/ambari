@@ -34,9 +34,6 @@ App.MainAppsItemView = Em.View.extend({
       content:'App.MainAppsItemBarView'
     })
   ],
-  content:function(){
-    return App.router.get('mainAppsItemController.content');
-  }.property('App.router.mainAppsItemController.content'),
   activeTab:null,
   switchTab:function(event){
     var tabs = this.get('menuTabs');
@@ -54,18 +51,19 @@ App.MainAppsItemView = Em.View.extend({
     var tabs = this.get('menuTabs');
     tabs[0].set('active', 'active');
     tabs[1].set('active', '');
+    this.set('activeTab', tabs[0]);
   },
-  containerView:Em.ContainerView.extend({
-    jobs:function(){
-      return this.get('parentView.content').get('jobs');
-    }.property('parentView.content'),
+  containerView: Em.ContainerView.extend({
     onchange:function(){
-      var view = this.get('parentView.activeTab.content').split('.')[1];
-      view = App[view].create();
 
-      if(this.get('childViews')){
+      if(this.get('childViews').length){
         this.get('childViews').get('firstObject').destroy();
       }
+
+      var view = this.get('parentView.activeTab.content').split('.')[1];
+      view = App[view].create({
+        controllerBinding: 'App.router.mainAppsItemController'
+      });
       this.get('childViews').pushObject(view);
     }.observes('parentView.activeTab')
   })

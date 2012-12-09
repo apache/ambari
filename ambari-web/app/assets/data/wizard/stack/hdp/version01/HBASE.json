@@ -1,0 +1,124 @@
+{
+  "name": "HBASE",
+  "version": "1.0",
+  "user": "mapred",
+  "comment": "This is comment for HBASE service",
+  "properties": [
+    {
+      "name": "hbase.regionserver.msginterval",
+      "value": "1000",
+      "description": "Interval between messages from the RegionServer to HMaster\n    in milliseconds.  Default is 15. Set this value low if you want unit\n    tests to be responsive.\n    ",
+      "filename": "hbase-site.xml"
+    },
+    {
+      "name": "hbase.client.pause",
+      "value": "5000",
+      "description": "General client pause value.  Used mostly as value to wait\n    before running a retry of a failed get, region lookup, etc.",
+      "filename": "hbase-site.xml"
+    },
+    {
+      "name": "hbase.master.meta.thread.rescanfrequency",
+      "value": "10000",
+      "description": "How long the HMaster sleeps (in milliseconds) between scans of\n    the root and meta tables.\n    ",
+      "filename": "hbase-site.xml"
+    },
+    {
+      "name": "hbase.server.thread.wakefrequency",
+      "value": "1000",
+      "description": "Time to sleep in between searches for work (in milliseconds).\n    Used as sleep interval by service threads such as META scanner and log roller.\n    ",
+      "filename": "hbase-site.xml"
+    },
+    {
+      "name": "hbase.regionserver.handler.count",
+      "value": "5",
+      "description": "Count of RPC Server instances spun up on RegionServers\n    Same property is used by the HMaster for count of master handlers.\n    Default is 10.\n    ",
+      "filename": "hbase-site.xml"
+    },
+    {
+      "name": "hbase.master.lease.period",
+      "value": "6000",
+      "description": "Length of time the master will wait before timing out a region\n    server lease. Since region servers report in every second (see above), this\n    value has been reduced so that the master will notice a dead region server\n    sooner. The default is 30 seconds.\n    ",
+      "filename": "hbase-site.xml"
+    },
+    {
+      "name": "hbase.master.info.port",
+      "value": "-1",
+      "description": "The port for the hbase master web UI\n    Set to -1 if you do not want the info server to run.\n    ",
+      "filename": "hbase-site.xml"
+    },
+    {
+      "name": "hbase.regionserver.info.port",
+      "value": "-1",
+      "description": "The port for the hbase regionserver web UI\n    Set to -1 if you do not want the info server to run.\n    ",
+      "filename": "hbase-site.xml"
+    },
+    {
+      "name": "hbase.regionserver.info.port.auto",
+      "value": "true",
+      "description": "Info server auto port bind. Enables automatic port\n    search if hbase.regionserver.info.port is already in use.\n    Enabled for testing to run multiple tests on one machine.\n    ",
+      "filename": "hbase-site.xml"
+    },
+    {
+      "name": "hbase.master.lease.thread.wakefrequency",
+      "value": "3000",
+      "description": "The interval between checks for expired region server leases.\n    This value has been reduced due to the other reduced values above so that\n    the master will notice a dead region server sooner. The default is 15 seconds.\n    ",
+      "filename": "hbase-site.xml"
+    },
+    {
+      "name": "hbase.regionserver.optionalcacheflushinterval",
+      "value": "10000",
+      "description": "\n    Amount of time to wait since the last time a region was flushed before\n    invoking an optional cache flush. Default 60,000.\n    ",
+      "filename": "hbase-site.xml"
+    },
+    {
+      "name": "hbase.regionserver.safemode",
+      "value": "false",
+      "description": "\n    Turn on/off safe mode in region server. Always on for production, always off\n    for tests.\n    ",
+      "filename": "hbase-site.xml"
+    },
+    {
+      "name": "hbase.hregion.max.filesize",
+      "value": "67108864",
+      "description": "\n    Maximum desired file size for an HRegion.  If filesize exceeds\n    value + (value / 2), the HRegion is split in two.  Default: 256M.\n\n    Keep the maximum filesize small so we split more often in tests.\n    ",
+      "filename": "hbase-site.xml"
+    },
+    {
+      "name": "hadoop.log.dir",
+      "value": "${user.dir}/../logs",
+      "description": null,
+      "filename": "hbase-site.xml"
+    },
+    {
+      "name": "hbase.zookeeper.property.clientPort",
+      "value": "21818",
+      "description": "Property from ZooKeeper's config zoo.cfg.\n    The port at which the clients will connect.\n    ",
+      "filename": "hbase-site.xml"
+    }
+  ],
+  "components": [
+    {
+      "name": "HBASE_MASTER",
+      "category": "MASTER",
+      "client": false,
+      "master": true
+    },
+    {
+      "name": "HBASE_REGIONSERVER",
+      "category": "SLAVE",
+      "client": false,
+      "master": false
+    },
+    {
+      "name": "HBASE_CLIENT",
+      "category": "CLIENT",
+      "client": true,
+      "master": false
+    }
+  ],
+  "clientComponent": {
+    "name": "HBASE_CLIENT",
+    "category": "CLIENT",
+    "client": true,
+    "master": false
+  }
+}

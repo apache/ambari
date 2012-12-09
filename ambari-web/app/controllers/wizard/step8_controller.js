@@ -821,6 +821,9 @@ App.WizardStep8Controller = Em.Controller.extend({
       // TODO
       this.createConfigSite(this.createHbaseSiteObj('HBASE'));
     }
+    if (selectedServices.someProperty('serviceName', 'OOZIE')) {
+      this.createConfigSite(this.createOozieSiteObj('OOZIE'));
+    }
     if (selectedServices.someProperty('serviceName', 'HIVE')) {
       // TODO
       // this.createConfigSite(this.createHiveSiteObj('HIVE'));
@@ -860,8 +863,9 @@ App.WizardStep8Controller = Em.Controller.extend({
     var globalSiteProperties = {};
     this.get('globals').forEach(function (_globalSiteObj) {
       // do not pass any globals whose name ends with _host or _hosts
-      if (!_globalSiteObj.name.match(/_hosts?$/)) {
-        if (_globalSiteObj.name.match(/_heapsize|_newsize|_maxnewsize$/)) {
+      if (!/_hosts?$/.test(_globalSiteObj.name)) {
+        // append "m" to JVM memory options
+        if (/_heapsize|_newsize|_maxnewsize$/.test(_globalSiteObj.name)) {
           _globalSiteObj.value += "m";
         }
         globalSiteProperties[_globalSiteObj.name] = _globalSiteObj.value;
@@ -875,8 +879,12 @@ App.WizardStep8Controller = Em.Controller.extend({
   createCoreSiteObj: function () {
     var coreSiteObj = this.get('configs').filterProperty('filename', 'core-site.xml');
     var coreSiteProperties = {};
+    // hadoop.proxyuser.oozie.hosts needs to be skipped if oozie is not selected
+    var isOozieSelected = this.get('selectedServices').someProperty('serviceName', 'OOZIE');
     coreSiteObj.forEach(function (_coreSiteObj) {
-      coreSiteProperties[_coreSiteObj.name] = _coreSiteObj.value;
+      if (isOozieSelected || _coreSiteObj.name != 'hadoop.proxyuser.oozie.hosts') {
+        coreSiteProperties[_coreSiteObj.name] = _coreSiteObj.value;
+      }
       console.log("STEP*: name of the property is: " + _coreSiteObj.name);
       console.log("STEP8: value of the property is: " + _coreSiteObj.value);
     }, this);
@@ -900,12 +908,6 @@ App.WizardStep8Controller = Em.Controller.extend({
     configs.forEach(function (_configProperty) {
       mrProperties[_configProperty.name] = _configProperty.value;
     }, this);
-    // TODO: Using hardcoded params until meta data API becomes available
-    mrProperties = {
-      "mapred.job.tracker": "localhost:50300",
-      "mapreduce.history.server.embedded": "false",
-      "mapreduce.history.server.http.address": "localhost:51111"
-    };
     return {type: 'mapred-site', tag: 'version1', properties: mrProperties};
   },
 
@@ -916,6 +918,15 @@ App.WizardStep8Controller = Em.Controller.extend({
       hbaseProperties[_configProperty.name] = _configProperty.value;
     }, this);
     return {type: 'hbase-site', tag: 'version1', properties: hbaseProperties};
+  },
+
+  createOozieSiteObj: function (serviceName) {
+    var configs = this.get('configs').filterProperty('filename', 'oozie-site.xml');
+    var oozieProperties = {};
+    configs.forEach(function (_configProperty) {
+      oozieProperties[_configProperty.name] = _configProperty.value;
+    }, this);
+    return {type: 'oozie-site', tag: 'version1', properties: oozieProperties};
   },
 
   createHiveSiteObj: function (serviceName) {
@@ -971,8 +982,10 @@ App.WizardStep8Controller = Em.Controller.extend({
         return {config: {'global': 'version1', 'core-site': 'version1', 'hdfs-site': 'version1'}};
       case 'MAPREDUCE':
         return {config: {'global': 'version1', 'core-site': 'version1', 'mapred-site': 'version1'}};
-      case 'HBASE' :
+      case 'HBASE':
         return {config: {'global': 'version1', 'core-site': 'version1', 'hbase-site': 'version1'}};
+      case 'OOZIE':
+        return {config: {'global': 'version1', 'core-site': 'version1', 'oozie-site': 'version1'}};
     }
   }
 

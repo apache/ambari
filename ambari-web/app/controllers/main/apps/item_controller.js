@@ -20,5 +20,32 @@ var App = require('app');
 
 App.MainAppsItemController = Em.Controller.extend({
   name:'mainAppsItemController',
-  content:null
+  /**
+   * Was set outside in App.MainAppsView.
+   * It's instance of App.Run model
+   */
+  content: null,
+
+  lastJobId : null,
+  gettingJobs:function(){
+    var currentId = this.get('content.id');
+    if(currentId == this.get('lastJobId')){
+      return;
+    }
+    if(this.get('content.loadAllJobs')){
+      return;
+    }
+    this.set('lastJobId', currentId);
+    var self = this;
+
+    var url = App.testMode ? '/data/apps/jobs.json' :
+      "/api/jobhistory/job?workflowId=" + currentId;
+
+    App.HttpClient.get(url, App.jobsMapper,{
+      complete:function(jqXHR, textStatus) {
+        self.set('content.loadAllJobs', true);
+      }
+    });
+  }.observes('content')
+
 })

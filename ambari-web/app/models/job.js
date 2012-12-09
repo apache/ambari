@@ -22,9 +22,9 @@ var date = require('utils/date');
 var misc = require('utils/misc');
 
 App.Job = DS.Model.extend({
-  jobId:DS.attr('string'),
-  workflow:DS.belongsTo('App.Run'),
-  workflowId:DS.attr('string'),
+
+  run: DS.belongsTo('App.Run'),
+
   jobName:DS.attr('string'),
   workflowEntityName:DS.attr('string'),
   userName:DS.attr('string'),
@@ -44,18 +44,15 @@ App.Job = DS.Model.extend({
   failedReduces:DS.attr('number'),
   mapsRuntime:DS.attr('number'),
   reducesRuntime:DS.attr('number'),
-  mapCounters:DS.attr('number'),
-  reduceCounters:DS.attr('number'),
   jobCounters:DS.attr('number'),
   input:DS.attr('number'),
   output:DS.attr('number'),
   elapsedTime:DS.attr('number'),
   duration: function() {
-    //return date.dateFormatInterval(parseInt((parseInt(this.get('finishTime')) - parseInt(this.get('launchTime')))/1000));
     return date.dateFormatInterval(parseInt(this.get('elapsedTime') / 1000));
-  }.property('launchTime', 'finishTime'),
-  jobTimeline:DS.attr('string'),
-  jobTaskview:DS.attr('string'),
+  }.property('elapsedTime'),
+  jobTimeLine:DS.attr('string'),
+  jobTaskView:DS.attr('string'),
   /**
    *  Sum of input bandwidth for all jobs with appropriate measure
    */
@@ -69,7 +66,16 @@ App.Job = DS.Model.extend({
   outputFormatted: function () {
     var output = this.get('output');
     return misc.formatBandwidth(output);
-  }.property('output')
+  }.property('output'),
+
+  mapsProgress: function(){
+    return Math.round((this.get('finishedMaps') / this.get('maps'))*100) || 0;
+  }.property('finishedMaps', 'maps'),
+
+  reducesProgress: function(){
+    return Math.round((this.get('finishedReduces') / this.get('reduces'))*100) || 0;
+  }.property('finishedReduces', 'reduces')
+
 });
 
 App.Job.FIXTURES = [

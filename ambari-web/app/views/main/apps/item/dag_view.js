@@ -22,13 +22,9 @@ App.MainAppsItemDagView = Em.View.extend({
   templateName: require('templates/main/apps/item/dag'),
   elementId : 'jobs',
   content:function(){
-    var content = this.get('parentView.jobs');
-    content.forEach(function(job){
-      job.set('mapsProgress', Math.round((job.get('finishedMaps') / job.get('maps'))*100));
-      job.set('reducesProgress', Math.round((job.get('finishedReduces') / job.get('reduces'))*100));
-    });
-    return content;
-  }.property('parentView.jobs'),
+    return this.get('controller.content.jobs');
+  }.property('controller.content.jobs'),
+
   classNames:['table','dataTable'],
   /**
    * convert content to special jobs object for DagViewer
@@ -47,7 +43,30 @@ App.MainAppsItemDagView = Em.View.extend({
     });
     return result;
   }.property('content'),
-  didInsertElement:function (){;
+
+  loaded : false,
+
+  onLoad:function (){
+    if(!this.get('controller.content.loadAllJobs') || this.get('loaded')){
+      return;
+    }
+
+    this.set('loaded', true);
+
+    var self = this;
+
+    Ember.run.next(function(){
+      self.draw();
+    });
+
+  }.observes('controller.content.loadAllJobs'),
+
+  didInsertElement: function(){
+    this.onLoad();
+  },
+
+  draw: function(){
+
     var innerTable = this.$('#innerTable').dataTable({
       "sDom": 'rt<"page-bar"lip><"clear">',
       "oLanguage": {
@@ -73,10 +92,10 @@ App.MainAppsItemDagView = Em.View.extend({
         null
       ]
     });
-    var dagSchema = this.get('parentView.parentView.content').get('workflowContext');
+    var dagSchema = this.get('controller.content.workflowContext');
     var jobs = this.get('jobs');
     var graph = new DagViewer(false, 'dag_viewer')
-        .setPhysicalParametrs(800, 300, -800, 0.01)
+        .setPhysicalParametrs(this.$().width(), 300, -800, 0.01)
         .setData(dagSchema, jobs)
         .drawDag(10, 20, 100);
   }

@@ -23,8 +23,8 @@ App.MainAppsItemBarView = Em.View.extend({
     elementId: 'bars',
     templateName: require('templates/main/apps/item/bar'),
     content:function(){
-        return this.get('parentView.jobs');
-    }.property('parentView.jobs'),
+        return this.get('controller.content.jobs');
+    }.property('controller.content.jobs'),
     firstJob: function() {
         return this.get('content').get('firstObject');
     }.property('content'),
@@ -33,8 +33,15 @@ App.MainAppsItemBarView = Em.View.extend({
         this.set('activeJob', event.context);
 
     },
-    didInsertElement:function () {
+    onLoad:function () {
+        if(!this.get('controller.content.loadAllJobs') || this.get('activeJob')){
+          return;
+        }
+
         this.set('activeJob', this.get('firstJob'));
+    }.observes('controller.content.loadAllJobs'),
+    didInsertElement: function(){
+      this.onLoad();
     },
     draw: function() {
         if(!this.get('activeJob')){
@@ -48,8 +55,8 @@ App.MainAppsItemBarView = Em.View.extend({
         if (null == desc1.html() || null == desc2.html()) return;
         desc1.css('display','block');
         desc2.css('display','block');
-        graph.drawJobTimeline(this.get('activeJob').get('jobTimeline'), width, height, '#chart', 'legend', 'timeline1');
-        graph.drawJobTasks(this.get('activeJob').get('jobTaskview'), width, height, '#job_tasks', 'tasks_legend', 'timeline2');
+        graph.drawJobTimeLine(this.get('activeJob').get('jobTimeLine'), width, height, '#chart', 'legend', 'timeline1');
+        graph.drawJobTasks(this.get('activeJob').get('jobTaskView'), width, height, '#job_tasks', 'tasks_legend', 'timeline2');
     }.observes('activeJob')
 
 

@@ -35,7 +35,7 @@ App.ClusterController = Em.Controller.extend({
   },
   dataLoadList: Em.Object.create({
     'hosts': false,
-    'runs': false,
+    //'runs': false,
     'services': false,
     'cluster' : false,
     'racks' : false,
@@ -193,11 +193,11 @@ App.ClusterController = Em.Controller.extend({
       }
     });
 
-     App.HttpClient.get(runsUrl, App.runsMapper,{
-       complete:function(jqXHR, textStatus) {
-         self.updateLoadStatus('runs');
-       }
-     });
+//     App.HttpClient.get(runsUrl, App.runsMapper,{
+//       complete:function(jqXHR, textStatus) {
+//         self.updateLoadStatus('runs');
+//       }
+//     });
 
     App.HttpClient.get(hostsUrl, App.hostsMapper,{
       complete:function(jqXHR, textStatus){

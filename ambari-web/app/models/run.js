@@ -33,12 +33,14 @@ App.Run = DS.Model.extend({
   input: DS.attr('number'),
   output: DS.attr('number'),
 
+  loadAllJobs : false,
+
   /**
    * Jobs in the current run
    */
   jobs: function() {
-    return App.Job.find().filterProperty('run_id', this.get('id'));
-  }.property('id'),
+    return App.Job.find().filterProperty('run.id', this.get('id'));
+  }.property('loadAllJobs'),
 
   /**
    * Run duration

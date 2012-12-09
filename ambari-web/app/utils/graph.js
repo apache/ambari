@@ -18,7 +18,7 @@
 
 
 module.exports = {
-  drawJobTimeline:function (json_str, w, h, element, legend_id, timeline_id) {
+  drawJobTimeLine:function (json_str, w, h, element, legend_id, timeline_id) {
     var json = $.parseJSON(json_str);
     if (!json) {
       return new Error("unable to load data");

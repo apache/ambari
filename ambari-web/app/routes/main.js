@@ -81,69 +81,10 @@ module.exports = Em.Route.extend({
   }),
   apps:Em.Route.extend({
     route:'/apps',
-    connectOutlets:function (router, context) {
+    connectOutlets:function (router) {
       router.get('mainController').connectOutlet('mainApps');
-    },
-    index:Ember.Route.extend({
-      route:'/'
-    }),
-    showApp:function (router, event) {
-      router.transitionTo('appItem.runs', event.context);
     }
   }),
-  appItem:Em.Route.extend({
-    route:'apps/:app_id',
-    connectOutlets:function (router, app) {
-      router.get('mainAppsController').connectOutlet('mainAppsItem', app);//outlet connect when use only mainController
-    },
-    index:Ember.Route.extend({
-      route:'/'
-    }),
-    runs:Em.Route.extend({
-      route:'/runs',
-      connectOutlets:function (router, context) {
-        router.get('mainController').connectOutlet('mainAppsRuns');
-      },
-      showRun:function (router, event) {
-        router.transitionTo('runItem.jobs.index', event.context);
-      }
-    }),
-    runItem:Em.Route.extend({
-      route:'/runs/:workflow_id',
-      connectOutlets:function (router, run) {
-        router.get('mainController').connectOutlet('mainAppsRunsItem', run);
-      },
-      jobs:Em.Route.extend({
-        route:'/jobs',
-        connectOutlets:function (router, context) {
-          router.get('mainController').connectOutlet('mainAppsRunsJobs');
-        },
-        index:Ember.Route.extend({
-          route:'/',
-          redirectsTo:'dag'
-        }),
-        dag:Em.Route.extend({
-          route:'dag',
-          connectOutlets:function (router, context) {
-            router.get('mainAppsRunsJobsController').connectOutlet('mainAppsRunsJobsDag');
-          }
-        }),
-        bar:Em.Route.extend({
-          route:'bar',
-          connectOutlets:function (router, context) {
-            router.get('mainAppsRunsJobsController').connectOutlet('mainAppsRunsJobsBar');
-          }
-        }),
-        showGraph:function (router, event) {
-          var parent = event.view._parentView;
-          parent.deactivateChildViews();
-          event.view.set('active', "active");
-          router.transitionTo(event.context);
-        }
-      })
-    })
-  }),
-
   hosts:Em.Route.extend({
     route:'/hosts',
     connectOutlets:function (router, context) {

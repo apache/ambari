@@ -1,0 +1,27 @@
+{
+  "name": "HIVE",
+  "version": "1.0",
+  "user": "root",
+  "comment": "This is comment for HIVE service",
+  "properties": [ ],
+  "components": [
+    {
+      "name": "HIVE_SERVER",
+      "category": "MASTER",
+      "client": false,
+      "master": true
+    },
+    {
+      "name": "HIVE_CLIENT",
+      "category": "CLIENT",
+      "client": true,
+      "master": false
+    }
+  ],
+  "clientComponent": {
+    "name": "HIVE_CLIENT",
+    "category": "CLIENT",
+    "client": true,
+    "master": false
+  }
+}

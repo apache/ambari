@@ -18,12 +18,12 @@
 
 <div class="btn-group">
   <button class="btn btn-primary dropdown-toggle" data-toggle="dropdown">
-    Job {{view.activeJob.id}} - {{view.activeJob.jobId}}
+    Job {{view.activeJob.id}} - {{view.activeJob.run.id}}
     <span class="caret"></span>
   </button>
   <ul class="dropdown-menu">
     {{#each job in view.content}}
-    <li><a {{action "selectJob" job target="view"}} href="javascript:void(null)">Job {{job.id}} - {{job.jobId}}</a></li>
+    <li><a {{action "selectJob" job target="view"}} href="javascript:void(null)">Job {{job.id}} - {{job.run.id}}</a></li>
     {{/each}}
   </ul>
 </div>

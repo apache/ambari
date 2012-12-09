@@ -1982,6 +1982,7 @@ module.exports =
       "isReconfigurable": false,
       "displayType": "directory",
       "isVisible": true,
+      "isRequired": false,
       "serviceName": "OOZIE",
       "category": "Oozie Server"
     },

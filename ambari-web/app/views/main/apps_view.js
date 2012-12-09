@@ -617,30 +617,37 @@ App.MainAppsView = Em.View.extend({
      */
     deleteRow:function(row){
       row.get('rowChildView').destroy();
+      row.get('rowView').set('expanded', false);
       row.set('rowView', null);
       row.set('rowChildView', null);
     },
+    viewCreate:function(){
+      App.router.get('mainAppsItemController').set('content', this.get('run'));
+      var newView = App.MainAppsItemView.create({
+        controllerBinding: 'App.router.mainAppsItemController'
+      });
+      return newView;
+    },
+    expanded : false,
     /**
      * Show/hide additional content appropriated for this row
      */
     expandToggle : function(){
-      var newView = App.MainAppsItemView.create();
+      var newView;
       var expandedView = this.get('parentView.expandedRow');
-      App.router.get('mainAppsItemController').set('content', this.get('run'));
       if(expandedView.get('rowView')) {
-        if(this === expandedView.get('rowView')) {
-          this.get('deleteRow')(expandedView);
-        } else {
-          this.get('deleteRow')(expandedView);
-          expandedView.set('rowView', this);
-          expandedView.set('rowChildView', newView);
-          this.get('childViews').pushObject(newView);
+        if(this.get('expanded')){
+          this.deleteRow(expandedView);
+          return;
         }
-      } else {
-          expandedView.set('rowView', this);
-          expandedView.set('rowChildView', newView);
-          this.get('childViews').pushObject(newView);
+        this.deleteRow(expandedView);
       }
+
+      newView = this.viewCreate();
+      this.set('expanded', true);
+      expandedView.set('rowView', this);
+      expandedView.set('rowChildView', newView);
+      this.get('childViews').pushObject(newView);
     }
   }),
   /**

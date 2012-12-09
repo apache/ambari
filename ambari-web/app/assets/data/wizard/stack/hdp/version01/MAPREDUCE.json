@@ -1,0 +1,712 @@
+{
+  "name": "MAPREDUCE",
+  "version": "1.0",
+  "user": "mapred",
+  "comment": "This is comment for MAPREDUCE service",
+  "properties": [
+    {
+      "name": "io.sort.factor",
+      "value": "10",
+      "description": "The number of streams to merge at once while sorting\n  files.  This determines the number of open file handles.",
+      "filename": "mapred-site.xml"
+    },
+    {
+      "name": "io.sort.mb",
+      "value": "100",
+      "description": "The total amount of buffer memory to use while sorting\n  files, in megabytes.  By default, gives each merge stream 1MB, which\n  should minimize seeks.",
+      "filename": "mapred-site.xml"
+    },
+    {
+      "name": "io.sort.record.percent",
+      "value": "0.05",
+      "description": "The percentage of io.sort.mb dedicated to tracking record\n  boundaries. Let this value be r, io.sort.mb be x. The maximum number\n  of records collected before the collection thread must block is equal\n  to (r * x) / 4",
+      "filename": "mapred-site.xml"
+    },
+    {
+      "name": "io.sort.spill.percent",
+      "value": "0.80",
+      "description": "The soft limit in either the buffer or record collection\n  buffers. Once reached, a thread will begin to spill the contents to disk\n  in the background. Note that this does not imply any chunking of data to\n  the spill. A value less than 0.5 is not recommended.",
+      "filename": "mapred-site.xml"
+    },
+    {
+      "name": "io.map.index.skip",
+      "value": "0",
+      "description": "Number of index entries to skip between each entry.\n  Zero by default. Setting this to values larger than zero can\n  facilitate opening large map files using less memory.",
+      "filename": "mapred-site.xml"
+    },
+    {
+      "name": "mapred.job.tracker",
+      "value": "local",
+      "description": "The host and port that the MapReduce job tracker runs\n  at.  If \"local\", then jobs are run in-process as a single map\n  and reduce task.\n  ",
+      "filename": "mapred-site.xml"
+    },
+    {
+      "name": "mapred.job.tracker.http.address",
+      "value": "0.0.0.0:50030",
+      "description": "\n    The job tracker http server address and port the server will listen on.\n    If the port is 0 then the server will start on a free port.\n  ",
+      "filename": "mapred-site.xml"
+    },
+    {
+      "name": "mapred.job.tracker.handler.count",
+      "value": "10",
+      "description": "\n    The number of server threads for the JobTracker. This should be roughly\n    4% of the number of tasktracker nodes.\n  ",
+      "filename": "mapred-site.xml"
+    },
+    {
+      "name": "mapred.task.tracker.report.address",
+      "value": "127.0.0.1:0",
+      "description": "The interface and port that task tracker server listens on.\n  Since it is only connected to by the tasks, it uses the local interface.\n  EXPERT ONLY. Should only be changed if your host does not have the loopback\n  interface.",
+      "filename": "mapred-site.xml"
+    },
+    {
+      "name": "mapred.local.dir",
+      "value": "${hadoop.tmp.dir}/mapred/local",
+      "description": "The local directory where MapReduce stores intermediate\n  data files.  May be a comma-separated list of\n  directories on different devices in order to spread disk i/o.\n  Directories that do not exist are ignored.\n  ",
+      "filename": "mapred-site.xml"
+    },
+    {
+      "name": "mapred.system.dir",
+      "value": "${hadoop.tmp.dir}/mapred/system",
+      "description": "The directory where MapReduce stores control files.\n  ",
+      "filename": "mapred-site.xml"
+    },
+    {
+      "name": "mapreduce.jobtracker.staging.root.dir",
+      "value": "${hadoop.tmp.dir}/mapred/staging",
+      "description": "The root of the staging area for users' job files\n  In practice, this should be the directory where users' home\n  directories are located (usually /user)\n  ",
+      "filename": "mapred-site.xml"
+    },
+    {
+      "name": "mapred.temp.dir",
+      "value": "${hadoop.tmp.dir}/mapred/temp",
+      "description": "A shared directory for temporary files.\n  ",
+      "filename": "mapred-site.xml"
+    },
+    {
+      "name": "mapred.local.dir.minspacestart",
+      "value": "0",
+      "description": "If the space in mapred.local.dir drops under this,\n  do not ask for more tasks.\n  Value in bytes.\n  ",
+      "filename": "mapred-site.xml"
+    },
+    {
+      "name": "mapred.local.dir.minspacekill",
+      "value": "0",
+      "description": "If the space in mapred.local.dir drops under this,\n    do not ask more tasks until all the current ones have finished and\n    cleaned up. Also, to save the rest of the tasks we have running,\n    kill one of them, to clean up some space. Start with the reduce tasks,\n    then go with the ones that have finished the least.\n    Value in bytes.\n  ",
+      "filename": "mapred-site.xml"
+    },
+    {
+      "name": "mapred.tasktracker.expiry.interval",
+      "value": "600000",
+      "description": "Expert: The time-interval, in miliseconds, after which\n  a tasktracker is declared 'lost' if it doesn't send heartbeats.\n  ",
+      "filename": "mapred-site.xml"
+    },
+    {
+      "name": "mapred.tasktracker.taskmemorymanager.monitoring-interval",
+      "value": "5000",
+      "description": "The interval, in milliseconds, for which the tasktracker waits\n   between two cycles of monitoring its tasks' memory usage. Used only if\n   tasks' memory management is enabled via mapred.tasktracker.tasks.maxmemory.\n   ",
+      "filename": "mapred-site.xml"
+    },
+    {
+      "name": "mapred.tasktracker.tasks.sleeptime-before-sigkill",
+      "value": "5000",
+      "description": "The time, in milliseconds, the tasktracker waits for sending a\n  SIGKILL to a process, after it has been sent a SIGTERM.",
+      "filename": "mapred-site.xml"
+    },
+    {
+      "name": "mapred.map.tasks",
+      "value": "2",
+      "description": "The default number of map tasks per job.\n  Ignored when mapred.job.tracker is \"local\".\n  ",
+      "filename": "mapred-site.xml"
+    },
+    {
+      "name": "mapred.reduce.tasks",
+      "value": "1",
+      "description": "The default number of reduce tasks per job. Typically set to 99%\n  of the cluster's reduce capacity, so that if a node fails the reduces can\n  still be executed in a single wave.\n  Ignored when mapred.job.tracker is \"local\".\n  ",
+      "filename": "mapred-site.xml"
+    },
+    {
+      "name": "mapreduce.tasktracker.outofband.heartbeat",
+      "value": "false",
+      "description": "Expert: Set this to true to let the tasktracker send an\n  out-of-band heartbeat on task-completion for better latency.\n  ",
+      "filename": "mapred-site.xml"
+    },
+    {
+      "name": "mapreduce.tasktracker.outofband.heartbeat.damper",
+      "value": "1000000",
+      "description": "When out-of-band heartbeats are enabled, provides\n  damping to avoid overwhelming the JobTracker if too many out-of-band\n  heartbeats would occur. The damping is calculated such that the\n  heartbeat interval is divided by (T*D + 1) where T is the number\n  of completed tasks and D is the damper value.\n\n  Setting this to a high value like the default provides no damping --\n  as soon as any task finishes, a heartbeat will be sent. Setting this\n  parameter to 0 is equivalent to disabling the out-of-band heartbeat feature.\n  A value of 1 would indicate that, after one task has completed, the\n  time to wait before the next heartbeat would be 1/2 the usual time.\n  After two tasks have finished, it would be 1/3 the usual time, etc.\n  ",
+      "filename": "mapred-site.xml"
+    },
+    {
+      "name": "mapred.jobtracker.restart.recover",
+      "value": "false",
+      "description": "\"true\" to enable (job) recovery upon restart,\n               \"false\" to start afresh\n  ",
+      "filename": "mapred-site.xml"
+    },
+    {
+      "name": "mapred.jobtracker.job.history.block.size",
+      "value": "3145728",
+      "description": "The block size of the job history file. Since the job recovery\n               uses job history, its important to dump job history to disk as\n               soon as possible. Note that this is an expert level parameter.\n               The default value is set to 3 MB.\n  ",
+      "filename": "mapred-site.xml"
+    },
+    {
+      "name": "mapreduce.job.split.metainfo.maxsize",
+      "value": "10000000",
+      "description": "The maximum permissible size of the split metainfo file.\n  The JobTracker won't attempt to read split metainfo files bigger than\n  the configured value.\n  No limits if set to -1.\n  ",
+      "filename": "mapred-site.xml"
+    },
+    {
+      "name": "mapred.jobtracker.taskScheduler",
+      "value": "org.apache.hadoop.mapred.JobQueueTaskScheduler",
+      "description": "The class responsible for scheduling the tasks.",
+      "filename": "mapred-site.xml"
+    },
+    {
+      "name": "mapred.map.max.attempts",
+      "value": "4",
+      "description": "Expert: The maximum number of attempts per map task.\n  In other words, framework will try to execute a map task these many number\n  of times before giving up on it.\n  ",
+      "filename": "mapred-site.xml"
+    },
+    {
+      "name": "mapred.reduce.max.attempts",
+      "value": "4",
+      "description": "Expert: The maximum number of attempts per reduce task.\n  In other words, framework will try to execute a reduce task these many number\n  of times before giving up on it.\n  ",
+      "filename": "mapred-site.xml"
+    },
+    {
+      "name": "mapred.reduce.parallel.copies",
+      "value": "5",
+      "description": "The default number of parallel transfers run by reduce\n  during the copy(shuffle) phase.\n  ",
+      "filename": "mapred-site.xml"
+    },
+    {
+      "name": "mapreduce.reduce.shuffle.maxfetchfailures",
+      "value": "10",
+      "description": "The maximum number of times a reducer tries to\n  fetch a map output before it reports it.\n",
+      "filename": "mapred-site.xml"
+    },
+    {
+      "name": "mapreduce.reduce.shuffle.connect.timeout",
+      "value": "180000",
+      "description": "Expert: The maximum amount of time (in milli seconds) a reduce\n  task spends in trying to connect to a tasktracker for getting map output.\n  ",
+      "filename": "mapred-site.xml"
+    },
+    {
+      "name": "mapreduce.reduce.shuffle.read.timeout",
+      "value": "180000",
+      "description": "Expert: The maximum amount of time (in milli seconds) a reduce\n  task waits for map output data to be available for reading after obtaining\n  connection.\n  ",
+      "filename": "mapred-site.xml"
+    },
+    {
+      "name": "mapred.task.timeout",
+      "value": "600000",
+      "description": "The number of milliseconds before a task will be\n  terminated if it neither reads an input, writes an output, nor\n  updates its status string.\n  ",
+      "filename": "mapred-site.xml"
+    },
+    {
+      "name": "mapred.tasktracker.map.tasks.maximum",
+      "value": "2",
+      "description": "The maximum number of map tasks that will be run\n  simultaneously by a task tracker.\n  ",
+      "filename": "mapred-site.xml"
+    },
+    {
+      "name": "mapred.tasktracker.reduce.tasks.maximum",
+      "value": "2",
+      "description": "The maximum number of reduce tasks that will be run\n  simultaneously by a task tracker.\n  ",
+      "filename": "mapred-site.xml"
+    },
+    {
+      "name": "mapred.jobtracker.completeuserjobs.maximum",
+      "value": "100",
+      "description": "The maximum number of complete jobs per user to keep around\n  before delegating them to the job history.",
+      "filename": "mapred-site.xml"
+    },
+    {
+      "name": "mapreduce.reduce.input.limit",
+      "value": "-1",
+      "description": "The limit on the input size of the reduce. If the estimated\n  input size of the reduce is greater than this value, job is failed. A\n  value of -1 means that there is no limit set. ",
+      "filename": "mapred-site.xml"
+    },
+    {
+      "name": "mapred.job.tracker.retiredjobs.cache.size",
+      "value": "1000",
+      "description": "The number of retired job status to keep in the cache.\n  ",
+      "filename": "mapred-site.xml"
+    },
+    {
+      "name": "mapred.job.tracker.jobhistory.lru.cache.size",
+      "value": "5",
+      "description": "The number of job history files loaded in memory. The jobs are\n  loaded when they are first accessed. The cache is cleared based on LRU.\n  ",
+      "filename": "mapred-site.xml"
+    },
+    {
+      "name": "mapred.child.java.opts",
+      "value": "-Xmx200m",
+      "description": "Java opts for the task tracker child processes.\n  The following symbol, if present, will be interpolated: @taskid@ is replaced\n  by current TaskID. Any other occurrences of '@' will go unchanged.\n  For example, to enable verbose gc logging to a file named for the taskid in\n  /tmp and to set the heap maximum to be a gigabyte, pass a 'value' of:\n        -Xmx1024m -verbose:gc -Xloggc:/tmp/@taskid@.gc\n\n  The configuration variable mapred.child.ulimit can be used to control the\n  maximum virtual memory of the child processes.\n  ",
+      "filename": "mapred-site.xml"
+    },
+    {
+      "name": "mapred.cluster.map.memory.mb",
+      "value": "-1",
+      "description": "The size, in terms of virtual memory, of a single map slot\n  in the Map-Reduce framework, used by the scheduler.\n  A job can ask for multiple slots for a single map task via\n  mapred.job.map.memory.mb, upto the limit specified by\n  mapred.cluster.max.map.memory.mb, if the scheduler supports the feature.\n  The value of -1 indicates that this feature is turned off.\n  ",
+      "filename": "mapred-site.xml"
+    },
+    {
+      "name": "mapred.cluster.reduce.memory.mb",
+      "value": "-1",
+      "description": "The size, in terms of virtual memory, of a single reduce slot\n  in the Map-Reduce framework, used by the scheduler.\n  A job can ask for multiple slots for a single reduce task via\n  mapred.job.reduce.memory.mb, upto the limit specified by\n  mapred.cluster.max.reduce.memory.mb, if the scheduler supports the feature.\n  The value of -1 indicates that this feature is turned off.\n  ",
+      "filename": "mapred-site.xml"
+    },
+    {
+      "name": "mapred.cluster.max.map.memory.mb",
+      "value": "-1",
+      "description": "The maximum size, in terms of virtual memory, of a single map\n  task launched by the Map-Reduce framework, used by the scheduler.\n  A job can ask for multiple slots for a single map task via\n  mapred.job.map.memory.mb, upto the limit specified by\n  mapred.cluster.max.map.memory.mb, if the scheduler supports the feature.\n  The value of -1 indicates that this feature is turned off.\n  ",
+      "filename": "mapred-site.xml"
+    },
+    {
+      "name": "mapred.cluster.max.reduce.memory.mb",
+      "value": "-1",
+      "description": "The maximum size, in terms of virtual memory, of a single reduce\n  task launched by the Map-Reduce framework, used by the scheduler.\n  A job can ask for multiple slots for a single reduce task via\n  mapred.job.reduce.memory.mb, upto the limit specified by\n  mapred.cluster.max.reduce.memory.mb, if the scheduler supports the feature.\n  The value of -1 indicates that this feature is turned off.\n  ",
+      "filename": "mapred-site.xml"
+    },
+    {
+      "name": "mapred.job.map.memory.mb",
+      "value": "-1",
+      "description": "The size, in terms of virtual memory, of a single map task\n  for the job.\n  A job can ask for multiple slots for a single map task, rounded up to the\n  next multiple of mapred.cluster.map.memory.mb and upto the limit\n  specified by mapred.cluster.max.map.memory.mb, if the scheduler supports\n  the feature.\n  The value of -1 indicates that this feature is turned off iff\n  mapred.cluster.map.memory.mb is also turned off (-1).\n  ",
+      "filename": "mapred-site.xml"
+    },
+    {
+      "name": "mapred.job.reduce.memory.mb",
+      "value": "-1",
+      "description": "The size, in terms of virtual memory, of a single reduce task\n  for the job.\n  A job can ask for multiple slots for a single map task, rounded up to the\n  next multiple of mapred.cluster.reduce.memory.mb and upto the limit\n  specified by mapred.cluster.max.reduce.memory.mb, if the scheduler supports\n  the feature.\n  The value of -1 indicates that this feature is turned off iff\n  mapred.cluster.reduce.memory.mb is also turned off (-1).\n  ",
+      "filename": "mapred-site.xml"
+    },
+    {
+      "name": "mapred.child.tmp",
+      "value": "./tmp",
+      "description": " To set the value of tmp directory for map and reduce tasks.\n  If the value is an absolute path, it is directly assigned. Otherwise, it is\n  prepended with task's working directory. The java tasks are executed with\n  option -Djava.io.tmpdir='the absolute path of the tmp dir'. Pipes and\n  streaming are set with environment variable,\n   TMPDIR='the absolute path of the tmp dir'\n  ",
+      "filename": "mapred-site.xml"
+    },
+    {
+      "name": "mapred.inmem.merge.threshold",
+      "value": "1000",
+      "description": "The threshold, in terms of the number of files\n  for the in-memory merge process. When we accumulate threshold number of files\n  we initiate the in-memory merge and spill to disk. A value of 0 or less than\n  0 indicates we want to DON'T have any threshold and instead depend only on\n  the ramfs's memory consumption to trigger the merge.\n  ",
+      "filename": "mapred-site.xml"
+    },
+    {
+      "name": "mapred.job.shuffle.merge.percent",
+      "value": "0.66",
+      "description": "The usage threshold at which an in-memory merge will be\n  initiated, expressed as a percentage of the total memory allocated to\n  storing in-memory map outputs, as defined by\n  mapred.job.shuffle.input.buffer.percent.\n  ",
+      "filename": "mapred-site.xml"
+    },
+    {
+      "name": "mapred.job.shuffle.input.buffer.percent",
+      "value": "0.70",
+      "description": "The percentage of memory to be allocated from the maximum heap\n  size to storing map outputs during the shuffle.\n  ",
+      "filename": "mapred-site.xml"
+    },
+    {
+      "name": "mapred.job.reduce.input.buffer.percent",
+      "value": "0.0",
+      "description": "The percentage of memory- relative to the maximum heap size- to\n  retain map outputs during the reduce. When the shuffle is concluded, any\n  remaining map outputs in memory must consume less than this threshold before\n  the reduce can begin.\n  ",
+      "filename": "mapred-site.xml"
+    },
+    {
+      "name": "mapred.map.tasks.speculative.execution",
+      "value": "true",
+      "description": "If true, then multiple instances of some map tasks\n               may be executed in parallel.",
+      "filename": "mapred-site.xml"
+    },
+    {
+      "name": "mapred.reduce.tasks.speculative.execution",
+      "value": "true",
+      "description": "If true, then multiple instances of some reduce tasks\n               may be executed in parallel.",
+      "filename": "mapred-site.xml"
+    },
+    {
+      "name": "mapred.job.reuse.jvm.num.tasks",
+      "value": "1",
+      "description": "How many tasks to run per jvm. If set to -1, there is\n  no limit.\n  ",
+      "filename": "mapred-site.xml"
+    },
+    {
+      "name": "mapred.min.split.size",
+      "value": "0",
+      "description": "The minimum size chunk that map input should be split\n  into.  Note that some file formats may have minimum split sizes that\n  take priority over this setting.",
+      "filename": "mapred-site.xml"
+    },
+    {
+      "name": "mapred.jobtracker.maxtasks.per.job",
+      "value": "-1",
+      "description": "The maximum number of tasks for a single job.\n  A value of -1 indicates that there is no maximum.  ",
+      "filename": "mapred-site.xml"
+    },
+    {
+      "name": "mapred.submit.replication",
+      "value": "10",
+      "description": "The replication level for submitted job files.  This\n  should be around the square root of the number of nodes.\n  ",
+      "filename": "mapred-site.xml"
+    },
+    {
+      "name": "mapred.tasktracker.dns.interface",
+      "value": "default",
+      "description": "The name of the Network Interface from which a task\n  tracker should report its IP address.\n  ",
+      "filename": "mapred-site.xml"
+    },
+    {
+      "name": "mapred.tasktracker.dns.nameserver",
+      "value": "default",
+      "description": "The host name or IP address of the name server (DNS)\n  which a TaskTracker should use to determine the host name used by\n  the JobTracker for communication and display purposes.\n  ",
+      "filename": "mapred-site.xml"
+    },
+    {
+      "name": "tasktracker.http.threads",
+      "value": "40",
+      "description": "The number of worker threads that for the http server. This is\n               used for map output fetching\n  ",
+      "filename": "mapred-site.xml"
+    },
+    {
+      "name": "mapred.task.tracker.http.address",
+      "value": "0.0.0.0:50060",
+      "description": "\n    The task tracker http server address and port.\n    If the port is 0 then the server will start on a free port.\n  ",
+      "filename": "mapred-site.xml"
+    },
+    {
+      "name": "keep.failed.task.files",
+      "value": "false",
+      "description": "Should the files for failed tasks be kept. This should only be\n               used on jobs that are failing, because the storage is never\n               reclaimed. It also prevents the map outputs from being erased\n               from the reduce directory as they are consumed.",
+      "filename": "mapred-site.xml"
+    },
+    {
+      "name": "mapred.output.compress",
+      "value": "false",
+      "description": "Should the job outputs be compressed?\n  ",
+      "filename": "mapred-site.xml"
+    },
+    {
+      "name": "mapred.output.compression.type",
+      "value": "RECORD",
+      "description": "If the job outputs are to compressed as SequenceFiles, how should\n               they be compressed? Should be one of NONE, RECORD or BLOCK.\n  ",
+      "filename": "mapred-site.xml"
+    },
+    {
+      "name": "mapred.output.compression.codec",
+      "value": "org.apache.hadoop.io.compress.DefaultCodec",
+      "description": "If the job outputs are compressed, how should they be compressed?\n  ",
+      "filename": "mapred-site.xml"
+    },
+    {
+      "name": "mapred.compress.map.output",
+      "value": "false",
+      "description": "Should the outputs of the maps be compressed before being\n               sent across the network. Uses SequenceFile compression.\n  ",
+      "filename": "mapred-site.xml"
+    },
+    {
+      "name": "mapred.map.output.compression.codec",
+      "value": "org.apache.hadoop.io.compress.DefaultCodec",
+      "description": "If the map outputs are compressed, how should they be\n               compressed?\n  ",
+      "filename": "mapred-site.xml"
+    },
+    {
+      "name": "map.sort.class",
+      "value": "org.apache.hadoop.util.QuickSort",
+      "description": "The default sort class for sorting keys.\n  ",
+      "filename": "mapred-site.xml"
+    },
+    {
+      "name": "mapred.userlog.limit.kb",
+      "value": "0",
+      "description": "The maximum size of user-logs of each task in KB. 0 disables the cap.\n  ",
+      "filename": "mapred-site.xml"
+    },
+    {
+      "name": "mapred.userlog.retain.hours",
+      "value": "24",
+      "description": "The maximum time, in hours, for which the user-logs are to be\n               retained after the job completion.\n  ",
+      "filename": "mapred-site.xml"
+    },
+    {
+      "name": "mapred.user.jobconf.limit",
+      "value": "5242880",
+      "description": "The maximum allowed size of the user jobconf. The\n  default is set to 5 MB",
+      "filename": "mapred-site.xml"
+    },
+    {
+      "name": "mapred.heartbeats.in.second",
+      "value": "100",
+      "description": "Expert: Approximate number of heart-beats that could arrive\n               at JobTracker in a second. Assuming each RPC can be processed\n               in 10msec, the default value is made 100 RPCs in a second.\n  ",
+      "filename": "mapred-site.xml"
+    },
+    {
+      "name": "mapred.max.tracker.blacklists",
+      "value": "4",
+      "description": "The number of blacklists for a tasktracker by various jobs\n               after which the tasktracker will be marked as potentially\n               faulty and is a candidate for graylisting across all jobs.\n               (Unlike blacklisting, this is advisory; the tracker remains\n               active.  However, it is reported as graylisted in the web UI,\n               with the expectation that chronically graylisted trackers\n               will be manually decommissioned.)  This value is tied to\n               mapred.jobtracker.blacklist.fault-timeout-window; faults\n               older than the window width are forgiven, so the tracker\n               will recover from transient problems.  It will also become\n               healthy after a restart.\n  ",
+      "filename": "mapred-site.xml"
+    },
+    {
+      "name": "mapred.jobtracker.blacklist.fault-timeout-window",
+      "value": "180",
+      "description": "The timeout (in minutes) after which per-job tasktracker\n               faults are forgiven.  The window is logically a circular\n               buffer of time-interval buckets whose width is defined by\n               mapred.jobtracker.blacklist.fault-bucket-width; when the\n               \"now\" pointer moves across a bucket boundary, the previous\n               contents (faults) of the new bucket are cleared.  In other\n               words, the timeout's granularity is determined by the bucket\n               width.\n  ",
+      "filename": "mapred-site.xml"
+    },
+    {
+      "name": "mapred.jobtracker.blacklist.fault-bucket-width",
+      "value": "15",
+      "description": "The width (in minutes) of each bucket in the tasktracker\n               fault timeout window.  Each bucket is reused in a circular\n               manner after a full timeout-window interval (defined by\n               mapred.jobtracker.blacklist.fault-timeout-window).\n  ",
+      "filename": "mapred-site.xml"
+    },
+    {
+      "name": "mapred.max.tracker.failures",
+      "value": "4",
+      "description": "The number of task-failures on a tasktracker of a given job\n               after which new tasks of that job aren't assigned to it.\n  ",
+      "filename": "mapred-site.xml"
+    },
+    {
+      "name": "jobclient.output.filter",
+      "value": "FAILED",
+      "description": "The filter for controlling the output of the task's userlogs sent\n               to the console of the JobClient.\n               The permissible options are: NONE, KILLED, FAILED, SUCCEEDED and\n               ALL.\n  ",
+      "filename": "mapred-site.xml"
+    },
+    {
+      "name": "mapred.job.tracker.persist.jobstatus.active",
+      "value": "false",
+      "description": "Indicates if persistency of job status information is\n      active or not.\n    ",
+      "filename": "mapred-site.xml"
+    },
+    {
+      "name": "mapred.job.tracker.persist.jobstatus.hours",
+      "value": "0",
+      "description": "The number of hours job status information is persisted in DFS.\n    The job status information will be available after it drops of the memory\n    queue and between jobtracker restarts. With a zero value the job status\n    information is not persisted at all in DFS.\n  ",
+      "filename": "mapred-site.xml"
+    },
+    {
+      "name": "mapred.job.tracker.persist.jobstatus.dir",
+      "value": "/jobtracker/jobsInfo",
+      "description": "The directory where the job status information is persisted\n      in a file system to be available after it drops of the memory queue and\n      between jobtracker restarts.\n    ",
+      "filename": "mapred-site.xml"
+    },
+    {
+      "name": "mapreduce.job.complete.cancel.delegation.tokens",
+      "value": "true",
+      "description": " if false - do not unregister/cancel delegation tokens\n    from renewal, because same tokens may be used by spawned jobs\n    ",
+      "filename": "mapred-site.xml"
+    },
+    {
+      "name": "mapred.task.profile",
+      "value": "false",
+      "description": "To set whether the system should collect profiler\n     information for some of the tasks in this job? The information is stored\n     in the user log directory. The value is \"true\" if task profiling\n     is enabled.",
+      "filename": "mapred-site.xml"
+    },
+    {
+      "name": "mapred.task.profile.maps",
+      "value": "0-2",
+      "description": " To set the ranges of map tasks to profile.\n    mapred.task.profile has to be set to true for the value to be accounted.\n    ",
+      "filename": "mapred-site.xml"
+    },
+    {
+      "name": "mapred.task.profile.reduces",
+      "value": "0-2",
+      "description": " To set the ranges of reduce tasks to profile.\n    mapred.task.profile has to be set to true for the value to be accounted.\n    ",
+      "filename": "mapred-site.xml"
+    },
+    {
+      "name": "mapred.line.input.format.linespermap",
+      "value": "1",
+      "description": " Number of lines per split in NLineInputFormat.\n    ",
+      "filename": "mapred-site.xml"
+    },
+    {
+      "name": "mapred.skip.attempts.to.start.skipping",
+      "value": "2",
+      "description": " The number of Task attempts AFTER which skip mode\n    will be kicked off. When skip mode is kicked off, the\n    tasks reports the range of records which it will process\n    next, to the TaskTracker. So that on failures, TT knows which\n    ones are possibly the bad records. On further executions,\n    those are skipped.\n    ",
+      "filename": "mapred-site.xml"
+    },
+    {
+      "name": "mapred.skip.map.auto.incr.proc.count",
+      "value": "true",
+      "description": " The flag which if set to true,\n    SkipBadRecords.COUNTER_MAP_PROCESSED_RECORDS is incremented\n    by MapRunner after invoking the map function. This value must be set to\n    false for applications which process the records asynchronously\n    or buffer the input records. For example streaming.\n    In such cases applications should increment this counter on their own.\n    ",
+      "filename": "mapred-site.xml"
+    },
+    {
+      "name": "mapred.skip.reduce.auto.incr.proc.count",
+      "value": "true",
+      "description": " The flag which if set to true,\n    SkipBadRecords.COUNTER_REDUCE_PROCESSED_GROUPS is incremented\n    by framework after invoking the reduce function. This value must be set to\n    false for applications which process the records asynchronously\n    or buffer the input records. For example streaming.\n    In such cases applications should increment this counter on their own.\n    ",
+      "filename": "mapred-site.xml"
+    },
+    {
+      "name": "mapred.skip.map.max.skip.records",
+      "value": "0",
+      "description": " The number of acceptable skip records surrounding the bad\n    record PER bad record in mapper. The number includes the bad record as well.\n    To turn the feature of detection/skipping of bad records off, set the\n    value to 0.\n    The framework tries to narrow down the skipped range by retrying\n    until this threshold is met OR all attempts get exhausted for this task.\n    Set the value to Long.MAX_VALUE to indicate that framework need not try to\n    narrow down. Whatever records(depends on application) get skipped are\n    acceptable.\n    ",
+      "filename": "mapred-site.xml"
+    },
+    {
+      "name": "mapred.skip.reduce.max.skip.groups",
+      "value": "0",
+      "description": " The number of acceptable skip groups surrounding the bad\n    group PER bad group in reducer. The number includes the bad group as well.\n    To turn the feature of detection/skipping of bad groups off, set the\n    value to 0.\n    The framework tries to narrow down the skipped range by retrying\n    until this threshold is met OR all attempts get exhausted for this task.\n    Set the value to Long.MAX_VALUE to indicate that framework need not try to\n    narrow down. Whatever groups(depends on application) get skipped are\n    acceptable.\n    ",
+      "filename": "mapred-site.xml"
+    },
+    {
+      "name": "mapreduce.ifile.readahead",
+      "value": "true",
+      "description": "Configuration key to enable/disable IFile readahead.\n    ",
+      "filename": "mapred-site.xml"
+    },
+    {
+      "name": "mapreduce.ifile.readahead.bytes",
+      "value": "4194304",
+      "description": "Configuration key to set the IFile readahead length in bytes.\n    ",
+      "filename": "mapred-site.xml"
+    },
+    {
+      "name": "job.end.retry.attempts",
+      "value": "0",
+      "description": "Indicates how many times hadoop should attempt to contact the\n               notification URL ",
+      "filename": "mapred-site.xml"
+    },
+    {
+      "name": "job.end.retry.interval",
+      "value": "30000",
+      "description": "Indicates time in milliseconds between notification URL retry\n                calls",
+      "filename": "mapred-site.xml"
+    },
+    {
+      "name": "mapred.task.cache.levels",
+      "value": "2",
+      "description": " This is the max level of the task cache. For example, if\n    the level is 2, the tasks cached are at the host level and at the rack\n    level.\n  ",
+      "filename": "mapred-site.xml"
+    },
+    {
+      "name": "mapred.queue.names",
+      "value": "default",
+      "description": " Comma separated list of queues configured for this jobtracker.\n    Jobs are added to queues and schedulers can configure different\n    scheduling properties for the various queues. To configure a property\n    for a queue, the name of the queue must match the name specified in this\n    value. Queue properties that are common to all schedulers are configured\n    here with the naming convention, mapred.queue.$QUEUE-NAME.$PROPERTY-NAME,\n    for e.g. mapred.queue.default.submit-job-acl.\n    The number of queues configured in this parameter could depend on the\n    type of scheduler being used, as specified in\n    mapred.jobtracker.taskScheduler. For example, the JobQueueTaskScheduler\n    supports only a single queue, which is the default configured here.\n    Before adding more queues, ensure that the scheduler you've configured\n    supports multiple queues.\n  ",
+      "filename": "mapred-site.xml"
+    },
+    {
+      "name": "mapred.acls.enabled",
+      "value": "false",
+      "description": " Specifies whether ACLs should be checked\n    for authorization of users for doing various queue and job level operations.\n    ACLs are disabled by default. If enabled, access control checks are made by\n    JobTracker and TaskTracker when requests are made by users for queue\n    operations like submit job to a queue and kill a job in the queue and job\n    operations like viewing the job-details (See mapreduce.job.acl-view-job)\n    or for modifying the job (See mapreduce.job.acl-modify-job) using\n    Map/Reduce APIs, RPCs or via the console and web user interfaces.\n  ",
+      "filename": "mapred-site.xml"
+    },
+    {
+      "name": "mapred.queue.default.state",
+      "value": "RUNNING",
+      "description": "\n   This values defines the state , default queue is in.\n   the values can be either \"STOPPED\" or \"RUNNING\"\n   This value can be changed at runtime.\n  ",
+      "filename": "mapred-site.xml"
+    },
+    {
+      "name": "mapred.job.queue.name",
+      "value": "default",
+      "description": " Queue to which a job is submitted. This must match one of the\n    queues defined in mapred.queue.names for the system. Also, the ACL setup\n    for the queue must allow the current user to submit a job to the queue.\n    Before specifying a queue, ensure that the system is configured with\n    the queue, and access is allowed for submitting jobs to the queue.\n  ",
+      "filename": "mapred-site.xml"
+    },
+    {
+      "name": "mapreduce.job.acl-modify-job",
+      "value": " ",
+      "description": " Job specific access-control list for 'modifying' the job. It\n    is only used if authorization is enabled in Map/Reduce by setting the\n    configuration property mapred.acls.enabled to true.\n    This specifies the list of users and/or groups who can do modification\n    operations on the job. For specifying a list of users and groups the\n    format to use is \"user1,user2 group1,group\". If set to '*', it allows all\n    users/groups to modify this job. If set to ' '(i.e. space), it allows\n    none. This configuration is used to guard all the modifications with respect\n    to this job and takes care of all the following operations:\n      o killing this job\n      o killing a task of this job, failing a task of this job\n      o setting the priority of this job\n    Each of these operations are also protected by the per-queue level ACL\n    \"acl-administer-jobs\" configured via mapred-queues.xml. So a caller should\n    have the authorization to satisfy either the queue-level ACL or the\n    job-level ACL.\n\n    Irrespective of this ACL configuration, job-owner, the user who started the\n    cluster, cluster administrators configured via\n    mapreduce.cluster.administrators and queue administrators of the queue to\n    which this job is submitted to configured via\n    mapred.queue.queue-name.acl-administer-jobs  in mapred-queue-acls.xml can\n    do all the modification operations on a job.\n\n    By default, nobody else besides job-owner, the user who started the cluster,\n    cluster administrators and queue administrators can perform modification\n    operations on a job.\n  ",
+      "filename": "mapred-site.xml"
+    },
+    {
+      "name": "mapreduce.job.acl-view-job",
+      "value": " ",
+      "description": " Job specific access-control list for 'viewing' the job. It is\n    only used if authorization is enabled in Map/Reduce by setting the\n    configuration property mapred.acls.enabled to true.\n    This specifies the list of users and/or groups who can view private details\n    about the job. For specifying a list of users and groups the\n    format to use is \"user1,user2 group1,group\". If set to '*', it allows all\n    users/groups to modify this job. If set to ' '(i.e. space), it allows\n    none. This configuration is used to guard some of the job-views and at\n    present only protects APIs that can return possibly sensitive information\n    of the job-owner like\n      o job-level counters\n      o task-level counters\n      o tasks' diagnostic information\n      o task-logs displayed on the TaskTracker web-UI and\n      o job.xml showed by the JobTracker's web-UI\n    Every other piece of information of jobs is still accessible by any other\n    user, for e.g., JobStatus, JobProfile, list of jobs in the queue, etc.\n\n    Irrespective of this ACL configuration, job-owner, the user who started the\n    cluster, cluster administrators configured via\n    mapreduce.cluster.administrators and queue administrators of the queue to\n    which this job is submitted to configured via\n    mapred.queue.queue-name.acl-administer-jobs in mapred-queue-acls.xml can do\n    all the view operations on a job.\n\n    By default, nobody else besides job-owner, the user who started the\n    cluster, cluster administrators and queue administrators can perform\n    view operations on a job.\n  ",
+      "filename": "mapred-site.xml"
+    },
+    {
+      "name": "mapred.tasktracker.indexcache.mb",
+      "value": "10",
+      "description": " The maximum memory that a task tracker allows for the\n    index cache that is used when serving map outputs to reducers.\n  ",
+      "filename": "mapred-site.xml"
+    },
+    {
+      "name": "mapred.combine.recordsBeforeProgress",
+      "value": "10000",
+      "description": " The number of records to process during combine output collection\n   before sending a progress notification to the TaskTracker.\n  ",
+      "filename": "mapred-site.xml"
+    },
+    {
+      "name": "mapred.merge.recordsBeforeProgress",
+      "value": "10000",
+      "description": " The number of records to process during merge before\n   sending a progress notification to the TaskTracker.\n  ",
+      "filename": "mapred-site.xml"
+    },
+    {
+      "name": "mapred.reduce.slowstart.completed.maps",
+      "value": "0.05",
+      "description": "Fraction of the number of maps in the job which should be\n  complete before reduces are scheduled for the job.\n  ",
+      "filename": "mapred-site.xml"
+    },
+    {
+      "name": "mapred.task.tracker.task-controller",
+      "value": "org.apache.hadoop.mapred.DefaultTaskController",
+      "description": "TaskController which is used to launch and manage task execution\n  ",
+      "filename": "mapred-site.xml"
+    },
+    {
+      "name": "mapred.disk.healthChecker.interval",
+      "value": "60000",
+      "description": "How often the TaskTracker checks the health of its\n  local directories. Configuring this to a value smaller than the\n  heartbeat interval is equivalent to setting this to heartbeat\n  interval value.\n  ",
+      "filename": "mapred-site.xml"
+    },
+    {
+      "name": "mapred.healthChecker.interval",
+      "value": "60000",
+      "description": "Frequency of the node health script to be run,\n  in milliseconds",
+      "filename": "mapred-site.xml"
+    },
+    {
+      "name": "mapred.healthChecker.script.timeout",
+      "value": "600000",
+      "description": "Time after node health script should be killed if\n  unresponsive and considered that the script has failed.",
+      "filename": "mapred-site.xml"
+    },
+    {
+      "name": "mapreduce.job.counters.max",
+      "value": "120",
+      "description": "Limit on the number of counters allowed per job.\n  ",
+      "filename": "mapred-site.xml"
+    },
+    {
+      "name": "mapreduce.job.counters.groups.max",
+      "value": "50",
+      "description": "Limit on the number of counter groups allowed per job.\n  ",
+      "filename": "mapred-site.xml"
+    },
+    {
+      "name": "mapreduce.job.counters.counter.name.max",
+      "value": "64",
+      "description": "Limit on the length of counter names in jobs. Names\n  exceeding this limit will be truncated.\n  ",
+      "filename": "mapred-site.xml"
+    },
+    {
+      "name": "mapreduce.job.counters.group.name.max",
+      "value": "128",
+      "description": "Limit on the length of counter group names in jobs. Names\n  exceeding this limit will be truncated.\n  ",
+      "filename": "mapred-site.xml"
+    }
+  ],
+  "components": [
+    {
+      "name": "JOBTRACKER",
+      "category": "MASTER",
+      "client": false,
+      "master": true
+    },
+    {
+      "name": "TASKTRACKER",
+      "category": "SLAVE",
+      "client": false,
+      "master": false
+    },
+    {
+      "name": "MAPREDUCE_CLIENT",
+      "category": "CLIENT",
+      "client": true,
+      "master": false
+    }
+  ],
+  "clientComponent": {
+    "name": "MAPREDUCE_CLIENT",
+    "category": "CLIENT",
+    "client": true,
+    "master": false
+  }
+}

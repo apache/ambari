@@ -138,36 +138,28 @@ App.WizardStep2Controller = Em.Controller.extend({
       return false;
     }
 
-    // For now using mock jquery call
-    //TODO: hook up with bootstrap call
-    var bootStrapData = {'sshKey': this.get('sshKey'), hosts: this.get('hostNameArr')}.stringify;
+    var bootStrapData = JSON.stringify({'sshKey': this.get('sshKey'), hosts: this.get('hostNameArr')});
+
+    // TODO: skipping bootstrap for now
+    if (true) {
+      App.router.send('next');
+      return true;
+    }
+
     $.ajax({
       type: 'POST',
       url: '/api/bootstrap',
       data: bootStrapData,
-      async: false,
-      timeout: 2000,
+      timeout: 10000,
+      contentType: 'application/json',
       success: function () {
-        console.log("TRACE: In success function for the post bootstrap function");
+        console.log("TRACE: POST /api/bootstrap succeeded");
         App.router.send('next');
       },
       error: function () {
-        console.log("ERROR: bootstrap post call failed");
-        return false;
-      },
-      complete: function () {
-        // TODO: remove this function.  this is just to force navigating to the next step before bootstrap integration
-        App.router.send('next');
-      },
-      statusCode: {
-        404: function () {
-          console.log("URI not found.");
-          //After the bootstrap call hook up change the below return statement to "return false"
-          console.log("TRACE: In faliure function for the post bootstrap function");
-          return false;
-        }
-      },
-      dataType: 'application/json'
+        console.log("ERROR: POST /api/bootstrap failed");
+        alert('Bootstrap call failed.  Please try again.');
+      }
     });
   },
 

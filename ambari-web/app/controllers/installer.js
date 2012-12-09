@@ -722,7 +722,7 @@ App.InstallerController = Em.Controller.extend({
   loadComponents: function (stepController) {
     var self = this;
     var method = 'GET';
-    var url = (App.testMode) ? '/data/wizard/stack/hdp/version0.1.json' : '/api/stacks/HDP/version/0.1'; // TODO: get this url from the stack selected by the user in Install Options page
+    var url = (App.testMode) ? '/data/wizard/stack/hdp/version0.1.json' : '/api/stacks/HDP/version/1.2.0'; // TODO: get this url from the stack selected by the user in Install Options page
     $.ajax({
       type: method,
       url: url,
@@ -765,7 +765,7 @@ App.InstallerController = Em.Controller.extend({
 
   loadAdvancedConfig: function (serviceName) {
     var self = this;
-    var url = (App.testMode) ? '/data/wizard/stack/hdp/version01/' + serviceName + '.json' : '/api/stacks/HDP/version/0.1/services/' + serviceName; // TODO: get this url from the stack selected by the user in Install Options page
+    var url = (App.testMode) ? '/data/wizard/stack/hdp/version01/' + serviceName + '.json' : '/api/stacks/HDP/version/1.2.0/services/' + serviceName; // TODO: get this url from the stack selected by the user in Install Options page
     var method = 'GET';
     $.ajax({
       type: method,
