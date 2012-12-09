@@ -11,6 +11,9 @@ AMBARI-666 branch (unreleased changes)
   INCOMPATIBLE CHANGES
 
   NEW FEATURES
+  
+  AMBARI-1054. Implement retrying of bootstrap on confirm host page.
+  (Jaimin Jetly via yusaku)
 
   AMBARI-1048. Integrate slave configuration parameters with respective
   service on step7 of installer wizard. (Jaimin Jetly via yusaku)

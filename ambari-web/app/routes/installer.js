@@ -134,8 +134,7 @@ module.exports = Em.Route.extend({
       var installerController = router.get('installerController');
       var wizardStep3Controller = router.get('wizardStep3Controller');
       installerController.saveConfirmedHosts(wizardStep3Controller);
-
-
+      App.db.setSshKey(null);
       App.db.setBootStatus(true);
       var displayOrderConfig = require('data/services');
       var apiUrl = '/stacks/HDP/version/1.2.0';

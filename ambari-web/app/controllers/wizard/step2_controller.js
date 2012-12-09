@@ -129,27 +129,11 @@ App.WizardStep2Controller = Em.Controller.extend({
       return true;
     }
 
-    var self = this;
-    var method = App.testMode ? 'GET' : 'POST';
-    var url = App.testMode ? '/data/wizard/bootstrap/bootstrap.json' : App.apiPrefix + '/bootstrap';
-
-    $.ajax({
-      type: method,
-      url: url,
-      data: bootStrapData,
-      timeout: App.timeout,
-      contentType: 'application/json',
-      success: function (data) {
-        console.log("TRACE: POST bootstrap succeeded");
-        var requestId = data.requestId;
-        self.set('bootRequestId',requestId);
-        App.router.send('next');
-      },
-      error: function () {
-        console.log("ERROR: POST bootstrap failed");
-        alert('Bootstrap call failed.  Please try again.');
-      }
-    });
+    var requestId = App.get('router.installerController').launchBootstrap(bootStrapData);
+    if(requestId) {
+    this.set('bootRequestId',requestId);
+    App.router.send('next');
+    }
   },
 
   manualInstallPopup: function (event) {

@@ -39,6 +39,10 @@ App.WizardStep3Controller = Em.Controller.extend({
     return !(this.hosts.someProperty('isChecked', true));
   }.property('hosts.@each.isChecked'),
 
+  isRetryDisabled: function () {
+    return !(this.get('bootHosts').someProperty('bootStatus', 'FAILED') && !this.get('isSubmitDisabled'));
+  }.property('bootHosts.@each.bootStatus','isSubmitDisabled'),
+
   mockData: require('data/mock/step3_hosts'),
   mockRetryData: require('data/mock/step3_pollData'),
 
@@ -70,7 +74,7 @@ App.WizardStep3Controller = Em.Controller.extend({
 
   loadStep: function () {
     console.log("TRACE: Loading step3: Confirm Hosts");
-    if(!this.get('hosts').length){
+    if (!this.get('hosts').length) {
       this.clearStep();
       var hosts = this.loadHosts();
       // hosts.setEach('bootStatus', 'RUNNING');
@@ -149,7 +153,7 @@ App.WizardStep3Controller = Em.Controller.extend({
       onPrimary: function () {
         App.router.send('removeHosts', hosts);
         self.hosts.removeObjects(hosts);
-        if(!self.hosts.length){
+        if (!self.hosts.length) {
           self.set('isSubmitDisabled', true);
         }
         this.hide();
@@ -174,36 +178,30 @@ App.WizardStep3Controller = Em.Controller.extend({
     }
   },
 
-  retryHosts: function (hosts) {
-    var self = this;
-
-    App.ModalPopup.show({
-      header: Em.I18n.t('installer.step3.hosts.retry.popup.header'),
-      onPrimary: function () {
-        hosts.forEach(function (_host) {
-          console.log('Retrying:  ' + _host.name);
-        });
-
-        //TODO: uncomment below code to hookup with @GET bootstrap API
-        self.set('bootHosts', hosts);
-        if (self.get('content.hosts.manualInstall') !== true) {
-          self.doBootstrap();
-        } else {
-          self.isHostsRegistered();
-        }
-        this.hide();
-      },
-      body: Em.I18n.t('installer.step3.hosts.retry.popup.body')
-    });
-  },
-
   retryHost: function (hostInfo) {
     this.retryHosts([hostInfo]);
   },
 
+  retryHosts: function (hosts) {
+    var bootStrapData = JSON.stringify({'verbose': true, 'sshKey': this.get('content.hosts.sshKey'), hosts: hosts.mapProperty('name')});
+    this.numPolls = 0;
+    this.set('registrationAttempts', null);
+    if (this.get('content.hosts.manualInstall') !== true) {
+      var requestId = App.router.get('installerController').launchBootstrap(bootStrapData);
+      this.set('content.hosts.bootRequestId', requestId);
+      this.doBootstrap();
+    } else {
+      this.isHostsRegistered();
+    }
+  },
+
   retrySelectedHosts: function () {
-    if (!this.get('noHostsSelected')) {
-      var selectedHosts = this.get('visibleHosts').filterProperty('isChecked', true);
+    if (!this.get('isRetryDisabled')) {
+      var selectedHosts = this.get('bootHosts').filterProperty('bootStatus', 'FAILED');
+      selectedHosts.forEach(function (_host) {
+        _host.set('bootStatus', 'RUNNING');
+        _host.set('bootLog', 'Retrying ...');
+      }, this);
       this.retryHosts(selectedHosts);
     }
   },
@@ -258,7 +256,7 @@ App.WizardStep3Controller = Em.Controller.extend({
     //TODO: uncomment following line after the hook up with the API call
     console.log('stopBootstrap() called');
     // this.set('isSubmitDisabled',false);
-    Ember.run.later(this, function(){
+    Ember.run.later(this, function () {
       this.startRegistration();
     }, 1000);
   },
@@ -416,7 +414,7 @@ App.WizardStep3Controller = Em.Controller.extend({
           var self = this;
           var button = $(this.get('element')).find('.textTrigger');
           button.click(function () {
-            if(self.get('isTextArea')){
+            if (self.get('isTextArea')) {
               $(this).text('click to highlight');
             } else {
               $(this).text('press CTRL+C');
@@ -437,7 +435,7 @@ App.WizardStep3Controller = Em.Controller.extend({
         },
         isTextArea: false,
         textArea: Em.TextArea.extend({
-          didInsertElement: function(){
+          didInsertElement: function () {
             var element = $(this.get('element'));
             element.width($(this.get('parentView').get('element')).width() - 10);
             element.height($(this.get('parentView').get('element')).height());
@@ -445,7 +443,7 @@ App.WizardStep3Controller = Em.Controller.extend({
             element.css('resize', 'none');
           },
           readOnly: true,
-          value: function(){
+          value: function () {
             return this.get('content');
           }.property('content')
         })

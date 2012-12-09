@@ -155,6 +155,12 @@ App.db.setBootStatus = function (status) {
   localStorage.setObject('ambari', App.db.data);
 };
 
+App.db.setSshKey = function (sshKey) {
+  App.db.data = localStorage.getObject('ambari');
+  App.db.data.Installer.sshKey = sshKey;
+  localStorage.setObject('ambari', App.db.data);
+};
+
 App.db.removeHosts = function (hostInfo) {
   console.log('TRACE: Entering db:setSoftRepo function');
   var hostList = App.db.getHosts();
@@ -332,6 +338,11 @@ App.db.getBootRequestId = function () {
   console.log('TRACE: Entering db:getBootRequestId function');
   App.db.data = localStorage.getObject('ambari');
   return App.db.data.Installer.bootRequestId;
+};
+
+App.db.getSshKey = function () {
+  App.db.data = localStorage.getObject('ambari');
+  return  App.db.data.Installer.sshKey;
 };
 
 App.db.getService = function () {

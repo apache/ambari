@@ -111,7 +111,7 @@ App.InstallerController = App.WizardController.extend({
       hostsInfo.localRepoPath = '';
     }
     hostsInfo.bootRequestId = App.db.getBootRequestId() || null;
-    hostsInfo.sshKey = '';
+    hostsInfo.sshKey = App.db.getSshKey() || '';
     hostsInfo.passphrase = '';
     hostsInfo.confirmPassphrase = '';
 
@@ -133,6 +133,7 @@ App.InstallerController = App.WizardController.extend({
     App.db.setHosts(stepController.getHostInfo());
     if (stepController.get('manualInstall') === false) {
       App.db.setInstallType({installType: 'ambari' });
+      App.db.setSshKey(stepController.get('sshKey'));
     } else {
       App.db.setInstallType({installType: 'manual' });
     }
@@ -570,6 +571,7 @@ App.InstallerController = App.WizardController.extend({
     this.set('content.advancedServiceConfig', configs);
     App.db.setAdvancedServiceConfig(configs);
   },
+
   /**
    * Generate serviceProperties save it to localdata
    * called form stepController step6WizardController
@@ -607,6 +609,36 @@ App.InstallerController = App.WizardController.extend({
     return serviceComponents;
   },
 
+
+  /*
+   Bootstrap selected hosts.
+   */
+  launchBootstrap: function (bootStrapData) {
+    var self = this;
+    var requestId = null;
+    var method = App.testMode ? 'GET' : 'POST';
+    var url = App.testMode ? '/data/wizard/bootstrap/bootstrap.json' : App.apiPrefix + '/bootstrap';
+    $.ajax({
+      type: method,
+      url: url,
+      async: false,
+      data: bootStrapData,
+      timeout: App.timeout,
+      contentType: 'application/json',
+      success: function (data) {
+        console.log("TRACE: POST bootstrap succeeded");
+        requestId = data.requestId;
+      },
+      error: function () {
+        console.log("ERROR: POST bootstrap failed");
+        alert('Bootstrap call failed.  Please try again.');
+      },
+      statusCode: require('data/statusCodes')
+    });
+    return requestId;
+  },
+
+
   /**
    * Clear all temporary data
    */
@@ -620,5 +652,6 @@ App.InstallerController = App.WizardController.extend({
     App.db.setAllHostNames(undefined);
   }
 
-});
+})
+;
 
