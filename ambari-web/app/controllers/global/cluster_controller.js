@@ -82,7 +82,7 @@ App.ClusterController = Em.Controller.extend({
    *
    * If null is returned, it means GANGLIA service is not installed.
    */
-  gangliaUrl:function () {
+  gangliaUrl: function () {
     if (App.testMode) {
       return 'http://gangliaserver/ganglia/?t=yes';
     } else {
@@ -96,6 +96,10 @@ App.ClusterController = Em.Controller.extend({
           if (gangliaSvcComponent) {
             var hostName = gangliaSvcComponent.get('host.hostName');
             if (hostName) {
+              var host = App.Host.find(hostName);
+              if (host) {
+                hostName = host.get('publicHostName');
+              }
               return "http://" + hostName + "/ganglia";
             }
           }
@@ -103,7 +107,7 @@ App.ClusterController = Em.Controller.extend({
       }
       return null;
     }
-  }.property('App.router.updateController.isUpdated'),
+  }.property('App.router.updateController.isUpdated', 'dataLoadList.hosts'),
 
   /**
    * Provides the URL to use for NAGIOS server. This URL
@@ -126,6 +130,10 @@ App.ClusterController = Em.Controller.extend({
           if (nagiosSvcComponent) {
             var hostName = nagiosSvcComponent.get('host.hostName');
             if (hostName) {
+              var host = App.Host.find(hostName);
+              if (host) {
+                hostName = host.get('publicHostName');
+              }
               return "http://" + hostName + "/nagios";
             }
           }
@@ -133,7 +141,7 @@ App.ClusterController = Em.Controller.extend({
       }
       return null;
     }
-  }.property('App.router.updateController.isUpdated'),
+  }.property('App.router.updateController.isUpdated', 'dataLoadList.hosts'),
 
   isNagiosInstalled:function () {
     if (App.testMode) {

@@ -20,6 +20,7 @@ App.hostsMapper = App.QuickDataMapper.create({
   config: {
     id: 'Hosts.host_name',
     host_name: 'Hosts.host_name',
+    public_host_name: 'Hosts.public_host_name',
     cluster_id: 'Hosts.cluster_name',// 1
     components_key: 'host_components',
     components_type: 'array',

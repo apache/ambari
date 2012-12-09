@@ -22,6 +22,7 @@ var misc = require('utils/misc');
 
 App.Host = DS.Model.extend({
   hostName: DS.attr('string'),
+  publicHostName: DS.attr('string'),
   cluster: DS.belongsTo('App.Cluster'),
   components: DS.hasMany('App.Component'),
   hostComponents: DS.hasMany('App.HostComponent'),

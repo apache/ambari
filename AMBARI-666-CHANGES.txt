@@ -424,6 +424,9 @@ AMBARI-666 branch (unreleased changes)
 
   IMPROVEMENTS
 
+  AMBARI-1033. Nagios and Ganglia links should use public host names in URLs.
+  (Srimanth Gunturi via yusaku)
+
   AMBARI-1030. Metrics links in web ui should link to Ganglia UI. (Srimanth
   Gunturi via yusaku)
 
