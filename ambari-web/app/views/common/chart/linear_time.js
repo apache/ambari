@@ -222,10 +222,12 @@ App.ChartLinearTimeView = Ember.View.extend({
             var chartOverlayId = "#" + this.id + "-overlay";
             var xaxisElementId = "#" + this.id + "-xaxis";
             var yaxisElementId = "#" + this.id + "-yaxis";
+            var legendElementId = "#" + this.id + "-legend";
             var chartElement = document.querySelector(chartId);
             var overlayElement = document.querySelector(chartOverlayId);
             var xaxisElement = document.querySelector(xaxisElementId);
             var yaxisElement = document.querySelector(yaxisElementId);
+            var legendElement = document.querySelector(legendElementId);
 
             this._graph = new Rickshaw.Graph({
               height: 150,
@@ -249,24 +251,24 @@ App.ChartLinearTimeView = Ember.View.extend({
 
             overlayElement.addEventListener('mousemove', function () {
               $(xaxisElement).removeClass('hide');
-              $(yaxisElement).removeClass('hide');
+              $(legendElement).removeClass('hide');
               $(chartElement).children("div").removeClass('hide');
             });
             overlayElement.addEventListener('mouseout', function () {
-              $(xaxisElement).addClass('hide');
-              $(yaxisElement).addClass('hide');
-              $(chartElement).children("div").addClass('hide');
+              //$(xaxisElement).addClass('hide');
+              $(legendElement).addClass('hide');
+              //$(chartElement).children("div").addClass('hide');
             });
             // Hide axes
             this._graph.onUpdate(function () {
-              $(xaxisElement).addClass('hide');
-              $(yaxisElement).addClass('hide');
-              $(chartElement).children('div').addClass('hide');
+              //$(xaxisElement).addClass('hide');
+              $(legendElement).addClass('hide');
+              //$(chartElement).children('div').addClass('hide');
             });
 
             new Rickshaw.Graph.Legend({
               graph: this._graph,
-              element: xaxisElement
+              element: legendElement
             });
 
             // The below code will be needed if we ever use curve

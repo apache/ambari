@@ -42,7 +42,6 @@ App.MainHostController = Em.ArrayController.extend(App.Pagination, {
         componentName: item.get('componentName'),
         checkedForHostFilter: item.get('checkedForHostFilter')
       });
-      console.log(o);
       ret.push(o);
     });
     return ret;

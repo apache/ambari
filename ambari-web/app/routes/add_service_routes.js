@@ -41,8 +41,10 @@ module.exports = Em.Route.extend({
       var controller = router.get('addServiceController');
       controller.setCurrentStep('1', false);
       controller.set('hideBackButton', true);
-      controller.loadAllPriorSteps();
-      controller.connectOutlet('wizardStep4', controller.get('content.services'));
+      controller.dataLoading().done(function () {
+        controller.loadAllPriorSteps();
+        controller.connectOutlet('wizardStep4', controller.get('content.services'));
+      })
     },
     next: function (router) {
       var addServiceController = router.get('addServiceController');
@@ -60,9 +62,11 @@ module.exports = Em.Route.extend({
       console.log('in addService.step2:connectOutlets');
       var controller = router.get('addServiceController');
       controller.setCurrentStep('2', false);
-      controller.loadAllPriorSteps();
       controller.set('hideBackButton', false);
-      controller.connectOutlet('wizardStep5', controller.get('content'));
+      controller.dataLoading().done(function () {
+        controller.loadAllPriorSteps();
+        controller.connectOutlet('wizardStep5', controller.get('content'));
+      })
 
     },
     back: Em.Router.transitionTo('step1'),
@@ -81,8 +85,10 @@ module.exports = Em.Route.extend({
       console.log('in addService.step3:connectOutlets');
       var controller = router.get('addServiceController');
       controller.setCurrentStep('3', false);
-      controller.loadAllPriorSteps();
-      controller.connectOutlet('wizardStep6', controller.get('content'));
+      controller.dataLoading().done(function () {
+        controller.loadAllPriorSteps();
+        controller.connectOutlet('wizardStep6', controller.get('content'));
+      })
     },
     back: function(router){
       var controller = router.get('addServiceController');
@@ -112,8 +118,10 @@ module.exports = Em.Route.extend({
       console.log('in addService.step4:connectOutlets');
       var controller = router.get('addServiceController');
       controller.setCurrentStep('4', false);
-      controller.loadAllPriorSteps();
-      controller.connectOutlet('wizardStep7', controller.get('content'));
+      controller.dataLoading().done(function () {
+        controller.loadAllPriorSteps();
+        controller.connectOutlet('wizardStep7', controller.get('content'));
+      })
     },
     back: Em.Router.transitionTo('step3'),
     next: function (router) {
@@ -130,8 +138,10 @@ module.exports = Em.Route.extend({
       console.log('in addService.step5:connectOutlets');
       var controller = router.get('addServiceController');
       controller.setCurrentStep('5', false);
-      controller.loadAllPriorSteps();
-      controller.connectOutlet('wizardStep8', controller.get('content'));
+      controller.dataLoading().done(function () {
+        controller.loadAllPriorSteps();
+        controller.connectOutlet('wizardStep8', controller.get('content'));
+      })
     },
     back: Em.Router.transitionTo('step4'),
     next: function (router) {
@@ -149,8 +159,10 @@ module.exports = Em.Route.extend({
       console.log('in addService.step6:connectOutlets');
       var controller = router.get('addServiceController');
       controller.setCurrentStep('6', false);
-      controller.loadAllPriorSteps();
-      controller.connectOutlet('wizardStep9', controller.get('content'));
+      controller.dataLoading().done(function () {
+        controller.loadAllPriorSteps();
+        controller.connectOutlet('wizardStep9', controller.get('content'));
+      })
     },
     back: Em.Router.transitionTo('step5'),
     retry: function(router,context) {
@@ -176,8 +188,10 @@ module.exports = Em.Route.extend({
       console.log('in addService.step7:connectOutlets');
       var controller = router.get('addServiceController');
       controller.setCurrentStep('7', false);
-      controller.loadAllPriorSteps();
-      controller.connectOutlet('wizardStep10', controller.get('content'));
+      controller.dataLoading().done(function () {
+        controller.loadAllPriorSteps();
+        controller.connectOutlet('wizardStep10', controller.get('content'));
+      })
     },
     back: Em.Router.transitionTo('step6'),
     complete: function (router, context) {

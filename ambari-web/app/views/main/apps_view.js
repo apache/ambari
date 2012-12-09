@@ -345,8 +345,8 @@ App.MainAppsView = Em.View.extend({
       "oLanguage": {
         "sSearch": "Search:",
         "sLengthMenu": "Show: _MENU_",
-        "sInfo": "_START_ - _END_ of _TOTAL_ (_TOTAL_ total)",
-        "sInfoEmpty": "0 - _END_ of _TOTAL_ (_TOTAL_ total)",
+        "sInfo": "_START_ - _END_ of _TOTAL_",
+        "sInfoEmpty": "0 - _END_ of _TOTAL_",
         "sInfoFiltered": "",
         "oPaginate":{
           "sPrevious": "<i class='icon-arrow-left'></i>",
@@ -366,7 +366,7 @@ App.MainAppsView = Em.View.extend({
         { "sType":"ambari-bandwidth" },
         { "sType":"ambari-bandwidth" },
         null,
-        { "sType":"ambari-date" }
+        { "sType":"ambari-datetime" }
       ]
     });
     this.set('oTable', oTable);
@@ -484,7 +484,7 @@ App.MainAppsView = Em.View.extend({
    * Filter-field for RunDate
    */
   rundateSelectView: Em.Select.extend({
-    content: ['Any', 'Running Now', 'Past 1 Day', 'Past 2 Days', 'Past 7 Days', 'Past 14 Days', 'Past 30 Days'],
+    content: ['Any', 'Running Now', 'Past 1 Day', 'Past 2 Days', 'Past 7 Days', 'Past 14 Days', 'Past 30 Days', 'Custom'],
     selected: 'Any',
     classNames:['input-medium'],
     elementId: 'rundate_filter',
@@ -495,7 +495,143 @@ App.MainAppsView = Em.View.extend({
       else {
         this.$().closest('th').removeClass('notActive');
       }
-      this.get('parentView').get('applyFilter')(this.get('parentView'), 9);
+
+      if (this.get('selection') == 'Custom') {
+        this.customFilter();
+      } else {
+        this.get('parentView').get('applyFilter')(this.get('parentView'), 9);
+      }
+    },
+
+    /**
+     * Custom filter for RunDate
+     */
+    customFilter: function(){
+      var rundateSelect = this;
+      App.ModalPopup.show({
+        lowerBound: null,
+        upperBound: null,
+        equal: null,
+        header: Em.I18n.t('apps.filters.customRunDate'),
+        bodyClass: Ember.View.extend({
+          templateName: require('templates/main/apps/custom_rundate_popup'),
+
+          lowerBoundView: Ember.TextField.extend({
+            elementId: 'lowerBound',
+            classNames: 'lowerBound',
+            attributeBindings:['readonly'],
+            readonly: true,
+            didInsertElement: function() {
+              var textField = this;
+              var popupBody = this.get('parentView');
+              this.$().datetimepicker({
+                dateFormat: 'D, M dd, yy',
+                timeFormat: 'hh:mm',
+                maxDate: new Date(),
+                onClose:function (dateText, inst) {
+                  var endDateTextBox = $('#upperBound');
+                  if (endDateTextBox.val() != '') {
+                    var testStartDate = new Date(dateText);
+                    var testEndDate = new Date(endDateTextBox.val());
+                    if (testStartDate > testEndDate)
+                      endDateTextBox.val(dateText);
+                  } else {
+                    endDateTextBox.val(dateText);
+                  }
+                },
+                onSelect:function (selectedDateTime) {
+                  var start = $(this).datetimepicker('getDate');
+                  $('#upperBound').datetimepicker('option', 'minDate', new Date(start.getTime()));
+                  popupBody.get('parentView').set('lowerBound', selectedDateTime);
+                }
+              });
+            }
+          }),
+
+          upperBoundView: Ember.TextField.extend({
+            elementId: 'upperBound',
+            classNames: 'upperBound',
+            attributeBindings:['readonly'],
+            readonly: true,
+            didInsertElement: function() {
+              var textField = this;
+              var popupBody = this.get('parentView');
+              this.$().datetimepicker({
+                dateFormat: 'D, M dd, yy',
+                timeFormat: 'hh:mm',
+                maxDate: new Date(),
+                onClose:function (dateText, inst) {
+                  var startDateTextBox = $('#lowerBound');
+                  if (startDateTextBox.val() != '') {
+                    var testStartDate = new Date(startDateTextBox.val());
+                    var testEndDate = new Date(dateText);
+                    if (testStartDate > testEndDate)
+                      startDateTextBox.val(dateText);
+                  } else {
+                    startDateTextBox.val(dateText);
+                  }
+                },
+                onSelect:function (selectedDateTime) {
+                  var end = $(this).datetimepicker('getDate');
+                  $('#lowerBound').datetimepicker('option', 'maxDate', new Date(end.getTime()));
+                  popupBody.get('parentView').set('upperBound', selectedDateTime);
+                }
+              });
+            }
+          }),
+
+          equalView: Ember.TextField.extend({
+            attributeBindings:['readonly'],
+            readonly: true,
+            didInsertElement: function() {
+              var textField = this;
+              var popupBody = this.get('parentView');
+              this.$().datetimepicker({
+                dateFormat: 'D, M dd, yy',
+                timeFormat: 'hh:mm',
+                maxDate: new Date(),
+                onSelect:function (selectedDateTime) {
+                  popupBody.get('parentView').set('equal', selectedDateTime);
+                }
+              });
+            }
+          })
+        }),
+        applyFilter:function(lowerBound, upperBound, equal) {
+          if (arguments.length == 1) {
+            equal = new Date(arguments[0]).getTime();
+            jQuery('#custom_rundate_filter').val(equal);
+          } else if (arguments.length == 2) {
+            lowerBound = new Date(arguments[0]).getTime();
+            upperBound = new Date(arguments[1]).getTime();
+            var range = [lowerBound, upperBound];
+            jQuery('#custom_rundate_filter').val(range);
+          }
+          rundateSelect.get('parentView').get('applyFilter')(rundateSelect.get('parentView'), 9);
+          if (arguments.length == 0) {
+            rundateSelect.$().closest('th').addClass('notActive');
+          }
+          else {
+            rundateSelect.$().closest('th').removeClass('notActive');
+          }
+        },
+        onPrimary: function() {
+          if (this.get('lowerBound') && this.get('upperBound')) {
+            if (this.get('lowerBound') === this.get('upperBound')) {
+              alert('Range points must be different!');
+            } else {
+              this.applyFilter(this.get('lowerBound'), this.get('upperBound'));
+              this.hide();
+            }
+          } else if (this.get('equal')) {
+            this.applyFilter(this.get('equal'));
+            this.hide();
+          } else {
+            alert('Please specify date and time range or exact date and time!');
+          }
+        },
+        secondary : null
+      });
     }
   }),
   /**
@@ -642,7 +778,7 @@ App.MainAppsView = Em.View.extend({
       '<li><label class="checkbox">' +
       '{{view Ember.Checkbox checkedBinding="view.allComponentsChecked"}} All</label></li>'+
       '{{#each user in view.users}}<li><label class="checkbox">' +
-      '{{view Ember.Checkbox checkedBinding="user.checked"}}{{user.name}}'+
+      '{{view Ember.Checkbox checkedBinding="user.checked"}} {{user.name}}'+
       '</label></li>{{/each}}'+
       '<li>' +
       '<button class="btn" {{action "closeFilter" target="view"}}>' +

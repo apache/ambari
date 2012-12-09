@@ -97,7 +97,7 @@ module.exports = Em.Route.extend({
 
     showDetails:function (router, event) {
       router.get('mainHostDetailsController').setBack(true);
-      router.transitionTo('hostDetails.index', event.context)
+      router.transitionTo('hostDetails.summary', event.context)
     },
 
     addHost:function (router) {

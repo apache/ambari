@@ -32,8 +32,8 @@ jQuery.extend(jQuery.fn.dataTableExt.oSort, {
   },
 
   // @see utils/date.js
-  "ambari-date-pre": function (date_string) {
-    date_string = $(date_string).text(); // strip Ember script tags
+  "ambari-datetime-pre": function (date_string) {
+    date_string = $.trim(date_string.replace(/<script[^>]*?>.*<\/script>/g, ''));
     var date = date_string.substring(4);
     var month = date.substring(1, 4);
     var day = date.substring(5, 7);
@@ -47,11 +47,11 @@ jQuery.extend(jQuery.fn.dataTableExt.oSort, {
     return year + month + day + hours + minutes;
   },
 
-  "ambari-date-asc": function (a, b) {
+  "ambari-datetime-asc": function (a, b) {
     return a - b;
   },
 
-  "ambari-date-desc": function (a, b) {
+  "ambari-datetime-desc": function (a, b) {
     return b - a;
   },
   /**
@@ -157,44 +157,49 @@ jQuery.extend($.fn.dataTableExt.afnFiltering.push(
         {iColumn: '0', elementId: 'star_filter', type: 'star'},
         {iColumn: '2', elementId: 'cpu_filter', type: 'number'},
         {iColumn: '4', elementId: 'user_filter', type: 'multiple'},
+        {iColumn: '6', elementId: 'components_filter', type: 'multiple'},
         {iColumn: '5', elementId: 'jobs_filter', type: 'number' },
         {iColumn: '3', elementId: 'ram_filter', type: 'ambari-bandwidth' },
         {iColumn: '6', elementId: 'input_filter', type: 'ambari-bandwidth' },
         {iColumn: '7', elementId: 'output_filter', type: 'ambari-bandwidth' },
         {iColumn: '8', elementId: 'duration_filter', type: 'time' },
-        //{iColumn: '9', elementId: 'rundate_filter', type: 'ambari-date' }
+        {iColumn: '9', elementId: 'rundate_filter', type: 'ambari-datetime' }
       ];
       var match = true;
       for (var i = 0; i < inputFilters.length; i++) {
+        var cellValue = jQuery('#' + inputFilters[i].elementId).val();
+        if(cellValue === undefined){
+          continue;
+        }
         switch (inputFilters[i].type) {
-          case 'ambari-date':
-            if (jQuery('#' + inputFilters[i].elementId).val() !== 'Any' && match) {
-              dateFilter(jQuery('#' + inputFilters[i].elementId).val(), aData[inputFilters[i].iColumn]);
+          case 'ambari-datetime':
+            if (cellValue !== 'Any' && match) {
+              ambariDateFilter(cellValue, aData[inputFilters[i].iColumn]);
             }
             break;
           case 'number':
-            if (jQuery('#' + inputFilters[i].elementId).val() && match) {
-              numberFilter(jQuery('#' + inputFilters[i].elementId).val(), aData[inputFilters[i].iColumn]);
+            if (cellValue && match) {
+              numberFilter(cellValue, aData[inputFilters[i].iColumn]);
             }
             break;
           case 'multiple':
-            if (jQuery('#' + inputFilters[i].elementId).val() && match) {
-              multipleFilter(jQuery('#' + inputFilters[i].elementId).val(), aData[inputFilters[i].iColumn]);
+            if (cellValue && match) {
+              multipleFilter(cellValue, aData[inputFilters[i].iColumn]);
             }
             break;
           case 'time':
-            if (jQuery('#' + inputFilters[i].elementId).val() && match) {
-              timeFilter(jQuery('#' + inputFilters[i].elementId).val(), aData[inputFilters[i].iColumn]);
+            if (cellValue && match) {
+              timeFilter(cellValue, aData[inputFilters[i].iColumn]);
             }
             break;
           case 'ambari-bandwidth':
-            if (jQuery('#' + inputFilters[i].elementId).val() && match) {
-              bandwidthFilter(jQuery('#' + inputFilters[i].elementId).val(), aData[inputFilters[i].iColumn]);
+            if (cellValue && match) {
+              bandwidthFilter(cellValue, aData[inputFilters[i].iColumn]);
             }
             break;
           case 'star':
-            if (jQuery('#' + inputFilters[i].elementId).val() && match) {
-              starFilter(jQuery('#' + inputFilters[i].elementId).val(), aData[inputFilters[i].iColumn]);
+            if (cellValue && match) {
+              starFilter(cellValue, aData[inputFilters[i].iColumn]);
             }
             break;
         }
@@ -211,7 +216,7 @@ jQuery.extend($.fn.dataTableExt.afnFiltering.push(
         match = false;
         rowValue = (jQuery(rowValue).text()) ? jQuery(rowValue).text() : rowValue;
         for (var i = 0; i < options.length; i++) {
-          if (options[i] === rowValue) match = true;
+          if (rowValue.indexOf(options[i]) !== -1) match = true;
         }
       }
 
@@ -288,41 +293,58 @@ jQuery.extend($.fn.dataTableExt.afnFiltering.push(
         }
       }
 
-      function dateFilter(condition, rowValue) {
-        refinedRowValue = $.trim(rowValue.replace(/<script[^>]*?>.*<\/script>/g, ''));
-        var nowTime = new Date().getTime();
-        var oneDayPast = nowTime - 86400000;
-        var twoDaysPast = nowTime - 172800000;
-        var sevenDaysPast = nowTime - 604800000;
-        var fourteenDaysPast = nowTime - 1209600000;
-        var thirtyDaysPast = nowTime - 2592000000;
-        rowValue = (jQuery(rowValue).text()) ? jQuery(rowValue).text() : rowValue;
-        var lastChar = rowValue.charAt(rowValue.length - 1);
-        rowValue = lastChar === '*' ? rowValue.substr(0, rowValue.length - 1) : rowValue;
-        rowValue = new Date(refinedRowValue).getTime();
-        match = false;
-        switch (condition) {
-          case 'Any':
-            match = true;
-            break;
-          case 'Past 1 Day':
-            if (nowTime > rowValue && rowValue > oneDayPast) match = true;
-            break;
-          case 'Past 2 Days':
-            if (nowTime > rowValue && rowValue > twoDaysPast) match = true;
-            break;
-          case 'Past 7 Days':
-            if (nowTime > rowValue && rowValue > sevenDaysPast) match = true;
-            break;
-          case 'Past 14 Days':
-            if (nowTime > rowValue && rowValue > fourteenDaysPast) match = true;
-            break;
-          case 'Past 30 Days':
-            if (nowTime > rowValue && rowValue > thirtyDaysPast) match = true;
-            break;
-          case 'Running Now':
-            if (lastChar === '*') match = true;
-            break;
+      function ambariDateFilter(condition, rowValue) {
+        if (typeof rowValue !== 'undefined') {
+          var refinedRowValue = $.trim(rowValue.replace(/<script[^>]*?>.*<\/script>/g, '').replace('&nbsp;', ''));
+
+          var nowTime = new Date().getTime();
+          var oneDayPast = nowTime - 86400000;
+          var twoDaysPast = nowTime - 172800000;
+          var sevenDaysPast = nowTime - 604800000;
+          var fourteenDaysPast = nowTime - 1209600000;
+          var thirtyDaysPast = nowTime - 2592000000;
+          rowValue = (jQuery(rowValue).text()) ? jQuery(rowValue).text() : rowValue;
+          var lastChar = rowValue.charAt(rowValue.length - 1);
+          rowValue = lastChar === '*' ? rowValue.substr(0, rowValue.length - 1) : rowValue;
+          rowValue = new Date(refinedRowValue).getTime();
+
+          match = false;
+          switch (condition) {
+            case 'Any':
+              match = true;
+              break;
+            case 'Past 1 Day':
+              if (nowTime > rowValue && rowValue > oneDayPast) match = true;
+              break;
+            case 'Past 2 Days':
+              if (nowTime > rowValue && rowValue > twoDaysPast) match = true;
+              break;
+            case 'Past 7 Days':
+              if (nowTime > rowValue && rowValue > sevenDaysPast) match = true;
+              break;
+            case 'Past 14 Days':
+              if (nowTime > rowValue && rowValue > fourteenDaysPast) match = true;
+              break;
+            case 'Past 30 Days':
+              if (nowTime > rowValue && rowValue > thirtyDaysPast) match = true;
+              break;
+            case 'Running Now':
+              if (lastChar === '*') match = true;
+              break;
+            case 'Custom':
+              var options = jQuery('#custom_rundate_filter').val();
+              var optionsArray = options.split(',');
+
+              if (optionsArray.length == 1) {
+                equal = optionsArray[0];
+                if (equal == rowValue) match = true;
+              } else if (optionsArray.length == 2) {
+                lowerBound = optionsArray[0];
+                upperBound = optionsArray[1];
+                if (upperBound > rowValue && rowValue > lowerBound) match = true;
+              }
+              break;
+          }
         }
       }
 

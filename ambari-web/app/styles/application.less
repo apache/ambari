@@ -498,7 +498,13 @@ a:focus {
     .summary {
       line-height: 21px;
     }
-
+    .clearfix {
+      padding-bottom: 8px;
+    }
+    #hdfs-info, #mapreduce-info, #hbase-info {
+      display: none;
+      position: relative;
+    }
     table.table {
       margin-top: 14px;
       color: #7b7b7b;
@@ -515,7 +521,7 @@ a:focus {
 
     .dashboard-mini-chart {
       right: 0;
-      top: 27px;
+      top: 7px;
       position: absolute;
       overflow: visible; // for quick links
       text-align: center;
@@ -539,6 +545,8 @@ a:focus {
 #summary-info {
   border-top: none;
   border-collapse: collapse;
+  color: #7B7B7B;
+  font-size: 13px;
 
   td.summary-label {
     width: 180px;
@@ -661,6 +669,12 @@ a:focus {
     top: 180px;
     left: 35%;
     width: 30%;
+    z-index: 2;
+  }
+  .chart-legend {
+    position: absolute;
+    top: 180px;
+    left: 35%;
     z-index: 2;
   }
   .rickshaw_legend {

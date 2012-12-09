@@ -15,11 +15,9 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 }}
-<div id="{{unbound view.id}}-container" class="chart-container">
-  <div id="{{unbound view.id}}-yaxis" class="chart-y-axis"></div>
-  <div id="{{unbound view.id}}-xaxis" class="chart-x-axis"></div>
-  <div id="{{unbound view.id}}-legend" class="chart-legend"></div>
-  <div id="{{unbound view.id}}-overlay" class="chart-overlay"></div>
-  <div id="{{unbound view.id}}-chart" class="chart"></div>
-  <div id="{{unbound view.id}}-title" class="chart-title">{{view.title}}</div>
-</div>
+
+<p>Select date and time range:</p>
+From {{view view.lowerBoundView}}
+To {{view view.upperBoundView}}
+<p>either specify exact date and time:</p>
+Equal {{view view.equalView}}

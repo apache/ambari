@@ -25,7 +25,7 @@
                 "desired_state" : "STARTED",
                 "state" : "STARTED",
                 "component_name" : "NAGIOS_SERVER",
-                "host_name" : "dev.hortonworks.com"
+                "host_name" : "dev1.hortonworks.com"
               },
               "component" : [
                 {
@@ -66,7 +66,7 @@
                 "desired_state" : "STARTED",
                 "state" : "STARTED",
                 "component_name" : "GANGLIA_MONITOR",
-                "host_name" : "dev.hortonworks.com"
+                "host_name" : "dev1.hortonworks.com"
               },
               "component" : [
                 {
@@ -98,7 +98,7 @@
                 "desired_state" : "STARTED",
                 "state" : "STARTED",
                 "component_name" : "GANGLIA_SERVER",
-                "host_name" : "dev.hortonworks.com"
+                "host_name" : "dev1.hortonworks.com"
               },
               "component" : [
                 {
@@ -139,7 +139,7 @@
                 "desired_state" : "STARTED",
                 "state" : "STARTED",
                 "component_name" : "NAMENODE",
-                "host_name" : "dev.hortonworks.com"
+                "host_name" : "dev1.hortonworks.com"
               },
               "metrics" : {
                 "boottime" : 1.352763164E9,
@@ -341,7 +341,7 @@
                 "desired_state" : "STARTED",
                 "state" : "STARTED",
                 "component_name" : "SECONDARY_NAMENODE",
-                "host_name" : "dev.hortonworks.com"
+                "host_name" : "dev1.hortonworks.com"
               },
               "component" : [
                 {
@@ -373,7 +373,7 @@
                 "desired_state" : "STARTED",
                 "state" : "STARTED",
                 "component_name" : "DATANODE",
-                "host_name" : "dev.hortonworks.com"
+                "host_name" : "dev1.hortonworks.com"
               },
               "metrics" : {
                 "boottime" : 1.352763164E9,
@@ -516,7 +516,7 @@
                 "desired_state" : "INSTALLED",
                 "state" : "INSTALLED",
                 "component_name" : "HDFS_CLIENT",
-                "host_name" : "dev.hortonworks.com"
+                "host_name" : "dev1.hortonworks.com"
               },
               "component" : [
                 {
@@ -557,7 +557,7 @@
                 "desired_state" : "INSTALLED",
                 "state" : "INSTALLED",
                 "component_name" : "MAPREDUCE_CLIENT",
-                "host_name" : "dev.hortonworks.com"
+                "host_name" : "dev1.hortonworks.com"
               },
               "component" : [
                 {
@@ -589,7 +589,7 @@
                 "desired_state" : "STARTED",
                 "state" : "STARTED",
                 "component_name" : "JOBTRACKER",
-                "host_name" : "dev.hortonworks.com"
+                "host_name" : "dev1.hortonworks.com"
               },
               "metrics" : {
                 "boottime" : 1.352763164E9,
@@ -786,7 +786,7 @@
                 "desired_state" : "STARTED",
                 "state" : "STARTED",
                 "component_name" : "TASKTRACKER",
-                "host_name" : "dev.hortonworks.com"
+                "host_name" : "dev1.hortonworks.com"
               },
               "metrics" : {
                 "boottime" : 1.352763164E9,
@@ -1031,7 +1031,7 @@
                 "role_id" : "7",
                 "state" : "STARTED",
                 "component_name" : "HBASE_MASTER",
-                "host_name" : "dev.hortonworks.com"
+                "host_name" : "dev1.hortonworks.com"
               },
               "metrics" : {
                 "boottime" : 1.35085737E9,
@@ -1692,7 +1692,7 @@
                 "role_id" : "35",
                 "state" : "STARTED",
                 "component_name" : "HBASE_REGIONSERVER",
-                "host_name" : "dev.hortonworks.com"
+                "host_name" : "dev1.hortonworks.com"
               },
               "metrics" : {
                 "boottime" : 1.35085737E9,

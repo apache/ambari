@@ -56,5 +56,9 @@ App.MainDashboardServiceHbaseView = App.MainDashboardServiceView.extend({
 
   regionServerComponent: function () {
     return App.Component.find().findProperty('componentName', 'HBASE_REGIONSERVER');
-  }.property('components')
+  }.property('components'),
+
+  toggleInfoView: function() {
+    $('#hbase-info').toggle('blind', 1000);
+  }
 });

@@ -21,52 +21,13 @@ require('utils/data_table');
 
 App.MainHostView = Em.View.extend({
   templateName:require('templates/main/host'),
-  filterByName:"",
   controller:function () {
     return App.router.get('mainHostController');
   }.property(),
   content:function () {
     return App.router.get('mainHostController.content');
   }.property('App.router.mainHostController.content'),
-  componentsIds:[1, 2, 3, 4, 5, 6, 7, 8],
   oTable: null,
-  isFilterOpen:false,
-
-//  isApplyDisabled:function () {
-//    return !this.get('isFilterOpen')
-//  }.property('isFilterOpen'),
-
-  btnGroupClass:function () {
-    return this.get('isFilterOpen') ? 'btn-group open' : 'btn-group';
-  }.property('isFilterOpen'),
-
-  applyFilters:function () {
-    this.set('isFilterOpen', false);
-    $(document).unbind('click');
-    App.router.get('mainHostController').filterByComponentsIds();
-  },
-
-  allComponentsChecked:false,
-  toggleAllComponents:function () {
-    this.set('masterComponentsChecked', this.get('allComponentsChecked'));
-    this.set('slaveComponentsChecked', this.get('allComponentsChecked'));
-  }.observes('allComponentsChecked'),
-
-  masterComponentsChecked:false,
-  toggleMasterComponents:function () {
-    var checked = this.get('masterComponentsChecked');
-    this.get('controller.masterComponents').forEach(function (comp) {
-      comp.set('checkedForHostFilter', checked);
-    });
-  }.observes('masterComponentsChecked'),
-
-  slaveComponentsChecked:false,
-  toggleSlaveComponents:function () {
-    var checked = this.get('slaveComponentsChecked');
-    this.get('controller.slaveComponents').forEach(function (comp) {
-      comp.set('checkedForHostFilter', checked);
-    });
-  }.observes('slaveComponentsChecked'),
 
   didInsertElement:function () {
     var oTable = $('#hosts-table').dataTable({
@@ -74,8 +35,8 @@ App.MainHostView = Em.View.extend({
       "oLanguage": {
         "sSearch": "Search:",
         "sLengthMenu": "Show: _MENU_",
-        "sInfo": "_START_ - _END_ of _TOTAL_ (_TOTAL_ total)",
-        "sInfoEmpty": "0 - _END_ of _TOTAL_ (_TOTAL_ total)",
+        "sInfo": "_START_ - _END_ of _TOTAL_",
+        "sInfoEmpty": "0 - _END_ of _TOTAL_",
         "sInfoFiltered": "",
         "oPaginate":{
           "sPrevious": "<i class='icon-arrow-left'></i>",
@@ -99,38 +60,6 @@ App.MainHostView = Em.View.extend({
     this.set('allComponentsChecked', true); // select all components (checkboxes) on start.
   },
 
-  applyHostFilter:function () {
-    App.router.get('mainHostController').filterHostsBy('hostName', this.get('filterByName'));
-  }.observes('filterByName'),
-
-  closeFilters:function () {
-    $(document).unbind('click');
-    this.clickFilterButton();
-  },
-
-  clickFilterButton:function () {
-    var self = this;
-    this.set('isFilterOpen', !this.get('isFilterOpen'));
-    if (this.get('isFilterOpen')) {
-      var filters = App.router.get('mainHostController.filters.components');
-      $('.filter-component').each(function () {
-        var componentId = parseInt($(this).attr('id').replace('component-', ''));
-        var index = filters.indexOf(componentId);
-        $(this).attr('checked', index == -1);
-      });
-//      this.set('componentsIds', filters.toArray());
-
-      var dropDown = $('#filter-dropdown');
-      var firstClick = true;
-      $(document).bind('click', function (e) {
-        if (!firstClick && $(e.target).closest(dropDown).length == 0) {
-          self.set('isFilterOpen', false);
-          $(document).unbind('click');
-        }
-        firstClick = false;
-      });
-    }
-  },
   HostView:Em.View.extend({
     content:null,
 
@@ -247,6 +176,166 @@ App.MainHostView = Em.View.extend({
       }
       this.get('parentView').get('applyFilter')(this.get('parentView'), 3);
     }.observes('value')
+  }),
+  /**
+   * Filter-list for Components
+   */
+  componentsFilterView: Em.View.extend({
+    classNames:['btn-group'],
+    classNameBindings: ['open'],
+    multiple:true,
+    open: false,
+
+    isFilterOpen:false,
+
+    btnGroupClass:function () {
+      return this.get('isFilterOpen') ? 'btn-group open' : 'btn-group';
+    }.property('isFilterOpen'),
+
+    allComponentsChecked:false,
+    toggleAllComponents:function () {
+      this.set('masterComponentsChecked', this.get('allComponentsChecked'));
+      this.set('slaveComponentsChecked', this.get('allComponentsChecked'));
+    }.observes('allComponentsChecked'),
+
+    masterComponentsChecked:false,
+    toggleMasterComponents:function () {
+      var checked = this.get('masterComponentsChecked');
+      this.get('masterComponents').forEach(function (comp) {
+        comp.set('checkedForHostFilter', checked);
+      });
+    }.observes('masterComponentsChecked'),
+
+    slaveComponentsChecked:false,
+    toggleSlaveComponents:function () {
+      var checked = this.get('slaveComponentsChecked');
+      this.get('slaveComponents').forEach(function (comp) {
+        comp.set('checkedForHostFilter', checked);
+      });
+    }.observes('slaveComponentsChecked'),
+
+    masterComponents:function(){
+      var masterComponents = [];
+      for(var i = 0; i < this.get('parentView').get('controller.masterComponents').length; i++) {
+        masterComponents.push(this.get('parentView').get('controller.masterComponents')[i]);
+      }
+      return masterComponents;
+    }.property('parentView.controller.masterComponents'),
+
+    slaveComponents:function(){
+      var slaveComponents = [];
+      for(var i = 0; i < this.get('parentView').get('controller.slaveComponents').length; i++) {
+        slaveComponents.push(this.get('parentView').get('controller.slaveComponents')[i]);
+      }
+      return slaveComponents;
+    }.property('parentView.controller.slaveComponents'),
+
+    template: Ember.Handlebars.compile('<div {{bindAttr class="view.btnGroupClass"}} >'+
+      '<button class="btn btn-info single-btn-group" {{action "clickFilterButton" target="view"}}>' +
+        'Components ' +
+        '<span class="caret"></span>' +
+       '</button>' +
+        '<ul class="dropdown-menu filter-components" id="filter-dropdown">' +
+          '<li>' +
+            '<label class="checkbox">' +
+              '{{view Ember.Checkbox checkedBinding="view.allComponentsChecked"}} All' +
+            '</label>' +
+          '</li>' +
+          '<li>' +
+            '<label class="checkbox">' +
+              '{{view Ember.Checkbox checkedBinding="view.masterComponentsChecked"}} Master Components:' +
+            '</label>' +
+            '<ul>' +
+              '{{#each component in masterComponents}}' +
+                '<li>' +
+                  '<label class="checkbox">' +
+                    '{{view Ember.Checkbox checkedBinding="component.checkedForHostFilter" }} {{unbound component.displayName}}' +
+                  '</label>' +
+                ' </li>' +
+              '{{/each}}' +
+            '</ul>' +
+          '</li>' +
+          '<li>' +
+            '<label class="checkbox">' +
+              '{{view Ember.Checkbox checkedBinding="view.slaveComponentsChecked"}} Slave Components:' +
+            '</label>' +
+            '<ul>' +
+              '{{#each component in slaveComponents}}' +
+                '<li>' +
+                  '<label class="checkbox">' +
+                    '{{view Ember.Checkbox checkedBinding="component.checkedForHostFilter" }} {{unbound component.displayName}}' +
+                  '</label>' +
+                '</li>' +
+              '{{/each}}' +
+            '</ul>' +
+          '</li>' +
+          '<li class="align-right">' +
+            '<button class="btn" {{action "closeFilters" target="view"}}>' +
+              'Cancel' +
+            '</button> ' +
+            '<button class="btn btn-primary" {{action "applyFilter" target="view"}}>' +
+              'Apply' +
+            '</button>' +
+          '</li>' +
+        '</ul>' +
+      '</div>'),
+
+    clearFilter:function(self) {
+      self.set('allComponentsChecked', true);
+      self.set('allComponentsChecked', false);
+      jQuery('#components_filter').val([]);
+      self.get('parentView').get('oTable').fnFilter('', 6);
+      jQuery('#components_filter').closest('th').addClass('notActive');
+    },
+
+    closeFilters:function () {
+      $(document).unbind('click');
+      this.clickFilterButton();
+    },
+
+    clickFilterButton:function () {
+      var self = this;
+      this.set('isFilterOpen', !this.get('isFilterOpen'));
+      if (this.get('isFilterOpen')) {
+        var filters = App.router.get('mainHostController.filters.components');
+        $('.filter-component').each(function() {
+          var componentId = parseInt($(this).attr('id').replace('component-', ''));
+          var index = filters.indexOf(componentId);
+          $(this).attr('checked', index == -1);
+        });
+
+        var dropDown = $('#filter-dropdown');
+        var firstClick = true;
+        $(document).bind('click', function (e) {
+          if (!firstClick && $(e.target).closest(dropDown).length == 0) {
+            self.set('isFilterOpen', false);
+            $(document).unbind('click');
+          }
+          firstClick = false;
+        });
+      }
+    },
+    /*closeFilter: function(){
+     this.set('open', false);
+     },*/
+    applyFilter:function() {
+      var chosenComponents = new Array();
+      this.set('open', !this.get('open'));
+      this.get('masterComponents').forEach(function(item){
+        if(item.get('checkedForHostFilter')) chosenComponents.push(item.get('displayName'));
+      });
+      this.get('slaveComponents').forEach(function(item){
+        if(item.get('checkedForHostFilter')) chosenComponents.push(item.get('displayName'));
+      });
+      jQuery('#components_filter').val(chosenComponents);
+      this.get('parentView').get('applyFilter')(this.get('parentView'), 6);
+      if (chosenComponents.length == 0) {
+        this.$().closest('th').addClass('notActive');
+      }
+      else {
+        this.$().closest('th').removeClass('notActive');
+      }
+    }
   }),
   /**
    * Clear selected filter

@@ -42,7 +42,7 @@ App.servicesMapper = App.QuickDataMapper.create({
   config:{
     id:'ServiceInfo.service_name',
     service_name:'ServiceInfo.service_name',
-    $work_status:'DEAD',
+    work_status:'ServiceInfo.state',
     $service_audit:[ 1, 2, 3 ],
     $alerts:[ 1, 2, 3 ],
     components_key:'components',

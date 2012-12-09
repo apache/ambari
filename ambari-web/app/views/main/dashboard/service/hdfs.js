@@ -71,5 +71,9 @@ App.MainDashboardServiceHdfsView = App.MainDashboardServiceView.extend({
   
   dataNodeComponent: function(){
     return App.Component.find().findProperty('componentName', 'DATANODE');
-  }.property('+')
+  }.property('+'),
+
+  toggleInfoView: function() {
+    $('#hdfs-info').toggle('blind', 1000);
+  }
 });

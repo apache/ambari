@@ -273,7 +273,7 @@ App.AddServiceController = Em.Controller.extend({
    */
   loadServices: function () {
     var servicesInfo = App.db.getService();
-    if(!servicesInfo){
+    if(!servicesInfo || !servicesInfo.length){
       servicesInfo = require('data/mock/services').slice(0);
       servicesInfo.forEach(function(item, index){
         servicesInfo[index].isSelected = App.Service.find().someProperty('id', item.serviceName);
@@ -553,7 +553,17 @@ App.AddServiceController = Em.Controller.extend({
     this.set('content.clients', clients);
     console.log("AddServiceController.loadClients: loaded list ", clients);
   },
-
+  dataLoading: function(){
+    var dfd = $.Deferred();
+    this.connectOutlet('loading');
+    var interval = setInterval(function(){
+      if (App.router.get('clusterController.isLoaded')){
+        dfd.resolve();
+        clearInterval(interval);
+      }
+    },50);
+    return dfd.promise();
+  },
   /**
    * Generate clients list for selected services and save it to model
    * @param stepController step4WizardController
@@ -585,14 +595,16 @@ App.AddServiceController = Em.Controller.extend({
   loadAllPriorSteps: function () {
     var step = this.get('currentStep');
     switch (step) {
+      case '7':
       case '6':
       case '5':
         this.loadClusterInfo();
       case '4':
         this.loadServiceConfigProperties();
       case '3':
+        this.loadServices();
         this.loadClients();
-        this.loadSlaveComponentHosts();
+        this.loadSlaveComponentHosts();//depends on loadServices
       case '2':
         this.loadMasterComponentHosts();
         this.loadConfirmedHosts();

@@ -16,22 +16,9 @@
  * limitations under the License.
  */
 
-
 var App = require('app');
 
-App.MainView = Em.View.extend({
-  templateName:require('templates/main')
-});
-
-App.MainBackgroundOperation = Em.View.extend({
-  content: null,
-  classNames: ['background-operations'],
-  classNameBindings: ['isOpen'],
-  isOpen: false,
-  iconClass: function(){
-    return this.get('isOpen') ? 'icon-minus' : 'icon-plus';
-  }.property('isOpen'),
-  showOperationLog:function(){
-    this.set('isOpen', !this.get('isOpen'))
-  }
+App.LoadingView = Em.View.extend({
+    tagName: 'h2',
+    template: Ember.Handlebars.compile('Loading...')
 });

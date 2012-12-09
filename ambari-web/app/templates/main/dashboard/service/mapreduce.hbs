@@ -17,7 +17,7 @@
 }}
 
 {{#unless view.showOnlyRows}}
-<div class="clearfix">
+<div class="clearfix" {{action toggleInfoView target="view"}}>
   <div class="name span2">
     {{view App.MainDashboardServiceHealthView serviceBinding="view.service"}}
     <a {{action selectService view.service href=true}}>{{view.service.displayName}}</a>
@@ -29,6 +29,7 @@
     {{view.summaryHeader}}
   </div>
 </div>
+<div id="mapreduce-info">
 <table class="table no-borders">
   <tbody>
 {{/unless}}
@@ -129,5 +130,6 @@
   </div>
   {{/view}}
   {{/if}}
+</div>
 </div>
 {{/unless}}

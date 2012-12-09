@@ -349,5 +349,7 @@ Em.I18n.translations = {
   'timeRange.presets.1day':'1d',
   'timeRange.presets.1week':'1wk',
   'timeRange.presets.1month':'1mo',
-  'timeRange.presets.1year':'1yr'
+  'timeRange.presets.1year':'1yr',
+
+  'apps.filters.customRunDate':'Run Date custom filter'
 };

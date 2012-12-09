@@ -189,6 +189,20 @@ App.ClusterController = Em.Controller.extend({
     }
   }.observes('nagiosUrl'),
 
+  updateStatus: function(){
+    var servicesUrl1 = this.getUrl('/data/dashboard/services.json', '/services?ServiceInfo/service_name!=MISCELLANEOUS&ServiceInfo/service_name!=DASHBOARD&fields=*,components/host_components/*');
+
+    var self = this;
+    App.HttpClient.get(servicesUrl1, App.statusMapper, {
+      complete:function (jqXHR, textStatus) {
+        console.log('update finished')
+        setTimeout(function(){
+          self.updateStatus();
+        }, 1000);
+      }
+    }, null);
+  },
+
   /**
    *
    *  load all data and update load status
@@ -201,7 +215,7 @@ App.ClusterController = Em.Controller.extend({
 
     var clusterUrl = this.getUrl('/data/clusters/cluster.json', '?fields=Clusters');
     var hostsUrl = this.getUrl('/data/hosts/hosts.json', '/hosts?fields=*');
-    var servicesUrl1 = this.getUrl('/data/dashboard/services.json', '/services?ServiceInfo/service_name!=MISCELLANEOUS&ServiceInfo/service_name!=DASHBOARD&fields=components/host_components/*');
+    var servicesUrl1 = this.getUrl('/data/dashboard/services.json', '/services?ServiceInfo/service_name!=MISCELLANEOUS&ServiceInfo/service_name!=DASHBOARD&fields=*,components/host_components/*');
     var servicesUrl2 = this.getUrl('/data/dashboard/serviceComponents.json', '/services?ServiceInfo/service_name!=MISCELLANEOUS&ServiceInfo/service_name!=DASHBOARD&fields=components/ServiceComponentInfo');
     var usersUrl = App.testMode ? '/data/users/users.json' : App.apiPrefix + '/users/?fields=*';
     var racksUrl = "/data/racks/racks.json";
@@ -353,6 +367,10 @@ App.ClusterController = Em.Controller.extend({
     /////////////////////////////
     // Hack for services END   //
     /////////////////////////////
+
+    setTimeout(function(){
+      self.updateStatus();
+    }, 1000);
 
   },
 

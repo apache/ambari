@@ -101,5 +101,9 @@ App.MainDashboardServiceMapreduceView = App.MainDashboardServiceView.extend({
 
   taskTrackerComponent: function () {
     return App.Component.find().findProperty('componentName', 'TASKTRACKER');
-  }.property('components')
+  }.property('components'),
+
+  toggleInfoView: function() {
+    $('#mapreduce-info').toggle('blind', 1000);
+  }
 });

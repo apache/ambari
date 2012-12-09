@@ -60,7 +60,7 @@ App.Host = DS.Model.extend({
     /**
      * Do nothing until load
      */
-    if(!this.get('isLoaded') || !this.get('components').everyProperty('isLoaded', true)){
+    if(!this.get('isLoaded')){
       return;
     }
 
@@ -70,7 +70,7 @@ App.Host = DS.Model.extend({
     var masterComponents = components.filterProperty('isMaster', true);
     if(components.everyProperty('workStatus', App.Component.Status.started)){
       status = 'LIVE';
-    } else if(false && this.get('isNotHeartBeating')){ //todo uncomment on real data
+    } else if(this.get('isNotHeartBeating')){
       status = 'DEAD-YELLOW';
     } else if(masterComponents.length > 0 && !masterComponents.everyProperty('workStatus', App.Component.Status.started)){
       status = 'DEAD';
@@ -89,22 +89,4 @@ App.Host = DS.Model.extend({
   }.property('healthStatus')
 });
 
-App.Host.FIXTURES = [/*
-  {
-    id: 1,
-    host_name: 'dev.hortonworks.com',
-    cluster_id: 1,
-    components:[1, 2, 3, 4, 5],
-    cpu: '2x2.5GHz',
-    memory: '8GB',
-    disk_usage: '40',
-    load_avg: '0.2, 1.2, 2.4',
-    ip: '123.123.123.123',
-    health_status: 'LIVE',
-    cpu_usage: 33,
-    memory_usage: 26,
-    network_usage: 36,
-    io_usage: 39,
-    last_heart_beat_time : 1351536732366
-  }*/
-];
+App.Host.FIXTURES = [];

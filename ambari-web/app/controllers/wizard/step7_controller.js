@@ -70,7 +70,7 @@ App.WizardStep7Controller = Em.Controller.extend({
     console.log("TRACE: Loading step7: Configure Services");
     this.clearStep();
     var serviceConfigs = this.get('serviceConfigs');
-    var advancedConfig = this.get('content.advancedServiceConfig');
+    var advancedConfig = this.get('content.advancedServiceConfig') || [];
     advancedConfig.forEach(function (_config) {
       if (_config) {
         var service = serviceConfigs.findProperty('serviceName', _config.serviceName);

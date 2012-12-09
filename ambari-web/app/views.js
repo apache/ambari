@@ -127,3 +127,4 @@ require('views/wizard/step7_view');
 require('views/wizard/step8_view');
 require('views/wizard/step9_view');
 require('views/wizard/step10_view');
+require('views/loading');
