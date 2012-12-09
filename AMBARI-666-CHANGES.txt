@@ -512,6 +512,9 @@ AMBARI-666 branch (unreleased changes)
 
   BUG FIXES
 
+  AMBARI-1042. Heatmap UI fluctuates between white and green colors
+  intermittently. (Srimanth Gunturi via yusaku)
+
   AMBARI-1032. Host hover in cluster heatmap showing mock data. (Srimanth
   Gunturi via yusaku)
  

@@ -35,15 +35,19 @@ App.MainChartHeatmapDFSMetrics = App.MainChartHeatmapMetric.extend({
       json.host_components.forEach(function (hc) {
         var value = hc;
         props.forEach(function (prop) {
-          value = value[prop];
+          if (value != null && prop in value) {
+            value = value[prop];
+          } else {
+            value = null;
+          }
         });
-
-        if (transformValueFunction) {
-          value = transformValueFunction(value);
+        if (value != null) {
+          if (transformValueFunction) {
+            value = transformValueFunction(value);
+          }
+          var hostName = hc.HostRoles.host_name;
+          hostToValueMap[hostName] = value;
         }
-
-        var hostName = hc.HostRoles.host_name;
-        hostToValueMap[hostName] = value;
       });
     }
     return hostToValueMap;

@@ -34,15 +34,19 @@ App.MainChartHeatmapDiskSpaceUsedMetric = App.MainChartHeatmapMetric.extend({
       json.items.forEach(function (item) {
         var value = item;
         props.forEach(function (prop) {
-          value = value[prop];
+          if (value != null && prop in value) {
+            value = value[prop];
+          } else {
+            value = null;
+          }
         });
-
-        var total = value.disk_total;
-        var free = value.disk_free;
-        value = (((total - free) * 100) / total).toFixed(1);
-
-        var hostName = item.Hosts.host_name;
-        hostToValueMap[hostName] = value;
+        if (value != null) {
+          var total = value.disk_total;
+          var free = value.disk_free;
+          value = (((total - free) * 100) / total).toFixed(1);
+          var hostName = item.Hosts.host_name;
+          hostToValueMap[hostName] = value;
+        }
       });
     }
     return hostToValueMap;

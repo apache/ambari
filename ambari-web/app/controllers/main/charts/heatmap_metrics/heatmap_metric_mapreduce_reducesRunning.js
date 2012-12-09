@@ -20,7 +20,7 @@ var App = require('app');
 /**
  * 
  */
-App.MainChartHeatmapMapreduceReducesRunningMetric = App.MainChartHeatmapDFSMetrics.extend({
+App.MainChartHeatmapMapreduceReducesRunningMetric = App.MainChartHeatmapMapreduceMetrics.extend({
   name: 'Reduces Running',
   maximumValue: 100,
   defaultMetric: 'metrics.mapred.tasktracker.reduces_running',

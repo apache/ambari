@@ -37,8 +37,10 @@ App.MainChartHeatmapProcessRunMetric = App.MainChartHeatmapMetric.extend({
   metricMapper: function (json) {
     var map = this._super(json);
     for ( var host in map) {
-      var val = map[host];
-      map[host] = val.toFixed(1);
+      if (host in map) {
+        var val = map[host];
+        map[host] = val.toFixed(1);
+      }
     }
     return map;
   }

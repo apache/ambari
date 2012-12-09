@@ -36,9 +36,41 @@ App.MainChartHeatmapMetric = Em.Object.extend({
   name: null,
 
   /**
-   * Number of slots this metric will be mapped into.
+   * Number of slots this metric will be mapped into. When changing this value,
+   * the color count in 'slotColors' should also be changed.
    */
   numberOfSlots: 5,
+
+  /**
+   * Colors for the each of the number of slots defined above. When changing the
+   * number of slots, the number of colors also should be updated.
+   * 
+   * @type {Array}
+   */
+  slotColors: [ {
+    r: 0x00,
+    g: 0xcc,
+    b: 0x00
+  }, // Green
+  {
+    r: 0x9f,
+    g: 0xee,
+    b: 0x00
+  }, {
+    r: 0xff,
+    g: 0xff,
+    b: 0x00
+  }, // Yellow
+  {
+    r: 0xff,
+    g: 0xc0,
+    b: 0x00
+  }, // Orange
+  {
+    r: 0xff,
+    g: 0x00,
+    b: 0x00
+  } ],// Red
 
   /**
    * Minimum value of this metric. Default is 0.
@@ -52,13 +84,12 @@ App.MainChartHeatmapMetric = Em.Object.extend({
    * 'numberOfSlots'.
    */
   maximumValue: 100,
-  
+
   /**
-   * Units of the maximum value which is shown in UI
-   * {String}
+   * Units of the maximum value which is shown in UI {String}
    */
   units: '',
-  
+
   /**
    * Indicates whether this metric is currently loading data from the server.
    * {Boolean}
@@ -71,7 +102,8 @@ App.MainChartHeatmapMetric = Em.Object.extend({
    * <li> from: {number} Slot starts from this value
    * <li> to: {number} Slot ends at this value (inclusive)
    * <li> label: {String} Slot name to be shown
-   * <li> cssStyle: {String} style to be embedded on hosts which fall into this slot.
+   * <li> cssStyle: {String} style to be embedded on hosts which fall into this
+   * slot.
    * </ul>
    * 
    * Slot count will be the same as specified in 'numberOfSlots'. Slot
@@ -87,29 +119,29 @@ App.MainChartHeatmapMetric = Em.Object.extend({
     var delta = (max - min) / slotCount;
     var defs = [];
     var fractions = max < 5;
-    var red = 0;
-    var green = 255;
+    var slotColors = this.get('slotColors');
+    var slotColorIndex = 0;
     for ( var c = 0; c < slotCount - 1; c++) {
       var from = this.formatLegendNumber(c * delta);
       var to = this.formatLegendNumber((c + 1) * delta);
-      var label = from + labelSuffix + " - " + to + labelSuffix
+      var label = from + labelSuffix + " - " + to + labelSuffix;
+      var slotColor = slotColors[slotColorIndex++];
       defs.push(Em.Object.create({
         from: from,
         to: to,
         label: label,
-        cssStyle: "background-color:rgb(" + red + "," + green + ",0)"
+        cssStyle: "background-color:rgb(" + slotColor.r + "," + slotColor.g + "," + slotColor.b + ")"
       }));
-      red += 51;
-      green -= 51;
     }
-    var from = this.formatLegendNumber((slotCount - 1) * delta);
-    var to = this.formatLegendNumber(max);
-    var label = from + labelSuffix + " - " + to + labelSuffix
+    from = this.formatLegendNumber((slotCount - 1) * delta);
+    to = this.formatLegendNumber(max);
+    label = from + labelSuffix + " - " + to + labelSuffix
+    slotColor = slotColors[slotColorIndex++];
     defs.push(Em.Object.create({
       from: from,
       to: to,
       label: label,
-      cssStyle: "background-color:rgb(" + red + "," + green + ",0)"
+      cssStyle: "background-color:rgb(" + slotColor.r + "," + slotColor.g + "," + slotColor.b + ")"
     }));
     return defs;
   }.property('minimumValue', 'maximumValue', 'numberOfSlots'),
@@ -120,10 +152,10 @@ App.MainChartHeatmapMetric = Em.Object.extend({
    * definition label being '0% - 10%'.
    */
   slotDefinitionLabelSuffix: '',
-  
+
   /**
-   * URL template from which metrics will be gotten for all hosts.
-   * The {metricName} param will be replaced by the 'defaultMetric' value.
+   * URL template from which metrics will be gotten for all hosts. The
+   * {metricName} param will be replaced by the 'defaultMetric' value.
    */
   metricUrlTemplate: "/clusters/{clusterName}/hosts?fields={metricName}",
 
@@ -158,18 +190,24 @@ App.MainChartHeatmapMetric = Em.Object.extend({
       json.items.forEach(function (item) {
         var value = item;
         props.forEach(function (prop) {
-          value = value[prop];
+          if (value != null && prop in value) {
+            value = value[prop];
+          } else {
+            value = null;
+          }
         });
-        var hostName = item.Hosts.host_name;
-        hostToValueMap[hostName] = value;
+        if (value != null) {
+          var hostName = item.Hosts.host_name;
+          hostToValueMap[hostName] = value;
+        }
       });
     }
     return hostToValueMap;
   },
 
   hostToValueMap: null,
-  
-  hostToSlotMap: function(){
+
+  hostToSlotMap: function () {
     var hostToValueMap = this.get('hostToValueMap');
     var slotDefs = this.get('slotDefinitions');
     var hostToSlotMap = {}
@@ -202,7 +240,7 @@ App.MainChartHeatmapMetric = Em.Object.extend({
     jQuery.ajax({
       url: this.get('metricUrl'),
       dataType: 'json',
-      error: jQuery.proxy(function (xhr, textStatus, error) {
+      error: jQuery.proxy(function () {
         this.set('loading', false);
       }, this),
       success: jQuery.proxy(function (data) {

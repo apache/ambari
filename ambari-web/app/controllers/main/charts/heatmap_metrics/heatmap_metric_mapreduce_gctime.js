@@ -20,7 +20,7 @@ var App = require('app');
 /**
  * 
  */
-App.MainChartHeatmapMapreduceGCTimeMillisMetric = App.MainChartHeatmapDFSMetrics.extend({
+App.MainChartHeatmapMapreduceGCTimeMillisMetric = App.MainChartHeatmapMapreduceMetrics.extend({
   name: 'Garbage Collection Time',
   maximumValue: 10000,
   defaultMetric: 'metrics.jvm.gcTimeMillis',
