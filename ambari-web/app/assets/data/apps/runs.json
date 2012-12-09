@@ -20,7 +20,9 @@
       }
     },
     "workflowId": "mr_b6d5cc44-ac51-4ecd-92c7-2e477c2fbed6",
-    "workflowName": "script2-hadoop.pig"
+    "workflowName": "script2-hadoop.pig",
+    "inputBytes": 423423,
+    "outputBytes": 12434
   },
   {
     "elapsedTime": 892896,

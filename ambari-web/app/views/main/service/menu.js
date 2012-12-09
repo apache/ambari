@@ -19,21 +19,22 @@
 var App = require('app');
 
 App.MainServiceMenuView = Em.CollectionView.extend({
-  content: function () {
+  content:function () {
     return App.router.get('mainServiceController.content');
   }.property('App.router.mainServiceController.content'),
 
-  didInsertElement: function () {
+
+  didInsertElement:function () {
     App.router.location.addObserver('lastSetURL', this, 'renderOnRoute');
     this.renderOnRoute();
   },
 
-  activeServiceId : null,
+  activeServiceId:null,
 
   /**
    *    Syncs navigation menu with requested URL
    */
-  renderOnRoute: function () {
+  renderOnRoute:function () {
     var last_url = App.router.location.lastSetURL || location.href.replace(/^[^#]*#/, '');
     if (last_url.substr(1, 4) !== 'main' || !this._childViews) {
       return;
@@ -45,15 +46,15 @@ App.MainServiceMenuView = Em.CollectionView.extend({
 
   },
 
-  tagName: 'ul',
-  classNames: ["nav", "nav-list", "nav-services"],
+  tagName:'ul',
+  classNames:["nav", "nav-list", "nav-services"],
 
-  itemViewClass: Em.View.extend({
-    classNameBindings: ["active"],
-    active: function(){
+  itemViewClass:Em.View.extend({
+    classNameBindings:["active"],
+    active:function () {
       return this.get('content.id') == this.get('parentView.activeServiceId') ? 'active' : '';
     }.property('parentView.activeServiceId'),
-    alertsCount: function () {
+    alertsCount:function () {
       var allAlerts = App.router.get('clusterController.alerts');
       var serviceId = this.get('content.serviceName');
       if (serviceId) {
@@ -62,6 +63,6 @@ App.MainServiceMenuView = Em.CollectionView.extend({
       return 0;
     }.property('App.router.clusterController.alerts'),
 
-    templateName: require('templates/main/service/menu_item')
+    templateName:require('templates/main/service/menu_item')
   })
 });

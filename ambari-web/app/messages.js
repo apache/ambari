@@ -238,9 +238,6 @@ Em.I18n.translations = {
 
   'services.add.header':'Add Service Wizard',
 
-  'host.singular':'host',
-  'host.plural':'hosts',
-
   'hosts.host.start.popup.header':'Confirmation',
   'hosts.host.stop.popup.header':'Confirmation',
   'hosts.host.start.popup.body':'Are you sure?',
@@ -254,7 +251,6 @@ Em.I18n.translations = {
   'hosts.cant.do.popup.header':'Operation not allowed',
   'hosts.cant.do.popup.masterList.body':'You cannot delete this host because it is hosting following master services: {0}.',
   'hosts.cant.do.popup.workingList.body':'You cannot delete this host because following slave services are not fully stopped or decommissioned: {0}.',
-  'hosts.assignToRack.sure':'Sure you want to assign {0} to {1}?',
   'hosts.add.header':'Add Host Wizard',
   'hosts.add.step2.warning':'Hosts are already part of the cluster and will be ignored',
   'hosts.assignRack':'Assign Rack',

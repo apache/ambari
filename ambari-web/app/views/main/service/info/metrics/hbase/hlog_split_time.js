@@ -32,7 +32,7 @@ App.ChartServiceMetricsHBASE_HlogSplitTime = App.ChartLinearTimeView.extend({
   yAxisFormatter: App.ChartLinearTimeView.TimeElapsedFormatter,
 
   url: function () {
-    return App.formatUrl("/api/clusters/{clusterName}/services/HBASE/components/HBASE_MASTER?fields=metrics/hbase/master/splitTime_avg_time[{fromSeconds},{toSeconds},{stepSeconds}]", {
+    return App.formatUrl(App.apiPrefix + "/clusters/{clusterName}/services/HBASE/components/HBASE_MASTER?fields=metrics/hbase/master/splitTime_avg_time[{fromSeconds},{toSeconds},{stepSeconds}]", {
       clusterName: App.router.get('clusterController.clusterName')
     }, "/data/services/metrics/hbase/hlog_split_time.json");
   }.property('App.router.clusterController.clusterName'),

@@ -21,6 +21,10 @@ window.App = require('app');
 
 App.testMode = false;
 App.skipBootstrap = false;
+App.alwaysGoToInstaller = false;
+App.apiPrefix = '/api';
+// default AJAX timeout
+App.timeout = 20000;
 
 require('messages');
 require('utils/data_table');

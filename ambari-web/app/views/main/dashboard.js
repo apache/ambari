@@ -19,21 +19,20 @@
 var App = require('app');
 
 App.MainDashboardView = Em.View.extend({
-  templateName: require('templates/main/dashboard'),
-  didInsertElement: function() {
-      this.services();
+  templateName:require('templates/main/dashboard'),
+  didInsertElement:function () {
+    this.services();
   },
-  content : [],
-  services:function(){
-    if( this.get('content').length > 0)
-    {
+  content:[],
+  services:function () {
+    if (this.get('content').length > 0) {
       return false;
     }
     var services = App.Service.find();
-    services.forEach(function(item){
+    services.forEach(function (item) {
       var vName;
       var item2;
-      switch(item.get('serviceName')) {
+      switch (item.get('serviceName')) {
         case "HDFS":
           vName = App.MainDashboardServiceHdfsView;
           item2 = App.HDFSService.find(item.get('id'));
@@ -47,7 +46,7 @@ App.MainDashboardView = Em.View.extend({
           item2 = App.HBaseService.find(item.get('id'));
           break;
         case "HIVE":
-          vName = App.MainDashboardServiceHiveView ;
+          vName = App.MainDashboardServiceHiveView;
           break;
         case "ZOOKEEPER":
           vName = App.MainDashboardServiceZookeperView;
@@ -59,8 +58,8 @@ App.MainDashboardView = Em.View.extend({
           vName = Em.View;
       }
       this.get('content').pushObject({
-        viewName : vName,
-        model: item2 || item
+        viewName:vName,
+        model:item2 || item
       })
     }, this);
 

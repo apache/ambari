@@ -32,7 +32,7 @@ App.ChartHostMetricsDisk = App.ChartLinearTimeView.extend({
   yAxisFormatter: App.ChartLinearTimeView.BytesFormatter,
 
   url: function () {
-    return App.formatUrl("/api/clusters/{clusterName}/hosts/{hostName}?fields=metrics/disk/disk_total[{fromSeconds},{toSeconds},{stepSeconds}],metrics/part_max_used[{fromSeconds},{toSeconds},{stepSeconds}],metrics/disk/disk_free[{fromSeconds},{toSeconds},{stepSeconds}]", {
+    return App.formatUrl(App.apiPrefix + "/clusters/{clusterName}/hosts/{hostName}?fields=metrics/disk/disk_total[{fromSeconds},{toSeconds},{stepSeconds}],metrics/part_max_used[{fromSeconds},{toSeconds},{stepSeconds}],metrics/disk/disk_free[{fromSeconds},{toSeconds},{stepSeconds}]", {
       clusterName: App.router.get('clusterController.clusterName'),
       hostName: this.get('content').get('hostName')
     }, "/data/hosts/metrics/disk.json");

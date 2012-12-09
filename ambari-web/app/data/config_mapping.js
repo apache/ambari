@@ -262,6 +262,7 @@ module.exports = [
     "value": "<templateName[0]>",
     "filename": "hdfs-site.xml"
   },
+  /*
   {
     "name": "dfs.namenode.kerberos.internal.spnego.principal",
     "templateName": [],
@@ -276,6 +277,7 @@ module.exports = [
     "value": "<foreignKey[0]>",
     "filename": "hdfs-site.xml"
   },
+  */
   {
     "name": "mapred.local.dir",
     "templateName": ["mapred_local_dir"],
@@ -573,6 +575,7 @@ module.exports = [
     "value": "<templateName[0]>",
     "filename": "hbase-site.xml"
   },
+  /*
   {
     "name": "hbase.master.info.bindAddress",
     "templateName": ["hbasemaster.host"],
@@ -580,6 +583,7 @@ module.exports = [
     "value": "<templateName[0]>",
     "filename": "hbase-site.xml"
   },
+  */
   {
     "name": "hbase.regionserver.global.memstore.upperLimit",
     "templateName": ["regionserver_memstore_upperlimit"],
@@ -669,6 +673,20 @@ module.exports = [
     "templateName": ["client_scannercaching"],
     "foreignKey": null,
     "value": "<templateName[0]>",
+    "filename": "hbase-site.xml"
+  },
+  {
+    "name": "hbase.cluster.distributed",
+    "templateName": [],
+    "foreignKey": null,
+    "value": "true",
+    "filename": "hbase-site.xml"
+  },
+  {
+    "name": "hbase.zookeeper.property.clientPort",
+    "templateName": [],
+    "foreignKey": null,
+    "value": "2181",
     "filename": "hbase-site.xml"
   },
   {

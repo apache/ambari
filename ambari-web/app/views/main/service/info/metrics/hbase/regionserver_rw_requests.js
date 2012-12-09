@@ -31,7 +31,7 @@ App.ChartServiceMetricsHBASE_RegionServerReadWriteRequests = App.ChartLinearTime
   title: "RegionServer Requests",
 
   url: function () {
-    return App.formatUrl("/api/clusters/{clusterName}/services/HBASE/components/HBASE_REGIONSERVER?fields=metrics/hbase/regionserver/readRequestsCount[{fromSeconds},{toSeconds},{stepSeconds}],metrics/hbase/regionserver/writeRequestsCount[{fromSeconds},{toSeconds},{stepSeconds}]", {
+    return App.formatUrl(App.apiPrefix + "/clusters/{clusterName}/services/HBASE/components/HBASE_REGIONSERVER?fields=metrics/hbase/regionserver/readRequestsCount[{fromSeconds},{toSeconds},{stepSeconds}],metrics/hbase/regionserver/writeRequestsCount[{fromSeconds},{toSeconds},{stepSeconds}]", {
       clusterName: App.router.get('clusterController.clusterName')
     }, "/data/services/metrics/hbase/regionserver_rw_requests.json");
   }.property('App.router.clusterController.clusterName'),

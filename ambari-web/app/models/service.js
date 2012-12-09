@@ -30,16 +30,12 @@ App.Service = DS.Model.extend({
   components: DS.hasMany('App.Component'),
   hostComponents: DS.hasMany('App.HostComponent'),
   isRunning: function(){
-    var workStatus = this.get('workStatus');
-    if([App.Service.Health.live, App.Service.Health.starting].contains(workStatus) ){
-      return true;
-    }
-    return false;
-  }.property('workStatus'),
+    return (this.get('healthStatus') == 'green' | this.get('healthStatus') == 'green-blinking');
+  }.property('healthStatus'),
 
   healthStatus: function(){
     var components = this.get('components').filterProperty('isMaster', true);
-    if(components.everyProperty('workStatus', App.Component.Status.started)){
+    if (components.everyProperty('workStatus', App.Component.Status.started)){
       return 'green';
     } else if(components.someProperty('workStatus', App.Component.Status.stopped)){
       return 'red';

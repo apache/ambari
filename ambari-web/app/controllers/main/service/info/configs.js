@@ -30,8 +30,10 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
   }.property('stepConfigs.@each.errorCount'),
 
   slaveComponentHosts : function(){
-    console.log('slaveComponentHosts');
-    console.log(App.db.getSlaveComponentHosts());
+    if(!this.get('content')){
+      return;
+    }
+    console.log('slaveComponentHosts', App.db.getSlaveComponentHosts());
     return App.db.getSlaveComponentHosts();
   }.property('content'),
 

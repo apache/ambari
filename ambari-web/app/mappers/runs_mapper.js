@@ -32,10 +32,15 @@ App.runsMapper = App.QuickDataMapper.create({
         var r = '{dag: {';
         item.workflowContext.workflowDag.entries.forEach(function(item) {
           r += '"' + item.source + '": [';
-          item.targets.forEach(function(target) {
-            r += '"' + target + '",';
-          });
-          r = r.substr(0, r.length - 1);
+          // if a standalone MapReduce job, there won't be any targets
+          if (item.targets) {
+            item.targets.forEach(function(target) {
+              r += '"' + target + '",';
+            });
+            r = r.substr(0, r.length - 1);
+          } else {
+            r += item.source;
+          }
           r += '],';
         });
         r = r.substr(0, r.length - 1);
@@ -55,7 +60,7 @@ App.runsMapper = App.QuickDataMapper.create({
     user_name:'userName',
     start_time: 'startTime',
     elapsed_time: 'elapsedTime',
-    $input: 9403,
-    $output: 1230
+    input: 'inputBytes',
+    output: 'outputBytes'
   }
 });

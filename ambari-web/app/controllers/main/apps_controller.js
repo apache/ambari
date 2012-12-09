@@ -22,7 +22,9 @@ require('utils/jquery.unique');
 App.MainAppsController = Em.ArrayController.extend({
 
   name:'mainAppsController',
-  content: App.Run.find(),
+  content: function(){
+    return App.Run.find();
+  }.property('App.router.clusterController.postLoadList.runs'),
 
   staredRuns: [],
   filteredRuns: [],

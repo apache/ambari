@@ -68,7 +68,7 @@ App.MainAdminUserController = Em.Controller.extend({
   sendCommandToServer : function(url, method, postData, callback){
     var url =  (App.testMode) ?
         '/data/wizard/deploy/poll_1.json' : //content is the same as ours
-        '/api/' + url;
+        App.apiPrefix + '/' + url;
 
     var method = App.testMode ? 'GET' : method;
 
@@ -77,7 +77,7 @@ App.MainAdminUserController = Em.Controller.extend({
       url: url,
       data: JSON.stringify(postData),
       dataType: 'json',
-      timeout: 5000,
+      timeout: App.timeout,
       success: function(data){
         if(data && data.Requests){
           callback(data.Requests.id);

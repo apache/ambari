@@ -68,7 +68,6 @@ App.MainHostView = Em.View.extend({
   }.observes('slaveComponentsChecked'),
 
   didInsertElement:function () {
-    this._super();
     this.set('allComponentsChecked', true); // select all components (checkboxes) on start.
   },
 
@@ -113,16 +112,16 @@ App.MainHostView = Em.View.extend({
 
     usageStyle:function () {
       return "width:" + this.get('content.diskUsage') + "%";
-    }.property('content.diskUsage'),
+    }.property('content.diskUsage')
 
-    HostCheckboxView:Em.Checkbox.extend({
-      content:null,
-      isChecked:false,
-      change:function (event) {
-        this.set('isChecked', !this.get('content.isChecked'));
-        App.router.get('mainHostController').onHostChecked(this.get('content'));
-      }
-    })
+//    HostCheckboxView:Em.Checkbox.extend({
+//      content:null,
+//      isChecked:false,
+//      change:function (event) {
+//        this.set('isChecked', !this.get('content.isChecked'));
+//        App.router.get('mainHostController').onHostChecked(this.get('content'));
+//      }
+//    })
   }),
 
   RackCombobox:App.Combobox.extend({

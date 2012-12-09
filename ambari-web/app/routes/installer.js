@@ -188,7 +188,6 @@ module.exports = Em.Route.extend({
       var wizardStep5Controller = router.get('wizardStep5Controller');
       controller.saveMasterComponentHosts(wizardStep5Controller);
       App.db.setSlaveComponentHosts(undefined);
-      App.db.setHostSlaveComponents(undefined);
       router.transitionTo('step6');
     }
   }),

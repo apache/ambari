@@ -29,7 +29,7 @@ var App = require('app');
 App.ChartClusterMetricsMemory = App.ChartLinearTimeView.extend({
   id: "cluster-metrics-memory",
   url: function () {
-    return App.formatUrl("/api/clusters/{clusterName}?fields=metrics/memory[{fromSeconds},{toSeconds},{stepSeconds}]", {
+    return App.formatUrl(App.apiPrefix + "/clusters/{clusterName}?fields=metrics/memory[{fromSeconds},{toSeconds},{stepSeconds}]", {
       clusterName: App.router.get('clusterController.clusterName')
     }, "/data/cluster_metrics/memory_1hr.json");
   }.property('App.router.clusterController.clusterName'),

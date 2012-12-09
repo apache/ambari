@@ -71,21 +71,21 @@
             <i class=icon-asterisks>&#10037</i>
           {{/if}}
         {{/view}}
-      <td><label class="checkbox">{{view Ember.Checkbox checkedBinding="isDataNode"}}DataNode</label></td>
+      <td><label class="checkbox">{{view Ember.Checkbox disabledBinding="isDataNodeInstalled" checkedBinding="isDataNode"}}DataNode</label></td>
       {{#if controller.isMrSelected}}
-      <td><label class="checkbox">{{view Ember.Checkbox checkedBinding="isTaskTracker"}}TaskTracker</label></td>
+      <td><label class="checkbox">{{view Ember.Checkbox disabledBinding="isTaskTrackerInstalled" checkedBinding="isTaskTracker"}}TaskTracker</label></td>
       {{/if}}
       {{#if controller.isHbSelected}}
-      <td><label class="checkbox">{{view Ember.Checkbox checkedBinding="isRegionServer"}}RegionServer</label></td>
+      <td><label class="checkbox">{{view Ember.Checkbox disabledBinding="isRegionServerInstalled" checkedBinding="isRegionServer"}}RegionServer</label></td>
       {{/if}}
-      <td><label class="checkbox">{{view Ember.Checkbox checkedBinding="isClient"}}Client</label></td>
+      <td><label class="checkbox">{{view Ember.Checkbox disabledBinding="isClientInstalled" checkedBinding="isClient"}}Client</label></td>
     </tr>
     {{/each}}
     </tbody>
   </table>
   </div>
   <div class="btn-area">
-    <a class="btn" {{action back href="true"}}>&larr; Back</a>
+    <a class="btn" {{action back}}>&larr; Back</a>
     <a class="btn btn-success pull-right" {{action next}}>Next &rarr;</a>
   </div>
 </div>

@@ -24,10 +24,10 @@
 {{else}}
   <a href="#" {{action showEditSlaveComponentGroups view.serviceConfig.category target="controller"}}>
     {{#if view.hasOneHost}}
-      {{view.hosts.firstObject.hostname}}
+      {{view.hosts.firstObject.hostName}}
     {{/if}}
     {{#if view.hasMultipleHosts}}
-      {{view.hosts.firstObject.hostname}} and {{view.otherLength}}
+      {{view.hosts.firstObject.hostName}} and {{view.otherLength}}
     {{/if}}
   </a>
 {{/if}}

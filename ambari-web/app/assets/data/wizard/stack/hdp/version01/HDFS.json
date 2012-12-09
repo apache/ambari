@@ -1,57 +1,12 @@
 {
   "name" : "HDFS",
-  "version" : "1.0",
+  "version" : "1.1.0.1-1",
   "user" : "root",
   "comment" : "This is comment for HDFS service",
   "properties" : [ {
-    "name" : "dfs.name.dir",
-    "value" : "/mnt/hmc/hadoop/hdfs/namenode",
-    "description" : "Determines where on the local filesystem the DFS name node\n      should store the name table.  If this is a comma-delimited list\n      of directories then the name table is replicated in all of the\n      directories, for redundancy. ",
-    "filename" : "hdfs-site.xml"
-  }, {
-    "name" : "dfs.support.append",
-    "value" : "true",
-    "description" : "to enable dfs append",
-    "filename" : "hdfs-site.xml"
-  }, {
-    "name" : "dfs.webhdfs.enabled",
-    "value" : "false",
-    "description" : "to enable webhdfs",
-    "filename" : "hdfs-site.xml"
-  }, {
-    "name" : "dfs.datanode.failed.volumes.tolerated",
-    "value" : "0",
-    "description" : "#of failed disks dn would tolerate",
-    "filename" : "hdfs-site.xml"
-  }, {
-    "name" : "dfs.block.local-path-access.user",
-    "value" : "hbase",
-    "description" : "the user who is allowed to perform short\n    circuit reads.\n    ",
-    "filename" : "hdfs-site.xml"
-  }, {
-    "name" : "dfs.data.dir",
-    "value" : "/mnt/hmc/hadoop/hdfs/data",
-    "description" : "Determines where on the local filesystem an DFS data node\n  should store its blocks.  If this is a comma-delimited\n  list of directories, then data will be stored in all named\n  directories, typically on different devices.\n  Directories that do not exist are ignored.\n  ",
-    "filename" : "hdfs-site.xml"
-  }, {
-    "name" : "dfs.hosts.exclude",
-    "value" : "/etc/hadoop/conf/dfs.exclude",
-    "description" : "Names a file that contains a list of hosts that are\n    not permitted to connect to the namenode.  The full pathname of the\n    file must be specified.  If the value is empty, no hosts are\n    excluded.",
-    "filename" : "hdfs-site.xml"
-  }, {
-    "name" : "dfs.hosts",
-    "value" : "/etc/hadoop/conf/dfs.include",
-    "description" : "Names a file that contains a list of hosts that are\n    permitted to connect to the namenode. The full pathname of the file\n    must be specified.  If the value is empty, all hosts are\n    permitted.",
-    "filename" : "hdfs-site.xml"
-  }, {
     "name" : "dfs.replication.max",
     "value" : "50",
     "description" : "Maximal block replication.\n  ",
-    "filename" : "hdfs-site.xml"
-  }, {
-    "name" : "dfs.replication",
-    "value" : "3",
-    "description" : "Default block replication.\n  ",
     "filename" : "hdfs-site.xml"
   }, {
     "name" : "dfs.heartbeat.interval",
@@ -69,29 +24,9 @@
     "description" : "\n        Specifies the maximum amount of bandwidth that each datanode\n        can utilize for the balancing purpose in term of\n        the number of bytes per second.\n  ",
     "filename" : "hdfs-site.xml"
   }, {
-    "name" : "dfs.datanode.address",
-    "value" : "0.0.0.0:50010",
-    "description" : null,
-    "filename" : "hdfs-site.xml"
-  }, {
-    "name" : "dfs.datanode.http.address",
-    "value" : "0.0.0.0:50075",
-    "description" : null,
-    "filename" : "hdfs-site.xml"
-  }, {
     "name" : "dfs.block.size",
     "value" : "134217728",
     "description" : "The default block size for new files.",
-    "filename" : "hdfs-site.xml"
-  }, {
-    "name" : "dfs.http.address",
-    "value" : "hdp1.cybervisiontech.com.ua:50070",
-    "description" : "The name of the default file system.  Either the\nliteral string \"local\" or a host:port for NDFS.",
-    "filename" : "hdfs-site.xml"
-  }, {
-    "name" : "dfs.datanode.du.reserved",
-    "value" : "1073741824",
-    "description" : "Reserved space in bytes per volume. Always leave this much space free for non dfs use.\n",
     "filename" : "hdfs-site.xml"
   }, {
     "name" : "dfs.datanode.ipc.address",
@@ -154,79 +89,14 @@
     "description" : "\nIf \"true\", access tokens are used as capabilities for accessing datanodes.\nIf \"false\", no access tokens are checked on accessing datanodes.\n",
     "filename" : "hdfs-site.xml"
   }, {
-    "name" : "dfs.namenode.kerberos.principal",
-    "value" : "nn/_HOST@",
-    "description" : "\nKerberos principal name for the NameNode\n",
-    "filename" : "hdfs-site.xml"
-  }, {
-    "name" : "dfs.secondary.namenode.kerberos.principal",
-    "value" : "nn/_HOST@",
-    "description" : "\n        Kerberos principal name for the secondary NameNode.\n    ",
-    "filename" : "hdfs-site.xml"
-  }, {
-    "name" : "dfs.namenode.kerberos.https.principal",
-    "value" : "host/_HOST@",
-    "description" : "The Kerberos principal for the host that the NameNode runs on.",
-    "filename" : "hdfs-site.xml"
-  }, {
-    "name" : "dfs.secondary.namenode.kerberos.https.principal",
-    "value" : "host/_HOST@",
-    "description" : "The Kerberos principal for the hostthat the secondary NameNode runs on.",
-    "filename" : "hdfs-site.xml"
-  }, {
-    "name" : "dfs.secondary.http.address",
-    "value" : "hdp2.cybervisiontech.com.ua:50090",
-    "description" : "Address of secondary namenode web server",
-    "filename" : "hdfs-site.xml"
-  }, {
     "name" : "dfs.secondary.https.port",
     "value" : "50490",
     "description" : "The https port where secondary-namenode binds",
     "filename" : "hdfs-site.xml"
   }, {
-    "name" : "dfs.web.authentication.kerberos.principal",
-    "value" : "HTTP/_HOST@",
-    "description" : "\n      The HTTP Kerberos principal used by Hadoop-Auth in the HTTP endpoint.\n      The HTTP Kerberos principal MUST start with 'HTTP/' per Kerberos\n      HTTP SPENGO specification.\n    ",
-    "filename" : "hdfs-site.xml"
-  }, {
-    "name" : "dfs.web.authentication.kerberos.keytab",
-    "value" : "/nn.service.keytab",
-    "description" : "\n      The Kerberos keytab file with the credentials for the\n      HTTP Kerberos principal used by Hadoop-Auth in the HTTP endpoint.\n    ",
-    "filename" : "hdfs-site.xml"
-  }, {
-    "name" : "dfs.datanode.kerberos.principal",
-    "value" : "dn/_HOST@",
-    "description" : "\n        The Kerberos principal that the DataNode runs as. \"_HOST\" is replaced by the real host name.\n    ",
-    "filename" : "hdfs-site.xml"
-  }, {
-    "name" : "dfs.namenode.keytab.file",
-    "value" : "/nn.service.keytab",
-    "description" : "\n        Combined keytab file containing the namenode service and host principals.\n    ",
-    "filename" : "hdfs-site.xml"
-  }, {
-    "name" : "dfs.secondary.namenode.keytab.file",
-    "value" : "/nn.service.keytab",
-    "description" : "\n        Combined keytab file containing the namenode service and host principals.\n    ",
-    "filename" : "hdfs-site.xml"
-  }, {
-    "name" : "dfs.datanode.keytab.file",
-    "value" : "/dn.service.keytab",
-    "description" : "\n        The filename of the keytab file for the DataNode.\n    ",
-    "filename" : "hdfs-site.xml"
-  }, {
     "name" : "dfs.https.port",
     "value" : "50470",
     "description" : "The https port where namenode binds",
-    "filename" : "hdfs-site.xml"
-  }, {
-    "name" : "dfs.https.address",
-    "value" : "hdp1.cybervisiontech.com.ua:50470",
-    "description" : "The https address where namenode binds",
-    "filename" : "hdfs-site.xml"
-  }, {
-    "name" : "dfs.datanode.data.dir.perm",
-    "value" : "750",
-    "description" : "The permissions that should be there on dfs.data.dir\ndirectories. The datanode will not come up if the permissions are\ndifferent on existing dfs.data.dir directories. If the directories\ndon't exist, they will be created with this permission.",
     "filename" : "hdfs-site.xml"
   }, {
     "name" : "dfs.access.time.precision",
@@ -244,314 +114,59 @@
     "description" : null,
     "filename" : "hdfs-site.xml"
   }, {
-    "name" : "hadoop.tmp.dir",
-    "value" : "/tmp/hadoop-${user.name}",
-    "description" : "A base for other temporary directories.",
-    "filename" : "core-site.xml"
-  }, {
-    "name" : "hadoop.native.lib",
-    "value" : "true",
-    "description" : "Should native hadoop libraries, if present, be used.",
-    "filename" : "core-site.xml"
-  }, {
-    "name" : "hadoop.security.group.mapping",
-    "value" : "org.apache.hadoop.security.ShellBasedUnixGroupsMapping",
-    "description" : "Class for user to group mapping (get groups for a given user)\n  ",
-    "filename" : "core-site.xml"
-  }, {
-    "name" : "hadoop.security.authorization",
-    "value" : "false",
-    "description" : "Is service-level authorization enabled?",
-    "filename" : "core-site.xml"
-  }, {
-    "name" : "hadoop.security.authentication",
-    "value" : "simple",
-    "description" : "Possible values are simple (no authentication), and kerberos\n  ",
-    "filename" : "core-site.xml"
-  }, {
-    "name" : "hadoop.security.token.service.use_ip",
-    "value" : "true",
-    "description" : "Controls whether tokens always use IP addresses.  DNS changes\n  will not be detected if this option is enabled.  Existing client connections\n  that break will always reconnect to the IP of the original host.  New clients\n  will connect to the host's new IP but fail to locate a token.  Disabling\n  this option will allow existing and new clients to detect an IP change and\n  continue to locate the new host's token.\n  ",
-    "filename" : "core-site.xml"
-  }, {
-    "name" : "hadoop.security.use-weak-http-crypto",
-    "value" : "false",
-    "description" : "If enabled, use KSSL to authenticate HTTP connections to the\n  NameNode. Due to a bug in JDK6, using KSSL requires one to configure\n  Kerberos tickets to use encryption types that are known to be\n  cryptographically weak. If disabled, SPNEGO will be used for HTTP\n  authentication, which supports stronger encryption types.\n  ",
-    "filename" : "core-site.xml"
-  }, {
-    "name" : "hadoop.logfile.size",
-    "value" : "10000000",
-    "description" : "The max size of each log file",
-    "filename" : "core-site.xml"
-  }, {
-    "name" : "hadoop.logfile.count",
-    "value" : "10",
-    "description" : "The max number of log files",
-    "filename" : "core-site.xml"
-  }, {
     "name" : "io.file.buffer.size",
-    "value" : "4096",
+    "value" : "131072",
     "description" : "The size of buffer for use in sequence files.\n  The size of this buffer should probably be a multiple of hardware\n  page size (4096 on Intel x86), and it determines how much data is\n  buffered during read and write operations.",
-    "filename" : "core-site.xml"
-  }, {
-    "name" : "io.bytes.per.checksum",
-    "value" : "512",
-    "description" : "The number of bytes per checksum.  Must not be larger than\n  io.file.buffer.size.",
-    "filename" : "core-site.xml"
-  }, {
-    "name" : "io.skip.checksum.errors",
-    "value" : "false",
-    "description" : "If true, when a checksum error is encountered while\n  reading a sequence file, entries are skipped, instead of throwing an\n  exception.",
-    "filename" : "core-site.xml"
-  }, {
-    "name" : "io.compression.codecs",
-    "value" : "org.apache.hadoop.io.compress.DefaultCodec,org.apache.hadoop.io.compress.GzipCodec,org.apache.hadoop.io.compress.BZip2Codec,org.apache.hadoop.io.compress.SnappyCodec",
-    "description" : "A list of the compression codec classes that can be used\n               for compression/decompression.",
     "filename" : "core-site.xml"
   }, {
     "name" : "io.serializations",
     "value" : "org.apache.hadoop.io.serializer.WritableSerialization",
-    "description" : "A list of serialization classes that can be used for\n  obtaining serializers and deserializers.",
+    "description" : null,
     "filename" : "core-site.xml"
   }, {
-    "name" : "fs.default.name",
-    "value" : "file:///",
-    "description" : "The name of the default file system.  A URI whose\n  scheme and authority determine the FileSystem implementation.  The\n  uri's scheme determines the config property (fs.SCHEME.impl) naming\n  the FileSystem implementation class.  The uri's authority is used to\n  determine the host, port, etc. for a filesystem.",
+    "name" : "io.compression.codec.lzo.class",
+    "value" : "com.hadoop.compression.lzo.LzoCodec",
+    "description" : "The implementation for lzo codec.",
     "filename" : "core-site.xml"
   }, {
     "name" : "fs.trash.interval",
-    "value" : "0",
+    "value" : "360",
     "description" : "Number of minutes between trash checkpoints.\n  If zero, the trash feature is disabled.\n  ",
-    "filename" : "core-site.xml"
-  }, {
-    "name" : "fs.file.impl",
-    "value" : "org.apache.hadoop.fs.LocalFileSystem",
-    "description" : "The FileSystem for file: uris.",
-    "filename" : "core-site.xml"
-  }, {
-    "name" : "fs.hdfs.impl",
-    "value" : "org.apache.hadoop.hdfs.DistributedFileSystem",
-    "description" : "The FileSystem for hdfs: uris.",
-    "filename" : "core-site.xml"
-  }, {
-    "name" : "fs.s3.impl",
-    "value" : "org.apache.hadoop.fs.s3.S3FileSystem",
-    "description" : "The FileSystem for s3: uris.",
-    "filename" : "core-site.xml"
-  }, {
-    "name" : "fs.s3n.impl",
-    "value" : "org.apache.hadoop.fs.s3native.NativeS3FileSystem",
-    "description" : "The FileSystem for s3n: (Native S3) uris.",
-    "filename" : "core-site.xml"
-  }, {
-    "name" : "fs.kfs.impl",
-    "value" : "org.apache.hadoop.fs.kfs.KosmosFileSystem",
-    "description" : "The FileSystem for kfs: uris.",
-    "filename" : "core-site.xml"
-  }, {
-    "name" : "fs.hftp.impl",
-    "value" : "org.apache.hadoop.hdfs.HftpFileSystem",
-    "description" : null,
-    "filename" : "core-site.xml"
-  }, {
-    "name" : "fs.hsftp.impl",
-    "value" : "org.apache.hadoop.hdfs.HsftpFileSystem",
-    "description" : null,
-    "filename" : "core-site.xml"
-  }, {
-    "name" : "fs.webhdfs.impl",
-    "value" : "org.apache.hadoop.hdfs.web.WebHdfsFileSystem",
-    "description" : null,
-    "filename" : "core-site.xml"
-  }, {
-    "name" : "fs.ftp.impl",
-    "value" : "org.apache.hadoop.fs.ftp.FTPFileSystem",
-    "description" : "The FileSystem for ftp: uris.",
-    "filename" : "core-site.xml"
-  }, {
-    "name" : "fs.ramfs.impl",
-    "value" : "org.apache.hadoop.fs.InMemoryFileSystem",
-    "description" : "The FileSystem for ramfs: uris.",
-    "filename" : "core-site.xml"
-  }, {
-    "name" : "fs.har.impl",
-    "value" : "org.apache.hadoop.fs.HarFileSystem",
-    "description" : "The filesystem for Hadoop archives. ",
-    "filename" : "core-site.xml"
-  }, {
-    "name" : "fs.har.impl.disable.cache",
-    "value" : "true",
-    "description" : "Don't cache 'har' filesystem instances.",
-    "filename" : "core-site.xml"
-  }, {
-    "name" : "fs.checkpoint.dir",
-    "value" : "${hadoop.tmp.dir}/dfs/namesecondary",
-    "description" : "Determines where on the local filesystem the DFS secondary\n      name node should store the temporary images to merge.\n      If this is a comma-delimited list of directories then the image is\n      replicated in all of the directories for redundancy.\n  ",
     "filename" : "core-site.xml"
   }, {
     "name" : "fs.checkpoint.edits.dir",
     "value" : "${fs.checkpoint.dir}",
-    "description" : "Determines where on the local filesystem the DFS secondary\n      name node should store the temporary edits to merge.\n      If this is a comma-delimited list of directoires then teh edits is\n      replicated in all of the directoires for redundancy.\n      Default value is same as fs.checkpoint.dir\n  ",
+    "description" : "Determines where on the local filesystem the DFS secondary\n        name node should store the temporary edits to merge.\n        If this is a comma-delimited list of directoires then teh edits is\n        replicated in all of the directoires for redundancy.\n        Default value is same as fs.checkpoint.dir\n    ",
     "filename" : "core-site.xml"
   }, {
     "name" : "fs.checkpoint.period",
-    "value" : "3600",
+    "value" : "21600",
     "description" : "The number of seconds between two periodic checkpoints.\n  ",
     "filename" : "core-site.xml"
   }, {
     "name" : "fs.checkpoint.size",
-    "value" : "67108864",
+    "value" : "536870912",
     "description" : "The size of the current edit log (in bytes) that triggers\n       a periodic checkpoint even if the fs.checkpoint.period hasn't expired.\n  ",
     "filename" : "core-site.xml"
   }, {
-    "name" : "fs.s3.block.size",
-    "value" : "67108864",
-    "description" : "Block size to use when writing files to S3.",
-    "filename" : "core-site.xml"
-  }, {
-    "name" : "fs.s3.buffer.dir",
-    "value" : "${hadoop.tmp.dir}/s3",
-    "description" : "Determines where on the local filesystem the S3 filesystem\n  should store files before sending them to S3\n  (or after retrieving them from S3).\n  ",
-    "filename" : "core-site.xml"
-  }, {
-    "name" : "fs.s3.maxRetries",
-    "value" : "4",
-    "description" : "The maximum number of retries for reading or writing files to S3,\n  before we signal failure to the application.\n  ",
-    "filename" : "core-site.xml"
-  }, {
-    "name" : "fs.s3.sleepTimeSeconds",
-    "value" : "10",
-    "description" : "The number of seconds to sleep between each S3 retry.\n  ",
-    "filename" : "core-site.xml"
-  }, {
-    "name" : "local.cache.size",
-    "value" : "10737418240",
-    "description" : "The limit on the size of cache you want to keep, set by default\n  to 10GB. This will act as a soft limit on the cache directory for out of band data.\n  ",
-    "filename" : "core-site.xml"
-  }, {
-    "name" : "io.seqfile.compress.blocksize",
-    "value" : "1000000",
-    "description" : "The minimum block size for compression in block compressed\n          SequenceFiles.\n  ",
-    "filename" : "core-site.xml"
-  }, {
-    "name" : "io.seqfile.lazydecompress",
-    "value" : "true",
-    "description" : "Should values of block-compressed SequenceFiles be decompressed\n          only when necessary.\n  ",
-    "filename" : "core-site.xml"
-  }, {
-    "name" : "io.seqfile.sorter.recordlimit",
-    "value" : "1000000",
-    "description" : "The limit on number of records to be kept in memory in a spill\n          in SequenceFiles.Sorter\n  ",
-    "filename" : "core-site.xml"
-  }, {
-    "name" : "io.mapfile.bloom.size",
-    "value" : "1048576",
-    "description" : "The size of BloomFilter-s used in BloomMapFile. Each time this many\n  keys is appended the next BloomFilter will be created (inside a DynamicBloomFilter).\n  Larger values minimize the number of filters, which slightly increases the performance,\n  but may waste too much space if the total number of keys is usually much smaller\n  than this number.\n  ",
-    "filename" : "core-site.xml"
-  }, {
-    "name" : "io.mapfile.bloom.error.rate",
-    "value" : "0.005",
-    "description" : "The rate of false positives in BloomFilter-s used in BloomMapFile.\n  As this value decreases, the size of BloomFilter-s increases exponentially. This\n  value is the probability of encountering false positives (default is 0.5%).\n  ",
-    "filename" : "core-site.xml"
-  }, {
-    "name" : "hadoop.util.hash.type",
-    "value" : "murmur",
-    "description" : "The default implementation of Hash. Currently this can take one of the\n  two values: 'murmur' to select MurmurHash and 'jenkins' to select JenkinsHash.\n  ",
-    "filename" : "core-site.xml"
-  }, {
     "name" : "ipc.client.idlethreshold",
-    "value" : "4000",
+    "value" : "8000",
     "description" : "Defines the threshold number of connections after which\n               connections will be inspected for idleness.\n  ",
     "filename" : "core-site.xml"
   }, {
-    "name" : "ipc.client.kill.max",
-    "value" : "10",
-    "description" : "Defines the maximum number of clients to disconnect in one go.\n  ",
-    "filename" : "core-site.xml"
-  }, {
     "name" : "ipc.client.connection.maxidletime",
-    "value" : "10000",
-    "description" : "The maximum time in msec after which a client will bring down the\n               connection to the server.\n  ",
+    "value" : "30000",
+    "description" : "The maximum time after which a client will bring down the\n               connection to the server.\n  ",
     "filename" : "core-site.xml"
   }, {
     "name" : "ipc.client.connect.max.retries",
-    "value" : "10",
-    "description" : "Indicates the number of retries a client will make to establish\n               a server connection.\n  ",
-    "filename" : "core-site.xml"
-  }, {
-    "name" : "ipc.server.listen.queue.size",
-    "value" : "128",
-    "description" : "Indicates the length of the listen queue for servers accepting\n               client connections.\n  ",
-    "filename" : "core-site.xml"
-  }, {
-    "name" : "ipc.server.tcpnodelay",
-    "value" : "false",
-    "description" : "Turn on/off Nagle's algorithm for the TCP socket connection on\n  the server. Setting to true disables the algorithm and may decrease latency\n  with a cost of more/smaller packets.\n  ",
-    "filename" : "core-site.xml"
-  }, {
-    "name" : "ipc.client.tcpnodelay",
-    "value" : "false",
-    "description" : "Turn on/off Nagle's algorithm for the TCP socket connection on\n  the client. Setting to true disables the algorithm and may decrease latency\n  with a cost of more/smaller packets.\n  ",
+    "value" : "50",
+    "description" : "Defines the maximum number of retries for IPC connections.",
     "filename" : "core-site.xml"
   }, {
     "name" : "webinterface.private.actions",
     "value" : "false",
     "description" : " If set to true, the web interfaces of JT and NN may contain\n                actions, such as kill job, delete file, etc., that should\n                not be exposed to public. Enable this option if the interfaces\n                are only reachable by those who have the right authorization.\n  ",
-    "filename" : "core-site.xml"
-  }, {
-    "name" : "hadoop.rpc.socket.factory.class.default",
-    "value" : "org.apache.hadoop.net.StandardSocketFactory",
-    "description" : " Default SocketFactory to use. This parameter is expected to be\n    formatted as \"package.FactoryClassName\".\n  ",
-    "filename" : "core-site.xml"
-  }, {
-    "name" : "topology.node.switch.mapping.impl",
-    "value" : "org.apache.hadoop.net.ScriptBasedMapping",
-    "description" : " The default implementation of the DNSToSwitchMapping. It\n    invokes a script specified in topology.script.file.name to resolve\n    node names. If the value for topology.script.file.name is not set, the\n    default value of DEFAULT_RACK is returned for all node names.\n  ",
-    "filename" : "core-site.xml"
-  }, {
-    "name" : "topology.script.number.args",
-    "value" : "100",
-    "description" : " The max number of args that the script configured with\n    topology.script.file.name should be run with. Each arg is an\n    IP address.\n  ",
-    "filename" : "core-site.xml"
-  }, {
-    "name" : "hadoop.security.uid.cache.secs",
-    "value" : "14400",
-    "description" : " NativeIO maintains a cache from UID to UserName. This is\n  the timeout for an entry in that cache. ",
-    "filename" : "core-site.xml"
-  }, {
-    "name" : "hadoop.http.authentication.type",
-    "value" : "simple",
-    "description" : "\n    Defines authentication used for Oozie HTTP endpoint.\n    Supported values are: simple | kerberos | #AUTHENTICATION_HANDLER_CLASSNAME#\n  ",
-    "filename" : "core-site.xml"
-  }, {
-    "name" : "hadoop.http.authentication.token.validity",
-    "value" : "36000",
-    "description" : "\n    Indicates how long (in seconds) an authentication token is valid before it has\n    to be renewed.\n  ",
-    "filename" : "core-site.xml"
-  }, {
-    "name" : "hadoop.http.authentication.signature.secret.file",
-    "value" : "${user.home}/hadoop-http-auth-signature-secret",
-    "description" : "\n    The signature secret for signing the authentication tokens.\n    If not set a random secret is generated at startup time.\n    The same secret should be used for JT/NN/DN/TT configurations.\n  ",
-    "filename" : "core-site.xml"
-  }, {
-    "name" : "hadoop.http.authentication.simple.anonymous.allowed",
-    "value" : "true",
-    "description" : "\n    Indicates if anonymous requests are allowed when using 'simple' authentication.\n  ",
-    "filename" : "core-site.xml"
-  }, {
-    "name" : "hadoop.http.authentication.kerberos.principal",
-    "value" : "HTTP/localhost@LOCALHOST",
-    "description" : "\n    Indicates the Kerberos principal to be used for HTTP endpoint.\n    The principal MUST start with 'HTTP/' as per Kerberos HTTP SPNEGO specification.\n  ",
-    "filename" : "core-site.xml"
-  }, {
-    "name" : "hadoop.http.authentication.kerberos.keytab",
-    "value" : "${user.home}/hadoop.keytab",
-    "description" : "\n    Location of the keytab file with the credentials for the principal.\n    Referring to the same keytab file Oozie uses for its Kerberos credentials for Hadoop.\n  ",
-    "filename" : "core-site.xml"
-  }, {
-    "name" : "hadoop.relaxed.worker.version.check",
-    "value" : "false",
-    "description" : "\n    By default datanodes refuse to connect to namenodes if their build\n    revision (svn revision) do not match, and tasktrackers refuse to\n    connect to jobtrackers if their build version (version, revision,\n    user, and source checksum) do not match. This option changes the\n    behavior of hadoop workers to only check for a version match (eg\n    \"1.0.2\") but ignore the other build fields (revision, user, and\n    source checksum).\n  ",
     "filename" : "core-site.xml"
   } ],
   "components" : [ {
@@ -575,6 +190,7 @@
     "client" : true,
     "master" : false
   } ],
+  "clientOnlyService" : false,
   "clientComponent" : {
     "name" : "HDFS_CLIENT",
     "category" : "CLIENT",

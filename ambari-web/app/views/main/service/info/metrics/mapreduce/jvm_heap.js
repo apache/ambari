@@ -34,7 +34,7 @@ App.ChartServiceMetricsMapReduce_JVMHeap = App.ChartLinearTimeView.extend({
   url: function () {
     var mrService = App.MapReduceService.find().objectAt(0);
     var jtHostName = mrService.get('jobTracker').get('hostName');
-    return App.formatUrl("/api/clusters/{clusterName}/hosts/{hostName}/host_components/JOBTRACKER?fields=metrics/jvm/memNonHeapUsedM[{fromSeconds},{toSeconds},{stepSeconds}],metrics/jvm/memNonHeapCommittedM[{fromSeconds},{toSeconds},{stepSeconds}],metrics/jvm/memHeapUsedM[{fromSeconds},{toSeconds},{stepSeconds}],metrics/jvm/memHeapCommittedM[{fromSeconds},{toSeconds},{stepSeconds}]", {
+    return App.formatUrl(App.apiPrefix + "/clusters/{clusterName}/hosts/{hostName}/host_components/JOBTRACKER?fields=metrics/jvm/memNonHeapUsedM[{fromSeconds},{toSeconds},{stepSeconds}],metrics/jvm/memNonHeapCommittedM[{fromSeconds},{toSeconds},{stepSeconds}],metrics/jvm/memHeapUsedM[{fromSeconds},{toSeconds},{stepSeconds}],metrics/jvm/memHeapCommittedM[{fromSeconds},{toSeconds},{stepSeconds}]", {
       clusterName: App.router.get('clusterController.clusterName'),
       hostName: jtHostName
     }, "/data/services/metrics/mapreduce/jvm_heap.json");

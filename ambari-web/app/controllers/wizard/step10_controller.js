@@ -43,7 +43,7 @@ App.WizardStep10Controller = Em.Controller.extend({
     slaveHosts.forEach(function (_hosts) {
       hostObj = hostObj.concat(_hosts.hosts);
     }, this);
-    slaveHosts = hostObj.mapProperty('hostname').uniq();
+    slaveHosts = hostObj.mapProperty('hostName').uniq();
     var registeredHosts = masterHosts.concat(slaveHosts).uniq();
     var registerHostsStatement = registeredHosts.length + ' hosts registered to the cluster.';
     var registerHostsObj = Ember.Object.create({
@@ -153,7 +153,8 @@ App.WizardStep10Controller = Em.Controller.extend({
           this.loadJt(component);
           break;
         case 'ZOOKEEPER_SERVER' :
-          this.loadZk(component);
+          // TODO: Fix this; redundant entries and wrong number
+          //this.loadZk(component);
           break;
         case 'HBASE_MASTER':
           this.loadHb(component);

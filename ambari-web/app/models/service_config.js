@@ -103,6 +103,9 @@ App.ServiceConfigProperty = Ember.Object.extend({
       case 'oozie_ambari_host':
         this.set('value', masterComponentHostsInDB.findProperty('component', 'OOZIE_SERVER').hostName);
         break;
+      case 'zookeeperserver_hosts':
+        this.set('value', masterComponentHostsInDB.findProperty('component', 'ZOOKEEPER_SERVER').hostName);
+        break;
     }
   },
 

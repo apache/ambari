@@ -36,8 +36,8 @@ module.exports = Em.Route.extend({
     redirectsTo:'dashboard'
   }),
 
-  test: Em.Route.extend({
-    route: '/test',
+  test:Em.Route.extend({
+    route:'/test',
     connectOutlets:function (router, context) {
       router.get('mainController').connectOutlet('mainTest');
     }
@@ -83,9 +83,12 @@ module.exports = Em.Route.extend({
   apps:Em.Route.extend({
     route:'/apps',
     connectOutlets:function (router) {
+
+      router.get('clusterController').loadRuns();
       router.get('mainController').connectOutlet('mainApps');
     }
   }),
+
   hosts:Em.Route.extend({
     route:'/hosts',
     connectOutlets:function (router, context) {
@@ -249,8 +252,10 @@ module.exports = Em.Route.extend({
       router.transitionTo('hostDetails.index', event.context)
     },
     filterHosts:function (router, component) {
-      router.get('mainHostController').filterByComponent(component.context);
       router.transitionTo('hosts');
+      Ember.run.next(function(){
+        router.get('mainHostController').filterByComponent(component.context);
+      })
     }
   }),
 

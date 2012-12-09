@@ -34,7 +34,7 @@ App.ChartServiceMetricsHDFS_JVMHeap = App.ChartLinearTimeView.extend({
   url: function () {
     var hdfsService = App.HDFSService.find().objectAt(0);
     var nameNodeHostName = hdfsService.get('nameNode').get('hostName');
-    return App.formatUrl("/api/clusters/{clusterName}/hosts/{hostName}/host_components/NAMENODE?fields=metrics/jvm/memNonHeapUsedM[{fromSeconds},{toSeconds},{stepSeconds}],metrics/jvm/memNonHeapCommittedM[{fromSeconds},{toSeconds},{stepSeconds}],metrics/jvm/memHeapUsedM[{fromSeconds},{toSeconds},{stepSeconds}],metrics/jvm/memHeapCommittedM[{fromSeconds},{toSeconds},{stepSeconds}]", {
+    return App.formatUrl(App.apiPrefix + "/clusters/{clusterName}/hosts/{hostName}/host_components/NAMENODE?fields=metrics/jvm/memNonHeapUsedM[{fromSeconds},{toSeconds},{stepSeconds}],metrics/jvm/memNonHeapCommittedM[{fromSeconds},{toSeconds},{stepSeconds}],metrics/jvm/memHeapUsedM[{fromSeconds},{toSeconds},{stepSeconds}],metrics/jvm/memHeapCommittedM[{fromSeconds},{toSeconds},{stepSeconds}]", {
       clusterName: App.router.get('clusterController.clusterName'),
       hostName: nameNodeHostName
     }, "/data/services/metrics/hdfs/jvm_heap.json");

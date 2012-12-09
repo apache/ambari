@@ -71,7 +71,6 @@ module.exports = Em.Route.extend({
       var wizardStep5Controller = router.get('wizardStep5Controller');
       addServiceController.saveMasterComponentHosts(wizardStep5Controller);
       App.db.setSlaveComponentHosts(undefined);
-      App.db.setHostSlaveComponents(undefined);
       router.transitionTo('step3');
     }
   }),
@@ -85,7 +84,14 @@ module.exports = Em.Route.extend({
       controller.loadAllPriorSteps();
       controller.connectOutlet('wizardStep6', controller.get('content'));
     },
-    back: Em.Router.transitionTo('step2'),
+    back: function(router){
+      var controller = router.get('addServiceController');
+      if(controller.get('content.masterComponentHosts').someProperty('isInstalled', false)){
+        router.transitionTo('step2');
+      } else {
+        router.transitionTo('step1');
+      }
+    },
     next: function (router) {
       var addServiceController = router.get('addServiceController');
       var wizardStep6Controller = router.get('wizardStep6Controller');
@@ -94,6 +100,7 @@ module.exports = Em.Route.extend({
         addServiceController.saveSlaveComponentHosts(wizardStep6Controller);
         addServiceController.get('content').set('serviceConfigProperties', null);
         App.db.setServiceConfigProperties(null);
+        addServiceController.loadAdvancedConfigs();
         router.transitionTo('step4');
       }
     }
@@ -176,8 +183,7 @@ module.exports = Em.Route.extend({
     back: Em.Router.transitionTo('step6'),
     complete: function (router, context) {
       if (true) {   // this function will be moved to installerController where it will validate
-        var addServiceController = router.get('addServiceController');
-        addServiceController.setCurrentStep('1', false);
+        router.get('addServiceController').finish();
         router.transitionTo('services');
       }
     }

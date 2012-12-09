@@ -159,7 +159,6 @@ App.db.removeHosts = function (hostInfo) {
 };
 
 App.db.setService = function (serviceInfo) {
-  console.log('TRACE: Entering db:setService function');
   App.db.data = localStorage.getObject('ambari');
   App.db.data.Installer.serviceInfo = serviceInfo;
   localStorage.setObject('ambari', App.db.data);
@@ -180,12 +179,6 @@ App.db.setClientsForSelectedServices = function (clientInfo) {
 App.db.setMasterComponentHosts = function (masterComponentHosts) {
   App.db.data = localStorage.getObject('ambari');
   App.db.data.Installer.masterComponentHosts = masterComponentHosts;
-  localStorage.setObject('ambari', App.db.data);
-};
-
-App.db.setHostSlaveComponents = function (hostSlaveComponents) {
-  App.db.data = localStorage.getObject('ambari');
-  App.db.data.Installer.hostSlaveComponents = hostSlaveComponents;
   localStorage.setObject('ambari', App.db.data);
 };
 
@@ -323,7 +316,6 @@ App.db.getBootStatus = function () {
 };
 
 App.db.getService = function () {
-  console.log('TRACE: Entering db:getService function');
   App.db.data = localStorage.getObject('ambari');
   return App.db.data.Installer.serviceInfo;
 };
@@ -341,11 +333,6 @@ App.db.getClientsForSelectedServices = function () {
 App.db.getMasterComponentHosts = function () {
   App.db.data = localStorage.getObject('ambari');
   return App.db.data.Installer.masterComponentHosts;
-};
-
-App.db.getHostSlaveComponents = function () {
-  App.db.data = localStorage.getObject('ambari');
-  return App.db.data.Installer.hostSlaveComponents;
 };
 
 App.db.getSlaveComponentHosts = function () {

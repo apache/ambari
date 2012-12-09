@@ -34,7 +34,7 @@ App.ChartServiceMetricsHDFS_SpaceUtilization = App.ChartLinearTimeView.extend({
   url: function () {
     var hdfsService = App.HDFSService.find().objectAt(0);
     var nameNodeHostName = hdfsService.get('nameNode').get('hostName');
-    return App.formatUrl("/api/clusters/{clusterName}/hosts/{hostName}/host_components/NAMENODE?fields=metrics/dfs/FSNamesystem/CapacityRemainingGB[{fromSeconds},{toSeconds},{stepSeconds}],metrics/dfs/FSNamesystem/CapacityUsedGB[{fromSeconds},{toSeconds},{stepSeconds}],metrics/dfs/FSNamesystem/CapacityTotalGB[{fromSeconds},{toSeconds},{stepSeconds}]", {
+    return App.formatUrl(App.apiPrefix + "/clusters/{clusterName}/hosts/{hostName}/host_components/NAMENODE?fields=metrics/dfs/FSNamesystem/CapacityRemainingGB[{fromSeconds},{toSeconds},{stepSeconds}],metrics/dfs/FSNamesystem/CapacityUsedGB[{fromSeconds},{toSeconds},{stepSeconds}],metrics/dfs/FSNamesystem/CapacityTotalGB[{fromSeconds},{toSeconds},{stepSeconds}]", {
       clusterName: App.router.get('clusterController.clusterName'),
       hostName: nameNodeHostName
     }, "/data/services/metrics/hdfs/space_utilization.json");

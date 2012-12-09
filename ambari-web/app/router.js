@@ -136,7 +136,7 @@ App.Router = Em.Router.extend({
     var router = this;
 
     $.ajax({
-      url : '/api/users/' + loginName,
+      url : App.apiPrefix + '/users/' + loginName,
       dataType : 'text',
       type: 'GET',
       beforeSend: function (xhr) {
@@ -177,13 +177,13 @@ App.Router = Em.Router.extend({
   setAmbariStacks: function () {
     var self = this;
     var method = 'GET';
-    var url = (App.testMode) ? '/data/wizard/stack/stacks.json' : '/api/stacks';
+    var url = (App.testMode) ? '/data/wizard/stack/stacks.json' : App.apiPrefix + '/stacks';
     $.ajax({
       type: method,
       url: url,
       async: false,
       dataType: 'text',
-      timeout: 5000,
+      timeout: App.timeout,
       success: function (data) {
         var jsonData = jQuery.parseJSON(data);
         console.log("TRACE: In success function for the setAmbariStacks call");
@@ -229,6 +229,9 @@ App.Router = Em.Router.extend({
   },
 
   getSection: function () {
+    if (App.alwaysGoToInstaller) {
+      return 'installer';
+    }
     var clusterController = App.router.get('clusterController');
     clusterController.loadClusterName(false);
     if (clusterController.get('clusterName')) {

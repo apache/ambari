@@ -27,7 +27,7 @@ App.HostComponent = DS.Model.extend({
   isRunning: function(){
     return (this.get('workStatus') == 'STARTED' || this.get('workStatus') == 'STARTING');
   }.property('workStatus'),
-  displayName: function () { console.log('model',this.get('isLoaded'));
+  displayName: function () {
     return App.format.role(this.get('componentName'));
   }.property('componentName')
 })

@@ -28,12 +28,12 @@ App.QuickViewLinks = Em.View.extend({
     var components = this.get('content.components');
     var host;
 
-    if(serviceName === 'hdfs'){
-      host = components.filterProperty('componentName', 'NameNode').objectAt(0).get('host.hostName');
-    } else if(serviceName === 'mapreduce'){
-      host = components.filterProperty('componentName', 'JobTracker').objectAt(0).get('host.hostName');
-    } else if(serviceName === 'hbase'){
-      host = components.filterProperty('componentName', 'HBase Master').objectAt(0).get('host.hostName');
+    if(serviceName === 'HDFS'){
+      host = components.filterProperty('id', 'NAMENODE').objectAt(0).get('host.hostName');
+    } else if(serviceName === 'MAPREDUCE'){
+      host = components.filterProperty('id', 'JOBTRACKER').objectAt(0).get('host.hostName');
+    } else if(serviceName === 'HBASE'){
+      host = components.filterProperty('id', 'HBASE_MASTER').objectAt(0).get('host.hostName');
     }
     if(!host){
       return [];

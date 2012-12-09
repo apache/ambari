@@ -146,20 +146,20 @@ App.WizardStep2Controller = Em.Controller.extend({
     }
 
     var method = App.testMode ? 'GET' : 'POST';
-    var url = App.testMode ? '/data/wizard/bootstrap/bootstrap.json' : '/api/bootstrap';
+    var url = App.testMode ? '/data/wizard/bootstrap/bootstrap.json' : App.apiPrefix + '/bootstrap';
 
     $.ajax({
       type: method,
       url: url,
       data: bootStrapData,
-      timeout: 10000,
+      timeout: App.timeout,
       contentType: 'application/json',
       success: function () {
-        console.log("TRACE: POST /api/bootstrap succeeded");
+        console.log("TRACE: POST bootstrap succeeded");
         App.router.send('next');
       },
       error: function () {
-        console.log("ERROR: POST /api/bootstrap failed");
+        console.log("ERROR: POST bootstrap failed");
         alert('Bootstrap call failed.  Please try again.');
       }
     });

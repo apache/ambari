@@ -20,6 +20,7 @@
 module.exports = {
   drawJobTimeLine:function (json_str, w, h, element, legend_id, timeline_id) {
     var json = $.parseJSON(json_str);
+    console.log('json', json);
     if (!json) {
       return new Error("unable to load data");
     }
@@ -128,7 +129,7 @@ module.exports = {
           data:json[3],
           color:'red',
           name:'reduce'
-        },
+        }
       ]
     });
     graph.render();

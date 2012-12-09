@@ -29,7 +29,7 @@ var App = require('app');
 App.ChartClusterMetricsCPU = App.ChartLinearTimeView.extend({
   id: "cluster-metrics-cpu",
   url: function () {
-    return App.formatUrl("/api/clusters/{clusterName}?fields=metrics/cpu[{fromSeconds},{toSeconds},{stepSeconds}]", {
+    return App.formatUrl(App.apiPrefix + "/clusters/{clusterName}?fields=metrics/cpu[{fromSeconds},{toSeconds},{stepSeconds}]", {
       clusterName: App.router.get('clusterController.clusterName')
     }, "/data/cluster_metrics/cpu_1hr.json");
   }.property('App.router.clusterController.clusterName'),

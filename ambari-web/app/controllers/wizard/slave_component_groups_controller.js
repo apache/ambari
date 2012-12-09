@@ -42,6 +42,10 @@ App.SlaveComponentGroupsController = Em.ArrayController.extend({
 
   }.property('App.router.wizardStep7Controller.selectedService'),
 
+  selectedComponentDisplayName: function() {
+    return App.format.role(this.get('selectedComponentName'));
+  }.property('selectedComponentName'),
+
   selectedSlaveComponent: function () {
     var selectedComponentName = this.get('selectedComponentName');
     if (selectedComponentName) {
@@ -111,7 +115,7 @@ App.SlaveComponentGroupsController = Em.ArrayController.extend({
       onPrimary: function (event) {
         if (component.tempSelectedGroups && component.tempSelectedGroups.length) {
           component.tempSelectedGroups.forEach(function (item) {
-            var changed = component.hosts.filterProperty('hostname', item.hostName);
+            var changed = component.hosts.filterProperty('hostName', item.hostName);
             changed.setEach('group', item.groupName);
           })
         }
@@ -139,9 +143,9 @@ App.SlaveComponentGroupsController = Em.ArrayController.extend({
     if (component.tempSelectedGroups === undefined) {
       component.tempSelectedGroups = [];
     }
-    var values = component.tempSelectedGroups.filterProperty('hostName', host.hostname);
+    var values = component.tempSelectedGroups.filterProperty('hostName', host.hostName);
     if (values.length === 0)
-      component.tempSelectedGroups.pushObject({hostName: host.hostname, groupName: groupName});
+      component.tempSelectedGroups.pushObject({hostName: host.hostName, groupName: groupName});
     else
       values.setEach('groupName', groupName);
 

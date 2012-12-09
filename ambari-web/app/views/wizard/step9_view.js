@@ -180,7 +180,7 @@ App.HostStatusView = Em.View.extend({
             $.ajax({
               url: url,
               dataType: 'text',
-              timeout: 10000,
+              timeout: App.timeout,
               success: function (data) {
                 var task = $.parseJSON(data);
                 taskInfo.set('stdout', task.Tasks.stdout);

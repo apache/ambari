@@ -28,11 +28,6 @@
   <table class="table table-bordered table-striped">
     <thead>
     <tr>
-      <th class="first">
-        <label class="checkbox">
-          {{view Ember.Checkbox checkedBinding="allChecked" class="checkbox"}}
-        </label>
-      </th>
       <th class="name">
         <div class="host-name-pos">
           <a class="filter-label" href="#" {{action sortByName target="controller" }}>Name
@@ -70,7 +65,7 @@
                 {{#each component in masterComponents}}
                 <li>
                   <label class="checkbox">
-                    {{view Ember.Checkbox checkedBinding="component.checkedForHostFilter" }} {{unbound component.componentName}}
+                    {{view Ember.Checkbox checkedBinding="component.checkedForHostFilter" }} {{unbound component.displayName}}
                   </label>
                 </li>
                 {{/each}}
@@ -85,7 +80,7 @@
                 {{#each component in slaveComponents}}
                 <li>
                   <label class="checkbox">
-                    {{view Ember.Checkbox checkedBinding="component.checkedForHostFilter" }} {{unbound component.componentName}}
+                    {{view Ember.Checkbox checkedBinding="component.checkedForHostFilter" }} {{unbound component.displayName}}
                   </label>
                 </li>
                 {{/each}}
@@ -109,18 +104,13 @@
     {{#each host in controller}}
     {{#view view.HostView contentBinding="host"}}
     <tr>
-      <td class="first">
-        <label class="checkbox">
-          {{view view.HostCheckboxView checkedBinding="host.isChecked" contentBinding="host"}}
-        </label>
-      </td>
       <td class="name">
         <span {{bindAttr class="host.healthClass"}}></span>
         <a href="#" {{action "showDetails" host}}>{{unbound host.hostName}}</a>
       </td>
       <td>{{host.cluster.clusterName}}</td>
       <td>{{host.cpu}}</td>
-      <td>{{host.memory}}</td>
+      <td>{{host.memoryFormatted}}</td>
       <td>
         <div class="progress progress-info">
           <div class="bar" {{bindAttr style="view.usageStyle"}} style="width: 20%"></div>

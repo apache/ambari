@@ -224,7 +224,6 @@ App.InstallerController = Em.Controller.extend({
     services: null,
     hostsInfo: [],
     slaveComponentHosts: null,
-    hostSlaveComponents: null,
     masterComponentHosts: null,
     serviceConfigProperties: null,
     advancedServiceConfig: null,
@@ -390,7 +389,7 @@ App.InstallerController = Em.Controller.extend({
    * Will be used at <code>Assign Masters(step5)</code> step
    */
   loadConfirmedHosts: function () {
-    this.set('content.hostsInfo', App.db.getHosts());
+    this.set('content.hostsInfo', App.db.getHosts() || []);
   },
 
   /**
@@ -440,6 +439,7 @@ App.InstallerController = Em.Controller.extend({
     var servicesInfo = App.db.getService();
     servicesInfo.forEach(function (item, index) {
       servicesInfo[index] = Em.Object.create(item);
+      servicesInfo[index].isInstalled = false;
     });
     this.set('content.services', servicesInfo);
     console.log('installerController.loadServices: loaded data ', servicesInfo);
@@ -474,6 +474,7 @@ App.InstallerController = Em.Controller.extend({
         display_name: _component.get('display_name'),
         component: _component.get('component_name'),
         hostName: _component.get('selectedHost'),
+        serviceId: _component.get('serviceId'),
         isInstalled: false
       });
     });
@@ -487,7 +488,7 @@ App.InstallerController = Em.Controller.extend({
    * Load master component hosts data for using in required step controllers
    */
   loadMasterComponentHosts: function () {
-    var masterComponentHosts = App.db.getMasterComponentHosts();
+    var masterComponentHosts = App.db.getMasterComponentHosts() || [];
     this.set("content.masterComponentHosts", masterComponentHosts);
     console.log("InstallerController.loadMasterComponentHosts: loaded hosts ", masterComponentHosts);
   },
@@ -502,9 +503,6 @@ App.InstallerController = Em.Controller.extend({
     var isMrSelected = stepController.get('isMrSelected');
     var isHbSelected = stepController.get('isHbSelected');
 
-    App.db.setHostSlaveComponents(hosts);
-    this.set('content.hostSlaveComponents', hosts);
-
     var dataNodeHosts = [];
     var taskTrackerHosts = [];
     var regionServerHosts = [];
@@ -514,25 +512,29 @@ App.InstallerController = Em.Controller.extend({
       if (host.get('isDataNode')) {
         dataNodeHosts.push({
           hostName: host.hostName,
-          group: 'Default'
+          group: 'Default',
+          isInstalled : false
         });
       }
       if (isMrSelected && host.get('isTaskTracker')) {
         taskTrackerHosts.push({
           hostName: host.hostName,
-          group: 'Default'
+          group: 'Default',
+          isInstalled : false
         });
       }
       if (isHbSelected && host.get('isRegionServer')) {
         regionServerHosts.push({
           hostName: host.hostName,
-          group: 'Default'
+          group: 'Default',
+          isInstalled : false
         });
       }
       if (host.get('isClient')) {
         clientHosts.pushObject({
           hostName: host.hostName,
-          group: 'Default'
+          group: 'Default',
+          isInstalled : false
         });
       }
     }, this);
@@ -565,26 +567,16 @@ App.InstallerController = Em.Controller.extend({
 
     App.db.setSlaveComponentHosts(slaveComponentHosts);
     this.set('content.slaveComponentHosts', slaveComponentHosts);
+    console.log("InstallerController.saveSlaveComponentHosts: saved hosts ", slaveComponentHosts);
   },
 
   /**
    * Load master component hosts data for using in required step controllers
    */
   loadSlaveComponentHosts: function () {
-    var slaveComponentHosts = App.db.getSlaveComponentHosts();
-    if (slaveComponentHosts !== undefined) {
-      this.set("content.slaveComponentHosts", slaveComponentHosts);
-      console.log("InstallerController.loadSlaveComponentHosts: loaded hosts ", slaveComponentHosts);
-    } else {
-      this.set("content.slaveComponentHosts", null);
-    }
-    var hostSlaveComponents = App.db.getHostSlaveComponents();
-    if (hostSlaveComponents !== undefined) {
-      this.set('content.hostSlaveComponents', hostSlaveComponents);
-      console.log("InstallerController.loadSlaveComponentHosts: loaded hosts ", hostSlaveComponents);
-    } else {
-      this.set("content.hostSlaveComponents", null);
-    }
+    var slaveComponentHosts = App.db.getSlaveComponentHosts() || null;
+    this.set("content.slaveComponentHosts", slaveComponentHosts);
+    console.log("InstallerController.loadSlaveComponentHosts: loaded hosts ", slaveComponentHosts);
   },
 
   /**
@@ -624,6 +616,8 @@ App.InstallerController = Em.Controller.extend({
     var serviceConfigProperties = App.db.getServiceConfigProperties();
     this.set('content.serviceConfigProperties', serviceConfigProperties);
     console.log("InstallerController.loadServiceConfigProperties: loaded config ", serviceConfigProperties);
+
+    this.set('content.advancedServiceConfig', App.db.getAdvancedServiceConfig());
   },
 
   /**
@@ -648,7 +642,8 @@ App.InstallerController = Em.Controller.extend({
       if (client) {
         clients.pushObject({
           component_name: client.component_name,
-          display_name: client.display_name
+          display_name: client.display_name,
+          isInstalled: false
         });
       }
     }, this);
@@ -693,13 +688,13 @@ App.InstallerController = Em.Controller.extend({
   loadComponents: function (stepController) {
     var self = this;
     var method = 'GET';
-    var url = (App.testMode) ? '/data/wizard/stack/hdp/version0.1.json' : '/api/stacks/HDP/version/1.2.0'; // TODO: get this url from the stack selected by the user in Install Options page
+    var url = (App.testMode) ? '/data/wizard/stack/hdp/version0.1.json' : App.apiPrefix + '/stacks/HDP/version/1.2.0'; // TODO: get this url from the stack selected by the user in Install Options page
     $.ajax({
       type: method,
       url: url,
       async: false,
       dataType: 'text',
-      timeout: 5000,
+      timeout: App.timeout,
       success: function (data) {
         var jsonData = jQuery.parseJSON(data);
         console.log("TRACE: STep5 -> In success function for the getServiceComponents call");
@@ -736,14 +731,14 @@ App.InstallerController = Em.Controller.extend({
 
   loadAdvancedConfig: function (serviceName) {
     var self = this;
-    var url = (App.testMode) ? '/data/wizard/stack/hdp/version01/' + serviceName + '.json' : '/api/stacks/HDP/version/1.2.0/services/' + serviceName; // TODO: get this url from the stack selected by the user in Install Options page
+    var url = (App.testMode) ? '/data/wizard/stack/hdp/version01/' + serviceName + '.json' : App.apiPrefix + '/stacks/HDP/version/1.2.0/services/' + serviceName; // TODO: get this url from the stack selected by the user in Install Options page
     var method = 'GET';
     $.ajax({
       type: method,
       url: url,
       async: false,
       dataType: 'text',
-      timeout: 5000,
+      timeout: App.timeout,
       success: function (data) {
         var jsonData = jQuery.parseJSON(data);
         console.log("TRACE: Step6 submit -> In success function for the loadAdvancedConfig call");
@@ -780,7 +775,7 @@ App.InstallerController = Em.Controller.extend({
   installServices: function () {
     var self = this;
     var clusterName = this.get('content.cluster.name');
-    var url = (App.testMode) ? '/data/wizard/deploy/poll_1.json' : '/api/clusters/' + clusterName + '/services?state=INIT';
+    var url = (App.testMode) ? '/data/wizard/deploy/poll_1.json' : App.apiPrefix + '/clusters/' + clusterName + '/services?state=INIT';
     var method = (App.testMode) ? 'GET' : 'PUT';
     var data = '{"ServiceInfo": {"state": "INSTALLED"}}';
     $.ajax({
@@ -789,7 +784,7 @@ App.InstallerController = Em.Controller.extend({
       data: data,
       async: false,
       dataType: 'text',
-      timeout: 5000,
+      timeout: App.timeout,
       success: function (data) {
         var jsonData = jQuery.parseJSON(data);
         var installSartTime = new Date().getTime();
@@ -836,6 +831,9 @@ App.InstallerController = Em.Controller.extend({
   finish: function(){
     this.setCurrentStep('1', false);
     App.db.setService(undefined); //not to use this data at AddService page
+    App.db.setHosts(undefined);
+    App.db.setMasterComponentHosts(undefined);
+    App.db.setSlaveComponentHosts(undefined);
   }
 
 });

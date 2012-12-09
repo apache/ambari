@@ -196,11 +196,11 @@ App.WizardStep3Controller = Em.Controller.extend({
   doBootstrap: function () {
     this.numPolls++;
     var self = this;
-    var url = App.testMode ? '/data/wizard/bootstrap/poll_' + this.numPolls + '.json' : '/api/bootstrap/1';
+    var url = App.testMode ? '/data/wizard/bootstrap/poll_' + this.numPolls + '.json' : App.apiPrefix + '/bootstrap/1';
     $.ajax({
       type: 'GET',
       url: url,
-      timeout: 5000,
+      timeout: App.timeout,
       success: function (data) {
         if (data.hostsStatus !== null) {
           // in case of bootstrapping just one server, the server returns an object rather than an array...

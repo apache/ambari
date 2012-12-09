@@ -82,7 +82,7 @@ App.BackgroundOperationsController = Em.Controller.extend({
   generateUrl: function(){
     var url = App.testMode ?
       '/data/background_operations/list_on_start.json' :
-      '/api/clusters/' + App.router.getClusterName() + '/requests/?fields=tasks/*&tasks/Tasks/status!=COMPLETED';
+      App.apiPrefix + '/clusters/' + App.router.getClusterName() + '/requests/?fields=tasks/*&tasks/Tasks/status!=COMPLETED';
 
     this.set('url', url);
     return url;
@@ -100,6 +100,14 @@ App.BackgroundOperationsController = Em.Controller.extend({
     }
     var self = this;
 
+    if(!App.router.getClusterName()){
+      console.log('clusterName is undefined')
+      setTimeout(function(){
+        self.loadOperations();
+      },1000);
+      return;
+    }
+
     var url = this.get('url');
     if(!url){
       url = this.generateUrl();
@@ -109,7 +117,7 @@ App.BackgroundOperationsController = Em.Controller.extend({
       type: "GET",
       url: url,
       dataType: 'json',
-      timeout: 5000,
+      timeout: App.timeout,
       success: function (data) {
         //refresh model
         self.updateBackgroundOperations(data);
@@ -125,8 +133,6 @@ App.BackgroundOperationsController = Em.Controller.extend({
       error: function (request, ajaxOptions, error) {
         console.log('cannot load background operations array');
 
-        //next code is temporary code to fix testMode issues
-        self.set('url', '/data/background_operations/list_on_start.json');
         //load data again if isWorking = true
         if(self.get('isWorking')){
           setTimeout(function(){

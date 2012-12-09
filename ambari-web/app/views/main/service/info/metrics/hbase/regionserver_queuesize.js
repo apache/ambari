@@ -31,7 +31,7 @@ App.ChartServiceMetricsHBASE_RegionServerQueueSize = App.ChartLinearTimeView.ext
   title: "RegionServer Queue Size",
 
   url: function () {
-    return App.formatUrl("/api/clusters/{clusterName}/services/HBASE/components/HBASE_REGIONSERVER?fields=metrics/hbase/regionserver/flushQueueSize[{fromSeconds},{toSeconds},{stepSeconds}],metrics/hbase/regionserver/compactionQueueSize[{fromSeconds},{toSeconds},{stepSeconds}]", {
+    return App.formatUrl(App.apiPrefix + "/clusters/{clusterName}/services/HBASE/components/HBASE_REGIONSERVER?fields=metrics/hbase/regionserver/flushQueueSize[{fromSeconds},{toSeconds},{stepSeconds}],metrics/hbase/regionserver/compactionQueueSize[{fromSeconds},{toSeconds},{stepSeconds}]", {
       clusterName: App.router.get('clusterController.clusterName')
     }, "/data/services/metrics/hbase/regionserver_queuesize.json");
   }.property('App.router.clusterController.clusterName'),

@@ -28,7 +28,6 @@ var db = require('utils/db');
  *   masterComponentHosts: App.db.masterComponentHosts (master-components-to-hosts mapping the user selected in Step 5)
  *
  * Step 6 will set the following information in App.db:
- *   hostSlaveComponents: App.db.hostSlaveComponents (hosts-to-slave-components mapping the user selected in Steo 6)
  *   slaveComponentHosts: App.db.slaveComponentHosts (slave-components-to-hosts mapping the user selected in Step 6)
  *
  */
@@ -105,35 +104,43 @@ App.WizardStep6Controller = Em.Controller.extend({
   },
 
   selectAllDataNodes: function () {
-    this.get('hosts').setEach('isDataNode', true);
+    var forFilter = this.get('hosts').filterProperty('isDataNodeInstalled', false);
+    forFilter.setEach('isDataNode', true);
   },
 
   selectAllTaskTrackers: function () {
-    this.get('hosts').setEach('isTaskTracker', true);
+    var forFilter = this.get('hosts').filterProperty('isTaskTrackerInstalled', false);
+    forFilter.setEach('isTaskTracker', true);
   },
 
   selectAllRegionServers: function () {
-    this.get('hosts').setEach('isRegionServer', true);
+    var forFilter = this.get('hosts').filterProperty('isRegionServerInstalled', false);
+    forFilter.setEach('isRegionServer', true);
   },
 
   selectAllClients: function () {
-    this.get('hosts').setEach('isClient', true);
+    var forFilter = this.get('hosts').filterProperty('isClientInstalled', false);
+    forFilter.setEach('isClient', true);
   },
 
   deselectAllDataNodes: function () {
-    this.get('hosts').setEach('isDataNode', false);
+    var forFilter = this.get('hosts').filterProperty('isDataNodeInstalled', false);
+    forFilter.setEach('isDataNode', false);
   },
 
   deselectAllTaskTrackers: function () {
-    this.get('hosts').setEach('isTaskTracker', false);
+    var forFilter = this.get('hosts').filterProperty('isTaskTrackerInstalled', false);
+    forFilter.setEach('isTaskTracker', false);
   },
 
   deselectAllRegionServers: function () {
-    this.get('hosts').setEach('isRegionServer', false);
+    var forFilter = this.get('hosts').filterProperty('isRegionServerInstalled', false);
+    forFilter.setEach('isRegionServer', false);
   },
 
   deselectAllClients: function () {
-    this.get('hosts').setEach('isClient', false);
+    var forFilter = this.get('hosts').filterProperty('isClientInstalled', false);
+    forFilter.setEach('isClient', false);
   },
 
   clearStep: function () {
@@ -169,7 +176,7 @@ App.WizardStep6Controller = Em.Controller.extend({
     var hostsObj = Em.Set.create();
     var allHosts = this.getHostNames();
     var maxNoofHostComponents = 9;
-    var slaveHosts = this.get('content.slaveComponentHosts');
+    var slaveComponents = this.get('content.slaveComponentHosts');
 
     allHosts.forEach(function (_hostName) {
       hostsObj.push(Em.Object.create({
@@ -178,11 +185,15 @@ App.WizardStep6Controller = Em.Controller.extend({
         isDataNode: false,
         isTaskTracker: false,
         isRegionServer: false,
-        isClient: false
+        isClient: false,
+        isDataNodeInstalled: false,
+        isTaskTrackerInstalled: false,
+        isRegionServerInstalled: false,
+        isClientInstalled: false
       }));
     });
 
-    if (!slaveHosts) { // we are at this page for the first time
+    if (!slaveComponents) { // we are at this page for the first time
       if (allHosts.length > 3) {             //multiple nodes scenario
         hostsObj.forEach(function (host) {
           host.isMaster = this.hasMasterComponents(host.hostName);
@@ -215,39 +226,43 @@ App.WizardStep6Controller = Em.Controller.extend({
 
     } else {
 
-      var dataNodes = slaveHosts.findProperty('componentName', 'DATANODE');
+      var dataNodes = slaveComponents.findProperty('componentName', 'DATANODE');
       dataNodes.hosts.forEach(function (_dataNode) {
         var dataNode = hostsObj.findProperty('hostName', _dataNode.hostName);
         if (dataNode) {
           dataNode.set('isDataNode', true);
+          dataNode.set('isDataNodeInstalled', true);
         }
       });
 
       if (this.get('isMrSelected')) {
-        var taskTrackers = slaveHosts.findProperty('componentName', 'TASKTRACKER');
+        var taskTrackers = slaveComponents.findProperty('componentName', 'TASKTRACKER');
         taskTrackers.hosts.forEach(function (_taskTracker) {
           var taskTracker = hostsObj.findProperty('hostName', _taskTracker.hostName);
           if (taskTracker) {
             taskTracker.set('isTaskTracker', true);
+            taskTracker.set('isTaskTrackerInstalled', true);
           }
         });
       }
 
       if (this.get('isHbSelected')) {
-        var regionServers = slaveHosts.findProperty('componentName', 'HBASE_REGIONSERVER');
+        var regionServers = slaveComponents.findProperty('componentName', 'HBASE_REGIONSERVER');
         regionServers.hosts.forEach(function (_regionServer) {
           var regionServer = hostsObj.findProperty('hostName', _regionServer.hostName);
           if (regionServer) {
             regionServer.set('isRegionServer', true);
+            regionServer.set('isRegionServerInstalled', true);
           }
         });
       }
 
-      var clients = slaveHosts.findProperty('componentName', 'CLIENT');
+      var clients = slaveComponents.findProperty('componentName', 'CLIENT');
       clients.hosts.forEach(function (_client) {
         var client = hostsObj.findProperty('hostName', _client.hostName);
         if (client) {
           client.set('isClient', true);
+          client.set('isClientInstalled', true);
         }
       }, this);
 

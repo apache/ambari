@@ -57,11 +57,14 @@ App.WizardStep6HostView = Em.View.extend({
   tagName: 'td',
 
   didInsertElement: function () {
-    var components = this.get('controller').getMasterComponentsForHost(this.get('host.hostname'));
-    if(components){
+    var components = this.get('controller').getMasterComponentsForHost(this.get('host.hostName'));
+    if (components && components.length > 0) {
+      components = components.map(function(_component) {
+        return App.format.role(_component);
+      });
       components = components.join(" /\n");
       this.$().popover({
-        title: 'master components hosted on ' + this.get('host.hostname'),
+        title: 'master components hosted on ' + this.get('host.hostName'),
         content: components,
         placement: 'right',
         trigger: 'hover'

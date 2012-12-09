@@ -40,7 +40,6 @@ App.AddHostController = Em.Controller.extend({
     services: null,
     hostsInfo: null,
     slaveComponentHosts: null,
-    hostSlaveComponents: null,
     masterComponentHosts: null,
     serviceConfigProperties: null
   }),
@@ -462,9 +461,6 @@ App.AddHostController = Em.Controller.extend({
     var isMrSelected = stepController.get('isMrSelected');
     var isHbSelected = stepController.get('isHbSelected');
 
-    App.db.setHostSlaveComponents(hosts);
-    this.set('content.hostSlaveComponents', hosts);
-
     var dataNodeHosts = [];
     var taskTrackerHosts = [];
     var regionServerHosts = [];
@@ -534,10 +530,6 @@ App.AddHostController = Em.Controller.extend({
     var slaveComponentHosts = App.db.getSlaveComponentHosts();
     this.set("content.slaveComponentHosts", slaveComponentHosts);
     console.log("AddHostController.loadSlaveComponentHosts: loaded hosts ", slaveComponentHosts);
-
-    var hostSlaveComponents = App.db.getHostSlaveComponents();
-    this.set('content.hostSlaveComponents', hostSlaveComponents);
-    console.log("AddHostController.loadSlaveComponentHosts: loaded hosts ", hostSlaveComponents);
   },
 
   /**
@@ -637,7 +629,7 @@ App.AddHostController = Em.Controller.extend({
   installServices: function () {
     var self = this;
     var clusterName = this.get('content.cluster.name');
-    var url = '/api/clusters/' + clusterName + '/services?state=INIT';
+    var url = App.apiPrefix + '/clusters/' + clusterName + '/services?state=INIT';
     var data = '{"ServiceInfo": {"state": "INSTALLED"}}';
     $.ajax({
       type: 'PUT',
@@ -645,7 +637,7 @@ App.AddHostController = Em.Controller.extend({
       data: data,
       async: false,
       dataType: 'text',
-      timeout: 5000,
+      timeout: App.timeout,
       success: function (data) {
         var jsonData = jQuery.parseJSON(data);
         console.log("TRACE: STep8 -> In success function for the installService call");

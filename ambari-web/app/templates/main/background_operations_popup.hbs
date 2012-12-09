@@ -18,27 +18,17 @@
 
 {{#each operation in allOperations}}
   {{#view App.MainBackgroundOperation contentBinding="operation"}}
-    <a class="open-details" {{action openDetails target="view"}} href="#">
-      <i {{bindAttr class="view.iconClass"}}></i>
-    </a>
-    {{operation.command}} {{operation.role}} on {{operation.host_name}}
-    <div class="operation-details">
-      {{#if operation.details.length}}
-        {{#each detail in operation.details}}
-        <div>{{detail.startTime}}: {{detail.name}}</div>
-        {{/each}}
-      {{/if}}
+    <div>
       <a {{action showOperationLog target="view"}} href="#">
-        {{#if view.isOpenShowLog}}Hide{{else}}Show{{/if}} operation log
+        {{#if view.isOpenShowLog}}Hide{{else}}Show{{/if}} info about {{operation.command}} {{operation.role}} on {{operation.host_name}}
       </a>
       {{#if view.isOpenShowLog}}
-      <div class="operation-log">
-        <dl class="dl-horizontal">
-          <dt>exitcode:</dt><dd>{{view.logDetails.exitcode}}</dd>
-          <dt>stdout:</dt><dd>{{view.logDetails.stdout}}</dd>
-          <dt>stderror:</dt><dd>{{view.logDetails.stderror}}</dd>
-        </dl>
-      </div>
+        <h5>exitcode:</h5>
+        <pre class="stderr">{{operation.exit_code}}</pre>
+        <h5>stderr:</h5>
+        <pre class="stderr">{{operation.stderr}}</pre>
+        <h5>stdout:</h5>
+        <pre class="stdout">{{operation.stdout}}</pre>
       {{/if}}
     </div>
   {{/view}}

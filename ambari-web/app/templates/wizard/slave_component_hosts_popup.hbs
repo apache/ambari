@@ -16,7 +16,7 @@
 * limitations under the License.
 }}
 
-<div id="slave-hosts-popup" class="alert alert-info">Select which hosts should belong to which {{selectedComponentName}} group.</div>
+<div id="slave-hosts-popup" class="alert alert-info">Select which hosts should belong to which {{selectedComponentDisplayName}} group.</div>
 <table class="table table-striped">
   <thead>
     <tr>
@@ -28,7 +28,7 @@
   {{#each host in hosts}}
     <tr>
       <td>
-        <label>{{host.hostname}}</label>
+        <label>{{host.hostName}}</label>
       </td>
       <td>
         {{#view App.SlaveComponentDropDownGroupView contentBinding="host"}}

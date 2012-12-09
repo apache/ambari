@@ -19,57 +19,61 @@
 var App = require('app');
 
 App.ClusterController = Em.Controller.extend({
-  name: 'clusterController',
+  name:'clusterController',
   cluster:null,
-  isLoaded: false,
-  updateLoadStatus: function(item){
+  isLoaded:false,
+  updateLoadStatus:function (item) {
     var loadList = this.get('dataLoadList');
     var loaded = true;
     loadList.set(item, true);
-    for(var i in loadList){
-      if(loadList.hasOwnProperty(i) && !loadList[i] && loaded){
+    for (var i in loadList) {
+      if (loadList.hasOwnProperty(i) && !loadList[i] && loaded) {
         loaded = false;
       }
     }
     this.set('isLoaded', loaded);
   },
-  dataLoadList: Em.Object.create({
-    'hosts': false,
-    'runs': false,
-    'services': false,
-    'cluster' : false,
-    'racks' : false,
-    'alerts' : false,
-    'users' : false
+
+  dataLoadList:Em.Object.create({
+    'hosts':false,
+    'services':false,
+    'cluster':false,
+    'racks':false,
+    'alerts':false,
+    'users':false
   }),
+
+  postLoadList:{
+    'runs':false
+  },
   /**
    * load cluster name
    */
-  loadClusterName: function(reload){
-    if(this.get('clusterName') && !reload){
+  loadClusterName:function (reload) {
+    if (this.get('clusterName') && !reload) {
       return;
     }
     var self = this;
-    var url = (App.testMode) ? '/data/clusters/info.json' : '/api/clusters';
+    var url = (App.testMode) ? '/data/clusters/info.json' : App.apiPrefix + '/clusters';
     $.ajax({
-      async: false,
-      type: "GET",
-      url: url,
-      dataType: 'json',
-      timeout: 5000,
-      success: function (data) {
+      async:false,
+      type:"GET",
+      url:url,
+      dataType:'json',
+      timeout:App.timeout,
+      success:function (data) {
         self.set('cluster', data.items[0]);
       },
-      error: function (request, ajaxOptions, error) {
+      error:function (request, ajaxOptions, error) {
         console.log('failed on loading cluster name');
         self.set('isLoaded', true);
       },
-      statusCode: require('data/statusCodes')
+      statusCode:require('data/statusCodes')
     });
   },
 
-  getUrl: function(testUrl, url){
-    return (App.testMode) ? testUrl: '/api/clusters/' + this.get('clusterName') + url;
+  getUrl:function (testUrl, url) {
+    return (App.testMode) ? testUrl : App.apiPrefix + '/clusters/' + this.get('clusterName') + url;
   },
 
   /**
@@ -79,7 +83,7 @@ App.ClusterController = Em.Controller.extend({
    *
    * If null is returned, it means NAGIOS service is not installed.
    */
-  nagiosUrl: function () {
+  nagiosUrl:function () {
     if (App.testMode) {
       return 'http://nagiosserver/nagios';
     } else {
@@ -90,10 +94,11 @@ App.ClusterController = Em.Controller.extend({
         var svcComponents = nagiosSvc.get('components');
         if (svcComponents) {
           var nagiosSvcComponent = svcComponents.findProperty("componentName", "NAGIOS_SERVER");
-          if(nagiosSvcComponent){
+          if (nagiosSvcComponent) {
             var hostName = nagiosSvcComponent.get('host.hostName');
-            if(hostName){
-              return "http://"+hostName+"/nagios";
+            if (hostName) {
+              return null;
+              //return "http://"+hostName+"/nagios";
             }
           }
         }
@@ -102,13 +107,13 @@ App.ClusterController = Em.Controller.extend({
     }
   }.property('dataLoadList.services'),
 
-  isNagiosInstalled: function(){
-    if(App.testMode){
+  isNagiosInstalled:function () {
+    if (App.testMode) {
       return true;
-    }else{
+    } else {
       var svcs = App.Service.find();
       var nagiosSvc = svcs.findProperty("serviceName", "NAGIOS");
-      return nagiosSvc!=null;
+      return nagiosSvc != null;
     }
   }.property('dataLoadList.services'),
 
@@ -116,7 +121,7 @@ App.ClusterController = Em.Controller.extend({
    * Sorted list of alerts.
    * Changes whenever alerts are loaded.
    */
-  alerts: function () {
+  alerts:function () {
     var alerts = App.Alert.find();
     var alertsArray = alerts.toArray();
     var sortedArray = alertsArray.sort(function (left, right) {
@@ -133,12 +138,29 @@ App.ClusterController = Em.Controller.extend({
     return sortedArray;
   }.property('dataLoadList.alerts'),
 
+  loadRuns: function(){
+    if(this.get('postLoadList.runs')){
+      return;
+    }
+
+    var self= this;
+    var runsUrl = App.testMode ? "/data/apps/runs.json" : App.apiPrefix + "/jobhistory/workflow";
+
+    App.HttpClient.get(runsUrl, App.runsMapper, {
+      complete:function (jqXHR, textStatus) {
+        self.set('postLoadList.runs', true);
+      }
+    }, function(){
+      self.set('postLoadList.runs', true);
+    });
+  },
+
   /**
    * This method automatically loads alerts when Nagios URL
    * changes. Once done it will trigger dataLoadList.alerts
    * property, which will trigger the alerts property.
    */
-  loadAlerts: function () {
+  loadAlerts:function () {
     var nagiosUrl = this.get('nagiosUrl');
     if (nagiosUrl) {
       var lastSlash = nagiosUrl.lastIndexOf('/');
@@ -147,10 +169,10 @@ App.ClusterController = Em.Controller.extend({
       }
       var dataUrl;
       var ajaxOptions = {
-        dataType: "jsonp",
-        jsonp: "jsonp",
-        context: this,
-        complete: function (jqXHR, textStatus) {
+        dataType:"jsonp",
+        jsonp:"jsonp",
+        context:this,
+        complete:function (jqXHR, textStatus) {
           this.updateLoadStatus('alerts')
         }
       };
@@ -171,58 +193,48 @@ App.ClusterController = Em.Controller.extend({
    *
    *  load all data and update load status
    */
-  loadClusterData: function(){
+  loadClusterData:function () {
     var self = this;
-    if(!this.get('clusterName')){
-        return;
+    if (!this.get('clusterName')) {
+      return;
     }
 
-     var clusterUrl = this.getUrl('/data/clusters/cluster.json', '?fields=Clusters');
-     var hostsUrl = this.getUrl('/data/hosts/hosts.json', '/hosts?fields=*');
-     var servicesUrl1 = this.getUrl('/data/dashboard/services.json', '/services?ServiceInfo/service_name!=MISCELLANEOUS&ServiceInfo/service_name!=DASHBOARD&fields=components/host_components/*');
-     var servicesUrl2 = this.getUrl('/data/dashboard/serviceComponents.json', '/services?ServiceInfo/service_name!=MISCELLANEOUS&ServiceInfo/service_name!=DASHBOARD&fields=components/ServiceComponentInfo');
-     var usersUrl = App.testMode ? '/data/users/users.json' : '/api/users/?fields=*';
-     var runsUrl = App.testMode ? "/data/apps/runs.json" : "/api/jobhistory/workflow";
+    var clusterUrl = this.getUrl('/data/clusters/cluster.json', '?fields=Clusters');
+    var hostsUrl = this.getUrl('/data/hosts/hosts.json', '/hosts?fields=*');
+    var servicesUrl1 = this.getUrl('/data/dashboard/services.json', '/services?ServiceInfo/service_name!=MISCELLANEOUS&ServiceInfo/service_name!=DASHBOARD&fields=components/host_components/*');
+    var servicesUrl2 = this.getUrl('/data/dashboard/serviceComponents.json', '/services?ServiceInfo/service_name!=MISCELLANEOUS&ServiceInfo/service_name!=DASHBOARD&fields=components/ServiceComponentInfo');
+    var usersUrl = App.testMode ? '/data/users/users.json' : App.apiPrefix + '/users/?fields=*';
+    var racksUrl = "/data/racks/racks.json";
 
-     var racksUrl = "/data/racks/racks.json";
-
-    App.HttpClient.get(racksUrl, App.racksMapper,{
-      complete:function(jqXHR, textStatus){
+    App.HttpClient.get(racksUrl, App.racksMapper, {
+      complete:function (jqXHR, textStatus) {
         self.updateLoadStatus('racks');
       }
-    },function(jqXHR, textStatus){
+    }, function (jqXHR, textStatus) {
       self.updateLoadStatus('racks');
     });
 
-    App.HttpClient.get(clusterUrl, App.clusterMapper,{
-      complete:function(jqXHR, textStatus){
+    App.HttpClient.get(clusterUrl, App.clusterMapper, {
+      complete:function (jqXHR, textStatus) {
         self.updateLoadStatus('cluster');
       }
-    },function(jqXHR, textStatus){
+    }, function (jqXHR, textStatus) {
       self.updateLoadStatus('cluster');
     });
 
-    App.HttpClient.get(runsUrl, App.runsMapper,{
-      complete:function(jqXHR, textStatus) {
-        self.updateLoadStatus('runs');
-      }
-    },function(jqXHR, textStatus){
-      self.updateLoadStatus('runs');
-    });
-
-    App.HttpClient.get(hostsUrl, App.hostsMapper,{
-      complete:function(jqXHR, textStatus){
+    App.HttpClient.get(hostsUrl, App.hostsMapper, {
+      complete:function (jqXHR, textStatus) {
         self.updateLoadStatus('hosts');
       }
-    },function(jqXHR, textStatus){
+    }, function (jqXHR, textStatus) {
       self.updateLoadStatus('hosts');
     });
 
-    App.HttpClient.get(usersUrl, App.usersMapper,{
-      complete:function(jqXHR, textStatus){
+    App.HttpClient.get(usersUrl, App.usersMapper, {
+      complete:function (jqXHR, textStatus) {
         self.updateLoadStatus('users');
       }
-    },function(jqXHR, textStatus){
+    }, function (jqXHR, textStatus) {
       self.updateLoadStatus('users');
     });
 
@@ -232,12 +244,12 @@ App.ClusterController = Em.Controller.extend({
     var metricsJson = null;
     var serviceComponentJson = null;
     var metricsMapper = {
-        map: function(data){
-          metricsJson = data;
-        }
+      map:function (data) {
+        metricsJson = data;
+      }
     };
     var serviceComponentMapper = {
-      map: function (data) {
+      map:function (data) {
         serviceComponentJson = data;
         if (metricsJson != null && serviceComponentJson != null) {
           var hdfsSvc1 = null;
@@ -330,10 +342,10 @@ App.ClusterController = Em.Controller.extend({
         }
       }
     }
-    App.HttpClient.get(servicesUrl1, metricsMapper,{
-      complete:function(jqXHR, textStatus){
-        App.HttpClient.get(servicesUrl2, serviceComponentMapper,{
-          complete:function(jqXHR, textStatus){
+    App.HttpClient.get(servicesUrl1, metricsMapper, {
+      complete:function (jqXHR, textStatus) {
+        App.HttpClient.get(servicesUrl2, serviceComponentMapper, {
+          complete:function (jqXHR, textStatus) {
           }
         });
       }
@@ -344,7 +356,7 @@ App.ClusterController = Em.Controller.extend({
 
   },
 
-  clusterName: function(){
+  clusterName:function () {
     return (this.get('cluster')) ? this.get('cluster').Clusters.cluster_name : null;
   }.property('cluster')
 })

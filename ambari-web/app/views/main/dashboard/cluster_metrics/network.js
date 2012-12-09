@@ -30,7 +30,7 @@ var App = require('app');
 App.ChartClusterMetricsNetwork = App.ChartLinearTimeView.extend({
   id: "cluster-metrics-network",
   url: function () {
-    return App.formatUrl("/api/clusters/{clusterName}?fields=metrics/network[{fromSeconds},{toSeconds},{stepSeconds}]", {
+    return App.formatUrl(App.apiPrefix + "/clusters/{clusterName}?fields=metrics/network[{fromSeconds},{toSeconds},{stepSeconds}]", {
       clusterName: App.router.get('clusterController.clusterName')
     }, "/data/cluster_metrics/network_1hr.json");
   }.property('App.router.clusterController.clusterName'),

@@ -272,6 +272,7 @@ jQuery.extend($.fn.dataTableExt.afnFiltering.push(
       }
 
       function dateFilter(condition, rowValue) {
+        refinedRowValue = $.trim(rowValue.replace(/<script[^>]*?>.*<\/script>/g, ''));
         var nowTime = new Date().getTime();
         var oneDayPast = nowTime - 86400000;
         var twoDaysPast = nowTime - 172800000;
@@ -281,7 +282,7 @@ jQuery.extend($.fn.dataTableExt.afnFiltering.push(
         rowValue = (jQuery(rowValue).text()) ? jQuery(rowValue).text() : rowValue;
         var lastChar = rowValue.charAt(rowValue.length - 1);
         rowValue = lastChar === '*' ? rowValue.substr(0, rowValue.length - 1) : rowValue;
-        rowValue = new Date(rowValue).getTime();
+        rowValue = new Date(refinedRowValue).getTime();
         match = false;
         switch (condition) {
           case 'Any':

@@ -373,16 +373,31 @@ App.MainAppsView = Em.View.extend({
     this.set('filtered', oTable.fnSettings().fnRecordsDisplay());
 
   },
-  didInsertElement: function () {
+
+  loaded: false,
+  inserted: false,
+
+  onLoad: function(){
+    if(this.get('loaded')){
+      return;
+    }
+    if(!App.router.get('clusterController.postLoadList.runs')){
+      return;
+    }
+    if(!this.get('inserted')){
+      return;
+    }
+
+    this.set('loaded', true);
     var self = this;
-    /**
-     * Running datatable with delay to take time to load all data
-     */
-    Ember.run.next(function () {
-      Ember.run.next(function () {
-        self.createDataTable();
-      })
+    Ember.run.next(function(){
+      self.createDataTable();
     });
+  }.observes('App.router.clusterController.postLoadList.runs'),
+
+  didInsertElement: function () {
+    this.set('inserted', true);
+    this.onLoad();
   },
   /**
    * reset all filters in dataTable
@@ -469,9 +484,6 @@ App.MainAppsView = Em.View.extend({
    * Filter-field for RunDate
    */
   rundateSelectView: Em.Select.extend({
-    change:function(e) {
-      console.log(this.get('selection'));
-    },
     content: ['Any', 'Running Now', 'Past 1 Day', 'Past 2 Days', 'Past 7 Days', 'Past 14 Days', 'Past 30 Days'],
     selected: 'Any',
     classNames:['input-medium'],
@@ -749,7 +761,6 @@ App.MainAppsView = Em.View.extend({
     click: function(event,view){
       this.get('parentView').expandToggle();
     }
-
 
   })
 

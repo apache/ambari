@@ -29,10 +29,6 @@ App.WizardStep8Controller = Em.Controller.extend({
   configMapping: require('data/config_mapping'),
 
   selectedServices: function () {
-    var services = App.Service.find();
-    this.get('content.services').forEach(function (item) {
-      item.set('isInstalled', services.someProperty('serviceName', item.get('serviceName')));
-    });
     return this.get('content.services').filterProperty('isSelected', true).filterProperty('isInstalled', false);
   }.property('content.services').cacheable(),
 
@@ -624,7 +620,7 @@ App.WizardStep8Controller = Em.Controller.extend({
     }
 
     var clusterName = this.get('clusterInfo').findProperty('config_name', 'cluster').config_value;
-    var url = '/api/clusters/' + clusterName;
+    var url = App.apiPrefix + '/clusters/' + clusterName;
     $.ajax({
       type: 'POST',
       url: url,
@@ -632,7 +628,7 @@ App.WizardStep8Controller = Em.Controller.extend({
       //accepts: 'text',
       dataType: 'text',
       data: '{"Clusters": {"version" : "HDP-1.2.0"}}',
-      timeout: 5000,
+      timeout: App.timeout,
       success: function (data) {
         var jsonData = jQuery.parseJSON(data);
         console.log("TRACE: STep8 -> In success function for createCluster call");
@@ -660,13 +656,13 @@ App.WizardStep8Controller = Em.Controller.extend({
 
   createService: function (service, httpMethod) {
     var clusterName = this.get('clusterInfo').findProperty('config_name', 'cluster').config_value;
-    var url = '/api/clusters/' + clusterName + '/services/' + service;
+    var url = App.apiPrefix + '/clusters/' + clusterName + '/services/' + service;
     $.ajax({
       type: httpMethod,
       url: url,
       async: false,
       dataType: 'text',
-      timeout: 5000,
+      timeout: App.timeout,
       success: function (data) {
         var jsonData = jQuery.parseJSON(data);
         console.log("TRACE: STep8 -> In success function for the createService call");
@@ -685,27 +681,27 @@ App.WizardStep8Controller = Em.Controller.extend({
   },
 
   createComponents: function () {
-    //TODO: Uncomment following after hooking up with all services.
+
     var serviceComponents = require('data/service_components');
     var services = this.get('selectedServices').mapProperty('serviceName');
     services.forEach(function (_service) {
       var components = serviceComponents.filterProperty('service_name', _service);
       components.forEach(function (_component) {
-        console.log("value of component is: " + _component.component_name);
         this.createComponent(_service, _component.component_name);
       }, this);
     }, this);
+
   },
 
   createComponent: function (service, component) {
     var clusterName = this.get('clusterInfo').findProperty('config_name', 'cluster').config_value;
-    var url = '/api/clusters/' + clusterName + '/services/' + service + '/components/' + component;
+    var url = App.apiPrefix + '/clusters/' + clusterName + '/services/' + service + '/components/' + component;
     $.ajax({
       type: 'POST',
       url: url,
       async: false,
       dataType: 'text',
-      timeout: 5000,
+      timeout: App.timeout,
       success: function (data) {
         var jsonData = jQuery.parseJSON(data);
         console.log("TRACE: STep8 -> In success function for createComponent");
@@ -734,13 +730,13 @@ App.WizardStep8Controller = Em.Controller.extend({
 
   registerHostToCluster: function (hostName) {
     var clusterName = this.get('clusterInfo').findProperty('config_name', 'cluster').config_value;
-    var url = '/api/clusters/' + clusterName + '/hosts/' + hostName;
+    var url = App.apiPrefix + '/clusters/' + clusterName + '/hosts/' + hostName;
     $.ajax({
       type: 'POST',
       url: url,
       async: false,
       dataType: 'text',
-      timeout: 5000,
+      timeout: App.timeout,
       success: function (data) {
         var jsonData = jQuery.parseJSON(data);
         console.log("TRACE: STep8 -> In success function for registerHostToCluster");
@@ -780,11 +776,12 @@ App.WizardStep8Controller = Em.Controller.extend({
           this.createHostComponent(slaveObj);
         }, this);
       } else {
+        //: todo
         this.get('content.clients').forEach(function (_client) {
           slaveObj.component = _client.component_name;
           _slaveHosts.hosts.forEach(function (_slaveHost) {
             slaveObj.hostName = _slaveHost.hostName;
-            slaveObj.isInstalled = _slaveHost.isInstalled;
+            slaveObj.isInstalled = _slaveHost.isInstalled && _client.isInstalled;
             this.createHostComponent(slaveObj);
           }, this);
         }, this);
@@ -800,20 +797,20 @@ App.WizardStep8Controller = Em.Controller.extend({
   },
 
   createHostComponent: function (hostComponent) {
-    console.log(hostComponent);
+    console.log('try to install', hostComponent.component, 'on host',  hostComponent.hostName, 'isInstalled', hostComponent.isInstalled);
     if (hostComponent.isInstalled) {
       return false;
     }
 
     var clusterName = this.get('clusterInfo').findProperty('config_name', 'cluster').config_value;
-    var url = '/api/clusters/' + clusterName + '/hosts/' + hostComponent.hostName + '/host_components/' + hostComponent.component;
+    var url = App.apiPrefix + '/clusters/' + clusterName + '/hosts/' + hostComponent.hostName + '/host_components/' + hostComponent.component;
 
     $.ajax({
       type: 'POST',
       url: url,
       async: false,
       dataType: 'text',
-      timeout: 5000,
+      timeout: App.timeout,
       success: function (data) {
         var jsonData = jQuery.parseJSON(data);
         console.log("TRACE: STep8 -> In success function for the createComponent with new host call");
@@ -841,7 +838,6 @@ App.WizardStep8Controller = Em.Controller.extend({
       this.createConfigSite(this.createMrSiteObj('MAPREDUCE'));
     }
     if (selectedServices.someProperty('serviceName', 'HBASE')) {
-      // TODO
       this.createConfigSite(this.createHbaseSiteObj('HBASE'));
     }
     if (selectedServices.someProperty('serviceName', 'OOZIE')) {
@@ -856,14 +852,14 @@ App.WizardStep8Controller = Em.Controller.extend({
   createConfigSite: function (data) {
     console.log("Inside createConfigSite");
     var clusterName = this.get('clusterInfo').findProperty('config_name', 'cluster').config_value;
-    var url = '/api/clusters/' + clusterName + '/configurations';
+    var url = App.apiPrefix + '/clusters/' + clusterName + '/configurations';
     $.ajax({
       type: 'POST',
       url: url,
       data: JSON.stringify(data),
       async: false,
       dataType: 'text',
-      timeout: 5000,
+      timeout: App.timeout,
       success: function (data) {
         var jsonData = jQuery.parseJSON(data);
         console.log("TRACE: STep8 -> In success function for the createConfigSite");
@@ -942,6 +938,10 @@ App.WizardStep8Controller = Em.Controller.extend({
     configs.forEach(function (_configProperty) {
       hbaseProperties[_configProperty.name] = _configProperty.value;
     }, this);
+    var masterHosts = App.db.getMasterComponentHosts();
+    // TODO: should filter on "component" but that gives unexpected results
+    var zkServers = masterHosts.filterProperty('display_name', 'ZooKeeper').mapProperty('hostName');
+    hbaseProperties['hbase.zookeeper.quorum'] = zkServers.join(',');
     return {type: 'hbase-site', tag: 'version1', properties: hbaseProperties};
   },
 
@@ -951,6 +951,11 @@ App.WizardStep8Controller = Em.Controller.extend({
     configs.forEach(function (_configProperty) {
       oozieProperties[_configProperty.name] = _configProperty.value;
     }, this);
+    var baseUrl = oozieProperties['oozie.base.url'];
+    oozieProperties = {
+      "oozie.service.JPAService.jdbc.password" : " ", "oozie.db.schema.name" : "oozie", "oozie.service.JPAService.jdbc.url" : "jdbc:derby:/var/data/oozie/oozie-db;create=true", "oozie.service.JPAService.jdbc.driver" : "org.apache.derby.jdbc.EmbeddedDriver", "oozie.service.WorkflowAppService.system.libpath" : "/user/oozie/share/lib", "oozie.service.JPAService.jdbc.username" : "sa", "oozie.service.SchemaService.wf.ext.schemas" : "shell-action-0.1.xsd,email-action-0.1.xsd,hive-action-0.2.xsd,sqoop-action-0.2.xsd,ssh-action-0.1.xsd,distcp-action-0.1.xsd", "oozie.service.JPAService.create.db.schema" : "false",   "use.system.libpath.for.mapreduce.and.pig.jobs" : "false", "oozie.service.ActionService.executor.ext.classes" : "org.apache.oozie.action.email.EmailActionExecutor,org.apache.oozie.action.hadoop.HiveActionExecutor,org.apache.oozie.action.hadoop.ShellActionExecutor,org.apache.oozie.action.hadoop.SqoopActionExecutor,org.apache.oozie.action.hadoop.DistcpActionExecutor", "oozie.service.HadoopAccessorService.hadoop.configurations" : "*=/etc/hadoop/conf"
+    };
+    oozieProperties['oozie.base.url'] = baseUrl;
     return {type: 'oozie-site', tag: 'version1', properties: oozieProperties};
   },
 
@@ -974,7 +979,7 @@ App.WizardStep8Controller = Em.Controller.extend({
   applyCreatedConfToService: function (service, httpMethod, data) {
     console.log("Inside applyCreatedConfToService");
     var clusterName = this.get('clusterInfo').findProperty('config_name', 'cluster').config_value;
-    var url = '/api/clusters/' + clusterName + '/services/' + service;
+    var url = App.apiPrefix + '/clusters/' + clusterName + '/services/' + service;
 
     $.ajax({
       type: httpMethod,
@@ -982,7 +987,7 @@ App.WizardStep8Controller = Em.Controller.extend({
       async: false,
       dataType: 'text',
       data: JSON.stringify(data),
-      timeout: 5000,
+      timeout: App.timeout,
       success: function (data) {
         var jsonData = jQuery.parseJSON(data);
         console.log("TRACE: STep8 -> In success function for the applyCreatedConfToService call");

@@ -196,7 +196,7 @@ App.WizardStep9Controller = Em.Controller.extend({
   launchStartServices: function () {
     var self = this;
     var clusterName = this.get('content.cluster.name');
-    var url = '/api/clusters/' + clusterName + '/services?state=INSTALLED';
+    var url = App.apiPrefix + '/clusters/' + clusterName + '/services?state=INSTALLED';
     var data = '{"ServiceInfo": {"state": "STARTED"}}';
     var method = 'PUT';
 
@@ -213,7 +213,7 @@ App.WizardStep9Controller = Em.Controller.extend({
       async: false,
       data: data,
       dataType: 'text',
-      timeout: 5000,
+      timeout: App.timeout,
       success: function (data) {
         var jsonData = jQuery.parseJSON(data);
         console.log("TRACE: Step9 -> In success function for the startService call");
@@ -343,8 +343,10 @@ App.WizardStep9Controller = Em.Controller.extend({
   setHostsStatus: function (hostNames, status) {
     hostNames.forEach(function (_hostName) {
       var host = this.hosts.findProperty('name', _hostName);
-      host.set('status', status);
-      host.set('progress', '100');
+      if(host){
+        host.set('status', status)
+            .set('progress', '100');
+      }
     }, this);
   },
 
@@ -371,7 +373,7 @@ App.WizardStep9Controller = Em.Controller.extend({
           if (this.isStepFailed(polledData)) {
             clusterStatus.status = 'START FAILED';      // 'START FAILED' implies to step10 that installation was successful but start failed
             this.set('status', 'failed');
-            this.setHostsStatus(this.getFailedHostsForFailedRoles(polledData));
+            this.setHostsStatus(this.getFailedHostsForFailedRoles(polledData), 'failed');
           }
         }
         App.router.get(this.get('content.controllerName')).saveClusterStatus(clusterStatus);
@@ -490,7 +492,7 @@ App.WizardStep9Controller = Em.Controller.extend({
   getUrl: function () {
     var clusterName = this.get('content.cluster.name');
     var requestId = App.db.getClusterStatus().requestId;
-    var url = '/api/clusters/' + clusterName + '/requests/' + requestId + '?fields=tasks/*';
+    var url = App.apiPrefix + '/clusters/' + clusterName + '/requests/' + requestId + '?fields=tasks/*';
     console.log("URL for step9 is: " + url);
     return url;
   },
@@ -517,7 +519,7 @@ App.WizardStep9Controller = Em.Controller.extend({
       type: 'GET',
       url: url,
       async: true,
-      timeout: 10000,
+      timeout: App.timeout,
       dataType: 'text',
       success: function (data) {
         console.log("TRACE: In success function for the GET bootstrap call");
