@@ -726,8 +726,8 @@ App.WizardStep8Controller = Em.Controller.extend({
       timeout: App.timeout,
       success: function (data) {
         var jsonData = jQuery.parseJSON(data);
-        console.log("TRACE: STep8 -> In success function for createCluster call");
-        console.log("TRACE: STep8 -> value of the received data is: " + jsonData);
+        console.log("TRACE: Step8 -> In success function for createCluster call");
+        console.log("TRACE: Step8 -> value of the received data is: " + jsonData);
       },
 
       error: function (request, ajaxOptions, error) {
@@ -755,9 +755,9 @@ App.WizardStep8Controller = Em.Controller.extend({
       timeout: App.timeout,
       success: function (data) {
         var jsonData = jQuery.parseJSON(data);
-        console.log("TRACE: STep8 -> In success function for the createService call");
-        console.log("TRACE: STep8 -> value of the url is: " + url);
-        console.log("TRACE: STep8 -> value of the received data is: " + jsonData);
+        console.log("TRACE: Step8 -> In success function for the createSelectedServices call");
+        console.log("TRACE: Step8 -> value of the url is: " + url);
+        console.log("TRACE: Step8 -> value of the received data is: " + jsonData);
 
       },
 
@@ -804,9 +804,9 @@ App.WizardStep8Controller = Em.Controller.extend({
         timeout: App.timeout,
         success: function (data) {
           var jsonData = jQuery.parseJSON(data);
-          console.log("TRACE: STep8 -> In success function for createComponent");
-          console.log("TRACE: STep8 -> value of the url is: " + url);
-          console.log("TRACE: STep8 -> value of the received data is: " + jsonData);
+          console.log("TRACE: Step8 -> In success function for createComponents");
+          console.log("TRACE: Step8 -> value of the url is: " + url);
+          console.log("TRACE: Step8 -> value of the received data is: " + jsonData);
         },
 
         error: function (request, ajaxOptions, error) {
@@ -838,9 +838,9 @@ App.WizardStep8Controller = Em.Controller.extend({
       timeout: App.timeout,
       success: function (data) {
         var jsonData = jQuery.parseJSON(data);
-        console.log("TRACE: STep8 -> In success function for registerHostToCluster");
-        console.log("TRACE: STep8 -> value of the url is: " + url);
-        console.log("TRACE: STep8 -> value of the received data is: " + jsonData);
+        console.log("TRACE: Step8 -> In success function for registerHostsToCluster");
+        console.log("TRACE: Step8 -> value of the url is: " + url);
+        console.log("TRACE: Step8 -> value of the received data is: " + jsonData);
 
       },
 
@@ -926,42 +926,62 @@ App.WizardStep8Controller = Em.Controller.extend({
     }
     console.log('registering ' + componentName + ' to ' + JSON.stringify(hostNames));
 
-    var hostsPredicate = hostNames.map(function (hostName) {
-      return 'Hosts/host_name=' + hostName;
-    }).join('|');
+    // currently we are specifying the predicate as a query string.
+    // this can hit a ~4000-character limit in Jetty server.
+    // chunk to multiple calls if needed
+    // var hostsPredicate = hostNames.map(function (hostName) {
+    //   return 'Hosts/host_name=' + hostName;
+    // }).join('|');
 
-    var url = App.apiPrefix + '/clusters/' + this.get('clusterName') + '/hosts?' + hostsPredicate;
-    var data = {
-      "host_components": [
-        {
-          "HostRoles": {
-            "component_name": componentName
-          }
-        }
-      ]
-    };
-
-    $.ajax({
-      type: 'POST',
-      url: url,
-      async: false,
-      dataType: 'text',
-      timeout: App.timeout,
-      data: JSON.stringify(data),
-      success: function (data) {
-        var jsonData = jQuery.parseJSON(data);
-        console.log("TRACE: STep8 -> In success function for the createComponent with new host call");
-        console.log("TRACE: STep8 -> value of the url is: " + url);
-        console.log("TRACE: STep8 -> value of the received data is: " + jsonData);
-      },
-
-      error: function (request, ajaxOptions, error) {
-        console.log('Step8: In Error ');
-        console.log('Step8: Error message is: ' + request.responseText);
-      },
-
-      statusCode: require('data/statusCodes')
+    var queryStrArr = []
+    var queryStr = '';
+    hostNames.forEach(function (hostName) {
+      queryStr += 'Hosts/host_name=' + hostName + '|';
+      if (queryStr.length > 3500) {
+        queryStrArr.push(queryStr.slice(0, -1));
+        queryStr = '';
+      }
     });
+
+    if (queryStr.length > 0) {
+      queryStrArr.push(queryStr.slice(0, -1));
+    }
+
+    queryStrArr.forEach(function (queryStr) {
+      // console.log('creating host components for ' + queryStr);
+      var url = App.apiPrefix + '/clusters/' + this.get('clusterName') + '/hosts?' + queryStr;
+      var data = {
+        "host_components": [
+          {
+            "HostRoles": {
+              "component_name": componentName
+            }
+          }
+        ]
+      };
+
+      $.ajax({
+        type: 'POST',
+        url: url,
+        async: false,
+        dataType: 'text',
+        timeout: App.timeout,
+        data: JSON.stringify(data),
+        success: function (data) {
+          var jsonData = jQuery.parseJSON(data);
+          console.log("TRACE: Step8 -> In success function for the registerHostsToComponent");
+          console.log("TRACE: Step8 -> value of the url is: " + url);
+          console.log("TRACE: Step8 -> value of the received data is: " + jsonData);
+        },
+
+        error: function (request, ajaxOptions, error) {
+          console.log('Step8: In Error ');
+          console.log('Step8: Error message is: ' + request.responseText);
+        },
+
+        statusCode: require('data/statusCodes')
+      });
+    }, this);
   },
 
   createConfigurations: function () {
