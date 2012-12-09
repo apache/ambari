@@ -296,6 +296,25 @@ module.exports = [
     "value": "http://<templateName[0]>:11000/oozie",
     "filename": "oozie-site.xml"
   },
+  //TODO: Oozie configs hardcoded for now. Map them to templates later
+  {
+    "name": "oozie.service.JPAService.jdbc.password",
+    "templateName": [],
+    "value": " ",
+    "filename": "oozie-site.xml"
+  },
+  {
+    "name": "oozie.db.schema.name",
+    "templateName": [],
+    "value": "oozie",
+    "filename": "oozie-site.xml"
+  },
+  {
+    "name": "oozie.service.JPAService.jdbc.url",
+    "templateName": [],
+    "value": "jdbc:derby:/var/data/oozie/oozie-db;create=true",
+    "filename": "oozie-site.xml"
+  },
   {
     "name": "javax.jdo.option.ConnectionURL",
     "templateName": ["hive_mysql_host", "hive_database_name"],
@@ -405,7 +424,7 @@ module.exports = [
     "name": "mapred.child.java.opts",
     "templateName": ["mapred_child_java_opts_sz"],
     "foreignKey": null,
-    "value": "<templateName[0]>",
+    "value": "-server -Xmx<templateName[0]>m -Djava.net.preferIPv4Stack=true",
     "filename": "mapred-site.xml"
   },
   {

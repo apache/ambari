@@ -42,15 +42,15 @@ App.WizardStep7Controller = Em.Controller.extend({
     return !this.stepConfigs.everyProperty('errorCount', 0);
   }.property('stepConfigs.@each.errorCount'),
 
-  selectedServiceNames : function(){
+  selectedServiceNames: function () {
     return this.get('content.services').filterProperty('isSelected', true).mapProperty('serviceName');
   }.property('content.services').cacheable(),
 
-  masterComponentHosts : function(){
+  masterComponentHosts: function () {
     return this.get('content.masterComponentHosts');
   }.property('content.masterComponentHosts'),
 
-  slaveComponentHosts : function(){
+  slaveComponentHosts: function () {
     return this.get('content.slaveComponentHosts');
   }.property('content.slaveComponentHosts'),
 
@@ -71,23 +71,28 @@ App.WizardStep7Controller = Em.Controller.extend({
     this.clearStep();
     var serviceConfigs = this.get('serviceConfigs');
     var advancedConfig = this.get('content.advancedServiceConfig');
-    advancedConfig.forEach(function(_config){
-      var service = serviceConfigs.findProperty('serviceName',_config.serviceName);
-      if(service) {
-        if(this.get('configMapping').someProperty('name',_config.name)) {
-        } else if(!(service.configs.someProperty('name',_config.name))) {
+    advancedConfig.forEach(function (_config) {
+      var service = serviceConfigs.findProperty('serviceName', _config.serviceName);
+      if (service) {
+        if (this.get('configMapping').someProperty('name', _config.name)) {
+        } else if (!(service.configs.someProperty('name', _config.name))) {
           _config.id = "site property";
           _config.category = 'Advanced';
           _config.displayName = _config.name;
           _config.defaultValue = _config.value;
-          _config.value = '',
+          if (/\${.*}/.test(_config.value)) {
+            console.log("Step7: The name that matched regex: " + _config.name);
+            _config.isRequired = false;
+            _config.value = '';
+          } else if(/^\s+$/.test(_config.value)){
+            _config.isRequired = false;
+          }
           _config.isVisible = true;
-          _config.isRequired = false;
           _config.displayType = 'advanced';
           service.configs.pushObject(_config);
         }
       }
-    },this);
+    }, this);
     this.loadCustomConfig();
     this.renderServiceConfigs(serviceConfigs);
     var storedServices = this.get('content.serviceConfigProperties');
@@ -101,7 +106,7 @@ App.WizardStep7Controller = Em.Controller.extend({
 
           var componentVal = storedServices.findProperty('name', _config.get('name'));
           //if we have config for specified component
-          if(componentVal){
+          if (componentVal) {
             //set it
             _config.set('value', componentVal.value)
           }
@@ -112,16 +117,16 @@ App.WizardStep7Controller = Em.Controller.extend({
     }
   },
 
-  loadCustomConfig: function() {
+  loadCustomConfig: function () {
     var serviceConfigs = this.get('serviceConfigs');
-    this.get('customConfigs').forEach(function(_config){
-      var service = serviceConfigs.findProperty('serviceName',_config.serviceName);
-        if(service) {
-          if(!(service.configs.someProperty('name',_config.name))) {
-            service.configs.pushObject(_config);
-          }
+    this.get('customConfigs').forEach(function (_config) {
+      var service = serviceConfigs.findProperty('serviceName', _config.serviceName);
+      if (service) {
+        if (!(service.configs.someProperty('name', _config.name))) {
+          service.configs.pushObject(_config);
         }
-    },this);
+      }
+    }, this);
   },
 
   /**

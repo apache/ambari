@@ -913,7 +913,6 @@ App.WizardStep8Controller = Em.Controller.extend({
       console.log("STEP*: name of the property is: " + _configProperty.name);
       console.log("STEP8: value of the property is: " + _configProperty.value);
     }, this);
-
     return {type: 'mapred-site', tag: 'version1', properties: mrProperties};
   },
 
@@ -969,7 +968,6 @@ App.WizardStep8Controller = Em.Controller.extend({
         console.log("TRACE: STep8 -> In success function for the applyCreatedConfToService call");
         console.log("TRACE: STep8 -> value of the url is: " + url);
         console.log("TRACE: STep8 -> value of the received data is: " + jsonData);
-
       },
 
       error: function (request, ajaxOptions, error) {
