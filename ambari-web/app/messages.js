@@ -93,7 +93,10 @@ Em.I18n.translations = {
   'installer.step3.hosts.remove.popup.body':'Are you sure you want to remove the selected host(s)?',
   'installer.step3.hosts.retry.popup.header':'Retry Host Discovery',
   'installer.step3.hosts.retry.popup.body':'Are you sure you want to retry discovery of the selected host(s)?',
-
+  'installer.step3.hostRegister.popup.header':'Error in Host Registration',
+  'installer.step3.hostRegister.popup.body':'All/Some hosts bootstrapped but unable to register with server',
+  'installer.step3.hostInformation.popup.header':'Error in retrieving host Information',
+  'installer.step3.hostInformation.popup.body' : 'All bootstrapped hosts registered but unable to retrieve cpu and memory related information',
   'installer.step4.header':'Choose Services',
   'installer.step4.body':'Choose which services you want to install on your cluster.<br>Note that some services have dependencies (e.g., HBase requires ZooKeeper.)',
   'installer.step4.mapreduceCheck.popup.header':'MapReduce Needed',

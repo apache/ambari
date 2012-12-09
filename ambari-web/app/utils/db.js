@@ -141,6 +141,13 @@ App.db.setSoftRepo = function (softRepo) {
   localStorage.setObject('ambari', App.db.data);
 };
 
+App.db.setBootRequestId = function (requestId) {
+  console.log('TRACE: Entering db:setBootRequestId function');
+  App.db.data = localStorage.getObject('ambari');
+  App.db.data.Installer.bootRequestId = requestId;
+  localStorage.setObject('ambari', App.db.data);
+};
+
 App.db.setBootStatus = function (status) {
   console.log('TRACE: Entering db:setBootStatus function');
   App.db.data = localStorage.getObject('ambari');
@@ -313,6 +320,12 @@ App.db.getBootStatus = function () {
   console.log('TRACE: Entering db:getBootStatus function');
   App.db.data = localStorage.getObject('ambari');
   return App.db.data.Installer.bootStatus;
+};
+
+App.db.getBootRequestId = function () {
+  console.log('TRACE: Entering db:getBootRequestId function');
+  App.db.data = localStorage.getObject('ambari');
+  return App.db.data.Installer.bootRequestId;
 };
 
 App.db.getService = function () {

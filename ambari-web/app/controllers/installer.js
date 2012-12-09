@@ -301,6 +301,7 @@ App.InstallerController = Em.Controller.extend({
    *   confirmPassphrase: '',
    *   localRepo: false,
    *   localRepoPath: ''
+   *   bootRequestId: ''
    * }
    */
   loadInstallOptions: function () {
@@ -327,10 +328,11 @@ App.InstallerController = Em.Controller.extend({
       hostsInfo.localRepo = false;
       hostsInfo.localRepoPath = '';
     }
-
+    hostsInfo.bootRequestId =  App.db.getBootRequestId() || null;
     hostsInfo.sshKey = '';
     hostsInfo.passphrase = '';
     hostsInfo.confirmPassphrase = '';
+
 
     this.set('content.hosts', hostsInfo);
     console.log("InstallerController:loadHosts: loaded data ", hostsInfo);
@@ -345,6 +347,7 @@ App.InstallerController = Em.Controller.extend({
 
     //App.db.setBootStatus(false);
     App.db.setAllHostNames(stepController.get('hostNames'));
+    App.db.setBootRequestId(stepController.get('bootRequestId'));
     App.db.setHosts(stepController.getHostInfo());
     if (stepController.get('manualInstall') === false) {
       App.db.setInstallType({installType: 'ambari' });
@@ -811,10 +814,10 @@ App.InstallerController = Em.Controller.extend({
       },
 
       error: function (request, ajaxOptions, error) {
-        console.log("TRACE: STep8 -> In error function for the installService call");
-        console.log("TRACE: STep8 -> value of the url is: " + url);
-        console.log("TRACE: STep8 -> error code status is: " + request.status);
-        console.log('Step8: Error message is: ' + request.responseText);
+        console.log("TRACE: In error function for the installService call");
+        console.log("TRACE: value of the url is: " + url);
+        console.log("TRACE: error code status is: " + request.status);
+        console.log('Error message is: ' + request.responseText);
           var clusterStatus = {
             status: 'PENDING',
             isInstallError: false,

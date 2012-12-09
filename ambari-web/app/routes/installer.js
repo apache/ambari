@@ -93,6 +93,9 @@ module.exports = Em.Route.extend({
     },
     back: Em.Router.transitionTo('step1'),
     next: function (router) {
+      var controller = router.get('installerController');
+      var wizardStep2Controller = router.get('wizardStep2Controller');
+      controller.saveHosts(wizardStep2Controller);
       router.transitionTo('step3');
       App.db.setBootStatus(false);
     },
@@ -102,15 +105,11 @@ module.exports = Em.Route.extend({
      * @param router
      */
     evaluateStep: function (router) {
-
-      var controller = router.get('installerController');
       var wizardStep2Controller = router.get('wizardStep2Controller');
-
       wizardStep2Controller.set('hasSubmitted', true);
 
       if (!wizardStep2Controller.get('isSubmitDisabled')) {
         App.db.setBootStatus(false);
-        controller.saveHosts(wizardStep2Controller);
         wizardStep2Controller.evaluateStep();
       }
     }
@@ -291,7 +290,7 @@ module.exports = Em.Route.extend({
       var controller = router.get('installerController');
       controller.setCurrentStep('10', false);
       controller.loadAllPriorSteps();
-      controller.connectOutlet('wizardStep10',controller.get('content'));
+      controller.connectOutlet('wizardStep10', controller.get('content'));
     },
     back: Em.Router.transitionTo('step9'),
     complete: function (router, context) {

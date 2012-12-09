@@ -23,7 +23,8 @@ App.WizardStep3Controller = Em.Controller.extend({
   hosts: [],
   content: [],
   bootHosts: [],
-  isSubmitDisabled: false,
+  registrationAttempt: 7,
+  isSubmitDisabled: true,
   categories: ['All Hosts', 'Success', 'Error'],
   category: 'All Hosts',
   allChecked: false,
@@ -42,7 +43,7 @@ App.WizardStep3Controller = Em.Controller.extend({
 
   navigateStep: function () {
     this.loadStep();
-    if (App.db.getInstallType().installType !== 'manual') {
+    if (this.get('content.hosts.manualInstall') !== true) {
       if (App.db.getBootStatus() === false) {
         this.startBootstrap();
       }
@@ -52,6 +53,8 @@ App.WizardStep3Controller = Em.Controller.extend({
         _host.set('bootStatus', 'DONE');
         _host.set('bootLog', 'Success');
       });
+      this.set('bootHosts', this.get('hosts'));
+      this.isHostsRegistered(this.getHostInfo);
     }
   },
 
@@ -196,21 +199,23 @@ App.WizardStep3Controller = Em.Controller.extend({
   doBootstrap: function () {
     this.numPolls++;
     var self = this;
-    var url = App.testMode ? '/data/wizard/bootstrap/poll_' + this.numPolls + '.json' : App.apiPrefix + '/bootstrap/1';
+    var url = App.testMode ? '/data/wizard/bootstrap/poll_' + this.numPolls + '.json' : App.apiPrefix + '/bootstrap/' + this.get('content.hosts.bootRequestId');
     $.ajax({
       type: 'GET',
       url: url,
       timeout: App.timeout,
       success: function (data) {
         if (data.hostsStatus !== null) {
-          // in case of bootstrapping just one server, the server returns an object rather than an array...
+          // in case of bootstrapping just one host, the server returns an object rather than an array...
           if (!(data.hostsStatus instanceof Array)) {
             data.hostsStatus = [ data.hostsStatus ];
           }
           console.log("TRACE: In success function for the GET bootstrap call");
           var result = self.parseHostInfo(data.hostsStatus);
           if (result) {
-            window.setTimeout(function () { self.doBootstrap() }, 3000);
+            window.setTimeout(function () {
+              self.doBootstrap()
+            }, 3000);
             return;
           }
         }
@@ -232,11 +237,113 @@ App.WizardStep3Controller = Em.Controller.extend({
     //TODO: uncomment following line after the hook up with the API call
     console.log('stopBootstrap() called');
     // this.set('isSubmitDisabled',false);
+    this.startRegistration();
   },
+
+  startRegistration: function () {
+    this.isHostsRegistered(this.getHostInfo);
+  },
+
+  isHostsRegistered: function (callback) {
+    var self = this;
+    var hosts = this.get('bootHosts');
+    var url = App.apiPrefix + '/hosts';
+    var method = 'GET';
+    $.ajax({
+      type: 'GET',
+      url: url,
+      timeout: App.timeout,
+      success: function (data) {
+        var jsonData = jQuery.parseJSON(data);
+        if (jsonData && jsonData.items.length === 0) {
+          if (self.get('registrationAttempt') !== 0) {
+            count--;
+            window.setTimeout(function () {
+              self.isHostsRegistered(callback);
+            }, 3000);
+          } else {
+            self.registerErrPopup(Em.I18n.t('installer.step3.hostRegister.popup.header'), Em.I18n.t('installer.step3.hostRegister.popup.body'));
+            return;
+          }
+        }
+        if (hosts.length === jsonData.items.length) {
+          callback.apply(self);
+        } else {
+          self.registerErrPopup(Em.I18n.t('installer.step3.hostRegister.popup.header'), Em.I18n.t('installer.step3.hostRegister.popup.body'));
+        }
+      },
+      error: function () {
+        console.log('Error: Getting registered host information from the server');
+        self.stopBootstrap();
+      },
+      statusCode: require('data/statusCodes')
+    });
+  },
+
+  registerErrPopup: function (header, message) {
+    App.ModalPopup.show({
+      header: header,
+      secondary: false,
+      onPrimary: function () {
+        this.hide();
+      },
+      bodyClass: Ember.View.extend({
+        template: Ember.Handlebars.compile(['<p>{{view.message}}</p>'].join('\n')),
+        message: message
+      })
+    });
+  },
+
+  /**
+   * Get disk info and cpu count of booted hosts from server
+   */
+
+
+  getHostInfo: function () {
+    var self = this;
+    var kbPerGb = 1024;
+    var hosts = this.get('bootHosts');
+    var url = App.apiPrefix + '/hosts?fields=Hosts/total_mem,Hosts/cpu_count';
+    var method = 'GET';
+    $.ajax({
+      type: 'GET',
+      url: url,
+      contentType: 'application/json',
+      timeout: App.timeout,
+      success: function (data) {
+        var jsonData = jQuery.parseJSON(data);
+        hosts.forEach(function (_host) {
+          if (jsonData.items.someProperty('Hosts.host_name', _host.name)) {
+            var host = jsonData.items.findProperty('Hosts.host_name', _host.name);
+            _host.cpu = host.Hosts.cpu_count;
+            _host.memory = ((parseInt(host.Hosts.total_mem)) / kbPerGb).toFixed(2);
+            console.log("The value of memory is: " + _host.memory);
+            alert ("The value of memory is: " + _host.memory);
+            debugger;
+          }
+        }, this);
+        self.set('bootHosts',hosts);
+        console.log("The value of hosts: " + JSON.stringify(hosts));
+        debugger;
+        self.stopRegistrataion();
+      },
+
+      error: function () {
+        console.log('INFO: Getting host information(cpu_count and total_mem) from the server failed');
+        self.registerErrPopup(Em.I18n.t('installer.step3.hostInformation.popup.header'), Em.I18n.t('installer.step3.hostInformation.popup.body'));
+      },
+      statusCode: require('data/statusCodes')
+    });
+  },
+
+  stopRegistrataion: function () {
+    this.set('isSubmitDisabled', false);
+  },
+
 
   submit: function () {
     if (!this.get('isSubmitDisabled')) {
-      this.set('content.hostsInfo', this.get('hosts'));
+      this.set('content.hostsInfo', this.get('bootHosts'));
       App.router.send('next');
     }
   },

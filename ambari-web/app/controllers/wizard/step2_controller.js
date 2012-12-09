@@ -21,6 +21,7 @@ var App = require('app');
 App.WizardStep2Controller = Em.Controller.extend({
   name: 'wizardStep2Controller',
   hostNameArr: [],
+  bootRequestId:  null,
   hasSubmitted: false,
 
   hostNames: function () {
@@ -145,6 +146,7 @@ App.WizardStep2Controller = Em.Controller.extend({
       return true;
     }
 
+    var self = this;
     var method = App.testMode ? 'GET' : 'POST';
     var url = App.testMode ? '/data/wizard/bootstrap/bootstrap.json' : App.apiPrefix + '/bootstrap';
 
@@ -154,8 +156,10 @@ App.WizardStep2Controller = Em.Controller.extend({
       data: bootStrapData,
       timeout: App.timeout,
       contentType: 'application/json',
-      success: function () {
+      success: function (data) {
         console.log("TRACE: POST bootstrap succeeded");
+        var requestId = data.requestId;
+        self.set('bootRequestId',requestId);
         App.router.send('next');
       },
       error: function () {
