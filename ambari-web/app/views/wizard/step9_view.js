@@ -128,24 +128,27 @@ App.HostStatusView = Em.View.extend({
           return this.get('parentView.obj');
         }.property('parentView.obj'),
 
-        logTasks: [],
+        logTasks: [],  // initialized in didInsertElement
+
+        task: null, // set in showTaskLog; contains task info including stdout and stderr
 
         roles: function () {
           var roleArr = [];
           var tasks = this.get('logTasks');
           if (tasks.length) {
-            var role = this.get('logTasks').mapProperty('Tasks.role').uniq();
-            role.forEach(function (_role) {
-              var statusArr = [];
+            var _roles = this.get('logTasks').mapProperty('Tasks.role').uniq();
+            _roles.forEach(function (_role) {
+              var taskInfos = [];
               var roleObj = {};
-              roleObj.roleName = _role;
+              roleObj.roleName = App.format.role(_role);
               tasks.filterProperty('Tasks.role', _role).forEach(function (_task) {
-                var statusObj = {};
-                statusObj.status = _task.Tasks.command;
-                statusObj.url = _task.href;
-                statusArr.pushObject(statusObj);
+                var taskInfo = Ember.Object.create();
+                taskInfo.set('status', _task.Tasks.command.toLowerCase());
+                taskInfo.set('url', _task.href);
+                taskInfo.set('isLogHidden', true);
+                taskInfos.pushObject(taskInfo);
               }, this);
-              roleObj.statusArr = statusArr;
+              roleObj.taskInfos = taskInfos;
               roleArr.pushObject(roleObj);
             }, this);
           }
@@ -154,10 +157,34 @@ App.HostStatusView = Em.View.extend({
 
         didInsertElement: function () {
           console.log('The value of event context is: ' + host.name);
-          this.set('logTasks', self.get('controller').getCompletedTasksForHost(event.context));
+          this.set('logTasks', self.get('controller').getCompletedTasksForHost(host));
+        },
+
+        toggleTaskLog: function (event, context) {
+          var taskInfo = event.context;
+          if (taskInfo.get('isLogHidden')) {
+            var url = (App.testMode) ? '/data/wizard/deploy/task_log.json' : taskInfo.url;
+            $.ajax({
+              url: url,
+              dataType: 'text',
+              timeout: 10000,
+              success: function(data) {
+                var task = $.parseJSON(data);
+                taskInfo.set('stdout', task.Tasks.stdout);
+                taskInfo.set('stderr', task.Tasks.stderr);
+                taskInfo.set('isLogHidden', false);
+              },
+              error: function() {
+                alert('Failed to retrieve task log');
+              }
+            });
+          } else {
+            taskInfo.set('isLogHidden', true);
+          }
         }
       })
     });
   }
+
 });
 

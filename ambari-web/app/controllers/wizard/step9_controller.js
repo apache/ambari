@@ -68,6 +68,7 @@ App.WizardStep9Controller = Em.Controller.extend({
     this.set('status', 'info');
     this.set('progress', '0');
     this.set('isStepCompleted', false);
+    this.numPolls = 0;
   },
 
   loadStep: function () {
@@ -109,55 +110,56 @@ App.WizardStep9Controller = Em.Controller.extend({
   },
 
   displayMessage: function (task) {
+    var role = App.format.role(task.role);
     console.log("In display message with task command value: " + task.command);
     switch (task.command) {
       case 'INSTALL':
         switch (task.status) {
           case 'PENDING':
-            return 'Preparing to install ' + task.role;
+            return 'Preparing to install ' + role;
           case 'QUEUED' :
-            return task.role + ' is queued for installation';
+            return role + ' is queued for installation';
           case 'IN_PROGRESS':
-            return 'Installing ' + task.role;
+            return 'Installing ' + role;
           case 'COMPLETED' :
-            return 'Successfully installed ' + task.role;
+            return 'Successfully installed ' + role;
           case 'FAILED':
-            return 'Failed to install ' + task.role;
+            return 'Failed to install ' + role;
         }
       case 'UNINSTALL':
         switch (task.status) {
           case 'PENDING':
-            return 'Preparing to uninstall ' + task.role;
+            return 'Preparing to uninstall ' + role;
           case 'QUEUED' :
-            return task.role + ' is queued for uninstallation';
+            return role + ' is queued for uninstallation';
           case 'IN_PROGRESS':
-            return 'Uninstalling ' + task.role;
+            return 'Uninstalling ' + role;
           case 'COMPLETED' :
-            return 'Successfully uninstalled ' + task.role;
+            return 'Successfully uninstalled ' + role;
           case 'FAILED':
-            return 'Failed to uninstall ' + task.role;
+            return 'Failed to uninstall ' + role;
         }
       case 'START' :
         switch (task.status) {
           case 'PENDING':
-            return 'Preparing to start ' + task.role;
+            return 'Preparing to start ' + role;
           case 'QUEUED' :
-            return task.role + ' is queued for starting';
+            return role + ' is queued for starting';
           case 'IN_PROGRESS':
-            return 'Starting ' + task.role;
+            return 'Starting ' + role;
           case 'COMPLETED' :
-            return task.role + ' started successfully';
+            return role + ' started successfully';
           case 'FAILED':
-            return task.role + ' failed to start';
+            return role + ' failed to start';
         }
       case 'STOP' :
         switch (task.status) {
           case 'PENDING':
-            return 'Preparing to stop ' + task.role;
+            return 'Preparing to stop ' + role;
           case 'QUEUED' :
-            return task.role + ' is queued for stopping';
+            return role + ' is queued for stopping';
           case 'IN_PROGRESS':
-            return 'Stopping ' + task.role;
+            return 'Stopping ' + role;
           case 'COMPLETED' :
             return role + ' stopped successfully';
           case 'FAILED':
@@ -166,28 +168,28 @@ App.WizardStep9Controller = Em.Controller.extend({
       case 'EXECUTE' :
         switch (task.status) {
           case 'PENDING':
-            return 'Preparing to execute' + task.role;
+            return 'Preparing to execute' + role;
           case 'QUEUED' :
-            return task.role + ' is queued for execution';
+            return role + ' is queued for execution';
           case 'IN_PROGRESS':
-            return 'Execution of ' + task.role + ' in progress';
+            return 'Execution of ' + role + ' in progress';
           case 'COMPLETED' :
-            return task.role + ' executed successfully';
+            return role + ' executed successfully';
           case 'FAILED':
-            return task.role + ' failed to execute';
+            return role + ' failed to execute';
         }
       case 'ABORT' :
         switch (task.status) {
           case 'PENDING':
-            return 'Preparing to abort ' + task.role;
+            return 'Preparing to abort ' + role;
           case 'QUEUED' :
-            return task.role + ' is queued for aborting';
+            return role + ' is queued for aborting';
           case 'IN_PROGRESS':
-            return 'Aborting ' + task.role;
+            return 'Aborting ' + role;
           case 'COMPLETED' :
-            return task.role + ' aborted successfully';
+            return role + ' aborted successfully';
           case 'FAILED':
-            return task.role + ' failed to abort';
+            return role + ' failed to abort';
         }
     }
   },

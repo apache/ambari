@@ -68,57 +68,7 @@ App.Service1Component = DS.Model.extend({
   host_name : DS.attr('string'),
 
   displayName: function() {
-    switch (this.get('componentName')) {
-      case 'NAMENODE':
-        return 'NameNode';
-      case 'SNAMENODE':
-        return 'SNameNode';
-      case 'DATANODE':
-        return 'DataNode';
-      case 'HDFS_CLIENT':
-        return 'HDFS Client';
-      case 'JOBTRACKER':
-        return 'JobTracker';
-      case 'TASKTRACKER':
-        return 'TaskTracker';
-      case 'MAPREDUCE_CLIENT':
-        return 'MapReduce Client';
-      case 'ZOOKEEPER_SERVER':
-        return 'ZooKeeper Server';
-      case 'ZOOKEEPER_CLIENT':
-        return 'ZooKeeper Client';
-      case 'HIVE_SERVER':
-        return 'Hive Server';
-      case 'HIVE_CLIENT':
-        return 'Hive Client';
-      case 'HIVE_MYSQL':
-        return 'Hive MySQL';
-      case 'HBASE_MASTER':
-        return 'HBase Master';
-      case 'HBASE_REGIONSERVER':
-        return 'RegionServer';
-      case 'HBASE_CLIENT':
-        return 'HBase Client';
-      case 'PIG_CLIENT':
-        return 'Pig Client';
-      case 'SQOOP_CLIENT':
-        return 'Sqoop Client';
-      case 'TEMPLETON_SERVER':
-        return 'Templeton Server';
-      case 'TEMPLETON_CLIENT':
-        return 'Templeton Client';
-      case 'OOZIE_SERVER':
-        return 'Oozie Server';
-      case 'OOZIE_CLIENT':
-        return 'Oozie Client';
-      case 'NAGIOS_SERVER':
-        return 'Nagios Server';
-      case 'GANGLIA_SERVER':
-        return 'Ganglia Collector';
-      case 'GANGLIA_MONITOR':
-        return 'Ganglia Monitor';
-    }
-    return this.get('componentName');
+    return App.format.role(this.get('componentName'));
   }.property('componentName'),
 
   isMaster: function() {

@@ -1,15 +1,17 @@
-<p>Click on the task to see the log: </p><br/>
-<ul>
-  {{#each item in view.roles}}
-  <li>{{item.roleName}}
-    <ul>
-      {{#each state in item.statusArr}}
-      <li>
-        <a {{bindAttr href="state.url"}}>{{state.status}}</a>
-      </li>
-      {{/each}}
-    </ul>
-  </li>
+<p>Click on the task to see the log:</p>
+<div id="host-log">
+  {{#each role in view.roles}}
+    {{#each taskInfo in role.taskInfos}}
+    <div>
+      <a {{action toggleTaskLog taskInfo}}>{{#if taskInfo.isLogHidden}}Show{{else}}Hide{{/if}} {{role.roleName}} {{taskInfo.status}} log</a>
+      <div {{bindAttr class="taskInfo.isLogHidden:hidden"}}>
+        <h5>stderr:</h5>
+        <div class="stderr">{{taskInfo.stderr}}</div>
+        <h5>stdout:</h5>
+        <div class="stdout">{{taskInfo.stdout}}</div>
+      </div>
+    </div>
+    {{/each}}
   {{/each}}
-</ul>
+</div>
 

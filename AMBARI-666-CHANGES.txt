@@ -12,6 +12,9 @@ AMBARI-666 branch (unreleased changes)
 
   NEW FEATURES
 
+  AMBARI-989. Show task logs for each host in the Deploy step of the
+  wizard. (yusaku)
+
   AMBARI-976.  Hook HDFS/MapReduce/HBase/Host graphs to backend API
   (Srimanth Gunturi via yusaku)
 

@@ -26,5 +26,5 @@ App.WizardStep8View = Em.View.extend({
   didInsertElement: function () {
     var controller = this.get('controller');
     controller.loadStep();
-  }
+  },
 });

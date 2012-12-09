@@ -52,6 +52,10 @@ footer {
   padding: 20px 0;
 }
 
+.modal-body {
+  max-height: 500px;
+}
+
 #top-nav {
   .navbar {
     font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
@@ -293,6 +297,17 @@ h1 {
     }
   }
 }
+
+#host-log {
+  .stderr, .stdout {
+    background-color: #f0f0f0;
+    /* max-height: 300px;
+    overflow-y: auto; */
+    border-radius: 4px;
+    padding: 8px;
+  }
+}
+
 
 #serviceConfig {
   .accordion-heading {

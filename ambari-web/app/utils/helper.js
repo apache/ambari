@@ -131,3 +131,108 @@ App.formatUrl = function (urlTemplate, substitutes, testUrl) {
   }
   return formatted;
 }
+
+App.format = {
+  role: function(role) {
+    switch (role) {
+      case 'ZOOKEEPER_SERVER':
+        return 'ZooKeeper Server';
+      case 'ZOOKEEPER_CLIENT':
+        return 'ZooKeeper Client';
+      case 'NAMENODE':
+        return 'NameNode';
+      case 'NAMENODE_SERVICE_CHECK':
+        return 'NameNode Service Check';
+      case 'DATANODE':
+        return 'DataNode';
+      case 'HDFS_SERVICE_CHECK':
+        return 'HDFS Service Check';
+      case 'SECONDARY_NAMENODE':
+        return 'SNameNode';
+      case 'HDFS_CLIENT':
+        return 'HDFS Client';
+      case 'HBASE_MASTER':
+        return 'HBase Master';
+      case 'HBASE_REGIONSERVER':
+        return 'HBase RegionServer';
+      case 'HBASE_CLIENT':
+        return 'HBase Client';
+      case 'JOBTRACKER':
+        return 'JobTracker';
+      case 'TASKTRACKER':
+        return 'TaskTracker';
+      case 'MAPREDUCE_CLIENT':
+        return 'MapReduce Client';
+      case 'JAVA_JCE':
+        return 'Java JCE';
+      case 'KERBEROS_SERVER':
+        return 'Kerberos Server';
+      case 'KERBEROS_CLIENT':
+        return 'Kerberos Client';
+      case 'KERBEROS_ADMIN_CLIENT':
+        return 'Kerberos Admin Client';
+      case 'HADOOP_CLIENT':
+        return 'Hadoop Client';
+      case 'JOBTRACKER_SERVICE_CHECK':
+        return 'JobTracker Service Check';
+      case 'MAPREDUCE_SERVICE_CHECK':
+        return 'MapReduce Service Check';
+      case 'ZOOKEEPER_SERVICE_CHECK':
+        return 'ZooKeeper Service Check';
+      case 'ZOOKEEPER_QUORUM_SERVICE_CHECK':
+        return 'ZooKeeper Quorum Service Check';
+      case  'HBASE_SERVICE_CHECK':
+        return 'HBase Service Check';
+      case 'MYSQL_SERVER':
+        return 'MySQL Server';
+      case 'HIVE_SERVER':
+        return 'Hive Server';
+      case 'HIVE_CLIENT':
+        return 'Hive Client';
+      case 'HIVE_SERVICE_CHECK':
+        return 'Hive Service Check';
+      case 'HCAT':
+        return 'HCat';
+      case 'HCAT_SERVICE_CHECK':
+        return 'HCat Service Check';
+      case 'OOZIE_CLIENT':
+        return 'Oozie Client';
+      case 'OOZIE_SERVER':
+        return 'Oozie Server';
+      case 'OOZIE_SERVICE_CHECK':
+        return 'Oozie Service Check';
+      case 'PIG':
+        return 'Pig';
+      case 'PIG_SERVICE_CHECK':
+        return 'Pig Service Check';
+      case 'SQOOP':
+        return 'Sqoop';
+      case 'SQOOP_SERVICE_CHECK':
+        return 'Sqoop Service Check';
+      case 'TEMPLETON_CLIENT':
+        return 'Templeton Client';
+      case 'TEMPLETON_SERVER':
+        return 'Templeton Server';
+      case 'TEMPLETON_SERVICE_CHECK':
+        return 'Templeton Service Check';
+      case 'DASHBOARD':
+        return 'Dashboard';
+      case 'DASHBOARD_SERVICE_CHECK':
+        return 'Dashboard Service Check';
+      case 'NAGIOS_SERVER':
+        return 'Nagios Server';
+      case 'GANGLIA_SERVER':
+        return 'Ganglia Server';
+      case 'GANGLIA_MONITOR':
+        return 'Ganglia Monitor';
+      case 'GMOND_SERVICE_CHECK':
+        return 'Gmond Service Check'
+      case 'GMETAD_SERVICE_CHECK':
+        return 'Gmetad Service Check';
+      case 'MONTOR_WEBSERVER':
+        return 'Monitor Webserver'
+      case 'DECOMMISSION_DATANODE':
+        return 'Decommission DataNode';
+    }
+  }
+};
