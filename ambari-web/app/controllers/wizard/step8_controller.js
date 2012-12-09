@@ -792,12 +792,13 @@ App.WizardStep8Controller = Em.Controller.extend({
       }
     }, this);
 
-    // add Ganglia Monitor (Slave) to all hosts
-    for (var hostName in allHosts) {
-      // TODO: filter for only confirmed hosts?
-      this.createHostComponent({ hostName: hostName, component: 'GANGLIA_MONITOR'});
+    // add Ganglia Monitor (Slave) to all hosts if Ganglia is selected
+    if (this.get('selectedServices').someProperty('serviceName', 'GANGLIA')) {
+      for (var hostName in allHosts) {
+        // TODO: filter for only confirmed hosts?
+        this.createHostComponent({ hostName: hostName, component: 'GANGLIA_MONITOR'});
+      }
     }
-
   },
 
   createHostComponent: function (hostComponent) {
