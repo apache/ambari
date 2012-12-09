@@ -34,3 +34,6 @@ This product includes Font Awesome 2.0 (http://fortawesome.github.com/Font-Aweso
 
 This product incudes Rickshaw 1.1.2 (http://code.shutterstock.com/rickshaw/ - MIT License)
 Copyright (C) 2011 by Shutterstock Images, LLC
+
+This product includes Timeago (http://timeago.yarp.com/ - MIT License)
+Copyright (c) 2008-2012, Ryan McGeary (ryan -[at]- mcgeary [*dot*] org)

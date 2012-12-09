@@ -52,6 +52,7 @@ exports.config =
           'vendor/scripts/jquery.ui.sortable.js',
           'vendor/scripts/jquery.ui.custom-effects.js',
           'vendor/scripts/jquery.dataTables.js',
+          'vendor/scripts/jquery.timeago.js',
           'vendor/scripts/workflow_visualization.js',
           'vendor/scripts/rickshaw.js'
           ]

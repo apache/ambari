@@ -23,7 +23,7 @@ App.alertsMapper = App.QuickDataMapper.create({
     $alert_id:'' ,
     title: "service_description",
     service_type: "service_type",
-    date: "last_check",
+    date: "last_hard_state_change",
     status: "current_state",
     message: "plugin_output",
     host_name: "host_name",

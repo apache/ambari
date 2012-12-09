@@ -53,17 +53,39 @@ App.Alert = DS.Model.extend({
   }.property('status'),
 
   /**
-   * Used to show appropriate date in UI
+   * Provides how long ago this alert happened.
+   * 
+   * @type {String}
    */
-  dateDisplay: function () {
+  timeSinceAlert: function () {
     var d = this.get('date');
     if (d) {
-      var dateString = d.toDateString() + ". " + d.toLocaleTimeString();
-      dateString = dateString.substr(dateString.indexOf(" ") + 1);
-      return dateString;
+      return $.timeago(d);
     }
     return "";
   }.property('date'),
+
+  /**
+   * Provides more details about when this alert happened.
+   * 
+   * @type {String}
+   */
+  timeSinceAlertDetails: function () {
+    var details = "";
+    var date = this.get('date');
+    if (date) {
+      var dateString = date.toDateString();
+      dateString = dateString.substr(dateString.indexOf(" ") + 1);
+      dateString = "Occurred on " + dateString + ", " + date.toLocaleTimeString();
+      details += dateString;
+    }
+    var lastCheck = this.get('lastCheck');
+    if (lastCheck) {
+      lastCheck = new Date(lastCheck * 1000);
+      details = details + "<br>Last checked " + $.timeago(lastCheck);
+    }
+    return details;
+  }.property('lastCheck', 'date'),
 
   /**
    * Used to show appropriate service label in UI

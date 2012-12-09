@@ -86,7 +86,7 @@
                 <div class="row-fluid">
                   <div class="span7 title">{{title}}
                   </div>
-                  <div class="span5 date-time">{{dateDisplay}}</div>
+                  <div rel="tooltip" {{bindAttr data-title="timeSinceAlertDetails"}} data-placement="right" class="span5 date-time">{{timeSinceAlert}}</div>
                 </div>
                 <div class="row-fluid message">{{message}}</div>
               </div>

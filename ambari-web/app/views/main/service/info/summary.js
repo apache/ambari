@@ -183,6 +183,8 @@ App.MainServiceInfoSummaryView = Em.View.extend({
         $(summaryTable).attr('style', "height:" + alertsList.clientHeight + "px;");
       }
     }
+    // Tooltips for alerts need to be enabled.
+    $("div[rel=tooltip]").tooltip();
   },
 
   clientHosts:App.Host.find(),
