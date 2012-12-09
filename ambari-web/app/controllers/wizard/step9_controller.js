@@ -105,7 +105,7 @@ App.WizardStep9Controller = Em.Controller.extend({
   },
 
   replacePolledData: function (polledData) {
-    this.polledData.clear;
+    this.polledData.clear();
     this.set('polledData', polledData);
   },
 
@@ -168,7 +168,7 @@ App.WizardStep9Controller = Em.Controller.extend({
       case 'EXECUTE' :
         switch (task.status) {
           case 'PENDING':
-            return 'Preparing to execute' + role;
+            return 'Preparing to execute ' + role;
           case 'QUEUED' :
             return role + ' is queued for execution';
           case 'IN_PROGRESS':
@@ -256,7 +256,7 @@ App.WizardStep9Controller = Em.Controller.extend({
   },
 
   onWarningPerHost: function (actions, contentHost) {
-    if (actions.findProperty('Tasks.status', 'FAILED') || actions.findProperty('Tasks.status', 'ABORTED') || actions.findProperty('Tasks.status', 'TIMEDOUT')) {
+    if (actions.someProperty('Tasks.status', 'FAILED') || actions.someProperty('Tasks.status', 'ABORTED') || actions.someProperty('Tasks.status', 'TIMEDOUT')) {
       console.log('step9: In warning');
       contentHost.set('status', 'warning');
       this.set('status', 'warning');
@@ -413,15 +413,6 @@ App.WizardStep9Controller = Em.Controller.extend({
     return false;
   },
 
-  getCompletedTasksForHost: function (host) {
-    var hostname = host.get('name');
-    var tasksPerHost = host.logTasks.filterProperty('Tasks.host_name', hostname);
-    var succededTasks = tasksPerHost.filterProperty('Tasks.status', 'COMPLETED');
-    var inProgressTasks = tasksPerHost.filterProperty('Tasks.status', 'IN_PROGRESS');
-    var listedTasksPerHost = succededTasks.concat(inProgressTasks).uniq();
-    return listedTasksPerHost;
-  },
-
   setTasksPerHost: function () {
     console.log("In setTasksPerHost fo step9*****************");
     var tasksData = this.get('polledData');
@@ -446,13 +437,14 @@ App.WizardStep9Controller = Em.Controller.extend({
   setLogTasksStatePerHost: function (tasksPerHost, host) {
     var tasks = [];
     console.log('In step9 setTasksStatePerHost function.');
-    tasksPerHost.forEach(function (_taskPerHost) {
+    tasksPerHost.forEach(function (_task) {
       console.log('In step9 _taskPerHost function.');
-      if (_taskPerHost.Tasks.status !== 'PENDING' && _taskPerHost.Tasks.status !== 'QUEUED') {
-        var task = host.logTasks.findProperty('Tasks.id', _taskPerHost.Tasks.id);
-        if (!(task && (task.Tasks.command === _taskPerHost.Tasks.command))) {
-          host.logTasks.pushObject(_taskPerHost);
+      if (_task.Tasks.status !== 'PENDING' && _task.Tasks.status !== 'QUEUED') {
+        var task = host.logTasks.findProperty('Tasks.id', _task.Tasks.id);
+        if (task) {
+          host.logTasks.removeObject(task);
         }
+        host.logTasks.pushObject(_task);
       }
     }, this);
   },

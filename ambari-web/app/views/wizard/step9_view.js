@@ -127,22 +127,23 @@ App.HostStatusView = Em.View.extend({
           return this.get('parentView.obj');
         }.property('parentView.obj'),
 
-        logTasks: [],  // initialized in didInsertElement
+        startedTasks: [],  // initialized in didInsertElement
 
         task: null, // set in showTaskLog; contains task info including stdout and stderr
 
         roles: function () {
           var roleArr = [];
-          var tasks = this.get('logTasks');
+          var tasks = this.get('startedTasks');
           if (tasks.length) {
-            var _roles = this.get('logTasks').mapProperty('Tasks.role').uniq();
+            var _roles = tasks.mapProperty('Tasks.role').uniq();
             _roles.forEach(function (_role) {
               var taskInfos = [];
               var roleObj = {};
               roleObj.roleName = App.format.role(_role);
               tasks.filterProperty('Tasks.role', _role).forEach(function (_task) {
                 var taskInfo = Ember.Object.create();
-                taskInfo.set('status', _task.Tasks.command.toLowerCase());
+                taskInfo.set('command', _task.Tasks.command.toLowerCase());
+                taskInfo.set('status', App.format.taskStatus(_task.Tasks.status));
                 taskInfo.set('url', _task.href);
                 taskInfo.set('isLogHidden', true);
                 taskInfos.pushObject(taskInfo);
@@ -152,11 +153,18 @@ App.HostStatusView = Em.View.extend({
             }, this);
           }
           return roleArr;
-        }.property('logTasks.@each'),
+        }.property('startedTasks.@each'),
 
         didInsertElement: function () {
           console.log('The value of event context is: ' + host.name);
-          this.set('logTasks', self.get('controller').getCompletedTasksForHost(host));
+          this.set('startedTasks', this.getStartedTasks(host));
+        },
+
+        getStartedTasks: function (host) {
+          var startedTasks = host.logTasks.filter(function (task) {
+            return task.Tasks.status != 'PENDING' && task.Tasks.status != 'QUEUED';
+          });
+          return startedTasks;
         },
 
         toggleTaskLog: function (event, context) {

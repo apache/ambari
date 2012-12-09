@@ -234,5 +234,18 @@ App.format = {
       case 'DECOMMISSION_DATANODE':
         return 'Decommission DataNode';
     }
+  },
+
+  /**
+   * PENDING - Not queued yet for a host
+   * QUEUED - Queued for a host
+   * IN_PROGRESS - Host reported it is working
+   * COMPLETED - Host reported success
+   * FAILED - Failed
+   * TIMEDOUT - Host did not respond in time
+   * ABORTED - Operation was abandoned
+   */
+  taskStatus: function(_taskStatus) {
+    return _taskStatus.replace('_', ' ').toLowerCase();
   }
 };

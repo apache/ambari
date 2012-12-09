@@ -3,7 +3,7 @@
   {{#each role in view.roles}}
     {{#each taskInfo in role.taskInfos}}
     <div>
-      <a href="#" {{action toggleTaskLog taskInfo}}>{{#if taskInfo.isLogHidden}}Show{{else}}Hide{{/if}} {{role.roleName}} {{taskInfo.status}} log</a>
+      <a href="#" {{action toggleTaskLog taskInfo}}>{{#if taskInfo.isLogHidden}}Show{{else}}Hide{{/if}} {{role.roleName}} {{taskInfo.command}} log ({{taskInfo.status}})</a>
       <div {{bindAttr class="taskInfo.isLogHidden:hidden"}}>
         <h5>stderr:</h5>
         <pre class="stderr">{{taskInfo.stderr}}</pre>
