@@ -427,6 +427,9 @@ AMBARI-666 branch (unreleased changes)
 
   IMPROVEMENTS
 
+  AMBARI-1051. Dashboard page takes long time to load. (Srimanth Gunturi via
+  yusaku)
+
   AMBARI-1041. Additional metrics need to be added to Heatmap UI. (Srimanth
   Gunturi via yusaku)
 

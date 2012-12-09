@@ -99,7 +99,9 @@ App.QuickDataMapper = App.ServerDataMapper.extend({
       if (pathArr[0].substr(-1) == ']') {
         var index = parseInt(pathArr[0].substr(-2, 1));
         var attr = pathArr[0].substr(0, pathArr[0].length - 3);
-        current = current[attr][index];
+        if (attr in current) {
+          current = current[attr][index];
+        }
       } else {
         current = current[pathArr[0]];
       }

@@ -60,14 +60,10 @@ App.UpdateController = Em.Controller.extend({
   },
 
   updateHost:function(){
-
       var hostsUrl = this.getUrl('/data/hosts/hosts.json', '/hosts?fields=*');
       App.HttpClient.get(hostsUrl, App.hostsMapper, {
-        complete:function (jqXHR, textStatus) {
-
-        }
+        complete:function (jqXHR, textStatus) {}
       });
-
   },
   graphs: [],
   graphsUpdate: function () {
@@ -86,14 +82,21 @@ App.UpdateController = Em.Controller.extend({
       });
       this.set('graphs', existedGraphs);
   },
-  updateServiceMetric:function(callback){
+  
+  /**
+   * Updates the services information. 
+   * 
+   * @param isInitialLoad  If true, only basic information is loaded.
+   */
+  updateServiceMetric: function (callback, isInitialLoad) {
     var self = this;
     self.set('isUpdated', false);
-    var servicesUrl = this.getUrl('/data/dashboard/services.json', '/services?ServiceInfo/service_name!=MISCELLANEOUS&ServiceInfo/service_name!=DASHBOARD&fields=*,components/host_components/*,components/ServiceComponentInfo');
-    var callback = callback || function(jqXHR, textStatus){
+    var servicesUrl = isInitialLoad ? 
+        this.getUrl('/data/dashboard/services.json', '/services?fields=components/ServiceComponentInfo,components/host_components,components/host_components/HostRoles') : 
+        this.getUrl('/data/dashboard/services.json', '/services?fields=components/ServiceComponentInfo,components/host_components,components/host_components/HostRoles,components/host_components/metrics/jvm/memHeapUsedM,components/host_components/metrics/jvm/memHeapCommittedM,components/host_components/metrics/mapred/jobtracker/trackers_decommissioned');
+    var callback = callback || function (jqXHR, textStatus) {
       self.set('isUpdated', true);
     };
-
     App.HttpClient.get(servicesUrl, App.servicesMapper, {
       complete: callback
     });

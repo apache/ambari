@@ -284,10 +284,10 @@ App.ClusterController = Em.Controller.extend({
       return;
     }
     
-    var servicesUrl1 = this.getUrl('/data/dashboard/services.json', '/services?ServiceInfo/service_name!=MISCELLANEOUS&ServiceInfo/service_name!=DASHBOARD&fields=*,components/host_components/*');
+    var servicesUrl = this.getUrl('/data/dashboard/services.json', '/services?fields=components/ServiceComponentInfo,components/host_components,components/host_components/HostRoles');
 
     var self = this;
-    App.HttpClient.get(servicesUrl1, App.statusMapper, {
+    App.HttpClient.get(servicesUrl, App.statusMapper, {
       complete:function (jqXHR, textStatus) {
         console.log('Cluster Controller: Updated components statuses successfully!!!')
         self.loadUpdatedStatusDelayed();
@@ -351,7 +351,7 @@ App.ClusterController = Em.Controller.extend({
 
     App.router.get('updateController').updateServiceMetric(function(){
       self.updateLoadStatus('services');
-    });
+    }, true);
 
     setTimeout(function(){
       self.set('updateStatus', true);
