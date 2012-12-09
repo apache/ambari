@@ -33,5 +33,13 @@ App.MainChartHeatmapProcessRunMetric = App.MainChartHeatmapMetric.extend({
   name: 'Total Running Processes',
   maximumValue: 1,
   defaultMetric: 'metrics.process.proc_run',
-  units: 'Processes'
-})
+  units: 'Processes',
+  metricMapper: function (json) {
+    var map = this._super(json);
+    for ( var host in map) {
+      var val = map[host];
+      map[host] = val.toFixed(1);
+    }
+    return map;
+  }
+});

@@ -491,6 +491,9 @@ AMBARI-666 branch (unreleased changes)
   OPTIMIZATIONS
 
   BUG FIXES
+
+  AMBARI-1032. Host hover in cluster heatmap showing mock data. (Srimanth
+  Gunturi via yusaku)
  
   AMBARI-1028. MapReduce & HDFS summaries should use ServiceComponentInfo
   values. (Srimanth Gunturi via yusaku)

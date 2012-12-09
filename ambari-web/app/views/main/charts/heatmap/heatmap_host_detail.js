@@ -28,9 +28,8 @@ App.MainChartsHeatmapHostDetailView = Em.View.extend({
     ip: '192.168.0.0',
     metricName: 'metric-name',
     metricValue: 'metric-value',
+    diskUsage: '10',
     cpuUsage: '10',
-    memoryUsage: '10',
-    networkUsage: '30',
-    ioUsage: '40'
+    memoryUsage: '10'
   }
 });
