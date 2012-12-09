@@ -266,9 +266,11 @@ Em.I18n.translations = {
   'charts.horizon.chart.attributes.io':'I/O',
   
   'charts.heatmap.category.host':'Host',
-  'charts.heatmap.item.host.memory':'Memory Free',
+  'charts.heatmap.item.host.memory':'Memory Used',
   'charts.heatmap.item.host.disk':'Disk Space Used',
   'charts.heatmap.item.host.process':'Total Running Processes',
+  'charts.heatmap.category.hdfs':'HDFS',
+  'charts.heatmap.category.mapreduce': 'MapReduce',
 
   'metric.default':'combined',
   'metric.cpu':'cpu',

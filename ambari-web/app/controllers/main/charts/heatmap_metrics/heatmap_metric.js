@@ -58,6 +58,12 @@ App.MainChartHeatmapMetric = Em.Object.extend({
    * {String}
    */
   units: '',
+  
+  /**
+   * Indicates whether this metric is currently loading data from the server.
+   * {Boolean}
+   */
+  loading: false,
 
   /**
    * Provides following information about slots in an array of objects.
@@ -114,6 +120,12 @@ App.MainChartHeatmapMetric = Em.Object.extend({
    * definition label being '0% - 10%'.
    */
   slotDefinitionLabelSuffix: '',
+  
+  /**
+   * URL template from which metrics will be gotten for all hosts.
+   * The {metricName} param will be replaced by the 'defaultMetric' value.
+   */
+  metricUrlTemplate: "/clusters/{clusterName}/hosts?fields={metricName}",
 
   /**
    * URL from which data for this metric can be gotten from. This should be
@@ -123,7 +135,7 @@ App.MainChartHeatmapMetric = Em.Object.extend({
     var clusterName = App.router.get('clusterController.clusterName');
     var fixedMetricName = this.get('defaultMetric');
     fixedMetricName = fixedMetricName.replace(/\./g, "/");
-    return App.formatUrl(App.apiPrefix + "/clusters/{clusterName}/hosts?fields={metricName}", {
+    return App.formatUrl(App.apiPrefix + this.get('metricUrlTemplate'), {
       clusterName: App.router.get('clusterController.clusterName'),
       metricName: fixedMetricName
     }, "/data/cluster_metrics/cpu_1hr.json");
@@ -186,12 +198,17 @@ App.MainChartHeatmapMetric = Em.Object.extend({
    * 'hostnameToSlotObject' has key as hostname, and the slot index as value.
    */
   refreshHostSlots: function () {
+    this.set('loading', true);
     jQuery.ajax({
       url: this.get('metricUrl'),
       dataType: 'json',
+      error: jQuery.proxy(function (xhr, textStatus, error) {
+        this.set('loading', false);
+      }, this),
       success: jQuery.proxy(function (data) {
         var hostToValueMap = this.metricMapper(data);
         this.set('hostToValueMap', hostToValueMap);
+        this.set('loading', false);
       }, this)
     });
   }.observes('slotDefinitions'),

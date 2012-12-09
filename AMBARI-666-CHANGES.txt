@@ -424,6 +424,9 @@ AMBARI-666 branch (unreleased changes)
 
   IMPROVEMENTS
 
+  AMBARI-1041. Additional metrics need to be added to Heatmap UI. (Srimanth
+  Gunturi via yusaku)
+
   AMBARI-1040. Cluster heatmap: green should always mean "good". (Srimanth
   Gunturi via yusaku)
 

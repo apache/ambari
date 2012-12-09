@@ -20,31 +20,10 @@ var App = require('app');
 /**
  * 
  */
-App.MainChartHeatmapDiskSpaceUsedMetric = App.MainChartHeatmapMetric.extend({
-  name: 'Disk Space Used %',
-  maximumValue: 100,
-  defaultMetric: 'metrics.disk',
-  units: '%',
-  slotDefinitionLabelSuffix: '%',
-  metricMapper: function (json) {
-    var hostToValueMap = {};
-    var metricName = this.get('defaultMetric');
-    if (json.items) {
-      var props = metricName.split('.');
-      json.items.forEach(function (item) {
-        var value = item;
-        props.forEach(function (prop) {
-          value = value[prop];
-        });
-
-        var total = value.disk_total;
-        var free = value.disk_free;
-        value = (((total - free) * 100) / total).toFixed(1);
-
-        var hostName = item.Hosts.host_name;
-        hostToValueMap[hostName] = value;
-      });
-    }
-    return hostToValueMap;
-  }
-})
+App.MainChartHeatmapDFSGCTimeMillisMetric = App.MainChartHeatmapDFSMetrics.extend({
+  name: 'Garbage Collection Time',
+  maximumValue: 10000,
+  defaultMetric: 'metrics.jvm.gcTimeMillis',
+  units: ' ms',
+  slotDefinitionLabelSuffix: ' ms'
+});

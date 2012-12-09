@@ -54,7 +54,8 @@ exports.config =
           'vendor/scripts/jquery.dataTables.js',
           'vendor/scripts/jquery.timeago.js',
           'vendor/scripts/workflow_visualization.js',
-          'vendor/scripts/rickshaw.js'
+          'vendor/scripts/rickshaw.js',
+          'vendor/scripts/spin.js'
           ]
 
     stylesheets:

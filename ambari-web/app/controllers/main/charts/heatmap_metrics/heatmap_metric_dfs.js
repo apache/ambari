@@ -18,33 +18,42 @@
 var App = require('app');
 
 /**
- * 
+ * Base class for any HDFS metric.
  */
-App.MainChartHeatmapDiskSpaceUsedMetric = App.MainChartHeatmapMetric.extend({
-  name: 'Disk Space Used %',
-  maximumValue: 100,
-  defaultMetric: 'metrics.disk',
-  units: '%',
-  slotDefinitionLabelSuffix: '%',
+App.MainChartHeatmapDFSMetrics = App.MainChartHeatmapMetric.extend({
+  metricUrlTemplate: "/clusters/{clusterName}/services/HDFS/components/DATANODE?fields=host_components/{metricName}",
+
+  /**
+   * Custom mapper for DFS metrics
+   */
   metricMapper: function (json) {
     var hostToValueMap = {};
     var metricName = this.get('defaultMetric');
-    if (json.items) {
+    if (json.host_components) {
       var props = metricName.split('.');
-      json.items.forEach(function (item) {
-        var value = item;
+      transformValueFunction = this.get('transformValue');
+      json.host_components.forEach(function (hc) {
+        var value = hc;
         props.forEach(function (prop) {
           value = value[prop];
         });
 
-        var total = value.disk_total;
-        var free = value.disk_free;
-        value = (((total - free) * 100) / total).toFixed(1);
+        if (transformValueFunction) {
+          value = transformValueFunction(value);
+        }
 
-        var hostName = item.Hosts.host_name;
+        var hostName = hc.HostRoles.host_name;
         hostToValueMap[hostName] = value;
       });
     }
     return hostToValueMap;
-  }
-})
+  },
+
+  /**
+   * Utility function which allows extending classes to transform the value
+   * assigned to a host.
+   * 
+   * @type Function
+   */
+  tranformValue: null
+});
