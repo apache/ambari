@@ -23,6 +23,13 @@ App.AddHostController = App.WizardController.extend({
 
   name: 'addHostController',
 
+  totalSteps: 7,
+
+  /**
+   * Used for hiding back button in wizard
+   */
+  hideBackButton: true,
+
   /**
    * All wizards data will be stored in this variable
    *
@@ -48,18 +55,11 @@ App.AddHostController = App.WizardController.extend({
   }),
 
   /**
-   * Used for hiding back button in wizard
-   */
-  hideBackButton: true,
-
-  totalSteps: 7,
-
-  /**
    * Load clusterInfo(step1) to model
    */
-  loadClusterInfo: function(){
+  loadClusterInfo: function () {
     var cluster = App.db.getClusterStatus();
-    if(!cluster){
+    if (!cluster) {
       cluster = {
         name: App.router.getClusterName(),
         status: undefined,
@@ -74,29 +74,40 @@ App.AddHostController = App.WizardController.extend({
     console.log("AddHostController:loadClusterInfo: loaded data ", cluster);
   },
 
-  /**
-   * save status of the cluster. This is called from step8 and step9 to persist install and start requestId
-   * @param clusterStatus object with status, isCompleted, requestId, isInstallError and isStartError field.
-   */
-  saveClusterStatus: function (clusterStatus) {
-    clusterStatus.name = this.get('content.cluster.name');
-    this.set('content.cluster', clusterStatus);
-    console.log('called saveClusterStatus ' + JSON.stringify(clusterStatus));
-    App.db.setClusterStatus(clusterStatus);
+  showMoreHosts: function () {
+    var self = this;
+    App.ModalPopup.show({
+      header: "Hosts are already part of the cluster and will be ignored",
+      body: self.get('content.hosts.oldHostNamesMore'),
+      encodeBody: false,
+      onPrimary: function () {
+        this.hide();
+      },
+      secondary: null
+    });
   },
 
   /**
-   * Temporary function for wizardStep9, before back-end integration
+   * Config for displaying more hosts
+   * if oldHosts.length more than config.count that configuration will be applied
    */
-  setInfoForStep9: function () {
-    var hostInfo = App.db.getHosts();
-    for (var index in hostInfo) {
-      hostInfo[index].status = "pending";
-      hostInfo[index].message = 'Information';
-      hostInfo[index].progress = '0';
+  hostDisplayConfig: [
+    {
+      count: 0,
+      delimitery: '<br/>',
+      popupDelimitery: '<br />'
+    },
+    {
+      count: 10,
+      delimitery: ', ',
+      popupDelimitery: '<br />'
+    },
+    {
+      count: 50,
+      delimitery: ', ',
+      popupDelimitery: ', '
     }
-    App.db.setHosts(hostInfo);
-  },
+  ],
 
   /**
    * Load all data for <code>Specify Host(install step2)</code> step
@@ -119,8 +130,25 @@ App.AddHostController = App.WizardController.extend({
 
     var hostsInfo = Em.Object.create();
 
+    var oldHostNames = App.Host.find().getEach('id');
+    var k = 10;
 
-    hostsInfo.oldHostNames = App.Host.find().getEach('id').join(" <br/>");
+    var usedConfig = false;
+    this.get('hostDisplayConfig').forEach(function (config) {
+      if (oldHostNames.length > config.count) {
+        usedConfig = config;
+      }
+    });
+
+    k = usedConfig.count ? usedConfig.count : oldHostNames.length;
+    var displayedHostNames = oldHostNames.slice(0, k);
+    hostsInfo.oldHostNames = displayedHostNames.join(usedConfig.delimitery);
+    if (usedConfig.count) {
+      var moreHostNames = oldHostNames.slice(k + 1);
+      hostsInfo.oldHostNamesMore = moreHostNames.join(usedConfig.popupDelimitery);
+      hostsInfo.showMoreHostsText = "...and %@ more".fmt(moreHostNames.length);
+    }
+
     hostsInfo.hostNames = App.db.getAllHostNames() || ''; //empty string if undefined
 
     var installType = App.db.getInstallType();
@@ -202,7 +230,7 @@ App.AddHostController = App.WizardController.extend({
    * Load confirmed hosts.
    * Will be used at <code>Assign Masters(step5)</code> step
    */
-  loadConfirmedHosts: function(){
+  loadConfirmedHosts: function () {
     this.set('content.hostsInfo', App.db.getHosts());
   },
 
@@ -218,7 +246,8 @@ App.AddHostController = App.WizardController.extend({
       var host = hosts.findProperty('name', hostInfo[index].name);
       if (host) {
         hostInfo[index].status = host.status;
-        hostInfo[index].tasks = host.tasks;
+        //tasks should be empty because they loads from the server
+        //hostInfo[index].tasks = host.tasks;
         hostInfo[index].message = host.message;
         hostInfo[index].progress = host.progress;
       }
@@ -229,29 +258,11 @@ App.AddHostController = App.WizardController.extend({
   },
 
   /**
-   * Remove all data for hosts
-   */
-  clearHosts: function () {
-    var hosts = this.get('content').get('hosts');
-    if (hosts) {
-      hosts.hostNames = '';
-      hosts.manualInstall = false;
-      hosts.localRepo = '';
-      hosts.localRepopath = '';
-      hosts.sshKey = '';
-      hosts.passphrase = '';
-      hosts.confirmPassphrase = '';
-    }
-    App.db.setHosts(null);
-    App.db.setAllHostNames(null);
-  },
-
-  /**
    * Load services data. Will be used at <code>Select services(step4)</code> step
    */
   loadServices: function () {
     var servicesInfo = App.db.getService();
-    if(!servicesInfo || !servicesInfo.length){
+    if (!servicesInfo || !servicesInfo.length) {
       servicesInfo = require('data/services').slice(0);
       servicesInfo.forEach(function (item) {
         item.isSelected = App.Service.find().someProperty('id', item.serviceName)
@@ -276,7 +287,7 @@ App.AddHostController = App.WizardController.extend({
     var masterComponentHosts = App.db.getMasterComponentHosts();
     if (!masterComponentHosts) {
       masterComponentHosts = [];
-      App.Component.find().filterProperty('isMaster', true).forEach(function(item){
+      App.Component.find().filterProperty('isMaster', true).forEach(function (item) {
         masterComponentHosts.push({
           component: item.get('componentName'),
           hostName: item.get('host.hostName'),
@@ -373,24 +384,27 @@ App.AddHostController = App.WizardController.extend({
    * @return {Array}
    */
   getSlaveComponentHosts: function () {
-    var components = [{
-      name : 'DATANODE',
-      service : 'HDFS'
-    },
-    {
-      name: 'TASKTRACKER',
-      service: 'MAPREDUCE'
-    },{
-      name: 'HBASE_REGIONSERVER',
-      service: 'HBASE'
-    }];
+    var components = [
+      {
+        name: 'DATANODE',
+        service: 'HDFS'
+      },
+      {
+        name: 'TASKTRACKER',
+        service: 'MAPREDUCE'
+      },
+      {
+        name: 'HBASE_REGIONSERVER',
+        service: 'HBASE'
+      }
+    ];
 
     var result = [];
     var services = App.Service.find();
     var selectedServices = this.get('content.services').filterProperty('isSelected', true).mapProperty('serviceName');
-    for(var index=0; index < components.length; index++){
+    for (var index = 0; index < components.length; index++) {
       var comp = components[index];
-      if(!selectedServices.contains(comp.service)){
+      if (!selectedServices.contains(comp.service)) {
         continue;
       }
 
@@ -399,11 +413,11 @@ App.AddHostController = App.WizardController.extend({
       var hosts = [];
 
       service.get('hostComponents').filterProperty('componentName', comp.name).forEach(function (host_component) {
-          hosts.push({
-            group: "Default",
-            hostName: host_component.get('host.id'),
-            isInstalled: true
-          });
+        hosts.push({
+          group: "Default",
+          hostName: host_component.get('host.id'),
+          isInstalled: true
+        });
       }, this);
 
       result.push({
@@ -418,11 +432,11 @@ App.AddHostController = App.WizardController.extend({
     var hosts = [];
 
     clientsHosts.forEach(function (host_component) {
-        hosts.push({
-          group: "Default",
-          hostName: host_component.get('host.id'),
-          isInstalled: true
-        });
+      hosts.push({
+        group: "Default",
+        hostName: host_component.get('host.id'),
+        isInstalled: true
+      });
     }, this);
 
     result.push({
@@ -439,7 +453,7 @@ App.AddHostController = App.WizardController.extend({
    */
   loadSlaveComponentHosts: function () {
     var slaveComponentHosts = App.db.getSlaveComponentHosts();
-    if(!slaveComponentHosts){
+    if (!slaveComponentHosts) {
       slaveComponentHosts = this.getSlaveComponentHosts();
     }
     this.set("content.slaveComponentHosts", slaveComponentHosts);
@@ -480,32 +494,32 @@ App.AddHostController = App.WizardController.extend({
   /**
    * Load information about hosts with clients components
    */
-  loadClients: function(){
+  loadClients: function () {
     var clients = App.db.getClientsForSelectedServices();
     this.set('content.clients', clients);
     console.log("AddHostController.loadClients: loaded list ", clients);
   },
-  dataLoading: function(){
+  dataLoading: function () {
     var dfd = $.Deferred();
     this.connectOutlet('loading');
-    var interval = setInterval(function(){
-      if (App.router.get('clusterController.isLoaded')){
+    var interval = setInterval(function () {
+      if (App.router.get('clusterController.isLoaded')) {
         dfd.resolve();
         clearInterval(interval);
       }
-    },50);
+    }, 50);
     return dfd.promise();
   },
   /**
    * Generate clients list for selected services and save it to model
    * @param stepController step4WizardController
    */
-  saveClients: function(){
+  saveClients: function () {
     var clients = [];
     var serviceComponents = require('data/service_components');
     var hostComponents = App.HostComponent.find();
 
-    this.get('content.services').filterProperty('isSelected',true).forEach(function (_service) {
+    this.get('content.services').filterProperty('isSelected', true).forEach(function (_service) {
       var client = serviceComponents.filterProperty('service_name', _service.serviceName).findProperty('isClient', true);
       if (client) {
         clients.pushObject({
@@ -599,67 +613,6 @@ App.AddHostController = App.WizardController.extend({
   },
 
   /**
-   * Invoke installation of selected services to the server and saves the request id returned by the server.
-   * @param isRetry
-   */
-  installServices: function (isRetry) {
-    if(!isRetry && this.get('content.cluster.requestId')){
-      return;
-    }
-
-    var self = this;
-    var clusterName = this.get('content.cluster.name');
-    var url = (App.testMode) ? '/data/wizard/deploy/poll_1.json' : App.apiPrefix + '/clusters/' + clusterName + '/services?ServiceInfo/state=INIT';
-    var method = (App.testMode) ? 'GET' : 'PUT';
-    var data = '{"ServiceInfo": {"state": "INSTALLED"}}';
-    $.ajax({
-      type: method,
-      url: url,
-      data: data,
-      async: false,
-      dataType: 'text',
-      timeout: App.timeout,
-      success: function (data) {
-        var jsonData = jQuery.parseJSON(data);
-        var installSartTime = new Date().getTime();
-        console.log("TRACE: STep8 -> In success function for the installService call");
-        console.log("TRACE: STep8 -> value of the url is: " + url);
-        if (jsonData) {
-          var requestId = jsonData.href.match(/.*\/(.*)$/)[1];
-
-          console.log('requestId is: ' + requestId);
-          var clusterStatus = {
-            status: 'PENDING',
-            requestId: requestId,
-            isInstallError: false,
-            isCompleted: false,
-            installStartTime: installSartTime
-          };
-          self.saveClusterStatus(clusterStatus);
-        } else {
-          console.log('ERROR: Error occurred in parsing JSON data');
-        }
-      },
-
-      error: function (request, ajaxOptions, error) {
-        console.log("TRACE: STep8 -> In error function for the installService call");
-        console.log("TRACE: STep8 -> value of the url is: " + url);
-        console.log("TRACE: STep8 -> error code status is: " + request.status);
-        console.log('Step8: Error message is: ' + request.responseText);
-        var clusterStatus = {
-          status: 'PENDING',
-          isInstallError: true,
-          isCompleted: false
-        };
-        self.saveClusterStatus(clusterStatus);
-      },
-
-      statusCode: require('data/statusCodes')
-    });
-
-  },
-
-  /**
    * Remove all loaded data.
    * Created as copy for App.router.clearAllSteps
    */
@@ -671,7 +624,7 @@ App.AddHostController = App.WizardController.extend({
   /**
    * Clear all temporary data
    */
-  finish: function(){
+  finish: function () {
     this.setCurrentStep('1', false);
     App.db.setService(undefined); //not to use this data at AddService page
     App.db.setHosts(undefined);

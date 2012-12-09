@@ -21,10 +21,10 @@ var App = require('app');
 App.MainHostSummaryView = Em.View.extend({
   templateName: require('templates/main/host/summary'),
 
-  content:function(){
+  content: function () {
     return App.router.get('mainHostDetailsController.content');
   }.property('App.router.mainHostDetailsController.content'),
-  
+
 
   showGangliaCharts: function () {
     var name = this.get('content.hostName');
@@ -99,6 +99,13 @@ App.MainHostSummaryView = Em.View.extend({
         componentName === 'PIG' ||
         componentName === 'SQOOP';
     }.property('content')
-  })
+  }),
 
+  timeSinceHeartBeat: function () {
+    var d = this.get('content.lastHeartBeatTime');
+    if (d) {
+      return $.timeago(d);
+    }
+    return "";
+  }.property('content.lastHeartBeatTime')
 });

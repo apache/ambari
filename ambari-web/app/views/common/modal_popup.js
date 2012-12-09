@@ -31,7 +31,7 @@ App.ModalPopup = Ember.View.extend({
     '</div>',
     '<div class="modal-body">',
     '{{#if bodyClass}}{{view bodyClass}}',
-    '{{else}}{{body}}{{/if}}',
+    '{{else}}{{#if encodeBody}}{{body}}{{else}}{{{body}}}{{/if}}{{/if}}',
     '</div>',
     '<div class="modal-footer">',
     '{{#if view.secondary}}<a class="btn" {{action onSecondary target="view"}}>{{view.secondary}}</a>{{/if}}',
@@ -42,6 +42,7 @@ App.ModalPopup = Ember.View.extend({
 
   header: '&nbsp;',
   body: '&nbsp;',
+  encodeBody: true,
   // define bodyClass which extends Ember.View to use an arbitrary Handlebars template as the body
   primary: 'OK',
   secondary: 'Cancel',

@@ -27,7 +27,7 @@ App.usersMapper = App.QuickDataMapper.create({
     admin: 'Users.admin'
   },
   map: function (json) {
-    self = this;
+    var self = this;
     json.items.forEach(function (item) {
       var result= [] ;
       if(App.User.find(item.Users.user_name).get("userName") != item.Users.user_name)

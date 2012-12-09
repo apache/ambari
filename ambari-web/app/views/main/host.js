@@ -51,9 +51,9 @@ App.MainHostView = Em.View.extend({
         { "sType":"html" },
         { "sType":"num-html" },
         { "sType":"ambari-bandwidth" },
-        { "sType":"string" },
+        { "sType":"html" },
         { "sType":"num-html" },
-        { "sType":"string", "bSortable": false  }
+        { "sType":"html", "bSortable": false  }
       ]
     });
     this.set('oTable', oTable);

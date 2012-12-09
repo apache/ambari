@@ -23,6 +23,13 @@ App.AddServiceController = App.WizardController.extend({
 
   name: 'addServiceController',
 
+  totalSteps: 7,
+
+  /**
+   * Used for hiding back button in wizard
+   */
+  hideBackButton: true,
+
   /**
    * All wizards data will be stored in this variable
    *
@@ -48,13 +55,6 @@ App.AddServiceController = App.WizardController.extend({
   }),
 
   /**
-   * Used for hiding back button in wizard
-   */
-  hideBackButton: true,
-
-  totalSteps: 7,
-
-  /**
    * Load clusterInfo(step1) to model
    */
   loadClusterInfo: function(){
@@ -69,30 +69,6 @@ App.AddServiceController = App.WizardController.extend({
     }
     this.set('content.cluster', cluster);
     console.log("AddServiceController:loadClusterInfo: loaded data ", cluster);
-  },
-
-  /**
-   * save status of the cluster. This is called from step8 and step9 to persist install and start requestId
-   * @param clusterStatus object with status, isCompleted, requestId, isInstallError and isStartError field.
-   */
-  saveClusterStatus: function (clusterStatus) {
-    clusterStatus.name = this.get('content.cluster.name');
-    this.set('content.cluster', clusterStatus);
-    console.log('called saveClusterStatus ' + JSON.stringify(clusterStatus));
-    App.db.setClusterStatus(clusterStatus);
-  },
-
-  /**
-   * Temporary function for wizardStep9, before back-end integration
-   */
-  setInfoForStep9: function () {
-    var hostInfo = App.db.getHosts();
-    for (var index in hostInfo) {
-      hostInfo[index].status = "pending";
-      hostInfo[index].message = 'Information';
-      hostInfo[index].progress = '0';
-    }
-    App.db.setHosts(hostInfo);
   },
 
   /**
@@ -140,24 +116,6 @@ App.AddServiceController = App.WizardController.extend({
     App.db.setHosts(hostInfo);
     this.set('content.hostsInfo', hostInfo);
     console.log('AddServiceController:saveInstalledHosts: save hosts ', hostInfo);
-  },
-
-  /**
-   * Remove all data for hosts
-   */
-  clearHosts: function () {
-    var hosts = this.get('content').get('hosts');
-    if (hosts) {
-      hosts.hostNames = '';
-      hosts.manualInstall = false;
-      hosts.localRepo = '';
-      hosts.localRepopath = '';
-      hosts.sshKey = '';
-      hosts.passphrase = '';
-      hosts.confirmPassphrase = '';
-    }
-    App.db.setHosts(null);
-    App.db.setAllHostNames(null);
   },
 
   /**
@@ -566,67 +524,6 @@ App.AddServiceController = App.WizardController.extend({
 
       statusCode: require('data/statusCodes')
     });
-  },
-
-  /**
-   * Invoke installation of selected services to the server and saves the request id returned by the server.
-   * @param isRetry
-   */
-  installServices: function (isRetry) {
-    if(!isRetry && this.get('content.cluster.requestId')){
-      return;
-    }
-
-    var self = this;
-    var clusterName = this.get('content.cluster.name');
-    var url = (App.testMode) ? '/data/wizard/deploy/poll_1.json' : App.apiPrefix + '/clusters/' + clusterName + '/services?ServiceInfo/state=INIT';
-    var method = (App.testMode) ? 'GET' : 'PUT';
-    var data = '{"ServiceInfo": {"state": "INSTALLED"}}';
-    $.ajax({
-      type: method,
-      url: url,
-      data: data,
-      async: false,
-      dataType: 'text',
-      timeout: App.timeout,
-      success: function (data) {
-        var jsonData = jQuery.parseJSON(data);
-        var installSartTime = new Date().getTime();
-        console.log("TRACE: STep8 -> In success function for the installService call");
-        console.log("TRACE: STep8 -> value of the url is: " + url);
-        if (jsonData) {
-          var requestId = jsonData.href.match(/.*\/(.*)$/)[1];
-
-          console.log('requestId is: ' + requestId);
-          var clusterStatus = {
-            status: 'PENDING',
-            requestId: requestId,
-            isInstallError: false,
-            isCompleted: false,
-            installStartTime: installSartTime
-          };
-          self.saveClusterStatus(clusterStatus);
-        } else {
-          console.log('ERROR: Error occurred in parsing JSON data');
-        }
-      },
-
-      error: function (request, ajaxOptions, error) {
-        console.log("TRACE: STep8 -> In error function for the installService call");
-        console.log("TRACE: STep8 -> value of the url is: " + url);
-        console.log("TRACE: STep8 -> error code status is: " + request.status);
-        console.log('Step8: Error message is: ' + request.responseText);
-        var clusterStatus = {
-          status: 'PENDING',
-          isInstallError: true,
-          isCompleted: false
-        };
-        self.saveClusterStatus(clusterStatus);
-      },
-
-      statusCode: require('data/statusCodes')
-    });
-
   },
 
   /**

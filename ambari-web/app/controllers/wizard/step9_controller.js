@@ -23,12 +23,11 @@ App.WizardStep9Controller = Em.Controller.extend({
   progress: '0',
   isStepCompleted: false,
   isSubmitDisabled: function () {
-    //return false;
-    return !this.get('isStepCompleted'); //TODO: uncomment after the hook up
+    return !this.get('isStepCompleted');
   }.property('isStepCompleted'),
 
   mockHostData: require('data/mock/step9_hosts'),
-  mockDataPrefix: '/data/wizard/deploy/5_hosts',
+  mockDataPrefix: '/data/wizard/deploy/slave_warning',
   pollDataCounter: 0,
   polledData: [],
 
@@ -58,11 +57,14 @@ App.WizardStep9Controller = Em.Controller.extend({
     if (this.get('content.cluster.isCompleted') === false) {
       if (this.get('content.cluster.status') === 'INSTALL FAILED') {
         this.loadStep();
+        this.loadLogData(this.get('content.cluster.requestId'));
         this.hosts.setEach('status', 'failed');
         this.set('progress', '100');
         this.set('isStepCompleted', true);
         //this.set('status', 'failed');
       } else if (this.get('content.cluster.status') === 'START FAILED') {
+        this.loadStep();
+        this.loadLogData(this.get('content.cluster.requestId'));
         this.hosts.setEach('status', 'info');
         this.set('isStepCompleted', false);
         this.launchStartServices();
@@ -71,8 +73,11 @@ App.WizardStep9Controller = Em.Controller.extend({
         this.startPolling();
       }
     } else {
+      this.loadStep();
+      this.loadLogData(this.get('content.cluster.requestId'));
       this.set('isStepCompleted', true);
       this.set('progress', '100');
+
     }
   },
 
@@ -218,7 +223,6 @@ App.WizardStep9Controller = Em.Controller.extend({
     var method = 'PUT';
 
     if (App.testMode) {
-      debugger;
       url = this.get('mockDataPrefix') + '/poll_6.json';
       method = 'GET';
       this.numPolls = 6;
@@ -246,6 +250,7 @@ App.WizardStep9Controller = Em.Controller.extend({
           isStartError: false,
           isCompleted: false
         };
+
         App.router.get(self.get('content.controllerName')).saveClusterStatus(clusterStatus);
         self.startPolling();
       },
@@ -315,12 +320,17 @@ App.WizardStep9Controller = Em.Controller.extend({
     return polledData.everyProperty('Tasks.status', 'COMPLETED');
   },
 
+  // for DATANODE, JOBTRACKER, HBASE_REGIONSERVER, and GANGLIA_MONITOR, if more than 50% fail, then it's a fatal error;
+  // otherwise, it's only a warning and installation/start can continue
+  getSuccessFactor: function (role) {
+    return ['DATANODE','JOBTRACKER','HBASE_REGIONSERVER','GANGLIA_MONITOR'].contains(role) ? 50 : 100;
+  },
+
   isStepFailed: function (polledData) {
     var self = this;
     var result = false;
     polledData.forEach(function (_polledData) {
-      _polledData.Tasks.sf = 100;  //TODO: Remove this line after hook up with actual success factor
-      var successFactor = _polledData.Tasks.sf;
+      var successFactor = this.getSuccessFactor(_polledData.Tasks.role);
       console.log("Step9: isStepFailed sf value: " + successFactor);
       var actionsPerRole = polledData.filterProperty('Tasks.role', _polledData.Tasks.role);
       var actionsFailed = actionsPerRole.filterProperty('Tasks.status', 'FAILED');
@@ -330,15 +340,14 @@ App.WizardStep9Controller = Em.Controller.extend({
         console.log('TRACE: Entering success factor and result is failed');
         result = true;
       }
-    });
+    }, this);
     return result;
   },
 
   getFailedHostsForFailedRoles: function (polledData) {
     var hostArr = new Ember.Set();
     polledData.forEach(function (_polledData) {
-      _polledData.sf = 100;  //TODO: Remove this line after hook up with actual success factor
-      var successFactor = _polledData.sf;
+      var successFactor = this.getSuccessFactor(_polledData.Tasks.role);
       var actionsPerRole = polledData.filterProperty('Tasks.role', _polledData.Tasks.role);
       var actionsFailed = actionsPerRole.filterProperty('Tasks.status', 'FAILED');
       var actionsAborted = actionsPerRole.filterProperty('Tasks.status', 'ABORTED');
@@ -354,7 +363,7 @@ App.WizardStep9Controller = Em.Controller.extend({
           hostArr.add(_actionFailed.Tasks.host_name);
         });
       }
-    });
+    }, this);
     return hostArr;
   },
 
@@ -504,9 +513,9 @@ App.WizardStep9Controller = Em.Controller.extend({
 
   numPolls: 0,
 
-  getUrl: function () {
+  getUrl: function (requestId) {
     var clusterName = this.get('content.cluster.name');
-    var requestId = this.get('content.cluster.requestId');
+    var requestId = requestId || this.get('content.cluster.requestId');
     var url = App.apiPrefix + '/clusters/' + clusterName + '/requests/' + requestId + '?fields=tasks/*';
     console.log("URL for step9 is: " + url);
     return url;
@@ -514,9 +523,8 @@ App.WizardStep9Controller = Em.Controller.extend({
 
   POLL_INTERVAL: 4000,
 
-  doPolling: function () {
-    var self = this;
-    var url = this.getUrl();
+  loadLogData:function(requestId){
+    var url = this.getUrl(requestId);
 
     if (App.testMode) {
       this.POLL_INTERVAL = 1;
@@ -527,9 +535,16 @@ App.WizardStep9Controller = Em.Controller.extend({
       } else {
         url = this.get('mockDataPrefix') + '/poll_' + this.numPolls + '.json';
       }
-      debugger;
     }
+    this.getLogsByRequest(url);
 
+    if(typeof(requestId) === 'number' && requestId > 1){
+      requestId--;
+      this.loadLogData(requestId);
+    }
+  },
+  getLogsByRequest: function(url){
+    var self = this;
     $.ajax({
       type: 'GET',
       url: url,
@@ -537,7 +552,7 @@ App.WizardStep9Controller = Em.Controller.extend({
       timeout: App.timeout,
       dataType: 'text',
       success: function (data) {
-        console.log("TRACE: In success function for the GET bootstrap call");
+        console.log("TRACE: In success function for the GET logs data");
         console.log("TRACE: STep9 -> The value is: ", jQuery.parseJSON(data));
         var result = self.parseHostInfo(jQuery.parseJSON(data));
         if (result !== true) {
@@ -550,7 +565,7 @@ App.WizardStep9Controller = Em.Controller.extend({
       },
 
       error: function (request, ajaxOptions, error) {
-        console.log("TRACE: STep9 -> In error function for the getService call");
+        console.log("TRACE: STep9 -> In error function for the GET logs data");
         console.log("TRACE: STep9 -> value of the url is: " + url);
         console.log("TRACE: STep9 -> error code status is: " + request.status);
         self.stopPolling();
@@ -558,7 +573,21 @@ App.WizardStep9Controller = Em.Controller.extend({
 
       statusCode: require('data/statusCodes')
     });
+  },
+  doPolling: function () {
+    var url = this.getUrl();
 
+    if (App.testMode) {
+      this.POLL_INTERVAL = 1;
+      this.numPolls++;
+      if (this.numPolls == 5) {
+        url = this.get('mockDataPrefix') + '/poll_5.json';
+        // url = this.get('mockDataPrefix') + '/poll_5_failed.json';
+      } else {
+        url = this.get('mockDataPrefix') + '/poll_' + this.numPolls + '.json';
+      }
+    }
+    this.getLogsByRequest(url);
   },
 
   stopPolling: function () {

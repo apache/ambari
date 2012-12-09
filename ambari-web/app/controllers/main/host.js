@@ -19,7 +19,7 @@
 var App = require('app');
 var validator = require('utils/validator');
 
-App.MainHostController = Em.ArrayController.extend(App.Pagination, {
+App.MainHostController = Em.ArrayController.extend({
   name:'mainHostController',
   content:[],
   fullContent:App.Host.find(),

@@ -29,7 +29,8 @@ App.MainServiceInfoSummaryView = Em.View.extend({
     zookeeper:false,
     oozie:false,
     hive:false,
-    ganglia:false
+    ganglia:false,
+    nagios:false
   },
 
   data:{
@@ -42,7 +43,15 @@ App.MainServiceInfoSummaryView = Em.View.extend({
   gangliaServer:function(){
     var tmp=this.get('controller.content');
     if(tmp.get("id") == "GANGLIA"){
-      return tmp.get("components").objectAt(0).get("host").get("id");
+      return tmp.get("components").objectAt(0).get("host").get("publicHostName");
+    }else{
+      return "";
+    }
+  }.property('controller.content'),
+  nagiosServer:function(){
+    var tmp=this.get('controller.content');
+    if(tmp.get("id") == "NAGIOS"){
+      return tmp.get("components").objectAt(0).get("host").get("publicHostName");
     }else{
       return "";
     }

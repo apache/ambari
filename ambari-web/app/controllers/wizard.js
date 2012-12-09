@@ -29,7 +29,7 @@ App.WizardController = Em.Controller.extend({
       step: 1,
       value: false
     }));
-    for (var i = 2; i <= this.totalSteps; i++) {
+    for (var i = 2; i <= this.get('totalSteps'); i++) {
       this.isStepDisabled.pushObject(Ember.Object.create({
         step: i,
         value: true
@@ -185,6 +185,111 @@ App.WizardController = Em.Controller.extend({
 
   gotoStep10: function () {
     this.gotoStep(10);
+  },
+
+  /**
+   * Temporary function for wizardStep9, before back-end integration
+   */
+  setInfoForStep9: function () {
+    var hostInfo = App.db.getHosts();
+    for (var index in hostInfo) {
+      hostInfo[index].status = "pending";
+      hostInfo[index].message = 'Waiting';
+      hostInfo[index].logTasks = [];
+      hostInfo[index].tasks = [];
+      hostInfo[index].progress = '0';
+    }
+    App.db.setHosts(hostInfo);
+  },
+
+  /**
+   * Remove all data for hosts
+   */
+  clearHosts: function () {
+    var hosts = this.get('content').get('hosts');
+    if (hosts) {
+      hosts.set('hostNames', '');
+      hosts.set('manualInstall', false);
+      hosts.set('localRepo', '');
+      hosts.set('localRepopath', '');
+      hosts.set('sshKey', '');
+      hosts.set('passphrase', '');
+      hosts.set('confirmPassphrase', '');
+    }
+    App.db.setHosts(null);
+    App.db.setAllHostNames(null);
+  },
+
+  /**
+   * save status of the cluster. This is called from step8 and step9 to persist install and start requestId
+   * @param clusterStatus object with status, isCompleted, requestId, isInstallError and isStartError field.
+   */
+  saveClusterStatus: function (clusterStatus) {
+    clusterStatus.name = this.get('content.cluster.name');
+    this.set('content.cluster', clusterStatus);
+    console.log(this.get('name') + '.saveClusterStatus: ' + JSON.stringify(clusterStatus));
+    App.db.setClusterStatus(clusterStatus);
+  },
+
+  /**
+   * Invoke installation of selected services to the server and saves the request id returned by the server.
+   * @param isRetry
+   */
+  installServices: function (isRetry) {
+    if (!isRetry && this.get('content.cluster.requestId')) {
+      return;
+    }
+
+    var self = this;
+    var clusterName = this.get('content.cluster.name');
+    var url = (App.testMode) ? '/data/wizard/deploy/poll_1.json' : App.apiPrefix + '/clusters/' + clusterName + '/services?ServiceInfo/state=INIT';
+    var method = (App.testMode) ? 'GET' : 'PUT';
+    var data = '{"ServiceInfo": {"state": "INSTALLED"}}';
+    $.ajax({
+      type: method,
+      url: url,
+      data: data,
+      async: false,
+      dataType: 'text',
+      timeout: App.timeout,
+      success: function (data) {
+        var jsonData = jQuery.parseJSON(data);
+        var installStartTime = new Date().getTime();
+        console.log("TRACE: In success function for the installService call");
+        console.log("TRACE: value of the url is: " + url);
+        if (jsonData) {
+          var requestId = jsonData.href.match(/.*\/(.*)$/)[1];
+          console.log('requestId is: ' + requestId);
+          var clusterStatus = {
+            status: 'PENDING',
+            requestId: requestId,
+            isInstallError: false,
+            isCompleted: false,
+            installStartTime: installStartTime
+          };
+          self.saveClusterStatus(clusterStatus);
+        } else {
+          console.log('ERROR: Error occurred in parsing JSON data');
+        }
+      },
+
+      error: function (request, ajaxOptions, error) {
+        console.log("TRACE: In error function for the installService call");
+        console.log("TRACE: value of the url is: " + url);
+        console.log("TRACE: error code status is: " + request.status);
+        console.log('Error message is: ' + request.responseText);
+        var clusterStatus = {
+          status: 'PENDING',
+          isInstallError: false,
+          isCompleted: false
+        };
+
+        self.saveClusterStatus(clusterStatus);
+      },
+
+      statusCode: require('data/statusCodes')
+    });
+
   },
 
   load: function (name, reload) {

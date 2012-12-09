@@ -168,6 +168,8 @@ App.WizardStep5Controller = Em.Controller.extend({
       this.set('selectedServicesMasters', []);
     }
 
+    var countZookeeper = masterComponents.filterProperty('display_name', 'ZooKeeper').length;
+
     masterComponents.forEach(function (item) {
       //add the zookeeper component at the end if exists
       console.log("TRACE: render master component name is: " + item.component_name);
@@ -180,7 +182,7 @@ App.WizardStep5Controller = Em.Controller.extend({
         this.set('zId', parseInt(this.get('zId')) + 1);
         zookeeperComponent = Ember.Object.create(item);
         zookeeperComponent.set('zId', this.get('zId'));
-        zookeeperComponent.set("showRemoveControl", true);
+        zookeeperComponent.set("showRemoveControl", countZookeeper > 1);
         zookeeperComponent.set("availableHosts", this.get("hosts").slice(0));
         this.get("selectedServicesMasters").pushObject(zookeeperComponent);
 

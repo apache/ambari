@@ -26,7 +26,7 @@ App.WizardStep3Controller = Em.Controller.extend({
   maxRegistrationAttempts: 20,
   registrationAttempts: null,
   isSubmitDisabled: true,
-  categories: ['All Hosts', 'Success', 'Error'],
+  categories: ['All Hosts', 'Success', 'Installing', 'Registering', 'Failed'],
   category: 'All Hosts',
   allChecked: false,
 
@@ -128,7 +128,13 @@ App.WizardStep3Controller = Em.Controller.extend({
   visibleHosts: function () {
     if (this.get('category') === 'Success') {
       return (this.hosts.filterProperty('bootStatus', 'REGISTERED'));
-    } else if (this.get('category') === 'Error') {
+    } else if (this.get('category') === 'Installing') {
+      return (this.hosts.filterProperty('bootStatus', 'RUNNING'));
+    } else if (this.get('category') === 'Registering') {
+      return (this.hosts.filter(function(host) {
+        return host.bootStatus == 'DONE' || host.bootStatus == 'REGISTERING';
+      }));
+    } else if (this.get('category') === 'Failed') {
       return (this.hosts.filterProperty('bootStatus', 'FAILED'));
     } else { // if (this.get('category') === 'All Hosts')
       return this.hosts;
@@ -143,6 +149,9 @@ App.WizardStep3Controller = Em.Controller.extend({
       onPrimary: function () {
         App.router.send('removeHosts', hosts);
         self.hosts.removeObjects(hosts);
+        if(!self.hosts.length){
+          self.set('isSubmitDisabled', true);
+        }
         this.hide();
       },
       body: Em.I18n.t('installer.step3.hosts.remove.popup.body')

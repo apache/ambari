@@ -714,7 +714,7 @@ App.WizardStep8Controller = Em.Controller.extend({
 
     var url = App.apiPrefix + '/clusters/' + this.get('clusterName');
 
-    var stackVersion = (App.db.getSoftRepo().repoType == 'local') ? App.defaultStackVersion + '-local' : App.defaultStackVersion;
+    var stackVersion = (App.db.getSoftRepo().repoType == 'local') ? App.defaultLocalStackVersion : App.defaultStackVersion;
 
     $.ajax({
       type: 'POST',

@@ -38,7 +38,10 @@
           <p class="alert alert-info">
             {{t hosts.add.step2.warning}}
             <br/>
-            {{content.oldHostNames}}
+            {{{content.oldHostNames}}}
+              {{#if content.showMoreHostsText}}
+                <a href="" {{action showMoreHosts target="view.parentView.controller"}}>{{content.showMoreHostsText}}</a>
+              {{/if}}
           </p>
         {{/if}}
       {{/if}}

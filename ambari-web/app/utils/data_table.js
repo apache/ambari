@@ -351,8 +351,26 @@ jQuery.extend($.fn.dataTableExt.afnFiltering.push(
 
       function numberFilter(rangeExp, rowValue) {
         var compareChar = rangeExp.charAt(0);
-        var compareValue = parseFloat(rangeExp.substr(1, rangeExp.length - 1));
-        rowValue = (jQuery(rowValue).text()) ? jQuery(rowValue).text() : rowValue;
+        var compareValue;
+        if (rangeExp.length == 1) {
+          if (isNaN(parseInt(compareChar))) {
+            // User types only '=' or '>' or '<', so don't filter column values
+            match = true;
+            return match;
+          }
+          else {
+            compareValue = parseFloat(parseFloat(rangeExp).toFixed(2));
+          }
+        }
+        else {
+          if (isNaN(parseInt(compareChar))) {
+            compareValue = parseFloat(parseFloat(rangeExp.substr(1, rangeExp.length)).toFixed(2));
+          }
+          else {
+            compareValue = parseFloat(parseFloat(rangeExp.substr(0, rangeExp.length)).toFixed(2));
+          }
+        }
+        rowValue = parseFloat((jQuery(rowValue).text()) ? jQuery(rowValue).text() : rowValue);
         match = false;
         switch (compareChar) {
           case '<':
@@ -439,6 +457,12 @@ jQuery.fn.dataTableExt.oApi.fnGetColumnData = function ( oSettings, iColumn, bUn
 
   return asResultData;
 };
+jQuery.fn.dataTableExt.ofnSearch['num-html'] = function ( sData ) {
+  return sData.replace(/[\r\n]/g, " ").replace(/<.*?>/g, "");
+}
+jQuery.fn.dataTableExt.ofnSearch['ambari-bandwidth'] = function ( sData ) {
+  return sData.replace(/[\r\n]/g, " ").replace(/<.*?>/g, "");
+}
 
 
 

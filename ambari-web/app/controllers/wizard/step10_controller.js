@@ -64,15 +64,10 @@ App.WizardStep10Controller = Em.Controller.extend({
       hostsInfo.pushObject(hosts[index]);
       console.log('Step10 SUMMARY: value of hosts is: ' + hosts[index].status);
     }
-    var succededHosts = hostsInfo.filterProperty('status', 'success');
+    var succeededHosts = hostsInfo.filterProperty('status', 'success');
     var warnedHosts = hostsInfo.filterProperty('status', 'warning').concat(hostsInfo.filterProperty('status', 'failed'));
-    if (succededHosts.length) {
-      var successStatement;
-      if (succededHosts.length > 1) {
-        successStatement = succededHosts.length + ' nodes succeded completely to install and start all service components assigned to them.';
-      } else {
-        successStatement = succededHosts.length + ' node succeded completely to install and start all service components assigned to it.';
-      }
+    if (succeededHosts.length) {
+      var successStatement = succeededHosts.length + ' ' + ((succeededHosts.length > 1) ? 'hosts' : 'host') + ' installed and started services successfully.';
       this.get('clusterInfo').findProperty('id', 1).get('status').pushObject(Ember.Object.create({
         id: 1,
         color: 'text-success',
@@ -91,7 +86,7 @@ App.WizardStep10Controller = Em.Controller.extend({
 
       warnedHosts.forEach(function (_host) {
         var clusterState;
-        console.log("Content.cluster.staus is: " + this.get('content.cluster.status'));
+        console.log("Content.cluster.status is: " + this.get('content.cluster.status'));
         if (this.get('content.cluster.status') === 'INSTALL FAILED') {
           clusterState = 'Installing ';
         } else if (this.get('content.cluster.status') === 'START FAILED') {
@@ -100,7 +95,7 @@ App.WizardStep10Controller = Em.Controller.extend({
         console.log('host value is: ' + JSON.stringify(_host));
         var failedTasks = _host.tasks.filterProperty('Tasks.status', 'FAILED');
         failedTasks.forEach(function (_task) {
-          var taskStatement = clusterState + _task.Tasks.role + ' failed on ' + _host.name;
+          var taskStatement = clusterState + App.format.role(_task.Tasks.role) + ' failed on ' + _host.name;
           this.get('clusterInfo').findProperty('id', 1).get('status').findProperty('id', 2).get('statements').pushObject(Ember.Object.create({
             status: 'failed',
             color: 'text-info',
@@ -110,7 +105,7 @@ App.WizardStep10Controller = Em.Controller.extend({
 
         var abortedTasks = _host.tasks.filterProperty('Tasks.status', 'ABORTED');
         abortedTasks.forEach(function (_task) {
-          var abortStatement = clusterState + _task.Tasks.role + ' aborted on ' + _host.name;
+          var abortStatement = clusterState + App.format.role(_task.Tasks.role) + ' aborted on ' + _host.name;
           this.get('clusterInfo').findProperty('id', 1).get('status').findProperty('id', 2).get('statements').pushObject(Ember.Object.create({
             status: 'aborted',
             color: 'text-info',
@@ -120,7 +115,7 @@ App.WizardStep10Controller = Em.Controller.extend({
 
         var timedOutTasks = _host.tasks.filterProperty('Tasks.status', 'TIMEDOUT');
         timedOutTasks.forEach(function (_task) {
-          var abortStatement = clusterState + _task.Tasks.role + ' timed out on ' + _host.name;
+          var abortStatement = clusterState + App.format.role(_task.Tasks.role) + ' timed out on ' + _host.name;
           this.get('clusterInfo').findProperty('id', 1).get('status').findProperty('id', 2).get('statements').pushObject(Ember.Object.create({
             status: 'timedout',
             color: 'text-info',
