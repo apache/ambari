@@ -21,11 +21,21 @@ var App = require('app');
 
 App.Rack = DS.Model.extend({
   name: DS.attr('string'),
-  hosts: DS.hasMany('App.Host'),
   status: DS.attr('string'),
-  liveHostsCount: DS.attr('number'),
   criticalHostsCount: DS.attr('number'),
-  deadHostsCount: DS.attr('number')
+  deadHostsCount: DS.attr('number'),
+  hosts: function(){
+    return App.Host.find();
+  }.property('name'),
+  liveHostsCount: function(){
+    var count = 0;
+    this.get('hosts').forEach(function(host){
+      if(host.get('healthStatus')=="HEALTHY"){
+        count++;
+      }
+    });
+    return count;
+  }.property('hosts')
 });
 
 App.Rack.FIXTURES = [

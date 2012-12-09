@@ -12,6 +12,9 @@ AMBARI-666 branch (unreleased changes)
 
   NEW FEATURES
 
+  AMBARI-1022. Integrate Heatmap UI to backend API. (Srimanth
+  Gunturi via yusaku)
+
   AMBARI-1015. Create HBase summary section in Dashboard & Service
   pages. (Srimanth Gunturi via yusaku)
 

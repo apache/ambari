@@ -37,7 +37,7 @@ App.hostsMapper = App.QuickDataMapper.create({
     memory : 'Hosts.total_mem',
     disk_info: 'Hosts.disk_info',
     $disk_usage: '-',
-    $health_status: 'LIVE',
+    health_status: 'Hosts.host_status',
     $load_avg: '-',
     $cpu_usage: 33,
     $memory_usage: 26,

@@ -20,10 +20,14 @@ var App = require('app');
 
 App.MainChartsHeatmapHostDetailView = Em.View.extend({
   templateName: require('templates/main/charts/heatmap/heatmap_host_detail'),
-  /** @private */ classNames:['heatmap_host_details', 'hide'],
+  /** @private */ classNames:['heatmap_host_details'],
   /** @private */ elementId:'heatmapDetailsBlock',
   /** @private */ details:{
     hostName:'test node',
+    osType: 'OS',
+    ip: '192.168.0.0',
+    metricName: 'metric-name',
+    metricValue: 'metric-value',
     cpuUsage: '10',
     memoryUsage: '10',
     networkUsage: '30',

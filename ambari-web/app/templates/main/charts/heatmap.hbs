@@ -17,8 +17,60 @@
 }}
 
 <div class="heatmap">
-  {{#each rack in controller.cluster.racks}}
-    {{view App.MainChartsHeatmapRackView rackBinding="rack" visualSchemaBinding="controller.visualSchema"}}
-  {{/each}}
-  {{view App.MainChartsHeatmapHostDetailView}}
+
+  <div class="container-fluid">
+	  <div class="row-fluid">
+	    <div class="span2">
+		     <div class="btn-group">
+				  <button class="btn">Select Metric...</button>
+				  <button class="btn dropdown-toggle" data-toggle="dropdown">
+				    <span class="caret"></span>
+				  </button>
+				  <ul class="dropdown-menu">
+				    {{#each category in controller.allMetrics}}
+               <li class="dropdown-submenu">
+                <a tabindex="-1" href="#">{{category.label}}</a>
+                <ul class="dropdown-menu">
+                  {{#each metric in category.items}}
+                    <li>
+                      <a tabindex="-1" {{action showHeatMapMetric metric target="controller"}}>{{metric.name}}</a>
+                    </li>
+                  {{/each}}
+                </ul>
+               </li>
+            {{/each}}
+				  </ul>
+				</div>
+        {{#if controller.selectedMetric}}
+					<table class="legend">
+					  {{#each slot in controller.selectedMetric.slotDefinitions}}
+					    <tr>
+					      <td>
+					        <div class="tile" {{bindAttr style="slot.cssStyle"}}></div>
+					      </td>
+					      <td>{{slot.label}}</td>
+					    </tr>
+					  {{/each}}
+					</table>
+	        Maximum:
+	        <div>
+	          {{view Ember.TextField type="text" valueBinding="controller.selectedMetric.maximumValue" class="span6"}}
+	          {{controller.selectedMetric.units}}
+	        </div>
+        {{/if}}
+	    </div>
+	    <div class="span10">
+	      <h4>{{controller.selectedMetric.name}}</h4>
+	      <div class="row-fluid">
+				  {{#each rack in controller.cluster.racks}}
+				    <div {{bindAttr class="controller.rackClass"}}>
+				      {{view App.MainChartsHeatmapRackView rackBinding="rack" }}
+				    </div>
+				  {{/each}}
+			  </div>
+			  {{view App.MainChartsHeatmapHostDetailView}}
+	    </div>
+	  </div>
+  </div>
+
 </div>

@@ -46,5 +46,21 @@ App.MainChartsHeatmapRackView = Em.View.extend({
       return "isActive"
     }
     return "";
-  }.property("heatmapIsOpened")
+  }.property("heatmapIsOpened"),
+  
+  /**
+   * Provides the CSS style for an individual host.
+   * This can be used as the 'style' attribute of element.
+   */
+  hostCssStyle: function(){
+    var rack = this.get('rack');
+    var widthPercent = 100;
+    var hostCount = rack.get('hosts.length');
+    if(hostCount<11){
+      widthPercent = (100/hostCount)-0.5;
+    }else{
+      widthPercent = 10; // max out at 10%
+    }
+    return "width:"+widthPercent+"%;float:left;";
+  }.property('rack')
 });

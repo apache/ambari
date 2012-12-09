@@ -44,6 +44,8 @@
 <!--</div>-->
 <div {{bindAttr class="view.heatmapTogglerClass view.hostsBlockClass"}}>
   {{#each rack.hosts}}
-    {{view App.MainChartsHeatmapHostView contentBinding="this"}}
+    <div {{bindAttr style="view.hostCssStyle"}}>
+      {{view App.MainChartsHeatmapHostView contentBinding="this"}}
+    </div>
   {{/each}}
 </div>

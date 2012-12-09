@@ -19,5 +19,9 @@
 var App = require('app');
 
 App.MainChartsHeatmapView = Em.View.extend({
-    templateName: require('templates/main/charts/heatmap')
+    templateName: require('templates/main/charts/heatmap'),
+    didInsertElement: function(){
+      this._super();
+      $("#heatmapDetailsBlock").hide();
+    }
 });

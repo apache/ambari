@@ -33,10 +33,19 @@ App.MainChartsHeatmapHostView = Em.View.extend({
     $.each(view.get('details'), function (i) {
       view.set('details.' + i, host.get(i));
     });
-    $("#heatmapDetailsBlock").css('top', e.pageY + 10);
-    $("#heatmapDetailsBlock").css('left', e.pageX + 10);
-
-    $("#heatmapDetailsBlock").show();
+    var selectedMetric = this.get('controller.selectedMetric');
+    if(selectedMetric){
+      var metricName = selectedMetric.get('name');
+      var h2vMap = selectedMetric.get('hostToValueMap');
+      if(h2vMap && metricName){
+        view.set('details.metricName', metricName);
+        view.set('details.metricValue', h2vMap[host.get('hostName')]+selectedMetric.get('units'));
+      }
+    }
+    var detailsBlock = $("#heatmapDetailsBlock");
+    detailsBlock.css('top', e.pageY + 10);
+    detailsBlock.css('left', e.pageX + 10);
+    detailsBlock.show();
   },
 
   /**
@@ -46,5 +55,23 @@ App.MainChartsHeatmapHostView = Em.View.extend({
    */
   mouseLeave:function (e) {
     $("#heatmapDetailsBlock").hide();
-  }
+  },
+  
+  hostTemperatureStyle: function(){
+    var controller = this.get('controller');
+    var h2sMap = controller.get('hostToSlotMap');
+    if(h2sMap){
+      var hostname = this.get('content.hostName');
+      if(hostname){
+        var slot = h2sMap[hostname];
+        if(slot>-1){
+          var slotDefs = controller.get('selectedMetric.slotDefinitions');
+          if(slotDefs && slotDefs.length>slot){
+            return slotDefs[slot].get('cssStyle');
+          }
+        }
+      }
+    }
+    return '';
+  }.property('controller.hostToSlotMap')
 });

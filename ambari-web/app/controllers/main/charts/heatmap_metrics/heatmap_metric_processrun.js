@@ -15,16 +15,23 @@
  * the License.
  */
 
+var App = require('app');
 
-App.racksMapper = App.QuickDataMapper.create({
-  model: App.Rack,
-  config: {
-    id: "Racks.id",
-    name: "Racks.name"
-    //$hosts: ["host01", "host06", "host05"],
-    //status: "Racks.status",
-    //live_hosts_count: "Racks.live_hosts_count",
-    //critical_hosts_count: "Racks.critical_hosts_count",
-    //dead_hosts_count: "Racks.dead_hosts_count"
-  }
-});
+/**
+ * Base class for any heatmap metric.
+ * 
+ * This class basically provides the following for each heatmap metric.
+ * <ul>
+ * <li> Provides number of slots in which temperature can fall.
+ * <li> Maintains the maximum value so as to scale slot ranges.
+ * <li> Gets JSON data from server and maps response for all hosts into above
+ * slots.
+ * </ul>
+ * 
+ */
+App.MainChartHeatmapProcessRunMetric = App.MainChartHeatmapMetric.extend({
+  name: 'Total Running Processes',
+  maximumValue: 1,
+  defaultMetric: 'metrics.process.proc_run',
+  units: 'Processes'
+})

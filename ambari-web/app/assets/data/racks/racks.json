@@ -5,48 +5,7 @@
       "href": "http://localhost:8080/api/racks/1",
       "Racks": {
         "id": 1,
-        "name": "Rack-0",
-        "hosts": ["host01", "host06", "host05"],
-        "status": "LIVE",
-        "live_hosts_count": 5,
-        "critical_hosts_count": 0,
-        "dead_hosts_count": 2
-      }
-    },
-    {
-      "href": "http://localhost:8080/api/racks/2",
-      "Racks": {
-        "id": 2,
-        "name": "Rack-0",
-        "hosts": ["host02", "host02", "host04"],
-        "status": "LIVE",
-        "live_hosts_count": 5,
-        "critical_hosts_count": 0,
-        "dead_hosts_count": 2
-      }
-    },
-    {
-      "href": "http://localhost:8080/api/racks/3",
-      "Racks": {
-        "id": 3,
-        "name": "Rack-0",
-        "hosts": ["host05", "host01", "host02"],
-        "status": "LIVE",
-        "live_hosts_count": 5,
-        "critical_hosts_count": 0,
-        "dead_hosts_count": 2
-      }
-    },
-    {
-      "href": "http://localhost:8080/api/racks/4",
-      "Racks": {
-        "id": 4,
-        "name": "Rack-0",
-        "hosts": ["host01", "host06", "host05"],
-        "status": "LIVE",
-        "live_hosts_count": 5,
-        "critical_hosts_count": 0,
-        "dead_hosts_count": 2
+        "name": "Default Rack"
       }
     }
   ]
