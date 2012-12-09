@@ -23,14 +23,25 @@
         <i {{bindAttr class="view.iconClass"}}></i>
         {{#if view.isOpen}}Hide{{else}}Show{{/if}} info about {{operation.command}} {{operation.role}} on {{operation.host_name}}
       </a>
+      <div class="content-area">
+      <div id="textTrigger">click to highlight</div>
       {{#if view.isOpen}}
+      {{#if view.isTextArea}}
+      <div>
+      {{view view.textArea contentBinding="operation"}}
+      </div>
+      {{else}}
+      <div>
         <h5>exitcode:</h5>
         <pre class="stderr">{{operation.exit_code}}</pre>
         <h5>stderr:</h5>
         <pre class="stderr">{{highlight operation.stderr [err;fail]}}</pre>
         <h5>stdout:</h5>
         <pre class="stdout">{{highlight operation.stdout [err;fail]}}</pre>
+      </div>
       {{/if}}
-    </div>
+      {{/if}}
+      </div>
+     </div>
   {{/view}}
 {{/each}}

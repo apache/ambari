@@ -135,9 +135,18 @@ App.Router = Em.Router.extend({
     controller.set('loginName', loginName);
     var hash = window.btoa(loginName + ":" + controller.get('password'));
     var router = this;
+    var url = '';
+
+    if(loginName === "admin" && controller.get('password') === 'admin')
+    {
+      url = '/data/users/user_admin.json';
+    }else if(loginName === 'user' && controller.get('password') === 'user'){
+      url = '/data/users/user_user.json';
+    }
+
     $.ajax({
-      url : App.apiPrefix + '/users/' + loginName,
-      dataType : 'text',
+      url : (App.testMode) ? url  : App.apiPrefix + '/users/' + loginName ,
+      dataType : 'json',
       type: 'GET',
       beforeSend: function (xhr) {
         xhr.setRequestHeader("Authorization", "Basic " + hash);
@@ -156,18 +165,18 @@ App.Router = Em.Router.extend({
       success: function (data) {
         console.log('login success');
 
-        var resp = $.parseJSON(data);
+        var resp = data;
         var isAdmin = resp.Users.roles.indexOf('admin') >= 0;
         if(isAdmin){
           router.setAuthenticated(true);
           router.setLoginName(loginName);
-
-          router.setUser(App.store.createRecord(App.User, { userName: loginName, admin: isAdmin }));
+          App.usersMapper.map({"items":[data]});
+          router.setUser(App.User.find(loginName));
           router.transitionTo(router.getSection());
           postLogin(true);
         } else {
           $.ajax({
-            url: App.apiPrefix + '/clusters',
+            url:  (App.testMode) ? '/data/clusters/info.json' : App.apiPrefix + '/clusters',
             dataType: 'text',
             type: 'GET',
             success: function (data) {
@@ -175,8 +184,8 @@ App.Router = Em.Router.extend({
               if (clusterResp.items.length) {
                 router.setAuthenticated(true);
                 router.setLoginName(loginName);
-
-                router.setUser(App.store.createRecord(App.User, { userName: loginName, admin: isAdmin }));
+                App.usersMapper.map({"items":[resp]});
+                router.setUser(App.User.find(loginName));
                 router.transitionTo(router.getSection());
                 postLogin(true);
               } else {
@@ -232,54 +241,6 @@ App.Router = Em.Router.extend({
 
       statusCode: require('data/statusCodes')
     });
-  },
-
-  mockLogin: function (postLogin) {
-    var controller = this.get('loginController');
-    var loginName = controller.get('loginName');
-    var router = this;
-    if ((loginName === 'admin' && controller.get('password') === 'admin') ||
-      (loginName === 'user' && controller.get('password') === 'user')) {
-      if(loginName === 'admin'){
-        router.setAuthenticated(true);
-        router.setLoginName(loginName);
-
-        router.setUser(App.store.createRecord(App.User, { userName: loginName, admin: loginName === 'admin' }));
-        router.setAmbariStacks();
-
-        router.transitionTo(router.getSection());
-        postLogin(true);
-      } else {
-        $.ajax({
-          url: '/data/clusters/info.json',
-          dataType: 'text',
-          type: 'GET',
-          success: function (data) {
-            var clusterResp = $.parseJSON(data);
-            if (clusterResp.items.length) {
-              router.setAuthenticated(true);
-              router.setLoginName(loginName);
-
-              router.setUser(App.store.createRecord(App.User, { userName: loginName, admin: loginName === 'admin' }));
-              router.setAmbariStacks();
-
-              router.transitionTo(router.getSection());
-              postLogin(true);
-            } else {
-              controller.set('errorMessage', "Your administrator has not set up a Hadoop cluster yet.");
-            }
-          },
-          error: function (req) {
-            console.log("Server not responding: " + req.statusCode);
-          }
-        });
-      }
-    } else {
-      router.setAuthenticated(false);
-      postLogin(false);
-    }
-
-
   },
 
   getSection: function () {

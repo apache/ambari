@@ -131,6 +131,7 @@ footer {
   .brand {
     font-size: 17px;
     border-right: 1px solid rgba(0, 0, 0, 0.08);
+    color: #555555;
   }
   .operations-count {
     background-color: #006DCC;
@@ -1881,6 +1882,18 @@ ul.inline li {
 #step10-content {
   max-height: 440px;
 }
+.content-area {
+  position: relative;
+  #textTrigger {
+    cursor: pointer;
+    position: absolute;
+    right: 0;
+    top: 0;
+    visibility: hidden;
+    background-color: #dcdcdc;
+  }
+}
+
 
 //bootstrap
 //.dropdown-menu .active > a, .dropdown-menu .active > a:hover {
@@ -1894,3 +1907,10 @@ ul.inline li {
   background-position: 0;
 }
 // COMBOBOX FIXES END
+@media all and (max-width: 1024px) {
+  #main-nav {
+    li.span2 {
+      width: 125px;
+    }
+  }
+}

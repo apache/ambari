@@ -215,11 +215,11 @@ App.ChartLinearTimeView = Ember.View.extend({
         var c = value[value.length - 1];
         if (!isNaN(parseInt(c))) {
           // c is digit
-          value = parseFloat(value).toFixed(3);
+          value = parseFloat(value).toFixed(3).replace(/0+$/, '').replace(/\.$/, '');
         }
         else {
           // c in not digit
-          value = parseFloat(value.substr(0, value.length - 1)).toFixed(3) + c;
+          value = parseFloat(value.substr(0, value.length - 1)).toFixed(3).replace(/0+$/, '').replace(/\.$/, '') + c;
         }
         return value;
       },
@@ -540,7 +540,7 @@ App.ChartLinearTimeView.PercentageFormatter = function (percentage) {
   if (!value || value.length < 1) {
     value = '0 %';
   } else {
-    value = value.toFixed(3) + '%';
+    value = value.toFixed(3).replace(/0+$/, '').replace(/\.$/, '') + '%';
   }
   return value;
 };
@@ -569,9 +569,9 @@ App.ChartLinearTimeView.TimeElapsedFormatter = function (millis) {
     } else if (seconds > 0) {
       value = seconds + ' s';
     } else if (millis > 0) {
-      value = millis.toFixed(3) + ' ms';
+      value = millis.toFixed(3).replace(/0+$/, '').replace(/\.$/, '') + ' ms';
     } else {
-      value = millis.toFixed(3) + ' ms';
+      value = millis.toFixed(3).replace(/0+$/, '').replace(/\.$/, '') + ' ms';
     }
   }
   return value;

@@ -520,7 +520,6 @@ App.WizardStep9Controller = Em.Controller.extend({
       } else {
         url = 'data/wizard/deploy/poll_' + this.numPolls + '.json';
       }
-      debugger;
     }
 
     $.ajax({

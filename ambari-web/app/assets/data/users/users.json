@@ -1,25 +1,47 @@
 {
-  "href": "http://ambari:8080/api/clusters/mycluster/users",
-  "items": [
+  "href" : "http://dev.hortonworks.com:8080/api/v1/users/?fields=*",
+  "items" : [
     {
-      "href" : "http://ambari:8080/api/users/admin",
-      "Users" :
-      { "user_name" : "admin", "roles" : "admin,user",  "type" : "local" }
+      "href" : "http://dev.hortonworks.com:8080/api/v1/users/user",
+      "Users" : {
+        "user_name" : "user",
+        "ldap_user" : false,
+        "roles" : [
+          "user"
+        ]
+      }
     },
     {
-      "href" : "http://ambari:8080/api/users/user",
-      "Users" :
-      { "user_name" : "user", "roles" : "user", "type" : "local" }
+      "href" : "http://dev.hortonworks.com:8080/api/v1/users/admin",
+      "Users" : {
+        "user_name" : "admin",
+        "ldap_user" : false,
+        "roles" : [
+          "admin",
+          "user"
+        ]
+      }
     },
     {
-      "href" : "http://ambari:8080/api/users/john",
-      "Users" :
-      { "user_name" : "john", "roles" : "admin,user", "type" : "LDAP" }
+      "href" : "http://dev.hortonworks.com:8080/api/v1/users/jone",
+      "Users" : {
+        "user_name" : "jone",
+        "ldap_user" : true,
+        "roles" : [
+          "user"
+        ]
+      }
     },
     {
-      "href" : "http://ambari:8080/api/users/mike",
-      "Users" :
-      { "user_name" : "mike", "roles" : "user", "type" : "LDAP" }
+      "href" : "http://dev.hortonworks.com:8080/api/v1/users/alex",
+      "Users" : {
+        "user_name" : "alex",
+        "ldap_user" : false,
+        "roles" : [
+          "admin",
+          "user"
+        ]
+      }
     }
   ]
 }

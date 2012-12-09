@@ -21,6 +21,13 @@ require('models/background_operation');
 
 App.MainController = Em.Controller.extend({
   name: 'mainController',
+  clusterName: function () {
+    var name = App.db.getClusterName();
+    if (name) {
+      return name.capitalize();
+    }
+    return 'My Cluster';
+  }.property(),
   isClusterDataLoaded: function(){
       return App.router.get('clusterController.isLoaded');
   }.property('App.router.clusterController.isLoaded'),

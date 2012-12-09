@@ -20,8 +20,26 @@
 App.usersMapper = App.QuickDataMapper.create({
   model : App.User,
   config : {
+    id : 'Users.user_name',
     user_name : 'Users.user_name',
     roles : 'Users.roles',
-    is_ldap: 'Users.ldap_user'
+    is_ldap: 'Users.ldap_user',
+    admin: 'Users.admin'
+  },
+  map: function (json) {
+    self = this;
+    json.items.forEach(function (item) {
+      var result= [] ;
+      if(App.User.find(item.Users.user_name).get("userName") != item.Users.user_name)
+      {
+        if(item.Users.roles.indexOf("admin") >= 0){
+          item.Users.admin = true;
+        }else{
+          item.Users.admin = false;
+        }
+        result.push(self.parseIt(item, self.config));
+        App.store.loadMany(self.get('model'), result);
+      }
+    });
   }
 });

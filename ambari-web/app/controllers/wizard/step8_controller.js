@@ -774,7 +774,7 @@ App.WizardStep8Controller = Em.Controller.extend({
     var allHosts = this.get('content.hostsInfo');
     var data = [];
     for (var hostName in allHosts) {
-      if (!allHosts[hostName].isInstalled) {
+      if (!allHosts[hostName].isInstalled && allHosts[hostName].bootStatus == 'REGISTERED') {
         data.pushObject({"Hosts": { "host_name": hostName}});
       }
     }

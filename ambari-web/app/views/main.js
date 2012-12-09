@@ -32,6 +32,53 @@ App.MainBackgroundOperation = Em.View.extend({
     return this.get('isOpen') ? 'icon-minus' : 'icon-plus';
   }.property('isOpen'),
   showOperationLog:function(){
-    this.set('isOpen', !this.get('isOpen'))
-  }
+    this.set('isOpen', !this.get('isOpen'));
+    this.set('isTextArea', false);
+  },
+  buttonLabel:function(){
+    var button = $(this.get('element')).find('#textTrigger');
+    if(this.get('isTextArea')){
+      button.text('press CTRL+C');
+    } else {
+      button.text('click to highlight');
+    }
+  }.observes('isTextArea'),
+  didInsertElement: function () {
+    var self = this;
+    var button = $(this.get('element')).find('#textTrigger');
+    button.click(function () {
+      self.set('isTextArea', !self.get('isTextArea'));
+    });
+    $(this.get('element')).find('.content-area').mouseenter(
+      function () {
+        var element = $(this);
+        element.css('border', '1px solid #dcdcdc');
+        button.css('visibility', 'visible');
+      }).mouseleave(
+      function () {
+        var element = $(this);
+        element.css('border', 'none');
+        button.css('visibility', 'hidden');
+      })
+  },
+  isTextArea: false,
+  textArea: Em.TextArea.extend({
+    didInsertElement: function(){
+      var element = $(this.get('element'));
+      element.width($(this.get('parentView').get('element')).width() - 10);
+      element.height($(this.get('parentView').get('element')).height());
+      element.select();
+      element.css('resize', 'none');
+    },
+    disabled: true,
+    value: function(){
+      var operation = this.get('content');
+      var content = "";
+      content += operation.command + " " + operation.role + " on " + operation.host_name + "\n";
+      content += "exitcode: " + operation.exit_code + "\n";
+      content += "stderr: " + operation.stderr + "\n";
+      content += "stdout: " + operation.stdout + "\n";
+      return content;
+    }.property('content')
+  })
 });

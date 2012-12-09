@@ -20,9 +20,9 @@
 <div class="clearfix" {{action toggleInfoView target="view"}}>
   <div class="name span2">
     {{#if view.isCollapsed}}
-    <i class="icon-arrow-down pull-left"></i>
+    <i class="icon-caret-down pull-left"></i>
     {{else}}
-    <i class="icon-arrow-right pull-left"></i>
+    <i class="icon-caret-right pull-left"></i>
     {{/if}}
     {{view App.MainDashboardServiceHealthView serviceBinding="view.service"}}
     <a {{action selectService view.service href=true}}>{{view.service.displayName}}</a>

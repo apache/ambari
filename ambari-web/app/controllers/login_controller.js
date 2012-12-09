@@ -32,7 +32,7 @@ App.LoginController = Em.Object.extend({
     this.set('errorMessage', '');
 
     var self = this;
-    var loginFunc = (App.testMode) ? App.get('router').mockLogin : App.get('router').login;
+    var loginFunc =  App.get('router').login;
 
     var user = loginFunc.call(App.get('router'), function (isAuthenticated) {
       if (!isAuthenticated) {

@@ -277,9 +277,13 @@ App.WizardStep3Controller = Em.Controller.extend({
               _host.set('bootStatus', 'REGISTERED');
               _host.set('bootLog', (_host.get('bootLog') != null ? _host.get('bootLog') : '') + '\nRegistration with the server succeeded.');
             }
+          } else if (_host.get('bootStatus') == 'FAILED') {
+            // ignore FAILED hosts
           } else {
+            // there are some hosts that are not REGISTERED or FAILED
+            // we need to keep polling
             allRegistered = false;
-            if (_host.get('bootStatus') != 'FAILED' && _host.get('bootStatus') != 'REGISTERING') {
+            if (_host.get('bootStatus') != 'REGISTERING') {
               _host.set('bootStatus', 'REGISTERING');
               currentBootLog = _host.get('bootLog') != null ? _host.get('bootLog') : '';
               _host.set('bootLog', (_host.get('bootLog') != null ? _host.get('bootLog') : '') + '\nRegistering with the server...');
@@ -391,7 +395,44 @@ App.WizardStep3Controller = Em.Controller.extend({
 
       bodyClass: Ember.View.extend({
         templateName: require('templates/wizard/step3_host_log_popup'),
-        host: host
+        host: host,
+        didInsertElement: function () {
+          var self = this;
+          var button = $(this.get('element')).find('#textTrigger');
+          button.click(function () {
+            if(self.get('isTextArea')){
+              $(this).text('click to highlight');
+            } else {
+              $(this).text('press CTRL+C');
+            }
+            self.set('isTextArea', !self.get('isTextArea'));
+          });
+          $(this.get('element')).find('.content-area').mouseenter(
+            function () {
+              var element = $(this);
+              element.css('border', '1px solid #dcdcdc');
+              button.css('visibility', 'visible');
+            }).mouseleave(
+            function () {
+              var element = $(this);
+              element.css('border', 'none');
+              button.css('visibility', 'hidden');
+            })
+        },
+        isTextArea: false,
+        textArea: Em.TextArea.extend({
+          didInsertElement: function(){
+            var element = $(this.get('element'));
+            element.width($(this.get('parentView').get('element')).width() - 10);
+            element.height($(this.get('parentView').get('element')).height());
+            element.select();
+            element.css('resize', 'none');
+          },
+          disabled: true,
+          value: function(){
+            return this.get('content');
+          }.property('content')
+        })
       })
     });
   },
