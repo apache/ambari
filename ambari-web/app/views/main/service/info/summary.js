@@ -95,12 +95,14 @@ App.MainServiceInfoSummaryView = Em.View.extend({
           summary['dfs_percent_disk_used'] = parseFloat((100 - summary['dfs_percent_remaining']).toFixed(2)) + "%";
           summary['used_bytes'] = (summary['dfs_used_bytes'] + summary['nondfs_used_bytes']).bytesToSize(2, 'parseFloat');
           summary['dfs_total_bytes'] = summary['dfs_total_bytes'].bytesToSize(2, 'parseFloat');
-          summary['metric_graph_views'] = [ App.ChartServiceMetricsHDFS_JVMThreads.extend(), 
-                                            App.ChartServiceMetricsHDFS_JVMHeap.extend(), 
+          summary['metric_graph_views'] = [ App.ChartServiceMetricsHDFS_SpaceUtilization.extend(),
+                                            App.ChartServiceMetricsHDFS_FileOperations.extend(), 
+                                            App.ChartServiceMetricsHDFS_BlockStatus.extend(), 
                                             App.ChartServiceMetricsHDFS_IO.extend(), 
                                             App.ChartServiceMetricsHDFS_RPC.extend(), 
-                                            App.ChartServiceMetricsHDFS_FileOperations.extend(), 
-                                            App.ChartServiceMetricsHDFS_GC.extend() ];
+                                            App.ChartServiceMetricsHDFS_GC.extend(), 
+                                            App.ChartServiceMetricsHDFS_JVMHeap.extend(), 
+                                            App.ChartServiceMetricsHDFS_JVMThreads.extend()];
         } else if (serviceName == 'mapreduce') {
           summary['start_time'] = summary['start_time'].toDaysHoursMinutes();
           summary['memory_heap_percent_used'] = summary['memory_heap_used'].countPercentageRatio(summary['memory_heap_max']);
@@ -110,10 +112,10 @@ App.MainServiceInfoSummaryView = Em.View.extend({
                                             App.ChartServiceMetricsMapReduce_JobsRunningWaiting.extend(), 
                                             App.ChartServiceMetricsMapReduce_MapSlots.extend(), 
                                             App.ChartServiceMetricsMapReduce_ReduceSlots.extend(), 
-                                            App.ChartServiceMetricsMapReduce_JVMHeap.extend(), 
-                                            App.ChartServiceMetricsMapReduce_JVMThreads.extend(), 
                                             App.ChartServiceMetricsMapReduce_GC.extend(), 
-                                            App.ChartServiceMetricsMapReduce_RPC.extend() ];
+                                            App.ChartServiceMetricsMapReduce_RPC.extend(), 
+                                            App.ChartServiceMetricsMapReduce_JVMHeap.extend(), 
+                                            App.ChartServiceMetricsMapReduce_JVMThreads.extend()];
         } else if (serviceName == 'hbase') {
           summary['memory_heap_percent_used'] = summary['memory_heap_used'].countPercentageRatio(summary['memory_heap_max']);
           summary['memory_heap_used'] = summary['memory_heap_used'].bytesToSize(2, 'parseFloat');

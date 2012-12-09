@@ -31,8 +31,11 @@ App.ChartServiceMetricsHDFS_FileOperations = App.ChartLinearTimeView.extend({
   title: "File Operations",
 
   url: function () {
+    var hdfsService = App.HDFSService.find().objectAt(0);
+    var nameNodeHostName = hdfsService.get('nameNode').get('hostName');
     return App.formatUrl("/api/clusters/{clusterName}/hosts/{hostName}/host_components/NAMENODE?fields=metrics/dfs/namenode/FileInfoOps[{fromSeconds},{toSeconds},{stepSeconds}],metrics/dfs/namenode/CreateFileOps[{fromSeconds},{toSeconds},{stepSeconds}]", {
-      clusterName: App.router.get('clusterController.clusterName')
+      clusterName: App.router.get('clusterController.clusterName'),
+      hostName: nameNodeHostName
     }, "/data/services/metrics/hdfs/file_operations.json");
   }.property('App.router.clusterController.clusterName'),
 

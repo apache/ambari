@@ -86,6 +86,8 @@ require('views/main/service/info/metrics/hdfs/io');
 require('views/main/service/info/metrics/hdfs/rpc');
 require('views/main/service/info/metrics/hdfs/file_operations');
 require('views/main/service/info/metrics/hdfs/gc');
+require('views/main/service/info/metrics/hdfs/space_utilization');
+require('views/main/service/info/metrics/hdfs/block_status');
 require('views/main/service/info/metrics/mapreduce/gc');
 require('views/main/service/info/metrics/mapreduce/jvm_threads');
 require('views/main/service/info/metrics/mapreduce/jvm_heap');

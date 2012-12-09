@@ -32,8 +32,11 @@ App.ChartServiceMetricsMapReduce_GC = App.ChartLinearTimeView.extend({
   yAxisFormatter: App.ChartLinearTimeView.TimeElapsedFormatter,
 
   url: function () {
+    var mrService = App.MapReduceService.find().objectAt(0);
+    var jtHostName = mrService.get('jobTracker').get('hostName');
     return App.formatUrl("/api/clusters/{clusterName}/hosts/{hostName}/host_components/JOBTRACKER?fields=metrics/jvm/gcTimeMillis[{fromSeconds},{toSeconds},{stepSeconds}]", {
-      clusterName: App.router.get('clusterController.clusterName')
+      clusterName: App.router.get('clusterController.clusterName'),
+      hostName: jtHostName
     }, "/data/services/metrics/mapreduce/gc.json");
   }.property('App.router.clusterController.clusterName'),
 

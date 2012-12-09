@@ -411,6 +411,9 @@ AMBARI-666 branch (unreleased changes)
 
   IMPROVEMENTS
 
+  AMBARI-1011. Create 2 missing HDFS service graphs. (Srimanth Gunturi via
+  yusaku)
+
   AMBARI-1003. Nagios sections should use backend API to populate. (Srimanth
   Gunturi via yusaku)
 

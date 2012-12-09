@@ -31,8 +31,11 @@ App.ChartServiceMetricsMapReduce_JVMThreads = App.ChartLinearTimeView.extend({
   title: "JVM Thread Status",
 
   url: function () {
+    var mrService = App.MapReduceService.find().objectAt(0);
+    var jtHostName = mrService.get('jobTracker').get('hostName');
     return App.formatUrl("/api/clusters/{clusterName}/hosts/{hostName}/host_components/JOBTRACKER?fields=metrics/jvm/threadsRunnable[{fromSeconds},{toSeconds},{stepSeconds}],metrics/jvm/threadsBlocked[{fromSeconds},{toSeconds},{stepSeconds}],metrics/jvm/threadsWaiting[{fromSeconds},{toSeconds},{stepSeconds}],metrics/jvm/threadsTimedWaiting[{fromSeconds},{toSeconds},{stepSeconds}]", {
-      clusterName: App.router.get('clusterController.clusterName')
+      clusterName: App.router.get('clusterController.clusterName'),
+      hostName: jtHostName
     }, "/data/services/metrics/mapreduce/jvm_threads.json");
   }.property('App.router.clusterController.clusterName'),
 

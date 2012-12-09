@@ -32,8 +32,11 @@ App.ChartServiceMetricsHDFS_GC = App.ChartLinearTimeView.extend({
   yAxisFormatter: App.ChartLinearTimeView.TimeElapsedFormatter,
 
   url: function () {
+    var hdfsService = App.HDFSService.find().objectAt(0);
+    var nameNodeHostName = hdfsService.get('nameNode').get('hostName');
     return App.formatUrl("/api/clusters/{clusterName}/hosts/{hostName}/host_components/NAMENODE?fields=metrics/jvm/gcTimeMillis[{fromSeconds},{toSeconds},{stepSeconds}]", {
-      clusterName: App.router.get('clusterController.clusterName')
+      clusterName: App.router.get('clusterController.clusterName'),
+      hostName: nameNodeHostName
     }, "/data/services/metrics/hdfs/gc.json");
   }.property('App.router.clusterController.clusterName'),
 

@@ -26,29 +26,35 @@ var App = require('app');
  * @extends Ember.Object
  * @extends Ember.View
  */
-App.ChartServiceMetricsMapReduce_RPC = App.ChartLinearTimeView.extend({
-  id: "service-metrics-mapreduce-rpc",
-  title: "RPC",
-  yAxisFormatter: App.ChartLinearTimeView.TimeElapsedFormatter,
+App.ChartServiceMetricsHDFS_SpaceUtilization = App.ChartLinearTimeView.extend({
+  id: "service-metrics-hdfs-space-utilization",
+  title: "Total Space Utilization",
+  yAxisFormatter: App.ChartLinearTimeView.BytesFormatter,
 
   url: function () {
-    var mrService = App.MapReduceService.find().objectAt(0);
-    var jtHostName = mrService.get('jobTracker').get('hostName');
-    return App.formatUrl("/api/clusters/{clusterName}/hosts/{hostName}/host_components/JOBTRACKER?fields=metrics/rpc/RpcQueueTime_avg_time[{fromSeconds},{toSeconds},{stepSeconds}]", {
+    var hdfsService = App.HDFSService.find().objectAt(0);
+    var nameNodeHostName = hdfsService.get('nameNode').get('hostName');
+    return App.formatUrl("/api/clusters/{clusterName}/hosts/{hostName}/host_components/NAMENODE?fields=metrics/dfs/FSNamesystem/CapacityRemainingGB[{fromSeconds},{toSeconds},{stepSeconds}],metrics/dfs/FSNamesystem/CapacityUsedGB[{fromSeconds},{toSeconds},{stepSeconds}],metrics/dfs/FSNamesystem/CapacityTotalGB[{fromSeconds},{toSeconds},{stepSeconds}]", {
       clusterName: App.router.get('clusterController.clusterName'),
-      hostName: jtHostName
-    }, "/data/services/metrics/mapreduce/rpc.json");
+      hostName: nameNodeHostName
+    }, "/data/services/metrics/hdfs/space_utilization.json");
   }.property('App.router.clusterController.clusterName'),
 
   transformToSeries: function (jsonData) {
     var seriesArray = [];
-    if (jsonData && jsonData.metrics && jsonData.metrics.rpc) {
-      for ( var name in jsonData.metrics.rpc) {
+    if (jsonData && jsonData.metrics && jsonData.metrics.dfs && jsonData.metrics.dfs.FSNamesystem) {
+      for ( var name in jsonData.metrics.dfs.FSNamesystem) {
         var displayName;
-        var seriesData = jsonData.metrics.rpc[name];
+        var seriesData = jsonData.metrics.dfs.FSNamesystem[name];
         switch (name) {
-          case "RpcQueueTime_avg_time":
-            displayName = "Queue Average Wait Time";
+          case "CapacityRemainingGB":
+            displayName = "Capacity Remaining";
+            break;
+          case "CapacityUsedGB":
+            displayName = "Capacity Used";
+            break;
+          case "CapacityTotalGB":
+            displayName = "Capacity Total";
             break;
           default:
             break;
@@ -65,7 +71,7 @@ App.ChartServiceMetricsMapReduce_RPC = App.ChartLinearTimeView.extend({
           for ( var index = 0; index < seriesData.length; index++) {
             series.data.push({
               x: seriesData[index][1],
-              y: seriesData[index][0]
+              y: seriesData[index][0]*1000000000
             });
           }
           seriesArray.push(series);
