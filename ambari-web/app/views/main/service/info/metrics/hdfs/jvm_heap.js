@@ -28,14 +28,19 @@ var App = require('app');
  */
 App.ChartServiceMetricsHDFS_JVMHeap = App.ChartLinearTimeView.extend({
   id: "service-metrics-hdfs-jvm-heap",
-  url: "/data/services/metrics/hdfs/jvm_heap.json",
   title: "JVM Memory Status",
   yAxisFormatter: App.ChartLinearTimeView.BytesFormatter,
-  
+
+  url: function () {
+    return App.formatUrl("/api/clusters/{clusterName}/hosts/{hostName}/host_components/NAMENODE?fields=metrics/jvm/memNonHeapUsedM[{fromSeconds},{toSeconds},{stepSeconds}],metrics/jvm/memNonHeapCommittedM[{fromSeconds},{toSeconds},{stepSeconds}],metrics/jvm/memHeapUsedM[{fromSeconds},{toSeconds},{stepSeconds}],metrics/jvm/memHeapCommittedM[{fromSeconds},{toSeconds},{stepSeconds}]", {
+      clusterName: App.router.get('mainController.cluster').get('clusterName')
+    }, "/data/services/metrics/hdfs/jvm_heap.json");
+  }.property('App.router.mainController.cluster'),
+
   transformToSeries: function (jsonData) {
     var seriesArray = [];
     if (jsonData && jsonData.metrics && jsonData.metrics.jvm) {
-      for (var name in jsonData.metrics.jvm){
+      for ( var name in jsonData.metrics.jvm) {
         var displayName;
         var seriesData = jsonData.metrics.jvm[name];
         switch (name) {
@@ -54,9 +59,9 @@ App.ChartServiceMetricsHDFS_JVMHeap = App.ChartLinearTimeView.extend({
           default:
             break;
         }
-        if(seriesData){
+        if (seriesData) {
           // Is it a string?
-          if("string" == typeof seriesData){
+          if ("string" == typeof seriesData) {
             seriesData = JSON.parse(seriesData);
           }
           // We have valid data
@@ -66,7 +71,8 @@ App.ChartServiceMetricsHDFS_JVMHeap = App.ChartLinearTimeView.extend({
           for ( var index = 0; index < seriesData.length; index++) {
             series.data.push({
               x: seriesData[index][1],
-              y: seriesData[index][0] * 1000000 // Data is in MB
+              y: seriesData[index][0] * 1000000
+            // Data is in MB
             });
           }
           seriesArray.push(series);

@@ -28,13 +28,18 @@ var App = require('app');
  */
 App.ChartServiceMetricsHDFS_JVMThreads = App.ChartLinearTimeView.extend({
   id: "service-metrics-hdfs-jvm-threads",
-  url: "/data/services/metrics/hdfs/jvm_threads.json",
   title: "JVM Thread Status",
-  
+
+  url: function () {
+    return App.formatUrl("/api/clusters/{clusterName}/hosts/{hostName}/host_components/NAMENODE?fields=metrics/jvm/threadsRunnable[{fromSeconds},{toSeconds},{stepSeconds}],metrics/jvm/threadsBlocked[{fromSeconds},{toSeconds},{stepSeconds}],metrics/jvm/threadsWaiting[{fromSeconds},{toSeconds},{stepSeconds}],metrics/jvm/threadsTimedWaiting[{fromSeconds},{toSeconds},{stepSeconds}]", {
+      clusterName: App.router.get('mainController.cluster').get('clusterName')
+    }, "/data/services/metrics/hdfs/jvm_threads.json");
+  }.property('App.router.mainController.cluster'),
+
   transformToSeries: function (jsonData) {
     var seriesArray = [];
     if (jsonData && jsonData.metrics && jsonData.metrics.jvm) {
-      for (var name in jsonData.metrics.jvm){
+      for ( var name in jsonData.metrics.jvm) {
         var displayName;
         var seriesData = jsonData.metrics.jvm[name];
         switch (name) {
@@ -53,9 +58,9 @@ App.ChartServiceMetricsHDFS_JVMThreads = App.ChartLinearTimeView.extend({
           default:
             break;
         }
-        if(seriesData){
+        if (seriesData) {
           // Is it a string?
-          if("string" == typeof seriesData){
+          if ("string" == typeof seriesData) {
             seriesData = JSON.parse(seriesData);
           }
           // We have valid data

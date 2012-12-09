@@ -28,13 +28,18 @@ var App = require('app');
  */
 App.ChartServiceMetricsMapReduce_JobsStatus = App.ChartLinearTimeView.extend({
   id: "service-metrics-mapreduce-jobs-status",
-  url: "/data/services/metrics/mapreduce/jobs_status.json",
   title: "Jobs Status",
-  
+
+  url: function () {
+    return App.formatUrl("/api/clusters/{clusterName}/services/MAPREDUCE/components/JOBTRACKER?fields=metrics/mapred/jobtracker/jobs_completed[{fromSeconds},{toSeconds},{stepSeconds}],metrics/mapred/jobtracker/jobs_preparing[{fromSeconds},{toSeconds},{stepSeconds}],metrics/mapred/jobtracker/jobs_failed[{fromSeconds},{toSeconds},{stepSeconds}],metrics/mapred/jobtracker/jobs_submitted[{fromSeconds},{toSeconds},{stepSeconds}],metrics/mapred/jobtracker/jobs_failed[{fromSeconds},{toSeconds},{stepSeconds}],metrics/mapred/jobtracker/jobs_running[{fromSeconds},{toSeconds},{stepSeconds}]", {
+      clusterName: App.router.get('mainController.cluster').get('clusterName')
+    }, "/data/services/metrics/mapreduce/jobs_status.json");
+  }.property('App.router.mainController.cluster'),
+
   transformToSeries: function (jsonData) {
     var seriesArray = [];
     if (jsonData && jsonData.metrics && jsonData.metrics.mapred && jsonData.metrics.mapred.jobtracker) {
-      for (var name in jsonData.metrics.mapred.jobtracker){
+      for ( var name in jsonData.metrics.mapred.jobtracker) {
         var displayName;
         var seriesData = jsonData.metrics.mapred.jobtracker[name];
         switch (name) {
@@ -56,9 +61,9 @@ App.ChartServiceMetricsMapReduce_JobsStatus = App.ChartLinearTimeView.extend({
           default:
             break;
         }
-        if(seriesData){
+        if (seriesData) {
           // Is it a string?
-          if("string" == typeof seriesData){
+          if ("string" == typeof seriesData) {
             seriesData = JSON.parse(seriesData);
           }
           // We have valid data

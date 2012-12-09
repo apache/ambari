@@ -28,10 +28,15 @@ var App = require('app');
  */
 App.ChartHostMetricsCPU = App.ChartLinearTimeView.extend({
   id: "host-metrics-cpu",
-  url: "/data/hosts/metrics/cpu.json",
   title: "CPU Usage",
   yAxisFormatter: App.ChartLinearTimeView.PercentageFormatter,
-  
+
+  url: function () {
+    return App.formatUrl("/api/clusters/{clusterName}/hosts/{hostName}?fields=metrics/cpu/cpu_user[{fromSeconds},{toSeconds},{stepSeconds}],metrics/cpu/cpu_wio[{fromSeconds},{toSeconds},{stepSeconds}],metrics/cpu/cpu_nice[{fromSeconds},{toSeconds},{stepSeconds}],metrics/cpu/cpu_aidle[{fromSeconds},{toSeconds},{stepSeconds}],metrics/cpu/cpu_system[{fromSeconds},{toSeconds},{stepSeconds}],metrics/cpu/cpu_idle[{fromSeconds},{toSeconds},{stepSeconds}]", {
+      clusterName: App.router.get('mainController.cluster').get('clusterName')
+    }, "/data/hosts/metrics/cpu.json");
+  }.property('App.router.mainController.cluster'),
+
   transformToSeries: function (jsonData) {
     var seriesArray = [];
     if (jsonData && jsonData.metrics && jsonData.metrics.cpu) {
@@ -81,9 +86,9 @@ App.ChartHostMetricsCPU = App.ChartLinearTimeView.extend({
     }
     return seriesArray;
   },
-  
+
   colorForSeries: function (series) {
-    if ("Idle" == series.name){
+    if ("Idle" == series.name) {
       return 'rgba(255,255,255,1)';
     }
     return null;

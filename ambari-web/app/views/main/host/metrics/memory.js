@@ -28,10 +28,15 @@ var App = require('app');
  */
 App.ChartHostMetricsMemory = App.ChartLinearTimeView.extend({
   id: "host-metrics-memory",
-  url: "/data/hosts/metrics/memory.json",
   title: "Memory Usage",
   yAxisFormatter: App.ChartLinearTimeView.BytesFormatter,
-  
+
+  url: function () {
+    return App.formatUrl("/api/clusters/{clusterName}/hosts/{hostName}?fields=metrics/memory/swap_free[{fromSeconds},{toSeconds},{stepSeconds}],metrics/memory/mem_total[{fromSeconds},{toSeconds},{stepSeconds}],metrics/memory/mem_free[{fromSeconds},{toSeconds},{stepSeconds}],metrics/memory/mem_cached[{fromSeconds},{toSeconds},{stepSeconds}],metrics/memory/mem_buffers[{fromSeconds},{toSeconds},{stepSeconds}]", {
+      clusterName: App.router.get('mainController.cluster').get('clusterName')
+    }, "/data/hosts/metrics/memory.json");
+  }.property('App.router.mainController.cluster'),
+
   transformToSeries: function (jsonData) {
     var seriesArray = [];
     if (jsonData && jsonData.metrics && jsonData.metrics.memory) {
@@ -78,9 +83,9 @@ App.ChartHostMetricsMemory = App.ChartLinearTimeView.extend({
     }
     return seriesArray;
   },
-  
+
   colorForSeries: function (series) {
-    if("Total"==series.name){
+    if ("Total" == series.name) {
       return 'rgba(255,255,255,1)';
     }
     return null;

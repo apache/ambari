@@ -1,15 +1,15 @@
 {
-  "href" : "http://dev.hortonworks.com:8080/api/clusters/mycluster/services?ServiceInfo/service_name!=MISCELLANEOUS&ServiceInfo/service_name!=DASHBOARD&fields=components/host_components/*",
+  "href" : "http://ambari/api/clusters/mycluster/services?ServiceInfo/service_name!=MISCELLANEOUS&ServiceInfo/service_name!=DASHBOARD&fields=components/host_components/*",
   "items" : [
     {
-      "href" : "http://dev.hortonworks.com:8080/api/clusters/mycluster/services/MAPREDUCE",
+      "href" : "http://ambari/api/clusters/mycluster/services/MAPREDUCE",
       "ServiceInfo" : {
         "cluster_name" : "mycluster",
         "service_name" : "MAPREDUCE"
       },
       "components" : [
         {
-          "href" : "http://dev.hortonworks.com:8080/api/clusters/mycluster/services/MAPREDUCE/components/MAPREDUCE_CLIENT",
+          "href" : "http://ambari/api/clusters/mycluster/services/MAPREDUCE/components/MAPREDUCE_CLIENT",
           "ServiceComponentInfo" : {
             "cluster_name" : "mycluster",
             "component_name" : "MAPREDUCE_CLIENT",
@@ -17,7 +17,7 @@
           },
           "host_components" : [
             {
-              "href" : "http://dev.hortonworks.com:8080/api/clusters/mycluster/hosts/dev.hortonworks.com/host_components/MAPREDUCE_CLIENT",
+              "href" : "http://ambari/api/clusters/mycluster/hosts/dev.hortonworks.com/host_components/MAPREDUCE_CLIENT",
               "HostRoles" : {
                 "cluster_name" : "mycluster",
                 "state" : "INSTALLED",
@@ -26,7 +26,7 @@
               },
               "component" : [
                 {
-                  "href" : "http://dev.hortonworks.com:8080/api/clusters/mycluster/services/MAPREDUCE/components/MAPREDUCE_CLIENT",
+                  "href" : "http://ambari/api/clusters/mycluster/services/MAPREDUCE/components/MAPREDUCE_CLIENT",
                   "ServiceComponentInfo" : {
                     "cluster_name" : "mycluster",
                     "component_name" : "MAPREDUCE_CLIENT",
@@ -38,7 +38,7 @@
           ]
         },
         {
-          "href" : "http://dev.hortonworks.com:8080/api/clusters/mycluster/services/MAPREDUCE/components/JOBTRACKER",
+          "href" : "http://ambari/api/clusters/mycluster/services/MAPREDUCE/components/JOBTRACKER",
           "ServiceComponentInfo" : {
             "cluster_name" : "mycluster",
             "component_name" : "JOBTRACKER",
@@ -46,7 +46,7 @@
           },
           "host_components" : [
             {
-              "href" : "http://dev.hortonworks.com:8080/api/clusters/mycluster/hosts/dev.hortonworks.com/host_components/JOBTRACKER",
+              "href" : "http://ambari/api/clusters/mycluster/hosts/dev.hortonworks.com/host_components/JOBTRACKER",
               "HostRoles" : {
                 "cluster_name" : "mycluster",
                 "state" : "STARTED",
@@ -108,7 +108,7 @@
               },
               "component" : [
                 {
-                  "href" : "http://dev.hortonworks.com:8080/api/clusters/mycluster/services/MAPREDUCE/components/JOBTRACKER",
+                  "href" : "http://ambari/api/clusters/mycluster/services/MAPREDUCE/components/JOBTRACKER",
                   "ServiceComponentInfo" : {
                     "cluster_name" : "mycluster",
                     "component_name" : "JOBTRACKER",
@@ -120,7 +120,7 @@
           ]
         },
         {
-          "href" : "http://dev.hortonworks.com:8080/api/clusters/mycluster/services/MAPREDUCE/components/TASKTRACKER",
+          "href" : "http://ambari/api/clusters/mycluster/services/MAPREDUCE/components/TASKTRACKER",
           "ServiceComponentInfo" : {
             "cluster_name" : "mycluster",
             "component_name" : "TASKTRACKER",
@@ -128,7 +128,7 @@
           },
           "host_components" : [
             {
-              "href" : "http://dev.hortonworks.com:8080/api/clusters/mycluster/hosts/dev.hortonworks.com/host_components/TASKTRACKER",
+              "href" : "http://ambari/api/clusters/mycluster/hosts/dev.hortonworks.com/host_components/TASKTRACKER",
               "HostRoles" : {
                 "cluster_name" : "mycluster",
                 "state" : "STARTED",
@@ -190,7 +190,7 @@
               },
               "component" : [
                 {
-                  "href" : "http://dev.hortonworks.com:8080/api/clusters/mycluster/services/MAPREDUCE/components/TASKTRACKER",
+                  "href" : "http://ambari/api/clusters/mycluster/services/MAPREDUCE/components/TASKTRACKER",
                   "ServiceComponentInfo" : {
                     "cluster_name" : "mycluster",
                     "component_name" : "TASKTRACKER",
@@ -204,14 +204,14 @@
       ]
     },
     {
-      "href" : "http://dev.hortonworks.com:8080/api/clusters/mycluster/services/HDFS",
+      "href" : "http://ambari/api/clusters/mycluster/services/HDFS",
       "ServiceInfo" : {
         "cluster_name" : "mycluster",
         "service_name" : "HDFS"
       },
       "components" : [
         {
-          "href" : "http://dev.hortonworks.com:8080/api/clusters/mycluster/services/HDFS/components/SECONDARY_NAMENODE",
+          "href" : "http://ambari/api/clusters/mycluster/services/HDFS/components/SECONDARY_NAMENODE",
           "ServiceComponentInfo" : {
             "cluster_name" : "mycluster",
             "component_name" : "SECONDARY_NAMENODE",
@@ -219,7 +219,7 @@
           },
           "host_components" : [
             {
-              "href" : "http://dev.hortonworks.com:8080/api/clusters/mycluster/hosts/dev.hortonworks.com/host_components/SECONDARY_NAMENODE",
+              "href" : "http://ambari/api/clusters/mycluster/hosts/dev.hortonworks.com/host_components/SECONDARY_NAMENODE",
               "HostRoles" : {
                 "cluster_name" : "mycluster",
                 "state" : "STARTED",
@@ -228,7 +228,7 @@
               },
               "component" : [
                 {
-                  "href" : "http://dev.hortonworks.com:8080/api/clusters/mycluster/services/HDFS/components/SECONDARY_NAMENODE",
+                  "href" : "http://ambari/api/clusters/mycluster/services/HDFS/components/SECONDARY_NAMENODE",
                   "ServiceComponentInfo" : {
                     "cluster_name" : "mycluster",
                     "component_name" : "SECONDARY_NAMENODE",
@@ -240,7 +240,7 @@
           ]
         },
         {
-          "href" : "http://dev.hortonworks.com:8080/api/clusters/mycluster/services/HDFS/components/NAMENODE",
+          "href" : "http://ambari/api/clusters/mycluster/services/HDFS/components/NAMENODE",
           "ServiceComponentInfo" : {
             "cluster_name" : "mycluster",
             "component_name" : "NAMENODE",
@@ -248,7 +248,7 @@
           },
           "host_components" : [
             {
-              "href" : "http://dev.hortonworks.com:8080/api/clusters/mycluster/hosts/dev.hortonworks.com/host_components/NAMENODE",
+              "href" : "http://ambari/api/clusters/mycluster/hosts/dev.hortonworks.com/host_components/NAMENODE",
               "HostRoles" : {
                 "cluster_name" : "mycluster",
                 "state" : "STARTED",
@@ -331,7 +331,7 @@
               },
               "component" : [
                 {
-                  "href" : "http://dev.hortonworks.com:8080/api/clusters/mycluster/services/HDFS/components/NAMENODE",
+                  "href" : "http://ambari/api/clusters/mycluster/services/HDFS/components/NAMENODE",
                   "ServiceComponentInfo" : {
                     "cluster_name" : "mycluster",
                     "component_name" : "NAMENODE",
@@ -343,7 +343,7 @@
           ]
         },
         {
-          "href" : "http://dev.hortonworks.com:8080/api/clusters/mycluster/services/HDFS/components/DATANODE",
+          "href" : "http://ambari/api/clusters/mycluster/services/HDFS/components/DATANODE",
           "ServiceComponentInfo" : {
             "cluster_name" : "mycluster",
             "component_name" : "DATANODE",
@@ -351,7 +351,7 @@
           },
           "host_components" : [
             {
-              "href" : "http://dev.hortonworks.com:8080/api/clusters/mycluster/hosts/dev.hortonworks.com/host_components/DATANODE",
+              "href" : "http://ambari/api/clusters/mycluster/hosts/dev.hortonworks.com/host_components/DATANODE",
               "HostRoles" : {
                 "cluster_name" : "mycluster",
                 "state" : "STARTED",
@@ -413,7 +413,7 @@
               },
               "component" : [
                 {
-                  "href" : "http://dev.hortonworks.com:8080/api/clusters/mycluster/services/HDFS/components/DATANODE",
+                  "href" : "http://ambari/api/clusters/mycluster/services/HDFS/components/DATANODE",
                   "ServiceComponentInfo" : {
                     "cluster_name" : "mycluster",
                     "component_name" : "DATANODE",
@@ -425,7 +425,7 @@
           ]
         },
         {
-          "href" : "http://dev.hortonworks.com:8080/api/clusters/mycluster/services/HDFS/components/HDFS_CLIENT",
+          "href" : "http://ambari/api/clusters/mycluster/services/HDFS/components/HDFS_CLIENT",
           "ServiceComponentInfo" : {
             "cluster_name" : "mycluster",
             "component_name" : "HDFS_CLIENT",
@@ -433,7 +433,7 @@
           },
           "host_components" : [
             {
-              "href" : "http://dev.hortonworks.com:8080/api/clusters/mycluster/hosts/dev.hortonworks.com/host_components/HDFS_CLIENT",
+              "href" : "http://ambari/api/clusters/mycluster/hosts/dev.hortonworks.com/host_components/HDFS_CLIENT",
               "HostRoles" : {
                 "cluster_name" : "mycluster",
                 "state" : "INSTALLED",
@@ -442,7 +442,7 @@
               },
               "component" : [
                 {
-                  "href" : "http://dev.hortonworks.com:8080/api/clusters/mycluster/services/HDFS/components/HDFS_CLIENT",
+                  "href" : "http://ambari/api/clusters/mycluster/services/HDFS/components/HDFS_CLIENT",
                   "ServiceComponentInfo" : {
                     "cluster_name" : "mycluster",
                     "component_name" : "HDFS_CLIENT",

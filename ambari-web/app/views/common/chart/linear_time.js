@@ -44,8 +44,7 @@ var App = require('app');
  * @extends Ember.Object
  * @extends Ember.View
  */
-App.ChartLinearTimeView = Ember.View
-    .extend({
+App.ChartLinearTimeView = Ember.View.extend({
       templateName: require('templates/main/charts/linear_time'),
 
       /**
@@ -104,16 +103,17 @@ App.ChartLinearTimeView = Ember.View
 
       didInsertElement: function () {
         this._super();
-        if (this.url != null) {
+        var validUrl = this.get('url');
+        if (validUrl) {
           var hash = {};
-          hash.url = this.url;
+          hash.url = validUrl;
           hash.type = 'GET';
           hash.dataType = 'json';
           hash.contentType = 'application/json; charset=utf-8';
           hash.context = this;
           hash.success = this._refreshGraph;
-          hash.error = function(xhr, textStatus, errorThrown){
-            this._showMessage('warn', 'Error', 'There was a problem getting data for the chart ('+textStatus+': '+errorThrown+')');
+          hash.error = function (xhr, textStatus, errorThrown) {
+            this._showMessage('warn', 'Error', 'There was a problem getting data for the chart (' + textStatus + ': ' + errorThrown + ')');
           }
           jQuery.ajax(hash);
         }

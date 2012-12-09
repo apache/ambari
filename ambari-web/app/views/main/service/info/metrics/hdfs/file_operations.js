@@ -28,13 +28,18 @@ var App = require('app');
  */
 App.ChartServiceMetricsHDFS_FileOperations = App.ChartLinearTimeView.extend({
   id: "service-metrics-hdfs-file-operations",
-  url: "/data/services/metrics/hdfs/file_operations.json",
   title: "File Operations",
-  
+
+  url: function () {
+    return App.formatUrl("/api/clusters/{clusterName}/hosts/{hostName}/host_components/NAMENODE?fields=metrics/dfs/namenode/FileInfoOps[{fromSeconds},{toSeconds},{stepSeconds}],metrics/dfs/namenode/CreateFileOps[{fromSeconds},{toSeconds},{stepSeconds}]", {
+      clusterName: App.router.get('mainController.cluster').get('clusterName')
+    }, "/data/services/metrics/hdfs/file_operations.json");
+  }.property('App.router.mainController.cluster'),
+
   transformToSeries: function (jsonData) {
     var seriesArray = [];
     if (jsonData && jsonData.metrics && jsonData.metrics.dfs && jsonData.metrics.dfs.namenode) {
-      for (var name in jsonData.metrics.dfs.namenode){
+      for ( var name in jsonData.metrics.dfs.namenode) {
         var displayName;
         var seriesData = jsonData.metrics.dfs.namenode[name];
         switch (name) {
@@ -50,9 +55,9 @@ App.ChartServiceMetricsHDFS_FileOperations = App.ChartLinearTimeView.extend({
           default:
             break;
         }
-        if(seriesData){
+        if (seriesData) {
           // Is it a string?
-          if("string" == typeof seriesData){
+          if ("string" == typeof seriesData) {
             seriesData = JSON.parse(seriesData);
           }
           // We have valid data

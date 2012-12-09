@@ -87,3 +87,47 @@ Number.prototype.countPercentageRatio = function (maxValue) {
   var usedValue = this;
   return Math.round((usedValue / maxValue) * 100) + "%";
 }
+
+/**
+ * Formats the given URL template by replacing keys in 'substitutes' 
+ * with their values. If not in App.testMode, the testUrl is used.
+ * 
+ * The substitution points in urlTemplate should be of format "...{key}..."
+ * For example "http://apache.org/{projectName}". 
+ * The substitutes can then be{projectName: "Ambari"}. 
+ * 
+ * Keys which will be automatically taken care of are:
+ * {
+ *  hostName: App.test_hostname,
+ *  fromSeconds: ..., // 1 hour back from now
+ *  toSeconds: ..., // now
+ *  stepSeconds: ..., // 15 seconds by default
+ * }
+ * 
+ * @param {String} urlTemplate  URL template on which substitutions are to be made
+ * @param substitutes Object containing keys to be replaced with respective values
+ * @param {String} testUrl  URL to be used if app is not in test mode (!App.testMode)
+ * @return {String} Formatted URL
+ */
+App.formatUrl = function (urlTemplate, substitutes, testUrl) {
+  var formatted = urlTemplate;
+  if (urlTemplate) {
+    if (App.testMode) {
+      var toSeconds = Math.round(new Date().getTime() / 1000);
+      var allSubstitutes = {
+        toSeconds: toSeconds,
+        fromSeconds: toSeconds - 3600, // 1 hour back
+        stepSeconds: 15, // 15 seconds
+        hostName: App.test_hostname
+      };
+      jQuery.extend(allSubstitutes, substitutes);
+      for (key in allSubstitutes) {
+        var useKey = '{' + key + '}';
+        formatted = formatted.replace(new RegExp(useKey, 'g'), allSubstitutes[key]);
+      }
+    } else {
+      formatted = testUrl;
+    }
+  }
+  return formatted;
+}

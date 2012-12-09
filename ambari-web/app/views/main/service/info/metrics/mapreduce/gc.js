@@ -28,14 +28,19 @@ var App = require('app');
  */
 App.ChartServiceMetricsMapReduce_GC = App.ChartLinearTimeView.extend({
   id: "service-metrics-mapreduce-gc",
-  url: "/data/services/metrics/mapreduce/gc.json",
   title: "Garbage Collection",
   yAxisFormatter: App.ChartLinearTimeView.TimeElapsedFormatter,
-  
+
+  url: function () {
+    return App.formatUrl("/api/clusters/{clusterName}/hosts/{hostName}/host_components/JOBTRACKER?fields=metrics/jvm/gcTimeMillis[{fromSeconds},{toSeconds},{stepSeconds}]", {
+      clusterName: App.router.get('mainController.cluster').get('clusterName')
+    }, "/data/services/metrics/mapreduce/gc.json");
+  }.property('App.router.mainController.cluster'),
+
   transformToSeries: function (jsonData) {
     var seriesArray = [];
     if (jsonData && jsonData.metrics && jsonData.metrics.jvm) {
-      for (var name in jsonData.metrics.jvm){
+      for ( var name in jsonData.metrics.jvm) {
         var displayName;
         var seriesData = jsonData.metrics.jvm[name];
         switch (name) {
@@ -45,9 +50,9 @@ App.ChartServiceMetricsMapReduce_GC = App.ChartLinearTimeView.extend({
           default:
             break;
         }
-        if(seriesData){
+        if (seriesData) {
           // Is it a string?
-          if("string" == typeof seriesData){
+          if ("string" == typeof seriesData) {
             seriesData = JSON.parse(seriesData);
           }
           // We have valid data

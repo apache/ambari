@@ -28,13 +28,18 @@ var App = require('app');
  */
 App.ChartServiceMetricsMapReduce_MapSlots = App.ChartLinearTimeView.extend({
   id: "service-metrics-mapreduce-map-slots",
-  url: "/data/services/metrics/mapreduce/map_slots.json",
   title: "Map Slot Utilization",
-  
+
+  url: function () {
+    return App.formatUrl("/api/clusters/{clusterName}/services/MAPREDUCE/components/JOBTRACKER?fields=metrics/mapred/jobtracker/occupied_map_slots[{fromSeconds},{toSeconds},{stepSeconds}],metrics/mapred/jobtracker/reserved_map_slots[{fromSeconds},{toSeconds},{stepSeconds}]", {
+      clusterName: App.router.get('mainController.cluster').get('clusterName')
+    }, "/data/services/metrics/mapreduce/map_slots.json");
+  }.property('App.router.mainController.cluster'),
+
   transformToSeries: function (jsonData) {
     var seriesArray = [];
     if (jsonData && jsonData.metrics && jsonData.metrics.mapred && jsonData.metrics.mapred.jobtracker) {
-      for (var name in jsonData.metrics.mapred.jobtracker){
+      for ( var name in jsonData.metrics.mapred.jobtracker) {
         var displayName;
         var seriesData = jsonData.metrics.mapred.jobtracker[name];
         switch (name) {
@@ -47,9 +52,9 @@ App.ChartServiceMetricsMapReduce_MapSlots = App.ChartLinearTimeView.extend({
           default:
             break;
         }
-        if(seriesData){
+        if (seriesData) {
           // Is it a string?
-          if("string" == typeof seriesData){
+          if ("string" == typeof seriesData) {
             seriesData = JSON.parse(seriesData);
           }
           // We have valid data

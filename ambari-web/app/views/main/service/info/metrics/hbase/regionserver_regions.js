@@ -28,8 +28,13 @@ var App = require('app');
  */
 App.ChartServiceMetricsHBASE_RegionServerRegions = App.ChartLinearTimeView.extend({
   id: "service-metrics-hbase-regionserver-regions",
-  url: "/data/services/metrics/hbase/regionserver_regions.json",
   title: "RegionServer Regions",
+
+  url: function () {
+    return App.formatUrl("/api/clusters/{clusterName}/services/HBASE/components/HBASE_REGIONSERVER?fields=metrics/hbase/regionserver/regions[{fromSeconds},{toSeconds},{stepSeconds}]", {
+      clusterName: App.router.get('mainController.cluster').get('clusterName')
+    }, "/data/services/metrics/hbase/regionserver_regions.json");
+  }.property('App.router.mainController.cluster'),
 
   transformToSeries: function (jsonData) {
     var seriesArray = [];

@@ -28,14 +28,19 @@ var App = require('app');
  */
 App.ChartServiceMetricsHDFS_RPC = App.ChartLinearTimeView.extend({
   id: "service-metrics-hdfs-rpc",
-  url: "/data/services/metrics/hdfs/rpc.json",
   title: "RPC",
   yAxisFormatter: App.ChartLinearTimeView.TimeElapsedFormatter,
-  
+
+  url: function () {
+    return App.formatUrl("/api/clusters/{clusterName}/hosts/{hostName}/host_components/NAMENODE?fields=metrics/rpc/RpcQueueTime_avg_time[{fromSeconds},{toSeconds},{stepSeconds}]", {
+      clusterName: App.router.get('mainController.cluster').get('clusterName')
+    }, "/data/services/metrics/hdfs/rpc.json");
+  }.property('App.router.mainController.cluster'),
+
   transformToSeries: function (jsonData) {
     var seriesArray = [];
     if (jsonData && jsonData.metrics && jsonData.metrics.rpc) {
-      for (var name in jsonData.metrics.rpc){
+      for ( var name in jsonData.metrics.rpc) {
         var displayName;
         var seriesData = jsonData.metrics.rpc[name];
         switch (name) {
@@ -45,9 +50,9 @@ App.ChartServiceMetricsHDFS_RPC = App.ChartLinearTimeView.extend({
           default:
             break;
         }
-        if(seriesData){
+        if (seriesData) {
           // Is it a string?
-          if("string" == typeof seriesData){
+          if ("string" == typeof seriesData) {
             seriesData = JSON.parse(seriesData);
           }
           // We have valid data

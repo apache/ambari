@@ -26,7 +26,15 @@ App.MainController = Em.Controller.extend({
   backgroundOperationsUrl : '',
   intervalId: false,
   updateOperationsInterval: 6000,
-
+  clusters: App.Cluster.find(),
+  cluster: function(){
+    var clusters = this.get('clusters');
+    if(clusters){
+      var cluster = clusters.objectAt(0);
+      return cluster;
+    }
+  }.property('clusters'),
+  
   startLoadOperationsPeriodically: function() {
     this.loadBackgroundOperations();
     this.intervalId = setInterval(this.loadBackgroundOperations, this.get('updateOperationsInterval'));

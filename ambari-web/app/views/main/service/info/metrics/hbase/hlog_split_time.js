@@ -28,9 +28,14 @@ var App = require('app');
  */
 App.ChartServiceMetricsHBASE_HlogSplitTime = App.ChartLinearTimeView.extend({
   id: "service-metrics-hbase-hlog-split-time",
-  url: "/data/services/metrics/hbase/hlog_split_time.json",
   title: "HLog Split Time",
   yAxisFormatter: App.ChartLinearTimeView.TimeElapsedFormatter,
+
+  url: function () {
+    return App.formatUrl("/api/clusters/{clusterName}/services/HBASE/components/HBASE_MASTER?fields=metrics/hbase/master/splitTime_avg_time[{fromSeconds},{toSeconds},{stepSeconds}]", {
+      clusterName: App.router.get('mainController.cluster').get('clusterName')
+    }, "/data/services/metrics/hbase/hlog_split_time.json");
+  }.property('App.router.mainController.cluster'),
 
   transformToSeries: function (jsonData) {
     var seriesArray = [];
