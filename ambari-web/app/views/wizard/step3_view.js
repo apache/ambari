@@ -48,7 +48,8 @@ App.WizardHostView = Em.View.extend({
   }.property(),
 
   isRetryable: function() {
-    return ['FAILED'].contains(this.get('hostInfo.bootStatus'));
+    // return ['FAILED'].contains(this.get('hostInfo.bootStatus'));
+    return false;
   }.property('hostInfo.bootStatus')
 
 });

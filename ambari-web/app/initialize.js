@@ -23,6 +23,7 @@ App.testMode = false;
 App.skipBootstrap = false;
 App.alwaysGoToInstaller = false;
 App.apiPrefix = '/api/v1';
+App.defaultStackVersion = 'HDP-1.2.0';
 // default AJAX timeout
 App.timeout = 20000;
 App.bgOperationsUpdateInterval = 6000;

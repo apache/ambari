@@ -50,7 +50,14 @@ App.WizardStep3Controller = Em.Controller.extend({
       }
     } else {
       this.set('bootHosts', this.get('hosts'));
-      this.isHostsRegistered();
+      if (App.testMode && App.skipBootstrap) {
+        this.get('bootHosts').setEach('bootStatus', 'REGISTERED');
+        this.get('bootHosts').setEach('cpu', '2');
+        this.get('bootHosts').setEach('memory', '2000000');
+        this.getHostInfo();
+      } else {
+        this.isHostsRegistered();
+      }
     }
   },
 
@@ -258,12 +265,7 @@ App.WizardStep3Controller = Em.Controller.extend({
       timeout: App.timeout,
       success: function (data) {
         console.log('registration attempt #' + self.get('registrationAttempts'));
-        var jsonData;
-        if (App.testMode === true) {
-          jsonData = data;
-        } else {
-          jsonData = jQuery.parseJSON(data);
-        }
+        var jsonData = App.testMode ? data : jQuery.parseJSON(data);
         if (!jsonData) {
           console.log("Error: jsonData is null");
           return;
@@ -348,12 +350,7 @@ App.WizardStep3Controller = Em.Controller.extend({
       contentType: 'application/json',
       timeout: App.timeout,
       success: function (data) {
-        var jsonData;
-        if (App.testMode) {
-          jsonData = data;
-        } else {
-          jsonData = jQuery.parseJSON(data);
-        }
+        var jsonData = App.testMode ? data : jQuery.parseJSON(data);
         hosts.forEach(function (_host) {
           var host = jsonData.items.findProperty('Hosts.host_name', _host.name);
           if (host) {

@@ -1394,7 +1394,7 @@ module.exports =
       "name": "rca_enabled",
       "displayName": "Enable RCA",
       "description": "Enable RCA",
-      "defaultValue": true,
+      "defaultValue": false,
       "isReconfigurable": true,
       "displayType": "checkbox",
       "isVisible": true,

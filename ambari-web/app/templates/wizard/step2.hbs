@@ -120,12 +120,6 @@
       <div class="alert alert-info">
         {{t installer.step2.localRepo.info}}
       </div>
-      <div class="controls">
-        {{view Ember.TextField type="text" class="span6" placeholder="Local repo file path (e.g., /etc/yum/repos.d/hdp)" valueBinding="content.localRepoPath"}}
-        {{#if localRepoError}}
-        <p class="help-inline">{{localRepoError}}</p>
-        {{/if}}
-      </div>
     </div>
     {{/if}}
   </div>

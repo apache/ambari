@@ -36,11 +36,6 @@ App.WizardStep2Controller = Em.Controller.extend({
     return this.get('content.localRepo');
   }.property('content.localRepo'),
 
-
-  localRepoPath: function () {
-    return this.get('content.localRepoPath');
-  }.property('content.localRepoPath'),
-
   sshKey: function () {
     return this.get('content.sshKey');
   }.property('content.sshKey'),
@@ -91,18 +86,6 @@ App.WizardStep2Controller = Em.Controller.extend({
     }
     return null;
   }.property('sshKey', 'manualInstall', 'hasSubmitted'),
-
-  localRepoError: function () {
-    if (
-       // (typeof this.get('localRepoPath') === 'undefined') ||
-        !(/^([-a-z0-9._\/]|%[0-9a-f]{2})*$/i.test(this.get('localRepoPath')) ) ||
-        (this.get('hasSubmitted') && this.get('localRepo') && this.get('localRepoPath').trim() === '' )
-       )
-    {
-      return Em.I18n.t('installer.step2.localRepo.error.required');
-    }
-    return null;
-  }.property('localRepo', 'localRepoPath', 'hasSubmitted'),
 
   /**
    * Get host info, which will be saved in parent controller
@@ -183,7 +166,7 @@ App.WizardStep2Controller = Em.Controller.extend({
   },
 
   isSubmitDisabled: function () {
-    return (this.get('hostsError') || this.get('sshKeyError') || this.get('localRepoError'));
-  }.property('hostsError', 'sshKeyError', 'localRepoError')
+    return (this.get('hostsError') || this.get('sshKeyError'));
+  }.property('hostsError', 'sshKeyError')
 
 });
