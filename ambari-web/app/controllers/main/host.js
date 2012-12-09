@@ -18,9 +18,6 @@
 
 var App = require('app');
 var validator = require('utils/validator');
-require('models/service');
-require('models/cluster');
-require('models/host');
 
 App.MainHostController = Em.ArrayController.extend(App.Pagination, {
   name:'mainHostController',
@@ -28,6 +25,9 @@ App.MainHostController = Em.ArrayController.extend(App.Pagination, {
   fullContent:App.Host.find(),
   clusters:App.Cluster.find(),
   //componentsForFilter: App.Component.find(),
+  isAdmin: function(){
+    return App.db.getUser().admin;
+  }.property('App.router.loginController.loginName'),
   componentsForFilter:function() {
     var components = App.Component.find();
     ret = new Array();

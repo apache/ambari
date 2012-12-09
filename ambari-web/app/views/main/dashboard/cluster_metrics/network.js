@@ -58,6 +58,7 @@ App.ChartClusterMetricsNetwork = App.ChartLinearTimeView.extend({
               y: seriesData[index][0]
             });
           }
+
           seriesArray.push(series);
         }
       }

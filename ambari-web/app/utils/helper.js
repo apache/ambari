@@ -20,6 +20,41 @@ String.prototype.trim = function () {
   return this.replace(/^\s\s*/, '').replace(/\s\s*$/, '');
 };
 
+/**
+ * convert ip address string to long int
+ * @return {*}
+ */
+String.prototype.ip2long = function () {
+  // *     example 1: ip2long('192.0.34.166');
+  // *     returns 1: 3221234342
+  // *     example 2: ip2long('0.0xABCDEF');
+  // *     returns 2: 11259375
+  // *     example 3: ip2long('255.255.255.256');
+  // *     returns 3: false
+  var i = 0;
+  // PHP allows decimal, octal, and hexadecimal IP components.
+  // PHP allows between 1 (e.g. 127) to 4 (e.g 127.0.0.1) components.
+  var IP = this.match(/^([1-9]\d*|0[0-7]*|0x[\da-f]+)(?:\.([1-9]\d*|0[0-7]*|0x[\da-f]+))?(?:\.([1-9]\d*|0[0-7]*|0x[\da-f]+))?(?:\.([1-9]\d*|0[0-7]*|0x[\da-f]+))?$/i); // Verify IP format.
+  if (!IP) {
+    return false; // Invalid format.
+  }
+  // Reuse IP variable for component counter.
+  IP[0] = 0;
+  for (i = 1; i < 5; i += 1) {
+    IP[0] += !!((IP[i] || '').length);
+    IP[i] = parseInt(IP[i]) || 0;
+  }
+  // Continue to use IP for overflow values.
+  // PHP does not allow any component to overflow.
+  IP.push(256, 256, 256, 256);
+  // Recalculate overflow of last component supplied to make up for missing components.
+  IP[4 + IP[0]] *= Math.pow(256, 4 - IP[0]);
+  if (IP[1] >= IP[5] || IP[2] >= IP[6] || IP[3] >= IP[7] || IP[4] >= IP[8]) {
+    return false;
+  }
+  return IP[1] * (IP[0] === 1 || 16777216) + IP[2] * (IP[0] <= 2 || 65536) + IP[3] * (IP[0] <= 3 || 256) + IP[4] * 1;
+};
+
 String.prototype.capitalize = function () {
   return this.charAt(0).toUpperCase() + this.slice(1);
 }
@@ -30,30 +65,32 @@ Em.CoreObject.reopen({
   }
 });
 
-Handlebars.registerHelper('log', function (variable) {
+Em.Handlebars.registerHelper('log', function (variable) {
   console.log(variable);
 });
 
-Handlebars.registerHelper('warn', function (variable) {
+Em.Handlebars.registerHelper('warn', function (variable) {
   console.warn(variable);
 });
 
-Handlebars.registerHelper('highlight', function (variable, words) {
+Em.Handlebars.registerHelper('highlight', function (property, words, fn) {
+  var context = (fn.contexts && fn.contexts[0]) || this;
+  property = Em.Handlebars.getPath(context, property, fn);
+
   words = words.split(";");
 
-//  var self = this;
 //  if (highlightTemplate == undefined) {
   var highlightTemplate = "<b>{0}</b>";
 //  }
 
   words.forEach(function (word) {
     var searchRegExp = new RegExp("\\b" + word + "\\b", "gi");
-    variable = variable.replace(searchRegExp, function (found) {
+    property = property.replace(searchRegExp, function (found) {
       return highlightTemplate.format(found);
     });
   });
 
-  return new Handlebars.SafeString(variable);
+  return new Em.Handlebars.SafeString(property);
 })
 /**
  * Replace {i} with argument. where i is number of argument to replace with
@@ -128,6 +165,17 @@ Number.prototype.toDaysHoursMinutes = function () {
 Number.prototype.countPercentageRatio = function (maxValue) {
   var usedValue = this;
   return Math.round((usedValue / maxValue) * 100) + "%";
+}
+
+Number.prototype.long2ip = function () {
+  // http://kevin.vanzonneveld.net
+  // +   original by: Waldo Malqui Silva
+  // *     example 1: long2ip( 3221234342 );
+  // *     returns 1: '192.0.34.166'
+  if (!isFinite(this))
+    return false;
+
+  return [this >>> 24, this >>> 16 & 0xFF, this >>> 8 & 0xFF, this & 0xFF].join('.');
 }
 
 /**

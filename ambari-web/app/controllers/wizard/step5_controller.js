@@ -20,30 +20,30 @@ var App = require('app');
 
 App.WizardStep5Controller = Em.Controller.extend({
 
-  name: "wizardStep5Controller",
+  name:"wizardStep5Controller",
 
-  hosts: [],
+  hosts:[],
 
-  selectedServices: [],
-  selectedServicesMasters: [],
-  zId: 0,
+  selectedServices:[],
+  selectedServicesMasters:[],
+  zId:0,
 
-  components: require('data/service_components'),
+  components:require('data/service_components'),
 
-  clearStep: function () {
+  clearStep:function () {
     this.set('hosts', []);
     this.set('selectedServices', []);
     this.set('selectedServicesMasters', []);
     this.set('zId', 0);
   },
 
-  loadStep: function () {
+  loadStep:function () {
     console.log("WizardStep5Controller: Loading step5: Assign Masters");
     this.clearStep();
     this.renderHostInfo();
     this.renderComponents(this.loadComponents());
 
-    if(!this.get("selectedServicesMasters").filterProperty('isInstalled', false).length){
+    if (!this.get("selectedServicesMasters").filterProperty('isInstalled', false).length) {
       console.log('no master components to add');
       App.router.send('next');
     }
@@ -52,19 +52,32 @@ App.WizardStep5Controller = Em.Controller.extend({
   /**
    * Load active host list to <code>hosts</code> variable
    */
-  renderHostInfo: function () {
+  renderHostInfo:function () {
 
     var hostInfo = this.get('content.hostsInfo');
 
     for (var index in hostInfo) {
       var _host = hostInfo[index];
       if (_host.bootStatus === 'success' || true) {  // TODO: remove "true" after integrating with bootstrap
-
         var hostObj = Ember.Object.create({
-          host_name: _host.name,
-          cpu: _host.cpu,
-          memory: _host.memory,
-          host_info: "%@ (%@, %@ cores)".fmt(_host.name, (_host.memory * 1024).bytesToSize(1, 'parseFloat'), _host.cpu)
+          host_name:_host.name,
+
+          cpu:_host.cpu,
+          memory:_host.memory,
+          host_info:"%@ (%@, %@ cores)".fmt(_host.name, (_host.memory * 1024).bytesToSize(1, 'parseFloat'), _host.cpu)
+
+//          Uncomment to test sorting with random cpu, memory, host_info
+//          cpu:function () {
+//            return parseInt(2 + Math.random() * 4);
+//          }.property(),
+//          memory:function () {
+//            return parseInt((Math.random() * 4000000000) + 4000000000);
+//          }.property(),
+//
+//          host_info:function () {
+//            return "%@ (%@, %@ cores)".fmt(this.get('host_name'), (this.get('memory') * 1024).bytesToSize(1, 'parseFloat'), this.get('cpu'));
+//          }.property('cpu', 'memory')
+
         });
 
         this.get("hosts").pushObject(hostObj);
@@ -76,13 +89,13 @@ App.WizardStep5Controller = Em.Controller.extend({
    * Load services info to appropriate variable and return masterComponentHosts
    * @return {Ember.Set}
    */
-  loadComponents: function () {
+  loadComponents:function () {
 
     var services = this.get('content.services')
       .filterProperty('isSelected', true).mapProperty('serviceName'); //list of shown services
 
     services.forEach(function (item) {
-      this.get("selectedServices").pushObject(Ember.Object.create({service_name: item}));
+      this.get("selectedServices").pushObject(Ember.Object.create({service_name:item}));
     }, this);
 
     var masterHosts = this.get('content.masterComponentHosts'); //saved to local storadge info
@@ -97,11 +110,11 @@ App.WizardStep5Controller = Em.Controller.extend({
 
       componentInfo.forEach(function (_componentInfo) {
 
-        if(_componentInfo.component_name == 'ZOOKEEPER_SERVER'){
+        if (_componentInfo.component_name == 'ZOOKEEPER_SERVER') {
           var savedComponents = masterHosts.filterProperty('component', _componentInfo.component_name);
-          if(savedComponents.length){
+          if (savedComponents.length) {
 
-            savedComponents.forEach(function(item){
+            savedComponents.forEach(function (item) {
               var zooKeeperHost = {};
               zooKeeperHost.display_name = _componentInfo.display_name;
               zooKeeperHost.component_name = _componentInfo.component_name;
@@ -112,7 +125,7 @@ App.WizardStep5Controller = Em.Controller.extend({
               resultComponents.add(zooKeeperHost);
             })
 
-          } else{
+          } else {
 
             var zooHosts = this.selectHost(_componentInfo.component_name);
             zooHosts.forEach(function (_host) {
@@ -148,7 +161,7 @@ App.WizardStep5Controller = Em.Controller.extend({
    * Put master components to <code>selectedServicesMasters</code>, which will be automatically rendered in template
    * @param masterComponents
    */
-  renderComponents: function (masterComponents) {
+  renderComponents:function (masterComponents) {
     var zookeeperComponent = null, componentObj = null;
     var services = this.get('selectedServicesMasters').slice(0);
     if (services.length) {
@@ -180,7 +193,7 @@ App.WizardStep5Controller = Em.Controller.extend({
 
   },
 
-  getKerberosServer: function (noOfHosts) {
+  getKerberosServer:function (noOfHosts) {
     var hosts = this.get('hosts');
     if (noOfHosts === 1) {
       return hosts[0];
@@ -195,12 +208,12 @@ App.WizardStep5Controller = Em.Controller.extend({
     }
   },
 
-  getNameNode: function (noOfHosts) {
+  getNameNode:function (noOfHosts) {
     var hosts = this.get('hosts');
     return hosts[0];
   },
 
-  getSNameNode: function (noOfHosts) {
+  getSNameNode:function (noOfHosts) {
     var hosts = this.get('hosts');
     if (noOfHosts === 1) {
       return hosts[0];
@@ -209,7 +222,7 @@ App.WizardStep5Controller = Em.Controller.extend({
     }
   },
 
-  getJobTracker: function (noOfHosts) {
+  getJobTracker:function (noOfHosts) {
     var hosts = this.get('hosts');
     if (noOfHosts === 1) {
       return hosts[0];
@@ -224,7 +237,7 @@ App.WizardStep5Controller = Em.Controller.extend({
     }
   },
 
-  getHBaseMaster: function (noOfHosts) {
+  getHBaseMaster:function (noOfHosts) {
     var hosts = this.get('hosts');
     if (noOfHosts === 1) {
       return hosts[0];
@@ -232,21 +245,6 @@ App.WizardStep5Controller = Em.Controller.extend({
       return hosts[0];
     } else if (noOfHosts <= 5) {
       return hosts[0];
-    } else if (noOfHosts <= 30) {
-      return hosts[2];
-    } else {
-      return hosts[3];
-    }
-  },
-
-  getOozieServer: function (noOfHosts) {
-    var hosts = this.get('hosts');
-    if (noOfHosts === 1) {
-      return hosts[0];
-    } else if (noOfHosts < 3) {
-      return hosts[1];
-    } else if (noOfHosts <= 5) {
-      return hosts[1];
     } else if (noOfHosts <= 30) {
       return hosts[2];
     } else {
@@ -254,7 +252,7 @@ App.WizardStep5Controller = Em.Controller.extend({
     }
   },
 
-  getOozieServer: function (noOfHosts) {
+  getOozieServer:function (noOfHosts) {
     var hosts = this.get('hosts');
     if (noOfHosts === 1) {
       return hosts[0];
@@ -269,7 +267,22 @@ App.WizardStep5Controller = Em.Controller.extend({
     }
   },
 
-  getHiveServer: function (noOfHosts) {
+  getOozieServer:function (noOfHosts) {
+    var hosts = this.get('hosts');
+    if (noOfHosts === 1) {
+      return hosts[0];
+    } else if (noOfHosts < 3) {
+      return hosts[1];
+    } else if (noOfHosts <= 5) {
+      return hosts[1];
+    } else if (noOfHosts <= 30) {
+      return hosts[2];
+    } else {
+      return hosts[3];
+    }
+  },
+
+  getHiveServer:function (noOfHosts) {
     var hosts = this.get('hosts');
     if (noOfHosts === 1) {
       return hosts[0];
@@ -284,7 +297,7 @@ App.WizardStep5Controller = Em.Controller.extend({
     }
   },
 
-  getTempletonServer: function (noOfHosts) {
+  getTempletonServer:function (noOfHosts) {
     var hosts = this.get('hosts');
     if (noOfHosts === 1) {
       return hosts[0];
@@ -299,7 +312,7 @@ App.WizardStep5Controller = Em.Controller.extend({
     }
   },
 
-  getZooKeeperServer: function (noOfHosts) {
+  getZooKeeperServer:function (noOfHosts) {
     var hosts = this.get('hosts');
     if (noOfHosts < 3) {
       return [hosts[0].host_name];
@@ -308,7 +321,7 @@ App.WizardStep5Controller = Em.Controller.extend({
     }
   },
 
-  getGangliaServer: function (noOfHosts) {
+  getGangliaServer:function (noOfHosts) {
     var hosts = this.get('hosts');
     var hostnames = [];
     var inc = 0;
@@ -324,7 +337,7 @@ App.WizardStep5Controller = Em.Controller.extend({
     }
   },
 
-  getNagiosServer: function (noOfHosts) {
+  getNagiosServer:function (noOfHosts) {
     var hosts = this.get('hosts');
     var hostnames = [];
     var inc = 0;
@@ -346,7 +359,7 @@ App.WizardStep5Controller = Em.Controller.extend({
    * @param componentName
    * @return {*}
    */
-  selectHost: function (componentName) {
+  selectHost:function (componentName) {
     var noOfHosts = this.get('hosts').length;
     if (componentName === 'KERBEROS_SERVER') {
       return this.getKerberosServer(noOfHosts).host_name;
@@ -373,8 +386,7 @@ App.WizardStep5Controller = Em.Controller.extend({
     }
   },
 
-
-  masterHostMapping: function () {
+  masterHostMapping:function () {
     var mapping = [], mappingObject, self = this, mappedHosts, hostObj, hostInfo;
     //get the unique assigned hosts and find the master services assigned to them
 
@@ -385,9 +397,9 @@ App.WizardStep5Controller = Em.Controller.extend({
       console.log("Name of the host is: " + hostObj.host_name);
 
       mappingObject = Ember.Object.create({
-        host_name: item,
-        hostInfo: hostObj.host_info,
-        masterServices: self.get("selectedServicesMasters").filterProperty("selectedHost", item)
+        host_name:item,
+        hostInfo:hostObj.host_info,
+        masterServices:self.get("selectedServicesMasters").filterProperty("selectedHost", item)
       });
 
       mapping.pushObject(mappingObject);
@@ -399,16 +411,16 @@ App.WizardStep5Controller = Em.Controller.extend({
 
   }.property("selectedServicesMasters.@each.selectedHost"),
 
-  remainingHosts: function () {
+  remainingHosts:function () {
     return (this.get("hosts.length") - this.get("masterHostMapping.length"));
   }.property("selectedServicesMasters.@each.selectedHost"),
 
-  hasZookeeper: function () {
+  hasZookeeper:function () {
     return this.selectedServices.findProperty("service_name", "ZooKeeper");
   }.property("selectedServices"),
 
   //methods
-  getAvailableHosts: function (componentName) {
+  getAvailableHosts:function (componentName) {
     var assignableHosts = [],
       zookeeperHosts = null;
 
@@ -426,7 +438,7 @@ App.WizardStep5Controller = Em.Controller.extend({
     }
   },
 
-  assignHostToMaster: function (masterService, selectedHost, zId) {
+  assignHostToMaster:function (masterService, selectedHost, zId) {
     if (selectedHost && masterService) {
       if ((masterService === "ZooKeeper") && zId) {
         this.get('selectedServicesMasters').findProperty("zId", zId).set("selectedHost", selectedHost);
@@ -439,7 +451,7 @@ App.WizardStep5Controller = Em.Controller.extend({
     }
   },
 
-  lastZooKeeper: function () {
+  lastZooKeeper:function () {
     var currentZooKeepers = this.get("selectedServicesMasters").filterProperty("display_name", "ZooKeeper");
     if (currentZooKeepers) {
       return currentZooKeepers.get("lastObject");
@@ -448,7 +460,7 @@ App.WizardStep5Controller = Em.Controller.extend({
     return null;
   },
 
-  addZookeepers: function () {
+  addZookeepers:function () {
     /*
      *Logic: If ZooKeeper service is selected then there can be
      * minimum 1 ZooKeeper master in total, and
@@ -513,7 +525,7 @@ App.WizardStep5Controller = Em.Controller.extend({
     return false;//if no more zookeepers can be added
   },
 
-  removeZookeepers: function (zId) {
+  removeZookeepers:function (zId) {
     var currentZooKeepers;
 
     //work only if the Zookeeper service is selected in previous step
@@ -544,7 +556,7 @@ App.WizardStep5Controller = Em.Controller.extend({
 
   },
 
-  rebalanceZookeeperHosts: function () {
+  rebalanceZookeeperHosts:function () {
     //for a zookeeper update the available hosts for the other zookeepers
 
     var currentZooKeepers = this.get("selectedServicesMasters").filterProperty("display_name", "ZooKeeper"),
@@ -567,7 +579,7 @@ App.WizardStep5Controller = Em.Controller.extend({
     }, this);
   },
 
-  sortHostsByConfig: function (a, b) {
+  sortHostsByConfig:function (a, b) {
     //currently handling only total memory on the host
     if (a.memory < b.memory) {
       return 1;
@@ -577,7 +589,7 @@ App.WizardStep5Controller = Em.Controller.extend({
     }
   },
 
-  sortHostsByName: function (a, b) {
+  sortHostsByName:function (a, b) {
     if (a.host_name > b.host_name) {
       return 1;
     }

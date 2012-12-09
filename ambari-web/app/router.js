@@ -134,7 +134,6 @@ App.Router = Em.Router.extend({
     var loginName = controller.get('loginName');
     var hash = window.btoa(loginName + ":" + controller.get('password'));
     var router = this;
-
     $.ajax({
       url : App.apiPrefix + '/users/' + loginName,
       dataType : 'text',
@@ -158,13 +157,36 @@ App.Router = Em.Router.extend({
 
         var resp = $.parseJSON(data);
         var isAdmin = resp.Users.roles.indexOf('admin') >= 0;
+        if(isAdmin){
+          router.setAuthenticated(true);
+          router.setLoginName(loginName);
 
-        router.setAuthenticated(true);
-        router.setLoginName(loginName);
+          router.setUser(App.store.createRecord(App.User, { userName: loginName, admin: isAdmin }));
+          router.transitionTo(router.getSection());
+          postLogin(true);
+        } else {
+          $.ajax({
+            url: App.apiPrefix + '/clusters',
+            dataType: 'text',
+            type: 'GET',
+            success: function (data) {
+              var clusterResp = $.parseJSON(data);
+              if (clusterResp.items.length) {
+                router.setAuthenticated(true);
+                router.setLoginName(loginName);
 
-        router.setUser(App.store.createRecord(App.User, { userName: loginName, admin: isAdmin }));
-        router.transitionTo(router.getSection());
-        postLogin(true);
+                router.setUser(App.store.createRecord(App.User, { userName: loginName, admin: isAdmin }));
+                router.transitionTo(router.getSection());
+                postLogin(true);
+              } else {
+                controller.set('errorMessage', "Your administrator has not set up a Hadoop cluster yet.");
+              }
+            },
+            error: function (req) {
+              console.log("Server not responding: " + req.statusCode);
+            }
+          });
+        }
       },
       error: function (req) {
         console.log("login error: " + req.statusCode);
@@ -172,6 +194,7 @@ App.Router = Em.Router.extend({
         postLogin(false);
       }
     });
+
   },
 
   setAmbariStacks: function () {
@@ -213,19 +236,49 @@ App.Router = Em.Router.extend({
   mockLogin: function (postLogin) {
     var controller = this.get('loginController');
     var loginName = controller.get('loginName');
-
+    var router = this;
     if ((loginName === 'admin' && controller.get('password') === 'admin') ||
-        (loginName === 'user' && controller.get('password') === 'user')) {
-      this.setAuthenticated(true);
-      this.setLoginName(loginName);
-      this.setUser(App.store.createRecord(App.User, { userName: loginName, admin: loginName === 'admin' }));
-      this.setAmbariStacks();
-      this.transitionTo(this.getSection());
-      postLogin(true);
+      (loginName === 'user' && controller.get('password') === 'user')) {
+      if(loginName === 'admin'){
+        router.setAuthenticated(true);
+        router.setLoginName(loginName);
+
+        router.setUser(App.store.createRecord(App.User, { userName: loginName, admin: loginName === 'admin' }));
+        router.setAmbariStacks();
+
+        router.transitionTo(router.getSection());
+        postLogin(true);
+      } else {
+        $.ajax({
+          url: '/data/clusters/info.json',
+          dataType: 'text',
+          type: 'GET',
+          success: function (data) {
+            var clusterResp = $.parseJSON(data);
+            if (clusterResp.items.length) {
+              router.setAuthenticated(true);
+              router.setLoginName(loginName);
+
+              router.setUser(App.store.createRecord(App.User, { userName: loginName, admin: loginName === 'admin' }));
+              router.setAmbariStacks();
+
+              router.transitionTo(router.getSection());
+              postLogin(true);
+            } else {
+              controller.set('errorMessage', "Your administrator has not set up a Hadoop cluster yet.");
+            }
+          },
+          error: function (req) {
+            console.log("Server not responding: " + req.statusCode);
+          }
+        });
+      }
     } else {
-      this.setAuthenticated(false);
+      router.setAuthenticated(false);
       postLogin(false);
     }
+
+
   },
 
   getSection: function () {

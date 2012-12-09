@@ -22,6 +22,24 @@ App.ClusterController = Em.Controller.extend({
   name:'clusterController',
   cluster:null,
   isLoaded:false,
+  graphs: [],
+  graphsUpdate: function () {
+    if (!this.get('isLoaded')) return;
+    var self = this;
+    console.log('graphs updated', self.get('graphs'));
+    var interval = setInterval(function () {
+      self.get('graphs').forEach(function (_graph) {
+        var view = Em.View.views[_graph.id];
+        if (view) {
+          console.log('updated graph', _graph.name);
+          view.$(".chart-container").children().each(function (index, value) {
+            $(value).children().remove();
+          });
+          view.loadData();
+        }
+      })
+    }, App.graphUpdateInterval);
+  }.observes('isLoaded'),
   updateLoadStatus:function (item) {
     var loadList = this.get('dataLoadList');
     var loaded = true;
@@ -82,7 +100,7 @@ App.ClusterController = Em.Controller.extend({
    *
    * If null is returned, it means GANGLIA service is not installed.
    */
-  gangliaUrl: function () {
+  gangliaUrl:function () {
     if (App.testMode) {
       return 'http://gangliaserver/ganglia/?t=yes';
     } else {
@@ -103,7 +121,7 @@ App.ClusterController = Em.Controller.extend({
       }
       return null;
     }
-  }.property('dataLoadList.services'),
+  }.property('App.router.updateController.isUpdated'),
 
   /**
    * Provides the URL to use for NAGIOS server. This URL
@@ -126,14 +144,14 @@ App.ClusterController = Em.Controller.extend({
           if (nagiosSvcComponent) {
             var hostName = nagiosSvcComponent.get('host.hostName');
             if (hostName) {
-              return "http://"+hostName+"/nagios";
+              return "http://" + hostName + "/nagios";
             }
           }
         }
       }
       return null;
     }
-  }.property('dataLoadList.services'),
+  }.property('App.router.updateController.isUpdated'),
 
   isNagiosInstalled:function () {
     if (App.testMode) {
@@ -143,7 +161,7 @@ App.ClusterController = Em.Controller.extend({
       var nagiosSvc = svcs.findProperty("serviceName", "NAGIOS");
       return nagiosSvc != null;
     }
-  }.property('dataLoadList.services'),
+  }.property('App.router.updateController.isUpdated'),
 
   /**
    * Sorted list of alerts.
@@ -166,19 +184,19 @@ App.ClusterController = Em.Controller.extend({
     return sortedArray;
   }.property('dataLoadList.alerts'),
 
-  loadRuns: function(){
-    if(this.get('postLoadList.runs')){
+  loadRuns:function () {
+    if (this.get('postLoadList.runs')) {
       return;
     }
 
-    var self= this;
+    var self = this;
     var runsUrl = App.testMode ? "/data/apps/runs.json" : App.apiPrefix + "/jobhistory/workflow";
 
     App.HttpClient.get(runsUrl, App.runsMapper, {
       complete:function (jqXHR, textStatus) {
         self.set('postLoadList.runs', true);
       }
-    }, function(){
+    }, function () {
       self.set('postLoadList.runs', true);
     });
   },
@@ -217,19 +235,56 @@ App.ClusterController = Em.Controller.extend({
     }
   }.observes('nagiosUrl'),
 
-  updateStatus: function(){
+  componentsUpdateInterval: App.componentsUpdateInterval,
+
+  /**
+   * Whether we need to update statuses automatically or not
+   */
+  updateStatus: false,
+
+  statusTimeoutId: null,
+
+  loadUpdatedStatusDelayed: function(delay){
+    delay = delay || this.get('componentsUpdateInterval');
+    var self = this;
+
+    this.set('statusTimeoutId',
+      setTimeout(function(){
+        self.loadUpdatedStatus();
+      }, delay)
+    );
+  },
+
+  loadUpdatedStatus: function(){
+
+    var timeoutId = this.get('statusTimeoutId');
+    if(timeoutId){
+      clearTimeout(timeoutId);
+      this.set('statusTimeoutId', null);
+    }
+
+    if(!this.get('updateStatus')){
+      return false;
+    }
+
+    if(!this.get('clusterName')){
+      this.loadUpdatedStatusDelayed(this.get('componentsUpdateInterval')/2, 'error:clusterName');
+      return;
+    }
+    
     var servicesUrl1 = this.getUrl('/data/dashboard/services.json', '/services?ServiceInfo/service_name!=MISCELLANEOUS&ServiceInfo/service_name!=DASHBOARD&fields=*,components/host_components/*');
 
     var self = this;
     App.HttpClient.get(servicesUrl1, App.statusMapper, {
       complete:function (jqXHR, textStatus) {
-        console.log('update finished')
-        setTimeout(function(){
-          self.updateStatus();
-        }, 3000);
+        console.log('Cluster Controller: Updated components statuses successfully!!!')
+        self.loadUpdatedStatusDelayed();
       }
-    }, null);
-  },
+    }, function(){
+      self.loadUpdatedStatusDelayed(null, 'error:response error');
+    });
+
+  }.observes('updateStatus'),
 
   /**
    *
@@ -241,10 +296,12 @@ App.ClusterController = Em.Controller.extend({
       return;
     }
 
+    if(this.get('isLoaded')) { // do not load data repeatedly
+      return;
+    }
+
     var clusterUrl = this.getUrl('/data/clusters/cluster.json', '?fields=Clusters');
     var hostsUrl = this.getUrl('/data/hosts/hosts.json', '/hosts?fields=*');
-    var servicesUrl1 = this.getUrl('/data/dashboard/services.json', '/services?ServiceInfo/service_name!=MISCELLANEOUS&ServiceInfo/service_name!=DASHBOARD&fields=*,components/host_components/*');
-    var servicesUrl2 = this.getUrl('/data/dashboard/serviceComponents.json', '/services?ServiceInfo/service_name!=MISCELLANEOUS&ServiceInfo/service_name!=DASHBOARD&fields=components/ServiceComponentInfo');
     var usersUrl = App.testMode ? '/data/users/users.json' : App.apiPrefix + '/users/?fields=*';
     var racksUrl = "/data/racks/racks.json";
 
@@ -280,125 +337,12 @@ App.ClusterController = Em.Controller.extend({
       self.updateLoadStatus('users');
     });
 
-    //////////////////////////////
-    // Hack for services START  //
-    //////////////////////////////
-    var metricsJson = null;
-    var serviceComponentJson = null;
-    var metricsMapper = {
-      map:function (data) {
-        metricsJson = data;
-      }
-    };
-    var serviceComponentMapper = {
-      map:function (data) {
-        serviceComponentJson = data;
-        if (metricsJson != null && serviceComponentJson != null) {
-          var hdfsSvc1 = null;
-          var hdfsSvc2 = null;
-          var mrSvc1 = null;
-          var mrSvc2 = null;
-          var hbaseSvc1 = null;
-          var hbaseSvc2 = null;
-          metricsJson.items.forEach(function (svc) {
-            if (svc.ServiceInfo.service_name == "HDFS") {
-              hdfsSvc1 = svc;
-            }
-            if (svc.ServiceInfo.service_name == "MAPREDUCE") {
-              mrSvc1 = svc;
-            }
-            if (svc.ServiceInfo.service_name == "HBASE") {
-              hbaseSvc1 = svc;
-            }
-          });
-          serviceComponentJson.items.forEach(function (svc) {
-            if (svc.ServiceInfo.service_name == "HDFS") {
-              hdfsSvc2 = svc;
-            }
-            if (svc.ServiceInfo.service_name == "MAPREDUCE") {
-              mrSvc2 = svc;
-            }
-            if (svc.ServiceInfo.service_name == "HBASE") {
-              hbaseSvc2 = svc;
-            }
-          });
-          var nnC1 = null;
-          var nnC2 = null;
-          var jtC1 = null;
-          var jtC2 = null;
-          var hbm1 = null;
-          var hbm2 = null;
-          if (hdfsSvc1) {
-            hdfsSvc1.components.forEach(function (c) {
-              if (c.ServiceComponentInfo.component_name == "NAMENODE") {
-                nnC1 = c;
-              }
-            });
-          }
-          if (hdfsSvc2) {
-            hdfsSvc2.components.forEach(function (c) {
-              if (c.ServiceComponentInfo.component_name == "NAMENODE") {
-                nnC2 = c;
-              }
-            });
-          }
-          if (mrSvc1) {
-            mrSvc1.components.forEach(function (c) {
-              if (c.ServiceComponentInfo.component_name == "JOBTRACKER") {
-                jtC1 = c;
-              }
-            });
-          }
-          if (mrSvc2) {
-            mrSvc2.components.forEach(function (c) {
-              if (c.ServiceComponentInfo.component_name == "JOBTRACKER") {
-                jtC2 = c;
-              }
-            });
-          }
-          if (hbaseSvc1) {
-            hbaseSvc1.components.forEach(function (c) {
-              if (c.ServiceComponentInfo.component_name == "HBASE_MASTER") {
-                hbm1 = c;
-              }
-            });
-          }
-          if (hbaseSvc2) {
-            hbaseSvc2.components.forEach(function (c) {
-              if (c.ServiceComponentInfo.component_name == "HBASE_MASTER") {
-                hbm2 = c;
-              }
-            });
-          }
-          if (nnC1 && nnC2) {
-            nnC1.ServiceComponentInfo = nnC2.ServiceComponentInfo;
-          }
-          if (jtC1 && jtC2) {
-            jtC1.ServiceComponentInfo = jtC2.ServiceComponentInfo;
-          }
-          if (hbm1 && hbm2) {
-            hbm1.ServiceComponentInfo = hbm2.ServiceComponentInfo;
-          }
-          App.servicesMapper.map(metricsJson);
-          self.updateLoadStatus('services');
-        }
-      }
-    }
-    App.HttpClient.get(servicesUrl1, metricsMapper, {
-      complete:function (jqXHR, textStatus) {
-        App.HttpClient.get(servicesUrl2, serviceComponentMapper, {
-          complete:function (jqXHR, textStatus) {
-          }
-        });
-      }
-    });
-    /////////////////////////////
-    // Hack for services END   //
-    /////////////////////////////
+    //TODO: define dependencies and delete next line
+    self.updateLoadStatus('services');
 
     setTimeout(function(){
-      self.updateStatus();
-    }, 8000);
+      self.set('updateStatus', true);
+    }, this.get('componentsUpdateInterval')*2);
 
   },
 

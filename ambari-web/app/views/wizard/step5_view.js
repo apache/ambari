@@ -21,9 +21,9 @@ var App = require('app');
 
 App.WizardStep5View = Em.View.extend({
 
-  templateName: require('templates/wizard/step5'),
+  templateName:require('templates/wizard/step5'),
 
-  didInsertElement: function () {
+  didInsertElement:function () {
     var controller = this.get('controller');
     controller.loadStep();
 
@@ -39,39 +39,73 @@ App.WizardStep5View = Em.View.extend({
 });
 
 App.SelectHostView = Em.Select.extend({
-  content: [],
-  zId: null,
-  selectedHost: null,
-  serviceName: null,
-  attributeBindings: ['disabled'],
+  content:[],
+  zId:null,
+  selectedHost:null,
+  serviceName:null,
+  attributeBindings:['disabled'],
 
-  change: function () {
+  filterContent:function () {
+    this.get('content').sort(function (a, b) {
+      if (a.get('memory') == b.get('memory')) {
+        if (a.get('cpu') == b.get('cpu')) {
+
+//          try to compare as ipaddresses
+          if (a.get('host_name').ip2long() && b.get('host_name').ip2long()) {
+            return a.get('host_name').ip2long() - b.get('host_name').ip2long(); // hostname asc
+          }
+
+//          try to compare as strings
+          if (a.get('host_name') > b.get('host_name')) {
+            return 1;
+          }
+
+          if (b.get('host_name') > a.get('host_name')) {
+            return -1;
+          }
+
+          return 0;
+        }
+        return b.get('cpu') - a.get('cpu'); // cores desc
+      }
+
+      return b.get('memory') - a.get('memory'); // ram desc
+    });
+
+  }.observes('content'),
+
+  init:function () {
+    this._super();
+    this.propertyDidChange('content');
+  },
+
+  change:function () {
     this.get('controller').assignHostToMaster(this.get("serviceName"), this.get("value"), this.get("zId"));
   },
 
-  didInsertElement: function () {
+  didInsertElement:function () {
     this.set("value", this.get("selectedHost"));
   }
 });
 
 App.AddControlView = Em.View.extend({
-  componentName: null,
-  tagName: "span",
-  classNames: ["badge", "badge-important"],
-  template: Ember.Handlebars.compile('+'),
+  componentName:null,
+  tagName:"span",
+  classNames:["badge", "badge-important"],
+  template:Ember.Handlebars.compile('+'),
 
-  click: function () {
+  click:function () {
     this.get('controller').addZookeepers();
   }
 });
 
 App.RemoveControlView = Em.View.extend({
-  zId: null,
-  tagName: "span",
-  classNames: ["badge", "badge-important"],
-  template: Ember.Handlebars.compile('-'),
+  zId:null,
+  tagName:"span",
+  classNames:["badge", "badge-important"],
+  template:Ember.Handlebars.compile('-'),
 
-  click: function () {
+  click:function () {
     this.get('controller').removeZookeepers(this.get("zId"));
   }
 });

@@ -61,7 +61,7 @@ App.MainServiceMenuView = Em.CollectionView.extend({
   classNames:["nav", "nav-list", "nav-services"],
 
   itemViewClass:Em.View.extend({
-    classNameBindings:["active"],
+    classNameBindings:["active", "clients"],
     active:function () {
       return this.get('content.id') == this.get('parentView.activeServiceId') ? 'active' : '';
     }.property('parentView.activeServiceId'),
@@ -73,7 +73,10 @@ App.MainServiceMenuView = Em.CollectionView.extend({
       }
       return 0;
     }.property('App.router.clusterController.alerts'),
-
+    clients: function(){
+      var content = this.get('content');
+      return this.get('content.isClients') ? "clients" : "";
+    }.property("content"),
     templateName:require('templates/main/service/menu_item')
   })
 });

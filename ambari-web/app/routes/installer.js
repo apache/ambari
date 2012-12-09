@@ -26,14 +26,19 @@ module.exports = Em.Route.extend({
     console.log('in /installer:enter');
 
     if (router.getAuthenticated()) {
-      router.get('mainController').stopLoadOperationsPeriodically();
-      console.log('In installer with successful authenticated');
-      console.log('current step=' + router.get('installerController.currentStep'));
-      Ember.run.next(function () {
-        var installerController = router.get('installerController');
-        router.transitionTo('step' + installerController.get('currentStep'));
-      });
-
+      if (App.db.getUser().admin) {
+        router.get('mainController').stopLoadOperationsPeriodically();
+        console.log('In installer with successful authenticated');
+        console.log('current step=' + router.get('installerController.currentStep'));
+        Ember.run.next(function () {
+          var installerController = router.get('installerController');
+          router.transitionTo('step' + installerController.get('currentStep'));
+        });
+      } else {
+        Em.run.next(function () {
+          App.router.transitionTo('main.services');
+        });
+      }
     } else {
       console.log('In installer but its not authenticated');
       console.log('value of authenticated is: ' + router.getAuthenticated());

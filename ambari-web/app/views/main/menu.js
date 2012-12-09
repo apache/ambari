@@ -25,18 +25,21 @@ var App = require('app');
 App.MainMenuView = Em.CollectionView.extend({
   tagName:'ul',
   classNames:['nav'],
-  content:[
-    { label:'Dashboard', routing:'dashboard', active:'active'},
-    { label:'Charts', routing:'charts'},
-    { label:'Services', routing:'services'},
-    { label:'Hosts', routing:'hosts'},
-    { label:'Apps', routing:'apps'},
-    { label:'Admin', routing:'admin'}
-  ],
+  content:function(){
+    var result = [
+      { label:'Dashboard', routing:'dashboard', active:'active'},
+      { label:'Charts', routing:'charts'},
+      { label:'Services', routing:'services'},
+      { label:'Hosts', routing:'hosts'},
+      { label:'Apps', routing:'apps'}
 
-  /**
-   *    Adds observer on lastSetURL and calls navigation sync procedure
-   */
+    ];
+      if(App.db.getUser().admin) result.push({ label:'Admin', routing:'admin'});
+    return result;
+  }.property(),
+    /**
+     *    Adds observer on lastSetURL and calls navigation sync procedure
+     */
   didInsertElement:function () {
     App.router.location.addObserver('lastSetURL', this, 'renderOnRoute');
     this.renderOnRoute();

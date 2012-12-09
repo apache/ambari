@@ -29,54 +29,11 @@ App.BackgroundOperationsController = Em.Controller.extend({
   allOperations: [],
   allOperationsCount : 0,
 
-  /**
-   * Update it every time when background operations for services are changed
-   */
-  serviceOperationsChangeTime: function(){
-    return (new Date().getTime());
-  }.property('hdfsOperations', 'mapReduceOperations'),
-
-  hdfsOperations : function(){
-    var all = this.get('allOperations');
-    var result = [];
-
-    all.forEach(function(item){
-      if( ['NAMENODE', 'SECONDARY_NAMENODE', 'DATANODE', 'HDFS_CLIENT', 'HDFS_SERVICE_CHECK'].contains(item.role)){
-        result.push(item);
-      }
-    })
-    return result;
-  }.property('allOperations.@each'),
-
-  mapReduceOperations : function(){
-    var all = this.get('allOperations');
-    var result = [];
-
-    all.forEach(function(item){
-      if( ['MAPREDUCE_CLIENT', 'JOBTRACKER', 'TASKTRACKER', 'MAPREDUCE_SERVICE_CHECK'].contains(item.role)){
-        result.push(item);
-      }
-    })
-    return result;
-
-  }.property('allOperations.@each'),
-
-  getOperationsFor: function(serviceName){
-    switch(serviceName.toUpperCase()){
-      case 'HDFS':
-        return this.get('hdfsOperations');
-      case 'MAPREDUCE':
-        return this.get('mapReduceOperations');
-      default:
-        return [];
-    }
-  },
-
   getOperationsForRequestId: function(requestId){
     return this.get('allOperations').filterProperty('request_id', requestId);
   },
 
-  updateInterval: 6000,
+  updateInterval: App.bgOperationsUpdateInterval,
   url : '',
 
   generateUrl: function(){
@@ -88,6 +45,40 @@ App.BackgroundOperationsController = Em.Controller.extend({
     return url;
   },
 
+  timeoutId : null,
+
+  /**
+   * Background operations will not be working if receive <code>attemptsCount</code> response with errors
+   */
+  attemptsCount: 20,
+
+  errorsCount: 0,
+
+  /**
+   * Call this.loadOperations with delay
+   * @param delay time in milliseconds (updateInterval by default)
+   * @param reason reason why we call it(used to calculate count of errors)
+   */
+  loadOperationsDelayed: function(delay, reason){
+    delay = delay || this.get('updateInterval');
+    var self = this;
+
+    if(reason && reason.indexOf('error:clusterName:') === 0){
+      var errors = this.get('errorsCount') + 1;
+      this.set('errorsCount', errors);
+      if(errors > this.get('attemptsCount')){
+        console.log('Stop loading background operations: clusterName is undefined');
+        return;
+      }
+    }
+
+    this.set('timeoutId',
+      setTimeout(function(){
+        self.loadOperations();
+      }, delay)
+    );
+  },
+
   /**
    * Reload operations
    * We can call it manually <code>controller.loadOperations();</code>
@@ -95,16 +86,19 @@ App.BackgroundOperationsController = Em.Controller.extend({
    */
   loadOperations : function(){
 
+    var timeoutId = this.get('timeoutId');
+    if(timeoutId){
+      clearTimeout(timeoutId);
+      this.set('timeoutId', null);
+    }
+
     if(!this.get('isWorking')){
       return;
     }
     var self = this;
 
     if(!App.router.getClusterName()){
-      console.log('clusterName is undefined')
-      setTimeout(function(){
-        self.loadOperations();
-      },1000);
+      this.loadOperationsDelayed(this.get('updateInterval')/2, 'error:clusterName');
       return;
     }
 
@@ -122,23 +116,11 @@ App.BackgroundOperationsController = Em.Controller.extend({
         //refresh model
         self.updateBackgroundOperations(data);
 
-        //load data again if isWorking = true
-        if(self.get('isWorking')){
-          setTimeout(function(){
-            self.loadOperations();
-          }, self.get('updateInterval'));
-        }
+        self.loadOperationsDelayed();
       },
 
       error: function (request, ajaxOptions, error) {
-        console.log('cannot load background operations array');
-
-        //load data again if isWorking = true
-        if(self.get('isWorking')){
-          setTimeout(function(){
-            self.loadOperations();
-          }, self.get('updateInterval'));
-        }
+        self.loadOperationsDelayed(null, 'error:response error');
       },
 
       statusCode: require('data/statusCodes')
@@ -158,6 +140,10 @@ App.BackgroundOperationsController = Em.Controller.extend({
           runningTasks.push(task.Tasks);
         }
       });
+    });
+
+    runningTasks = runningTasks.sort(function(a,b){
+      return a.id - b.id;
     });
 
     var currentTasks = this.get('allOperations');
@@ -204,6 +190,7 @@ App.BackgroundOperationsController = Em.Controller.extend({
    * Onclick handler for background operations number located right to logo
    */
   showPopup: function(){
+    this.loadOperations();
     App.ModalPopup.show({
       headerClass: Ember.View.extend({
         controllerBinding: 'App.router.backgroundOperationsController',

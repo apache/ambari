@@ -17,6 +17,7 @@
 }}
 
 <div id="hosts">
+  {{#if controller.isAdmin}}
   <div class="box-header">
     <div class="button-section">
       <button class="btn btn-inverse add-host-button" {{action addHost}}>
@@ -25,6 +26,7 @@
       </button>
     </div>
   </div>
+  {{/if}}
   <table class="datatable table table-bordered table-striped" id="hosts-table">
     <thead>
     <tr>

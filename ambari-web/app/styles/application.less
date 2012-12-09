@@ -533,7 +533,7 @@ a:focus {
           width: 100%;
           text-align: left;
         }
-      } 
+      }
       .chartLabel {
         font-size: 11px;
         color: #7b7b7b;
@@ -644,6 +644,7 @@ a:focus {
 }
 
 .modal-graph-line {
+  width: 750px;
   .modal-body {
     min-height: 320px !important;
   }
@@ -678,9 +679,9 @@ a:focus {
     z-index: 2;
   }
   .chart-legend {
+    font-family: 'Courier New';
     position: absolute;
     top: 180px;
-    left: 35%;
     z-index: 2;
   }
   .rickshaw_legend {
@@ -741,6 +742,12 @@ a:focus {
       line-height: 24px;
       a {
         padding: 3px 10px;
+      }
+    }
+
+    li.clients {
+      a {
+        padding-left: 37px;
       }
     }
   }
@@ -1503,7 +1510,7 @@ ul.filter {
       margin-right: 10px;
     }
   }
-  
+
   h4{
     color: #777777;
     margin-top: 5px;

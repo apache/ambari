@@ -97,7 +97,7 @@ module.exports = Em.Route.extend({
 
     showDetails:function (router, event) {
       router.get('mainHostDetailsController').setBack(true);
-      router.transitionTo('hostDetails.index', event.context)
+      router.transitionTo('hostDetails.summary', event.context)
     },
 
     addHost:function (router) {
@@ -154,7 +154,13 @@ module.exports = Em.Route.extend({
 
   admin:Em.Route.extend({
     route:'/admin',
-
+    enter: function(){
+      if(!App.db.getUser().admin){
+        Em.run.next(function () {
+          App.router.transitionTo('main.dashboard');
+        });
+      }
+    },
     connectOutlets:function (router, context) {
       router.get('mainController').connectOutlet('mainAdmin');
     },

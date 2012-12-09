@@ -43,7 +43,8 @@ App.AddHostController = Em.Controller.extend({
     masterComponentHosts: null,
     serviceConfigProperties: null,
     advancedServiceConfig: null,
-    controllerName: 'addHostController'
+    controllerName: 'addHostController',
+    isWizard: true
   }),
 
   /**
@@ -127,18 +128,6 @@ App.AddHostController = Em.Controller.extend({
     return this.get('currentStep') == 7;
   }.property('currentStep'),
 
-  isStep8: function () {
-    return this.get('currentStep') == 8;
-  }.property('currentStep'),
-
-  isStep9: function () {
-    return this.get('currentStep') == 9;
-  }.property('currentStep'),
-
-  isStep10: function () {
-    return this.get('currentStep') == 10;
-  }.property('currentStep'),
-
   gotoStep: function (step) {
     if (this.get('isStepDisabled').findProperty('step', step).get('value') === false) {
       App.router.send('gotoStep' + step);
@@ -173,27 +162,22 @@ App.AddHostController = Em.Controller.extend({
     this.gotoStep(7);
   },
 
-  gotoStep8: function () {
-    this.gotoStep(8);
-  },
-
-  gotoStep9: function () {
-    this.gotoStep(9);
-  },
-
-  gotoStep10: function () {
-    this.gotoStep(10);
-  },
-
   /**
    * Load clusterInfo(step1) to model
    */
   loadClusterInfo: function(){
-    var cluster = {
-      name: App.router.getClusterName(),
-      status: "",
-      isCompleted: true
-    };
+    var cluster = App.db.getClusterStatus();
+    if(!cluster){
+      cluster = {
+        name: App.router.getClusterName(),
+        status: undefined,
+        isCompleted: false,
+        requestId: undefined,
+        installStartTime: undefined,
+        installTime: undefined
+      };
+      App.db.setClusterStatus(cluster);
+    }
     this.set('content.cluster', cluster);
     console.log("AddHostController:loadClusterInfo: loaded data ", cluster);
   },
@@ -306,16 +290,6 @@ App.AddHostController = Em.Controller.extend({
   saveConfirmedHosts: function (stepController) {
     var hostInfo = {};
 
-    App.Host.find().forEach(function(_host){
-      hostInfo[_host.get('id')] = {
-        name: _host.get('hostName'),
-        cpu: _host.get('cpu'),
-        memory: _host.get('memory'),
-        bootStatus: 'success',
-        isInstalled: true
-      };
-    });
-
     stepController.get('content.hostsInfo').forEach(function (_host) {
       hostInfo[_host.name] = {
         name: _host.name,
@@ -349,10 +323,11 @@ App.AddHostController = Em.Controller.extend({
     var hostInfo = App.db.getHosts();
 
     for (var index in hostInfo) {
-      hostInfo[index].status = "pending";
       var host = hosts.findProperty('name', hostInfo[index].name);
       if (host) {
         hostInfo[index].status = host.status;
+        hostInfo[index].logTasks = host.logTasks;
+        hostInfo[index].tasks = host.tasks;
         hostInfo[index].message = host.message;
         hostInfo[index].progress = host.progress;
       }
@@ -385,48 +360,22 @@ App.AddHostController = Em.Controller.extend({
    */
   loadServices: function () {
     var servicesInfo = App.db.getService();
+    if(!servicesInfo || !servicesInfo.length){
+      servicesInfo = require('data/mock/services').slice(0);
+      servicesInfo.forEach(function (item) {
+        item.isSelected = App.Service.find().someProperty('id', item.serviceName)
+        item.isInstalled = item.isSelected;
+        item.isDisabled = item.isSelected;
+      });
+      App.db.setService(servicesInfo);
+    }
+
     servicesInfo.forEach(function (item, index) {
       servicesInfo[index] = Em.Object.create(item);
     });
     this.set('content.services', servicesInfo);
-    console.log('addHostController.loadServices: loaded data ', servicesInfo);
-    console.log('selected services ', servicesInfo.filterProperty('isSelected', true).mapProperty('serviceName'));
-  },
-
-  /**
-   * Save data to model
-   * @param stepController App.WizardStep4Controller
-   */
-  saveServices: function (stepController) {
-    var serviceNames = [];
-    // we can also do it without stepController since all data,
-    // changed at page, automatically changes in model(this.content.services)
-    App.db.setService(stepController.get('content'));
-    stepController.filterProperty('isSelected', true).forEach(function (item) {
-      serviceNames.push(item.serviceName);
-    });
-    App.db.setSelectedServiceNames(serviceNames);
-    console.log('addHostController.saveServices: saved data ', serviceNames);
-  },
-
-  /**
-   * Save Master Component Hosts data to Main Controller
-   * @param stepController App.WizardStep5Controller
-   */
-  saveMasterComponentHosts: function (stepController) {
-    var obj = stepController.get('selectedServicesMasters');
-    var masterComponentHosts = [];
-    obj.forEach(function (_component) {
-      masterComponentHosts.push({
-        display_name: _component.display_name,
-        component: _component.component_name,
-        hostName: _component.selectedHost
-      });
-    });
-
-    console.log("AddHostController.saveComponentHosts: saved hosts ", masterComponentHosts);
-    App.db.setMasterComponentHosts(masterComponentHosts);
-    this.set('content.masterComponentHosts', masterComponentHosts);
+    console.log('AddHostController.loadServices: loaded data ', servicesInfo);
+    console.log('selected services ', servicesInfo.filterProperty('isSelected', true).filterProperty('isDisabled', false).mapProperty('serviceName'));
   },
 
   /**
@@ -434,6 +383,19 @@ App.AddHostController = Em.Controller.extend({
    */
   loadMasterComponentHosts: function () {
     var masterComponentHosts = App.db.getMasterComponentHosts();
+    if (!masterComponentHosts) {
+      masterComponentHosts = [];
+      App.Component.find().filterProperty('isMaster', true).forEach(function(item){
+        masterComponentHosts.push({
+          component: item.get('componentName'),
+          hostName: item.get('host.hostName'),
+          isInstalled: true,
+          serviceId: item.get('service.id'),
+          display_name: item.get('displayName')
+        })
+      });
+      App.db.setMasterComponentHosts(masterComponentHosts);
+    }
     this.set("content.masterComponentHosts", masterComponentHosts);
     console.log("AddHostController.loadMasterComponentHosts: loaded hosts ", masterComponentHosts);
   },
@@ -632,17 +594,27 @@ App.AddHostController = Em.Controller.extend({
     this.set('content.clients', clients);
     console.log("AddHostController.loadClients: loaded list ", clients);
   },
-
+  dataLoading: function(){
+    var dfd = $.Deferred();
+    this.connectOutlet('loading');
+    var interval = setInterval(function(){
+      if (App.router.get('clusterController.isLoaded')){
+        dfd.resolve();
+        clearInterval(interval);
+      }
+    },50);
+    return dfd.promise();
+  },
   /**
    * Generate clients list for selected services and save it to model
    * @param stepController step4WizardController
    */
-  saveClients: function(stepController){
+  saveClients: function(){
     var clients = [];
     var serviceComponents = require('data/service_components');
     var hostComponents = App.HostComponent.find();
 
-    stepController.get('content').filterProperty('isSelected',true).forEach(function (_service) {
+    this.get('content.services').filterProperty('isSelected',true).forEach(function (_service) {
       var client = serviceComponents.filterProperty('service_name', _service.serviceName).findProperty('isClient', true);
       if (client) {
         clients.pushObject({
@@ -667,17 +639,17 @@ App.AddHostController = Em.Controller.extend({
       case '8':
       case '7':
       case '6':
-        this.loadServiceConfigProperties();
       case '5':
-        this.loadClients();
       case '4':
-        this.loadMasterComponentHosts();
-        this.loadSlaveComponentHosts();
-        this.loadConfirmedHosts();
+        this.loadServiceConfigProperties();
       case '3':
         this.loadClients();
         this.loadServices();
+        this.loadMasterComponentHosts();
+        this.loadSlaveComponentHosts();
+        this.loadConfirmedHosts();
       case '2':
+        this.loadServices();
         this.loadConfirmedHosts();
       case '1':
         this.loadInstallOptions();
@@ -687,7 +659,7 @@ App.AddHostController = Em.Controller.extend({
   },
 
   loadAdvancedConfigs: function () {
-    App.db.getSelectedServiceNames().forEach(function (_serviceName) {
+    this.get('content.services').filterProperty('isSelected', true).mapProperty('serviceName').forEach(function (_serviceName) {
       this.loadAdvancedConfig(_serviceName);
     }, this);
   },
@@ -814,6 +786,7 @@ App.AddHostController = Em.Controller.extend({
     App.db.setHosts(undefined);
     App.db.setMasterComponentHosts(undefined);
     App.db.setSlaveComponentHosts(undefined);
+    App.db.setClusterStatus(undefined);
   }
 
 });

@@ -842,6 +842,7 @@ App.InstallerController = Em.Controller.extend({
     App.db.setMasterComponentHosts(undefined);
     App.db.setSlaveComponentHosts(undefined);
     App.db.setClusterStatus(undefined);
+    App.db.setAllHostNames(undefined);
   }
 
 });

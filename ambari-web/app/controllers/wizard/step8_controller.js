@@ -651,6 +651,7 @@ App.WizardStep8Controller = Em.Controller.extend({
 
   },
 
+  // TODO: aggregate create calls.  doesn't seem like backend supports creating multiple services at the same time yet.
   createSelectedServices: function () {
     var services = this.get('selectedServices').mapProperty('serviceName');
     services.forEach(function (_service) {
@@ -690,37 +691,39 @@ App.WizardStep8Controller = Em.Controller.extend({
     var services = this.get('selectedServices').mapProperty('serviceName');
     services.forEach(function (_service) {
       var components = serviceComponents.filterProperty('service_name', _service);
-      components.forEach(function (_component) {
-        this.createComponent(_service, _component.component_name);
-      }, this);
+      var componentsData = components.map(function(_component) {
+        return { "ServiceComponentInfo": { "component_name": _component.component_name } };
+      });
+      var clusterName = this.get('clusterInfo').findProperty('config_name', 'cluster').config_value;
+      // Service must be specified in terms of a query for creating multiple components at the same time.
+      // See AMBARI-1018.
+      var url = App.apiPrefix + '/clusters/' + clusterName + '/services?ServiceInfo/service_name=' + _service;
+      var data = {
+        "components": componentsData
+      }
+      $.ajax({
+        type: 'POST',
+        url: url,
+        async: false,
+        dataType: 'text',
+        data: JSON.stringify(data),
+        timeout: App.timeout,
+        success: function (data) {
+          var jsonData = jQuery.parseJSON(data);
+          console.log("TRACE: STep8 -> In success function for createComponent");
+          console.log("TRACE: STep8 -> value of the url is: " + url);
+          console.log("TRACE: STep8 -> value of the received data is: " + jsonData);
+        },
+
+        error: function (request, ajaxOptions, error) {
+          console.log('Step8: In Error ');
+          console.log('Step8: Error message is: ' + request.responseText);
+        },
+
+        statusCode: require('data/statusCodes')
+      });
     }, this);
 
-  },
-
-  createComponent: function (service, component) {
-    var clusterName = this.get('clusterInfo').findProperty('config_name', 'cluster').config_value;
-    var url = App.apiPrefix + '/clusters/' + clusterName + '/services/' + service + '/components/' + component;
-    $.ajax({
-      type: 'POST',
-      url: url,
-      async: false,
-      dataType: 'text',
-      timeout: App.timeout,
-      success: function (data) {
-        var jsonData = jQuery.parseJSON(data);
-        console.log("TRACE: STep8 -> In success function for createComponent");
-        console.log("TRACE: STep8 -> value of the url is: " + url);
-        console.log("TRACE: STep8 -> value of the received data is: " + jsonData);
-
-      },
-
-      error: function (request, ajaxOptions, error) {
-        console.log('Step8: In Error ');
-        console.log('Step8: Error message is: ' + request.responseText);
-      },
-
-      statusCode: require('data/statusCodes')
-    });
   },
 
   registerHostsToCluster: function() {
@@ -765,9 +768,57 @@ App.WizardStep8Controller = Em.Controller.extend({
     var slaveHosts = this.get('content.slaveComponentHosts');
     var clients = this.get('content.clients');
     var allHosts = this.get('content.hostsInfo');
+    var slaveClient = slaveHosts.filterProperty('componentName', "CLIENT").objectAt(0);
 
     masterHosts.forEach(function (_masterHost) {
       this.createHostComponent(_masterHost);
+    }, this);
+
+    masterHosts.filterProperty('component', 'HBASE_MASTER').filterProperty('isInstalled', false).forEach(function (_masterHost) {
+      var hosts = slaveClient.hosts.filterProperty("hostName", _masterHost.hostName);
+      if (!hosts.length) {
+        var slaveObj = {};
+        slaveObj.component = "HDFS_CLIENT";
+        slaveObj.hostName = _masterHost.hostName;
+        slaveObj.isInstalled = false;
+        this.createHostComponent(slaveObj);
+      }
+    }, this);
+
+    masterHosts.filterProperty('component', 'HIVE_SERVER').filterProperty('isInstalled', false).forEach(function (_masterHost) {
+      var hosts = slaveClient.hosts.filterProperty("hostName", _masterHost.hostName);
+      if (!hosts.length) {
+        var slaveObj = {};
+        slaveObj.component = "MAPREDUCE_CLIENT";
+        slaveObj.hostName = _masterHost.hostName;
+        slaveObj.isInstalled = false;
+        this.createHostComponent(slaveObj);
+      }
+    }, this);
+
+    masterHosts.filterProperty('component', 'OOZIE_SERVER').filterProperty('isInstalled', false).forEach(function (_masterHost) {
+      var hosts = slaveClient.hosts.filterProperty("hostName", _masterHost.hostName);
+      if (!hosts.length) {
+        var slaveObj = {};
+        slaveObj.component = "MAPREDUCE_CLIENT";
+        slaveObj.hostName = _masterHost.hostName;
+        slaveObj.isInstalled = false;
+        this.createHostComponent(slaveObj);
+      }
+    }, this);
+
+
+    slaveHosts.filterProperty('componentName', "HBASE_REGIONSERVER").forEach(function (slave) {
+      slave.hosts.forEach(function(_slaveHost){
+        var hosts = slaveClient.hosts.filterProperty('hostName', _slaveHost.hostName);
+        if (!hosts.length) {
+          var slaveObj = {};
+          slaveObj.component = "HDFS_CLIENT";
+          slaveObj.hostName = _slaveHost.hostName;
+          slaveObj.isInstalled = false;
+          this.createHostComponent(slaveObj);
+        }
+      }, this)
     }, this);
 
     slaveHosts.forEach(function (_slaveHosts) {

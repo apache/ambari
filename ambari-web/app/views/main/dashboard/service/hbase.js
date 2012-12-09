@@ -59,6 +59,6 @@ App.MainDashboardServiceHbaseView = App.MainDashboardServiceView.extend({
   }.property('components'),
 
   toggleInfoView: function() {
-    $('#hbase-info').toggle('blind', 1000);
+    $('#hbase-info').toggle('blind', 200);
   }
 });

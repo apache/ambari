@@ -77,13 +77,12 @@ App.jobTasksMapper = App.QuickDataMapper.create({
     mapRackLocal:'mapRackLocal',
     mapOffSwitch:'mapOffSwitch',
     reduceOffSwitch:'reduceOffSwitch',
-    submitTime:'submitTime',
-    finishTime:'finishTime'
+    submit:'submitTime',
+    finish:'finishTime'
   },
   map:function (json) {
     var job = this.get('model'); // @model App.MainAppsItemBarView
     var parseResult = this.parseIt(json, this.config);
-
     $.each(parseResult, function (field, value) {
       job.set(field, value);
     });

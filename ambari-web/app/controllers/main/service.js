@@ -21,5 +21,8 @@ var App = require('app');
 App.MainServiceController = Em.ArrayController.extend({
   name:'mainServiceController',
   content: App.Service.find(),
-  additionalMenuItem:Em.Object.create({ id:'Clients', displayName:'Clients', isClients:true })
+  additionalMenuItem:Em.Object.create({ id:'Clients', displayName:'Clients', isClients:true }),
+  isAdmin: function(){
+    return App.db.getUser().admin;
+  }.property('App.router.loginController.loginName')
 })

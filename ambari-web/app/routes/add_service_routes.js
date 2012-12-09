@@ -21,11 +21,16 @@ module.exports = Em.Route.extend({
 
   enter: function (router) {
     console.log('in /service/add:enter');
-
-    Ember.run.next(function () {
-      var addServiceController = router.get('addServiceController');
-      router.transitionTo('step' + addServiceController.get('currentStep'));
-    });
+    if (App.db.getUser().admin) {
+      Em.run.next(function () {
+        var addServiceController = router.get('addServiceController');
+        router.transitionTo('step' + addServiceController.get('currentStep'));
+      });
+    } else {
+      Em.run.next(function () {
+        App.router.transitionTo('main.services');
+      });
+    }
 
   },
 

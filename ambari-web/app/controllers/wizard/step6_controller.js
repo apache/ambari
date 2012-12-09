@@ -303,6 +303,10 @@ App.WizardStep6Controller = Em.Controller.extend({
       || ( this.get('isMrSelected') && this.get('isNoTaskTrackers'))
       || ( this.get('isHbSelected') && this.get('isNoRegionServers'));
 
+    if(this.get('content.isWizard')){
+      isError = false;
+    }
+
     if (isError) {
       this.set('errorMessage', Ember.I18n.t('installer.step6.error.mustSelectOne'));
     }

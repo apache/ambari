@@ -30,6 +30,13 @@ App.MainController = Em.Controller.extend({
   initialize: function(){
     this.startLoadOperationsPeriodically();
     App.router.get('clusterController').loadClusterData();
+    App.router.get('updateController').updateServiceMetric();
+    setInterval(
+      this.updateServiceMetric
+    , App.services_update);
+  },
+  updateServiceMetric: function(){
+    App.router.get('updateController').updateServiceMetric();
   },
   startLoadOperationsPeriodically: function() {
       App.router.get('backgroundOperationsController').set('isWorking', true);

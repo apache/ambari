@@ -19,9 +19,8 @@ var App = require('app');
 
 App.MainServiceInfoSummaryView = Em.View.extend({
   templateName:function () {
-    var service = this.get('controller.content');
-    return require(service.get('isClients') ? 'templates/main/service/info/client_summary' : 'templates/main/service/info/summary');
-  }.property('controller.content'),
+    return require(this.get('service.isClients') ? 'templates/main/service/info/client_summary' : 'templates/main/service/info/summary');
+  }.property('service'),
   attributes:null,
   serviceStatus:{
     hdfs:false,
@@ -148,8 +147,8 @@ App.MainServiceInfoSummaryView = Em.View.extend({
     this.set('oldServiceName', serviceName);
     serviceName = serviceName.toLowerCase();
   }.observes('serviceName'),
-  
-  gangliaUrl: function () {
+
+  gangliaUrl:function () {
     var gangliaUrl = App.router.get('clusterController.gangliaUrl');
     var svcName = this.get('service.serviceName');
     if (svcName) {
@@ -169,7 +168,7 @@ App.MainServiceInfoSummaryView = Em.View.extend({
     }
     return gangliaUrl;
   }.property('App.router.clusterController.gangliaUrl', 'service.serviceName'),
-  
+
   didInsertElement:function () {
     // We have to make the height of the Alerts section
     // match the height of the Summary section.
@@ -185,7 +184,6 @@ App.MainServiceInfoSummaryView = Em.View.extend({
       }
     }
   },
-
 
   clientHosts:App.Host.find(),
 

@@ -20,7 +20,9 @@ var App = require('app');
 
 App.MainServiceItemController = Em.Controller.extend({
   name: 'mainServiceItemController',
-
+  isAdmin: function(){
+    return App.db.getUser().admin;
+  }.property('App.router.loginController.loginName'),
   /**
    * Send specific command to server
    * @param url
@@ -83,14 +85,15 @@ App.MainServiceItemController = Em.Controller.extend({
           if (!requestId) {
             return;
           }
-
-          self.content.set('workStatus', App.Service.Health.starting);
           console.log('Send request for STARTING successfully');
+
           if (App.testMode) {
+            self.content.set('workStatus', App.Service.Health.starting);
             setTimeout(function () {
               self.content.set('workStatus', App.Service.Health.live);
             }, 10000);
           } else {
+            App.router.get('clusterController').loadUpdatedStatus();
             App.router.get('backgroundOperationsController.eventsArray').push({
               "when": function (controller) {
                 var result = (controller.getOperationsForRequestId(requestId).length == 0);
@@ -98,7 +101,7 @@ App.MainServiceItemController = Em.Controller.extend({
                 return result;
               },
               "do": function () {
-                self.content.set('workStatus', App.Service.Health.live);
+                App.router.get('clusterController').loadUpdatedStatus();
               }
             });
           }
@@ -137,12 +140,13 @@ App.MainServiceItemController = Em.Controller.extend({
             return
           }
           console.log('Send request for STOPPING successfully');
-          self.content.set('workStatus', App.Service.Health.stopping);
           if (App.testMode) {
+            self.content.set('workStatus', App.Service.Health.stopping);
             setTimeout(function () {
               self.content.set('workStatus', App.Service.Health.dead);
             }, 10000);
           } else {
+            App.router.get('clusterController').loadUpdatedStatus();
             App.router.get('backgroundOperationsController.eventsArray').push({
               "when": function (controller) {
                 var result = (controller.getOperationsForRequestId(requestId).length == 0);
@@ -150,7 +154,7 @@ App.MainServiceItemController = Em.Controller.extend({
                 return result;
               },
               "do": function () {
-                self.content.set('workStatus', App.Service.Health.dead);
+                App.router.get('clusterController').loadUpdatedStatus();
               }
             });
           }

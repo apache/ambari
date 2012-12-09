@@ -25,6 +25,10 @@ App.alwaysGoToInstaller = false;
 App.apiPrefix = '/api/v1';
 // default AJAX timeout
 App.timeout = 20000;
+App.bgOperationsUpdateInterval = 6000;
+App.componentsUpdateInterval = 6000;
+App.graphUpdateInterval = 15000;
+App.services_update = 15000;
 
 require('messages');
 require('utils/data_table');
@@ -36,7 +40,6 @@ require('views');
 require('router');
 
 require('mappers/server_data_mapper');
-require('mappers/services_mapper');
 require('mappers/status_mapper');
 require('mappers/hosts_mapper');
 require('mappers/cluster_mapper');
@@ -45,6 +48,7 @@ require('mappers/runs_mapper');
 require('mappers/racks_mapper');
 require('mappers/alerts_mapper');
 require('mappers/users_mapper');
+require('mappers/update_mapper');
 
 require('utils/http_client');
 

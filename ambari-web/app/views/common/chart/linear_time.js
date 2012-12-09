@@ -16,6 +16,7 @@
  */
 
 var App = require('app');
+var string_utils = require('utils/string_utils');
 
 /**
  * @class
@@ -81,6 +82,8 @@ App.ChartLinearTimeView = Ember.View.extend({
        */
       _graph: null,
 
+      _popupGraph: null,
+
       popupSuffix: '-popup',
 
       isPopup: false,
@@ -108,6 +111,14 @@ App.ChartLinearTimeView = Ember.View.extend({
       didInsertElement: function () {
         this._super();
         this.loadData();
+        this.registerGraph()
+      },
+      registerGraph: function(){
+        var graph = {
+          name: this.get('title'),
+          id: this.get('elementId')
+        };
+        App.router.get('clusterController.graphs').push(graph);
       },
 
       loadData: function() {
@@ -193,12 +204,26 @@ App.ChartLinearTimeView = Ember.View.extend({
        * 
        * @type Function
        */
-      yAxisFormatter: Rickshaw.Fixtures.Number.formatKMBT,
+      yAxisFormatter: function(y) {
+        var value = Rickshaw.Fixtures.Number.formatKMBT(y);
+        if (value == '') return '0';
+        value = String(value);
+        var c = value[value.length - 1];
+        if (!isNaN(parseInt(c))) {
+          // c is digit
+          value = parseFloat(value).toFixed(3);
+        }
+        else {
+          // c in not digit
+          value = parseFloat(value.substr(0, value.length - 1)).toFixed(3) + c;
+        }
+        return value;
+      },
 
       /**
        * Provides the color (in any HTML color format) to use for a particular
        * series.
-       * 
+       *
        * @param series
        *          Series for which color is being requested
        * @return color String. Returning null allows this chart to pick a color
@@ -250,81 +275,130 @@ App.ChartLinearTimeView = Ember.View.extend({
       },
 
       draw: function(seriesData) {
-          var isPopup = this.get('isPopup');
-          var p = '';
+        var isPopup = this.get('isPopup');
+        var p = '';
+        if (isPopup) {
+          p = this.get('popupSuffix');
+        }
+        var palette = new Rickshaw.Color.Palette({
+          scheme: this._paletteScheme
+        });
+        seriesData.forEach(function (series) {
+          series.color = /*this.colorForSeries(series) ||*/ palette.color();
+          series.stroke = 'rgba(0,0,0,0.3)';
           if (isPopup) {
-            p = this.get('popupSuffix');
+            // calculate statistic data for popup legend
+            var avg = 0;
+            var min = Number.MAX_VALUE;
+            var max = Number.MIN_VALUE;
+            for (var i = 0; i < series.data.length; i++) {
+              avg += series.data[i]['y'];
+              if (series.data[i]['y'] < min) {
+                min = series.data[i]['y'];
+              }
+              else {
+                if (series.data[i]['y'] > max) {
+                  max = series.data[i]['y'];
+                }
+              }
+            }
+            series.name = string_utils.pad(series.name, 30, '&nbsp;', 2) + string_utils.pad('min', 5, '&nbsp;', 3) + string_utils.pad(this.get('yAxisFormatter')(min), 12, '&nbsp;', 3) + string_utils.pad('avg', 5, '&nbsp;', 3) + string_utils.pad(this.get('yAxisFormatter')(avg/series.data.length), 12, '&nbsp;', 3) + string_utils.pad('max', 12, '&nbsp;', 3) + string_utils.pad(this.get('yAxisFormatter')(max), 5, '&nbsp;', 3);
           }
-          var palette = new Rickshaw.Color.Palette({
-            scheme: this._paletteScheme
+        }.bind(this));
+        var chartId = "#" + this.id + "-chart" + p;
+        var chartOverlayId = "#" + this.id + "-overlay" + p;
+        var xaxisElementId = "#" + this.id + "-xaxis" + p;
+        var yaxisElementId = "#" + this.id + "-yaxis" + p;
+        var legendElementId = "#" + this.id + "-legend" + p;
+        var timelineElementId = "#" + this.id + "-timeline" + p;
+
+        var chartElement = document.querySelector(chartId);
+        var overlayElement = document.querySelector(chartOverlayId);
+        var xaxisElement = document.querySelector(xaxisElementId);
+        var yaxisElement = document.querySelector(yaxisElementId);
+        var legendElement = document.querySelector(legendElementId);
+        var timelineElement = document.querySelector(timelineElementId);
+
+        var _graph = new Rickshaw.Graph({
+          height: 150,
+          element: chartElement,
+          series: seriesData,
+          interpolation: 'step-after',
+          stroke: true,
+          renderer: 'area',
+          strokeWidth: 1
+        });
+        _graph.renderer.unstack = false;
+
+        xAxis = new Rickshaw.Graph.Axis.Time({
+          graph: _graph
+        });
+
+        yAxis = new Rickshaw.Graph.Axis.Y({
+          tickFormat: this.yAxisFormatter,
+          element: yaxisElement,
+          graph: _graph
+        });
+
+        var legend = new Rickshaw.Graph.Legend({
+          graph: _graph,
+          element: legendElement
+        });
+
+        if (!isPopup) {
+          overlayElement.addEventListener('mousemove', function () {
+            $(xaxisElement).removeClass('hide');
+            $(legendElement).removeClass('hide');
+            $(chartElement).children("div").removeClass('hide');
           });
-          seriesData.forEach(function (series) {
-            series.color = this.colorForSeries(series) || palette.color();
-            series.stroke = 'rgba(0,0,0,0.3)';
-          }.bind(this));
-            var chartId = "#" + this.id + "-chart" + p;
-            var chartOverlayId = "#" + this.id + "-overlay" + p;
-            var xaxisElementId = "#" + this.id + "-xaxis" + p;
-            var yaxisElementId = "#" + this.id + "-yaxis" + p;
-            var legendElementId = "#" + this.id + "-legend" + p;
+          overlayElement.addEventListener('mouseout', function () {
+            $(legendElement).addClass('hide');
+          });
+          _graph.onUpdate(function () {
+            $(legendElement).addClass('hide');
+          });
+        }
 
-            var chartElement = document.querySelector(chartId);
-            var overlayElement = document.querySelector(chartOverlayId);
-            var xaxisElement = document.querySelector(xaxisElementId);
-            var yaxisElement = document.querySelector(yaxisElementId);
-            var legendElement = document.querySelector(legendElementId);
-            this._graph = new Rickshaw.Graph({
-              height: 150,
-              element: chartElement,
-              series: seriesData,
-              interpolation: 'step-after',
-              stroke: true,
-              renderer: 'area',
-              strokeWidth: 1
-            });
-            this._graph.renderer.unstack = true;
+       var shelving = new Rickshaw.Graph.Behavior.Series.Toggle({
+          graph: _graph,
+          legend:legend
+        });
 
-            xAxis = new Rickshaw.Graph.Axis.Time({
-              graph: this._graph
-            });
-            yAxis = new Rickshaw.Graph.Axis.Y({
-              tickFormat: this.yAxisFormatter,
-              element: yaxisElement,
-              graph: this._graph
-            });
+        var order = new Rickshaw.Graph.Behavior.Series.Order({
+          graph: _graph,
+          legend:legend
+        });
 
-            overlayElement.addEventListener('mousemove', function () {
-              $(xaxisElement).removeClass('hide');
-              $(legendElement).removeClass('hide');
-              $(chartElement).children("div").removeClass('hide');
-            });
-            overlayElement.addEventListener('mouseout', function () {
-              //$(xaxisElement).addClass('hide');
-              $(legendElement).addClass('hide');
-              //$(chartElement).children("div").addClass('hide');
-            });
-            // Hide axes
-            this._graph.onUpdate(function () {
-              //$(xaxisElement).addClass('hide');
-              $(legendElement).addClass('hide');
-              //$(chartElement).children('div').addClass('hide');
-            });
+        var annotator = new Rickshaw.Graph.Annotate({
+          graph: _graph,
+          element:timelineElement
+        });
 
-            new Rickshaw.Graph.Legend({
-              graph: this._graph,
-              element: legendElement
-            });
+        _graph.render();
 
-            // The below code will be needed if we ever use curve
-            // smoothing in our graphs. (see rickshaw defect below)
-            // this._graph.onUpdate(jQuery.proxy(function () {
-            // this._adjustSVGHeight();
-            // }, this));
+        var hoverDetail = new Rickshaw.Graph.HoverDetail({
+          graph: _graph,
+          onShow: function() {
+            console.log('show');
+          },
+          onHide: function() {
+            console.log('hide');
+          },
+          onRender: function() {
+            console.log('render');
+          }
+        });
 
-        this._graph.render();
-        this._graph = null;
+        if (isPopup) {
+          this.set('_popupGraph', _graph);
+        }
+        else {
+          this.set('_graph', _graph);
+        }
+
         this.set('isPopup', false);
       },
+
 
       showGraphInPopup: function() {
         this.set('isPopup', true);
@@ -340,7 +414,17 @@ App.ChartLinearTimeView = Ember.View.extend({
             '</div>',
             '<div class="modal-body">',
             '{{#if bodyClass}}{{view bodyClass}}',
-            '{{else}}<div id="'+this.get('id')+'-container'+this.get('popupSuffix')+'" class="chart-container"><div id="'+this.get('id')+'-yaxis'+this.get('popupSuffix')+'" class="'+this.get('id')+'-yaxis chart-y-axis"></div><div id="'+this.get('id')+'-xaxis'+this.get('popupSuffix')+'" class="'+this.get('id')+'-xaxis chart-x-axis"></div><div id="'+this.get('id')+'-legend'+this.get('popupSuffix')+'" class="'+this.get('id')+'-legend chart-legend"></div><div id="'+this.get('id')+'-overlay'+this.get('popupSuffix')+'" class="'+this.get('id')+'-overlay chart-overlay"></div><div id="'+this.get('id')+'-chart'+this.get('popupSuffix')+'" class="'+this.get('id')+'-chart chart"></div><div id="'+this.get('id')+'-title'+this.get('popupSuffix')+'" class="'+this.get('id')+'-title chart-title">{{view.title}}</div></div>{{/if}}',
+            '{{else}}'+
+              '<div id="'+this.get('id')+'-container'+this.get('popupSuffix')+'" class="chart-container">'+
+                '<div id="'+this.get('id')+'-yaxis'+this.get('popupSuffix')+'" class="'+this.get('id')+'-yaxis chart-y-axis"></div>'+
+                '<div id="'+this.get('id')+'-xaxis'+this.get('popupSuffix')+'" class="'+this.get('id')+'-xaxis chart-x-axis"></div>'+
+                '<div id="'+this.get('id')+'-legend'+this.get('popupSuffix')+'" class="'+this.get('id')+'-legend chart-legend"></div>'+
+                '<div id="'+this.get('id')+'-overlay'+this.get('popupSuffix')+'" class="'+this.get('id')+'-overlay chart-overlay"></div>'+
+                '<div id="'+this.get('id')+'-chart'+this.get('popupSuffix')+'" class="'+this.get('id')+'-chart chart"></div>'+
+                '<div id="'+this.get('id')+'-title'+this.get('popupSuffix')+'" class="'+this.get('id')+'-title chart-title">{{view.title}}</div>'+
+                '<div id="'+this.get('id')+'-timeline'+this.get('popupSuffix')+'" class="'+this.get('id')+'-timeline timeline"></div>'+
+              '</div>'+
+            '{{/if}}',
             '</div>',
             '<div class="modal-footer">',
             '{{#if view.primary}}<a class="btn btn-success" {{action onPrimary target="view"}}>{{view.primary}}</a>{{/if}}',
@@ -368,10 +452,12 @@ App.ChartLinearTimeView = Ember.View.extend({
  * @type Function
  */
 App.ChartLinearTimeView.BytesFormatter = function (y) {
+  if (y == 0) return '0 B';
   var value = Rickshaw.Fixtures.Number.formatBase1024KMGTP(y);
   if (!y || y.length < 1) {
-    value = '';
-  } else {
+    value = '0 B';
+  }
+  else {
     if ("number" == typeof value) {
       value = String(value);
     }
@@ -395,9 +481,9 @@ App.ChartLinearTimeView.BytesFormatter = function (y) {
 App.ChartLinearTimeView.PercentageFormatter = function (percentage) {
   var value = percentage;
   if (!value || value.length < 1) {
-    value = '';
+    value = '0 %';
   } else {
-    value = value + '%';
+    value = value.toFixed(3) + '%';
   }
   return value;
 };
@@ -411,7 +497,7 @@ App.ChartLinearTimeView.PercentageFormatter = function (percentage) {
 App.ChartLinearTimeView.TimeElapsedFormatter = function (millis) {
   var value = millis;
   if (!value || value.length < 1) {
-    value = '';
+    value = '0 ms';
   } else if ("number" == typeof millis) {
     var seconds = millis > 1000 ? Math.round(millis / 1000) : 0;
     var minutes = seconds > 60 ? Math.round(seconds / 60) : 0;
@@ -426,9 +512,9 @@ App.ChartLinearTimeView.TimeElapsedFormatter = function (millis) {
     } else if (seconds > 0) {
       value = seconds + ' s';
     } else if (millis > 0) {
-      value = millis + ' ms';
+      value = millis.toFixed(3) + ' ms';
     } else {
-      value = millis + ' ms';
+      value = millis.toFixed(3) + ' ms';
     }
   }
   return value;

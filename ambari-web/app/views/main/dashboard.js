@@ -63,7 +63,7 @@ App.MainDashboardView = Em.View.extend({
       })
     }, this);
 
-  }.observes('App.router.clusterController.dataLoadList.services'),
+  }.observes('App.router.updateController.isUpdated'),
   
   gangliaUrl: function () {
     return App.router.get('clusterController.gangliaUrl') + "/?r=hour&cs=&ce=&m=&s=by+name&c=HDPSlaves&tab=m&vn=";

@@ -104,6 +104,6 @@ App.MainDashboardServiceMapreduceView = App.MainDashboardServiceView.extend({
   }.property('components'),
 
   toggleInfoView: function() {
-    $('#mapreduce-info').toggle('blind', 1000);
+    $('#mapreduce-info').toggle('blind', 200);
   }
 });

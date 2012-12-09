@@ -74,6 +74,6 @@ App.MainDashboardServiceHdfsView = App.MainDashboardServiceView.extend({
   }.property('+'),
 
   toggleInfoView: function() {
-    $('#hdfs-info').toggle('blind', 1000);
+    $('#hdfs-info').toggle('blind', 200);
   }
 });

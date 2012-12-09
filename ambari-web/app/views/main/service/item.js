@@ -24,9 +24,9 @@ App.MainServiceItemView = Em.View.extend({
     var options = [];
     var service = this.get('controller.content');
     switch(service.get('serviceName')) {
-      case 'HDFS':
-        options.push({action: 'runRebalancer', 'label': Em.I18n.t('services.service.actions.run.rebalancer')});
-        break;
+//      case 'HDFS':
+//        options.push({action: 'runRebalancer', 'label': Em.I18n.t('services.service.actions.run.rebalancer')});
+//        break;
       case 'HBASE':
         options.push({action: 'runCompaction', 'label': Em.I18n.t('services.service.actions.run.compaction')});
         break;

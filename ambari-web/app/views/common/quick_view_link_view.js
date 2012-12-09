@@ -23,26 +23,39 @@ App.QuickViewLinks = Em.View.extend({
   /**
    * Updated quick links. Here we put correct hostname to url
    */
-  quickLinks : function(){
+  quickLinks:function () {
     var serviceName = this.get('content.serviceName');
     var components = this.get('content.components');
     var host;
 
-    if(serviceName === 'HDFS'){
+    if (serviceName === 'HDFS') {
       host = components.filterProperty('id', 'NAMENODE').objectAt(0).get('host.hostName');
-    } else if(serviceName === 'MAPREDUCE'){
+    } else if (serviceName === 'MAPREDUCE') {
       host = components.filterProperty('id', 'JOBTRACKER').objectAt(0).get('host.hostName');
-    } else if(serviceName === 'HBASE'){
+    } else if (serviceName === 'HBASE') {
       host = components.filterProperty('id', 'HBASE_MASTER').objectAt(0).get('host.hostName');
     }
-    if(!host){
+    if (!host) {
       return [];
     }
-    return this.get('content.quickLinks').map(function(item){
-      if(item.get('url')){
+    return this.get('content.quickLinks').map(function (item) {
+      if (item.get('url')) {
         item.set('url', item.get('url').fmt(host));
       }
       return item;
     });
-  }.property('content.quickLinks.@each.label')
+  }.property('content.quickLinks.@each.label'),
+
+  linkTarget:function () {
+    switch (this.get('content.serviceName').toLowerCase()) {
+      case "hdfs":
+      case "mapreduce":
+        return "_blank";
+        break;
+      default:
+        return "";
+        break;
+    }
+  }.property('service')
+
 });

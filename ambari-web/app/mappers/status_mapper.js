@@ -52,7 +52,10 @@ App.statusMapper = App.QuickDataMapper.create({
       //console.log(result)
       var services = App.Service.find();
       result.forEach(function(item){
-        services.findProperty('id', item.id).set('workStatus', item.work_status);
+        var service = services.findProperty('id', item.id);
+        if(service){
+          service.set('workStatus', item.work_status);
+        }
       })
 
       result = [];
@@ -65,7 +68,10 @@ App.statusMapper = App.QuickDataMapper.create({
       //console.log(result)
       var components = App.Component.find();
       result.forEach(function(item){
-        components.findProperty('id', item.id).set('workStatus', item.work_status);
+        var component = components.findProperty('id', item.id);
+        if(component){
+          component.set('workStatus', item.work_status);
+        }
       })
 
       result = [];
@@ -80,7 +86,10 @@ App.statusMapper = App.QuickDataMapper.create({
       //console.log(result)
       var hostComponents = App.HostComponent.find();
       result.forEach(function(item){
-        hostComponents.findProperty('id', item.id).set('workStatus', item.work_status);
+        var hostComponent = hostComponents.findProperty('id', item.id);
+        if(hostComponent){
+          hostComponent.set('workStatus', item.work_status);
+        }
       })
     }
   }

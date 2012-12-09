@@ -22,7 +22,9 @@ App.MainHostDetailsController = Em.Controller.extend({
   name: 'mainHostDetailsController',
   content: null,
   isFromHosts: false,
-
+  isAdmin: function(){
+    return App.db.getUser().admin;
+  }.property('App.router.loginController.loginName'),
   routeHome:function () {
     App.router.transitionTo('main.dashboard');
   },
@@ -89,13 +91,14 @@ App.MainHostDetailsController = Em.Controller.extend({
           }
 
           console.log('Send request for STARTING successfully');
-          component.set('workStatus', App.Component.Status.starting);
 
           if(App.testMode){
+            component.set('workStatus', App.Component.Status.starting);
             setTimeout(function(){
               component.set('workStatus', App.Component.Status.started);
             },10000);
           } else{
+            App.router.get('clusterController').loadUpdatedStatus();
             App.router.get('backgroundOperationsController.eventsArray').push({
               "when" : function(controller){
                 var result = (controller.getOperationsForRequestId(requestId).length == 0);
@@ -103,7 +106,7 @@ App.MainHostDetailsController = Em.Controller.extend({
                 return result;
               },
               "do" : function(){
-                component.set('workStatus', App.Component.Status.started);
+                App.router.get('clusterController').loadUpdatedStatus();
               }
             });
           }
@@ -140,13 +143,15 @@ App.MainHostDetailsController = Em.Controller.extend({
 
           console.log('Send request for STOPPING successfully');
 
-          component.set('workStatus', App.Component.Status.stopping);
+
 
           if(App.testMode){
+            component.set('workStatus', App.Component.Status.stopping);
             setTimeout(function(){
               component.set('workStatus', App.Component.Status.stopped);
             },10000);
           } else{
+            App.router.get('clusterController').loadUpdatedStatus();
             App.router.get('backgroundOperationsController.eventsArray').push({
               "when" : function(controller){
                 var result = (controller.getOperationsForRequestId(requestId).length == 0);
@@ -154,7 +159,7 @@ App.MainHostDetailsController = Em.Controller.extend({
                 return result;
               },
               "do" : function(){
-                component.set('workStatus', App.Component.Status.stopped);
+                App.router.get('clusterController').loadUpdatedStatus();
               }
             });
           }

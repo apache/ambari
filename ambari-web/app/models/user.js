@@ -35,9 +35,7 @@ App.User = DS.Model.extend({
     return 'Local';
   }.property('isLdap'),
   auditItems:DS.hasMany('App.ServiceAudit'),
-  admin:function () {
-    return !!(/^admin/.test(this.get('roles')))
-  }.property('userName')
+  admin: DS.attr('boolean')
 });
 
 App.EditUserForm = App.Form.extend({

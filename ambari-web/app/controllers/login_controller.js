@@ -27,6 +27,7 @@ App.LoginController = Em.Object.extend({
 
   errorMessage: '',
 
+
   submit: function (e) {
     this.set('errorMessage', '');
 

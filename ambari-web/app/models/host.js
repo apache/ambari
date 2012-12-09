@@ -58,7 +58,6 @@ App.Host = DS.Model.extend({
   }.property('lastHeartBeatTime'),
 
   loadAvg: function() {
-    console.log(this.get('loadOne'), this.get('loadFive'), this.get('loadFifteen'));
     if (this.get('loadOne') != null) return this.get('loadOne');
     if (this.get('loadFive') != null) return this.get('loadFive');
     if (this.get('loadFifteen') != null) return this.get('loadFifteen');

@@ -74,7 +74,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
     }, this)
     //STEP 5: Add the advanced configs to the serviceConfigs property
 
-    var advancedConfig = App.router.get('installerController').loadAdvancedConfig(this.get('content.serviceName'));
+    var advancedConfig = App.router.get('installerController').loadAdvancedConfig(this.get('content.serviceName')) || [];
     var service = this.get('serviceConfigs').findProperty('serviceName', this.get('content.serviceName'));
     advancedConfig.forEach(function (_config) {
       if (service) {
@@ -99,6 +99,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
         }
       }
     }, this);
+
     this.loadCustomConfig();
 
     this.renderServiceConfigs(this.get('serviceConfigs'));
@@ -266,6 +267,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
    * @param serviceConfigs
    */
   renderServiceConfigs: function (serviceConfigs) {
+
     serviceConfigs.forEach(function (_serviceConfig) {
       var serviceConfig = App.ServiceConfig.create({
         filename: _serviceConfig.filename,
@@ -276,6 +278,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
       });
 
       if (this.get('content.serviceName') && this.get('content.serviceName').toUpperCase() === serviceConfig.serviceName) {
+
         this.loadComponentConfigs(_serviceConfig, serviceConfig);
 
         console.log('pushing ' + serviceConfig.serviceName);
@@ -294,14 +297,18 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
    * @param _componentConfig
    * @param componentConfig
    */
-  loadComponentConfigs: function (_componentConfig, componentConfig) {
+  loadComponentConfigs: function (_componentConfig, componentConfig) {debugger;
     _componentConfig.configs.forEach(function (_serviceConfigProperty) {
+      console.log("config", _serviceConfigProperty);
+      if(!_serviceConfigProperty) return;
       var serviceConfigProperty = App.ServiceConfigProperty.create(_serviceConfigProperty);
       serviceConfigProperty.serviceConfig = componentConfig;
       this.initialValue(serviceConfigProperty);
       componentConfig.configs.pushObject(serviceConfigProperty);
       serviceConfigProperty.validate();
+      console.log("config result", serviceConfigProperty);
     }, this);
+    console.log("+++++++++++++++++++++++++++++++++++++++++");
   },
 
   restartServicePopup: function (event) {

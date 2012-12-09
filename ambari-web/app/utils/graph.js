@@ -19,9 +19,9 @@
 
 module.exports = {
   drawJobTimeLine:function (map, shuffle, reduce, w, h, element, legend_id, timeline_id) {
-    var map = $.parseJSON(map);
-    var shuffle = $.parseJSON(shuffle);
-    var reduce = $.parseJSON(reduce);
+    map = $.parseJSON(map);
+    shuffle = $.parseJSON(shuffle);
+    reduce = $.parseJSON(reduce);
     if (!map || !shuffle || !reduce) {
       console.warn('drawJobTimeLine');
       return;
@@ -99,12 +99,11 @@ module.exports = {
       element:document.getElementById(timeline_id)
     });
   },
-  drawJobTasks:function (mapNodeLocal, mapRackLocal, mapOffSwitch, reduceOffSwitch, w, h, element, legend_id, timeline_id) {
-    var mapNodeLocal = $.parseJSON(mapNodeLocal);
-    var mapRackLocal = $.parseJSON(mapRackLocal);
-    var mapOffSwitch = $.parseJSON(mapOffSwitch);
-    var reduceOffSwitch = $.parseJSON(reduceOffSwitch);
-    console.log(mapNodeLocal, mapRackLocal, mapOffSwitch, reduceOffSwitch);
+  drawJobTasks:function (mapNodeLocal, mapRackLocal, mapOffSwitch, reduceOffSwitch, submitTime, w, h, element, legend_id, timeline_id) {
+    mapNodeLocal = $.parseJSON(mapNodeLocal);
+    mapRackLocal = $.parseJSON(mapRackLocal);
+    mapOffSwitch = $.parseJSON(mapOffSwitch);
+    reduceOffSwitch = $.parseJSON(reduceOffSwitch);
     if (!mapNodeLocal || !mapRackLocal || !mapOffSwitch || !reduceOffSwitch) {
       console.warn('drawJobTasks');
       return;
@@ -177,14 +176,14 @@ module.exports = {
     var hoverDetail = new Rickshaw.Graph.HoverDetail({
       graph:graph,
       xFormatter:function (x) {
-        return (x - json.submitTime) + 's'
+        return (x - submitTime) + 's'
       },
       yFormatter:function (y) {
         return y / 1000 + 's'
       },
       formatter:function (series, x, y, formattedX, formattedY, d) {
         var swatch = '<span class="detail_swatch" style="background-color: ' + series.color + '"></span>';
-        return swatch + d.label +
+        return swatch + (d.label? d.label: d.name) +
           '<br>Run-time: ' + formattedY + '<br>Wait-time: ' + formattedX;
       }
 

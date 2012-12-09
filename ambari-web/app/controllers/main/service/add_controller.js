@@ -345,13 +345,13 @@ App.AddServiceController = Em.Controller.extend({
     var masterComponentHosts = App.db.getMasterComponentHosts();
     if(!masterComponentHosts){
       masterComponentHosts = [];
-    App.Component.find().filterProperty('isMaster', true).forEach(function(item){
-      masterComponentHosts.push({
-        component: item.get('componentName'),
-        hostName: item.get('host.hostName'),
-        isInstalled: true
-      })
-    });
+      App.Component.find().filterProperty('isMaster', true).forEach(function(item){
+        masterComponentHosts.push({
+          component: item.get('componentName'),
+          hostName: item.get('host.hostName'),
+          isInstalled: true
+        })
+      });
 
     }
     this.set("content.masterComponentHosts", masterComponentHosts);
@@ -756,6 +756,7 @@ App.AddServiceController = Em.Controller.extend({
     App.db.setMasterComponentHosts(undefined);
     App.db.setSlaveComponentHosts(undefined);
     App.db.setClusterStatus(undefined);
+    App.db.setAllHostNames(undefined);
   }
 
 });

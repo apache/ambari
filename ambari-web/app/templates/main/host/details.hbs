@@ -20,6 +20,7 @@
   <a href='#' {{action "routeHome" target="controller"}}><i class="icon-home"></i></a> /
   <a href="javascript:void(null)" data-toggle="modal" {{action backToHostsList}}>Hosts</a> /
   <span {{bindAttr class=":host-title view.content.healthClass"}}>{{unbound view.content.hostName}}</span>
+  {{#if controller.isAdmin}}
   <div class="host-maintenance">
     <div class="host-maintenance-btn btn-group display-inline-block">
       <a class="btn dropdown-toggle" data-toggle="dropdown" href="#">
@@ -36,6 +37,7 @@
       </ul>
     </div>
   </div>
+  {{/if}}
   <div class="content">
     {{view App.MainHostMenuView}}
     {{outlet}}

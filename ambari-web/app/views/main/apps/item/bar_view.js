@@ -71,8 +71,8 @@ App.MainAppsItemBarView = Em.View.extend({
   mapRackLocal:false,
   mapOffSwitch:false,
   reduceOffSwitch:false,
-  submitTime:false,
-  finishTime:false,
+  submit:false,
+  finish:false,
 
   updateTimeLine:function () {
     var url = App.testMode ? '/data/apps/jobs/timeline.json' : App.apiPrefix + "/jobhistory/task?jobId=" + this.get('activeJob').get('id') + 
@@ -93,6 +93,7 @@ App.MainAppsItemBarView = Em.View.extend({
     var map = JSON.stringify(this.get('map'));
     var shuffle = JSON.stringify(this.get('shuffle'));
     var reduce = JSON.stringify(this.get('reduce'));
+    if (!this.get('map') || !this.get('shuffle') || !this.get('reduce')) {return;}
     $('#chart, #legend, #timeline1').html('');
     graph.drawJobTimeLine(map, shuffle, reduce, this.get('width'), this.get('height'), '#chart', 'legend', 'timeline1');
   }.observes('map', 'shuffle', 'reduce'),
@@ -102,8 +103,9 @@ App.MainAppsItemBarView = Em.View.extend({
     var mapRackLocal = JSON.stringify(this.get('mapRackLocal'));
     var mapOffSwitch = JSON.stringify(this.get('mapOffSwitch'));
     var reduceOffSwitch = JSON.stringify(this.get('reduceOffSwitch'));
+    if (!this.get('mapNodeLocal') || !this.get('mapRackLocal') || !this.get('mapOffSwitch') || !this.get('reduceOffSwitch')) {return;}
     $('#job_tasks, #tasks_legend, #timeline2').html('');
-    graph.drawJobTasks(mapNodeLocal, mapRackLocal, mapOffSwitch, reduceOffSwitch, this.get('width'), this.get('height'), '#job_tasks', 'tasks_legend', 'timeline2');
-  }.observes('mapNodeLocal', 'mapRackLocal', 'mapOffSwitch', 'reduceOffSwitch')
+    graph.drawJobTasks(mapNodeLocal, mapRackLocal, mapOffSwitch, reduceOffSwitch, this.get('submit'), this.get('width'), this.get('height'), '#job_tasks', 'tasks_legend', 'timeline2');
+  }.observes('mapNodeLocal', 'mapRackLocal', 'mapOffSwitch', 'reduceOffSwitch', 'submit')
 
 });

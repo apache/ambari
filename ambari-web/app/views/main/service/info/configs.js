@@ -23,6 +23,11 @@ App.MainServiceInfoConfigsView = Em.View.extend({
   didInsertElement: function () {
     var controller = this.get('controller');
     controller.loadStep();
+    var advanced = this.get('controller.selectedService.configCategories').filterProperty('name', 'Advanced');
+    if(advanced.length) advanced.objectAt(0).set('isAdvanced', true);
+  },
+  onToggleBlock: function(event){
+    $("#" + event.context).toggle('blind', 500);
   }
 });
 
@@ -30,12 +35,15 @@ App.ServiceConfigsByCategoryView = Ember.View.extend({
 
   content: null,
 
+
   category: null,
   serviceConfigs: null, // General, Advanced, NameNode, SNameNode, DataNode, etc.
 
   categoryConfigs: function () {
     return this.get('serviceConfigs').filterProperty('category', this.get('category.name'))
   }.property('serviceConfigs.@each').cacheable(),
-
-  layout: Ember.Handlebars.compile('<div class="accordion-body collapse in"><div class="accordion-inner">{{yield}}</div></div>')
+  didInsertElement: function(){
+    $("#Advanced").hide();
+  },
+  layout: Ember.Handlebars.compile('<div {{bindAttr id="view.category.name"}} class="accordion-body collapse in"><div class="accordion-inner">{{yield}}</div></div>')
 });
