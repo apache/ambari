@@ -316,7 +316,7 @@ Em.I18n.translations = {
   'dashboard.services.mapreduce.reduceSlots':'Reduce Slots',
   'dashboard.services.mapreduce.tasks.maps':'Tasks: Maps',
   'dashboard.services.mapreduce.tasks.reduces':'Tasks: Reduces',
-  'dashboard.services.mapreduce.reduceSlotsSummary':'{0} occuped / {1} reserved',
+  'dashboard.services.mapreduce.reduceSlotsSummary':'{0} occupied / {1} reserved',
   'dashboard.services.mapreduce.tasksSummary':'{0} running / {1} waiting',
   'dashboard.services.mapreduce.slotCapacitySummary':'{0} maps / {1} reduces / {2} avg per node',
   'dashboard.services.mapreduce.jobTrackerHeap':'JobTracker Heap',

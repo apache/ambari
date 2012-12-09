@@ -155,9 +155,9 @@ App.servicesMapper = App.QuickDataMapper.create({
               item.nameNodeComponent = component;
               finalConfig = jQuery.extend(finalConfig, hdfsConfig);
               // Get the live, dead & decommision nodes from string json
-              var liveNodesJson = jQuery.parseJSON(component.ServiceComponentInfo.LiveNodes);
-              var deadNodesJson = jQuery.parseJSON(component.ServiceComponentInfo.DeadNodes);
-              var decommisionNodesJson = jQuery.parseJSON(component.ServiceComponentInfo.DecomNodes);
+              var liveNodesJson = App.parseJSON(component.ServiceComponentInfo.LiveNodes);
+              var deadNodesJson = App.parseJSON(component.ServiceComponentInfo.DeadNodes);
+              var decommisionNodesJson = App.parseJSON(component.ServiceComponentInfo.DecomNodes);
               item.live_data_nodes = [];
               item.dead_data_nodes = [];
               item.decommision_data_nodes = [];
@@ -200,9 +200,9 @@ App.servicesMapper = App.QuickDataMapper.create({
               // Get the live, gray & black nodes from string json
               item.map_slots = 0;
               item.reduce_slots = 0;
-              var liveNodesJson = jQuery.parseJSON(component.ServiceComponentInfo.AliveNodes);
-              var grayNodesJson = jQuery.parseJSON(component.ServiceComponentInfo.GrayListedNodes);
-              var blackNodesJson = jQuery.parseJSON(component.ServiceComponentInfo.BlackListedNodes);
+              var liveNodesJson = App.parseJSON(component.ServiceComponentInfo.AliveNodes);
+              var grayNodesJson = App.parseJSON(component.ServiceComponentInfo.GrayListedNodes);
+              var blackNodesJson = App.parseJSON(component.ServiceComponentInfo.BlackListedNodes);
               item.alive_trackers = [];
               item.gray_list_trackers = [];
               item.black_list_trackers = [];
@@ -253,7 +253,7 @@ App.servicesMapper = App.QuickDataMapper.create({
             if (component.ServiceComponentInfo && component.ServiceComponentInfo.component_name == "HBASE_MASTER") {
               item.masterComponent = component;
               finalConfig = jQuery.extend(finalConfig, hbaseConfig);
-              var regionsArray = jQuery.parseJSON(component.ServiceComponentInfo.RegionsInTransition);
+              var regionsArray = App.parseJSON(component.ServiceComponentInfo.RegionsInTransition);
               item.regions_in_transition = regionsArray == null ? 0 : regionsArray.length;
             }
             if (component.ServiceComponentInfo && component.ServiceComponentInfo.component_name == "HBASE_REGIONSERVER") {

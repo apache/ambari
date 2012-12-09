@@ -137,6 +137,17 @@ App.formatUrl = function (urlTemplate, substitutes, testUrl) {
   return formatted;
 }
 
+/**
+ * Certain variables can have JSON in string
+ * format, or in JSON format itself.
+ */
+App.parseJSON = function(value){
+  if(typeof value == "string"){
+    return jQuery.parseJSON(value);
+  }
+  return value;
+};
+
 App.format = {
   role: function (role) {
     switch (role) {

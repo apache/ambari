@@ -420,6 +420,9 @@ AMBARI-666 branch (unreleased changes)
 
   IMPROVEMENTS
 
+  AMBARI-1023. Dashboard page should handle API sending JSON as strings and
+  object. (Srimanth Gunturi via yusaku)
+
   AMBARI-1011. Create 2 missing HDFS service graphs. (Srimanth Gunturi via
   yusaku)
 
