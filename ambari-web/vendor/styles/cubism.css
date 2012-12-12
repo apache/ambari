@@ -1,0 +1,74 @@
+/*
+ * D3  visualization components 
+ * Styles for Dag viewer and Sankey diagram
+ */
+.wfdag {
+  width: 100%;
+}
+
+#dag_viewer line.link {
+  fill: none;
+  stroke: #666;
+  stroke-width: 2.5px;
+}
+
+#dag_viewer marker#finished {
+  fill: green;
+}
+
+#dag_viewer line.link.finished {
+  stroke: green;
+}
+
+#dag_viewer circle {
+  fill: #ccc;
+  stroke: #333;
+  stroke-width: 1.5px;
+}
+
+#dag_viewer circle.finished {
+  fill: green;
+}
+
+#dag_viewer text {
+  font: 20px sans-serif;
+  pointer-events: none;
+}
+
+#dag_viewer text.hover {
+  font: 10px sans-serif;
+}
+
+#dag_viewer text.hover.shadow {
+  stroke: #fff;
+  stroke-width: 4px;
+  stroke-opacity: .8;
+}
+
+#dag_viewer text.shadow {
+  stroke: #fff;
+  stroke-width: 4px;
+  stroke-opacity: .8;
+}
+
+#dag_viewer .snode rect {
+  cursor: move;
+  fill-opacity: .9;
+  shape-rendering: crispEdges;
+}
+
+#dag_viewer .snode text {
+  pointer-events: none;
+  text-shadow: 0 1px 0 #fff;
+}
+
+#dag_viewer .slink {
+  fill: none;
+  stroke: #000;
+  stroke-opacity: .2;
+}
+
+#dag_viewer .slink:hover {
+  stroke-opacity: .5;
+}
+

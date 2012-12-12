@@ -1,0 +1,633 @@
+Ambari Change log
+
+Notes:
+ - Committers should be listed using their login and non-committers
+should be listed by their full name.
+ - Please keep the file to a max of 80 characters wide.
+ - Put latest commits first in each section.
+
+AMBARI-666 branch (unreleased changes)
+
+  INCOMPATIBLE CHANGES
+
+  NEW FEATURES
+  
+  AMBARI-1054. Implement retrying of bootstrap on confirm host page.
+  (Jaimin Jetly via yusaku)
+
+  AMBARI-1048. Integrate slave configuration parameters with respective
+  service on step7 of installer wizard. (Jaimin Jetly via yusaku)
+
+  AMBARI-1031. Check for host registration at step3 of installer wizard 
+  and retrieve information for RAM and no. of cores. (Jaimin Jetly via
+  yusaku)
+
+  AMBARI-1022. Integrate Heatmap UI to backend API. (Srimanth
+  Gunturi via yusaku)
+
+  AMBARI-1015. Create HBase summary section in Dashboard & Service
+  pages. (Srimanth Gunturi via yusaku)
+
+  AMBARI-1014. Hook service summary sections in service pages to API.
+  (Srimanth Gunturi via yusaku)
+
+  AMBARI-1008. Populate dashboard>MapReduce section with API data.
+  (Srimanth Gunturi via yusaku)
+
+  AMBARI-1006. Populate dashboard>HDFS section with API data.
+  (Srimanth Gunturi via yusaku)
+
+  AMBARI-1004. Allow properties entered in custom config
+  (ex: hdfs-site.xml) to override existing or create new properties.
+  (Jaimin Jetly via yusaku)
+
+  AMBARI-1002. Integrate Installer with config APIs. (Jaimin Jetly
+  via yusaku)
+
+  AMBARI-989. Show task logs for each host in the Deploy step of the
+  wizard. (yusaku)
+
+  AMBARI-976.  Hook HDFS/MapReduce/HBase/Host graphs to backend API
+  (Srimanth Gunturi via yusaku)
+
+  AMBARI-964. Implement summary page of installer wizard. (Jaimin Jetly
+  via yusaku)
+
+  AMBARI-974. Decommissioning of datanodes. (Jitendra Pandey via mahadev)
+
+  AMBARI-975. Fix support for cascading updates to configs. (Hitesh Shah
+  via mahadev)
+
+  AMBARI-971. Add api support for creating multiple resources in a single
+  request. (John Speidel via mahadev)
+
+  AMBARI-970. Add additional Ganglia metrics and JMX properties. (Tom
+  Beerbower via mahadev)
+
+  AMBARI-967. Enhance predicate comparison. (Tom Beerbower via mahadev)
+
+  AMBARI-954. Support installation of Ganglia master and slaves via
+  Ambari Web. (yusaku)
+
+  AMBARI-980. Allow installation of various service components. (yusaku)
+
+  AMBARI-949. Provide metric graphs for individual hosts. (Srimanth
+  Gunturi via yusaku)
+
+  AMBARI-948. Invoke service starts after services are installed in the
+  wizard. (yusaku)
+
+  AMBARI-942. Integrate Install and Start APIs with the installer wizard.
+  (Jaimin Jetly via yusaku)
+
+  AMBARI-936. Provide HBase service specific graphs. (Srimanth Gunturi
+  via yusaku)
+
+  AMBARI-933. Provide service-specific alerts in the service summary
+  pages. (Srimanth Gunturi via yusaku)
+
+  AMBARI-938. Hardcode service name and client component mapping while
+  awaiting meta data integration. (hitesh)
+
+  AMBARI-927. Provide metrics graphs on the MapReduce services page. 
+  (Srimanth Gunturi via yusaku)
+
+  AMBARI-916. Provide metrics graphs in HDFS services page. (Srimanth
+  Gunturi via yusaku)
+
+  AMBARI-908. Add ui option to either create a Postgres database for Hive
+  and Oozie or choose existing database. (Jaimin Jetly via yusaku)
+
+  AMBARI-915. Implement App Browser for displaying and navigating Pig/Hive
+  workflows. (yusaku)
+
+  AMBARI-907. Add support for getting multiple objects in controller.
+  (hitesh)
+
+  AMBARI-906. Util to extract hosts for various components. (jitendra)
+
+  AMBARI-903. Various fixes for config handling integration. (Hitesh Shah via 
+  mahadev)
+
+  AMBARI-900. Add configuration mapping support. (Nate Cole via mahadev)
+
+  AMBARI-895. Need name consistency for metrics. (Tom Beerbower via mahadev)
+
+  AMBARI-893. provide api support for temporal queries. (John Speidel via 
+  mahadev)
+
+  AMBARI-897. Operations request object and skeleton management methods.
+  (jitendra)
+
+  AMBARI-894. TestHeartBeatMonitor fails intermittently. (jitendra)
+
+  AMBARI-892. Add puppet executor at the agent to be able to run various
+  commands from the server. (mahadev)
+
+  AMBARI-887. Ability to save configuration. (Nate Cole via mahadev)
+
+  AMBARI-877. Refactor resource provider implementation for changes to
+  management interface. (Tom Beerbower via mahadev)
+
+  AMBARI-876. Put metrics under metrics category. (Tom Beerbower via 
+  mahadev)
+
+  AMBARI-890. Add client library option to step6 (Assign slaves) of
+  installer wizard. Also add indicator and popovers for hosts with
+  master component. (Jaimin Jetly via yusaku)  
+
+  AMBARI-889. Provide cluster metric graphs on Ambari main dashboard.
+  (Srimanth Gunturi via yusaku)
+
+  AMBARI-886. Support filters in controller get* apis. (hitesh)
+
+  AMBARI-880. Implement Review Page (Step 8) for the Ambari Installer
+  Wizard. (Jaimin Jetly via yusaku)
+
+  AMBARI-872. Hookup Nagios alerts section in Ambari UI to backend
+  server. (Srimanth Gunturi via yusaku)
+
+  AMBARI-871. Integrate basic set of rest APIs with ambari-web
+  installer wizardi. (Jaimin Jetly via yusaku)
+
+  AMBARI-884. Implement Dashboard/Service summary. (yusaku)
+
+  AMBARI-882. Group-based DataNode/TaskTracker/RegionServer overrides.
+  (yusaku)
+
+  AMBARI-881. Implement Add Hosts Wizard. (yusaku)
+
+  AMBARI-869. Util to deserialize ExecutionCommand. (jitendra)
+
+  AMBARI-874. Fix hostinfo reporting at the server and add a unit test for
+  deserilization for the host information from agent. (mahadev)
+
+  AMBARI-873. Support for multiple objects' updates in controller. (hitesh)
+
+  AMBARI-870. Support metric types other than string (Tom Beerbower via
+  mahadev)
+
+  AMBARI-868. Clean up site.pp generation on the agent and remove the imports
+  in the sample site.pp. (mahadev)
+
+  AMBARI-862. API query against /clusters doesn't return any data.
+  (John Speidel via mahadev)
+
+  AMBARI-866. Add ORM layer for the FSM's in the server. (mahadev)
+
+  AMBARI-853. Add more complete JMX metrics. (Tom Beerbower via mahadev)
+
+  AMBARI-852. Improve REST API functionality regarding query and partial
+  response (John Speidel via mahadev)
+
+  AMBARI-865. Add unit test for action queue on the agent. (mahadev)
+
+  AMBARI-851. Hook up Ganglia property provider. (Tom Beerbower via mahadev)
+
+  AMBARI-863. Fix mvn tests to be able to run the python tests cleanly.
+  (mahadev)
+
+  AMBARI-849. Stage planner implementation. (jitendra)
+
+  AMBARI-860. Remove code that adds fake stages for testing. (jitendra)
+
+  AMBARI-856. Add cluster heatmap. (yusaku)
+
+  AMBARI-855. Create the skeleton for a custom data adapter in Ambari Web.
+  (yusaku)
+
+  AMBARI-854. Serve ambari-web from jetty. (Jaimin Jely via yusaku)
+ 
+  AMBARI-850. Flatten ExecutionCommand structure. (jitendra)
+  
+  AMBARI-848. Various tests for FSM and Controller impl. (hitesh)
+
+  AMBARI-847. Run pyunit tests from maven test target and also autogenerated
+  openssl passphrase. (mahadev)
+
+  AMBARI-845. Fix NPE in the server to be able to run the server api's.
+  (mahadev)
+
+  AMBARI-844. Mock JMX provider for manual tests. (Tom Beerbower via mahadev)
+
+  AMBARI-841. Fix comparison predicates in case where resource does not have
+  property value. (Tom Beerbower via mahadev)
+
+  AMBARI-833. Add missing Path annotation to rest services for
+  put/post/delete. (John Speidel via mahadev)
+
+  AMBARI-838. HACK: Add a thread in server to inject requests for testing.
+  (Jitendra via mahadev)
+
+  AMBARI-835. Update JMXPropertyProvider. (Tom Beerbower via hitesh)
+
+  AMBARI-832. Merge ambari-api with ambari-server (mahadev)
+
+  AMBARI-822. Implement an agent simulator for unit testing. (jitendra)
+  
+  AMBARI-829. Add unit tests for ResourceProviderImpl. (Tom Beerbower via
+  mahadev)
+
+  AMBARI-831. Move manifest generation into the ambari agent directory.
+  (mahadev)
+
+  AMBARI-828. Manifest generation for various actions from the server.
+  (mahadev)
+
+  AMBARI-827. Add clusterName to the status of the commands run by the agent.
+  (mahadev)
+
+  AMBARI-824. Provide basic management functionality (create/update) in the
+  rest api (John Speidel via mahadev)
+
+  AMBARI-826. Bug in processing command reports. (jitendra)
+
+  AMBARI-825. Controller layer implementation part 3. (hitesh)
+
+  AMBARI-823. Fix security filter on the server agent ports and remove
+  duplication on servlet contexts for certs signing. (mahadev)
+
+  AMBARI-821. Implement basic service state update and verify flow to
+  ActionManager. (hitesh)
+
+  AMBARI-812. In API , improve partial response support to drill down n levels
+  (John Spiedel)
+
+  AMBARI-791. Add unit tests and java docs for SPI code. (Tom Beerbower)
+
+  AMBARI-820. Remove JAXB dependencies in Server Agent protocol and move to
+  POJO based jackson serializer. (mahadev)
+
+  AMBARI-819. Management controller implemenation work. (hitesh)
+
+  AMBARI-811. Bug fix in jaxb serialization for maps. (jitendra)
+
+  AMBARI-810. Controller layer implementation part 1. (hitesh)
+
+  AMBARI-807. Fix Action scheduler tests because of fsm interface changes.
+  (jitendra)
+
+  AMBARI-806. Remove State object as configs/stack version/running state are
+  handled as standalone entities. (hitesh)
+
+  AMBARI-805. Add requestId tracking objects for management spi. (hitesh)
+
+  AMBARI-803. FSM initial refactoring for eventual live/desired objects. (hitesh)
+
+  AMBARI-800. Hack to add a stage for testing in in-memory db. (jitendra)
+  
+  AMBARI-801. Fix heartbeat message from the agent which is causing NPE at the
+  server. (mahadev)
+
+  AMBARI-778. Ensure data flows across all steps in installer wizard.
+  (Jaimin Jetly via yusaku)
+
+  AMBARI-799. Prototype for management spi part 3. (hitesh)
+
+  AMBARI-797. Prototype for management spi interface continued. (hitesh)
+
+  AMBARI-795. Fix failing tests for AgentResource and BootStrap. (mahadev)
+
+  AMBARI-793. Make MapReduce, Nagios, and Ganglia optional during cluster
+  install. (yusaku)
+
+  AMBARI-794. Add log4j properties for logging at the server. (mahadev)
+
+  AMBARI-790. OK in registration response. (jitendra)
+
+  AMBARI-787. Registration throws HostNotFoundException for new hosts. (jitendra)
+  
+  AMBARI-788. Fix server and agent startup for end to end testing. (mahadev)
+
+  AMBARI-785. Action response unit test. (jitendra)
+
+  AMBARI-783. Fix guice injection in the server. (mahadev)
+
+  AMBARI-784. Add Resource download API on the server. (mahadev)
+
+  AMBARI-781. Registration unit test. (jitendra)
+
+  AMBARI-754. Heartbeat handler: Registration response should query component 
+  status. (jitendra)
+
+  AMBARI-755. Heartbeat handler: Update state as reported in heartbeat. 
+  (jitendra)
+
+  AMBARI-756. Heartbeat handler: Handle heartbeat timeout. (jitendra)
+
+  AMBARI-767. Add bootstrap script to ssh in parallel and setup agents on a
+  list of hosts. (mahadev)
+
+  AMBARI-764. Integrate REST API (Tom Beerbower via mahadev)
+
+  AMBARI-762. Implement Confirm Hosts page for Ambari installer
+  (Jaimin Jetly via yusaku)
+
+  AMBARI-763. Implement Installer Step 6 (Assign Slaves). (yusaku)
+
+  AMBARI-760. Fix injection in data access objects to use guice provider.
+  (mahadev)
+
+  AMBARI-759. Add puppet scripts to the agent for configuring/installing
+  various services and add security aspects to api's and server/agent.
+  (mahadev)
+
+  AMBARI-749. Complete Java side implementation of bootstrapping agent hosts.
+  (mahadev)
+
+  AMBARI-757. Implement Installer Step 4 (Select Services). (yusaku)
+
+  AMBARI-751. Re-structure servicecomponenthost fsm layout. (hitesh)
+
+  AMBARI-732. Action scheduler unit tests. (jitendra)
+
+  AMBARI-739. Cluster fsm implementation. (hitesh)
+
+  AMBARI-738. s/Node/Host/g. (hitesh)
+
+  AMBARI-737. ServiceComponentNode FSM implementation. (hitesh)
+
+  AMBARI-722. Action scheduler implementation. (jitendra)
+  
+  AMBARI-733. Add Jersey Resource for BootStrapping and JAXB elements for API
+  entities. (mahadev)
+
+  AMBARI-730. Add unit tests for jersey apis on the server. (mahadev)
+
+  AMBARI-725. Add commandstatus/result/error objects into the rest API between
+  server and agent. (mahadev)
+
+  AMBARI-723. Implement Installer Welcome page and Install Options page
+ (Jaimin Jetly via yusaku)
+
+  AMBARI-726. ORM-based data access layer for new design (Jaimin Jetly via hitesh)
+
+  AMBARI-728. Initial work on ServiceComponentNode FSM. (hitesh)
+
+  AMBARI-724. Add tabs, dynamic form generation, validation errors, and info
+  popovers for Customize Services page in Installer (yusaku) 
+
+  AMBARI-714. Job FSM Impl and tests. (hitesh)
+
+  AMBARI-721. Remove Hardwareprofile class since its not needed anymore.
+  (mahadev)
+
+  AMBARI-720. Tweak basic styles for Installer. (yusaku)
+
+  AMBARI-719. Enable Responsive Design. (yusaku)
+
+  AMBARI-716. Add back TestNodeImpl and fix memory types and disk info
+  serialization. (mahadev)
+
+  AMBARI-717. Starter implementation for Installer Customize Services page.
+  Stylize top nav and implement static footer.  Stylize login page. (yusaku)
+
+  AMBARI-711. Create utility functions related to localStorage for first two
+  steps: cluster name and Install options. Also develop view logic with
+  preliminary validations for these two steps. (Jaimin Jetly via yusaku)
+
+  AMBARI-715. Integrate domain objects and Rest serialized objects. (mahadev)
+
+  AMBARI-713. Initial work on Job FSM. (hitesh)
+
+  AMBARI-712. Action manager skeleton. (jitendra)
+
+  AMBARI-710. Basic registration and heartbeat protocol implementation between
+  the server and the agent. (mahadev)
+
+  AMBARI-709. Getting hardware info on disks/cpu/others using facter and using
+  it during registeration. (mahadev)
+
+  AMBARI-707. More work on Node FSM and additional tests/cleanup. (hitesh)
+
+  AMBARI-706. Basic tests for Node FSM. (hitesh)
+
+  AMBARI-705. Initial work on Node FSM. (hitesh)
+
+  AMBARI-703. Heartbeat handler classes. (jitendra)
+
+  AMBARI-702. Add skeleton for Ambari agent that talks to the server and
+  collects information for host. (mahadev)
+
+  AMBARI-696. Add interface for ActionManager to access live state. (hitesh)
+
+  AMBARI-698. Add a simple server and artifact generation to run a server with
+  a simple api check. (mahadev)
+
+  AMBARI-697. Ambari Web (browser-based UI) skeleton. (Jaimin Jetly and yusaku)
+
+  AMBARI-695. More basic class restructuring for new design. (hitesh)
+
+  AMBARI-694. Class to encapsulate stage. (jitendra)
+
+  AMBARI-691. More basic classes for new design. (hitesh)
+
+  AMBARI-693. Classes for request objects. (jitendra)
+
+  AMBARI-685. Basic classes. (hitesh via jitendra)
+
+  AMBARI-676. Seperate directory for ambari-server. (jitendra)
+
+  IMPROVEMENTS
+  
+  AMBARI-1053. Dashboard page loads very slow due to hosts?fields=* API call
+  (Srimanth Gunturi via yusaku)
+
+  AMBARI-1051. Dashboard page takes long time to load. (Srimanth Gunturi via
+  yusaku)
+
+  AMBARI-1041. Additional metrics need to be added to Heatmap UI. (Srimanth
+  Gunturi via yusaku)
+
+  AMBARI-1040. Cluster heatmap: green should always mean "good". (Srimanth
+  Gunturi via yusaku)
+
+  AMBARI-1039. Improve Nagios alerts time display. (Srimanth Gunturi via yusaku)
+
+  AMBARI-1036. Service Info/Quick Links do not display external hostnames.
+  (Srimanth Gunturi via yusaku)
+
+  AMBARI-1035. Aggregate creation of multiple services and assignment of host
+  to cluster. (Jaimin Jetly via yusaku)
+
+  AMBARI-1034. Metric Charts - display local time rather than UTC.
+  (Srimanth Gunturi via yusaku)
+
+  AMBARI-1033. Nagios and Ganglia links should use public host names in URLs.
+  (Srimanth Gunturi via yusaku)
+
+  AMBARI-1030. Metrics links in web ui should link to Ganglia UI. (Srimanth
+  Gunturi via yusaku)
+
+  AMBARI-1025. Display total install and start services time on summary page
+  and polish summary page ui. (Jaimin Jetly via yusaku)
+
+  AMBARI-1023. Dashboard page should handle API sending JSON as strings and
+  object. (Srimanth Gunturi via yusaku)
+
+  AMBARI-1011. Create 2 missing HDFS service graphs. (Srimanth Gunturi via
+  yusaku)
+
+  AMBARI-1003. Nagios sections should use backend API to populate. (Srimanth
+  Gunturi via yusaku)
+
+  AMBARI-1062. Convert Apache license header comment style in Handlebars files
+  to Handlebars comments rather than JavaScript comments. (yusaku)
+
+  AMBARI-1061. Data loading refactoring for cluster management. (yusaku)
+
+  AMBARI-1060. Data loading for App Browser. (yusaku)
+
+  AMBARI-993. Hook up login with server authentication. (yusaku)
+
+  AMBARI-1059. Refactor cluster management. (yusaku)
+
+  AMBARI-1058. Implement data loading. (yusaku)
+
+  AMBARI-956. On unavailability of non-master components, host with least
+  number of master components should install all slave and client components. 
+  (Jaimin Jetly via yusaku)
+ 
+  AMBARI-990. Refactor App Browser. (yusaku)
+
+  AMBARI-979. More refactoring of App Browser code. (yusaku)
+
+  AMBARI-947. Make it easier to test Deploy (Install, Start + Test) step
+  of the wizard. (yusaku)
+
+  AMBARI-978. Refactor App Browser code. (yusaku)
+
+  AMBARI-977. Refactor Wizard and Cluster Management code. (yusaku)
+
+  AMBARI-941. More refactoring of Wizards in Ambari Web. (yusaku)
+
+  AMBARI-919. Partial refactoring and consolidation of code for various
+  wizards. (yusaku)
+
+  AMBARI-918. Update styles in Cluster Management. (yusaku)
+
+  AMBARI-917. Update layout and flow for App Browser. (yusaku)
+
+  AMBARI-888. Add more tests for controller implementation. (hitesh)
+
+  AMBARI-891. Initial work to refactor the Wizards in Ambari Web. (yusaku)
+
+  AMBARI-883. Improve user interactions on Confirm Hosts page of the
+  Installer. (yusaku)
+
+  AMBARI-859. Tighten up the layout for the Install page of the Installer.
+  (yusaku)
+
+  AMBARI-857. Refactor Install Options page for the Install Wizard. (yusaku)
+
+  OPTIMIZATIONS
+
+  BUG FIXES
+ 
+  AMBARI-1046. Heatmap with no numbers on the hover. (Srimanth Gunturi via
+  yusaku)
+
+  AMBARI-1045. Service summary sections have incorrect values displayed.
+  (Srimanth Gunturi via yusaku)
+
+  AMBARI-1042. Heatmap UI fluctuates between white and green colors
+  intermittently. (Srimanth Gunturi via yusaku)
+
+  AMBARI-1032. Host hover in cluster heatmap showing mock data. (Srimanth
+  Gunturi via yusaku)
+ 
+  AMBARI-1028. MapReduce & HDFS summaries should use ServiceComponentInfo
+  values. (Srimanth Gunturi via yusaku)
+
+  AMBARI-1017. Alerts not showing up in Ambari UI due to model refactoring.
+  (Srimanth Gunturi via yusaku)
+
+  AMBARI-1013. Host metrics charts should use live data. (Srimanth Gunturi
+  via yusaku)
+
+  AMBARI-1009. Cluster level graphs need to use API for data. (Srimanth
+  Gunturi via yusaku)
+
+  AMBARI-1064. App Browser fixes. (yusaku)
+
+  AMBARI-995. Deploy logs not shown for failed tasks. (yusaku)
+
+  AMBARI-992. Logout does not clean application state properly. (yusaku)
+
+  AMBARI-957. Adding a host whose hostname is the same as the one the user 
+  is accessing Ambari Web with breaks the Installer. (yusaku)
+
+  AMBARI-953. Fix navigation issues in installer wizard due to regression.
+  (Jaimin Jetly via yusaku)
+
+  AMBARI-899. Use slf4j-api 1.5.5 rather than 1.6.6. (yusaku)
+
+  AMBARI-902. Fix ZooKeeper badge allocation logic for single host and 
+  muliple hosts installation in step5 installer wizard. (Jaimin Jetly via
+  yusaku)
+
+  AMBARI-896. Resolve all navigation related issues for Step6 (Slave and
+  Client component) of installer wizard. (Jaimin Jetly via yusaku)
+
+  AMBARI-914. Fix issues related to Slave Component Group in Installer.
+  (yusaku)
+
+  AMBARI-909. Pass correct cluster info to Action Manager. (hitesh)
+
+  AMBARI-904. Ensure state changes only happen after actionmanager persists
+  actions. (hitesh)
+
+  AMBARI-905. Fix puppet site creation with flattening of execution commands
+  send from the server. (mahadev)
+
+  AMBARI-885. Fix miscellaneous issues related to Ambari Web. (yusaku)
+
+  AMBARI-879. Installer skips Confirm Hosts page of the wizard when testing
+  locally without Ambari Server. (yusaku)
+
+  AMBARI-878. Various tests for FSM, controller and state objects. (hitesh)
+
+  AMBARI-858. Installer -> Select Services page: warning popups are no longer
+  appearing. (yusaku)
+
+  AMBARI-846. Select Masters Page: make ZooKeeper addition/removal UI more
+  organized. (Jaimin Jetly via yusaku)
+
+  AMBARI-840. Hitting browser refresh should not clear present step data that 
+  had already been persisted to local DB. (Jaimin Jetly via yusaku)
+
+  AMBARI-843. Fix more null pointers for partial request objects. (hitesh)
+
+  AMBARI-842. Fix null point exception during adding of hosts to cluster. (hitesh)
+
+  AMBARI-839. Temporary fix for server start order. (hitesh)
+
+  AMBARI-837. Fix basic injection issues for controller impl. (hitesh)
+
+  AMBARI-836. Fix generation of requestId to be unique across restarts. (hitesh)
+
+  AMBARI-834. Use RoleCommand instead of ServiceComponentHostEventType for HostAction
+  in Controller. (hitesh)
+
+  AMBARI-830. Various fixes and tests for controller implementation. (hitesh)
+
+  AMBARI-808. Handle appropriate start/stop/install/.. events at their respective
+  failed states. (hitesh)
+
+  AMBARI-798. Fix import issue due to move of Predicate class. (hitesh)
+
+  AMBARI-780. Make FSM related changes for heartbeat handler. (hitesh)
+
+  AMBARI-774. Renable and fix AgentResourceTest. (mahadev) 
+
+  AMBARI-773. Change Host FSM as per new requirements of heartbeat handler. (hitesh)
+
+  AMBARI-753. Fix broken compile as a result of re-factor of FSM layout. (hitesh)
+
+  AMBARI-752. Add missing license header to TestServiceComponentHostState. (hitesh)
+
+  AMBARI-718. Fix installer navigation. (yusaku)
+
+  AMBARI-684. Remove non-required dependencies from pom files (hitesh via jitendra)
+
+  AMBARI-680. Fix pom structure. (hitesh)

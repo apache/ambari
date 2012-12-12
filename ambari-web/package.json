@@ -1,0 +1,31 @@
+{
+  "name":"Ambari",
+  "description":"Front-end package for the Apache Ambari Project",
+  "version":"1.0.0",
+  "homepage":"",
+  "repository":{
+    "type":"git",
+    "url":""
+  },
+  "engines":{
+    "node":"~0.6.10 || 0.8 || 0.9"
+  },
+  "scripts":{
+    "start":"brunch watch --server"
+  },
+  "dependencies":{
+    "javascript-brunch":">= 1.0 < 1.5",
+    "css-brunch":">= 1.0 < 1.5",
+    "uglify-js-brunch":">= 1.0 < 1.5",
+    "clean-css-brunch":">= 1.0 < 1.5",
+    "ember-handlebars-brunch":"git://github.com/icholy/ember-handlebars-brunch.git",
+    "less-brunch":"git://github.com/brunch/less-brunch.git"
+  },
+  "devDependencies":{
+    "mocha":"0.14.0",
+    "chai":"1.2.0",
+    "sinon":"1.4.2",
+    "sinon-chai":"2.1.2",
+    "express":"2.5.8"
+  }
+}

@@ -1,0 +1,41 @@
+<?xml version="1.0"?>
+<metainfo>
+    <user>root</user>
+    <comment>This is comment for HDFS service</comment>
+    <version>1.0</version>
+
+
+    <components>
+        <component>
+            <name>NAMENODE</name>
+            <category>MASTER</category>
+        </component>
+
+        <component>
+            <name>SECONDARY_NAMENODE</name>
+            <category>MASTER</category>
+        </component>
+
+        <component>
+            <name>DATANODE1</name>
+            <category>SLAVE</category>
+        </component>
+
+        <component>
+            <name>DATANODE2</name>
+            <category>SLAVE</category>
+        </component>
+
+        <component>
+            <name>DATANODE</name>
+            <category>SLAVE</category>
+        </component>
+
+        <component>
+            <name>HDFS_CLIENT</name>
+            <category>CLIENT</category>
+        </component>
+    </components>
+
+
+</metainfo>

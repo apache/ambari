@@ -1,0 +1,100 @@
+{{!
+* Licensed to the Apache Software Foundation (ASF) under one
+* or more contributor license agreements.  See the NOTICE file
+* distributed with this work for additional information
+* regarding copyright ownership.  The ASF licenses this file
+* to you under the Apache License, Version 2.0 (the
+* "License"); you may not use this file except in compliance
+* with the License.  You may obtain a copy of the License at
+*
+*     http://www.apache.org/licenses/LICENSE-2.0
+*
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
+* limitations under the License.
+}}
+
+<div id="apps">
+  <table class="table table-bordered table-stripe avg-table">
+    <tbody>
+    <tr>
+      <td rowspan="3" class="avg-star"><a href="#" {{action "avgStarClick" target="view"}} class="icon-star a"></a></td>
+      <td></td>
+      <td>Jobs</td>
+      <td>Input</td>
+      <td>Output</td>
+      <td>Duration</td>
+      <td>Oldest</td>
+      <td>Most Recent</td>
+    </tr>
+    <tr class="avg-info">
+      <td>Avg</td>
+      <td>{{view.avgData.jobs.avg}}</td>
+      <td>{{view.avgData.input.avg}}</td>
+      <td>{{view.avgData.output.avg}}</td>
+      <td>{{view.avgData.duration.avg}}</td>
+      <td>{{view.avgData.times.oldest}}</td>
+      <td>{{view.avgData.times.youngest}}</td>
+    </tr>
+    <tr class="compare-info">
+      <td>Min / Max</td>
+      <td>{{view.avgData.jobs.min}} / {{view.avgData.jobs.max}}</td>
+      <td>{{view.avgData.input.min}} / {{view.avgData.input.max}}</td>
+      <td>{{view.avgData.output.min}} / {{view.avgData.output.max}}</td>
+      <td>{{view.avgData.duration.min}} / {{view.avgData.duration.max}}</td>
+      <td></td>
+      <td></td>
+    </tr>
+    </tbody>
+  </table>
+  <div id="filter_info" class="row">
+    <div class="span3" id="filter_buttons">Show:
+      <a href="javascript:void(0)" class="all selected" {{action "clickViewType" target="view"}} data-view-type="all">All
+        ({{view.content.length}})</a> &#124;
+      <a href="javascript:void(0)" class="filtered" {{action "clickViewType" target="view"}} data-view-type="filtered">Filtered
+        ({{view.filtered}})</a> &#124;
+      <a href="javascript:void(0)" class="stared" {{action "clickViewType" target="view"}} data-view-type="starred">Starred
+        ({{view.staredData.count}})</a>
+    </div>
+    <div class="span2"><a href="#" {{action "clearFilters" target="view"}}>Clear filters</a>&nbsp;&#124;&nbsp;<a
+      href="#" {{action "clearStars" target="view"}}>Clear stars</a></div>
+  </div>
+  <div>
+  </div>
+  <table class="table table-striped" id="dataTable">
+    <thead>
+    <tr>
+      <th></th>
+      <th>App ID</th>
+      <th>Name</th>
+      <th>Type</th>
+      <th>User</th>
+      <th>Jobs</th>
+      <th>Input</th>
+      <th>Output</th>
+      <th>Duration</th>
+      <th>Run Date</th>
+    </tr>
+    <tr>
+      <th class="notActive"><div class="view-wrapper">{{view view.starFilterView viewName="starFilterViewInstance"}}</div></th>
+      <th class="notActive"><div class="view-wrapper">{{view view.appidFilterView viewName="appidFilterViewInstance"}}</div> <a href="#" {{action "clearFilterButtonClick" target="view"}} id="view_appidFilterViewInstance" class="ui-icon ui-icon-circle-close ui-appid"></a></th>
+      <th class="notActive"><div class="view-wrapper">{{view view.nameFilterView viewName="nameFilterViewInstance"}}</div> <a href="#" {{action "clearFilterButtonClick" target="view"}} id="view_nameFilterViewInstance" class="ui-icon ui-icon-circle-close ui-name"></a></th>
+      <th class="notActive"><div class="view-wrapper">{{view view.typeSelectView viewName="typeSelectViewInstance"}}</div> <a href="#" {{action "clearFilterButtonClick" target="view"}} id="view_typeSelectViewInstance" class="ui-icon ui-icon-circle-close ui-type"></a></th>
+      <th class="notActive"><div class="view-wrapper">{{view view.userFilterView viewName="userFilterViewInstance"}}</div> <a href="#" {{action "clearFilterButtonClick" target="view"}} id="view_userFilterViewInstance" class="ui-icon ui-icon-circle-close ui-user"></a><input id="user_filter" type="hidden"></th>
+      <th class="notActive"><div class="view-wrapper">{{view view.jobsFilterView viewName="jobsFilterViewInstance"}}</div> <a href="#" {{action "clearFilterButtonClick" target="view"}} id="view_jobsFilterViewInstance" class="ui-icon ui-icon-circle-close ui-jobs"></a></th>
+      <th class="notActive"><div class="view-wrapper">{{view view.inputFilterView viewName="inputFilterViewInstance"}}</div> <a href="#" {{action "clearFilterButtonClick" target="view"}} id="view_inputFilterViewInstance" class="ui-icon ui-icon-circle-close ui-input"></a></th>
+      <th class="notActive"><div class="view-wrapper">{{view view.outputFilterView viewName="outputFilterViewInstance"}}</div> <a href="#" {{action "clearFilterButtonClick" target="view"}} id="view_outputFilterViewInstance" class="ui-icon ui-icon-circle-close ui-output"></a></th>
+      <th class="notActive"><div class="view-wrapper">{{view view.durationFilterView viewName="durationFilterViewInstance"}}</div> <a href="#" {{action "clearFilterButtonClick" target="view"}} id="view_durationFilterViewInstance" class="ui-icon ui-icon-circle-close ui-duration"></a></th>
+      <th class="notActive"><div class="view-wrapper">{{view view.rundateSelectView viewName="rundateSelectViewInstance"}}</div> <a href="#" {{action "clearFilterButtonClick" target="view"}} id="view_rundateSelectViewInstance" class="ui-icon ui-icon-circle-close ui-rundate"></a><input id="custom_rundate_filter" type="hidden"></th>
+    </tr>
+    </thead>
+    <tbody>
+    {{#each run in view.content}}
+      {{view view.containerRow runBinding="run" currentViewBinding="view.appTableRow"}}
+    {{/each}}
+    </tbody>
+  </table>
+</div>
+

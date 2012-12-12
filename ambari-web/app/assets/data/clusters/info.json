@@ -1,0 +1,11 @@
+{
+  "href" : "http://ambari:9998/clusters",
+  "items" : [
+    {
+      "href" : "http://ambari:9998/clusters/mycluster",
+      "Clusters" : {
+        "cluster_name" : "mycluster"
+      }
+    }
+  ]
+}

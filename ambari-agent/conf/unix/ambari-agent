@@ -1,0 +1,25 @@
+# description: ambari-agent daemon
+# processname: ambari-agent
+
+# /etc/init.d/ambari-agent
+
+case "$1" in
+  start)
+        echo -e "Starting ambari-agent"
+        python /usr/lib/python2.6/site-packages/ambari_agent/main.py
+        ;;
+  stop)
+        echo -e "Stopping ambari-agent"
+        python /usr/lib/python2.6/site-packages/ambari_agent/main.py stop
+        ;;
+  restart)
+        echo -e "Restarting ambari-agent"
+        $0 stop
+        $0 start
+        ;;     
+  *)
+        echo "Usage: /usr/sbin/ambari-agent {start|stop|restart}"
+        exit 1
+esac
+
+exit 0

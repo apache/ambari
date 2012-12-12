@@ -1,0 +1,55 @@
+{{!
+* Licensed to the Apache Software Foundation (ASF) under one
+* or more contributor license agreements.  See the NOTICE file
+* distributed with this work for additional information
+* regarding copyright ownership.  The ASF licenses this file
+* to you under the Apache License, Version 2.0 (the
+* "License"); you may not use this file except in compliance
+* with the License.  You may obtain a copy of the License at
+*
+*     http://www.apache.org/licenses/LICENSE-2.0
+*
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
+* limitations under the License.
+}}
+
+<div class="btn-group">
+  <button class="btn btn-primary dropdown-toggle" data-toggle="dropdown">
+    Job {{view.activeJob.id}} - {{view.activeJob.run.id}}
+    <span class="caret"></span>
+  </button>
+  <ul class="dropdown-menu">
+    {{#each job in view.content}}
+    <li><a {{action "selectJob" job target="view"}} href="javascript:void(null)">Job {{job.id}} - {{job.run.id}}</a></li>
+    {{/each}}
+  </ul>
+</div>
+<div></div>
+<div id="graph1" class="pull-left">
+  <div class="pull-left">
+    <div id="graph1_desc" class="graph_desc">
+      <h4>Job Timeline</h4>
+    </div>
+    <div id="chart"></div>
+    <div id="timeline1"></div>
+  </div>
+  <div id="legend_container" class="pull-left">
+    <div id="legend"></div>
+  </div>
+</div>
+<div id="graph2" class="pull-right">
+  <div class="pull-left">
+    <div id="graph2_desc" class="graph_desc">
+      <h4>Job Tasks' View</h4>
+    </div>
+    <div id="job_tasks"></div>
+    <div id="timeline2"></div>
+  </div>
+  <div id="tasks_legend_container" class="pull-left">
+    <div id="tasks_legend"></div>
+  </div>
+</div>
+<div class="clearfix"></div>

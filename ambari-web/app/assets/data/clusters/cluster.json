@@ -1,0 +1,10 @@
+{
+  "href" : "http://dev.hortonworks.com:8080/api/clusters/mycluster?fields=Clusters",
+  "Clusters" : {
+    "cluster_name" : "mycluster",
+    "cluster_id" : 1,
+    "version" : "HDP-0.1",
+    "stack_name" : "HDP",
+    "max_hosts_per_rack" : 10
+  }
+}

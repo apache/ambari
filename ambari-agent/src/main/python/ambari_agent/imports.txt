@@ -1,0 +1,13 @@
+hdp/manifests/*.pp
+hdp-hadoop/manifests/*.pp
+hdp-hbase/manifests/*.pp
+hdp-zookeeper/manifests/*.pp
+hdp-oozie/manifests/*.pp
+hdp-pig/manifests/*.pp
+hdp-sqoop/manifests/*.pp
+hdp-templeton/manifests/*.pp
+hdp-hive/manifests/*.pp
+hdp-hcat/manifests/*.pp
+hdp-mysql/manifests/*.pp
+hdp-monitor-webserver/manifests/*.pp
+hdp-repos/manifests/*.pp

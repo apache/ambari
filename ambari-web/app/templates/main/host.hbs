@@ -1,0 +1,77 @@
+{{!
+* Licensed to the Apache Software Foundation (ASF) under one
+* or more contributor license agreements.  See the NOTICE file
+* distributed with this work for additional information
+* regarding copyright ownership.  The ASF licenses this file
+* to you under the Apache License, Version 2.0 (the
+* "License"); you may not use this file except in compliance
+* with the License.  You may obtain a copy of the License at
+*
+*     http://www.apache.org/licenses/LICENSE-2.0
+*
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
+* limitations under the License.
+}}
+
+<div id="hosts">
+  {{#if controller.isAdmin}}
+  <div class="box-header">
+    <div class="button-section">
+      <button class="btn btn-inverse add-host-button" {{action addHost}}>
+        <i class="icon-plus icon-white"></i>
+        Add New Hosts
+      </button>
+    </div>
+  </div>
+  {{/if}}
+  <table class="datatable table table-bordered table-striped" id="hosts-table">
+    <thead>
+    <tr>
+      <th>Name</th>
+      <th>IP Address</th>
+      <th>CPU</th>
+      <th>RAM</th>
+      <th>Disk Usage</th>
+      <th>Load Avg</th>
+      <th>Components</th>
+    </tr>
+      <th class="notActive"><div class="view-wrapper">{{view view.nameFilterView viewName="nameFilterViewInstance"}}</div> <a href="#" {{action "clearFilterButtonClick" target="view"}} id="view_nameFilterViewInstance" class="ui-icon ui-icon-circle-close ui-name"></a></th>
+      <th class="notActive"><div class="view-wrapper">{{view view.rackFilterView viewName="ipFilterViewInstance"}}</div> <a href="#" {{action "clearFilterButtonClick" target="view"}} id="view_ipFilterViewInstance" class="ui-icon ui-icon-circle-close ui-rack"></a></th>
+      <th class="notActive"><div class="view-wrapper">{{view view.cpuFilterView viewName="cpuFilterViewInstance"}}</div> <a href="#" {{action "clearFilterButtonClick" target="view"}} id="view_cpuFilterViewInstance" class="ui-icon ui-icon-circle-close ui-cpu"></a></th>
+      <th class="notActive"><div class="view-wrapper">{{view view.ramFilterView viewName="ramFilterViewInstance"}}</div> <a href="#" {{action "clearFilterButtonClick" target="view"}} id="view_ramFilterViewInstance" class="ui-icon ui-icon-circle-close ui-ram"></a></th>
+      <th></th>
+      <th class="notActive"><div class="view-wrapper">{{view view.loadAvgFilterView viewName="loadAvgFilterViewInstance"}}</div> <a href="#" {{action "clearFilterButtonClick" target="view"}} id="view_loadAvgFilterViewInstance" class="ui-icon ui-icon-circle-close ui-load_avg"></a></th>
+      <th class="notActive"><input id="components_filter" type="hidden" />
+          <div class="view-wrapper">{{view view.componentsFilterView viewName="componentsFilterViewInstance"}}</div> <a href="#" {{action "clearFilterButtonClick" target="view"}} id="view_componentsFilterViewInstance" class="ui-icon ui-icon-circle-close ui-components"></a>
+      </th>
+    </tr>
+    </thead>
+    <tbody>
+    {{#each host in controller}}
+    {{#view view.HostView contentBinding="host"}}
+    <tr>
+      <td class="name">
+        <span {{bindAttr class="host.healthClass"}}></span>
+        <a href="#" {{action "showDetails" host}}>{{unbound host.publicHostName}}</a>
+      </td>
+      <td>{{host.ip}}</td>
+      <td>{{host.cpu}}</td>
+      <td>{{host.memoryFormatted}}</td>
+      <td>
+        <div class="progress progress-info">
+          <div class="bar" {{bindAttr style="view.usageStyle"}} style="width: 20%"></div>
+        </div>
+      </td>
+      <td>{{host.loadAvg}}</td>
+      <td>
+        {{view.labels}}
+      </td>
+    </tr>
+    {{/view}}
+    {{/each}}
+    </tbody>
+  </table>
+</div>

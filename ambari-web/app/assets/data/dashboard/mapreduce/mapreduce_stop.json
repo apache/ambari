@@ -1,0 +1,370 @@
+{
+  "href" : "http://localhost:8080/api/clusters/mycluster/services?ServiceInfo/service_name=MAPREDUCE&fields=components/host_components/*",
+  "items" : [
+    {
+      "href" : "http://localhost:8080/api/clusters/mycluster/services/MAPREDUCE",
+      "ServiceInfo" : {
+        "cluster_name" : "mycluster",
+        "service_name" : "MAPREDUCE"
+      },
+      "components" : [
+        {
+          "href" : "http://localhost:8080/api/clusters/mycluster/services/MAPREDUCE/components/MAPREDUCE_CLIENT",
+          "ServiceComponentInfo" : {
+            "cluster_name" : "mycluster",
+            "component_name" : "MAPREDUCE_CLIENT",
+            "service_name" : "MAPREDUCE"
+          },
+          "host_components" : [
+            {
+              "href" : "http://localhost:8080/api/clusters/mycluster/hosts/dev.hortonworks.com/host_components/MAPREDUCE_CLIENT",
+              "HostRoles" : {
+                "configs" : "{}",
+                "cluster_name" : "mycluster",
+                "desired_configs" : "{}",
+                "desired_state" : "INSTALLED",
+                "state" : "INSTALLED",
+                "component_name" : "MAPREDUCE_CLIENT",
+                "host_name" : "dev.hortonworks.com"
+              },
+              "component" : [
+                {
+                  "href" : "http://localhost:8080/api/clusters/mycluster/services/MAPREDUCE/components/MAPREDUCE_CLIENT",
+                  "ServiceComponentInfo" : {
+                    "cluster_name" : "mycluster",
+                    "component_name" : "MAPREDUCE_CLIENT",
+                    "service_name" : "MAPREDUCE"
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "href" : "http://localhost:8080/api/clusters/mycluster/services/MAPREDUCE/components/JOBTRACKER",
+          "ServiceComponentInfo" : {
+            "cluster_name" : "mycluster",
+            "component_name" : "JOBTRACKER",
+            "service_name" : "MAPREDUCE"
+          },
+          "host_components" : [
+            {
+              "href" : "http://localhost:8080/api/clusters/mycluster/hosts/dev.hortonworks.com/host_components/JOBTRACKER",
+              "HostRoles" : {
+                "configs" : "{\"mapred-site\":\"version1\",\"global\":\"version1\",\"core-site\":\"version1\"}",
+                "cluster_name" : "mycluster",
+                "desired_configs" : "{}",
+                "desired_state" : "INSTALLED",
+                "state" : "INSTALLED",
+                "component_name" : "JOBTRACKER",
+                "host_name" : "dev.hortonworks.com"
+              },
+              "metrics" : {
+                "boottime" : 1.353113263E9,
+                "process" : {
+                  "proc_total" : 542.4,
+                  "proc_run" : 1.04722222222
+                },
+                "rpc" : {
+                  "rpcAuthorizationSuccesses" : 0.0,
+                  "SentBytes" : 355.647619048,
+                  "rpcAuthorizationFailures" : 0.0,
+                  "ReceivedBytes" : 1040.35238095,
+                  "NumOpenConnections" : 0.0,
+                  "callQueueLen" : 0.0,
+                  "rpcAuthenticationSuccesses" : 0.0,
+                  "RpcQueueTime_num_ops" : 3.32380952381,
+                  "RpcProcessingTime_num_ops" : 3.32380952381,
+                  "RpcProcessingTime_avg_time" : 0.142915649166,
+                  "rpcAuthenticationFailures" : 0.0,
+                  "RpcQueueTime_avg_time" : 0.0767488298738
+                },
+                "ugi" : {
+                  "loginSuccess_num_ops" : 0.0,
+                  "loginFailure_num_ops" : 0.0,
+                  "loginSuccess_avg_time" : 0.0,
+                  "loginFailure_avg_time" : 0.0
+                },
+                "mapred" : {
+                  "Queue" : {
+                    "maps_killed" : 0.0,
+                    "reduces_killed" : 0.0,
+                    "jobs_failed" : 0.0,
+                    "reduces_completed" : 0.0,
+                    "running_0" : 0.0,
+                    "reduces_failed" : 0.0,
+                    "reserved_map_slots" : 0.0,
+                    "jobs_completed" : 0.0,
+                    "waiting_maps" : 0.0,
+                    "running_1440" : 0.0,
+                    "maps_completed" : 0.0,
+                    "jobs_preparing" : 0.0,
+                    "jobs_submitted" : 0.0,
+                    "reserved_reduce_slots" : 0.0,
+                    "jobs_running" : 0.0,
+                    "running_300" : 0.0,
+                    "maps_launched" : 0.0,
+                    "reduces_launched" : 0.0,
+                    "running_60" : 0.0,
+                    "waiting_reduces" : 0.0,
+                    "maps_failed" : 0.0,
+                    "jobs_killed" : 0.0
+                  },
+                  "jobtracker" : {
+                    "blacklisted_maps" : 0.0,
+                    "running_maps" : 0.0,
+                    "jobs_failed" : 0.0,
+                    "waiting_maps" : 0.0,
+                    "maps_completed" : 0.0,
+                    "trackers" : 1.0,
+                    "jobs_submitted" : 0.0,
+                    "map_slots" : 4.0,
+                    "reserved_reduce_slots" : 0.0,
+                    "trackers_graylisted" : 0.0,
+                    "heartbeats" : 3.32380952381,
+                    "jobs_running" : 0.0,
+                    "blacklisted_reduces" : 0.0,
+                    "maps_launched" : 0.0,
+                    "occupied_map_slots" : 0.0,
+                    "reduces_launched" : 0.0,
+                    "jobs_killed" : 0.0,
+                    "maps_failed" : 0.0,
+                    "maps_killed" : 0.0,
+                    "reduce_slots" : 2.0,
+                    "reduces_killed" : 0.0,
+                    "reduces_completed" : 0.0,
+                    "jobs_completed" : 0.0,
+                    "reserved_map_slots" : 0.0,
+                    "trackers_decommissioned" : 0.0,
+                    "reduces_failed" : 0.0,
+                    "trackers_blacklisted" : 0.0,
+                    "jobs_preparing" : 0.0,
+                    "running_reduces" : 0.0,
+                    "occupied_reduce_slots" : 0.0,
+                    "waiting_reduces" : 0.0
+                  }
+                },
+                "disk" : {
+                  "disk_total" : 101.515,
+                  "disk_free" : 93.4107777778,
+                  "part_max_used" : 12.8
+                },
+                "cpu" : {
+                  "cpu_speed" : 1986.0,
+                  "cpu_wio" : 0.510555555556,
+                  "cpu_num" : 1.0,
+                  "cpu_idle" : 45.9291666667,
+                  "cpu_nice" : 0.0,
+                  "cpu_aidle" : 0.0,
+                  "cpu_system" : 6.88277777778,
+                  "cpu_user" : 46.6838888889
+                },
+                "rpcdetailed" : {
+                  "getJobProfile_num_ops" : 0.0,
+                  "getStagingAreaDir_num_ops" : 0.0,
+                  "getProtocolVersion_avg_time" : 0.0,
+                  "getBuildVersion_avg_time" : 0.0,
+                  "getBuildVersion_num_ops" : 0.0,
+                  "getNewJobId_avg_time" : 0.0,
+                  "getQueueAdmins_num_ops" : 0.0,
+                  "getSystemDir_num_ops" : 0.0,
+                  "getTaskCompletionEvents_num_ops" : 0.0,
+                  "getJobProfile_avg_time" : 0.0,
+                  "submitJob_num_ops" : 0.0,
+                  "getStagingAreaDir_avg_time" : 2.0,
+                  "getNewJobId_num_ops" : 0.0,
+                  "getJobCounters_num_ops" : 0.0,
+                  "getTaskCompletionEvents_avg_time" : 0.111111111111,
+                  "getProtocolVersion_num_ops" : 0.0,
+                  "submitJob_avg_time" : 312.0,
+                  "getSystemDir_avg_time" : 0.0,
+                  "getJobStatus_num_ops" : 0.0,
+                  "getJobCounters_avg_time" : 0.0,
+                  "getQueueAdmins_avg_time" : 0.0,
+                  "heartbeat_num_ops" : 3.32380952381,
+                  "heartbeat_avg_time" : 0.142915649166,
+                  "getJobStatus_avg_time" : 0.0
+                },
+                "load" : {
+                  "load_fifteen" : 0.8845,
+                  "load_one" : 0.516833333333,
+                  "load_five" : 0.740888888889
+                },
+                "jvm" : {
+                  "memHeapCommittedM" : 185.1875,
+                  "logFatal" : 0.0,
+                  "threadsBlocked" : 0.0,
+                  "threadsWaiting" : 19.0,
+                  "gcCount" : 0.00277777777778,
+                  "logWarn" : 0.0,
+                  "logError" : 0.0,
+                  "memNonHeapCommittedM" : 23.75,
+                  "gcTimeMillis" : 0.641666666667,
+                  "memNonHeapUsedM" : 23.1303326472,
+                  "logInfo" : 0.0,
+                  "threadsNew" : 0.0,
+                  "memHeapUsedM" : 101.890453742,
+                  "threadsTerminated" : 0.0,
+                  "threadsTimedWaiting" : 10.0,
+                  "threadsRunnable" : 6.0
+                },
+                "network" : {
+                  "pkts_out" : 0.455111111111,
+                  "bytes_in" : 50.645,
+                  "bytes_out" : 119.762888889,
+                  "pkts_in" : 0.411222222222
+                },
+                "memory" : {
+                  "mem_total" : 2054932.0,
+                  "swap_free" : 4074713.26667,
+                  "mem_buffers" : 13563.6333333,
+                  "mem_shared" : 0.0,
+                  "mem_cached" : 175195.088889,
+                  "mem_free" : 117578.155556,
+                  "swap_total" : 4128760.0
+                }
+              },
+              "component" : [
+                {
+                  "href" : "http://localhost:8080/api/clusters/mycluster/services/MAPREDUCE/components/JOBTRACKER",
+                  "ServiceComponentInfo" : {
+                    "cluster_name" : "mycluster",
+                    "component_name" : "JOBTRACKER",
+                    "service_name" : "MAPREDUCE"
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "href" : "http://localhost:8080/api/clusters/mycluster/services/MAPREDUCE/components/TASKTRACKER",
+          "ServiceComponentInfo" : {
+            "cluster_name" : "mycluster",
+            "component_name" : "TASKTRACKER",
+            "service_name" : "MAPREDUCE"
+          },
+          "host_components" : [
+            {
+              "href" : "http://localhost:8080/api/clusters/mycluster/hosts/dev.hortonworks.com/host_components/TASKTRACKER",
+              "HostRoles" : {
+                "configs" : "{\"mapred-site\":\"version1\",\"global\":\"version1\",\"core-site\":\"version1\"}",
+                "cluster_name" : "mycluster",
+                "desired_configs" : "{}",
+                "desired_state" : "INSTALLED",
+                "state" : "INSTALLED",
+                "component_name" : "TASKTRACKER",
+                "host_name" : "dev.hortonworks.com"
+              },
+              "metrics" : {
+                "boottime" : 1.353113263E9,
+                "process" : {
+                  "proc_total" : 542.625,
+                  "proc_run" : 1.81944444444
+                },
+                "rpc" : {
+                  "rpcAuthorizationSuccesses" : 7.15827882667E7,
+                  "SentBytes" : 7.15827882667E7,
+                  "rpcAuthorizationFailures" : 0.0,
+                  "ReceivedBytes" : 7.15827882667E7,
+                  "NumOpenConnections" : 0.0,
+                  "callQueueLen" : 0.0,
+                  "rpcAuthenticationSuccesses" : 0.0,
+                  "RpcQueueTime_num_ops" : 7.15827882667E7,
+                  "RpcProcessingTime_num_ops" : 7.15827882667E7,
+                  "RpcProcessingTime_avg_time" : 0.151111111111,
+                  "rpcAuthenticationFailures" : 0.0,
+                  "RpcQueueTime_avg_time" : 0.151111111111
+                },
+                "ugi" : {
+                  "loginSuccess_num_ops" : 0.0,
+                  "loginFailure_num_ops" : 0.0,
+                  "loginSuccess_avg_time" : 0.0,
+                  "loginFailure_avg_time" : 0.0
+                },
+                "mapred" : {
+                  "shuffleOutput" : {
+                    "shuffle_handler_busy_percent" : 0.0
+                  },
+                  "tasktracker" : {
+                    "reduces_running" : 0.0,
+                    "maps_running" : 0.0,
+                    "reduceTaskSlots" : 2.0,
+                    "mapTaskSlots" : 4.0
+                  }
+                },
+                "disk" : {
+                  "disk_total" : 101.515,
+                  "disk_free" : 93.4107777778,
+                  "part_max_used" : 12.8
+                },
+                "cpu" : {
+                  "cpu_speed" : 1986.0,
+                  "cpu_wio" : 0.519444444444,
+                  "cpu_num" : 1.0,
+                  "cpu_idle" : 46.9705555556,
+                  "cpu_nice" : 0.0,
+                  "cpu_aidle" : 0.0,
+                  "cpu_system" : 6.75972222222,
+                  "cpu_user" : 45.7563888889
+                },
+                "rpcdetailed" : {
+                  "getProtocolVersion_avg_time" : 0.0,
+                  "getProtocolVersion_num_ops" : 4
+                },
+                "load" : {
+                  "load_fifteen" : 0.882305555556,
+                  "load_one" : 0.523944444444,
+                  "load_five" : 0.739694444444
+                },
+                "jvm" : {
+                  "memHeapCommittedM" : 30.375,
+                  "logFatal" : 0.0,
+                  "threadsBlocked" : 0.0,
+                  "threadsWaiting" : 14.5333333333,
+                  "gcCount" : 7.15827883321E7,
+                  "logWarn" : 0.0,
+                  "logError" : 0.0,
+                  "memNonHeapCommittedM" : 23.1875,
+                  "gcTimeMillis" : 7.15827883254E7,
+                  "memNonHeapUsedM" : 21.7573377917,
+                  "logInfo" : 0.0,
+                  "threadsNew" : 0.0,
+                  "memHeapUsedM" : 7.07001514861,
+                  "threadsTerminated" : 0.0,
+                  "threadsTimedWaiting" : 8.71666666667,
+                  "threadsRunnable" : 6.26666666667
+                },
+                "network" : {
+                  "pkts_out" : 0.453888888889,
+                  "bytes_in" : 50.5375,
+                  "bytes_out" : 119.456111111,
+                  "pkts_in" : 0.410277777778
+                },
+                "memory" : {
+                  "mem_total" : 2054932.0,
+                  "swap_free" : 4074707.96667,
+                  "mem_buffers" : 13563.6555556,
+                  "mem_shared" : 0.0,
+                  "mem_cached" : 175260.0,
+                  "mem_free" : 115051.811111,
+                  "swap_total" : 4128760.0
+                }
+              },
+              "component" : [
+                {
+                  "href" : "http://localhost:8080/api/clusters/mycluster/services/MAPREDUCE/components/TASKTRACKER",
+                  "ServiceComponentInfo" : {
+                    "cluster_name" : "mycluster",
+                    "component_name" : "TASKTRACKER",
+                    "service_name" : "MAPREDUCE"
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

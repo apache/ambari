@@ -1,0 +1,91 @@
+{{!
+* Licensed to the Apache Software Foundation (ASF) under one
+* or more contributor license agreements.  See the NOTICE file
+* distributed with this work for additional information
+* regarding copyright ownership.  The ASF licenses this file
+* to you under the Apache License, Version 2.0 (the
+* "License"); you may not use this file except in compliance
+* with the License.  You may obtain a copy of the License at
+*
+*     http://www.apache.org/licenses/LICENSE-2.0
+*
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
+* limitations under the License.
+}}
+
+<div id="step6">
+  <h2>{{t installer.step6.header}}</h2>
+
+  <div class="alert alert-info">{{{view.label}}}</div>
+  {{#if errorMessage}}
+  <div class="alert alert-error">{{errorMessage}}</div>
+  {{/if}}
+
+  <div class="pre-scrollable">
+  <table class="table table-striped">
+    <thead>
+      <tr>
+        <th>Host</th>
+        <th>
+          <a href="#" {{bindAttr class="isAllDataNodes:selected:deselected"}}
+            {{action selectAllDataNodes target="controller"}}>all</a> |
+
+          <a href="#" {{bindAttr class="isNoDataNodes:selected:deselected"}}
+            {{action deselectAllDataNodes target="controller"}}>none</a>
+        </th>
+      {{#if controller.isMrSelected}}
+        <th>
+          <a href="#" {{bindAttr class="isAllTaskTrackers:selected:deselected"}}
+            {{action selectAllTaskTrackers target="controller"}}>all</a> |
+
+          <a href="#" {{bindAttr class="isNoTaskTrackers:selected:deselected"}}
+            {{action deselectAllTaskTrackers target="controller"}}>none</a>
+        </th>
+      {{/if}}
+      {{#if controller.isHbSelected}}
+        <th>
+          <a href="#" {{bindAttr class="isAllRegionServers:selected:deselected"}}
+            {{action selectAllRegionServers target="controller"}}>all</a> |
+
+          <a href="#" {{bindAttr class="isNoRegionServers:selected:deselected"}}
+            {{action deselectAllRegionServers target="controller"}}>none</a>
+        </th>
+      {{/if}}
+        <th>
+          <a href="#" {{bindAttr class="isAllClients:selected:deselected"}} {{action selectAllClients target="controller"}}>all</a>
+          |
+          <a href="#" {{bindAttr class="isNoClients:selected:deselected"}} {{action deselectAllClients target="controller"}}>none</a>
+        </th>
+      </tr>
+    </thead>
+    <tbody>
+
+    {{#each hosts}}
+    <tr>
+        {{#view App.WizardStep6HostView hostBinding = "this" }}
+          {{hostName}}
+          {{#if isMaster}}
+            <i class=icon-asterisks>&#10037</i>
+          {{/if}}
+        {{/view}}
+      <td><label class="checkbox">{{view Ember.Checkbox disabledBinding="isDataNodeInstalled" checkedBinding="isDataNode"}}DataNode</label></td>
+      {{#if controller.isMrSelected}}
+      <td><label class="checkbox">{{view Ember.Checkbox disabledBinding="isTaskTrackerInstalled" checkedBinding="isTaskTracker"}}TaskTracker</label></td>
+      {{/if}}
+      {{#if controller.isHbSelected}}
+      <td><label class="checkbox">{{view Ember.Checkbox disabledBinding="isRegionServerInstalled" checkedBinding="isRegionServer"}}RegionServer</label></td>
+      {{/if}}
+      <td><label class="checkbox">{{view Ember.Checkbox disabledBinding="isClientInstalled" checkedBinding="isClient"}}Client</label></td>
+    </tr>
+    {{/each}}
+    </tbody>
+  </table>
+  </div>
+  <div class="btn-area">
+    <a class="btn" {{action back}}>&larr; Back</a>
+    <a class="btn btn-success pull-right" {{action next}}>Next &rarr;</a>
+  </div>
+</div>
