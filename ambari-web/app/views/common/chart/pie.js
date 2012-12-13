@@ -22,7 +22,7 @@ App.ChartPieView = Em.View.extend({
   w:90,
   h:90,
   data:[300, 500],
-  color:d3.scale.category20(),
+  palette: new Rickshaw.Color.Palette({ scheme: 'munin'}),
   donut:d3.layout.pie().sort(null),
 
   r:function () {
@@ -63,7 +63,7 @@ App.ChartPieView = Em.View.extend({
       .data(thisChart.donut(thisChart.get('data')))
       .enter().append("svg:path")
       .attr("fill", function (d, i) {
-        return thisChart.color(i);
+        return thisChart.palette.color();
       })
       .attr("d", this.get('arc')));
   }

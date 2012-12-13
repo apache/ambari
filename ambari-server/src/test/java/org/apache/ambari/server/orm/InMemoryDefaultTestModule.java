@@ -13,6 +13,8 @@ public class InMemoryDefaultTestModule extends AbstractModule {
     properties.setProperty(Configuration.PERSISTENCE_IN_MEMORY_KEY, "true");
     properties.setProperty(Configuration.METADETA_DIR_PATH,
         "src/test/resources/stacks");
+    properties.setProperty(Configuration.OS_VERSION_KEY,
+        "centos5");
     try {
       install(new ControllerModule(properties));
     } catch (Exception e) {

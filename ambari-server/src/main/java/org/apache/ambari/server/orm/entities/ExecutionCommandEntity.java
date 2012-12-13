@@ -35,15 +35,16 @@ public class ExecutionCommandEntity {
     this.taskId = taskId;
   }
 
-  private String command;
+  private byte[] command;
 
-  @Column(name = "command", length = 32000)
+  @Column(name = "command")
+  @Lob
   @Basic
-  public String getCommand() {
+  public byte[] getCommand() {
     return command;
   }
 
-  public void setCommand(String command) {
+  public void setCommand(byte[] command) {
     this.command = command;
   }
 

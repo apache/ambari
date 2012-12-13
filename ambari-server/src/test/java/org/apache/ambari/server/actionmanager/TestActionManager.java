@@ -20,6 +20,8 @@ package org.apache.ambari.server.actionmanager;
 import static org.junit.Assert.assertEquals;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 
 import junit.framework.Assert;
@@ -51,9 +53,8 @@ public class TestActionManager {
   private String hostname = "host1";
   private String clusterName = "cluster1";
 
-  @Inject
   private Clusters clusters;
-  
+
   @Before
   public void setup() throws AmbariException {
     injector = Guice.createInjector(new InMemoryDefaultTestModule());
@@ -85,8 +86,8 @@ public class TestActionManager {
     cr.setActionId(StageUtils.getActionId(requestId, stageId));
     cr.setRole("HBASE_MASTER");
     cr.setStatus("COMPLETED");
-    cr.setStdErr("");
-    cr.setStdOut("");
+    cr.setStdErr("ERROR");
+    cr.setStdOut("OUTPUT");
     cr.setExitCode(215);
     reports.add(cr);
     am.processTaskResponse(hostname, reports);
@@ -94,6 +95,53 @@ public class TestActionManager {
         am.getAction(requestId, stageId).getExitCode(hostname, "HBASE_MASTER"));
     assertEquals(HostRoleStatus.COMPLETED, am.getAction(requestId, stageId)
         .getHostRoleStatus(hostname, "HBASE_MASTER"));
+    assertEquals(
+        "ERROR",
+        am.getAction(requestId, stageId)
+            .getHostRoleCommand(hostname, "HBASE_MASTER").getStderr());
+    assertEquals(
+        "OUTPUT",
+        am.getAction(requestId, stageId)
+            .getHostRoleCommand(hostname, "HBASE_MASTER").getStdout());
+    
+  }
+  
+  @Test
+  public void testLargeLogs() {
+    ActionDBAccessor db = injector.getInstance(ActionDBAccessorImpl.class);
+    ActionManager am = new ActionManager(5000, 1200000, new ActionQueue(),
+        clusters, db);
+    populateActionDB(db, hostname);
+    Stage stage = db.getAllStages(requestId).get(0);
+    Assert.assertEquals(stageId, stage.getStageId());
+    stage.setHostRoleStatus(hostname, "HBASE_MASTER", HostRoleStatus.QUEUED);
+    db.hostRoleScheduled(stage, hostname, "HBASE_MASTER");
+    List<CommandReport> reports = new ArrayList<CommandReport>();
+    CommandReport cr = new CommandReport();
+    cr.setTaskId(1);
+    cr.setActionId(StageUtils.getActionId(requestId, stageId));
+    cr.setRole("HBASE_MASTER");
+    cr.setStatus("COMPLETED");
+    String errLog = Arrays.toString(new byte[100000]);
+    String outLog = Arrays.toString(new byte[110000]);
+    cr.setStdErr(errLog);
+    cr.setStdOut(outLog);
+    cr.setExitCode(215);
+    reports.add(cr);
+    am.processTaskResponse(hostname, reports);
+    assertEquals(215,
+        am.getAction(requestId, stageId).getExitCode(hostname, "HBASE_MASTER"));
+    assertEquals(HostRoleStatus.COMPLETED, am.getAction(requestId, stageId)
+        .getHostRoleStatus(hostname, "HBASE_MASTER"));
+    assertEquals(
+        errLog.length(),
+        am.getAction(requestId, stageId)
+            .getHostRoleCommand(hostname, "HBASE_MASTER").getStderr().length());
+    assertEquals(
+        outLog.length(),
+        am.getAction(requestId, stageId)
+            .getHostRoleCommand(hostname, "HBASE_MASTER").getStdout().length());
+    
   }
 
   private void populateActionDB(ActionDBAccessor db, String hostname) {
@@ -102,7 +150,8 @@ public class TestActionManager {
     s.addHostRoleExecutionCommand(hostname, Role.HBASE_MASTER,
         RoleCommand.START,
         new ServiceComponentHostStartEvent(Role.HBASE_MASTER.toString(),
-            hostname, System.currentTimeMillis()), "cluster1", "HBASE");
+            hostname, System.currentTimeMillis(),
+            new HashMap<String, String>()), "cluster1", "HBASE");
     List<Stage> stages = new ArrayList<Stage>();
     stages.add(s);
     db.persistActions(stages);

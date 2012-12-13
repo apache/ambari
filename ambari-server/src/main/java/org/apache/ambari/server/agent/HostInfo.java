@@ -61,6 +61,7 @@ public class HostInfo {
   private long uptime_days;
   private long uptime_hours;
 
+
   @JsonProperty("architecture")
   public String getArchitecture() {
     return this.architecture;

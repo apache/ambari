@@ -25,6 +25,7 @@ import logging.handlers
 import logging
 
 LOG_FILE_NAME='tests.log'
+SELECTED_PREFIX = "_"
 PY_EXT='.py'
 
 class TestAgent(unittest.TestSuite):
@@ -51,12 +52,21 @@ def all_tests_suite():
   src_dir = os.getcwd()
   files_list=os.listdir(src_dir)
   tests_list = []
-  
+
   logger.info('------------------------TESTS LIST:-------------------------------------')
+  # If test with special name exists, run only this test
+  selected_test = None
   for file_name in files_list:
-    if file_name.endswith(PY_EXT) and not file_name == __file__:
-      logger.info(file_name)
-      tests_list.append(file_name.replace(PY_EXT, ''))
+    if file_name.endswith(PY_EXT) and not file_name == __file__ and file_name.startswith(SELECTED_PREFIX):
+      logger.info("Running only selected test " + str(file_name))
+      selected_test = file_name
+  if selected_test is not None:
+      tests_list.append(selected_test.replace(PY_EXT, ''))
+  else:
+    for file_name in files_list:
+      if file_name.endswith(PY_EXT) and not file_name == __file__:
+        logger.info(file_name)
+        tests_list.append(file_name.replace(PY_EXT, ''))
   logger.info('------------------------------------------------------------------------')
 
   suite = unittest.TestLoader().loadTestsFromNames(tests_list)
@@ -67,13 +77,7 @@ def main():
   logger.info('------------------------------------------------------------------------')
   logger.info('PYTHON AGENT TESTS')
   logger.info('------------------------------------------------------------------------')
-  src_dir = os.getcwd()
-  target_dir = parent_dir(parent_dir(parent_dir(src_dir))) + os.sep + 'target'
-  if not os.path.exists(target_dir):
-    os.mkdir(target_dir)
-  path = target_dir + os.sep + LOG_FILE_NAME
-  file=open(path, "w")
-  runner = unittest.TextTestRunner(stream=file)
+  runner = unittest.TextTestRunner(verbosity=2, stream=sys.stdout)
   suite = all_tests_suite()
   status = runner.run(suite).wasSuccessful()
 
@@ -98,7 +102,13 @@ if __name__ == '__main__':
   logger = logging.getLogger()
   logger.setLevel(logging.INFO)
   formatter = logging.Formatter("[%(levelname)s] %(message)s")
-  consoleLog = logging.StreamHandler(sys.stdout)
+  src_dir = os.getcwd()
+  target_dir = parent_dir(parent_dir(parent_dir(src_dir))) + os.sep + 'target'
+  if not os.path.exists(target_dir):
+    os.mkdir(target_dir)
+  path = target_dir + os.sep + LOG_FILE_NAME
+  file=open(path, "w")
+  consoleLog = logging.StreamHandler(file)
   consoleLog.setFormatter(formatter)
   logger.addHandler(consoleLog)
   main()

@@ -18,22 +18,35 @@
 package org.apache.ambari.server.orm.entities;
 
 import javax.persistence.*;
+
 import java.util.Date;
 import java.util.Set;
 
-@IdClass(org.apache.ambari.server.orm.entities.UserEntityPK.class)
-@Table(name = "users", schema = "ambari", catalog = "")
+@Table(name = "users", schema = "ambari", catalog = "", uniqueConstraints = {@UniqueConstraint(columnNames = {"user_name", "ldap_user"})})
 @Entity
 @NamedQueries({
-        @NamedQuery(name = "localUserByName", query = "SELECT user FROM UserEntity user where lower(user.userName)=:username AND user.ldapUser=false"),
-        @NamedQuery(name = "ldapUserByName", query = "SELECT user FROM UserEntity user where lower(user.userName)=:username AND user.ldapUser=true")
+    @NamedQuery(name = "localUserByName", query = "SELECT user FROM UserEntity user where lower(user.userName)=:username AND user.ldapUser=false"),
+    @NamedQuery(name = "ldapUserByName", query = "SELECT user FROM UserEntity user where lower(user.userName)=:username AND user.ldapUser=true")
 })
+@SequenceGenerator(name = "ambari.users_user_id_seq", allocationSize = 1)
 public class UserEntity {
+
+  private Integer userId;
+
+  @Id
+  @Column(name = "user_id")
+  @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "ambari.users_user_id_seq")
+  public Integer getUserId() {
+    return userId;
+  }
+
+  public void setUserId(Integer userId) {
+    this.userId = userId;
+  }
 
   private String userName;
 
   @Column(name = "user_name")
-  @Id
   public String getUserName() {
     return userName;
   }
@@ -45,7 +58,6 @@ public class UserEntity {
   private Boolean ldapUser = false;
 
   @Column(name = "ldap_user")
-  @Id
   public Boolean getLdapUser() {
     return ldapUser;
   }
@@ -86,6 +98,7 @@ public class UserEntity {
 
     UserEntity that = (UserEntity) o;
 
+    if (userId != null ? !userId.equals(that.userId) : that.userId != null) return false;
     if (createTime != null ? !createTime.equals(that.createTime) : that.createTime != null) return false;
     if (ldapUser != null ? !ldapUser.equals(that.ldapUser) : that.ldapUser != null) return false;
     if (userName != null ? !userName.equals(that.userName) : that.userName != null) return false;
@@ -96,7 +109,8 @@ public class UserEntity {
 
   @Override
   public int hashCode() {
-    int result = userName != null ? userName.hashCode() : 0;
+    int result = userId != null ? userId.hashCode() : 0;
+    result = 31 * result + (userName != null ? userName.hashCode() : 0);
     result = 31 * result + (userPassword != null ? userPassword.hashCode() : 0);
     result = 31 * result + (ldapUser != null ? ldapUser.hashCode() : 0);
     result = 31 * result + (createTime != null ? createTime.hashCode() : 0);
@@ -105,11 +119,7 @@ public class UserEntity {
 
   private Set<RoleEntity> roleEntities;
 
-  @JoinTable(name = "user_roles", catalog = "", schema = "ambari",
-          joinColumns = {@JoinColumn(name = "user_name", referencedColumnName = "user_name"),
-                  @JoinColumn(name = "ldap_user", referencedColumnName = "ldap_user")},
-          inverseJoinColumns = {@JoinColumn(name = "role_name", referencedColumnName = "role_name")})
-  @ManyToMany(cascade = CascadeType.ALL)
+  @ManyToMany(mappedBy = "userEntities")
   public Set<RoleEntity> getRoleEntities() {
     return roleEntities;
   }

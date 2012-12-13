@@ -32,6 +32,7 @@ public class DiskInfo {
   String used;
   String percent;
   String size;
+  String type;
 
   /**
    * DiskInfo object that tracks information about a disk.
@@ -42,13 +43,14 @@ public class DiskInfo {
    * @param size
    */
   public DiskInfo(String device, String mountpoint, String available,
-      String used, String percent, String size) {
+      String used, String percent, String size, String type) {
     this.device = device;
     this.mountpoint = mountpoint;
     this.available = available;
     this.used = used;
     this.percent = percent;
     this.size = size;
+    this.type = type;
   }
 
   /**
@@ -74,6 +76,16 @@ public class DiskInfo {
   @JsonProperty("mountpoint")
   public void setMountPoint(String mountpoint) {
     this.mountpoint = mountpoint;
+  }
+
+  @JsonProperty("type")
+  public String getType() {
+    return this.type;
+  }
+
+  @JsonProperty("type")
+  public void setType(String type) {
+    this.type = type;
   }
   
   @JsonProperty("used")
@@ -110,6 +122,7 @@ public class DiskInfo {
   public String toString() {
     return "available=" + this.available + ",mountpoint=" + this.mountpoint
          + ",used=" + this.used + ",percent=" + this.percent + ",size=" +
-        this.size + ",device=" + this.device;
+        this.size + ",device=" + this.device +
+        ",type=" + this.type;
   }
 }

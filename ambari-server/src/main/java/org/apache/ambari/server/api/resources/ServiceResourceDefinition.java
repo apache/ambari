@@ -18,7 +18,6 @@
 
 package org.apache.ambari.server.api.resources;
 
-import org.apache.ambari.server.controller.spi.PropertyId;
 import org.apache.ambari.server.controller.spi.Resource;
 
 import java.util.*;
@@ -29,20 +28,11 @@ import java.util.*;
 public class ServiceResourceDefinition extends BaseResourceDefinition {
 
   /**
-   * value of cluster id foreign key
-   */
-  private String m_clusterId;
-
-  /**
    * Constructor.
    *
-   * @param id        service id value
-   * @param clusterId cluster id value
    */
-  public ServiceResourceDefinition(String id, String clusterId) {
-    super(Resource.Type.Service, id);
-    m_clusterId = clusterId;
-    setResourceId(Resource.Type.Cluster, m_clusterId);
+  public ServiceResourceDefinition() {
+    super(Resource.Type.Service);
   }
 
   @Override
@@ -56,15 +46,7 @@ public class ServiceResourceDefinition extends BaseResourceDefinition {
   }
 
   @Override
-  public Map<String, ResourceDefinition> getSubResources() {
-    Map<String, ResourceDefinition> mapChildren = new HashMap<String, ResourceDefinition>();
-    // for component collection need id property
-    ComponentResourceDefinition componentResourceDefinition =
-        new ComponentResourceDefinition(null, m_clusterId, getId());
-    PropertyId componentIdProperty = getClusterController().getSchema(
-        Resource.Type.Component).getKeyPropertyId(Resource.Type.Component);
-    componentResourceDefinition.getQuery().addProperty(componentIdProperty);
-    mapChildren.put(componentResourceDefinition.getPluralName(), componentResourceDefinition);
-    return mapChildren;
+  public Set<SubResourceDefinition> getSubResourceDefinitions() {
+    return Collections.singleton(new SubResourceDefinition(Resource.Type.Component));
   }
 }

@@ -18,25 +18,15 @@
 
 package org.apache.ambari.server.state;
 
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 import java.util.Map.Entry;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.ServiceComponentNotFoundException;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.controller.ServiceResponse;
-import org.apache.ambari.server.orm.dao.ClusterDAO;
-import org.apache.ambari.server.orm.dao.ClusterServiceDAO;
-import org.apache.ambari.server.orm.dao.ServiceComponentDesiredStateDAO;
-import org.apache.ambari.server.orm.dao.ServiceDesiredStateDAO;
-import org.apache.ambari.server.orm.entities.ClusterEntity;
-import org.apache.ambari.server.orm.entities.ClusterServiceEntity;
-import org.apache.ambari.server.orm.entities.ClusterServiceEntityPK;
-import org.apache.ambari.server.orm.entities.ServiceComponentDesiredStateEntity;
-import org.apache.ambari.server.orm.entities.ServiceConfigMappingEntity;
-import org.apache.ambari.server.orm.entities.ServiceDesiredStateEntity;
+import org.apache.ambari.server.orm.dao.*;
+import org.apache.ambari.server.orm.entities.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -52,7 +42,6 @@ public class ServiceImpl implements Service {
 
   private ClusterServiceEntity serviceEntity;
   private ServiceDesiredStateEntity serviceDesiredStateEntity;
-  private final Injector injector;
 
   private static final Logger LOG =
       LoggerFactory.getLogger(ServiceImpl.class);
@@ -77,6 +66,8 @@ public class ServiceImpl implements Service {
   @Inject
   private ClusterDAO clusterDAO;
   @Inject
+  private ServiceConfigMappingDAO serviceConfigMappingDAO;
+  @Inject
   private ServiceComponentFactory serviceComponentFactory;
   @Inject
   private AmbariMetaInfo ambariMetaInfo;
@@ -88,7 +79,6 @@ public class ServiceImpl implements Service {
   @AssistedInject
   public ServiceImpl(@Assisted Cluster cluster, @Assisted String serviceName,
       Injector injector) {
-    this.injector = injector;
     injector.injectMembers(this);
     serviceEntity = new ClusterServiceEntity();
     serviceEntity.setServiceName(serviceName);
@@ -115,7 +105,6 @@ public class ServiceImpl implements Service {
   @AssistedInject
   public ServiceImpl(@Assisted Cluster cluster, @Assisted ClusterServiceEntity
       serviceEntity, Injector injector) {
-    this.injector = injector;
     injector.injectMembers(this);
     this.serviceEntity = serviceEntity;
     this.cluster = cluster;
@@ -268,28 +257,66 @@ public class ServiceImpl implements Service {
   @Override
   public synchronized void updateDesiredConfigs(Map<String, Config> configs) {
 
-    for (Entry<String,Config> entry : configs.entrySet()) {
-      ServiceConfigMappingEntity newEntity = new ServiceConfigMappingEntity();
-      newEntity.setClusterId(serviceEntity.getClusterId());
-      newEntity.setConfigType(entry.getKey());
-      newEntity.setServiceName(getName());
-      newEntity.setVersionTag(entry.getValue().getVersionTag());
-      newEntity.setTimestamp(Long.valueOf(new java.util.Date().getTime()));
+    Set<String> deletedTypes = new HashSet<String>();
+    for (String type : this.desiredConfigs.keySet()) {
+      if (!configs.containsKey(type)) {
+        deletedTypes.add(type);
+      }
+    }
 
-      if (!serviceEntity.getServiceConfigMappings().contains(newEntity)) {
-        newEntity.setServiceConfigEntity(serviceEntity);
-        serviceEntity.getServiceConfigMappings().add(newEntity);
-      } else {
-        for (ServiceConfigMappingEntity entity : serviceEntity.getServiceConfigMappings()) {
-          if (entity.equals(newEntity)) {
-            entity.setVersionTag(newEntity.getVersionTag());
-            entity.setTimestamp(newEntity.getTimestamp());
-          }
+    for (Entry<String,Config> entry : configs.entrySet()) {
+      boolean contains = false;
+
+      for (ServiceConfigMappingEntity serviceConfigMappingEntity : serviceEntity.getServiceConfigMappings()) {
+        if (entry.getKey().equals(serviceConfigMappingEntity.getConfigType())) {
+          contains = true;
+          serviceConfigMappingEntity.setTimestamp(new Date().getTime());
+          serviceConfigMappingEntity.setVersionTag(entry.getValue().getVersionTag());
         }
       }
 
+      if (!contains) {
+        ServiceConfigMappingEntity newEntity = new ServiceConfigMappingEntity();
+        newEntity.setClusterId(serviceEntity.getClusterId());
+        newEntity.setServiceName(serviceEntity.getServiceName());
+        newEntity.setConfigType(entry.getKey());
+        newEntity.setVersionTag(entry.getValue().getVersionTag());
+        newEntity.setTimestamp(new Date().getTime());
+        newEntity.setServiceEntity(serviceEntity);
+        serviceEntity.getServiceConfigMappings().add(newEntity);
+
+      }
+
+
       this.desiredConfigs.put(entry.getKey(), entry.getValue().getVersionTag());
     }
+
+    if (!deletedTypes.isEmpty()) {
+      if (persisted) {
+        List<ServiceConfigMappingEntity> deleteEntities =
+            serviceConfigMappingDAO.findByServiceAndType(
+                serviceEntity.getClusterId(), serviceEntity.getServiceName(),
+                deletedTypes);
+        for (ServiceConfigMappingEntity deleteEntity : deleteEntities) {
+          if (LOG.isDebugEnabled()) {
+            LOG.debug("Deleting desired config from ServiceComponent"
+                + ", clusterId=" + serviceEntity.getClusterId()
+                + ", serviceName=" + serviceEntity.getServiceName()
+                + ", configType=" + deleteEntity.getConfigType()
+                + ", configVersionTag=" + deleteEntity.getVersionTag());
+          }
+          serviceEntity.getServiceConfigMappings().remove(
+              deleteEntity);
+          serviceConfigMappingDAO.remove(deleteEntity);
+        }
+      } else {
+        for (String deletedType : deletedTypes) {
+          desiredConfigs.remove(deletedType);
+        }
+      }
+    }
+
+    saveIfPersisted();
 
   }
 
@@ -312,23 +339,12 @@ public class ServiceImpl implements Service {
     saveIfPersisted();
   }
 
-  private synchronized Map<String, String> getConfigVersions() {
-    Map<String, Config> configMaps = getDesiredConfigs();
-    Map<String, String> configVersions = new HashMap<String, String>();
-    if (configMaps != null) {
-      for (Map.Entry<String, Config> entry: configMaps.entrySet()) {
-        configVersions.put(entry.getKey(), entry.getValue().getVersionTag());
-      }
-    }
-    return configVersions;
-  }
-
   @Override
   public synchronized ServiceResponse convertToResponse() {
     ServiceResponse r = new ServiceResponse(cluster.getClusterId(),
         cluster.getClusterName(),
         getName(),
-        getConfigVersions(),
+        desiredConfigs,
         getDesiredStackVersion().getStackId(),
         getDesiredState().toString());
     return r;
@@ -346,15 +362,26 @@ public class ServiceImpl implements Service {
         + ", clusterId=" + cluster.getClusterId()
         + ", desiredStackVersion=" + getDesiredStackVersion()
         + ", desiredState=" + getDesiredState().toString()
-        + ", configs = " + getConfigVersions()
-        + ", components=[ ");
-
+        + ", configs=[");
     boolean first = true;
+    if (desiredConfigs != null) {
+      for (Entry<String, String> entry : desiredConfigs.entrySet()) {
+        if (!first) {
+          sb.append(" , ");
+        }
+        first = false;
+        sb.append("{ Config type=" + entry.getKey()
+            + ", versionTag=" + entry.getValue() + "}");
+      }
+    }
+    sb.append("], components=[ ");
+
+    first = true;
     for(ServiceComponent sc : components.values()) {
       if (!first) {
         sb.append(" , ");
-        first = false;
       }
+      first = false;
       sb.append("\n      ");
       sc.debugDump(sb);
       sb.append(" ");

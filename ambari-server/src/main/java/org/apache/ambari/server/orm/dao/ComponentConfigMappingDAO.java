@@ -19,6 +19,7 @@
 package org.apache.ambari.server.orm.dao;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 
 import com.google.inject.Inject;
@@ -46,6 +47,22 @@ public class ComponentConfigMappingDAO {
             + " WHERE config.configType IN ?1",
         ComponentConfigMappingEntity.class);
     return daoUtils.selectList(query, configTypes);
+  }
+
+  public List<ComponentConfigMappingEntity> findByComponentAndType(long clusterId, String serviceName, String componentName,
+                                                                   Collection<String> configTypes) {
+    if (configTypes.isEmpty()) {
+      return Collections.emptyList();
+    }
+    TypedQuery<ComponentConfigMappingEntity> query = entityManagerProvider.get().createQuery("SELECT config " +
+        "FROM ComponentConfigMappingEntity config " +
+        "WHERE " +
+        "config.clusterId = ?1 " +
+        "AND config.serviceName = ?2 " +
+        "AND config.componentName = ?3 " +
+        "AND config.configType IN ?4",
+        ComponentConfigMappingEntity.class);
+    return daoUtils.selectList(query, clusterId, serviceName, componentName, configTypes);
   }
 
   @Transactional

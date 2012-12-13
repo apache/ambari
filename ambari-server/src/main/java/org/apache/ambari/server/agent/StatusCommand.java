@@ -22,7 +22,7 @@ import java.util.List;
 import org.codehaus.jackson.annotate.JsonProperty;
 
 /**
- * Command to report the status of a list of roles.
+ * Command to report the status of a list of services in roles.
  */
 public class StatusCommand extends AgentCommand {
 
@@ -30,20 +30,10 @@ public class StatusCommand extends AgentCommand {
     super(AgentCommandType.STATUS_COMMAND);
   }
 
-  List<String> roles;
-
   private String clusterName;
+  private String serviceName;
+  private String componentName;
 
-  @JsonProperty("roles")
-  public List<String> getRoles() {
-    return roles;
-  }
-  
-  @JsonProperty("roles")
-  public void setRoles(List<String> roles) {
-    this.roles = roles;
-  }
-  
   @JsonProperty("clusterName")
   public String getClusterName() {
     return clusterName;
@@ -52,5 +42,25 @@ public class StatusCommand extends AgentCommand {
   @JsonProperty("clusterName")
   public void setClusterName(String clusterName) {
     this.clusterName = clusterName;
+  }
+
+  @JsonProperty("serviceName")
+  public String getServiceName() {
+    return serviceName;
+  }
+
+  @JsonProperty("serviceName")
+  public void setServiceName(String serviceName) {
+    this.serviceName = serviceName;
+  }
+
+  @JsonProperty("componentName")
+  public String getComponentName() {
+    return componentName;
+  }
+
+  @JsonProperty("componentName")
+  public void setComponentName(String componentName) {
+    this.componentName = componentName;
   }
 }

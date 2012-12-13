@@ -161,24 +161,24 @@ define hdp-hadoop::namenode::create_app_directories($service_state)
 
     if ($hdp::params::oozie_server != "") {
       $oozie_user = $hdp::params::oozie_user
-      hdp-hadoop::hdfs::directory{ '/user/oozie':
+      hdp-hadoop::hdfs::directory{ "/user/${oozie_user}":
         service_state => $service_state,
         owner => $oozie_user,
-        mode  => '770',
+        mode  => '775',
         recursive_chmod => true
       }
     }
     
-    if ($hdp::params::templeton_server_host != "") {
+    if ($hdp::params::webhcat_server_host != "") {
       $templeton_user = $hdp::params::templeton_user
-      hdp-hadoop::hdfs::directory{ '/user/templeton':
+      hdp-hadoop::hdfs::directory{ '/user/hcat':
         service_state => $service_state,
         owner => $templeton_user,
         mode  => '755',
         recursive_chmod => true
       }
 
-      hdp-hadoop::hdfs::directory{ '/apps/templeton':
+      hdp-hadoop::hdfs::directory{ '/apps/webhcat':
         service_state => $service_state,
         owner => $templeton_user,
         mode  => '755',

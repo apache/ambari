@@ -21,7 +21,7 @@ package org.apache.ambari.server.api.services;
 
 
 import org.apache.ambari.server.api.handlers.RequestHandler;
-import org.apache.ambari.server.api.resources.ResourceDefinition;
+import org.apache.ambari.server.api.resources.ResourceInstance;
 import org.apache.ambari.server.api.services.serializers.ResultSerializer;
 import org.junit.Test;
 
@@ -41,7 +41,7 @@ public class ComponentServiceTest {
 
   @Test
   public void testGetComponent() {
-    ResourceDefinition resourceDef = createStrictMock(ResourceDefinition.class);
+    ResourceInstance resourceDef = createStrictMock(ResourceInstance.class);
     ResultSerializer resultSerializer = createStrictMock(ResultSerializer.class);
     Object serializedResult = new Object();
     RequestFactory requestFactory = createStrictMock(RequestFactory.class);
@@ -83,7 +83,7 @@ public class ComponentServiceTest {
 
   @Test
   public void testGetComponents() {
-    ResourceDefinition resourceDef = createStrictMock(ResourceDefinition.class);
+    ResourceInstance resourceDef = createStrictMock(ResourceInstance.class);
     ResultSerializer resultSerializer = createStrictMock(ResultSerializer.class);
     Object serializedResult = new Object();
     RequestFactory requestFactory = createStrictMock(RequestFactory.class);
@@ -122,7 +122,7 @@ public class ComponentServiceTest {
 
   @Test
   public void testCreateComponent() {
-    ResourceDefinition resourceDef = createStrictMock(ResourceDefinition.class);
+    ResourceInstance resourceDef = createStrictMock(ResourceInstance.class);
     ResultSerializer resultSerializer = createStrictMock(ResultSerializer.class);
     Object serializedResult = new Object();
     RequestFactory requestFactory = createStrictMock(RequestFactory.class);
@@ -163,7 +163,7 @@ public class ComponentServiceTest {
 
   @Test
   public void testUpdateComponent() {
-    ResourceDefinition resourceDef = createStrictMock(ResourceDefinition.class);
+    ResourceInstance resourceDef = createStrictMock(ResourceInstance.class);
     ResultSerializer resultSerializer = createStrictMock(ResultSerializer.class);
     Object serializedResult = new Object();
     RequestFactory requestFactory = createStrictMock(RequestFactory.class);
@@ -204,7 +204,7 @@ public class ComponentServiceTest {
 
   @Test
   public void testUpdateComponents() {
-    ResourceDefinition resourceDef = createStrictMock(ResourceDefinition.class);
+    ResourceInstance resourceDef = createStrictMock(ResourceInstance.class);
     ResultSerializer resultSerializer = createStrictMock(ResultSerializer.class);
     Object serializedResult = new Object();
     RequestFactory requestFactory = createStrictMock(RequestFactory.class);
@@ -244,7 +244,7 @@ public class ComponentServiceTest {
 
   @Test
   public void testDeleteComponent() {
-    ResourceDefinition resourceDef = createStrictMock(ResourceDefinition.class);
+    ResourceInstance resourceDef = createStrictMock(ResourceInstance.class);
     ResultSerializer resultSerializer = createStrictMock(ResultSerializer.class);
     Object serializedResult = new Object();
     RequestFactory requestFactory = createStrictMock(RequestFactory.class);
@@ -289,12 +289,12 @@ public class ComponentServiceTest {
     private RequestFactory m_requestFactory;
     private ResponseFactory m_responseFactory;
     private RequestHandler m_requestHandler;
-    private ResourceDefinition m_resourceDef;
+    private ResourceInstance m_resourceDef;
     private String m_clusterId;
     private String m_serviceId;
     private String m_componentId;
 
-    private TestComponentService(ResourceDefinition resourceDef, String clusterId, String serviceId, String componentId, RequestFactory requestFactory, ResponseFactory responseFactory, RequestHandler handler) {
+    private TestComponentService(ResourceInstance resourceDef, String clusterId, String serviceId, String componentId, RequestFactory requestFactory, ResponseFactory responseFactory, RequestHandler handler) {
       super(clusterId, serviceId);
       m_requestFactory = requestFactory;
       m_responseFactory = responseFactory;
@@ -306,7 +306,7 @@ public class ComponentServiceTest {
     }
 
     @Override
-    ResourceDefinition createResourceDefinition(String componentName, String clusterName, String serviceName) {
+    ResourceInstance createComponentResource(String clusterName, String serviceName, String componentName) {
       assertEquals(m_clusterId, clusterName);
       assertEquals(m_serviceId, serviceName);
       assertEquals(m_componentId, componentName);

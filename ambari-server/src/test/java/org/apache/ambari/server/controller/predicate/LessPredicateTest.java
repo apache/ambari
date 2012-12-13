@@ -18,11 +18,10 @@
 package org.apache.ambari.server.controller.predicate;
 
 import junit.framework.Assert;
-import org.apache.ambari.server.controller.internal.PropertyIdImpl;
 import org.apache.ambari.server.controller.internal.ResourceImpl;
 import org.apache.ambari.server.controller.spi.Predicate;
-import org.apache.ambari.server.controller.spi.PropertyId;
 import org.apache.ambari.server.controller.spi.Resource;
+import org.apache.ambari.server.controller.utilities.PropertyHelper;
 import org.junit.Test;
 
 import java.util.Set;
@@ -35,8 +34,8 @@ public class LessPredicateTest {
   @Test
   public void testApply() {
     Resource resource = new ResourceImpl(Resource.Type.HostComponent);
-    PropertyIdImpl propertyId = new PropertyIdImpl("foo", "category1", false);
-    Predicate predicate = new LessPredicate(propertyId, 10);
+    String propertyId = PropertyHelper.getPropertyId("category1", "foo");
+    Predicate predicate = new LessPredicate<Integer>(propertyId, 10);
 
     resource.setProperty(propertyId, 1);
     Assert.assertTrue(predicate.evaluate(resource));
@@ -50,10 +49,10 @@ public class LessPredicateTest {
 
   @Test
   public void testGetProperties() {
-    PropertyIdImpl propertyId = new PropertyIdImpl("foo", "category1", false);
-    LessPredicate predicate = new LessPredicate(propertyId, 1);
+    String propertyId = PropertyHelper.getPropertyId("category1", "foo");
+    LessPredicate predicate = new LessPredicate<Integer>(propertyId, 1);
 
-    Set<PropertyId> ids = predicate.getPropertyIds();
+    Set<String> ids = predicate.getPropertyIds();
 
     Assert.assertEquals(1, ids.size());
     Assert.assertTrue(ids.contains(propertyId));

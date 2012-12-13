@@ -1,132 +1,46 @@
 {
   "Cluster":{
-    "Cluster":{
-      "name":"cluster_name",
-      "category":"Clusters",
-      "temporal":false
-    }
+    "Cluster":"Clusters/cluster_name"
   },
   "Service":{
-    "Cluster":{
-      "name":"cluster_name",
-      "category":"ServiceInfo",
-      "temporal":false
-    },
-    "Service":{
-      "name":"service_name",
-      "category":"ServiceInfo",
-      "temporal":false
-    }
+    "Cluster":"ServiceInfo/cluster_name",
+    "Service":"ServiceInfo/service_name"
   },
   "Host":{
-    "Cluster":{
-      "name":"cluster_name",
-      "category":"Hosts",
-      "temporal":false
-    },
-    "Host":{
-      "name":"host_name",
-      "category":"Hosts",
-      "temporal":false
-    }
+    "Cluster":"Hosts/cluster_name",
+    "Host":"Hosts/host_name"
   },
   "Component":{
-    "Cluster":{
-      "name":"cluster_name",
-      "category":"ServiceComponentInfo",
-      "temporal":false
-    },
-    "Service":{
-      "name":"service_name",
-      "category":"ServiceComponentInfo",
-      "temporal":false
-    },
-    "Component":{
-      "name":"component_name",
-      "category":"ServiceComponentInfo",
-      "temporal":false
-    }
+    "Cluster":"ServiceComponentInfo/cluster_name",
+    "Service":"ServiceComponentInfo/service_name",
+    "Component":"ServiceComponentInfo/component_name",
+    "HostComponent":"ServiceComponentInfo/component_name"
   },
   "HostComponent":{
-    "Cluster":{
-      "name":"cluster_name",
-      "category":"HostRoles",
-      "temporal":false
-    },
-    "Host":{
-      "name":"host_name",
-      "category":"HostRoles",
-      "temporal":false
-    },
-    "HostComponent":{
-      "name":"component_name",
-      "category":"HostRoles",
-      "temporal":false
-    }
+    "Cluster":"HostRoles/cluster_name",
+    "Host":"HostRoles/host_name",
+    "HostComponent":"HostRoles/component_name",
+    "Component":"HostRoles/component_name"
   },
   "Configuration":{
-    "Cluster":{
-      "name":"cluster_name",
-      "category":"Config",
-      "temporal":false
-    },
-    "Configuration":{
-      "name":"type",
-      "category":"Config",
-      "temporal":false
-    }
+    "Cluster":"Config/cluster_name",
+    "Configuration":"Config/type"
   },
   "Action":{
-    "Cluster":{
-        "name":"cluster_name",
-        "category":"Actions",
-        "temporal":false
-      },
-    "Service":{
-      	"name":"service_name",
-      	"category":"Actions",
-      	"temporal":false
-     },
-    "Action":{
-        "name":"action_name",
-      	"category":"Actions",
-      	"temporal":false
-    }
+    "Cluster":"Actions/cluster_name",
+    "Service":"Actions/service_name",
+    "Action":"Actions/action_name"
   },
   "Request":{
-    "Cluster":{
-      "name":"cluster_name",
-      "category":"Requests",
-      "temporal":false
-    },
-    "Request":{
-      "name":"id",
-      "category":"Requests",
-      "temporal":false
-    }
+    "Cluster":"Requests/cluster_name",
+    "Request":"Requests/id"
   },
   "Task":{
-    "Cluster":{
-      "name":"cluster_name",
-      "category":"Tasks",
-      "temporal":false
-    },
-    "Request":{
-      "name":"request_id",
-      "category":"Tasks",
-      "temporal":false
-    },
-    "Task":{
-      "name":"id",
-      "category":"Tasks",
-      "temporal":false
-    }
+    "Cluster":"Tasks/cluster_name",
+    "Request":"Tasks/request_id",
+    "Task":"Tasks/id"
   },
   "User":{
-  	"User":{
-  	  "name":"user_name",
-  	  "category":"Users",
-  	  "temporal":false
-  	}
+    "User":"Users/user_name"
   }
 }

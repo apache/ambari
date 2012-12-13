@@ -43,6 +43,12 @@ public class ResourceManager {
     String resDir = configs.getConfigsMap().get(Configuration.RESOURCES_DIR_KEY);
     String resourcePathIndep = resourcePath.replaceAll("/", File.separator);
     File resourceFile = new File(resDir + File.separator + resourcePathIndep);
+    if (LOG.isDebugEnabled()) {
+      LOG.debug("Resource requested from ResourceManager"
+          + ", resourceDir=" + resDir
+          + ", resourcePath=" + resourcePathIndep
+          + ", fileExists=" + resourceFile.exists());
+    }
     return resourceFile;
   }
 }

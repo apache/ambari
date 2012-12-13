@@ -15,18 +15,32 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.apache.ambari.server.controller.jmx;
 
 import java.util.Map;
 
 /**
- *
+ * Provider of JMX host information.
  */
 public interface JMXHostProvider {
 
+  /**
+   * Get the JMX host name for the given cluster name and component name.
+   *
+   * @param clusterName    the cluster name
+   * @param componentName  the component name
+   *
+   * @return the JMX host name
+   */
   public String getHostName(String clusterName, String componentName);
 
 
+  /**
+   * Get the host name mappings for the given cluster name.
+   *
+   * @param clusterName  the cluster name
+   *
+   * @return the host name mappings
+   */
   public Map<String, String> getHostMapping(String clusterName);
 }

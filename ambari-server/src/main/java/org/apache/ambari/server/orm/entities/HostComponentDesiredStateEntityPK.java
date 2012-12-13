@@ -21,6 +21,7 @@ import javax.persistence.Column;
 import javax.persistence.Id;
 import java.io.Serializable;
 
+@SuppressWarnings("serial")
 public class HostComponentDesiredStateEntityPK implements Serializable {
   private Long clusterId;
 

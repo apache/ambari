@@ -1,0 +1,25 @@
+{
+  "name" : "ZOOKEEPER",
+  "version" : "3.4.5.1-1",
+  "user" : "root",
+  "comment" : "This is comment for ZOOKEEPER service",
+  "properties" : [ ],
+  "components" : [ {
+    "name" : "ZOOKEEPER_SERVER",
+    "category" : "MASTER",
+    "client" : false,
+    "master" : true
+  }, {
+    "name" : "ZOOKEEPER_CLIENT",
+    "category" : "CLIENT",
+    "client" : true,
+    "master" : false
+  } ],
+  "clientOnlyService" : false,
+  "clientComponent" : {
+    "name" : "ZOOKEEPER_CLIENT",
+    "category" : "CLIENT",
+    "client" : true,
+    "master" : false
+  }
+}

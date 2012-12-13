@@ -19,7 +19,7 @@
 package org.apache.ambari.server.api.services;
 
 import org.apache.ambari.server.api.handlers.RequestHandler;
-import org.apache.ambari.server.api.resources.ResourceDefinition;
+import org.apache.ambari.server.api.resources.ResourceInstance;
 import org.apache.ambari.server.api.services.serializers.ResultSerializer;
 import org.junit.Test;
 
@@ -39,7 +39,7 @@ public class ClusterServiceTest {
 
   @Test
   public void testGetCluster() {
-    ResourceDefinition resourceDef = createStrictMock(ResourceDefinition.class);
+    ResourceInstance resourceDef = createStrictMock(ResourceInstance.class);
     ResultSerializer resultSerializer = createStrictMock(ResultSerializer.class);
     Object serializedResult = new Object();
     RequestFactory requestFactory = createStrictMock(RequestFactory.class);
@@ -76,7 +76,7 @@ public class ClusterServiceTest {
 
   @Test
   public void testGetClusters() {
-    ResourceDefinition resourceDef = createStrictMock(ResourceDefinition.class);
+    ResourceInstance resourceDef = createStrictMock(ResourceInstance.class);
     ResultSerializer resultSerializer = createStrictMock(ResultSerializer.class);
     Object serializedResult = new Object();
     RequestFactory requestFactory = createStrictMock(RequestFactory.class);
@@ -112,7 +112,7 @@ public class ClusterServiceTest {
 
   @Test
   public void testCreateCluster() {
-    ResourceDefinition resourceDef = createStrictMock(ResourceDefinition.class);
+    ResourceInstance resourceDef = createStrictMock(ResourceInstance.class);
     ResultSerializer resultSerializer = createStrictMock(ResultSerializer.class);
     Object serializedResult = new Object();
     RequestFactory requestFactory = createStrictMock(RequestFactory.class);
@@ -149,7 +149,7 @@ public class ClusterServiceTest {
 
   @Test
   public void testUpdateCluster() {
-    ResourceDefinition resourceDef = createStrictMock(ResourceDefinition.class);
+    ResourceInstance resourceDef = createStrictMock(ResourceInstance.class);
     ResultSerializer resultSerializer = createStrictMock(ResultSerializer.class);
     Object serializedResult = new Object();
     RequestFactory requestFactory = createStrictMock(RequestFactory.class);
@@ -186,7 +186,7 @@ public class ClusterServiceTest {
 
   @Test
   public void testDeleteCluster() {
-    ResourceDefinition resourceDef = createStrictMock(ResourceDefinition.class);
+    ResourceInstance resourceDef = createStrictMock(ResourceInstance.class);
     ResultSerializer resultSerializer = createStrictMock(ResultSerializer.class);
     Object serializedResult = new Object();
     RequestFactory requestFactory = createStrictMock(RequestFactory.class);
@@ -225,10 +225,10 @@ public class ClusterServiceTest {
     private RequestFactory m_requestFactory;
     private ResponseFactory m_responseFactory;
     private RequestHandler m_requestHandler;
-    private ResourceDefinition m_resourceDef;
+    private ResourceInstance m_resourceDef;
     private String m_clusterId;
 
-    private TestClusterService(ResourceDefinition resourceDef, String clusterId, RequestFactory requestFactory,
+    private TestClusterService(ResourceInstance resourceDef, String clusterId, RequestFactory requestFactory,
                                ResponseFactory responseFactory, RequestHandler handler) {
       m_resourceDef = resourceDef;
       m_requestFactory = requestFactory;
@@ -238,7 +238,7 @@ public class ClusterServiceTest {
     }
 
     @Override
-    ResourceDefinition createResourceDefinition(String clusterName) {
+    ResourceInstance createClusterResource(String clusterName) {
       assertEquals(m_clusterId, clusterName);
       return m_resourceDef;
     }
@@ -259,5 +259,5 @@ public class ClusterServiceTest {
     }
   }
 
-  //todo: test getHostHandler, getServiceHandler
+  //todo: test getHostHandler, getServiceHandler, getHostComponentHandler
 }

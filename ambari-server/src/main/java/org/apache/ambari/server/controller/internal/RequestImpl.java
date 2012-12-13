@@ -18,7 +18,6 @@
 
 package org.apache.ambari.server.controller.internal;
 
-import org.apache.ambari.server.controller.spi.PropertyId;
 import org.apache.ambari.server.controller.spi.Request;
 import org.apache.ambari.server.controller.spi.TemporalInfo;
 
@@ -34,20 +33,18 @@ public class RequestImpl implements Request {
    * The property ids associated with this request.  Used for requests that
    * get resource values.
    */
-  private final Set<PropertyId> propertyIds;
+  private final Set<String> propertyIds;
 
   /**
    * The properties associated with this request.  Used for requests that create
    * resources or update resource values.
    */
-  private final Set<Map<PropertyId, Object>> properties;
+  private final Set<Map<String, Object>> properties;
 
   /**
    * Map of property to temporal info.
    */
-  private Map<PropertyId, TemporalInfo> m_mapTemporalInfo = new HashMap<PropertyId, TemporalInfo>();
-
-  private static final TemporalInfo DEFAULT_TEMPORAL_INFO = new TemporalInfoImpl(-1, -1, -1);
+  private Map<String, TemporalInfo> m_mapTemporalInfo = new HashMap<String, TemporalInfo>();
 
 
   // ----- Constructors ------------------------------------------------------
@@ -55,40 +52,42 @@ public class RequestImpl implements Request {
   /**
    * Create a request.
    *
-   * @param propertyIds  the property ids associated with the request; may be null
-   * @param properties   the properties associated with the request; may be null
+   * @param propertyIds      the property ids associated with the request; may be null
+   * @param properties       the properties associated with the request; may be null
+   * @param mapTemporalInfo  the temporal info
    */
-  public RequestImpl(Set<PropertyId> propertyIds, Set<Map<PropertyId, Object>> properties) {
+  public RequestImpl(Set<String> propertyIds, Set<Map<String, Object>> properties,
+                     Map<String, TemporalInfo> mapTemporalInfo) {
     this.propertyIds = propertyIds == null ?
-        Collections.unmodifiableSet(new HashSet<PropertyId>()) :
+        Collections.unmodifiableSet(new HashSet<String>()) :
         Collections.unmodifiableSet(propertyIds);
 
     this.properties = properties == null ?
-        Collections.unmodifiableSet(new HashSet<Map<PropertyId, Object>>()) :
+        Collections.unmodifiableSet(new HashSet<Map<String, Object>>()) :
         Collections.unmodifiableSet(properties);
+
+    setTemporalInfo(mapTemporalInfo);
   }
 
 
   // ----- Request -----------------------------------------------------------
 
   @Override
-  public Set<PropertyId> getPropertyIds() {
+  public Set<String> getPropertyIds() {
     return propertyIds;
   }
 
   @Override
-  public Set<Map<PropertyId, Object>> getProperties() {
+  public Set<Map<String, Object>> getProperties() {
     return properties;
   }
 
   @Override
-  public TemporalInfo getTemporalInfo(PropertyId id) {
-    TemporalInfo info =  m_mapTemporalInfo.get(id);
-    return info == null ? DEFAULT_TEMPORAL_INFO : info;
+  public TemporalInfo getTemporalInfo(String id) {
+    return m_mapTemporalInfo.get(id);
   }
 
-  @Override
-  public void setTemporalInfo(Map<PropertyId, TemporalInfo> mapTemporalInfo) {
+  private void setTemporalInfo(Map<String, TemporalInfo> mapTemporalInfo) {
     m_mapTemporalInfo = mapTemporalInfo;
   }
 
@@ -114,29 +113,24 @@ public class RequestImpl implements Request {
     StringBuilder sb = new StringBuilder();
     sb.append("Request:"
         + ", propertyIds=[");
-    for (PropertyId pId : propertyIds) {
-      sb.append(" { propertyName=" + pId.getName()
-          + ", propertyCategory=" + pId.getCategory()
-          + " }, ");
+    for (String pId : propertyIds) {
+      sb.append(" { propertyName=").append(pId).append(" }, ");
     }
     sb.append(" ], properties=[ ");
-    for (Map<PropertyId, Object> map : properties) {
-      for (Entry<PropertyId, Object> entry : map.entrySet()) {
-        sb.append(" { propertyName=" + entry.getKey().getName()
-          + ", propertyCategory=" + entry.getKey().getCategory()
-          + ", propertyValue=" + entry.getValue().toString()
-          + " }, ");
+    for (Map<String, Object> map : properties) {
+      for (Entry<String, Object> entry : map.entrySet()) {
+        sb.append(" { propertyName=").append(entry.getKey()).append(", propertyValue=").
+            append(entry.getValue().toString()).append(" }, ");
       }
     }
     sb.append(" ], temporalInfo=[");
     if (m_mapTemporalInfo == null) {
       sb.append("null");
     } else {
-      for (Entry<PropertyId, TemporalInfo> entry :
+      for (Entry<String, TemporalInfo> entry :
         m_mapTemporalInfo.entrySet()) {
-        sb.append(" { propertyName=" + entry.getKey().getName()
-            + ", propertyCategory=" + entry.getKey().getCategory()
-            + ", temporalInfo=" + entry.getValue().toString());
+        sb.append(" { propertyName=").append(entry.getKey()).append(", temporalInfo=").
+            append(entry.getValue().toString());
       }
     }
     sb.append(" ]");

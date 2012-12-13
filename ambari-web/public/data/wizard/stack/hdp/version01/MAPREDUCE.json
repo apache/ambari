@@ -1,0 +1,225 @@
+{
+  "name" : "MAPREDUCE",
+  "version" : "1.1.0.1-1",
+  "user" : "mapred",
+  "comment" : "This is comment for MAPREDUCE service",
+  "properties" : [ {
+    "name" : "io.sort.record.percent",
+    "value" : ".2",
+    "description" : "No description",
+    "filename" : "mapred-site.xml"
+  }, {
+    "name" : "io.sort.factor",
+    "value" : "100",
+    "description" : "No description",
+    "filename" : "mapred-site.xml"
+  }, {
+    "name" : "mapred.tasktracker.tasks.sleeptime-before-sigkill",
+    "value" : "250",
+    "description" : "Normally, this is the amount of time before killing\n  processes, and the recommended-default is 5.000 seconds - a value of\n  5000 here.  In this case, we are using it solely to blast tasks before\n  killing them, and killing them very quickly (1/4 second) to guarantee\n  that we do not leave VMs around for later jobs.\n  ",
+    "filename" : "mapred-site.xml"
+  }, {
+    "name" : "mapred.job.tracker.handler.count",
+    "value" : "50",
+    "description" : "\n    The number of server threads for the JobTracker. This should be roughly\n    4% of the number of tasktracker nodes.\n    ",
+    "filename" : "mapred-site.xml"
+  }, {
+    "name" : "mapreduce.cluster.administrators",
+    "value" : " hadoop",
+    "description" : null,
+    "filename" : "mapred-site.xml"
+  }, {
+    "name" : "mapred.reduce.parallel.copies",
+    "value" : "30",
+    "description" : "No description",
+    "filename" : "mapred-site.xml"
+  }, {
+    "name" : "tasktracker.http.threads",
+    "value" : "50",
+    "description" : null,
+    "filename" : "mapred-site.xml"
+  }, {
+    "name" : "mapred.map.tasks.speculative.execution",
+    "value" : "false",
+    "description" : "If true, then multiple instances of some map tasks\n               may be executed in parallel.",
+    "filename" : "mapred-site.xml"
+  }, {
+    "name" : "mapred.reduce.tasks.speculative.execution",
+    "value" : "false",
+    "description" : "If true, then multiple instances of some reduce tasks\n               may be executed in parallel.",
+    "filename" : "mapred-site.xml"
+  }, {
+    "name" : "mapred.reduce.slowstart.completed.maps",
+    "value" : "0.05",
+    "description" : null,
+    "filename" : "mapred-site.xml"
+  }, {
+    "name" : "mapred.inmem.merge.threshold",
+    "value" : "1000",
+    "description" : "The threshold, in terms of the number of files\n  for the in-memory merge process. When we accumulate threshold number of files\n  we initiate the in-memory merge and spill to disk. A value of 0 or less than\n  0 indicates we want to DON'T have any threshold and instead depend only on\n  the ramfs's memory consumption to trigger the merge.\n  ",
+    "filename" : "mapred-site.xml"
+  }, {
+    "name" : "mapred.job.shuffle.merge.percent",
+    "value" : "0.66",
+    "description" : "The usage threshold at which an in-memory merge will be\n  initiated, expressed as a percentage of the total memory allocated to\n  storing in-memory map outputs, as defined by\n  mapred.job.shuffle.input.buffer.percent.\n  ",
+    "filename" : "mapred-site.xml"
+  }, {
+    "name" : "mapred.job.shuffle.input.buffer.percent",
+    "value" : "0.7",
+    "description" : "The percentage of memory to be allocated from the maximum heap\n  size to storing map outputs during the shuffle.\n  ",
+    "filename" : "mapred-site.xml"
+  }, {
+    "name" : "mapred.output.compression.type",
+    "value" : "BLOCK",
+    "description" : "If the job outputs are to compressed as SequenceFiles, how should\n               they be compressed? Should be one of NONE, RECORD or BLOCK.\n  ",
+    "filename" : "mapred-site.xml"
+  }, {
+    "name" : "mapred.jobtracker.completeuserjobs.maximum",
+    "value" : "0",
+    "description" : null,
+    "filename" : "mapred-site.xml"
+  }, {
+    "name" : "mapred.jobtracker.restart.recover",
+    "value" : "false",
+    "description" : "\"true\" to enable (job) recovery upon restart,\n               \"false\" to start afresh\n    ",
+    "filename" : "mapred-site.xml"
+  }, {
+    "name" : "mapred.job.reduce.input.buffer.percent",
+    "value" : "0.0",
+    "description" : "The percentage of memory- relative to the maximum heap size- to\n  retain map outputs during the reduce. When the shuffle is concluded, any\n  remaining map outputs in memory must consume less than this threshold before\n  the reduce can begin.\n  ",
+    "filename" : "mapred-site.xml"
+  }, {
+    "name" : "mapreduce.reduce.input.limit",
+    "value" : "10737418240",
+    "description" : "The limit on the input size of the reduce. (This value\n  is 10 Gb.)  If the estimated input size of the reduce is greater than\n  this value, job is failed. A value of -1 means that there is no limit\n  set. ",
+    "filename" : "mapred-site.xml"
+  }, {
+    "name" : "mapred.task.timeout",
+    "value" : "600000",
+    "description" : "The number of milliseconds before a task will be\n  terminated if it neither reads an input, writes an output, nor\n  updates its status string.\n  ",
+    "filename" : "mapred-site.xml"
+  }, {
+    "name" : "jetty.connector",
+    "value" : "org.mortbay.jetty.nio.SelectChannelConnector",
+    "description" : "No description",
+    "filename" : "mapred-site.xml"
+  }, {
+    "name" : "mapred.child.root.logger",
+    "value" : "INFO,TLA",
+    "description" : null,
+    "filename" : "mapred-site.xml"
+  }, {
+    "name" : "mapred.max.tracker.blacklists",
+    "value" : "16",
+    "description" : "\n    if node is reported blacklisted by 16 successful jobs within timeout-window, it will be graylisted\n  ",
+    "filename" : "mapred-site.xml"
+  }, {
+    "name" : "mapred.healthChecker.interval",
+    "value" : "135000",
+    "description" : null,
+    "filename" : "mapred-site.xml"
+  }, {
+    "name" : "mapred.healthChecker.script.timeout",
+    "value" : "60000",
+    "description" : null,
+    "filename" : "mapred-site.xml"
+  }, {
+    "name" : "mapred.job.tracker.persist.jobstatus.active",
+    "value" : "false",
+    "description" : "Indicates if persistency of job status information is\n  active or not.\n  ",
+    "filename" : "mapred-site.xml"
+  }, {
+    "name" : "mapred.job.tracker.persist.jobstatus.hours",
+    "value" : "1",
+    "description" : "The number of hours job status information is persisted in DFS.\n    The job status information will be available after it drops of the memory\n    queue and between jobtracker restarts. With a zero value the job status\n    information is not persisted at all in DFS.\n  ",
+    "filename" : "mapred-site.xml"
+  }, {
+    "name" : "mapred.jobtracker.retirejob.check",
+    "value" : "10000",
+    "description" : null,
+    "filename" : "mapred-site.xml"
+  }, {
+    "name" : "mapred.jobtracker.retirejob.interval",
+    "value" : "0",
+    "description" : null,
+    "filename" : "mapred-site.xml"
+  }, {
+    "name" : "mapred.job.tracker.history.completed.location",
+    "value" : "/mapred/history/done",
+    "description" : "No description",
+    "filename" : "mapred-site.xml"
+  }, {
+    "name" : "mapreduce.fileoutputcommitter.marksuccessfuljobs",
+    "value" : "false",
+    "description" : null,
+    "filename" : "mapred-site.xml"
+  }, {
+    "name" : "mapred.job.reuse.jvm.num.tasks",
+    "value" : "1",
+    "description" : "\n    How many tasks to run per jvm. If set to -1, there is no limit\n  ",
+    "filename" : "mapred-site.xml"
+  }, {
+    "name" : "hadoop.job.history.user.location",
+    "value" : "none",
+    "description" : null,
+    "filename" : "mapred-site.xml"
+  }, {
+    "name" : "mapreduce.jobtracker.staging.root.dir",
+    "value" : "/user",
+    "description" : "The Path prefix for where the staging directories should be placed. The next level is always the user's\n   name. It is a path in the default file system.",
+    "filename" : "mapred-site.xml"
+  }, {
+    "name" : "mapreduce.tasktracker.group",
+    "value" : "hadoop",
+    "description" : "The group that the task controller uses for accessing the task controller. The mapred user must be a member and users should *not* be members.",
+    "filename" : "mapred-site.xml"
+  }, {
+    "name" : "mapreduce.jobtracker.split.metainfo.maxsize",
+    "value" : "50000000",
+    "description" : "If the size of the split metainfo file is larger than this, the JobTracker will fail the job during\n    initialize.\n   ",
+    "filename" : "mapred-site.xml"
+  }, {
+    "name" : "mapreduce.history.server.embedded",
+    "value" : "false",
+    "description" : "Should job history server be embedded within Job tracker\nprocess",
+    "filename" : "mapred-site.xml"
+  }, {
+    "name" : "mapred.jobtracker.blacklist.fault-timeout-window",
+    "value" : "180",
+    "description" : "\n    3-hour sliding window (value is in minutes)\n  ",
+    "filename" : "mapred-site.xml"
+  }, {
+    "name" : "mapred.jobtracker.blacklist.fault-bucket-width",
+    "value" : "15",
+    "description" : "\n    15-minute bucket size (value is in minutes)\n  ",
+    "filename" : "mapred-site.xml"
+  }, {
+    "name" : "mapred.queue.names",
+    "value" : "default",
+    "description" : " Comma separated list of queues configured for this jobtracker.",
+    "filename" : "mapred-site.xml"
+  } ],
+  "components" : [ {
+    "name" : "JOBTRACKER",
+    "category" : "MASTER",
+    "client" : false,
+    "master" : true
+  }, {
+    "name" : "TASKTRACKER",
+    "category" : "SLAVE",
+    "client" : false,
+    "master" : false
+  }, {
+    "name" : "MAPREDUCE_CLIENT",
+    "category" : "CLIENT",
+    "client" : true,
+    "master" : false
+  } ],
+  "clientOnlyService" : false,
+  "clientComponent" : {
+    "name" : "MAPREDUCE_CLIENT",
+    "category" : "CLIENT",
+    "client" : true,
+    "master" : false
+  }
+}

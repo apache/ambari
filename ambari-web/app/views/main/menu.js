@@ -28,7 +28,7 @@ App.MainMenuView = Em.CollectionView.extend({
   content:function(){
     var result = [
       { label:'Dashboard', routing:'dashboard', active:'active'},
-      { label:'Charts', routing:'charts'},
+      { label:'Heatmaps', routing:'charts'},
       { label:'Services', routing:'services'},
       { label:'Hosts', routing:'hosts'},
       { label:'Jobs', routing:'apps'}

@@ -49,13 +49,9 @@ public class SecurityFilter implements Filter {
 
     HttpServletRequest req = (HttpServletRequest) serReq;
     String reqUrl = req.getRequestURL().toString();
-
-    //System.out.println("req url:" + reqUrl);
-    LOG.info("doFilter: Incoming request " + reqUrl);
 	
-    if (serReq.getLocalPort() == AmbariServer.CLIENT_ONE_WAY) {
+    if (serReq.getLocalPort() == AmbariServer.AGENT_ONE_WAY_AUTH) {
       if (isRequestAllowed(reqUrl)) {
-        LOG.info("Request is allowed");
         filtCh.doFilter(serReq, serResp);
       }
       else {

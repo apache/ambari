@@ -22,10 +22,10 @@ import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.TaskStatusRequest;
 import org.apache.ambari.server.controller.TaskStatusResponse;
 import org.apache.ambari.server.controller.spi.Predicate;
-import org.apache.ambari.server.controller.spi.PropertyId;
 import org.apache.ambari.server.controller.spi.Request;
 import org.apache.ambari.server.controller.spi.RequestStatus;
 import org.apache.ambari.server.controller.spi.Resource;
+import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
 
 import java.util.Arrays;
@@ -42,23 +42,23 @@ class TaskResourceProvider extends ResourceProviderImpl{
   // ----- Property ID constants ---------------------------------------------
 
   // Tasks
-  protected static final PropertyId TASK_CLUSTER_NAME_PROPERTY_ID = PropertyHelper.getPropertyId("cluster_name","Tasks");
-  protected static final PropertyId TASK_REQUEST_ID_PROPERTY_ID   = PropertyHelper.getPropertyId("request_id","Tasks");
-  protected static final PropertyId TASK_ID_PROPERTY_ID           = PropertyHelper.getPropertyId("id","Tasks");
-  protected static final PropertyId TASK_STAGE_ID_PROPERTY_ID     = PropertyHelper.getPropertyId("stage_id","Tasks");
-  protected static final PropertyId TASK_HOST_NAME_PROPERTY_ID    = PropertyHelper.getPropertyId("host_name","Tasks");
-  protected static final PropertyId TASK_ROLE_PROPERTY_ID         = PropertyHelper.getPropertyId("role","Tasks");
-  protected static final PropertyId TASK_COMMAND_PROPERTY_ID      = PropertyHelper.getPropertyId("command","Tasks");
-  protected static final PropertyId TASK_STATUS_PROPERTY_ID       = PropertyHelper.getPropertyId("status","Tasks");
-  protected static final PropertyId TASK_EXIT_CODE_PROPERTY_ID    = PropertyHelper.getPropertyId("exit_code","Tasks");
-  protected static final PropertyId TASK_STDERR_PROPERTY_ID       = PropertyHelper.getPropertyId("stderr","Tasks");
-  protected static final PropertyId TASK_STOUT_PROPERTY_ID        = PropertyHelper.getPropertyId("stdout","Tasks");
-  protected static final PropertyId TASK_START_TIME_PROPERTY_ID   = PropertyHelper.getPropertyId("start_time","Tasks");
-  protected static final PropertyId TASK_ATTEMPT_CNT_PROPERTY_ID  = PropertyHelper.getPropertyId("attempt_cnt","Tasks");
+  protected static final String TASK_CLUSTER_NAME_PROPERTY_ID = PropertyHelper.getPropertyId("Tasks", "cluster_name");
+  protected static final String TASK_REQUEST_ID_PROPERTY_ID   = PropertyHelper.getPropertyId("Tasks", "request_id");
+  protected static final String TASK_ID_PROPERTY_ID           = PropertyHelper.getPropertyId("Tasks", "id");
+  protected static final String TASK_STAGE_ID_PROPERTY_ID     = PropertyHelper.getPropertyId("Tasks", "stage_id");
+  protected static final String TASK_HOST_NAME_PROPERTY_ID    = PropertyHelper.getPropertyId("Tasks", "host_name");
+  protected static final String TASK_ROLE_PROPERTY_ID         = PropertyHelper.getPropertyId("Tasks", "role");
+  protected static final String TASK_COMMAND_PROPERTY_ID      = PropertyHelper.getPropertyId("Tasks", "command");
+  protected static final String TASK_STATUS_PROPERTY_ID       = PropertyHelper.getPropertyId("Tasks", "status");
+  protected static final String TASK_EXIT_CODE_PROPERTY_ID    = PropertyHelper.getPropertyId("Tasks", "exit_code");
+  protected static final String TASK_STDERR_PROPERTY_ID       = PropertyHelper.getPropertyId("Tasks", "stderr");
+  protected static final String TASK_STOUT_PROPERTY_ID        = PropertyHelper.getPropertyId("Tasks", "stdout");
+  protected static final String TASK_START_TIME_PROPERTY_ID   = PropertyHelper.getPropertyId("Tasks", "start_time");
+  protected static final String TASK_ATTEMPT_CNT_PROPERTY_ID  = PropertyHelper.getPropertyId("Tasks", "attempt_cnt");
 
 
-  private static Set<PropertyId> pkPropertyIds =
-      new HashSet<PropertyId>(Arrays.asList(new PropertyId[]{
+  private static Set<String> pkPropertyIds =
+      new HashSet<String>(Arrays.asList(new String[]{
           TASK_ID_PROPERTY_ID}));
 
   // ----- Constructors ----------------------------------------------------
@@ -70,8 +70,8 @@ class TaskResourceProvider extends ResourceProviderImpl{
    * @param keyPropertyIds        the key property ids
    * @param managementController  the management controller
    */
-  TaskResourceProvider(Set<PropertyId> propertyIds,
-                       Map<Resource.Type, PropertyId> keyPropertyIds,
+  TaskResourceProvider(Set<String> propertyIds,
+                       Map<Resource.Type, String> keyPropertyIds,
                        AmbariManagementController managementController) {
     super(propertyIds, keyPropertyIds, managementController);
   }
@@ -79,27 +79,29 @@ class TaskResourceProvider extends ResourceProviderImpl{
   // ----- ResourceProvider ------------------------------------------------
 
   @Override
-  public RequestStatus createResources(Request request) throws AmbariException {
+  public RequestStatus createResources(Request request) throws AmbariException, UnsupportedPropertyException {
     throw new UnsupportedOperationException("Not currently supported.");
   }
 
   @Override
-  public Set<Resource> getResources(Request request, Predicate predicate) throws AmbariException {
-    Set<PropertyId> requestedIds = PropertyHelper.getRequestPropertyIds(getPropertyIds(), request, predicate);
-    Map<PropertyId, Object> predicateProperties = getProperties(predicate);
+  public Set<Resource> getResources(Request request, Predicate predicate) throws AmbariException, UnsupportedPropertyException {
+    Set<String> requestedIds = PropertyHelper.getRequestPropertyIds(getPropertyIds(), request, predicate);
+    Map<String, Object> predicateProperties = getProperties(predicate);
     TaskStatusRequest taskStatusRequest = getRequest(predicateProperties);
 
     String clusterName = (String) predicateProperties.get(TASK_CLUSTER_NAME_PROPERTY_ID);
     Long   request_id  = new Long((String) predicateProperties.get(TASK_REQUEST_ID_PROPERTY_ID));
 
     // TODO : handle multiple requests
-    LOG.info("Request to management controller " + taskStatusRequest.getRequestId() +
-        " taskid " + taskStatusRequest.getTaskId());
 
     Set<TaskStatusResponse> responses = getManagementController().getTaskStatus(Collections.singleton(taskStatusRequest));
-    LOG.info("Printing size of responses " + responses.size());
-    for (TaskStatusResponse response: responses) {
-      LOG.info("Printing response from management controller " + response.toString());
+    
+    if (LOG.isDebugEnabled()) {
+      LOG.debug("Printing size of responses " + responses.size());
+      for (TaskStatusResponse response : responses) {
+        LOG.debug("Printing response from management controller "
+            + response.toString());
+      }
     }
 
     Set<Resource> resources = new HashSet<Resource>();
@@ -119,26 +121,25 @@ class TaskResourceProvider extends ResourceProviderImpl{
       setResourceProperty(resource, TASK_STOUT_PROPERTY_ID, response.getStdout(), requestedIds);
       setResourceProperty(resource, TASK_START_TIME_PROPERTY_ID, response.getStartTime(), requestedIds);
       setResourceProperty(resource, TASK_ATTEMPT_CNT_PROPERTY_ID, response.getAttemptCount(), requestedIds);
-      LOG.info("Creating resource " + resource.toString());
       resources.add(resource);
     }
     return resources;
   }
 
   @Override
-  public RequestStatus updateResources(Request request, Predicate predicate) throws AmbariException {
+  public RequestStatus updateResources(Request request, Predicate predicate) throws AmbariException, UnsupportedPropertyException {
     throw new UnsupportedOperationException("Not currently supported.");
   }
 
   @Override
-  public RequestStatus deleteResources(Predicate predicate) throws AmbariException {
+  public RequestStatus deleteResources(Predicate predicate) throws AmbariException, UnsupportedPropertyException {
     throw new UnsupportedOperationException("Not currently supported.");
   }
 
   // ----- utility methods -------------------------------------------------
 
   @Override
-  protected Set<PropertyId> getPKPropertyIds() {
+  protected Set<String> getPKPropertyIds() {
     return pkPropertyIds;
   }
 
@@ -149,7 +150,7 @@ class TaskResourceProvider extends ResourceProviderImpl{
    *
    * @return the component request object
    */
-  private TaskStatusRequest getRequest(Map<PropertyId, Object> properties) {
+  private TaskStatusRequest getRequest(Map<String, Object> properties) {
     String taskId = (String) properties.get(TASK_ID_PROPERTY_ID);
     Long task_id = (taskId == null? null: Long.valueOf(taskId));
     return new TaskStatusRequest(

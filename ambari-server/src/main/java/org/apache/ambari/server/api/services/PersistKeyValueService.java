@@ -19,14 +19,11 @@
 package org.apache.ambari.server.api.services;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Map;
 
-import javax.ws.rs.GET;
-import javax.ws.rs.POST;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
-import javax.ws.rs.WebApplicationException;
+import javax.ws.rs.*;
 import javax.ws.rs.core.Response;
 import javax.xml.bind.JAXBException;
 
@@ -47,6 +44,7 @@ public class PersistKeyValueService {
     persistKeyVal = instance;
   }
 
+  @SuppressWarnings("unchecked")
   @POST
   @Produces("text/plain")
   public Response update(String keyValues)
@@ -60,6 +58,21 @@ public class PersistKeyValueService {
       persistKeyVal.put(keyValue.getKey(), keyValue.getValue());
     }
     return Response.status(Response.Status.ACCEPTED).build();
+  }
+
+  @SuppressWarnings("unchecked")
+  @PUT
+  @Produces("text/plain")
+  public String store(String values) throws IOException, JAXBException {
+    LOG.info("Received message from UI " + values);
+    Collection<String> valueCollection = StageUtils.fromJson(values, Collection.class);
+    Collection<String> keys = new ArrayList<String>(valueCollection.size());
+    for (String s : valueCollection) {
+      keys.add(persistKeyVal.put(s));
+    }
+    String stringRet = StageUtils.jaxbToString(keys);
+    LOG.info("Returning " + stringRet);
+    return stringRet;
   }
   
   @GET

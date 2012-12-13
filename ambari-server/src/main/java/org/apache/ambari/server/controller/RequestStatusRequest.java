@@ -21,10 +21,12 @@ package org.apache.ambari.server.controller;
 public class RequestStatusRequest {
 
   private final Long requestId;
+  private final String requestStatus;
 
-  public RequestStatusRequest(Long requestId) {
+  public RequestStatusRequest(Long requestId, String requestStatus) {
     super();
     this.requestId = requestId;
+    this.requestStatus = requestStatus;
   }
 
   /**
@@ -32,6 +34,13 @@ public class RequestStatusRequest {
    */
   public Long getRequestId() {
     return requestId;
+  }
+
+  /**
+   * @return the requestStatus
+   */
+  public String getRequestStatus() {
+    return requestStatus;
   }
 
 }

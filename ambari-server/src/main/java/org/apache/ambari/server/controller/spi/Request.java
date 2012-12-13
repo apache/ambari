@@ -34,7 +34,7 @@ public interface Request {
    *
    * @return the set of property ids being requested
    */
-  public Set<PropertyId> getPropertyIds();
+  public Set<String> getPropertyIds();
 
   /**
    * Get the set of maps of properties being requested.  Used
@@ -45,7 +45,7 @@ public interface Request {
    *
    * @return the set of properties being requested
    */
-  public Set<Map<PropertyId, Object>> getProperties();
+  public Set<Map<String, Object>> getProperties();
 
   /**
    * Get the {@link TemporalInfo temporal information} for the given property
@@ -54,13 +54,5 @@ public interface Request {
    * @param id the property id
    * @return the temporal information for the given property id; null if noe exists
    */
-  public TemporalInfo getTemporalInfo(PropertyId id);
-
-  /**
-   * Set the {@link TemporalInfo temporal information} for the given properties
-   * on this request.
-   *
-   * @param mapTemporalInfo  the temporal data to associate with this request
-   */
-  public void setTemporalInfo(Map<PropertyId, TemporalInfo> mapTemporalInfo);
+  public TemporalInfo getTemporalInfo(String id);
 }

@@ -37,7 +37,7 @@ public class StackId {
     this.stackName = stackInfo.getName();
     this.stackVersion = stackInfo.getVersion();
   }
-  
+
   /**
    * @return the stackName
    */
@@ -51,7 +51,7 @@ public class StackId {
   public String getStackVersion() {
     return stackVersion;
   }
-  
+
   /**
    * @return the stackVersion
    */
@@ -89,7 +89,7 @@ public class StackId {
   }
 
   public String toString() {
-    return this.stackVersion;
+    return getStackId();
   }
 
   public static void parseStackIdHelper(StackId stackVersion,

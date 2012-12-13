@@ -39,6 +39,16 @@ public interface Host {
   public void setHostName(String hostName);
 
   /**
+   * Gets the public-facing host name.
+   */
+  public void setPublicHostName(String hostName);
+  
+  /**
+   * Sets the public-facing host name. 
+   */
+  public String getPublicHostName();
+  
+  /**
    * IPv4 assigned to the Host
    * @return the ip or null if no IPv4 interface
    */
@@ -235,6 +245,11 @@ public interface Host {
    * @return Time spent in current state.
    */
   public long getTimeInState();
+
+  /**
+   * @param timeInState the timeInState to set
+   */
+  public void setTimeInState(long timeInState);
 
   public HostResponse convertToResponse();
 

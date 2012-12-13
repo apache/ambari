@@ -32,7 +32,6 @@ import org.slf4j.LoggerFactory;
 import javax.persistence.EntityManager;
 import javax.persistence.RollbackException;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 
@@ -101,36 +100,13 @@ public class TestOrmImpl extends Assert {
   @Test
   public void testAutoIncrementedField() {
     ClusterServiceDAO clusterServiceDAO = injector.getInstance(ClusterServiceDAO.class);
-    ServiceConfigDAO serviceConfigDAO = injector.getInstance(ServiceConfigDAO.class);
     Date currentTime = new Date();
     String serviceName = "MapReduce1";
     String clusterName = "test_cluster1";
 
-    createServiceAndConfig(currentTime, serviceName, clusterName);
+    createService(currentTime, serviceName, clusterName);
 
-
-
-    List<ServiceConfigEntity> result = serviceConfigDAO.findAll();
-    assertNotNull("inserted config not found", result);
-    assertFalse(result.isEmpty());
     ClusterServiceEntity clusterServiceEntity = clusterServiceDAO.findByClusterAndServiceNames(clusterName, serviceName);
-
-    result = serviceConfigDAO.findByClusterService(clusterServiceEntity);
-
-    assertNotNull("config by ClusterService not found", result);
-    assertEquals("wrong number of configs", 1, result.size());
-
-    ServiceConfigEntity serviceConfigEntity = result.iterator().next();
-
-    log.info("config version = " + serviceConfigEntity.getConfigVersion());
-    assertNotNull("config version is null", serviceConfigEntity.getConfigVersion());
-
-    serviceConfigDAO.remove(serviceConfigEntity);
-
-    result = serviceConfigDAO.findAll();
-
-
-    assertTrue(result.isEmpty());
 
     clusterServiceDAO.remove(clusterServiceEntity);
 
@@ -138,7 +114,7 @@ public class TestOrmImpl extends Assert {
 
   }
 
-  private void createServiceAndConfig(Date currentTime, String serviceName, String clusterName) {
+  private void createService(Date currentTime, String serviceName, String clusterName) {
     ClusterServiceDAO clusterServiceDAO = injector.getInstance(ClusterServiceDAO.class);
     ClusterDAO clusterDAO = injector.getInstance(ClusterDAO.class);
     ClusterEntity cluster = clusterDAO.findByName(clusterName);
@@ -155,34 +131,27 @@ public class TestOrmImpl extends Assert {
     clusterServiceEntity = clusterServiceDAO.findByClusterAndServiceNames(clusterName, serviceName);
     assertNotNull(clusterServiceEntity);
 
-    ServiceConfigEntity serviceConfigEntity = new ServiceConfigEntity();
-    serviceConfigEntity.setConfigSnapshotTime(currentTime);
-    serviceConfigEntity.setClusterServiceEntity(clusterServiceEntity);
-
-    Collection<ServiceConfigEntity> list = clusterServiceEntity.getServiceConfigEntities();
-    list.add(serviceConfigEntity);
-    clusterServiceEntity.setServiceConfigEntities(list);
-
-    ServiceConfigDAO serviceConfigDAO = injector.getInstance(ServiceConfigDAO.class);
-
-    serviceConfigDAO.create(serviceConfigEntity);
     clusterServiceDAO.merge(clusterServiceEntity);
   }
 
   /**
    * to clarify: are cascade operations allowed?
    */
-  @Test(expected = RollbackException.class)
+  @Test
   public void testCascadeRemoveFail() {
     ClusterServiceDAO clusterServiceDAO = injector.getInstance(ClusterServiceDAO.class);
     Date currentTime = new Date();
     String serviceName = "MapReduce2";
     String clusterName = "test_cluster1";
 
-    createServiceAndConfig(currentTime, serviceName, clusterName);
+    createService(currentTime, serviceName, clusterName);
 
     ClusterServiceEntity clusterServiceEntity = clusterServiceDAO.findByClusterAndServiceNames(clusterName, serviceName);
     clusterServiceDAO.remove(clusterServiceEntity);
+    
+    Assert.assertNull(
+        clusterServiceDAO.findByClusterAndServiceNames(clusterName,
+            serviceName));
   }
 
   @Test
@@ -195,9 +164,11 @@ public class TestOrmImpl extends Assert {
     List<HostRoleCommandEntity> list =
         hostRoleCommandDAO.findSortedCommandsByStageAndHost(
             stageDAO.findByActionId("0-0"), hostDAO.findByName("test_host1"));
-    log.info("command '{}' - taskId '{}'", list.get(0).getCommand(), list.get(0).getTaskId());
-    log.info("command '{}' - taskId '{}'", list.get(1).getCommand(), list.get(1).getTaskId());
-    assertTrue(list.get(0).getTaskId() < list.get(1).getTaskId());
+    log.info("command '{}' - taskId '{}' ", list.get(0).getRoleCommand(),
+        list.get(0).getTaskId());
+    log.info("command '{}' - taskId '{}'", list.get(1).getRoleCommand(),
+        list.get(1).getTaskId());
+   assertTrue(list.get(0).getTaskId() < list.get(1).getTaskId());
   }
 
   @Test
@@ -206,7 +177,8 @@ public class TestOrmImpl extends Assert {
     HostDAO hostDAO = injector.getInstance(HostDAO.class);
     StageDAO stageDAO = injector.getInstance(StageDAO.class);
     StageEntity stageEntity = stageDAO.findByActionId("0-0");
-    log.info("StageEntity {} {}", stageEntity.getRequestId(), stageEntity.getStageId());
+    log.info("StageEntity {} {}" + stageEntity.getRequestId() + " "
+        + stageEntity.getStageId());
     List<HostEntity> hosts = hostDAO.findByStage(stageEntity);
     assertEquals(2, hosts.size());
   }
@@ -230,7 +202,18 @@ public class TestOrmImpl extends Assert {
   @Test
   public void testLastRequestId() {
     injector.getInstance(OrmTestHelper.class).createStageCommands();
+    ClusterDAO clusterDAO = injector.getInstance(ClusterDAO.class);
     StageDAO stageDAO = injector.getInstance(StageDAO.class);
+    StageEntity stageEntity = new StageEntity();
+    stageEntity.setCluster(clusterDAO.findByName("test_cluster1"));
+    stageEntity.setRequestId(0L);
+    stageEntity.setStageId(1L);
+    stageDAO.create(stageEntity);
+    StageEntity stageEntity2 = new StageEntity();
+    stageEntity2.setCluster(clusterDAO.findByName("test_cluster1"));
+    stageEntity2.setRequestId(0L);
+    stageEntity2.setStageId(2L);
+    stageDAO.create(stageEntity2);
     assertEquals(0L, stageDAO.getLastRequestId());
   }
 

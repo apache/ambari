@@ -19,17 +19,17 @@
 package org.apache.ambari.server.api.resources;
 
 
-import org.apache.ambari.server.controller.utilities.ClusterControllerHelper;
-import org.apache.ambari.server.api.query.Query;
-import org.apache.ambari.server.api.query.QueryImpl;
 import org.apache.ambari.server.api.services.Request;
+import org.apache.ambari.server.api.util.TreeNode;
 import org.apache.ambari.server.controller.spi.ClusterController;
-import org.apache.ambari.server.controller.spi.PropertyId;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.spi.Schema;
-import org.apache.ambari.server.api.util.TreeNode;
+import org.apache.ambari.server.controller.utilities.ClusterControllerHelper;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Set;
 
 /**
  * Base resource definition.  Contains behavior common to all resource types.
@@ -41,48 +41,14 @@ public abstract class BaseResourceDefinition implements ResourceDefinition {
    */
   private Resource.Type m_type;
 
-  /**
-   * Value of the id property for the resource.
-   */
-  private String m_id;
-
-  /**
-   * Query associated with the resource definition.
-   */
-  private Query m_query;
-
-  /**
-   * Map of primary and foreign keys and values necessary to identify the resource.
-   */
-  private Map<Resource.Type, String> m_mapResourceIds = new HashMap<Resource.Type, String>();
 
   /**
    * Constructor.
    *
    * @param resourceType resource type
-   * @param id           value of primary key
    */
-  public BaseResourceDefinition(Resource.Type resourceType, String id) {
+  public BaseResourceDefinition(Resource.Type resourceType) {
     m_type = resourceType;
-    setId(id);
-    m_query = new QueryImpl(this);
-  }
-
-  @Override
-  public void setParentIds(Map<Resource.Type, String> mapIds) {
-    for (Map.Entry<Resource.Type, String> entry : mapIds.entrySet() ) {
-      setResourceId(entry.getKey(), entry.getValue());
-    }
-  }
-
-  @Override
-  public String getId() {
-    return m_id;
-  }
-
-  void setId(String val) {
-    setResourceId(getType(), val);
-    m_id = val;
   }
 
   @Override
@@ -90,23 +56,9 @@ public abstract class BaseResourceDefinition implements ResourceDefinition {
     return m_type;
   }
 
-
   @Override
-  public Query getQuery() {
-    return m_query;
-  }
-
-  protected void setResourceId(Resource.Type resourceType, String val) {
-    m_mapResourceIds.put(resourceType, val);
-  }
-
-  @Override
-  public Map<Resource.Type, String> getResourceIds() {
-    return m_mapResourceIds;
-  }
-
-  ClusterController getClusterController() {
-    return ClusterControllerHelper.getClusterController();
+  public Set<SubResourceDefinition> getSubResourceDefinitions() {
+    return Collections.emptySet();
   }
 
   @Override
@@ -117,27 +69,25 @@ public abstract class BaseResourceDefinition implements ResourceDefinition {
     return listProcessors;
   }
 
+  ClusterController getClusterController() {
+    return ClusterControllerHelper.getClusterController();
+  }
+
   @Override
   public boolean equals(Object o) {
-    if (this == o) return true;
-    if (!(o instanceof BaseResourceDefinition)) return false;
-
-    BaseResourceDefinition that = (BaseResourceDefinition) o;
-
-    if (m_id != null ? !m_id.equals(that.m_id) : that.m_id != null) return false;
-    if (m_mapResourceIds != null ? !m_mapResourceIds.equals(that.m_mapResourceIds) : that.m_mapResourceIds != null)
-      return false;
-
-    return m_type == that.m_type;
-
+      boolean result =false;
+      if(this == o) result = true;
+      if(o instanceof BaseResourceDefinition){
+          BaseResourceDefinition other = (BaseResourceDefinition) o;
+          if(m_type == other.m_type )
+              result = true;
+      }
+      return result;
   }
 
   @Override
   public int hashCode() {
-    int result = m_type != null ? m_type.hashCode() : 0;
-    result = 31 * result + (m_id != null ? m_id.hashCode() : 0);
-    result = 31 * result + (m_mapResourceIds != null ? m_mapResourceIds.hashCode() : 0);
-    return result;
+    return m_type.hashCode();
   }
 
   class BaseHrefPostProcessor implements PostProcessor {
@@ -147,7 +97,6 @@ public abstract class BaseResourceDefinition implements ResourceDefinition {
       TreeNode<Resource> parent = resultNode.getParent();
 
       if (parent.getName() != null) {
-        String parentName = parent.getName();
         Schema schema = getClusterController().getSchema(r.getType());
         Object id = r.getPropertyValue(schema.getKeyPropertyId(r.getType()));
 
@@ -159,8 +108,8 @@ public abstract class BaseResourceDefinition implements ResourceDefinition {
         if (!href.endsWith("/")) {
           href = href + '/';
         }
-        String isCollectionResource = parent.getProperty("isCollection");
-        href = "true".equals(isCollectionResource) ? href + id : href + parentName + '/' + id;
+        href = "true".equals(parent.getProperty("isCollection")) ?
+            href + id : href + parent.getName() + '/' + id;
       }
       resultNode.setProperty("href", href);
     }

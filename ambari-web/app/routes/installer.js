@@ -26,6 +26,9 @@ module.exports = Em.Route.extend({
     console.log('in /installer:enter');
 
     if (router.getAuthenticated()) {
+      var name = 'Cluster Install Wizard';
+      $('title').text('Ambari - ' + name);
+
       if (App.db.getUser().admin) {
         router.get('mainController').stopLoadOperationsPeriodically();
         console.log('In installer with successful authenticated');
@@ -134,12 +137,11 @@ module.exports = Em.Route.extend({
       var wizardStep3Controller = router.get('wizardStep3Controller');
       installerController.saveConfirmedHosts(wizardStep3Controller);
       App.db.setBootStatus(true);
-      var displayOrderConfig = require('data/services');
-      var apiUrl = '/stacks/HDP/version/1.2.0';
-      router.get('installerController').loadServiceComponents(router.get('wizardStep4Controller'), displayOrderConfig, apiUrl);
-      var apiService = router.get('wizardStep4Controller').get('serviceComponents');
-      App.db.setService(apiService);
+      installerController.loadServicesFromServer();
       router.transitionTo('step4');
+    },
+    exit: function (router) {
+      router.get('wizardStep3Controller').set('stopBootstrap', true);
     },
     /**
      * Wrapper for remove host action.

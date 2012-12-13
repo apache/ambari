@@ -18,15 +18,39 @@
 # under the License.
 #
 #
-class hdp-hive::hive::service_check() 
+class hdp-hive::hive::service_check() inherits hdp-hive::params
 {
-  $unique = hdp_unique_id_and_date()
   $smoke_test_user = $hdp::params::smokeuser
-  $output_file = "/apps/hive/warehouse/hivesmoke${unique}"
+  $smoke_test_sql = "/tmp/$smoke_test_sql_file"
+  $smoke_test_path = "/tmp/$smoke_test_script"
 
-  $test_cmd = "fs -test -e ${output_file}" 
-  
-  anchor { 'hdp-hive::hive::service_check::begin':}
+
+  $smoke_cmd = "env JAVA_HOME=$hdp::params::java64_home $smoke_test_path $hive_url $smoke_test_sql"
+
+
+  file { $smoke_test_path:
+    ensure => present,
+    source => "puppet:///modules/hdp-hive/$smoke_test_script",
+    mode => '0755',
+  }
+
+  file { $smoke_test_sql:
+    ensure => present,
+    source => "puppet:///modules/hdp-hive/$smoke_test_sql_file"
+  }
+
+  exec { $smoke_test_path:
+    command   => $smoke_cmd,
+    tries     => 3,
+    try_sleep => 5,
+    path      => '/usr/sbin:/sbin:/usr/local/bin:/bin:/usr/bin',
+    logoutput => "true",
+    user => $smoke_test_user
+  }
+
+  $unique = hdp_unique_id_and_date()
+  $output_file = "/apps/hive/warehouse/hivesmoke${unique}"
+  $test_cmd = "fs -test -e ${output_file}"
 
   file { '/tmp/hiveSmoke.sh':
     ensure => present,
@@ -35,21 +59,19 @@ class hdp-hive::hive::service_check()
   }
 
   exec { '/tmp/hiveSmoke.sh':
-    command   => "su - ${smoke_test_user} -c 'sh /tmp/hiveSmoke.sh hivesmoke${unique}'",
-    tries     => 3,
+    command => "su - ${smoke_test_user} -c 'env JAVA_HOME=$hdp::params::java64_home sh /tmp/hiveSmoke.sh hivesmoke${unique}'",
+    tries => 3,
     try_sleep => 5,
-    require   => File['/tmp/hiveSmoke.sh'],
-    path      => '/usr/sbin:/sbin:/usr/local/bin:/bin:/usr/bin',
-    notify    => Hdp-hadoop::Exec-hadoop['hive::service_check::test'],
+    path => '/usr/sbin:/sbin:/usr/local/bin:/bin:/usr/bin',
+    notify => Hdp-hadoop::Exec-hadoop['hive::service_check::test'],
     logoutput => "true"
   }
 
   hdp-hadoop::exec-hadoop { 'hive::service_check::test':
-    command     => $test_cmd,
-    refreshonly => true,
-    require     => Exec['/tmp/hiveSmoke.sh'],
-    before      => Anchor['hdp-hive::hive::service_check::end'] 
+    command => $test_cmd,
+    refreshonly => true
   }
-  
-  anchor{ 'hdp-hive::hive::service_check::end':}
+
+  File[$smoke_test_path] -> File[$smoke_test_sql] -> Exec[$smoke_test_path] -> File['/tmp/hiveSmoke.sh'] -> Exec['/tmp/hiveSmoke.sh'] -> Hdp-Hadoop::Exec-Hadoop['hive::service_check::test']
+
 }

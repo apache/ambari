@@ -37,89 +37,104 @@ public class HostComponentConfigMappingEntity {
   private String configType;
   private String configTag;
   private Long timestamp;
-  private HostComponentDesiredStateEntity hostComponentEntity;
-  
+  private HostComponentStateEntity hostComponentStateEntity;
+  private ClusterConfigEntity clusterConfigEntity;
+
   @Column(name = "cluster_id", insertable = false, updatable = false, nullable = false)
   @Id
   public Long getClusterId() {
     return clusterId;
   }
-  
+
   public void setClusterId(Long id) {
     clusterId = id;
   }
-  
+
   @Column(name = "service_name", insertable = false, updatable = false, nullable = false)
   @Id
   public String getServiceName() {
     return serviceName;
   }
-  
+
   public void setServiceName(String name) {
     serviceName = name;
   }
-  
+
   @Column(name = "component_name", insertable = false, updatable = false, nullable = false)
   @Id
   public String getComponentName() {
     return componentName;
   }
-  
+
   public void setComponentName(String name) {
     componentName = name;
   }
-  
+
   @Column(name = "host_name", insertable = false, updatable = false, nullable = false)
   @Id
   public String getHostName() {
     return hostName;
   }
-  
+
   public void setHostName(String name) {
     hostName = name;
   }
 
   @Column(name = "config_type", insertable = true, updatable = false, nullable = false)
+  @Id
   public String getConfigType() {
     return configType;
   }
-  
+
   public void setConfigType(String type) {
     configType = type;
   }
-  
+
   @Column(name = "config_tag", nullable = false, insertable = true, updatable = true)
   public String getVersionTag() {
     return configTag;
   }
-  
+
   public void setVersionTag(String tag) {
     configTag = tag;
   }
-  
+
   @Column(name="timestamp", nullable = false, insertable = true, updatable = true)
   public Long getTimestamp() {
     return timestamp;
   }
-  
+
   public void setTimestamp(Long stamp) {
     timestamp = stamp;
   }
-  
+
   @ManyToOne
   @JoinColumns({
     @JoinColumn(name = "cluster_id", referencedColumnName = "cluster_id", nullable = false),
     @JoinColumn(name = "service_name", referencedColumnName = "service_name", nullable = false),
     @JoinColumn(name = "component_name", referencedColumnName = "component_name", nullable = false),
     @JoinColumn(name = "host_name", referencedColumnName = "host_name", nullable = false) })
-  public HostComponentDesiredStateEntity getHostComponentDesiredStateEntity() {
-    return hostComponentEntity;
-  }
-  
-  public void setHostComponentDesiredStateEntity(HostComponentDesiredStateEntity entity) {
-    hostComponentEntity = entity;
+  public HostComponentStateEntity getHostComponentStateEntity() {
+    return hostComponentStateEntity;
   }
 
+  public void setHostComponentStateEntity(HostComponentStateEntity entity) {
+    hostComponentStateEntity = entity;
+  }
+
+  @ManyToOne
+  @JoinColumns({
+      @JoinColumn(name = "cluster_id", referencedColumnName = "cluster_id", nullable = false, insertable = false, updatable = false),
+      @JoinColumn(name = "config_type", referencedColumnName = "type_name", nullable = false, insertable = false, updatable = false),
+      @JoinColumn(name = "config_tag", referencedColumnName = "version_tag", nullable = false, insertable = false, updatable = false)
+  })
+  public ClusterConfigEntity getClusterConfigEntity() {
+    return clusterConfigEntity;
+  }
+
+  public void setClusterConfigEntity(ClusterConfigEntity clusterConfigEntity) {
+    this.clusterConfigEntity = clusterConfigEntity;
+  }
 
   @Override
   public boolean equals(Object o) {
@@ -145,7 +160,7 @@ public class HostComponentConfigMappingEntity {
     result = 31 * result + (hostName != null ? hostName.hashCode() : 0);
     result = 31 * result + (configType != null ? configType.hashCode() : 0);
     return result;
-  }  
-  
-  
+  }
+
+
 }

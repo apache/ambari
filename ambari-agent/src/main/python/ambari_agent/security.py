@@ -11,6 +11,7 @@ from subprocess import Popen, PIPE
 import AmbariConfig
 import json
 import pprint
+import traceback
 logger = logging.getLogger()
 
 GEN_AGENT_KEY="openssl req -new -newkey rsa:1024 -nodes -keyout %(keysdir)s/%(hostname)s.key\
@@ -19,8 +20,18 @@ GEN_AGENT_KEY="openssl req -new -newkey rsa:1024 -nodes -keyout %(keysdir)s/%(ho
 
 
 class VerifiedHTTPSConnection(httplib.HTTPSConnection):
+  """ Connecting using ssl wrapped sockets """
+  def __init__(self, host, port=None, key_file=None, cert_file=None,
+                     strict=None, timeout=socket._GLOBAL_DEFAULT_TIMEOUT):
+    httplib.HTTPSConnection.__init__(self, host, port=port)
+    pass
+     
   def connect(self):
-    sock = socket.create_connection((self.host, self.port), self.timeout)
+    if self.sock:
+      self.sock.close()
+    logger.info("SSL Connect being called.. connecting to the server")
+    sock = socket.create_connection((self.host, self.port), 60)
+    sock.setsockopt( socket.SOL_SOCKET, socket.SO_KEEPALIVE, 1)
     if self._tunnel_host:
       self.sock = sock
       self._tunnel()
@@ -36,26 +47,52 @@ class VerifiedHTTPSConnection(httplib.HTTPSConnection):
                                 certfile=agent_crt,
                                 cert_reqs=ssl.CERT_REQUIRED,
                                 ca_certs=server_crt)
-class VerifiedHTTPSHandler(urllib2.HTTPSHandler):
-  def __init__(self, connection_class = VerifiedHTTPSConnection):
-    self.specialized_conn_class = connection_class
-    urllib2.HTTPSHandler.__init__(self)
-  def https_open(self, req):
-    return self.do_open(self.specialized_conn_class, req)
 
-def secured_url_open(req):
-  logger.info("Secured url open")
-  https_handler = VerifiedHTTPSHandler()
-  url_opener = urllib2.build_opener(https_handler)
-  stream = url_opener.open(req)
-  return stream
 
+class CachedHTTPSConnection:
+  """ Caches a ssl socket and uses a single https connection to the server. """
+  
+  def __init__(self, config):
+    self.connected = False;
+    self.config = config
+    self.server = config.get('server', 'hostname')
+    self.port = config.get('server', 'secured_url_port')
+    self.connect()
+  
+  def connect(self):
+      if  not self.connected:
+        self.httpsconn = VerifiedHTTPSConnection(self.server, self.port)
+        self.httpsconn.connect()
+        self.connected = True
+      # possible exceptions are catched and processed in Controller
+
+  
+  def forceClear(self):
+    self.httpsconn = VerifiedHTTPSConnection(self.server, self.port)
+    self.connect()
+    
+  def request(self, req): 
+    self.connect()
+    try:
+      self.httpsconn.request(req.get_method(), req.get_full_url(), 
+                                  req.get_data(), req.headers)
+      response = self.httpsconn.getresponse()
+      readResponse = response.read()
+    except Exception as ex:
+      # This exception is catched later in Controller
+      logger.debug("Error in sending/receving data from the server " +
+                   traceback.format_exc())
+      self.connected = False
+      raise IOError("Error occured during connecting to the server: " + str(ex))
+    return readResponse
+  
 class CertificateManager():
   def __init__(self, config):
     self.config = config
     self.keysdir = self.config.get('security', 'keysdir')
     self.server_crt=self.config.get('security', 'server_crt')
-    self.server_url = 'https://' + self.config.get('server', 'hostname') + ':' + self.config.get('server', 'url_port')
+    self.server_url = 'https://' + self.config.get('server', 'hostname') + ':' \
+       + self.config.get('server', 'url_port')
     
   def getAgentKeyName(self):
     keysdir = self.config.get('security', 'keysdir')
@@ -100,6 +137,7 @@ class CertificateManager():
             
   def loadSrvrCrt(self):
     get_ca_url = self.server_url + '/cert/ca/'
+    logger.info("Downloading server cert from " + get_ca_url)
     stream = urllib2.urlopen(get_ca_url)
     response = stream.read()
     stream.close()

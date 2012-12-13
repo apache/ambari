@@ -32,6 +32,10 @@ class hdp-ganglia::server(
       ensure => 'uninstalled'
    }
 
+   class { 'hdp-ganglia::server::files':
+      ensure => 'absent'
+   }
+
   } else {
   class { 'hdp-ganglia':
     service_state => $service_state
@@ -56,10 +60,23 @@ class hdp-ganglia::server(
   class { 'hdp-ganglia::server::gmetad': ensure => $service_state}
 
   class { 'hdp-ganglia::service::change_permission': ensure => $service_state }
+  
+  if ($service_state == 'installed_and_configured') {
+    $webserver_state = 'restart'
+  } else {
+    $webserver_state = $service_state
+  }
+
+  class { 'hdp-monitor-webserver': service_state => $webserver_state}
+
+   class { 'hdp-ganglia::server::files':
+      ensure => 'present'
+   }
 
   #top level does not need anchors
-  Class['hdp-ganglia'] -> Class['hdp-ganglia::server::packages'] -> Class['hdp-ganglia::config'] -> 
-    Hdp-ganglia::Config::Generate_server<||> -> Class['hdp-ganglia::server::gmetad'] -> Class['hdp-ganglia::service::change_permission']
+  Class['hdp-ganglia'] -> Class['hdp-ganglia::server::packages'] -> Class['hdp-ganglia::config'] ->
+ Hdp-ganglia::Config::Generate_server<||> ->
+ Class['hdp-ganglia::server::gmetad'] -> Class['hdp-ganglia::service::change_permission'] -> Class['hdp-ganglia::server::files'] -> Class['hdp-monitor-webserver']
  }
 }
 
@@ -71,6 +88,30 @@ class hdp-ganglia::server::packages(
     ensure      => $ensure,
     java_needed => false  
   } 
+
+  hdp::package { ['rrdtool-python']: 
+    ensure      => $ensure,
+    java_needed => false  
+  } 
+}
+
+class hdp-ganglia::server::files(
+  $ensure = present 
+)
+{
+
+
+  $rrd_py_path = $hdp::params::rrd_py_path
+  hdp::directory_recursive_create{$rrd_py_path:
+    ensure => "directory"  
+  }
+
+  file{'/var/www/cgi-bin/rrd.py' : 
+    ensure => $ensure,
+    source => "puppet:///modules/hdp-ganglia/rrd.py",
+    mode   => '0755',
+    require => Hdp::Directory_recursive_create[$rrd_py_path]
+  }
 }
 
 
@@ -97,7 +138,6 @@ class hdp-ganglia::server::gmetad(
   if ($ensure == 'running' or $ensure == 'stopped') {
     hdp::exec { "hdp-gmetad service" :
       command => "$command",
-      unless => "/bin/ps auwx | /bin/grep [g]metad",
       path      => '/usr/sbin:/sbin:/usr/local/bin:/bin:/usr/bin'
     }
   }

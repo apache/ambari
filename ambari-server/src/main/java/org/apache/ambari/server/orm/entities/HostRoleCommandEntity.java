@@ -19,6 +19,7 @@
 package org.apache.ambari.server.orm.entities;
 
 import org.apache.ambari.server.Role;
+import org.apache.ambari.server.RoleCommand;
 import org.apache.ambari.server.actionmanager.HostRoleStatus;
 
 import javax.persistence.*;
@@ -89,21 +90,9 @@ public class HostRoleCommandEntity {
     this.role = role;
   }
 
-  private String command = "";
-
-  @Column(name = "command", nullable = false)
-  @Basic
-  public String getCommand() {
-    return command;
-  }
-
-  public void setCommand(String command) {
-    this.command = command;
-  }
-
   private String event = "";
 
-  @Column(name = "event", nullable = false)
+  @Column(name = "event", nullable = false, length = 32000)
   @Basic
   public String getEvent() {
     return event;
@@ -137,27 +126,29 @@ public class HostRoleCommandEntity {
     this.status = status;
   }
 
-  private String stdError = "";
+  private byte[] stdError = new byte[0];
 
-  @Column(name = "std_error", nullable = false, length=32000)
+  @Column(name = "std_error", nullable = false)
+  @Lob
   @Basic
-  public String getStdError() {
+  public byte[] getStdError() {
     return stdError;
   }
 
-  public void setStdError(String stdError) {
+  public void setStdError(byte[] stdError) {
     this.stdError = stdError;
   }
 
-  private String stdOut = "";
+  private byte[] stdOut = new byte[0];
 
-  @Column(name = "std_out", nullable = false, length=32000)
+  @Column(name = "std_out", nullable = false)
+  @Lob
   @Basic
-  public String getStdOut() {
+  public byte[] getStdOut() {
     return stdOut;
   }
 
-  public void setStdOut(String stdOut) {
+  public void setStdOut(byte[] stdOut) {
     this.stdOut = stdOut;
   }
 
@@ -197,6 +188,18 @@ public class HostRoleCommandEntity {
     this.attemptCount = attemptCount;
   }
 
+  private RoleCommand roleCommand;
+
+  @Column(name = "role_command")
+  @Enumerated(EnumType.STRING)
+  public RoleCommand getRoleCommand() {
+    return roleCommand;
+  }
+
+  public void setRoleCommand(RoleCommand roleCommand) {
+    this.roleCommand = roleCommand;
+  }
+
   @Override
   public boolean equals(Object o) {
     if (this == o) return true;
@@ -205,7 +208,6 @@ public class HostRoleCommandEntity {
     HostRoleCommandEntity that = (HostRoleCommandEntity) o;
 
     if (attemptCount != null ? !attemptCount.equals(that.attemptCount) : that.attemptCount != null) return false;
-    if (command != null ? !command.equals(that.command) : that.command != null) return false;
     if (event != null ? !event.equals(that.event) : that.event != null) return false;
     if (exitcode != null ? !exitcode.equals(that.exitcode) : that.exitcode != null) return false;
     if (hostName != null ? !hostName.equals(that.hostName) : that.hostName != null) return false;
@@ -230,7 +232,6 @@ public class HostRoleCommandEntity {
     result = 31 * result + (stageId != null ? stageId.hashCode() : 0);
     result = 31 * result + (hostName != null ? hostName.hashCode() : 0);
     result = 31 * result + (role != null ? role.hashCode() : 0);
-    result = 31 * result + (command != null ? command.hashCode() : 0);
     result = 31 * result + (event != null ? event.hashCode() : 0);
     result = 31 * result + (exitcode != null ? exitcode.hashCode() : 0);
     result = 31 * result + (status != null ? status.hashCode() : 0);

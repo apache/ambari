@@ -32,6 +32,7 @@ class TestHardware(TestCase):
       self.assertTrue(dev_item['percent'] != None)
       self.assertTrue(dev_item['device'] != None)
       self.assertTrue(dev_item['mountpoint'] != None)
+      self.assertTrue(dev_item['type'] != None)
       self.assertTrue(dev_item['size'] > 0)
 
     for os_disk_item in osdisks:
@@ -40,6 +41,7 @@ class TestHardware(TestCase):
       self.assertTrue(os_disk_item['percent'] != None)
       self.assertTrue(os_disk_item['device'] != None)
       self.assertTrue(os_disk_item['mountpoint'] != None)
+      self.assertTrue(os_disk_item['type'] != None)
       self.assertTrue(os_disk_item['size'] > 0)
 
     self.assertTrue(len(result['mounts']) == len(osdisks))

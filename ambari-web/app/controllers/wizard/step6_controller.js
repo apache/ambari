@@ -35,6 +35,10 @@ App.WizardStep6Controller = Em.Controller.extend({
 
   hosts: [],
 
+  isAddHostWizard: function(){
+    return this.get('content.controllerName') === 'addHostController';
+  }.property('content.controllerName'),
+
   isAllDataNodes: function () {
     return this.get('hosts').everyProperty('isDataNode', true);
   }.property('hosts.@each.isDataNode'),
@@ -86,11 +90,25 @@ App.WizardStep6Controller = Em.Controller.extend({
   }.property('content.services'),
 
   clearError: function () {
+    var isError = false;
+    var hosts = this.get('hosts');
     if (this.get('isNoDataNodes') === false &&
       (this.get('isNoTaskTrackers') === false || this.get('isMrSelected') === false) &&
       (this.get('isNoRegionServers') === false || this.get('isHbSelected') === false) &&
       this.get('isNoClients') === false) {
       this.set('errorMessage', '');
+    }
+    if(this.get('isAddHostWizard')){
+      for(var i = 0; i < hosts.length; i++){
+        isError = !(hosts[i].get('isDataNode') || hosts[i].get('isClient')
+          || ( this.get('isMrSelected') && hosts[i].get('isTaskTracker'))
+          || ( this.get('isHbSelected') && hosts[i].get('isRegionServer')));
+        if (isError) {
+          break;
+        } else {
+          this.set('errorMessage', '');
+        }
+      }
     }
   }.observes('isNoDataNodes', 'isNoTaskTrackers', 'isNoRegionServers', 'isNoClients'),
 
@@ -300,17 +318,27 @@ App.WizardStep6Controller = Em.Controller.extend({
    * @return {Boolean}
    */
   validate: function () {
-    var isError = this.get('isNoDataNodes') || this.get('isNoClients')
-      || ( this.get('isMrSelected') && this.get('isNoTaskTrackers'))
-      || ( this.get('isHbSelected') && this.get('isNoRegionServers'));
-
-    if(this.get('content.isWizard')){
-      isError = false;
+    var isError = false;
+    var hosts = this.get('hosts');
+    if(this.get('isAddHostWizard')){
+      for(var i = 0; i < hosts.length; i++){
+        isError = !(hosts[i].get('isDataNode') || hosts[i].get('isClient')
+          || ( this.get('isMrSelected') && hosts[i].get('isTaskTracker'))
+          || ( this.get('isHbSelected') && hosts[i].get('isRegionServer')));
+        if (isError) {
+          this.set('errorMessage', Ember.I18n.t('installer.step6.error.mustSelectOneForHost'));
+          break;
+        }
+      }
+    } else {
+      isError = this.get('isNoDataNodes') || this.get('isNoClients')
+        || ( this.get('isMrSelected') && this.get('isNoTaskTrackers'))
+        || ( this.get('isHbSelected') && this.get('isNoRegionServers'));
+      if (isError) {
+        this.set('errorMessage', Ember.I18n.t('installer.step6.error.mustSelectOne'));
+      }
     }
 
-    if (isError) {
-      this.set('errorMessage', Ember.I18n.t('installer.step6.error.mustSelectOne'));
-    }
     return !isError;
   }
 

@@ -18,10 +18,8 @@
 package org.apache.ambari.server.controller.utilities;
 
 import junit.framework.Assert;
-import org.apache.ambari.server.controller.internal.PropertyIdImpl;
 import org.apache.ambari.server.controller.internal.ResourceImpl;
 import org.apache.ambari.server.controller.spi.Predicate;
-import org.apache.ambari.server.controller.spi.PropertyId;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.junit.Test;
 
@@ -32,7 +30,7 @@ public class PredicateBuilderTest {
 
   @Test
   public void testSimple() {
-    PropertyId p1 = new PropertyIdImpl("prop1", "cat1", false);
+    String p1 = PropertyHelper.getPropertyId("cat1", "prop1");
 
     Resource resource = new ResourceImpl(Resource.Type.Cluster);
     resource.setProperty(p1, "foo");
@@ -50,7 +48,7 @@ public class PredicateBuilderTest {
 
   @Test
   public void testSimpleNot() {
-    PropertyId p1 = new PropertyIdImpl("prop1", "cat1", false);
+    String p1 = PropertyHelper.getPropertyId("cat1", "prop1");
 
     Resource resource = new ResourceImpl(Resource.Type.Cluster);
     resource.setProperty(p1, "foo");
@@ -70,7 +68,7 @@ public class PredicateBuilderTest {
 
   @Test
   public void testDone() {
-    PropertyId p1 = new PropertyIdImpl("prop1", "cat1", false);
+    String p1 = PropertyHelper.getPropertyId("cat1", "prop1");
 
     Resource resource = new ResourceImpl(Resource.Type.Cluster);
     resource.setProperty(p1, "foo");
@@ -91,8 +89,8 @@ public class PredicateBuilderTest {
 
   @Test
   public void testSimpleAnd() {
-    PropertyId p1 = new PropertyIdImpl("prop1", "cat1", false);
-    PropertyId p2 = new PropertyIdImpl("prop2", "cat1", false);
+    String p1 = PropertyHelper.getPropertyId("cat1", "prop1");
+    String p2 = PropertyHelper.getPropertyId("cat1", "prop2");
 
     Resource resource = new ResourceImpl(Resource.Type.Cluster);
     resource.setProperty(p1, "foo");
@@ -111,8 +109,8 @@ public class PredicateBuilderTest {
 
   @Test
   public void testSimpleAndNot() {
-    PropertyId p1 = new PropertyIdImpl("prop1", "cat1", false);
-    PropertyId p2 = new PropertyIdImpl("prop2", "cat1", false);
+    String p1 = PropertyHelper.getPropertyId("cat1", "prop1");
+    String p2 = PropertyHelper.getPropertyId("cat1", "prop2");
 
     Resource resource = new ResourceImpl(Resource.Type.Cluster);
     resource.setProperty(p1, "foo");
@@ -133,10 +131,10 @@ public class PredicateBuilderTest {
 
   @Test
   public void testLongAnd() {
-    PropertyId p1 = new PropertyIdImpl("prop1", "cat1", false);
-    PropertyId p2 = new PropertyIdImpl("prop2", "cat1", false);
-    PropertyId p3 = new PropertyIdImpl("prop3", "cat1", false);
-    PropertyId p4 = new PropertyIdImpl("prop4", "cat1", false);
+    String p1 = PropertyHelper.getPropertyId("cat1", "prop1");
+    String p2 = PropertyHelper.getPropertyId("cat1", "prop2");
+    String p3 = PropertyHelper.getPropertyId("cat1", "prop3");
+    String p4 = PropertyHelper.getPropertyId("cat1", "prop4");
 
     Resource resource = new ResourceImpl(Resource.Type.Cluster);
     resource.setProperty(p1, "foo");
@@ -157,8 +155,8 @@ public class PredicateBuilderTest {
 
   @Test
   public void testSimpleOr() {
-    PropertyId p1 = new PropertyIdImpl("prop1", "cat1", false);
-    PropertyId p2 = new PropertyIdImpl("prop2", "cat1", false);
+    String p1 = PropertyHelper.getPropertyId("cat1", "prop1");
+    String p2 = PropertyHelper.getPropertyId("cat1", "prop2");
 
     Resource resource = new ResourceImpl(Resource.Type.Cluster);
     resource.setProperty(p1, "foo");
@@ -182,10 +180,10 @@ public class PredicateBuilderTest {
 
   @Test
   public void testLongOr() {
-    PropertyId p1 = new PropertyIdImpl("prop1", "cat1", false);
-    PropertyId p2 = new PropertyIdImpl("prop2", "cat1", false);
-    PropertyId p3 = new PropertyIdImpl("prop3", "cat1", false);
-    PropertyId p4 = new PropertyIdImpl("prop4", "cat1", false);
+    String p1 = PropertyHelper.getPropertyId("cat1", "prop1");
+    String p2 = PropertyHelper.getPropertyId("cat1", "prop2");
+    String p3 = PropertyHelper.getPropertyId("cat1", "prop3");
+    String p4 = PropertyHelper.getPropertyId("cat1", "prop4");
 
     Resource resource = new ResourceImpl(Resource.Type.Cluster);
     resource.setProperty(p1, "foo");
@@ -211,9 +209,9 @@ public class PredicateBuilderTest {
 
   @Test
   public void testAndOr() {
-    PropertyId p1 = new PropertyIdImpl("prop1", "cat1", false);
-    PropertyId p2 = new PropertyIdImpl("prop2", "cat1", false);
-    PropertyId p3 = new PropertyIdImpl("prop3", "cat1", false);
+    String p1 = PropertyHelper.getPropertyId("cat1", "prop1");
+    String p2 = PropertyHelper.getPropertyId("cat1", "prop2");
+    String p3 = PropertyHelper.getPropertyId("cat1", "prop3");
 
     Resource resource = new ResourceImpl(Resource.Type.Cluster);
     resource.setProperty(p1, "foo");
@@ -247,9 +245,9 @@ public class PredicateBuilderTest {
 
   @Test
   public void testBlocks() {
-    PropertyId p1 = new PropertyIdImpl("prop1", "cat1", false);
-    PropertyId p2 = new PropertyIdImpl("prop2", "cat1", false);
-    PropertyId p3 = new PropertyIdImpl("prop3", "cat1", false);
+    String p1 = PropertyHelper.getPropertyId("cat1", "prop1");
+    String p2 = PropertyHelper.getPropertyId("cat1", "prop2");
+    String p3 = PropertyHelper.getPropertyId("cat1", "prop3");
 
     Resource resource = new ResourceImpl(Resource.Type.Cluster);
     resource.setProperty(p1, "foo");
@@ -322,10 +320,10 @@ public class PredicateBuilderTest {
 
   @Test
   public void testNestedBlocks() {
-    PropertyId p1 = new PropertyIdImpl("prop1", "cat1", false);
-    PropertyId p2 = new PropertyIdImpl("prop2", "cat1", false);
-    PropertyId p3 = new PropertyIdImpl("prop3", "cat1", false);
-    PropertyId p4 = new PropertyIdImpl("prop4", "cat1", false);
+    String p1 = PropertyHelper.getPropertyId("cat1", "prop1");
+    String p2 = PropertyHelper.getPropertyId("cat1", "prop2");
+    String p3 = PropertyHelper.getPropertyId("cat1", "prop3");
+    String p4 = PropertyHelper.getPropertyId("cat1", "prop4");
 
     Resource resource = new ResourceImpl(Resource.Type.Cluster);
     resource.setProperty(p1, "foo");
@@ -364,10 +362,10 @@ public class PredicateBuilderTest {
 
   @Test
   public void testUnbalancedBlocks() {
-    PropertyId p1 = new PropertyIdImpl("prop1", "cat1", false);
-    PropertyId p2 = new PropertyIdImpl("prop2", "cat1", false);
-    PropertyId p3 = new PropertyIdImpl("prop3", "cat1", false);
-    PropertyId p4 = new PropertyIdImpl("prop4", "cat1", false);
+    String p1 = PropertyHelper.getPropertyId("cat1", "prop1");
+    String p2 = PropertyHelper.getPropertyId("cat1", "prop2");
+    String p3 = PropertyHelper.getPropertyId("cat1", "prop3");
+    String p4 = PropertyHelper.getPropertyId("cat1", "prop4");
 
     Resource resource = new ResourceImpl(Resource.Type.Cluster);
     resource.setProperty(p1, "foo");
@@ -408,9 +406,9 @@ public class PredicateBuilderTest {
 
   @Test
   public void testAltProperty() {
-    PropertyId p1 = new PropertyIdImpl("prop1", "cat1", false);
-    PropertyId p2 = new PropertyIdImpl("prop2", "cat1", false);
-    PropertyId p3 = new PropertyIdImpl("prop3", null, false);
+    String p1 = "cat1/prop1";
+    String p2 = "cat1/prop2";
+    String p3 = "prop3";
 
     Resource resource = new ResourceImpl(Resource.Type.Cluster);
     resource.setProperty(p1, "foo");
@@ -420,7 +418,7 @@ public class PredicateBuilderTest {
 
     /*   (p1==foo && p2==bar) || p3 == cat   */
     PredicateBuilder pb1 = new PredicateBuilder();
-    Predicate predicate1 = pb1.begin().property("prop1", "cat1", false).equals("foo").and().property("prop2", "cat1").equals("bar").end().or().property("prop3").equals("cat").toPredicate();
+    Predicate predicate1 = pb1.begin().property("cat1/prop1").equals("foo").and().property("cat1/prop2").equals("bar").end().or().property("prop3").equals("cat").toPredicate();
 
     Assert.assertTrue(predicate1.evaluate(resource));
   }
@@ -428,7 +426,7 @@ public class PredicateBuilderTest {
 
   @Test
   public void testEqualsString() {
-    PropertyId p1 = new PropertyIdImpl("prop1", "cat1", false);
+    String p1 = PropertyHelper.getPropertyId("cat1", "prop1");
 
     Resource resource = new ResourceImpl(Resource.Type.Cluster);
     resource.setProperty(p1, "foo");
@@ -446,7 +444,7 @@ public class PredicateBuilderTest {
 
   @Test
   public void testEqualsInteger() {
-    PropertyId p1 = new PropertyIdImpl("prop1", "cat1", false);
+    String p1 = PropertyHelper.getPropertyId("cat1", "prop1");
 
     Resource resource = new ResourceImpl(Resource.Type.Cluster);
     resource.setProperty(p1, 1);
@@ -464,7 +462,7 @@ public class PredicateBuilderTest {
 
   @Test
   public void testEqualsFloat() {
-    PropertyId p1 = new PropertyIdImpl("prop1", "cat1", false);
+    String p1 = PropertyHelper.getPropertyId("cat1", "prop1");
 
     Resource resource = new ResourceImpl(Resource.Type.Cluster);
     resource.setProperty(p1, (float) 1);
@@ -482,7 +480,7 @@ public class PredicateBuilderTest {
 
   @Test
   public void testEqualsDouble() {
-    PropertyId p1 = new PropertyIdImpl("prop1", "cat1", false);
+    String p1 = PropertyHelper.getPropertyId("cat1", "prop1");
 
     Resource resource = new ResourceImpl(Resource.Type.Cluster);
     resource.setProperty(p1, 1.999);
@@ -500,7 +498,7 @@ public class PredicateBuilderTest {
 
   @Test
   public void testEqualsLong() {
-    PropertyId p1 = new PropertyIdImpl("prop1", "cat1", false);
+    String p1 = PropertyHelper.getPropertyId("cat1", "prop1");
 
     Resource resource = new ResourceImpl(Resource.Type.Cluster);
     resource.setProperty(p1, 1L);
@@ -518,7 +516,7 @@ public class PredicateBuilderTest {
 
   @Test
   public void testGreaterInteger() {
-    PropertyId p1 = new PropertyIdImpl("prop1", "cat1", false);
+    String p1 = PropertyHelper.getPropertyId("cat1", "prop1");
 
     Resource resource = new ResourceImpl(Resource.Type.Cluster);
     resource.setProperty(p1, 2);
@@ -536,7 +534,7 @@ public class PredicateBuilderTest {
 
   @Test
   public void testGreaterFloat() {
-    PropertyId p1 = new PropertyIdImpl("prop1", "cat1", false);
+    String p1 = PropertyHelper.getPropertyId("cat1", "prop1");
 
     Resource resource = new ResourceImpl(Resource.Type.Cluster);
     resource.setProperty(p1, (float) 2);
@@ -554,7 +552,7 @@ public class PredicateBuilderTest {
 
   @Test
   public void testGreaterDouble() {
-    PropertyId p1 = new PropertyIdImpl("prop1", "cat1", false);
+    String p1 = PropertyHelper.getPropertyId("cat1", "prop1");
 
     Resource resource = new ResourceImpl(Resource.Type.Cluster);
     resource.setProperty(p1, 2.999);
@@ -572,7 +570,7 @@ public class PredicateBuilderTest {
 
   @Test
   public void testGreaterLong() {
-    PropertyId p1 = new PropertyIdImpl("prop1", "cat1", false);
+    String p1 = PropertyHelper.getPropertyId("cat1", "prop1");
 
     Resource resource = new ResourceImpl(Resource.Type.Cluster);
     resource.setProperty(p1, 2L);
@@ -590,7 +588,7 @@ public class PredicateBuilderTest {
 
   @Test
   public void testGreaterThanEqualToInteger() {
-    PropertyId p1 = new PropertyIdImpl("prop1", "cat1", false);
+    String p1 = PropertyHelper.getPropertyId("cat1", "prop1");
 
     Resource resource = new ResourceImpl(Resource.Type.Cluster);
     resource.setProperty(p1, 2);
@@ -608,7 +606,7 @@ public class PredicateBuilderTest {
 
   @Test
   public void testGreaterThanEqualToFloat() {
-    PropertyId p1 = new PropertyIdImpl("prop1", "cat1", false);
+    String p1 = PropertyHelper.getPropertyId("cat1", "prop1");
 
     Resource resource = new ResourceImpl(Resource.Type.Cluster);
     resource.setProperty(p1, (float) 2);
@@ -626,7 +624,7 @@ public class PredicateBuilderTest {
 
   @Test
   public void testGreaterThanEqualToDouble() {
-    PropertyId p1 = new PropertyIdImpl("prop1", "cat1", false);
+    String p1 = PropertyHelper.getPropertyId("cat1", "prop1");
 
     Resource resource = new ResourceImpl(Resource.Type.Cluster);
     resource.setProperty(p1, 2.999);
@@ -644,7 +642,7 @@ public class PredicateBuilderTest {
 
   @Test
   public void testGreaterThanEqualToLong() {
-    PropertyId p1 = new PropertyIdImpl("prop1", "cat1", false);
+    String p1 = PropertyHelper.getPropertyId("cat1", "prop1");
 
     Resource resource = new ResourceImpl(Resource.Type.Cluster);
     resource.setProperty(p1, 2L);
@@ -662,7 +660,7 @@ public class PredicateBuilderTest {
 
   @Test
   public void testLessInteger() {
-    PropertyId p1 = new PropertyIdImpl("prop1", "cat1", false);
+    String p1 = PropertyHelper.getPropertyId("cat1", "prop1");
 
     Resource resource = new ResourceImpl(Resource.Type.Cluster);
     resource.setProperty(p1, 2);
@@ -680,7 +678,7 @@ public class PredicateBuilderTest {
 
   @Test
   public void testLessFloat() {
-    PropertyId p1 = new PropertyIdImpl("prop1", "cat1", false);
+    String p1 = PropertyHelper.getPropertyId("cat1", "prop1");
 
     Resource resource = new ResourceImpl(Resource.Type.Cluster);
     resource.setProperty(p1, (float) 2);
@@ -698,7 +696,7 @@ public class PredicateBuilderTest {
 
   @Test
   public void testLessDouble() {
-    PropertyId p1 = new PropertyIdImpl("prop1", "cat1", false);
+    String p1 = PropertyHelper.getPropertyId("cat1", "prop1");
 
     Resource resource = new ResourceImpl(Resource.Type.Cluster);
     resource.setProperty(p1, 2.999);
@@ -716,7 +714,7 @@ public class PredicateBuilderTest {
 
   @Test
   public void testLessLong() {
-    PropertyId p1 = new PropertyIdImpl("prop1", "cat1", false);
+    String p1 = PropertyHelper.getPropertyId("cat1", "prop1");
 
     Resource resource = new ResourceImpl(Resource.Type.Cluster);
     resource.setProperty(p1, 2L);
@@ -734,7 +732,7 @@ public class PredicateBuilderTest {
 
   @Test
   public void testLessThanEqualToInteger() {
-    PropertyId p1 = new PropertyIdImpl("prop1", "cat1", false);
+    String p1 = PropertyHelper.getPropertyId("cat1", "prop1");
 
     Resource resource = new ResourceImpl(Resource.Type.Cluster);
     resource.setProperty(p1, 2);
@@ -752,7 +750,7 @@ public class PredicateBuilderTest {
 
   @Test
   public void testLessThanEqualToFloat() {
-    PropertyId p1 = new PropertyIdImpl("prop1", "cat1", false);
+    String p1 = PropertyHelper.getPropertyId("cat1", "prop1");
 
     Resource resource = new ResourceImpl(Resource.Type.Cluster);
     resource.setProperty(p1, (float) 2);
@@ -770,7 +768,7 @@ public class PredicateBuilderTest {
 
   @Test
   public void testLessThanEqualToDouble() {
-    PropertyId p1 = new PropertyIdImpl("prop1", "cat1", false);
+    String p1 = PropertyHelper.getPropertyId("cat1", "prop1");
 
     Resource resource = new ResourceImpl(Resource.Type.Cluster);
     resource.setProperty(p1, 2.999);
@@ -788,7 +786,7 @@ public class PredicateBuilderTest {
 
   @Test
   public void testLessThanEqualToLong() {
-    PropertyId p1 = new PropertyIdImpl("prop1", "cat1", false);
+    String p1 = PropertyHelper.getPropertyId("cat1", "prop1");
 
     Resource resource = new ResourceImpl(Resource.Type.Cluster);
     resource.setProperty(p1, 2L);

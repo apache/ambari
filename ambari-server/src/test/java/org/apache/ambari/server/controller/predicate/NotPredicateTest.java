@@ -18,10 +18,9 @@
 package org.apache.ambari.server.controller.predicate;
 
 import junit.framework.Assert;
-import org.apache.ambari.server.controller.internal.PropertyIdImpl;
 import org.apache.ambari.server.controller.internal.ResourceImpl;
-import org.apache.ambari.server.controller.spi.PropertyId;
 import org.apache.ambari.server.controller.spi.Resource;
+import org.apache.ambari.server.controller.utilities.PropertyHelper;
 import org.junit.Test;
 
 import java.util.Set;
@@ -34,8 +33,8 @@ public class NotPredicateTest {
   @Test
   public void testApply() {
     Resource resource = new ResourceImpl(Resource.Type.HostComponent);
-    PropertyIdImpl propertyId = new PropertyIdImpl("foo", "category1", false);
-    EqualsPredicate predicate = new EqualsPredicate(propertyId, "bar");
+    String propertyId = PropertyHelper.getPropertyId("category1", "foo");
+    EqualsPredicate predicate = new EqualsPredicate<String>(propertyId, "bar");
     NotPredicate notPredicate = new NotPredicate(predicate);
 
     resource.setProperty(propertyId, "monkey");
@@ -47,10 +46,10 @@ public class NotPredicateTest {
 
   @Test
   public void testGetProperties() {
-    PropertyIdImpl propertyId = new PropertyIdImpl("foo", "category1", false);
-    EqualsPredicate predicate = new EqualsPredicate(propertyId, "bar");
+    String propertyId = PropertyHelper.getPropertyId("category1", "foo");
+    EqualsPredicate predicate = new EqualsPredicate<String>(propertyId, "bar");
 
-    Set<PropertyId> ids = predicate.getPropertyIds();
+    Set<String> ids = predicate.getPropertyIds();
 
     Assert.assertEquals(1, ids.size());
     Assert.assertTrue(ids.contains(propertyId));

@@ -30,8 +30,11 @@ import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 
-import org.apache.ambari.server.api.resources.HostResourceDefinition;
-import org.apache.ambari.server.api.resources.ResourceDefinition;
+import org.apache.ambari.server.api.resources.ResourceInstance;
+import org.apache.ambari.server.controller.spi.Resource;
+
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Service responsible for hosts resource requests.
@@ -43,12 +46,11 @@ public class HostService extends BaseService {
    * Parent cluster id.
    */
   private String m_clusterName;
-  
+
   /**
    * Constructor.
    */
   public HostService() {
-    m_clusterName = null;
   }
 
   /**
@@ -61,7 +63,7 @@ public class HostService extends BaseService {
   }
 
   /**
-   * Handles GET /clusters/{clusterID}/hosts/{hostID}
+   * Handles GET /clusters/{clusterID}/hosts/{hostID} and /hosts/{hostID}
    * Get a specific host.
    *
    * @param headers  http headers
@@ -76,11 +78,11 @@ public class HostService extends BaseService {
                           @PathParam("hostName") String hostName) {
 
     return handleRequest(headers, null, ui, Request.Type.GET,
-        createResourceDefinition(hostName, m_clusterName, ui));
+        createHostResource(m_clusterName, hostName, ui));
   }
 
   /**
-   * Handles GET /clusters/{clusterID}/hosts or /clusters/hosts
+   * Handles GET /clusters/{clusterID}/hosts and /hosts
    * Get all hosts for a cluster.
    *
    * @param headers http headers
@@ -90,7 +92,8 @@ public class HostService extends BaseService {
   @GET
   @Produces("text/plain")
   public Response getHosts(@Context HttpHeaders headers, @Context UriInfo ui) {
-    return handleRequest(headers, null, ui, Request.Type.GET, createResourceDefinition(null, m_clusterName, ui));
+    return handleRequest(headers, null, ui, Request.Type.GET,
+        createHostResource(m_clusterName, null, ui));
   }
 
   /**
@@ -109,7 +112,7 @@ public class HostService extends BaseService {
   public Response createHosts(String body, @Context HttpHeaders headers, @Context UriInfo ui) {
 
     return handleRequest(headers, body, ui, Request.Type.POST,
-        createResourceDefinition(null, m_clusterName, ui));
+        createHostResource(m_clusterName, null, ui));
   }
 
   /**
@@ -130,7 +133,7 @@ public class HostService extends BaseService {
                           @PathParam("hostName") String hostName) {
 
     return handleRequest(headers, body, ui, Request.Type.POST,
-        createResourceDefinition(hostName, m_clusterName, ui));
+        createHostResource(m_clusterName, hostName, ui));
   }
 
   /**
@@ -151,7 +154,7 @@ public class HostService extends BaseService {
                           @PathParam("hostName") String hostName) {
 
     return handleRequest(headers, body, ui, Request.Type.PUT,
-        createResourceDefinition(hostName, m_clusterName, ui));
+        createHostResource(m_clusterName, hostName, ui));
   }
 
   /**
@@ -169,7 +172,7 @@ public class HostService extends BaseService {
   public Response updateHosts(String body, @Context HttpHeaders headers, @Context UriInfo ui) {
 
     return handleRequest(headers, body, ui, Request.Type.PUT,
-        createResourceDefinition(null, m_clusterName, ui));
+        createHostResource(m_clusterName, null, ui));
   }
 
   /**
@@ -189,7 +192,7 @@ public class HostService extends BaseService {
                              @PathParam("hostName") String hostName) {
 
     return handleRequest(headers, null, ui, Request.Type.DELETE,
-        createResourceDefinition(hostName, m_clusterName, ui));
+        createHostResource(m_clusterName, hostName, ui));
   }
 
   /**
@@ -204,14 +207,25 @@ public class HostService extends BaseService {
   }
 
   /**
-   * Create a host resource definition.
+   * Create a service resource instance.
    *
+   *
+   *
+   * @param clusterName  cluster
    * @param hostName     host name
-   * @param clusterName  cluster name
    * @param ui           uri information
-   * @return a host resource definition
+   *
+   * @return a host resource instance
    */
-  ResourceDefinition createResourceDefinition(String hostName, String clusterName, UriInfo ui) {
-    return new HostResourceDefinition(hostName, clusterName, ui.getRequestUri().toString().contains("/clusters/"));
+  ResourceInstance createHostResource(String clusterName, String hostName, UriInfo ui) {
+    boolean isAttached = ui.getRequestUri().toString().contains("/clusters/");
+
+    Map<Resource.Type,String> mapIds = new HashMap<Resource.Type, String>();
+    mapIds.put(Resource.Type.Host, hostName);
+    if (isAttached) {
+      mapIds.put(Resource.Type.Cluster, clusterName);
+    }
+
+    return createResource(Resource.Type.Host, mapIds);
   }
 }

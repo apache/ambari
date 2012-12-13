@@ -20,7 +20,6 @@ package org.apache.ambari.server.controller.internal;
 
 import junit.framework.Assert;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
-import org.apache.ambari.server.controller.spi.PropertyId;
 import org.apache.ambari.server.controller.spi.Request;
 import org.junit.Test;
 
@@ -32,13 +31,13 @@ import java.util.Set;
  */
 public class RequestImplTest {
 
-  private static final Set<PropertyId> propertyIds = new HashSet<PropertyId>();
+  private static final Set<String> propertyIds = new HashSet<String>();
 
   static {
-    propertyIds.add(PropertyHelper.getPropertyId("p1", "c1"));
-    propertyIds.add(PropertyHelper.getPropertyId("p2", "c1"));
-    propertyIds.add(PropertyHelper.getPropertyId("p3", "c2"));
-    propertyIds.add(PropertyHelper.getPropertyId("p4", "c3"));
+    propertyIds.add(PropertyHelper.getPropertyId("c1", "p1"));
+    propertyIds.add(PropertyHelper.getPropertyId("c1", "p2"));
+    propertyIds.add(PropertyHelper.getPropertyId("c2", "p3"));
+    propertyIds.add(PropertyHelper.getPropertyId("c3", "p4"));
   }
 
   @Test

@@ -60,7 +60,7 @@ class StatusCheck:
       raise ValueError("Path argument must be valid directory")
 
     if not os.path.exists(mappingFilePath):
-      raise IOError("File with services to pid mapping doesn't exists")
+      raise IOError("File with services to pid mapping doesn't exist")
     self.path = path
     self.mappingFilePath = mappingFilePath
     self.sh = shellRunner()
@@ -73,8 +73,13 @@ class StatusCheck:
 
   def getIsLive(self, pidPath):
     isLive = False
-    pidFile = open(pidPath, 'r')
-    pid = int(pidFile.readline())
+    pid = -1
+    try:
+      pidFile = open(pidPath, 'r')
+      pid = int(pidFile.readline())
+    except IOError, e:
+      logger.warn("Can not open file " + str(pidPath) + " due to " + str(e))
+      return isLive
     res = self.sh.run(['ps -p', str(pid), '-f'])
     lines = res['output'].strip().split(os.linesep)
     try:

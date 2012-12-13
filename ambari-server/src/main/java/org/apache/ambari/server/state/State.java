@@ -55,6 +55,7 @@ public enum State {
    * Stop failed
    */
   STOP_FAILED(8),
+
   /**
    * In the process of uninstalling.
    */

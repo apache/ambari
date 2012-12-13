@@ -17,17 +17,17 @@
 "jdk_bins" :  { "32" : "jdk-6u31-linux-x64.bin", "64" : "jdk-6u31-linux-x64.bin" },
 "repo_info" :[
 {
-  "base_url":"http://public-repo-1.hortonworks.com/HDP-1.1.1.16/repos/centos5",
-  "os_type":"centos5",
-  "repo_id":"HDP-1.1.1.16_TEST",
-  "repo_name":"HDP_TEST"
+  "baseUrl":"http://public-repo-1.hortonworks.com/HDP-1.1.1.16/repos/centos5",
+  "osType":"centos5",
+  "repoId":"HDP-1.1.1.16_TEST",
+  "repoName":"HDP_TEST"
 }
 ,
 {
-  "base_url":"http://public-repo-1.hortonworks.com/HDP-UTILS-1.1.0.15/repos/centos5",
-  "os_type":"centos5",
-  "repo_id":"HDP-UTILS-1.1.0.15_TEST",
-  "repo_name":"HDP-UTILS_TEST"
+  "baseUrl":"http://public-repo-1.hortonworks.com/HDP-UTILS-1.1.0.15/repos/centos5",
+  "osType":"centos5",
+  "repoId":"HDP-UTILS-1.1.0.15_TEST",
+  "repoName":"HDP-UTILS_TEST"
 }]
 
 },

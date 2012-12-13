@@ -41,6 +41,8 @@ public class RequestHandlerFactory {
         return new UpdateHandler();
       case DELETE:
         return new DeleteHandler();
+      case QUERY_POST:
+        return new QueryCreateHandler();
       default:
         //todo:
         throw new UnsupportedOperationException("Unsupported Request Type: " + requestType);

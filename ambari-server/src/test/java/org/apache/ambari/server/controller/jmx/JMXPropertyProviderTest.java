@@ -19,7 +19,6 @@
 package org.apache.ambari.server.controller.jmx;
 
 import org.apache.ambari.server.controller.internal.ResourceImpl;
-import org.apache.ambari.server.controller.spi.PropertyId;
 import org.apache.ambari.server.controller.spi.Request;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
@@ -33,9 +32,8 @@ import java.util.Map;
  * JMX property provider tests.
  */
 public class JMXPropertyProviderTest {
-  protected static final PropertyId HOST_COMPONENT_CLUSTER_NAME_PROPERTY_ID = PropertyHelper.getPropertyId("cluster_name", "HostRoles");
-  protected static final PropertyId HOST_COMPONENT_HOST_NAME_PROPERTY_ID = PropertyHelper.getPropertyId("host_name", "HostRoles");
-  protected static final PropertyId HOST_COMPONENT_COMPONENT_NAME_PROPERTY_ID = PropertyHelper.getPropertyId("component_name", "HostRoles");
+  protected static final String HOST_COMPONENT_HOST_NAME_PROPERTY_ID = PropertyHelper.getPropertyId("HostRoles", "host_name");
+  protected static final String HOST_COMPONENT_COMPONENT_NAME_PROPERTY_ID = PropertyHelper.getPropertyId("HostRoles", "component_name");
 
 
   @Test
@@ -47,7 +45,7 @@ public class JMXPropertyProviderTest {
     JMXPropertyProvider propertyProvider = new JMXPropertyProvider(
         PropertyHelper.getJMXPropertyIds(Resource.Type.HostComponent),
         streamProvider,
-        hostProvider, PropertyHelper.getPropertyId("cluster_name", "HostRoles"), PropertyHelper.getPropertyId("host_name", "HostRoles"), PropertyHelper.getPropertyId("component_name", "HostRoles"));
+        hostProvider, PropertyHelper.getPropertyId("HostRoles", "cluster_name"), PropertyHelper.getPropertyId("HostRoles", "host_name"), PropertyHelper.getPropertyId("HostRoles", "component_name"));
 
     // namenode
     Resource resource = new ResourceImpl(Resource.Type.HostComponent);
@@ -56,16 +54,16 @@ public class JMXPropertyProviderTest {
     resource.setProperty(HOST_COMPONENT_COMPONENT_NAME_PROPERTY_ID, "NAMENODE");
 
     // request with an empty set should get all supported properties
-    Request request = PropertyHelper.getReadRequest(Collections.<PropertyId>emptySet());
+    Request request = PropertyHelper.getReadRequest(Collections.<String>emptySet());
 
     Assert.assertEquals(1, propertyProvider.populateResources(Collections.singleton(resource), request, null).size());
 
     Assert.assertEquals(propertyProvider.getSpec("ec2-50-17-129-192.compute-1.amazonaws.com:50070"), streamProvider.getLastSpec());
 
     // see test/resources/hdfs_namenode_jmx.json for values
-    Assert.assertEquals(1084287,  resource.getPropertyValue(PropertyHelper.getPropertyId("ReceivedBytes", "metrics/rpc")));
-    Assert.assertEquals(173,      resource.getPropertyValue(PropertyHelper.getPropertyId("CreateFileOps", "metrics/dfs/namenode")));
-    Assert.assertEquals(405.8686, resource.getPropertyValue(PropertyHelper.getPropertyId("memHeapUsedM",  "metrics/jvm")));
+    Assert.assertEquals(1084287,  resource.getPropertyValue(PropertyHelper.getPropertyId("metrics/rpc", "ReceivedBytes")));
+    Assert.assertEquals(173,      resource.getPropertyValue(PropertyHelper.getPropertyId("metrics/dfs/namenode", "CreateFileOps")));
+    Assert.assertEquals(405.8686, resource.getPropertyValue(PropertyHelper.getPropertyId("metrics/jvm", "memHeapUsedM")));
 
 
     // datanode
@@ -75,15 +73,15 @@ public class JMXPropertyProviderTest {
     resource.setProperty(HOST_COMPONENT_COMPONENT_NAME_PROPERTY_ID, "DATANODE");
 
     // request with an empty set should get all supported properties
-    request = PropertyHelper.getReadRequest(Collections.<PropertyId>emptySet());
+    request = PropertyHelper.getReadRequest(Collections.<String>emptySet());
 
     propertyProvider.populateResources(Collections.singleton(resource), request, null);
 
     Assert.assertEquals(propertyProvider.getSpec("ec2-23-23-71-42.compute-1.amazonaws.com:50075"), streamProvider.getLastSpec());
 
     // see test/resources/hdfs_datanode_jmx.json for values
-    Assert.assertEquals(0,  resource.getPropertyValue(PropertyHelper.getPropertyId("ReceivedBytes", "metrics/rpc")));
-    Assert.assertEquals(16.870667, resource.getPropertyValue(PropertyHelper.getPropertyId("memHeapUsedM",  "metrics/jvm")));
+    Assert.assertEquals(0,  resource.getPropertyValue(PropertyHelper.getPropertyId("metrics/rpc", "ReceivedBytes")));
+    Assert.assertEquals(16.870667, resource.getPropertyValue(PropertyHelper.getPropertyId("metrics/jvm", "memHeapUsedM")));
 
 
     // jobtracker
@@ -93,7 +91,7 @@ public class JMXPropertyProviderTest {
     resource.setProperty(HOST_COMPONENT_COMPONENT_NAME_PROPERTY_ID, "JOBTRACKER");
 
     // only ask for one property
-    request = PropertyHelper.getReadRequest(Collections.singleton(PropertyHelper.getPropertyId("threadsWaiting", "metrics/jvm")));
+    request = PropertyHelper.getReadRequest(Collections.singleton(PropertyHelper.getPropertyId("metrics/jvm", "threadsWaiting")));
 
     propertyProvider.populateResources(Collections.singleton(resource), request, null);
 
@@ -102,8 +100,8 @@ public class JMXPropertyProviderTest {
     // see test/resources/mapreduce_jobtracker_jmx.json for values
     // resource should now contain 3 properties... host name, component name, and jvm.threadsWaiting (from request)
     Assert.assertEquals(3, PropertyHelper.getProperties(resource).size());
-    Assert.assertEquals(59, resource.getPropertyValue(PropertyHelper.getPropertyId("threadsWaiting", "metrics/jvm")));
-    Assert.assertNull(resource.getPropertyValue(PropertyHelper.getPropertyId("gcCount", "metrics/jvm")));
+    Assert.assertEquals(59, resource.getPropertyValue(PropertyHelper.getPropertyId("metrics/jvm", "threadsWaiting")));
+    Assert.assertNull(resource.getPropertyValue(PropertyHelper.getPropertyId("metrics/jvm", "gcCount")));
   }
 
 

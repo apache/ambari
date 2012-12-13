@@ -17,15 +17,15 @@
  */
 package org.apache.ambari.server.agent;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.actionmanager.ActionManager;
-import org.apache.ambari.server.state.Clusters;
-import org.apache.ambari.server.state.Host;
-import org.apache.ambari.server.state.HostState;
+import org.apache.ambari.server.state.*;
 import org.apache.ambari.server.state.fsm.InvalidStateTransitionException;
 import org.apache.ambari.server.state.host.HostHeartbeatLostEvent;
+import org.apache.ambari.server.state.host.HostStatusUpdatesReceivedEvent;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -58,6 +58,14 @@ public class HeartbeatMonitor implements Runnable {
     monitorThread.start();
   }
 
+  void join(long millis) throws InterruptedException {
+    monitorThread.join(millis);
+  }
+
+  public boolean isAlive() {
+    return monitorThread.isAlive();
+  }
+
   @Override
   public void run() {
     while (shouldRun) {
@@ -69,6 +77,8 @@ public class HeartbeatMonitor implements Runnable {
         shouldRun = false;
       } catch (Exception ex) {
         LOG.warn("Exception received", ex);
+      } catch (Throwable t) {
+        LOG.warn("ERROR", t);
       }
     }
   }
@@ -76,13 +86,13 @@ public class HeartbeatMonitor implements Runnable {
   //Go through all the nodes, check for last heartbeat or any waiting state
   //If heartbeat is lost, update node fsm state, purge the action queue
   //notify action manager for node failure.
-  private void doWork() throws InvalidStateTransitionException {
+  private void doWork() throws InvalidStateTransitionException, AmbariException {
     List<Host> allHosts = fsm.getHosts();
-    LOG.info("Number of hosts to monitor: "+allHosts.size());
     long now = System.currentTimeMillis();
     for (Host hostObj : allHosts) {
       String host = hostObj.getHostName();
       HostState hostState = hostObj.getState();
+      String hostname = hostObj.getHostName();
 
       long lastHeartbeat = 0;
       try {
@@ -90,7 +100,6 @@ public class HeartbeatMonitor implements Runnable {
       } catch (AmbariException e) {
         LOG.warn("Exception in getting host object; Is it fatal?", e);
       }
-      LOG.info("host : "+ hostObj.getHostName() +", last heartbeat = "+lastHeartbeat);
       if (lastHeartbeat + 5*threadWakeupInterval < now) {
         LOG.warn("Hearbeat lost from host "+host);
         //Heartbeat is expired
@@ -104,9 +113,45 @@ public class HeartbeatMonitor implements Runnable {
         long timeSpentInState = hostObj.getTimeInState();
         if (timeSpentInState + 5*threadWakeupInterval < now) {
           //Go back to init, the agent will be asked to register again in the next heartbeat
+          LOG.warn("timeSpentInState + 5*threadWakeupInterval < now, Go back to init");
           hostObj.setState(HostState.INIT);
         }
       }
+
+      // Get status of service components
+      List<StatusCommand> cmds = generateStatusCommands(hostname);
+      if (cmds.isEmpty()) {
+        // Nothing to do
+      } else {
+        for (StatusCommand command : cmds) {
+          actionQueue.enqueue(hostname, command);
+        }
+      }
     }
+  }
+
+  /**
+   * @param hostname
+   * @return  list of commands to get status of service components on a concrete host
+   */
+  public List<StatusCommand> generateStatusCommands(String hostname) throws AmbariException {
+    List<StatusCommand> cmds = new ArrayList<StatusCommand>();
+    for (Cluster cl : fsm.getClustersForHost(hostname)) {
+      List<ServiceComponentHost> roleList = cl
+              .getServiceComponentHosts(hostname);
+      for (ServiceComponentHost sch : roleList) {
+        String serviceName = sch.getServiceName();
+        if (LOG.isDebugEnabled()) {
+          LOG.debug("Live status will include status of service " + serviceName +
+                " of cluster " + cl.getClusterName());
+        }
+        StatusCommand statusCmd = new StatusCommand();
+        statusCmd.setClusterName(cl.getClusterName());
+        statusCmd.setServiceName(serviceName);
+        statusCmd.setComponentName(sch.getServiceComponentName());
+        cmds.add(statusCmd);
+      }
+    }
+    return cmds;
   }
 }

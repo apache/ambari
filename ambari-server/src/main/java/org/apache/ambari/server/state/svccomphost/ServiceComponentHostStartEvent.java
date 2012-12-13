@@ -18,6 +18,8 @@
 
 package org.apache.ambari.server.state.svccomphost;
 
+import java.util.Map;
+
 import org.apache.ambari.server.state.ServiceComponentHostEvent;
 import org.apache.ambari.server.state.ServiceComponentHostEventType;
 
@@ -25,9 +27,9 @@ public class ServiceComponentHostStartEvent extends
     ServiceComponentHostEvent {
 
   public ServiceComponentHostStartEvent(String serviceComponentName,
-      String hostName, long opTimestamp) {
+      String hostName, long opTimestamp, Map<String, String> configs) {
     super(ServiceComponentHostEventType.HOST_SVCCOMP_START,
-        serviceComponentName, hostName, opTimestamp);
+        serviceComponentName, hostName, opTimestamp, configs);
     // TODO Auto-generated constructor stub
   }
 

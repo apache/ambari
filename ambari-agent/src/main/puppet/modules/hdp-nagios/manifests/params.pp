@@ -27,8 +27,11 @@ class hdp-nagios::params() inherits hdp::params
   $conf_dir = hdp_default("nagios_conf_dir","/etc/nagios")
 
   $plugins_dir = "/usr/lib64/nagios/plugins"
+  $nagios_pid_dir = "/var/run/nagios"
 
   $nagios_obj_dir = hdp_default("nagios_obj_dir","/etc/nagios/objects")
+  $nagios_var_dir = hdp_default("nagios_var_dir","/var/nagios")
+  $nagios_rw_dir = hdp_default("nagios_var_dir","/var/nagios/rw")
   $nagios_host_cfg = hdp_default("nagios_host_cfg","${nagios_obj_dir}/hadoop-hosts.cfg")
   $nagios_hostgroup_cfg = hdp_default("nagios_hostgroup_cfg","${nagios_obj_dir}/hadoop-hostgroups.cfg")
   $nagios_servicegroup_cfg = hdp_default("nagios_servicegroup_cfg","${nagios_obj_dir}/hadoop-servicegroups.cfg")
@@ -39,8 +42,10 @@ class hdp-nagios::params() inherits hdp::params
   $nagios_web_password = hdp_default("nagios_web_password","admin")
   
   $dfs_data_dir = $hdp::params::dfs_data_dir
+
+  $check_result_path = hdp_default("nagios_check_result_path","/var/nagios/spool/checkresults")
    
-  $nagios_contact = hdp_default("nagios/nagios-contacts/nagios_contact","monitor\@monitor.com")
+  $nagios_contact = hdp_default("nagios/nagios-contacts/nagios_contact","monitor\\@monitor.com")
 
   $hostgroup_defs = {
     namenode => {host_member_info => 'namenode_host'},
@@ -54,6 +59,6 @@ class hdp-nagios::params() inherits hdp::params
     hiveserver => {host_member_info => 'hive_server_host'},
     region-servers => {host_member_info => 'hbase_rs_hosts'},
     oozie-server => {host_member_info => 'oozie_server'},
-    templeton-server => {host_member_info => 'templeton_server_host'}
+    webhcat-server => {host_member_info => 'webhcat_server_host'}
   }
 }

@@ -1,0 +1,1 @@
+chmod 755 /usr/lib/ambari-agent/lib/facter-1.6.10/bin/facter /usr/lib/ambari-agent/lib/puppet-2.7.9/bin/filebucket /usr/lib/ambari-agent/lib/puppet-2.7.9/bin/pi /usr/lib/ambari-agent/lib/puppet-2.7.9/bin/puppet /usr/lib/ambari-agent/lib/puppet-2.7.9/bin/puppetdoc /usr/lib/ambari-agent/lib/puppet-2.7.9/bin/ralsh /usr/lib/ambari-agent/lib/ruby-1.8.7-p370/bin/*

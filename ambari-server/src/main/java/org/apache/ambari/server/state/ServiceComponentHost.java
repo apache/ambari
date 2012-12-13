@@ -22,6 +22,8 @@ import java.util.Map;
 import java.util.Set;
 
 import com.google.inject.persist.Transactional;
+
+import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.controller.ServiceComponentHostResponse;
 import org.apache.ambari.server.state.fsm.InvalidStateTransitionException;
 
@@ -70,6 +72,8 @@ public interface ServiceComponentHost {
 
   public Map<String, Config> getDesiredConfigs();
 
+  public Map<String, String> getDesiredConfigVersionsRecursive();
+
   public void updateDesiredConfigs(Map<String, Config> configs);
 
   public void deleteDesiredConfigs(Set<String> configTypes);
@@ -82,9 +86,7 @@ public interface ServiceComponentHost {
 
   public void setState(State state);
 
-  public Map<String, Config> getConfigs();
-
-  public void updateConfigs(Map<String, Config> configs);
+  public Map<String, Config> getConfigs() throws AmbariException;
 
   public StackId getStackVersion();
 

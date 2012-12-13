@@ -132,7 +132,7 @@ App.SlaveComponentGroupsController = Em.ArrayController.extend({
         return null;
     }
 
-  }.property('App.router.wizardStep7Controller.selectedService'),
+  }.property('service'),
 
   selectedComponentDisplayName: function() {
     return App.format.role(this.get('selectedComponentName'));

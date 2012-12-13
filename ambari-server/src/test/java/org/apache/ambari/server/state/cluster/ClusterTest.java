@@ -85,9 +85,10 @@ public class ClusterTest {
     Host host = clusters.getHost("h1");
     host.setIPv4("ipv4");
     host.setIPv6("ipv6");
+    host.setOsType("centos5");
     host.persist();
-    clusters.mapHostToCluster("h1", "c1");
     c1.setDesiredStackVersion(new StackId("HDP-0.1"));
+    clusters.mapHostToCluster("h1", "c1");
   }
 
   @After
@@ -135,7 +136,7 @@ public class ClusterTest {
     hostInfo.setProcessorCount(10);
     List<DiskInfo> mounts = new ArrayList<DiskInfo>();
     mounts.add(new DiskInfo("/dev/sda", "/mnt/disk1",
-        "5000000", "4000000", "10%", "size"));
+        "5000000", "4000000", "10%", "size", "fstype"));
     hostInfo.setMounts(mounts);
 
     AgentVersion agentVersion = new AgentVersion("0.0.x");

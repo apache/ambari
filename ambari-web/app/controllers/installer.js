@@ -386,33 +386,6 @@ App.InstallerController = App.WizardController.extend({
   },
 
   /**
-   * Load properties for group of slaves to model
-   */
-  loadSlaveGroupProperties: function () {
-    var groupConfigProperties = App.db.getSlaveProperties() ? App.db.getSlaveProperties() : this.get('content.slaveComponentHosts');
-    if (groupConfigProperties) {
-      groupConfigProperties.forEach(function (_slaveComponentObj) {
-        if (_slaveComponentObj.groups) {
-          var groups = [];
-          _slaveComponentObj.groups.forEach(function (_group) {
-            var properties = [];
-            _group.properties.forEach(function (_property) {
-              var property = App.ServiceConfigProperty.create(_property);
-              property.set('value', _property.storeValue);
-              properties.pushObject(property);
-            }, this);
-            _group.properties = properties;
-            groups.pushObject(App.Group.create(_group));
-          }, this);
-          _slaveComponentObj.groups = groups;
-        }
-      }, this);
-    }
-    this.set('content.slaveGroupProperties', groupConfigProperties);
-  },
-
-
-  /**
    * Load information about hosts with clients components
    */
   loadClients: function () {
@@ -456,6 +429,8 @@ App.InstallerController = App.WizardController.extend({
       case '8':
       case '7':
         this.loadServiceConfigProperties();
+        // loadSlaveGroupProperties depends on loadSlaveComponentHosts; call loadSlaveComponentHosts first
+        this.loadSlaveComponentHosts();
         this.loadSlaveGroupProperties();
       case '6':
         this.loadSlaveComponentHosts();
@@ -474,71 +449,7 @@ App.InstallerController = App.WizardController.extend({
     }
   },
 
-  /**
-   * Generate serviceComponents as pr the stack definition  and save it to localdata
-   * called form stepController step4WizardController
-   */
-  loadServiceComponents: function (stepController, displayOrderConfig, apiUrl) {
-    var self = this;
-    var method = 'GET';
-    var testUrl = '/data/wizard/stack/hdp/version/1.2.0.json';
-    var url = (App.testMode) ? testUrl : App.apiPrefix + apiUrl;
-    $.ajax({
-      type: method,
-      url: url,
-      async: false,
-      dataType: 'text',
-      timeout: App.timeout,
-      success: function (data) {
-        var jsonData = jQuery.parseJSON(data);
-        console.log("TRACE: getService ajax call  -> In success function for the getServiceComponents call");
-        console.log("TRACE: jsonData.services : " + jsonData.services);
 
-        // Creating Model
-        var Service = Ember.Object.extend({
-          serviceName: null,
-          displayName: null,
-          isDisabled: true,
-          isSelected: true,
-          description: null,
-          version: null
-        });
-
-        var data = [];
-
-        // loop through all the service components
-        for (var i = 0; i < displayOrderConfig.length; i++) {
-          var entry = jsonData.services.findProperty("name", displayOrderConfig[i].serviceName);
-
-          var myService = Service.create({
-            serviceName: entry.name,
-            displayName: displayOrderConfig[i].displayName,
-            isDisabled: i === 0,
-            isSelected: true,
-            isHidden: displayOrderConfig[i].isHidden,
-            description: entry.comment,
-            version: entry.version
-          });
-
-          data.push(myService);
-        }
-
-        stepController.set('serviceComponents', data);
-        console.log('TRACE: service components: ' + JSON.stringify(stepController.get('components')));
-
-      },
-
-      error: function (request, ajaxOptions, error) {
-        console.log("TRACE: STep5 -> In error function for the getServiceComponents call");
-        console.log("TRACE: STep5 -> value of the url is: " + url);
-        console.log("TRACE: STep5 -> error code status is: " + request.status);
-        console.log('Step8: Error message is: ' + request.responseText);
-      },
-
-      statusCode: require('data/statusCodes')
-    });
-
-  },
 
   loadAdvancedConfigs: function () {
     var configs = [];
@@ -592,14 +503,7 @@ App.InstallerController = App.WizardController.extend({
    */
   finish: function () {
     this.setCurrentStep('1');
-    App.db.setService(undefined); //not to use this data at AddService page
-    App.db.setHosts(undefined);
-    App.db.setMasterComponentHosts(undefined);
-    App.db.setSlaveComponentHosts(undefined);
-    App.db.setCluster(undefined);
-    App.db.setAllHostNames(undefined);
-    App.db.setSlaveProperties(undefined);
-    App.db.setSshKey(undefined);
+    this.clearStorageData();
   }
 
 });

@@ -30,6 +30,7 @@ public class Register {
   private long timestamp;
   private String hostname;
   private HostInfo hardwareProfile;
+  private String publicHostname;
 
   @JsonProperty("responseId")
   public int getResponseId() {
@@ -48,7 +49,7 @@ public class Register {
   public String getHostname() {
     return hostname;
   }
-
+  
   public HostInfo getHardwareProfile() {
     return hardwareProfile;
   }
@@ -63,6 +64,14 @@ public class Register {
 
   public void setHardwareProfile(HostInfo hardwareProfile) {
     this.hardwareProfile = hardwareProfile;
+  }
+  
+  public String getPublicHostname() {
+    return publicHostname;
+  }
+  
+  public void setPublicHostname(String name) {
+    publicHostname = name;
   }
 
   @Override

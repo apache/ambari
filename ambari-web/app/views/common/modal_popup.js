@@ -68,8 +68,8 @@ App.ModalPopup = Ember.View.extend({
 
   didInsertElement: function(){
     this._super();
-    var block = this.$().find('#modal').first();
-    block.css('max-height', $(window).height()-20); // fix popup height
+    var block = this.$().find('#modal > .modal-body').first();
+    block.css('max-height', $(window).height()- block.offset().top - 100); // fix popup height
   }
 });
 

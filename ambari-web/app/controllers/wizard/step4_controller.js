@@ -23,6 +23,10 @@ App.WizardStep4Controller = Em.ArrayController.extend({
   name: 'wizardStep4Controller',
   content: [],
 
+  isSubmitDisabled:function(){
+    return this.filterProperty('isSelected', true).filterProperty('isInstalled', false).length === 0;
+  }.property("@each.isSelected"),
+
   /**
    * Check whether all properties are selected
    */
@@ -112,25 +116,27 @@ App.WizardStep4Controller = Em.ArrayController.extend({
   },
 
   /**
-   * Onlick handler for <code>Next</code> button
+   * Onclick handler for <code>Next</code> button
    */
   submit: function () {
-    var self = this;
-    if (this.needToAddMapReduce()) {
-      App.ModalPopup.show({
-        header: Em.I18n.t('installer.step4.mapreduceCheck.popup.header'),
-        body: Em.I18n.t('installer.step4.mapreduceCheck.popup.body'),
-        onPrimary: function () {
-          self.findProperty('serviceName', 'MAPREDUCE').set('isSelected', true);
-          this.hide();
-          self.validateMonitoring();
-        },
-        onSecondary: function () {
-          this.hide();
-        }
-      });
-    } else {
-      self.validateMonitoring();
+    if(!this.get("isSubmitDisabled")){
+      var self = this;
+      if (this.needToAddMapReduce()) {
+        App.ModalPopup.show({
+          header: Em.I18n.t('installer.step4.mapreduceCheck.popup.header'),
+          body: Em.I18n.t('installer.step4.mapreduceCheck.popup.body'),
+          onPrimary: function () {
+            self.findProperty('serviceName', 'MAPREDUCE').set('isSelected', true);
+            this.hide();
+            self.validateMonitoring();
+          },
+          onSecondary: function () {
+            this.hide();
+          }
+        });
+      } else {
+        self.validateMonitoring();
+      }
     }
   }
 })

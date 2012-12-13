@@ -19,9 +19,9 @@
 package org.apache.ambari.server.api.services;
 
 import org.apache.ambari.server.api.resources.ResourceDefinition;
+import org.apache.ambari.server.api.resources.ResourceInstance;
 import org.apache.ambari.server.api.services.serializers.ResultSerializer;
 import org.apache.ambari.server.controller.spi.Predicate;
-import org.apache.ambari.server.controller.spi.PropertyId;
 import org.apache.ambari.server.controller.spi.TemporalInfo;
 
 import java.util.List;
@@ -40,7 +40,8 @@ public interface Request {
     GET,
     POST,
     PUT,
-    DELETE
+    DELETE,
+    QUERY_POST
   }
 
   /**
@@ -49,7 +50,7 @@ public interface Request {
    *
    * @return the associated {@link ResourceDefinition}
    */
-  public ResourceDefinition getResourceDefinition();
+  public ResourceInstance getResource();
 
   /**
    * Obtain the URI of this request.
@@ -87,7 +88,7 @@ public interface Request {
    *
    * @return map of partial response propertyId to temporal information
    */
-  public Map<PropertyId, TemporalInfo> getFields();
+  public Map<String, TemporalInfo> getFields();
 
   /**
    * Obtain the result serializer for the request. The default serializer is of type JSON.
@@ -123,9 +124,8 @@ public interface Request {
    *
    * @return a set of maps containing the properties contained in the http body
    */
-  public Set<Map<PropertyId, Object>> getHttpBodyProperties();
+  public Set<Map<String, Object>> getHttpBodyProperties();
 
-    //TODO: refactor persistence mechanism
   /**
    * Obtain the appropriate persistence manager.
    *

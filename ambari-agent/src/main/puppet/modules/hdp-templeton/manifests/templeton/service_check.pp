@@ -30,7 +30,7 @@ class hdp-templeton::templeton::service_check()
   }
   $smoke_user_keytab = "${hdp-templeton::params::keytab_path}/${smoke_test_user}.headless.keytab"
 
-  $templeton_host = $hdp::params::templeton_server_host
+  $templeton_host = $hdp::params::webhcat_server_host
 
   $smoke_shell_files = ['templetonSmoke.sh']
 

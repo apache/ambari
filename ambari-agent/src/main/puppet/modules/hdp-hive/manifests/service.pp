@@ -19,7 +19,8 @@
 #
 #
 class hdp-hive::service(
-  $ensure
+  $ensure,
+  $service_type
 )
 {
   include $hdp-hive::params
@@ -27,45 +28,80 @@ class hdp-hive::service(
   $user = $hdp-hive::params::hive_user
   $hadoop_home = $hdp::params::hadoop_home
   $hive_log_dir = $hdp-hive::params::hive_log_dir
-  $cmd = "env HADOOP_HOME=${hadoop_home} nohup hive --service metastore > ${hive_log_dir}/hive.out 2> ${hive_log_dir}/hive.log &"
-  $pid_file = "${hdp-hive::params::hive_pid_dir}/hive.pid" 
+
+  $start_hiveserver2_path = "/tmp/$start_hiveserver2_script"
+  $start_metastore_path = "/tmp/$start_metastore_script"
+
+  if ($service_type == 'metastore') {
+
+    $pid_file = "${hdp-hive::params::hive_pid_dir}/hive.pid" 
+    $cmd = "env HADOOP_HOME=${hadoop_home} JAVA_HOME=$hdp::params::java64_home $start_metastore_path ${hive_log_dir}/hive.out ${hive_log_dir}/hive.log $pid_file"
+    
+  } elsif ($service_type == 'hiveserver2') {
+    $pid_file = "$hive_pid_dir/$hive_pid" 
+    $cmd = "env JAVA_HOME=$hdp::params::java64_home $start_hiveserver2_path ${hive_log_dir}/hive-server2.out  ${hive_log_dir}/hive-server2.log $pid_file"
+  } else {
+    hdp_fail("TODO not implemented yet: service_state = ${service_type}")
+  }
+
+
+  $no_op_test = "ls ${pid_file} >/dev/null 2>&1 && ps `cat ${pid_file}` >/dev/null 2>&1"
 
   if ($ensure == 'running') {
     $daemon_cmd = "su - ${user} -c  '${cmd} '"
-    $no_op_test = "ls ${pid_file} >/dev/null 2>&1 && ps `cat ${pid_file}` >/dev/null 2>&1"
   } elsif ($ensure == 'stopped') {
-    #TODO: this needs to be fixed
-    $daemon_cmd = "ps aux | awk '{print \$1,\$2}' | grep \"^${user} \" | awk '{print \$2}' | xargs kill >/dev/null 2>&1"
-    $no_op_test = "ps aux | awk '{print \$1,\$2}' | grep \"^${user} \""
+    $daemon_cmd = "kill `cat $pid_file` >/dev/null 2>&1"
   } else {
     $daemon_cmd = undef
   }
 
-  hdp-hive::service::directory { $hdp-hive::params::hive_pid_dir : }
-  hdp-hive::service::directory { $hdp-hive::params::hive_log_dir : }
+  hdp-hive::service::directory { $hive_pid_dir : }
+  hdp-hive::service::directory { $hive_log_dir : }
+  hdp-hive::service::directory { $hive_var_lib : }
+
+  file { $start_hiveserver2_path:
+    ensure => present,
+    source => "puppet:///modules/hdp-hive/$start_hiveserver2_script",
+    mode => '0755',
+  }
+
+  file { $start_metastore_path:
+    ensure => present,
+    source => "puppet:///modules/hdp-hive/$start_metastore_script",
+    mode => '0755',
+  }
 
   anchor{'hdp-hive::service::begin':} -> Hdp-hive::Service::Directory<||> -> anchor{'hdp-hive::service::end':}
   
   if ($daemon_cmd != undef) {
     if ($ensure == 'running') {
+
+      $pid_file_state = 'present'
       hdp::exec { $daemon_cmd:
         command => $daemon_cmd,
         unless  => $no_op_test
       }
     } elsif ($ensure == 'stopped') {
+      $pid_file_state = 'absent'
       hdp::exec { $daemon_cmd:
         command => $daemon_cmd,
         onlyif  => $no_op_test
       }
     }
-    Hdp-hive::Service::Directory<||> -> Hdp::Exec[$daemon_cmd] -> Anchor['hdp-hive::service::end']
+
+
+  file { $pid_file:
+    ensure => $pid_file_state
+  }
+
+    Hdp-hive::Service::Directory<||> File[ $start_metastore_path]-> File[ $start_hiveserver2_path]-> Hdp::Exec[$daemon_cmd] -> File[$pid_file] -> Anchor['hdp-hive::service::end']
   }
 }
 
 define hdp-hive::service::directory()
 {
   hdp::directory_recursive_create { $name: 
-    owner => $hdp-hive::params::hive_user,
+    owner => $hive_user,
     mode => '0755',
     service_state => $ensure,
     force => true

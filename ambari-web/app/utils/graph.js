@@ -192,9 +192,9 @@ module.exports = {
           else                        { return y + " B"}
         };
         var swatch = '<span class="detail_swatch" style="background-color: ' + series.color + '"></span>';
-        return swatch + (d.label? d.label: d.name) +
+        return swatch + d.value.label +
           '<br>Run-time: ' + formattedY + '<br>Wait-time: ' + formattedX +
-          '<br>I/O: ' + bytesFormatter(d.IO) + '<br>Status: ' + d.status;
+          '<br>I/O: ' + bytesFormatter(d.value.IO) + '<br>Status: ' + d.value.status;
       }
 
     });

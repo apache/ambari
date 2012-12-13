@@ -15,19 +15,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.apache.ambari.server.controller.ganglia;
 
-import org.apache.ambari.server.controller.spi.Resource;
-
-import java.util.Map;
-
 /**
- *
+ *  Provider of Ganglia host information.
  */
 public interface GangliaHostProvider {
 
+  /**
+   * Get the Ganglia server host name for the given cluster name.
+   *
+   * @param clusterName  the cluster name
+   *
+   * @return the Ganglia server
+   */
   public String getGangliaCollectorHostName(String clusterName);
-
-  public Map<String, String> getGangliaHostClusterMap(String clusterName);
 }

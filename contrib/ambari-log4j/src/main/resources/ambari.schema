@@ -36,6 +36,7 @@ CREATE TABLE taskAttempt (
   mapFinishTime BIGINT, shuffleFinishTime BIGINT, sortFinishTime BIGINT, 
   locality TEXT, avataar TEXT, 
   status TEXT, error TEXT, counters TEXT, 
+  inputBytes BIGINT, outputBytes BIGINT,
   PRIMARY KEY(taskAttemptId), 
   FOREIGN KEY(jobId) REFERENCES job(jobId), 
   FOREIGN KEY(taskId) REFERENCES task(taskId)

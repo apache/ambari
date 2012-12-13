@@ -24,9 +24,9 @@ import logging.handlers
 import Queue
 import threading
 import AmbariConfig
+from LiveStatus import LiveStatus
 from shell import shellRunner
 from FileUtil import writeFile, createStructure, deleteStructure, getFilePath, appendToFile
-from shell import shellRunner
 import json
 import pprint
 import os
@@ -34,6 +34,8 @@ import time
 import subprocess
 import copy
 import puppetExecutor
+import tempfile
+from Grep import Grep
 
 logger = logging.getLogger()
 installScriptHash = -1
@@ -41,10 +43,14 @@ installScriptHash = -1
 class ActionQueue(threading.Thread):
   """ Action Queue for the agent. We pick one command at a time from the queue
   and execute that """
-  global commandQueue, resultQueue
+  global commandQueue, resultQueue #, STATUS_COMMAND, EXECUTION_COMMAND
   commandQueue = Queue.Queue()
   resultQueue = Queue.Queue()
- 
+
+  STATUS_COMMAND='STATUS_COMMAND'
+  EXECUTION_COMMAND='EXECUTION_COMMAND'
+  IDLE_SLEEP_TIME = 5
+
   def __init__(self, config):
     super(ActionQueue, self).__init__()
     #threading.Thread.__init__(self)
@@ -56,7 +62,10 @@ class ActionQueue(threading.Thread):
     self.executor = puppetExecutor.puppetExecutor(config.get('puppet', 'puppetmodules'),
                                    config.get('puppet', 'puppet_home'),
                                    config.get('puppet', 'facter_home'),
-                                   config.get('agent', 'prefix'))
+                                   config.get('agent', 'prefix'), config)
+    self.tmpdir = config.get('agent', 'prefix')
+    self.commandInProgress = None
+
   def stop(self):
     self._stop.set()
 
@@ -68,37 +77,92 @@ class ActionQueue(threading.Thread):
     return self.sh
 
   def put(self, command):
-    logger.info("The command from the server is \n" + pprint.pformat(command))
+    logger.info("The " + command['commandType'] + " from the server is \n" + pprint.pformat(command))
     commandQueue.put(command)
     pass
+
+  def getCommandQueue(self):
+    """ For Testing purpose only."""
+    return commandQueue
 
   def run(self):
     result = []
     while not self.stopped():
       while not commandQueue.empty():
         command = commandQueue.get()
-        try:
-          #pass a copy of action since we don't want anything to change in the 
-          #action dict 
-          commandCopy = copy.copy(command)
-          result = self.executeCommand(commandCopy)
-          
-        except Exception, err:
-          traceback.print_exc()  
-          logger.warn(err)
+        logger.info("Took an element of Queue: " + pprint.pformat(command))
+        if command['commandType'] == self.EXECUTION_COMMAND:
+          try:
+            #pass a copy of action since we don't want anything to change in the
+            #action dict
+            result = self.executeCommand(command)
+
+          except Exception, err:
+            traceback.print_exc()
+            logger.warn(err)
+            pass
+
+          for entry in result:
+            resultQueue.put((ActionQueue.EXECUTION_COMMAND, entry))
           pass
-        
-        for entry in result:
-          resultQueue.put(entry)
-        pass
+        elif command['commandType'] == self.STATUS_COMMAND:
+          cluster = command['clusterName']
+          service = command['serviceName']
+          component = command['componentName']
+          try:
+            livestatus = LiveStatus(cluster, service, component)
+            result = livestatus.build()
+            logger.info("Got live status for component " + component + " of service " + str(service) +\
+                        " of cluster " + str(cluster) + "\n" + pprint.pformat(result))
+            if result is not None:
+              resultQueue.put((ActionQueue.STATUS_COMMAND, result))
+          except Exception, err:
+            traceback.print_exc()
+            logger.warn(err)
+            pass
+        else:
+          logger.warn("Unrecognized command " + pprint.pformat(result))
       if not self.stopped():
-        time.sleep(5)
+        time.sleep(self.IDLE_SLEEP_TIME)
 
   # Store action result to agent response queue
   def result(self):
-    result = []
+    resultReports = []
+    resultComponentStatus = []
     while not resultQueue.empty():
-      result.append(resultQueue.get())
+      res = resultQueue.get()
+      if res[0] == ActionQueue.EXECUTION_COMMAND:
+        resultReports.append(res[1])
+      elif res[0] == ActionQueue.STATUS_COMMAND:
+        resultComponentStatus.append(res[1])
+
+    # Building report for command in progress
+    if self.commandInProgress is not None:
+      try:
+        tmpout= open(self.commandInProgress['tmpout'], 'r').read()
+        tmperr= open(self.commandInProgress['tmperr'], 'r').read()
+      except Exception, err:
+        logger.warn(err)
+        tmpout='...'
+        tmperr='...'
+      grep = Grep()
+      output = grep.tail(tmpout, puppetExecutor.puppetExecutor.OUTPUT_LAST_LINES)
+      inprogress = {
+        'role' : self.commandInProgress['role'],
+        'actionId' : self.commandInProgress['actionId'],
+        'taskId' : self.commandInProgress['taskId'],
+        'stdout' : grep.filterMarkup(output),
+        'clusterName' : self.commandInProgress['clusterName'],
+        'stderr' : tmperr,
+        'exitCode' : 777,
+        'serviceName' : self.commandInProgress['serviceName'],
+        'status' : 'IN_PROGRESS'
+      }
+      resultReports.append(inprogress)
+    result={
+      'reports' : resultReports,
+      'componentStatus' : resultComponentStatus
+    }
     return result
 
   def registerCommand(self, command):
@@ -118,9 +182,24 @@ class ActionQueue(threading.Thread):
     serviceName = command['serviceName']
     configurations = command['configurations']
     result = []
-    commandresult = self.executor.runCommand(command)
+
+    taskId = command['taskId']
+    # Preparing 'IN_PROGRESS' report
+    self.commandInProgress = {
+      'role' : command['role'],
+      'actionId' : commandId,
+      'taskId' : taskId,
+      'clusterName' : clusterName,
+      'serviceName' : serviceName,
+      'tmpout': self.tmpdir + os.sep + 'output-' + str(taskId) + '.txt',
+      'tmperr': self.tmpdir + os.sep + 'errors-' + str(taskId) + '.txt'
+    }
+    # running command
+    commandresult = self.executor.runCommand(command, self.commandInProgress['tmpout'], self.commandInProgress['tmperr'])
+    # dumping results
+    self.commandInProgress = None
     status = "COMPLETED"
-    if (commandresult['exitcode'] != 0):
+    if commandresult['exitcode'] != 0:
       status = "FAILED"
       
     # assume some puppet pluing to run these commands

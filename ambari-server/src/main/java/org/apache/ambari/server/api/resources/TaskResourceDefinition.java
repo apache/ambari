@@ -20,9 +20,6 @@ package org.apache.ambari.server.api.resources;
 
 import org.apache.ambari.server.controller.spi.Resource;
 
-import java.util.Collections;
-import java.util.Map;
-
 
 /**
  * Task resource definition.
@@ -30,28 +27,10 @@ import java.util.Map;
 public class TaskResourceDefinition extends BaseResourceDefinition {
 
   /**
-   * Value of cluster id foreign key.
-   */
-  private String m_clusterId;
-
-  /**
-   * Value of request id foreign key.
-   */
-  private String m_requestId;
-
-
-  /**
    * Constructor.
-   *
-   * @param id         task id value
-   * @param clusterId  cluster id value
    */
-  public TaskResourceDefinition(String id, String clusterId, String requestId) {
-    super(Resource.Type.Task, id);
-    m_clusterId = clusterId;
-    m_requestId = requestId;
-    setResourceId(Resource.Type.Cluster, m_clusterId);
-    setResourceId(Resource.Type.Request, m_requestId);
+  public TaskResourceDefinition() {
+    super(Resource.Type.Task);
   }
 
   @Override
@@ -62,10 +41,5 @@ public class TaskResourceDefinition extends BaseResourceDefinition {
   @Override
   public String getSingularName() {
     return "task";
-  }
-
-  @Override
-  public Map<String, ResourceDefinition> getSubResources() {
-    return Collections.emptyMap();
   }
 }

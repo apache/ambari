@@ -27,12 +27,14 @@ import os
 import subprocess
 import threading
 import traceback
+import stat
 from pprint import pformat
+import re
 
 AMBARI_PASSPHRASE_VAR = "AMBARI_PASSPHRASE"
 
+
 def execOsCommand(osCommand):
-  """ Run yum install and make sure the puppet install alright """
   osStat = subprocess.Popen(osCommand, stdout=subprocess.PIPE)
   log = osStat.communicate(0)
   ret = {}
@@ -40,45 +42,77 @@ def execOsCommand(osCommand):
   ret["log"] = log
   return ret
 
-def installPreReq():
-  """ Adds hdp repo
-  rpmCommand = ["rpm", "-Uvh", "http://public-repo-1.hortonworks.com/HDP-1.1.1.16/repos/centos6/hdp-release-1.1.1.16-1.el6.noarch.rpm"]
-  execOsCommand(rpmCommand)
-  """
-  yumCommand = ["yum", "-y", "install", "epel-release"]
-  execOsCommand(yumCommand)
+def is_suse():
+  if os.path.isfile("/etc/issue"):
+    if "suse" in open("/etc/issue").read().lower():
+      return True
+  return False
 
-def installPuppet():
-  """ Run yum install and make sure the puppet install alright """
-  osCommand = ["useradd", "-G", "puppet", "puppet"]
-  execOsCommand(osCommand)
-  yumCommand = ["yum", "-y", "install", "puppet"]
+def installPreReqSuse():
+  """ required for ruby deps """
+  # remove once in the repo
+  zypperCommand = ["zypper", "install", "-y",
+    "http://download.opensuse.org/repositories/home:/eclipseagent:/puppet/SLE_11_SP1/x86_64/ruby-augeas-0.4.1-26.3.x86_64.rpm",
+    "http://download.opensuse.org/repositories/home:/eclipseagent:/puppet/SLE_11_SP1/x86_64/ruby-shadow-1.4.1-2.2.x86_64.rpm"]
+  return execOsCommand(zypperCommand)
+
+def installAgentSuse():
+  """ Run zypper install and make sure the agent install alright """
+  zypperCommand = ["zypper", "install", "-y", "ambari-agent"]
+  return execOsCommand(zypperCommand)
+
+def installPreReq():
+  """ required for ruby deps """
+  checkepel = ["yum", "repolist", "enabled"]
+  retval = execOsCommand(checkepel)
+  logval = str(retval["log"])
+  if not "epel" in logval:
+    yumCommand = ["yum", "-y", "install", "epel-release"]
+  else:
+    yumCommand = ["echo", "Epel already exists"]
   return execOsCommand(yumCommand)
 
 def installAgent():
   """ Run yum install and make sure the agent install alright """
-  # TODO replace rpm with yum -y
-  rpmCommand = ["yum", "install", "-y", "--nogpgcheck", "/tmp/ambari-agent*.rpm"]
+  # The command doesn't work with file mask ambari-agent*.rpm, so rename it on agent host
+  rpmCommand = ["yum", "-y", "install", "--nogpgcheck", "ambari-agent"]
   return execOsCommand(rpmCommand)
 
-def configureAgent():
-  """ Configure the agent so that it has all the configs knobs properly 
-  installed """
+def configureAgent(host):
+  """ Configure the agent so that it has all the configs knobs properly installed """
+  osCommand = ["sed", "-i.bak", "s/hostname=localhost/hostname=" + host + "/g", "/etc/ambari-agent/ambari-agent.ini"]
+  execOsCommand(osCommand)
+
   return
 
 def runAgent(passPhrase):
   os.environ[AMBARI_PASSPHRASE_VAR] = passPhrase
   subprocess.call("/usr/sbin/ambari-agent start", shell=True)
+  try:
+    # We probably don't want a verbose host configuration output in log
+    #ret = execOsCommand(["python", "/usr/lib/python2.6/site-packages/ambari_agent/Register.py", "machine"])
+    #print ret['log']
+
+    ret = execOsCommand(["tail", "-20", "/var/log/ambari-agent/ambari-agent.log"])
+    print ret['log']
+  except (Exception), e:
+    return
 
 def main(argv=None):
   scriptDir = os.path.realpath(os.path.dirname(argv[0]))
-  """ Parse the input"""
+  # Parse the input
   onlyargs = argv[1:]
   passPhrase = onlyargs[0]
-  installPreReq()
-  # installPuppet()
-  installAgent()
-  configureAgent()
+  hostName = onlyargs[1]
+
+  if is_suse():
+    installPreReqSuse()
+    installAgentSuse()
+  else:
+    installPreReq()
+    installAgent()
+
+  configureAgent(hostName)
   runAgent(passPhrase)
   
 if __name__ == '__main__':

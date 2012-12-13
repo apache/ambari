@@ -38,7 +38,7 @@
   {{#if view.content.components.length}}
   <div class="span3 host-components pull-right">
     {{#each component in view.content.components}}
-    {{#view view.ComponentButtonView contentBinding="component"}}
+    {{#view view.ComponentButtonView contentBinding="component" decommissionDatanodeHostnamesBinding="view.decommissionDatanodeHostnames"}}
     {{#if view.isClient}}
     <div class="btn-group pull-left">
       <button class="btn">
@@ -54,12 +54,12 @@
         </button>
         <ul class="dropdown-menu">
           {{#if view.isDataNode}}
-            <li {{bindAttr class="view.content.decommissioned:hidden:"}}>
+            <li {{bindAttr class="view.isDataNodeDecommissionAvailable::hidden"}}>
               <a href="javascript:void(null)" data-toggle="modal" {{action "decommission" view.content target="controller"}}>
                 Decommission
               </a>
             </li>
-            <li {{bindAttr class="view.content.decommissioned::hidden"}}>
+            <li {{bindAttr class="view.isDataNodeRecommissionAvailable::hidden"}}>
               <a href="javascript:void(null)" data-toggle="modal" {{action "recommission" view.content target="controller"}}>
                 Recommission
               </a>

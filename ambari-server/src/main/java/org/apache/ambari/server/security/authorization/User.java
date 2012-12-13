@@ -28,18 +28,24 @@ import java.util.Date;
  * Describes user of web-services
  */
 public class User {
+  final int userId;
   final String userName;
   final boolean ldapUser;
   final Date createTime;
   final Collection<String> roles = new ArrayList<String>();
 
   User(UserEntity userEntity) {
+    userId = userEntity.getUserId();
     userName = userEntity.getUserName();
     createTime = userEntity.getCreateTime();
     ldapUser = userEntity.getLdapUser();
     for (RoleEntity roleEntity : userEntity.getRoleEntities()) {
       roles.add(roleEntity.getRoleName());
     }
+  }
+
+  public int getUserId() {
+    return userId;
   }
 
   public String getUserName() {

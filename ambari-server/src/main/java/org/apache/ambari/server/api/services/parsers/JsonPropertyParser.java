@@ -19,7 +19,6 @@
 package org.apache.ambari.server.api.services.parsers;
 
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
-import org.apache.ambari.server.controller.spi.PropertyId;
 import org.codehaus.jackson.JsonNode;
 import org.codehaus.jackson.map.ObjectMapper;
 
@@ -30,11 +29,11 @@ import java.util.*;
  * JSON parser which parses a JSON string into a map of properties and values.
  */
 public class JsonPropertyParser implements RequestBodyParser {
-  private Set<Map<PropertyId, Object>> m_setProperties = new HashSet<Map<PropertyId, Object>>();
+  private Set<Map<String, Object>> m_setProperties = new HashSet<Map<String, Object>>();
 
 
   @Override
-  public Set<Map<PropertyId, Object>> parse(String s) {
+  public Set<Map<String, Object>> parse(String s) {
 
     ObjectMapper mapper = new ObjectMapper();
 
@@ -43,7 +42,7 @@ public class JsonPropertyParser implements RequestBodyParser {
       try {
         JsonNode[] nodes = mapper.readValue(s, JsonNode[].class);
         for(JsonNode node : nodes) {
-          Map<PropertyId, Object> mapProperties = new HashMap<PropertyId, Object>();
+          Map<String, Object> mapProperties = new HashMap<String, Object>();
           processNode(node, "", mapProperties);
           m_setProperties.add(mapProperties);
         }
@@ -54,7 +53,7 @@ public class JsonPropertyParser implements RequestBodyParser {
     return m_setProperties;
   }
 
-  private void processNode(JsonNode node, String path, Map<PropertyId, Object> mapProperties) {
+  private void processNode(JsonNode node, String path, Map<String, Object> mapProperties) {
     Iterator<String> iter = node.getFieldNames();
     String name;
     while (iter.hasNext()) {
@@ -63,7 +62,7 @@ public class JsonPropertyParser implements RequestBodyParser {
       if (child.isContainerNode()) {
         processNode(child, path.isEmpty() ? name : path + '.' + name, mapProperties);
       } else {
-        mapProperties.put(PropertyHelper.getPropertyId(name, path), child.asText());
+        mapProperties.put(PropertyHelper.getPropertyId(path, name), child.asText());
       }
     }
   }

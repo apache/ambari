@@ -35,7 +35,7 @@ App.MainController = Em.Controller.extend({
     if (name) {
       name = name.length > 13 ? name.substr(0, 10) + "..." : name;
       name = name.capitalize();
-    } else{
+    } else {
       name = 'Loading';
     }
     $('title').text('Ambari - ' + name);

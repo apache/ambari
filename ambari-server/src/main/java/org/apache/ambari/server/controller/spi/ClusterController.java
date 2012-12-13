@@ -39,9 +39,14 @@ public interface ClusterController {
    * @return an iterable object of the requested resources
    *
    * @throws AmbariException thrown if the resources cannot be obtained
+   *
+   * @throws UnsupportedPropertyException thrown if the request or predicate contain
+   *                                      unsupported property ids
    */
-  public Iterable<Resource> getResources(Resource.Type type, Request request,
-                                         Predicate predicate) throws AmbariException;
+  public Iterable<Resource> getResources(Resource.Type type,
+                                         Request request,
+                                         Predicate predicate)
+      throws AmbariException, UnsupportedPropertyException;
 
   /**
    * Get the {@link Schema schema} for the given resource type.  The schema
@@ -64,8 +69,12 @@ public interface ClusterController {
    *                 for the resources to be created
    *
    * @throws AmbariException thrown if the resources cannot be created
+   *
+   * @throws UnsupportedPropertyException thrown if the request contains
+   *                                      unsupported property ids
    */
-  public RequestStatus createResources(Resource.Type type, Request request) throws AmbariException;
+  public RequestStatus createResources(Resource.Type type, Request request)
+      throws AmbariException, UnsupportedPropertyException;
 
   /**
    * Update the resources selected by the given predicate with the properties
@@ -78,9 +87,14 @@ public interface ClusterController {
    *                   resources are updated
    *
    * @throws AmbariException thrown if the resource cannot be updated
+   *
+   * @throws UnsupportedPropertyException thrown if the request or predicate
+   *                                      contain unsupported property ids
    */
-  public RequestStatus updateResources(Resource.Type type, Request request,
-                              Predicate predicate) throws AmbariException;
+  public RequestStatus updateResources(Resource.Type type,
+                                       Request request,
+                                       Predicate predicate)
+      throws AmbariException, UnsupportedPropertyException;
 
   /**
    * Delete the resources selected by the given predicate.
@@ -90,7 +104,11 @@ public interface ClusterController {
    *                  resources are deleted
    *
    * @throws AmbariException thrown if the resource cannot be deleted
+   *
+   * @throws UnsupportedPropertyException thrown if the predicate contains
+   *                                      unsupported property ids
    */
   public RequestStatus deleteResources(Resource.Type type,
-                              Predicate predicate) throws AmbariException;
+                                       Predicate predicate)
+      throws AmbariException, UnsupportedPropertyException;
 }

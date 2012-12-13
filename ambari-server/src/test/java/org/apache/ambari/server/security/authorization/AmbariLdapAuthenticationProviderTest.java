@@ -17,6 +17,8 @@
  */
 package org.apache.ambari.server.security.authorization;
 
+import junit.framework.Assert;
+
 import com.google.inject.Guice;
 import com.google.inject.Inject;
 import com.google.inject.Injector;
@@ -82,11 +84,12 @@ public class AmbariLdapAuthenticationProviderTest{
     assertTrue(result.isAuthenticated());
   }
 
-  @Test(expected = UsernameNotFoundException.class)
+  @Test
   public void testDisabled() throws Exception {
     configuration.setClientSecurityType(ClientSecurityType.LOCAL);
     Authentication authentication = new UsernamePasswordAuthenticationToken("allowedUser", "password");
-    authenticationProvider.authenticate(authentication);
+    Authentication auth = authenticationProvider.authenticate(authentication);
+    Assert.assertTrue(auth == null);
   }
 
   @AfterClass

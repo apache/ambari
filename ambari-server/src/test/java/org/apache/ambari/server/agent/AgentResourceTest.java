@@ -24,12 +24,23 @@ import static org.mockito.Mockito.when;
 
 import javax.ws.rs.core.MediaType;
 
+import com.google.inject.assistedinject.FactoryModuleBuilder;
+import com.google.inject.persist.jpa.JpaPersistModule;
 import junit.framework.Assert;
 
 import org.apache.ambari.server.actionmanager.ActionManager;
+import org.apache.ambari.server.actionmanager.HostRoleCommandFactory;
+import org.apache.ambari.server.actionmanager.StageFactory;
 import org.apache.ambari.server.agent.rest.AgentResource;
-import org.apache.ambari.server.state.Clusters;
+import org.apache.ambari.server.api.services.AmbariMetaInfo;
+import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
+import org.apache.ambari.server.state.*;
+import org.apache.ambari.server.state.cluster.ClusterFactory;
+import org.apache.ambari.server.state.cluster.ClusterImpl;
 import org.apache.ambari.server.state.cluster.ClustersImpl;
+import org.apache.ambari.server.state.host.HostFactory;
+import org.apache.ambari.server.state.host.HostImpl;
+import org.apache.ambari.server.state.svccomphost.ServiceComponentHostImpl;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.codehaus.jettison.json.JSONException;
@@ -56,6 +67,7 @@ public class AgentResourceTest extends JerseyTest {
   ActionManager actionManager;
   Injector injector;
   protected Client client;
+  AmbariMetaInfo ambariMetaInfo;
 
   public AgentResourceTest() {
     super(new WebAppDescriptor.Builder(PACKAGE_NAME).servletClass(ServletContainer.class)
@@ -70,6 +82,8 @@ public class AgentResourceTest extends JerseyTest {
 
     @Override
     protected void configure() {
+      installDependencies();
+
       handler = mock(HeartBeatHandler.class);
       response.setResponseStatus(RegistrationStatus.OK);
       hresponse.setResponseId(0L);
@@ -84,9 +98,31 @@ public class AgentResourceTest extends JerseyTest {
       requestStaticInjection(AgentResource.class);
       bind(Clusters.class).to(ClustersImpl.class);
       actionManager = mock(ActionManager.class);
+      ambariMetaInfo = mock(AmbariMetaInfo.class);
       bind(ActionManager.class).toInstance(actionManager);
       bind(AgentCommand.class).to(ExecutionCommand.class);
       bind(HeartBeatHandler.class).toInstance(handler);
+      bind(AmbariMetaInfo.class).toInstance(ambariMetaInfo);
+    }
+
+    private void installDependencies() {
+      install(new JpaPersistModule("ambari-javadb"));
+      install(new FactoryModuleBuilder().implement(
+          Cluster.class, ClusterImpl.class).build(ClusterFactory.class));
+      install(new FactoryModuleBuilder().implement(
+          Host.class, HostImpl.class).build(HostFactory.class));
+      install(new FactoryModuleBuilder().implement(
+          Service.class, ServiceImpl.class).build(ServiceFactory.class));
+      install(new FactoryModuleBuilder().implement(
+          ServiceComponent.class, ServiceComponentImpl.class).build(
+          ServiceComponentFactory.class));
+      install(new FactoryModuleBuilder().implement(
+          ServiceComponentHost.class, ServiceComponentHostImpl.class).build(
+          ServiceComponentHostFactory.class));
+      install(new FactoryModuleBuilder().implement(
+          Config.class, ConfigImpl.class).build(ConfigFactory.class));
+      install(new FactoryModuleBuilder().build(StageFactory.class));
+      install(new FactoryModuleBuilder().build(HostRoleCommandFactory.class));
     }
   }
 
@@ -123,7 +159,7 @@ public class AgentResourceTest extends JerseyTest {
     WebResource webResource = client.resource("http://localhost:9998/register/dummyhost");
     response = webResource.type(MediaType.APPLICATION_JSON)
       .post(RegistrationResponse.class, createDummyJSONRegister());
-    LOG.info("Returned from Server " + response.getResponseStatus());
+    LOG.info("Returned from Server responce=" + response);
     Assert.assertEquals(response.getResponseStatus(), RegistrationStatus.OK);
   }
 
@@ -137,7 +173,7 @@ public class AgentResourceTest extends JerseyTest {
     response = webResource.type(MediaType.APPLICATION_JSON)
         .post(HeartBeatResponse.class, createDummyHeartBeat());
     LOG.info("Returned from Server: "
-        + " responseid=" +   response.getResponseId());
+        + " response=" +   response);
     Assert.assertEquals(response.getResponseId(), 0L);
   }
 }

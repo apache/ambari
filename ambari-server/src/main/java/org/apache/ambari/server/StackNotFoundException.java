@@ -19,7 +19,7 @@
 package org.apache.ambari.server;
 
 @SuppressWarnings("serial")
-public class StackNotFoundException extends AmbariException {
+public class StackNotFoundException extends ObjectNotFoundException {
 
   public StackNotFoundException (String stackName,
       String stackVersion) {

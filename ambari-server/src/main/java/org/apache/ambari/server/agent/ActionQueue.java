@@ -18,27 +18,27 @@
 package org.apache.ambari.server.agent;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Queue;
-import java.util.TreeMap;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.google.inject.Singleton;
 
 @Singleton
 public class ActionQueue {
 
-  private static Log LOG = LogFactory.getLog(ActionQueue.class);
+  private static Logger LOG = LoggerFactory.getLogger(ActionQueue.class);
 
   Map<String, Queue<AgentCommand>> hostQueues;
 
   public ActionQueue() {
-    hostQueues = new TreeMap<String, Queue<AgentCommand>>();
+    hostQueues = new HashMap<String, Queue<AgentCommand>>();
   }
 
   private synchronized Queue<AgentCommand> getQueue(String hostname) {
@@ -50,20 +50,20 @@ public class ActionQueue {
   }
 
   public void enqueue(String hostname, AgentCommand cmd) {
+    Queue<AgentCommand> q;
     synchronized (this) {
-      Queue<AgentCommand> q = getQueue(hostname);
+      q = getQueue(hostname);
       if (q == null) {
         addQueue(hostname, new LinkedList<AgentCommand>());
         q = getQueue(hostname);
       }
-      LOG.info("Reference to queue for host=" + hostname + " is " + q);
-      synchronized (q) {
-        if (q.contains(cmd)) {
-          LOG.warn("cmd already exists in the queue, not adding again");
-          return;
-        }
-        q.add(cmd);
+    }
+    synchronized (q) {
+      if (q.contains(cmd)) {
+        LOG.warn("cmd already exists in the queue, not adding again");
+        return;
       }
+      q.add(cmd);
     }
   }
 
@@ -73,26 +73,37 @@ public class ActionQueue {
       return null;
     }
     synchronized (q) {
-      return q.remove();
+      if (q.isEmpty()) {
+        return null;
+      } else {
+        return q.remove();
+      }
     }
   }
   
-  public synchronized int size(String hostname) {
-    return getQueue(hostname).size();
+  public int size(String hostname) {
+    Queue<AgentCommand> q = getQueue(hostname);
+    if (q == null) {
+      return 0;
+    }
+    synchronized(q) {
+      return q.size();
+    }
   }
 
   public List<AgentCommand> dequeueAll(String hostname) {
-    LOG.info("Dequeue all elements for hostname: "+hostname);
     Queue<AgentCommand> q = getQueue(hostname);
     if (q == null) {
-      LOG.warn("No queue for host: "+hostname);
       return null;
     }
     List<AgentCommand> l = new ArrayList<AgentCommand>();
     synchronized (q) {
       while (true) {
         try {
-          l.add(q.remove());
+          AgentCommand cmd = q.remove();
+          if (cmd != null) {
+            l.add(cmd);
+          }
         } catch (NoSuchElementException ex) {
           return l;
         }

@@ -26,6 +26,7 @@ import javax.persistence.Enumerated;
 import javax.persistence.Id;
 import java.io.Serializable;
 
+@SuppressWarnings("serial")
 public class RoleSuccessCriteriaEntityPK implements Serializable {
   private Long requestId;
 

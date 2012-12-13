@@ -17,16 +17,15 @@
  */
 package org.apache.ambari.server.controller.predicate;
 
-import org.apache.ambari.server.controller.spi.PropertyId;
 import org.apache.ambari.server.controller.spi.Resource;
 
 
 /**
  * Predicate that checks if a given value is less than or equal to a {@link Resource} property.
  */
-public class LessEqualsPredicate<T> extends ComparisonPredicate {
+public class LessEqualsPredicate<T> extends ComparisonPredicate<T> {
 
-  public LessEqualsPredicate(PropertyId propertyId, Comparable<T> value) {
+  public LessEqualsPredicate(String propertyId, Comparable<T> value) {
     super(propertyId, value);
   }
 

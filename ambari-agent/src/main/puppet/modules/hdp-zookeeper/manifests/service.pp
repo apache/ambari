@@ -27,7 +27,7 @@ class hdp-zookeeper::service(
   $user = $hdp-zookeeper::params::zk_user
   $conf_dir = $hdp-zookeeper::params::conf_dir
   $zk_bin = $hdp::params::zk_bin
-  $cmd = "/bin/env ZOOCFGDIR=${conf_dir} ZOOCFG=zoo.cfg ${zk_bin}/zkServer.sh"
+  $cmd = "env ZOOCFGDIR=${conf_dir} ZOOCFG=zoo.cfg ${zk_bin}/zkServer.sh"
 
   $pid_file = $hdp-zookeeper::params::zk_pid_file  
 

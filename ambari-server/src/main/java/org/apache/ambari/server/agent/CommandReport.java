@@ -121,9 +121,17 @@ public class CommandReport {
   public void setServiceName(String serviceName) {
     this.serviceName = serviceName;
   }
-  
+
   @Override
   public String toString() {
-    return taskId + " " + role + " " + status + " "  + exitCode;
+    return "CommandReport{" +
+            "role='" + role + '\'' +
+            ", actionId='" + actionId + '\'' +
+            ", status='" + status + '\'' +
+            ", exitCode=" + exitCode +
+            ", clusterName='" + clusterName + '\'' +
+            ", serviceName='" + serviceName + '\'' +
+            ", taskId=" + taskId +
+            '}';
   }
 }

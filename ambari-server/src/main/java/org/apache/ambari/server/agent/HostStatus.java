@@ -50,4 +50,12 @@ public class HostStatus {
   public void setCause(String cause) {
     this.cause = cause;
   }
+
+  @Override
+  public String toString() {
+    return "HostStatus{" +
+            "status=" + status +
+            ", cause='" + cause + '\'' +
+            '}';
+  }
 }

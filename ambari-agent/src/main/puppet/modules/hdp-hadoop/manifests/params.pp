@@ -169,4 +169,12 @@ class hdp-hadoop::params(
   $security_enabled = $hdp::params::security_enabled
 
   $task_bin_exe = hdp_default("hadoop/health_check/task_bin_exe")
+
+  $rca_enabled = hdp_default("rca_enabled", false)
+  if ($rca_enabled == true or $rca_enabled == "true") {
+    $rca_prefix = ""
+  } else {
+    $rca_prefix = "###"
+  }
+  $ambari_db_server_host = hdp_default("ambari_db_server_host", "localhost")
 }

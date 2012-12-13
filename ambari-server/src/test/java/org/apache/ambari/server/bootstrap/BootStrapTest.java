@@ -96,9 +96,9 @@ public class BootStrapTest extends TestCase {
   public void testPolling() throws Exception {
     File tmpFolder = temp.newFolder("bootstrap");
     /* create log and done files */
-    FileUtils.writeStringToFile(new File(tmpFolder, "host1.done"), "output");
+    FileUtils.writeStringToFile(new File(tmpFolder, "host1.done"), "0");
     FileUtils.writeStringToFile(new File(tmpFolder, "host1.log"), "err_log_1");
-    FileUtils.writeStringToFile(new File(tmpFolder, "host2.done"), "output");
+    FileUtils.writeStringToFile(new File(tmpFolder, "host2.done"), "1");
     FileUtils.writeStringToFile(new File(tmpFolder, "host2.log"), "err_log_2");
 
     List<String> listHosts = new ArrayList<String>();
@@ -114,7 +114,7 @@ public class BootStrapTest extends TestCase {
     Assert.assertEquals(polledHostStatus.get(0).getStatus(), "DONE");
     Assert.assertEquals(polledHostStatus.get(1).getHostName(), "host2");
     Assert.assertEquals(polledHostStatus.get(1).getLog(), "err_log_2");
-    Assert.assertEquals(polledHostStatus.get(1).getStatus(), "DONE");
+    Assert.assertEquals(polledHostStatus.get(1).getStatus(), "FAILED");
 
 
   }

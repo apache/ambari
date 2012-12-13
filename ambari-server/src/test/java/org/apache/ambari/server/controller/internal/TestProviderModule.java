@@ -18,9 +18,7 @@
 
 package org.apache.ambari.server.controller.internal;
 
-import org.apache.ambari.server.controller.ganglia.GangliaPropertyProvider;
 import org.apache.ambari.server.controller.jdbc.TestJDBCResourceProvider;
-import org.apache.ambari.server.controller.jmx.JMXPropertyProvider;
 import org.apache.ambari.server.controller.jmx.TestHostMappingProvider;
 import org.apache.ambari.server.controller.spi.PropertyProvider;
 import org.apache.ambari.server.controller.spi.ProviderModule;

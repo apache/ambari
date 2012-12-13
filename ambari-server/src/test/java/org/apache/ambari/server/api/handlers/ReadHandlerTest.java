@@ -19,13 +19,11 @@
 package org.apache.ambari.server.api.handlers;
 
 import org.apache.ambari.server.api.query.Query;
-import org.apache.ambari.server.api.resources.ResourceDefinition;
+import org.apache.ambari.server.api.resources.ResourceInstance;
 import org.apache.ambari.server.api.services.Request;
 import org.apache.ambari.server.api.services.Result;
 import org.apache.ambari.server.controller.spi.Predicate;
-import org.apache.ambari.server.controller.spi.PropertyId;
 import org.apache.ambari.server.controller.spi.TemporalInfo;
-import org.apache.ambari.server.controller.utilities.PropertyHelper;
 import org.junit.Test;
 
 
@@ -43,23 +41,18 @@ public class ReadHandlerTest {
   @Test
   public void testHandlerRequest() throws Exception {
     Request request = createStrictMock(Request.class);
-    ResourceDefinition resourceDefinition = createStrictMock(ResourceDefinition.class);
+    ResourceInstance resource = createStrictMock(ResourceInstance.class);
     Query query = createMock(Query.class);
     Predicate predicate = createMock(Predicate.class);
     Result result = createStrictMock(Result.class);
 
-    Map<PropertyId, TemporalInfo> mapPartialResponseFields = new HashMap<PropertyId, TemporalInfo>();
-    mapPartialResponseFields.put(PropertyHelper.getPropertyId("foo"), null);
-    mapPartialResponseFields.put(PropertyHelper.getPropertyId("bar/c"), null);
-    mapPartialResponseFields.put(PropertyHelper.getPropertyId("bar/d/e"), null);
-    //Set<String> setPartialResponseFields = new HashSet<String>();
-//    setPartialResponseFields.add("foo");
-//    setPartialResponseFields.add("bar/c");
-//    setPartialResponseFields.add("bar/d/e");
-
+    Map<String, TemporalInfo> mapPartialResponseFields = new HashMap<String, TemporalInfo>();
+    mapPartialResponseFields.put("foo", null);
+    mapPartialResponseFields.put("bar/c", null);
+    mapPartialResponseFields.put("bar/d/e", null);
     //expectations
-    expect(request.getResourceDefinition()).andReturn(resourceDefinition);
-    expect(resourceDefinition.getQuery()).andReturn(query);
+    expect(request.getResource()).andReturn(resource);
+    expect(resource.getQuery()).andReturn(query);
 
     expect(request.getFields()).andReturn(mapPartialResponseFields);
     query.addProperty(null, "foo", null);
@@ -70,13 +63,13 @@ public class ReadHandlerTest {
     query.setUserPredicate(predicate);
     expect(query.execute()).andReturn(result);
 
-    replay(request, resourceDefinition, query, predicate, result);
+    replay(request, resource, query, predicate, result);
 
     //test
     ReadHandler handler = new ReadHandler();
     assertSame(result, handler.handleRequest(request));
 
-    verify(request, resourceDefinition, query, predicate, result);
+    verify(request, resource, query, predicate, result);
 
   }
 }

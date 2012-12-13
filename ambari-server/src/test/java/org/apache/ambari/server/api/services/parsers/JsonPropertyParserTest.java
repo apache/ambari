@@ -19,7 +19,6 @@
 package org.apache.ambari.server.api.services.parsers;
 
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
-import org.apache.ambari.server.controller.spi.PropertyId;
 import org.junit.Test;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -66,19 +65,19 @@ public class JsonPropertyParserTest {
   @Test
   public void testParse() throws Exception {
     RequestBodyParser parser = new JsonPropertyParser();
-    Set<Map<PropertyId, Object>> setProps = parser.parse(serviceJson);
+    Set<Map<String, Object>> setProps = parser.parse(serviceJson);
 
     assertEquals(1, setProps.size());
 
-    Map<PropertyId, Object> mapExpected = new HashMap<PropertyId, Object>();
-    mapExpected.put(PropertyHelper.getPropertyId("service_name", "Services"), "HDFS");
-    mapExpected.put(PropertyHelper.getPropertyId("display_name", "Services"), "HDFS");
-    mapExpected.put(PropertyHelper.getPropertyId("cluster_name", "ServiceInfo"), "tbmetrictest");
-    mapExpected.put(PropertyHelper.getPropertyId("attributes", "Services"), "{ \"runnable\": true, \"mustInstall\": true, \"editable\": false, \"noDisplay\": false }");
-    mapExpected.put(PropertyHelper.getPropertyId("description", "Services"), "Apache Hadoop Distributed File System");
-    mapExpected.put(PropertyHelper.getPropertyId("state", "ServiceInfo"), "STARTED");
-    mapExpected.put(PropertyHelper.getPropertyId("propName", "OuterCategory"), "100");
-    mapExpected.put(PropertyHelper.getPropertyId("innerPropName", "OuterCategory.nested1.nested2"), "innerPropValue");
+    Map<String, Object> mapExpected = new HashMap<String, Object>();
+    mapExpected.put(PropertyHelper.getPropertyId("Services", "service_name"), "HDFS");
+    mapExpected.put(PropertyHelper.getPropertyId("Services", "display_name"), "HDFS");
+    mapExpected.put(PropertyHelper.getPropertyId("ServiceInfo", "cluster_name"), "tbmetrictest");
+    mapExpected.put(PropertyHelper.getPropertyId("Services", "attributes"), "{ \"runnable\": true, \"mustInstall\": true, \"editable\": false, \"noDisplay\": false }");
+    mapExpected.put(PropertyHelper.getPropertyId("Services", "description"), "Apache Hadoop Distributed File System");
+    mapExpected.put(PropertyHelper.getPropertyId("ServiceInfo", "state"), "STARTED");
+    mapExpected.put(PropertyHelper.getPropertyId("OuterCategory", "propName"), "100");
+    mapExpected.put(PropertyHelper.getPropertyId("OuterCategory.nested1.nested2", "innerPropName"), "innerPropValue");
 
     assertEquals(mapExpected, setProps.iterator().next());
   }
@@ -86,7 +85,7 @@ public class JsonPropertyParserTest {
   @Test
   public void testParse_NullBody() {
     RequestBodyParser parser = new JsonPropertyParser();
-    Set<Map<PropertyId, Object>> setProps = parser.parse(null);
+    Set<Map<String, Object>> setProps = parser.parse(null);
     assertNotNull(setProps);
     assertEquals(0, setProps.size());
   }
@@ -94,7 +93,7 @@ public class JsonPropertyParserTest {
   @Test
   public void testParse_EmptyBody() {
     RequestBodyParser parser = new JsonPropertyParser();
-    Set<Map<PropertyId, Object>> setProps = parser.parse("");
+    Set<Map<String, Object>> setProps = parser.parse("");
     assertNotNull(setProps);
     assertEquals(0, setProps.size());
   }
@@ -102,27 +101,27 @@ public class JsonPropertyParserTest {
   @Test
   public void testParse_Array() {
     RequestBodyParser parser = new JsonPropertyParser();
-    Set<Map<PropertyId, Object>> setProps = parser.parse(clustersJson);
+    Set<Map<String, Object>> setProps = parser.parse(clustersJson);
     assertEquals(3, setProps.size());
 
     boolean cluster1Matches = false;
     boolean cluster2Matches = false;
     boolean cluster3Matches = false;
 
-    Map<PropertyId, String> mapCluster1 = new HashMap<PropertyId, String>();
-    mapCluster1.put(PropertyHelper.getPropertyId("cluster_name", "Clusters"), "unitTestCluster1");
+    Map<String, String> mapCluster1 = new HashMap<String, String>();
+    mapCluster1.put(PropertyHelper.getPropertyId("Clusters", "cluster_name"), "unitTestCluster1");
 
-    Map<PropertyId, String> mapCluster2 = new HashMap<PropertyId, String>();
-    mapCluster2.put(PropertyHelper.getPropertyId("cluster_name", "Clusters"), "unitTestCluster2");
-    mapCluster2.put(PropertyHelper.getPropertyId("property1", "Clusters"), "prop1Value");
-
-
-    Map<PropertyId, String> mapCluster3 = new HashMap<PropertyId, String>();
-    mapCluster3.put(PropertyHelper.getPropertyId("cluster_name", "Clusters"), "unitTestCluster3");
-    mapCluster3.put(PropertyHelper.getPropertyId("property2", "Clusters.Category"), "prop2Value");
+    Map<String, String> mapCluster2 = new HashMap<String, String>();
+    mapCluster2.put(PropertyHelper.getPropertyId("Clusters", "cluster_name"), "unitTestCluster2");
+    mapCluster2.put(PropertyHelper.getPropertyId("Clusters", "property1"), "prop1Value");
 
 
-    for (Map<PropertyId, Object> mapProps : setProps) {
+    Map<String, String> mapCluster3 = new HashMap<String, String>();
+    mapCluster3.put(PropertyHelper.getPropertyId("Clusters", "cluster_name"), "unitTestCluster3");
+    mapCluster3.put(PropertyHelper.getPropertyId("Clusters.Category", "property2"), "prop2Value");
+
+
+    for (Map<String, Object> mapProps : setProps) {
       if (mapProps.equals(mapCluster1)) {
         cluster1Matches = true;
       } else if (mapProps.equals(mapCluster2)) {

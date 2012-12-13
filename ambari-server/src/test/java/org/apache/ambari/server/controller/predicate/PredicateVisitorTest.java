@@ -18,7 +18,7 @@
 package org.apache.ambari.server.controller.predicate;
 
 import junit.framework.Assert;
-import org.apache.ambari.server.controller.internal.PropertyIdImpl;
+import org.apache.ambari.server.controller.utilities.PropertyHelper;
 import org.junit.Test;
 
 /**
@@ -29,8 +29,8 @@ public class PredicateVisitorTest {
   @Test
   public void testVisitor() {
 
-    PropertyIdImpl propertyId = new PropertyIdImpl("foo", "category1", false);
-    EqualsPredicate equalsPredicate = new EqualsPredicate(propertyId, "bar");
+    String propertyId = PropertyHelper.getPropertyId("category1", "foo");
+    EqualsPredicate equalsPredicate = new EqualsPredicate<String>(propertyId, "bar");
 
     TestPredicateVisitor visitor = new TestPredicateVisitor();
     equalsPredicate.accept(visitor);
@@ -63,6 +63,7 @@ public class PredicateVisitorTest {
     ComparisonPredicate visitedComparisonPredicate = null;
     ArrayPredicate visitedArrayPredicate = null;
     UnaryPredicate visitedUnaryPredicate = null;
+    AlwaysPredicate visitedAlwaysPredicate = null;
 
     @Override
     public void acceptComparisonPredicate(ComparisonPredicate predicate) {
@@ -77,6 +78,11 @@ public class PredicateVisitorTest {
     @Override
     public void acceptUnaryPredicate(UnaryPredicate predicate) {
       visitedUnaryPredicate = predicate;
+    }
+
+    @Override
+    public void acceptAlwaysPredicate(AlwaysPredicate predicate) {
+      visitedAlwaysPredicate = predicate;
     }
   }
 

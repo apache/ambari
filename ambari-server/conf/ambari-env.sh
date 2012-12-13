@@ -13,4 +13,5 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-AMBARI_PID_DIR=/tmp
+AMBARI_PID_DIR=/var/run/ambari-server
+AMBARI_PASSPHRASE="DEV"

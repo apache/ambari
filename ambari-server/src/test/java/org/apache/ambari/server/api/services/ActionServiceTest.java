@@ -31,7 +31,7 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 
 import org.apache.ambari.server.api.handlers.RequestHandler;
-import org.apache.ambari.server.api.resources.ResourceDefinition;
+import org.apache.ambari.server.api.resources.ResourceInstance;
 import org.apache.ambari.server.api.services.serializers.ResultSerializer;
 import org.junit.Test;
 
@@ -39,7 +39,7 @@ public class ActionServiceTest {
 
   @Test
   public void testCreateActions() {
-    ResourceDefinition resourceDef = createStrictMock(ResourceDefinition.class);
+    ResourceInstance resource = createStrictMock(ResourceInstance.class);
     ResultSerializer resultSerializer = createStrictMock(ResultSerializer.class);
     Object serializedResult = new Object();
     RequestFactory requestFactory = createStrictMock(RequestFactory.class);
@@ -60,7 +60,7 @@ public class ActionServiceTest {
 
     expect(
         requestFactory.createRequest(eq(httpHeaders), eq(body), eq(uriInfo),
-            eq(Request.Type.POST), eq(resourceDef))).andReturn(request);
+            eq(Request.Type.POST), eq(resource))).andReturn(request);
 
     expect(requestHandler.handleRequest(request)).andReturn(result);
     expect(request.getResultSerializer()).andReturn(resultSerializer);
@@ -71,22 +71,22 @@ public class ActionServiceTest {
         responseFactory.createResponse(Request.Type.POST, serializedResult,
             false)).andReturn(response);
 
-    replay(resourceDef, resultSerializer, requestFactory, responseFactory,
+    replay(resource, resultSerializer, requestFactory, responseFactory,
         request, requestHandler, result, response, httpHeaders, uriInfo);
 
     // test
-    TestActionService hostService = new TestActionService(resourceDef,
+    TestActionService hostService = new TestActionService(resource,
         clusterName, requestFactory, responseFactory, requestHandler,
         serviceName);
     assertSame(response, hostService.createActions(body, httpHeaders, uriInfo));
 
-    verify(resourceDef, resultSerializer, requestFactory, responseFactory,
+    verify(resource, resultSerializer, requestFactory, responseFactory,
         request, requestHandler, result, response, httpHeaders, uriInfo);
   }
 
   @Test
   public void testGetActions() {
-    ResourceDefinition resourceDef = createStrictMock(ResourceDefinition.class);
+    ResourceInstance resourceDef = createStrictMock(ResourceInstance.class);
     ResultSerializer resultSerializer = createStrictMock(ResultSerializer.class);
     Object serializedResult = new Object();
     RequestFactory requestFactory = createStrictMock(RequestFactory.class);
@@ -130,14 +130,14 @@ public class ActionServiceTest {
   }
 
   private class TestActionService extends ActionService {
-    private ResourceDefinition m_resourceDef;
+    private ResourceInstance m_resourceDef;
     private String m_clusterId;
     private String m_serviceId;
     private RequestFactory m_requestFactory;
     private ResponseFactory m_responseFactory;
     private RequestHandler m_requestHandler;
 
-    public TestActionService(ResourceDefinition resourceDef,
+    public TestActionService(ResourceInstance resourceDef,
         String clusterName, RequestFactory requestFactory,
         ResponseFactory responseFactory, RequestHandler handler,
         String serviceName) {
@@ -151,8 +151,7 @@ public class ActionServiceTest {
     }
 
     @Override
-    ResourceDefinition createResourceDefinition(String actionName,
-        String clusterName, String serviceName) {
+    ResourceInstance createActionResource(String clusterName, String serviceName, String actionName) {
       assertEquals(m_clusterId, clusterName);
       assertEquals(m_serviceId, serviceName);
       return m_resourceDef;

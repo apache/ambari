@@ -17,12 +17,12 @@
  */
 package org.apache.ambari.server.controller.utilities;
 
-import org.apache.ambari.server.controller.internal.PropertyIdImpl;
+import org.apache.ambari.server.controller.internal.PropertyInfo;
 import org.apache.ambari.server.controller.internal.RequestImpl;
 import org.apache.ambari.server.controller.spi.Predicate;
-import org.apache.ambari.server.controller.spi.PropertyId;
 import org.apache.ambari.server.controller.spi.Request;
 import org.apache.ambari.server.controller.spi.Resource;
+import org.apache.ambari.server.controller.spi.TemporalInfo;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.type.TypeReference;
 
@@ -31,7 +31,6 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 
@@ -46,94 +45,80 @@ public class PropertyHelper {
   private static final String KEY_PROPERTIES_FILE = "key_properties.json";
   private static final char EXTERNAL_PATH_SEP = '/';
 
-  private static final Map<Resource.Type, Set<PropertyId>> PROPERTY_IDS = readPropertyIds(PROPERTIES_FILE);
-  private static final Map<Resource.Type, Map<String, Map<PropertyId, String>>> GANGLIA_PROPERTY_IDS = readPropertyProviderIds(GANGLIA_PROPERTIES_FILE);
-  private static final Map<Resource.Type, Map<String, Map<PropertyId, String>>> JMX_PROPERTY_IDS = readPropertyProviderIds(JMX_PROPERTIES_FILE);
-  private static final Map<Resource.Type, Map<Resource.Type, PropertyId>> KEY_PROPERTY_IDS = readKeyPropertyIds(KEY_PROPERTIES_FILE);
+  private static final Map<Resource.Type, Set<String>> PROPERTY_IDS = readPropertyIds(PROPERTIES_FILE);
+  private static final Map<Resource.Type, Map<String, Map<String, PropertyInfo>>> JMX_PROPERTY_IDS = readPropertyProviderIds(JMX_PROPERTIES_FILE);
+  private static final Map<Resource.Type, Map<String, Map<String, PropertyInfo>>> GANGLIA_PROPERTY_IDS = readPropertyProviderIds(GANGLIA_PROPERTIES_FILE);
+  private static final Map<Resource.Type, Map<Resource.Type, String>> KEY_PROPERTY_IDS = readKeyPropertyIds(KEY_PROPERTIES_FILE);
 
-  public static PropertyId getPropertyId(String name, String category) {
-    return new PropertyIdImpl(name, category, false);
+  public static String getPropertyId(String category, String name) {
+    return category == null ? name : category + EXTERNAL_PATH_SEP + name;
   }
 
-  public static PropertyId getPropertyId(String name, String category, boolean temporal) {
-    return new PropertyIdImpl(name, category, temporal);
+  public static Set<String> getPropertyIds(Resource.Type resourceType) {
+    Set<String> propertyIds = PROPERTY_IDS.get(resourceType);
+    return propertyIds == null ? Collections.<String>emptySet() : propertyIds;
   }
 
-  /**
-   * Helper to create a PropertyId from an string.
-   * The provided string must not be null and should be the fully qualified property name.
-   * The fully qualified property name may or may not have a category name.
-   * if the fully qualified property name contains a path separator char, then the
-   * path up to the last pth separator is considered the path and the token after the last
-   * path separator char is the property name.  If no path separator is present, the category
-   * is null and the property name is the provided string.
-   *
-   * @param absProperty  the fully qualified property
-   *
-   * @return a new PropertyId for the provided property string
-   */
-  public static PropertyId getPropertyId(String absProperty) {
-    String category;
-    String name;
-
-    int lastPathSep = absProperty.lastIndexOf(EXTERNAL_PATH_SEP);
-    if (lastPathSep == -1) {
-      category = null;
-      name     = absProperty;
-    } else {
-      category = absProperty.substring(0, lastPathSep);
-      name     = absProperty.substring(lastPathSep + 1);
-    }
-
-    return getPropertyId(name, category);
-  }
-
-  /**
-   * Helper to create a PropertyId from an string.
-   * The provided string must not be null and should be the fully qualified property name.
-   * The fully qualified property name may or may not have a category name.
-   * If the fully qualified property name contains a path separator char, then the
-   * path up to the last pth separator is considered the path and the token after the last
-   * path separator char is the property name.  If no path separator is present, the category
-   * is null and the property name is the provided string.
-   *
-   * @param absProperty  the fully qualified property
-   * @param temporal     whether the property is temporal
-   *
-   * @return a new PropertyId for the provided property string
-   *         with the temporal flag set to the provided value
-   */
-  public static PropertyId getPropertyId(String absProperty, boolean temporal) {
-    String category;
-    String name;
-
-    int lastPathSep = absProperty.lastIndexOf(EXTERNAL_PATH_SEP);
-    if (lastPathSep == -1) {
-      category = null;
-      name     = absProperty;
-    } else {
-      category = absProperty.substring(0, lastPathSep);
-      name     = absProperty.substring(lastPathSep + 1);
-    }
-
-    return getPropertyId(name, category, temporal);
-  }
-
-  public static Set<PropertyId> getPropertyIds(Resource.Type resourceType) {
-    Set<PropertyId> propertyIds = PROPERTY_IDS.get(resourceType);
-    return propertyIds == null ? Collections.<PropertyId>emptySet() : propertyIds;
-  }
-
-  public static Map<String, Map<PropertyId, String>> getGangliaPropertyIds(Resource.Type resourceType) {
+  public static Map<String, Map<String, PropertyInfo>> getGangliaPropertyIds(Resource.Type resourceType) {
     return GANGLIA_PROPERTY_IDS.get(resourceType);
   }
 
-  public static Map<String, Map<PropertyId, String>> getJMXPropertyIds(Resource.Type resourceType) {
+  public static Map<String, Map<String, PropertyInfo>> getJMXPropertyIds(Resource.Type resourceType) {
     return JMX_PROPERTY_IDS.get(resourceType);
   }
 
-  public static Map<Resource.Type, PropertyId> getKeyPropertyIds(Resource.Type resourceType) {
+  public static Map<Resource.Type, String> getKeyPropertyIds(Resource.Type resourceType) {
     return KEY_PROPERTY_IDS.get(resourceType);
+  }
+
+  /**
+   * Helper to get a property name from a string.
+   *
+   * @param absProperty  the fully qualified property
+   *
+   * @return the property name
+   */
+  public static String getPropertyName(String absProperty) {
+    int lastPathSep = absProperty.lastIndexOf(EXTERNAL_PATH_SEP);
+
+    return lastPathSep == -1 ? absProperty : absProperty.substring(lastPathSep + 1);
+  }
+
+  /**
+   * Helper to get a property category from a string.
+   *
+   * @param absProperty  the fully qualified property
+   *
+   * @return the property category; null if there is no category
+   */
+  public static String getPropertyCategory(String absProperty) {
+    int lastPathSep = absProperty.lastIndexOf(EXTERNAL_PATH_SEP);
+    return lastPathSep == -1 ? null : absProperty.substring(0, lastPathSep);
+  }
+
+  /**
+   * Get all of the property ids associated with the given request.
+   *
+   * @param request  the request
+   *
+   * @return the associated properties
+   */
+  public static Set<String> getAssociatedPropertyIds(Request request) {
+    Set<String> ids = request.getPropertyIds();
+
+    if (ids != null) {
+      ids = new HashSet<String>(ids);
+    } else {
+      ids = new HashSet<String>();
+    }
+
+    Set<Map<String, Object>> properties = request.getProperties();
+    if (properties != null) {
+      for (Map<String, Object> propertyMap : properties) {
+        ids.addAll(propertyMap.keySet());
+      }
+    }
+    return ids;
   }
 
   /**
@@ -143,15 +128,14 @@ public class PropertyHelper {
    *
    * @return the map of properties for the given resource
    */
-  public static Map<PropertyId, Object> getProperties(Resource resource) {
-    Map<PropertyId, Object> properties = new HashMap<PropertyId, Object>();
+  public static Map<String, Object> getProperties(Resource resource) {
+    Map<String, Object> properties = new HashMap<String, Object>();
 
     Map<String, Map<String, Object>> categories = resource.getPropertiesMap();
 
     for (Map.Entry<String, Map<String, Object>> categoryEntry : categories.entrySet()) {
       for (Map.Entry<String, Object>  propertyEntry : categoryEntry.getValue().entrySet()) {
-
-        properties.put(PropertyHelper.getPropertyId(propertyEntry.getKey(), categoryEntry.getKey()), propertyEntry.getValue());
+        properties.put(getPropertyId(categoryEntry.getKey(), propertyEntry.getKey()), propertyEntry.getValue());
       }
     }
     return properties;
@@ -166,55 +150,33 @@ public class PropertyHelper {
    *
    * @return the set of property ids needed to satisfy the request
    */
-  public static Set<PropertyId> getRequestPropertyIds(Set<PropertyId> providerPropertyIds,
+  public static Set<String> getRequestPropertyIds(Set<String> providerPropertyIds,
                                                       Request request,
                                                       Predicate predicate) {
-    Set<PropertyId> propertyIds         = request.getPropertyIds();
-    Set<PropertyId> requestPropertyIds  = propertyIds == null ? null : new HashSet<PropertyId>(propertyIds);
-
-    providerPropertyIds = new HashSet<PropertyId>(providerPropertyIds);
+    Set<String> propertyIds  = request.getPropertyIds();
 
     // if no properties are specified, then return them all
-    if (requestPropertyIds == null || requestPropertyIds.isEmpty()) {
-      // strip out the temporal properties, they must be asked for explicitly
-      Iterator<PropertyId> iter = providerPropertyIds.iterator();
-      while (iter.hasNext()) {
-        PropertyId propertyId = iter.next();
-        if (propertyId.isTemporal()) {
-          iter.remove();
-        }
-      }
+    if (propertyIds == null || propertyIds.isEmpty()) {
+      providerPropertyIds = new HashSet<String>(providerPropertyIds);
+
+//      // strip out the temporal properties, they must be asked for explicitly
+//      Iterator<String> iter = providerPropertyIds.iterator();
+//      while (iter.hasNext()) {
+//        String propertyId = iter.next();
+//        if (propertyId.isTemporal()) {
+//          iter.remove();
+//        }
+//      }
       return providerPropertyIds;
     }
 
+    propertyIds = new HashSet<String>(propertyIds);
+
     if (predicate != null) {
-      requestPropertyIds.addAll(PredicateHelper.getPropertyIds(predicate));
+      propertyIds.addAll(PredicateHelper.getPropertyIds(predicate));
     }
-    requestPropertyIds.retainAll(providerPropertyIds);
-    return requestPropertyIds;
-  }
-
-  /**
-   * For some reason the host names are stored all lower case.  Attempt to undo that with
-   * this hack.
-   *
-   * @param host  the host name to be fixed
-   *
-   * @return the fixed host name
-   */
-  public static String fixHostName(String host) {
-    int first_dash = host.indexOf('-');
-    int first_dot = host.indexOf('.');
-
-    if (first_dash > -1 && first_dot > -1) {
-      String segment1 = host.substring(0, first_dash);
-      if (segment1.equals("domu")) {
-        segment1 = "domU";
-      }
-      String segment2 = host.substring(first_dash, first_dot).toUpperCase();
-      host = segment1 + segment2 + host.substring(first_dot);
-    }
-    return host;
+    propertyIds.retainAll(providerPropertyIds);
+    return propertyIds;
   }
 
   /**
@@ -224,8 +186,8 @@ public class PropertyHelper {
    *
    * @param properties   the properties associated with the request; may be null
    */
-  public static Request getCreateRequest(Set<Map<PropertyId, Object>> properties) {
-    return new RequestImpl(null,  properties);
+  public static Request getCreateRequest(Set<Map<String, Object>> properties) {
+    return new RequestImpl(null,  properties, null);
   }
 
   /**
@@ -234,8 +196,20 @@ public class PropertyHelper {
    *
    * @param propertyIds  the property ids associated with the request; may be null
    */
-  public static Request getReadRequest(Set<PropertyId> propertyIds) {
-    return new RequestImpl(propertyIds,  null);
+  public static Request getReadRequest(Set<String> propertyIds) {
+    return new RequestImpl(propertyIds,  null, null);
+  }
+
+  /**
+   * Factory method to create a read request from the given set of property ids.  The set of
+   * property ids represents the properties of interest for the query.
+   *
+   * @param propertyIds      the property ids associated with the request; may be null
+   * @param mapTemporalInfo  the temporal info
+   */
+  public static Request getReadRequest(Set<String> propertyIds, Map<String,
+      TemporalInfo> mapTemporalInfo) {
+    return new RequestImpl(propertyIds,  null, mapTemporalInfo);
   }
 
   /**
@@ -244,8 +218,8 @@ public class PropertyHelper {
    *
    * @param propertyIds  the property ids associated with the request; may be null
    */
-  public static Request getReadRequest(PropertyId ... propertyIds) {
-    return new RequestImpl(new HashSet<PropertyId>(Arrays.asList(propertyIds)),  null);
+  public static Request getReadRequest(String ... propertyIds) {
+    return new RequestImpl(new HashSet<String>(Arrays.asList(propertyIds)),  null, null);
   }
 
   /**
@@ -254,44 +228,32 @@ public class PropertyHelper {
    *
    * @param properties   the properties associated with the request; may be null
    */
-  public static Request getUpdateRequest(Map<PropertyId, Object> properties) {
-    return new RequestImpl(null,  Collections.singleton(properties));
+  public static Request getUpdateRequest(Map<String, Object> properties) {
+    return new RequestImpl(null,  Collections.singleton(properties), null);
   }
 
-  private static Map<Resource.Type, Map<String, Map<PropertyId, String>>> readPropertyProviderIds(String filename) {
+  private static Map<Resource.Type, Map<String, Map<String, PropertyInfo>>> readPropertyProviderIds(String filename) {
     ObjectMapper mapper = new ObjectMapper();
 
     try {
-      Map<Resource.Type, Map<String, Map<String, GangliaMetric>>> resourceGangliaMetrics =
+      Map<Resource.Type, Map<String, Map<String, Metric>>> resourceMetricMap =
           mapper.readValue(ClassLoader.getSystemResourceAsStream(filename),
-              new TypeReference<Map<Resource.Type, Map<String, Map<String, GangliaMetric>>>>() {});
+              new TypeReference<Map<Resource.Type, Map<String, Map<String, Metric>>>>() {});
 
-      Map<Resource.Type, Map<String, Map<PropertyId, String>>> resourceMetrics =
-          new HashMap<Resource.Type, Map<String, Map<PropertyId, String>>>();
+      Map<Resource.Type, Map<String, Map<String, PropertyInfo>>> resourceMetrics =
+          new HashMap<Resource.Type, Map<String, Map<String, PropertyInfo>>>();
 
-      for (Map.Entry<Resource.Type, Map<String, Map<String, GangliaMetric>>> resourceEntry : resourceGangliaMetrics.entrySet()) {
-        Map<String, Map<PropertyId, String>> componentMetrics = new HashMap<String, Map<PropertyId, String>>();
+      for (Map.Entry<Resource.Type, Map<String, Map<String, Metric>>> resourceEntry : resourceMetricMap.entrySet()) {
+        Map<String, Map<String, PropertyInfo>> componentMetrics = new HashMap<String, Map<String, PropertyInfo>>();
 
-        for (Map.Entry<String, Map<String, GangliaMetric>> componentEntry : resourceEntry.getValue().entrySet()) {
-          Map<PropertyId, String> metrics = new HashMap<PropertyId, String>();
+        for (Map.Entry<String, Map<String, Metric>> componentEntry : resourceEntry.getValue().entrySet()) {
+          Map<String, PropertyInfo> metrics = new HashMap<String, PropertyInfo>();
 
-          for (Map.Entry<String, GangliaMetric> metricEntry : componentEntry.getValue().entrySet()) {
+          for (Map.Entry<String, Metric> metricEntry : componentEntry.getValue().entrySet()) {
             String property = metricEntry.getKey();
-            String category = "";
+            Metric metric   = metricEntry.getValue();
 
-            int i = property.lastIndexOf('/');
-            if (i != -1){
-              category = property.substring(0, i);
-              property = property.substring(i + 1);
-            }
-
-            GangliaMetric gangliaMetric = metricEntry.getValue();
-            if (gangliaMetric.isPointInTime()) {
-              metrics.put(PropertyHelper.getPropertyId(property, category, false), gangliaMetric.getMetric());
-            }
-            if (gangliaMetric.isTemporal()) {
-              metrics.put(PropertyHelper.getPropertyId(property, category, true), gangliaMetric.getMetric());
-            }
+            metrics.put(property, new PropertyInfo(metric.getMetric(), metric.isTemporal(), metric.isPointInTime()));
           }
           componentMetrics.put(componentEntry.getKey(), metrics);
         }
@@ -303,34 +265,40 @@ public class PropertyHelper {
     }
   }
 
-  private static Map<Resource.Type, Set<PropertyId>> readPropertyIds(String filename) {
+  private static Map<Resource.Type, Set<String>> readPropertyIds(String filename) {
     ObjectMapper mapper = new ObjectMapper();
 
     try {
-      return mapper.readValue(ClassLoader.getSystemResourceAsStream(filename), new TypeReference<Map<Resource.Type, Set<PropertyIdImpl>>>() {
+      return mapper.readValue(ClassLoader.getSystemResourceAsStream(filename), new TypeReference<Map<Resource.Type, Set<String>>>() {
       });
     } catch (IOException e) {
       throw new IllegalStateException("Can't read properties file " + filename, e);
     }
   }
 
-  private static Map<Resource.Type, Map<Resource.Type, PropertyId>> readKeyPropertyIds(String filename) {
+  private static Map<Resource.Type, Map<Resource.Type, String>> readKeyPropertyIds(String filename) {
     ObjectMapper mapper = new ObjectMapper();
 
     try {
-      return mapper.readValue(ClassLoader.getSystemResourceAsStream(filename), new TypeReference<Map<Resource.Type, Map<Resource.Type, PropertyIdImpl>>>() {
+      return mapper.readValue(ClassLoader.getSystemResourceAsStream(filename), new TypeReference<Map<Resource.Type, Map<Resource.Type, String>>>() {
       });
     } catch (IOException e) {
       throw new IllegalStateException("Can't read properties file " + filename, e);
     }
   }
 
-  private static class GangliaMetric {
+  protected static class Metric {
     private String metric;
     private boolean pointInTime;
     private boolean temporal;
 
-    private GangliaMetric() {
+    private Metric() {
+    }
+
+    protected Metric(String metric, boolean pointInTime, boolean temporal) {
+      this.metric = metric;
+      this.pointInTime = pointInTime;
+      this.temporal = temporal;
     }
 
     public String getMetric() {

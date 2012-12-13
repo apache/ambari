@@ -20,14 +20,41 @@ package org.apache.ambari.server.state.svccomphost;
 
 import java.util.*;
 import java.util.Map.Entry;
-import java.util.concurrent.locks.*;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReadWriteLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.controller.ServiceComponentHostResponse;
-import org.apache.ambari.server.orm.dao.*;
-import org.apache.ambari.server.orm.entities.*;
-import org.apache.ambari.server.state.*;
-import org.apache.ambari.server.state.fsm.*;
+import org.apache.ambari.server.orm.dao.HostComponentConfigMappingDAO;
+import org.apache.ambari.server.orm.dao.HostComponentDesiredConfigMappingDAO;
+import org.apache.ambari.server.orm.dao.HostComponentDesiredStateDAO;
+import org.apache.ambari.server.orm.dao.HostComponentStateDAO;
+import org.apache.ambari.server.orm.dao.HostDAO;
+import org.apache.ambari.server.orm.dao.ServiceComponentDesiredStateDAO;
+import org.apache.ambari.server.orm.entities.HostComponentConfigMappingEntity;
+import org.apache.ambari.server.orm.entities.HostComponentDesiredConfigMappingEntity;
+import org.apache.ambari.server.orm.entities.HostComponentDesiredStateEntity;
+import org.apache.ambari.server.orm.entities.HostComponentDesiredStateEntityPK;
+import org.apache.ambari.server.orm.entities.HostComponentStateEntity;
+import org.apache.ambari.server.orm.entities.HostComponentStateEntityPK;
+import org.apache.ambari.server.orm.entities.HostEntity;
+import org.apache.ambari.server.orm.entities.ServiceComponentDesiredStateEntity;
+import org.apache.ambari.server.orm.entities.ServiceComponentDesiredStateEntityPK;
+import org.apache.ambari.server.state.Cluster;
+import org.apache.ambari.server.state.Clusters;
+import org.apache.ambari.server.state.Config;
+import org.apache.ambari.server.state.Host;
+import org.apache.ambari.server.state.ServiceComponent;
+import org.apache.ambari.server.state.ServiceComponentHost;
+import org.apache.ambari.server.state.ServiceComponentHostEvent;
+import org.apache.ambari.server.state.ServiceComponentHostEventType;
+import org.apache.ambari.server.state.StackId;
+import org.apache.ambari.server.state.State;
+import org.apache.ambari.server.state.fsm.InvalidStateTransitionException;
+import org.apache.ambari.server.state.fsm.SingleArcTransition;
+import org.apache.ambari.server.state.fsm.StateMachine;
+import org.apache.ambari.server.state.fsm.StateMachineFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -65,12 +92,16 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
   @Inject
   Clusters clusters;
   @Inject
-  private HostComponentConfigMappingDAO hostComponentConfigMappingDAO;
+  HostComponentDesiredConfigMappingDAO
+      hostComponentDesiredConfigMappingDAO;
+  @Inject
+  HostComponentConfigMappingDAO
+      hostComponentConfigMappingDAO;
 
   private HostComponentStateEntity stateEntity;
   private HostComponentDesiredStateEntity desiredStateEntity;
 
-  private Map<String, Config> configs;
+  private Map<String, String> configs;
   private Map<String, String> desiredConfigs;
 
   private long lastOpStartTime;
@@ -370,7 +401,26 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
     public void transition(ServiceComponentHostImpl impl,
         ServiceComponentHostEvent event) {
       // TODO Audit logs
+      // FIXME handle restartOp event
       impl.updateLastOpInfo(event.getType(), event.getOpTimestamp());
+      if (event.getType() == ServiceComponentHostEventType.HOST_SVCCOMP_START) {
+        ServiceComponentHostStartEvent e =
+            (ServiceComponentHostStartEvent) event;
+        if (LOG.isDebugEnabled()) {
+          LOG.debug("Updating live state configs during START event"
+              + ", updated configs set size=" + e.getConfigs().size());
+        }
+        impl.setConfigs(e.getConfigs());
+      } else if (event.getType() ==
+          ServiceComponentHostEventType.HOST_SVCCOMP_INSTALL) {
+        ServiceComponentHostInstallEvent e =
+            (ServiceComponentHostInstallEvent) event;
+        if (LOG.isDebugEnabled()) {
+          LOG.debug("Updating live stack version during INSTALL event"
+              + ", new stack verion=" + e.getStackId());
+        }
+        impl.setStackVersion(new StackId(e.getStackId()));
+      }
     }
   }
 
@@ -431,7 +481,6 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
   @AssistedInject
   public ServiceComponentHostImpl(@Assisted ServiceComponent serviceComponent,
                                   @Assisted String hostName, @Assisted boolean isClient, Injector injector) {
-    super();
     injector.injectMembers(this);
 
     if (isClient) {
@@ -466,13 +515,13 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
       this.host = clusters.getHost(hostName);
     } catch (AmbariException e) {
       //TODO exception?
-      LOG.error("Host '{}' was not found", hostName);
+      LOG.error("Host '{}' was not found" + hostName);
       throw new RuntimeException(e);
     }
 
     this.resetLastOpInfo();
     this.desiredConfigs = new HashMap<String, String>();
-    this.configs = new HashMap<String, Config>();
+    this.configs = new HashMap<String, String>();
   }
 
   @AssistedInject
@@ -497,16 +546,17 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
       this.host = clusters.getHost(stateEntity.getHostName());
     } catch (AmbariException e) {
       //TODO exception? impossible due to database restrictions
-      LOG.error("Host '{}' was not found", stateEntity.getHostName());
+      LOG.error("Host '{}' was not found " + stateEntity.getHostName());
       throw new RuntimeException(e);
     }
 
     desiredConfigs = new HashMap<String, String>();
+    configs = new HashMap<String, String>();
 
-    for (HostComponentConfigMappingEntity entity : desiredStateEntity.getHostComponentConfigMappingEntities()) {
+    for (HostComponentDesiredConfigMappingEntity entity : desiredStateEntity.getHostComponentDesiredConfigMappingEntities()) {
       desiredConfigs.put(entity.getConfigType(), entity.getVersionTag());
     }
-
+    // FIXME no configs in live state being persisted in DB??
 
     persisted = true;
   }
@@ -536,6 +586,7 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
   }
 
   @Override
+  @Transactional
   public void handleEvent(ServiceComponentHostEvent event)
       throws InvalidStateTransitionException {
     if (LOG.isDebugEnabled()) {
@@ -548,6 +599,8 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
       writeLock.lock();
       try {
         stateMachine.doTransition(event.getType(), event);
+        stateEntity.setCurrentState(stateMachine.getCurrentState());
+        saveIfPersisted();
         // TODO Audit logs
       } catch (InvalidStateTransitionException e) {
         LOG.error("Can't handle ServiceComponentHostEvent event at"
@@ -674,27 +727,128 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
     return serviceComponent.getServiceName();
   }
 
-  @Override
-  public Map<String, Config> getConfigs() {
+  Map<String, String> getConfigVersions() {
     try {
       readLock.lock();
+      if (this.configs != null) {
+        return Collections.unmodifiableMap(configs);
+      } else {
+        return new HashMap<String, String>();
+      }
+    }
+    finally {
+      readLock.unlock();
+    }
 
-      return Collections.unmodifiableMap(configs);
+  }
+
+  @Override
+  public Map<String, Config> getConfigs() throws AmbariException {
+    try {
+      readLock.lock();
+      Map<String, Config> map = new HashMap<String, Config>();
+      Cluster cluster = clusters.getClusterById(getClusterId());
+      for (Entry<String, String> entry : configs.entrySet()) {
+        Config config = cluster.getDesiredConfig(
+            entry.getKey(), entry.getValue());
+        if (null != config) {
+          map.put(entry.getKey(), config);
+        }
+      }
+      return map;
     }
     finally {
       readLock.unlock();
     }
   }
 
-  @Override
-  public void updateConfigs(Map<String, Config> configs) {
-
+  @Transactional
+  void setConfigs(Map<String, String> configs) {
     try {
       writeLock.lock();
 
-      this.configs.putAll(configs);
-    }
-    finally {
+      Set<String> deletedTypes = new HashSet<String>();
+      for (String type : this.configs.keySet()) {
+        if (!configs.containsKey(type)) {
+          deletedTypes.add(type);
+        }
+      }
+
+      long now = Long.valueOf(new java.util.Date().getTime());
+
+      for (Entry<String,String> entry : configs.entrySet()) {
+
+        boolean contains = false;
+        for (HostComponentConfigMappingEntity mappingEntity : stateEntity.getHostComponentConfigMappingEntities()) {
+          if (entry.getKey().equals(mappingEntity.getConfigType())) {
+            if (LOG.isDebugEnabled()) {
+              LOG.debug("Updating live config to ServiceComponentHost"
+                  + ", clusterId=" + stateEntity.getClusterId()
+                  + ", serviceName=" + stateEntity.getServiceName()
+                  + ", componentName=" + stateEntity.getComponentName()
+                  + ", hostname=" + stateEntity.getHostName()
+                  + ", configType=" + entry.getKey()
+                  + ", configVersionTag=" + entry.getValue());
+            }
+            contains = true;
+            mappingEntity.setVersionTag(entry.getValue());
+            mappingEntity.setTimestamp(now);
+            break;
+          }
+        }
+
+        if (!contains) {
+          HostComponentConfigMappingEntity newEntity =
+              new HostComponentConfigMappingEntity();
+          newEntity.setClusterId(stateEntity.getClusterId());
+          newEntity.setServiceName(stateEntity.getServiceName());
+          newEntity.setComponentName(stateEntity.getComponentName());
+          newEntity.setHostName(stateEntity.getHostName());
+          newEntity.setConfigType(entry.getKey());
+          newEntity.setVersionTag(entry.getValue());
+          newEntity.setTimestamp(now);
+
+          if (LOG.isDebugEnabled()) {
+            LOG.debug("Adding new live config to ServiceComponentHost"
+                + ", clusterId=" + stateEntity.getClusterId()
+                + ", serviceName=" + stateEntity.getServiceName()
+                + ", componentName=" + stateEntity.getComponentName()
+                + ", hostname=" + stateEntity.getHostName()
+                + ", configType=" + entry.getKey()
+                + ", configVersionTag=" + entry.getValue());
+          }
+          stateEntity.getHostComponentConfigMappingEntities().add(newEntity);
+          newEntity.setHostComponentStateEntity(stateEntity);
+
+        }
+      }
+
+      if (!deletedTypes.isEmpty()) {
+        List<HostComponentConfigMappingEntity> deleteEntities =
+            hostComponentConfigMappingDAO.findByHostComponentAndType(
+                stateEntity.getClusterId(), stateEntity.getServiceName(),
+                stateEntity.getComponentName(),
+                stateEntity.getHostName(), deletedTypes);
+        for (HostComponentConfigMappingEntity deleteEntity : deleteEntities) {
+          if (LOG.isDebugEnabled()) {
+            LOG.debug("Deleting live config to ServiceComponentHost"
+                + ", clusterId="  + stateEntity.getClusterId()
+                + ", serviceName=" + stateEntity.getServiceName()
+                + ", componentName=" + stateEntity.getComponentName()
+                + ", hostname=" + stateEntity.getHostName()
+                + ", configType=" + deleteEntity.getConfigType()
+                + ", configVersionTag=" + deleteEntity.getVersionTag());
+          }
+          stateEntity.getHostComponentConfigMappingEntities().remove(
+              deleteEntity);
+          if (persisted) {
+            hostComponentConfigMappingDAO.remove(deleteEntity);
+          }
+        }
+      }
+      this.configs = configs;
+      saveIfPersisted();
+    } finally {
       writeLock.unlock();
     }
   }
@@ -747,6 +901,24 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
   }
 
   @Override
+  public Map<String, String> getDesiredConfigVersionsRecursive() {
+    try {
+      readLock.lock();
+      Map<String, String> fullDesiredConfigVersions =
+          new HashMap<String, String>();
+      Map<String, Config> desiredConfs = getDesiredConfigs();
+      for (Config c : desiredConfs.values()) {
+        fullDesiredConfigVersions.put(c.getType(), c.getVersionTag());
+      }
+      return fullDesiredConfigVersions;
+    }
+    finally {
+      readLock.unlock();
+    }
+  }
+
+
+  @Override
   public Map<String, Config> getDesiredConfigs() {
     Map<String, Config> map = new HashMap<String, Config>();
     try {
@@ -777,35 +949,75 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
   }
 
   @Override
+  @Transactional
   public void updateDesiredConfigs(Map<String, Config> configs) {
     try {
       writeLock.lock();
 
-      for (Entry<String,Config> entry : configs.entrySet()) {
-        HostComponentConfigMappingEntity newEntity = new HostComponentConfigMappingEntity();
-        newEntity.setClusterId(desiredStateEntity.getClusterId());
-        newEntity.setServiceName(desiredStateEntity.getServiceName());
-        newEntity.setComponentName(desiredStateEntity.getComponentName());
-        newEntity.setHostName(desiredStateEntity.getHostName());
-        newEntity.setConfigType(entry.getKey());
-        newEntity.setVersionTag(entry.getValue().getVersionTag());
-        newEntity.setTimestamp(Long.valueOf(new java.util.Date().getTime()));
+      Set<String> deletedTypes = new HashSet<String>();
+      for (String type : this.desiredConfigs.keySet()) {
+        if (!configs.containsKey(type)) {
+          deletedTypes.add(type);
+        }
+      }
 
-        if (!desiredStateEntity.getHostComponentConfigMappingEntities().contains(newEntity)) {
-          newEntity.setHostComponentDesiredStateEntity(desiredStateEntity);
-          desiredStateEntity.getHostComponentConfigMappingEntities().add(newEntity);
-        } else {
-          for (HostComponentConfigMappingEntity entity : desiredStateEntity.getHostComponentConfigMappingEntities()) {
-            if (entity.equals(newEntity)) {
-              entity.setVersionTag(newEntity.getVersionTag());
-              entity.setTimestamp(newEntity.getTimestamp());
-            }
+      for (Entry<String,Config> entry : configs.entrySet()) {
+
+        boolean contains = false;
+        for (HostComponentDesiredConfigMappingEntity desiredConfigMappingEntity : desiredStateEntity.getHostComponentDesiredConfigMappingEntities()) {
+          if (entry.getKey().equals(desiredConfigMappingEntity.getConfigType())) {
+            contains = true;
+            desiredConfigMappingEntity.setVersionTag(entry.getValue().getVersionTag());
+            desiredConfigMappingEntity.setTimestamp(new Date().getTime());
+            break;
           }
+        }
+
+        if (!contains) {
+          HostComponentDesiredConfigMappingEntity newEntity = new HostComponentDesiredConfigMappingEntity();
+          newEntity.setClusterId(desiredStateEntity.getClusterId());
+          newEntity.setServiceName(desiredStateEntity.getServiceName());
+          newEntity.setComponentName(desiredStateEntity.getComponentName());
+          newEntity.setHostName(desiredStateEntity.getHostName());
+          newEntity.setConfigType(entry.getKey());
+          newEntity.setVersionTag(entry.getValue().getVersionTag());
+          newEntity.setTimestamp(new Date().getTime());
+          newEntity.setHostComponentDesiredStateEntity(desiredStateEntity);
+          desiredStateEntity.getHostComponentDesiredConfigMappingEntities().add(newEntity);
         }
 
         this.desiredConfigs.put(entry.getKey(), entry.getValue().getVersionTag());
       }
 
+      if (!deletedTypes.isEmpty()) {
+        if (persisted) {
+          List<HostComponentDesiredConfigMappingEntity> deleteEntities =
+              hostComponentDesiredConfigMappingDAO.findByHostComponentAndType(
+                  stateEntity.getClusterId(), stateEntity.getServiceName(),
+                  stateEntity.getComponentName(),
+                  stateEntity.getHostName(), deletedTypes);
+          for (HostComponentDesiredConfigMappingEntity deleteEntity : deleteEntities) {
+            if (LOG.isDebugEnabled()) {
+              LOG.debug("Deleting desired config to ServiceComponentHost"
+                  + ", clusterId=" + stateEntity.getClusterId()
+                  + ", serviceName=" + stateEntity.getServiceName()
+                  + ", componentName=" + stateEntity.getComponentName()
+                  + ", hostname=" + stateEntity.getHostName()
+                  + ", configType=" + deleteEntity.getConfigType()
+                  + ", configVersionTag=" + deleteEntity.getVersionTag());
+            }
+            desiredStateEntity.getHostComponentDesiredConfigMappingEntities().remove(
+                deleteEntity);
+            hostComponentDesiredConfigMappingDAO.remove(deleteEntity);
+          }
+        } else {
+          for (String deletedType : deletedTypes) {
+            desiredConfigs.remove(deletedType);
+          }
+        }
+      }
+
+      saveIfPersisted();
     }
     finally {
       writeLock.unlock();
@@ -835,20 +1047,6 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
     }
   }
 
-  private Map<String, String> getConfigVersions() {
-    try {
-      readLock.lock();
-      Map<String, String> configVersions = new HashMap<String, String>();
-      for (Config c : configs.values()) {
-        configVersions.put(c.getType(), c.getVersionTag());
-      }
-      return configVersions;
-    }
-    finally {
-      readLock.unlock();
-    }
-  }
-
   @Override
   public ServiceComponentHostResponse convertToResponse() {
     try {
@@ -858,7 +1056,8 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
           serviceComponent.getServiceName(),
           serviceComponent.getName(),
           getHostName(),
-          getConfigVersions(),
+          configs,
+          desiredConfigs,
           getState().toString(),
           getStackVersion().getStackId(),
           getDesiredState().toString());
@@ -999,9 +1198,10 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
       for (String configType : configTypes) {
         desiredConfigs.remove(configType);
       }
-      hostComponentConfigMappingDAO.removeByType(configTypes);
+      hostComponentDesiredConfigMappingDAO.removeByType(configTypes);
     } finally {
       writeLock.unlock();
     }
   }
+
 }

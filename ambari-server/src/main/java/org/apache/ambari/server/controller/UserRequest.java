@@ -28,19 +28,19 @@ public class UserRequest {
   private String password;
   private String oldPassword;
   private Set<String> roles = new HashSet<String>();
-  
+
   public UserRequest(String name) {
     this.userName = name;
   }
-  
+
   public String getUsername() {
     return userName;
   }
-  
+
   public Set<String> getRoles() {
     return roles;
   }
-  
+
   public void setRoles(Set<String> userRoles) {
     roles = userRoles;
   }
@@ -48,17 +48,37 @@ public class UserRequest {
   public String getPassword() {
     return password;
   }
-  
+
   public void setPassword(String userPass) {
     password = userPass;
   }
-  
+
   public String getOldPassword() {
     return oldPassword;
   }
-  
+
   public void setOldPassword(String oldUserPass) {
     oldPassword = oldUserPass;
   }
-  
+
+  @Override
+  public String toString() {
+    StringBuilder sb = new StringBuilder();
+    sb.append("User"
+        + ", username=" + userName
+        + ", roles=[ ");
+    if (roles != null && !roles.isEmpty()) {
+      boolean first = true;
+      for (String role : roles) {
+        if (!first) {
+          sb.append(",");
+        }
+        first = false;
+        sb.append(role);
+      }
+    }
+    sb.append(" ]");
+    return sb.toString();
+  }
+
 }

@@ -39,7 +39,6 @@ class hdp-nagios::server::config()
   hdp-nagios::server::check { 'check_rpcq_latency.php': }
   hdp-nagios::server::check { 'check_webui.sh': }
   hdp-nagios::server::check { 'check_name_dir_status.php': }
-  hdp-nagios::server::check { 'check_puppet_agent_status.php': }
   hdp-nagios::server::check { 'check_oozie_status.sh': }
   hdp-nagios::server::check { 'check_templeton_status.sh': }
   hdp-nagios::server::check { 'check_hive_metastore_status.sh': }

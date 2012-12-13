@@ -18,11 +18,12 @@
 
 package org.apache.ambari.server.api.services;
 
-import org.apache.ambari.server.api.resources.ClusterResourceDefinition;
-import org.apache.ambari.server.api.resources.ResourceDefinition;
+import org.apache.ambari.server.api.resources.ResourceInstance;
+import org.apache.ambari.server.controller.spi.Resource;
 
 import javax.ws.rs.*;
 import javax.ws.rs.core.*;
+import java.util.Collections;
 
 
 /**
@@ -46,7 +47,7 @@ public class ClusterService extends BaseService {
   public Response getCluster(@Context HttpHeaders headers, @Context UriInfo ui,
                              @PathParam("clusterName") String clusterName) {
 
-    return handleRequest(headers, null, ui, Request.Type.GET, createResourceDefinition(clusterName));
+    return handleRequest(headers, null, ui, Request.Type.GET, createClusterResource(clusterName));
   }
 
   /**
@@ -60,7 +61,7 @@ public class ClusterService extends BaseService {
   @GET
   @Produces("text/plain")
   public Response getClusters(@Context HttpHeaders headers, @Context UriInfo ui) {
-    return handleRequest(headers, null, ui, Request.Type.GET, createResourceDefinition(null));
+    return handleRequest(headers, null, ui, Request.Type.GET, createClusterResource(null));
   }
 
   /**
@@ -78,7 +79,7 @@ public class ClusterService extends BaseService {
    public Response createCluster(String body, @Context HttpHeaders headers, @Context UriInfo ui,
                                  @PathParam("clusterName") String clusterName) {
 
-    return handleRequest(headers, body, ui, Request.Type.POST, createResourceDefinition(clusterName));
+    return handleRequest(headers, body, ui, Request.Type.POST, createClusterResource(clusterName));
   }
 
   /**
@@ -96,7 +97,7 @@ public class ClusterService extends BaseService {
   public Response updateCluster(String body, @Context HttpHeaders headers, @Context UriInfo ui,
                                 @PathParam("clusterName") String clusterName) {
 
-    return handleRequest(headers, body, ui, Request.Type.PUT, createResourceDefinition(clusterName));
+    return handleRequest(headers, body, ui, Request.Type.PUT, createClusterResource(clusterName));
   }
 
   /**
@@ -114,7 +115,7 @@ public class ClusterService extends BaseService {
   public Response deleteCluster(@Context HttpHeaders headers, @Context UriInfo ui,
                                 @PathParam("clusterName") String clusterName) {
 
-    return handleRequest(headers, null, ui, Request.Type.DELETE, createResourceDefinition(clusterName));
+    return handleRequest(headers, null, ui, Request.Type.DELETE, createClusterResource(clusterName));
   }
 
   /**
@@ -141,10 +142,13 @@ public class ClusterService extends BaseService {
   
   /**
    * Gets the configurations sub-resource.
+   *
+   * @param clusterName  the cluster name
+   * @return the configuration service
    */
   @Path("{clusterName}/configurations")
-  public ConfigurationService getConfigurationHandler(@PathParam("clusterName") String cluster) {
-    return new ConfigurationService(cluster);
+  public ConfigurationService getConfigurationHandler(@PathParam("clusterName") String clusterName) {
+    return new ConfigurationService(clusterName);
   }
 
   /**
@@ -156,12 +160,26 @@ public class ClusterService extends BaseService {
   }
 
   /**
-   * Create a cluster resource definition.
+   * Get the host component resource without specifying the parent host component.
+   * Allows accessing host component resources across hosts.
+   *
+   * @param clusterName the cluster name
+   * @return  the host component service with no parent set
+   */
+  @Path("{clusterName}/host_components")
+  public HostComponentService getHostComponentHandler(@PathParam("clusterName") String clusterName) {
+    return new HostComponentService(clusterName, null);
+  }
+
+  /**
+   * Create a cluster resource instance.
    *
    * @param clusterName cluster name
-   * @return a cluster resource definition
+   *
+   * @return a cluster resource instance
    */
-  ResourceDefinition createResourceDefinition(String clusterName) {
-    return new ClusterResourceDefinition(clusterName);
+  ResourceInstance createClusterResource(String clusterName) {
+    return createResource(Resource.Type.Cluster,
+        Collections.singletonMap(Resource.Type.Cluster, clusterName));
   }
 }

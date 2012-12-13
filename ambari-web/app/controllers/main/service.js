@@ -29,5 +29,12 @@ App.MainServiceController = Em.ArrayController.extend({
   additionalMenuItem:Em.Object.create({ id:'Clients', displayName:'Clients', isClients:true }),
   isAdmin: function(){
     return App.db.getUser().admin;
-  }.property('App.router.loginController.loginName')
+  }.property('App.router.loginController.loginName'),
+  hdfsService: function () {
+    var hdfsSvcs = App.HDFSService.find();
+    if (hdfsSvcs && hdfsSvcs.get('length') > 0) {
+      return hdfsSvcs.objectAt(0);
+    }
+    return null;
+  }.property('App.router.clusterController.isLoaded', 'App.router.updateController.isUpdated')
 })

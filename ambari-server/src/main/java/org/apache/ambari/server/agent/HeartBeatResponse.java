@@ -33,8 +33,11 @@ public class HeartBeatResponse {
   private long responseId;
  
   List<ExecutionCommand> executionCommands = new ArrayList<ExecutionCommand>();
+  List<StatusCommand> statusCommands = new ArrayList<StatusCommand>();
 
   RegistrationCommand registrationCommand;
+
+  boolean restartAgent = false;
 
   @JsonProperty("responseId")
   public long getResponseId() {
@@ -56,6 +59,16 @@ public class HeartBeatResponse {
     this.executionCommands = executionCommands;
   }
 
+  @JsonProperty("statusCommands")
+  public List<StatusCommand> getStatusCommands() {
+    return statusCommands;
+  }
+
+  @JsonProperty("statusCommands")
+  public void setStatusCommands(List<StatusCommand> statusCommands) {
+    this.statusCommands = statusCommands;
+  }
+
   @JsonProperty("registrationCommand")
   public RegistrationCommand getRegistrationCommand() {
     return registrationCommand;
@@ -65,8 +78,33 @@ public class HeartBeatResponse {
   public void setRegistrationCommand(RegistrationCommand registrationCommand) {
     this.registrationCommand = registrationCommand;
   }
-  
+
+  @JsonProperty("restartAgent")
+  public boolean isRestartAgent() {
+    return restartAgent;
+  }
+
+  @JsonProperty("restartAgent")
+  public void setRestartAgent(boolean restartAgent) {
+    this.restartAgent = restartAgent;
+  }
+
   public void addExecutionCommand(ExecutionCommand execCmd) {
     executionCommands.add(execCmd);
+  }
+
+  public void addStatusCommand(StatusCommand statCmd) {
+    statusCommands.add(statCmd);
+  }
+
+  @Override
+  public String toString() {
+    return "HeartBeatResponse{" +
+            "responseId=" + responseId +
+            ", executionCommands=" + executionCommands +
+            ", statusCommands=" + statusCommands +
+            ", registrationCommand=" + registrationCommand +
+            ", restartAgent=" + restartAgent +
+            '}';
   }
 }

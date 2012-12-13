@@ -84,7 +84,7 @@ define hdp-hadoop::tasktracker::create_local_dirs($service_state)
 {
   if ($hdp::params::service_exists['hdp-hadoop::jobtracker'] != true) {
     $dirs = hdp_array_from_comma_list($name)
-    hdp::directory_recursive_create { $dirs :
+    hdp::directory_recursive_create_ignore_failure { $dirs :
       owner => $hdp-hadoop::params::mapred_user,
       mode => '0755',
       service_state => $service_state,

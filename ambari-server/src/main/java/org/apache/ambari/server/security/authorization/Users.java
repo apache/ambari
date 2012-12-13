@@ -27,7 +27,8 @@ import org.apache.ambari.server.orm.dao.RoleDAO;
 import org.apache.ambari.server.orm.dao.UserDAO;
 import org.apache.ambari.server.orm.entities.RoleEntity;
 import org.apache.ambari.server.orm.entities.UserEntity;
-import org.apache.ambari.server.orm.entities.UserEntityPK;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import com.google.inject.Inject;
@@ -39,6 +40,8 @@ import com.google.inject.persist.Transactional;
  */
 @Singleton
 public class Users {
+
+  private final static Logger LOG = LoggerFactory.getLogger(Users.class);
 
   @Inject
   protected UserDAO userDAO;
@@ -60,13 +63,22 @@ public class Users {
 
     return users;
   }
-  
+
+  public User getUser(int userId) throws AmbariException {
+    UserEntity userEntity = userDAO.findByPK(userId);
+    if (userEntity != null) {
+      return new User(userEntity);
+    } else {
+      throw new AmbariException("User with id '" + userId + " not found");
+    }
+  }
+
   public User getAnyUser(String userName) {
     UserEntity userEntity = userDAO.findLdapUserByName(userName);
     if (null == userEntity) {
       userEntity = userDAO.findLocalUserByName(userName);
     }
-    
+
     return (null == userEntity) ? null : new User(userEntity);
   }
 
@@ -124,15 +136,18 @@ public class Users {
     if (roleEntity == null) {
       createRole(getUserRole());
     }
+    roleEntity = roleDAO.findByName(getUserRole());
 
-    userEntity.getRoleEntities().add(roleDAO.findByName(getUserRole()));
-
+    userEntity.getRoleEntities().add(roleEntity);
     userDAO.create(userEntity);
+
+    roleEntity.getUserEntities().add(userEntity);
+    roleDAO.merge(roleEntity);
   }
 
   @Transactional
   public synchronized void removeUser(User user) throws AmbariException {
-    UserEntity userEntity = userDAO.findByPK(getPK(user));
+    UserEntity userEntity = userDAO.findByPK(user.getUserId());
     if (userEntity != null) {
       userDAO.remove(userEntity);
     } else {
@@ -157,22 +172,27 @@ public class Users {
   }
 
   @Transactional
-  public synchronized void addRoleToUser(User user, String role) throws AmbariException {
-    UserEntityPK pk = getPK(user);
+  public synchronized void addRoleToUser(User user, String role)
+      throws AmbariException {
 
-    UserEntity userEntity = userDAO.findByPK(pk);
+    UserEntity userEntity = userDAO.findByPK(user.getUserId());
     if (userEntity == null) {
       throw new AmbariException("User " + user + " doesn't exist");
     }
 
     RoleEntity roleEntity = roleDAO.findByName(role);
     if (roleEntity == null) {
+      LOG.warn("Trying to add user to non-existent role"
+          + ", user=" + user.getUserName()
+          + ", role=" + role);
       throw new AmbariException("Role " + role + " doesn't exist");
     }
 
     if (!userEntity.getRoleEntities().contains(roleEntity)) {
       userEntity.getRoleEntities().add(roleEntity);
+      roleEntity.getUserEntities().add(userEntity);
       userDAO.merge(userEntity);
+      roleDAO.merge(roleEntity);
     } else {
       throw new AmbariException("User " + user + " already owns role " + role);
     }
@@ -180,9 +200,9 @@ public class Users {
   }
 
   @Transactional
-  public synchronized void removeRoleFromUser(User user, String role) throws AmbariException {
-    UserEntityPK pk = getPK(user);
-    UserEntity userEntity = userDAO.findByPK(pk);
+  public synchronized void removeRoleFromUser(User user, String role)
+      throws AmbariException {
+    UserEntity userEntity = userDAO.findByPK(user.getUserId());
     if (userEntity == null) {
       throw new AmbariException("User " + user + " doesn't exist");
     }
@@ -194,7 +214,9 @@ public class Users {
 
     if (userEntity.getRoleEntities().contains(roleEntity)) {
       userEntity.getRoleEntities().remove(roleEntity);
+      roleEntity.getUserEntities().remove(userEntity);
       userDAO.merge(userEntity);
+      roleDAO.merge(roleEntity);
     } else {
       throw new AmbariException("User " + user + " doesn't own role " + role);
     }
@@ -228,12 +250,5 @@ public class Users {
     if (roleDAO.findByName(getAdminRole()) == null) {
       createRole(getAdminRole());
     }
-  }
-
-  private UserEntityPK getPK(User user) {
-    UserEntityPK pk = new UserEntityPK();
-    pk.setUserName(user.getUserName());
-    pk.setLdapUser(user.isLdapUser());
-    return pk;
   }
 }

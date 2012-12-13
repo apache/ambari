@@ -17,7 +17,6 @@
  */
 package org.apache.ambari.server.controller.utilities;
 
-import org.apache.ambari.server.controller.internal.PropertyIdImpl;
 import org.apache.ambari.server.controller.predicate.AndPredicate;
 import org.apache.ambari.server.controller.predicate.BasePredicate;
 import org.apache.ambari.server.controller.predicate.EqualsPredicate;
@@ -27,7 +26,6 @@ import org.apache.ambari.server.controller.predicate.LessEqualsPredicate;
 import org.apache.ambari.server.controller.predicate.LessPredicate;
 import org.apache.ambari.server.controller.predicate.NotPredicate;
 import org.apache.ambari.server.controller.predicate.OrPredicate;
-import org.apache.ambari.server.controller.spi.PropertyId;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -37,7 +35,7 @@ import java.util.List;
  */
 public class PredicateBuilder {
 
-  private PropertyId propertyId;
+  private String propertyId;
   private List<BasePredicate> predicates = new LinkedList<BasePredicate>();
   private Operator operator = null;
   private final PredicateBuilder outer;
@@ -57,20 +55,7 @@ public class PredicateBuilder {
     Or
   }
 
-
-  public PredicateBuilderWithProperty property(String property, String category, boolean temporal) {
-    return property(new PropertyIdImpl(property, category, temporal));
-  }
-
-  public PredicateBuilderWithProperty property(String property, String category) {
-    return property(property, category, false);
-  }
-
-  public PredicateBuilderWithProperty property(String property) {
-    return property(property, null);
-  }
-
-  public PredicateBuilderWithProperty property(PropertyId id) {
+  public PredicateBuilderWithProperty property(String id) {
     checkDone();
     propertyId = id;
     return new PredicateBuilderWithProperty();

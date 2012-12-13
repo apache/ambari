@@ -18,32 +18,67 @@
 
 package org.apache.ambari.server.api.services;
 
-import java.util.HashMap;
-import java.util.Map;
+import com.google.inject.Inject;
+import com.google.inject.Singleton;
+import com.google.inject.persist.Transactional;
+import org.apache.ambari.server.orm.dao.KeyValueDAO;
+import org.apache.ambari.server.orm.entities.KeyValueEntity;
 
 import javax.ws.rs.WebApplicationException;
-
-import org.mortbay.jetty.Response;
-
-import com.google.inject.Singleton;
+import javax.ws.rs.core.Response;
+import java.util.*;
 
 @Singleton
 public class PersistKeyValueImpl {
-  Map<String, String> keyvalues = new HashMap<String, String>();
-  
-  public synchronized String getValue(String key) {
-    if (keyvalues.containsKey(key)) {
-      return keyvalues.get(key);
-    }
-    throw new WebApplicationException(Response.SC_NOT_FOUND);
+
+  @Inject
+  KeyValueDAO keyValueDAO;
+
+  public String generateKey() {
+    return UUID.randomUUID().toString();
   }
-  
+
+  public Collection<String> generateKeys(int number) {
+    List<String> keys = new ArrayList<String>(number);
+    for (int i = 0; i < number; i++) {
+      keys.add(generateKey());
+    }
+    return keys;
+  }
+
+  public synchronized String getValue(String key) {
+    KeyValueEntity keyValueEntity = keyValueDAO.findByKey(key);
+    if (keyValueEntity != null) {
+      return keyValueEntity.getValue();
+    }
+    throw new WebApplicationException(Response.Status.NOT_FOUND);
+  }
+
+  public synchronized String put(String value) {
+    String key = generateKey();
+    put(key, value);
+    return key;
+  }
+
+  @Transactional
   public synchronized void put(String key, String value) {
-    keyvalues.put(key, value);
+    KeyValueEntity keyValueEntity = keyValueDAO.findByKey(key);
+    if (keyValueEntity != null) {
+      keyValueEntity.setValue(value);
+      keyValueDAO.merge(keyValueEntity);
+    } else {
+      keyValueEntity = new KeyValueEntity();
+      keyValueEntity.setKey(key);
+      keyValueEntity.setValue(value);
+      keyValueDAO.create(keyValueEntity);
+    }
   }
   
   public synchronized Map<String, String> getAllKeyValues() {
-    Map<String, String> clone = new HashMap<String, String>(keyvalues);
-    return keyvalues;
+    Map<String, String> map = new HashMap<String, String>();
+    for (KeyValueEntity keyValueEntity : keyValueDAO.findAll()) {
+      map.put(keyValueEntity.getKey(), keyValueEntity.getValue());
+    }
+    return map;
   }
 }

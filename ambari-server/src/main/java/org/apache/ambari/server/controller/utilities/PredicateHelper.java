@@ -21,7 +21,6 @@ import org.apache.ambari.server.controller.predicate.BasePredicate;
 import org.apache.ambari.server.controller.predicate.PredicateVisitor;
 import org.apache.ambari.server.controller.predicate.PredicateVisitorAcceptor;
 import org.apache.ambari.server.controller.spi.Predicate;
-import org.apache.ambari.server.controller.spi.PropertyId;
 
 import java.util.Collections;
 import java.util.Set;
@@ -31,7 +30,7 @@ import java.util.Set;
  */
 public class PredicateHelper {
 
-  public static Set<PropertyId> getPropertyIds(Predicate predicate) {
+  public static Set<String> getPropertyIds(Predicate predicate) {
     if (predicate instanceof BasePredicate) {
       return ((BasePredicate) predicate).getPropertyIds();
     }

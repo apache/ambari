@@ -260,12 +260,6 @@ module.exports = Em.Route.extend({
     showDetails:function (router, event) {
       router.get('mainHostDetailsController').setBack(true);
       router.transitionTo('hosts.hostDetails.summary', event.context);
-    },
-    filterHosts:function (router, component) {
-      router.transitionTo('hosts');
-      Ember.run.next(function(){
-        router.get('mainHostController').filterByComponent(component.context);
-      })
     }
   }),
 

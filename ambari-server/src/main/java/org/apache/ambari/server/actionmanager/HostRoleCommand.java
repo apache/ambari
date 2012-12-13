@@ -17,20 +17,17 @@
  */
 package org.apache.ambari.server.actionmanager;
 
-import com.google.inject.Injector;
-import com.google.inject.assistedinject.Assisted;
-import com.google.inject.assistedinject.AssistedInject;
 import org.apache.ambari.server.Role;
-import org.apache.ambari.server.agent.ExecutionCommand;
+import org.apache.ambari.server.RoleCommand;
 import org.apache.ambari.server.orm.entities.ExecutionCommandEntity;
 import org.apache.ambari.server.orm.entities.HostRoleCommandEntity;
 import org.apache.ambari.server.state.ServiceComponentHostEvent;
-import org.apache.ambari.server.utils.StageUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.xml.bind.JAXBException;
-import java.io.IOException;
+import com.google.inject.Injector;
+import com.google.inject.assistedinject.Assisted;
+import com.google.inject.assistedinject.AssistedInject;
 
 /**
  * This class encapsulates the information for an task on a host for a
@@ -44,48 +41,49 @@ public class HostRoleCommand {
 
   private long taskId = -1;
   private long stageId = -1;
+  private long requestId = -1;
   private String hostName;
   private final Role role;
   private HostRoleStatus status = HostRoleStatus.PENDING;
   private String stdout = "";
   private String stderr = "";
   private int exitCode = 999; //Default is unknown
-  private final ServiceComponentHostEvent event;
+  private final ServiceComponentHostEventWrapper event;
   private long startTime = -1;
   private long lastAttemptTime = -1;
   private short attemptCount = 0;
+  private RoleCommand roleCommand;
 
-  private ExecutionCommand executionCommand;
+  private ExecutionCommandWrapper executionCommandWrapper;
 
   public HostRoleCommand(String host, Role role,
-                         ServiceComponentHostEvent event) {
+      ServiceComponentHostEvent event, RoleCommand command) {
     this.hostName = host;
     this.role = role;
-    this.event = event;
+    this.event = new ServiceComponentHostEventWrapper(event);
+    this.roleCommand = command;
   }
 
   @AssistedInject
   public HostRoleCommand(@Assisted HostRoleCommandEntity hostRoleCommandEntity, Injector injector) {
     taskId = hostRoleCommandEntity.getTaskId();
     stageId = hostRoleCommandEntity.getStage().getStageId();
+    requestId = hostRoleCommandEntity.getStage().getRequestId();
     this.hostName = hostRoleCommandEntity.getHostName();
     role = hostRoleCommandEntity.getRole();
     status = hostRoleCommandEntity.getStatus();
-    stdout = hostRoleCommandEntity.getStdOut();
-    stderr = hostRoleCommandEntity.getStdError();
+    stdout = new String(hostRoleCommandEntity.getStdOut());
+    stderr = new String(hostRoleCommandEntity.getStdError());
     exitCode = hostRoleCommandEntity.getExitcode();
     startTime = hostRoleCommandEntity.getStartTime();
     lastAttemptTime = hostRoleCommandEntity.getLastAttemptTime();
     attemptCount = hostRoleCommandEntity.getAttemptCount();
-
-    try {
-      log.info(hostRoleCommandEntity.getEvent());
-      event = StageUtils.fromJson(hostRoleCommandEntity.getEvent(), ServiceComponentHostEvent.class);
-      executionCommand = StageUtils.stringToExecutionCommand(hostRoleCommandEntity.getExecutionCommand().getCommand());
-    } catch (IOException e) {
-      throw new RuntimeException("Unable to parse JSON string", e);
-    }
-
+    roleCommand = hostRoleCommandEntity.getRoleCommand();
+    event = new ServiceComponentHostEventWrapper(hostRoleCommandEntity.getEvent());
+    executionCommandWrapper = new ExecutionCommandWrapper(new String(
+        hostRoleCommandEntity
+            .getExecutionCommand().getCommand()
+    ));
   }
 
   HostRoleCommandEntity constructNewPersistenceEntity() {
@@ -93,38 +91,27 @@ public class HostRoleCommand {
     hostRoleCommandEntity.setHostName(hostName);
     hostRoleCommandEntity.setRole(role);
     hostRoleCommandEntity.setStatus(status);
-    hostRoleCommandEntity.setStdError(stderr);
+    hostRoleCommandEntity.setStdError(stderr.getBytes());
     hostRoleCommandEntity.setExitcode(exitCode);
-    hostRoleCommandEntity.setStdOut(stdout);
+    hostRoleCommandEntity.setStdOut(stdout.getBytes());
     hostRoleCommandEntity.setStartTime(startTime);
     hostRoleCommandEntity.setLastAttemptTime(lastAttemptTime);
     hostRoleCommandEntity.setAttemptCount(attemptCount);
+    hostRoleCommandEntity.setRoleCommand(roleCommand);
 
-    try {
-      hostRoleCommandEntity.setEvent(StageUtils.jaxbToString(event));
-      ExecutionCommandEntity executionCommandEntity = new ExecutionCommandEntity();
-      executionCommandEntity.setCommand(StageUtils.jaxbToString(executionCommand));
-      executionCommandEntity.setHostRoleCommand(hostRoleCommandEntity);
-      hostRoleCommandEntity.setExecutionCommand(executionCommandEntity);
-    } catch (JAXBException e) {
-      throw new RuntimeException(e);
-    } catch (IOException e) {
-      throw new RuntimeException(e);
-    }
+    hostRoleCommandEntity.setEvent(event.getEventJson());
+    ExecutionCommandEntity executionCommandEntity = new ExecutionCommandEntity();
+    executionCommandEntity.setCommand(executionCommandWrapper.getJson().getBytes());
+    executionCommandEntity.setHostRoleCommand(hostRoleCommandEntity);
+    hostRoleCommandEntity.setExecutionCommand(executionCommandEntity);
 
     return hostRoleCommandEntity;
   }
 
-  ExecutionCommandEntity constructExecutionCommandEntity(){
-    try {
-      ExecutionCommandEntity executionCommandEntity = new ExecutionCommandEntity();
-      executionCommandEntity.setCommand(StageUtils.jaxbToString(executionCommand));
-      return executionCommandEntity;
-    } catch (JAXBException e) {
-      throw new RuntimeException(e);
-    } catch (IOException e) {
-      throw new RuntimeException(e);
-    }
+  ExecutionCommandEntity constructExecutionCommandEntity() {
+    ExecutionCommandEntity executionCommandEntity = new ExecutionCommandEntity();
+    executionCommandEntity.setCommand(executionCommandWrapper.getJson().getBytes());
+    return executionCommandEntity;
   }
 
 
@@ -133,8 +120,13 @@ public class HostRoleCommand {
   }
 
   public void setTaskId(long taskId) {
-      this.taskId = taskId;
-      executionCommand.setTaskId(taskId);
+    if (this.taskId != -1) {
+      throw new RuntimeException("Attempt to set taskId again, not allowed");
+    }
+    this.taskId = taskId;
+    executionCommandWrapper.getExecutionCommand().setTaskId(taskId);
+    //Need to invalidate json because taskId is updated.
+    executionCommandWrapper.invalidateJson();
   }
 
   public String getHostName() {
@@ -149,7 +141,7 @@ public class HostRoleCommand {
     return status;
   }
 
-  public ServiceComponentHostEvent getEvent() {
+  public ServiceComponentHostEventWrapper getEvent() {
     return event;
   }
 
@@ -205,25 +197,34 @@ public class HostRoleCommand {
     this.attemptCount++;
   }
 
-  public ExecutionCommand getExecutionCommand() {
-    return executionCommand;
+  public ExecutionCommandWrapper getExecutionCommandWrapper() {
+    return executionCommandWrapper;
   }
 
-  public void setExecutionCommand(ExecutionCommand executionCommand) {
-    this.executionCommand = executionCommand;
+  public void setExecutionCommandWrapper(ExecutionCommandWrapper executionCommandWrapper) {
+    this.executionCommandWrapper = executionCommandWrapper;
+  }
+
+  public RoleCommand getRoleCommand() {
+    return roleCommand;
+  }
+
+  public void setRoleCommand(RoleCommand roleCommand) {
+    this.roleCommand = roleCommand;
   }
 
   public long getStageId() {
     return stageId;
   }
 
-  public void setStageId(long stageId) {
-    this.stageId = stageId;
+  public long getRequestId() {
+    return requestId;
   }
 
   @Override
   public int hashCode() {
-    return role.hashCode();
+    return (hostName.toString() + role.toString() + roleCommand.toString())
+        .hashCode();
   }
 
   @Override
@@ -232,23 +233,24 @@ public class HostRoleCommand {
       return false;
     }
     HostRoleCommand o = (HostRoleCommand) other;
-    return this.role.equals(o.role);
+    return (this.role.equals(o.role) && this.hostName.equals(o.hostName) && this.roleCommand
+        .equals(o.roleCommand));
   }
 
   @Override
   public String toString() {
     StringBuilder builder = new StringBuilder();
     builder.append("HostRoleCommand State:\n");
-    builder.append("  TaskId: " + taskId + "\n");
-    builder.append("  Role: " + role + "\n");
-    builder.append("  Status: " + status + "\n");
-    builder.append("  Event: " + event + "\n");
-    builder.append("  stdout: " + stdout + "\n");
-    builder.append("  stderr: " + stderr + "\n");
-    builder.append("  exitcode: " + exitCode + "\n");
-    builder.append("  Start time: " + startTime + "\n");
-    builder.append("  Last attempt time: " + lastAttemptTime + "\n");
-    builder.append("  attempt count: " + attemptCount + "\n");
+    builder.append("  TaskId: ").append(taskId).append("\n");
+    builder.append("  Role: ").append(role).append("\n");
+    builder.append("  Status: ").append(status).append("\n");
+    builder.append("  Event: ").append(event).append("\n");
+    builder.append("  stdout: ").append(stdout).append("\n");
+    builder.append("  stderr: ").append(stderr).append("\n");
+    builder.append("  exitcode: ").append(exitCode).append("\n");
+    builder.append("  Start time: ").append(startTime).append("\n");
+    builder.append("  Last attempt time: ").append(lastAttemptTime).append("\n");
+    builder.append("  attempt count: ").append(attemptCount).append("\n");
     return builder.toString();
   }
 }

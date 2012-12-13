@@ -28,5 +28,8 @@ export HBASE_HOME=${HBASE_HOME:-<%=scope.function_hdp_template_var("hbase_home")
 #Set the path to where bin/hive is available
 export HIVE_HOME=${HIVE_HOME:-<%=scope.function_hdp_template_var("hive_home")%>}
 
+# add libthrift in hive to sqoop class path first so hive imports work
+export SQOOP_USER_CLASSPATH="`ls ${HIVE_HOME}/lib/libthrift-*.jar 2> /dev/null`:${SQOOP_USER_CLASSPATH}"
+
 #Set the path for where zookeper config dir is
 export ZOOCFGDIR=${ZOOCFGDIR:-<%=scope.function_hdp_template_var("zoo_conf_dir")%>}

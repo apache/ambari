@@ -17,8 +17,6 @@
  */
 package org.apache.ambari.server.controller.predicate;
 
-import org.apache.ambari.server.controller.spi.PropertyId;
-
 import java.util.Set;
 
 /**
@@ -37,7 +35,7 @@ public abstract class UnaryPredicate implements BasePredicate {
   }
 
   @Override
-  public Set<PropertyId> getPropertyIds() {
+  public Set<String> getPropertyIds() {
     return predicate.getPropertyIds();
   }
 

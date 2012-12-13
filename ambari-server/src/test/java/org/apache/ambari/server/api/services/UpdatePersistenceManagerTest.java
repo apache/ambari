@@ -20,6 +20,7 @@ package org.apache.ambari.server.api.services;
 
 
 import org.apache.ambari.server.api.resources.ResourceDefinition;
+import org.apache.ambari.server.api.resources.ResourceInstance;
 import org.apache.ambari.server.controller.internal.RequestStatusImpl;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
 import org.apache.ambari.server.api.query.Query;
@@ -42,40 +43,42 @@ import static org.easymock.EasyMock.*;
 public class UpdatePersistenceManagerTest {
   @Test
   public void testPersist() throws Exception {
-    ResourceDefinition resource = createMock(ResourceDefinition.class);
+    ResourceInstance resource = createMock(ResourceInstance.class);
+    ResourceDefinition resourceDefinition = createMock(ResourceDefinition.class);
     ClusterController controller = createMock(ClusterController.class);
     Schema schema = createMock(Schema.class);
     Request serverRequest = createStrictMock(Request.class);
     Query query = createMock(Query.class);
     Predicate predicate = createMock(Predicate.class);
 
-    Set<Map<PropertyId, Object>> setProperties = new HashSet<Map<PropertyId, Object>>();
-    Map<PropertyId, Object> mapProperties = new HashMap<PropertyId, Object>();
-    mapProperties.put(PropertyHelper.getPropertyId("bar", "foo"), "value");
+    Set<Map<String, Object>> setProperties = new HashSet<Map<String, Object>>();
+    Map<String, Object> mapProperties = new HashMap<String, Object>();
+    mapProperties.put(PropertyHelper.getPropertyId("foo", "bar"), "value");
     setProperties.add(mapProperties);
 
     //expectations
-    expect(resource.getType()).andReturn(Resource.Type.Component);
+    expect(resource.getResourceDefinition()).andReturn(resourceDefinition);
+    expect(resourceDefinition.getType()).andReturn(Resource.Type.Component);
     expect(resource.getQuery()).andReturn(query);
-    expect(query.getInternalPredicate()).andReturn(predicate);
+    expect(query.getPredicate()).andReturn(predicate);
 
     expect(controller.updateResources(Resource.Type.Component, serverRequest, predicate)).andReturn(new RequestStatusImpl(null));
 
-    replay(resource, controller, schema, serverRequest, query, predicate);
+    replay(resource, resourceDefinition, controller, schema, serverRequest, query, predicate);
 
     new TestUpdatePersistenceManager(controller, setProperties, serverRequest).persist(resource, setProperties);
 
-    verify(resource, controller, schema, serverRequest, query, predicate);
+    verify(resource, resourceDefinition, controller, schema, serverRequest, query, predicate);
   }
 
   private class TestUpdatePersistenceManager extends UpdatePersistenceManager {
 
     private ClusterController m_controller;
     private Request m_request;
-    private Set<Map<PropertyId, Object>> m_setProperties;
+    private Set<Map<String, Object>> m_setProperties;
 
     private TestUpdatePersistenceManager(ClusterController controller,
-                                         Set<Map<PropertyId, Object>> setProperties,
+                                         Set<Map<String, Object>> setProperties,
                                          Request controllerRequest) {
       m_controller = controller;
       m_setProperties = setProperties;
@@ -88,7 +91,7 @@ public class UpdatePersistenceManagerTest {
     }
 
     @Override
-    protected Request createControllerRequest(Set<Map<PropertyId, Object>> setProperties) {
+    protected Request createControllerRequest(Set<Map<String, Object>> setProperties) {
       assertEquals(1, setProperties.size());
       assertEquals(m_setProperties, setProperties);
       return m_request;

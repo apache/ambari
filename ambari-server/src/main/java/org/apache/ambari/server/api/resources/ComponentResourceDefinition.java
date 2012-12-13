@@ -21,7 +21,6 @@ package org.apache.ambari.server.api.resources;
 
 import org.apache.ambari.server.controller.utilities.ClusterControllerHelper;
 import org.apache.ambari.server.api.services.Request;
-import org.apache.ambari.server.controller.spi.PropertyId;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.spi.Schema;
 import org.apache.ambari.server.api.util.TreeNode;
@@ -34,23 +33,10 @@ import java.util.*;
 public class ComponentResourceDefinition extends BaseResourceDefinition {
 
   /**
-   * value of clusterId foreign key
-   */
-  private String m_clusterId;
-
-  /**
    * Constructor.
-   *
-   * @param id        value of component id
-   * @param clusterId value of cluster id
-   * @param serviceId value of service id
    */
-  public ComponentResourceDefinition(String id, String clusterId, String serviceId) {
-    super(Resource.Type.Component, id);
-    m_clusterId = clusterId;
-
-    setResourceId(Resource.Type.Cluster, m_clusterId);
-    setResourceId(Resource.Type.Service, serviceId);
+  public ComponentResourceDefinition() {
+    super(Resource.Type.Component);
   }
 
   @Override
@@ -65,18 +51,9 @@ public class ComponentResourceDefinition extends BaseResourceDefinition {
 
 
   @Override
-  public Map<String, ResourceDefinition> getSubResources() {
-    Map<String, ResourceDefinition> mapChildren = new HashMap<String, ResourceDefinition>();
-
-    // for host_component collection need host id property
-    HostComponentResourceDefinition hostComponentResource = new HostComponentResourceDefinition(
-        getId(), m_clusterId, null);
-    PropertyId hostIdProperty = getClusterController().getSchema(
-        Resource.Type.HostComponent).getKeyPropertyId(Resource.Type.Host);
-    hostComponentResource.getQuery().addProperty(hostIdProperty);
-    mapChildren.put(hostComponentResource.getPluralName(), hostComponentResource);
-    return mapChildren;
-
+  public Set<SubResourceDefinition> getSubResourceDefinitions() {
+    return Collections.singleton(new SubResourceDefinition(
+        Resource.Type.HostComponent, Collections.singleton(Resource.Type.Host), true));
   }
 
   @Override
@@ -85,15 +62,6 @@ public class ComponentResourceDefinition extends BaseResourceDefinition {
     listProcessors.add(new ComponentHrefProcessor());
 
     return listProcessors;
-  }
-
-  @Override
-  public void setParentIds(Map<Resource.Type, String> mapIds) {
-    String id = mapIds.remove(Resource.Type.HostComponent);
-    if (id != null) {
-      setId(id);
-    }
-    super.setParentIds(mapIds);
   }
 
   /**

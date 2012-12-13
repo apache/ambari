@@ -28,21 +28,19 @@ import java.util.Set;
 
 import javax.persistence.RollbackException;
 
+import com.google.gson.Gson;
+import com.google.inject.persist.Transactional;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.ClusterNotFoundException;
 import org.apache.ambari.server.HostNotFoundException;
 import org.apache.ambari.server.agent.DiskInfo;
+import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.orm.dao.ClusterDAO;
 import org.apache.ambari.server.orm.dao.HostDAO;
 import org.apache.ambari.server.orm.entities.ClusterEntity;
 import org.apache.ambari.server.orm.entities.HostEntity;
-import org.apache.ambari.server.state.AgentVersion;
-import org.apache.ambari.server.state.Cluster;
-import org.apache.ambari.server.state.Clusters;
-import org.apache.ambari.server.state.Host;
-import org.apache.ambari.server.state.HostHealthStatus;
+import org.apache.ambari.server.state.*;
 import org.apache.ambari.server.state.HostHealthStatus.HealthStatus;
-import org.apache.ambari.server.state.HostState;
 import org.apache.ambari.server.state.host.HostFactory;
 import org.apache.ambari.server.state.host.HostImpl;
 import org.slf4j.Logger;
@@ -64,21 +62,21 @@ public class ClustersImpl implements Clusters {
   private Map<String, Set<Cluster>> hostClusterMap;
   private Map<String, Set<Host>> clusterHostMap;
 
-  private Injector injector;
-  private ClusterDAO clusterDAO;
-  private HostDAO hostDAO;
-  private ClusterFactory clusterFactory;
-  private HostFactory hostFactory;
+  @Inject
+  ClusterDAO clusterDAO;
+  @Inject
+  HostDAO hostDAO;
+  @Inject
+  ClusterFactory clusterFactory;
+  @Inject
+  HostFactory hostFactory;
+  @Inject
+  AmbariMetaInfo ambariMetaInfo;
+  @Inject
+  Gson gson;
 
   @Inject
-  public ClustersImpl(Injector injector) {
-    this.injector = injector;
-
-    this.clusterDAO = injector.getInstance(ClusterDAO.class);
-    this.hostDAO = injector.getInstance(HostDAO.class);
-    this.clusterFactory = injector.getInstance(ClusterFactory.class);
-    this.hostFactory = injector.getInstance(HostFactory.class);
-
+  public ClustersImpl() {
     clusters = new HashMap<String, Cluster>();
     clustersById = new HashMap<Long, Cluster>();
     hosts = new HashMap<String, Host>();
@@ -99,6 +97,7 @@ public class ClustersImpl implements Clusters {
     // add cluster id -> cluster mapping into clustersById
     ClusterEntity clusterEntity = new ClusterEntity();
     clusterEntity.setClusterName(clusterName);
+    clusterEntity.setDesiredStackVersion(gson.toJson(new StackId()));
     try {
       clusterDAO.create(clusterEntity);
       clusterEntity = clusterDAO.merge(clusterEntity);
@@ -114,12 +113,17 @@ public class ClustersImpl implements Clusters {
   }
 
   @Override
+  @Transactional
   public synchronized Cluster getCluster(String clusterName)
       throws AmbariException {
     if (!clusters.containsKey(clusterName)) {
       ClusterEntity clusterEntity = clusterDAO.findByName(clusterName);
       if (clusterEntity != null) {
-        return getClusterById(clusterEntity.getClusterId());
+        Cluster cl = getClusterById(clusterEntity.getClusterId());
+        clustersById.put(cl.getClusterId(), cl);
+        clusters.put(cl.getClusterName(), cl);
+        if (!clusterHostMap.containsKey(clusterEntity.getClusterName()))
+          clusterHostMap.put(clusterEntity.getClusterName(), new HashSet<Host>());
       } else {
         throw new ClusterNotFoundException(clusterName);
       }
@@ -128,6 +132,7 @@ public class ClustersImpl implements Clusters {
   }
 
   @Override
+  @Transactional
   public synchronized Cluster getClusterById(long id) throws AmbariException {
     if (!clustersById.containsKey(id)) {
       ClusterEntity clusterEntity = clusterDAO.findById(id);
@@ -145,6 +150,7 @@ public class ClustersImpl implements Clusters {
   }
 
   @Override
+  @Transactional
   public synchronized List<Host> getHosts() {
     List<Host> hostList = new ArrayList<Host>(hosts.size());
     hostList.addAll(hosts.values());
@@ -177,12 +183,16 @@ public class ClustersImpl implements Clusters {
   }
 
   @Override
+  @Transactional
   public synchronized Host getHost(String hostname) throws AmbariException {
     if (!hosts.containsKey(hostname)) {
       HostEntity hostEntity = hostDAO.findByName(hostname);
       if (hostEntity != null) {
         Host host = hostFactory.create(hostEntity, true);
         Set<Cluster> cSet = new HashSet<Cluster>();
+        hosts.put(hostname, host);
+        hostClusterMap.put(hostname, cSet);
+
         for (ClusterEntity clusterEntity : hostEntity.getClusterEntities()) {
           if (clustersById.containsKey(clusterEntity.getClusterId())) {
             cSet.add(clustersById.get(clusterEntity.getClusterId()));
@@ -190,9 +200,6 @@ public class ClustersImpl implements Clusters {
             cSet.add(getClusterById(clusterEntity.getClusterId()));
           }
         }
-
-        hosts.put(hostname, host);
-        hostClusterMap.put(hostname, cSet);
       } else {
         throw new HostNotFoundException(hostname);
       }
@@ -226,9 +233,19 @@ public class ClustersImpl implements Clusters {
     }
   }
 
+  private boolean isOsSupportedByClusterStack(Cluster c, Host h) {
+    Map<String, List<RepositoryInfo>> repos =
+        ambariMetaInfo.getRepository(c.getDesiredStackVersion().getStackName(),
+            c.getDesiredStackVersion().getStackVersion());
+    if (repos == null || repos.isEmpty()) {
+      return false;
+    }
+    return repos.containsKey(h.getOsType());
+  }
+
   @Override
   public synchronized void mapHostToCluster(String hostname,
-                                            String clusterName) throws AmbariException {
+      String clusterName) throws AmbariException {
     Cluster cluster = getCluster(clusterName);
     HostImpl host = (HostImpl) getHost(hostname);
 
@@ -236,12 +253,31 @@ public class ClustersImpl implements Clusters {
       throw new HostNotFoundException(hostname);
     }
 
-    host.addToCluster(cluster);
+    for (Cluster c : hostClusterMap.get(hostname)) {
+      if (c.getClusterName().equals(clusterName)) {
+        return;
+      }
+    }
+
+    if (!isOsSupportedByClusterStack(cluster, host)) {
+      String message = "Trying to map host to cluster where stack does not"
+          + " support host's os type"
+          + ", clusterName=" + clusterName
+          + ", clusterStackId=" + cluster.getDesiredStackVersion().getStackId()
+          + ", hostname=" + hostname
+          + ", hostOsType=" + host.getOsType();
+      LOG.warn(message);
+      throw new AmbariException(message);
+    }
+
+    mapHostClusterEntities(hostname, cluster.getClusterId());
 
     hostClusterMap.get(hostname).add(cluster);
-    
     clusterHostMap.get(clusterName).add(host);
-    
+
+    cluster.refresh();
+    host.refresh();
+
     if (LOG.isDebugEnabled()) {
       LOG.debug("Mapping a host to a cluster"
           + ", clusterName=" + clusterName
@@ -250,7 +286,20 @@ public class ClustersImpl implements Clusters {
     }
   }
 
+  @Transactional
+  void mapHostClusterEntities(String hostName, Long clusterId) {
+    HostEntity hostEntity = hostDAO.findByName(hostName);
+    ClusterEntity clusterEntity = clusterDAO.findById(clusterId);
+
+    hostEntity.getClusterEntities().add(clusterEntity);
+    clusterEntity.getHostEntities().add(hostEntity);
+
+    clusterDAO.merge(clusterEntity);
+    hostDAO.merge(hostEntity);
+  }
+
   @Override
+  @Transactional
   public synchronized Map<String, Cluster> getClusters() {
     for (ClusterEntity clusterEntity : clusterDAO.findAll()) {
       try {
@@ -294,21 +343,23 @@ public class ClustersImpl implements Clusters {
   }
 
   @Override
+  @Transactional
   public Map<String, Host> getHostsForCluster(String clusterName)
       throws AmbariException {
-    
+
     getCluster(clusterName);
-    
+
     Map<String, Host> hosts = new HashMap<String, Host>();
-    
+
     for (Host h : clusterHostMap.get(clusterName)) {
       hosts.put(h.getHostName(), h);
     }
-    
+
     return hosts;
   }
 
   @Override
+  @Transactional
   public synchronized void deleteCluster(String clusterName)
       throws AmbariException {
     Cluster cluster = getCluster(clusterName);

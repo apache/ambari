@@ -103,50 +103,6 @@ public class ClusterServiceEntity {
     this.clusterEntity = clusterEntity;
   }
 
-  private Collection<HostComponentMappingEntity> hostComponentMappingEntities;
-
-  @OneToMany(mappedBy = "clusterServiceEntity")
-  public Collection<HostComponentMappingEntity> getHostComponentMappingEntities() {
-    return hostComponentMappingEntities;
-  }
-
-  public void setHostComponentMappingEntities(Collection<HostComponentMappingEntity> hostComponentMappingEntities) {
-    this.hostComponentMappingEntities = hostComponentMappingEntities;
-  }
-
-  private Collection<ServiceComponentConfigEntity> serviceComponentConfigEntities;
-
-  @OneToMany(mappedBy = "clusterServiceEntity")
-  public Collection<ServiceComponentConfigEntity> getServiceComponentConfigEntities() {
-    return serviceComponentConfigEntities;
-  }
-
-  public void setServiceComponentConfigEntities(Collection<ServiceComponentConfigEntity> serviceComponentConfigEntities) {
-    this.serviceComponentConfigEntities = serviceComponentConfigEntities;
-  }
-
-  private Collection<ServiceComponentHostConfigEntity> serviceComponentHostConfigEntities;
-
-  @OneToMany(mappedBy = "clusterServiceEntity")
-  public Collection<ServiceComponentHostConfigEntity> getServiceComponentHostConfigEntities() {
-    return serviceComponentHostConfigEntities;
-  }
-
-  public void setServiceComponentHostConfigEntities(Collection<ServiceComponentHostConfigEntity> serviceComponentHostConfigEntities) {
-    this.serviceComponentHostConfigEntities = serviceComponentHostConfigEntities;
-  }
-
-  private Collection<ServiceConfigEntity> serviceConfigEntities;
-
-  @OneToMany(mappedBy = "clusterServiceEntity")
-  public Collection<ServiceConfigEntity> getServiceConfigEntities() {
-    return serviceConfigEntities;
-  }
-
-  public void setServiceConfigEntities(Collection<ServiceConfigEntity> serviceConfigEntities) {
-    this.serviceConfigEntities = serviceConfigEntities;
-  }
-
   private ServiceDesiredStateEntity serviceDesiredStateEntity;
 
   @OneToOne(mappedBy = "clusterServiceEntity")
@@ -168,17 +124,17 @@ public class ClusterServiceEntity {
   public void setServiceComponentDesiredStateEntities(Collection<ServiceComponentDesiredStateEntity> serviceComponentDesiredStateEntities) {
     this.serviceComponentDesiredStateEntities = serviceComponentDesiredStateEntities;
   }
-  
+
   private Collection<ServiceConfigMappingEntity> serviceConfigMappings;
-  @OneToMany(mappedBy = "serviceConfigEntity")
+  @OneToMany(mappedBy = "serviceEntity", cascade = CascadeType.ALL)
   public Collection<ServiceConfigMappingEntity> getServiceConfigMappings() {
     return serviceConfigMappings;
   }
-  
+
   public void setServiceConfigMappings(Collection<ServiceConfigMappingEntity> entities) {
     serviceConfigMappings = entities;
   }
-  
-  
-  
+
+
+
 }

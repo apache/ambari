@@ -37,6 +37,9 @@ public class RoleCommandOrder {
     RoleCommand cmd;
 
     public RoleCommandPair(Role _role, RoleCommand _cmd) {
+      if (_role == null || _cmd == null) {
+        throw new IllegalArgumentException("role = "+_role+", cmd = "+_cmd);
+      }
       this.role = _role;
       this.cmd = _cmd;
     }
@@ -95,7 +98,15 @@ public class RoleCommandOrder {
         RoleCommand.START);
     addDependency(Role.OOZIE_SERVER, RoleCommand.START, Role.TASKTRACKER,
         RoleCommand.START);
-    addDependency(Role.TEMPLETON_SERVER, RoleCommand.START, Role.TASKTRACKER,
+    addDependency(Role.HIVE_SERVER, RoleCommand.START, Role.TASKTRACKER,
+        RoleCommand.START);
+    addDependency(Role.HIVE_SERVER, RoleCommand.START, Role.DATANODE,
+        RoleCommand.START);
+    addDependency(Role.WEBHCAT_SERVER, RoleCommand.START, Role.TASKTRACKER,
+        RoleCommand.START);
+    addDependency(Role.WEBHCAT_SERVER, RoleCommand.START, Role.DATANODE,
+        RoleCommand.START);
+    addDependency(Role.WEBHCAT_SERVER, RoleCommand.START, Role.HIVE_SERVER,
         RoleCommand.START);
 
     // Service checks
@@ -109,14 +120,16 @@ public class RoleCommandOrder {
         Role.TASKTRACKER, RoleCommand.START);
     addDependency(Role.OOZIE_SERVICE_CHECK, RoleCommand.EXECUTE,
         Role.OOZIE_SERVER, RoleCommand.START);
-    addDependency(Role.TEMPLETON_SERVICE_CHECK, RoleCommand.EXECUTE,
-        Role.TEMPLETON_SERVER, RoleCommand.START);
+    addDependency(Role.WEBHCAT_SERVICE_CHECK, RoleCommand.EXECUTE,
+        Role.WEBHCAT_SERVER, RoleCommand.START);
     addDependency(Role.HBASE_SERVICE_CHECK, RoleCommand.EXECUTE,
         Role.HBASE_MASTER, RoleCommand.START);
     addDependency(Role.HBASE_SERVICE_CHECK, RoleCommand.EXECUTE,
         Role.HBASE_REGIONSERVER, RoleCommand.START);
     addDependency(Role.HIVE_SERVICE_CHECK, RoleCommand.EXECUTE,
         Role.HIVE_SERVER, RoleCommand.START);
+    addDependency(Role.HIVE_SERVICE_CHECK, RoleCommand.EXECUTE,
+        Role.HIVE_METASTORE, RoleCommand.START);
     addDependency(Role.HCAT_SERVICE_CHECK, RoleCommand.EXECUTE,
         Role.HIVE_SERVER, RoleCommand.START);
     addDependency(Role.PIG_SERVICE_CHECK, RoleCommand.EXECUTE,

@@ -18,6 +18,9 @@
 
 package org.apache.ambari.server.state;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import org.apache.ambari.server.state.fsm.event.AbstractEvent;
 import org.apache.ambari.server.state.svccomphost.*;
 import org.codehaus.jackson.annotate.JsonCreator;
@@ -44,12 +47,43 @@ public abstract class ServiceComponentHostEvent
    */
   private final long opTimestamp;
 
+  // FIXME hack alert!!!
+  // This belongs to start event only
+  private final Map<String, String> configs;
+
+  // FIXME hack alert
+  // this belongs to install event only
+  private final String stackId;
+
+  public ServiceComponentHostEvent(ServiceComponentHostEventType type,
+      String serviceComponentName, String hostName, long opTimestamp,
+      Map<String, String> configs) {
+    this(type, serviceComponentName, hostName, opTimestamp,
+        configs, "");
+  }
+
   public ServiceComponentHostEvent(ServiceComponentHostEventType type,
       String serviceComponentName, String hostName, long opTimestamp) {
+    this(type, serviceComponentName, hostName, opTimestamp,
+        new HashMap<String, String>(), "");
+  }
+
+  public ServiceComponentHostEvent(ServiceComponentHostEventType type,
+      String serviceComponentName, String hostName, long opTimestamp,
+      String stackId) {
+    this(type, serviceComponentName, hostName, opTimestamp,
+        new HashMap<String, String>(), stackId);
+  }
+
+  public ServiceComponentHostEvent(ServiceComponentHostEventType type,
+      String serviceComponentName, String hostName, long opTimestamp,
+      Map<String, String> configs, String stackId) {
     super(type);
     this.serviceComponentName = serviceComponentName;
     this.hostName = hostName;
     this.opTimestamp = opTimestamp;
+    this.configs = configs;
+    this.stackId = stackId;
   }
 
   /**
@@ -76,10 +110,13 @@ public abstract class ServiceComponentHostEvent
   @JsonCreator
   public static ServiceComponentHostEvent create(@JsonProperty("type") ServiceComponentHostEventType type,
                                                  @JsonProperty("serviceComponentName") String serviceComponentName,
-                                                 @JsonProperty("hostName") String hostName, @JsonProperty("opTimestamp") long opTimestamp) {
+                                                 @JsonProperty("hostName") String hostName,
+                                                 @JsonProperty("opTimestamp") long opTimestamp,
+                                                 @JsonProperty("configs") Map<String, String> configs,
+                                                 @JsonProperty("stackId") String stackId) {
     switch (type) {
       case HOST_SVCCOMP_INSTALL:
-        return new ServiceComponentHostInstallEvent(serviceComponentName, hostName, opTimestamp);
+        return new ServiceComponentHostInstallEvent(serviceComponentName, hostName, opTimestamp, stackId);
       case HOST_SVCCOMP_OP_FAILED:
         return new ServiceComponentHostOpFailedEvent(serviceComponentName, hostName, opTimestamp);
       case HOST_SVCCOMP_OP_IN_PROGRESS:
@@ -89,7 +126,7 @@ public abstract class ServiceComponentHostEvent
       case HOST_SVCCOMP_OP_SUCCEEDED:
         return new ServiceComponentHostOpSucceededEvent(serviceComponentName, hostName, opTimestamp);
       case HOST_SVCCOMP_START:
-        return new ServiceComponentHostStartEvent(serviceComponentName, hostName, opTimestamp);
+        return new ServiceComponentHostStartEvent(serviceComponentName, hostName, opTimestamp, configs);
       case HOST_SVCCOMP_STOP:
         return new ServiceComponentHostStopEvent(serviceComponentName, hostName, opTimestamp);
       case HOST_SVCCOMP_UNINSTALL:
@@ -98,6 +135,20 @@ public abstract class ServiceComponentHostEvent
         return new ServiceComponentHostWipeoutEvent(serviceComponentName, hostName, opTimestamp);
     }
     return null;
+  }
+
+  /**
+   * @return the configs
+   */
+  public Map<String, String> getConfigs() {
+    return configs;
+  }
+
+  /**
+   * @return the stackId
+   */
+  public String getStackId() {
+    return stackId;
   }
 
 }

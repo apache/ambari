@@ -19,12 +19,10 @@
 package org.apache.ambari.server.api.resources;
 
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.Collections;
+import java.util.Set;
 
 import org.apache.ambari.server.controller.spi.Resource;
-import org.apache.ambari.server.controller.utilities.PropertyHelper;
-
 
 /**
  * Host resource definition.
@@ -32,38 +30,10 @@ import org.apache.ambari.server.controller.utilities.PropertyHelper;
 public class HostResourceDefinition extends BaseResourceDefinition {
 
   /**
-   * value of cluster id foreign key
-   */
-  private String m_clusterId;
-
-  /**
-   * Whether the host resource is associated with a cluster.
-   */
-  private boolean m_attached;
-
-  /**
    * Constructor.
-   *
-   * @param id        host id value
-   * @param clusterId cluster id value
-   * @param attached
    */
-  public HostResourceDefinition(String id, String clusterId, boolean attached) {
-    super(Resource.Type.Host, id);
-    m_attached = attached;
-    m_clusterId = clusterId;
-    setResourceId(Resource.Type.Cluster, m_clusterId);
-    
-    if (null != clusterId) {
-      getQuery().addProperty(PropertyHelper.getPropertyId("cluster_name", "Hosts"));      
-    }
-    
-    if (null == id) {
-      getQuery().addProperty(getClusterController().getSchema(
-          Resource.Type.Host).getKeyPropertyId(Resource.Type.Host));
-    } else {
-      getQuery().addProperty(null, "*", null);
-    }
+  public HostResourceDefinition() {
+    super(Resource.Type.Host);
   }
 
   @Override
@@ -77,17 +47,7 @@ public class HostResourceDefinition extends BaseResourceDefinition {
   }
 
   @Override
-  public Map<String, ResourceDefinition> getSubResources() {
-    Map<String, ResourceDefinition> mapChildren = new HashMap<String, ResourceDefinition>();
-
-    if (m_attached) {
-      HostComponentResourceDefinition hostComponentResource =
-          new HostComponentResourceDefinition(null, m_clusterId, getId());
-      hostComponentResource.getQuery().addProperty(getClusterController().getSchema(
-          Resource.Type.HostComponent).getKeyPropertyId(Resource.Type.HostComponent));
-      mapChildren.put(hostComponentResource.getPluralName(), hostComponentResource);
-    }
-
-    return mapChildren;
+  public Set<SubResourceDefinition> getSubResourceDefinitions() {
+    return Collections.singleton(new SubResourceDefinition(Resource.Type.HostComponent));
   }
 }

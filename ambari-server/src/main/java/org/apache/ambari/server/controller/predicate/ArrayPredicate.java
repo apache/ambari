@@ -18,11 +18,8 @@
 
 package org.apache.ambari.server.controller.predicate;
 
-import org.apache.ambari.server.controller.spi.PropertyId;
-
 import java.util.Arrays;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 
 /**
@@ -30,7 +27,7 @@ import java.util.Set;
  */
 public abstract class ArrayPredicate implements BasePredicate {
   private final BasePredicate[] predicates;
-  private final Set<PropertyId> propertyIds = new HashSet<PropertyId>();
+  private final Set<String> propertyIds = new HashSet<String>();
 
   public ArrayPredicate(BasePredicate... predicates) {
     this.predicates = predicates;
@@ -39,12 +36,22 @@ public abstract class ArrayPredicate implements BasePredicate {
     }
   }
 
+  /**
+   * Factory method.
+   *
+   * @param predicates  the predicate array
+   *
+   * @return a new ArrayPredicate
+   */
+  public abstract BasePredicate create(BasePredicate... predicates);
+
+
   public BasePredicate[] getPredicates() {
     return predicates;
   }
 
   @Override
-  public Set<PropertyId> getPropertyIds() {
+  public Set<String> getPropertyIds() {
     return propertyIds;
   }
 

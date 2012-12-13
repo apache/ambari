@@ -149,7 +149,7 @@ public class ServiceComponentDesiredStateEntity {
   }
 
   private Collection<ComponentConfigMappingEntity> configMappingEntities;
-  @OneToMany(mappedBy = "serviceComponentDesiredStateEntity")
+  @OneToMany(mappedBy = "serviceComponentDesiredStateEntity", cascade = CascadeType.ALL)
   public Collection<ComponentConfigMappingEntity> getComponentConfigMappingEntities() {
     return configMappingEntities;
   }

@@ -18,10 +18,9 @@
 package org.apache.ambari.server.controller.predicate;
 
 import junit.framework.Assert;
-import org.apache.ambari.server.controller.internal.PropertyIdImpl;
 import org.apache.ambari.server.controller.internal.ResourceImpl;
-import org.apache.ambari.server.controller.spi.PropertyId;
 import org.apache.ambari.server.controller.spi.Resource;
+import org.apache.ambari.server.controller.utilities.PropertyHelper;
 import org.junit.Test;
 
 import java.util.Set;
@@ -34,13 +33,13 @@ public class AndPredicateTest {
   @Test
   public void testApply() {
     Resource resource = new ResourceImpl(Resource.Type.HostComponent);
-    PropertyIdImpl propertyId1 = new PropertyIdImpl("property1", "category1", false);
-    PropertyIdImpl propertyId2 = new PropertyIdImpl("property2", "category1", false);
-    PropertyIdImpl propertyId3 = new PropertyIdImpl("property3", "category1", false);
+    String propertyId1 = PropertyHelper.getPropertyId("category1", "property1");
+    String propertyId2 = PropertyHelper.getPropertyId("category1", "property2");
+    String propertyId3 = PropertyHelper.getPropertyId("category1", "property3");
 
-    EqualsPredicate predicate1 = new EqualsPredicate(propertyId1, "v1");
-    EqualsPredicate predicate2 = new EqualsPredicate(propertyId2, "v2");
-    EqualsPredicate predicate3 = new EqualsPredicate(propertyId3, "v3");
+    EqualsPredicate predicate1 = new EqualsPredicate<String>(propertyId1, "v1");
+    EqualsPredicate predicate2 = new EqualsPredicate<String>(propertyId2, "v2");
+    EqualsPredicate predicate3 = new EqualsPredicate<String>(propertyId3, "v3");
 
     AndPredicate andPredicate = new AndPredicate(predicate1, predicate2, predicate3);
 
@@ -55,17 +54,17 @@ public class AndPredicateTest {
 
   @Test
   public void testGetProperties() {
-    PropertyIdImpl propertyId1 = new PropertyIdImpl("property1", "category1", false);
-    PropertyIdImpl propertyId2 = new PropertyIdImpl("property2", "category1", false);
-    PropertyIdImpl propertyId3 = new PropertyIdImpl("property3", "category1", false);
+    String propertyId1 = PropertyHelper.getPropertyId("category1", "property1");
+    String propertyId2 = PropertyHelper.getPropertyId("category1", "property2");
+    String propertyId3 = PropertyHelper.getPropertyId("category1", "property3");
 
-    EqualsPredicate predicate1 = new EqualsPredicate(propertyId1, "v1");
-    EqualsPredicate predicate2 = new EqualsPredicate(propertyId2, "v2");
-    EqualsPredicate predicate3 = new EqualsPredicate(propertyId3, "v3");
+    EqualsPredicate predicate1 = new EqualsPredicate<String>(propertyId1, "v1");
+    EqualsPredicate predicate2 = new EqualsPredicate<String>(propertyId2, "v2");
+    EqualsPredicate predicate3 = new EqualsPredicate<String>(propertyId3, "v3");
 
     AndPredicate andPredicate = new AndPredicate(predicate1, predicate2, predicate3);
 
-    Set<PropertyId> ids = andPredicate.getPropertyIds();
+    Set<String> ids = andPredicate.getPropertyIds();
 
     Assert.assertEquals(3, ids.size());
     Assert.assertTrue(ids.contains(propertyId1));

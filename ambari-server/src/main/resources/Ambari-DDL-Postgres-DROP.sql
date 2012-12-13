@@ -1,58 +1,61 @@
-ALTER TABLE ambari.clusterconfig DROP CONSTRAINT FK_clusterconfig_cluster_id
-ALTER TABLE ambari.clusterservices DROP CONSTRAINT FK_clusterservices_cluster_id
-ALTER TABLE ambari.clusterstate DROP CONSTRAINT FK_clusterstate_cluster_id
-ALTER TABLE ambari.componentconfigmapping DROP CONSTRAINT FK_componentconfigmapping_component_name
-ALTER TABLE ambari.hostcomponentconfigmapping DROP CONSTRAINT FK_hostcomponentconfigmapping_cluster_id
-ALTER TABLE ambari.hostcomponentdesiredstate DROP CONSTRAINT FK_hostcomponentdesiredstate_host_name
-ALTER TABLE ambari.hostcomponentdesiredstate DROP CONSTRAINT FK_hostcomponentdesiredstate_component_name
-ALTER TABLE ambari.hostcomponentstate DROP CONSTRAINT FK_hostcomponentstate_component_name
-ALTER TABLE ambari.hostcomponentstate DROP CONSTRAINT FK_hostcomponentstate_host_name
-ALTER TABLE ambari.hostcomponentmapping DROP CONSTRAINT FK_hostcomponentmapping_service_name
-ALTER TABLE ambari.hoststate DROP CONSTRAINT FK_hoststate_host_name
-ALTER TABLE ambari.servicecomponentconfig DROP CONSTRAINT FK_servicecomponentconfig_service_name
-ALTER TABLE ambari.servicecomponentdesiredstate DROP CONSTRAINT FK_servicecomponentdesiredstate_service_name
-ALTER TABLE ambari.servicecomponenthostconfig DROP CONSTRAINT FK_servicecomponenthostconfig_host_name
-ALTER TABLE ambari.servicecomponenthostconfig DROP CONSTRAINT FK_servicecomponenthostconfig_service_name
-ALTER TABLE ambari.serviceconfig DROP CONSTRAINT FK_serviceconfig_service_name
-ALTER TABLE ambari.serviceconfigmapping DROP CONSTRAINT FK_serviceconfigmapping_service_name
-ALTER TABLE ambari.servicedesiredstate DROP CONSTRAINT FK_servicedesiredstate_service_name
-ALTER TABLE ambari.execution_command DROP CONSTRAINT FK_execution_command_task_id
-ALTER TABLE ambari.host_role_command DROP CONSTRAINT FK_host_role_command_stage_id
-ALTER TABLE ambari.host_role_command DROP CONSTRAINT FK_host_role_command_host_name
-ALTER TABLE ambari.role_success_criteria DROP CONSTRAINT FK_role_success_criteria_stage_id
-ALTER TABLE ambari.stage DROP CONSTRAINT FK_stage_cluster_id
-ALTER TABLE ambari.ClusterHostMapping DROP CONSTRAINT FK_ClusterHostMapping_host_name
-ALTER TABLE ambari.ClusterHostMapping DROP CONSTRAINT FK_ClusterHostMapping_cluster_id
-ALTER TABLE ambari.user_roles DROP CONSTRAINT FK_user_roles_ldap_user
-ALTER TABLE ambari.user_roles DROP CONSTRAINT FK_user_roles_role_name
-DROP TABLE ambari.clusters
-DROP TABLE ambari.clusterconfig
-DROP TABLE ambari.clusterservices
-DROP TABLE ambari.clusterstate
-DROP TABLE ambari.componentconfigmapping
-DROP TABLE ambari.hostcomponentconfigmapping
-DROP TABLE ambari.hostcomponentdesiredstate
-DROP TABLE ambari.hostcomponentstate
-DROP TABLE ambari.hostcomponentmapping
-DROP TABLE ambari.hosts
-DROP TABLE ambari.hoststate
-DROP TABLE ambari.servicecomponentconfig
-DROP TABLE ambari.servicecomponentdesiredstate
-DROP TABLE ambari.servicecomponenthostconfig
-DROP TABLE ambari.serviceconfig
-DROP TABLE ambari.serviceconfigmapping
-DROP TABLE ambari.servicedesiredstate
-DROP TABLE ambari.roles
-DROP TABLE ambari.users
-DROP TABLE ambari.execution_command
-DROP TABLE ambari.host_role_command
-DROP TABLE ambari.role_success_criteria
-DROP TABLE ambari.stage
-DROP TABLE ambari.ClusterHostMapping
-DROP TABLE ambari.user_roles
-DROP SEQUENCE ambari.serviceconfig_config_version_seq
-DROP SEQUENCE ambari.servicecomponenthostconfig_config_version_seq
-DROP SEQUENCE ambari.hostcomponentmapping_host_component_mapping_id_seq
-DROP SEQUENCE ambari.servicecomponentconfig_config_version_seq
-DROP SEQUENCE ambari.clusters_cluster_id_seq
-DROP SEQUENCE ambari.host_role_command_task_id_seq
+\connect ambari
+ALTER TABLE ambari.clusterconfig DROP CONSTRAINT FK_clusterconfig_cluster_id;
+ALTER TABLE ambari.clusterservices DROP CONSTRAINT FK_clusterservices_cluster_id;
+ALTER TABLE ambari.clusterstate DROP CONSTRAINT FK_clusterstate_cluster_id;
+ALTER TABLE ambari.componentconfigmapping DROP CONSTRAINT FK_componentconfigmapping_component_name;
+ALTER TABLE ambari.hostcomponentconfigmapping DROP CONSTRAINT FK_hostcomponentconfigmapping_cluster_id;
+ALTER TABLE ambari.hostcomponentdesiredconfigmapping DROP CONSTRAINT FK_hostcomponentdesiredconfigmapping_config_tag;
+ALTER TABLE ambari.hostcomponentdesiredconfigmapping DROP CONSTRAINT FK_hostcomponentdesiredconfigmapping_cluster_id;
+ALTER TABLE ambari.hostcomponentdesiredstate DROP CONSTRAINT FK_hostcomponentdesiredstate_host_name;
+ALTER TABLE ambari.hostcomponentdesiredstate DROP CONSTRAINT FK_hostcomponentdesiredstate_component_name;
+ALTER TABLE ambari.hostcomponentstate DROP CONSTRAINT FK_hostcomponentstate_component_name;
+ALTER TABLE ambari.hostcomponentstate DROP CONSTRAINT FK_hostcomponentstate_host_name;
+ALTER TABLE ambari.hoststate DROP CONSTRAINT FK_hoststate_host_name;
+ALTER TABLE ambari.servicecomponentdesiredstate DROP CONSTRAINT FK_servicecomponentdesiredstate_service_name;
+ALTER TABLE ambari.serviceconfigmapping DROP CONSTRAINT FK_serviceconfigmapping_service_name;
+ALTER TABLE ambari.servicedesiredstate DROP CONSTRAINT FK_servicedesiredstate_service_name;
+ALTER TABLE ambari.execution_command DROP CONSTRAINT FK_execution_command_task_id;
+ALTER TABLE ambari.host_role_command DROP CONSTRAINT FK_host_role_command_stage_id;
+ALTER TABLE ambari.host_role_command DROP CONSTRAINT FK_host_role_command_host_name;
+ALTER TABLE ambari.role_success_criteria DROP CONSTRAINT FK_role_success_criteria_stage_id;
+ALTER TABLE ambari.stage DROP CONSTRAINT FK_stage_cluster_id;
+ALTER TABLE ambari.ClusterHostMapping DROP CONSTRAINT FK_ClusterHostMapping_host_name;
+ALTER TABLE ambari.ClusterHostMapping DROP CONSTRAINT FK_ClusterHostMapping_cluster_id;
+ALTER TABLE ambari.user_roles DROP CONSTRAINT FK_user_roles_ldap_user;
+ALTER TABLE ambari.user_roles DROP CONSTRAINT FK_user_roles_role_name;
+DROP TABLE ambari.clusters CASCADE;
+DROP TABLE ambari.clusterservices CASCADE;
+DROP TABLE ambari.clusterstate CASCADE;
+DROP TABLE ambari.componentconfigmapping CASCADE;
+DROP TABLE ambari.hostcomponentconfigmapping CASCADE;
+DROP TABLE ambari.hostcomponentdesiredstate CASCADE;
+DROP TABLE ambari.hostcomponentstate CASCADE;
+DROP TABLE ambari.hosts CASCADE;
+DROP TABLE ambari.hoststate CASCADE;
+DROP TABLE ambari.servicecomponentdesiredstate CASCADE;
+DROP TABLE ambari.serviceconfigmapping CASCADE;
+DROP TABLE ambari.servicedesiredstate CASCADE;
+DROP TABLE ambari.roles CASCADE;
+DROP TABLE ambari.users CASCADE;
+DROP TABLE ambari.execution_command CASCADE;
+DROP TABLE ambari.host_role_command CASCADE;
+DROP TABLE ambari.role_success_criteria CASCADE;
+DROP TABLE ambari.stage CASCADE;
+DROP TABLE ambari.ClusterHostMapping CASCADE;
+DROP TABLE ambari.clusterconfig CASCADE;
+DROP TABLE ambari.user_roles CASCADE;
+DROP SEQUENCE ambari.host_role_command_task_id_seq;
+DROP SEQUENCE ambari.clusters_cluster_id_seq;
+
+\connect ambarirca
+ALTER TABLE job DROP CONSTRAINT job_workflowid_fkey;
+ALTER TABLE task DROP CONSTRAINT task_jobid_fkey;
+ALTER TABLE taskattempt DROP CONSTRAINT taskattempt_jobid_fkey;
+ALTER TABLE taskattempt DROP CONSTRAINT taskattempt_taskid_fkey;
+DROP TABLE workflow;
+DROP TABLE job;
+DROP TABLE task;
+DROP TABLE taskAttempt;
+DROP TABLE hdfsEvent;
+DROP TABLE mapreduceEvent;
+DROP TABLE clusterEvent;

@@ -42,7 +42,6 @@ public class ActionManager {
   private final ActionScheduler scheduler;
   private final ActionDBAccessor db;
   private final ActionQueue actionQueue;
-  private final Clusters fsm;
   private static Logger LOG = LoggerFactory.getLogger(ActionManager.class);
   private final AtomicLong requestCounter;
 
@@ -54,7 +53,6 @@ public class ActionManager {
     this.db = db;
     scheduler = new ActionScheduler(schedulerSleepTime, actionTimeout, db,
         actionQueue, fsm, 2);
-    this.fsm = fsm;
     requestCounter = new AtomicLong(
         db.getLastPersistedRequestIdWhenInitialized());
   }
@@ -69,6 +67,10 @@ public class ActionManager {
   }
 
   public void sendActions(List<Stage> stages) {
+    
+    for (Stage s: stages) {
+      LOG.info("Persisting stage into db: " + s.toString());
+    }
     db.persistActions(stages);
   }
 
@@ -107,13 +109,6 @@ public class ActionManager {
       }
       db.updateHostRoleState(hostname, requestId, stageId, report.getRole(),
           report);
-      List<HostRoleCommand> commands = db.getRequestTasks(requestId);
-      LOG.debug("List of commands " + (commands == null ? 0: commands.size()));
-      if (commands != null) {
-        for (HostRoleCommand cmd : commands) {
-          LOG.info("******COMMAND DUMP*****" + cmd);
-        }
-      }
     }
   }
 
@@ -129,15 +124,15 @@ public class ActionManager {
   }
 
   public List<HostRoleCommand> getRequestTasks(long requestId) {
-    List<HostRoleCommand> commands = db.getRequestTasks(requestId);
-    LOG.debug("GETTING List of commands for request Id " + requestId + " : " +
-        (commands == null ? 0: commands.size()));
-    if (commands != null) {
-      for (HostRoleCommand command : commands) {
-        LOG.info("******GETTING COMMAND DUMP*****" + command);
-      }
-    }
-    return commands;
+    return db.getRequestTasks(requestId);
+  }
+
+  public List<HostRoleCommand> getAllTasksByRequestIds(Collection<Long> requestIds) {
+    return db.getAllTasksByRequestIds(requestIds);
+  }
+
+  public List<HostRoleCommand> getTasksByRequestAndTaskIds(Collection<Long> requestIds, Collection<Long> taskIds) {
+    return db.getTasksByRequestAndTaskIds(requestIds, taskIds);
   }
 
   public Collection<HostRoleCommand> getTasks(Collection<Long> taskIds) {
@@ -155,4 +150,13 @@ public class ActionManager {
   public List<Long> getRequests() {
     return db.getRequests();
   }
+
+  /**
+   * Returns last 20 requests
+   * @return
+   */
+  public List<Long> getRequestsByStatus(RequestStatus status) {
+    return db.getRequestsByStatus(status);
+  }
+
 }

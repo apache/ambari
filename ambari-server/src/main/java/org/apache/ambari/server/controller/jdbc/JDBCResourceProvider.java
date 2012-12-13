@@ -18,19 +18,21 @@
 
 package org.apache.ambari.server.controller.jdbc;
 
-import org.apache.ambari.server.controller.internal.PropertyIdImpl;
+import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.controller.internal.RequestStatusImpl;
 import org.apache.ambari.server.controller.internal.ResourceImpl;
 import org.apache.ambari.server.controller.predicate.BasePredicate;
 import org.apache.ambari.server.controller.predicate.PredicateVisitorAcceptor;
 import org.apache.ambari.server.controller.spi.Predicate;
-import org.apache.ambari.server.controller.spi.PropertyId;
 import org.apache.ambari.server.controller.spi.Request;
 import org.apache.ambari.server.controller.spi.RequestStatus;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.spi.ResourceProvider;
+import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
 import org.apache.ambari.server.controller.utilities.PredicateHelper;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
@@ -49,375 +51,408 @@ import java.util.Set;
  */
 public class JDBCResourceProvider implements ResourceProvider {
 
-  private final Resource.Type type;
+    private final Resource.Type type;
 
-  private final Set<PropertyId> propertyIds;
+    private final Set<String> propertyIds;
 
-  private final ConnectionFactory connectionFactory;
+    private final ConnectionFactory connectionFactory;
 
-  /**
-   * The schema for this provider's resource type.
-   */
-  private final Map<Resource.Type, PropertyId> keyPropertyIds;
+    /**
+     * The schema for this provider's resource type.
+     */
+    private final Map<Resource.Type, String> keyPropertyIds;
 
-  /**
-   * Key mappings used for joins.
-   */
-  private final Map<String, Map<PropertyId, PropertyId>> importedKeys = new HashMap<String, Map<PropertyId, PropertyId>>();
+    /**
+     * Key mappings used for joins.
+     */
+    private final Map<String, Map<String, String>> importedKeys = new HashMap<String, Map<String, String>>();
 
-  public JDBCResourceProvider(ConnectionFactory connectionFactory,
-                              Resource.Type type,
-                              Set<PropertyId> propertyIds,
-                              Map<Resource.Type, PropertyId> keyPropertyIds) {
-    this.connectionFactory = connectionFactory;
-    this.type = type;
-    this.propertyIds = propertyIds;
-    this.keyPropertyIds = keyPropertyIds;
-  }
+    protected final static Logger LOG =
+            LoggerFactory.getLogger(JDBCResourceProvider.class);
 
-  @Override
-  public Set<Resource> getResources(Request request, Predicate predicate) {
-    Set<Resource> resources = new HashSet<Resource>();
-    Set<PropertyId> propertyIds = PropertyHelper.getRequestPropertyIds(this.propertyIds, request, predicate);
+    public JDBCResourceProvider(ConnectionFactory connectionFactory,
+                                Resource.Type type,
+                                Set<String> propertyIds,
+                                Map<Resource.Type, String> keyPropertyIds) {
+        this.connectionFactory = connectionFactory;
+        this.type = type;
+        this.propertyIds = propertyIds;
+        this.keyPropertyIds = keyPropertyIds;
+    }
 
-    // Can't allow cluster_id with the old schema...
-    propertyIds.remove(PropertyHelper.getPropertyId("cluster_id", "Clusters"));
+    @Override
+    public Set<Resource> getResources(Request request, Predicate predicate) throws AmbariException, UnsupportedPropertyException {
+        Set<Resource> resources = new HashSet<Resource>();
+        Set<String> propertyIds = PropertyHelper.getRequestPropertyIds(this.propertyIds, request, predicate);
 
-    try {
-      Connection connection = connectionFactory.getConnection();
+        // Can't allow these properties with the old schema...
+        propertyIds.remove(PropertyHelper.getPropertyId("Clusters", "cluster_id"));
+        propertyIds.remove(PropertyHelper.getPropertyId("Hosts", "disk_info"));
+        propertyIds.remove(PropertyHelper.getPropertyId("Hosts", "public_host_name"));
+        propertyIds.remove(PropertyHelper.getPropertyId("Hosts", "last_registration_time"));
+        propertyIds.remove(PropertyHelper.getPropertyId("Hosts", "host_state"));
+        propertyIds.remove(PropertyHelper.getPropertyId("Hosts", "last_heartbeat_time"));
+        propertyIds.remove(PropertyHelper.getPropertyId("Hosts", "host_health_report"));
+        propertyIds.remove(PropertyHelper.getPropertyId("Hosts", "host_status"));
+        propertyIds.remove(PropertyHelper.getPropertyId("ServiceInfo", "desired_configs"));
+        propertyIds.remove(PropertyHelper.getPropertyId("ServiceComponentInfo", "desired_configs"));
+        propertyIds.remove(PropertyHelper.getPropertyId("HostRoles", "configs"));
+        propertyIds.remove(PropertyHelper.getPropertyId("HostRoles", "desired_configs"));
 
-      try {
+        Connection connection = null;
+        Statement statement = null;
+        ResultSet rs = null;
+        try {
+            connection = connectionFactory.getConnection();
 
-        for (String table : getTables(propertyIds)) {
-          getImportedKeys(connection, table);
-        }
 
-        String sql = getSelectSQL(propertyIds, predicate);
-        Statement statement = connection.createStatement();
-
-        ResultSet rs = statement.executeQuery(sql);
-
-        while (rs.next()) {
-          ResultSetMetaData metaData = rs.getMetaData();
-          int columnCount = metaData.getColumnCount();
-
-          final ResourceImpl resource = new ResourceImpl(type);
-          for (int i = 1; i <= columnCount; ++i) {
-            PropertyIdImpl propertyId = new PropertyIdImpl(metaData.getColumnName(i), metaData.getTableName(i), false);
-            if (propertyIds.contains(propertyId)) {
-              resource.setProperty(propertyId, rs.getString(i));
+            for (String table : getTables(propertyIds)) {
+                getImportedKeys(connection, table);
             }
-          }
-          resources.add(resource);
-        }
 
-        statement.close();
-      } finally {
-        connection.close();
-      }
+            String sql = getSelectSQL(propertyIds, predicate);
+            statement = connection.createStatement();
 
-    } catch (SQLException e) {
-//      throw new IllegalStateException("DB error : ", e);
-      return Collections.emptySet();
-    }
+            rs = statement.executeQuery(sql);
 
-    return resources;
-  }
+            while (rs.next()) {
+                ResultSetMetaData metaData = rs.getMetaData();
+                int columnCount = metaData.getColumnCount();
 
-  @Override
-  public RequestStatus createResources(Request request) {
-    try {
-      Connection connection = connectionFactory.getConnection();
-
-      try {
-
-        Set<Map<PropertyId, Object>> propertySet = request.getProperties();
-
-        for (Map<PropertyId, Object> properties : propertySet) {
-          String sql = getInsertSQL(properties);
-
-          Statement statement = connection.createStatement();
-
-          statement.execute(sql);
-
-          statement.close();
-        }
-      } finally {
-        connection.close();
-      }
-
-    } catch (SQLException e) {
-      throw new IllegalStateException("DB error : ", e);
-    }
-
-    return getRequestStatus();
-  }
-
-  @Override
-  public RequestStatus updateResources(Request request, Predicate predicate) {
-
-    try {
-      Connection connection = connectionFactory.getConnection();
-      try {
-        Set<Map<PropertyId, Object>> propertySet = request.getProperties();
-
-        Map<PropertyId, Object> properties = propertySet.iterator().next();
-
-        String sql = getUpdateSQL(properties, predicate);
-
-        Statement statement = connection.createStatement();
-
-        statement.execute(sql);
-
-        statement.close();
-      } finally {
-        connection.close();
-      }
-
-    } catch (SQLException e) {
-      throw new IllegalStateException("DB error : ", e);
-    }
-
-    return getRequestStatus();
-  }
-
-  @Override
-  public RequestStatus deleteResources(Predicate predicate) {
-    try {
-      Connection connection = connectionFactory.getConnection();
-      try {
-        String sql = getDeleteSQL(predicate);
-
-        Statement statement = connection.createStatement();
-        statement.execute(sql);
-        statement.close();
-      } finally {
-        connection.close();
-      }
-
-    } catch (SQLException e) {
-      throw new IllegalStateException("DB error : ", e);
-    }
-
-    return getRequestStatus();
-  }
-
-
-  private String getInsertSQL(Map<PropertyId, Object> properties) {
-
-    StringBuilder columns = new StringBuilder();
-    StringBuilder values = new StringBuilder();
-    String table = null;
-
-
-    for (Map.Entry<PropertyId, Object> entry : properties.entrySet()) {
-      PropertyId propertyId    = entry.getKey();
-      Object     propertyValue = entry.getValue();
-
-      table = propertyId.getCategory();
-
-
-      if (columns.length() > 0) {
-        columns.append(", ");
-      }
-      columns.append(propertyId.getName());
-
-      if (values.length() > 0) {
-        values.append(", ");
-      }
-      values.append("'");
-      values.append(propertyValue);
-      values.append("'");
-    }
-
-    return "insert into " + table + " (" +
-      columns + ") values (" +values + ")";
-  }
-
-  private String getSelectSQL(Set<PropertyId> propertyIds, Predicate predicate) {
-
-    StringBuilder columns = new StringBuilder();
-    Set<String> tableSet = new HashSet<String>();
-
-    for (PropertyId propertyId : propertyIds) {
-      if (columns.length() > 0) {
-        columns.append(", ");
-      }
-      columns.append(propertyId.getCategory()).append(".").append(propertyId.getName());
-      tableSet.add(propertyId.getCategory());
-    }
-
-
-    boolean haveWhereClause = false;
-    StringBuilder whereClause = new StringBuilder();
-    if (predicate != null &&
-        propertyIds.containsAll(PredicateHelper.getPropertyIds(predicate)) &&
-        predicate instanceof PredicateVisitorAcceptor) {
-
-      SQLPredicateVisitor visitor = new SQLPredicateVisitor();
-      ((PredicateVisitorAcceptor) predicate).accept(visitor);
-      whereClause.append(visitor.getSQL());
-      haveWhereClause = true;
-    }
-
-    StringBuilder joinClause = new StringBuilder();
-
-    if (tableSet.size() > 1) {
-
-      for (String table : tableSet) {
-        Map<PropertyId, PropertyId> joinKeys = importedKeys.get(table);
-        if (joinKeys != null) {
-          for (Map.Entry<PropertyId, PropertyId> entry : joinKeys.entrySet()) {
-            String category1 = entry.getKey().getCategory();
-            String category2 = entry.getValue().getCategory();
-            if (tableSet.contains(category1) && tableSet.contains(category2)) {
-              if (haveWhereClause) {
-                joinClause.append(" AND ");
-              }
-              joinClause.append(category1).append(".").append(entry.getKey().getName());
-              joinClause.append(" = ");
-              joinClause.append(category2).append(".").append(entry.getValue().getName());
-              tableSet.add(category1);
-              tableSet.add(category2);
-
-              haveWhereClause = true;
+                final ResourceImpl resource = new ResourceImpl(type);
+                for (int i = 1; i <= columnCount; ++i) {
+                    String propertyId = PropertyHelper.getPropertyId(metaData.getTableName(i), metaData.getColumnName(i));
+                    if (propertyIds.contains(propertyId)) {
+                        resource.setProperty(propertyId, rs.getString(i));
+                    }
+                }
+                resources.add(resource);
             }
-          }
+            statement.close();
+
+        } catch (SQLException e) {
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("Caught exception getting resource.", e);
+            }
+            return Collections.emptySet();
+        } finally {
+            try {
+                if (rs != null) rs.close();
+            } catch (SQLException e) {
+                LOG.error("Exception while closing ResultSet", e);
+            }
+
+            try {
+                if (statement != null) statement.close();
+            } catch (SQLException e) {
+                LOG.error("Exception while closing statment", e);
+            }
+
+            try {
+                if (connection != null) connection.close();
+            } catch (SQLException e) {
+                LOG.error("Exception while closing statment", e);
+            }
+
         }
-      }
+
+
+        return resources;
     }
 
-    StringBuilder tables = new StringBuilder();
+    @Override
+    public RequestStatus createResources(Request request) throws AmbariException, UnsupportedPropertyException {
+        try {
+            Connection connection = connectionFactory.getConnection();
 
-    for (String table : tableSet) {
-      if (tables.length() > 0) {
-        tables.append(", ");
-      }
-      tables.append(table);
-    }
+            try {
 
-    String sql = "select " + columns + " from " + tables;
+                Set<Map<String, Object>> propertySet = request.getProperties();
 
-    if (haveWhereClause) {
-      sql = sql + " where " + whereClause + joinClause;
-    }
+                for (Map<String, Object> properties : propertySet) {
+                    String sql = getInsertSQL(properties);
 
-    return sql;
-  }
+                    Statement statement = connection.createStatement();
 
-  private String getDeleteSQL(Predicate predicate) {
+                    statement.execute(sql);
 
-    StringBuilder whereClause = new StringBuilder();
-    if (predicate instanceof BasePredicate) {
+                    statement.close();
+                }
+            } finally {
+                connection.close();
+            }
 
-      BasePredicate basePredicate = (BasePredicate) predicate;
-
-      SQLPredicateVisitor visitor = new SQLPredicateVisitor();
-      basePredicate.accept(visitor);
-      whereClause.append(visitor.getSQL());
-
-      String table = basePredicate.getPropertyIds().iterator().next().getCategory();
-
-      return "delete from " + table + " where " + whereClause;
-    }
-    throw new IllegalStateException("Can't generate SQL.");
-  }
-
-  private String getUpdateSQL(Map<PropertyId, Object> properties, Predicate predicate) {
-
-    if (predicate instanceof BasePredicate) {
-
-      StringBuilder whereClause = new StringBuilder();
-
-      BasePredicate basePredicate = (BasePredicate) predicate;
-
-      SQLPredicateVisitor visitor = new SQLPredicateVisitor();
-      basePredicate.accept(visitor);
-      whereClause.append(visitor.getSQL());
-
-      String table = basePredicate.getPropertyIds().iterator().next().getCategory();
-
-
-      StringBuilder setClause = new StringBuilder();
-      for (Map.Entry<PropertyId, Object> entry : properties.entrySet()) {
-
-        if (setClause.length() > 0) {
-          setClause.append(", ");
+        } catch (SQLException e) {
+            throw new IllegalStateException("DB error : ", e);
         }
-        setClause.append(entry.getKey().getName());
-        setClause.append(" = ");
-        setClause.append("'");
-        setClause.append(entry.getValue());
-        setClause.append("'");
-      }
 
-      return "update " + table + " set " + setClause + " where " + whereClause;
+        return getRequestStatus();
     }
-    throw new IllegalStateException("Can't generate SQL.");
-  }
 
-  @Override
-  public Set<PropertyId> getPropertyIds() {
-    return propertyIds;
-  }
+    @Override
+    public RequestStatus updateResources(Request request, Predicate predicate) throws AmbariException, UnsupportedPropertyException {
 
-  @Override
-  public Map<Resource.Type, PropertyId> getKeyPropertyIds() {
-    return keyPropertyIds;
-  }
+        try {
+            Connection connection = connectionFactory.getConnection();
+            try {
+                Set<Map<String, Object>> propertySet = request.getProperties();
 
-  /**
-   * Lazily populate the imported key mappings for the given table.
-   *
-   * @param connection  the connection to use to obtain the database meta data
-   * @param table       the table
-   *
-   * @throws SQLException thrown if the meta data for the given connection cannot be obtained
-   */
-  private void getImportedKeys(Connection connection, String table) throws SQLException {
-    if (!this.importedKeys.containsKey(table)) {
+                Map<String, Object> properties = propertySet.iterator().next();
 
-      Map<PropertyId, PropertyId> importedKeys = new HashMap<PropertyId, PropertyId>();
-      this.importedKeys.put(table, importedKeys);
+                String sql = getUpdateSQL(properties, predicate);
 
-      DatabaseMetaData metaData = connection.getMetaData();
+                Statement statement = connection.createStatement();
 
-      ResultSet rs = metaData.getImportedKeys(connection.getCatalog(), null, table);
+                statement.execute(sql);
 
-      while (rs.next()) {
+                statement.close();
+            } finally {
+                connection.close();
+            }
 
-        PropertyId pkPropertyId = PropertyHelper.getPropertyId(
-            rs.getString("PKCOLUMN_NAME"), rs.getString("PKTABLE_NAME"));
+        } catch (SQLException e) {
+            throw new IllegalStateException("DB error : ", e);
+        }
 
-        PropertyId fkPropertyId = PropertyHelper.getPropertyId(
-            rs.getString("FKCOLUMN_NAME"), rs.getString("FKTABLE_NAME"));
-
-        importedKeys.put(pkPropertyId, fkPropertyId);
-      }
+        return getRequestStatus();
     }
-  }
 
-  /**
-   * Get a request status
-   *
-   * @return the request status
-   */
-  private RequestStatus getRequestStatus() {
-    return new RequestStatusImpl(null);
-  }
+    @Override
+    public RequestStatus deleteResources(Predicate predicate) throws AmbariException, UnsupportedPropertyException {
+        try {
+            Connection connection = connectionFactory.getConnection();
+            try {
+                String sql = getDeleteSQL(predicate);
 
-  /**
-   * Get the set of tables associated with the given property ids.
-   *
-   * @param propertyIds  the property ids
-   *
-   * @return the set of tables
-   */
-  private static Set<String> getTables(Set<PropertyId> propertyIds) {
-    Set<String> tables = new HashSet<String>();
-    for (PropertyId propertyId : propertyIds) {
-      tables.add(propertyId.getCategory());
+                Statement statement = connection.createStatement();
+                statement.execute(sql);
+                statement.close();
+            } finally {
+                connection.close();
+            }
+
+        } catch (SQLException e) {
+            throw new IllegalStateException("DB error : ", e);
+        }
+
+        return getRequestStatus();
     }
-    return tables;
-  }
+
+
+    private String getInsertSQL(Map<String, Object> properties) {
+
+        StringBuilder columns = new StringBuilder();
+        StringBuilder values = new StringBuilder();
+        String table = null;
+
+
+        for (Map.Entry<String, Object> entry : properties.entrySet()) {
+            String propertyId = entry.getKey();
+            Object propertyValue = entry.getValue();
+
+            table = PropertyHelper.getPropertyCategory(propertyId);
+
+
+            if (columns.length() > 0) {
+                columns.append(", ");
+            }
+            columns.append(PropertyHelper.getPropertyName(propertyId));
+
+            if (values.length() > 0) {
+                values.append(", ");
+            }
+            values.append("'");
+            values.append(propertyValue);
+            values.append("'");
+        }
+
+        return "insert into " + table + " (" +
+                columns + ") values (" + values + ")";
+    }
+
+    private String getSelectSQL(Set<String> propertyIds, Predicate predicate) {
+
+        StringBuilder columns = new StringBuilder();
+        Set<String> tableSet = new HashSet<String>();
+
+        for (String propertyId : propertyIds) {
+            if (columns.length() > 0) {
+                columns.append(", ");
+            }
+          String propertyCategory = PropertyHelper.getPropertyCategory(propertyId);
+          columns.append(propertyCategory).append(".").append(PropertyHelper.getPropertyName(propertyId));
+            tableSet.add(propertyCategory);
+        }
+
+
+        boolean haveWhereClause = false;
+        StringBuilder whereClause = new StringBuilder();
+        if (predicate != null &&
+                propertyIds.containsAll(PredicateHelper.getPropertyIds(predicate)) &&
+                predicate instanceof PredicateVisitorAcceptor) {
+
+            SQLPredicateVisitor visitor = new SQLPredicateVisitor();
+            ((PredicateVisitorAcceptor) predicate).accept(visitor);
+            whereClause.append(visitor.getSQL());
+            haveWhereClause = true;
+        }
+
+        StringBuilder joinClause = new StringBuilder();
+
+        if (tableSet.size() > 1) {
+
+            for (String table : tableSet) {
+                Map<String, String> joinKeys = importedKeys.get(table);
+                if (joinKeys != null) {
+                    for (Map.Entry<String, String> entry : joinKeys.entrySet()) {
+                        String category1 = PropertyHelper.getPropertyCategory(entry.getKey());
+                        String category2 = PropertyHelper.getPropertyCategory(entry.getValue());
+                        if (tableSet.contains(category1) && tableSet.contains(category2)) {
+                            if (haveWhereClause) {
+                                joinClause.append(" AND ");
+                            }
+                            joinClause.append(category1).append(".").append(PropertyHelper.getPropertyName(entry.getKey()));
+                            joinClause.append(" = ");
+                            joinClause.append(category2).append(".").append(PropertyHelper.getPropertyName(entry.getValue()));
+                            tableSet.add(category1);
+                            tableSet.add(category2);
+
+                            haveWhereClause = true;
+                        }
+                    }
+                }
+            }
+        }
+
+        StringBuilder tables = new StringBuilder();
+
+        for (String table : tableSet) {
+            if (tables.length() > 0) {
+                tables.append(", ");
+            }
+            tables.append(table);
+        }
+
+        String sql = "select " + columns + " from " + tables;
+
+        if (haveWhereClause) {
+            sql = sql + " where " + whereClause + joinClause;
+        }
+
+        return sql;
+    }
+
+    private String getDeleteSQL(Predicate predicate) {
+
+        StringBuilder whereClause = new StringBuilder();
+        if (predicate instanceof BasePredicate) {
+
+            BasePredicate basePredicate = (BasePredicate) predicate;
+
+            SQLPredicateVisitor visitor = new SQLPredicateVisitor();
+            basePredicate.accept(visitor);
+            whereClause.append(visitor.getSQL());
+
+            String table = PropertyHelper.getPropertyCategory(basePredicate.getPropertyIds().iterator().next());
+
+            return "delete from " + table + " where " + whereClause;
+        }
+        throw new IllegalStateException("Can't generate SQL.");
+    }
+
+    private String getUpdateSQL(Map<String, Object> properties, Predicate predicate) {
+
+        if (predicate instanceof BasePredicate) {
+
+            StringBuilder whereClause = new StringBuilder();
+
+            BasePredicate basePredicate = (BasePredicate) predicate;
+
+            SQLPredicateVisitor visitor = new SQLPredicateVisitor();
+            basePredicate.accept(visitor);
+            whereClause.append(visitor.getSQL());
+
+            String table = PropertyHelper.getPropertyCategory(basePredicate.getPropertyIds().iterator().next());
+
+
+            StringBuilder setClause = new StringBuilder();
+            for (Map.Entry<String, Object> entry : properties.entrySet()) {
+
+                if (setClause.length() > 0) {
+                    setClause.append(", ");
+                }
+                setClause.append(PropertyHelper.getPropertyName(entry.getKey()));
+                setClause.append(" = ");
+                setClause.append("'");
+                setClause.append(entry.getValue());
+                setClause.append("'");
+            }
+
+            return "update " + table + " set " + setClause + " where " + whereClause;
+        }
+        throw new IllegalStateException("Can't generate SQL.");
+    }
+
+    @Override
+    public Set<String> getPropertyIds() {
+        return propertyIds;
+    }
+
+    @Override
+    public Map<Resource.Type, String> getKeyPropertyIds() {
+        return keyPropertyIds;
+    }
+
+    /**
+     * Lazily populate the imported key mappings for the given table.
+     *
+     * @param connection the connection to use to obtain the database meta data
+     * @param table      the table
+     * @throws SQLException thrown if the meta data for the given connection cannot be obtained
+     */
+    private void getImportedKeys(Connection connection, String table) throws SQLException {
+        if (!this.importedKeys.containsKey(table)) {
+
+            Map<String, String> importedKeys = new HashMap<String, String>();
+            this.importedKeys.put(table, importedKeys);
+
+            DatabaseMetaData metaData = connection.getMetaData();
+
+            ResultSet rs = metaData.getImportedKeys(connection.getCatalog(), null, table);
+
+            while (rs.next()) {
+
+                String pkPropertyId = PropertyHelper.getPropertyId(
+                    rs.getString("PKTABLE_NAME"), rs.getString("PKCOLUMN_NAME"));
+
+                String fkPropertyId = PropertyHelper.getPropertyId(
+                    rs.getString("FKTABLE_NAME"), rs.getString("FKCOLUMN_NAME"));
+
+                importedKeys.put(pkPropertyId, fkPropertyId);
+            }
+        }
+    }
+
+    /**
+     * Get a request status
+     *
+     * @return the request status
+     */
+    private RequestStatus getRequestStatus() {
+        return new RequestStatusImpl(null);
+    }
+
+    /**
+     * Get the set of tables associated with the given property ids.
+     *
+     * @param propertyIds the property ids
+     * @return the set of tables
+     */
+    private static Set<String> getTables(Set<String> propertyIds) {
+        Set<String> tables = new HashSet<String>();
+        for (String propertyId : propertyIds) {
+            tables.add(PropertyHelper.getPropertyCategory(propertyId));
+        }
+        return tables;
+    }
 }

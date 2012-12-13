@@ -23,33 +23,25 @@ define hdp::package(
   $package_type = undef,
   $size = 64,
   $java_needed = true,
-  $lzo_needed = false,
-  $provider = yum
+  $lzo_needed = false
   )
 {
- 
+
   $pt = $package_type ? {
     undef  => $name,
     default  => $package_type
   }
   
-  case $provider {
-    'yum': { 
-      hdp::package::yum { $name:
-        ensure       => $ensure,
-        package_type => $pt,
-        size         => $size,
-        java_needed  => $java_needed,
-        lzo_needed   => $lzo_needed
-      }
-    }
-    default: {
-      hdp_fail("No support for provider ${provider}")
-    }
+  hdp::package::process_pkg { $name:
+    ensure       => $ensure,
+    package_type => $pt,
+    size         => $size,
+    java_needed  => $java_needed,
+    lzo_needed   => $lzo_needed
   }
 }
 
-define hdp::package::yum(
+define hdp::package::process_pkg(
   $ensure = present,
   $package_type,
   $size,
@@ -58,17 +50,43 @@ define hdp::package::yum(
   )
 {
     
+
+  debug("##Processing package:  $ensure,$package_type,$size,$java_needed,$lzo_needed")
+
   include hdp::params
- 
-  $package_type_info = $hdp::params::package_names[$package_type]
-  if hdp_is_empty($package_type_info) {
-    hdp_fail("Cannot find info about package type ${package_type}") 
+
+  if hdp_is_empty($hdp::params::alt_package_names[$package_type]) {
+    hdp_fail("No packages for $package_type")
   }
-  $package_name = $package_type_info[$size]
-  if hdp_is_empty($package_name) {
-    hdp_fail("Cannot find package ${package_type} of size ${size}")
+
+  if hdp_is_empty($hdp::params::alt_package_names[$package_type][$size]) {
+
+    if hdp_is_empty($hdp::params::alt_package_names[$package_type][ALL]) {
+      hdp_fail("No packages for $package_type")
+    }
+    else {
+      $packages_list_by_size = $hdp::params::alt_package_names[$package_type][ALL]
+    }
   }
-  
+  else {
+    $packages_list_by_size = $hdp::params::alt_package_names[$package_type][$size]
+
+  }
+  if hdp_is_empty($packages_list_by_size[$hdp::params::hdp_os_type]) {
+
+    if hdp_is_empty($packages_list_by_size[ALL]) {
+      hdp_fail("No packages for $package_type")
+    }
+    else {
+      $packages_list = $packages_list_by_size[ALL]
+    }
+  }
+  else {
+    $packages_list = $packages_list_by_size[$hdp::params::hdp_os_type]
+  }
+
+  debug("##Packages list: $packages_list")
+
   if (($java_needed == true) and ($ensure == 'present')){
     hdp::java::package{ $name:
       size                 => $size
@@ -85,10 +103,11 @@ define hdp::package::yum(
     $ensure_actual = $ensure
   }
   $tag = regsubst($name,' ','-',G)
-  package{ $package_name:
-    ensure   => $ensure_actual,
-    provider => yum,
-    tag      => $tag
+  if $packages_list != $hdp::params::NOTHING {
+    package{ $packages_list:
+      ensure   => $ensure_actual,
+      tag      => $tag
+    }
   }
   anchor{ "hdp::package::${name}::begin": } -> Package<|tag == $tag|> -> anchor{ "hdp::package::${name}::end": }
   

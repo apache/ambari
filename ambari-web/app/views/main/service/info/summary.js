@@ -33,6 +33,127 @@ App.MainServiceInfoSummaryView = Em.View.extend({
     nagios:false
   },
 
+  clients: function () {
+    var result = [];
+    var service = this.get('controller.content');
+    if (service.get("id") == "OOZIE" || service.get("id") == "ZOOKEEPER") {
+      var clients = service.get('components').filterProperty('isClient');
+      if (clients.length > 0) {
+        result = [{
+          'displayName': clients[0].get('displayName'),
+          'isComma': false,
+          'isAnd': false
+        }];
+      }
+      if (clients.length > 1) {
+        result[0].isComma = true;
+        result.push({
+          'displayName': clients[1].get('displayName'),
+          'isComma': false,
+          'isAnd': false
+        });
+      }
+      if (clients.length > 2) {
+        result[1].isAnd = true;
+        result.push({
+          'displayName': clients.length - 2 + ' more',
+          'isComma': false,
+          'isAnd': false
+        });
+      }
+    }
+    return result;
+  }.property('controller.content'),
+
+  servers: function () {
+    var result = [];
+    var service = this.get('controller.content');
+    if (service.get("id") == "ZOOKEEPER") {
+      var servers = service.get('components').filterProperty('isMaster');
+      if (servers.length > 0) {
+        result = [{
+          'host': servers[0].get('displayName'),
+          'isComma': false,
+          'isAnd': false
+        }];
+      }
+      if (servers.length > 1) {
+        result[0].isComma = true;
+        result.push({
+          'host': servers[1].get('displayName'),
+          'isComma': false,
+          'isAnd': false
+        });
+      }
+      if (servers.length > 2) {
+        result[1].isAnd = true;
+        result.push({
+          'host': servers.length - 2 + ' more',
+          'isComma': false,
+          'isAnd': false
+        });
+      }
+    }
+    return result;
+  }.property('controller.content'),
+
+  monitors: function () {
+    var result = '';
+    var service = this.get('controller.content');
+    if (service.get("id") == "GANGLIA") {
+      var monitors = service.get('components').filterProperty('isMaster', false);
+      if (monitors.length) {
+        result = monitors.length - 1 ? monitors.length + ' hosts running monitor' : '1 host running monitor';
+      }
+    }
+    return result;
+  }.property('controller.content'),
+
+  /**
+   * Property related to GANGLIA service, is unused for other services
+   * @return {Object}
+   */
+  monitorsObj: function(){
+    var service = this.get('controller.content');
+    if (service.get("id") == "GANGLIA") {
+      var monitors = service.get('components').filterProperty('isMaster', false);
+      if (monitors.length) {
+        return monitors[0];
+      }
+    }
+    return {};
+  }.property('controller.content'),
+
+  /**
+   * Property related to ZOOKEEPER service, is unused for other services
+   * @return {Object}
+   */
+  serversHost: function() {
+    var service = this.get('controller.content');
+    if (service.get("id") == "ZOOKEEPER") {
+      var servers = service.get('components').filterProperty('isMaster');
+      if (servers.length > 0) {
+        return servers[0];
+      }
+    }
+    return {};
+  }.property('controller.content'),
+
+  /**
+   * Property related to OOZIE and ZOOKEEPER services, is unused for other services
+   * @return {Object}
+   */
+  clientObj: function() {
+    var service = this.get('controller.content');
+    if (service.get("id") == "OOZIE" || service.get("id") == "ZOOKEEPER") {
+      var clients = service.get('components').filterProperty('isClient');
+      if (clients.length > 0) {
+        return clients[0];
+      }
+    }
+    return {};
+  }.property('controller.content'),
+
   data:{
     hive:{
       "database":"PostgreSQL",
@@ -51,6 +172,14 @@ App.MainServiceInfoSummaryView = Em.View.extend({
   nagiosServer:function(){
     var tmp=this.get('controller.content');
     if(tmp.get("id") == "NAGIOS"){
+      return tmp.get("components").objectAt(0).get("host").get("publicHostName");
+    }else{
+      return "";
+    }
+  }.property('controller.content'),
+  oozieServer:function(){
+    var tmp=this.get('controller.content');
+    if(tmp.get("id") == "OOZIE"){
       return tmp.get("components").objectAt(0).get("host").get("publicHostName");
     }else{
       return "";

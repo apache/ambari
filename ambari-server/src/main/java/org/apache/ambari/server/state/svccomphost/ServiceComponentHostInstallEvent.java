@@ -26,9 +26,9 @@ public class ServiceComponentHostInstallEvent extends
 
 
   public ServiceComponentHostInstallEvent(String serviceComponentName,
-      String hostName, long opTimestamp) {
+      String hostName, long opTimestamp, String stackId) {
     super(ServiceComponentHostEventType.HOST_SVCCOMP_INSTALL,
-        serviceComponentName, hostName, opTimestamp);
+        serviceComponentName, hostName, opTimestamp, stackId);
   }
 
 }

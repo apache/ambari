@@ -20,24 +20,24 @@
   <a href="javascript:void(null)" data-toggle="modal" {{action backToHostsList}}><i class="icon-arrow-left"></i>&nbsp;Back to Hosts</a>
   &nbsp;/&nbsp;
   <span {{bindAttr class=":host-title view.content.healthClass"}}>{{unbound view.content.publicHostName}}</span>
-  {{#if controller.isAdmin}}
-  <div class="host-maintenance">
-    <div class="host-maintenance-btn btn-group display-inline-block">
-      <a class="btn dropdown-toggle" data-toggle="dropdown" href="#">
-        {{t services.service.actions.maintenance}}
-        <span class="caret"></span>
-      </a>
-      <ul class="dropdown-menu">
-      <!-- dropdown menu links -->
-        {{#each option in view.maintenance}}
-        <li>
-        <a {{action validateDeletion target="controller"}} href="#">{{option.label}}</a>
-        </li>
-        {{/each}}
-      </ul>
-    </div>
-  </div>
-  {{/if}}
+<!--   {{#if controller.isAdmin}} -->
+<!--   <div class="host-maintenance"> -->
+<!--     <div class="host-maintenance-btn btn-group display-inline-block"> -->
+<!--       <a class="btn dropdown-toggle" data-toggle="dropdown" href="#"> -->
+<!--         {{t services.service.actions.maintenance}} -->
+<!--         <span class="caret"></span> -->
+<!--       </a> -->
+<!--       <ul class="dropdown-menu"> -->
+<!--       dropdown menu links -->
+<!--         {{#each option in view.maintenance}} -->
+<!--         <li> -->
+<!--         <a {{action validateDeletion target="controller"}} href="#">{{option.label}}</a> -->
+<!--         </li> -->
+<!--         {{/each}} -->
+<!--       </ul> -->
+<!--     </div> -->
+<!--   </div> -->
+<!--   {{/if}} -->
   <div class="content">
     {{view App.MainHostMenuView}}
     {{outlet}}

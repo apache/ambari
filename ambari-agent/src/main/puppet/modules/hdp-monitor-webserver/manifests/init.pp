@@ -23,18 +23,60 @@ class hdp-monitor-webserver(
   $opts = {}
 ) inherits hdp::params 
 {
-  #TODO: does not install apache package
+
+  
+  if hdp_is_empty($hdp::params::services_names[httpd]) {
+      hdp_fail("There is no service name for service httpd")
+    }
+    else {
+      $service_name_by_os = $hdp::params::services_names[httpd]
+    }
+
+    if hdp_is_empty($service_name_by_os[$hdp::params::hdp_os_type]) {
+      
+      if hdp_is_empty($service_name_by_os['ALL']) {
+        hdp_fail("There is no service name for service httpd")
+      }
+      else {
+        $service_name = $service_name_by_os['ALL']
+      }
+    }
+    else {
+      $service_name = $service_name_by_os[$hdp::params::hdp_os_type]
+    }
+
   if ($service_state == 'no_op') {
-  } elsif ($service_state in ['running','stopped','installed_and_configured']) {
+  } elsif ($service_state in ['running','stopped','installed_and_configured', 'restart']) {
+
+
     if ($service_state == 'running') {
       #TODO: refine by using notify/subscribe
       hdp::exec { 'monitor webserver start':
-        command => '/etc/init.d/httpd start',
-        unless => '/etc/init.d/httpd status'
+        command => "/etc/init.d/$service_name start",
+        unless => "/etc/init.d/$service_name status",
+        require => Hdp::Package['httpd']
+        
       } 
+
+      hdp::package { 'httpd' :
+        size   => 64
+      }
     } elsif ($service_state == 'stopped') {
-      package { 'httpd':
-        ensure => 'stopped'
+      # stop should never fail if process already stopped
+      hdp::exec { 'monitor webserver stop':
+        command => "/etc/init.d/$service_name stop"
+      }
+    } elsif ($service_state == 'restart') {
+      hdp::exec { 'monitor webserver restart':
+        command => "/etc/init.d/$service_name restart",
+        require => Hdp::Package['httpd']
+      }
+      hdp::package { 'httpd' :
+        size   => 64
+      }
+    } elsif ($service_state == 'installed_and_configured') {
+      hdp::package { 'httpd' :
+        size   => 64
       }
     }
   } else {

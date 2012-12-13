@@ -20,8 +20,8 @@ package org.apache.ambari.server.controller.internal;
 
 import org.apache.ambari.server.api.util.TreeNode;
 import org.apache.ambari.server.api.util.TreeNodeImpl;
-import org.apache.ambari.server.controller.spi.PropertyId;
 import org.apache.ambari.server.controller.spi.Resource;
+import org.apache.ambari.server.controller.utilities.PropertyHelper;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -77,8 +77,8 @@ public class ResourceImpl implements Resource {
   }
 
   @Override
-  public void setProperty(PropertyId id, Object value) {
-    String category = id.getCategory();
+  public void setProperty(String id, Object value) {
+    String category = PropertyHelper.getPropertyCategory(id);
     TreeNode<Map<String, Object>> node;
     if (category == null) {
       node = m_treeProperties;
@@ -96,16 +96,16 @@ public class ResourceImpl implements Resource {
         }
       }
     }
-    node.getObject().put(id.getName(), value);
+    node.getObject().put(PropertyHelper.getPropertyName(id), value);
   }
 
   @Override
-  public Object getPropertyValue(PropertyId id) {
-    String category = id.getCategory();
+  public Object getPropertyValue(String id) {
+    String category = PropertyHelper.getPropertyCategory(id);
     TreeNode<Map<String, Object>> node = (category == null) ? m_treeProperties :
         m_treeProperties.getChild(category);
 
-    return node == null ? null : node.getObject().get(id.getName());
+    return node == null ? null : node.getObject().get(PropertyHelper.getPropertyName(id));
   }
 
 

@@ -30,9 +30,6 @@ import javax.xml.bind.JAXBException;
 
 import org.apache.ambari.server.state.ServiceInfo;
 import org.apache.ambari.server.state.StackInfo;
-import org.apache.ambari.server.utils.StageUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.codehaus.jackson.JsonGenerationException;
 import org.codehaus.jackson.map.JsonMappingException;
 import org.codehaus.jackson.map.ObjectMapper;
@@ -40,13 +37,15 @@ import org.codehaus.jackson.map.SerializationConfig;
 import org.codehaus.jackson.map.ser.FilterProvider;
 import org.codehaus.jackson.map.ser.impl.SimpleBeanPropertyFilter;
 import org.codehaus.jackson.map.ser.impl.SimpleFilterProvider;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.google.inject.Inject;
 
 @Path("/stacks/")
 public class AmbariMetaService {
   private static AmbariMetaInfo ambariMetainfo;
-  private static Log LOG = LogFactory.getLog(AmbariMetaService.class);
+  private static Logger LOG = LoggerFactory.getLogger(AmbariMetaService.class);
 
   @Inject
   public static void init(AmbariMetaInfo instance) {
@@ -57,11 +56,11 @@ public class AmbariMetaService {
    * Filter properties from the service info and others
    * @param object
    * @return
-   * @throws IOException 
-   * @throws JsonMappingException 
-   * @throws JsonGenerationException 
+   * @throws IOException
+   * @throws JsonMappingException
+   * @throws JsonGenerationException
    */
-  public String filterProperties(Object object, boolean ignoreConfigs) throws 
+  public String filterProperties(Object object, boolean ignoreConfigs) throws
   JsonGenerationException, JsonMappingException, IOException {
     ObjectMapper mapper = new ObjectMapper();
     mapper.configure(SerializationConfig.Feature.INDENT_OUTPUT, true);
@@ -82,7 +81,7 @@ public class AmbariMetaService {
 
   @GET
   @Produces("text/plain")
-  public Response getStacks() throws JsonGenerationException, 
+  public Response getStacks() throws JsonGenerationException,
   JsonMappingException, JAXBException, IOException {
     List<StackInfo> stackInfos = ambariMetainfo.getSupportedStacks();
     String output = filterProperties(stackInfos, true);
@@ -93,7 +92,7 @@ public class AmbariMetaService {
   @Path("{stackName}/version/{versionNumber}")
   @Produces("text/plain")
   public Response getStack(@PathParam("stackName") String stackName,
-      @PathParam("versionNumber") String versionNumber) throws 
+      @PathParam("versionNumber") String versionNumber) throws
       JsonGenerationException, JsonMappingException, JAXBException, IOException  {
     StackInfo stackInfo = ambariMetainfo.getStackInfo(stackName, versionNumber);
     String output = filterProperties(stackInfo, true);
@@ -104,8 +103,8 @@ public class AmbariMetaService {
   @Path("{stackName}/version/{versionNumber}/services/{serviceName}")
   @Produces("text/plain")
   public Response getServiceInfo(@PathParam("stackName") String stackName,
-      @PathParam("versionNumber") String versionNumber,  
-      @PathParam("serviceName") String serviceName) throws 
+      @PathParam("versionNumber") String versionNumber,
+      @PathParam("serviceName") String serviceName) throws
       JsonGenerationException, JsonMappingException, JAXBException, IOException  {
     ServiceInfo serviceInfo = ambariMetainfo.getServiceInfo(stackName,
         versionNumber, serviceName);

@@ -76,10 +76,10 @@ public class AgentResource {
   public RegistrationResponse register(Register message,
       @Context HttpServletRequest req)
       throws WebApplicationException, AmbariException, InvalidStateTransitionException {
-    LOG.info("Received message from agent " + message.toString());
     /* Call into the heartbeat handler */
 
     RegistrationResponse response = hh.handleRegistration(message);
+    LOG.debug("Sending registration responce " + hh);
     return response;
   }
 
@@ -100,10 +100,13 @@ public class AgentResource {
   @Produces({MediaType.APPLICATION_JSON})
   public HeartBeatResponse heartbeat(HeartBeat message)
       throws WebApplicationException {
-    LOG.info("Received Heartbeat message " + message);
+    if (LOG.isDebugEnabled()) {
+      LOG.debug("Received Heartbeat message " + message);
+    }
     HeartBeatResponse heartBeatResponse;
     try {
       heartBeatResponse = hh.handleHeartBeat(message);
+      LOG.debug("Sending heartbeat responce " + hh);
     } catch (Exception e) {
       LOG.info("Error in HeartBeat", e);
       throw new WebApplicationException(500);

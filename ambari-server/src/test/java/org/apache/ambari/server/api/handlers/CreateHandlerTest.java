@@ -18,12 +18,11 @@
 
 package org.apache.ambari.server.api.handlers;
 
-import org.apache.ambari.server.api.resources.ResourceDefinition;
+import org.apache.ambari.server.api.resources.ResourceInstance;
 import org.apache.ambari.server.api.services.PersistenceManager;
 import org.apache.ambari.server.api.services.Request;
 import org.apache.ambari.server.api.services.Result;
 import org.apache.ambari.server.api.util.TreeNode;
-import org.apache.ambari.server.controller.spi.PropertyId;
 import org.apache.ambari.server.controller.spi.RequestStatus;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
@@ -41,23 +40,26 @@ public class CreateHandlerTest {
 
   @Test
   public void testHandleRequest__Synchronous() {
-    Request request = createMock(Request.class);
-    ResourceDefinition resource = createMock(ResourceDefinition.class);
+    Request request = createNiceMock(Request.class);
+    ResourceInstance resource = createNiceMock(ResourceInstance.class);
     PersistenceManager pm = createStrictMock(PersistenceManager.class);
-    RequestStatus status = createMock(RequestStatus.class);
-    Resource resource1 = createMock(Resource.class);
-    Resource resource2 = createMock(Resource.class);
+    RequestStatus status = createNiceMock(RequestStatus.class);
+    Resource resource1 = createNiceMock(Resource.class);
+    Resource resource2 = createNiceMock(Resource.class);
 
-    Set<Map<PropertyId, Object>> setResourceProperties = new HashSet<Map<PropertyId, Object>>();
+    Set<Map<String, Object>> setResourceProperties = new HashSet<Map<String, Object>>();
 
     Set<Resource> setResources = new HashSet<Resource>();
     setResources.add(resource1);
     setResources.add(resource2);
 
     // expectations
-    expect(request.getResourceDefinition()).andReturn(resource);
-    expect(request.getHttpBodyProperties()).andReturn(setResourceProperties);
-    expect(request.getPersistenceManager()).andReturn(pm);
+    expect(request.getPersistenceManager()).andReturn(pm).atLeastOnce();
+    expect(request.getResource()).andReturn(resource).atLeastOnce();
+    expect(request.getQueryPredicate()).andReturn(null).atLeastOnce();
+    expect(request.getHttpBodyProperties()).andReturn(setResourceProperties).atLeastOnce();
+    expect(request.getURI()).andReturn("http://some.host.com:8080/clusters/cluster1/services/HDFS").atLeastOnce();
+
     expect(pm.persist(resource, setResourceProperties)).andReturn(status);
     expect(status.getStatus()).andReturn(RequestStatus.Status.Complete);
     expect(status.getAssociatedResources()).andReturn(setResources);
@@ -91,24 +93,25 @@ public class CreateHandlerTest {
 
   @Test
   public void testHandleRequest__Asynchronous() {
-    Request request = createMock(Request.class);
-    ResourceDefinition resource = createMock(ResourceDefinition.class);
+    Request request = createNiceMock(Request.class);
+    ResourceInstance resource = createNiceMock(ResourceInstance.class);
     PersistenceManager pm = createStrictMock(PersistenceManager.class);
-    RequestStatus status = createMock(RequestStatus.class);
-    Resource resource1 = createMock(Resource.class);
-    Resource resource2 = createMock(Resource.class);
-    Resource requestResource = createMock(Resource.class);
+    RequestStatus status = createNiceMock(RequestStatus.class);
+    Resource resource1 = createNiceMock(Resource.class);
+    Resource resource2 = createNiceMock(Resource.class);
+    Resource requestResource = createNiceMock(Resource.class);
 
-    Set<Map<PropertyId, Object>> setResourceProperties = new HashSet<Map<PropertyId, Object>>();
+    Set<Map<String, Object>> setResourceProperties = new HashSet<Map<String, Object>>();
 
     Set<Resource> setResources = new HashSet<Resource>();
     setResources.add(resource1);
     setResources.add(resource2);
 
     // expectations
-    expect(request.getResourceDefinition()).andReturn(resource);
+    expect(request.getResource()).andReturn(resource);
     expect(request.getHttpBodyProperties()).andReturn(setResourceProperties);
     expect(request.getPersistenceManager()).andReturn(pm);
+    expect(request.getQueryPredicate()).andReturn(null).atLeastOnce();
     expect(pm.persist(resource, setResourceProperties)).andReturn(status);
     expect(status.getStatus()).andReturn(RequestStatus.Status.Accepted);
     expect(status.getAssociatedResources()).andReturn(setResources);
@@ -117,7 +120,7 @@ public class CreateHandlerTest {
     expect(status.getRequestResource()).andReturn(requestResource);
     expect(request.getURI()).andReturn("http://some.host.com:8080/clusters/cluster1/services/HDFS").atLeastOnce();
     expect(status.getRequestResource()).andReturn(requestResource).atLeastOnce();
-    expect(requestResource.getPropertyValue(PropertyHelper.getPropertyId("id", "Requests"))).andReturn("requestID").atLeastOnce();
+    expect(requestResource.getPropertyValue(PropertyHelper.getPropertyId("Requests", "id"))).andReturn("requestID").atLeastOnce();
 
     replay(request, resource, pm, status, resource1, resource2, requestResource);
 

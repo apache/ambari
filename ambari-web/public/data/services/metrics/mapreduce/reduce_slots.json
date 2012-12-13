@@ -1,0 +1,16 @@
+{
+  "href" : "http://ambari/clusters/SrimanthAmbari/services/MAPREDUCE/components/JOBTRACKER?fields=metrics/mapred/jobtracker/occupied_reduce_slots[1351213550,1351217148,60],metrics/mapred/jobtracker/reserved_reduce_slots[1351213550,1351217148,60]",
+  "metrics" : {
+    "mapred" : {
+      "jobtracker" : {
+        "reserved_reduce_slots" : "[[0.0,1351213560],[0.0,1351213920],[0.0,1351214280],[0.0,1351214640],[0.0,1351215000],[0.0,1351215360],[0.0,1351215720],[0.0,1351216080],[0.0,1351216440],[0.0,1351216800],[0.0,1351217160]]",
+        "occupied_reduce_slots" : "[[0.0,1351213560],[0.0,1351213920],[0.0,1351214280],[0.0,1351214640],[0.0,1351215000],[0.0,1351215360],[0.0,1351215720],[0.0,1351216080],[0.0,1351216440],[0.0,1351216800],[0.038888888889,1351217160]]"
+      }
+    }
+  },
+  "ServiceComponentInfo" : {
+    "cluster_name" : "SrimanthAmbari",
+    "component_name" : "JOBTRACKER",
+    "service_name" : "MAPREDUCE"
+  }
+}

@@ -57,6 +57,6 @@
     <a class="btn pull-left" {{action back}}>&larr; Back
     </a>
     {{/unless}}
-    <a class="btn btn-success pull-right" {{action submit target="controller"}}>Next &rarr;</a>
+    <a class="btn btn-success pull-right" {{bindAttr disabled="isSubmitDisabled"}} {{action submit target="controller"}}> Next &rarr;</a>
   </div>
 </div>

@@ -54,19 +54,19 @@ def printMetric(clusterName, hostName, metricName, file, cf, start, end, resolut
                    "\",\n    \"host_name\":\"" + hostName +\
                    "\",\n    \"metric_name\":\"" + metricName + "\",\n")
 
-  first = True
+  firstDP = True
   sys.stdout.write("    \"datapoints\":[\n")
   for tuple in rrdMetric[2]:
     if tuple[0] is not None:
-      if not first:
+      if not firstDP:
         sys.stdout.write(",\n")
+      firstDP = False
       sys.stdout.write("      [")
       sys.stdout.write(str(tuple[0]))
       sys.stdout.write(",")
       sys.stdout.write(str(time))
       sys.stdout.write("]")
     time = time + step
-    first = False
   sys.stdout.write("\n    ]\n  }")
   return
 
@@ -79,7 +79,7 @@ queryString = dict(cgi.parse_qsl(os.environ['QUERY_STRING']));
 
 sys.stdout.write("[\n")
 
-first = True
+firstMetric = True
 
 if "m" in queryString:
   metricParts = queryString["m"].split(",")
@@ -127,14 +127,13 @@ for cluster in clusterParts:
       for file in files:
         for metric in metricParts:
           if file.endswith(metric + ".rrd"):
-            if not first:
+            if not firstMetric:
               sys.stdout.write(",\n")
 
             printMetric(pathParts[-2], pathParts[-1], file[:-4], os.path.join(path, file), cf, start, end, resolution)
 
-            first = False
+            firstMetric = False
 
 sys.stdout.write("\n]\n")
 sys.stdout.flush
-
 

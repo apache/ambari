@@ -19,7 +19,6 @@
 package org.apache.ambari.server.controller.predicate;
 
 import org.apache.ambari.server.controller.spi.Predicate;
-import org.apache.ambari.server.controller.spi.PropertyId;
 
 import java.util.Set;
 
@@ -28,5 +27,5 @@ import java.util.Set;
  * associated property ids.
  */
 public interface BasePredicate extends Predicate, PredicateVisitorAcceptor {
-  public Set<PropertyId> getPropertyIds();
+  public Set<String> getPropertyIds();
 }

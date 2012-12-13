@@ -21,34 +21,41 @@ package org.apache.ambari.server.api.services;
 import org.apache.ambari.server.api.handlers.DelegatingRequestHandler;
 import org.apache.ambari.server.api.handlers.RequestHandler;
 import org.apache.ambari.server.api.resources.ResourceDefinition;
+import org.apache.ambari.server.api.resources.ResourceInstance;
+import org.apache.ambari.server.api.resources.ResourceInstanceFactory;
+import org.apache.ambari.server.api.resources.ResourceInstanceFactoryImpl;
 import org.apache.ambari.server.api.services.serializers.ResultSerializer;
+import org.apache.ambari.server.controller.spi.Resource;
 
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
+import java.util.Map;
 
 /**
  * Provides common functionality to all services.
  */
 public abstract class BaseService {
 
+  private ResourceInstanceFactory m_resourceFactory = new ResourceInstanceFactoryImpl();
+
   /**
    * All requests are funneled through this method so that common logic can be executed.
    * This consists of creating a {@link Request} instance, invoking the correct {@link RequestHandler} and
    * applying the proper {@link ResultSerializer} to the result.
    *
-   * @param headers            http headers
-   * @param body               http body
-   * @param uriInfo            uri information
-   * @param requestType        http request type
-   * @param resourceDefinition resource definition that is being acted on
+   * @param headers      http headers
+   * @param body         http body
+   * @param uriInfo      uri information
+   * @param requestType  http request type
+   * @param resource     resource instance that is being acted on
    *
    * @return the response of the operation in serialized form
    */
   protected Response handleRequest(HttpHeaders headers, String body, UriInfo uriInfo, Request.Type requestType,
-                                   ResourceDefinition resourceDefinition) {
+                                   ResourceInstance resource) {
 
-    Request request = getRequestFactory().createRequest(headers, body, uriInfo, requestType, resourceDefinition);
+    Request request = getRequestFactory().createRequest(headers, body, uriInfo, requestType, resource);
     Result result = getRequestHandler().handleRequest(request);
 
     return getResponseFactory().createResponse(requestType,
@@ -83,5 +90,9 @@ public abstract class BaseService {
    */
   RequestHandler getRequestHandler() {
     return new DelegatingRequestHandler();
+  }
+
+  ResourceInstance createResource(Resource.Type type, Map<Resource.Type, String> mapIds) {
+    return m_resourceFactory.createResource(type, mapIds);
   }
 }

@@ -22,8 +22,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
+import org.apache.ambari.server.actionmanager.HostRoleCommand;
 import org.apache.ambari.server.actionmanager.Stage;
-import org.apache.ambari.server.agent.ExecutionCommand;
 import org.apache.ambari.server.metadata.RoleCommandOrder;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -50,21 +50,22 @@ public class RoleGraph {
     }
     graph = new TreeMap<String, RoleGraphNode>();
     initialStage = stage;
-    Map<String, List<ExecutionCommand>> execCommands = stage
-        .getExecutionCommands();
-    for (String host : execCommands.keySet()) {
-      for (ExecutionCommand exec : execCommands.get(host)) {
-        String role = exec.getRole().toString();
+
+    Map<String, Map<String, HostRoleCommand>> hostRoleCommands = stage.getHostRoleCommands();
+    for (String host : hostRoleCommands.keySet()) {
+      for (String role : hostRoleCommands.get(host).keySet()) {
+        HostRoleCommand hostRoleCommand = hostRoleCommands.get(host).get(role);
         RoleGraphNode rgn;
         if (graph.get(role) == null) {
-           rgn = new RoleGraphNode(exec.getRole(),
-              exec.getRoleCommand());
+          rgn = new RoleGraphNode(hostRoleCommand.getRole(),
+              hostRoleCommand.getRoleCommand());
           graph.put(role, rgn);
         }
         rgn = graph.get(role);
         rgn.addHost(host);
       }
     }
+
     //Add edges
     for (String roleI : graph.keySet()) {
       for (String roleJ : graph.keySet()) {
@@ -93,7 +94,9 @@ public class RoleGraph {
     List<Stage> stageList = new ArrayList<Stage>();
     List<RoleGraphNode> firstStageNodes = new ArrayList<RoleGraphNode>();
     while (!graph.isEmpty()) {
-      LOG.info(this.stringifyGraph());
+      if (LOG.isDebugEnabled()) {
+        LOG.debug(this.stringifyGraph());
+      }
 
       for (String role: graph.keySet()) {
         RoleGraphNode rgn = graph.get(role);
@@ -134,8 +137,7 @@ public class RoleGraph {
     newStage.setSuccessFactors(origStage.getSuccessFactors());
     for (RoleGraphNode rgn : stageGraphNodes) {
       for (String host : rgn.getHosts()) {
-        newStage.addExecutionCommand(origStage,
-            origStage.getExecutionCommand(host, rgn.getRole().toString()));
+        newStage.addExecutionCommandWrapper(origStage, host, rgn.getRole());
       }
     }
     return newStage;

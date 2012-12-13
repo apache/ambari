@@ -23,21 +23,24 @@ import os.path
 import logging
 from uuid import getnode as get_mac
 from shell import shellRunner
+from datetime import datetime
+from AmbariConfig import AmbariConfig
 
 
 logger = logging.getLogger()
 
-xml_configurations_keys= ["hdfs-site", "core-site", 
+non_global_configuration_types = ["hdfs-site", "core-site", 
                           "mapred-queue-acls",
                              "hadoop-policy", "mapred-site", 
                              "capacity-scheduler", "hbase-site",
                              "hbase-policy", "hive-site", "oozie-site", 
-                             "templeton-site"]
+                             "templeton-site", "hdfs-exclude-file"]
 
 #read static imports from file and write them to manifest
 def writeImports(outputFile, modulesdir, inputFileName='imports.txt'):
   inputFile = open(inputFileName, 'r')
   logger.info("Modules dir is " + modulesdir)
+  outputFile.write('#' + datetime.now().strftime('%d.%m.%Y %H:%M:%S') + os.linesep)
   for line in inputFile:
     modulename = line.rstrip()
     line = "import '" + modulesdir + os.sep + modulename + "'" + os.linesep
@@ -45,7 +48,7 @@ def writeImports(outputFile, modulesdir, inputFileName='imports.txt'):
     
   inputFile.close()
 
-def generateManifest(parsedJson, fileName, modulesdir):
+def generateManifest(parsedJson, fileName, modulesdir, ambariconfig):
   logger.info("JSON Received:")
   logger.info(json.dumps(parsedJson, sort_keys=True, indent=4))
 #reading json
@@ -62,7 +65,7 @@ def generateManifest(parsedJson, fileName, modulesdir):
   if 'configurations' in parsedJson:
     if parsedJson['configurations']:
       configurations = parsedJson['configurations']
-  xmlConfigurationsKeys = xml_configurations_keys
+  nonGlobalConfigurationsKeys = non_global_configuration_types
   #hostAttributes = parsedJson['hostAttributes']
   roleParams = {}
   if 'roleParams' in parsedJson:
@@ -73,9 +76,14 @@ def generateManifest(parsedJson, fileName, modulesdir):
             'roleParams' : roleParams}]
   #writing manifest
   manifest = open(fileName, 'w')
-
+  #Check for Ambari Config and make sure you pick the right imports file
+  importsfile = "imports.txt"
+  if ambariconfig.has_option('puppet', 'imports_file') :
+    importsfile = ambariconfig.get('puppet', 'imports_file')
+    
+  logger.info("Using imports file " + importsfile)   
   #writing imports from external static file
-  writeImports(outputFile=manifest, modulesdir=modulesdir)
+  writeImports(outputFile=manifest, modulesdir=modulesdir, inputFileName=importsfile)
   
   #writing nodes
   writeNodes(manifest, clusterHostInfo)
@@ -84,19 +92,19 @@ def generateManifest(parsedJson, fileName, modulesdir):
   writeParams(manifest, params, modulesdir)
   
   
-  xmlConfigurations = {}
+  nonGlobalConfigurations = {}
   flatConfigurations = {}
 
   if configurations: 
     for configKey in configurations.iterkeys():
-      if configKey in xmlConfigurationsKeys:
-        xmlConfigurations[configKey] = configurations[configKey]
+      if configKey in nonGlobalConfigurationsKeys:
+        nonGlobalConfigurations[configKey] = configurations[configKey]
       else:
         flatConfigurations[configKey] = configurations[configKey]
       
   #writing config maps
-  if (xmlConfigurations):
-    writeXmlConfigurations(manifest, xmlConfigurations)
+  if (nonGlobalConfigurations):
+    writeNonGlobalConfigurations(manifest, nonGlobalConfigurations)
   if (flatConfigurations):
     writeFlatConfigurations(manifest, flatConfigurations)
 
@@ -104,7 +112,7 @@ def generateManifest(parsedJson, fileName, modulesdir):
   #writeHostAttributes(manifest, hostAttributes)
 
   #writing task definitions 
-  writeTasks(manifest, roles)
+  writeTasks(manifest, roles, ambariconfig)
      
   manifest.close()
     
@@ -169,12 +177,15 @@ def writeHostAttributes(outputFile, hostAttributes):
 
 #write flat configurations
 def writeFlatConfigurations(outputFile, flatConfigs):
+  flatDict = {}
   for flatConfigName in flatConfigs.iterkeys():
     for flatConfig in flatConfigs[flatConfigName].iterkeys():
-      outputFile.write('$' + flatConfig + ' = "' + flatConfigs[flatConfigName][flatConfig] + '"' + os.linesep)
+      flatDict[flatConfig] = flatConfigs[flatConfigName][flatConfig]
+  for gconfigKey in flatDict.iterkeys():
+    outputFile.write('$' + gconfigKey + ' = "' + flatDict[gconfigKey] + '"' + os.linesep)
 
 #write xml configurations
-def writeXmlConfigurations(outputFile, xmlConfigs):
+def writeNonGlobalConfigurations(outputFile, xmlConfigs):
   outputFile.write('$configuration =  {\n')
 
   for configName in xmlConfigs.iterkeys():
@@ -184,7 +195,7 @@ def writeXmlConfigurations(outputFile, xmlConfigs):
     outputFile.write(configName + '=> {\n')
     coma = ''
     for configParam in config.iterkeys():
-      outputFile.write(coma + '"' + configParam + '" => "' + config[configParam] + '"')
+      outputFile.write(coma + '"' + configParam + '" => \'' + config[configParam] + '\'')
       coma = ',\n'
 
     outputFile.write('\n},\n')
@@ -192,13 +203,21 @@ def writeXmlConfigurations(outputFile, xmlConfigs):
   outputFile.write('\n}\n')
 
 #write node tasks
-def writeTasks(outputFile, roles):
+def writeTasks(outputFile, roles, ambariconfig):
   #reading dictionaries
-  rolesToClassFile = open('rolesToClass.dict', 'r')
+  rolestoclass = "rolesToClass.dict"
+  if ambariconfig.has_option('puppet','roles_to_class'):
+    rolestoclass = ambariconfig.get('puppet', 'roles_to_class')
+                              
+  rolesToClassFile = open(rolestoclass, 'r')
   rolesToClass = readDict(rolesToClassFile)
   rolesToClassFile.close()
 
-  serviceStatesFile =  open('serviceStates.dict', 'r')
+  servicestates = "serviceStates.dict"
+  if ambariconfig.has_option('puppet','service_states'):
+    servicestates = ambariconfig.get('puppet', 'service_states')
+                              
+  serviceStatesFile =  open(servicestates, 'r')
   serviceStates = readDict(serviceStatesFile)
   serviceStatesFile.close()
 
@@ -267,7 +286,6 @@ def main():
   parsedJson = json.loads(inputJsonStr)
   generateManifest(parsedJson, 'site.pp', modulesdir)
 
-  installRepos()
 if __name__ == '__main__':
   main()
 

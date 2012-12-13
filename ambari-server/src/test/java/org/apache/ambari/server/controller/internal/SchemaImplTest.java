@@ -19,10 +19,11 @@
 package org.apache.ambari.server.controller.internal;
 
 import junit.framework.Assert;
+import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.controller.spi.RequestStatus;
+import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
 import org.apache.ambari.server.controller.spi.Predicate;
-import org.apache.ambari.server.controller.spi.PropertyId;
 import org.apache.ambari.server.controller.spi.PropertyProvider;
 import org.apache.ambari.server.controller.spi.Request;
 import org.apache.ambari.server.controller.spi.Resource;
@@ -42,54 +43,54 @@ import java.util.Set;
  */
 public class SchemaImplTest {
 
-  private static final Set<PropertyId> resourceProviderProperties = new HashSet<PropertyId>();
+  private static final Set<String> resourceProviderProperties = new HashSet<String>();
 
   static {
-    resourceProviderProperties.add(PropertyHelper.getPropertyId("p1", "c1"));
-    resourceProviderProperties.add(PropertyHelper.getPropertyId("p2", "c1"));
-    resourceProviderProperties.add(PropertyHelper.getPropertyId("p3", "c1"));
-    resourceProviderProperties.add(PropertyHelper.getPropertyId("p4", "c2"));
+    resourceProviderProperties.add(PropertyHelper.getPropertyId("c1", "p1"));
+    resourceProviderProperties.add(PropertyHelper.getPropertyId("c1", "p2"));
+    resourceProviderProperties.add(PropertyHelper.getPropertyId("c1", "p3"));
+    resourceProviderProperties.add(PropertyHelper.getPropertyId("c2", "p4"));
   }
 
   private static final ResourceProvider resourceProvider = new ResourceProvider() {
     @Override
-    public Set<Resource> getResources(Request request, Predicate predicate) {
+    public Set<Resource> getResources(Request request, Predicate predicate) throws AmbariException, UnsupportedPropertyException {
       return null;
     }
 
     @Override
-    public RequestStatus createResources(Request request) {
+    public RequestStatus createResources(Request request) throws AmbariException, UnsupportedPropertyException {
       return new RequestStatusImpl(null);
     }
 
     @Override
-    public RequestStatus updateResources(Request request, Predicate predicate) {
+    public RequestStatus updateResources(Request request, Predicate predicate) throws AmbariException, UnsupportedPropertyException {
       return new RequestStatusImpl(null);
     }
 
     @Override
-    public RequestStatus deleteResources(Predicate predicate) {
+    public RequestStatus deleteResources(Predicate predicate) throws AmbariException, UnsupportedPropertyException {
       return new RequestStatusImpl(null);
     }
 
     @Override
-    public Set<PropertyId> getPropertyIds() {
+    public Set<String> getPropertyIds() {
       return resourceProviderProperties;
     }
 
     @Override
-    public Map<Resource.Type, PropertyId> getKeyPropertyIds() {
+    public Map<Resource.Type, String> getKeyPropertyIds() {
       return keyPropertyIds;
     }
   };
 
-  private static final Set<PropertyId> propertyProviderProperties = new HashSet<PropertyId>();
+  private static final Set<String> propertyProviderProperties = new HashSet<String>();
 
   static {
-    propertyProviderProperties.add(PropertyHelper.getPropertyId("p5", "c3"));
-    propertyProviderProperties.add(PropertyHelper.getPropertyId("p6", "c3"));
-    propertyProviderProperties.add(PropertyHelper.getPropertyId("p7", "c4"));
-    propertyProviderProperties.add(PropertyHelper.getPropertyId("p8", "c4"));
+    propertyProviderProperties.add(PropertyHelper.getPropertyId("c3", "p5"));
+    propertyProviderProperties.add(PropertyHelper.getPropertyId("c3", "p6"));
+    propertyProviderProperties.add(PropertyHelper.getPropertyId("c4", "p7"));
+    propertyProviderProperties.add(PropertyHelper.getPropertyId("c4", "p8"));
   }
 
   private static final PropertyProvider propertyProvider = new PropertyProvider() {
@@ -99,7 +100,7 @@ public class SchemaImplTest {
     }
 
     @Override
-    public Set<PropertyId> getPropertyIds() {
+    public Set<String> getPropertyIds() {
       return propertyProviderProperties;
     }
   };
@@ -110,28 +111,28 @@ public class SchemaImplTest {
     propertyProviders.add(propertyProvider);
   }
 
-  private static final Map<Resource.Type, PropertyId> keyPropertyIds = new HashMap<Resource.Type, PropertyId>();
+  private static final Map<Resource.Type, String> keyPropertyIds = new HashMap<Resource.Type, String>();
 
   static {
-    keyPropertyIds.put(Resource.Type.Cluster, PropertyHelper.getPropertyId("p1", "c1"));
-    keyPropertyIds.put(Resource.Type.Host, PropertyHelper.getPropertyId("p2", "c1"));
-    keyPropertyIds.put(Resource.Type.Component, PropertyHelper.getPropertyId("p3", "c1"));
+    keyPropertyIds.put(Resource.Type.Cluster, PropertyHelper.getPropertyId("c1", "p1"));
+    keyPropertyIds.put(Resource.Type.Host, PropertyHelper.getPropertyId("c1", "p2"));
+    keyPropertyIds.put(Resource.Type.Component, PropertyHelper.getPropertyId("c1", "p3"));
   }
 
   @Test
   public void testGetKeyPropertyId() {
     Schema schema = new SchemaImpl(resourceProvider, propertyProviders);
 
-    Assert.assertEquals(PropertyHelper.getPropertyId("p1", "c1"), schema.getKeyPropertyId(Resource.Type.Cluster));
-    Assert.assertEquals(PropertyHelper.getPropertyId("p2", "c1"), schema.getKeyPropertyId(Resource.Type.Host));
-    Assert.assertEquals(PropertyHelper.getPropertyId("p3", "c1"), schema.getKeyPropertyId(Resource.Type.Component));
+    Assert.assertEquals(PropertyHelper.getPropertyId("c1", "p1"), schema.getKeyPropertyId(Resource.Type.Cluster));
+    Assert.assertEquals(PropertyHelper.getPropertyId("c1", "p2"), schema.getKeyPropertyId(Resource.Type.Host));
+    Assert.assertEquals(PropertyHelper.getPropertyId("c1", "p3"), schema.getKeyPropertyId(Resource.Type.Component));
   }
 
   @Test
   public void testGetCategories() {
     Schema schema = new SchemaImpl(resourceProvider, propertyProviders);
 
-    Map<String, Set<String>> categories = schema.getCategories();
+    Map<String, Set<String>> categories = schema.getCategoryProperties();
     Assert.assertEquals(4, categories.size());
     Assert.assertTrue(categories.containsKey("c1"));
     Assert.assertTrue(categories.containsKey("c2"));

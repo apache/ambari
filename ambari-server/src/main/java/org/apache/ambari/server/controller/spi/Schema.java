@@ -40,14 +40,14 @@ public interface Schema {
    * @param type the resource type
    * @return the key property id for the given resource type
    */
-  public PropertyId getKeyPropertyId(Resource.Type type);
+  public String getKeyPropertyId(Resource.Type type);
 
   /**
-   * Get the map of categories for this schema's resource.  The map
-   * is keyed by the category name and contains sets of property ids
+   * Get this schema's map of category and property names.  The map
+   * is keyed by category name and contains sets of property names
    * for each category.
    *
-   * @return the map of categories
+   * @return the map of category and property names
    */
-  public Map<String, Set<String>> getCategories();
+  public Map<String, Set<String>> getCategoryProperties();
 }

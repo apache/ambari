@@ -34,8 +34,8 @@ import org.apache.commons.logging.LogFactory;
 class BSHostStatusCollector {
   private File requestIdDir;
   private List<BSHostStatus> hostStatus;
-  static String logFileFilter = ".log";
-  static String doneFileFilter = ".done";
+  private static final String logFileFilter = ".log";
+  private static final String doneFileFilter = ".done";
   private static Log LOG = LogFactory.getLog(BSHostStatusCollector.class);
 
   private List<String> hosts;
@@ -58,16 +58,34 @@ class BSHostStatusCollector {
     File done;
     File log;
     LOG.info("HostList for polling on " + hosts);
-    for (String host: hosts) {
+    for (String host : hosts) {
       /* Read through the files and gather output */
       BSHostStatus status = new BSHostStatus();
       status.setHostName(host);
       done = new File(requestIdDir, host + doneFileFilter);
       log = new File(requestIdDir, host + logFileFilter);
-      if (!done.exists())
+      if (LOG.isDebugEnabled()) {
+        LOG.debug("Polling bootstrap status for host"
+            + ", requestDir=" + requestIdDir
+            + ", host=" + host
+            + ", doneFileExists=" + done.exists()
+            + ", logFileExists=" + log.exists());
+      }
+      if (!done.exists()) {
         status.setStatus("RUNNING");
-      else
-        status.setStatus("DONE");
+      } else {
+        status.setStatus("FAILED");
+        try {
+          String statusCode = FileUtils.readFileToString(done).trim();
+          if (statusCode.equals("0")) {
+            status.setStatus("DONE");
+          }
+          
+          updateStatus(status, statusCode);
+        } catch (IOException e) {
+          LOG.info("Error reading done file " + done);
+        }
+      }
       if (!log.exists()) {
         status.setLog("");
       } else {
@@ -81,5 +99,35 @@ class BSHostStatusCollector {
       }
       hostStatus.add(status);
     }
+  }
+  
+  private void updateStatus(BSHostStatus status, String statusCode) {
+    
+    status.setStatusCode(statusCode);
+    
+    int reason = -1;
+    try {
+      reason = Integer.parseInt(statusCode);
+    } catch (Exception e) {
+    }
+    
+    switch (reason) {
+    // case X: (as we find them)
+    case 2:
+      status.setStatusAction("Processing could not continue because the file was not found.");
+      break;
+    case 255:
+    default:
+      if (null != status.getLog()) {
+        String lowerLog = status.getLog().toLowerCase();
+        if (-1 != lowerLog.indexOf("permission denied") && -1 != lowerLog.indexOf("publickey")) {
+          status.setStatusAction("Use correct SSH key");
+        } else if (-1 != lowerLog.indexOf("connect to host")) {
+          status.setStatusAction("Please verify that the hostname '" + status.getHostName() + "' is correct.");
+        }
+      }
+      break;
+    }
+    
   }
 }

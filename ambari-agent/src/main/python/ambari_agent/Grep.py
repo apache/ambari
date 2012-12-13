@@ -1,3 +1,5 @@
+import re
+
 class Grep:
 
   def __init__(self):
@@ -12,21 +14,22 @@ class Grep:
     """
     stripped_string = string.strip()
     lines = stripped_string.splitlines(True)
-    last_occurence = None
+    first_occurence = None
     for index in range(len(lines)):
       line = lines[index]
       if phrase.lower() in line.lower():
-        last_occurence = index
-    if last_occurence is None:
+        first_occurence = index
+        break
+    if first_occurence is None:
       return None
     bound_a = before
-    if last_occurence < before:
-      bound_a = last_occurence
+    if first_occurence < before:
+      bound_a = first_occurence
     result = None
-    if (len(lines) - last_occurence) < after:
-      result = lines[last_occurence - bound_a :]
+    if (len(lines) - first_occurence) < after:
+      result = lines[first_occurence - bound_a :]
     else:
-      result = lines[last_occurence - bound_a : last_occurence + after + 1]
+      result = lines[first_occurence - bound_a : first_occurence + after + 1]
     return "".join(result).strip()
 
 
@@ -42,3 +45,14 @@ class Grep:
       length = len(lines)
       tailed = lines[length - n:]
       return "".join(tailed)
+
+  def filterMarkup(self, string):
+    """
+    Filters given string from puppet colour markup done using escape codes like [0;36m
+    """
+    if string is None:
+      result = None
+    else:
+      regexp = "\x1b" + r"\[[\d;]{1,4}m"
+      result = re.sub(regexp, '', string)
+    return result

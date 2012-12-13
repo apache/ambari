@@ -33,11 +33,30 @@
     <final.name>${project.artifactId}-${project.version}</final.name>
     <package.release>1</package.release>
     <package.prefix>/usr</package.prefix>
-    <package.conf.dir>/etc/ambari</package.conf.dir>
-    <package.log.dir>/var/log/ambari</package.log.dir>
-    <package.pid.dir>/var/run/ambari</package.pid.dir>
+    <package.conf.dir>/etc/ambari-agent</package.conf.dir>
+    <package.log.dir>/var/log/ambari-agent</package.log.dir>
+    <package.pid.dir>/var/run/ambari-agent</package.pid.dir>
     <skipTests>false</skipTests>
+    <facter.tar>http://downloads.puppetlabs.com/facter/facter-1.6.10.tar.gz</facter.tar>
+    <puppet.tar>http://www.puppetlabs.com/downloads/puppet/puppet-2.7.9.tar.gz</puppet.tar>
+    <install.dir>/usr/lib/python2.6/site-packages/ambari_agent</install.dir>
+    <ruby.tar>http://s3.amazonaws.com/dev.hortonworks.com/HDP-UTILS-1.1.0.15/repos/centos6/ruby-1.8.7-p370.tar.gz</ruby.tar>
+    <lib.dir>/usr/lib/ambari-agent/lib</lib.dir>
   </properties>
+  <profiles>
+    <profile>
+      <id>suse11</id>
+      <properties>
+        <ruby.tar>http://s3.amazonaws.com/dev.hortonworks.com/HDP-UTILS-1.1.0.15/repos/suse11/ruby-1.8.7-p370.tar.gz</ruby.tar>
+      </properties>
+    </profile>
+    <profile>
+      <id>centos5</id>
+      <properties>
+        <ruby.tar>http://s3.amazonaws.com/dev.hortonworks.com/HDP-UTILS-1.1.0.15/repos/centos5/ruby-1.8.7-p370.tar.gz</ruby.tar>
+      </properties>
+    </profile>
+  </profiles>
   <build>
     <plugins>
       <plugin>
@@ -119,11 +138,23 @@
           <group>Development</group>
           <description>Maven Recipe: RPM Package.</description>
           <requires>
-            <require>puppet = 2.7.9</require>
+            <require>openssl</require>
+            <require>zlib</require>
+            <require>${python.ver}</require>
           </requires>
+           <postinstallScriptlet>
+            <scriptFile>src/main/package/rpm/postinstall.sh</scriptFile>
+            <fileEncoding>utf-8</fileEncoding>
+          </postinstallScriptlet>
+          <preinstallScriptlet>
+            <scriptFile>src/main/package/rpm/preinstall.sh</scriptFile>
+            <fileEncoding>utf-8</fileEncoding>
+          </preinstallScriptlet>
+          <needarch>x86_64</needarch>
+          <autoRequires>false</autoRequires>
           <mappings>
             <mapping>
-              <directory>/usr/lib/python2.6/site-packages/ambari_agent</directory>
+              <directory>${install.dir}</directory>
               <sources>
                 <source>
                   <location>${project.build.directory}/${project.artifactId}-${project.version}/ambari_agent</location>
@@ -131,7 +162,18 @@
               </sources>
             </mapping>
             <mapping>
+              <directory>${lib.dir}</directory>
+              <sources>
+                <source>
+                  <location>${project.build.directory}/lib</location>
+                </source>
+              </sources>
+            </mapping>
+            <mapping>
               <directory>/var/lib/${project.artifactId}/puppet</directory>
+              <filemode>755</filemode>
+              <username>root</username>
+              <groupname>root</groupname>
               <sources>
                 <source>
                   <location>src/main/puppet</location>
@@ -139,16 +181,21 @@
               </sources>
             </mapping>
             <mapping>
-              <directory>/etc/ambari</directory>
+              <directory>/etc/ambari-agent</directory>
+              <filemode>755</filemode>
+              <username>root</username>
+              <groupname>root</groupname>
               <sources>
                 <source>
-                  <location>conf/unix/ambari.ini</location>
+                  <location>conf/unix/ambari-agent.ini</location>
                 </source>
               </sources>
             </mapping>
             <mapping>
               <directory>/usr/sbin</directory>
               <filemode>744</filemode>
+              <username>root</username>
+              <groupname>root</groupname>
               <sources>
                 <source>
                   <location>conf/unix/ambari-agent</location>
@@ -156,20 +203,82 @@
               </sources>
             </mapping>
             <mapping>
-              <directory>/var/run/ambari</directory>
+              <directory>/var/lib/ambari-agent</directory>
+              <filemode>700</filemode>
+              <username>root</username>
+              <groupname>root</groupname>
+              <sources>
+                <source>
+                  <location>conf/unix/ambari-env.sh</location>
+                </source>
+              </sources>
+            </mapping>
+            <mapping>
+              <directory>/var/run/ambari-agent</directory>
+              <filemode>755</filemode>
+              <username>root</username>
+              <groupname>root</groupname>
+            </mapping>
+            <mapping>
+              <directory>/var/lib/${project.artifactId}/data</directory>
+              <filemode>755</filemode>
+              <username>root</username>
+              <groupname>root</groupname>
             </mapping>
             <mapping>
               <directory>/var/lib/${project.artifactId}/keys</directory>
+              <filemode>755</filemode>
+              <username>root</username>
+              <groupname>root</groupname>
             </mapping>
             <mapping>
-              <directory>/var/log/ambari</directory>
+              <directory>/var/log/ambari-agent</directory>
+              <filemode>755</filemode>
+              <username>root</username>
+              <groupname>root</groupname>
             </mapping>
             <mapping>
-              <directory>/var/ambari</directory>
+              <directory>/var/ambari-agent</directory>
+              <filemode>755</filemode>
+              <username>root</username>
+              <groupname>root</groupname>
             </mapping>
             <!-- -->
           </mappings>
         </configuration>
+      </plugin>
+      <plugin>
+        <groupId>com.github.goldin</groupId>
+        <artifactId>copy-maven-plugin</artifactId>
+        <version>0.2.5</version>
+        <executions>
+          <execution>
+            <id>create-archive</id>
+            <phase>package</phase>
+            <goals>
+              <goal>copy</goal>
+            </goals>
+            <configuration>
+              <resources>
+                <resource>
+                  <targetPath>${project.build.directory}/lib</targetPath>
+                  <file>${ruby.tar}</file>
+                  <unpack>true</unpack>
+                </resource>
+                <resource>
+                  <targetPath>${project.build.directory}/lib</targetPath>
+                  <file>${facter.tar}</file>
+                  <unpack>true</unpack>
+                </resource>
+                <resource>
+                  <targetPath>${project.build.directory}/lib</targetPath>
+                  <file>${puppet.tar}</file>
+                  <unpack>true</unpack>
+                </resource>
+              </resources>
+            </configuration>
+          </execution>
+        </executions>
       </plugin>
     </plugins>
     <extensions>

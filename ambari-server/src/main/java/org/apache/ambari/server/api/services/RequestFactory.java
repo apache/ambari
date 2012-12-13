@@ -18,7 +18,7 @@
 
 package org.apache.ambari.server.api.services;
 
-import org.apache.ambari.server.api.resources.ResourceDefinition;
+import org.apache.ambari.server.api.resources.ResourceInstance;
 
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.UriInfo;
@@ -30,15 +30,24 @@ public class RequestFactory {
   /**
    * Create a request instance.
    *
-   * @param headers            http headers
-   * @param uriInfo            uri information
-   * @param requestType        http request type
-   * @param resourceDefinition associated resource definition
+   * @param headers      http headers
+   * @param uriInfo      uri information
+   * @param requestType  http request type
+   * @param resource     associated resource instance
+   *
    * @return a new Request instance
    */
   public Request createRequest(HttpHeaders headers, String body, UriInfo uriInfo, Request.Type requestType,
-                               ResourceDefinition resourceDefinition) {
+                               ResourceInstance resource) {
 
-    return new RequestImpl(headers, body, uriInfo, requestType, resourceDefinition);
+    if (requestType == Request.Type.POST &&
+        ! uriInfo.getQueryParameters().isEmpty() &&
+        body != null) {
+
+      return new QueryCreateRequest(headers, body, uriInfo, requestType, resource);
+
+    } else {
+      return new RequestImpl(headers, body, uriInfo, requestType, resource);
+    }
   }
 }

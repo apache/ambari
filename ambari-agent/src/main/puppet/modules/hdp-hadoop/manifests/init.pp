@@ -96,6 +96,20 @@ debug('##Configs generation for hdp-hadoop')
       configuration => $configuration['hdfs-site']
     }
   }
+
+  if has_key($configuration, 'hdfs-exclude-file') {
+    hdp-hadoop::hdfs::generate_exclude_file{'exclude_file':}
+  }
+
+  hdp::package {'ambari-log4j':
+    package_type  => 'ambari-log4j'
+  }
+
+  file { '/usr/lib/hadoop/lib/hadoop-tools.jar':
+    ensure => 'link',
+    target => '/usr/lib/hadoop/hadoop-tools.jar',
+    mode => 755,
+  }
 }
 
 class hdp-hadoop(

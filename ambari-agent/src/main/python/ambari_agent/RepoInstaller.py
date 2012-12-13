@@ -25,19 +25,22 @@ from shell import shellRunner
 from manifestGenerator import writeImports
 from pprint import pprint, pformat
 import ast
+import urlparse, urllib
+import re
 
 PUPPET_EXT=".pp"
 
 logger = logging.getLogger()
 
 class RepoInstaller:
-  def __init__(self, parsedJson, path, modulesdir, taskId):
+  def __init__(self, parsedJson, path, modulesdir, taskId, config):
     self.parsedJson = parsedJson
     self.path = path
     self.modulesdir = modulesdir
     self.taskId = taskId
     self.sh = shellRunner()
-
+    self.config = config
+    
   def prepareReposInfo(self):
     params = {}
     self.repoInfoList = []
@@ -45,23 +48,37 @@ class RepoInstaller:
       params = self.parsedJson['hostLevelParams']
     if params.has_key('repo_info'):
       self.repoInfoList = params['repo_info']
-    self.repoInfoList = ast.literal_eval(self.repoInfoList)
+    logger.info("Repo List Info " + pformat(self.repoInfoList))
+    if (isinstance(self.repoInfoList, basestring)):
+      if (self.repoInfoList is not None and (len(self.repoInfoList) > 0)):
+        self.repoInfoList = ast.literal_eval(self.repoInfoList)
+      else:
+        self.repoInfoList = []
 
   def generateFiles(self):
     repoPuppetFiles = []
     for repo in self.repoInfoList:
       repoFile = open(self.path + os.sep + repo['repoId'] + '-' + 
                       str(self.taskId) + PUPPET_EXT, 'w+')
-      writeImports(repoFile, self.modulesdir, inputFileName='imports.txt')
+      importsfile = "imports.txt"
+      if self.config.has_option('puppet','imports_file'):
+        importsfile = self.config.get('puppet', 'imports_file')
+      writeImports(repoFile, self.modulesdir, importsfile)
       
       baseUrl = ''
       mirrorList = ''
       
       if repo.has_key('baseUrl'):
         baseUrl = repo['baseUrl']
+        baseUrl = baseUrl.decode('unicode-escape').encode('utf-8')
+        # Hack to take care of $ signs in the repo url
+        baseUrl = baseUrl.replace('$', '\$')
 
       if repo.has_key('mirrorsList'):
         mirrorList = repo['mirrorsList']
+        mirrorList = mirrorList.decode('unicode-escape').encode('utf-8')
+        # Hack to take care of $ signs in the repo url
+        mirrorList = mirrorList.replace('$', '\$')
 
       repoFile.write('node /default/ {')
       repoFile.write('class{ "hdp-repos::process_repo" : ' + ' os_type => "' + repo['osType'] +
@@ -80,10 +97,12 @@ class RepoInstaller:
 
 def main():
   #Test code
+  logging.basicConfig(level=logging.DEBUG)    
+  #test code
   jsonFile = open('test.json', 'r')
   jsonStr = jsonFile.read() 
   parsedJson = json.loads(jsonStr)
-  repoInstaller = RepoInstaller(parsedJson, '/tmp', '/home/centos/ambari_ws/ambari-agent/src/main/puppet/modules')
+  repoInstaller = RepoInstaller(parsedJson, '/tmp', '/home/centos/ambari_ws/ambari-agent/src/main/puppet/modules',0)
   repoInstaller.installRepos()
   
 if __name__ == '__main__':

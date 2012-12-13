@@ -49,7 +49,8 @@ class hdp-hive::server(
     Hdp-Hive::Configfile<||>{hive_server_host => $hdp::params::host_address}
 
     class { 'hdp-hive::service' :
-      ensure => $service_state
+      ensure => $service_state,
+      service_type => "hiveserver2"
     }
   
     #top level does not need anchors

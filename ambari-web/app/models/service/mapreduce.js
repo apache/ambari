@@ -39,7 +39,7 @@ App.MapReduceService = App.Service.extend({
   mapsWaiting: DS.attr('number'),
   reducesRunning: DS.attr('number'),
   reducesWaiting: DS.attr('number'),
-  trackersDecommisioned: DS.attr('number')
+  trackersDecommissioned: DS.attr('number')
 });
 
 App.MapReduceService.FIXTURES = [];

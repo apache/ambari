@@ -26,6 +26,7 @@ import com.google.inject.persist.jpa.JpaPersistModule;
 import org.apache.ambari.server.actionmanager.*;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.configuration.Configuration;
+import org.apache.ambari.server.orm.PersistenceType;
 import org.apache.ambari.server.orm.dao.ClearEntityManagerInterceptor;
 import org.apache.ambari.server.state.*;
 import org.apache.ambari.server.state.cluster.ClusterFactory;
@@ -71,7 +72,15 @@ public class ControllerModule extends AbstractModule {
 
     bind(PasswordEncoder.class).toInstance(new StandardPasswordEncoder());
 
-    install(new JpaPersistModule(configuration.getPersistenceType().getUnitName()));
+    JpaPersistModule jpaPersistModule = new JpaPersistModule(configuration.getPersistenceType().getUnitName());
+    if (configuration.getPersistenceType() == PersistenceType.POSTGRES) {
+      Properties properties = new Properties();
+      properties.setProperty("javax.persistence.jdbc.user", configuration.getDatabaseUser());
+      properties.setProperty("javax.persistence.jdbc.password", configuration.getDatabasePassword());
+      jpaPersistModule.properties(properties);
+    }
+
+    install(jpaPersistModule);
 
 
     bind(Gson.class).in(Scopes.SINGLETON);

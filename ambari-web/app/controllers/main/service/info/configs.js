@@ -36,17 +36,12 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
     return (!(this.stepConfigs.everyProperty('errorCount', 0)) || this.get('isApplyingChanges'));
   }.property('stepConfigs.@each.errorCount', 'isApplyingChanges'),
 
-  slaveComponentHosts: function () {
-    if (!this.get('content')) {
-      return;
-    }
-    console.log('slaveComponentHosts', App.db.getSlaveComponentHosts());
-    return App.db.getSlaveComponentHosts();
-  }.property('content'),
+  slaveComponentGroups: null,
 
   clearStep: function () {
     this.get('stepConfigs').clear();
     this.get('globalConfigs').clear();
+    this.get('uiConfigs').clear();
     if (this.get('serviceConfigTags')) {
       this.set('serviceConfigTags', null);
     }
@@ -63,18 +58,87 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
     console.log("TRACE: Loading configure for service");
     this.clearStep();
     //STEP 1: set the present state of the service Properties. State depends on array of: unique combination of type(ex. core-site) and tag (ex. version01) derived from serviceInfo desired_state
+    this.loadMasterComponents();
+    //this.loadSlaveComponentVersion();
+  },
+
+  /**
+   * loads Master component properties
+   */
+  loadMasterComponents: function () {
     this.setServciceConfigs();
-    //STEP 2: Create an array of objects defining tagnames to be polled and new tagnames to be set after submit
-    this.setServiceTagNames();
-    //STEP 3: Set globalConfigs and Get an array of serviceProperty objects
-    var serviceConfigs = this.getSitesConfigProperties();
-    //STEP 4: Remove properties mentioned in configMapping from serviceConfig
-    this.get('configMapping').forEach(function (_configs) {
+  },
 
-    }, this)
-    //STEP 5: Add the advanced configs to the serviceConfigs property
 
-    var advancedConfig = App.router.get('installerController').loadAdvancedConfig(this.get('content.serviceName')) || [];
+  /**
+   * loads slave Group Version from Ambari UI Database
+   */
+  loadSlaveComponentVersion: function () {
+    var self = this;
+    var url = App.apiPrefix + '/persist/current_version';
+    $.ajax({
+      type: 'GET',
+      url: url,
+      timeout: 10000,
+
+      success: function (data) {
+        var jsonData = jQuery.parseJSON(data);
+        console.log("TRACE: In success function for the GET loadSlaveComponentGroup call");
+        console.log("TRACE: The url is: " + url);
+        self.loadSlaveComponentGroup(jsonData["current_version"]);
+      },
+
+      error: function (request, ajaxOptions, error) {
+        console.log("TRACE: In error function for the getServciceConfigs call");
+        console.log("TRACE: value of the url is: " + url);
+        console.log("TRACE: error code status is: " + request.status);
+
+      },
+
+      statusCode: require('data/statusCodes')
+    });
+
+  },
+
+  /**
+   * loads slave Group properties of currntly applid version from Ambari UI Database
+   */
+  loadSlaveComponentGroup: function (version) {
+    var self = this;
+    var url = App.apiPrefix + '/persist/' + version;
+    $.ajax({
+      type: 'GET',
+      url: url,
+      timeout: 10000,
+      success: function (data) {
+        var jsonData = jQuery.parseJSON(data);
+        console.log("TRACE: In success function for the GET loadSlaveComponentGroup call");
+        console.log("TRACE: The url is: " + url);
+        self.set('slaveComponentGroups', jsonData[version]);
+      },
+
+      error: function (request, ajaxOptions, error) {
+        console.log("TRACE: In error function for the getServciceConfigs call");
+        console.log("TRACE: value of the url is: " + url);
+        console.log("TRACE: error code status is: " + request.status);
+
+      },
+
+      statusCode: require('data/statusCodes')
+    });
+  },
+
+  /**
+   * Get the current applied slave configuration version from Ambari UI Database
+   */
+  getCurrentSlaveConfiguration: function () {
+
+  },
+
+  /**
+   *  Loads the advanced configs fetched from the server metadata libarary
+   */
+  loadAdvancedConfig: function (serviceConfigs, advancedConfig) {
     var service = this.get('serviceConfigs').findProperty('serviceName', this.get('content.serviceName'));
     advancedConfig.forEach(function (_config) {
       if (service) {
@@ -86,12 +150,12 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
             _config.category = 'Advanced';
             _config.displayName = _config.name;
             _config.defaultValue = _config.value;
-            if (/\${.*}/.test(_config.value) || (service.serviceName !== 'OOZIE' && service.serviceName !== 'HBASE')) {
+          /*  if (/\${.*}/.test(_config.value) || (service.serviceName !== 'OOZIE' && service.serviceName !== 'HBASE')) {
               _config.isRequired = false;
               _config.value = '';
             } else if (/^\s+$/.test(_config.value)) {
               _config.isRequired = false;
-            }
+            }   */
             _config.isVisible = true;
             _config.displayType = 'advanced';
             service.configs.pushObject(_config);
@@ -99,14 +163,6 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
         }
       }
     }, this);
-
-    this.loadCustomConfig();
-
-    this.renderServiceConfigs(this.get('serviceConfigs'));
-
-    console.log('---------------------------------------');
-
-
   },
 
   /**
@@ -118,14 +174,25 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
     $.ajax({
       type: 'GET',
       url: url,
-      async: false,
       timeout: 10000,
       dataType: 'text',
       success: function (data) {
         console.log("TRACE: In success function for the GET getServciceConfigs call");
         console.log("TRACE: The url is: " + url);
         var jsonData = jQuery.parseJSON(data);
-        self.set('serviceConfigTags', jQuery.parseJSON(jsonData.ServiceInfo.desired_configs));
+        self.set('serviceConfigTags', jsonData.ServiceInfo.desired_configs);
+        //STEP 2: Create an array of objects defining tagnames to be polled and new tagnames to be set after submit
+        self.setServiceTagNames();
+        //STEP 3: Set globalConfigs and Get an array of serviceProperty objects
+        var serviceConfigs = self.getSitesConfigProperties();
+        //STEP 5: Add the advanced configs to the serviceConfigs property
+
+        var advancedConfig = App.router.get('installerController').loadAdvancedConfig(self.get('content.serviceName')) || [];
+        self.loadAdvancedConfig(serviceConfigs, advancedConfig);
+
+        self.loadCustomConfig();
+
+        self.renderServiceConfigs(self.get('serviceConfigs'));
       },
 
       error: function (request, ajaxOptions, error) {
@@ -277,7 +344,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
         configs: []
       });
 
-      if (this.get('content.serviceName') && this.get('content.serviceName').toUpperCase() === serviceConfig.serviceName) {
+      if ((this.get('content.serviceName') && this.get('content.serviceName').toUpperCase() === serviceConfig.serviceName) || serviceConfig.serviceName === 'MISC') {
 
         this.loadComponentConfigs(_serviceConfig, serviceConfig);
 
@@ -300,7 +367,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
   loadComponentConfigs: function (_componentConfig, componentConfig) {
     _componentConfig.configs.forEach(function (_serviceConfigProperty) {
       console.log("config", _serviceConfigProperty);
-      if(!_serviceConfigProperty) return;
+      if (!_serviceConfigProperty) return;
       var serviceConfigProperty = App.ServiceConfigProperty.create(_serviceConfigProperty);
       serviceConfigProperty.serviceConfig = componentConfig;
       this.initialValue(serviceConfigProperty);
@@ -314,225 +381,35 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
     console.log("Enered the entry pointttt");
     var self = this;
     var result;
+    var header;
+    var message;
     console.log('I am over hererererere: ' + this.get('content.healthStatus'));
-    if (this.get('isApplyingChanges') === true) {
-      return;
-    }
-    App.ModalPopup.show({
-      header: 'Restart ' + self.get('content.serviceName'),
-      primary: 'Restart',
-      onPrimary: function () {
-        self.restartService();
-        this.hide();
-      },
-      onSecondary: function () {
-        this.hide();
-      },
-      bodyClass: Ember.View.extend({
-        template: Ember.Handlebars.compile(['<p>Restart the service</p>'].join('\n'))
-      })
-    });
-  },
-
-  restartService: function () {
-    console.log("In restart servicesssss");
-    this.set('isApplyingChanges', true);
-    this.get('serviceConfigTags').forEach(function (_tag) {
-      _tag.newTagName = _tag.newTagName + new Date().getMilliseconds();
-    }, this);
-
-    //Step 1: Stop the service
-
-    if (this.stopService()) {
-      this.doPolling('stop', function () {
-        this.applyConfigurations();
-      }, function () {
-        this.failuresInStop();
-      });
-    } else {
-      this.failuresInStop();
-    }
-  },
-
-  failuresInStop: function () {
-    console.log("Step 1 faliure");
-    this.msgPopup('Restart ' + this.get('content.serviceName'), 'Failed to stop the service');
-    this.set('isApplyingChanges', false);
-  },
-
-  applyConfigurations: function () {
-    if (App.testMode === true) {
-      result = true
-    } else {
+    if (this.get('content.isStopped') === true) {
       var result = this.saveServiceConfigProperties();
-    }
-
-    if (result === false) {
-      console.log("Step2 failure");
-      this.msgPopup('Restart ' + this.get('content.serviceName'), 'Failed to apply configs. Start the service again with last configurations', this.startServiceWrapper);
-    } else {
-      if (this.startService()) {
-        this.doPolling('start', function () {
-          this.msgPopup('Restart ' + this.get('content.serviceName'), 'Restarted the service successfully with new configurations');
-          this.set('isApplyingChanges', false);
-        }, function () {
-          // this.rollBackPopup('Configs applied but failures encountered during starting/checking service. Do you want to rollback to the last service configuration and restart the service.');
-          console.log("Configs applied but failures encountered during starting/checking service.");
-        });
+      if (result === true) {
+        header = 'Start Service';
+        message = 'Service configuration applied successfully';
       } else {
-        this.msgPopup('Restart ' + this.get('content.serviceName'), 'Failed to start the service');
-        this.set('isApplyingChanges', false);
+        header = 'Faliure';
+        message = 'Faliure in applying service configuration'
       }
-      console.log("Error in start service API");
-    }
-  },
 
-  startServiceWrapper: function () {
-    if (this.startService()) {
-      this.doPolling('start', function () {
-        this.msgPopup('Restart ' + this.get('content.serviceName'), 'Started the service with the last known configuration.');
-        this.set('isApplyingChanges', false);
-      }, function () {
-        this.msgPopup('Restart ' + this.get('content.serviceName'), 'Started the service with the last known configuration.');
-        this.set('isApplyingChanges', false);
-      });
     } else {
-      this.msgPopup('Restart ' + this.get('content.serviceName'), 'Started the service with the last known configuration.');
-      this.set('isApplyingChanges', false);
+      header = 'Stop Service';
+      message = 'Stop the service and wait till it stops completely. Thereafter you can apply configuration changes';
     }
-  },
-
-
-  rollBack: function () {
-    var result;
-    //STEP 1: Apply the last known configuration
-    result = this.applyCreatedConfToService('previous');
-    //CASE 1: failure for rollback
-    if (result === false) {
-      console.log("rollback1 faliure");
-      this.msgPopup('Restart ' + this.get('content.serviceName'), 'Failed to rolled back to the last known configuration');
-    } else {
-      //STEP 2: start the service
-      if (this.startService()) {
-        this.doPolling('start', function () {
-          this.msgPopup('Restart ' + this.get('content.serviceName'), 'Successfully rolled back to the last known configuration');
-          this.set('isApplyingChanges', false);
-        }, function () {
-          this.msgPopup('Restart ' + this.get('content.serviceName'), 'Rolled back to the last configuration but failed to start the service with the rolled back configuration');
-          this.set('isApplyingChanges', false);
-        });
-      } else {
-        this.msgPopup('Restart ' + this.get('content.serviceName'), 'Rolled back to the last configuration but failed to start the service with the rolled back configuration');
-        this.set('isApplyingChanges', false);
-      }
-    }
-  },
-
-  startService: function () {
-    var self = this;
-    var clusterName = App.router.getClusterName();
-    var url = App.apiPrefix + '/clusters/' + clusterName + '/services/' + this.get('content.serviceName');
-    var method = (App.testMode) ? 'GET' : 'PUT';
-    var data = '{"ServiceInfo": {"state": "STARTED"}}';
-    var result;
-    $.ajax({
-      type: method,
-      url: url,
-      data: data,
-      async: false,
-      dataType: 'text',
-      timeout: 5000,
-      success: function (data) {
-        var jsonData = jQuery.parseJSON(data);
-        console.log("TRACE: In success function for the startService call");
-        console.log("TRACE: value of the url is: " + url);
-        result = true;
-      },
-
-      error: function (request, ajaxOptions, error) {
-        console.log("TRACE: In error function for the startService call");
-        console.log("TRACE: value of the url is: " + url);
-        console.log("TRACE: error code status is: " + request.status);
-
-        result = (App.testMode) ? true : false;
-
-      },
-
-      statusCode: require('data/statusCodes')
-    });
-    return result;
-  },
-
-  msgPopup: function (header, message, callback) {
-    var self = this;
-    var result;
-
     App.ModalPopup.show({
-      header: 'Restart ' + self.get('content.serviceName'),
-      secondary: false,
+      header: header,
+      primary: 'OK',
+      secondary: null,
       onPrimary: function () {
-        if (callback !== undefined) {
-          callback();
-        }
         this.hide();
       },
       bodyClass: Ember.View.extend({
-        template: Ember.Handlebars.compile(['<p>{{view.message}}</p>'].join('\n')),
-        message: message
+        message: message,
+        template: Ember.Handlebars.compile(['<p>{{view.message}}</p>'].join('\n'))
       })
     });
-  },
-
-  rollBackPopup: function (message) {
-    var self = this;
-    var result;
-
-    App.ModalPopup.show({
-      header: 'Restart ' + self.get('content.serviceName'),
-      primary: 'Yes',
-      secondary: 'No',
-      onPrimary: function () {
-        self.rollBack();
-        this.hide();
-      },
-      bodyClass: Ember.View.extend({
-        template: Ember.Handlebars.compile(['<p>{{view.message}}</p>'].join('\n')),
-        message: message
-      })
-    });
-  },
-
-  stopService: function () {
-    var self = this;
-    var clusterName = App.router.getClusterName();
-    var url = App.apiPrefix + '/clusters/' + clusterName + '/services/' + this.get('content.serviceName');
-    var method = (App.testMode) ? 'GET' : 'PUT';
-    var data = '{"ServiceInfo": {"state": "INSTALLED"}}';
-    var result;
-    $.ajax({
-      type: method,
-      url: url,
-      data: data,
-      async: false,
-      dataType: 'text',
-      timeout: 5000,
-      success: function (data) {
-        var jsonData = jQuery.parseJSON(data);
-        console.log("TRACE: In success function for the stopService call");
-        console.log("TRACE: value of the url is: " + url);
-        result = true;
-      },
-
-      error: function (request, ajaxOptions, error) {
-        console.log("TRACE: STep8 -> In error function for the stopService call");
-        console.log("TRACE: STep8 -> value of the url is: " + url);
-        console.log("TRACE: STep8 -> error code status is: " + request.status);
-        result = (App.testMode) ? true : false;
-      },
-
-      statusCode: require('data/statusCodes')
-    });
-    return result;
   },
 
   /**
@@ -568,7 +445,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
   },
 
   saveSiteConfigs: function (configs) {
-    var storedConfigs = this.get('stepConfigs').filterProperty('id', 'site property').filterProperty('value');
+    var storedConfigs = configs.filterProperty('id', 'site property').filterProperty('value');
     var uiConfigs = this.loadUiSideConfigs();
     this.set('uiConfigs', storedConfigs.concat(uiConfigs));
   },
@@ -637,12 +514,12 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
         if (uiConfig.someProperty('name', config.foreignKey[index])) {
           var globalValue = uiConfig.findProperty('name', config.foreignKey[index]).value;
           config.value = config.value.replace(_fkValue, globalValue);
-        } else if (this.get('stepConfigs').someProperty('name', config.foreignKey[index])) {
+        } else if (this.get('globalConfigs').someProperty('name', config.foreignKey[index])) {
           var globalValue;
-          if (this.get('stepConfigs').findProperty('name', config.foreignKey[index]).value === '') {
-            globalValue = this.get('stepConfigs').findProperty('name', config.foreignKey[index]).defaultValue;
+          if (this.get('globalConfigs').findProperty('name', config.foreignKey[index]).value === '') {
+            globalValue = this.get('globalConfigs').findProperty('name', config.foreignKey[index]).defaultValue;
           } else {
-            globalValue = this.get('stepConfigs').findProperty('name', config.foreignKey[index]).value;
+            globalValue = this.get('globalConfigs').findProperty('name', config.foreignKey[index]).value;
           }
           config.value = config.value.replace(_fkValue, globalValue);
         }
@@ -654,12 +531,12 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
         if (uiConfig.someProperty('name', config.foreignKey[index])) {
           var globalValue = uiConfig.findProperty('name', config.foreignKey[index]).value;
           config.name = config.name.replace(_fkValue, globalValue);
-        } else if (this.get('stepConfigs').someProperty('name', config.foreignKey[index])) {
+        } else if (this.get('globalConfigs').someProperty('name', config.foreignKey[index])) {
           var globalValue;
-          if (this.get('stepConfigs').findProperty('name', config.foreignKey[index]).value === '') {
-            globalValue = this.get('stepConfigs').findProperty('name', config.foreignKey[index]).defaultValue;
+          if (this.get('globalConfigs').findProperty('name', config.foreignKey[index]).value === '') {
+            globalValue = this.get('globalConfigs').findProperty('name', config.foreignKey[index]).defaultValue;
           } else {
-            globalValue = this.get('stepConfigs').findProperty('name', config.foreignKey[index]).value;
+            globalValue = this.get('globalConfigs').findProperty('name', config.foreignKey[index]).value;
           }
           config.name = config.name.replace(_fkValue, globalValue);
         }
@@ -683,18 +560,15 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
     serviceConfigTags.forEach(function (_serviceTags) {
       if (_serviceTags.siteName === 'global') {
         console.log("TRACE: Inside globalssss");
-        result = this.createConfigSite(this.createGlobalSiteObj(_serviceTags.newTagName));
+        result = result && this.createConfigSite(this.createGlobalSiteObj(_serviceTags.newTagName));
       } else if (_serviceTags.siteName === 'core-site') {
         console.log("TRACE: Inside core-site");
-        result = this.createConfigSite(this.createCoreSiteObj(_serviceTags.newTagName));
+        result = result && this.createConfigSite(this.createCoreSiteObj(_serviceTags.newTagName));
       } else {
-        result = this.createConfigSite(this.createSiteObj(_serviceTags.siteName, _serviceTags.newTagName));
-      }
-      if (result === false) {
-        return false;
+        result = result && this.createConfigSite(this.createSiteObj(_serviceTags.siteName, _serviceTags.newTagName));
       }
     }, this);
-    return true;
+    return result;
   },
 
   createConfigSite: function (data) {
@@ -756,7 +630,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
     // hadoop.proxyuser.oozie.hosts needs to be skipped if oozie is not selected
     var isOozieSelected = (this.get('content.serviceName') === 'OOZIE');
     coreSiteObj.forEach(function (_coreSiteObj) {
-      if (isOozieSelected || _coreSiteObj.name != 'hadoop.proxyuser.oozie.hosts') {
+      if (_coreSiteObj.name != 'hadoop.proxyuser.oozie.hosts') {
         coreSiteProperties[_coreSiteObj.name] = _coreSiteObj.value;
       }
       //console.log("TRACE: name of the property is: " + _coreSiteObj.name);
@@ -859,54 +733,6 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
     return (App.testMode) ? testUrl : App.apiPrefix + '/clusters/' + App.router.getClusterName() + url;
   },
 
-  doPolling: function (desiredStatus, successCallback, errCallback) {
-    var POLL_INTERVAL = 4000;
-    var self = this;
-    var result = true;
-    var servicesUrl1;
-    if (desiredStatus === 'stop') {
-      servicesUrl1 = this.getUrl('/data/dashboard/mapreduce/mapreduce_stop.json', '/services?ServiceInfo/service_name=' + this.get('content.serviceName') + '&fields=components/host_components/*');
-    } else if (desiredStatus === 'start') {
-      servicesUrl1 = this.getUrl('/data/dashboard/mapreduce/mapreduce_start.json', '/services?ServiceInfo/service_name=' + this.get('content.serviceName') + '&fields=components/host_components/*');
-    }
-
-    App.HttpClient.get(servicesUrl1, App.servicesMapper, {
-      complete: function () {
-        var status;
-        if (result === false) {
-          return;
-        }
-        if (desiredStatus === 'stop') {
-          status = self.get('content.isStopped');
-          if (self.get('content.components').someProperty('workStatus', 'STOP_FAILED')) {
-           // if (!self.stopService()) {
-             // return;
-            //}
-          }
-        } else if (desiredStatus === 'start') {
-          status = self.get('content.isStarted');
-          if (self.get('content.components').someProperty('workStatus', 'START_FAILED')) {
-            //if (!self.startService()) {
-             // return;
-            //}
-          }
-        }
-        if (status !== true) {
-          window.setTimeout(function () {
-            self.doPolling(desiredStatus, successCallback, errCallback);
-          }, POLL_INTERVAL);
-        } else if (status === true) {
-          successCallback.apply(self);
-        }
-      },
-      error: function (jqXHR, textStatus) {
-        errCallback.apply(self);
-        result = false;
-      }
-    });
-    return result;
-  },
-
   initialValue: function (config) {
     switch (config.name) {
       case 'namenode_host':
@@ -953,19 +779,8 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
 
 App.MainServiceSlaveComponentGroupsController = App.SlaveComponentGroupsController.extend({
   name: 'mainServiceSlaveComponentGroupsController',
-  contentBinding: 'App.router.mainServiceInfoConfigsController.slaveComponentHosts',
-  serviceBinding: 'App.router.mainServiceInfoConfigsController.selectedService',
+  contentBinding: 'App.router.mainServiceInfoConfigsController.slaveComponentGroups',
+  stepConfigsBinding: 'App.router.mainServiceInfoConfigsController.stepConfigs',
+  serviceBinding: 'App.router.mainServiceInfoConfigsController.selectedService'
 
-  selectedComponentName: function () {
-    switch (App.router.get('mainServiceInfoConfigsController.selectedService.serviceName')) {
-      case 'HDFS':
-        return 'DATANODE';
-      case 'MAPREDUCE':
-        return 'TASKTRACKER';
-      case 'HBASE':
-        return 'HBASE_REGIONSERVER';
-      default:
-        return null;
-    }
-  }.property('App.router.mainServiceInfoConfigsController.selectedService')
 });

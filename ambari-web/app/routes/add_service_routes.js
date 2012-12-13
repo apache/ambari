@@ -64,6 +64,7 @@ module.exports = Em.Route.extend({
       console.log('in addService.step1:connectOutlets');
       var controller = router.get('addServiceController');
       controller.setCurrentStep('1');
+      controller.loadServicesFromServer();
       controller.set('hideBackButton', true);
       controller.dataLoading().done(function () {
         controller.loadAllPriorSteps();
@@ -130,6 +131,8 @@ module.exports = Em.Route.extend({
         addServiceController.saveSlaveComponentHosts(wizardStep6Controller);
         addServiceController.get('content').set('serviceConfigProperties', null);
         App.db.setServiceConfigProperties(null);
+        App.db.setSlaveProperties(null);
+        addServiceController.loadSlaveGroupProperties();
         addServiceController.loadAdvancedConfigs();
         router.transitionTo('step4');
       }

@@ -22,9 +22,9 @@
                     http://www.springframework.org/schema/security
                     http://www.springframework.org/schema/security/spring-security-3.1.xsd">
 
-  <http use-expressions="true" auto-config="true"
-        disable-url-rewriting="true">
-    <http-basic/>
+  <http use-expressions="true"
+        disable-url-rewriting="true" entry-point-ref="ambariEntryPoint">
+    <http-basic entry-point-ref="ambariEntryPoint"/>
     <intercept-url pattern="/**" access="isAuthenticated()" method="GET"/>
     <intercept-url pattern="/**" access="hasRole('ADMIN')"/>
   </http>
@@ -41,4 +41,6 @@
 
   </authentication-manager>
 
+  <beans:bean id="ambariEntryPoint" class="org.apache.ambari.server.security.AmbariEntryPoint">
+  </beans:bean>
 </beans:beans>

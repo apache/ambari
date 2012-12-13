@@ -18,7 +18,6 @@
 
 package org.apache.ambari.server.controller.predicate;
 
-import org.apache.ambari.server.controller.spi.PropertyId;
 import org.apache.ambari.server.controller.spi.Resource;
 
 import java.text.NumberFormat;
@@ -32,7 +31,7 @@ public abstract class ComparisonPredicate<T> extends PropertyPredicate implement
   private final String stringValue;
   private final Double doubleValue;
 
-  public ComparisonPredicate(PropertyId propertyId, Comparable<T> value) {
+  protected ComparisonPredicate(String propertyId, Comparable<T> value) {
     super(propertyId);
     this.value = value;
 

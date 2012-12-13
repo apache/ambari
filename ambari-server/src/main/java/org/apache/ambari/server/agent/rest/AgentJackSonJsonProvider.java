@@ -35,7 +35,6 @@ public class AgentJackSonJsonProvider implements ContextResolver<ObjectMapper> {
     ObjectMapper result = new ObjectMapper();
     result.configure(DeserializationConfig.Feature.FAIL_ON_UNKNOWN_PROPERTIES, 
         false);
-    LOG.info("Loading " + AgentJackSonJsonProvider.class.getCanonicalName());
     return result;
   }
 }

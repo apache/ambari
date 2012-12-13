@@ -28,23 +28,16 @@ class hdp-nagios::server::packages(
       ensure => 'uninstalled'
     }
   } elsif ($service_state in ['running','stopped','installed_and_configured']) {
-    case $hdp::params::hdp_os_type {
-      centos6, rhel6: {
-        hdp-nagios::server::package { ['nagios-server','nagios-fping','nagios-plugins','nagios-addons']:
-          ensure => 'present'
-        }
-      }
-      default: {
         hdp-nagios::server::package { ['nagios-server','nagios-fping','nagios-plugins','nagios-addons','nagios-php-pecl-json']:
           ensure => 'present'
-        }
-      }
     }
   } 
+  Hdp-nagios::Server::Package['nagios-server'] -> Hdp::Package['nagios-plugins'] #other order produces package conflict
   Hdp-nagios::Server::Package['nagios-plugins'] -> Hdp::Package['nagios-addons'] #other order produces package conflict
 
   anchor{'hdp-nagios::server::packages::begin':} -> Hdp-nagios::Server::Package<||> -> anchor{'hdp-nagios::server::packages::end':}
-  Anchor['hdp-nagios::server::packages::begin'] -> Hdp::Package['nagios-addons'] -> Anchor['hdp-nagios::server::packages::end']
+  Anchor['hdp-nagios::server::packages::begin'] -> Hdp::Package['nagios-server'] ->
+      Hdp::Package['nagios-addons'] -> Anchor['hdp-nagios::server::packages::end']
   Hdp-nagios::Server::Package['nagios-fping'] -> Hdp-nagios::Server::Package['nagios-plugins']
 }
 

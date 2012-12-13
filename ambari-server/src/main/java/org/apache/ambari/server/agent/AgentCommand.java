@@ -42,4 +42,11 @@ public abstract class AgentCommand {
   public void setCommandType(AgentCommandType commandType) {
     this.commandType = commandType;
   }
+
+  @Override
+  public String toString() {
+    return "AgentCommand{" +
+            "commandType=" + commandType +
+            '}';
+  }
 }

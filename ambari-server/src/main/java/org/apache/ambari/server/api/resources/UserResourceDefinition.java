@@ -17,26 +17,18 @@
  */
 package org.apache.ambari.server.api.resources;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.Collections;
+import java.util.Set;
 
 import org.apache.ambari.server.controller.spi.Resource;
-import org.apache.ambari.server.controller.utilities.PropertyHelper;
 
 /**
  * User Resource Definition
  */
 public class UserResourceDefinition extends BaseResourceDefinition {
 
-  public UserResourceDefinition(String userName) {
-    super(Resource.Type.User, userName);
-    
-    getQuery().addProperty(getClusterController().getSchema(
-        Resource.Type.User).getKeyPropertyId(Resource.Type.User));
-    
-    if (null != userName) {
-      getQuery().addProperty(PropertyHelper.getPropertyId("roles", "Users"));
-    }
+  public UserResourceDefinition() {
+    super(Resource.Type.User);
   }
   
   @Override
@@ -50,8 +42,8 @@ public class UserResourceDefinition extends BaseResourceDefinition {
   }
 
   @Override
-  public Map<String, ResourceDefinition> getSubResources() {
-    return new HashMap<String,ResourceDefinition>();
+  public Set<SubResourceDefinition> getSubResourceDefinitions() {
+    return Collections.emptySet();
   }
 
 }

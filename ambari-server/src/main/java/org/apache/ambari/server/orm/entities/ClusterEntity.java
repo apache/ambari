@@ -49,7 +49,8 @@ public class ClusterEntity {
 
   private String clusterName;
 
-  @javax.persistence.Column(name = "cluster_name", nullable = false, insertable = true, updatable = true, unique = true)
+  @javax.persistence.Column(name = "cluster_name", nullable = false, insertable = true,
+          updatable = true, unique = true, length = 100)
   @Basic
   public String getClusterName() {
     return clusterName;
@@ -83,6 +84,18 @@ public class ClusterEntity {
     this.clusterInfo = clusterInfo;
   }
 
+  private String desiredStackVersion = "";
+
+  @javax.persistence.Column(name = "desired_stack_version", nullable = false, insertable = true, updatable = true)
+  @Basic
+  public String getDesiredStackVersion() {
+    return desiredStackVersion;
+  }
+
+  public void setDesiredStackVersion(String desiredStackVersion) {
+    this.desiredStackVersion = desiredStackVersion;
+  }
+
   @Override
   public boolean equals(Object o) {
     if (this == o) return true;
@@ -95,6 +108,8 @@ public class ClusterEntity {
     if (clusterName != null ? !clusterName.equals(that.clusterName) : that.clusterName != null) return false;
     if (desiredClusterState != null ? !desiredClusterState.equals(that.desiredClusterState) : that.desiredClusterState != null)
       return false;
+    if (desiredStackVersion != null ? !desiredStackVersion.equals(that.desiredStackVersion) : that.desiredStackVersion != null)
+      return false;
 
     return true;
   }
@@ -105,6 +120,7 @@ public class ClusterEntity {
     result = 31 * result + (clusterName != null ? clusterName.hashCode() : 0);
     result = 31 * result + (desiredClusterState != null ? desiredClusterState.hashCode() : 0);
     result = 31 * result + (clusterInfo != null ? clusterInfo.hashCode() : 0);
+    result = 31 * result + (desiredStackVersion != null ? desiredStackVersion.hashCode() : 0);
     return result;
   }
 

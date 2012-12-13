@@ -18,8 +18,8 @@
 
 package org.apache.ambari.server.api.services;
 
-import org.apache.ambari.server.api.resources.ResourceDefinition;
 import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.api.resources.ResourceInstance;
 import org.apache.ambari.server.controller.spi.*;
 
 import java.util.HashMap;
@@ -31,19 +31,19 @@ import java.util.Set;
  */
 public class CreatePersistenceManager extends BasePersistenceManager {
   @Override
-  public RequestStatus persist(ResourceDefinition resource, Set<Map<PropertyId, Object>> setProperties) {
+  public RequestStatus persist(ResourceInstance resource, Set<Map<String, Object>> setProperties) {
     ClusterController controller = getClusterController();
-    Map<Resource.Type, String> mapResourceIds = resource.getResourceIds();
-    Resource.Type type = resource.getType();
+    Map<Resource.Type, String> mapResourceIds = resource.getIds();
+    Resource.Type type = resource.getResourceDefinition().getType();
     Schema schema = controller.getSchema(type);
 
     if (setProperties.size() == 0) {
-      setProperties.add(new HashMap<PropertyId, Object>());
+      setProperties.add(new HashMap<String, Object>());
     }
 
-    for (Map<PropertyId, Object> mapProperties : setProperties) {
+    for (Map<String, Object> mapProperties : setProperties) {
       for (Map.Entry<Resource.Type, String> entry : mapResourceIds.entrySet()) {
-        PropertyId property = schema.getKeyPropertyId(entry.getKey());
+        String property = schema.getKeyPropertyId(entry.getKey());
         if (! mapProperties.containsKey(property)) {
           mapProperties.put(property, entry.getValue());
         }
@@ -53,6 +53,9 @@ public class CreatePersistenceManager extends BasePersistenceManager {
     try {
       return controller.createResources(type, createControllerRequest(setProperties));
     } catch (AmbariException e) {
+      //todo: handle exception
+      throw new RuntimeException("Create of resource failed: " + e, e);
+    } catch (UnsupportedPropertyException e) {
       //todo: handle exception
       throw new RuntimeException("Create of resource failed: " + e, e);
     }

@@ -49,6 +49,6 @@ public class RequestStatusImpl implements RequestStatus{
   public Status getStatus() {
 
     return requestResource == null ? Status.Complete :
-        Status.valueOf((String) requestResource.getPropertyValue(PropertyHelper.getPropertyId("status", "Requests")));
+        Status.valueOf((String) requestResource.getPropertyValue(PropertyHelper.getPropertyId("Requests", "status")));
   }
 }

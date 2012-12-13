@@ -18,15 +18,8 @@
 
 package org.apache.ambari.server.orm.entities;
 
-import javax.persistence.Basic;
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.FetchType;
-import javax.persistence.Id;
-import javax.persistence.IdClass;
-import javax.persistence.JoinColumn;
-import javax.persistence.ManyToOne;
-import javax.persistence.Table;
+import javax.persistence.*;
+import java.util.Collection;
 
 @IdClass(ClusterConfigEntityPK.class)
 @Table(name = "clusterconfig", schema = "ambari", catalog = "")
@@ -37,6 +30,10 @@ public class ClusterConfigEntity {
   private String type;
   private String tag;
   private long timestamp;
+  private Collection<HostComponentConfigMappingEntity> hostComponentConfigMappingEntities;
+  private Collection<ServiceConfigMappingEntity> serviceConfigMappingEntities;
+  private Collection<HostComponentDesiredConfigMappingEntity> hostComponentDesiredConfigMappingEntities;
+  private Collection<ComponentConfigMappingEntity> componentConfigMappingEntities;
   
   @Column(name = "cluster_id", nullable = false, insertable = false, updatable = false, length = 10)
   @Id
@@ -68,7 +65,7 @@ public class ClusterConfigEntity {
     tag = versionTag;
   }
 
-  @Column(name = "config_data", nullable = false, insertable = true, updatable = false, length=4000)
+  @Column(name = "config_data", nullable = false, insertable = true, updatable = false, length=32000)
   @Basic(fetch=FetchType.LAZY)
   public String getData() {
     return configJson;
@@ -86,7 +83,6 @@ public class ClusterConfigEntity {
   public void setTimestamp(long stamp) {
     timestamp = stamp;
   }
-
 
   @Override
   public boolean equals(Object o) {
@@ -121,4 +117,39 @@ public class ClusterConfigEntity {
     this.clusterEntity = clusterEntity;
   }
 
+  @OneToMany(mappedBy = "clusterConfigEntity")
+  public Collection<HostComponentConfigMappingEntity> getHostComponentConfigMappingEntities() {
+    return hostComponentConfigMappingEntities;
+  }
+
+  public void setHostComponentConfigMappingEntities(Collection<HostComponentConfigMappingEntity> hostComponentConfigMappingEntities) {
+    this.hostComponentConfigMappingEntities = hostComponentConfigMappingEntities;
+  }
+
+  @OneToMany(mappedBy = "clusterConfigEntity")
+  public Collection<ServiceConfigMappingEntity> getServiceConfigMappingEntities() {
+    return serviceConfigMappingEntities;
+  }
+
+  public void setServiceConfigMappingEntities(Collection<ServiceConfigMappingEntity> serviceConfigMappingEntities) {
+    this.serviceConfigMappingEntities = serviceConfigMappingEntities;
+  }
+
+  @OneToMany(mappedBy = "clusterConfigEntity")
+  public Collection<HostComponentDesiredConfigMappingEntity> getHostComponentDesiredConfigMappingEntities() {
+    return hostComponentDesiredConfigMappingEntities;
+  }
+
+  public void setHostComponentDesiredConfigMappingEntities(Collection<HostComponentDesiredConfigMappingEntity> hostComponentDesiredConfigMappingEntities) {
+    this.hostComponentDesiredConfigMappingEntities = hostComponentDesiredConfigMappingEntities;
+  }
+
+  @OneToMany(mappedBy = "clusterConfigEntity")
+  public Collection<ComponentConfigMappingEntity> getComponentConfigMappingEntities() {
+    return componentConfigMappingEntities;
+  }
+
+  public void setComponentConfigMappingEntities(Collection<ComponentConfigMappingEntity> componentConfigMappingEntities) {
+    this.componentConfigMappingEntities = componentConfigMappingEntities;
+  }
 }

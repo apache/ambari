@@ -1,16 +1,22 @@
-from httplib import HTTP
+from httplib import HTTPS
 from urlparse import urlparse
 import time
+import logging
+import pprint
+import traceback
+import httplib
+
+logger = logging.getLogger()
 
 class NetUtil:
 
   CONNECT_SERVER_RETRY_INTERVAL_SEC = 10
-  HEARTBEAT_IDDLE_INTERVAL_SEC = 3
-  HEARTBEAT_NOT_IDDLE_INTERVAL_SEC = 1
+  HEARTBEAT_IDDLE_INTERVAL_SEC = 10
+  HEARTBEAT_NOT_IDDLE_INTERVAL_SEC = 5
 
   # Url within server to request during status check. This url
   # should return HTTP code 200
-  SERVER_STATUS_REQUEST = "{0}/api/check"
+  SERVER_STATUS_REQUEST = "{0}/cert/ca"
 
   # For testing purposes
   DEBUG_STOP_RETRIES_FLAG = False
@@ -19,14 +25,19 @@ class NetUtil:
     """Try to connect to a given url. Result is True if url returns HTTP code 200, in any other case
     (like unreachable server or wrong HTTP code) result will be False
     """
+    logger.info("DEBUG:: Connecting to the following url " + url);
     try:
-      p = urlparse(url)
-      h = HTTP(p[1])
-      h.putrequest('HEAD', p[2])
-      h.endheaders()
-      if h.getreply()[0] == 200: return True
+      parsedurl = urlparse(url)
+      ca_connection = httplib.HTTPSConnection(parsedurl[1])
+      ca_connection.request("GET", parsedurl[2])
+      response = ca_connection.getresponse()  
+      status = response.status    
+      logger.info("DEBUG: Calling url received " + str(status))
+      
+      if status == 200: return True
       else: return False
     except Exception, e:
+      logger.info("Failed to connect to " + str(url) + " due to " + str(e))
       return False
 
   def try_to_connect(self, server_url, max_retries, logger = None):
@@ -35,6 +46,8 @@ class NetUtil:
     attempts will be repeated forever until server is not reachable
     Returns count of retries
     """
+    if logger is not None:
+      logger.info("DEBUG: Trying to connect to the server at " + server_url)
     retries = 0
     while (max_retries == -1 or retries < max_retries) and not self.DEBUG_STOP_RETRIES_FLAG:
       server_is_up = self.checkURL(self.SERVER_STATUS_REQUEST.format(server_url))

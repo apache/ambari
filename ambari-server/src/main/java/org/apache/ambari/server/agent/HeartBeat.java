@@ -79,4 +79,26 @@ public class HeartBeat {
   public void setNodeStatus(HostStatus nodeStatus) {
     this.nodeStatus = nodeStatus;
   }
+
+  @JsonProperty("componentStatus")
+  public List<ComponentStatus> getComponentStatus() {
+    return componentStatus;
+  }
+
+  @JsonProperty("componentStatus")
+  public void setComponentStatus(List<ComponentStatus> componentStatus) {
+    this.componentStatus = componentStatus;
+  }
+
+  @Override
+  public String toString() {
+    return "HeartBeat{" +
+            "responseId=" + responseId +
+            ", timestamp=" + timestamp +
+            ", hostname='" + hostname + '\'' +
+            ", reports=" + reports +
+            ", componentStatus=" + componentStatus +
+            ", nodeStatus=" + nodeStatus +
+            '}';
+  }
 }

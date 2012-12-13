@@ -26,8 +26,11 @@ import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 
-import org.apache.ambari.server.api.resources.ConfigurationResourceDefinition;
-import org.apache.ambari.server.api.resources.ResourceDefinition;
+import org.apache.ambari.server.api.resources.ResourceInstance;
+import org.apache.ambari.server.controller.spi.Resource;
+
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Service responsible for services resource requests.
@@ -58,8 +61,7 @@ public class ConfigurationService extends BaseService {
   @GET
   @Produces("text/plain")
   public Response getConfigurations(@Context HttpHeaders headers, @Context UriInfo ui) {
-    return handleRequest(headers, null, ui, Request.Type.GET,
-        createResourceDefinition(null, m_clusterName));
+    return handleRequest(headers, null, ui, Request.Type.GET, createConfigurationResource(m_clusterName));
   }
 
   /**
@@ -88,19 +90,21 @@ public class ConfigurationService extends BaseService {
   @Produces("text/plain")
   public Response createConfigurations(String body,@Context HttpHeaders headers, @Context UriInfo ui) {
 
-    return handleRequest(headers, body, ui, Request.Type.POST,
-        createResourceDefinition(null, m_clusterName));
+    return handleRequest(headers, body, ui, Request.Type.POST, createConfigurationResource(m_clusterName));
   }
 
   /**
-   * Create a service resource definition.
+   * Create a service resource instance.
    *
-   * @param configType  configuration type
    * @param clusterName cluster name
    *
-   * @return a service resource definition
+   * @return a service resource instance
    */
-  ResourceDefinition createResourceDefinition(String configType, String clusterName) {
-    return new ConfigurationResourceDefinition(configType, null, clusterName);
+  ResourceInstance createConfigurationResource(String clusterName) {
+    Map<Resource.Type,String> mapIds = new HashMap<Resource.Type, String>();
+    mapIds.put(Resource.Type.Cluster, clusterName);
+    mapIds.put(Resource.Type.Configuration, null);
+
+    return createResource(Resource.Type.Configuration, mapIds);
   }
 }

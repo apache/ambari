@@ -36,50 +36,52 @@ public class ServiceConfigMappingEntity {
   private String configVersion;
   private Long timestamp;
   private ClusterServiceEntity serviceEntity;
-  
+  private ClusterConfigEntity clusterConfigEntity;
+
   @Column(name = "cluster_id", nullable = false, insertable = false, updatable = false)
   @Id
   public Long getClusterId() {
     return clusterId;
   }
-  
+
   public void setClusterId(Long id) {
     clusterId = id;
   }
-  
+
   @Column(name = "service_name", nullable = false, insertable = false, updatable = false)
   @Id
   public String getServiceName() {
     return serviceName;
   }
-  
+
   public void setServiceName(String name) {
     serviceName = name;
   }
-  
+
   @Column(name = "config_type", nullable = false, insertable = true, updatable = false)
+  @Id
   public String getConfigType() {
     return configType;
   }
-  
+
   public void setConfigType(String type) {
     configType = type;
   }
-  
+
   @Column(name = "config_tag", nullable = false, insertable = true, updatable = true)
   public String getVersionTag() {
     return configVersion;
   }
-  
+
   public void setVersionTag(String tag) {
     configVersion = tag;
   }
-  
+
   @Column(name = "timestamp", nullable = false, insertable = true, updatable = true)
   public Long getTimestamp() {
     return timestamp;
   }
-  
+
   public void setTimestamp(Long stamp) {
     timestamp = stamp;
   }
@@ -87,15 +89,29 @@ public class ServiceConfigMappingEntity {
   @ManyToOne
   @JoinColumns({
       @JoinColumn(name = "cluster_id", referencedColumnName = "cluster_id", nullable = false),
-      @JoinColumn(name = "service_name", referencedColumnName = "service_name", nullable = false) })  
-  public ClusterServiceEntity getServiceConfigEntity() {
+      @JoinColumn(name = "service_name", referencedColumnName = "service_name", nullable = false) })
+  public ClusterServiceEntity getServiceEntity() {
     return serviceEntity;
   }
-  
-  public void setServiceConfigEntity(ClusterServiceEntity entity) {
+
+  public void setServiceEntity(ClusterServiceEntity entity) {
     serviceEntity = entity;
   }
-  
+
+  @ManyToOne
+  @JoinColumns({
+      @JoinColumn(name = "cluster_id", referencedColumnName = "cluster_id", nullable = false, insertable = false, updatable = false),
+      @JoinColumn(name = "config_type", referencedColumnName = "type_name", nullable = false, insertable = false, updatable = false),
+      @JoinColumn(name = "config_tag", referencedColumnName = "version_tag", nullable = false, insertable = false, updatable = false)
+  })
+  public ClusterConfigEntity getClusterConfigEntity() {
+    return clusterConfigEntity;
+  }
+
+  public void setClusterConfigEntity(ClusterConfigEntity clusterConfigEntity) {
+    this.clusterConfigEntity = clusterConfigEntity;
+  }
+
   @Override
   public boolean equals(Object o) {
     if (this == o) return true;
@@ -116,9 +132,9 @@ public class ServiceConfigMappingEntity {
     result = 31 * result + (serviceName != null ? serviceName.hashCode() : 0);
     result = 31 * result + (configType != null ? configType.hashCode() : 0);
     return result;
-  } 
-  
+  }
 
-  
-  
+
+
+
 }

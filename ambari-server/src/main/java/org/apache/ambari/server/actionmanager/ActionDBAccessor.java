@@ -66,11 +66,17 @@ public interface ActionDBAccessor {
 
   public List<HostRoleCommand> getRequestTasks(long requestId);
 
+  public List<HostRoleCommand> getAllTasksByRequestIds(Collection<Long> requestIds);
+
+  public List<HostRoleCommand> getTasksByRequestAndTaskIds(Collection<Long> requestIds, Collection<Long> taskIds);
+
   public Collection<HostRoleCommand> getTasks(Collection<Long> taskIds);
 
   public List<Stage> getStagesByHostRoleStatus(Set<HostRoleStatus> statuses);
 
   public List<Long> getRequests();
-  
+
   public HostRoleCommand getTask(long taskId);
+
+  public List<Long> getRequestsByStatus(RequestStatus status);
 }

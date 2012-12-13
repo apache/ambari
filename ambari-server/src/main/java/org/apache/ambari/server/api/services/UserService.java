@@ -29,8 +29,10 @@ import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 
-import org.apache.ambari.server.api.resources.ResourceDefinition;
-import org.apache.ambari.server.api.resources.UserResourceDefinition;
+import org.apache.ambari.server.api.resources.ResourceInstance;
+import org.apache.ambari.server.controller.spi.Resource;
+
+import java.util.Collections;
 
 /**
  * Service responsible for user requests.
@@ -45,7 +47,7 @@ public class UserService extends BaseService {
   @GET
   @Produces("text/plain")
   public Response getUsers(@Context HttpHeaders headers, @Context UriInfo ui) {
-    return handleRequest(headers, null, ui, Request.Type.GET, createResourceDefinition(null));
+    return handleRequest(headers, null, ui, Request.Type.GET, createUserResource(null));
   } 
 
   /**
@@ -62,7 +64,7 @@ public class UserService extends BaseService {
   @Produces("text/plain")
   public Response getUser(@Context HttpHeaders headers, @Context UriInfo ui,
       @PathParam("userName") String userName) {
-    return handleRequest(headers, null, ui, Request.Type.GET, createResourceDefinition(userName));
+    return handleRequest(headers, null, ui, Request.Type.GET, createUserResource(userName));
   }
   
   /**
@@ -80,7 +82,7 @@ public class UserService extends BaseService {
    public Response createUser(String body, @Context HttpHeaders headers, @Context UriInfo ui,
                                  @PathParam("userName") String userName) {
 
-    return handleRequest(headers, body, ui, Request.Type.POST, createResourceDefinition(userName));
+    return handleRequest(headers, body, ui, Request.Type.POST, createUserResource(userName));
   }
   
    
@@ -99,7 +101,7 @@ public class UserService extends BaseService {
    public Response updateUser(String body, @Context HttpHeaders headers, @Context UriInfo ui,
                                  @PathParam("userName") String userName) {
 
-     return handleRequest(headers, body, ui, Request.Type.PUT, createResourceDefinition(userName));
+     return handleRequest(headers, body, ui, Request.Type.PUT, createUserResource(userName));
    }
    
    /**
@@ -111,11 +113,18 @@ public class UserService extends BaseService {
    @Produces("text/plain")
    public Response deleteUser(@Context HttpHeaders headers, @Context UriInfo ui,
                                  @PathParam("userName") String userName) {
-     return handleRequest(headers, null, ui, Request.Type.DELETE, createResourceDefinition(userName));
+     return handleRequest(headers, null, ui, Request.Type.DELETE, createUserResource(userName));
    }
-  
-  private ResourceDefinition createResourceDefinition(String userName) {
-    
-    return new UserResourceDefinition(userName);
+
+  /**
+   * Create a user resource instance.
+   *
+   * @param userName  user name
+   *
+   * @return a user resource instance
+   */
+  private ResourceInstance createUserResource(String userName) {
+    return createResource(Resource.Type.User,
+        Collections.singletonMap(Resource.Type.User, userName));
   }
 }

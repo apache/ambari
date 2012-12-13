@@ -21,6 +21,10 @@ package org.apache.ambari.server.controller.predicate;
 import org.apache.ambari.server.controller.spi.Predicate;
 import org.apache.ambari.server.controller.spi.Resource;
 
+import java.util.Arrays;
+import java.util.LinkedList;
+import java.util.List;
+
 
 /**
  * Predicate which evaluates to true if all of the predicates in a predicate
@@ -30,6 +34,31 @@ public class AndPredicate extends ArrayPredicate {
 
   public AndPredicate(BasePredicate... predicates) {
     super(predicates);
+  }
+
+  @Override
+  public BasePredicate create(BasePredicate... predicates) {
+    return instance(predicates);
+  }
+
+  public static BasePredicate instance(BasePredicate... predicates) {
+    List<BasePredicate> predicateList = new LinkedList<BasePredicate>();
+
+    // Simplify the predicate array
+    for (BasePredicate predicate : predicates) {
+      if (!(predicate instanceof AlwaysPredicate)) {
+        if (predicate instanceof AndPredicate) {
+          predicateList.addAll(Arrays.asList(((AndPredicate) predicate).getPredicates()));
+        }
+        else {
+          predicateList.add(predicate);
+        }
+      }
+    }
+
+    return predicateList.size() == 1 ?
+        predicateList.get(0) :
+        new AndPredicate(predicateList.toArray(new BasePredicate[predicateList.size()]));
   }
 
   @Override

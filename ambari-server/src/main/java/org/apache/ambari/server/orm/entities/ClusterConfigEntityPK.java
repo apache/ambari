@@ -22,6 +22,7 @@ import javax.persistence.Column;
 import javax.persistence.Id;
 import java.io.Serializable;
 
+@SuppressWarnings("serial")
 public class ClusterConfigEntityPK implements Serializable {
   private Long clusterId;
 
@@ -45,18 +46,18 @@ public class ClusterConfigEntityPK implements Serializable {
   public void setType(String typeName) {
     type = typeName;
   }
-  
+
   private String tag;
   @Id
   @Column(name="version_tag", nullable = false, insertable = true, updatable = false)
   public String getTag() {
     return tag;
   }
-  
+
   public void setTag(String configTag) {
     tag = configTag;
   }
-  
+
 
   @Override
   public boolean equals(Object o) {

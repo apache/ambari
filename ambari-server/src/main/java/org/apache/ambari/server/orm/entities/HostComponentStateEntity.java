@@ -18,6 +18,8 @@
 
 package org.apache.ambari.server.orm.entities;
 
+import java.util.Collection;
+
 import org.apache.ambari.server.state.State;
 
 import javax.persistence.*;
@@ -86,18 +88,6 @@ public class HostComponentStateEntity {
     this.currentState = currentState;
   }
 
-  private String currentConfigVersion = "";
-
-  @javax.persistence.Column(name = "current_config_version", nullable = false, insertable = true, updatable = true)
-  @Basic
-  public String getCurrentConfigVersion() {
-    return currentConfigVersion;
-  }
-
-  public void setCurrentConfigVersion(String currentConfigVersion) {
-    this.currentConfigVersion = currentConfigVersion;
-  }
-
   private String currentStackVersion;
 
   @javax.persistence.Column(name = "current_stack_version", nullable = false, insertable = true, updatable = true)
@@ -119,8 +109,6 @@ public class HostComponentStateEntity {
 
     if (clusterId != null ? !clusterId.equals(that.clusterId) : that.clusterId != null) return false;
     if (componentName != null ? !componentName.equals(that.componentName) : that.componentName != null) return false;
-    if (currentConfigVersion != null ? !currentConfigVersion.equals(that.currentConfigVersion) : that.currentConfigVersion != null)
-      return false;
     if (currentStackVersion != null ? !currentStackVersion.equals(that.currentStackVersion) : that.currentStackVersion != null)
       return false;
     if (currentState != null ? !currentState.equals(that.currentState) : that.currentState != null) return false;
@@ -136,7 +124,6 @@ public class HostComponentStateEntity {
     result = 31 * result + (hostName != null ? hostName.hashCode() : 0);
     result = 31 * result + (componentName != null ? componentName.hashCode() : 0);
     result = 31 * result + (currentState != null ? currentState.hashCode() : 0);
-    result = 31 * result + (currentConfigVersion != null ? currentConfigVersion.hashCode() : 0);
     result = 31 * result + (currentStackVersion != null ? currentStackVersion.hashCode() : 0);
     result = 31 * result + (serviceName != null ? serviceName.hashCode() : 0);
     return result;
@@ -168,5 +155,17 @@ public class HostComponentStateEntity {
   public void setHostEntity(HostEntity hostEntity) {
     this.hostEntity = hostEntity;
   }
+
+  private Collection<HostComponentConfigMappingEntity> configMappingEntities;
+  @OneToMany(mappedBy = "hostComponentStateEntity", cascade = CascadeType.ALL)
+  public Collection<HostComponentConfigMappingEntity> getHostComponentConfigMappingEntities() {
+    return configMappingEntities;
+  }
+
+  public void setHostComponentConfigMappingEntities(Collection<HostComponentConfigMappingEntity> entities) {
+    configMappingEntities = entities;
+  }
+
+
 
 }

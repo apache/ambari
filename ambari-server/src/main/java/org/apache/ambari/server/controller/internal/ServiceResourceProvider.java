@@ -19,19 +19,20 @@ package org.apache.ambari.server.controller.internal;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.controller.AmbariManagementController;
+import org.apache.ambari.server.controller.RequestStatusResponse;
 import org.apache.ambari.server.controller.ServiceRequest;
 import org.apache.ambari.server.controller.ServiceResponse;
 import org.apache.ambari.server.controller.spi.Predicate;
-import org.apache.ambari.server.controller.spi.PropertyId;
 import org.apache.ambari.server.controller.spi.Request;
 import org.apache.ambari.server.controller.spi.RequestStatus;
 import org.apache.ambari.server.controller.spi.Resource;
+import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
 
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 
@@ -40,16 +41,18 @@ import java.util.Set;
  */
 class ServiceResourceProvider extends ResourceProviderImpl{
 
+
   // ----- Property ID constants ---------------------------------------------
 
   // Services
-  protected static final PropertyId SERVICE_CLUSTER_NAME_PROPERTY_ID  = PropertyHelper.getPropertyId("cluster_name", "ServiceInfo");
-  protected static final PropertyId SERVICE_SERVICE_NAME_PROPERTY_ID  = PropertyHelper.getPropertyId("service_name", "ServiceInfo");
-  protected static final PropertyId SERVICE_SERVICE_STATE_PROPERTY_ID = PropertyHelper.getPropertyId("state", "ServiceInfo");
+  protected static final String SERVICE_CLUSTER_NAME_PROPERTY_ID  = PropertyHelper.getPropertyId("ServiceInfo", "cluster_name");
+  protected static final String SERVICE_SERVICE_NAME_PROPERTY_ID  = PropertyHelper.getPropertyId("ServiceInfo", "service_name");
+  protected static final String SERVICE_SERVICE_STATE_PROPERTY_ID = PropertyHelper.getPropertyId("ServiceInfo", "state");
+  protected static final String SERVICE_DESIRED_CONFIGS_PROPERTY_ID = PropertyHelper.getPropertyId("ServiceInfo", "desired_configs");
 
 
-  private static Set<PropertyId> pkPropertyIds =
-      new HashSet<PropertyId>(Arrays.asList(new PropertyId[]{
+  private static Set<String> pkPropertyIds =
+      new HashSet<String>(Arrays.asList(new String[]{
           SERVICE_CLUSTER_NAME_PROPERTY_ID,
           SERVICE_SERVICE_NAME_PROPERTY_ID}));
 
@@ -62,8 +65,8 @@ class ServiceResourceProvider extends ResourceProviderImpl{
    * @param keyPropertyIds        the key property ids
    * @param managementController  the management controller
    */
-  ServiceResourceProvider(Set<PropertyId> propertyIds,
-                          Map<Resource.Type, PropertyId> keyPropertyIds,
+  ServiceResourceProvider(Set<String> propertyIds,
+                          Map<Resource.Type, String> keyPropertyIds,
                           AmbariManagementController managementController) {
     super(propertyIds, keyPropertyIds, managementController);
   }
@@ -71,68 +74,86 @@ class ServiceResourceProvider extends ResourceProviderImpl{
   // ----- ResourceProvider ------------------------------------------------
 
   @Override
-  public RequestStatus createResources(Request request) throws AmbariException {
+  public RequestStatus createResources(Request request) throws AmbariException, UnsupportedPropertyException {
+    checkRequestProperties(Resource.Type.Service, request);
     Set<ServiceRequest> requests = new HashSet<ServiceRequest>();
-    for (Map<PropertyId, Object> propertyMap : request.getProperties()) {
+    for (Map<String, Object> propertyMap : request.getProperties()) {
       requests.add(getRequest(propertyMap));
     }
     getManagementController().createServices(requests);
+    notifyCreate(Resource.Type.Service, request);
+
     return getRequestStatus(null);
   }
 
   @Override
-  public Set<Resource> getResources(Request request, Predicate predicate) throws AmbariException {
-    Set<PropertyId> requestedIds = PropertyHelper.getRequestPropertyIds(getPropertyIds(), request, predicate);
-    ServiceRequest  serviceRequest = getRequest(getProperties(predicate));
+  public Set<Resource> getResources(Request request, Predicate predicate) throws AmbariException, UnsupportedPropertyException {
+    Set<ServiceRequest> requests = new HashSet<ServiceRequest>();
 
-    // TODO : handle multiple requests
-    Set<ServiceResponse> responses = getManagementController().getServices(Collections.singleton(serviceRequest));
+    for (Map<String, Object> propertyMap : getPropertyMaps(null, predicate)) {
+      requests.add(getRequest(propertyMap));
+    }
 
-    Set<Resource> resources = new HashSet<Resource>();
+    Set<String>      requestedIds = PropertyHelper.getRequestPropertyIds(getPropertyIds(), request, predicate);
+    Set<ServiceResponse> responses    = getManagementController().getServices(requests);
+    Set<Resource>        resources    = new HashSet<Resource>();
+
     for (ServiceResponse response : responses) {
       Resource resource = new ResourceImpl(Resource.Type.Service);
-        setResourceProperty(resource, SERVICE_CLUSTER_NAME_PROPERTY_ID, response.getClusterName(), requestedIds);
-        setResourceProperty(resource, SERVICE_SERVICE_NAME_PROPERTY_ID, response.getServiceName(), requestedIds);
+      setResourceProperty(resource, SERVICE_CLUSTER_NAME_PROPERTY_ID, response.getClusterName(), requestedIds);
+      setResourceProperty(resource, SERVICE_SERVICE_NAME_PROPERTY_ID, response.getServiceName(), requestedIds);
+      setResourceProperty(resource, SERVICE_DESIRED_CONFIGS_PROPERTY_ID,
+          response.getConfigVersions(), requestedIds);
+      setResourceProperty(resource, SERVICE_SERVICE_STATE_PROPERTY_ID,
+          response.getDesiredState(), requestedIds);
       resources.add(resource);
     }
     return resources;
   }
 
   @Override
-  public RequestStatus updateResources(Request request, Predicate predicate) throws AmbariException {
+  public RequestStatus updateResources(Request request, Predicate predicate) throws AmbariException, UnsupportedPropertyException {
+    checkRequestProperties(Resource.Type.Service, request);
     Set<ServiceRequest> requests = new HashSet<ServiceRequest>();
-    for (Map<PropertyId, Object> propertyMap : getPropertyMaps(request.getProperties().iterator().next(), predicate)) {
+    RequestStatusResponse response = null;
 
-      Map<String, String> configMappings = new HashMap<String, String>();
+    Iterator<Map<String,Object>> iterator = request.getProperties().iterator();
+    if (iterator.hasNext()) {
+      for (Map<String, Object> propertyMap : getPropertyMaps(iterator.next(), predicate)) {
 
-      for (PropertyId id : propertyMap.keySet()) {
-        if (id.getCategory().equals ("config")) {
-          configMappings.put(id.getName(), (String) propertyMap.get(id));
-        }
+        Map<String, String> configMappings = new HashMap<String, String>();
+
+        ConfigurationResourceProvider.getConfigPropertyValues(propertyMap, configMappings);
+
+        ServiceRequest svcRequest = getRequest(propertyMap);
+        if (configMappings.size() > 0)
+          svcRequest.setConfigVersions(configMappings);
+
+        requests.add(svcRequest);
       }
-
-      ServiceRequest svcRequest = getRequest(propertyMap);
-      if (configMappings.size() > 0)
-        svcRequest.setConfigVersions(configMappings);
-
-      requests.add(svcRequest);
+      response = getManagementController().updateServices(requests);
     }
-    return getRequestStatus(getManagementController().updateServices(requests));
+    notifyUpdate(Resource.Type.Service, request, predicate);
+
+    return getRequestStatus(response);
   }
 
   @Override
-  public RequestStatus deleteResources(Predicate predicate) throws AmbariException {
+  public RequestStatus deleteResources(Predicate predicate) throws AmbariException, UnsupportedPropertyException {
     Set<ServiceRequest> requests = new HashSet<ServiceRequest>();
-    for (Map<PropertyId, Object> propertyMap : getPropertyMaps(null, predicate)) {
+    for (Map<String, Object> propertyMap : getPropertyMaps(null, predicate)) {
       requests.add(getRequest(propertyMap));
     }
-    return getRequestStatus(getManagementController().deleteServices(requests));
+    RequestStatusResponse response = getManagementController().deleteServices(requests);
+    notifyDelete(Resource.Type.Service, predicate);
+
+    return getRequestStatus(response);
   }
 
   // ----- utility methods -------------------------------------------------
 
   @Override
-  protected Set<PropertyId> getPKPropertyIds() {
+  protected Set<String> getPKPropertyIds() {
     return pkPropertyIds;
   }
 
@@ -143,7 +164,7 @@ class ServiceResourceProvider extends ResourceProviderImpl{
    *
    * @return the service request object
    */
-  private ServiceRequest getRequest(Map<PropertyId, Object> properties) {
+  private ServiceRequest getRequest(Map<String, Object> properties) {
     return new ServiceRequest(
         (String) properties.get(SERVICE_CLUSTER_NAME_PROPERTY_ID),
         (String) properties.get(SERVICE_SERVICE_NAME_PROPERTY_ID),

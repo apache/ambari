@@ -35,15 +35,18 @@ public interface ResourceProvider {
   /**
    * Create the resources defined by the properties in the given request object.
    *
-   *
    * @param request  the request object which defines the set of properties
    *                 for the resources to be created
    *
    * @return the request status
    *
    * @throws AmbariException thrown if the resources cannot be created
+   *
+   * @throws UnsupportedPropertyException thrown if the request contains
+   *                                      unsupported property ids
    */
-  public RequestStatus createResources(Request request) throws AmbariException;
+  public RequestStatus createResources(Request request)
+      throws AmbariException, UnsupportedPropertyException;
 
   /**
    * Get a set of {@link Resource resources} based on the given request and predicate
@@ -61,18 +64,24 @@ public interface ResourceProvider {
    * the resources of a given type and allow the calling cluster controller to filter
    * based on the predicate.
    *
+   *
    * @param request    the request object which defines the desired set of properties
    * @param predicate  the predicate object which can be used to filter which
    *                   resources are returned
    * @return a set of resources based on the given request and predicate information
    *
    * @throws AmbariException thrown if the resources cannot be obtained
+   *
+   * @throws UnsupportedPropertyException thrown if the request or predicate
+   *                                      contain unsupported property ids
    */
-  public Set<Resource> getResources(Request request, Predicate predicate) throws AmbariException;
+  public Set<Resource> getResources(Request request, Predicate predicate)
+      throws AmbariException, UnsupportedPropertyException;
 
   /**
    * Update the resources selected by the given predicate with the properties
    * from the given request object.
+   *
    *
    *
    * @param request    the request object which defines the set of properties
@@ -83,11 +92,16 @@ public interface ResourceProvider {
    * @return the request status
    *
    * @throws AmbariException thrown if the resource cannot be updated
+   *
+   * @throws UnsupportedPropertyException thrown if the request or predicate
+   *                                      contain unsupported property ids
    */
-  public RequestStatus updateResources(Request request, Predicate predicate) throws AmbariException;
+  public RequestStatus updateResources(Request request, Predicate predicate)
+      throws AmbariException, UnsupportedPropertyException;
 
   /**
    * Delete the resources selected by the given predicate.
+   *
    *
    *
    * @param predicate the predicate object which can be used to filter which
@@ -96,15 +110,25 @@ public interface ResourceProvider {
    * @return the request status
    *
    * @throws AmbariException thrown if the resource cannot be deleted
+   *
+   * @throws UnsupportedPropertyException thrown if the predicate contains
+   *                                      unsupported property ids
    */
-  public RequestStatus deleteResources(Predicate predicate) throws AmbariException;
+  public RequestStatus deleteResources(Predicate predicate)
+      throws AmbariException, UnsupportedPropertyException;
 
   /**
    * Get the set of property ids for the properties that this provider can provide.
    *
    * @return the set of property ids for the properties that this provider can provide
    */
-  public Set<PropertyId> getPropertyIds();
+  public Set<String> getPropertyIds();
 
-  public Map<Resource.Type, PropertyId> getKeyPropertyIds();
+  /**
+   * Get the key property ids for the resource type associated with this resource
+   * providers.  The key properties are those that uniquely identify the resource.
+   *
+   * @return a map of key property ids
+   */
+  public Map<Resource.Type, String> getKeyPropertyIds();
 }

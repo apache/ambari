@@ -18,11 +18,10 @@
 package org.apache.ambari.server.controller.predicate;
 
 import junit.framework.Assert;
-import org.apache.ambari.server.controller.internal.PropertyIdImpl;
 import org.apache.ambari.server.controller.internal.ResourceImpl;
 import org.apache.ambari.server.controller.spi.Predicate;
-import org.apache.ambari.server.controller.spi.PropertyId;
 import org.apache.ambari.server.controller.spi.Resource;
+import org.apache.ambari.server.controller.utilities.PropertyHelper;
 import org.junit.Test;
 
 import java.util.Set;
@@ -35,8 +34,8 @@ public class EqualsPredicateTest {
   @Test
   public void testApply() {
     Resource resource = new ResourceImpl(Resource.Type.HostComponent);
-    PropertyIdImpl propertyId = new PropertyIdImpl("foo", "category1", false);
-    Predicate predicate = new EqualsPredicate(propertyId, "bar");
+    String propertyId = PropertyHelper.getPropertyId("category1", "foo");
+    Predicate predicate = new EqualsPredicate<String>(propertyId, "bar");
 
     resource.setProperty(propertyId, "monkey");
     Assert.assertFalse(predicate.evaluate(resource));
@@ -45,22 +44,20 @@ public class EqualsPredicateTest {
     Assert.assertTrue(predicate.evaluate(resource));
 
 
-    propertyId = new PropertyIdImpl("fun", "category1", false);
-    predicate = new EqualsPredicate(propertyId, "bar");
+    propertyId = PropertyHelper.getPropertyId("category1", "fun");
+    predicate = new EqualsPredicate<String>(propertyId, "bar");
 
     Assert.assertFalse(predicate.evaluate(resource));
   }
 
   @Test
   public void testGetProperties() {
-    PropertyIdImpl propertyId = new PropertyIdImpl("foo", "category1", false);
-    EqualsPredicate predicate = new EqualsPredicate(propertyId, "bar");
+    String propertyId = PropertyHelper.getPropertyId("category1", "foo");
+    EqualsPredicate predicate = new EqualsPredicate<String>(propertyId, "bar");
 
-    Set<PropertyId> ids = predicate.getPropertyIds();
+    Set<String> ids = predicate.getPropertyIds();
 
     Assert.assertEquals(1, ids.size());
     Assert.assertTrue(ids.contains(propertyId));
   }
-
-
 }

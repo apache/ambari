@@ -21,7 +21,6 @@ package org.apache.ambari.server.api.query;
 import org.apache.ambari.server.api.services.Result;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.controller.spi.Predicate;
-import org.apache.ambari.server.controller.spi.PropertyId;
 import org.apache.ambari.server.controller.spi.TemporalInfo;
 
 import java.util.Map;
@@ -50,7 +49,7 @@ public interface Query {
    * @param property the property id which contains the group, property name
    *                 and whether the property is temporal
    */
-  public void addProperty(PropertyId property);
+  public void addProperty(String property);
 
   /**
    * Obtain the properties of the query.
@@ -74,7 +73,7 @@ public interface Query {
    *
    * @return the predicate used to identify the associated resource
    */
-  public Predicate getInternalPredicate();
+  public Predicate getPredicate();
 
   /**
    * Set the user provided predicated on this query.

@@ -19,7 +19,8 @@
 package org.apache.ambari.server;
 
 @SuppressWarnings("serial")
-public class ServiceComponentNotFoundException extends AmbariException {
+public class ServiceComponentNotFoundException
+    extends ObjectNotFoundException {
 
   public ServiceComponentNotFoundException (String clusterName,
       String serviceName, String serviceComponentName) {

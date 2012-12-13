@@ -20,7 +20,7 @@
 package org.apache.ambari.server.api.services;
 
 import org.apache.ambari.server.api.handlers.RequestHandler;
-import org.apache.ambari.server.api.resources.ResourceDefinition;
+import org.apache.ambari.server.api.resources.ResourceInstance;
 import org.apache.ambari.server.api.services.serializers.ResultSerializer;
 import org.junit.Test;
 
@@ -39,7 +39,7 @@ import static org.junit.Assert.assertSame;
 public class HostComponentServiceTest {
   @Test
   public void testGetHostComponent() {
-    ResourceDefinition resourceDef = createStrictMock(ResourceDefinition.class);
+    ResourceInstance resourceDef = createStrictMock(ResourceInstance.class);
     ResultSerializer resultSerializer = createStrictMock(ResultSerializer.class);
     Object serializedResult = new Object();
     RequestFactory requestFactory = createStrictMock(RequestFactory.class);
@@ -80,7 +80,7 @@ public class HostComponentServiceTest {
 
   @Test
   public void testGetHostComponents() {
-    ResourceDefinition resourceDef = createStrictMock(ResourceDefinition.class);
+    ResourceInstance resourceDef = createStrictMock(ResourceInstance.class);
     ResultSerializer resultSerializer = createStrictMock(ResultSerializer.class);
     Object serializedResult = new Object();
     RequestFactory requestFactory = createStrictMock(RequestFactory.class);
@@ -120,7 +120,7 @@ public class HostComponentServiceTest {
 
   @Test
   public void testCreateHostComponent() {
-    ResourceDefinition resourceDef = createStrictMock(ResourceDefinition.class);
+    ResourceInstance resourceDef = createStrictMock(ResourceInstance.class);
     ResultSerializer resultSerializer = createStrictMock(ResultSerializer.class);
     Object serializedResult = new Object();
     RequestFactory requestFactory = createStrictMock(RequestFactory.class);
@@ -161,7 +161,7 @@ public class HostComponentServiceTest {
 
   @Test
   public void testUpdateHostComponent() {
-    ResourceDefinition resourceDef = createStrictMock(ResourceDefinition.class);
+    ResourceInstance resourceDef = createStrictMock(ResourceInstance.class);
     ResultSerializer resultSerializer = createStrictMock(ResultSerializer.class);
     Object serializedResult = new Object();
     RequestFactory requestFactory = createStrictMock(RequestFactory.class);
@@ -202,7 +202,7 @@ public class HostComponentServiceTest {
 
   @Test
   public void testUpdateHostComponents() {
-    ResourceDefinition resourceDef = createStrictMock(ResourceDefinition.class);
+    ResourceInstance resourceDef = createStrictMock(ResourceInstance.class);
     ResultSerializer resultSerializer = createStrictMock(ResultSerializer.class);
     Object serializedResult = new Object();
     RequestFactory requestFactory = createStrictMock(RequestFactory.class);
@@ -242,7 +242,7 @@ public class HostComponentServiceTest {
 
   @Test
   public void testDeleteHostComponent() {
-    ResourceDefinition resourceDef = createStrictMock(ResourceDefinition.class);
+    ResourceInstance resourceDef = createStrictMock(ResourceInstance.class);
     ResultSerializer resultSerializer = createStrictMock(ResultSerializer.class);
     Object serializedResult = new Object();
     RequestFactory requestFactory = createStrictMock(RequestFactory.class);
@@ -285,12 +285,12 @@ public class HostComponentServiceTest {
     private RequestFactory m_requestFactory;
     private ResponseFactory m_responseFactory;
     private RequestHandler m_requestHandler;
-    private ResourceDefinition m_resourceDef;
+    private ResourceInstance m_resourceDef;
     private String m_clusterId;
     private String m_hostId;
     private String m_hostComponentId;
 
-    private TestHostComponentService(ResourceDefinition resourceDef, String clusterId, String hostId, String hostComponentId,
+    private TestHostComponentService(ResourceInstance resourceDef, String clusterId, String hostId, String hostComponentId,
                                      RequestFactory requestFactory, ResponseFactory responseFactory, RequestHandler handler) {
       super(clusterId, hostId);
       m_resourceDef = resourceDef;
@@ -304,7 +304,7 @@ public class HostComponentServiceTest {
 
 
     @Override
-    ResourceDefinition createResourceDefinition(String hostComponentName, String clusterName, String hostName) {
+    ResourceInstance createHostComponentResource(String clusterName, String hostName, String hostComponentName) {
       assertEquals(m_clusterId, clusterName);
       assertEquals(m_hostId, hostName);
       assertEquals(m_hostComponentId, hostComponentName);

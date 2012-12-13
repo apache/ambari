@@ -18,17 +18,18 @@
 
 package org.apache.ambari.server.api.handlers;
 
-import org.apache.ambari.server.api.resources.ResourceDefinition;
+import org.apache.ambari.server.api.resources.ResourceInstance;
+import org.apache.ambari.server.api.resources.ResourceInstanceFactory;
+import org.apache.ambari.server.api.resources.ResourceInstanceFactoryImpl;
+import org.apache.ambari.server.api.services.PersistenceManager;
 import org.apache.ambari.server.api.services.Request;
 import org.apache.ambari.server.api.services.Result;
 import org.apache.ambari.server.api.services.ResultImpl;
 import org.apache.ambari.server.api.util.TreeNode;
-import org.apache.ambari.server.controller.spi.PropertyId;
-import org.apache.ambari.server.controller.spi.RequestStatus;
-import org.apache.ambari.server.controller.spi.Resource;
+import org.apache.ambari.server.controller.spi.*;
+import org.apache.ambari.server.controller.utilities.ClusterControllerHelper;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
 
-import java.util.Collections;
 import java.util.Map;
 import java.util.Set;
 
@@ -38,12 +39,23 @@ import java.util.Set;
 public class BaseManagementHandler implements RequestHandler {
   @Override
   public Result handleRequest(Request request) {
-    ResourceDefinition resource = request.getResourceDefinition();
-    return createResult(request, request.getPersistenceManager().persist(
-        resource, request.getHttpBodyProperties()));
+    ResourceInstance resource = request.getResource();
+    Predicate queryPredicate = request.getQueryPredicate();
+    if (queryPredicate != null) {
+      resource.getQuery().setUserPredicate(queryPredicate);
+    }
+
+    return handleRequest(request.getPersistenceManager(), resource,
+        request.getHttpBodyProperties(), request.getURI());
   }
 
-  private Result createResult(Request request, RequestStatus requestStatus) {
+  protected Result handleRequest(PersistenceManager pm, ResourceInstance resource,
+                                 Set<Map<String, Object>> setProperties, String uri) {
+
+    return createResult(uri, pm.persist(resource, setProperties));
+  }
+
+  private Result createResult(String uri, RequestStatus requestStatus) {
     boolean isSynchronous = requestStatus.getStatus() == RequestStatus.Status.Complete;
 
     Result result = new ResultImpl(isSynchronous);
@@ -63,16 +75,15 @@ public class BaseManagementHandler implements RequestHandler {
     if (! isSynchronous) {
       Resource requestResource = requestStatus.getRequestResource();
       TreeNode<Resource> r = tree.addChild(requestResource, "request");
-      r.setProperty("href", buildRequestHref(request, requestStatus));
+      r.setProperty("href", buildRequestHref(uri, requestStatus));
     }
 
     return result;
   }
 
-  private String buildRequestHref(Request request, RequestStatus requestStatus) {
+  private String buildRequestHref(String uri, RequestStatus requestStatus) {
     StringBuilder sb = new StringBuilder();
-    String origHref = request.getURI();
-    String[] toks = origHref.split("/");
+    String[] toks = uri.split("/");
 
     for (int i = 0; i < toks.length; ++i) {
       String s = toks[i];
@@ -85,10 +96,20 @@ public class BaseManagementHandler implements RequestHandler {
 
     //todo: shouldn't know property name
     Object requestId = requestStatus.getRequestResource().getPropertyValue(
-        PropertyHelper.getPropertyId("id", "Requests"));
+        PropertyHelper.getPropertyId("Requests", "id"));
 
     sb.append("requests/").append(requestId);
 
     return sb.toString();
+  }
+
+  //todo: How to get reference to factory?
+  protected ResourceInstanceFactory getResourceFactory() {
+    return new ResourceInstanceFactoryImpl();
+  }
+
+  //todo: how to get cluster controller?
+  protected ClusterController getClusterController() {
+    return ClusterControllerHelper.getClusterController();
   }
 }

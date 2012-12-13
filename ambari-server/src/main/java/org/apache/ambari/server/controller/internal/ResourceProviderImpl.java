@@ -21,17 +21,20 @@ package org.apache.ambari.server.controller.internal;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.RequestStatusResponse;
+import org.apache.ambari.server.controller.predicate.BasePredicate;
 import org.apache.ambari.server.controller.spi.Predicate;
-import org.apache.ambari.server.controller.spi.PropertyId;
+import org.apache.ambari.server.controller.spi.Request;
 import org.apache.ambari.server.controller.spi.RequestStatus;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.spi.ResourceProvider;
+import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
 import org.apache.ambari.server.controller.utilities.PredicateHelper;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
 import org.slf4j.Logger;
@@ -40,12 +43,12 @@ import org.slf4j.LoggerFactory;
 /**
  * Basic resource provider implementation that maps to a management controller.
  */
-public abstract class ResourceProviderImpl implements ResourceProvider {
+public abstract class ResourceProviderImpl implements ResourceProvider, ObservableResourceProvider {
 
   /**
    * The set of property ids supported by this resource provider.
    */
-  private final Set<PropertyId> propertyIds;
+  private final Set<String> propertyIds;
 
   /**
    * The management controller to delegate to.
@@ -55,7 +58,12 @@ public abstract class ResourceProviderImpl implements ResourceProvider {
   /**
    * Key property mapping by resource type.
    */
-  private final Map<Resource.Type, PropertyId> keyPropertyIds;
+  private final Map<Resource.Type, String> keyPropertyIds;
+
+  /**
+   * Observers of this observable resource provider.
+   */
+  private final Set<ResourceProviderObserver> observers = new HashSet<ResourceProviderObserver>();
 
 
   protected final static Logger LOG =
@@ -69,8 +77,8 @@ public abstract class ResourceProviderImpl implements ResourceProvider {
    * @param keyPropertyIds        the key property ids
    * @param managementController  the management controller
    */
-  protected ResourceProviderImpl(Set<PropertyId> propertyIds,
-                               Map<Resource.Type, PropertyId> keyPropertyIds,
+  protected ResourceProviderImpl(Set<String> propertyIds,
+                               Map<Resource.Type, String> keyPropertyIds,
                                AmbariManagementController managementController) {
     this.propertyIds          = propertyIds;
     this.keyPropertyIds       = keyPropertyIds;
@@ -81,13 +89,28 @@ public abstract class ResourceProviderImpl implements ResourceProvider {
   // ----- ResourceProvider --------------------------------------------------
 
   @Override
-  public Set<PropertyId> getPropertyIds() {
+  public Set<String> getPropertyIds() {
     return propertyIds;
   }
 
   @Override
-  public Map<Resource.Type, PropertyId> getKeyPropertyIds() {
+  public Map<Resource.Type, String> getKeyPropertyIds() {
     return keyPropertyIds;
+  }
+
+
+  // ----- ObservableResourceProvider ----------------------------------------
+
+  @Override
+  public void updateObservers(ResourceProviderEvent event) {
+    for (ResourceProviderObserver observer : observers) {
+      observer.update(event);
+    }
+  }
+
+  @Override
+  public void addObserver(ResourceProviderObserver observer) {
+    observers.add(observer);
   }
 
 
@@ -105,45 +128,127 @@ public abstract class ResourceProviderImpl implements ResourceProvider {
 
   // ----- utility methods ---------------------------------------------------
 
-  protected abstract Set<PropertyId> getPKPropertyIds();
+  /**
+   * Get the set of property ids that uniquely identify the resources
+   * of this provider.
+   *
+   * @return the set of primary key properties
+   */
+  protected abstract Set<String> getPKPropertyIds();
 
+  /**
+   * Notify all listeners of a creation event.
+   *
+   * @param type     the type of the resources being created
+   * @param request  the request used to create the resources
+   */
+  protected void notifyCreate(Resource.Type type, Request request) {
+    updateObservers(new ResourceProviderEvent(type, ResourceProviderEvent.Type.Create, request, null));
+  }
+
+  /**
+   * Notify all listeners of a update event.
+   *
+   * @param type       the type of the resources being updated
+   * @param request    the request used to update the resources
+   * @param predicate  the predicate used to update the resources
+   */
+  protected void notifyUpdate(Resource.Type type, Request request, Predicate predicate) {
+    updateObservers(new ResourceProviderEvent(type, ResourceProviderEvent.Type.Update, request, predicate));
+  }
+
+  /**
+   * Notify all listeners of a delete event.
+   *
+   * @param type       the type of the resources being deleted
+   * @param predicate  the predicate used to delete the resources
+   */
+  protected void notifyDelete(Resource.Type type, Predicate predicate) {
+    updateObservers(new ResourceProviderEvent(type, ResourceProviderEvent.Type.Delete, null, predicate));
+  }
 
   /**
    * Get a set of properties from the given property map and predicate.
    *
-   * @param requestPropertyMap
-   * @param predicate
+   * @param requestPropertyMap  the request properties (for update)
+   * @param predicate           the predicate
    *
-   * @return the set of properties
-   *
-   * @throws AmbariException
+   * @return the set of properties used to build request objects
    */
-  protected Set<Map<PropertyId, Object>> getPropertyMaps(Map<PropertyId, Object> requestPropertyMap,
+  protected Set<Map<String, Object>> getPropertyMaps(Map<String, Object> requestPropertyMap,
                                                          Predicate predicate)
-      throws AmbariException{
+      throws AmbariException, UnsupportedPropertyException {
 
-    Set<PropertyId>              pkPropertyIds       = getPKPropertyIds();
-    Set<Map<PropertyId, Object>> properties          = new HashSet<Map<PropertyId, Object>>();
-    Set<Map<PropertyId, Object>> predicateProperties = new HashSet<Map<PropertyId, Object>>();
+    SimplifyingPredicateVisitor visitor = new SimplifyingPredicateVisitor(propertyIds);
+    PredicateHelper.visit(predicate, visitor);
+    List<BasePredicate> predicates = visitor.getSimplifiedPredicates();
 
-    if (predicate != null && pkPropertyIds.equals(PredicateHelper.getPropertyIds(predicate))) {
+    if (predicates == null) {
+      return _getPropertyMaps(requestPropertyMap, predicate);
+    }
+
+    Set<Map<String, Object>> properties = new HashSet<Map<String, Object>>();
+    for (BasePredicate basePredicate : predicates) {
+      properties.addAll(_getPropertyMaps(requestPropertyMap, basePredicate));
+    }
+    return properties;
+  }
+
+  private Set<Map<String, Object>> _getPropertyMaps(Map<String, Object> requestPropertyMap,
+                                                         Predicate predicate)
+      throws AmbariException, UnsupportedPropertyException {
+
+    Set<String>              pkPropertyIds       = getPKPropertyIds();
+    Set<Map<String, Object>> properties          = new HashSet<Map<String, Object>>();
+    Set<Map<String, Object>> predicateProperties = new HashSet<Map<String, Object>>();
+
+    if (requestPropertyMap == null || pkPropertyIds.equals(PredicateHelper.getPropertyIds(predicate))) {
       predicateProperties.add(getProperties(predicate));
-    } else {
+    }
+    else {
       for (Resource resource : getResources(PropertyHelper.getReadRequest(pkPropertyIds), predicate)) {
         predicateProperties.add(PropertyHelper.getProperties(resource));
       }
     }
 
-    for (Map<PropertyId, Object> predicatePropertyMap : predicateProperties) {
-      // get properties from the given request properties
-      Map<PropertyId, Object> propertyMap = requestPropertyMap == null ?
-          new HashMap<PropertyId, Object>():
-          new HashMap<PropertyId, Object>(requestPropertyMap);
-      // add the pk properties
-      setProperties(propertyMap, predicatePropertyMap, pkPropertyIds);
+    for (Map<String, Object> predicatePropertyMap : predicateProperties) {
+      Map<String, Object> propertyMap = new HashMap<String, Object>(predicatePropertyMap);
+      if (requestPropertyMap != null) {
+        propertyMap.putAll(requestPropertyMap);
+      }
       properties.add(propertyMap);
     }
     return properties;
+  }
+
+  /**
+   * Check the properties of the request to make sure that they are supported by this
+   * resource provider.
+   *
+   * @param type     the resource type
+   * @param request  the update / create request
+   *
+   * @throws UnsupportedPropertyException thrown if the request contains one or more
+   *                                      unsupported properties
+   */
+  protected void checkRequestProperties(Resource.Type type, Request request)
+      throws UnsupportedPropertyException {
+
+    //TODO : config messes this up for service resource, etc ...
+
+//    Set<String> unsupportedPropertyIds = new HashSet<String>();
+//
+//    for (Map<String, Object> requestProperties : request.getProperties()) {
+//      if (!propertyIds.containsAll(requestProperties.keySet())) {
+//        Set<String> requestPropertyIds = new HashSet<String>(requestProperties.keySet());
+//        requestPropertyIds.removeAll(propertyIds);
+//        unsupportedPropertyIds.addAll(requestPropertyIds);
+//      }
+//    }
+//
+//    if (!unsupportedPropertyIds.isEmpty()) {
+//      throw new UnsupportedPropertyException(type, unsupportedPropertyIds);
+//    }
   }
 
   /**
@@ -155,10 +260,10 @@ public abstract class ResourceProviderImpl implements ResourceProvider {
 
     if (response != null){
       Resource requestResource = new ResourceImpl(Resource.Type.Request);
-      requestResource.setProperty(PropertyHelper.getPropertyId("id", "Requests"), response.getRequestId());
+      requestResource.setProperty(PropertyHelper.getPropertyId("Requests", "id"), response.getRequestId());
       // TODO : how do we tell what a request status is?
       // for now make everything InProgress
-      requestResource.setProperty(PropertyHelper.getPropertyId("status", "Requests"), "InProgress");
+      requestResource.setProperty(PropertyHelper.getPropertyId("Requests", "status"), "InProgress");
       return new RequestStatusImpl(requestResource);
     }
     return new RequestStatusImpl(null);
@@ -171,28 +276,13 @@ public abstract class ResourceProviderImpl implements ResourceProvider {
    *
    * @return the map of properties
    */
-  protected static Map<PropertyId, Object> getProperties(Predicate predicate) {
+  protected static Map<String, Object> getProperties(Predicate predicate) {
     if (predicate == null) {
       return Collections.emptyMap();
     }
     PropertyPredicateVisitor visitor = new PropertyPredicateVisitor();
     PredicateHelper.visit(predicate, visitor);
     return visitor.getProperties();
-  }
-
-  /**
-   * Transfer property values from one map to another for the given list of property ids.
-   *
-   * @param to           the target map
-   * @param from         the source map
-   * @param propertyIds  the set of property ids
-   */
-  protected static void setProperties(Map<PropertyId, Object> to, Map<PropertyId, Object> from, Set<PropertyId> propertyIds) {
-    for (PropertyId propertyId : propertyIds) {
-      if (from.containsKey(propertyId)) {
-        to.put(propertyId, from.get(propertyId));
-      }
-    }
   }
 
   /**
@@ -204,12 +294,12 @@ public abstract class ResourceProviderImpl implements ResourceProvider {
    * @param value         the value to set
    * @param requestedIds  the requested set of property ids
    */
-  protected static void setResourceProperty(Resource resource, PropertyId propertyId, Object value, Set<PropertyId> requestedIds) {
+  protected static void setResourceProperty(Resource resource, String propertyId, Object value, Set<String> requestedIds) {
     if (requestedIds.contains(propertyId)) {
       if (LOG.isDebugEnabled()) {
         LOG.debug("Setting property for resource"
             + ", resourceType=" + resource.getType()
-            + ", propertyId=" + propertyId.getName()
+            + ", propertyId=" + propertyId
             + ", value=" + value);
       }
       resource.setProperty(propertyId, value);
@@ -218,7 +308,7 @@ public abstract class ResourceProviderImpl implements ResourceProvider {
       if (LOG.isDebugEnabled()) {
         LOG.debug("Skipping property for resource as not in requestedIds"
             + ", resourceType=" + resource.getType()
-            + ", propertyId=" + propertyId.getName()
+            + ", propertyId=" + propertyId
             + ", value=" + value);
       }
     }
@@ -235,8 +325,8 @@ public abstract class ResourceProviderImpl implements ResourceProvider {
    * @return a new resource provider
    */
   public static ResourceProvider getResourceProvider(Resource.Type type,
-                                                     Set<PropertyId> propertyIds,
-                                                     Map<Resource.Type, PropertyId> keyPropertyIds,
+                                                     Set<String> propertyIds,
+                                                     Map<Resource.Type, String> keyPropertyIds,
                                                      AmbariManagementController managementController) {
     switch (type) {
       case Cluster:

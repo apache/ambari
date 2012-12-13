@@ -247,7 +247,7 @@
     </property>
 
     <property>
-        <name>hadoop.proxyuser.templeton.groups</name>
+        <name>hadoop.proxyuser.hcat.groups</name>
         <value>users</value>
         <description>
             Proxy group for templeton.
@@ -255,7 +255,7 @@
     </property>
 
     <property>
-        <name>hadoop.proxyuser.templeton.hosts</name>
+        <name>hadoop.proxyuser.hcat.hosts</name>
         <value>hdp1</value>
         <description>
             Proxy host for templeton.

@@ -18,12 +18,13 @@
 
 package org.apache.ambari.server.controller.jdbc;
 
+import org.apache.ambari.server.controller.predicate.AlwaysPredicate;
 import org.apache.ambari.server.controller.predicate.ArrayPredicate;
 import org.apache.ambari.server.controller.predicate.BasePredicate;
 import org.apache.ambari.server.controller.predicate.ComparisonPredicate;
 import org.apache.ambari.server.controller.predicate.PredicateVisitor;
 import org.apache.ambari.server.controller.predicate.UnaryPredicate;
-import org.apache.ambari.server.controller.spi.PropertyId;
+import org.apache.ambari.server.controller.utilities.PropertyHelper;
 
 /**
  * Predicate visitor used to generate a SQL where clause from a predicate graph.
@@ -40,12 +41,13 @@ public class SQLPredicateVisitor implements PredicateVisitor {
 
   @Override
   public void acceptComparisonPredicate(ComparisonPredicate predicate) {
-    PropertyId propertyId = predicate.getPropertyId();
+    String propertyId = predicate.getPropertyId();
 
-    if (propertyId.getCategory() != null) {
-      stringBuilder.append(propertyId.getCategory()).append(".");
+    String propertyCategory = PropertyHelper.getPropertyCategory(propertyId);
+    if (propertyCategory != null) {
+      stringBuilder.append(propertyCategory).append(".");
     }
-    stringBuilder.append(propertyId.getName());
+    stringBuilder.append(PropertyHelper.getPropertyName(propertyId));
 
     stringBuilder.append(" ").append(predicate.getOperator()).append(" \"");
     stringBuilder.append(predicate.getValue());
@@ -74,6 +76,11 @@ public class SQLPredicateVisitor implements PredicateVisitor {
     stringBuilder.append(predicate.getOperator()).append("(");
     predicate.getPredicate().accept(this);
     stringBuilder.append(")");
+  }
+
+  @Override
+  public void acceptAlwaysPredicate(AlwaysPredicate predicate) {
+    stringBuilder.append("TRUE");
   }
 
 

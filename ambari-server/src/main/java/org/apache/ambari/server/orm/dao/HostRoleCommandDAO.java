@@ -51,12 +51,30 @@ public class HostRoleCommandDAO {
 
   @Transactional
   public List<HostRoleCommandEntity> findByPKs(Collection<Long> taskIds) {
-    LOG.info("HostRole Command Entity  " + entityManagerProvider.get());
     TypedQuery<HostRoleCommandEntity> query = entityManagerProvider.get().createQuery(
         "SELECT task FROM HostRoleCommandEntity task WHERE task.taskId IN ?1 " +
             "ORDER BY task.taskId",
         HostRoleCommandEntity.class);
     return daoUtils.selectList(query, taskIds);
+  }
+
+  @Transactional
+  public List<HostRoleCommandEntity> findByRequestIds(Collection<Long> requestIds) {
+    TypedQuery<HostRoleCommandEntity> query = entityManagerProvider.get().createQuery(
+        "SELECT task FROM HostRoleCommandEntity task " +
+            "WHERE task.requestId IN ?1 " +
+            "ORDER BY task.taskId", HostRoleCommandEntity.class);
+    return daoUtils.selectList(query, requestIds);
+  }
+
+  @Transactional
+  public List<HostRoleCommandEntity> findByRequestAndTaskIds(Collection<Long> requestIds, Collection<Long> taskIds) {
+    TypedQuery<HostRoleCommandEntity> query = entityManagerProvider.get().createQuery(
+        "SELECT DISTINCT task FROM HostRoleCommandEntity task " +
+            "WHERE task.requestId IN ?1 OR task.taskId IN ?2 " +
+            "ORDER BY task.taskId", HostRoleCommandEntity.class
+    );
+    return daoUtils.selectList(query, requestIds, taskIds);
   }
 
   @Transactional
@@ -70,7 +88,6 @@ public class HostRoleCommandDAO {
 
   @Transactional
   public List<HostRoleCommandEntity> findByHostRole(String hostName, long requestId, long stageId, Role role) {
-    LOG.info("HostRole Command Entity  " + entityManagerProvider.get());
     TypedQuery<HostRoleCommandEntity> query = entityManagerProvider.get().createQuery("SELECT command " +
         "FROM HostRoleCommandEntity command " +
         "WHERE command.hostName=?1 AND command.requestId=?2 " +
@@ -128,4 +145,21 @@ public class HostRoleCommandDAO {
   public void removeByPK(int taskId) {
     remove(findByPK(taskId));
   }
+
+  @Transactional
+  public List<Long> getRequestsByTaskStatus(
+      Collection<HostRoleStatus> statuses, boolean match) {
+    String queryStr = "SELECT DISTINCT command.requestId "
+        + " FROM HostRoleCommandEntity command WHERE "
+        + " command.status";
+    if (!match) {
+      queryStr += " NOT";
+    }
+    queryStr += " IN ?1"
+        + " ORDER BY command.requestId DESC";
+    TypedQuery<Long> query = entityManagerProvider.get().createQuery(queryStr,
+        Long.class);
+    return daoUtils.selectList(query, statuses);
+  }
+
 }

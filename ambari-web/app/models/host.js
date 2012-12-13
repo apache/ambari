@@ -20,6 +20,16 @@
 var App = require('app');
 var misc = require('utils/misc');
 
+DS.attr.transforms.object = {
+  from: function(serialized) {
+    return Ember.none(serialized) ? null : Object(serialized);
+  },
+
+  to: function(deserialized) {
+    return Ember.none(deserialized) ? null : Object(deserialized);
+  }
+};
+
 App.Host = DS.Model.extend({
   hostName: DS.attr('string'),
   publicHostName: DS.attr('string'),
@@ -39,7 +49,7 @@ App.Host = DS.Model.extend({
   ioUsage: DS.attr('number'),
   lastHeartBeatTime: DS.attr('number'),
   osType: DS.attr("string"),
-  diskInfo: DS.attr('string'),
+  diskInfo: DS.attr('object'),
   loadOne:DS.attr('number'),
   loadFive:DS.attr('number'),
   loadFifteen:DS.attr('number'),

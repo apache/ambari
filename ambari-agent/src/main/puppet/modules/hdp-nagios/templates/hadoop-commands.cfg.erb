@@ -68,11 +68,6 @@ define command{
        }
 
 define command{
-        command_name    check_puppet_agent_status
-        command_line    php $USER1$/check_puppet_agent_status.php -h $HOSTADDRESS$
-       }
-
-define command{
         command_name    check_oozie_status
         command_line    $USER1$/check_oozie_status.sh $HOSTADDRESS$ $ARG1$ $ARG2$ $ARG3$ $ARG4$ $ARG5$
        }

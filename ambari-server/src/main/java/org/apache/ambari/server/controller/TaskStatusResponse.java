@@ -43,9 +43,9 @@ public class TaskStatusResponse extends ShortTaskStatus {
     this.attemptCount = attemptCount;
   }
 
-  public TaskStatusResponse(long requestId, HostRoleCommand hostRoleCommand) {
+  public TaskStatusResponse(HostRoleCommand hostRoleCommand) {
     super(hostRoleCommand);
-    this.requestId = requestId;
+    this.requestId = hostRoleCommand.getRequestId();
     this.exitCode = hostRoleCommand.getExitCode();
     this.stderr = hostRoleCommand.getStderr();
     this.stdout = hostRoleCommand.getStdout();

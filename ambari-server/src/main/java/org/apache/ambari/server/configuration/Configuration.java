@@ -17,6 +17,15 @@
  */
 package org.apache.ambari.server.configuration;
 
+import com.google.inject.Singleton;
+import org.apache.ambari.server.orm.PersistenceType;
+import org.apache.ambari.server.security.ClientSecurityType;
+import org.apache.ambari.server.security.authorization.LdapServerProperties;
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang.RandomStringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -24,16 +33,6 @@ import java.io.InputStream;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
-
-import org.apache.ambari.server.orm.PersistenceType;
-import org.apache.ambari.server.security.ClientSecurityType;
-import org.apache.ambari.server.security.authorization.LdapServerProperties;
-import org.apache.commons.io.FileUtils;
-import org.apache.commons.lang.RandomStringUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-
-import com.google.inject.Singleton;
 
 
 /**
@@ -45,8 +44,15 @@ public class Configuration {
 
   public static final String CONFIG_FILE = "ambari.properties";
   public static final String BOOTSTRAP_DIR = "bootstrap.dir";
-  public static final String API_AUTHENTICATE = "api.authenticate";
+  public static final String BOOTSTRAP_DIR_DEFAULT = "/var/run/ambari-server/bootstrap";
+  public static final String WEBAPP_DIR = "webapp.dir";
   public static final String BOOTSTRAP_SCRIPT = "bootstrap.script";
+    public static final String BOOTSTRAP_SCRIPT_DEFAULT =  "/usr/bin/ambari_bootstrap";
+  public static final String BOOTSTRAP_SETUP_AGENT_SCRIPT = "bootstrap.setup_agent.script";
+  public static final String BOOTSTRAP_SETUP_AGENT_PASSWORD = "bootstrap.setup_agent.password";
+  public static final String BOOTSTRAP_MASTER_HOSTNAME = "bootstrap.master_host_name";
+  public static final String API_AUTHENTICATE = "api.authenticate";
+
   public static final String SRVR_KSTR_DIR_KEY = "security.server.keys_dir";
   public static final String SRVR_CRT_NAME_KEY = "security.server.cert_name";
   public static final String SRVR_KEY_NAME_KEY = "security.server.key_name";
@@ -87,6 +93,17 @@ public class Configuration {
 
   public static final String PERSISTENCE_IN_MEMORY_KEY =
       "server.persistence.inMemory";
+  public static final String SERVER_JDBC_USER_NAME_KEY =
+      "server.jdbc.user.name";
+  private static final String SERVER_JDBC_USER_NAME_DEFAULT =
+      "ambari-server";
+  public static final String SERVER_JDBC_USER_PASSWD_KEY =
+      "server.jdbc.user.passwd";
+  private static final String SERVER_JDBC_USER_PASSWD_DEFAULT =
+      "bigdata";
+
+  public static final String OS_VERSION_KEY =
+      "server.os_type";
 
   private static final String SRVR_KSTR_DIR_DEFAULT = ".";
   public static final String SRVR_CRT_NAME_DEFAULT = "ca.crt";
@@ -95,8 +112,8 @@ public class Configuration {
   private static final String SRVR_CRT_PASS_FILE_DEFAULT ="pass.txt";
   private static final String SRVR_CRT_PASS_LEN_DEFAULT = "50";
   private static final String PASSPHRASE_ENV_DEFAULT = "AMBARI_PASSPHRASE";
-  private static final String RESOURCES_DIR_DEFAULT = "res";
-
+  private static final String RESOURCES_DIR_DEFAULT =
+      "/var/share/ambari/resources/";
 
   private static final String CLIENT_SECURITY_DEFAULT = "local";
 
@@ -113,8 +130,8 @@ public class Configuration {
   private static final String PERSISTENCE_IN_MEMORY_DEFAULT = "true";
 
 
-  private static final Log LOG = LogFactory.getLog(Configuration.class);
-
+  private static final Logger LOG = LoggerFactory.getLogger(
+      Configuration.class);
 
   private Properties properties;
 
@@ -159,7 +176,7 @@ public class Configuration {
         RESOURCES_DIR_KEY, RESOURCES_DIR_DEFAULT));
     configsMap.put(SRVR_CRT_PASS_LEN_KEY, properties.getProperty(
      SRVR_CRT_PASS_LEN_KEY, SRVR_CRT_PASS_LEN_DEFAULT));
-    
+
     File passFile = new File(configsMap.get(SRVR_KSTR_DIR_KEY) + File.separator
         + configsMap.get(SRVR_CRT_PASS_FILE_KEY));
     String randStr = null;
@@ -181,7 +198,7 @@ public class Configuration {
       try {
         randStr = FileUtils.readFileToString(passFile);
       } catch (IOException e) {
-      		  LOG.error(e.getStackTrace());
+        e.printStackTrace();
       }
     }
     configsMap.put(SRVR_CRT_PASS_KEY, randStr);
@@ -197,11 +214,11 @@ public class Configuration {
 
     //Get property file stream from classpath
     InputStream inputStream = Configuration.class.getClassLoader().getResourceAsStream(CONFIG_FILE);
-    
+
     if (inputStream == null)
       throw new RuntimeException(CONFIG_FILE + " not found in classpath");
-      
-    
+
+
     // load the properties
     try {
       properties.load(inputStream);
@@ -211,14 +228,14 @@ public class Configuration {
       throw new IllegalArgumentException("Can't read configuration file " +
        CONFIG_FILE, ie);
     }
-    
+
     return properties;
   }
 
   public File getBootStrapDir() {
     String fileName = properties.getProperty(BOOTSTRAP_DIR);
     if (fileName == null) {
-      return new File("/var/run/ambari/bootstrap");
+        fileName = BOOTSTRAP_DIR_DEFAULT;
     }
     return new File(fileName);
   }
@@ -226,9 +243,24 @@ public class Configuration {
   public String getBootStrapScript() {
     String bootscript = properties.getProperty(BOOTSTRAP_SCRIPT);
     if (bootscript == null) {
-      return "/usr/bin/ambari_bootstrap";
+      return BOOTSTRAP_SCRIPT_DEFAULT;
     }
     return bootscript;
+  }
+
+  public String getBootSetupAgentScript() {
+    return properties.getProperty(BOOTSTRAP_SETUP_AGENT_SCRIPT,
+        "/usr/lib/python2.6/site-packages/ambari_server/setupAgent.py");
+  }
+
+  public String getBootSetupAgentPassword() {
+    String pass = configsMap.get(PASSPHRASE_KEY);
+
+    if (null != pass)
+      return pass;
+
+    // fallback
+    return properties.getProperty(BOOTSTRAP_SETUP_AGENT_PASSWORD, "password");
   }
 
   /**
@@ -252,6 +284,11 @@ public class Configuration {
     properties.setProperty(CLIENT_SECURITY_KEY, type.toString());
   }
 
+  public String getWebAppDir() {
+    LOG.info("Web App DIR test " + properties.getProperty(WEBAPP_DIR));
+    return properties.getProperty(WEBAPP_DIR, "web");
+  }
+
   /**
    * Gets ambari stack-path
    * @return String
@@ -267,14 +304,35 @@ public class Configuration {
   public boolean getApiAuthentication() {
     return ("true".equals(properties.getProperty(API_AUTHENTICATE, "false")));
   }
-  
-  
+
+
   public PersistenceType getPersistenceType() {
     String value = properties.getProperty(PERSISTENCE_IN_MEMORY_KEY, PERSISTENCE_IN_MEMORY_DEFAULT);
     if ("true".equalsIgnoreCase(value)) {
       return PersistenceType.IN_MEMORY;
     } else {
       return PersistenceType.POSTGRES;
+    }
+  }
+
+  public String getDatabaseUser() {
+    return properties.getProperty(SERVER_JDBC_USER_NAME_KEY, SERVER_JDBC_USER_NAME_DEFAULT);
+  }
+
+  public String getDatabasePassword() {
+    String filePath = properties.getProperty(SERVER_JDBC_USER_PASSWD_KEY);
+    if (filePath == null) {
+      LOG.debug("DB password file not specified - using default");
+      return SERVER_JDBC_USER_PASSWD_DEFAULT;
+    } else {
+      LOG.debug("Reading password from file {}", filePath);
+      String password;
+      try {
+        password = FileUtils.readFileToString(new File(filePath));
+      } catch (IOException e) {
+        throw new RuntimeException("Unable to read database password", e);
+      }
+      return password;
     }
   }
 
@@ -304,6 +362,14 @@ public class Configuration {
         getProperty(LDAP_USERNAME_ATTRIBUTE_KEY, LDAP_USERNAME_ATTRIBUTE_DEFAULT));
 
     return ldapServerProperties;
+  }
+
+  public String getServerOsType() {
+    return properties.getProperty(OS_VERSION_KEY, "");
+  }
+
+  public String getMasterHostname(String defaultValue) {
+    return properties.getProperty(BOOTSTRAP_MASTER_HOSTNAME, defaultValue);
   }
 
 }

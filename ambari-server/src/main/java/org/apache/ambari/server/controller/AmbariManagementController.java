@@ -20,6 +20,7 @@ package org.apache.ambari.server.controller;
 
 import org.apache.ambari.server.AmbariException;
 
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -210,7 +211,17 @@ public interface AmbariManagementController {
   public Set<UserResponse> getUsers(Set<UserRequest> requests)
       throws AmbariException;
   
-
+  /**
+   * Gets the host component config mappings
+   * 
+   * @param request the host component request
+   * 
+   * @return the configuration mappings
+   * 
+   * @throws AmbariException
+   */
+  public Map<String, String> getHostComponentDesiredConfigMapping(
+      ServiceComponentHostRequest request) throws AmbariException;
 
   // ----- Update -----------------------------------------------------------
 

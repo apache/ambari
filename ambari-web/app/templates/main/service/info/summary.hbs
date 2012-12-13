@@ -46,6 +46,7 @@
       {{#unless view.serviceStatus.hdfs}}
       {{#unless view.serviceStatus.mapreduce}}
       {{#unless view.serviceStatus.hbase}}
+      {{#unless view.serviceStatus.ganglia}}
       {{#each component in controller.content.components}}
         <tr>
           {{#if component.isMaster}}
@@ -57,18 +58,13 @@
           {{/if}}
         </tr>
       {{/each}}
-      {{#if view.serviceStatus.ganglia}}
-        <tr>
-          <td class="summary-label">Ganglia Web UI</td>
-          <td><a target=_blank href="http://{{unbound view.gangliaServer}}/ganglia">{{view.gangliaServer}}/ganglia</a></td>
-        </tr>
-      {{/if}}
       {{#if view.serviceStatus.nagios}}
         <tr>
           <td class="summary-label">Nagios Web UI</td>
           <td><a target=_blank href="http://{{unbound view.nagiosServer}}/nagios">{{view.nagiosServer}}/nagios</a></td>
         </tr>
       {{/if}}
+      {{/unless}}
       {{/unless}}
       {{/unless}}
       {{/unless}}
@@ -85,24 +81,13 @@
         {{view App.MainDashboardServiceHbaseView showOnlyRows=true serviceBinding="view.service"}}
       {{/if}}
       {{#if view.serviceStatus.zookeeper}}
-        <tr>
-          <td class="summary-label">Hosts</td>
-          <td>
-            {{#each component in controller.content.components}}
-              <a {{action selectHost component.host}} href="javascript:void(null)">{{component.host.publicHostName}}</a>
-           {{/each}}
-          </td>
-        </tr>
+        {{template "templates/main/service/info/summary/zookeeper"}}
       {{/if}}
       {{#if view.serviceStatus.oozie}}
-        <tr>
-          <td class="summary-label">Hosts</td>
-          <td>
-            {{#each component in controller.content.components}}
-              <a {{action selectHost component.host}} href="javascript:void(null)">{{component.host.publicHostName}}</a>
-           {{/each}}
-          </td>
-        </tr>
+        {{template "templates/main/service/info/summary/oozie"}}
+      {{/if}}
+      {{#if view.serviceStatus.ganglia}}
+        {{template "templates/main/service/info/summary/ganglia"}}
       {{/if}}
       {{#if view.serviceStatus.hive}}
         <tr>

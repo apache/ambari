@@ -24,21 +24,15 @@
     </class>
     <class>org.apache.ambari.server.orm.entities.HostComponentConfigMappingEntity
     </class>
+    <class>org.apache.ambari.server.orm.entities.HostComponentDesiredConfigMappingEntity
+    </class>
     <class>org.apache.ambari.server.orm.entities.HostComponentDesiredStateEntity
     </class>
     <class>org.apache.ambari.server.orm.entities.HostComponentStateEntity
     </class>
-    <class>org.apache.ambari.server.orm.entities.HostComponentMappingEntity
-    </class>
     <class>org.apache.ambari.server.orm.entities.HostEntity</class>
     <class>org.apache.ambari.server.orm.entities.HostStateEntity</class>
-    <class>org.apache.ambari.server.orm.entities.ServiceComponentConfigEntity
-    </class>
     <class>org.apache.ambari.server.orm.entities.ServiceComponentDesiredStateEntity
-    </class>
-    <class>org.apache.ambari.server.orm.entities.ServiceComponentHostConfigEntity
-    </class>
-    <class>org.apache.ambari.server.orm.entities.ServiceConfigEntity
     </class>
     <class>org.apache.ambari.server.orm.entities.ServiceConfigMappingEntity
     </class>
@@ -53,12 +47,15 @@
     <class>org.apache.ambari.server.orm.entities.RoleSuccessCriteriaEntity
     </class>
     <class>org.apache.ambari.server.orm.entities.StageEntity</class>
+    <class>org.apache.ambari.server.orm.entities.KeyValueEntity</class>
 
     <properties>
-      <property name="javax.persistence.jdbc.url" value="jdbc:postgresql://localhost/postgres" />
+      <property name="javax.persistence.jdbc.url" value="jdbc:postgresql://localhost/ambari" />
       <property name="javax.persistence.jdbc.driver" value="org.postgresql.Driver" />
-      <property name="javax.persistence.jdbc.user" value="ambari-server" />
-      <property name="javax.persistence.jdbc.password" value="bigdata" />
+      <property name="eclipselink.cache.shared.default" value="false" />
+      <property name="eclipselink.cache.size.default" value="0" />
+      <property name="eclipselink.cache.type.default" value="None" />
+      <property name="eclipselink.query-results-cache" value="false" />
     </properties>
   </persistence-unit>
 
@@ -74,21 +71,15 @@
     </class>
     <class>org.apache.ambari.server.orm.entities.HostComponentConfigMappingEntity
     </class>
+    <class>org.apache.ambari.server.orm.entities.HostComponentDesiredConfigMappingEntity
+    </class>
     <class>org.apache.ambari.server.orm.entities.HostComponentDesiredStateEntity
     </class>
     <class>org.apache.ambari.server.orm.entities.HostComponentStateEntity
     </class>
-    <class>org.apache.ambari.server.orm.entities.HostComponentMappingEntity
-    </class>
     <class>org.apache.ambari.server.orm.entities.HostEntity</class>
     <class>org.apache.ambari.server.orm.entities.HostStateEntity</class>
-    <class>org.apache.ambari.server.orm.entities.ServiceComponentConfigEntity
-    </class>
     <class>org.apache.ambari.server.orm.entities.ServiceComponentDesiredStateEntity
-    </class>
-    <class>org.apache.ambari.server.orm.entities.ServiceComponentHostConfigEntity
-    </class>
-    <class>org.apache.ambari.server.orm.entities.ServiceConfigEntity
     </class>
     <class>org.apache.ambari.server.orm.entities.ServiceConfigMappingEntity
     </class>
@@ -103,20 +94,19 @@
     <class>org.apache.ambari.server.orm.entities.RoleSuccessCriteriaEntity
     </class>
     <class>org.apache.ambari.server.orm.entities.StageEntity</class>
+    <class>org.apache.ambari.server.orm.entities.KeyValueEntity</class>
 
 
     <properties>
       <property name="javax.persistence.jdbc.url" value="jdbc:derby:memory:myDB;create=true" />
       <property name="javax.persistence.jdbc.driver" value="org.apache.derby.jdbc.EmbeddedDriver" />
       <property name="eclipselink.ddl-generation" value="drop-and-create-tables" />
-      <!--<property name="javax.persistence.jdbc.user" value="ambari-server"/> -->
-      <!--<property name="javax.persistence.jdbc.password" value="bigdata"/> -->
       <property name="eclipselink.orm.throw.exceptions" value="true" />
-      <!-- <property name="eclipselink.cache.shared.default" value="false"/> -->
       <property name="eclipselink.cache.shared.default" value="false" />
       <property name="eclipselink.cache.size.default" value="0" />
       <property name="eclipselink.cache.type.default" value="None" />
       <property name="eclipselink.query-results-cache" value="false" />
+      <!-- <property name="eclipselink.logging.level" value="FINE"/> -->
     </properties>
   </persistence-unit>
 </persistence>

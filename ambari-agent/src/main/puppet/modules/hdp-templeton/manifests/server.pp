@@ -76,32 +76,32 @@ class hdp-templeton::server(
 class hdp-templeton::copy-hdfs-directories($service_state)
 {
  $templeton_user = $hdp-templeton::params::templeton_user
- $pig_src_tar = "$hdp::params::artifact_dir/pig.tar.gz"
+# $pig_src_tar = "$hdp::params::artifact_dir/pig.tar.gz"
 
-  hdp-hadoop::hdfs::copyfromlocal { '/usr/share/templeton/templeton*jar':
-    service_state => $service_state,
-    owner => $hdp-templeton::params::templeton_user,
-    mode  => '755',
-    dest_dir => '/apps/templeton/ugi.jar'
-  }
-  hdp-hadoop::hdfs::copyfromlocal { '/usr/lib/hadoop/contrib/streaming/hadoop-streaming*.jar':
-   service_state => $service_state,
-   owner => $hdp-templeton::params::templeton_user,
-   mode  => '755',
-   dest_dir => '/apps/templeton/hadoop-streaming.jar'
- }
+#  hdp-hadoop::hdfs::copyfromlocal { '/usr/share/templeton/templeton*jar':
+#    service_state => $service_state,
+#    owner => $hdp-templeton::params::templeton_user,
+#    mode  => '755',
+#    dest_dir => '/apps/templeton/ugi.jar'
+#  }
+#  hdp-hadoop::hdfs::copyfromlocal { '/usr/lib/hadoop/contrib/streaming/hadoop-streaming*.jar':
+#   service_state => $service_state,
+#   owner => $hdp-templeton::params::templeton_user,
+#   mode  => '755',
+#   dest_dir => '/apps/templeton/hadoop-streaming.jar'
+# }
   #TODO: Use ${hdp::params::artifact_dir}/${hdp-templeton::params::pig_tar_name} instead
-  hdp-hadoop::hdfs::copyfromlocal { '/tmp/HDP-artifacts/pig.tar.gz' :
+  hdp-hadoop::hdfs::copyfromlocal { '/usr/share/HDP-webhcat/pig.tar.gz' :
     service_state => $service_state,
     owner => $hdp-templeton::params::templeton_user,
     mode  => '755',
-    dest_dir => '/apps/templeton/pig.tar.gz'
+    dest_dir => '/apps/webhcat/pig.tar.gz'
   }
   #TODO: Use ${hdp::params::artifact_dir}/${hdp-templeton::params::hive_tar_name} instead
-  hdp-hadoop::hdfs::copyfromlocal { '/tmp/HDP-artifacts/hive.tar.gz' :
+  hdp-hadoop::hdfs::copyfromlocal { '/usr/share/HDP-webhcat/hive.tar.gz' :
     service_state => $service_state,
     owner => $hdp-templeton::params::templeton_user,
     mode  => '755',
-    dest_dir => '/apps/templeton/hive.tar.gz'
+    dest_dir => '/apps/webhcat/hive.tar.gz'
   }
 }

@@ -1,0 +1,200 @@
+{
+  "name" : "HDFS",
+  "version" : "1.1.0.1-1",
+  "user" : "root",
+  "comment" : "This is comment for HDFS service",
+  "properties" : [ {
+    "name" : "dfs.replication.max",
+    "value" : "50",
+    "description" : "Maximal block replication.\n  ",
+    "filename" : "hdfs-site.xml"
+  }, {
+    "name" : "dfs.heartbeat.interval",
+    "value" : "3",
+    "description" : "Determines datanode heartbeat interval in seconds.",
+    "filename" : "hdfs-site.xml"
+  }, {
+    "name" : "dfs.safemode.threshold.pct",
+    "value" : "1.0f",
+    "description" : "\n        Specifies the percentage of blocks that should satisfy\n        the minimal replication requirement defined by dfs.replication.min.\n        Values less than or equal to 0 mean not to start in safe mode.\n        Values greater than 1 will make safe mode permanent.\n        ",
+    "filename" : "hdfs-site.xml"
+  }, {
+    "name" : "dfs.balance.bandwidthPerSec",
+    "value" : "6250000",
+    "description" : "\n        Specifies the maximum amount of bandwidth that each datanode\n        can utilize for the balancing purpose in term of\n        the number of bytes per second.\n  ",
+    "filename" : "hdfs-site.xml"
+  }, {
+    "name" : "dfs.block.size",
+    "value" : "134217728",
+    "description" : "The default block size for new files.",
+    "filename" : "hdfs-site.xml"
+  }, {
+    "name" : "dfs.datanode.ipc.address",
+    "value" : "0.0.0.0:8010",
+    "description" : "\nThe datanode ipc server address and port.\nIf the port is 0 then the server will start on a free port.\n",
+    "filename" : "hdfs-site.xml"
+  }, {
+    "name" : "dfs.blockreport.initialDelay",
+    "value" : "120",
+    "description" : "Delay for first block report in seconds.",
+    "filename" : "hdfs-site.xml"
+  }, {
+    "name" : "dfs.datanode.du.pct",
+    "value" : "0.85f",
+    "description" : "When calculating remaining space, only use this percentage of the real available space\n",
+    "filename" : "hdfs-site.xml"
+  }, {
+    "name" : "dfs.namenode.handler.count",
+    "value" : "40",
+    "description" : "The number of server threads for the namenode.",
+    "filename" : "hdfs-site.xml"
+  }, {
+    "name" : "dfs.datanode.max.xcievers",
+    "value" : "1024",
+    "description" : "PRIVATE CONFIG VARIABLE",
+    "filename" : "hdfs-site.xml"
+  }, {
+    "name" : "dfs.umaskmode",
+    "value" : "077",
+    "description" : "\nThe octal umask used when creating files and directories.\n",
+    "filename" : "hdfs-site.xml"
+  }, {
+    "name" : "dfs.web.ugi",
+    "value" : "gopher,gopher",
+    "description" : "The user account used by the web interface.\nSyntax: USERNAME,GROUP1,GROUP2, ...\n",
+    "filename" : "hdfs-site.xml"
+  }, {
+    "name" : "dfs.permissions",
+    "value" : "true",
+    "description" : "\nIf \"true\", enable permission checking in HDFS.\nIf \"false\", permission checking is turned off,\nbut all other behavior is unchanged.\nSwitching from one parameter value to the other does not change the mode,\nowner or group of files or directories.\n",
+    "filename" : "hdfs-site.xml"
+  }, {
+    "name" : "dfs.permissions.supergroup",
+    "value" : "hdfs",
+    "description" : "The name of the group of super-users.",
+    "filename" : "hdfs-site.xml"
+  }, {
+    "name" : "dfs.namenode.handler.count",
+    "value" : "100",
+    "description" : "Added to grow Queue size so that more client connections are allowed",
+    "filename" : "hdfs-site.xml"
+  }, {
+    "name" : "ipc.server.max.response.size",
+    "value" : "5242880",
+    "description" : null,
+    "filename" : "hdfs-site.xml"
+  }, {
+    "name" : "dfs.block.access.token.enable",
+    "value" : "true",
+    "description" : "\nIf \"true\", access tokens are used as capabilities for accessing datanodes.\nIf \"false\", no access tokens are checked on accessing datanodes.\n",
+    "filename" : "hdfs-site.xml"
+  }, {
+    "name" : "dfs.secondary.https.port",
+    "value" : "50490",
+    "description" : "The https port where secondary-namenode binds",
+    "filename" : "hdfs-site.xml"
+  }, {
+    "name" : "dfs.https.port",
+    "value" : "50470",
+    "description" : "The https port where namenode binds",
+    "filename" : "hdfs-site.xml"
+  }, {
+    "name" : "dfs.access.time.precision",
+    "value" : "0",
+    "description" : "The access time for HDFS file is precise upto this value.\n               The default value is 1 hour. Setting a value of 0 disables\n               access times for HDFS.\n  ",
+    "filename" : "hdfs-site.xml"
+  }, {
+    "name" : "dfs.cluster.administrators",
+    "value" : " hdfs",
+    "description" : "ACL for who all can view the default servlets in the HDFS",
+    "filename" : "hdfs-site.xml"
+  }, {
+    "name" : "ipc.server.read.threadpool.size",
+    "value" : "5",
+    "description" : null,
+    "filename" : "hdfs-site.xml"
+  }, {
+    "name" : "io.file.buffer.size",
+    "value" : "131072",
+    "description" : "The size of buffer for use in sequence files.\n  The size of this buffer should probably be a multiple of hardware\n  page size (4096 on Intel x86), and it determines how much data is\n  buffered during read and write operations.",
+    "filename" : "core-site.xml"
+  }, {
+    "name" : "io.serializations",
+    "value" : "org.apache.hadoop.io.serializer.WritableSerialization",
+    "description" : null,
+    "filename" : "core-site.xml"
+  }, {
+    "name" : "io.compression.codec.lzo.class",
+    "value" : "com.hadoop.compression.lzo.LzoCodec",
+    "description" : "The implementation for lzo codec.",
+    "filename" : "core-site.xml"
+  }, {
+    "name" : "fs.trash.interval",
+    "value" : "360",
+    "description" : "Number of minutes between trash checkpoints.\n  If zero, the trash feature is disabled.\n  ",
+    "filename" : "core-site.xml"
+  }, {
+    "name" : "fs.checkpoint.edits.dir",
+    "value" : "${fs.checkpoint.dir}",
+    "description" : "Determines where on the local filesystem the DFS secondary\n        name node should store the temporary edits to merge.\n        If this is a comma-delimited list of directoires then teh edits is\n        replicated in all of the directoires for redundancy.\n        Default value is same as fs.checkpoint.dir\n    ",
+    "filename" : "core-site.xml"
+  }, {
+    "name" : "fs.checkpoint.period",
+    "value" : "21600",
+    "description" : "The number of seconds between two periodic checkpoints.\n  ",
+    "filename" : "core-site.xml"
+  }, {
+    "name" : "fs.checkpoint.size",
+    "value" : "536870912",
+    "description" : "The size of the current edit log (in bytes) that triggers\n       a periodic checkpoint even if the fs.checkpoint.period hasn't expired.\n  ",
+    "filename" : "core-site.xml"
+  }, {
+    "name" : "ipc.client.idlethreshold",
+    "value" : "8000",
+    "description" : "Defines the threshold number of connections after which\n               connections will be inspected for idleness.\n  ",
+    "filename" : "core-site.xml"
+  }, {
+    "name" : "ipc.client.connection.maxidletime",
+    "value" : "30000",
+    "description" : "The maximum time after which a client will bring down the\n               connection to the server.\n  ",
+    "filename" : "core-site.xml"
+  }, {
+    "name" : "ipc.client.connect.max.retries",
+    "value" : "50",
+    "description" : "Defines the maximum number of retries for IPC connections.",
+    "filename" : "core-site.xml"
+  }, {
+    "name" : "webinterface.private.actions",
+    "value" : "false",
+    "description" : " If set to true, the web interfaces of JT and NN may contain\n                actions, such as kill job, delete file, etc., that should\n                not be exposed to public. Enable this option if the interfaces\n                are only reachable by those who have the right authorization.\n  ",
+    "filename" : "core-site.xml"
+  } ],
+  "components" : [ {
+    "name" : "NAMENODE",
+    "category" : "MASTER",
+    "client" : false,
+    "master" : true
+  }, {
+    "name" : "DATANODE",
+    "category" : "SLAVE",
+    "client" : false,
+    "master" : false
+  }, {
+    "name" : "SECONDARY_NAMENODE",
+    "category" : "MASTER",
+    "client" : false,
+    "master" : true
+  }, {
+    "name" : "HDFS_CLIENT",
+    "category" : "CLIENT",
+    "client" : true,
+    "master" : false
+  } ],
+  "clientOnlyService" : false,
+  "clientComponent" : {
+    "name" : "HDFS_CLIENT",
+    "category" : "CLIENT",
+    "client" : true,
+    "master" : false
+  }
+}

@@ -49,16 +49,16 @@ public class HostStateEntity {
     this.availableMem = availableMem;
   }
 
-  private Long lastHeartbeatTime = 0L;
+  private Long timeInState = 0L;
 
-  @javax.persistence.Column(name = "last_heartbeat_time", nullable = false, insertable = true, updatable = true, length = 10)
+  @javax.persistence.Column(name = "time_in_state", nullable = false, insertable = true, updatable = true, length = 10)
   @Basic
-  public Long getLastHeartbeatTime() {
-    return lastHeartbeatTime;
+  public Long getTimeInState() {
+    return timeInState;
   }
 
-  public void setLastHeartbeatTime(Long lastHeartbeatTime) {
-    this.lastHeartbeatTime = lastHeartbeatTime;
+  public void setTimeInState(Long timeInState) {
+    this.timeInState = timeInState;
   }
 
   private String healthStatus;
@@ -105,7 +105,7 @@ public class HostStateEntity {
     HostStateEntity that = (HostStateEntity) o;
 
     if (availableMem != null ? !availableMem.equals(that.availableMem) : that.availableMem != null) return false;
-    if (lastHeartbeatTime != null ? !lastHeartbeatTime.equals(that.lastHeartbeatTime) : that.lastHeartbeatTime != null) return false;
+    if (timeInState != null ? !timeInState.equals(that.timeInState) : that.timeInState!= null) return false;
     if (agentVersion != null ? !agentVersion.equals(that.agentVersion) : that.agentVersion != null) return false;
     if (currentState != null ? !currentState.equals(that.currentState) : that.currentState != null) return false;
     if (hostName != null ? !hostName.equals(that.hostName) : that.hostName != null) return false;
@@ -117,7 +117,7 @@ public class HostStateEntity {
   public int hashCode() {
     int result = hostName != null ? hostName.hashCode() : 0;
     result = 31 * result + (availableMem != null ? availableMem.intValue() : 0);
-    result = 31 * result + (lastHeartbeatTime != null ? lastHeartbeatTime.intValue() : 0);
+    result = 31 * result + (timeInState != null ? timeInState.intValue() : 0);
     result = 31 * result + (agentVersion != null ? agentVersion.hashCode() : 0);
     result = 31 * result + (currentState != null ? currentState.hashCode() : 0);
     return result;
@@ -146,4 +146,5 @@ public class HostStateEntity {
   public void setHostEntity(HostEntity hostEntity) {
     this.hostEntity = hostEntity;
   }
+
 }

@@ -128,6 +128,14 @@
     <value>${user.dir}/../logs</value>
   </property>
   <property>
+    <name>hbase.cluster.distributed</name>
+    <value>true</value>
+    <description>
+    The mode the cluster will be in. Possible values are false for standalone mode and true for distributed mode.
+    If false, startup will run all HBase and ZooKeeper daemons together in the one JVM.
+    </description>
+  </property>
+  <property>
     <name>hbase.zookeeper.property.clientPort</name>
     <value>21818</value>
     <description>Property from ZooKeeper's config zoo.cfg.

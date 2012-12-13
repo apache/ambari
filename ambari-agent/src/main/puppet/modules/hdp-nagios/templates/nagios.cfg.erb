@@ -215,7 +215,7 @@ external_command_buffer_slots=4096
 # This is the lockfile that Nagios will use to store its PID number
 # in when it is running in daemon mode.
 
-lock_file=/var/nagios/nagios.pid
+lock_file=/var/run/nagios/nagios.pid
 
 
 
@@ -1141,7 +1141,7 @@ date_format=us
 # embedded Perl interpreter) is located.  If you didn't compile
 # Nagios with embedded Perl support, this option has no effect.
 
-p1_file=/usr/bin/p1.pl
+p1_file = <%=nagios_p1_pl %>
 
 
 

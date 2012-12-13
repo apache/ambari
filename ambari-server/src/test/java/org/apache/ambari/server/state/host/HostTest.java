@@ -19,37 +19,47 @@
 package org.apache.ambari.server.state.host;
 
 import static org.junit.Assert.fail;
+import static org.mockito.Matchers.any;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.mock;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import com.google.inject.Guice;
-import com.google.inject.Injector;
-import com.google.inject.persist.PersistService;
 import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.actionmanager.ActionManager;
+import org.apache.ambari.server.agent.ActionQueue;
 import org.apache.ambari.server.agent.DiskInfo;
+import org.apache.ambari.server.agent.HeartBeatHandler;
 import org.apache.ambari.server.agent.HostInfo;
+import org.apache.ambari.server.agent.TestHeartbeatHandler;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
 import org.apache.ambari.server.orm.dao.HostDAO;
 import org.apache.ambari.server.orm.entities.HostEntity;
-import org.apache.ambari.server.state.*;
+import org.apache.ambari.server.state.AgentVersion;
+import org.apache.ambari.server.state.Clusters;
+import org.apache.ambari.server.state.Host;
+import org.apache.ambari.server.state.HostHealthStatus;
 import org.apache.ambari.server.state.HostHealthStatus.HealthStatus;
-import org.apache.ambari.server.state.host.HostHealthyHeartbeatEvent;
-import org.apache.ambari.server.state.host.HostHeartbeatLostEvent;
-import org.apache.ambari.server.state.host.HostRegistrationRequestEvent;
-import org.apache.ambari.server.state.host.HostStatusUpdatesReceivedEvent;
-import org.apache.ambari.server.state.host.HostUnhealthyHeartbeatEvent;
+import org.apache.ambari.server.state.HostState;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+
+import com.google.inject.Guice;
+import com.google.inject.Injector;
+import com.google.inject.persist.PersistService;
 
 public class HostTest {
 
   private Injector injector;
   private Clusters clusters;
   private HostDAO hostDAO;
+  private static Log LOG = LogFactory.getLog(HostTest.class);
 
   @Before
    public void setup() throws AmbariException{
@@ -71,7 +81,7 @@ public class HostTest {
     info.setPhysicalProcessorCount(10);
     List<DiskInfo> mounts = new ArrayList<DiskInfo>();
     mounts.add(new DiskInfo("/dev/sda", "/mnt/disk1",
-        "5000000", "4000000", "10%", "size"));
+        "5000000", "4000000", "10%", "size", "fstype"));
     info.setMounts(mounts);
 
     info.setHostName("foo");
@@ -97,6 +107,23 @@ public class HostTest {
   private void registerHost(Host host) throws Exception {
     registerHost(host, true);
   }
+  
+  @Test
+  public void testHostOs() throws Exception {
+    Clusters clusters = mock(Clusters.class);
+    ActionQueue queue = mock(ActionQueue.class);
+    ActionManager manager = mock(ActionManager.class);
+    Injector injector = mock(Injector.class);
+    doNothing().when(injector).injectMembers(any());
+    HeartBeatHandler handler = new HeartBeatHandler(clusters, queue, manager, injector);
+    String os = handler.getOsType("RedHat", "6.1");
+    Assert.assertEquals("redhat6", os);
+    os = handler.getOsType("RedHat", "6");
+    Assert.assertEquals("redhat6", os);
+    os = handler.getOsType("RedHat6","");
+    Assert.assertEquals("redhat6", os);
+    
+  }
 
   private void registerHost(Host host, boolean firstReg) throws Exception {
     HostInfo info = new HostInfo();
@@ -104,7 +131,7 @@ public class HostTest {
     info.setProcessorCount(10);
     List<DiskInfo> mounts = new ArrayList<DiskInfo>();
     mounts.add(new DiskInfo("/dev/sda", "/mnt/disk1",
-        "5000000", "4000000", "10%", "size"));
+        "5000000", "4000000", "10%", "size", "fstype"));
     info.setMounts(mounts);
 
     info.setHostName("foo");

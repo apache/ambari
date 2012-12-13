@@ -19,20 +19,23 @@
 package org.apache.ambari.server.controller.internal;
 
 import junit.framework.Assert;
+import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.controller.spi.ProviderModule;
 import org.apache.ambari.server.controller.spi.RequestStatus;
+import org.apache.ambari.server.controller.spi.Schema;
+import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
+import org.apache.ambari.server.controller.utilities.PredicateHelper;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
 import org.apache.ambari.server.controller.spi.ClusterController;
 import org.apache.ambari.server.controller.spi.Predicate;
-import org.apache.ambari.server.controller.spi.PropertyId;
 import org.apache.ambari.server.controller.spi.PropertyProvider;
 import org.apache.ambari.server.controller.spi.Request;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.spi.ResourceProvider;
 import org.apache.ambari.server.controller.utilities.PredicateBuilder;
-import org.junit.Ignore;
 import org.junit.Test;
 
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -41,17 +44,17 @@ import java.util.Map;
 import java.util.Set;
 
 /**
- *
+ * Cluster controller tests
  */
 public class ClusterControllerImplTest {
 
-  private static final Set<PropertyId> propertyProviderProperties = new HashSet<PropertyId>();
+  private static final Set<String> propertyProviderProperties = new HashSet<String>();
 
   static {
-    propertyProviderProperties.add(PropertyHelper.getPropertyId("p5", "c3"));
-    propertyProviderProperties.add(PropertyHelper.getPropertyId("p6", "c3"));
-    propertyProviderProperties.add(PropertyHelper.getPropertyId("p7", "c4"));
-    propertyProviderProperties.add(PropertyHelper.getPropertyId("p8", "c4"));
+    propertyProviderProperties.add(PropertyHelper.getPropertyId("c3", "p5"));
+    propertyProviderProperties.add(PropertyHelper.getPropertyId("c3", "p6"));
+    propertyProviderProperties.add(PropertyHelper.getPropertyId("c4", "p7"));
+    propertyProviderProperties.add(PropertyHelper.getPropertyId("c4", "p8"));
   }
 
   private static final PropertyProvider propertyProvider = new PropertyProvider() {
@@ -60,17 +63,17 @@ public class ClusterControllerImplTest {
 
       int cnt = 0;
       for (Resource resource : resources){
-        resource.setProperty(PropertyHelper.getPropertyId("p5", "c3"), cnt + 100);
-        resource.setProperty(PropertyHelper.getPropertyId("p6", "c3"), cnt % 2);
-        resource.setProperty(PropertyHelper.getPropertyId("p7", "c4"), "monkey");
-        resource.setProperty(PropertyHelper.getPropertyId("p8", "c4"), "runner");
+        resource.setProperty(PropertyHelper.getPropertyId("c3", "p5"), cnt + 100);
+        resource.setProperty(PropertyHelper.getPropertyId("c3", "p6"), cnt % 2);
+        resource.setProperty(PropertyHelper.getPropertyId("c4", "p7"), "monkey");
+        resource.setProperty(PropertyHelper.getPropertyId("c4", "p8"), "runner");
         ++cnt;
       }
       return resources;
     }
 
     @Override
-    public Set<PropertyId> getPropertyIds() {
+    public Set<String> getPropertyIds() {
       return propertyProviderProperties;
     }
   };
@@ -81,76 +84,30 @@ public class ClusterControllerImplTest {
     propertyProviders.add(propertyProvider);
   }
 
-  private static final Map<Resource.Type, PropertyId> keyPropertyIds = new HashMap<Resource.Type, PropertyId>();
-
-  private static final Set<PropertyId> resourceProviderProperties = new HashSet<PropertyId>();
+  private static final Map<Resource.Type, String> keyPropertyIds = new HashMap<Resource.Type, String>();
 
   static {
-    resourceProviderProperties.add(PropertyHelper.getPropertyId("p1", "c1"));
-    resourceProviderProperties.add(PropertyHelper.getPropertyId("p2", "c1"));
-    resourceProviderProperties.add(PropertyHelper.getPropertyId("p3", "c1"));
-    resourceProviderProperties.add(PropertyHelper.getPropertyId("p4", "c2"));
+    keyPropertyIds.put(Resource.Type.Cluster, PropertyHelper.getPropertyId("c1", "p1"));
+    keyPropertyIds.put(Resource.Type.Host, PropertyHelper.getPropertyId("c1", "p2"));
   }
 
-  private static final ResourceProvider resourceProvider = new ResourceProvider() {
-    @Override
-    public Set<Resource> getResources(Request request, Predicate predicate) {
-
-      Set<Resource> resources = new HashSet<Resource>();
-
-      for (int cnt = 0; cnt < 4; ++ cnt) {
-        ResourceImpl resource = new ResourceImpl(Resource.Type.Host);
-
-        resource.setProperty(PropertyHelper.getPropertyId("p1", "c1"), cnt);
-        resource.setProperty(PropertyHelper.getPropertyId("p2", "c1"), cnt % 2);
-        resource.setProperty(PropertyHelper.getPropertyId("p3", "c1"), "foo");
-        resource.setProperty(PropertyHelper.getPropertyId("p4", "c2"), "bar");
-        resources.add(resource);
-      }
-
-      return resources;
-    }
-
-    @Override
-    public RequestStatus createResources(Request request) {
-      return new RequestStatusImpl(null);
-    }
-
-    @Override
-    public RequestStatus updateResources(Request request, Predicate predicate) {
-      return new RequestStatusImpl(null);
-    }
-
-    @Override
-    public RequestStatus deleteResources(Predicate predicate) {
-      return new RequestStatusImpl(null);
-    }
-
-    @Override
-    public Set<PropertyId> getPropertyIds() {
-      return resourceProviderProperties;
-    }
-
-    @Override
-    public Map<Resource.Type, PropertyId> getKeyPropertyIds() {
-      return keyPropertyIds;
-    }
-  };
-
-  private static final Set<PropertyId> propertyIds = new HashSet<PropertyId>();
+  private static final Set<String> resourceProviderProperties = new HashSet<String>();
 
   static {
-    propertyIds.add(PropertyHelper.getPropertyId("p1", "c1"));
-    propertyIds.add(PropertyHelper.getPropertyId("p2", "c1"));
-    propertyIds.add(PropertyHelper.getPropertyId("p3", "c2"));
-    propertyIds.add(PropertyHelper.getPropertyId("p4", "c3"));
-    propertyIds.add(PropertyHelper.getPropertyId("p5", "c3"));
-    propertyIds.add(PropertyHelper.getPropertyId("p7", "c4"));
+    resourceProviderProperties.add(PropertyHelper.getPropertyId("c1", "p1"));
+    resourceProviderProperties.add(PropertyHelper.getPropertyId("c1", "p2"));
+    resourceProviderProperties.add(PropertyHelper.getPropertyId("c1", "p3"));
+    resourceProviderProperties.add(PropertyHelper.getPropertyId("c2", "p4"));
   }
 
   @Test
   public void testGetResources() throws Exception{
     ClusterController controller = new ClusterControllerImpl(new TestProviderModule());
+
+    Set<String> propertyIds = new HashSet<String>();
+
+    propertyIds.add(PropertyHelper.getPropertyId("c1", "p1"));
+    propertyIds.add(PropertyHelper.getPropertyId("c1", "p3"));
 
     Request request = PropertyHelper.getReadRequest(propertyIds);
 
@@ -165,13 +122,37 @@ public class ClusterControllerImplTest {
   }
 
   @Test
-  @Ignore
-  public void testGetResourcesWithPredicate() throws Exception{
+  public void testGetResourcesEmptyRequest() throws Exception{
     ClusterController controller = new ClusterControllerImpl(new TestProviderModule());
+
+    Set<String> propertyIds = new HashSet<String>();
 
     Request request = PropertyHelper.getReadRequest(propertyIds);
 
-    Predicate predicate = new PredicateBuilder().property("p2", "c1").equals(1).toPredicate();
+    Iterable<Resource> iterable = controller.getResources(Resource.Type.Host, request, null);
+
+    int cnt = 0;
+    for (Resource resource : iterable) {
+      Assert.assertEquals(Resource.Type.Host, resource.getType());
+      ++cnt;
+    }
+    Assert.assertEquals(4, cnt);
+  }
+
+  @Test
+  public void testGetResourcesWithPredicate() throws Exception{
+    ClusterController controller = new ClusterControllerImpl(new TestProviderModule());
+
+    Set<String> propertyIds = new HashSet<String>();
+
+    propertyIds.add(PropertyHelper.getPropertyId("c1", "p1"));
+    propertyIds.add(PropertyHelper.getPropertyId("c1", "p2"));
+    propertyIds.add(PropertyHelper.getPropertyId("c1", "p3"));
+    propertyIds.add(PropertyHelper.getPropertyId("c2", "p4"));
+
+    Request request = PropertyHelper.getReadRequest(propertyIds);
+
+    Predicate predicate = new PredicateBuilder().property("c1/p2").equals(1).toPredicate();
 
     Iterable<Resource> iterable = controller.getResources(Resource.Type.Host, request, predicate);
 
@@ -183,13 +164,145 @@ public class ClusterControllerImplTest {
     Assert.assertEquals(2, cnt);
   }
 
-  @Ignore
+  @Test
+  public void testCreateResources() throws Exception{
+    TestProviderModule providerModule = new TestProviderModule();
+    TestResourceProvider resourceProvider = (TestResourceProvider) providerModule.getResourceProvider(Resource.Type.Host);
+    ClusterController controller = new ClusterControllerImpl(providerModule);
+
+    Set<Map<String, Object>> properties = new HashSet<Map<String, Object>>();
+    Map<String, Object> propertyMap = new HashMap<String, Object>();
+
+    propertyMap.put(PropertyHelper.getPropertyId("c1", "p1"), 99);
+    propertyMap.put(PropertyHelper.getPropertyId("c1", "p2"), 2);
+
+    properties.add(propertyMap);
+
+    Request request = PropertyHelper.getCreateRequest(properties);
+
+    controller.createResources(Resource.Type.Host, request);
+
+    Assert.assertEquals(TestResourceProvider.Action.Create, resourceProvider.getLastAction());
+    Assert.assertSame(request, resourceProvider.getLastRequest());
+    Assert.assertNull(resourceProvider.getLastPredicate());
+  }
+
+  @Test
+  public void testUpdateResources() throws Exception{
+    TestProviderModule providerModule = new TestProviderModule();
+    TestResourceProvider resourceProvider = (TestResourceProvider) providerModule.getResourceProvider(Resource.Type.Host);
+    ClusterController controller = new ClusterControllerImpl(providerModule);
+
+    Map<String, Object> propertyMap = new HashMap<String, Object>();
+
+    propertyMap.put(PropertyHelper.getPropertyId("c1", "p1"), 99);
+    propertyMap.put(PropertyHelper.getPropertyId("c1", "p2"), 2);
+
+    Request request = PropertyHelper.getUpdateRequest(propertyMap);
+
+    Predicate predicate = new PredicateBuilder().property("c1/p2").equals(1).toPredicate();
+
+    controller.updateResources(Resource.Type.Host, request, predicate);
+
+    Assert.assertEquals(TestResourceProvider.Action.Update, resourceProvider.getLastAction());
+    Assert.assertSame(request, resourceProvider.getLastRequest());
+    Assert.assertSame(predicate, resourceProvider.getLastPredicate());
+  }
+
+  @Test
+  public void testUpdateResourcesResolvePredicate() throws Exception{
+    TestProviderModule providerModule = new TestProviderModule();
+    TestResourceProvider resourceProvider = (TestResourceProvider) providerModule.getResourceProvider(Resource.Type.Host);
+    ClusterController controller = new ClusterControllerImpl(providerModule);
+
+    Map<String, Object> propertyMap = new HashMap<String, Object>();
+
+    propertyMap.put(PropertyHelper.getPropertyId("c1", "p1"), 99);
+    propertyMap.put(PropertyHelper.getPropertyId("c1", "p2"), 2);
+
+    Request request = PropertyHelper.getUpdateRequest(propertyMap);
+
+    Predicate predicate = new PredicateBuilder().property("c3/p6").equals(1).toPredicate();
+
+    controller.updateResources(Resource.Type.Host, request, predicate);
+
+    Assert.assertEquals(TestResourceProvider.Action.Update, resourceProvider.getLastAction());
+    Assert.assertSame(request, resourceProvider.getLastRequest());
+    Predicate lastPredicate = resourceProvider.getLastPredicate();
+    Assert.assertFalse(predicate.equals(lastPredicate));
+    Set<String> predicatePropertyIds = PredicateHelper.getPropertyIds(lastPredicate);
+    Collection<String> keyPropertyIds = resourceProvider.getKeyPropertyIds().values();
+    Assert.assertEquals(predicatePropertyIds.size(), keyPropertyIds.size());
+    Assert.assertTrue(keyPropertyIds.containsAll(predicatePropertyIds));
+  }
+
+  @Test
+  public void testDeleteResources() throws Exception{
+    TestProviderModule providerModule = new TestProviderModule();
+    TestResourceProvider resourceProvider = (TestResourceProvider) providerModule.getResourceProvider(Resource.Type.Host);
+    ClusterController controller = new ClusterControllerImpl(providerModule);
+
+    Predicate predicate = new PredicateBuilder().property("c1/p2").equals(1).toPredicate();
+
+    controller.deleteResources(Resource.Type.Host, predicate);
+
+    Assert.assertEquals(TestResourceProvider.Action.Delete, resourceProvider.getLastAction());
+    Assert.assertNull(resourceProvider.getLastRequest());
+    Assert.assertSame(predicate, resourceProvider.getLastPredicate());
+  }
+
+  @Test
+  public void testDeleteResourcesResolvePredicate() throws Exception{
+    TestProviderModule providerModule = new TestProviderModule();
+    TestResourceProvider resourceProvider = (TestResourceProvider) providerModule.getResourceProvider(Resource.Type.Host);
+    ClusterController controller = new ClusterControllerImpl(providerModule);
+
+    Predicate predicate = new PredicateBuilder().property("c3/p6").equals(1).toPredicate();
+
+    controller.deleteResources(Resource.Type.Host, predicate);
+
+    Assert.assertEquals(TestResourceProvider.Action.Delete, resourceProvider.getLastAction());
+    Assert.assertNull(resourceProvider.getLastRequest());
+    Predicate lastPredicate = resourceProvider.getLastPredicate();
+    Assert.assertFalse(predicate.equals(lastPredicate));
+    Set<String> predicatePropertyIds = PredicateHelper.getPropertyIds(lastPredicate);
+    Collection<String> keyPropertyIds = resourceProvider.getKeyPropertyIds().values();
+    Assert.assertEquals(predicatePropertyIds.size(), keyPropertyIds.size());
+    Assert.assertTrue(keyPropertyIds.containsAll(predicatePropertyIds));
+  }
+
   @Test
   public void testGetSchema() {
     ProviderModule module = new TestProviderModule();
-    ClusterController controller = new ClusterControllerImpl(module);
 
-//    Assert.assertEquals(, controller.getSchema(Resource.Type.Host));
+    ClusterController controller = new ClusterControllerImpl(module);
+    Schema schema = controller.getSchema(Resource.Type.Host);
+
+    ResourceProvider resourceProvider = module.getResourceProvider(Resource.Type.Host);
+
+    Map<Resource.Type, String> keyPropertyIds = resourceProvider.getKeyPropertyIds();
+    for (Map.Entry<Resource.Type, String> entry : keyPropertyIds.entrySet()) {
+      Assert.assertEquals(entry.getValue(), schema.getKeyPropertyId(entry.getKey()));
+    }
+
+    Map<String, Set<String>> categories = schema.getCategoryProperties();
+    for (String propertyId : resourceProvider.getPropertyIds()) {
+      String category = PropertyHelper.getPropertyCategory(propertyId);
+      Set<String> properties = categories.get(category);
+      Assert.assertNotNull(properties);
+      Assert.assertTrue(properties.contains(PropertyHelper.getPropertyName(propertyId)));
+    }
+
+    List<PropertyProvider> propertyProviders = module.getPropertyProviders(Resource.Type.Host);
+
+    for (PropertyProvider propertyProvider : propertyProviders) {
+      for (String propertyId : propertyProvider.getPropertyIds()) {
+        String category = PropertyHelper.getPropertyCategory(propertyId);
+        Set<String> properties = categories.get(category);
+        Assert.assertNotNull(properties);
+        Assert.assertTrue(properties.contains(PropertyHelper.getPropertyName(propertyId)));
+      }
+    }
   }
 
   private static class TestProviderModule implements ProviderModule {
@@ -215,18 +328,22 @@ public class ClusterControllerImplTest {
   }
 
   private static class TestResourceProvider implements ResourceProvider {
+    private Action lastAction = null;
+    private Request lastRequest = null;
+    private Predicate lastPredicate = null;
+
     @Override
-    public Set<Resource> getResources(Request request, Predicate predicate) {
+    public Set<Resource> getResources(Request request, Predicate predicate) throws AmbariException, UnsupportedPropertyException {
 
       Set<Resource> resources = new HashSet<Resource>();
 
       for (int cnt = 0; cnt < 4; ++ cnt) {
         ResourceImpl resource = new ResourceImpl(Resource.Type.Host);
 
-        resource.setProperty(PropertyHelper.getPropertyId("p1", "c1"), cnt);
-        resource.setProperty(PropertyHelper.getPropertyId("p2", "c1"), cnt % 2);
-        resource.setProperty(PropertyHelper.getPropertyId("p3", "c1"), "foo");
-        resource.setProperty(PropertyHelper.getPropertyId("p4", "c2"), "bar");
+        resource.setProperty(PropertyHelper.getPropertyId("c1", "p1"), cnt);
+        resource.setProperty(PropertyHelper.getPropertyId("c1", "p2"), cnt % 2);
+        resource.setProperty(PropertyHelper.getPropertyId("c1", "p3"), "foo");
+        resource.setProperty(PropertyHelper.getPropertyId("c2", "p4"), "bar");
         resources.add(resource);
       }
 
@@ -234,29 +351,57 @@ public class ClusterControllerImplTest {
     }
 
     @Override
-    public RequestStatus createResources(Request request) {
+    public RequestStatus createResources(Request request) throws AmbariException, UnsupportedPropertyException {
+      lastAction = Action.Create;
+      lastRequest = request;
+      lastPredicate = null;
       return new RequestStatusImpl(null);
     }
 
     @Override
-    public RequestStatus updateResources(Request request, Predicate predicate) {
+    public RequestStatus updateResources(Request request, Predicate predicate) throws AmbariException, UnsupportedPropertyException {
+      lastAction = Action.Update;
+      lastRequest = request;
+      lastPredicate = predicate;
       return new RequestStatusImpl(null);
     }
 
     @Override
-    public RequestStatus deleteResources(Predicate predicate) {
+    public RequestStatus deleteResources(Predicate predicate) throws AmbariException, UnsupportedPropertyException {
+      lastAction = Action.Delete;
+      lastRequest = null;
+      lastPredicate = predicate;
       return new RequestStatusImpl(null);
     }
 
     @Override
-    public Set<PropertyId> getPropertyIds() {
+    public Set<String> getPropertyIds() {
       return resourceProviderProperties;
     }
 
     @Override
-    public Map<Resource.Type, PropertyId> getKeyPropertyIds() {
+    public Map<Resource.Type, String> getKeyPropertyIds() {
       return keyPropertyIds;
     }
+
+    public Action getLastAction() {
+      return lastAction;
+    }
+
+    public Request getLastRequest() {
+      return lastRequest;
+    }
+
+    public Predicate getLastPredicate() {
+      return lastPredicate;
+    }
+
+    public enum Action {
+      Create,
+      Update,
+      Delete
+    }
+
   }
 
 }

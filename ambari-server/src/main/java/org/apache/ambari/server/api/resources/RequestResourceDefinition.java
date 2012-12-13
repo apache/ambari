@@ -21,8 +21,8 @@ package org.apache.ambari.server.api.resources;
 
 import org.apache.ambari.server.controller.spi.Resource;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.Collections;
+import java.util.Set;
 
 
 /**
@@ -31,21 +31,10 @@ import java.util.Map;
 public class RequestResourceDefinition extends BaseResourceDefinition {
 
   /**
-   * value of cluster id foreign key
-   */
-  private String m_clusterId;
-
-
-  /**
    * Constructor.
-   *
-   * @param id         operation id value
-   * @param clusterId  cluster id value
    */
-  public RequestResourceDefinition(String id, String clusterId) {
-    super(Resource.Type.Request, id);
-    m_clusterId = clusterId;
-    setResourceId(Resource.Type.Cluster, m_clusterId);
+  public RequestResourceDefinition() {
+    super(Resource.Type.Request);
   }
 
   @Override
@@ -59,15 +48,7 @@ public class RequestResourceDefinition extends BaseResourceDefinition {
   }
 
   @Override
-  public Map<String, ResourceDefinition> getSubResources() {
-    Map<String, ResourceDefinition> mapChildren = new HashMap<String, ResourceDefinition>();
-
-    TaskResourceDefinition taskResourceDefinition =
-        new TaskResourceDefinition(null, m_clusterId, getId());
-    taskResourceDefinition.getQuery().addProperty(getClusterController().getSchema(
-        Resource.Type.Task).getKeyPropertyId(Resource.Type.Task));
-    mapChildren.put(taskResourceDefinition.getPluralName(), taskResourceDefinition);
-
-    return mapChildren;
+  public Set<SubResourceDefinition> getSubResourceDefinitions() {
+      return Collections.singleton(new SubResourceDefinition(Resource.Type.Task));
   }
 }

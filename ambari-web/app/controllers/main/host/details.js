@@ -178,16 +178,27 @@ App.MainHostDetailsController = Em.Controller.extend({
 
   decommission: function(event){
     var self = this;
+    var decommissionHostNames = this.get('view.decommissionDatanodeHostnames');
+    if (decommissionHostNames == null) {
+      decommissionHostNames = [];
+    }
     App.ModalPopup.show({
       header: Em.I18n.t('hosts.host.start.popup.header'),
       body: Em.I18n.t('hosts.host.start.popup.body'),
       primary: 'Yes',
       secondary: 'No',
-      onPrimary: function() {
+      onPrimary: function(){
         var component = event.context;
-        component.set('decommissioned', true);
-
-        //todo:call to server
+        // Only HDFS service as of now
+        var svcName = component.get('service.serviceName');
+        if (svcName === "HDFS") {
+          var hostName = self.get('content.hostName');
+          var index = decommissionHostNames.indexOf(hostName);
+          if (index < 0) {
+            decommissionHostNames.push(hostName);
+          }
+          self.doDatanodeDecommission(decommissionHostNames);
+        }
         App.router.get('backgroundOperationsController').showPopup();
         this.hide();
       },
@@ -195,52 +206,127 @@ App.MainHostDetailsController = Em.Controller.extend({
         this.hide();
       }
     });
+  },
+
+  /**
+   * Performs either Decommission or Recommision by updating the hosts list on
+   * server.
+   */
+  doDatanodeDecommission: function(decommissionHostNames){
+    var self = this;
+    if (decommissionHostNames == null) {
+      decommissionHostNames = [];
+    }
+    var invocationTag = String(new Date().getTime());
+    var clusterName = App.router.get('clusterController.clusterName');
+    var clusterUrl = App.apiPrefix + '/clusters/' + clusterName;
+    var configsUrl = clusterUrl + '/configurations';
+    var configsData = {
+      type: "hdfs-exclude-file",
+      tag: invocationTag,
+      properties: {
+        datanodes: decommissionHostNames.join(',')
+      }
+    };
+    var configsAjax = {
+      type: 'POST',
+      url: configsUrl,
+      dataType: 'json',
+      data: JSON.stringify(configsData),
+      timeout: App.timeout,
+      success: function(){
+        var actionsUrl = clusterUrl + '/services/HDFS/actions/DECOMMISSION_DATANODE';
+        var actionsData = {
+          parameters: {
+            excludeFileTag: invocationTag
+          }
+        }
+        var actionsAjax = {
+          type: 'POST',
+          url: actionsUrl,
+          dataType: 'json',
+          data: JSON.stringify(actionsData),
+          timeout: App.timeout,
+          success: function(){
+            var persistUrl = App.apiPrefix + '/persist';
+            var persistData = {
+              "decommissionDataNodesTag": invocationTag
+            };
+            var persistPutAjax = {
+              type: 'POST',
+              url: persistUrl,
+              dataType: 'json',
+              data: JSON.stringify(persistData),
+              timeout: App.timeout,
+              success: function(){
+                var view = self.get('view');
+                view.loadDecommisionNodesList();
+              }
+            };
+            jQuery.ajax(persistPutAjax);
+          },
+          error: function(xhr, textStatus, errorThrown){
+            console.log(textStatus);
+            console.log(errorThrown);
+          }
+        };
+        jQuery.ajax(actionsAjax);
+      },
+      error: function(xhr, textStatus, errorThrown){
+        console.log(textStatus);
+        console.log(errorThrown);
+      }
+    }
+    jQuery.ajax(configsAjax);
   },
 
   recommission: function(event){
     var self = this;
+    var decommissionHostNames = this.get('view.decommissionDatanodeHostnames');
+    if (decommissionHostNames == null) {
+      decommissionHostNames = [];
+    }
     App.ModalPopup.show({
       header: Em.I18n.t('hosts.host.start.popup.header'),
       body: Em.I18n.t('hosts.host.start.popup.body'),
       primary: 'Yes',
       secondary: 'No',
-      onPrimary: function() {
+      onPrimary: function(){
         var component = event.context;
-        component.set('decommissioned', false);
-        //todo: call to server
+        // Only HDFS service as of now
+        var svcName = component.get('service.serviceName');
+        if (svcName === "HDFS") {
+          var hostName = self.get('content.hostName');
+          var index = decommissionHostNames.indexOf(hostName);
+          decommissionHostNames.splice(index, 1);
+          self.doDatanodeDecommission(decommissionHostNames);
+        }
         App.router.get('backgroundOperationsController').showPopup();
         this.hide();
       },
-      onSecondary: function() {
+      onSecondary: function(){
         this.hide();
       }
     });
   },
 
-  validateDeletion: function() {
-    var slaveComponents = ['DataNode', 'TaskTracker', 'RegionServer'];
-    var masterComponents = [];
-    var workingComponents = [];
-
-    var components = this.get('content.components');
-    components.forEach(function(cInstance){
-      var cName = cInstance.get('componentName');
-      if(slaveComponents.contains(cName)) {
-        if(cInstance.get('workStatus')===App.Component.Status.stopped &&
-          !cInstance.get('decommissioned')){
-          workingComponents.push(cName);
-        }
-      } else {
-        masterComponents.push(cName);
-      }
-    });
-    //debugger;
-    if(workingComponents.length || masterComponents.length) {
-      this.raiseWarning(workingComponents, masterComponents);
-    } else {
-      this.deleteButtonPopup();
-    }
-  },
+  /**
+   * Deletion of hosts not supported for this version
+   * 
+   * validateDeletion: function () { var slaveComponents = [ 'DataNode',
+   * 'TaskTracker', 'RegionServer' ]; var masterComponents = []; var
+   * workingComponents = [];
+   * 
+   * var components = this.get('content.components');
+   * components.forEach(function (cInstance) { var cName =
+   * cInstance.get('componentName'); if (slaveComponents.contains(cName)) { if
+   * (cInstance.get('workStatus') === App.Component.Status.stopped &&
+   * !cInstance.get('decommissioned')) { workingComponents.push(cName); } } else {
+   * masterComponents.push(cName); } }); // debugger; if
+   * (workingComponents.length || masterComponents.length) {
+   * this.raiseWarning(workingComponents, masterComponents); } else {
+   * this.deleteButtonPopup(); } },
+   */
 
   raiseWarning: function (workingComponents, masterComponents) {
     var self = this;

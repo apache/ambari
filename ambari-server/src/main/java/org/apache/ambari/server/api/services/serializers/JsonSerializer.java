@@ -22,12 +22,15 @@ import org.apache.ambari.server.api.services.Result;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.api.util.TreeNode;
 import org.codehaus.jackson.JsonFactory;
+import org.codehaus.jackson.JsonGenerationException;
 import org.codehaus.jackson.JsonGenerator;
+import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.util.DefaultPrettyPrinter;
 
 import javax.ws.rs.core.UriInfo;
 import java.io.*;
 import java.nio.charset.Charset;
+import java.util.Collection;
 import java.util.Map;
 
 /**
@@ -41,10 +44,13 @@ public class JsonSerializer implements ResultSerializer {
    */
   JsonFactory m_factory = new JsonFactory();
 
+  ObjectMapper m_mapper = new ObjectMapper(m_factory);
+
   /**
    * Generator which writes JSON.
    */
   JsonGenerator m_generator;
+
 
   @Override
   public Object serialize(Result result, UriInfo uriInfo) {
@@ -110,7 +116,8 @@ public class JsonSerializer implements ResultSerializer {
     }
 
     for (Map.Entry<String, Object> entry : node.getObject().entrySet()) {
-      m_generator.writeObjectField(entry.getKey(), entry.getValue());
+      m_generator.writeFieldName(entry.getKey());
+      m_mapper.writeValue(m_generator, entry.getValue());
     }
 
     for (TreeNode<Map<String, Object>> n : node.getChildren()) {

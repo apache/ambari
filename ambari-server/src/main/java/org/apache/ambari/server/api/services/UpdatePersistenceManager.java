@@ -19,10 +19,10 @@
 package org.apache.ambari.server.api.services;
 
 
-import org.apache.ambari.server.api.resources.ResourceDefinition;
 import org.apache.ambari.server.AmbariException;
-import org.apache.ambari.server.controller.spi.PropertyId;
+import org.apache.ambari.server.api.resources.ResourceInstance;
 import org.apache.ambari.server.controller.spi.RequestStatus;
+import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
 
 import java.util.Map;
 import java.util.Set;
@@ -33,11 +33,14 @@ import java.util.Set;
  */
 public class UpdatePersistenceManager extends BasePersistenceManager {
   @Override
-  public RequestStatus persist(ResourceDefinition resource, Set<Map<PropertyId, Object>> setProperties) {
+  public RequestStatus persist(ResourceInstance resource, Set<Map<String, Object>> setProperties) {
     try {
-      return getClusterController().updateResources(resource.getType(), createControllerRequest(
-          setProperties), resource.getQuery().getInternalPredicate());
+      return getClusterController().updateResources(resource.getResourceDefinition().getType(),
+          createControllerRequest(setProperties), resource.getQuery().getPredicate());
     } catch (AmbariException e) {
+      //todo: handle exception
+      throw new RuntimeException("Update of resource failed: " + e, e);
+    } catch (UnsupportedPropertyException e) {
       //todo: handle exception
       throw new RuntimeException("Update of resource failed: " + e, e);
     }

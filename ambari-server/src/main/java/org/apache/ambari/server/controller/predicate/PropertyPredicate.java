@@ -17,8 +17,6 @@
  */
 package org.apache.ambari.server.controller.predicate;
 
-import org.apache.ambari.server.controller.spi.PropertyId;
-
 import java.util.Collections;
 import java.util.Set;
 
@@ -26,19 +24,19 @@ import java.util.Set;
  * Predicate that is associated with a resource property.
  */
 public abstract class PropertyPredicate implements BasePredicate {
-  private final PropertyId propertyId;
+  private final String propertyId;
 
-  public PropertyPredicate(PropertyId propertyId) {
+  public PropertyPredicate(String propertyId) {
     assert (propertyId != null);
     this.propertyId = propertyId;
   }
 
   @Override
-  public Set<PropertyId> getPropertyIds() {
+  public Set<String> getPropertyIds() {
     return Collections.singleton(propertyId);
   }
 
-  public PropertyId getPropertyId() {
+  public String getPropertyId() {
     return propertyId;
   }
 

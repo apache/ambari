@@ -26,11 +26,13 @@ import javax.persistence.Id;
  * @author ncole
  *
  */
+@SuppressWarnings("serial")
 public class ComponentConfigMappingEntityPK implements Serializable {
   private Long clusterId;
   private String serviceName;
   private String componentName;
-  
+  private String configType;
+
   @Id
   @Column(name = "cluster_id", insertable = true, updatable = true, nullable = false, length = 10)
   public Long getClusterId() {
@@ -50,17 +52,27 @@ public class ComponentConfigMappingEntityPK implements Serializable {
   public void setServiceName(String serviceName) {
     this.serviceName = serviceName;
   }
-  
+
   @Column(name = "component_name", insertable = true, updatable = true, nullable = false)
   @Id
   public String getComponentName() {
     return componentName;
   }
-  
+
   public void setComponentName(String name) {
     componentName = name;
   }
-  
+
+  @Column(name = "config_type", insertable = true, updatable = false, nullable = false)
+  @Id
+  public String getConfigType() {
+    return configType;
+  }
+
+  public void setConfigType(String type) {
+    configType = type;
+  }
+
   @Override
   public boolean equals(Object o) {
     if (this == o) return true;
@@ -81,10 +93,10 @@ public class ComponentConfigMappingEntityPK implements Serializable {
     result = 31 * result + (serviceName != null ? serviceName.hashCode() : 0);
     result = 31 * result + (componentName != null ? componentName.hashCode() : 0);
     return result;
-  }  
-  
-  
-  
-  
-  
+  }
+
+
+
+
+
 }

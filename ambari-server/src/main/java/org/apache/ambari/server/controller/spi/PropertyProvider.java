@@ -49,5 +49,5 @@ public interface PropertyProvider {
    *
    * @return the set of property ids for the properties that this provider can provide
    */
-  public Set<PropertyId> getPropertyIds();
+  public Set<String> getPropertyIds();
 }

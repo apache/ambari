@@ -289,7 +289,7 @@ App.ClusterController = Em.Controller.extend({
     var self = this;
     App.HttpClient.get(servicesUrl, App.statusMapper, {
       complete:function (jqXHR, textStatus) {
-        console.log('Cluster Controller: Updated components statuses successfully!!!')
+        //console.log('Cluster Controller: Updated components statuses successfully!!!')
         self.loadUpdatedStatusDelayed();
       }
     }, function(){

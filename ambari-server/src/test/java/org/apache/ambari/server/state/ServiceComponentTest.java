@@ -168,6 +168,7 @@ public class ServiceComponentTest {
     Host h = clusters.getHost(hostname);
     h.setIPv4(hostname + "ipv4");
     h.setIPv6(hostname + "ipv6");
+    h.setOsType("centos6");
     h.persist();
     clusters.mapHostToCluster(hostname, clusterName);
   }

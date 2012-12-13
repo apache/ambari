@@ -19,13 +19,7 @@ package org.apache.ambari.server.orm.entities;
 
 import java.util.Collection;
 
-import javax.persistence.Basic;
-import javax.persistence.Entity;
-import javax.persistence.Id;
-import javax.persistence.JoinColumn;
-import javax.persistence.JoinColumns;
-import javax.persistence.ManyToOne;
-import javax.persistence.OneToMany;
+import javax.persistence.*;
 
 import org.apache.ambari.server.state.State;
 
@@ -84,6 +78,7 @@ public class HostComponentDesiredStateEntity {
   private State desiredState = State.INIT;
 
   @javax.persistence.Column(name = "desired_state", nullable = false, insertable = true, updatable = true)
+  @Enumerated(value = EnumType.STRING)
   @Basic
   public State getDesiredState() {
     return desiredState;
@@ -91,18 +86,6 @@ public class HostComponentDesiredStateEntity {
 
   public void setDesiredState(State desiredState) {
     this.desiredState = desiredState;
-  }
-
-  private String desiredConfigVersion = "";
-
-  @javax.persistence.Column(name = "desired_config_version", nullable = false, insertable = true, updatable = true)
-  @Basic
-  public String getDesiredConfigVersion() {
-    return desiredConfigVersion;
-  }
-
-  public void setDesiredConfigVersion(String desiredConfigVersion) {
-    this.desiredConfigVersion = desiredConfigVersion;
   }
 
   private String desiredStackVersion = "";
@@ -126,8 +109,6 @@ public class HostComponentDesiredStateEntity {
 
     if (clusterId != null ? !clusterId.equals(that.clusterId) : that.clusterId != null) return false;
     if (componentName != null ? !componentName.equals(that.componentName) : that.componentName != null) return false;
-    if (desiredConfigVersion != null ? !desiredConfigVersion.equals(that.desiredConfigVersion) : that.desiredConfigVersion != null)
-      return false;
     if (desiredStackVersion != null ? !desiredStackVersion.equals(that.desiredStackVersion) : that.desiredStackVersion != null)
       return false;
     if (desiredState != null ? !desiredState.equals(that.desiredState) : that.desiredState != null) return false;
@@ -143,7 +124,6 @@ public class HostComponentDesiredStateEntity {
     result = 31 * result + (hostName != null ? hostName.hashCode() : 0);
     result = 31 * result + (componentName != null ? componentName.hashCode() : 0);
     result = 31 * result + (desiredState != null ? desiredState.hashCode() : 0);
-    result = 31 * result + (desiredConfigVersion != null ? desiredConfigVersion.hashCode() : 0);
     result = 31 * result + (desiredStackVersion != null ? desiredStackVersion.hashCode() : 0);
     result = 31 * result + (serviceName != null ? serviceName.hashCode() : 0);
     return result;
@@ -175,15 +155,15 @@ public class HostComponentDesiredStateEntity {
   public void setHostEntity(HostEntity hostEntity) {
     this.hostEntity = hostEntity;
   }
-  
-  private Collection<HostComponentConfigMappingEntity> configMappingEntities;
-  @OneToMany(mappedBy = "hostComponentDesiredStateEntity")
-  public Collection<HostComponentConfigMappingEntity> getHostComponentConfigMappingEntities() {
-    return configMappingEntities;
+
+  private Collection<HostComponentDesiredConfigMappingEntity> desiredConfigMappingEntities;
+  @OneToMany(mappedBy = "hostComponentDesiredStateEntity", cascade = CascadeType.ALL)
+  public Collection<HostComponentDesiredConfigMappingEntity> getHostComponentDesiredConfigMappingEntities() {
+    return desiredConfigMappingEntities;
   }
-  
-  public void setHostComponentConfigMappingEntities(Collection<HostComponentConfigMappingEntity> entities) {
-    configMappingEntities = entities;
+
+  public void setHostComponentDesiredConfigMappingEntities(Collection<HostComponentDesiredConfigMappingEntity> entities) {
+    desiredConfigMappingEntities = entities;
   }
-  
+
 }

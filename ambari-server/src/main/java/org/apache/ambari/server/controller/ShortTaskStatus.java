@@ -43,7 +43,7 @@ public class ShortTaskStatus {
   public ShortTaskStatus(HostRoleCommand hostRoleCommand) {
     this.taskId = hostRoleCommand.getTaskId();
     this.stageId = hostRoleCommand.getStageId();
-    this.command = hostRoleCommand.getExecutionCommand().getRoleCommand().toString();
+    this.command = hostRoleCommand.getRoleCommand().toString();
     this.hostName = hostRoleCommand.getHostName();
     this.role = hostRoleCommand.getRole().toString();
     this.status = hostRoleCommand.getStatus().toString();

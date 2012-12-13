@@ -73,4 +73,15 @@ public class ComponentStatus {
   public void setClusterName(String clusterName) {
     this.clusterName = clusterName;
   }
+
+  @Override
+  public String toString() {
+    return "ComponentStatus{" +
+            "componentName='" + componentName + '\'' +
+            ", msg='" + msg + '\'' +
+            ", status='" + status + '\'' +
+            ", serviceName='" + serviceName + '\'' +
+            ", clusterName='" + clusterName + '\'' +
+            '}';
+  }
 }

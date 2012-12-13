@@ -71,6 +71,7 @@ public class HostImpl implements Host {
   private ClusterDAO clusterDAO;
   private Clusters clusters;
 
+  private long lastHeartbeatTime = 0L;
   private boolean persisted = false;
 
   private static final String HARDWAREISA = "hardware_isa";
@@ -103,6 +104,9 @@ public class HostImpl implements Host {
    // when the initial registration request is received
    .addTransition(HostState.INIT, HostState.WAITING_FOR_HOST_STATUS_UPDATES,
        HostEventType.HOST_REGISTRATION_REQUEST, new HostRegistrationReceived())
+   // when a heartbeat is lost right after registration
+   .addTransition(HostState.INIT, HostState.HEARTBEAT_LOST,
+       HostEventType.HOST_HEARTBEAT_LOST, new HostHeartbeatLostTransition())
 
    // Transition from WAITING_FOR_STATUS_UPDATES state
    // when the host has responded to its status update requests
@@ -114,12 +118,17 @@ public class HostImpl implements Host {
    // when a normal heartbeat is received
    .addTransition(HostState.WAITING_FOR_HOST_STATUS_UPDATES,
        HostState.WAITING_FOR_HOST_STATUS_UPDATES,
-       HostEventType.HOST_HEARTBEAT_HEALTHY)
+       HostEventType.HOST_HEARTBEAT_HEALTHY)   // TODO: Heartbeat is ignored here
    // when a heartbeart denoting host as unhealthy is received
    .addTransition(HostState.WAITING_FOR_HOST_STATUS_UPDATES,
-       HostState.WAITING_FOR_HOST_STATUS_UPDATES,
+       HostState.WAITING_FOR_HOST_STATUS_UPDATES, // Still waiting for component status
        HostEventType.HOST_HEARTBEAT_UNHEALTHY,
-       new HostHeartbeatReceivedTransition())
+       new HostBecameUnhealthyTransition()) // TODO: Not sure
+  // when a heartbeat is lost and status update is not received
+   .addTransition(HostState.WAITING_FOR_HOST_STATUS_UPDATES,
+       HostState.HEARTBEAT_LOST,
+       HostEventType.HOST_HEARTBEAT_LOST,
+       new HostHeartbeatLostTransition())
 
    // Transitions from HEALTHY state
    // when a normal heartbeat is received
@@ -220,7 +229,11 @@ public class HostImpl implements Host {
       HostRegistrationRequestEvent e = (HostRegistrationRequestEvent) event;
       host.importHostInfo(e.hostInfo);
       host.setLastRegistrationTime(e.registrationTime);
+      //Initialize heartbeat time and timeInState with registration time.
+      host.setLastHeartbeatTime(e.registrationTime);
+      host.setTimeInState(e.registrationTime);
       host.setAgentVersion(e.agentVersion);
+      host.setPublicHostName(e.publicHostName);
 
       String agentVersion = null;
       if (e.agentVersion != null) {
@@ -268,6 +281,7 @@ public class HostImpl implements Host {
           break;
       }
       if (0 == heartbeatTime) {
+        LOG.error("heartbeatTime = 0 !!!");
         // TODO handle error
       }
       host.setLastHeartbeatTime(heartbeatTime);
@@ -327,8 +341,13 @@ public class HostImpl implements Host {
       if (fqdn != null
           && !fqdn.isEmpty()
           && !fqdn.equals(getHostName())) {
-        setHostName(hostInfo.getHostName());
+        if (! isPersisted()) {
+          setHostName(hostInfo.getHostName());
+        } else {
+          LOG.info("Could not modify hostname of the host that is already persisted to DB");
+        }
       }
+
       if (hostInfo.getIPAddress() != null
           && !hostInfo.getIPAddress().isEmpty()) {
         setIPv4(hostInfo.getIPAddress());
@@ -348,9 +367,9 @@ public class HostImpl implements Host {
           && !hostInfo.getOS().isEmpty()) {
         String osType = hostInfo.getOS();
         if (hostInfo.getOSRelease() != null) {
-          int pos = hostInfo.getOSRelease().indexOf('.');
-          if (pos > 0) {
-            osType += hostInfo.getOSRelease().substring(0, pos);
+          String[] release = hostInfo.getOSRelease().split("\\.");
+          if (release.length > 0) {
+            osType += release[0];
           }
         }
         setOsType(osType.toLowerCase());
@@ -442,6 +461,7 @@ public class HostImpl implements Host {
       writeLock.lock();
       stateMachine.setCurrentState(state);
       hostStateEntity.setCurrentState(state);
+      hostStateEntity.setTimeInState(System.currentTimeMillis());
       saveIfPersisted();
     }
     finally {
@@ -506,6 +526,29 @@ public class HostImpl implements Host {
       }
     } finally {
       writeLock.unlock();
+    }
+  }
+  
+  @Override
+  public void setPublicHostName(String hostName) {
+    try {
+      writeLock.lock();
+      hostEntity.setPublicHostName(hostName);
+      saveIfPersisted();
+    }
+    finally {
+      writeLock.unlock();
+    }
+  }
+  
+  @Override
+  public String getPublicHostName() {
+    try {
+      readLock.lock();
+      return hostEntity.getPublicHostName();
+    }
+    finally {
+      readLock.unlock();
     }
   }
 
@@ -798,7 +841,7 @@ public class HostImpl implements Host {
   public long getLastHeartbeatTime() {
     try {
       readLock.lock();
-      return hostStateEntity.getLastHeartbeatTime();
+      return lastHeartbeatTime;
     }
     finally {
       readLock.unlock();
@@ -809,8 +852,7 @@ public class HostImpl implements Host {
   public void setLastHeartbeatTime(long lastHeartbeatTime) {
     try {
       writeLock.lock();
-      hostStateEntity.setLastHeartbeatTime(lastHeartbeatTime);
-      saveIfPersisted();
+      this.lastHeartbeatTime = lastHeartbeatTime;
     }
     finally {
       writeLock.unlock();
@@ -843,8 +885,19 @@ public class HostImpl implements Host {
 
   @Override
   public long getTimeInState() {
-    // TODO Auto-generated method stub
-    return 0;
+    return hostStateEntity.getTimeInState();
+  }
+
+  @Override
+  public void setTimeInState(long timeInState) {
+    try {
+      writeLock.lock();
+      hostStateEntity.setTimeInState(timeInState);
+      saveIfPersisted();
+    }
+    finally {
+      writeLock.unlock();
+    }
   }
 
   @Override
@@ -868,29 +921,13 @@ public class HostImpl implements Host {
       r.setOsType(getOsType());
       r.setRackInfo(getRackInfo());
       r.setTotalMemBytes(getTotalMemBytes());
+      r.setPublicHostName(getPublicHostName());
+      r.setHostState(getState().toString());
 
       return r;
     }
     finally {
       readLock.unlock();
-    }
-  }
-
-  @Transactional
-  public void addToCluster(Cluster cluster) {
-    ClusterEntity clusterEntity = clusterDAO.findById(cluster.getClusterId());
-    if (isPersisted()) {
-      hostEntity.getClusterEntities().add(clusterEntity);
-      clusterEntity.getHostEntities().add(hostEntity);
-      clusterDAO.merge(clusterEntity);
-      hostDAO.merge(hostEntity);
-      cluster.refresh();
-    } else {
-      Collection<ClusterEntity> clusters = hostEntity.getClusterEntities();
-      if (clusters == null) {
-        hostEntity.setClusterEntities(new ArrayList<ClusterEntity>());
-      }
-      hostEntity.getClusterEntities().add(clusterEntity);
     }
   }
 

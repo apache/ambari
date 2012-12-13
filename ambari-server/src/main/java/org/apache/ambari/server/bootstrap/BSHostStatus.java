@@ -32,11 +32,16 @@ import javax.xml.bind.annotation.XmlType;
 @XmlType(name = "", propOrder = {})
 public class BSHostStatus {
   @XmlElement
-  private String status;
-  @XmlElement
   private String hostName;
   @XmlElement
+  private String status;
+  @XmlElement
+  private String statusCode;
+  @XmlElement
+  private String statusAction;
+  @XmlElement
   private String log;
+
 
   public void setStatus(String status) {
     this.status = status;
@@ -60,5 +65,21 @@ public class BSHostStatus {
 
   public void setLog(String log) {
     this.log = log;
+  }
+  
+  public String getStatusCode() {
+    return statusCode;
+  }
+  
+  public void setStatusCode(String code) {
+    statusCode = code;
+  }
+  
+  public String getStatusAction() {
+    return statusAction;
+  }
+  
+  public void setStatusAction(String action) {
+    statusAction = action;
   }
 }

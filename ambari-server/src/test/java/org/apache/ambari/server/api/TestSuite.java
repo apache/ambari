@@ -17,6 +17,7 @@ import org.junit.runners.Suite;
     ComponentServiceTest.class, HostComponentServiceTest.class, DelegatingRequestHandlerTest.class,
     ReadHandlerTest.class, QueryImplTest.class, JsonPropertyParserTest.class, CreateHandlerTest.class,
     UpdateHandlerTest.class, DeleteHandlerTest.class, CreatePersistenceManagerTest.class,
-    UpdatePersistenceManagerTest.class, RequestImplTest.class, JsonSerializerTest.class})
+    UpdatePersistenceManagerTest.class, DeletePersistenceManagerTest.class, RequestImplTest.class,
+    JsonSerializerTest.class, QueryCreateHandlerTest.class})
 public class TestSuite {
 }

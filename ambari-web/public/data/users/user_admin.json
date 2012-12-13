@@ -1,0 +1,11 @@
+{
+  "href" : "http://dev.hortonworks.com:8080/api/v1/users/admin",
+  "Users" : {
+    "user_name" : "admin",
+    "ldap_user" : false,
+    "roles" : [
+      "admin",
+      "user"
+    ]
+  }
+}

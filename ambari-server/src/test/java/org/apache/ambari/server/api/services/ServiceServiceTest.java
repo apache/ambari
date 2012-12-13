@@ -19,7 +19,7 @@
 package org.apache.ambari.server.api.services;
 
 import org.apache.ambari.server.api.handlers.RequestHandler;
-import org.apache.ambari.server.api.resources.ResourceDefinition;
+import org.apache.ambari.server.api.resources.ResourceInstance;
 import org.apache.ambari.server.api.services.serializers.ResultSerializer;
 import org.junit.Test;
 
@@ -39,7 +39,7 @@ public class ServiceServiceTest {
 
   @Test
   public void testGetService() {
-    ResourceDefinition resourceDef = createStrictMock(ResourceDefinition.class);
+    ResourceInstance resourceDef = createStrictMock(ResourceInstance.class);
     ResultSerializer resultSerializer = createStrictMock(ResultSerializer.class);
     Object serializedResult = new Object();
     RequestFactory requestFactory = createStrictMock(RequestFactory.class);
@@ -78,7 +78,7 @@ public class ServiceServiceTest {
 
   @Test
   public void testGetServices() {
-    ResourceDefinition resourceDef = createStrictMock(ResourceDefinition.class);
+    ResourceInstance resourceDef = createStrictMock(ResourceInstance.class);
     ResultSerializer resultSerializer = createStrictMock(ResultSerializer.class);
     Object serializedResult = new Object();
     RequestFactory requestFactory = createStrictMock(RequestFactory.class);
@@ -116,7 +116,7 @@ public class ServiceServiceTest {
 
   @Test
   public void testCreateService() {
-    ResourceDefinition resourceDef = createStrictMock(ResourceDefinition.class);
+    ResourceInstance resourceDef = createStrictMock(ResourceInstance.class);
     ResultSerializer resultSerializer = createStrictMock(ResultSerializer.class);
     Object serializedResult = new Object();
     RequestFactory requestFactory = createStrictMock(RequestFactory.class);
@@ -155,7 +155,7 @@ public class ServiceServiceTest {
 
   @Test
   public void testUpdateServices() {
-    ResourceDefinition resourceDef = createStrictMock(ResourceDefinition.class);
+    ResourceInstance resourceDef = createStrictMock(ResourceInstance.class);
     ResultSerializer resultSerializer = createStrictMock(ResultSerializer.class);
     Object serializedResult = new Object();
     RequestFactory requestFactory = createStrictMock(RequestFactory.class);
@@ -193,7 +193,7 @@ public class ServiceServiceTest {
 
   @Test
   public void testUpdateService() {
-    ResourceDefinition resourceDef = createStrictMock(ResourceDefinition.class);
+    ResourceInstance resourceDef = createStrictMock(ResourceInstance.class);
     ResultSerializer resultSerializer = createStrictMock(ResultSerializer.class);
     Object serializedResult = new Object();
     RequestFactory requestFactory = createStrictMock(RequestFactory.class);
@@ -232,7 +232,7 @@ public class ServiceServiceTest {
 
   @Test
   public void testDeleteService() {
-    ResourceDefinition resourceDef = createStrictMock(ResourceDefinition.class);
+    ResourceInstance resourceDef = createStrictMock(ResourceInstance.class);
     ResultSerializer resultSerializer = createStrictMock(ResultSerializer.class);
     Object serializedResult = new Object();
     RequestFactory requestFactory = createStrictMock(RequestFactory.class);
@@ -273,11 +273,11 @@ public class ServiceServiceTest {
     private RequestFactory m_requestFactory;
     private ResponseFactory m_responseFactory;
     private RequestHandler m_requestHandler;
-    private ResourceDefinition m_resourceDef;
+    private ResourceInstance m_resourceDef;
     private String m_clusterId;
     private String m_serviceId;
 
-    private TestServiceService(ResourceDefinition resourceDef, String clusterId, String serviceId, RequestFactory requestFactory,
+    private TestServiceService(ResourceInstance resourceDef, String clusterId, String serviceId, RequestFactory requestFactory,
                                ResponseFactory responseFactory, RequestHandler handler) {
       super(clusterId);
       m_resourceDef = resourceDef;
@@ -289,7 +289,7 @@ public class ServiceServiceTest {
     }
 
     @Override
-    ResourceDefinition createResourceDefinition(String serviceName, String clusterName) {
+    ResourceInstance createServiceResource(String clusterName, String serviceName) {
       assertEquals(m_clusterId, clusterName);
       assertEquals(m_serviceId, serviceName);
       return m_resourceDef;

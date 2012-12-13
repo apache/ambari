@@ -24,14 +24,13 @@ import java.util.Map.Entry;
 
 public class HostRequest {
 
-  String hostname;
-
-  List<String> clusterNames; // CREATE/UPDATE
-
-  Map<String, String> hostAttributes; // CREATE/UPDATE
+  private String hostname;
+  private String publicHostname;
+  private List<String> clusterNames; // CREATE/UPDATE
+  private Map<String, String> hostAttributes; // CREATE/UPDATE
+  private String rackInfo;
 
   public HostRequest(String hostname, List<String> clusterNames, Map<String, String> hostAttributes) {
-
     this.hostname = hostname;
     this.clusterNames = clusterNames;
     this.hostAttributes = hostAttributes;
@@ -59,6 +58,22 @@ public class HostRequest {
 
   public void setHostAttributes(Map<String, String> hostAttributes) {
     this.hostAttributes = hostAttributes;
+  }
+  
+  public String getRackInfo() {
+    return rackInfo;
+  }
+  
+  public void setRackInfo(String info) {
+    rackInfo = info;
+  }
+  
+  public String getPublicHostName() {
+    return publicHostname;
+  }
+  
+  public void setPublicHostName(String name) {
+    publicHostname = name;
   }
 
   public String toString() {

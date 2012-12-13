@@ -19,12 +19,14 @@ package org.apache.ambari.server.orm.entities;
 
 import javax.persistence.Column;
 import javax.persistence.Id;
+import java.io.Serializable;
 
-public class HostComponentConfigMappingEntityPK {
+public class HostComponentConfigMappingEntityPK implements Serializable {
   private Long clusterId;
   private String serviceName;
   private String componentName;
   private String hostName;
+  private String configType;
 
   @Id
   @Column(name = "cluster_id", insertable = true, updatable = true, nullable = false, length = 10)
@@ -66,6 +68,15 @@ public class HostComponentConfigMappingEntityPK {
     hostName = name;
   }
 
+  @Column(name = "config_type", insertable = true, updatable = false, nullable = false)
+  @Id
+  public String getConfigType() {
+    return configType;
+  }
+
+  public void setConfigType(String configType) {
+    this.configType = configType;
+  }
 
   @Override
   public boolean equals(Object o) {
@@ -78,6 +89,7 @@ public class HostComponentConfigMappingEntityPK {
     if (componentName != null ? !componentName.equals(that.componentName) : that.componentName != null) return false;
     if (serviceName != null ? !serviceName.equals(that.serviceName) : that.serviceName != null) return false;
     if (hostName != null ? !hostName.equals(that.hostName) : that.hostName != null) return false;
+    if (configType != null ? !configType.equals(that.configType) : that.configType != null) return false;
 
     return true;
   }
@@ -88,6 +100,7 @@ public class HostComponentConfigMappingEntityPK {
     result = 31 * result + (serviceName != null ? serviceName.hashCode() : 0);
     result = 31 * result + (componentName != null ? componentName.hashCode() : 0);
     result = 31 * result + (hostName != null ? hostName.hashCode() : 0);
+    result = 31 * result + (configType != null ? configType.hashCode() : 0);
     return result;
   }
 

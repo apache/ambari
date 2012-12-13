@@ -18,7 +18,6 @@
 
 package org.apache.ambari.server.controller.jdbc;
 
-import org.apache.ambari.server.controller.spi.PropertyId;
 import org.apache.ambari.server.controller.spi.Resource;
 
 import java.util.Map;
@@ -28,7 +27,7 @@ import java.util.Set;
  *
  */
 public class TestJDBCResourceProvider extends JDBCResourceProvider{
-  public TestJDBCResourceProvider(ConnectionFactory connectionFactory, Resource.Type type, Set<PropertyId> propertyIds, Map<Resource.Type, PropertyId> keyPropertyIds) {
+  public TestJDBCResourceProvider(ConnectionFactory connectionFactory, Resource.Type type, Set<String> propertyIds, Map<Resource.Type, String> keyPropertyIds) {
     super(connectionFactory, type, propertyIds, keyPropertyIds);
   }
 }

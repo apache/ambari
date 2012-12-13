@@ -17,16 +17,13 @@
  */
 package org.apache.ambari.server.actionmanager;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 import org.apache.ambari.server.Role;
 import org.apache.ambari.server.agent.CommandReport;
 import org.apache.ambari.server.agent.ExecutionCommand;
-import org.mortbay.log.Log;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.google.inject.Singleton;
 
@@ -36,7 +33,7 @@ public class ActionDBInMemoryImpl implements ActionDBAccessor {
   // for a persisted DB, this will be initialized in the ctor
   // with the highest persisted requestId value in the DB
   private final long lastRequestId = 0;
-
+  private static Logger LOG = LoggerFactory.getLogger(ActionDBInMemoryImpl.class);
   List<Stage> stageList = new ArrayList<Stage>();
 
   @Override
@@ -52,7 +49,6 @@ public class ActionDBInMemoryImpl implements ActionDBAccessor {
   public synchronized List<Stage> getAllStages(long requestId) {
     List<Stage> l = new ArrayList<Stage>();
     for (Stage s: stageList) {
-      System.err.println(s.getRequestId());
       if (s.getRequestId() == requestId) {
         l.add(s);
       }
@@ -64,8 +60,10 @@ public class ActionDBInMemoryImpl implements ActionDBAccessor {
   public synchronized void abortOperation(long requestId) {
     for (Stage s : stageList) {
       if (s.getRequestId() == requestId) {
-        for (String host : s.getHosts()) {
-          for (ExecutionCommand cmd : s.getExecutionCommands(host)) {
+        for (String host : s.getHostRoleCommands().keySet()) {
+          Map<String, HostRoleCommand> roleCommands = s.getHostRoleCommands().get(host);
+          for (String role : roleCommands.keySet()) {
+            HostRoleCommand cmd = roleCommands.get(role);
             HostRoleStatus status = s.getHostRoleStatus(host, cmd.getRole()
                 .toString());
             if (status.equals(HostRoleStatus.IN_PROGRESS)
@@ -102,14 +100,13 @@ public class ActionDBInMemoryImpl implements ActionDBAccessor {
   @Override
   public synchronized void persistActions(List<Stage> stages) {
     for (Stage s: stages) {
-      System.err.println("adding stage "+s.getRequestId()+" "+s.getStageId());
       stageList.add(s);
     }
   }
   @Override
   public synchronized void updateHostRoleState(String hostname, long requestId,
       long stageId, String role, CommandReport report) {
-    Log.info("DEBUG stages to iterate: "+stageList.size());
+    LOG.info("DEBUG stages to iterate: "+stageList.size());
     for (Stage s : stageList) {
       if (s.getRequestId() == requestId && s.getStageId() == stageId) {
         s.setHostRoleStatus(hostname, role,
@@ -147,10 +144,22 @@ public class ActionDBInMemoryImpl implements ActionDBAccessor {
   }
 
   @Override
+  public List<HostRoleCommand> getAllTasksByRequestIds(Collection<Long> requestIds) {
+    //TODO not implemented
+    return null;
+  }
+
+  @Override
+  public List<HostRoleCommand> getTasksByRequestAndTaskIds(Collection<Long> requestIds, Collection<Long> taskIds) {
+    //TODO not implemented
+    return null;
+  }
+
+  @Override
   public Collection<HostRoleCommand> getTasks(Collection<Long> taskIds) {
     return null;
   }
-  
+
   @Override
   public List<Stage> getStagesByHostRoleStatus(Set<HostRoleStatus> statuses) {
     List<Stage> l = new ArrayList<Stage>();
@@ -174,14 +183,20 @@ public class ActionDBInMemoryImpl implements ActionDBAccessor {
 
   public HostRoleCommand getTask(long taskId) {
     for (Stage s : stageList) {
-      for (String host : s.getHosts()) {
-        for (ExecutionCommand cmd : s.getExecutionCommands(host)) {
-          if (cmd.getTaskId() == taskId) {
-            return s.getHostRoleCommand(host, cmd.getRole().toString());
+      for (String host : s.getHostRoleCommands().keySet()) {
+        Map<String, HostRoleCommand> map = s.getHostRoleCommands().get(host);
+        for (HostRoleCommand hostRoleCommand : map.values()) {
+          if (hostRoleCommand.getTaskId() == taskId) {
+            return hostRoleCommand;
           }
         }
       }
     }
     return null;
+  }
+  @Override
+  public List<Long> getRequestsByStatus(RequestStatus status) {
+    // TODO
+    throw new RuntimeException("Functionality not implemented");
   }
 }

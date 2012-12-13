@@ -17,10 +17,8 @@
  */
 package org.apache.ambari.server.actionmanager;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 import junit.framework.Assert;
@@ -48,6 +46,8 @@ import com.google.inject.Guice;
 import com.google.inject.Inject;
 import com.google.inject.Injector;
 import com.google.inject.persist.PersistService;
+
+import static org.junit.Assert.*;
 
 public class TestActionDBAccessorImpl {
   private static final Logger log = LoggerFactory.getLogger(TestActionDBAccessorImpl.class);
@@ -87,7 +87,7 @@ public class TestActionDBAccessorImpl {
   @Test
   public void testActionResponse() {
     String hostname = "host1";
-    populateActionDB(db, hostname);
+    populateActionDB(db, hostname, requestId, stageId);
     Stage stage = db.getAllStages(requestId).get(0);
     Assert.assertEquals(stageId, stage.getStageId());
     stage.setHostRoleStatus(hostname, "HBASE_MASTER", HostRoleStatus.QUEUED);
@@ -110,20 +110,43 @@ public class TestActionDBAccessorImpl {
     Stage s = db.getAllStages(requestId).get(0);
     assertEquals(HostRoleStatus.COMPLETED,s.getHostRoleStatus(hostname, "HBASE_MASTER"));
   }
+  
+  @Test
+  public void testGetStagesInProgress() {
+    String hostname = "host1";
+    populateActionDB(db, hostname, requestId, stageId);
+    populateActionDB(db, hostname, requestId, stageId+1);
+    List<Stage> stages = db.getStagesInProgress();
+    assertEquals(2, stages.size());
+  }
+  
+  @Test
+  public void testGetStagesInProgressWithFailures() {
+    String hostname = "host1";
+    populateActionDB(db, hostname, requestId, stageId);
+    populateActionDB(db, hostname, requestId+1, stageId);
+    db.abortOperation(requestId);
+    List<Stage> stages = db.getStagesInProgress();
+    assertEquals(1, stages.size());
+    assertEquals(requestId+1, stages.get(0).getRequestId());
+  }
 
   @Test
   public void testPersistActions() {
-    populateActionDB(db, hostName);
+    populateActionDB(db, hostName, requestId, stageId);
     for (Stage stage : db.getAllStages(requestId)) {
-      log.info("taskId={}", stage.getExecutionCommands(hostName).get(0).getTaskId());
-      assertTrue(stage.getExecutionCommands(hostName).get(0).getTaskId() != -1);
-      log.info(executionCommandDAO.findByPK(stage.getExecutionCommands(hostName).get(0).getTaskId()).getCommand());
+      log.info("taskId={}" + stage.getExecutionCommands(hostName).get(0).
+          getExecutionCommand().getTaskId());
+      assertTrue(stage.getExecutionCommands(hostName).get(0).
+          getExecutionCommand().getTaskId() > 0);
+      assertTrue(executionCommandDAO.findByPK(stage.getExecutionCommands(hostName).
+          get(0).getExecutionCommand().getTaskId()) != null);
     }
   }
 
   @Test
   public void testHostRoleScheduled() throws InterruptedException {
-    populateActionDB(db, hostName);
+    populateActionDB(db, hostName, requestId, stageId);
     Stage stage = db.getAction(StageUtils.getActionId(requestId, stageId));
     assertEquals(HostRoleStatus.PENDING, stage.getHostRoleStatus(hostName, Role.HBASE_MASTER.toString()));
     List<HostRoleCommandEntity> entities=
@@ -157,13 +180,48 @@ public class TestActionDBAccessorImpl {
 
   }
 
-  private void populateActionDB(ActionDBAccessor db, String hostname) {
+  @Test
+  public void testUpdateHostRole() throws Exception {
+    populateActionDB(db, hostName, requestId, stageId);
+    StringBuilder sb = new StringBuilder();
+    for (int i = 0; i < 50000; i++) {
+      sb.append("1234567890");
+    }
+    String largeString = sb.toString();
+
+    CommandReport commandReport = new CommandReport();
+    commandReport.setStatus(HostRoleStatus.COMPLETED.toString());
+    commandReport.setStdOut(largeString);
+    commandReport.setStdErr(largeString);
+    commandReport.setExitCode(123);
+    db.updateHostRoleState(hostName, requestId, stageId, Role.HBASE_MASTER.toString(), commandReport);
+
+    List<HostRoleCommandEntity> commandEntities = hostRoleCommandDAO.findByHostRole(hostName, requestId, stageId, Role.HBASE_MASTER);
+    assertEquals(1, commandEntities.size());
+    HostRoleCommandEntity commandEntity = commandEntities.get(0);
+    HostRoleCommand command = db.getTask(commandEntity.getTaskId());
+    assertNotNull(command);
+
+    assertEquals(largeString, command.getStdout());
+
+  }
+
+  private void populateActionDB(ActionDBAccessor db, String hostname,
+      long requestId, long stageId) {
     Stage s = new Stage(requestId, "/a/b", "cluster1");
     s.setStageId(stageId);
     s.addHostRoleExecutionCommand(hostname, Role.HBASE_MASTER,
         RoleCommand.START,
         new ServiceComponentHostStartEvent(Role.HBASE_MASTER.toString(),
-            hostname, System.currentTimeMillis()), "cluster1", "HBASE");
+            hostname, System.currentTimeMillis(),
+            new HashMap<String, String>()), "cluster1", "HBASE");
+    s.addHostRoleExecutionCommand(
+        hostname,
+        Role.HBASE_REGIONSERVER,
+        RoleCommand.START,
+        new ServiceComponentHostStartEvent(Role.HBASE_REGIONSERVER
+            .toString(), hostname, System.currentTimeMillis(),
+            new HashMap<String, String>()), "cluster1", "HBASE");
     List<Stage> stages = new ArrayList<Stage>();
     stages.add(s);
     db.persistActions(stages);

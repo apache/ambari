@@ -22,8 +22,8 @@ import org.apache.ambari.server.api.services.Request;
 import org.apache.ambari.server.api.services.Result;
 import org.apache.ambari.server.api.query.Query;
 import org.apache.ambari.server.AmbariException;
-import org.apache.ambari.server.controller.spi.PropertyId;
 import org.apache.ambari.server.controller.spi.TemporalInfo;
+import org.apache.ambari.server.controller.utilities.PropertyHelper;
 
 import java.util.Map;
 
@@ -34,13 +34,13 @@ public class ReadHandler implements RequestHandler {
 
   @Override
   public Result handleRequest(Request request) {
-    Query query = request.getResourceDefinition().getQuery();
+    Query query = request.getResource().getQuery();
 
     //Partial response
-    for (Map.Entry<PropertyId, TemporalInfo> entry : request.getFields().entrySet()) {
+    for (Map.Entry<String, TemporalInfo> entry : request.getFields().entrySet()) {
       // Iterate over map and add props/temporalInfo
-      PropertyId propertyId = entry.getKey();
-      query.addProperty(propertyId.getCategory(), propertyId.getName(), entry.getValue());
+      String propertyId = entry.getKey();
+      query.addProperty(PropertyHelper.getPropertyCategory(propertyId), PropertyHelper.getPropertyName(propertyId), entry.getValue());
     }
 
    query.setUserPredicate(request.getQueryPredicate());

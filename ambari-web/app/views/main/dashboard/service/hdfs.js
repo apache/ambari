@@ -23,7 +23,10 @@ App.MainDashboardServiceHdfsView = App.MainDashboardServiceView.extend({
   Chart: App.ChartPieView.extend({
     service: null,
     data: function () {
-      return [ this.get('service.capacityUsed'), this.get('service.capacityTotal') ];
+      var total = this.get('service.capacityTotal') + 0;
+      var remaining = (this.get('service.capacityRemaining') + 0);
+      var used = total - remaining;
+      return [ used, remaining ];
     }.property('service.capacityUsed', 'service.capacityTotal')
   }),
 
@@ -61,13 +64,13 @@ App.MainDashboardServiceHdfsView = App.MainDashboardServiceView.extend({
 
   capacity: function () {
     var text = this.t("dashboard.services.hdfs.capacityUsed");
-    var total = this.get('service').get('capacityTotal') + 0;
-    var used = this.get('service').get('capacityUsed') + 0;
-    var percent = Math.round((used * 100) / total).toFixed(1);
+    var total = this.get('service.capacityTotal') + 0;
+    var used = total - (this.get('service.capacityRemaining') + 0);
+    var percent = total > 0 ? ((used * 100) / total).toFixed(1) : 0;
     if (percent == "NaN") {
       percent = "n/a ";
     }
-    return text.format(used.bytesToSize(1), total.bytesToSize(1), percent);
+    return text.format(used.bytesToSize(1, 'parseFloat'), total.bytesToSize(1, 'parseFloat'), percent);
   }.property('service.capacityUsed', 'service.capacityTotal'),
 
   dataNodeComponent: function () {

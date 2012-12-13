@@ -28,18 +28,18 @@ class hdp-templeton::download-hive-tar()
  
   anchor { 'hdp-templeton::download-hive-tar::begin':}         
 
-   hdp::package { 'templeton-tar-hive' :
+   hdp::package { 'webhcat-tar-hive' :
      require   => Anchor['hdp-templeton::download-hive-tar::begin']                                                              
    }
   
-   hdp::exec { 'hive mkdir -p ${artifact_dir} ;  cp /tmp/HDP-templeton/${src_tar_name} ${target}':
-       command => "mkdir -p ${artifact_dir} ;  cp /tmp/HDP-templeton/${src_tar_name} ${target}",
-       unless  => "test -f ${target}",
-       creates => $target,
-       path    => ["/bin","/usr/bin/"],
-       require => Hdp::Package['templeton-tar-hive'],
-       notify  =>  Anchor['hdp-templeton::download-hive-tar::end'],
-   }
+#   hdp::exec { 'hive mkdir -p ${artifact_dir} ;  cp /tmp/HDP-templeton/${src_tar_name} ${target}':
+#       command => "mkdir -p ${artifact_dir} ;  cp /tmp/HDP-templeton/${src_tar_name} ${target}",
+#       unless  => "test -f ${target}",
+#       creates => $target,
+#       path    => ["/bin","/usr/bin/"],
+#       require => Hdp::Package['webhcat-tar-hive'],
+#       notify  =>  Anchor['hdp-templeton::download-hive-tar::end'],
+#   }
 
    anchor { 'hdp-templeton::download-hive-tar::end':}       
 

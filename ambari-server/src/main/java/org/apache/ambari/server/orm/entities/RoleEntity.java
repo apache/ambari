@@ -18,8 +18,11 @@
 
 package org.apache.ambari.server.orm.entities;
 
+import javax.persistence.CascadeType;
 import javax.persistence.Entity;
 import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.JoinTable;
 import javax.persistence.ManyToMany;
 import java.util.Set;
 
@@ -58,7 +61,10 @@ public class RoleEntity {
 
   private Set<org.apache.ambari.server.orm.entities.UserEntity> userEntities;
 
-  @ManyToMany(mappedBy = "roleEntities")
+  @JoinTable(name = "user_roles", catalog = "", schema = "ambari",
+      joinColumns = {@JoinColumn(name = "role_name", referencedColumnName = "role_name")},
+      inverseJoinColumns = {@JoinColumn(name = "user_id", referencedColumnName = "user_id")})
+  @ManyToMany(cascade = CascadeType.ALL)
   public Set<org.apache.ambari.server.orm.entities.UserEntity> getUserEntities() {
     return userEntities;
   }

@@ -27,8 +27,8 @@ class hdp-templeton::service(
   
   $user = "$hdp-templeton::params::templeton_user"
   $hadoop_home = $hdp-templeton::params::hadoop_prefix
-  $cmd = "env HADOOP_HOME=${hadoop_home} /usr/sbin/templeton_server.sh"
-  $pid_file = "${hdp-templeton::params::templeton_pid_dir}/templeton.pid" 
+  $cmd = "env HADOOP_HOME=${hadoop_home} /usr/lib/hcatalog/sbin/webhcat_server.sh"
+  $pid_file = "${hdp-templeton::params::templeton_pid_dir}/webhcat.pid" 
 
   if ($ensure == 'running') {
     $daemon_cmd = "su - ${user} -c  '${cmd} start'"

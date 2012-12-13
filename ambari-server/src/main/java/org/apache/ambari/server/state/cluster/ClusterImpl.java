@@ -32,6 +32,7 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
+import com.google.gson.Gson;
 import com.google.inject.persist.Transactional;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.ServiceComponentHostNotFoundException;
@@ -65,8 +66,9 @@ public class ClusterImpl implements Cluster {
   private Clusters clusters;
 
   private StackId desiredStackVersion;
+  private StackId desiredState;
 
-  private Map<String, Service> services = new TreeMap<String, Service>();
+  private Map<String, Service> services = null;
 
   /**
    * [ Config Type -> [ Config Version Tag -> Config ] ]
@@ -88,7 +90,6 @@ public class ClusterImpl implements Cluster {
   private ReadWriteLock readWriteLock = new ReentrantReadWriteLock();
   private Lock readLock = readWriteLock.readLock();
   private Lock writeLock = readWriteLock.writeLock();
-  private final Injector injector;
 
   private ClusterEntity clusterEntity;
 
@@ -100,28 +101,22 @@ public class ClusterImpl implements Cluster {
   private ServiceFactory serviceFactory;
   @Inject
   private ConfigFactory configFactory;
+  @Inject
+  private Gson gson;
 
   @Inject
   public ClusterImpl(@Assisted ClusterEntity clusterEntity,
                      Injector injector) {
-    this.injector = injector;
     injector.injectMembers(this);
-
-    this.clusterEntity = clusterDAO.merge(clusterEntity);
-
-    if (!clusterEntity.getClusterServiceEntities().isEmpty()) {
-      for (ClusterServiceEntity serviceEntity : clusterEntity.getClusterServiceEntities()) {
-        services.put(serviceEntity.getServiceName(), serviceFactory.createExisting(this, serviceEntity));
-      }
-    }
+    this.clusterEntity = clusterEntity;
 
     this.serviceComponentHosts = new HashMap<String,
-        Map<String,Map<String,ServiceComponentHost>>>();
+        Map<String, Map<String, ServiceComponentHost>>>();
     this.serviceComponentHostsByHost = new HashMap<String,
         List<ServiceComponentHost>>();
-    this.desiredStackVersion = new StackId();
+    this.desiredStackVersion = gson.fromJson(clusterEntity.getDesiredStackVersion(), StackId.class);
 
-    configs = new HashMap<String, Map<String,Config>>();
+    configs = new HashMap<String, Map<String, Config>>();
     if (!clusterEntity.getClusterConfigEntities().isEmpty()) {
       for (ClusterConfigEntity entity : clusterEntity.getClusterConfigEntities()) {
 
@@ -136,7 +131,21 @@ public class ClusterImpl implements Cluster {
     }
 
 
+  }
 
+  private void loadServices() {
+    if (services == null) {
+      synchronized (this) {
+        if (services == null) {
+          services = new TreeMap<String, Service>();
+          if (!clusterEntity.getClusterServiceEntities().isEmpty()) {
+            for (ClusterServiceEntity serviceEntity : clusterEntity.getClusterServiceEntities()) {
+              services.put(serviceEntity.getServiceName(), serviceFactory.createExisting(this, serviceEntity));
+            }
+          }
+        }
+      }
+    }
   }
 
   public ServiceComponentHost getServiceComponentHost(String serviceName,
@@ -259,6 +268,7 @@ public class ClusterImpl implements Cluster {
   @Override
   public synchronized void addService(Service service)
       throws AmbariException {
+    loadServices();
     if (LOG.isDebugEnabled()) {
       LOG.debug("Adding a new Service"
           + ", clusterName=" + getClusterName()
@@ -276,6 +286,7 @@ public class ClusterImpl implements Cluster {
 
   @Override
   public synchronized Service addService(String serviceName) throws AmbariException{
+    loadServices();
     if (LOG.isDebugEnabled()) {
       LOG.debug("Adding a new Service"
           + ", clusterName=" + getClusterName()
@@ -296,6 +307,7 @@ public class ClusterImpl implements Cluster {
   @Override
   public synchronized Service getService(String serviceName)
       throws AmbariException {
+    loadServices();
     if (!services.containsKey(serviceName)) {
       throw new ServiceNotFoundException(getClusterName(), serviceName);
     }
@@ -304,6 +316,7 @@ public class ClusterImpl implements Cluster {
 
   @Override
   public synchronized Map<String, Service> getServices() {
+    loadServices();
     return Collections.unmodifiableMap(services);
   }
 
@@ -322,7 +335,26 @@ public class ClusterImpl implements Cluster {
         + ", newDesiredStackVersion=" + stackVersion);
     }
     this.desiredStackVersion = stackVersion;
+    clusterEntity.setDesiredStackVersion(gson.toJson(stackVersion));
+    clusterDAO.merge(clusterEntity);
   }
+
+  public synchronized StackId getDesiredState() {
+    //TODO separate implementation, mapped to StackVersion for now
+//    return desiredState; for separate implementation
+    return getDesiredStackVersion();
+  }
+
+  public synchronized void setDesiredState(StackId desiredState) {
+    //TODO separate implementation, mapped to StackVersion for now
+//    LOG.debug("Changing desired state of cluster, clusterName={}, clusterId={}, oldState={}, newState={}",
+//        getClusterName(), getClusterId(), this.desiredState, desiredState);
+//    clusterEntity.setDesiredClusterState(gson.toJson(desiredState));
+//    clusterDAO.merge(clusterEntity);
+//    this.desiredState = desiredState;
+    setDesiredStackVersion(desiredState);
+  }
+
 
   @Override
   public synchronized Map<String, Config> getDesiredConfigsByType(String configType) {
@@ -376,6 +408,7 @@ public class ClusterImpl implements Cluster {
   }
 
   public synchronized void debugDump(StringBuilder sb) {
+    loadServices();
     sb.append("Cluster={ clusterName=" + getClusterName()
         + ", clusterId=" + getClusterId()
         + ", desiredStackVersion=" + desiredStackVersion.getStackId()
@@ -402,6 +435,7 @@ public class ClusterImpl implements Cluster {
 
   @Override
   public synchronized void deleteAllServices() throws AmbariException {
+    loadServices();
     LOG.info("Deleting all services for cluster"
         + ", clusterName=" + getClusterName());
     for (Service service : services.values()) {
@@ -422,6 +456,7 @@ public class ClusterImpl implements Cluster {
   @Override
   public synchronized void deleteService(String serviceName)
       throws AmbariException {
+    loadServices();
     Service service = getService(serviceName);
     LOG.info("Deleting service for cluster"
         + ", clusterName=" + getClusterName()
@@ -439,6 +474,7 @@ public class ClusterImpl implements Cluster {
 
   @Override
   public boolean canBeRemoved() {
+    loadServices();
     boolean safeToRemove = true;
     for (Service service : services.values()) {
       if (!service.canBeRemoved()) {

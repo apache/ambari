@@ -61,6 +61,7 @@ module.exports = Em.Route.extend({
       controller.setCurrentStep('1');
       controller.set('hideBackButton', true);
       controller.dataLoading().done(function () {
+        controller.loadServicesFromServer();
         controller.loadAllPriorSteps();
         controller.connectOutlet('wizardStep2', controller.get('content'));
       })
@@ -94,11 +95,14 @@ module.exports = Em.Route.extend({
       var controller = router.get('addHostController');
       controller.setCurrentStep('2');
       controller.dataLoading().done(function () {
-      controller.loadAllPriorSteps();
-      controller.connectOutlet('wizardStep3', controller.get('content'));
+        controller.loadAllPriorSteps();
+        controller.connectOutlet('wizardStep3', controller.get('content'));
       })
     },
     back: Em.Router.transitionTo('step1'),
+    exit: function (router) {
+      router.get('wizardStep3Controller').set('stopBootstrap', true);
+    },
     next: function (router, context) {
       var addHostController = router.get('addHostController');
       var wizardStep3Controller = router.get('wizardStep3Controller');

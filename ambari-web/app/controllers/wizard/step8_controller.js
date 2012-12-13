@@ -253,22 +253,24 @@ App.WizardStep8Controller = Em.Controller.extend({
       newComponent.serviceName = this.getServiceInfo(newComponent.componentName).name;
       newComponent.groups = [];
       var index = 2;
-      _slaveContent.groups.forEach(function (_group) {
-        var newGroup = {};
-        newGroup.groupName = _group.name;
-        newGroup.configVersion = {config: {'global': 'version1', 'core-site': 'version1'}}; // TODO : every time a new version should be generated
-        if (this.getServiceInfo(_slaveContent.componentName)) {
-          newGroup.configVersion.config[this.getServiceInfo(_slaveContent.componentName).domain] = 'version' + index;
-          newGroup.configVersion.config[this.getServiceInfo(_slaveContent.componentName).siteName] = 'version' + index;
-        }
-        newGroup.siteVersion = 'version' + index;
-        newGroup.hostNames = _slaveContent.hosts.filterProperty("group", newGroup.groupName).mapProperty('hostName');
-        newGroup.properties = _group.properties;
-        if (!Ember.empty(newGroup.hostNames)) {
-          newComponent.groups.push(newGroup);
-        }
-        index++;
-      }, this);
+      if(_slaveContent.groups){
+        _slaveContent.groups.forEach(function (_group) {
+          var newGroup = {};
+          newGroup.groupName = _group.name;
+          newGroup.configVersion = {config: {'global': 'version1', 'core-site': 'version1'}}; // TODO : every time a new version should be generated
+          if (this.getServiceInfo(_slaveContent.componentName)) {
+            newGroup.configVersion.config[this.getServiceInfo(_slaveContent.componentName).domain] = 'version' + index;
+            newGroup.configVersion.config[this.getServiceInfo(_slaveContent.componentName).siteName] = 'version' + index;
+          }
+          newGroup.siteVersion = 'version' + index;
+          newGroup.hostNames = _slaveContent.hosts.filterProperty("group", newGroup.groupName).mapProperty('hostName');
+          newGroup.properties = _group.properties;
+          if (!Ember.empty(newGroup.hostNames)) {
+            newComponent.groups.push(newGroup);
+          }
+          index++;
+        }, this);
+      }
       dest.components.push(newComponent);
     }, this);
     var hostsInfo = this.get('content.hostsInfo');
@@ -322,7 +324,7 @@ App.WizardStep8Controller = Em.Controller.extend({
         };
         break;
       default:
-        serviceConfig = null;
+        serviceConfig = {};
     }
     return serviceConfig;
   },
@@ -704,13 +706,13 @@ App.WizardStep8Controller = Em.Controller.extend({
     if (App.testMode || !this.get('content.cluster.requestId')) {
       this.createCluster();
       this.createSelectedServices();
-      this.setAmbariUIDb();
+      //this.setAmbariUIDb();
       this.createConfigurations();
       this.applyCreatedConfToServices();
       this.createComponents();
       this.registerHostsToCluster();
       this.createAllHostComponents();
-      this.applyCreatedConfToSlaveGroups();
+      //this.applyCreatedConfToSlaveGroups();
       this.ajaxQueueFinished = function(){
         console.log('everything is loaded')
         App.router.send('next');
@@ -778,6 +780,10 @@ App.WizardStep8Controller = Em.Controller.extend({
     var url = App.apiPrefix + '/clusters/' + this.get('clusterName') + '/services';
     var data = this.createServiceData();
     var httpMethod = 'POST';
+
+    if(!data.length){
+      return;
+    }
 
     this.ajax({
       type: httpMethod,
@@ -847,10 +853,12 @@ App.WizardStep8Controller = Em.Controller.extend({
   },
 
   createRegisterHostData: function () {
-    return this.getRegisteredHosts().map(function (host) {
-      if (!host.isInstalled) {
+    var hosts = this.getRegisteredHosts().filterProperty('isInstalled', false);
+    if(!hosts.length){
+      return [];
+    }
+    return hosts.map(function (host) {
         return {"Hosts": { "host_name": host.hostName}};
-      }
     });
   },
 
@@ -889,11 +897,20 @@ App.WizardStep8Controller = Em.Controller.extend({
                 }, this);
                 break;
               case 'MAPREDUCE_CLIENT':
-                // install MAPREDUCE_CLIENT on HIVE_SERVER and OOZIE_SERVER hosts
+                // install MAPREDUCE_CLIENT on HIVE_SERVER, OOZIE_SERVER, and NAGIOS_SERVER hosts
                 masterHosts.filterProperty('component', 'HIVE_SERVER').filterProperty('isInstalled', false).forEach(function (_masterHost) {
                   hostNames.pushObject(_masterHost.hostName);
                 }, this);
                 masterHosts.filterProperty('component', 'OOZIE_SERVER').filterProperty('isInstalled', false).forEach(function (_masterHost) {
+                  hostNames.pushObject(_masterHost.hostName);
+                }, this);
+                masterHosts.filterProperty('component', 'NAGIOS_SERVER').filterProperty('isInstalled', false).forEach(function (_masterHost) {
+                  hostNames.pushObject(_masterHost.hostName);
+                }, this);
+                break;
+              case 'OOZIE_CLIENT':
+                // install OOZIE_CLIENT on NAGIOS_SERVER host
+                masterHosts.filterProperty('component', 'NAGIOS_SERVER').filterProperty('isInstalled', false).forEach(function (_masterHost) {
                   hostNames.pushObject(_masterHost.hostName);
                 }, this);
                 break;
@@ -906,9 +923,15 @@ App.WizardStep8Controller = Em.Controller.extend({
     }, this);
 
     // add Ganglia Monitor (Slave) to all hosts if Ganglia service is selected
-    if (this.get('selectedServices').someProperty('serviceName', 'GANGLIA')) {
-      var hosts = this.getRegisteredHosts().filterProperty('isInstalled', false);
-      this.registerHostsToComponent(hosts.mapProperty('hostName'), 'GANGLIA_MONITOR');
+    var gangliaService = this.get('content.services').filterProperty('isSelected', true).findProperty('serviceName', 'GANGLIA');
+    if(gangliaService){
+      var hosts = this.getRegisteredHosts();
+      if(gangliaService.get('isInstalled')){
+        hosts = hosts.filterProperty('isInstalled', false);
+      }
+      if(hosts.length){
+        this.registerHostsToComponent(hosts.mapProperty('hostName'), 'GANGLIA_MONITOR');
+      }
     }
   },
 
@@ -1006,7 +1029,8 @@ App.WizardStep8Controller = Em.Controller.extend({
 
   createGlobalSiteObj: function () {
     var globalSiteProperties = {};
-    this.get('globals').filterProperty('domain', 'global').forEach(function (_globalSiteObj) {
+    //this.get('globals').filterProperty('domain', 'global').forEach(function (_globalSiteObj) {
+    this.get('globals').forEach(function (_globalSiteObj) {
       // do not pass any globals whose name ends with _host or _hosts
       if (!/_hosts?$/.test(_globalSiteObj.name)) {
         // append "m" to JVM memory options
@@ -1021,6 +1045,8 @@ App.WizardStep8Controller = Em.Controller.extend({
         console.log("STEP8: value of the global property is: " + _globalSiteObj.value);
       }
     }, this);
+    // TODO: for now, setting mapred_local_dir in global as well as tasktracker global; we'll need to handle mapred_local_dir specific to jobtracker as well
+    globalSiteProperties['mapred_local_dir'] = this.get('globals').findProperty('name', 'mapred_local_dir')['value'];
     return {"type": "global", "tag": "version1", "properties": globalSiteProperties};
   },
 
@@ -1255,6 +1281,8 @@ App.WizardStep8Controller = Em.Controller.extend({
         return {config: {'global': 'version1', 'core-site': 'version1', 'hbase-site': 'version1'}};
       case 'OOZIE':
         return {config: {'global': 'version1', 'core-site': 'version1', 'oozie-site': 'version1'}};
+      case 'HIVE':
+        return {config: {'global': 'version1', 'core-site': 'version1', 'hive-site': 'version1'}};
       default:
         return {config: {'global': 'version1'}};
     }

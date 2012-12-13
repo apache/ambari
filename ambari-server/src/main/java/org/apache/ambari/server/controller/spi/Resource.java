@@ -59,7 +59,7 @@ public interface Resource {
    * @param id    the property id
    * @param value the value
    */
-  public void setProperty(PropertyId id, Object value);
+  public void setProperty(String id, Object value);
 
   /**
    * Get a property value for the given property id from this resource.
@@ -67,7 +67,7 @@ public interface Resource {
    * @param id the property id
    * @return the property value
    */
-  public Object getPropertyValue(PropertyId id);
+  public Object getPropertyValue(String id);
 
   /**
    * Resource types.

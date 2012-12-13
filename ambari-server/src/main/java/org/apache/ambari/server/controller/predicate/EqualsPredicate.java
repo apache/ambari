@@ -18,16 +18,14 @@
 
 package org.apache.ambari.server.controller.predicate;
 
-import org.apache.ambari.server.controller.spi.PropertyId;
 import org.apache.ambari.server.controller.spi.Resource;
 
 /**
  * Predicate that checks equality of a given value to a {@link Resource} property.
  */
-public class EqualsPredicate<T> extends ComparisonPredicate {
+public class EqualsPredicate<T> extends ComparisonPredicate<T> {
 
-
-  public EqualsPredicate(PropertyId propertyId, Comparable<T> value) {
+  public EqualsPredicate(String propertyId, Comparable<T> value) {
     super(propertyId, value);
   }
 

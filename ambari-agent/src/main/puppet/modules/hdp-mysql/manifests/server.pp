@@ -34,22 +34,41 @@ class hdp-mysql::server(
     anchor { 'hdp-mysql::server::begin':}
 
     hdp::package { 'mysql' :
-      size   => 32,
+      size   => 64,
       require   => Anchor['hdp-mysql::server::begin']
     }
 
-    hdp::exec { 'mysqld start':
-        command => '/etc/init.d/mysqld start',
-        unless  => '/etc/init.d/mysqld status',
-        require => Hdp::Package['mysql'],
-        notify  => File['/tmp/startMysql.sh']
+    if hdp_is_empty($hdp::params::services_names[mysql]) {
+      hdp_fail("There is no service name for service mysql")
+    }
+    else {
+      $service_name_by_os = $hdp::params::services_names[mysql]
+    }
+
+    if hdp_is_empty($service_name_by_os[$hdp::params::hdp_os_type]) {
+      
+      if hdp_is_empty($service_name_by_os['ALL']) {
+        hdp_fail("There is no service name for service mysql")
+      }
+      else {
+        $service_name = $service_name_by_os['ALL']
+      }
+    }
+    else {
+      $service_name = $service_name_by_os[$hdp::params::hdp_os_type]
+    }
+
+    service {$service_name:
+      ensure => running,
+      require => Hdp::Package['mysql'],
+      notify  => File['/tmp/startMysql.sh']
     }
 
     file { '/tmp/startMysql.sh':
       ensure => present,
       source => "puppet:///modules/hdp-mysql/startMysql.sh",
       mode => '0755',
-      require => Hdp::Exec['mysqld start'],
+      require => service[$service_name],
       notify => Exec['/tmp/startMysql.sh']
     }
 

@@ -18,11 +18,13 @@
 
 package org.apache.ambari.server.api.services;
 
-import org.apache.ambari.server.api.resources.ComponentResourceDefinition;
-import org.apache.ambari.server.api.resources.ResourceDefinition;
+import org.apache.ambari.server.api.resources.ResourceInstance;
+import org.apache.ambari.server.controller.spi.Resource;
 
 import javax.ws.rs.*;
 import javax.ws.rs.core.*;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Service responsible for components resource requests.
@@ -65,7 +67,7 @@ public class ComponentService extends BaseService {
                                @PathParam("componentName") String componentName) {
 
     return handleRequest(headers, null, ui, Request.Type.GET,
-        createResourceDefinition(componentName, m_clusterName, m_serviceName));
+        createComponentResource(m_clusterName, m_serviceName, componentName));
   }
 
   /**
@@ -80,7 +82,7 @@ public class ComponentService extends BaseService {
   @Produces("text/plain")
   public Response getComponents(@Context HttpHeaders headers, @Context UriInfo ui) {
     return handleRequest(headers, null, ui, Request.Type.GET,
-        createResourceDefinition(null, m_clusterName, m_serviceName));
+        createComponentResource(m_clusterName, m_serviceName, null));
   }
 
   /**
@@ -99,7 +101,7 @@ public class ComponentService extends BaseService {
   public Response createComponents(String body, @Context HttpHeaders headers, @Context UriInfo ui) {
 
     return handleRequest(headers, body, ui, Request.Type.POST,
-        createResourceDefinition(null, m_clusterName, m_serviceName));
+        createComponentResource(m_clusterName, m_serviceName, null));
   }
 
   /**
@@ -120,7 +122,7 @@ public class ComponentService extends BaseService {
                                 @PathParam("componentName") String componentName) {
 
     return handleRequest(headers, body, ui, Request.Type.POST,
-        createResourceDefinition(componentName, m_clusterName, m_serviceName));
+        createComponentResource(m_clusterName, m_serviceName, componentName));
   }
 
   /**
@@ -140,8 +142,8 @@ public class ComponentService extends BaseService {
   public Response updateComponent(String body, @Context HttpHeaders headers, @Context UriInfo ui,
                                 @PathParam("componentName") String componentName) {
 
-    return handleRequest(headers, body, ui, Request.Type.PUT, createResourceDefinition(
-        componentName, m_clusterName, m_serviceName));
+    return handleRequest(headers, body, ui, Request.Type.PUT, createComponentResource(
+        m_clusterName, m_serviceName, componentName));
   }
 
   /**
@@ -158,8 +160,8 @@ public class ComponentService extends BaseService {
   @Produces("text/plain")
   public Response updateComponents(String body, @Context HttpHeaders headers, @Context UriInfo ui) {
 
-    return handleRequest(headers, body, ui, Request.Type.PUT, createResourceDefinition(
-        null, m_clusterName, m_serviceName));
+    return handleRequest(headers, body, ui, Request.Type.PUT, createComponentResource(
+        m_clusterName, m_serviceName, null));
   }
 
   /**
@@ -177,19 +179,26 @@ public class ComponentService extends BaseService {
   public Response deleteComponent(@Context HttpHeaders headers, @Context UriInfo ui,
                                 @PathParam("componentName") String componentName) {
 
-    return handleRequest(headers, null, ui, Request.Type.DELETE, createResourceDefinition(
-        componentName, m_clusterName, m_serviceName));
+    return handleRequest(headers, null, ui, Request.Type.DELETE, createComponentResource(
+        m_clusterName, m_serviceName, componentName));
   }
 
   /**
-   * Create a component resource definition.
+   * Create a component resource instance.
+   *
    *
    * @param clusterName   cluster name
    * @param serviceName   service name
    * @param componentName component name
-   * @return a component resource definition
+   *
+   * @return a component resource instance
    */
-  ResourceDefinition createResourceDefinition(String clusterName, String serviceName, String componentName) {
-    return new ComponentResourceDefinition(clusterName, serviceName, componentName);
+  ResourceInstance createComponentResource(String clusterName, String serviceName, String componentName) {
+    Map<Resource.Type,String> mapIds = new HashMap<Resource.Type, String>();
+    mapIds.put(Resource.Type.Cluster, clusterName);
+    mapIds.put(Resource.Type.Service, serviceName);
+    mapIds.put(Resource.Type.Component, componentName);
+
+    return createResource(Resource.Type.Component, mapIds);
   }
 }

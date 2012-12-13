@@ -22,10 +22,10 @@ import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.RequestStatusRequest;
 import org.apache.ambari.server.controller.RequestStatusResponse;
 import org.apache.ambari.server.controller.spi.Predicate;
-import org.apache.ambari.server.controller.spi.PropertyId;
 import org.apache.ambari.server.controller.spi.Request;
 import org.apache.ambari.server.controller.spi.RequestStatus;
 import org.apache.ambari.server.controller.spi.Resource;
+import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
 
 import java.util.Arrays;
@@ -40,12 +40,12 @@ class RequestResourceProvider extends ResourceProviderImpl{
 
   // ----- Property ID constants ---------------------------------------------
   // Requests
-  protected static final PropertyId REQUEST_CLUSTER_NAME_PROPERTY_ID = PropertyHelper.getPropertyId("cluster_name","Requests");
-  protected static final PropertyId REQUEST_ID_PROPERTY_ID           = PropertyHelper.getPropertyId("id","Requests");
+  protected static final String REQUEST_CLUSTER_NAME_PROPERTY_ID = PropertyHelper.getPropertyId("Requests", "cluster_name");
+  protected static final String REQUEST_ID_PROPERTY_ID           = PropertyHelper.getPropertyId("Requests", "id");
+  protected static final String REQUEST_STATUS_PROPERTY_ID       = PropertyHelper.getPropertyId("Requests", "request_status");
 
-
-  private static Set<PropertyId> pkPropertyIds =
-      new HashSet<PropertyId>(Arrays.asList(new PropertyId[]{
+  private static Set<String> pkPropertyIds =
+      new HashSet<String>(Arrays.asList(new String[]{
           REQUEST_ID_PROPERTY_ID}));
 
   // ----- Constructors ----------------------------------------------------
@@ -57,8 +57,8 @@ class RequestResourceProvider extends ResourceProviderImpl{
    * @param keyPropertyIds        the key property ids
    * @param managementController  the management controller
    */
-  RequestResourceProvider(Set<PropertyId> propertyIds,
-                          Map<Resource.Type, PropertyId> keyPropertyIds,
+  RequestResourceProvider(Set<String> propertyIds,
+                          Map<Resource.Type, String> keyPropertyIds,
                           AmbariManagementController managementController) {
     super(propertyIds, keyPropertyIds, managementController);
   }
@@ -66,14 +66,14 @@ class RequestResourceProvider extends ResourceProviderImpl{
   // ----- ResourceProvider ------------------------------------------------
 
   @Override
-  public RequestStatus createResources(Request request) throws AmbariException {
+  public RequestStatus createResources(Request request) throws AmbariException, UnsupportedPropertyException {
     throw new UnsupportedOperationException("Not currently supported.");
   }
 
   @Override
-  public Set<Resource> getResources(Request request, Predicate predicate) throws AmbariException {
-    Set<PropertyId>         requestedIds         = PropertyHelper.getRequestPropertyIds(getPropertyIds(), request, predicate);
-    Map<PropertyId, Object> predicateProperties  = getProperties(predicate);
+  public Set<Resource> getResources(Request request, Predicate predicate) throws AmbariException, UnsupportedPropertyException {
+    Set<String>         requestedIds         = PropertyHelper.getRequestPropertyIds(getPropertyIds(), request, predicate);
+    Map<String, Object> predicateProperties  = getProperties(predicate);
     RequestStatusRequest requestStatusRequest = getRequest(predicateProperties);
 
     String clusterName = (String) predicateProperties.get(REQUEST_CLUSTER_NAME_PROPERTY_ID);
@@ -91,19 +91,19 @@ class RequestResourceProvider extends ResourceProviderImpl{
   }
 
   @Override
-  public RequestStatus updateResources(Request request, Predicate predicate) throws AmbariException {
+  public RequestStatus updateResources(Request request, Predicate predicate) throws AmbariException, UnsupportedPropertyException {
     throw new UnsupportedOperationException("Not currently supported.");
   }
 
   @Override
-  public RequestStatus deleteResources(Predicate predicate) throws AmbariException {
+  public RequestStatus deleteResources(Predicate predicate) throws AmbariException, UnsupportedPropertyException {
     throw new UnsupportedOperationException("Not currently supported.");
   }
 
   // ----- utility methods -------------------------------------------------
 
   @Override
-  protected Set<PropertyId> getPKPropertyIds() {
+  protected Set<String> getPKPropertyIds() {
     return pkPropertyIds;
   }
 
@@ -114,12 +114,16 @@ class RequestResourceProvider extends ResourceProviderImpl{
    *
    * @return the component request object
    */
-  private RequestStatusRequest getRequest(Map<PropertyId, Object> properties) {
+  private RequestStatusRequest getRequest(Map<String, Object> properties) {
     Long requestId = null;
     if (properties.get(REQUEST_ID_PROPERTY_ID) != null) {
       requestId = Long.valueOf((String) properties
           .get(REQUEST_ID_PROPERTY_ID));
     }
-    return new RequestStatusRequest(requestId);
+    String requestStatus = null;
+    if (properties.get(REQUEST_STATUS_PROPERTY_ID) != null) {
+      requestStatus = (String)properties.get(REQUEST_STATUS_PROPERTY_ID);
+    }
+    return new RequestStatusRequest(requestId, requestStatus);
   }
 }

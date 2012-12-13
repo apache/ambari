@@ -21,7 +21,6 @@ import com.google.inject.Inject;
 import com.google.inject.Provider;
 import com.google.inject.persist.Transactional;
 import org.apache.ambari.server.orm.entities.UserEntity;
-import org.apache.ambari.server.orm.entities.UserEntityPK;
 
 import javax.persistence.EntityManager;
 import javax.persistence.NoResultException;
@@ -36,8 +35,7 @@ public class UserDAO {
   DaoUtils daoUtils;
 
   @Transactional
-  public UserEntity findByPK(UserEntityPK userPK) {
-    userPK.setUserName(userPK.getUserName().toLowerCase());
+  public UserEntity findByPK(Integer userPK) {
     return entityManagerProvider.get().find(UserEntity.class, userPK);
   }
 
@@ -87,7 +85,7 @@ public class UserDAO {
   }
 
   @Transactional
-  public void removeByPK(UserEntityPK userPK) {
+  public void removeByPK(Integer userPK) {
     remove(findByPK(userPK));
   }
 

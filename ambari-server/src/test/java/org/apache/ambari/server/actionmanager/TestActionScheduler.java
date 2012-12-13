@@ -17,6 +17,7 @@
  */
 package org.apache.ambari.server.actionmanager;
 
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.anyString;
@@ -28,6 +29,8 @@ import java.util.List;
 
 import junit.framework.Assert;
 
+import org.apache.ambari.server.Role;
+import org.apache.ambari.server.actionmanager.ActionScheduler.RoleStats;
 import org.apache.ambari.server.agent.ActionQueue;
 import org.apache.ambari.server.agent.AgentCommand;
 import org.apache.ambari.server.agent.ExecutionCommand;
@@ -37,6 +40,7 @@ import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceComponent;
 import org.apache.ambari.server.state.ServiceComponentHost;
 import org.apache.ambari.server.utils.StageUtils;
+import org.apache.ambari.server.utils.TestStageUtils;
 import org.junit.Test;
 
 public class TestActionScheduler {
@@ -70,7 +74,8 @@ public class TestActionScheduler {
     //Small action timeout to test rescheduling
     ActionScheduler scheduler = new ActionScheduler(100, 100, db, aq, fsm,
         10000);
-   // Start the thread
+    scheduler.setTaskTimeoutAdjustment(false);
+    // Start the thread
     scheduler.start();
 
     List<AgentCommand> ac = waitForQueueSize(hostname, aq, 1);
@@ -133,6 +138,7 @@ public class TestActionScheduler {
 
     //Small action timeout to test rescheduling
     ActionScheduler scheduler = new ActionScheduler(100, 50, db, aq, fsm, 3);
+    scheduler.setTaskTimeoutAdjustment(false);
     // Start the thread
     scheduler.start();
 
@@ -142,5 +148,39 @@ public class TestActionScheduler {
     }
     assertEquals(stages.get(0).getHostRoleStatus(hostname, "NAMENODE"),
         HostRoleStatus.TIMEDOUT);
+  }
+  
+  @Test
+  public void testSuccessFactors() {
+    Stage s = StageUtils.getATestStage(1, 1);
+    assertEquals(new Float(0.5), new Float(s.getSuccessFactor(Role.DATANODE)));
+    assertEquals(new Float(0.5), new Float(s.getSuccessFactor(Role.TASKTRACKER)));
+    assertEquals(new Float(0.5), new Float(s.getSuccessFactor(Role.GANGLIA_MONITOR)));
+    assertEquals(new Float(0.5), new Float(s.getSuccessFactor(Role.HBASE_REGIONSERVER)));
+    assertEquals(new Float(1.0), new Float(s.getSuccessFactor(Role.NAMENODE)));
+    assertEquals(new Float(1.0), new Float(s.getSuccessFactor(Role.GANGLIA_SERVER)));
+  }
+  
+  @Test
+  public void testSuccessCriteria() {
+    RoleStats rs1 = new RoleStats(1, (float)0.5);
+    rs1.numSucceeded = 1;
+    assertTrue(rs1.isSuccessFactorMet());
+    rs1.numSucceeded = 0;
+    assertFalse(rs1.isSuccessFactorMet());
+    
+    RoleStats rs2 = new RoleStats(2, (float)0.5);
+    rs2.numSucceeded = 1;
+    assertTrue(rs2.isSuccessFactorMet());
+    
+    RoleStats rs3 = new RoleStats(3, (float)0.5);
+    rs3.numSucceeded = 2;
+    assertTrue(rs2.isSuccessFactorMet());
+    rs3.numSucceeded = 1;
+    assertFalse(rs3.isSuccessFactorMet());
+    
+    RoleStats rs4 = new RoleStats(3, (float)1.0);
+    rs4.numSucceeded = 2;
+    assertFalse(rs3.isSuccessFactorMet());
   }
 }

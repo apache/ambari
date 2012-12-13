@@ -23,6 +23,7 @@ class hdp(
   $pre_installed_pkgs = undef
 )
 {
+
   import 'params.pp'
   include hdp::params
 
@@ -70,21 +71,20 @@ class hdp(
     ensure => stopped,
   }
 
-  case $hdp::params::hdp_os_type {
-    centos6, rhel6: {
-      hdp::package{ 'glibc-rhel6':
-        ensure       => 'present',
-        size         => $size,
-        java_needed  => false,
-        lzo_needed   => false
-      }
-    }
+
+  
+  hdp::package{ 'glibc':
+    ensure       => 'present',
+    size         => $size,
+    java_needed  => false,
+    lzo_needed   => false
   }
 
 }
 
 class hdp::pre_install_pkgs
 {
+
   if ($service_state == 'installed_and_configured') {
     hdp::exec{ 'yum install $pre_installed_pkgs':
        command => "yum install -y $pre_installed_pkgs"
@@ -135,8 +135,9 @@ class hdp::set_selinux()
  $cmd = "/bin/echo 0 > /selinux/enforce"
  hdp::exec{ $cmd:
     command => $cmd,
-    unless => "head -n 1 /selinux/enforce | grep ^0$"
-  }
+    unless => "head -n 1 /selinux/enforce | grep ^0$",
+    onlyif => "test -f /selinux/enforce"
+ }
 }
 
 define hdp::user(
@@ -206,6 +207,7 @@ define hdp::directory_recursive_create(
   $service_state = 'running'
   )
 {
+
   hdp::exec {"mkdir -p ${name}" :
     command => "mkdir -p ${name}",
     creates => $name
@@ -220,6 +222,22 @@ define hdp::directory_recursive_create(
     service_state => $service_state
   }
   Hdp::Exec["mkdir -p ${name}"] -> Hdp::Directory[$name]
+}
+
+define hdp::directory_recursive_create_ignore_failure(
+  $owner = $hdp::params::hadoop_user,
+  $group = $hdp::params::hadoop_user_group,
+  $mode = undef,
+  $context_tag = undef,
+  $ensure = directory,
+  $force = undef,
+  $service_state = 'running'
+  )
+{
+  hdp::exec {"mkdir -p ${name} ; exit 0" :
+    command => "mkdir -p ${name} ; chown ${owner}:${group} ${name}; chmod ${mode} ${name} ; exit 0",
+    creates => $name
+  }
 }
 
 ### helper to do exec
@@ -240,6 +258,8 @@ define hdp::exec(
 )
 {
      
+
+
   if (($initial_wait != undef) and ($initial_wait != "undef")) {
     #passing in creates and unless so dont have to wait if condition has been acheived already
     hdp::wait { "service ${name}" : 

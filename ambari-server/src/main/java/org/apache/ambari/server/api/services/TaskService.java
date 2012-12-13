@@ -18,8 +18,8 @@
 
 package org.apache.ambari.server.api.services;
 
-import org.apache.ambari.server.api.resources.ResourceDefinition;
-import org.apache.ambari.server.api.resources.TaskResourceDefinition;
+import org.apache.ambari.server.api.resources.ResourceInstance;
+import org.apache.ambari.server.controller.spi.Resource;
 
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
@@ -29,6 +29,8 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Service responsible for task resource requests.
@@ -72,7 +74,7 @@ public class TaskService extends BaseService {
                           @PathParam("taskId") String taskId) {
 
     return handleRequest(headers, null, ui, Request.Type.GET,
-        createResourceDefinition(taskId, m_clusterName, m_requestId));
+        createTaskResource(m_clusterName, m_requestId, taskId));
   }
 
   /**
@@ -88,19 +90,24 @@ public class TaskService extends BaseService {
   @Produces("text/plain")
   public Response getComponents(@Context HttpHeaders headers, @Context UriInfo ui) {
     return handleRequest(headers, null, ui, Request.Type.GET,
-        createResourceDefinition(null, m_clusterName, m_requestId));
+        createTaskResource(m_clusterName, m_requestId, null));
   }
 
   /**
-   * Create a task resource definition.
+   * Create a task resource instance.
    *
    * @param clusterName  cluster name
    * @param requestId    request id
    * @param taskId       task id
    *
-   * @return a task resource definition
+   * @return a task resource instance
    */
-  ResourceDefinition createResourceDefinition(String clusterName, String requestId, String taskId) {
-    return new TaskResourceDefinition(clusterName, requestId, taskId);
+  ResourceInstance createTaskResource(String clusterName, String requestId, String taskId) {
+    Map<Resource.Type,String> mapIds = new HashMap<Resource.Type, String>();
+    mapIds.put(Resource.Type.Cluster, clusterName);
+    mapIds.put(Resource.Type.Request, requestId);
+    mapIds.put(Resource.Type.Task, taskId);
+
+    return createResource(Resource.Type.Task, mapIds);
   }
 }

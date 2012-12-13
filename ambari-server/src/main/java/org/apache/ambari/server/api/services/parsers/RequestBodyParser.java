@@ -18,8 +18,6 @@
 
 package org.apache.ambari.server.api.services.parsers;
 
-import org.apache.ambari.server.controller.spi.PropertyId;
-
 import java.util.Map;
 import java.util.Set;
 
@@ -35,5 +33,5 @@ public interface RequestBodyParser {
    *
    * @return a set of maps of properties or an empty set if no properties exist
    */
-  public Set<Map<PropertyId, Object>> parse(String s);
+  public Set<Map<String, Object>> parse(String s);
 }

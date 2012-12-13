@@ -54,7 +54,7 @@ public class GangliaMetric {
   /**
    * The temporal data points.
    */
-  private double[][] datapoints;
+  private Number[][] datapoints;
 
 
   // ----- GangliaMetric -----------------------------------------------------
@@ -99,11 +99,11 @@ public class GangliaMetric {
     this.metric_name = metric_name;
   }
 
-  public double[][] getDatapoints() {
+  public Number[][] getDatapoints() {
     return datapoints;
   }
 
-  public void setDatapoints(double[][] datapoints) {
+  public void setDatapoints(Number[][] datapoints) {
     this.datapoints = datapoints;
   }
 
@@ -137,14 +137,14 @@ public class GangliaMetric {
 
     boolean first = true;
     stringBuilder.append("[");
-    for (double[] m : datapoints) {
+    for (Number[] m : datapoints) {
       if (!first) {
         stringBuilder.append(",");
       }
       stringBuilder.append("[");
       stringBuilder.append(m[0]);
       stringBuilder.append(",");
-      stringBuilder.append((long) m[1]);
+      stringBuilder.append(m[1].longValue());
       stringBuilder.append("]");
       first = false;
     }

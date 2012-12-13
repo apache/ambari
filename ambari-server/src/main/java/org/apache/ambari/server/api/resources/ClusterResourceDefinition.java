@@ -18,9 +18,8 @@
 
 package org.apache.ambari.server.api.resources;
 
-import java.util.HashMap;
-import java.util.Map;
-
+import java.util.HashSet;
+import java.util.Set;
 import org.apache.ambari.server.controller.spi.Resource;
 
 /**
@@ -28,19 +27,14 @@ import org.apache.ambari.server.controller.spi.Resource;
  */
 public class ClusterResourceDefinition extends BaseResourceDefinition {
 
+
   /**
    * Constructor.
-   *
-   * @param id value of primary key
    */
-  public ClusterResourceDefinition(String id) {
-    super(Resource.Type.Cluster, id);
-
-    if (id == null) {
-      getQuery().addProperty(getClusterController().getSchema(
-          Resource.Type.Cluster).getKeyPropertyId(Resource.Type.Cluster));
-    }
+  public ClusterResourceDefinition() {
+    super(Resource.Type.Cluster);
   }
+
 
   @Override
   public String getPluralName() {
@@ -53,29 +47,13 @@ public class ClusterResourceDefinition extends BaseResourceDefinition {
   }
 
   @Override
-  public Map<String, ResourceDefinition> getSubResources() {
-    Map<String, ResourceDefinition> mapChildren = new HashMap<String, ResourceDefinition>();
+  public Set<SubResourceDefinition> getSubResourceDefinitions() {
+    Set<SubResourceDefinition> setChildren = new HashSet<SubResourceDefinition>();
+    setChildren.add(new SubResourceDefinition(Resource.Type.Service));
+    setChildren.add(new SubResourceDefinition(Resource.Type.Host));
+    setChildren.add(new SubResourceDefinition(Resource.Type.Configuration));
+    setChildren.add(new SubResourceDefinition(Resource.Type.Request));
 
-    ServiceResourceDefinition serviceResource = new ServiceResourceDefinition(null, getId());
-    serviceResource.getQuery().addProperty(getClusterController().getSchema(
-        Resource.Type.Service).getKeyPropertyId(Resource.Type.Service));
-    mapChildren.put(serviceResource.getPluralName(), serviceResource);
-
-    HostResourceDefinition hostResource = new HostResourceDefinition(null, getId(), true);
-    hostResource.getQuery().addProperty(getClusterController().getSchema(
-        Resource.Type.Host).getKeyPropertyId(Resource.Type.Host));
-    mapChildren.put(hostResource.getPluralName(), hostResource);
-    
-    ConfigurationResourceDefinition configResource = new ConfigurationResourceDefinition(null, null, getId());
-    configResource.getQuery().addProperty(getClusterController().getSchema(
-        Resource.Type.Configuration).getKeyPropertyId(Resource.Type.Configuration));
-    mapChildren.put(configResource.getPluralName(), configResource);
-
-    RequestResourceDefinition requestResource = new RequestResourceDefinition(null, getId());
-    requestResource.getQuery().addProperty(getClusterController().getSchema(
-        Resource.Type.Request).getKeyPropertyId(Resource.Type.Request));
-    mapChildren.put(requestResource.getPluralName(), requestResource);
-
-    return mapChildren;
+    return setChildren;
   }
 }

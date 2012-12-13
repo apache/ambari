@@ -18,12 +18,13 @@
 
 package org.apache.ambari.server.api.handlers;
 
-import org.apache.ambari.server.api.resources.ResourceDefinition;
+import org.apache.ambari.server.api.query.Query;
+import org.apache.ambari.server.api.resources.ResourceInstance;
 import org.apache.ambari.server.api.services.PersistenceManager;
 import org.apache.ambari.server.api.services.Request;
 import org.apache.ambari.server.api.services.Result;
 import org.apache.ambari.server.api.util.TreeNode;
-import org.apache.ambari.server.controller.spi.PropertyId;
+import org.apache.ambari.server.controller.spi.Predicate;
 import org.apache.ambari.server.controller.spi.RequestStatus;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
@@ -42,29 +43,37 @@ public class DeleteHandlerTest {
   @Test
   public void testHandleRequest__Synchronous() {
     Request request = createMock(Request.class);
-    ResourceDefinition resource = createMock(ResourceDefinition.class);
+    ResourceInstance resource = createMock(ResourceInstance.class);
     PersistenceManager pm = createStrictMock(PersistenceManager.class);
     RequestStatus status = createMock(RequestStatus.class);
     Resource resource1 = createMock(Resource.class);
     Resource resource2 = createMock(Resource.class);
+    Predicate userPredicate = createNiceMock(Predicate.class);
+    Query query = createNiceMock(Query.class);
 
-    Set<Map<PropertyId, Object>> setResourceProperties = new HashSet<Map<PropertyId, Object>>();
+    Set<Map<String, Object>> setResourceProperties = new HashSet<Map<String, Object>>();
 
     Set<Resource> setResources = new HashSet<Resource>();
     setResources.add(resource1);
     setResources.add(resource2);
 
     // expectations
-    expect(request.getResourceDefinition()).andReturn(resource);
-    expect(request.getHttpBodyProperties()).andReturn(setResourceProperties);
-    expect(request.getPersistenceManager()).andReturn(pm);
+    expect(request.getPersistenceManager()).andReturn(pm).atLeastOnce();
+    expect(request.getResource()).andReturn(resource).atLeastOnce();
+    expect(request.getHttpBodyProperties()).andReturn(setResourceProperties).atLeastOnce();
+    expect(request.getURI()).andReturn("http://some.host.com/clusters/cluster1").atLeastOnce();
+
+    expect(request.getQueryPredicate()).andReturn(userPredicate).atLeastOnce();
+    expect(resource.getQuery()).andReturn(query).atLeastOnce();
+    query.setUserPredicate(userPredicate);
+
     expect(pm.persist(resource, setResourceProperties)).andReturn(status);
     expect(status.getStatus()).andReturn(RequestStatus.Status.Complete);
     expect(status.getAssociatedResources()).andReturn(setResources);
     expect(resource1.getType()).andReturn(Resource.Type.Cluster).anyTimes();
     expect(resource2.getType()).andReturn(Resource.Type.Cluster).anyTimes();
 
-    replay(request, resource, pm, status, resource1, resource2);
+    replay(request, resource, pm, status, resource1, resource2, userPredicate, query);
 
     Result result = new DeleteHandler().handleRequest(request);
 
@@ -86,29 +95,32 @@ public class DeleteHandlerTest {
       }
     }
 
-    verify(request, resource, pm, status, resource1, resource2);
+    verify(request, resource, pm, status, resource1, resource2, userPredicate, query);
   }
 
   @Test
   public void testHandleRequest__Asynchronous() {
     Request request = createMock(Request.class);
-    ResourceDefinition resource = createMock(ResourceDefinition.class);
+    ResourceInstance resource = createMock(ResourceInstance.class);
     PersistenceManager pm = createStrictMock(PersistenceManager.class);
     RequestStatus status = createMock(RequestStatus.class);
     Resource resource1 = createMock(Resource.class);
     Resource resource2 = createMock(Resource.class);
     Resource requestResource = createMock(Resource.class);
 
-    Set<Map<PropertyId, Object>> setResourceProperties = new HashSet<Map<PropertyId, Object>>();
+    Set<Map<String, Object>> setResourceProperties = new HashSet<Map<String, Object>>();
 
     Set<Resource> setResources = new HashSet<Resource>();
     setResources.add(resource1);
     setResources.add(resource2);
 
     // expectations
-    expect(request.getResourceDefinition()).andReturn(resource);
+    expect(request.getResource()).andReturn(resource);
     expect(request.getHttpBodyProperties()).andReturn(setResourceProperties);
     expect(request.getPersistenceManager()).andReturn(pm);
+    // test delete with no user predicate
+    expect(request.getQueryPredicate()).andReturn(null).atLeastOnce();
+
     expect(pm.persist(resource, setResourceProperties)).andReturn(status);
     expect(status.getStatus()).andReturn(RequestStatus.Status.Accepted);
     expect(status.getAssociatedResources()).andReturn(setResources);
@@ -117,7 +129,7 @@ public class DeleteHandlerTest {
     expect(status.getRequestResource()).andReturn(requestResource);
     expect(request.getURI()).andReturn("http://some.host.com/clusters/cluster1").atLeastOnce();
     expect(status.getRequestResource()).andReturn(requestResource).atLeastOnce();
-    expect(requestResource.getPropertyValue(PropertyHelper.getPropertyId("id", "Requests"))).andReturn("requestID").atLeastOnce();
+    expect(requestResource.getPropertyValue(PropertyHelper.getPropertyId("Requests", "id"))).andReturn("requestID").atLeastOnce();
 
     replay(request, resource, pm, status, resource1, resource2, requestResource);
 

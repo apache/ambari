@@ -18,14 +18,11 @@
 
 package org.apache.ambari.server.api.resources;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import org.apache.ambari.server.api.services.Request;
 import org.apache.ambari.server.api.util.TreeNode;
 import org.apache.ambari.server.controller.spi.Resource;
-import org.apache.ambari.server.controller.utilities.PropertyHelper;
 
 /**
  * Configuration resource definition.
@@ -33,22 +30,10 @@ import org.apache.ambari.server.controller.utilities.PropertyHelper;
 public class ConfigurationResourceDefinition extends BaseResourceDefinition {
 
   /**
-   * value of cluster id foreign key
-   */
-  private String m_clusterId;
-
-
-  /**
    * Constructor.
-   *
-   * @param configType  configuration type
-   * @param configTag   configuration tag
-   * @param clusterId   cluster id value
    */
-  public ConfigurationResourceDefinition(String configType, String configTag, String clusterId) {
-    super(Resource.Type.Configuration, configType);
-    m_clusterId = clusterId;
-    setResourceId(Resource.Type.Cluster, m_clusterId);
+  public ConfigurationResourceDefinition() {
+    super(Resource.Type.Configuration);
   }
 
   @Override
@@ -69,11 +54,6 @@ public class ConfigurationResourceDefinition extends BaseResourceDefinition {
     return "configuration";
   }
 
-  @Override
-  public Map<String, ResourceDefinition> getSubResources() {
-    return new HashMap<String, ResourceDefinition>();
-  }
-
   private class HrefProcessor extends BaseHrefPostProcessor {
 
     @Override
@@ -88,8 +68,8 @@ public class ConfigurationResourceDefinition extends BaseResourceDefinition {
         int idx = href.indexOf(clustersToken) + clustersToken.length() + 1;
         idx = href.indexOf("/", idx) + 1;
 
-        String type = (String) resultNode.getObject().getPropertyValue(PropertyHelper.getPropertyId("type"));
-        String tag = (String) resultNode.getObject().getPropertyValue(PropertyHelper.getPropertyId("tag"));
+        String type = (String) resultNode.getObject().getPropertyValue("type");
+        String tag = (String) resultNode.getObject().getPropertyValue("tag");
         href = href.substring(0, idx) + "configurations?type=" + type + "&tag=" + tag;
 
         resultNode.setProperty("href", href);

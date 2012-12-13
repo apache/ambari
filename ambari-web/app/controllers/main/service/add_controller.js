@@ -74,7 +74,8 @@ App.AddServiceController = App.WizardController.extend({
           name: item.get('id'),
           cpu: item.get('cpu'),
           memory: item.get('memory'),
-          bootStatus: "DONE",
+          disk_info: item.get('diskInfo'),
+          bootStatus: "REGISTERED",
           isInstalled: true
         };
       });
@@ -107,20 +108,25 @@ App.AddServiceController = App.WizardController.extend({
     console.log('AddServiceController:saveInstalledHosts: save hosts ', hostInfo);
   },
 
+  loadServicesFromServer: function() {
+    var displayOrderConfig = require('data/services');
+    var apiUrl = '/stacks/HDP/version/1.2.0';
+    var apiService = this.loadServiceComponents(displayOrderConfig, apiUrl);
+    //
+    apiService.forEach(function(item, index){
+      apiService[index].isSelected = App.Service.find().someProperty('id', item.serviceName);
+      apiService[index].isDisabled = apiService[index].isSelected;
+      apiService[index].isInstalled = apiService[index].isSelected;
+    });
+    this.set('content.services', apiService);
+    App.db.setService(apiService);
+  },
+
   /**
    * Load services data. Will be used at <code>Select services(step4)</code> step
    */
   loadServices: function () {
     var servicesInfo = App.db.getService();
-    if(!servicesInfo || !servicesInfo.length){
-      servicesInfo = require('data/services').slice(0);
-      servicesInfo.forEach(function(item, index){
-        servicesInfo[index].isSelected = App.Service.find().someProperty('id', item.serviceName);
-        servicesInfo[index].isDisabled = servicesInfo[index].isSelected;
-        servicesInfo[index].isInstalled = servicesInfo[index].isSelected;
-      });
-    }
-
     servicesInfo.forEach(function (item, index) {
       servicesInfo[index] = Em.Object.create(item);
     });
@@ -137,8 +143,7 @@ App.AddServiceController = App.WizardController.extend({
    * Save data to model
    * @param stepController App.WizardStep4Controller
    */
-  saveServices: function (stepController) {
-    var serviceNames = [];
+  saveServices: function (stepController) {var serviceNames = [];
     App.db.setService(stepController.get('content'));
     console.log('AddServiceController.saveServices: saved data', stepController.get('content'));
     stepController.filterProperty('isSelected', true).filterProperty('isInstalled', false).forEach(function (item) {
@@ -371,10 +376,19 @@ App.AddServiceController = App.WizardController.extend({
     var serviceConfigProperties = [];
     stepController.get('stepConfigs').forEach(function (_content) {
       _content.get('configs').forEach(function (_configProperties) {
+        var displayType = _configProperties.get('displayType');
+        if (displayType === 'directories' || displayType === 'directory') {
+          var value = _configProperties.get('value').trim().split(/\s+/g).join(',');
+          _configProperties.set('value', value);
+        }
         var configProperty = {
+          id: _configProperties.get('id'),
           name: _configProperties.get('name'),
           value: _configProperties.get('value'),
-          service: _configProperties.get('serviceName')
+          defaultValue: _configProperties.get('defaultValue'),
+          service: _configProperties.get('serviceName'),
+          domain:  _configProperties.get('domain'),
+          filename: _configProperties.get('filename')
         };
         serviceConfigProperties.push(configProperty);
       }, this);
@@ -383,6 +397,26 @@ App.AddServiceController = App.WizardController.extend({
 
     App.db.setServiceConfigProperties(serviceConfigProperties);
     this.set('content.serviceConfigProperties', serviceConfigProperties);
+
+    var slaveConfigProperties = [];
+    stepController.get('stepConfigs').forEach(function (_content) {
+      if (_content.get('configCategories').someProperty('isForSlaveComponent', true)) {
+        var slaveCategory = _content.get('configCategories').findProperty('isForSlaveComponent', true);
+        slaveCategory.get('slaveConfigs.groups').forEach(function (_group) {
+          _group.get('properties').forEach(function (_property) {
+            var displayType = _property.get('displayType');
+            if (displayType === 'directories' || displayType === 'directory') {
+              var value = _property.get('value').trim().split(/\s+/g).join(',');
+              _property.set('value', value);
+            }
+            _property.set('storeValue', _property.get('value'));
+          }, this);
+        }, this);
+        slaveConfigProperties.pushObject(slaveCategory.get('slaveConfigs'));
+      }
+    }, this);
+    App.db.setSlaveProperties(slaveConfigProperties);
+    this.set('content.slaveGroupProperties', slaveConfigProperties);
   },
 
   /**
@@ -454,6 +488,7 @@ App.AddServiceController = App.WizardController.extend({
         this.load('cluster');
       case '4':
         this.loadServiceConfigProperties();
+        this.loadSlaveGroupProperties();
       case '3':
         this.loadServices();
         this.loadClients();
@@ -527,14 +562,10 @@ App.AddServiceController = App.WizardController.extend({
   /**
    * Clear all temporary data
    */
-  finish: function(){
+  finish: function () {
     this.setCurrentStep('1');
-    App.db.setService(undefined); //not to use this data at AddService page
-    App.db.setHosts(undefined);
-    App.db.setMasterComponentHosts(undefined);
-    App.db.setSlaveComponentHosts(undefined);
-    App.db.setCluster(undefined);
-    App.db.setAllHostNames(undefined);
+    this.clearStorageData();
+    App.router.get('updateController').updateAll();
   }
 
 });

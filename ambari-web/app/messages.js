@@ -58,7 +58,7 @@ Em.I18n.translations = {
   'installer.step2.targetHosts':'Target Hosts',
   'installer.step2.targetHosts.info':'Enter a list of host names, one per line',
   'installer.step2.hostPattern.tooltip.title':'Pattern Expressions',
-  'installer.step2.hostPattern.tooltip.content':'You can use pattern expressions to specify a number of target hosts.  Explain brackets.',
+  'installer.step2.hostPattern.tooltip.content':'You can use pattern expressions to specify a number of target hosts. For example, to specify host1 thru host10, enter host[1-10] in the target hosts textarea.',
   'installer.step2.hostName.error.required':'You must specify at least one host name',
   'installer.step2.hostName.error.notRequired':'Host Names will be ignored if not using SSH to automatically configure hosts',
   'installer.step2.hostName.error.invalid':'Invalid Host Name(s) - cannot start or end with a hyphen',
@@ -78,7 +78,7 @@ Em.I18n.translations = {
   'installer.step2.localRepo.info':'Instructs the package manager to use your local software repository to retrieve software packages, instead of ' +
     'downloading from the internet.',
   'installer.step2.localRepo.tooltip.title':'Local Software Repository',
-  'installer.step2.localRepo.tooltip.content':'Instructs the package manager to use your local software repository to retrieve software packages, instead of' +
+  'installer.step2.localRepo.tooltip.content':'Instructs the package manager to use your local software repository to retrieve software packages, instead of ' +
     'downloading from the internet.',
   'installer.step2.manualInstall.tooltip.title':'Not Using SSH (Manual Install)',
   'installer.step2.manualInstall.tooltip.content':'If you do not wish Ambari to automatically configure the target hosts via SSH,' +
@@ -111,6 +111,7 @@ Em.I18n.translations = {
   'installer.step6.header':'Assign Slaves and Clients',
   'installer.step6.body':'Assign slave and client components to hosts you want to run them on.<br/>Hosts that are assigned master components are shown with <i class=icon-asterisks>&#10037</i>. <br/>&quot;Client&quot; will install ',
   'installer.step6.error.mustSelectOne':'You must assign at least one host to each.',
+  'installer.step6.error.mustSelectOneForHost':'You must assign at least one slave/client component to each.',
 
   'installer.step7.header':'Customize Services',
   'installer.step7.body':'We have come up with recommended configurations for the services you selected.  Customize them as you see fit.',

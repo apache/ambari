@@ -18,11 +18,13 @@
 
 package org.apache.ambari.server.api.services;
 
-import org.apache.ambari.server.api.resources.ResourceDefinition;
-import org.apache.ambari.server.api.resources.ServiceResourceDefinition;
+import org.apache.ambari.server.api.resources.ResourceInstance;
+import org.apache.ambari.server.controller.spi.Resource;
 
 import javax.ws.rs.*;
 import javax.ws.rs.core.*;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Service responsible for services resource requests.
@@ -58,7 +60,7 @@ public class ServiceService extends BaseService {
                              @PathParam("serviceName") String serviceName) {
 
     return handleRequest(headers, null, ui, Request.Type.GET,
-        createResourceDefinition(serviceName, m_clusterName));
+        createServiceResource(m_clusterName, serviceName));
   }
 
   /**
@@ -73,7 +75,7 @@ public class ServiceService extends BaseService {
   @Produces("text/plain")
   public Response getServices(@Context HttpHeaders headers, @Context UriInfo ui) {
     return handleRequest(headers, null, ui, Request.Type.GET,
-        createResourceDefinition(null, m_clusterName));
+        createServiceResource(m_clusterName, null));
   }
 
   /**
@@ -93,7 +95,7 @@ public class ServiceService extends BaseService {
                                 @PathParam("serviceName") String serviceName) {
 
     return handleRequest(headers, body, ui, Request.Type.POST,
-        createResourceDefinition(serviceName, m_clusterName));
+        createServiceResource(m_clusterName, serviceName));
   }
 
   /**
@@ -110,7 +112,7 @@ public class ServiceService extends BaseService {
   public Response createServices(String body, @Context HttpHeaders headers, @Context UriInfo ui) {
 
     return handleRequest(headers, body, ui, Request.Type.POST,
-        createResourceDefinition(null, m_clusterName));
+        createServiceResource(m_clusterName, null));
   }
 
   /**
@@ -129,7 +131,7 @@ public class ServiceService extends BaseService {
   public Response updateService(String body, @Context HttpHeaders headers, @Context UriInfo ui,
                                 @PathParam("serviceName") String serviceName) {
 
-    return handleRequest(headers, body, ui, Request.Type.PUT, createResourceDefinition(serviceName, m_clusterName));
+    return handleRequest(headers, body, ui, Request.Type.PUT, createServiceResource(m_clusterName, serviceName));
   }
 
   /**
@@ -145,7 +147,7 @@ public class ServiceService extends BaseService {
   @Produces("text/plain")
   public Response updateServices(String body, @Context HttpHeaders headers, @Context UriInfo ui) {
 
-    return handleRequest(headers, body, ui, Request.Type.PUT, createResourceDefinition(null, m_clusterName));
+    return handleRequest(headers, body, ui, Request.Type.PUT, createServiceResource(m_clusterName, null));
   }
 
   /**
@@ -163,7 +165,7 @@ public class ServiceService extends BaseService {
   public Response deleteService(@Context HttpHeaders headers, @Context UriInfo ui,
                                 @PathParam("serviceName") String serviceName) {
 
-    return handleRequest(headers, null, ui, Request.Type.DELETE, createResourceDefinition(serviceName, m_clusterName));
+    return handleRequest(headers, null, ui, Request.Type.DELETE, createServiceResource(m_clusterName, serviceName));
   }
 
   /**
@@ -190,14 +192,19 @@ public class ServiceService extends BaseService {
   }
 
   /**
-   * Create a service resource definition.
+   * Create a service resource instance.
    *
-   * @param serviceName  service name
+   *
    * @param clusterName  cluster name
+   * @param serviceName  service name
    *
-   * @return a service resource definition
+   * @return a service resource instance
    */
-  ResourceDefinition createResourceDefinition(String serviceName, String clusterName) {
-    return new ServiceResourceDefinition(serviceName, clusterName);
+  ResourceInstance createServiceResource(String clusterName, String serviceName) {
+    Map<Resource.Type,String> mapIds = new HashMap<Resource.Type, String>();
+    mapIds.put(Resource.Type.Cluster, clusterName);
+    mapIds.put(Resource.Type.Service, serviceName);
+
+    return createResource(Resource.Type.Service, mapIds);
   }
 }

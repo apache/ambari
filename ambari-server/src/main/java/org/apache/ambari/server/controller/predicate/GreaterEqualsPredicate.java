@@ -18,15 +18,14 @@
 
 package org.apache.ambari.server.controller.predicate;
 
-import org.apache.ambari.server.controller.spi.PropertyId;
 import org.apache.ambari.server.controller.spi.Resource;
 
 /**
  * Predicate that checks if a given value is greater than or equal to a {@link Resource} property.
  */
-public class GreaterEqualsPredicate<T> extends ComparisonPredicate {
+public class GreaterEqualsPredicate<T> extends ComparisonPredicate<T> {
 
-  public GreaterEqualsPredicate(PropertyId propertyId, Comparable<T> value) {
+  public GreaterEqualsPredicate(String propertyId, Comparable<T> value) {
     super(propertyId, value);
   }
 

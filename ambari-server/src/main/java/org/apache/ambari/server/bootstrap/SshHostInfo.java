@@ -41,6 +41,9 @@ public class SshHostInfo {
 
   @XmlElement
   private List<String>  hosts = new ArrayList<String>();
+  
+  @XmlElement
+  private boolean verbose = false;
 
   public String getSshKey() {
     return sshKey;
@@ -56,6 +59,14 @@ public class SshHostInfo {
 
   public List<String> getHosts() {
     return this.hosts;
+  }
+  
+  public boolean isVerbose() {
+    return verbose;
+  }
+  
+  public void setVerbose(boolean verbose) {
+    this.verbose = verbose;
   }
 
   public String hostListAsString() {

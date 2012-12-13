@@ -44,7 +44,8 @@
 #
 
 define configgenerator::configfile ($modulespath='/etc/puppet/modules', $filename, $module, $configuration) {
-  $configcontent = inline_template('<configuration>
+  $configcontent = inline_template('<!--<%=Time.now.asctime %>-->
+  <configuration>
   <% configuration.each do |key,value| -%>
   <property>
     <name><%=key %></name>

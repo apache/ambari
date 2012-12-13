@@ -19,17 +19,18 @@
 package org.apache.ambari.server.controller.internal;
 
 import org.apache.ambari.server.controller.*;
+import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
 import org.apache.ambari.server.controller.utilities.PredicateBuilder;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
 import org.apache.ambari.server.controller.RequestStatusResponse;
 import org.apache.ambari.server.controller.spi.Predicate;
-import org.apache.ambari.server.controller.spi.PropertyId;
 import org.apache.ambari.server.controller.spi.Request;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.spi.ResourceProvider;
 import org.easymock.EasyMock;
 import org.easymock.IArgumentMatcher;
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import static org.easymock.EasyMock.anyObject;
@@ -57,8 +58,8 @@ public class ResourceProviderImplTest {
     AmbariManagementController managementController = createMock(AmbariManagementController.class);
     RequestStatusResponse response = createNiceMock(RequestStatusResponse.class);
 
-    managementController.createCluster(Matchers.clusterRequest(null, "Cluster100", "4.02", null));
-    managementController.createCluster(Matchers.clusterRequest(99L, null, "4.03", null));
+    managementController.createCluster(Matchers.clusterRequest(null, "Cluster100", "HDP-0.1", null));
+    managementController.createCluster(Matchers.clusterRequest(99L, null, "HDP-0.1", null));
 
     // replay
     replay(managementController, response);
@@ -69,28 +70,32 @@ public class ResourceProviderImplTest {
         PropertyHelper.getKeyPropertyIds(type),
         managementController);
 
+    TestObserver observer = new TestObserver();
+
+    ((ObservableResourceProvider)provider).addObserver(observer);
+
     // add the property map to a set for the request.  add more maps for multiple creates
-    Set<Map<PropertyId, Object>> propertySet = new LinkedHashSet<Map<PropertyId, Object>>();
+    Set<Map<String, Object>> propertySet = new LinkedHashSet<Map<String, Object>>();
 
     // Cluster 1: create a map of properties for the request
-    Map<PropertyId, Object> properties = new LinkedHashMap<PropertyId, Object>();
+    Map<String, Object> properties = new LinkedHashMap<String, Object>();
 
     // add the cluster name to the properties map
     properties.put(ClusterResourceProvider.CLUSTER_NAME_PROPERTY_ID, "Cluster100");
 
     // add the version to the properties map
-    properties.put(ClusterResourceProvider.CLUSTER_VERSION_PROPERTY_ID, "4.02");
+    properties.put(ClusterResourceProvider.CLUSTER_VERSION_PROPERTY_ID, "HDP-0.1");
 
     propertySet.add(properties);
 
     // Cluster 2: create a map of properties for the request
-    properties = new LinkedHashMap<PropertyId, Object>();
+    properties = new LinkedHashMap<String, Object>();
 
     // add the cluster id to the properties map
     properties.put(ClusterResourceProvider.CLUSTER_ID_PROPERTY_ID, 99L);
 
     // add the version to the properties map
-    properties.put(ClusterResourceProvider.CLUSTER_VERSION_PROPERTY_ID, "4.03");
+    properties.put(ClusterResourceProvider.CLUSTER_VERSION_PROPERTY_ID, "HDP-0.1");
 
     propertySet.add(properties);
 
@@ -99,8 +104,83 @@ public class ResourceProviderImplTest {
 
     provider.createResources(request);
 
+    ResourceProviderEvent lastEvent = observer.getLastEvent();
+    Assert.assertNotNull(lastEvent);
+    Assert.assertEquals(Resource.Type.Cluster, lastEvent.getResourceType());
+    Assert.assertEquals(ResourceProviderEvent.Type.Create, lastEvent.getType());
+    Assert.assertEquals(request, lastEvent.getRequest());
+    Assert.assertNull(lastEvent.getPredicate());
+
     // verify
     verify(managementController, response);
+  }
+
+  @Ignore
+  @Test
+  public void testCreateClusterResourcesUnsupportedProperty() throws Exception{
+    Resource.Type type = Resource.Type.Cluster;
+
+    AmbariManagementController managementController = createMock(AmbariManagementController.class);
+
+    // replay
+    replay(managementController);
+
+    ResourceProvider provider = ResourceProviderImpl.getResourceProvider(
+        type,
+        PropertyHelper.getPropertyIds(type),
+        PropertyHelper.getKeyPropertyIds(type),
+        managementController);
+
+    TestObserver observer = new TestObserver();
+
+    ((ObservableResourceProvider)provider).addObserver(observer);
+
+    // add the property map to a set for the request.  add more maps for multiple creates
+    Set<Map<String, Object>> propertySet = new LinkedHashSet<Map<String, Object>>();
+
+    // Cluster 1: create a map of properties for the request
+    Map<String, Object> properties = new LinkedHashMap<String, Object>();
+
+    // add the cluster name to the properties map
+    properties.put(ClusterResourceProvider.CLUSTER_NAME_PROPERTY_ID, "Cluster100");
+
+    // add the version to the properties map
+    properties.put(ClusterResourceProvider.CLUSTER_VERSION_PROPERTY_ID, "HDP-0.1");
+
+    // add an unsupported property to the properties map
+    properties.put("UnsupportedProperty1", "Cluster100");
+
+    propertySet.add(properties);
+
+    // Cluster 2: create a map of properties for the request
+    properties = new LinkedHashMap<String, Object>();
+
+    // add the cluster id to the properties map
+    properties.put(ClusterResourceProvider.CLUSTER_ID_PROPERTY_ID, 99L);
+
+    // add the version to the properties map
+    properties.put(ClusterResourceProvider.CLUSTER_VERSION_PROPERTY_ID, "HDP-0.1");
+
+    // add an unsupported property to the properties map
+    properties.put("UnsupportedProperty2", "Cluster100");
+
+    propertySet.add(properties);
+
+    // create the request
+    Request request = PropertyHelper.getCreateRequest(propertySet);
+
+    try {
+      provider.createResources(request);
+      Assert.fail("Expected UnsupportedPropertyException.");
+    } catch (UnsupportedPropertyException e) {
+      // expected
+      Assert.assertEquals(Resource.Type.Cluster, e.getType());
+      Assert.assertTrue(e.getPropertyIds().contains("UnsupportedProperty1"));
+      Assert.assertTrue(e.getPropertyIds().contains("UnsupportedProperty2"));
+    }
+
+    // verify
+    verify(managementController);
   }
 
   @Test
@@ -136,7 +216,7 @@ public class ResourceProviderImplTest {
         PropertyHelper.getKeyPropertyIds(type),
         managementController);
 
-    Set<PropertyId> propertyIds = new HashSet<PropertyId>();
+    Set<String> propertyIds = new HashSet<String>();
 
     propertyIds.add(ClusterResourceProvider.CLUSTER_ID_PROPERTY_ID);
     propertyIds.add(ClusterResourceProvider.CLUSTER_NAME_PROPERTY_ID);
@@ -186,8 +266,8 @@ public class ResourceProviderImplTest {
 
     // set expectations
     expect(managementController.getClusters(anyObject(Set.class))).andReturn(nameResponse).once();
-    expect(managementController.updateCluster(Matchers.clusterRequest(102L, null, "4.02", null))).andReturn(response).once();
-    expect(managementController.updateCluster(Matchers.clusterRequest(103L, null, "4.02", null))).andReturn(response).once();
+    expect(managementController.updateCluster(Matchers.clusterRequest(102L, "Cluster102", "HDP-0.1", null))).andReturn(response).once();
+    expect(managementController.updateCluster(Matchers.clusterRequest(103L, null, "HDP-0.1", null))).andReturn(response).once();
 
     // replay
     replay(managementController, response);
@@ -198,9 +278,13 @@ public class ResourceProviderImplTest {
         PropertyHelper.getKeyPropertyIds(type),
         managementController);
 
-    Map<PropertyId, Object> properties = new LinkedHashMap<PropertyId, Object>();
+    TestObserver observer = new TestObserver();
 
-    properties.put(ClusterResourceProvider.CLUSTER_VERSION_PROPERTY_ID, "4.02");
+    ((ObservableResourceProvider)provider).addObserver(observer);
+
+    Map<String, Object> properties = new LinkedHashMap<String, Object>();
+
+    properties.put(ClusterResourceProvider.CLUSTER_VERSION_PROPERTY_ID, "HDP-0.1");
 
     // create the request
     Request request = PropertyHelper.getUpdateRequest(properties);
@@ -213,8 +297,64 @@ public class ResourceProviderImplTest {
     predicate = new PredicateBuilder().property(ClusterResourceProvider.CLUSTER_ID_PROPERTY_ID).equals(103L).toPredicate();
     provider.updateResources(request, predicate);
 
+    ResourceProviderEvent lastEvent = observer.getLastEvent();
+    Assert.assertNotNull(lastEvent);
+    Assert.assertEquals(Resource.Type.Cluster, lastEvent.getResourceType());
+    Assert.assertEquals(ResourceProviderEvent.Type.Update, lastEvent.getType());
+    Assert.assertEquals(request, lastEvent.getRequest());
+    Assert.assertEquals(predicate, lastEvent.getPredicate());
+
     // verify
     verify(managementController, response);
+  }
+
+  @Ignore
+  @Test
+  public void testUpdateClusterResourcesUnsupportedProperty() throws Exception{
+    Resource.Type type = Resource.Type.Cluster;
+
+    AmbariManagementController managementController = createMock(AmbariManagementController.class);
+
+    Set<ClusterResponse> nameResponse = new HashSet<ClusterResponse>();
+    nameResponse.add(new ClusterResponse(102L, "Cluster102", null, null));
+
+    // replay
+    replay(managementController);
+
+    ResourceProvider provider = ResourceProviderImpl.getResourceProvider(
+        type,
+        PropertyHelper.getPropertyIds(type),
+        PropertyHelper.getKeyPropertyIds(type),
+        managementController);
+
+    TestObserver observer = new TestObserver();
+
+    ((ObservableResourceProvider)provider).addObserver(observer);
+
+    Map<String, Object> properties = new LinkedHashMap<String, Object>();
+
+    properties.put(ClusterResourceProvider.CLUSTER_VERSION_PROPERTY_ID, "HDP-0.1");
+
+    // add an unsupported property to the properties map
+    properties.put("UnsupportedProperty1", "Cluster100");
+
+    // create the request
+    Request request = PropertyHelper.getUpdateRequest(properties);
+
+    // update the cluster named Cluster102
+    Predicate  predicate = new PredicateBuilder().property(ClusterResourceProvider.CLUSTER_NAME_PROPERTY_ID).equals("Cluster102").toPredicate();
+
+    try {
+      provider.updateResources(request, predicate);
+      Assert.fail("Expected UnsupportedPropertyException.");
+    } catch (UnsupportedPropertyException e) {
+      // expected
+      Assert.assertEquals(Resource.Type.Cluster, e.getType());
+      Assert.assertTrue(e.getPropertyIds().contains("UnsupportedProperty1"));
+    }
+
+    // verify
+    verify(managementController);
   }
 
   @Test
@@ -228,9 +368,8 @@ public class ResourceProviderImplTest {
     nameResponse.add(new ClusterResponse(102L, "Cluster102", null, null));
 
     // set expectations
-    expect(managementController.getClusters(anyObject(Set.class))).andReturn(nameResponse).once();
-    managementController.deleteCluster(Matchers.clusterRequest(102L, null, "HDP-0.1", null));
-    managementController.deleteCluster(Matchers.clusterRequest(103L, null, "HDP-0.1", null));
+    managementController.deleteCluster(Matchers.clusterRequest(null, "Cluster102", null, null));
+    managementController.deleteCluster(Matchers.clusterRequest(103L, null, null, null));
 
     // replay
     replay(managementController, response);
@@ -241,6 +380,10 @@ public class ResourceProviderImplTest {
         PropertyHelper.getKeyPropertyIds(type),
         managementController);
 
+    TestObserver observer = new TestObserver();
+
+    ((ObservableResourceProvider)provider).addObserver(observer);
+
     // delete the cluster named Cluster102
     Predicate  predicate = new PredicateBuilder().property(ClusterResourceProvider.CLUSTER_NAME_PROPERTY_ID).equals("Cluster102").toPredicate();
     provider.deleteResources(predicate);
@@ -248,6 +391,13 @@ public class ResourceProviderImplTest {
     // delete the cluster where id == 103
     predicate = new PredicateBuilder().property(ClusterResourceProvider.CLUSTER_ID_PROPERTY_ID).equals(103L).toPredicate();
     provider.deleteResources(predicate);
+
+    ResourceProviderEvent lastEvent = observer.getLastEvent();
+    Assert.assertNotNull(lastEvent);
+    Assert.assertEquals(Resource.Type.Cluster, lastEvent.getResourceType());
+    Assert.assertEquals(ResourceProviderEvent.Type.Delete, lastEvent.getType());
+    Assert.assertEquals(predicate, lastEvent.getPredicate());
+    Assert.assertNull(lastEvent.getRequest());
 
     // verify
     verify(managementController, response);
@@ -274,10 +424,10 @@ public class ResourceProviderImplTest {
         managementController);
 
     // add the property map to a set for the request.  add more maps for multiple creates
-    Set<Map<PropertyId, Object>> propertySet = new LinkedHashSet<Map<PropertyId, Object>>();
+    Set<Map<String, Object>> propertySet = new LinkedHashSet<Map<String, Object>>();
 
     // Service 1: create a map of properties for the request
-    Map<PropertyId, Object> properties = new LinkedHashMap<PropertyId, Object>();
+    Map<String, Object> properties = new LinkedHashMap<String, Object>();
 
     // add properties to the request map
     properties.put(ServiceResourceProvider.SERVICE_CLUSTER_NAME_PROPERTY_ID, "Cluster100");
@@ -302,19 +452,19 @@ public class ResourceProviderImplTest {
     AmbariManagementController managementController = createMock(AmbariManagementController.class);
 
     Set<ServiceResponse> allResponse = new HashSet<ServiceResponse>();
-    allResponse.add(new ServiceResponse(100L, "Cluster100", "Service100", null, "4.02", null));
-    allResponse.add(new ServiceResponse(100L, "Cluster100", "Service101", null, "4.02", null));
-    allResponse.add(new ServiceResponse(100L, "Cluster100", "Service102", null, "4.02", null));
-    allResponse.add(new ServiceResponse(100L, "Cluster100", "Service103", null, "4.02", null));
-    allResponse.add(new ServiceResponse(100L, "Cluster100", "Service104", null, "4.02", null));
+    allResponse.add(new ServiceResponse(100L, "Cluster100", "Service100", null, "HDP-0.1", null));
+    allResponse.add(new ServiceResponse(100L, "Cluster100", "Service101", null, "HDP-0.1", null));
+    allResponse.add(new ServiceResponse(100L, "Cluster100", "Service102", null, "HDP-0.1", null));
+    allResponse.add(new ServiceResponse(100L, "Cluster100", "Service103", null, "HDP-0.1", null));
+    allResponse.add(new ServiceResponse(100L, "Cluster100", "Service104", null, "HDP-0.1", null));
 
     Set<ServiceResponse> nameResponse = new HashSet<ServiceResponse>();
-    nameResponse.add(new ServiceResponse(100L, "Cluster100", "Service102", null, "4.02", null));
+    nameResponse.add(new ServiceResponse(100L, "Cluster100", "Service102", null, "HDP-0.1", null));
 
     Set<ServiceResponse> stateResponse = new HashSet<ServiceResponse>();
-    stateResponse.add(new ServiceResponse(100L, "Cluster100", "Service100", null, "4.02", null));
-    stateResponse.add(new ServiceResponse(100L, "Cluster100", "Service102", null, "4.02", null));
-    stateResponse.add(new ServiceResponse(100L, "Cluster100", "Service104", null, "4.02", null));
+    stateResponse.add(new ServiceResponse(100L, "Cluster100", "Service100", null, "HDP-0.1", null));
+    stateResponse.add(new ServiceResponse(100L, "Cluster100", "Service102", null, "HDP-0.1", null));
+    stateResponse.add(new ServiceResponse(100L, "Cluster100", "Service104", null, "HDP-0.1", null));
 
     // set expectations
     expect(managementController.getServices(anyObject(Set.class))).andReturn(allResponse).once();
@@ -330,7 +480,7 @@ public class ResourceProviderImplTest {
         PropertyHelper.getKeyPropertyIds(type),
         managementController);
 
-    Set<PropertyId> propertyIds = new HashSet<PropertyId>();
+    Set<String> propertyIds = new HashSet<String>();
 
     propertyIds.add(ServiceResourceProvider.SERVICE_CLUSTER_NAME_PROPERTY_ID);
     propertyIds.add(ServiceResourceProvider.SERVICE_SERVICE_NAME_PROPERTY_ID);
@@ -401,7 +551,7 @@ public class ResourceProviderImplTest {
         managementController);
 
     // add the property map to a set for the request.
-    Map<PropertyId, Object> properties = new LinkedHashMap<PropertyId, Object>();
+    Map<String, Object> properties = new LinkedHashMap<String, Object>();
 
     properties.put(ServiceResourceProvider.SERVICE_SERVICE_STATE_PROPERTY_ID, "DEPLOYED");
 
@@ -482,6 +632,20 @@ public class ResourceProviderImplTest {
     @Override
     public void appendTo(StringBuffer stringBuffer) {
       stringBuffer.append("ClusterRequestMatcher(" + "" + ")");
+    }
+  }
+
+  public class TestObserver implements ResourceProviderObserver {
+
+    ResourceProviderEvent lastEvent = null;
+
+    @Override
+    public void update(ResourceProviderEvent event) {
+      lastEvent = event;
+    }
+
+    public ResourceProviderEvent getLastEvent() {
+      return lastEvent;
     }
   }
 

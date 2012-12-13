@@ -21,6 +21,9 @@
 class hdp::params()
 {
 
+  ##Constants##
+  $NOTHING='NOTHING'
+
   ##### global state defaults ####
   $cluster_service_state = hdp_default("cluster_service_state","running")
   $cluster_client_state = hdp_default("cluster_client_state","installed_and_configured")
@@ -44,7 +47,7 @@ class hdp::params()
 
   $hive_server_host = hdp_default("hive_server_host", "")
   $oozie_server =  hdp_default("oozie_server", "")
-  $templeton_server_host = hdp_default("templeton_server_host", "")
+  $webhcat_server_host = hdp_default("webhcat_server_host", "")
   $gateway_host = hdp_default("gateway_host")
   
   $nagios_server_host = hdp_default("nagios_server_host")
@@ -54,6 +57,8 @@ class hdp::params()
 
   $hdp_os = $::operatingsystem
   $hdp_os_version = $::operatingsystemrelease
+
+  
   case $::operatingsystem {
     centos: {
       case $::operatingsystemrelease {
@@ -63,15 +68,19 @@ class hdp::params()
     }
     redhat: {
       case $::operatingsystemrelease {
-        /^5\..+$/: { $hdp_os_type = "rhel5" }
-        /^6\..+$/: { $hdp_os_type = "rhel6" }
+        /^5\..+$/: { $hdp_os_type = "redhat5" }
+        /^6\..+$/: { $hdp_os_type = "redhat6" }
       }
     }
     suse: {
       $hdp_os_type = "suse"
     }
+    SLES: {
+      $hdp_os_type = "suse"
+    }
+
     default: {
-      hdp_fail("No support for os  ${hdp_os} ${hdp_os_version}")
+      hdp_fail("No support for os $::operatingsystem  ${hdp_os} ${hdp_os_version}")
     }
   }
 
@@ -86,7 +95,7 @@ class hdp::params()
     $public_dashboard_host = hdp_host_attribute($hostAttributes,"publicfqdn",$dashboard_host)
     $public_hive_server_host = hdp_host_attribute($hostAttributes,"publicfqdn",$hive_server_host)
     $public_oozie_server = hdp_host_attribute($hostAttributes,"publicfqdn",$oozie_server)
-    $public_templeton_server_host = hdp_host_attribute($hostAttributes,"publicfqdn",$templeton_server_host)
+    $public_webhcat_server_host = hdp_host_attribute($hostAttributes,"publicfqdn",$webhcat_server_host)
   } else {
     $public_namenode_host = hdp_default("namenode_host")
     $public_snamenode_host = hdp_default("snamenode_host")
@@ -98,7 +107,7 @@ class hdp::params()
     $public_dashboard_host = hdp_default("dashboard_host")
     $public_hive_server_host = hdp_default("hive_server_host")
     $public_oozie_server = hdp_default("oozie_server")
-    $public_templeton_server_host = hdp_default("templeton_server_host")
+    $public_webhcat_server_host = hdp_default("webhcat_server_host")
   }
 
   ############ Hdfs directories
@@ -117,7 +126,7 @@ class hdp::params()
   $hcat_user = hdp_default("hcat_user","hcat")
 
   $oozie_user = hdp_default("oozie_user","oozie")
-  $templeton_user = hdp_default("templeton_user","templeton")
+  $templeton_user = hdp_default("templeton_user","hcat")
 
   $gmetad_user = hdp_default("gmetad_user","nobody")
   $gmond_user = hdp_default("gmond_user","nobody")
@@ -194,7 +203,7 @@ class hdp::params()
   $gpl_artifacts_download_url = hdp_default("gpl_artifacts_download_url","") 
 
   ### related to package resources  
- 
+  #TODO: delete variable $package_names
   $package_names = {
    # hadoop => {
    #   32 => 'hadoop.i386',
@@ -247,7 +256,7 @@ class hdp::params()
       64 => 'php-pecl-json.x86_64'
     },
     snmp => {
-      64 => ['net-snmp','net-snmp-utils'],
+      64 => ['net-snmp'],
     },
     dashboard => {
       64 => 'hdp_mon_dashboard'
@@ -255,15 +264,15 @@ class hdp::params()
     # sqoop => {
     #   32 => 'sqoop-1.4.1-1.noarch'
     #},
-    templeton => {
-       32 => 'templeton',
-       64 => 'templeton'
+    webhcat => {
+       32 => 'hcatalog',
+       64 => 'hcatalog'
     },
     oozie-client => {
-      64 => 'oozie-client.noarch'
+      64 => 'oozie-client'
     },
     oozie-server => {
-      64 => 'oozie.noarch'
+      64 => 'oozie'
     },
     lzo-rhel5 => {
       32 => ['lzo','lzo.i386','lzo-devel','lzo-devel.i386'],
@@ -292,7 +301,13 @@ class hdp::params()
     },
     templeton-tar-pig => {
       64 => ['templeton-tar-pig-0.0.1.14-1']
-    }
+    },
+    rrdtool-python => {
+      64 => ['python-rrdtool.x86_64']
+    },
+    ambari-log4j => {
+      64 => ['ambari-log4j']
+    } 
   }
   $packages = 'bigtop' 
   if ($packages == 'hdp') {
@@ -355,13 +370,174 @@ class hdp::params()
     $hcat_mysql_host = hdp_default("hive_mysql_host")
 
 
+
+    $pathes = {
+      nagios_p1_pl => {
+      'ALL' => '/usr/bin/p1.pl',
+      suse => '/usr/lib/nagios/p1.pl'
+      }
+    }
+
+    $services_names = {
+      mysql => {
+        'ALL' => 'mysqld',
+        suse => 'mysql'},
+      httpd => {  
+      'ALL' => 'httpd',
+      suse => 'apache2'}
+    }
+
+    $cmds = {
+    htpasswd => {
+    'ALL' => 'htpasswd',
+     suse => 'htpasswd2'} 
+
+    }
+
+    $alt_package_names = 
+{
+  snmp => 
+    { 64 => {suse =>['net-snmp'],
+             'ALL' => ['net-snmp', 'net-snmp-utils']}
+    },
+
+  oozie-server => 
+    {
+      64 => {'ALL' => 'oozie.noarch'}
+    },
+
+
+    snappy => {
+      64 => {'ALL' => ['snappy','snappy-devel']}
+    },
+
+
+    hadoop => {
+      32 => {'ALL' => ['hadoop','hadoop-libhdfs.i386','hadoop-native.i386','hadoop-pipes.i386','hadoop-sbin.i386','hadoop-lzo', 'hadoop-lzo-native.i386']},
+      64 => {'ALL' =>['hadoop','hadoop-libhdfs','hadoop-native','hadoop-pipes','hadoop-sbin','hadoop-lzo', 'hadoop-lzo-native']}
+    },
+
+    glibc=> {
+      'ALL' => {'ALL' => ['glibc','glibc.i686'],
+                suse => ['glibc']},
+    },
+
+    zookeeper=> {
+      64 => {'ALL' => 'zookeeper'},
+    },
+    hbase=> {
+      64 => {'ALL' => 'hbase'},
+    },
+
+    pig=> {
+      'ALL' => {'ALL'=>['pig.noarch']}
+    },
+
+    sqoop=> {
+      'ALL' =>{'ALL' => ['sqoop']}
+    },
+
+    mysql-connector-java=> {
+      'ALL' =>{'ALL' => ['mysql-connector-java']}
+    },
+    oozie-client=> {
+      '64' =>{'ALL' => ['oozie-client.noarch']}
+    },
+    extjs=> {
+      64 =>{'ALL' => ['extjs-2.2-1']}
+    },
+    hive=> {
+      64 =>{'ALL' => ['hive']}
+    },
+    hcat=> {
+      'ALL' =>{'ALL' => ['hcatalog']}
+    },
+
+    mysql => {
+      64 =>  {'ALL' => ['mysql','mysql-server'],
+              suse => ['mysql-client','mysql']}
+    },
+    webhcat => {
+      'ALL' => {'ALL' => 'hcatalog'}
+    },
+    webhcat-tar-hive => {
+      64 => {'ALL' => 'webhcat-tar-hive'}
+    },
+    webhcat-tar-pig => {
+      64 => {'ALL' =>'webhcat-tar-pig'}
+    },
+    dashboard => {
+      64 => {'ALL' => 'hdp_mon_dashboard'}
+    },
+
+    nagios-server => {
+      64 => {'ALL' => 'nagios-3.2.3'}
+    },
+
+    nagios-fping => {
+      64 =>{'ALL' => 'fping'}
+    },
+
+    nagios-plugins => {
+      64 => {'ALL' => 'nagios-plugins-1.4.9'}
+    },
+
+    nagios-addons => {
+      64 => {'ALL' => 'hdp_mon_nagios_addons'}
+    },
+    nagios-php-pecl-json => {
+      64 => {'ALL' => $NOTHING,
+             suse => 'php5-json',
+             centos6 => $NOTHING,
+             rhel6 => $NOTHING}
+    },
+
+    ganglia-server => {
+      64 => {'ALL' => 'ganglia-gmetad-3.2.0'}
+    },
+
+    ganglia-gweb => {
+      64 => {'ALL' => 'gweb'}
+    },
+
+    ganglia-hdp-gweb-addons => {
+      64 => {'ALL' => 'hdp_mon_ganglia_addons'}
+    },
+
+    ganglia-monitor => {
+      64 => {'ALL' =>'ganglia-gmond-3.2.0'}
+    },
+	
+    rrdtool-python => {
+      64 => {'ALL' =>'python-rrdtool.x86_64'}
+    },
+    ambari-log4j => {
+      64 => {'ALL' =>'ambari-log4j'}
+    },
+    httpd => {
+      64 => {'ALL' =>'httpd',
+        suse => ['apache2', 'apache2-mod_php5']}
+    }
+
+	
+}
+
   $repos_paths = 
   {
     centos6 => '/etc/yum.repos.d',
-    suse => '/etc/zypp/repos.d'
+    centos5 => '/etc/yum.repos.d',
+    suse => '/etc/zypp/repos.d',
+    redhat6 => '/etc/yum.repos.d',
+    redhat5 => '/etc/yum.repos.d'
   }
 
+  $rrd_py_path = '/var/www/cgi-bin'
+
+
+
+
   }
+
  
 ###### snmp
 

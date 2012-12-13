@@ -27,8 +27,11 @@ import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 
-import org.apache.ambari.server.api.resources.ActionResourceDefinition;
-import org.apache.ambari.server.api.resources.ResourceDefinition;
+import org.apache.ambari.server.api.resources.ResourceInstance;
+import org.apache.ambari.server.controller.spi.Resource;
+
+import java.util.HashMap;
+import java.util.Map;
 
 public class ActionService extends BaseService {
   /**
@@ -61,7 +64,7 @@ public class ActionService extends BaseService {
   @Produces("text/plain")
   public Response getActions(@Context HttpHeaders headers, @Context UriInfo ui) {
     return handleRequest(headers, null, ui, Request.Type.GET,
-        createResourceDefinition(null, m_clusterName, m_serviceName));
+        createActionResource(m_clusterName, m_serviceName, null));
   }
 
   /**
@@ -88,37 +91,44 @@ public class ActionService extends BaseService {
   @Produces("text/plain")
   public Response createActions(String body,@Context HttpHeaders headers, @Context UriInfo ui) {
     return handleRequest(headers, body, ui, Request.Type.POST,
-        createResourceDefinition(null, m_clusterName, m_serviceName));
+        createActionResource(m_clusterName, m_serviceName, null));
   }
   
   /**
    * Handles: POST /clusters/{clusterId}/services/{serviceId}/{actionName}
-   * Create a specific service.
+   * Create a specific action.
    *
    * @param body        http body
    * @param headers     http headers
    * @param ui          uri info
-   * @param serviceName service id
-   * @return information regarding the created service
+   * @param actionName  action name
+   *
+   * @return information regarding the created action
    */
   @POST
   @Path("{actionName}")
   @Produces("text/plain")
-  public Response createService(String body, @Context HttpHeaders headers, @Context UriInfo ui,
-                                @PathParam("actionName") String actionName) {
+  public Response createAction(String body, @Context HttpHeaders headers, @Context UriInfo ui,
+                               @PathParam("actionName") String actionName) {
     return handleRequest(headers, body, ui, Request.Type.POST,
-        createResourceDefinition(actionName, m_clusterName, m_serviceName));
+        createActionResource(m_clusterName, m_serviceName, actionName));
   }
 
   /**
-   * Create a service resource definition.
+   * Create an action resource instance.
    *
-   * @param serviceName host name
    * @param clusterName cluster name
-   * @return a service resource definition
+   * @param serviceName service name
+   * @param actionName  action name
+   *
+   * @return an action resource instance
    */
-  ResourceDefinition createResourceDefinition(String actionName,
-      String clusterName, String serviceName) {
-    return new ActionResourceDefinition(actionName, clusterName, serviceName);
+  ResourceInstance createActionResource(String clusterName, String serviceName, String actionName) {
+    Map<Resource.Type,String> mapIds = new HashMap<Resource.Type, String>();
+    mapIds.put(Resource.Type.Cluster, clusterName);
+    mapIds.put(Resource.Type.Service, serviceName);
+    mapIds.put(Resource.Type.Action, actionName);
+
+    return createResource(Resource.Type.Action, mapIds);
   }
 }

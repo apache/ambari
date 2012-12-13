@@ -26,14 +26,13 @@ import java.util.Map;
 import javax.xml.bind.JAXBException;
 
 import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.actionmanager.ExecutionCommandWrapper;
 import org.apache.ambari.server.actionmanager.Stage;
 import org.apache.ambari.server.agent.ExecutionCommand;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
-import org.apache.ambari.server.state.Cluster;
-import org.apache.ambari.server.state.Clusters;
-import org.apache.ambari.server.state.StackId;
+import org.apache.ambari.server.state.*;
 import org.apache.ambari.server.state.cluster.ClustersImpl;
 import org.apache.ambari.server.state.svccomphost.ServiceComponentHostImpl;
 import org.apache.commons.logging.Log;
@@ -53,10 +52,14 @@ public class TestStageUtils {
 
   private Injector injector;
 
+//  ServiceComponentFactory serviceComponentFactory;
+  static ServiceComponentHostFactory serviceComponentHostFactory;
+
   @Before
   public void setup() throws Exception {
     injector = Guice.createInjector(new InMemoryDefaultTestModule());
     injector.getInstance(GuiceJpaInitializer.class);
+    serviceComponentHostFactory = injector.getInstance(ServiceComponentHostFactory.class);
     ambariMetaInfo = injector.getInstance(AmbariMetaInfo.class);
     ambariMetaInfo.init();
 
@@ -73,22 +76,19 @@ public class TestStageUtils {
     cl.getService("HDFS")
         .getServiceComponent("NAMENODE")
         .addServiceComponentHost(
-            new ServiceComponentHostImpl(cl.getService("HDFS")
-                .getServiceComponent("NAMENODE"), hostList[0], false,
-                injector));
+            serviceComponentHostFactory.createNew(cl.getService("HDFS")
+                .getServiceComponent("NAMENODE"), hostList[0], false));
     cl.getService("HDFS")
         .getServiceComponent("SECONDARY_NAMENODE")
         .addServiceComponentHost(
-            new ServiceComponentHostImpl(cl.getService("HDFS")
-                .getServiceComponent("SECONDARY_NAMENODE"), hostList[1], false,
-                injector));
+            serviceComponentHostFactory.createNew(cl.getService("HDFS")
+                .getServiceComponent("SECONDARY_NAMENODE"), hostList[1], false)
+        );
     for (int i = 1; i < hostList.length; i++) {
       cl.getService("HDFS")
           .getServiceComponent("DATANODE")
-          .addServiceComponentHost(
-              new ServiceComponentHostImpl(cl.getService("HDFS")
-                  .getServiceComponent("DATANODE"), hostList[i], false,
-                  injector));
+          .addServiceComponentHost(serviceComponentHostFactory.createNew(cl.getService("HDFS")
+              .getServiceComponent("DATANODE"), hostList[i], false));
     }
   }
 
@@ -101,16 +101,15 @@ public class TestStageUtils {
     cl.getService("HBASE")
         .getServiceComponent("HBASE_MASTER")
         .addServiceComponentHost(
-            new ServiceComponentHostImpl(cl.getService("HBASE")
-                .getServiceComponent("HBASE_MASTER"), hostList[0], false,
-                injector));
+            serviceComponentHostFactory.createNew(cl.getService("HBASE")
+                .getServiceComponent("HBASE_MASTER"), hostList[0], false));
     for (int i = 1; i < hostList.length; i++) {
       cl.getService("HBASE")
           .getServiceComponent("HBASE_REGIONSERVER")
           .addServiceComponentHost(
-              new ServiceComponentHostImpl(cl.getService("HBASE")
-                  .getServiceComponent("HBASE_REGIONSERVER"), hostList[i], false,
-                  injector));
+              serviceComponentHostFactory.createNew(cl.getService("HBASE")
+                  .getServiceComponent("HBASE_REGIONSERVER"), hostList[i],
+                  false));
     }
   }
 
@@ -118,11 +117,11 @@ public class TestStageUtils {
   public void testGetATestStage() {
     Stage s = StageUtils.getATestStage(1, 2, "host2");
     String hostname = s.getHosts().get(0);
-    List<ExecutionCommand> cmds = s.getExecutionCommands(hostname);
-    for (ExecutionCommand cmd : cmds) {
-      assertEquals("cluster1", cmd.getClusterName());
-      assertEquals(StageUtils.getActionId(1, 2), cmd.getCommandId());
-      assertEquals(hostname, cmd.getHostname());
+    List<ExecutionCommandWrapper> wrappers = s.getExecutionCommands(hostname);
+    for (ExecutionCommandWrapper wrapper : wrappers) {
+      assertEquals("cluster1", wrapper.getExecutionCommand().getClusterName());
+      assertEquals(StageUtils.getActionId(1, 2), wrapper.getExecutionCommand().getCommandId());
+      assertEquals(hostname, wrapper.getExecutionCommand().getHostname());
     }
   }
 
@@ -130,9 +129,9 @@ public class TestStageUtils {
   public void testJaxbToString() throws Exception {
     Stage s = StageUtils.getATestStage(1, 2, "host1");
     String hostname = s.getHosts().get(0);
-    List<ExecutionCommand> cmds = s.getExecutionCommands(hostname);
-    for (ExecutionCommand cmd: cmds) {
-      LOG.info("Command is " + StageUtils.jaxbToString(cmd));
+    List<ExecutionCommandWrapper> wrappers = s.getExecutionCommands(hostname);
+    for (ExecutionCommandWrapper wrapper : wrappers) {
+      LOG.info("Command is " + StageUtils.jaxbToString(wrapper.getExecutionCommand()));
     }
     assertEquals(StageUtils.getActionId(1, 2), s.getActionId());
   }
@@ -141,7 +140,7 @@ public class TestStageUtils {
   public void testJasonToExecutionCommand() throws JsonGenerationException,
       JsonMappingException, JAXBException, IOException {
     Stage s = StageUtils.getATestStage(1, 2, "host1");
-    ExecutionCommand cmd = s.getExecutionCommands("host1").get(0);
+    ExecutionCommand cmd = s.getExecutionCommands("host1").get(0).getExecutionCommand();
     String json = StageUtils.jaxbToString(cmd);
     ExecutionCommand cmdDes = StageUtils.stringToExecutionCommand(json);
     assertEquals(cmd.toString(), cmdDes.toString());
@@ -150,18 +149,22 @@ public class TestStageUtils {
 
   @Test
   public void testGetClusterHostInfo() throws AmbariException {
-    Clusters fsm = new ClustersImpl(injector);
+    Clusters fsm = injector.getInstance(Clusters.class);
     fsm.addCluster("c1");
     fsm.addHost("h1");
     fsm.addHost("h2");
     fsm.addHost("h3");
+    fsm.getCluster("c1").setDesiredStackVersion(new StackId("HDP-0.1"));
+    fsm.getHost("h1").setOsType("centos5");
+    fsm.getHost("h2").setOsType("centos5");
+    fsm.getHost("h3").setOsType("centos5");
+    fsm.getHost("h1").persist();
+    fsm.getHost("h2").persist();
+    fsm.getHost("h3").persist();
     fsm.mapHostToCluster("h1", "c1");
     fsm.mapHostToCluster("h2", "c1");
     fsm.mapHostToCluster("h3", "c1");
     String [] hostList = {"h1", "h2", "h3" };
-    fsm.getHost("h1").persist();
-    fsm.getHost("h2").persist();
-    fsm.getHost("h3").persist();
     addHdfsService(fsm.getCluster("c1"), hostList, injector);
     addHbaseService(fsm.getCluster("c1"), hostList, injector);
     Map<String, List<String>> info = StageUtils.getClusterHostInfo(fsm

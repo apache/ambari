@@ -18,16 +18,14 @@
 
 package org.apache.ambari.server.api.resources;
 
-import org.apache.ambari.server.api.query.Query;
 import org.apache.ambari.server.api.services.Request;
-import org.apache.ambari.server.controller.spi.PropertyId;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.api.util.TreeNode;
 
 import org.apache.ambari.server.api.services.ResultPostProcessor;
 
 import java.util.List;
-import java.util.Map;
+import java.util.Set;
 
 /**
  * Resource Definition.
@@ -49,13 +47,6 @@ public interface ResourceDefinition {
   public String getSingularName();
 
   /**
-   * Obtain the value of the primary id of the resource.
-   *
-   * @return the value of the primary id of the resource
-   */
-  public String getId();
-
-  /**
    * Obtain the type of resource.  Is one of {@link Resource.Type}.
    *
    * @return the type of resource
@@ -63,34 +54,11 @@ public interface ResourceDefinition {
   public Resource.Type getType();
 
   /**
-   * Set the values of the parent foreign keys.
+   * Obtain a set of all child resource types.
    *
-   * @param mapIds  map of all parent foreign keys. Map from resource type to id value.
+   * @return set of sub-resource definitions
    */
-  public void setParentIds(Map<Resource.Type, String> mapIds);
-
-  /**
-   * Obtain the primary and foreign key properties for the resource.
-   *
-   * @return map of primary and foreign key values keyed by resource type
-   */
-  public Map<Resource.Type, String> getResourceIds();
-
-  /**
-   * Obtain sub-resources of this resource.  A sub-resource is a resource that is contained in
-   * another parent resource.
-   *
-   * @return map of sub resource definitions keyed by resource name
-   */
-  public Map<String, ResourceDefinition> getSubResources();
-
-  /**
-   * Return the query associated with the resource.
-   * Each resource has one query.
-   *
-   * @return the associated query
-   */
-  public Query getQuery();
+  public Set<SubResourceDefinition> getSubResourceDefinitions();
 
   /**
    * Obtain any resource post processors.  A resource processor is used to provide resource specific processing of

@@ -387,6 +387,16 @@ App.ChartLinearTimeView = Ember.View.extend({
         if (isPopup) {
           height = 180;
           width = 670;
+        } else {
+          // If not in popup, the width could vary.
+          // We determine width based on div's size.
+          var thisElement = this.get('element');
+          if (thisElement!=null) {
+            var calculatedWidth = $(thisElement).width();
+            if (calculatedWidth > 10) {
+              width = calculatedWidth;
+            }
+          }
         }
         var _graph = new Rickshaw.Graph({
           height: height,

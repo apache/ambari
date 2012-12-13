@@ -19,8 +19,8 @@
 package org.apache.ambari.server.api.services;
 
 
-import org.apache.ambari.server.api.resources.RequestResourceDefinition;
-import org.apache.ambari.server.api.resources.ResourceDefinition;
+import org.apache.ambari.server.api.resources.ResourceInstance;
+import org.apache.ambari.server.controller.spi.Resource;
 
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
@@ -30,6 +30,8 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
+import java.util.HashMap;
+import java.util.Map;
 
 
 /**
@@ -68,7 +70,7 @@ public class RequestService extends BaseService {
                              @PathParam("requestId") String requestId) {
 
     return handleRequest(headers, null, ui, Request.Type.GET,
-        createResourceDefinition(requestId, m_clusterName));
+        createRequestResource(m_clusterName, requestId));
   }
 
   /**
@@ -84,7 +86,7 @@ public class RequestService extends BaseService {
   @Produces("text/plain")
   public Response getRequests(@Context HttpHeaders headers, @Context UriInfo ui) {
     return handleRequest(headers, null, ui, Request.Type.GET,
-        createResourceDefinition(null, m_clusterName));
+        createRequestResource(m_clusterName, null));
   }
 
   /**
@@ -96,14 +98,18 @@ public class RequestService extends BaseService {
   }
 
   /**
-   * Create a request resource definition.
+   * Create a request resource instance.
    *
-   * @param requestId    request id
    * @param clusterName  cluster name
+   * @param requestId    request id
    *
-   * @return a request resource definition
+   * @return a request resource instance
    */
-  ResourceDefinition createResourceDefinition(String requestId, String clusterName) {
-    return new RequestResourceDefinition(requestId, clusterName);
+  ResourceInstance createRequestResource(String clusterName, String requestId) {
+    Map<Resource.Type,String> mapIds = new HashMap<Resource.Type, String>();
+    mapIds.put(Resource.Type.Cluster, clusterName);
+    mapIds.put(Resource.Type.Request, requestId);
+
+    return createResource(Resource.Type.Request, mapIds);
   }
 }

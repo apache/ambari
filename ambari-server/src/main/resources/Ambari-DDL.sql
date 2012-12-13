@@ -60,7 +60,7 @@ FOREIGN KEY(user_name, ldap_user) REFERENCES Users(user_name, ldap_user)
 CREATE TABLE Clusters
 (
 cluster_id BIGSERIAL,
-cluster_name VARCHAR UNIQUE NOT NULL,
+cluster_name VARCHAR(100) UNIQUE NOT NULL,
 desired_cluster_state VARCHAR DEFAULT '' NOT NULL,
 cluster_info VARCHAR DEFAULT '' NOT NULL,
 PRIMARY KEY (cluster_id)
@@ -182,6 +182,7 @@ CREATE TABLE HostState
 host_name VARCHAR NOT NULL references Hosts(host_name),
 available_mem INTEGER DEFAULT '0' NOT NULL,
 last_heartbeat_time INTEGER DEFAULT '0' NOT NULL,
+time_in_state INTEGER DEFAULT '0' NOT NULL,
 agent_version VARCHAR DEFAULT '' NOT NULL,
 health_status VARCHAR,
 current_state VARCHAR DEFAULT '' NOT NULL,

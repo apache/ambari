@@ -59,6 +59,17 @@ public class HostEntity {
   public void setIpv6(String ipv6) {
     this.ipv6 = ipv6;
   }
+  
+  private String publicHostName;
+  @Column(name="public_host_name", nullable = true, insertable = true, updatable = true)
+  @Basic
+  public String getPublicHostName() {
+    return publicHostName;
+  }
+  
+  public void setPublicHostName(String name) {
+    publicHostName = name;
+  }
 
   private Long totalMem = 0L;
 
@@ -110,8 +121,8 @@ public class HostEntity {
 
   private String disksInfo = "";
 
-  @javax.persistence.Column(name = "disks_info", nullable = false, insertable = true, 
-		  updatable = true, length = 20000)
+  @javax.persistence.Column(name = "disks_info", nullable = false, insertable = true,
+		  updatable = true, length = 2000)
   @Basic
   public String getDisksInfo() {
     return disksInfo;
@@ -124,7 +135,7 @@ public class HostEntity {
   private String osInfo = "";
 
   @javax.persistence.Column(name = "os_info", nullable = false, insertable = true, updatable = true,
-      length = 20000)
+      length = 1000)
   @Basic
   public String getOsInfo() {
     return osInfo;
@@ -148,7 +159,8 @@ public class HostEntity {
 
   private String discoveryStatus = "";
 
-  @javax.persistence.Column(name = "discovery_status", nullable = false, insertable = true, updatable = true)
+  @javax.persistence.Column(name = "discovery_status", nullable = false, insertable = true, updatable = true,
+      length = 2000)
   @Basic
   public String getDiscoveryStatus() {
     return discoveryStatus;
@@ -287,17 +299,6 @@ public class HostEntity {
 
   public void setHostStateEntity(HostStateEntity hostStateEntity) {
     this.hostStateEntity = hostStateEntity;
-  }
-
-  private Collection<ServiceComponentHostConfigEntity> serviceComponentHostConfigEntities;
-
-  @OneToMany(mappedBy = "hostEntity")
-  public Collection<ServiceComponentHostConfigEntity> getServiceComponentHostConfigEntities() {
-    return serviceComponentHostConfigEntities;
-  }
-
-  public void setServiceComponentHostConfigEntities(Collection<ServiceComponentHostConfigEntity> serviceComponentHostConfigEntities) {
-    this.serviceComponentHostConfigEntities = serviceComponentHostConfigEntities;
   }
 
   private Collection<HostRoleCommandEntity> hostRoleCommandEntities;

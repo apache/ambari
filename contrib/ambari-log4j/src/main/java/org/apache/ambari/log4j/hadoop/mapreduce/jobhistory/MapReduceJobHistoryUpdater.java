@@ -38,6 +38,9 @@ import org.apache.hadoop.mapreduce.CounterGroup;
 import org.apache.hadoop.mapreduce.Counters;
 import org.apache.hadoop.mapreduce.TaskType;
 import org.apache.hadoop.tools.rumen.HistoryEvent;
+import org.apache.hadoop.tools.rumen.JhCounter;
+import org.apache.hadoop.tools.rumen.JhCounterGroup;
+import org.apache.hadoop.tools.rumen.JhCounters;
 import org.apache.hadoop.tools.rumen.JobFinishedEvent;
 import org.apache.hadoop.tools.rumen.JobInfoChangeEvent;
 import org.apache.hadoop.tools.rumen.JobInitedEvent;
@@ -417,6 +420,8 @@ public class MapReduceJobHistoryUpdater implements LogStoreUpdateProvider {
                 "taskType = ?, " +
                 "mapFinishTime = ?, " +
                 "finishTime = ?, " +
+                "inputBytes = ?, " +
+                "outputBytes = ?, " +
                 "status = ?, " +
                 "taskTracker = ? " +
                 " WHERE " +
@@ -438,6 +443,8 @@ public class MapReduceJobHistoryUpdater implements LogStoreUpdateProvider {
                 "shuffleFinishTime = ?, " +
                 "sortFinishTime = ?, " +
                 "finishTime = ?, " +
+                "inputBytes = ?, " +
+                "outputBytes = ?, " +
                 "status = ?, " +
                 "taskTracker = ? " +
                 " WHERE " +
@@ -568,7 +575,11 @@ public class MapReduceJobHistoryUpdater implements LogStoreUpdateProvider {
       }
       dag.addEntry(dagEntry);
     }
-    
+    if (dag.getEntries().isEmpty()) {
+      WorkflowDagEntry wfDagEntry = new WorkflowDagEntry();
+      wfDagEntry.setSource(workflowNodeName);
+      dag.addEntry(wfDagEntry);
+    }
     context.setWorkflowDag(dag);
     return context;
   }
@@ -896,6 +907,8 @@ public class MapReduceJobHistoryUpdater implements LogStoreUpdateProvider {
         historyEvent.getTaskType());
       return;
     }
+    
+    long[] ioBytes = getInputOutputBytes(historyEvent.getCounters());
 
     try {
       entityPS.setString(1, 
@@ -904,9 +917,11 @@ public class MapReduceJobHistoryUpdater implements LogStoreUpdateProvider {
       entityPS.setString(3, historyEvent.getTaskType().toString());
       entityPS.setLong(4, historyEvent.getMapFinishTime());
       entityPS.setLong(5, historyEvent.getFinishTime());
-      entityPS.setString(6, historyEvent.getTaskStatus());
-      entityPS.setString(7, historyEvent.getHostname());
-      entityPS.setString(8, historyEvent.getAttemptId().toString());
+      entityPS.setLong(6, ioBytes[0]);
+      entityPS.setLong(7, ioBytes[1]);
+      entityPS.setString(8, historyEvent.getTaskStatus());
+      entityPS.setString(9, historyEvent.getHostname());
+      entityPS.setString(10, historyEvent.getAttemptId().toString());
       entityPS.executeUpdate();
     } catch (SQLException sqle) {
       LOG.info("Failed to store " + historyEvent.getEventType() + 
@@ -924,6 +939,8 @@ public class MapReduceJobHistoryUpdater implements LogStoreUpdateProvider {
         historyEvent.getTaskType());
       return;
     }
+    
+    long[] ioBytes = getInputOutputBytes(historyEvent.getCounters());
 
     try {
       entityPS.setString(1, 
@@ -933,15 +950,37 @@ public class MapReduceJobHistoryUpdater implements LogStoreUpdateProvider {
       entityPS.setLong(4, historyEvent.getShuffleFinishTime());
       entityPS.setLong(5, historyEvent.getSortFinishTime());
       entityPS.setLong(6, historyEvent.getFinishTime());
-      entityPS.setString(7, historyEvent.getTaskStatus());
-      entityPS.setString(8, historyEvent.getHostname());
-      entityPS.setString(9, historyEvent.getAttemptId().toString());
+      entityPS.setLong(7, ioBytes[0]);
+      entityPS.setLong(8, ioBytes[1]);
+      entityPS.setString(9, historyEvent.getTaskStatus());
+      entityPS.setString(10, historyEvent.getHostname());
+      entityPS.setString(11, historyEvent.getAttemptId().toString());
       entityPS.executeUpdate();
     } catch (SQLException sqle) {
       LOG.info("Failed to store " + historyEvent.getEventType() + 
           " for taskAttempt " + historyEvent.getAttemptId() + 
           " into " + TASKATTEMPT_TABLE, sqle);
     }
+  }
+  
+  public static long[] getInputOutputBytes(JhCounters counters) {
+    long inputBytes = 0;
+    long outputBytes = 0;
+    if (counters != null) {
+      for (JhCounterGroup counterGroup : counters.groups) {
+        if (counterGroup.name.equals("FileSystemCounters")) {
+          for (JhCounter counter : counterGroup.counts) {
+            if (counter.name.equals("HDFS_BYTES_READ") || 
+                counter.name.equals("FILE_BYTES_READ"))
+              inputBytes += counter.value;
+            else if (counter.name.equals("HDFS_BYTES_WRITTEN") || 
+                counter.name.equals("FILE_BYTES_WRITTEN"))
+              outputBytes += counter.value;
+          }
+        }
+      }
+    }
+    return new long[]{inputBytes, outputBytes};
   }
   
   

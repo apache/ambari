@@ -18,6 +18,7 @@
 package org.apache.ambari.server.controller;
 
 import java.util.Map;
+import java.util.Map.Entry;
 
 public class ServiceRequest {
 
@@ -93,5 +94,21 @@ public class ServiceRequest {
    */
   public void setClusterName(String clusterName) {
     this.clusterName = clusterName;
+  }
+
+  public String toString() {
+    StringBuilder sb = new StringBuilder();
+    sb.append("clusterName=" + clusterName
+        + ", serviceName=" + serviceName
+        + ", desiredState=" + desiredState
+        + ", configs=[ ");
+    if (configVersions != null) {
+      for (Entry<String, String> entry : configVersions.entrySet()) {
+        sb.append("{ type=" + entry.getKey()
+            + ", versionTag=" + entry.getValue() + "}, ");
+      }
+    }
+    sb.append(" ]");
+    return sb.toString();
   }
 }

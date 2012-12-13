@@ -22,9 +22,11 @@ import javax.persistence.Column;
 import javax.persistence.Id;
 import java.io.Serializable;
 
+@SuppressWarnings("serial")
 public class ServiceConfigMappingEntityPK implements Serializable {
   private Long clusterId;
   private String serviceName;
+  private String configType;
 
   @Id
   @Column(name = "cluster_id", nullable = false, insertable = true, updatable = true, length = 10)
@@ -45,6 +47,17 @@ public class ServiceConfigMappingEntityPK implements Serializable {
   public void setServiceName(String serviceName) {
     this.serviceName = serviceName;
   }
+
+  @Id
+  @Column(name = "config_type", nullable = false, insertable = true, updatable = false)
+  public String getConfigType() {
+    return configType;
+  }
+
+  public void setConfigType(String type) {
+    configType = type;
+  }
+
 
   @Override
   public boolean equals(Object o) {

@@ -21,6 +21,7 @@ package org.apache.ambari.server.api.services;
 
 import org.apache.ambari.server.api.query.Query;
 import org.apache.ambari.server.api.resources.ResourceDefinition;
+import org.apache.ambari.server.api.resources.ResourceInstance;
 import org.apache.ambari.server.controller.internal.RequestStatusImpl;
 import org.apache.ambari.server.controller.spi.*;
 import org.junit.Test;
@@ -33,25 +34,25 @@ import static org.easymock.EasyMock.*;
 public class DeletePersistenceManagerTest {
   @Test
   public void testPersist() throws Exception {
-    ResourceDefinition resource = createMock(ResourceDefinition.class);
+    ResourceInstance resource = createNiceMock(ResourceInstance.class);
+    ResourceDefinition resourceDefinition = createNiceMock(ResourceDefinition.class);
     ClusterController controller = createMock(ClusterController.class);
-    Schema schema = createMock(Schema.class);
     Query query = createMock(Query.class);
     Predicate predicate = createMock(Predicate.class);
 
-
     //expectations
-    expect(resource.getType()).andReturn(Resource.Type.Component);
-    expect(resource.getQuery()).andReturn(query);
-    expect(query.getInternalPredicate()).andReturn(predicate);
+    expect(resource.getResourceDefinition()).andReturn(resourceDefinition).anyTimes();
+    expect(resourceDefinition.getType()).andReturn(Resource.Type.Component).anyTimes();
+    expect(resource.getQuery()).andReturn(query).anyTimes();
+    expect(query.getPredicate()).andReturn(predicate).anyTimes();
 
     expect(controller.deleteResources(Resource.Type.Component, predicate)).andReturn(new RequestStatusImpl(null));
 
-    replay(resource, controller, schema, query, predicate);
+    replay(resource, resourceDefinition, controller, query, predicate);
 
     new TestDeletePersistenceManager(controller).persist(resource, null);
 
-    verify(resource, controller, schema, query, predicate);
+    verify(resource, resourceDefinition, controller, query, predicate);
   }
 
 

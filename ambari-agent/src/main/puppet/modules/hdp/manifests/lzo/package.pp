@@ -23,7 +23,7 @@ define hdp::lzo::package()
   $size = $name
 
   case $hdp::params::hdp_os_type {
-    centos6, rhel6: {
+    centos6, redhat6: {
       $pkg_type = 'lzo-rhel6'
     }
     default: {
@@ -41,4 +41,3 @@ define hdp::lzo::package()
   $anchor_end = "hdp::lzo::package::${size}::end"
   anchor{$anchor_beg:} ->  Hdp::Package["lzo ${size}"] -> anchor{$anchor_end:}
 }
-

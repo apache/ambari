@@ -811,9 +811,17 @@ Rickshaw.Fixtures.Time = function() {
 			seconds: 86400 * 365.25 * 10,
 			formatter: function(d) { return (parseInt(d.getUTCFullYear() / 10) * 10) }
 		}, {
+			name: '5 year',
+			seconds: 86400 * 365.25 * 5,
+			formatter: function(d) { return (parseInt(d.getUTCFullYear() / 5) * 5) }
+		}, {
 			name: 'year',
 			seconds: 86400 * 365.25,
 			formatter: function(d) { return d.getUTCFullYear() }
+		}, {
+			name: '6 month',
+			seconds: 86400 * 30.5 * 6,
+			formatter: function(d) { return self.months[d.getUTCMonth()] }
 		}, {
 			name: 'month',
 			seconds: 86400 * 30.5,
@@ -821,6 +829,10 @@ Rickshaw.Fixtures.Time = function() {
 		}, {
 			name: 'week',
 			seconds: 86400 * 7,
+			formatter: function(d) { return self.formatDate(d) }
+		}, {
+			name: '3 day',
+			seconds: 86400 * 3,
 			formatter: function(d) { return self.formatDate(d) }
 		}, {
 			name: 'day',
@@ -839,12 +851,20 @@ Rickshaw.Fixtures.Time = function() {
 			seconds: 60 * 15,
 			formatter: function(d) { return self.formatTime(d) }
 		}, {
+			name: '5 minute',
+			seconds: 60 * 5,
+			formatter: function(d) { return self.formatTime(d) }
+		}, {
 			name: 'minute',
 			seconds: 60,
 			formatter: function(d) { return d.getUTCMinutes() }
 		}, {
 			name: '15 second',
 			seconds: 15,
+			formatter: function(d) { return d.getUTCSeconds() + 's' }
+		}, {
+			name: '5 second',
+			seconds: 5,
 			formatter: function(d) { return d.getUTCSeconds() + 's' }
 		}, {
 			name: 'second',

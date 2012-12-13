@@ -109,7 +109,16 @@ public class HostResponse {
    * Host Health Status
    */
   private HostHealthStatus healthStatus;
+  
+  /**
+   * Public name.
+   */
+  private String publicHostname = null;
 
+  /**
+   * Host State
+   */
+  private String hostState;
 
   public HostResponse(String hostname, Set<String> clusterNames,
                       String ipv4, String ipv6, int cpuCount, String osArch, String osType,
@@ -117,7 +126,7 @@ public class HostResponse {
                       List<DiskInfo> disksInfo, long lastHeartbeatTime,
                       long lastRegistrationTime, String rackInfo,
                       Map<String, String> hostAttributes, AgentVersion agentVersion,
-                      HostHealthStatus healthStatus) {
+                      HostHealthStatus healthStatus, String hostState) {
     super();
     this.hostname = hostname;
     this.clusterNames = clusterNames;
@@ -136,6 +145,7 @@ public class HostResponse {
     this.hostAttributes = hostAttributes;
     this.agentVersion = agentVersion;
     this.healthStatus = healthStatus;
+    this.setHostState(hostState);
   }
 
   public HostResponse(String hostname) {
@@ -144,7 +154,7 @@ public class HostResponse {
         "", 0, 0, new ArrayList<DiskInfo>(),
         0, 0, "",
         new HashMap<String, String>(),
-        null, null);
+        null, null, null);
   }
 
   /**
@@ -404,6 +414,28 @@ public class HostResponse {
   public int hashCode() {
     int result = hostname != null ? hostname.hashCode() : 0;
     return result;
+  }
+
+  public String getPublicHostName() {
+    return publicHostname;
+  }
+  
+  public void setPublicHostName(String name) {
+    publicHostname = name;
+  }
+
+  /**
+   * @return the hostState
+   */
+  public String getHostState() {
+    return hostState;
+  }
+
+  /**
+   * @param hostState the hostState to set
+   */
+  public void setHostState(String hostState) {
+    this.hostState = hostState;
   }
 
 }

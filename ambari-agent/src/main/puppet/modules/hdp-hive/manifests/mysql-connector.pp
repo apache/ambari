@@ -27,7 +27,7 @@ class hdp-hive::mysql-connector()
   
   anchor { 'hdp-hive::mysql-connector::begin':}
 
-   hdp::package { 'mysql-connector' :
+   hdp::package { 'mysql-connector-java' :
      require   => Anchor['hdp-hive::mysql-connector::begin']
    }
 
@@ -36,7 +36,7 @@ class hdp-hive::mysql-connector()
        unless  => "test -f ${target}",
        creates => $target,
        path    => ["/bin","/usr/bin/"],
-       require => Hdp::Package['mysql-connector'],
+       require => Hdp::Package['mysql-connector-java'],
        notify  =>  Anchor['hdp-hive::mysql-connector::end'],
    }
 

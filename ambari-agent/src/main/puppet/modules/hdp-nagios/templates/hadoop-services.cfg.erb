@@ -31,17 +31,6 @@ define service {
 }
 
 define service {        
-        hostgroup_name          all-servers
-        use                     hadoop-service
-        service_description     PUPPET::Puppet agent down
-        servicegroups           PUPPET
-        check_command           check_tcp!8139!-w 1 -c 1
-        normal_check_interval   1
-        retry_check_interval    0.25
-        max_check_attempts      4
-}
-
-define service {        
         hostgroup_name          nagios-server        
         use                     hadoop-service
         service_description     NAGIOS::Nagios status log staleness
@@ -433,10 +422,10 @@ define service {
         use                     hadoop-service
         service_description     HIVE-METASTORE::HIVE-METASTORE status check
         servicegroups           HIVE-METASTORE
-        <%if scope.function_hdp_template_var("security_enabled")-%>
-        check_command           check_hive_metastore_status!9083!<%=scope.function_hdp_template_var("java32_home")%>!true!<%=scope.function_hdp_template_var("keytab_path")%>/<%=scope.function_hdp_template_var("nagios_user")%>.headless.keytab!<%=scope.function_hdp_template_var("nagios_user")%>
+        <%if scope.function_hdp_template_var("security_enabled") == "true"-%>
+        check_command           check_hive_metastore_status!9083!<%=scope.function_hdp_template_var("java64_home")%>!true!<%=scope.function_hdp_template_var("keytab_path")%>/<%=scope.function_hdp_template_var("nagios_user")%>.headless.keytab!<%=scope.function_hdp_template_var("nagios_user")%>
         <%else-%>
-        check_command           check_hive_metastore_status!9083!<%=scope.function_hdp_template_var("java32_home")%>!false
+        check_command           check_hive_metastore_status!9083!<%=scope.function_hdp_template_var("java64_home")%>!false
         <%end-%>
         normal_check_interval   0.5
         retry_check_interval    0.5
@@ -450,10 +439,10 @@ define service {
         use                     hadoop-service
         service_description     OOZIE::Oozie status check
         servicegroups           OOZIE
-        <%if scope.function_hdp_template_var("security_enabled")-%>
-        check_command           check_oozie_status!11000!<%=scope.function_hdp_template_var("java32_home")%>!true!<%=scope.function_hdp_template_var("keytab_path")%>/<%=scope.function_hdp_template_var("nagios_user")%>.headless.keytab!<%=scope.function_hdp_template_var("nagios_user")%>
+        <%if scope.function_hdp_template_var("security_enabled") == "true" -%>
+        check_command           check_oozie_status!11000!<%=scope.function_hdp_template_var("java64_home")%>!true!<%=scope.function_hdp_template_var("keytab_path")%>/<%=scope.function_hdp_template_var("nagios_user")%>.headless.keytab!<%=scope.function_hdp_template_var("nagios_user")%>
         <%else-%>
-        check_command           check_oozie_status!11000!<%=scope.function_hdp_template_var("java32_home")%>!false
+        check_command           check_oozie_status!11000!<%=scope.function_hdp_template_var("java64_home")%>!false
         <%end-%>
         normal_check_interval   1
         retry_check_interval    1
@@ -467,7 +456,7 @@ define service {
         use                     hadoop-service
         service_description     TEMPLETON::Templeton status check
         servicegroups           TEMPLETON
-        <%if scope.function_hdp_template_var("security_enabled")-%>
+        <%if scope.function_hdp_template_var("security_enabled") == "true"-%>
         check_command           check_templeton_status!50111!v1!true!<%=scope.function_hdp_template_var("keytab_path")%>/<%=scope.function_hdp_template_var("nagios_user")%>.headless.keytab!<%=scope.function_hdp_template_var("nagios_user")%>
         <%else-%>
         check_command           check_templeton_status!50111!v1!false

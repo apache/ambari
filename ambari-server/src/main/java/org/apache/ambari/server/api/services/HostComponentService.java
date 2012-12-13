@@ -18,11 +18,13 @@
 
 package org.apache.ambari.server.api.services;
 
-import org.apache.ambari.server.api.resources.HostComponentResourceDefinition;
-import org.apache.ambari.server.api.resources.ResourceDefinition;
+import org.apache.ambari.server.api.resources.ResourceInstance;
+import org.apache.ambari.server.controller.spi.Resource;
 
 import javax.ws.rs.*;
 import javax.ws.rs.core.*;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Service responsible for host_components resource requests.
@@ -64,8 +66,15 @@ public class HostComponentService extends BaseService {
   public Response getHostComponent(@Context HttpHeaders headers, @Context UriInfo ui,
                                    @PathParam("hostComponentName") String hostComponentName) {
 
+    //todo: needs to be refactored when properly handling exceptions
+    if (m_hostName == null) {
+      // don't allow case where host is not in url but a host_component instance resource is requested
+      String s = "Invalid request. Must provide host information when requesting a host_resource instance resource.";
+      return Response.status(400).entity(s).build();
+    }
+
     return handleRequest(headers, null, ui, Request.Type.GET,
-        createResourceDefinition(hostComponentName, m_clusterName, m_hostName));
+        createHostComponentResource(m_clusterName, m_hostName, hostComponentName));
   }
 
   /**
@@ -80,7 +89,7 @@ public class HostComponentService extends BaseService {
   @Produces("text/plain")
   public Response getHostComponents(@Context HttpHeaders headers, @Context UriInfo ui) {
     return handleRequest(headers, null, ui, Request.Type.GET,
-        createResourceDefinition(null, m_clusterName, m_hostName));
+        createHostComponentResource(m_clusterName, m_hostName, null));
   }
 
   /**
@@ -99,7 +108,7 @@ public class HostComponentService extends BaseService {
   public Response createHostComponents(String body, @Context HttpHeaders headers, @Context UriInfo ui) {
 
     return handleRequest(headers, body, ui, Request.Type.POST,
-        createResourceDefinition(null, m_clusterName, m_hostName));
+        createHostComponentResource(m_clusterName, m_hostName, null));
   }
 
   /**
@@ -120,7 +129,7 @@ public class HostComponentService extends BaseService {
                                    @PathParam("hostComponentName") String hostComponentName) {
 
     return handleRequest(headers, body, ui, Request.Type.POST,
-        createResourceDefinition(hostComponentName, m_clusterName, m_hostName));
+        createHostComponentResource(m_clusterName, m_hostName, hostComponentName));
   }
 
   /**
@@ -141,7 +150,7 @@ public class HostComponentService extends BaseService {
                                       @PathParam("hostComponentName") String hostComponentName) {
 
     return handleRequest(headers, body, ui, Request.Type.PUT,
-        createResourceDefinition(hostComponentName, m_clusterName, m_hostName));
+        createHostComponentResource(m_clusterName, m_hostName, hostComponentName));
   }
 
   /**
@@ -159,7 +168,7 @@ public class HostComponentService extends BaseService {
   public Response updateHostComponents(String body, @Context HttpHeaders headers, @Context UriInfo ui) {
 
     return handleRequest(headers, body, ui, Request.Type.PUT,
-        createResourceDefinition(null, m_clusterName, m_hostName));
+        createHostComponentResource(m_clusterName, m_hostName, null));
   }
 
   /**
@@ -179,18 +188,24 @@ public class HostComponentService extends BaseService {
                                    @PathParam("hostComponentName") String hostComponentName) {
 
     return handleRequest(headers, null, ui, Request.Type.DELETE,
-        createResourceDefinition(hostComponentName, m_clusterName, m_hostName));
+        createHostComponentResource(m_clusterName, m_hostName, hostComponentName));
   }
 
   /**
-   * Create a host_component resource definition.
+   * Create a host_component resource instance.
    *
-   * @param hostComponentName host_component name
    * @param clusterName       cluster name
    * @param hostName          host name
-   * @return a host resource definition
+   * @param hostComponentName host_component name
+   *
+   * @return a host resource instance
    */
-  ResourceDefinition createResourceDefinition(String hostComponentName, String clusterName, String hostName) {
-    return new HostComponentResourceDefinition(hostComponentName, clusterName, hostName);
+  ResourceInstance createHostComponentResource(String clusterName, String hostName, String hostComponentName) {
+    Map<Resource.Type,String> mapIds = new HashMap<Resource.Type, String>();
+    mapIds.put(Resource.Type.Cluster, clusterName);
+    mapIds.put(Resource.Type.Host, hostName);
+    mapIds.put(Resource.Type.HostComponent, hostComponentName);
+
+    return createResource(Resource.Type.HostComponent, mapIds);
   }
 }

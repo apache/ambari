@@ -61,7 +61,7 @@ public class ActionMetadata {
     serviceActions.put("oozie"      , Arrays.asList(Role.OOZIE_SERVICE_CHECK.toString()));
     serviceActions.put("pig"        , Arrays.asList(Role.PIG_SERVICE_CHECK.toString()));
     serviceActions.put("sqoop"      , Arrays.asList(Role.SQOOP_SERVICE_CHECK.toString()));
-    serviceActions.put("templeton"  , Arrays.asList(Role.TEMPLETON_SERVICE_CHECK.toString()));
+    serviceActions.put("webhcat"  , Arrays.asList(Role.WEBHCAT_SERVICE_CHECK.toString()));
   }
 
   private void fillServiceCheckActions() {
@@ -76,8 +76,8 @@ public class ActionMetadata {
     serviceCheckActions.put("oozie", Role.OOZIE_SERVICE_CHECK.toString());
     serviceCheckActions.put("pig", Role.PIG_SERVICE_CHECK.toString());
     serviceCheckActions.put("sqoop", Role.SQOOP_SERVICE_CHECK.toString());
-    serviceCheckActions.put("templeton",
-        Role.TEMPLETON_SERVICE_CHECK.toString());
+    serviceCheckActions.put("webhcat",
+        Role.WEBHCAT_SERVICE_CHECK.toString());
   }
 
   public List<String> getActions(String serviceName) {

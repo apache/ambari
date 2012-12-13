@@ -36,7 +36,7 @@ define hdp::configfile(
   $hcat_server_host = $hdp::params::hcat_server_host,
   $hive_server_host = $hdp::params::hive_server_host,
   $oozie_server = $hdp::params::oozie_server,
-  $templeton_server_host = $hdp::params::templeton_server_host,
+  $webhcat_server_host = $hdp::params::webhcat_server_host,
   $hcat_mysql_host = $hdp::params::hcat_mysql_host,
   $nagios_server_host = $hdp::params::nagios_server_host,
   $ganglia_server_host = $hdp::params::ganglia_server_host,
@@ -52,7 +52,7 @@ define hdp::configfile(
   $public_dashboard_host = $hdp::params::public_dashboard_host,
   $public_hive_server_host = $hdp::params::public_hive_server_host,
   $public_oozie_server = $hdp::params::public_oozie_server,
-  $public_templeton_server_host = $hdp::params::public_templeton_server_host
+  $public_webhcat_server_host = $hdp::params::public_webhcat_server_host
 ) 
 {
 

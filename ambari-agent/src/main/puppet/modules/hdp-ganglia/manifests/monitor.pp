@@ -45,9 +45,9 @@ class hdp-ganglia::monitor(
       class { 'hdp-ganglia::config': ganglia_server_host => $ganglia_server_host}
     }
 
-#    if (($hdp::params::service_exists['hdp-hadoop::datanode'] == true) or ($hdp::params::service_exists['hdp-hadoop::namenode'] == true) or ($hdp::params::service_exists['hdp-hadoop::jobtracker'] == true) or ($hdp::params::service_exists['hdp-hadoop::tasktracker'] == true) or ($hdp::params::service_exists['hdp-hadoop::client'] == true) or ($hdp::params::service_exists['hdp-hadoop::snamenode'] == true)) {
-#     class { 'hdp-hadoop::enable-ganglia': }
-#   }
+    if (($hdp::params::service_exists['hdp-hadoop::datanode'] == true) or ($hdp::params::service_exists['hdp-hadoop::namenode'] == true) or ($hdp::params::service_exists['hdp-hadoop::jobtracker'] == true) or ($hdp::params::service_exists['hdp-hadoop::tasktracker'] == true) or ($hdp::params::service_exists['hdp-hadoop::client'] == true) or ($hdp::params::service_exists['hdp-hadoop::snamenode'] == true)) {
+     class { 'hdp-hadoop::enable-ganglia': }
+   }
 
     if ($service_exists['hdp-hbase::master'] == true) {
       class { 'hdp-hbase::master::enable-ganglia': }
@@ -76,18 +76,29 @@ class hdp-ganglia::monitor::config-gen()
 
   $service_exists = $hdp::params::service_exists
 
-  if ($service_exists['hdp-hadoop::namenode'] == true) {
-    hdp-ganglia::config::generate_monitor { 'HDPNameNode':}
-  }
-  if ($service_exists['hdp-hadoop::jobtracker'] == true){
-    hdp-ganglia::config::generate_monitor { 'HDPJobTracker':}
-  }
-  if ($service_exists['hdp-hbase::master'] == true) {
-    hdp-ganglia::config::generate_monitor { 'HDPHBaseMaster':}
-  }
-  if ($service_exists['hdp-hadoop::datanode'] == true) {
-    hdp-ganglia::config::generate_monitor { 'HDPSlaves':}
-  }
+   #FIXME currently hacking this to make it work
+
+#  if ($service_exists['hdp-hadoop::namenode'] == true) {
+#    hdp-ganglia::config::generate_monitor { 'HDPNameNode':}
+#  }
+#  if ($service_exists['hdp-hadoop::jobtracker'] == true){
+#    hdp-ganglia::config::generate_monitor { 'HDPJobTracker':}
+#  }
+#  if ($service_exists['hdp-hbase::master'] == true) {
+#    hdp-ganglia::config::generate_monitor { 'HDPHBaseMaster':}
+#  }
+#  if ($service_exists['hdp-hadoop::datanode'] == true) {
+#    hdp-ganglia::config::generate_monitor { 'HDPSlaves':}
+#  }
+
+  # FIXME
+  # this will be enable gmond for all clusters on the node
+  # should be selective based on roles present
+  hdp-ganglia::config::generate_monitor { 'HDPNameNode':}
+  hdp-ganglia::config::generate_monitor { 'HDPJobTracker':}
+  hdp-ganglia::config::generate_monitor { 'HDPHBaseMaster':}
+  hdp-ganglia::config::generate_monitor { 'HDPSlaves':}
+
   Hdp-ganglia::Config::Generate_monitor<||>{
     ganglia_service => 'gmond',
     role => 'monitor'
@@ -108,7 +119,6 @@ class hdp-ganglia::monitor::gmond(
   if ($ensure == 'running' or $ensure == 'stopped') {
     hdp::exec { "hdp-gmond service" :
       command => "$command",
-      unless => "/bin/ps auwx | /bin/grep [g]mond",
       path      => '/usr/sbin:/sbin:/usr/local/bin:/bin:/usr/bin'
     }
   }

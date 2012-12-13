@@ -19,8 +19,10 @@
 package org.apache.ambari.server.bootstrap;
 
 import static org.mockito.Matchers.any;
+import static org.mockito.Mockito.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
+
 
 import java.util.ArrayList;
 
@@ -28,7 +30,6 @@ import javax.ws.rs.core.MediaType;
 
 import junit.framework.Assert;
 
-import org.apache.ambari.server.agent.AgentResourceTest;
 import org.apache.ambari.server.api.rest.BootStrapResource;
 import org.apache.ambari.server.bootstrap.BSResponse.BSRunStat;
 import org.apache.ambari.server.bootstrap.BootStrapStatus.BSStat;
@@ -53,7 +54,7 @@ import com.sun.jersey.test.framework.WebAppDescriptor;
 public class BootStrapResourceTest extends JerseyTest {
 
   static String PACKAGE_NAME = "org.apache.ambari.server.api.rest";
-  private static Log LOG = LogFactory.getLog(AgentResourceTest.class);
+  private static Log LOG = LogFactory.getLog(BootStrapResourceTest.class);
   Injector injector;
   BootStrapImpl bsImpl;
 

@@ -35,8 +35,8 @@ public class RegistrationResponse {
   @JsonProperty("responseId")
   private long responseId;
   
-  @JsonProperty("commands")
-  private List<StatusCommand> commands = null;
+  @JsonProperty("statusCommands")
+  private List<StatusCommand> statusCommands = null;
 
   public RegistrationStatus getResponseStatus() {
     return response;
@@ -46,12 +46,12 @@ public class RegistrationResponse {
     this.response = response;
   }
 
-  public List<StatusCommand> getCommands() {
-    return commands;
+  public List<StatusCommand> getStatusCommands() {
+    return statusCommands;
   }
 
-  public void setCommands(List<StatusCommand> commands) {
-    this.commands = commands;
+  public void setStatusCommands(List<StatusCommand> statusCommands) {
+    this.statusCommands = statusCommands;
   }
 
   public long getResponseId() {
@@ -60,5 +60,14 @@ public class RegistrationResponse {
 
   public void setResponseId(long responseId) {
     this.responseId = responseId;
+  }
+
+  @Override
+  public String toString() {
+    return "RegistrationResponse{" +
+            "response=" + response +
+            ", responseId=" + responseId +
+            ", statusCommands=" + statusCommands +
+            '}';
   }
 }

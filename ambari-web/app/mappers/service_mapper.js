@@ -63,9 +63,10 @@ App.servicesMapper = App.QuickDataMapper.create({
     jvm_memory_heap_committed: 'nameNodeComponent.host_components[0].metrics.jvm.memHeapCommittedM',
     live_data_nodes: 'live_data_nodes',
     dead_data_nodes: 'dead_data_nodes',
-    decommision_data_nodes: 'decommission_data_nodes',
+    decommission_data_nodes: 'decommission_data_nodes',
     capacity_used: 'nameNodeComponent.ServiceComponentInfo.CapacityUsed',
     capacity_total: 'nameNodeComponent.ServiceComponentInfo.CapacityTotal',
+    capacity_remaining: 'nameNodeComponent.ServiceComponentInfo.CapacityRemaining',
     dfs_total_blocks: 'nameNodeComponent.ServiceComponentInfo.BlocksTotal',
     dfs_corrupt_blocks: 'nameNodeComponent.ServiceComponentInfo.CorruptBlocks',
     dfs_missing_blocks: 'nameNodeComponent.ServiceComponentInfo.MissingBlocks',
@@ -96,7 +97,7 @@ App.servicesMapper = App.QuickDataMapper.create({
     maps_waiting: 'jobTrackerComponent.ServiceComponentInfo.jobtracker.waiting_maps',
     reduces_running: 'jobTrackerComponent.ServiceComponentInfo.jobtracker.running_reduces',
     reduces_waiting: 'jobTrackerComponent.ServiceComponentInfo.jobtracker.waiting_reduces',
-    trackers_decommisioned: 'jobTrackerComponent.host_components[0].metrics.mapred.jobtracker.trackers_decommissioned'
+    trackers_decommissioned: 'jobTrackerComponent.host_components[0].metrics.mapred.jobtracker.trackers_decommissioned'
   },
   hbaseConfig: {
     version: 'masterComponent.ServiceComponentInfo.Version',
@@ -116,9 +117,14 @@ App.servicesMapper = App.QuickDataMapper.create({
     id: 'ServiceComponentInfo.component_name',
     component_name: 'ServiceComponentInfo.component_name',
     service_id: 'ServiceComponentInfo.service_name',
+    // TODO - PROBLEM:
+    // below statements are a problem for multiple 
+    // host_component components. Because it randomly
+    // picks one of the hosts. Especially the host details
+    // page must be careful because, it will randomly
+    // pick a host.
     work_status: 'host_components[0].HostRoles.state',
-    host_id: 'host_components[0].HostRoles.host_name',
-    $decommissioned: false
+    host_id: 'host_components[0].HostRoles.host_name'
   },
 
   model3: App.HostComponent,
@@ -213,6 +219,32 @@ App.servicesMapper = App.QuickDataMapper.create({
           e.set("dfsTotalFiles", finalJson.dfs_total_files);
           e.set("upgradeStatus", finalJson.upgrade_status);
           e.set("safeModeStatus", finalJson.safe_mode_status);
+          // Live data nodes
+          var dataNodes = e.get('liveDataNodes');
+          if (dataNodes) {
+            dataNodes.clear();
+            finalJson.live_data_nodes.forEach(function (ldn) {
+              dataNodes.pushObject(App.Host.find(ldn));
+            });
+          }
+          // Decommission data nodes
+          dataNodes = e.get('decommissionDataNodes');
+          if (dataNodes) {
+            dataNodes.clear();
+            finalJson.decommission_data_nodes.forEach(function (ldn) {
+              dataNodes.pushObject(App.Host.find(ldn));
+            });
+          }
+          // Dead data nodes
+          /** Uncomment when BUG-2368 is fixed.
+          dataNodes = e.get('deadDataNodes');
+          if (dataNodes) {
+            dataNodes.clear();
+            finalJson.dead_data_nodes.forEach(function (ldn) {
+              dataNodes.pushObject(App.Host.find(ldn));
+            });
+          }
+          */
         });
         break;
       case 'MAPREDUCE':
@@ -234,7 +266,7 @@ App.servicesMapper = App.QuickDataMapper.create({
           e.set("mapsWaiting", finalJson.maps_waiting);
           e.set("reducesRunning", finalJson.reduces_running);
           e.set("reducesWaiting", finalJson.reduces_waiting);
-          e.set("trackersDecommisioned", finalJson.trackers_decommisioned);
+          e.set("trackersDecommissioned", finalJson.trackers_decommissioned);
         })
         break;
       case 'HBASE':
@@ -250,7 +282,7 @@ App.servicesMapper = App.QuickDataMapper.create({
           e.set("heapMemoryMax", finalJson.heap_memory_max);
         })
         break;
-      default :
+      default:
         this.otherMapper(service);
     }
   },
@@ -269,21 +301,22 @@ App.servicesMapper = App.QuickDataMapper.create({
       if (component.ServiceComponentInfo && component.ServiceComponentInfo.component_name == "NAMENODE") {
         item.nameNodeComponent = component;
         finalConfig = jQuery.extend(finalConfig, hdfsConfig);
-        // Get the live, dead & decommision nodes from string json
+        // Get the live, dead & decommission nodes from string json
         var liveNodesJson = App.parseJSON(component.ServiceComponentInfo.LiveNodes);
         var deadNodesJson = App.parseJSON(component.ServiceComponentInfo.DeadNodes);
-        var decommisionNodesJson = App.parseJSON(component.ServiceComponentInfo.DecomNodes);
+        var decommissionNodesJson = App.parseJSON(component.ServiceComponentInfo.DecomNodes);
         item.live_data_nodes = [];
         item.dead_data_nodes = [];
-        item.decommision_data_nodes = [];
+        item.decommission_data_nodes = [];
         for (var ln in liveNodesJson) {
           item.live_data_nodes.push(ln);
         }
         for (var dn in deadNodesJson) {
-          item.dead_data_nodes.push(dn);
+          // Uncomment when BUG-2368 is fixed.
+          //item.dead_data_nodes.push(dn);
         }
-        for (var dcn in decommisionNodesJson) {
-          item.decommision_data_nodes.push(dcn);
+        for (var dcn in decommissionNodesJson) {
+          item.decommission_data_nodes.push(dcn);
         }
       }
       if (component.ServiceComponentInfo && component.ServiceComponentInfo.component_name == "SECONDARY_NAMENODE") {

@@ -19,7 +19,7 @@
 package org.apache.ambari.server;
 
 @SuppressWarnings("serial")
-public class ServiceNotFoundException extends AmbariException {
+public class ServiceNotFoundException extends ObjectNotFoundException {
 
   public ServiceNotFoundException(String clusterName, String serviceName) {
     super("Service not found"

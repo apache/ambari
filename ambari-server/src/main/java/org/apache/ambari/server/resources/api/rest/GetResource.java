@@ -44,11 +44,11 @@ import com.google.inject.Inject;
 public class GetResource {
   private static Log LOG = LogFactory.getLog(GetResource.class);
 
-  private static ResourceManager resMan;
+  private static ResourceManager resourceManager;
 
   @Inject
   public static void init(ResourceManager instance) {
-	  resMan = instance;
+	  resourceManager = instance;
   }
 
 
@@ -56,11 +56,17 @@ public class GetResource {
   @Path("{resourcePath:.*}")
   @Consumes(MediaType.TEXT_PLAIN)
   @Produces(MediaType.APPLICATION_OCTET_STREAM)
-  public Response getResource(@PathParam("resourcePath") String resourcePath, @Context HttpServletRequest req) {
-    File resourceFile = resMan.getResource(resourcePath);
+  public Response getResource(@PathParam("resourcePath") String resourcePath,
+      @Context HttpServletRequest req) {
+    if (LOG.isDebugEnabled()) {
+      LOG.debug("Received a resource request from agent"
+          + ", resourcePath=" + resourcePath);
+    }
+    File resourceFile = resourceManager.getResource(resourcePath);
 
-    if (!resourceFile.exists())
+    if (!resourceFile.exists()) {
     	return Response.status(HttpServletResponse.SC_NOT_FOUND).build();
+    }
 
     return Response.ok(resourceFile).build();
   }

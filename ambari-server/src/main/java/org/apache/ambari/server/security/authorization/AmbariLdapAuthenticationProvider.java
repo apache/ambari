@@ -60,7 +60,7 @@ public class AmbariLdapAuthenticationProvider implements AuthenticationProvider 
       return loadLdapAuthenticationProvider().authenticate(authentication);
 
     } else {
-      throw new UsernameNotFoundException("LDAP authorization is not enabled");
+      return null;
     }
 
   }

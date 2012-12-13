@@ -19,6 +19,7 @@
 package org.apache.ambari.server.api.services;
 
 import org.apache.ambari.server.api.resources.ResourceDefinition;
+import org.apache.ambari.server.api.resources.ResourceInstance;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.api.util.TreeNode;
 
@@ -40,8 +41,8 @@ public class ResultPostProcessorImpl implements ResultPostProcessor {
    * Map of resource post processors keyed by resource type.
    * These are used to act on specific resource types contained in the result.
    */
-  Map<Resource.Type, List<ResourceDefinition.PostProcessor>> m_mapPostProcessors =
-      new HashMap<Resource.Type, List<ResourceDefinition.PostProcessor>>();
+  Map<Resource.Type, List<ResourceDefinition.PostProcessor>>
+      m_mapPostProcessors = new HashMap<Resource.Type, List<ResourceDefinition.PostProcessor>>();
 
 
   /**
@@ -52,7 +53,7 @@ public class ResultPostProcessorImpl implements ResultPostProcessor {
   public ResultPostProcessorImpl(Request request) {
     m_request = request;
 
-    registerResourceProcessors(m_request.getResourceDefinition());
+    registerResourceProcessors(m_request.getResource());
   }
 
   @Override
@@ -69,7 +70,8 @@ public class ResultPostProcessorImpl implements ResultPostProcessor {
   private void processNode(TreeNode<Resource> node, String href) {
     Resource r = node.getObject();
     if (r != null) {
-      List<ResourceDefinition.PostProcessor> listProcessors = m_mapPostProcessors.get(r.getType());
+      List<ResourceDefinition.PostProcessor> listProcessors =
+          m_mapPostProcessors.get(r.getType());
       for (ResourceDefinition.PostProcessor processor : listProcessors) {
         processor.process(m_request, node, href);
       }
@@ -96,17 +98,18 @@ public class ResultPostProcessorImpl implements ResultPostProcessor {
    *
    * @param resource the root resource
    */
-  private void registerResourceProcessors(ResourceDefinition resource) {
-    List<ResourceDefinition.PostProcessor> listProcessors = m_mapPostProcessors.get(resource.getType());
+  private void registerResourceProcessors(ResourceInstance resource) {
+    Resource.Type type = resource.getResourceDefinition().getType();
+    List<ResourceDefinition.PostProcessor> listProcessors = m_mapPostProcessors.get(type);
     if (listProcessors == null) {
       listProcessors = new ArrayList<ResourceDefinition.PostProcessor>();
-      m_mapPostProcessors.put(resource.getType(), listProcessors);
+      m_mapPostProcessors.put(type, listProcessors);
     }
-    listProcessors.addAll(resource.getPostProcessors());
+    listProcessors.addAll(resource.getResourceDefinition().getPostProcessors());
 
-    for (ResourceDefinition child : resource.getSubResources().values()) {
+    for (ResourceInstance child : resource.getSubResources().values()) {
       // avoid cycle
-      if (!m_mapPostProcessors.containsKey(child.getType())) {
+      if (!m_mapPostProcessors.containsKey(child.getResourceDefinition().getType())) {
         registerResourceProcessors(child);
       }
     }

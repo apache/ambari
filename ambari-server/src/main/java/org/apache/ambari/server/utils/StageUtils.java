@@ -17,20 +17,6 @@
  */
 package org.apache.ambari.server.utils;
 
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.InetAddress;
-import java.net.UnknownHostException;
-import java.nio.charset.Charset;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.TreeMap;
-
-import javax.xml.bind.JAXBException;
-
 import org.apache.ambari.server.Role;
 import org.apache.ambari.server.RoleCommand;
 import org.apache.ambari.server.actionmanager.Stage;
@@ -42,11 +28,18 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.codehaus.jackson.JsonGenerationException;
 import org.codehaus.jackson.JsonParseException;
-import org.codehaus.jackson.map.AnnotationIntrospector;
 import org.codehaus.jackson.map.JsonMappingException;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.map.SerializationConfig;
-import org.codehaus.jackson.xc.JaxbAnnotationIntrospector;
+
+import javax.xml.bind.JAXBException;
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
+import java.nio.charset.Charset;
+import java.util.*;
 
 public class StageUtils {
   private static Log LOG = LogFactory.getLog(StageUtils.class);
@@ -64,8 +57,8 @@ public class StageUtils {
     componentToClusterInfoKeyMap.put("HCATALOG_SERVER", "hcat_server_host");
     componentToClusterInfoKeyMap.put("HIVE_SERVER", "hive_server_host");
     componentToClusterInfoKeyMap.put("OOZIE_SERVER", "oozie_server");
-    componentToClusterInfoKeyMap.put("TEMPLETON_SERVER",
-        "templeton_server_host");
+    componentToClusterInfoKeyMap.put("WEBHCAT_SERVER",
+        "webhcat_server_host");
     componentToClusterInfoKeyMap.put("DASHBOARD", "dashboard_host");
     componentToClusterInfoKeyMap.put("NAGIOS_SERVER", "nagios_server_host");
     componentToClusterInfoKeyMap.put("GANGLIA_SERVER",
@@ -106,8 +99,9 @@ public class StageUtils {
     s.setStageId(stageId);
     long now = System.currentTimeMillis();
     s.addHostRoleExecutionCommand(hostname, Role.NAMENODE, RoleCommand.INSTALL,
-        new ServiceComponentHostInstallEvent("NAMENODE", hostname, now), "cluster1", "HDFS");
-    ExecutionCommand execCmd = s.getExecutionCommand(hostname, "NAMENODE");
+        new ServiceComponentHostInstallEvent("NAMENODE", hostname, now, "HDP-1.2.0"),
+        "cluster1", "HDFS");
+    ExecutionCommand execCmd = s.getExecutionCommandWrapper(hostname, "NAMENODE").getExecutionCommand();
     execCmd.setCommandId(s.getActionId());
     Map<String, List<String>> clusterHostInfo = new TreeMap<String, List<String>>();
     List<String> slaveHostList = new ArrayList<String>();
@@ -133,7 +127,6 @@ public class StageUtils {
   public static String jaxbToString(Object jaxbObj) throws JAXBException,
   JsonGenerationException, JsonMappingException, IOException {
     ObjectMapper mapper = new ObjectMapper();
-    AnnotationIntrospector introspector = new JaxbAnnotationIntrospector();
     mapper.configure(SerializationConfig.Feature.INDENT_OUTPUT, true);
     mapper.configure(SerializationConfig.Feature.USE_ANNOTATIONS, true);
     return mapper.writeValueAsString(jaxbObj);
@@ -178,6 +171,8 @@ public class StageUtils {
               }
               info.put(clusterInfoKey, hostList);
             }
+            //Add ambari db server
+            info.put("ambari_db_server_host", Arrays.asList(getHostName()));
           }
         }
       }
@@ -185,6 +180,15 @@ public class StageUtils {
     return info;
   }
 
+  public static String getHostName() {
+    try {
+      return InetAddress.getLocalHost().getCanonicalHostName();
+    } catch (UnknownHostException e) {
+      LOG.warn("Could not find canonical hostname ", e);
+      return "localhost";
+    }
+  }
+  
   public static String getHostsToDecommission(List<String> hosts) {
     StringBuilder builder = new StringBuilder();
     builder.append("[");

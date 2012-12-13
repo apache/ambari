@@ -44,20 +44,21 @@ class Hardware:
     platforms. Note that this parser ignores any filesystems with spaces 
     and any mounts with spaces. """
     mounts = []
-    df = subprocess.Popen(["df", "-kP"], stdout=subprocess.PIPE)
+    df = subprocess.Popen(["df", "-kPT"], stdout=subprocess.PIPE)
     dfdata = df.communicate()[0]
     lines = dfdata.splitlines()
     for l in lines:
       split = l.split()
       """ this ignores any spaces in the filesystemname and mounts """
-      if (len(split)) == 6:
-        device, size, used, available, percent, mountpoint = split
+      if (len(split)) == 7:
+        device, type, size, used, available, percent, mountpoint = split
         mountinfo = { 
                      'size' : size,
                      'used' : used,
                      'available' : available,
                      'percent' : percent,
                      'mountpoint' : mountpoint,
+                     'type': type,
                      'device' : device }
 
         mounts.append(mountinfo)
@@ -66,13 +67,29 @@ class Hardware:
     return mounts
     
   def facterBin(self, facterHome):
-    return facterHome + "/bin/facter"
+    facterBin = facterHome + "/bin/facter"
+    if (os.path.exists(facterBin)):
+      return facterBin
+    else:
+      return "facter"
     pass
   
   def facterLib(self, facterHome):
     return facterHome + "/lib/"
     pass
   
+  def configureEnviron(self, environ):
+    if not AmbariConfig.config.has_option("puppet", "ruby_home"):
+      return environ
+    ruby_home = AmbariConfig.config.get("puppet", "ruby_home")
+    if os.path.exists(ruby_home):
+      """Only update ruby home if the config is configured"""
+      path = os.environ["PATH"]
+      if not ruby_home in path:
+        environ["PATH"] = ruby_home + os.path.sep + "bin"  + ":"+environ["PATH"] 
+      environ["MY_RUBY_HOME"] = ruby_home
+    return environ
+    
   def parseFacterOutput(self, facterOutput):
     retDict = {}
     allLines = facterOutput.splitlines()
@@ -117,9 +134,12 @@ class Hardware:
         rubyLib = ""
         if os.environ.has_key("RUBYLIB"):
           rubyLib = os.environ["RUBYLIB"]
-          logger.info("Ruby Lib env from Env " + rubyLib)
-        rubyLib = rubyLib + ":" + self.facterLib(facterHome)
+          logger.info("RUBYLIB from Env " + rubyLib)
+        if not (self.facterLib(facterHome) in rubyLib):
+          rubyLib = rubyLib + ":" + self.facterLib(facterHome)
+        
         facterEnv["RUBYLIB"] = rubyLib
+        facterEnv = self.configureEnviron(facterEnv)
         logger.info("Setting RUBYLIB as: " + rubyLib)
         facter = subprocess.Popen([self.facterBin(facterHome)],
                                   stdout=subprocess.PIPE,

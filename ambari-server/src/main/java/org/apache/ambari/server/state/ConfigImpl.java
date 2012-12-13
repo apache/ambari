@@ -83,7 +83,8 @@ public class ConfigImpl implements Config {
       properties = gson.<Map<String, String>>fromJson(entity.getData(), Map.class);
       
     }
-    return Collections.unmodifiableMap(null == properties ? new HashMap<String, String>() : properties);
+    return null == properties ? new HashMap<String, String>()
+        : new HashMap<String, String>(properties);
   }
 
   @Override

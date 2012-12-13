@@ -25,6 +25,7 @@ App.WizardStep3Controller = Em.Controller.extend({
   bootHosts: [],
   registrationStartedAt: null,
   registrationTimeoutSecs: 120,
+  stopBootstrap: false,
   isSubmitDisabled: true,
   hostStatusString: Em.I18n.t('installer.step3.hosts.summary'),
   hostStatusSummary: function () {
@@ -105,6 +106,7 @@ App.WizardStep3Controller = Em.Controller.extend({
   },
 
   clearStep: function () {
+    this.set('stopBootstrap', false);
     this.hosts.clear();
     this.bootHosts.clear();
     this.set('isSubmitDisabled', true);
@@ -118,10 +120,6 @@ App.WizardStep3Controller = Em.Controller.extend({
     var hosts = this.loadHosts();
     // hosts.setEach('bootStatus', 'RUNNING');
     this.renderHosts(hosts);
-
-    if(this.get('hosts').length) {
-      this.set('isSubmitDisabled', false);
-    }
   },
 
   /* Loads the hostinfo from localStorage on the insertion of view. It's being called from view */
@@ -256,6 +254,9 @@ App.WizardStep3Controller = Em.Controller.extend({
   },
 
   doBootstrap: function () {
+    if (this.get('stopBootstrap')) {
+      return;
+    }
     this.numPolls++;
     var self = this;
     var url = App.testMode ? '/data/wizard/bootstrap/poll_' + this.numPolls + '.json' : App.apiPrefix + '/bootstrap/' + this.get('content.hosts.bootRequestId');
@@ -312,6 +313,9 @@ App.WizardStep3Controller = Em.Controller.extend({
   },
 
   isHostsRegistered: function () {
+    if (this.get('stopBootstrap')) {
+      return;
+    }
     var self = this;
     var hosts = this.get('bootHosts');
     var url = App.testMode ? '/data/wizard/bootstrap/single_host_registration.json' : App.apiPrefix + '/hosts';
@@ -453,7 +457,7 @@ App.WizardStep3Controller = Em.Controller.extend({
   },
 
   stopRegistration: function () {
-    this.set('isSubmitDisabled', false);
+    this.set('isSubmitDisabled', !this.get('bootHosts').someProperty('bootStatus', 'REGISTERED'));
   },
 
 

@@ -246,20 +246,25 @@ App.AddHostController = App.WizardController.extend({
     console.log('addHostController:saveInstalledHosts: save hosts ', hostInfo);
   },
 
+  loadServicesFromServer: function() {
+    var displayOrderConfig = require('data/services');
+    var apiUrl = '/stacks/HDP/version/1.2.0';
+    var apiService = this.loadServiceComponents(displayOrderConfig, apiUrl);
+    //
+    apiService.forEach(function(item, index){
+      apiService[index].isSelected = App.Service.find().someProperty('id', item.serviceName);
+      apiService[index].isDisabled = apiService[index].isSelected;
+      apiService[index].isInstalled = apiService[index].isSelected;
+    });
+    this.set('content.services', apiService);
+    App.db.setService(apiService);
+  },
+
   /**
    * Load services data. Will be used at <code>Select services(step4)</code> step
    */
   loadServices: function () {
     var servicesInfo = App.db.getService();
-    if (!servicesInfo || !servicesInfo.length) {
-      servicesInfo = require('data/services').slice(0);
-      servicesInfo.forEach(function (item) {
-        item.isSelected = App.Service.find().someProperty('id', item.serviceName)
-        item.isInstalled = item.isSelected;
-        item.isDisabled = item.isSelected;
-      });
-      App.db.setService(servicesInfo);
-    }
 
     servicesInfo.forEach(function (item, index) {
       servicesInfo[index] = Em.Object.create(item);
@@ -457,10 +462,19 @@ App.AddHostController = App.WizardController.extend({
     var serviceConfigProperties = [];
     stepController.get('stepConfigs').forEach(function (_content) {
       _content.get('configs').forEach(function (_configProperties) {
+        var displayType = _configProperties.get('displayType');
+        if (displayType === 'directories' || displayType === 'directory') {
+          var value = _configProperties.get('value').trim().split(/\s+/g).join(',');
+          _configProperties.set('value', value);
+        }
         var configProperty = {
+          id: _configProperties.get('id'),
           name: _configProperties.get('name'),
           value: _configProperties.get('value'),
-          service: _configProperties.get('serviceName')
+          defaultValue: _configProperties.get('defaultValue'),
+          service: _configProperties.get('serviceName'),
+          domain:  _configProperties.get('domain'),
+          filename: _configProperties.get('filename')
         };
         serviceConfigProperties.push(configProperty);
       }, this);
@@ -469,6 +483,26 @@ App.AddHostController = App.WizardController.extend({
 
     App.db.setServiceConfigProperties(serviceConfigProperties);
     this.set('content.serviceConfigProperties', serviceConfigProperties);
+
+    var slaveConfigProperties = [];
+    stepController.get('stepConfigs').forEach(function (_content) {
+      if (_content.get('configCategories').someProperty('isForSlaveComponent', true)) {
+        var slaveCategory = _content.get('configCategories').findProperty('isForSlaveComponent', true);
+        slaveCategory.get('slaveConfigs.groups').forEach(function (_group) {
+          _group.get('properties').forEach(function (_property) {
+            var displayType = _property.get('displayType');
+            if (displayType === 'directories' || displayType === 'directory') {
+              var value = _property.get('value').trim().split(/\s+/g).join(',');
+              _property.set('value', value);
+            }
+            _property.set('storeValue', _property.get('value'));
+          }, this);
+        }, this);
+        slaveConfigProperties.pushObject(slaveCategory.get('slaveConfigs'));
+      }
+    }, this);
+    App.db.setSlaveProperties(slaveConfigProperties);
+    this.set('content.slaveGroupProperties', slaveConfigProperties);
   },
 
   /**
@@ -615,11 +649,7 @@ App.AddHostController = App.WizardController.extend({
    */
   finish: function () {
     this.setCurrentStep('1');
-    App.db.setService(undefined); //not to use this data at AddService page
-    App.db.setHosts(undefined);
-    App.db.setMasterComponentHosts(undefined);
-    App.db.setSlaveComponentHosts(undefined);
-    App.db.setCluster(undefined);
+    this.clearStorageData();
     App.router.get('updateController').updateAll();
   }
 

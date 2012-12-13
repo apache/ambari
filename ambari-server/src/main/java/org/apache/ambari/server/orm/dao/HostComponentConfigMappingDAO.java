@@ -18,6 +18,7 @@
 
 package org.apache.ambari.server.orm.dao;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
@@ -72,6 +73,28 @@ public class HostComponentConfigMappingDAO {
     for (HostComponentConfigMappingEntity entity : findByType(configTypes)) {
       remove(entity);
     }
+  }
+
+  @Transactional
+  public List<HostComponentConfigMappingEntity> findByHostComponentAndType(
+      long clusterId, String serviceName, String componentName,
+      String hostname,
+      Collection<String> configTypes) {
+    if (configTypes.isEmpty()) {
+      return new ArrayList<HostComponentConfigMappingEntity>();
+    }    
+    TypedQuery<HostComponentConfigMappingEntity> query =
+        entityManagerProvider.get().createQuery(
+            "SELECT config FROM HostComponentConfigMappingEntity config"
+            + " WHERE "
+            + " config.clusterId = ?1"
+            + " AND config.serviceName = ?2"
+            + " AND config.componentName = ?3"
+            + " AND config.hostName = ?4"
+            + " AND config.configType IN ?5",
+        HostComponentConfigMappingEntity.class);
+    return daoUtils.selectList(query, clusterId, serviceName,
+        componentName, hostname, configTypes);
   }
 
 }

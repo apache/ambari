@@ -31,6 +31,8 @@ class hdp-hive::params() inherits hdp::params
   ### common
   $hive_metastore_port = hdp_default("hive_metastore_port",9083)
   $hive_lib = hdp_default("hive_lib","/usr/lib/hive/lib/") #TODO: should I remove and just use hive_dbroot
+  $hive_var_lib = hdp_default("hive_var_lib","/var/lib/hive")  
+  $hive_url = 'jdbc:hive2://localhost:10000'
 
   ### hive-env
   $hive_conf_dir = $hdp::params::hive_conf_dir
@@ -40,6 +42,8 @@ class hdp-hive::params() inherits hdp::params
   $hive_log_dir = hdp_default("hadoop/hive-env/hive_log_dir","/var/log/hive")
 
   $hive_pid_dir = hdp_default("hadoop/hive-env/hive_pid_dir","/var/run/hive")
+  $hive_pid = hdp_default("hadoop/hive-env/hive_pid","hive-server.pid")
+
   
   ### hive-site
   $hive_database_name = hdp_default("hadoop/hive-site/hive_database_name","hive")
@@ -58,5 +62,15 @@ class hdp-hive::params() inherits hdp::params
   ###mysql connector
   $download_url = $hdp::params::gpl_artifacts_download_url
   $mysql_connector_url = "${download_url}/mysql-connector-java-5.1.18.zip"
-  $hive_aux_jars_path =  hdp_default("hive_aux_jars_path","/usr/lib/hcatalog/share/hcatalog/hcatalog-0.4.0.14.jar")
+  $hive_aux_jars_path =  hdp_default("hive_aux_jars_path","/usr/lib/hcatalog/share/hcatalog/hcatalog-core.jar")
+
+  ##smoke test
+  $smoke_test_sql_file = 'hiveserver2.sql'
+  $smoke_test_script = 'hiveserver2Smoke.sh'
+
+  ##Starting hiveserver2
+  $start_hiveserver2_script = 'startHiveserver2.sh'
+
+  ##Starting metastore
+  $start_metastore_script = 'startMetastore.sh'
 }

@@ -20,17 +20,16 @@ package org.apache.ambari.server.controller;
 
 
 import java.io.File;
+import java.net.BindException;
 import java.util.Map;
 
-import com.google.inject.persist.Transactional;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.actionmanager.ActionManager;
 import org.apache.ambari.server.agent.HeartBeatHandler;
 import org.apache.ambari.server.agent.rest.AgentResource;
-import org.apache.ambari.server.api.services.AmbariMetaInfo;
-import org.apache.ambari.server.api.services.AmbariMetaService;
-import org.apache.ambari.server.api.services.PersistKeyValueImpl;
-import org.apache.ambari.server.api.services.PersistKeyValueService;
+import org.apache.ambari.server.api.rest.BootStrapResource;
+import org.apache.ambari.server.api.services.*;
+import org.apache.ambari.server.bootstrap.BootStrapImpl;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.PersistenceType;
@@ -43,13 +42,16 @@ import org.apache.ambari.server.security.authorization.Users;
 import org.apache.ambari.server.security.unsecured.rest.CertificateDownload;
 import org.apache.ambari.server.security.unsecured.rest.CertificateSign;
 import org.apache.ambari.server.state.Clusters;
-import org.mortbay.jetty.Server;
-import org.mortbay.jetty.handler.ResourceHandler;
-import org.mortbay.jetty.security.SslSocketConnector;
-import org.mortbay.jetty.servlet.Context;
-import org.mortbay.jetty.servlet.DefaultServlet;
-import org.mortbay.jetty.servlet.FilterHolder;
-import org.mortbay.jetty.servlet.ServletHolder;
+import org.eclipse.jetty.server.Connector;
+import org.eclipse.jetty.server.Server;
+import org.eclipse.jetty.server.nio.SelectChannelConnector;
+import org.eclipse.jetty.server.ssl.SslSelectChannelConnector;
+import org.eclipse.jetty.servlet.DefaultServlet;
+import org.eclipse.jetty.servlet.FilterHolder;
+import org.eclipse.jetty.servlet.ServletContextHandler;
+import org.eclipse.jetty.servlet.ServletHolder;
+import org.eclipse.jetty.util.ssl.SslContextFactory;
+import org.eclipse.jetty.util.thread.QueuedThreadPool;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
@@ -63,14 +65,16 @@ import com.google.inject.Guice;
 import com.google.inject.Inject;
 import com.google.inject.Injector;
 import com.google.inject.Singleton;
+import com.google.inject.persist.Transactional;
 import com.sun.jersey.spi.container.servlet.ServletContainer;
 
 @Singleton
 public class AmbariServer {
   private static Logger LOG = LoggerFactory.getLogger(AmbariServer.class);
-  public static final int CLIENT_ONE_WAY = 4080;
-  public static final int CLIENT_TWO_WAY = 8443;
+  public static final int AGENT_ONE_WAY_AUTH = 4080;
+  public static final int AGENT_TWO_WAY_AUTH = 8443;
   public static final int CLIENT_API_PORT = 8080;
+ 
   private Server server = null;
   private Server serverForAgent = null;
 
@@ -89,22 +93,24 @@ public class AmbariServer {
   @Inject
   AmbariMetaInfo ambariMetaInfo;
 
+  public String getServerOsType() {
+    return configs.getServerOsType();
+  }
+
+  public static int getResourcesPort() {
+    return CLIENT_API_PORT;
+  }
+
   private static AmbariManagementController clusterController = null;
 
   public static AmbariManagementController getController() {
     return clusterController;
   }
 
-  private void setAmbariWebContext(Server server) {
-    Context webContext = new Context(server, "/", 0);
-    webContext.setHandler(new ResourceHandler());
-    webContext.setResourceBase("web");
-  }
-
-  public void run() {
+  public void run() throws Exception {
     performStaticInjection();
     addInMemoryUsers();
-    server = new Server(CLIENT_API_PORT);
+    server = new Server();
     serverForAgent = new Server();
 
     try {
@@ -127,21 +133,25 @@ public class AmbariServer {
       ClassPathXmlApplicationContext springAppContext = new
           ClassPathXmlApplicationContext(contextLocations, parentSpringAppContext);
        //setting ambari web context
-      setAmbariWebContext(server);
-
-      Context root = new Context(server, CONTEXT_PATH, Context.ALL);
+ 
+      ServletContextHandler root = new ServletContextHandler(server, CONTEXT_PATH, 
+          ServletContextHandler.NO_SECURITY | ServletContextHandler.SECURITY |
+          ServletContextHandler.SECURITY | ServletContextHandler.SESSIONS);
 
       GenericWebApplicationContext springWebAppContext = new GenericWebApplicationContext();
       springWebAppContext.setServletContext(root.getServletContext());
       springWebAppContext.setParent(springAppContext);
-
+      /* Configure web app context */
+      root.setResourceBase(configs.getWebAppDir());
+      
       root.getServletContext().setAttribute(
           WebApplicationContext.ROOT_WEB_APPLICATION_CONTEXT_ATTRIBUTE,
           springWebAppContext);
 
       certMan.initRootCert();
 
-      Context agentroot = new Context(serverForAgent, "/", Context.SESSIONS);
+      ServletContextHandler agentroot = new ServletContextHandler(serverForAgent,
+          "/", ServletContextHandler.SESSIONS );
 
       ServletHolder rootServlet = root.addServlet(DefaultServlet.class, "/");
       rootServlet.setInitOrder(1);
@@ -157,15 +167,17 @@ public class AmbariServer {
       if (configs.getApiAuthentication()) {
         root.addFilter(new FilterHolder(springSecurityFilter), "/api/*", 1);
       }
+      
+      
       //Secured connector for 2-way auth
-      SslSocketConnector sslConnectorTwoWay = new SslSocketConnector();
-      sslConnectorTwoWay.setPort(CLIENT_TWO_WAY);
+      SslSelectChannelConnector sslConnectorTwoWay = new  
+            SslSelectChannelConnector();
+      sslConnectorTwoWay.setPort(AGENT_TWO_WAY_AUTH);
 
       Map<String, String> configsMap = configs.getConfigsMap();
       String keystore = configsMap.get(Configuration.SRVR_KSTR_DIR_KEY) +
           File.separator + configsMap.get(Configuration.KSTR_NAME_KEY);
       String srvrCrtPass = configsMap.get(Configuration.SRVR_CRT_PASS_KEY);
-
       sslConnectorTwoWay.setKeystore(keystore);
       sslConnectorTwoWay.setTruststore(keystore);
       sslConnectorTwoWay.setPassword(srvrCrtPass);
@@ -174,34 +186,48 @@ public class AmbariServer {
       sslConnectorTwoWay.setKeystoreType("PKCS12");
       sslConnectorTwoWay.setTruststoreType("PKCS12");
       sslConnectorTwoWay.setNeedClientAuth(true);
-
+      
       //Secured connector for 1-way auth
-      SslSocketConnector sslConnectorOneWay = new SslSocketConnector();
-      sslConnectorOneWay.setPort(CLIENT_ONE_WAY);
+      //SslSelectChannelConnector sslConnectorOneWay = new SslSelectChannelConnector();
+      SslContextFactory contextFactory = new SslContextFactory(true);
+      //sslConnectorOneWay.setPort(AGENT_ONE_WAY_AUTH);
+      contextFactory.setKeyStorePath(keystore);
+      // sslConnectorOneWay.setKeystore(keystore);
+      contextFactory.setTrustStore(keystore);
+      // sslConnectorOneWay.setTruststore(keystore);
+      contextFactory.setKeyStorePassword(srvrCrtPass);
+      // sslConnectorOneWay.setPassword(srvrCrtPass);
+      
+      contextFactory.setKeyManagerPassword(srvrCrtPass);
 
-      sslConnectorOneWay.setKeystore(keystore);
-      sslConnectorOneWay.setTruststore(keystore);
-      sslConnectorOneWay.setPassword(srvrCrtPass);
-      sslConnectorOneWay.setKeyPassword(srvrCrtPass);
-      sslConnectorOneWay.setTrustPassword(srvrCrtPass);
-      sslConnectorOneWay.setKeystoreType("PKCS12");
-      sslConnectorOneWay.setTruststoreType("PKCS12");
-      sslConnectorOneWay.setNeedClientAuth(false);
-
-
-
-      serverForAgent.addConnector(sslConnectorOneWay);
-      serverForAgent.addConnector(sslConnectorTwoWay);
-
+      // sslConnectorOneWay.setKeyPassword(srvrCrtPass);
+      
+      contextFactory.setTrustStorePassword(srvrCrtPass);
+      //sslConnectorOneWay.setTrustPassword(srvrCrtPass);
+      
+      contextFactory.setKeyStoreType("PKCS12");
+      //sslConnectorOneWay.setKeystoreType("PKCS12");
+      contextFactory.setTrustStoreType("PKCS12");
+     
+      //sslConnectorOneWay.setTruststoreType("PKCS12");
+      contextFactory.setNeedClientAuth(false);
+      // sslConnectorOneWay.setWantClientAuth(false);
+      // sslConnectorOneWay.setNeedClientAuth(false);
+      SslSelectChannelConnector sslConnectorOneWay = new SslSelectChannelConnector(contextFactory);
+      sslConnectorOneWay.setPort(AGENT_ONE_WAY_AUTH);
+      
+      serverForAgent.setConnectors(new Connector[]{ sslConnectorOneWay, sslConnectorTwoWay});
+      
       ServletHolder sh = new ServletHolder(ServletContainer.class);
       sh.setInitParameter("com.sun.jersey.config.property.resourceConfigClass",
               "com.sun.jersey.api.core.PackagesResourceConfig");
       sh.setInitParameter("com.sun.jersey.config.property.packages",
               "org.apache.ambari.server.api.rest;" +
-              "org.apache.ambari.server.api.services");
-      root.addServlet(sh, "/api/*");
+              "org.apache.ambari.server.api.services;" +
+              "org.apache.ambari.eventdb.webservice");
+      root.addServlet(sh, "/api/v1/*");
       sh.setInitOrder(2);
-
+      
       ServletHolder agent = new ServletHolder(ServletContainer.class);
       agent.setInitParameter("com.sun.jersey.config.property.resourceConfigClass",
               "com.sun.jersey.api.core.PackagesResourceConfig");
@@ -209,7 +235,7 @@ public class AmbariServer {
               "org.apache.ambari.server.agent.rest");
       agent.setInitParameter("com.sun.jersey.api.json.POJOMappingFeature",
           "true");
-      agentroot.addServlet(agent, "/agent/*");
+      agentroot.addServlet(agent, "/agent/v1/*");
       agent.setInitOrder(3);
 
       ServletHolder cert = new ServletHolder(ServletContainer.class);
@@ -227,12 +253,28 @@ public class AmbariServer {
         "org.apache.ambari.server.resources.api.rest");
       root.addServlet(resources, "/resources/*");
       resources.setInitOrder(6);
+      
+      //Set jetty thread pool
+      serverForAgent.setThreadPool(new QueuedThreadPool(25));
+      server.setThreadPool(new QueuedThreadPool(25));
+      
+      /* Configure the API server to use the NIO connectors */
+      SelectChannelConnector apiConnector = new SelectChannelConnector();
+      apiConnector.setPort(CLIENT_API_PORT);
+      server.addConnector(apiConnector);
+      
       server.setStopAtShutdown(true);
       serverForAgent.setStopAtShutdown(true);
       springAppContext.start();
 
       LOG.info("********* Initializing Meta Info **********");
       ambariMetaInfo.init();
+
+      String osType = getServerOsType();
+      if (osType == null || osType.isEmpty()) {
+        throw new RuntimeException(Configuration.OS_VERSION_KEY + " is not "
+            + " set in the ambari.properties file");
+      }
 
       //Start action scheduler
       LOG.info("********* Initializing Clusters **********");
@@ -270,8 +312,10 @@ public class AmbariServer {
 
       server.join();
       LOG.info("Joined the Server");
-    } catch (Exception e) {
-      LOG.error("Error in the server", e);
+    } catch(BindException bindException) {
+      LOG.error("Could not bind to server port - instance may already be running. " +
+        "Terminating this instance.", bindException);
+      throw bindException;
     }
   }
 
@@ -312,17 +356,19 @@ public class AmbariServer {
     CertificateSign.init(injector.getInstance(CertificateManager.class));
     GetResource.init(injector.getInstance(ResourceManager.class));
     PersistKeyValueService.init(injector.getInstance(PersistKeyValueImpl.class));
+    KeyService.init(injector.getInstance(PersistKeyValueImpl.class));
     AmbariMetaService.init(injector.getInstance(AmbariMetaInfo.class));
+    BootStrapResource.init(injector.getInstance(BootStrapImpl.class));
   }
 
   public static void main(String[] args) throws Exception {
 
     Injector injector = Guice.createInjector(new ControllerModule());
-
+    AmbariServer server = null;
     try {
       LOG.info("Getting the controller");
       injector.getInstance(GuiceJpaInitializer.class);
-      AmbariServer server = injector.getInstance(AmbariServer.class);
+      server = injector.getInstance(AmbariServer.class);
       CertificateManager certMan = injector.getInstance(CertificateManager.class);
       certMan.initRootCert();
       if (server != null) {
@@ -330,6 +376,10 @@ public class AmbariServer {
       }
     } catch (Throwable t) {
       LOG.error("Failed to run the Ambari Server", t);
+      if (server != null) {
+        server.stop();
+      }
+      System.exit(-1);
     }
   }
 }

@@ -21,12 +21,17 @@ package org.apache.ambari.server.api.services;
 import java.io.IOException;
 import java.util.Map;
 
+import com.google.inject.persist.PersistService;
 import junit.framework.Assert;
 
+import org.apache.ambari.server.orm.GuiceJpaInitializer;
+import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
 import org.apache.ambari.server.utils.StageUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.codehaus.jettison.json.JSONException;
+import org.junit.After;
+import org.junit.Before;
 import org.junit.Test;
 
 import com.google.inject.AbstractModule;
@@ -64,11 +69,18 @@ public class PersistServiceTest extends JerseyTest {
   }
 
   @Override
+  @Before
   public void setUp() throws Exception {
     super.setUp();
-    PersistKeyValueImpl impl = new PersistKeyValueImpl();
-    injector = Guice.createInjector(new MockModule());
-    injector.injectMembers(impl);
+    injector = Guice.createInjector(new InMemoryDefaultTestModule(), new MockModule());
+    injector.getInstance(GuiceJpaInitializer.class);
+  }
+
+  @Override
+  @After
+  public void tearDown() throws Exception {
+    super.tearDown();
+    injector.getInstance(PersistService.class).stop();
   }
 
   @Test

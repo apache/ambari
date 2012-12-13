@@ -26,12 +26,11 @@ import org.apache.ambari.server.api.services.serializers.ResultSerializer;
 import org.apache.ambari.server.controller.internal.TemporalInfoImpl;
 import org.apache.ambari.server.controller.predicate.*;
 import org.apache.ambari.server.controller.spi.Predicate;
-import org.apache.ambari.server.controller.spi.PropertyId;
 import org.apache.ambari.server.controller.spi.TemporalInfo;
-import org.apache.ambari.server.controller.utilities.PropertyHelper;
 
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.UriInfo;
+import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import java.util.*;
 import java.util.regex.Matcher;
@@ -60,7 +59,7 @@ public class RequestImpl implements Request {
   /**
    * Http request type
    */
-  private Type m_Type;
+  private Type m_type;
 
   /**
    * Predicate operators.
@@ -70,41 +69,45 @@ public class RequestImpl implements Request {
   /**
    * Associated resource definition
    */
-  private ResourceDefinition m_resourceDefinition;
+  private ResourceInstance m_resource;
 
 
   /**
    * Constructor.
    *
-   * @param headers            http headers
-   * @param body               http body
-   * @param uriInfo            uri information
-   * @param requestType        http request type
-   * @param resourceDefinition associated resource definition
+   * @param headers      http headers
+   * @param body         http body
+   * @param uriInfo      uri information
+   * @param requestType  http request type
+   * @param resource     associated resource definition
    */
-  public RequestImpl(HttpHeaders headers, String body, UriInfo uriInfo, Type requestType,
-                     ResourceDefinition resourceDefinition) {
+  public RequestImpl(HttpHeaders headers, String body, UriInfo uriInfo,
+                     Type requestType, ResourceInstance resource) {
 
-    m_headers            = headers;
-    m_body               = body;
-    m_uriInfo            = uriInfo;
-    m_Type               = requestType;
-    m_resourceDefinition = resourceDefinition;
+    m_headers  = headers;
+    m_body     = body;
+    m_uriInfo  = uriInfo;
+    m_type     = requestType;
+    m_resource = resource;
   }
 
   @Override
-  public ResourceDefinition getResourceDefinition() {
-    return m_resourceDefinition;
+  public ResourceInstance getResource() {
+    return m_resource;
   }
 
   @Override
   public String getURI() {
-    return URLDecoder.decode(m_uriInfo.getRequestUri().toString());
+    try {
+      return URLDecoder.decode(m_uriInfo.getRequestUri().toString(), "UTF-8");
+    } catch (UnsupportedEncodingException e) {
+      throw new RuntimeException("Unable to decode URI: " + e, e);
+    }
   }
 
   @Override
   public Type getRequestType() {
-    return m_Type;
+    return m_type;
   }
 
   @Override
@@ -123,7 +126,7 @@ public class RequestImpl implements Request {
 
     String[] tokens = uri.substring(qsBegin + 1).split("&");
 
-    Set<Predicate> setPredicates = new HashSet<Predicate>();
+    Set<BasePredicate> setPredicates = new HashSet<BasePredicate>();
     for (String outerToken : tokens) {
       if (outerToken != null &&  !outerToken.startsWith("fields")) {
         setPredicates.add(outerToken.contains("|") ?
@@ -141,8 +144,8 @@ public class RequestImpl implements Request {
   }
 
   @Override
-  public Map<PropertyId, TemporalInfo> getFields() {
-    Map<PropertyId, TemporalInfo> mapProperties;
+  public Map<String, TemporalInfo> getFields() {
+    Map<String, TemporalInfo> mapProperties;
     String partialResponseFields = m_uriInfo.getQueryParameters().getFirst("fields");
     if (partialResponseFields == null) {
       mapProperties = Collections.emptyMap();
@@ -158,25 +161,25 @@ public class RequestImpl implements Request {
         }
       }
 
-      mapProperties = new HashMap<PropertyId, TemporalInfo>(setMatches.size());
+      mapProperties = new HashMap<String, TemporalInfo>(setMatches.size());
       for (String field : setMatches) {
         TemporalInfo temporalInfo = null;
         if (field.contains("[")) {
-          String[] temporalData = field.substring(field.indexOf('[') + 1, field.indexOf(']')).split(",");
+          String[] temporalData = field.substring(field.indexOf('[') + 1,
+              field.indexOf(']')).split(",");
           field = field.substring(0, field.indexOf('['));
-          long start = Long.parseLong(temporalData[0]);
+          long start = Long.parseLong(temporalData[0].trim());
           long end   = -1;
           long step  = -1;
           if (temporalData.length >= 2) {
-            end = Long.parseLong(temporalData[1]);
+            end = Long.parseLong(temporalData[1].trim());
             if (temporalData.length == 3) {
-              step = Long.parseLong(temporalData[2]);
+              step = Long.parseLong(temporalData[2].trim());
             }
           }
           temporalInfo = new TemporalInfoImpl(start, end, step);
         }
-        mapProperties.put(PropertyHelper.getPropertyId(
-            field, temporalInfo == null ? false : true), temporalInfo);
+        mapProperties.put(field, temporalInfo);
       }
     }
 
@@ -194,7 +197,7 @@ public class RequestImpl implements Request {
   }
 
   @Override
-  public Set<Map<PropertyId, Object>> getHttpBodyProperties() {
+  public Set<Map<String, Object>> getHttpBodyProperties() {
     return getHttpBodyParser().parse(getHttpBody());
   }
 
@@ -214,6 +217,7 @@ public class RequestImpl implements Request {
   public PersistenceManager getPersistenceManager() {
     switch (getRequestType()) {
       case POST:
+      case QUERY_POST:
         return new CreatePersistenceManager();
       case PUT:
         return new UpdatePersistenceManager();
@@ -226,34 +230,34 @@ public class RequestImpl implements Request {
     }
   }
 
-  private Predicate createPredicate(String token) {
+  private BasePredicate createPredicate(String token) {
 
     Matcher m = m_pattern.matcher(token);
     m.find();
 
-    PropertyId propertyId = PropertyHelper.getPropertyId(token.substring(0, m.start()));
+    String propertyId = token.substring(0, m.start());
     String     value      = token.substring(m.end());
     String     operator   = m.group();
 
     if (operator.equals("=")) {
-      return new EqualsPredicate(propertyId, value);
+      return new EqualsPredicate<String>(propertyId, value);
     } else if (operator.equals("!=")) {
-      return new NotPredicate(new EqualsPredicate(propertyId, value));
+      return new NotPredicate(new EqualsPredicate<String>(propertyId, value));
     } else if (operator.equals("<")) {
-      return new LessPredicate(propertyId, value);
+      return new LessPredicate<String>(propertyId, value);
     } else if (operator.equals(">"))  {
-      return new GreaterPredicate(propertyId, value);
+      return new GreaterPredicate<String>(propertyId, value);
     } else if (operator.equals("<=")) {
-      return new LessEqualsPredicate(propertyId, value);
+      return new LessEqualsPredicate<String>(propertyId, value);
     } else if (operator.equals(">=")) {
-      return new GreaterEqualsPredicate(propertyId, value);
+      return new GreaterEqualsPredicate<String>(propertyId, value);
     } else {
       throw new RuntimeException("Unknown operator provided in predicate: " + operator);
     }
   }
 
-  private Predicate handleOrPredicate(String predicate) {
-    Set<Predicate> setPredicates = new HashSet<Predicate>();
+  private BasePredicate handleOrPredicate(String predicate) {
+    Set<BasePredicate> setPredicates = new HashSet<BasePredicate>();
     String[] tokens = predicate.split("\\|");
     for (String tok : tokens) {
       setPredicates.add(createPredicate(tok));
@@ -262,11 +266,11 @@ public class RequestImpl implements Request {
     return new OrPredicate(setPredicates.toArray(new BasePredicate[setPredicates.size()]));
   }
 
-  private  RequestBodyParser getHttpBodyParser() {
+  protected RequestBodyParser getHttpBodyParser() {
     return new JsonPropertyParser();
   }
 
-  private class NullPostProcessor implements ResultPostProcessor {
+  private static class NullPostProcessor implements ResultPostProcessor {
     @Override
     public void process(Result result) {
       //no-op

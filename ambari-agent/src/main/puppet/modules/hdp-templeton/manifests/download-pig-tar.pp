@@ -28,18 +28,18 @@ class hdp-templeton::download-pig-tar()
 
   anchor { 'hdp-templeton::download-pig-tar::begin':}
 
-   hdp::package { 'templeton-tar-pig' :
+   hdp::package { 'webhcat-tar-pig' :
      require   => Anchor['hdp-templeton::download-pig-tar::begin']
    }
 
-   hdp::exec { 'pig ; mkdir -p ${artifact_dir} ;  cp /tmp/HDP-templeton/${src_tar_name} ${target}':
-       command => "mkdir -p ${artifact_dir} ;  cp /tmp/HDP-templeton/${src_tar_name} ${target}",
-       unless  => "test -f ${target}",
-       creates => $target,
-       path    => ["/bin","/usr/bin/"],
-       require => Hdp::Package['templeton-tar-pig'],
-       notify  =>  Anchor['hdp-templeton::download-pig-tar::end'],
-   }
+#   hdp::exec { 'pig ; mkdir -p ${artifact_dir} ;  cp /tmp/HDP-templeton/${src_tar_name} ${target}':
+#       command => "mkdir -p ${artifact_dir} ;  cp /tmp/HDP-templeton/${src_tar_name} ${target}",
+#       unless  => "test -f ${target}",
+#       creates => $target,
+#       path    => ["/bin","/usr/bin/"],
+#       require => Hdp::Package['webhcat-tar-pig'],
+#       notify  =>  Anchor['hdp-templeton::download-pig-tar::end'],
+#   }
 
    anchor { 'hdp-templeton::download-pig-tar::end':}
 

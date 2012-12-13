@@ -257,6 +257,7 @@ App.Router = Em.Router.extend({
   },
 
   logOff: function(context){
+    $('title').text('Ambari');
     var hash = window.btoa(this.get('loginController.loginName') + ":" + this.get('loginController.password'));
 
     // App.db.cleanUp() must be called before router.clearAllSteps().
@@ -324,6 +325,7 @@ App.Router = Em.Router.extend({
       },
 
       connectOutlets: function (router, context) {
+        $('title').text('Ambari');
         console.log('/login:connectOutlet');
         console.log('currentStep is: ' + router.getInstallerCurrentStep());
         console.log('authenticated is: ' + router.getAuthenticated());

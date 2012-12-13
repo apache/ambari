@@ -27,21 +27,21 @@ class hdp-templeton::params() inherits hdp::params
 
   $dest_pig_tar_name = hdp_default("dest_pig_tar_name","pig.tar.gz")
   $dest_hive_tar_name = hdp_default("dest_hive_tar_name","hive.tar.gz")
-  $src_pig_tar_name = hdp_default("src_pig_tar_name","pig-0.9.2.14.tar.gz")
-  $src_hive_tar_name = hdp_default("src_hive_tar_name","hive-0.9.0.14.tar.gz")
+  $src_pig_tar_name = hdp_default("src_pig_tar_name","pig.tar.gz")
+  $src_hive_tar_name = hdp_default("src_hive_tar_name","hive.tar.gz")
 
   ### templeton-env
-  $conf_dir = hdp_default("hadoop/templeton-env/conf_dir","/etc/templeton")
+  $conf_dir = hdp_default("hadoop/templeton-env/conf_dir","/etc/hcatalog/conf")
 
   ### templeton-env
-  $templeton_log_dir = hdp_default("hadoop/templeton-env/templeton_log_dir","/var/log/templeton")
+  $templeton_log_dir = hdp_default("hadoop/templeton-env/templeton_log_dir","/var/log/webhcat")
 
-  $templeton_pid_dir = hdp_default("hadoop/templeton-env/templeton_pid_dir","/var/run/templeton")
+  $templeton_pid_dir = hdp_default("hadoop/templeton-env/templeton_pid_dir","/var/run/webhcat")
 
-  $templeton_jar_name= hdp_default("hadoop/templeton-env/templeton_jar_name","templeton-0.1.4.14.jar")
+#  $templeton_jar_name= hdp_default("hadoop/templeton-env/templeton_jar_name","templeton-0.1.4.14.jar")
  
-  $hadoop_prefix = hdp_default("hadoop/templeton-env/hadoop_prefix","/usr")
-  $hive_prefix = hdp_default("hadoop/templeton-env/hive_prefix","/usr")
+#  $hadoop_prefix = hdp_default("hadoop/templeton-env/hadoop_prefix","/usr")
+#  $hive_prefix = hdp_default("hadoop/templeton-env/hive_prefix","/usr")
   
   ### templeton-site
   $hadoop_conf_dir = hdp_default("hadoop/templeton-site/hadoop_conf_dir")

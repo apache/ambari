@@ -28,8 +28,16 @@
       <source>${project.build.directory}/${artifact.artifactId}-${artifact.version}.jar</source>
       <outputDirectory>ambari-server-${project.version}/lib/ambari-server</outputDirectory>
     </file>
-    <file>
+   <file>
       <source>${basedir}/src/main/python/ambari-server.py</source>
+      <outputDirectory>/ambari-server-${project.version}/sbin</outputDirectory>
+    </file>
+    <file>
+      <source>${basedir}/src/main/python/bootstrap.py</source>
+      <outputDirectory>/ambari-server-${project.version}/sbin</outputDirectory>
+    </file>
+    <file>
+      <source>${basedir}/src/main/python/setupAgent.py</source>
       <outputDirectory>/ambari-server-${project.version}/sbin</outputDirectory>
     </file>
   </files>
@@ -68,6 +76,13 @@
         <include>db/*</include>
         <include>ca.config</include>
         <include>pass.txt</include>
+      </includes>
+    </fileSet>
+    <fileSet>
+      <directory>${basedir}/../ambari-web/public</directory>
+      <outputDirectory>ambari-server-${project.version}/web</outputDirectory>
+      <includes>
+        <include>**</include>
       </includes>
     </fileSet>
     <fileSet>
