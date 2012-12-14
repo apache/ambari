@@ -1,9 +1,0 @@
-.lock-wscript
-.svn/
-.hg/
-.git/
-CVS/
-*~
-*.bak
-.DS_Store
-npm-debug.log
