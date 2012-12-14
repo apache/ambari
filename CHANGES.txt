@@ -13,6 +13,44 @@ AMBARI-666 branch (unreleased changes)
   INCOMPATIBLE CHANGES
 
   NEW FEATURES
+  
+  AMBARI-1054. Implement retrying of bootstrap on confirm host page.
+  (Jaimin Jetly via yusaku)
+
+  AMBARI-1048. Integrate slave configuration parameters with respective
+  service on step7 of installer wizard. (Jaimin Jetly via yusaku)
+
+  AMBARI-1031. Check for host registration at step3 of installer wizard 
+  and retrieve information for RAM and no. of cores. (Jaimin Jetly via
+  yusaku)
+
+  AMBARI-1022. Integrate Heatmap UI to backend API. (Srimanth
+  Gunturi via yusaku)
+
+  AMBARI-1015. Create HBase summary section in Dashboard & Service
+  pages. (Srimanth Gunturi via yusaku)
+
+  AMBARI-1014. Hook service summary sections in service pages to API.
+  (Srimanth Gunturi via yusaku)
+
+  AMBARI-1008. Populate dashboard>MapReduce section with API data.
+  (Srimanth Gunturi via yusaku)
+
+  AMBARI-1006. Populate dashboard>HDFS section with API data.
+  (Srimanth Gunturi via yusaku)
+
+  AMBARI-1004. Allow properties entered in custom config
+  (ex: hdfs-site.xml) to override existing or create new properties.
+  (Jaimin Jetly via yusaku)
+
+  AMBARI-1002. Integrate Installer with config APIs. (Jaimin Jetly
+  via yusaku)
+
+  AMBARI-989. Show task logs for each host in the Deploy step of the
+  wizard. (yusaku)
+
+  AMBARI-976.  Hook HDFS/MapReduce/HBase/Host graphs to backend API
+  (Srimanth Gunturi via yusaku)
 
   AMBARI-964. Implement summary page of installer wizard. (Jaimin Jetly
   via yusaku)
@@ -393,6 +431,60 @@ AMBARI-666 branch (unreleased changes)
   AMBARI-676. Seperate directory for ambari-server. (jitendra)
 
   IMPROVEMENTS
+  
+  AMBARI-1053. Dashboard page loads very slow due to hosts?fields=* API call
+  (Srimanth Gunturi via yusaku)
+
+  AMBARI-1051. Dashboard page takes long time to load. (Srimanth Gunturi via
+  yusaku)
+
+  AMBARI-1041. Additional metrics need to be added to Heatmap UI. (Srimanth
+  Gunturi via yusaku)
+
+  AMBARI-1040. Cluster heatmap: green should always mean "good". (Srimanth
+  Gunturi via yusaku)
+
+  AMBARI-1039. Improve Nagios alerts time display. (Srimanth Gunturi via yusaku)
+
+  AMBARI-1036. Service Info/Quick Links do not display external hostnames.
+  (Srimanth Gunturi via yusaku)
+
+  AMBARI-1035. Aggregate creation of multiple services and assignment of host
+  to cluster. (Jaimin Jetly via yusaku)
+
+  AMBARI-1034. Metric Charts - display local time rather than UTC.
+  (Srimanth Gunturi via yusaku)
+
+  AMBARI-1033. Nagios and Ganglia links should use public host names in URLs.
+  (Srimanth Gunturi via yusaku)
+
+  AMBARI-1030. Metrics links in web ui should link to Ganglia UI. (Srimanth
+  Gunturi via yusaku)
+
+  AMBARI-1025. Display total install and start services time on summary page
+  and polish summary page ui. (Jaimin Jetly via yusaku)
+
+  AMBARI-1023. Dashboard page should handle API sending JSON as strings and
+  object. (Srimanth Gunturi via yusaku)
+
+  AMBARI-1011. Create 2 missing HDFS service graphs. (Srimanth Gunturi via
+  yusaku)
+
+  AMBARI-1003. Nagios sections should use backend API to populate. (Srimanth
+  Gunturi via yusaku)
+
+  AMBARI-1062. Convert Apache license header comment style in Handlebars files
+  to Handlebars comments rather than JavaScript comments. (yusaku)
+
+  AMBARI-1061. Data loading refactoring for cluster management. (yusaku)
+
+  AMBARI-1060. Data loading for App Browser. (yusaku)
+
+  AMBARI-993. Hook up login with server authentication. (yusaku)
+
+  AMBARI-1059. Refactor cluster management. (yusaku)
+
+  AMBARI-1058. Implement data loading. (yusaku)
 
   AMBARI-956. On unavailability of non-master components, host with least
   number of master components should install all slave and client components. 
@@ -433,6 +525,36 @@ AMBARI-666 branch (unreleased changes)
   OPTIMIZATIONS
 
   BUG FIXES
+ 
+  AMBARI-1046. Heatmap with no numbers on the hover. (Srimanth Gunturi via
+  yusaku)
+
+  AMBARI-1045. Service summary sections have incorrect values displayed.
+  (Srimanth Gunturi via yusaku)
+
+  AMBARI-1042. Heatmap UI fluctuates between white and green colors
+  intermittently. (Srimanth Gunturi via yusaku)
+
+  AMBARI-1032. Host hover in cluster heatmap showing mock data. (Srimanth
+  Gunturi via yusaku)
+ 
+  AMBARI-1028. MapReduce & HDFS summaries should use ServiceComponentInfo
+  values. (Srimanth Gunturi via yusaku)
+
+  AMBARI-1017. Alerts not showing up in Ambari UI due to model refactoring.
+  (Srimanth Gunturi via yusaku)
+
+  AMBARI-1013. Host metrics charts should use live data. (Srimanth Gunturi
+  via yusaku)
+
+  AMBARI-1009. Cluster level graphs need to use API for data. (Srimanth
+  Gunturi via yusaku)
+
+  AMBARI-1064. App Browser fixes. (yusaku)
+
+  AMBARI-995. Deploy logs not shown for failed tasks. (yusaku)
+
+  AMBARI-992. Logout does not clean application state properly. (yusaku)
 
   AMBARI-957. Adding a host whose hostname is the same as the one the user 
   is accessing Ambari Web with breaks the Installer. (yusaku)
