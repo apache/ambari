@@ -13,7 +13,30 @@ AMBARI-666 branch (unreleased changes)
   INCOMPATIBLE CHANGES
 
   NEW FEATURES
-  
+
+  AMBARI-946. Support retrieving information for multiple requests.
+  (hitesh via mahadev)
+
+  AMBARI-1065. Provide Datanode decommission & recommission capability in UI.
+  (Srimanth Gunturi via mahadev)
+
+  AMBARI-985. Support OR in API query. (Tom Beerbower via mahadev)
+
+  AMBARI-1029. Add api support for updating multiple host_component resources
+  for multiple hosts in a single request. (John Speidel via mahadev)
+
+  AMBARI-1018. Add API support for creating multiple sub-resources to
+  multiple resources in a single request. (John Speidel via mahadev)
+
+  AMBARI-950. Provide API support for 'OR' predicate. (John Speidel via
+  mahadev)
+
+  AMBARI-935. Provide API support for updates of multiple resources in a
+  single request. (John Speidel via mahadev)
+
+  AMBARI-926. Provide API support for asynchronous requests.
+  (John Speidel via mahadev)
+
   AMBARI-1054. Implement retrying of bootstrap on confirm host page.
   (Jaimin Jetly via yusaku)
 
@@ -431,7 +454,95 @@ AMBARI-666 branch (unreleased changes)
   AMBARI-676. Seperate directory for ambari-server. (jitendra)
 
   IMPROVEMENTS
-  
+
+  AMBARI-984. Add support for exposing filesystem type for mount points
+  at host level. (hitesh via mahadev)
+
+  AMBARI-973. Ensure zookeeper service check run after zookeeper start.
+  (hitesh via mahadev)
+
+  AMBARI-965. Stop events should be handled at all valid points for safe
+  recovery. (hitesh via mahadev)
+
+  AMBARI-959. Handle passing repo information from server to agent.
+  (hitesh via mahadev)
+
+  AMBARI-951. Integrate meta data to be able to run service checks after
+  a start of a service. (hitesh via mahadev)
+
+  AMBARI-932. Add initial hooks to trigger smoke tests on service starts.
+  (hitesh via mahadev)
+
+  AMBARI-924. Rename job to action. (hitesh via mahadev)
+
+  AMBARI-922. Use stack name and version in fsm layer. (hitesh via mahadev)
+
+  AMBARI-982. Add ability to set rack info for a host.
+  (Nate Cole via mahadev)
+
+  AMBARI-981. Add configuration to host_component request.
+  (Nate Cole via mahadev)
+
+  AMBARI-931. Support for /hosts end point. (Nate Cole via mahadev)
+
+  AMBARI-912. Test case for ConfigurationService.
+  (Nate Cole via mahadev)
+
+  AMBARI-1021. Ambari-agent init script needs to be aware of already
+  running/not running agent process. (Pramod Thangali via mahadev)
+
+  AMBARI-1019. Add methods to get postgres user name/password or any
+  regex validated string input from user.
+  (Pramod Thangali via mahadev)
+
+  AMBARI-1007. Add aggregate IO stats to workflow data web service
+  (Pramod Thangali via mahadev)
+
+  AMBARI-1000. Use FQDN instead of hostname when registering an agent with
+  Ambari server. (Pramod Thangali via mahadev)
+
+  AMBARI-1066. Rename Charts section to Heatmaps. (Srimanth Gunturi via
+  mahadev)
+
+  AMBARI-1056. Expose CapacityRemaining JMX metric to NAMENODE
+  ServiceComponentInfo. (Tom Beerbower via mahadev)
+
+  AMBARI-1055. Refactor SPI Request interface to remove PropertyId.
+  (Tom Beerbower via mahadev)
+
+  AMBARI-1049. Tune Ganglia request. (Tom Beerbower via mahadev)
+
+  AMBARI-1037. Implement an efficient way to provide Ganglia data for
+  heatmap and other cluster visualization tools.
+  (Tom Beerbower via mahadev)
+
+  AMBARI-1001. Cluster level Network, Load, CPU and Memory metrics in API
+  needed for dashboard page. (Tom Beerbower via mahadev)
+
+  AMBARI-996. Expose metrics and properties for UI. (Tom Beerbower via mahadev)
+
+  AMBARI-972. Refactor resource provider implementation to move inner classes.
+  (Tom Beerbower via mahadev)
+
+  AMBARI-943. Add Host metrics. (Tom Beerbower via mahadev)
+
+  AMBARI-929. Show HBASE_REGIONSERVER metrics. (Tom Beerbower via mahadev)
+
+  AMBARI-928. Enable end to end testing of Request and Task resources.
+  (Tom Beerbower via mahadev)
+
+  AMBARI-925. Return RequestStatus through ClusterController.
+  (Tom Beerbower via mahadev)
+
+  AMBARI-923. ResourceProvider changes for Request and Task resources.
+  (Tom Beerbower via mahadev)
+
+  AMBARI-911. Implement an efficient way to provide Ganglia data for heatmap
+  and other cluster visualization tools. (Tom Beerbower via mahadev)
+
+  AMBARI-930. Map update to PUT and create to POST.
+  (John Speidel via mahadev)
+
   AMBARI-1053. Dashboard page loads very slow due to hosts?fields=* API call
   (Srimanth Gunturi via yusaku)
 
@@ -525,7 +636,88 @@ AMBARI-666 branch (unreleased changes)
   OPTIMIZATIONS
 
   BUG FIXES
- 
+
+  AMBARI-962. Update of host components fail when service name is not passed
+  in. (hitesh via mahadev)
+
+  AMBARI-945. Fix 500 errors on get resources api. (hitesh via mahadev)
+
+  AMBARI-944. Fixes for meta info layer. (hitesh via mahadev)
+
+  AMBARI-913. Fix all apis to return correctly filled status response.
+  (hitesh via mahadev)
+
+  AMBARI-999. RUBYLIB env variable expanding forever. (Pramod Thangali via
+  mahadev)
+
+  AMBARI-1069. HDFS Disk Capacity in HDFS Service Summary is totally off.
+  (Srimanth Gunturi via mahadev)
+
+  AMBARI-1068. Dashboard cluster level graphs showing only 45 minutes of data.
+  (Srimanth Gunturi via mahadev)
+
+  AMBARI-1067. Service > MapReduce map slots reserved / occupied are backwards.
+  (Srimanth Gunturi via mahadev)
+
+  AMBARI-1057. Can't reset ambari-server due to fail drop/create database DDLs.
+  (Tom Beerbower via mahadev)
+
+  AMBARI-1052. UnsupportedPropertyException thrown from update.
+  (Tom Beerbower via mahadev)
+
+  AMBARI-1050. Host metric values coming in with 0 values.
+  (Tom Beerbower via mahadev)
+
+  AMBARI-1047. Create Configuration API call is throwing 500:
+  UnsupportedPropertyException. (Tom Beerbower via mahadev)
+
+  AMBARI-1044. API is not returning Ganglia metrics for one of the hosts
+  in the cluster. (Tom Beerbower via mahadev)
+
+  AMBARI-1043. Updates with queries that contain non primary key fields
+  may update resources that don't satisfy the query.
+  (Tom Beerbower via mahadev)
+
+  AMBARI-1038. Ganglia setup does not allow for subsequent changes to the
+  cluster. (Tom Beerbower via mahadev)
+
+  AMBARI-1027. Fix missing block metrics for NAMENODE.
+  (Tom Beerbower via mahadev)
+
+  AMBARI-1026. Resolve overlap between JMX and Ganglia metrics.
+  (Tom Beerbower via mahadev)
+
+  AMBARI-1020. Start time, end time and resolution not set correctly for
+  rrd.py call in Ganglia property. (Tom Beerbower via mahadev)
+
+  AMBARI-1016. Initial API calls after Ambari Web install resulted in 500
+  (ArrayIndexOutOfBoundsException); Ambari Web stuck at "Loading..."
+  (Tom Beerbower via mahadev)
+
+  AMBARI-1012. Fix race condition in DefaultProviderModule.
+  (Tom Beerbower via mahadev)
+
+  AMBARI-1010. Fix extra comma in rrd.py output. (Tom Beerbower via mahadev)
+
+  AMBARI-1005. No Ganglia/JMX metrics data are coming through.
+  (Tom Beerbower via mahadev)
+
+  AMBARI-997. Fix HBASE JMX properties. (Tom Beerbower via mahadev)
+
+  AMBARI-994. Host metrics API servlet not filtering on given fields.
+  (Tom Beerbower via mahadev)
+
+  AMBARI-988. Update resource drops property values.
+  (Tom Beerbower via mahadev)
+
+  AMBARI-969. GET on temporal data throws 500. (Tom Beerbower via mahadev)
+
+  AMBARI-968. Task resources not returned under request resources.
+  (Tom Beerbower via mahadev)
+
+  AMBARI-961. Sub-resources and metrics through API are broken.
+  (Tom Beerbower via mahadev)
+
   AMBARI-1046. Heatmap with no numbers on the hover. (Srimanth Gunturi via
   yusaku)
 
