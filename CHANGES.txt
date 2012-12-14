@@ -637,6 +637,9 @@ AMBARI-666 branch (unreleased changes)
 
   BUG FIXES
 
+  AMBARI-1063. Workflow Web Service potentially leaks DB connections upon
+  exceptions. (yusaku)
+
   AMBARI-962. Update of host components fail when service name is not passed
   in. (hitesh via mahadev)
 
