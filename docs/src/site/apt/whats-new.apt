@@ -1,0 +1,60 @@
+~~ Licensed to the Apache Software Foundation (ASF) under one or more
+~~ contributor license agreements.  See the NOTICE file distributed with
+~~ this work for additional information regarding copyright ownership.
+~~ The ASF licenses this file to You under the Apache License, Version 2.0
+~~ (the "License"); you may not use this file except in compliance with
+~~ the License.  You may obtain a copy of the License at
+~~
+~~     http://www.apache.org/licenses/LICENSE-2.0
+~~
+~~ Unless required by applicable law or agreed to in writing, software
+~~ distributed under the License is distributed on an "AS IS" BASIS,
+~~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+~~ See the License for the specific language governing permissions and
+~~ limitations under the License.
+~~
+
+What's New?
+
+  There’s a lot of activity occurring in trunk. We’ve had a great response from the
+  community and received a lot of input into the direction. To date, we have added
+  many new features. To highlight a few...
+
+  * Added more options on provisioning so you can better target your cluster
+    setup for your needs
+
+  * More service controls, including the ability to run ad hoc smoke tests
+
+  * Exposed a RESTful API for cluster metrics (with management and
+    provisioning to follow)
+
+  * Moved to a JavaScript front-end for Ambari Web and refreshed the entire UI
+    experience
+
+  * Used that RESTful API and added more charts and heatmaps to the dashboard
+
+  * Reduced the number of dependencies on the Ambari Server + Ambari Agent
+
+  * Added support for SLES 11
+
+Getting Ambari Source
+
+  The source can be checked out anonymously from SVN with the following command:
+
++--
+$ svn checkout http://svn.apache.org/repos/asf/incubator/ambari/trunk ambari
++--
+
+JIRA
+
+  You can follow all the work going on by watching the Ambari JIRA project. We
+  anticipate the next release of Apache Ambari to be version 1.2.0. You can see the
+  JIRA details for this release here:
+
+  {{{https://issues.apache.org/jira/issues/?jql=fixVersion%20%3D%20%221.2.0%22%20AND%20project%20%3D%20AMBARI} https://issues.apache.org/jira/issues/?jql=fixVersion%20%3D%20%221.2.0%22%20AND%20project%20%3D%20AMBARI}}
+
+Stay Tuned
+
+  {{{http://incubator.apache.org/ambari/mail-lists.html} Subscribe to the Ambari mailing lists}} and check back here often to learn about our
+  upcoming releases.
+
