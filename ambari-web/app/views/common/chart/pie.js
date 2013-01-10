@@ -63,7 +63,7 @@ App.ChartPieView = Em.View.extend({
       .data(thisChart.donut(thisChart.get('data')))
       .enter().append("svg:path")
       .attr("fill", function (d, i) {
-        return thisChart.palette.color();
+        return thisChart.palette.color(i);
       })
       .attr("d", this.get('arc')));
   }

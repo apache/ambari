@@ -654,6 +654,9 @@ AMBARI-666 branch (unreleased changes)
 
   BUG FIXES
 
+  AMBARI-1092. dashboard > Summary > capacity pie chart keeps changing colors.
+  (Srimanth Gunturi via yusaku)
+
   AMBARI-1091. 2 parallel requests for service information resulting in JS
   exception. (Srimanth Gunturi via yusaku)
 

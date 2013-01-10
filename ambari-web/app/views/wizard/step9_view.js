@@ -218,7 +218,7 @@ App.HostStatusView = Em.View.extend({
             Ember.Object.create({value: 'failed', label: 'Failed' }),
             Ember.Object.create({value: 'completed', label: 'Success' }),
             Ember.Object.create({value: 'aborted', label: 'Cancelled' }),
-            Ember.Object.create({value: 'timed_out', label: 'Timed Out' })
+            Ember.Object.create({value: 'timedout', label: 'Timed Out' })
           ],
 
         category: null,
