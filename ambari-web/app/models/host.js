@@ -68,13 +68,13 @@ App.Host = DS.Model.extend({
    * Format diskUsed value to float with 2 digits (also convert to GB)
    */
   diskUsedFormatted: function() {
-    return Math.round(this.get('diskUsed') / (1024*1024) * Math.pow(10, 2)) / Math.pow(10, 2) + 'GB';
+    return Math.round(this.get('diskUsed') / (1024*1024*1024) * Math.pow(10, 2)) / Math.pow(10, 2) + 'GB';
   }.property('diskUsed'),
   /**
    * Format diskTotal value to float with 2 digits (also convert to GB)
    */
   diskTotalFormatted: function() {
-    return Math.round(this.get('diskTotal') / (1024*1024) * Math.pow(10, 2)) / Math.pow(10, 2) + 'GB';
+    return Math.round(this.get('diskTotal') / (1024*1024*1024) * Math.pow(10, 2)) / Math.pow(10, 2) + 'GB';
   }.property('diskTotal'),
   /**
    * Percent value of used disk space

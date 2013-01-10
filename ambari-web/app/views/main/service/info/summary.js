@@ -17,6 +17,20 @@
 
 var App = require('app');
 
+App.AlertItemView = Em.View.extend({
+  tagName:"li",
+  templateName: require('templates/main/service/info/summary_alert'),
+  classNameBindings: ["status"],
+  status: function () {
+    return "status-" + this.get("content.status");
+  }.property('content'),
+  didInsertElement: function () {
+    // Tooltips for alerts need to be enabled.
+    $("div[rel=tooltip]").tooltip();
+    $(".tooltip").remove();
+  }
+})
+
 App.MainServiceInfoSummaryView = Em.View.extend({
   templateName: require('templates/main/service/info/summary'),
   attributes:null,
@@ -329,20 +343,6 @@ App.MainServiceInfoSummaryView = Em.View.extend({
       }
     }
   },
-
-  alertItemView:Em.View.extend({
-    tagName:"li",
-    templateName: require('templates/main/service/info/summary_alert'),
-    classNameBindings: ["status"],
-    status: function () {
-      return "status-" + this.get("content.status");
-    }.property('content'),
-    didInsertElement: function () {
-      // Tooltips for alerts need to be enabled.
-      $("div[rel=tooltip]").tooltip();
-      $(".tooltip").remove();
-    }
-  }),
 
   clientHosts:App.Host.find(),
 

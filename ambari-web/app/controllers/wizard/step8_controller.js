@@ -410,12 +410,13 @@ App.WizardStep8Controller = Em.Controller.extend({
           case 'GANGLIA':
             this.loadGanglia(serviceObj);
             break;
-          case 'PIG':
+         /* case 'PIG':
             this.loadPig(serviceObj);
             break;
           case 'SQOOP':
             this.loadSqoop(serviceObj);
             break;
+            */
           case 'HCATALOG':
             break;
           default:

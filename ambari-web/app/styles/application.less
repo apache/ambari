@@ -213,7 +213,9 @@ h1 {
 .icon-remove {
   color: #FF4B4B;
 }
-
+.tooltip {
+  z-index: 1050;
+}
 .tooltip-inner {
   text-align: left;
 }
@@ -267,9 +269,15 @@ h1 {
         margin-bottom: 0;
       }
     }
-    #localRepo {
+    .advancedOptions {
       margin-top: 20px;
       margin-bottom: 30px;
+      label{
+        margin-bottom: 10px;
+      }
+      label.disabled{
+        color: #ccc;
+      }
     }
   }
   #confirm-hosts {
@@ -490,6 +498,74 @@ a:focus {
 
 /*****end styles for boxes*****/
 
+
+/*90% width modal window start*/
+.full-width-modal {
+  .modal {
+    width: 90%;
+    margin: -350px 0 0 -45%;
+  }
+
+  .clear {
+    clear:both;
+  }
+  > div > .dataTable {
+    border: 1px solid silver;
+    th {
+      border-top:none;
+    }
+  }
+  .content {
+    padding: 0;
+  }
+
+//fix stripped in inner table
+  .table-striped tbody tr:nth-child(odd)
+  td .table-striped tbody
+  tr:nth-child(odd) td,
+  tr:nth-child(even) th{
+    background-color: none;
+  }
+
+}
+/*90% width modal window end*/
+
+/*60% width modal window start*/
+.sixty-percent-width-modal {
+  .modal {
+    width: 60%;
+    margin: -45% 0 0 -30%;
+    max-height: 526px;
+  }
+
+  .modal-body{
+
+  }
+
+  .clear {
+    clear:both;
+  }
+  > div > .dataTable {
+    border: 1px solid silver;
+    th {
+      border-top:none;
+    }
+  }
+  .content {
+    padding: 0;
+  }
+
+//fix stripped in inner table
+  .table-striped tbody tr:nth-child(odd)
+  td .table-striped tbody
+  tr:nth-child(odd) td,
+  tr:nth-child(even) th{
+    background-color: none;
+  }
+
+}
+/*60% width modal window end*/
+
 /*****start styles for install tasks logs*****/
 .task-list-main-warp, .task-detail-info {
   i {
@@ -515,6 +591,10 @@ a:focus {
   }
 }
 .task-list-main-warp{
+
+  .task-list-line-cursor{
+    cursor:pointer;
+  }
 
   .task-top-wrap{
 
@@ -832,6 +912,19 @@ a:focus {
 }
 
 /*end alerts summary*/
+
+/*Alerts popup*/
+.alertsPopupLinks {
+  padding: 20px 40px 0px;
+  text-align: right;
+
+  a:first-child {
+    float: left;
+  }
+}
+.modal-footer.align-center {
+  text-align: center;
+}
 
 /*start chart/style graphs*/
 .chart-container {

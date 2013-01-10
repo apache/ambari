@@ -59,7 +59,15 @@
     <div class="ambari-agents">
       <h5>{{t installer.step2.sshKey}}</h5>
 
-      <p>{{t installer.step2.sshKey.info}}</p>
+      <label class="checkbox">
+        {{view Ember.Checkbox checkedBinding="content.installOptions.useSsh"}}
+        {{t installer.step2.useSsh.provide}}
+          <a href="javascript:void(null)"
+             rel="popover"
+            {{translateAttr title="installer.step2.useSsh.tooltip.title" data-content="installer.step2.useSsh.tooltip.content"}}>
+              {{t installer.step2.useSsh.tooltip.title}}</a>
+          {{t installer.step2.useSsh.provide_id_rsa}}
+      </label>
 
       <div {{bindAttr class="sshKeyError:error :control-group"}}>
         {{#if view.isFileApi}}
@@ -75,44 +83,33 @@
         </div>
       </div>
 
-      <div class="manual-install">
-      <label class="checkbox">
-        {{t installer.step2.manualInstall.label}}
-        <a href="javascript:void(null)"
-           rel="popover"
-          {{translateAttr title="installer.step2.manualInstall.tooltip.title" data-content="installer.step2.manualInstall.tooltip.content"}}>
-          Learn more</a>
-        {{view Ember.Checkbox checkedBinding="content.installOptions.manualInstall"}}
-      </label>
-      </div>
-
-      {{#if content.installOptions.manualInstall}}
-      <div class="alert">
-        {{t installer.step2.manualInstall.info}}
-      </div>
-      {{/if}}
-
     </div>
   </div>
 
-  <div id="localRepo">
-    <h5>{{t installer.step2.localRepo.header}}</h5>
-    <label class="checkbox">
-      {{t installer.step2.localRepo.label}}
+  <div class="advancedOptions">
+    <h5>{{t installer.step2.advancedOptions.header}}</h5>
+
+    <label {{bindAttr class=":checkbox content.installOptions.localRepo::disabled"}}>
+      {{view Ember.Checkbox checkedBinding="content.installOptions.localRepo"}}
+
+      {{t installer.step2.localRepo.label_use}}
+
       <a href="javascript:void(null)"
          rel="popover"
         {{translateAttr title="installer.step2.localRepo.tooltip.title" data-content="installer.step2.localRepo.tooltip.content"}}>
-        Learn more</a>
-      {{view Ember.Checkbox checkedBinding="content.installOptions.localRepo"}}
+        {{t installer.step2.localRepo.tooltip.title}}</a>
+      {{t installer.step2.localRepo.label_instead}}
     </label>
 
-    {{#if content.installOptions.localRepo}}
-    <div {{bindAttr class="localRepoError:error :control-group"}}>
-      <div class="alert alert-info">
-        {{t installer.step2.localRepo.info}}
-      </div>
-    </div>
-    {{/if}}
+    <label {{bindAttr class=":checkbox content.installOptions.isJavaHome::disabled"}}>
+      {{view Ember.Checkbox checkedBinding="content.installOptions.isJavaHome"}}
+        {{t installer.step2.javaHome.label}}
+        <a href="javascript:void(null)"
+           rel="popover"
+          {{translateAttr title="installer.step2.javaHome.tooltip.title" data-content="installer.step2.javaHome.tooltip.content"}}>
+            {{t installer.step2.javaHome.tooltip.title}}</a>
+        {{view App.WizardTextField valueBinding="content.installOptions.javaHome" placeholder="/usr/jdk/jdk1.6.0_31"}}
+    </label>
   </div>
   <div class="btn-area">
     {{#unless view.parentView.controller.hideBackButton }}

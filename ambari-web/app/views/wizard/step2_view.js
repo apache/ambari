@@ -39,6 +39,15 @@ App.SshKeyFileUploader = Ember.View.extend({
   }
 });
 
+App.WizardTextField = Ember.TextField.extend({
+  disabled: function(){
+    return !this.get('controller.content.installOptions.isJavaHome');
+  }.property('controller.content.installOptions.isJavaHome'),
+  click: function(){
+    return false;
+  }
+})
+
 App.WizardStep2View = Em.View.extend({
 
   templateName: require('templates/wizard/step2'),
@@ -141,7 +150,22 @@ App.WizardStep2View = Em.View.extend({
     } else {
       return 'hidden';
     }
-  }.property('controller.content.installOptions.sshKey', 'controller.content.installOptions.manualInstall')
+  }.property('controller.content.installOptions.sshKey', 'controller.content.installOptions.manualInstall'),
+
+  manualInstallPopup: function(){
+    if(!this.get('controller.content.installOptions.useSsh')){
+      App.ModalPopup.show({
+        header: "Warning",
+        body: Em.I18n.t('installer.step2.manualInstall.info'),
+        encodeBody: false,
+        onPrimary: function () {
+          this.hide();
+        },
+        secondary: null
+      });
+    }
+    this.set('controller.content.installOptions.manualInstall', !this.get('controller.content.installOptions.useSsh'));
+  }.observes('controller.content.installOptions.useSsh')
 
 });
 

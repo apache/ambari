@@ -129,7 +129,8 @@ App.HostStatusView = Em.View.extend({
     var host = event.context;
     App.ModalPopup.show({
       header: event.context.get('name'),
-      classNames: ['full-width-modal'],
+      classNames: ['sixty-percent-width-modal'],
+      autoHeight: false,
       onPrimary:function () {
         this.hide();
       },
@@ -139,6 +140,7 @@ App.HostStatusView = Em.View.extend({
         templateName:require('templates/wizard/step9HostTasksLogPopup'),
         isLogWrapHidden: true,
         showTextArea: false,
+        isEmptyList:true,
         controllerBinding:context,
         hostObj:function () {
           return this.get('parentView.obj');
@@ -172,6 +174,8 @@ App.HostStatusView = Em.View.extend({
         },
 
         visibleTasks: function () {
+          var self=this;
+          self.set("isEmptyList", true);
           if (this.get('category.value')) {
             var filter = this.get('category.value');
             $.each(this.get("roles"),function(a,e){
@@ -207,6 +211,10 @@ App.HostStatusView = Em.View.extend({
               {
                 e.taskInfos.filterProperty("status", "timedout").setEach("isVisible", true);
               }
+
+              if(e.taskInfos.filterProperty("isVisible", true).length >0){
+                self.set("isEmptyList", false);
+              }
             })
           }
         }.observes('category'),
@@ -219,7 +227,7 @@ App.HostStatusView = Em.View.extend({
             Ember.Object.create({value: 'completed', label: 'Success' }),
             Ember.Object.create({value: 'aborted', label: 'Cancelled' }),
             Ember.Object.create({value: 'timedout', label: 'Timed Out' })
-          ],
+        ],
 
         category: null,
 
@@ -271,7 +279,8 @@ App.HostStatusView = Em.View.extend({
 
         getStartedTasks:function (host) {
           var startedTasks = host.logTasks.filter(function (task) {
-            return task.Tasks.status != 'PENDING' && task.Tasks.status != 'QUEUED';
+            return task.Tasks.status;
+            //return task.Tasks.status != 'PENDING' && task.Tasks.status != 'QUEUED';
           });
           return startedTasks;
         },
@@ -305,6 +314,7 @@ App.HostStatusView = Em.View.extend({
                 var task = $.parseJSON(data);
                 $(".stderr").html(task.Tasks.stderr);
                 $(".stdout").html(task.Tasks.stdout);
+                $(".modal").scrollTop(0);
                 $(".modal-body").scrollTop(0);
               },
               error:function () {

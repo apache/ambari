@@ -30,7 +30,7 @@ App.usersMapper = App.QuickDataMapper.create({
     var self = this;
     json.items.forEach(function (item) {
       var result= [] ;
-      if(App.User.find(item.Users.user_name).get("userName") != item.Users.user_name)
+      if(!App.User.find().someProperty("userName", item.Users.user_name))
       {
         if(item.Users.roles.indexOf("admin") >= 0){
           item.Users.admin = true;

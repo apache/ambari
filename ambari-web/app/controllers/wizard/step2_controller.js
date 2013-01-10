@@ -17,6 +17,7 @@
  */
 
 var App = require('app');
+var validator = require('utils/validator');
 
 App.WizardStep2Controller = Em.Controller.extend({
   name: 'wizardStep2Controller',
@@ -42,8 +43,8 @@ App.WizardStep2Controller = Em.Controller.extend({
   }.property('manualInstall'),
 
   isHostNameValid: function (hostname) {
-    // For now hostnames that start or end with '-' are not allowed
-    return !(/^\-/.test(hostname) || /\-$/.test(hostname));
+    // For now hostnames that start or end with '-' are not allowed and hostname should be valid
+    return validator.isHostname(hostname) && (!(/^\-/.test(hostname) || /\-$/.test(hostname)));
   },
 
   updateHostNameArr: function(){
@@ -52,13 +53,17 @@ App.WizardStep2Controller = Em.Controller.extend({
   },
 
   isAllHostNamesValid: function () {
+    var self = this;
+    var result = true;
     this.updateHostNameArr();
-    for (var index in this.hostNameArr) {
-      if (!this.isHostNameValid(this.hostNameArr[index])) {
-        return false;
+
+    this.hostNameArr.forEach(function(hostName){
+      if (!self.isHostNameValid(hostName)) {
+        result = false;
       }
-    }
-    return true;
+    });
+
+    return result;
   },
 
   hostsError: function () {
@@ -143,13 +148,15 @@ App.WizardStep2Controller = Em.Controller.extend({
 
         if(parseInt(start) <= parseInt(end) && parseInt(start) >= 0){
           self.isPattern = true;
-          if(start[0] == "0" && start.length > 1)
-          {
+
+          if(start[0] == "0" && start.length > 1) {
             extra = start.match(/0*/);
           }
+
           for (var i = parseInt(start); i < parseInt(end) + 1; i++) {
-            hostNames.push(a.replace(/\[\d*\-\d*\]/,extra[0].substring(0,1+extra[0].length-i.toString().length)+i))
+            hostNames.push(a.replace(/\[\d*\-\d*\]/,extra[0].substring(1,1+extra[0].length-i.toString().length)+i))
           }
+
         }else{
           hostNames.push(a);
         }

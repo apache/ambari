@@ -249,8 +249,10 @@ module.exports = Em.Route.extend({
     complete: function (router, context) {
       if (true) {   // this function will be moved to installerController where it will validate
         var addHostController = router.get('addHostController');
+        App.router.get('updateController').updateAllWrapper();
         addHostController.finish();
         $(context.currentTarget).parents("#modal").find(".close").trigger('click');
+        router.transitionTo('main.index');
       } else {
         console.log('cluster installation failure');
         //$(context.currentTarget).parents("#modal").find(".close").trigger('click');

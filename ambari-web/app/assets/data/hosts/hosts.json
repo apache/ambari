@@ -22554,6 +22554,526 @@
           }
         }
       ]
+    },
+
+    {
+      "href" : "http://ec2-184-73-113-36.compute-1.amazonaws.com:8080/api/v1/clusters/ambari50/hosts/ip-10-2-9-59.ec2.internal",
+      "metrics" : {
+        "rpc" : {
+          "offline_num_ops" : 0.0,
+          "reportRSFatalError_num_ops" : 0.0,
+          "checkAndDelete_num_ops" : 0.0,
+          "createTable_num_ops" : 0.0,
+          "isMasterRunning_num_ops" : 0.0,
+          "openRegion_avg_time" : 0.0,
+          "execCoprocessor_num_ops" : 0.0,
+          "removeFromOnlineRegions_avg_time" : 0.0,
+          "unassign_avg_time" : 0.0,
+          "enableTable_avg_time" : 0.0,
+          "getZooKeeper_avg_time" : 0.0,
+          "balanceSwitch_avg_time" : 0.0,
+          "getHServerInfo_avg_time" : 0.0,
+          "addToOnlineRegions_avg_time" : 0.0,
+          "increment_num_ops" : 0.0,
+          "deleteColumn_num_ops" : 0.0,
+          "balanceSwitch_num_ops" : 0.0,
+          "isMasterRunning_avg_time" : 0.0,
+          "checkOOME_avg_time" : 0.0,
+          "regionServerStartup_avg_time" : 0.0,
+          "createTable_avg_time" : 0.0,
+          "getRegionInfo_avg_time" : 0.0,
+          "addColumn_avg_time" : 0.0,
+          "RpcProcessingTime_num_ops" : 0.0,
+          "getProtocolSignature_num_ops" : 0.0,
+          "stop_num_ops" : 0.0,
+          "exists_avg_time" : 0.0,
+          "flushRegion_avg_time" : 0.0,
+          "next_avg_time" : 0.0,
+          "incrementColumnValue_avg_time" : 0.0,
+          "deleteTable_avg_time" : 0.0,
+          "getConfiguration_avg_time" : 0.0,
+          "getZooKeeper_num_ops" : 0.0,
+          "removeFromOnlineRegions_num_ops" : 0.0,
+          "RpcProcessingTime_avg_time" : 0.0,
+          "bulkLoadHFiles_avg_time" : 0.0,
+          "getCatalogTracker_num_ops" : 0.0,
+          "abort_avg_time" : 0.0,
+          "modifyColumn_num_ops" : 0.0,
+          "getFromOnlineRegions_num_ops" : 0.0,
+          "RpcQueueTime_num_ops" : 0.0,
+          "reportRSFatalError_avg_time" : 0.0,
+          "rpcAuthenticationFailures" : 0.0,
+          "stopMaster_avg_time" : 0.0,
+          "delete_num_ops" : 0.0,
+          "getAlterStatus_avg_time" : 0.0,
+          "getServerName_avg_time" : 0.0,
+          "stopMaster_num_ops" : 0.0,
+          "regionServerReport_num_ops" : 0.0,
+          "getFromOnlineRegions_avg_time" : 0.0,
+          "splitRegion_num_ops" : 0.0,
+          "shutdown_num_ops" : 0.0,
+          "lockRow_avg_time" : 0.0,
+          "getClosestRowBefore_avg_time" : 0.0,
+          "multi_avg_time" : 0.0,
+          "checkOOME_num_ops" : 0.0,
+          "delete_avg_time" : 0.0,
+          "move_avg_time" : 0.0,
+          "offline_avg_time" : 0.0,
+          "regionServerReport_avg_time" : 0.0,
+          "getHTableDescriptors_num_ops" : 0.0,
+          "getServerName_num_ops" : 0.0,
+          "getClusterStatus_avg_time" : 0.0,
+          "getBlockCacheColumnFamilySummaries_avg_time" : 0.0,
+          "flushRegion_num_ops" : 0.0,
+          "close_avg_time" : 0.0,
+          "RpcQueueTime_avg_time" : 0.0,
+          "isAborted_avg_time" : 0.0,
+          "SentBytes" : 0.0,
+          "enableTable_num_ops" : 0.0,
+          "unlockRow_num_ops" : 0.0,
+          "disableTable_num_ops" : 0.0,
+          "openRegions_avg_time" : 0.0,
+          "checkAndPut_num_ops" : 0.0,
+          "ReceivedBytes" : 0.0,
+          "checkAndPut_avg_time" : 0.0,
+          "put_num_ops" : 0.0,
+          "rollHLogWriter_num_ops" : 0.0,
+          "getHTableDescriptors_avg_time" : 0.0,
+          "close_num_ops" : 0.0,
+          "next_num_ops" : 0.0,
+          "closeRegion_avg_time" : 0.0,
+          "openScanner_num_ops" : 0.0,
+          "deleteTable_num_ops" : 0.0,
+          "checkAndDelete_avg_time" : 0.0,
+          "addToOnlineRegions_num_ops" : 0.0,
+          "increment_avg_time" : 0.0,
+          "compactRegion_num_ops" : 0.0,
+          "shutdown_avg_time" : 0.0,
+          "openScanner_avg_time" : 0.0,
+          "exists_num_ops" : 0.0,
+          "compactRegion_avg_time" : 0.0,
+          "isAborted_num_ops" : 0.0,
+          "isStopped_avg_time" : 0.0,
+          "lockRow_num_ops" : 0.0,
+          "abort_num_ops" : 0.0,
+          "put_avg_time" : 0.0,
+          "getProtocolVersion_num_ops" : 0.0,
+          "modifyTable_avg_time" : 0.0,
+          "getCatalogTracker_avg_time" : 0.0,
+          "getAlterStatus_num_ops" : 0.0,
+          "addColumn_num_ops" : 0.0,
+          "isStopped_num_ops" : 0.0,
+          "rpcAuthorizationSuccesses" : 0.0,
+          "execCoprocessor_avg_time" : 0.0,
+          "assign_avg_time" : 0.0,
+          "incrementColumnValue_num_ops" : 0.0,
+          "modifyTable_num_ops" : 0.0,
+          "modifyColumn_avg_time" : 0.0,
+          "getConfiguration_num_ops" : 0.0,
+          "splitRegion_avg_time" : 0.0,
+          "getRegionInfo_num_ops" : 0.0,
+          "balance_num_ops" : 0.0,
+          "RpcSlowResponse_avg_time" : 0.0,
+          "getClosestRowBefore_num_ops" : 0.0,
+          "replicateLogEntries_avg_time" : 0.0,
+          "closeRegion_num_ops" : 0.0,
+          "openRegions_num_ops" : 0.0,
+          "regionServerStartup_num_ops" : 0.0,
+          "multi_num_ops" : 0.0,
+          "getOnlineRegions_avg_time" : 0.0,
+          "deleteColumn_avg_time" : 0.0,
+          "getClusterStatus_num_ops" : 0.0,
+          "RpcSlowResponse_num_ops" : 0.0,
+          "rpcAuthenticationSuccesses" : 0.0,
+          "get_avg_time" : 0.0,
+          "unlockRow_avg_time" : 0.0,
+          "balance_avg_time" : 0.0,
+          "openRegion_num_ops" : 0.0,
+          "stop_avg_time" : 0.0,
+          "rpcAuthorizationFailures" : 0.0,
+          "getProtocolVersion_avg_time" : 0.0,
+          "get_num_ops" : 0.0,
+          "getProtocolSignature_avg_time" : 0.0,
+          "replicateLogEntries_num_ops" : 0.0,
+          "unassign_num_ops" : 0.0,
+          "getHServerInfo_num_ops" : 0.0,
+          "rollHLogWriter_avg_time" : 0.0,
+          "move_num_ops" : 0.0,
+          "getOnlineRegions_num_ops" : 0.0,
+          "disableTable_avg_time" : 0.0,
+          "getBlockCacheColumnFamilySummaries_num_ops" : 0.0,
+          "assign_num_ops" : 0.0,
+          "bulkLoadHFiles_num_ops" : 0.0,
+          "stop" : {
+            "aboveOneSec" : {
+              "_avg_time" : 0.0,
+              "_num_ops" : 0.0
+            }
+          },
+          "incrementColumnValue" : {
+            "aboveOneSec" : {
+              "_avg_time" : 0.0,
+              "_num_ops" : 0.0
+            }
+          },
+          "splitRegion" : {
+            "aboveOneSec" : {
+              "_avg_time" : 0.0,
+              "_num_ops" : 0.0
+            }
+          },
+          "bulkLoadHFiles" : {
+            "aboveOneSec" : {
+              "_avg_time" : 0.0,
+              "_num_ops" : 0.0
+            }
+          },
+          "put" : {
+            "aboveOneSec" : {
+              "_avg_time" : 0.0,
+              "_num_ops" : 0.0
+            }
+          },
+          "flushRegion" : {
+            "aboveOneSec" : {
+              "_avg_time" : 0.0,
+              "_num_ops" : 0.0
+            }
+          },
+          "unlockRow" : {
+            "aboveOneSec" : {
+              "_avg_time" : 0.0,
+              "_num_ops" : 0.0
+            }
+          },
+          "next" : {
+            "aboveOneSec" : {
+              "_avg_time" : 0.0,
+              "_num_ops" : 0.0
+            }
+          },
+          "removeFromOnlineRegions" : {
+            "aboveOneSec" : {
+              "_avg_time" : 0.0,
+              "_num_ops" : 0.0
+            }
+          },
+          "getOnlineRegions" : {
+            "aboveOneSec" : {
+              "_avg_time" : 0.0,
+              "_num_ops" : 0.0
+            }
+          },
+          "getRegionInfo" : {
+            "aboveOneSec" : {
+              "_avg_time" : 0.0,
+              "_num_ops" : 0.0
+            }
+          },
+          "openScanner" : {
+            "aboveOneSec" : {
+              "_avg_time" : 0.0,
+              "_num_ops" : 0.0
+            }
+          },
+          "close" : {
+            "aboveOneSec" : {
+              "_avg_time" : 0.0,
+              "_num_ops" : 0.0
+            }
+          },
+          "delete" : {
+            "aboveOneSec" : {
+              "_avg_time" : 0.0,
+              "_num_ops" : 0.0
+            }
+          },
+          "isAborted" : {
+            "aboveOneSec" : {
+              "_avg_time" : 0.0,
+              "_num_ops" : 0.0
+            }
+          },
+          "getFromOnlineRegions" : {
+            "aboveOneSec" : {
+              "_avg_time" : 0.0,
+              "_num_ops" : 0.0
+            }
+          },
+          "isStopped" : {
+            "aboveOneSec" : {
+              "_avg_time" : 0.0,
+              "_num_ops" : 0.0
+            }
+          },
+          "getServerName" : {
+            "aboveOneSec" : {
+              "_avg_time" : 0.0,
+              "_num_ops" : 0.0
+            }
+          },
+          "openRegions" : {
+            "aboveOneSec" : {
+              "_avg_time" : 0.0,
+              "_num_ops" : 0.0
+            }
+          },
+          "openRegion" : {
+            "aboveOneSec" : {
+              "_avg_time" : 0.0,
+              "_num_ops" : 0.0
+            }
+          },
+          "getClosestRowBefore" : {
+            "aboveOneSec" : {
+              "_avg_time" : 0.0,
+              "_num_ops" : 0.0
+            }
+          },
+          "addToOnlineRegions" : {
+            "aboveOneSec" : {
+              "_avg_time" : 0.0,
+              "_num_ops" : 0.0
+            }
+          },
+          "getBlockCacheColumnFamilySummaries" : {
+            "aboveOneSec" : {
+              "_avg_time" : 0.0,
+              "_num_ops" : 0.0
+            }
+          },
+          "increment" : {
+            "aboveOneSec" : {
+              "_avg_time" : 0.0,
+              "_num_ops" : 0.0
+            }
+          },
+          "getHServerInfo" : {
+            "aboveOneSec" : {
+              "_avg_time" : 0.0,
+              "_num_ops" : 0.0
+            }
+          },
+          "getProtocolSignature" : {
+            "aboveOneSec" : {
+              "_avg_time" : 0.0,
+              "_num_ops" : 0.0
+            }
+          },
+          "checkOOME" : {
+            "aboveOneSec" : {
+              "_avg_time" : 0.0,
+              "_num_ops" : 0.0
+            }
+          },
+          "get" : {
+            "aboveOneSec" : {
+              "_avg_time" : 0.0,
+              "_num_ops" : 0.0
+            }
+          },
+          "getProtocolVersion" : {
+            "aboveOneSec" : {
+              "_avg_time" : 0.0,
+              "_num_ops" : 0.0
+            }
+          },
+          "getZooKeeper" : {
+            "aboveOneSec" : {
+              "_avg_time" : 0.0,
+              "_num_ops" : 0.0
+            }
+          },
+          "checkAndPut" : {
+            "aboveOneSec" : {
+              "_avg_time" : 0.0,
+              "_num_ops" : 0.0
+            }
+          },
+          "getCatalogTracker" : {
+            "aboveOneSec" : {
+              "_avg_time" : 0.0,
+              "_num_ops" : 0.0
+            }
+          },
+          "checkAndDelete" : {
+            "aboveOneSec" : {
+              "_avg_time" : 0.0,
+              "_num_ops" : 0.0
+            }
+          },
+          "execCoprocessor" : {
+            "aboveOneSec" : {
+              "_avg_time" : 0.0,
+              "_num_ops" : 0.0
+            }
+          },
+          "lockRow" : {
+            "aboveOneSec" : {
+              "_avg_time" : 0.0,
+              "_num_ops" : 0.0
+            }
+          },
+          "exists" : {
+            "aboveOneSec" : {
+              "_avg_time" : 0.0,
+              "_num_ops" : 0.0
+            }
+          },
+          "multi" : {
+            "aboveOneSec" : {
+              "_avg_time" : 0.0,
+              "_num_ops" : 0.0
+            }
+          },
+          "closeRegion" : {
+            "aboveOneSec" : {
+              "_avg_time" : 0.0,
+              "_num_ops" : 0.0
+            }
+          },
+          "getConfiguration" : {
+            "aboveOneSec" : {
+              "_avg_time" : 0.0,
+              "_num_ops" : 0.0
+            }
+          },
+          "replicateLogEntries" : {
+            "aboveOneSec" : {
+              "_avg_time" : 0.0,
+              "_num_ops" : 0.0
+            }
+          },
+          "compactRegion" : {
+            "aboveOneSec" : {
+              "_avg_time" : 0.0,
+              "_num_ops" : 0.0
+            }
+          },
+          "abort" : {
+            "aboveOneSec" : {
+              "_avg_time" : 0.0,
+              "_num_ops" : 0.0
+            }
+          },
+          "rollHLogWriter" : {
+            "aboveOneSec" : {
+              "_avg_time" : 0.0,
+              "_num_ops" : 0.0
+            }
+          }
+        },
+        "ugi" : {
+          "loginFailure_num_ops" : 0.0,
+          "loginSuccess_num_ops" : 0.0,
+          "loginSuccess_avg_time" : 0.0,
+          "loginFailure_avg_time" : 0.0
+        },
+        "jvm" : {
+          "memHeapCommittedM" : 88.3904513889,
+          "logFatal" : 0.0,
+          "threadsBlocked" : 0.0,
+          "threadsWaiting" : 9.225,
+          "gcCount" : 6.56175576628E7,
+          "logError" : 0.0,
+          "logWarn" : 0.0,
+          "memNonHeapCommittedM" : 23.1875,
+          "gcTimeMillis" : 6.56175575948E7,
+          "memNonHeapUsedM" : 20.6444657944,
+          "logInfo" : 0.0,
+          "memHeapUsedM" : 8.10178122361,
+          "threadsNew" : 0.0,
+          "threadsTerminated" : 0.0,
+          "threadsTimedWaiting" : 7.24722222222,
+          "threadsRunnable" : 6.75277777778
+        }
+      },
+      "Hosts" : {
+        "host_status" : "HEALTHY",
+        "public_host_name" : "ec2-54-234-44-57.compute-1.amazonaws.com",
+        "cpu_count" : 1,
+        "rack_info" : "/default-rack",
+        "host_health_report" : "",
+        "os_arch" : "x86_64",
+        "host_name" : "ip-10-2-9-59.ec2.internal",
+        "disk_info" : [
+          {
+            "available" : "3967812",
+            "used" : "1877904",
+            "percent" : "33%",
+            "size" : "5905712",
+            "type" : "ext4",
+            "mountpoint" : "/"
+          },
+          {
+            "available" : "3823076",
+            "used" : "0",
+            "percent" : "0%",
+            "size" : "3823076",
+            "type" : "tmpfs",
+            "mountpoint" : "/dev/shm"
+          },
+          {
+            "available" : "411234588",
+            "used" : "203012",
+            "percent" : "1%",
+            "size" : "433455904",
+            "type" : "ext3",
+            "mountpoint" : "/grid/0"
+          },
+          {
+            "available" : "411234588",
+            "used" : "203012",
+            "percent" : "1%",
+            "size" : "433455904",
+            "type" : "ext3",
+            "mountpoint" : "/grid/1"
+          }
+        ],
+        "ip" : "10.2.9.59",
+        "os_type" : "redhat6",
+        "last_heartbeat_time" : 1354614186009,
+        "host_state" : "HEALTHY",
+        "cluster_name" : "ambari50",
+        "last_registration_time" : 1354583705401,
+        "total_mem" : 7644119
+      },
+      "host_components" : [
+        {
+          "href" : "http://ec2-184-73-113-36.compute-1.amazonaws.com:8080/api/v1/clusters/ambari50/hosts/ip-10-2-9-59.ec2.internal/host_components/TASKTRACKER",
+          "HostRoles" : {
+            "cluster_name" : "ambari50",
+            "component_name" : "TASKTRACKER",
+            "host_name" : "ip-10-2-9-59.ec2.internal"
+          }
+        },
+        {
+          "href" : "http://ec2-184-73-113-36.compute-1.amazonaws.com:8080/api/v1/clusters/ambari50/hosts/ip-10-2-9-59.ec2.internal/host_components/HBASE_REGIONSERVER",
+          "HostRoles" : {
+            "cluster_name" : "ambari50",
+            "component_name" : "HBASE_REGIONSERVER",
+            "host_name" : "ip-10-2-9-59.ec2.internal"
+          }
+        },
+        {
+          "href" : "http://ec2-184-73-113-36.compute-1.amazonaws.com:8080/api/v1/clusters/ambari50/hosts/ip-10-2-9-59.ec2.internal/host_components/GANGLIA_MONITOR",
+          "HostRoles" : {
+            "cluster_name" : "ambari50",
+            "component_name" : "GANGLIA_MONITOR",
+            "host_name" : "ip-10-2-9-59.ec2.internal"
+          }
+        },
+        {
+          "href" : "http://ec2-184-73-113-36.compute-1.amazonaws.com:8080/api/v1/clusters/ambari50/hosts/ip-10-2-9-59.ec2.internal/host_components/DATANODE",
+          "HostRoles" : {
+            "cluster_name" : "ambari50",
+            "component_name" : "DATANODE",
+            "host_name" : "ip-10-2-9-59.ec2.internal"
+          }
+        }
+      ]
     }
+
+
   ]
 }

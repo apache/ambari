@@ -624,7 +624,7 @@ App.WizardStep9Controller = Em.Controller.extend({
     if (App.testMode) {
       this.numPolls++;
       url = this.get('mockDataPrefix') + '/poll_' + this.get('numPolls') + '.json';
-      debugger;
+
     }
     this.getLogsByRequest(url, true);
   },

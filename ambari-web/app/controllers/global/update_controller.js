@@ -35,19 +35,22 @@ App.UpdateController = Em.Controller.extend({
   updateAll:function(){
     var timeIntervalId = this.get('timeIntervalId');
     var self = this;
-
     if(this.get('isWorking')){
       if(timeIntervalId) return;
       this.set('timeIntervalId', setInterval(function(){
-        self.updateHost();
-        self.updateServiceMetric();
-        self.graphsUpdate();
+        this.updateAllWrapper();
       }, App.contentUpdateInterval));
     } else {
       clearInterval(timeIntervalId);
       this.set('timeIntervalId', null);
     }
   }.observes('isWorking'),
+
+  updateAllWrapper: function() {
+    this.updateHost();
+    this.updateServiceMetric();
+    this.graphsUpdate();
+  },
 
   updateHost:function(){
       var hostsUrl = this.getUrl('/data/hosts/hosts.json', '/hosts?fields=Hosts,host_components,metrics/cpu,metrics/disk,metrics/load,metrics/memory');

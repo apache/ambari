@@ -135,6 +135,7 @@ App.CreateUserForm = App.Form.extend({
   getValues:function () {
     var values = this._super();
     values.type = ['local'];
+    values.id = values.userName;
     return values;
   },
 

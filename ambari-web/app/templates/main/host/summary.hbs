@@ -49,7 +49,7 @@
           <div class="row-fluid">
           {{#view view.ComponentView contentBinding="component"}}
             <div class="span8">
-              <span {{bindAttr class="view.statusClass"}}></span>&nbsp;
+              <span {{bindAttr class="view.statusClass :components-health"}}></span>&nbsp;
               {{component.displayName}}&nbsp;/&nbsp;
               <a href="#" {{action routeToService component.service target="controller"  }}>{{component.service.displayName}}</a>
             </div>

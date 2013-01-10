@@ -36,7 +36,7 @@ App.MainHostSummaryView = Em.View.extend({
    */
   decommissionDataNodeHostNames: null,
 
-  loadDecommisionNodesList: function () {
+  loadDecommissionNodesList: function () {
     var self = this;
     var clusterName = App.router.get('clusterController.clusterName');
     var persistUrl = App.apiPrefix + '/persist';
@@ -88,7 +88,7 @@ App.MainHostSummaryView = Em.View.extend({
     jQuery.ajax(getConfigAjax);
   },
   didInsertElement: function () {
-    this.loadDecommisionNodesList();
+    this.loadDecommissionNodesList();
   },
   sortedComponents: function() {
     var slaveComponents = [];
@@ -132,7 +132,7 @@ App.MainHostSummaryView = Em.View.extend({
         }
       }
       return 'health-status-' + App.Component.Status.getKeyName(this.get('content.workStatus'));
-    }.property('content'),
+    }.property('content.workStatus'),
     /**
      * Disable element while component is starting/stopping
      */
@@ -152,7 +152,7 @@ App.MainHostSummaryView = Em.View.extend({
       var self = this;
       var pulsate = [ App.Component.Status.starting, App.Component.Status.stopping ].contains(workStatus);
       if (!pulsate && this.get('isDataNode')) {
-        var dataNodeComponent = this.get('hostComponent');
+        var dataNodeComponent = this.get('content');
         if (dataNodeComponent)
           pulsate = dataNodeComponent.get('isDecommissioning');
       }
@@ -167,7 +167,7 @@ App.MainHostSummaryView = Em.View.extend({
      */
     startBlinking:function(){
       this.doBlinking();
-    }.observes('content.workStatus', 'content'),
+    }.observes('content.workStatus'),
 
     isStart : function() {
       return (this.get('content.workStatus') === App.Component.Status.started || this.get('content.workStatus') === App.Component.Status.starting);

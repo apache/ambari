@@ -125,7 +125,7 @@
   {{#if view.hasAlertsBox }}
 	<div class="box">
 		<div class="box-header">
-			<h4>Alerts and Health Checks</h4>
+			<h4>{{t services.alerts.headingOfList}}</h4>
 			<div class="btn-group">
         <a class="btn" target="_blank" rel="tooltip" title="Go to Nagios" {{bindAttr href="controller.nagiosUrl"}}><i class="icon-link"></i></a>
 			</div>
@@ -133,7 +133,7 @@
 		<ul id='summary-alerts-list' class="alerts">
 		  {{#if controller.alerts.length}}
 				{{#each controller.alerts}}
-          {{view view.alertItemView contentBinding="this"}}
+          {{view App.AlertItemView contentBinding="this"}}
 				{{/each}}
 			{{else}}
 		    {{#if controller.isNagiosInstalled}}

@@ -403,6 +403,9 @@ App.WizardController = Em.Controller.extend({
   installOptionsTemplate : {
     hostNames: "", //string
     manualInstall: false, //true, false
+    useSsh: true, //bool
+    isJavaHome : false, //bool
+    javaHome: '', //string
     localRepo: false, //true, false
     sshKey: "", //string
     bootRequestId: null //string

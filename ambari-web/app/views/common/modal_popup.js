@@ -48,6 +48,7 @@ App.ModalPopup = Ember.View.extend({
   // define bodyClass which extends Ember.View to use an arbitrary Handlebars template as the body
   primary: 'OK',
   secondary: 'Cancel',
+  autoHeight: true,
 
   onPrimary: function() {
   },
@@ -67,9 +68,11 @@ App.ModalPopup = Ember.View.extend({
   showFooter: true,
 
   didInsertElement: function(){
-    this._super();
-    var block = this.$().find('#modal > .modal-body').first();
-    block.css('max-height', $(window).height()- block.offset().top - 100); // fix popup height
+    if(this.autoHeight){
+      this._super();
+      var block = this.$().find('#modal > .modal-body').first();
+      block.css('max-height', $(window).height()- block.offset().top - 100); // fix popup height
+    }
   }
 });
 

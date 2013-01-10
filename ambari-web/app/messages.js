@@ -48,6 +48,9 @@ Em.I18n.translations = {
   'services.alerts.OK.timePrefix': 'OK for ',
   'services.alerts.WARN.timePrefix': 'WARN for ',
   'services.alerts.CRIT.timePrefix': 'CRIT for ',
+  'services.alerts.headingOfList': 'Alerts and Health Checks',
+  'services.alerts.goToService': 'Go to Service',
+  'services.alerts.goToNagios': 'Go to Nagios Web UI',
 
   'topnav.logo.href':'http://incubator.apache.org/ambari/',
   'topnav.help.href':'https://cwiki.apache.org/confluence/display/AMBARI/Ambari',
@@ -73,10 +76,9 @@ Em.I18n.translations = {
   'installer.step2.hostPattern.tooltip.content':'You can use pattern expressions to specify a number of target hosts. For example, to specify host1 thru host10, enter host[1-10] in the target hosts textarea.',
   'installer.step2.hostName.error.required':'You must specify at least one host name',
   'installer.step2.hostName.error.notRequired':'Host Names will be ignored if not using SSH to automatically configure hosts',
-  'installer.step2.hostName.error.invalid':'Invalid Host Name(s) - cannot start or end with a hyphen',
+  'installer.step2.hostName.error.invalid':'Invalid Host Name(s)',
   'installer.step2.hostName.pattern.header':'Host name pattern expressions',
   'installer.step2.sshKey':'Host Connectivity Information',
-  'installer.step2.sshKey.info':'Provide your SSH Private Key (<b>id_rsa</b> for <b>root</b>)',
   'installer.step2.sshKey.error.required':'SSH Private Key is required',
   'installer.step2.passphrase.error.match':'Passphrases do not match',
   'installer.step2.manualInstall.label':'Do not use SSH to automatically configure hosts ',
@@ -84,14 +86,23 @@ Em.I18n.translations = {
     'Ambari Agent on each host in order for the wizard to perform the necessary configurations and software installs.',
   'installer.step2.advancedOption':'Advanced Options',
   'installer.step2.repoConf':'Software Repository Configuration File Path',
-  'installer.step2.localRepo.header':'Software Repository',
-  'installer.step2.localRepo.label':'Use a local software repository',
+  'installer.step2.advancedOptions.header':'Advanced Options',
+  'installer.step2.localRepo.label_use':'Use a',
+  'installer.step2.localRepo.label_instead':'instead of downloading software packages from the Internet',
   'installer.step2.localRepo.error.required':'Local repository file path is required',
-  'installer.step2.localRepo.info':'Instructs the package manager to use your local software repository to retrieve software packages, instead of ' +
-    'downloading from the internet.',
   'installer.step2.localRepo.tooltip.title':'Local Software Repository',
-  'installer.step2.localRepo.tooltip.content':'Instructs the package manager to use your local software repository to retrieve software packages, instead of ' +
-    'downloading from the internet.',
+  'installer.step2.localRepo.tooltip.content': 'The cluster install requires access to the Internet to fetch software ' +
+    'from a remote repository. In some cases, adequate bandwidth is not available and you want to prevent downloading ' +
+    'packages from the remote repository over and over again. Other times, Internet access is not available from the ' +
+    'hosts in your cluster. In these situations, you must set up a version of the repository that your machines can ' +
+    'access locally and this is called a <b>Local Software Repository</b>',
+  'installer.step2.javaHome.label' : 'Path to 64-bit JDK',
+  'installer.step2.javaHome.tooltip.title' : 'JAVA_HOME',
+  'installer.step2.javaHome.tooltip.content' : 'Path to 64-bit JAVA_HOME. /usr/jdk/jdk1.6.0_31 is the default used by Ambari. You can override this to a specific path that contains the JDK. <br/> Note: the path must be valid on <b>ALL</b> hosts in your cluster.',
+  'installer.step2.useSsh.provide' : 'Provide your',
+  'installer.step2.useSsh.provide_id_rsa' : '(id_rsa for root) and use SSH to automatically',
+  'installer.step2.useSsh.tooltip.title':'SSH Private Key',
+  'installer.step2.useSsh.tooltip.content':'The <b>SSH Private Key File</b> is used for the root access to the target hosts in your cluster.',
   'installer.step2.manualInstall.tooltip.title':'Not Using SSH (Manual Install)',
   'installer.step2.manualInstall.tooltip.content':'If you do not wish Ambari to automatically configure the target hosts via SSH,' +
     ' you have the option of configuring them yourself.  This involves installing and starting Ambari Agent on each of your target hosts.',

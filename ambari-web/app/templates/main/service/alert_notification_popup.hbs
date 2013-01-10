@@ -16,22 +16,15 @@
 * limitations under the License.
 }}
 
-<div class="clearfix">
-  <div class="name span2">
-    <i class="pull-left icon-empty"></i>
-    {{view App.MainDashboardServiceHealthView serviceBinding="view.service"}}
-    <a {{action selectService view.service href=true}}>{{view.service.displayName}}</a>
-    {{#if view.criticalAlertsCount}}
-      <a {{action selectService view.service href=true}} class="label label-important">{{view.criticalAlertsCount}}</a>
-    {{/if}}
-  </div>
-  <div class="summary span">
-    {{#each component in view.service.components}}
-    {{#if component.type}}
-    <a href="#" {{action selectHost component.host}}>{{component.displayName}}</a>,
-    {{else}}
-    <a href="#" {{action filterHosts component}}>{{component.displayName}}</a>
-    {{/if}}
+<p>You have {{view.warnAlertsCount}} critical alert notification(s).</p>
+{{#if view.warnAlertsCount}}
+  <ul id='summary-alerts-list' class="alerts">
+    {{#each view.warnAlerts}}
+      {{view App.AlertItemView contentBinding="this"}}
     {{/each}}
-  </div>
-</div>
+  </ul>
+{{/if}}
+<p class="alertsPopupLinks">
+    <a href="#" {{action selectService}}>{{t services.alerts.goToService}}</a>
+    <a {{bindAttr href="view.nagiosUrl"}} target="_blank" {{action "closePopup" on="mouseUp"}}>{{t services.alerts.goToNagios}}</a>
+</p>

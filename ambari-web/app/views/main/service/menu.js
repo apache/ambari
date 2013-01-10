@@ -60,7 +60,7 @@ App.MainServiceMenuView = Em.CollectionView.extend({
     active:function () {
       return this.get('content.id') == this.get('parentView.activeServiceId') ? 'active' : '';
     }.property('parentView.activeServiceId'),
-    alertsCount:function () {
+    alertsCount: function () {
       var allAlerts = App.router.get('clusterController.alerts');
       var serviceId = this.get('content.serviceName');
       if (serviceId) {
@@ -68,6 +68,7 @@ App.MainServiceMenuView = Em.CollectionView.extend({
       }
       return 0;
     }.property('App.router.clusterController.alerts'),
+
     templateName:require('templates/main/service/menu_item')
   })
 });

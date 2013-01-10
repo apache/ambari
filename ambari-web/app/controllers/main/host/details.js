@@ -182,7 +182,7 @@ App.MainHostDetailsController = Em.Controller.extend({
 
   decommission: function(event){
     var self = this;
-    var decommissionHostNames = this.get('view.decommissionDatanodeHostnames');
+    var decommissionHostNames = this.get('view.decommissionDataNodeHostNames');
     if (decommissionHostNames == null) {
       decommissionHostNames = [];
     }
@@ -286,7 +286,7 @@ App.MainHostDetailsController = Em.Controller.extend({
 
   recommission: function(event){
     var self = this;
-    var decommissionHostNames = this.get('view.decommissionDatanodeHostnames');
+    var decommissionHostNames = this.get('view.decommissionDataNodeHostNames');
     if (decommissionHostNames == null) {
       decommissionHostNames = [];
     }
