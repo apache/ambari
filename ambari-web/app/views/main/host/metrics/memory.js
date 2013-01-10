@@ -69,13 +69,14 @@ App.ChartHostMetricsMemory = App.ChartLinearTimeView.extend({
             seriesData = JSON.parse(seriesData);
           }
           // We have valid data
+          var KB = Math.pow(2,10);
           var series = {};
           series.name = displayName;
           series.data = [];
           for ( var index = 0; index < seriesData.length; index++) {
             series.data.push({
               x: seriesData[index][1],
-              y: seriesData[index][0] * 1000
+              y: seriesData[index][0] * KB
             });
           }
           seriesArray.push(series);

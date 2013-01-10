@@ -65,13 +65,14 @@ App.ChartServiceMetricsHDFS_SpaceUtilization = App.ChartLinearTimeView.extend({
             seriesData = JSON.parse(seriesData);
           }
           // We have valid data
+          var GB = Math.pow(2,30);
           var series = {};
           series.name = displayName;
           series.data = [];
           for ( var index = 0; index < seriesData.length; index++) {
             series.data.push({
               x: seriesData[index][1],
-              y: seriesData[index][0]*1000000000
+              y: seriesData[index][0]*GB
             });
           }
           seriesArray.push(series);

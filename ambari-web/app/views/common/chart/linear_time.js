@@ -494,7 +494,7 @@ App.ChartLinearTimeView = Ember.View.extend({
               return self.yAxisFormatter(y);
             },
             xFormatter:function (x) {
-              return (new Date(x)).toLocaleTimeString();
+              return (new Date(x * 1000)).toLocaleTimeString();
             },
             formatter:function (series, x, y, formattedX, formattedY, d) {
               return formattedY + '<br />' + formattedX;
@@ -607,7 +607,9 @@ App.ChartLinearTimeView.BytesFormatter = function (y) {
       value = String(value);
     }
     if ("string" == typeof value) {
-      value = value.replace(/\.\d+/, ''); // Remove decimal part
+      value = value.replace(/\.\d(\d+)/, function($0, $1){ // Remove only 1-digit after decimal part
+        return $0.replace($1, '');
+      }); 
       // Either it ends with digit or ends with character
       value = value.replace(/(\d$)/, '$1 '); // Ends with digit like '120'
       value = value.replace(/([a-zA-Z]$)/, ' $1'); // Ends with character like
