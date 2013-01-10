@@ -66,10 +66,17 @@ App.MainDashboardServiceHdfsView = App.MainDashboardServiceView.extend({
   capacity: function () {
     var text = this.t("dashboard.services.hdfs.capacityUsed");
     var total = this.get('service.capacityTotal') + 0;
-    var used = total - (this.get('service.capacityRemaining') + 0);
+    var remaining = this.get('service.capacityRemaining') + 0;
+    var used = total - remaining;
     var percent = total > 0 ? ((used * 100) / total).toFixed(1) : 0;
-    if (percent == "NaN") {
+    if (percent == "NaN" || percent < 0) {
       percent = "n/a ";
+    }
+    if (used < 0) {
+      used = 0;
+    }
+    if (total < 0) {
+      total = 0;
     }
     return text.format(used.bytesToSize(1, 'parseFloat'), total.bytesToSize(1, 'parseFloat'), percent);
   }.property('service.capacityUsed', 'service.capacityTotal'),
