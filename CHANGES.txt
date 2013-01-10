@@ -648,6 +648,9 @@ AMBARI-666 branch (unreleased changes)
 
   BUG FIXES
 
+  AMBARI-1077. The value for dead nodes is not getting populated on UI.
+  (Srimanth Gunturi via yusaku)
+
   AMBARI-1073. Remove cluster name entry from top titlebar. (Srimanth Gunturi
   via yusaku)
 

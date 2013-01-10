@@ -236,7 +236,6 @@ App.servicesMapper = App.QuickDataMapper.create({
             });
           }
           // Dead data nodes
-          /** Uncomment when BUG-2368 is fixed.
           dataNodes = e.get('deadDataNodes');
           if (dataNodes) {
             dataNodes.clear();
@@ -244,7 +243,6 @@ App.servicesMapper = App.QuickDataMapper.create({
               dataNodes.pushObject(App.Host.find(ldn));
             });
           }
-          */
         });
         break;
       case 'MAPREDUCE':
@@ -312,8 +310,7 @@ App.servicesMapper = App.QuickDataMapper.create({
           item.live_data_nodes.push(ln);
         }
         for (var dn in deadNodesJson) {
-          // Uncomment when BUG-2368 is fixed.
-          //item.dead_data_nodes.push(dn);
+          item.dead_data_nodes.push(dn);
         }
         for (var dcn in decommissionNodesJson) {
           item.decommission_data_nodes.push(dcn);
