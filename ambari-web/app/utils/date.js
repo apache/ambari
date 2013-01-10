@@ -56,6 +56,30 @@ module.exports = {
     return year + month + day + hours + minutes;
   },
   /**
+   * Convert timestamp to date-string 'DAY_OF_THE_WEEK MONTH DAY YEAR'
+   * @param timestamp
+   * @return {*}
+   */
+  dateFormatShort: function(timestamp) {
+    if (!validator.isValidInt(timestamp)) return timestamp;
+
+    var date = new Date(timestamp*1);
+    var today = new Date();
+    if (date.toDateString() === today.toDateString()) {
+      return 'Today ' + date.toLocaleTimeString();
+    }
+    return date.toDateString();
+  },
+  /**
+   * Convert date-string 'DAY_OF_THE_WEEK MONTH DAY YEAR' to the timestamp
+   * @param date_string
+   * @return {Number}
+   */
+  dateUnformatShort: function(date_string) {
+    var date = new Date(date_string);
+    return date.getTime();
+  },
+  /**
    * Convert time in mseconds to 'HOURS:MINUTES:SECONDS'
    * @param ms_interval
    * @return string formatted date

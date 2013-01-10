@@ -17,7 +17,6 @@
 }}
 
 {{view App.MainServiceInfoMenuView configTabBinding="view.hasConfigTab"}}
-{{#unless controller.content.isClients}}
 {{#if controller.isAdmin}}
 <div class="service-button">
   {{#if view.hasMaintenanceControl}}
@@ -48,5 +47,4 @@
   </a>
 </div>
 {{/if}}
-{{/unless}}
 {{outlet}}

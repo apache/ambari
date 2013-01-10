@@ -25,4 +25,4 @@
 <td>{{unbound run.inputFormatted}}</td>
 <td>{{unbound run.outputFormatted}}</td>
 <td>{{unbound run.duration}}</td>
-<td>{{unbound run.lastUpdateTimeFormatted}}&nbsp;{{#if run.isRunning}}<b class='red'>*</b>{{/if}}</td>
+<td ><span title="{{unbound run.lastUpdateTimeFormatted}}">{{unbound run.lastUpdateTimeFormattedShort}}</span>&nbsp;{{#if run.isRunning}}<b class='red'>*</b>{{/if}}</td>

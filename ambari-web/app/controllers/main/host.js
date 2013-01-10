@@ -30,7 +30,7 @@ App.MainHostController = Em.ArrayController.extend({
   }.property('App.router.loginController.loginName'),
   componentsForFilter:function() {
     var components = App.Component.find();
-    ret = new Array();
+    var ret = new Array();
     if (!components) {
       return ret;
     }
@@ -38,6 +38,7 @@ App.MainHostController = Em.ArrayController.extend({
       var o = Ember.Object.create({
         id: item.get('id'),
         isMaster: item.get('isMaster'),
+        isSlave: item.get('isSlave'),
         displayName: item.get('displayName'),
         componentName: item.get('componentName'),
         checkedForHostFilter: item.get('checkedForHostFilter')
@@ -102,7 +103,17 @@ App.MainHostController = Em.ArrayController.extend({
   slaveComponents:function () {
     var components = [];
     this.get('componentsForFilter').forEach(function (component) {
-      if (!component.get('isMaster')) {
+      if (component.get('isSlave')) {
+        components.push(component);
+      }
+    });
+    return components;
+  }.property('componentsForFilter'),
+
+  clientComponents: function() {
+    var components = [];
+    this.get('componentsForFilter').forEach(function(component) {
+      if (!component.get('isMaster') && !component.get('isSlave')) {
         components.push(component);
       }
     });

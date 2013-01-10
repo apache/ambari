@@ -34,6 +34,7 @@ jQuery.extend(jQuery.fn.dataTableExt.oSort, {
   // @see utils/date.js
   "ambari-datetime-pre": function (date_string) {
     date_string = $.trim(date_string.replace(/<script[^>]*?>.*<\/script>/g, ''));
+    date_string = $(date_string).attr('title');
     var date = date_string.substring(4);
     var month = date.substring(1, 4);
     var day = date.substring(5, 7);
@@ -299,8 +300,8 @@ jQuery.extend($.fn.dataTableExt.afnFiltering.push(
 
       function ambariDateFilter(condition, rowValue) {
         if (typeof rowValue !== 'undefined') {
-          var refinedRowValue = $.trim(rowValue.replace(/<script[^>]*?>.*<\/script>/g, '').replace('&nbsp;', ''));
-
+          var refinedRowValue = $.trim(rowValue.replace(/<script[^>]*?>.*<\/script>/g, ''));
+          refinedRowValue = $(refinedRowValue).attr('title');
           var nowTime = new Date().getTime();
           var oneDayPast = nowTime - 86400000;
           var twoDaysPast = nowTime - 172800000;

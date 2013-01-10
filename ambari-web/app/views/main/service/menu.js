@@ -26,8 +26,6 @@ App.MainServiceMenuView = Em.CollectionView.extend({
       }
       return true;
     });
-
-    items.push(App.router.get('mainServiceController.additionalMenuItem'));
     return items;
   }.property('App.router.mainServiceController.content'),
 
@@ -70,10 +68,6 @@ App.MainServiceMenuView = Em.CollectionView.extend({
       }
       return 0;
     }.property('App.router.clusterController.alerts'),
-    clients: function(){
-      var content = this.get('content');
-      return this.get('content.isClients') ? "clients" : "";
-    }.property("content"),
     templateName:require('templates/main/service/menu_item')
   })
 });

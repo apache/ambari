@@ -53,12 +53,17 @@ App.Component = DS.Model.extend({
     }
     return this.get('componentName');
   }.property('componentName'),
-
-  isClient: function () {
-    if (!this.get('componentName')) {
-      return false;
+  isSlave: function(){
+    switch (this.get('componentName')) {
+      case 'DATANODE':
+      case 'TASKTRACKER':
+      case 'HBASE_REGIONSERVER':
+      case 'GANGLIA_MONITOR':
+        return true;
+      default:
+        return false;
     }
-    return Boolean(this.get('componentName').match(/_client/gi));
+    return this.get('componentName');
   }.property('componentName')
 });
 

@@ -424,5 +424,25 @@ App.servicesMapper = App.QuickDataMapper.create({
     finalJson = this.parseIt(item, finalConfig);
     finalJson.quick_links = [13, 14, 15, 16, 17, 18];
     return finalJson;
+  },
+  _update: function(model, json){
+    var content = model.find();
+    var addArray = [];
+    for(var i in json){
+      var item = json[i];
+      var oldItem = content.findProperty('id', item.id);
+      if(oldItem){
+
+        for(var field in item){ ///<--
+          if(field !== 'id'){
+            oldItem.set(field, item[field]);  //<--
+          }
+        }
+
+      } else {
+        addArray.push(item);
+      }
+    }
+    App.store.loadMany(model, addArray);
   }
 });

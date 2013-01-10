@@ -72,6 +72,18 @@ module.exports =
     },
     {
       "id": "conf-site",
+      "name": "webhcat-site",
+      "displayName": "Custom WebHCat Configs",
+      "description": "Enter in \"key=value\" format to set webhcat-site.xml parameters not exposed through this page.<br> New line is the delimiter for every key-value pair.",
+      "defaultValue": "",
+      "isRequired": false,
+      "displayType": "custom",
+      "isVisible": true,
+      "serviceName": "WEBHCAT",
+      "category": "Advanced"
+    },
+    {
+      "id": "conf-site",
       "name": "oozie-site",
       "displayName": "Custom Oozie Configs",
       "description": "Enter in \"key=value\" format to set oozie-site.xml parameters not exposed through this page.<br> New line is the delimiter for every key-value pair.",

@@ -61,6 +61,16 @@ module.exports = [
   },
 
   {
+    serviceName: 'WEBHCAT',
+    displayName: 'WebHCat',
+    filename: 'webhcat-site',
+    configCategories: [
+      App.ServiceConfigCategory.create({ name: 'Advanced'})
+    ],
+    configs: configProperties.filterProperty('serviceName', 'WEBCHAT')
+  },
+
+  {
     serviceName: 'HBASE',
     displayName: 'HBase',
     filename: 'hbase-site',

@@ -26,7 +26,6 @@ App.MainServiceController = Em.ArrayController.extend({
     }
     return App.Service.find();
   }.property('App.router.clusterController.isLoaded'),
-  additionalMenuItem:Em.Object.create({ id:'Clients', displayName:'Clients', isClients:true }),
   isAdmin: function(){
     return App.db.getUser().admin;
   }.property('App.router.loginController.loginName'),

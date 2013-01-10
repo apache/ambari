@@ -17,9 +17,7 @@
 }}
 
 <a href="#/main/services/{{unbound view.content.id}}/summary">
-  {{#unless view.content.isClients}}
   {{view App.MainDashboardServiceHealthView class="service-health" serviceBinding="view.content"}}&nbsp;
-  {{/unless}}
   <span>{{unbound view.content.displayName}}</span>
   {{#if view.alertsCount}}
     <span class="label operations-count">

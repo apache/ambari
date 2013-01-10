@@ -25,56 +25,43 @@ App.MainAppsController = Em.ArrayController.extend({
   content: function(){
     return App.Run.find();
   }.property('App.router.clusterController.postLoadList.runs'),
-
-  staredRuns: [],
-  filteredRuns: [],
-
+  /**
+   * Mark all Runs as not Filtered
+   */
   clearFilteredRuns: function() {
-    this.set('filteredRuns', []);
+    this.get('content').setEach('isFiltered', false);
     this.set('filteredRunsLength', 0);
   },
+  /**
+   * Mark Run as filtered
+   * @param id runId
+   */
   addFilteredRun: function(id) {
-    this.get('filteredRuns').push(this.getRunById(id));
-    this.set('filteredRunsLength', this.get('filteredRuns').length);
-  },
-  /**
-   * Get run by id
-   * @param id run identifier (NOT runId)
-   * @return {*} run if exists, undefined - not exists
-   */
-  getRunById: function(id) {
-    return this.get('content').findProperty('id', id);
-  },
-  /**
-   * Check if run with such id exists
-   * @param id run identifier (NOT runId)
-   * @return {Boolean} true - record with this id exists, false - not exists
-   */
-  issetStaredRun: function(id) {
-    return this.get('staredRuns').someProperty('id', id);
+    this.get('content').findProperty('id', id).set('isFiltered', true);
+    this.set('filteredRunsLength', this.get('content').filterProperty('isFiltered', true).length);
   },
   /**
    * Identifier of the last starred/unstarred run
    */
-  lastStarClicked: -1,
+  lastStarClicked: null,
+  /**
+   * Starred Runs count
+   */
+  staredRunsLength: function() {
+    return this.get('content').filterProperty('isStared', true).length;
+  }.property('content'),
   /**
    * Click on star on table row
    * @return {Boolean} false for prevent default event handler
    */
   starClick: function(event) {
     event.target.classList.toggle('stared');
-
     var id = jQuery(event.target).parent().parent().parent().find('.appId').attr('title');
-    if (!this.issetStaredRun(id)) {
-      this.get('staredRuns').push(this.getRunById(id));
+    var run = this.get('content').findProperty('id', id);
+    if (run) {
+      run.set('isStared', !run.get('isStared'));
     }
-    else {
-      var key = this.get('staredRuns').indexOf(this.getRunById(id));
-      if (key != -1) {
-        this.get('staredRuns').splice(key, 1);
-      }
-    }
-    this.set('staredRunsLength', this.get('staredRuns').length);
+    this.set('staredRunsLength', this.get('content').filterProperty('isStared', true).length);
     this.set('lastStarClicked', id);
     return false;
   }

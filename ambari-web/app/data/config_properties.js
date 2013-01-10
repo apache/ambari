@@ -263,18 +263,6 @@ module.exports =
       "domain": "global",
       "serviceName": "HBASE"
     },
-   /* {
-      "id": "puppet var",
-      "name": "hbase-site.xml",
-      "displayName": "Custom HBase Configs",
-      "description": "If you wish to set configuration parameters not exposed through this page, you can specify them here.<br>The text you specify here will be injected into hbase-site.xml verbatim.",
-      "defaultValue": "",
-      "isRequired": false,
-      "displayType": "custom",
-      "isVisible": true,
-      "serviceName": "HBASE",
-      "category": "Advanced"
-    }, */
     {
       "id": "puppet var",
       "name": "hbase_hdfs_root_dir",
@@ -831,18 +819,6 @@ module.exports =
       "serviceName": "HDFS",
       "category": "Advanced"
     },
-    /*{
-      "id": "puppet var",
-      "name": "hdfs-site.xml",
-      "displayName": "Custom HDFS Configs",
-      "description": "If you wish to set configuration parameters not exposed through this page, you can specify them here.<br>The text you specify here will be injected into hdfs-site.xml verbatim.",
-      "defaultValue": "",
-      "isRequired": false,
-      "displayType": "custom",
-      "isVisible": true,
-      "serviceName": "HDFS",
-      "category": "Advanced"
-    }, */
     {
       "id": "puppet var",
       "name": "hivemetastore_host",
@@ -1261,18 +1237,6 @@ module.exports =
       "serviceName": "HIVE",
       "category": "Advanced"
     },
-   /* {
-      "id": "puppet var",
-      "name": "hive-site.xml",
-      "displayName": "Custom Hive Configs",
-      "description": "If you wish to set configuration parameters not exposed through this page, you can specify them here.<br>The text you specify here will be injected into hive-site.xml verbatim.",
-      "defaultValue": "",
-      "isRequired": false,
-      "displayType": "custom",
-      "isVisible": true,
-      "serviceName": "HIVE",
-      "category": "Advanced"
-    },*/
     {
       "id": "puppet var",
       "name": "jobtracker_host",
@@ -1568,18 +1532,6 @@ module.exports =
       "domain": "global",
       "serviceName": "MAPREDUCE"
     },
-    /*{
-      "id": "puppet var",
-      "name": "mapred-site.xml",
-      "displayName": "Custom MapReduce Configs",
-      "description": "If you wish to set configuration parameters not exposed through this page, you can specify them here.<br>The text you specify here will be injected into mapred-site.xml verbatim.",
-      "defaultValue": "",
-      "isRequired": false,
-      "displayType": "custom",
-      "isVisible": true,
-      "serviceName": "MAPREDUCE",
-      "category": "Advanced"
-    },*/
     {
       "id": "puppet var",
       "name": "mapred_hosts_exclude",

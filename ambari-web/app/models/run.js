@@ -35,8 +35,11 @@ App.Run = DS.Model.extend({
 
   loadAllJobs : false,
 
+  isStared: false,
+  isFiltered: false,
+
   /**
-   *
+   * runId  short part
    */
   idFormatted: function() {
     return this.get('id').substr(0, 20);
@@ -90,6 +93,9 @@ App.Run = DS.Model.extend({
    */
   lastUpdateTimeFormatted: function() {
     return date.dateFormat(this.get('lastUpdateTime'));
+  }.property('lastUpdateTime'),
+  lastUpdateTimeFormattedShort: function(){
+    return date.dateFormatShort(this.get('lastUpdateTime'));
   }.property('lastUpdateTime'),
   /**
    * Type value based on first part of id

@@ -237,6 +237,7 @@ App.MainHostView = Em.View.extend({
     toggleAllComponents:function () {
       this.set('masterComponentsChecked', this.get('allComponentsChecked'));
       this.set('slaveComponentsChecked', this.get('allComponentsChecked'));
+      this.set('clientComponentsChecked', this.get('allComponentsChecked'));
     }.observes('allComponentsChecked'),
 
     masterComponentsChecked:false,
@@ -255,6 +256,14 @@ App.MainHostView = Em.View.extend({
       });
     }.observes('slaveComponentsChecked'),
 
+    clientComponentsChecked: false,
+    toggleClientComponents: function() {
+      var checked = this.get('clientComponentsChecked');
+      this.get('clientComponents').forEach(function(comp) {
+        comp.set('checkedForHostFilter', checked);
+      });
+    }.observes('clientComponentsChecked'),
+
     masterComponents:function(){
       var masterComponents = [];
       for(var i = 0; i < this.get('parentView').get('controller.masterComponents').length; i++) {
@@ -270,6 +279,14 @@ App.MainHostView = Em.View.extend({
       }
       return slaveComponents;
     }.property('parentView.controller.slaveComponents'),
+
+    clientComponents: function() {
+      var clientComponents = [];
+      for (var i = 0; i < this.get('parentView').get('controller.clientComponents').length; i++) {
+        clientComponents.push(this.get('parentView').get('controller.clientComponents')[i]);
+      }
+      return clientComponents;
+    }.property('parentView.controller.clientComponents'),
 
     template: Ember.Handlebars.compile('<div {{bindAttr class="view.btnGroupClass"}} >'+
       '<button class="btn btn-info single-btn-group" {{action "clickFilterButton" target="view"}}>' +
@@ -304,6 +321,20 @@ App.MainHostView = Em.View.extend({
                   '</label>' +
                   '<ul>' +
                     '{{#each component in slaveComponents}}' +
+                      '<li>' +
+                        '<label class="checkbox">' +
+                          '{{view Ember.Checkbox checkedBinding="component.checkedForHostFilter" }} {{unbound component.displayName}}' +
+                        '</label>' +
+                      '</li>' +
+                    '{{/each}}' +
+                  '</ul>' +
+                '</li>' +
+                '<li>' +
+                  '<label class="checkbox">' +
+                    '{{view Ember.Checkbox checkedBinding="view.clientComponentsChecked"}} Client Components:' +
+                  '</label>' +
+                  '<ul>' +
+                    '{{#each component in clientComponents}}' +
                       '<li>' +
                         '<label class="checkbox">' +
                           '{{view Ember.Checkbox checkedBinding="component.checkedForHostFilter" }} {{unbound component.displayName}}' +
@@ -368,6 +399,9 @@ App.MainHostView = Em.View.extend({
         if(item.get('checkedForHostFilter')) chosenComponents.push(item.get('displayName'));
       });
       this.get('slaveComponents').forEach(function(item){
+        if(item.get('checkedForHostFilter')) chosenComponents.push(item.get('displayName'));
+      });
+      this.get('clientComponents').forEach(function(item){
         if(item.get('checkedForHostFilter')) chosenComponents.push(item.get('displayName'));
       });
       jQuery('#components_filter').val(chosenComponents);

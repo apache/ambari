@@ -18,9 +18,7 @@
 var App = require('app');
 
 App.MainServiceInfoSummaryView = Em.View.extend({
-  templateName:function () {
-    return require(this.get('service.isClients') ? 'templates/main/service/info/client_summary' : 'templates/main/service/info/summary');
-  }.property('service'),
+  templateName: require('templates/main/service/info/summary'),
   attributes:null,
   serviceStatus:{
     hdfs:false,

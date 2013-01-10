@@ -214,7 +214,14 @@ App.WizardStep2Controller = Em.Controller.extend({
   }.property('hostsError', 'sshKeyError'),
 
   saveHosts: function(){
-    this.set('content.hosts', this.getHostInfo());
+    var installedHosts = App.Host.find();
+    var newHosts = this.getHostInfo();
+    for (var host in newHosts) {
+      if (installedHosts.someProperty('hostName', host)) {
+        delete newHosts[host]
+      }
+    }
+    this.set('content.hosts', newHosts);
     App.router.send('next');
   }
 

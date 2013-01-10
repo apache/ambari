@@ -94,13 +94,9 @@ App.MainHostSummaryView = Em.View.extend({
     var slaveComponents = [];
     var masterComponents = [];
     this.get('content.components').forEach(function(component){
-      if(!component.get('componentName')){
-        //temporary fix because of different data in hostComponents and serviceComponents
-        return;
-      }
       if(component.get('isMaster')){
         masterComponents.push(component);
-      } else if(!component.get('isClient')) {
+      } else if(component.get('isSlave')) {
         slaveComponents.push(component);
       }
     }, this);
@@ -109,7 +105,11 @@ App.MainHostSummaryView = Em.View.extend({
   clients: function(){
     var clients = [];
     this.get('content.components').forEach(function(component){
-      if(component.get('isClient')) {
+      if(!component.get('componentName')){
+        //temporary fix because of different data in hostComponents and serviceComponents
+        return;
+      }
+      if(!component.get('isSlave') && !component.get('isMaster')) {
         if(clients.length){
           clients[clients.length-1].set('isLast', false);
         }

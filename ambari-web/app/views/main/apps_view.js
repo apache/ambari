@@ -42,7 +42,7 @@ App.MainAppsView = Em.View.extend({
    * List of users
    */
   users: function() {
-    var result = new Array();
+    var result = [];
     this.get('content').forEach(function(item) {
        result.push(item.get('userName'));
     });
@@ -56,6 +56,10 @@ App.MainAppsView = Em.View.extend({
    * jQuery collection of stars icons (in dataTables). Saved here for easy "turning off"
    */
   smallStarsIcons: null,
+
+  stared: function() {
+    return this.get('controller.staredRunsLength');
+  }.property('controller.staredRunsLength'),
   /**
    * Count of filtered runs
    */
@@ -79,13 +83,13 @@ App.MainAppsView = Em.View.extend({
    * Avg data of filtered runs
    */
   filteredData: function() {
-    return this.getAvgData(this.get('controller.filteredRuns'));
+    return this.getAvgData(this.get('controller.content').filterProperty('isFiltered', true));
   }.property('controller.filteredRunsLength'),
   /**
    * Avg data of stared runs
    */
   staredData: function() {
-    return this.getAvgData(this.get('controller.staredRuns'));
+    return this.getAvgData(this.get('controller.content').filterProperty('isStared', true));
   }.property('controller.staredRunsLength'),
   setFilteredRuns: function(data) {
 
@@ -172,7 +176,6 @@ App.MainAppsView = Em.View.extend({
     minOutput = misc.formatBandwidth(minOutput);
     maxOutput = misc.formatBandwidth(maxOutput);
     ret = {
-      'count': this.get('controller.staredRuns').length,
       'jobs': {
         'avg': avgJobs.toFixed(2),
         'min': minJobs,
@@ -208,13 +211,15 @@ App.MainAppsView = Em.View.extend({
     this.set('whatAvgShow', !this.get('whatAvgShow'));
     $('a.icon-star.a').toggleClass('active');
   },
+  /**
+   *
+   */
   starClicked: function() {
     var runIndex = this.get('controller.lastStarClicked');
-    if (runIndex < 0) return;
     if (!this.get('oTable')) return;
     var rowIndex = -1;
     // Get real row index
-    var column = this.get('oTable').fnGetColumnData(1);
+    var column = this.get('oTable').fnGetColumnData(1);  // 1 - number of column with full runId (hidden)
     for (var i = 0; i < column.length; i++) {
       if (runIndex == column[i]) {
         rowIndex = i;
@@ -231,34 +236,31 @@ App.MainAppsView = Em.View.extend({
     if (perPage !== -1) { // Change page after reDraw (if show All is selected this will not happens)
       this.get('oTable').fnPageChange(Math.floor(rowIndex / perPage));
     }
-    var d = this.get('oTable').fnGetData();
   }.observes('controller.lastStarClicked'),
   /**
    * Flush all starred runs
    */
   clearStars: function() {
-    this.get('controller').set('staredRuns', []);
+    this.get('controller').get('content').setEach('isStared', false);
     this.get('controller').set('staredRunsLength', 0);
     this.set('viewType', this.get('defaultViewType'));
     this.set('whatAvgShow', true);
+    this.get('smallStarsIcons').removeClass('stared');
+    $('#dataTable .icon-star').removeClass('stared');
     $('a.icon-star.a').removeClass('active');
   },
   /**
    * "turn off" stars in the table
    */
   resetStars: function() {
-    var self = this;
-    if (this.get('controller.staredRunsLength') == 0 && this.get('smallStarsIcons') != null) {
+    /*var self = this;
+    if (this.get('controller.staredRunsLength') != 0 && this.get('smallStarsIcons') != null) {
       this.get('smallStarsIcons').removeClass('stared');
       $('#dataTable .icon-star').removeClass('stared');
       $('a.icon-star.a').removeClass('active');
       this.get('starFilterViewInstance').set('value', '');
-      /*$('#dataTable tbody tr').each(function(index) {
-        var td = $(this).find('td:eq(0)');
-        self.get('oTable').fnUpdate( td.html(), index, 0);
-      });*/
       this.updateStars();
-    }
+    }*/
   }.observes('controller.staredRunsLength'),
   /**
    * Update stars data in dataTable. data taken from page
@@ -292,6 +294,9 @@ App.MainAppsView = Em.View.extend({
   clickViewType: function(event) {
     this.set('viewType', $(event.target).data('view-type'));
   },
+  /**
+   *
+   */
   onChangeViewType: function(){
     var viewType = this.get('viewType');
     var table = this.get('oTable');
@@ -327,6 +332,7 @@ App.MainAppsView = Em.View.extend({
     var smallStars = $('#dataTable .icon-star');
     var self = this;
     this.set('smallStarsIcons', smallStars);
+    var d = new Date();
     var oTable = this.$('#dataTable').dataTable({
       "sDom": '<"search-bar"f><"clear">rt<"page-bar"lip><"clear">',
       "fnDrawCallback": function( oSettings ) {
@@ -374,17 +380,24 @@ App.MainAppsView = Em.View.extend({
     this.set('filtered', oTable.fnSettings().fnRecordsDisplay());
 
     // If we have some starred runs, mark them again
-    var staredRuns = this.get('controller.staredRuns');
+    var staredRuns = [];
+    this.get('controller.').get('content').filterProperty('isStared', true).forEach(function(run) {
+      staredRuns.push(run.get('id'));
+    });
     this.clearStars();
+    var tr = $('#dataTable').find('tr');
     staredRuns.forEach(function(item) {
-      $('#dataTable').find('tr').each(function() {
-        if ($(this).find('td.appId:eq(0)').attr('title') == item.get('id')) {
-          $(this).find('td a:eq(0) span').trigger('click');
+      tr.each(function() {
+        if ($(this).find('td.appId:eq(0)').attr('title') == item) {
+          return $(this).find('td a:eq(0) span').trigger('click');
         }
       });
     });
     this.get('oTable').fnSettings()._iDisplayLength = 10;
     this.get('oTable').fnDraw(false);
+    console.log('Rendering Apps Table:');
+    console.log('Start - ', d.toLocaleTimeString());
+    console.log('End   - ', (new Date()).toLocaleTimeString());
   },
 
   loaded: false,
@@ -409,7 +422,7 @@ App.MainAppsView = Em.View.extend({
   }.observes('App.router.clusterController.postLoadList.runs'),
 
   didInsertElement: function () {
-    $('#dataTable').css('visibility', 'hidden');
+    $('#dataTable').css('visibility', 'hidden'); // hide table before dataTables id initialized
     this.set('inserted', true);
     this.onLoad();
   },
@@ -431,6 +444,7 @@ App.MainAppsView = Em.View.extend({
     }
     });
     this.get('oTable').fnFilterClear();
+    //this.get('controller').clearFilteredRuns();
     this.set('viewType', this.get('defaultViewType'));
     this.set('filtered',this.get('oTable').fnSettings().fnRecordsDisplay());
     this.setFilteredRuns(this.get('oTable')._('tr', {"filter":"applied"}));

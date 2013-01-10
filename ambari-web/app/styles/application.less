@@ -1316,6 +1316,12 @@ a:focus {
     border-top-color: #000000;
     border-bottom-color: #000000;
   }
+  //hack to apply style only for firefox
+  @-moz-document url-prefix() {
+    .host-components .caret{
+      margin-top:-12px !important;
+    }
+  }
   .health-status-started, .health-status-starting {
     background-image: @status-live-marker;
     background-repeat: no-repeat;
@@ -1809,7 +1815,7 @@ ul.filter {
 /* CHARTS */
 .chart {
   overflow: hidden;
-  padding-bottom: 25px;
+  /*padding-bottom: 25px;*/
 
   .attributes {
     width: 75px;

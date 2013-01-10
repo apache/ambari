@@ -47,13 +47,12 @@
     </tbody>
   </table>
   <div id="filter_info" class="row">
-    <div class="span3" id="filter_buttons">Show:
+    <div class="span4" id="filter_buttons">Show:
       <a href="javascript:void(0)" class="all selected" {{action "clickViewType" target="view"}} data-view-type="all">All
         ({{view.content.length}})</a> &#124;
       <a href="javascript:void(0)" class="filtered" {{action "clickViewType" target="view"}} data-view-type="filtered">Filtered
         ({{view.filtered}})</a> &#124;
-      <a href="javascript:void(0)" class="stared" {{action "clickViewType" target="view"}} data-view-type="starred">Starred
-        ({{view.staredData.count}})</a>
+      <a href="javascript:void(0)" class="stared" {{action "clickViewType" target="view"}} data-view-type="starred">Starred ({{view.stared}})</a>
     </div>
     <div class="span2"><a href="#" {{action "clearFilters" target="view"}}>Clear filters</a>&nbsp;&#124;&nbsp;<a
       href="#" {{action "clearStars" target="view"}}>Clear stars</a></div>

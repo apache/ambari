@@ -352,10 +352,12 @@ App.WizardStep8Controller = Em.Controller.extend({
 
     slaveHosts = hostObj.mapProperty('hostName').uniq();
 
-    var totalHosts = masterHosts.concat(slaveHosts).uniq();
+    var componentHosts = masterHosts.concat(slaveHosts).uniq();
+    var totalHosts = App.Host.find().mapProperty('hostName').concat(componentHosts).uniq();
+    var newHostsCount = totalHosts.length - App.Host.find().content.length;
     this.set('totalHosts', totalHosts);
     var totalHostsObj = this.rawContent.findProperty('config_name', 'hosts');
-    totalHostsObj.config_value = totalHosts.length;
+    totalHostsObj.config_value = totalHosts.length + ' (' + newHostsCount + ' new)';
     this.get('clusterInfo').pushObject(Ember.Object.create(totalHostsObj));
 
     //repo
@@ -1030,6 +1032,9 @@ App.WizardStep8Controller = Em.Controller.extend({
     if (selectedServices.someProperty('serviceName', 'HIVE')) {
       this.createConfigSiteForService(this.createHiveSiteObj('HIVE'));
     }
+    if (selectedServices.someProperty('serviceName', 'WEBHCAT')) {
+      this.createConfigSiteForService(this.createWebHCatSiteObj('WEBHCAT'));
+    }
   },
 
   createConfigSiteForService: function (data) {
@@ -1237,6 +1242,15 @@ App.WizardStep8Controller = Em.Controller.extend({
     return {type: 'hive-site', tag: 'version1', properties: hiveProperties};
   },
 
+  createWebHCatSiteObj: function (serviceName) {
+    var configs = this.get('configs').filterProperty('filename', 'webhcat-site.xml');
+    var webHCatProperties = {};
+    configs.forEach(function (_configProperty) {
+      webHCatProperties[_configProperty.name] = _configProperty.value;
+    }, this);
+    return {type: 'webhcat-site', tag: 'version1', properties: webHCatProperties};
+  },
+
   applyCreatedConfToServices: function () {
     var services = this.get('selectedServices').mapProperty('serviceName');
     services.forEach(function (_service) {
@@ -1303,6 +1317,8 @@ App.WizardStep8Controller = Em.Controller.extend({
         return {config: {'global': 'version1', 'core-site': 'version1', 'oozie-site': 'version1'}};
       case 'HIVE':
         return {config: {'global': 'version1', 'core-site': 'version1', 'hive-site': 'version1'}};
+      case 'WEBHCAT':
+        return {config: {'global': 'version1', 'core-site': 'version1', 'webhcat-site': 'version1'}};
       default:
         return {config: {'global': 'version1'}};
     }
