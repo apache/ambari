@@ -126,11 +126,9 @@ App.MainChartHeatmapMetric = Em.Object.extend({
       var from = this.formatLegendNumber(c * delta);
       var to = this.formatLegendNumber((c + 1) * delta);
       if ($.trim(labelSuffix) == 'ms') {
-        from = date.timingFormat(from);
-        to = date.timingFormat(to);
-        var label = from + " - " + to;
+      	var label = date.timingFormat(from) + " - " + date.timingFormat(to);
       } else {
-        var label = from + labelSuffix + " - " + to + labelSuffix;
+	      var label = from + labelSuffix + " - " + to + labelSuffix;
       }
       var slotColor = slotColors[slotColorIndex++];
       defs.push(Em.Object.create({
@@ -144,9 +142,7 @@ App.MainChartHeatmapMetric = Em.Object.extend({
     to = this.formatLegendNumber(max);
 
     if ($.trim(labelSuffix) == 'ms') {
-      from = date.timingFormat(from);
-      to = date.timingFormat(to);
-      var label = from + " - " + to;
+      var label = date.timingFormat(from) + " - " + date.timingFormat(to);
     } else {
       var label = from + labelSuffix + " - " + to + labelSuffix;
     }
@@ -157,6 +153,29 @@ App.MainChartHeatmapMetric = Em.Object.extend({
       to: to,
       label: label,
       cssStyle: "background-color:rgb(" + slotColor.r + "," + slotColor.g + "," + slotColor.b + ")"
+    }));
+    var hatchStyle = "background-color:rgb(135, 206, 250)";
+    if(jQuery.browser.webkit){
+      hatchStyle = "background-image:-webkit-repeating-linear-gradient(-45deg, #FF1E10, #FF1E10 3px, #ff6c00 3px, #ff6c00 6px)";
+    }else if(jQuery.browser.mozilla){
+      hatchStyle = "background-image:repeating-linear-gradient(-45deg, #FF1E10, #FF1E10 3px, #ff6c00 3px, #ff6c00 6px)";
+    }else if(jQuery.browser.msie && jQuery.browser.version){
+      var majorVersion =  parseInt(jQuery.browser.version.split('.')[0]);
+      if(majorVersion>9){
+        hatchStyle = "background-image:repeating-linear-gradient(-45deg, #FF1E10, #FF1E10 3px, #ff6c00 3px, #ff6c00 6px)";
+      }
+    }
+    defs.push(Em.Object.create({
+      from: NaN,
+      to: NaN,
+      label: "Invalid data",
+      cssStyle: hatchStyle
+    }));
+    defs.push(Em.Object.create({
+      from: -1,
+      to: -1,
+      label: "Not Applicable",
+      cssStyle: "background-color:rgb(200, 200, 200)"
     }));
     return defs;
   }.property('minimumValue', 'maximumValue', 'numberOfSlots'),
@@ -222,25 +241,38 @@ App.MainChartHeatmapMetric = Em.Object.extend({
 
   hostToValueMap: null,
 
-  hostToSlotMap: function () {
+  hostToSlotMap: function(){
     var hostToValueMap = this.get('hostToValueMap');
     var slotDefs = this.get('slotDefinitions');
-    var hostToSlotMap = {}
-    for (key in hostToValueMap) {
-      var value = hostToValueMap[key];
-      var slot = -1;
-      for ( var slotIndex = 0; slotIndex < slotDefs.length; slotIndex++) {
-        var slotDef = slotDefs[slotIndex];
-        if (value >= slotDef.from && value <= slotDef.to) {
-          slot = slotIndex;
+    var allHosts = App.Host.find();
+    var hostToSlotMap = {};
+    if (hostToValueMap && allHosts) {
+      allHosts.forEach(function(host, index, list){
+        var slot = -1;
+        var key = host.get('hostName');
+        if (key in hostToValueMap) {
+          var value = hostToValueMap[key];
+          if (isNaN(value)) {
+            slot = slotDefs.length - 2;
+          } else {
+            for ( var slotIndex = 0; slotIndex < slotDefs.length - 2; slotIndex++) {
+              var slotDef = slotDefs[slotIndex];
+              if (value >= slotDef.from && value <= slotDef.to) {
+                slot = slotIndex;
+              }
+            }
+            if(slot < 0){
+              // Assign it to the last legend
+              slot = slotDefs.length - 3;
+            }
+          }
+        } else {
+          slot = slotDefs.length - 1;
         }
-      }
-      if (slot < 0) {
-        slot = slotDefs.length - 1;
-      }
-      if (slot > -1) {
-        hostToSlotMap[key] = slot;
-      }
+        if (slot > -1) {
+          hostToSlotMap[key] = slot;
+        }
+      });
     }
     return hostToSlotMap;
   }.property('hostToValueMap', 'slotDefinitions'),

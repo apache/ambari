@@ -458,6 +458,9 @@ AMBARI-666 branch (unreleased changes)
 
   IMPROVEMENTS
 
+  AMBARI-1096. Create heatmap legend entries for missing data/invalid hosts.
+  (Srimanth Gunturi via yusaku)
+
   AMBARI-1078. Improve graph message when data is not available.
   (Srimanth Gunturi via yusaku)
  
