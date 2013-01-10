@@ -292,12 +292,14 @@ App.WizardStep9Controller = Em.Controller.extend({
     });
   },
 
+  // marks a host's status as "success" if all tasks are in COMPLETED state
   onSuccessPerHost: function (actions, contentHost) {
     if (actions.everyProperty('Tasks.status', 'COMPLETED') && this.get('content.cluster.status') === 'INSTALLED') {
       contentHost.set('status', 'success');
     }
   },
 
+  // marks a host's status as "warning" if at least one of the tasks is FAILED, ABORTED, or TIMEDOUT.
   onWarningPerHost: function (actions, contentHost) {
     if (actions.someProperty('Tasks.status', 'FAILED') || actions.someProperty('Tasks.status', 'ABORTED') || actions.someProperty('Tasks.status', 'TIMEDOUT')) {
       console.log('step9: In warning');
@@ -322,10 +324,14 @@ App.WizardStep9Controller = Em.Controller.extend({
   progressPerHost: function (actions, contentHost) {
     var progress = 0;
     var actionsPerHost = actions.length;
+    // TODO: consolidate to a single filter function for better performance
     var completedActions = actions.filterProperty('Tasks.status', 'COMPLETED').length
       + actions.filterProperty('Tasks.status', 'FAILED').length
       + actions.filterProperty('Tasks.status', 'ABORTED').length
       + actions.filterProperty('Tasks.status', 'TIMEDOUT').length;
+
+    // for the install phase, % completed per host goes up to 33%; floor(100 / 3)
+    // for the start phse, % completed starts from 34%
     if (this.get('content.cluster.status') === 'PENDING') {
       progress = Math.floor(((completedActions / actionsPerHost) * 100) / 3);
     } else if (this.get('content.cluster.status') === 'INSTALLED') {
@@ -390,12 +396,17 @@ App.WizardStep9Controller = Em.Controller.extend({
     hostNames.forEach(function (_hostName) {
       var host = this.hosts.findProperty('name', _hostName);
       if (host) {
-        host.set('status', status)
-          .set('progress', '100');
+        host.set('status', status).set('progress', '100');
       }
     }, this);
   },
 
+  // makes a state transition
+  // PENDING -> INSTALLED
+  // PENDING -> INSTALL FAILED
+  // INSTALLED -> STARTED
+  // INSTALLED -> START_FAILED
+  // returns true if polling should continue; false otherwise
   // polling from ui stops only when no action has 'PENDING', 'QUEUED' or 'IN_PROGRESS' status
   finishState: function (polledData) {
     var clusterStatus = {};
@@ -480,13 +491,13 @@ App.WizardStep9Controller = Em.Controller.extend({
     console.log('In step9 setTasksStatePerHost function.');
     tasksPerHost.forEach(function (_task) {
       console.log('In step9 _taskPerHost function.');
-      if (_task.Tasks.status !== 'PENDING' && _task.Tasks.status !== 'QUEUED') {
-        var task = host.logTasks.findProperty('Tasks.id', _task.Tasks.id);
-        if (task) {
-          host.logTasks.removeObject(task);
-        }
-        host.logTasks.pushObject(_task);
+      //if (_task.Tasks.status !== 'PENDING' && _task.Tasks.status !== 'QUEUED') {
+      var task = host.logTasks.findProperty('Tasks.id', _task.Tasks.id);
+      if (task) {
+        host.logTasks.removeObject(task);
       }
+      host.logTasks.pushObject(_task);
+      //}
     }, this);
   },
 
