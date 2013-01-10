@@ -14,6 +14,9 @@ AMBARI-666 branch (unreleased changes)
 
   NEW FEATURES
 
+  AMBARI-1147. Handling Hive/HCat/WebHCat configuration parameters with
+  Ambari Web. (yusaku)
+
   AMBARI-946. Support retrieving information for multiple requests.
   (hitesh via mahadev)
 

@@ -905,16 +905,19 @@ App.WizardStep8Controller = Em.Controller.extend({
             var hostNames = clientHosts.mapProperty('hostName').splice(0);
             switch (_client.component_name) {
               case 'HDFS_CLIENT':
-                // install HDFS_CLIENT on HBASE_MASTER and HBASE_REGIONSERVER hosts
+                // install HDFS_CLIENT on HBASE_MASTER, HBASE_REGIONSERVER, and WEBHCAT_SERVER hosts
                 masterHosts.filterProperty('component', 'HBASE_MASTER').filterProperty('isInstalled', false).forEach(function (_masterHost) {
                   hostNames.pushObject(_masterHost.hostName);
                 }, this);
                 masterHosts.filterProperty('component', 'HBASE_REGIONSERVER').filterProperty('isInstalled', false).forEach(function (_masterHost) {
                   hostNames.pushObject(_masterHost.hostName);
                 }, this);
+                masterHosts.filterProperty('component', 'WEBHCAT_SERVER').filterProperty('isInstalled', false).forEach(function (_masterHost) {
+                  hostNames.pushObject(_masterHost.hostName);
+                }, this);
                 break;
               case 'MAPREDUCE_CLIENT':
-                // install MAPREDUCE_CLIENT on HIVE_SERVER, OOZIE_SERVER, and NAGIOS_SERVER hosts
+                // install MAPREDUCE_CLIENT on HIVE_SERVER, OOZIE_SERVER, NAGIOS_SERVER, and WEBHCAT_SERVER hosts
                 masterHosts.filterProperty('component', 'HIVE_SERVER').filterProperty('isInstalled', false).forEach(function (_masterHost) {
                   hostNames.pushObject(_masterHost.hostName);
                 }, this);
@@ -924,10 +927,19 @@ App.WizardStep8Controller = Em.Controller.extend({
                 masterHosts.filterProperty('component', 'NAGIOS_SERVER').filterProperty('isInstalled', false).forEach(function (_masterHost) {
                   hostNames.pushObject(_masterHost.hostName);
                 }, this);
+                masterHosts.filterProperty('component', 'WEBHCAT_SERVER').filterProperty('isInstalled', false).forEach(function (_masterHost) {
+                  hostNames.pushObject(_masterHost.hostName);
+                }, this);
                 break;
               case 'OOZIE_CLIENT':
                 // install OOZIE_CLIENT on NAGIOS_SERVER host
                 masterHosts.filterProperty('component', 'NAGIOS_SERVER').filterProperty('isInstalled', false).forEach(function (_masterHost) {
+                  hostNames.pushObject(_masterHost.hostName);
+                }, this);
+                break;
+              case 'ZOOKEEPER_CLIENT':
+                // install ZOOKEEPER_CLIENT on WEBHCAT_SERVER host
+                masterHosts.filterProperty('component', 'WEBHCAT_SERVER').filterProperty('isInstalled', false).forEach(function (_masterHost) {
                   hostNames.pushObject(_masterHost.hostName);
                 }, this);
                 break;
