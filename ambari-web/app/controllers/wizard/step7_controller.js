@@ -39,7 +39,7 @@ App.WizardStep7Controller = Em.Controller.extend({
   slaveHostToGroup: null,
 
   isSubmitDisabled: function () {
-    return !this.stepConfigs.everyProperty('errorCount', 0);
+    return !this.stepConfigs.filterProperty('showConfig', true).everyProperty('errorCount', 0);
   }.property('stepConfigs.@each.errorCount'),
 
   selectedServiceNames: function () {

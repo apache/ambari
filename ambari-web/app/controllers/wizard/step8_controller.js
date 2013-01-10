@@ -833,8 +833,6 @@ App.WizardStep8Controller = Em.Controller.extend({
         return { "ServiceComponentInfo": { "component_name": _component.component_name } };
       });
 
-      debugger;
-
       // Service must be specified in terms of a query for creating multiple components at the same time.
       // See AMBARI-1018.
       var url = App.apiPrefix + '/clusters/' + this.get('clusterName') + '/services?ServiceInfo/service_name=' + _service;
@@ -944,6 +942,12 @@ App.WizardStep8Controller = Em.Controller.extend({
               case 'ZOOKEEPER_CLIENT':
                 // install ZOOKEEPER_CLIENT on WEBHCAT_SERVER host
                 masterHosts.filterProperty('component', 'WEBHCAT_SERVER').filterProperty('isInstalled', false).forEach(function (_masterHost) {
+                  hostNames.pushObject(_masterHost.hostName);
+                }, this);
+                break;
+              case 'HCAT':
+                // install HCAT (client) on NAGIOS_SERVER host
+                masterHosts.filterProperty('component', 'NAGIOS_SERVER').filterProperty('isInstalled', false).forEach(function (_masterHost) {
                   hostNames.pushObject(_masterHost.hostName);
                 }, this);
                 break;
@@ -1248,7 +1252,7 @@ App.WizardStep8Controller = Em.Controller.extend({
     configs.forEach(function (_configProperty) {
       hiveProperties[_configProperty.name] = _configProperty.value;
     }, this);
-    hiveProperties['hive.metastore.uris'] = 'thrift://' + this.get('globals').findProperty('hivemetastore_host').value + ':9083';
+    hiveProperties['hive.metastore.uris'] = 'thrift://' + this.get('globals').findProperty('name', 'hivemetastore_host').value + ':9083';
     hiveProperties['javax.jdo.option.ConnectionURL'] =
       'jdbc:mysql://' + this.get('globals').findProperty('name', 'hive_mysql_host').value +
       '/' + this.get('globals').findProperty('name', 'hive_database_name').value + '?createDatabaseIfNotExist=true';

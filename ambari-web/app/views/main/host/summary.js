@@ -109,8 +109,8 @@ App.MainHostSummaryView = Em.View.extend({
         //temporary fix because of different data in hostComponents and serviceComponents
         return;
       }
-      if(!component.get('isSlave') && !component.get('isMaster')) {
-        if(clients.length){
+      if (!component.get('isSlave') && !component.get('isMaster')) {
+        if (clients.length) {
           clients[clients.length-1].set('isLast', false);
         }
         component.set('isLast', true);

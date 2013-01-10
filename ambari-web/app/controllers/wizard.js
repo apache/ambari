@@ -249,13 +249,30 @@ App.WizardController = Em.Controller.extend({
 
     var self = this;
     var clusterName = this.get('content.cluster.name');
-    var url = (App.testMode) ? '/data/wizard/deploy/2_hosts/poll_1.json' : App.apiPrefix + '/clusters/' + clusterName + '/services?ServiceInfo/state=INIT';
+    var url;
     var method = (App.testMode) ? 'GET' : 'PUT';
-    var data = '{"ServiceInfo": {"state": "INSTALLED"}}';
+    var data;
 
-    if(this.get('content.controllerName') === 'addHostController'){
-      url = App.apiPrefix + '/clusters/' + clusterName + '/host_components?HostRoles/state=INIT';
-      data = '{"HostRoles": {"state": "INSTALLED"}}';
+    switch (this.get('content.controllerName')) {
+      case 'addHostController':
+        if (isRetry) {
+          url = App.apiPrefix + '/clusters/' + clusterName + '/host_components?HostRoles/state!=INSTALLED';
+          data = '{"HostRoles": {"state": "INSTALLED"}}';
+        } else {
+          url = App.apiPrefix + '/clusters/' + clusterName + '/host_components?HostRoles/state=INIT';
+          data = '{"HostRoles": {"state": "INSTALLED"}}';
+        }
+        break;
+      case 'installerController':
+      default:
+        if (isRetry) {
+          url = (App.testMode) ? '/data/wizard/deploy/2_hosts/poll_1.json' : App.apiPrefix + '/clusters/' + clusterName + '/host_components?HostRoles/state!=INSTALLED';
+          data = '{"HostRoles": {"state": "INSTALLED"}}';
+        } else {
+          url = (App.testMode) ? '/data/wizard/deploy/2_hosts/poll_1.json' : App.apiPrefix + '/clusters/' + clusterName + '/services?ServiceInfo/state=INIT';
+          data = '{"ServiceInfo": {"state": "INSTALLED"}}';
+        }
+        break;
     }
 
     $.ajax({

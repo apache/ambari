@@ -66,7 +66,6 @@ App.Service = DS.Model.extend({
       "HBASE",
       "OOZIE",
       "HIVE",
-      "WEBHCAT",
       "ZOOKEEPER",
       "PIG",
       "SQOOP"
@@ -103,6 +102,8 @@ App.Service = DS.Model.extend({
         return 'Oozie';
       case 'hive':
         return 'Hive/HCat';
+      case 'hcatalog':
+        return 'HCat';
       case 'zookeeper':
         return 'ZooKeeper';
       case 'pig':

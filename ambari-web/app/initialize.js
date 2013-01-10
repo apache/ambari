@@ -19,16 +19,17 @@
 
 window.App = require('app');
 
-App.testMode = true;
+App.testMode = false;
 App.skipBootstrap = false;
-App.alwaysGoToInstaller = true;
+App.alwaysGoToInstaller = false;
 App.apiPrefix = '/api/v1';
 App.defaultStackVersion = 'HDP-1.2.0';
 App.defaultLocalStackVersion = 'HDPLocal-1.2.0';
+App.addServicesEnabled = false;
 // default AJAX timeout
 App.timeout = 20000;
-// retry times
-App.times = 3;
+// max number of retries for certain AJAX calls
+App.maxRetries = 3;
 App.bgOperationsUpdateInterval = 6000;
 App.componentsUpdateInterval = 6000;
 App.contentUpdateInterval = 15000;

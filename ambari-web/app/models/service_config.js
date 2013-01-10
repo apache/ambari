@@ -176,11 +176,13 @@ App.ServiceConfigProperty = Ember.Object.extend({
         this.unionAllMountPoints(!isOnlyFirstOneNeeded);
         break;
       case 'fs_checkpoint_dir':
-      case 'zk_data_dir' :
+      case 'zk_data_dir':
+      case 'oozie_data_dir':
         this.unionAllMountPoints(isOnlyFirstOneNeeded);
         break;
     }
   },
+  
   unionAllMountPoints: function (isOnlyFirstOneNeeded) {
     var hostname = '';
     var mountPointsPerHost = [];
@@ -221,16 +223,20 @@ App.ServiceConfigProperty = Ember.Object.extend({
           setOfHostNames.push(host.hostName);
         }, this);
         break;
-
       case 'mapred_local_dir':
         temp = slaveComponentHostsInDB.findProperty('componentName', 'TASKTRACKER');
         temp.hosts.forEach(function (host) {
           setOfHostNames.push(host.hostName);
         }, this);
         break;
-
       case 'zk_data_dir':
         var components = masterComponentHostsInDB.filterProperty('component', 'ZOOKEEPER_SERVER');
+        components.forEach(function (component) {
+          setOfHostNames.push(component.hostName);
+        }, this);
+        break;
+      case 'oozie_data_dir':
+        var components = masterComponentHostsInDB.filterProperty('component', 'OOZIE_SERVER');
         components.forEach(function (component) {
           setOfHostNames.push(component.hostName);
         }, this);
@@ -250,8 +256,9 @@ App.ServiceConfigProperty = Ember.Object.extend({
       });
 
       mountPointsPerHost.forEach(function (mPoint) {
-        if( !allMountPoints.findProperty("mountpoint", mPoint.mountpoint) )
+        if( !allMountPoints.findProperty("mountpoint", mPoint.mountpoint)) {
           allMountPoints.push(mPoint);
+        }
       }, this);
     }
     if (allMountPoints.length == 0) {
@@ -261,28 +268,29 @@ App.ServiceConfigProperty = Ember.Object.extend({
     if (!isOnlyFirstOneNeeded) {
       allMountPoints.forEach(function (eachDrive) {
         var mPoint = this.get('value');
-        if (!mPoint)
+        if (!mPoint) {
           mPoint = "";
-        if (eachDrive.mountpoint.charAt(eachDrive.mountpoint.length - 1) === "/")
-          mPoint += ( eachDrive.mountpoint + this.get('defaultDirectory') + "\n" );
-        else
-          mPoint += ( eachDrive.mountpoint + "/" + this.get('defaultDirectory') + "\n" );
-
+        }
+        if (eachDrive.mountpoint === "/") {
+          mPoint += this.get('defaultDirectory') + "\n";
+        } else {
+          mPoint += eachDrive.mountpoint + this.get('defaultDirectory') + "\n";
+        }
         this.set('value', mPoint);
         this.set('defaultValue', mPoint);
       }, this);
     } else {
       var mPoint = allMountPoints[0].mountpoint;
-      if (mPoint.charAt(mPoint.length - 1) === "/")
+      if (mPoint === "/") {
+        mPoint = this.get('defaultDirectory') + "\n";
+      } else {
         mPoint = mPoint + this.get('defaultDirectory') + "\n";
-      else
-        mPoint = mPoint + "/" + this.get('defaultDirectory') + "\n";
+      }
       this.set('value', mPoint);
       this.set('defaultValue', mPoint);
-
     }
-
   },
+
   isValid: function () {
     return this.get('errorMessage') === '';
   }.property('errorMessage'),

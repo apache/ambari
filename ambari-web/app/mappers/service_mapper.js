@@ -21,6 +21,7 @@ App.servicesMapper = App.QuickDataMapper.create({
     'MAPREDUCE',
     'HBASE',
     'HIVE',
+    'HCATALOG',
     'WEBHCAT',
     'OOZIE',
     'GANGLIA',

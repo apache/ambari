@@ -20,12 +20,14 @@
   <div id="services-menu" class="well span2" style="padding: 8px 0">
     {{view App.MainServiceMenuView}}
     {{#if controller.isAdmin}}
+    {{#if App.addServicesEnabled}}
     <div class="add-service-button">
       <a class="btn" {{action addService href="true"}}>
         <i class="icon-plus"></i>
         Add Service
       </a>
     </div>
+    {{/if}}
     {{/if}}
   </div>
   <div class="span10">

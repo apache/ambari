@@ -287,7 +287,7 @@ App.WizardStep3Controller = Em.Controller.extend({
         }
       },
       statusCode: require('data/statusCodes')
-    }).retry({times: App.times, timeout: App.timeout}).then(null,
+    }).retry({times: App.maxRetries, timeout: App.timeout}).then(null,
       function () {
         App.showReloadPopup();
         console.log('Bootstrap failed');
@@ -394,7 +394,7 @@ App.WizardStep3Controller = Em.Controller.extend({
         }
       },
       statusCode: require('data/statusCodes')
-    }).retry({times: App.times, timeout: App.timeout}).then(null, function () {
+    }).retry({times: App.maxRetries, timeout: App.timeout}).then(null, function () {
         App.showReloadPopup();
         console.log('Error: Getting registered host information from the server');
       });

@@ -40,11 +40,13 @@ App.HostComponent = DS.Model.extend({
       case 'JOBTRACKER':
       case 'ZOOKEEPER_SERVER':
       case 'HIVE_SERVER':
+      case 'HIVE_METASTORE':
+      case 'MYSQL_SERVER':
       case 'HBASE_MASTER':
       case 'NAGIOS_SERVER':
       case 'GANGLIA_SERVER':
       case 'OOZIE_SERVER':
-      case 'TEMPLETON_SERVER':
+      case 'WEBHCAT_SERVER':
         return true;
       default:
         return false;
