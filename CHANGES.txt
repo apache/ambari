@@ -654,6 +654,9 @@ AMBARI-666 branch (unreleased changes)
 
   BUG FIXES
 
+  AMBARI-1080. Host disk & memory graphs have incorrect values.
+  (Srimanth Gunturi via yusaku)
+
   AMBARI-1077. The value for dead nodes is not getting populated on UI.
   (Srimanth Gunturi via yusaku)
 

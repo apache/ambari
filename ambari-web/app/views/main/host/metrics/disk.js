@@ -32,7 +32,7 @@ App.ChartHostMetricsDisk = App.ChartLinearTimeView.extend({
   yAxisFormatter: App.ChartLinearTimeView.BytesFormatter,
   renderer: 'line',
   url: function () {
-    return App.formatUrl(App.apiPrefix + "/clusters/{clusterName}/hosts/{hostName}?fields=metrics/disk/disk_total[{fromSeconds},{toSeconds},{stepSeconds}],metrics/part_max_used[{fromSeconds},{toSeconds},{stepSeconds}],metrics/disk/disk_free[{fromSeconds},{toSeconds},{stepSeconds}]", {
+    return App.formatUrl(App.apiPrefix + "/clusters/{clusterName}/hosts/{hostName}?fields=metrics/disk/disk_total[{fromSeconds},{toSeconds},{stepSeconds}],metrics/disk/disk_free[{fromSeconds},{toSeconds},{stepSeconds}]", {
       clusterName: App.router.get('clusterController.clusterName'),
       hostName: this.get('content').get('hostName')
     }, "/data/hosts/metrics/disk.json");
@@ -52,10 +52,7 @@ App.ChartHostMetricsDisk = App.ChartLinearTimeView.extend({
             displayName = "Total";
             break;
           case "disk_free":
-            displayName = "Free";
-            break;
-          case "part_max_used":
-            displayName = "Maximum Used";
+            displayName = "Available";
             break;
           default:
             break;
@@ -72,7 +69,7 @@ App.ChartHostMetricsDisk = App.ChartLinearTimeView.extend({
           for ( var index = 0; index < seriesData.length; index++) {
             series.data.push({
               x: seriesData[index][1],
-              y: seriesData[index][0]
+              y: seriesData[index][0] * 1000000000
             });
           }
           seriesArray.push(series);
