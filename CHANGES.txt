@@ -654,6 +654,10 @@ AMBARI-666 branch (unreleased changes)
 
   BUG FIXES
 
+  AMBARI-1090. Restrict user to apply service configuration when custom box
+  properties are already exposed on the management config page.
+  (Jaimin Jetly via yusaku)
+
   AMBARI-1149. HIVE_METASTORE needs to be started as a Hive component.
   (yusaku)
 

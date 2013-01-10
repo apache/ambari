@@ -57,6 +57,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
   loadStep: function () {
     console.log("TRACE: Loading configure for service");
     this.clearStep();
+    // this.set('serviceConfigs',require('data/service_configs'));
     //STEP 1: set the present state of the service Properties. State depends on array of: unique combination of type(ex. core-site) and tag (ex. version01) derived from serviceInfo desired_state
     this.loadMasterComponents();
     //this.loadSlaveComponentVersion();
@@ -139,27 +140,19 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
    *  Loads the advanced configs fetched from the server metadata libarary
    */
   loadAdvancedConfig: function (serviceConfigs, advancedConfig) {
-    var service = this.get('serviceConfigs').findProperty('serviceName', this.get('content.serviceName'));
     advancedConfig.forEach(function (_config) {
-      if (service) {
-        if (!this.get('configMapping').someProperty('name', _config.name)) {
-          if (service.configs.someProperty('name', _config.name)) {
-            service.configs.findProperty('name', _config.name).description = _config.description;
-          } else {
-            _config.id = "site property";
-            _config.category = 'Advanced';
-            _config.displayName = _config.name;
-            _config.defaultValue = _config.value;
-          /*  if (/\${.*}/.test(_config.value) || (service.serviceName !== 'OOZIE' && service.serviceName !== 'HBASE')) {
-              _config.isRequired = false;
-              _config.value = '';
-            } else if (/^\s+$/.test(_config.value)) {
-              _config.isRequired = false;
-            }   */
-            _config.isVisible = true;
-            _config.displayType = 'advanced';
-            service.configs.pushObject(_config);
-          }
+      if (_config) {
+        if (this.get('configMapping').someProperty('name', _config.name)) {
+        } else if (!(serviceConfigs.someProperty('name', _config.name))) {
+          _config.id = "site property";
+          _config.category = 'Advanced';
+          _config.displayName = _config.name;
+          _config.defaultValue = _config.value;
+          _config.isRequired = false;
+          _config.isVisible = true;
+          _config.displayType = 'advanced';
+          _config.serviceName = this.get('content.serviceName');
+          serviceConfigs.pushObject(_config);
         }
       }
     }, this);
@@ -186,13 +179,13 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
         //STEP 3: Set globalConfigs and Get an array of serviceProperty objects
         var serviceConfigs = self.getSitesConfigProperties();
         //STEP 5: Add the advanced configs to the serviceConfigs property
-
         var advancedConfig = App.router.get('installerController').loadAdvancedConfig(self.get('content.serviceName')) || [];
         self.loadAdvancedConfig(serviceConfigs, advancedConfig);
+        self.loadCustomConfig(serviceConfigs);
+        var serviceConfig = self.get('serviceConfigs').findProperty('serviceName', self.get('content.serviceName'));
+        serviceConfig.configs = self.get('globalConfigs').concat(serviceConfigs);
 
-        self.loadCustomConfig();
-
-        self.renderServiceConfigs(self.get('serviceConfigs'));
+        self.renderServiceConfigs(serviceConfig);
       },
 
       error: function (request, ajaxOptions, error) {
@@ -229,10 +222,9 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
   /**
    * Render a custom conf-site box for entering properties that will be written in *-site.xml files of the services
    */
-  loadCustomConfig: function () {
-    var serviceConfig = this.get('serviceConfigs').findProperty('serviceName', this.get('content.serviceName'));
+  loadCustomConfig: function (serviceConfigs) {
     var customConfig = this.get('customConfigs').findProperty('serviceName', this.get('content.serviceName'));
-    serviceConfig.configs.pushObject(customConfig);
+    serviceConfigs.pushObject(customConfig);
   },
 
   /**
@@ -251,38 +243,52 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
           name: index,
           value: properties[index],
           defaultValue: properties[index],
-          filename: _tag.siteName + ".xml",
-          isVisible: true,
-          isRequired: true
+          filename: _tag.siteName + ".xml"
         };
+        if (this.get('configs').someProperty('name', index)) {
+          var configProperty = this.get('configs').findProperty('name', index);
+          if (this.get('configs').findProperty('name', index).isReconfigurable === false) {
+          }
+          serviceConfigObj.displayType = configProperty.displayType;
+          serviceConfigObj.isRequired = configProperty.isRequired ? configProperty.isRequired : true;
+          serviceConfigObj.isReconfigurable = (configProperty.isReconfigurable !== undefined) ? configProperty.isReconfigurable : true;
+          serviceConfigObj.isVisible = (configProperty.isVisible !== undefined) ? configProperty.isVisible : true;
+
+        }
+        serviceConfigObj.displayType = this.get('configs').someProperty('name', index) ? this.get('configs').findProperty('name', index).displayType : null;
+
+        serviceConfigObj.isRequired = this.get('configs').someProperty('name', index) ? this.get('configs').findProperty('name', index).isRequired : null;
+
         if (_tag.siteName === 'global') {
-          if (localServiceConfigs.configs.someProperty('name', index)) {
-            var item = localServiceConfigs.configs.findProperty('name', index);
-            item.value = properties[index];
-            item.defaultValue = properties[index];
+          if (this.get('configs').someProperty('name', index)) {
+            var item = this.get('configs').findProperty('name', index);
             if (item.displayType === 'int') {
-              if (/\d+m$/.test(item.value)) {
-                item.value = item.value.slice(0, item.value.length - 1);
-                item.defaultValue = item.value;
+              if (/\d+m$/.test(properties[index])) {
+
+                serviceConfigObj.value = properties[index].slice(0, properties[index].length - 1);
+                serviceConfigObj.defaultValue = serviceConfigObj.value;
               }
             }
             if (item.displayType === 'checkbox') {
-              switch (item.value) {
+              switch (properties[index]) {
                 case 'true' :
-                  item.value = true;
+                  serviceConfigObj.value = true;
+                  serviceConfigObj.defaultValue = true;
                   break;
                 case 'false' :
-                  item.value = false;
+                  serviceConfigObj.value = false;
+                  serviceConfigObj.defaultValue = false;
                   break;
               }
             }
           }
           serviceConfigObj.id = 'puppet var';
           serviceConfigObj.serviceName = this.get('configs').someProperty('name', index) ? this.get('configs').findProperty('name', index).serviceName : null;
+          serviceConfigObj.displayName = this.get('configs').someProperty('name', index) ? this.get('configs').findProperty('name', index).displayName : null;
           serviceConfigObj.category = this.get('configs').someProperty('name', index) ? this.get('configs').findProperty('name', index).category : null;
           globalConfigs.pushObject(serviceConfigObj);
         } else if (!this.get('configMapping').someProperty('name', index)) {
-          if (_tag.siteName !== localServiceConfigs.filename) {
+          if (_tag.siteName !== this.get('serviceConfigs').findProperty('serviceName', this.get('content.serviceName')).filename) {
             serviceConfigObj.isVisible = false;
           }
           serviceConfigObj.id = 'site property';
@@ -290,9 +296,10 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
           serviceConfigObj.category = 'Advanced';
           serviceConfigObj.displayName = index;
           serviceConfigObj.displayType = 'advanced';
-          localServiceConfigs.configs.pushObject(serviceConfigObj);
+          // localServiceConfigs.configs.pushObject(serviceConfigObj);
+          serviceConfigs.pushObject(serviceConfigObj);
         }
-        serviceConfigs.pushObject(serviceConfigObj);
+
       }
     }, this);
     this.set('globalConfigs', globalConfigs);
@@ -335,26 +342,24 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
    */
   renderServiceConfigs: function (serviceConfigs) {
 
-    serviceConfigs.forEach(function (_serviceConfig) {
-      var serviceConfig = App.ServiceConfig.create({
-        filename: _serviceConfig.filename,
-        serviceName: _serviceConfig.serviceName,
-        displayName: _serviceConfig.displayName,
-        configCategories: _serviceConfig.configCategories,
-        configs: []
-      });
+    var serviceConfig = App.ServiceConfig.create({
+      filename: serviceConfigs.filename,
+      serviceName: serviceConfigs.serviceName,
+      displayName: serviceConfigs.displayName,
+      configCategories: serviceConfigs.configCategories,
+      configs: []
+    });
 
-      if ((this.get('content.serviceName') && this.get('content.serviceName').toUpperCase() === serviceConfig.serviceName) || serviceConfig.serviceName === 'MISC') {
+    if ((this.get('content.serviceName') && this.get('content.serviceName').toUpperCase() === serviceConfig.serviceName) || serviceConfig.serviceName === 'MISC') {
 
-        this.loadComponentConfigs(_serviceConfig, serviceConfig);
+      this.loadComponentConfigs(serviceConfigs, serviceConfig);
 
-        console.log('pushing ' + serviceConfig.serviceName);
-        this.get('stepConfigs').pushObject(serviceConfig);
+      console.log('pushing ' + serviceConfig.serviceName);
+      this.get('stepConfigs').pushObject(serviceConfig);
 
-      } else {
-        console.log('skipping ' + serviceConfig.serviceName);
-      }
-    }, this);
+    } else {
+      console.log('skipping ' + serviceConfig.serviceName);
+    }
 
     this.set('selectedService', this.get('stepConfigs').objectAt(0));
   },
@@ -368,31 +373,39 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
     _componentConfig.configs.forEach(function (_serviceConfigProperty) {
       console.log("config", _serviceConfigProperty);
       if (!_serviceConfigProperty) return;
-      var serviceConfigProperty = App.ServiceConfigProperty.create(_serviceConfigProperty);
-     // serviceConfigProperty.serviceConfig = componentConfig;
-      serviceConfigProperty.set('isEditable',serviceConfigProperty.get('isReconfigurable'));
-      this.initialValue(serviceConfigProperty);
-      componentConfig.configs.pushObject(serviceConfigProperty);
-      serviceConfigProperty.validate();
-      console.log("config result", serviceConfigProperty);
+      if (_serviceConfigProperty.serviceName === this.get('content.serviceName')) {
+        var serviceConfigProperty = App.ServiceConfigProperty.create(_serviceConfigProperty);
+        // serviceConfigProperty.serviceConfig = componentConfig;
+        if (App.db.getUser().admin) {
+          serviceConfigProperty.set('isEditable', serviceConfigProperty.get('isReconfigurable'));
+        } else {
+          serviceConfigProperty.set('isEditable', false);
+        }
+        this.initialValue(serviceConfigProperty);
+        componentConfig.configs.pushObject(serviceConfigProperty);
+        serviceConfigProperty.validate();
+        console.log("config result", serviceConfigProperty);
+      }
     }, this);
   },
 
   restartServicePopup: function (event) {
     console.log("Enered the entry pointttt");
     var self = this;
-    var result;
     var header;
     var message;
-    console.log('I am over hererererere: ' + this.get('content.healthStatus'));
+    var value;
+    var flag;
     if (this.get('content.isStopped') === true) {
       var result = this.saveServiceConfigProperties();
-      if (result === true) {
+      flag = result.flag;
+      if (flag === true) {
         header = 'Start Service';
         message = 'Service configuration applied successfully';
       } else {
         header = 'Faliure';
-        message = 'Faliure in applying service configuration'
+        message = result.message;
+        value = result.value;
       }
 
     } else {
@@ -407,8 +420,57 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
         this.hide();
       },
       bodyClass: Ember.View.extend({
+        flag: flag,
         message: message,
-        template: Ember.Handlebars.compile(['<p>{{view.message}}</p>'].join('\n'))
+        siteProperties: value,
+        getDisplayMessage: function () {
+          var displayMsg = [];
+          var siteProperties = this.get('siteProperties');
+          if (siteProperties) {
+            siteProperties.forEach(function (_siteProperty) {
+              var displayProperty = _siteProperty.siteProperty;
+              var displayNames = _siteProperty.displayNames;
+              /////////
+              if (displayNames && displayNames.length) {
+                if (displayNames.length === 1) {
+                  displayMsg.push(displayProperty + ' as ' + displayNames[0]);
+                } else {
+                  var name;
+                  displayNames.forEach(function (_name, index) {
+                    if (index === 0) {
+                      name = _name;
+                    } else if (index = siteProperties.length - 1) {
+                      name = name + ' and ' + _name;
+                    } else {
+                      name = name + ', ' + _name;
+                    }
+                  }, this);
+                  displayMsg.push(displayProperty + ' as ' + name);
+
+                }
+              } else {
+                displayMsg.push(displayProperty);
+              }
+            }, this);
+          }
+          return displayMsg;
+
+        }.property('siteProperties'),
+        template: Ember.Handlebars.compile([
+          '<h5>{{view.message}}</h5>',
+          '{{#unless view.flag}}',
+          '<br/>',
+          '<div class="pre-scrollable" style="max-height: 250px;">',
+          '<ul>',
+          '{{#each val in view.getDisplayMessage}}',
+          '<li>',
+          '{{val}}',
+          '</li>',
+          '{{/each}}',
+          '</ul>',
+          '</div>',
+          '{{/unless}}'
+        ].join('\n'))
       })
     });
   },
@@ -417,14 +479,26 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
    * Save config properties
    */
   saveServiceConfigProperties: function () {
-    var result = false;
+    var result = {
+      flag: false,
+      message: null,
+      value: null
+    };
     var configs = this.get('stepConfigs').findProperty('serviceName', this.get('content.serviceName')).get('configs');
     this.saveGlobalConfigs(configs);
     this.saveSiteConfigs(configs);
-    this.setCustomConfigs();
-    var result = this.createConfigurations();
-    if (result === true) {
-      result = this.applyCreatedConfToService('new');
+    var customConfigResult = this.setCustomConfigs();
+    result.flag = customConfigResult.flag;
+    result.value = customConfigResult.value;
+    if (result.flag !== true) {
+      result.message = 'Error in custom HDFS configuration. Some properties entered in the box are already exposed on this page';
+      return result;
+    }
+    result.flag = result.flag && this.createConfigurations();
+    if (result.flag === true) {
+      result.flag = this.applyCreatedConfToService('new');
+    } else {
+      result.message = 'Faliure in applying service configuration';
     }
     console.log("The result from applyCreatdConfToService is: " + result);
     return result;
@@ -560,7 +634,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
     var serviceConfigTags = this.get('serviceConfigTags');
     serviceConfigTags.forEach(function (_serviceTags) {
       if (_serviceTags.siteName === 'global') {
-        console.log("TRACE: Inside globalssss");
+        console.log("TRACE: Inside global");
         result = result && this.createConfigSite(this.createGlobalSiteObj(_serviceTags.newTagName));
       } else if (_serviceTags.siteName === 'core-site') {
         console.log("TRACE: Inside core-site");
@@ -641,11 +715,14 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
   },
 
   createSiteObj: function (siteName, tagName) {
-    var siteObj = this.get('uiConfigs').filterProperty('filename', siteName + ".xml");
+    var siteObj = this.get('uiConfigs').filterProperty('filename', siteName + '.xml');
     var siteProperties = {};
     siteObj.forEach(function (_siteObj) {
       siteProperties[_siteObj.name] = _siteObj.value;
     }, this);
+    if (siteName === 'hdfs-site') {
+      debugger;
+    }
     return {"type": siteName, "tag": tagName, "properties": siteProperties};
   },
 
@@ -696,7 +773,9 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
   },
 
   setCustomConfigs: function () {
-    var site = this.get('stepConfigs').filterProperty('id', 'conf-site');
+    var site = this.get('stepConfigs').findProperty('serviceName', this.get('content.serviceName')).get('configs').filterProperty('id', 'conf-site');
+    var siteProperties = [];
+    var flag = true;
     site.forEach(function (_site) {
       var keyValue = _site.value.split(/\n+/);
       if (keyValue) {
@@ -706,10 +785,42 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
           var key = _keyValue.match(/(.+)=/);
           var value = _keyValue.match(/=(.*)/);
           if (key) {
-            this.setSiteProperty(key[1], value[1], _site.filename);
+            // Check dat entered config is allowed to reconfigure
+            if (this.get('uiConfigs').someProperty('name', key[1])) {
+              var property = {
+                siteProperty: key[1],
+                displayNames: []
+              };
+              if (this.get('configMapping').someProperty('name', key[1])) {
+                this.setPropertyDisplayNames(property.displayNames, this.get('configMapping').findProperty('name', key[1]).templateName);
+              }
+              siteProperties.push(property);
+              flag = false;
+            } else if (flag) {
+              this.setSiteProperty(key[1], value[1], _site.name + '.xml');
+            }
           }
 
         }, this);
+      }
+    }, this);
+    var result = {
+      flag: flag,
+      value: siteProperties
+    }
+    return result;
+  },
+
+  /**
+   * Set display names of the property tfrom he puppet/global names
+   * @param: displayNames: a field to be set with displayNames
+   * @param names: array of property puppet/global names
+   */
+  setPropertyDisplayNames: function (displayNames, names) {
+    var stepConfigs = this.get('stepConfigs').findProperty('serviceName', this.get('content.serviceName')).configs;
+    names.forEach(function (_name, index) {
+      if (stepConfigs.someProperty('name', _name)) {
+        displayNames.push(stepConfigs.findProperty('name', _name).displayName);
       }
     }, this);
   },
@@ -718,16 +829,12 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
    * Set property of the site variable
    */
   setSiteProperty: function (key, value, filename) {
-    if (this.get('uiConfigs').someProperty('name', key)) {
-      this.get('uiConfigs').findProperty('name', key).value = value;
-    } else {
-      this.get('uiConfigs').pushObject({
-        "id": "site property",
-        "name": key,
-        "value": value,
-        "filename": filename
-      });
-    }
+    this.get('uiConfigs').pushObject({
+      "id": "site property",
+      "name": key,
+      "value": value,
+      "filename": filename
+    });
   },
 
   getUrl: function (testUrl, url) {
