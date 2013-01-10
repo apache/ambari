@@ -488,7 +488,6 @@ App.AddServiceController = App.WizardController.extend({
         this.load('cluster');
       case '4':
         this.loadServiceConfigProperties();
-        this.loadSlaveGroupProperties();
       case '3':
         this.loadServices();
         this.loadClients();

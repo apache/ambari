@@ -286,6 +286,8 @@ App.InstallerController = App.WizardController.extend({
     App.db.setServiceConfigProperties(serviceConfigProperties);
     this.set('content.serviceConfigProperties', serviceConfigProperties);
 
+    //TODO: Uncomment below code to enable slave Configuration
+ /*
     var slaveConfigProperties = [];
     stepController.get('stepConfigs').forEach(function (_content) {
       if (_content.get('configCategories').someProperty('isForSlaveComponent', true)) {
@@ -305,6 +307,7 @@ App.InstallerController = App.WizardController.extend({
     }, this);
     App.db.setSlaveProperties(slaveConfigProperties);
     this.set('content.slaveGroupProperties', slaveConfigProperties);
+    */
   },
 
   /**
@@ -363,8 +366,8 @@ App.InstallerController = App.WizardController.extend({
       case '7':
         this.loadServiceConfigProperties();
         // loadSlaveGroupProperties depends on loadSlaveComponentHosts; call loadSlaveComponentHosts first
-        this.loadSlaveComponentHosts();
-        this.loadSlaveGroupProperties();
+       // this.loadSlaveComponentHosts();
+       // this.loadSlaveGroupProperties();
       case '6':
         this.loadSlaveComponentHosts();
         this.loadClients();

@@ -28,6 +28,18 @@ App.WizardStep5Controller = Em.Controller.extend({
   selectedServicesMasters:[],
   zId:0,
 
+  hasWebHCatServer: function () {
+    return this.get('selectedServicesMasters').findProperty('component_name', 'WEBHCAT_SERVER');
+  }.property('selectedServicesMasters'),
+
+  updateWebHCatHost: function () {
+    var hiveServer =  this.get('selectedServicesMasters').findProperty('component_name', 'HIVE_SERVER');
+    var webHCatServer = this.get('selectedServicesMasters').findProperty('component_name', 'WEBHCAT_SERVER');
+    if (hiveServer && webHCatServer) {
+      this.get('selectedServicesMasters').findProperty('component_name', 'WEBHCAT_SERVER').set('selectedHost', hiveServer.get('selectedHost'));
+    }
+  }.observes('selectedServicesMasters.@each.selectedHost'),
+
   components:require('data/service_components'),
 
   clearStep:function () {
@@ -110,7 +122,6 @@ App.WizardStep5Controller = Em.Controller.extend({
       var componentInfo = masterComponents.filterProperty('service_name', services[index]);
 
       componentInfo.forEach(function (_componentInfo) {
-
         if (_componentInfo.component_name == 'ZOOKEEPER_SERVER') {
           var savedComponents = masterHosts.filterProperty('component', _componentInfo.component_name);
           if (savedComponents.length) {
@@ -137,6 +148,7 @@ App.WizardStep5Controller = Em.Controller.extend({
               zooKeeperHost.availableHosts = [];
               zooKeeperHost.serviceId = services[index];
               zooKeeperHost.isInstalled = false;
+              zooKeeperHost.isWebHCatServer = false;
               resultComponents.add(zooKeeperHost);
             });
 
@@ -150,6 +162,7 @@ App.WizardStep5Controller = Em.Controller.extend({
           componentObj.isInstalled = savedComponent ? savedComponent.isInstalled : App.Component.find().someProperty('componentName', _componentInfo.component_name);
           componentObj.serviceId = services[index];
           componentObj.availableHosts = [];
+          componentObj.isWebHCatServer = _componentInfo.component_name == 'WEBHCAT_SERVER';
           resultComponents.add(componentObj);
         }
       }, this);

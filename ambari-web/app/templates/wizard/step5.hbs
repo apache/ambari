@@ -19,6 +19,10 @@
 <h2>{{t installer.step5.header}}</h2>
 <div class="alert alert-info">
   {{t installer.step5.body}}
+  {{#if hasWebHCatServer}}
+    <br>
+    {{t installer.step5.body.webhcat}}
+  {{/if}}
 </div>
 <div class="assign-masters">
   <div class="select-hosts">
@@ -27,7 +31,9 @@
       {{#each selectedServicesMasters}}
       <div class="control-group">
         <label class="control-label">{{display_name}}:</label>
-
+        {{#if isWebHCatServer}}
+          <label class="host-name">{{selectedHost}}<i class="icon-asterisks">&#10037</i></label>
+        {{else}}
         <div class="controls">
           {{view App.SelectHostView
             contentBinding="availableHosts"
@@ -49,6 +55,7 @@
           }}
           {{/if}}
         </div>
+        {{/if}}
       </div>
       {{/each}}
     </form>

@@ -367,23 +367,11 @@ App.ServiceConfigSlaveHostsView = Ember.View.extend(App.ServiceConfigMultipleHos
   viewName: 'serviceConfigSlaveHostsView',
 
   classNames: ['slave-hosts', 'span6'],
-  valueBinding: 'hosts',
 
-  group: function () {
-    return this.get('controller.activeGroup');
-  }.property('controller.activeGroup'),
+  valueBinding: 'serviceConfig.value',
 
-  hosts: function () {
-    if (this.get('group')) {
-      return this.get('controller').getHostsByGroup(this.get('group'))
-    }
-  }.property('controller.hosts.@each.group', 'group'),
+  templateName: require('templates/wizard/slave_hosts')
 
-  templateName: require('templates/wizard/slave_component_hosts'),
-
-  disabled: function () {
-    return !this.get('serviceConfig.isEditable');
-  }.property('serviceConfig.isEditable')
 });
 
 /**

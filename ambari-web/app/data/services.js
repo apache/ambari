@@ -81,15 +81,8 @@ module.exports = [
     description: Em.I18n.t('services.oozie.description')
   },
   {
-    serviceName: 'ZOOKEEPER',
-	  displayName: 'ZooKeeper',
-    isDisabled: false,
-    isSelected: true,
-    isHidden: true
-  },
-  {
     serviceName: 'HCATALOG',
-	  displayName: 'HCatalog',
+    displayName: 'HCatalog',
     isDisabled: false,
     isSelected: true,
     isHidden: true
@@ -100,5 +93,12 @@ module.exports = [
     isDisabled: false,
     isSelected: true,
     isHidden: true
-  }
+  },
+  {
+    serviceName: 'ZOOKEEPER',
+	  displayName: 'ZooKeeper',
+    isDisabled: false,
+    isSelected: true,
+    isHidden: true
+  },
 ]

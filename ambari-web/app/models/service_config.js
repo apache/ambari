@@ -114,6 +114,7 @@ App.ServiceConfigProperty = Ember.Object.extend({
   isRequired: true, // by default a config property is required
   isReconfigurable: true, // by default a config property is reconfigurable
   isEditable: true, // by default a config property is editable
+  isVisible: true,
   errorMessage: '',
   serviceConfig: null, // points to the parent App.ServiceConfig object
   filename: '',
@@ -129,6 +130,7 @@ App.ServiceConfigProperty = Ember.Object.extend({
     var masterComponentHostsInDB = App.db.getMasterComponentHosts();
     //console.log("value in initialvalue: " + JSON.stringify(masterComponentHostsInDB));
     var hostsInfo = App.db.getHosts(); // which we are setting in installerController in step3.
+    var slaveComponentHostsInDB = App.db.getSlaveComponentHosts();
     var isOnlyFirstOneNeeded = true;
     switch (this.get('name')) {
       case 'namenode_host':
@@ -138,11 +140,20 @@ App.ServiceConfigProperty = Ember.Object.extend({
       case 'snamenode_host':
         this.set('value', masterComponentHostsInDB.findProperty('component', 'SECONDARY_NAMENODE').hostName);
         break;
+      case 'datanode_hosts':
+        this.set('value', slaveComponentHostsInDB.findProperty('componentName', 'DATANODE').hosts.mapProperty('hostName'));
+        break;
       case 'jobtracker_host':
         this.set('value', masterComponentHostsInDB.findProperty('component', 'JOBTRACKER').hostName);
         break;
+      case 'tasktracker_hosts':
+        this.set('value', slaveComponentHostsInDB.findProperty('componentName', 'TASKTRACKER').hosts.mapProperty('hostName'));
+        break;
       case 'hbasemaster_host':
         this.set('value', masterComponentHostsInDB.findProperty('component', 'HBASE_MASTER').hostName);
+        break;
+      case 'regionserver_hosts':
+        this.set('value', slaveComponentHostsInDB.findProperty('componentName', 'HBASE_REGIONSERVER').hosts.mapProperty('hostName'));
         break;
       case 'hivemetastore_host':
         this.set('value', masterComponentHostsInDB.findProperty('component', 'HIVE_SERVER').hostName);

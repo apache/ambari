@@ -27,7 +27,7 @@ App.WizardStep7View = Em.View.extend({
     var controller = this.get('controller');
     var slaveController = App.router.get('slaveComponentGroupsController');
     controller.loadStep();
-    slaveController.loadStep();
+    //slaveController.loadStep();  // TODO: remove it to enable slaveConfiguration
   },
   onToggleBlock: function(event){
     $(document.getElementById(event.context.name)).toggle('blind', 500);

@@ -76,7 +76,6 @@ App.WizardStep7Controller = Em.Controller.extend({
     var serviceConfigs = this.get('serviceConfigs');
     var advancedConfig = this.get('content.advancedServiceConfig') || [];
     this.loadAdvancedConfig(serviceConfigs,advancedConfig);
-    this.loadHostConfigs();
     this.loadCustomConfig();
     this.renderServiceConfigs(serviceConfigs);
     var storedServices = this.get('content.serviceConfigProperties');
@@ -135,13 +134,6 @@ App.WizardStep7Controller = Em.Controller.extend({
     }, this);
   },
 
-  /*
-  loads host related configs obtained from server.
-   */
-  loadHostConfigs: function() {
-
-  },
-
 
   /**
    * Render a custom conf-site box for entering properties that will be written in *-site.xml files of the services
@@ -174,14 +166,13 @@ App.WizardStep7Controller = Em.Controller.extend({
         configs: []
       });
 
-        if (this.get('allInstalledServiceNames').contains(serviceConfig.serviceName) || serviceConfig.serviceName === 'MISC') {
+      if (this.get('allInstalledServiceNames').contains(serviceConfig.serviceName) || serviceConfig.serviceName === 'MISC') {
 
         this.loadComponentConfigs(_serviceConfig, serviceConfig);
 
         console.log('pushing ' + serviceConfig.serviceName, serviceConfig);
 
-        if(this.get('selectedServiceNames').contains(serviceConfig.serviceName))
-        {
+        if(this.get('selectedServiceNames').contains(serviceConfig.serviceName) || serviceConfig.serviceName === 'MISC') {
           serviceConfig.showConfig = true;
         }
 

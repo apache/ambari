@@ -48,7 +48,7 @@ App.WizardStep8Controller = Em.Controller.extend({
     this.loadGlobals();
     this.loadConfigs();
     this.setCustomConfigs();
-    this.loadSlaveConfiguration();
+    //this.loadSlaveConfiguration();
     this.loadClusterInfo();
     this.loadServices();
     this.set('isSubmitDisabled', false);
@@ -460,14 +460,15 @@ App.WizardStep8Controller = Em.Controller.extend({
   loadDnValue: function (dnComponent) {
     var dnHosts = this.get('content.slaveComponentHosts').findProperty('displayName', 'DataNode');
     var totalDnHosts = dnHosts.hosts.length;
-    var totalGroups = this.get('slaveComponentConfig.components').findProperty('componentName', 'DATANODE').groups.length;
+   /* var totalGroups = this.get('slaveComponentConfig.components').findProperty('componentName', 'DATANODE').groups.length;
     var groupLabel;
     if (totalGroups == 1) {
       groupLabel = 'group';
     } else {
       groupLabel = 'groups';
     }
-    dnComponent.set('component_value', totalDnHosts + ' hosts ' + '(' + totalGroups + ' ' + groupLabel + ')');
+    */
+    dnComponent.set('component_value', totalDnHosts + ' hosts');
   },
 
 
@@ -498,14 +499,15 @@ App.WizardStep8Controller = Em.Controller.extend({
   loadTtValue: function (ttComponent) {
     var ttHosts = this.get('content.slaveComponentHosts').findProperty('displayName', 'TaskTracker');
     var totalTtHosts = ttHosts.hosts.length;
-    var totalGroups = this.get('slaveComponentConfig.components').findProperty('componentName', 'TASKTRACKER').groups.length;
+   /* var totalGroups = this.get('slaveComponentConfig.components').findProperty('componentName', 'TASKTRACKER').groups.length;
     var groupLabel;
     if (totalGroups == 1) {
       groupLabel = 'group';
     } else {
       groupLabel = 'groups';
     }
-    ttComponent.set('component_value', totalTtHosts + ' hosts ' + '(' + totalGroups + ' ' + groupLabel + ')');
+    */
+    ttComponent.set('component_value', totalTtHosts + ' hosts');
   },
 
   /**
@@ -576,14 +578,14 @@ App.WizardStep8Controller = Em.Controller.extend({
   loadRegionServerValue: function (rsComponent) {
     var rsHosts = this.get('content.slaveComponentHosts').findProperty('displayName', 'RegionServer');
     var totalRsHosts = rsHosts.hosts.length;
-    var totalGroups = this.get('slaveComponentConfig.components').findProperty('componentName', 'HBASE_REGIONSERVER').groups.length;
+   /* var totalGroups = this.get('slaveComponentConfig.components').findProperty('componentName', 'HBASE_REGIONSERVER').groups.length;
     var groupLabel;
     if (totalGroups == 1) {
       groupLabel = 'group';
     } else {
       groupLabel = 'groups';
-    }
-    rsComponent.set('component_value', totalRsHosts + ' hosts ' + '(' + totalGroups + ' ' + groupLabel + ')');
+    } */
+    rsComponent.set('component_value', totalRsHosts + ' hosts');
   },
 
   /**
@@ -1025,18 +1027,18 @@ App.WizardStep8Controller = Em.Controller.extend({
     var selectedServices = this.get('selectedServices');
     if (!this.get('content.isWizard')) {
       this.createConfigSiteForService(this.createGlobalSiteObj());
-      this.createGlobalSitePerSlaveGroup();
+     // this.createGlobalSitePerSlaveGroup();
       this.createConfigSiteForService(this.createCoreSiteObj());
       this.createConfigSiteForService(this.createHdfsSiteObj());
-      this.createHdfsSitePerSlaveGroup('HDFS');
+      //this.createHdfsSitePerSlaveGroup('HDFS');
     }
     if (selectedServices.someProperty('serviceName', 'MAPREDUCE')) {
       this.createConfigSiteForService(this.createMrSiteObj());
-      this.createMrSitePerSlaveGroup('MAPREDUCE');
+      //this.createMrSitePerSlaveGroup('MAPREDUCE');
     }
     if (selectedServices.someProperty('serviceName', 'HBASE')) {
       this.createConfigSiteForService(this.createHbaseSiteObj());
-      this.createHbaseSitePerSlaveGroup('HBASE');
+      //this.createHbaseSitePerSlaveGroup('HBASE');
     }
     if (selectedServices.someProperty('serviceName', 'OOZIE')) {
       this.createConfigSiteForService(this.createOozieSiteObj('OOZIE'));
