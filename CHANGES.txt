@@ -654,6 +654,9 @@ AMBARI-666 branch (unreleased changes)
 
   BUG FIXES
 
+  AMBARI-1091. 2 parallel requests for service information resulting in JS
+  exception. (Srimanth Gunturi via yusaku)
+
   AMBARI-1090. Restrict user to apply service configuration when custom box
   properties are already exposed on the management config page.
   (Jaimin Jetly via yusaku)

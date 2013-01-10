@@ -24,8 +24,9 @@ module.exports = Em.Application.create({
 
   store: DS.Store.create({
     revision: 4,
-    adapter: require('data_adapter')
-    // adapter: DS.FixtureAdapter.create()
+    adapter: DS.FixtureAdapter.create({
+      simulateRemoteResponse: false
+    })
   })
 });
 

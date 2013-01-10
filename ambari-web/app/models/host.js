@@ -111,38 +111,31 @@ App.Host = DS.Model.extend({
     if (this.get('loadFifteen') != null) return this.get('loadFifteen').toFixed(2);
   }.property('loadOne', 'loadFive', 'loadFifteen'),
 
-  updateHostStatus: function(){
+  healthClass: function(){
+    var healthStatus = this.get('healthStatus');
     /**
      * Do nothing until load
      */
-    if(!this.get('isLoaded')){
-      return;
+    if (!this.get('isLoaded') || this.get('isSaving')) {
+    } else {
+      var status;
+      var masterComponents = this.get('components').filterProperty('isMaster', true);
+      var masterComponentsRunning = masterComponents.everyProperty('workStatus', App.Component.Status.started);
+      if (this.get('isNotHeartBeating')) {
+        status = 'DEAD-YELLOW';
+      } else if (masterComponentsRunning) {
+        status = 'LIVE';
+      } else if (masterComponents.length > 0 && !masterComponentsRunning) {
+        status = 'DEAD';
+      } else {
+        status = 'DEAD-ORANGE';
+      }
+      if (status) {
+        healthStatus = status;
+      }
     }
-
-    var status;
-
-    var masterComponents = this.get('components').filterProperty('isMaster', true);
-    var masterComponentsRunning = masterComponents
-                                            .everyProperty('workStatus', App.Component.Status.started);
-
-    if(this.get('isNotHeartBeating')){
-      status = 'DEAD-YELLOW';
-    } else if(masterComponentsRunning){
-      status = 'LIVE';
-    } else if(masterComponents.length > 0 && !masterComponentsRunning){
-      status = 'DEAD';
-    } else{
-      status = 'DEAD-ORANGE';
-    }
-
-    if(status){
-      this.set('healthStatus', status);
-    }
-  }.observes('components.@each.workStatus'),
-
-  healthClass: function(){
-    return 'health-status-' + this.get('healthStatus');
-  }.property('healthStatus')
+    return 'health-status-' + healthStatus;
+  }.property('healthStatus', 'components.@each.workStatus')
 });
 
 App.Host.FIXTURES = [];

@@ -144,6 +144,12 @@ App.servicesMapper = App.QuickDataMapper.create({
     }
 
     if (json.items) {
+      try{
+        App.store.commit();
+      }catch (e) {
+        console.log("Error committing store before Service mapper maps");
+        console.log(e);
+      }
       var result = [];
       json.items.forEach(function (item) {
         var finalConfig = jQuery.extend({}, this.config);
