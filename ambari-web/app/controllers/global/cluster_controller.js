@@ -169,7 +169,7 @@ App.ClusterController = Em.Controller.extend({
       var statusDiff = right.get('status') - left.get('status');
       if (statusDiff == 0) { // same error severity - sort by time
         var rightTime = right.get('date');
-        var leftTime = left.get('time');
+        var leftTime = left.get('date');
         rightTime = rightTime ? rightTime.getTime() : 0;
         leftTime = leftTime ? leftTime.getTime() : 0;
         statusDiff = rightTime - leftTime;

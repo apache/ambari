@@ -31,7 +31,7 @@ App.alertsMapper = App.QuickDataMapper.create({
     last_hard_state_change: "last_hard_state_change",
     last_hard_state: "last_hard_state",
     last_time_ok: "last_time_ok",
-    last_wime_warning: "last_time_warning",
+    last_time_warning: "last_time_warning",
     last_time_unknown: "last_time_unknown",
     last_time_critical: "last_time_critical",
     is_flapping: "is_flapping",
@@ -54,14 +54,38 @@ App.alertsMapper = App.QuickDataMapper.create({
     }
   },
   update: function(json){
-    var alerts = App.Alert.find();
-    var result = [];
-    json.alerts.forEach(function (item) {
-      if (!alerts.filterProperty('title', item.service_description).length) {
-        result.push(this.parseIt(item, this.config));
+    var alertsList = App.Alert.find();
+    var titleToAlertMap = {};
+    alertsList.forEach(function(alert){
+      titleToAlertMap[alert.get('serviceType') + alert.get('title') + alert.get('message')] = alert;
+    });
+    var newRecords = [];
+    json.alerts.forEach(function(item){
+      var existAlert = titleToAlertMap[item.service_type + item.service_description + item.plugin_output];
+      if (existAlert == null) {
+        newRecords.push(this.parseIt(item, this.config));
+      } else {
+        // update record
+        existAlert.set('serviceType', item.service_type);
+        existAlert.set('date', DS.attr.transforms.date.from(item.last_hard_state_change));
+        existAlert.set('status', item.current_state);
+        existAlert.set('message', item.plugin_output);
+        existAlert.set('lastHardStateChange', item.last_hard_state_change);
+        existAlert.set('lastHardState', item.last_hard_state);
+        existAlert.set('lastTimeOk', item.last_time_ok);
+        existAlert.set('lastTimeWarning', item.last_time_warning);
+        existAlert.set('lastTimeUnknown', item.last_time_unknown);
+        existAlert.set('lastTimeCritical', item.last_time_critical);
+        existAlert.set('lastCheck', item.last_check);
+        existAlert.set('isFlapping', item.is_flapping);
+        delete titleToAlertMap[item.service_type + item.service_description + item.plugin_output];
       }
     }, this);
-    App.store.loadMany(this.get('model'), result);
-
+    for ( var e in titleToAlertMap) {
+      titleToAlertMap[e].deleteRecord();
+    }
+    if (newRecords.length > 0) {
+      App.store.loadMany(this.get('model'), newRecords); // Add new records
+    }
   }
 });

@@ -45,11 +45,19 @@ App.Alert = DS.Model.extend({
   lastTimeCritical: DS.attr('number'),
   isFlapping: DS.attr('number'),
   lastCheck: DS.attr('number'),
+
   /**
    * Used to show correct icon in UI
    */
   isOk: function () {
     return this.get('status') == "0";
+  }.property('status'),
+
+  /**
+   * Used to show correct icon in UI
+   */
+  isWarning: function () {
+    return this.get('status') == "1";
   }.property('status'),
 
   /**

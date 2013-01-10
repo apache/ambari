@@ -639,6 +639,8 @@ AMBARI-666 branch (unreleased changes)
 
   BUG FIXES
 
+  AMBARI-1071. Nagios alerts not updating in UI. (Srimanth Gunturi via yusaku)
+
   AMBARI-1063. Workflow Web Service potentially leaks DB connections upon
   exceptions. (yusaku)
 

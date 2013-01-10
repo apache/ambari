@@ -63,7 +63,7 @@ DS.attr.transforms.date = {
   to: function (deserialized) {
     if (deserialized instanceof Date) {
       return deserialized.getTime();
-    } else if (date === undefined) {
+    } else if (deserialized === undefined) {
       return undefined;
     } else {
       return null;

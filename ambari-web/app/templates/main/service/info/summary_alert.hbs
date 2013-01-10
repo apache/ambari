@@ -22,7 +22,11 @@
           {{#if isOk}}
               <i class="icon-ok icon-large"></i>
           {{else}}
-              <i class="icon-remove icon-large"></i>
+	          {{#if isWarning}}
+	              <i class="icon-warning-sign icon-large"></i>
+	          {{else}}
+	              <i class="icon-remove icon-large"></i>
+	          {{/if}}
           {{/if}}
         </div>
         <div class="span11">
