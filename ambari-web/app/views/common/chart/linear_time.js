@@ -350,7 +350,11 @@ App.ChartLinearTimeView = Ember.View.extend({
         var self = this;
         var series_min_length = 100000000;
         seriesData.forEach(function (series, index) {
-          series.color = palette.color();
+          var seriesColor = self.colorForSeries(series);
+          if (seriesColor == null) {
+            seriesColor = palette.color();
+          }
+          series.color = seriesColor;
           series.stroke = 'rgba(0,0,0,0.3)';
           if (isPopup) {
             // calculate statistic data for popup legend

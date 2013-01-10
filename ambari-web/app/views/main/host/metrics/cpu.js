@@ -97,8 +97,8 @@ App.ChartHostMetricsCPU = App.ChartLinearTimeView.extend({
   },
 
   colorForSeries: function (series) {
-    if ("Idle" == series.name) {
-      return 'rgba(255,255,255,1)';
+    if ("CPU Idle" == series.name) {
+      return '#CFECEC';
     }
     return null;
   }

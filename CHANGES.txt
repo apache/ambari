@@ -454,6 +454,9 @@ AMBARI-666 branch (unreleased changes)
   AMBARI-676. Seperate directory for ambari-server. (jitendra)
 
   IMPROVEMENTS
+  
+  AMBARI-1074. CPU Usage chart needs better idle time display. (Srimanth
+  Gunturi via yusaku)
 
   AMBARI-1072. Change text on alerts "about XX hours ago". (Srimanth Gunturi
   via yusaku)

@@ -83,12 +83,5 @@ App.ChartHostMetricsMemory = App.ChartLinearTimeView.extend({
       }
     }
     return seriesArray;
-  },
-
-  colorForSeries: function (series) {
-    if ("Total" == series.name) {
-      return 'rgba(255,255,255,1)';
-    }
-    return null;
   }
 });

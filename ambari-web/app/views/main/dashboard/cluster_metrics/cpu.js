@@ -74,7 +74,7 @@ App.ChartClusterMetricsCPU = App.ChartLinearTimeView.extend({
   
   colorForSeries: function (series) {
     if ("Idle" == series.name){
-      return 'rgba(255,255,255,1)';
+      return '#CFECEC';
     }
     return null;
   }
