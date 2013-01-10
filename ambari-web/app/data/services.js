@@ -53,6 +53,20 @@ module.exports = [
     description: Em.I18n.t('services.hive.description')
   },
   {
+    serviceName: 'HCATALOG',
+    displayName: 'HCatalog',
+    isDisabled: false,
+    isSelected: true,
+    isHidden: true
+  },
+  {
+    serviceName: 'WEBHCAT',
+    displayName: 'WebHCat',
+    isDisabled: false,
+    isSelected: true,
+    isHidden: true
+  },
+  {
     serviceName: 'HBASE',
     displayName: 'HBase + ZooKeeper',
     isDisabled: false,
@@ -79,20 +93,6 @@ module.exports = [
     isDisabled: false,
     isSelected: true,
     description: Em.I18n.t('services.oozie.description')
-  },
-  {
-    serviceName: 'HCATALOG',
-    displayName: 'HCatalog',
-    isDisabled: false,
-    isSelected: true,
-    isHidden: true
-  },
-  {
-    serviceName: 'WEBHCAT',
-    displayName: 'WebHCat',
-    isDisabled: false,
-    isSelected: true,
-    isHidden: true
   },
   {
     serviceName: 'ZOOKEEPER',

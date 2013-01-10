@@ -833,6 +833,8 @@ App.WizardStep8Controller = Em.Controller.extend({
         return { "ServiceComponentInfo": { "component_name": _component.component_name } };
       });
 
+      debugger;
+
       // Service must be specified in terms of a query for creating multiple components at the same time.
       // See AMBARI-1018.
       var url = App.apiPrefix + '/clusters/' + this.get('clusterName') + '/services?ServiceInfo/service_name=' + _service;
@@ -1246,6 +1248,7 @@ App.WizardStep8Controller = Em.Controller.extend({
     configs.forEach(function (_configProperty) {
       hiveProperties[_configProperty.name] = _configProperty.value;
     }, this);
+    hiveProperties['hive.metastore.uris'] = 'thrift://' + this.get('globals').findProperty('hivemetastore_host').value + ':9083';
     hiveProperties['javax.jdo.option.ConnectionURL'] =
       'jdbc:mysql://' + this.get('globals').findProperty('name', 'hive_mysql_host').value +
       '/' + this.get('globals').findProperty('name', 'hive_database_name').value + '?createDatabaseIfNotExist=true';

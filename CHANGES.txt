@@ -654,6 +654,9 @@ AMBARI-666 branch (unreleased changes)
 
   BUG FIXES
 
+  AMBARI-1149. HIVE_METASTORE needs to be started as a Hive component.
+  (yusaku)
+
   AMBARI-1088. HDFS capacity chart numbers are incorrect. (Srimanth Gunturi
   via yusaku)
 

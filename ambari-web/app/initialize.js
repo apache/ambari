@@ -19,9 +19,9 @@
 
 window.App = require('app');
 
-App.testMode = false;
+App.testMode = true;
 App.skipBootstrap = false;
-App.alwaysGoToInstaller = false;
+App.alwaysGoToInstaller = true;
 App.apiPrefix = '/api/v1';
 App.defaultStackVersion = 'HDP-1.2.0';
 App.defaultLocalStackVersion = 'HDPLocal-1.2.0';

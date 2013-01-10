@@ -156,6 +156,14 @@ module.exports = new Ember.Set([
   },
   {
     service_name: 'HIVE',
+    component_name: 'HIVE_METASTORE',
+    display_name: 'Hive Metastore',
+    isMaster: true,
+    isClient: false,
+    description: ''
+  },
+  {
+    service_name: 'HIVE',
     component_name: 'HIVE_CLIENT',
     display_name: 'Hive Client',
     isMaster: false,

@@ -198,7 +198,7 @@ App.WizardStep6Controller = Em.Controller.extend({
   renderSlaveHosts: function () {
     var hostsObj = Em.Set.create();
     var allHosts = this.getHostNames();
-    var maxNoofHostComponents = 9;
+    var maxNoofHostComponents = 11;
     var slaveComponents = this.get('content.slaveComponentHosts');
 
     allHosts.forEach(function (_hostName) {

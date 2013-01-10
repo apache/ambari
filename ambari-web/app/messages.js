@@ -118,7 +118,7 @@ Em.I18n.translations = {
   'installer.step5.header':'Assign Masters',
   'installer.step5.attention':' hosts not running master services',
   'installer.step5.body':'Assign master components to hosts you want to run them on.',
-  'installer.step5.body.webhcat':'<i class="icon-asterisks">&#10037</i> Hive Server and WebHCat Server will be co-hosted on the same server.',
+  'installer.step5.body.hive':'<i class="icon-asterisks">&#10037</i> Hive Server, Hive Metastore, and WebHCat Server will be co-hosted on the same server.',
 
   'installer.step6.header':'Assign Slaves and Clients',
   'installer.step6.body':'Assign slave and client components to hosts you want to run them on.<br/>Hosts that are assigned master components are shown with <i class=icon-asterisks>&#10037</i>. <br/>&quot;Client&quot; will install ',

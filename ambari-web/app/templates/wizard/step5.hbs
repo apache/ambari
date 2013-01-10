@@ -19,9 +19,9 @@
 <h2>{{t installer.step5.header}}</h2>
 <div class="alert alert-info">
   {{t installer.step5.body}}
-  {{#if hasWebHCatServer}}
+  {{#if hasHiveServer}}
     <br>
-    {{t installer.step5.body.webhcat}}
+    {{t installer.step5.body.hive}}
   {{/if}}
 </div>
 <div class="assign-masters">
@@ -31,7 +31,7 @@
       {{#each selectedServicesMasters}}
       <div class="control-group">
         <label class="control-label">{{display_name}}:</label>
-        {{#if isWebHCatServer}}
+        {{#if isHiveCoHost}}
           <label class="host-name">{{selectedHost}}<i class="icon-asterisks">&#10037</i></label>
         {{else}}
         <div class="controls">

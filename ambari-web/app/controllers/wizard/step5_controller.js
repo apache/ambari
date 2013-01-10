@@ -28,14 +28,16 @@ App.WizardStep5Controller = Em.Controller.extend({
   selectedServicesMasters:[],
   zId:0,
 
-  hasWebHCatServer: function () {
-    return this.get('selectedServicesMasters').findProperty('component_name', 'WEBHCAT_SERVER');
+  hasHiveServer: function () {
+    return this.get('selectedServicesMasters').findProperty('component_name', 'HIVE_SERVER');
   }.property('selectedServicesMasters'),
 
-  updateWebHCatHost: function () {
+  updateHiveCoHosts: function () {
     var hiveServer =  this.get('selectedServicesMasters').findProperty('component_name', 'HIVE_SERVER');
+    var hiveMetastore = this.get('selectedServicesMasters').findProperty('component_name', 'HIVE_METASTORE');
     var webHCatServer = this.get('selectedServicesMasters').findProperty('component_name', 'WEBHCAT_SERVER');
-    if (hiveServer && webHCatServer) {
+    if (hiveServer && hiveMetastore && webHCatServer) {
+      this.get('selectedServicesMasters').findProperty('component_name', 'HIVE_METASTORE').set('selectedHost', hiveServer.get('selectedHost'));
       this.get('selectedServicesMasters').findProperty('component_name', 'WEBHCAT_SERVER').set('selectedHost', hiveServer.get('selectedHost'));
     }
   }.observes('selectedServicesMasters.@each.selectedHost'),
@@ -148,7 +150,7 @@ App.WizardStep5Controller = Em.Controller.extend({
               zooKeeperHost.availableHosts = [];
               zooKeeperHost.serviceId = services[index];
               zooKeeperHost.isInstalled = false;
-              zooKeeperHost.isWebHCatServer = false;
+              zooKeeperHost.isHiveCoHost = false;
               resultComponents.add(zooKeeperHost);
             });
 
@@ -162,7 +164,7 @@ App.WizardStep5Controller = Em.Controller.extend({
           componentObj.isInstalled = savedComponent ? savedComponent.isInstalled : App.Component.find().someProperty('componentName', _componentInfo.component_name);
           componentObj.serviceId = services[index];
           componentObj.availableHosts = [];
-          componentObj.isWebHCatServer = _componentInfo.component_name == 'WEBHCAT_SERVER';
+          componentObj.isHiveCoHost = ['HIVE_METASTORE', 'WEBHCAT_SERVER'].contains(_componentInfo.component_name);
           resultComponents.add(componentObj);
         }
       }, this);
@@ -313,19 +315,12 @@ App.WizardStep5Controller = Em.Controller.extend({
     }
   },
 
+  getHiveMetastore:function (noOfHosts) {
+    return this.getHiveServer(noOfHosts);
+  },
+
   getWebHCatServer:function (noOfHosts) {
-    var hosts = this.get('hosts');
-    if (noOfHosts === 1) {
-      return hosts[0];
-    } else if (noOfHosts < 3) {
-      return hosts[1];
-    } else if (noOfHosts <= 5) {
-      return hosts[1];
-    } else if (noOfHosts <= 30) {
-      return hosts[2];
-    } else {
-      return hosts[4];
-    }
+    return this.getHiveServer(noOfHosts);
   },
 
   getZooKeeperServer:function (noOfHosts) {
@@ -377,28 +372,31 @@ App.WizardStep5Controller = Em.Controller.extend({
    */
   selectHost:function (componentName) {
     var noOfHosts = this.get('hosts').length;
-    if (componentName === 'KERBEROS_SERVER') {
-      return this.getKerberosServer(noOfHosts).host_name;
-    } else if (componentName === 'NAMENODE') {
-      return this.getNameNode(noOfHosts).host_name;
-    } else if (componentName === 'SECONDARY_NAMENODE') {
-      return this.getSNameNode(noOfHosts).host_name;
-    } else if (componentName === 'JOBTRACKER') {
-      return this.getJobTracker(noOfHosts).host_name;
-    } else if (componentName === 'HBASE_MASTER') {
-      return this.getHBaseMaster(noOfHosts).host_name;
-    } else if (componentName === 'OOZIE_SERVER') {
-      return this.getOozieServer(noOfHosts).host_name;
-    } else if (componentName === 'HIVE_SERVER') {
-      return this.getHiveServer(noOfHosts).host_name;
-    } else if (componentName === 'WEBHCAT_SERVER') {
-      return this.getWebHCatServer(noOfHosts).host_name;
-    } else if (componentName === 'ZOOKEEPER_SERVER') {
-      return this.getZooKeeperServer(noOfHosts);
-    } else if (componentName === 'GANGLIA_SERVER') {
-      return this.getGangliaServer(noOfHosts);
-    } else if (componentName === 'NAGIOS_SERVER') {
-      return this.getNagiosServer(noOfHosts);
+    switch (componentName) {
+      case 'KERBEROS_SERVER':
+        return this.getKerberosServer(noOfHosts).host_name;
+      case 'NAMENODE':
+        return this.getNameNode(noOfHosts).host_name;
+      case 'SECONDARY_NAMENODE':
+        return this.getSNameNode(noOfHosts).host_name;
+      case 'JOBTRACKER':
+        return this.getJobTracker(noOfHosts).host_name;
+      case 'HBASE_MASTER':
+        return this.getHBaseMaster(noOfHosts).host_name;
+      case 'OOZIE_SERVER':
+        return this.getOozieServer(noOfHosts).host_name;
+      case 'HIVE_SERVER':
+        return this.getHiveServer(noOfHosts).host_name;
+      case 'HIVE_METASTORE':
+        return this.getHiveMetastore(noOfHosts).host_name;
+      case 'WEBHCAT_SERVER':
+        return this.getWebHCatServer(noOfHosts).host_name;
+      case 'ZOOKEEPER_SERVER':
+        return this.getZooKeeperServer(noOfHosts);
+      case 'GANGLIA_SERVER':
+        return this.getGangliaServer(noOfHosts);
+      case 'NAGIOS_SERVER':
+        return this.getNagiosServer(noOfHosts);
     }
   },
 
