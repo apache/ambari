@@ -139,8 +139,14 @@ App.ChartLinearTimeView = Ember.View.extend({
           hash.contentType = 'application/json; charset=utf-8';
           hash.context = this;
           hash.success = this._refreshGraph,
-          hash.error = function (xhr, textStatus, errorThrown) {
-            this._showMessage('warn', 'Error', 'There was a problem getting data for the chart (' + textStatus + ': ' + errorThrown + ')');
+           hash.error = function(xhr, textStatus, errorThrown){
+            this.set('isReady', true);
+            if (xhr.readyState == 4 && xhr.status) {
+              textStatus = xhr.status + " " + textStatus;
+            }
+            this._showMessage('warn', this.t('graphs.error.title'), this.t('graphs.error.message').format(textStatus, errorThrown));
+            this.set('isPopup', false);
+            this.set('hasData', false);
           }
           jQuery.ajax(hash);
         }
@@ -291,7 +297,7 @@ App.ChartLinearTimeView = Ember.View.extend({
         }
         else {
           this.set('isReady', true);
-          this._showMessage('info', 'No Data', 'There was no data available.');
+          this._showMessage('info', this.t('graphs.noData.title'), this.t('graphs.noData.message'));
           this.set('isPopup', false);
           this.set('hasData', false);
         }

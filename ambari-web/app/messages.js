@@ -28,6 +28,11 @@ Em.I18n.translations = {
   'login.password':'Password',
   'login.loginButton':'Sign in',
   'login.error':'Invalid username/password combination.',
+  
+  'graphs.noData.title': 'No Data',
+  'graphs.noData.message': 'There was no data available. Possible reasons include inaccessible Ganglia service.',
+  'graphs.error.title': 'Error',
+  'graphs.error.message': 'There was a problem getting data for the chart ({0}: {1})',
 
   'services.nagios.description':'Nagios Monitoring and Alerting system',
   'services.ganglia.description':'Ganglia Metrics Collection system',

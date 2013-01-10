@@ -457,6 +457,9 @@ AMBARI-666 branch (unreleased changes)
   AMBARI-676. Seperate directory for ambari-server. (jitendra)
 
   IMPROVEMENTS
+
+  AMBARI-1078. Improve graph message when data is not available.
+  (Srimanth Gunturi via yusaku)
  
   AMBARI-1146. Exclude hosts and include hosts config parameters need 
   clarification. (yusaku)
