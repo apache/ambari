@@ -22,6 +22,10 @@ App.ClusterController = Em.Controller.extend({
   name:'clusterController',
   cluster:null,
   isLoaded:false,
+  /**
+   * Whether we need to update statuses automatically or not
+   */
+  isWorking: false,
   updateLoadStatus:function (item) {
     var loadList = this.get('dataLoadList');
     var loaded = true;
@@ -246,6 +250,57 @@ App.ClusterController = Em.Controller.extend({
       secondary : null
     });
   },
+
+  statusTimeoutId: null,
+
+  loadUpdatedStatusDelayed: function(delay){
+    delay = delay || App.componentsUpdateInterval;
+    var self = this;
+
+    this.set('statusTimeoutId',
+      setTimeout(function(){
+        self.loadUpdatedStatus();
+      }, delay)
+    );
+  },
+
+  loadUpdatedStatus: function(){
+
+    var timeoutId = this.get('statusTimeoutId');
+    if(timeoutId){
+      clearTimeout(timeoutId);
+      this.set('statusTimeoutId', null);
+    }
+
+    if(!this.get('isWorking')){
+      return false;
+    }
+
+    if(!this.get('clusterName')){
+      this.loadUpdatedStatusDelayed(this.get('componentsUpdateInterval')/2, 'error:clusterName');
+      return;
+    }
+    
+    var servicesUrl = this.getUrl('/data/dashboard/services.json', '/services?fields=components/ServiceComponentInfo,components/host_components,components/host_components/HostRoles');
+
+    var self = this;
+    App.HttpClient.get(servicesUrl, App.statusMapper, {
+      complete:function (jqXHR, textStatus) {
+        //console.log('Cluster Controller: Updated components statuses successfully!!!')
+        self.loadUpdatedStatusDelayed();
+      }
+    }, function(){
+      self.loadUpdatedStatusDelayed(null, 'error:response error');
+    });
+
+  },
+  startLoadUpdatedStatus: function(){
+    var self = this;
+    this.set('isWorking', true);
+    setTimeout(function(){
+      self.loadUpdatedStatus();
+    }, App.componentsUpdateInterval*2);
+  },
   /**
    *
    *  load all data and update load status
@@ -297,7 +352,7 @@ App.ClusterController = Em.Controller.extend({
       self.updateLoadStatus('users');
     });
 
-    App.router.get('updateController').updateServices(function(){
+    App.router.get('updateController').updateServiceMetric(function(){
       self.updateLoadStatus('services');
     }, true);
 

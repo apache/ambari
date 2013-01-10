@@ -18,7 +18,6 @@
 var App = require('app');
 
 App.MapReduceService = App.Service.extend({
-  serviceName: DS.attr('string'),
   version: DS.attr('string'),
   jobTracker: DS.belongsTo('App.Host'),
   taskTrackers: DS.hasMany('App.Host'),

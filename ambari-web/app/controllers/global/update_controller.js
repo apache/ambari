@@ -40,7 +40,7 @@ App.UpdateController = Em.Controller.extend({
       if(timeIntervalId) return;
       this.set('timeIntervalId', setInterval(function(){
         self.updateHost();
-        self.updateServices();
+        self.updateServiceMetric();
         self.graphsUpdate();
       }, App.contentUpdateInterval));
     } else {
@@ -74,11 +74,11 @@ App.UpdateController = Em.Controller.extend({
   },
   
   /**
-   * Updates the services and their components information.
+   * Updates the services information. 
    * 
    * @param isInitialLoad  If true, only basic information is loaded.
    */
-  updateServices: function (callback, isInitialLoad) {
+  updateServiceMetric: function (callback, isInitialLoad) {
     var self = this;
     self.set('isUpdated', false);
     var servicesUrl = isInitialLoad ? 

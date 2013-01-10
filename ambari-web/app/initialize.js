@@ -30,6 +30,7 @@ App.timeout = 20000;
 // retry times
 App.times = 3;
 App.bgOperationsUpdateInterval = 6000;
+App.componentsUpdateInterval = 6000;
 App.contentUpdateInterval = 15000;
 
 require('messages');
@@ -44,6 +45,7 @@ require('views');
 require('router');
 
 require('mappers/server_data_mapper');
+require('mappers/status_mapper');
 require('mappers/hosts_mapper');
 require('mappers/cluster_mapper');
 require('mappers/jobs_mapper');

@@ -18,7 +18,6 @@
 var App = require('app');
 
 App.HDFSService = App.Service.extend({
-  serviceName: DS.attr('string'),
   version: DS.attr('string'),
   nameNode: DS.belongsTo('App.Host'),
   snameNode: DS.belongsTo('App.Host'),
