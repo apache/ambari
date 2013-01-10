@@ -455,6 +455,9 @@ AMBARI-666 branch (unreleased changes)
 
   IMPROVEMENTS
 
+  AMBARI-1072. Change text on alerts "about XX hours ago". (Srimanth Gunturi
+  via yusaku)
+
   AMBARI-1145. Cluster Management refactoring. (yusaku)
 
   AMBARI-984. Add support for exposing filesystem type for mount points

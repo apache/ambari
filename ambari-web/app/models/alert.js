@@ -68,10 +68,23 @@ App.Alert = DS.Model.extend({
   timeSinceAlert: function () {
     var d = this.get('date');
     if (d) {
-      return $.timeago(d);
+      var prefix = this.t('services.alerts.OK.timePrefix');
+      switch (this.get('status')) {
+        case "1":
+          prefix = this.t('services.alerts.WARN.timePrefix');
+          break;
+        case "2":
+          prefix = this.t('services.alerts.CRIT.timePrefix');
+          break;
+      }
+      var prevSuffix = $.timeago.settings.strings.suffixAgo;
+      $.timeago.settings.strings.suffixAgo = '';
+      var since = prefix + $.timeago(d);
+      $.timeago.settings.strings.suffixAgo = prevSuffix;
+      return since;
     }
     return "";
-  }.property('date'),
+  }.property('date', 'status'),
 
   /**
    * Provides more details about when this alert happened.
