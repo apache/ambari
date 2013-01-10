@@ -63,7 +63,7 @@ App.MainAppsView = Em.View.extend({
   /**
    * Count of filtered runs
    */
-  filtered:null,
+  filtered: null,
   /**
    * Flag for avgData
    */

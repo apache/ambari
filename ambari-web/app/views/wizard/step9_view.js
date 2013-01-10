@@ -241,6 +241,20 @@ App.HostStatusView = Em.View.extend({
                 taskInfo.set('url', _task.href);
                 taskInfo.set('roleName', roleObj.roleName);
                 taskInfo.set('isVisible', true);
+                taskInfo.set('icon', '');
+                if (taskInfo.get('status') == 'pending' || taskInfo.get('status') == 'queued') {
+                  taskInfo.set('icon', 'icon-cog');
+                } else if (taskInfo.get('status') == 'in_progress') {
+                  taskInfo.set('icon', 'icon-cogs');
+                } else if (taskInfo.get('status') == 'completed') {
+                  taskInfo.set('icon', ' icon-ok');
+                } else if (taskInfo.get('status') == 'failed') {
+                  taskInfo.set('icon', 'icon-exclamation-sign');
+                } else if (taskInfo.get('status') == 'aborted') {
+                  taskInfo.set('icon', 'icon-remove');
+                } else if (taskInfo.get('status') == 'timedout') {
+                  taskInfo.set('icon', 'icon-time');
+                }
                 taskInfos.pushObject(taskInfo);
               }, this);
               roleObj.taskInfos = taskInfos;
@@ -280,7 +294,7 @@ App.HostStatusView = Em.View.extend({
 
             $(".task-detail-status-ico")
                 .removeClass()
-                .addClass("task-detail-status-ico " + taskInfo.status);
+                .addClass(taskInfo.status + " task-detail-status-ico " + taskInfo.icon);
 
             var url = (App.testMode) ? '/data/wizard/deploy/task_log.json' : taskInfo.url;
             $.ajax({
@@ -334,4 +348,3 @@ App.HostStatusView = Em.View.extend({
   }
 
 });
-

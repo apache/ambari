@@ -32,18 +32,20 @@ App.WizardStep9Controller = Em.Controller.extend({
   polledData: [],
 
   status: function () {
-    if (this.hosts.length && this.hosts.everyProperty('status', 'success')) {
-      return 'success';
-    } else if (this.hosts.someProperty('status', 'failed')) {
+    if(this.get('progress') != '100') {
+      return 'info';
+    }
+
+    if (this.hosts.someProperty('status', 'failed')) {
       return 'failed';
     } else if (this.hosts.someProperty('status', 'warning')) {
       return 'warning';
-    } else {
-      return 'info';
     }
-  }.property('hosts.@each.status'),
 
-  showRetry: function(){
+    return 'success';
+  }.property('hosts.@each.status', 'progress'),
+
+  showRetry: function () {
     return this.get('status') == 'failed';
   }.property('status'),
 
@@ -107,7 +109,7 @@ App.WizardStep9Controller = Em.Controller.extend({
       hosts.add(obj);
       console.log("TRACE: host name is: " + hostInfo[index].name);
     }
-   // return hosts;
+    // return hosts;
     return hosts.filterProperty('bootStatus', 'REGISTERED');
   },
 
@@ -223,6 +225,11 @@ App.WizardStep9Controller = Em.Controller.extend({
     var data = '{"ServiceInfo": {"state": "STARTED"}}';
     var method = 'PUT';
 
+    if (this.get('content.controllerName') === 'addHostController') {
+      url = App.apiPrefix + '/clusters/' + clusterName + '/host_components?HostRoles/state=INSTALLED';
+      data = '{"HostRoles": {"state": "STARTED"}}';
+    }
+
     if (App.testMode) {
       url = this.get('mockDataPrefix') + '/poll_6.json';
       method = 'GET';
@@ -320,7 +327,7 @@ App.WizardStep9Controller = Em.Controller.extend({
   // for DATANODE, JOBTRACKER, HBASE_REGIONSERVER, and GANGLIA_MONITOR, if more than 50% fail, then it's a fatal error;
   // otherwise, it's only a warning and installation/start can continue
   getSuccessFactor: function (role) {
-    return ['DATANODE','JOBTRACKER','HBASE_REGIONSERVER','GANGLIA_MONITOR'].contains(role) ? 50 : 100;
+    return ['DATANODE', 'JOBTRACKER', 'HBASE_REGIONSERVER', 'GANGLIA_MONITOR'].contains(role) ? 50 : 100;
   },
 
   isStepFailed: function (polledData) {
@@ -485,6 +492,7 @@ App.WizardStep9Controller = Em.Controller.extend({
     this.hosts.forEach(function (_host) {
       var actionsPerHost = tasksData.filterProperty('Tasks.host_name', _host.name); // retrieved from polled Data
       if (actionsPerHost.length === 0) {
+        _host.set('message', this.t('installer.step9.host.status.nothingToInstall'));
         console.log("Error: No task is hosted on the host");
       }
       if (actionsPerHost !== null && actionsPerHost !== undefined && actionsPerHost.length !== 0) {

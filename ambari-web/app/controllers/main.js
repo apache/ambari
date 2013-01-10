@@ -63,11 +63,9 @@ App.MainController = Em.Controller.extend({
   startPolling: function(){
     App.router.get('updateController').set('isWorking', true);
     App.router.get('backgroundOperationsController').set('isWorking', true);
-    App.router.get('clusterController').startLoadUpdatedStatus();
   },
   stopPolling: function(){
     App.router.get('updateController').set('isWorking', false);
     App.router.get('backgroundOperationsController').set('isWorking', false);
-    App.router.get('clusterController').set('isWorking', false);
   }
 })

@@ -252,6 +252,12 @@ App.WizardController = Em.Controller.extend({
     var url = (App.testMode) ? '/data/wizard/deploy/2_hosts/poll_1.json' : App.apiPrefix + '/clusters/' + clusterName + '/services?ServiceInfo/state=INIT';
     var method = (App.testMode) ? 'GET' : 'PUT';
     var data = '{"ServiceInfo": {"state": "INSTALLED"}}';
+
+    if(this.get('content.controllerName') === 'addHostController'){
+      url = App.apiPrefix + '/clusters/' + clusterName + '/host_components?HostRoles/state=INIT';
+      data = '{"HostRoles": {"state": "INSTALLED"}}';
+    }
+
     $.ajax({
       type: method,
       url: url,

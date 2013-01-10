@@ -448,17 +448,6 @@ a:focus {
 @rack-state-plus: url("/img/rack-state-plus.png");
 @rack-state-minus: url("/img/rack-state-minus.png");
 
-/*Install Task Logs images*/
-@task-state-timedout: url("/img/task-log-timedout.png");
-@task-state-cancelled: url("/img/task-log-cancelled.png");
-@task-state-success: url("/img/task-log-success.png");
-@task-state-failed: url("/img/task-log-fail.png");
-@task-state-progress: url("/img/task-log-progress.png");
-@task-state-pending: url("/img/task-log-pending.png");
-@task-show-details: url("/img/task-log-show-detail.png");
-@task-detail-copy: url("/img/task-log-copy.png");
-@task-detail-open-dialog: url("/img/task-detail-open-dialog.png");
-
 /*****start styles for boxes*****/
 .box {
   border: 1px solid #D4D4D4;
@@ -503,23 +492,26 @@ a:focus {
 
 /*****start styles for install tasks logs*****/
 .task-list-main-warp, .task-detail-info {
+  i {
+    font-size: 20px;
+    vertical-align: middle;
+  }
   .pending, .queued{
-    background: @task-state-pending left center no-repeat;
+    color: #999999;
   }
   .in_progress{
-    background: @task-state-progress left center no-repeat;
+    color: #367FE6;
   }
   .completed{
-    background: @task-state-success left center no-repeat;
+    color: #0EA31C;
   }
   .failed {
-    background: @task-state-failed left center no-repeat;
+    color: #DF5F5F;
   }
   .aborted{
-    background: @task-state-cancelled left center no-repeat;
   }
   .timedout{
-    background: @task-state-timedout left center no-repeat;
+    color: #FF9C09;
   }
 }
 .task-list-main-warp{
@@ -548,11 +540,13 @@ a:focus {
       border-bottom: 1px solid #CCC;
 
       .show-details{
-        width:16px;
-        height:16px;
         float: right;
         cursor: pointer;
-        background: @task-show-details no-repeat center ;
+        font-size: 16px;
+
+        i{
+          color: #333;
+        }
       }
 
     }
@@ -584,32 +578,26 @@ a:focus {
       top: 0;
     }
     .task-detail-status-ico{
-      width:24px;
-      height: 24px;
-      background-position: center;
       content: "";
       margin-top: -4px;
       box-shadow: none;
       margin-bottom: 0px;
+      font-size:24px;
     }
 
     .task-detail-ico-wrap{
-
+      font-size: 24px;
       float:right;
       margin-top:-26px;
 
       div{
-        width: 24px;
-        height: 24px;
         cursor: pointer;
       }
       .task-detail-copy{
         margin-right: 12px;
-        background: @task-detail-copy no-repeat center;
         float: left;
       }
       .task-detail-open-dialog{
-        background: @task-detail-open-dialog no-repeat center;
         float: right;
       }
     }
@@ -2175,6 +2163,11 @@ ul.inline li {
 
 .nav-list > .active > a, .nav-list > .active > a:hover {
   background-color: #666666;
+}
+
+.dropdown-menu li > a:hover, .dropdown-menu li > a:focus, .dropdown-submenu:hover > a {
+  background-color: #666666;
+  background-image: linear-gradient(to bottom, #666666, #555555);
 }
 
 .alert-info {

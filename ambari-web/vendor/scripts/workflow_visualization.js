@@ -372,7 +372,7 @@ DagViewer.prototype.setData = function (wfData, jobData) {
   var jobData = (jobData) ? jobData : new Array();
   // iterate through job data
   for (var i = 0; i < jobData.length; i++) {
-    this._addNode(existingNodes, jobData[i].name, jobData[i]);
+    this._addNode(existingNodes, jobData[i].entityName, jobData[i]);
   }
   var dag = eval('(' + wfData + ')').dag;
   // for each source node in the context, create links between it and its target nodes

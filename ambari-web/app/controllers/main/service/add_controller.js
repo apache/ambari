@@ -398,7 +398,9 @@ App.AddServiceController = App.WizardController.extend({
     App.db.setServiceConfigProperties(serviceConfigProperties);
     this.set('content.serviceConfigProperties', serviceConfigProperties);
 
-    var slaveConfigProperties = [];
+    //TODO: Uncomment below code to enable slave Configuration
+
+    /*var slaveConfigProperties = [];
     stepController.get('stepConfigs').forEach(function (_content) {
       if (_content.get('configCategories').someProperty('isForSlaveComponent', true)) {
         var slaveCategory = _content.get('configCategories').findProperty('isForSlaveComponent', true);
@@ -416,7 +418,7 @@ App.AddServiceController = App.WizardController.extend({
       }
     }, this);
     App.db.setSlaveProperties(slaveConfigProperties);
-    this.set('content.slaveGroupProperties', slaveConfigProperties);
+    this.set('content.slaveGroupProperties', slaveConfigProperties);*/
   },
 
   /**

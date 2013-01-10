@@ -18,6 +18,7 @@
 var App = require('app');
 
 App.HBaseService = App.Service.extend({
+  serviceName: DS.attr('string'),
   version: DS.attr('string'),
   master: DS.belongsTo('App.Host'),
   regionServers: DS.hasMany('App.Host'),

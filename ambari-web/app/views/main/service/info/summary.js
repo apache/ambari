@@ -35,7 +35,7 @@ App.MainServiceInfoSummaryView = Em.View.extend({
     var result = [];
     var service = this.get('controller.content');
     if (service.get("id") == "OOZIE" || service.get("id") == "ZOOKEEPER") {
-      var clients = service.get('components').filterProperty('isClient');
+      var clients = service.get('hostComponents').filterProperty('isClient');
       if (clients.length > 0) {
         result = [{
           'displayName': clients[0].get('displayName'),
@@ -67,7 +67,7 @@ App.MainServiceInfoSummaryView = Em.View.extend({
     var result = [];
     var service = this.get('controller.content');
     if (service.get("id") == "ZOOKEEPER") {
-      var servers = service.get('components').filterProperty('isMaster');
+      var servers = service.get('hostComponents').filterProperty('isMaster');
       if (servers.length > 0) {
         result = [{
           'host': servers[0].get('displayName'),
@@ -99,7 +99,7 @@ App.MainServiceInfoSummaryView = Em.View.extend({
     var result = '';
     var service = this.get('controller.content');
     if (service.get("id") == "GANGLIA") {
-      var monitors = service.get('components').filterProperty('isMaster', false);
+      var monitors = service.get('hostComponents').filterProperty('isMaster', false);
       if (monitors.length) {
         result = monitors.length - 1 ? monitors.length + ' hosts running monitor' : '1 host running monitor';
       }
@@ -160,25 +160,25 @@ App.MainServiceInfoSummaryView = Em.View.extend({
     }
   },
   gangliaServer:function(){
-    var tmp=this.get('controller.content');
-    if(tmp.get("id") == "GANGLIA"){
-      return tmp.get("components").objectAt(0).get("host").get("publicHostName");
+    var service=this.get('controller.content');
+    if(service.get("id") == "GANGLIA"){
+      return service.get("components").findProperty('isMaster', true).get("host").get("publicHostName");
     }else{
       return "";
     }
   }.property('controller.content'),
   nagiosServer:function(){
-    var tmp=this.get('controller.content');
-    if(tmp.get("id") == "NAGIOS"){
-      return tmp.get("components").objectAt(0).get("host").get("publicHostName");
+    var service=this.get('controller.content');
+    if(service.get("id") == "NAGIOS"){
+      return service.get("components").findProperty('isMaster', true).get("host").get("publicHostName");
     }else{
       return "";
     }
   }.property('controller.content'),
   oozieServer:function(){
-    var tmp=this.get('controller.content');
-    if(tmp.get("id") == "OOZIE"){
-      return tmp.get("components").objectAt(0).get("host").get("publicHostName");
+    var service=this.get('controller.content');
+    if(service.get("id") == "OOZIE"){
+      return service.get("components").findProperty('isMaster', true).get("host").get("publicHostName");
     }else{
       return "";
     }

@@ -188,6 +188,18 @@ App.ServiceConfigProperty = Ember.Object.extend({
     var masterComponentHostsInDB = App.db.getMasterComponentHosts();
     var slaveComponentHostsInDB = App.db.getSlaveComponentHosts();
     var hostsInfo = App.db.getHosts(); // which we are setting in installerController in step3.
+    App.Host.find().forEach(function(item){
+      if(!hostsInfo[item.get('id')]){
+        hostsInfo[item.get('id')] = {
+          name: item.get('id'),
+          cpu: item.get('cpu'),
+          memory: item.get('memory'),
+          disk_info: item.get('diskInfo'),
+          bootStatus: "REGISTERED",
+          isInstalled: true
+        };
+      }
+    });
     var temp = '';
     var setOfHostNames = [];
     switch (this.get('name')) {

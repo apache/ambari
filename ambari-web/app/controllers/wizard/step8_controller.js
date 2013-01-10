@@ -1084,10 +1084,6 @@ App.WizardStep8Controller = Em.Controller.extend({
         console.log("STEP8: value of the global property is: " + _globalSiteObj.value);
       }
     }, this);
-    // TODO: for now, setting mapred_local_dir in global as well as tasktracker global; we'll need to handle mapred_local_dir specific to jobtracker as well
-    if(this.get('globals').findProperty('name', 'mapred_local_dir')){ //todo: remove it when hook up it correctly
-      globalSiteProperties['mapred_local_dir'] = this.get('globals').findProperty('name', 'mapred_local_dir')['value'];
-    }
     return {"type": "global", "tag": "version1", "properties": globalSiteProperties};
   },
 

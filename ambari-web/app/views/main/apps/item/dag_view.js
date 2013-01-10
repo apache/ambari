@@ -34,11 +34,12 @@ App.MainAppsItemDagView = Em.View.extend({
     var result = [];
     c.forEach(function(item, index){
       result[index] = new Object({
-        'name' : item.get('workflowEntityName'),
-        'status' : item.get('status') == 'COMPLETE',
+        'name' : item.get('id'),
+        'entityName' : item.get('workflowEntityName'),
+        'status' : item.get('status') == 'SUCCESS',
         'info' : [],
-        'input' : 2,
-        'output' : 3
+        'input' : item.get('inputBytes'),
+        'output' : item.get('outputBytes')
       })
     });
     return result;

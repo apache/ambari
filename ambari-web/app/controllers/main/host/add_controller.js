@@ -88,6 +88,7 @@ App.AddHostController = App.WizardController.extend({
         name: _host.name,
         cpu: _host.cpu,
         memory: _host.memory,
+        disk_info: _host.disk_info,
         bootStatus: _host.bootStatus,
         isInstalled: false
       };
@@ -360,7 +361,9 @@ App.AddHostController = App.WizardController.extend({
     App.db.setServiceConfigProperties(serviceConfigProperties);
     this.set('content.serviceConfigProperties', serviceConfigProperties);
 
-    var slaveConfigProperties = [];
+    //TODO: Uncomment below code to enable slave Configuration
+
+    /*var slaveConfigProperties = [];
     stepController.get('stepConfigs').forEach(function (_content) {
       if (_content.get('configCategories').someProperty('isForSlaveComponent', true)) {
         var slaveCategory = _content.get('configCategories').findProperty('isForSlaveComponent', true);
@@ -378,7 +381,7 @@ App.AddHostController = App.WizardController.extend({
       }
     }, this);
     App.db.setSlaveProperties(slaveConfigProperties);
-    this.set('content.slaveGroupProperties', slaveConfigProperties);
+    this.set('content.slaveGroupProperties', slaveConfigProperties);*/
   },
 
   /**
