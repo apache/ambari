@@ -183,6 +183,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
         self.loadAdvancedConfig(serviceConfigs, advancedConfig);
         self.loadCustomConfig(serviceConfigs);
         var serviceConfig = self.get('serviceConfigs').findProperty('serviceName', self.get('content.serviceName'));
+        self.addHostNamesToGlobalConfig();
         serviceConfig.configs = self.get('globalConfigs').concat(serviceConfigs);
 
         self.renderServiceConfigs(serviceConfig);
@@ -198,6 +199,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
       statusCode: require('data/statusCodes')
     });
   },
+
 
   /**
    * set tagnames for configuration of the *-site.xml
@@ -373,19 +375,21 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
     _componentConfig.configs.forEach(function (_serviceConfigProperty) {
       console.log("config", _serviceConfigProperty);
       if (!_serviceConfigProperty) return;
-      if (_serviceConfigProperty.serviceName === this.get('content.serviceName')) {
-        var serviceConfigProperty = App.ServiceConfigProperty.create(_serviceConfigProperty);
+      var serviceConfigProperty = App.ServiceConfigProperty.create(_serviceConfigProperty);
+      if (serviceConfigProperty.get('serviceName') === this.get('content.serviceName')) {
         // serviceConfigProperty.serviceConfig = componentConfig;
         if (App.db.getUser().admin) {
           serviceConfigProperty.set('isEditable', serviceConfigProperty.get('isReconfigurable'));
         } else {
           serviceConfigProperty.set('isEditable', false);
         }
-        this.initialValue(serviceConfigProperty);
-        componentConfig.configs.pushObject(serviceConfigProperty);
-        serviceConfigProperty.validate();
+
         console.log("config result", serviceConfigProperty);
+      } else {
+        serviceConfigProperty.set('isVisible', false);
       }
+      componentConfig.configs.pushObject(serviceConfigProperty);
+      serviceConfigProperty.validate();
     }, this);
   },
 
@@ -720,9 +724,9 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
     siteObj.forEach(function (_siteObj) {
       siteProperties[_siteObj.name] = _siteObj.value;
     }, this);
-    if (siteName === 'hdfs-site') {
-      debugger;
-    }
+    //if (siteName === 'hdfs-site') {
+    //debugger;
+    //}
     return {"type": siteName, "tag": tagName, "properties": siteProperties};
   },
 
@@ -841,44 +845,90 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
     return (App.testMode) ? testUrl : App.apiPrefix + '/clusters/' + App.router.getClusterName() + url;
   },
 
-  initialValue: function (config) {
-    switch (config.name) {
-      case 'namenode_host':
-        config.set('id', 'puppet var');
-        config.set('value', this.get('content.components').findProperty('componentName', 'NAMENODE').get('host.hostName'));
+  /**
+   * Adds host name of master component to global config;
+   */
+  addHostNamesToGlobalConfig: function () {
+    var serviceName = this.get('content.serviceName');
+    var globalConfigs = this.get('globalConfigs');
+    //namenode_host is required to derive "fs.default.name" a property of core-site
+    var serviceConfigs = this.get('serviceConfigs').findProperty('serviceName', serviceName).configs;
+    var nameNodeHost = this.get('serviceConfigs').findProperty('serviceName', 'HDFS').configs.findProperty('name', 'namenode_host');
+    nameNodeHost.defaultValue = App.Service.find().objectAt(0).get('components').findProperty('componentName', 'NAMENODE').get('host.hostName');
+    globalConfigs.push(nameNodeHost);
+    switch (serviceName) {
+      case 'HDFS':
+        var sNameNodeHost = serviceConfigs.findProperty('name', 'snamenode_host');
+        sNameNodeHost.defaultValue = this.get('content.components').findProperty('componentName', 'SECONDARY_NAMENODE').get('host.hostName');
+        globalConfigs.push(sNameNodeHost);
         break;
-      case 'snamenode_host':
-        config.set('id', 'puppet var');
-        config.set('value', this.get('content.components').findProperty('componentName', 'SECONDARY_NAMENODE').get('host.hostName'));
+      case 'MAPREDUCE':
+        var jobTrackerHost = serviceConfigs.findProperty('name', 'jobtracker_host');
+        jobTrackerHost.defaultValue = this.get('content.components').findProperty('componentName', 'JOBTRACKER').get('host.hostName');
+        globalConfigs.push(jobTrackerHost);
         break;
-      case 'jobtracker_host':
-        config.set('id', 'puppet var');
-        config.set('value', this.get('content.components').findProperty('componentName', 'JOBTRACKER').get('host.hostName'));
+      case 'HBASE':
+        var hbaseMasterHost = serviceConfigs.findProperty('name', 'hbasemaster_host');
+        hbaseMasterHost.defaultValue = this.get('content.components').findProperty('componentName', 'HBASE_MASTER').get('host.hostName');
+        globalConfigs.push(hbaseMasterHost);
         break;
-      case 'hbasemaster_host':
-        config.set('id', 'puppet var');
-        config.set('value', this.get('content.components').findProperty('componentName', 'HBASE_MASTER').get('host.hostName'));
+      case 'HIVE':
+        var hiveMetastoreHost = serviceConfigs.findProperty('name', 'hivemetastore_host');
+        hiveMetastoreHost.defaultValue = this.get('content.components').findProperty('componentName', 'HIVE_SERVER').get('host.hostName');
+        globalConfigs.push(hiveMetastoreHost);
         break;
-      case 'hivemetastore_host':
-        config.set('id', 'puppet var');
-        config.set('value', this.get('content.components').findProperty('componentName', 'HIVE_SERVER').get('host.hostName'));
+      case 'OOZIE':
+        var oozieServerHost = serviceConfigs.findProperty('name', 'oozieserver_host');
+        oozieServerHost.defaultValue = this.get('content.components').findProperty('componentName', 'OOZIE_SERVER').get('host.hostName');
+        globalConfigs.push(oozieServerHost);
+        var oozieAmbariHost = serviceConfigs.findProperty('name', 'oozie_ambari_host'); //db hostname
+        oozieAmbariHost.defaultValue = this.get('content.components').findProperty('componentName', 'OOZIE_SERVER').get('host.hostName');
+        globalConfigs.push(oozieAmbariHost);
         break;
-      case 'hive_ambari_host':
-        config.set('id', 'puppet var');
-        config.set('value', this.get('content.components').findProperty('componentName', 'HIVE_SERVER').get('host.hostName'));
+      case 'ZOOKEEPER':
+        var zooKeperHost = serviceConfigs.findProperty('name', 'zookeeperserver_hosts');
+        zooKeperHost.defaultValue = this.get('content.components').findProperty('componentName', 'HIVE_SERVER').get('host.hostName');
+        globalConfigs.push(zooKeperHost);
         break;
-      case 'oozieserver_host':
-        config.set('id', 'puppet var');
-        config.set('value', this.get('content.components').findProperty('componentName', 'OOZIE_SERVER').get('host.hostName'));
-        break;
-      case 'oozie_ambari_host':
-        config.set('id', 'puppet var');
-        config.set('value', this.get('content.components').findProperty('componentName', 'OOZIE_SERVER').get('host.hostName'));
-        break;
-      case 'zookeeperserver_hosts':
-        config.set('id', 'puppet var');
-        config.set('value', this.get('content.components').findProperty('componentName', 'ZOOKEEPER_SERVER').get('host.hostName'));
-        break;
+      /*
+       case 'namenode_host':
+       config.set('id', 'puppet var');
+       config.set('value', this.get('content.components').findProperty('componentName', 'NAMENODE').get('host.hostName'));
+       debugger;
+       break;
+       case 'snamenode_host':
+       config.set('id', 'puppet var');
+       config.set('value', this.get('content.components').findProperty('componentName', 'SECONDARY_NAMENODE').get('host.hostName'));
+       break;
+       case 'jobtracker_host':
+       config.set('id', 'puppet var');
+       config.set('value', this.get('content.components').findProperty('componentName', 'JOBTRACKER').get('host.hostName'));
+       break;
+       case 'hbasemaster_host':
+       config.set('id', 'puppet var');
+       config.set('value', this.get('content.components').findProperty('componentName', 'HBASE_MASTER').get('host.hostName'));
+       break;
+       case 'hivemetastore_host':
+       config.set('id', 'puppet var');
+       config.set('value', this.get('content.components').findProperty('componentName', 'HIVE_SERVER').get('host.hostName'));
+       break;
+       case 'hive_ambari_host':
+       config.set('id', 'puppet var');
+       config.set('value', this.get('content.components').findProperty('componentName', 'HIVE_SERVER').get('host.hostName'));
+       break;
+       case 'oozieserver_host':
+       config.set('id', 'puppet var');
+       config.set('value', this.get('content.components').findProperty('componentName', 'OOZIE_SERVER').get('host.hostName'));
+       break;
+       case 'oozie_ambari_host':
+       config.set('id', 'puppet var');
+       config.set('value', this.get('content.components').findProperty('componentName', 'OOZIE_SERVER').get('host.hostName'));
+       break;
+       case 'zookeeperserver_hosts':
+       config.set('id', 'puppet var');
+       config.set('value', this.get('content.components').findProperty('componentName', 'ZOOKEEPER_SERVER').get('host.hostName'));
+       break;
+       */
     }
   }
 

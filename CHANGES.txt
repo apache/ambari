@@ -654,6 +654,9 @@ AMBARI-666 branch (unreleased changes)
 
   BUG FIXES
 
+  AMBARI-1150. Installer Wizard - Retry feature in Deploy step (Step 9) is
+  broken. (yusaku)
+
   AMBARI-1092. dashboard > Summary > capacity pie chart keeps changing colors.
   (Srimanth Gunturi via yusaku)
 
