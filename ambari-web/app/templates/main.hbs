@@ -20,8 +20,8 @@
 <div id="main-nav">
   <div class="navbar">
     <div class="navbar-inner">
-      <a class="brand" href="#">
-        {{clusterName}}
+      <a class="brand" href="#" {{bindAttr title="clusterName"}}>
+        {{clusterDisplayName}}
 
         {{#view App.EmptyView controllerBinding="App.router.backgroundOperationsController"}}
           {{#if allOperationsCount}}
