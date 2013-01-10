@@ -654,6 +654,8 @@ AMBARI-666 branch (unreleased changes)
 
   BUG FIXES
 
+  AMBARI-1084. Heatmap displays NaN. (Srimanth Gunturi via yusaku)
+
   AMBARI-1081. HDFS disk capacity on dashboard is seen as negative number.
   (Srimanth Gunturi via yusaku)
 

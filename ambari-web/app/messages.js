@@ -321,7 +321,7 @@ Em.I18n.translations = {
   'dashboard.services.hdfs.nameNodeWebUI':'NameNode Web UI',
   'dashboard.services.hdfs.nodes.live':'live',
   'dashboard.services.hdfs.nodes.dead':'dead',
-  'dashboard.services.hdfs.nodes.decom':'decom',
+  'dashboard.services.hdfs.nodes.decom':'decommissioning',
   'dashboard.services.hdfs.nodes.uptime':'NameNode Uptime',
   'dashboard.services.hdfs.nodes.heap':'NameNode Heap',
   'dashboard.services.hdfs.nodes.heapUsed':'{0} / {1} ({2}% used)',

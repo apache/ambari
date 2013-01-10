@@ -34,8 +34,28 @@ App.MainChartsHeatmapHostView = Em.View.extend({
   mouseEnter: function (e) {
     var host = this.get('content');
     var view = App.MainChartsHeatmapHostDetailView.create();
-    $.each(view.get('details'), function (i) {
-      view.set('details.' + i, host.get(i));
+    $.each(view.get('details'), function(i){
+      var val = host.get(i);
+      if (i == 'diskUsage') {
+        if (val == undefined || isNaN(val)) {
+          val = null;
+        } else {
+          val = val.toFixed(1);
+        }
+      } else if (i == 'cpuUsage') {
+        if (val == undefined || isNaN(val)) {
+          val = null;
+        } else {
+          val = val.toFixed(1);
+        }
+      } else if (i == 'memoryUsage') {
+        if (val == undefined || isNaN(val)) {
+          val = null;
+        } else {
+          val = val.toFixed(1);
+        }
+      }
+      view.set('details.' + i, val);
     });
     var selectedMetric = this.get('controller.selectedMetric');
     if (selectedMetric) {
@@ -49,7 +69,11 @@ App.MainChartsHeatmapHostView = Em.View.extend({
           if (metricName == 'Garbage Collection Time') {
             value = date.timingFormat(parseInt(value));
           } else {
-            value = value + selectedMetric.get('units');
+            if (isNaN(value)) {
+              value = this.t('charts.heatmap.unknown');
+            } else {
+              value = value + selectedMetric.get('units');
+            }
           }
         }
         view.set('details.metricName', metricName);
