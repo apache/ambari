@@ -147,17 +147,17 @@ Number.prototype.bytesToSize = function (precision, parseType/* = 'parseInt' */)
 Number.prototype.toDaysHoursMinutes = function () {
   var formatted = {},
     dateDiff = this,
-    minK = 60, // sec
+    secK = 1000, //ms
+    minK = 60 * secK, // sec
     hourK = 60 * minK, // sec
     dayK = 24 * hourK;
 
-  dateDiff = parseInt(dateDiff / 1000);
+  dateDiff = parseInt(dateDiff);
   formatted.d = Math.floor(dateDiff / dayK);
   dateDiff -= formatted.d * dayK;
   formatted.h = Math.floor(dateDiff / hourK);
   dateDiff -= formatted.h * hourK;
-  formatted.m = Math.floor(dateDiff / minK);
-  dateDiff -= formatted.m * minK;
+  formatted.m = (dateDiff / minK).toFixed(2);
 
   return formatted;
 }
@@ -310,12 +310,10 @@ App.format = {
         return 'Sqoop';
       case 'SQOOP_SERVICE_CHECK':
         return 'Sqoop Check';
-      case 'TEMPLETON_CLIENT':
-        return 'Templeton Client';
-      case 'TEMPLETON_SERVER':
-        return 'Templeton Server';
-      case 'TEMPLETON_SERVICE_CHECK':
-        return 'Templeton Check';
+      case 'WEBHCAT_SERVER':
+        return 'WebHCat Server';
+      case 'WEBHCAT_SERVICE_CHECK':
+        return 'WebHCat Check';
       case 'NAGIOS_SERVER':
         return 'Nagios Server';
       case 'GANGLIA_SERVER':
@@ -341,7 +339,7 @@ App.format = {
    * ABORTED - Operation was abandoned
    */
   taskStatus:function (_taskStatus) {
-    return _taskStatus.replace('_', ' ').toLowerCase();
+    return _taskStatus.toLowerCase();
   }
 };
 

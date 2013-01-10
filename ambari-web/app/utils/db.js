@@ -127,24 +127,10 @@ App.db.setHosts = function (hostInfo) {
   localStorage.setObject('ambari', App.db.data);
 };
 
-App.db.setInstallType = function (installType) {
-  console.log('TRACE: Entering db:setInstallType function');
+App.db.setInstallOptions = function(installOptions){
+  console.log('TRACE: Entering db:setInstallOptions function');
   App.db.data = localStorage.getObject('ambari');
-  App.db.data.Installer.installType = installType;
-  localStorage.setObject('ambari', App.db.data);
-};
-
-App.db.setSoftRepo = function (softRepo) {
-  console.log('TRACE: Entering db:setSoftRepo function');
-  App.db.data = localStorage.getObject('ambari');
-  App.db.data.Installer.softRepo = softRepo;
-  localStorage.setObject('ambari', App.db.data);
-};
-
-App.db.setBootRequestId = function (requestId) {
-  console.log('TRACE: Entering db:setBootRequestId function');
-  App.db.data = localStorage.getObject('ambari');
-  App.db.data.Installer.bootRequestId = requestId;
+  App.db.data.Installer.installOptions = installOptions;
   localStorage.setObject('ambari', App.db.data);
 };
 
@@ -152,12 +138,6 @@ App.db.setBootStatus = function (status) {
   console.log('TRACE: Entering db:setBootStatus function');
   App.db.data = localStorage.getObject('ambari');
   App.db.data.Installer.bootStatus = status;
-  localStorage.setObject('ambari', App.db.data);
-};
-
-App.db.setSshKey = function (sshKey) {
-  App.db.data = localStorage.getObject('ambari');
-  App.db.data.Installer.sshKey = sshKey;
   localStorage.setObject('ambari', App.db.data);
 };
 
@@ -302,17 +282,10 @@ App.db.getAllHostNamesPattern = function () {
   App.db.data = localStorage.getObject('ambari');
   return App.db.data.Installer.hostNamesPattern;
 };
-
-App.db.getInstallType = function () {
-  console.log('TRACE: Entering db:getHostNames function');
+App.db.getInstallOptions = function () {
+  console.log('TRACE: Entering db:getInstallOptions function');
   App.db.data = localStorage.getObject('ambari');
-  return App.db.data.Installer.installType;
-};
-
-App.db.getSoftRepo = function () {
-  console.log('TRACE: Entering db:getSoftRepo function');
-  App.db.data = localStorage.getObject('ambari');
-  return App.db.data.Installer.softRepo;
+  return App.db.data.Installer.installOptions;
 };
 
 App.db.isCompleted = function () {
@@ -330,17 +303,6 @@ App.db.getBootStatus = function () {
   console.log('TRACE: Entering db:getBootStatus function');
   App.db.data = localStorage.getObject('ambari');
   return App.db.data.Installer.bootStatus;
-};
-
-App.db.getBootRequestId = function () {
-  console.log('TRACE: Entering db:getBootRequestId function');
-  App.db.data = localStorage.getObject('ambari');
-  return App.db.data.Installer.bootRequestId;
-};
-
-App.db.getSshKey = function () {
-  App.db.data = localStorage.getObject('ambari');
-  return  App.db.data.Installer.sshKey;
 };
 
 App.db.getService = function () {

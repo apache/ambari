@@ -24,6 +24,7 @@ module.exports = Em.Route.extend({
 
     Ember.run.next(function () {
       var addHostController = router.get('addHostController');
+      App.router.get('updateController').set('isWorking', false);
       App.ModalPopup.show({
         classNames: ['full-width-modal'],
         header:Em.I18n.t('hosts.add.header'),
@@ -36,10 +37,12 @@ module.exports = Em.Route.extend({
 
         onPrimary:function () {
           this.hide();
+          App.router.get('updateController').set('isWorking', true);
           router.transitionTo('hosts.index');
         },
         onClose: function() {
           this.hide();
+          App.router.get('updateController').set('isWorking', true);
           router.transitionTo('hosts.index');
         }
       });
@@ -69,9 +72,9 @@ module.exports = Em.Route.extend({
 
     next: function (router) {
       var controller = router.get('addHostController');
-      var wizardStep2Controller = router.get('wizardStep2Controller');
-      wizardStep2Controller.patternExpression();
-      controller.saveHosts(wizardStep2Controller);
+      controller.save('installOptions');
+      //hosts was saved to content.hosts inside wizardStep2Controller
+      controller.save('hosts');
       router.transitionTo('step2');
       App.db.setBootStatus(false);
     },
@@ -256,6 +259,7 @@ module.exports = Em.Route.extend({
   }),
 
   backToHostsList: function (router, event) {
+    App.router.get('updateController').set('isWorking', true);
     router.transitionTo('hosts.index');
   },
 

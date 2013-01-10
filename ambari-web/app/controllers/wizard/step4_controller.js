@@ -47,13 +47,15 @@ App.WizardStep4Controller = Em.ArrayController.extend({
   checkDependencies: function () {
     var hbase = this.findProperty('serviceName', 'HBASE');
     var zookeeper = this.findProperty('serviceName', 'ZOOKEEPER');
-    if (hbase && zookeeper) {
-      zookeeper.set('isSelected', hbase.get('isSelected'));
-    }
     var hive = this.findProperty('serviceName', 'HIVE');
     var hcatalog = this.findProperty('serviceName', 'HCATALOG');
-    if (hive && hcatalog) {
+    var webhcat = this.findProperty('serviceName', 'WEBHCAT');
+
+    // prevent against getting error when not all elements have been loaded yet
+    if (hbase && zookeeper && hive && hcatalog && webhcat) {
+      zookeeper.set('isSelected', hbase.get('isSelected') || hive.get('isSelected'));
       hcatalog.set('isSelected', hive.get('isSelected'));
+      webhcat.set('isSelected', hive.get('isSelected'));
     }
   }.observes('@each.isSelected'),
 

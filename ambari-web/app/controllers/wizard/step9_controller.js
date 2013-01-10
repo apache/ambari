@@ -97,7 +97,7 @@ App.WizardStep9Controller = Em.Controller.extend({
   },
 
   loadHosts: function () {
-    var hostInfo = this.get('content.hostsInfo');
+    var hostInfo = this.get('content.hosts');
 
     var hosts = new Ember.Set();
     for (var index in hostInfo) {
@@ -573,7 +573,12 @@ App.WizardStep9Controller = Em.Controller.extend({
       },
 
       statusCode: require('data/statusCodes')
-    });
+    }).retry({times: App.times, timeout: App.timeout}).then(null,
+      function () {
+        App.showReloadPopup();
+        console.log('Install services all retries failed');
+      }
+    );
   },
   doPolling: function () {
     var url = this.getUrl();

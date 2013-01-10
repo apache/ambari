@@ -69,7 +69,7 @@ module.exports = [
   {
     "name": "hadoop.proxyuser.<foreignKey[0]>.groups",
     "templateName": ["proxyuser_group"],
-    "foreignKey": ["templeton_user"],
+    "foreignKey": ["webhcat_user"],
     "value": "<templateName[0]>",
     "filename": "core-site.xml"
   },

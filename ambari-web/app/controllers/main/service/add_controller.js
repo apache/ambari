@@ -34,9 +34,9 @@ App.AddServiceController = App.WizardController.extend({
    * All wizards data will be stored in this variable
    *
    * cluster - cluster name
-   * hosts - hosts, ssh key, repo info, etc.
+   * installOptions - ssh key, repo info, etc.
    * services - services list
-   * hostsInfo - list of selected hosts
+   * hosts - list of selected hosts
    * slaveComponentHosts, - info about slave hosts
    * masterComponentHosts - info about master hosts
    * config??? - to be described later
@@ -44,8 +44,8 @@ App.AddServiceController = App.WizardController.extend({
   content: Em.Object.create({
     cluster: null,
     hosts: null,
+    installOptions: null,
     services: null,
-    hostsInfo: null,
     slaveComponentHosts: null,
     masterComponentHosts: null,
     serviceConfigProperties: null,
@@ -82,7 +82,7 @@ App.AddServiceController = App.WizardController.extend({
       App.db.setHosts(hosts);
     }
 
-    this.set('content.hostsInfo', hosts);
+    this.set('content.hosts', hosts);
     console.log('AddServiceController.loadConfirmedHosts: loaded hosts', hosts);
   },
 
@@ -103,8 +103,8 @@ App.AddServiceController = App.WizardController.extend({
         hostInfo[index].progress = host.progress;
       }
     }
-    App.db.setHosts(hostInfo);
-    this.set('content.hostsInfo', hostInfo);
+    this.set('content.hosts', hostInfo);
+    this.save('hosts');
     console.log('AddServiceController:saveInstalledHosts: save hosts ', hostInfo);
   },
 
@@ -555,8 +555,7 @@ App.AddServiceController = App.WizardController.extend({
    * Created as copy for App.router.clearAllSteps
    */
   clearAllSteps: function () {
-    this.clearHosts();
-    //todo it)
+    this.clearInstallOptions();
   },
 
   /**

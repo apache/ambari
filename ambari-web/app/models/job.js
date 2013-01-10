@@ -49,7 +49,7 @@ App.Job = DS.Model.extend({
   output:DS.attr('number'),
   elapsedTime:DS.attr('number'),
   duration: function() {
-    return date.dateFormatInterval(parseInt(this.get('elapsedTime') / 1000));
+    return date.timingFormat(parseInt(this.get('elapsedTime')));
   }.property('elapsedTime'),
   jobTimeLine:DS.attr('string'),
   jobTaskView:DS.attr('string'),

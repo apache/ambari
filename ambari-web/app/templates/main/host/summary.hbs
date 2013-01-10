@@ -16,75 +16,101 @@
 * limitations under the License.
 }}
 
-<div class="row">
-  <div class="span6 host-configuration">
+<div class="row-fluid">
+  <div class="span12">
+  <div class="span6">
+  <div class="host-configuration">
     <div class="box">
 		  <div class="box-header">
 		    <h4>Summary</h4>
 		  </div>
 		  <div class="host-summary-content">
 		    <dl class="dl-horizontal">
-		      <dt>IP:</dt><dd>&nbsp;{{view.content.ip}}</dd>
-		      <dt>CPU:</dt><dd>&nbsp;{{view.content.cpu}}</dd>
+          <dt>Hostname:</dt><dd>&nbsp;{{view.content.publicHostName}}</dd>
+		      <dt>IP Address:</dt><dd>&nbsp;{{view.content.ip}}</dd>
           <dt>OS:</dt><dd>&nbsp;{{view.content.osType}}&nbsp;({{view.content.osArch}})</dd>
-          <dt>Disk Usage:</dt><dd>&nbsp;{{view.content.diskUsage}}</dd>
+		      <dt>CPU:</dt><dd>&nbsp;{{view.content.cpu}}</dd>
+          <dt>Disk:</dt><dd>&nbsp;{{view.content.diskUsageFormatted}}</dd>
           <dt>Memory:</dt><dd>&nbsp;{{view.content.memoryFormatted}}</dd>
 		      <dt>Load Avg:</dt><dd>&nbsp;{{view.content.loadAvg}}</dd>
-		      <dt>Agent:</dt><dd>{{view.timeSinceHeartBeat}}</dd>
+		      <dt>Agent <br/> Heartbeat:</dt><dd>{{view.timeSinceHeartBeat}}</dd>
 		    </dl>
 		  </div>
 	  </div>
   </div>
-  {{#if view.content.components.length}}
-  <div class="span3 host-components pull-right">
-    {{#each component in view.content.components}}
-    {{#view view.ComponentButtonView contentBinding="component" decommissionDatanodeHostnamesBinding="view.decommissionDatanodeHostnames"}}
-    {{#if view.isClient}}
-    <div class="btn-group pull-left">
-      <button class="btn">
-        {{unbound view.content.displayName}}
-      </button>
-    </div>
-    {{else}}
-      <div {{bindAttr class=":btn-group :pull-left"}}>
-        <button {{bindAttr class=":component-operation-button :btn :dropdown-toggle view.disabledClass"}} data-toggle="dropdown">
-          <span {{bindAttr class=":components-health view.indicatorClass"}}></span>
-          {{unbound view.content.displayName}}
-          <span class="caret"></span>
-        </button>
-        <ul class="dropdown-menu">
-          {{#if view.isDataNode}}
-            <li {{bindAttr class="view.isDataNodeDecommissionAvailable::hidden"}}>
-              <a href="javascript:void(null)" data-toggle="modal" {{action "decommission" view.content target="controller"}}>
-                Decommission
-              </a>
-            </li>
-            <li {{bindAttr class="view.isDataNodeRecommissionAvailable::hidden"}}>
-              <a href="javascript:void(null)" data-toggle="modal" {{action "recommission" view.content target="controller"}}>
-                Recommission
-              </a>
-            </li>
+    {{!components}}
+      <div class="box">
+        <div class="box-header">
+          <h4>Components</h4>
+        </div>
+        {{#if view.sortedComponents.length}}
+        <div class="host-components">
+          {{#each component in view.sortedComponents}}
+          <div class="row-fluid">
+          {{#view view.ComponentView contentBinding="component"}}
+            <div class="span8">
+              <span {{bindAttr class="view.statusClass"}}></span>&nbsp;
+              {{component.componentName}}&nbsp;/&nbsp;
+              <a href="#" {{action routeToService component.service target="controller"  }}>{{component.service.displayName}}</a>
+            </div>
+            <div class="span4">
+              <div class="btn-group">
+                <a {{ bindAttr class=":btn :dropdown-toggle view.disabledClass"}} data-toggle="dropdown">
+                  Action
+                  <span class="caret pull-right"></span>
+                </a>
+                <ul class="dropdown-menu">
+                  {{#if view.isDataNode}}
+                  <li {{bindAttr class="view.isDataNodeDecommissionAvailable::hidden"}}>
+                    <a href="javascript:void(null)" data-toggle="modal" {{action "decommission" view.content target="controller"}}>
+                      Decommission
+                    </a>
+                  </li>
+                  <li {{bindAttr class="view.isDataNodeRecommissionAvailable::hidden"}}>
+                    <a href="javascript:void(null)" data-toggle="modal" {{action "recommission" view.content target="controller"}}>
+                      Recommission
+                    </a>
+                  </li>
+                  {{/if}}
+                  <li {{bindAttr class="view.isStart::hidden"}}>
+                    <a href="javascript:void(null)" data-toggle="modal" {{action "stopComponent" view.content target="controller"}}>
+                      Stop
+                    </a>
+                  </li>
+                  <li {{bindAttr class="view.isStart:hidden:"}}>
+                    <a href="javascript:void(null)" data-toggle="modal" {{action "startComponent" view.content target="controller"}}>
+                      Start
+                    </a>
+                  </li>
+                </ul>
+              </div>
+            </div>
+          {{/view}}
+          </div>
+          {{/each}}
+          {{#if view.clients.length}}
+          <div class="clients row-fluid">
+            <div class="span8 row">
+              <div class="span2">Clients&nbsp;/&nbsp;</div>
+              <div class="span8">
+                {{#each component in view.clients}}
+                {{#if component.isLast}}
+                {{component.service.displayName}}
+                {{else}}
+                {{component.service.displayName}},
+                {{/if}}
+                {{/each}}
+              </div>
+            </div>
+          </div>
           {{/if}}
-            <li {{bindAttr class="view.componentCheckStatus::hidden"}}>
-              <a href="javascript:void(null)" data-toggle="modal" {{action "stopComponent" view.content target="controller"}}>
-                Stop
-              </a>
-            </li>
-            <li {{bindAttr class="view.componentCheckStatus:hidden:"}}>
-              <a href="javascript:void(null)" data-toggle="modal" {{action "startComponent" view.content target="controller"}}>
-                Start
-              </a>
-            </li>
-        </ul>
+
+        </div>
+        {{/if}}
       </div>
-    {{/if}}
-    {{/view}}
-    {{/each}}
-  </div>
-  {{/if}}
-</div>
-<div class="row-fluid">
-  <div class="span12">
+    </div>
+  {{!metrics}}
+ <div class="span6">
     <div class="box">
       <div class="box-header">
         <h4>Host Metrics</h4>
@@ -97,4 +123,5 @@
 	    </div>
 	  </div>
   </div>
+</div>
 </div>

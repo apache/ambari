@@ -38,7 +38,8 @@ App.Host = DS.Model.extend({
   hostComponents: DS.hasMany('App.HostComponent'),
   cpu: DS.attr('string'),
   memory: DS.attr('string'),
-  diskUsage: DS.attr('string'),
+  diskTotal: DS.attr('number'),
+  diskFree: DS.attr('number'),
   osArch: DS.attr('string'),
   ip: DS.attr('string'),
   rack: DS.attr('string'),
@@ -54,7 +55,37 @@ App.Host = DS.Model.extend({
   loadFive:DS.attr('number'),
   loadFifteen:DS.attr('number'),
 
-
+  publicHostNameFormatted: function() {
+    return this.get('publicHostName').substr(0, 25) + ' ...';
+  }.property('publicHostName'),
+  /**
+   * API return diskTotal and diskFree. Need to save their different
+   */
+  diskUsed: function(){
+    return this.get('diskTotal') - this.get('diskFree');
+  }.property('diskFree', 'diskTotal'),
+  /**
+   * Format diskUsed value to float with 2 digits
+   */
+  diskUsedFormatted: function() {
+    return Math.round(this.get('diskUsed') * Math.pow(10, 2)) / Math.pow(10, 2);
+  }.property('diskUsed'),
+  /**
+   * Percent value of used disk space
+   */
+  diskUsage: function() {
+    return (this.get('diskUsed')) / this.get('diskTotal') * 100;
+  }.property('diskUsed', 'diskTotal'),
+  /**
+   * Format diskUsage to float with 2 digits
+   */
+  diskUsageFormatted: function() {
+    var s = Math.round(this.get('diskUsage') * Math.pow(10, 2)) / Math.pow(10, 2);
+    if (isNaN(s)) {
+      s = 0;
+    }
+    return s + '%';
+  }.property('diskUsage'),
   /**
    * formatted bytes to appropriate value
    */
@@ -82,15 +113,17 @@ App.Host = DS.Model.extend({
       return;
     }
 
-    var components = this.get('components');
     var status;
 
-    var masterComponents = components.filterProperty('isMaster', true);
-    if(components.filterProperty('isClient', false).everyProperty('workStatus', App.Component.Status.started)){
-      status = 'LIVE';
-    } else if(this.get('isNotHeartBeating')){
+    var masterComponents = this.get('components').filterProperty('isMaster', true);
+    var masterComponentsRunning = masterComponents
+                                            .everyProperty('workStatus', App.Component.Status.started);
+
+    if(this.get('isNotHeartBeating')){
       status = 'DEAD-YELLOW';
-    } else if(masterComponents.length > 0 && !masterComponents.everyProperty('workStatus', App.Component.Status.started)){
+    } else if(masterComponentsRunning){
+      status = 'LIVE';
+    } else if(masterComponents.length > 0 && !masterComponentsRunning){
       status = 'DEAD';
     } else{
       status = 'DEAD-ORANGE';
@@ -98,7 +131,6 @@ App.Host = DS.Model.extend({
 
     if(status){
       this.set('healthStatus', status);
-     // console.log('set ' + status + ' for ' + this.get('hostName'));
     }
   }.observes('components.@each.workStatus'),
 

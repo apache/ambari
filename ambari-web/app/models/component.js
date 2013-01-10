@@ -46,7 +46,7 @@ App.Component = DS.Model.extend({
       case 'NAGIOS_SERVER':
       case 'GANGLIA_SERVER':
       case 'OOZIE_SERVER':
-      case 'TEMPLETON_SERVER':
+      case 'WEBHCAT_SERVER':
         return true;
       default:
         return false;

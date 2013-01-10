@@ -30,6 +30,7 @@
   <table class="datatable table table-bordered table-striped" id="hosts-table">
     <thead>
     <tr>
+      <th class="first">&nbsp;</th>
       <th>Name</th>
       <th>IP Address</th>
       <th>CPU</th>
@@ -37,7 +38,10 @@
       <th>Disk Usage</th>
       <th>Load Avg</th>
       <th>Components</th>
+      <th></th>
+      <th></th>
     </tr>
+      <th class="first">&nbsp;</th>
       <th class="notActive"><div class="view-wrapper">{{view view.nameFilterView viewName="nameFilterViewInstance"}}</div> <a href="#" {{action "clearFilterButtonClick" target="view"}} id="view_nameFilterViewInstance" class="ui-icon ui-icon-circle-close ui-name"></a></th>
       <th class="notActive"><div class="view-wrapper">{{view view.rackFilterView viewName="ipFilterViewInstance"}}</div> <a href="#" {{action "clearFilterButtonClick" target="view"}} id="view_ipFilterViewInstance" class="ui-icon ui-icon-circle-close ui-rack"></a></th>
       <th class="notActive"><div class="view-wrapper">{{view view.cpuFilterView viewName="cpuFilterViewInstance"}}</div> <a href="#" {{action "clearFilterButtonClick" target="view"}} id="view_cpuFilterViewInstance" class="ui-icon ui-icon-circle-close ui-cpu"></a></th>
@@ -47,25 +51,35 @@
       <th class="notActive"><input id="components_filter" type="hidden" />
           <div class="view-wrapper">{{view view.componentsFilterView viewName="componentsFilterViewInstance"}}</div> <a href="#" {{action "clearFilterButtonClick" target="view"}} id="view_componentsFilterViewInstance" class="ui-icon ui-icon-circle-close ui-components"></a>
       </th>
+      <th></th>
+      <th></th>
     </tr>
     </thead>
     <tbody>
     {{#each host in controller}}
     {{#view view.HostView contentBinding="host"}}
     <tr>
-      <td class="name">
+      <td class="first">
         <span {{bindAttr class="host.healthClass"}}></span>
-        <a href="#" {{action "showDetails" host}}>{{unbound host.publicHostName}}</a>
+      </td>
+      <td class="name">
+        <a title="{{unbound host.publicHostName}}" href="#" {{action "showDetails" host}}>{{unbound host.publicHostNameFormatted}}</a>
       </td>
       <td>{{host.ip}}</td>
       <td>{{host.cpu}}</td>
       <td>{{host.memoryFormatted}}</td>
       <td>
-        <div class="progress progress-info">
-          <div class="bar" {{bindAttr style="view.usageStyle"}} style="width: 20%"></div>
+        <div class="progress progress-info" title="{{unbound host.diskUsedFormatted}} / {{unbound host.diskTotal}} ({{unbound host.diskUsageFormatted}} used)">
+          <div class="bar" {{bindAttr style="view.usageStyle"}}></div>
         </div>
       </td>
       <td>{{host.loadAvg}}</td>
+      <td>
+        <span title="{{unbound view.labels}}">{{view.shortLabels}}</span>
+      </td>
+      <td>
+        {{host.publicHostName}}
+      </td>
       <td>
         {{view.labels}}
       </td>

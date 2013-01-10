@@ -47,7 +47,7 @@ module.exports = [
   },
   {
     serviceName: 'HIVE',
-    displayName: 'Hive + HCatalog',
+    displayName: 'Hive + HCat + ZooKeeper',
     isDisabled: false,
     isSelected: true,
     description: Em.I18n.t('services.hive.description')
@@ -90,6 +90,13 @@ module.exports = [
   {
     serviceName: 'HCATALOG',
 	  displayName: 'HCatalog',
+    isDisabled: false,
+    isSelected: true,
+    isHidden: true
+  },
+  {
+    serviceName: 'WEBHCAT',
+    displayName: 'WebHCat',
     isDisabled: false,
     isSelected: true,
     isHidden: true

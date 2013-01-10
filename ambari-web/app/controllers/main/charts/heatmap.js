@@ -20,31 +20,40 @@ var App = require('app');
 App.MainChartsHeatmapController = Em.Controller.extend({
   name: 'mainChartsHeatmapController',
   cluster: App.Cluster.find(1),
-  allMetrics: [ 
-    Em.Object.create({
-      label: Em.I18n.t('charts.heatmap.category.host'),
-      category: 'host',
-      items: [ App.MainChartHeatmapDiskSpaceUsedMetric.create(), 
-               App.MainChartHeatmapMemoryUsedMetric.create() 
-               /*, App.MainChartHeatmapProcessRunMetric.create()*/ ]
-    }), 
-    Em.Object.create({
-      label: Em.I18n.t('charts.heatmap.category.hdfs'),
-      category: 'hdfs',
-      items: [ App.MainChartHeatmapDFSBytesReadMetric.create(), 
-               App.MainChartHeatmapDFSBytesWrittenMetric.create(), 
-               App.MainChartHeatmapDFSGCTimeMillisMetric.create(), 
-               App.MainChartHeatmapDFSMemHeapUsedMetric.create() ]
-    }),
-    Em.Object.create({
-      label: Em.I18n.t('charts.heatmap.category.mapreduce'),
-      category: 'mapreduce',
-      items: [ App.MainChartHeatmapMapreduceMapsRunningMetric.create(), 
-               App.MainChartHeatmapMapreduceReducesRunningMetric.create(), 
-               App.MainChartHeatmapMapreduceGCTimeMillisMetric.create(), 
-               App.MainChartHeatmapMapreduceMemHeapUsedMetric.create() ]
-    }) 
-  ],
+  allMetrics: function(){
+    var metrics = [
+      Em.Object.create({
+        label: Em.I18n.t('charts.heatmap.category.host'),
+        category: 'host',
+        items: [ App.MainChartHeatmapDiskSpaceUsedMetric.create(),
+          App.MainChartHeatmapMemoryUsedMetric.create()
+          /*, App.MainChartHeatmapProcessRunMetric.create()*/ ]
+      }),
+      Em.Object.create({
+        label: Em.I18n.t('charts.heatmap.category.hdfs'),
+        category: 'hdfs',
+        items: [ App.MainChartHeatmapDFSBytesReadMetric.create(),
+          App.MainChartHeatmapDFSBytesWrittenMetric.create(),
+          App.MainChartHeatmapDFSGCTimeMillisMetric.create(),
+          App.MainChartHeatmapDFSMemHeapUsedMetric.create() ]
+      }),
+    ];
+
+    if(App.MapReduceService.find().get('length')) {
+      metrics.push(
+        Em.Object.create({
+          label: Em.I18n.t('charts.heatmap.category.mapreduce'),
+          category: 'mapreduce',
+          items: [ App.MainChartHeatmapMapreduceMapsRunningMetric.create(),
+            App.MainChartHeatmapMapreduceReducesRunningMetric.create(),
+            App.MainChartHeatmapMapreduceGCTimeMillisMetric.create(),
+            App.MainChartHeatmapMapreduceMemHeapUsedMetric.create() ]
+        })
+      );
+    }
+
+    return metrics;
+  }.property(),
 
   selectedMetric: null,
   /**

@@ -17,9 +17,8 @@
 }}
 
 <div id="host-details">
-  <a href="javascript:void(null)" data-toggle="modal" {{action backToHostsList}}><i class="icon-arrow-left"></i>&nbsp;Back to Hosts</a>
-  &nbsp;/&nbsp;
-  <span {{bindAttr class=":host-title view.content.healthClass"}}>{{unbound view.content.publicHostName}}</span>
+  <div {{bindAttr class=":host-title view.content.healthClass"}}>{{unbound view.content.publicHostName}}</div>
+  <div><a href="javascript:void(null)" data-toggle="modal" {{action backToHostsList}}><i class="icon-arrow-left"></i>&nbsp;Back to Hosts</a></div>
 <!--   {{#if controller.isAdmin}} -->
 <!--   <div class="host-maintenance"> -->
 <!--     <div class="host-maintenance-btn btn-group display-inline-block"> -->

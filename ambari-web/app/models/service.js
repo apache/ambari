@@ -29,8 +29,12 @@ App.Service = DS.Model.extend({
   quickLinks: DS.hasMany('App.QuickLinks'),
   components: DS.hasMany('App.Component'),
   hostComponents: DS.hasMany('App.HostComponent'),
-  isRunning: function () {
-    return (this.get('healthStatus') == 'green' || this.get('healthStatus') == 'green-blinking');
+  isStartDisabled: function () {
+    return !(this.get('healthStatus') == 'red');
+  }.property('healthStatus'),
+
+  isStopDisabled: function () {
+    return !(this.get('healthStatus') == 'green');
   }.property('healthStatus'),
 
   healthStatus: function () {
@@ -104,8 +108,8 @@ App.Service = DS.Model.extend({
         return 'Pig';
       case 'sqoop':
         return 'Sqoop';
-      case 'templeton':
-        return 'Templeton';
+      case 'webhcat':
+        return 'WebHCat';
       case 'ganglia':
         return 'Ganglia';
       case 'nagios':

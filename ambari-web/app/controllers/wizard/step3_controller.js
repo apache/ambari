@@ -27,15 +27,6 @@ App.WizardStep3Controller = Em.Controller.extend({
   registrationTimeoutSecs: 120,
   stopBootstrap: false,
   isSubmitDisabled: true,
-  hostStatusString: Em.I18n.t('installer.step3.hosts.summary'),
-  hostStatusSummary: function () {
-    var self = this;
-    return this.get('hostStatusString').fmt(self.getCategory('value', 'Installing').get('hostsCount'),
-      self.getCategory('value', 'Registering').get('hostsCount'),
-      self.getCategory('value', 'Success').get('hostsCount'),
-      self.getCategory('value', 'Failed').get('hostsCount'));
-
-  }.property('categories.@each.hostsCount'),
   categoryObject: Em.Object.extend({
     hostsCount: function () {
       var category = this;
@@ -54,18 +45,30 @@ App.WizardStep3Controller = Em.Controller.extend({
   categories: function () {
     var self = this;
     self.categoryObject.reopen({
-      controller: self
+      controller: self,
+      isActive: function(){
+        return this.get('controller.category') == this;
+      }.property('controller.category'),
+      itemClass: function(){
+        return this.get('isActive') ? 'active' : '';
+      }.property('isActive')
     });
 
-    return [
-      self.categoryObject.create({value: 'All Hosts', hostsCount: function () { return this.get('controller.hosts.length'); }.property('controller.hosts.length') }),
-      self.categoryObject.create({value: 'Success', hostsBootStatus: 'REGISTERED' }),
+    var categories = [
+      self.categoryObject.create({value: 'All', hostsCount: function () {
+        return this.get('controller.hosts.length');
+      }.property('controller.hosts.length') }),
       self.categoryObject.create({value: 'Installing', hostsBootStatus: 'RUNNING'}),
       self.categoryObject.create({value: 'Registering', hostsBootStatus: 'REGISTERING'}),
-      self.categoryObject.create({value: 'Failed', hostsBootStatus: 'FAILED' })
-    ]
+      self.categoryObject.create({value: 'Success', hostsBootStatus: 'REGISTERED' }),
+      self.categoryObject.create({value: 'Fail', hostsBootStatus: 'FAILED', last: true })
+    ];
+
+    this.set('category', categories.get('firstObject'));
+
+    return categories;
   }.property(),
-  category: 'All Hosts',
+  category: false,
   allChecked: false,
 
   onAllChecked: function () {
@@ -77,17 +80,15 @@ App.WizardStep3Controller = Em.Controller.extend({
     return !(this.hosts.someProperty('isChecked', true));
   }.property('hosts.@each.isChecked'),
 
-  isRetryDisabled: function () {
-    return !(this.get('bootHosts').someProperty('bootStatus', 'FAILED') && !this.get('isSubmitDisabled'));
-  }.property('bootHosts.@each.bootStatus', 'isSubmitDisabled'),
+  isRetryDisabled: true,
 
   mockData: require('data/mock/step3_hosts'),
   mockRetryData: require('data/mock/step3_pollData'),
 
   navigateStep: function () {
     this.loadStep();
-    if (this.get('content.hosts.manualInstall') !== true) {
-      if (App.db.getBootStatus() === false) {
+    if (this.get('content.installOptions.manualInstall') !== true) {
+      if (!App.db.getBootStatus()) {
         this.startBootstrap();
       }
     } else {
@@ -110,6 +111,7 @@ App.WizardStep3Controller = Em.Controller.extend({
     this.hosts.clear();
     this.bootHosts.clear();
     this.set('isSubmitDisabled', true);
+    this.set('isRetryDisabled', true);
   },
 
   loadStep: function () {
@@ -124,14 +126,12 @@ App.WizardStep3Controller = Em.Controller.extend({
 
   /* Loads the hostinfo from localStorage on the insertion of view. It's being called from view */
   loadHosts: function () {
-    var hostInfo = [];
-    hostInfo = this.get('content.hostsInfo');
+    var hostInfo = this.get('content.hosts');
     var hosts = new Ember.Set();
     for (var index in hostInfo) {
       hosts.add(hostInfo[index]);
       console.log("TRACE: host name is: " + hostInfo[index].name);
     }
-
     return hosts;
   },
 
@@ -217,11 +217,11 @@ App.WizardStep3Controller = Em.Controller.extend({
   },
 
   retryHosts: function (hosts) {
-    var bootStrapData = JSON.stringify({'verbose': true, 'sshKey': this.get('content.hosts.sshKey'), hosts: hosts.mapProperty('name')});
+    var bootStrapData = JSON.stringify({'verbose': true, 'sshKey': this.get('content.installOptions.sshKey'), hosts: hosts.mapProperty('name')});
     this.numPolls = 0;
-    if (this.get('content.hosts.manualInstall') !== true) {
+    if (this.get('content.installOptions.manualInstall') !== true) {
       var requestId = App.router.get('installerController').launchBootstrap(bootStrapData);
-      this.set('content.hosts.bootRequestId', requestId);
+      this.set('content.installOptions.bootRequestId', requestId);
       this.set('registrationStartedAt', null);
       this.doBootstrap();
     } else {
@@ -233,6 +233,7 @@ App.WizardStep3Controller = Em.Controller.extend({
 
   retrySelectedHosts: function () {
     if (!this.get('isRetryDisabled')) {
+      this.set('isRetryDisabled', true);
       var selectedHosts = this.get('bootHosts').filterProperty('bootStatus', 'FAILED');
       selectedHosts.forEach(function (_host) {
         _host.set('bootStatus', 'RUNNING');
@@ -259,7 +260,7 @@ App.WizardStep3Controller = Em.Controller.extend({
     }
     this.numPolls++;
     var self = this;
-    var url = App.testMode ? '/data/wizard/bootstrap/poll_' + this.numPolls + '.json' : App.apiPrefix + '/bootstrap/' + this.get('content.hosts.bootRequestId');
+    var url = App.testMode ? '/data/wizard/bootstrap/poll_' + this.numPolls + '.json' : App.apiPrefix + '/bootstrap/' + this.get('content.installOptions.bootRequestId');
     $.ajax({
       type: 'GET',
       url: url,
@@ -285,13 +286,13 @@ App.WizardStep3Controller = Em.Controller.extend({
           }
         }
       },
-
-      error: function () {
-        console.log('Bootstrap failed');
-      },
-
       statusCode: require('data/statusCodes')
-    });
+    }).retry({times: App.times, timeout: App.timeout}).then(null,
+      function () {
+        App.showReloadPopup();
+        console.log('Bootstrap failed');
+      }
+    );
 
   },
 
@@ -392,11 +393,11 @@ App.WizardStep3Controller = Em.Controller.extend({
           self.getHostInfo();
         }
       },
-      error: function () {
-        console.log('Error: Getting registered host information from the server');
-      },
       statusCode: require('data/statusCodes')
-    });
+    }).retry({times: App.times, timeout: App.timeout}).then(null, function () {
+        App.showReloadPopup();
+        console.log('Error: Getting registered host information from the server');
+      });
   },
 
   registerErrPopup: function (header, message) {
@@ -458,12 +459,16 @@ App.WizardStep3Controller = Em.Controller.extend({
 
   stopRegistration: function () {
     this.set('isSubmitDisabled', !this.get('bootHosts').someProperty('bootStatus', 'REGISTERED'));
+    this.set('isRetryDisabled', !this.get('bootHosts').someProperty('bootStatus', 'FAILED'));
   },
 
+  selectCategory: function(event, context){
+    this.set('category', event.context);
+  },
 
   submit: function () {
     if (!this.get('isSubmitDisabled')) {
-      this.set('content.hostsInfo', this.get('bootHosts'));
+      this.set('content.hosts', this.get('bootHosts'));
       App.router.send('next');
     }
   },

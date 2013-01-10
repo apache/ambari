@@ -58,7 +58,7 @@ App.WizardStep10Controller = Em.Controller.extend({
   },
 
   loadInstalledHosts: function (host) {
-    var hosts = this.get('content.hostsInfo');
+    var hosts = this.get('content.hosts');
     var hostsInfo = [];
     for (var index in hosts) {
       hostsInfo.pushObject(hosts[index]);

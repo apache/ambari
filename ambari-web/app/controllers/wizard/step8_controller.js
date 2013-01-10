@@ -51,6 +51,7 @@ App.WizardStep8Controller = Em.Controller.extend({
     this.loadSlaveConfiguration();
     this.loadClusterInfo();
     this.loadServices();
+    this.set('isSubmitDisabled', false);
   },
 
   loadGlobals: function () {
@@ -58,7 +59,7 @@ App.WizardStep8Controller = Em.Controller.extend({
     if (globals.someProperty('name', 'hive_database')) {
       //TODO: Hive host depends on the type of db selected. Change puppet variable name if postgres is not the default db
       var hiveDb = globals.findProperty('name', 'hive_database');
-      if (hiveDb.value === 'New PostgreSQL Database') {
+      if (hiveDb.value === 'New MySQL Database') {
         globals.findProperty('name', 'hive_ambari_host').name = 'hive_mysql_host';
         globals = globals.without(globals.findProperty('name', 'hive_existing_host'));
         globals = globals.without(globals.findProperty('name', 'hive_existing_database'));
@@ -103,7 +104,7 @@ App.WizardStep8Controller = Em.Controller.extend({
   },
 
   getRegisteredHosts: function () {
-    var allHosts = this.get('content.hostsInfo');
+    var allHosts = this.get('content.hosts');
     var hosts = [];
     for (var hostName in allHosts) {
       if (allHosts[hostName].bootStatus == 'REGISTERED') {
@@ -273,7 +274,7 @@ App.WizardStep8Controller = Em.Controller.extend({
       }
       dest.components.push(newComponent);
     }, this);
-    var hostsInfo = this.get('content.hostsInfo');
+    var hostsInfo = this.get('content.hosts');
 
     for (var index in hostsInfo) {
       var hostIndex = 2;
@@ -358,7 +359,7 @@ App.WizardStep8Controller = Em.Controller.extend({
     this.get('clusterInfo').pushObject(Ember.Object.create(totalHostsObj));
 
     //repo
-    var repoOption = this.get('content.hosts.localRepo');
+    var repoOption = this.get('content.installOption.localRepo');
     var repoObj = this.rawContent.findProperty('config_name', 'Repo');
     if (repoOption) {
       repoObj.config_value = 'Yes';
@@ -406,6 +407,12 @@ App.WizardStep8Controller = Em.Controller.extend({
             break;
           case 'GANGLIA':
             this.loadGanglia(serviceObj);
+            break;
+          case 'PIG':
+            this.loadPig(serviceObj);
+            break;
+          case 'SQOOP':
+            this.loadSqoop(serviceObj);
             break;
           case 'HCATALOG':
             break;
@@ -506,7 +513,7 @@ App.WizardStep8Controller = Em.Controller.extend({
   loadHive: function (hiveObj) {
     hiveObj.get('service_components').forEach(function (_component) {
       switch (_component.get('display_name')) {
-        case 'Hive Metastore Server':
+        case 'Hive Metastore':
           this.loadHiveMetaStoreValue(_component);
           break;
         case 'Database':
@@ -520,16 +527,16 @@ App.WizardStep8Controller = Em.Controller.extend({
   },
 
   loadHiveMetaStoreValue: function (metaStoreComponent) {
-    var hiveHostName = this.get('content.masterComponentHosts').findProperty('display_name', 'Hive Metastore');
+    var hiveHostName = this.get('content.masterComponentHosts').findProperty('display_name', 'Hive Server');
     metaStoreComponent.set('component_value', hiveHostName.hostName);
   },
 
   loadHiveDbValue: function (dbComponent) {
     var hiveDb = App.db.getServiceConfigProperties().findProperty('name', 'hive_database');
 
-    if (hiveDb.value === 'New PostgreSQL Database') {
+    if (hiveDb.value === 'New MySQL Database') {
 
-      dbComponent.set('component_value', 'PostgreSQL (New Database)');
+      dbComponent.set('component_value', 'MySQL (New Database)');
 
     } else {
 
@@ -692,6 +699,14 @@ App.WizardStep8Controller = Em.Controller.extend({
     gangliaServer.set('component_value', gangliaServerName.hostName);
   },
 
+  loadSqoop: function (sqoopObj) {
+    this.get('services').pushObject(sqoopObj);
+  },
+
+  loadPig: function (pigObj) {
+    this.get('services').pushObject(pigObj);
+  },
+
   /**
    * Onclick handler for <code>next</code> button
    */
@@ -762,7 +777,7 @@ App.WizardStep8Controller = Em.Controller.extend({
     var clusterName = this.get('clusterName');
     var url = App.apiPrefix + '/clusters/' + clusterName;
 
-    var stackVersion = (App.db.getSoftRepo().repoType == 'local') ? App.defaultLocalStackVersion : App.defaultStackVersion;
+    var stackVersion = (this.get('content.installOptions.localRepo')) ? App.defaultLocalStackVersion : App.defaultStackVersion;
 
     this.ajax({
       type: 'POST',
@@ -924,14 +939,19 @@ App.WizardStep8Controller = Em.Controller.extend({
 
     // add Ganglia Monitor (Slave) to all hosts if Ganglia service is selected
     var gangliaService = this.get('content.services').filterProperty('isSelected', true).findProperty('serviceName', 'GANGLIA');
-    if(gangliaService){
+    if (gangliaService) {
       var hosts = this.getRegisteredHosts();
-      if(gangliaService.get('isInstalled')){
+      if (gangliaService.get('isInstalled')) {
         hosts = hosts.filterProperty('isInstalled', false);
       }
-      if(hosts.length){
+      if (hosts.length) {
         this.registerHostsToComponent(hosts.mapProperty('hostName'), 'GANGLIA_MONITOR');
       }
+    }
+    // add MySQL Server if Hive is selected
+    var hiveService = this.get('content.services').filterProperty('isSelected', true).filterProperty('isInstalled', false).findProperty('serviceName', 'HIVE');
+    if (hiveService) {
+      this.registerHostsToComponent(masterHosts.filterProperty('component', 'HIVE_SERVER').mapProperty('hostName'), 'MYSQL_SERVER');
     }
   },
 
@@ -1046,7 +1066,9 @@ App.WizardStep8Controller = Em.Controller.extend({
       }
     }, this);
     // TODO: for now, setting mapred_local_dir in global as well as tasktracker global; we'll need to handle mapred_local_dir specific to jobtracker as well
-    globalSiteProperties['mapred_local_dir'] = this.get('globals').findProperty('name', 'mapred_local_dir')['value'];
+    if(this.get('globals').findProperty('name', 'mapred_local_dir')){ //todo: remove it when hook up it correctly
+      globalSiteProperties['mapred_local_dir'] = this.get('globals').findProperty('name', 'mapred_local_dir')['value'];
+    }
     return {"type": "global", "tag": "version1", "properties": globalSiteProperties};
   },
 
@@ -1200,11 +1222,6 @@ App.WizardStep8Controller = Em.Controller.extend({
     configs.forEach(function (_configProperty) {
       oozieProperties[_configProperty.name] = _configProperty.value;
     }, this);
-    // var baseUrl = oozieProperties['oozie.base.url'];
-    // oozieProperties = {
-    //   "oozie.service.JPAService.jdbc.password": " ", "oozie.db.schema.name": "oozie", "oozie.service.JPAService.jdbc.url": "jdbc:derby:/var/data/oozie/oozie-db;create=true", "oozie.service.JPAService.jdbc.driver": "org.apache.derby.jdbc.EmbeddedDriver", "oozie.service.WorkflowAppService.system.libpath": "/user/oozie/share/lib", "oozie.service.JPAService.jdbc.username": "sa", "oozie.service.SchemaService.wf.ext.schemas": "shell-action-0.1.xsd,email-action-0.1.xsd,hive-action-0.2.xsd,sqoop-action-0.2.xsd,ssh-action-0.1.xsd,distcp-action-0.1.xsd", "oozie.service.JPAService.create.db.schema": "false", "use.system.libpath.for.mapreduce.and.pig.jobs": "false", "oozie.service.ActionService.executor.ext.classes": "org.apache.oozie.action.email.EmailActionExecutor,org.apache.oozie.action.hadoop.HiveActionExecutor,org.apache.oozie.action.hadoop.ShellActionExecutor,org.apache.oozie.action.hadoop.SqoopActionExecutor,org.apache.oozie.action.hadoop.DistcpActionExecutor", "oozie.service.HadoopAccessorService.hadoop.configurations": "*=/etc/hadoop/conf"
-    // };
-    // oozieProperties['oozie.base.url'] = baseUrl;
     return {type: 'oozie-site', tag: 'version1', properties: oozieProperties};
   },
 
@@ -1214,6 +1231,9 @@ App.WizardStep8Controller = Em.Controller.extend({
     configs.forEach(function (_configProperty) {
       hiveProperties[_configProperty.name] = _configProperty.value;
     }, this);
+    hiveProperties['javax.jdo.option.ConnectionURL'] =
+      'jdbc:mysql://' + this.get('globals').findProperty('name', 'hive_mysql_host').value +
+      '/' + this.get('globals').findProperty('name', 'hive_database_name').value + '?createDatabaseIfNotExist=true';
     return {type: 'hive-site', tag: 'version1', properties: hiveProperties};
   },
 

@@ -62,10 +62,9 @@ App.MainAppsController = Em.ArrayController.extend({
    * @return {Boolean} false for prevent default event handler
    */
   starClick: function(event) {
-    $(event.target).closest('table').find('.containerRow').remove(); // hack for valid "turning-off" star in table, where graphs row where enabled. We remove it
     event.target.classList.toggle('stared');
 
-    var id = jQuery(event.target).parent().parent().parent().find('.appId').text();
+    var id = jQuery(event.target).parent().parent().parent().find('.appId').attr('title');
     if (!this.issetStaredRun(id)) {
       this.get('staredRuns').push(this.getRunById(id));
     }

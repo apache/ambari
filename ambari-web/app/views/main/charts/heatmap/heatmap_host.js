@@ -15,6 +15,8 @@
  * the License.
  */
 
+var date = require('utils/date');
+
 var App = require('app');
 
 App.MainChartsHeatmapHostView = Em.View.extend({
@@ -44,7 +46,11 @@ App.MainChartsHeatmapHostView = Em.View.extend({
         if (value == undefined || value == null) {
           value = this.t('charts.heatmap.unknown');
         } else {
-          value = value + selectedMetric.get('units')
+          if (metricName == 'Garbage Collection Time') {
+            value = date.timingFormat(parseInt(value));
+          } else {
+            value = value + selectedMetric.get('units');
+          }
         }
         view.set('details.metricName', metricName);
         view.set('details.metricValue', value);

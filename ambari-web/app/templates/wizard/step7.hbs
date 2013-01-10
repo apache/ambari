@@ -25,12 +25,14 @@
 
   <ul class="nav nav-tabs">
     {{#each service in controller.stepConfigs}}
+    {{#if service.showConfig}}
     {{#view App.WizardStep7.ServiceConfigTab}}
     <a class="active" href="#{{unbound service.serviceName}}"
        data-toggle="tab" {{action selectService service target="view"}}>
       {{service.displayName}}{{#if service.errorCount}}<span
       class="badge badge-important">{{service.errorCount}}</span>{{/if}}</a>
     {{/view}}
+    {{/if}}
     {{/each}}
   </ul>
 

@@ -36,6 +36,13 @@ App.Run = DS.Model.extend({
   loadAllJobs : false,
 
   /**
+   *
+   */
+  idFormatted: function() {
+    return this.get('id').substr(0, 20);
+  }.property('id'),
+
+  /**
    * Jobs in the current run
    */
   jobs: function() {
@@ -46,8 +53,7 @@ App.Run = DS.Model.extend({
    * Run duration
    */
   duration: function() {
-    var d = this.get('elapsedTime') / 1000 || 0;
-    return date.dateFormatInterval(parseInt(d));
+    return date.timingFormat(parseInt(this.get('elapsedTime')));
   }.property('elapsedTime'),
   /**
    * Status of running jobs

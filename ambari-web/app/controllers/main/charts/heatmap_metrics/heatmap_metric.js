@@ -16,6 +16,7 @@
  */
 
 var App = require('app');
+var date = require('utils/date');
 
 /**
  * Base class for any heatmap metric.
@@ -124,7 +125,13 @@ App.MainChartHeatmapMetric = Em.Object.extend({
     for ( var c = 0; c < slotCount - 1; c++) {
       var from = this.formatLegendNumber(c * delta);
       var to = this.formatLegendNumber((c + 1) * delta);
-      var label = from + labelSuffix + " - " + to + labelSuffix;
+      if ($.trim(labelSuffix) == 'ms') {
+        from = date.timingFormat(from);
+        to = date.timingFormat(to);
+        var label = from + " - " + to;
+      } else {
+        var label = from + labelSuffix + " - " + to + labelSuffix;
+      }
       var slotColor = slotColors[slotColorIndex++];
       defs.push(Em.Object.create({
         from: from,
@@ -135,7 +142,15 @@ App.MainChartHeatmapMetric = Em.Object.extend({
     }
     from = this.formatLegendNumber((slotCount - 1) * delta);
     to = this.formatLegendNumber(max);
-    label = from + labelSuffix + " - " + to + labelSuffix
+
+    if ($.trim(labelSuffix) == 'ms') {
+      from = date.timingFormat(from);
+      to = date.timingFormat(to);
+      var label = from + " - " + to;
+    } else {
+      var label = from + labelSuffix + " - " + to + labelSuffix;
+    }
+
     slotColor = slotColors[slotColorIndex++];
     defs.push(Em.Object.create({
       from: from,

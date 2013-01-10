@@ -260,6 +260,7 @@ App.Router = Em.Router.extend({
     $('title').text('Ambari');
     var hash = window.btoa(this.get('loginController.loginName') + ":" + this.get('loginController.password'));
 
+    App.router.get('mainController').stopPolling();
     // App.db.cleanUp() must be called before router.clearAllSteps().
     // otherwise, this.set('installerController.currentStep, 0) would have no effect
     // since it's a computed property but we are not setting it as a dependent of App.db.

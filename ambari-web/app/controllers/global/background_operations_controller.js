@@ -44,7 +44,7 @@ App.BackgroundOperationsController = Em.Controller.extend({
   generateUrl: function(){
     var url = App.testMode ?
       '/data/background_operations/list_on_start.json' :
-      App.apiPrefix + '/clusters/' + App.router.getClusterName() + '/requests/?fields=tasks/*&tasks/Tasks/status!=COMPLETED';
+      App.apiPrefix + '/clusters/' + App.router.getClusterName() + '/requests/?fields=tasks/*';
 
     this.set('url', url);
     return url;
@@ -184,6 +184,15 @@ App.BackgroundOperationsController = Em.Controller.extend({
     currentTasks = runningTasks.concat(executeTasks);
     currentTasks = currentTasks.sort(function (a, b) {
       return a.id - b.id;
+    });
+
+    // If the server is returning 999 as the return code, display blank and not 999
+    currentTasks.forEach( function (task) {
+      if (task.exit_code == 999) {
+        task.display_exit_code = false;
+      } else {
+        task.display_exit_code = true;
+      }
     });
 
     this.get('allOperations').filterProperty('isOpen').mapProperty('id').forEach(function(id){

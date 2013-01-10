@@ -16,6 +16,7 @@
  */
 
 var App = require('app');
+var date = require('utils/date');
 
 App.MainDashboardServiceHbaseView = App.MainDashboardServiceView.extend({
   templateName: require('templates/main/dashboard/service/hbase'),
@@ -53,8 +54,8 @@ App.MainDashboardServiceHbaseView = App.MainDashboardServiceView.extend({
   masterStartedTime: function () {
     var uptime = this.get('service').get('masterStartTime');
     if (uptime && uptime > 0) {
-      var formatted = (new Date().getTime() - uptime).toDaysHoursMinutes();
-      return this.t('dashboard.services.uptime').format(formatted.d, formatted.h, formatted.m);
+      var formatted = date.timingFormat((new Date().getTime() - uptime));
+      return this.t('dashboard.services.uptime').format(formatted);
     }
     return this.t('services.service.summary.unknown');
   }.property("service.masterStartTime"),
@@ -62,8 +63,8 @@ App.MainDashboardServiceHbaseView = App.MainDashboardServiceView.extend({
   masterActivatedTime: function () {
     var uptime = this.get('service').get('masterActiveTime');
     if (uptime && uptime > 0) {
-      var formatted = (new Date().getTime() - uptime).toDaysHoursMinutes();
-      return this.t('dashboard.services.uptime').format(formatted.d, formatted.h, formatted.m);
+      var formatted = date.timingFormat((new Date().getTime() - uptime));
+      return this.t('dashboard.services.uptime').format(formatted);
     }
     return this.t('services.service.summary.unknown');
   }.property("service.masterActiveTime"),

@@ -16,7 +16,8 @@
 * limitations under the License.
 }}
 <td><a href="#" {{action "starClick" target="controller"}}><span class="icon-star"></span></a></td>
-<td class="appId">{{unbound run.id}}</td>
+<td>{{unbound run.id}}</td>
+<td class="appId" title="{{unbound run.id}}">{{unbound run.idFormatted}}</td>
 <td>{{unbound run.appName}}</td>
 <td>{{unbound run.type}}</td>
 <td>{{unbound run.userName}}</td>

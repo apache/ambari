@@ -63,27 +63,22 @@
     "mirrorsList" : null
   } ],
   "services" : [ {
-    "name" : "TEMPLETON",
+    "name" : "WEBHCAT",
     "version" : "0.1.4.1-1",
     "user" : "root",
-    "comment" : "This is comment for TEMPLETON service",
+    "comment" : "This is comment for WEBHCAT service",
     "components" : [ {
-      "name" : "TEMPLETON_SERVER",
+      "name" : "WEBHCAT_SERVER",
       "category" : "MASTER",
       "client" : false,
       "master" : true
-    }, {
-      "name" : "TEMPLETON_CLIENT",
-      "category" : "CLIENT",
-      "client" : true,
-      "master" : false
     } ],
     "clientOnlyService" : false,
     "clientComponent" : {
-      "name" : "TEMPLETON_CLIENT",
-      "category" : "CLIENT",
-      "client" : true,
-      "master" : false
+      "name" : "WEBHCAT_SERVER",
+      "category" : "MASTER",
+      "client" : false,
+      "master" : true
     }
   }, {
     "name" : "SQOOP",

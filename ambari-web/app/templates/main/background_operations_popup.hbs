@@ -39,7 +39,7 @@
     {{else}}
     <div>
       <h5>exitcode:</h5>
-      <pre class="stderr">{{operation.exit_code}}</pre>
+        <pre class="stderr">{{#if operation.display_exit_code}}{{operation.exit_code}}{{/if}}</pre>
       <h5>stderr:</h5>
       <pre class="stderr">{{highlight operation.stderr [err;fail]}}</pre>
       <h5>stdout:</h5>

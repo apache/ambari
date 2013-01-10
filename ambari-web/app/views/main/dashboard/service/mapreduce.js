@@ -16,6 +16,7 @@
  */
 
 var App = require('app');
+var date = require('utils/date');
 
 App.MainDashboardServiceMapreduceView = App.MainDashboardServiceView.extend({
   templateName: require('templates/main/dashboard/service/mapreduce'),
@@ -32,8 +33,8 @@ App.MainDashboardServiceMapreduceView = App.MainDashboardServiceView.extend({
 
   jobTrackerUptime: function () {
     var uptime = this.get('service').get('jobTrackerStartTime');
-    var formatted = (new Date().getTime() - uptime).toDaysHoursMinutes();
-    return this.t('dashboard.services.uptime').format(formatted.d, formatted.h, formatted.m);
+    var formatted = date.timingFormat((new Date().getTime() - uptime));
+    return this.t('dashboard.services.uptime').format(formatted);
   }.property("service.jobTrackerStartTime"),
 
   summaryHeader: function () {

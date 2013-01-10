@@ -189,9 +189,9 @@ App.MainAppsView = Em.View.extend({
         'max': maxOutput
       },
       'duration': {
-        'avg': date.dateFormatInterval(Math.round(avgDuration)),
-        'min': date.dateFormatInterval(minDuration),
-        'max': date.dateFormatInterval(maxDuration)
+        'avg': date.timingFormat(Math.round(avgDuration)),
+        'min': date.timingFormat(minDuration),
+        'max': date.timingFormat(maxDuration)
       },
       'times': {
         'oldest': oldest,
@@ -354,10 +354,11 @@ App.MainAppsView = Em.View.extend({
         }
       },
       "bSortCellsTop": true,
-      "iDisplayLength": 10,
+      "iDisplayLength": -1,
       "aLengthMenu": [[10, 25, 50, 100, -1], [10, 25, 50, 100, "All"]],
       "aoColumns":[
         { "bSortable": false  },
+        { "bVisible": false },
         null,
         null,
         null,
@@ -368,10 +369,22 @@ App.MainAppsView = Em.View.extend({
         null,
         { "sType":"ambari-datetime" }
       ]
-    });
+    }).css('visibility', 'visible');
     this.set('oTable', oTable);
     this.set('filtered', oTable.fnSettings().fnRecordsDisplay());
 
+    // If we have some starred runs, mark them again
+    var staredRuns = this.get('controller.staredRuns');
+    this.clearStars();
+    staredRuns.forEach(function(item) {
+      $('#dataTable').find('tr').each(function() {
+        if ($(this).find('td.appId:eq(0)').attr('title') == item.get('id')) {
+          $(this).find('td a:eq(0) span').trigger('click');
+        }
+      });
+    });
+    this.get('oTable').fnSettings()._iDisplayLength = 10;
+    this.get('oTable').fnDraw(false);
   },
 
   loaded: false,
@@ -396,6 +409,7 @@ App.MainAppsView = Em.View.extend({
   }.observes('App.router.clusterController.postLoadList.runs'),
 
   didInsertElement: function () {
+    $('#dataTable').css('visibility', 'hidden');
     this.set('inserted', true);
     this.onLoad();
   },
@@ -471,11 +485,11 @@ App.MainAppsView = Em.View.extend({
     change:function(event){
       if(this.get('selection') === 'Any') {
         this.$().closest('th').addClass('notActive');
-        this.get('parentView').get('oTable').fnFilter('', 3);
+        this.get('parentView').get('oTable').fnFilter('', 4);
       }
       else {
         this.$().closest('th').removeClass('notActive');
-        this.get('parentView').get('oTable').fnFilter(this.get('selection'), 3);
+        this.get('parentView').get('oTable').fnFilter(this.get('selection'), 4);
       }
       this.get('parentView').set('filtered',this.get('parentView').get('oTable').fnSettings().fnRecordsDisplay());
     }
@@ -499,7 +513,7 @@ App.MainAppsView = Em.View.extend({
       if (this.get('selection') == 'Custom') {
         this.customFilter();
       } else {
-        this.get('parentView').get('applyFilter')(this.get('parentView'), 9);
+        this.get('parentView').get('applyFilter')(this.get('parentView'), 10);
       }
     },
 
@@ -607,7 +621,7 @@ App.MainAppsView = Em.View.extend({
             var range = [lowerBound, upperBound];
             jQuery('#custom_rundate_filter').val(range);
           }
-          rundateSelect.get('parentView').get('applyFilter')(rundateSelect.get('parentView'), 9);
+          rundateSelect.get('parentView').get('applyFilter')(rundateSelect.get('parentView'), 10);
           if (arguments.length == 0) {
             rundateSelect.$().closest('th').addClass('notActive');
           }
@@ -678,7 +692,7 @@ App.MainAppsView = Em.View.extend({
       else {
         this.$().closest('th').removeClass('notActive');
       }
-      this.get('parentView').get('applyFilter')(this.get('parentView'), 2, this.get('value'));
+      this.get('parentView').get('applyFilter')(this.get('parentView'), 3, this.get('value'));
     }.observes('value')
   }),
   /**
@@ -696,7 +710,7 @@ App.MainAppsView = Em.View.extend({
       else {
         this.$().closest('th').removeClass('notActive');
       }
-      this.get('parentView').get('applyFilter')(this.get('parentView'), 5);
+      this.get('parentView').get('applyFilter')(this.get('parentView'), 6);
     }.observes('value')
   }),
   /**
@@ -714,7 +728,7 @@ App.MainAppsView = Em.View.extend({
       else {
         this.$().closest('th').removeClass('notActive');
       }
-      this.get('parentView').get('applyFilter')(this.get('parentView'), 6);
+      this.get('parentView').get('applyFilter')(this.get('parentView'), 7);
     }.observes('value')
   }),
   /**
@@ -732,7 +746,7 @@ App.MainAppsView = Em.View.extend({
       else {
         this.$().closest('th').removeClass('notActive');
       }
-      this.get('parentView').get('applyFilter')(this.get('parentView'), 7);
+      this.get('parentView').get('applyFilter')(this.get('parentView'), 8);
     }.observes('value')
   }),
   /**
@@ -750,7 +764,7 @@ App.MainAppsView = Em.View.extend({
       else {
         this.$().closest('th').removeClass('notActive');
       }
-      this.get('parentView').get('applyFilter')(this.get('parentView'), 8);
+      this.get('parentView').get('applyFilter')(this.get('parentView'), 9);
     }.observes('value')
   }),
   /**
@@ -801,7 +815,7 @@ App.MainAppsView = Em.View.extend({
       self.set('allComponentsChecked', true);
       self.set('allComponentsChecked', false);
       jQuery('#user_filter').val([]);
-      self.get('parentView').get('oTable').fnFilter('', 3);
+      self.get('parentView').get('oTable').fnFilter('', 5);
       jQuery('#user_filter').closest('th').addClass('notActive');
     },
     closeFilter: function(){
@@ -814,7 +828,7 @@ App.MainAppsView = Em.View.extend({
           if(item.get('checked')) chosenUsers.push(item.get('name'));
       });
       jQuery('#user_filter').val(chosenUsers);
-      this.get('parentView').get('applyFilter')(this.get('parentView'), 3);
+      this.get('parentView').get('applyFilter')(this.get('parentView'), 5);
       if (chosenUsers.length == 0) {
         this.$().closest('th').addClass('notActive');
       }

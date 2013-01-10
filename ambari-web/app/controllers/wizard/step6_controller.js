@@ -181,7 +181,7 @@ App.WizardStep6Controller = Em.Controller.extend({
    * @return {Array}
    */
   getHostNames: function () {
-    var hostInfo = this.get('content.hostsInfo');
+    var hostInfo = this.get('content.hosts');
     var hostNames = [];
     for (var index in hostInfo) {
       if (hostInfo[index].bootStatus === 'REGISTERED') {

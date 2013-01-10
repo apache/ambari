@@ -24,6 +24,7 @@ module.exports = Em.Route.extend({
     if (App.db.getUser().admin) {
       Em.run.next(function () {
         var addServiceController = router.get('addServiceController');
+        App.router.get('updateController').set('isWorking', false);
         App.ModalPopup.show({
           classNames: ['full-width-modal'],
           header:Em.I18n.t('services.add.header'),
@@ -36,10 +37,12 @@ module.exports = Em.Route.extend({
 
           onPrimary:function () {
             this.hide();
+            App.router.get('updateController').set('isWorking', true);
             App.router.transitionTo('main.services');
           },
           onClose: function() {
             this.hide();
+            App.router.get('updateController').set('isWorking', true);
             App.router.transitionTo('main.services')
           }
         });
@@ -64,9 +67,9 @@ module.exports = Em.Route.extend({
       console.log('in addService.step1:connectOutlets');
       var controller = router.get('addServiceController');
       controller.setCurrentStep('1');
-      controller.loadServicesFromServer();
       controller.set('hideBackButton', true);
       controller.dataLoading().done(function () {
+        controller.loadServicesFromServer();
         controller.loadAllPriorSteps();
         controller.connectOutlet('wizardStep4', controller.get('content.services'));
       })
@@ -263,6 +266,7 @@ module.exports = Em.Route.extend({
   gotoStep7: Em.Router.transitionTo('step7'),
 
   backToServices: function (router) {
+    App.router.get('updateController').set('isWorking', true);
     router.transitionTo('services');
   }
 

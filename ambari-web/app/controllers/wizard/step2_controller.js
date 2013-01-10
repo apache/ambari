@@ -26,35 +26,19 @@ App.WizardStep2Controller = Em.Controller.extend({
   hasSubmitted: false,
 
   hostNames: function () {
-    return this.get('content.hosts.hostNames');
-  }.property('content.hosts.hostNames'),
+    return this.get('content.installOptions.hostNames');
+  }.property('content.installOptions.hostNames'),
 
   manualInstall: function () {
-    return this.get('content.hosts.manualInstall');
-  }.property('content.hosts.manualInstall'),
-
-  localRepo: function () {
-    return this.get('content.hosts.localRepo');
-  }.property('content.hosts.localRepo'),
+    return this.get('content.installOptions.manualInstall');
+  }.property('content.installOptions.manualInstall'),
 
   sshKey: function () {
-    return this.get('content.hosts.sshKey');
-  }.property('content.hosts.sshKey'),
-
-  passphrase: function () {
-    return this.get('content.hosts.passphrase');
-  }.property('content.hosts.passphrase'),
-
-  confirmPassphrase: function () {
-    return this.get('content.hosts.confirmPassphrase');
-  }.property('content.hosts.confirmPassphrase'),
+    return this.get('content.installOptions.sshKey');
+  }.property('content.installOptions.sshKey'),
 
   installType: function () {
-    if (this.get('manualInstall') === true) {
-      return 'manualDriven';
-    } else {
-      return 'ambariDriven';
-    }
+    return this.get('manualInstall') ? 'manualDriven' : 'ambariDriven';
   }.property('manualInstall'),
 
   isHostNameValid: function (hostname) {
@@ -62,8 +46,13 @@ App.WizardStep2Controller = Em.Controller.extend({
     return !(/^\-/.test(hostname) || /\-$/.test(hostname));
   },
 
-  isAllHostNamesValid: function () {
+  updateHostNameArr: function(){
     this.hostNameArr = this.get('hostNames').trim().split(new RegExp("\\s+", "g"));
+    this.patternExpression();
+  },
+
+  isAllHostNamesValid: function () {
+    this.updateHostNameArr();
     for (var index in this.hostNameArr) {
       if (!this.isHostNameValid(this.hostNameArr[index])) {
         return false;
@@ -79,7 +68,7 @@ App.WizardStep2Controller = Em.Controller.extend({
       return Em.I18n.t('installer.step2.hostName.error.invalid');
     }
     return null;
-  }.property('hostNames', 'manualInstall', 'hasSubmitted'),
+  }.property('hostNames', 'hasSubmitted'),
 
   sshKeyError: function () {
     if (this.get('hasSubmitted') && this.get('manualInstall') === false && this.get('sshKey').trim() === '') {
@@ -107,6 +96,14 @@ App.WizardStep2Controller = Em.Controller.extend({
   },
 
   /**
+   * Used to set sshKey from FileUploader
+   * @param sshKey
+   */
+  setSshKey: function(sshKey){
+    this.set("content.installOptions.sshKey", sshKey);
+  },
+
+  /**
    * Onclick handler for <code>next button</code>. Do all UI work except data saving.
    * This work is doing by router.
    * @return {Boolean}
@@ -117,6 +114,9 @@ App.WizardStep2Controller = Em.Controller.extend({
     if (this.get('isSubmitDisabled')) {
       return false;
     }
+    this.set('hasSubmitted', true);
+
+    this.updateHostNameArr();
 
     if(this.isPattern)
     {
@@ -129,13 +129,15 @@ App.WizardStep2Controller = Em.Controller.extend({
   },
 
   patternExpression: function(){
+    this.isPattern = false;
     var self = this;
     var hostNames = [];
     $.each(this.hostNameArr, function(e,a){
-      var start, end, extra = "";
+      var start, end, extra = {0:""};
       if(/\[\d*\-\d*\]/.test(a)){
         start=a.match(/\[\d*/);
         end=a.match(/\-\d*/);
+
         start=start[0].substr(1);
         end=end[0].substr(1);
 
@@ -143,11 +145,13 @@ App.WizardStep2Controller = Em.Controller.extend({
           self.isPattern = true;
           if(start[0] == "0" && start.length > 1)
           {
-            extra = start[0];
+            extra = start.match(/0*/);
           }
           for (var i = parseInt(start); i < parseInt(end) + 1; i++) {
-            hostNames.push(a.replace(/\[\d*\-\d*\]/, extra+i ))
+            hostNames.push(a.replace(/\[\d*\-\d*\]/,extra[0].substring(0,1+extra[0].length-i.toString().length)+i))
           }
+        }else{
+          hostNames.push(a);
         }
       }else{
         hostNames.push(a);
@@ -165,14 +169,14 @@ App.WizardStep2Controller = Em.Controller.extend({
     var bootStrapData = JSON.stringify({'verbose': true, 'sshKey': this.get('sshKey'), hosts: this.get('hostNameArr')});
 
     if (App.skipBootstrap) {
-      App.router.send('next');
+      this.saveHosts();
       return true;
     }
 
     var requestId = App.router.get(this.get('content.controllerName')).launchBootstrap(bootStrapData);
     if(requestId) {
-      this.set('bootRequestId',requestId);
-      App.router.send('next');
+      this.set('content.installOptions.bootRequestId', requestId);
+      this.saveHosts();
     }
   },
 
@@ -191,12 +195,13 @@ App.WizardStep2Controller = Em.Controller.extend({
     });
   },
 
-  manualInstallPopup: function (event) {
+  manualInstallPopup: function () {
+    var self = this;
     App.ModalPopup.show({
       header: Em.I18n.t('installer.step2.manualInstall.popup.header'),
       onPrimary: function () {
         this.hide();
-        App.router.send('next');
+        self.saveHosts();
       },
       bodyClass: Ember.View.extend({
         templateName: require('templates/wizard/step2ManualInstallPopup')
@@ -206,6 +211,11 @@ App.WizardStep2Controller = Em.Controller.extend({
 
   isSubmitDisabled: function () {
     return (this.get('hostsError') || this.get('sshKeyError'));
-  }.property('hostsError', 'sshKeyError')
+  }.property('hostsError', 'sshKeyError'),
+
+  saveHosts: function(){
+    this.set('content.hosts', this.getHostInfo());
+    App.router.send('next');
+  }
 
 });

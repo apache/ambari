@@ -65,7 +65,7 @@ App.MainServiceItemController = Em.Controller.extend({
    * @param event
    */
   startService: function (event) {
-    if($(event.target).hasClass('disabled')){
+    if ($(event.target).hasClass('disabled') || $(event.target.parentElement).hasClass('disabled')) {
       return;
     }
 
@@ -120,7 +120,7 @@ App.MainServiceItemController = Em.Controller.extend({
    * @param event
    */
   stopService: function (event) {
-    if($(event.target).hasClass('disabled')){
+    if ($(event.target).hasClass('disabled') || $(event.target.parentElement).hasClass('disabled')) {
       return;
     }
 

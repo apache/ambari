@@ -48,19 +48,17 @@ App.MainController = Em.Controller.extend({
    * run all processes and cluster's data loading
    */
   initialize: function(){
-    this.startLoadOperationsPeriodically();
     App.router.get('clusterController').loadClusterData();
-    App.router.get('updateController').updateServiceMetric();
-    setInterval( this.updateAll , App.contentUpdateInterval);
+    this.startPolling();
   },
-  updateAll: function(){
-    App.router.get('updateController').updateAll();
+  startPolling: function(){
+    App.router.get('updateController').set('isWorking', true);
+    App.router.get('backgroundOperationsController').set('isWorking', true);
+    App.router.get('clusterController').startLoadUpdatedStatus();
   },
-  startLoadOperationsPeriodically: function() {
-      App.router.get('backgroundOperationsController').set('isWorking', true);
-  },
-  stopLoadOperationsPeriodically:function () {
+  stopPolling: function(){
+    App.router.get('updateController').set('isWorking', false);
     App.router.get('backgroundOperationsController').set('isWorking', false);
+    App.router.get('clusterController').set('isWorking', false);
   }
-
 })

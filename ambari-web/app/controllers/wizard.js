@@ -203,21 +203,14 @@ App.WizardController = Em.Controller.extend({
   },
 
   /**
-   * Remove all data for hosts
+   * Remove all data for installOptions step
    */
-  clearHosts: function () {
-    var hosts = this.get('content').get('hosts');
-    if (hosts) {
-      hosts.set('hostNames', '');
-      hosts.set('manualInstall', false);
-      hosts.set('localRepo', '');
-      hosts.set('localRepopath', '');
-      hosts.set('sshKey', '');
-      hosts.set('passphrase', '');
-      hosts.set('confirmPassphrase', '');
-    }
-    App.db.setHosts(null);
-    App.db.setAllHostNames(null);
+  clearInstallOptions: function () {
+    var installOptions = jQuery.extend(this.get('installOptionsTemplate'), {});
+    this.set('content.installOptions', installOptions);
+    this.save('installOptions');
+    this.set('content.hosts', []);
+    this.save('hosts');
   },
 
   toObject: function(object){
@@ -303,7 +296,6 @@ App.WizardController = Em.Controller.extend({
 
       statusCode: require('data/statusCodes')
     });
-
   },
 
   /*
@@ -381,10 +373,17 @@ App.WizardController = Em.Controller.extend({
     App.db.setCluster(undefined);
     App.db.setAllHostNames(undefined);
     App.db.setSlaveProperties(undefined);
-    App.db.setSshKey(undefined);
+    App.db.setInstallOptions(undefined);
     App.db.setAllHostNamesPattern(undefined);
   },
 
+  installOptionsTemplate : {
+    hostNames: "", //string
+    manualInstall: false, //true, false
+    localRepo: false, //true, false
+    sshKey: "", //string
+    bootRequestId: null //string
+  },
   /**
    * Generate serviceComponents as pr the stack definition  and save it to localdata
    * called form stepController step4WizardController

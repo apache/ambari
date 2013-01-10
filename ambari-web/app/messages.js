@@ -19,6 +19,9 @@
 Em.I18n.translations = {
 
   'app.name':'Ambari',
+  'app.reloadPopup.link': 'Reload Page',
+  'app.reloadPopup.text': 'Trying to connect to server...',
+  'app.reloadPopup.header': 'Reload Page',
 
   'login.header':'Sign in',
   'login.username':'Username',
@@ -94,7 +97,6 @@ Em.I18n.translations = {
   'installer.step3.hosts.remove.popup.body':'Are you sure you want to remove the selected host(s)?',
   'installer.step3.hosts.retry.popup.header':'Retry Host Discovery',
   'installer.step3.hosts.retry.popup.body':'Are you sure you want to retry discovery of the selected host(s)?',
-  'installer.step3.hosts.summary' : 'Installing: %@, Registering: %@, Successful: %@, Failed: %@ ',
   'installer.step3.hostInformation.popup.header':'Error in retrieving host Information',
   'installer.step3.hostInformation.popup.body' : 'All bootstrapped hosts registered but unable to retrieve cpu and memory related information',
   'installer.step4.header':'Choose Services',
@@ -296,7 +298,7 @@ Em.I18n.translations = {
 
   'dashboard.services':'Services',
   'dashboard.services.hosts':'Hosts',
-  'dashboard.services.uptime':'{0} days {1} hrs {2} mins',
+  'dashboard.services.uptime':'{0}',
   'dashboard.services.hdfs.summary':'{0} of {1} nodes live, {2}% capacity free',
   'dashboard.services.hdfs.nanmenode':'NameNode',
   'dashboard.services.hdfs.snanmenode':'Secondary NameNode',

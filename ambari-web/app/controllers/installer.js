@@ -27,9 +27,9 @@ App.InstallerController = App.WizardController.extend({
 
   content: Em.Object.create({
     cluster: null,
+    installOptions: null,
     hosts: null,
     services: null,
-    hostsInfo: [],
     slaveComponentHosts: null,
     masterComponentHosts: null,
     serviceConfigProperties: null,
@@ -42,77 +42,12 @@ App.InstallerController = App.WizardController.extend({
     return jQuery.extend(this.get('clusterStatusTemplate'), {});
   },
 
-  /**
-   * Load all data for <code>Specify Host(install step2)</code> step
-   * Data Example:
-   * {
-   *   hostNames: '',
-   *   manualInstall: false,
-   *   sshKey: '',
-   *   passphrase: '',
-   *   confirmPassphrase: '',
-   *   localRepo: false,
-   *   localRepoPath: ''
-   *   bootRequestId: ''
-   * }
-   */
-  loadInstallOptions: function () {
-
-    if (!this.content.hosts) {
-      this.content.hosts = Em.Object.create();
-    }
-
-    //TODO : rewire it as model. or not :)
-    var hostsInfo = Em.Object.create();
-
-    hostsInfo.hostNames = App.db.getAllHostNamesPattern() || ''; //empty string if undefined
-
-    //TODO : should we check installType for add host wizard????
-    var installType = App.db.getInstallType();
-    //false if installType not equals 'manual'
-    hostsInfo.manualInstall = installType && installType.installType === 'manual' || false;
-
-    var softRepo = App.db.getSoftRepo();
-    if (softRepo && softRepo.repoType === 'local') {
-      hostsInfo.localRepo = true;
-      hostsInfo.localRepopath = softRepo.repoPath;
-    } else {
-      hostsInfo.localRepo = false;
-      hostsInfo.localRepoPath = '';
-    }
-    hostsInfo.bootRequestId = App.db.getBootRequestId() || null;
-    hostsInfo.sshKey = App.db.getSshKey() || '';
-    hostsInfo.passphrase = '';
-    hostsInfo.confirmPassphrase = '';
-
-
-    this.set('content.hosts', hostsInfo);
-    console.log("InstallerController:loadHosts: loaded data ", hostsInfo);
+  getInstallOptions: function(){
+    return jQuery.extend(this.get('installOptionsTemplate'), {});
   },
 
-  /**
-   * Save data, which user filled, to main controller
-   * @param stepController App.WizardStep2Controller
-   */
-  saveHosts: function (stepController) {
-    //TODO: put data to content.hosts and only then save it)
-
-    //App.db.setBootStatus(false);
-    App.db.setAllHostNames(stepController.get('hostNameArr').join("\n"));
-    App.db.setAllHostNamesPattern(stepController.get('hostNames'));
-    App.db.setBootRequestId(stepController.get('bootRequestId'));
-    App.db.setHosts(stepController.getHostInfo());
-    if (stepController.get('manualInstall') === false) {
-      App.db.setInstallType({installType: 'ambari' });
-      App.db.setSshKey(stepController.get('sshKey'));
-    } else {
-      App.db.setInstallType({installType: 'manual' });
-    }
-    if (stepController.get('localRepo') === false) {
-      App.db.setSoftRepo({ 'repoType': 'remote', 'repoPath': null});
-    } else {
-      App.db.setSoftRepo({ 'repoType': 'local', 'repoPath': stepController.get('localRepoPath') });
-    }
+  getHosts: function(){
+    return [];
   },
 
   /**
@@ -130,7 +65,7 @@ App.InstallerController = App.WizardController.extend({
    */
   saveConfirmedHosts: function (stepController) {
     var hostInfo = {};
-    stepController.get('content.hostsInfo').forEach(function (_host) {
+    stepController.get('content.hosts').forEach(function (_host) {
       hostInfo[_host.name] = {
         name: _host.name,
         cpu: _host.cpu,
@@ -140,17 +75,15 @@ App.InstallerController = App.WizardController.extend({
         isInstalled: false
       };
     });
-    console.log('installerController:saveConfirmedHosts: save hosts ', hostInfo);
-    App.db.setHosts(hostInfo);
-    this.set('content.hostsInfo', hostInfo);
+    this.set('content.hosts', hostInfo);
+    this.save('hosts');
   },
-
   /**
    * Load confirmed hosts.
    * Will be used at <code>Assign Masters(step5)</code> step
    */
   loadConfirmedHosts: function () {
-    this.set('content.hostsInfo', App.db.getHosts() || []);
+    this.set('content.hosts', App.db.getHosts() || []);
   },
 
   /**
@@ -171,8 +104,8 @@ App.InstallerController = App.WizardController.extend({
         hostInfo[index].progress = host.progress;
       }
     }
-    App.db.setHosts(hostInfo);
-    this.set('content.hostsInfo', hostInfo);
+    this.set('content.hosts', hostInfo);
+    this.save('hosts');
   },
 
   /**
@@ -443,7 +376,7 @@ App.InstallerController = App.WizardController.extend({
       case '3':
         this.loadConfirmedHosts();
       case '2':
-        this.loadInstallOptions();
+        this.load('installOptions');
       case '1':
         this.load('cluster');
     }

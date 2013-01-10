@@ -22,42 +22,32 @@ App.UpdateController = Em.Controller.extend({
   name:'updateController',
   isUpdated:false,
   cluster:null,
-
+  isWorking: false,
+  timeIntervalId: null,
   clusterName:function () {
-    return (this.get('cluster')) ? this.get('cluster').Clusters.cluster_name : null;
-  }.property('cluster'),
-
-  loadClusterName:function (reload) {
-    if (this.get('clusterName') && !reload) {
-      return;
-    }
-    var self = this;
-    var url = (App.testMode) ? '/data/clusters/info.json' : App.apiPrefix + '/clusters';
-    $.ajax({
-      async:false,
-      type:"GET",
-      url:url,
-      dataType:'json',
-      timeout:App.timeout,
-      success:function (data) {
-        self.set('cluster', data.items[0]);
-      },
-      error:function (request, ajaxOptions, error) {
-        console.log('failed on loading cluster name');
-      },
-      statusCode:require('data/statusCodes')
-    });
-  },
+    return App.router.get('clusterController.clusterName');
+  }.property('App.router.clusterController.clusterName'),
 
   getUrl:function (testUrl, url) {
     return (App.testMode) ? testUrl : App.apiPrefix + '/clusters/' + this.get('clusterName') + url;
   },
 
   updateAll:function(){
-    this.updateHost();
-    this.updateServiceMetric();
-    this.graphsUpdate();
-  },
+    var timeIntervalId = this.get('timeIntervalId');
+    var self = this;
+
+    if(this.get('isWorking')){
+      if(timeIntervalId) return;
+      this.set('timeIntervalId', setInterval(function(){
+        self.updateHost();
+        self.updateServiceMetric();
+        self.graphsUpdate();
+      }, App.contentUpdateInterval));
+    } else {
+      clearInterval(timeIntervalId);
+      this.set('timeIntervalId', null);
+    }
+  }.observes('isWorking'),
 
   updateHost:function(){
       var hostsUrl = this.getUrl('/data/hosts/hosts.json', '/hosts?fields=Hosts,host_components,metrics/cpu,metrics/disk,metrics/load,metrics/memory');

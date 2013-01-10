@@ -157,16 +157,16 @@ jQuery.extend($.fn.dataTableExt.afnFiltering.push(
     function (oSettings, aData, iDataIndex) {
       var inputFilters = [
         {iColumn: '0', elementId: 'star_filter', type: 'star'},
-        {iColumn: '2', elementId: 'cpu_filter', type: 'number'},
-        {iColumn: '5', elementId: 'load_avg_filter', type: 'number'},
+        {iColumn: '3', elementId: 'cpu_filter', type: 'number'},
+        {iColumn: '6', elementId: 'load_avg_filter', type: 'number'},
         {iColumn: '4', elementId: 'user_filter', type: 'multiple'},
-        {iColumn: '6', elementId: 'components_filter', type: 'multiple'},
-        {iColumn: '5', elementId: 'jobs_filter', type: 'number' },
-        {iColumn: '3', elementId: 'ram_filter', type: 'ambari-bandwidth' },
-        {iColumn: '6', elementId: 'input_filter', type: 'ambari-bandwidth' },
-        {iColumn: '7', elementId: 'output_filter', type: 'ambari-bandwidth' },
-        {iColumn: '8', elementId: 'duration_filter', type: 'time' },
-        {iColumn: '9', elementId: 'rundate_filter', type: 'ambari-datetime' }
+        {iColumn: '9', elementId: 'components_filter', type: 'multiple'},
+        {iColumn: '6', elementId: 'jobs_filter', type: 'number' },
+        {iColumn: '4', elementId: 'ram_filter', type: 'ambari-bandwidth' },
+        {iColumn: '7', elementId: 'input_filter', type: 'ambari-bandwidth' },
+        {iColumn: '8', elementId: 'output_filter', type: 'ambari-bandwidth' },
+        {iColumn: '9', elementId: 'duration_filter', type: 'time' },
+        {iColumn: '10', elementId: 'rundate_filter', type: 'ambari-datetime' }
       ];
       var match = true;
       for (var i = 0; i < inputFilters.length; i++) {
@@ -226,9 +226,9 @@ jQuery.extend($.fn.dataTableExt.afnFiltering.push(
       function timeFilter(rangeExp, rowValue) {
         var compareChar = rangeExp.charAt(0);
         var compareScale = rangeExp.charAt(rangeExp.length - 1);
-        var compareValue = isNaN(parseInt(compareScale)) ? parseInt(rangeExp.substr(1, rangeExp.length - 2)) : parseInt(rangeExp.substr(1, rangeExp.length - 1));
+        var compareValue = isNaN(parseInt(compareScale), 10) ? parseInt(rangeExp.substr(1, rangeExp.length - 2), 10) : parseInt(rangeExp.substr(1, rangeExp.length - 1), 10);
         rowValue = (jQuery(rowValue).text()) ? jQuery(rowValue).text() : rowValue;
-        var convertedRowValue = parseInt(rowValue.substr(0, 2)) * 3600 + parseInt(rowValue.substr(3, 2)) * 60 + parseInt(rowValue.substr(6, 2));
+        var convertedRowValue = parseInt(rowValue.substr(0, 2), 10) * 3600 + parseInt(rowValue.substr(3, 2), 10) * 60 + parseInt(rowValue.substr(6, 2), 10);
         switch (compareScale) {
           case 'm':
             convertedRowValue /= 60;

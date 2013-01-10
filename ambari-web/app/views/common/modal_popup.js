@@ -82,3 +82,13 @@ App.ModalPopup.reopenClass({
 
 })
 
+App.showReloadPopup = function(){
+  return App.ModalPopup.show({
+    primary: null,
+    secondary: null,
+    showFooter: false,
+    header: this.t('app.reloadPopup.header'),
+    body: "<div class='alert alert-info'><div class='spinner'>" + this.t('app.reloadPopup.text') + "</div></div><div><a href='#' onclick='location.reload();'>" + this.t('app.reloadPopup.link') + "</a></div>",
+    encodeBody: false
+  });
+}

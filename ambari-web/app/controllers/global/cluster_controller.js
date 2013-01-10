@@ -22,6 +22,10 @@ App.ClusterController = Em.Controller.extend({
   name:'clusterController',
   cluster:null,
   isLoaded:false,
+  /**
+   * Whether we need to update statuses automatically or not
+   */
+  isWorking: false,
   updateLoadStatus:function (item) {
     var loadList = this.get('dataLoadList');
     var loaded = true;
@@ -247,17 +251,10 @@ App.ClusterController = Em.Controller.extend({
     });
   },
 
-  componentsUpdateInterval: App.componentsUpdateInterval,
-
-  /**
-   * Whether we need to update statuses automatically or not
-   */
-  updateStatus: false,
-
   statusTimeoutId: null,
 
   loadUpdatedStatusDelayed: function(delay){
-    delay = delay || this.get('componentsUpdateInterval');
+    delay = delay || App.componentsUpdateInterval;
     var self = this;
 
     this.set('statusTimeoutId',
@@ -275,7 +272,7 @@ App.ClusterController = Em.Controller.extend({
       this.set('statusTimeoutId', null);
     }
 
-    if(!this.get('updateStatus')){
+    if(!this.get('isWorking')){
       return false;
     }
 
@@ -296,8 +293,14 @@ App.ClusterController = Em.Controller.extend({
       self.loadUpdatedStatusDelayed(null, 'error:response error');
     });
 
-  }.observes('updateStatus'),
-
+  },
+  startLoadUpdatedStatus: function(){
+    var self = this;
+    this.set('isWorking', true);
+    setTimeout(function(){
+      self.loadUpdatedStatus();
+    }, App.componentsUpdateInterval*2);
+  },
   /**
    *
    *  load all data and update load status
@@ -352,10 +355,6 @@ App.ClusterController = Em.Controller.extend({
     App.router.get('updateController').updateServiceMetric(function(){
       self.updateLoadStatus('services');
     }, true);
-
-    setTimeout(function(){
-      self.set('updateStatus', true);
-    }, this.get('componentsUpdateInterval')*2);
 
   },
 

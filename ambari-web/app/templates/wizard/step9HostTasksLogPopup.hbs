@@ -15,31 +15,54 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 }}
-
-<p>Click on the task to see the log:</p>
-<div id="host-log">
-  {{#each role in view.roles}}
-  {{#each taskInfo in role.taskInfos}}
-  <div>
-    <a href="#" {{action toggleTaskLog taskInfo}}>{{#if taskInfo.isLogHidden}}Show{{else}}Hide{{/if}} {{role.roleName}}
-      {{taskInfo.command}} log ({{taskInfo.status}})</a>
-    <div class="content-area" {{bindAttr class="taskInfo.isLogHidden:hidden"}}>
-      <div class="textTrigger" {{action "textTrigger" taskInfo target="view"}}>{{taskInfo.buttonLabel}}</div>
-      {{#if taskInfo.isTextArea}}
-      <div>
-        {{view view.textArea contentBinding="taskInfo" roleBinding="role"}}
-      </div>
-      {{else}}
-      <div>
-        <h5>stderr:</h5>
-        <pre class="stderr">{{taskInfo.stderr}}</pre>
-        <h5>stdout:</h5>
-        <pre class="stdout">{{taskInfo.stdout}}</pre>
-      </div>
-      {{/if}}
+<div {{bindAttr class="view.isLogWrapHidden::hidden :task-list-main-warp"}}>
+  <div class="task-top-wrap">
+     Tasks
+    <div class="select-wrap">
+      Show:
+      {{view Ember.Select
+        contentBinding="view.categories"
+        optionValuePath="content.value"
+        optionLabelPath="content.label"
+        selectionBinding="view.category"
+      }}
     </div>
   </div>
-  {{/each}}
-  {{/each}}
+  <div id="host-log">
+    {{#each role in view.roles}}
+    {{#each taskInfo in role.taskInfos}}
+    <div {{bindAttr class="taskInfo.isVisible::hidden :log-list-wrap taskInfo.status"}}>
+      <a href="#" class="" {{action toggleTaskLog taskInfo}}>
+        {{{role.roleName}} {{taskInfo.command}}
+      </a>
+      <div {{action toggleTaskLog taskInfo}} class="show-details"></div>
+    </div>
+    {{/each}}
+    {{/each}}
+  </div>
 </div>
 
+<div {{bindAttr class="view.isLogWrapHidden:hidden :task-detail-info"}}>
+  <div class="task-top-wrap">
+  <a class="task-detail-back" href="javascript:void(null)" {{action backToTaskList}} ><i class="icon-arrow-left"></i>&nbsp;Tasks</a>
+   <div>
+      <img src="data:image/png;base64,R0lGODlhFAAUAIAAAP///wAAACH5BAEAAAAALAAAAAAUABQAAAIRhI+py+0Po5y02ouz3rz7rxUAOw==" class="task-detail-status-ico" />
+      <span class="task-detail-log-rolename" ></span>
+    </div>
+  <div class="task-detail-ico-wrap">
+    <div {{action "textTrigger" taskInfo target="view"}} class="task-detail-copy"></div>
+    <div {{action openTaskLogInDialog}} class="task-detail-open-dialog"></div>
+  </div>
+  </div>
+  <div class="task-detail-log-info">
+    <div class="content-area" >
+      <div class="task-detail-log-clipboard-wrap" ></div>
+      <div class="task-detail-log-maintext">
+        <h5>stderr:</h5>
+        <pre class="stderr"></pre>
+        <h5>stdout:</h5>
+        <pre class="stdout"></pre>
+      </div>
+    </div>
+  </div>
+</div>

@@ -32,6 +32,25 @@ App.HostComponent = DS.Model.extend({
   displayName: function () {
     return App.format.role(this.get('componentName'));
   }.property('componentName'),
+  isMaster: function () {
+    switch (this.get('componentName')) {
+      case 'NAMENODE':
+      case 'SECONDARY_NAMENODE':
+      case 'SNAMENODE':
+      case 'JOBTRACKER':
+      case 'ZOOKEEPER_SERVER':
+      case 'HIVE_SERVER':
+      case 'HBASE_MASTER':
+      case 'NAGIOS_SERVER':
+      case 'GANGLIA_SERVER':
+      case 'OOZIE_SERVER':
+      case 'TEMPLETON_SERVER':
+        return true;
+      default:
+        return false;
+    }
+    return this.get('componentName');
+  }.property('componentName'),
   /**
    * A host-component is decommissioning when it is in HDFS service's list of
    * decomNodes.

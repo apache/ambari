@@ -21,7 +21,6 @@
     <tbody>
     <tr>
       <td rowspan="3" class="avg-star"><a href="#" {{action "avgStarClick" target="view"}} class="icon-star a"></a></td>
-      <td></td>
       <td>Jobs</td>
       <td>Input</td>
       <td>Output</td>
@@ -30,7 +29,6 @@
       <td>Most Recent</td>
     </tr>
     <tr class="avg-info">
-      <td>Avg</td>
       <td>{{view.avgData.jobs.avg}}</td>
       <td>{{view.avgData.input.avg}}</td>
       <td>{{view.avgData.output.avg}}</td>
@@ -39,7 +37,6 @@
       <td>{{view.avgData.times.youngest}}</td>
     </tr>
     <tr class="compare-info">
-      <td>Min / Max</td>
       <td>{{view.avgData.jobs.min}} / {{view.avgData.jobs.max}}</td>
       <td>{{view.avgData.input.min}} / {{view.avgData.input.max}}</td>
       <td>{{view.avgData.output.min}} / {{view.avgData.output.max}}</td>
@@ -67,6 +64,7 @@
     <thead>
     <tr>
       <th></th>
+      <th></th>
       <th>App ID</th>
       <th>Name</th>
       <th>Type</th>
@@ -79,6 +77,7 @@
     </tr>
     <tr>
       <th class="notActive"><div class="view-wrapper">{{view view.starFilterView viewName="starFilterViewInstance"}}</div></th>
+      <th></th>
       <th class="notActive"><div class="view-wrapper">{{view view.appidFilterView viewName="appidFilterViewInstance"}}</div> <a href="#" {{action "clearFilterButtonClick" target="view"}} id="view_appidFilterViewInstance" class="ui-icon ui-icon-circle-close ui-appid"></a></th>
       <th class="notActive"><div class="view-wrapper">{{view view.nameFilterView viewName="nameFilterViewInstance"}}</div> <a href="#" {{action "clearFilterButtonClick" target="view"}} id="view_nameFilterViewInstance" class="ui-icon ui-icon-circle-close ui-name"></a></th>
       <th class="notActive"><div class="view-wrapper">{{view view.typeSelectView viewName="typeSelectViewInstance"}}</div> <a href="#" {{action "clearFilterButtonClick" target="view"}} id="view_typeSelectViewInstance" class="ui-icon ui-icon-circle-close ui-type"></a></th>

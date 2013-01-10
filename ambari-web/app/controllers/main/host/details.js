@@ -25,8 +25,12 @@ App.MainHostDetailsController = Em.Controller.extend({
   isAdmin: function(){
     return App.db.getUser().admin;
   }.property('App.router.loginController.loginName'),
-  routeHome:function () {
+  routeHome: function () {
     App.router.transitionTo('main.dashboard');
+  },
+  routeToService: function(event){
+    var service = event.context;
+    App.router.transitionTo('main.services.service.summary',service);
   },
 
   setBack: function(isFromHosts){

@@ -34,20 +34,20 @@
       </p>
 
       {{#if view.parentView.controller.hideBackButton}}
-        {{#if content.hosts.oldHostNames }}
+        {{#if view.hostsInfo.oldHostNames }}
           <p class="alert alert-info">
             {{t hosts.add.step2.warning}}
             <br/>
-            {{{content.hosts.oldHostNames}}}
-              {{#if content.hosts.showMoreHostsText}}
-                <a href="" {{action showMoreHosts target="view.parentView.controller"}}>{{content.hosts.showMoreHostsText}}</a>
+            {{{view.hostsInfo.oldHostNames}}}
+              {{#if view.hostsInfo.showMoreHostsText}}
+                <a href="" {{action "showMoreHosts" target="view"}}>{{view.hostsInfo.showMoreHostsText}}</a>
               {{/if}}
           </p>
         {{/if}}
       {{/if}}
 
       <div class="controls">
-        {{view Ember.TextArea class="span6" valueBinding="content.hosts.hostNames" rows="5" placeholder="host names"}}
+        {{view Ember.TextArea class="span6" valueBinding="content.installOptions.hostNames" rows="5" placeholder="host names"}}
         {{#if hostsError}}
         <p class="help-inline">{{hostsError}}</p>
         {{/if}}
@@ -64,11 +64,11 @@
       <div {{bindAttr class="sshKeyError:error :control-group"}}>
         {{#if view.isFileApi}}
           {{view App.SshKeyFileUploader}}
-          <pre {{bindAttr class="view.sshKeyPreviewClass"}}>{{content.hosts.sshKey}}</pre>
+          <pre {{bindAttr class="view.sshKeyPreviewClass"}}>{{content.installOptions.sshKey}}</pre>
         {{/if}}
         <div class="controls">
           {{view Ember.TextArea class="span6" rows="4" classBinding="view.sshKeyClass"  id="sshKey"
-          placeholder="ssh private key" disabledBinding="view.sshKeyState" valueBinding="content.hosts.sshKey"}}
+          placeholder="ssh private key" disabledBinding="view.sshKeyState" valueBinding="content.installOptions.sshKey"}}
           {{#if sshKeyError}}
           <span class="help-inline">{{sshKeyError}}</span>
           {{/if}}
@@ -82,29 +82,16 @@
            rel="popover"
           {{translateAttr title="installer.step2.manualInstall.tooltip.title" data-content="installer.step2.manualInstall.tooltip.content"}}>
           Learn more</a>
-        {{view Ember.Checkbox checkedBinding="content.hosts.manualInstall"}}
+        {{view Ember.Checkbox checkedBinding="content.installOptions.manualInstall"}}
       </label>
       </div>
 
-      {{#if "manualInstall"}}
+      {{#if content.installOptions.manualInstall}}
       <div class="alert">
         {{t installer.step2.manualInstall.info}}
       </div>
       {{/if}}
 
-      <!--
-    {{view Ember.TextField type="text" placeholder="passphrase" valueBinding="content.hosts.passphrase"}}
-
-    <div {{bindAttr class="passphraseMatchErr:error :control-group :ambari-agents"}}>
-      <div class="controls">
-        {{view Ember.TextField type="text" placeholder="confirm passphrase" valueBinding="content.hosts.confirmPassphrase"}}
-
-        {{#if passphraseMatchErr}}
-        <p class="help-inline">{{t installer.step2.passphrase.error.match}}</p>
-        {{/if}}
-      </div>
-    </div>
-    -->
     </div>
   </div>
 
@@ -116,10 +103,10 @@
          rel="popover"
         {{translateAttr title="installer.step2.localRepo.tooltip.title" data-content="installer.step2.localRepo.tooltip.content"}}>
         Learn more</a>
-      {{view Ember.Checkbox checkedBinding="content.hosts.localRepo"}}
+      {{view Ember.Checkbox checkedBinding="content.installOptions.localRepo"}}
     </label>
 
-    {{#if "localRepo"}}
+    {{#if content.installOptions.localRepo}}
     <div {{bindAttr class="localRepoError:error :control-group"}}>
       <div class="alert alert-info">
         {{t installer.step2.localRepo.info}}
@@ -131,7 +118,7 @@
     {{#unless view.parentView.controller.hideBackButton }}
     <a class="btn pull-left" {{action back}}>&larr; Back</a>
     {{/unless}}
-    <a class="btn btn-success pull-right" {{bindAttr disabled="isSubmitDisabled"}} {{action evaluateStep}}>
+    <a class="btn btn-success pull-right" {{bindAttr disabled="isSubmitDisabled"}} {{action evaluateStep target="controller"}}>
       Register and Confirm &rarr;</a>
   </div>
 

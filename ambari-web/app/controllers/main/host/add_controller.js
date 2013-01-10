@@ -44,8 +44,8 @@ App.AddHostController = App.WizardController.extend({
   content: Em.Object.create({
     cluster: null,
     hosts: null,
+    installOptions: null,
     services: null,
-    hostsInfo: null,
     slaveComponentHosts: null,
     masterComponentHosts: null,
     serviceConfigProperties: null,
@@ -59,131 +59,15 @@ App.AddHostController = App.WizardController.extend({
       name: App.router.getClusterName()
     });
   },
-
-  showMoreHosts: function () {
-    var self = this;
-    App.ModalPopup.show({
-      header: "Hosts are already part of the cluster and will be ignored",
-      body: self.get('content.hosts.oldHostNamesMore'),
-      encodeBody: false,
-      onPrimary: function () {
-        this.hide();
-      },
-      secondary: null
-    });
+  getInstallOptions: function(){
+    return jQuery.extend(this.get('installOptionsTemplate'), {});
   },
 
-  /**
-   * Config for displaying more hosts
-   * if oldHosts.length more than config.count that configuration will be applied
-   */
-  hostDisplayConfig: [
-    {
-      count: 0,
-      delimitery: '<br/>',
-      popupDelimitery: '<br />'
-    },
-    {
-      count: 10,
-      delimitery: ', ',
-      popupDelimitery: '<br />'
-    },
-    {
-      count: 50,
-      delimitery: ', ',
-      popupDelimitery: ', '
-    }
-  ],
-
-  /**
-   * Load all data for <code>Specify Host(install step2)</code> step
-   * Data Example:
-   * {
-   *   hostNames: '',
-   *   manualInstall: false,
-   *   sshKey: '',
-   *   passphrase: '',
-   *   confirmPassphrase: '',
-   *   localRepo: false,
-   *   localRepoPath: ''
-   * }
-   */
-  loadInstallOptions: function () {
-
-    if (!this.content.hosts) {
-      this.content.hosts = Em.Object.create();
-    }
-
-    var hostsInfo = Em.Object.create();
-
-    var oldHostNames = App.Host.find().getEach('id');
-    var k = 10;
-
-    var usedConfig = false;
-    this.get('hostDisplayConfig').forEach(function (config) {
-      if (oldHostNames.length > config.count) {
-        usedConfig = config;
-      }
-    });
-
-    k = usedConfig.count ? usedConfig.count : oldHostNames.length;
-    var displayedHostNames = oldHostNames.slice(0, k);
-    hostsInfo.oldHostNames = displayedHostNames.join(usedConfig.delimitery);
-    if (usedConfig.count) {
-      var moreHostNames = oldHostNames.slice(k + 1);
-      hostsInfo.oldHostNamesMore = moreHostNames.join(usedConfig.popupDelimitery);
-      hostsInfo.showMoreHostsText = "...and %@ more".fmt(moreHostNames.length);
-    }
-
-    hostsInfo.hostNames = App.db.getAllHostNamesPattern() || ''; //empty string if undefined
-
-    var installType = App.db.getInstallType();
-    //false if installType not equals 'manual'
-    hostsInfo.manualInstall = installType && installType.installType === 'manual' || false;
-
-    var softRepo = App.db.getSoftRepo();
-    if (softRepo && softRepo.repoType === 'local') {
-      hostsInfo.localRepo = true;
-      hostsInfo.localRepopath = softRepo.repoPath;
-    } else {
-      hostsInfo.localRepo = false;
-      hostsInfo.localRepoPath = '';
-    }
-
-    hostsInfo.bootRequestId = App.db.getBootRequestId() || null;
-    hostsInfo.sshKey = '';
-    hostsInfo.passphrase = '';
-    hostsInfo.confirmPassphrase = '';
-
-    this.set('content.hosts', hostsInfo);
-    console.log("AddHostController:loadHosts: loaded data ", hostsInfo);
+  getHosts: function(){
+    return [];
   },
 
-  /**
-   * Save data, which user filled, to main controller
-   * @param stepController App.WizardStep2Controller
-   */
-  saveHosts: function (stepController) {
-    //TODO: put data to content.hosts and only then save it)
-
-    //App.db.setBootStatus(false);
-    App.db.setAllHostNames(stepController.get('hostNameArr').join("\n"));
-    App.db.setAllHostNamesPattern(stepController.get('hostNames'));
-    App.db.setBootRequestId(stepController.get('bootRequestId'));
-    App.db.setHosts(stepController.getHostInfo());
-    if (stepController.get('manualInstall') === false) {
-      App.db.setInstallType({installType: 'ambari' });
-    } else {
-      App.db.setInstallType({installType: 'manual' });
-    }
-    if (stepController.get('localRepo') === false) {
-      App.db.setSoftRepo({ 'repoType': 'remote', 'repoPath': null});
-    } else {
-      App.db.setSoftRepo({ 'repoType': 'local', 'repoPath': stepController.get('localRepoPath') });
-    }
-  },
-
-  /**
+   /**
    * Remove host from model. Used at <code>Confirm hosts(step2)</code> step
    * @param hosts Array of hosts, which we want to delete
    */
@@ -199,7 +83,7 @@ App.AddHostController = App.WizardController.extend({
   saveConfirmedHosts: function (stepController) {
     var hostInfo = {};
 
-    stepController.get('content.hostsInfo').forEach(function (_host) {
+    stepController.get('content.hosts').forEach(function (_host) {
       hostInfo[_host.name] = {
         name: _host.name,
         cpu: _host.cpu,
@@ -212,15 +96,7 @@ App.AddHostController = App.WizardController.extend({
 
     console.log('addHostController:saveConfirmedHosts: save hosts ', hostInfo);
     App.db.setHosts(hostInfo);
-    this.set('content.hostsInfo', hostInfo);
-  },
-
-  /**
-   * Load confirmed hosts.
-   * Will be used at <code>Assign Masters(step5)</code> step
-   */
-  loadConfirmedHosts: function () {
-    this.set('content.hostsInfo', App.db.getHosts());
+    this.set('content.hosts', hostInfo);
   },
 
   /**
@@ -242,7 +118,7 @@ App.AddHostController = App.WizardController.extend({
       }
     }
     App.db.setHosts(hostInfo);
-    this.set('content.hostsInfo', hostInfo);
+    this.set('content.hosts', hostInfo);
     console.log('addHostController:saveInstalledHosts: save hosts ', hostInfo);
   },
 
@@ -575,13 +451,12 @@ App.AddHostController = App.WizardController.extend({
         this.loadServices();
         this.loadMasterComponentHosts();
         this.loadSlaveComponentHosts();
-        this.loadConfirmedHosts();
+        this.load('hosts');
       case '2':
         this.loadServices();
-        this.loadConfirmedHosts();
       case '1':
-        this.loadInstallOptions();
-      case '0':
+        this.load('hosts');
+        this.load('installOptions');
         this.load('cluster');
     }
   },
@@ -640,8 +515,7 @@ App.AddHostController = App.WizardController.extend({
    * Created as copy for App.router.clearAllSteps
    */
   clearAllSteps: function () {
-    this.clearHosts();
-    //todo it)
+    this.clearInstallOptions();
   },
 
   /**

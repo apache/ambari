@@ -47,13 +47,16 @@ App.MainHostView = Em.View.extend({
       "iDisplayLength": 10,
       "aLengthMenu": [[10, 25, 50, 100, -1], [10, 25, 50, 100, "All"]],
       "aoColumns":[
+        { "bSortable": false },
         { "sType":"html" },
         { "sType":"html" },
         { "sType":"num-html" },
         { "sType":"ambari-bandwidth" },
         { "sType":"html" },
         { "sType":"num-html" },
-        { "sType":"html", "bSortable": false  }
+        { "sType":"html", "bSortable": false  },
+        { "bVisible": false }, // hidden column for raw public host name value
+        { "bVisible": false } // hidden column for raw components list
       ]
     });
     this.set('oTable', oTable);
@@ -63,13 +66,33 @@ App.MainHostView = Em.View.extend({
   HostView:Em.View.extend({
     content:null,
 
+    shortLabels: function() {
+      var components = this.get('labels');
+      var labels = this.get('content.components').getEach('displayName');
+      var shortLabels = '';
+      var c = 0;
+      labels.forEach(function(label) {
+        if (label) {
+          if (c < 2) {
+            shortLabels += label.replace(/[^A-Z]/g, '') + ', ';
+            c++;
+          }
+        }
+      });
+      shortLabels = shortLabels.substr(0, shortLabels.length - 2);
+      if (labels.length > 2) {
+        shortLabels += ' and ' + (labels.length - 2) + ' more';
+      }
+      return shortLabels;
+    }.property('labels'),
+
     labels: function(){
-      return this.get('content.components').getEach('displayName').join(', ');
+      return this.get('content.components').getEach('displayName').join('\n');
     }.property('content.components.@each'),
 
     usageStyle:function () {
-      //return "width:" + this.get('content.diskUsage') + "%";
-      return "width:" + (25+Math.random()*50) + "%"; // Just for tests purposes
+      return "width:" + this.get('content.diskUsage') + "%";
+      //return "width:" + (25+Math.random()*50) + "%"; // Just for tests purposes
     }.property('content.diskUsage')
 
 //    HostCheckboxView:Em.Checkbox.extend({
@@ -123,7 +146,7 @@ App.MainHostView = Em.View.extend({
       else {
         this.$().closest('th').removeClass('notActive');
       }
-      this.get('parentView').get('applyFilter')(this.get('parentView'), 0, this.get('value'));
+      this.get('parentView').get('applyFilter')(this.get('parentView'), 8, this.get('value'));
     }.observes('value')
   }),
 
@@ -138,7 +161,7 @@ App.MainHostView = Em.View.extend({
       else {
         this.$().closest('th').removeClass('notActive');
       }
-      this.get('parentView').get('applyFilter')(this.get('parentView'), 1, this.get('value'));
+      this.get('parentView').get('applyFilter')(this.get('parentView'), 2, this.get('value'));
     }.observes('value')
   }),
   /**
@@ -156,7 +179,7 @@ App.MainHostView = Em.View.extend({
       else {
         this.$().closest('th').removeClass('notActive');
       }
-      this.get('parentView').get('applyFilter')(this.get('parentView'), 2);
+      this.get('parentView').get('applyFilter')(this.get('parentView'), 3);
     }.observes('value')
   }),
   /**
@@ -174,7 +197,7 @@ App.MainHostView = Em.View.extend({
       else {
         this.$().closest('th').removeClass('notActive');
       }
-      this.get('parentView').get('applyFilter')(this.get('parentView'), 2);
+      this.get('parentView').get('applyFilter')(this.get('parentView'), 5);
     }.observes('value')
   }),
   /**
@@ -192,7 +215,7 @@ App.MainHostView = Em.View.extend({
       else {
         this.$().closest('th').removeClass('notActive');
       }
-      this.get('parentView').get('applyFilter')(this.get('parentView'), 3);
+      this.get('parentView').get('applyFilter')(this.get('parentView'), 4);
     }.observes('value')
   }),
   /**
@@ -255,39 +278,44 @@ App.MainHostView = Em.View.extend({
        '</button>' +
         '<ul class="dropdown-menu filter-components" id="filter-dropdown">' +
           '<li>' +
-            '<label class="checkbox">' +
-              '{{view Ember.Checkbox checkedBinding="view.allComponentsChecked"}} All' +
-            '</label>' +
-          '</li>' +
-          '<li>' +
-            '<label class="checkbox">' +
-              '{{view Ember.Checkbox checkedBinding="view.masterComponentsChecked"}} Master Components:' +
-            '</label>' +
             '<ul>' +
-              '{{#each component in masterComponents}}' +
-                '<li>' +
+              '<li>' +
                   '<label class="checkbox">' +
-                    '{{view Ember.Checkbox checkedBinding="component.checkedForHostFilter" }} {{unbound component.displayName}}' +
-                  '</label>' +
-                ' </li>' +
-              '{{/each}}' +
-            '</ul>' +
-          '</li>' +
-          '<li>' +
-            '<label class="checkbox">' +
-              '{{view Ember.Checkbox checkedBinding="view.slaveComponentsChecked"}} Slave Components:' +
-            '</label>' +
-            '<ul>' +
-              '{{#each component in slaveComponents}}' +
-                '<li>' +
-                  '<label class="checkbox">' +
-                    '{{view Ember.Checkbox checkedBinding="component.checkedForHostFilter" }} {{unbound component.displayName}}' +
+                    '{{view Ember.Checkbox checkedBinding="view.allComponentsChecked"}} All' +
                   '</label>' +
                 '</li>' +
-              '{{/each}}' +
+                '<li>' +
+                  '<label class="checkbox">' +
+                    '{{view Ember.Checkbox checkedBinding="view.masterComponentsChecked"}} Master Components:' +
+                  '</label>' +
+                  '<ul>' +
+                    '{{#each component in masterComponents}}' +
+                      '<li>' +
+                        '<label class="checkbox">' +
+                          '{{view Ember.Checkbox checkedBinding="component.checkedForHostFilter" }} {{unbound component.displayName}}' +
+                        '</label>' +
+                      ' </li>' +
+                    '{{/each}}' +
+                  '</ul>' +
+                '</li>' +
+                '<li>' +
+                  '<label class="checkbox">' +
+                    '{{view Ember.Checkbox checkedBinding="view.slaveComponentsChecked"}} Slave Components:' +
+                  '</label>' +
+                  '<ul>' +
+                    '{{#each component in slaveComponents}}' +
+                      '<li>' +
+                        '<label class="checkbox">' +
+                          '{{view Ember.Checkbox checkedBinding="component.checkedForHostFilter" }} {{unbound component.displayName}}' +
+                        '</label>' +
+                      '</li>' +
+                    '{{/each}}' +
+                  '</ul>' +
+                '</li>' +
+              '</li>' +
             '</ul>' +
           '</li>' +
-          '<li class="align-right">' +
+          '<li>' +
             '<button class="btn" {{action "closeFilters" target="view"}}>' +
               'Cancel' +
             '</button> ' +
@@ -343,7 +371,7 @@ App.MainHostView = Em.View.extend({
         if(item.get('checkedForHostFilter')) chosenComponents.push(item.get('displayName'));
       });
       jQuery('#components_filter').val(chosenComponents);
-      this.get('parentView').get('applyFilter')(this.get('parentView'), 6);
+      this.get('parentView').get('applyFilter')(this.get('parentView'), 9);
       if (chosenComponents.length == 0) {
         this.$().closest('th').addClass('notActive');
       }

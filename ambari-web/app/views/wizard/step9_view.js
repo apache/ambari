@@ -128,15 +128,18 @@ App.HostStatusView = Em.View.extend({
     var self = this;
     var host = event.context;
     App.ModalPopup.show({
-      header:Em.I18n.t('installer.step9.hostLog.popup.header') + event.context.get('name'),
+      header: event.context.get('name'),
+      classNames: ['full-width-modal'],
       onPrimary:function () {
         this.hide();
       },
       secondary:null,
-      controllerBinding:context,
+
       bodyClass:Ember.View.extend({
         templateName:require('templates/wizard/step9HostTasksLogPopup'),
-
+        isLogWrapHidden: true,
+        showTextArea: false,
+        controllerBinding:context,
         hostObj:function () {
           return this.get('parentView.obj');
         }.property('parentView.obj'),
@@ -149,6 +152,7 @@ App.HostStatusView = Em.View.extend({
          * @param tasks
          * @return {Array}
          */
+
         sortTasksByRequest: function(tasks){
           var result = [];
           var requestId = 1;
@@ -167,6 +171,58 @@ App.HostStatusView = Em.View.extend({
           return result;
         },
 
+        visibleTasks: function () {
+          if (this.get('category.value')) {
+            var filter = this.get('category.value');
+            $.each(this.get("roles"),function(a,e){
+
+              e.taskInfos.setEach("isVisible", false);
+
+              if(filter == "all")
+              {
+                e.taskInfos.setEach("isVisible", true);
+              }
+              else if(filter == "pending")
+              {
+                e.taskInfos.filterProperty("status", "pending").setEach("isVisible", true);
+                e.taskInfos.filterProperty("status", "queued").setEach("isVisible", true);
+              }
+              else if(filter == "in_progress")
+              {
+                e.taskInfos.filterProperty("status", "in_progress").setEach("isVisible", true);
+              }
+              else if(filter == "failed")
+              {
+                e.taskInfos.filterProperty("status", "failed").setEach("isVisible", true);
+              }
+              else if(filter == "completed")
+              {
+                e.taskInfos.filterProperty("status", "completed").setEach("isVisible", true);
+              }
+              else if(filter == "aborted")
+              {
+                e.taskInfos.filterProperty("status", "aborted").setEach("isVisible", true);
+              }
+              else if(filter == "timedout")
+              {
+                e.taskInfos.filterProperty("status", "timedout").setEach("isVisible", true);
+              }
+            })
+          }
+        }.observes('category'),
+
+        categories: [
+            Ember.Object.create({value: 'all', label: 'All' }),
+            Ember.Object.create({value: 'pending', label: 'Queued / Pending'}),
+            Ember.Object.create({value: 'in_progress', label: 'In Progress'}),
+            Ember.Object.create({value: 'failed', label: 'Failed' }),
+            Ember.Object.create({value: 'completed', label: 'Success' }),
+            Ember.Object.create({value: 'aborted', label: 'Cancelled' }),
+            Ember.Object.create({value: 'timed_out', label: 'Timed Out' })
+          ],
+
+        category: null,
+
         roles:function () {
           var roleArr = [];
           var tasks = this.getStartedTasks(host);
@@ -178,17 +234,13 @@ App.HostStatusView = Em.View.extend({
               var roleObj = {};
               roleObj.roleName = App.format.role(_role);
               tasks.filterProperty('Tasks.role', _role).forEach(function (_task) {
-                var taskInfo = Ember.Object.create({
-                  isTextArea:false,
-                  buttonLabel:function () {
-                    return (this.get('isTextArea')) ? 'Press CTRL+C' : 'Click to highlight';
-                  }.property('isTextArea')
-                });
+                var taskInfo = Ember.Object.create({});
                 taskInfo.set('requestId', _task.Tasks.request_id);
                 taskInfo.set('command', _task.Tasks.command.toLowerCase());
                 taskInfo.set('status', App.format.taskStatus(_task.Tasks.status));
                 taskInfo.set('url', _task.href);
-                taskInfo.set('isLogHidden', false);
+                taskInfo.set('roleName', roleObj.roleName);
+                taskInfo.set('isVisible', true);
                 taskInfos.pushObject(taskInfo);
               }, this);
               roleObj.taskInfos = taskInfos;
@@ -198,28 +250,9 @@ App.HostStatusView = Em.View.extend({
           return roleArr;
         }.property('startedTasks.@each'),
 
-        didInsertElement: function () {
-          console.log('The value of event context is: ' + host.name);
-          this.get('roles').forEach(function (role) {
-            role.taskInfos.forEach(function (task) {
-              task.set('isLogHidden', true);
-            });
-          });
-          $(this.get('element')).find('.content-area').each(function (index, value) {
-            var button = $(value).find('.textTrigger');
-            $(value).mouseenter(
-              function () {
-                var element = $(this);
-                element.css('border', '1px solid #dcdcdc');
-                button.css('visibility', 'visible');
-              }).mouseleave(
-              function () {
-                var element = $(this);
-                element.css('border', 'none');
-                button.css('visibility', 'hidden');
-              })
-          });
-
+        backToTaskList: function(event, context) {
+          this.destroyClipBoard();
+          this.set("isLogWrapHidden",true);
         },
 
         getStartedTasks:function (host) {
@@ -229,9 +262,26 @@ App.HostStatusView = Em.View.extend({
           return startedTasks;
         },
 
+        openTaskLogInDialog: function(){
+          newwindow=window.open();
+          newdocument=newwindow.document;
+          newdocument.write($(".task-detail-log-info").html());
+          newdocument.close();
+        },
+
         toggleTaskLog:function (event, context) {
-          var taskInfo = event.context;
-          if (taskInfo.get('isLogHidden')) {
+          if(this.isLogWrapHidden){
+
+            var taskInfo = event.context;
+            this.set("isLogWrapHidden",false);
+
+            $(".task-detail-log-rolename")
+                .html(taskInfo.roleName + " " + taskInfo.command)
+
+            $(".task-detail-status-ico")
+                .removeClass()
+                .addClass("task-detail-status-ico " + taskInfo.status);
+
             var url = (App.testMode) ? '/data/wizard/deploy/task_log.json' : taskInfo.url;
             $.ajax({
               url:url,
@@ -239,42 +289,46 @@ App.HostStatusView = Em.View.extend({
               timeout:App.timeout,
               success:function (data) {
                 var task = $.parseJSON(data);
-                taskInfo.set('stdout', task.Tasks.stdout);
-                taskInfo.set('stderr', task.Tasks.stderr);
-                taskInfo.set('isLogHidden', false);
-                taskInfo.set('isTextArea', false);
+                $(".stderr").html(task.Tasks.stderr);
+                $(".stdout").html(task.Tasks.stdout);
+                $(".modal-body").scrollTop(0);
               },
               error:function () {
                 alert('Failed to retrieve task log');
               }
             });
-          } else {
-            taskInfo.set('isLogHidden', true);
+          }else{
+            this.set("isLogWrapHidden",true);
           }
+
+
+
+
+
         },
         textTrigger:function (event) {
-          var task = event.context;
-          task.set('isTextArea', !task.get('isTextArea'));
+          if($(".task-detail-log-clipboard").length > 0)
+          {
+            this.destroyClipBoard();
+          }else
+          {
+            this.createClipBoard();
+          };
         },
-        textArea:Em.TextArea.extend({
-          didInsertElement:function () {
-            var element = $(this.get('element'));
-            element.width($(this.get('parentView').get('element')).width() - 10);
-            element.height($(this.get('parentView').get('element')).height());
-            element.select();
-            element.css('resize', 'none');
-            this.$().flexible();
-          },
-          readOnly:true,
-          value:function () {
-            var taskInfo = this.get('content');
-            var content = "";
-            content += this.get('role').role + " " + taskInfo.command + " log " + taskInfo.status + "\n";
-            content += "stderr: " + taskInfo.stderr + "\n";
-            content += "stdout: " + taskInfo.stdout + "\n";
-            return content;
-          }.property('content')
-        })
+        createClipBoard:function(){
+          $(".task-detail-log-clipboard-wrap").html('<textarea class="task-detail-log-clipboard"></textarea>');
+          $(".task-detail-log-clipboard")
+              .html("stderr: \n"+$(".stderr").html()+"\n stdout:\n"+$(".stdout").html())
+              .css("display","block")
+              .width($(".task-detail-log-maintext").width())
+              .height($(".task-detail-log-maintext").height())
+              .select();
+          $(".task-detail-log-maintext").css("display","none")
+        },
+        destroyClipBoard:function(){
+          $(".task-detail-log-clipboard").remove();
+          $(".task-detail-log-maintext").css("display","block");
+        }
       })
     });
   }

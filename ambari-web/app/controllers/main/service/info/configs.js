@@ -369,7 +369,8 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
       console.log("config", _serviceConfigProperty);
       if (!_serviceConfigProperty) return;
       var serviceConfigProperty = App.ServiceConfigProperty.create(_serviceConfigProperty);
-      serviceConfigProperty.serviceConfig = componentConfig;
+     // serviceConfigProperty.serviceConfig = componentConfig;
+      serviceConfigProperty.set('isEditable',serviceConfigProperty.get('isReconfigurable'));
       this.initialValue(serviceConfigProperty);
       componentConfig.configs.pushObject(serviceConfigProperty);
       serviceConfigProperty.validate();

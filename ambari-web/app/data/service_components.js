@@ -149,7 +149,7 @@ module.exports = new Ember.Set([
   {
     service_name: 'HIVE',
     component_name: 'HIVE_SERVER',
-    display_name: 'Hive Metastore',
+    display_name: 'Hive Server',
     isMaster: true,
     isClient: false,
     description: ''
@@ -165,10 +165,10 @@ module.exports = new Ember.Set([
   {
     service_name: 'HIVE',
     component_name: 'MYSQL_SERVER',
-    display_name: 'MySql Server for Hive',
+    display_name: 'MySQL Server for Hive',
     isMaster: false,
     isClient: false,
-    description: 'The slave for HBase'
+    description: ''
   },
   {
     service_name: 'HCATALOG',
@@ -179,19 +179,11 @@ module.exports = new Ember.Set([
     description: ''
   },
   {
-    service_name: 'TEMPLETON',
-    component_name: 'TEMPLETON_SERVER',
-    display_name: 'Templeton Server',
+    service_name: 'WEBHCAT',
+    component_name: 'WEBHCAT_SERVER',
+    display_name: 'WebHCat Server',
     isMaster: true,
     isClient: false,
-    description: ''
-  },
-  {
-    service_name: 'TEMPLETON',
-    component_name: 'TEMPLETON_CLIENT',
-    display_name: 'Templeton Client',
-    isMaster: false,
-    isClient: true,
     description: ''
   },
   {

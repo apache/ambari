@@ -23,7 +23,7 @@ App.SshKeyFileUploader = Ember.View.extend({
   template:Ember.Handlebars.compile('<input type="file" />'),
 
   change: function (e) {
-    self=this;
+    var self=this;
     if (e.target.files && e.target.files.length == 1) {
       var file = e.target.files[0];
       var reader = new FileReader();
@@ -31,8 +31,7 @@ App.SshKeyFileUploader = Ember.View.extend({
       reader.onload = (function(theFile) {
         return function(e) {
           $('#sshKey').html(e.target.result);
-          //$('.sshKey-file-view').html(e.target.result);
-          self.set("controller.content.hosts.sshKey", e.target.result);
+          self.get("controller").setSshKey(e.target.result);
         };
       })(file);
       reader.readAsText(file);
@@ -44,14 +43,73 @@ App.WizardStep2View = Em.View.extend({
 
   templateName: require('templates/wizard/step2'),
   hostNameErr: false,
+  hostsInfo: null,
 
   didInsertElement: function () {
     $("[rel=popover]").popover({'placement': 'right', 'trigger': 'hover'});
     this.set('hostNameErr', false);
     this.set('controller.hostsError',null);
     this.set('controller.sshKeyError',null);
+    this.loadHostsInfo();
   },
+  /**
+   * Config for displaying more hosts
+   * if oldHosts.length more than config.count that configuration will be applied
+   */
+  hostDisplayConfig: [
+    {
+      count: 0,
+      delimitery: '<br/>',
+      popupDelimitery: '<br />'
+    },
+    {
+      count: 10,
+      delimitery: ', ',
+      popupDelimitery: '<br />'
+    },
+    {
+      count: 50,
+      delimitery: ', ',
+      popupDelimitery: ', '
+    }
+  ],
+  showMoreHosts: function () {
+    var self = this;
+    App.ModalPopup.show({
+      header: "Hosts are already part of the cluster and will be ignored",
+      body: self.get('hostsInfo.oldHostNamesMore'),
+      encodeBody: false,
+      onPrimary: function () {
+        this.hide();
+      },
+      secondary: null
+    });
+  },
+  loadHostsInfo: function(){
 
+    var hostsInfo = Em.Object.create();
+
+    var oldHostNames = App.Host.find().getEach('id');
+    var k = 10;
+
+    var usedConfig = false;
+    this.get('hostDisplayConfig').forEach(function (config) {
+      if (oldHostNames.length > config.count) {
+        usedConfig = config;
+      }
+    });
+
+    k = usedConfig.count ? usedConfig.count : oldHostNames.length;
+    var displayedHostNames = oldHostNames.slice(0, k);
+    hostsInfo.set('oldHostNames', displayedHostNames.join(usedConfig.delimitery));
+    if (usedConfig.count) {
+      var moreHostNames = oldHostNames.slice(k + 1);
+      hostsInfo.set('oldHostNamesMore', moreHostNames.join(usedConfig.popupDelimitery));
+      hostsInfo.set('showMoreHostsText', "...and %@ more".fmt(moreHostNames.length));
+    }
+
+    this.set('hostsInfo', hostsInfo);
+  },
 
   onHostNameErr: function () {
     if (this.get('controller.hostNameEmptyError') === false && this.get('controller.hostNameNotRequiredErr') === false && this.get('controller.hostNameErr') === false) {
@@ -62,11 +120,10 @@ App.WizardStep2View = Em.View.extend({
   }.observes('controller.hostNameEmptyError', 'controller.hostNameNotRequiredErr', 'controller.hostNameErr'),
 
   sshKeyState: function(){
-    return this.get("controller.content.hosts.manualInstall");
-  }.property("controller.content.hosts.manualInstall"),
+    return this.get("controller.content.installOptions.manualInstall");
+  }.property("controller.content.installOptions.manualInstall"),
 
   sshKeyClass:function() {
-    //alert(this.get("isFileApi"))
     return (this.get("isFileApi")) ? "hide" : "" ;
   }.property("isFileApi"),
 
@@ -75,8 +132,8 @@ App.WizardStep2View = Em.View.extend({
   }.property(),
 
   sshKeyPreviewClass: function() {
-    if (this.get('controller.content.hosts.sshKey').trim() != '') {
-      if (this.get('controller.content.hosts.manualInstall')) {
+    if (this.get('controller.content.installOptions.sshKey').trim() != '') {
+      if (this.get('controller.content.installOptions.manualInstall')) {
         return 'sshKey-file-view disabled';
       } else {
         return 'sshKey-file-view';
@@ -84,7 +141,7 @@ App.WizardStep2View = Em.View.extend({
     } else {
       return 'hidden';
     }
-  }.property('controller.content.hosts.sshKey', 'controller.content.hosts.manualInstall')
+  }.property('controller.content.installOptions.sshKey', 'controller.content.installOptions.manualInstall')
 
 });
 

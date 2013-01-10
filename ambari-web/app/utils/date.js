@@ -56,29 +56,87 @@ module.exports = {
     return year + month + day + hours + minutes;
   },
   /**
-   * Convert time in seconds to 'HOURS:MINUTES:SECONDS'
-   * @param timestamp_interval
+   * Convert time in mseconds to 'HOURS:MINUTES:SECONDS'
+   * @param ms_interval
    * @return string formatted date
    */
-  dateFormatInterval:function (timestamp_interval) {
-    if (!validator.isValidInt(timestamp_interval)) return timestamp_interval;
-    var hours = Math.floor(timestamp_interval / (60 * 60));
-    var divisor_for_minutes = timestamp_interval % (60 * 60);
-    var minutes = Math.floor(divisor_for_minutes / 60);
-    var divisor_for_seconds = divisor_for_minutes % 60;
-    var seconds = Math.ceil(divisor_for_seconds);
+  dateFormatInterval:function (ms_interval) {
+    if (!validator.isValidInt(ms_interval)) return ms_interval;
+    var hours = Math.floor(ms_interval / (60 * 60000));
+    var divisor_for_minutes = ms_interval % (60 * 60000);
+    var minutes = Math.floor(divisor_for_minutes / 60000);
+    var divisor_for_seconds = divisor_for_minutes % 60000;
+    var seconds = (divisor_for_seconds / 1000).toFixed(2);
+
     return (hours < 10 ? '0' : '') + hours + ':' + (minutes < 10 ? '0' : '') + minutes + ':' + (seconds < 10 ? '0' : '') + seconds;
   },
   /**
-   * Convert 'HOURS:MINUTES:SECONDS' to time in seconds
+   * Convert 'HOURS:MINUTES:SECONDS' to time in mseconds
    * @param formattedDate date string
-   * @return time in seconds
+   * @return time in mseconds
    */
   dateUnformatInterval: function(formattedDate) {
-    var d = formattedDate.split(':');
-    for (var k in d) {
-      d[k] = parseInt(d[k], 10);
+    var formattedDateArray = formattedDate.split(' ');
+
+    if (Object.prototype.toString.call( formattedDateArray ) === '[object Array]' && formattedDateArray.length == 2) {
+      var oneMinMs = 60000;
+      var oneHourMs = 3600000;
+      var oneDayMs = 86400000;
+
+      if (formattedDateArray['1'] == 'ms') {
+        return formattedDateArray['0'];
+      } else if (formattedDateArray['1'] == 'secs') {
+        return formattedDateArray['0'] * 1000;
+      } else if (formattedDateArray['1'] == 'mins') {
+        return formattedDateArray['0'] * oneMinMs;
+      } else if (formattedDateArray['1'] == 'hours') {
+        return formattedDateArray['0'] * oneHourMs;
+      } else if (formattedDateArray['1'] == 'days') {
+        return formattedDateArray['0'] * oneDayMs;
+      } else {
+        console.warn('function dateUnformatInterval: Undefined format');
+      }
+    } else {
+      console.warn('function dateUnformatInterval: formattedDateArray');
     }
-    return d[0]*3600+d[1]*60+d[2];
+  },
+  /**
+   * Convert time in mseconds to
+   * 30 ms = 30 ms
+   * 300 ms = 300 ms
+   * 999 ms = 999 ms
+   * 1000 ms = 1.00 secs
+   * 3000 ms = 3.00 secs
+   * 35000 ms = 35.00 secs
+   * 350000 ms = 350.00 secs
+   * 999999 ms = 999.99 secs
+   * 1000000 ms = 16.66 mins
+   * 3500000 secs = 58.33 mins
+   * @param time
+   * @return string formatted date
+   */
+  timingFormat:function (time) {
+    var intTime  = parseInt(time);
+    var timeStr = intTime.toString();
+    var lengthOfNumber = timeStr.length;
+    var oneMinMs = 60000;
+    var oneHourMs = 3600000;
+    var oneDayMs = 86400000;
+
+    if (lengthOfNumber < 4) {
+      return time + ' ms';
+    } else if (lengthOfNumber < 7) {
+      time = (time / 1000).toFixed(2);
+      return time + ' secs';
+    } else if (time < oneHourMs) {
+      time = (time / oneMinMs).toFixed(2);
+      return time + ' mins';
+    } else if (time < oneDayMs) {
+      time = (time / oneHourMs).toFixed(2);
+      return time + ' hours';
+    } else {
+      time = (time / oneDayMs).toFixed(2);
+      return time + ' days';
+    }
   }
 }

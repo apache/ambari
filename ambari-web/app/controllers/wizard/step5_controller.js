@@ -54,7 +54,7 @@ App.WizardStep5Controller = Em.Controller.extend({
    */
   renderHostInfo:function () {
 
-    var hostInfo = this.get('content.hostsInfo');
+    var hostInfo = this.get('content.hosts');
 
     for (var index in hostInfo) {
       var _host = hostInfo[index];
@@ -300,7 +300,7 @@ App.WizardStep5Controller = Em.Controller.extend({
     }
   },
 
-  getTempletonServer:function (noOfHosts) {
+  getWebHCatServer:function (noOfHosts) {
     var hosts = this.get('hosts');
     if (noOfHosts === 1) {
       return hosts[0];
@@ -378,8 +378,8 @@ App.WizardStep5Controller = Em.Controller.extend({
       return this.getOozieServer(noOfHosts).host_name;
     } else if (componentName === 'HIVE_SERVER') {
       return this.getHiveServer(noOfHosts).host_name;
-    } else if (componentName === 'TEMPLETON_SERVER') {
-      return this.getTempletonServer(noOfHosts).host_name;
+    } else if (componentName === 'WEBHCAT_SERVER') {
+      return this.getWebHCatServer(noOfHosts).host_name;
     } else if (componentName === 'ZOOKEEPER_SERVER') {
       return this.getZooKeeperServer(noOfHosts);
     } else if (componentName === 'GANGLIA_SERVER') {

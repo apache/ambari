@@ -25,7 +25,6 @@ App.MainHostSummaryView = Em.View.extend({
     return App.router.get('mainHostDetailsController.content');
   }.property('App.router.mainHostDetailsController.content'),
 
-
   showGangliaCharts: function () {
     var name = this.get('content.hostName');
     var gangliaMobileUrl = App.router.get('clusterController.gangliaUrl') + "/mobile_helper.php?show_host_metrics=1&h=" + name + "&c=HDPNameNode&r=hour&cs=&ce=";
@@ -35,7 +34,7 @@ App.MainHostSummaryView = Em.View.extend({
   /**
    * @type: [{String}]
    */
-  decommissionDatanodeHostnames: null,
+  decommissionDataNodeHostNames: null,
 
   loadDecommisionNodesList: function () {
     var self = this;
@@ -59,7 +58,7 @@ App.MainHostSummaryView = Em.View.extend({
             success: function (data) {
               if (data && data.items) {
                 var csv = data.items[0].properties.datanodes;
-                self.set('decommissionDatanodeHostnames', csv.split(','));
+                self.set('decommissionDataNodeHostNames', csv.split(','));
               }
             },
             error: function (xhr, textStatus, errorThrown) {
@@ -81,25 +80,59 @@ App.MainHostSummaryView = Em.View.extend({
             decomNodes.forEach(function (decomNode) {
               hostNames.push(decomNode.get('hostName'));
             });
-            self.set('decommissionDatanodeHostnames', hostNames);
+            self.set('decommissionDataNodeHostNames', hostNames);
           }
         }
       }
     }
     jQuery.ajax(getConfigAjax);
   },
-
   didInsertElement: function () {
     this.loadDecommisionNodesList();
   },
+  sortedComponents: function() {
+    var slaveComponents = [];
+    var masterComponents = [];
+    this.get('content.components').forEach(function(component){
+      if(!component.get('componentName')){
+        //temporary fix because of different data in hostComponents and serviceComponents
+        return;
+      }
+      if(component.get('isMaster')){
+        masterComponents.push(component);
+      } else if(!component.get('isClient')) {
+        slaveComponents.push(component);
+      }
+    }, this);
+    return masterComponents.concat(slaveComponents);
+  }.property('content'),
+  clients: function(){
+    var clients = [];
+    this.get('content.components').forEach(function(component){
+      if(component.get('isClient')) {
+        if(clients.length){
+          clients[clients.length-1].set('isLast', false);
+        }
+        component.set('isLast', true);
+        clients.push(component);
+      }
+    }, this);
+    return clients;
+  }.property('content'),
 
-  ComponentButtonView: Em.View.extend({
+  ComponentView: Em.View.extend({
     content: null,
-    /**
-     * Set in template via binding from parent view
-     */
-    decommissionDatanodeHostnames: null,
 
+    statusClass: function(){
+      var statusClass = null;
+      if(this.get('isDataNode')){
+        if(this.get('isDataNodeRecommissionAvailable') && this.get('isStart')){
+          // Orange is shown only when service is started/starting and it is decommissioned.
+          return 'health-status-DEAD-ORANGE';
+        }
+      }
+      return 'health-status-' + App.Component.Status.getKeyName(this.get('content.workStatus'));
+    }.property('content'),
     /**
      * Disable element while component is starting/stopping
      */
@@ -111,30 +144,6 @@ App.MainHostSummaryView = Em.View.extend({
         return '';
       }
     }.property('content.workStatus'),
-
-    adjustedIndex: function() {
-      return this.get('_parentView.contentIndex') + 1;
-    }.property(),
-
-    positionButton: function() {
-      return (this.get("adjustedIndex")%2 == 0) ? true : false;
-    }.property('content.id') ,
-
-    indicatorClass: function(){
-      var indicatorClass = null;
-      if(this.get('isDataNode')){
-        if(this.get('isDataNodeRecommissionAvailable') && this.get('componentCheckStatus')){
-          // Orange is shown only when service is started/starting and it is decommissioned.
-          return 'health-status-DEAD-ORANGE';
-        }
-      }
-      return 'health-status-' + App.Component.Status.getKeyName(this.get('hostComponent.workStatus'));
-    }.property('componentCheckStatus', 'hostComponent.workStatus', 'isDataNode', 'isDataNodeRecommissionAvailable'),
-
-    componentCheckStatus : function() {
-      return (this.get('hostComponent.workStatus') === App.Component.Status.started || this.get('hostComponent.workStatus') === App.Component.Status.starting);
-    }.property('hostComponent.workStatus'),
-
     /**
      * Do blinking for 1 minute
      */
@@ -153,14 +162,16 @@ App.MainHostSummaryView = Em.View.extend({
         });
       }
     },
-
     /**
      * Start blinking when host component is starting/stopping
      */
     startBlinking:function(){
       this.doBlinking();
-    }.observes('content.workStatus', 'hostComponent'),
+    }.observes('content.workStatus', 'content'),
 
+    isStart : function() {
+      return (this.get('content.workStatus') === App.Component.Status.started || this.get('content.workStatus') === App.Component.Status.starting);
+    }.property('content.workStatus'),
     /**
      * Shows whether we need to show Decommision/Recomission buttons
      */
@@ -169,48 +180,27 @@ App.MainHostSummaryView = Em.View.extend({
     }.property('content'),
 
     /**
+     * Set in template via binding from parent view
+     */
+    decommissionDataNodeHostNames: null,
+    /**
      * Decommission is available whenever the service is started.
      */
     isDataNodeDecommissionAvailable: function () {
-      return this.get('componentCheckStatus') && !this.get('isDataNodeRecommissionAvailable');
-    }.property('componentCheckStatus', 'isDataNodeRecommissionAvailable'),
+      return this.get('isStart') && !this.get('isDataNodeRecommissionAvailable');
+    }.property('isStart', 'isDataNodeRecommissionAvailable'),
 
     /**
      * Recommission is available only when this hostname shows up in the
-     * 'decommissionDatanodeHostnames'
+     * 'decommissionDataNodeHostNames'
      */
     isDataNodeRecommissionAvailable: function () {
-      var decommissionHostNames = this.get('decommissionDatanodeHostnames');
+      var decommissionHostNames = this.get('decommissionDataNodeHostNames');
       var hostName = App.router.get('mainHostDetailsController.content.hostName');
       return decommissionHostNames!=null && decommissionHostNames.contains(hostName);
-    }.property('App.router.mainHostDetailsController.content', 'decommissionDatanodeHostnames'),
+    }.property('App.router.mainHostDetailsController.content', 'decommissionDataNodeHostNames')
 
-    /**
-     * Provides the host_component for the service_component associated with
-     * this host.
-     */
-    hostComponent: function(){
-      var hostComponent = null;
-      var host = App.router.get('mainHostDetailsController.content');
-      var componentName = this.get('content.componentName');
-      if (host && componentName) {
-        var hComponents = host.get('hostComponents');
-        hostComponent = hComponents.findProperty("componentName", componentName);
-      }
-      return hostComponent;
-    }.property('App.router.mainHostDetailsController.content', 'content.componentName'),
-    
-    /**
-     * Shows whether we need to show health status
-     */
-    isClient: function() {
-      var componentName = this.get('content.componentName');
-      return componentName.substr(-7) === '_CLIENT' ||
-        componentName === 'PIG' ||
-        componentName === 'SQOOP';
-    }.property('content')
   }),
-
   timeSinceHeartBeat: function () {
     var d = this.get('content.lastHeartBeatTime');
     if (d) {

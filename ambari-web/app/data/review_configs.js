@@ -74,7 +74,7 @@ module.exports = [
         display_name: 'Hive + HCatalog',
         service_components: [
           Ember.Object.create({
-            display_name: 'Hive Metastore Server',
+            display_name: 'Hive Metastore',
             component_value: ''
           }),
           Ember.Object.create({
@@ -145,6 +145,16 @@ module.exports = [
             component_value: ''
           })
         ]
+      }),
+      Ember.Object.create({
+        service_name: 'PIG',
+        display_name: 'Pig',
+        service_components: []
+      }),
+      Ember.Object.create({
+        service_name: 'SQOOP',
+        display_name: 'Sqoop',
+        service_components: []
       }),
       Ember.Object.create({
         service_name: 'HCATALOG',

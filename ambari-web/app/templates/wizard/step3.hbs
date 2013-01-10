@@ -20,7 +20,6 @@
   <h2>{{t installer.step3.header}}</h2>
 
   <p class="alert alert-info">{{t installer.step3.body}}</p>
-  <div>{{controller.hostStatusSummary}}</div>
   <div class="box">
     <div class="box-header">
       <div class="button-section">
@@ -37,24 +36,30 @@
         </a>
         {{/unless}}
         {{#if App.testMode}}
-        <a class="btn btn-info"
-           href="#" {{action mockBtn target="controller" }}>
-          mockData
-        </a>
-        <a class="btn btn-info"
-           href="#" {{action pollBtn target="controller" }}>
-          pollData
-        </a>
+            <a class="btn btn-info"
+               href="#" {{action mockBtn target="controller"}}>
+                mockData
+            </a>
+            <a class="btn btn-info"
+               href="#" {{action pollBtn target="controller"}}>
+                pollData
+            </a>
         {{/if}}
 
-        <div id="host-filter" class="dropdown pull-right">
-          {{view Ember.Select class="pull-right"
-              contentBinding="controller.categories"
-              optionValuePath="content.value"
-              optionLabelPath="content.label"
-              selectionBinding="controller.category"
-          }}
-          <h5 class="pull-right">Show:</h5>
+        <div id="host-filter" class="pull-right">
+          <ul class="clearfix">
+            <li class="first">Show:</li>
+            {{#each category in controller.categories}}
+              <li {{bindAttr class="category.itemClass"}}>
+                <a {{action selectCategory category target="controller"}} href="#">
+                  {{category.label}}
+                </a>
+              </li>
+              {{#unless category.last}}
+                <li>|</li>
+              {{/unless}}
+            {{/each}}
+          </ul>
         </div>
       </div>
     </div>

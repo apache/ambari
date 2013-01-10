@@ -46,6 +46,10 @@ App.WizardStep7Controller = Em.Controller.extend({
     return this.get('content.services').filterProperty('isSelected', true).filterProperty('isInstalled', false).mapProperty('serviceName');
   }.property('content.services').cacheable(),
 
+  allInstalledServiceNames: function () {
+    return this.get('content.services').filterProperty('isSelected', true).mapProperty('serviceName');
+  }.property('content.services').cacheable(),
+
   masterComponentHosts: function () {
     return this.get('content.masterComponentHosts');
   }.property('content.masterComponentHosts'),
@@ -166,13 +170,21 @@ App.WizardStep7Controller = Em.Controller.extend({
         serviceName: _serviceConfig.serviceName,
         displayName: _serviceConfig.displayName,
         configCategories: _serviceConfig.configCategories,
+        showConfig: false,
         configs: []
       });
 
-      if (this.get('selectedServiceNames').contains(serviceConfig.serviceName) || serviceConfig.serviceName === 'MISC') {
+        if (this.get('allInstalledServiceNames').contains(serviceConfig.serviceName) || serviceConfig.serviceName === 'MISC') {
+
         this.loadComponentConfigs(_serviceConfig, serviceConfig);
 
-        console.log('pushing ' + serviceConfig.serviceName);
+        console.log('pushing ' + serviceConfig.serviceName, serviceConfig);
+
+        if(this.get('selectedServiceNames').contains(serviceConfig.serviceName))
+        {
+          serviceConfig.showConfig = true;
+        }
+
         this.get('stepConfigs').pushObject(serviceConfig);
 
       } else {
@@ -189,13 +201,13 @@ App.WizardStep7Controller = Em.Controller.extend({
     miscConfigs.findProperty('name', 'mapred_user').set('isVisible', this.get('selectedServiceNames').contains('MAPREDUCE'));
     miscConfigs.findProperty('name', 'hive_user').set('isVisible', this.get('selectedServiceNames').contains('HIVE'));
     miscConfigs.findProperty('name', 'hcat_user').set('isVisible', this.get('selectedServiceNames').contains('HCATALOG'));
-    miscConfigs.findProperty('name', 'templeton_user').set('isVisible', this.get('selectedServiceNames').contains('HCATALOG'));
+    miscConfigs.findProperty('name', 'webhcat_user').set('isVisible', this.get('selectedServiceNames').contains('WEBHCAT'));
     miscConfigs.findProperty('name', 'oozie_user').set('isVisible', this.get('selectedServiceNames').contains('OOZIE'));
     miscConfigs.findProperty('name', 'pig_user').set('isVisible', this.get('selectedServiceNames').contains('PIG'));
     miscConfigs.findProperty('name', 'sqoop_user').set('isVisible', this.get('selectedServiceNames').contains('SQOOP'));
     miscConfigs.findProperty('name', 'zk_user').set('isVisible', this.get('selectedServiceNames').contains('ZOOKEEPER'));
 
-    this.set('selectedService', this.get('stepConfigs').objectAt(0));
+    this.set('selectedService', this.get('stepConfigs').filterProperty('showConfig', true).objectAt(0));
   },
 
   /**

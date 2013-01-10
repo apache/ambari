@@ -30,7 +30,7 @@ module.exports = Em.Route.extend({
       $('title').text('Ambari - ' + name);
 
       if (App.db.getUser().admin) {
-        router.get('mainController').stopLoadOperationsPeriodically();
+        router.get('mainController').stopPolling();
         console.log('In installer with successful authenticated');
         console.log('current step=' + router.get('installerController.currentStep'));
         Ember.run.next(function () {
@@ -83,7 +83,7 @@ module.exports = Em.Route.extend({
     next: function (router) {
       var installerController = router.get('installerController');
       installerController.save('cluster');
-      installerController.clearHosts();
+      installerController.clearInstallOptions();
       router.transitionTo('step2');
     }
   }),
@@ -101,24 +101,10 @@ module.exports = Em.Route.extend({
     back: Em.Router.transitionTo('step1'),
     next: function (router) {
       var controller = router.get('installerController');
-      var wizardStep2Controller = router.get('wizardStep2Controller');
-      wizardStep2Controller.patternExpression();
-      controller.saveHosts(wizardStep2Controller);
+      controller.save('installOptions');
+      //hosts was saved to content.hosts inside wizardStep2Controller
+      controller.save('hosts');
       router.transitionTo('step3');
-      App.db.setBootStatus(false);
-    },
-
-    /**
-     * Validate form before doing anything
-     * @param router
-     */
-    evaluateStep: function (router) {
-      var wizardStep2Controller = router.get('wizardStep2Controller');
-      wizardStep2Controller.set('hasSubmitted', true);
-
-      if (!wizardStep2Controller.get('isSubmitDisabled')) {
-        wizardStep2Controller.evaluateStep();
-      }
     }
   }),
 
@@ -163,7 +149,6 @@ module.exports = Em.Route.extend({
       var controller = router.get('installerController');
       controller.setCurrentStep('4');
       controller.loadAllPriorSteps();
-      controller.loadServices();
       controller.connectOutlet('wizardStep4', controller.get('content.services'));
     },
     back: Em.Router.transitionTo('step3'),

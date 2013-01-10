@@ -270,12 +270,26 @@ h1 {
   }
   #confirm-hosts {
     #host-filter {
-      h5 {
-        margin-right: 8px;
-        line-height: 10px;
-      }
-      select {
-        margin-bottom: 0;
+      margin-top: 3px;
+      ul {
+        margin: 3px;
+        font-size: 12px;
+        li {
+          list-style: none;
+          display: block;
+          float: left;
+          padding: 0 2px;
+          a {
+            text-decoration: underline;
+          }
+        }
+        li.first {
+          font-weight: bold;
+        }
+        li.active a {
+          text-decoration: none;
+          color: #000000;
+        }
       }
     }
     .progress {
@@ -430,6 +444,17 @@ a:focus {
 @rack-state-plus: url("/img/rack-state-plus.png");
 @rack-state-minus: url("/img/rack-state-minus.png");
 
+/*Install Task Logs images*/
+@task-state-timedout: url("/img/task-log-timedout.png");
+@task-state-cancelled: url("/img/task-log-cancelled.png");
+@task-state-success: url("/img/task-log-success.png");
+@task-state-failed: url("/img/task-log-fail.png");
+@task-state-progress: url("/img/task-log-progress.png");
+@task-state-pending: url("/img/task-log-pending.png");
+@task-show-details: url("/img/task-log-show-detail.png");
+@task-detail-copy: url("/img/task-log-copy.png");
+@task-detail-open-dialog: url("/img/task-detail-open-dialog.png");
+
 /*****start styles for boxes*****/
 .box {
   border: 1px solid #D4D4D4;
@@ -471,6 +496,122 @@ a:focus {
 }
 
 /*****end styles for boxes*****/
+
+/*****start styles for install tasks logs*****/
+.task-list-main-warp, .task-detail-info {
+  .pending, .queued{
+    background: @task-state-pending left center no-repeat;
+  }
+  .in_progress{
+    background: @task-state-progress left center no-repeat;
+  }
+  .completed{
+    background: @task-state-success left center no-repeat;
+  }
+  .failed {
+    background: @task-state-failed left center no-repeat;
+  }
+  .aborted{
+    background: @task-state-cancelled left center no-repeat;
+  }
+  .timedout{
+    background: @task-state-timedout left center no-repeat;
+  }
+}
+.task-list-main-warp{
+
+  .task-top-wrap{
+
+    width:100%;
+    border-bottom: 1px solid #CCC;
+    text-align:center;
+    font-size:15px;
+    padding: 0 0 10px 0;
+
+    .select-wrap{
+      float: right;
+      margin-top: -8px;
+      select{
+        width:140px;
+      }
+    }
+  }
+
+  #host-log, {
+    .log-list-wrap{
+      padding: 10px 10px 10px 20px;
+      border-top: 1px solid #CCC;
+      border-bottom: 1px solid #CCC;
+
+      .show-details{
+        width:16px;
+        height:16px;
+        float: right;
+        cursor: pointer;
+        background: @task-show-details no-repeat center ;
+      }
+
+    }
+  }
+}
+
+.task-detail-info{
+
+  .task-detail-log-clipboard{
+    display: none;
+    resize: none;
+    overflow: hidden;
+  }
+
+  .task-top-wrap{
+    width:100%;
+    border-bottom: 1px solid #CCC;
+    text-align:center;
+    font-size:15px;
+    padding: 0 0 10px 0;
+
+    .task-detail-back{
+      float: left;
+    }
+
+    .task-detail-log-rolename{
+      position: relative;
+      left: 0;
+      top: 0;
+    }
+    .task-detail-status-ico{
+      width:24px;
+      height: 24px;
+      background-position: center;
+      content: "";
+      margin-top: -4px;
+      box-shadow: none;
+      margin-bottom: 0px;
+    }
+
+    .task-detail-ico-wrap{
+
+      float:right;
+      margin-top:-26px;
+
+      div{
+        width: 24px;
+        height: 24px;
+        cursor: pointer;
+      }
+      .task-detail-copy{
+        margin-right: 12px;
+        background: @task-detail-copy no-repeat center;
+        float: left;
+      }
+      .task-detail-open-dialog{
+        background: @task-detail-open-dialog no-repeat center;
+        float: right;
+      }
+    }
+  }
+}
+/*****end styles for install tasks logs*****/
 
 /*****start styles for dashboard page*****/
 
@@ -946,6 +1087,9 @@ a:focus {
 
 /*Hosts*/
 #hosts {
+  .health-status-HEALTHY{
+    background-image: @status-live-marker;
+  }
   .health-status-LIVE {
     background-image: @status-live-marker;
   }
@@ -988,14 +1132,16 @@ a:focus {
     }
     th, td {
       width: 82px;
+      border-left-width: 0;
     }
     th.first, td.first {
-      width: 30px;
+      width: 10px !important;
+      border-left-width: 1px;
     }
     td.first label {
       padding-top: 3px;
     }
-    td.name span {
+    td.first span {
       display: block;
       float: left;
       height: 13px;
@@ -1003,8 +1149,7 @@ a:focus {
       width: 13px;
     }
     ul#filter-dropdown {
-      padding: 5px 25px 5px 0;
-
+      padding: 5px 0;
       li {
         display: block;
         padding: 3px 0 3px 5px;
@@ -1019,6 +1164,13 @@ a:focus {
           margin-right: 2px;
           margin-bottom: 2px;
           margin: 0 2px 2px;
+        }
+      }
+      &>li {
+        &>ul {
+          height: 250px;
+          margin-left: 0;
+          overflow-y: scroll;
         }
       }
     }
@@ -1163,15 +1315,16 @@ a:focus {
   .health-status-started, .health-status-starting {
     background-image: @status-live-marker;
     background-repeat: no-repeat;
-    background-position: 0px 4px;
+    display: inline-block;
+    height: 13px;
+    width: 13px;
   }
   .health-status-installed, .health-status-stopping {
     background-image: @status-dead-marker;
     background-repeat: no-repeat;
-    background-position: 0px 4px;
-  }
-  .span3.host-components {
-    width: 300px;
+    display: inline-block;
+    height: 13px;
+    width: 13px;
   }
 
   .health-status-LIVE {
@@ -1224,7 +1377,7 @@ a:focus {
   .host-metrics {
     [class*="span"] {
       float: left;
-      margin-left: 10px;
+      margin-left: 5px;
     }
     .chart-container {
       .chart-x-axis {
@@ -1243,13 +1396,6 @@ a:focus {
   }
   .host-components .btn-group {
     margin: 0 5px 10px 0;
-    .components-health {
-      margin-top: 4px;
-      width: 13px;
-      height: 13px;
-      float: left;
-      background-position: center center;
-    }
   }
 }
 
@@ -1926,6 +2072,8 @@ ul.inline li {
 }
 
 #host-details > .host-title {
+  font-size: 18px;
+  font-weight: 700;
   background-position: 0px center;
   padding-left: 17px;
 }
@@ -2043,5 +2191,19 @@ ul.inline li {
 }
 
 .modal-body {
+  .spinner {
+    padding: 8px 35px 8px 42px;
+    background: url(/img/spinner.gif) no-repeat;
+  }
   max-height: none;
+}
+
+
+// Get checkboxes to line up with text in components dropdown on Hosts page
+#hosts .table ul#filter-dropdown li input[type="checkbox"] {
+  margin: 4px 4px 2px 2px;
+}
+
+#hosts .table a.ui-icon-circle-close {
+  margin-top: 6px;
 }

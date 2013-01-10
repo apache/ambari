@@ -455,6 +455,8 @@ AMBARI-666 branch (unreleased changes)
 
   IMPROVEMENTS
 
+  AMBARI-1145. Cluster Management refactoring. (yusaku)
+
   AMBARI-984. Add support for exposing filesystem type for mount points
   at host level. (hitesh via mahadev)
 

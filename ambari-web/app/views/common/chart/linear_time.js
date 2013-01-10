@@ -96,6 +96,8 @@ App.ChartLinearTimeView = Ember.View.extend({
 
       isPopupReady: false,
 
+      hasData: true,
+
       /**
        * Color palette used for this chart
        *
@@ -110,16 +112,11 @@ App.ChartLinearTimeView = Ember.View.extend({
           'rgba(115,192,58,0.4)', 'rgba(203,81,58,0.4)' ].reverse(),
       */
 
-      init: function () {
-        this._super();
-      },
-
       selector: function () {
         return '#' + this.get('elementId');
       }.property('elementId'),
 
       didInsertElement: function () {
-        this._super();
         this.loadData();
         this.registerGraph();
       },
@@ -247,6 +244,24 @@ App.ChartLinearTimeView = Ember.View.extend({
         return null;
       },
 
+  /**
+   * Check whether seriesData is correct data for chart drawing
+   * @param seriesData
+   * @return {Boolean}
+   */
+      checkSeries : function(seriesData){
+        if(!seriesData || !seriesData.length){
+          return false;
+        }
+        var result = true;
+        seriesData.forEach(function(item){
+          if(!item.data.length || !item.data[0] || typeof item.data[0].x === 'undefined'){
+            result = false;
+          }
+        });
+        return result;
+      },
+
       /**
        * @private
        * 
@@ -256,9 +271,10 @@ App.ChartLinearTimeView = Ember.View.extend({
        */
       _refreshGraph: function (jsonData) {
         var seriesData = this.transformToSeries(jsonData);
-        if (seriesData instanceof Array && seriesData.length>0) {
+
+        if (this.checkSeries(seriesData)) {
           //if graph opened as modal popup
-          var popup_path = $(".modal-graph-line .modal-body #" + this.id + "-container" + this.get('popupSuffix'));
+          var popup_path = $("#" + this.id + "-container" + this.get('popupSuffix'));
           if(popup_path.length) {
             popup_path.children().each(function () {
               $(this).children().remove();
@@ -271,10 +287,13 @@ App.ChartLinearTimeView = Ember.View.extend({
             });
           }
           this.draw(seriesData);
+          this.set('hasData', true);
         }
         else {
           this.set('isReady', true);
           this._showMessage('info', 'No Data', 'There was no data available.');
+          this.set('isPopup', false);
+          this.set('hasData', false);
         }
       },
       
@@ -331,11 +350,6 @@ App.ChartLinearTimeView = Ember.View.extend({
         var self = this;
         var series_min_length = 100000000;
         seriesData.forEach(function (series, index) {
-          // Don't draw empty graph
-          if (series.data.length == 0) {
-            this.set('isPopup', false);
-            return;
-          }
           series.color = palette.color();
           series.stroke = 'rgba(0,0,0,0.3)';
           if (isPopup) {
@@ -513,6 +527,10 @@ App.ChartLinearTimeView = Ember.View.extend({
 
 
       showGraphInPopup: function() {
+        if(!this.get('hasData')){
+          return;
+        }
+
         this.set('isPopup', true);
         var self = this;
         App.ModalPopup.show({
