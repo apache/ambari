@@ -149,7 +149,7 @@ module.exports = new Ember.Set([
   {
     service_name: 'HIVE',
     component_name: 'HIVE_SERVER',
-    display_name: 'Hive Server',
+    display_name: 'HiveServer2',
     isMaster: true,
     isClient: false,
     description: ''

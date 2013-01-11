@@ -52,14 +52,20 @@ App.Service = DS.Model.extend({
 
   isStopped: function () {
     var components = this.get('components');
-    return components.everyProperty('workStatus', App.Component.Status.stopped);
+    var flag = true;
+    components.forEach(function (_component) {
+      if (_component.get('workStatus') !== App.Component.Status.stopped && _component.get('workStatus') !== App.Component.Status.install_failed) {
+        flag = false;
+      }
+    }, this);
+    return flag;
   }.property('components.@each.workStatus'),
 
   isStarted: function () {
     var components = this.get('components').filterProperty('isMaster', true);
     return components.everyProperty('workStatus', App.Component.Status.started);
   }.property('components.@each.workStatus'),
-  isMaintained: function(){
+  isMaintained: function () {
     var maintainedServices = [
       "HDFS",
       "MAPREDUCE",
@@ -71,11 +77,11 @@ App.Service = DS.Model.extend({
       "PIG",
       "SQOOP"
     ];
-    for(var i in maintainedServices){
-      if(this.get('serviceName') == maintainedServices[i]) return true;
+    for (var i in maintainedServices) {
+      if (this.get('serviceName') == maintainedServices[i]) return true;
     }
   }.property('serviceName'),
-  isConfigurable:function(){
+  isConfigurable: function () {
     var configurableServices = [
       "HDFS",
       "MAPREDUCE",
@@ -88,8 +94,8 @@ App.Service = DS.Model.extend({
       "SQOOP",
       "NAGIOS"
     ];
-    for(var i in configurableServices){
-      if(this.get('serviceName') == configurableServices[i]) return true;
+    for (var i in configurableServices) {
+      if (this.get('serviceName') == configurableServices[i]) return true;
     }
   }.property('serviceName'),
   displayName: function () {

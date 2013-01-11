@@ -21,9 +21,10 @@ var App = require('app');
 
 App.WizardController = Em.Controller.extend({
 
-  isStepDisabled: [],
+  isStepDisabled: null,
 
   init: function () {
+    this.set('isStepDisabled', []);
     this.clusters = App.Cluster.find();
     this.isStepDisabled.pushObject(Ember.Object.create({
       step: 1,

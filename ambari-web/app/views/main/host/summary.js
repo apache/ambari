@@ -132,13 +132,31 @@ App.MainHostSummaryView = Em.View.extend({
       return hostComponent;
     }.property('content', 'App.router.mainHostDetailsController.content'),
     workStatus: function(){
-      var workStatus = this.get('content.workStatus');
+      var componentName = this.get('content.componentName');
       var hostComponent = this.get('hostComponent');
+      if (App.router.get('backgroundOperationsController.allOperationsCount')) {
+        var task = App.router.get('backgroundOperationsController').getTasksByRole(componentName);
+        if(!Ember.empty(task)){
+          if (task[0].start_time == -1 && task[0].command == 'START') {
+            this.content.set('workStatus', App.HostComponent.Status.starting);
+            if (hostComponent) {
+              hostComponent.set('workStatus', App.HostComponent.Status.starting);
+            }
+          } else if (task[0].start_time == -1 && task[0].command == 'STOP') {
+            this.content.set('workStatus', App.HostComponent.Status.stopping);
+            if (hostComponent) {
+              hostComponent.set('workStatus', App.HostComponent.Status.stopping);
+            }
+          }
+        }
+      }
+
+      var workStatus = this.get('content.workStatus');
       if(hostComponent){
         workStatus = hostComponent.get('workStatus');
       }
       return workStatus;
-    }.property('content.workStatus', 'hostComponent.workStatus'),
+    }.property('hostComponent.workStatus', 'App.route.backgroundOperationsController.allOperationsCount'), //'content.workStatus',
     statusClass: function(){
       var statusClass = null;
       if(this.get('isDataNode')){
@@ -182,6 +200,8 @@ App.MainHostSummaryView = Em.View.extend({
      * Start blinking when host component is starting/stopping
      */
     startBlinking:function(){
+      this.$('.components-health').stop(true, true);
+      this.$('.components-health').css({opacity: 1.0});
       this.doBlinking();
     }.observes('workStatus'),
 

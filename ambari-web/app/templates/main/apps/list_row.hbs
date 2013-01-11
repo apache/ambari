@@ -25,4 +25,12 @@
 <td>{{unbound run.inputFormatted}}</td>
 <td>{{unbound run.outputFormatted}}</td>
 <td>{{unbound run.duration}}</td>
-<td ><span title="{{unbound run.lastUpdateTimeFormatted}}">{{unbound run.lastUpdateTimeFormattedShort}}</span>&nbsp;{{#if run.isRunning}}<b class='red'>*</b>{{/if}}</td>
+{{#if run.isRunning}}
+<td rel="popover" {{translateAttr title="apps.isRunning.popup.title" data-content="apps.isRunning.popup.content"}}>
+    <span title="{{unbound run.lastUpdateTimeFormatted}}">{{unbound run.lastUpdateTimeFormattedShort}}</span>
+    <b class='red'>*</b></td>
+{{else}}
+<td>
+    <span title="{{unbound run.lastUpdateTimeFormatted}}">{{unbound run.lastUpdateTimeFormattedShort}}</span>
+</td>
+{{/if}}

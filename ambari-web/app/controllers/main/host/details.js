@@ -147,8 +147,6 @@ App.MainHostDetailsController = Em.Controller.extend({
 
           console.log('Send request for STOPPING successfully');
 
-
-
           if(App.testMode){
             component.set('workStatus', App.Component.Status.stopping);
             setTimeout(function(){

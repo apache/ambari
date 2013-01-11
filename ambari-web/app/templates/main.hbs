@@ -23,7 +23,7 @@
       <a class="brand" href="#" {{bindAttr title="clusterName"}}>
         {{clusterDisplayName}}
 
-        {{#view App.EmptyView controllerBinding="App.router.backgroundOperationsController"}}
+        {{#view Em.View tagName="" controllerBinding="App.router.backgroundOperationsController"}}
           {{#if allOperationsCount}}
             <span class="label operations-count" {{action "showPopup" target="controller"}}>{{allOperationsCount}}</span>
           {{/if}}

@@ -120,9 +120,9 @@ App.WizardStep9Controller = Em.Controller.extend({
     var hosts = new Ember.Set();
     for (var index in hostInfo) {
       var obj = Em.Object.create(hostInfo[index]);
-      obj.message = '';
+      //obj.message = '';
       obj.progress = 0;
-      obj.status = 'info';
+      obj.status = (obj.status) ? obj.status : 'info';
       obj.tasks = [];
       obj.logTasks = [];
       hosts.add(obj);

@@ -278,6 +278,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
           serviceConfigObj.isReconfigurable = (configProperty.isReconfigurable !== undefined) ? configProperty.isReconfigurable : true;
           serviceConfigObj.isVisible = (configProperty.isVisible !== undefined) ? configProperty.isVisible : true;
           serviceConfigObj.unit = (configProperty.unit !== undefined) ? configProperty.unit : undefined;
+          serviceConfigObj.description = (configProperty.description !== undefined) ? configProperty.description : undefined;
 
         }
         serviceConfigObj.displayType = this.get('configs').someProperty('name', index) ? this.get('configs').findProperty('name', index).displayType : null;
@@ -315,16 +316,14 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
           globalConfigs.pushObject(serviceConfigObj);
         } else if (!this.get('configMapping').someProperty('name', index)) {
           if (advancedConfig.someProperty('name', index)) {
-
-            if (_tag.siteName !== this.get('serviceConfigs').findProperty('serviceName', this.get('content.serviceName')).filename) {
-              serviceConfigObj.isVisible = false;
-            }
             serviceConfigObj.id = 'site property';
             serviceConfigObj.serviceName = this.get('content.serviceName');
             serviceConfigObj.category = 'Advanced';
             serviceConfigObj.displayName = index;
             serviceConfigObj.displayType = 'advanced';
-            // localServiceConfigs.configs.pushObject(serviceConfigObj);
+            if (advancedConfig.findProperty('name', index).filename) {
+              serviceConfigObj.filename = advancedConfig.findProperty('name', index).filename;
+            }
             serviceConfigs.pushObject(serviceConfigObj);
           } else {
             serviceConfigObj.id = 'conf-site';
@@ -431,7 +430,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
     var message;
     var value;
     var flag;
-    if (this.get('content.isStopped') === true) {
+    if ((this.get('content.serviceName') !== 'HDFS' && this.get('content.isStopped') === true) || (this.get('content.serviceName') === 'HDFS') && this.get('content.isStopped') === true && App.Service.find('MAPREDUCE').get('isStopped')) {
       var result = this.saveServiceConfigProperties();
       flag = result.flag;
       if (flag === true) {
@@ -444,8 +443,13 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
       }
 
     } else {
-      header = 'Stop Service';
-      message = 'Stop the service and wait till it stops completely. Thereafter you can apply configuration changes';
+      if (this.get('content.serviceName') !== 'HDFS') {
+        header = 'Stop Service';
+        message = 'Stop the service and wait till it stops completely. Thereafter you can apply configuration changes';
+      } else {
+        header = 'Stop Services';
+        message = 'Stop HDFS and MapReduce. Wait till both of them stops completely. Thereafter you can apply configuration changes';
+      }
     }
     App.ModalPopup.show({
       header: header,
@@ -525,13 +529,21 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
     var customConfigResult = this.setCustomConfigs();
     result.flag = customConfigResult.flag;
     result.value = customConfigResult.value;
+    /*
+    For now, we are skipping validation checks to see if the user is overriding already-defined paramaters, as
+    the user needs this flexibility.  We may turn this back on as a warning in the future...
     if (result.flag !== true) {
       result.message = 'Error in custom configuration. Some properties entered in the box are already exposed on this page';
       return result;
     }
+    */
     result.flag = result.flag && this.createConfigurations();
     if (result.flag === true) {
-      result.flag = this.applyCreatedConfToService('new');
+      if (this.get('content.serviceName') !== 'HDFS') {
+        result.flag = this.applyCreatedConfToService(this.get('content.serviceName'));
+      } else {
+        result.flag = this.applyCreatedConfToService(this.get('content.serviceName')) && this.applyCreatedConfToService('MAPREDUCE');
+      }
     } else {
       result.message = 'Faliure in applying service configuration';
     }
@@ -778,8 +790,8 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
     this.get('globalConfigs').forEach(function (_globalSiteObj) {
       // do not pass any globalConfigs whose name ends with _host or _hosts
       if (!/_hosts?$/.test(_globalSiteObj.name)) {
-        // append "m" to JVM memory options
-        if (/_heapsize|_newsize|_maxnewsize$/.test(_globalSiteObj.name)) {
+        // append "m" to JVM memory options except for hadoop_heapsize
+        if (/_heapsize|_newsize|_maxnewsize$/.test(_globalSiteObj.name) && _globalSiteObj.name !== 'hadoop_heapsize') {
           _globalSiteObj.value += "m";
         }
         globalSiteProperties[_globalSiteObj.name] = _globalSiteObj.value;
@@ -819,11 +831,11 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
     return {"type": siteName, "tag": tagName, "properties": siteProperties};
   },
 
-  applyCreatedConfToService: function (configStatus) {
+  applyCreatedConfToService: function (serviceName) {
     var result;
     var clusterName = App.router.getClusterName();
-    var url = App.apiPrefix + '/clusters/' + clusterName + '/services/' + this.get('content.serviceName');
-    var data = this.getConfigForService(configStatus);
+    var url = App.apiPrefix + '/clusters/' + clusterName + '/services/' + serviceName;
+    var data = this.getConfigForService(serviceName);
     var realData = data;
     $.ajax({
       type: 'PUT',
@@ -853,22 +865,17 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
     return result;
   },
 
-  getConfigForService: function (config) {
+  getConfigForService: function (serviceName) {
     var data = {config: {}};
     this.get('serviceConfigTags').forEach(function (_serviceTag) {
-      if (config === 'new') {
-        if (_serviceTag.siteName === 'core-site') {
-          if (this.get('content.serviceName') === 'HDFS') {
-            data.config[_serviceTag.siteName] = _serviceTag.newTagName;
-          } else {
-            data.config[_serviceTag.siteName] = _serviceTag.tagName;
-          }
-        } else {
+      if (_serviceTag.siteName === 'core-site') {
+        if (this.get('content.serviceName') === 'HDFS') {
           data.config[_serviceTag.siteName] = _serviceTag.newTagName;
+        } else {
+          data.config[_serviceTag.siteName] = _serviceTag.tagName;
         }
-      }
-      else if (config = 'previous') {
-        data.config[_serviceTag.siteName] = _serviceTag.tagName;
+      } else if (this.get('content.serviceName') === serviceName) {
+        data.config[_serviceTag.siteName] = _serviceTag.newTagName;
       }
     }, this);
     return data;
@@ -884,28 +891,31 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
         keyValue.forEach(function (_keyValue) {
           console.log("The value of the keyValue is: " + _keyValue.trim());
           _keyValue = _keyValue.trim();
-          var key = _keyValue.match(/(.+)=/);
-          var value = _keyValue.match(/=(.*)/);
-          if (key) {
-            // Check dat entered config is allowed to reconfigure
-            if (this.get('uiConfigs').filterProperty('filename', _site.name + '.xml').someProperty('name', key[1])) {
+
+          // split on the first = encountered (the value may contain ='s)
+          var matches = _keyValue.match(/^([^=]+)=(.*)$/);
+          if (matches) {
+            var key = matches[1];
+            var value = matches[2];
+            // Check that entered config is allowed to reconfigure
+            if (this.get('uiConfigs').filterProperty('filename', _site.name + '.xml').someProperty('name', key)) {
               var property = {
                 siteProperty: null,
                 displayNames: []
               };
               if (_site.name !== 'core-site') {
-                property.siteProperty = key[1];
+                property.siteProperty = key;
 
-                if (this.get('configMapping').someProperty('name', key[1])) {
-                  this.setPropertyDisplayNames(property.displayNames, this.get('configMapping').findProperty('name', key[1]).templateName);
+                if (this.get('configMapping').someProperty('name', key)) {
+                  this.setPropertyDisplayNames(property.displayNames, this.get('configMapping').findProperty('name', key).templateName);
                 }
                 siteProperties.push(property);
                 flag = false;
               } else {
-                this.setSiteProperty(key[1], value[1], _site.name + '.xml');
+                this.setSiteProperty(key, value, _site.name + '.xml');
               }
             } else if (flag) {
-              this.setSiteProperty(key[1], value[1], _site.name + '.xml');
+              this.setSiteProperty(key, value, _site.name + '.xml');
             }
           }
         }, this);

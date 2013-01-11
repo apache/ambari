@@ -76,6 +76,7 @@ App.Component.Status = {
   stopping: "STOPPING",
   stop_failed: "STOP_FAILED",
   start_failed: "START_FAILED",
+  install_failed: "INSTALL_FAILED",
 
   getKeyName:function(value){
     switch(value){
@@ -91,6 +92,8 @@ App.Component.Status = {
         return 'stop_failed';
       case this.start_failed:
         return 'start_failed';
+      case this.install_failed:
+         return 'install_failed';
     }
     return 'none';
   }

@@ -17,6 +17,11 @@
 }}
 
 <h2>{{t installer.step10.header}}</h2>
+{{#if isNagiosRestartRequired}}
+  <div class="alert alert-danger">
+    {{t installer.step10.nagiosRestartRequired}}
+  </div>
+{{/if}}
 <div class="alert alert-info">
   {{t installer.step10.body}}
 </div>

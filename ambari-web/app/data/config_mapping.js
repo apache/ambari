@@ -344,7 +344,7 @@ module.exports = [
     "name": "javax.jdo.option.ConnectionURL",
     "templateName": ["hive_mysql_hostname", "hive_database_name"],
     "foreignKey": null,
-    "value": "jdbc:mysql://<templateName[0]>\/<templateName[1]>?createDatabaseIfNotExist=true",
+    "value": "jdbc:mysql://<templateName[0]>/<templateName[1]>?createDatabaseIfNotExist=true",
     "filename": "hive-site.xml"
   },
   {
@@ -428,14 +428,14 @@ module.exports = [
     "name": "mapred.hosts",
     "templateName": ["hadoop_conf_dir", "mapred_hosts_include"],
     "foreignKey": null,
-    "value": "<templateName[0]>\/<templateName[1]>",
+    "value": "<templateName[0]>/<templateName[1]>",
     "filename": "mapred-site.xml"
   },
   {
     "name": "mapred.hosts.exclude",
     "templateName": ["hadoop_conf_dir", "mapred_hosts_exclude"],
     "foreignKey": null,
-    "value": "<templateName[0]>\/<templateName[1]>",
+    "value": "<templateName[0]>/<templateName[1]>",
     "filename": "mapred-site.xml"
   },
   {
@@ -449,7 +449,7 @@ module.exports = [
     "name": "mapred.job.tracker.persist.jobstatus.dir",
     "templateName": ["hadoop_conf_dir"],
     "foreignKey": null,
-    "value": "<templateName[0]>\/health_check",
+    "value": "<templateName[0]>/health_check",
     "filename": "mapred-site.xml"
   },
   {
@@ -526,28 +526,28 @@ module.exports = [
     "name": "mapreduce.jobtracker.kerberos.principal",
     "templateName": ["kerberos_domain"],
     "foreignKey": null,
-    "value": "jt\/_HOST@<templateName[0]>",
+    "value": "jt/_HOST@<templateName[0]>",
     "filename": "mapred-site.xml"
   },
   {
     "name": "mapreduce.tasktracker.kerberos.principal",
     "templateName": ["kerberos_domain"],
     "foreignKey": null,
-    "value": "tt\/_HOST@<templateName[0]>",
+    "value": "tt/_HOST@<templateName[0]>",
     "filename": "mapred-site.xml"
   },
   {
     "name": "mapreduce.jobtracker.keytab.file",
     "templateName": ["keytab_path"],
     "foreignKey": null,
-    "value": "<templateName[0]>\/jt.service.keytab",
+    "value": "<templateName[0]>/jt.service.keytab",
     "filename": "mapred-site.xml"
   },
   {
     "name": "mapreduce.tasktracker.keytab.file",
     "templateName": ["keytab_path"],
     "foreignKey": null,
-    "value": "<templateName[0]>\/tt.service.keytab",
+    "value": "<templateName[0]>/tt.service.keytab",
     "filename": "mapred-site.xml"
   },
   {
@@ -568,21 +568,21 @@ module.exports = [
     "name": "mapreduce.jobhistory.kerberos.principal",
     "templateName": ["kerberos_domain"],
     "foreignKey": null,
-    "value": "jt\/_HOST@<templateName[0]>",
+    "value": "jt/_HOST@<templateName[0]>",
     "filename": "mapred-site.xml"
   },
   {
     "name": "mapreduce.jobhistory.keytab.file",
     "templateName": ["keytab_path"],
     "foreignKey": null,
-    "value": "<templateName[0]>\/jt.service.keytab",
+    "value": "<templateName[0]>/jt.service.keytab",
     "filename": "mapred-site.xml"
   },
   {
     "name": "hbase.rootdir",
     "templateName": ["namenode_host", "hbase_hdfs_root_dir"],
     "foreignKey": null,
-    "value": "hdfs:\/\/<templateName[0]>:8020<templateName[1]>",
+    "value": "hdfs://<templateName[0]>:8020<templateName[1]>",
     "filename": "hbase-site.xml"
   },
   {
@@ -724,21 +724,21 @@ module.exports = [
     "name": "hbase.master.keytab.file",
     "templateName": ["keytab_path"],
     "foreignKey": null,
-    "value": "<templateName[0]>\/hm.service.keytab",
+    "value": "<templateName[0]>/hm.service.keytab",
     "filename": "hbase-site.xml"
   },
   {
     "name": "hbase.master.kerberos.principal",
     "templateName": ["kerberos_domain"],
     "foreignKey": null,
-    "value": "hm\/_HOST@<templateName[0]>",
+    "value": "hm/_HOST@<templateName[0]>",
     "filename": "hbase-site.xml"
   },
   {
     "name": "hbase.regionserver.kerberos.principal",
     "templateName": ["kerberos_domain"],
     "foreignKey": null,
-    "value": "rs\/_HOST@<templateName[0]>",
+    "value": "rs/_HOST@<templateName[0]>",
     "filename": "hbase-site.xml"
   },
   /*

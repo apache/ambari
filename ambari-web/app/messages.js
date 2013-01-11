@@ -113,7 +113,7 @@ Em.I18n.translations = {
 
   'installer.step3.header':'Confirm Hosts',
   'installer.step3.body':'Registering your hosts.<br>' +
-    'Please confirm the host list and remove any hosts you do not want to include the cluster.',
+    'Please confirm the host list and remove any hosts that you do not want to include in the cluster.',
   'installer.step3.hostLog.popup.header':'Registration log for {0}',
   'installer.step3.hosts.remove.popup.header':'Remove Hosts',
   'installer.step3.hosts.remove.popup.body':'Are you sure you want to remove the selected host(s)?',
@@ -131,7 +131,7 @@ Em.I18n.translations = {
   'installer.step5.header':'Assign Masters',
   'installer.step5.attention':' hosts not running master services',
   'installer.step5.body':'Assign master components to hosts you want to run them on.',
-  'installer.step5.body.hive':'<i class="icon-asterisks">&#10037</i> Hive Server, Hive Metastore, and WebHCat Server will be co-hosted on the same server.',
+  'installer.step5.body.hive':'<i class="icon-asterisks">&#10037</i> HiveServer2, Hive Metastore, and WebHCat Server will be co-hosted on the same server.',
 
   'installer.step6.header':'Assign Slaves and Clients',
   'installer.step6.body':'Assign slave and client components to hosts you want to run them on.<br/>Hosts that are assigned master components are shown with <i class=icon-asterisks>&#10037</i>. <br/>&quot;Client&quot; will install ',
@@ -158,7 +158,7 @@ Em.I18n.translations = {
 
   'installer.step10.header':'Summary',
   'installer.step10.body':'Here is the summary of the install process.',
-
+  'installer.step10.nagiosRestartRequired':'<b>Important!</b> Restarting Nagios service is required for the alerts and notifications to work properly.  After clicking on the Complete button to dismiss this wizard, go to Services -> Nagios to restart the Nagios service.',
 
   'form.create':'Create',
   'form.save':'Save',
@@ -391,6 +391,8 @@ Em.I18n.translations = {
 
   'apps.filters.customRunDate':'Run Date custom filter',
   'apps.dagCharts.popup':'DAG/Charts',
+  'apps.isRunning.popup.title':'Is running',
+  'apps.isRunning.popup.content':'Job is running now',
 
   'nagios.alerts.unavailable':'Alerts Unavailable'
 

@@ -206,10 +206,16 @@ App.MainAppsView = Em.View.extend({
   /**
    * Click on big star on the avg block
    */
-  avgStarClick: function() {
-    if (this.get('viewType') === 'starred') return;
-    this.set('whatAvgShow', !this.get('whatAvgShow'));
+  avgStarClick: function () {
     $('a.icon-star.a').toggleClass('active');
+    this.set('whatAvgShow', !this.get('whatAvgShow'));
+    if (!$('a.icon-star.a').hasClass('active')) {
+      if (this.get('viewType') === 'starred') {
+        this.set('viewType', 'filtered');
+      }
+    } else {
+      this.set('viewType', 'starred');
+    }
   },
   /**
    *
@@ -319,6 +325,7 @@ App.MainAppsView = Em.View.extend({
         this.showStared();
         break;
       case 'filtered':
+        this.get('starFilterViewInstance').set('value', '');
         table.fnSettings().oFeatures.bFilter = true;
         table.fnDraw();
         break;
@@ -331,6 +338,7 @@ App.MainAppsView = Em.View.extend({
    * jQuery dataTable init
    */
   createDataTable: function () {
+    $("[rel=popover]").popover({'placement': 'left', 'trigger': 'hover'});
     var smallStars = $('#dataTable .icon-star');
     var self = this;
     this.set('smallStarsIcons', smallStars);

@@ -16,6 +16,12 @@
    limitations under the License.
 -->
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+  <parent>
+    <groupId>org.apache.ambari</groupId>
+    <artifactId>ambari-project</artifactId>
+    <version>1.2.0-SNAPSHOT</version>
+    <relativePath>../ambari-project</relativePath>
+  </parent>
   <modelVersion>4.0.0</modelVersion>
   <groupId>org.apache.ambari</groupId>
   <artifactId>ambari-web</artifactId>
@@ -121,19 +127,19 @@
           </execution>
         </executions>
       </plugin>
-        <plugin>
-            <groupId>org.apache.rat</groupId>
-            <artifactId>apache-rat-plugin</artifactId>
-            <version>0.8</version>
-            <configuration>
-                <excludes>
-                    <exclude></exclude>
-                </excludes>
-                <includes>
-                    <include>pom.xml</include>
-                </includes>
-            </configuration>
-        </plugin>
+      <plugin>
+        <groupId>org.apache.rat</groupId>
+        <artifactId>apache-rat-plugin</artifactId>
+        <configuration>
+          <excludes>
+            <exclude>package.json</exclude>
+            <exclude>public/**</exclude>
+            <exclude>app/assets/**</exclude>
+            <exclude>vendor/**</exclude>
+            <exclude>node_modules/**</exclude>
+          </excludes>
+        </configuration>
+      </plugin>
     </plugins>
   </build>
 </project>

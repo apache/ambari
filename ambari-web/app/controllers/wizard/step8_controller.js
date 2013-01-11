@@ -136,18 +136,16 @@ App.WizardStep8Controller = Em.Controller.extend({
         // Hack for templeton.zookeeper.hosts
         if (value !== null) {   // if the property depends on more than one template name like <templateName[0]>/<templateName[1]> then don't proceed to the next if the prior is null or not found in the global configs
           if (name === "templeton.zookeeper.hosts" || name === 'hbase.zookeeper.quorum') {
+            // globValue is an array of ZooKeeper Server hosts
             var zooKeeperPort = '2181';
-            if (typeof globValue === 'string') {
-              var temp = [];
-              temp.push(globValue);
-              globValue = temp;
-            }
             if (name === "templeton.zookeeper.hosts") {
-              globValue.forEach(function (_host, index) {
-                globValue[index] = globValue[index] + ':' + zooKeeperPort;
-              }, this);
+              var zooKeeperServers = globValue.map(function (item) {
+                return item + ':' + zooKeeperPort;
+              }).join(',');
+              value = value.replace(_express, zooKeeperServers);
+            } else {
+              value = value.replace(_express, globValue.join(','));
             }
-            value = value.replace(_express, globValue.toString());
           } else {
             value = value.replace(_express, globValue);
           }
@@ -231,14 +229,17 @@ App.WizardStep8Controller = Em.Controller.extend({
       var keyValue = _site.value.split(/\n+/);
       if (keyValue) {
         keyValue.forEach(function (_keyValue) {
-          console.log("The value of the keyValue is: " + _keyValue.trim());
           _keyValue = _keyValue.trim();
-          var key = _keyValue.match(/(.+)=/);
-          var value = _keyValue.match(/=(.*)/);
-          if (key) {
-            this.setSiteProperty(key[1], value[1], _site.name + '.xml');
+          console.log("The value of the keyValue is: " + _keyValue);
+          // split on the first = encountered (the value may contain ='s)
+          var matches = _keyValue.match(/^([^=]+)=(.*)$/);
+          if (matches) {
+            var key = matches[1];
+            var value = matches[2];
+            if (key) {
+              this.setSiteProperty(key, value, _site.name + '.xml');
+            }
           }
-
         }, this);
       }
     }, this);
@@ -562,7 +563,7 @@ App.WizardStep8Controller = Em.Controller.extend({
   },
 
   loadHiveMetaStoreValue: function (metaStoreComponent) {
-    var hiveHostName = this.get('content.masterComponentHosts').findProperty('display_name', 'Hive Server');
+    var hiveHostName = this.get('content.masterComponentHosts').findProperty('display_name', 'HiveServer2');
     metaStoreComponent.set('component_value', hiveHostName.hostName);
   },
 
@@ -1144,11 +1145,9 @@ App.WizardStep8Controller = Em.Controller.extend({
     this.get('globals').forEach(function (_globalSiteObj) {
       // do not pass any globals whose name ends with _host or _hosts
       if (!/_hosts?$/.test(_globalSiteObj.name)) {
-        // append "m" to JVM memory options
-        var value = null;
-        if (/_heapsize|_newsize|_maxnewsize$/.test(_globalSiteObj.name)) {
-          value = _globalSiteObj.value + "m";
-          globalSiteProperties[_globalSiteObj.name] = value;
+        // append "m" to JVM memory options except for hadoop_heapsize
+        if (/_heapsize|_newsize|_maxnewsize$/.test(_globalSiteObj.name) && _globalSiteObj.name !== 'hadoop_heapsize') {
+          globalSiteProperties[_globalSiteObj.name] =  _globalSiteObj.value + "m";
         } else {
           globalSiteProperties[_globalSiteObj.name] = _globalSiteObj.value;
         }
@@ -1169,11 +1168,9 @@ App.WizardStep8Controller = Em.Controller.extend({
         var properties = _group.properties;
         properties.forEach(function (_property) {
           if (!/_hosts?$/.test(_property.name)) {
-            // append "m" to JVM memory options
-            var value = null;
-            if (/_heapsize|_newsize|_maxnewsize$/.test(_property.name)) {
-              value = _property.value + "m";
-              globalSiteProperties[_property.name] = value;
+            // append "m" to JVM memory options except for hadoop_heapsize
+            if (/_heapsize|_newsize|_maxnewsize$/.test(_property.name) && _property.name !== 'hadoop_heapsize') {
+              globalSiteProperties[_property.name] = _property.value + "m";
             } else {
               globalSiteProperties[_property.name] = _property.storeValue;
             }
@@ -1283,10 +1280,6 @@ App.WizardStep8Controller = Em.Controller.extend({
     configs.forEach(function (_configProperty) {
       hbaseProperties[_configProperty.name] = _configProperty.value;
     }, this);
-    var masterHosts = App.db.getMasterComponentHosts();
-    // TODO: should filter on "component" but that gives unexpected results
-    var zkServers = masterHosts.filterProperty('display_name', 'ZooKeeper').mapProperty('hostName');
-    hbaseProperties['hbase.zookeeper.quorum'] = zkServers.join(',');
     return {type: 'hbase-site', tag: 'version1', properties: hbaseProperties};
   },
 
@@ -1326,10 +1319,6 @@ App.WizardStep8Controller = Em.Controller.extend({
     configs.forEach(function (_configProperty) {
       hiveProperties[_configProperty.name] = _configProperty.value;
     }, this);
-    hiveProperties['hive.metastore.uris'] = 'thrift://' + this.get('globals').findProperty('name', 'hivemetastore_host').value + ':9083';
-    hiveProperties['javax.jdo.option.ConnectionURL'] =
-      'jdbc:mysql://' + this.get('globals').findProperty('name', 'hive_mysql_hostname').value +
-        '/' + this.get('globals').findProperty('name', 'hive_database_name').value + '?createDatabaseIfNotExist=true';
     return {type: 'hive-site', tag: 'version1', properties: hiveProperties};
   },
 

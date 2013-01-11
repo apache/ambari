@@ -287,7 +287,7 @@ App.format = {
       case 'MYSQL_SERVER':
         return 'MySQL Server';
       case 'HIVE_SERVER':
-        return 'Hive Server';
+        return 'HiveServer2';
       case 'HIVE_METASTORE':
         return 'Hive Metastore';
       case 'HIVE_CLIENT':

@@ -21,6 +21,11 @@ var App = require('app');
 App.WizardStep10Controller = Em.Controller.extend({
   name: 'wizardStep10Controller',
   clusterInfo: [],
+
+  isNagiosRestartRequired: function() {
+    return App.db.getSelectedServiceNames().contains('NAGIOS') && this.get('content.controllerName') !== 'installerController';
+  }.property(),
+
   clearStep: function () {
     this.get('clusterInfo').clear();
   },

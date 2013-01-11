@@ -29,7 +29,6 @@ require('models/service');
 require('models/component');
 require('models/service_config');
 require('models/service_audit');
-require('models/service_metrics');
 require('models/service/hdfs');
 require('models/service/mapreduce');
 require('models/service/hbase');

@@ -350,6 +350,8 @@ App.WizardStep7Controller = Em.Controller.extend({
 
   submit: function () {
     if (!this.get('isSubmitDisabled')) {
+      App.router.send('next');
+      /*
       var result = {};
       result = this.validateCustomConfig();
       if (result.flag === true) {
@@ -357,6 +359,7 @@ App.WizardStep7Controller = Em.Controller.extend({
       } else {
         this.showCustomConfigErrMsg(result.value);
       }
+      */
     }
   }
 
