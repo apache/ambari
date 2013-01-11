@@ -458,6 +458,10 @@ AMBARI-666 branch (unreleased changes)
 
   IMPROVEMENTS
 
+  AMBARI-1154. The check boxes to check/uncheck one of the members in a multi
+  artifact graphs is not very readable. It should be more apparent on which
+  one the user clicked on. (yusaku)
+
   AMBARI-1106. User-specified custom configs (such as hdfs-site.xml overrides)
   should be persisted to maintain what the user specified.
   (Jaimin Jetly via yusaku)
