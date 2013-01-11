@@ -536,6 +536,14 @@ App.WizardStep9Controller = Em.Controller.extend({
     if (!tasksData) {
       console.log("Step9: ERROR: NO tasks available to process");
     }
+    var requestId = this.get('content.cluster.requestId');
+    if(polledData.Requests && polledData.Requests.id && polledData.Requests.id!=requestId){
+      // We dont want to use non-current requestId's tasks data to 
+      // determine the current install status. 
+      // Also, we dont want to keep polling if it is not the 
+      // current requestId.
+      return false;
+    }
     this.replacePolledData(tasksData);
     this.hosts.forEach(function (_host) {
       var actionsPerHost = tasksData.filterProperty('Tasks.host_name', _host.name); // retrieved from polled Data

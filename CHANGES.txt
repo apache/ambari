@@ -675,6 +675,9 @@ AMBARI-666 branch (unreleased changes)
 
   BUG FIXES
 
+  AMBARI-1111. Install wizard step 9 gets stuck at 0% and other issues on
+  page refresh. (Srimanth Gunturi via yusaku)
+
   AMBARI-1110. After clicking the deploy button on the Add Hosts wizard, the
   user is always taken to the Installer Wizard Step 8 upon login.
   (Arun Kandregula via yusaku)
