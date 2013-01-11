@@ -469,6 +469,9 @@ AMBARI-666 branch (unreleased changes)
 
   IMPROVEMENTS
 
+  AMBARI-1159. Check the log/run dir locations to make sure its an abs path.
+  (yusaku)
+
   AMBARI-1156. Dashboard > HDFS pie chart should hover with details. (yusaku)
 
   AMBARI-1154. The check boxes to check/uncheck one of the members in a multi
