@@ -85,5 +85,50 @@ App.MainDashboardView = Em.View.extend({
 
   gangliaUrl: function () {
     return App.router.get('clusterController.gangliaUrl') + "/?r=hour&cs=&ce=&m=&s=by+name&c=HDPSlaves&tab=m&vn=";
-  }.property('App.router.clusterController.gangliaUrl')
+  }.property('App.router.clusterController.gangliaUrl'),
+
+  showAlertsPopup: function (event) {
+    App.ModalPopup.show({
+      header: this.t('services.alerts.headingOfList'),
+      bodyClass: Ember.View.extend({
+        service: event.context,
+        warnAlerts: function () {
+          var allAlerts = App.router.get('clusterController.alerts');
+          var serviceId = this.get('service.serviceName');
+          if (serviceId) {
+            return allAlerts.filterProperty('serviceType', serviceId).filterProperty('isOk', false);
+          }
+          return 0;
+        }.property('App.router.clusterController.alerts'),
+
+        warnAlertsCount: function () {
+          return this.get('warnAlerts').length;
+        }.property('warnAlerts'),
+
+        nagiosUrl: function () {
+          return App.router.get('clusterController.nagiosUrl');
+        }.property('App.router.clusterController.nagiosUrl'),
+
+        closePopup: function () {
+          this.get('parentView').hide();
+        },
+
+        selectService: function () {
+          App.router.transitionTo('services.service.summary', event.context)
+          this.closePopup();
+        },
+        templateName: require('templates/main/dashboard/alert_notification_popup')
+      }),
+      primary: 'Close',
+      onPrimary: function() {
+        this.hide();
+      },
+      secondary : null,
+      didInsertElement: function () {
+        this.$().find('.modal-footer').addClass('align-center');
+        this.$().children('.modal').css({'margin-top': '-350px'});
+      }
+    });
+    event.stopPropagation();
+  }
 });

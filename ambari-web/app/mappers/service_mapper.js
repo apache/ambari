@@ -14,6 +14,7 @@
  * License for the specific language governing permissions and limitations under
  * the License.
  */
+var stringUtils = require('utils/string_utils');
 
 App.servicesMapper = App.QuickDataMapper.create({
   servicesSortOrder: [
@@ -149,6 +150,17 @@ App.servicesMapper = App.QuickDataMapper.create({
         var finalConfig = jQuery.extend({}, this.config);
         var finalJson = [];
         item.host_components = [];
+//        var json = this.parseIt(item, this.config);
+//        if(App.Service.find().someProperty('id', json.id)){
+//          var fieldsToUpdate = [
+//            'work_status',
+//            'components',
+//            'host_components'
+//          ]
+//          this.updateRecord(App.Service.find().findProperty('id', json.id), json, fieldsToUpdate);
+//          return;
+//        }
+
         if (this.get('model').find(item.ServiceInfo.service_name).get('isLoaded')) {
           this.update(item);
           return;
@@ -464,24 +476,21 @@ App.servicesMapper = App.QuickDataMapper.create({
     finalJson.quick_links = [13, 14, 15, 16, 17, 18];
     return finalJson;
   },
-  _update: function(model, json){
-    var content = model.find();
-    var addArray = [];
-    for(var i in json){
-      var item = json[i];
-      var oldItem = content.findProperty('id', item.id);
-      if(oldItem){
-
-        for(var field in item){ ///<--
-          if(field !== 'id'){
-            oldItem.set(field, item[field]);  //<--
-          }
+  updateRecord: function (record, json, fieldsToUpdate) {
+    for (var field in fieldsToUpdate) {
+      if (json[field] !== undefined) {
+        if(json[field] instanceof Array){
+          this.updateHasMany(record, stringUtils.underScoreToCamelCase(field), json[field]);
+        } else {
+          record.set(stringUtils.underScoreToCamelCase(field), json[field]);
         }
-
-      } else {
-        addArray.push(item);
       }
     }
-    App.store.loadMany(model, addArray);
+  },
+  updateHasMany: function(record, field, items ){
+    record.get(field).clear();
+    items.forEach(function (item) {
+      record.get(field).pushObject(record.get(field).type.find().findProperty('id', item));
+    });
   }
 });

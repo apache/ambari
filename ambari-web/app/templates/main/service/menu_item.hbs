@@ -20,7 +20,7 @@
   {{view App.MainDashboardServiceHealthView class="service-health" serviceBinding="view.content"}}&nbsp;
   <span>{{unbound view.content.displayName}}</span>
   {{#if view.alertsCount}}
-    <span class="label operations-count" {{action "showAlertsPopup" view.content on="click" target="view.parentView.parentView"}}>
+    <span class="label operations-count">
       {{view.alertsCount}}
     </span>
   {{/if}}

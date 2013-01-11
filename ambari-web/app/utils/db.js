@@ -212,6 +212,14 @@ App.db.setCluster = function (status) {
   localStorage.setObject('ambari', App.db.data);
 };
 
+
+App.db.setStep2WizardFirstRun = function(status) {
+  App.db.data = localStorage.getObject('ambari');
+  App.db.data.Installer.step2WizardFirstRun = status;
+  console.log('db.setStep2WizardFirstRun called: ' + status);
+  localStorage.setObject('ambari', App.db.data);
+};
+
 /**
  * Set current step value for specified Wizard Type
  * @param wizardType
@@ -354,6 +362,12 @@ App.db.getCluster = function () {
   console.log('TRACE: Entering db:getClusterStatus function');
   App.db.data = localStorage.getObject('ambari');
   return App.db.data.Installer.clusterStatus;
+};
+
+App.db.getStep2WizardFirstRun = function() {
+  App.db.data = localStorage.getObject('ambari');
+  console.log('TRACE: Entering db:setStep2WizardFirstRun function');
+  return App.db.data.Installer.step2WizardFirstRun;
 };
 
 module.exports = App.db;

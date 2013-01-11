@@ -51,5 +51,15 @@ module.exports = {
     }
     return str;
 
+  },
+  underScoreToCamelCase: function(string){
+    var result = string.split('');
+    for(var i = 0; i < result.length; i++){
+      if(result[i] === '_'){
+        result[i] = result[i+1].toUpperCase();
+        result.splice(i+1,1);
+      }
+    }
+    return result.join('');
   }
 }

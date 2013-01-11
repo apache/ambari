@@ -98,17 +98,18 @@ Em.I18n.translations = {
     'hosts in your cluster. In these situations, you must set up a version of the repository that your machines can ' +
     'access locally and this is called a <b>Local Software Repository</b>',
   'installer.step2.javaHome.label' : 'Path to 64-bit JDK',
+  'installer.step2.javaHome.label2' : 'on all hosts',
   'installer.step2.javaHome.tooltip.title' : 'JAVA_HOME',
   'installer.step2.javaHome.tooltip.content' : 'Path to 64-bit JAVA_HOME. /usr/jdk/jdk1.6.0_31 is the default used by Ambari. You can override this to a specific path that contains the JDK. <br/> Note: the path must be valid on <b>ALL</b> hosts in your cluster.',
   'installer.step2.useSsh.provide' : 'Provide your',
-  'installer.step2.useSsh.provide_id_rsa' : '(id_rsa for root) and use SSH to automatically',
+  'installer.step2.useSsh.provide_id_rsa' : '(id_rsa for root) and use SSH to automatically register hosts',
   'installer.step2.useSsh.tooltip.title':'SSH Private Key',
   'installer.step2.useSsh.tooltip.content':'The <b>SSH Private Key File</b> is used for the root access to the target hosts in your cluster.',
   'installer.step2.manualInstall.tooltip.title':'Not Using SSH (Manual Install)',
   'installer.step2.manualInstall.tooltip.content':'If you do not wish Ambari to automatically configure the target hosts via SSH,' +
     ' you have the option of configuring them yourself.  This involves installing and starting Ambari Agent on each of your target hosts.',
   'installer.step2.manualInstall.popup.header':'Before You Proceed',
-  'installer.step2.manualInstall.popup.body':'You must install Ambari Agents on each host you want to manage before you proceed.  <a href="#" target="_blank">Learn more</a>',
+  'installer.step2.manualInstall.popup.body':'You must install Ambari Agents on each host you want to manage before you proceed.',
 
   'installer.step3.header':'Confirm Hosts',
   'installer.step3.body':'Registering your hosts.<br>' +

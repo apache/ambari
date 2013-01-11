@@ -191,6 +191,7 @@ App.WizardController = Em.Controller.extend({
    * Temporary function for wizardStep9, before back-end integration
    */
   setInfoForStep9: function () {
+
     var hostInfo = App.db.getHosts();
     for (var index in hostInfo) {
       hostInfo[index].status = "pending";
@@ -230,7 +231,7 @@ App.WizardController = Em.Controller.extend({
   saveClusterStatus: function (clusterStatus) {
     var oldStatus = this.toObject(this.get('content.cluster'));
     clusterStatus = jQuery.extend(oldStatus, clusterStatus);
-    if(clusterStatus.requestId &&
+    if (clusterStatus.requestId &&
       clusterStatus.oldRequestsId.indexOf(clusterStatus.requestId) === -1){
       clusterStatus.oldRequestsId.push(clusterStatus.requestId);
     }
@@ -246,6 +247,8 @@ App.WizardController = Em.Controller.extend({
     if (!isRetry && this.get('content.cluster.requestId')) {
       return;
     }
+
+    this.set('content.cluster.requestId', null);
 
     var self = this;
     var clusterName = this.get('content.cluster.name');
@@ -376,6 +379,12 @@ App.WizardController = Em.Controller.extend({
     console.log(this.get('name') + ": saved " + name, value);
   },
 
+  clear: function () {
+    this.set('content', Ember.Object.create({'controllerName': this.get('content.controllerName')}));
+    this.set('currentStep', 0);
+    this.clearStorageData();
+  },
+
   clusterStatusTemplate : {
     name: "",
     status: "PENDING",
@@ -400,12 +409,12 @@ App.WizardController = Em.Controller.extend({
     App.db.setAllHostNamesPattern(undefined);
   },
 
-  installOptionsTemplate : {
+  installOptionsTemplate: {
     hostNames: "", //string
     manualInstall: false, //true, false
     useSsh: true, //bool
     isJavaHome : false, //bool
-    javaHome: '', //string
+    javaHome: App.defaultJavaHome, //string
     localRepo: false, //true, false
     sshKey: "", //string
     bootRequestId: null //string

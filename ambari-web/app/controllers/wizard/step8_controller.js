@@ -1099,6 +1099,9 @@ App.WizardStep8Controller = Em.Controller.extend({
         console.log("STEP8: name of the global property is: " + _globalSiteObj.name);
         console.log("STEP8: value of the global property is: " + _globalSiteObj.value);
       }
+      if (_globalSiteObj.name == 'java64_home') {
+        globalSiteProperties['java64_home'] = this.get('content.installOptions.javaHome');
+      }
     }, this);
     return {"type": "global", "tag": "version1", "properties": globalSiteProperties};
   },

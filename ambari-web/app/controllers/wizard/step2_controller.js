@@ -66,7 +66,16 @@ App.WizardStep2Controller = Em.Controller.extend({
     return result;
   },
 
+  checkHosts: function() {
+    if (this.get('hostNames').trim() !== '') {
+      App.db.setStep2WizardFirstRun(false);
+    }
+  }.observes('hostNames'),
+
   hostsError: function () {
+    if (App.db.getStep2WizardFirstRun()) {
+      return null;
+    }
     if (this.get('hasSubmitted') && this.get('hostNames').trim() === '') {
       return Em.I18n.t('installer.step2.hostName.error.required');
     } else if (this.isAllHostNamesValid() === false) {
@@ -217,7 +226,7 @@ App.WizardStep2Controller = Em.Controller.extend({
   },
 
   isSubmitDisabled: function () {
-    return (this.get('hostsError') || this.get('sshKeyError'));
+    return (this.get('hostsError') || this.get('sshKeyError') || (this.get('hostNames').trim() === '' && App.db.getStep2WizardFirstRun()));
   }.property('hostsError', 'sshKeyError'),
 
   saveHosts: function(){

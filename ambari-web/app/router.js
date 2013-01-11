@@ -35,9 +35,13 @@ App.Router = Em.Router.extend({
 
 
   clearAllSteps: function() {
-    this.set('installerController.content', []);
-    this.set('installerController.currentStep', 0);
-    this.set('wizardStep2Controller.hasSubmitted', false);
+    this.get('installerController').clear();
+    this.get('addHostController').clear();
+    this.get('addServiceController').clear();
+    for (i = 1; i<11; i++) {
+      this.set('wizardStep' + i + 'Controller.hasSubmitted', false);
+      this.set('wizardStep' + i + 'Controller.isDisabled', true);
+    }
   },
 
   /**

@@ -23,7 +23,7 @@ App.AddHostController = App.WizardController.extend({
 
   name: 'addHostController',
 
-  totalSteps: 7,
+  totalSteps: 6,
 
   /**
    * Used for hiding back button in wizard

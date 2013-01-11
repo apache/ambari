@@ -93,7 +93,7 @@ App.MainServiceItemController = Em.Controller.extend({
               self.content.set('workStatus', App.Service.Health.live);
             }, 10000);
           } else {
-            App.router.get('clusterController').loadUpdatedStatus();
+            App.router.get('clusterController').loadUpdatedStatusDelayed(500);
             App.router.get('backgroundOperationsController.eventsArray').push({
               "when": function (controller) {
                 var result = (controller.getOperationsForRequestId(requestId).length == 0);
@@ -146,7 +146,7 @@ App.MainServiceItemController = Em.Controller.extend({
               self.content.set('workStatus', App.Service.Health.dead);
             }, 10000);
           } else {
-            App.router.get('clusterController').loadUpdatedStatus();
+            App.router.get('clusterController').loadUpdatedStatusDelayed(500);
             App.router.get('backgroundOperationsController.eventsArray').push({
               "when": function (controller) {
                 var result = (controller.getOperationsForRequestId(requestId).length == 0);
