@@ -40,11 +40,24 @@ class hdp-oozie::service(
     $lzo_jar_suffix = ""
   }
 
+
   if ($ensure == 'running') {
-    $daemon_cmd = "/bin/sh -c 'cd /usr/lib/oozie && tar -xvf oozie-sharelib.tar.gz && mkdir -p ${oozie_tmp} && chown ${user}:hadoop ${oozie_tmp} && cd ${oozie_tmp}' && su - ${user} -c '/usr/lib/oozie/bin/oozie-setup.sh -hadoop 0.20.200 $jar_location -extjs $ext_js_path $lzo_jar_suffix && /usr/lib/oozie/bin/ooziedb.sh create -sqlfile oozie.sql -run ; hadoop dfs -put /usr/lib/oozie/share share ; hadoop dfs -chmod -R 755 /user/${user}/share && /usr/lib/oozie/bin/oozie-start.sh' "
+
+    $cmd1 = "cd /usr/lib/oozie && tar -xvf oozie-sharelib.tar.gz"
+    $cmd2 =  "cd /usr/lib/oozie && mkdir -p ${oozie_tmp}"
+    $cmd3 =  "cd /usr/lib/oozie && chown ${user}:hadoop ${oozie_tmp}"
+    
+    $cmd4 =  "cd ${oozie_tmp} && /usr/lib/oozie/bin/oozie-setup.sh -hadoop 0.20.200 $jar_location -extjs $ext_js_path $lzo_jar_suffix"
+    $cmd5 =  "cd ${oozie_tmp} && /usr/lib/oozie/bin/ooziedb.sh create -sqlfile oozie.sql -run ; hadoop dfs -put /usr/lib/oozie/share share ; hadoop dfs -chmod -R 755 /user/${user}/share"
+    $cmd6 =  "/usr/lib/oozie/bin/oozie-start.sh"
+
+
+    $sh_cmds = [$cmd1, $cmd2, $cmd3]
+    $user_cmds = [$cmd4, $cmd5, $cmd6]
+	
     $no_op_test = "ls ${pid_file} >/dev/null 2>&1 && ps `cat ${pid_file}` >/dev/null 2>&1"
   } elsif ($ensure == 'stopped') {
-    $daemon_cmd  = "su - ${user} -c  'cd ${oozie_tmp} && /usr/lib/oozie/bin/oozie-stop.sh'"
+    $stop_cmd  = "su - ${user} -c  'cd ${oozie_tmp} && /usr/lib/oozie/bin/oozie-stop.sh'"
     $no_op_test = undef
   } else {
     $daemon_cmd = undef
@@ -58,13 +71,16 @@ class hdp-oozie::service(
 
   anchor{'hdp-oozie::service::begin':} -> Hdp-oozie::Service::Directory<||> -> anchor{'hdp-oozie::service::end':}
   
-  if ($daemon_cmd != undef) {
-    hdp::exec { $daemon_cmd:
-      command => $daemon_cmd,
+  if ($ensure == 'running') {
+    hdp-oozie::service::exec_sh{$sh_cmds:}
+    hdp-oozie::service::exec_user{$user_cmds:}
+    Hdp-oozie::Service::Directory<||> -> Hdp-oozie::Service::Exec_sh[$cmd1] -> Hdp-oozie::Service::Exec_sh[$cmd2] ->Hdp-oozie::Service::Exec_sh[$cmd3] -> Hdp-oozie::Service::Exec_user[$cmd4] ->Hdp-oozie::Service::Exec_user[$cmd5] -> Hdp-oozie::Service::Exec_user[$cmd6] -> Anchor['hdp-oozie::service::end']
+  } elsif ($ensure == 'stopped') {
+    hdp::exec { "exec $stop_cmd":
+      command => $stop_cmd,
       unless  => $no_op_test,
       initial_wait => $initial_wait
-    }
-    Hdp-oozie::Service::Directory<||> -> Hdp::Exec[$daemon_cmd] -> Anchor['hdp-oozie::service::end']
+  }
   }
 }
 
@@ -82,5 +98,25 @@ define hdp-oozie::service::createsymlinks()
   hdp::exec { '/usr/lib/oozie/oozie-server/lib/mapred-site.xml':
     command => "ln -sf /etc/hadoop/conf/mapred-site.xml /usr/lib/oozie/oozie-server/lib/mapred-site.xml",
     unless => "test -e /usr/lib/oozie/oozie-server/lib/mapred-site.xml"
+  }
+}
+
+define hdp-oozie::service::exec_sh()
+{
+  $no_op_test = "ls ${pid_file} >/dev/null 2>&1 && ps `cat ${pid_file}` >/dev/null 2>&1"
+  hdp::exec { "exec $name":
+    command => "/bin/sh -c '$name'",
+    unless  => $no_op_test,
+    initial_wait => $initial_wait
+  }
+}
+
+define hdp-oozie::service::exec_user()
+{
+  $no_op_test = "ls ${pid_file} >/dev/null 2>&1 && ps `cat ${pid_file}` >/dev/null 2>&1"
+  hdp::exec { "exec $name":
+    command => "su - ${user} -c '$name'",
+    unless  => $no_op_test,
+    initial_wait => $initial_wait
   }
 }

@@ -16,20 +16,23 @@
  */
 package org.apache.ambari.eventdb.model;
 
-import org.apache.commons.lang.StringUtils;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.List;
 
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlTransient;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.util.List;
+
+import org.apache.ambari.eventdb.model.DataTable.Summary;
+import org.apache.commons.lang.StringUtils;
 
 @XmlRootElement
 @XmlAccessorType(XmlAccessType.FIELD)
 public class Workflows {
   List<WorkflowDBEntry> workflows;
+  Summary summary;
   
   public static class WorkflowDBEntry {
     public static enum WorkflowFields {
@@ -38,8 +41,11 @@ public class Workflows {
       USERNAME,
       STARTTIME,
       LASTUPDATETIME,
+      DURATION,
       NUMJOBSTOTAL,
       NUMJOBSCOMPLETED,
+      INPUTBYTES,
+      OUTPUTBYTES,
       PARENTWORKFLOWID,
       WORKFLOWCONTEXT;
       
@@ -153,19 +159,19 @@ public class Workflows {
     public void setWorkflowContext(WorkflowContext workflowContext) {
       this.workflowContext = workflowContext;
     }
-
+    
     public long getInputBytes() {
       return inputBytes;
     }
-
+    
     public void setInputBytes(long inputBytes) {
       this.inputBytes = inputBytes;
     }
-
+    
     public long getOutputBytes() {
       return outputBytes;
     }
-
+    
     public void setOutputBytes(long outputBytes) {
       this.outputBytes = outputBytes;
     }
@@ -179,5 +185,13 @@ public class Workflows {
   
   public void setWorkflows(List<WorkflowDBEntry> workflows) {
     this.workflows = workflows;
+  }
+  
+  public Summary getSummary() {
+    return summary;
+  }
+  
+  public void setSummary(Summary summary) {
+    this.summary = summary;
   }
 }

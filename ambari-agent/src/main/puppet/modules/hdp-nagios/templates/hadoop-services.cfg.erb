@@ -449,13 +449,13 @@ define service {
         max_check_attempts      3
 }
 <%end-%>
-<%if scope.function_hdp_nagios_members_exist('templeton-server')-%>
-# Templeton check
+<%if scope.function_hdp_nagios_members_exist('webhcat-server')-%>
+# WEBHCAT check
 define service {
-        hostgroup_name          templeton-server
+        hostgroup_name          webhcat-server
         use                     hadoop-service
-        service_description     TEMPLETON::Templeton status check
-        servicegroups           TEMPLETON
+        service_description     WEBHCAT::WEBHCAT status check
+        servicegroups           WEBHCAT 
         <%if scope.function_hdp_template_var("security_enabled")-%>
         check_command           check_templeton_status!50111!v1!true!<%=scope.function_hdp_template_var("keytab_path")%>/<%=scope.function_hdp_template_var("nagios_user")%>.headless.keytab!<%=scope.function_hdp_template_var("nagios_user")%>
         <%else-%>

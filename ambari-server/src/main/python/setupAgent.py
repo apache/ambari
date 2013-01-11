@@ -91,12 +91,18 @@ def runAgent(passPhrase):
   try:
     # print this to the log.  despite the directory, machine.py works with Python 2.4
     ret = execOsCommand(["python", "/usr/lib/python2.6/site-packages/ambari_agent/machine.py"])
+    if not 0 == ret['exitstatus']:
+      return ret['exitstatus']
     print ret['log']
 
     ret = execOsCommand(["tail", "-20", "/var/log/ambari-agent/ambari-agent.log"])
+    if not 0 == ret['exitstatus']:
+      return ret['exitstatus']
     print ret['log']
+
+    return 0
   except (Exception), e:
-    return
+    return 1
 
 def main(argv=None):
   scriptDir = os.path.realpath(os.path.dirname(argv[0]))
@@ -113,7 +119,7 @@ def main(argv=None):
     installAgent()
 
   configureAgent(hostName)
-  runAgent(passPhrase)
+  sys.exit(runAgent(passPhrase))
   
 if __name__ == '__main__':
   logging.basicConfig(level=logging.DEBUG)

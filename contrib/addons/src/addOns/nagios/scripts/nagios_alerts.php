@@ -379,7 +379,7 @@ function hdp_mon_generate_response( $response_data )
       case "HBASE":
       case "ZOOKEEPER":
       case "OOZIE":
-      case "TEMPLETON":
+      case "WEBHCAT":
       case "GANGLIA":
       case "PUPPET":
         break;

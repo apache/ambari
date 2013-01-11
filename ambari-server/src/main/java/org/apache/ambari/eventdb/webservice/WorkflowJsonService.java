@@ -34,6 +34,7 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 
 import org.apache.ambari.eventdb.db.PostgresConnector;
+import org.apache.ambari.eventdb.model.DataTable;
 import org.apache.ambari.eventdb.model.Jobs;
 import org.apache.ambari.eventdb.model.Jobs.JobDBEntry;
 import org.apache.ambari.eventdb.model.TaskAttempt;
@@ -43,6 +44,7 @@ import org.apache.ambari.eventdb.model.TaskLocalityData;
 import org.apache.ambari.eventdb.model.TaskLocalityData.DataPoint;
 import org.apache.ambari.eventdb.model.Workflows;
 import org.apache.ambari.eventdb.model.Workflows.WorkflowDBEntry;
+import org.apache.ambari.eventdb.model.Workflows.WorkflowDBEntry.WorkflowFields;
 
 @Path("/jobhistory")
 public class WorkflowJsonService {
@@ -57,8 +59,12 @@ public class WorkflowJsonService {
   private static final String DEFAULT_USERNAME = "mapred";
   private static final String DEFAULT_PASSWORD = "mapred";
   
-  private static final List<WorkflowDBEntry> EMPTY_WORKFLOWS = Collections.emptyList();
+  private static final Workflows EMPTY_WORKFLOWS = new Workflows();
   private static final List<JobDBEntry> EMPTY_JOBS = Collections.emptyList();
+  {
+    List<WorkflowDBEntry> emptyWorkflows = Collections.emptyList();
+    EMPTY_WORKFLOWS.setWorkflows(emptyWorkflows);
+  }
   
   PostgresConnector getConnector() throws IOException {
     return new PostgresConnector(DEFAULT_HOSTNAME, DEFAULT_DBNAME, DEFAULT_USERNAME, DEFAULT_PASSWORD);
@@ -70,21 +76,100 @@ public class WorkflowJsonService {
   @GET
   @Produces(MediaType.APPLICATION_JSON)
   @Path("/workflow")
-  public Workflows getWorkflows() {
-    Workflows workflows = new Workflows();
+  public Workflows getWorkflows(@QueryParam("orderBy") String field, @DefaultValue(PostgresConnector.SORT_ASC) @QueryParam("sortDir") String sortDir,
+      @DefaultValue("0") @QueryParam("offset") int offset, @DefaultValue("-1") @QueryParam("limit") int limit) {
+    Workflows workflows = EMPTY_WORKFLOWS;
     PostgresConnector conn = null;
     try {
       conn = getConnector();
-      workflows.setWorkflows(conn.fetchWorkflows());
+      if (field == null)
+        workflows = conn.fetchWorkflows();
+      else {
+        field = field.toUpperCase();
+        if ("ELAPSEDTIME".equals(field))
+          field = "DURATION";
+        workflows = conn.fetchWorkflows(WorkflowFields.valueOf(field), sortDir.toUpperCase().equals(PostgresConnector.SORT_ASC), offset, limit);
+      }
     } catch (IOException e) {
       e.printStackTrace();
-      workflows.setWorkflows(EMPTY_WORKFLOWS);
+      workflows = EMPTY_WORKFLOWS;
     } finally {
       if (conn != null) {
         conn.close();
       }
     }
     return workflows;
+  }
+  
+  @GET
+  @Produces(MediaType.APPLICATION_JSON)
+  @Path("/datatable")
+  public DataTable getWorkflowDataTable(@DefaultValue("0") @QueryParam("iDisplayStart") int start,
+      @DefaultValue("10") @QueryParam("iDisplayLength") int amount, @QueryParam("sSearch") String searchTerm, @DefaultValue("0") @QueryParam("sEcho") int echo,
+      @DefaultValue("0") @QueryParam("iSortCol_0") int col, @DefaultValue(PostgresConnector.SORT_ASC) @QueryParam("sSortDir_0") String sdir,
+      @QueryParam("sSearch_0") String workflowId, @QueryParam("sSearch_1") String workflowName, @QueryParam("sSearch_2") String workflowType,
+      @QueryParam("sSearch_3") String userName, @DefaultValue("-1") @QueryParam("minJobs") int minJobs, @DefaultValue("-1") @QueryParam("maxJobs") int maxJobs,
+      @DefaultValue("-1") @QueryParam("minInputBytes") long minInputBytes, @DefaultValue("-1") @QueryParam("maxInputBytes") long maxInputBytes,
+      @DefaultValue("-1") @QueryParam("minOutputBytes") long minOutputBytes, @DefaultValue("-1") @QueryParam("maxOutputBytes") long maxOutputBytes,
+      @DefaultValue("-1") @QueryParam("minDuration") long minDuration, @DefaultValue("-1") @QueryParam("maxDuration") long maxDuration,
+      @DefaultValue("-1") @QueryParam("minStartTime") long minStartTime, @DefaultValue("-1") @QueryParam("maxStartTime") long maxStartTime) {
+    
+    if (start < 0)
+      start = 0;
+    if (amount < 10 || amount > 100)
+      amount = 10;
+    
+    boolean sortAscending = true;
+    if (!sdir.toUpperCase().equals(PostgresConnector.SORT_ASC))
+      sortAscending = false;
+    
+    WorkflowFields field = null;
+    switch (col) {
+      case 0: // workflowId
+        field = WorkflowFields.WORKFLOWID;
+        break;
+      case 1: // workflowName
+        field = WorkflowFields.WORKFLOWNAME;
+        break;
+      case 2: // workflowType
+        field = WorkflowFields.WORKFLOWID;
+        break;
+      case 3: // userName
+        field = WorkflowFields.USERNAME;
+        break;
+      case 4: // numJobsTotal
+        field = WorkflowFields.NUMJOBSTOTAL;
+        break;
+      case 5: // inputBytes
+        field = WorkflowFields.INPUTBYTES;
+        break;
+      case 6: // outputBytes
+        field = WorkflowFields.OUTPUTBYTES;
+        break;
+      case 7: // duration
+        field = WorkflowFields.DURATION;
+        break;
+      case 8: // startTime
+        field = WorkflowFields.STARTTIME;
+        break;
+      default:
+        field = WorkflowFields.WORKFLOWID;
+    }
+    
+    DataTable table = null;
+    PostgresConnector conn = null;
+    try {
+      conn = getConnector();
+      table = conn.fetchWorkflows(start, amount, searchTerm, echo, field, sortAscending, workflowId, workflowName, workflowType, userName, minJobs, maxJobs,
+          minInputBytes, maxInputBytes, minOutputBytes, maxOutputBytes, minDuration, maxDuration, minStartTime, maxStartTime);
+    } catch (IOException e) {
+      e.printStackTrace();
+    } finally {
+      if (conn != null) {
+        conn.close();
+      }
+    }
+    return table;
   }
   
   @GET

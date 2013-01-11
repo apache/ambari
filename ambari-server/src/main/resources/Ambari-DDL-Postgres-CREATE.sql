@@ -177,6 +177,8 @@ CREATE TABLE workflow (
   workflowContext TEXT, userName TEXT,
   startTime BIGINT, lastUpdateTime BIGINT,
   numJobsTotal INTEGER, numJobsCompleted INTEGER,
+  inputBytes BIGINT, outputBytes BIGINT,
+  duration BIGINT,
   PRIMARY KEY (workflowId),
   FOREIGN KEY (parentWorkflowId) REFERENCES workflow(workflowId)
 );

@@ -19,17 +19,25 @@ package org.apache.ambari.eventdb.db;
 import java.io.IOException;
 import java.util.List;
 
+import org.apache.ambari.eventdb.model.DataTable;
 import org.apache.ambari.eventdb.model.Jobs.JobDBEntry;
 import org.apache.ambari.eventdb.model.TaskAttempt;
 import org.apache.ambari.eventdb.model.WorkflowContext;
-import org.apache.ambari.eventdb.model.Workflows.WorkflowDBEntry;
+import org.apache.ambari.eventdb.model.Workflows;
+import org.apache.ambari.eventdb.model.Workflows.WorkflowDBEntry.WorkflowFields;
 
 public interface DBConnector {
   public void submitJob(JobDBEntry j, WorkflowContext context) throws IOException;
   
   public void updateJob(JobDBEntry j) throws IOException;
   
-  public List<WorkflowDBEntry> fetchWorkflows() throws IOException;
+  public Workflows fetchWorkflows() throws IOException;
+  
+  public Workflows fetchWorkflows(WorkflowFields field, boolean sortAscending, int offset, int limit) throws IOException;
+  
+  public DataTable fetchWorkflows(int offset, int limit, String searchTerm, int echo, WorkflowFields field, boolean sortAscending, String searchWorkflowId,
+      String searchWorkflowName, String searchWorkflowType, String searchUserName, int minJobs, int maxJobs, long minInputBytes, long maxInputBytes,
+      long minOutputBytes, long maxOutputBytes, long minDuration, long maxDuration, long minStartTime, long maxStartTime) throws IOException;
   
   public List<JobDBEntry> fetchJobDetails(String workflowID) throws IOException;
   

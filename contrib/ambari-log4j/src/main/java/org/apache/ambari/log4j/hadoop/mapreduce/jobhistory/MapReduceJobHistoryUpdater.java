@@ -141,11 +141,12 @@ public class MapReduceJobHistoryUpdater implements LogStoreUpdateProvider {
                 "userName, " +
                 "startTime, " +
                 "lastUpdateTime, " +
+                "duration, " +
                 "numJobsTotal, " +
                 "numJobsCompleted" +
                 ") " +
                 "VALUES" +
-                " (?, ?, ?, ?, ?, ?, ?, ?)"
+                " (?, ?, ?, ?, ?, ?, 0, ?, 0)"
             );
     
     workflowUpdateTimePS =
@@ -153,21 +154,33 @@ public class MapReduceJobHistoryUpdater implements LogStoreUpdateProvider {
             "UPDATE " +
                 WORKFLOW_TABLE +
                 " SET " +
-                "lastUpdateTime = ? " +
+                "lastUpdateTime = ?, " +
+                "duration = ? - (SELECT startTime FROM " +
+                WORKFLOW_TABLE +
+                " WHERE workflowId = ?) " +
                 "WHERE workflowId = ?"
             );
     
     workflowUpdateNumCompletedPS =
         connection.prepareStatement(
-            "UPDATE " +
+            "WITH sums as (SELECT sum(inputBytes) as input, " +
+                "sum(outputBytes) as output, workflowId FROM " +
+                JOB_TABLE +
+                " WHERE workflowId = (SELECT workflowId FROM " +
+                JOB_TABLE +
+                " WHERE jobId = ?) AND status = 'SUCCESS'" +
+                " GROUP BY workflowId) " +
+                "UPDATE " +
                 WORKFLOW_TABLE +
                 " SET " +
                 "lastUpdateTime = ?, " +
-                "numJobsCompleted = numJobsCompleted + 1 " +
-                "WHERE workflowId = " +
-                "(SELECT workflowId FROM " +
-                JOB_TABLE +
-                " WHERE jobId = ?)"
+                "duration = ? - (SELECT startTime FROM " +
+                WORKFLOW_TABLE +
+                " WHERE workflowId = (SELECT workflowId FROM sums)), " +
+                "numJobsCompleted = numJobsCompleted + 1, " +
+                "inputBytes = (select input from sums), " +
+                "outputBytes = (select output from sums) " +
+                "WHERE workflowId = (select workflowId from sums)"
             );
     
     // JobFinishedEvent
@@ -469,13 +482,13 @@ public class MapReduceJobHistoryUpdater implements LogStoreUpdateProvider {
           workflowUpdateTimePS, originalEvent, 
           (JobSubmittedEvent)parsedEvent);
     } else if (eventClass == JobFinishedEvent.class) {
-      processJobFinishedEvent(entityPS, 
+      processJobFinishedEvent(entityPS, workflowUpdateNumCompletedPS,
           originalEvent, (JobFinishedEvent)parsedEvent);
     } else if (eventClass == JobInitedEvent.class){
       processJobInitedEvent(entityPS, 
           originalEvent, (JobInitedEvent)parsedEvent);
     } else if (eventClass == JobStatusChangedEvent.class) {
-      processJobStatusChangedEvent(entityPS, workflowUpdateNumCompletedPS,
+      processJobStatusChangedEvent(entityPS,
           originalEvent, (JobStatusChangedEvent)parsedEvent);
     } else if (eventClass == JobInfoChangeEvent.class) {
       processJobInfoChangeEvent(entityPS, 
@@ -636,13 +649,14 @@ public class MapReduceJobHistoryUpdater implements LogStoreUpdateProvider {
         workflowPS.setLong(5, historyEvent.getSubmitTime());
         workflowPS.setLong(6, historyEvent.getSubmitTime());
         workflowPS.setLong(7, workflowContext.getWorkflowDag().size());
-        workflowPS.setLong(8, 0);
         workflowPS.executeUpdate();
         LOG.debug("Successfully inserted workflowId = " + 
             workflowContext.getWorkflowId());
       } else {
         workflowUpdateTimePS.setLong(1, historyEvent.getSubmitTime());
-        workflowUpdateTimePS.setString(2, workflowContext.getWorkflowId());
+        workflowUpdateTimePS.setLong(2, historyEvent.getSubmitTime());
+        workflowUpdateTimePS.setString(3, workflowContext.getWorkflowId());
+        workflowUpdateTimePS.setString(4, workflowContext.getWorkflowId());
         workflowUpdateTimePS.executeUpdate();
         LOG.debug("Successfully updated workflowId = " + 
             workflowContext.getWorkflowId());
@@ -666,6 +680,7 @@ public class MapReduceJobHistoryUpdater implements LogStoreUpdateProvider {
   
   private void processJobFinishedEvent(
       PreparedStatement entityPS,
+      PreparedStatement workflowUpdateNumCompletedPS,
       LoggingEvent logEvent, JobFinishedEvent historyEvent) {
     Counters counters = historyEvent.getMapCounters();
     long inputBytes = 0;
@@ -698,6 +713,11 @@ public class MapReduceJobHistoryUpdater implements LogStoreUpdateProvider {
       entityPS.setLong(7, outputBytes);
       entityPS.setString(8, historyEvent.getJobid().toString());
       entityPS.executeUpdate();
+      // job finished events always have success status
+      workflowUpdateNumCompletedPS.setString(1, historyEvent.getJobid().toString());
+      workflowUpdateNumCompletedPS.setLong(2, historyEvent.getFinishTime());
+      workflowUpdateNumCompletedPS.setLong(3, historyEvent.getFinishTime());
+      workflowUpdateNumCompletedPS.executeUpdate();
     } catch (SQLException sqle) {
       LOG.info("Failed to store " + historyEvent.getEventType() + " for job " + 
           historyEvent.getJobid() + " into " + JOB_TABLE, sqle);
@@ -725,18 +745,11 @@ public class MapReduceJobHistoryUpdater implements LogStoreUpdateProvider {
 
   private void processJobStatusChangedEvent(
       PreparedStatement entityPS, 
-      PreparedStatement workflowUpdateNumCompletedPS, 
       LoggingEvent logEvent, JobStatusChangedEvent historyEvent) {
     try {
       entityPS.setString(1, historyEvent.getStatus());
       entityPS.setString(2, historyEvent.getJobId().toString());
       entityPS.executeUpdate();
-      if ("SUCCESS".equals(historyEvent.getStatus())) {
-        workflowUpdateNumCompletedPS.setLong(1, System.currentTimeMillis());
-        workflowUpdateNumCompletedPS.setString(2, 
-            historyEvent.getJobId().toString());
-        workflowUpdateNumCompletedPS.executeUpdate();
-      }
     } catch (SQLException sqle) {
       LOG.info("Failed to store " + historyEvent.getEventType() + " for job " + 
           historyEvent.getJobId() + " into " + JOB_TABLE, sqle);

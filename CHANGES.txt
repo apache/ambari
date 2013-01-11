@@ -16,6 +16,9 @@ should be listed by their full name.
  returns 200 (no op), even though GET with the same predicate returns a number
  of host_components. (Tom Beerbower via mahadev)
 
+ AMBARI-1114. BootStrap fails but the api says thats its done and exit status
+ is 0. (Nate Cole via mahadev)
+
  BUG FIXES
 
 
