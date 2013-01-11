@@ -244,13 +244,11 @@ App.WizardController = Em.Controller.extend({
    * @param isRetry
    */
   installServices: function (isRetry) {
-    if (!isRetry && this.get('content.cluster.requestId')) {
-      return;
-    }
 
     // clear requests since we are installing services
     // and we don't want to get tasks for previous install attempts
     this.set('content.cluster.oldRequestsId', []);
+    this.set('content.cluster.requestId', null);
 
     var self = this;
     var clusterName = this.get('content.cluster.name');

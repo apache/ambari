@@ -517,6 +517,8 @@ App.AddHostController = App.WizardController.extend({
    */
   clearAllSteps: function () {
     this.clearInstallOptions();
+    // clear temporary information stored during the install
+    this.set('content.cluster', this.getCluster());
   },
 
   /**
@@ -524,6 +526,7 @@ App.AddHostController = App.WizardController.extend({
    */
   finish: function () {
     this.setCurrentStep('1');
+    this.clearAllSteps();
     this.clearStorageData();
     App.router.get('updateController').updateAll();
   }

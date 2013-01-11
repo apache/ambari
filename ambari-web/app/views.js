@@ -93,7 +93,7 @@ require('views/main/service/info/metrics/mapreduce/gc');
 require('views/main/service/info/metrics/mapreduce/jvm_threads');
 require('views/main/service/info/metrics/mapreduce/jvm_heap');
 require('views/main/service/info/metrics/mapreduce/rpc');
-require('views/main/service/info/metrics/mapreduce/jobs_running_waiting');
+require('views/main/service/info/metrics/mapreduce/tasks_running_waiting');
 require('views/main/service/info/metrics/mapreduce/jobs_status');
 require('views/main/service/info/metrics/mapreduce/map_slots');
 require('views/main/service/info/metrics/mapreduce/reduce_slots');

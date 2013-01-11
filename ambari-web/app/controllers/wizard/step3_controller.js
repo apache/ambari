@@ -266,6 +266,7 @@ App.WizardStep3Controller = Em.Controller.extend({
       type: 'GET',
       url: url,
       timeout: App.timeout,
+      cache: false,
       success: function (data) {
         if (data.hostsStatus !== null) {
           // in case of bootstrapping just one host, the server returns an object rather than an array, so

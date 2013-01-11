@@ -229,7 +229,7 @@ jQuery.extend($.fn.dataTableExt.afnFiltering.push(
         var compareScale = rangeExp.charAt(rangeExp.length - 1);
         var compareValue = isNaN(parseInt(compareScale), 10) ? parseInt(rangeExp.substr(1, rangeExp.length - 2), 10) : parseInt(rangeExp.substr(1, rangeExp.length - 1), 10);
         rowValue = (jQuery(rowValue).text()) ? jQuery(rowValue).text() : rowValue;
-        var convertedRowValue = parseInt(rowValue.substr(0, 2), 10) * 3600 + parseInt(rowValue.substr(3, 2), 10) * 60 + parseInt(rowValue.substr(6, 2), 10);
+        var convertedRowValue = parseInt(rowValue.substr(0, rowValue.indexOf('secs')), 10);
         switch (compareScale) {
           case 'm':
             convertedRowValue /= 60;

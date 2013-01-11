@@ -70,11 +70,11 @@ Em.I18n.translations = {
   'installer.step1.clusterName.error.specialChar':'Cluster Name cannot contain special characters',
 
   'installer.step2.header':'Install Options',
-  'installer.step2.body':'Enter the list of hosts to be included in the cluster, provide your SSH key, and optionally specify a local repository.',
+  'installer.step2.body':'Enter the list of hosts to be included in the cluster and provide your SSH key.',
   'installer.step2.targetHosts':'Target Hosts',
   'installer.step2.targetHosts.info':'Enter a list of host names, one per line',
   'installer.step2.hostPattern.tooltip.title':'Pattern Expressions',
-  'installer.step2.hostPattern.tooltip.content':'You can use pattern expressions to specify a number of target hosts. For example, to specify host1 thru host10, enter host[1-10] in the target hosts textarea.',
+  'installer.step2.hostPattern.tooltip.content':'You can use pattern expressions to specify a number of target hosts. For example, to specify host01.domain thru host10.domain, enter host[01-10].domain in the target hosts textarea.',
   'installer.step2.hostName.error.required':'You must specify at least one host name',
   'installer.step2.hostName.error.notRequired':'Host Names will be ignored if not using SSH to automatically configure hosts',
   'installer.step2.hostName.error.invalid':'Invalid Host Name(s)',
@@ -92,7 +92,7 @@ Em.I18n.translations = {
   'installer.step2.localRepo.label_instead':'instead of downloading software packages from the Internet',
   'installer.step2.localRepo.error.required':'Local repository file path is required',
   'installer.step2.localRepo.tooltip.title':'Local Software Repository',
-  'installer.step2.localRepo.tooltip.content': 'The cluster install requires access to the Internet to fetch software ' +
+  'installer.step2.localRepo.tooltip.content': 'The install process requires access to the Internet to fetch software ' +
     'from a remote repository. In some cases, adequate bandwidth is not available and you want to prevent downloading ' +
     'packages from the remote repository over and over again. Other times, Internet access is not available from the ' +
     'hosts in your cluster. In these situations, you must set up a version of the repository that your machines can ' +
@@ -143,13 +143,13 @@ Em.I18n.translations = {
   'installer.step7.attentionNeeded':'<strong>Attention:</strong> Some configurations need your attention before you can proceed.',
 
   'installer.step8.header':'Review',
-  'installer.step8.body':'Please review the cluster configuration before installation',
+  'installer.step8.body':'Please review the configuration before installation',
 
   'installer.step9.header':'Install, Start and Test',
-  'installer.step9.body':'Please wait while the selected services are installed, started, and tested on your new cluster.',
-  'installer.step9.status.success':'Successfully installed and started the cluster.',
-  'installer.step9.status.warning':'Installed and started the cluster with some warnings.',
-  'installer.step9.status.failed':'Failed to install/start the cluster.',
+  'installer.step9.body':'Please wait while the selected services are installed and started.',
+  'installer.step9.status.success':'Successfully installed and started the services.',
+  'installer.step9.status.warning':'Installed and started the services with some warnings.',
+  'installer.step9.status.failed':'Failed to install/start the services.',
   'installer.step9.host.status.success':'Success',
   'installer.step9.host.status.warning':'Warnings encountered',
   'installer.step9.host.status.failed':'Failures encountered',
@@ -157,7 +157,7 @@ Em.I18n.translations = {
   'installer.step9.hostLog.popup.header':'Tasks. executed on ',
 
   'installer.step10.header':'Summary',
-  'installer.step10.body':'Here is the summary of the cluster install process.',
+  'installer.step10.body':'Here is the summary of the install process.',
 
 
   'form.create':'Create',

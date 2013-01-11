@@ -60,6 +60,13 @@ module.exports = [
     "filename": "core-site.xml"
   },
   {
+    "name": "hadoop.proxyuser.<foreignKey[0]>.hosts",
+    "templateName": ["hivemetastore_host"],
+    "foreignKey": ["hive_user"],
+    "value": "<templateName[0]>",
+    "filename": "core-site.xml"
+  },
+  {
     "name": "hadoop.proxyuser.<foreignKey[0]>.groups",
     "templateName": ["proxyuser_group"],
     "foreignKey": ["oozie_user"],
@@ -766,7 +773,7 @@ module.exports = [
     "name": "templeton.hive.properties",
     "templateName": ["hivemetastore_host"],
     "foreignKey": null,
-    "value": "hive.metastore.local=false,hive.metastore.uris=thrift://<templateName[0]>:9083,hive.metastore.sasl.enabled=no",
+    "value": "hive.metastore.local=false,hive.metastore.uris=thrift://<templateName[0]>:9083,hive.metastore.sasl.enabled=yes,hive.metastore.execute.setugi=true",
     "filename": "webhcat-site.xml"
   },
   {

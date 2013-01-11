@@ -25,9 +25,11 @@ module.exports = {
         value = '<1KB';
       } else {
         if (value < 1048576) {
-          value = (Math.round(value / 102.4) / 10).toFixed(1) + 'KB';
+          value = (value / 1024).toFixed(1) + 'KB';
+        } else  if (value >= 1048576 && value < 1073741824){
+          value = (value / 1048576).toFixed(1) + 'MB';
         } else {
-          value = (Math.round(value / 104857.6) / 10).toFixed(1) + 'MB';
+          value = (value / 1073741824).toFixed(2) + 'GB';
         }
       }
     }

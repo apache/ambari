@@ -29,8 +29,12 @@ App.WizardStep10Controller = Em.Controller.extend({
     console.log("TRACE: Loading step10: Summary Page");
     this.clearStep();
     this.loadInstalledHosts(this.loadRegisteredHosts());
-    var installFlag = this.loadMasterComponents();
-    var startFlag = this.loadStartedServices();
+    var installFlag = true;
+    var startFlag = true;
+    if (this.get('content.controllerName') == 'installerController') {
+      installFlag = this.loadMasterComponents();
+      startFlag = this.loadStartedServices();
+    }
     if (installFlag && startFlag) {
       this.loadInstallTime();
     }
@@ -342,9 +346,9 @@ App.WizardStep10Controller = Em.Controller.extend({
       var seconds = Math.floor((this.get('content.cluster.installTime') - minutes) * secondsPerMinute);
       var statement;
       if (minutes !== 0) {
-        statement = 'Install and start of all services completed in ' + minutes + ' minutes and ' + seconds + ' seconds';
+        statement = 'Install and start completed in ' + minutes + ' minutes and ' + seconds + ' seconds';
       } else {
-        statement = 'Install and start of all services completed in ' + seconds + ' seconds';
+        statement = 'Install and start completed in ' + seconds + ' seconds';
       }
       this.get('clusterInfo').pushObject(Ember.Object.create({
         id: 5,

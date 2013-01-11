@@ -292,7 +292,7 @@ module.exports = Em.Route.extend({
       var controller = router.get('installerController');
       controller.setCurrentStep('9');
       controller.loadAllPriorSteps();
-      if (!App.testMode) { // if test mode is ON don't disable prior steps link.
+      if (!App.testMode) {
         controller.setLowerStepsDisable(9);
       }
       controller.connectOutlet('wizardStep9', controller.get('content'));
@@ -342,6 +342,9 @@ module.exports = Em.Route.extend({
       var controller = router.get('installerController');
       controller.setCurrentStep('10');
       controller.loadAllPriorSteps();
+      if (!App.testMode) {
+        controller.setLowerStepsDisable(10);
+      }
       controller.connectOutlet('wizardStep10', controller.get('content'));
     },
     back: Em.Router.transitionTo('step9'),

@@ -145,7 +145,7 @@ App.ClusterController = Em.Controller.extend({
       }
       return null;
     }
-  }.property('App.router.updateController.isUpdated'),
+  }.property('App.router.updateController.isUpdated','dataLoadList.services'),
 
   isNagiosInstalled:function () {
     if (App.testMode) {

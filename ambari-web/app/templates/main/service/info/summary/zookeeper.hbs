@@ -19,19 +19,13 @@
 <tr>
   <td class="summary-label">Servers</td>
   <td>
-    {{#each view.servers}}
-      <a {{action filterHosts view.serversHost}} href="javascript:void(null)">{{host}}</a>{{#if isComma}}, {{/if}}
-      {{#if isAnd}} and {{/if}}
-    {{/each}}
+      <a {{action filterHosts view.serversHost}} href="javascript:void(null)">{{view.servers.length}} ZooKeeper Server{{#if view.hasManyServers}}s{{/if}}</a>
   </td>
 </tr>
 
 <tr>
   <td class="summary-label">Clients</td>
   <td>
-    {{#each view.clients}}
-      <a {{action filterHosts view.clientObj}} href="javascript:void(null)">{{displayName}}</a>{{#if isComma}}, {{/if}}
-      {{#if isAnd}} and {{/if}}
-    {{/each}}
+      <a {{action filterHosts view.clientObj}} href="javascript:void(null)">{{view.clients.length}} ZooKeeper Client{{#if view.hasManyClients}}s{{/if}}</a>
   </td>
 </tr>

@@ -394,7 +394,9 @@ App.MainAppsView = Em.View.extend({
       });
     });
     this.get('oTable').fnSettings()._iDisplayLength = 10;
+    $('#dataTable_length select option:eq(0)').attr('selected', 'selected');
     this.get('oTable').fnDraw(false);
+
     console.log('Rendering Apps Table:');
     console.log('Start - ', d.toLocaleTimeString());
     console.log('End   - ', (new Date()).toLocaleTimeString());
@@ -486,9 +488,11 @@ App.MainAppsView = Em.View.extend({
   averageRefresh:function() {
     var rows = this.get('oTable')._('tr', {"filter":"applied"});
     this.get('controller').clearFilteredRuns();
+    var ids = [];
     for(var i = 0; i < rows.length; i++) {
-      this.get('controller').addFilteredRun(rows[i][1]);
+      ids.push(rows[i][1]);
     }
+    this.get('controller').filterFilteredRuns(ids);
   }.observes('filtered'),
   /**
    * dataTable filter views

@@ -29,6 +29,11 @@ App.WizardStep8View = Em.View.extend({
   },
   spinner : null,
 
+  printReview: function() {
+    var o = $("#step8-info");
+    o.jqprint();
+  },
+
   showLoadingIndicator: function(){
     if(this.get('controller.hasErrorOccurred')){
       $('.spinner').hide();

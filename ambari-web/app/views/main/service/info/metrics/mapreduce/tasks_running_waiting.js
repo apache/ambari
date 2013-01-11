@@ -26,14 +26,14 @@ var App = require('app');
  * @extends Ember.Object
  * @extends Ember.View
  */
-App.ChartServiceMetricsMapReduce_JobsRunningWaiting = App.ChartLinearTimeView.extend({
-  id: "service-metrics-mapreduce-jobs-running-waiting",
-  title: "Jobs (Running/Waiting)",
+App.ChartServiceMetricsMapReduce_TasksRunningWaiting = App.ChartLinearTimeView.extend({
+  id: "service-metrics-mapreduce-tasks-running-waiting",
+  title: "Tasks (Running/Waiting)",
   renderer: 'line',
   url: function () {
     return App.formatUrl(App.apiPrefix + "/clusters/{clusterName}/services/MAPREDUCE/components/JOBTRACKER?fields=metrics/mapred/jobtracker/running_maps[{fromSeconds},{toSeconds},{stepSeconds}],metrics/mapred/jobtracker/running_reduces[{fromSeconds},{toSeconds},{stepSeconds}],metrics/mapred/jobtracker/waiting_maps[{fromSeconds},{toSeconds},{stepSeconds}],metrics/mapred/jobtracker/waiting_reduces[{fromSeconds},{toSeconds},{stepSeconds}]", {
       clusterName: App.router.get('clusterController.clusterName')
-    }, "/data/services/metrics/mapreduce/jobs_running_waiting.json");
+    }, "/data/services/metrics/mapreduce/tasks_running_waiting.json");
   }.property('App.router.clusterController.clusterName'),
 
   transformToSeries: function (jsonData) {
@@ -44,16 +44,16 @@ App.ChartServiceMetricsMapReduce_JobsRunningWaiting = App.ChartLinearTimeView.ex
         var seriesData = jsonData.metrics.mapred.jobtracker[name];
         switch (name) {
           case "running_maps":
-            displayName = "Running Map Jobs";
+            displayName = "Running Map Tasks";
             break;
           case "running_reduces":
-            displayName = "Running Reduce Jobs";
+            displayName = "Running Reduce Tasks";
             break;
           case "waiting_maps":
-            displayName = "Waiting Map Jobs";
+            displayName = "Waiting Map Tasks";
             break;
           case "waiting_reduces":
-            displayName = "Waiting Reduce Jobs";
+            displayName = "Waiting Reduce Tasks";
             break;
           default:
             break;

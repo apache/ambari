@@ -27,6 +27,9 @@ App.LoginController = Em.Object.extend({
 
   errorMessage: '',
 
+  isAdmin: function(){
+    return App.db.getUser().admin;
+  }.property('loginName'),
 
   submit: function (e) {
     this.set('errorMessage', '');

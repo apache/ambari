@@ -41,6 +41,18 @@ App.MainAppsController = Em.ArrayController.extend({
     this.set('filteredRunsLength', this.get('content').filterProperty('isFiltered', true).length);
   },
   /**
+   * Mark Runs as filtered
+   * @param ids array of Run id
+   */
+  filterFilteredRuns: function(ids) {
+    this.get('content').filter(function(item) {
+      if ($.inArray(item.get('id'), ids) !== -1) {
+        item.set('isFiltered', true);
+      }
+    });
+    this.set('filteredRunsLength', this.get('content').filterProperty('isFiltered', true).length);
+  },
+  /**
    * Identifier of the last starred/unstarred run
    */
   lastStarClicked: null,

@@ -355,10 +355,10 @@ App.WizardStep9Controller = Em.Controller.extend({
     return polledData.everyProperty('Tasks.status', 'COMPLETED');
   },
 
-  // for DATANODE, JOBTRACKER, HBASE_REGIONSERVER, and GANGLIA_MONITOR, if more than 50% fail, then it's a fatal error;
+  // for DATANODE, TASKTRACKER, HBASE_REGIONSERVER, and GANGLIA_MONITOR, if more than 50% fail, then it's a fatal error;
   // otherwise, it's only a warning and installation/start can continue
   getSuccessFactor: function (role) {
-    return ['DATANODE', 'JOBTRACKER', 'HBASE_REGIONSERVER', 'GANGLIA_MONITOR'].contains(role) ? 50 : 100;
+    return ['DATANODE', 'TASKTRACKER', 'HBASE_REGIONSERVER', 'GANGLIA_MONITOR'].contains(role) ? 50 : 100;
   },
 
   isStepFailed: function (polledData) {
@@ -436,9 +436,12 @@ App.WizardStep9Controller = Em.Controller.extend({
           this.set('status', 'success');
         } else {
           if (this.isStepFailed(polledData)) {
-            clusterStatus.status = 'START FAILED';      // 'START FAILED' implies to step10 that installation was successful but start failed
+            clusterStatus.status = 'START FAILED'; // 'START FAILED' implies to step10 that installation was successful but start failed
             this.set('status', 'failed');
             this.setHostsStatus(this.getFailedHostsForFailedRoles(polledData), 'failed');
+          } else {
+            clusterStatus.status = 'START FAILED';
+            this.set('status', 'warning');
           }
         }
         App.router.get(this.get('content.controllerName')).saveClusterStatus(clusterStatus);

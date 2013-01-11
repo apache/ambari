@@ -19,6 +19,11 @@
 module.exports = [
 
   {
+    config_name: 'Admin',
+    display_name: 'Admin Name',
+    config_value: ''
+  },
+  {
     config_name: 'cluster',
     display_name: 'Cluster Name',
     config_value: ''

@@ -77,6 +77,20 @@ App.MainServiceInfoSummaryView = Em.View.extend({
     return result;
   }.property('controller.content'),
 
+  hasManyServers: function () {
+    if (this.get('servers').length > 1) {
+      return true;
+    }
+    return false;
+  }.property('servers'),
+
+  hasManyClients: function () {
+    if (this.get('clients').length > 1) {
+      return true;
+    }
+    return false;
+  }.property('clients'),
+
   servers: function () {
     var result = [];
     var service = this.get('controller.content');
@@ -286,7 +300,7 @@ App.MainServiceInfoSummaryView = Em.View.extend({
           break;
         case 'mapreduce':
           graphs = [ App.ChartServiceMetricsMapReduce_JobsStatus.extend(),
-            App.ChartServiceMetricsMapReduce_JobsRunningWaiting.extend(),
+            App.ChartServiceMetricsMapReduce_TasksRunningWaiting.extend(),
             App.ChartServiceMetricsMapReduce_MapSlots.extend(),
             App.ChartServiceMetricsMapReduce_ReduceSlots.extend(),
             App.ChartServiceMetricsMapReduce_GC.extend(),

@@ -168,6 +168,9 @@ App.WizardStep8Controller = Em.Controller.extend({
    * Set all site property that are derived from other site-properties
    */
   setConfigValue: function (uiConfig, config) {
+    if (config.value == null) {
+      return;
+    }
     var fkValue = config.value.match(/<(foreignKey.*?)>/g);
     if (fkValue) {
       fkValue.forEach(function (_fkValue) {
@@ -357,6 +360,14 @@ App.WizardStep8Controller = Em.Controller.extend({
    * Load all info about cluster to <code>clusterInfo</code> variable
    */
   loadClusterInfo: function () {
+
+    //Admin name
+    var admin = this.rawContent.findProperty('config_name', 'Admin');
+    admin.config_value = App.db.getLoginName();
+    console.log("STEP8: the value of content cluster name: " + App.db.getLoginName());
+    if (admin.config_value) {
+      this.get('clusterInfo').pushObject(Ember.Object.create(admin));
+    }
 
     // cluster name
     var cluster = this.rawContent.findProperty('config_name', 'cluster');
@@ -756,7 +767,7 @@ App.WizardStep8Controller = Em.Controller.extend({
             clusterName: this.get('clusterName'),
             clusterState: 'CLUSTER_DEPLOY_PREP_2',
             wizardControllerName: this.get('content.controllerName'),
-            localdb: App.db.data,
+            localdb: App.db.data
           });
           break;
 
@@ -1380,13 +1391,13 @@ App.WizardStep8Controller = Em.Controller.extend({
       case 'MAPREDUCE':
         return {config: {'global': 'version1', 'core-site': 'version1', 'mapred-site': 'version1'}};
       case 'HBASE':
-        return {config: {'global': 'version1', 'core-site': 'version1', 'hbase-site': 'version1'}};
+        return {config: {'global': 'version1', 'hbase-site': 'version1'}};
       case 'OOZIE':
-        return {config: {'global': 'version1', 'core-site': 'version1', 'oozie-site': 'version1'}};
+        return {config: {'global': 'version1', 'oozie-site': 'version1'}};
       case 'HIVE':
-        return {config: {'global': 'version1', 'core-site': 'version1', 'hive-site': 'version1'}};
+        return {config: {'global': 'version1', 'hive-site': 'version1'}};
       case 'WEBHCAT':
-        return {config: {'global': 'version1', 'core-site': 'version1', 'webhcat-site': 'version1'}};
+        return {config: {'global': 'version1', 'webhcat-site': 'version1'}};
       default:
         return {config: {'global': 'version1'}};
     }
