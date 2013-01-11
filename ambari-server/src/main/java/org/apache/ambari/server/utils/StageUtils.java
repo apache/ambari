@@ -17,10 +17,26 @@
  */
 package org.apache.ambari.server.utils;
 
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
+import java.nio.charset.Charset;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
+
+import javax.xml.bind.JAXBException;
+
 import org.apache.ambari.server.Role;
 import org.apache.ambari.server.RoleCommand;
 import org.apache.ambari.server.actionmanager.Stage;
 import org.apache.ambari.server.agent.ExecutionCommand;
+import org.apache.ambari.server.controller.HostsMap;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.ServiceComponent;
 import org.apache.ambari.server.state.svccomphost.ServiceComponentHostInstallEvent;
@@ -31,15 +47,6 @@ import org.codehaus.jackson.JsonParseException;
 import org.codehaus.jackson.map.JsonMappingException;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.map.SerializationConfig;
-
-import javax.xml.bind.JAXBException;
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.InetAddress;
-import java.net.UnknownHostException;
-import java.nio.charset.Charset;
-import java.util.*;
 
 public class StageUtils {
   private static Log LOG = LogFactory.getLog(StageUtils.class);
@@ -99,6 +106,7 @@ public class StageUtils {
     Stage s = new Stage(requestId, "/tmp", "cluster1");
     s.setStageId(stageId);
     long now = System.currentTimeMillis();
+    String filename = null;
     s.addHostRoleExecutionCommand(hostname, Role.NAMENODE, RoleCommand.INSTALL,
         new ServiceComponentHostInstallEvent("NAMENODE", hostname, now, "HDP-1.2.0"),
         "cluster1", "HDFS");
@@ -150,7 +158,8 @@ public class StageUtils {
     return mapper.readValue(is, clazz);
   }
   
-  public static Map<String, List<String>> getClusterHostInfo(Cluster cluster) {
+  
+  public static Map<String, List<String>> getClusterHostInfo(Cluster cluster, HostsMap hostsMap) {
     Map<String, List<String>> info = new HashMap<String, List<String>>();
     if (cluster.getServices() != null) {
       for (String serviceName : cluster.getServices().keySet()) {
@@ -168,12 +177,13 @@ public class StageUtils {
                 && !scomp.getServiceComponentHosts().isEmpty()) {
               List<String> hostList = new ArrayList<String>();
               for (String host: scomp.getServiceComponentHosts().keySet()) {
-                hostList.add(host);
+                String mappedHost = hostsMap.getHostMap(host);
+                hostList.add(mappedHost);
               }
               info.put(clusterInfoKey, hostList);
             }
             //Add ambari db server
-            info.put("ambari_db_server_host", Arrays.asList(getHostName()));
+            info.put("ambari_db_server_host", Arrays.asList(hostsMap.getHostMap(getHostName())));
           }
         }
       }

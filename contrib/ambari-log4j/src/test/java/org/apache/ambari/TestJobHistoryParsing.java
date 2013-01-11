@@ -30,6 +30,7 @@ import org.apache.ambari.eventdb.model.WorkflowDag.WorkflowDagEntry;
 import org.apache.ambari.log4j.hadoop.mapreduce.jobhistory.MapReduceJobHistoryUpdater;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.mapred.JobHistory;
+import org.apache.hadoop.mapreduce.JobID;
 import org.apache.hadoop.tools.rumen.JobSubmittedEvent;
 import org.apache.hadoop.util.StringUtils;
 
@@ -65,20 +66,42 @@ public class TestJobHistoryParsing extends TestCase {
     test("id_= 0-1", "something.name", "1=0", adj);
   }
   
+  public void test3() {
+    String s = "`~!@#$%^&*()-_=+[]{}|,.<>/?;:'\"";
+    test(s, s, s, new HashMap<String,String[]>());
+  }
+  
+  public void test4() {
+    Map<String,String[]> adj = new HashMap<String,String[]>();
+    adj.put("X", new String[] {});
+    test("", "jobName", "X", adj);
+  }
+  
   public void test(String workflowId, String workflowName, String workflowNodeName, Map<String,String[]> adjacencies) {
     Configuration conf = new Configuration();
     setProperties(conf, workflowId, workflowName, workflowNodeName, adjacencies);
     String log = log("JOB", new String[] {ID, NAME, NODE, ADJ},
         new String[] {conf.get(ID_PROP), conf.get(NAME_PROP), conf.get(NODE_PROP), JobHistory.JobInfo.getWorkflowAdjacencies(conf)});
     ParsedLine line = new ParsedLine(log);
-    JobSubmittedEvent event = new JobSubmittedEvent(null, "", "", 0l, "", null, "", line.get(ID), line.get(NAME), line.get(NODE), line.get(ADJ));
+    JobID jobid = new JobID("id", 1);
+    JobSubmittedEvent event = new JobSubmittedEvent(jobid, workflowName, "", 0l, "", null, "", line.get(ID), line.get(NAME), line.get(NODE), line.get(ADJ));
     WorkflowContext context = MapReduceJobHistoryUpdater.buildWorkflowContext(event);
-    assertEquals("Didn't recover workflowId", workflowId, context.getWorkflowId());
+    
+    String resultingWorkflowId = workflowId;
+    if (workflowId.isEmpty())
+      resultingWorkflowId = jobid.toString().replace("job_", "mr_");
+    assertEquals("Didn't recover workflowId", resultingWorkflowId, context.getWorkflowId());
     assertEquals("Didn't recover workflowName", workflowName, context.getWorkflowName());
     assertEquals("Didn't recover workflowNodeName", workflowNodeName, context.getWorkflowEntityName());
-    assertEquals("Got incorrect number of adjacencies", adjacencies.size(), context.getWorkflowDag().getEntries().size());
+    
+    Map<String,String[]> resultingAdjacencies = adjacencies;
+    if (resultingAdjacencies.size() == 0) {
+      resultingAdjacencies = new HashMap<String,String[]>();
+      resultingAdjacencies.put(workflowNodeName, new String[] {});
+    }
+    assertEquals("Got incorrect number of adjacencies", resultingAdjacencies.size(), context.getWorkflowDag().getEntries().size());
     for (WorkflowDagEntry entry : context.getWorkflowDag().getEntries()) {
-      String[] sTargets = adjacencies.get(entry.getSource());
+      String[] sTargets = resultingAdjacencies.get(entry.getSource());
       assertNotNull("No original targets for " + entry.getSource(), sTargets);
       List<String> dTargets = entry.getTargets();
       assertEquals("Got incorrect number of targets for " + entry.getSource(), sTargets.length, dTargets.size());

@@ -34,6 +34,7 @@ import org.apache.ambari.server.actionmanager.ActionScheduler.RoleStats;
 import org.apache.ambari.server.agent.ActionQueue;
 import org.apache.ambari.server.agent.AgentCommand;
 import org.apache.ambari.server.agent.ExecutionCommand;
+import org.apache.ambari.server.controller.HostsMap;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Service;
@@ -73,7 +74,7 @@ public class TestActionScheduler {
     //Keep large number of attempts so that the task is not expired finally
     //Small action timeout to test rescheduling
     ActionScheduler scheduler = new ActionScheduler(100, 100, db, aq, fsm,
-        10000);
+        10000, new HostsMap((String) null));
     scheduler.setTaskTimeoutAdjustment(false);
     // Start the thread
     scheduler.start();
@@ -137,7 +138,8 @@ public class TestActionScheduler {
     db.persistActions(stages);
 
     //Small action timeout to test rescheduling
-    ActionScheduler scheduler = new ActionScheduler(100, 50, db, aq, fsm, 3);
+    ActionScheduler scheduler = new ActionScheduler(100, 50, db, aq, fsm, 3, 
+        new HostsMap((String) null));
     scheduler.setTaskTimeoutAdjustment(false);
     // Start the thread
     scheduler.start();

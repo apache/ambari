@@ -105,6 +105,9 @@ public class Configuration {
   public static final String OS_VERSION_KEY =
       "server.os_type";
 
+  public static final String SRVR_HOSTS_MAPPING = 
+      "server.hosts.mapping";
+  
   private static final String SRVR_KSTR_DIR_DEFAULT = ".";
   public static final String SRVR_CRT_NAME_DEFAULT = "ca.crt";
   public static final String SRVR_KEY_NAME_DEFAULT = "ca.key";
@@ -289,6 +292,15 @@ public class Configuration {
     return properties.getProperty(WEBAPP_DIR, "web");
   }
 
+  /**
+   * Get the file that will be used for host mapping.
+   * @return null if such a file is not present, value if present.
+   */
+  public String getHostsMapFile() {
+    LOG.info("Hosts Mapping File " +  properties.getProperty(SRVR_HOSTS_MAPPING));
+    return properties.getProperty(SRVR_HOSTS_MAPPING);
+  }
+  
   /**
    * Gets ambari stack-path
    * @return String

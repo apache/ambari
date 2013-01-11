@@ -280,20 +280,19 @@
           </execution>
         </executions>
       </plugin>
-        <plugin>
-            <groupId>org.apache.rat</groupId>
-            <artifactId>apache-rat-plugin</artifactId>
-            <version>0.8</version>
-            <configuration>
-                <excludes>
-                    <exclude>src/test/python/dummy*.txt</exclude>
-                </excludes>
-                <includes>
-                    <include>pom.xml</include>
-                </includes>
-            </configuration>
-        </plugin>
-
+      <plugin>
+        <groupId>org.apache.rat</groupId>
+        <artifactId>apache-rat-plugin</artifactId>
+        <configuration>
+          <excludes>
+            <exclude>src/test/python/dummy*.txt</exclude>
+            <exclude>src/main/puppet/modules/stdlib/**</exclude>
+            <exclude>**/*.erb</exclude>
+            <exclude>src/main/python/ambari_agent/imports.txt</exclude>
+            <exclude>**/*.json</exclude>
+          </excludes>
+        </configuration>
+      </plugin>
     </plugins>
     <extensions>
       <extension>

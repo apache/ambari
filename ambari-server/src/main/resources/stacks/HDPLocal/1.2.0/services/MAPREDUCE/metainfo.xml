@@ -18,7 +18,7 @@
 <metainfo>
     <user>mapred</user>
     <comment>Apache Hadoop Distributed Processing Framework</comment>
-    <version>1.1.1.1-1</version>
+    <version>1.1.2</version>
 
     <components>
         <component>

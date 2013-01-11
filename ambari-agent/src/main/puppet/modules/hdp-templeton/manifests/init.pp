@@ -42,7 +42,7 @@ class hdp-templeton(
     $size = 32
   }
 
-  $templeton_user = $hdp-templeton::params::templeton_user
+  $webhcat_user = $hdp-templeton::params::webhcat_user
   $templeton_config_dir = $hdp-templeton::params::conf_dir
 
   if ($service_state == 'uninstalled') {
@@ -64,7 +64,7 @@ class hdp-templeton(
     class { hdp-templeton::download-hive-tar: }
     class { hdp-templeton::download-pig-tar: }
 
-    hdp::user{ $templeton_user:}
+    hdp::user{ $webhcat_user:}
 
     hdp::directory { $templeton_config_dir: 
       service_state => $service_state,
@@ -73,10 +73,10 @@ class hdp-templeton(
 
     hdp-templeton::configfile { ['webhcat-env.sh']: }
 
-    anchor { 'hdp-templeton::begin': } -> Hdp::Package['webhcat'] -> Hdp::User[$templeton_user] -> Hdp::Directory[$templeton_config_dir] -> Hdp-templeton::Configfile<||> ->  anchor { 'hdp-templeton::end': }
+    anchor { 'hdp-templeton::begin': } -> Hdp::Package['webhcat'] -> Hdp::User[$webhcat_user] -> Hdp::Directory[$templeton_config_dir] -> Hdp-templeton::Configfile<||> ->  anchor { 'hdp-templeton::end': }
 
      if ($server == true ) { 
-      Hdp::Package['webhcat'] -> Hdp::User[$templeton_user] ->   Class['hdp-templeton::download-hive-tar'] -> Class['hdp-templeton::download-pig-tar'] -> Anchor['hdp-templeton::end']
+      Hdp::Package['webhcat'] -> Hdp::User[$webhcat_user] ->   Class['hdp-templeton::download-hive-tar'] -> Class['hdp-templeton::download-pig-tar'] -> Anchor['hdp-templeton::end']
      }
   }
 }
@@ -88,7 +88,7 @@ define hdp-templeton::configfile(
 {
   hdp::configfile { "${hdp-templeton::params::conf_dir}/${name}":
     component       => 'templeton',
-    owner           => $hdp-templeton::params::templeton_user,
+    owner           => $hdp-templeton::params::webhcat_user,
     mode            => $mode
   }
 }

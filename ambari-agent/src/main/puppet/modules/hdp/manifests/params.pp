@@ -247,7 +247,7 @@ class hdp::params()
       64 => 'nagios-3.2.3'
     },
     nagios-plugins => {
-      64 => 'nagios-plugins-1.4.9'
+      64 => 'nagios-plugins'
     },
     nagios-fping => {
       64 =>'fping'
@@ -439,7 +439,7 @@ class hdp::params()
     },
 
     lzo => {
-      'ALL' => {'ALL' => ['lzo', 'lzo.i686', 'lzo-devel', 'lzo-devel.i686'],
+      'ALL' => {'ALL' => ['lzo', 'lzo-devel'],
                 suse => ['lzo-devel']},
     },
 
@@ -515,7 +515,9 @@ class hdp::params()
       64 => {'ALL' => $NOTHING,
              suse => 'php5-json',
              centos6 => $NOTHING,
-             rhel6 => $NOTHING}
+             redhat6 => $NOTHING,
+             centos5 => 'php-pecl-json.x86_64',
+             redhat5 => 'php-pecl-json.x86_64'}
     },
 
     ganglia-server => {

@@ -42,7 +42,9 @@ class hdp-oozie::params() inherits hdp::params
   $oozie_tmp_dir = hdp_default("hadoop/oozie-env/oozie_tmp_dir","/var/tmp/oozie")
 
   $oozie_lib_dir = hdp_default("hadoop/oozie-env/oozie_lib_dir","/var/lib/oozie/")
-
+  
+  $oozie_webapps_dir = hdp_default("hadoop/oozie-env/oozie_webapps_dir","/var/lib/oozie/oozie-server/webapps/")
+  
   ### oozie-site
   $keytab_path = hdp_default("keytab_path","/etc/security/keytabs")
   if ($security_enabled == true) {

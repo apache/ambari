@@ -18,7 +18,7 @@
 <metainfo>
     <user>root</user>
     <comment>Apache Hadoop Distributed File System</comment>
-    <version>1.1.1.1-1</version>
+    <version>1.1.2</version>
 
     <components>
         <component>

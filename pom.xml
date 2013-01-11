@@ -108,6 +108,37 @@
           <mappings/>
         </configuration>
       </plugin>
+      <plugin>
+        <groupId>org.apache.rat</groupId>
+        <artifactId>apache-rat-plugin</artifactId>
+        <configuration>
+          <excludes>
+            <exclude>**/*.json</exclude>
+            <exclude>derby.log</exclude>
+            <exclude>AMBARI-666-CHANGES.txt</exclude>
+            <exclude>pass.txt</exclude>
+            <exclude>contrib/addons/test/dataServices/jmx/data/cluster_configuration.json.nohbase</exclude>
+
+            <!--IDE and GIT files-->
+            <exclude>.idea/</exclude>
+            <exclude>.git/</exclude>
+            <exclude>**/.gitignore</exclude>
+            <exclude>**/.gitattributes</exclude>
+
+            <!--gitignore content-->
+            <exclude>.DS_Store</exclude>
+            <exclude>.iml/</exclude>
+            <exclude>.classpath</exclude>
+            <exclude>.project</exclude>
+            <exclude>.settings</exclude>
+            <exclude>*.pyc</exclude>
+            <exclude>*.py~</exclude>
+            <exclude>.hg</exclude>
+            <exclude>.hgignore</exclude>
+            <exclude>.hgtags</exclude>
+          </excludes>
+        </configuration>
+      </plugin>
     </plugins>
   </build>
 </project>

@@ -23,13 +23,16 @@
 # The file containing the running pid
 PID_FILE=<%=scope.function_hdp_template_var("templeton_pid_dir")%>/webhcat.pid
 
-TEMPLETON_LOG_DIR=<%=scope.function_hdp_template_var("templeton_log_dir")%>/
+TEMPLETON_LOG_DIR=<%=scope.function_hdp_template_var("hcat_log_dir")%>/
+
+
+WEBHCAT_LOG_DIR=<%=scope.function_hdp_template_var("hcat_log_dir")%>/
 
 # The console error log
-ERROR_LOG=<%=scope.function_hdp_template_var("templeton_log_dir")%>/webhcat-console-error.log
+ERROR_LOG=<%=scope.function_hdp_template_var("hcat_log_dir")%>/webhcat-console-error.log
 
 # The console log
-CONSOLE_LOG=<%=scope.function_hdp_template_var("templeton_log_dir")%>/webhcat-console.log
+CONSOLE_LOG=<%=scope.function_hdp_template_var("hcat_log_dir")%>/webhcat-console.log
 
 #TEMPLETON_JAR=<%=scope.function_hdp_template_var("templeton_jar_name")%>
 

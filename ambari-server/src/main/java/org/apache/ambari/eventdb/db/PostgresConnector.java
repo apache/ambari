@@ -395,8 +395,8 @@ public class PostgresConnector implements DBConnector {
       throws IOException {
     if (db == null)
       throw new IOException("postgres db not initialized");
-    String limitClause = " ORDER BY " + field.toString() + " " + (sortAscending ? SORT_ASC : SORT_DESC) + " NULLS " + (sortAscending ? "FIRST " : "LAST ")
-        + "OFFSET " + offset + (limit >= 0 ? " LIMIT " + limit : "");
+    String limitClause = " ORDER BY " + field.toString() + " " + (sortAscending ? SORT_ASC : SORT_DESC) + " OFFSET " + offset
+        + (limit >= 0 ? " LIMIT " + limit : "");
     return getQualifiedPS(statement, searchClause + limitClause);
   }
   

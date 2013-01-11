@@ -18,7 +18,7 @@
 <metainfo>
     <user>mapred</user>
     <comment>Non-relational distributed database and centralized service for configuration management &amp; synchronization</comment>
-    <version>0.94.2.1-1</version>
+    <version>0.94.2</version>
 
     <components>
         <component>

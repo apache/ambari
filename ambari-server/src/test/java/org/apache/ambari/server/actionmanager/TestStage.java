@@ -21,6 +21,7 @@ import static org.junit.Assert.*;
 
 import org.apache.ambari.server.Role;
 import org.apache.ambari.server.RoleCommand;
+import org.apache.ambari.server.controller.HostsMap;
 import org.apache.ambari.server.utils.StageUtils;
 import org.junit.Test;
 

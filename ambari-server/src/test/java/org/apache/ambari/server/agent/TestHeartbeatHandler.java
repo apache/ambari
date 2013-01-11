@@ -54,6 +54,7 @@ import org.apache.ambari.server.actionmanager.Stage;
 import org.apache.ambari.server.agent.HostStatus.Status;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.configuration.Configuration;
+import org.apache.ambari.server.controller.HostsMap;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
 import org.apache.ambari.server.state.Cluster;
@@ -108,7 +109,7 @@ public class TestHeartbeatHandler {
   @Test
   public void testHeartbeat() throws Exception {
     ActionManager am = new ActionManager(0, 0, null, null,
-        new ActionDBInMemoryImpl());
+        new ActionDBInMemoryImpl(), new HostsMap((String) null));
     Clusters fsm = clusters;
     String hostname = "host1";
     fsm.addHost(hostname);
@@ -148,7 +149,7 @@ public class TestHeartbeatHandler {
   @Test
   public void testStatusHeartbeat() throws Exception {
     ActionManager am = new ActionManager(0, 0, null, null,
-            new ActionDBInMemoryImpl());
+            new ActionDBInMemoryImpl(), new HostsMap((String) null));
     final String hostname = "host1";
     String clusterName = "cluster1";
     String serviceName = "HDFS";
@@ -236,7 +237,8 @@ public class TestHeartbeatHandler {
     clusters.getHost(hostname).persist();
     clusters.addCluster(clusterName);
     ActionDBAccessor db = injector.getInstance(ActionDBAccessorImpl.class);
-    ActionManager am = new ActionManager(5000, 1200000, new ActionQueue(), clusters, db);
+    ActionManager am = new ActionManager(5000, 1200000, new ActionQueue(), clusters, db,
+        new HostsMap((String) null));
     populateActionDB(db, hostname);
     Stage stage = db.getAllStages(requestId).get(0);
     Assert.assertEquals(stageId, stage.getStageId());
@@ -267,6 +269,7 @@ public class TestHeartbeatHandler {
   private void populateActionDB(ActionDBAccessor db, String hostname) {
     Stage s = new Stage(requestId, "/a/b", "cluster1");
     s.setStageId(stageId);
+    String filename = null;
     s.addHostRoleExecutionCommand(hostname, Role.HBASE_MASTER,
         RoleCommand.START,
         new ServiceComponentHostStartEvent(Role.HBASE_MASTER.toString(),
@@ -281,7 +284,7 @@ public class TestHeartbeatHandler {
   public void testRegistration() throws AmbariException,
       InvalidStateTransitionException {
     ActionManager am = new ActionManager(0, 0, null, null,
-        new ActionDBInMemoryImpl());
+        new ActionDBInMemoryImpl(), new HostsMap((String) null));
     Clusters fsm = clusters;
     String hostname = "host1";
     HeartBeatHandler handler = new HeartBeatHandler(fsm, new ActionQueue(), am,
@@ -308,7 +311,7 @@ public class TestHeartbeatHandler {
   @Test
   public void testRegistrationPublicHostname() throws AmbariException, InvalidStateTransitionException {
     ActionManager am = new ActionManager(0, 0, null, null,
-        new ActionDBInMemoryImpl());
+        new ActionDBInMemoryImpl(), new HostsMap((String) null));
     Clusters fsm = clusters;
     String hostname = "host1";
     HeartBeatHandler handler = new HeartBeatHandler(fsm, new ActionQueue(), am,
@@ -341,7 +344,7 @@ public class TestHeartbeatHandler {
   public void testInvalidOSRegistration() throws AmbariException,
       InvalidStateTransitionException {
     ActionManager am = new ActionManager(0, 0, null, null,
-        new ActionDBInMemoryImpl());
+        new ActionDBInMemoryImpl(), new HostsMap((String) null));
     Clusters fsm = clusters;
     String hostname = "host1";
     HeartBeatHandler handler = new HeartBeatHandler(fsm, new ActionQueue(), am,
@@ -370,7 +373,7 @@ public class TestHeartbeatHandler {
   public void testRegisterNewNode()
       throws AmbariException, InvalidStateTransitionException {
     ActionManager am = new ActionManager(0, 0, null, null,
-        new ActionDBInMemoryImpl());
+        new ActionDBInMemoryImpl(), new HostsMap((String) null));
     Clusters fsm = clusters;
     String hostname = "host1";
     fsm.addHost(hostname);
@@ -460,7 +463,7 @@ public class TestHeartbeatHandler {
     when(hm.generateStatusCommands(anyString())).thenReturn(dummyCmds);
 
     ActionManager am = new ActionManager(0, 0, null, null,
-            new ActionDBInMemoryImpl());
+            new ActionDBInMemoryImpl(), new HostsMap((String) null));
     Clusters fsm = clusters;
     String hostname = "host1";
     ActionQueue actionQueue = new ActionQueue();
@@ -487,7 +490,7 @@ public class TestHeartbeatHandler {
   @Test
   public void testTaskInProgressHandling() throws AmbariException, InvalidStateTransitionException {
     ActionManager am = new ActionManager(0, 0, null, null,
-            new ActionDBInMemoryImpl());
+            new ActionDBInMemoryImpl(), new HostsMap((String) null));
     final String hostname = "host1";
     String clusterName = "cluster1";
     String serviceName = "HDFS";

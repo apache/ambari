@@ -31,13 +31,7 @@ class hdp-nagios::server::packages(
   
 
   
-  if ($service_state == 'installed_and_configured') {
-    package{'nagios-plugins-process-old':
-      name   => 'nagios-plugins',
-      ensure => absent}
-  }
-	
-  hdp::package { 'nagios-server': 
+  hdp::package { 'nagios-server':
     ensure      => present,
     java_needed => false
   }
@@ -65,8 +59,22 @@ class hdp-nagios::server::packages(
   
 debug("## state: $service_state")
   if ($service_state == 'installed_and_configured') {
+
+    hdp::package::remove_pkg { 'hdp_mon_nagios_addons':
+      package_type => 'hdp_mon_nagios_addons'
+    }
+
+    hdp::package::remove_pkg { 'nagios-plugins':
+      package_type => 'nagios-plugins'
+    }
+
+    hdp::package::remove_pkg { 'nagios':
+      package_type => 'nagios'
+    }
+
     debug("##Adding removing dep")
-    Package['nagios-plugins-process-old'] -> Hdp::Package['nagios-plugins']
+    # Removing conflicting packages. Names of packages being removed are hardcoded and not resolved via hdp::params
+    Hdp::Package::Remove_pkg['hdp_mon_nagios_addons'] -> Hdp::Package::Remove_pkg['nagios-plugins'] -> Hdp::Package::Remove_pkg['nagios'] -> Hdp::Package['nagios-plugins']
   }
 
   Hdp::Package['nagios-plugins'] -> Hdp::Package['nagios-server'] -> Hdp::Package['nagios-fping'] -> Hdp::Package['nagios-addons'] -> Hdp::Package['nagios-php-pecl-json']

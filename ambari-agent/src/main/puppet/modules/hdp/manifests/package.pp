@@ -116,3 +116,20 @@ define hdp::package::process_pkg(
   }
 }
 
+# Removes the specified package using shell command appropriate for current OS type.
+# Method DOES NOT resolve package name via hdp::params.
+# If package does not exist or is not installed, command does nothing.
+define hdp::package::remove_pkg(
+    $package_type,
+  )
+{
+
+  # TODO: For non-rpm based systems, provide appropriate command
+  exec { "remove_package ${package_type}":
+    path    => "/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
+    command => $hdp::params::hdp_os_type ? {
+      default => "rpm -e --allmatches ${package_type} ; true"
+    },
+  }
+
+}

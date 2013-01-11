@@ -18,7 +18,7 @@
 <metainfo>
     <user>root</user>
     <comment>This is comment for ZOOKEEPER service</comment>
-    <version>3.4.5.1-1</version>
+    <version>3.4.5</version>
 
     <components>
         <component>

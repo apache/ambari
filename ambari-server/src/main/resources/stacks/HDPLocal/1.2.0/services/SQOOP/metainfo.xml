@@ -18,7 +18,7 @@
 <metainfo>
     <user>root</user>
     <comment>Tool for transferring bulk data between Apache Hadoop and structured data stores such as relational databases</comment>
-    <version>1.4.2.1-1</version>
+    <version>1.4.2</version>
 
     <components>
         <component>

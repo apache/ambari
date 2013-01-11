@@ -18,7 +18,7 @@
 <metainfo>
     <user>root</user>
     <comment>System for workflow coordination and execution of Apache Hadoop jobs</comment>
-    <version>3.2.0.1-1</version>
+    <version>3.2.0</version>
 
     <components>
         <component>

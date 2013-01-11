@@ -26,6 +26,7 @@ from RepoInstaller import RepoInstaller
 import pprint, threading
 from Grep import Grep
 from threading import Thread
+import shell
 import traceback
 
 logger = logging.getLogger()
@@ -212,10 +213,12 @@ class puppetExecutor:
     self.event.wait(self.PUPPET_TIMEOUT_SECONDS)
     if puppet.returncode is None:
       logger.error("Task timed out and will be killed")
-      puppet.terminate()
+      self.runShellKillPgrp(puppet)
       self.last_puppet_has_been_killed = True
     pass
 
+  def runShellKillPgrp(self, puppet):
+    shell.killprocessgrp(puppet.pid)
 
 def main():
   logging.basicConfig(level=logging.DEBUG)    

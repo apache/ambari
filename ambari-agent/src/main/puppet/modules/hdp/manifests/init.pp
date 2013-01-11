@@ -102,11 +102,18 @@ class hdp::create_smoke_user()
   $smoke_user = $hdp::params::smokeuser
   $security_enabled = $hdp::params::security_enabled
 
-  group { $smoke_group :
+  
+  if ( $smoke_group != $proxyuser_group) {
+    group { $smoke_group :
+      ensure => present
+    }
+  }
+
+  group { $proxyuser_group :
     ensure => present
   }
 
-  hdp::user { $smoke_user:}
+  hdp::user { $smoke_user: gid => $proxyuser_group}
 
   $cmd = "usermod -g  $smoke_group  $smoke_user"
   $check_group_cmd = "id -gn $smoke_user | grep $smoke_group"
@@ -126,7 +133,11 @@ class hdp::create_smoke_user()
      }
   }
 
-  Group[$smoke_group] -> Hdp::User[$smoke_user] -> Hdp::Exec[$cmd] 
+  if ( $smoke_group != $proxyuser_group) {
+    Group[$smoke_group] -> Group[$proxyuser_group] -> Hdp::User[$smoke_user] -> Hdp::Exec[$cmd]
+  } else {
+    Group[$smoke_group] -> Hdp::User[$smoke_user] -> Hdp::Exec[$cmd]
+  }
 }
 
 
@@ -168,6 +179,7 @@ define hdp::user(
     }
   }
 }
+
      
 define hdp::directory(
   $owner = $hdp::params::hadoop_user,

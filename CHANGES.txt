@@ -19,6 +19,8 @@ should be listed by their full name.
  AMBARI-1114. BootStrap fails but the api says thats its done and exit status
  is 0. (Nate Cole via mahadev)
 
+  AMBARI-1136 - Add gsInstaller resource provider. (Tom Beerbower via mahadev)
+
  BUG FIXES
 
  AMBARI-1126. Change SUSE lzo dependency to only lzo-devel. (nate cole via

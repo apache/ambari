@@ -25,7 +25,7 @@ class hdp-templeton::service(
 {
   include $hdp-templeton::params
   
-  $user = "$hdp-templeton::params::templeton_user"
+  $user = "$hdp-templeton::params::webhcat_user"
   $hadoop_home = $hdp-templeton::params::hadoop_prefix
   $cmd = "env HADOOP_HOME=${hadoop_home} /usr/lib/hcatalog/sbin/webhcat_server.sh"
   $pid_file = "${hdp-templeton::params::templeton_pid_dir}/webhcat.pid" 
@@ -41,7 +41,7 @@ class hdp-templeton::service(
   }
 
   hdp-templeton::service::directory { $hdp-templeton::params::templeton_pid_dir : }
-  hdp-templeton::service::directory { $hdp-templeton::params::templeton_log_dir : }
+  hdp-templeton::service::directory { $hdp-templeton::params::hcat_log_dir : }
 
   anchor{'hdp-templeton::service::begin':} -> Hdp-templeton::Service::Directory<||> -> anchor{'hdp-templeton::service::end':}
   
@@ -58,7 +58,7 @@ class hdp-templeton::service(
 define hdp-templeton::service::directory()
 {
   hdp::directory_recursive_create { $name: 
-    owner => $hdp-templeton::params::templeton_user,
+    owner => $hdp-templeton::params::webhcat_user,
     mode => '0755',
     service_state => $ensure,
     force => true

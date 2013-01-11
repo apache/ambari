@@ -27,7 +27,7 @@ import org.apache.log4j.spi.LoggingEvent;
 
 public class LoggingThreadRunnable implements Runnable {
   private static final Log LOG = LogFactory.getLog(LoggingThreadRunnable.class);
-  
+  private static long WAIT_EMPTY_QUEUE = 60000;
   private final Queue<LoggingEvent> events;
   private final LogParser parser;
   private final LogStore store;
@@ -60,7 +60,13 @@ public class LoggingThreadRunnable implements Runnable {
         } catch (IOException ioe) {
           LOG.warn("Failed to parse log-event: " + event);
         }
-      } 
+      }
+      try {
+        Thread.sleep(WAIT_EMPTY_QUEUE);
+      } catch(InterruptedException ie) {
+        //ignore and continue
+      }
+    	  
     }
     try {
       store.close();

@@ -137,6 +137,7 @@ public class JobHistoryAppender extends AppenderSkeleton implements Appender {
       logThreadRunnable = 
           new LoggingThreadRunnable(events, logParser, logStore);
       logThread = new Thread(logThreadRunnable);
+      logThread.setDaemon(true);
       logThread.start();
 
       super.activateOptions();

@@ -18,7 +18,7 @@
 <reposinfo>
   <os type="centos6">
     <repo>
-      <baseurl>http://s3.amazonaws.com/dev.hortonworks.com/HDP-1.2.0/repos/centos6</baseurl>
+      <baseurl>http://public-repo-1.hortonworks.com/HDP-1.2.0/repos/centos6</baseurl>
       <repoid>HDP-1.2.0</repoid>
       <reponame>HDP</reponame>
     </repo>
@@ -31,7 +31,7 @@
   </os>
   <os type="centos5">
     <repo>
-      <baseurl>http://s3.amazonaws.com/dev.hortonworks.com/HDP-1.2.0/repos/centos5</baseurl>
+      <baseurl>http://public-repo-1.hortonworks.com/HDP-1.2.0/repos/centos5</baseurl>
       <repoid>HDP-1.2.0</repoid>
       <reponame>HDP</reponame>
     </repo>
@@ -44,7 +44,7 @@
   </os>
   <os type="redhat6">
     <repo>
-      <baseurl>http://s3.amazonaws.com/dev.hortonworks.com/HDP-1.2.0/repos/centos6</baseurl>
+      <baseurl>http://public-repo-1.hortonworks.com/HDP-1.2.0/repos/centos6</baseurl>
       <repoid>HDP-1.2.0</repoid>
       <reponame>HDP</reponame>
     </repo>
@@ -57,7 +57,7 @@
   </os>
   <os type="redhat5">
     <repo>
-      <baseurl>http://s3.amazonaws.com/dev.hortonworks.com/HDP-1.2.0/repos/centos5</baseurl>
+      <baseurl>http://public-repo-1.hortonworks.com/HDP-1.2.0/repos/centos5</baseurl>
       <repoid>HDP-1.2.0</repoid>
       <reponame>HDP</reponame>
     </repo>
@@ -70,12 +70,12 @@
   </os>
   <os type="suse11">
     <repo>
-      <baseurl>http://s3.amazonaws.com/dev.hortonworks.com/HDP-1.2.0/repos/suse11</baseurl>
+      <baseurl>http://public-repo-1.hortonworks.com/HDP-1.2.0/repos/suse11</baseurl>
       <repoid>HDP-1.2.0</repoid>
       <reponame>HDP</reponame>
     </repo>
     <repo>
-      <baseurl>http://s3.amazonaws.com/dev.hortonworks.com/HDP-UTILS-1.1.0.15/repos/suse11</baseurl>
+      <baseurl>http://public-repo-1.hortonworks.com/HDP-UTILS-1.1.0.15/repos/suse11</baseurl>
       <repoid>HDP-UTILS-1.1.0.15</repoid>
       <reponame>HDP-UTILS</reponame>
       <mirrorslist></mirrorslist>
@@ -83,12 +83,12 @@
   </os>
     <os type="sles11">
     <repo>
-      <baseurl>http://s3.amazonaws.com/dev.hortonworks.com/HDP-1.2.0/repos/suse11</baseurl>
+      <baseurl>http://public-repo-1.hortonworks.com/HDP-1.2.0/repos/suse11</baseurl>
       <repoid>HDP-1.2.0</repoid>
       <reponame>HDP</reponame>
     </repo>
     <repo>
-      <baseurl>http://s3.amazonaws.com/dev.hortonworks.com/HDP-UTILS-1.1.0.15/repos/suse11</baseurl>
+      <baseurl>http://public-repo-1.hortonworks.com/HDP-UTILS-1.1.0.15/repos/suse11</baseurl>
       <repoid>HDP-UTILS-1.1.0.15</repoid>
       <reponame>HDP-UTILS</reponame>
       <mirrorslist></mirrorslist>

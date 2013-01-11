@@ -18,7 +18,7 @@
 <metainfo>
     <user>root</user>
     <comment>Ganglia Metrics Collection system</comment>
-    <version>1.0</version>
+    <version>3.2.0</version>
 
     <components>
         <component>

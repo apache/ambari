@@ -51,21 +51,20 @@
       <plugin>
         <groupId>org.apache.rat</groupId>
         <artifactId>apache-rat-plugin</artifactId>
-          <version>0.8</version>
         <configuration>
-          <numUnapprovedLicenses>8</numUnapprovedLicenses>
           <excludes>
-              <exclude>pass.txt</exclude>
-              <exclude>derby.log</exclude>
-              <exclude>src/test/resources/users.ldif</exclude>
-              <exclude>src/main/resources/ca.config</exclude>
-              <exclude>src/main/resources/db/serial</exclude>
-              <exclude>src/main/resources/db/index.txt</exclude>
-              <exclude>conf/unix/ca.config</exclude>
+            <exclude>pass.txt</exclude>
+            <exclude>derby.log</exclude>
+            <exclude>src/test/resources/users.ldif</exclude>
+            <exclude>src/main/resources/ca.config</exclude>
+            <exclude>src/main/resources/db/serial</exclude>
+            <exclude>src/main/resources/db/index.txt</exclude>
+            <exclude>conf/unix/ca.config</exclude>
+            <exclude>**/*.json</exclude>
+
+            <!--gitignore content-->
+            <exclude>src/main/resources/db/newcerts/**</exclude>
           </excludes>
-          <includes>
-            <include>pom.xml</include>
-          </includes>
         </configuration>
       </plugin>
       <plugin>
