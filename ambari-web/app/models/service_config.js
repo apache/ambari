@@ -243,6 +243,11 @@ App.ServiceConfigProperty = Ember.Object.extend({
         break;
     }
 
+    // In Add Host Wizard, if we did not select this slave component for any host, then we don't process any further.
+    if (setOfHostNames.length === 0) {
+      return;
+    }
+
     var allMountPoints = [];
     for (var i = 0; i < setOfHostNames.length; i++) {
       hostname = setOfHostNames[i];

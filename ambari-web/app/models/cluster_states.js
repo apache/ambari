@@ -15,91 +15,103 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-  var App = require('app');
+var App = require('app');
 
-  App.clusterStatus = Ember.Object.create({
-    clusterName: '',
-    validStates: ['CLUSTER_NOT_CREATED_1', 'CLUSTER_DEPLOY_PREP_2', 'CLUSTER_INSTALLING_3', 'CLUSTER_INSTALLED_4', 'CLUSTER_STARTED_5'],
-    clusterState: 'CLUSTER_NOT_CREATED_1',
-    localdb: null,
-    key: function () {
-      return 'CLUSTER_CURRENT_STATUS';
-    }.property(),
-    value: function (key, newValue) {
-      // getter
-      if (arguments.length == 1) {
+App.clusterStatus = Ember.Object.create({
+  clusterName: '',
+  validStates: ['CLUSTER_NOT_CREATED_1', 'CLUSTER_DEPLOY_PREP_2', 'CLUSTER_INSTALLING_3', 'CLUSTER_INSTALLED_4', 'CLUSTER_STARTED_5', 'ADD_HOSTS_DEPLOY_PREP_2', 'ADD_HOSTS_INSTALLING_3', 'ADD_HOSTS_INSTALLED_4', 'ADD_HOSTS_COMPLETED_5'],
+  clusterState: 'CLUSTER_NOT_CREATED_1',
+  wizardControllerName: null,
+  localdb: null,
+  key: function () {
+    return 'CLUSTER_CURRENT_STATUS';
+  }.property(),
+  value: function (key, newValue) {
+    // getter
+    if (arguments.length == 1) {
 
-        var url = App.apiPrefix + '/persist/' + this.get('key');
-        jQuery.ajax(
-          {
-            url: url,
-            context: this,
-            async: false,
-            success: function (response) {
-              if (response) {
-                var newValue = jQuery.parseJSON(response);
-                if (newValue.clusterState)
-                  this.set('clusterState', newValue.clusterState);
-                if (newValue.clusterName)
-                  this.set('clusterName', newValue.clusterName);
-                if (newValue.localdb)
-                  this.set('localdb', newValue.localdb);
-              } else {
-                // default status already set
+      var url = App.apiPrefix + '/persist/' + this.get('key');
+      jQuery.ajax(
+        {
+          url: url,
+          context: this,
+          async: false,
+          success: function (response) {
+            if (response) {
+              var newValue = jQuery.parseJSON(response);
+              if (newValue.clusterState) {
+                this.set('clusterState', newValue.clusterState);
               }
-            },
-            error: function (xhr) {
-              if (xhr.status == 404) {
-                // default status already set
-                console.log('Persist API did NOT find the key CLUSTER_CURRENT_STATUS');
+              if (newValue.clusterName) {
+                this.set('clusterName', newValue.clusterName);
               }
+              if (newValue.wizardControllerName) {
+                this.set('wizardControllerName', newValue.wizardControllerName);
+              }
+              if (newValue.localdb) {
+                this.set('localdb', newValue.localdb);
+              }
+            } else {
+              // default status already set
+            }
+          },
+          error: function (xhr) {
+            if (xhr.status == 404) {
+              // default status already set
+              console.log('Persist API did NOT find the key CLUSTER_CURRENT_STATUS');
             }
           }
-        );
-
-        return {
-          clusterName: this.get('clusterName'),
-          clusterState: this.get('clusterState'),
-          localdb: this.get('localdb')
-        };
-
-      } else if (newValue) {
-        //setter
-        if (newValue.clusterState) {
-          this.set('clusterState', newValue.clusterState);
         }
-        if (newValue.clusterName) {
-          this.set('clusterName', newValue.clusterName);
-        }
-        if (newValue.localdb) {
-          this.set('localdb', newValue.localdb);
-        }
+      );
 
-        var url = App.apiPrefix + '/persist/';
-        var keyValuePair = {};
-        var val = {
-          clusterName: this.get('clusterName'),
-          clusterState: this.get('clusterState'),
-          localdb: this.get('localdb')
-        };
-        keyValuePair[this.get('key')] = JSON.stringify(val);
+      return {
+        clusterName: this.get('clusterName'),
+        clusterState: this.get('clusterState'),
+        wizardControllerName: this.get('wizardControllerName'),
+        localdb: this.get('localdb')
+      };
 
-
-        jQuery.ajax({
-          async: false,
-          context: this,
-          type: "POST",
-          url: url,
-          data: JSON.stringify(keyValuePair),
-          beforeSend: function () {
-            console.log('BeforeSend: persistKeyValues', keyValuePair);
-          }
-        });
-
-        return newValue;
-
+    } else if (newValue) {
+      //setter
+      if (newValue.clusterState) {
+        this.set('clusterState', newValue.clusterState);
+      }
+      if (newValue.clusterName) {
+        this.set('clusterName', newValue.clusterName);
+      }
+      if (newValue.wizardControllerName) {
+        this.set('wizardControllerName', newValue.wizardControllerName);
+      }
+      if (newValue.localdb) {
+        this.set('localdb', newValue.localdb);
       }
 
-    }.property('clusterName', 'clusterState', 'localdb')
+      var url = App.apiPrefix + '/persist/';
+      var keyValuePair = {};
+      var val = {
+        clusterName: this.get('clusterName'),
+        clusterState: this.get('clusterState'),
+        wizardControllerName: this.get('wizardControllerName'),
+        localdb: this.get('localdb')
+      };
+      keyValuePair[this.get('key')] = JSON.stringify(val);
 
-  });
+
+      jQuery.ajax({
+        async: false,
+        context: this,
+        type: "POST",
+        url: url,
+        data: JSON.stringify(keyValuePair),
+        beforeSend: function () {
+          console.log('BeforeSend: persistKeyValues', keyValuePair);
+        }
+      });
+
+      return newValue;
+
+    }
+
+  }.property('clusterName', 'clusterState', 'localdb')
+
+});

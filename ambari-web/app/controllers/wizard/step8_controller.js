@@ -748,11 +748,29 @@ App.WizardStep8Controller = Em.Controller.extend({
 
     if (App.testMode || !this.get('content.cluster.requestId')) {
       // For recovery : set the cluster status
-      App.clusterStatus.set('value', {
-        clusterName: this.get('clusterName'),
-        clusterState: 'CLUSTER_DEPLOY_PREP_2',
-        localdb: App.db.data
-      });
+
+      // We need to do recovery based on whether we are in Add Host or Installer wizard
+      switch (this.get('content.controllerName')) {
+        case 'installerController' :
+          App.clusterStatus.set('value', {
+            clusterName: this.get('clusterName'),
+            clusterState: 'CLUSTER_DEPLOY_PREP_2',
+            wizardControllerName: this.get('content.controllerName'),
+            localdb: App.db.data,
+          });
+          break;
+
+        case 'addHostController' :
+          App.clusterStatus.set('value', {
+            clusterName: this.get('clusterName'),
+            clusterState: 'ADD_HOSTS_DEPLOY_PREP_2',
+            wizardControllerName: this.get('content.controllerName'),
+            localdb: App.db.data
+          });
+          break;
+        default :
+          break;
+      }
 
       this.createCluster();
       this.createSelectedServices();

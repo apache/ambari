@@ -675,6 +675,10 @@ AMBARI-666 branch (unreleased changes)
 
   BUG FIXES
 
+  AMBARI-1110. After clicking the deploy button on the Add Hosts wizard, the
+  user is always taken to the Installer Wizard Step 8 upon login.
+  (Arun Kandregula via yusaku)
+
   AMBARI-1152. Add Hosts wizard - Retry button does not trigger call to
   backend. (yusaku)
 

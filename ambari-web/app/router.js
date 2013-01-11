@@ -252,9 +252,13 @@ App.Router = Em.Router.extend({
       return 'installer';
     }
     var clusterStatusOnServer = App.clusterStatus.get('value');
-    if (clusterStatusOnServer && clusterStatusOnServer.clusterState === 'CLUSTER_STARTED_5') {
+    if (clusterStatusOnServer && (clusterStatusOnServer.clusterState === 'CLUSTER_STARTED_5' || clusterStatusOnServer.clusterState === 'ADD_HOSTS_COMPLETED_5' )) {
       return 'main.index';
+    } else if (clusterStatusOnServer && clusterStatusOnServer.wizardControllerName === App.router.get('addHostController.name')) {
+      // if wizardControllerName == "addHostController", then it means someone closed the browser or the browser was crashed when we were last in Add Hosts wizard
+      return 'main.hostAdd';
     } else {
+      // if wizardControllerName == "installerController", then it means someone closed the browser or the browser was crashed when we were last in Installer wizard
       return 'installer';
     }
   },

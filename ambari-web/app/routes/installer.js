@@ -274,13 +274,13 @@ module.exports = Em.Route.extend({
       // invoke API call to install selected services
       installerController.installServices();
       installerController.setInfoForStep9();
-      // For recovery : set the cluster status
+      // We need to do recovery based on whether we are in Add Host or Installer wizard
       App.clusterStatus.set('value', {
         clusterName: this.get('clusterName'),
         clusterState: 'CLUSTER_INSTALLING_3',
+        wizardControllerName: App.router.get('installerController.name'),
         localdb: App.db.data
       });
-
       router.transitionTo('step9');
     }
   }),
@@ -306,6 +306,13 @@ module.exports = Em.Route.extend({
           var isRetry = true;
           installerController.installServices(isRetry);
           installerController.setInfoForStep9();
+          // We need to do recovery based on whether we are in Add Host or Installer wizard
+          App.clusterStatus.set('value', {
+            clusterName: this.get('clusterName'),
+            clusterState: 'CLUSTER_INSTALLING_3',
+            wizardControllerName: App.router.get('installerController.name'),
+            localdb: App.db.data
+          });
         }
         wizardStep9Controller.navigateStep();
       }
@@ -318,13 +325,12 @@ module.exports = Em.Route.extend({
       var wizardStep9Controller = router.get('wizardStep9Controller');
       installerController.saveInstalledHosts(wizardStep9Controller);
 
-      // For recovery : set the cluster status
       App.clusterStatus.set('value', {
         clusterName: this.get('clusterName'),
         clusterState: 'CLUSTER_INSTALLED_4',
+        wizardControllerName: App.router.get('installerController.name'),
         localdb: App.db.data
       });
-
       router.transitionTo('step10');
     }
   }),
@@ -344,10 +350,11 @@ module.exports = Em.Route.extend({
         var controller = router.get('installerController');
         controller.finish();
 
-        // For recovery : set the cluster status
+        // We need to do recovery based on whether we are in Add Host or Installer wizard
         App.clusterStatus.set('value', {
           clusterName: this.get('clusterName'),
           clusterState: 'CLUSTER_STARTED_5',
+          wizardControllerName: App.router.get('installerController.name'),
           localdb: App.db.data
         });
 

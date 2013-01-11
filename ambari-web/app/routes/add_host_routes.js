@@ -46,6 +46,31 @@ module.exports = Em.Route.extend({
           router.transitionTo('hosts.index');
         }
       });
+
+      var currentClusterStatus = App.clusterStatus.get('value');
+
+      if (currentClusterStatus) {
+        switch (currentClusterStatus.clusterState) {
+          case 'ADD_HOSTS_DEPLOY_PREP_2' :
+            addHostController.setCurrentStep('4');
+            App.db.data = currentClusterStatus.localdb;
+            break;
+          case 'ADD_HOSTS_INSTALLING_3' :
+            addHostController.setCurrentStep('5');
+            App.db.data = currentClusterStatus.localdb;
+            break;
+          case 'ADD_HOSTS_INSTALLED_4' :
+            addHostController.setCurrentStep('6');
+            App.db.data = currentClusterStatus.localdb;
+            break;
+          case 'ADD_HOSTS_COMPLETED_5' :
+            router.transitionTo('main.index');
+            break;
+          default:
+            break;
+        }
+      }
+
       router.transitionTo('step' + addHostController.get('currentStep'));
     });
 
@@ -175,6 +200,14 @@ module.exports = Em.Route.extend({
       var wizardStep8Controller = router.get('wizardStep8Controller');
       addHostController.installServices();
       addHostController.setInfoForStep9();
+
+      // We need to do recovery based on whether we are in Add Host or Installer wizard
+      App.clusterStatus.set('value', {
+        clusterName: this.get('clusterName'),
+        clusterState: 'ADD_HOSTS_INSTALLING_3',
+        wizardControllerName: App.router.get('addHostController.name'),
+        localdb: App.db.data
+      });
       router.transitionTo('step5');
     }
   }),
@@ -202,6 +235,13 @@ module.exports = Em.Route.extend({
           var isRetry = true;
           addHostController.installServices(isRetry);
           addHostController.setInfoForStep9();
+          // We need to do recovery based on whether we are in Add Host or Installer wizard
+          App.clusterStatus.set('value', {
+            clusterName: this.get('clusterName'),
+            clusterState: 'ADD_HOSTS_INSTALLING_3',
+            wizardControllerName: App.router.get('addHostController.name'),
+            localdb: App.db.data
+          });
         }
         wizardStep9Controller.navigateStep();
       }
@@ -213,6 +253,15 @@ module.exports = Em.Route.extend({
       var addHostController = router.get('addHostController');
       var wizardStep9Controller = router.get('wizardStep9Controller');
       addHostController.saveInstalledHosts(wizardStep9Controller);
+
+      // We need to do recovery based on whether we are in Add Host or Installer wizard
+      App.clusterStatus.set('value', {
+        clusterName: this.get('clusterName'),
+        clusterState: 'ADD_HOSTS_INSTALLED_4',
+        wizardControllerName: App.router.get('addHostController.name'),
+        localdb: App.db.data
+      });
+
       router.transitionTo('step6');
     }
   }),
@@ -235,6 +284,16 @@ module.exports = Em.Route.extend({
         App.router.get('updateController').updateAllWrapper();
         addHostController.finish();
         $(context.currentTarget).parents("#modal").find(".close").trigger('click');
+
+
+        // We need to do recovery based on whether we are in Add Host or Installer wizard
+        App.clusterStatus.set('value', {
+          clusterName: this.get('clusterName'),
+          clusterState: 'ADD_HOSTS_COMPLETED_5',
+          wizardControllerName: App.router.get('addHostController.name'),
+          localdb: App.db.data
+        });
+
         router.transitionTo('main.index');
       } else {
         console.log('cluster installation failure');
