@@ -197,6 +197,35 @@ App.MainServiceInfoSummaryView = Em.View.extend({
       return "";
     }
   }.property('controller.content'),
+  /**
+   * Returns hive components information in 
+   * the following format:
+   * {
+   *  label: "Component Name",
+   *  host: Host,
+   *  
+   */
+  hiveComponentsInfo: function(){
+    var componentInfos = [];
+    var service=this.get('controller.content');
+    if(service.get("id") == "HIVE"){
+      var self = this;
+      var components = service.get("components");
+      if(components){
+        components.forEach(function(component){
+          var ci = {
+              label: component.get('displayName'),
+              host: component.get('host')
+          };
+          if(component.get('id')=='MYSQL_SERVER'){
+            ci.label = self.t('services.hive.databaseComponent');
+          }
+          componentInfos.push(ci);
+        });
+      }
+    }
+    return componentInfos;
+  }.property('controller.content'),
   service:function () {
     var svc = this.get('controller.content');
     var svcName = svc.get('serviceName');

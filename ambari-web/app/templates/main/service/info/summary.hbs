@@ -90,26 +90,16 @@
         {{template "templates/main/service/info/summary/ganglia"}}
       {{/if}}
       {{#if view.serviceStatus.hive}}
-        <tr>
-          <td class="summary-label">Host</td>
-          <td>
-            {{#each component in controller.content.components}}
-              <a {{action selectHost component.host}} href="javascript:void(null)">{{component.host.publicHostName}}</a>
-           {{/each}}
-          </td>
-        </tr>
-        <tr>
-          <td>Database</td>
-          <td>{{view.data.hive.database}}</td>
-        </tr>
-        <tr>
-          <td>Database Name</td>
-          <td>{{view.data.hive.databaseName}}</td>
-        </tr>
-        <tr>
-          <td>User</td>
-          <td>{{view.data.hive.user}}</td>
-        </tr>
+		    {{#each component in view.hiveComponentsInfo}}
+		    <tr>
+		      <td>
+		        {{component.label}}
+		      </td>
+		      <td>
+	          <a href="#" {{action selectHost component.host}}>{{component.host.publicHostName}}</a>
+		      </td>
+		    </tr>
+		    {{/each}}
       {{/if}}
       </tbody>
     </table>

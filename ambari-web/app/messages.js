@@ -44,6 +44,7 @@ Em.I18n.translations = {
   'services.oozie.description':'System for workflow coordination and execution of Apache Hadoop jobs',
   'services.zookeeper.description':'ZooKeeper desc',
   'services.hbase.description':'Non-relational distributed database and centralized service for configuration management & synchronization',
+  'services.hive.databaseComponent':'Database Server',
   
   'services.alerts.OK.timePrefix': 'OK for ',
   'services.alerts.WARN.timePrefix': 'WARN for ',

@@ -458,6 +458,9 @@ AMBARI-666 branch (unreleased changes)
 
   IMPROVEMENTS
 
+  AMBARI-1099. Hive Service Summary needs to show service components better.
+  (Srimanth Gunturi via yusaku)
+
   AMBARI-1097.  Restrict user to proceed ahead of step 7 (Service configuration)
   when properties specified in custom-box are already exposed on the page.
   (Jaimin Jetly via yusaku)
