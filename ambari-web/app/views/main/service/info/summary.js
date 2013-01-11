@@ -259,7 +259,7 @@ App.MainServiceInfoSummaryView = Em.View.extend({
       }
     }
     return svc;
-  }.property().volatile(),
+  }.property('controller.content.serviceName').volatile(),
 
   isHide:true,
   moreStatsView:Em.View.extend({
