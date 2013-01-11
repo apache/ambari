@@ -674,6 +674,10 @@ AMBARI-666 branch (unreleased changes)
   OPTIMIZATIONS
 
   BUG FIXES
+ 
+  AMBARI-1140. Resuming deploy for Installer/Add Hosts does not work if the
+  browser is shut down during the start phase of deploy.
+  (Arun Kandregula via yusaku)
   
   AMBARI-1120. Key spikes in HDFS IO missing from IO summary graphs.
   (Srimanth Gunturi via yusaku)

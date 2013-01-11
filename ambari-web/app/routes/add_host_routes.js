@@ -56,6 +56,7 @@ module.exports = Em.Route.extend({
             App.db.data = currentClusterStatus.localdb;
             break;
           case 'ADD_HOSTS_INSTALLING_3' :
+          case 'SERVICE_STARTING_3' :
             addHostController.setCurrentStep('5');
             App.db.data = currentClusterStatus.localdb;
             break;
