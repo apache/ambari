@@ -61,12 +61,12 @@ App.WizardStep8Controller = Em.Controller.extend({
       var hiveDb = globals.findProperty('name', 'hive_database');
       if (hiveDb.value === 'New MySQL Database') {
         if (globals.someProperty('name', 'hive_ambari_host')) {
-          globals.findProperty('name', 'hive_ambari_host').name = 'hive_mysql_host';
+          globals.findProperty('name', 'hive_ambari_host').name = 'hive_mysql_hostname';
         }
         globals = globals.without(globals.findProperty('name', 'hive_existing_host'));
         globals = globals.without(globals.findProperty('name', 'hive_existing_database'));
       } else {
-        globals.findProperty('name', 'hive_existing_host').name = 'hive_mysql_host';
+        globals.findProperty('name', 'hive_existing_host').name = 'hive_mysql_hostname';
         globals = globals.without(globals.findProperty('name', 'hive_ambari_host'));
         globals = globals.without(globals.findProperty('name', 'hive_ambari_database'));
       }
@@ -134,19 +134,23 @@ App.WizardStep8Controller = Em.Controller.extend({
         //console.log("The name of the variable is: " + this.get('content.serviceConfigProperties').findProperty('name', templateName[index]).name);
         var globValue = this.get('globals').findProperty('name', templateName[index]).value;
         // Hack for templeton.zookeeper.hosts
-        if (name === "templeton.zookeeper.hosts") {
-          var zooKeeperPort = '2181';
-          if(typeof globValue === 'string') {
-            var temp = [];
-            temp.push(globValue);
-            globValue = temp;
+        if (value !== null) {   // if the property depends on more than one template name like <templateName[0]>/<templateName[1]> then don't proceed to the next if the prior is null or not found in the global configs
+          if (name === "templeton.zookeeper.hosts" || name === 'hbase.zookeeper.quorum') {
+            var zooKeeperPort = '2181';
+            if (typeof globValue === 'string') {
+              var temp = [];
+              temp.push(globValue);
+              globValue = temp;
+            }
+            if (name === "templeton.zookeeper.hosts") {
+              globValue.forEach(function (_host, index) {
+                globValue[index] = globValue[index] + ':' + zooKeeperPort;
+              }, this);
+            }
+            value = value.replace(_express, globValue.toString());
+          } else {
+            value = value.replace(_express, globValue);
           }
-          globValue.forEach(function (_host,index) {
-            globValue[index] = globValue[index] + ':' + zooKeeperPort;
-          }, this);
-          value = value.replace(_express, globValue.toString());
-        } else {
-          value = value.replace(_express, globValue);
         }
       } else {
         /*
@@ -155,7 +159,7 @@ App.WizardStep8Controller = Em.Controller.extend({
          "content.serviceConfigProperties. Two possible reasons for the error could be: 1) The service is not selected. " +
          "and/OR 2) The service_config metadata file has no corresponding global var for the site property variable");
          */
-        //value = null;
+        value = null;
       }
     }, this);
     return value;
@@ -200,6 +204,7 @@ App.WizardStep8Controller = Em.Controller.extend({
       }, this);
     }
     //For properties in the configMapping file having foreignKey and templateName properties.
+
     var templateValue = config.value.match(/<(templateName.*?)>/g);
     if (templateValue) {
       templateValue.forEach(function (_value) {
@@ -207,6 +212,8 @@ App.WizardStep8Controller = Em.Controller.extend({
         if (this.get('globals').someProperty('name', config.templateName[index])) {
           var globalValue = this.get('globals').findProperty('name', config.templateName[index]).value;
           config.value = config.value.replace(_value, globalValue);
+        } else {
+          config.value = null;
         }
       }, this);
     }
@@ -1281,7 +1288,7 @@ App.WizardStep8Controller = Em.Controller.extend({
     }, this);
     hiveProperties['hive.metastore.uris'] = 'thrift://' + this.get('globals').findProperty('name', 'hivemetastore_host').value + ':9083';
     hiveProperties['javax.jdo.option.ConnectionURL'] =
-      'jdbc:mysql://' + this.get('globals').findProperty('name', 'hive_mysql_host').value +
+      'jdbc:mysql://' + this.get('globals').findProperty('name', 'hive_mysql_hostname').value +
         '/' + this.get('globals').findProperty('name', 'hive_database_name').value + '?createDatabaseIfNotExist=true';
     return {type: 'hive-site', tag: 'version1', properties: hiveProperties};
   },

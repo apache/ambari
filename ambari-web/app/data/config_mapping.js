@@ -67,6 +67,13 @@ module.exports = [
     "filename": "core-site.xml"
   },
   {
+    "name": "hadoop.proxyuser.<foreignKey[0]>.hosts",
+    "templateName": ["oozieserver_host"],
+    "foreignKey": ["oozie_user"],
+    "value": "<templateName[0]>",
+    "filename": "core-site.xml"
+  },
+  {
     "name": "hadoop.proxyuser.<foreignKey[0]>.groups",
     "templateName": ["proxyuser_group"],
     "foreignKey": ["webhcat_user"],
@@ -75,8 +82,8 @@ module.exports = [
   },
   {
     "name": "hadoop.proxyuser.<foreignKey[0]>.hosts",
-    "templateName": ["oozieserver_host"],
-    "foreignKey": ["oozie_user"],
+    "templateName": ["hivemetastore_host"],
+    "foreignKey": ["webhcat_user"],
     "value": "<templateName[0]>",
     "filename": "core-site.xml"
   },

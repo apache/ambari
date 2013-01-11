@@ -140,6 +140,10 @@ App.WizardStep2Controller = Em.Controller.extend({
       return false;
     }
 
+    if (this.get('sshKeyError')) {
+      return false;
+    }
+
     this.updateHostNameArr();
 
     if(this.isPattern)

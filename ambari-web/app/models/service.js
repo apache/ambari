@@ -66,6 +66,7 @@ App.Service = DS.Model.extend({
       "HBASE",
       "OOZIE",
       "HIVE",
+      "WEBHCAT",
       "ZOOKEEPER",
       "PIG",
       "SQOOP"
@@ -81,6 +82,7 @@ App.Service = DS.Model.extend({
       "HBASE",
       "OOZIE",
       "HIVE",
+      "WEBHCAT",
       "ZOOKEEPER",
       "PIG",
       "SQOOP",

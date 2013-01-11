@@ -227,17 +227,19 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
    * Render a custom conf-site box for entering properties that will be written in *-site.xml files of the services
    */
   loadCustomConfig: function (serviceConfigs) {
-    var customConfigs = this.get('customConfigs').findProperty('serviceName', this.get('content.serviceName'));
-    var customValue = '';
-    var length = this.get('customConfig').length;
-    this.get('customConfig').forEach(function (_config, index) {
-      customValue += _config.name + '=' + _config.value;
-      if (index !== length - 1) {
-        customValue += '\n';
-      }
-    }, this);
-    customConfigs.value = customValue;
-    serviceConfigs.pushObject(customConfigs);
+    if (this.get('customConfigs').findProperty('serviceName', this.get('content.serviceName'))) {
+      var customConfigs = this.get('customConfigs').findProperty('serviceName', this.get('content.serviceName'));
+      var customValue = '';
+      var length = this.get('customConfig').length;
+      this.get('customConfig').forEach(function (_config, index) {
+        customValue += _config.name + '=' + _config.value;
+        if (index !== length - 1) {
+          customValue += '\n';
+        }
+      }, this);
+      customConfigs.value = customValue;
+      serviceConfigs.pushObject(customConfigs);
+    }
   },
 
 
@@ -671,6 +673,8 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
         if (this.get('globalConfigs').someProperty('name', config.templateName[index])) {
           var globalValue = this.get('globalConfigs').findProperty('name', config.templateName[index]).value;
           config.value = config.value.replace(_value, globalValue);
+        } else {
+          config.value = null;
         }
       }, this);
     }
@@ -922,9 +926,6 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
         var oozieServerHost = serviceConfigs.findProperty('name', 'oozieserver_host');
         oozieServerHost.defaultValue = this.get('content.components').findProperty('componentName', 'OOZIE_SERVER').get('host.hostName');
         globalConfigs.push(oozieServerHost);
-        var oozieAmbariHost = serviceConfigs.findProperty('name', 'oozie_ambari_host'); //db hostname
-        oozieAmbariHost.defaultValue = this.get('content.components').findProperty('componentName', 'OOZIE_SERVER').get('host.hostName');
-        globalConfigs.push(oozieAmbariHost);
         break;
       case 'HBASE':
         var hbaseMasterHost = serviceConfigs.findProperty('name', 'hbasemaster_host');
