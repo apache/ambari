@@ -95,45 +95,7 @@ App.MainHostView = Em.View.extend({
       //return "width:" + (25+Math.random()*50) + "%"; // Just for tests purposes
     }.property('content.diskUsage')
 
-//    HostCheckboxView:Em.Checkbox.extend({
-//      content:null,
-//      isChecked:false,
-//      change:function (event) {
-//        this.set('isChecked', !this.get('content.isChecked'));
-//        App.router.get('mainHostController').onHostChecked(this.get('content'));
-//      }
-//    })
   }),
-
-  RackCombobox:App.Combobox.extend({
-    disabled:function () {
-      var selectedHostsIds = App.router.get('mainHostController.selectedHostsIds');
-
-      // when user apply assigning and hosts become unchecked, we need to clear textfield
-      if (!selectedHostsIds.length) {
-        this.clearTextFieldValue();
-      }
-
-      return !selectedHostsIds.length;
-
-    }.property('App.router.mainHostController.selectedHostsIds'),
-
-    recordArray:App.Cluster.find(),
-    placeholderText:Em.I18n.t('hosts.assignRack'),
-    selectionBinding:"App.router.mainHostController.selectedRack",
-    optionLabelPath:"content.clusterName",
-    optionValuePath:"content.id",
-    didInsertElement:function () {
-      this._super();
-      App.router.get('mainHostController').propertyDidChange('selectedHostsIds');
-    }
-  }),
-
-  assignRackButtonDisabled:function () {
-    var selectedHostsIds = App.router.get('mainHostController.selectedHostsIds');
-    var rack = App.router.get('mainHostController.selectedRack');
-    return (selectedHostsIds.length && rack && rack.constructor == 'App.Cluster') ? false : "disabled";
-  }.property('App.router.mainHostController.selectedHostsIds', 'App.router.mainHostController.selectedRack'),
 
   nameFilterView: Em.TextField.extend({
     classNames:['input-medium'],
@@ -343,7 +305,6 @@ App.MainHostView = Em.View.extend({
                     '{{/each}}' +
                   '</ul>' +
                 '</li>' +
-              '</li>' +
             '</ul>' +
           '</li>' +
           '<li>' +
@@ -391,6 +352,14 @@ App.MainHostView = Em.View.extend({
         });
       }
     },
+
+    didInsertElement:function () {
+      if (this.get('controller.comeWithFilter')) {
+        this.applyFilter();
+        this.closeFilters();
+      }
+    },
+
     applyFilter:function() {
       var chosenComponents = new Array();
 

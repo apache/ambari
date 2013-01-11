@@ -276,6 +276,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
           serviceConfigObj.isRequired = configProperty.isRequired ? configProperty.isRequired : true;
           serviceConfigObj.isReconfigurable = (configProperty.isReconfigurable !== undefined) ? configProperty.isReconfigurable : true;
           serviceConfigObj.isVisible = (configProperty.isVisible !== undefined) ? configProperty.isVisible : true;
+          serviceConfigObj.unit = (configProperty.isVisible !== undefined) ? configProperty.unit : undefined;
 
         }
         serviceConfigObj.displayType = this.get('configs').someProperty('name', index) ? this.get('configs').findProperty('name', index).displayType : null;
@@ -877,16 +878,18 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
           var value = _keyValue.match(/=(.*)/);
           if (key) {
             // Check dat entered config is allowed to reconfigure
-            if (this.get('uiConfigs').someProperty('name', key[1])) {
+            if (this.get('uiConfigs').filterProperty('filename', _site.name + '.xml').someProperty('name', key[1])) {
               var property = {
-                siteProperty: key[1],
+                siteProperty: null,
                 displayNames: []
               };
-              if (this.get('configMapping').someProperty('name', key[1])) {
-                this.setPropertyDisplayNames(property.displayNames, this.get('configMapping').findProperty('name', key[1]).templateName);
-              }
-              siteProperties.push(property);
               if (_site.name !== 'core-site') {
+                property.siteProperty = key[1];
+
+                if (this.get('configMapping').someProperty('name', key[1])) {
+                  this.setPropertyDisplayNames(property.displayNames, this.get('configMapping').findProperty('name', key[1]).templateName);
+                }
+                siteProperties.push(property);
                 flag = false;
               } else {
                 this.setSiteProperty(key[1], value[1], _site.name + '.xml');
@@ -924,8 +927,8 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
    * Set property of the site variable
    */
   setSiteProperty: function (key, value, filename) {
-    if(filename === 'core-site.xml' && this.get('uiConfigs').filterProperty('filename','core-site.xml').someProperty('name',key)) {
-      this.get('uiConfigs').filterProperty('filename','core-site.xml').findProperty('name',key).value = value;
+    if (filename === 'core-site.xml' && this.get('uiConfigs').filterProperty('filename', 'core-site.xml').someProperty('name', key)) {
+      this.get('uiConfigs').filterProperty('filename', 'core-site.xml').findProperty('name', key).value = value;
       return;
     }
     this.get('uiConfigs').pushObject({

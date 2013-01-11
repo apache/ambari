@@ -22,9 +22,10 @@ var validator = require('utils/validator');
 App.MainHostController = Em.ArrayController.extend({
   name:'mainHostController',
   content:[],
+  comeWithFilter: false,
   fullContent:App.Host.find(),
   clusters:App.Cluster.find(),
-  //componentsForFilter: App.Component.find(),
+
   isAdmin: function(){
     return App.db.getUser().admin;
   }.property('App.router.loginController.loginName'),
@@ -50,38 +51,6 @@ App.MainHostController = Em.ArrayController.extend({
 
   totalBinding:'fullContent.length',
   filters:{components:[]},
-  pageSize: 25,
-  pageSizeRange:[10, 25, 50, 100, 'all'],
-  rangeStart:0,
-//  allChecked:false,
-//  selectedHostsIds:[],
-  selectedRack:null,
-
-//  assignHostsToRack:function () {
-//    var selectedRack = this.get('selectedRack');
-//    var sureMessage = this.t('hosts.assignToRack.sure');
-//    var hostsIds = this.get('selectedHostsIds');
-//
-//    var hostString = hostsIds.length + " " + this.t(hostsIds.length > 1 ? "host.plural" : "host.singular");
-//
-//    if (selectedRack.constructor == 'App.Cluster' && hostsIds.length
-//      && confirm(sureMessage.format(hostString, selectedRack.get('clusterName')))) {
-//      this.get('content').forEach(function (host) {
-//        if (host.get('isChecked')) {
-//          host.set('cluster', selectedRack);
-//          host.set('isChecked', false);
-//        }
-//      })
-//      this.set('selectedHostsIds', []);
-//    }
-//
-//  },
-
-  sortingAsc:true,
-  isSort:false,
-  sortClass:function () {
-    return this.get('sortingAsc') ? 'icon-arrow-down' : 'icon-arrow-up';
-  }.property('sortingAsc'),
   isDisabled:true,
 
   checkRemoved:function (host_id) {
@@ -124,38 +93,6 @@ App.MainHostController = Em.ArrayController.extend({
     return 5;
   }.property(),
 
-//  onAllChecked:function () {
-//    var hosts = this.get('content');
-//    hosts.setEach('isChecked', this.get('allChecked'));
-//    this.set('isDisabled', !this.get('allChecked'));
-//    var selectedHostsIds = this.get('allChecked') ? hosts.getEach('id') : [];
-//    this.set('selectedHostsIds', selectedHostsIds);
-//  }.observes('allChecked'),
-//
-//  onHostChecked:function (host) {
-//    var selected = this.get('selectedHostsIds');
-//    host.set('isChecked', !host.get('isChecked'));
-//    if (host.get('isChecked')) {
-//      selected.push(host.get('id'));
-//    } else {
-//      var index = selected.indexOf(host.get('id'));
-//      if (index != -1) selected.splice(index, 1);
-//    }
-//    this.set('isDisabled', selected.length == 0);
-//    this.propertyDidChange('selectedHostsIds');
-//  },
-//
-//  changeSelectedHosts:function () {
-//    var visibleHosts = this.get('content');
-//    var selectedHosts = visibleHosts.filterProperty('isChecked', true);
-//    this.get('fullContent').forEach(function (item) {
-//      var index = visibleHosts.getEach('id').indexOf(item.get('id'));
-//      if (index == -1) item.set('isChecked', false);
-//    });
-//    this.set('isDisabled', selectedHosts.length == 0);
-//    this.set('selectedHostsIds', selectedHosts.getEach('id'));
-//  },
-
   checkedComponentsIds:function () {
     var checked = [];
     this.get('componentsForFilter').forEach(function (comp) {
@@ -164,20 +101,6 @@ App.MainHostController = Em.ArrayController.extend({
     });
 
     return checked;
-  },
-
-  filterByComponentsIds:function () {
-    var componentsIds = this.checkedComponentsIds();
-    this.set('filters.components', componentsIds);
-
-//      component.set('isChecked', component.get('id') != -1);
-
-    this.changeContent();
-  },
-
-  filterHostsBy:function (field, value) {
-    this.set('hostFilter' + field, value);
-    this.changeContent();
   },
 
   filterByComponent:function (component) {
@@ -189,7 +112,7 @@ App.MainHostController = Em.ArrayController.extend({
     //component.set('checkedForHostFilter', true);
     this.set('filters.components', [component.get('id')]);
     console.log(this.get('filters.components').objectAt(0));
-    this.changeContent();
+    this.set('comeWithFilter', true);
   },
 
 
@@ -247,39 +170,8 @@ App.MainHostController = Em.ArrayController.extend({
     items = this.applyHostFilters(items);
     this.set('total', items.length);
 
-    var content = items.slice(this.get('rangeStart'), this.get('rangeStop'));
-    this.replace(0, this.get('length'), content);
-//    this.changeSelectedHosts();
-  }.observes('rangeStart', 'rangeStop', 'total'),
-
-  showNextPage:function () {
-    this.nextPage();
-  },
-  showPreviousPage:function () {
-    this.previousPage();
-  },
-  assignedToRackPopup:function (event) {
-    var self = this;
-    App.ModalPopup.show({
-      header:Em.I18n.t('hosts.assignedToRack.popup.header'),
-      body:Em.I18n.t('hosts.assignedToRack.popup.body'),
-      primary:'Yes',
-      secondary:'No',
-      onPrimary:function () {
-        self.assignedToRack(event.context);
-        this.hide();
-      },
-      onSecondary:function () {
-        this.hide();
-      }
-    });
-  },
-
-  assignedToRack:function (rack) {
-    var hosts = this.get('content');
-    var selectedHosts = hosts.filterProperty('isChecked', true);
-    selectedHosts.setEach('cluster', rack);
-  },
+    this.replace(0, this.get('length'), items);
+  }.observes('total'),
 
   decommissionButtonPopup:function () {
     var self = this;
@@ -319,24 +211,7 @@ App.MainHostController = Em.ArrayController.extend({
     selectedHosts.forEach(function (_hostInfo) {
       console.log('Removing:  ' + _hostInfo.hostName);
     });
-//    App.db.removeHosts(selectedHosts);
     this.get('fullContent').removeObjects(selectedHosts);
-  },
-  sortByName:function () {
-    var asc = this.get('sortingAsc');
-    var objects = this.get('fullContent').toArray().sort(function (a, b) {
-      var nA = a.get('hostName').toLowerCase();
-      var nB = b.get('hostName').toLowerCase();
-      if (nA < nB)
-        return asc ? -1 : 1;
-      else if (nA > nB)
-        return asc ? 1 : -1;
-      return 0;
-    });
-    this.set('fullContent', objects);
-    this.set('isSort', true);
-    this.set('sortingAsc', !this.get('sortingAsc'));
-    this.changeContent();
   }
 
 });

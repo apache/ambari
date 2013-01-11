@@ -268,9 +268,11 @@ App.MainAppsView = Em.View.extend({
    */
   updateStars: function() {
     var self = this;
-    $('#dataTable tbody tr').each(function(index) {
-      self.get('oTable').fnUpdate( $('#dataTable tbody tr:eq(' + index + ') td:eq(0)').html(), self.get('oTable').fnSettings()['aiDisplay'][index], 0);
-    });
+    if (this.get('oTable').fnSettings().fnRecordsDisplay()) {
+      $('#dataTable tbody tr').each(function(index) {
+        self.get('oTable').fnUpdate( $('#dataTable tbody tr:eq(' + index + ') td:eq(0)').html(), self.get('oTable').fnSettings()['aiDisplay'][index], 0);
+      });
+    }
   },
   /**
    * Reset filters and "turn off" stars

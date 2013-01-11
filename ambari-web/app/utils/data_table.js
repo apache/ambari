@@ -160,7 +160,7 @@ jQuery.extend($.fn.dataTableExt.afnFiltering.push(
         {iColumn: '0', elementId: 'star_filter', type: 'star'},
         {iColumn: '3', elementId: 'cpu_filter', type: 'number'},
         {iColumn: '6', elementId: 'load_avg_filter', type: 'number'},
-        {iColumn: '4', elementId: 'user_filter', type: 'multiple'},
+        {iColumn: '5', elementId: 'user_filter', type: 'multiple'},
         {iColumn: '9', elementId: 'components_filter', type: 'multiple'},
         {iColumn: '6', elementId: 'jobs_filter', type: 'number' },
         {iColumn: '4', elementId: 'ram_filter', type: 'ambari-bandwidth' },

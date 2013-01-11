@@ -124,12 +124,16 @@ App.Form = Em.View.extend({
       });
     } else {
       if (this.get('className'))
-        App.store.createRecord(this.get('className'), this.getValues())
-      else
+      {
+        var rec = App.store.createRecord(this.get('className'), this.getValues());
+        //rec.get('stateManager').send('becameClean');
+      }
+      else{
         console.log("Please define class name for your form " + this.constructor);
+      }
     }
 
-    App.store.commit();
+    //App.store.commit();
     this.set('result', 1);
 
     return true;

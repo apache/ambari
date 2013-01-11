@@ -29,6 +29,7 @@ module.exports =
       "displayType": "custom",
       "isVisible": true,
       "isRequired": false,
+      "isReconfigurable": false,
       "serviceName": "HDFS",
       "category": "Advanced"
     },
