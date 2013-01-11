@@ -695,6 +695,9 @@ AMBARI-666 branch (unreleased changes)
 
   BUG FIXES
 
+  AMBARI-1139. Disable Misc section in Customize Services page of the Install
+  Wizard. (Srimanth Gunturi via yusaku) 
+
   AMBARI-1158. Fiters are not working correctly on Hosts page. (yusaku)
 
   AMBARI-1157. Host component operation causes lags in status/action pulldown
