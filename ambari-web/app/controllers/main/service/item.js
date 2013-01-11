@@ -76,7 +76,6 @@ App.MainServiceItemController = Em.Controller.extend({
       primary: 'Yes',
       secondary: 'No',
       onPrimary: function () {
-        self.get('content.components').setEach('workStatus', App.Component.Status.starting);
         self.sendCommandToServer('/services/' + self.get('content.serviceName').toUpperCase(), "PUT", {
           ServiceInfo: {
             state: 'STARTED'
@@ -89,9 +88,11 @@ App.MainServiceItemController = Em.Controller.extend({
           console.log('Send request for STARTING successfully');
 
           if (App.testMode) {
-            self.content.set('workStatus', App.Service.Health.starting);
+            self.set('content.workStatus', App.Service.Health.starting);
+            self.get('content.hostComponents').setEach('workStatus', App.HostComponentStatus.starting);
             setTimeout(function () {
-              self.content.set('workStatus', App.Service.Health.live);
+              self.set('content.workStatus', App.Service.Health.live);
+              self.get('content.hostComponents').setEach('workStatus', App.HostComponentStatus.started);
             }, 10000);
           } else {
             App.router.get('clusterController').loadUpdatedStatusDelayed(500);
@@ -134,7 +135,6 @@ App.MainServiceItemController = Em.Controller.extend({
       primary: 'Yes',
       secondary: 'No',
       onPrimary: function() {
-        self.get('content.components').setEach('workStatus', App.Component.Status.stopping);
         self.sendCommandToServer('/services/' + self.get('content.serviceName').toUpperCase(), "PUT",{
           ServiceInfo:{
             state: 'INSTALLED'
@@ -145,9 +145,11 @@ App.MainServiceItemController = Em.Controller.extend({
           }
           console.log('Send request for STOPPING successfully');
           if (App.testMode) {
-            self.content.set('workStatus', App.Service.Health.stopping);
+            self.set('content.workStatus', App.Service.Health.stopping);
+            self.get('content.hostComponents').setEach('workStatus', App.HostComponentStatus.stopping);
             setTimeout(function () {
-              self.content.set('workStatus', App.Service.Health.dead);
+              self.set('content.workStatus', App.Service.Health.dead);
+              self.get('content.hostComponents').setEach('workStatus', App.HostComponentStatus.stopped);
             }, 10000);
           } else {
             App.router.get('clusterController').loadUpdatedStatusDelayed(500);
@@ -237,6 +239,9 @@ App.MainServiceItemController = Em.Controller.extend({
     });
   },
   doAction: function (event) {
+    if ($(event.target).hasClass('disabled') || $(event.target.parentElement).hasClass('disabled')) {
+      return;
+    }
     var methodName = event.context;
     switch (methodName) {
       case 'runRebalancer':

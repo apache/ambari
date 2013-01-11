@@ -26,7 +26,6 @@ require('models/cluster_states');
 require('models/hosts');
 require('models/quick_links');
 require('models/service');
-require('models/component');
 require('models/service_config');
 require('models/service_audit');
 require('models/service/hdfs');

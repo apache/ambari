@@ -82,7 +82,7 @@ App.MainDashboardServiceHbaseView = App.MainDashboardServiceView.extend({
   }.property("service.masterActiveTime"),
 
   regionServerComponent: function () {
-    return App.Component.find().findProperty('componentName', 'HBASE_REGIONSERVER');
+    return App.HostComponent.find().findProperty('componentName', 'HBASE_REGIONSERVER');
   }.property('components'),
 
   isCollapsed: false,

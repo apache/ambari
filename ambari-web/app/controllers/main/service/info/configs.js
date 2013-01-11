@@ -987,27 +987,27 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
     switch (serviceName) {
       case 'HDFS':
         var sNameNodeHost = serviceConfigs.findProperty('name', 'snamenode_host');
-        sNameNodeHost.defaultValue = this.get('content.components').findProperty('componentName', 'SECONDARY_NAMENODE').get('host.hostName');
+        sNameNodeHost.defaultValue = this.get('content.hostComponents').findProperty('componentName', 'SECONDARY_NAMENODE').get('host.hostName');
         globalConfigs.push(sNameNodeHost);
         break;
       case 'MAPREDUCE':
         var jobTrackerHost = serviceConfigs.findProperty('name', 'jobtracker_host');
-        jobTrackerHost.defaultValue = this.get('content.components').findProperty('componentName', 'JOBTRACKER').get('host.hostName');
+        jobTrackerHost.defaultValue = this.get('content.hostComponents').findProperty('componentName', 'JOBTRACKER').get('host.hostName');
         globalConfigs.push(jobTrackerHost);
         break;
       case 'HIVE':
         var hiveMetastoreHost = serviceConfigs.findProperty('name', 'hivemetastore_host');
-        hiveMetastoreHost.defaultValue = this.get('content.components').findProperty('componentName', 'HIVE_SERVER').get('host.hostName');
+        hiveMetastoreHost.defaultValue = this.get('content.hostComponents').findProperty('componentName', 'HIVE_SERVER').get('host.hostName');
         globalConfigs.push(hiveMetastoreHost);
         break;
       case 'OOZIE':
         var oozieServerHost = serviceConfigs.findProperty('name', 'oozieserver_host');
-        oozieServerHost.defaultValue = this.get('content.components').findProperty('componentName', 'OOZIE_SERVER').get('host.hostName');
+        oozieServerHost.defaultValue = this.get('content.hostComponents').findProperty('componentName', 'OOZIE_SERVER').get('host.hostName');
         globalConfigs.push(oozieServerHost);
         break;
       case 'HBASE':
         var hbaseMasterHost = serviceConfigs.findProperty('name', 'hbasemaster_host');
-        hbaseMasterHost.defaultValue = this.get('content.components').findProperty('componentName', 'HBASE_MASTER').get('host.hostName');
+        hbaseMasterHost.defaultValue = this.get('content.hostComponents').findProperty('componentName', 'HBASE_MASTER').get('host.hostName');
         globalConfigs.push(hbaseMasterHost);
         break;
     }

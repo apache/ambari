@@ -79,11 +79,11 @@ Em.I18n.translations = {
   'installer.step2.hostName.error.notRequired':'Host Names will be ignored if not using SSH to automatically configure hosts',
   'installer.step2.hostName.error.invalid':'Invalid Host Name(s)',
   'installer.step2.hostName.pattern.header':'Host name pattern expressions',
-  'installer.step2.sshKey':'Host Connectivity Information',
+  'installer.step2.sshKey':'Host Registration Information',
   'installer.step2.sshKey.error.required':'SSH Private Key is required',
   'installer.step2.passphrase.error.match':'Passphrases do not match',
   'installer.step2.manualInstall.label':'Do not use SSH to automatically configure hosts ',
-  'installer.step2.manualInstall.info':'By not using SSH to connect to the target hosts, you must manually install and start the ' +
+  'installer.step2.manualInstall.info':'By not using SSH to connect to the target hosts, you must manually install the ' +
     'Ambari Agent on each host in order for the wizard to perform the necessary configurations and software installs.',
   'installer.step2.advancedOption':'Advanced Options',
   'installer.step2.repoConf':'Software Repository Configuration File Path',
@@ -92,22 +92,22 @@ Em.I18n.translations = {
   'installer.step2.localRepo.label_instead':'instead of downloading software packages from the Internet',
   'installer.step2.localRepo.error.required':'Local repository file path is required',
   'installer.step2.localRepo.tooltip.title':'Local Software Repository',
-  'installer.step2.localRepo.tooltip.content': 'The install process requires access to the Internet to fetch software ' +
+  'installer.step2.localRepo.tooltip.content': 'The cluster install requires access to the Internet to fetch software ' +
     'from a remote repository. In some cases, adequate bandwidth is not available and you want to prevent downloading ' +
     'packages from the remote repository over and over again. Other times, Internet access is not available from the ' +
     'hosts in your cluster. In these situations, you must set up a version of the repository that your machines can ' +
     'access locally and this is called a <b>Local Software Repository</b>',
   'installer.step2.javaHome.label' : 'Path to 64-bit JDK',
-  'installer.step2.javaHome.label2' : 'on all hosts',
   'installer.step2.javaHome.tooltip.title' : 'JAVA_HOME',
   'installer.step2.javaHome.tooltip.content' : 'Path to 64-bit JAVA_HOME. /usr/jdk/jdk1.6.0_31 is the default used by Ambari. You can override this to a specific path that contains the JDK. <br/> Note: the path must be valid on <b>ALL</b> hosts in your cluster.',
   'installer.step2.useSsh.provide' : 'Provide your',
   'installer.step2.useSsh.provide_id_rsa' : '(id_rsa for root) and use SSH to automatically register hosts',
   'installer.step2.useSsh.tooltip.title':'SSH Private Key',
   'installer.step2.useSsh.tooltip.content':'The <b>SSH Private Key File</b> is used for the root access to the target hosts in your cluster.',
-  'installer.step2.manualInstall.tooltip.title':'Not Using SSH (Manual Install)',
-  'installer.step2.manualInstall.tooltip.content':'If you do not wish Ambari to automatically configure the target hosts via SSH,' +
-    ' you have the option of configuring them yourself.  This involves installing and starting Ambari Agent on each of your target hosts.',
+  'installer.step2.manualInstall.perform':'Perform',
+  'installer.step2.manualInstall.perform_on_hosts':'on hosts and do not use SSH',
+  'installer.step2.manualInstall.tooltip.title':'manual registration',
+  'installer.step2.manualInstall.tooltip.content':'Manually registering the Ambari Agent on each host eliminates the need for SSH and should be performed prior to continuing cluster installation.',
   'installer.step2.manualInstall.popup.header':'Before You Proceed',
   'installer.step2.manualInstall.popup.body':'You must install Ambari Agents on each host you want to manage before you proceed.',
 
@@ -289,7 +289,6 @@ Em.I18n.translations = {
   'hosts.cant.do.popup.masterList.body':'You cannot delete this host because it is hosting following master services: {0}.',
   'hosts.cant.do.popup.workingList.body':'You cannot delete this host because following slave services are not fully stopped or decommissioned: {0}.',
   'hosts.add.header':'Add Host Wizard',
-  'hosts.add.step2.warning':'Hosts are already part of the cluster and will be ignored',
   'hosts.assignRack':'Assign Rack',
 
   'charts.horizon.chart.showText':'show',

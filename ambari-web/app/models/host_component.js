@@ -83,15 +83,18 @@ App.HostComponent = DS.Model.extend({
     }
     return decommissioning;
   }.property('componentName', 'host.hostName', 'App.router.mainServiceController.hdfsService.decommissionDataNodes.@each.hostName')
-})
+});
 
-App.HostComponent.Status = {
+App.HostComponent.FIXTURES = [];
+
+App.HostComponentStatus = {
   started: "STARTED",
   starting: "STARTING",
   stopped: "INSTALLED",
   stopping: "STOPPING",
   stop_failed: "STOP_FAILED",
   start_failed: "START_FAILED",
+  install_failed: "INSTALL_FAILED",
 
   getKeyName:function(value){
     switch(value){
@@ -107,10 +110,10 @@ App.HostComponent.Status = {
         return 'stop_failed';
       case this.start_failed:
         return 'start_failed';
+      case this.install_failed:
+        return 'install_failed';
     }
     return 'none';
   }
 }
-
-App.HostComponent.FIXTURES = [];
 

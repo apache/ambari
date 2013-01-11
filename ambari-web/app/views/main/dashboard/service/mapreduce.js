@@ -117,7 +117,7 @@ App.MainDashboardServiceMapreduceView = App.MainDashboardServiceView.extend({
   }.property('service.mapSlots', 'service.reduceSlots', 'service.aliveTrackers'),
 
   taskTrackerComponent: function () {
-    return App.Component.find().findProperty('componentName', 'TASKTRACKER');
+    return App.HostComponent.find().findProperty('componentName', 'TASKTRACKER');
   }.property('components'),
 
   isCollapsed: false,

@@ -19,11 +19,10 @@
 var App = require('app');
 
 App.WizardStep10Controller = Em.Controller.extend({
-  name: 'wizardStep10Controller',
   clusterInfo: [],
 
   isNagiosRestartRequired: function() {
-    return App.db.getSelectedServiceNames().contains('NAGIOS') && this.get('content.controllerName') !== 'installerController';
+    return this.get('content.controllerName') !== 'installerController' && App.db.getSlaveComponentHosts().findProperty('componentName', 'HBASE_REGIONSERVER').hosts.length;
   }.property(),
 
   clearStep: function () {

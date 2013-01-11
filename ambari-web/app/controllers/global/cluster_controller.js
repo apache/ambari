@@ -94,7 +94,7 @@ App.ClusterController = Em.Controller.extend({
       var svcs = App.Service.find();
       var gangliaSvc = svcs.findProperty("serviceName", "GANGLIA");
       if (gangliaSvc) {
-        var svcComponents = gangliaSvc.get('components');
+        var svcComponents = gangliaSvc.get('hostComponents');
         if (svcComponents) {
           var gangliaSvcComponent = svcComponents.findProperty("componentName", "GANGLIA_SERVER");
           if (gangliaSvcComponent) {
@@ -128,7 +128,7 @@ App.ClusterController = Em.Controller.extend({
       var svcs = App.Service.find();
       var nagiosSvc = svcs.findProperty("serviceName", "NAGIOS");
       if (nagiosSvc) {
-        var svcComponents = nagiosSvc.get('components');
+        var svcComponents = nagiosSvc.get('hostComponents');
         if (svcComponents) {
           var nagiosSvcComponent = svcComponents.findProperty("componentName", "NAGIOS_SERVER");
           if (nagiosSvcComponent) {

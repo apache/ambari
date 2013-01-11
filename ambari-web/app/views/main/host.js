@@ -68,8 +68,7 @@ App.MainHostView = Em.View.extend({
     content:null,
 
     shortLabels: function() {
-      var components = this.get('labels');
-      var labels = this.get('content.components').getEach('displayName');
+      var labels = this.get('content.hostComponents').getEach('displayName');
       var shortLabels = '';
       var c = 0;
       labels.forEach(function(label) {
@@ -88,8 +87,8 @@ App.MainHostView = Em.View.extend({
     }.property('labels'),
 
     labels: function(){
-      return this.get('content.components').getEach('displayName').join('\n');
-    }.property('content.components.@each'),
+      return this.get('content.hostComponents').getEach('displayName').join('\n');
+    }.property('content.hostComponents.@each'),
 
     usageStyle:function () {
       return "width:" + this.get('content.diskUsage') + "%";
@@ -198,57 +197,37 @@ App.MainHostView = Em.View.extend({
 
     allComponentsChecked:false,
     toggleAllComponents:function () {
-      this.set('masterComponentsChecked', this.get('allComponentsChecked'));
-      this.set('slaveComponentsChecked', this.get('allComponentsChecked'));
-      this.set('clientComponentsChecked', this.get('allComponentsChecked'));
+      var checked = this.get('allComponentsChecked');
+      this.set('masterComponentsChecked', checked);
+      this.set('slaveComponentsChecked', checked);
+      this.set('clientComponentsChecked', checked);
     }.observes('allComponentsChecked'),
 
     masterComponentsChecked:false,
     toggleMasterComponents:function () {
-      var checked = this.get('masterComponentsChecked');
-      this.get('masterComponents').forEach(function (comp) {
-        comp.set('checkedForHostFilter', checked);
-      });
+      this.get('masterComponents').setEach('checkedForHostFilter', this.get('masterComponentsChecked'));
     }.observes('masterComponentsChecked'),
 
     slaveComponentsChecked:false,
     toggleSlaveComponents:function () {
-      var checked = this.get('slaveComponentsChecked');
-      this.get('slaveComponents').forEach(function (comp) {
-        comp.set('checkedForHostFilter', checked);
-      });
+      this.get('slaveComponents').setEach('checkedForHostFilter', this.get('slaveComponentsChecked'));
     }.observes('slaveComponentsChecked'),
 
     clientComponentsChecked: false,
     toggleClientComponents: function() {
-      var checked = this.get('clientComponentsChecked');
-      this.get('clientComponents').forEach(function(comp) {
-        comp.set('checkedForHostFilter', checked);
-      });
+      this.get('clientComponents').setEach('checkedForHostFilter', this.get('clientComponentsChecked'));
     }.observes('clientComponentsChecked'),
 
     masterComponents:function(){
-      var masterComponents = [];
-      for(var i = 0; i < this.get('parentView').get('controller.masterComponents').length; i++) {
-        masterComponents.push(this.get('parentView').get('controller.masterComponents')[i]);
-      }
-      return masterComponents;
+      return this.get('parentView.controller.masterComponents');
     }.property('parentView.controller.masterComponents'),
 
     slaveComponents:function(){
-      var slaveComponents = [];
-      for(var i = 0; i < this.get('parentView').get('controller.slaveComponents').length; i++) {
-        slaveComponents.push(this.get('parentView').get('controller.slaveComponents')[i]);
-      }
-      return slaveComponents;
+      return this.get('parentView.controller.slaveComponents');
     }.property('parentView.controller.slaveComponents'),
 
     clientComponents: function() {
-      var clientComponents = [];
-      for (var i = 0; i < this.get('parentView').get('controller.clientComponents').length; i++) {
-        clientComponents.push(this.get('parentView').get('controller.clientComponents')[i]);
-      }
-      return clientComponents;
+      return this.get('parentView.controller.clientComponents');
     }.property('parentView.controller.clientComponents'),
 
     template: Ember.Handlebars.compile('<div {{bindAttr class="view.btnGroupClass"}} >'+
@@ -335,12 +314,6 @@ App.MainHostView = Em.View.extend({
       var self = this;
       this.set('isFilterOpen', !this.get('isFilterOpen'));
       if (this.get('isFilterOpen')) {
-        var filters = App.router.get('mainHostController.filters.components');
-        $('.filter-component').each(function() {
-          var componentId = parseInt($(this).attr('id').replace('component-', ''));
-          var index = filters.indexOf(componentId);
-          $(this).attr('checked', index == -1);
-        });
 
         var dropDown = $('#filter-dropdown');
         var firstClick = true;
@@ -358,6 +331,9 @@ App.MainHostView = Em.View.extend({
       if (this.get('controller.comeWithFilter')) {
         this.applyFilter();
         this.closeFilters();
+        this.set('controller.comeWithFilter', false);
+      } else {
+        this.clearFilter(this);
       }
     },
 

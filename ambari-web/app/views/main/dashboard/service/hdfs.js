@@ -109,7 +109,7 @@ App.MainDashboardServiceHdfsView = App.MainDashboardServiceView.extend({
   }.property('service.capacityUsed', 'service.capacityTotal'),
 
   dataNodeComponent: function () {
-    return App.Component.find().findProperty('componentName', 'DATANODE');
+    return App.HostComponent.find().findProperty('componentName', 'DATANODE');
   }.property('+'),
 
   isCollapsed: false,
