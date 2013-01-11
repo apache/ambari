@@ -58,13 +58,14 @@ App.MainDashboardServiceHdfsView = App.MainDashboardServiceView.extend({
     var svc = this.get('service');
     var liveCount = svc.get('liveDataNodes').get('length');
     var totalCount = svc.get('dataNodes').get('length');
-    var total = svc.get('capacityTotal') + 0;
-    var used = svc.get('capacityUsed') + 0;
-    var percentRemaining = (100 - Math.round((used * 100) / total)).toFixed(1);
-    if (percentRemaining == "NaN") {
-      percentRemaining = "n/a ";
+    var total = this.get('service.capacityTotal') + 0;
+    var remaining = this.get('service.capacityRemaining') + 0;
+    var used = total - remaining;
+    var percent = total > 0 ? ((used * 100) / total).toFixed(1) : 0;
+    if (percent == "NaN" || percent < 0) {
+      percent = "n/a ";
     }
-    return text.format(liveCount, totalCount, percentRemaining);
+    return text.format(liveCount, totalCount, percent);
   }.property('service.liveDataNodes', 'service.dataNodes', 'service.capacityUsed', 'service.capacityTotal'),
 
   capacity: function () {
