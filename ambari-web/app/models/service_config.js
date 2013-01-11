@@ -257,7 +257,7 @@ App.ServiceConfigProperty = Ember.Object.extend({
       mountPointAsRoot = mountPointsPerHost.findProperty('mountpoint', '/');
 
       mountPointsPerHost = mountPointsPerHost.filter(function (mPoint) {
-        return !(['/', '/home', '/boot'].contains(mPoint.mountpoint) || ['tmpfs', 'vboxsf'].contains(mPoint.type));
+        return !(['/', '/home', '/boot'].contains(mPoint.mountpoint) || ['devtmpfs', 'tmpfs', 'vboxsf'].contains(mPoint.type));
       });
 
       mountPointsPerHost.forEach(function (mPoint) {
