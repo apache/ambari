@@ -248,16 +248,12 @@ App.WizardStep8Controller = Em.Controller.extend({
    * Set property of the site variable
    */
   setSiteProperty: function (key, value, filename) {
-    if (this.get('configs').someProperty('name', key)) {
-      this.get('configs').findProperty('name', key).value = value;
-    } else {
       this.get('configs').pushObject({
         "id": "site property",
         "name": key,
         "value": value,
         "filename": filename
       });
-    }
   },
 
   loadSlaveConfiguration: function () {

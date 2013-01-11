@@ -33,6 +33,7 @@ App.WizardStep5View = Em.View.extend({
       } else {
         controller.lastZooKeeper().set('showRemoveControl', false);
       }
+      controller.rebalanceZookeeperHosts();
     }
   }
 

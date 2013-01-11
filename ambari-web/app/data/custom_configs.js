@@ -19,7 +19,19 @@
 
 module.exports =
   [
-
+    {
+      "id": "conf-site",
+      "name": "core-site",
+      "displayName": "Custom Hadoop Configs",
+      "value": "",
+      "defaultValue": "",
+      "description": "Enter in \"key=value\" format to set core-site.xml parameters not exposed through this page.<br> New line is the delimiter for every key-value pair.",
+      "displayType": "custom",
+      "isVisible": true,
+      "isRequired": false,
+      "serviceName": "HDFS",
+      "category": "Advanced"
+    },
     {
       "id": "conf-site",
       "name": "hdfs-site",

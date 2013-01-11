@@ -506,6 +506,7 @@ App.WizardStep5Controller = Em.Controller.extend({
       newZookeeper = Ember.Object.create({});
       lastZoo = currentZooKeepers.get("lastObject");
       newZookeeper.set("display_name", lastZoo.get("display_name"));
+      newZookeeper.set("component_name", lastZoo.get("component_name"));
       newZookeeper.set("selectedHost", lastZoo.get("selectedHost"));
       newZookeeper.set("availableHosts", this.getAvailableHosts("ZooKeeper"));
 
