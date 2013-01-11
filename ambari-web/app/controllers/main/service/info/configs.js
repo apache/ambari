@@ -213,14 +213,12 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
     console.log("TRACE: In setServiceTagNames function:");
     var newServiceConfigTags = [];
     var serviceConfigTags = this.get('serviceConfigTags');
-    var time = new Date().getMilliseconds();
-    console.log("The value of time is: " + time);
     for (var index in serviceConfigTags) {
       console.log("The value of serviceConfigTags[index]: " + serviceConfigTags[index]);
       newServiceConfigTags.pushObject({
         siteName: index,
         tagName: serviceConfigTags[index],
-        newTagName: serviceConfigTags[index] + time
+        newTagName: null
       }, this);
     }
     this.set('serviceConfigTags', newServiceConfigTags);
@@ -654,6 +652,9 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
    * Set all site property that are derived from other site-properties
    */
   setConfigValue: function (uiConfig, config) {
+    if (config.value == null) {
+      return;
+    }
     var fkValue = config.value.match(/<(foreignKey.*?)>/g);
     if (fkValue) {
       fkValue.forEach(function (_fkValue) {
@@ -706,6 +707,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
   createConfigurations: function () {
     var result = true;
     var serviceConfigTags = this.get('serviceConfigTags');
+    this.setNewTagNames(serviceConfigTags);
     serviceConfigTags.forEach(function (_serviceTags) {
       if (_serviceTags.siteName === 'global') {
         console.log("TRACE: Inside global");
@@ -718,6 +720,13 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
       }
     }, this);
     return result;
+  },
+
+  setNewTagNames: function(serviceConfigs) {
+    var time = (new Date).getTime();
+    serviceConfigs.forEach(function(_serviceConfigs){
+      _serviceConfigs.newTagName =  'version' + time;
+    },this);
   },
 
   createConfigSite: function (data) {

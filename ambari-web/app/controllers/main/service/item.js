@@ -108,6 +108,8 @@ App.MainServiceItemController = Em.Controller.extend({
           }
           App.router.get('backgroundOperationsController').showPopup();
         });
+        self.set('content.isStopDisabled',true);
+        self.set('content.isStartDisabled',true);
         this.hide();
       },
       onSecondary: function() {
@@ -162,6 +164,8 @@ App.MainServiceItemController = Em.Controller.extend({
           }
           App.router.get('backgroundOperationsController').showPopup();
         });
+        self.set('content.isStopDisabled',true);
+        self.set('content.isStartDisabled',true);
         this.hide();
       },
       onSecondary: function () {
