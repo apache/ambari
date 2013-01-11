@@ -2033,8 +2033,12 @@ public class AmbariManagementControllerImpl implements
               !newState.isValidClientComponentState()) {
             continue;
           }
+          /** 
+           * This is hack for now wherein we dont fail if the 
+           * sch is in INSTALL_FAILED 
+           */
           if (!isValidStateTransition(oldSchState, newState)) {
-            throw new AmbariException("Invalid transition for"
+            String error = "Invalid transition for"
                 + " servicecomponenthost"
                 + ", clusterName=" + cluster.getClusterName()
                 + ", clusterId=" + cluster.getClusterId()
@@ -2042,7 +2046,17 @@ public class AmbariManagementControllerImpl implements
                 + ", componentName=" + sch.getServiceComponentName()
                 + ", hostname=" + sch.getHostName()
                 + ", currentState=" + oldSchState
-                + ", newDesiredState=" + newState);
+                + ", newDesiredState=" + newState;
+            StackId sid = cluster.getDesiredStackVersion();
+            
+            if ( ambariMetaInfo.getComponentCategory(
+                sid.getStackName(), sid.getStackVersion(), sc.getServiceName(),
+                sch.getServiceComponentName()).isMaster()) {
+              throw new AmbariException(error);
+            } else {
+              LOG.warn("Ignoring: " + error);
+              continue;
+            }
           }
           if (!changedScHosts.containsKey(sc.getName())) {
             changedScHosts.put(sc.getName(),

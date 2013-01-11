@@ -29,7 +29,8 @@ class hdp-ganglia::server(
   } elsif ($service_state == 'uninstalled') {
 
    class { 'hdp-ganglia::server::packages':
-      ensure => 'uninstalled'
+      ensure => 'uninstalled',
+      service_state => $service_state
    }
 
    class { 'hdp-ganglia::server::files':
@@ -41,7 +42,10 @@ class hdp-ganglia::server(
     service_state => $service_state
   }
 
-  class { 'hdp-ganglia::server::packages': }
+  class { 'hdp-ganglia::server::packages':
+    ensure => 'present',
+    service_state => $service_state
+  }
 
   class { 'hdp-ganglia::config': 
     ganglia_server_host => $hdp::params::host_address,
@@ -84,23 +88,36 @@ class hdp-ganglia::server(
 }
 
 class hdp-ganglia::server::packages(
-  $ensure = present 
+  $ensure = present,
+  $service_state = 'installed_and_configured'
 )
 {
   hdp::package { ['ganglia-server','ganglia-gweb','ganglia-hdp-gweb-addons']: 
     ensure      => $ensure,
-    java_needed => false  
+    java_needed => false,
+    require => Hdp::Package ['rrdtool-python']
   }
 
-  hdp::package { ['rrdtool']:
-        ensure      => 'absent',
-        java_needed => false,
-        before => Hdp::Package ['rrdtool-python']
+  # Removing conflicting packages only once to workaround "/bin/rpm -e absent-absent-absent.absent" bug (BUG-2881)
+  if ($service_state == 'installed_and_configured' and $hdp::params::hdp_os_type == 'centos5') {
+    # Remove conflicting 32bit package
+    hdp::package { ['rrdtool-devel']:
+      ensure      => 'absent',
+      java_needed => false,
+      before => Hdp::Package ['rrdtool']
+    }
+
+    # Remove conflicting 32bit package
+    hdp::package { ['rrdtool']:
+      ensure      => 'absent',
+      java_needed => false,
+      before => Hdp::Package ['rrdtool-python']
+    }
   }
 
   hdp::package { ['rrdtool-python']:
-      ensure      => $ensure,
-      java_needed => false
+    ensure      => $ensure,
+    java_needed => false
   }
 
 }

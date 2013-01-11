@@ -135,9 +135,11 @@ public class AmbariServer {
           ClassPathXmlApplicationContext(contextLocations, parentSpringAppContext);
       //setting ambari web context
 
-      ServletContextHandler root = new ServletContextHandler(server, CONTEXT_PATH, 
-          ServletContextHandler.NO_SECURITY | ServletContextHandler.SECURITY |
+      ServletContextHandler root = new ServletContextHandler(server, CONTEXT_PATH,
           ServletContextHandler.SECURITY | ServletContextHandler.SESSIONS);
+
+      //Changing session cookie name to avoid conflicts
+      root.getSessionHandler().getSessionManager().setSessionCookie("AMBARISESSIONID");
 
       GenericWebApplicationContext springWebAppContext = new GenericWebApplicationContext();
       springWebAppContext.setServletContext(root.getServletContext());
@@ -317,6 +319,7 @@ public class AmbariServer {
        * Start the server after controller state is recovered.
        */
       server.start();
+
       serverForAgent.start();
       LOG.info("********* Started Server **********");
 

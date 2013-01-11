@@ -13,11 +13,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-NAMENODE=hadoop-hdfs-namenode.pid
-SECONDARY_NAMENODE=hadoop-hdfs-secondarynamenode.pid
-DATANODE=hadoop-hdfs-datanode.pid
-JOBTRACKER=hadoop-mapred-jobtracker.pid
-TASKTRACKER=hadoop-mapred-tasktracker.pid
+NAMENODE=hadoop-[a-z_]+-namenode.pid$
+SECONDARY_NAMENODE=hadoop-[a-z_]+-secondarynamenode.pid$
+DATANODE=hadoop-[a-z_]+-datanode.pid$
+JOBTRACKER=hadoop-[a-z_]+-jobtracker.pid$
+TASKTRACKER=hadoop-[a-z_]+-tasktracker.pid$
 OOZIE_SERVER=oozie.pid
 ZOOKEEPER_SERVER=zookeeper_server.pid
 TEMPLETON_SERVER=templeton.pid

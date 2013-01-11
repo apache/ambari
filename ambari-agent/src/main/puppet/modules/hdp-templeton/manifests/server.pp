@@ -84,12 +84,12 @@ class hdp-templeton::copy-hdfs-directories($service_state)
 #    mode  => '755',
 #    dest_dir => '/apps/templeton/ugi.jar'
 #  }
-#  hdp-hadoop::hdfs::copyfromlocal { '/usr/lib/hadoop/contrib/streaming/hadoop-streaming*.jar':
-#   service_state => $service_state,
-#   owner => $hdp-templeton::params::templeton_user,
-#   mode  => '755',
-#   dest_dir => '/apps/templeton/hadoop-streaming.jar'
-# }
+  hdp-hadoop::hdfs::copyfromlocal { '/usr/lib/hadoop/contrib/streaming/hadoop-streaming*.jar':
+   service_state => $service_state,
+   owner => $hdp-templeton::params::templeton_user,
+   mode  => '755',
+   dest_dir => '/apps/webhcat/hadoop-streaming.jar'
+  }
   #TODO: Use ${hdp::params::artifact_dir}/${hdp-templeton::params::pig_tar_name} instead
   hdp-hadoop::hdfs::copyfromlocal { '/usr/share/HDP-webhcat/pig.tar.gz' :
     service_state => $service_state,

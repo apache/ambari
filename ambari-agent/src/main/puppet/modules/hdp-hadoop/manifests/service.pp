@@ -45,7 +45,7 @@ define hdp-hadoop::service(
     $pid_file = "${pid_dir}/hadoop-${user}-${name}.pid"
   } 
 
-  $log_dir = "${hdp-hadoop::params::hadoop_logdirprefix}/${user}"
+  $log_dir = "${hdp-hadoop::params::hdfs_log_dir_prefix}/${user}"
   $hadoop_daemon = "${hdp::params::hadoop_bin}/hadoop-daemon.sh"
    
   $cmd = "${hadoop_daemon} --config ${hdp-hadoop::params::conf_dir}"

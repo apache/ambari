@@ -40,21 +40,19 @@ class hdp-oozie::service(
     $lzo_jar_suffix = ""
   }
 
+  $cmd1 = "cd /usr/lib/oozie && tar -xvf oozie-sharelib.tar.gz"
+  $cmd2 =  "cd /usr/lib/oozie && mkdir -p ${oozie_tmp}"
+  $cmd3 =  "cd /usr/lib/oozie && chown ${user}:hadoop ${oozie_tmp}"    
+  $cmd4 =  "cd ${oozie_tmp} && /usr/lib/oozie/bin/oozie-setup.sh -hadoop 0.20.200 $jar_location -extjs $ext_js_path $lzo_jar_suffix"
+  $cmd5 =  "cd ${oozie_tmp} && /usr/lib/oozie/bin/ooziedb.sh create -sqlfile oozie.sql -run ; echo 0"
+  $cmd6 =  "hadoop dfs -put /usr/lib/oozie/share share ; hadoop dfs -chmod -R 755 /user/${user}/share"
+  $cmd7 = "/usr/lib/oozie/bin/oozie-start.sh"
 
-  if ($ensure == 'running') {
-
-    $cmd1 = "cd /usr/lib/oozie && tar -xvf oozie-sharelib.tar.gz"
-    $cmd2 =  "cd /usr/lib/oozie && mkdir -p ${oozie_tmp}"
-    $cmd3 =  "cd /usr/lib/oozie && chown ${user}:hadoop ${oozie_tmp}"
-    
-    $cmd4 =  "cd ${oozie_tmp} && /usr/lib/oozie/bin/oozie-setup.sh -hadoop 0.20.200 $jar_location -extjs $ext_js_path $lzo_jar_suffix"
-    $cmd5 =  "cd ${oozie_tmp} && /usr/lib/oozie/bin/ooziedb.sh create -sqlfile oozie.sql -run ; hadoop dfs -put /usr/lib/oozie/share share ; hadoop dfs -chmod -R 755 /user/${user}/share"
-    $cmd6 =  "/usr/lib/oozie/bin/oozie-start.sh"
-
-
+  if ($ensure == 'installed_and_configured') {
     $sh_cmds = [$cmd1, $cmd2, $cmd3]
-    $user_cmds = [$cmd4, $cmd5, $cmd6]
-	
+    $user_cmds = [$cmd4, $cmd5]
+  } elsif ($ensure == 'running') {   
+    $start_cmd = "su - ${user} -c  'cd ${oozie_tmp} && /usr/lib/oozie/bin/oozie-start.sh'"
     $no_op_test = "ls ${pid_file} >/dev/null 2>&1 && ps `cat ${pid_file}` >/dev/null 2>&1"
   } elsif ($ensure == 'stopped') {
     $stop_cmd  = "su - ${user} -c  'cd ${oozie_tmp} && /usr/lib/oozie/bin/oozie-stop.sh'"
@@ -71,16 +69,20 @@ class hdp-oozie::service(
 
   anchor{'hdp-oozie::service::begin':} -> Hdp-oozie::Service::Directory<||> -> anchor{'hdp-oozie::service::end':}
   
-  if ($ensure == 'running') {
+  if ($ensure == 'installed_and_configured') {
     hdp-oozie::service::exec_sh{$sh_cmds:}
     hdp-oozie::service::exec_user{$user_cmds:}
-    Hdp-oozie::Service::Directory<||> -> Hdp-oozie::Service::Exec_sh[$cmd1] -> Hdp-oozie::Service::Exec_sh[$cmd2] ->Hdp-oozie::Service::Exec_sh[$cmd3] -> Hdp-oozie::Service::Exec_user[$cmd4] ->Hdp-oozie::Service::Exec_user[$cmd5] -> Hdp-oozie::Service::Exec_user[$cmd6] -> Anchor['hdp-oozie::service::end']
+    Hdp-oozie::Service::Directory<||> -> Hdp-oozie::Service::Exec_sh[$cmd1] -> Hdp-oozie::Service::Exec_sh[$cmd2] ->Hdp-oozie::Service::Exec_sh[$cmd3] -> Hdp-oozie::Service::Exec_user[$cmd4] ->Hdp-oozie::Service::Exec_user[$cmd5] -> Anchor['hdp-oozie::service::end']
+  } elsif ($ensure == 'running') {
+    $user_cmds = [$cmd6, $cmd7]
+    hdp-oozie::service::exec_user{$user_cmds:}
+    Hdp-oozie::Service::Exec_user[$cmd6] -> Hdp-oozie::Service::Exec_user[$cmd7] -> Anchor['hdp-oozie::service::end']
   } elsif ($ensure == 'stopped') {
     hdp::exec { "exec $stop_cmd":
       command => $stop_cmd,
       unless  => $no_op_test,
       initial_wait => $initial_wait
-  }
+   }
   }
 }
 

@@ -22,7 +22,7 @@ define hdp::configfile(
   $component,
   $conf_dir = undef, #if this is undef then name is of form conf_dir/file_name
   $owner = undef, 
-  $group = $hdp::params::hadoop_user_group,
+  $group = $hdp::params::user_group,
   $mode = undef,
   $size = 64, #32 or 64 bit (used to pick appropriate java_home)
   $template_tag = undef,

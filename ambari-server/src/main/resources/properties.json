@@ -3,7 +3,8 @@
         "Clusters/cluster_id",
         "Clusters/cluster_name",
         "Clusters/version",
-        "Clusters/state"
+        "Clusters/state",
+        "_"
     ],
     "Service":[
         "ServiceInfo/service_name",
@@ -12,7 +13,8 @@
         "Services/description",
         "Services/display_name",
         "Services/attributes",
-        "ServiceInfo/desired_configs"
+        "ServiceInfo/desired_configs",
+        "_"
     ],
     "Host":[
         "Hosts/cluster_name",
@@ -30,7 +32,8 @@
         "Hosts/host_status",
         "Hosts/host_health_report",
         "Hosts/public_host_name",
-        "Hosts/host_state"
+        "Hosts/host_state",
+        "_"
     ],
     "Component":[
         "ServiceComponentInfo/service_name",
@@ -39,7 +42,8 @@
         "ServiceComponentInfo/state",
         "ServiceComponents/display_name",
         "ServiceComponents/description",
-        "ServiceComponentInfo/desired_configs"
+        "ServiceComponentInfo/desired_configs",
+        "_"
     ],
     "HostComponent":[
         "HostRoles/role_id",
@@ -49,7 +53,8 @@
         "HostRoles/state",
         "HostRoles/desired_state",
         "HostRoles/configs",
-        "HostRoles/desired_configs"
+        "HostRoles/desired_configs",
+        "_"
     ],
     "Configuration":[
         "Config/tag",
@@ -59,12 +64,14 @@
     "Action":[
         "Actions/cluster_name",
         "Actions/service_name",
-        "Actions/action_name"
+        "Actions/action_name",
+        "_"
     ],
     "Request":[
         "Requests/id",
         "Requests/cluster_name",
-        "Requests/request_status"
+        "Requests/request_status",
+        "_"
     ],
     "Task":[
         "Tasks/id",
@@ -79,13 +86,15 @@
         "Tasks/stderr",
         "Tasks/stdout",
         "Tasks/start_time",
-        "Tasks/attempt_cnt"
+        "Tasks/attempt_cnt",
+        "_"
     ],
     "User":[
         "Users/user_name",
         "Users/roles",
         "Users/password",
         "Users/old_password",
-        "Users/ldap_user"
+        "Users/ldap_user",
+        "_"
     ]
 }

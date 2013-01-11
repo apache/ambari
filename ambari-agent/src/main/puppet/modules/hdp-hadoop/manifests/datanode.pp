@@ -91,10 +91,11 @@ class hdp-hadoop::datanode(
 define hdp-hadoop::datanode::create_data_dirs($service_state)
 {
   $dirs = hdp_array_from_comma_list($name)
-  hdp::directory_recursive_create_ignore_failure { $dirs :
+  hdp::directory_recursive_create { $dirs :
     owner => $hdp-hadoop::params::hdfs_user,
     mode => '0750',
     service_state => $service_state,
     force => true
   }
+
 }

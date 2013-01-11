@@ -134,13 +134,13 @@ class hdp::params()
   $smokeuser = hdp_default("smokeuser","ambari_qa")
   $smoke_user_group = hdp_default("smoke_user_group","users")
 
-  #because of Puppet user resource issue make sure that $hadoop_user is different from hadoop_user_group
+  #because of Puppet user resource issue make sure that $hadoop_user is different from user_group
   if ($security_enabled == true) {
     $hadoop_user = "root"
   } else {
     $hadoop_user = hdp_default("hadoop_user", "hadoop_deploy")
   }
-  $hadoop_user_group = hdp_default("hadoop_user_group","hadoop")
+  $user_group = hdp_default("user_group","hadoop")
 
   $ganglia_enabled = hdp_default("ganglia_enabled",true) 
 
@@ -305,15 +305,25 @@ class hdp::params()
     rrdtool-python => {
       64 => ['python-rrdtool.x86_64']
     },
+    # The 32bit version of package rrdtool-devel is removed on centos 5/6 to prevent conflict ( BUG-2881)
+    rrdtool-devel => {
+      64 => {
+        'ALL' => 'rrdtool-devel.i686',
+        'centos6' => 'rrdtool-devel.i686',
+        'centos5' => 'rrdtool-devel.i386',
+        'redhat6' => 'rrdtool-devel.i686',
+        'redhat5' => 'rrdtool-devel.i386'
+      }
+    },
     # The 32bit version of package rrdtool is removed on centos 5/6 to prevent conflict ( BUG-2408)
     rrdtool => {
-          64 => {
-            'ALL' => 'rrdtool.i686',
-            'centos6' => 'rrdtool.i686',
-            'centos5' => 'rrdtool.i386',
-            'redhat6' => 'rrdtool.i686',
-            'redhat5' => 'rrdtool.i386'
-            }
+      64 => {
+        'ALL' => 'rrdtool.i686',
+        'centos6' => 'rrdtool.i686',
+        'centos5' => 'rrdtool.i386',
+        'redhat6' => 'rrdtool.i686',
+        'redhat5' => 'rrdtool.i386'
+       }
     },
     ambari-log4j => {
       64 => ['ambari-log4j']
@@ -428,6 +438,11 @@ class hdp::params()
       64 => {'ALL' =>['hadoop','hadoop-libhdfs','hadoop-native','hadoop-pipes','hadoop-sbin','hadoop-lzo', 'hadoop-lzo-native']}
     },
 
+    lzo => {
+      'ALL' => {'ALL' => ['lzo', 'lzo.i686', 'lzo-devel', 'lzo-devel.i686'],
+                suse => ['lzo-devel']},
+    },
+
     glibc=> {
       'ALL' => {'ALL' => ['glibc','glibc.i686'],
                 suse => ['glibc']},
@@ -523,6 +538,17 @@ class hdp::params()
       64 => {'ALL' =>'python-rrdtool.x86_64'}
     },
 
+    # The 32bit version of package rrdtool-devel is removed on centos 5/6 to prevent conflict ( BUG-2881)
+    rrdtool-devel => {
+      64 => {
+        'ALL' => 'rrdtool-devel.i686',
+        'centos6' => 'rrdtool-devel.i686',
+        'centos5' => 'rrdtool-devel.i386',
+        'redhat6' => 'rrdtool-devel.i686',
+        'redhat5' => 'rrdtool-devel.i386'
+        }
+    },
+
     # The 32bit version of package rrdtool is removed on centos 5/6 to prevent conflict ( BUG-2408)
     rrdtool => {
       64 => {
@@ -561,6 +587,15 @@ class hdp::params()
     centos5 => '/var/www/cgi-bin',
     redhat6 => '/var/www/cgi-bin',
     redhat5 => '/var/www/cgi-bin'
+  }
+  
+  $nagios_lookup_daemon_strs = 
+  {
+    suse => '/usr/sbin/nagios',
+    centos6 => '/usr/bin/nagios',
+    centos5 => '/usr/bin/nagios',
+    redhat6 => '/usr/bin/nagios',
+    redhat5 => '/usr/bin/nagios'
   }
 
 

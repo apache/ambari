@@ -56,7 +56,7 @@ class hdp-hadoop::params(
 
   $hadoop_heapsize = hdp_default("hadoop/hadoop-env/hadoop_heapsize","1024m")
 
-  $hadoop_logdirprefix = hdp_default("hadoop/hadoop-env/hadoop_logdirprefix","/var/log/hadoop")
+  $hdfs_log_dir_prefix = hdp_default("hadoop/hadoop-env/hdfs_log_dir_prefix","/var/log/hadoop")
 
   $hadoop_piddirprefix = hdp_default("hadoop/hadoop-env/hadoop_piddirprefix","/var/run/hadoop")
   $run_dir = $hadoop_piddirprefix

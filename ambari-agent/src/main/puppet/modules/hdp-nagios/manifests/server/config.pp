@@ -22,6 +22,7 @@ class hdp-nagios::server::config()
 {
 
   $host_cfg = $hdp-nagios::params::nagios_host_cfg
+  $nagios_lookup_daemon_str = $hdp::params::nagios_lookup_daemon_strs[$hdp::params::hdp_os_type]
   
   hdp-nagios::server::configfile { 'nagios.cfg': conf_dir => $hdp-nagios::params::conf_dir }
   hdp-nagios::server::configfile { 'resource.cfg': conf_dir => $hdp-nagios::params::conf_dir }

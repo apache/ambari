@@ -118,7 +118,7 @@ class hdp-ganglia::monitor::gmond(
   }
   if ($ensure == 'running' or $ensure == 'stopped') {
     hdp::exec { "hdp-gmond service" :
-      command => "$command",
+      command => $command,
       path      => '/usr/sbin:/sbin:/usr/local/bin:/bin:/usr/bin'
     }
   }

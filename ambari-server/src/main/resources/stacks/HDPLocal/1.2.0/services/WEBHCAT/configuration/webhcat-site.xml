@@ -117,4 +117,10 @@ limitations under the License.
     <description>The hdfs path to the Hadoop streaming jar file.</description>
   </property> 
 
+  <property>
+    <name>templeton.exec.timeout</name>
+    <value>60000</value>
+    <description>Time out for templeton api</description>
+  </property>
+
 </configuration>

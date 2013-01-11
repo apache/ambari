@@ -23,6 +23,7 @@ import logging
 import logging.handlers
 import sys
 import os
+import re
 
 logger = logging.getLogger()
 
@@ -72,6 +73,9 @@ class StatusCheck:
       self.serToPidDict = dict(self.get_pair(line) for line in fd)
 
   def getIsLive(self, pidPath):
+    if not pidPath:
+      return False
+
     isLive = False
     pid = -1
     try:
@@ -91,15 +95,18 @@ class StatusCheck:
 
   def getStatus(self, serviceCode):
     try:
-      pidName = self.serToPidDict[serviceCode]
-      logger.info( 'pidName: ' + pidName)
+      pidPath = None
+      pidPattern = self.serToPidDict[serviceCode]
+      logger.info( 'pidPattern: ' + pidPattern)
     except KeyError as e:
       logger.warn('There is no mapping for ' + serviceCode)
       return None
     try:
-      pidPath = self.pidFilesDict[pidName]
-      logger.info('pidPath: ' + pidPath)
-      result = self.getIsLive(self.pidFilesDict[pidName])
+      for pidFile in self.pidFilesDict.keys():
+        if re.match(pidPattern, pidFile):
+          pidPath = self.pidFilesDict[pidFile]          
+      logger.info('pidPath: ' + str(pidPath))
+      result = self.getIsLive(pidPath)
       return result
     except KeyError:
       logger.info('Pid file was not found')

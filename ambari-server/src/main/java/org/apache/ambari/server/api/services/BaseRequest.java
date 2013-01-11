@@ -116,6 +116,12 @@ public abstract class BaseRequest implements Request {
 
     Set<BasePredicate> setPredicates = new HashSet<BasePredicate>();
     for (String outerToken : tokens) {
+      if (outerToken.startsWith("_=")) {
+        // NOTE: This is to enable UI to pass a _= parameter for unique query 
+        // string even though the backend doesnt need it.
+        continue;
+      }
+      
       if (outerToken != null &&  !outerToken.startsWith("fields")) {
         setPredicates.add(outerToken.contains("|") ?
             handleOrPredicate(outerToken) : createPredicate(outerToken));

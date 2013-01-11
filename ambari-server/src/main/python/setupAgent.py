@@ -48,14 +48,6 @@ def is_suse():
       return True
   return False
 
-def installPreReqSuse():
-  """ required for ruby deps """
-  # remove once in the repo
-  zypperCommand = ["zypper", "install", "-y",
-    "http://download.opensuse.org/repositories/home:/eclipseagent:/puppet/SLE_11_SP1/x86_64/ruby-augeas-0.4.1-26.3.x86_64.rpm",
-    "http://download.opensuse.org/repositories/home:/eclipseagent:/puppet/SLE_11_SP1/x86_64/ruby-shadow-1.4.1-2.2.x86_64.rpm"]
-  return execOsCommand(zypperCommand)
-
 def installAgentSuse():
   """ Run zypper install and make sure the agent install alright """
   zypperCommand = ["zypper", "install", "-y", "ambari-agent"]
@@ -112,7 +104,6 @@ def main(argv=None):
   hostName = onlyargs[1]
 
   if is_suse():
-    installPreReqSuse()
     installAgentSuse()
   else:
     installPreReq()

@@ -181,7 +181,7 @@ public class CertificateManager {
    * Adds agent certificate to server keystore
    * @return string with agent signed certificate content
    */
-  public SignCertResponse signAgentCrt(String agentHostname, String agentCrtReqContent, String passphraseAgent) {
+  public synchronized SignCertResponse signAgentCrt(String agentHostname, String agentCrtReqContent, String passphraseAgent) {
     SignCertResponse response = new SignCertResponse();
     LOG.info("Signing of agent certificate");
     LOG.info("Verifying passphrase");

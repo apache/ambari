@@ -29,15 +29,15 @@ class hdp(
 
   Exec { logoutput => 'on_failure' }
 
-  group { $hdp::params::hadoop_user_group :
+  group { $hdp::params::user_group :
     ensure => present
   }
 
   #TODO: think not needed and also there seems to be a puppet bug around this and ldap
   hdp::user { $hdp::params::hadoop_user:
-    gid => $hdp::params::hadoop_user_group
+    gid => $hdp::params::user_group
   }
-  Group[$hdp::params::hadoop_user_group] -> Hdp::User[$hdp::params::hadoop_user] 
+  Group[$hdp::params::user_group] -> Hdp::User[$hdp::params::hadoop_user] 
   class { 'hdp::snmp': service_state => 'running'}
 
   class { 'hdp::create_smoke_user': }
@@ -141,7 +141,7 @@ class hdp::set_selinux()
 }
 
 define hdp::user(
-  $gid = $hdp::params::hadoop_user_group,
+  $gid = $hdp::params::user_group,
   $just_validate = undef
 )
 {
@@ -163,7 +163,7 @@ define hdp::user(
     user { $name:
       ensure     => present,
       managehome => true,
-      #gid        => $gid, #TODO either remove this to support LDAP env or fix it
+      gid        => $gid, #TODO either remove this to support LDAP env or fix it
       shell      => '/bin/bash'
     }
   }
@@ -171,7 +171,7 @@ define hdp::user(
      
 define hdp::directory(
   $owner = $hdp::params::hadoop_user,
-  $group = $hdp::params::hadoop_user_group,
+  $group = $hdp::params::user_group,
   $mode  = undef,
   $ensure = directory,
   $force = undef,
@@ -199,7 +199,7 @@ define hdp::directory(
 #TODO: check on -R flag and use of recurse
 define hdp::directory_recursive_create(
   $owner = $hdp::params::hadoop_user,
-  $group = $hdp::params::hadoop_user_group,
+  $group = $hdp::params::user_group,
   $mode = undef,
   $context_tag = undef,
   $ensure = directory,
@@ -226,7 +226,7 @@ define hdp::directory_recursive_create(
 
 define hdp::directory_recursive_create_ignore_failure(
   $owner = $hdp::params::hadoop_user,
-  $group = $hdp::params::hadoop_user_group,
+  $group = $hdp::params::user_group,
   $mode = undef,
   $context_tag = undef,
   $ensure = directory,

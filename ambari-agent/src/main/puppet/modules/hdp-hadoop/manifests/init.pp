@@ -50,12 +50,12 @@ debug('##Configs generation for hdp-hadoop')
       module => 'hdp-hadoop',
       configuration => $configuration['mapred-queue-acls'],
       owner => $hdp-hadoop::params::mapred_user,
-      group => $hdp::params::hadoop_user_group
+      group => $hdp::params::user_group
     }
   } else { # Manually overriding ownership of file installed by hadoop package
     file { "${hdp-hadoop::params::conf_dir}/mapred-queue-acls.xml":
       owner => $hdp-hadoop::params::mapred_user,
-      group => $hdp::params::hadoop_user_group
+      group => $hdp::params::user_group
     }
   }
   
@@ -66,7 +66,7 @@ debug('##Configs generation for hdp-hadoop')
       module => 'hdp-hadoop',
       configuration => $configuration['hadoop-policy'],
       owner => $hdp-hadoop::params::hdfs_user,
-      group => $hdp::params::hadoop_user_group
+      group => $hdp::params::user_group
     }
   }
 
@@ -77,7 +77,7 @@ debug('##Configs generation for hdp-hadoop')
         module => 'hdp-hadoop',
         configuration => $configuration['core-site'],
         owner => $hdp-hadoop::params::hdfs_user,
-        group => $hdp::params::hadoop_user_group
+        group => $hdp::params::user_group
       }
     }
 
@@ -88,7 +88,7 @@ debug('##Configs generation for hdp-hadoop')
       module => 'hdp-hadoop',
       configuration => $configuration['mapred-site'],
       owner => $hdp-hadoop::params::mapred_user,
-      group => $hdp::params::hadoop_user_group
+      group => $hdp::params::user_group
     }
   }
   
@@ -99,7 +99,7 @@ debug('##Configs generation for hdp-hadoop')
       module => 'hdp-hadoop',
       configuration => $configuration['capacity-scheduler'],
       owner => $hdp-hadoop::params::hdfs_user,
-      group => $hdp::params::hadoop_user_group
+      group => $hdp::params::user_group
     }
   }
 
@@ -110,7 +110,7 @@ debug('##Configs generation for hdp-hadoop')
       module => 'hdp-hadoop',
       configuration => $configuration['hdfs-site'],
       owner => $hdp-hadoop::params::hdfs_user,
-      group => $hdp::params::hadoop_user_group
+      group => $hdp::params::user_group
     }
   }
 
@@ -165,7 +165,7 @@ class hdp-hadoop(
     hdp::user{ $hdfs_user:}
     hdp::user { $mapred_user:}
 
-    $logdirprefix = $hdp-hadoop::params::hadoop_logdirprefix
+    $logdirprefix = $hdp-hadoop::params::hdfs_log_dir_prefix
     hdp::directory_recursive_create { $logdirprefix: 
         owner => 'root'
     }
@@ -178,7 +178,7 @@ class hdp-hadoop(
     if ($hdp::params::security_enabled == true) {
       file { "${hdp::params::hadoop_bin}/task-controller":
         owner   => 'root',
-        group   => $hdp::params::hadoop_user_group,
+        group   => $hdp::params::user_group,
         mode    => '6050',
         require => Hdp-hadoop::Package['hadoop'],
         before  => Anchor['hdp-hadoop::end']

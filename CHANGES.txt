@@ -21,6 +21,8 @@ should be listed by their full name.
 
  BUG FIXES
 
+ AMBARI-1126. Change SUSE lzo dependency to only lzo-devel. (nate cole via
+ mahadev)
 
 AMBARI-666 branch (unreleased changes)
 

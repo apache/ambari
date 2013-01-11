@@ -99,7 +99,7 @@ public class QueryImpl implements Query {
 
   @Override
   //todo: consider requiring a path and a property.  For categories the property name '*' could be used.
-  public void addProperty(String category, String property, TemporalInfo temporalInfo) {
+  public void addProperty(String category, String property, TemporalInfo temporalInfo) {    
     if (category == null && property.equals("*")) {
       // wildcard
       addAllProperties(temporalInfo);

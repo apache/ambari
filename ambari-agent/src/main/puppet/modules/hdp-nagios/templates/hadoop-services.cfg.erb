@@ -35,7 +35,7 @@ define service {
         use                     hadoop-service
         service_description     NAGIOS::Nagios status log staleness
         servicegroups           NAGIOS
-        check_command           check_nagios!10!/var/nagios/status.dat!/usr/bin/nagios
+        check_command           check_nagios!10!/var/nagios/status.dat!<%=nagios_lookup_daemon_str%>
         normal_check_interval   5
         retry_check_interval    0.5
         max_check_attempts      2
@@ -201,7 +201,7 @@ define service {
         retry_check_interval    0.5
         max_check_attempts      3
 }
-
+<% if scope.function_hdp_template_var("hdp_os_type") != "suse"%>
 define service {        
         hostgroup_name          namenode        
         use                     hadoop-service
@@ -212,6 +212,7 @@ define service {
         retry_check_interval    2 
         max_check_attempts      5
 }
+<% end %>
 
 define service {
         hostgroup_name          namenode
@@ -281,7 +282,7 @@ define service {
         retry_check_interval    1
         max_check_attempts      3
 }
-
+ <% if scope.function_hdp_template_var("hdp_os_type") != "suse"%>
 define service {
         hostgroup_name          jobtracker
         use                     hadoop-service
@@ -292,6 +293,7 @@ define service {
         retry_check_interval    2 
         max_check_attempts      5
 }
+<% end %>
 
 define service {
         hostgroup_name          jobtracker
@@ -391,7 +393,7 @@ define service {
         retry_check_interval    1
         max_check_attempts      3
 }
-
+<% if scope.function_hdp_template_var("hdp_os_type") != "suse"%>
 define service {
         hostgroup_name          hbasemaster
         use                     hadoop-service
@@ -402,7 +404,7 @@ define service {
         retry_check_interval    2 
         max_check_attempts      5
 }
-
+<% end %>
 define service {
         hostgroup_name          hbasemaster
         use                     hadoop-service

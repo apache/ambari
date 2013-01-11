@@ -20,11 +20,13 @@
 #
 #
 
+<% if scope.function_hdp_template_var("hdp_os_type") != "suse"%>
 # 'check_cpu' check remote cpu load
 define command {
         command_name    check_cpu
         command_line    $USER1$/check_cpu.pl -H $HOSTADDRESS$ -C hadoop -w $ARG1$ -c $ARG2$
        }
+<% end %>
 
 # Check data node storage full 
 define command {

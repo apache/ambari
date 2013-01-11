@@ -163,24 +163,24 @@ public class MapReduceJobHistoryUpdater implements LogStoreUpdateProvider {
     
     workflowUpdateNumCompletedPS =
         connection.prepareStatement(
-            "WITH sums as (SELECT sum(inputBytes) as input, " +
-                "sum(outputBytes) as output, workflowId FROM " +
-                JOB_TABLE +
-                " WHERE workflowId = (SELECT workflowId FROM " +
-                JOB_TABLE +
-                " WHERE jobId = ?) AND status = 'SUCCESS'" +
-                " GROUP BY workflowId) " +
-                "UPDATE " +
+            "UPDATE " +
                 WORKFLOW_TABLE +
                 " SET " +
                 "lastUpdateTime = ?, " +
                 "duration = ? - (SELECT startTime FROM " +
                 WORKFLOW_TABLE +
-                " WHERE workflowId = (SELECT workflowId FROM sums)), " +
-                "numJobsCompleted = numJobsCompleted + 1, " +
-                "inputBytes = (select input from sums), " +
-                "outputBytes = (select output from sums) " +
-                "WHERE workflowId = (select workflowId from sums)"
+                " WHERE workflowId = selectid), " +
+                "numJobsCompleted = rows, " +
+                "inputBytes = input, " +
+                "outputBytes = output " +
+            "FROM (SELECT count(*) as rows, sum(inputBytes) as input, " +
+                "sum(outputBytes) as output, workflowId as selectid FROM " +
+                JOB_TABLE +
+                " WHERE workflowId = (SELECT workflowId FROM " +
+                JOB_TABLE +
+                " WHERE jobId = ?) AND status = 'SUCCESS' " +
+                "GROUP BY workflowId) as jobsummary " +
+            "WHERE workflowId = selectid"
             );
     
     // JobFinishedEvent
@@ -714,9 +714,9 @@ public class MapReduceJobHistoryUpdater implements LogStoreUpdateProvider {
       entityPS.setString(8, historyEvent.getJobid().toString());
       entityPS.executeUpdate();
       // job finished events always have success status
-      workflowUpdateNumCompletedPS.setString(1, historyEvent.getJobid().toString());
+      workflowUpdateNumCompletedPS.setLong(1, historyEvent.getFinishTime());
       workflowUpdateNumCompletedPS.setLong(2, historyEvent.getFinishTime());
-      workflowUpdateNumCompletedPS.setLong(3, historyEvent.getFinishTime());
+      workflowUpdateNumCompletedPS.setString(3, historyEvent.getJobid().toString());
       workflowUpdateNumCompletedPS.executeUpdate();
     } catch (SQLException sqle) {
       LOG.info("Failed to store " + historyEvent.getEventType() + " for job " + 
@@ -831,7 +831,11 @@ public class MapReduceJobHistoryUpdater implements LogStoreUpdateProvider {
       entityPS.setString(3, historyEvent.getTaskStatus());
       entityPS.setLong(4, historyEvent.getFinishTime());
       entityPS.setString(5, historyEvent.getError());
-      entityPS.setString(6, historyEvent.getFailedAttemptID().toString());
+      if (historyEvent.getFailedAttemptID() != null) {
+        entityPS.setString(6, historyEvent.getFailedAttemptID().toString());
+      } else {
+        entityPS.setString(6, "task_na");
+      }
       entityPS.setString(7, historyEvent.getTaskId().toString());
       entityPS.executeUpdate();
     } catch (SQLException sqle) {

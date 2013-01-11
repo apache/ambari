@@ -1,3 +1,4 @@
+#!/bin/sh
 #
 #
 # Licensed to the Apache Software Foundation (ASF) under one
@@ -18,19 +19,17 @@
 # under the License.
 #
 #
-define hdp::lzo::package()
-{
-  $size = $name
 
-  $pkg_type = "lzo"
+mysqldservice=$1
+mysqldbuser=$2
+mysqldbpasswd=$3
+mysqldbhost=$4
 
-  hdp::package {"lzo ${size}":
-    package_type  => "${pkg_type}",
-    size          => $size,
-    java_needed   => false
-  }
-
-  $anchor_beg = "hdp::lzo::package::${size}::begin"
-  $anchor_end = "hdp::lzo::package::${size}::end"
-  anchor{$anchor_beg:} ->  Hdp::Package["lzo ${size}"] -> anchor{$anchor_end:}
-}
+service $mysqldservice start
+echo "Adding user $mysqldbuser@$mysqldbhost and $mysqldbuser@localhost"
+mysql -u root -e "CREATE USER '$mysqldbuser'@'$mysqldbhost' IDENTIFIED BY '$mysqldbpasswd';"
+mysql -u root -e "CREATE USER '$mysqldbuser'@'localhost' IDENTIFIED BY '$mysqldbpasswd';"
+mysql -u root -e "GRANT ALL PRIVILEGES ON *.* TO '$mysqldbuser'@'$mysqldbhost';"
+mysql -u root -e "GRANT ALL PRIVILEGES ON *.* TO '$mysqldbuser'@'localhost';"
+mysql -u root -e "flush privileges;"
+service $mysqldservice stop
