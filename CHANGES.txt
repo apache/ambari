@@ -679,6 +679,9 @@ AMBARI-666 branch (unreleased changes)
 
   BUG FIXES
 
+  AMBARI-1155. Change "Save and apply changes" button on configs section to
+  "Save". (yusaku)
+
   AMBARI-1153. Host jams in status 'Preparing' if host name is wrong.
   (Arun Kandregula via yusaku)
 
