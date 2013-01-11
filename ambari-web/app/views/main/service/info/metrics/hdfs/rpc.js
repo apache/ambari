@@ -38,7 +38,7 @@ App.ChartServiceMetricsHDFS_RPC = App.ChartLinearTimeView.extend({
       clusterName: App.router.get('clusterController.clusterName'),
       hostName: nameNodeHostName
     }, "/data/services/metrics/hdfs/rpc.json");
-  }.property('App.router.clusterController.clusterName'),
+  }.property('App.router.clusterController.clusterName').volatile(),
 
   transformToSeries: function (jsonData) {
     var seriesArray = [];

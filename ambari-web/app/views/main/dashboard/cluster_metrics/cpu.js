@@ -32,7 +32,7 @@ App.ChartClusterMetricsCPU = App.ChartLinearTimeView.extend({
     return App.formatUrl(App.apiPrefix + "/clusters/{clusterName}?fields=metrics/cpu[{fromSeconds},{toSeconds},{stepSeconds}]", {
       clusterName: App.router.get('clusterController.clusterName')
     }, "/data/cluster_metrics/cpu_1hr.json");
-  }.property('App.router.clusterController.clusterName'),
+  }.property('App.router.clusterController.clusterName').volatile(),
 
   title: "CPU Usage",
   yAxisFormatter: App.ChartLinearTimeView.PercentageFormatter,

@@ -34,7 +34,7 @@ App.ChartServiceMetricsHBASE_ClusterRequests = App.ChartLinearTimeView.extend({
     return App.formatUrl(App.apiPrefix + "/clusters/{clusterName}/services/HBASE/components/HBASE_MASTER?fields=metrics/hbase/master/cluster_requests[{fromSeconds},{toSeconds},{stepSeconds}]", {
       clusterName: App.router.get('clusterController.clusterName')
     }, "/data/services/metrics/hbase/cluster_requests.json");
-  }.property('App.router.clusterController.clusterName'),
+  }.property('App.router.clusterController.clusterName').volatile(),
 
   transformToSeries: function (jsonData) {
     var seriesArray = [];

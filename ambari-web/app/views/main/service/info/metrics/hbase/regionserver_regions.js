@@ -34,7 +34,7 @@ App.ChartServiceMetricsHBASE_RegionServerRegions = App.ChartLinearTimeView.exten
     return App.formatUrl(App.apiPrefix + "/clusters/{clusterName}/services/HBASE/components/HBASE_REGIONSERVER?fields=metrics/hbase/regionserver/regions[{fromSeconds},{toSeconds},{stepSeconds}]", {
       clusterName: App.router.get('clusterController.clusterName')
     }, "/data/services/metrics/hbase/regionserver_regions.json");
-  }.property('App.router.clusterController.clusterName'),
+  }.property('App.router.clusterController.clusterName').volatile(),
 
   transformToSeries: function (jsonData) {
     var seriesArray = [];

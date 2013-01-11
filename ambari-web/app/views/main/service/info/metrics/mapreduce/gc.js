@@ -38,7 +38,7 @@ App.ChartServiceMetricsMapReduce_GC = App.ChartLinearTimeView.extend({
       clusterName: App.router.get('clusterController.clusterName'),
       hostName: jtHostName
     }, "/data/services/metrics/mapreduce/gc.json");
-  }.property('App.router.clusterController.clusterName'),
+  }.property('App.router.clusterController.clusterName').volatile(),
 
   transformToSeries: function (jsonData) {
     var seriesArray = [];

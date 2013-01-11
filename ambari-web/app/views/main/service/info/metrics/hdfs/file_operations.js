@@ -37,7 +37,7 @@ App.ChartServiceMetricsHDFS_FileOperations = App.ChartLinearTimeView.extend({
       clusterName: App.router.get('clusterController.clusterName'),
       hostName: nameNodeHostName
     }, "/data/services/metrics/hdfs/file_operations.json");
-  }.property('App.router.clusterController.clusterName'),
+  }.property('App.router.clusterController.clusterName').volatile(),
 
   transformToSeries: function (jsonData) {
     var seriesArray = [];

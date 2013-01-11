@@ -38,7 +38,7 @@ App.ChartServiceMetricsMapReduce_JVMHeap = App.ChartLinearTimeView.extend({
       clusterName: App.router.get('clusterController.clusterName'),
       hostName: jtHostName
     }, "/data/services/metrics/mapreduce/jvm_heap.json");
-  }.property('App.router.clusterController.clusterName'),
+  }.property('App.router.clusterController.clusterName').volatile(),
 
   transformToSeries: function (jsonData) {
     var seriesArray = [];

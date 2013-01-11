@@ -37,7 +37,7 @@ App.ChartServiceMetricsMapReduce_JVMThreads = App.ChartLinearTimeView.extend({
       clusterName: App.router.get('clusterController.clusterName'),
       hostName: jtHostName
     }, "/data/services/metrics/mapreduce/jvm_threads.json");
-  }.property('App.router.clusterController.clusterName'),
+  }.property('App.router.clusterController.clusterName').volatile(),
 
   transformToSeries: function (jsonData) {
     var seriesArray = [];

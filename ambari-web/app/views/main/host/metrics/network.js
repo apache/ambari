@@ -36,7 +36,7 @@ App.ChartHostMetricsNetwork = App.ChartLinearTimeView.extend({
       clusterName: App.router.get('clusterController.clusterName'),
       hostName: this.get('content').get('hostName')
     }, "/data/hosts/metrics/network.json");
-  }.property('App.router.clusterController.clusterName'),
+  }.property('App.router.clusterController.clusterName').volatile(),
 
   transformToSeries: function (jsonData) {
     var seriesArray = [];

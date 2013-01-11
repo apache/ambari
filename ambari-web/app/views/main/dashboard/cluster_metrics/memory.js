@@ -32,7 +32,7 @@ App.ChartClusterMetricsMemory = App.ChartLinearTimeView.extend({
     return App.formatUrl(App.apiPrefix + "/clusters/{clusterName}?fields=metrics/memory[{fromSeconds},{toSeconds},{stepSeconds}]", {
       clusterName: App.router.get('clusterController.clusterName')
     }, "/data/cluster_metrics/memory_1hr.json");
-  }.property('App.router.clusterController.clusterName'),
+  }.property('App.router.clusterController.clusterName').volatile(),
   title: "Memory Usage",
   yAxisFormatter: App.ChartLinearTimeView.BytesFormatter,
   renderer: 'line',

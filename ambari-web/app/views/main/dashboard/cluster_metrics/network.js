@@ -33,7 +33,7 @@ App.ChartClusterMetricsNetwork = App.ChartLinearTimeView.extend({
     return App.formatUrl(App.apiPrefix + "/clusters/{clusterName}?fields=metrics/network[{fromSeconds},{toSeconds},{stepSeconds}]", {
       clusterName: App.router.get('clusterController.clusterName')
     }, "/data/cluster_metrics/network_1hr.json");
-  }.property('App.router.clusterController.clusterName'),
+  }.property('App.router.clusterController.clusterName').volatile(),
   title: "Network Usage",
   yAxisFormatter: App.ChartLinearTimeView.BytesFormatter,
   renderer: 'line',

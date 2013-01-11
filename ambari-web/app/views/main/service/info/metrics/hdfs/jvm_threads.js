@@ -37,7 +37,7 @@ App.ChartServiceMetricsHDFS_JVMThreads = App.ChartLinearTimeView.extend({
       clusterName: App.router.get('clusterController.clusterName'),
       hostName: nameNodeHostName
     }, "/data/services/metrics/hdfs/jvm_threads.json");
-  }.property('App.router.clusterController.clusterName'),
+  }.property('App.router.clusterController.clusterName').volatile(),
 
   transformToSeries: function (jsonData) {
     var seriesArray = [];
