@@ -272,6 +272,8 @@ Em.I18n.translations = {
   'services.service.actions.run.smoke':'Run Smoke Test',
   'services.service.actions.maintenance':'Maintenance',
   'services.service.summary.unknown':'unknown',
+  'services.service.summary.notRunning':'Not Running',
+  'services.service.summary.notAvailable':'n/a',
 
   'services.add.header':'Add Service Wizard',
 
