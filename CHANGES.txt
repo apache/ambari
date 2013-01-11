@@ -692,6 +692,8 @@ AMBARI-666 branch (unreleased changes)
 
   BUG FIXES
 
+  AMBARI-1158. Fiters are not working correctly on Hosts page. (yusaku)
+
   AMBARI-1157. Host component operation causes lags in status/action pulldown
   update. (yusaku)
 
