@@ -695,6 +695,9 @@ AMBARI-666 branch (unreleased changes)
 
   BUG FIXES
 
+  AMBARI-1160. Cannot add a hostname that has a number next to . in it.
+  (yusaku)
+
   AMBARI-1139. Disable Misc section in Customize Services page of the Install
   Wizard. (Srimanth Gunturi via yusaku) 
 

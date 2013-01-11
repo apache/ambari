@@ -43,8 +43,10 @@ App.WizardStep2Controller = Em.Controller.extend({
   }.property('manualInstall'),
 
   isHostNameValid: function (hostname) {
-    // For now hostnames that start or end with '-' are not allowed and hostname should be valid
-    return validator.isHostname(hostname) && (!(/^\-/.test(hostname) || /\-$/.test(hostname)));
+    // disabling hostname validation as we don't want to be too restrictive and disallow
+    // user's hostnames
+    // return validator.isHostname(hostname) && (!(/^\-/.test(hostname) || /\-$/.test(hostname)));
+    return true;
   },
 
   updateHostNameArr: function(){
