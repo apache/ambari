@@ -1301,7 +1301,6 @@ App.WizardStep8Controller = Em.Controller.extend({
     });
   },
 
-
   applyCreatedConfToSlaveGroups: function () {
     this.get('slaveComponentConfig.components').forEach(function (_component) {
       _component.groups.forEach(function (_group) {
