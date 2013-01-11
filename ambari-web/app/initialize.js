@@ -35,6 +35,11 @@ App.bgOperationsUpdateInterval = 6000;
 App.componentsUpdateInterval = 6000;
 App.contentUpdateInterval = 15000;
 
+// this is to make sure that IE does not cache data when making AJAX calls to the server
+$.ajaxSetup({
+  cache: false
+});
+
 require('messages');
 require('utils/base64');
 require('utils/data_table');

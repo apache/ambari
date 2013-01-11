@@ -48,8 +48,8 @@ App.WizardStep10Controller = Em.Controller.extend({
       hostObj = hostObj.concat(_hosts.hosts);
     }, this);
     slaveHosts = hostObj.mapProperty('hostName').uniq();
-    var registeredHosts = masterHosts.concat(slaveHosts).uniq();
-    var registerHostsStatement = registeredHosts.length + ' hosts registered to the cluster.';
+    var registeredHosts = App.Host.find().mapProperty('hostName').concat(masterHosts.concat(slaveHosts)).uniq();
+    var registerHostsStatement = 'The cluster consists of ' + registeredHosts.length + ' hosts';
     var registerHostsObj = Ember.Object.create({
       id: 1,
       color: 'text-info',
@@ -71,7 +71,7 @@ App.WizardStep10Controller = Em.Controller.extend({
     var succeededHosts = hostsInfo.filterProperty('status', 'success');
     var warnedHosts = hostsInfo.filterProperty('status', 'warning').concat(hostsInfo.filterProperty('status', 'failed'));
     if (succeededHosts.length) {
-      var successStatement = succeededHosts.length + ' ' + ((succeededHosts.length > 1) ? 'hosts' : 'host') + ' installed and started services successfully.';
+      var successStatement = 'Installed and started services successfully on ' + succeededHosts.length + ' new ' + ((succeededHosts.length > 1) ? 'hosts' : 'host');
       this.get('clusterInfo').findProperty('id', 1).get('status').pushObject(Ember.Object.create({
         id: 1,
         color: 'text-success',

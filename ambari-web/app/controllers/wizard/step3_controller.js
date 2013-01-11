@@ -27,10 +27,19 @@ App.WizardStep3Controller = Em.Controller.extend({
   registrationTimeoutSecs: 120,
   stopBootstrap: false,
   isSubmitDisabled: true,
+
   categoryObject: Em.Object.extend({
     hostsCount: function () {
       var category = this;
-      var hosts = this.get('controller.hosts').filterProperty('bootStatus', category.get('hostsBootStatus'));
+      var hosts = this.get('controller.hosts').filter(function(_host) {
+        if (_host.get('bootStatus') == category.get('hostsBootStatus')) {
+          return true;
+        } else if (_host.get('bootStatus') == 'DONE' && category.get('hostsBootStatus') == 'REGISTERING') {
+          return true;
+        } else {
+          return false;
+        }
+      }, this);
       return hosts.get('length');
     }.property('controller.hosts.@each.bootStatus'), // 'hosts.@each.bootStatus'
     label: function () {
@@ -42,6 +51,7 @@ App.WizardStep3Controller = Em.Controller.extend({
       return item.get(field) == value;
     });
   },
+
   categories: function () {
     var self = this;
     self.categoryObject.reopen({
@@ -68,7 +78,9 @@ App.WizardStep3Controller = Em.Controller.extend({
 
     return categories;
   }.property(),
+
   category: false,
+
   allChecked: false,
 
   onAllChecked: function () {
@@ -266,7 +278,6 @@ App.WizardStep3Controller = Em.Controller.extend({
       type: 'GET',
       url: url,
       timeout: App.timeout,
-      cache: false,
       success: function (data) {
         if (data.hostsStatus !== null) {
           // in case of bootstrapping just one host, the server returns an object rather than an array, so
@@ -356,7 +367,7 @@ App.WizardStep3Controller = Em.Controller.extend({
               _host.set('bootStatus', 'REGISTERING');
               _host.set('bootLog', (_host.get('bootLog') != null ? _host.get('bootLog') : '') + '\nRegistering with the server...');
               // update registration timestamp so that the timeout is computed from the last host that finished bootstrapping
-              self.get('registrationStartedAt', new Date().getTime());
+              self.set('registrationStartedAt', new Date().getTime());
               stopPolling = false;
               break;
             case 'REGISTERING':
@@ -381,7 +392,8 @@ App.WizardStep3Controller = Em.Controller.extend({
 
         if (stopPolling) {
           self.getHostInfo();
-        } else if (new Date().getTime() - self.get('registrationStartedAt') < self.get('registrationTimeoutSecs') * 1000) {
+        } else if (hosts.someProperty('bootStatus', 'RUNNING') || new Date().getTime() - self.get('registrationStartedAt') < self.get('registrationTimeoutSecs') * 1000) {
+          // we want to keep polling for registration status if any of the hosts are still bootstrapping (so we check for RUNNING).
           window.setTimeout(function () {
             self.isHostsRegistered();
           }, 3000);
