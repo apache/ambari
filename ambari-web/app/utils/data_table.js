@@ -220,7 +220,8 @@ jQuery.extend($.fn.dataTableExt.afnFiltering.push(
         match = false;
         rowValue = (jQuery(rowValue).text()) ? jQuery(rowValue).text() : rowValue;
         for (var i = 0; i < options.length; i++) {
-          if (rowValue.indexOf(options[i]) !== -1) match = true;
+          var str = new RegExp('(\\W|^)' + options[i] + '(\\W|$)');
+          if (rowValue.search(str) !== -1) match = true;
         }
       }
 

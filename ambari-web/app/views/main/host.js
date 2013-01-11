@@ -46,6 +46,7 @@ App.MainHostView = Em.View.extend({
       "bSortCellsTop": true,
       "iDisplayLength": 10,
       "aLengthMenu": [[10, 25, 50, 100, -1], [10, 25, 50, 100, "All"]],
+      "oSearch": {"bSmart":false},
       "aoColumns":[
         { "bSortable": false },
         { "sType":"html" },
