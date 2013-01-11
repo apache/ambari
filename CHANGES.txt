@@ -458,6 +458,10 @@ AMBARI-666 branch (unreleased changes)
 
   IMPROVEMENTS
 
+  AMBARI-1106. User-specified custom configs (such as hdfs-site.xml overrides)
+  should be persisted to maintain what the user specified.
+  (Jaimin Jetly via yusaku)
+
   AMBARI-1103. Need to be able to reliably recover from the case when the browser
   is closed during deploy (Step 8 post submission, Step 9) of the wizard.
   (Arun Kandregula via yusaku)

@@ -328,7 +328,7 @@ module.exports = [
     "name": "javax.jdo.option.ConnectionURL",
     "templateName": ["hive_mysql_host", "hive_database_name"],
     "foreignKey": null,
-    "value": "<templateName[0]>\/<templateName[1]>",
+    "value": "jdbc:mysql://<templateName[0]>\/<templateName[1]>?createDatabaseIfNotExist=true",
     "filename": "hive-site.xml"
   },
   {
@@ -343,6 +343,13 @@ module.exports = [
     "templateName": ["hive_metastore_user_passwd"],
     "foreignKey": null,
     "value": "<templateName[0]>",
+    "filename": "hive-site.xml"
+  },
+  {
+    "name": "hive.metastore.uris",
+    "templateName": ["hivemetastore_host"],
+    "foreignKey": null,
+    "value": "thrift://<templateName[0]>:9083",
     "filename": "hive-site.xml"
   },
   {
@@ -761,5 +768,12 @@ module.exports = [
     "foreignKey": null,
     "value": "<templateName[0]>",
     "filename": "webhcat-site.xml"
+  },
+  {
+    "name": "hbase.zookeeper.quorum",
+    "templateName": ["zookeeperserver_hosts"],
+    "foreignKey": null,
+    "value": "<templateName[0]>",
+    "filename": "hbase-site.xml"
   }
 ];
