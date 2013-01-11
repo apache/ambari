@@ -76,6 +76,7 @@ App.MainServiceItemController = Em.Controller.extend({
       primary: 'Yes',
       secondary: 'No',
       onPrimary: function () {
+        self.get('content.components').setEach('workStatus', App.Component.Status.starting);
         self.sendCommandToServer('/services/' + self.get('content.serviceName').toUpperCase(), "PUT", {
           ServiceInfo: {
             state: 'STARTED'
@@ -131,6 +132,7 @@ App.MainServiceItemController = Em.Controller.extend({
       primary: 'Yes',
       secondary: 'No',
       onPrimary: function() {
+        self.get('content.components').setEach('workStatus', App.Component.Status.stopping);
         self.sendCommandToServer('/services/' + self.get('content.serviceName').toUpperCase(), "PUT",{
           ServiceInfo:{
             state: 'INSTALLED'

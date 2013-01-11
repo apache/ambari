@@ -39,11 +39,11 @@ App.InstallerController = App.WizardController.extend({
   }),
 
   getCluster: function(){
-    return jQuery.extend(this.get('clusterStatusTemplate'), {});
+    return jQuery.extend({}, this.get('clusterStatusTemplate'));
   },
 
   getInstallOptions: function(){
-    return jQuery.extend(this.get('installOptionsTemplate'), {});
+    return jQuery.extend({}, this.get('installOptionsTemplate'));
   },
 
   getHosts: function(){

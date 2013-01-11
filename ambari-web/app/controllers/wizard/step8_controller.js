@@ -226,7 +226,7 @@ App.WizardStep8Controller = Em.Controller.extend({
           var key = _keyValue.match(/(.+)=/);
           var value = _keyValue.match(/=(.*)/);
           if (key) {
-            this.setSiteProperty(key[1], value[1], _site.filename);
+            this.setSiteProperty(key[1], value[1], _site.name + '.xml');
           }
 
         }, this);

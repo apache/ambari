@@ -718,6 +718,7 @@ module.exports = [
     "value": "rs\/_HOST@<templateName[0]>",
     "filename": "hbase-site.xml"
   },
+  /*
   {
     "name": "hbase.coprocessor.region.classes",
     "templateName": ["preloaded_regioncoprocessor_classes"],
@@ -725,6 +726,7 @@ module.exports = [
     "value": "<templateName[0]>",
     "filename": "hbase-site.xml"
   },
+  */
   {
     "name": "dfs.support.append",
     "templateName": ["hdfs_support_append"],

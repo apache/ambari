@@ -207,7 +207,7 @@ App.WizardController = Em.Controller.extend({
    * Remove all data for installOptions step
    */
   clearInstallOptions: function () {
-    var installOptions = jQuery.extend(this.get('installOptionsTemplate'), {});
+    var installOptions = jQuery.extend({}, this.get('installOptionsTemplate'));
     this.set('content.installOptions', installOptions);
     this.save('installOptions');
     this.set('content.hosts', []);

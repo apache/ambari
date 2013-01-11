@@ -24,7 +24,6 @@ module.exports = Em.Route.extend({
 
     Ember.run.next(function () {
       var addHostController = router.get('addHostController');
-      App.db.setStep2WizardFirstRun(true);
       App.router.get('updateController').set('isWorking', false);
       App.ModalPopup.show({
         classNames: ['full-width-modal'],

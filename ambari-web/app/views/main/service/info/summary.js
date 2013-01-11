@@ -307,7 +307,8 @@ App.MainServiceInfoSummaryView = Em.View.extend({
       }
     }
     return graphs;
-  }.property('service'),
+    //we don't need to bind graphs to service property they update by themselves
+  }.property(),
 
   loadServiceSummary:function (serviceName) {
 

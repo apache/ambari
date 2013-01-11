@@ -66,23 +66,27 @@ App.WizardStep2Controller = Em.Controller.extend({
     return result;
   },
 
-  checkHosts: function() {
-    if (this.get('hostNames').trim() !== '') {
-      App.db.setStep2WizardFirstRun(false);
-    }
-  }.observes('hostNames'),
+  hostsError: null,
 
-  hostsError: function () {
-    if (App.db.getStep2WizardFirstRun()) {
-      return null;
+  checkHostError: function () {
+    if (this.get('hostNames').trim() === '') {
+      this.set('hostsError', Em.I18n.t('installer.step2.hostName.error.required'));
     }
-    if (this.get('hasSubmitted') && this.get('hostNames').trim() === '') {
-      return Em.I18n.t('installer.step2.hostName.error.required');
-    } else if (this.isAllHostNamesValid() === false) {
-      return Em.I18n.t('installer.step2.hostName.error.invalid');
+    else {
+      if (this.isAllHostNamesValid() === false) {
+        this.set('hostsError', Em.I18n.t('installer.step2.hostName.error.invalid'));
+      }
+      else {
+        this.set('hostsError', null);
+      }
     }
-    return null;
-  }.property('hostNames', 'hasSubmitted'),
+  },
+
+  checkHostAfterSubmitHandler: function() {
+    if (this.get('hasSubmitted')) {
+      this.checkHostError();
+    }
+  }.observes('hasSubmitted', 'hostNames'),
 
   sshKeyError: function () {
     if (this.get('hasSubmitted') && this.get('manualInstall') === false && this.get('sshKey').trim() === '') {
@@ -128,7 +132,13 @@ App.WizardStep2Controller = Em.Controller.extend({
     if (this.get('isSubmitDisabled')) {
       return false;
     }
+
     this.set('hasSubmitted', true);
+
+    this.checkHostError();
+    if (this.get('hostsError')) {
+      return false;
+    }
 
     this.updateHostNameArr();
 
@@ -139,7 +149,6 @@ App.WizardStep2Controller = Em.Controller.extend({
     }
 
     this.proceedNext();
-
   },
 
   patternExpression: function(){
@@ -226,7 +235,7 @@ App.WizardStep2Controller = Em.Controller.extend({
   },
 
   isSubmitDisabled: function () {
-    return (this.get('hostsError') || this.get('sshKeyError') || (this.get('hostNames').trim() === '' && App.db.getStep2WizardFirstRun()));
+    return (this.get('hostsError') || this.get('sshKeyError'));
   }.property('hostsError', 'sshKeyError'),
 
   saveHosts: function(){

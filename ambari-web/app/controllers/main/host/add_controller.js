@@ -55,12 +55,10 @@ App.AddHostController = App.WizardController.extend({
   }),
 
   getCluster: function(){
-    return jQuery.extend(this.get('clusterStatusTemplate'), {
-      name: App.router.getClusterName()
-    });
+    return jQuery.extend({}, this.get('clusterStatusTemplate'), {name: App.router.getClusterName()});
   },
   getInstallOptions: function(){
-    return jQuery.extend(this.get('installOptionsTemplate'), {});
+    return jQuery.extend({}, this.get('installOptionsTemplate'));
   },
 
   getHosts: function(){

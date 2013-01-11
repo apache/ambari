@@ -55,9 +55,7 @@ App.AddServiceController = App.WizardController.extend({
   }),
 
   getCluster: function(){
-    return jQuery.extend(this.get('clusterStatusTemplate'), {
-      name: App.router.getClusterName()
-    });
+    return jQuery.extend({}, this.get('clusterStatusTemplate'), {name: App.router.getClusterName()});
   },
 
   /**

@@ -371,7 +371,7 @@ module.exports =
     },
     {
       "id": "puppet var",
-      "name": "regionserver_memstore_upperlimitt",
+      "name": "regionserver_memstore_upperlimit",
       "displayName": "regionserver_memstore_upperlimit",
       "description": "",
       "defaultValue": "0.4",

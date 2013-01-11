@@ -53,7 +53,6 @@ module.exports = {
    */
   isHostname: function(value) {
     var regex = /^(([a-zA-Z]|[a-zA-Z][a-zA-Z0-9\-]*[a-zA-Z0-9])\.)*([A-Za-z]|[A-Za-z][A-Za-z0-9\-]*[A-Za-z0-9])$/;
-    console.warn("HOSTNAME:", value, "   VALUE:" ,regex.test(value));
     return regex.test(value);
   },
 
