@@ -469,6 +469,8 @@ AMBARI-666 branch (unreleased changes)
 
   IMPROVEMENTS
 
+  AMBARI-1156. Dashboard > HDFS pie chart should hover with details. (yusaku)
+
   AMBARI-1154. The check boxes to check/uncheck one of the members in a multi
   artifact graphs is not very readable. It should be more apparent on which
   one the user clicked on. (yusaku)

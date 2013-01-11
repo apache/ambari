@@ -141,7 +141,9 @@
     </table>
   </div>
 <div class="dashboard-mini-chart span2">
-  {{view view.Chart serviceBinding="view.service"}}
+  <div {{bindAttr title="view.capacity"}}>
+    {{view view.Chart serviceBinding="view.service"}}
+  </div>
   <div class="chartLabel">{{t dashboard.services.hdfs.chart.label}}</div>
   {{#if view.service.quickLinks.length}}
     {{#view App.QuickViewLinks contentBinding="view.service"}}
