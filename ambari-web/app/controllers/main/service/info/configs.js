@@ -21,6 +21,7 @@ require('controllers/wizard/slave_component_groups_controller');
 
 App.MainServiceInfoConfigsController = Em.Controller.extend({
   name: 'mainServiceInfoConfigsController',
+  dataIsLoaded: false,
   stepConfigs: [], //contains all field properties that are viewed in this service
   selectedService: null,
   serviceConfigTags: null,
@@ -40,6 +41,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
   slaveComponentGroups: null,
 
   clearStep: function () {
+    this.set('dataIsLoaded', false);
     this.get('stepConfigs').clear();
     this.get('globalConfigs').clear();
     this.get('uiConfigs').clear();
@@ -189,6 +191,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
         serviceConfig.configs = self.get('globalConfigs').concat(serviceConfigs);
 
         self.renderServiceConfigs(serviceConfig);
+        self.set('dataIsLoaded', true);
       },
 
       error: function (request, ajaxOptions, error) {
@@ -900,8 +903,10 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
 
     //zooKeeperserver_host
     var zooKeperHost = this.get('serviceConfigs').findProperty('serviceName', 'ZOOKEEPER').configs.findProperty('name', 'zookeeperserver_hosts');
-    zooKeperHost.defaultValue = App.Service.find('ZOOKEEPER').get('hostComponents').findProperty('componentName', 'ZOOKEEPER_SERVER').get('host.hostName');
-    globalConfigs.push(zooKeperHost);
+    if (serviceName === 'ZOOKEEPER' || serviceName === 'HBASE' || serviceName === 'WEBHCAT') {
+      zooKeperHost.defaultValue = App.Service.find('ZOOKEEPER').get('hostComponents').filterProperty('componentName', 'ZOOKEEPER_SERVER').mapProperty('host.hostName');
+      globalConfigs.push(zooKeperHost);
+    }
 
     switch (serviceName) {
       case 'HDFS':

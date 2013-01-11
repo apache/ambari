@@ -158,7 +158,7 @@ App.MainServiceInfoSummaryView = Em.View.extend({
   clientObj: function() {
     var service = this.get('controller.content');
     if (service.get("id") == "OOZIE" || service.get("id") == "ZOOKEEPER") {
-      var clients = service.get('components').filterProperty('isClient');
+      var clients = service.get('components').filterProperty('isMaster', false);
       if (clients.length > 0) {
         return clients[0];
       }

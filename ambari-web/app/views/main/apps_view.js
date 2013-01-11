@@ -467,6 +467,7 @@ App.MainAppsView = Em.View.extend({
       this.get(viewName).get('clearFilter')(this.get(viewName));
     }
   },
+
   /**
    * apply each filter to dataTable
    *
@@ -532,10 +533,14 @@ App.MainAppsView = Em.View.extend({
     },
 
     /**
-     * Custom filter for RunDate
+     * Custom filter view for RunDate
      */
-    customFilter: function(){
+    customFilter: function() {
       var rundateSelect = this;
+
+      /**
+       * Show popup with custom filters
+       */
       App.ModalPopup.show({
         lowerBound: null,
         upperBound: null,
@@ -544,6 +549,9 @@ App.MainAppsView = Em.View.extend({
         bodyClass: Ember.View.extend({
           templateName: require('templates/main/apps/custom_rundate_popup'),
 
+          /**
+           * Lower bound view for date-time range on custom filter popup.
+           */
           lowerBoundView: Ember.TextField.extend({
             elementId: 'lowerBound',
             classNames: 'lowerBound',
@@ -576,6 +584,9 @@ App.MainAppsView = Em.View.extend({
             }
           }),
 
+          /**
+           * Upper bound view for date-time range on custom filter popup.
+           */
           upperBoundView: Ember.TextField.extend({
             elementId: 'upperBound',
             classNames: 'upperBound',
@@ -608,6 +619,9 @@ App.MainAppsView = Em.View.extend({
             }
           }),
 
+          /**
+           * Equal view for custom filter popup.
+           */
           equalView: Ember.TextField.extend({
             attributeBindings:['readonly'],
             readonly: true,
@@ -625,11 +639,20 @@ App.MainAppsView = Em.View.extend({
             }
           })
         }),
+
+        /**
+         * apply each filter to dataTable
+         * @param lowerBound date-time
+         * @param upperBound date-time
+         * @param equal date-time
+         */
         applyFilter:function(lowerBound, upperBound, equal) {
           if (arguments.length == 1) {
+            //do if filtered by equal value
             equal = new Date(arguments[0]).getTime();
             jQuery('#custom_rundate_filter').val(equal);
           } else if (arguments.length == 2) {
+            //do if filtered by date-time range
             lowerBound = new Date(arguments[0]).getTime();
             upperBound = new Date(arguments[1]).getTime();
             var range = [lowerBound, upperBound];

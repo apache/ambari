@@ -17,6 +17,7 @@
 }}
 
 <div id="serviceConfig">
+  {{#if dataIsLoaded}}
     <div class="accordion">
       {{#each category in selectedService.configCategories}}
           <div class="accordion-group {{unbound category.name}}">
@@ -58,4 +59,7 @@
         <a class="btn btn-primary" {{bindAttr disabled="isSubmitDisabled"}}
           {{action restartServicePopup target="controller"}}>Save and apply changes</a>
     </p>
+  {{else}}
+    <div class="spinner"></div>
+  {{/if}}
 </div>

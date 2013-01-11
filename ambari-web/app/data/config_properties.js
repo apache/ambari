@@ -2181,7 +2181,7 @@ module.exports =
       "value": "",
       "defaultValue": "",
       "description": "The host that has been assigned to run ZooKeeper Server",
-      "displayType": "masterHosts",
+      "displayType": "slaveHosts",
       "isVisible": true,
       "isRequired": false,
       "serviceName": "ZOOKEEPER",
