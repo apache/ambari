@@ -287,6 +287,25 @@ App.WizardStep3Controller = Em.Controller.extend({
           }
           console.log("TRACE: In success function for the GET bootstrap call");
           var keepPolling = self.parseHostInfo(data.hostsStatus);
+
+          // Single host : if the only hostname is invalid (data.status == 'ERROR')
+          // Multiple hosts : if one or more hostnames are invalid
+          // following check will mark the bootStatus as 'FAILED' for the invalid hostname
+          if (data.status == 'ERROR' || data.hostsStatus.length != self.get('bootHosts').length) {
+
+            var hosts = self.get('bootHosts');
+
+            for (var i = 0; i < hosts.length; i++) {
+
+              var isValidHost = data.hostsStatus.someProperty('hostName', hosts[i].get('name'));
+
+              if (!isValidHost) {
+                hosts[i].set('bootStatus', 'FAILED');
+                hosts[i].set('bootLog', 'Registration with the server failed.');
+              }
+            }
+          }
+
           if (data.hostsStatus.someProperty('status', 'DONE') || data.hostsStatus.someProperty('status', 'FAILED')) {
             // kicking off registration polls after at least one host has succeeded
             self.startRegistration();

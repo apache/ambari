@@ -675,6 +675,9 @@ AMBARI-666 branch (unreleased changes)
 
   BUG FIXES
 
+  AMBARI-1153. Host jams in status 'Preparing' if host name is wrong.
+  (Arun Kandregula via yusaku)
+
   AMBARI-1132. Stopping service doesn't cause blinking status until refresh.
   (Srimanth Gunturi via yusaku)
 
