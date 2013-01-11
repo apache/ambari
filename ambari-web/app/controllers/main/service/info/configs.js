@@ -645,9 +645,11 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
               globValue = temp;
             }
             if (name === "templeton.zookeeper.hosts") {
+              var temp = [];
               globValue.forEach(function (_host, index) {
-                globValue[index] = globValue[index] + ':' + zooKeeperPort;
+                temp.push(globValue[index] + ':' + zooKeeperPort);
               }, this);
+              globValue = temp;
             }
             value = value.replace(_express, globValue.toString());
           } else {

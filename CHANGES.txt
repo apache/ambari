@@ -690,6 +690,9 @@ AMBARI-666 branch (unreleased changes)
 
   BUG FIXES
 
+  AMBARI-1144. Cannot save changes to ZooKeeper configuration.
+  (Arun Kandregula via yusaku)
+
   AMBARI-1155. Change "Save and apply changes" button on configs section to
   "Save". (yusaku)
 
