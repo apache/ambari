@@ -674,6 +674,9 @@ AMBARI-666 branch (unreleased changes)
   OPTIMIZATIONS
 
   BUG FIXES
+  
+  AMBARI-1120. Key spikes in HDFS IO missing from IO summary graphs.
+  (Srimanth Gunturi via yusaku)
 
   AMBARI-1119. Service Summary pages no longer show service-specific info.
   (Srimanth Gunturi via yusaku)

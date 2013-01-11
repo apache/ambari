@@ -421,8 +421,8 @@ App.ChartLinearTimeView = Ember.View.extend({
           var thisElement = this.get('element');
           if (thisElement!=null) {
             var calculatedWidth = $(thisElement).width();
-            if (calculatedWidth > 10) {
-              width = calculatedWidth;
+            if (calculatedWidth > 32) {
+              width = calculatedWidth-32;
             }
           }
         }

@@ -501,6 +501,7 @@ module.exports =
       "serviceName": "HDFS",
       "category": "Advanced"
     },
+    /*
     {
       "id": "puppet var",
       "name": "dfs_support_append",
@@ -512,6 +513,7 @@ module.exports =
       "domain": "global",
       "serviceName": "HDFS"
     },
+    */
     {
       "id": "puppet var",
       "name": "dfs_webhdfs_enabled",

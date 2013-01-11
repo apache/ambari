@@ -101,6 +101,7 @@ module.exports = [
     "value": "<templateName[0]>",
     "filename": "hdfs-site.xml"
   },
+  /*
   {
     "name": "dfs.support.append",
     "templateName": ["dfs_support_append"],
@@ -108,6 +109,7 @@ module.exports = [
     "value": "<templateName[0]>",
     "filename": "hdfs-site.xml"
   },
+  */
   {
     "name": "dfs.webhdfs.enabled",
     "templateName": ["dfs_webhdfs_enabled"],
@@ -748,6 +750,7 @@ module.exports = [
     "filename": "hbase-site.xml"
   },
   */
+
   {
     "name": "dfs.support.append",
     "templateName": ["hdfs_support_append"],
@@ -755,6 +758,7 @@ module.exports = [
     "value": "<templateName[0]>",
     "filename": "hbase-site.xml"
   },
+
   {
     "name": "dfs.client.read.shortcircuit",
     "templateName": ["hdfs_enable_shortcircuit_read"],
