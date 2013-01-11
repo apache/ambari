@@ -194,7 +194,7 @@ module.exports = {
         var swatch = '<span class="detail_swatch" style="background-color: ' + series.color + '"></span>';
         return swatch + d.value.label +
           '<br>Run-time: ' + formattedY + '<br>Wait-time: ' + formattedX +
-          '<br>I/O: ' + bytesFormatter(d.value.IO) + '<br>Status: ' + d.value.status;
+          '<br>I/O: ' + bytesFormatter(d.value.io) + '<br>Status: ' + d.value.status;
       }
 
     });

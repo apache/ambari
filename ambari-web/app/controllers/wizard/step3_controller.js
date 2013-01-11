@@ -110,6 +110,7 @@ App.WizardStep3Controller = Em.Controller.extend({
     this.set('stopBootstrap', false);
     this.hosts.clear();
     this.bootHosts.clear();
+    App.db.setBootStatus(false);
     this.set('isSubmitDisabled', true);
     this.set('isRetryDisabled', true);
   },
