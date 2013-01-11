@@ -379,7 +379,15 @@ App.MainServiceInfoSummaryView = Em.View.extend({
     if (summaryTable && alertsList) {
       var rows = $(summaryTable).find('tr');
       if (rows != null && rows.length > 0) {
-        $(alertsList).attr('style', "height:" + summaryTable.clientHeight + "px;");
+        var minimumHeight = 50;
+        var calculatedHeight = summaryTable.clientHeight;
+        if (calculatedHeight < minimumHeight) {
+          $(alertsList).attr('style', "height:" + minimumHeight + "px;");
+          $(summaryTable).append('<tr><td></td></tr>');
+          $(summaryTable).attr('style', "height:" + minimumHeight + "px;");
+        } else {
+          $(alertsList).attr('style', "height:" + calculatedHeight + "px;");
+        }
       } else if (alertsList.clientHeight > 0) {
         $(summaryTable).append('<tr><td></td></tr>');
         $(summaryTable).attr('style', "height:" + alertsList.clientHeight + "px;");

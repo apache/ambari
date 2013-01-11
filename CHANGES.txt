@@ -675,6 +675,9 @@ AMBARI-666 branch (unreleased changes)
 
   BUG FIXES
 
+  AMBARI-1124. Boxes on services page need min height or something to keep
+  it from visually cutting off info. (Srimanth Gunturi via yusaku)
+
   AMBARI-1123. Ambari heatmaps and host information shows infinity for disk
   space used. (Srimanth Gunturi via yusaku)
 
