@@ -60,6 +60,7 @@ App.WizardStep1Controller = Em.Controller.extend({
   submit: function () {
     this.set('hasSubmitted', true);
     if (!this.get('invalidClusterName')) {
+      App.clusterStatus.set('clusterName', this.get('content.cluster.name'));
       this.set('content.cluster.status', 'PENDING');
       this.set('content.cluster.isCompleted', false);
       App.router.send('next');

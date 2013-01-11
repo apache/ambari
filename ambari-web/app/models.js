@@ -22,6 +22,7 @@
 require('models/form'); // should be the 1st
 require('models/authentication');
 require('models/cluster');
+require('models/cluster_states');
 require('models/hosts');
 require('models/quick_links');
 require('models/service');

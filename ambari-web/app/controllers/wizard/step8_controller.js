@@ -29,7 +29,7 @@ App.WizardStep8Controller = Em.Controller.extend({
   configMapping: require('data/config_mapping'),
   slaveComponentConfig: null,
   isSubmitDisabled: false,
-
+  hasErrorOccurred: false,
 
   selectedServices: function () {
     return this.get('content.services').filterProperty('isSelected', true).filterProperty('isInstalled', false);
@@ -60,7 +60,9 @@ App.WizardStep8Controller = Em.Controller.extend({
       //TODO: Hive host depends on the type of db selected. Change puppet variable name if postgres is not the default db
       var hiveDb = globals.findProperty('name', 'hive_database');
       if (hiveDb.value === 'New MySQL Database') {
-        globals.findProperty('name', 'hive_ambari_host').name = 'hive_mysql_host';
+        if (globals.findProperty('name', 'hive_ambari_host')) {
+          globals.findProperty('name', 'hive_ambari_host').name = 'hive_mysql_host';
+        }
         globals = globals.without(globals.findProperty('name', 'hive_existing_host'));
         globals = globals.without(globals.findProperty('name', 'hive_existing_database'));
       } else {
@@ -724,6 +726,13 @@ App.WizardStep8Controller = Em.Controller.extend({
     this.set('isSubmitDisabled', true);
 
     if (App.testMode || !this.get('content.cluster.requestId')) {
+      // For recovery : set the cluster status
+      App.clusterStatus.set('value',{
+        clusterName: this.get('clusterName'),
+        clusterState: 'CLUSTER_DEPLOY_PREP_2',
+        localdb: App.db.data
+      });
+
       this.createCluster();
       this.createSelectedServices();
       //this.setAmbariUIDb();
@@ -1369,6 +1378,21 @@ App.WizardStep8Controller = Em.Controller.extend({
 
   },
 
+  registerErrPopup: function (header, message) {
+
+    App.ModalPopup.show({
+      header: header,
+      secondary: false,
+      onPrimary: function () {
+        this.hide();
+      },
+      bodyClass: Ember.View.extend({
+        template: Ember.Handlebars.compile(['<p>{{view.message}}</p>'].join('\n')),
+        message: message
+      })
+    });
+  },
+
   /**
    * We need to do a lot of ajax calls(about 10 or more) async in special order.
    * To do this i generate array of ajax objects and then send requests step by step.
@@ -1387,7 +1411,7 @@ App.WizardStep8Controller = Em.Controller.extend({
       timeout: App.timeout,
       error: function (request, ajaxOptions, error) {
         console.log('Step8: In Error ');
-        console.log('Step8: Error message is: ' + request.responseText);
+       // console.log('Step8: Error message is: ' + request.responseText);
       },
       success: function (data) {
         var jsonData = jQuery.parseJSON(data);
@@ -1404,20 +1428,17 @@ App.WizardStep8Controller = Em.Controller.extend({
       if (success) {
         success();
       }
-      ;
+
       self.set('ajaxBusy', false);
       self.doNextAjaxCall();
     }
 
-    params.error = function () {
-      if (error) {
-        error();
-      }
-      ;
-      self.set('ajaxBusy', false);
-      self.doNextAjaxCall();
+    params.error = function (xhr,status,error) {
+      var responseText = JSON.parse(xhr.responseText);
+        self.registerErrPopup("Error", responseText.message);
+        self.set('isSubmitDisabled',true);
+        self.set('hasErrorOccurred',true);
     }
-
     this.get('ajaxQueue').pushObject(params);
   }
 

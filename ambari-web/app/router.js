@@ -247,9 +247,8 @@ App.Router = Em.Router.extend({
     if (App.alwaysGoToInstaller) {
       return 'installer';
     }
-    var clusterController = App.router.get('clusterController');
-    clusterController.loadClusterName(false);
-    if (clusterController.get('clusterName')) {
+    var clusterStatusOnServer = App.clusterStatus.get('value');
+    if (clusterStatusOnServer && clusterStatusOnServer.clusterState === 'CLUSTER_STARTED_5') {
       return 'main.index';
     } else {
       return 'installer';

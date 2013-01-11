@@ -27,8 +27,13 @@ App.WizardStep8View = Em.View.extend({
     var controller = this.get('controller');
     controller.loadStep();
   },
+  spinner : null,
 
   showLoadingIndicator: function(){
+    if(this.get('controller.hasErrorOccurred')){
+      $('.spinner').hide();
+      return;
+    }
     if(!this.get('controller.isSubmitDisabled')){
       return;
     }
@@ -51,7 +56,7 @@ App.WizardStep8View = Em.View.extend({
       left: 'auto' // Left position relative to parent in px
     };
     var target = $('#spinner')[0];
-    var spinner = new Spinner(opts).spin(target);
+    this.set('spinner', new Spinner(opts).spin(target));
 
     /*var el = $('#spinner').children('b');
     el.css('display', 'inline-block');
@@ -68,5 +73,5 @@ App.WizardStep8View = Em.View.extend({
       el.css('-moz-transform', 'rotate(' + deg + 'deg)');
       el.css('-webkit-transform', 'rotate(' + deg + 'deg)');
     }, 80);*/
-  }.observes('controller.isSubmitDisabled')
+  }.observes('controller.isSubmitDisabled','controller.hasErrorOccurred')
 });

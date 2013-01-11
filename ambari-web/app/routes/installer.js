@@ -35,6 +35,23 @@ module.exports = Em.Route.extend({
         console.log('current step=' + router.get('installerController.currentStep'));
         Ember.run.next(function () {
           var installerController = router.get('installerController');
+
+            var currentClusterStatus = App.clusterStatus.get('value');
+
+            if (currentClusterStatus) {
+              switch (currentClusterStatus.clusterState) {
+                case 'CLUSTER_DEPLOY_PREP_2' :
+                  installerController.setCurrentStep('8');
+                  App.db.data = currentClusterStatus.localdb;
+                  break;
+                case 'CLUSTER_INSTALLING_3' :
+                  installerController.setCurrentStep('9');
+                  App.db.data = currentClusterStatus.localdb;
+                  break;
+                default:
+                  break;
+              }
+            }
           router.transitionTo('step' + installerController.get('currentStep'));
         });
       } else {
@@ -250,6 +267,14 @@ module.exports = Em.Route.extend({
       // invoke API call to install selected services
       installerController.installServices();
       installerController.setInfoForStep9();
+      // For recovery : set the cluster status
+      App.clusterStatus.set('value', {
+        clusterName: this.get('clusterName'),
+        clusterState: 'CLUSTER_INSTALLING_3',
+        localdb: App.db.data
+      });
+
+
       router.transitionTo('step9');
     }
   }),
