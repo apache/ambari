@@ -75,7 +75,7 @@ App.WizardStep7Controller = Em.Controller.extend({
     this.clearStep();
     var serviceConfigs = this.get('serviceConfigs');
     var advancedConfig = this.get('content.advancedServiceConfig') || [];
-    this.loadAdvancedConfig(serviceConfigs,advancedConfig);
+    this.loadAdvancedConfig(serviceConfigs, advancedConfig);
     this.loadCustomConfig();
     this.renderServiceConfigs(serviceConfigs);
     var storedServices = this.get('content.serviceConfigProperties');
@@ -101,10 +101,10 @@ App.WizardStep7Controller = Em.Controller.extend({
   },
 
   /*
-  Loads the advanced configs fetched from the server metadata libarary
+   Loads the advanced configs fetched from the server metadata libarary
    */
 
-  loadAdvancedConfig: function (serviceConfigs,advancedConfig) {
+  loadAdvancedConfig: function (serviceConfigs, advancedConfig) {
     advancedConfig.forEach(function (_config) {
       if (_config) {
         var service = serviceConfigs.findProperty('serviceName', _config.serviceName);
@@ -117,13 +117,13 @@ App.WizardStep7Controller = Em.Controller.extend({
             _config.defaultValue = _config.value;
             // make all advanced configs optional and populated by default
             /*
-            if (/\${.*}/.test(_config.value) || (service.serviceName !== 'OOZIE' && service.serviceName !== 'HBASE')) {
-              _config.isRequired = false;
-              _config.value = '';
-            } else if (/^\s+$/.test(_config.value)) {
-              _config.isRequired = false;
-            }
-            */
+             if (/\${.*}/.test(_config.value) || (service.serviceName !== 'OOZIE' && service.serviceName !== 'HBASE')) {
+             _config.isRequired = false;
+             _config.value = '';
+             } else if (/^\s+$/.test(_config.value)) {
+             _config.isRequired = false;
+             }
+             */
             _config.isRequired = false;
             _config.isVisible = true;
             _config.displayType = 'advanced';
@@ -172,7 +172,7 @@ App.WizardStep7Controller = Em.Controller.extend({
 
         console.log('pushing ' + serviceConfig.serviceName, serviceConfig);
 
-        if(this.get('selectedServiceNames').contains(serviceConfig.serviceName) || serviceConfig.serviceName === 'MISC') {
+        if (this.get('selectedServiceNames').contains(serviceConfig.serviceName) || serviceConfig.serviceName === 'MISC') {
           serviceConfig.showConfig = true;
         }
 
@@ -216,10 +216,147 @@ App.WizardStep7Controller = Em.Controller.extend({
     }, this);
   },
 
+  validateCustomConfig: function () {
+    var flag = true;
+    var serviceProperties = [];
+    this.get('stepConfigs').forEach(function (_serviceContent) {
+      var configProperties = _serviceContent.get('configs');
+      if (configProperties.someProperty('id', 'conf-site')) {
+        var serviceProperty = {};
+        serviceProperty.serviceName = _serviceContent.get("serviceName");
+        serviceProperty.siteProperties = [];
+        var customSite = configProperties.findProperty('id', 'conf-site');
+        var keyValue = customSite.value.split(/\n+/);
+        if (keyValue) {
+          keyValue.forEach(function (_keyValue) {
+            console.log("The value of the keyValue is: " + _keyValue.trim());
+            _keyValue = _keyValue.trim();
+            var key = _keyValue.match(/(.+)=/);
+            var value = _keyValue.match(/=(.*)/);
+            if (key) {
+              // Check that entered config is allowed to reconfigure
+              if (configProperties.someProperty('name', key[1]) || this.get('configMapping').someProperty('name', key[1])) {
+                var property = {
+                  siteProperty: key[1],
+                  displayNames: [],
+                  displayMsg: null
+                };
+                if (this.get('configMapping').someProperty('name', key[1])) {
+                  this.setPropertyDisplayNames(property.displayNames, this.get('configMapping').findProperty('name', key[1]).templateName, configProperties);
+                }
+                property.displayMsg = this.setDisplayMessage(property.siteProperty, property.displayNames);
+                serviceProperty.siteProperties.push(property);
+                flag = false;
+              }
+            }
+          }, this);
+        }
+        serviceProperties.push(serviceProperty);
+      }
+    }, this);
+    var result = {
+      flag: flag,
+      value: serviceProperties
+    };
+    return result;
+  },
+
+  /**
+   * @param: An array of display names
+   */
+  setDisplayMessage: function (siteProperty, displayNames) {
+    var displayMsg = null;
+    if (displayNames && displayNames.length) {
+      if (displayNames.length === 1) {
+        displayMsg = siteProperty + ' as ' + displayNames[0];
+      } else {
+        var name = null;
+        displayNames.forEach(function (_name, index) {
+          if (index === 0) {
+            name = _name;
+          } else if (index === displayNames.length - 1) {
+            name = name + ' and ' + _name;
+          } else {
+            name = name + ', ' + _name;
+          }
+        }, this);
+        displayMsg = siteProperty + ' as ' + name;
+      }
+    } else {
+      displayMsg = siteProperty;
+    }
+    return displayMsg;
+  },
+
+  /**
+   * Set display names of the property tfrom he puppet/global names
+   * @param: displayNames: a field to be set with displayNames
+   * @param names: array of property puppet/global names
+   * @param configProperties: array of config properties of the respective service to the name param
+   */
+  setPropertyDisplayNames: function (displayNames, names, configProperties) {
+    names.forEach(function (_name, index) {
+      if (configProperties.someProperty('name', _name)) {
+        displayNames.push(configProperties.findProperty('name', _name).displayName);
+      }
+    }, this);
+  },
+
+  /**
+   * Display Error Message with service name, its custom configuration name and displaynames on the page
+   * @param: customConfig: array with custom configuration, serviceName and displayNames relative to custom configuration
+   */
+  showCustomConfigErrMsg: function (customConfig) {
+
+    App.ModalPopup.show({
+      header: 'Custom configuration error: ',
+      primary: 'OK',
+      secondary: null,
+      onPrimary: function () {
+        this.hide();
+      },
+      bodyClass: Ember.View.extend({
+        message: 'Error in custom configuration. Some properties entered in the box are already exposed on this page',
+        siteProperties: customConfig,
+        getDisplayMessage: function () {
+
+        }.property('customConfig.@each.siteProperties.@each.siteProperty'),
+        customConfig: customConfig,
+        template: Ember.Handlebars.compile([
+          '<h5>{{view.message}}</h5>',
+          '<br/>',
+          '<div class="pre-scrollable" style="max-height: 250px;">',
+          '<ul>',
+          '{{#each val in view.customConfig}}',
+          '{{#if val.siteProperties}}',
+          '<li>',
+          '{{val.serviceName}}',
+          '<ul>',
+          '{{#each item in  val.siteProperties}}',
+          '<li>',
+          '{{item.displayMsg}}',
+          '</li>',
+          '{{/each}}',
+          '</ul>',
+          '</li>',
+          '{{/if}}',
+          '{{/each}}',
+          '</ul>',
+          '</div>'
+        ].join('\n'))
+      })
+    });
+  },
 
   submit: function () {
     if (!this.get('isSubmitDisabled')) {
-      App.router.send('next');
+      var result = {};
+      result = this.validateCustomConfig();
+      if (result.flag === true) {
+        App.router.send('next');
+      } else {
+        this.showCustomConfigErrMsg(result.value);
+      }
     }
   }
 

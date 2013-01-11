@@ -443,7 +443,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
                   displayNames.forEach(function (_name, index) {
                     if (index === 0) {
                       name = _name;
-                    } else if (index = siteProperties.length - 1) {
+                    } else if (index === siteProperties.length - 1) {
                       name = name + ' and ' + _name;
                     } else {
                       name = name + ', ' + _name;
@@ -495,7 +495,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
     result.flag = customConfigResult.flag;
     result.value = customConfigResult.value;
     if (result.flag !== true) {
-      result.message = 'Error in custom HDFS configuration. Some properties entered in the box are already exposed on this page';
+      result.message = 'Error in custom configuration. Some properties entered in the box are already exposed on this page';
       return result;
     }
     result.flag = result.flag && this.createConfigurations();
@@ -724,9 +724,6 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
     siteObj.forEach(function (_siteObj) {
       siteProperties[_siteObj.name] = _siteObj.value;
     }, this);
-    //if (siteName === 'hdfs-site') {
-    //debugger;
-    //}
     return {"type": siteName, "tag": tagName, "properties": siteProperties};
   },
 
@@ -890,45 +887,6 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
         zooKeperHost.defaultValue = this.get('content.components').findProperty('componentName', 'HIVE_SERVER').get('host.hostName');
         globalConfigs.push(zooKeperHost);
         break;
-      /*
-       case 'namenode_host':
-       config.set('id', 'puppet var');
-       config.set('value', this.get('content.components').findProperty('componentName', 'NAMENODE').get('host.hostName'));
-       debugger;
-       break;
-       case 'snamenode_host':
-       config.set('id', 'puppet var');
-       config.set('value', this.get('content.components').findProperty('componentName', 'SECONDARY_NAMENODE').get('host.hostName'));
-       break;
-       case 'jobtracker_host':
-       config.set('id', 'puppet var');
-       config.set('value', this.get('content.components').findProperty('componentName', 'JOBTRACKER').get('host.hostName'));
-       break;
-       case 'hbasemaster_host':
-       config.set('id', 'puppet var');
-       config.set('value', this.get('content.components').findProperty('componentName', 'HBASE_MASTER').get('host.hostName'));
-       break;
-       case 'hivemetastore_host':
-       config.set('id', 'puppet var');
-       config.set('value', this.get('content.components').findProperty('componentName', 'HIVE_SERVER').get('host.hostName'));
-       break;
-       case 'hive_ambari_host':
-       config.set('id', 'puppet var');
-       config.set('value', this.get('content.components').findProperty('componentName', 'HIVE_SERVER').get('host.hostName'));
-       break;
-       case 'oozieserver_host':
-       config.set('id', 'puppet var');
-       config.set('value', this.get('content.components').findProperty('componentName', 'OOZIE_SERVER').get('host.hostName'));
-       break;
-       case 'oozie_ambari_host':
-       config.set('id', 'puppet var');
-       config.set('value', this.get('content.components').findProperty('componentName', 'OOZIE_SERVER').get('host.hostName'));
-       break;
-       case 'zookeeperserver_hosts':
-       config.set('id', 'puppet var');
-       config.set('value', this.get('content.components').findProperty('componentName', 'ZOOKEEPER_SERVER').get('host.hostName'));
-       break;
-       */
     }
   }
 
