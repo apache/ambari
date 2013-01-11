@@ -66,38 +66,4 @@ public class ResourceImplTest {
     resource.setProperty(propertyId, 65L);
     Assert.assertEquals(65L, resource.getPropertyValue(propertyId));
   }
-
-  @Test
-  public void testCopyConstructor() {
-    Resource resource = new ResourceImpl(Resource.Type.Cluster);
-
-    String p1 = PropertyHelper.getPropertyId(null, "p1");
-    String p2 = PropertyHelper.getPropertyId("c1", "p2");
-    String p3 = PropertyHelper.getPropertyId("c1/c2", "p3");
-    String p4 = PropertyHelper.getPropertyId("c1/c2/c3", "p4");
-    String p5 = PropertyHelper.getPropertyId("c1", "p5");
-
-    resource.setProperty(p1, "foo");
-    Assert.assertEquals("foo", resource.getPropertyValue(p1));
-
-    resource.setProperty(p2, 1);
-    Assert.assertEquals(1, resource.getPropertyValue(p2));
-
-    resource.setProperty(p3, (float) 1.99);
-    Assert.assertEquals((float) 1.99, resource.getPropertyValue(p3));
-
-    resource.setProperty(p4, 1.99);
-    Assert.assertEquals(1.99, resource.getPropertyValue(p4));
-
-    resource.setProperty(p5, 65L);
-    Assert.assertEquals(65L, resource.getPropertyValue(p5));
-
-    Resource copy = new ResourceImpl(resource);
-
-    Assert.assertEquals("foo", copy.getPropertyValue(p1));
-    Assert.assertEquals(1, copy.getPropertyValue(p2));
-    Assert.assertEquals((float) 1.99, copy.getPropertyValue(p3));
-    Assert.assertEquals(1.99, copy.getPropertyValue(p4));
-    Assert.assertEquals(65L, copy.getPropertyValue(p5));
-  }
 }

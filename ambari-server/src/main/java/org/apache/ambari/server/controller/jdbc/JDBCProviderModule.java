@@ -18,22 +18,32 @@
 
 package org.apache.ambari.server.controller.jdbc;
 
-import org.apache.ambari.server.controller.internal.AbstractProviderModule;
+import org.apache.ambari.server.controller.internal.DefaultProviderModule;
 import org.apache.ambari.server.controller.spi.Resource;
-import org.apache.ambari.server.controller.spi.ResourceProvider;
 import org.apache.ambari.server.controller.utilities.DBHelper;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
 
 /**
- * A provider module implementation that uses the JDBC resource provider.
+ * The default provider module implementation.
  */
-public class JDBCProviderModule extends AbstractProviderModule {
+public class JDBCProviderModule extends DefaultProviderModule {
+
+
+  // ----- Constructors ------------------------------------------------------
+
+  /**
+   * Create a default provider module.
+   */
+  public JDBCProviderModule() {
+    super();
+  }
+
   // ----- utility methods ---------------------------------------------------
 
   @Override
-  protected ResourceProvider createResourceProvider(Resource.Type type) {
-    return new JDBCResourceProvider(DBHelper.CONNECTION_FACTORY, type,
+  protected void createResourceProvider(Resource.Type type) {
+    putResourceProvider( type, new JDBCResourceProvider(DBHelper.CONNECTION_FACTORY, type,
         PropertyHelper.getPropertyIds(type),
-        PropertyHelper.getKeyPropertyIds(type));
+        PropertyHelper.getKeyPropertyIds(type)));
   }
 }

@@ -28,7 +28,7 @@
     <ul class="dropdown-menu">
       <!-- dropdown menu links -->
       {{#each option in view.maintenance}}
-      <li {{bindAttr class="controller.content.isStopDisabled:disabled"}}>
+      <li>
         <a {{action "doAction" option.action target="controller" href=true}}>{{option.label}}</a>
       </li>
       {{/each}}

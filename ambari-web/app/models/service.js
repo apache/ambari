@@ -27,6 +27,7 @@ App.Service = DS.Model.extend({
   workStatus: DS.attr('string'),
   alerts: DS.hasMany('App.Alert'),
   quickLinks: DS.hasMany('App.QuickLinks'),
+  components: DS.hasMany('App.Component'),
   hostComponents: DS.hasMany('App.HostComponent'),
   isStartDisabled: function () {
     return !(this.get('healthStatus') == 'red');
@@ -37,33 +38,33 @@ App.Service = DS.Model.extend({
   }.property('healthStatus'),
 
   healthStatus: function () {
-    var components = this.get('hostComponents').filterProperty('isMaster', true);
-    if (components.everyProperty('workStatus', App.HostComponentStatus.started)) {
+    var components = this.get('components').filterProperty('isMaster', true);
+    if (components.everyProperty('workStatus', App.Component.Status.started)) {
       return 'green';
-    } else if (components.someProperty('workStatus', App.HostComponentStatus.starting)) {
+    } else if (components.someProperty('workStatus', App.Component.Status.starting)) {
       return 'green-blinking';
-    } else if (components.someProperty('workStatus', App.HostComponentStatus.stopped)) {
+    } else if (components.someProperty('workStatus', App.Component.Status.stopped)) {
       return 'red';
     } else {
       return 'red-blinking';
     }
-  }.property('hostComponents.@each.workStatus'),
+  }.property('components.@each.workStatus'),
 
   isStopped: function () {
-    var components = this.get('hostComponents');
+    var components = this.get('components');
     var flag = true;
     components.forEach(function (_component) {
-      if (_component.get('workStatus') !== App.HostComponentStatus.stopped && _component.get('workStatus') !== App.HostComponentStatus.install_failed) {
+      if (_component.get('workStatus') !== App.Component.Status.stopped && _component.get('workStatus') !== App.Component.Status.install_failed) {
         flag = false;
       }
     }, this);
     return flag;
-  }.property('hostComponents.@each.workStatus'),
+  }.property('components.@each.workStatus'),
 
   isStarted: function () {
-    var components = this.get('hostComponents').filterProperty('isMaster', true);
-    return components.everyProperty('workStatus', App.HostComponentStatus.started);
-  }.property('hostComponents.@each.workStatus'),
+    var components = this.get('components').filterProperty('isMaster', true);
+    return components.everyProperty('workStatus', App.Component.Status.started);
+  }.property('components.@each.workStatus'),
   isMaintained: function () {
     var maintainedServices = [
       "HDFS",

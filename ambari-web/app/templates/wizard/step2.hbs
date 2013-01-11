@@ -33,6 +33,19 @@
         </a>
       </p>
 
+      {{#if view.parentView.controller.hideBackButton}}
+        {{#if view.hostsInfo.oldHostNames }}
+          <p class="alert alert-info">
+            {{t hosts.add.step2.warning}}
+            <br/>
+            {{{view.hostsInfo.oldHostNames}}}
+              {{#if view.hostsInfo.showMoreHostsText}}
+                <a href="" {{action "showMoreHosts" target="view"}}>{{view.hostsInfo.showMoreHostsText}}</a>
+              {{/if}}
+          </p>
+        {{/if}}
+      {{/if}}
+
       <div class="controls">
         {{view Ember.TextArea class="span6" valueBinding="content.installOptions.hostNames" rows="5" placeholder="host names"}}
         {{#if hostsError}}
@@ -46,37 +59,29 @@
     <div class="ambari-agents">
       <h5>{{t installer.step2.sshKey}}</h5>
 
-      <label class="radio">
-        {{view view.providingSSHKeyRadioButton}}
+      <label class="checkbox">
+        {{view Ember.Checkbox checkedBinding="content.installOptions.useSsh"}}
         {{t installer.step2.useSsh.provide}}
           <a href="javascript:void(null)"
              rel="popover"
             {{translateAttr title="installer.step2.useSsh.tooltip.title" data-content="installer.step2.useSsh.tooltip.content"}}>
-            {{t installer.step2.useSsh.tooltip.title}}</a>
-        {{t installer.step2.useSsh.provide_id_rsa}}
+              {{t installer.step2.useSsh.tooltip.title}}</a>
+          {{t installer.step2.useSsh.provide_id_rsa}}
       </label>
-      <div {{bindAttr class="sshKeyError:error :control-group :ssh-key-input"}}>
-        {{#if view.isFileApi}}
-          {{view App.SshKeyFileUploader disabledBinding="view.sshKeyState"}}
-        {{/if}}
-          <div class="controls">
-            {{view Ember.TextArea class="span6" rows="3" id="sshKey"
-            placeholder="ssh private key" disabledBinding="view.sshKeyState" valueBinding="content.installOptions.sshKey"}}
-            {{#if sshKeyError}}
-                <span class="help-inline">{{sshKeyError}}</span>
-            {{/if}}
-          </div>
-      </div>
 
-      <label class="radio">
-        {{view view.manualRegistrationRadioButton}}
-        {{t installer.step2.manualInstall.perform}}
-          <a href="javascript:void(null)"
-             rel="popover"
-            {{translateAttr title="installer.step2.manualInstall.tooltip.title" data-content="installer.step2.manualInstall.tooltip.content"}}>
-            {{t installer.step2.manualInstall.tooltip.title}}</a>
-        {{t installer.step2.manualInstall.perform_on_hosts}}
-      </label>
+      <div {{bindAttr class="sshKeyError:error :control-group"}}>
+        {{#if view.isFileApi}}
+          {{view App.SshKeyFileUploader}}
+          <pre {{bindAttr class="view.sshKeyPreviewClass"}}>{{content.installOptions.sshKey}}</pre>
+        {{/if}}
+        <div class="controls">
+          {{view Ember.TextArea class="span6" rows="4" classBinding="view.sshKeyClass"  id="sshKey"
+          placeholder="ssh private key" disabledBinding="view.sshKeyState" valueBinding="content.installOptions.sshKey"}}
+          {{#if sshKeyError}}
+          <span class="help-inline">{{sshKeyError}}</span>
+          {{/if}}
+        </div>
+      </div>
 
     </div>
   </div>
@@ -104,6 +109,7 @@
            rel="popover"
           {{translateAttr title="installer.step2.javaHome.tooltip.title" data-content="installer.step2.javaHome.tooltip.content"}}>
             {{t installer.step2.javaHome.tooltip.title}}</a>
+        {{t installer.step2.javaHome.label2}}
       </div>
       {{view App.WizardTextField valueBinding="content.installOptions.javaHome" placeholder="/usr/jdk/jdk1.6.0_31"}}
     </label>

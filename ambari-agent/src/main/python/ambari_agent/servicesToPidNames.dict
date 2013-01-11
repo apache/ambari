@@ -13,19 +13,19 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-NAMENODE=hadoop-[A-Za-z0-9_]+-namenode.pid$
-SECONDARY_NAMENODE=hadoop-[A-Za-z0-9_]+-secondarynamenode.pid$
-DATANODE=hadoop-[A-Za-z0-9_]+-datanode.pid$
-JOBTRACKER=hadoop-[A-Za-z0-9_]+-jobtracker.pid$
-TASKTRACKER=hadoop-[A-Za-z0-9_]+-tasktracker.pid$
+NAMENODE=hadoop-[a-z_]+-namenode.pid$
+SECONDARY_NAMENODE=hadoop-[a-z_]+-secondarynamenode.pid$
+DATANODE=hadoop-[a-z_]+-datanode.pid$
+JOBTRACKER=hadoop-[a-z_]+-jobtracker.pid$
+TASKTRACKER=hadoop-[a-z_]+-tasktracker.pid$
 OOZIE_SERVER=oozie.pid
 ZOOKEEPER_SERVER=zookeeper_server.pid
 TEMPLETON_SERVER=templeton.pid
 NAGIOS_SERVER=nagios.pid
 GANGLIA_SERVER=gmetad.pid
 GANGLIA_MONITOR=gmond.pid
-HBASE_MASTER=hbase-[A-Za-z0-9_]+-master.pid
-HBASE_REGIONSERVER=hbase-[A-Za-z0-9_]+-regionserver.pid
+HBASE_MASTER=hbase-[a-z_]+-master.pid
+HBASE_REGIONSERVER=hbase-[a-z_]+-regionserver.pid
 NAGIOS_SERVER=nagios.pid
 HCATALOG_SERVER=hcat.pid
 KERBEROS_SERVER=kadmind.pid

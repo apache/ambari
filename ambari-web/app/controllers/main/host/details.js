@@ -74,7 +74,7 @@ App.MainHostDetailsController = Em.Controller.extend({
     });
   },
 
-  startComponent: function (event) {
+  startComponent: function(event){
     var self = this;
     App.ModalPopup.show({
       header: Em.I18n.t('hosts.host.start.popup.header'),
@@ -96,10 +96,10 @@ App.MainHostDetailsController = Em.Controller.extend({
 
           console.log('Send request for STARTING successfully');
 
-          if (App.testMode) {
-            component.set('workStatus', App.HostComponentStatus.starting);
+          if(App.testMode){
+            component.set('workStatus', App.Component.Status.starting);
             setTimeout(function(){
-              component.set('workStatus', App.HostComponentStatus.started);
+              component.set('workStatus', App.Component.Status.started);
             },10000);
           } else {
             App.router.get('clusterController').loadUpdatedStatusDelayed(500);
@@ -126,7 +126,7 @@ App.MainHostDetailsController = Em.Controller.extend({
       }
     });
   },
-  stopComponent: function (event) {
+  stopComponent: function(event){
     var self = this;
     App.ModalPopup.show({
       header: Em.I18n.t('hosts.host.start.popup.header'),
@@ -147,12 +147,14 @@ App.MainHostDetailsController = Em.Controller.extend({
 
           console.log('Send request for STOPPING successfully');
 
-          if (App.testMode) {
-            component.set('workStatus', App.HostComponentStatus.stopping);
+
+
+          if(App.testMode){
+            component.set('workStatus', App.Component.Status.stopping);
             setTimeout(function(){
-              component.set('workStatus', App.HostComponentStatus.stopped);
+              component.set('workStatus', App.Component.Status.stopped);
             },10000);
-          } else {
+          } else{
             App.router.get('clusterController').loadUpdatedStatus();
             App.router.get('backgroundOperationsController.eventsArray').push({
               "when" : function(controller){
@@ -322,7 +324,7 @@ App.MainHostDetailsController = Em.Controller.extend({
    * var components = this.get('content.components');
    * components.forEach(function (cInstance) { var cName =
    * cInstance.get('componentName'); if (slaveComponents.contains(cName)) { if
-   * (cInstance.get('workStatus') === App.HostComponentStatus.stopped &&
+   * (cInstance.get('workStatus') === App.Component.Status.stopped &&
    * !cInstance.get('decommissioned')) { workingComponents.push(cName); } } else {
    * masterComponents.push(cName); } }); // debugger; if
    * (workingComponents.length || masterComponents.length) {

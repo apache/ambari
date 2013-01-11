@@ -23,12 +23,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Set;
-import java.util.TreeMap;
-import java.util.TreeSet;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -132,7 +127,7 @@ public class MapReduceJobHistoryUpdater implements LogStoreUpdateProvider {
     
     workflowSelectPS =
         connection.prepareStatement(
-            "SELECT workflowContext FROM " + WORKFLOW_TABLE + " where workflowId = ?"
+            "SELECT workflowId FROM " + WORKFLOW_TABLE + " where workflowId = ?"
             );
 
     workflowPS = 
@@ -159,8 +154,6 @@ public class MapReduceJobHistoryUpdater implements LogStoreUpdateProvider {
             "UPDATE " +
                 WORKFLOW_TABLE +
                 " SET " +
-                "workflowContext = ?, " +
-                "numJobsTotal = ?, " +
                 "lastUpdateTime = ?, " +
                 "duration = ? - (SELECT startTime FROM " +
                 WORKFLOW_TABLE +
@@ -604,57 +597,6 @@ public class MapReduceJobHistoryUpdater implements LogStoreUpdateProvider {
     return context;
   }
   
-  public static void mergeEntries(Map<String, Set<String>> edges, List<WorkflowDagEntry> entries) {
-    if (entries == null)
-      return;
-    for (WorkflowDagEntry entry : entries) {
-      if (!edges.containsKey(entry.getSource()))
-        edges.put(entry.getSource(), new TreeSet<String>());
-      Set<String> targets = edges.get(entry.getSource());
-      targets.addAll(entry.getTargets());
-    }
-  }
-  
-  public static WorkflowDag constructMergedDag(WorkflowContext workflowContext, WorkflowContext existingWorkflowContext) {
-    Map<String, Set<String>> edges = new TreeMap<String, Set<String>>();
-    if (existingWorkflowContext.getWorkflowDag() != null)
-      mergeEntries(edges, existingWorkflowContext.getWorkflowDag().getEntries());
-    if (workflowContext.getWorkflowDag() != null)
-      mergeEntries(edges, workflowContext.getWorkflowDag().getEntries());
-    WorkflowDag mergedDag = new WorkflowDag();
-    for (Entry<String,Set<String>> edge : edges.entrySet()) {
-      WorkflowDagEntry entry = new WorkflowDagEntry();
-      entry.setSource(edge.getKey());
-      entry.getTargets().addAll(edge.getValue());
-      mergedDag.addEntry(entry);
-    }
-    return mergedDag;
-  }
-  
-  private static WorkflowContext getSanitizedWorkflow(WorkflowContext workflowContext, WorkflowContext existingWorkflowContext) {
-    WorkflowContext sanitizedWC = new WorkflowContext();
-    if (existingWorkflowContext == null) {
-      sanitizedWC.setWorkflowDag(workflowContext.getWorkflowDag());
-      sanitizedWC.setParentWorkflowContext(workflowContext.getParentWorkflowContext());
-    } else {
-      sanitizedWC.setWorkflowDag(constructMergedDag(existingWorkflowContext, workflowContext));
-      sanitizedWC.setParentWorkflowContext(existingWorkflowContext.getParentWorkflowContext());
-    }
-    return sanitizedWC;
-  }
-  
-  private static String getWorkflowString(WorkflowContext sanitizedWC) {
-    String sanitizedWCString = null;
-    try {
-      ObjectMapper om = new ObjectMapper();
-      sanitizedWCString = om.writeValueAsString(sanitizedWC);
-    } catch (IOException e) {
-      e.printStackTrace();
-      sanitizedWCString = "";
-    }
-    return sanitizedWCString;
-  }
-  
   private void processJobSubmittedEvent(
       PreparedStatement jobPS, 
       PreparedStatement workflowSelectPS, PreparedStatement workflowPS, 
@@ -674,35 +616,35 @@ public class MapReduceJobHistoryUpdater implements LogStoreUpdateProvider {
       
       // Get workflow information
       boolean insertWorkflow = false;
-      String existingContextString = null;
       
-      ResultSet rs = null;
       try {
         workflowSelectPS.setString(1, workflowContext.getWorkflowId());
         workflowSelectPS.execute();
-        rs = workflowSelectPS.getResultSet();
-        if (rs.next()) {
-          existingContextString = rs.getString(1);
-        } else {
-          insertWorkflow = true;
-        }
+        ResultSet rs = workflowSelectPS.getResultSet();
+        insertWorkflow = !rs.next();
       } catch (SQLException sqle) {
         LOG.warn("workflow select failed with: ", sqle);
         insertWorkflow = false;
-      } finally {
-        try {
-          if (rs != null)
-            rs.close();
-        } catch (SQLException e) {
-          LOG.error("Exception while closing ResultSet", e);
-        }
       }
 
       // Insert workflow 
       if (insertWorkflow) {
+        WorkflowContext sanitizedWC = new WorkflowContext();
+        sanitizedWC.setWorkflowDag(workflowContext.getWorkflowDag());
+        sanitizedWC.setParentWorkflowContext(workflowContext.getParentWorkflowContext());
+
+        String sanitizedWCString = null;
+        try {
+          ObjectMapper om = new ObjectMapper();
+          sanitizedWCString = om.writeValueAsString(sanitizedWC);
+        } catch (IOException e) {
+          e.printStackTrace();
+          sanitizedWCString = "";
+        } 
+
         workflowPS.setString(1, workflowContext.getWorkflowId());
         workflowPS.setString(2, workflowContext.getWorkflowName());
-        workflowPS.setString(3, getWorkflowString(getSanitizedWorkflow(workflowContext, null)));
+        workflowPS.setString(3, sanitizedWCString);
         workflowPS.setString(4, historyEvent.getUserName());
         workflowPS.setLong(5, historyEvent.getSubmitTime());
         workflowPS.setLong(6, historyEvent.getSubmitTime());
@@ -711,22 +653,10 @@ public class MapReduceJobHistoryUpdater implements LogStoreUpdateProvider {
         LOG.debug("Successfully inserted workflowId = " + 
             workflowContext.getWorkflowId());
       } else {
-        ObjectMapper om = new ObjectMapper();
-        WorkflowContext existingWorkflowContext = null;
-        try {
-          if (existingContextString != null)
-            existingWorkflowContext = om.readValue(existingContextString.getBytes(), WorkflowContext.class);
-        } catch (IOException e) {
-          LOG.warn("Couldn't read existing workflow context for " + workflowContext.getWorkflowId(), e);
-        }
-        
-        WorkflowContext sanitizedWC = getSanitizedWorkflow(workflowContext, existingWorkflowContext);
-        workflowUpdateTimePS.setString(1, getWorkflowString(sanitizedWC));
-        workflowUpdateTimePS.setLong(2, sanitizedWC.getWorkflowDag().size());
-        workflowUpdateTimePS.setLong(3, historyEvent.getSubmitTime());
-        workflowUpdateTimePS.setLong(4, historyEvent.getSubmitTime());
-        workflowUpdateTimePS.setString(5, workflowContext.getWorkflowId());
-        workflowUpdateTimePS.setString(6, workflowContext.getWorkflowId());
+        workflowUpdateTimePS.setLong(1, historyEvent.getSubmitTime());
+        workflowUpdateTimePS.setLong(2, historyEvent.getSubmitTime());
+        workflowUpdateTimePS.setString(3, workflowContext.getWorkflowId());
+        workflowUpdateTimePS.setString(4, workflowContext.getWorkflowId());
         workflowUpdateTimePS.executeUpdate();
         LOG.debug("Successfully updated workflowId = " + 
             workflowContext.getWorkflowId());

@@ -430,7 +430,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
     var message;
     var value;
     var flag;
-    if ((this.get('content.serviceName') !== 'HDFS' && this.get('content.isStopped') === true) || (this.get('content.serviceName') === 'HDFS') && this.get('content.isStopped') === true && App.Service.find('MAPREDUCE').get('isStopped')) {
+    if (this.get('content.isStopped') === true) {
       var result = this.saveServiceConfigProperties();
       flag = result.flag;
       if (flag === true) {
@@ -443,13 +443,8 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
       }
 
     } else {
-      if (this.get('content.serviceName') !== 'HDFS') {
-        header = 'Stop Service';
-        message = 'Stop the service and wait till it stops completely. Thereafter you can apply configuration changes';
-      } else {
-        header = 'Stop Services';
-        message = 'Stop HDFS and MapReduce. Wait till both of them stops completely. Thereafter you can apply configuration changes';
-      }
+      header = 'Stop Service';
+      message = 'Stop the service and wait till it stops completely. Thereafter you can apply configuration changes';
     }
     App.ModalPopup.show({
       header: header,
@@ -539,11 +534,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
     */
     result.flag = result.flag && this.createConfigurations();
     if (result.flag === true) {
-      if (this.get('content.serviceName') !== 'HDFS') {
-        result.flag = this.applyCreatedConfToService(this.get('content.serviceName'));
-      } else {
-        result.flag = this.applyCreatedConfToService(this.get('content.serviceName')) && this.applyCreatedConfToService('MAPREDUCE');
-      }
+      result.flag = this.applyCreatedConfToService('new');
     } else {
       result.message = 'Faliure in applying service configuration';
     }
@@ -833,11 +824,11 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
     return {"type": siteName, "tag": tagName, "properties": siteProperties};
   },
 
-  applyCreatedConfToService: function (serviceName) {
+  applyCreatedConfToService: function (configStatus) {
     var result;
     var clusterName = App.router.getClusterName();
-    var url = App.apiPrefix + '/clusters/' + clusterName + '/services/' + serviceName;
-    var data = this.getConfigForService(serviceName);
+    var url = App.apiPrefix + '/clusters/' + clusterName + '/services/' + this.get('content.serviceName');
+    var data = this.getConfigForService(configStatus);
     var realData = data;
     $.ajax({
       type: 'PUT',
@@ -867,17 +858,22 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
     return result;
   },
 
-  getConfigForService: function (serviceName) {
+  getConfigForService: function (config) {
     var data = {config: {}};
     this.get('serviceConfigTags').forEach(function (_serviceTag) {
-      if (_serviceTag.siteName === 'core-site') {
-        if (this.get('content.serviceName') === 'HDFS') {
-          data.config[_serviceTag.siteName] = _serviceTag.newTagName;
+      if (config === 'new') {
+        if (_serviceTag.siteName === 'core-site') {
+          if (this.get('content.serviceName') === 'HDFS') {
+            data.config[_serviceTag.siteName] = _serviceTag.newTagName;
+          } else {
+            data.config[_serviceTag.siteName] = _serviceTag.tagName;
+          }
         } else {
-          data.config[_serviceTag.siteName] = _serviceTag.tagName;
+          data.config[_serviceTag.siteName] = _serviceTag.newTagName;
         }
-      } else if (this.get('content.serviceName') === serviceName) {
-        data.config[_serviceTag.siteName] = _serviceTag.newTagName;
+      }
+      else if (config = 'previous') {
+        data.config[_serviceTag.siteName] = _serviceTag.tagName;
       }
     }, this);
     return data;
@@ -987,27 +983,27 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
     switch (serviceName) {
       case 'HDFS':
         var sNameNodeHost = serviceConfigs.findProperty('name', 'snamenode_host');
-        sNameNodeHost.defaultValue = this.get('content.hostComponents').findProperty('componentName', 'SECONDARY_NAMENODE').get('host.hostName');
+        sNameNodeHost.defaultValue = this.get('content.components').findProperty('componentName', 'SECONDARY_NAMENODE').get('host.hostName');
         globalConfigs.push(sNameNodeHost);
         break;
       case 'MAPREDUCE':
         var jobTrackerHost = serviceConfigs.findProperty('name', 'jobtracker_host');
-        jobTrackerHost.defaultValue = this.get('content.hostComponents').findProperty('componentName', 'JOBTRACKER').get('host.hostName');
+        jobTrackerHost.defaultValue = this.get('content.components').findProperty('componentName', 'JOBTRACKER').get('host.hostName');
         globalConfigs.push(jobTrackerHost);
         break;
       case 'HIVE':
         var hiveMetastoreHost = serviceConfigs.findProperty('name', 'hivemetastore_host');
-        hiveMetastoreHost.defaultValue = this.get('content.hostComponents').findProperty('componentName', 'HIVE_SERVER').get('host.hostName');
+        hiveMetastoreHost.defaultValue = this.get('content.components').findProperty('componentName', 'HIVE_SERVER').get('host.hostName');
         globalConfigs.push(hiveMetastoreHost);
         break;
       case 'OOZIE':
         var oozieServerHost = serviceConfigs.findProperty('name', 'oozieserver_host');
-        oozieServerHost.defaultValue = this.get('content.hostComponents').findProperty('componentName', 'OOZIE_SERVER').get('host.hostName');
+        oozieServerHost.defaultValue = this.get('content.components').findProperty('componentName', 'OOZIE_SERVER').get('host.hostName');
         globalConfigs.push(oozieServerHost);
         break;
       case 'HBASE':
         var hbaseMasterHost = serviceConfigs.findProperty('name', 'hbasemaster_host');
-        hbaseMasterHost.defaultValue = this.get('content.hostComponents').findProperty('componentName', 'HBASE_MASTER').get('host.hostName');
+        hbaseMasterHost.defaultValue = this.get('content.components').findProperty('componentName', 'HBASE_MASTER').get('host.hostName');
         globalConfigs.push(hbaseMasterHost);
         break;
     }

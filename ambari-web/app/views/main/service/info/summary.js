@@ -142,7 +142,7 @@ App.MainServiceInfoSummaryView = Em.View.extend({
   monitorsObj: function(){
     var service = this.get('controller.content');
     if (service.get("id") == "GANGLIA") {
-      var monitors = service.get('hostComponents').filterProperty('isMaster', false);
+      var monitors = service.get('components').filterProperty('isMaster', false);
       if (monitors.length) {
         return monitors[0];
       }
@@ -157,7 +157,7 @@ App.MainServiceInfoSummaryView = Em.View.extend({
   serversHost: function() {
     var service = this.get('controller.content');
     if (service.get("id") == "ZOOKEEPER") {
-      var servers = service.get('hostComponents').filterProperty('isMaster');
+      var servers = service.get('components').filterProperty('isMaster');
       if (servers.length > 0) {
         return servers[0];
       }
@@ -172,7 +172,7 @@ App.MainServiceInfoSummaryView = Em.View.extend({
   clientObj: function() {
     var service = this.get('controller.content');
     if (service.get("id") == "OOZIE" || service.get("id") == "ZOOKEEPER") {
-      var clients = service.get('hostComponents').filterProperty('isMaster', false);
+      var clients = service.get('components').filterProperty('isMaster', false);
       if (clients.length > 0) {
         return clients[0];
       }
@@ -190,7 +190,7 @@ App.MainServiceInfoSummaryView = Em.View.extend({
   gangliaServer:function(){
     var service=this.get('controller.content');
     if(service.get("id") == "GANGLIA"){
-      return service.get("hostComponents").findProperty('isMaster', true).get("host").get("publicHostName");
+      return service.get("components").findProperty('isMaster', true).get("host").get("publicHostName");
     }else{
       return "";
     }
@@ -198,7 +198,7 @@ App.MainServiceInfoSummaryView = Em.View.extend({
   nagiosServer:function(){
     var service=this.get('controller.content');
     if(service.get("id") == "NAGIOS"){
-      return service.get("hostComponents").findProperty('isMaster', true).get("host").get("publicHostName");
+      return service.get("components").findProperty('isMaster', true).get("host").get("publicHostName");
     }else{
       return "";
     }
@@ -206,7 +206,7 @@ App.MainServiceInfoSummaryView = Em.View.extend({
   oozieServer:function(){
     var service=this.get('controller.content');
     if(service.get("id") == "OOZIE"){
-      return service.get("hostComponents").findProperty('isMaster', true).get("host").get("publicHostName");
+      return service.get("components").findProperty('isMaster', true).get("host").get("publicHostName");
     }else{
       return "";
     }
@@ -224,7 +224,7 @@ App.MainServiceInfoSummaryView = Em.View.extend({
     var service=this.get('controller.content');
     if(service.get("id") == "HIVE"){
       var self = this;
-      var components = service.get("hostComponents");
+      var components = service.get("components");
       if(components){
         components.forEach(function(component){
           var ci = {

@@ -14,8 +14,6 @@
  * License for the specific language governing permissions and limitations under
  * the License.
  */
-
-var App = require('app');
 var stringUtils = require('utils/string_utils');
 
 App.servicesMapper = App.QuickDataMapper.create({
@@ -51,6 +49,11 @@ App.servicesMapper = App.QuickDataMapper.create({
     work_status: 'ServiceInfo.state',
     $service_audit: [ 1, 2, 3 ],
     $alerts: [ 1, 2, 3 ],
+    components_key: 'components',
+    components_type: 'array',
+    components: {
+      item: 'ServiceComponentInfo.component_name'
+    },
     host_components: 'host_components'
   },
   hdfsConfig: {
@@ -112,14 +115,28 @@ App.servicesMapper = App.QuickDataMapper.create({
     heap_memory_max: 'masterComponent.ServiceComponentInfo.HeapMemoryMax'
   },
 
+  model2: App.Component,
+  config2: {
+    id: 'ServiceComponentInfo.component_name',
+    component_name: 'ServiceComponentInfo.component_name',
+    service_id: 'ServiceComponentInfo.service_name',
+    // TODO - PROBLEM:
+    // below statements are a problem for multiple 
+    // host_component components. Because it randomly
+    // picks one of the hosts. Especially the host details
+    // page must be careful because, it will randomly
+    // pick a host.
+    work_status: 'host_components[0].HostRoles.state',
+    host_id: 'host_components[0].HostRoles.host_name'
+  },
+
   model3: App.HostComponent,
   config3: {
     id: 'id',
     work_status: 'HostRoles.state',
-    desired_status: 'HostRoles.desired_state',
     component_name: 'HostRoles.component_name',
     host_id: 'HostRoles.host_name',
-    $service_id: 'none' /* will be set outside of parse function */
+    service_id: 'component[0].ServiceComponentInfo.service_name'
   },
 
   map: function (json) {
@@ -177,21 +194,42 @@ App.servicesMapper = App.QuickDataMapper.create({
       result = this.sortByOrder(this.get('servicesSortOrder'), result);
       App.store.loadMany(this.get('model'), result);
 
+      // Service components
+      result = [];
+      json.items.forEach(function(item){
+        item.components.forEach(function(component){
+          result.push(this.parseIt(component, this.config2));
+        }, this)
+      }, this);
+      var newComponents = [];
+      result.forEach(function(componentJson){
+        var component = App.Component.find(componentJson.id);
+        if (component && component.get('isLoaded')) { // UPDATE
+          if (componentJson.work_status) {
+            component.set('workStatus', componentJson.work_status);
+          }
+          if (componentJson.host_id) {
+            component.set('host', App.Host.find(componentJson.host_id));
+          }
+        } else {
+          newComponents.push(componentJson);
+        }
+      });
+      if (newComponents.length > 0) {
+        App.store.loadMany(this.get('model2'), newComponents);
+      }
+
       // Host components
       result = [];
       json.items.forEach(function(item){
         item.components.forEach(function(component){
-          var service = component.ServiceComponentInfo.service_name;
           component.host_components.forEach(function(host_component){
-            var comp = this.parseIt(host_component, this.config3);
-            comp.service_id = service;
-            result.push(comp);
+            result.push(this.parseIt(host_component, this.config3));
           }, this)
         }, this)
       }, this);
       var newHostComponents = [];
       result.forEach(function(hcJson){
-        hcJson = this.calculateState(hcJson);
         hcJson.id = hcJson.component_name + '_' + hcJson.host_id;
         var component = App.HostComponent.find(hcJson.id);
         if (component && component.get('isLoaded')) { // UPDATE
@@ -210,7 +248,7 @@ App.servicesMapper = App.QuickDataMapper.create({
         } else {
           newHostComponents.push(hcJson);
         }
-      }, this);
+      });
       if (newHostComponents.length > 0) {
         App.store.loadMany(this.get('model3'), newHostComponents);
       }

@@ -18,50 +18,160 @@
 
 var App = require('app');
 var validator = require('utils/validator');
-var componentHelper = require('utils/component');
 
 App.MainHostController = Em.ArrayController.extend({
   name:'mainHostController',
-  content: App.Host.find(),
+  content:[],
   comeWithFilter: false,
+  fullContent:App.Host.find(),
+  clusters:App.Cluster.find(),
 
   isAdmin: function(){
-    return App.router.getUser().admin;
+    return App.db.getUser().admin;
   }.property('App.router.loginController.loginName'),
-
-  /**
-   * Components which will be shown in component filter
-   */
   componentsForFilter:function() {
-    var installedComponents = componentHelper.getInstalledComponents();
-    installedComponents.setEach('checkedForHostFilter', false);
-    return installedComponents;
+    var components = App.Component.find();
+    var ret = new Array();
+    if (!components) {
+      return ret;
+    }
+    components.forEach(function(item) {
+      var o = Ember.Object.create({
+        id: item.get('id'),
+        isMaster: item.get('isMaster'),
+        isSlave: item.get('isSlave'),
+        displayName: item.get('displayName'),
+        componentName: item.get('componentName'),
+        checkedForHostFilter: item.get('checkedForHostFilter')
+      });
+      ret.push(o);
+    });
+    return ret;
   }.property(),
 
+  totalBinding:'fullContent.length',
+  filters:{components:[]},
+  isDisabled:true,
+
+  checkRemoved:function (host_id) {
+    var hosts = this.get('content');
+    var selectedHosts = hosts.filterProperty('id', host_id);
+    this.get('fullContent').removeObjects(selectedHosts);
+  },
+
   masterComponents:function () {
-    return this.get('componentsForFilter').filterProperty('isMaster', true);
+    var components = [];
+    this.get('componentsForFilter').forEach(function (component) {
+      if (component.get('isMaster')) {
+        components.push(component);
+      }
+    });
+    return components;
   }.property('componentsForFilter'),
 
   slaveComponents:function () {
-    return this.get('componentsForFilter').filterProperty('isSlave', true);
+    var components = [];
+    this.get('componentsForFilter').forEach(function (component) {
+      if (component.get('isSlave')) {
+        components.push(component);
+      }
+    });
+    return components;
   }.property('componentsForFilter'),
 
   clientComponents: function() {
-    return this.get('componentsForFilter').filterProperty('isClient', true);
+    var components = [];
+    this.get('componentsForFilter').forEach(function(component) {
+      if (!component.get('isMaster') && !component.get('isSlave')) {
+        components.push(component);
+      }
+    });
+    return components;
   }.property('componentsForFilter'),
 
-  /**
-   * Filter hosts by componentName of <code>component</code>
-   * @param component App.HostComponent
-   */
-  filterByComponent:function (component) {
-    var id = component.get('componentName');
+  backgroundOperationsCount:function () {
+    return 5;
+  }.property(),
 
+  checkedComponentsIds:function () {
+    var checked = [];
+    this.get('componentsForFilter').forEach(function (comp) {
+      if (comp.get('checkedForHostFilter'))
+        checked.push(comp.get('id'));
+    });
+
+    return checked;
+  },
+
+  filterByComponent:function (component) {
+    var id = component.get('id');
+    /*this.get('componentsForFilter').setEach('isChecked', false);
+    component.set('isChecked', true);*/
     this.get('componentsForFilter').setEach('checkedForHostFilter', false);
     this.get('componentsForFilter').filterProperty('id', id).setEach('checkedForHostFilter', true);
-
+    //component.set('checkedForHostFilter', true);
+    this.set('filters.components', [component.get('id')]);
+    console.log(this.get('filters.components').objectAt(0));
     this.set('comeWithFilter', true);
   },
+
+
+  applyHostFilters:function (items) {
+
+    var field = 'hostName'; // make this function universal
+    var value = this.get('hostFilter' + field);
+
+    var itemsToDelete = [];
+    if (value) {
+      items.forEach(function (host, index) {
+        if (host) {
+          var fieldValue = host.get(field);
+          if (fieldValue) {
+            if (fieldValue.indexOf(value) == -1) {
+              itemsToDelete.push(host);
+            }
+          }
+        }
+      });
+    }
+
+    if (itemsToDelete.length) {
+      itemsToDelete.forEach(function (hostToDelete) {
+        var index = items.indexOf(hostToDelete);
+        items.removeAt(index);
+      })
+    }
+
+    return items;
+  },
+
+  changeContent:function () {
+    var items = [];
+    var filters = this.get('filters.components');
+    this.get('fullContent').forEach(function (item) {
+      if (filters.length) {
+        var inFilters = false;
+        item.get('components').forEach(function (component) {
+          if (filters.indexOf(component.get('id')) != -1) {
+            inFilters = true;
+          }
+        });
+
+
+        if (inFilters) {
+          items.push(item);
+        }
+      }
+      else {
+        items.push(item);
+      }
+    });
+
+    items = this.applyHostFilters(items);
+    this.set('total', items.length);
+
+    this.replace(0, this.get('length'), items);
+  }.observes('total'),
 
   decommissionButtonPopup:function () {
     var self = this;
@@ -101,12 +211,6 @@ App.MainHostController = Em.ArrayController.extend({
     selectedHosts.forEach(function (_hostInfo) {
       console.log('Removing:  ' + _hostInfo.hostName);
     });
-    this.get('fullContent').removeObjects(selectedHosts);
-  },
-
-  checkRemoved:function (host_id) {
-    var hosts = this.get('content');
-    var selectedHosts = hosts.filterProperty('id', host_id);
     this.get('fullContent').removeObjects(selectedHosts);
   }
 

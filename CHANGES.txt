@@ -1,5 +1,7 @@
 Ambari Change log
 
+AMBARI-1.2 branch - date: 11/01/2013
+
 Notes:
  - Committers should be listed using their login and non-committers
 should be listed by their full name.

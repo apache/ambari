@@ -62,29 +62,6 @@ App.MainAppsItemDagView = Em.View.extend({
 
   }.observes('controller.content.loadAllJobs'),
 
-  resizeModal: function () {
-    var modal = $('.modal');
-    var body = $('body');
-    modal.find('.modal-body').first().css('max-height', 'none');
-    var modalHeight = modal.height() + 300;
-    var bodyHeight = body.height();
-    if (modalHeight > bodyHeight) {
-      modal.css('top', '20px');
-      $('.modal-body').height(bodyHeight - 180);
-    } else {
-      modal.css('top', (bodyHeight - modalHeight) / 2 + 'px');
-    }
-
-    var modalWidth = modal.width();
-    var bodyWidth = body.width();
-    if (modalWidth > bodyWidth) {
-      modal.css('left', '10px');
-      modal.width(bodyWidth - 20);
-    } else {
-      modal.css('left', (bodyWidth - modalWidth) / 2 + 'px');
-    }
-  },
-
   didInsertElement: function(){
     this.onLoad();
   },
@@ -124,7 +101,6 @@ App.MainAppsItemDagView = Em.View.extend({
     innerTable.fnSettings().oFeatures.bFilter = false;
     var dagSchema = this.get('controller.content.workflowContext');
     var jobs = this.get('jobs');
-    this.resizeModal();
     var graph = new DagViewer(false, 'dag_viewer')
         .setPhysicalParametrs(this.$().width(), 300, -800, 0.01)
         .setData(dagSchema, jobs)

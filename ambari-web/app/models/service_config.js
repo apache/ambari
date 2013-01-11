@@ -337,12 +337,10 @@ App.ServiceConfigProperty = Ember.Object.extend({
 
     var isError = false;
 
-    if (typeof value === 'string' && value.trim().length === 0) {
-      if (this.get('isRequired')) {
+    if (this.get('isRequired')) {
+      if (typeof value === 'string' && value.trim().length === 0) {
         this.set('errorMessage', 'This is required');
         isError = true;
-      } else {
-        return;
       }
     }
 
@@ -363,16 +361,6 @@ App.ServiceConfigProperty = Ember.Object.extend({
         case 'checkbox':
           break;
         case 'directories':
-          if (!validator.isValidDir(value)) {
-            this.set('errorMessage', 'Must be a slash at the start');
-            isError = true;
-          }
-          break;
-        case 'directory':
-          if (!validator.isValidDir(value)) {
-            this.set('errorMessage', 'Must be a slash at the start');
-            isError = true;
-          }
           break;
         case 'custom':
           break;

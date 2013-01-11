@@ -46,7 +46,6 @@ App.MainHostView = Em.View.extend({
       "bSortCellsTop": true,
       "iDisplayLength": 10,
       "aLengthMenu": [[10, 25, 50, 100, -1], [10, 25, 50, 100, "All"]],
-      "oSearch": {"bSmart":false},
       "aoColumns":[
         { "bSortable": false },
         { "sType":"html" },
@@ -68,7 +67,8 @@ App.MainHostView = Em.View.extend({
     content:null,
 
     shortLabels: function() {
-      var labels = this.get('content.hostComponents').getEach('displayName');
+      var components = this.get('labels');
+      var labels = this.get('content.components').getEach('displayName');
       var shortLabels = '';
       var c = 0;
       labels.forEach(function(label) {
@@ -87,8 +87,8 @@ App.MainHostView = Em.View.extend({
     }.property('labels'),
 
     labels: function(){
-      return this.get('content.hostComponents').getEach('displayName').join('\n');
-    }.property('content.hostComponents.@each'),
+      return this.get('content.components').getEach('displayName').join('\n');
+    }.property('content.components.@each'),
 
     usageStyle:function () {
       return "width:" + this.get('content.diskUsage') + "%";
@@ -197,37 +197,57 @@ App.MainHostView = Em.View.extend({
 
     allComponentsChecked:false,
     toggleAllComponents:function () {
-      var checked = this.get('allComponentsChecked');
-      this.set('masterComponentsChecked', checked);
-      this.set('slaveComponentsChecked', checked);
-      this.set('clientComponentsChecked', checked);
+      this.set('masterComponentsChecked', this.get('allComponentsChecked'));
+      this.set('slaveComponentsChecked', this.get('allComponentsChecked'));
+      this.set('clientComponentsChecked', this.get('allComponentsChecked'));
     }.observes('allComponentsChecked'),
 
     masterComponentsChecked:false,
     toggleMasterComponents:function () {
-      this.get('masterComponents').setEach('checkedForHostFilter', this.get('masterComponentsChecked'));
+      var checked = this.get('masterComponentsChecked');
+      this.get('masterComponents').forEach(function (comp) {
+        comp.set('checkedForHostFilter', checked);
+      });
     }.observes('masterComponentsChecked'),
 
     slaveComponentsChecked:false,
     toggleSlaveComponents:function () {
-      this.get('slaveComponents').setEach('checkedForHostFilter', this.get('slaveComponentsChecked'));
+      var checked = this.get('slaveComponentsChecked');
+      this.get('slaveComponents').forEach(function (comp) {
+        comp.set('checkedForHostFilter', checked);
+      });
     }.observes('slaveComponentsChecked'),
 
     clientComponentsChecked: false,
     toggleClientComponents: function() {
-      this.get('clientComponents').setEach('checkedForHostFilter', this.get('clientComponentsChecked'));
+      var checked = this.get('clientComponentsChecked');
+      this.get('clientComponents').forEach(function(comp) {
+        comp.set('checkedForHostFilter', checked);
+      });
     }.observes('clientComponentsChecked'),
 
     masterComponents:function(){
-      return this.get('parentView.controller.masterComponents');
+      var masterComponents = [];
+      for(var i = 0; i < this.get('parentView').get('controller.masterComponents').length; i++) {
+        masterComponents.push(this.get('parentView').get('controller.masterComponents')[i]);
+      }
+      return masterComponents;
     }.property('parentView.controller.masterComponents'),
 
     slaveComponents:function(){
-      return this.get('parentView.controller.slaveComponents');
+      var slaveComponents = [];
+      for(var i = 0; i < this.get('parentView').get('controller.slaveComponents').length; i++) {
+        slaveComponents.push(this.get('parentView').get('controller.slaveComponents')[i]);
+      }
+      return slaveComponents;
     }.property('parentView.controller.slaveComponents'),
 
     clientComponents: function() {
-      return this.get('parentView.controller.clientComponents');
+      var clientComponents = [];
+      for (var i = 0; i < this.get('parentView').get('controller.clientComponents').length; i++) {
+        clientComponents.push(this.get('parentView').get('controller.clientComponents')[i]);
+      }
+      return clientComponents;
     }.property('parentView.controller.clientComponents'),
 
     template: Ember.Handlebars.compile('<div {{bindAttr class="view.btnGroupClass"}} >'+
@@ -314,6 +334,12 @@ App.MainHostView = Em.View.extend({
       var self = this;
       this.set('isFilterOpen', !this.get('isFilterOpen'));
       if (this.get('isFilterOpen')) {
+        var filters = App.router.get('mainHostController.filters.components');
+        $('.filter-component').each(function() {
+          var componentId = parseInt($(this).attr('id').replace('component-', ''));
+          var index = filters.indexOf(componentId);
+          $(this).attr('checked', index == -1);
+        });
 
         var dropDown = $('#filter-dropdown');
         var firstClick = true;
@@ -331,9 +357,6 @@ App.MainHostView = Em.View.extend({
       if (this.get('controller.comeWithFilter')) {
         this.applyFilter();
         this.closeFilters();
-        this.set('controller.comeWithFilter', false);
-      } else {
-        this.clearFilter(this);
       }
     },
 

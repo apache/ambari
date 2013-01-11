@@ -31,10 +31,6 @@ App.MainDashboardServiceHbaseView = App.MainDashboardServiceView.extend({
     return this.t('dashboard.services.hbase.masterServerHeap.summary').format(heapString, heapMaxString, percent.toFixed(1));
   }.property('service.heapMemoryUsed', 'service.heapMemoryMax'),
 
-  version: function(){
-    return this.formatUnavailable(this.get('service.version'));
-  }.property('service.version'),
-
   summaryHeader: function () {
     var avgLoad = this.get('service.averageLoad');
     if (avgLoad == null) {
@@ -50,7 +46,7 @@ App.MainDashboardServiceHbaseView = App.MainDashboardServiceView.extend({
   averageLoad: function () {
     var avgLoad = this.get('service.averageLoad');
     if (avgLoad == null) {
-      avgLoad = this.t('services.service.summary.notAvailable');
+      avgLoad = this.t('services.service.summary.unknown');
     }
     return this.t('dashboard.services.hbase.averageLoadPerServer').format(avgLoad);
   }.property("service.averageLoad"),
@@ -65,7 +61,7 @@ App.MainDashboardServiceHbaseView = App.MainDashboardServiceView.extend({
       var formatted = date.timingFormat(diff);
       return this.t('dashboard.services.uptime').format(formatted);
     }
-    return this.t('services.service.summary.notRunning');
+    return this.t('services.service.summary.unknown');
   }.property("service.masterStartTime"),
 
   masterActivatedTime: function () {
@@ -78,11 +74,11 @@ App.MainDashboardServiceHbaseView = App.MainDashboardServiceView.extend({
       var formatted = date.timingFormat(diff);
       return this.t('dashboard.services.uptime').format(formatted);
     }
-    return this.t('services.service.summary.notRunning');
+    return this.t('services.service.summary.unknown');
   }.property("service.masterActiveTime"),
 
   regionServerComponent: function () {
-    return App.HostComponent.find().findProperty('componentName', 'HBASE_REGIONSERVER');
+    return App.Component.find().findProperty('componentName', 'HBASE_REGIONSERVER');
   }.property('components'),
 
   isCollapsed: false,

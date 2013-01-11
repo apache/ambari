@@ -30,8 +30,6 @@ import org.apache.ambari.server.actionmanager.ExecutionCommandWrapper;
 import org.apache.ambari.server.actionmanager.Stage;
 import org.apache.ambari.server.agent.ExecutionCommand;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
-import org.apache.ambari.server.configuration.Configuration;
-import org.apache.ambari.server.controller.HostsMap;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
 import org.apache.ambari.server.state.*;
@@ -170,7 +168,7 @@ public class TestStageUtils {
     addHdfsService(fsm.getCluster("c1"), hostList, injector);
     addHbaseService(fsm.getCluster("c1"), hostList, injector);
     Map<String, List<String>> info = StageUtils.getClusterHostInfo(fsm
-        .getCluster("c1"), new HostsMap(injector.getInstance(Configuration.class)));
+        .getCluster("c1"));
     assertEquals(2, info.get("slave_hosts").size());
     assertEquals(1, info.get("hbase_master_host").size());
     assertEquals("h1", info.get("hbase_master_host").get(0));

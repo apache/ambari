@@ -33,7 +33,6 @@ import stat
 import fileinput
 import urllib2
 import time
-import getpass
 # debug settings
 VERBOSE = False
 SILENT = False
@@ -65,14 +64,8 @@ IP_TBLS_DISABLED="Firewall is stopped.\n"
 IP_TBLS_SRVC_NT_FND="iptables: unrecognized service"
 
 # server commands
-ambari_provider_module_option = ""
-ambari_provider_module = os.environ.get('AMBARI_PROVIDER_MODULE')
-
-if ambari_provider_module is not None:
-  ambari_provider_module_option = "-Dprovider.module.class=" + ambari_provider_module + " "
-
-SERVER_START_CMD="{0}" + os.sep + "bin" + os.sep + "java -server -XX:NewRatio=2 -XX:+UseConcMarkSweepGC " + ambari_provider_module_option + os.getenv('AMBARI_JVM_ARGS','-Xms512m -Xmx2048m') + " -cp {1}"+ os.pathsep + "{2}" + "/* org.apache.ambari.server.controller.AmbariServer >/var/log/ambari-server/ambari-server.out 2>&1"
-SERVER_START_CMD_DEBUG="{0}" + os.sep + "bin" + os.sep + "java -server -XX:NewRatio=2 -XX:+UseConcMarkSweepGC " + ambari_provider_module_option + os.getenv('AMBARI_JVM_ARGS','-Xms512m -Xmx2048m') + " -Xdebug -Xrunjdwp:transport=dt_socket,address=5005,server=y,suspend=n -cp {1}"+ os.pathsep + ".." + os.sep + "lib" + os.sep + "ambari-server" + os.sep + "* org.apache.ambari.server.controller.AmbariServer"
+SERVER_START_CMD="{0}" + os.sep + "bin" + os.sep + "java -server -XX:NewRatio=2 -XX:+UseConcMarkSweepGC " + os.getenv('AMBARI_JVM_ARGS','-Xms512m -Xmx2048m') + " -cp {1}"+ os.pathsep + "{2}" + "/* org.apache.ambari.server.controller.AmbariServer >/var/log/ambari-server/ambari-server.out 2>&1"
+SERVER_START_CMD_DEBUG="{0}" + os.sep + "bin" + os.sep + "java -server -XX:NewRatio=2 -XX:+UseConcMarkSweepGC " + os.getenv('AMBARI_JVM_ARGS','-Xms512m -Xmx2048m') + " -Xdebug -Xrunjdwp:transport=dt_socket,address=5005,server=y,suspend=n -cp {1}"+ os.pathsep + ".." + os.sep + "lib" + os.sep + "ambari-server" + os.sep + "* org.apache.ambari.server.controller.AmbariServer"
 AMBARI_CONF_VAR="AMBARI_CONF_DIR"
 AMBARI_SERVER_LIB="AMBARI_SERVER_LIB"
 JAVA_HOME="JAVA_HOME"
@@ -91,7 +84,6 @@ PG_HBA_CONF_FILE = PG_HBA_DIR + "pg_hba.conf"
 PG_HBA_CONF_FILE_BACKUP = PG_HBA_DIR + "pg_hba_bak.conf.old"
 POSTGRESQL_CONF_FILE = PG_HBA_DIR + "postgresql.conf"
 PG_HBA_RELOAD_CMD = "sudo -u postgres pg_ctl -D {0} reload"
-PG_DEFAULT_PASSWORD = "bigdata"
 JDBC_USER_NAME_PROPERTY = "server.jdbc.user.name"
 JDBC_PASSWORD_FILE_PROPERTY = "server.jdbc.user.passwd"
 JDBC_PASSWORD_FILENAME = "password.dat"
@@ -524,7 +516,7 @@ accepting will cancel the Ambari Server setup.\nDo you accept the Oracle Binary 
   os.chdir(savedPath)
   jdk_version = re.search('Creating (jdk.*)/jre', out).group(1)
   print "Successfully installed JDK to {0}/{1}".format(JDK_INSTALL_DIR, jdk_version)
-  writeProperty(JAVA_HOME_PROPERTY, "{0}/{1}".format(JDK_INSTALL_DIR, jdk_version))
+  writeProperty("java.home", "{0}/{1}".format(JDK_INSTALL_DIR, jdk_version))
   return 0
 
 def get_postgre_status():
@@ -592,7 +584,7 @@ def get_JAVA_HOME():
   
   try:
     properties.load(open(conf_file))
-    java_home = properties[JAVA_HOME_PROPERTY]
+    java_home = properties['java.home']
     if (not 0 == len(java_home)) and (os.path.exists(java_home)):
       return java_home
   except (Exception), e:
@@ -827,14 +819,12 @@ def getChoiceStringInput(prompt,default,firstChoice,secondChoice):
     return False
   return default
 
-def getValidatedStringInput(prompt, default, pattern, description, is_pass):
+def getValidatedStringInput(prompt, default, pattern, description):
   input =""
   while (not input):
     if (SILENT):
       print (prompt)
       input = default
-    elif is_pass:
-      input = getpass.getpass(prompt)
     else:
       input = raw_input(prompt)
     if(not input.strip()):
@@ -859,22 +849,6 @@ def saveUsernamePassword(pathtofile, username, password):
   #save copy of existing config
   shutil.move(pathtofile, pathtofile+'.bak.ambari')
   tree.write(pathtofile)
-
-def configurePostgresPassword():
-  # setup password
-  passwordDefault = PG_DEFAULT_PASSWORD
-  passwordPrompt = 'Password [' + passwordDefault + ']: '
-  passwordPattern = "^[a-zA-Z0-9_-]*$"
-  passwordDescr = "Invalid characters in password. Use only alphanumeric or _ or - characters"
-
-  password = getValidatedStringInput(passwordPrompt, passwordDefault, passwordPattern, passwordDescr, True)
-  if password != passwordDefault:
-    password1 = getValidatedStringInput("Re-enter password: ", passwordDefault, passwordPattern, passwordDescr, True)
-    if password != password1:
-      print "Passwords do not match"
-      password = configurePostgresPassword()
-
-  return password
 
 def configurePostgresUsernamePassword(args):
   conf_file = search_file(AMBARI_PROPERTIES_FILE, get_conf_dir())
@@ -904,14 +878,17 @@ def configurePostgresUsernamePassword(args):
   username = usernameDefault
 
   # setup password
-  password = PG_DEFAULT_PASSWORD
+  passwordDefault = 'bigdata'
+  passwordPrompt = 'Password [' + passwordDefault + ']: '
+  passwordPattern = "^[a-zA-Z0-9_-]*$"
+  passwordDescr = "Invalid characters in password. Use only alphanumeric or _ or - characters"
+  password = passwordDefault
 
   ok = getYNInput("Enter advanced database configuration [y/n] (n)? ", False)
   if ok == True:
-    username = getValidatedStringInput(usernamePrompt, usernameDefault, usernamePattern, usernameDescr, False)
+    username = getValidatedStringInput(usernamePrompt, usernameDefault, usernamePattern, usernameDescr)
     print "Database username set to: " + username
-    password = configurePostgresPassword()
-        
+    password = getValidatedStringInput(passwordPrompt, passwordDefault, passwordPattern, passwordDescr)
 
   passFilePath = os.path.join(os.path.dirname(conf_file), JDBC_PASSWORD_FILENAME)
   

@@ -29,8 +29,7 @@ App.statusMapper = App.QuickDataMapper.create({
 
   config3:{
     id:'id',
-    work_status:'HostRoles.state',
-    desired_status: 'HostRoles.desired_state'
+    work_status:'HostRoles.state'
   },
 
   map:function (json) {
@@ -62,6 +61,22 @@ App.statusMapper = App.QuickDataMapper.create({
       result = [];
       json.items.forEach(function (item) {
         item.components.forEach(function (component) {
+          result.push(this.parseIt(component, this.config2));
+        }, this)
+      }, this);
+
+      //console.log(result)
+      var components = App.Component.find();
+      result.forEach(function(item){
+        var component = components.findProperty('id', item.id);
+        if(component){
+          component.set('workStatus', item.work_status);
+        }
+      })
+
+      result = [];
+      json.items.forEach(function (item) {
+        item.components.forEach(function (component) {
           component.host_components.forEach(function (host_component) {
             result.push(this.parseIt(host_component, this.config3));
           }, this)
@@ -73,10 +88,9 @@ App.statusMapper = App.QuickDataMapper.create({
       result.forEach(function(item){
         var hostComponent = hostComponents.findProperty('id', item.id);
         if(hostComponent){
-          item = this.calculateState(item);
           hostComponent.set('workStatus', item.work_status);
         }
-      }, this)
+      })
     }
   }
 });

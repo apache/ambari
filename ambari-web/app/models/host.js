@@ -34,6 +34,7 @@ App.Host = DS.Model.extend({
   hostName: DS.attr('string'),
   publicHostName: DS.attr('string'),
   cluster: DS.belongsTo('App.Cluster'),
+  components: DS.hasMany('App.Component'),
   hostComponents: DS.hasMany('App.HostComponent'),
   cpu: DS.attr('string'),
   memory: DS.attr('string'),
@@ -128,8 +129,8 @@ App.Host = DS.Model.extend({
     if (!this.get('isLoaded') || this.get('isSaving')) {
     } else {
       var status;
-      var masterComponents = this.get('hostComponents').filterProperty('isMaster', true);
-      var masterComponentsRunning = masterComponents.everyProperty('workStatus', App.HostComponentStatus.started);
+      var masterComponents = this.get('components').filterProperty('isMaster', true);
+      var masterComponentsRunning = masterComponents.everyProperty('workStatus', App.Component.Status.started);
       if (this.get('isNotHeartBeating')) {
         status = 'DEAD-YELLOW';
       } else if (masterComponentsRunning) {
@@ -144,7 +145,7 @@ App.Host = DS.Model.extend({
       }
     }
     return 'health-status-' + healthStatus;
-  }.property('healthStatus', 'hostComponents.@each.workStatus')
+  }.property('healthStatus', 'components.@each.workStatus')
 });
 
 App.Host.FIXTURES = [];

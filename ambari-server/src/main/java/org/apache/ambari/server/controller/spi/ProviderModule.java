@@ -33,12 +33,5 @@ public interface ProviderModule {
    */
   public ResourceProvider getResourceProvider(Resource.Type type);
 
-  /**
-   * Get the list of property providers for the given resource type.
-   *
-   * @param type  the resource type
-   *
-   * @return the list of property providers
-   */
   public List<PropertyProvider> getPropertyProviders(Resource.Type type);
 }

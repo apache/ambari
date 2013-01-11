@@ -22,7 +22,7 @@ require('models/alert');
 
 App.MainDashboardServiceHealthView = Em.View.extend({
   classNameBindings: ["healthStatus"],
-  //template: Em.Handlebars.compile(""),
+  template: Em.Handlebars.compile(""),
   blink: false,
   tagName: 'span',
   
@@ -71,7 +71,7 @@ App.MainDashboardServiceHealthView = Em.View.extend({
         break;
     }
 
-    return 'health-status-' + status;
+    return 'health-status-' + status + " span";
   }.property('service.healthStatus'),
 
   didInsertElement: function () {
@@ -85,10 +85,6 @@ App.MainDashboardServiceView = Em.View.extend({
   data: function () {
     return this.get('controller.data.' + this.get('serviceName'));
   }.property('controller.data'),
-
-  formatUnavailable: function(value){
-    return (value || value == 0) ? value : this.t('services.service.summary.notAvailable');
-  },
 
   criticalAlertsCount: function () {
     var alerts = App.router.get('clusterController.alerts');

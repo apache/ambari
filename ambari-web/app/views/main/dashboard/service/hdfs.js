@@ -31,36 +31,14 @@ App.MainDashboardServiceHdfsView = App.MainDashboardServiceView.extend({
     }.property('service.capacityUsed', 'service.capacityTotal')
   }),
 
-  version: function(){
-    return this.formatUnavailable(this.get('service.version'));
-  }.property('service.version'),
-  dfsTotalBlocks: function(){
-    return this.formatUnavailable(this.get('service.dfsTotalBlocks'));
-  }.property('service.dfsTotalBlocks'),
-  dfsTotalFiles: function(){
-    return this.formatUnavailable(this.get('service.dfsTotalFiles'));
-  }.property('service.dfsTotalFiles'),
-  dfsCorruptBlocks: function(){
-    return this.formatUnavailable(this.get('service.dfsCorruptBlocks'));
-  }.property('service.dfsCorruptBlocks'),
-  dfsMissingBlocks: function(){
-    return this.formatUnavailable(this.get('service.dfsMissingBlocks'));
-  }.property('service.dfsMissingBlocks'),
-  dfsUnderReplicatedBlocks: function(){
-    return this.formatUnavailable(this.get('service.dfsUnderReplicatedBlocks'));
-  }.property('service.dfsUnderReplicatedBlocks'),
-
   nodeUptime: function () {
     var uptime = this.get('service').get('nameNodeStartTime');
-    if (uptime && uptime > 0){
-      var diff = (new Date()).getTime() - uptime;
-      if (diff < 0) {
-        diff = 0;
-      }
-      var formatted = date.timingFormat(diff);
-      return this.t('dashboard.services.uptime').format(formatted);
+    var diff = (new Date()).getTime() - uptime;
+    if (diff < 0) {
+      diff = 0;
     }
-    return this.t('services.service.summary.notRunning');
+    var formatted = date.timingFormat(diff);
+    return this.t('dashboard.services.uptime').format(formatted);
   }.property("service.nameNodeStartTime"),
 
   nodeWebUrl: function () {
@@ -109,7 +87,7 @@ App.MainDashboardServiceHdfsView = App.MainDashboardServiceView.extend({
   }.property('service.capacityUsed', 'service.capacityTotal'),
 
   dataNodeComponent: function () {
-    return App.HostComponent.find().findProperty('componentName', 'DATANODE');
+    return App.Component.find().findProperty('componentName', 'DATANODE');
   }.property('+'),
 
   isCollapsed: false,

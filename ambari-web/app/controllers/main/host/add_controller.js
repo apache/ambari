@@ -156,7 +156,7 @@ App.AddHostController = App.WizardController.extend({
     var masterComponentHosts = App.db.getMasterComponentHosts();
     if (!masterComponentHosts) {
       masterComponentHosts = [];
-      App.HostComponent.find().filterProperty('isMaster', true).forEach(function (item) {
+      App.Component.find().filterProperty('isMaster', true).forEach(function (item) {
         masterComponentHosts.push({
           component: item.get('componentName'),
           hostName: item.get('host.hostName'),

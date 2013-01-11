@@ -105,9 +105,7 @@ public class AmbariManagementControllerImpl implements
   private AmbariMetaInfo ambariMetaInfo;
   @Inject
   private Users users;
-  @Inject
-  private HostsMap hostsMap;
-  
+
   final private String masterHostname;
 
   final private static String JDK_RESOURCE_LOCATION =
@@ -900,7 +898,7 @@ public class AmbariManagementControllerImpl implements
 
     // Generate cluster host info
     execCmd.setClusterHostInfo(
-        StageUtils.getClusterHostInfo(cluster, hostsMap));
+        StageUtils.getClusterHostInfo(cluster));
 
     Host host = clusters.getHost(scHost.getHostName());
 
@@ -1689,7 +1687,7 @@ public class AmbariManagementControllerImpl implements
         // Generate cluster host info
         stage.getExecutionCommandWrapper(clientHost, smokeTestRole)
             .getExecutionCommand()
-            .setClusterHostInfo(StageUtils.getClusterHostInfo(cluster, hostsMap));
+            .setClusterHostInfo(StageUtils.getClusterHostInfo(cluster));
       }
 
       RoleGraph rg = new RoleGraph(rco);
@@ -3158,7 +3156,7 @@ public class AmbariManagementControllerImpl implements
         .getExecutionCommandWrapper(hostName, actionRequest.getActionName())
         .getExecutionCommand()
         .setClusterHostInfo(
-            StageUtils.getClusterHostInfo(clusters.getCluster(clusterName), hostsMap));
+            StageUtils.getClusterHostInfo(clusters.getCluster(clusterName)));
   }
 
   private void addDecommissionDatanodeAction(

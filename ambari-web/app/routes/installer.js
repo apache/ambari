@@ -48,15 +48,11 @@ module.exports = Em.Route.extend({
                   break;
                 case 'CLUSTER_INSTALLING_3' :
                 case 'SERVICE_STARTING_3' :
-                  if(!installerController.get('isStep9')){
-                    installerController.setCurrentStep('9');
-                  }
+                  installerController.setCurrentStep('9');
                   App.db.data = currentClusterStatus.localdb;
                   break;
                 case 'CLUSTER_INSTALLED_4' :
-                  if(!installerController.get('isStep10')){
-                    installerController.setCurrentStep('10');
-                  }
+                  installerController.setCurrentStep('10');
                   App.db.data = currentClusterStatus.localdb;
                   break;
                 case 'CLUSTER_STARTED_5' :

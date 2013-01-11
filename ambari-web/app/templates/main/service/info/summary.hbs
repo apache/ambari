@@ -47,7 +47,7 @@
       {{#unless view.serviceStatus.mapreduce}}
       {{#unless view.serviceStatus.hbase}}
       {{#unless view.serviceStatus.ganglia}}
-      {{#each component in controller.content.hostComponents}}
+      {{#each component in controller.content.components}}
         <tr>
           {{#if component.isMaster}}
             <td class="summary-label">{{component.displayName}}</td>

@@ -15,8 +15,6 @@
  * the License.
  */
 
-var App = require('app');
-
 App.hostsMapper = App.QuickDataMapper.create({
   model: App.Host,
   tmp_result:[],
@@ -25,6 +23,11 @@ App.hostsMapper = App.QuickDataMapper.create({
     host_name: 'Hosts.host_name',
     public_host_name: 'Hosts.public_host_name',
     cluster_id: 'Hosts.cluster_name',// 1
+    components_key: 'host_components',
+    components_type: 'array',
+    components: {
+      item: 'HostRoles.component_name'
+    },
     rack: 'Hosts.rack_info',
     host_components_key: 'host_components',
     host_components_type: 'array',
