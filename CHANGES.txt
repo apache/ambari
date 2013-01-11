@@ -675,6 +675,9 @@ AMBARI-666 branch (unreleased changes)
 
   BUG FIXES
 
+  AMBARI-1142. On Notification Popup, clicking "go to nagios UI" doesn't
+  load nagios UI. (Arun Kandregula via yusaku)
+
   AMBARI-1125. Graphs "degrade" over time. (Srimanth Gunturi via yusaku)
 
   AMBARI-1124. Boxes on services page need min height or something to keep

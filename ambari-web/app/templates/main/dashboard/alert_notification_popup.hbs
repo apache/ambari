@@ -26,5 +26,5 @@
 {{/if}}
 <p class="alertsPopupLinks">
     <a href="#" {{action selectService}}>{{t services.alerts.goToService}}</a>
-    <a {{bindAttr href="view.nagiosUrl"}} target="_blank" {{action "closePopup" on="mouseUp"}}>{{t services.alerts.goToNagios}}</a>
+    <a href="#" {{action "viewNagiosUrl" on="mouseUp"}}>{{t services.alerts.goToNagios}}</a>
 </p>

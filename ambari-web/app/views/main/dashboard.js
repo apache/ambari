@@ -113,6 +113,11 @@ App.MainDashboardView = Em.View.extend({
           this.get('parentView').hide();
         },
 
+        viewNagiosUrl: function () {
+          window.open(this.get('nagiosUrl'), "_blank");
+          this.closePopup();
+        },
+
         selectService: function () {
           App.router.transitionTo('services.service.summary', event.context)
           this.closePopup();
