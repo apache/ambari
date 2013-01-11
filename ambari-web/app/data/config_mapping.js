@@ -256,21 +256,21 @@ module.exports = [
     "filename": "hdfs-site.xml"
   },
   /*
-  {
-    "name": "dfs.namenode.kerberos.internal.spnego.principal",
-    "templateName": [],
-    "foreignKey": ["dfs.web.authentication.kerberos.principal"],
-    "value": "<foreignKey[0]>",
-    "filename": "hdfs-site.xml"
-  },
-  {
-    "name": "dfs.secondary.namenode.kerberos.internal.spnego.principal",
-    "templateName": [],
-    "foreignKey": ["dfs.web.authentication.kerberos.principal"],
-    "value": "<foreignKey[0]>",
-    "filename": "hdfs-site.xml"
-  },
-  */
+   {
+   "name": "dfs.namenode.kerberos.internal.spnego.principal",
+   "templateName": [],
+   "foreignKey": ["dfs.web.authentication.kerberos.principal"],
+   "value": "<foreignKey[0]>",
+   "filename": "hdfs-site.xml"
+   },
+   {
+   "name": "dfs.secondary.namenode.kerberos.internal.spnego.principal",
+   "templateName": [],
+   "foreignKey": ["dfs.web.authentication.kerberos.principal"],
+   "value": "<foreignKey[0]>",
+   "filename": "hdfs-site.xml"
+   },
+   */
   {
     "name": "mapred.local.dir",
     "templateName": ["mapred_local_dir"],
@@ -279,14 +279,14 @@ module.exports = [
     "filename": "mapred-site.xml"
   },
   /*
-  {
-    "name": "oozie.service.StoreService.jdbc.url",
-    "templateName": ["oozie_data_dir"],
-    "foreignKey": ["oozie.db.schema.name"],
-    "value": "<templateName[0]>\/<foreignKey[0]>",
-    "filename": "oozie-site.xml"
-  },
-  */
+   {
+   "name": "oozie.service.StoreService.jdbc.url",
+   "templateName": ["oozie_data_dir"],
+   "foreignKey": ["oozie.db.schema.name"],
+   "value": "<templateName[0]>\/<foreignKey[0]>",
+   "filename": "oozie-site.xml"
+   },
+   */
   {
     "name": "oozie.base.url",
     "templateName": ["oozieserver_host"],
@@ -295,35 +295,35 @@ module.exports = [
     "filename": "oozie-site.xml"
   },
   /*
-  {
-    "name": "oozie.service.JPAService.jdbc.password",
-    "templateName": [],
-    "foreignKey": null,
-    "value": " ",
-    "filename": "oozie-site.xml"
-  },
-  {
-    "name": "oozie.db.schema.name",
-    "templateName": [],
-    "foreignKey": null,
-    "value": "oozie",
-    "filename": "oozie-site.xml"
-  },
-  {
-    "name": "oozie.service.JPAService.jdbc.url",
-    "templateName": [],
-    "foreignKey": null,
-    "value": "jdbc:derby:/var/data/oozie/oozie-db;create=true",
-    "filename": "oozie-site.xml"
-  },
-  {
-    "name": "oozie.action.ssh.http.command.post.options",
-    "templateName": [],
-    "foreignKey": null,
-    "value": " ",
-    "filename": "oozie-site.xml"
-  },
-  */
+   {
+   "name": "oozie.service.JPAService.jdbc.password",
+   "templateName": [],
+   "foreignKey": null,
+   "value": " ",
+   "filename": "oozie-site.xml"
+   },
+   {
+   "name": "oozie.db.schema.name",
+   "templateName": [],
+   "foreignKey": null,
+   "value": "oozie",
+   "filename": "oozie-site.xml"
+   },
+   {
+   "name": "oozie.service.JPAService.jdbc.url",
+   "templateName": [],
+   "foreignKey": null,
+   "value": "jdbc:derby:/var/data/oozie/oozie-db;create=true",
+   "filename": "oozie-site.xml"
+   },
+   {
+   "name": "oozie.action.ssh.http.command.post.options",
+   "templateName": [],
+   "foreignKey": null,
+   "value": " ",
+   "filename": "oozie-site.xml"
+   },
+   */
   {
     "name": "javax.jdo.option.ConnectionURL",
     "templateName": ["hive_mysql_host", "hive_database_name"],
@@ -570,14 +570,14 @@ module.exports = [
     "filename": "hbase-site.xml"
   },
   /*
-  {
-    "name": "hbase.master.info.bindAddress",
-    "templateName": ["hbasemaster.host"],
-    "foreignKey": null,
-    "value": "<templateName[0]>",
-    "filename": "hbase-site.xml"
-  },
-  */
+   {
+   "name": "hbase.master.info.bindAddress",
+   "templateName": ["hbasemaster.host"],
+   "foreignKey": null,
+   "value": "<templateName[0]>",
+   "filename": "hbase-site.xml"
+   },
+   */
   {
     "name": "hbase.regionserver.global.memstore.upperLimit",
     "templateName": ["regionserver_memstore_upperlimit"],
@@ -745,5 +745,19 @@ module.exports = [
     "foreignKey": null,
     "value": "<templateName[0]>",
     "filename": "hbase-site.xml"
+  },
+  {
+    "name": "templeton.hive.properties",
+    "templateName": ["hivemetastore_host"],
+    "foreignKey": null,
+    "value": "hive.metastore.local=false,hive.metastore.uris=thrift://<templateName[0]>:9083,hive.metastore.sasl.enabled=no",
+    "filename": "webhcat-site.xml"
+  },
+  {
+    "name": "templeton.zookeeper.hosts",
+    "templateName": ["zookeeperserver_hosts"],
+    "foreignKey": null,
+    "value": "<templateName[0]>",
+    "filename": "webhcat-site.xml"
   }
-]
+];

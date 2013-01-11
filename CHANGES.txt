@@ -671,6 +671,9 @@ AMBARI-666 branch (unreleased changes)
 
   BUG FIXES
 
+  AMBARI-1104. Webhcat configuration not setting templeton-libjars.
+  (Jaimin Jetly via yusaku)
+
   AMBARI-1151. Reconfigure fails silently; it's not firing any API calls due
   to a JS error. (yusaku)
 

@@ -60,7 +60,7 @@ App.WizardStep8Controller = Em.Controller.extend({
       //TODO: Hive host depends on the type of db selected. Change puppet variable name if postgres is not the default db
       var hiveDb = globals.findProperty('name', 'hive_database');
       if (hiveDb.value === 'New MySQL Database') {
-        if (globals.findProperty('name', 'hive_ambari_host')) {
+        if (globals.someProperty('name', 'hive_ambari_host')) {
           globals.findProperty('name', 'hive_ambari_host').name = 'hive_mysql_host';
         }
         globals = globals.without(globals.findProperty('name', 'hive_existing_host'));
@@ -84,7 +84,7 @@ App.WizardStep8Controller = Em.Controller.extend({
     var uiConfig = [];
     var configs = this.get('configMapping').filterProperty('foreignKey', null);
     configs.forEach(function (_config) {
-      var value = this.getGlobConfigValue(_config.templateName, _config.value);
+      var value = this.getGlobConfigValue(_config.templateName, _config.value, _config.name);
       uiConfig.pushObject({
         "id": "site property",
         "name": _config.name,
@@ -121,7 +121,7 @@ App.WizardStep8Controller = Em.Controller.extend({
    * Set all site property that are derived from other puppet-variable
    */
 
-  getGlobConfigValue: function (templateName, expression) {
+  getGlobConfigValue: function (templateName, expression, name) {
     var express = expression.match(/<(.*?)>/g);
     var value = expression;
     if (express == null) {
@@ -133,7 +133,21 @@ App.WizardStep8Controller = Em.Controller.extend({
       if (this.get('globals').someProperty('name', templateName[index])) {
         //console.log("The name of the variable is: " + this.get('content.serviceConfigProperties').findProperty('name', templateName[index]).name);
         var globValue = this.get('globals').findProperty('name', templateName[index]).value;
-        value = value.replace(_express, globValue);
+        // Hack for templeton.zookeeper.hosts
+        if (name === "templeton.zookeeper.hosts") {
+          var zooKeeperPort = '2181';
+          if(typeof globValue === 'string') {
+            var temp = [];
+            temp.push(globValue);
+            globValue = temp;
+          }
+          globValue.forEach(function (_host,index) {
+            globValue[index] = globValue[index] + ':' + zooKeeperPort;
+          }, this);
+          value = value.replace(_express, globValue.toString());
+        } else {
+          value = value.replace(_express, globValue);
+        }
       } else {
         /*
          console.log("ERROR: The variable name is: " + templateName[index]);
@@ -141,7 +155,7 @@ App.WizardStep8Controller = Em.Controller.extend({
          "content.serviceConfigProperties. Two possible reasons for the error could be: 1) The service is not selected. " +
          "and/OR 2) The service_config metadata file has no corresponding global var for the site property variable");
          */
-        value = null;
+        //value = null;
       }
     }, this);
     return value;
@@ -256,7 +270,7 @@ App.WizardStep8Controller = Em.Controller.extend({
       newComponent.serviceName = this.getServiceInfo(newComponent.componentName).name;
       newComponent.groups = [];
       var index = 2;
-      if(_slaveContent.groups){
+      if (_slaveContent.groups) {
         _slaveContent.groups.forEach(function (_group) {
           var newGroup = {};
           newGroup.groupName = _group.name;
@@ -412,13 +426,13 @@ App.WizardStep8Controller = Em.Controller.extend({
           case 'GANGLIA':
             this.loadGanglia(serviceObj);
             break;
-         /* case 'PIG':
-            this.loadPig(serviceObj);
-            break;
-          case 'SQOOP':
-            this.loadSqoop(serviceObj);
-            break;
-            */
+          /* case 'PIG':
+           this.loadPig(serviceObj);
+           break;
+           case 'SQOOP':
+           this.loadSqoop(serviceObj);
+           break;
+           */
           case 'HCATALOG':
             break;
           default:
@@ -463,14 +477,14 @@ App.WizardStep8Controller = Em.Controller.extend({
   loadDnValue: function (dnComponent) {
     var dnHosts = this.get('content.slaveComponentHosts').findProperty('displayName', 'DataNode');
     var totalDnHosts = dnHosts.hosts.length;
-   /* var totalGroups = this.get('slaveComponentConfig.components').findProperty('componentName', 'DATANODE').groups.length;
-    var groupLabel;
-    if (totalGroups == 1) {
-      groupLabel = 'group';
-    } else {
-      groupLabel = 'groups';
-    }
-    */
+    /* var totalGroups = this.get('slaveComponentConfig.components').findProperty('componentName', 'DATANODE').groups.length;
+     var groupLabel;
+     if (totalGroups == 1) {
+     groupLabel = 'group';
+     } else {
+     groupLabel = 'groups';
+     }
+     */
     dnComponent.set('component_value', totalDnHosts + ' hosts');
   },
 
@@ -502,14 +516,14 @@ App.WizardStep8Controller = Em.Controller.extend({
   loadTtValue: function (ttComponent) {
     var ttHosts = this.get('content.slaveComponentHosts').findProperty('displayName', 'TaskTracker');
     var totalTtHosts = ttHosts.hosts.length;
-   /* var totalGroups = this.get('slaveComponentConfig.components').findProperty('componentName', 'TASKTRACKER').groups.length;
-    var groupLabel;
-    if (totalGroups == 1) {
-      groupLabel = 'group';
-    } else {
-      groupLabel = 'groups';
-    }
-    */
+    /* var totalGroups = this.get('slaveComponentConfig.components').findProperty('componentName', 'TASKTRACKER').groups.length;
+     var groupLabel;
+     if (totalGroups == 1) {
+     groupLabel = 'group';
+     } else {
+     groupLabel = 'groups';
+     }
+     */
     ttComponent.set('component_value', totalTtHosts + ' hosts');
   },
 
@@ -581,13 +595,13 @@ App.WizardStep8Controller = Em.Controller.extend({
   loadRegionServerValue: function (rsComponent) {
     var rsHosts = this.get('content.slaveComponentHosts').findProperty('displayName', 'RegionServer');
     var totalRsHosts = rsHosts.hosts.length;
-   /* var totalGroups = this.get('slaveComponentConfig.components').findProperty('componentName', 'HBASE_REGIONSERVER').groups.length;
-    var groupLabel;
-    if (totalGroups == 1) {
-      groupLabel = 'group';
-    } else {
-      groupLabel = 'groups';
-    } */
+    /* var totalGroups = this.get('slaveComponentConfig.components').findProperty('componentName', 'HBASE_REGIONSERVER').groups.length;
+     var groupLabel;
+     if (totalGroups == 1) {
+     groupLabel = 'group';
+     } else {
+     groupLabel = 'groups';
+     } */
     rsComponent.set('component_value', totalRsHosts + ' hosts');
   },
 
@@ -727,7 +741,7 @@ App.WizardStep8Controller = Em.Controller.extend({
 
     if (App.testMode || !this.get('content.cluster.requestId')) {
       // For recovery : set the cluster status
-      App.clusterStatus.set('value',{
+      App.clusterStatus.set('value', {
         clusterName: this.get('clusterName'),
         clusterState: 'CLUSTER_DEPLOY_PREP_2',
         localdb: App.db.data
@@ -742,7 +756,7 @@ App.WizardStep8Controller = Em.Controller.extend({
       this.registerHostsToCluster();
       this.createAllHostComponents();
       //this.applyCreatedConfToSlaveGroups();
-      this.ajaxQueueFinished = function(){
+      this.ajaxQueueFinished = function () {
         console.log('everything is loaded')
         App.router.send('next');
       };
@@ -753,10 +767,10 @@ App.WizardStep8Controller = Em.Controller.extend({
   },
 
   setAmbariUIDb: function () {
-    var dbContent =  this.get('content.slaveGroupProperties');
+    var dbContent = this.get('content.slaveGroupProperties');
     var slaveComponentConfig = this.get("slaveComponentConfig");
     this.persistKeyValues(slaveComponentConfig.version, dbContent);
-    this.persistKeyValues('current_version',slaveComponentConfig.version);
+    this.persistKeyValues('current_version', slaveComponentConfig.version);
   },
 
   persistKeyValues: function (key, value) {
@@ -810,7 +824,7 @@ App.WizardStep8Controller = Em.Controller.extend({
     var data = this.createServiceData();
     var httpMethod = 'POST';
 
-    if(!data.length){
+    if (!data.length) {
       return;
     }
 
@@ -883,11 +897,11 @@ App.WizardStep8Controller = Em.Controller.extend({
 
   createRegisterHostData: function () {
     var hosts = this.getRegisteredHosts().filterProperty('isInstalled', false);
-    if(!hosts.length){
+    if (!hosts.length) {
       return [];
     }
     return hosts.map(function (host) {
-        return {"Hosts": { "host_name": host.hostName}};
+      return {"Hosts": { "host_name": host.hostName}};
     });
   },
 
@@ -1043,7 +1057,7 @@ App.WizardStep8Controller = Em.Controller.extend({
     var selectedServices = this.get('selectedServices');
     if (!this.get('content.isWizard')) {
       this.createConfigSiteForService(this.createGlobalSiteObj());
-     // this.createGlobalSitePerSlaveGroup();
+      // this.createGlobalSitePerSlaveGroup();
       this.createConfigSiteForService(this.createCoreSiteObj());
       this.createConfigSiteForService(this.createHdfsSiteObj());
       //this.createHdfsSitePerSlaveGroup('HDFS');
@@ -1268,7 +1282,7 @@ App.WizardStep8Controller = Em.Controller.extend({
     hiveProperties['hive.metastore.uris'] = 'thrift://' + this.get('globals').findProperty('name', 'hivemetastore_host').value + ':9083';
     hiveProperties['javax.jdo.option.ConnectionURL'] =
       'jdbc:mysql://' + this.get('globals').findProperty('name', 'hive_mysql_host').value +
-      '/' + this.get('globals').findProperty('name', 'hive_database_name').value + '?createDatabaseIfNotExist=true';
+        '/' + this.get('globals').findProperty('name', 'hive_database_name').value + '?createDatabaseIfNotExist=true';
     return {type: 'hive-site', tag: 'version1', properties: hiveProperties};
   },
 
@@ -1310,12 +1324,12 @@ App.WizardStep8Controller = Em.Controller.extend({
         var aggregatedHostNames = '';
         _group.hostNames.forEach(function (_hostName, index) {
           aggregatedHostNames += 'HostRoles/host_name=' + _hostName;
-          if (index !== _group.hostNames.length-1) {
+          if (index !== _group.hostNames.length - 1) {
             aggregatedHostNames += '|';
           }
         }, this);
         console.log("The aggregated hostNames value is: " + aggregatedHostNames);
-        this.applyCreatedConfToSlaveGroup(aggregatedHostNames, 'PUT', _group.configVersion,_group.groupName);
+        this.applyCreatedConfToSlaveGroup(aggregatedHostNames, 'PUT', _group.configVersion, _group.groupName);
       }, this);
     }, this);
   },
@@ -1402,8 +1416,8 @@ App.WizardStep8Controller = Em.Controller.extend({
    * @param params
    */
 
-  ajax: function(params){
-    if(App.testMode) return;
+  ajax: function (params) {
+    if (App.testMode) return;
 
     var self = this;
     params = jQuery.extend({
@@ -1413,7 +1427,7 @@ App.WizardStep8Controller = Em.Controller.extend({
       timeout: App.timeout,
       error: function (request, ajaxOptions, error) {
         console.log('Step8: In Error ');
-       // console.log('Step8: Error message is: ' + request.responseText);
+        // console.log('Step8: Error message is: ' + request.responseText);
       },
       success: function (data) {
         var jsonData = jQuery.parseJSON(data);
@@ -1435,11 +1449,11 @@ App.WizardStep8Controller = Em.Controller.extend({
       self.doNextAjaxCall();
     }
 
-    params.error = function (xhr,status,error) {
+    params.error = function (xhr, status, error) {
       var responseText = JSON.parse(xhr.responseText);
-        self.registerErrPopup("Error", responseText.message);
-        self.set('isSubmitDisabled',true);
-        self.set('hasErrorOccurred',true);
+      self.registerErrPopup("Error", responseText.message);
+      self.set('isSubmitDisabled', true);
+      self.set('hasErrorOccurred', true);
     }
     this.get('ajaxQueue').pushObject(params);
   }
