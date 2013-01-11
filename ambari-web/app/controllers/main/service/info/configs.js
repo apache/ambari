@@ -569,7 +569,10 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
       if (this.get('globalConfigs').someProperty('name', templateName[index])) {
         //console.log("The name of the variable is: " + this.get('content.serviceConfigProperties').findProperty('name', templateName[index]).name);
         var globValue = this.get('globalConfigs').findProperty('name', templateName[index]).value;
-        value = value.replace(_express, globValue);
+        // TODO: hack to make reconfig work for now due to some hive params breaking reconfig in general
+        if (value != null) {
+          value = value.replace(_express, globValue);
+        }
       } else {
         /*
          console.log("ERROR: The variable name is: " + templateName[index]);

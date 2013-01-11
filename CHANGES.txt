@@ -667,6 +667,9 @@ AMBARI-666 branch (unreleased changes)
 
   BUG FIXES
 
+  AMBARI-1151. Reconfigure fails silently; it's not firing any API calls due
+  to a JS error. (yusaku)
+
   AMBARI-1098. Switching services does not update various UI elements.
   (Srimanth Gunturi via yusaku)
 
