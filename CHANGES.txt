@@ -675,6 +675,9 @@ AMBARI-666 branch (unreleased changes)
 
   BUG FIXES
 
+  AMBARI-1112. Add hosts fails second time around. (Srimanth Gunturi via
+  yusaku)
+
   AMBARI-1111. Install wizard step 9 gets stuck at 0% and other issues on
   page refresh. (Srimanth Gunturi via yusaku)
 

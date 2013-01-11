@@ -148,6 +148,15 @@ module.exports = Em.Route.extend({
     },
 
     addHost:function (router) {
+      if(App.clusterStatus){
+        var currentClusterStatus = App.clusterStatus.get('value');
+        if(currentClusterStatus && currentClusterStatus.clusterState=="ADD_HOSTS_COMPLETED_5"){
+          // The last time add hosts ran, it left the status
+          // in this state. We need to clear any previous status
+          // so that the hosts page starts from fresh.
+          currentClusterStatus.clusterState = 'CLUSTER_STARTED_5';
+        }
+      }
       router.transitionTo('hostAdd');
     }
 
