@@ -1294,7 +1294,7 @@ module.exports =
       "displayName": "MapReduce Capacity Scheduler",
       "description": "The scheduler to use for scheduling of MapReduce jobs",
       "defaultValue": "org.apache.hadoop.mapred.CapacityTaskScheduler",
-      "displayType": "directory",
+      //"displayType": "directory",
       "isVisible": true,
       "serviceName": "MAPREDUCE"
     },
