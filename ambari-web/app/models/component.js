@@ -33,7 +33,9 @@ App.Component = DS.Model.extend({
   //host_id: DS.attr('string'),
 
   workStatus: DS.attr('string'),
-
+  
+  desiredStatus: DS.attr('string'),
+  
   isMaster: function () {
     switch (this.get('componentName')) {
       case 'NAMENODE':

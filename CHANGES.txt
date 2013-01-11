@@ -675,6 +675,9 @@ AMBARI-666 branch (unreleased changes)
 
   BUG FIXES
 
+  AMBARI-1132. Stopping service doesn't cause blinking status until refresh.
+  (Srimanth Gunturi via yusaku)
+
   AMBARI-1143. tmpfs filesystem being added to the list in the dir used by
   Ambari. (Arun Kandregula via yusaku) 
 

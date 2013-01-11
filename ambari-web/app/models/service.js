@@ -40,10 +40,16 @@ App.Service = DS.Model.extend({
   healthStatus: function () {
     var components = this.get('components').filterProperty('isMaster', true);
     if (components.everyProperty('workStatus', App.Component.Status.started)) {
+      if (components.someProperty('desiredStatus', App.Component.Status.stopped)) {
+        return 'red-blinking';
+      }
       return 'green';
     } else if (components.someProperty('workStatus', App.Component.Status.starting)) {
       return 'green-blinking';
     } else if (components.someProperty('workStatus', App.Component.Status.stopped)) {
+      if (components.someProperty('desiredStatus', App.Component.Status.started)) {
+        return 'green-blinking';
+      }
       return 'red';
     } else {
       return 'red-blinking';

@@ -127,6 +127,7 @@ App.servicesMapper = App.QuickDataMapper.create({
     // page must be careful because, it will randomly
     // pick a host.
     work_status: 'host_components[0].HostRoles.state',
+    desired_status: 'host_components[0].HostRoles.desired_state',
     host_id: 'host_components[0].HostRoles.host_name'
   },
 
@@ -134,6 +135,7 @@ App.servicesMapper = App.QuickDataMapper.create({
   config3: {
     id: 'id',
     work_status: 'HostRoles.state',
+    desired_status: 'HostRoles.desired_state',
     component_name: 'HostRoles.component_name',
     host_id: 'HostRoles.host_name',
     service_id: 'component[0].ServiceComponentInfo.service_name'
@@ -207,6 +209,7 @@ App.servicesMapper = App.QuickDataMapper.create({
         if (component && component.get('isLoaded')) { // UPDATE
           if (componentJson.work_status) {
             component.set('workStatus', componentJson.work_status);
+            component.set('desiredStatus', componentJson.desired_status);
           }
           if (componentJson.host_id) {
             component.set('host', App.Host.find(componentJson.host_id));
@@ -235,6 +238,7 @@ App.servicesMapper = App.QuickDataMapper.create({
         if (component && component.get('isLoaded')) { // UPDATE
           if (hcJson.work_status) {
             component.set('workStatus', hcJson.work_status);
+            component.set('desiredStatus', hcJson.desired_status);
           }
           if (hcJson.component_name) {
             component.set('componentName', hcJson.component_name);
