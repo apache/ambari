@@ -37,7 +37,7 @@ App.MainChartsHeatmapHostView = Em.View.extend({
     $.each(view.get('details'), function(i){
       var val = host.get(i);
       if (i == 'diskUsage') {
-        if (val == undefined || isNaN(val)) {
+        if (val == undefined || isNaN(val) || val == Infinity || val == -Infinity) {
           val = null;
         } else {
           val = val.toFixed(1);
@@ -49,7 +49,7 @@ App.MainChartsHeatmapHostView = Em.View.extend({
           val = val.toFixed(1);
         }
       } else if (i == 'memoryUsage') {
-        if (val == undefined || isNaN(val)) {
+        if (val == undefined || isNaN(val) || val == Infinity || val == -Infinity) {
           val = null;
         } else {
           val = val.toFixed(1);

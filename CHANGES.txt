@@ -675,6 +675,9 @@ AMBARI-666 branch (unreleased changes)
 
   BUG FIXES
 
+  AMBARI-1123. Ambari heatmaps and host information shows infinity for disk
+  space used. (Srimanth Gunturi via yusaku)
+
   AMBARI-1141. In some cases, clicking "Register and Confirm" button does
   not do anything. (Arun Kandregula via yusaku)
  
