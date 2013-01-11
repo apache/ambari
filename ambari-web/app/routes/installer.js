@@ -48,6 +48,13 @@ module.exports = Em.Route.extend({
                   installerController.setCurrentStep('9');
                   App.db.data = currentClusterStatus.localdb;
                   break;
+                case 'CLUSTER_INSTALLED_4' :
+                  installerController.setCurrentStep('10');
+                  App.db.data = currentClusterStatus.localdb;
+                  break;
+                case 'CLUSTER_STARTED_5' :
+                  router.transitionTo('main.index');
+                  break;
                 default:
                   break;
               }
@@ -311,6 +318,14 @@ module.exports = Em.Route.extend({
       var installerController = router.get('installerController');
       var wizardStep9Controller = router.get('wizardStep9Controller');
       installerController.saveInstalledHosts(wizardStep9Controller);
+
+      // For recovery : set the cluster status
+      App.clusterStatus.set('value', {
+        clusterName: this.get('clusterName'),
+        clusterState: 'CLUSTER_INSTALLED_4',
+        localdb: App.db.data
+      });
+
       router.transitionTo('step10');
     }
   }),
@@ -329,6 +344,14 @@ module.exports = Em.Route.extend({
       if (true) {   // this function will be moved to installerController where it will validate
         var controller = router.get('installerController');
         controller.finish();
+
+        // For recovery : set the cluster status
+        App.clusterStatus.set('value', {
+          clusterName: this.get('clusterName'),
+          clusterState: 'CLUSTER_STARTED_5',
+          localdb: App.db.data
+        });
+
         router.transitionTo('main.index');
       } else {
         console.log('cluster installation failure');
