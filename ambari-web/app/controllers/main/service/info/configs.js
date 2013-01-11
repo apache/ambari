@@ -227,6 +227,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
   /**
    * Render a custom conf-site box for entering properties that will be written in *-site.xml files of the services
    */
+
   loadCustomConfig: function (serviceConfigs) {
     if (this.get('customConfigs').findProperty('serviceName', this.get('content.serviceName'))) {
       var customConfigs = this.get('customConfigs').filterProperty('serviceName', this.get('content.serviceName'));
@@ -276,7 +277,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
           serviceConfigObj.isRequired = configProperty.isRequired ? configProperty.isRequired : true;
           serviceConfigObj.isReconfigurable = (configProperty.isReconfigurable !== undefined) ? configProperty.isReconfigurable : true;
           serviceConfigObj.isVisible = (configProperty.isVisible !== undefined) ? configProperty.isVisible : true;
-          serviceConfigObj.unit = (configProperty.isVisible !== undefined) ? configProperty.unit : undefined;
+          serviceConfigObj.unit = (configProperty.unit !== undefined) ? configProperty.unit : undefined;
 
         }
         serviceConfigObj.displayType = this.get('configs').someProperty('name', index) ? this.get('configs').findProperty('name', index).displayType : null;
@@ -793,9 +794,14 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
     var coreSiteObj = this.get('uiConfigs').filterProperty('filename', 'core-site.xml');
     var coreSiteProperties = {};
     // hadoop.proxyuser.oozie.hosts needs to be skipped if oozie is not selected
-    var isOozieSelected = (this.get('content.serviceName') === 'OOZIE');
+    var isOozieSelected = App.Service.find().someProperty('serviceName', 'OOZIE');
+    var oozieUser = this.get('globalConfigs').someProperty('name', 'oozie_user') ? this.get('globalConfigs').findProperty('name', 'oozie_user').value : null;
+    var isHiveSelected = App.Service.find().someProperty('serviceName', 'HIVE');
+    var hiveUser = this.get('globalConfigs').someProperty('name', 'hive_user') ? this.get('globalConfigs').findProperty('name', 'hive_user').value : null;
+    var isHcatSelected = App.Service.find().someProperty('serviceName', 'WEBHCAT');
+    var hcatUser = this.get('globalConfigs').someProperty('name', 'hcat_user') ? this.get('globalConfigs').findProperty('name', 'hcat_user').value : null;
     coreSiteObj.forEach(function (_coreSiteObj) {
-      if (_coreSiteObj.name != 'hadoop.proxyuser.oozie.hosts') {
+      if ((isOozieSelected || (_coreSiteObj.name != 'hadoop.proxyuser.' + oozieUser + '.hosts' && _coreSiteObj.name != 'hadoop.proxyuser.' + oozieUser + '.groups')) && (isHiveSelected || (_coreSiteObj.name != 'hadoop.proxyuser.' + hiveUser + '.hosts' && _coreSiteObj.name != 'hadoop.proxyuser.' + hiveUser + '.groups')) && (isHcatSelected || (_coreSiteObj.name != 'hadoop.proxyuser.' + hcatUser + '.hosts' && _coreSiteObj.name != 'hadoop.proxyuser.' + hcatUser + '.groups'))) {
         coreSiteProperties[_coreSiteObj.name] = _coreSiteObj.value;
       }
       //console.log("TRACE: name of the property is: " + _coreSiteObj.name);
@@ -851,10 +857,14 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
     var data = {config: {}};
     this.get('serviceConfigTags').forEach(function (_serviceTag) {
       if (config === 'new') {
-        if (this.get('content.serviceName') === 'HDFS') {
-          data.config[_serviceTag.siteName] = _serviceTag.newTagName;
+        if (_serviceTag.siteName === 'core-site') {
+          if (this.get('content.serviceName') === 'HDFS') {
+            data.config[_serviceTag.siteName] = _serviceTag.newTagName;
+          } else {
+            data.config[_serviceTag.siteName] = _serviceTag.tagName;
+          }
         } else {
-          data.config[_serviceTag.siteName] = _serviceTag.tagName;
+          data.config[_serviceTag.siteName] = _serviceTag.newTagName;
         }
       }
       else if (config = 'previous') {

@@ -1197,8 +1197,13 @@ App.WizardStep8Controller = Em.Controller.extend({
     var coreSiteProperties = {};
     // hadoop.proxyuser.oozie.hosts needs to be skipped if oozie is not selected
     var isOozieSelected = this.get('selectedServices').someProperty('serviceName', 'OOZIE');
+    var oozieUser = this.get('globals').someProperty('name','oozie_user')  ? this.get('globals').findProperty('name','oozie_user').value : null;
+    var isHiveSelected = this.get('selectedServices').someProperty('serviceName', 'HIVE');
+    var hiveUser = this.get('globals').someProperty('name','hive_user') ? this.get('globals').findProperty('name','hive_user').value : null;
+    var isHcatSelected = this.get('selectedServices').someProperty('serviceName', 'WEBHCAT');
+    var hcatUser = this.get('globals').someProperty('name','hcat_user') ? this.get('globals').findProperty('name','hcat_user').value : null;
     coreSiteObj.forEach(function (_coreSiteObj) {
-      if (isOozieSelected || _coreSiteObj.name != 'hadoop.proxyuser.oozie.hosts') {
+      if ((isOozieSelected || (_coreSiteObj.name != 'hadoop.proxyuser.' + oozieUser +'.hosts' && _coreSiteObj.name != 'hadoop.proxyuser.' + oozieUser +'.groups')) && (isHiveSelected || (_coreSiteObj.name != 'hadoop.proxyuser.' + hiveUser +'.hosts' && _coreSiteObj.name != 'hadoop.proxyuser.' + hiveUser + '.groups')) && (isHcatSelected || (_coreSiteObj.name != 'hadoop.proxyuser.' + hcatUser +'.hosts' && _coreSiteObj.name != 'hadoop.proxyuser.' + hcatUser + '.groups'))) {
         coreSiteProperties[_coreSiteObj.name] = _coreSiteObj.value;
       }
       console.log("STEP*: name of the property is: " + _coreSiteObj.name);
