@@ -38,7 +38,7 @@ App.UpdateController = Em.Controller.extend({
     if(this.get('isWorking')){
       if(timeIntervalId) return;
       this.set('timeIntervalId', setInterval(function(){
-        this.updateAllWrapper();
+        self.updateAllWrapper();
       }, App.contentUpdateInterval));
     } else {
       clearInterval(timeIntervalId);

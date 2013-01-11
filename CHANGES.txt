@@ -664,6 +664,9 @@ AMBARI-666 branch (unreleased changes)
 
   BUG FIXES
 
+  AMBARI-1098. Switching services does not update various UI elements.
+  (Srimanth Gunturi via yusaku)
+
   AMBARI-1150. Installer Wizard - Retry feature in Deploy step (Step 9) is
   broken. (yusaku)
 

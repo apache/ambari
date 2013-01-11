@@ -144,12 +144,6 @@ App.servicesMapper = App.QuickDataMapper.create({
     }
 
     if (json.items) {
-      try{
-        App.store.commit();
-      }catch (e) {
-        console.log("Error committing store before Service mapper maps");
-        console.log(e);
-      }
       var result = [];
       json.items.forEach(function (item) {
         var finalConfig = jQuery.extend({}, this.config);
@@ -188,24 +182,64 @@ App.servicesMapper = App.QuickDataMapper.create({
       result = this.sortByOrder(this.get('servicesSortOrder'), result);
       App.store.loadMany(this.get('model'), result);
 
+      // Service components
       result = [];
-      json.items.forEach(function (item) {
-        item.components.forEach(function (component) {
+      json.items.forEach(function(item){
+        item.components.forEach(function(component){
           result.push(this.parseIt(component, this.config2));
         }, this)
       }, this);
+      var newComponents = [];
+      result.forEach(function(componentJson){
+        var component = App.Component.find(componentJson.id);
+        if (component && component.get('isLoaded')) { // UPDATE
+          if (componentJson.work_status) {
+            component.set('workStatus', componentJson.work_status);
+          }
+          if (componentJson.host_id) {
+            component.set('host', App.Host.find(componentJson.host_id));
+          }
+        } else {
+          newComponents.push(componentJson);
+        }
+      });
+      if (newComponents.length > 0) {
+        App.store.loadMany(this.get('model2'), newComponents);
+      }
 
-      App.store.loadMany(this.get('model2'), result);
-
+      // Host components
       result = [];
-      json.items.forEach(function (item) {
-        item.components.forEach(function (component) {
-          component.host_components.forEach(function (host_component) {
+      json.items.forEach(function(item){
+        item.components.forEach(function(component){
+          component.host_components.forEach(function(host_component){
             result.push(this.parseIt(host_component, this.config3));
           }, this)
         }, this)
       }, this);
-      App.store.loadMany(this.get('model3'), result);
+      var newHostComponents = [];
+      result.forEach(function(hcJson){
+        hcJson.id = hcJson.component_name + '_' + hcJson.host_id;
+        var component = App.HostComponent.find(hcJson.id);
+        if (component && component.get('isLoaded')) { // UPDATE
+          if (hcJson.work_status) {
+            component.set('workStatus', hcJson.work_status);
+          }
+          if (hcJson.component_name) {
+            component.set('componentName', hcJson.component_name);
+          }
+          if (hcJson.host_id) {
+            component.set('host', App.Host.find(hcJson.host_id));
+          }
+          if (hcJson.service_id) {
+            component.set('service', App.Service.find(hcJson.service_id));
+          }
+        } else {
+          newHostComponents.push(hcJson);
+        }
+      });
+      if (newHostComponents.length > 0) {
+        App.store.loadMany(this.get('model3'), newHostComponents);
+      }
     }
   },
   update: function (service) {
