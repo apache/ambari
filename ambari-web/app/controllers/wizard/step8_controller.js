@@ -1436,21 +1436,6 @@ App.WizardStep8Controller = Em.Controller.extend({
 
   },
 
-  registerErrPopup: function (header, message) {
-
-    App.ModalPopup.show({
-      header: header,
-      secondary: false,
-      onPrimary: function () {
-        this.hide();
-      },
-      bodyClass: Ember.View.extend({
-        template: Ember.Handlebars.compile(['<p>{{view.message}}</p>'].join('\n')),
-        message: message
-      })
-    });
-  },
-
   /**
    * We need to do a lot of ajax calls(about 10 or more) async in special order.
    * To do this i generate array of ajax objects and then send requests step by step.
@@ -1493,7 +1478,8 @@ App.WizardStep8Controller = Em.Controller.extend({
 
     params.error = function (xhr, status, error) {
       var responseText = JSON.parse(xhr.responseText);
-      self.registerErrPopup("Error", responseText.message);
+      var controller = App.router.get(App.clusterStatus.wizardControllerName);
+      controller.registerErrPopup("Error", responseText.message);
       self.set('isSubmitDisabled', true);
       self.set('hasErrorOccurred', true);
     }

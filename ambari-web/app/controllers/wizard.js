@@ -526,6 +526,20 @@ App.WizardController = Em.Controller.extend({
       }, this);
     }
     this.set('content.slaveGroupProperties', groupConfigProperties);
+  },
+
+  registerErrPopup: function (header, message) {
+    App.ModalPopup.show({
+      header: header,
+      secondary: false,
+      onPrimary: function () {
+        this.hide();
+      },
+      bodyClass: Ember.View.extend({
+        template: Ember.Handlebars.compile(['<p>{{view.message}}</p>'].join('\n')),
+        message: message
+      })
+    });
   }
 
 })

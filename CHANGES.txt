@@ -674,6 +674,9 @@ AMBARI-666 branch (unreleased changes)
   OPTIMIZATIONS
 
   BUG FIXES
+
+  AMBARI-1141. In some cases, clicking "Register and Confirm" button does
+  not do anything. (Arun Kandregula via yusaku)
  
   AMBARI-1140. Resuming deploy for Installer/Add Hosts does not work if the
   browser is shut down during the start phase of deploy.

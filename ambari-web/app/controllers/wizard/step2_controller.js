@@ -216,7 +216,10 @@ App.WizardStep2Controller = Em.Controller.extend({
     }
 
     var requestId = App.router.get(this.get('content.controllerName')).launchBootstrap(bootStrapData);
-    if(requestId) {
+    if (requestId == '0') {
+      var controller = App.router.get(App.clusterStatus.wizardControllerName);
+      controller.registerErrPopup('Information', 'Host Registration is currently in progress.  Please try again later.');
+    } else if (requestId) {
       this.set('content.installOptions.bootRequestId', requestId);
       this.saveHosts();
     }

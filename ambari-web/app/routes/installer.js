@@ -25,6 +25,8 @@ module.exports = Em.Route.extend({
   enter: function (router) {
     console.log('in /installer:enter');
 
+    App.clusterStatus.set('wizardControllerName',App.router.get('installerController.name'));
+
     if (router.getAuthenticated()) {
       var name = 'Cluster Install Wizard';
       $('title').text('Ambari - ' + name);
