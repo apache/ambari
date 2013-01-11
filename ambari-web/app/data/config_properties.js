@@ -867,6 +867,7 @@ module.exports =
       ],
       "description": "MySQL will be installed by Ambari",
       "displayType": "radio button",
+      "isReconfigurable": false,
       "radioName": "hive-database",
       "isVisible": true,
       "domain": "global",
@@ -882,6 +883,7 @@ module.exports =
       "description": "Using an existing database for Hive Metastore",
       "displayType": "masterHost",
       "isVisible": false,
+      "isReconfigurable": false,
       "domain": "global",
       "serviceName": "HIVE",
       "category": "Hive Metastore"

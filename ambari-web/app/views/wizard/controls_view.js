@@ -161,7 +161,10 @@ App.ServiceConfigRadioButtons = Ember.View.extend({
   serviceConfig: null,
   categoryConfigs: null,
   nameBinding: 'serviceConfig.radioName',
-  optionsBinding: 'serviceConfig.options'
+  optionsBinding: 'serviceConfig.options',
+  disabled: function () {
+    return !this.get('serviceConfig.isEditable');
+  }.property('serviceConfig.isEditable')
 });
 
 App.ServiceConfigRadioButton = Ember.Checkbox.extend({
@@ -196,13 +199,19 @@ App.ServiceConfigRadioButton = Ember.Checkbox.extend({
         }
       }, this);
     }, this);
-  }.observes('checked')
+  }.observes('checked'),
+  disabled: function () {
+    return !this.get('serviceConfig.isEditable');
+  }.property('serviceConfig.isEditable')
 });
 
 App.ServiceConfigComboBox = Ember.Select.extend(App.ServiceConfigPopoverSupport, {
   contentBinding: 'serviceConfig.options',
   selectionBinding: 'serviceConfig.value',
-  classNames: [ 'span3' ]
+  classNames: [ 'span3' ],
+  disabled: function () {
+    return !this.get('serviceConfig.isEditable');
+  }.property('serviceConfig.isEditable')
 });
 
 

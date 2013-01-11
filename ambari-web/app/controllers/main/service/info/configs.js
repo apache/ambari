@@ -306,6 +306,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
             serviceConfigObj.serviceName = this.get('configs').someProperty('name', index) ? this.get('configs').findProperty('name', index).serviceName : null;
             serviceConfigObj.displayName = this.get('configs').someProperty('name', index) ? this.get('configs').findProperty('name', index).displayName : null;
             serviceConfigObj.category = this.get('configs').someProperty('name', index) ? this.get('configs').findProperty('name', index).category : null;
+            serviceConfigObj.options = this.get('configs').someProperty('name', index) ? this.get('configs').findProperty('name', index).options : null;
             globalConfigs.pushObject(serviceConfigObj);
           } else if (!this.get('configMapping').someProperty('name', index)) {
             if (advancedConfig.someProperty('name', index)) {
@@ -548,7 +549,27 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
         });
       }
     }, this);
+
+    this.setHiveHostName(globalConfigs);
     this.set('globalConfigs', globalConfigs);
+  },
+
+  setHiveHostName: function(globals) {
+    if (globals.someProperty('name', 'hive_database')) {
+      //TODO: Hive host depends on the type of db selected. Change puppet variable name if postgres is not the default db
+      var hiveDb = globals.findProperty('name', 'hive_database');
+      if (hiveDb.value === 'New MySQL Database') {
+        if (globals.someProperty('name', 'hive_ambari_host')) {
+          globals.findProperty('name', 'hive_ambari_host').name = 'hive_mysql_hostname';
+        }
+        globals = globals.without(globals.findProperty('name', 'hive_existing_host'));
+        globals = globals.without(globals.findProperty('name', 'hive_existing_database'));
+      } else {
+        globals.findProperty('name', 'hive_existing_host').name = 'hive_mysql_hostname';
+        globals = globals.without(globals.findProperty('name', 'hive_ambari_host'));
+        globals = globals.without(globals.findProperty('name', 'hive_ambari_database'));
+      }
+    }
   },
 
   saveSiteConfigs: function (configs) {
@@ -923,9 +944,6 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
         var hiveMetastoreHost = serviceConfigs.findProperty('name', 'hivemetastore_host');
         hiveMetastoreHost.defaultValue = this.get('content.components').findProperty('componentName', 'HIVE_SERVER').get('host.hostName');
         globalConfigs.push(hiveMetastoreHost);
-        var hiveDbHost = serviceConfigs.findProperty('name', 'hive_mysql_hostname');
-        hiveDbHost.defaultValue = this.get('content.components').findProperty('componentName', 'HIVE_SERVER').get('host.hostName');
-        globalConfigs.push(hiveDbHost);
         break;
       case 'OOZIE':
         var oozieServerHost = serviceConfigs.findProperty('name', 'oozieserver_host');
