@@ -248,7 +248,9 @@ App.WizardController = Em.Controller.extend({
       return;
     }
 
-    this.set('content.cluster.requestId', null);
+    // clear requests since we are installing services
+    // and we don't want to get tasks for previous install attempts
+    this.set('content.cluster.oldRequestsId', []);
 
     var self = this;
     var clusterName = this.get('content.cluster.name');

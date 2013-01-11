@@ -671,6 +671,9 @@ AMBARI-666 branch (unreleased changes)
 
   BUG FIXES
 
+  AMBARI-1152. Add Hosts wizard - Retry button does not trigger call to
+  backend. (yusaku)
+
   AMBARI-1104. Webhcat configuration not setting templeton-libjars.
   (Jaimin Jetly via yusaku)
 

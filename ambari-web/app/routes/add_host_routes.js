@@ -198,12 +198,11 @@ module.exports = Em.Route.extend({
     retry: function(router,context) {
       var addHostController = router.get('addHostController');
       var wizardStep9Controller = router.get('wizardStep9Controller');
-      if (!wizardStep9Controller.get('isSubmitDisabled')) {
-        if (wizardStep9Controller.get('content.cluster.status') !== 'START FAILED') {
-          addHostController.installServices(true);
+      if (wizardStep9Controller.get('showRetry')) {
+        if (wizardStep9Controller.get('content.cluster.status') === 'INSTALL FAILED') {
+          var isRetry = true;
+          addHostController.installServices(isRetry);
           addHostController.setInfoForStep9();
-        } else {
-          wizardStep9Controller.set('content.cluster.isCompleted', false);
         }
         wizardStep9Controller.navigateStep();
       }
