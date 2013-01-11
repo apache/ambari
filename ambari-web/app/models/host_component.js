@@ -20,7 +20,6 @@ var App = require('app');
 
 App.HostComponent = DS.Model.extend({
   workStatus: DS.attr('string'),
-  desiredStatus: DS.attr('string'),
   componentName: DS.attr('string'),
   host: DS.belongsTo('App.Host'),
   service: DS.belongsTo('App.Service'),

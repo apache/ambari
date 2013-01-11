@@ -122,6 +122,11 @@ App.MainHostSummaryView = Em.View.extend({
 
   ComponentView: Em.View.extend({
     content: null,
+    didInsertElement: function () {
+      if (this.get('isInProgress')) {
+        this.doBlinking();
+      }
+    },
     hostComponent: function(){
       var hostComponent = null;
       var serviceComponent = this.get('content');
@@ -132,31 +137,13 @@ App.MainHostSummaryView = Em.View.extend({
       return hostComponent;
     }.property('content', 'App.router.mainHostDetailsController.content'),
     workStatus: function(){
-      var componentName = this.get('content.componentName');
-      var hostComponent = this.get('hostComponent');
-      if (App.router.get('backgroundOperationsController.allOperationsCount')) {
-        var task = App.router.get('backgroundOperationsController').getTasksByRole(componentName);
-        if(!Ember.empty(task)){
-          if (task[0].start_time == -1 && task[0].command == 'START') {
-            this.content.set('workStatus', App.HostComponent.Status.starting);
-            if (hostComponent) {
-              hostComponent.set('workStatus', App.HostComponent.Status.starting);
-            }
-          } else if (task[0].start_time == -1 && task[0].command == 'STOP') {
-            this.content.set('workStatus', App.HostComponent.Status.stopping);
-            if (hostComponent) {
-              hostComponent.set('workStatus', App.HostComponent.Status.stopping);
-            }
-          }
-        }
-      }
-
       var workStatus = this.get('content.workStatus');
+      var hostComponent = this.get('hostComponent');
       if(hostComponent){
         workStatus = hostComponent.get('workStatus');
       }
       return workStatus;
-    }.property('hostComponent.workStatus', 'App.route.backgroundOperationsController.allOperationsCount'), //'content.workStatus',
+    }.property('content.workStatus','hostComponent.workStatus'),
     statusClass: function(){
       var statusClass = null;
       if(this.get('isDataNode')){
@@ -207,6 +194,10 @@ App.MainHostSummaryView = Em.View.extend({
 
     isStart : function() {
       return (this.get('workStatus') === App.Component.Status.started || this.get('workStatus') === App.Component.Status.starting);
+    }.property('workStatus'),
+
+    isInProgress : function() {
+      return (this.get('workStatus') === App.Component.Status.stopping || this.get('workStatus') === App.Component.Status.starting);
     }.property('workStatus'),
     /**
      * Shows whether we need to show Decommision/Recomission buttons

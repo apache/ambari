@@ -74,7 +74,7 @@ App.MainHostDetailsController = Em.Controller.extend({
     });
   },
 
-  startComponent: function(event){
+  startComponent: function (event) {
     var self = this;
     App.ModalPopup.show({
       header: Em.I18n.t('hosts.host.start.popup.header'),
@@ -96,7 +96,7 @@ App.MainHostDetailsController = Em.Controller.extend({
 
           console.log('Send request for STARTING successfully');
 
-          if(App.testMode){
+          if (App.testMode) {
             component.set('workStatus', App.Component.Status.starting);
             setTimeout(function(){
               component.set('workStatus', App.Component.Status.started);
@@ -126,7 +126,7 @@ App.MainHostDetailsController = Em.Controller.extend({
       }
     });
   },
-  stopComponent: function(event){
+  stopComponent: function (event) {
     var self = this;
     App.ModalPopup.show({
       header: Em.I18n.t('hosts.host.start.popup.header'),
@@ -147,12 +147,12 @@ App.MainHostDetailsController = Em.Controller.extend({
 
           console.log('Send request for STOPPING successfully');
 
-          if(App.testMode){
+          if (App.testMode) {
             component.set('workStatus', App.Component.Status.stopping);
             setTimeout(function(){
               component.set('workStatus', App.Component.Status.stopped);
             },10000);
-          } else{
+          } else {
             App.router.get('clusterController').loadUpdatedStatus();
             App.router.get('backgroundOperationsController.eventsArray').push({
               "when" : function(controller){

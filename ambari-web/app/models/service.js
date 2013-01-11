@@ -38,23 +38,17 @@ App.Service = DS.Model.extend({
   }.property('healthStatus'),
 
   healthStatus: function () {
-    var components = this.get('components').filterProperty('isMaster', true);
-    if (components.everyProperty('workStatus', App.Component.Status.started)) {
-      if (components.someProperty('desiredStatus', App.Component.Status.stopped)) {
-        return 'red-blinking';
-      }
+    var components = this.get('hostComponents').filterProperty('isMaster', true);
+    if (components.everyProperty('workStatus', App.HostComponent.Status.started)) {
       return 'green';
-    } else if (components.someProperty('workStatus', App.Component.Status.starting)) {
+    } else if (components.someProperty('workStatus', App.HostComponent.Status.starting)) {
       return 'green-blinking';
-    } else if (components.someProperty('workStatus', App.Component.Status.stopped)) {
-      if (components.someProperty('desiredStatus', App.Component.Status.started)) {
-        return 'green-blinking';
-      }
+    } else if (components.someProperty('workStatus', App.HostComponent.Status.stopped)) {
       return 'red';
     } else {
       return 'red-blinking';
     }
-  }.property('components.@each.workStatus'),
+  }.property('hostComponents.@each.workStatus'),
 
   isStopped: function () {
     var components = this.get('components');

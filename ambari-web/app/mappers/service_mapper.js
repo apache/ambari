@@ -127,7 +127,6 @@ App.servicesMapper = App.QuickDataMapper.create({
     // page must be careful because, it will randomly
     // pick a host.
     work_status: 'host_components[0].HostRoles.state',
-    desired_status: 'host_components[0].HostRoles.desired_state',
     host_id: 'host_components[0].HostRoles.host_name'
   },
 
@@ -209,7 +208,6 @@ App.servicesMapper = App.QuickDataMapper.create({
         if (component && component.get('isLoaded')) { // UPDATE
           if (componentJson.work_status) {
             component.set('workStatus', componentJson.work_status);
-            component.set('desiredStatus', componentJson.desired_status);
           }
           if (componentJson.host_id) {
             component.set('host', App.Host.find(componentJson.host_id));
@@ -233,12 +231,12 @@ App.servicesMapper = App.QuickDataMapper.create({
       }, this);
       var newHostComponents = [];
       result.forEach(function(hcJson){
+        hcJson = this.calculateState(hcJson);
         hcJson.id = hcJson.component_name + '_' + hcJson.host_id;
         var component = App.HostComponent.find(hcJson.id);
         if (component && component.get('isLoaded')) { // UPDATE
           if (hcJson.work_status) {
             component.set('workStatus', hcJson.work_status);
-            component.set('desiredStatus', hcJson.desired_status);
           }
           if (hcJson.component_name) {
             component.set('componentName', hcJson.component_name);
@@ -252,7 +250,7 @@ App.servicesMapper = App.QuickDataMapper.create({
         } else {
           newHostComponents.push(hcJson);
         }
-      });
+      }, this);
       if (newHostComponents.length > 0) {
         App.store.loadMany(this.get('model3'), newHostComponents);
       }

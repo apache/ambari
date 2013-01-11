@@ -129,8 +129,8 @@ App.Host = DS.Model.extend({
     if (!this.get('isLoaded') || this.get('isSaving')) {
     } else {
       var status;
-      var masterComponents = this.get('components').filterProperty('isMaster', true);
-      var masterComponentsRunning = masterComponents.everyProperty('workStatus', App.Component.Status.started);
+      var masterComponents = this.get('hostComponents').filterProperty('isMaster', true);
+      var masterComponentsRunning = masterComponents.everyProperty('workStatus', App.HostComponent.Status.started);
       if (this.get('isNotHeartBeating')) {
         status = 'DEAD-YELLOW';
       } else if (masterComponentsRunning) {
@@ -145,7 +145,7 @@ App.Host = DS.Model.extend({
       }
     }
     return 'health-status-' + healthStatus;
-  }.property('healthStatus', 'components.@each.workStatus')
+  }.property('healthStatus', 'hostComponents.@each.workStatus')
 });
 
 App.Host.FIXTURES = [];
