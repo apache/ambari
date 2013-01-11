@@ -33,7 +33,7 @@ public class HostResponse {
 
   private String hostname;
 
-  private Set<String> clusterNames;
+  private String clusterName;
 
   /**
    * Host IP if ipv4 interface available
@@ -120,7 +120,7 @@ public class HostResponse {
    */
   private String hostState;
 
-  public HostResponse(String hostname, Set<String> clusterNames,
+  public HostResponse(String hostname, String clusterName,
                       String ipv4, String ipv6, int cpuCount, String osArch, String osType,
                       String osInfo, long availableMemBytes, long totalMemBytes,
                       List<DiskInfo> disksInfo, long lastHeartbeatTime,
@@ -129,7 +129,7 @@ public class HostResponse {
                       HostHealthStatus healthStatus, String hostState) {
     super();
     this.hostname = hostname;
-    this.clusterNames = clusterNames;
+    this.clusterName = clusterName;
     this.ipv4 = ipv4;
     this.ipv6 = ipv6;
     this.cpuCount = cpuCount;
@@ -148,8 +148,9 @@ public class HostResponse {
     this.setHostState(hostState);
   }
 
+  //todo: why are we passing in empty strings for host/cluster name instead of null?
   public HostResponse(String hostname) {
-    this(hostname, new HashSet<String>(), "", "",
+    this(hostname, "", "", "",
         0, "", "",
         "", 0, 0, new ArrayList<DiskInfo>(),
         0, 0, "",
@@ -174,15 +175,15 @@ public class HostResponse {
   /**
    * @return the clusterNames
    */
-  public Set<String> getClusterNames() {
-    return clusterNames;
+  public String getClusterName() {
+    return clusterName;
   }
 
   /**
-   * @param clusterNames the clusterNames to set
+   * @param clusterName the name of the associated cluster
    */
-  public void setClusterNames(Set<String> clusterNames) {
-    this.clusterNames = clusterNames;
+  public void setClusterName(String clusterName) {
+    this.clusterName = clusterName;
   }
 
   /**

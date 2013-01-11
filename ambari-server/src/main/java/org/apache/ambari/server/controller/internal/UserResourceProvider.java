@@ -21,11 +21,7 @@ import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.UserRequest;
 import org.apache.ambari.server.controller.UserResponse;
-import org.apache.ambari.server.controller.spi.Predicate;
-import org.apache.ambari.server.controller.spi.Request;
-import org.apache.ambari.server.controller.spi.RequestStatus;
-import org.apache.ambari.server.controller.spi.Resource;
-import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
+import org.apache.ambari.server.controller.spi.*;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
 
 import java.util.Arrays;
@@ -46,7 +42,7 @@ class UserResourceProvider extends ResourceProviderImpl{
   protected static final String USER_ROLES_PROPERTY_ID        = PropertyHelper.getPropertyId("Users", "roles");
   protected static final String USER_PASSWORD_PROPERTY_ID     = PropertyHelper.getPropertyId("Users", "password");
   protected static final String USER_OLD_PASSWORD_PROPERTY_ID = PropertyHelper.getPropertyId("Users", "old_password");
-  protected static final String USER_LDAP_USER_PROPERTY_ID        = PropertyHelper.getPropertyId("Users", "ldap_user");
+  protected static final String USER_LDAP_USER_PROPERTY_ID    = PropertyHelper.getPropertyId("Users", "ldap_user");
 
   private static Set<String> pkPropertyIds =
       new HashSet<String>(Arrays.asList(new String[]{
@@ -63,41 +59,55 @@ class UserResourceProvider extends ResourceProviderImpl{
 
   @Override
   public RequestStatus createResources(Request request)
-      throws AmbariException, UnsupportedPropertyException {
-    checkRequestProperties(Resource.Type.User, request);
-    Set<UserRequest> requests = new HashSet<UserRequest>();
+      throws SystemException,
+      UnsupportedPropertyException,
+      ResourceAlreadyExistsException,
+      NoSuchParentResourceException {
+    final Set<UserRequest> requests = new HashSet<UserRequest>();
     for (Map<String, Object> propertyMap : request.getProperties()) {
       requests.add(getRequest(propertyMap));
     }
 
-    getManagementController().createUsers(requests);
+    createResources(new Command<Void>() {
+      @Override
+      public Void invoke() throws AmbariException {
+        getManagementController().createUsers(requests);
+        return null;
+      }
+    });
 
     return getRequestStatus(null);
   }
 
   @Override
   public Set<Resource> getResources(Request request, Predicate predicate)
-      throws AmbariException, UnsupportedPropertyException {
+      throws SystemException, UnsupportedPropertyException, NoSuchResourceException, NoSuchParentResourceException {
 
-    Set<UserRequest> requests = new HashSet<UserRequest>();
+    final Set<UserRequest> requests = new HashSet<UserRequest>();
 
     if (predicate == null) {
       requests.add(getRequest(null));
     } else {
-      for (Map<String, Object> propertyMap : getPropertyMaps(null, predicate)) {
+      for (Map<String, Object> propertyMap : getPropertyMaps(predicate)) {
         requests.add(getRequest(propertyMap));
       }
     }
 
-    Set<String>   requestedIds = PropertyHelper.getRequestPropertyIds(getPropertyIds(), request, predicate);
-    Set<UserResponse> responses    = getManagementController().getUsers(requests);
-    Set<Resource>     resources    = new HashSet<Resource>();
+    Set<UserResponse> responses = getResources(new Command<Set<UserResponse>>() {
+      @Override
+      public Set<UserResponse> invoke() throws AmbariException {
+        return getManagementController().getUsers(requests);
+      }
+    });
 
     if (LOG.isDebugEnabled()) {
       LOG.debug("Found user responses matching get user request"
           + ", userRequestSize=" + requests.size()
           + ", userResponseSize=" + responses.size());
     }
+
+    Set<String>   requestedIds = PropertyHelper.getRequestPropertyIds(getPropertyIds(), request, predicate);
+    Set<Resource> resources    = new HashSet<Resource>();
 
     for (UserResponse userResponse : responses) {
       ResourceImpl resource = new ResourceImpl(Resource.Type.User);
@@ -119,9 +129,8 @@ class UserResourceProvider extends ResourceProviderImpl{
 
   @Override
   public RequestStatus updateResources(Request request, Predicate predicate)
-      throws AmbariException, UnsupportedPropertyException {
-    checkRequestProperties(Resource.Type.User, request);
-    Set<UserRequest> requests = new HashSet<UserRequest>();
+    throws SystemException, UnsupportedPropertyException, NoSuchResourceException, NoSuchParentResourceException {
+    final Set<UserRequest> requests = new HashSet<UserRequest>();
 
     for (Map<String, Object> propertyMap : getPropertyMaps(request.getProperties().iterator().next(), predicate)) {
       UserRequest req = getRequest(propertyMap);
@@ -129,23 +138,35 @@ class UserResourceProvider extends ResourceProviderImpl{
       requests.add(req);
     }
 
-    getManagementController().updateUsers(requests);
+    modifyResources(new Command<Void>() {
+      @Override
+      public Void invoke() throws AmbariException {
+        getManagementController().updateUsers(requests);
+        return null;
+      }
+    });
 
     return getRequestStatus(null);
   }
 
   @Override
   public RequestStatus deleteResources(Predicate predicate)
-      throws AmbariException, UnsupportedPropertyException {
-    Set<UserRequest> requests = new HashSet<UserRequest>();
+      throws SystemException, UnsupportedPropertyException, NoSuchResourceException, NoSuchParentResourceException {
+    final Set<UserRequest> requests = new HashSet<UserRequest>();
 
-    for (Map<String, Object> propertyMap : getPropertyMaps(null, predicate)) {
+    for (Map<String, Object> propertyMap : getPropertyMaps(predicate)) {
       UserRequest req = getRequest(propertyMap);
 
       requests.add(req);
-
     }
-    getManagementController().deleteUsers(requests);
+
+    modifyResources(new Command<Void>() {
+      @Override
+      public Void invoke() throws AmbariException {
+        getManagementController().deleteUsers(requests);
+        return null;
+      }
+    });
 
     return getRequestStatus(null);
   }

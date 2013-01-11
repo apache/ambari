@@ -1,3 +1,5 @@
+package org.apache.ambari.server.api.handlers;
+
 /**
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -16,11 +18,10 @@
  * limitations under the License.
  */
 
-package org.apache.ambari.server.api.handlers;
-
 import org.apache.ambari.server.api.query.Query;
 import org.apache.ambari.server.api.resources.ResourceInstance;
-import org.apache.ambari.server.api.services.PersistenceManager;
+import org.apache.ambari.server.api.services.ResultStatus;
+import org.apache.ambari.server.api.services.persistence.PersistenceManager;
 import org.apache.ambari.server.api.services.Request;
 import org.apache.ambari.server.api.services.Result;
 import org.apache.ambari.server.api.util.TreeNode;
@@ -34,6 +35,7 @@ import java.util.*;
 
 import static org.easymock.EasyMock.*;
 import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
 
 /**
  * Unit tests for DeleteHandler.
@@ -41,7 +43,7 @@ import static org.junit.Assert.*;
 public class DeleteHandlerTest {
 
   @Test
-  public void testHandleRequest__Synchronous() {
+  public void testHandleRequest__Synchronous() throws Exception {
     Request request = createMock(Request.class);
     ResourceInstance resource = createMock(ResourceInstance.class);
     PersistenceManager pm = createStrictMock(PersistenceManager.class);
@@ -58,16 +60,14 @@ public class DeleteHandlerTest {
     setResources.add(resource2);
 
     // expectations
-    expect(request.getPersistenceManager()).andReturn(pm).atLeastOnce();
     expect(request.getResource()).andReturn(resource).atLeastOnce();
     expect(request.getHttpBodyProperties()).andReturn(setResourceProperties).atLeastOnce();
-    expect(request.getURI()).andReturn("http://some.host.com/clusters/cluster1").atLeastOnce();
 
     expect(request.getQueryPredicate()).andReturn(userPredicate).atLeastOnce();
     expect(resource.getQuery()).andReturn(query).atLeastOnce();
     query.setUserPredicate(userPredicate);
 
-    expect(pm.persist(resource, setResourceProperties)).andReturn(status);
+    expect(pm.delete(resource, setResourceProperties)).andReturn(status);
     expect(status.getStatus()).andReturn(RequestStatus.Status.Complete);
     expect(status.getAssociatedResources()).andReturn(setResources);
     expect(resource1.getType()).andReturn(Resource.Type.Cluster).anyTimes();
@@ -75,7 +75,7 @@ public class DeleteHandlerTest {
 
     replay(request, resource, pm, status, resource1, resource2, userPredicate, query);
 
-    Result result = new DeleteHandler().handleRequest(request);
+    Result result = new TestDeleteHandler(pm).handleRequest(request);
 
     assertNotNull(result);
     TreeNode<Resource> tree = result.getResultTree();
@@ -95,11 +95,12 @@ public class DeleteHandlerTest {
       }
     }
 
+    assertEquals(ResultStatus.STATUS.OK, result.getStatus().getStatus());
     verify(request, resource, pm, status, resource1, resource2, userPredicate, query);
   }
 
   @Test
-  public void testHandleRequest__Asynchronous() {
+  public void testHandleRequest__Asynchronous() throws Exception {
     Request request = createMock(Request.class);
     ResourceInstance resource = createMock(ResourceInstance.class);
     PersistenceManager pm = createStrictMock(PersistenceManager.class);
@@ -117,23 +118,19 @@ public class DeleteHandlerTest {
     // expectations
     expect(request.getResource()).andReturn(resource);
     expect(request.getHttpBodyProperties()).andReturn(setResourceProperties);
-    expect(request.getPersistenceManager()).andReturn(pm);
     // test delete with no user predicate
     expect(request.getQueryPredicate()).andReturn(null).atLeastOnce();
 
-    expect(pm.persist(resource, setResourceProperties)).andReturn(status);
+    expect(pm.delete(resource, setResourceProperties)).andReturn(status);
     expect(status.getStatus()).andReturn(RequestStatus.Status.Accepted);
     expect(status.getAssociatedResources()).andReturn(setResources);
     expect(resource1.getType()).andReturn(Resource.Type.Cluster).anyTimes();
     expect(resource2.getType()).andReturn(Resource.Type.Cluster).anyTimes();
-    expect(status.getRequestResource()).andReturn(requestResource);
-    expect(request.getURI()).andReturn("http://some.host.com/clusters/cluster1").atLeastOnce();
-    expect(status.getRequestResource()).andReturn(requestResource).atLeastOnce();
-    expect(requestResource.getPropertyValue(PropertyHelper.getPropertyId("Requests", "id"))).andReturn("requestID").atLeastOnce();
+    expect(status.getRequestResource()).andReturn(requestResource).anyTimes();
 
     replay(request, resource, pm, status, resource1, resource2, requestResource);
 
-    Result result = new DeleteHandler().handleRequest(request);
+    Result result = new TestDeleteHandler(pm).handleRequest(request);
 
     assertNotNull(result);
     TreeNode<Resource> tree = result.getResultTree();
@@ -157,8 +154,21 @@ public class DeleteHandlerTest {
     assertNotNull(statusNode);
     assertEquals(0, statusNode.getChildren().size());
     assertSame(requestResource, statusNode.getObject());
-    assertEquals("http://some.host.com/clusters/cluster1/requests/requestID", statusNode.getProperty("href"));
+    assertEquals(ResultStatus.STATUS.ACCEPTED, result.getStatus().getStatus());
 
     verify(request, resource, pm, status, resource1, resource2, requestResource);
+  }
+
+  private class TestDeleteHandler extends DeleteHandler {
+    private PersistenceManager m_testPm;
+
+    private TestDeleteHandler(PersistenceManager pm) {
+      m_testPm = pm;
+    }
+
+    @Override
+    protected PersistenceManager getPersistenceManager() {
+      return m_testPm;
+    }
   }
 }

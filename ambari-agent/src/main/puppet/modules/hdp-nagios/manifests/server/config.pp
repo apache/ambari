@@ -24,6 +24,7 @@ class hdp-nagios::server::config()
   $host_cfg = $hdp-nagios::params::nagios_host_cfg
   
   hdp-nagios::server::configfile { 'nagios.cfg': conf_dir => $hdp-nagios::params::conf_dir }
+  hdp-nagios::server::configfile { 'resource.cfg': conf_dir => $hdp-nagios::params::conf_dir }
   hdp-nagios::server::configfile { 'hadoop-hosts.cfg': }
   hdp-nagios::server::configfile { 'hadoop-hostgroups.cfg': }
   hdp-nagios::server::configfile { 'hadoop-servicegroups.cfg': }

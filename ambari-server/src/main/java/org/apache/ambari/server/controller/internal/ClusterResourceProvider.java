@@ -21,11 +21,17 @@ import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.ClusterRequest;
 import org.apache.ambari.server.controller.ClusterResponse;
+import org.apache.ambari.server.controller.RequestStatusResponse;
+import org.apache.ambari.server.controller.spi.NoSuchParentResourceException;
+import org.apache.ambari.server.controller.spi.NoSuchResourceException;
 import org.apache.ambari.server.controller.spi.Predicate;
 import org.apache.ambari.server.controller.spi.Request;
 import org.apache.ambari.server.controller.spi.RequestStatus;
 import org.apache.ambari.server.controller.spi.Resource;
+import org.apache.ambari.server.controller.spi.ResourceAlreadyExistsException;
+import org.apache.ambari.server.controller.spi.SystemException;
 import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
+import org.apache.ambari.server.controller.utilities.PredicateHelper;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
 
 import java.util.Arrays;
@@ -45,7 +51,6 @@ class ClusterResourceProvider extends ResourceProviderImpl{
   protected static final String CLUSTER_ID_PROPERTY_ID      = PropertyHelper.getPropertyId("Clusters", "cluster_id");
   protected static final String CLUSTER_NAME_PROPERTY_ID    = PropertyHelper.getPropertyId("Clusters", "cluster_name");
   protected static final String CLUSTER_VERSION_PROPERTY_ID = PropertyHelper.getPropertyId("Clusters", "version");
-  protected static final String CLUSTER_HOSTS_PROPERTY_ID   = PropertyHelper.getPropertyId("Clusters", "hosts");
 
 
   private static Set<String> pkPropertyIds =
@@ -70,11 +75,20 @@ class ClusterResourceProvider extends ResourceProviderImpl{
 // ----- ResourceProvider ------------------------------------------------
 
   @Override
-  public RequestStatus createResources(Request request) throws AmbariException, UnsupportedPropertyException {
+  public RequestStatus createResources(Request request)
+      throws SystemException,
+             UnsupportedPropertyException,
+             ResourceAlreadyExistsException,
+             NoSuchParentResourceException {
 
-    checkRequestProperties(Resource.Type.Cluster, request);
-    for (Map<String, Object> properties : request.getProperties()) {
-      getManagementController().createCluster(getRequest(properties));
+    for (final Map<String, Object> properties : request.getProperties()) {
+      createResources(new Command<Void>() {
+        @Override
+        public Void invoke() throws AmbariException {
+          getManagementController().createCluster(getRequest(properties));
+          return null;
+        }
+      });
     }
     notifyCreate(Resource.Type.Cluster, request);
 
@@ -82,12 +96,19 @@ class ClusterResourceProvider extends ResourceProviderImpl{
   }
 
   @Override
-  public Set<Resource> getResources(Request request, Predicate predicate) throws AmbariException, UnsupportedPropertyException {
-    ClusterRequest clusterRequest = getRequest(getProperties(predicate));
-    Set<String> requestedIds   = PropertyHelper.getRequestPropertyIds(getPropertyIds(), request, predicate);
+  public Set<Resource> getResources(Request request, Predicate predicate)
+      throws SystemException, UnsupportedPropertyException, NoSuchResourceException, NoSuchParentResourceException {
+
+    final ClusterRequest clusterRequest = getRequest(PredicateHelper.getProperties(predicate));
+    Set<String> requestedIds = PropertyHelper.getRequestPropertyIds(getPropertyIds(), request, predicate);
 
     // TODO : handle multiple requests
-    Set<ClusterResponse> responses = getManagementController().getClusters(Collections.singleton(clusterRequest));
+    Set<ClusterResponse> responses = getResources(new Command<Set<ClusterResponse>>() {
+      @Override
+      public Set<ClusterResponse> invoke() throws AmbariException {
+        return getManagementController().getClusters(Collections.singleton(clusterRequest));
+      }
+    });
 
     Set<Resource> resources = new HashSet<Resource>();
     if (LOG.isDebugEnabled()) {
@@ -113,25 +134,38 @@ class ClusterResourceProvider extends ResourceProviderImpl{
   }
 
   @Override
-  public RequestStatus updateResources(Request request, Predicate predicate) throws AmbariException, UnsupportedPropertyException {
-    checkRequestProperties(Resource.Type.Cluster, request);
+  public RequestStatus updateResources(Request request, Predicate predicate)
+      throws SystemException, UnsupportedPropertyException, NoSuchResourceException, NoSuchParentResourceException {
+
     for (Map<String, Object> propertyMap : getPropertyMaps(request.getProperties().iterator().next(), predicate)) {
-      ClusterRequest clusterRequest = getRequest(propertyMap);
-      getManagementController().updateCluster(clusterRequest);
+      final ClusterRequest clusterRequest = getRequest(propertyMap);
+
+      modifyResources(new Command<RequestStatusResponse>() {
+        @Override
+        public RequestStatusResponse invoke() throws AmbariException {
+          return getManagementController().updateCluster(clusterRequest);
+        }
+      });
     }
     notifyUpdate(Resource.Type.Cluster, request, predicate);
-
     return getRequestStatus(null);
   }
 
   @Override
-  public RequestStatus deleteResources(Predicate predicate) throws AmbariException, UnsupportedPropertyException {
-    for (Map<String, Object> propertyMap : getPropertyMaps(null, predicate)) {
-      ClusterRequest clusterRequest = getRequest(propertyMap);
-      getManagementController().deleteCluster(clusterRequest);
+  public RequestStatus deleteResources(Predicate predicate)
+      throws SystemException, UnsupportedPropertyException, NoSuchResourceException, NoSuchParentResourceException {
+
+    for (Map<String, Object> propertyMap : getPropertyMaps(predicate)) {
+      final ClusterRequest clusterRequest = getRequest(propertyMap);
+      modifyResources(new Command<Void>() {
+        @Override
+        public Void invoke() throws AmbariException {
+          getManagementController().deleteCluster(clusterRequest);
+          return null;
+        }
+      });
     }
     notifyDelete(Resource.Type.Cluster, predicate);
-
     return getRequestStatus(null);
   }
 

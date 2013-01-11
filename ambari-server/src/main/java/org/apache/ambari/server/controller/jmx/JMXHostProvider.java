@@ -17,6 +17,8 @@
  */
 package org.apache.ambari.server.controller.jmx;
 
+import org.apache.ambari.server.controller.spi.SystemException;
+
 import java.util.Map;
 
 /**
@@ -31,8 +33,10 @@ public interface JMXHostProvider {
    * @param componentName  the component name
    *
    * @return the JMX host name
+   *
+   * @throws SystemException of unable to ge the JMX host name
    */
-  public String getHostName(String clusterName, String componentName);
+  public String getHostName(String clusterName, String componentName) throws SystemException;
 
 
   /**
@@ -41,6 +45,8 @@ public interface JMXHostProvider {
    * @param clusterName  the cluster name
    *
    * @return the host name mappings
+   *
+   * @throws SystemException if unable to get the host mappings
    */
-  public Map<String, String> getHostMapping(String clusterName);
+  public Map<String, String> getHostMapping(String clusterName) throws SystemException ;
 }

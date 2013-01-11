@@ -106,6 +106,12 @@ class SSH(threading.Thread):
     logFile = open(logFilePath, "a+")
     logFile.write(self.ret["log"])
     logFile.close
+
+    doneFilePath = os.path.join(self.bootdir, self.host + ".done")
+    doneFile = open(doneFilePath, "w+")
+    doneFile.write(str(sshstat.returncode))
+    doneFile.close()
+
     logging.info("Setup agent done for host " + self.host + ", exitcode=" + str(sshstat.returncode))
     pass
 pass
@@ -307,9 +313,10 @@ class BootStrap:
     If .done file for any host is not created, the bootstrap will hang or fail due to timeout"""
     for key, value in self.statuses.iteritems():
       doneFilePath = os.path.join(self.bootdir, key + ".done")
-      doneFile = open(doneFilePath, "w+")
-      doneFile.write(str(value["exitstatus"]))
-      doneFile.close()
+      if not os.path.exists(doneFilePath):
+        doneFile = open(doneFilePath, "w+")
+        doneFile.write(str(value["exitstatus"]))
+        doneFile.close()
     pass
 
   def run(self):

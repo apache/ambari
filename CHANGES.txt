@@ -8,6 +8,17 @@ should be listed by their full name.
 
   Merging AMBARI-666 to trunk.
 
+ INCOMPATIBLE CHANGES
+ 
+ NEW FEATURES
+
+ AMBARI-1108 - PUT call to change the state on host_components collection
+ returns 200 (no op), even though GET with the same predicate returns a number
+ of host_components. (Tom Beerbower via mahadev)
+
+ BUG FIXES
+
+
 AMBARI-666 branch (unreleased changes)
 
   INCOMPATIBLE CHANGES

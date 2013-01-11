@@ -26,15 +26,13 @@ import java.util.Map;
 import java.util.Set;
 
 import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.DuplicateResourceException;
+import org.apache.ambari.server.ObjectNotFoundException;
+import org.apache.ambari.server.ParentObjectNotFoundException;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.RequestStatusResponse;
 import org.apache.ambari.server.controller.predicate.BasePredicate;
-import org.apache.ambari.server.controller.spi.Predicate;
-import org.apache.ambari.server.controller.spi.Request;
-import org.apache.ambari.server.controller.spi.RequestStatus;
-import org.apache.ambari.server.controller.spi.Resource;
-import org.apache.ambari.server.controller.spi.ResourceProvider;
-import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
+import org.apache.ambari.server.controller.spi.*;
 import org.apache.ambari.server.controller.utilities.PredicateHelper;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
 import org.slf4j.Logger;
@@ -89,13 +87,23 @@ public abstract class ResourceProviderImpl implements ResourceProvider, Observab
   // ----- ResourceProvider --------------------------------------------------
 
   @Override
-  public Set<String> getPropertyIds() {
+  public Set<String> getPropertyIdsForSchema() {
     return propertyIds;
   }
 
   @Override
   public Map<Resource.Type, String> getKeyPropertyIds() {
     return keyPropertyIds;
+  }
+
+  @Override
+  public Set<String> checkPropertyIds(Set<String> propertyIds) {
+    if (!this.propertyIds.containsAll(propertyIds)) {
+      Set<String> unsupportedPropertyIds = new HashSet<String>(propertyIds);
+      unsupportedPropertyIds.removeAll(this.propertyIds);
+      return unsupportedPropertyIds;
+    }
+    return Collections.emptySet();
   }
 
 
@@ -117,11 +125,20 @@ public abstract class ResourceProviderImpl implements ResourceProvider, Observab
   // ----- accessors ---------------------------------------------------------
 
   /**
+   * Get the associated property ids.
+   *
+   * @return the property ids
+   */
+  protected Set<String> getPropertyIds() {
+    return propertyIds;
+  }
+
+  /**
    * Get the associated management controller.
    *
    * @return the associated management controller
    */
-  public AmbariManagementController getManagementController() {
+  protected AmbariManagementController getManagementController() {
     return managementController;
   }
 
@@ -170,85 +187,55 @@ public abstract class ResourceProviderImpl implements ResourceProvider, Observab
   /**
    * Get a set of properties from the given property map and predicate.
    *
+   * @param givenPredicate           the predicate
+   *
+   * @return the set of properties used to build request objects
+   */
+  protected Set<Map<String, Object>> getPropertyMaps(Predicate givenPredicate)
+    throws UnsupportedPropertyException, SystemException, NoSuchResourceException, NoSuchParentResourceException {
+
+    SimplifyingPredicateVisitor visitor = new SimplifyingPredicateVisitor(propertyIds);
+    PredicateHelper.visit(givenPredicate, visitor);
+    List<BasePredicate> predicates = visitor.getSimplifiedPredicates();
+
+    Set<Map<String, Object>> propertyMaps = new HashSet<Map<String, Object>>();
+
+    for (BasePredicate predicate : predicates) {
+      propertyMaps.add(PredicateHelper.getProperties(predicate));
+    }
+    return propertyMaps;
+  }
+
+  /**
+   * Get a set of properties from the given property map and predicate.
+   *
    * @param requestPropertyMap  the request properties (for update)
-   * @param predicate           the predicate
+   * @param givenPredicate           the predicate
    *
    * @return the set of properties used to build request objects
    */
   protected Set<Map<String, Object>> getPropertyMaps(Map<String, Object> requestPropertyMap,
-                                                         Predicate predicate)
-      throws AmbariException, UnsupportedPropertyException {
+                                                         Predicate givenPredicate)
+      throws UnsupportedPropertyException, SystemException, NoSuchResourceException, NoSuchParentResourceException {
 
-    SimplifyingPredicateVisitor visitor = new SimplifyingPredicateVisitor(propertyIds);
-    PredicateHelper.visit(predicate, visitor);
-    List<BasePredicate> predicates = visitor.getSimplifiedPredicates();
+    Set<Map<String, Object>> propertyMaps = new HashSet<Map<String, Object>>();
 
-    if (predicates == null) {
-      return _getPropertyMaps(requestPropertyMap, predicate);
-    }
+    Set<String> pkPropertyIds = getPKPropertyIds();
+    if (requestPropertyMap != null && !pkPropertyIds.equals(PredicateHelper.getPropertyIds(givenPredicate))) {
 
-    Set<Map<String, Object>> properties = new HashSet<Map<String, Object>>();
-    for (BasePredicate basePredicate : predicates) {
-      properties.addAll(_getPropertyMaps(requestPropertyMap, basePredicate));
-    }
-    return properties;
-  }
-
-  private Set<Map<String, Object>> _getPropertyMaps(Map<String, Object> requestPropertyMap,
-                                                         Predicate predicate)
-      throws AmbariException, UnsupportedPropertyException {
-
-    Set<String>              pkPropertyIds       = getPKPropertyIds();
-    Set<Map<String, Object>> properties          = new HashSet<Map<String, Object>>();
-    Set<Map<String, Object>> predicateProperties = new HashSet<Map<String, Object>>();
-
-    if (requestPropertyMap == null || pkPropertyIds.equals(PredicateHelper.getPropertyIds(predicate))) {
-      predicateProperties.add(getProperties(predicate));
+      for (Resource resource : getResources(PropertyHelper.getReadRequest(pkPropertyIds), givenPredicate)) {
+        Map<String, Object> propertyMap = new HashMap<String, Object>(PropertyHelper.getProperties(resource));
+        propertyMap.putAll(requestPropertyMap);
+        propertyMaps.add(propertyMap);
+      }
     }
     else {
-      for (Resource resource : getResources(PropertyHelper.getReadRequest(pkPropertyIds), predicate)) {
-        predicateProperties.add(PropertyHelper.getProperties(resource));
-      }
+      Map<String, Object> propertyMap = new HashMap<String, Object>(PredicateHelper.getProperties(givenPredicate));
+      propertyMap.putAll(requestPropertyMap);
+      propertyMaps.add(propertyMap);
     }
 
-    for (Map<String, Object> predicatePropertyMap : predicateProperties) {
-      Map<String, Object> propertyMap = new HashMap<String, Object>(predicatePropertyMap);
-      if (requestPropertyMap != null) {
-        propertyMap.putAll(requestPropertyMap);
-      }
-      properties.add(propertyMap);
-    }
-    return properties;
-  }
-
-  /**
-   * Check the properties of the request to make sure that they are supported by this
-   * resource provider.
-   *
-   * @param type     the resource type
-   * @param request  the update / create request
-   *
-   * @throws UnsupportedPropertyException thrown if the request contains one or more
-   *                                      unsupported properties
-   */
-  protected void checkRequestProperties(Resource.Type type, Request request)
-      throws UnsupportedPropertyException {
-
-    //TODO : config messes this up for service resource, etc ...
-
-//    Set<String> unsupportedPropertyIds = new HashSet<String>();
-//
-//    for (Map<String, Object> requestProperties : request.getProperties()) {
-//      if (!propertyIds.containsAll(requestProperties.keySet())) {
-//        Set<String> requestPropertyIds = new HashSet<String>(requestProperties.keySet());
-//        requestPropertyIds.removeAll(propertyIds);
-//        unsupportedPropertyIds.addAll(requestPropertyIds);
-//      }
-//    }
-//
-//    if (!unsupportedPropertyIds.isEmpty()) {
-//      throw new UnsupportedPropertyException(type, unsupportedPropertyIds);
-//    }
+    return propertyMaps;
   }
 
   /**
@@ -267,22 +254,6 @@ public abstract class ResourceProviderImpl implements ResourceProvider, Observab
       return new RequestStatusImpl(requestResource);
     }
     return new RequestStatusImpl(null);
-  }
-
-  /**
-   * Get a map of property values from a given predicate.
-   *
-   * @param predicate  the predicate
-   *
-   * @return the map of properties
-   */
-  protected static Map<String, Object> getProperties(Predicate predicate) {
-    if (predicate == null) {
-      return Collections.emptyMap();
-    }
-    PropertyPredicateVisitor visitor = new PropertyPredicateVisitor();
-    PredicateHelper.visit(predicate, visitor);
-    return visitor.getProperties();
   }
 
   /**
@@ -352,5 +323,57 @@ public abstract class ResourceProviderImpl implements ResourceProvider, Observab
       default:
         throw new IllegalArgumentException("Unknown type " + type);
     }
+  }
+
+  protected <T> T createResources(Command<T> command)
+      throws SystemException, ResourceAlreadyExistsException, NoSuchParentResourceException {
+    try {
+      return command.invoke();
+    } catch (ParentObjectNotFoundException e) {
+      throw new NoSuchParentResourceException(e.getMessage(), e);
+    } catch (DuplicateResourceException e) {
+      throw new ResourceAlreadyExistsException(e.getMessage());
+    } catch (AmbariException e) {
+      if (LOG.isErrorEnabled()) {
+        LOG.error("Caught AmbariException when creating a resource", e);
+      }
+      throw new SystemException("An internal system exception occurred: " + e.getMessage(), e);
+    }
+  }
+
+  protected <T> T getResources (Command<T> command)
+      throws SystemException, NoSuchResourceException, NoSuchParentResourceException {
+    try {
+      return command.invoke();
+    } catch (ObjectNotFoundException e) {
+      throw new NoSuchResourceException("The requested resource doesn't exist: " + e.getMessage(), e);
+    } catch (ParentObjectNotFoundException e) {
+      throw new NoSuchParentResourceException(e.getMessage(), e);
+    } catch (AmbariException e) {
+      if (LOG.isErrorEnabled()) {
+        LOG.error("Caught AmbariException when getting a resource", e);
+      }
+      throw new SystemException("An internal system exception occurred: " + e.getMessage(), e);
+    }
+  }
+
+  protected <T> T modifyResources (Command<T> command)
+      throws SystemException, NoSuchResourceException, NoSuchParentResourceException {
+    try {
+      return command.invoke();
+    } catch (ObjectNotFoundException e) {
+      throw new NoSuchResourceException("The specified resource doesn't exist: " + e.getMessage(), e);
+    } catch (ParentObjectNotFoundException e) {
+      throw new NoSuchParentResourceException(e.getMessage(), e);
+    } catch (AmbariException e) {
+      if (LOG.isErrorEnabled()) {
+        LOG.error("Caught AmbariException when modifying a resource", e);
+      }
+      throw new SystemException("An internal system exception occurred: " + e.getMessage(), e);
+    }
+  }
+
+  protected interface Command<T> {
+    public T invoke() throws AmbariException;
   }
 }

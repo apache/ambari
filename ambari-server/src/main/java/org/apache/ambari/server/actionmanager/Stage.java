@@ -199,6 +199,7 @@ public class Stage {
     }
 
     if (execCmdList.contains(wrapper)) {
+      //todo: proper exception
       throw new RuntimeException(
           "Setting the execution command second time for same stage: stage="
               + this.getActionId() + ", host=" + host + ", role=" + role);

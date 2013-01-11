@@ -19,18 +19,11 @@
 package org.apache.ambari.server.controller.internal;
 
 import junit.framework.Assert;
-import org.apache.ambari.server.AmbariException;
-import org.apache.ambari.server.controller.spi.RequestStatus;
-import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
+import org.apache.ambari.server.controller.spi.*;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
-import org.apache.ambari.server.controller.spi.Predicate;
-import org.apache.ambari.server.controller.spi.PropertyProvider;
-import org.apache.ambari.server.controller.spi.Request;
-import org.apache.ambari.server.controller.spi.Resource;
-import org.apache.ambari.server.controller.spi.ResourceProvider;
-import org.apache.ambari.server.controller.spi.Schema;
 import org.junit.Test;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -54,33 +47,44 @@ public class SchemaImplTest {
 
   private static final ResourceProvider resourceProvider = new ResourceProvider() {
     @Override
-    public Set<Resource> getResources(Request request, Predicate predicate) throws AmbariException, UnsupportedPropertyException {
+    public Set<Resource> getResources(Request request, Predicate predicate) throws SystemException, UnsupportedPropertyException, NoSuchResourceException, NoSuchParentResourceException {
       return null;
     }
 
     @Override
-    public RequestStatus createResources(Request request) throws AmbariException, UnsupportedPropertyException {
+    public RequestStatus createResources(Request request)
+        throws SystemException, UnsupportedPropertyException, ResourceAlreadyExistsException, NoSuchParentResourceException {
       return new RequestStatusImpl(null);
     }
 
     @Override
-    public RequestStatus updateResources(Request request, Predicate predicate) throws AmbariException, UnsupportedPropertyException {
+    public RequestStatus updateResources(Request request, Predicate predicate) throws SystemException, UnsupportedPropertyException, NoSuchResourceException, NoSuchParentResourceException {
       return new RequestStatusImpl(null);
     }
 
     @Override
-    public RequestStatus deleteResources(Predicate predicate) throws AmbariException, UnsupportedPropertyException {
+    public RequestStatus deleteResources(Predicate predicate) throws SystemException, UnsupportedPropertyException, NoSuchResourceException, NoSuchParentResourceException {
       return new RequestStatusImpl(null);
     }
 
     @Override
-    public Set<String> getPropertyIds() {
+    public Set<String> getPropertyIdsForSchema() {
       return resourceProviderProperties;
     }
 
     @Override
     public Map<Resource.Type, String> getKeyPropertyIds() {
       return keyPropertyIds;
+    }
+
+    @Override
+    public Set<String> checkPropertyIds(Set<String> propertyIds) {
+      if (!resourceProviderProperties.containsAll(propertyIds)) {
+        Set<String> unsupportedPropertyIds = new HashSet<String>(propertyIds);
+        unsupportedPropertyIds.removeAll(resourceProviderProperties);
+        return unsupportedPropertyIds;
+      }
+      return Collections.emptySet();
     }
   };
 
@@ -102,6 +106,16 @@ public class SchemaImplTest {
     @Override
     public Set<String> getPropertyIds() {
       return propertyProviderProperties;
+    }
+
+    @Override
+    public Set<String> checkPropertyIds(Set<String> propertyIds) {
+      if (!propertyProviderProperties.containsAll(propertyIds)) {
+        Set<String> unsupportedPropertyIds = new HashSet<String>(propertyIds);
+        unsupportedPropertyIds.removeAll(propertyProviderProperties);
+        return unsupportedPropertyIds;
+      }
+      return Collections.emptySet();
     }
   };
 

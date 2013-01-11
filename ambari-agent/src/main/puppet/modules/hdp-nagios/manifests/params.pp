@@ -27,6 +27,7 @@ class hdp-nagios::params() inherits hdp::params
   $conf_dir = hdp_default("nagios_conf_dir","/etc/nagios")
 
   $plugins_dir = "/usr/lib64/nagios/plugins"
+  $eventhandlers_dir = "/usr/lib64/nagios/eventhandlers"  # Does not exist yet
   $nagios_pid_dir = "/var/run/nagios"
 
   $nagios_obj_dir = hdp_default("nagios_obj_dir","/etc/nagios/objects")
@@ -37,7 +38,8 @@ class hdp-nagios::params() inherits hdp::params
   $nagios_servicegroup_cfg = hdp_default("nagios_servicegroup_cfg","${nagios_obj_dir}/hadoop-servicegroups.cfg")
   $nagios_service_cfg = hdp_default("nagios_service_cfg","${nagios_obj_dir}/hadoop-services.cfg")
   $nagios_command_cfg = hdp_default("nagios_command_cfg","${nagios_obj_dir}/hadoop-commands.cfg")
-  
+  $nagios_resource_cfg = hdp_default("nagios_resource_cfg","${conf_dir}/resource.cfg")
+
   $nagios_web_login = hdp_default("nagios_web_login","nagiosadmin")
   $nagios_web_password = hdp_default("nagios_web_password","admin")
   

@@ -19,9 +19,8 @@
 package org.apache.ambari.server.api.services.serializers;
 
 
+import org.apache.ambari.server.api.services.ResultStatus;
 import org.apache.ambari.server.api.services.Result;
-
-import javax.ws.rs.core.UriInfo;
 
 /**
  * Format internal result to format expected by client.
@@ -30,9 +29,18 @@ public interface ResultSerializer {
   /**
    * Serialize the given result to a format expected by client.
    *
+   *
    * @param result  internal result
-   * @param uriInfo URL info for request
    * @return the serialized result
    */
-  Object serialize(Result result, UriInfo uriInfo);
+  Object serialize(Result result);
+
+  /**
+   * Serialize an error result to the format expected by the client.
+   *
+   * @param error  the error result
+   *
+   * @return the serialized error result
+   */
+  Object serializeError(ResultStatus error);
 }

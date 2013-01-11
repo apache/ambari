@@ -17,83 +17,48 @@
  */
 package org.apache.ambari.server.api.services;
 
-import static org.easymock.EasyMock.createNiceMock;
-import static org.easymock.EasyMock.createStrictMock;
-import static org.easymock.EasyMock.eq;
-import static org.easymock.EasyMock.expect;
-import static org.easymock.EasyMock.replay;
-import static org.easymock.EasyMock.verify;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertSame;
 
 import javax.ws.rs.core.*;
 
 import org.apache.ambari.server.api.handlers.RequestHandler;
 import org.apache.ambari.server.api.resources.ResourceInstance;
-import org.apache.ambari.server.api.services.serializers.ResultSerializer;
 import org.junit.Test;
 
 
-public class ConfigurationServiceTest {
+public class ConfigurationServiceTest extends BaseServiceTest {
   
   @Test
-  public void testCreateConfiguration() {
-    ResourceInstance resourceInstance = createStrictMock(ResourceInstance.class);
-    ResultSerializer resultSerializer = createStrictMock(ResultSerializer.class);
-    Object serializedResult = new Object();
-    RequestFactory requestFactory = createStrictMock(RequestFactory.class);
-    ResponseFactory responseFactory = createStrictMock(ResponseFactory.class);
-    Request request = createNiceMock(Request.class);
-    RequestHandler requestHandler = createStrictMock(RequestHandler.class);
-    Result result = createStrictMock(Result.class);
-    Response response = createStrictMock(Response.class);
-  
-    HttpHeaders httpHeaders = createNiceMock(HttpHeaders.class);
-    UriInfo uriInfo = createNiceMock(UriInfo.class);
-  
+  public void testCreateConfiguration() throws Exception{
     String clusterName = "clusterName";
 
     String body = "{ \"type\":\"hdfs-site\", \"tag\":\"my-new-tag\"," +
         "\"properties\":{ \"key1\":\"value1\", \"key2\":\"value2\" } }";
-    
-    expect(requestFactory.createRequest(eq(httpHeaders), eq(body), eq(uriInfo), eq(Request.Type.POST),
-        eq(resourceInstance))).andReturn(request);
 
-    expect(requestHandler.handleRequest(request)).andReturn(result);
-    expect(request.getResultSerializer()).andReturn(resultSerializer);
-    expect(resultSerializer.serialize(result, uriInfo)).andReturn(serializedResult);
-    expect(result.isSynchronous()).andReturn(false).atLeastOnce();
-    expect(responseFactory.createResponse(Request.Type.POST, serializedResult, false)).andReturn(response);
+    registerExpectations(Request.Type.POST, body, 200, false);
+    replayMocks();
 
-    replay(resourceInstance, resultSerializer, requestFactory, responseFactory, request, requestHandler,
-        result, response, httpHeaders, uriInfo);
-    
     //test
-    ConfigurationService hostService = new TestConfigurationService(resourceInstance, clusterName, requestFactory, responseFactory, requestHandler);
-    assertSame(response, hostService.createConfigurations(body, httpHeaders, uriInfo));
+    ConfigurationService configService = new TestConfigurationService(getResource(), clusterName, getRequestFactory(), getRequestHandler());
+    Response response = configService.createConfigurations(body, getHttpHeaders(), getUriInfo());
 
-    verify(resourceInstance, resultSerializer, requestFactory, responseFactory, request, requestHandler,
-        result, response, httpHeaders, uriInfo);  
+    verifyResults(response, 200);
   }
   
   private class TestConfigurationService extends ConfigurationService {
     private RequestFactory m_requestFactory;
-    private ResponseFactory m_responseFactory;
     private RequestHandler m_requestHandler;
     private ResourceInstance m_resourceInstance;
     private String m_clusterId;
 
     private TestConfigurationService(ResourceInstance resourceInstance, String clusterId, RequestFactory requestFactory,
-                               ResponseFactory responseFactory, RequestHandler handler) {
+                                     RequestHandler handler) {
       super(clusterId);
       m_resourceInstance = resourceInstance;
       m_clusterId = clusterId;
       m_requestFactory = requestFactory;
-      m_responseFactory = responseFactory;
       m_requestHandler = handler;
     }
-    
-    
 
     @Override
     ResourceInstance createConfigurationResource(String clusterName) {
@@ -107,12 +72,7 @@ public class ConfigurationServiceTest {
     }
 
     @Override
-    ResponseFactory getResponseFactory() {
-      return m_responseFactory;
-    }
-
-    @Override
-    RequestHandler getRequestHandler() {
+    RequestHandler getRequestHandler(Request.Type requestType) {
       return m_requestHandler;
     }    
   }

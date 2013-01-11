@@ -18,6 +18,7 @@
 
 package org.apache.ambari.server.api.handlers;
 
+import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.api.services.Request;
 import org.apache.ambari.server.api.services.Result;
 

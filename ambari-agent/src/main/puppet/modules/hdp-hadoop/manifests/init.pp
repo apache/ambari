@@ -48,7 +48,14 @@ debug('##Configs generation for hdp-hadoop')
       modulespath => $hdp-hadoop::params::conf_dir,
       filename => 'mapred-queue-acls.xml',
       module => 'hdp-hadoop',
-      configuration => $configuration['mapred-queue-acls']
+      configuration => $configuration['mapred-queue-acls'],
+      owner => $hdp-hadoop::params::mapred_user,
+      group => $hdp::params::hadoop_user_group
+    }
+  } else { # Manually overriding ownership of file installed by hadoop package
+    file { "${hdp-hadoop::params::conf_dir}/mapred-queue-acls.xml":
+      owner => $hdp-hadoop::params::mapred_user,
+      group => $hdp::params::hadoop_user_group
     }
   }
   
@@ -57,7 +64,9 @@ debug('##Configs generation for hdp-hadoop')
       modulespath => $hdp-hadoop::params::conf_dir,
       filename => 'hadoop-policy.xml',
       module => 'hdp-hadoop',
-      configuration => $configuration['hadoop-policy']
+      configuration => $configuration['hadoop-policy'],
+      owner => $hdp-hadoop::params::hdfs_user,
+      group => $hdp::params::hadoop_user_group
     }
   }
 
@@ -66,7 +75,9 @@ debug('##Configs generation for hdp-hadoop')
         modulespath => $hdp-hadoop::params::conf_dir,
         filename => 'core-site.xml',
         module => 'hdp-hadoop',
-        configuration => $configuration['core-site']
+        configuration => $configuration['core-site'],
+        owner => $hdp-hadoop::params::hdfs_user,
+        group => $hdp::params::hadoop_user_group
       }
     }
 
@@ -75,7 +86,9 @@ debug('##Configs generation for hdp-hadoop')
       modulespath => $hdp-hadoop::params::conf_dir,
       filename => 'mapred-site.xml',
       module => 'hdp-hadoop',
-      configuration => $configuration['mapred-site']
+      configuration => $configuration['mapred-site'],
+      owner => $hdp-hadoop::params::mapred_user,
+      group => $hdp::params::hadoop_user_group
     }
   }
   
@@ -84,7 +97,9 @@ debug('##Configs generation for hdp-hadoop')
       modulespath => $hdp-hadoop::params::conf_dir,
       filename => 'capacity-scheduler.xml',
       module => 'hdp-hadoop',
-      configuration => $configuration['capacity-scheduler']
+      configuration => $configuration['capacity-scheduler'],
+      owner => $hdp-hadoop::params::hdfs_user,
+      group => $hdp::params::hadoop_user_group
     }
   }
 
@@ -93,7 +108,9 @@ debug('##Configs generation for hdp-hadoop')
       modulespath => $hdp-hadoop::params::conf_dir,
       filename => 'hdfs-site.xml',
       module => 'hdp-hadoop',
-      configuration => $configuration['hdfs-site']
+      configuration => $configuration['hdfs-site'],
+      owner => $hdp-hadoop::params::hdfs_user,
+      group => $hdp::params::hadoop_user_group
     }
   }
 

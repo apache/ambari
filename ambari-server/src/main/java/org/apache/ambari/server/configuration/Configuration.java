@@ -52,7 +52,7 @@ public class Configuration {
   public static final String BOOTSTRAP_SETUP_AGENT_PASSWORD = "bootstrap.setup_agent.password";
   public static final String BOOTSTRAP_MASTER_HOSTNAME = "bootstrap.master_host_name";
   public static final String API_AUTHENTICATE = "api.authenticate";
-
+  public static final String API_USE_SSL = "api.ssl";
   public static final String SRVR_KSTR_DIR_KEY = "security.server.keys_dir";
   public static final String SRVR_CRT_NAME_KEY = "security.server.cert_name";
   public static final String SRVR_KEY_NAME_KEY = "security.server.key_name";
@@ -303,6 +303,14 @@ public class Configuration {
    */
   public boolean getApiAuthentication() {
     return ("true".equals(properties.getProperty(API_AUTHENTICATE, "false")));
+  }
+
+  /**
+   * Check to see if the API should be authenticated via ssl or not
+   * @return false if not, true if ssl needs to be used.
+   */
+  public boolean getApiSSLAuthentication() {
+    return ("true".equals(properties.getProperty(API_USE_SSL, "false")));
   }
 
 

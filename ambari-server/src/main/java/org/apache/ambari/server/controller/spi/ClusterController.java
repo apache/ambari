@@ -17,7 +17,6 @@
  */
 package org.apache.ambari.server.controller.spi;
 
-import org.apache.ambari.server.AmbariException;
 
 /**
  * The cluster controller is the main access point for accessing resources
@@ -38,15 +37,19 @@ public interface ClusterController {
    *
    * @return an iterable object of the requested resources
    *
-   * @throws AmbariException thrown if the resources cannot be obtained
-   *
    * @throws UnsupportedPropertyException thrown if the request or predicate contain
    *                                      unsupported property ids
+   * @throws SystemException an internal exception occurred
+   * @throws NoSuchResourceException no matching resource(s) found
+   * @throws NoSuchParentResourceException a specified parent resource doesn't exist
    */
   public Iterable<Resource> getResources(Resource.Type type,
                                          Request request,
                                          Predicate predicate)
-      throws AmbariException, UnsupportedPropertyException;
+      throws UnsupportedPropertyException,
+             SystemException,
+             NoSuchResourceException,
+             NoSuchParentResourceException;
 
   /**
    * Get the {@link Schema schema} for the given resource type.  The schema
@@ -68,17 +71,22 @@ public interface ClusterController {
    * @param request  the request object which defines the set of properties
    *                 for the resources to be created
    *
-   * @throws AmbariException thrown if the resources cannot be created
-   *
    * @throws UnsupportedPropertyException thrown if the request contains
    *                                      unsupported property ids
+   * @throws SystemException an internal exception occurred
+   * @throws ResourceAlreadyExistsException attempted to create a resource that already exists
+   * @throws NoSuchParentResourceException a specified parent resource doesn't exist
    */
   public RequestStatus createResources(Resource.Type type, Request request)
-      throws AmbariException, UnsupportedPropertyException;
+      throws UnsupportedPropertyException,
+             SystemException,
+             ResourceAlreadyExistsException,
+             NoSuchParentResourceException;
 
   /**
    * Update the resources selected by the given predicate with the properties
    * from the given request object.
+   *
    *
    * @param type       the type of the resources
    * @param request    the request object which defines the set of properties
@@ -86,15 +94,19 @@ public interface ClusterController {
    * @param predicate  the predicate object which can be used to filter which
    *                   resources are updated
    *
-   * @throws AmbariException thrown if the resource cannot be updated
-   *
    * @throws UnsupportedPropertyException thrown if the request or predicate
    *                                      contain unsupported property ids
+   * @throws SystemException an internal exception occurred
+   * @throws NoSuchResourceException no matching resource(s) found
+   * @throws NoSuchParentResourceException a specified parent resource doesn't exist
    */
   public RequestStatus updateResources(Resource.Type type,
                                        Request request,
                                        Predicate predicate)
-      throws AmbariException, UnsupportedPropertyException;
+      throws UnsupportedPropertyException,
+             SystemException,
+             NoSuchResourceException,
+             NoSuchParentResourceException;
 
   /**
    * Delete the resources selected by the given predicate.
@@ -103,12 +115,15 @@ public interface ClusterController {
    * @param predicate the predicate object which can be used to filter which
    *                  resources are deleted
    *
-   * @throws AmbariException thrown if the resource cannot be deleted
-   *
    * @throws UnsupportedPropertyException thrown if the predicate contains
    *                                      unsupported property ids
+   * @throws SystemException an internal exception occurred
+   * @throws NoSuchResourceException no matching resource(s) found
+   * @throws NoSuchParentResourceException a specified parent resource doesn't exist
    */
-  public RequestStatus deleteResources(Resource.Type type,
-                                       Predicate predicate)
-      throws AmbariException, UnsupportedPropertyException;
+  public RequestStatus deleteResources(Resource.Type type, Predicate predicate)
+      throws UnsupportedPropertyException,
+             SystemException,
+             NoSuchResourceException,
+             NoSuchParentResourceException ;
 }

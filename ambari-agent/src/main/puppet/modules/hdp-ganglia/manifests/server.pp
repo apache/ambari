@@ -63,8 +63,11 @@ class hdp-ganglia::server(
   
   if ($service_state == 'installed_and_configured') {
     $webserver_state = 'restart'
+  } elsif ($service_state == 'running') {
+    $webserver_state = 'running'
   } else {
-    $webserver_state = $service_state
+    # We are never stopping httpd
+    #$webserver_state = $service_state
   }
 
   class { 'hdp-monitor-webserver': service_state => $webserver_state}
@@ -87,12 +90,19 @@ class hdp-ganglia::server::packages(
   hdp::package { ['ganglia-server','ganglia-gweb','ganglia-hdp-gweb-addons']: 
     ensure      => $ensure,
     java_needed => false  
-  } 
+  }
 
-  hdp::package { ['rrdtool-python']: 
-    ensure      => $ensure,
-    java_needed => false  
-  } 
+  hdp::package { ['rrdtool']:
+        ensure      => 'absent',
+        java_needed => false,
+        before => Hdp::Package ['rrdtool-python']
+  }
+
+  hdp::package { ['rrdtool-python']:
+      ensure      => $ensure,
+      java_needed => false
+  }
+
 }
 
 class hdp-ganglia::server::files(
@@ -101,12 +111,14 @@ class hdp-ganglia::server::files(
 {
 
 
-  $rrd_py_path = $hdp::params::rrd_py_path
+  $rrd_py_path = $hdp::params::rrd_py_path [$hdp::params::hdp_os_type]
   hdp::directory_recursive_create{$rrd_py_path:
     ensure => "directory"  
   }
 
-  file{'/var/www/cgi-bin/rrd.py' : 
+  $rrd_py_file_path = "${rrd_py_path}/rrd.py"
+
+  file{$rrd_py_file_path :
     ensure => $ensure,
     source => "puppet:///modules/hdp-ganglia/rrd.py",
     mode   => '0755',

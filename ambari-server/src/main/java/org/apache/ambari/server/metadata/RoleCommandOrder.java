@@ -108,6 +108,8 @@ public class RoleCommandOrder {
         RoleCommand.START);
     addDependency(Role.WEBHCAT_SERVER, RoleCommand.START, Role.HIVE_SERVER,
         RoleCommand.START);
+    addDependency(Role.HIVE_METASTORE, RoleCommand.START, Role.MYSQL_SERVER,
+        RoleCommand.START);
 
     // Service checks
     addDependency(Role.HDFS_SERVICE_CHECK, RoleCommand.EXECUTE, Role.NAMENODE,

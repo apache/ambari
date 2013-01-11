@@ -18,5 +18,5 @@
 # under the License.
 #
 #
-/usr/lib/hive/bin/hiveserver2 > $1 2> $2 &
+/usr/lib/hive/bin/hiveserver2 -hiveconf hive.metastore.uris=' ' > $1 2> $2 &
 echo $!|cat>$3

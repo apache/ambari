@@ -39,15 +39,20 @@ public class RequestFactory {
    */
   public Request createRequest(HttpHeaders headers, String body, UriInfo uriInfo, Request.Type requestType,
                                ResourceInstance resource) {
-
-    if (requestType == Request.Type.POST &&
-        ! uriInfo.getQueryParameters().isEmpty() &&
-        body != null) {
-
-      return new QueryCreateRequest(headers, body, uriInfo, requestType, resource);
-
-    } else {
-      return new RequestImpl(headers, body, uriInfo, requestType, resource);
+    switch (requestType) {
+      case GET:
+        return new GetRequest(headers, body, uriInfo, resource);
+      case PUT:
+        return new PutRequest(headers, body, uriInfo, resource);
+      case DELETE:
+        return new DeleteRequest(headers, body, uriInfo, resource);
+      case POST:
+        return (uriInfo.getQueryParameters().isEmpty() || body == null) ?
+            new PostRequest(headers, body, uriInfo, resource) :
+            new QueryPostRequest(headers, body, uriInfo, resource);
+      default:
+        throw new IllegalArgumentException("Invalid request type: " + requestType);
     }
   }
+
 }

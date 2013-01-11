@@ -19,6 +19,8 @@
 package org.apache.ambari.server.controller;
 
 import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.ObjectNotFoundException;
+import org.apache.ambari.server.ParentObjectNotFoundException;
 
 import java.util.Map;
 import java.util.Set;
@@ -47,7 +49,7 @@ public interface AmbariManagementController {
    * @throws AmbariException thrown if the service cannot be created
    */
   public void createServices(Set<ServiceRequest> requests)
-      throws AmbariException;
+      throws AmbariException, ParentObjectNotFoundException;
 
   /**
    * Create the component defined by the attributes in the given request object.

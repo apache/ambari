@@ -18,7 +18,6 @@
 
 package org.apache.ambari.server.controller.ganglia;
 
-import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.controller.internal.PropertyInfo;
 import org.apache.ambari.server.controller.spi.*;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
@@ -29,6 +28,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -82,7 +82,9 @@ public class GangliaReportPropertyProvider implements PropertyProvider {
   // ----- PropertyProvider --------------------------------------------------
 
   @Override
-  public Set<Resource> populateResources(Set<Resource> resources, Request request, Predicate predicate) throws AmbariException{
+  public Set<Resource> populateResources(Set<Resource> resources, Request request, Predicate predicate)
+      throws SystemException {
+
     Set<Resource> keepers = new HashSet<Resource>();
     for (Resource resource : resources) {
       if (populateResource(resource, request, predicate)) {
@@ -97,6 +99,16 @@ public class GangliaReportPropertyProvider implements PropertyProvider {
     return propertyIds;
   }
 
+  @Override
+  public Set<String> checkPropertyIds(Set<String> propertyIds) {
+    if (!this.propertyIds.containsAll(propertyIds)) {
+      Set<String> unsupportedPropertyIds = new HashSet<String>(propertyIds);
+      unsupportedPropertyIds.removeAll(this.propertyIds);
+      return unsupportedPropertyIds;
+    }
+    return Collections.emptySet();
+  }
+
 
   // ----- helper methods ----------------------------------------------------
 
@@ -109,11 +121,12 @@ public class GangliaReportPropertyProvider implements PropertyProvider {
    *
    * @return true if the resource was successfully populated with the requested properties
    *
-   * @throws AmbariException thrown if the resource cannot be populated
+   * @throws SystemException if unable to populate the resource
    */
-  private boolean populateResource(Resource resource, Request request, Predicate predicate) throws AmbariException{
+  private boolean populateResource(Resource resource, Request request, Predicate predicate)
+      throws SystemException {
 
-    if (getPropertyIds().isEmpty()) {
+    if (propertyIds.isEmpty()) {
       return true;
     }
     String clusterName = (String) resource.getPropertyValue(clusterNamePropertyId);
@@ -127,16 +140,13 @@ public class GangliaReportPropertyProvider implements PropertyProvider {
     }
 
     setProperties(resource, clusterName, request,
-        PropertyHelper.getRequestPropertyIds(getPropertyIds(), request, predicate));
+        PropertyHelper.getRequestPropertyIds(propertyIds, request, predicate));
 
     return true;
   }
 
-  private boolean setProperties(Resource resource,
-                                String clusterName,
-                                Request request,
-                                Set<String> ids) {
-
+  private boolean setProperties(Resource resource, String clusterName, Request request, Set<String> ids)
+      throws SystemException {
 
     Map<String, Map<String, String>> propertyIdMaps = getPropertyIdMaps(request, ids);
 
@@ -222,8 +232,10 @@ public class GangliaReportPropertyProvider implements PropertyProvider {
    * @param report          the report
    *
    * @return the spec
+   *
+   * @throws SystemException if unable to ge the Ganglia Collector host name
    */
-  protected String getSpec(String clusterName, String report) {
+  protected String getSpec(String clusterName, String report) throws SystemException {
 
     StringBuilder sb = new StringBuilder();
 

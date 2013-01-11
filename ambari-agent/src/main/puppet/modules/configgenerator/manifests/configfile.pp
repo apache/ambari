@@ -43,7 +43,7 @@
 # Note: Set correct $modulespath in the configgenerator (or pass it as parameter)
 #
 
-define configgenerator::configfile ($modulespath='/etc/puppet/modules', $filename, $module, $configuration) {
+define configgenerator::configfile ($modulespath='/etc/puppet/modules', $filename, $module, $configuration, $owner = "root", $group = "root") {
   $configcontent = inline_template('<!--<%=Time.now.asctime %>-->
   <configuration>
   <% configuration.each do |key,value| -%>
@@ -61,5 +61,7 @@ file {"${modulespath}/${filename}":
   ensure  => present,
   content => $configcontent,
   path => "${modulespath}/${filename}",
+  owner => $owner,
+  group => $group
 }
 } 

@@ -43,7 +43,7 @@ class TestActionQueue(TestCase):
   def test_command_in_progress(self):
     config = AmbariConfig().getConfig()
     tmpfile = tempfile.gettempdir()
-    config.set('puppet', 'puppetmodules', tmpfile)
+    config.set('agent', 'prefix', tmpfile)
     actionQueue = ActionQueue(config)
     actionQueue.IDLE_SLEEP_TIME = 0.01
     executor_started_event = threading.Event()

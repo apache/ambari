@@ -45,14 +45,14 @@ class hdp-templeton::params() inherits hdp::params
   
   ### templeton-site
   $hadoop_conf_dir = hdp_default("hadoop/templeton-site/hadoop_conf_dir")
-  $templeton_jar = hdp_default("hadoop/templeton-site/templeton_jar","/usr/share/templeton/templeton-0.1.4.14.jar")
+  $templeton_jar = hdp_default("hadoop/templeton-site/templeton_jar","/usr/lib/hcatalog/share/webhcat/svr/webhcat.jar")
   $zookeeper_jar = hdp_default("hadoop/templeton-site/zookeeper_jar","/usr/lib/zookeeper/zookeeper.jar")
   $pig_tar_gz = hdp_default("hadoop/templeton-site/pig_tar_gz","$dest_pig_tar_name")
   $pig_tar_name_hdfs = hdp_default("hadoop/templeton-site/pig_tar_name_hdfs","pig-0.9.2.14")
 
   $hive_tar_gz = hdp_default("hadoop/templeton-site/hive_tar_gz","$dest_hive_tar_name")
   $hive_tar_gz_name = hdp_default("hadoop/templeton-site/hive_tar_gz_name","hive-0.9.0.14")
-  $hive_metastore_sasl_enabled = hdp_default("hadoop/templeton-site/hive_metastore_sasl_enabled","no")
+  $hive_metastore_sasl_enabled = hdp_default("hadoop/templeton-site/hive_metastore_sasl_enabled",false)
 
   $templeton_metastore_principal = hdp_default("hadoop/templeton-site/templeton_metastore_principal")
 

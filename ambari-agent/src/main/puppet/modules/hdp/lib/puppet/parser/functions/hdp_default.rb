@@ -25,7 +25,15 @@ module Puppet::Parser::Functions
     var_name = scoped_var_name.split("/").last
     default = args[1]
     val = lookupvar("::#{var_name}")
-    function_hdp_is_empty(val) ? (default||"") : val
+    # To workaround string-boolean comparison issues,
+    # ensure that we return boolean result if the default value
+    # is also boolean
+    if default == true or default == false # we expect boolean value as a result
+      casted_val = (val == "true" or val == true) # converting to boolean
+    else # default
+      casted_val = val
+    end
+    function_hdp_is_empty(val) ? (default||"") : casted_val
   end
 end
 

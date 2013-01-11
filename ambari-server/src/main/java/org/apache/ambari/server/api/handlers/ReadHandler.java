@@ -19,11 +19,14 @@
 package org.apache.ambari.server.api.handlers;
 
 import org.apache.ambari.server.api.services.Request;
+import org.apache.ambari.server.api.services.ResultImpl;
+import org.apache.ambari.server.api.services.ResultStatus;
 import org.apache.ambari.server.api.services.Result;
 import org.apache.ambari.server.api.query.Query;
-import org.apache.ambari.server.AmbariException;
-import org.apache.ambari.server.controller.spi.TemporalInfo;
+import org.apache.ambari.server.controller.spi.*;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Map;
 
@@ -32,24 +35,62 @@ import java.util.Map;
  */
 public class ReadHandler implements RequestHandler {
 
+  /**
+   * Logger instance.
+   */
+  private final static Logger LOG =
+      LoggerFactory.getLogger(ReadHandler.class);
+
   @Override
   public Result handleRequest(Request request) {
     Query query = request.getResource().getQuery();
 
+    try {
+      addFieldsToQuery(request, query);
+    } catch (IllegalArgumentException e) {
+      return new ResultImpl(new ResultStatus(ResultStatus.STATUS.BAD_REQUEST, e.getMessage()));
+    }
+
+    query.setUserPredicate(request.getQueryPredicate());
+    Result result;
+    try {
+      result = query.execute();
+      result.setResultStatus(new ResultStatus(ResultStatus.STATUS.OK));
+    } catch (SystemException e) {
+      result = new ResultImpl(new ResultStatus(ResultStatus.STATUS.SERVER_ERROR, e));
+    } catch (NoSuchParentResourceException e) {
+      result = new ResultImpl(new ResultStatus(ResultStatus.STATUS.NOT_FOUND, e.getMessage()));
+    } catch (UnsupportedPropertyException e) {
+      result = new ResultImpl(new ResultStatus(ResultStatus.STATUS.BAD_REQUEST, e.getMessage()));
+    } catch (NoSuchResourceException e) {
+      if (request.getQueryPredicate() == null) {
+        // no predicate specified, resource requested by id
+        result = new ResultImpl(new ResultStatus(ResultStatus.STATUS.NOT_FOUND, e.getMessage()));
+      } else {
+        // resource(s) requested using predicate
+        result = new ResultImpl(new ResultStatus(ResultStatus.STATUS.OK, e));
+        result.getResultTree().setProperty("isCollection", "true");
+      }
+    } catch (IllegalArgumentException e) {
+      result = new ResultImpl(new ResultStatus(ResultStatus.STATUS.BAD_REQUEST,
+          "Invalid Request: " + e.getMessage()));
+    } catch (RuntimeException e) {
+      if (LOG.isErrorEnabled()) {
+        LOG.error("Caught a runtime exception executing a query", e);
+      }
+      //result = new ResultImpl(new ResultStatus(ResultStatus.STATUS.SERVER_ERROR, e));
+      throw e;
+    }
+    return result;
+  }
+
+  private void addFieldsToQuery(Request request, Query query) throws IllegalArgumentException {
     //Partial response
     for (Map.Entry<String, TemporalInfo> entry : request.getFields().entrySet()) {
       // Iterate over map and add props/temporalInfo
       String propertyId = entry.getKey();
-      query.addProperty(PropertyHelper.getPropertyCategory(propertyId), PropertyHelper.getPropertyName(propertyId), entry.getValue());
-    }
-
-   query.setUserPredicate(request.getQueryPredicate());
-
-    try {
-      return query.execute();
-    } catch (AmbariException e) {
-      //TODO: exceptions
-      throw new RuntimeException("An exception occurred processing the request: " + e, e);
+      query.addProperty(PropertyHelper.getPropertyCategory(propertyId),
+          PropertyHelper.getPropertyName(propertyId), entry.getValue());
     }
   }
 }

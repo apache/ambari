@@ -22,284 +22,235 @@ package org.apache.ambari.server.api.services;
 
 import org.apache.ambari.server.api.handlers.RequestHandler;
 import org.apache.ambari.server.api.resources.ResourceInstance;
-import org.apache.ambari.server.api.services.serializers.ResultSerializer;
 import org.junit.Test;
 
-import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.Response;
-import javax.ws.rs.core.UriInfo;
 
-import static org.easymock.EasyMock.*;
-import static org.easymock.EasyMock.eq;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertSame;
 
 /**
  * Unit tests for ComponentService.
  */
-public class ComponentServiceTest {
+public class ComponentServiceTest extends BaseServiceTest {
 
   @Test
-  public void testGetComponent() {
-    ResourceInstance resourceDef = createStrictMock(ResourceInstance.class);
-    ResultSerializer resultSerializer = createStrictMock(ResultSerializer.class);
-    Object serializedResult = new Object();
-    RequestFactory requestFactory = createStrictMock(RequestFactory.class);
-    ResponseFactory responseFactory = createStrictMock(ResponseFactory.class);
-    Request request = createNiceMock(Request.class);
-    RequestHandler requestHandler = createStrictMock(RequestHandler.class);
-    Result result = createStrictMock(Result.class);
-    Response response = createStrictMock(Response.class);
-
-    HttpHeaders httpHeaders = createNiceMock(HttpHeaders.class);
-    UriInfo uriInfo = createNiceMock(UriInfo.class);
-
+  public void testGetComponent()  {
     String clusterName = "clusterName";
     String serviceName = "serviceName";
     String componentName = "componentName";
 
-    // expectations
-    expect(requestFactory.createRequest(eq(httpHeaders), isNull(String.class), eq(uriInfo), eq(Request.Type.GET),
-        eq(resourceDef))).andReturn(request);
-
-    expect(requestHandler.handleRequest(request)).andReturn(result);
-    expect(request.getResultSerializer()).andReturn(resultSerializer);
-    expect(resultSerializer.serialize(result, uriInfo)).andReturn(serializedResult);
-    expect(result.isSynchronous()).andReturn(true).atLeastOnce();
-
-    expect(responseFactory.createResponse(Request.Type.GET, serializedResult, true)).andReturn(response);
-
-    replay(resourceDef, resultSerializer, requestFactory, responseFactory, request, requestHandler,
-        result, response, httpHeaders, uriInfo);
+    registerExpectations(Request.Type.GET, null, 200, false);
+    replayMocks();
 
     //test
-    ComponentService componentService = new TestComponentService(resourceDef, clusterName, serviceName, componentName,
-        requestFactory, responseFactory, requestHandler);
-    assertSame(response, componentService.getComponent(httpHeaders, uriInfo, componentName));
+    ComponentService componentService = new TestComponentService(getResource(), clusterName, serviceName, componentName,
+        getRequestFactory(), getRequestHandler());
 
-    verify(resourceDef, resultSerializer, requestFactory, responseFactory, request, requestHandler,
-        result, response, httpHeaders, uriInfo);
+    Response response = componentService.getComponent(getHttpHeaders(), getUriInfo(), componentName);
+    verifyResults(response, 200);
+  }
+
+  @Test
+  public void testGetComponent__ErrorState()  {
+    String clusterName = "clusterName";
+    String serviceName = "serviceName";
+    String componentName = "componentName";
+
+    registerExpectations(Request.Type.GET, null, 404, true);
+    replayMocks();
+
+    //test
+    ComponentService componentService = new TestComponentService(getResource(), clusterName, serviceName, componentName,
+        getRequestFactory(), getRequestHandler());
+
+    Response response = componentService.getComponent(getHttpHeaders(), getUriInfo(), componentName);
+    verifyResults(response, 404);
   }
 
   @Test
   public void testGetComponents() {
-    ResourceInstance resourceDef = createStrictMock(ResourceInstance.class);
-    ResultSerializer resultSerializer = createStrictMock(ResultSerializer.class);
-    Object serializedResult = new Object();
-    RequestFactory requestFactory = createStrictMock(RequestFactory.class);
-    ResponseFactory responseFactory = createStrictMock(ResponseFactory.class);
-    Request request = createNiceMock(Request.class);
-    RequestHandler requestHandler = createStrictMock(RequestHandler.class);
-    Result result = createStrictMock(Result.class);
-    Response response = createStrictMock(Response.class);
-
-    HttpHeaders httpHeaders = createNiceMock(HttpHeaders.class);
-    UriInfo uriInfo = createNiceMock(UriInfo.class);
-
     String clusterName = "clusterName";
     String serviceName = "serviceName";
 
-    // expectations
-    expect(requestFactory.createRequest(eq(httpHeaders), isNull(String.class), eq(uriInfo), eq(Request.Type.GET),
-        eq(resourceDef))).andReturn(request);
-
-    expect(requestHandler.handleRequest(request)).andReturn(result);
-    expect(request.getResultSerializer()).andReturn(resultSerializer);
-    expect(resultSerializer.serialize(result, uriInfo)).andReturn(serializedResult);
-    expect(result.isSynchronous()).andReturn(true).atLeastOnce();
-    expect(responseFactory.createResponse(Request.Type.GET, serializedResult, true)).andReturn(response);
-
-    replay(resourceDef, resultSerializer, requestFactory, responseFactory, request, requestHandler,
-        result, response, httpHeaders, uriInfo);
+    registerExpectations(Request.Type.GET, null, 200, false);
+    replayMocks();
 
     //test
-    ComponentService componentService = new TestComponentService(resourceDef, clusterName, serviceName, null, requestFactory, responseFactory, requestHandler);
-    assertSame(response, componentService.getComponents(httpHeaders, uriInfo));
+    ComponentService componentService = new TestComponentService(getResource(), clusterName, serviceName, null,
+        getRequestFactory(), getRequestHandler());
 
-    verify(resourceDef, resultSerializer, requestFactory, responseFactory, request, requestHandler,
-        result, response, httpHeaders, uriInfo);
+    Response response = componentService.getComponents(getHttpHeaders(), getUriInfo());
+    verifyResults(response, 200);
+  }
+
+  @Test
+  public void testGetComponents__ErrorState() {
+    String clusterName = "clusterName";
+    String serviceName = "serviceName";
+
+    registerExpectations(Request.Type.GET, null, 500, true);
+    replayMocks();
+
+    //test
+    ComponentService componentService = new TestComponentService(getResource(), clusterName, serviceName, null,
+        getRequestFactory(), getRequestHandler());
+
+    Response response = componentService.getComponents(getHttpHeaders(), getUriInfo());
+    verifyResults(response, 500);
   }
 
   @Test
   public void testCreateComponent() {
-    ResourceInstance resourceDef = createStrictMock(ResourceInstance.class);
-    ResultSerializer resultSerializer = createStrictMock(ResultSerializer.class);
-    Object serializedResult = new Object();
-    RequestFactory requestFactory = createStrictMock(RequestFactory.class);
-    ResponseFactory responseFactory = createStrictMock(ResponseFactory.class);
-    Request request = createNiceMock(Request.class);
-    RequestHandler requestHandler = createStrictMock(RequestHandler.class);
-    Result result = createStrictMock(Result.class);
-    Response response = createStrictMock(Response.class);
-    HttpHeaders httpHeaders = createNiceMock(HttpHeaders.class);
-    UriInfo uriInfo = createNiceMock(UriInfo.class);
-
     String clusterName = "clusterName";
     String serviceName = "serviceName";
     String componentName = "componentName";
+    String body = "{body}";
 
-    // expectations
-    expect(requestFactory.createRequest(eq(httpHeaders), eq("body"), eq(uriInfo), eq(Request.Type.POST),
-        eq(resourceDef))).andReturn(request);
-
-    expect(requestHandler.handleRequest(request)).andReturn(result);
-    expect(request.getResultSerializer()).andReturn(resultSerializer);
-    expect(resultSerializer.serialize(result, uriInfo)).andReturn(serializedResult);
-    expect(result.isSynchronous()).andReturn(false).atLeastOnce();
-
-    expect(responseFactory.createResponse(Request.Type.POST, serializedResult, false)).andReturn(response);
-
-    replay(resourceDef, resultSerializer, requestFactory, responseFactory, request, requestHandler,
-        result, response, httpHeaders, uriInfo);
+    registerExpectations(Request.Type.POST, body, 201, false);
+    replayMocks();
 
     //test
-    ComponentService componentService = new TestComponentService(resourceDef, clusterName, serviceName, componentName,
-        requestFactory, responseFactory, requestHandler);
-    assertSame(response, componentService.createComponent("body", httpHeaders, uriInfo, componentName));
+    ComponentService componentService = new TestComponentService(getResource(), clusterName, serviceName, componentName,
+        getRequestFactory(), getRequestHandler());
 
-    verify(resourceDef, resultSerializer, requestFactory, responseFactory, request, requestHandler,
-        result, response, httpHeaders, uriInfo);
+    Response response = componentService.createComponent(body, getHttpHeaders(), getUriInfo(), componentName);
+    verifyResults(response, 201);
+  }
+
+  @Test
+  public void testCreateComponent__ErrorState() {
+    String clusterName = "clusterName";
+    String serviceName = "serviceName";
+    String componentName = "componentName";
+    String body = "{body}";
+
+    registerExpectations(Request.Type.POST, body, 500, true);
+    replayMocks();
+
+    //test
+    ComponentService componentService = new TestComponentService(getResource(), clusterName, serviceName, componentName,
+        getRequestFactory(), getRequestHandler());
+
+    Response response = componentService.createComponent(body, getHttpHeaders(), getUriInfo(), componentName);
+    verifyResults(response, 500);
   }
 
   @Test
   public void testUpdateComponent() {
-    ResourceInstance resourceDef = createStrictMock(ResourceInstance.class);
-    ResultSerializer resultSerializer = createStrictMock(ResultSerializer.class);
-    Object serializedResult = new Object();
-    RequestFactory requestFactory = createStrictMock(RequestFactory.class);
-    ResponseFactory responseFactory = createStrictMock(ResponseFactory.class);
-    Request request = createNiceMock(Request.class);
-    RequestHandler requestHandler = createStrictMock(RequestHandler.class);
-    Result result = createStrictMock(Result.class);
-    Response response = createStrictMock(Response.class);
-    HttpHeaders httpHeaders = createNiceMock(HttpHeaders.class);
-    UriInfo uriInfo = createNiceMock(UriInfo.class);
-
     String clusterName = "clusterName";
     String serviceName = "serviceName";
     String componentName = "componentName";
+    String body = "{body}";
 
-    // expectations
-    expect(requestFactory.createRequest(eq(httpHeaders), eq("body"), eq(uriInfo), eq(Request.Type.PUT),
-        eq(resourceDef))).andReturn(request);
-
-    expect(requestHandler.handleRequest(request)).andReturn(result);
-    expect(request.getResultSerializer()).andReturn(resultSerializer);
-    expect(resultSerializer.serialize(result, uriInfo)).andReturn(serializedResult);
-    expect(result.isSynchronous()).andReturn(false).atLeastOnce();
-
-    expect(responseFactory.createResponse(Request.Type.PUT, serializedResult, false)).andReturn(response);
-
-    replay(resourceDef, resultSerializer, requestFactory, responseFactory, request, requestHandler,
-        result, response, httpHeaders, uriInfo);
+    registerExpectations(Request.Type.PUT, body, 200, false);
+    replayMocks();
 
     //test
-    ComponentService componentService = new TestComponentService(resourceDef, clusterName, serviceName, componentName,
-        requestFactory, responseFactory, requestHandler);
-    assertSame(response, componentService.updateComponent("body", httpHeaders, uriInfo, componentName));
+    ComponentService componentService = new TestComponentService(getResource(), clusterName, serviceName, componentName,
+        getRequestFactory(), getRequestHandler());
 
-    verify(resourceDef, resultSerializer, requestFactory, responseFactory, request, requestHandler,
-        result, response, httpHeaders, uriInfo);
+    Response response = componentService.updateComponent(body, getHttpHeaders(), getUriInfo(), componentName);
+    verifyResults(response, 200);
+  }
+
+  @Test
+  public void testUpdateComponent__ErrorState() {
+    String clusterName = "clusterName";
+    String serviceName = "serviceName";
+    String componentName = "componentName";
+    String body = "{body}";
+
+    registerExpectations(Request.Type.PUT, body, 500, true);
+    replayMocks();
+
+    //test
+    ComponentService componentService = new TestComponentService(getResource(), clusterName, serviceName, componentName,
+        getRequestFactory(), getRequestHandler());
+
+    Response response = componentService.updateComponent(body, getHttpHeaders(), getUriInfo(), componentName);
+    verifyResults(response, 500);
   }
 
   @Test
   public void testUpdateComponents() {
-    ResourceInstance resourceDef = createStrictMock(ResourceInstance.class);
-    ResultSerializer resultSerializer = createStrictMock(ResultSerializer.class);
-    Object serializedResult = new Object();
-    RequestFactory requestFactory = createStrictMock(RequestFactory.class);
-    ResponseFactory responseFactory = createStrictMock(ResponseFactory.class);
-    Request request = createNiceMock(Request.class);
-    RequestHandler requestHandler = createStrictMock(RequestHandler.class);
-    Result result = createStrictMock(Result.class);
-    Response response = createStrictMock(Response.class);
-    HttpHeaders httpHeaders = createNiceMock(HttpHeaders.class);
-    UriInfo uriInfo = createNiceMock(UriInfo.class);
-
     String clusterName = "clusterName";
     String serviceName = "serviceName";
+    String body = "{body}";
 
-    // expectations
-    expect(requestFactory.createRequest(eq(httpHeaders), eq("body"), eq(uriInfo), eq(Request.Type.PUT),
-        eq(resourceDef))).andReturn(request);
-
-    expect(requestHandler.handleRequest(request)).andReturn(result);
-    expect(request.getResultSerializer()).andReturn(resultSerializer);
-    expect(resultSerializer.serialize(result, uriInfo)).andReturn(serializedResult);
-    expect(result.isSynchronous()).andReturn(false).atLeastOnce();
-
-    expect(responseFactory.createResponse(Request.Type.PUT, serializedResult, false)).andReturn(response);
-
-    replay(resourceDef, resultSerializer, requestFactory, responseFactory, request, requestHandler,
-        result, response, httpHeaders, uriInfo);
+    registerExpectations(Request.Type.PUT, body, 200, false);
+    replayMocks();
 
     //test
-    ComponentService componentService = new TestComponentService(resourceDef, clusterName, serviceName, null,
-        requestFactory, responseFactory, requestHandler);
-    assertSame(response, componentService.updateComponents("body", httpHeaders, uriInfo));
+    ComponentService componentService = new TestComponentService(getResource(), clusterName, serviceName, null,
+        getRequestFactory(), getRequestHandler());
 
-    verify(resourceDef, resultSerializer, requestFactory, responseFactory, request, requestHandler,
-        result, response, httpHeaders, uriInfo);
+    Response response = componentService.updateComponents(body, getHttpHeaders(), getUriInfo());
+    verifyResults(response, 200);
+  }
+
+  @Test
+  public void testUpdateComponents__ErrorState() {
+    String clusterName = "clusterName";
+    String serviceName = "serviceName";
+    String body = "{body}";
+
+    registerExpectations(Request.Type.PUT, body, 500, true);
+    replayMocks();
+
+    //test
+    ComponentService componentService = new TestComponentService(getResource(), clusterName, serviceName, null,
+        getRequestFactory(), getRequestHandler());
+
+    Response response = componentService.updateComponents(body, getHttpHeaders(), getUriInfo());
+    verifyResults(response, 500);
   }
 
   @Test
   public void testDeleteComponent() {
-    ResourceInstance resourceDef = createStrictMock(ResourceInstance.class);
-    ResultSerializer resultSerializer = createStrictMock(ResultSerializer.class);
-    Object serializedResult = new Object();
-    RequestFactory requestFactory = createStrictMock(RequestFactory.class);
-    ResponseFactory responseFactory = createStrictMock(ResponseFactory.class);
-    Request request = createNiceMock(Request.class);
-    RequestHandler requestHandler = createStrictMock(RequestHandler.class);
-    Result result = createStrictMock(Result.class);
-    Response response = createStrictMock(Response.class);
-    HttpHeaders httpHeaders = createNiceMock(HttpHeaders.class);
-    UriInfo uriInfo = createNiceMock(UriInfo.class);
-
     String clusterName = "clusterName";
     String serviceName = "serviceName";
-    String componentName = "componentName";
 
-    // expectations
-    expect(requestFactory.createRequest(eq(httpHeaders), isNull(String.class), eq(uriInfo), eq(Request.Type.DELETE),
-        eq(resourceDef))).andReturn(request);
-
-    expect(requestHandler.handleRequest(request)).andReturn(result);
-    expect(request.getResultSerializer()).andReturn(resultSerializer);
-    expect(resultSerializer.serialize(result, uriInfo)).andReturn(serializedResult);
-    expect(result.isSynchronous()).andReturn(false).atLeastOnce();
-
-    expect(responseFactory.createResponse(Request.Type.DELETE, serializedResult, false)).andReturn(response);
-
-    replay(resourceDef, resultSerializer, requestFactory, responseFactory, request, requestHandler,
-        result, response, httpHeaders, uriInfo);
+    registerExpectations(Request.Type.DELETE, null, 200, false);
+    replayMocks();
 
     //test
-    ComponentService componentService = new TestComponentService(resourceDef, clusterName, serviceName, componentName,
-        requestFactory, responseFactory, requestHandler);
-    assertSame(response, componentService.deleteComponent(httpHeaders, uriInfo, componentName));
+    ComponentService componentService = new TestComponentService(getResource(), clusterName, serviceName, null,
+        getRequestFactory(), getRequestHandler());
 
-    verify(resourceDef, resultSerializer, requestFactory, responseFactory, request, requestHandler,
-        result, response, httpHeaders, uriInfo);
+    Response response = componentService.deleteComponent(getHttpHeaders(), getUriInfo(), null);
+    verifyResults(response, 200);
   }
 
+  @Test
+  public void testDeleteComponent__ErrorState() {
+    String clusterName = "clusterName";
+    String serviceName = "serviceName";
 
+    registerExpectations(Request.Type.DELETE, null, 500, true);
+    replayMocks();
+
+    //test
+    ComponentService componentService = new TestComponentService(getResource(), clusterName, serviceName, null,
+        getRequestFactory(), getRequestHandler());
+
+    Response response = componentService.deleteComponent(getHttpHeaders(), getUriInfo(), null);
+    verifyResults(response, 500);
+  }
 
   private class TestComponentService extends ComponentService {
     private RequestFactory m_requestFactory;
-    private ResponseFactory m_responseFactory;
     private RequestHandler m_requestHandler;
-    private ResourceInstance m_resourceDef;
+    private ResourceInstance m_resource;
     private String m_clusterId;
     private String m_serviceId;
     private String m_componentId;
 
-    private TestComponentService(ResourceInstance resourceDef, String clusterId, String serviceId, String componentId, RequestFactory requestFactory, ResponseFactory responseFactory, RequestHandler handler) {
+    private TestComponentService(ResourceInstance resourceDef, String clusterId, String serviceId, String componentId,
+                                 RequestFactory requestFactory, RequestHandler handler) {
       super(clusterId, serviceId);
       m_requestFactory = requestFactory;
-      m_responseFactory = responseFactory;
       m_requestHandler = handler;
-      m_resourceDef = resourceDef;
+      m_resource = resourceDef;
       m_clusterId = clusterId;
       m_serviceId = serviceId;
       m_componentId = componentId;
@@ -310,7 +261,7 @@ public class ComponentServiceTest {
       assertEquals(m_clusterId, clusterName);
       assertEquals(m_serviceId, serviceName);
       assertEquals(m_componentId, componentName);
-      return m_resourceDef;
+      return m_resource;
     }
 
     @Override
@@ -319,12 +270,7 @@ public class ComponentServiceTest {
     }
 
     @Override
-    ResponseFactory getResponseFactory() {
-      return m_responseFactory;
-    }
-
-    @Override
-    RequestHandler getRequestHandler() {
+    RequestHandler getRequestHandler(Request.Type requestType) {
       return m_requestHandler;
     }
   }

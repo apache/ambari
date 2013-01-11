@@ -17,12 +17,14 @@
  */
 package org.apache.ambari.server.controller.utilities;
 
+import org.apache.ambari.server.controller.internal.PropertyPredicateVisitor;
 import org.apache.ambari.server.controller.predicate.BasePredicate;
 import org.apache.ambari.server.controller.predicate.PredicateVisitor;
 import org.apache.ambari.server.controller.predicate.PredicateVisitorAcceptor;
 import org.apache.ambari.server.controller.spi.Predicate;
 
 import java.util.Collections;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -41,5 +43,21 @@ public class PredicateHelper {
     if (predicate instanceof PredicateVisitorAcceptor) {
       ((PredicateVisitorAcceptor) predicate).accept(visitor);
     }
+  }
+
+  /**
+   * Get a map of property values from a given predicate.
+   *
+   * @param predicate  the predicate
+   *
+   * @return the map of properties
+   */
+  public static Map<String, Object> getProperties(Predicate predicate) {
+    if (predicate == null) {
+      return Collections.emptyMap();
+    }
+    PropertyPredicateVisitor visitor = new PropertyPredicateVisitor();
+    visit(predicate, visitor);
+    return visitor.getProperties();
   }
 }

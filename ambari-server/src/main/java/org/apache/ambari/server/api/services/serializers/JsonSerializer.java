@@ -18,19 +18,17 @@
 
 package org.apache.ambari.server.api.services.serializers;
 
+import org.apache.ambari.server.api.services.ResultStatus;
 import org.apache.ambari.server.api.services.Result;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.api.util.TreeNode;
 import org.codehaus.jackson.JsonFactory;
-import org.codehaus.jackson.JsonGenerationException;
 import org.codehaus.jackson.JsonGenerator;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.util.DefaultPrettyPrinter;
 
-import javax.ws.rs.core.UriInfo;
 import java.io.*;
 import java.nio.charset.Charset;
-import java.util.Collection;
 import java.util.Map;
 
 /**
@@ -53,23 +51,51 @@ public class JsonSerializer implements ResultSerializer {
 
 
   @Override
-  public Object serialize(Result result, UriInfo uriInfo) {
+  public Object serialize(Result result) {
     try {
-      ByteArrayOutputStream bytesOut = new ByteArrayOutputStream();
-      m_generator = createJsonGenerator(bytesOut);
+      ByteArrayOutputStream bytesOut = init();
 
-      DefaultPrettyPrinter p = new DefaultPrettyPrinter();
-      p.indentArraysWith(new DefaultPrettyPrinter.Lf2SpacesIndenter());
-      m_generator.setPrettyPrinter(p);
+      if (result.getStatus().isErrorState()) {
+        return serializeError(result.getStatus());
+      }
 
       processNode(result.getResultTree());
 
       m_generator.close();
       return bytesOut.toString("UTF-8");
     } catch (IOException e) {
+      //todo: exception handling.  Create ResultStatus 500 and call serializeError
+      throw new RuntimeException("Unable to serialize to json: " + e, e);
+    }
+  }
+
+  @Override
+  public Object serializeError(ResultStatus error) {
+    try {
+      ByteArrayOutputStream bytesOut = init();
+      //m_mapper.writeValue(m_generator, error);
+      m_generator.writeStartObject();
+      m_generator.writeNumberField("status", error.getStatus().getStatus());
+      m_generator.writeStringField("message", error.getMessage());
+      m_generator.writeEndObject();
+      m_generator.close();
+      return bytesOut.toString("UTF-8");
+
+    } catch (IOException e) {
       //todo: exception handling
       throw new RuntimeException("Unable to serialize to json: " + e, e);
     }
+  }
+
+  private ByteArrayOutputStream init() throws IOException {
+    ByteArrayOutputStream bytesOut = new ByteArrayOutputStream();
+    m_generator = createJsonGenerator(bytesOut);
+
+    DefaultPrettyPrinter p = new DefaultPrettyPrinter();
+    p.indentArraysWith(new DefaultPrettyPrinter.Lf2SpacesIndenter());
+    m_generator.setPrettyPrinter(p);
+
+    return bytesOut;
   }
 
   private void processNode(TreeNode<Resource> node) throws IOException {

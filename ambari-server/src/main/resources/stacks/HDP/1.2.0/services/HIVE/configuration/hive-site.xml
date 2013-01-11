@@ -125,4 +125,14 @@ limitations under the License.
     The user defined authorization class should implement interface org.apache.hadoop.hive.ql.security.authorization.HiveAuthorizationProvider.  </description>
   </property>
 
+  <property>
+    <name>hive.server2.enable.doAs</name>
+    <value>true</value>
+  </property>
+
+  <property>
+    <name>fs.hdfs.impl.disable.cache</name>
+    <value>true</value>
+  </property>
+
 </configuration>

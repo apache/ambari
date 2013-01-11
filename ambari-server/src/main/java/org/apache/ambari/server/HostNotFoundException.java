@@ -24,4 +24,8 @@ public class HostNotFoundException extends ObjectNotFoundException {
   public HostNotFoundException(String hostname) {
     super("Host not found, hostname=" + hostname);
   }
+
+  public HostNotFoundException(String clusterName, String hostname) {
+    super("Host not found, cluster=" + clusterName + ", hostname=" + hostname);
+  }
 }

@@ -17,8 +17,6 @@
  */
 package org.apache.ambari.server.controller.spi;
 
-import org.apache.ambari.server.AmbariException;
-
 import java.util.Map;
 import java.util.Set;
 
@@ -35,18 +33,22 @@ public interface ResourceProvider {
   /**
    * Create the resources defined by the properties in the given request object.
    *
+   *
    * @param request  the request object which defines the set of properties
    *                 for the resources to be created
    *
    * @return the request status
    *
-   * @throws AmbariException thrown if the resources cannot be created
-   *
-   * @throws UnsupportedPropertyException thrown if the request contains
-   *                                      unsupported property ids
+   * @throws SystemException an internal system exception occurred
+   * @throws UnsupportedPropertyException the request contains unsupported property ids
+   * @throws ResourceAlreadyExistsException attempted to create a resource which already exists
+   * @throws NoSuchParentResourceException a parent resource of the resource to create doesn't exist
    */
   public RequestStatus createResources(Request request)
-      throws AmbariException, UnsupportedPropertyException;
+      throws SystemException,
+      UnsupportedPropertyException,
+      ResourceAlreadyExistsException,
+      NoSuchParentResourceException;
 
   /**
    * Get a set of {@link Resource resources} based on the given request and predicate
@@ -70,13 +72,16 @@ public interface ResourceProvider {
    *                   resources are returned
    * @return a set of resources based on the given request and predicate information
    *
-   * @throws AmbariException thrown if the resources cannot be obtained
-   *
-   * @throws UnsupportedPropertyException thrown if the request or predicate
-   *                                      contain unsupported property ids
+   * @throws SystemException an internal system exception occurred
+   * @throws UnsupportedPropertyException the request contains unsupported property ids
+   * @throws NoSuchResourceException the requested resource instance doesn't exist
+   * @throws NoSuchParentResourceException a parent resource of the requested resource doesn't exist
    */
   public Set<Resource> getResources(Request request, Predicate predicate)
-      throws AmbariException, UnsupportedPropertyException;
+      throws SystemException,
+      UnsupportedPropertyException,
+      NoSuchResourceException,
+      NoSuchParentResourceException;
 
   /**
    * Update the resources selected by the given predicate with the properties
@@ -91,13 +96,16 @@ public interface ResourceProvider {
    *
    * @return the request status
    *
-   * @throws AmbariException thrown if the resource cannot be updated
-   *
-   * @throws UnsupportedPropertyException thrown if the request or predicate
-   *                                      contain unsupported property ids
+   * @throws SystemException an internal system exception occurred
+   * @throws UnsupportedPropertyException the request contains unsupported property ids
+   * @throws NoSuchResourceException the resource instance to be updated doesn't exist
+   * @throws NoSuchParentResourceException a parent resource of the resource doesn't exist
    */
   public RequestStatus updateResources(Request request, Predicate predicate)
-      throws AmbariException, UnsupportedPropertyException;
+      throws SystemException,
+      UnsupportedPropertyException,
+      NoSuchResourceException,
+      NoSuchParentResourceException;
 
   /**
    * Delete the resources selected by the given predicate.
@@ -109,20 +117,24 @@ public interface ResourceProvider {
    *
    * @return the request status
    *
-   * @throws AmbariException thrown if the resource cannot be deleted
-   *
-   * @throws UnsupportedPropertyException thrown if the predicate contains
-   *                                      unsupported property ids
+   * @throws SystemException an internal system exception occurred
+   * @throws UnsupportedPropertyException the request contains unsupported property ids
+   * @throws NoSuchResourceException the resource instance to be deleted doesn't exist
+   * @throws NoSuchParentResourceException a parent resource of the resource doesn't exist
    */
   public RequestStatus deleteResources(Predicate predicate)
-      throws AmbariException, UnsupportedPropertyException;
+      throws SystemException,
+      UnsupportedPropertyException,
+      NoSuchResourceException,
+      NoSuchParentResourceException;
 
   /**
    * Get the set of property ids for the properties that this provider can provide.
    *
    * @return the set of property ids for the properties that this provider can provide
    */
-  public Set<String> getPropertyIds();
+  // TODO : remove this
+  public Set<String> getPropertyIdsForSchema();
 
   /**
    * Get the key property ids for the resource type associated with this resource
@@ -131,4 +143,14 @@ public interface ResourceProvider {
    * @return a map of key property ids
    */
   public Map<Resource.Type, String> getKeyPropertyIds();
+
+  /**
+   * Check whether the set of given property ids is supported by this resource
+   * provider.
+   *
+   * @return a subset of the given property id set containing any property ids not
+   *         supported by this resource provider.  An empty return set indicates
+   *         that all of the given property ids are supported.
+   */
+  public Set<String> checkPropertyIds(Set<String> propertyIds);
 }

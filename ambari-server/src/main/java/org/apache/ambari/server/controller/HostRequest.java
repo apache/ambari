@@ -26,13 +26,13 @@ public class HostRequest {
 
   private String hostname;
   private String publicHostname;
-  private List<String> clusterNames; // CREATE/UPDATE
+  private String clusterName; // CREATE/UPDATE
   private Map<String, String> hostAttributes; // CREATE/UPDATE
   private String rackInfo;
 
-  public HostRequest(String hostname, List<String> clusterNames, Map<String, String> hostAttributes) {
+  public HostRequest(String hostname, String clusterName, Map<String, String> hostAttributes) {
     this.hostname = hostname;
-    this.clusterNames = clusterNames;
+    this.clusterName = clusterName;
     this.hostAttributes = hostAttributes;
   }
 
@@ -44,12 +44,12 @@ public class HostRequest {
     this.hostname = hostname;
   }
 
-  public List<String> getClusterNames() {
-    return clusterNames;
+  public String getClusterName() {
+    return clusterName;
   }
 
-  public void setClusterNames(List<String> clusterNames) {
-    this.clusterNames = clusterNames;
+  public void setClusterName(String clusterName) {
+    this.clusterName = clusterName;
   }
 
   public Map<String, String> getHostAttributes() {
@@ -78,19 +78,9 @@ public class HostRequest {
 
   public String toString() {
     StringBuilder sb = new StringBuilder();
-    sb.append("{"
-        + ", hostname=" + hostname
-        + ", clusterNames=[");
-    if (clusterNames != null) {
-      for (int i = 0; i < clusterNames.size(); ++i) {
-        if (i != 0) {
-          sb.append(",");
-        }
-        sb.append(clusterNames.get(i));
-      }
-    }
+    sb.append("{ hostname=").append(hostname).append(", clusterName=").append(clusterName);
     if (hostAttributes != null) {
-      sb.append("], hostAttributes=[");
+      sb.append(", hostAttributes=[");
       int i = 0;
       for (Entry<String, String> attr : hostAttributes.entrySet()) {
         if (i != 0) {
@@ -99,9 +89,9 @@ public class HostRequest {
         ++i;
         sb.append(attr.getKey() + "=" + attr.getValue());
       }
+      sb.append(']');
     }
-    sb.append("] }");
+    sb.append(" }");
     return sb.toString();
   }
-
 }

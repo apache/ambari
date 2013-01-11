@@ -17,6 +17,8 @@
  */
 package org.apache.ambari.server.controller.ganglia;
 
+import org.apache.ambari.server.controller.spi.SystemException;
+
 /**
  *  Provider of Ganglia host information.
  */
@@ -28,6 +30,8 @@ public interface GangliaHostProvider {
    * @param clusterName  the cluster name
    *
    * @return the Ganglia server
+   *
+   * @throws SystemException if unable to get the Ganglia server host name
    */
-  public String getGangliaCollectorHostName(String clusterName);
+  public String getGangliaCollectorHostName(String clusterName) throws SystemException;
 }

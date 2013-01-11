@@ -23,7 +23,6 @@ import org.apache.ambari.server.api.services.ResultImpl;
 import org.apache.ambari.server.api.util.TreeNodeImpl;
 import org.apache.ambari.server.controller.utilities.ClusterControllerHelper;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
-import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.controller.predicate.AndPredicate;
 import org.apache.ambari.server.controller.predicate.BasePredicate;
 import org.apache.ambari.server.controller.predicate.EqualsPredicate;
@@ -119,9 +118,10 @@ public class QueryImpl implements Query {
       // not a local category/property
       boolean success = addPropertyToSubResource(category, property, temporalInfo);
       if (!success) {
-        //TODO
-        throw new RuntimeException("Attempted to add invalid property to resource.  Resource=" +
-            m_resource.getResourceDefinition().getType() + ", Property: Category=" + category + " Field=" + property);
+        //TODO.  Remove when handled by back end
+        String propString = category == null ? property : property == null ? category : category + '/' + property;
+        throw new IllegalArgumentException("An invalid resource property was requested.  Resource: " +
+            m_resource.getResourceDefinition().getType() + ", Property: " + propString);
       }
     }
   }
@@ -132,9 +132,10 @@ public class QueryImpl implements Query {
   }
 
   @Override
-  public Result execute() throws AmbariException {
-    Result result = createResult();
+  public Result execute()
+      throws UnsupportedPropertyException, SystemException, NoSuchResourceException, NoSuchParentResourceException {
 
+    Result result = createResult();
     Resource.Type resourceType = m_resource.getResourceDefinition().getType();
     if (m_resource.getIds().get(resourceType) == null) {
       addCollectionProperties(resourceType);
@@ -147,14 +148,8 @@ public class QueryImpl implements Query {
     }
 
     Predicate predicate = createPredicate(m_resource);
-    Iterable<Resource> iterResource = null;
-
-    try {
-      iterResource = getClusterController().getResources(
-          resourceType, createRequest(), predicate);
-    } catch (UnsupportedPropertyException e) {
-      // TODO ...
-    }
+    Iterable<Resource> iterResource = getClusterController().getResources(
+        resourceType, createRequest(), predicate);
 
     TreeNode<Resource> tree = result.getResultTree();
     int count = 1;
@@ -235,7 +230,13 @@ public class QueryImpl implements Query {
   }
 
   private boolean addCategory(String category, String name, TemporalInfo temporalInfo) {
-    name = category != null ? category + '/' + name : name;
+    if (category != null) {
+      if (name != null && ! name.isEmpty()) {
+        name = category + '/' + name;
+      } else  {
+        name = category;
+      }
+    }
     TreeNode<Set<String>> node = m_treeAllProperties.getChild(name);
     if (node == null) {
       return false;

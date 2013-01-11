@@ -33,6 +33,7 @@ import junit.framework.Assert;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.ClusterNotFoundException;
+import org.apache.ambari.server.DuplicateResourceException;
 import org.apache.ambari.server.HostNotFoundException;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
@@ -211,7 +212,13 @@ public class ClustersTest {
 
     clusters.mapHostToCluster(h1, c1);
     clusters.mapHostToCluster(h2, c1);
-    clusters.mapHostToCluster(h1, c1);
+
+    try {
+      clusters.mapHostToCluster(h1, c1);
+      fail("Expected exception for duplicate");
+    } catch (DuplicateResourceException e) {
+      // expected
+    }
 
     Set<String> hostnames = new HashSet<String>();
     hostnames.add(h1);

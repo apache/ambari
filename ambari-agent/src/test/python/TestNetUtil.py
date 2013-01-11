@@ -59,7 +59,7 @@ class TestNetUtil(TestCase):
     self.assertEquals(netutil.checkURL('http://192.168.253.177'), False, "Not reachable IP")
     if hasattr(socket, 'setdefaulttimeout'):
       # Set the default timeout on sockets
-      socket.setdefaulttimeout(10)
+      socket.setdefaulttimeout(20)
     self.assertEquals(netutil.checkURL('http://www.iana.org/domains/example/'), True, "Good url - HTTP code 200")
     self.assertEquals(netutil.checkURL('https://www.iana.org/domains/example/'), True, "Good HTTPS url - HTTP code 200")
 

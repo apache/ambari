@@ -34,7 +34,7 @@ class hdp-oozie::service(
   $jar_location = $hdp::params::hadoop_jar_location
   $ext_js_path = "/usr/share/HDP-oozie/ext.zip"
   
-  if ($lzo_enabled) {
+  if ($lzo_enabled == true) {
     $lzo_jar_suffix = "-jars /usr/lib/hadoop/lib/hadoop-lzo-0.5.0.jar"
   } else {
     $lzo_jar_suffix = ""

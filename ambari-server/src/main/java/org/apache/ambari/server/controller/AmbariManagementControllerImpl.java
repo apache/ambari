@@ -19,26 +19,10 @@
 package org.apache.ambari.server.controller;
 
 import java.net.InetAddress;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.Map.Entry;
-import java.util.Set;
-import java.util.TreeMap;
 
-import org.apache.ambari.server.AmbariException;
-import org.apache.ambari.server.ClusterNotFoundException;
-import org.apache.ambari.server.HostNotFoundException;
-import org.apache.ambari.server.Role;
-import org.apache.ambari.server.RoleCommand;
-import org.apache.ambari.server.ServiceComponentHostNotFoundException;
-import org.apache.ambari.server.ServiceComponentNotFoundException;
-import org.apache.ambari.server.ServiceNotFoundException;
-import org.apache.ambari.server.StackNotFoundException;
+import org.apache.ambari.server.*;
 import org.apache.ambari.server.actionmanager.ActionManager;
 import org.apache.ambari.server.actionmanager.HostRoleCommand;
 import org.apache.ambari.server.actionmanager.RequestStatus;
@@ -258,7 +242,12 @@ public class AmbariManagementControllerImpl implements
         }
       }
 
-      Cluster cluster = clusters.getCluster(request.getClusterName());
+      Cluster cluster;
+      try {
+        cluster = clusters.getCluster(request.getClusterName());
+      } catch (ClusterNotFoundException e) {
+        throw new ParentObjectNotFoundException("Attempted to add a service to a cluster which doesn't exist", e);
+      }
       try {
         Service s = cluster.getService(request.getServiceName());
         if (s != null) {
@@ -298,9 +287,16 @@ public class AmbariManagementControllerImpl implements
         first = false;
         svcNames.append(svcName);
       }
-      throw new IllegalArgumentException("Invalid request"
-          + " contains duplicates within request or already existing services"
-          + ", duplicateServiceNames=" + svcNames.toString());
+      String clusterName = requests.iterator().next().getClusterName();
+      String msg;
+      if (duplicates.size() == 1) {
+        msg = "Attempted to create a service which already exists: "
+            + ", clusterName=" + clusterName  + " serviceName=" + svcNames.toString();
+      } else {
+        msg = "Attempted to create services which already exist: "
+            + ", clusterName=" + clusterName  + " serviceNames=" + svcNames.toString();
+      }
+      throw new DuplicateResourceException(msg);
     }
 
     // now to the real work
@@ -349,7 +345,13 @@ public class AmbariManagementControllerImpl implements
             + " component");
       }
 
-      Cluster cluster = clusters.getCluster(request.getClusterName());
+      Cluster cluster;
+      try {
+        cluster = clusters.getCluster(request.getClusterName());
+      } catch (ClusterNotFoundException e) {
+        throw new ParentObjectNotFoundException(
+            "Attempted to add a component to a cluster which doesn't exist:", e);
+      }
 
       if (request.getServiceName() == null
           || request.getServiceName().isEmpty()) {
@@ -393,8 +395,8 @@ public class AmbariManagementControllerImpl implements
       if (componentNames.get(request.getClusterName())
           .get(request.getServiceName()).contains(request.getComponentName())){
         // throw error later for dup
-        duplicates.add(request.getServiceName()
-            + "-" + request.getComponentName());
+        duplicates.add("[clusterName=" + request.getClusterName() + ", serviceName=" + request.getServiceName() +
+            ", componentName=" + request.getComponentName() + "]");
         continue;
       }
       componentNames.get(request.getClusterName())
@@ -411,13 +413,19 @@ public class AmbariManagementControllerImpl implements
         }
       }
 
-      Service s = cluster.getService(request.getServiceName());
+      Service s;
+      try {
+        s = cluster.getService(request.getServiceName());
+      } catch (ServiceNotFoundException e) {
+        throw new ParentObjectNotFoundException(
+            "Attempted to add a component to a service which doesn't exist:", e);
+      }
       try {
         ServiceComponent sc = s.getServiceComponent(request.getComponentName());
         if (sc != null) {
           // throw error later for dup
-          duplicates.add(request.getServiceName()
-              + "-" + request.getComponentName());
+          duplicates.add("[clusterName=" + request.getClusterName() + ", serviceName=" + request.getServiceName() +
+              ", componentName=" + request.getComponentName() + "]");
           continue;
         }
       } catch (AmbariException e) {
@@ -453,10 +461,13 @@ public class AmbariManagementControllerImpl implements
         first = false;
         names.append(cName);
       }
-      throw new IllegalArgumentException("Invalid request"
-          + " contains duplicates within request or"
-          + " already existing service components"
-          + ", duplicateServiceComponentsNames=" + names.toString());
+      String msg;
+      if (duplicates.size() == 1) {
+        msg = "Attempted to create a component which already exists: ";
+      } else {
+        msg = "Attempted to create components which already exist: ";
+      }
+      throw new DuplicateResourceException(msg + names.toString());
     }
 
 
@@ -529,17 +540,13 @@ public class AmbariManagementControllerImpl implements
         continue;
       }
 
-      if (request.getClusterNames() != null) {
-        for (String clusterName : request.getClusterNames()) {
-          try {
-            clusters.getCluster(clusterName);
-          } catch (ClusterNotFoundException e) {
-            // invalid cluster mapping
-            throw new IllegalArgumentException("Trying to map host"
-                + " to a non-existent cluster"
-                + ", hostname=" + request.getHostname()
-                + ", clusterName=" + clusterName);
-          }
+      if (request.getClusterName() != null) {
+        try {
+          // validate that cluster_name is valid
+          clusters.getCluster(request.getClusterName());
+        } catch (ClusterNotFoundException e) {
+          throw new ParentObjectNotFoundException("Attempted to add a host to a cluster which doesn't exist: "
+              + " clusterName=" + request.getClusterName());
         }
       }
     }
@@ -569,23 +576,19 @@ public class AmbariManagementControllerImpl implements
         first = false;
         names.append(hName);
       }
-      // FIXME throw correct error
-      throw new AmbariException("Some hosts have not been registered with"
-          + " the server"
-          + ", hostnames=" + names.toString());
+
+      throw new IllegalArgumentException("Attempted to add unknown hosts to a cluster.  " +
+          "These hosts have not been registered with the server: " + names.toString());
     }
 
     for (HostRequest request : requests) {
-      Host h = clusters.getHost(request.getHostname());
-      if (request.getClusterNames() != null) {
-        for (String clusterName : request.getClusterNames()) {
-          clusters.mapHostToCluster(request.getHostname(), clusterName);
-        }
+      if (request.getClusterName() != null) {
+        clusters.mapHostToCluster(request.getHostname(), request.getClusterName());
       }
 
       if (request.getHostAttributes() != null) {
-        h = clusters.getHost(request.getHostname());
-        h.setHostAttributes(request.getHostAttributes());
+        clusters.getHost(request.getHostname()).
+            setHostAttributes(request.getHostAttributes());
       }
     }
   }
@@ -615,7 +618,13 @@ public class AmbariManagementControllerImpl implements
             + " when trying to create a hostcomponent");
       }
 
-      Cluster cluster = clusters.getCluster(request.getClusterName());
+      Cluster cluster;
+      try {
+        cluster = clusters.getCluster(request.getClusterName());
+      } catch (ClusterNotFoundException e) {
+        throw new ParentObjectNotFoundException(
+            "Attempted to add a host_component to a cluster which doesn't exist: ", e);
+      }
 
       if (request.getServiceName() == null
           || request.getServiceName().isEmpty()) {
@@ -666,9 +675,8 @@ public class AmbariManagementControllerImpl implements
       if (hostComponentNames.get(request.getClusterName())
           .get(request.getServiceName()).get(request.getComponentName())
           .contains(request.getHostname())) {
-        duplicates.add(request.getServiceName()
-            + "-" + request.getComponentName()
-            + "-" + request.getHostname());
+        duplicates.add("[clusterName=" + request.getClusterName() + ", hostName=" + request.getHostname() +
+            ", componentName=" +request.getComponentName() +']');
         continue;
       }
       hostComponentNames.get(request.getClusterName())
@@ -686,10 +694,24 @@ public class AmbariManagementControllerImpl implements
         }
       }
 
-      Service s = cluster.getService(request.getServiceName());
+      Service s;
+      try {
+        s = cluster.getService(request.getServiceName());
+      } catch (ServiceNotFoundException e) {
+        throw new IllegalArgumentException(
+            "The service[" + request.getServiceName() + "] associated with the component[" +
+            request.getComponentName() + "] doesn't exist for the cluster[" + request.getClusterName() + "]");
+      }
       ServiceComponent sc = s.getServiceComponent(
           request.getComponentName());
-      Host host = clusters.getHost(request.getHostname());
+
+      Host host;
+      try {
+        host = clusters.getHost(request.getHostname());
+      } catch (HostNotFoundException e) {
+        throw new ParentObjectNotFoundException(
+            "Attempted to add a host_component to a host that doesn't exist: ", e);
+      }
       Set<Cluster> mappedClusters =
           clusters.getClustersForHost(request.getHostname());
       boolean validCluster = false;
@@ -713,21 +735,15 @@ public class AmbariManagementControllerImpl implements
         }
       }
       if (!validCluster) {
-        // TODO fix throw correct error
-        throw new AmbariException("Invalid request as host does not belong to"
-            + " given cluster"
-            + ", clusterName=" + request.getClusterName()
-            + ", serviceName=" + request.getServiceName()
-            + ", componentName=" + request.getComponentName()
-            + ", hostname=" + request.getHostname());
+        throw new ParentObjectNotFoundException("Attempted to add a host_component to a host that doesn't exist: " +
+            "clusterName=" + request.getClusterName() + ", hostName=" + request.getHostname());
       }
       try {
         ServiceComponentHost sch = sc.getServiceComponentHost(
             request.getHostname());
         if (sch != null) {
-          duplicates.add(request.getServiceName()
-              + "-" + request.getComponentName()
-              + "-" + request.getHostname());
+          duplicates.add("[clusterName=" + request.getClusterName() + ", hostName=" + request.getHostname() +
+              ", componentName=" +request.getComponentName() +']');
           continue;
         }
       } catch (AmbariException e) {
@@ -751,10 +767,13 @@ public class AmbariManagementControllerImpl implements
         first = false;
         names.append(hName);
       }
-      throw new IllegalArgumentException("Invalid request"
-          + " contains duplicates within request or"
-          + " already existing host components"
-          + ", duplicateServiceComponentHostNames=" + names.toString());
+      String msg;
+      if (duplicates.size() == 1) {
+        msg = "Attempted to create a host_component which already exists: ";
+      } else {
+        msg = "Attempted to create host_component's which already exist: ";
+      }
+      throw new DuplicateResourceException(msg + names.toString());
     }
 
     // now doing actual work
@@ -778,9 +797,7 @@ public class AmbariManagementControllerImpl implements
           && !request.getDesiredState().isEmpty()) {
         State state = State.valueOf(request.getDesiredState());
         sch.setDesiredState(state);
-      } else {
-        sch.setDesiredState(sc.getDesiredState());
-      }
+      } 
 
       sch.setDesiredStackVersion(sc.getDesiredStackVersion());
 
@@ -923,6 +940,7 @@ public class AmbariManagementControllerImpl implements
 
   private synchronized Set<ClusterResponse> getClusters(ClusterRequest request)
       throws AmbariException {
+
     Set<ClusterResponse> response = new HashSet<ClusterResponse>();
 
     if (LOG.isDebugEnabled()) {
@@ -968,7 +986,13 @@ public class AmbariManagementControllerImpl implements
       throw new AmbariException("Invalid arguments, cluster name"
           + " cannot be null");
     }
-    final Cluster cluster = clusters.getCluster(request.getClusterName());
+    String clusterName = request.getClusterName();
+    final Cluster cluster;
+    try {
+      cluster = clusters.getCluster(clusterName);
+    } catch (ObjectNotFoundException e) {
+      throw new ParentObjectNotFoundException("Parent Cluster resource doesn't exist", e);
+    }
 
     Set<ServiceResponse> response = new HashSet<ServiceResponse>();
     if (request.getServiceName() != null) {
@@ -1011,7 +1035,12 @@ public class AmbariManagementControllerImpl implements
           + " should be non-null");
     }
 
-    final Cluster cluster = clusters.getCluster(request.getClusterName());
+    final Cluster cluster;
+    try {
+      cluster = clusters.getCluster(request.getClusterName());
+    } catch (ObjectNotFoundException e) {
+      throw new ParentObjectNotFoundException("Parent Cluster resource doesn't exist", e);
+    }
 
     Set<ServiceComponentResponse> response =
         new HashSet<ServiceComponentResponse>();
@@ -1036,7 +1065,14 @@ public class AmbariManagementControllerImpl implements
         }
         request.setServiceName(serviceName);
       }
-      Service s = cluster.getService(request.getServiceName());
+
+      final Service s;
+      try {
+        s = cluster.getService(request.getServiceName());
+      } catch (ObjectNotFoundException e) {
+        throw new ParentObjectNotFoundException("Parent Service resource doesn't exist", e);
+      }
+
       ServiceComponent sc = s.getServiceComponent(request.getComponentName());
       response.add(sc.convertToResponse());
       return response;
@@ -1078,28 +1114,52 @@ public class AmbariManagementControllerImpl implements
 
   private synchronized Set<HostResponse> getHosts(HostRequest request)
       throws AmbariException {
+
+    //TODO/FIXME host can only belong to a single cluster so get host directly from Cluster
+    //TODO/FIXME what is the requirement for filtering on host attributes?
+
+    List<Host>        hosts;
     Set<HostResponse> response = new HashSet<HostResponse>();
+    Cluster           cluster  = null;
 
-    // FIXME what is the requirement for filtering on host attributes?
-    // FIXME do we need get all hosts in given list of clusters?
+    String clusterName = request.getClusterName();
+    String hostName    = request.getHostname();
 
-    List<Host> hosts = null;
-    if (request.getHostname() != null) {
-      Host h = clusters.getHost(request.getHostname());
-      hosts = new ArrayList<Host>();
-      hosts.add(h);
-    } else {
+    if (clusterName != null) {
+      //validate that cluster exists, throws exception if it doesn't.
+      try {
+        cluster = clusters.getCluster(clusterName);
+      } catch (ObjectNotFoundException e) {
+        throw new ParentObjectNotFoundException("Parent Cluster resource doesn't exist", e);
+      }
+    }
+
+    if (hostName == null) {
       hosts = clusters.getHosts();
+    } else {
+      hosts = new ArrayList<Host>();
+      hosts.add(clusters.getHost(request.getHostname()));
     }
 
     for (Host h : hosts) {
-      HostResponse r = h.convertToResponse();
-      Set<Cluster> cs =
-          clusters.getClustersForHost(h.getHostName());
-      for (Cluster c : cs) {
-        r.getClusterNames().add(c.getClusterName());
+      if (clusterName != null) {
+        if (clusters.getClustersForHost(h.getHostName()).contains(cluster)) {
+          HostResponse r = h.convertToResponse();
+          r.setClusterName(clusterName);
+          response.add(r);
+        } else if (hostName != null) {
+          throw new HostNotFoundException(hostName);
+        }
+      } else {
+        HostResponse r = h.convertToResponse();
+
+        Set<Cluster> clustersForHost = clusters.getClustersForHost(h.getHostName());
+        //todo: host can only belong to a single cluster
+        if (clustersForHost != null && clustersForHost.size() != 0) {
+          r.setClusterName(clustersForHost.iterator().next().getClusterName());
+        }
+        response.add(r);
       }
-      response.add(r);
     }
     return response;
   }
@@ -1108,11 +1168,29 @@ public class AmbariManagementControllerImpl implements
       ServiceComponentHostRequest request) throws AmbariException {
     if (request.getClusterName() == null
         || request.getClusterName().isEmpty()) {
-      throw new AmbariException("Invalid arguments, cluster name should not"
-          + " be null");
+      throw new IllegalArgumentException("Invalid arguments, cluster name should not be null");
     }
 
-    final Cluster cluster = clusters.getCluster(request.getClusterName());
+    final Cluster cluster;
+    try {
+      cluster = clusters.getCluster(request.getClusterName());
+    } catch (ClusterNotFoundException e) {
+      throw new ParentObjectNotFoundException("Parent Cluster resource doesn't exist", e);
+    }
+
+    if (request.getHostname() != null) {
+      try {
+        if (! clusters.getClustersForHost(request.getHostname()).contains(cluster)) {
+          // case where host exists but not associated with given cluster
+          throw new ParentObjectNotFoundException("Parent Host resource doesn't exist",
+              new HostNotFoundException(request.getClusterName(), request.getHostname()));
+        }
+      } catch (HostNotFoundException e) {
+        // creating new HostNotFoundException to add cluster name
+        throw new ParentObjectNotFoundException("Parent Host resource doesn't exist",
+            new HostNotFoundException(request.getClusterName(), request.getHostname()));
+      }
+    }
 
     if (request.getComponentName() != null) {
       if (request.getServiceName() == null
@@ -1124,22 +1202,20 @@ public class AmbariManagementControllerImpl implements
         if (LOG.isDebugEnabled()) {
           LOG.debug("Looking up service name for component"
               + ", componentName=" + request.getComponentName()
-              + ", serviceName=" + serviceName);
+              + ", serviceName=" + serviceName
+              + ", stackInfo=" + stackId.getStackId());
         }
         if (serviceName == null
             || serviceName.isEmpty()) {
-          throw new AmbariException("Could not find service for component"
-              + ", componentName=" + request.getComponentName()
-              + ", clusterName=" + cluster.getClusterName()
-              + ", stackInfo=" + stackId.getStackId());
+          throw new ServiceComponentHostNotFoundException(
+              cluster.getClusterName(), null, request.getComponentName(),request.getHostname());
         }
         request.setServiceName(serviceName);
       }
     }
 
     Set<Service> services = new HashSet<Service>();
-    if (request.getServiceName() != null
-        && !request.getServiceName().isEmpty()) {
+    if (request.getServiceName() != null && !request.getServiceName().isEmpty()) {
       services.add(cluster.getService(request.getServiceName()));
     } else {
       services.addAll(cluster.getServices().values());
@@ -1189,8 +1265,15 @@ public class AmbariManagementControllerImpl implements
             ServiceComponentHostResponse r = sch.convertToResponse();
             response.add(r);
           } catch (ServiceComponentHostNotFoundException e) {
-            // Expected
-            // ignore and continue
+            if (request.getServiceName() != null && request.getComponentName() != null) {
+              throw new ServiceComponentHostNotFoundException(cluster.getClusterName(),
+                  request.getServiceName(), request.getComponentName(),request.getHostname());
+            } else {
+              // ignore this since host_component was not specified
+              // this is an artifact of how we get host_components and can happen
+              // in case where we get all host_components for a host
+            }
+
           }
         } else {
           for (ServiceComponentHost sch :
@@ -1434,6 +1517,7 @@ public class AmbariManagementControllerImpl implements
                 if (oldSchState == State.INIT
                     || oldSchState == State.UNINSTALLED
                     || oldSchState == State.INSTALLED
+                    || oldSchState == State.INSTALLING
                     || oldSchState == State.INSTALL_FAILED) {
                   roleCommand = RoleCommand.INSTALL;
                   event = new ServiceComponentHostInstallEvent(
@@ -1461,14 +1545,18 @@ public class AmbariManagementControllerImpl implements
                 }
                 break;
               case STARTED:
+                StackId stackId = scHost.getDesiredStackVersion();
+                ComponentInfo compInfo = ambariMetaInfo.getComponentCategory(
+                    stackId.getStackName(), stackId.getStackVersion(), scHost.getServiceName(),
+                    scHost.getServiceComponentName());
                 if (oldSchState == State.INSTALLED
-                    || oldSchState == State.START_FAILED) {
+                    || oldSchState == State.START_FAILED || oldSchState == State.STARTING) {
                   roleCommand = RoleCommand.START;
                   event = new ServiceComponentHostStartEvent(
                       scHost.getServiceComponentName(), scHost.getHostName(),
                       nowTimestamp, scHost.getDesiredConfigVersionsRecursive());
                 } else {
-                  throw new AmbariException("Invalid transition for"
+                  String error = "Invalid transition for"
                       + " servicecomponenthost"
                       + ", clusterName=" + cluster.getClusterName()
                       + ", clusterId=" + cluster.getClusterId()
@@ -1476,7 +1564,13 @@ public class AmbariManagementControllerImpl implements
                       + ", componentName=" + scHost.getServiceComponentName()
                       + ", hostname=" + scHost.getHostName()
                       + ", currentState=" + oldSchState
-                      + ", newDesiredState=" + newState);
+                      + ", newDesiredState=" + newState;
+                  if (compInfo.isMaster()) {
+                    throw new AmbariException(error);
+                  } else {
+                    LOG.info("Ignoring: " + error);
+                    continue;
+                  }
                 }
                 break;
               case UNINSTALLED:
@@ -1577,7 +1671,6 @@ public class AmbariManagementControllerImpl implements
             new ServiceComponentHostOpInProgressEvent(null, clientHost,
                 nowTimestamp), cluster.getClusterName(), serviceName);
 
-
         Map<String, Map<String, String>> configurations =
             new TreeMap<String, Map<String, String>>();
         Map<String, Config> allConfigs = cluster.getService(serviceName).getDesiredConfigs();
@@ -1591,6 +1684,10 @@ public class AmbariManagementControllerImpl implements
             smokeTestRole).getExecutionCommand()
             .setConfigurations(configurations);
 
+        // Generate cluster host info
+        stage.getExecutionCommandWrapper(clientHost, smokeTestRole)
+            .getExecutionCommand()
+            .setClusterHostInfo(StageUtils.getClusterHostInfo(cluster));
       }
 
       RoleGraph rg = new RoleGraph(rco);
@@ -1654,6 +1751,7 @@ public class AmbariManagementControllerImpl implements
         if (oldState == State.INIT
             || oldState == State.UNINSTALLED
             || oldState == State.INSTALLED
+            || oldState == State.INSTALLING
             || oldState == State.STARTED
             || oldState == State.START_FAILED
             || oldState == State.INSTALL_FAILED
@@ -1663,6 +1761,7 @@ public class AmbariManagementControllerImpl implements
         break;
       case STARTED:
         if (oldState == State.INSTALLED
+            || oldState == State.STARTING
             || oldState == State.STARTED
             || oldState == State.START_FAILED) {
           return true;
@@ -2296,8 +2395,14 @@ public class AmbariManagementControllerImpl implements
 
       Host h = clusters.getHost(request.getHostname());
 
-      for (String clusterName : request.getClusterNames()) {
-        clusters.mapHostToCluster(request.getHostname(), clusterName);
+      try {
+        //todo: the below method throws an exception when trying to create a duplicate mapping.
+        //todo: this is done to detect duplicates during host create.  Unless it is allowable to
+        //todo: add a host to a cluster by modifying the cluster_name prop, we should not do this mapping here.
+        //todo: Determine if it is allowable to associate a host to a cluster via this mechanism.
+        clusters.mapHostToCluster(request.getHostname(), request.getClusterName());
+      } catch (DuplicateResourceException e) {
+        // do nothing
       }
 
       if (null != request.getHostAttributes())
@@ -2310,8 +2415,10 @@ public class AmbariManagementControllerImpl implements
       if (null != request.getPublicHostName()) {
         h.setPublicHostName(request.getPublicHostName());
       }
-    }
 
+      //todo: if attempt was made to update a property other than those
+      //todo: that are allowed above, should throw exception
+    }
   }
 
   @Override
@@ -2479,8 +2586,8 @@ public class AmbariManagementControllerImpl implements
               + ", newDesiredState=" + newState);
         }
         continue;
-      }
-
+      } 
+      
       if (!isValidStateTransition(oldSchState, newState)) {
         throw new AmbariException("Invalid transition for"
             + " servicecomponenthost"
@@ -2599,14 +2706,12 @@ public class AmbariManagementControllerImpl implements
   @Override
   public RequestStatusResponse deleteServices(Set<ServiceRequest> request)
       throws AmbariException {
-    // TODO Auto-generated method stub
     throw new AmbariException("Delete services not supported");
   }
 
   @Override
   public RequestStatusResponse deleteComponents(
       Set<ServiceComponentRequest> request) throws AmbariException {
-    // TODO Auto-generated method stub
     throw new AmbariException("Delete components not supported");
   }
 
@@ -2619,7 +2724,6 @@ public class AmbariManagementControllerImpl implements
   @Override
   public RequestStatusResponse deleteHostComponents(
       Set<ServiceComponentHostRequest> request) throws AmbariException {
-    // TODO Auto-generated method stub
     throw new AmbariException("Delete host components not supported");
   }
 
@@ -2666,7 +2770,7 @@ public class AmbariManagementControllerImpl implements
 
   public Set<RequestStatusResponse> getRequestsByStatus(RequestsByStatusesRequest request) {
 
-    //TODO implement
+    //TODO implement.  Throw UnsupportedOperationException if it is not supported.
     return Collections.emptySet();
   }
 
@@ -2703,8 +2807,17 @@ public class AmbariManagementControllerImpl implements
         response.add(getRequestStatusResponse(requestId.longValue()));
       }
     } else {
-      response.add(getRequestStatusResponse(
-          request.getRequestId().longValue()));
+      RequestStatusResponse requestStatusResponse = getRequestStatusResponse(
+          request.getRequestId().longValue());
+
+      //todo: correlate request with cluster
+      if (requestStatusResponse.getTasks().size() == 0) {
+        //todo: should be thrown lower in stack but we only want to throw if id was specified
+        //todo: and we currently iterate over all id's and invoke for each if id is not specified
+        throw new ObjectNotFoundException("Request resource doesn't exist.");
+      } else {
+        response.add(requestStatusResponse);
+      }
     }
     return response;
   }
@@ -2733,11 +2846,18 @@ public class AmbariManagementControllerImpl implements
   }
 
   @Override
-  public Set<ClusterResponse> getClusters(Set<ClusterRequest> requests)
-      throws AmbariException {
+  public Set<ClusterResponse> getClusters(Set<ClusterRequest> requests) throws AmbariException {
     Set<ClusterResponse> response = new HashSet<ClusterResponse>();
     for (ClusterRequest request : requests) {
-      response.addAll(getClusters(request));
+      try {
+        response.addAll(getClusters(request));
+      } catch (ClusterNotFoundException e) {
+        if (requests.size() == 1) {
+          // only throw exception if 1 request.
+          // there will be > 1 request in case of OR predicate
+          throw e;
+        }
+      }
     }
     return response;
   }
@@ -2747,7 +2867,15 @@ public class AmbariManagementControllerImpl implements
       throws AmbariException {
     Set<ServiceResponse> response = new HashSet<ServiceResponse>();
     for (ServiceRequest request : requests) {
-      response.addAll(getServices(request));
+      try {
+        response.addAll(getServices(request));
+      } catch (ServiceNotFoundException e) {
+        if (requests.size() == 1) {
+          // only throw exception if 1 request.
+          // there will be > 1 request in case of OR predicate
+          throw e;
+        }
+      }
     }
     return response;
   }
@@ -2758,7 +2886,15 @@ public class AmbariManagementControllerImpl implements
     Set<ServiceComponentResponse> response =
         new HashSet<ServiceComponentResponse>();
     for (ServiceComponentRequest request : requests) {
-      response.addAll(getComponents(request));
+      try {
+        response.addAll(getComponents(request));
+      } catch (ServiceComponentNotFoundException e) {
+        if (requests.size() == 1) {
+          // only throw exception if 1 request.
+          // there will be > 1 request in case of OR predicate
+          throw e;
+        }
+      }
     }
     return response;
   }
@@ -2768,7 +2904,15 @@ public class AmbariManagementControllerImpl implements
       throws AmbariException {
     Set<HostResponse> response = new HashSet<HostResponse>();
     for (HostRequest request : requests) {
-      response.addAll(getHosts(request));
+      try {
+        response.addAll(getHosts(request));
+      } catch (HostNotFoundException e) {
+        if (requests.size() == 1) {
+          // only throw exception if 1 request.
+          // there will be > 1 request in case of OR predicate
+          throw e;
+        }
+      }
     }
     return response;
   }
@@ -2779,7 +2923,48 @@ public class AmbariManagementControllerImpl implements
     Set<ServiceComponentHostResponse> response =
         new HashSet<ServiceComponentHostResponse>();
     for (ServiceComponentHostRequest request : requests) {
-      response.addAll(getHostComponents(request));
+      try {
+        response.addAll(getHostComponents(request));
+      } catch (ServiceComponentHostNotFoundException e) {
+        if (requests.size() == 1) {
+          // only throw exception if 1 request.
+          // there will be > 1 request in case of OR predicate
+          throw e;
+        }
+      } catch (ServiceNotFoundException e) {
+        if (requests.size() == 1) {
+          // only throw exception if 1 request.
+          // there will be > 1 request in case of OR predicate
+          // In 'OR' case, a host_component may be included in predicate
+          // that has no corresponding service
+          throw e;
+        }
+      } catch (ServiceComponentNotFoundException e) {
+        if (requests.size() == 1) {
+          // only throw exception if 1 request.
+          // there will be > 1 request in case of OR predicate
+          // In 'OR' case, a host_component may be included in predicate
+          // that has no corresponding component
+          throw e;
+        }
+      } catch (ParentObjectNotFoundException e) {
+        // If there is only one request, always throw exception.
+        // There will be > 1 request in case of OR predicate.
+
+        // For HostNotFoundException, only throw exception if host_name is
+        // provided in URL.  If host_name is part of query, don't throw exception.
+        boolean throwException = true;
+        if (requests.size() > 1 && HostNotFoundException.class.isInstance(e.getCause())) {
+          for (ServiceComponentHostRequest r : requests) {
+            if (r.getHostname() == null) {
+              // host_name provided in query since all requests don't have host_name set
+              throwException = false;
+              break;
+            }
+          }
+        }
+        if (throwException) throw e;
+      }
     }
     return response;
   }
@@ -2818,12 +3003,17 @@ public class AmbariManagementControllerImpl implements
 
         User u = users.getAnyUser(r.getUsername());
         if (null == u) {
-          throw new AmbariException("Cannot find user '"
-              + r.getUsername() + "'");
+          if (requests.size() == 1) {
+            // only throw exceptin if there is a single request
+            // if there are multiple requests, this indicates an OR predicate
+            throw new ObjectNotFoundException("Cannot find user '"
+                + r.getUsername() + "'");
+          }
+        } else {
+          UserResponse resp = new UserResponse(u.getUserName(), u.isLdapUser());
+          resp.setRoles(new HashSet<String>(u.getRoles()));
+          responses.add(resp);
         }
-        UserResponse resp = new UserResponse(u.getUserName(), u.isLdapUser());
-        resp.setRoles(new HashSet<String>(u.getRoles()));
-        responses.add(resp);
       }
     }
 
@@ -2933,7 +3123,6 @@ public class AmbariManagementControllerImpl implements
 
     stage.getExecutionCommandWrapper(hostName, actionRequest.getActionName()).getExecutionCommand()
         .setRoleParams(actionRequest.getParameters());
-    
 
     Map<String, Map<String, String>> configurations = new TreeMap<String, Map<String, String>>();
     Map<String, Config> allConfigs = clusters.getCluster(clusterName)
@@ -2947,6 +3136,13 @@ public class AmbariManagementControllerImpl implements
     stage.getExecutionCommandWrapper(hostName,
         actionRequest.getActionName()).getExecutionCommand()
         .setConfigurations(configurations); 
+    
+    // Generate cluster host info
+    stage
+        .getExecutionCommandWrapper(hostName, actionRequest.getActionName())
+        .getExecutionCommand()
+        .setClusterHostInfo(
+            StageUtils.getClusterHostInfo(clusters.getCluster(clusterName)));
   }
 
   private void addDecommissionDatanodeAction(

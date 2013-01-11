@@ -19,9 +19,12 @@
 package org.apache.ambari.server.api.resources;
 
 
+import org.apache.ambari.server.api.services.Request;
+import org.apache.ambari.server.api.util.TreeNode;
 import org.apache.ambari.server.controller.spi.Resource;
 
 import java.util.Collections;
+import java.util.List;
 import java.util.Set;
 
 
@@ -50,5 +53,34 @@ public class RequestResourceDefinition extends BaseResourceDefinition {
   @Override
   public Set<SubResourceDefinition> getSubResourceDefinitions() {
       return Collections.singleton(new SubResourceDefinition(Resource.Type.Task));
+  }
+
+  @Override
+  public List<PostProcessor> getPostProcessors() {
+    return Collections.<PostProcessor>singletonList(new RequestHrefPostProcessor());
+  }
+
+  private class RequestHrefPostProcessor implements PostProcessor {
+    @Override
+    public void process(Request request, TreeNode<Resource> resultNode, String href) {
+      StringBuilder sb = new StringBuilder();
+      String[] toks = href.split("/");
+
+      for (int i = 0; i < toks.length; ++i) {
+        String s = toks[i];
+        sb.append(s).append('/');
+        if ("clusters".equals(s)) {
+          sb.append(toks[i + 1]).append('/');
+          break;
+        }
+      }
+
+      Object requestId = resultNode.getObject().getPropertyValue(getClusterController().
+          getSchema(Resource.Type.Request).getKeyPropertyId(Resource.Type.Request));
+
+      sb.append("requests/").append(requestId);
+
+      resultNode.setProperty("href", sb.toString());
+    }
   }
 }

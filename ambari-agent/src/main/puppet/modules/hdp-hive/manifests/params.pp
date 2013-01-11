@@ -32,7 +32,7 @@ class hdp-hive::params() inherits hdp::params
   $hive_metastore_port = hdp_default("hive_metastore_port",9083)
   $hive_lib = hdp_default("hive_lib","/usr/lib/hive/lib/") #TODO: should I remove and just use hive_dbroot
   $hive_var_lib = hdp_default("hive_var_lib","/var/lib/hive")  
-  $hive_url = 'jdbc:hive2://localhost:10000'
+  $hive_url = "jdbc:hive2://${hive_server_host}:10000"
 
   ### hive-env
   $hive_conf_dir = $hdp::params::hive_conf_dir
@@ -49,9 +49,9 @@ class hdp-hive::params() inherits hdp::params
   $hive_database_name = hdp_default("hadoop/hive-site/hive_database_name","hive")
 
   if ($hdp::params::security_enabled == true) {
-    $hive_metastore_sasl_enabled = "true"
+    $hive_metastore_sasl_enabled = true
   } else {
-    $hive_metastore_sasl_enabled = "false"
+    $hive_metastore_sasl_enabled = false
   }
 
   $keytab_path = hdp_default("keytab_path","/etc/security/keytabs")

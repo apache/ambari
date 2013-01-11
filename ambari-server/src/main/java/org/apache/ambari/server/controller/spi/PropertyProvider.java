@@ -40,14 +40,26 @@ public interface PropertyProvider {
    *
    * @return the populated set of resources
    *
-   * @throws AmbariException thrown if resources cannot be populated
+   * @throws SystemException thrown if resources cannot be populated
    */
-  public Set<Resource> populateResources(Set<Resource> resources, Request request, Predicate predicate) throws AmbariException;
+  public Set<Resource> populateResources(Set<Resource> resources, Request request, Predicate predicate)
+      throws SystemException;
 
   /**
    * Get the set of property ids for the properties that this provider can provide.
    *
    * @return the set of property ids for the properties that this provider can provide
    */
+  // TODO : remove this
   public Set<String> getPropertyIds();
+
+  /**
+   * Check whether the set of given property ids is supported by this resource
+   * provider.
+   *
+   * @return a subset of the given property id set containing any property ids not
+   *         supported by this resource provider.  An empty return set indicates
+   *         that all of the given property ids are supported.
+   */
+  public Set<String> checkPropertyIds(Set<String> propertyIds);
 }

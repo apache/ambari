@@ -19,16 +19,19 @@
 package org.apache.ambari.server.api.handlers;
 
 import org.apache.ambari.server.api.resources.ResourceInstance;
-import org.apache.ambari.server.api.resources.ResourceInstanceFactory;
-import org.apache.ambari.server.api.resources.ResourceInstanceFactoryImpl;
-import org.apache.ambari.server.api.services.PersistenceManager;
 import org.apache.ambari.server.api.services.Request;
 import org.apache.ambari.server.api.services.Result;
 import org.apache.ambari.server.api.services.ResultImpl;
+import org.apache.ambari.server.api.services.persistence.PersistenceManager;
+import org.apache.ambari.server.api.services.persistence.PersistenceManagerImpl;
 import org.apache.ambari.server.api.util.TreeNode;
-import org.apache.ambari.server.controller.spi.*;
+import org.apache.ambari.server.controller.spi.ClusterController;
+import org.apache.ambari.server.controller.spi.Predicate;
+import org.apache.ambari.server.controller.spi.RequestStatus;
+import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.utilities.ClusterControllerHelper;
-import org.apache.ambari.server.controller.utilities.PropertyHelper;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Map;
 import java.util.Set;
@@ -36,8 +39,22 @@ import java.util.Set;
 /**
  * Base handler for operations that persist state to the back-end.
  */
-public class BaseManagementHandler implements RequestHandler {
-  @Override
+public abstract class BaseManagementHandler implements RequestHandler {
+
+  /**
+   * Logger instance.
+   */
+  protected final static Logger LOG =
+      LoggerFactory.getLogger(BaseManagementHandler.class);
+
+  /**
+   * PersistenceManager implementation.
+   */
+  PersistenceManager m_pm = new PersistenceManagerImpl(getClusterController());
+
+  protected BaseManagementHandler() {
+  }
+
   public Result handleRequest(Request request) {
     ResourceInstance resource = request.getResource();
     Predicate queryPredicate = request.getQueryPredicate();
@@ -45,71 +62,46 @@ public class BaseManagementHandler implements RequestHandler {
       resource.getQuery().setUserPredicate(queryPredicate);
     }
 
-    return handleRequest(request.getPersistenceManager(), resource,
-        request.getHttpBodyProperties(), request.getURI());
+    return handleRequest(resource, request.getHttpBodyProperties());
   }
 
-  protected Result handleRequest(PersistenceManager pm, ResourceInstance resource,
-                                 Set<Map<String, Object>> setProperties, String uri) {
-
-    return createResult(uri, pm.persist(resource, setProperties));
+  protected Result handleRequest(ResourceInstance resource, Set<Map<String, Object>> setProperties) {
+    return persist(resource, setProperties);
   }
 
-  private Result createResult(String uri, RequestStatus requestStatus) {
-    boolean isSynchronous = requestStatus.getStatus() == RequestStatus.Status.Complete;
+  protected Result createResult(RequestStatus requestStatus) {
 
-    Result result = new ResultImpl(isSynchronous);
-    TreeNode<Resource> tree = result.getResultTree();
-
-    Set<Resource> setResources = requestStatus.getAssociatedResources();
-    TreeNode<Resource> resourcesNode = null;
-    if (! setResources.isEmpty()) {
-      resourcesNode = tree.addChild(null, "resources");
-    }
-    int count = 1;
-    for (Resource resource : setResources) {
-      //todo: provide a more meaningful node name
-      resourcesNode.addChild(resource, resource.getType() + ":" + count++);
-    }
+    boolean            isSynchronous = requestStatus.getStatus() == RequestStatus.Status.Complete;
+    Result             result        = new ResultImpl(isSynchronous);
+    TreeNode<Resource> tree          = result.getResultTree();
 
     if (! isSynchronous) {
-      Resource requestResource = requestStatus.getRequestResource();
-      TreeNode<Resource> r = tree.addChild(requestResource, "request");
-      r.setProperty("href", buildRequestHref(uri, requestStatus));
+      tree.addChild(requestStatus.getRequestResource(), "request");
+    }
+
+    //todo: currently always empty
+    Set<Resource> setResources = requestStatus.getAssociatedResources();
+    if (! setResources.isEmpty()) {
+      TreeNode<Resource> resourcesNode = tree.addChild(null, "resources");
+
+      int count = 1;
+      for (Resource resource : setResources) {
+        //todo: provide a more meaningful node name
+        resourcesNode.addChild(resource, resource.getType() + ":" + count++);
+      }
     }
 
     return result;
   }
 
-  private String buildRequestHref(String uri, RequestStatus requestStatus) {
-    StringBuilder sb = new StringBuilder();
-    String[] toks = uri.split("/");
-
-    for (int i = 0; i < toks.length; ++i) {
-      String s = toks[i];
-      sb.append(s).append('/');
-      if ("clusters".equals(s)) {
-        sb.append(toks[i + 1]).append('/');
-        break;
-      }
-    }
-
-    //todo: shouldn't know property name
-    Object requestId = requestStatus.getRequestResource().getPropertyValue(
-        PropertyHelper.getPropertyId("Requests", "id"));
-
-    sb.append("requests/").append(requestId);
-
-    return sb.toString();
-  }
-
-  //todo: How to get reference to factory?
-  protected ResourceInstanceFactory getResourceFactory() {
-    return new ResourceInstanceFactoryImpl();
-  }
-
-  //todo: how to get cluster controller?
+  //todo: controller should be injected
   protected ClusterController getClusterController() {
     return ClusterControllerHelper.getClusterController();
   }
+
+  protected PersistenceManager getPersistenceManager() {
+    return m_pm;
+  }
+
+  protected abstract Result persist(ResourceInstance r, Set<Map<String, Object>> properties);
 }

@@ -41,61 +41,120 @@ import static org.easymock.EasyMock.*;
  * Unit tests for UpdatePersistenceManager.
  */
 public class UpdatePersistenceManagerTest {
-  @Test
-  public void testPersist() throws Exception {
-    ResourceInstance resource = createMock(ResourceInstance.class);
-    ResourceDefinition resourceDefinition = createMock(ResourceDefinition.class);
-    ClusterController controller = createMock(ClusterController.class);
-    Schema schema = createMock(Schema.class);
-    Request serverRequest = createStrictMock(Request.class);
-    Query query = createMock(Query.class);
-    Predicate predicate = createMock(Predicate.class);
-
-    Set<Map<String, Object>> setProperties = new HashSet<Map<String, Object>>();
-    Map<String, Object> mapProperties = new HashMap<String, Object>();
-    mapProperties.put(PropertyHelper.getPropertyId("foo", "bar"), "value");
-    setProperties.add(mapProperties);
-
-    //expectations
-    expect(resource.getResourceDefinition()).andReturn(resourceDefinition);
-    expect(resourceDefinition.getType()).andReturn(Resource.Type.Component);
-    expect(resource.getQuery()).andReturn(query);
-    expect(query.getPredicate()).andReturn(predicate);
-
-    expect(controller.updateResources(Resource.Type.Component, serverRequest, predicate)).andReturn(new RequestStatusImpl(null));
-
-    replay(resource, resourceDefinition, controller, schema, serverRequest, query, predicate);
-
-    new TestUpdatePersistenceManager(controller, setProperties, serverRequest).persist(resource, setProperties);
-
-    verify(resource, resourceDefinition, controller, schema, serverRequest, query, predicate);
-  }
-
-  private class TestUpdatePersistenceManager extends UpdatePersistenceManager {
-
-    private ClusterController m_controller;
-    private Request m_request;
-    private Set<Map<String, Object>> m_setProperties;
-
-    private TestUpdatePersistenceManager(ClusterController controller,
-                                         Set<Map<String, Object>> setProperties,
-                                         Request controllerRequest) {
-      m_controller = controller;
-      m_setProperties = setProperties;
-      m_request = controllerRequest;
-    }
-
-    @Override
-    protected ClusterController getClusterController() {
-      return m_controller;
-    }
-
-    @Override
-    protected Request createControllerRequest(Set<Map<String, Object>> setProperties) {
-      assertEquals(1, setProperties.size());
-      assertEquals(m_setProperties, setProperties);
-      return m_request;
-    }
-  }
+//<<<<<<< Updated upstream
+//  @Test
+//  public void testPersist() throws Exception {
+//    ResourceInstance resource = createMock(ResourceInstance.class);
+//    ResourceDefinition resourceDefinition = createMock(ResourceDefinition.class);
+//    ClusterController controller = createMock(ClusterController.class);
+//    Schema schema = createMock(Schema.class);
+//    Request serverRequest = createStrictMock(Request.class);
+//    Query query = createMock(Query.class);
+//    Predicate predicate = createMock(Predicate.class);
+//
+//    Set<Map<String, Object>> setProperties = new HashSet<Map<String, Object>>();
+//    Map<String, Object> mapProperties = new HashMap<String, Object>();
+//    mapProperties.put(PropertyHelper.getPropertyId("foo", "bar"), "value");
+//    setProperties.add(mapProperties);
+//
+//    //expectations
+//    expect(resource.getResourceDefinition()).andReturn(resourceDefinition);
+//    expect(resourceDefinition.getType()).andReturn(Resource.Type.Component);
+//    expect(resource.getQuery()).andReturn(query);
+//    expect(query.getPredicate()).andReturn(predicate);
+//
+//    expect(controller.updateResources(Resource.Type.Component, serverRequest, predicate)).andReturn(new RequestStatusImpl(null));
+//
+//    replay(resource, resourceDefinition, controller, schema, serverRequest, query, predicate);
+//
+//    new TestUpdatePersistenceManager(controller, setProperties, serverRequest).persist(resource, setProperties);
+//
+//    verify(resource, resourceDefinition, controller, schema, serverRequest, query, predicate);
+//  }
+//
+//  private class TestUpdatePersistenceManager extends UpdatePersistenceManager {
+//
+//    private ClusterController m_controller;
+//    private Request m_request;
+//    private Set<Map<String, Object>> m_setProperties;
+//
+//    private TestUpdatePersistenceManager(ClusterController controller,
+//                                         Set<Map<String, Object>> setProperties,
+//                                         Request controllerRequest) {
+//      m_controller = controller;
+//      m_setProperties = setProperties;
+//      m_request = controllerRequest;
+//    }
+//
+//    @Override
+//    protected ClusterController getClusterController() {
+//      return m_controller;
+//    }
+//
+//    @Override
+//    protected Request createControllerRequest(Set<Map<String, Object>> setProperties) {
+//      assertEquals(1, setProperties.size());
+//      assertEquals(m_setProperties, setProperties);
+//      return m_request;
+//    }
+//  }
+//=======
+//  @Test
+//  public void testPersist() throws Exception {
+//    ResourceInstance resource = createMock(ResourceInstance.class);
+//    ResourceDefinition resourceDefinition = createMock(ResourceDefinition.class);
+//    ClusterController controller = createMock(ClusterController.class);
+//    Schema schema = createMock(Schema.class);
+//    Request serverRequest = createStrictMock(Request.class);
+//    Query query = createMock(Query.class);
+//    Predicate predicate = createMock(Predicate.class);
+//
+//    Set<Map<PropertyId, Object>> setProperties = new HashSet<Map<PropertyId, Object>>();
+//    Map<PropertyId, Object> mapProperties = new HashMap<PropertyId, Object>();
+//    mapProperties.put(PropertyHelper.getPropertyId("bar", "foo"), "value");
+//    setProperties.add(mapProperties);
+//
+//    //expectations
+//    expect(resource.getResourceDefinition()).andReturn(resourceDefinition);
+//    expect(resourceDefinition.getType()).andReturn(Resource.Type.Component);
+//    expect(resource.getQuery()).andReturn(query);
+//    expect(query.getPredicate()).andReturn(predicate);
+//
+//    expect(controller.updateResources(Resource.Type.Component, serverRequest, predicate)).andReturn(new RequestStatusImpl(null));
+//
+//    replay(resource, resourceDefinition, controller, schema, serverRequest, query, predicate);
+//
+//    new TestUpdatePersistenceManager(controller, setProperties, serverRequest).persist(resource, setProperties);
+//
+//    verify(resource, resourceDefinition, controller, schema, serverRequest, query, predicate);
+//  }
+//
+//  private class TestUpdatePersistenceManager extends UpdatePersistenceManager {
+//
+//    private ClusterController m_controller;
+//    private Request m_request;
+//    private Set<Map<PropertyId, Object>> m_setProperties;
+//
+//    private TestUpdatePersistenceManager(ClusterController controller,
+//                                         Set<Map<PropertyId, Object>> setProperties,
+//                                         Request controllerRequest) {
+//      m_controller = controller;
+//      m_setProperties = setProperties;
+//      m_request = controllerRequest;
+//    }
+//
+//    @Override
+//    protected ClusterController getClusterController() {
+//      return m_controller;
+//    }
+//
+//    @Override
+//    protected Request createControllerRequest(Set<Map<PropertyId, Object>> setProperties) {
+//      assertEquals(1, setProperties.size());
+//      assertEquals(m_setProperties, setProperties);
+//      return m_request;
+//    }
+//  }
+//>>>>>>> Stashed changes
 
 }

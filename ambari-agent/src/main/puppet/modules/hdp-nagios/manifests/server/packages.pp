@@ -28,17 +28,53 @@ class hdp-nagios::server::packages(
       ensure => 'uninstalled'
     }
   } elsif ($service_state in ['running','stopped','installed_and_configured']) {
-        hdp-nagios::server::package { ['nagios-server','nagios-fping','nagios-plugins','nagios-addons','nagios-php-pecl-json']:
-          ensure => 'present'
-    }
-  } 
-  Hdp-nagios::Server::Package['nagios-server'] -> Hdp::Package['nagios-plugins'] #other order produces package conflict
-  Hdp-nagios::Server::Package['nagios-plugins'] -> Hdp::Package['nagios-addons'] #other order produces package conflict
+  
 
-  anchor{'hdp-nagios::server::packages::begin':} -> Hdp-nagios::Server::Package<||> -> anchor{'hdp-nagios::server::packages::end':}
-  Anchor['hdp-nagios::server::packages::begin'] -> Hdp::Package['nagios-server'] ->
-      Hdp::Package['nagios-addons'] -> Anchor['hdp-nagios::server::packages::end']
-  Hdp-nagios::Server::Package['nagios-fping'] -> Hdp-nagios::Server::Package['nagios-plugins']
+  
+  if ($service_state == 'installed_and_configured') {
+    package{'nagios-plugins-process-old':
+      name   => 'nagios-plugins',
+      ensure => absent}
+  }
+	
+  hdp::package { 'nagios-server': 
+    ensure      => present,
+    java_needed => false
+  }
+  
+  hdp::package { 'nagios-fping': 
+    ensure      => present,
+    java_needed => false
+  }
+  
+  hdp::package { 'nagios-addons': 
+    ensure      => present,
+    java_needed => false
+  }
+	
+  hdp::package { 'nagios-plugins': 
+    ensure      => present,
+    java_needed => false
+  }
+  
+  hdp::package { 'nagios-php-pecl-json': 
+    ensure      => present,
+    java_needed => false
+  }
+  
+  
+debug("## state: $service_state")
+  if ($service_state == 'installed_and_configured') {
+    debug("##Adding removing dep")
+    Package['nagios-plugins-process-old'] -> Hdp::Package['nagios-plugins']
+  }
+
+  Hdp::Package['nagios-plugins'] -> Hdp::Package['nagios-server'] -> Hdp::Package['nagios-fping'] -> Hdp::Package['nagios-addons'] -> Hdp::Package['nagios-php-pecl-json']
+
+    
+
+} 
+
 }
 
 

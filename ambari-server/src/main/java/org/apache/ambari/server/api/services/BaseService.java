@@ -18,9 +18,8 @@
 
 package org.apache.ambari.server.api.services;
 
-import org.apache.ambari.server.api.handlers.DelegatingRequestHandler;
 import org.apache.ambari.server.api.handlers.RequestHandler;
-import org.apache.ambari.server.api.resources.ResourceDefinition;
+import org.apache.ambari.server.api.handlers.RequestHandlerFactory;
 import org.apache.ambari.server.api.resources.ResourceInstance;
 import org.apache.ambari.server.api.resources.ResourceInstanceFactory;
 import org.apache.ambari.server.api.resources.ResourceInstanceFactoryImpl;
@@ -37,7 +36,15 @@ import java.util.Map;
  */
 public abstract class BaseService {
 
+  /**
+   * Factory for creating resource instances.
+   */
   private ResourceInstanceFactory m_resourceFactory = new ResourceInstanceFactoryImpl();
+
+  /**
+   * Factory for creating request handlers.
+   */
+  private RequestHandlerFactory m_handlerFactory = new RequestHandlerFactory();
 
   /**
    * All requests are funneled through this method so that common logic can be executed.
@@ -55,12 +62,16 @@ public abstract class BaseService {
   protected Response handleRequest(HttpHeaders headers, String body, UriInfo uriInfo, Request.Type requestType,
                                    ResourceInstance resource) {
 
-    Request request = getRequestFactory().createRequest(headers, body, uriInfo, requestType, resource);
-    Result result = getRequestHandler().handleRequest(request);
+    Request request = getRequestFactory().createRequest(
+        headers, body, uriInfo, requestType, resource);
 
-    return getResponseFactory().createResponse(requestType,
-        request.getResultSerializer().serialize(result, uriInfo),
-        result.isSynchronous());
+    Result result = getRequestHandler(request.getRequestType()).handleRequest(request);
+    if (! result.getStatus().isErrorState()) {
+      request.getResultPostProcessor().process(result);
+    }
+
+    return Response.status(result.getStatus().getStatusCode()).entity(
+        request.getResultSerializer().serialize(result)).build();
   }
 
   /**
@@ -73,25 +84,24 @@ public abstract class BaseService {
   }
 
   /**
-   * Obtain the factory from which to create Response instances.
+   * Obtain the appropriate RequestHandler for the request.
    *
-   * @return the Response factory
-   */
-  ResponseFactory getResponseFactory() {
-    return new ResponseFactory();
-  }
-
-  /**
-   * Obtain the appropriate RequestHandler for the request.  At this time all requests are funneled through
-   * a delegating request handler which will ultimately delegate the request to the appropriate concrete
-   * request handler.
+   * @param requestType  the request type
    *
    * @return the request handler to invoke
    */
-  RequestHandler getRequestHandler() {
-    return new DelegatingRequestHandler();
+  RequestHandler getRequestHandler(Request.Type requestType) {
+    return m_handlerFactory.getRequestHandler(requestType);
   }
 
+  /**
+   * Create a resource instance.
+   *
+   * @param type    the resource type
+   * @param mapIds  all primary and foreign key properties and values
+   *
+   * @return a newly created resource instance
+   */
   ResourceInstance createResource(Resource.Type type, Map<Resource.Type, String> mapIds) {
     return m_resourceFactory.createResource(type, mapIds);
   }

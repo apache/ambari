@@ -18,19 +18,16 @@
 
 package org.apache.ambari.server.controller.jmx;
 
-import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.controller.internal.PropertyInfo;
+import org.apache.ambari.server.controller.spi.*;
 import org.apache.ambari.server.controller.utilities.StreamProvider;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
-import org.apache.ambari.server.controller.spi.Predicate;
-import org.apache.ambari.server.controller.spi.PropertyProvider;
-import org.apache.ambari.server.controller.spi.Request;
-import org.apache.ambari.server.controller.spi.Resource;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -113,10 +110,10 @@ public class JMXPropertyProvider implements PropertyProvider {
   // ----- PropertyProvider --------------------------------------------------
 
   @Override
-  public Set<Resource> populateResources(Set<Resource> resources,
-                                         Request request,
-                                         Predicate predicate)
-      throws AmbariException {
+  public Set<Resource> populateResources(Set<Resource> resources, Request request, Predicate predicate)
+      throws SystemException {
+
+
     Set<Resource> keepers = new HashSet<Resource>();
     for (Resource resource : resources) {
       if (populateResource(resource, request, predicate)) {
@@ -131,6 +128,16 @@ public class JMXPropertyProvider implements PropertyProvider {
     return propertyIds;
   }
 
+  @Override
+  public Set<String> checkPropertyIds(Set<String> propertyIds) {
+    if (!this.propertyIds.containsAll(propertyIds)) {
+      Set<String> unsupportedPropertyIds = new HashSet<String>(propertyIds);
+      unsupportedPropertyIds.removeAll(this.propertyIds);
+      return unsupportedPropertyIds;
+    }
+    return Collections.emptySet();
+  }
+
 
   // ----- helper methods ----------------------------------------------------
 
@@ -142,15 +149,11 @@ public class JMXPropertyProvider implements PropertyProvider {
    * @param predicate the predicate
    *
    * @return true if the resource was successfully populated with the requested properties
-   *
-   * @throws AmbariException thrown if the resource cannot be populated
    */
-  private boolean populateResource(Resource resource,
-                                   Request request,
-                                   Predicate predicate)
-      throws AmbariException {
+  private boolean populateResource(Resource resource, Request request, Predicate predicate)
+      throws SystemException {
 
-    Set<String> ids = PropertyHelper.getRequestPropertyIds(getPropertyIds(), request, predicate);
+    Set<String> ids = PropertyHelper.getRequestPropertyIds(propertyIds, request, predicate);
     if (ids.isEmpty()) {
       return true;
     }

@@ -18,7 +18,6 @@
 
 package org.apache.ambari.server.controller.internal;
 
-import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.controller.AmbariServer;
 import org.apache.ambari.server.controller.ganglia.GangliaComponentPropertyProvider;
 import org.apache.ambari.server.controller.ganglia.GangliaHostComponentPropertyProvider;
@@ -27,16 +26,10 @@ import org.apache.ambari.server.controller.ganglia.GangliaReportPropertyProvider
 import org.apache.ambari.server.controller.ganglia.GangliaHostProvider;
 import org.apache.ambari.server.controller.jmx.JMXHostProvider;
 import org.apache.ambari.server.controller.jmx.JMXPropertyProvider;
-import org.apache.ambari.server.controller.spi.Predicate;
-import org.apache.ambari.server.controller.spi.ProviderModule;
-import org.apache.ambari.server.controller.spi.Request;
-import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
+import org.apache.ambari.server.controller.spi.*;
 import org.apache.ambari.server.controller.utilities.PredicateBuilder;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
 import org.apache.ambari.server.controller.AmbariManagementController;
-import org.apache.ambari.server.controller.spi.PropertyProvider;
-import org.apache.ambari.server.controller.spi.Resource;
-import org.apache.ambari.server.controller.spi.ResourceProvider;
 
 import com.google.inject.Inject;
 import org.slf4j.Logger;
@@ -148,13 +141,13 @@ public class DefaultProviderModule implements ProviderModule, ResourceProviderOb
   // ----- JMXHostProvider ---------------------------------------------------
 
   @Override
-  public String getHostName(String clusterName, String componentName) {
+  public String getHostName(String clusterName, String componentName) throws SystemException {
     checkInit();
     return clusterHostComponentMap.get(clusterName).get(componentName);
   }
 
   @Override
-  public Map<String, String> getHostMapping(String clusterName) {
+  public Map<String, String> getHostMapping(String clusterName) throws SystemException {
     checkInit();
     return clusterHostMap.get(clusterName);
   }
@@ -163,7 +156,7 @@ public class DefaultProviderModule implements ProviderModule, ResourceProviderOb
   // ----- GangliaHostProvider -----------------------------------------------
 
   @Override
-  public String getGangliaCollectorHostName(String clusterName) {
+  public String getGangliaCollectorHostName(String clusterName) throws SystemException {
     checkInit();
     return clusterGangliaCollectorMap.get(clusterName);
   }
@@ -253,7 +246,7 @@ public class DefaultProviderModule implements ProviderModule, ResourceProviderOb
     putPropertyProviders(type, providers);
   }
 
-  private void checkInit() {
+  private void checkInit() throws SystemException{
     if (!initialized) {
       synchronized (this) {
         if (!initialized) {
@@ -272,7 +265,7 @@ public class DefaultProviderModule implements ProviderModule, ResourceProviderOb
     }
   }
 
-  private void initProviderMaps() {
+  private void initProviderMaps() throws SystemException{
     ResourceProvider provider = getResourceProvider(Resource.Type.Cluster);
     Request          request  = PropertyHelper.getReadRequest(CLUSTER_NAME_PROPERTY_ID);
 
@@ -337,14 +330,21 @@ public class DefaultProviderModule implements ProviderModule, ResourceProviderOb
           }
         }
       }
-    } catch (AmbariException e) {
-      if (LOG.isErrorEnabled()) {
-        LOG.error("Caught exception while trying to get the host mappings.", e);
-      }
     } catch (UnsupportedPropertyException e) {
       if (LOG.isErrorEnabled()) {
-        LOG.error("Caught exception while trying to get the host mappings.", e);
+        LOG.error("Caught UnsupportedPropertyException while trying to get the host mappings.", e);
       }
+      throw new SystemException("An exception occurred while initializing the host mappings: " + e, e);
+    } catch (NoSuchResourceException e) {
+      if (LOG.isErrorEnabled()) {
+        LOG.error("Caught NoSuchResourceException exception while trying to get the host mappings.", e);
+      }
+      throw new SystemException("An exception occurred while initializing the host mappings: " + e, e);
+    } catch (NoSuchParentResourceException e) {
+      if (LOG.isErrorEnabled()) {
+        LOG.error("Caught NoSuchParentResourceException exception while trying to get the host mappings.", e);
+      }
+      throw new SystemException("An exception occurred while initializing the host mappings: " + e, e);
     }
   }
 }

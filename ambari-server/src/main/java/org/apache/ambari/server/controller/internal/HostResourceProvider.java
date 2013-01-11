@@ -18,9 +18,7 @@
 package org.apache.ambari.server.controller.internal;
 
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -28,11 +26,7 @@ import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.HostRequest;
 import org.apache.ambari.server.controller.HostResponse;
-import org.apache.ambari.server.controller.spi.Predicate;
-import org.apache.ambari.server.controller.spi.Request;
-import org.apache.ambari.server.controller.spi.RequestStatus;
-import org.apache.ambari.server.controller.spi.Resource;
-import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
+import org.apache.ambari.server.controller.spi.*;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
 
 
@@ -97,43 +91,62 @@ class HostResourceProvider extends ResourceProviderImpl{
   // ----- ResourceProvider ------------------------------------------------
 
   @Override
-  public RequestStatus createResources(Request request) throws AmbariException, UnsupportedPropertyException {
-    checkRequestProperties(Resource.Type.Host, request);
-    Set<HostRequest> requests = new HashSet<HostRequest>();
+  public RequestStatus createResources(Request request)
+      throws SystemException,
+          UnsupportedPropertyException,
+          ResourceAlreadyExistsException,
+          NoSuchParentResourceException {
+
+    final Set<HostRequest> requests = new HashSet<HostRequest>();
     for (Map<String, Object> propertyMap : request.getProperties()) {
       requests.add(getRequest(propertyMap));
     }
-    getManagementController().createHosts(requests);
+    createResources(new Command<Void>() {
+      @Override
+      public Void invoke() throws AmbariException {
+        getManagementController().createHosts(requests);
+        return null;
+      }
+    });
+
     notifyCreate(Resource.Type.Host, request);
 
     return getRequestStatus(null);
   }
 
   @Override
-  public Set<Resource> getResources(Request request, Predicate predicate) throws AmbariException, UnsupportedPropertyException {
-    Set<HostRequest> requests = new HashSet<HostRequest>();
+  public Set<Resource> getResources(Request request, Predicate predicate)
+      throws SystemException, UnsupportedPropertyException, NoSuchResourceException, NoSuchParentResourceException {
+
+    final Set<HostRequest> requests = new HashSet<HostRequest>();
 
     if (predicate == null) {
       requests.add(getRequest(null));
     }
     else {
-      for (Map<String, Object> propertyMap : getPropertyMaps(null, predicate)) {
+      for (Map<String, Object> propertyMap : getPropertyMaps(predicate)) {
         requests.add(getRequest(propertyMap));
       }
     }
 
+    Set<HostResponse> responses = getResources(new Command<Set<HostResponse>>() {
+      @Override
+      public Set<HostResponse> invoke() throws AmbariException {
+        return getManagementController().getHosts(requests);
+      }
+    });
+
     Set<String>   requestedIds = PropertyHelper.getRequestPropertyIds(getPropertyIds(), request, predicate);
-    Set<HostResponse> responses    = getManagementController().getHosts(requests);
-    Set<Resource>     resources    = new HashSet<Resource>();
+    Set<Resource> resources    = new HashSet<Resource>();
 
     for (HostResponse response : responses) {
       Resource resource = new ResourceImpl(Resource.Type.Host);
 
       // TODO : properly handle more than one cluster
-      if (response.getClusterNames() != null
-          && !response.getClusterNames().isEmpty()) {
+      if (response.getClusterName() != null
+          && !response.getClusterName().isEmpty()) {
         setResourceProperty(resource, HOST_CLUSTER_NAME_PROPERTY_ID,
-            response.getClusterNames().iterator().next(), requestedIds);
+            response.getClusterName(), requestedIds);
       }
 
       setResourceProperty(resource, HOST_NAME_PROPERTY_ID,
@@ -170,25 +183,44 @@ class HostResourceProvider extends ResourceProviderImpl{
   }
 
   @Override
-  public RequestStatus updateResources(Request request, Predicate predicate) throws AmbariException, UnsupportedPropertyException {
-    checkRequestProperties(Resource.Type.Host, request);
-    Set<HostRequest> requests = new HashSet<HostRequest>();
+  public RequestStatus updateResources(Request request, Predicate predicate)
+      throws SystemException, UnsupportedPropertyException, NoSuchResourceException, NoSuchParentResourceException {
+
+    final Set<HostRequest> requests = new HashSet<HostRequest>();
     for (Map<String, Object> propertyMap : getPropertyMaps(request.getProperties().iterator().next(), predicate)) {
       requests.add(getRequest(propertyMap));
     }
-    getManagementController().updateHosts(requests);
+
+    modifyResources(new Command<Void>() {
+      @Override
+      public Void invoke() throws AmbariException {
+        getManagementController().updateHosts(requests);
+        return null;
+      }
+    });
+
     notifyUpdate(Resource.Type.Host, request, predicate);
 
     return getRequestStatus(null);
   }
 
   @Override
-  public RequestStatus deleteResources(Predicate predicate) throws AmbariException, UnsupportedPropertyException {
-    Set<HostRequest> requests = new HashSet<HostRequest>();
-    for (Map<String, Object> propertyMap : getPropertyMaps(null, predicate)) {
+  public RequestStatus deleteResources(Predicate predicate)
+      throws SystemException, UnsupportedPropertyException, NoSuchResourceException, NoSuchParentResourceException {
+
+    final Set<HostRequest> requests = new HashSet<HostRequest>();
+    for (Map<String, Object> propertyMap : getPropertyMaps(predicate)) {
       requests.add(getRequest(propertyMap));
     }
-    getManagementController().deleteHosts(requests);
+
+    modifyResources(new Command<Void>() {
+      @Override
+      public Void invoke() throws AmbariException {
+        getManagementController().deleteHosts(requests);
+        return null;
+      }
+    });
+
     notifyDelete(Resource.Type.Host, predicate);
 
     return getRequestStatus(null);
@@ -202,7 +234,7 @@ class HostResourceProvider extends ResourceProviderImpl{
   }
 
   /**
-   * Get a component request object from a map of property values.
+   * Get a host request object from a map of property values.
    *
    * @param properties  the predicate
    *
@@ -214,14 +246,9 @@ class HostResourceProvider extends ResourceProviderImpl{
       return  new HostRequest(null, null, null);
     }
 
-    // TODO : more than one cluster
-    List<String> clusterNames = properties.containsKey(HOST_CLUSTER_NAME_PROPERTY_ID) ?
-        Collections.singletonList((String) properties.get(HOST_CLUSTER_NAME_PROPERTY_ID)) :
-        Collections.<String>emptyList();
-
     HostRequest hostRequest = new HostRequest(
         (String) properties.get(HOST_NAME_PROPERTY_ID),
-        clusterNames,
+        (String) properties.get(HOST_CLUSTER_NAME_PROPERTY_ID),
         null);
     hostRequest.setPublicHostName((String) properties.get(HOST_PUBLIC_NAME_PROPERTY_ID));
     hostRequest.setRackInfo((String) properties.get(HOST_RACK_INFO_PROPERTY_ID));

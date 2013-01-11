@@ -20,6 +20,7 @@ package org.apache.ambari.server.api.services.serializers;
 
 import org.apache.ambari.server.api.services.Result;
 import org.apache.ambari.server.api.services.ResultImpl;
+import org.apache.ambari.server.api.services.ResultStatus;
 import org.apache.ambari.server.api.util.TreeNode;
 import org.apache.ambari.server.api.util.TreeNodeImpl;
 import org.apache.ambari.server.controller.spi.Resource;
@@ -44,6 +45,7 @@ public class JsonSerializerTest {
     //Resource resource2 = createMock(Resource.class);
 
     Result result = new ResultImpl(true);
+    result.setResultStatus(new ResultStatus(ResultStatus.STATUS.OK));
     TreeNode<Resource> tree = result.getResultTree();
     //tree.setName("items");
     TreeNode<Resource> child = tree.addChild(resource, "resource1");
@@ -86,7 +88,7 @@ public class JsonSerializerTest {
     replay(uriInfo, resource/*, resource2*/);
 
     //execute test
-    Object o = new JsonSerializer().serialize(result, uriInfo);
+    Object o = new JsonSerializer().serialize(result);
 
     String expected = "{\n" +
         "  \"prop2\" : \"value2\",\n" +

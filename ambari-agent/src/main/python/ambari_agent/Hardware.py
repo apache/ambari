@@ -60,8 +60,8 @@ class Hardware:
                      'mountpoint' : mountpoint,
                      'type': type,
                      'device' : device }
-
-        mounts.append(mountinfo)
+        if os.access(mountpoint, os.W_OK):
+          mounts.append(mountinfo)
         pass
       pass
     return mounts
@@ -104,8 +104,18 @@ class Hardware:
           value = keyValue[1].strip()
           """Convert to KB"""
           parts = value.split()
-          #TODO need better parsing for detecting KB/GB
-          mem_in_kb = long(float(parts[0]) * 1024 * 1024);
+          if len(parts) == 2:
+            mem_size = parts[1].upper()
+            if mem_size in ["GB", "G"]:
+              mem_in_kb = long(float(parts[0]) * 1024 * 1024)
+            elif mem_size in ["MB", "M"]:
+              mem_in_kb = long(float(parts[0]) * 1024)
+            elif mem_size in ["KB", "K"]:
+              mem_in_kb = long(float(parts[0]))
+            else:
+              mem_in_kb = long(float(parts[0]) / 1024)
+          else:
+            mem_in_kb = long(float(parts[0]) / 1024)
           retDict[strippedKey] = mem_in_kb
           pass
         else:
@@ -122,7 +132,7 @@ class Hardware:
       pass
     
     logger.info("Facter info : \n" + pprint.pformat(retDict))
-    return retDict
+    return retDict  
   
   def facterInfo(self):   
     facterHome = AmbariConfig.config.get("puppet", "facter_home")
@@ -154,7 +164,7 @@ class Hardware:
         facterInfo = infoDict
         pass
       else:
-        pass
+        logger.error("Facter home at " + facterHome + " does not exist")
     except:
       logger.info("Traceback " + traceback.format_exc())
       pass

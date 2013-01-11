@@ -54,11 +54,12 @@ public class StageUtils {
     componentToClusterInfoKeyMap.put("ZOOKEEPER_SERVER", "zookeeper_hosts");
     componentToClusterInfoKeyMap.put("HBASE_MASTER", "hbase_master_host");
     componentToClusterInfoKeyMap.put("HBASE_REGIONSERVER", "hbase_rs_hosts");
-    componentToClusterInfoKeyMap.put("HCATALOG_SERVER", "hcat_server_host");
     componentToClusterInfoKeyMap.put("HIVE_SERVER", "hive_server_host");
     componentToClusterInfoKeyMap.put("OOZIE_SERVER", "oozie_server");
     componentToClusterInfoKeyMap.put("WEBHCAT_SERVER",
         "webhcat_server_host");
+    componentToClusterInfoKeyMap.put(Role.MYSQL_SERVER.toString(),
+        "hive_mysql_host");
     componentToClusterInfoKeyMap.put("DASHBOARD", "dashboard_host");
     componentToClusterInfoKeyMap.put("NAGIOS_SERVER", "nagios_server_host");
     componentToClusterInfoKeyMap.put("GANGLIA_SERVER",

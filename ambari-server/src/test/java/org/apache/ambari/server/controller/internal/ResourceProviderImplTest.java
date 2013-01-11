@@ -115,74 +115,6 @@ public class ResourceProviderImplTest {
     verify(managementController, response);
   }
 
-  @Ignore
-  @Test
-  public void testCreateClusterResourcesUnsupportedProperty() throws Exception{
-    Resource.Type type = Resource.Type.Cluster;
-
-    AmbariManagementController managementController = createMock(AmbariManagementController.class);
-
-    // replay
-    replay(managementController);
-
-    ResourceProvider provider = ResourceProviderImpl.getResourceProvider(
-        type,
-        PropertyHelper.getPropertyIds(type),
-        PropertyHelper.getKeyPropertyIds(type),
-        managementController);
-
-    TestObserver observer = new TestObserver();
-
-    ((ObservableResourceProvider)provider).addObserver(observer);
-
-    // add the property map to a set for the request.  add more maps for multiple creates
-    Set<Map<String, Object>> propertySet = new LinkedHashSet<Map<String, Object>>();
-
-    // Cluster 1: create a map of properties for the request
-    Map<String, Object> properties = new LinkedHashMap<String, Object>();
-
-    // add the cluster name to the properties map
-    properties.put(ClusterResourceProvider.CLUSTER_NAME_PROPERTY_ID, "Cluster100");
-
-    // add the version to the properties map
-    properties.put(ClusterResourceProvider.CLUSTER_VERSION_PROPERTY_ID, "HDP-0.1");
-
-    // add an unsupported property to the properties map
-    properties.put("UnsupportedProperty1", "Cluster100");
-
-    propertySet.add(properties);
-
-    // Cluster 2: create a map of properties for the request
-    properties = new LinkedHashMap<String, Object>();
-
-    // add the cluster id to the properties map
-    properties.put(ClusterResourceProvider.CLUSTER_ID_PROPERTY_ID, 99L);
-
-    // add the version to the properties map
-    properties.put(ClusterResourceProvider.CLUSTER_VERSION_PROPERTY_ID, "HDP-0.1");
-
-    // add an unsupported property to the properties map
-    properties.put("UnsupportedProperty2", "Cluster100");
-
-    propertySet.add(properties);
-
-    // create the request
-    Request request = PropertyHelper.getCreateRequest(propertySet);
-
-    try {
-      provider.createResources(request);
-      Assert.fail("Expected UnsupportedPropertyException.");
-    } catch (UnsupportedPropertyException e) {
-      // expected
-      Assert.assertEquals(Resource.Type.Cluster, e.getType());
-      Assert.assertTrue(e.getPropertyIds().contains("UnsupportedProperty1"));
-      Assert.assertTrue(e.getPropertyIds().contains("UnsupportedProperty2"));
-    }
-
-    // verify
-    verify(managementController);
-  }
-
   @Test
   public void testGetClusterResources() throws Exception{
     Resource.Type type = Resource.Type.Cluster;
@@ -306,55 +238,6 @@ public class ResourceProviderImplTest {
 
     // verify
     verify(managementController, response);
-  }
-
-  @Ignore
-  @Test
-  public void testUpdateClusterResourcesUnsupportedProperty() throws Exception{
-    Resource.Type type = Resource.Type.Cluster;
-
-    AmbariManagementController managementController = createMock(AmbariManagementController.class);
-
-    Set<ClusterResponse> nameResponse = new HashSet<ClusterResponse>();
-    nameResponse.add(new ClusterResponse(102L, "Cluster102", null, null));
-
-    // replay
-    replay(managementController);
-
-    ResourceProvider provider = ResourceProviderImpl.getResourceProvider(
-        type,
-        PropertyHelper.getPropertyIds(type),
-        PropertyHelper.getKeyPropertyIds(type),
-        managementController);
-
-    TestObserver observer = new TestObserver();
-
-    ((ObservableResourceProvider)provider).addObserver(observer);
-
-    Map<String, Object> properties = new LinkedHashMap<String, Object>();
-
-    properties.put(ClusterResourceProvider.CLUSTER_VERSION_PROPERTY_ID, "HDP-0.1");
-
-    // add an unsupported property to the properties map
-    properties.put("UnsupportedProperty1", "Cluster100");
-
-    // create the request
-    Request request = PropertyHelper.getUpdateRequest(properties);
-
-    // update the cluster named Cluster102
-    Predicate  predicate = new PredicateBuilder().property(ClusterResourceProvider.CLUSTER_NAME_PROPERTY_ID).equals("Cluster102").toPredicate();
-
-    try {
-      provider.updateResources(request, predicate);
-      Assert.fail("Expected UnsupportedPropertyException.");
-    } catch (UnsupportedPropertyException e) {
-      // expected
-      Assert.assertEquals(Resource.Type.Cluster, e.getType());
-      Assert.assertTrue(e.getPropertyIds().contains("UnsupportedProperty1"));
-    }
-
-    // verify
-    verify(managementController);
   }
 
   @Test

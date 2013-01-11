@@ -1,6 +1,6 @@
 ----------------------------------------------------------------
-Mon Dec 10 15:32:34 PST 2012:
-Booting Derby version The Apache Software Foundation - Apache Derby - 10.9.1.0 - (1344872): instance a816c00e-013b-8729-b0b0-000003feb140 
+Mon Jan 07 23:30:20 PST 2013:
+Booting Derby version The Apache Software Foundation - Apache Derby - 10.9.1.0 - (1344872): instance a816c00e-013c-1911-2686-000003d87098 
 on database directory memory:/Users/mahadev/workspace/ambari-workspace/ambari-git/ambari-server/myDB  with class loader sun.misc.Launcher$AppClassLoader@27a8c4e7 
 Loaded from file:/Users/mahadev/.m2/repository/org/apache/derby/derby/10.9.1.0/derby-10.9.1.0.jar
 java.vendor=Apple Inc.

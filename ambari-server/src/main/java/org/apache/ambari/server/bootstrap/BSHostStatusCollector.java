@@ -18,7 +18,9 @@
 
 package org.apache.ambari.server.bootstrap;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -90,10 +92,35 @@ class BSHostStatusCollector {
         status.setLog("");
       } else {
         String logString = "";
+        BufferedReader reader = null;
         try {
-          logString = FileUtils.readFileToString(log);
+          StringBuilder sb = new StringBuilder();
+          reader = new BufferedReader(new FileReader(log));
+
+          String line = null;
+          while (null != (line = reader.readLine())) {
+            if (line.startsWith("tcgetattr:") || line.startsWith("tput:"))
+              continue;
+
+            if (0 != sb.length() || 0 == line.length())
+              sb.append('\n');
+
+            if (-1 != line.indexOf ("\\n"))
+              sb.append(line.replace("\\n", "\n"));
+            else
+              sb.append(line);
+          }
+          
+          logString = sb.toString();
         } catch (IOException e) {
           LOG.info("Error reading log file " + log);
+        }
+        finally {
+          try {
+            reader.close();
+          }
+          catch (Exception e) {
+          }
         }
         status.setLog(logString);
       }

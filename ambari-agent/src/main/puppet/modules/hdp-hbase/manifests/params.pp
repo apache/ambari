@@ -47,7 +47,7 @@ class hdp-hbase::params() inherits hdp::params
   #TODO: check if any of these 'hdfs' vars need to be euated with vars in hdp-hadoop
   $hdfs_enable_shortcircuit_read = hdp_default("hadoop/hbase-site/hdfs_enable_shortcircuit_read",true)
 
-  $hdfs_enable_shortcircuit_skipchecksum = hdp_default("hadoop/hbase-site/hdfs_enable_shortcircuit_skipchecksum","false")
+  $hdfs_enable_shortcircuit_skipchecksum = hdp_default("hadoop/hbase-site/hdfs_enable_shortcircuit_skipchecksum",false)
 
   $hdfs_support_append = hdp_default("hadoop/hbase-site/hdfs_support_append",true)
 

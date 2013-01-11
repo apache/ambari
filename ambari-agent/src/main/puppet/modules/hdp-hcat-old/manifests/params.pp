@@ -47,7 +47,7 @@ class hdp-hcat::params() inherits hdp::params
 
   $hcat_metastore_principal = hdp_default("hadoop/hive-site/hcat_metastore_principal")
 
-  $hcat_metastore_sasl_enabled = hdp_default("hadoop/hive-site/hcat_metastore_sasl_enabled","false")
+  $hcat_metastore_sasl_enabled = hdp_default("hadoop/hive-site/hcat_metastore_sasl_enabled",false)
 
   #TODO: using instead hcat_server_host in hdp::params $hcat_metastore_server_host = hdp_default("hadoop/hive-site/hcat_metastore_server_host")
 

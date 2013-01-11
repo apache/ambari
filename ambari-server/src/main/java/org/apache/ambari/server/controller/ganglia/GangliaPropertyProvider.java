@@ -18,7 +18,6 @@
 
 package org.apache.ambari.server.controller.ganglia;
 
-import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.controller.internal.PropertyInfo;
 import org.apache.ambari.server.controller.spi.*;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
@@ -30,6 +29,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -102,11 +102,10 @@ public abstract class GangliaPropertyProvider implements PropertyProvider {
   // ----- PropertyProvider --------------------------------------------------
 
   @Override
-  public Set<Resource> populateResources(Set<Resource> resources,
-                                         Request request,
-                                         Predicate predicate) throws AmbariException{
+  public Set<Resource> populateResources(Set<Resource> resources, Request request, Predicate predicate)
+      throws SystemException {
 
-    Set<String> ids = PropertyHelper.getRequestPropertyIds(getPropertyIds(), request, predicate);
+    Set<String> ids = PropertyHelper.getRequestPropertyIds(propertyIds, request, predicate);
     if (ids.isEmpty()) {
       return resources;
     }
@@ -128,6 +127,16 @@ public abstract class GangliaPropertyProvider implements PropertyProvider {
   @Override
   public Set<String> getPropertyIds() {
     return propertyIds;
+  }
+
+  @Override
+  public Set<String> checkPropertyIds(Set<String> propertyIds) {
+    if (!this.propertyIds.containsAll(propertyIds)) {
+      Set<String> unsupportedPropertyIds = new HashSet<String>(propertyIds);
+      unsupportedPropertyIds.removeAll(this.propertyIds);
+      return unsupportedPropertyIds;
+    }
+    return Collections.emptySet();
   }
 
 
@@ -256,12 +265,14 @@ public abstract class GangliaPropertyProvider implements PropertyProvider {
    * @param temporalInfo  the temporal information
    *
    * @return the spec
+   *
+   * @throws SystemException if unable to get the Ganglia Collector host name
    */
   private String getSpec(String clusterName,
                          Set<String> clusterSet,
                          Set<String> hostSet,
                          Set<String> metricSet,
-                         TemporalInfo temporalInfo) {
+                         TemporalInfo temporalInfo) throws SystemException {
 
     String clusters = getSetString(clusterSet, -1);
     String hosts    = getSetString(hostSet, -1);
@@ -397,8 +408,10 @@ public abstract class GangliaPropertyProvider implements PropertyProvider {
      * Populate the associated resources by making the rrd request.
      *
      * @return a collection of populated resources
+     *
+     * @throws SystemException if unable to populate the resources
      */
-    public Collection<Resource> populateResources() {
+    public Collection<Resource> populateResources() throws SystemException {
 
       String spec = getSpec(clusterName, clusterSet, hostSet, metrics.keySet(), temporalInfo);
       Collection<Resource> populatedResources = new HashSet<Resource>();

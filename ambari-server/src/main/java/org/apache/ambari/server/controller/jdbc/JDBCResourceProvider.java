@@ -18,17 +18,11 @@
 
 package org.apache.ambari.server.controller.jdbc;
 
-import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.controller.internal.RequestStatusImpl;
 import org.apache.ambari.server.controller.internal.ResourceImpl;
 import org.apache.ambari.server.controller.predicate.BasePredicate;
 import org.apache.ambari.server.controller.predicate.PredicateVisitorAcceptor;
-import org.apache.ambari.server.controller.spi.Predicate;
-import org.apache.ambari.server.controller.spi.Request;
-import org.apache.ambari.server.controller.spi.RequestStatus;
-import org.apache.ambari.server.controller.spi.Resource;
-import org.apache.ambari.server.controller.spi.ResourceProvider;
-import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
+import org.apache.ambari.server.controller.spi.*;
 import org.apache.ambari.server.controller.utilities.PredicateHelper;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
 import org.slf4j.Logger;
@@ -81,7 +75,9 @@ public class JDBCResourceProvider implements ResourceProvider {
     }
 
     @Override
-    public Set<Resource> getResources(Request request, Predicate predicate) throws AmbariException, UnsupportedPropertyException {
+    public Set<Resource> getResources(Request request, Predicate predicate)
+        throws SystemException, UnsupportedPropertyException, NoSuchResourceException, NoSuchParentResourceException {
+
         Set<Resource> resources = new HashSet<Resource>();
         Set<String> propertyIds = PropertyHelper.getRequestPropertyIds(this.propertyIds, request, predicate);
 
@@ -161,7 +157,12 @@ public class JDBCResourceProvider implements ResourceProvider {
     }
 
     @Override
-    public RequestStatus createResources(Request request) throws AmbariException, UnsupportedPropertyException {
+    public RequestStatus createResources(Request request)
+        throws SystemException,
+               UnsupportedPropertyException,
+               ResourceAlreadyExistsException,
+               NoSuchParentResourceException {
+
         try {
             Connection connection = connectionFactory.getConnection();
 
@@ -190,7 +191,8 @@ public class JDBCResourceProvider implements ResourceProvider {
     }
 
     @Override
-    public RequestStatus updateResources(Request request, Predicate predicate) throws AmbariException, UnsupportedPropertyException {
+    public RequestStatus updateResources(Request request, Predicate predicate)
+        throws SystemException, UnsupportedPropertyException, NoSuchResourceException, NoSuchParentResourceException {
 
         try {
             Connection connection = connectionFactory.getConnection();
@@ -218,7 +220,9 @@ public class JDBCResourceProvider implements ResourceProvider {
     }
 
     @Override
-    public RequestStatus deleteResources(Predicate predicate) throws AmbariException, UnsupportedPropertyException {
+    public RequestStatus deleteResources(Predicate predicate)
+        throws SystemException, UnsupportedPropertyException, NoSuchResourceException, NoSuchParentResourceException {
+
         try {
             Connection connection = connectionFactory.getConnection();
             try {
@@ -394,13 +398,23 @@ public class JDBCResourceProvider implements ResourceProvider {
     }
 
     @Override
-    public Set<String> getPropertyIds() {
+    public Set<String> getPropertyIdsForSchema() {
         return propertyIds;
     }
 
     @Override
     public Map<Resource.Type, String> getKeyPropertyIds() {
         return keyPropertyIds;
+    }
+
+    @Override
+    public Set<String> checkPropertyIds(Set<String> propertyIds) {
+      if (!this.propertyIds.containsAll(propertyIds)) {
+        Set<String> unsupportedPropertyIds = new HashSet<String>(propertyIds);
+        unsupportedPropertyIds.removeAll(this.propertyIds);
+        return unsupportedPropertyIds;
+      }
+      return Collections.emptySet();
     }
 
     /**

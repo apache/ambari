@@ -32,6 +32,7 @@ import com.google.gson.Gson;
 import com.google.inject.persist.Transactional;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.ClusterNotFoundException;
+import org.apache.ambari.server.DuplicateResourceException;
 import org.apache.ambari.server.HostNotFoundException;
 import org.apache.ambari.server.agent.DiskInfo;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
@@ -47,7 +48,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.inject.Inject;
-import com.google.inject.Injector;
 import com.google.inject.Singleton;
 
 @Singleton
@@ -89,8 +89,8 @@ public class ClustersImpl implements Clusters {
   public synchronized void addCluster(String clusterName)
       throws AmbariException {
     if (clusters.containsKey(clusterName)) {
-      throw new AmbariException("Duplicate entry for Cluster"
-          + ", clusterName= " + clusterName);
+      throw new DuplicateResourceException("Attempted to create a Cluster which already exists"
+          + ", clusterName=" + clusterName);
     }
 
     // retrieve new cluster id
@@ -255,7 +255,8 @@ public class ClustersImpl implements Clusters {
 
     for (Cluster c : hostClusterMap.get(hostname)) {
       if (c.getClusterName().equals(clusterName)) {
-        return;
+        throw new DuplicateResourceException("Attempted to create a host which already exists: clusterName=" +
+            clusterName + ", hostName=" + hostname);
       }
     }
 

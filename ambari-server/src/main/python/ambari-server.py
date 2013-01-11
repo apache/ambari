@@ -31,7 +31,8 @@ import xml.etree.ElementTree as ET
 import shutil
 import stat
 import fileinput
-
+import urllib2
+import time
 # debug settings
 VERBOSE = False
 SILENT = False
@@ -42,6 +43,10 @@ SETUP_ACTION = "setup"
 START_ACTION = "start"
 STOP_ACTION = "stop"
 RESET_ACTION = "reset"
+
+#sudo check command
+SUDO_CHECK_CMD = "rpm -qa | grep sudo"
+
 
 # selinux commands
 GET_SE_LINUX_ST_CMD = "/usr/sbin/sestatus"
@@ -89,6 +94,7 @@ JDK_MIN_FILESIZE=5000
 JDK_INSTALL_DIR="/usr/jdk64"
 CREATE_JDK_DIR_CMD = "/bin/mkdir -p " + JDK_INSTALL_DIR
 MAKE_FILE_EXECUTABLE_CMD = "chmod a+x {0}"
+JAVA_HOME_PROPERTY = "java.home"
 OS_TYPE_PROPERTY = "server.os_type"
 
 def configure_pg_hba_ambaridb_users():
@@ -142,9 +148,28 @@ def configure_postgres():
   #restart postgresql if already running
   pg_status = get_postgre_status()
   if pg_status == PG_STATUS_RUNNING:
-    print "restarting PostgreSQL"
-    retcode, out, err = run_os_command(PG_RESTART_CMD)
+    retcode = restart_postgres()
     return retcode
+  return 0
+
+def restart_postgres():
+  print "Restarting PostgreSQL"
+  process = subprocess.Popen(PG_RESTART_CMD.split(' '),
+                             stdout=subprocess.PIPE,
+                             stdin=subprocess.PIPE,
+                             stderr=subprocess.PIPE
+                            )
+  time.sleep(5)
+  result = process.poll()
+  if result == "None" or result == "-N":
+    printInfoMsg("Killing restart PostgresSQL process")
+    process.kill()
+    pg_status = get_postgre_status()
+    # SUSE linux set status of stopped postgresql proc to unused
+    if pg_status == "unused" or pg_status == "stopped":
+      printInfoMsg("PostgreSQL is stopped. Restarting ...")
+      retcode, out, err = run_os_command(PG_START_CMD)
+      return retcode
   return 0
 
 def line_prepender(filename, lines):
@@ -377,18 +402,57 @@ class Properties(object):
 
 JDK_DOWNLOAD_CMD = "curl --create-dirs -o {0} {1}"
 JDK_DOWNLOAD_SIZE_CMD = "curl -I {0}"
+
+def dlprogress(base_name, count, blockSize, totalSize):
+
+  percent=int(count*blockSize*100/totalSize)
+
+  if (totalSize < blockSize):
+    sys.stdout.write("\r" + base_name + "... %d%%" % (100))
+  else:
+    sys.stdout.write("\r" + base_name + "... %d%% (%.1f MB of %.1f MB)" % (percent, count*blockSize/1024/1024.0, totalSize/1024/1024.0))
+    
+  if (percent == 100 or totalSize < blockSize):
+    sys.stdout.write("\n")
+  sys.stdout.flush()
+
+def track_jdk(base_name, url, local_name):
+  u = urllib2.urlopen(url)
+  h = u.info()
+  totalSize = int(h["Content-Length"])
+  fp = open(local_name, "wb")
+  blockSize = 8192
+  count = 0
+  percent = 0
+  while True:
+    chunk = u.read(blockSize)
+    if not chunk:
+      break
+    fp.write(chunk)
+    count += 1
+    
+    dlprogress(base_name, count, blockSize, totalSize)
+
+  fp.flush()
+  fp.close()
+
 #
 # Downloads the JDK
 #
-def download_jdk():
+def download_jdk(args):
   conf_file = search_file(AMBARI_PROPERTIES_FILE, get_conf_dir())
   if conf_file is None:
     print 'File %s not found in search path $%s: %s' % (AMBARI_PROPERTIES_FILE, AMBARI_CONF_VAR, get_conf_dir())
     return -1
   printInfoMsg ('Loading properties from ' + conf_file)
- 
+
   if get_JAVA_HOME():
-    return 0;
+    return 0
+
+  if args.java_home and os.path.exists(args.java_home):
+    printWarningMsg("JAVA_HOME " + args.java_home + " must be valid on ALL hosts")
+    writeProperty(JAVA_HOME_PROPERTY, args.java_home)
+    return 0
 
   properties = None
   try:
@@ -397,6 +461,7 @@ def download_jdk():
   except (Exception), e:
     print 'Could not read "%s": %s' % (conf_file, e)
     return -1
+
   try:
     jdk_url = properties['jdk.url']
     resources_dir = properties['resources.dir']
@@ -423,8 +488,7 @@ def download_jdk():
       if file_exists and file_size == src_size:
         printInfoMsg ("File already exists")
       else:
-        download_command = JDK_DOWNLOAD_CMD.format(dest_file,jdk_url);
-        retcode, outdata, errdata = run_os_command(download_command);#Run download command
+        track_jdk(JDK_LOCAL_FILENAME, jdk_url, dest_file)
         print 'Successfully downloaded JDK distribution to ' + dest_file
     except Exception, e:
       printErrorMsg ('Failed to download JDK: ' + str(e))
@@ -452,6 +516,7 @@ accepting will cancel the Ambari Server setup.\nDo you accept the Oracle Binary 
   os.chdir(savedPath)
   jdk_version = re.search('Creating (jdk.*)/jre', out).group(1)
   print "Successfully installed JDK to {0}/{1}".format(JDK_INSTALL_DIR, jdk_version)
+  writeProperty("java.home", "{0}/{1}".format(JDK_INSTALL_DIR, jdk_version))
   return 0
 
 def get_postgre_status():
@@ -514,13 +579,18 @@ def configure_os_settings():
   return 0
 
 def get_JAVA_HOME():
-  if not os.environ.has_key(JAVA_HOME):
-    return None
-  java_home = os.environ[JAVA_HOME]
-  if (os.path.exists(java_home)):
-    return java_home
-  else:
-    return None
+  conf_file = search_file(AMBARI_PROPERTIES_FILE, get_conf_dir())
+  properties = Properties()
+  
+  try:
+    properties.load(open(conf_file))
+    java_home = properties['java.home']
+    if (not 0 == len(java_home)) and (os.path.exists(java_home)):
+      return java_home
+  except (Exception), e:
+    print 'Could not read "%s": %s' % (conf_file, e)
+  
+  return None
   
 #
 # Finds the available JDKs.
@@ -539,10 +609,22 @@ def findJDK():
   print "Selected JDK {0}".format(jdkPath)
   return jdkPath
 
+def check_sudo():
+  retcode, out, err = run_os_command(SUDO_CHECK_CMD)
+  if re.search('sudo', out) == None:
+    return 1
+  return 0
+  pass
+
 #
 # Setup the Ambari Server.
 #
 def setup(args):
+
+  retcode = check_sudo()
+  if not retcode == 0:
+    printErrorMsg('ERROR: sudo command not found on host. Please install sudo and re-run ambari-server setup. Exiting.')
+    sys.exit(retcode)
 
   print 'Checking SELinux...'
   retcode = check_selinux()
@@ -575,7 +657,7 @@ def setup(args):
     sys.exit(retcode)
   
   print 'Checking JDK...'
-  retcode = download_jdk()
+  retcode = download_jdk(args)
   if not retcode == 0:
     printErrorMsg ('Downloading or installing JDK failed. Exiting.')
     sys.exit(retcode)
@@ -834,6 +916,8 @@ def main():
                       help="File with setup script")
   parser.add_option('-r', '--drop-script-file', default='/var/lib/ambari-server/resources/Ambari-DDL-Postgres-DROP.sql',
                       help="File with drop script")
+  parser.add_option('-j', '--java-home', default=None,
+                  help="Use specified java_home.  Must be valid on all hosts")
   parser.add_option("-v", "--verbose",
                   action="store_true", dest="verbose", default=False,
                   help="Print verbose status messages")

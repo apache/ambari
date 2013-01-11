@@ -128,10 +128,21 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
          State.INSTALLED,
          ServiceComponentHostEventType.HOST_SVCCOMP_OP_SUCCEEDED,
          new ServiceComponentHostOpCompletedTransition())
+         
+     .addTransition(State.INSTALLED,
+         State.INSTALLED,
+         ServiceComponentHostEventType.HOST_SVCCOMP_OP_SUCCEEDED,
+         new ServiceComponentHostOpCompletedTransition())
+         
      .addTransition(State.INSTALLING,
          State.INSTALLING,
          ServiceComponentHostEventType.HOST_SVCCOMP_OP_IN_PROGRESS,
          new ServiceComponentHostOpInProgressTransition())
+     .addTransition(State.INSTALLING,
+         State.INSTALLING,
+         ServiceComponentHostEventType.HOST_SVCCOMP_INSTALL,
+         new ServiceComponentHostOpStartedTransition())
+
      .addTransition(State.INSTALLING,
          State.INSTALL_FAILED,
          ServiceComponentHostEventType.HOST_SVCCOMP_OP_FAILED,
@@ -167,10 +178,17 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
          State.STARTING,
          ServiceComponentHostEventType.HOST_SVCCOMP_OP_IN_PROGRESS,
          new ServiceComponentHostOpInProgressTransition())
+         
+     .addTransition(State.STARTING,
+         State.STARTING,
+         ServiceComponentHostEventType.HOST_SVCCOMP_START,
+         new ServiceComponentHostOpStartedTransition())
+         
      .addTransition(State.STARTING,
          State.STARTED,
          ServiceComponentHostEventType.HOST_SVCCOMP_OP_SUCCEEDED,
          new ServiceComponentHostOpCompletedTransition())
+         
      .addTransition(State.STARTING,
          State.START_FAILED,
          ServiceComponentHostEventType.HOST_SVCCOMP_OP_FAILED,
@@ -293,6 +311,17 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
          State.INSTALLED,
          ServiceComponentHostEventType.HOST_SVCCOMP_OP_SUCCEEDED,
          new ServiceComponentHostOpCompletedTransition())
+    
+     .addTransition(State.INSTALLED,
+         State.INSTALLED,
+         ServiceComponentHostEventType.HOST_SVCCOMP_OP_SUCCEEDED,
+         new ServiceComponentHostOpCompletedTransition())
+    
+     .addTransition(State.INSTALLING,
+         State.INSTALLING,
+         ServiceComponentHostEventType.HOST_SVCCOMP_INSTALL,
+         new ServiceComponentHostOpStartedTransition())
+     
      .addTransition(State.INSTALLING,
          State.INSTALLING,
          ServiceComponentHostEventType.HOST_SVCCOMP_OP_IN_PROGRESS,
@@ -539,7 +568,11 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
     this.desiredStateEntity = desiredStateEntity;
     this.stateEntity = stateEntity;
     //TODO implement State Machine init as now type choosing is hardcoded in above code
-    this.stateMachine = clientStateMachineFactory.make(this);
+    if (serviceComponent.isClientComponent()) {
+      this.stateMachine = clientStateMachineFactory.make(this);
+    } else {
+      this.stateMachine = daemonStateMachineFactory.make(this);
+    }
     this.stateMachine.setCurrentState(stateEntity.getCurrentState());
 
     try {

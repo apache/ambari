@@ -305,6 +305,16 @@ class hdp::params()
     rrdtool-python => {
       64 => ['python-rrdtool.x86_64']
     },
+    # The 32bit version of package rrdtool is removed on centos 5/6 to prevent conflict ( BUG-2408)
+    rrdtool => {
+          64 => {
+            'ALL' => 'rrdtool.i686',
+            'centos6' => 'rrdtool.i686',
+            'centos5' => 'rrdtool.i386',
+            'redhat6' => 'rrdtool.i686',
+            'redhat5' => 'rrdtool.i386'
+            }
+    },
     ambari-log4j => {
       64 => ['ambari-log4j']
     } 
@@ -393,6 +403,7 @@ class hdp::params()
      suse => 'htpasswd2'} 
 
     }
+    
 
     $alt_package_names = 
 {
@@ -511,6 +522,18 @@ class hdp::params()
     rrdtool-python => {
       64 => {'ALL' =>'python-rrdtool.x86_64'}
     },
+
+    # The 32bit version of package rrdtool is removed on centos 5/6 to prevent conflict ( BUG-2408)
+    rrdtool => {
+      64 => {
+        'ALL' => 'rrdtool.i686',
+        'centos6' => 'rrdtool.i686',
+        'centos5' => 'rrdtool.i386',
+        'redhat6' => 'rrdtool.i686',
+        'redhat5' => 'rrdtool.i386'
+        }
+    },
+
     ambari-log4j => {
       64 => {'ALL' =>'ambari-log4j'}
     },
@@ -531,7 +554,14 @@ class hdp::params()
     redhat5 => '/etc/yum.repos.d'
   }
 
-  $rrd_py_path = '/var/www/cgi-bin'
+  $rrd_py_path =
+  {
+    suse => '/srv/www/cgi-bin',
+    centos6 => '/var/www/cgi-bin',
+    centos5 => '/var/www/cgi-bin',
+    redhat6 => '/var/www/cgi-bin',
+    redhat5 => '/var/www/cgi-bin'
+  }
 
 
 

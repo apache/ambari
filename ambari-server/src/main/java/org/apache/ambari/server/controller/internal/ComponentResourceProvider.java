@@ -22,11 +22,7 @@ import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.RequestStatusResponse;
 import org.apache.ambari.server.controller.ServiceComponentRequest;
 import org.apache.ambari.server.controller.ServiceComponentResponse;
-import org.apache.ambari.server.controller.spi.Predicate;
-import org.apache.ambari.server.controller.spi.Request;
-import org.apache.ambari.server.controller.spi.RequestStatus;
-import org.apache.ambari.server.controller.spi.Resource;
-import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
+import org.apache.ambari.server.controller.spi.*;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
 
 import java.util.Arrays;
@@ -75,29 +71,49 @@ class ComponentResourceProvider extends ResourceProviderImpl{
   // ----- ResourceProvider ------------------------------------------------
 
   @Override
-  public RequestStatus createResources(Request request) throws AmbariException, UnsupportedPropertyException {
-    checkRequestProperties(Resource.Type.Component, request);
-    Set<ServiceComponentRequest> requests = new HashSet<ServiceComponentRequest>();
+  public RequestStatus createResources(Request request)
+      throws SystemException,
+             UnsupportedPropertyException,
+             ResourceAlreadyExistsException,
+             NoSuchParentResourceException {
+
+    final Set<ServiceComponentRequest> requests = new HashSet<ServiceComponentRequest>();
     for (Map<String, Object> propertyMap : request.getProperties()) {
       requests.add(getRequest(propertyMap));
     }
-    getManagementController().createComponents(requests);
+
+    createResources(new Command<Void>() {
+      @Override
+      public Void invoke() throws AmbariException {
+        getManagementController().createComponents(requests);
+        return null;
+      }
+    });
+
     notifyCreate(Resource.Type.Component, request);
 
     return getRequestStatus(null);
   }
 
   @Override
-  public Set<Resource> getResources(Request request, Predicate predicate) throws AmbariException, UnsupportedPropertyException {
-    Set<ServiceComponentRequest> requests = new HashSet<ServiceComponentRequest>();
+  public Set<Resource> getResources(Request request, Predicate predicate)
+      throws SystemException, UnsupportedPropertyException, NoSuchResourceException, NoSuchParentResourceException {
 
-    for (Map<String, Object> propertyMap : getPropertyMaps(null, predicate)) {
+    final Set<ServiceComponentRequest> requests = new HashSet<ServiceComponentRequest>();
+
+    for (Map<String, Object> propertyMap : getPropertyMaps(predicate)) {
       requests.add(getRequest(propertyMap));
     }
 
-    Set<String>               requestedIds = PropertyHelper.getRequestPropertyIds(getPropertyIds(), request, predicate);
-    Set<ServiceComponentResponse> responses     = getManagementController().getComponents(requests);
-    Set<Resource>                 resources    = new HashSet<Resource>();
+    Set<ServiceComponentResponse> responses = getResources(new Command<Set<ServiceComponentResponse>>() {
+      @Override
+      public Set<ServiceComponentResponse> invoke() throws AmbariException {
+        return getManagementController().getComponents(requests);
+      }
+    });
+
+    Set<String>   requestedIds = PropertyHelper.getRequestPropertyIds(getPropertyIds(), request, predicate);
+    Set<Resource> resources    = new HashSet<Resource>();
 
     for (ServiceComponentResponse response : responses) {
       Resource resource = new ResourceImpl(Resource.Type.Component);
@@ -114,13 +130,13 @@ class ComponentResourceProvider extends ResourceProviderImpl{
   }
 
   @Override
-  public RequestStatus updateResources(Request request, Predicate predicate) throws AmbariException, UnsupportedPropertyException {
-    checkRequestProperties(Resource.Type.Component, request);
-    Set<ServiceComponentRequest> requests = new HashSet<ServiceComponentRequest>();
+  public RequestStatus updateResources(Request request, Predicate predicate)
+      throws SystemException, UnsupportedPropertyException, NoSuchResourceException, NoSuchParentResourceException {
+
+    final Set<ServiceComponentRequest> requests = new HashSet<ServiceComponentRequest>();
     for (Map<String, Object> propertyMap : getPropertyMaps(request.getProperties().iterator().next(), predicate)) {
       ServiceComponentRequest compRequest = getRequest(propertyMap);
-
-      Map<String, String> configMap = new HashMap<String,String>();
+      Map<String, String>     configMap   = new HashMap<String,String>();
 
       for (Map.Entry<String,Object> entry : propertyMap.entrySet()) {
         if (PropertyHelper.getPropertyCategory(entry.getKey()).equals("config")) {
@@ -133,21 +149,36 @@ class ComponentResourceProvider extends ResourceProviderImpl{
 
       requests.add(compRequest);
     }
-    RequestStatusResponse response = getManagementController().updateComponents(requests);
+
+    RequestStatusResponse response = modifyResources(new Command<RequestStatusResponse>() {
+      @Override
+      public RequestStatusResponse invoke() throws AmbariException {
+        return getManagementController().updateComponents(requests);
+      }
+    });
+
     notifyUpdate(Resource.Type.Component, request, predicate);
 
     return getRequestStatus(response);
   }
 
   @Override
-  public RequestStatus deleteResources(Predicate predicate) throws AmbariException, UnsupportedPropertyException {
-    Set<ServiceComponentRequest> requests = new HashSet<ServiceComponentRequest>();
-    for (Map<String, Object> propertyMap : getPropertyMaps(null, predicate)) {
+  public RequestStatus deleteResources(Predicate predicate)
+      throws SystemException, UnsupportedPropertyException, NoSuchResourceException, NoSuchParentResourceException {
+
+    final Set<ServiceComponentRequest> requests = new HashSet<ServiceComponentRequest>();
+    for (Map<String, Object> propertyMap : getPropertyMaps(predicate)) {
       requests.add(getRequest(propertyMap));
     }
-    RequestStatusResponse response = getManagementController().deleteComponents(requests);
-    notifyDelete(Resource.Type.Component, predicate);
 
+    RequestStatusResponse response = modifyResources(new Command<RequestStatusResponse>() {
+      @Override
+      public RequestStatusResponse invoke() throws AmbariException {
+        return getManagementController().deleteComponents(requests);
+      }
+    });
+
+    notifyDelete(Resource.Type.Component, predicate);
     return getRequestStatus(response);
   }
 

@@ -19,16 +19,7 @@
 package org.apache.ambari.server.controller.internal;
 
 import org.apache.ambari.server.controller.spi.ProviderModule;
-import org.apache.ambari.server.AmbariException;
-import org.apache.ambari.server.controller.spi.ClusterController;
-import org.apache.ambari.server.controller.spi.Predicate;
-import org.apache.ambari.server.controller.spi.PropertyProvider;
-import org.apache.ambari.server.controller.spi.Request;
-import org.apache.ambari.server.controller.spi.RequestStatus;
-import org.apache.ambari.server.controller.spi.Resource;
-import org.apache.ambari.server.controller.spi.ResourceProvider;
-import org.apache.ambari.server.controller.spi.Schema;
-import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
+import org.apache.ambari.server.controller.spi.*;
 import org.apache.ambari.server.controller.utilities.PredicateBuilder;
 import org.apache.ambari.server.controller.utilities.PredicateHelper;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
@@ -85,9 +76,12 @@ public class ClusterControllerImpl implements ClusterController {
   // ----- ClusterController -------------------------------------------------
 
   @Override
-  public Iterable<Resource> getResources(Resource.Type type,
-                                         Request request, Predicate predicate)
-      throws AmbariException, UnsupportedPropertyException{
+  public Iterable<Resource> getResources(Resource.Type type, Request request, Predicate predicate)
+      throws UnsupportedPropertyException,
+             SystemException,
+             NoSuchParentResourceException,
+             NoSuchResourceException {
+
     ResourceProvider provider = ensureResourceProvider(type);
     ensurePropertyProviders(type);
     Set<Resource> resources;
@@ -98,6 +92,8 @@ public class ClusterControllerImpl implements ClusterController {
       LOG.info("Using resource provider "
           + provider.getClass().getName()
           + " for request type " + type.toString());
+
+      checkProperties(type, request, predicate);
 
       resources = provider.getResources(request, predicate);
       resources = populateResources(type, resources, request, predicate);
@@ -121,50 +117,110 @@ public class ClusterControllerImpl implements ClusterController {
   }
 
   @Override
-  public RequestStatus createResources(Resource.Type type,
-                                       Request request)
-      throws AmbariException, UnsupportedPropertyException {
+  public RequestStatus createResources(Resource.Type type, Request request)
+      throws UnsupportedPropertyException,
+             SystemException,
+             ResourceAlreadyExistsException,
+             NoSuchParentResourceException {
+
     ResourceProvider provider = ensureResourceProvider(type);
     if (provider != null) {
+
+      checkProperties(type, request, null);
+
       return provider.createResources(request);
     }
     return null;
   }
 
   @Override
-  public RequestStatus updateResources(Resource.Type type,
-                                       Request request,
-                                       Predicate predicate)
-      throws AmbariException, UnsupportedPropertyException {
+  public RequestStatus updateResources(Resource.Type type, Request request, Predicate predicate)
+      throws UnsupportedPropertyException,
+             SystemException,
+             NoSuchResourceException,
+             NoSuchParentResourceException {
+
     ResourceProvider provider = ensureResourceProvider(type);
     if (provider != null) {
-      predicate = checkPredicate(type, request, predicate);
-      if (predicate == null) {
-        return null;
+
+      if (!checkProperties(type, request, predicate)) {
+        predicate = resolvePredicate(type, predicate);
+        if (predicate == null) {
+          return null;
+        }
       }
-      return provider.updateResources(request, predicate);
+        return provider.updateResources(request, predicate);
     }
     return null;
   }
 
   @Override
-  public RequestStatus deleteResources(Resource.Type type,
-                                       Predicate predicate)
-      throws AmbariException, UnsupportedPropertyException {
+  public RequestStatus deleteResources(Resource.Type type, Predicate predicate)
+      throws UnsupportedPropertyException,
+             SystemException,
+             NoSuchResourceException,
+             NoSuchParentResourceException {
 
     ResourceProvider provider = ensureResourceProvider(type);
     if (provider != null) {
-      predicate = checkPredicate(type, null, predicate);
-      if (predicate == null) {
-        return null;
+      if (!checkProperties(type, null, predicate)) {
+        predicate = resolvePredicate(type, predicate);
+        if (predicate == null) {
+          return null;
+        }
       }
-      return provider.deleteResources(predicate);
+        return provider.deleteResources(predicate);
     }
     return null;
   }
 
 
   // ----- helper methods ----------------------------------------------------
+
+  /**
+   * Check to make sure that all the property ids specified in the given request and
+   * predicate are supported by the resource provider or property providers for the
+   * given type.
+   *
+   * @param type       the resource type
+   * @param request    the request
+   * @param predicate  the predicate
+   *
+   * @return true if all of the properties specified in the request and predicate are supported by
+   *         the resource provider for the given type; false if any of the properties specified in
+   *         the request and predicate are not supported by the resource provider but are supported
+   *         by a property provider for the given type.
+   *
+   * @throws UnsupportedPropertyException thrown if any of the properties specified in the request
+   *                                      and predicate are not supported by either the resource
+   *                                      provider or a property provider for the given type
+   */
+  private boolean checkProperties(Resource.Type type, Request request, Predicate predicate)
+      throws UnsupportedPropertyException {
+    Set<String> requestPropertyIds = request == null ? new HashSet<String>() :
+        PropertyHelper.getAssociatedPropertyIds(request);
+
+    if (predicate != null) {
+      requestPropertyIds.addAll(PredicateHelper.getPropertyIds(predicate));
+    }
+
+    if (requestPropertyIds.size() > 0) {
+      ResourceProvider provider = ensureResourceProvider(type);
+      requestPropertyIds = provider.checkPropertyIds(requestPropertyIds);
+
+      if (requestPropertyIds.size() > 0) {
+        List<PropertyProvider> propertyProviders = ensurePropertyProviders(type);
+        for (PropertyProvider propertyProvider : propertyProviders) {
+          requestPropertyIds = propertyProvider.checkPropertyIds(requestPropertyIds);
+          if (requestPropertyIds.size() == 0) {
+            return false;
+          }
+        }
+        throw new UnsupportedPropertyException(type, requestPropertyIds);
+      }
+    }
+    return true;
+  }
 
   /**
    * Check to see if any of the property ids specified in the given request and
@@ -175,73 +231,59 @@ public class ClusterControllerImpl implements ClusterController {
    * reference the key property ids for this type.
    *
    * @param type       the resource type
-   * @param request    the request
    * @param predicate  the predicate
    *
    * @return the given predicate if a new one is not required; a new predicate if required
    *
-   * @throws AmbariException thrown if the new predicate can not be obtained
-   *
    * @throws UnsupportedPropertyException thrown if any of the properties specified in the request
    *                                      and predicate are not supported by either the resource
    *                                      provider or a property provider for the given type
+   *
+   * @throws SystemException thrown for internal exceptions
+   * @throws NoSuchResourceException if the resource that is requested doesn't exist
+   * @throws NoSuchParentResourceException if a parent resource of the requested resource doesn't exist
    */
-  private Predicate checkPredicate(Resource.Type type, Request request, Predicate predicate)
-      throws AmbariException, UnsupportedPropertyException {
+  private Predicate resolvePredicate(Resource.Type type, Predicate predicate)
+    throws UnsupportedPropertyException,
+        SystemException,
+        NoSuchResourceException,
+        NoSuchParentResourceException{
 
-    Set<String> requestPropertyIds = request == null ? new HashSet<String>() :
-        PropertyHelper.getAssociatedPropertyIds(request);
+    ResourceProvider provider = ensureResourceProvider(type);
 
-    if (predicate != null) {
-      requestPropertyIds.addAll(PredicateHelper.getPropertyIds(predicate));
-    }
+    Set<String>  keyPropertyIds = new HashSet<String>(provider.getKeyPropertyIds().values());
+    Request      readRequest    = PropertyHelper.getReadRequest(keyPropertyIds);
 
-    if (requestPropertyIds.size() > 0) {
-      ResourceProvider provider = ensureResourceProvider(type);
-      requestPropertyIds.removeAll(provider.getPropertyIds());
+    Iterable<Resource> resources = getResources(type, readRequest, predicate);
 
-      // if any of the properties are handled by a property provider then
-      // get a new predicate based on the primary key fields
-      List<PropertyProvider> propertyProviders = ensurePropertyProviders(type);
-      for (PropertyProvider propertyProvider : propertyProviders) {
-        if (requestPropertyIds.removeAll(propertyProvider.getPropertyIds())) {
-          Set<String>  keyPropertyIds = new HashSet<String>(provider.getKeyPropertyIds().values());
-          Request          readRequest    = PropertyHelper.getReadRequest(keyPropertyIds);
+    PredicateBuilder pb = new PredicateBuilder();
+    PredicateBuilder.PredicateBuilderWithPredicate pbWithPredicate = null;
 
-          Iterable<Resource> resources = getResources(type, readRequest, predicate);
+    for (Resource resource : resources) {
+      if (pbWithPredicate != null) {
+        pb = pbWithPredicate.or();
+      }
 
-          PredicateBuilder pb = new PredicateBuilder();
-          PredicateBuilder.PredicateBuilderWithPredicate pbWithPredicate = null;
+      pb              = pb.begin();
+      pbWithPredicate = null;
 
-          for (Resource resource : resources) {
-            if (pbWithPredicate != null) {
-              pb = pbWithPredicate.or();
-            }
-
-            pb              = pb.begin();
-            pbWithPredicate = null;
-
-            for (String keyPropertyId : keyPropertyIds) {
-              if (pbWithPredicate != null) {
-                pb = pbWithPredicate.and();
-              }
-              pbWithPredicate =
-                  pb.property(keyPropertyId).equals((Comparable) resource.getPropertyValue(keyPropertyId));
-            }
-            if (pbWithPredicate != null) {
-              pbWithPredicate = pbWithPredicate.end();
-            }
-          }
-          return pbWithPredicate == null ? null : pbWithPredicate.toPredicate();
+      for (String keyPropertyId : keyPropertyIds) {
+        if (pbWithPredicate != null) {
+          pb = pbWithPredicate.and();
         }
+        pbWithPredicate =
+            pb.property(keyPropertyId).equals((Comparable) resource.getPropertyValue(keyPropertyId));
+      }
+      if (pbWithPredicate != null) {
+        pbWithPredicate = pbWithPredicate.end();
       }
     }
-    return predicate;
+    return pbWithPredicate == null ? null : pbWithPredicate.toPredicate();
   }
 
   /**
    * Populate the given resources from the associated property providers.  This
-   * method may filter the resources based on the predicated and return a subset
+   * method may filter the resources based on the predicate and return a subset
    * of the given resources.
    *
    * @param type       the resource type
@@ -251,12 +293,12 @@ public class ClusterControllerImpl implements ClusterController {
    *
    * @return the set of resources that were successfully populated
    *
-   * @throws AmbariException thrown if the resources can not be populated
+   * @throws SystemException if unable to populate the resources
    */
   private Set<Resource> populateResources(Resource.Type type,
                                           Set<Resource> resources,
                                           Request request,
-                                          Predicate predicate) throws AmbariException{
+                                          Predicate predicate) throws SystemException {
     Set<Resource> keepers = resources;
 
     for (PropertyProvider propertyProvider : propertyProviders.get(type)) {
@@ -283,9 +325,10 @@ public class ClusterControllerImpl implements ClusterController {
       return true;
     }
     requestPropertyIds.addAll(PredicateHelper.getPropertyIds(predicate));
-    requestPropertyIds.retainAll(provider.getPropertyIds());
 
-    return !requestPropertyIds.isEmpty();
+    int size = requestPropertyIds.size();
+
+    return size > provider.checkPropertyIds(requestPropertyIds).size();
   }
 
   /**

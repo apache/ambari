@@ -34,7 +34,7 @@ non_global_configuration_types = ["hdfs-site", "core-site",
                              "hadoop-policy", "mapred-site", 
                              "capacity-scheduler", "hbase-site",
                              "hbase-policy", "hive-site", "oozie-site", 
-                             "templeton-site", "hdfs-exclude-file"]
+                             "webhcat-site", "hdfs-exclude-file"]
 
 #read static imports from file and write them to manifest
 def writeImports(outputFile, modulesdir, inputFileName='imports.txt'):
@@ -112,7 +112,7 @@ def generateManifest(parsedJson, fileName, modulesdir, ambariconfig):
   #writeHostAttributes(manifest, hostAttributes)
 
   #writing task definitions 
-  writeTasks(manifest, roles, ambariconfig)
+  writeTasks(manifest, roles, ambariconfig, clusterHostInfo, hostname)
      
   manifest.close()
     
@@ -130,6 +130,9 @@ def readDict(file, separator='='):
 
   #write nodes
 def writeNodes(outputFile, clusterHostInfo):
+  if clusterHostInfo.has_key('zookeeper_hosts'):
+    clusterHostInfo['zookeeper_hosts'] = sorted(clusterHostInfo['zookeeper_hosts'])
+  
   for node in clusterHostInfo.iterkeys():
     outputFile.write('$' + node + '= [')
     coma = ''
@@ -203,7 +206,8 @@ def writeNonGlobalConfigurations(outputFile, xmlConfigs):
   outputFile.write('\n}\n')
 
 #write node tasks
-def writeTasks(outputFile, roles, ambariconfig):
+def writeTasks(outputFile, roles, ambariconfig, clusterHostInfo=None, 
+               hostname="localhost"):
   #reading dictionaries
   rolestoclass = "rolesToClass.dict"
   if ambariconfig.has_option('puppet','roles_to_class'):
@@ -228,13 +232,17 @@ def writeTasks(outputFile, roles, ambariconfig):
 
   outputFile.write('class {\'hdp\': stage => ' + str(stageNum) + '}\n')
   stageNum = stageNum + 1
-
+  # Need to hack for zookeeper since we need 
+  zk_hosts = []
   for role in roles :
     rolename = role['role']
     command = role['cmd']
     taskParams = role['roleParams']
     if (rolename == 'ZOOKEEPER_SERVER'):
-      taskParams['myid'] = str(get_mac())
+      zk_hosts = clusterHostInfo['zookeeper_hosts']
+      # Sort the list in lexicographical order
+      taskParams['myid'] = str(sorted(zk_hosts).index(hostname) + 1)
+    
     taskParamsNormalized = normalizeTaskParams(taskParams)
     taskParamsPostfix = ''
     
@@ -245,11 +253,14 @@ def writeTasks(outputFile, roles, ambariconfig):
    
     if command in serviceStates:
       serviceState = serviceStates[command] 
-      outputFile.write('class {\'' + className + '\':' + ' stage => ' + str(stageNum) + 
-                     ', service_state => ' + serviceState + taskParamsPostfix + '}\n')
+      outputFile.write('class {\'' + className + '\':' +
+                        ' stage => ' + str(stageNum) + 
+                     ', service_state => ' + serviceState 
+                     + taskParamsPostfix + '}\n')
     else:
-      outputFile.write('class {\'' + className + '\':' + ' stage => ' + str(stageNum) + 
-                     taskParamsPostfix + '}\n')
+      outputFile.write('class {\'' + className + '\':' + 
+                       ' stage => ' + str(stageNum) + 
+                       taskParamsPostfix + '}\n')
 
     stageNum = stageNum + 1
   outputFile.write('}\n')

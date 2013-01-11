@@ -120,7 +120,7 @@ precached_object_file=/var/nagios/objects.precache
 # defined as macros in this file and restrictive permissions (600)
 # can be placed on this file.
 
-resource_file=/etc/nagios/resource.cfg
+resource_file=<%=scope.function_hdp_template_var("nagios_resource_cfg")%>
 
 
 

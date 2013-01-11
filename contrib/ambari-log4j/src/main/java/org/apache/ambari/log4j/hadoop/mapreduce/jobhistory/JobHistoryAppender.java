@@ -113,14 +113,11 @@ public class JobHistoryAppender extends AppenderSkeleton implements Appender {
         LOG.info("database set to 'none'");
       } else {
         try {
-          LOG.info("Connecting to database " + database +
-              " as user " + user + " password " + password + 
-              " and driver " + driver); 
           logStore = 
               new DatabaseStore(driver, database, user, password, 
                   new MapReduceJobHistoryUpdater());
         } catch (IOException ioe) {
-          LOG.info("Failed to connect to db " + database, ioe);
+          LOG.debug("Failed to connect to db " + database, ioe);
           System.err.println("Failed to connect to db " + database + 
               " as user " + user + " password " + password + 
               " and driver " + driver + " with " + 
@@ -128,7 +125,7 @@ public class JobHistoryAppender extends AppenderSkeleton implements Appender {
           throw new RuntimeException(
               "Failed to create database store for " + database, ioe);
         } catch (Exception e) {
-          LOG.info("Failed to connect to db " + database, e);
+          LOG.debug("Failed to connect to db " + database, e);
           System.err.println("Failed to connect to db " + database + 
               " as user " + user + " password " + password + 
               " and driver " + driver + " with " + 

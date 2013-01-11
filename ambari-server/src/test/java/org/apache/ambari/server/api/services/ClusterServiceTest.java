@@ -20,219 +20,167 @@ package org.apache.ambari.server.api.services;
 
 import org.apache.ambari.server.api.handlers.RequestHandler;
 import org.apache.ambari.server.api.resources.ResourceInstance;
-import org.apache.ambari.server.api.services.serializers.ResultSerializer;
 import org.junit.Test;
 
-import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.Response;
-import javax.ws.rs.core.UriInfo;
 
-import static org.easymock.EasyMock.*;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertSame;
 
 
 /**
  * Unit tests for ClusterService.
  */
-public class ClusterServiceTest {
+public class ClusterServiceTest extends BaseServiceTest {
 
   @Test
-  public void testGetCluster() {
-    ResourceInstance resourceDef = createStrictMock(ResourceInstance.class);
-    ResultSerializer resultSerializer = createStrictMock(ResultSerializer.class);
-    Object serializedResult = new Object();
-    RequestFactory requestFactory = createStrictMock(RequestFactory.class);
-    ResponseFactory responseFactory = createStrictMock(ResponseFactory.class);
-    Request request = createNiceMock(Request.class);
-    RequestHandler requestHandler = createStrictMock(RequestHandler.class);
-    Result result = createStrictMock(Result.class);
-    Response response = createStrictMock(Response.class);
-    HttpHeaders httpHeaders = createNiceMock(HttpHeaders.class);
-    UriInfo uriInfo = createNiceMock(UriInfo.class);
-
+   public void testGetCluster() {
     String clusterName = "clusterName";
 
-    // expectations
-    expect(requestFactory.createRequest(eq(httpHeaders), isNull(String.class), eq(uriInfo), eq(Request.Type.GET),
-        eq(resourceDef))).andReturn(request);
-
-    expect(requestHandler.handleRequest(request)).andReturn(result);
-    expect(request.getResultSerializer()).andReturn(resultSerializer);
-    expect(resultSerializer.serialize(result, uriInfo)).andReturn(serializedResult);
-    expect(result.isSynchronous()).andReturn(true).atLeastOnce();
-    expect(responseFactory.createResponse(Request.Type.GET, serializedResult, true)).andReturn(response);
-
-    replay(resourceDef, resultSerializer, requestFactory, responseFactory, request, requestHandler,
-        result, response, httpHeaders, uriInfo);
+    registerExpectations(Request.Type.GET, null, 200, false);
+    replayMocks();
 
     //test
-    ClusterService clusterService = new TestClusterService(resourceDef, clusterName, requestFactory, responseFactory, requestHandler);
-    assertSame(response, clusterService.getCluster(httpHeaders, uriInfo, clusterName));
+    ClusterService clusterService = new TestClusterService(getResource(), clusterName, getRequestFactory(), getRequestHandler());
+    Response response = clusterService.getCluster(getHttpHeaders(), getUriInfo(), clusterName);
+    verifyResults(response, 200);
+  }
 
-    verify(resourceDef, resultSerializer, requestFactory, responseFactory, request, requestHandler,
-        result, response, httpHeaders, uriInfo);
+  @Test
+  public void testGetCluster__ErrorState() {
+    String clusterName = "clusterName";
+
+    registerExpectations(Request.Type.GET, null, 500, true);
+    replayMocks();
+
+    //test
+    ClusterService clusterService = new TestClusterService(getResource(), clusterName, getRequestFactory(), getRequestHandler());
+    Response response = clusterService.getCluster(getHttpHeaders(), getUriInfo(), clusterName);
+    verifyResults(response, 500);
   }
 
   @Test
   public void testGetClusters() {
-    ResourceInstance resourceDef = createStrictMock(ResourceInstance.class);
-    ResultSerializer resultSerializer = createStrictMock(ResultSerializer.class);
-    Object serializedResult = new Object();
-    RequestFactory requestFactory = createStrictMock(RequestFactory.class);
-    ResponseFactory responseFactory = createStrictMock(ResponseFactory.class);
-    Request request = createNiceMock(Request.class);
-    RequestHandler requestHandler = createStrictMock(RequestHandler.class);
-    Result result = createStrictMock(Result.class);
-    Response response = createStrictMock(Response.class);
 
-    HttpHeaders httpHeaders = createNiceMock(HttpHeaders.class);
-    UriInfo uriInfo = createNiceMock(UriInfo.class);
-
-    // expectations
-    expect(requestFactory.createRequest(eq(httpHeaders), isNull(String.class), eq(uriInfo), eq(Request.Type.GET),
-        eq(resourceDef))).andReturn(request);
-
-    expect(requestHandler.handleRequest(request)).andReturn(result);
-    expect(request.getResultSerializer()).andReturn(resultSerializer);
-    expect(resultSerializer.serialize(result, uriInfo)).andReturn(serializedResult);
-    expect(result.isSynchronous()).andReturn(true).atLeastOnce();
-    expect(responseFactory.createResponse(Request.Type.GET, serializedResult, true)).andReturn(response);
-
-    replay(resourceDef, resultSerializer, requestFactory, responseFactory, request, requestHandler,
-        result, response, httpHeaders, uriInfo);
+    registerExpectations(Request.Type.GET, null, 200, false);
+    replayMocks();
 
     //test
-    ClusterService clusterService = new TestClusterService(resourceDef, null, requestFactory, responseFactory, requestHandler);
-    assertSame(response, clusterService.getClusters(httpHeaders, uriInfo));
+    ClusterService clusterService = new TestClusterService(getResource(), null, getRequestFactory(), getRequestHandler());
+    Response response = clusterService.getClusters(getHttpHeaders(), getUriInfo());
 
-    verify(resourceDef, resultSerializer, requestFactory, responseFactory, request, requestHandler,
-        result, response, httpHeaders, uriInfo);
+    verifyResults(response, 200);
+  }
+
+  @Test
+  public void testGetClusters__ErrorState() {
+    registerExpectations(Request.Type.GET, null, 500, true);
+    replayMocks();
+
+    //test
+    ClusterService clusterService = new TestClusterService(getResource(), null, getRequestFactory(), getRequestHandler());
+    Response response = clusterService.getClusters(getHttpHeaders(), getUriInfo());
+
+    verifyResults(response, 500);
   }
 
   @Test
   public void testCreateCluster() {
-    ResourceInstance resourceDef = createStrictMock(ResourceInstance.class);
-    ResultSerializer resultSerializer = createStrictMock(ResultSerializer.class);
-    Object serializedResult = new Object();
-    RequestFactory requestFactory = createStrictMock(RequestFactory.class);
-    ResponseFactory responseFactory = createStrictMock(ResponseFactory.class);
-    Request request = createNiceMock(Request.class);
-    RequestHandler requestHandler = createStrictMock(RequestHandler.class);
-    Result result = createStrictMock(Result.class);
-    Response response = createStrictMock(Response.class);
-    HttpHeaders httpHeaders = createNiceMock(HttpHeaders.class);
-    UriInfo uriInfo = createNiceMock(UriInfo.class);
-
     String clusterName = "clusterName";
+    String body = "body";
 
-    // expectations
-    expect(requestFactory.createRequest(eq(httpHeaders), eq("body"), eq(uriInfo), eq(Request.Type.POST),
-        eq(resourceDef))).andReturn(request);
-
-    expect(requestHandler.handleRequest(request)).andReturn(result);
-    expect(request.getResultSerializer()).andReturn(resultSerializer);
-    expect(resultSerializer.serialize(result, uriInfo)).andReturn(serializedResult);
-    expect(result.isSynchronous()).andReturn(false).atLeastOnce();
-    expect(responseFactory.createResponse(Request.Type.POST, serializedResult, false)).andReturn(response);
-
-    replay(resourceDef, resultSerializer, requestFactory, responseFactory, request, requestHandler,
-        result, response, httpHeaders, uriInfo);
+    registerExpectations(Request.Type.POST, body, 201, false);
+    replayMocks();
 
     //test
-    ClusterService clusterService = new TestClusterService(resourceDef, clusterName, requestFactory, responseFactory, requestHandler);
-    assertSame(response, clusterService.createCluster("body", httpHeaders, uriInfo, clusterName));
+    ClusterService clusterService = new TestClusterService(getResource(), clusterName, getRequestFactory(), getRequestHandler());
+    Response response = clusterService.createCluster(body, getHttpHeaders(), getUriInfo(), clusterName);
 
-    verify(resourceDef, resultSerializer, requestFactory, responseFactory, request, requestHandler,
-        result, response, httpHeaders, uriInfo);
+    verifyResults(response, 201);
+  }
+
+  @Test
+  public void testCreateCluster__ErrorState() {
+    String clusterName = "clusterName";
+    String body = "body";
+
+    registerExpectations(Request.Type.POST, body, 500, true);
+    replayMocks();
+
+    //test
+    ClusterService clusterService = new TestClusterService(getResource(), clusterName, getRequestFactory(), getRequestHandler());
+    Response response = clusterService.createCluster(body, getHttpHeaders(), getUriInfo(), clusterName);
+
+    verifyResults(response, 500);
   }
 
   @Test
   public void testUpdateCluster() {
-    ResourceInstance resourceDef = createStrictMock(ResourceInstance.class);
-    ResultSerializer resultSerializer = createStrictMock(ResultSerializer.class);
-    Object serializedResult = new Object();
-    RequestFactory requestFactory = createStrictMock(RequestFactory.class);
-    ResponseFactory responseFactory = createStrictMock(ResponseFactory.class);
-    Request request = createNiceMock(Request.class);
-    RequestHandler requestHandler = createStrictMock(RequestHandler.class);
-    Result result = createStrictMock(Result.class);
-    Response response = createStrictMock(Response.class);
-    HttpHeaders httpHeaders = createNiceMock(HttpHeaders.class);
-    UriInfo uriInfo = createNiceMock(UriInfo.class);
-
     String clusterName = "clusterName";
+    String body = "body";
 
-    // expectations
-    expect(requestFactory.createRequest(eq(httpHeaders), eq("body"), eq(uriInfo), eq(Request.Type.PUT),
-        eq(resourceDef))).andReturn(request);
-
-    expect(requestHandler.handleRequest(request)).andReturn(result);
-    expect(request.getResultSerializer()).andReturn(resultSerializer);
-    expect(resultSerializer.serialize(result, uriInfo)).andReturn(serializedResult);
-    expect(result.isSynchronous()).andReturn(true).atLeastOnce();
-    expect(responseFactory.createResponse(Request.Type.PUT, serializedResult, true)).andReturn(response);
-
-    replay(resourceDef, resultSerializer, requestFactory, responseFactory, request, requestHandler,
-        result, response, httpHeaders, uriInfo);
+    registerExpectations(Request.Type.PUT, body, 200, false);
+    replayMocks();
 
     //test
-    ClusterService clusterService = new TestClusterService(resourceDef, clusterName, requestFactory, responseFactory, requestHandler);
-    assertSame(response, clusterService.updateCluster("body", httpHeaders, uriInfo, clusterName));
+    ClusterService clusterService = new TestClusterService(getResource(), clusterName, getRequestFactory(), getRequestHandler());
+    Response response = clusterService.updateCluster(body, getHttpHeaders(), getUriInfo(), clusterName);
 
-    verify(resourceDef, resultSerializer, requestFactory, responseFactory, request, requestHandler,
-        result, response, httpHeaders, uriInfo);
+    verifyResults(response, 200);
+  }
+
+  @Test
+  public void testUpdateCluster__ErrorState() {
+    String clusterName = "clusterName";
+    String body = "body";
+
+    registerExpectations(Request.Type.PUT, body, 500, true);
+    replayMocks();
+
+    //test
+    ClusterService clusterService = new TestClusterService(getResource(), clusterName, getRequestFactory(), getRequestHandler());
+    Response response = clusterService.updateCluster(body, getHttpHeaders(), getUriInfo(), clusterName);
+
+    verifyResults(response, 500);
   }
 
   @Test
   public void testDeleteCluster() {
-    ResourceInstance resourceDef = createStrictMock(ResourceInstance.class);
-    ResultSerializer resultSerializer = createStrictMock(ResultSerializer.class);
-    Object serializedResult = new Object();
-    RequestFactory requestFactory = createStrictMock(RequestFactory.class);
-    ResponseFactory responseFactory = createStrictMock(ResponseFactory.class);
-    Request request = createNiceMock(Request.class);
-    RequestHandler requestHandler = createStrictMock(RequestHandler.class);
-    Result result = createStrictMock(Result.class);
-    Response response = createStrictMock(Response.class);
-    HttpHeaders httpHeaders = createNiceMock(HttpHeaders.class);
-    UriInfo uriInfo = createNiceMock(UriInfo.class);
-
     String clusterName = "clusterName";
 
-    // expectations
-    expect(requestFactory.createRequest(eq(httpHeaders), isNull(String.class), eq(uriInfo), eq(Request.Type.DELETE),
-        eq(resourceDef))).andReturn(request);
-
-    expect(requestHandler.handleRequest(request)).andReturn(result);
-    expect(request.getResultSerializer()).andReturn(resultSerializer);
-    expect(resultSerializer.serialize(result, uriInfo)).andReturn(serializedResult);
-    expect(result.isSynchronous()).andReturn(false).atLeastOnce();
-    expect(responseFactory.createResponse(Request.Type.DELETE, serializedResult, false)).andReturn(response);
-
-    replay(resourceDef, resultSerializer, requestFactory, responseFactory, request, requestHandler,
-        result, response, httpHeaders, uriInfo);
+    registerExpectations(Request.Type.DELETE, null, 200, false);
+    replayMocks();
 
     //test
-    ClusterService clusterService = new TestClusterService(resourceDef, clusterName, requestFactory, responseFactory, requestHandler);
-    assertSame(response, clusterService.deleteCluster(httpHeaders, uriInfo, clusterName));
+    ClusterService clusterService = new TestClusterService(getResource(), clusterName, getRequestFactory(), getRequestHandler());
+    Response response = clusterService.deleteCluster(getHttpHeaders(), getUriInfo(), clusterName);
 
-    verify(resourceDef, resultSerializer, requestFactory, responseFactory, request, requestHandler,
-        result, response, httpHeaders, uriInfo);
+    verifyResults(response, 200);
+  }
+
+  @Test
+  public void testDeleteCluster__ErrorState() {
+    String clusterName = "clusterName";
+
+    registerExpectations(Request.Type.DELETE, null, 500, true);
+    replayMocks();
+
+    //test
+    ClusterService clusterService = new TestClusterService(getResource(), clusterName, getRequestFactory(), getRequestHandler());
+    Response response = clusterService.deleteCluster(getHttpHeaders(), getUriInfo(), clusterName);
+
+    verifyResults(response, 500);
   }
 
   private class TestClusterService extends ClusterService {
     private RequestFactory m_requestFactory;
-    private ResponseFactory m_responseFactory;
     private RequestHandler m_requestHandler;
     private ResourceInstance m_resourceDef;
     private String m_clusterId;
 
     private TestClusterService(ResourceInstance resourceDef, String clusterId, RequestFactory requestFactory,
-                               ResponseFactory responseFactory, RequestHandler handler) {
+                               RequestHandler handler) {
       m_resourceDef = resourceDef;
       m_requestFactory = requestFactory;
-      m_responseFactory = responseFactory;
       m_requestHandler = handler;
       m_clusterId = clusterId;
     }
@@ -249,12 +197,7 @@ public class ClusterServiceTest {
     }
 
     @Override
-    ResponseFactory getResponseFactory() {
-      return m_responseFactory;
-    }
-
-    @Override
-    RequestHandler getRequestHandler() {
+    RequestHandler getRequestHandler(Request.Type requestType) {
       return m_requestHandler;
     }
   }

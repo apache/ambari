@@ -23,7 +23,8 @@ import org.apache.ambari.server.api.query.Query;
 import org.apache.ambari.server.api.resources.ResourceDefinition;
 import org.apache.ambari.server.api.resources.ResourceInstance;
 import org.apache.ambari.server.api.resources.ResourceInstanceFactory;
-import org.apache.ambari.server.api.services.PersistenceManager;
+import org.apache.ambari.server.api.services.ResultStatus;
+import org.apache.ambari.server.api.services.persistence.PersistenceManager;
 import org.apache.ambari.server.api.services.Request;
 import org.apache.ambari.server.api.services.Result;
 import org.apache.ambari.server.api.util.TreeNode;
@@ -42,8 +43,6 @@ import static org.junit.Assert.*;
  * Unit tests for QueryCreateHandler.
  */
 public class QueryCreateHandlerTest {
-
-
 
   @Test
   public void testHandleRequest() throws Exception {
@@ -68,6 +67,8 @@ public class QueryCreateHandlerTest {
     RequestStatus status = createNiceMock(RequestStatus.class);
     Resource statusResource1 = createNiceMock(Resource.class);
     Resource statusResource2 = createNiceMock(Resource.class);
+    RequestHandler readHandler = createStrictMock(RequestHandler.class);
+    ResultStatus resultStatus = createNiceMock(ResultStatus.class);
 
     String httpBody = "{" +
         "\"components\" : [" +
@@ -119,22 +120,20 @@ public class QueryCreateHandlerTest {
     setStatusResources.add(statusResource2);
 
     //expectations
+    expect(readHandler.handleRequest(request)).andReturn(result);
+    expect(result.getStatus()).andReturn(resultStatus).anyTimes();
+    expect(resultStatus.isErrorState()).andReturn(false);
+    expect(result.getResultTree()).andReturn(resultTree);
+
     expect(request.getResource()).andReturn(resourceInstance).anyTimes();
-    expect(request.getQueryPredicate()).andReturn(predicate).anyTimes();
     expect(request.getHttpBody()).andReturn(httpBody).anyTimes();
     expect(request.getHttpBodyProperties()).andReturn(setRequestProps).anyTimes();
-    expect(request.getPersistenceManager()).andReturn(pm).anyTimes();
-    expect(request.getURI()).andReturn("http://api/v1/clusters/c1/services?foo=bar").anyTimes();
 
     expect(resourceInstance.getResourceDefinition()).andReturn(resourceDefinition).anyTimes();
-    expect(resourceInstance.getQuery()).andReturn(query).anyTimes();
     expect(resourceInstance.getIds()).andReturn(mapIds).anyTimes();
     expect(resourceInstance.getSubResources()).andReturn(mapSubResources).anyTimes();
 
     expect(resourceDefinition.getType()).andReturn(Resource.Type.Service).anyTimes();
-
-    query.setUserPredicate(predicate);
-    expect(query.execute()).andReturn(result);
 
     expect(subResource.getResourceDefinition()).andReturn(subResourceDefinition).anyTimes();
     expect(subResourceDefinition.getType()).andReturn(Resource.Type.Component).anyTimes();
@@ -152,7 +151,7 @@ public class QueryCreateHandlerTest {
     expect(resourceInstanceFactory.createResource(Resource.Type.Component, mapIds)).
         andReturn(createResource).anyTimes();
 
-    expect(pm.persist(createResource, setCreateProps)).andReturn(status);
+    expect(pm.create(createResource, setCreateProps)).andReturn(status);
     expect(status.getStatus()).andReturn(RequestStatus.Status.Complete).anyTimes();
     expect(status.getAssociatedResources()).andReturn(setStatusResources).anyTimes();
 
@@ -161,10 +160,13 @@ public class QueryCreateHandlerTest {
 
     replay(request, resourceInstance, resourceDefinition, query, predicate, result, subResource,
         subResourceDefinition, controller, serviceSchema, componentSchema, resource1, resource2,
-        pm, resourceInstanceFactory, createResource,
-        status, statusResource1, statusResource2);
+        pm, resourceInstanceFactory, createResource, status, statusResource1, statusResource2,
+        readHandler, resultStatus);
 
-    Result testResult = new TestQueryCreateHandler(resourceInstanceFactory, controller).handleRequest(request);
+    //test
+    Result testResult = new TestQueryCreateHandler(resourceInstanceFactory, controller, pm, readHandler).
+        handleRequest(request);
+
     Collection<TreeNode<Resource>> children = testResult.getResultTree().getChild("resources").getChildren();
     assertEquals(2, children.size());
     boolean containsStatusResource1 = false;
@@ -179,20 +181,26 @@ public class QueryCreateHandlerTest {
     }
     assertTrue(containsStatusResource1);
     assertTrue(containsStatusResource2);
+    assertEquals(ResultStatus.STATUS.CREATED, testResult.getStatus().getStatus());
 
     verify(request, resourceInstance, resourceDefinition, query, predicate, result, subResource,
         subResourceDefinition, controller, serviceSchema, componentSchema, resource1, resource2,
-        pm, resourceInstanceFactory, createResource,
-        status, statusResource1, statusResource2);
+        pm, resourceInstanceFactory, createResource, status, statusResource1, statusResource2,
+        readHandler, resultStatus);
   }
 
   static class TestQueryCreateHandler extends QueryCreateHandler {
     private ResourceInstanceFactory m_resourceFactory;
     private ClusterController m_controller;
+    private PersistenceManager m_testPm;
+    private RequestHandler m_testReadHandler;
 
-    TestQueryCreateHandler(ResourceInstanceFactory resourceFactory, ClusterController controller) {
+    TestQueryCreateHandler(ResourceInstanceFactory resourceFactory, ClusterController controller,
+                           PersistenceManager pm, RequestHandler readHandler) {
       m_resourceFactory = resourceFactory;
       m_controller = controller;
+      m_testPm = pm;
+      m_testReadHandler = readHandler;
     }
 
     @Override
@@ -203,6 +211,16 @@ public class QueryCreateHandlerTest {
     @Override
     protected ClusterController getClusterController() {
       return m_controller;
+    }
+
+    @Override
+    protected PersistenceManager getPersistenceManager() {
+      return m_testPm;
+    }
+
+    @Override
+    protected RequestHandler getReadHandler() {
+      return m_testReadHandler;
     }
   }
 

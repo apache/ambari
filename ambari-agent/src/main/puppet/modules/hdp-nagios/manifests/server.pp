@@ -98,7 +98,7 @@ class hdp-nagios::server(
      Class['hdp-nagios::server::packages'] -> Exec['rm -f /var/nagios/rw/nagios.cmd'] -> Hdp::Directory[$nagios_config_dir] -> Hdp::Directory[$plugins_dir] -> Hdp::Directory[$nagios_obj_dir] ->  Hdp::Directory_recursive_create[$nagios_pid_dir] -> Hdp::Directory[$nagios_var_dir]
 
   } elsif ($service_state in ['running','stopped','installed_and_configured']) {
-    class { 'hdp-nagios::server::packages' : }
+    class { 'hdp-nagios::server::packages' : service_state => $service_state}
 
     hdp::directory { $nagios_config_dir:
       service_state => $service_state,
@@ -114,7 +114,7 @@ class hdp-nagios::server(
       service_state => $service_state,
       force => true
     }
-	
+
 	hdp::directory_recursive_create { $nagios_pid_dir:
       service_state => $service_state,
       owner => $nagios_user,
@@ -146,10 +146,13 @@ class hdp-nagios::server(
       group => $hdp-nagios::params::nagios_group
     }
 	
-   if ($service_state == 'installed_and_configured') {
+    if ($service_state == 'installed_and_configured') {
       $webserver_state = 'restart'
+    } elsif ($service_state == 'running') {
+      $webserver_state = 'running'
     } else {
-      $webserver_state = $service_state
+      # We are never stopping httpd
+      #$webserver_state = $service_state
     }
 
     class { 'hdp-monitor-webserver': service_state => $webserver_state}

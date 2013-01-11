@@ -18,18 +18,56 @@
 
 package org.apache.ambari.server.api.handlers;
 
+import org.apache.ambari.server.api.resources.ResourceInstance;
 import org.apache.ambari.server.api.services.*;
+import org.apache.ambari.server.api.services.ResultStatus;
+import org.apache.ambari.server.controller.spi.*;
+
+import java.util.Map;
+import java.util.Set;
 
 
 /**
  * Responsible for create requests.
  */
 public class CreateHandler extends BaseManagementHandler {
+
   @Override
-  public Result handleRequest(Request request) {
-    Result result = super.handleRequest(request);
-    //todo: what to return from create?
-    //todo: create specific exceptions
+  protected Result persist(ResourceInstance r, Set<Map<String, Object>> properties) {
+    Result result;
+    try {
+      RequestStatus status = getPersistenceManager().create(r, properties);
+
+      result = createResult(status);
+
+      if (result.isSynchronous()) {
+        result.setResultStatus(new ResultStatus(ResultStatus.STATUS.CREATED));
+      } else {
+        result.setResultStatus(new ResultStatus(ResultStatus.STATUS.ACCEPTED));
+      }
+
+    } catch (UnsupportedPropertyException e) {
+      result = new ResultImpl(new ResultStatus(ResultStatus.STATUS.BAD_REQUEST, e.getMessage()));
+    } catch (NoSuchParentResourceException e) {
+      //todo: is this the correct status code?
+      result = new ResultImpl(new ResultStatus(ResultStatus.STATUS.NOT_FOUND, e.getMessage()));
+    } catch (SystemException e) {
+      if (LOG.isErrorEnabled()) {
+        LOG.error("Caught a system exception while attempting to create a resource", e.getMessage());
+      }
+      result = new ResultImpl(new ResultStatus(ResultStatus.STATUS.SERVER_ERROR, e.getMessage()));
+    } catch (ResourceAlreadyExistsException e) {
+      result = new ResultImpl(new ResultStatus(ResultStatus.STATUS.CONFLICT, e.getMessage()));
+    } catch(IllegalArgumentException e) {
+      result = new ResultImpl(new ResultStatus(ResultStatus.STATUS.BAD_REQUEST, e.getMessage()));
+    } catch (RuntimeException e) {
+      if (LOG.isErrorEnabled()) {
+        LOG.error("Caught a runtime exception while attempting to create a resource", e);
+      }
+      //result = new ResultImpl(new ResultStatus(ResultStatus.STATUS.SERVER_ERROR, e.getMessage()));
+      throw e;
+    }
+
     return result;
   }
 }

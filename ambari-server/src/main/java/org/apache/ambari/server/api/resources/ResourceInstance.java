@@ -67,4 +67,11 @@ public interface ResourceInstance {
    * @return all sub-resource instances
    */
   public Map<String, ResourceInstance> getSubResources();
+
+  /**
+   * Determine if resource is a collection resource.
+   *
+   * @return true if the resource is a collection resource; false otherwise
+   */
+  public boolean isCollectionResource();
 }

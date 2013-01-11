@@ -33,11 +33,7 @@ import java.util.Set;
 
 import junit.framework.Assert;
 
-import org.apache.ambari.server.AmbariException;
-import org.apache.ambari.server.ClusterNotFoundException;
-import org.apache.ambari.server.Role;
-import org.apache.ambari.server.RoleCommand;
-import org.apache.ambari.server.ServiceNotFoundException;
+import org.apache.ambari.server.*;
 import org.apache.ambari.server.actionmanager.*;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
@@ -312,7 +308,7 @@ public class AmbariManagementControllerTest {
       set1.add(rInvalid);
       controller.createServices(set1);
       fail("Expected failure for invalid cluster");
-    } catch (ClusterNotFoundException e) {
+    } catch (ParentObjectNotFoundException e) {
       // Expected
     }
 
@@ -542,7 +538,7 @@ public class AmbariManagementControllerTest {
       set1.add(rInvalid);
       controller.createComponents(set1);
       fail("Expected failure for invalid cluster");
-    } catch (ClusterNotFoundException e) {
+    } catch (ParentObjectNotFoundException e) {
       // Expected
     }
 
@@ -557,7 +553,7 @@ public class AmbariManagementControllerTest {
       set1.add(rInvalid);
       controller.createComponents(set1);
       fail("Expected failure for invalid service");
-    } catch (ServiceNotFoundException e) {
+    } catch (ParentObjectNotFoundException e) {
       // Expected
     }
 
@@ -917,7 +913,7 @@ public class AmbariManagementControllerTest {
       set1.add(rInvalid);
       controller.createHostComponents(set1);
       fail("Expected failure for invalid cluster");
-    } catch (ClusterNotFoundException e) {
+    } catch (ParentObjectNotFoundException e) {
       // Expected
     }
 
@@ -939,7 +935,7 @@ public class AmbariManagementControllerTest {
       set1.add(rInvalid);
       controller.createHostComponents(set1);
       fail("Expected failure for invalid service");
-    } catch (AmbariException e) {
+    } catch (IllegalArgumentException e) {
       // Expected
     }
 
@@ -1047,7 +1043,7 @@ public class AmbariManagementControllerTest {
       set1.add(rInvalid2);
       controller.createHostComponents(set1);
       fail("Expected failure for dup requests");
-    } catch (IllegalArgumentException e) {
+    } catch (DuplicateResourceException e) {
       // Expected
     }
 
@@ -1079,7 +1075,7 @@ public class AmbariManagementControllerTest {
       set1.add(rInvalid2);
       controller.createHostComponents(set1);
       fail("Expected failure for already existing");
-    } catch (IllegalArgumentException e) {
+    } catch (DuplicateResourceException e) {
       // Expected
     }
 
@@ -1109,10 +1105,9 @@ public class AmbariManagementControllerTest {
 
   @Test
   public void testCreateHostSimple() throws AmbariException {
-    List<String> clusterNames = null;
     Map<String, String> hostAttributes = null;
 
-    HostRequest r1 = new HostRequest("h1", clusterNames, hostAttributes);
+    HostRequest r1 = new HostRequest("h1", null, hostAttributes);
     r1.toString();
 
     Set<HostRequest> requests = new HashSet<HostRequest>();
@@ -1131,14 +1126,7 @@ public class AmbariManagementControllerTest {
     clusters.getHost("h1").persist();
     clusters.getHost("h2").persist();
 
-    clusterNames = new ArrayList<String>();
-    clusterNames.add("foo1");
-    clusterNames.add("foo2");
-
-    hostAttributes = new HashMap<String, String>();
-    HostRequest r2 = new HostRequest("h2", clusterNames, hostAttributes);
-
-    requests.add(r2);
+    requests.add(new HostRequest("h2", "foo", new HashMap<String, String>()));
 
     try {
       controller.createHosts(requests);
@@ -1147,10 +1135,8 @@ public class AmbariManagementControllerTest {
       // Expected
     }
 
-    clusters.addCluster("foo1");
-    clusters.addCluster("foo2");
-    clusters.getCluster("foo1").setDesiredStackVersion(new StackId("HDP-0.1"));
-    clusters.getCluster("foo2").setDesiredStackVersion(new StackId("HDP-0.1"));
+    clusters.addCluster("foo");
+    clusters.getCluster("foo").setDesiredStackVersion(new StackId("HDP-0.1"));
 
     controller.createHosts(requests);
 
@@ -1158,7 +1144,7 @@ public class AmbariManagementControllerTest {
     Assert.assertNotNull(clusters.getHost("h2"));
 
     Assert.assertEquals(0, clusters.getClustersForHost("h1").size());
-    Assert.assertEquals(2, clusters.getClustersForHost("h2").size());
+    Assert.assertEquals(1, clusters.getClustersForHost("h2").size());
 
   }
 
@@ -1168,9 +1154,7 @@ public class AmbariManagementControllerTest {
     clusters.addHost("h2");
     clusters.addHost("h3");
     clusters.addCluster("c1");
-    clusters.addCluster("c2");
     clusters.getCluster("c1").setDesiredStackVersion(new StackId("HDP-0.1"));
-    clusters.getCluster("c2").setDesiredStackVersion(new StackId("HDP-0.1"));
     clusters.getHost("h1").setOsType("centos5");
     clusters.getHost("h2").setOsType("centos5");
     clusters.getHost("h3").setOsType("centos5");
@@ -1183,12 +1167,10 @@ public class AmbariManagementControllerTest {
     hostAttrs.put("attr1", "val1");
     hostAttrs.put("attr2", "val2");
 
-    List<String> clusterNames = new ArrayList<String>();
-    clusterNames.add("c1");
-    clusterNames.add("c2");
+    String clusterName = "c1";
 
-    HostRequest r1 = new HostRequest("h1", clusterNames, null);
-    HostRequest r2 = new HostRequest("h2", clusterNames, hostAttrs);
+    HostRequest r1 = new HostRequest("h1", clusterName, null);
+    HostRequest r2 = new HostRequest("h2", clusterName, hostAttrs);
     HostRequest r3 = new HostRequest("h3", null, hostAttrs);
 
     Set<HostRequest> set1 = new HashSet<HostRequest>();
@@ -1197,8 +1179,8 @@ public class AmbariManagementControllerTest {
     set1.add(r3);
     controller.createHosts(set1);
 
-    Assert.assertEquals(2, clusters.getClustersForHost("h1").size());
-    Assert.assertEquals(2, clusters.getClustersForHost("h2").size());
+    Assert.assertEquals(1, clusters.getClustersForHost("h1").size());
+    Assert.assertEquals(1, clusters.getClustersForHost("h2").size());
     Assert.assertEquals(0, clusters.getClustersForHost("h3").size());
 
     Assert.assertEquals(2, clusters.getHost("h2").getHostAttributes().size());
@@ -1230,13 +1212,12 @@ public class AmbariManagementControllerTest {
 
     clusters.addHost("h1");
 
-    List<String> clusterNames = new ArrayList<String>();
-    clusterNames.add("c1");
+    String clusterName = "c1";
 
     try {
       set1.clear();
       HostRequest rInvalid =
-          new HostRequest("h1", clusterNames, null);
+          new HostRequest("h1", clusterName, null);
       set1.add(rInvalid);
       controller.createHosts(set1);
       fail("Expected failure for invalid cluster");
@@ -1249,9 +1230,9 @@ public class AmbariManagementControllerTest {
     try {
       set1.clear();
       HostRequest rInvalid1 =
-          new HostRequest("h1", clusterNames, null);
+          new HostRequest("h1", clusterName, null);
       HostRequest rInvalid2 =
-          new HostRequest("h1", clusterNames, null);
+          new HostRequest("h1", clusterName, null);
       set1.add(rInvalid1);
       set1.add(rInvalid2);
       controller.createHosts(set1);
@@ -2101,9 +2082,8 @@ public class AmbariManagementControllerTest {
     clusters.getHost("h3").persist();
     clusters.getHost("h4").persist();
     clusters.mapHostToCluster("h1", "c1");
-    clusters.mapHostToCluster("h1", "c2");
     clusters.mapHostToCluster("h2", "c1");
-    clusters.mapHostToCluster("h3", "c1");
+    clusters.mapHostToCluster("h3", "c2");
 
     Map<String, String> attrs = new HashMap<String, String>();
     attrs.put("a1", "b1");
@@ -2122,16 +2102,17 @@ public class AmbariManagementControllerTest {
     for (HostResponse resp : resps) {
       foundHosts.add(resp.getHostname());
       if (resp.getHostname().equals("h1")) {
-        Assert.assertEquals(2, resp.getClusterNames().size());
+        Assert.assertEquals("c1", resp.getClusterName());
         Assert.assertEquals(0, resp.getHostAttributes().size());
       } else if (resp.getHostname().equals("h2")) {
-        Assert.assertEquals(1, resp.getClusterNames().size());
+        Assert.assertEquals("c1", resp.getClusterName());
         Assert.assertEquals(0, resp.getHostAttributes().size());
       } else if (resp.getHostname().equals("h3")) {
-        Assert.assertEquals(1, resp.getClusterNames().size());
+        Assert.assertEquals("c2", resp.getClusterName());
         Assert.assertEquals(1, resp.getHostAttributes().size());
       } else if (resp.getHostname().equals("h4")) {
-        Assert.assertEquals(0, resp.getClusterNames().size());
+        //todo: why wouldn't this be null?
+        Assert.assertEquals("", resp.getClusterName());
         Assert.assertEquals(2, resp.getHostAttributes().size());
       } else {
         fail("Found invalid host");
@@ -2145,7 +2126,7 @@ public class AmbariManagementControllerTest {
     Assert.assertEquals(1, resps.size());
     HostResponse resp = resps.iterator().next();
     Assert.assertEquals("h1", resp.getHostname());
-    Assert.assertEquals(2, resp.getClusterNames().size());
+    Assert.assertEquals("c1", resp.getClusterName());
     Assert.assertEquals(0, resp.getHostAttributes().size());
 
   }

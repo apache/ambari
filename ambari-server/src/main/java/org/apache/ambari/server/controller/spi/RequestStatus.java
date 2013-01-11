@@ -34,9 +34,9 @@ public interface RequestStatus {
   public Set<Resource> getAssociatedResources();
 
   /**
-   * Get the id of the request.
+   * Get the resource of type request for the asynchronous request.
    *
-   * @return the request id
+   * @return the request resource
    */
   public Resource getRequestResource();
 

@@ -19,9 +19,7 @@
 package org.apache.ambari.server.api.query;
 
 import org.apache.ambari.server.api.services.Result;
-import org.apache.ambari.server.AmbariException;
-import org.apache.ambari.server.controller.spi.Predicate;
-import org.apache.ambari.server.controller.spi.TemporalInfo;
+import org.apache.ambari.server.controller.spi.*;
 
 import java.util.Map;
 import java.util.Set;
@@ -36,9 +34,9 @@ public interface Query {
    * Add a property to the query.
    * This is the select portion of the query.
    *
-   * @param group    the group name that contains the property
-   * @param property the property name
-   * @param temporalInfo
+   * @param group         the group name that contains the property
+   * @param property      the property name
+   * @param temporalInfo  temporal information for the property
    */
   public void addProperty(String group, String property, TemporalInfo temporalInfo);
 
@@ -64,8 +62,14 @@ public interface Query {
    * Execute the query.
    *
    * @return the result of the query.
+   *
+   * @throws UnsupportedPropertyException if the query or query predicate contains invalid non-existent properties
+   * @throws SystemException an internal error occurred
+   * @throws NoSuchResourceException the query didn't match any resources
+   * @throws NoSuchParentResourceException a specified parent resource doesn't exist
    */
-  public Result execute() throws AmbariException;
+  public Result execute()
+      throws UnsupportedPropertyException, SystemException, NoSuchResourceException, NoSuchParentResourceException;
 
   /**
    * Return the predicate used to identify the associated resource.  This includes the primary key and

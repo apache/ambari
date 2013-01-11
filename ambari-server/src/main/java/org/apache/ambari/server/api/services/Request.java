@@ -125,11 +125,4 @@ public interface Request {
    * @return a set of maps containing the properties contained in the http body
    */
   public Set<Map<String, Object>> getHttpBodyProperties();
-
-  /**
-   * Obtain the appropriate persistence manager.
-   *
-   * @return the appropriate persistence manager
-   */
-  public PersistenceManager getPersistenceManager();
 }

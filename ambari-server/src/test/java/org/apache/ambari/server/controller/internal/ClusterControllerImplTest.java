@@ -19,23 +19,14 @@
 package org.apache.ambari.server.controller.internal;
 
 import junit.framework.Assert;
-import org.apache.ambari.server.AmbariException;
-import org.apache.ambari.server.controller.spi.ProviderModule;
-import org.apache.ambari.server.controller.spi.RequestStatus;
-import org.apache.ambari.server.controller.spi.Schema;
-import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
+import org.apache.ambari.server.controller.spi.*;
 import org.apache.ambari.server.controller.utilities.PredicateHelper;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
-import org.apache.ambari.server.controller.spi.ClusterController;
-import org.apache.ambari.server.controller.spi.Predicate;
-import org.apache.ambari.server.controller.spi.PropertyProvider;
-import org.apache.ambari.server.controller.spi.Request;
-import org.apache.ambari.server.controller.spi.Resource;
-import org.apache.ambari.server.controller.spi.ResourceProvider;
 import org.apache.ambari.server.controller.utilities.PredicateBuilder;
 import org.junit.Test;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -49,6 +40,8 @@ import java.util.Set;
 public class ClusterControllerImplTest {
 
   private static final Set<String> propertyProviderProperties = new HashSet<String>();
+
+  private static final String UNSUPPORTED_PROPERTY = PropertyHelper.getPropertyId("c1", "unsupported");
 
   static {
     propertyProviderProperties.add(PropertyHelper.getPropertyId("c3", "p5"));
@@ -75,6 +68,16 @@ public class ClusterControllerImplTest {
     @Override
     public Set<String> getPropertyIds() {
       return propertyProviderProperties;
+    }
+
+    @Override
+    public Set<String> checkPropertyIds(Set<String> propertyIds) {
+      if (!propertyProviderProperties.containsAll(propertyIds)) {
+        Set<String> unsupportedPropertyIds = new HashSet<String>(propertyIds);
+        unsupportedPropertyIds.removeAll(propertyProviderProperties);
+        return unsupportedPropertyIds;
+      }
+      return Collections.emptySet();
     }
   };
 
@@ -165,6 +168,52 @@ public class ClusterControllerImplTest {
   }
 
   @Test
+  public void testGetResourcesWithUnsupportedPropertyPredicate() throws Exception{
+    ClusterController controller = new ClusterControllerImpl(new TestProviderModule());
+
+    Set<String> propertyIds = new HashSet<String>();
+
+    propertyIds.add(PropertyHelper.getPropertyId("c1", "p1"));
+    propertyIds.add(PropertyHelper.getPropertyId("c1", "p2"));
+    propertyIds.add(PropertyHelper.getPropertyId("c1", "p3"));
+    propertyIds.add(PropertyHelper.getPropertyId("c2", "p4"));
+
+    Request request = PropertyHelper.getReadRequest(propertyIds);
+
+    Predicate predicate = new PredicateBuilder().property(UNSUPPORTED_PROPERTY).equals(1).toPredicate();
+
+    try {
+      controller.getResources(Resource.Type.Host, request, predicate);
+      Assert.fail("Expected an UnsupportedPropertyException for the unsupported properties.");
+    } catch (UnsupportedPropertyException e) {
+      // Expected
+    }
+  }
+
+  @Test
+  public void testGetResourcesWithUnsupportedPropertyRequest() throws Exception{
+    ClusterController controller = new ClusterControllerImpl(new TestProviderModule());
+
+    Set<String> propertyIds = new HashSet<String>();
+
+    propertyIds.add(PropertyHelper.getPropertyId("c1", "p1"));
+    propertyIds.add(PropertyHelper.getPropertyId("c1", "p2"));
+    propertyIds.add(PropertyHelper.getPropertyId("c1", "p3"));
+    propertyIds.add(UNSUPPORTED_PROPERTY);
+
+    Request request = PropertyHelper.getReadRequest(propertyIds);
+
+    Predicate predicate = new PredicateBuilder().property("c1/p2").equals(1).toPredicate();
+
+    try {
+      controller.getResources(Resource.Type.Host, request, predicate);
+      Assert.fail("Expected an UnsupportedPropertyException for the unsupported properties.");
+    } catch (UnsupportedPropertyException e) {
+      // Expected
+    }
+  }
+
+  @Test
   public void testCreateResources() throws Exception{
     TestProviderModule providerModule = new TestProviderModule();
     TestResourceProvider resourceProvider = (TestResourceProvider) providerModule.getResourceProvider(Resource.Type.Host);
@@ -188,6 +237,29 @@ public class ClusterControllerImplTest {
   }
 
   @Test
+  public void testCreateResourcesWithUnsupportedProperty() throws Exception{
+    TestProviderModule providerModule = new TestProviderModule();
+    ClusterController controller = new ClusterControllerImpl(providerModule);
+
+    Set<Map<String, Object>> properties = new HashSet<Map<String, Object>>();
+    Map<String, Object> propertyMap = new HashMap<String, Object>();
+
+    propertyMap.put(PropertyHelper.getPropertyId("c1", "p1"), 99);
+    propertyMap.put(UNSUPPORTED_PROPERTY, 2);
+
+    properties.add(propertyMap);
+
+    Request request = PropertyHelper.getCreateRequest(properties);
+
+    try {
+      controller.createResources(Resource.Type.Host, request);
+      Assert.fail("Expected an UnsupportedPropertyException for the unsupported properties.");
+    } catch (UnsupportedPropertyException e) {
+      // Expected
+    }
+  }
+
+  @Test
   public void testUpdateResources() throws Exception{
     TestProviderModule providerModule = new TestProviderModule();
     TestResourceProvider resourceProvider = (TestResourceProvider) providerModule.getResourceProvider(Resource.Type.Host);
@@ -207,6 +279,50 @@ public class ClusterControllerImplTest {
     Assert.assertEquals(TestResourceProvider.Action.Update, resourceProvider.getLastAction());
     Assert.assertSame(request, resourceProvider.getLastRequest());
     Assert.assertSame(predicate, resourceProvider.getLastPredicate());
+  }
+
+  @Test
+  public void testUpdateResourcesWithUnsupportedPropertyRequest() throws Exception{
+    TestProviderModule providerModule = new TestProviderModule();
+    ClusterController controller = new ClusterControllerImpl(providerModule);
+
+    Map<String, Object> propertyMap = new HashMap<String, Object>();
+
+    propertyMap.put(PropertyHelper.getPropertyId("c1", "p1"), 99);
+    propertyMap.put(UNSUPPORTED_PROPERTY, 2);
+
+    Request request = PropertyHelper.getUpdateRequest(propertyMap);
+
+    Predicate predicate = new PredicateBuilder().property("c1/p2").equals(1).toPredicate();
+
+    try {
+      controller.updateResources(Resource.Type.Host, request, predicate);
+      Assert.fail("Expected an UnsupportedPropertyException for the unsupported properties.");
+    } catch (UnsupportedPropertyException e) {
+      // Expected
+    }
+  }
+
+  @Test
+  public void testUpdateResourcesWithUnsupportedPropertyPredicate() throws Exception{
+    TestProviderModule providerModule = new TestProviderModule();
+    ClusterController controller = new ClusterControllerImpl(providerModule);
+
+    Map<String, Object> propertyMap = new HashMap<String, Object>();
+
+    propertyMap.put(PropertyHelper.getPropertyId("c1", "p1"), 99);
+    propertyMap.put(PropertyHelper.getPropertyId("c1", "p2"), 2);
+
+    Request request = PropertyHelper.getUpdateRequest(propertyMap);
+
+    Predicate predicate = new PredicateBuilder().property(UNSUPPORTED_PROPERTY).equals(1).toPredicate();
+
+    try {
+      controller.updateResources(Resource.Type.Host, request, predicate);
+      Assert.fail("Expected an UnsupportedPropertyException for the unsupported properties.");
+    } catch (UnsupportedPropertyException e) {
+      // Expected
+    }
   }
 
   @Test
@@ -252,6 +368,21 @@ public class ClusterControllerImplTest {
   }
 
   @Test
+  public void testDeleteResourcesWithUnsupportedProperty() throws Exception{
+    TestProviderModule providerModule = new TestProviderModule();
+    ClusterController controller = new ClusterControllerImpl(providerModule);
+
+    Predicate predicate = new PredicateBuilder().property(UNSUPPORTED_PROPERTY).equals(1).toPredicate();
+
+    try {
+      controller.deleteResources(Resource.Type.Host, predicate);
+      Assert.fail("Expected an UnsupportedPropertyException for the unsupported properties.");
+    } catch (UnsupportedPropertyException e) {
+      // Expected
+    }
+  }
+
+  @Test
   public void testDeleteResourcesResolvePredicate() throws Exception{
     TestProviderModule providerModule = new TestProviderModule();
     TestResourceProvider resourceProvider = (TestResourceProvider) providerModule.getResourceProvider(Resource.Type.Host);
@@ -286,7 +417,7 @@ public class ClusterControllerImplTest {
     }
 
     Map<String, Set<String>> categories = schema.getCategoryProperties();
-    for (String propertyId : resourceProvider.getPropertyIds()) {
+    for (String propertyId : resourceProvider.getPropertyIdsForSchema()) {
       String category = PropertyHelper.getPropertyCategory(propertyId);
       Set<String> properties = categories.get(category);
       Assert.assertNotNull(properties);
@@ -333,7 +464,7 @@ public class ClusterControllerImplTest {
     private Predicate lastPredicate = null;
 
     @Override
-    public Set<Resource> getResources(Request request, Predicate predicate) throws AmbariException, UnsupportedPropertyException {
+    public Set<Resource> getResources(Request request, Predicate predicate) throws SystemException, UnsupportedPropertyException, NoSuchResourceException, NoSuchParentResourceException {
 
       Set<Resource> resources = new HashSet<Resource>();
 
@@ -351,7 +482,7 @@ public class ClusterControllerImplTest {
     }
 
     @Override
-    public RequestStatus createResources(Request request) throws AmbariException, UnsupportedPropertyException {
+    public RequestStatus createResources(Request request)  {
       lastAction = Action.Create;
       lastRequest = request;
       lastPredicate = null;
@@ -359,7 +490,7 @@ public class ClusterControllerImplTest {
     }
 
     @Override
-    public RequestStatus updateResources(Request request, Predicate predicate) throws AmbariException, UnsupportedPropertyException {
+    public RequestStatus updateResources(Request request, Predicate predicate) throws SystemException, UnsupportedPropertyException, NoSuchResourceException, NoSuchParentResourceException {
       lastAction = Action.Update;
       lastRequest = request;
       lastPredicate = predicate;
@@ -367,7 +498,7 @@ public class ClusterControllerImplTest {
     }
 
     @Override
-    public RequestStatus deleteResources(Predicate predicate) throws AmbariException, UnsupportedPropertyException {
+    public RequestStatus deleteResources(Predicate predicate) throws SystemException, UnsupportedPropertyException, NoSuchResourceException, NoSuchParentResourceException {
       lastAction = Action.Delete;
       lastRequest = null;
       lastPredicate = predicate;
@@ -375,8 +506,18 @@ public class ClusterControllerImplTest {
     }
 
     @Override
-    public Set<String> getPropertyIds() {
+    public Set<String> getPropertyIdsForSchema() {
       return resourceProviderProperties;
+    }
+
+    @Override
+    public Set<String> checkPropertyIds(Set<String> propertyIds) {
+      if (!resourceProviderProperties.containsAll(propertyIds)) {
+        Set<String> unsupportedPropertyIds = new HashSet<String>(propertyIds);
+        unsupportedPropertyIds.removeAll(resourceProviderProperties);
+        return unsupportedPropertyIds;
+      }
+      return Collections.emptySet();
     }
 
     @Override

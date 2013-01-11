@@ -35,12 +35,32 @@ public class ResultImpl implements Result {
   private boolean m_synchronous;
 
   /**
+   * Result status.
+   */
+  private ResultStatus m_status;
+
+  /**
    * Tree structure which holds the results
    */
   private TreeNode<Resource> m_tree = new TreeNodeImpl<Resource>(null, null, null);
 
+
+  /**
+   * Constructor.
+   *
+   * @param synchronous true if request was handled synchronously, false otherwise
+   */
   public ResultImpl(boolean synchronous) {
     m_synchronous = synchronous;
+  }
+
+  /**
+   * Constructor.
+   *
+   * @param status  result status
+   */
+  public ResultImpl(ResultStatus status) {
+    m_status = status;
   }
 
   @Override
@@ -51,6 +71,16 @@ public class ResultImpl implements Result {
   @Override
   public boolean isSynchronous() {
     return m_synchronous;
+  }
+
+  @Override
+  public ResultStatus getStatus() {
+    return m_status;
+  }
+
+  @Override
+  public void setResultStatus(ResultStatus status) {
+    m_status = status;
   }
 }
 

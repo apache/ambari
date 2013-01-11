@@ -28,8 +28,8 @@ content = """
 
 [server]
 hostname=localhost
-url_port=4080
-secured_url_port=8443
+url_port=8440
+secured_url_port=8441
 
 [agent]
 prefix=/tmp/ambari-agent

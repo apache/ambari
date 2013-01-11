@@ -130,9 +130,10 @@ public class ServiceComponentImpl implements ServiceComponent {
 
       HostComponentDesiredStateEntity hostComponentDesiredStateEntity = hostComponentDesiredStateDAO.findByPK(pk);
 
-      hostComponents.put(hostComponentStateEntity.getComponentName(),
-          serviceComponentHostFactory.createExisting(this, hostComponentStateEntity, hostComponentDesiredStateEntity));
-    }
+      hostComponents.put(hostComponentStateEntity.getHostName(),
+          serviceComponentHostFactory.createExisting(this,
+              hostComponentStateEntity, hostComponentDesiredStateEntity));
+   }
 
     for (ComponentConfigMappingEntity entity : desiredStateEntity.getComponentConfigMappingEntities()) {
       desiredConfigs.put(entity.getConfigType(), entity.getVersionTag());

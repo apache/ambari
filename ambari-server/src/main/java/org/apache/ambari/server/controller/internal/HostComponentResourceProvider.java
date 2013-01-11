@@ -22,23 +22,19 @@ import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.RequestStatusResponse;
 import org.apache.ambari.server.controller.ServiceComponentHostRequest;
 import org.apache.ambari.server.controller.ServiceComponentHostResponse;
-import org.apache.ambari.server.controller.spi.Predicate;
-import org.apache.ambari.server.controller.spi.Request;
-import org.apache.ambari.server.controller.spi.RequestStatus;
-import org.apache.ambari.server.controller.spi.Resource;
-import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
+import org.apache.ambari.server.controller.spi.*;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
 
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 
 /**
  * Resource provider for host component resources.
  */
-class HostComponentResourceProvider extends ResourceProviderImpl{
+class HostComponentResourceProvider extends ResourceProviderImpl {
 
   // ----- Property ID constants ---------------------------------------------
 
@@ -77,29 +73,50 @@ class HostComponentResourceProvider extends ResourceProviderImpl{
   // ----- ResourceProvider ------------------------------------------------
 
   @Override
-  public RequestStatus createResources(Request request) throws AmbariException, UnsupportedPropertyException {
-    checkRequestProperties(Resource.Type.HostComponent, request);
-    Set<ServiceComponentHostRequest> requests = new HashSet<ServiceComponentHostRequest>();
+  public RequestStatus createResources(Request request)
+      throws SystemException,
+             UnsupportedPropertyException,
+             ResourceAlreadyExistsException,
+             NoSuchParentResourceException {
+
+    final Set<ServiceComponentHostRequest> requests = new HashSet<ServiceComponentHostRequest>();
     for (Map<String, Object> propertyMap : request.getProperties()) {
       requests.add(getRequest(propertyMap));
     }
-    getManagementController().createHostComponents(requests);
+
+    createResources(new Command<Void>() {
+      @Override
+      public Void invoke() throws AmbariException {
+        getManagementController().createHostComponents(requests);
+        return null;
+      }
+    });
+
     notifyCreate(Resource.Type.HostComponent, request);
 
     return getRequestStatus(null);
   }
 
   @Override
-  public Set<Resource> getResources(Request request, Predicate predicate) throws AmbariException, UnsupportedPropertyException {
-    Set<ServiceComponentHostRequest> requests = new HashSet<ServiceComponentHostRequest>();
+  public Set<Resource> getResources(Request request, Predicate predicate)
+      throws SystemException, UnsupportedPropertyException, NoSuchResourceException, NoSuchParentResourceException {
 
-    for (Map<String, Object> propertyMap : getPropertyMaps(null, predicate)) {
+    final Set<ServiceComponentHostRequest> requests = new HashSet<ServiceComponentHostRequest>();
+
+    for (Map<String, Object> propertyMap : getPropertyMaps(predicate)) {
       requests.add(getRequest(propertyMap));
     }
 
-    Set<String>                   requestedIds = PropertyHelper.getRequestPropertyIds(getPropertyIds(), request, predicate);
-    Set<ServiceComponentHostResponse> responses     = getManagementController().getHostComponents(requests);
-    Set<Resource>                     resources    = new HashSet<Resource>();
+    Set<Resource> resources    = new HashSet<Resource>();
+    Set<String>   requestedIds = PropertyHelper.getRequestPropertyIds(getPropertyIds(), request, predicate);
+
+    Set<ServiceComponentHostResponse> responses = getResources(new Command<Set<ServiceComponentHostResponse>>() {
+      @Override
+      public Set<ServiceComponentHostResponse> invoke() throws AmbariException {
+        return getManagementController().getHostComponents(requests);
+      }
+    });
+
     for (ServiceComponentHostResponse response : responses) {
       Resource resource = new ResourceImpl(Resource.Type.HostComponent);
       setResourceProperty(resource, HOST_COMPONENT_CLUSTER_NAME_PROPERTY_ID, response.getClusterName(), requestedIds);
@@ -118,40 +135,65 @@ class HostComponentResourceProvider extends ResourceProviderImpl{
   }
 
   @Override
-  public RequestStatus updateResources(Request request, Predicate predicate) throws AmbariException, UnsupportedPropertyException {
-    checkRequestProperties(Resource.Type.HostComponent, request);
-    Set<ServiceComponentHostRequest> requests = new HashSet<ServiceComponentHostRequest>();
-    for (Map<String, Object> propertyMap : getPropertyMaps(request.getProperties().iterator().next(), predicate)) {
+  public RequestStatus updateResources(Request request, Predicate predicate)
+        throws SystemException, UnsupportedPropertyException, NoSuchResourceException, NoSuchParentResourceException {
+    final Set<ServiceComponentHostRequest> requests = new HashSet<ServiceComponentHostRequest>();
+    RequestStatusResponse response = null;
 
-      ServiceComponentHostRequest hostCompRequest = getRequest(propertyMap);
-
-      Map<String, String> configMap = new HashMap<String,String>();
-
-      ConfigurationResourceProvider.getConfigPropertyValues(propertyMap, configMap);
-
-      if (0 != configMap.size()) {
-        hostCompRequest.setConfigVersions(configMap);
+    Iterator<Map<String,Object>> iterator = request.getProperties().iterator();
+    if (iterator.hasNext()) {
+      for (Map<String, Object> propertyMap : getPropertyMaps(request.getProperties().iterator().next(), predicate)) {
+        requests.add(getRequest(propertyMap));
       }
+      response = modifyResources(new Command<RequestStatusResponse>() {
+        @Override
+        public RequestStatusResponse invoke() throws AmbariException {
+          return getManagementController().updateHostComponents(requests);
+        }
+      });
 
-      requests.add(hostCompRequest);
+      notifyUpdate(Resource.Type.HostComponent, request, predicate);
     }
-    RequestStatusResponse response = getManagementController().updateHostComponents(requests);
-    notifyUpdate(Resource.Type.HostComponent, request, predicate);
+    return getRequestStatus(response);
+  }
+
+  @Override
+  public RequestStatus deleteResources(Predicate predicate)
+      throws SystemException, UnsupportedPropertyException, NoSuchResourceException, NoSuchParentResourceException {
+    final Set<ServiceComponentHostRequest> requests = new HashSet<ServiceComponentHostRequest>();
+    for (Map<String, Object> propertyMap : getPropertyMaps(predicate)) {
+      requests.add(getRequest(propertyMap));
+    }
+    RequestStatusResponse response = modifyResources(new Command<RequestStatusResponse>() {
+      @Override
+      public RequestStatusResponse invoke() throws AmbariException {
+        return getManagementController().deleteHostComponents(requests);
+      }
+    });
+
+    notifyDelete(Resource.Type.HostComponent, predicate);
 
     return getRequestStatus(response);
   }
 
   @Override
-  public RequestStatus deleteResources(Predicate predicate) throws AmbariException, UnsupportedPropertyException {
-    Set<ServiceComponentHostRequest> requests = new HashSet<ServiceComponentHostRequest>();
-    for (Map<String, Object> propertyMap : getPropertyMaps(null, predicate)) {
-      requests.add(getRequest(propertyMap));
-    }
-    RequestStatusResponse response = getManagementController().deleteHostComponents(requests);
-    notifyDelete(Resource.Type.HostComponent, predicate);
+  public Set<String> checkPropertyIds(Set<String> propertyIds) {
+    propertyIds = super.checkPropertyIds(propertyIds);
 
-    return getRequestStatus(response);
+    if (propertyIds.isEmpty()) {
+      return propertyIds;
+    }
+    Set<String> unsupportedProperties = new HashSet<String>();
+
+    for (String propertyId : propertyIds) {
+      String propertyCategory = PropertyHelper.getPropertyCategory(propertyId);
+      if (propertyCategory == null || !propertyCategory.equals("config")) {
+        unsupportedProperties.add(propertyId);
+      }
+    }
+    return unsupportedProperties;
   }
+
 
   // ----- utility methods -------------------------------------------------
 
@@ -168,12 +210,20 @@ class HostComponentResourceProvider extends ResourceProviderImpl{
    * @return the component request object
    */
   private ServiceComponentHostRequest getRequest(Map<String, Object> properties) {
-    return new ServiceComponentHostRequest(
+    ServiceComponentHostRequest serviceComponentHostRequest = new ServiceComponentHostRequest(
         (String) properties.get(HOST_COMPONENT_CLUSTER_NAME_PROPERTY_ID),
         (String) properties.get(HOST_COMPONENT_SERVICE_NAME_PROPERTY_ID),
         (String) properties.get(HOST_COMPONENT_COMPONENT_NAME_PROPERTY_ID),
         (String) properties.get(HOST_COMPONENT_HOST_NAME_PROPERTY_ID),
         null,
         (String) properties.get(HOST_COMPONENT_STATE_PROPERTY_ID));
+
+    Map<String, String> configMappings =
+        ConfigurationResourceProvider.getConfigPropertyValues(properties);
+
+    if (configMappings.size() > 0) {
+      serviceComponentHostRequest.setConfigVersions(configMappings);
+    }
+    return serviceComponentHostRequest;
   }
 }

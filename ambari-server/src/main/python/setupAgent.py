@@ -80,7 +80,7 @@ def installAgent():
 
 def configureAgent(host):
   """ Configure the agent so that it has all the configs knobs properly installed """
-  osCommand = ["sed", "-i.bak", "s/hostname=localhost/hostname=" + host + "/g", "/etc/ambari-agent/ambari-agent.ini"]
+  osCommand = ["sed", "-i.bak", "s/hostname=localhost/hostname=" + host + "/g", "/etc/ambari-agent/conf/ambari-agent.ini"]
   execOsCommand(osCommand)
 
   return
@@ -89,9 +89,9 @@ def runAgent(passPhrase):
   os.environ[AMBARI_PASSPHRASE_VAR] = passPhrase
   subprocess.call("/usr/sbin/ambari-agent start", shell=True)
   try:
-    # We probably don't want a verbose host configuration output in log
-    #ret = execOsCommand(["python", "/usr/lib/python2.6/site-packages/ambari_agent/Register.py", "machine"])
-    #print ret['log']
+    # print this to the log.  despite the directory, machine.py works with Python 2.4
+    ret = execOsCommand(["python", "/usr/lib/python2.6/site-packages/ambari_agent/machine.py"])
+    print ret['log']
 
     ret = execOsCommand(["tail", "-20", "/var/log/ambari-agent/ambari-agent.log"])
     print ret['log']

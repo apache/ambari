@@ -120,7 +120,7 @@ class hdp-hadoop::params(
 
   $dfs_support_append = hdp_default("hadoop/hdfs-site/dfs_support_append",true)
 
-  $dfs_webhdfs_enabled = hdp_default("hadoop/hdfs-site/dfs_webhdfs_enabled","false")
+  $dfs_webhdfs_enabled = hdp_default("hadoop/hdfs-site/dfs_webhdfs_enabled",false)
 
 
  ######### mapred #######
@@ -171,7 +171,7 @@ class hdp-hadoop::params(
   $task_bin_exe = hdp_default("hadoop/health_check/task_bin_exe")
 
   $rca_enabled = hdp_default("rca_enabled", false)
-  if ($rca_enabled == true or $rca_enabled == "true") {
+  if ($rca_enabled == true) {
     $rca_prefix = ""
   } else {
     $rca_prefix = "###"

@@ -18,6 +18,7 @@
 
 package org.apache.ambari.server.api.services;
 
+import org.apache.ambari.server.api.resources.RequestResourceDefinition;
 import org.apache.ambari.server.api.resources.ResourceDefinition;
 import org.apache.ambari.server.api.resources.ResourceInstance;
 import org.apache.ambari.server.controller.spi.Resource;
@@ -99,6 +100,7 @@ public class ResultPostProcessorImpl implements ResultPostProcessor {
    * @param resource the root resource
    */
   private void registerResourceProcessors(ResourceInstance resource) {
+    //todo: reconsider registration mechanism
     Resource.Type type = resource.getResourceDefinition().getType();
     List<ResourceDefinition.PostProcessor> listProcessors = m_mapPostProcessors.get(type);
     if (listProcessors == null) {
@@ -113,6 +115,9 @@ public class ResultPostProcessorImpl implements ResultPostProcessor {
         registerResourceProcessors(child);
       }
     }
+
+    // always add Request post processors since they may be returned but will not be a child
+    m_mapPostProcessors.put(Resource.Type.Request, new RequestResourceDefinition().getPostProcessors());
   }
 
 }

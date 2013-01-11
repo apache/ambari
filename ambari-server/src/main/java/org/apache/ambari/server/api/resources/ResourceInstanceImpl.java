@@ -127,6 +127,11 @@ public class ResourceInstanceImpl implements ResourceInstance {
   }
 
   @Override
+  public boolean isCollectionResource() {
+    return getIds().get(getResourceDefinition().getType()) == null;
+  }
+
+  @Override
   public boolean equals(Object o) {
     if (this == o) return true;
     if (o == null || getClass() != o.getClass()) return false;

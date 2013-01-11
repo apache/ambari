@@ -371,13 +371,16 @@ function hdp_mon_generate_response( $response_data )
       case "HBASEMASTER":
         $pieces[0] = "HBASE";
         break;
+      case "HIVE-METASTORE":
+        $pieces[0] = "HIVE";
+        break;
       case "HDFS":
       case "MAPREDUCE":
       case "HBASE":
       case "ZOOKEEPER":
-      case "HIVE-METASTORE":
       case "OOZIE":
       case "TEMPLETON":
+      case "GANGLIA":
       case "PUPPET":
         break;
       default:

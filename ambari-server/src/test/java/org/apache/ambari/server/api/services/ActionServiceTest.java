@@ -17,116 +17,46 @@
  */
 package org.apache.ambari.server.api.services;
 
-import static org.easymock.EasyMock.createNiceMock;
-import static org.easymock.EasyMock.createStrictMock;
-import static org.easymock.EasyMock.eq;
-import static org.easymock.EasyMock.expect;
-import static org.easymock.EasyMock.isNull;
-import static org.easymock.EasyMock.replay;
-import static org.easymock.EasyMock.verify;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
 
-import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.Response;
-import javax.ws.rs.core.UriInfo;
 
+import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.api.handlers.RequestHandler;
 import org.apache.ambari.server.api.resources.ResourceInstance;
-import org.apache.ambari.server.api.services.serializers.ResultSerializer;
 import org.junit.Test;
 
-public class ActionServiceTest {
-
-  @Test
-  public void testCreateActions() {
-    ResourceInstance resource = createStrictMock(ResourceInstance.class);
-    ResultSerializer resultSerializer = createStrictMock(ResultSerializer.class);
-    Object serializedResult = new Object();
-    RequestFactory requestFactory = createStrictMock(RequestFactory.class);
-    ResponseFactory responseFactory = createStrictMock(ResponseFactory.class);
-    Request request = createNiceMock(Request.class);
-    RequestHandler requestHandler = createStrictMock(RequestHandler.class);
-    Result result = createStrictMock(Result.class);
-    Response response = createStrictMock(Response.class);
-
-    HttpHeaders httpHeaders = createNiceMock(HttpHeaders.class);
-    UriInfo uriInfo = createNiceMock(UriInfo.class);
-
-    String clusterName = "clusterName";
-    String serviceName = "HBASE";
-
-    String body = "{ \"actionName\":\"compaction\","
-        + "\"parameters\":{ \"key1\":\"value1\", \"key2\":\"value2\" } }";
-
-    expect(
-        requestFactory.createRequest(eq(httpHeaders), eq(body), eq(uriInfo),
-            eq(Request.Type.POST), eq(resource))).andReturn(request);
-
-    expect(requestHandler.handleRequest(request)).andReturn(result);
-    expect(request.getResultSerializer()).andReturn(resultSerializer);
-    expect(resultSerializer.serialize(result, uriInfo)).andReturn(
-        serializedResult);
-    expect(result.isSynchronous()).andReturn(false).atLeastOnce();
-    expect(
-        responseFactory.createResponse(Request.Type.POST, serializedResult,
-            false)).andReturn(response);
-
-    replay(resource, resultSerializer, requestFactory, responseFactory,
-        request, requestHandler, result, response, httpHeaders, uriInfo);
-
-    // test
-    TestActionService hostService = new TestActionService(resource,
-        clusterName, requestFactory, responseFactory, requestHandler,
-        serviceName);
-    assertSame(response, hostService.createActions(body, httpHeaders, uriInfo));
-
-    verify(resource, resultSerializer, requestFactory, responseFactory,
-        request, requestHandler, result, response, httpHeaders, uriInfo);
-  }
+public class ActionServiceTest extends BaseServiceTest {
 
   @Test
   public void testGetActions() {
-    ResourceInstance resourceDef = createStrictMock(ResourceInstance.class);
-    ResultSerializer resultSerializer = createStrictMock(ResultSerializer.class);
-    Object serializedResult = new Object();
-    RequestFactory requestFactory = createStrictMock(RequestFactory.class);
-    ResponseFactory responseFactory = createStrictMock(ResponseFactory.class);
-    Request request = createNiceMock(Request.class);
-    RequestHandler requestHandler = createStrictMock(RequestHandler.class);
-    Result result = createStrictMock(Result.class);
-    Response response = createStrictMock(Response.class);
+    String clusterName = "c1";
+    String serviceName = "HDFS";
 
-    HttpHeaders httpHeaders = createNiceMock(HttpHeaders.class);
-    UriInfo uriInfo = createNiceMock(UriInfo.class);
+    registerExpectations(Request.Type.GET, null, 200, false);
+    replayMocks();
 
-    String clusterName = "clusterName";
-    String serviceName = "HBASE";
+    //test
+    ActionService actionService = new TestActionService(getResource(), clusterName, getRequestFactory(),
+        getRequestHandler(), serviceName);
+    Response response = actionService.getActions(getHttpHeaders(), getUriInfo());
+    verifyResults(response, 200);
+  }
 
-    expect(
-        requestFactory.createRequest(eq(httpHeaders), isNull(String.class),
-            eq(uriInfo), eq(Request.Type.GET), eq(resourceDef))).andReturn(
-        request);
+  @Test
+  public void testCreateActions() throws AmbariException {
+    String clusterName = "c1";
+    String serviceName = "HDFS";
+    String body = "body";
 
-    expect(requestHandler.handleRequest(request)).andReturn(result);
-    expect(request.getResultSerializer()).andReturn(resultSerializer);
-    expect(resultSerializer.serialize(result, uriInfo)).andReturn(
-        serializedResult);
-    expect(result.isSynchronous()).andReturn(false).atLeastOnce();
-    expect(
-        responseFactory.createResponse(Request.Type.GET, serializedResult,
-            false)).andReturn(response);
+    registerExpectations(Request.Type.POST, body, 201, false);
+    replayMocks();
 
-    replay(resourceDef, resultSerializer, requestFactory, responseFactory,
-        request, requestHandler, result, response, httpHeaders, uriInfo);
-
-    // test
-    TestActionService hostService = new TestActionService(resourceDef,
-        clusterName, requestFactory, responseFactory, requestHandler,
-        serviceName);
-    assertSame(response, hostService.getActions(httpHeaders, uriInfo));
-
-    verify(resourceDef, resultSerializer, requestFactory, responseFactory,
-        request, requestHandler, result, response, httpHeaders, uriInfo);
+    //test
+    ActionService actionService = new TestActionService(getResource(), clusterName, getRequestFactory(),
+        getRequestHandler(), serviceName);
+    Response response = actionService.createActions(body, getHttpHeaders(), getUriInfo());
+    verifyResults(response, 201);
   }
 
   private class TestActionService extends ActionService {
@@ -134,19 +64,18 @@ public class ActionServiceTest {
     private String m_clusterId;
     private String m_serviceId;
     private RequestFactory m_requestFactory;
-    private ResponseFactory m_responseFactory;
     private RequestHandler m_requestHandler;
 
     public TestActionService(ResourceInstance resourceDef,
-        String clusterName, RequestFactory requestFactory,
-        ResponseFactory responseFactory, RequestHandler handler,
-        String serviceName) {
+                             String clusterName, RequestFactory requestFactory,
+                             RequestHandler handler,
+                             String serviceName) {
+
       super(clusterName, serviceName);
       m_resourceDef = resourceDef;
       m_clusterId = clusterName;
       m_serviceId = serviceName;
       m_requestFactory = requestFactory;
-      m_responseFactory = responseFactory;
       m_requestHandler = handler;
     }
 
@@ -162,13 +91,9 @@ public class ActionServiceTest {
       return m_requestFactory;
     }
 
-    @Override
-    ResponseFactory getResponseFactory() {
-      return m_responseFactory;
-    }
 
     @Override
-    RequestHandler getRequestHandler() {
+    RequestHandler getRequestHandler(Request.Type requestType) {
       return m_requestHandler;
     }
   }

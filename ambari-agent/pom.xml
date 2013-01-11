@@ -19,21 +19,21 @@
   <parent>
     <groupId>org.apache.ambari</groupId>
     <artifactId>ambari-project</artifactId>
-    <version>1.0.3-SNAPSHOT</version>
+    <version>1.2.0-SNAPSHOT</version>
     <relativePath>../ambari-project</relativePath>
   </parent>
   <modelVersion>4.0.0</modelVersion>
   <groupId>org.apache.ambari</groupId>
   <artifactId>ambari-agent</artifactId>
   <packaging>pom</packaging>
-  <version>1.0.3-SNAPSHOT</version>
+  <version>1.2.0-SNAPSHOT</version>
   <name>Ambari Agent</name>
   <description>Ambari Agent</description>
   <properties>
     <final.name>${project.artifactId}-${project.version}</final.name>
     <package.release>1</package.release>
     <package.prefix>/usr</package.prefix>
-    <package.conf.dir>/etc/ambari-agent</package.conf.dir>
+    <package.conf.dir>/etc/ambari-agent/conf</package.conf.dir>
     <package.log.dir>/var/log/ambari-agent</package.log.dir>
     <package.pid.dir>/var/run/ambari-agent</package.pid.dir>
     <skipTests>false</skipTests>
@@ -181,7 +181,7 @@
               </sources>
             </mapping>
             <mapping>
-              <directory>/etc/ambari-agent</directory>
+              <directory>${package.conf.dir}</directory>
               <filemode>755</filemode>
               <username>root</username>
               <groupname>root</groupname>
@@ -193,7 +193,7 @@
             </mapping>
             <mapping>
               <directory>/usr/sbin</directory>
-              <filemode>744</filemode>
+              <filemode>755</filemode>
               <username>root</username>
               <groupname>root</groupname>
               <sources>
@@ -214,7 +214,7 @@
               </sources>
             </mapping>
             <mapping>
-              <directory>/var/run/ambari-agent</directory>
+              <directory>${package.pid.dir}</directory>
               <filemode>755</filemode>
               <username>root</username>
               <groupname>root</groupname>
@@ -232,7 +232,7 @@
               <groupname>root</groupname>
             </mapping>
             <mapping>
-              <directory>/var/log/ambari-agent</directory>
+              <directory>${package.log.dir}</directory>
               <filemode>755</filemode>
               <username>root</username>
               <groupname>root</groupname>
@@ -280,6 +280,20 @@
           </execution>
         </executions>
       </plugin>
+        <plugin>
+            <groupId>org.apache.rat</groupId>
+            <artifactId>apache-rat-plugin</artifactId>
+            <version>0.8</version>
+            <configuration>
+                <excludes>
+                    <exclude>src/test/python/dummy*.txt</exclude>
+                </excludes>
+                <includes>
+                    <include>pom.xml</include>
+                </includes>
+            </configuration>
+        </plugin>
+
     </plugins>
     <extensions>
       <extension>

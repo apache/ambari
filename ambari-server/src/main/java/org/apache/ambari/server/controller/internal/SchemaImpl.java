@@ -97,7 +97,7 @@ public class SchemaImpl implements Schema {
   }
 
   private Set<String> getPropertyIds() {
-    Set<String> propertyIds = new HashSet<String>(resourceProvider.getPropertyIds());
+    Set<String> propertyIds = new HashSet<String>(resourceProvider.getPropertyIdsForSchema());
     if (propertyProviders != null) {
       for (PropertyProvider propertyProvider : propertyProviders) {
         propertyIds.addAll(propertyProvider.getPropertyIds());

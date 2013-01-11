@@ -20,17 +20,13 @@ package org.apache.ambari.server.controller.internal;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.controller.ActionRequest;
 import org.apache.ambari.server.controller.AmbariManagementController;
-import org.apache.ambari.server.controller.spi.Predicate;
-import org.apache.ambari.server.controller.spi.Request;
-import org.apache.ambari.server.controller.spi.RequestStatus;
-import org.apache.ambari.server.controller.spi.Resource;
-import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
+import org.apache.ambari.server.controller.spi.*;
+import org.apache.ambari.server.controller.RequestStatusResponse;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
 
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
@@ -61,30 +57,58 @@ class ActionResourceProvider extends ResourceProviderImpl {
   }
 
   @Override
-  public RequestStatus createResources(Request request) throws AmbariException, UnsupportedPropertyException {
-    checkRequestProperties(Resource.Type.Action, request);
-    Set<ActionRequest> requests = new HashSet<ActionRequest>();
+  public RequestStatus createResources(Request request)
+      throws SystemException,
+             UnsupportedPropertyException,
+             ResourceAlreadyExistsException,
+             NoSuchParentResourceException {
+
+    final Set<ActionRequest> requests = new HashSet<ActionRequest>();
     for (Map<String, Object> propertyMap : request.getProperties()) {
       requests.add(getRequest(propertyMap));
     }
-    return getRequestStatus(getManagementController().createActions(requests));
+    return getRequestStatus(createResources(new Command<RequestStatusResponse>() {
+      @Override
+      public RequestStatusResponse invoke() throws AmbariException {
+        return getManagementController().createActions(requests);
+      }
+    }));
   }
 
   @Override
   public Set<Resource> getResources(Request request, Predicate predicate)
-      throws AmbariException, UnsupportedPropertyException {
+      throws SystemException, UnsupportedPropertyException, NoSuchResourceException, NoSuchParentResourceException {
     throw new UnsupportedOperationException("Not currently supported.");
   }
 
   @Override
   public RequestStatus updateResources(Request request, Predicate predicate)
-      throws AmbariException, UnsupportedPropertyException {
+      throws SystemException, UnsupportedPropertyException, NoSuchResourceException, NoSuchParentResourceException {
     throw new UnsupportedOperationException("Not currently supported.");
   }
 
   @Override
-  public RequestStatus deleteResources(Predicate predicate) throws AmbariException, UnsupportedPropertyException {
+  public RequestStatus deleteResources(Predicate predicate)
+      throws SystemException, UnsupportedPropertyException, NoSuchResourceException, NoSuchParentResourceException {
     throw new UnsupportedOperationException("Not currently supported.");
+  }
+
+  @Override
+  public Set<String> checkPropertyIds(Set<String> propertyIds) {
+    propertyIds = super.checkPropertyIds(propertyIds);
+
+    if (propertyIds.isEmpty()) {
+      return propertyIds;
+    }
+    Set<String> unsupportedProperties = new HashSet<String>();
+
+    for (String propertyId : propertyIds) {
+      String propertyCategory = PropertyHelper.getPropertyCategory(propertyId);
+      if (propertyCategory == null || !propertyCategory.equals("parameters")) {
+        unsupportedProperties.add(propertyId);
+      }
+    }
+    return unsupportedProperties;
   }
 
   @Override
@@ -94,9 +118,7 @@ class ActionResourceProvider extends ResourceProviderImpl {
 
   private ActionRequest getRequest(Map<String, Object> properties) {
     Map<String, String> params = new HashMap<String, String>();
-    Iterator<Entry<String, Object>> it1 = properties.entrySet().iterator();
-    while (it1.hasNext()) {
-      Entry<String, Object> entry = it1.next();
+    for (Entry<String, Object> entry : properties.entrySet()) {
       String propertyid = entry.getKey();
       if (PropertyHelper.getPropertyCategory(propertyid).equals("parameters")
           && null != entry.getValue()) {

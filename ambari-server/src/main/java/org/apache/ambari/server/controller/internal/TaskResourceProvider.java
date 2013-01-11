@@ -21,11 +21,15 @@ import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.TaskStatusRequest;
 import org.apache.ambari.server.controller.TaskStatusResponse;
+import org.apache.ambari.server.controller.spi.NoSuchParentResourceException;
+import org.apache.ambari.server.controller.spi.NoSuchResourceException;
 import org.apache.ambari.server.controller.spi.Predicate;
 import org.apache.ambari.server.controller.spi.Request;
 import org.apache.ambari.server.controller.spi.RequestStatus;
 import org.apache.ambari.server.controller.spi.Resource;
+import org.apache.ambari.server.controller.spi.SystemException;
 import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
+import org.apache.ambari.server.controller.utilities.PredicateHelper;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
 
 import java.util.Arrays;
@@ -79,22 +83,28 @@ class TaskResourceProvider extends ResourceProviderImpl{
   // ----- ResourceProvider ------------------------------------------------
 
   @Override
-  public RequestStatus createResources(Request request) throws AmbariException, UnsupportedPropertyException {
+  public RequestStatus createResources(Request request) {
     throw new UnsupportedOperationException("Not currently supported.");
   }
 
   @Override
-  public Set<Resource> getResources(Request request, Predicate predicate) throws AmbariException, UnsupportedPropertyException {
+  public Set<Resource> getResources(Request request, Predicate predicate)
+      throws SystemException, UnsupportedPropertyException, NoSuchResourceException, NoSuchParentResourceException {
+
     Set<String> requestedIds = PropertyHelper.getRequestPropertyIds(getPropertyIds(), request, predicate);
-    Map<String, Object> predicateProperties = getProperties(predicate);
-    TaskStatusRequest taskStatusRequest = getRequest(predicateProperties);
+    final Map<String, Object> predicateProperties = PredicateHelper.getProperties(predicate);
 
     String clusterName = (String) predicateProperties.get(TASK_CLUSTER_NAME_PROPERTY_ID);
     Long   request_id  = new Long((String) predicateProperties.get(TASK_REQUEST_ID_PROPERTY_ID));
 
     // TODO : handle multiple requests
 
-    Set<TaskStatusResponse> responses = getManagementController().getTaskStatus(Collections.singleton(taskStatusRequest));
+    Set<TaskStatusResponse> responses = getResources(new Command<Set<TaskStatusResponse>>() {
+      @Override
+      public Set<TaskStatusResponse> invoke() throws AmbariException {
+        return getManagementController().getTaskStatus(Collections.singleton(getRequest(predicateProperties)));
+      }
+    });
     
     if (LOG.isDebugEnabled()) {
       LOG.debug("Printing size of responses " + responses.size());
@@ -127,12 +137,14 @@ class TaskResourceProvider extends ResourceProviderImpl{
   }
 
   @Override
-  public RequestStatus updateResources(Request request, Predicate predicate) throws AmbariException, UnsupportedPropertyException {
+  public RequestStatus updateResources(Request request, Predicate predicate)
+      throws SystemException, UnsupportedPropertyException, NoSuchResourceException, NoSuchParentResourceException {
     throw new UnsupportedOperationException("Not currently supported.");
   }
 
   @Override
-  public RequestStatus deleteResources(Predicate predicate) throws AmbariException, UnsupportedPropertyException {
+  public RequestStatus deleteResources(Predicate predicate)
+      throws SystemException, UnsupportedPropertyException, NoSuchResourceException, NoSuchParentResourceException {
     throw new UnsupportedOperationException("Not currently supported.");
   }
 

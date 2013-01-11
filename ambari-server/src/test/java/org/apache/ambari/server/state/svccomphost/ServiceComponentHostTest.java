@@ -241,13 +241,22 @@ public class ServiceComponentHostTest {
 
     ServiceComponentHostEvent installEvent2 = createEvent(impl, ++timestamp,
         startEventType);
+   
     boolean exceptionThrown = false;
+    LOG.info("Transitioning from " + impl.getState() + " " + installEvent2.getType());
     try {
       impl.handleEvent(installEvent2);
     } catch (Exception e) {
       exceptionThrown = true;
     }
-    Assert.assertTrue("Exception not thrown on invalid event", exceptionThrown);
+    if (impl.getState() == State.INSTALLING || impl.getState() == State.STARTING) {
+      startTime = timestamp;
+    // We need to allow install on a install.
+      Assert.assertTrue("Exception not thrown on invalid event", !exceptionThrown);
+    } 
+    else {
+      Assert.assertTrue("Exception not thrown on invalid event", exceptionThrown);
+    }
     Assert.assertEquals(startTime, impl.getLastOpStartTime());
     Assert.assertEquals(-1, impl.getLastOpLastUpdateTime());
     Assert.assertEquals(-1, impl.getLastOpEndTime());

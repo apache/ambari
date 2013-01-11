@@ -18,16 +18,49 @@
 
 package org.apache.ambari.server.api.handlers;
 
-import org.apache.ambari.server.api.services.Request;
+import org.apache.ambari.server.api.resources.ResourceInstance;
+import org.apache.ambari.server.api.services.ResultStatus;
 import org.apache.ambari.server.api.services.Result;
+import org.apache.ambari.server.api.services.ResultImpl;
+import org.apache.ambari.server.controller.spi.*;
+
+import java.util.Map;
+import java.util.Set;
 
 /**
  * Responsible for delete requests.
  */
-public class DeleteHandler extends BaseManagementHandler {
+public class DeleteHandler extends BaseManagementHandler implements RequestHandler {
+
   @Override
-  public Result handleRequest(Request request) {
-    //todo: delete specific return information, delete specific exceptions
-    return super.handleRequest(request);
+  protected Result persist(ResourceInstance r, Set<Map<String, Object>> properties) {
+    Result result;
+      try {
+        RequestStatus status = getPersistenceManager().delete(r, properties);
+        result = createResult(status);
+
+        if (result.isSynchronous()) {
+          result.setResultStatus(new ResultStatus(ResultStatus.STATUS.OK));
+        } else {
+          result.setResultStatus(new ResultStatus(ResultStatus.STATUS.ACCEPTED));
+        }
+      } catch (SystemException e) {
+        result = new ResultImpl(new ResultStatus(ResultStatus.STATUS.SERVER_ERROR, e));
+      } catch (NoSuchParentResourceException e) {
+        result = new ResultImpl(new ResultStatus(ResultStatus.STATUS.NOT_FOUND, e));
+      } catch (NoSuchResourceException e) {
+        if (r.isCollectionResource()) {
+          //todo: The query didn't match any resource so no resources were updated.
+          //todo: 200 may be ok but we need to return a collection
+          //todo: of resources that were updated.
+          result = new ResultImpl(new ResultStatus(ResultStatus.STATUS.OK, e));
+        } else {
+          result = new ResultImpl(new ResultStatus(ResultStatus.STATUS.NOT_FOUND, e));
+        }
+      } catch (UnsupportedPropertyException e) {
+        result = new ResultImpl(new ResultStatus(ResultStatus.STATUS.BAD_REQUEST, e));
+      }
+
+    return result;
   }
 }

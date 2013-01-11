@@ -24,7 +24,9 @@ mysqldbuser=$1
 mysqldbpasswd=$2
 mysqldbhost=$3
 
-echo "Adding user $mysqldbuser@$mysqldbhost"
-echo "CREATE USER '$mysqldbuser'@'$mysqldbhost' IDENTIFIED BY '$mysqldbpasswd';" > mysql -u root
-echo "GRANT ALL PRIVILEGES ON *.* TO '$mysqldbuser'@'$mysqldbhost';" > mysql -u root
-echo "flush privileges;" > mysql -u root
+echo "Adding user $mysqldbuser@$mysqldbhost and $mysqldbuser@localhost"
+mysql -u root -e "CREATE USER '$mysqldbuser'@'$mysqldbhost' IDENTIFIED BY '$mysqldbpasswd';"
+mysql -u root -e "CREATE USER '$mysqldbuser'@'localhost' IDENTIFIED BY '$mysqldbpasswd';"
+mysql -u root -e "GRANT ALL PRIVILEGES ON *.* TO '$mysqldbuser'@'$mysqldbhost';"
+mysql -u root -e "GRANT ALL PRIVILEGES ON *.* TO '$mysqldbuser'@'localhost';"
+mysql -u root -e "flush privileges;"

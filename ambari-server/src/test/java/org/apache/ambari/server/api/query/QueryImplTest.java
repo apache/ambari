@@ -1,5 +1,23 @@
 package org.apache.ambari.server.api.query;
 
+/**
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 import org.apache.ambari.server.api.resources.ResourceDefinition;
 import org.apache.ambari.server.api.util.TreeNode;
 import org.apache.ambari.server.api.util.TreeNodeImpl;
@@ -355,7 +373,7 @@ public class QueryImplTest {
   }
 
   @Test
-  public void testAddProperty__localProperty() {
+  public void testAddProperty__localProperty() throws Exception {
     ResourceInstance resource = createNiceMock(ResourceInstance.class);
     ResourceDefinition resourceDefinition = createNiceMock(ResourceDefinition.class);
     Schema schema = createNiceMock(Schema.class);
@@ -388,8 +406,10 @@ public class QueryImplTest {
     verify(m_controller, resource, resourceDefinition, schema);
   }
 
+  // this is the case where service can't differentiate category and property name
+  // the category name is give as the property name
   @Test
-  public void testAddProperty__localCategory() {
+  public void testAddProperty__localCategory_asPropertyName() throws Exception  {
     ResourceInstance resource = createNiceMock(ResourceInstance.class);
     ResourceDefinition resourceDefinition = createNiceMock(ResourceDefinition.class);
     Schema schema = createNiceMock(Schema.class);
@@ -433,8 +453,55 @@ public class QueryImplTest {
     verify(m_controller, resource, resourceDefinition, schema);
   }
 
+  // This is the case where the service can determine that only a category was provided because it contained
+  // a trailing '/'
   @Test
-  public void testAddProperty__localSubCategory() {
+  public void testAddProperty__localCategory_categoryNameOnly() throws Exception {
+    ResourceInstance resource = createNiceMock(ResourceInstance.class);
+    ResourceDefinition resourceDefinition = createNiceMock(ResourceDefinition.class);
+    Schema schema = createNiceMock(Schema.class);
+
+    Map<String, Set<String>> mapSchemaProps = new HashMap<String, Set<String>>();
+    Set<String> setProps = new HashSet<String>();
+    setProps.add("property");
+    setProps.add("property2");
+    mapSchemaProps.put("category", setProps);
+    Set<String> setInnerProps = new HashSet<String>();
+    setInnerProps.add("property3");
+    setInnerProps.add("property4");
+    mapSchemaProps.put("category/nestedCategory", setInnerProps);
+    mapSchemaProps.put(null, Collections.singleton("property5"));
+
+    //expectations
+    expect(resource.getResourceDefinition()).andReturn(resourceDefinition).anyTimes();
+
+    expect(resourceDefinition.getType()).andReturn(Resource.Type.Service).anyTimes();
+
+    expect(m_controller.getSchema(Resource.Type.Service)).andReturn(schema).anyTimes();
+    expect(schema.getCategoryProperties()).andReturn(mapSchemaProps).anyTimes();
+
+    replay(m_controller, resource, resourceDefinition, schema);
+
+    Query query = new TestQuery(resource, null);
+    query.addProperty("category", "", null);
+
+    Map<String, Set<String>> mapProperties = query.getProperties();
+    assertEquals(2, mapProperties.size());
+    Set<String> setResultProps = mapProperties.get("category");
+    assertEquals(2, setResultProps.size());
+    assertTrue(setResultProps.contains("property"));
+    assertTrue(setResultProps.contains("property2"));
+
+    setResultProps = mapProperties.get("category/nestedCategory");
+    assertEquals(2, setResultProps.size());
+    assertTrue(setResultProps.contains("property3"));
+    assertTrue(setResultProps.contains("property4"));
+
+    verify(m_controller, resource, resourceDefinition, schema);
+  }
+
+  @Test
+  public void testAddProperty__localSubCategory() throws Exception {
     ResourceInstance resource = createNiceMock(ResourceInstance.class);
     ResourceDefinition resourceDefinition = createNiceMock(ResourceDefinition.class);
     Schema schema = createNiceMock(Schema.class);
@@ -474,7 +541,7 @@ public class QueryImplTest {
   }
 
   @Test
-  public void testAddProperty__localCategorySubPropsOnly() {
+  public void testAddProperty__localCategorySubPropsOnly() throws Exception {
     ResourceInstance resource = createNiceMock(ResourceInstance.class);
     ResourceDefinition resourceDefinition = createNiceMock(ResourceDefinition.class);
     Schema schema = createNiceMock(Schema.class);
@@ -513,7 +580,7 @@ public class QueryImplTest {
   }
 
   @Test
-  public void testAddProperty__subProperty() {
+  public void testAddProperty__subProperty() throws Exception {
     ResourceInstance resource = createNiceMock(ResourceInstance.class);
     ResourceDefinition resourceDefinition = createNiceMock(ResourceDefinition.class);
     ResourceInstance subResource = createNiceMock(ResourceInstance.class);

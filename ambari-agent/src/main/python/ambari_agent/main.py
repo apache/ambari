@@ -126,8 +126,8 @@ def main():
   # Check for ambari configuration file.
   try:
     config = AmbariConfig.config
-    if os.path.exists('/etc/ambari-agent/ambari-agent.ini'):
-      config.read('/etc/ambari-agent/ambari-agent.ini')
+    if os.path.exists('/etc/ambari-agent/conf/ambari-agent.ini'):
+      config.read('/etc/ambari-agent/conf/ambari-agent.ini')
       AmbariConfig.setConfig(config)
     else:
       raise Exception("No config found, use default")

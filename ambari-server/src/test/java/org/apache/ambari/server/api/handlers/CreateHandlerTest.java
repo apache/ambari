@@ -19,7 +19,8 @@
 package org.apache.ambari.server.api.handlers;
 
 import org.apache.ambari.server.api.resources.ResourceInstance;
-import org.apache.ambari.server.api.services.PersistenceManager;
+import org.apache.ambari.server.api.services.ResultStatus;
+import org.apache.ambari.server.api.services.persistence.PersistenceManager;
 import org.apache.ambari.server.api.services.Request;
 import org.apache.ambari.server.api.services.Result;
 import org.apache.ambari.server.api.util.TreeNode;
@@ -39,7 +40,7 @@ import static org.junit.Assert.*;
 public class CreateHandlerTest {
 
   @Test
-  public void testHandleRequest__Synchronous() {
+  public void testHandleRequest__Synchronous() throws Exception {
     Request request = createNiceMock(Request.class);
     ResourceInstance resource = createNiceMock(ResourceInstance.class);
     PersistenceManager pm = createStrictMock(PersistenceManager.class);
@@ -54,13 +55,11 @@ public class CreateHandlerTest {
     setResources.add(resource2);
 
     // expectations
-    expect(request.getPersistenceManager()).andReturn(pm).atLeastOnce();
     expect(request.getResource()).andReturn(resource).atLeastOnce();
     expect(request.getQueryPredicate()).andReturn(null).atLeastOnce();
     expect(request.getHttpBodyProperties()).andReturn(setResourceProperties).atLeastOnce();
-    expect(request.getURI()).andReturn("http://some.host.com:8080/clusters/cluster1/services/HDFS").atLeastOnce();
 
-    expect(pm.persist(resource, setResourceProperties)).andReturn(status);
+    expect(pm.create(resource, setResourceProperties)).andReturn(status);
     expect(status.getStatus()).andReturn(RequestStatus.Status.Complete);
     expect(status.getAssociatedResources()).andReturn(setResources);
     expect(resource1.getType()).andReturn(Resource.Type.Cluster).anyTimes();
@@ -68,7 +67,7 @@ public class CreateHandlerTest {
 
     replay(request, resource, pm, status, resource1, resource2);
 
-    Result result = new CreateHandler().handleRequest(request);
+    Result result = new TestCreateHandler(pm).handleRequest(request);
 
     assertNotNull(result);
     TreeNode<Resource> tree = result.getResultTree();
@@ -88,11 +87,12 @@ public class CreateHandlerTest {
       }
     }
 
+    assertEquals(ResultStatus.STATUS.CREATED, result.getStatus().getStatus());
     verify(request, resource, pm, status, resource1, resource2);
   }
 
   @Test
-  public void testHandleRequest__Asynchronous() {
+  public void testHandleRequest__Asynchronous() throws Exception {
     Request request = createNiceMock(Request.class);
     ResourceInstance resource = createNiceMock(ResourceInstance.class);
     PersistenceManager pm = createStrictMock(PersistenceManager.class);
@@ -110,21 +110,18 @@ public class CreateHandlerTest {
     // expectations
     expect(request.getResource()).andReturn(resource);
     expect(request.getHttpBodyProperties()).andReturn(setResourceProperties);
-    expect(request.getPersistenceManager()).andReturn(pm);
     expect(request.getQueryPredicate()).andReturn(null).atLeastOnce();
-    expect(pm.persist(resource, setResourceProperties)).andReturn(status);
+
+    expect(pm.create(resource, setResourceProperties)).andReturn(status);
     expect(status.getStatus()).andReturn(RequestStatus.Status.Accepted);
     expect(status.getAssociatedResources()).andReturn(setResources);
     expect(resource1.getType()).andReturn(Resource.Type.Cluster).anyTimes();
     expect(resource2.getType()).andReturn(Resource.Type.Cluster).anyTimes();
-    expect(status.getRequestResource()).andReturn(requestResource);
-    expect(request.getURI()).andReturn("http://some.host.com:8080/clusters/cluster1/services/HDFS").atLeastOnce();
-    expect(status.getRequestResource()).andReturn(requestResource).atLeastOnce();
-    expect(requestResource.getPropertyValue(PropertyHelper.getPropertyId("Requests", "id"))).andReturn("requestID").atLeastOnce();
+    expect(status.getRequestResource()).andReturn(requestResource).anyTimes();
 
     replay(request, resource, pm, status, resource1, resource2, requestResource);
 
-    Result result = new CreateHandler().handleRequest(request);
+    Result result = new TestCreateHandler(pm).handleRequest(request);
 
     assertNotNull(result);
     TreeNode<Resource> tree = result.getResultTree();
@@ -148,9 +145,21 @@ public class CreateHandlerTest {
     assertNotNull(statusNode);
     assertEquals(0, statusNode.getChildren().size());
     assertSame(requestResource, statusNode.getObject());
-    assertEquals("http://some.host.com:8080/clusters/cluster1/requests/requestID", statusNode.getProperty("href"));
 
-
+    assertEquals(ResultStatus.STATUS.ACCEPTED, result.getStatus().getStatus());
     verify(request, resource, pm, status, resource1, resource2, requestResource);
+  }
+
+  private class TestCreateHandler extends CreateHandler {
+    private PersistenceManager m_testPm;
+
+    private TestCreateHandler(PersistenceManager pm) {
+      m_testPm = pm;
+    }
+
+    @Override
+    protected PersistenceManager getPersistenceManager() {
+      return m_testPm;
+    }
   }
 }
