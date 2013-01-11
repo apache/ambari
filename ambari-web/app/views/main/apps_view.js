@@ -374,7 +374,8 @@ App.MainAppsView = Em.View.extend({
         { "sType":"ambari-bandwidth" },
         null,
         { "sType":"ambari-datetime" }
-      ]
+      ],
+      "aaSorting": [[ 10, "desc" ]]
     }).css('visibility', 'visible');
     this.set('oTable', oTable);
     this.set('filtered', oTable.fnSettings().fnRecordsDisplay());

@@ -220,6 +220,10 @@ h1 {
   text-align: left;
 }
 
+.popover {
+  z-index: 1050;
+}
+
 #installer, #add-host, #add-service {
   h2 {
     margin-top: 0;
@@ -1413,40 +1417,36 @@ a:focus {
       margin-top:-12px !important;
     }
   }
-  .health-status-started, .health-status-starting {
-    background-image: @status-live-marker;
+  .marker {
     background-repeat: no-repeat;
     display: inline-block;
     height: 13px;
     width: 13px;
   }
+  .health-status-started, .health-status-starting {
+    background-image: @status-live-marker;
+    .marker;
+  }
   .health-status-installed, .health-status-stopping {
     background-image: @status-dead-marker;
-    background-repeat: no-repeat;
-    display: inline-block;
-    height: 13px;
-    width: 13px;
+    .marker;
   }
 
   .health-status-LIVE {
     background-image: @status-live-marker;
-    background-repeat: no-repeat;
-    background-position: 0px 4px;
+    .marker;
   }
   .health-status-DEAD {
     background-image: @status-dead-marker;
-    background-repeat: no-repeat;
-    background-position: 0px 4px;
+    .marker;
   }
   .health-status-DEAD-ORANGE {
     background-image: @status-dead-orange-marker;
-    background-repeat: no-repeat;
-    background-position: 0px 4px;
+    .marker;
   }
   .health-status-DEAD-YELLOW {
     background-image: @status-dead-yellow-marker;
-    background-repeat: no-repeat;
-    background-position: 0px 4px;
+    .marker;
   }
   .back {
     display: block;

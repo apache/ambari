@@ -18,6 +18,19 @@
 
 
 module.exports = {
+  uniformSeries: function () {
+    var series_min_length = 100000000;
+    for (i=0; i<arguments.length; i++) {
+      if (arguments[i].length < series_min_length) {
+        series_min_length = arguments[i].length;
+      }
+    }
+    for (i=0; i<arguments.length; i++) {
+      if (arguments[i].length > series_min_length) {
+        arguments[i].length = series_min_length;
+      }
+    }
+  },
   drawJobTimeLine:function (map, shuffle, reduce, w, h, element, legend_id, timeline_id) {
     map = $.parseJSON(map);
     shuffle = $.parseJSON(shuffle);
@@ -26,7 +39,7 @@ module.exports = {
       console.warn('drawJobTimeLine');
       return;
     }
-
+    this.uniformSeries(map, reduce, shuffle);
     var graph = new Rickshaw.Graph({
       width:w,
       height:h,
@@ -108,6 +121,7 @@ module.exports = {
       console.warn('drawJobTasks');
       return;
     }
+    this.uniformSeries(mapNodeLocal, mapRackLocal, mapOffSwitch, reduceOffSwitch);
 
     var graph = new Rickshaw.Graph({
       width:w,

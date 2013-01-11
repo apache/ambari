@@ -281,6 +281,7 @@ App.ChartLinearTimeView = Ember.View.extend({
         if (this.checkSeries(seriesData)) {
           //if graph opened as modal popup
           var popup_path = $("#" + this.id + "-container" + this.get('popupSuffix'));
+          var graph_container = $("#" + this.id + "-container");
           if(popup_path.length) {
             popup_path.children().each(function () {
               $(this).children().remove();
@@ -288,12 +289,15 @@ App.ChartLinearTimeView = Ember.View.extend({
             this.set('isPopup', true);
           }
           else {
-            $("#" + this.id + "-container").children().each(function (index, value) {
+            graph_container.children().each(function (index, value) {
               $(value).children().remove();
             });
           }
-          this.draw(seriesData);
-          this.set('hasData', true);
+          // Check container exists (may be not, if we go to another page and wait while graphs loading)
+          if (graph_container.length) {
+            this.draw(seriesData);
+            this.set('hasData', true);
+          }
         }
         else {
           this.set('isReady', true);

@@ -33,7 +33,11 @@ App.MainDashboardServiceHdfsView = App.MainDashboardServiceView.extend({
 
   nodeUptime: function () {
     var uptime = this.get('service').get('nameNodeStartTime');
-    var formatted = date.timingFormat((new Date().getTime() - uptime));
+    var diff = (new Date()).getTime() - uptime;
+    if (diff < 0) {
+      diff = 0;
+    }
+    var formatted = date.timingFormat(diff);
     return this.t('dashboard.services.uptime').format(formatted);
   }.property("service.nameNodeStartTime"),
 

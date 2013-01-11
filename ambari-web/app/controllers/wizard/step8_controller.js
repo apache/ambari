@@ -947,7 +947,6 @@ App.WizardStep8Controller = Em.Controller.extend({
     var masterHosts = this.get('content.masterComponentHosts');
     var slaveHosts = this.get('content.slaveComponentHosts');
     var clients = this.get('content.clients');
-    var clientHosts = slaveHosts.filterProperty('componentName', "CLIENT").objectAt(0).hosts;
 
     // note: masterHosts has 'component' vs slaveHosts has 'componentName'
     var masterComponents = masterHosts.mapProperty('component').uniq();
@@ -962,9 +961,9 @@ App.WizardStep8Controller = Em.Controller.extend({
         var hostNames = _slave.hosts.filterProperty('isInstalled', false).mapProperty('hostName');
         this.registerHostsToComponent(hostNames, _slave.componentName);
       } else {
-        this.get('content.clients').forEach(function (_client) {
-          if (!_client.isInstalled) {
-            var hostNames = clientHosts.mapProperty('hostName').splice(0);
+        clients.forEach(function (_client) {
+
+            var hostNames = _slave.hosts.mapProperty('hostName');
             switch (_client.component_name) {
               case 'HDFS_CLIENT':
                 // install HDFS_CLIENT on HBASE_MASTER, HBASE_REGIONSERVER, and WEBHCAT_SERVER hosts
@@ -1013,8 +1012,19 @@ App.WizardStep8Controller = Em.Controller.extend({
                 break;
             }
             hostNames = hostNames.uniq();
+
+            if(_client.isInstalled){
+              //check whether clients are already installed on selected master hosts!!!
+              var installedHosts = _slave.hosts.filterProperty('isInstalled', true).mapProperty('hostName');
+              installedHosts.forEach(function(host){
+                if(hostNames.contains(host)){
+                  hostNames.splice(hostNames.indexOf(host), 1);
+                }
+              }, this);
+            }
+
             this.registerHostsToComponent(hostNames, _client.component_name);
-          }
+
         }, this);
       }
     }, this);

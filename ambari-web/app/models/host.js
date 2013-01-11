@@ -86,12 +86,22 @@ App.Host = DS.Model.extend({
    * Format diskUsage to float with 2 digits
    */
   diskUsageFormatted: function() {
+    if (isNaN(this.get('diskUsage')) || this.get('diskUsage') < 0) {
+      return 'Data Unavailable';
+    }
     var s = Math.round(this.get('diskUsage') * Math.pow(10, 2)) / Math.pow(10, 2);
     if (isNaN(s)) {
       s = 0;
     }
     return s + '%';
   }.property('diskUsage'),
+
+  diskInfoBar: function() {
+    if (isNaN(this.get('diskUsage')) || this.get('diskUsage') < 0) {
+      return this.get('diskUsageFormatted');
+    }
+    return this.get('diskUsedFormatted') + '/' + this.get('diskTotalFormatted') + ' (' + this.get('diskUsageFormatted') + ' used)';
+  }.property('diskUsedFormatted', 'diskTotalFormatted'),
   /**
    * formatted bytes to appropriate value
    */

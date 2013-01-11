@@ -50,6 +50,14 @@ App.WizardStep2Controller = Em.Controller.extend({
   updateHostNameArr: function(){
     this.hostNameArr = this.get('hostNames').trim().split(new RegExp("\\s+", "g"));
     this.patternExpression();
+    var installedHostNames = App.Host.find().mapProperty('hostName');
+    var tempArr = [];
+    for (i = 0; i < this.hostNameArr.length; i++) {
+      if (!installedHostNames.contains(this.hostNameArr[i])) {
+        tempArr.push(this.hostNameArr[i]);
+      }
+    }
+    this.set('hostNameArr', tempArr);
   },
 
   isAllHostNamesValid: function () {
@@ -145,6 +153,11 @@ App.WizardStep2Controller = Em.Controller.extend({
     }
 
     this.updateHostNameArr();
+
+    if (!this.hostNameArr.length) {
+      this.set('hostsError', Em.I18n.t('installer.step2.hostName.error.required'));
+      return false;
+    }
 
     if(this.isPattern)
     {
@@ -243,14 +256,7 @@ App.WizardStep2Controller = Em.Controller.extend({
   }.property('hostsError', 'sshKeyError'),
 
   saveHosts: function(){
-    var installedHosts = App.Host.find();
-    var newHosts = this.getHostInfo();
-    for (var host in newHosts) {
-      if (installedHosts.someProperty('hostName', host)) {
-        delete newHosts[host]
-      }
-    }
-    this.set('content.hosts', newHosts);
+    this.set('content.hosts', this.getHostInfo());
     App.router.send('next');
   }
 

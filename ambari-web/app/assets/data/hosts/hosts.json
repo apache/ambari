@@ -937,7 +937,7 @@
           "loginFailure_avg_time" : 0.0
         },
         "disk" : {
-          "disk_total" : 893.765,
+          "disk_total" : 0,
           "disk_free" : 845.624
         },
         "cpu" : {

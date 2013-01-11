@@ -47,7 +47,7 @@
         <div class="host-components">
           {{#each component in view.sortedComponents}}
           <div class="row-fluid">
-          {{#view view.ComponentView contentBinding="component"}}
+          {{#view view.ComponentView contentBinding="component" decommissionDataNodeHostNamesBinding="view.decommissionDataNodeHostNames"}}
             <div class="span8">
               <span {{bindAttr class="view.statusClass :components-health"}}></span>&nbsp;
               {{component.displayName}}&nbsp;/&nbsp;

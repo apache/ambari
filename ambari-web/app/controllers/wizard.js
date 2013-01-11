@@ -380,7 +380,10 @@ App.WizardController = Em.Controller.extend({
   },
 
   clear: function () {
-    this.set('content', Ember.Object.create({'controllerName': this.get('content.controllerName')}));
+    this.set('content', Ember.Object.create({
+      'controllerName': this.get('content.controllerName'),
+      'isWizard': !(this.get('content.controllerName') === 'installerController')
+    }));
     this.set('currentStep', 0);
     this.clearStorageData();
   },

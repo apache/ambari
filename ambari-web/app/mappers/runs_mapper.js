@@ -37,7 +37,9 @@ App.runsMapper = App.QuickDataMapper.create({
             item.targets.forEach(function(target) {
               r += '"' + target + '",';
             });
-            r = r.substr(0, r.length - 1);
+            if(item.targets.length){
+              r = r.substr(0, r.length - 1);
+            }
           } else {
             r += item.source;
           }

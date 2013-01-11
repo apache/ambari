@@ -264,7 +264,7 @@ App.MainHostDetailsController = Em.Controller.extend({
               timeout: App.timeout,
               success: function(){
                 var view = self.get('view');
-                view.loadDecommisionNodesList();
+                view.loadDecommissionNodesList();
               }
             };
             jQuery.ajax(persistPutAjax);

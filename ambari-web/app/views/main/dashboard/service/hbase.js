@@ -54,7 +54,11 @@ App.MainDashboardServiceHbaseView = App.MainDashboardServiceView.extend({
   masterStartedTime: function () {
     var uptime = this.get('service').get('masterStartTime');
     if (uptime && uptime > 0) {
-      var formatted = date.timingFormat((new Date().getTime() - uptime));
+      var diff = (new Date()).getTime() - uptime;
+      if (diff < 0) {
+        diff = 0;
+      }
+      var formatted = date.timingFormat(diff);
       return this.t('dashboard.services.uptime').format(formatted);
     }
     return this.t('services.service.summary.unknown');
@@ -63,7 +67,11 @@ App.MainDashboardServiceHbaseView = App.MainDashboardServiceView.extend({
   masterActivatedTime: function () {
     var uptime = this.get('service').get('masterActiveTime');
     if (uptime && uptime > 0) {
-      var formatted = date.timingFormat((new Date().getTime() - uptime));
+      var diff = (new Date()).getTime() - uptime;
+      if (diff < 0) {
+        diff = 0;
+      }
+      var formatted = date.timingFormat(diff);
       return this.t('dashboard.services.uptime').format(formatted);
     }
     return this.t('services.service.summary.unknown');
