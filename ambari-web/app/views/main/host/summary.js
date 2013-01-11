@@ -122,7 +122,23 @@ App.MainHostSummaryView = Em.View.extend({
 
   ComponentView: Em.View.extend({
     content: null,
-
+    hostComponent: function(){
+      var hostComponent = null;
+      var serviceComponent = this.get('content');
+      var host = App.router.get('mainHostDetailsController.content');
+      if(host){
+        var hostComponent = host.get('hostComponents').findProperty('componentName', serviceComponent.get('componentName'));
+      }
+      return hostComponent;
+    }.property('content', 'App.router.mainHostDetailsController.content'),
+    workStatus: function(){
+      var workStatus = this.get('content.workStatus');
+      var hostComponent = this.get('hostComponent');
+      if(hostComponent){
+        workStatus = hostComponent.get('workStatus');
+      }
+      return workStatus;
+    }.property('content.workStatus', 'hostComponent.workStatus'),
     statusClass: function(){
       var statusClass = null;
       if(this.get('isDataNode')){
@@ -131,24 +147,24 @@ App.MainHostSummaryView = Em.View.extend({
           return 'health-status-DEAD-ORANGE';
         }
       }
-      return 'health-status-' + App.Component.Status.getKeyName(this.get('content.workStatus'));
-    }.property('content.workStatus'),
+      return 'health-status-' + App.Component.Status.getKeyName(this.get('workStatus'));
+    }.property('workStatus'),
     /**
      * Disable element while component is starting/stopping
      */
     disabledClass:function(){
-      var workStatus = this.get('content.workStatus');
+      var workStatus = this.get('workStatus');
       if([App.Component.Status.starting, App.Component.Status.stopping].contains(workStatus) ){
         return 'disabled';
       } else {
         return '';
       }
-    }.property('content.workStatus'),
+    }.property('workStatus'),
     /**
      * Do blinking for 1 minute
      */
     doBlinking : function(){
-      var workStatus = this.get('content.workStatus');
+      var workStatus = this.get('workStatus');
       var self = this;
       var pulsate = [ App.Component.Status.starting, App.Component.Status.stopping ].contains(workStatus);
       if (!pulsate && this.get('isDataNode')) {
@@ -167,11 +183,11 @@ App.MainHostSummaryView = Em.View.extend({
      */
     startBlinking:function(){
       this.doBlinking();
-    }.observes('content.workStatus'),
+    }.observes('workStatus'),
 
     isStart : function() {
-      return (this.get('content.workStatus') === App.Component.Status.started || this.get('content.workStatus') === App.Component.Status.starting);
-    }.property('content.workStatus'),
+      return (this.get('workStatus') === App.Component.Status.started || this.get('workStatus') === App.Component.Status.starting);
+    }.property('workStatus'),
     /**
      * Shows whether we need to show Decommision/Recomission buttons
      */

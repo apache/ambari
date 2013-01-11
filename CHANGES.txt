@@ -675,6 +675,9 @@ AMBARI-666 branch (unreleased changes)
 
   BUG FIXES
 
+  AMBARI-1115. Host component live status is broken. (Srimanth Gunturi via
+  yusaku)
+
   AMBARI-1113. Install Wizard: Confirm host stuck at Preparing stage.
   (Arun Kandregula via yusaku)
 
