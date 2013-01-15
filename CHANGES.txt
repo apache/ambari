@@ -17,6 +17,8 @@ Trunk (unreleased changes):
 
  IMPROVEMENTS
 
+ AMBARI-1189. Add App.Job class. (yusaku)
+
  AMBARI-1188. Refactor isClient computed property for HostComponent class.
  (yusaku)
 
