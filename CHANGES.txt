@@ -1,20 +1,4 @@
-Ambari   Change log
-
-
-Trunk:
-
- INCOMPATIBLE CHANGES 
-
- NEW FEATURES:
-
- AMBARI-1163. During agent registration and heartbeat, send information about
- various hadoop artifacts back to Ambari. (Nate Cole via mahadev)
-
- BUG FIXES:
-
-
-
-AMBARI-1.2.0 branch:
+Ambari Change Log
 
 Notes:
  - Committers should be listed using their login and non-committers
@@ -22,19 +6,38 @@ should be listed by their full name.
  - Please keep the file to a max of 80 characters wide.
  - Put latest commits first in each section.
 
+Trunk (unreleased changes):
+
+ INCOMPATIBLE CHANGES 
+
+ NEW FEATURES
+
+ AMBARI-1163. During agent registration and heartbeat, send information about
+ various hadoop artifacts back to Ambari. (Nate Cole via mahadev)
+
+ IMPROVEMENTS
+
+ AMBARI-1181. Clean up table header UI for sorting and filter clear "x" for
+ Hosts table. (yusaku)
+
+ BUG FIXES
+
+AMBARI-1.2.0 branch:
 
  INCOMPATIBLE CHANGES
  
  NEW FEATURES
 
- AMBARI-1108 - PUT call to change the state on host_components collection
+ AMBARI-1108. PUT call to change the state on host_components collection
  returns 200 (no op), even though GET with the same predicate returns a number
  of host_components. (Tom Beerbower via mahadev)
 
  AMBARI-1114. BootStrap fails but the api says thats its done and exit status
  is 0. (Nate Cole via mahadev)
 
-  AMBARI-1136 - Add gsInstaller resource provider. (Tom Beerbower via mahadev)
+ AMBARI-1136. Add gsInstaller resource provider. (Tom Beerbower via mahadev)
+
+ IMPROVEMENTS
 
  BUG FIXES
 
@@ -44,7 +47,7 @@ should be listed by their full name.
  AMBARI-1126. Change SUSE lzo dependency to only lzo-devel. (nate cole via
  mahadev)
 
-AMBARI-666 branch (unreleased changes)
+AMBARI-666 branch:
 
   INCOMPATIBLE CHANGES
 
