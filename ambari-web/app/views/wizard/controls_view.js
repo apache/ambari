@@ -117,7 +117,7 @@ App.ServiceConfigTextArea = Ember.TextArea.extend(App.ServiceConfigPopoverSuppor
 
   valueBinding: 'serviceConfig.value',
   rows: 4,
-  classNames: ['span6'],
+  classNames: ['span6', 'directories'],
   placeholderBinding: 'serviceConfig.defaultValue',
 
   disabled: function () {

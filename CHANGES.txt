@@ -17,6 +17,9 @@ Trunk (unreleased changes):
 
  IMPROVEMENTS
 
+ AMBARI-1183. Directories in the service config textarea should not wrap.
+ (yusaku)
+
  AMBARI-1182. Clean up table header UI for sorting and filter clear "x" for
  Jobs table. (yusaku)
 
