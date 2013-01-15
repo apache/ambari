@@ -17,6 +17,9 @@ Trunk (unreleased changes):
 
  IMPROVEMENTS
 
+ AMBARI-1182. Clean up table header UI for sorting and filter clear "x" for
+ Jobs table. (yusaku)
+
  AMBARI-1181. Clean up table header UI for sorting and filter clear "x" for
  Hosts table. (yusaku)
 
