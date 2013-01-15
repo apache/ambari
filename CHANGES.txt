@@ -17,6 +17,9 @@ Trunk (unreleased changes):
 
  IMPROVEMENTS
 
+ AMBARI-1185. Refactor the method to check if the user is an admin.
+ (yusaku)
+
  AMBARI-1183. Directories in the service config textarea should not wrap.
  (yusaku)
 

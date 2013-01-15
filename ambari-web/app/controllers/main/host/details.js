@@ -22,9 +22,7 @@ App.MainHostDetailsController = Em.Controller.extend({
   name: 'mainHostDetailsController',
   content: null,
   isFromHosts: false,
-  isAdmin: function(){
-    return App.db.getUser().admin;
-  }.property('App.router.loginController.loginName'),
+
   routeHome: function () {
     App.router.transitionTo('main.dashboard');
   },

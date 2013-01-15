@@ -25,10 +25,6 @@ App.MainHostController = Em.ArrayController.extend({
   content: App.Host.find(),
   comeWithFilter: false,
 
-  isAdmin: function(){
-    return App.router.getUser().admin;
-  }.property('App.router.loginController.loginName'),
-
   /**
    * Components which will be shown in component filter
    */

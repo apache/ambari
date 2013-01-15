@@ -20,9 +20,7 @@ var App = require('app');
 
 App.MainServiceItemController = Em.Controller.extend({
   name: 'mainServiceItemController',
-  isAdmin: function(){
-    return App.db.getUser().admin;
-  }.property('App.router.loginController.loginName'),
+
   /**
    * Send specific command to server
    * @param url

@@ -19,7 +19,7 @@
 <div class="row-fluid">
   <div id="services-menu" class="well span2" style="padding: 8px 0">
     {{view App.MainServiceMenuView}}
-    {{#if controller.isAdmin}}
+    {{#if App.isAdmin}}
     {{#if App.addServicesEnabled}}
     <div class="add-service-button">
       <a class="btn" {{action addService href="true"}}>

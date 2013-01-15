@@ -54,7 +54,7 @@
               <a href="#" {{action routeToService component.service target="controller"  }}>{{component.service.displayName}}</a>
             </div>
             <div class="span4">
-              {{#if controller.isAdmin}}
+              {{#if App.isAdmin}}
               <div class="btn-group">
                 <a {{ bindAttr class=":btn :dropdown-toggle view.disabledClass"}} data-toggle="dropdown">
                   Action

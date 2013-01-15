@@ -27,7 +27,11 @@ module.exports = Em.Application.create({
     adapter: DS.FixtureAdapter.create({
       simulateRemoteResponse: false
     })
-  })
+  }),
+  isAdmin : function(){
+    var user = this.db && this.db.getUser();
+    return user ? user.admin : false;
+  }.property()
 });
 
 /**

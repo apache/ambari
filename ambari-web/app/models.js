@@ -41,3 +41,5 @@ require('models/run');
 require('models/app');
 require('models/background_operation');
 require('models/host_component');
+
+require('classes/run_class');
