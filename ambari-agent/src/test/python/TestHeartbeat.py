@@ -47,7 +47,7 @@ class TestHeartbeat(TestCase):
     self.assertEquals(len(result['nodeStatus']), 2)
     self.assertEquals(result['nodeStatus']['cause'], "NONE")
     self.assertEquals(result['nodeStatus']['status'], "HEALTHY")
-    self.assertEquals(len(result), 6)
+    self.assertEquals(len(result), 7)
     self.assertEquals(not heartbeat.reports, True, "Heartbeat should not contain task in progress")
 
 

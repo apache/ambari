@@ -37,6 +37,7 @@ public class HeartBeat {
   List<CommandReport> reports = new ArrayList<CommandReport>();
   List<ComponentStatus> componentStatus = new ArrayList<ComponentStatus>();
   HostStatus nodeStatus;
+  private AgentEnv agentEnv = null;
 
   public long getResponseId() {
     return responseId;
@@ -78,6 +79,14 @@ public class HeartBeat {
 
   public void setNodeStatus(HostStatus nodeStatus) {
     this.nodeStatus = nodeStatus;
+  }
+  
+  public AgentEnv getAgentEnv() {
+    return agentEnv;
+  }
+  
+  public void setAgentEnv(AgentEnv env) {
+    agentEnv = env;
   }
 
   @JsonProperty("componentStatus")

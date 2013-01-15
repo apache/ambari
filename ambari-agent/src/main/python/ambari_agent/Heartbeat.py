@@ -23,11 +23,13 @@ import logging
 from Hardware import Hardware
 from ActionQueue import ActionQueue
 from ServerStatus import ServerStatus
+import NetUtil
 import AmbariConfig
 import socket
 import time
 import traceback
 from pprint import pprint, pformat
+from HostInfo import HostInfo
 
 logger = logging.getLogger()
 
@@ -38,7 +40,7 @@ class Heartbeat:
     self.actionQueue = actionQueue
     self.reports = []
 
-  def build(self, id='-1'):
+  def build(self, id='-1', state_interval=-1):
     global clusterId, clusterDefinitionRevision, firstContact
     timestamp = int(time.time()*1000)
     queueResult = self.actionQueue.result()
@@ -52,6 +54,13 @@ class Heartbeat:
                   'hostname'          : socket.getfqdn(),
                   'nodeStatus'        : nodeStatus
                 }
+    if (int(id) >= 0) and (int(id) % state_interval) == 0:
+      hostInfo = HostInfo()
+      nodeInfo = { }
+      # for now, just do the same work as registration
+      hostInfo.register(nodeInfo)
+      heartbeat['agentEnv'] = nodeInfo
+
     if len(queueResult) != 0:
       heartbeat['reports'] = queueResult['reports']
       heartbeat['componentStatus'] = queueResult['componentStatus']
@@ -60,9 +69,9 @@ class Heartbeat:
     return heartbeat
 
 def main(argv=None):
-  actionQueue = ActionQueue()
+  actionQueue = ActionQueue(AmbariConfig.config)
   heartbeat = Heartbeat(actionQueue)
-  print json.dumps(heartbeat.build())
+  print json.dumps(heartbeat.build('3',3))
 
 if __name__ == '__main__':
   main()

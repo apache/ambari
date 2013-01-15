@@ -151,9 +151,9 @@ public class HeartBeatHandler {
     }
 
     try {
-      if (heartbeat.getNodeStatus().getStatus()
-          .equals(HostStatus.Status.HEALTHY)) {
-        hostObject.handleEvent(new HostHealthyHeartbeatEvent(hostname, now));
+      if (heartbeat.getNodeStatus().getStatus().equals(HostStatus.Status.HEALTHY)) {
+        hostObject.handleEvent(new HostHealthyHeartbeatEvent(hostname, now,
+            heartbeat.getAgentEnv()));
       } else {
         hostObject.handleEvent(new HostUnhealthyHeartbeatEvent(hostname, now,
             null));
@@ -349,7 +349,7 @@ public class HeartBeatHandler {
 
     hostObject.handleEvent(new HostRegistrationRequestEvent(hostname,
         null != register.getPublicHostname() ? register.getPublicHostname() : hostname,
-        new AgentVersion("v1"), now, register.getHardwareProfile()));
+        new AgentVersion("v1"), now, register.getHardwareProfile(), register.getAgentEnv()));
     RegistrationResponse response = new RegistrationResponse();
     if (cmds.isEmpty()) {
       //No status commands needed let the fsm know that status step is done

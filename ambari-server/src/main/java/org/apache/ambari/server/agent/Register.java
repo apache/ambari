@@ -31,6 +31,7 @@ public class Register {
   private String hostname;
   private HostInfo hardwareProfile;
   private String publicHostname;
+  private AgentEnv agentEnv;
 
   @JsonProperty("responseId")
   public int getResponseId() {
@@ -50,28 +51,36 @@ public class Register {
     return hostname;
   }
   
-  public HostInfo getHardwareProfile() {
-    return hardwareProfile;
-  }
-
-  public void setTimestamp(long timestamp) {
-    this.timestamp = timestamp;
-  }
-
   public void setHostname(String hostname) {
     this.hostname = hostname;
   }
-
+  
+  public HostInfo getHardwareProfile() {
+    return hardwareProfile;
+  }
+  
   public void setHardwareProfile(HostInfo hardwareProfile) {
     this.hardwareProfile = hardwareProfile;
   }
   
+  public void setTimestamp(long timestamp) {
+    this.timestamp = timestamp;
+  }
+
   public String getPublicHostname() {
     return publicHostname;
   }
   
   public void setPublicHostname(String name) {
     publicHostname = name;
+  }
+  
+  public AgentEnv getAgentEnv() {
+    return agentEnv;
+  }
+  
+  public void setAgentEnv(AgentEnv env) {
+    agentEnv = env;
   }
 
   @Override

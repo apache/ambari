@@ -1,12 +1,27 @@
 Ambari   Change log
 
+
+Trunk:
+
+ INCOMPATIBLE CHANGES 
+
+ NEW FEATURES:
+
+ AMBARI-1163. During agent registration and heartbeat, send information about
+ various hadoop artifacts back to Ambari. (Nate Cole via mahadev)
+
+ BUG FIXES:
+
+
+
+AMBARI-1.2.0 branch:
+
 Notes:
  - Committers should be listed using their login and non-committers
 should be listed by their full name.
  - Please keep the file to a max of 80 characters wide.
  - Put latest commits first in each section.
 
-  Merging AMBARI-666 to trunk.
 
  INCOMPATIBLE CHANGES
  

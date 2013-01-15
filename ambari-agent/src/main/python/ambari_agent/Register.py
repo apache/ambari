@@ -27,6 +27,7 @@ import socket
 import time
 import urllib2
 import subprocess
+from HostInfo import HostInfo
 
 
 firstContact = True
@@ -38,7 +39,7 @@ class Register:
 
   def pfqdn(self):
     try:
-      handle = urllib2.urlopen('http://169.254.169.254/latest/meta-data/public-hostname', '', 3)
+      handle = urllib2.urlopen('http://169.254.169.254/latest/meta-data/public-hostname', '', 2)
       str = handle.read()
       handle.close()
       return str
@@ -48,12 +49,19 @@ class Register:
   def build(self, id='-1'):
     global clusterId, clusterDefinitionRevision, firstContact
     timestamp = int(time.time()*1000)
+   
+    hostInfo = HostInfo() 
+    agentEnv = { }
+    hostInfo.register(agentEnv)
+    
     register = { 'responseId'        : int(id),
                   'timestamp'         : timestamp,
                   'hostname'          : socket.getfqdn(),
                   'publicHostname'    : self.pfqdn(),
                   'hardwareProfile'   : self.hardware.get(),
+                  'agentEnv'          : agentEnv
                 }
+    print str(time.time())
     return register
 
 def doExec(vals, key, command, preLF=False):

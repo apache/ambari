@@ -21,15 +21,14 @@ package org.apache.ambari.server.state.cluster;
 import static org.junit.Assert.fail;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import com.google.inject.Guice;
-import com.google.inject.Injector;
-import com.google.inject.persist.PersistService;
 import junit.framework.Assert;
 
 import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.agent.AgentEnv;
 import org.apache.ambari.server.agent.DiskInfo;
 import org.apache.ambari.server.agent.HostInfo;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
@@ -54,6 +53,10 @@ import org.apache.ambari.server.state.host.HostRegistrationRequestEvent;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+
+import com.google.inject.Guice;
+import com.google.inject.Injector;
+import com.google.inject.persist.PersistService;
 
 public class ClusterTest {
 
@@ -139,11 +142,24 @@ public class ClusterTest {
         "5000000", "4000000", "10%", "size", "fstype"));
     hostInfo.setMounts(mounts);
 
+    AgentEnv agentEnv = new AgentEnv();
+    Map<String, String> etcDirs = new HashMap<String, String>();
+    etcDirs.put("hadoop", "not_exist");
+    agentEnv.setEtcDirs(etcDirs);
+    
+    Map<String, String> varRunDirs = new HashMap<String, String>();
+    varRunDirs.put("hadoop", "not_exist");
+    agentEnv.setVarRunDirs(varRunDirs);
+    
+    Map<String, String> varLogDirs = new HashMap<String, String>();
+    varLogDirs.put("hadoop", "not_exist");
+    agentEnv.setVarLogDirs(varLogDirs);
+    
     AgentVersion agentVersion = new AgentVersion("0.0.x");
     long currentTime = 1001;
 
     clusters.getHost("h1").handleEvent(new HostRegistrationRequestEvent(
-        "h1", agentVersion, currentTime, hostInfo));
+        "h1", agentVersion, currentTime, hostInfo, agentEnv));
 
     Assert.assertEquals(HostState.WAITING_FOR_HOST_STATUS_UPDATES,
         clusters.getHost("h1").getState());
@@ -152,7 +168,7 @@ public class ClusterTest {
 
     try {
       clusters.getHost("h1").handleEvent(
-          new HostHealthyHeartbeatEvent("h1", currentTime));
+          new HostHealthyHeartbeatEvent("h1", currentTime, null));
       fail("Exception should be thrown on invalid event");
     }
     catch (InvalidStateTransitionException e) {

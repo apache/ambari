@@ -34,4 +34,5 @@ class TestRegistration(TestCase):
     self.assertEquals(data['publicHostname'] != "", True, "publicHostname should not be empty")
     self.assertEquals(data['responseId'], 1)
     self.assertEquals(data['timestamp'] > 1353678475465L, True, "timestamp should not be empty")
-    self.assertEquals(len(data), 5)
+    self.assertEquals(len(data['agentEnv']) > 0, True, "agentEnv should not be empty")
+    self.assertEquals(len(data), 6)
