@@ -1,4 +1,4 @@
-Ambari Change log
+Ambari   Change log
 
 Notes:
  - Committers should be listed using their login and non-committers
