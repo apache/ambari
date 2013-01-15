@@ -47,11 +47,14 @@ $ svn checkout http://svn.apache.org/repos/asf/incubator/ambari/trunk ambari
 
 JIRA
 
-  You can follow all the work going on by watching the Ambari JIRA project. We
-  anticipate the next release of Apache Ambari to be version 1.2.0. You can see the
+  You can follow all the work going on by watching the Ambari JIRA project. The next release of Apache Ambari will be version 1.2.0. You can see the
   JIRA details for this release here:
 
   {{{https://issues.apache.org/jira/issues/?jql=fixVersion%20%3D%20%221.2.0%22%20AND%20project%20%3D%20AMBARI} https://issues.apache.org/jira/issues/?jql=fixVersion%20%3D%20%221.2.0%22%20AND%20project%20%3D%20AMBARI}}
+
+User Guide
+
+  {{{http://incubator.apache.org/ambari/1.2.0/installing-hadoop-using-ambari/content/index.html} See how to install a Hadoop cluster using Ambari 1.2.0}}
 
 Stay Tuned
 

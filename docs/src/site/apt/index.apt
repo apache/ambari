@@ -26,8 +26,6 @@ Introduction
 
   * {{{http://incubator.apache.org/hcatalog} Apache HCatalog}}
 
-  * {{{http://people.apache.org/~thejas/templeton_doc_latest/index.html} Apache Templeton}}
-
   * {{{http://hbase.apache.org} Apache HBase}}
 
   * {{{http://zookeeper.apache.org} Apache Zookeeper}}
@@ -68,7 +66,7 @@ Introduction
 
 Ambari Source
 
-  Follow the  {{{./install-0.9.html} installation guide for 0.9 (stable)}} or check out the work going on in {{{./whats-new.html} trunk}}.
+  Follow the  {{{./install-0.9.html} installation guide for 0.9 (stable)}} or check out the work going on in {{{./whats-new.html} trunk}} for the upcoming 1.2.0 release.
 
 Roadmap
 
@@ -76,14 +74,14 @@ Roadmap
 
     * Ambari currently supports 64-bit RHEL and CentOS 5 + 6
 
-    * Future support for SLES 11 is coming soon
+    * SLES 11 support (1.2.0)
 
   []
 
   * RESTful API for integration
   
     * Ambari will expose a unified, RESTful API to enable third-party applications to integrate
-      Hadoop cluster management and monitoring capabilities.
+      Hadoop cluster management and monitoring capabilities (1.2.0)
 
   []
 
@@ -101,14 +99,16 @@ Roadmap
 
       * Role-based user authentication, authorization, and auditing
 
-      * Support for LDAP and Active Directory
+      * Support for LDAP and Active Directory (1.2.0)
 
   []
 
   * Visualization
 
-      * Interactive visualization of current and historical states of the cluster for a number of key metrics
+      * Interactive visualization of the current state of the cluster for a number of key metrics (1.2.0)
 
-      * Interactive visualization of Pig, Hive, and MapReduce jobs
+      * Interactive visualization of historical states of the cluster for a number of key metrics
+
+      * Interactive visualization of Pig, Hive, and MapReduce jobs (1.2.0)
 
   []

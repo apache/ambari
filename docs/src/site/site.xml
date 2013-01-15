@@ -82,12 +82,13 @@
     </menu>
 
     <menu name="Releases">
-        <item name="0.9 (stable)" href="http://www.apache.org/dist/incubator/ambari/ambari-0.9-incubating/"/>
         <item name="1.2.0 (coming soon)" href="whats-new.html"/>
+        <item name="0.9" href="http://www.apache.org/dist/incubator/ambari/ambari-0.9-incubating/"/>
     </menu>
 
     <menu name="Documentation">
-        <item name="Install Guide for 0.9 (stable)" href="install-0.9.html"/>
+        <item name="Install Guide for 1.2.0" href="1.2.0/installing-hadoop-using-ambari/content/index.html"/>
+        <item name="Install Guide for 0.9" href="install-0.9.html"/>
     </menu>
 
     <footer>

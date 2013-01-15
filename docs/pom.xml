@@ -179,6 +179,18 @@
             </organization>            
         </developer>
         <developer>
+            <id>jspeidel</id>
+            <name>John Speidel</name>
+            <email>jspeidel@apache.org</email>
+            <timezone>-8</timezone>
+            <roles>
+                <role>Committer</role>
+            </roles>
+            <organization>
+                Hortonworks
+            </organization>
+        </developer>
+        <developer>
             <id>kzhang</id>
             <name>Kan Zhang</name>
             <email>kanzhangmail@yahoo.com</email>
@@ -225,6 +237,30 @@
             <organization>
                 Hortonworks
             </organization>            
+        </developer>
+        <developer>
+            <id>srimanth</id>
+            <name>Srimanth Gunturi</name>
+            <email>srimanth@apache.org</email>
+            <timezone>-8</timezone>
+            <roles>
+                <role>Committer</role>
+            </roles>
+            <organization>
+                Hortonworks
+            </organization>
+        </developer>
+        <developer>
+            <id>tbeerbower</id>
+            <name>Thomas Beerbower</name>
+            <email>tbeerbower@apache.org</email>
+            <timezone>-8</timezone>
+            <roles>
+                <role>Committer</role>
+            </roles>
+            <organization>
+                Hortonworks
+            </organization>
         </developer>
         <developer>
             <id>vikram</id>
