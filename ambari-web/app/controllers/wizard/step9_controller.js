@@ -517,6 +517,8 @@ App.WizardStep9Controller = Em.Controller.extend({
     }, this);
   },
 
+  logTasksChangesCounter: 0,
+
   // This is done at HostRole level.
   setLogTasksStatePerHost: function (tasksPerHost, host) {
     console.log('In step9 setTasksStatePerHost function.');
@@ -530,6 +532,7 @@ App.WizardStep9Controller = Em.Controller.extend({
       host.logTasks.pushObject(_task);
       //}
     }, this);
+    this.set('logTasksChangesCounter', this.get('logTasksChangesCounter') + 1);
   },
 
   parseHostInfo: function (polledData) {

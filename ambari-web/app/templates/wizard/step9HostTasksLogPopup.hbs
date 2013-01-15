@@ -29,18 +29,16 @@
     </div>
   </div>
   <div id="host-log">
-    {{#each role in view.roles}}
-    {{#each taskInfo in role.taskInfos}}
+    {{#each taskInfo in view.tasks}}
     <div {{bindAttr class="taskInfo.isVisible::hidden :log-list-wrap"}}>
       <div {{action toggleTaskLog taskInfo}} class="task-list-line-cursor">
         <i {{bindAttr class="taskInfo.status taskInfo.icon"}}></i>
         <a href="#" class="" >
-          {{{role.roleName}} {{taskInfo.command}}
+          {{{taskInfo.role}} {{taskInfo.command}}
         </a>
         <div class="show-details"><i class="icon-caret-right"></i></div>
       </div>
     </div>
-    {{/each}}
     {{/each}}
     {{#if view.isEmptyList}}
       <div class="log-list-wrap">No tasks to show</div>
@@ -53,8 +51,8 @@
     <a class="task-detail-back" href="javascript:void(null)" {{action backToTaskList}} ><i class="icon-arrow-left"></i>&nbsp;Tasks</a>
     <div>
       <!--<img src="data:image/png;base64,R0lGODlhFAAUAIAAAP///wAAACH5BAEAAAAALAAAAAAUABQAAAIRhI+py+0Po5y02ouz3rz7rxUAOw==" class="task-detail-status-ico" />-->
-      <i class="task-detail-status-ico"></i>
-      <span class="task-detail-log-rolename" ></span>
+      <i {{bindAttr class="view.openedTask.status :task-detail-status-ico view.openedTask.icon"}} class="task-detail-status-ico"></i>
+      <span class="task-detail-log-rolename" >{{{view.openedTask.role}} {{view.openedTask.command}}</span>
     </div>
     <div class="task-detail-ico-wrap">
       <div title="Click to Copy" {{action "textTrigger" taskInfo target="view"}} class="task-detail-copy"><i class="icon-copy"></i> Copy</div>
@@ -66,9 +64,9 @@
       <div class="task-detail-log-clipboard-wrap" ></div>
       <div class="task-detail-log-maintext">
         <h5>stderr:</h5>
-        <pre class="stderr"></pre>
+        <pre class="stderr">{{view.openedTask.stderr}}</pre>
         <h5>stdout:</h5>
-        <pre class="stdout"></pre>
+        <pre class="stdout">{{view.openedTask.stdout}}</pre>
       </div>
     </div>
   </div>
