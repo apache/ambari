@@ -28,6 +28,9 @@ Trunk (unreleased changes):
 
  BUG FIXES
 
+ AMBARI-1184. After adding hosts, the host count shown in the Dashboard is
+ incorrect. (yusaku)
+
 AMBARI-1.2.0 branch:
 
  INCOMPATIBLE CHANGES

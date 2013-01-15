@@ -259,6 +259,14 @@ App.servicesMapper = App.QuickDataMapper.create({
               dataNodes.pushObject(App.Host.find(ldn));
             });
           }
+          // Data nodes
+          dataNodes = e.get('dataNodes');
+          if (dataNodes) {
+            dataNodes.clear();
+            finalJson.data_nodes.forEach(function (ldn) {
+              dataNodes.pushObject(App.Host.find(ldn));
+            });
+          }
         });
         break;
       case 'MAPREDUCE':
