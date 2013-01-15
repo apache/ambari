@@ -23,6 +23,9 @@ should be listed by their full name.
 
  BUG FIXES
 
+ AMBARI-1179. ambari-web does not compile due to less-brunch package update.
+ (yusaku)
+
  AMBARI-1126. Change SUSE lzo dependency to only lzo-devel. (nate cole via
  mahadev)
 
