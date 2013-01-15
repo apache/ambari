@@ -33,11 +33,14 @@ App.ChartServiceMetricsHDFS_FileOperations = App.ChartLinearTimeView.extend({
   url: function () {
     var hdfsService = App.HDFSService.find().objectAt(0);
     var nameNodeHostName = hdfsService.get('nameNode').get('hostName');
-    return App.formatUrl(App.apiPrefix + "/clusters/{clusterName}/hosts/{hostName}/host_components/NAMENODE?fields=metrics/dfs/namenode/FileInfoOps[{fromSeconds},{toSeconds},{stepSeconds}],metrics/dfs/namenode/CreateFileOps[{fromSeconds},{toSeconds},{stepSeconds}]", {
-      clusterName: App.router.get('clusterController.clusterName'),
-      hostName: nameNodeHostName
-    }, "/data/services/metrics/hdfs/file_operations.json");
-  }.property('App.router.clusterController.clusterName').volatile(),
+    return App.formatUrl(
+      this.get('urlPrefix') + "/hosts/{hostName}/host_components/NAMENODE?fields=metrics/dfs/namenode/FileInfoOps[{fromSeconds},{toSeconds},{stepSeconds}],metrics/dfs/namenode/CreateFileOps[{fromSeconds},{toSeconds},{stepSeconds}]",
+      {
+        hostName: nameNodeHostName
+      },
+      "/data/services/metrics/hdfs/file_operations.json"
+    );
+  }.property('clusterName').volatile(),
 
   transformToSeries: function (jsonData) {
     var seriesArray = [];
@@ -59,21 +62,7 @@ App.ChartServiceMetricsHDFS_FileOperations = App.ChartLinearTimeView.extend({
             break;
         }
         if (seriesData) {
-          // Is it a string?
-          if ("string" == typeof seriesData) {
-            seriesData = JSON.parse(seriesData);
-          }
-          // We have valid data
-          var series = {};
-          series.name = displayName;
-          series.data = [];
-          for ( var index = 0; index < seriesData.length; index++) {
-            series.data.push({
-              x: seriesData[index][1],
-              y: seriesData[index][0]
-            });
-          }
-          seriesArray.push(series);
+          seriesArray.push(this.transformData(seriesData, displayName));
         }
       }
     }

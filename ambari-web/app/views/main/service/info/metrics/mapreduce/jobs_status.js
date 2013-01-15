@@ -31,10 +31,12 @@ App.ChartServiceMetricsMapReduce_JobsStatus = App.ChartLinearTimeView.extend({
   title: "Jobs Status",
   renderer: 'line',
   url: function () {
-    return App.formatUrl(App.apiPrefix + "/clusters/{clusterName}/services/MAPREDUCE/components/JOBTRACKER?fields=metrics/mapred/jobtracker/jobs_completed[{fromSeconds},{toSeconds},{stepSeconds}],metrics/mapred/jobtracker/jobs_preparing[{fromSeconds},{toSeconds},{stepSeconds}],metrics/mapred/jobtracker/jobs_failed[{fromSeconds},{toSeconds},{stepSeconds}],metrics/mapred/jobtracker/jobs_submitted[{fromSeconds},{toSeconds},{stepSeconds}],metrics/mapred/jobtracker/jobs_failed[{fromSeconds},{toSeconds},{stepSeconds}],metrics/mapred/jobtracker/jobs_running[{fromSeconds},{toSeconds},{stepSeconds}]", {
-      clusterName: App.router.get('clusterController.clusterName')
-    }, "/data/services/metrics/mapreduce/jobs_status.json");
-  }.property('App.router.clusterController.clusterName').volatile(),
+    return App.formatUrl(
+      this.get('urlPrefix') + "/services/MAPREDUCE/components/JOBTRACKER?fields=metrics/mapred/jobtracker/jobs_completed[{fromSeconds},{toSeconds},{stepSeconds}],metrics/mapred/jobtracker/jobs_preparing[{fromSeconds},{toSeconds},{stepSeconds}],metrics/mapred/jobtracker/jobs_failed[{fromSeconds},{toSeconds},{stepSeconds}],metrics/mapred/jobtracker/jobs_submitted[{fromSeconds},{toSeconds},{stepSeconds}],metrics/mapred/jobtracker/jobs_failed[{fromSeconds},{toSeconds},{stepSeconds}],metrics/mapred/jobtracker/jobs_running[{fromSeconds},{toSeconds},{stepSeconds}]",
+      {},
+      "/data/services/metrics/mapreduce/jobs_status.json"
+    );
+  }.property('clusterName').volatile(),
 
   transformToSeries: function (jsonData) {
     var seriesArray = [];
@@ -62,21 +64,7 @@ App.ChartServiceMetricsMapReduce_JobsStatus = App.ChartLinearTimeView.extend({
             break;
         }
         if (seriesData) {
-          // Is it a string?
-          if ("string" == typeof seriesData) {
-            seriesData = JSON.parse(seriesData);
-          }
-          // We have valid data
-          var series = {};
-          series.name = displayName;
-          series.data = [];
-          for ( var index = 0; index < seriesData.length; index++) {
-            series.data.push({
-              x: seriesData[index][1],
-              y: seriesData[index][0]
-            });
-          }
-          seriesArray.push(series);
+          seriesArray.push(this.transformData(seriesData, displayName));
         }
       }
     }

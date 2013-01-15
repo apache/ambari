@@ -32,11 +32,14 @@ App.ChartHostMetricsNetwork = App.ChartLinearTimeView.extend({
   yAxisFormatter: App.ChartLinearTimeView.BytesFormatter,
   renderer: 'line',
   url: function () {
-    return App.formatUrl(App.apiPrefix + "/clusters/{clusterName}/hosts/{hostName}?fields=metrics/network/bytes_in[{fromSeconds},{toSeconds},{stepSeconds}],metrics/network/bytes_out[{fromSeconds},{toSeconds},{stepSeconds}],metrics/network/pkts_in[{fromSeconds},{toSeconds},{stepSeconds}],metrics/network/pkts_out[{fromSeconds},{toSeconds},{stepSeconds}]", {
-      clusterName: App.router.get('clusterController.clusterName'),
-      hostName: this.get('content').get('hostName')
-    }, "/data/hosts/metrics/network.json");
-  }.property('App.router.clusterController.clusterName').volatile(),
+    return App.formatUrl(
+      this.get('urlPrefix') + "/hosts/{hostName}?fields=metrics/network/bytes_in[{fromSeconds},{toSeconds},{stepSeconds}],metrics/network/bytes_out[{fromSeconds},{toSeconds},{stepSeconds}],metrics/network/pkts_in[{fromSeconds},{toSeconds},{stepSeconds}],metrics/network/pkts_out[{fromSeconds},{toSeconds},{stepSeconds}]",
+      {
+        hostName: this.get('content').get('hostName')
+      },
+      "/data/hosts/metrics/network.json"
+    );
+  }.property('clusterName').volatile(),
 
   transformToSeries: function (jsonData) {
     var seriesArray = [];
@@ -61,21 +64,7 @@ App.ChartHostMetricsNetwork = App.ChartLinearTimeView.extend({
             break;
         }
         if (seriesData) {
-          // Is it a string?
-          if ("string" == typeof seriesData) {
-            seriesData = JSON.parse(seriesData);
-          }
-          // We have valid data
-          var series = {};
-          series.name = displayName;
-          series.data = [];
-          for ( var index = 0; index < seriesData.length; index++) {
-            series.data.push({
-              x: seriesData[index][1],
-              y: seriesData[index][0]
-            });
-          }
-          seriesArray.push(series);
+          seriesArray.push(this.transformData(seriesData, displayName));
         }
       }
     }

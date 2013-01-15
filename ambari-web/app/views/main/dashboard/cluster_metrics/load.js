@@ -29,12 +29,14 @@ var App = require('app');
  */
 App.ChartClusterMetricsLoad = App.ChartLinearTimeView.extend({
   id: "cluster-metrics-load",
-  url: "/data/cluster_metrics/load_1hr.json",
   url: function () {
-    return App.formatUrl(App.apiPrefix + "/clusters/{clusterName}?fields=metrics/load[{fromSeconds},{toSeconds},{stepSeconds}]", {
-      clusterName: App.router.get('clusterController.clusterName')
-    }, "/data/cluster_metrics/load_1hr.json");
-  }.property('App.router.clusterController.clusterName').volatile(),
+    return App.formatUrl(
+      this.get('urlPrefix') + "?fields=metrics/load[{fromSeconds},{toSeconds},{stepSeconds}]",
+      {},
+      "/data/cluster_metrics/load_1hr.json"
+    );
+  }.property('clusterName').volatile(),
+
   renderer: 'line',
   title: "Cluster Load",
   
@@ -45,21 +47,7 @@ App.ChartClusterMetricsLoad = App.ChartLinearTimeView.extend({
         var displayName = name;
         var seriesData = jsonData.metrics.load[name];
         if (seriesData) {
-          // Is it a string?
-          if ("string" == typeof seriesData) {
-            seriesData = JSON.parse(seriesData);
-          }
-          // We have valid data
-          var series = {};
-          series.name = displayName;
-          series.data = [];
-          for ( var index = 0; index < seriesData.length; index++) {
-            series.data.push({
-              x: seriesData[index][1],
-              y: seriesData[index][0]
-            });
-          }
-          seriesArray.push(series);
+          seriesArray.push(this.transformData(seriesData, displayName));
         }
       }
     }

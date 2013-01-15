@@ -32,14 +32,18 @@ App.ChartHostMetricsDisk = App.ChartLinearTimeView.extend({
   yAxisFormatter: App.ChartLinearTimeView.BytesFormatter,
   renderer: 'line',
   url: function () {
-    return App.formatUrl(App.apiPrefix + "/clusters/{clusterName}/hosts/{hostName}?fields=metrics/disk/disk_total[{fromSeconds},{toSeconds},{stepSeconds}],metrics/disk/disk_free[{fromSeconds},{toSeconds},{stepSeconds}]", {
-      clusterName: App.router.get('clusterController.clusterName'),
-      hostName: this.get('content').get('hostName')
-    }, "/data/hosts/metrics/disk.json");
-  }.property('App.router.clusterController.clusterName').volatile(),
+    return App.formatUrl(
+      this.get('urlPrefix') + "/hosts/{hostName}?fields=metrics/disk/disk_total[{fromSeconds},{toSeconds},{stepSeconds}],metrics/disk/disk_free[{fromSeconds},{toSeconds},{stepSeconds}]",
+      {
+        hostName: this.get('content').get('hostName')
+      },
+      "/data/hosts/metrics/disk.json"
+    );
+  }.property('clusterName').volatile(),
 
   transformToSeries: function (jsonData) {
     var seriesArray = [];
+    var GB = Math.pow(2, 30);
     if (jsonData && jsonData.metrics && jsonData.metrics.disk) {
       if(jsonData.metrics.part_max_used){
         jsonData.metrics.disk.part_max_used = jsonData.metrics.part_max_used;
@@ -58,22 +62,11 @@ App.ChartHostMetricsDisk = App.ChartLinearTimeView.extend({
             break;
         }
         if (seriesData) {
-          // Is it a string?
-          if ("string" == typeof seriesData) {
-            seriesData = JSON.parse(seriesData);
+          var s = this.transformData(seriesData, displayName);
+          for (var i = 0; i < s.data.length; i++) {
+            s.data[i].y *= GB;
           }
-          // We have valid data
-          var GB = Math.pow(2, 30);
-          var series = {};
-          series.name = displayName;
-          series.data = [];
-          for ( var index = 0; index < seriesData.length; index++) {
-            series.data.push({
-              x: seriesData[index][1],
-              y: seriesData[index][0] * GB
-            });
-          }
-          seriesArray.push(series);
+          seriesArray.push(s);
         }
       }
     }

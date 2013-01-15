@@ -46,553 +46,575 @@ var string_utils = require('utils/string_utils');
  * @extends Ember.View
  */
 App.ChartLinearTimeView = Ember.View.extend({
-      templateName: require('templates/main/charts/linear_time'),
-
-      /**
-       * The URL from which data can be retrieved.
-       * 
-       * This property must be provided for the graph to show properly.
-       * 
-       * @type String
-       * @default null
-       */
-      url: null,
-
-      /**
-       * A unique ID for this chart.
-       * 
-       * @type String
-       * @default null
-       */
-      id: null,
-
-      /**
-       * Title to be shown under the chart.
-       * 
-       * @type String
-       * @default null
-       */
-      title: null,
-
-      /**
-       * @private
-       * 
-       * @type Rickshaw.Graph
-       * @default null
-       */
-      _graph: null,
-
-      _popupGraph: null,
-
-      _seriesProperties: null,
-
-      renderer: 'area',
-
-      popupSuffix: '-popup',
-
-      isPopup: false,
-
-      isReady: false,
-
-      isPopupReady: false,
-
-      hasData: true,
-
-      /**
-       * Color palette used for this chart
-       *
-       * @private
-       * @type String[]
-       */
-       /*
-      _paletteScheme: [ 'rgba(181,182,169,0.4)', 'rgba(133,135,114,0.4)',
-          'rgba(120,95,67,0.4)', 'rgba(150,85,126,0.4)',
-          'rgba(70,130,180,0.4)', 'rgba(0,255,204,0.4)',
-          'rgba(255,105,180,0.4)', 'rgba(101,185,172,0.4)',
-          'rgba(115,192,58,0.4)', 'rgba(203,81,58,0.4)' ].reverse(),
-      */
-
-      selector: function () {
-        return '#' + this.get('elementId');
-      }.property('elementId'),
-
-      didInsertElement: function () {
-        this.loadData();
-        this.registerGraph();
-      },
-      registerGraph: function(){
-        var graph = {
-          name: this.get('title'),
-          id: this.get('elementId'),
-          popupId: this.get('id')
-        };
-        App.router.get('updateController.graphs').push(graph);
-      },
-
-      loadData: function() {
-        var validUrl = this.get('url');
-        if (validUrl) {
-          var hash = {};
-          hash.url = validUrl;
-          hash.type = 'GET';
-          hash.dataType = 'json';
-          hash.contentType = 'application/json; charset=utf-8';
-          hash.context = this;
-          hash.success = this._refreshGraph,
-           hash.error = function(xhr, textStatus, errorThrown){
-            this.set('isReady', true);
-            if (xhr.readyState == 4 && xhr.status) {
-              textStatus = xhr.status + " " + textStatus;
-            }
-            this._showMessage('warn', this.t('graphs.error.title'), this.t('graphs.error.message').format(textStatus, errorThrown));
-            this.set('isPopup', false);
-            this.set('hasData', false);
-          }
-          jQuery.ajax(hash);
-        }
-      },
-      
-      /**
-       * Shows a yellow warning message in place of the chart.
-       * 
-       * @param type  Can be any of 'warn', 'error', 'info', 'success'
-       * @param title Bolded title for the message
-       * @param message String representing the message
-       * @type: Function
-       */
-      _showMessage: function(type, title, message){
-        var chartOverlayId = '#' + this.id + '-chart';
-        if (this.get('isPopup')) {
-          chartOverlayId += this.get('popupSuffix');
-        }
-        var typeClass;
-        switch (type) {
-          case 'error':
-            typeClass = 'alert-error';
-            break;
-          case 'success':
-            typeClass = 'alert-success';
-            break;
-          case 'info':
-            typeClass = 'alert-info';
-            break;
-          default:
-            typeClass = '';
-            break;
-        }
-        $(chartOverlayId).html('');
-        $(chartOverlayId).append('<div class=\"alert '+typeClass+'\"><strong>'+title+'</strong> '+message+'</div>');
-      },
-
-      /**
-       * Transforms the JSON data retrieved from the server into the series
-       * format that Rickshaw.Graph understands.
-       * 
-       * The series object is generally in the following format: [ { name :
-       * "Series 1", data : [ { x : 0, y : 0 }, { x : 1, y : 1 } ] } ]
-       * 
-       * Extending classes should override this method.
-       * 
-       * @param jsonData
-       *          Data retrieved from the server
-       * @type: Function
-       * 
-       */
-      transformToSeries: function (jsonData) {
-        return [ {
-          name: "Series 1",
-          data: [ {
-            x: 0,
-            y: 0
-          }, {
-            x: 1,
-            y: 1
-          } ]
-        } ]
-      },
-
-      /**
-       * Provides the formatter to use in displaying Y axis.
-       * 
-       * The default is Rickshaw.Fixtures.Number.formatKMBT which shows 10K,
-       * 300M etc.
-       * 
-       * @type Function
-       */
-      yAxisFormatter: function(y) {
-        var value = Rickshaw.Fixtures.Number.formatKMBT(y);
-        if (value == '') return '0';
-        value = String(value);
-        var c = value[value.length - 1];
-        if (!isNaN(parseInt(c))) {
-          // c is digit
-          value = parseFloat(value).toFixed(3).replace(/0+$/, '').replace(/\.$/, '');
-        }
-        else {
-          // c in not digit
-          value = parseFloat(value.substr(0, value.length - 1)).toFixed(3).replace(/0+$/, '').replace(/\.$/, '') + c;
-        }
-        return value;
-      },
-
-      /**
-       * Provides the color (in any HTML color format) to use for a particular
-       * series.
-       *
-       * @param series
-       *          Series for which color is being requested
-       * @return color String. Returning null allows this chart to pick a color
-       *         from palette.
-       * @default null
-       * @type Function
-       */
-      colorForSeries: function (series) {
-        return null;
-      },
+  templateName: require('templates/main/charts/linear_time'),
 
   /**
-   * Check whether seriesData is correct data for chart drawing
-   * @param seriesData
-   * @return {Boolean}
+   * The URL from which data can be retrieved.
+   *
+   * This property must be provided for the graph to show properly.
+   *
+   * @type String
+   * @default null
    */
-      checkSeries : function(seriesData){
-        if(!seriesData || !seriesData.length){
-          return false;
+  url: null,
+
+  /**
+   * A unique ID for this chart.
+   *
+   * @type String
+   * @default null
+   */
+  id: null,
+
+  /**
+   * Title to be shown under the chart.
+   *
+   * @type String
+   * @default null
+   */
+  title: null,
+
+  /**
+   * @private
+   *
+   * @type Rickshaw.Graph
+   * @default null
+   */
+  _graph: null,
+
+  _popupGraph: null,
+
+  _seriesProperties: null,
+
+  renderer: 'area',
+
+  popupSuffix: '-popup',
+
+  isPopup: false,
+
+  isReady: false,
+
+  isPopupReady: false,
+
+  hasData: true,
+  /**
+   * Current cluster name
+   */
+  clusterName: function() {
+    return App.router.get('clusterController.clusterName');
+  }.property('App.router.clusterController.clusterName'),
+  /**
+   * Url prefix common for all child views
+   */
+  urlPrefix: function() {
+    return App.apiPrefix + "/clusters/" + this.get('clusterName');
+  }.property('clusterName'),
+
+  /**
+   * Color palette used for this chart
+   *
+   * @private
+   * @type String[]
+   */
+   /*
+  _paletteScheme: [ 'rgba(181,182,169,0.4)', 'rgba(133,135,114,0.4)',
+      'rgba(120,95,67,0.4)', 'rgba(150,85,126,0.4)',
+      'rgba(70,130,180,0.4)', 'rgba(0,255,204,0.4)',
+      'rgba(255,105,180,0.4)', 'rgba(101,185,172,0.4)',
+      'rgba(115,192,58,0.4)', 'rgba(203,81,58,0.4)' ].reverse(),
+  */
+
+  selector: function () {
+    return '#' + this.get('elementId');
+  }.property('elementId'),
+
+  didInsertElement: function () {
+    this.loadData();
+    this.registerGraph();
+  },
+  registerGraph: function(){
+    var graph = {
+      name: this.get('title'),
+      id: this.get('elementId'),
+      popupId: this.get('id')
+    };
+    App.router.get('updateController.graphs').push(graph);
+  },
+
+  loadData: function() {
+    var validUrl = this.get('url');
+    if (validUrl) {
+      var hash = {};
+      hash.url = validUrl;
+      hash.type = 'GET';
+      hash.dataType = 'json';
+      hash.contentType = 'application/json; charset=utf-8';
+      hash.context = this;
+      hash.success = this._refreshGraph,
+       hash.error = function(xhr, textStatus, errorThrown){
+        this.set('isReady', true);
+        if (xhr.readyState == 4 && xhr.status) {
+          textStatus = xhr.status + " " + textStatus;
         }
-        var result = true;
-        seriesData.forEach(function(item){
-          if(!item.data.length || !item.data[0] || typeof item.data[0].x === 'undefined'){
-            result = false;
-          }
-        });
-        return result;
-      },
-
-      /**
-       * @private
-       * 
-       * Refreshes the graph with the latest JSON data.
-       * 
-       * @type Function
-       */
-      _refreshGraph: function (jsonData) {
-        var seriesData = this.transformToSeries(jsonData);
-
-        if (this.checkSeries(seriesData)) {
-          //if graph opened as modal popup
-          var popup_path = $("#" + this.id + "-container" + this.get('popupSuffix'));
-          var graph_container = $("#" + this.id + "-container");
-          if(popup_path.length) {
-            popup_path.children().each(function () {
-              $(this).children().remove();
-            });
-            this.set('isPopup', true);
-          }
-          else {
-            graph_container.children().each(function (index, value) {
-              $(value).children().remove();
-            });
-          }
-          // Check container exists (may be not, if we go to another page and wait while graphs loading)
-          if (graph_container.length) {
-            this.draw(seriesData);
-            this.set('hasData', true);
-          }
-        }
-        else {
-          this.set('isReady', true);
-          this._showMessage('info', this.t('graphs.noData.title'), this.t('graphs.noData.message'));
-          this.set('isPopup', false);
-          this.set('hasData', false);
-        }
-      },
-      
-      /**
-       * Returns a custom time unit for the graph's X axis. This is needed
-       * as Rickshaw's default time X axis uses UTC time, which can be confusing
-       * for users expecting locale specific time. This value defaults to
-       * App.ChartLinearTimeView.FifteenMinuteTimeUnit.
-       * 
-       * If <code>null</code> is returned, Rickshaw's default time unit is used.
-       * 
-       * @type Function
-       * @return Rickshaw.Fixtures.Time
-       * @default App.ChartLinearTimeView.FifteenMinuteTimeUnit
-       */
-      localeTimeUnit: function(){
-        return App.ChartLinearTimeView.FifteenMinuteTimeUnit;
-      },
-
-      /**
-       * @private
-       * 
-       * When a graph is given a particular width and height,the lines are drawn
-       * in a slightly bigger area thereby chopping off some of the UI. Hence
-       * after the rendering, we adjust the SVGs size in the DOM to compensate.
-       * 
-       * Opened https://github.com/shutterstock/rickshaw/issues/141
-       * 
-       * @type Function
-       */
-      _adjustSVGHeight: function () {
-        if (this._graph && this._graph.element
-            && this._graph.element.firstChild) {
-          var svgElement = this._graph.element.firstChild;
-          svgElement.setAttribute('height', $(this._graph.element).height()
-              + "px");
-          svgElement.setAttribute('width', $(this._graph.element).width()
-              + "px");
-        }
-      },
-
-      draw: function(seriesData) {
-        var isPopup = this.get('isPopup');
-        var p = '';
-        if (isPopup) {
-          p = this.get('popupSuffix');
-        }
-        var palette = new Rickshaw.Color.Palette({ scheme: 'munin'});
-
-        // var palette = new Rickshaw.Color.Palette({
-        //   scheme: this._paletteScheme
-        // });
-
-        var self = this;
-        var series_min_length = 100000000;
-        seriesData.forEach(function (series, index) {
-          var seriesColor = self.colorForSeries(series);
-          if (seriesColor == null) {
-            seriesColor = palette.color();
-          }
-          series.color = seriesColor;
-          series.stroke = 'rgba(0,0,0,0.3)';
-          if (isPopup) {
-            // calculate statistic data for popup legend
-            var avg = 0;
-            var min = Number.MAX_VALUE;
-            var max = Number.MIN_VALUE;
-            for (var i = 0; i < series.data.length; i++) {
-              avg += series.data[i]['y'];
-              if (series.data[i]['y'] < min) {
-                min = series.data[i]['y'];
-              }
-              else {
-                if (series.data[i]['y'] > max) {
-                  max = series.data[i]['y'];
-                }
-              }
-            }
-            series.name = string_utils.pad(series.name, 30, '&nbsp;', 2) + string_utils.pad('min', 5, '&nbsp;', 3) + string_utils.pad(this.get('yAxisFormatter')(min), 12, '&nbsp;', 3) + string_utils.pad('avg', 5, '&nbsp;', 3) + string_utils.pad(this.get('yAxisFormatter')(avg/series.data.length), 12, '&nbsp;', 3) + string_utils.pad('max', 12, '&nbsp;', 3) + string_utils.pad(this.get('yAxisFormatter')(max), 5, '&nbsp;', 3);
-          }
-          if (series.data.length < series_min_length) {
-            series_min_length = series.data.length;
-          }
-        }.bind(this));
-        seriesData.forEach(function(series, index) {
-          if (series.data.length > series_min_length) {
-            series.data.length = series_min_length;
-          }
-        });
-        var chartId = "#" + this.id + "-chart" + p;
-        var chartOverlayId = "#" + this.id + "-container" + p;
-        var xaxisElementId = "#" + this.id + "-xaxis" + p;
-        var yaxisElementId = "#" + this.id + "-yaxis" + p;
-        var legendElementId = "#" + this.id + "-legend" + p;
-
-        var chartElement = document.querySelector(chartId);
-        var overlayElement = document.querySelector(chartOverlayId);
-        var xaxisElement = document.querySelector(xaxisElementId);
-        var yaxisElement = document.querySelector(yaxisElementId);
-        var legendElement = document.querySelector(legendElementId);
-
-        var strokeWidth = 1;
-        if (this.get('renderer') != 'area') {
-          strokeWidth = 2;
-        }
-
-        var height = 150;
-        var width = 400;
-        if (isPopup) {
-          height = 180;
-          width = 670;
-        } else {
-          // If not in popup, the width could vary.
-          // We determine width based on div's size.
-          var thisElement = this.get('element');
-          if (thisElement!=null) {
-            var calculatedWidth = $(thisElement).width();
-            if (calculatedWidth > 32) {
-              width = calculatedWidth-32;
-            }
-          }
-        }
-        var _graph = new Rickshaw.Graph({
-          height: height,
-          width: width,
-          element: chartElement,
-          series: seriesData,
-          interpolation: 'step-after',
-          stroke: true,
-          renderer: this.get('renderer'),
-          strokeWidth: strokeWidth
-        });
-        if (this.get('renderer') === 'area') {
-          _graph.renderer.unstack = false;
-        }
-
-        xAxis = new Rickshaw.Graph.Axis.Time({
-          graph: _graph,
-          timeUnit: this.localeTimeUnit()
-        });
-
-        var orientation = 'right';
-        if (isPopup) {
-          orientation = 'left';
-        }
-        yAxis = new Rickshaw.Graph.Axis.Y({
-          tickFormat: this.yAxisFormatter,
-          element: yaxisElement,
-          orientation: orientation,
-          graph: _graph
-        });
-
-        var legend = new Rickshaw.Graph.Legend({
-          graph: _graph,
-          element: legendElement
-        });
-
-        if (!isPopup) {
-          overlayElement.addEventListener('mousemove', function () {
-            $(xaxisElement).removeClass('hide');
-            $(legendElement).removeClass('hide');
-            $(chartElement).children("div").removeClass('hide');
-          });
-          overlayElement.addEventListener('mouseout', function () {
-            $(legendElement).addClass('hide');
-          });
-          _graph.onUpdate(function () {
-            $(legendElement).addClass('hide');
-          });
-        }
-
-       var shelving = new Rickshaw.Graph.Behavior.Series.Toggle({
-          graph: _graph,
-          legend: legend
-        });
-
-        var order = new Rickshaw.Graph.Behavior.Series.Order({
-          graph: _graph,
-          legend: legend
-        });
-        //show the graph when it's loaded
-        _graph.onUpdate(function(){
-          self.set('isReady', true);
-        });
-        _graph.render();
-
-        if (isPopup) {
-          var self = this;
-          var hoverDetail = new Rickshaw.Graph.HoverDetail({
-            graph: _graph,
-            yFormatter:function (y) {
-              return self.yAxisFormatter(y);
-            },
-            xFormatter:function (x) {
-              return (new Date(x * 1000)).toLocaleTimeString();
-            },
-            formatter:function (series, x, y, formattedX, formattedY, d) {
-              return formattedY + '<br />' + formattedX;
-            }
-          });
-        }
-
-        if (isPopup) {
-          var self = this;
-          // In popup save selected metrics and show only them after data update
-          _graph.series.forEach(function(series, index) {
-            if (self.get('_seriesProperties') !== null && self.get('_seriesProperties')[index] !== null) {
-              if(self.get('_seriesProperties')[self.get('_seriesProperties').length - index - 1].length > 1) {
-                $('#'+self.get('id')+'-container'+self.get('popupSuffix')+' a.action:eq('+(self.get('_seriesProperties').length - index - 1)+')').parent('li').addClass('disabled');
-                series.disable();
-              }
-            }
-          });
-          //show the graph when it's loaded
-          _graph.onUpdate(function(){
-            self.set('isPopupReady', true);
-          });
-          _graph.update();
-
-          $('li.line').click(function() {
-            var series = [];
-            $('#'+self.get('id')+'-container'+self.get('popupSuffix')+' a.action').each(function(index, v) {
-              series[index] = v.parentNode.classList;
-            });
-            self.set('_seriesProperties', series);
-          });
-
-          this.set('_popupGraph', _graph);
-        }
-        else {
-          this.set('_graph', _graph);
-        }
+        this._showMessage('warn', this.t('graphs.error.title'), this.t('graphs.error.message').format(textStatus, errorThrown));
         this.set('isPopup', false);
-      },
+        this.set('hasData', false);
+      }
+      jQuery.ajax(hash);
+    }
+  },
 
+  /**
+   * Shows a yellow warning message in place of the chart.
+   *
+   * @param type  Can be any of 'warn', 'error', 'info', 'success'
+   * @param title Bolded title for the message
+   * @param message String representing the message
+   * @type: Function
+   */
+  _showMessage: function(type, title, message){
+    var chartOverlayId = '#' + this.id + '-chart';
+    if (this.get('isPopup')) {
+      chartOverlayId += this.get('popupSuffix');
+    }
+    var typeClass;
+    switch (type) {
+      case 'error':
+        typeClass = 'alert-error';
+        break;
+      case 'success':
+        typeClass = 'alert-success';
+        break;
+      case 'info':
+        typeClass = 'alert-info';
+        break;
+      default:
+        typeClass = '';
+        break;
+    }
+    $(chartOverlayId).html('');
+    $(chartOverlayId).append('<div class=\"alert '+typeClass+'\"><strong>'+title+'</strong> '+message+'</div>');
+  },
 
-      showGraphInPopup: function() {
-        if(!this.get('hasData')){
-          return;
-        }
-
-        this.set('isPopup', true);
-        var self = this;
-        App.ModalPopup.show({
-          template: Ember.Handlebars.compile([
-            '<div class="modal-backdrop"></div><div class="modal modal-graph-line" id="modal" tabindex="-1" role="dialog" aria-labelledby="modal-label" aria-hidden="true">',
-            '<div class="modal-header">',
-            '<a class="close" {{action onClose target="view"}}>x</a>',
-            '<h3 id="modal-label">',
-            '{{#if headerClass}}{{view headerClass}}',
-            '{{else}}{{header}}{{/if}}',
-            '</h3>',
-            '</div>',
-            '<div class="modal-body">',
-            '{{#if bodyClass}}{{view bodyClass}}',
-            '{{else}}',
-              '<div class="screensaver no-borders chart-container" {{bindAttr class="view.isReady:hide"}} ></div>',
-              '<div id="'+this.get('id')+'-container'+this.get('popupSuffix')+'" class="chart-container chart-container'+this.get('popupSuffix')+' hide" {{bindAttr class="view.isReady:show"}} >',
-                '<div id="'+this.get('id')+'-yaxis'+this.get('popupSuffix')+'" class="'+this.get('id')+'-yaxis chart-y-axis"></div>',
-                '<div id="'+this.get('id')+'-xaxis'+this.get('popupSuffix')+'" class="'+this.get('id')+'-xaxis chart-x-axis"></div>',
-                '<div id="'+this.get('id')+'-legend'+this.get('popupSuffix')+'" class="'+this.get('id')+'-legend chart-legend"></div>',
-                '<div id="'+this.get('id')+'-chart'+this.get('popupSuffix')+'" class="'+this.get('id')+'-chart chart"></div>',
-                '<div id="'+this.get('id')+'-title'+this.get('popupSuffix')+'" class="'+this.get('id')+'-title chart-title">{{view.title}}</div>'+
-              '</div>',
-            '{{/if}}',
-            '</div>',
-            '<div class="modal-footer">',
-            '{{#if view.primary}}<a class="btn btn-success" {{action onPrimary target="view"}}>{{view.primary}}</a>{{/if}}',
-            '</div>',
-            '</div>'
-          ].join('\n')),
-
-          header: this.get('title'),
-          self: self,
-          isReady: function(){
-            return this.get('self.isPopupReady');
-          }.property('self.isPopupReady'),
-          primary: 'OK',
-          onPrimary: function() {
-            this.hide();
-            self.set('isPopup', false);
-          }
-        });
-        Ember.run.next(function() {
-          self.loadData();
-          self.set('isPopupReady', false);
+  /**
+   * Transforms the JSON data retrieved from the server into the series
+   * format that Rickshaw.Graph understands.
+   *
+   * The series object is generally in the following format: [ { name :
+   * "Series 1", data : [ { x : 0, y : 0 }, { x : 1, y : 1 } ] } ]
+   *
+   * Extending classes should override this method.
+   *
+   * @param seriesData
+   *          Data retrieved from the server
+   * @param displayName
+   *          Graph title
+   * @type: Function
+   *
+   */
+  transformData: function (seriesData, displayName) {
+    var seriesArray = [];
+    if (seriesData) {
+      // Is it a string?
+      if ("string" == typeof seriesData) {
+        seriesData = JSON.parse(seriesData);
+      }
+      // We have valid data
+      var series = {};
+      series.name = displayName;
+      series.data = [];
+      for ( var index = 0; index < seriesData.length; index++) {
+        series.data.push({
+          x: seriesData[index][1],
+          y: seriesData[index][0]
         });
       }
+      return series;
+    }
+  },
+
+  /**
+   * Provides the formatter to use in displaying Y axis.
+   *
+   * The default is Rickshaw.Fixtures.Number.formatKMBT which shows 10K,
+   * 300M etc.
+   *
+   * @type Function
+   */
+  yAxisFormatter: function(y) {
+    var value = Rickshaw.Fixtures.Number.formatKMBT(y);
+    if (value == '') return '0';
+    value = String(value);
+    var c = value[value.length - 1];
+    if (!isNaN(parseInt(c))) {
+      // c is digit
+      value = parseFloat(value).toFixed(3).replace(/0+$/, '').replace(/\.$/, '');
+    }
+    else {
+      // c in not digit
+      value = parseFloat(value.substr(0, value.length - 1)).toFixed(3).replace(/0+$/, '').replace(/\.$/, '') + c;
+    }
+    return value;
+  },
+
+  /**
+   * Provides the color (in any HTML color format) to use for a particular
+   * series.
+   *
+   * @param series
+   *          Series for which color is being requested
+   * @return color String. Returning null allows this chart to pick a color
+   *         from palette.
+   * @default null
+   * @type Function
+   */
+  colorForSeries: function (series) {
+    return null;
+  },
+
+  /**
+  * Check whether seriesData is correct data for chart drawing
+  * @param seriesData
+  * @return {Boolean}
+  */
+  checkSeries : function(seriesData){
+    if(!seriesData || !seriesData.length){
+      return false;
+    }
+    var result = true;
+    seriesData.forEach(function(item){
+      if(!item.data.length || !item.data[0] || typeof item.data[0].x === 'undefined'){
+        result = false;
+      }
     });
+    return result;
+  },
+
+  /**
+   * @private
+   *
+   * Refreshes the graph with the latest JSON data.
+   *
+   * @type Function
+   */
+  _refreshGraph: function (jsonData) {
+    var seriesData = this.transformToSeries(jsonData);
+
+    if (this.checkSeries(seriesData)) {
+      //if graph opened as modal popup
+      var popup_path = $("#" + this.id + "-container" + this.get('popupSuffix'));
+      var graph_container = $("#" + this.id + "-container");
+      if(popup_path.length) {
+        popup_path.children().each(function () {
+          $(this).children().remove();
+        });
+        this.set('isPopup', true);
+      }
+      else {
+        graph_container.children().each(function (index, value) {
+          $(value).children().remove();
+        });
+      }
+      // Check container exists (may be not, if we go to another page and wait while graphs loading)
+      if (graph_container.length) {
+        this.draw(seriesData);
+        this.set('hasData', true);
+      }
+    }
+    else {
+      this.set('isReady', true);
+      this._showMessage('info', this.t('graphs.noData.title'), this.t('graphs.noData.message'));
+      this.set('isPopup', false);
+      this.set('hasData', false);
+    }
+  },
+
+  /**
+   * Returns a custom time unit for the graph's X axis. This is needed
+   * as Rickshaw's default time X axis uses UTC time, which can be confusing
+   * for users expecting locale specific time. This value defaults to
+   * App.ChartLinearTimeView.FifteenMinuteTimeUnit.
+   *
+   * If <code>null</code> is returned, Rickshaw's default time unit is used.
+   *
+   * @type Function
+   * @return Rickshaw.Fixtures.Time
+   * @default App.ChartLinearTimeView.FifteenMinuteTimeUnit
+   */
+  localeTimeUnit: function(){
+    return App.ChartLinearTimeView.FifteenMinuteTimeUnit;
+  },
+
+  /**
+   * @private
+   *
+   * When a graph is given a particular width and height,the lines are drawn
+   * in a slightly bigger area thereby chopping off some of the UI. Hence
+   * after the rendering, we adjust the SVGs size in the DOM to compensate.
+   *
+   * Opened https://github.com/shutterstock/rickshaw/issues/141
+   *
+   * @type Function
+   */
+  _adjustSVGHeight: function () {
+    if (this._graph && this._graph.element
+        && this._graph.element.firstChild) {
+      var svgElement = this._graph.element.firstChild;
+      svgElement.setAttribute('height', $(this._graph.element).height()
+          + "px");
+      svgElement.setAttribute('width', $(this._graph.element).width()
+          + "px");
+    }
+  },
+
+  draw: function(seriesData) {
+    var isPopup = this.get('isPopup');
+    var p = '';
+    if (isPopup) {
+      p = this.get('popupSuffix');
+    }
+    var palette = new Rickshaw.Color.Palette({ scheme: 'munin'});
+
+    // var palette = new Rickshaw.Color.Palette({
+    //   scheme: this._paletteScheme
+    // });
+
+    var self = this;
+    var series_min_length = 100000000;
+    seriesData.forEach(function (series, index) {
+      var seriesColor = self.colorForSeries(series);
+      if (seriesColor == null) {
+        seriesColor = palette.color();
+      }
+      series.color = seriesColor;
+      series.stroke = 'rgba(0,0,0,0.3)';
+      if (isPopup) {
+        // calculate statistic data for popup legend
+        var avg = 0;
+        var min = Number.MAX_VALUE;
+        var max = Number.MIN_VALUE;
+        for (var i = 0; i < series.data.length; i++) {
+          avg += series.data[i]['y'];
+          if (series.data[i]['y'] < min) {
+            min = series.data[i]['y'];
+          }
+          else {
+            if (series.data[i]['y'] > max) {
+              max = series.data[i]['y'];
+            }
+          }
+        }
+        series.name = string_utils.pad(series.name, 30, '&nbsp;', 2) + string_utils.pad('min', 5, '&nbsp;', 3) + string_utils.pad(this.get('yAxisFormatter')(min), 12, '&nbsp;', 3) + string_utils.pad('avg', 5, '&nbsp;', 3) + string_utils.pad(this.get('yAxisFormatter')(avg/series.data.length), 12, '&nbsp;', 3) + string_utils.pad('max', 12, '&nbsp;', 3) + string_utils.pad(this.get('yAxisFormatter')(max), 5, '&nbsp;', 3);
+      }
+      if (series.data.length < series_min_length) {
+        series_min_length = series.data.length;
+      }
+    }.bind(this));
+    seriesData.forEach(function(series, index) {
+      if (series.data.length > series_min_length) {
+        series.data.length = series_min_length;
+      }
+    });
+    var chartId = "#" + this.id + "-chart" + p;
+    var chartOverlayId = "#" + this.id + "-container" + p;
+    var xaxisElementId = "#" + this.id + "-xaxis" + p;
+    var yaxisElementId = "#" + this.id + "-yaxis" + p;
+    var legendElementId = "#" + this.id + "-legend" + p;
+
+    var chartElement = document.querySelector(chartId);
+    var overlayElement = document.querySelector(chartOverlayId);
+    var xaxisElement = document.querySelector(xaxisElementId);
+    var yaxisElement = document.querySelector(yaxisElementId);
+    var legendElement = document.querySelector(legendElementId);
+
+    var strokeWidth = 1;
+    if (this.get('renderer') != 'area') {
+      strokeWidth = 2;
+    }
+
+    var height = 150;
+    var width = 400;
+    if (isPopup) {
+      height = 180;
+      width = 670;
+    } else {
+      // If not in popup, the width could vary.
+      // We determine width based on div's size.
+      var thisElement = this.get('element');
+      if (thisElement!=null) {
+        var calculatedWidth = $(thisElement).width();
+        if (calculatedWidth > 32) {
+          width = calculatedWidth-32;
+        }
+      }
+    }
+    var _graph = new Rickshaw.Graph({
+      height: height,
+      width: width,
+      element: chartElement,
+      series: seriesData,
+      interpolation: 'step-after',
+      stroke: true,
+      renderer: this.get('renderer'),
+      strokeWidth: strokeWidth
+    });
+    if (this.get('renderer') === 'area') {
+      _graph.renderer.unstack = false;
+    }
+
+    xAxis = new Rickshaw.Graph.Axis.Time({
+      graph: _graph,
+      timeUnit: this.localeTimeUnit()
+    });
+
+    var orientation = 'right';
+    if (isPopup) {
+      orientation = 'left';
+    }
+    yAxis = new Rickshaw.Graph.Axis.Y({
+      tickFormat: this.yAxisFormatter,
+      element: yaxisElement,
+      orientation: orientation,
+      graph: _graph
+    });
+
+    var legend = new Rickshaw.Graph.Legend({
+      graph: _graph,
+      element: legendElement
+    });
+
+    if (!isPopup) {
+      overlayElement.addEventListener('mousemove', function () {
+        $(xaxisElement).removeClass('hide');
+        $(legendElement).removeClass('hide');
+        $(chartElement).children("div").removeClass('hide');
+      });
+      overlayElement.addEventListener('mouseout', function () {
+        $(legendElement).addClass('hide');
+      });
+      _graph.onUpdate(function () {
+        $(legendElement).addClass('hide');
+      });
+    }
+
+   var shelving = new Rickshaw.Graph.Behavior.Series.Toggle({
+      graph: _graph,
+      legend: legend
+    });
+
+    var order = new Rickshaw.Graph.Behavior.Series.Order({
+      graph: _graph,
+      legend: legend
+    });
+    //show the graph when it's loaded
+    _graph.onUpdate(function(){
+      self.set('isReady', true);
+    });
+    _graph.render();
+
+    if (isPopup) {
+      var self = this;
+      var hoverDetail = new Rickshaw.Graph.HoverDetail({
+        graph: _graph,
+        yFormatter:function (y) {
+          return self.yAxisFormatter(y);
+        },
+        xFormatter:function (x) {
+          return (new Date(x * 1000)).toLocaleTimeString();
+        },
+        formatter:function (series, x, y, formattedX, formattedY, d) {
+          return formattedY + '<br />' + formattedX;
+        }
+      });
+    }
+
+    if (isPopup) {
+      var self = this;
+      // In popup save selected metrics and show only them after data update
+      _graph.series.forEach(function(series, index) {
+        if (self.get('_seriesProperties') !== null && self.get('_seriesProperties')[index] !== null) {
+          if(self.get('_seriesProperties')[self.get('_seriesProperties').length - index - 1].length > 1) {
+            $('#'+self.get('id')+'-container'+self.get('popupSuffix')+' a.action:eq('+(self.get('_seriesProperties').length - index - 1)+')').parent('li').addClass('disabled');
+            series.disable();
+          }
+        }
+      });
+      //show the graph when it's loaded
+      _graph.onUpdate(function(){
+        self.set('isPopupReady', true);
+      });
+      _graph.update();
+
+      $('li.line').click(function() {
+        var series = [];
+        $('#'+self.get('id')+'-container'+self.get('popupSuffix')+' a.action').each(function(index, v) {
+          series[index] = v.parentNode.classList;
+        });
+        self.set('_seriesProperties', series);
+      });
+
+      this.set('_popupGraph', _graph);
+    }
+    else {
+      this.set('_graph', _graph);
+    }
+    this.set('isPopup', false);
+  },
+
+
+  showGraphInPopup: function() {
+    if(!this.get('hasData')){
+      return;
+    }
+
+    this.set('isPopup', true);
+    var self = this;
+    App.ModalPopup.show({
+      template: Ember.Handlebars.compile([
+        '<div class="modal-backdrop"></div><div class="modal modal-graph-line" id="modal" tabindex="-1" role="dialog" aria-labelledby="modal-label" aria-hidden="true">',
+        '<div class="modal-header">',
+        '<a class="close" {{action onClose target="view"}}>x</a>',
+        '<h3 id="modal-label">',
+        '{{#if headerClass}}{{view headerClass}}',
+        '{{else}}{{header}}{{/if}}',
+        '</h3>',
+        '</div>',
+        '<div class="modal-body">',
+        '{{#if bodyClass}}{{view bodyClass}}',
+        '{{else}}',
+          '<div class="screensaver no-borders chart-container" {{bindAttr class="view.isReady:hide"}} ></div>',
+          '<div id="'+this.get('id')+'-container'+this.get('popupSuffix')+'" class="chart-container chart-container'+this.get('popupSuffix')+' hide" {{bindAttr class="view.isReady:show"}} >',
+            '<div id="'+this.get('id')+'-yaxis'+this.get('popupSuffix')+'" class="'+this.get('id')+'-yaxis chart-y-axis"></div>',
+            '<div id="'+this.get('id')+'-xaxis'+this.get('popupSuffix')+'" class="'+this.get('id')+'-xaxis chart-x-axis"></div>',
+            '<div id="'+this.get('id')+'-legend'+this.get('popupSuffix')+'" class="'+this.get('id')+'-legend chart-legend"></div>',
+            '<div id="'+this.get('id')+'-chart'+this.get('popupSuffix')+'" class="'+this.get('id')+'-chart chart"></div>',
+            '<div id="'+this.get('id')+'-title'+this.get('popupSuffix')+'" class="'+this.get('id')+'-title chart-title">{{view.title}}</div>'+
+          '</div>',
+        '{{/if}}',
+        '</div>',
+        '<div class="modal-footer">',
+        '{{#if view.primary}}<a class="btn btn-success" {{action onPrimary target="view"}}>{{view.primary}}</a>{{/if}}',
+        '</div>',
+        '</div>'
+      ].join('\n')),
+
+      header: this.get('title'),
+      self: self,
+      isReady: function(){
+        return this.get('self.isPopupReady');
+      }.property('self.isPopupReady'),
+      primary: 'OK',
+      onPrimary: function() {
+        this.hide();
+        self.set('isPopup', false);
+      }
+    });
+    Ember.run.next(function() {
+      self.loadData();
+      self.set('isPopupReady', false);
+    });
+  }
+});
 
 /**
  * A formatter which will turn a number into computer storage sizes of the

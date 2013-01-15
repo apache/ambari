@@ -29,10 +29,13 @@ var App = require('app');
 App.ChartClusterMetricsMemory = App.ChartLinearTimeView.extend({
   id: "cluster-metrics-memory",
   url: function () {
-    return App.formatUrl(App.apiPrefix + "/clusters/{clusterName}?fields=metrics/memory[{fromSeconds},{toSeconds},{stepSeconds}]", {
-      clusterName: App.router.get('clusterController.clusterName')
-    }, "/data/cluster_metrics/memory_1hr.json");
-  }.property('App.router.clusterController.clusterName').volatile(),
+    return App.formatUrl(
+      this.get('urlPrefix') + "?fields=metrics/memory[{fromSeconds},{toSeconds},{stepSeconds}]",
+      {},
+      "/data/cluster_metrics/memory_1hr.json"
+    );
+  }.property('clusterName').volatile(),
+
   title: "Memory Usage",
   yAxisFormatter: App.ChartLinearTimeView.BytesFormatter,
   renderer: 'line',
@@ -43,21 +46,7 @@ App.ChartClusterMetricsMemory = App.ChartLinearTimeView.extend({
         var displayName = name;
         var seriesData = jsonData.metrics.memory[name];
         if (seriesData) {
-          // Is it a string?
-          if ("string" == typeof seriesData) {
-            seriesData = JSON.parse(seriesData);
-          }
-          // We have valid data
-          var series = {};
-          series.name = displayName;
-          series.data = [];
-          for ( var index = 0; index < seriesData.length; index++) {
-            series.data.push({
-              x: seriesData[index][1],
-              y: seriesData[index][0]
-            });
-          }
-          seriesArray.push(series);
+          seriesArray.push(this.transformData(seriesData, displayName));
         }
       }
     }

@@ -31,10 +31,12 @@ App.ChartServiceMetricsHBASE_RegionServerReadWriteRequests = App.ChartLinearTime
   title: "RegionServer Requests",
   renderer: 'line',
   url: function () {
-    return App.formatUrl(App.apiPrefix + "/clusters/{clusterName}/services/HBASE/components/HBASE_REGIONSERVER?fields=metrics/hbase/regionserver/readRequestsCount[{fromSeconds},{toSeconds},{stepSeconds}],metrics/hbase/regionserver/writeRequestsCount[{fromSeconds},{toSeconds},{stepSeconds}]", {
-      clusterName: App.router.get('clusterController.clusterName')
-    }, "/data/services/metrics/hbase/regionserver_rw_requests.json");
-  }.property('App.router.clusterController.clusterName').volatile(),
+    return App.formatUrl(
+      this.get('urlPrefix') + "/services/HBASE/components/HBASE_REGIONSERVER?fields=metrics/hbase/regionserver/readRequestsCount[{fromSeconds},{toSeconds},{stepSeconds}],metrics/hbase/regionserver/writeRequestsCount[{fromSeconds},{toSeconds},{stepSeconds}]",
+      {},
+      "/data/services/metrics/hbase/regionserver_rw_requests.json"
+    );
+  }.property('clusterName').volatile(),
 
   transformToSeries: function (jsonData) {
     var seriesArray = [];
@@ -53,21 +55,7 @@ App.ChartServiceMetricsHBASE_RegionServerReadWriteRequests = App.ChartLinearTime
             break;
         }
         if (seriesData) {
-          // Is it a string?
-          if ("string" == typeof seriesData) {
-            seriesData = JSON.parse(seriesData);
-          }
-          // We have valid data
-          var series = {};
-          series.name = displayName;
-          series.data = [];
-          for ( var index = 0; index < seriesData.length; index++) {
-            series.data.push({
-              x: seriesData[index][1],
-              y: seriesData[index][0]
-            });
-          }
-          seriesArray.push(series);
+          seriesArray.push(this.transformData(seriesData, displayName));
         }
       }
     }

@@ -30,10 +30,13 @@ var App = require('app');
 App.ChartClusterMetricsNetwork = App.ChartLinearTimeView.extend({
   id: "cluster-metrics-network",
   url: function () {
-    return App.formatUrl(App.apiPrefix + "/clusters/{clusterName}?fields=metrics/network[{fromSeconds},{toSeconds},{stepSeconds}]", {
-      clusterName: App.router.get('clusterController.clusterName')
-    }, "/data/cluster_metrics/network_1hr.json");
-  }.property('App.router.clusterController.clusterName').volatile(),
+    return App.formatUrl(
+      this.get('urlPrefix') + "?fields=metrics/network[{fromSeconds},{toSeconds},{stepSeconds}]",
+      {},
+      "/data/cluster_metrics/network_1hr.json"
+    );
+  }.property('clusterName').volatile(),
+
   title: "Network Usage",
   yAxisFormatter: App.ChartLinearTimeView.BytesFormatter,
   renderer: 'line',
@@ -45,22 +48,7 @@ App.ChartClusterMetricsNetwork = App.ChartLinearTimeView.extend({
         var displayName = name;
         var seriesData = jsonData.metrics.network[name];
         if (seriesData) {
-          // Is it a string?
-          if ("string" == typeof seriesData) {
-            seriesData = JSON.parse(seriesData);
-          }
-          // We have valid data
-          var series = {};
-          series.name = displayName;
-          series.data = [];
-          for ( var index = 0; index < seriesData.length; index++) {
-            series.data.push({
-              x: seriesData[index][1],
-              y: seriesData[index][0]
-            });
-          }
-
-          seriesArray.push(series);
+          seriesArray.push(this.transformData(seriesData, displayName));
         }
       }
     }

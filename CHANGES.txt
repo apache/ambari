@@ -17,6 +17,8 @@ Trunk (unreleased changes):
 
  IMPROVEMENTS
 
+ AMBARI-1197. Refactor code for graphs. (yusaku)
+
  AMBARI-1196. Automatically update host-level popup info/logs. (yusaku)
 
  AMBARI-1189. Add App.Job class. (yusaku)

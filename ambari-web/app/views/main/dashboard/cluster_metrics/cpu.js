@@ -29,10 +29,12 @@ var App = require('app');
 App.ChartClusterMetricsCPU = App.ChartLinearTimeView.extend({
   id: "cluster-metrics-cpu",
   url: function () {
-    return App.formatUrl(App.apiPrefix + "/clusters/{clusterName}?fields=metrics/cpu[{fromSeconds},{toSeconds},{stepSeconds}]", {
-      clusterName: App.router.get('clusterController.clusterName')
-    }, "/data/cluster_metrics/cpu_1hr.json");
-  }.property('App.router.clusterController.clusterName').volatile(),
+    return App.formatUrl(
+      this.get('urlPrefix') + "?fields=metrics/cpu[{fromSeconds},{toSeconds},{stepSeconds}]",
+      {},
+      "/data/cluster_metrics/cpu_1hr.json"
+    );
+  }.property('clusterName').volatile(),
 
   title: "CPU Usage",
   yAxisFormatter: App.ChartLinearTimeView.PercentageFormatter,
@@ -45,25 +47,12 @@ App.ChartClusterMetricsCPU = App.ChartLinearTimeView.extend({
         var displayName = name;
         var seriesData = jsonData.metrics.cpu[name];
         if (seriesData) {
-          // Is it a string?
-          if ("string" == typeof seriesData) {
-            seriesData = JSON.parse(seriesData);
-          }
-          // We have valid data
-          var series = {};
-          series.name = displayName;
-          series.data = [];
-          for ( var index = 0; index < seriesData.length; index++) {
-            series.data.push({
-              x: seriesData[index][1],
-              y: seriesData[index][0]
-            });
-          }
-          if (name != 'Idle') {
-            seriesArray.push(series);
+          var s = this.transformData(seriesData, displayName);
+          if ('Idle' == s.name) {
+            cpu_idle = s;
           }
           else {
-            cpu_idle = series;
+            seriesArray.push(s);
           }
         }
       }

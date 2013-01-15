@@ -34,14 +34,18 @@ App.ChartServiceMetricsHDFS_SpaceUtilization = App.ChartLinearTimeView.extend({
   url: function () {
     var hdfsService = App.HDFSService.find().objectAt(0);
     var nameNodeHostName = hdfsService.get('nameNode').get('hostName');
-    return App.formatUrl(App.apiPrefix + "/clusters/{clusterName}/hosts/{hostName}/host_components/NAMENODE?fields=metrics/dfs/FSNamesystem/CapacityRemainingGB[{fromSeconds},{toSeconds},{stepSeconds}],metrics/dfs/FSNamesystem/CapacityUsedGB[{fromSeconds},{toSeconds},{stepSeconds}],metrics/dfs/FSNamesystem/CapacityTotalGB[{fromSeconds},{toSeconds},{stepSeconds}]", {
-      clusterName: App.router.get('clusterController.clusterName'),
-      hostName: nameNodeHostName
-    }, "/data/services/metrics/hdfs/space_utilization.json");
-  }.property('App.router.clusterController.clusterName').volatile(),
+    return App.formatUrl(
+      this.get('urlPrefix') + "/hosts/{hostName}/host_components/NAMENODE?fields=metrics/dfs/FSNamesystem/CapacityRemainingGB[{fromSeconds},{toSeconds},{stepSeconds}],metrics/dfs/FSNamesystem/CapacityUsedGB[{fromSeconds},{toSeconds},{stepSeconds}],metrics/dfs/FSNamesystem/CapacityTotalGB[{fromSeconds},{toSeconds},{stepSeconds}]",
+      {
+        hostName: nameNodeHostName
+      },
+      "/data/services/metrics/hdfs/space_utilization.json"
+    );
+  }.property('clusterName').volatile(),
 
   transformToSeries: function (jsonData) {
     var seriesArray = [];
+    var GB = Math.pow(2, 30);
     if (jsonData && jsonData.metrics && jsonData.metrics.dfs && jsonData.metrics.dfs.FSNamesystem) {
       for ( var name in jsonData.metrics.dfs.FSNamesystem) {
         var displayName;
@@ -60,22 +64,11 @@ App.ChartServiceMetricsHDFS_SpaceUtilization = App.ChartLinearTimeView.extend({
             break;
         }
         if (seriesData) {
-          // Is it a string?
-          if ("string" == typeof seriesData) {
-            seriesData = JSON.parse(seriesData);
+          var s = this.transformData(seriesData, displayName);
+          for (var i = 0; i < s.data.length; i++) {
+            s.data[i].y *= GB;
           }
-          // We have valid data
-          var GB = Math.pow(2,30);
-          var series = {};
-          series.name = displayName;
-          series.data = [];
-          for ( var index = 0; index < seriesData.length; index++) {
-            series.data.push({
-              x: seriesData[index][1],
-              y: seriesData[index][0]*GB
-            });
-          }
-          seriesArray.push(series);
+          seriesArray.push(s);
         }
       }
     }
