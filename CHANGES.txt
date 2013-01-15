@@ -33,6 +33,8 @@ Trunk (unreleased changes):
 
  BUG FIXES
 
+ AMBARI-1187. Dashboard > MapReduce mini chart sometimes shows partial graph and hides recent data. (yusaku)
+
  AMBARI-1184. After adding hosts, the host count shown in the Dashboard is
  incorrect. (yusaku)
 
