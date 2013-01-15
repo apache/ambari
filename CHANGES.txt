@@ -17,6 +17,9 @@ Trunk (unreleased changes):
 
  IMPROVEMENTS
 
+ AMBARI-1188. Refactor isClient computed property for HostComponent class.
+ (yusaku)
+
  AMBARI-1186. Add Run class to represent a job run. (yusaku)
 
  AMBARI-1185. Refactor the method to check if the user is an admin.

@@ -24,6 +24,10 @@ App.HostComponent = DS.Model.extend({
   host: DS.belongsTo('App.Host'),
   service: DS.belongsTo('App.Service'),
   isClient:function () {
+    if(['PIG', 'SQOOP', 'HCAT'].contains(this.get('componentName'))){
+      return true;
+    }
+
     return Boolean(this.get('componentName').match(/_client/gi));
   }.property('componentName'),
   isRunning: function(){

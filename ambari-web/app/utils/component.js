@@ -45,7 +45,7 @@ module.exports = {
         id: componentName,
         isMaster: component.get('isMaster'),
         isSlave: component.get('isSlave'),
-        isClient: !component.get('isMaster') && !component.get('isSlave'),
+        isClient: component.get('isClient'),
         displayName: component.get('displayName')
       }));
     });
