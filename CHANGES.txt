@@ -42,6 +42,10 @@ Trunk (unreleased changes):
 
  BUG FIXES
 
+ AMBARI-1200. On some clusters, Nagios alerts show up about 30 seconds after
+ page load, while on others the alerts show up immediately. (srimanth via
+ yusaku)
+
  AMBARI-1190. Detailed log view dialogs are not center-aligned. (yusaku)
 
  AMBARI-1187. Dashboard > MapReduce mini chart sometimes shows partial graph and hides recent data. (yusaku)
