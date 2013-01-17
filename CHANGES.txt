@@ -45,6 +45,9 @@ Trunk (unreleased changes):
 
  BUG FIXES
 
+ AMBARI-1203. mapred-site.xml default system directory is not set
+ to /mapred/system. (yusaku)
+
  AMBARI-1200. On some clusters, Nagios alerts show up about 30 seconds after
  page load, while on others the alerts show up immediately. (srimanth via
  yusaku)

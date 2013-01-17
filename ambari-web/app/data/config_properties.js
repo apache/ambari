@@ -1279,7 +1279,7 @@ module.exports =
       "name": "mapred_system_dir",
       "displayName": "MapReduce system directories",
       "description": "",
-      "defaultValue": "",
+      "defaultValue": "/mapred/system",
       "displayType": "directories",
       "isReconfigurable": false,
       "isVisible": true,
