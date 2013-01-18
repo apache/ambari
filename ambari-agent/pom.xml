@@ -150,6 +150,10 @@
             <scriptFile>src/main/package/rpm/preinstall.sh</scriptFile>
             <fileEncoding>utf-8</fileEncoding>
           </preinstallScriptlet>
+          <preremoveScriptlet>
+            <script>mv /etc/ambari-agent/conf /etc/ambari-agent/conf.save</script>
+          </preremoveScriptlet>
+
           <needarch>x86_64</needarch>
           <autoRequires>false</autoRequires>
           <mappings>

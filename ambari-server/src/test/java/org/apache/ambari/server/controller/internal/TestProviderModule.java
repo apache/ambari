@@ -19,7 +19,6 @@
 package org.apache.ambari.server.controller.internal;
 
 import org.apache.ambari.server.controller.jdbc.TestJDBCResourceProvider;
-import org.apache.ambari.server.controller.jmx.TestHostMappingProvider;
 import org.apache.ambari.server.controller.spi.PropertyProvider;
 import org.apache.ambari.server.controller.spi.ProviderModule;
 import org.apache.ambari.server.controller.spi.Resource;
@@ -56,33 +55,9 @@ public class TestProviderModule implements ProviderModule {
 
     List<PropertyProvider> providers = new LinkedList<PropertyProvider>();
 
-//    PropertyProvider propertyProvider = new GangliaPropertyProvider(
-//        PropertyHelper.getGangliaPropertyIds(Resource.Type.Component),
-//        new org.apache.ambari.server.controller.ganglia.TestStreamProvider(),
-//        "ec2-23-23-71-42.compute-1.amazonaws.com",
-//        null, null,
-//        PropertyHelper.getPropertyId("component_name", "ServiceComponentInfo"));
-//    providers.add(propertyProvider);
-
     propertyProviders.put(Resource.Type.Component, providers);
 
     providers = new LinkedList<PropertyProvider>();
-    Map<String, String> hostMap = TestHostMappingProvider.getHostMap();
-
-//    PropertyProvider propertyProvider = new JMXPropertyProvider(
-//        PropertyHelper.getJMXPropertyIds(Resource.Type.HostComponent),
-//        new org.apache.ambari.server.controller.jmx.TestStreamProvider(),
-//        hostMap);
-//    providers.add(propertyProvider);
-
-
-//    propertyProvider = new GangliaPropertyProvider(
-//        PropertyHelper.getGangliaPropertyIds(Resource.Type.HostComponent),
-//        new org.apache.ambari.server.controller.ganglia.TestStreamProvider(),
-//        "ec2-23-23-71-42.compute-1.amazonaws.com",
-//        null, PropertyHelper.getPropertyId("host_name", "HostRoles"),
-//        PropertyHelper.getPropertyId("component_name", "HostRoles"));
-//    providers.add(propertyProvider);
 
     propertyProviders.put(Resource.Type.HostComponent, providers);
   }

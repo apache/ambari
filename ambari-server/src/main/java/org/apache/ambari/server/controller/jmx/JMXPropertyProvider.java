@@ -159,12 +159,6 @@ public class JMXPropertyProvider implements PropertyProvider {
     }
 
     String clusterName   = (String) resource.getPropertyValue(clusterNamePropertyId);
-
-    // TODO : what should we do if the host mapping is null?
-    if (jmxHostProvider.getHostMapping(clusterName) == null) {
-      return true;
-    }
-
     String componentName = (String) resource.getPropertyValue(componentNamePropertyId);
     String port          = JMX_PORTS.get(componentName);
 
@@ -173,8 +167,7 @@ public class JMXPropertyProvider implements PropertyProvider {
       hostName = jmxHostProvider.getHostName(clusterName, componentName);
     }
     else {
-      String name = (String) resource.getPropertyValue(hostNamePropertyId);
-      hostName = jmxHostProvider.getHostMapping(clusterName).get(name);
+      hostName = (String) resource.getPropertyValue(hostNamePropertyId);
     }
 
     Map<String, PropertyInfo> metrics = componentMetrics.get(componentName);
@@ -247,8 +240,8 @@ public class JMXPropertyProvider implements PropertyProvider {
         }
       }
     } catch (IOException e) {
-      if (LOG.isDebugEnabled()) {
-        LOG.debug("Caught exception getting JMX metrics : spec=" + spec, e);
+      if (LOG.isErrorEnabled()) {
+        LOG.error("Caught exception getting JMX metrics : spec=" + spec, e);
       }
     }
 

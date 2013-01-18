@@ -85,11 +85,10 @@ class hdp-zookeeper::service(
 
 class hdp-zookeeper::set_myid($myid)
 {
-  $create_file = "${hdp-zookeeper::params::zk_data_dir}/myid"
-  $cmd = "echo '${myid}' > ${create_file}"
-  hdp::exec{ $cmd:
-    command => $cmd,
-    creates  => $create_file
+  file {"${hdp-zookeeper::params::zk_data_dir}/myid":
+    ensure  => file,
+    content => $myid,
+    mode    => 0644,
   }
 }
 

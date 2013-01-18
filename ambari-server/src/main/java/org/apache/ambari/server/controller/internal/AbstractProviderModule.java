@@ -46,16 +46,11 @@ import java.util.Set;
  */
 public abstract class AbstractProviderModule implements ProviderModule, ResourceProviderObserver, JMXHostProvider, GangliaHostProvider {
 
-  private static final String HOST_CLUSTER_NAME_PROPERTY_ID             = PropertyHelper.getPropertyId("Hosts", "cluster_name");
-  private static final String HOST_NAME_PROPERTY_ID                     = PropertyHelper.getPropertyId("Hosts", "host_name");
-  private static final String HOST_IP_PROPERTY_ID                       = PropertyHelper.getPropertyId("Hosts", "ip");
   private static final String CLUSTER_NAME_PROPERTY_ID                  = PropertyHelper.getPropertyId("Clusters", "cluster_name");
   private static final String HOST_COMPONENT_CLUSTER_NAME_PROPERTY_ID   = PropertyHelper.getPropertyId("HostRoles", "cluster_name");
   private static final String HOST_COMPONENT_HOST_NAME_PROPERTY_ID      = PropertyHelper.getPropertyId("HostRoles", "host_name");
   private static final String HOST_COMPONENT_COMPONENT_NAME_PROPERTY_ID = PropertyHelper.getPropertyId("HostRoles", "component_name");
   private static final String GANGLIA_SERVER                            = "GANGLIA_SERVER";
-  private static final String GANGLIA_MONITOR                           = "GANGLIA_MONITOR";
-  private static final String GANGLIA_SERVER_OLD                        = "GANGLIA_MONITOR_SERVER";
 
   /**
    * The map of resource providers.
@@ -71,10 +66,8 @@ public abstract class AbstractProviderModule implements ProviderModule, Resource
   private AmbariManagementController managementController;
 
   /**
-   * The map of hosts.
+   * The map of host components.
    */
-  private Map<String, Map<String, String>> clusterHostMap;
-
   private Map<String, Map<String, String>> clusterHostComponentMap;
 
   /**
@@ -140,12 +133,6 @@ public abstract class AbstractProviderModule implements ProviderModule, Resource
   public String getHostName(String clusterName, String componentName) throws SystemException {
     checkInit();
     return clusterHostComponentMap.get(clusterName).get(componentName);
-  }
-
-  @Override
-  public Map<String, String> getHostMapping(String clusterName) throws SystemException {
-    checkInit();
-    return clusterHostMap.get(clusterName);
   }
 
 
@@ -268,7 +255,6 @@ public abstract class AbstractProviderModule implements ProviderModule, Resource
     try {
       Set<Resource> clusters = provider.getResources(request, null);
 
-      clusterHostMap             = new HashMap<String, Map<String, String>>();
       clusterHostComponentMap    = new HashMap<String, Map<String, String>>();
       clusterGangliaCollectorMap = new HashMap<String, String>();
 
@@ -276,34 +262,13 @@ public abstract class AbstractProviderModule implements ProviderModule, Resource
 
         String clusterName = (String) cluster.getPropertyValue(CLUSTER_NAME_PROPERTY_ID);
 
-        // initialize the host map from the known hosts...
-        provider = getResourceProvider(Resource.Type.Host);
-        request  = PropertyHelper.getReadRequest(HOST_NAME_PROPERTY_ID, HOST_IP_PROPERTY_ID);
-
-        Predicate predicate   = new PredicateBuilder().property(HOST_CLUSTER_NAME_PROPERTY_ID).
-            equals(clusterName).toPredicate();
-
-        Set<Resource>       hosts   = provider.getResources(request, predicate);
-        Map<String, String> hostMap = clusterHostMap.get(clusterName);
-
-        if (hostMap == null) {
-          hostMap = new HashMap<String, String>();
-          clusterHostMap.put(clusterName, hostMap);
-        }
-
-        for (Resource host : hosts) {
-          String hostName = (String) host.getPropertyValue(HOST_NAME_PROPERTY_ID);
-          String hostIp   = (String) host.getPropertyValue(HOST_IP_PROPERTY_ID);
-          hostMap.put(hostName, hostIp == null ? hostName : hostIp);
-        }
-
         // initialize the host component map and Ganglia server from the known hosts components...
         provider = getResourceProvider(Resource.Type.HostComponent);
 
         request = PropertyHelper.getReadRequest(HOST_COMPONENT_HOST_NAME_PROPERTY_ID,
             HOST_COMPONENT_COMPONENT_NAME_PROPERTY_ID);
 
-        predicate = new PredicateBuilder().property(HOST_COMPONENT_CLUSTER_NAME_PROPERTY_ID).
+        Predicate predicate = new PredicateBuilder().property(HOST_COMPONENT_CLUSTER_NAME_PROPERTY_ID).
             equals(clusterName).toPredicate();
 
         Set<Resource>       hostComponents   = provider.getResources(request, predicate);
@@ -318,11 +283,11 @@ public abstract class AbstractProviderModule implements ProviderModule, Resource
           String componentName = (String) hostComponent.getPropertyValue(HOST_COMPONENT_COMPONENT_NAME_PROPERTY_ID);
           String hostName      = (String) hostComponent.getPropertyValue(HOST_COMPONENT_HOST_NAME_PROPERTY_ID);
 
-          hostComponentMap.put(componentName, hostMap.get(hostName));
+          hostComponentMap.put(componentName, hostName);
 
           // record the Ganglia server for the current cluster
-          if (componentName.equals(GANGLIA_SERVER) || componentName.equals(GANGLIA_MONITOR) ||componentName.equals(GANGLIA_SERVER_OLD)) {
-            clusterGangliaCollectorMap.put(clusterName, clusterHostMap.get(clusterName).get(hostName));
+          if (componentName.equals(GANGLIA_SERVER)) {
+            clusterGangliaCollectorMap.put(clusterName, hostName);
           }
         }
       }

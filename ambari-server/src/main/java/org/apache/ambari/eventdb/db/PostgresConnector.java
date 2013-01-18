@@ -440,7 +440,7 @@ public class PostgresConnector implements DBConnector {
     return field.toString() + " >= " + s;
   }
   
-  private static final String WHERE = " where";
+  private static final String WHERE = " where ";
   
   private static String buildSearchClause(String searchTerm, String searchWorkflowId, String searchWorkflowName, String searchWorkflowType,
       String searchUserName, int minJobs, int maxJobs, long minInputBytes, long maxInputBytes, long minOutputBytes, long maxOutputBytes, long minDuration,
@@ -448,7 +448,7 @@ public class PostgresConnector implements DBConnector {
     StringBuilder sb = new StringBuilder();
     sb.append(WHERE);
     if (searchTerm != null && searchTerm.length() > 0) {
-      sb.append(" (");
+      sb.append("(");
       sb.append(like(WorkflowFields.WORKFLOWID, searchTerm));
       sb.append(" or ");
       sb.append(like(WorkflowFields.WORKFLOWNAME, searchTerm));

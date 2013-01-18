@@ -72,7 +72,7 @@
 
   <property>
     <name>mapred.system.dir</name>
-    <value>/mapred/system</value>
+    <value></value>
     <description>No description</description>
     <final>true</final>
   </property>

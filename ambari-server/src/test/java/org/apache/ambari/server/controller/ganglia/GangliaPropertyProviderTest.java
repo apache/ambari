@@ -68,7 +68,7 @@ public class GangliaPropertyProviderTest {
 
     Assert.assertEquals(1, propertyProvider.populateResources(Collections.singleton(resource), request, null).size());
 
-    Assert.assertEquals("http://ec2-23-23-71-42.compute-1.amazonaws.com/cgi-bin/rrd.py?c=HDPSlaves&h=domU-12-31-39-0E-34-E1.compute-1.internal&m=jvm.metrics.gcCount&s=10&e=20&r=1",
+    Assert.assertEquals("http://domU-12-31-39-0E-34-E1.compute-1.internal/cgi-bin/rrd.py?c=HDPSlaves&h=domU-12-31-39-0E-34-E1.compute-1.internal&m=jvm.metrics.gcCount&s=10&e=20&r=1",
         streamProvider.getLastSpec());
 
     Assert.assertEquals(3, PropertyHelper.getProperties(resource).size());
@@ -110,7 +110,7 @@ public class GangliaPropertyProviderTest {
 
     Assert.assertEquals(3, propertyProvider.populateResources(resources, request, null).size());
 
-    Assert.assertEquals("http://ec2-23-23-71-42.compute-1.amazonaws.com/cgi-bin/rrd.py?c=HDPSlaves&h=domU-12-31-39-0E-34-E3.compute-1.internal,domU-12-31-39-0E-34-E1.compute-1.internal,domU-12-31-39-0E-34-E2.compute-1.internal&m=jvm.metrics.gcCount&s=10&e=20&r=1",
+    Assert.assertEquals("http://domU-12-31-39-0E-34-E1.compute-1.internal/cgi-bin/rrd.py?c=HDPSlaves&h=domU-12-31-39-0E-34-E3.compute-1.internal,domU-12-31-39-0E-34-E1.compute-1.internal,domU-12-31-39-0E-34-E2.compute-1.internal&m=jvm.metrics.gcCount&s=10&e=20&r=1",
         streamProvider.getLastSpec());
 
     for (Resource res : resources) {
@@ -123,7 +123,7 @@ public class GangliaPropertyProviderTest {
 
     @Override
     public String getGangliaCollectorHostName(String clusterName) {
-      return "ec2-23-23-71-42.compute-1.amazonaws.com";
+      return "domU-12-31-39-0E-34-E1.compute-1.internal";
     }
   }
 }

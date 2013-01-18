@@ -37,16 +37,4 @@ public interface JMXHostProvider {
    * @throws SystemException of unable to ge the JMX host name
    */
   public String getHostName(String clusterName, String componentName) throws SystemException;
-
-
-  /**
-   * Get the host name mappings for the given cluster name.
-   *
-   * @param clusterName  the cluster name
-   *
-   * @return the host name mappings
-   *
-   * @throws SystemException if unable to get the host mappings
-   */
-  public Map<String, String> getHostMapping(String clusterName) throws SystemException ;
 }

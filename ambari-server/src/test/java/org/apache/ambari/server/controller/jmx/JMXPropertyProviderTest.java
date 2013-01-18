@@ -26,7 +26,6 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import java.util.Collections;
-import java.util.Map;
 
 /**
  * JMX property provider tests.
@@ -58,7 +57,7 @@ public class JMXPropertyProviderTest {
 
     Assert.assertEquals(1, propertyProvider.populateResources(Collections.singleton(resource), request, null).size());
 
-    Assert.assertEquals(propertyProvider.getSpec("ec2-50-17-129-192.compute-1.amazonaws.com:50070"), streamProvider.getLastSpec());
+    Assert.assertEquals(propertyProvider.getSpec("domu-12-31-39-0e-34-e1.compute-1.internal:50070"), streamProvider.getLastSpec());
 
     // see test/resources/hdfs_namenode_jmx.json for values
     Assert.assertEquals(1084287,  resource.getPropertyValue(PropertyHelper.getPropertyId("metrics/rpc", "ReceivedBytes")));
@@ -77,7 +76,7 @@ public class JMXPropertyProviderTest {
 
     propertyProvider.populateResources(Collections.singleton(resource), request, null);
 
-    Assert.assertEquals(propertyProvider.getSpec("ec2-23-23-71-42.compute-1.amazonaws.com:50075"), streamProvider.getLastSpec());
+    Assert.assertEquals(propertyProvider.getSpec("domu-12-31-39-14-ee-b3.compute-1.internal:50075"), streamProvider.getLastSpec());
 
     // see test/resources/hdfs_datanode_jmx.json for values
     Assert.assertEquals(0,  resource.getPropertyValue(PropertyHelper.getPropertyId("metrics/rpc", "ReceivedBytes")));
@@ -95,7 +94,7 @@ public class JMXPropertyProviderTest {
 
     propertyProvider.populateResources(Collections.singleton(resource), request, null);
 
-    Assert.assertEquals(propertyProvider.getSpec("ec2-23-23-71-42.compute-1.amazonaws.com:50030"), streamProvider.getLastSpec());
+    Assert.assertEquals(propertyProvider.getSpec("domu-12-31-39-14-ee-b3.compute-1.internal:50030"), streamProvider.getLastSpec());
 
     // see test/resources/mapreduce_jobtracker_jmx.json for values
     // resource should now contain 3 properties... host name, component name, and jvm.threadsWaiting (from request)
@@ -104,17 +103,10 @@ public class JMXPropertyProviderTest {
     Assert.assertNull(resource.getPropertyValue(PropertyHelper.getPropertyId("metrics/jvm", "gcCount")));
   }
 
-
-
   private static class TestJMXHostProvider implements JMXHostProvider {
     @Override
     public String getHostName(String clusterName, String componentName) {
       return null;
-    }
-
-    @Override
-    public Map<String, String> getHostMapping(String clusterName) {
-      return TestHostMappingProvider.getHostMap();
     }
   }
 }

@@ -59,6 +59,9 @@ Trunk (unreleased changes):
  AMBARI-1184. After adding hosts, the host count shown in the Dashboard is
  incorrect. (yusaku)
 
+ AMBARI-1178. Fix use of use ip address for JMX metrics request. (tbeerbower
+ via mahadev)
+
 AMBARI-1.2.0 branch:
 
  INCOMPATIBLE CHANGES

@@ -96,6 +96,9 @@
             <require>openssl</require>
             <require>${python.ver}</require>
           </requires>
+          <preremoveScriptlet>
+            <script>mv /etc/ambari-server/conf /etc/ambari-server/conf.save</script>
+          </preremoveScriptlet>
           <mappings>
             <mapping>
               <directory>/usr/lib/ambari-server</directory>

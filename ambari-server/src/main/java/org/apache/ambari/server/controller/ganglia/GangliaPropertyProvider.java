@@ -434,8 +434,8 @@ public abstract class GangliaPropertyProvider implements PropertyProvider {
           }
         }
       } catch (IOException e) {
-        if (LOG.isDebugEnabled()) {
-          LOG.debug("Caught exception getting Ganglia metrics : spec=" + spec, e);
+        if (LOG.isErrorEnabled()) {
+          LOG.error("Caught exception getting Ganglia metrics : spec=" + spec, e);
         }
       }
       return populatedResources;
