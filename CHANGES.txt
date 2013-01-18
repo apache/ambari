@@ -62,6 +62,11 @@ Trunk (unreleased changes):
  AMBARI-1178. Fix use of use ip address for JMX metrics request. (tbeerbower
  via mahadev)
 
+ AMBARI-1191. Datatable API needs work. (Billie Rinaldi via mahadev)
+
+ AMBARI-1211. Ability to configure the same username for all the services in
+ Ambari. (mahadev)
+
 AMBARI-1.2.0 branch:
 
  INCOMPATIBLE CHANGES

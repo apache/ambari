@@ -80,8 +80,8 @@ debug: Finishing transaction 70171639726240
     fragment = self.grep.tail(self.string_good, 3)
     desired = """
 debug: Finishing transaction 70060456663980
-debug: Received report to process from ambari-dmi.cybervisiontech.com.ua
-debug: Processing report from ambari-dmi.cybervisiontech.com.ua with processor Puppet::Reports::Store
+debug: Received report to process from ambari-dmi
+debug: Processing report from ambari-dmi with processor Puppet::Reports::Store
 """.strip()
     self.assertEquals(fragment, desired, "Grep tail function should return only last 3 lines of file")
 

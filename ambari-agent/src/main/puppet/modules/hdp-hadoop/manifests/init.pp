@@ -163,7 +163,9 @@ class hdp-hadoop(
     }
  
     hdp::user{ $hdfs_user:}
-    hdp::user { $mapred_user:}
+    if ($hdfs_user != $mapred_user) {
+      hdp::user { $mapred_user:}
+    }
 
     $logdirprefix = $hdp-hadoop::params::hdfs_log_dir_prefix
     hdp::directory_recursive_create { $logdirprefix: 

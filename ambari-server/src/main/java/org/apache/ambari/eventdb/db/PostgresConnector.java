@@ -245,6 +245,13 @@ public class PostgresConnector implements DBConnector {
     DataTable table = new DataTable();
     table.setiTotalRecords(total);
     table.setiTotalDisplayRecords(summary.getNumRows());
+    if (workflows.isEmpty()) {
+      table.setStartIndex(-1);
+      table.setEndIndex(-1);
+    } else {
+      table.setStartIndex(offset);
+      table.setEndIndex(offset + workflows.size() - 1);
+    }
     table.setAaData(workflows);
     table.setsEcho(echo);
     table.setSummary(summary);

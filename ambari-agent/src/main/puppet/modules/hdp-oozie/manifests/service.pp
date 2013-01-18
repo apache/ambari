@@ -29,6 +29,7 @@ class hdp-oozie::service(
   $user = "$hdp-oozie::params::oozie_user"
   $hadoop_home = $hdp-oozie::params::hadoop_prefix
   $oozie_tmp = $hdp-oozie::params::oozie_tmp_dir
+  $oozie_hdfs_user_dir = $hdp::params::oozie_hdfs_user_dir
   $cmd = "env HADOOP_HOME=${hadoop_home} /usr/sbin/oozie_server.sh"
   $pid_file = "${hdp-oozie::params::oozie_pid_dir}/oozie.pid" 
   $jar_location = $hdp::params::hadoop_jar_location
@@ -42,10 +43,10 @@ class hdp-oozie::service(
 
   $cmd1 = "cd /usr/lib/oozie && tar -xvf oozie-sharelib.tar.gz"
   $cmd2 =  "cd /usr/lib/oozie && mkdir -p ${oozie_tmp}"
-  $cmd3 =  "cd /usr/lib/oozie && chown ${user}:hadoop ${oozie_tmp}"    
+  $cmd3 =  "cd /usr/lib/oozie && chown ${user}:${hdp::params::user_group} ${oozie_tmp}"    
   $cmd4 =  "cd ${oozie_tmp} && /usr/lib/oozie/bin/oozie-setup.sh -hadoop 0.20.200 $jar_location -extjs $ext_js_path $lzo_jar_suffix"
   $cmd5 =  "cd ${oozie_tmp} && /usr/lib/oozie/bin/ooziedb.sh create -sqlfile oozie.sql -run ; echo 0"
-  $cmd6 =  "su - ${user} -c 'hadoop dfs -put /usr/lib/oozie/share share ; hadoop dfs -chmod -R 755 /user/${user}/share'"
+  $cmd6 =  "su - ${user} -c 'hadoop dfs -put /usr/lib/oozie/share ${oozie_hdfs_user_dir} ; hadoop dfs -chmod -R 755 ${oozie_hdfs_user_dir}/share'"
   #$cmd7 = "/usr/lib/oozie/bin/oozie-start.sh"
 
   if ($ensure == 'installed_and_configured') {

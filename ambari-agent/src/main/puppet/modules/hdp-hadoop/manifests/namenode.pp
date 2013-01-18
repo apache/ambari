@@ -113,7 +113,8 @@ define hdp-hadoop::namenode::create_app_directories($service_state)
 {
   if ($service_state == 'running') {
     $smoke_test_user = $hdp::params::smokeuser
-    hdp-hadoop::hdfs::directory{ "/user/${smoke_test_user}":
+    $smoke_hdfs_user_dir = $hdp::params::smoke_hdfs_user_dir
+    hdp-hadoop::hdfs::directory{ $smoke_hdfs_user_dir:
       service_state => $service_state,
       owner => $smoke_test_user,
       mode  => '770',
@@ -153,7 +154,7 @@ define hdp-hadoop::namenode::create_app_directories($service_state)
         mode             => '777',
         recursive_chmod  => true
       }
-      hdp-hadoop::hdfs::directory{ "/user/${hive_user}":
+      hdp-hadoop::hdfs::directory{ $hive_hdfs_user_dir:
         service_state => $service_state,
         owner         => $hive_user
       }
@@ -161,7 +162,8 @@ define hdp-hadoop::namenode::create_app_directories($service_state)
 
     if ($hdp::params::oozie_server != "") {
       $oozie_user = $hdp::params::oozie_user
-      hdp-hadoop::hdfs::directory{ "/user/${oozie_user}":
+      $oozie_hdfs_user_dir = $hdp::params::oozie_hdfs_user_dir
+      hdp-hadoop::hdfs::directory{ $oozie_hdfs_user_dir:
         service_state => $service_state,
         owner => $oozie_user,
         mode  => '775',
@@ -171,7 +173,8 @@ define hdp-hadoop::namenode::create_app_directories($service_state)
     
     if ($hdp::params::webhcat_server_host != "") {
       $templeton_user = $hdp::params::templeton_user
-      hdp-hadoop::hdfs::directory{ '/user/hcat':
+      $hcat_hdfs_user_dir = $hdp::params::hcat_hdfs_user_dir
+      hdp-hadoop::hdfs::directory{ $hcat_hdfs_user_dir:
         service_state => $service_state,
         owner => $templeton_user,
         mode  => '755',
