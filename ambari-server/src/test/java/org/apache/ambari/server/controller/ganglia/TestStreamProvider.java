@@ -30,7 +30,7 @@ public class TestStreamProvider implements StreamProvider {
   @Override
   public InputStream readFrom(String spec) throws IOException {
     lastSpec = spec;
-    return ClassLoader.getSystemResourceAsStream("temporal_ganglia.json");
+    return ClassLoader.getSystemResourceAsStream("temporal_ganglia_data.txt");
   }
 
   public String getLastSpec() {

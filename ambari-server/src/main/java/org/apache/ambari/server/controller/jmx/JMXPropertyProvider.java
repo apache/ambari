@@ -22,11 +22,14 @@ import org.apache.ambari.server.controller.internal.PropertyInfo;
 import org.apache.ambari.server.controller.spi.*;
 import org.apache.ambari.server.controller.utilities.StreamProvider;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
+import org.codehaus.jackson.map.DeserializationConfig;
 import org.codehaus.jackson.map.ObjectMapper;
+import org.codehaus.jackson.map.ObjectReader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -62,6 +65,8 @@ public class JMXPropertyProvider implements PropertyProvider {
 
   private final String componentNamePropertyId;
 
+  private final static ObjectReader objectReader;
+
 
   static {
     JMX_PORTS.put("NAMENODE",     "50070");
@@ -69,6 +74,10 @@ public class JMXPropertyProvider implements PropertyProvider {
     JMX_PORTS.put("JOBTRACKER",   "50030");
     JMX_PORTS.put("TASKTRACKER",  "50060");
     JMX_PORTS.put("HBASE_MASTER", "60010");
+
+    ObjectMapper objectMapper = new ObjectMapper();
+    objectMapper.configure(DeserializationConfig.Feature.USE_ANNOTATIONS, false);
+    objectReader = objectMapper.reader(JMXMetricHolder.class);
   }
 
   protected final static Logger LOG =
@@ -177,9 +186,10 @@ public class JMXPropertyProvider implements PropertyProvider {
     }
 
     String spec = getSpec(hostName + ":" + port);
-
+    InputStream in = null;
     try {
-      JMXMetricHolder metricHolder = new ObjectMapper().readValue(streamProvider.readFrom(spec), JMXMetricHolder.class);
+      in = streamProvider.readFrom(spec);
+      JMXMetricHolder metricHolder = objectReader.readValue(in);
 
       Map<String, Map<String, Object>> categories = new HashMap<String, Map<String, Object>>();
 
@@ -242,6 +252,16 @@ public class JMXPropertyProvider implements PropertyProvider {
     } catch (IOException e) {
       if (LOG.isErrorEnabled()) {
         LOG.error("Caught exception getting JMX metrics : spec=" + spec, e);
+      }
+    } finally {
+      if (in != null) {
+        try {
+          in.close();
+        } catch (IOException e) {
+          if (LOG.isWarnEnabled()) {
+            LOG.warn("Unable to close http input steam : spec=" + spec, e);
+          }
+        }
       }
     }
 

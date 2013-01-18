@@ -152,4 +152,22 @@ public class GangliaMetric {
 
     return stringBuilder.toString();
   }
+
+  public static class TemporalMetric {
+    private Number m_value;
+    private Number m_time;
+
+    public TemporalMetric(Number value, Number time) {
+      m_value = value;
+      m_time = time;
+    }
+
+    public Number getValue() {
+      return m_value;
+    }
+
+    public Number getTime() {
+      return m_time;
+    }
+  }
 }

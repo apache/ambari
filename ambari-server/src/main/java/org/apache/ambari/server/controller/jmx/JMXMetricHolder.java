@@ -24,7 +24,7 @@ import java.util.Map;
 /**
  *
  */
-public class JMXMetricHolder {
+public final class JMXMetricHolder {
 
   private List<Map<String, Object>> beans;
 

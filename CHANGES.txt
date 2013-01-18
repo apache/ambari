@@ -43,6 +43,9 @@ Trunk (unreleased changes):
  AMBARI-1181. Clean up table header UI for sorting and filter clear "x" for
  Hosts table. (yusaku)
 
+ AMBARI-1198. Ambari API Performance: Parsing of Ganglia json data is slow.
+ (jspeidel via mahadev)
+
  BUG FIXES
 
  AMBARI-1203. mapred-site.xml default system directory is not set
