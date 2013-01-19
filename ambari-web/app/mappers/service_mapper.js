@@ -289,6 +289,23 @@ App.servicesMapper = App.QuickDataMapper.create({
           e.set("reducesRunning", finalJson.reduces_running);
           e.set("reducesWaiting", finalJson.reduces_waiting);
           e.set("trackersDecommissioned", finalJson.trackers_decommissioned);
+
+          var taskTrackers = e.get('taskTrackers');
+          if (taskTrackers) {
+            taskTrackers.clear();
+            finalJson.task_trackers.forEach(function (ldn) {
+              taskTrackers.pushObject(App.Host.find(ldn));
+            });
+          }
+
+          taskTrackers = e.get('aliveTrackers');
+          if (taskTrackers) {
+            taskTrackers.clear();
+            finalJson.alive_trackers.forEach(function (ldn) {
+              taskTrackers.pushObject(App.Host.find(ldn));
+            });
+          }
+
         })
         break;
       case 'HBASE':
@@ -302,6 +319,15 @@ App.servicesMapper = App.QuickDataMapper.create({
           e.set("revision", finalJson.revision);
           e.set("heapMemoryUsed", finalJson.heap_memory_used);
           e.set("heapMemoryMax", finalJson.heap_memory_max);
+
+          var regionServers = e.get('regionServers');
+          if (regionServers) {
+            regionServers.clear();
+            finalJson.region_servers.forEach(function (ldn) {
+              regionServers.pushObject(App.Host.find(ldn));
+            });
+          }
+
         })
         break;
       default:

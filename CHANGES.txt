@@ -60,6 +60,9 @@ Trunk (unreleased changes):
 
  BUG FIXES
 
+ AMBARI-1219. After adding hosts, the number of live TaskTrackers is not
+ updated. (yusaku)
+
  AMBARI-1176. In some cases, once Add Hosts wizard has run once, it requires
  a log out before the Add Hosts wizard can be run again. (yusaku)
 
