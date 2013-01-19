@@ -17,6 +17,9 @@ Trunk (unreleased changes):
 
  IMPROVEMENTS
 
+ AMBARI-1221. There is no default sort order on Hosts table and the order
+ changes on every page refresh - should sort by hostname. (yusaku)
+
  AMBARI-1220. Oozie service summary update. (yusaku)
 
  AMBARI-1218. Refactor Job Browser User filter. (yusaku)

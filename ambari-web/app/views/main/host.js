@@ -59,7 +59,8 @@ App.MainHostView = Em.View.extend({
         { "sType":"html", "bSortable": false  },
         { "bVisible": false }, // hidden column for raw public host name value
         { "bVisible": false } // hidden column for raw components list
-      ]
+      ],
+      "aaSorting": [[ 1, "asc" ]]
     });
     this.set('oTable', oTable);
     this.set('allComponentsChecked', true); // select all components (checkboxes) on start.
