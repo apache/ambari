@@ -127,6 +127,9 @@ Trunk (unreleased changes):
  AMBARI-1211. Ability to configure the same username for all the services in
  Ambari. (mahadev)
 
+ AMBARI-1231. Replace sudo with su in the ambari setup script since ambari
+ server setup is already run as root. (mahadev)
+
 AMBARI-1.2.0 branch:
 
  INCOMPATIBLE CHANGES

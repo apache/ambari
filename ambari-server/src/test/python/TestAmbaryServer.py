@@ -531,17 +531,25 @@ class TestAmbariServer(TestCase):
 
 
 
+  @patch("shlex.split")
   @patch("subprocess.Popen")
   @patch.object(ambari_server, "print_info_msg")
-  def test_run_os_command(self, printInfoMsg_mock, popenMock):
+  def test_run_os_command(self, printInfoMsg_mock, popenMock, splitMock):
 
     p = MagicMock()
     p.communicate.return_value = (None, None)
     p.returncode = 3
     popenMock.return_value = p
 
+    # with list arg
+    cmd = ["exec", "arg"]
+    ambari_server.run_os_command(cmd)
+    self.assertFalse(splitMock.called)
+
+    # with str arg
     resp = ambari_server.run_os_command("runme")
     self.assertEqual(3, resp[0])
+    self.assertTrue(splitMock.called)
 
 
 
@@ -892,19 +900,6 @@ class TestAmbariServer(TestCase):
     sys.stdout = sys.__stdout__
 
 
-
-  @patch.object(ambari_server, "run_os_command")
-  def test_check_sudo(self, run_os_command_mock):
-
-    run_os_command_mock.return_value = (0, "none", None)
-    rcode = ambari_server.check_sudo()
-    self.assertEqual(1, rcode)
-
-    run_os_command_mock.return_value = (0, "sudo", None)
-    rcode = ambari_server.check_sudo()
-    self.assertEqual(0, rcode)
-
-
   @patch.object(ambari_server, "configure_os_settings")
   @patch.object(ambari_server, "download_jdk")
   @patch.object(ambari_server, "configure_postgres")
@@ -912,8 +907,7 @@ class TestAmbariServer(TestCase):
   @patch.object(ambari_server, "check_postgre_up")
   @patch.object(ambari_server, "check_iptables")
   @patch.object(ambari_server, "check_selinux")
-  @patch.object(ambari_server, "check_sudo")
-  def test_setup(self, check_sudo_mock, check_selinux_mock, check_iptables_mock,
+  def test_setup(self, check_selinux_mock, check_iptables_mock,
                  check_postgre_up_mock, setup_db_mock, configure_postgres_mock,
                  download_jdk_mock, configure_os_settings_mock):
 
@@ -922,7 +916,6 @@ class TestAmbariServer(TestCase):
 
     args = MagicMock()
 
-    check_sudo_mock.return_value = 0
     check_selinux_mock.return_value = 0
     check_iptables_mock.return_value = (0, "other")
     check_postgre_up_mock.return_value = 0

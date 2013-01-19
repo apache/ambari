@@ -19,6 +19,7 @@ limitations under the License.
 '''
 
 import optparse
+import shlex
 import sys
 import os
 import signal
@@ -44,9 +45,6 @@ SETUP_ACTION = "setup"
 START_ACTION = "start"
 STOP_ACTION = "stop"
 RESET_ACTION = "reset"
-
-#sudo check command
-SUDO_CHECK_CMD = "rpm -qa | grep sudo"
 
 # selinux commands
 GET_SE_LINUX_ST_CMD = "/usr/sbin/sestatus"
@@ -96,9 +94,8 @@ PID_DIR="/var/run/ambari-server"
 PID_NAME="ambari-server.pid"
 AMBARI_PROPERTIES_FILE="ambari.properties"
 
-# database commands
-SETUP_DB_CMD = "sudo -u postgres psql -f {0} -v username=\"{1}\" "\
-               "-v password=\'{2}\'"
+SETUP_DB_CMD = ['su', 'postgres',
+        '--command=psql -f {0} -v username=\'"{1}"\' -v password="\'{2}\'"']
 PG_ST_CMD = "/sbin/service postgresql status"
 PG_START_CMD = "/sbin/service postgresql start"
 PG_RESTART_CMD = "/sbin/service postgresql restart"
@@ -107,7 +104,7 @@ PG_HBA_DIR = "/var/lib/pgsql/data/"
 PG_HBA_CONF_FILE = PG_HBA_DIR + "pg_hba.conf"
 PG_HBA_CONF_FILE_BACKUP = PG_HBA_DIR + "pg_hba_bak.conf.old"
 POSTGRESQL_CONF_FILE = PG_HBA_DIR + "postgresql.conf"
-PG_HBA_RELOAD_CMD = "sudo -u postgres pg_ctl -D {0} reload"
+PG_HBA_RELOAD_CMD = "su postgres --command='pg_ctl -D {0} reload'"
 PG_DEFAULT_PASSWORD = "bigdata"
 JDBC_USER_NAME_PROPERTY = "server.jdbc.user.name"
 JDBC_PASSWORD_FILE_PROPERTY = "server.jdbc.user.passwd"
@@ -210,8 +207,10 @@ def restart_postgres():
 
 
 def run_os_command(cmd):
-  print_info_msg('about to run command: ' + cmd)
-  process = subprocess.Popen(cmd.split(' '),
+  print_info_msg('about to run command: ' + str(cmd))
+  if type(cmd) == str:
+    cmd = shlex.split(cmd)
+  process = subprocess.Popen(cmd,
     stdout=subprocess.PIPE,
     stdin=subprocess.PIPE,
     stderr=subprocess.PIPE
@@ -240,7 +239,8 @@ def setup_db(args):
   file = args.init_script_file
   username = args.postgres_username
   password = args.postgres_password
-  command = SETUP_DB_CMD.format(file, username, password)
+  command = SETUP_DB_CMD[:]
+  command[-1] = command[-1].format(file, username, password)
   retcode, outdata, errdata = run_os_command(command)
   if not retcode == 0:
     print errdata
@@ -571,26 +571,11 @@ def find_jdk():
   print "Selected JDK {0}".format(jdkPath)
   return jdkPath
 
-def check_sudo():
-  retcode, out, err = run_os_command(SUDO_CHECK_CMD)
-  if re.search('sudo', out) == None:
-    return 1
-  return 0
-  pass
-
-
 
 #
 # Setup the Ambari Server.
 #
 def setup(args):
-
-  retcode = check_sudo()
-  if retcode != 0:
-    print_error_msg(
-      "ERROR: sudo command not found on host. "
-      "Please install sudo and re-run ambari-server setup. Exiting.")
-    sys.exit(retcode)
 
   print 'Checking SELinux...'
   retcode = check_selinux()
@@ -674,7 +659,8 @@ def reset(args):
   filename = args.drop_script_file
   username = args.postgres_username
   password = args.postgres_password
-  command = SETUP_DB_CMD.format(filename, username, password)
+  command = SETUP_DB_CMD[:]
+  command[-1] = command[-1].format(filename, username, password)
   retcode, outdata, errdata = run_os_command(command)
   if not retcode == 0:
     print errdata
