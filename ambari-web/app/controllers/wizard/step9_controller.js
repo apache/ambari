@@ -35,17 +35,16 @@ App.WizardStep9Controller = Em.Controller.extend({
   polledData: [],
 
   status: function () {
-    if(this.get('progress') != '100') {
-      return 'info';
-    }
-
     if (this.hosts.someProperty('status', 'failed')) {
       return 'failed';
-    } else if (this.hosts.someProperty('status', 'warning')) {
+    }
+    if (this.hosts.someProperty('status', 'warning')) {
       return 'warning';
     }
-
-    return 'success';
+    if(this.get('progress') == '100') {
+      return 'success';
+    }
+    return 'info';
   }.property('hosts.@each.status', 'progress'),
 
   showRetry: function () {
@@ -442,14 +441,8 @@ App.WizardStep9Controller = Em.Controller.extend({
           clusterStatus.installTime = timeToStart;
           this.set('status', 'success');
         } else {
-          if (this.isStepFailed(polledData)) {
             clusterStatus.status = 'START FAILED'; // 'START FAILED' implies to step10 that installation was successful but start failed
-            this.set('status', 'failed');
-            this.setHostsStatus(this.getFailedHostsForFailedRoles(polledData), 'failed');
-          } else {
-            clusterStatus.status = 'START FAILED';
             this.set('status', 'warning');
-          }
         }
         App.router.get(this.get('content.controllerName')).saveClusterStatus(clusterStatus);
         this.set('isStepCompleted', true);
@@ -487,7 +480,7 @@ App.WizardStep9Controller = Em.Controller.extend({
       return true;
     } else if (this.get('content.cluster.status') === 'START FAILED') {
       this.set('progress', '100');
-      this.set('status', 'failed');
+      this.set('status', 'warning');
       return true;
     } else if (this.get('content.cluster.status') === 'STARTED') {
       this.set('progress', '100');

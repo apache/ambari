@@ -17,6 +17,9 @@ Trunk (unreleased changes):
 
  IMPROVEMENTS
 
+ AMBARI-1214. In any starts fails, "warn" the host and the overall install.
+ (yusaku)
+
  AMBARI-1204. Install Wizard: Re-enable configuration of user/group names for
  master component daemons. (yusaku)
 
