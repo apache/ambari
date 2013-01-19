@@ -245,6 +245,8 @@ App.WizardStep3Controller = Em.Controller.extend({
   },
 
   retrySelectedHosts: function () {
+    //to display all hosts
+    this.set('category', 'All');
     if (!this.get('isRetryDisabled')) {
       this.set('isRetryDisabled', true);
       var selectedHosts = this.get('bootHosts').filterProperty('bootStatus', 'FAILED');
@@ -266,6 +268,28 @@ App.WizardStep3Controller = Em.Controller.extend({
     this.get('bootHosts').setEach('bootStatus', 'PENDING');
     this.doBootstrap();
   },
+
+  isInstallInProgress: function(){
+    var bootStatuses = this.get('bootHosts').getEach('bootStatus');
+    if(bootStatuses.length &&
+      (bootStatuses.contains('REGISTERING') ||
+        bootStatuses.contains('DONE') ||
+        bootStatuses.contains('RUNNING') ||
+        bootStatuses.contains('PENDING'))){
+      return true;
+    }
+    return false;
+  }.property('bootHosts.@each.bootStatus'),
+
+  disablePreviousSteps: function(){
+    if(this.get('isInstallInProgress')){
+      App.router.get('installerController').setLowerStepsDisable(3);
+      this.set('isSubmitDisabled', true);
+    } else {
+      App.router.get('installerController.isStepDisabled').findProperty('step', 1).set('value', false);
+      App.router.get('installerController.isStepDisabled').findProperty('step', 2).set('value', false);
+    }
+  }.observes('isInstallInProgress'),
 
   doBootstrap: function () {
     if (this.get('stopBootstrap')) {
@@ -298,10 +322,11 @@ App.WizardStep3Controller = Em.Controller.extend({
             for (var i = 0; i < hosts.length; i++) {
 
               var isValidHost = data.hostsStatus.someProperty('hostName', hosts[i].get('name'));
-
-              if (!isValidHost) {
-                hosts[i].set('bootStatus', 'FAILED');
-                hosts[i].set('bootLog', 'Registration with the server failed.');
+              if(hosts[i].get('bootStatus') !== 'REGISTERED'){
+                if (!isValidHost) {
+                  hosts[i].set('bootStatus', 'FAILED');
+                  hosts[i].set('bootLog', 'Registration with the server failed.');
+                }
               }
             }
           }

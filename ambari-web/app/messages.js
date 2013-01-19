@@ -121,6 +121,8 @@ Em.I18n.translations = {
   'installer.step3.hosts.retry.popup.body':'Are you sure you want to retry discovery of the selected host(s)?',
   'installer.step3.hostInformation.popup.header':'Error in retrieving host Information',
   'installer.step3.hostInformation.popup.body' : 'All bootstrapped hosts registered but unable to retrieve cpu and memory related information',
+  'installer.step3.hosts.noHosts':'No hosts to display',
+
   'installer.step4.header':'Choose Services',
   'installer.step4.body':'Choose which services you want to install on your cluster.',
   'installer.step4.mapreduceCheck.popup.header':'MapReduce Needed',
