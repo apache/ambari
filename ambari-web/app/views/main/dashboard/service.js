@@ -93,6 +93,31 @@ App.MainDashboardServiceView = Em.View.extend({
   criticalAlertsCount: function () {
     var alerts = App.router.get('clusterController.alerts');
     return alerts.filterProperty('serviceType', this.get('service.id')).filterProperty('isOk', false).length;
-  }.property('App.router.clusterController.alerts')
+  }.property('App.router.clusterController.alerts'),
+
+  isCollapsed: false,
+
+  toggleInfoView: function () {
+    this.$('.service-body').toggle('blind', 200);
+    this.set('isCollapsed', !this.isCollapsed);
+  },
+
+  masters: function(){
+    return this.get('service.hostComponents').filterProperty('isMaster', true);
+  }.property('service'),
+
+  clients: function(){
+    var clients = this.get('service.hostComponents').filterProperty('isClient', true);
+    var len = clients.length;
+    var template = 'dashboard.services.{0}.client'.format(this.get('serviceName').toLowerCase());
+    if(len > 1){
+      template += 's';
+    }
+
+    return {
+      title: this.t(template).format(len),
+      component: clients.objectAt(0)
+    };
+  }.property('service')
 
 });

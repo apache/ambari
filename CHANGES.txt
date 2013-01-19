@@ -75,6 +75,8 @@ Trunk (unreleased changes):
 
  BUG FIXES
 
+ AMBARI-1226. On Dashboard, links to host components are missing. (yusaku)
+
  AMBARI-1219. After adding hosts, the number of live TaskTrackers is not
  updated. (yusaku)
 

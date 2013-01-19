@@ -381,6 +381,17 @@ Em.I18n.translations = {
   'dashboard.services.hbase.masterStarted':'Master Started',
   'dashboard.services.hbase.masterActivated':'Master Activated',
 
+  'dashboard.services.hive.client': '{0} Hive Client',
+  'dashboard.services.hive.clients': '{0} Hive Clients',
+
+  'dashboard.services.oozie.client': '{0} Oozie Client',
+  'dashboard.services.oozie.clients': '{0} Oozie Clients',
+  'dashboard.services.oozie.webUi': 'Oozie Web UI',
+
+  'dashboard.services.zookeeper.prefix': '{0} of',
+  'dashboard.services.zookeeper.title': '{0} ZooKeepers',
+  'dashboard.services.zookeeper.postfix': 'running',
+
   'dashboard.services.configs.popup.stopService.header':'Stop service',
   'dashboard.services.configs.popup.stopService.body' : 'Service needs to be stopped for reconfiguration',
   'dashboard.services.configs.popup.restartService.header' : 'Restart service',

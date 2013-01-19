@@ -20,5 +20,21 @@ var App = require('app');
 
 App.MainDashboardServiceZookeperView = App.MainDashboardServiceView.extend({
   templateName: require('templates/main/dashboard/service/zookeeper'),
-  serviceName: 'zookeeper'
+  serviceName: 'zookeeper',
+
+  titleInfo: function(){
+    var components = this.get('service.hostComponents').filterProperty('componentName', 'ZOOKEEPER_SERVER');
+    var running = 0;
+    components.forEach(function(item){
+      if(item.get('workStatus') === App.HostComponentStatus.started){
+        running += 1;
+      }
+    });
+
+    return {
+      pre: this.t('dashboard.services.zookeeper.prefix').format(running),
+      title: this.t('dashboard.services.zookeeper.title').format(components.length),
+      component: components.objectAt(0)
+    };
+  }.property('service')
 });

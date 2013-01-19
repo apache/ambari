@@ -112,13 +112,6 @@ App.MainDashboardServiceHdfsView = App.MainDashboardServiceView.extend({
     return App.HostComponent.find().findProperty('componentName', 'DATANODE');
   }.property('+'),
 
-  isCollapsed: false,
-
-  toggleInfoView: function () {
-    $('#hdfs-info').toggle('blind', 200);
-    this.set('isCollapsed', !this.isCollapsed);
-  },
-
   isSafeMode: function () {
     var safeMode = this.get('service.safeModeStatus');
     return safeMode != null && safeMode.length > 0;

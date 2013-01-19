@@ -28,12 +28,13 @@
     {{/if}}
   </div>
   <div class="summary span">
-    {{#each component in view.service.components}}
-    {{#if component.type}}
-    <a href="#" {{action selectHost component.host}}>{{component.displayName}}</a>,
-    {{else}}
-    <a href="#" {{action filterHosts component}}>{{component.displayName}}</a>
-    {{/if}}
+    {{#each component in view.masters}}
+      <a href="#" {{action showDetails component.host}}>{{component.displayName}}</a>,
     {{/each}}
+
+    <a href="#" {{action filterHosts view.clients.component}}>{{view.clients.title}}</a>,
+
+    <a href="{{unbound view.webUi}}" target="_blank">{{t dashboard.services.oozie.webUi}}</a>
+
   </div>
 </div>
