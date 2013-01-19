@@ -836,23 +836,7 @@ App.MainAppsView = Em.View.extend({
         }));
       return users;
     }.property('parentView.users'),
-    template: Ember.Handlebars.compile(
-      '<button class="btn btn-info single-btn-group"'+
-      '{{action "clickFilterButton" target="view"}}>'+
-      'User&nbsp;<span class="caret"></span></button>'+
-      '<ul class="dropdown-menu filter-components">'+
-      '<li><label class="checkbox">' +
-      '{{view Ember.Checkbox checkedBinding="view.allComponentsChecked"}} All</label></li>'+
-      '{{#each user in view.users}}<li><label class="checkbox">' +
-      '{{view Ember.Checkbox checkedBinding="user.checked"}} {{user.name}}'+
-      '</label></li>{{/each}}'+
-      '<li>' +
-      '<button class="btn" {{action "closeFilter" target="view"}}>' +
-      'Cancel</button>' +
-      '<button class="btn btn-primary" {{action "applyFilter" target="view"}}>'+
-      'Apply</button>'+
-      '</li></ul>'
-    ),
+    templateName:require('templates/main/apps/user_filter'),
     allComponentsChecked:false,
     toggleAllComponents: function() {
       var checked = this.get('allComponentsChecked');
