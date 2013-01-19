@@ -31,6 +31,58 @@ module.exports = {
       }
     }
   },
+  /**
+   * Get min, max for X and max for Y for provided series
+   * @param series
+   * @return {Object}
+   */
+  getExtInSeries: function(series) {
+    var maxY = 0;
+    var maxX = 0;
+    var minX = 2147465647; // max timestamp value
+    if (series.length > 0) {
+      series.forEach(function(item){
+        if (item.y > maxY) {
+          maxY = item.y;
+        }
+        if (item.x > maxX) {
+          maxX = item.x;
+        }
+        if (item.x < minX) {
+          minX = item.x;
+        }
+      });
+    }
+    return {maxX: maxX, minX: minX, maxY: maxY};
+  },
+  /**
+   * Get coordinates for new circle in the graph
+   * New circle needed to prevent cut on the borders of the graph
+   * List of arguments - series arrays
+   * @return {Object}
+   */
+  getNewCircle: function() {
+    var maxx = [];
+    var minx = [];
+    var maxy = [];
+    for (var i = 0; i < arguments.length; i++) {
+      var localExt = this.getExtInSeries(arguments[i]);
+      maxx.push(localExt.maxX);
+      minx.push(localExt.minX);
+      maxy.push(localExt.maxY);
+    }
+    var maxX = Math.max.apply(null, maxx);
+    var minX = Math.min.apply(null, minx);
+    var newX;
+    if (minX != 2147465647) {
+      newX = maxX + Math.round((maxX - minX) * 0.2);
+    }
+    else {
+      newX = (new Date()).getTime();
+    }
+    var newY = Math.max.apply(null, maxy) * 1.2;
+    return {x: newX, y: newY, r: 0, io: 0};
+  },
   drawJobTimeLine:function (map, shuffle, reduce, w, h, element, legend_id, timeline_id) {
     map = $.parseJSON(map);
     shuffle = $.parseJSON(shuffle);
@@ -128,7 +180,11 @@ module.exports = {
       return;
     }
     this.uniformSeries(mapNodeLocal, mapRackLocal, mapOffSwitch, reduceOffSwitch);
-    console.warn(submitTime);
+    var newC = this.getNewCircle(mapNodeLocal, mapRackLocal, mapOffSwitch, reduceOffSwitch);
+    mapNodeLocal.push(newC);
+    mapRackLocal.push(newC);
+    mapOffSwitch.push(newC);
+    reduceOffSwitch.push(newC);
     var graph = new Rickshaw.Graph({
       width:w,
       height:h,
@@ -225,9 +281,5 @@ module.exports = {
       }
 
     });
-    /*var annotator = new Rickshaw.Graph.Annotate({
-      graph:graph,
-      element:document.getElementById(timeline_id)
-    });*/
   }
 }
