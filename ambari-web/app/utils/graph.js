@@ -45,6 +45,8 @@ module.exports = {
       height:h,
       element:document.querySelector(element),
       renderer:'area',
+      interpolation: 'step-after',
+      strokeWidth: 2,
       stroke:true,
       series:[
         {
@@ -65,7 +67,6 @@ module.exports = {
       ]
       }
     );
-
     graph.render();
 
     var legend = new Rickshaw.Graph.Legend({
@@ -89,13 +90,18 @@ module.exports = {
     });
 
     var xAxis = new Rickshaw.Graph.Axis.Time({
-
-      graph:graph
+      graph:graph,
+      timeUnit: {
+        name: '1 min',
+        seconds: 60,
+        formatter: function(d) { return d.toUTCString().match(/(\d+:\d+):/)[1] }
+      }
     });
     xAxis.render();
 
     var yAxis = new Rickshaw.Graph.Axis.Y({
-
+      orientation: 'left',
+      element: document.querySelector('#y-axis'),
       graph:graph
     });
     yAxis.render();
@@ -107,10 +113,10 @@ module.exports = {
       }
     });
 
-    var annotator = new Rickshaw.Graph.Annotate({
+    /*var annotator = new Rickshaw.Graph.Annotate({
       graph:graph,
-      element:document.getElementById(timeline_id)
-    });
+      //element:document.getElementById(timeline_id)
+    });*/
   },
   drawJobTasks:function (mapNodeLocal, mapRackLocal, mapOffSwitch, reduceOffSwitch, submitTime, w, h, element, legend_id, timeline_id) {
     mapNodeLocal = $.parseJSON(mapNodeLocal);
@@ -122,7 +128,7 @@ module.exports = {
       return;
     }
     this.uniformSeries(mapNodeLocal, mapRackLocal, mapOffSwitch, reduceOffSwitch);
-
+    console.warn(submitTime);
     var graph = new Rickshaw.Graph({
       width:w,
       height:h,
@@ -147,7 +153,7 @@ module.exports = {
         },
         {
           data:reduceOffSwitch,
-          color:'red',
+          color:'steelblue',
           name:'reduce'
         }
       ]
@@ -177,6 +183,11 @@ module.exports = {
 
     var xAxis = new Rickshaw.Graph.Axis.Time({
       graph:graph,
+      timeUnit: {
+        name: '30 seconds',
+        seconds: 30,
+        formatter: function(d) { return (new Date(d)).getTime() / 1000 - submitTime + 's' }
+      },
       ticksTreatment:ticksTreatment
     });
     xAxis.render();
@@ -184,6 +195,8 @@ module.exports = {
     var yAxis = new Rickshaw.Graph.Axis.Y({
       graph:graph,
       ticksTreatment:ticksTreatment,
+      orientation: 'left',
+      element: document.querySelector('#y-axis2'),
       tickFormat: function(y) { return y / 1000 + 's' }
     });
     yAxis.render();
@@ -212,10 +225,9 @@ module.exports = {
       }
 
     });
-    var annotator = new Rickshaw.Graph.Annotate({
+    /*var annotator = new Rickshaw.Graph.Annotate({
       graph:graph,
       element:document.getElementById(timeline_id)
-    });
-    graph.update();
+    });*/
   }
 }

@@ -17,6 +17,8 @@ Trunk (unreleased changes):
 
  IMPROVEMENTS
 
+ AMBARI-1222. DAG, Jobs Timeline, and Tasks graphs UI cleanup. (yusaku)
+
  AMBARI-1221. There is no default sort order on Hosts table and the order
  changes on every page refresh - should sort by hostname. (yusaku)
 

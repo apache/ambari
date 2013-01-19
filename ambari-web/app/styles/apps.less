@@ -239,6 +239,7 @@
     top: -999px;
     left: -999px;
     .modal-body {
+      min-height: 430px;
       max-height: none;
     }
     width: 1150px;
@@ -282,19 +283,58 @@
     }
   }
 
+  .rickshaw_legend {
+    background-color: #999 !important;
+    li:hover {
+      background-color: #999 !important;
+    }
+  }
+  #graph1, #graph2 {
+    svg {
+      g {
+        g:nth-child(1) {
+          display: none;
+        }
+      }
+    }
+  }
   #graph1 {
     margin-left: 30px;
     width: 440px;
+    #chart {
+      left: 30px;
+      overflow: visible;
+      position: relative;
+    }
     #legend_container {
       margin: 40px 0 0 20px;
+    }
+    #y-axis {
+      position: absolute;
+      top: 182px;
+      bottom: 0;
+      width: 30px;
     }
   }
 
   #graph2 {
     margin-right: 30px;
     width: 500px;
+    #job_tasks {
+      left: 30px;
+      overflow: visible;
+      position: relative;
+    }
     #tasks_legend_container {
       margin: 40px 0 0 20px;
+    }
+    #y-axis2 {
+      position: absolute;
+      top: 182px;
+      bottom: 0;
+      width: 30px;
+      overflow: hidden;
+      height: 210px;
     }
   }
 
