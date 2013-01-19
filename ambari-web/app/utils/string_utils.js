@@ -52,14 +52,12 @@ module.exports = {
     return str;
 
   },
-  underScoreToCamelCase: function(string){
-    var result = string.split('');
-    for(var i = 0; i < result.length; i++){
-      if(result[i] === '_'){
-        result[i] = result[i+1].toUpperCase();
-        result.splice(i+1,1);
-      }
+  underScoreToCamelCase: function(name){
+    var new_name = name.replace(/_\w/g,replacer);
+    function replacer(str, p1, p2, offset, s)
+    {
+      return str[1].toUpperCase();
     }
-    return result.join('');
+    return new_name;
   }
 }

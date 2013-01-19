@@ -17,6 +17,7 @@
  */
 
 var App = require('app');
+var stringUtils = require('utils/string_utils');
 
 App.ServerDataMapper = Em.Object.extend({
   jsonKey: false,
@@ -121,5 +122,35 @@ App.QuickDataMapper = App.ServerDataMapper.extend({
     }
 
     return json;
+  },
+  /**
+   * update fields in record
+   * @param record
+   * @param json
+   * @param fieldsNotUpdate
+   */
+  updateRecord: function (record, json, fieldsNotUpdate) {
+    for (var field in json) {
+      if (json[field] !== undefined && !fieldsNotUpdate.contains(field)) {
+        if(json[field] instanceof Array){
+          this.updateHasMany(record, stringUtils.underScoreToCamelCase(field), json[field]);
+        } else {
+          record.set(stringUtils.underScoreToCamelCase(field), json[field]);
+        }
+      }
+    }
+  },
+  /**
+   * update fields with hasMany type
+   * @param record
+   * @param field
+   * @param items
+   */
+  updateHasMany: function(record, field, items ){
+    var hasMany = record.get(field);
+    hasMany.clear();
+    items.forEach(function (item) {
+      hasMany.pushObject(hasMany.type.find(item));
+    });
   }
 });

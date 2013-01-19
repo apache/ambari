@@ -55,7 +55,6 @@ App.HostComponent = DS.Model.extend({
       default:
         return false;
     }
-    return this.get('componentName');
   }.property('componentName'),
   isSlave: function(){
     switch (this.get('componentName')) {
@@ -67,7 +66,6 @@ App.HostComponent = DS.Model.extend({
       default:
         return false;
     }
-    return this.get('componentName');
   }.property('componentName'),
   /**
    * A host-component is decommissioning when it is in HDFS service's list of

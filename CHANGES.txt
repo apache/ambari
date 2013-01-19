@@ -17,6 +17,9 @@ Trunk (unreleased changes):
 
  IMPROVEMENTS
 
+ AMBARI-1215. Refactor hostComponent isSlaves and isMaster and add update
+ methods for server mapper. (yusaku)
+
  AMBARI-1214. In any starts fails, "warn" the host and the overall install.
  (yusaku)
 
