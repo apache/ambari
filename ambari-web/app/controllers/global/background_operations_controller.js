@@ -160,7 +160,6 @@ App.BackgroundOperationsController = Em.Controller.extend({
       if (executeTasks[i].status == 'QUEUED' || executeTasks[i].status == 'PENDING' || executeTasks[i].status == 'IN_PROGRESS') {
         var url = App.testMode ? '/data/background_operations/list_on_start.json' :
             App.apiPrefix + '/clusters/' + App.router.getClusterName() + '/requests/' + executeTasks[i].request_id + '/tasks/' + executeTasks[i].id;
-        var j = i;
         $.ajax({
           type: "GET",
           url: url,
@@ -168,7 +167,11 @@ App.BackgroundOperationsController = Em.Controller.extend({
           timeout: App.timeout,
           success: function (data) {
             if (data) {
-              executeTasks[j] = data.Tasks;
+              for(var i = 0;i < executeTasks.length; i++){
+                if(data.Tasks.id == executeTasks[i].id){
+                  executeTasks[i] = data.Tasks;
+                }
+              }
             }
           },
           error: function () {
@@ -179,7 +182,6 @@ App.BackgroundOperationsController = Em.Controller.extend({
         });
       }
     }
-    ;
     var currentTasks;
     currentTasks = runningTasks.concat(executeTasks);
     currentTasks = currentTasks.sort(function (a, b) {
