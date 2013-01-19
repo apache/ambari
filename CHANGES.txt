@@ -17,6 +17,9 @@ Trunk (unreleased changes):
 
  IMPROVEMENTS
 
+ AMBARI-1228. During Install, show "warn" on hosts that have tasks cancelled.
+ (yusaku)
+
  AMBARI-1225. Add Hosts wizard popup is too small. (yusaku)
 
  AMBARI-1224. Drop the "all" option from Hosts > Component Filter and
