@@ -19,9 +19,6 @@
   User&nbsp;<span class="caret"></span>
 </button>
 <ul class="dropdown-menu filter-components">
-  <li>
-    <label class="checkbox">{{view Ember.Checkbox checkedBinding="view.allComponentsChecked"}} All</label>
-  </li>
   {{#each user in view.users}}
     <li>
       <label class="checkbox">{{view Ember.Checkbox checkedBinding="user.checked"}} {{user.name}}</label>

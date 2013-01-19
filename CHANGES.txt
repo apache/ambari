@@ -17,6 +17,9 @@ Trunk (unreleased changes):
 
  IMPROVEMENTS
 
+ AMBARI-1224. Drop the "all" option from Hosts > Component Filter and
+ Jobs > Users Filter. (yusaku)
+
  AMBARI-1223. Confirm Hosts page: It looks like hosts disappear if you are
  on "Fail" filter and click on "Retry Failed" button. (yusaku)
 

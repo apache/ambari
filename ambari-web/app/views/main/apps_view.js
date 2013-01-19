@@ -837,19 +837,13 @@ App.MainAppsView = Em.View.extend({
       return users;
     }.property('parentView.users'),
     templateName:require('templates/main/apps/user_filter'),
-    allComponentsChecked:false,
-    toggleAllComponents: function() {
-      var checked = this.get('allComponentsChecked');
-      this.get('users').forEach(function(item){
-        item.set('checked',checked);
-      });
-    }.observes('allComponentsChecked'),
     clickFilterButton:function(event) {
       this.set('open', !this.get('open'));
     },
     clearFilter:function(self) {
-      self.set('allComponentsChecked', true);
-      self.set('allComponentsChecked', false);
+      self.get('users').forEach(function(item){
+        item.set('checked',false);
+      });
       jQuery('#user_filter').val([]);
       self.get('parentView').get('oTable').fnFilter('', 5);
       jQuery('#user_filter').closest('th').addClass('notActive');

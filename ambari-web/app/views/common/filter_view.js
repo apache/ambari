@@ -99,14 +99,6 @@ var componentFieldView = Ember.View.extend({
   slaveComponentsBinding: 'controller.slaveComponents',
   clientComponentsBinding: 'controller.clientComponents',
 
-  allComponentsChecked:false,
-  toggleAllComponents:function () {
-    var checked = this.get('allComponentsChecked');
-    this.set('masterComponentsChecked', checked);
-    this.set('slaveComponentsChecked', checked);
-    this.set('clientComponentsChecked', checked);
-  }.observes('allComponentsChecked'),
-
   masterComponentsChecked:false,
   toggleMasterComponents:function () {
     this.get('masterComponents').setEach('checkedForHostFilter', this.get('masterComponentsChecked'));
@@ -126,7 +118,6 @@ var componentFieldView = Ember.View.extend({
    * Clear filter to initial state
    */
   clearFilter:function() {
-    this.set('allComponentsChecked', false);
     this.set('masterComponentsChecked', false);
     this.set('slaveComponentsChecked', false);
     this.set('clientComponentsChecked', false);
