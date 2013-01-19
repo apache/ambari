@@ -38,6 +38,7 @@ module.exports = Em.Route.extend({
         Ember.run.next(function () {
           var installerController = router.get('installerController');
 
+            App.clusterStatus.updateFromServer();
             var currentClusterStatus = App.clusterStatus.get('value');
 
             if (currentClusterStatus) {
@@ -287,7 +288,7 @@ module.exports = Em.Route.extend({
       installerController.installServices();
       installerController.setInfoForStep9();
       // We need to do recovery based on whether we are in Add Host or Installer wizard
-      App.clusterStatus.set('value', {
+      App.clusterStatus.setClusterStatus({
         clusterName: this.get('clusterName'),
         clusterState: 'CLUSTER_INSTALLING_3',
         wizardControllerName: App.router.get('installerController.name'),
@@ -319,7 +320,7 @@ module.exports = Em.Route.extend({
           installerController.installServices(isRetry);
           installerController.setInfoForStep9();
           // We need to do recovery based on whether we are in Add Host or Installer wizard
-          App.clusterStatus.set('value', {
+          App.clusterStatus.setClusterStatus({
             clusterName: this.get('clusterName'),
             clusterState: 'CLUSTER_INSTALLING_3',
             wizardControllerName: App.router.get('installerController.name'),
@@ -337,7 +338,7 @@ module.exports = Em.Route.extend({
       var wizardStep9Controller = router.get('wizardStep9Controller');
       installerController.saveInstalledHosts(wizardStep9Controller);
 
-      App.clusterStatus.set('value', {
+      App.clusterStatus.setClusterStatus({
         clusterName: this.get('clusterName'),
         clusterState: 'CLUSTER_INSTALLED_4',
         wizardControllerName: App.router.get('installerController.name'),
@@ -366,7 +367,7 @@ module.exports = Em.Route.extend({
         controller.finish();
 
         // We need to do recovery based on whether we are in Add Host or Installer wizard
-        App.clusterStatus.set('value', {
+        App.clusterStatus.setClusterStatus({
           clusterName: this.get('clusterName'),
           clusterState: 'CLUSTER_STARTED_5',
           wizardControllerName: App.router.get('installerController.name'),

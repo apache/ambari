@@ -49,7 +49,7 @@ module.exports = Em.Route.extend({
           this.fitHeight();
         }
       });
-
+      App.clusterStatus.updateFromServer();
       var currentClusterStatus = App.clusterStatus.get('value');
 
       if (currentClusterStatus) {
@@ -206,7 +206,7 @@ module.exports = Em.Route.extend({
       addHostController.setInfoForStep9();
 
       // We need to do recovery based on whether we are in Add Host or Installer wizard
-      App.clusterStatus.set('value', {
+      App.clusterStatus.setClusterStatus({
         clusterName: this.get('clusterName'),
         clusterState: 'ADD_HOSTS_INSTALLING_3',
         wizardControllerName: App.router.get('addHostController.name'),
@@ -240,7 +240,7 @@ module.exports = Em.Route.extend({
           addHostController.installServices(isRetry);
           addHostController.setInfoForStep9();
           // We need to do recovery based on whether we are in Add Host or Installer wizard
-          App.clusterStatus.set('value', {
+          App.clusterStatus.setClusterStatus({
             clusterName: this.get('clusterName'),
             clusterState: 'ADD_HOSTS_INSTALLING_3',
             wizardControllerName: App.router.get('addHostController.name'),
@@ -259,7 +259,7 @@ module.exports = Em.Route.extend({
       addHostController.saveInstalledHosts(wizardStep9Controller);
 
       // We need to do recovery based on whether we are in Add Host or Installer wizard
-      App.clusterStatus.set('value', {
+      App.clusterStatus.setClusterStatus({
         clusterName: this.get('clusterName'),
         clusterState: 'ADD_HOSTS_INSTALLED_4',
         wizardControllerName: App.router.get('addHostController.name'),
@@ -291,7 +291,7 @@ module.exports = Em.Route.extend({
 
 
         // We need to do recovery based on whether we are in Add Host or Installer wizard
-        App.clusterStatus.set('value', {
+        App.clusterStatus.setClusterStatus({
           clusterName: this.get('clusterName'),
           clusterState: 'ADD_HOSTS_COMPLETED_5',
           wizardControllerName: App.router.get('addHostController.name'),

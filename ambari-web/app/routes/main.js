@@ -149,6 +149,7 @@ module.exports = Em.Route.extend({
 
     addHost:function (router) {
       if(App.clusterStatus){
+        App.clusterStatus.updateFromServer();
         var currentClusterStatus = App.clusterStatus.get('value');
         if(currentClusterStatus && currentClusterStatus.clusterState=="ADD_HOSTS_COMPLETED_5"){
           // The last time add hosts ran, it left the status

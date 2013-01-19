@@ -760,7 +760,7 @@ App.WizardStep8Controller = Em.Controller.extend({
       // We need to do recovery based on whether we are in Add Host or Installer wizard
       switch (this.get('content.controllerName')) {
         case 'installerController' :
-          App.clusterStatus.set('value', {
+          App.clusterStatus.setClusterStatus({
             clusterName: this.get('clusterName'),
             clusterState: 'CLUSTER_DEPLOY_PREP_2',
             wizardControllerName: this.get('content.controllerName'),
@@ -769,7 +769,7 @@ App.WizardStep8Controller = Em.Controller.extend({
           break;
 
         case 'addHostController' :
-          App.clusterStatus.set('value', {
+          App.clusterStatus.setClusterStatus({
             clusterName: this.get('clusterName'),
             clusterState: 'ADD_HOSTS_DEPLOY_PREP_2',
             wizardControllerName: this.get('content.controllerName'),

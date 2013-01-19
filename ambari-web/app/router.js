@@ -251,6 +251,7 @@ App.Router = Em.Router.extend({
     if (App.alwaysGoToInstaller) {
       return 'installer';
     }
+    App.clusterStatus.updateFromServer();
     var clusterStatusOnServer = App.clusterStatus.get('value');
     if (clusterStatusOnServer && (clusterStatusOnServer.clusterState === 'CLUSTER_STARTED_5' || clusterStatusOnServer.clusterState === 'ADD_HOSTS_COMPLETED_5' )) {
       return 'main.index';

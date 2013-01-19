@@ -78,6 +78,10 @@ Trunk (unreleased changes):
 
  BUG FIXES
 
+ AMBARI-1212. After successful install with Ambari, the user is taken to the
+ welcome page of the Install Wizard upon browser relaunch if the HTTP session
+ is expired. (yusaku)
+
  AMBARI-1227. Host-level task popup is not showing the display name for
  components. (yusaku)
 
