@@ -82,6 +82,9 @@ Trunk (unreleased changes):
  AMBARI-1213. Cleanup python test cases and introduce third party library for
  mock testing python code. (mahadev)
 
+ AMBARI-1206. Expose missing metrics on host components. (tbeerbower via
+ mahadev)
+
  BUG FIXES
 
  AMBARI-1230. There is a big gap in the lower part of the Jobs table header.

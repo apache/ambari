@@ -26,6 +26,8 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * JMX property provider tests.
@@ -60,9 +62,12 @@ public class JMXPropertyProviderTest {
     Assert.assertEquals(propertyProvider.getSpec("domu-12-31-39-0e-34-e1.compute-1.internal:50070"), streamProvider.getLastSpec());
 
     // see test/resources/hdfs_namenode_jmx.json for values
-    Assert.assertEquals(1084287,  resource.getPropertyValue(PropertyHelper.getPropertyId("metrics/rpc", "ReceivedBytes")));
-    Assert.assertEquals(173,      resource.getPropertyValue(PropertyHelper.getPropertyId("metrics/dfs/namenode", "CreateFileOps")));
-    Assert.assertEquals(405.8686, resource.getPropertyValue(PropertyHelper.getPropertyId("metrics/jvm", "memHeapUsedM")));
+    Assert.assertEquals(13670605,  resource.getPropertyValue(PropertyHelper.getPropertyId("metrics/rpc", "ReceivedBytes")));
+    Assert.assertEquals(28,      resource.getPropertyValue(PropertyHelper.getPropertyId("metrics/dfs/namenode", "CreateFileOps")));
+    Assert.assertEquals(1006632960, resource.getPropertyValue(PropertyHelper.getPropertyId("metrics/jvm", "HeapMemoryMax")));
+    Assert.assertEquals(473433016, resource.getPropertyValue(PropertyHelper.getPropertyId("metrics/jvm", "HeapMemoryUsed")));
+    Assert.assertEquals(136314880, resource.getPropertyValue(PropertyHelper.getPropertyId("metrics/jvm", "NonHeapMemoryMax")));
+    Assert.assertEquals(23634400, resource.getPropertyValue(PropertyHelper.getPropertyId("metrics/jvm", "NonHeapMemoryUsed")));
 
 
     // datanode
@@ -79,8 +84,11 @@ public class JMXPropertyProviderTest {
     Assert.assertEquals(propertyProvider.getSpec("domu-12-31-39-14-ee-b3.compute-1.internal:50075"), streamProvider.getLastSpec());
 
     // see test/resources/hdfs_datanode_jmx.json for values
-    Assert.assertEquals(0,  resource.getPropertyValue(PropertyHelper.getPropertyId("metrics/rpc", "ReceivedBytes")));
-    Assert.assertEquals(16.870667, resource.getPropertyValue(PropertyHelper.getPropertyId("metrics/jvm", "memHeapUsedM")));
+    Assert.assertEquals(856,  resource.getPropertyValue(PropertyHelper.getPropertyId("metrics/rpc", "ReceivedBytes")));
+    Assert.assertEquals(954466304, resource.getPropertyValue(PropertyHelper.getPropertyId("metrics/jvm", "HeapMemoryMax")));
+    Assert.assertEquals(9772616, resource.getPropertyValue(PropertyHelper.getPropertyId("metrics/jvm", "HeapMemoryUsed")));
+    Assert.assertEquals(136314880, resource.getPropertyValue(PropertyHelper.getPropertyId("metrics/jvm", "NonHeapMemoryMax")));
+    Assert.assertEquals(21933376, resource.getPropertyValue(PropertyHelper.getPropertyId("metrics/jvm", "NonHeapMemoryUsed")));
 
 
     // jobtracker
@@ -89,17 +97,81 @@ public class JMXPropertyProviderTest {
     resource.setProperty(HOST_COMPONENT_HOST_NAME_PROPERTY_ID, "domu-12-31-39-14-ee-b3.compute-1.internal");
     resource.setProperty(HOST_COMPONENT_COMPONENT_NAME_PROPERTY_ID, "JOBTRACKER");
 
-    // only ask for one property
-    request = PropertyHelper.getReadRequest(Collections.singleton(PropertyHelper.getPropertyId("metrics/jvm", "threadsWaiting")));
+    // only ask for specific properties
+    Set<String> properties = new HashSet<String>();
+    properties.add(PropertyHelper.getPropertyId("metrics/jvm", "threadsWaiting"));
+    properties.add(PropertyHelper.getPropertyId("metrics/jvm", "HeapMemoryMax"));
+    properties.add(PropertyHelper.getPropertyId("metrics/jvm", "HeapMemoryUsed"));
+    properties.add(PropertyHelper.getPropertyId("metrics/jvm", "NonHeapMemoryMax"));
+    properties.add(PropertyHelper.getPropertyId("metrics/jvm", "NonHeapMemoryUsed"));
+    request = PropertyHelper.getReadRequest(properties);
 
     propertyProvider.populateResources(Collections.singleton(resource), request, null);
 
     Assert.assertEquals(propertyProvider.getSpec("domu-12-31-39-14-ee-b3.compute-1.internal:50030"), streamProvider.getLastSpec());
 
     // see test/resources/mapreduce_jobtracker_jmx.json for values
-    // resource should now contain 3 properties... host name, component name, and jvm.threadsWaiting (from request)
-    Assert.assertEquals(3, PropertyHelper.getProperties(resource).size());
+    Assert.assertEquals(7, PropertyHelper.getProperties(resource).size());
     Assert.assertEquals(59, resource.getPropertyValue(PropertyHelper.getPropertyId("metrics/jvm", "threadsWaiting")));
+    Assert.assertEquals(1052770304, resource.getPropertyValue(PropertyHelper.getPropertyId("metrics/jvm", "HeapMemoryMax")));
+    Assert.assertEquals(43580400, resource.getPropertyValue(PropertyHelper.getPropertyId("metrics/jvm", "HeapMemoryUsed")));
+    Assert.assertEquals(136314880, resource.getPropertyValue(PropertyHelper.getPropertyId("metrics/jvm", "NonHeapMemoryMax")));
+    Assert.assertEquals(29602888, resource.getPropertyValue(PropertyHelper.getPropertyId("metrics/jvm", "NonHeapMemoryUsed")));
+
+    Assert.assertNull(resource.getPropertyValue(PropertyHelper.getPropertyId("metrics/jvm", "gcCount")));
+
+    // tasktracker
+    resource = new ResourceImpl(Resource.Type.HostComponent);
+
+    resource.setProperty(HOST_COMPONENT_HOST_NAME_PROPERTY_ID, "domu-12-31-39-14-ee-b3.compute-1.internal");
+    resource.setProperty(HOST_COMPONENT_COMPONENT_NAME_PROPERTY_ID, "TASKTRACKER");
+
+    // only ask for specific properties
+    properties = new HashSet<String>();
+    properties.add(PropertyHelper.getPropertyId("metrics/jvm", "HeapMemoryMax"));
+    properties.add(PropertyHelper.getPropertyId("metrics/jvm", "HeapMemoryUsed"));
+    properties.add(PropertyHelper.getPropertyId("metrics/jvm", "NonHeapMemoryMax"));
+    properties.add(PropertyHelper.getPropertyId("metrics/jvm", "NonHeapMemoryUsed"));
+    request = PropertyHelper.getReadRequest(properties);
+
+    propertyProvider.populateResources(Collections.singleton(resource), request, null);
+
+    Assert.assertEquals(propertyProvider.getSpec("domu-12-31-39-14-ee-b3.compute-1.internal:50060"), streamProvider.getLastSpec());
+
+    Assert.assertEquals(6, PropertyHelper.getProperties(resource).size());
+    Assert.assertEquals(954466304, resource.getPropertyValue(PropertyHelper.getPropertyId("metrics/jvm", "HeapMemoryMax")));
+    Assert.assertEquals(18330984, resource.getPropertyValue(PropertyHelper.getPropertyId("metrics/jvm", "HeapMemoryUsed")));
+    Assert.assertEquals(136314880, resource.getPropertyValue(PropertyHelper.getPropertyId("metrics/jvm", "NonHeapMemoryMax")));
+    Assert.assertEquals(24235104, resource.getPropertyValue(PropertyHelper.getPropertyId("metrics/jvm", "NonHeapMemoryUsed")));
+
+    Assert.assertNull(resource.getPropertyValue(PropertyHelper.getPropertyId("metrics/jvm", "gcCount")));
+
+    // hbase master
+    resource = new ResourceImpl(Resource.Type.HostComponent);
+
+    resource.setProperty(HOST_COMPONENT_HOST_NAME_PROPERTY_ID, "domu-12-31-39-14-ee-b3.compute-1.internal");
+    resource.setProperty(HOST_COMPONENT_COMPONENT_NAME_PROPERTY_ID, "HBASE_MASTER");
+
+    // only ask for specific properties
+    properties = new HashSet<String>();
+    properties.add(PropertyHelper.getPropertyId("metrics/jvm", "HeapMemoryMax"));
+    properties.add(PropertyHelper.getPropertyId("metrics/jvm", "HeapMemoryUsed"));
+    properties.add(PropertyHelper.getPropertyId("metrics/jvm", "NonHeapMemoryMax"));
+    properties.add(PropertyHelper.getPropertyId("metrics/jvm", "NonHeapMemoryUsed"));
+    properties.add(PropertyHelper.getPropertyId("metrics/load", "AverageLoad"));
+    request = PropertyHelper.getReadRequest(properties);
+
+    propertyProvider.populateResources(Collections.singleton(resource), request, null);
+
+    Assert.assertEquals(propertyProvider.getSpec("domu-12-31-39-14-ee-b3.compute-1.internal:60010"), streamProvider.getLastSpec());
+
+    Assert.assertEquals(7, PropertyHelper.getProperties(resource).size());
+    Assert.assertEquals(1069416448, resource.getPropertyValue(PropertyHelper.getPropertyId("metrics/jvm", "HeapMemoryMax")));
+    Assert.assertEquals(4806976, resource.getPropertyValue(PropertyHelper.getPropertyId("metrics/jvm", "HeapMemoryUsed")));
+    Assert.assertEquals(136314880, resource.getPropertyValue(PropertyHelper.getPropertyId("metrics/jvm", "NonHeapMemoryMax")));
+    Assert.assertEquals(28971240, resource.getPropertyValue(PropertyHelper.getPropertyId("metrics/jvm", "NonHeapMemoryUsed")));
+    Assert.assertEquals(3.0, resource.getPropertyValue(PropertyHelper.getPropertyId("metrics/load", "AverageLoad")));
+
     Assert.assertNull(resource.getPropertyValue(PropertyHelper.getPropertyId("metrics/jvm", "gcCount")));
   }
 

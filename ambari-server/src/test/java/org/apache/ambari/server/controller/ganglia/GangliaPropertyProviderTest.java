@@ -73,6 +73,35 @@ public class GangliaPropertyProviderTest {
 
     Assert.assertEquals(3, PropertyHelper.getProperties(resource).size());
     Assert.assertNotNull(resource.getPropertyValue(PROPERTY_ID));
+
+
+    // tasktracker
+    resource = new ResourceImpl(Resource.Type.HostComponent);
+    resource.setProperty(HOST_NAME_PROPERTY_ID, "domU-12-31-39-0E-34-E1.compute-1.internal");
+    resource.setProperty(COMPONENT_NAME_PROPERTY_ID, "TASKTRACKER");
+
+    // only ask for one property
+    temporalInfoMap = new HashMap<String, TemporalInfo>();
+
+    //http://ec2-174-129-152-147.compute-1.amazonaws.com/cgi-bin/rrd.py?c=HDPSlaves&m=jvm.metrics.gcCount,mapred.shuffleOutput.shuffle_exceptions_caught,mapred.shuffleOutput.shuffle_failed_outputs,mapred.shuffleOutput.shuffle_output_bytes,mapred.shuffleOutput.shuffle_success_outputs&s=10&e=20&r=1&h=ip-10-85-111-149.ec2.internal
+
+    Set<String> properties = new HashSet<String>();
+    properties.add(PropertyHelper.getPropertyId("metrics/mapred/shuffleOutput", "shuffle_exceptions_caught"));
+    properties.add(PropertyHelper.getPropertyId("metrics/mapred/shuffleOutput", "shuffle_failed_outputs"));
+    properties.add(PropertyHelper.getPropertyId("metrics/mapred/shuffleOutput", "shuffle_output_bytes"));
+    properties.add(PropertyHelper.getPropertyId("metrics/mapred/shuffleOutput", "shuffle_success_outputs"));
+    request = PropertyHelper.getReadRequest(properties, temporalInfoMap);
+
+    Assert.assertEquals(1, propertyProvider.populateResources(Collections.singleton(resource), request, null).size());
+
+    Assert.assertEquals("http://domU-12-31-39-0E-34-E1.compute-1.internal/cgi-bin/rrd.py?c=HDPSlaves&h=domU-12-31-39-0E-34-E1.compute-1.internal&m=mapred.shuffleOutput.shuffle_output_bytes,mapred.shuffleOutput.shuffle_success_outputs,mapred.shuffleOutput.shuffle_failed_outputs,mapred.shuffleOutput.shuffle_exceptions_caught&e=now&pt=true",
+        streamProvider.getLastSpec());
+
+    Assert.assertEquals(6, PropertyHelper.getProperties(resource).size());
+    Assert.assertNotNull(resource.getPropertyValue(PropertyHelper.getPropertyId("metrics/mapred/shuffleOutput", "shuffle_exceptions_caught")));
+    Assert.assertNotNull(resource.getPropertyValue(PropertyHelper.getPropertyId("metrics/mapred/shuffleOutput", "shuffle_failed_outputs")));
+    Assert.assertNotNull(resource.getPropertyValue(PropertyHelper.getPropertyId("metrics/mapred/shuffleOutput", "shuffle_output_bytes")));
+    Assert.assertNotNull(resource.getPropertyValue(PropertyHelper.getPropertyId("metrics/mapred/shuffleOutput", "shuffle_success_outputs")));
   }
 
 
@@ -91,6 +120,7 @@ public class GangliaPropertyProviderTest {
 
     Set<Resource> resources = new HashSet<Resource>();
 
+    // host
     Resource resource = new ResourceImpl(Resource.Type.Host);
     resource.setProperty(HOST_NAME_PROPERTY_ID, "domU-12-31-39-0E-34-E1.compute-1.internal");
     resources.add(resource);

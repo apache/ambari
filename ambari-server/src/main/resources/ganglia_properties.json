@@ -13918,8 +13918,28 @@
         "pointInTime":true,
         "temporal":true
       },
+      "metrics/mapred/shuffleOutput/shuffle_exceptions_caught":{
+        "metric":"mapred.shuffleOutput.shuffle_exceptions_caught",
+        "pointInTime":true,
+        "temporal":true
+      },
+      "metrics/mapred/shuffleOutput/shuffle_failed_outputs":{
+        "metric":"mapred.shuffleOutput.shuffle_failed_outputs",
+        "pointInTime":true,
+        "temporal":true
+      },
       "metrics/mapred/shuffleOutput/shuffle_handler_busy_percent":{
         "metric":"mapred.shuffleOutput.shuffle_handler_busy_percent",
+        "pointInTime":true,
+        "temporal":true
+      },
+      "metrics/mapred/shuffleOutput/shuffle_output_bytes":{
+        "metric":"mapred.shuffleOutput.shuffle_output_bytes",
+        "pointInTime":true,
+        "temporal":true
+      },
+      "metrics/mapred/shuffleOutput/shuffle_success_outputs":{
+        "metric":"mapred.shuffleOutput.shuffle_success_outputs",
         "pointInTime":true,
         "temporal":true
       },

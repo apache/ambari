@@ -34,7 +34,7 @@ public class TestStreamProvider implements StreamProvider {
     FILE_MAPPING.put("50075", "hdfs_datanode_jmx.json");
     FILE_MAPPING.put("50030", "mapreduce_jobtracker_jmx.json");
     FILE_MAPPING.put("50060", "mapreduce_tasktracker_jmx.json");
-    FILE_MAPPING.put("60010", "hdfs_namenode_jmx.json");
+    FILE_MAPPING.put("60010", "hbase_hbasemaster_jmx.json");
   }
 
   private String lastSpec;
