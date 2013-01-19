@@ -17,6 +17,9 @@ Trunk (unreleased changes):
 
  IMPROVEMENTS
 
+ AMBARI-1229. Dashboard - make disk usage pie chart in HDFS summary easier
+ to understand. (yusaku)
+
  AMBARI-1228. During Install, show "warn" on hosts that have tasks cancelled.
  (yusaku)
 

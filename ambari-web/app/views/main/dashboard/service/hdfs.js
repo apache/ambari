@@ -23,6 +23,11 @@ App.MainDashboardServiceHdfsView = App.MainDashboardServiceView.extend({
   serviceName: 'HDFS',
   Chart: App.ChartPieView.extend({
     service: null,
+    color: '#0066B3',
+    stroke: '#0066B3',
+    palette: new Rickshaw.Color.Palette({
+      scheme: [ 'rgba(0,102,179,0)', 'rgba(0,102,179,1)'].reverse()
+    }),
     data: function () {
       var total = this.get('service.capacityTotal') + 0;
       var remaining = (this.get('service.capacityRemaining') + 0);

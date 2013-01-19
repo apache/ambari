@@ -23,10 +23,12 @@ App.ChartPieView = Em.View.extend({
   h:90,
   data:[300, 500],
   palette: new Rickshaw.Color.Palette({ scheme: 'munin'}),
+  stroke: 'black',
+  strokeWidth: 2,
   donut:d3.layout.pie().sort(null),
 
   r:function () {
-    return Math.min(this.get('w'), this.get('h')) / 2;
+    return Math.min(this.get('w'), this.get('h')) / 2 - this.get('strokeWidth');
   }.property('w', 'h'),
 
   outerR:function () {
@@ -56,6 +58,8 @@ App.ChartPieView = Em.View.extend({
     this.set('svg', d3.select(this.get('selector')).append("svg:svg")
       .attr("width", thisChart.get('w'))
       .attr("height", thisChart.get('h'))
+      .attr("stroke", this.get('stroke'))
+      .attr("stroke-width", this.get('strokeWidth'))
       .append("svg:g")
       .attr("transform", "translate(" + thisChart.get('w') / 2 + "," + thisChart.get('h') / 2 + ")"));
 

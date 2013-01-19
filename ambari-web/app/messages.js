@@ -340,7 +340,7 @@ Em.I18n.translations = {
   'dashboard.services.hdfs.nodes.uptime':'NameNode Uptime',
   'dashboard.services.hdfs.nodes.heap':'NameNode Heap',
   'dashboard.services.hdfs.nodes.heapUsed':'{0} / {1} ({2}% used)',
-  'dashboard.services.hdfs.chart.label':'Capacity (Free/Used)',
+  'dashboard.services.hdfs.chart.label':'Capacity (Used/Total)',
 
   'dashboard.services.mapreduce.summary':'{0} of {1} trackers live, {2} jobs running, {3} jobs waiting',
   'dashboard.services.mapreduce.taskTrackers':'TaskTrackers',
