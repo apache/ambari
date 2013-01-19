@@ -44,6 +44,9 @@ module.exports = Em.Route.extend({
           this.hide();
           App.router.get('updateController').set('isWorking', true);
           router.transitionTo('hosts.index');
+        },
+        didInsertElement: function(){
+          this.fitHeight();
         }
       });
 
