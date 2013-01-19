@@ -21,6 +21,7 @@ limitations under the License.
 import os
 import logging
 import traceback
+import sys
 from shell import getTempFiles
 
 logger = logging.getLogger()
@@ -32,20 +33,42 @@ else:
     pidfile = "/var/run/ambari-agent/ambari-agent.pid"
 
 
-def stopAgent():
+def _clean():
+
+  logger.info("Removing pid file")
   try:
     os.unlink(pidfile)
-  except Exception:
-    logger.warn("Unable to remove: "+pidfile)
+  except Exception as ex:
     traceback.print_exc()
+    logger.warn("Unable to remove pid file: %s", ex)
 
-  tempFiles = getTempFiles()
-  for tempFile in tempFiles:
-    if os.path.exists(tempFile):
+  logger.info("Removing temp files")
+  for f in getTempFiles():
+    if os.path.exists(f):
       try:
-          os.unlink(tempFile)
-      except Exception:
-          traceback.print_exc()
-          logger.warn("Unable to remove: "+tempFile)
+        os.unlink(f)
+      except Exception as ex:
+        traceback.print_exc()
+        logger.warn("Unable to remove: %s, %s", f, ex)
+
+
+def stopAgent():
+
+  _clean()
   os._exit(0)
   pass
+
+
+def restartAgent():
+
+  _clean()
+
+  executable = sys.executable
+  args = sys.argv[:]
+  args.insert(0, executable)
+
+  logger.info("Restarting self: %s %s", executable, args)
+
+  os.execvp(executable, args)
+
+

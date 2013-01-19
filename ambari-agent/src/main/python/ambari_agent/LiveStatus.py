@@ -105,8 +105,8 @@ class LiveStatus:
   def build(self):
     global SERVICES, COMPONENTS, LIVE_STATUS, DEAD_STATUS
     pidLookupPath = AmbariConfig.config.get('services','pidLookupPath')
-    serviceToPidMapFile = AmbariConfig.config.get('services','serviceToPidMapFile')
-    statusCheck = StatusCheck(pidLookupPath, serviceToPidMapFile)
+
+    statusCheck = StatusCheck(pidLookupPath, AmbariConfig.servicesToPidNames)
     livestatus = None
     for component in self.COMPONENTS:
       if component["serviceName"] == self.service and component["componentName"] == self.component:

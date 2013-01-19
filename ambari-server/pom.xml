@@ -64,6 +64,9 @@
 
             <!--gitignore content-->
             <exclude>src/main/resources/db/newcerts/**</exclude>
+
+            <!--test samples-->
+            <exclude>src/test/resources/TestAmbaryServer.samples/**</exclude>
           </excludes>
         </configuration>
       </plugin>
@@ -275,6 +278,31 @@
             <phase>verify</phase>
             <goals>
               <goal>check</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>exec-maven-plugin</artifactId>
+        <version>1.2</version>
+        <executions>
+          <execution>
+            <configuration>
+              <executable>python2.6</executable>
+              <workingDirectory>src/test/python</workingDirectory>
+              <arguments>
+                <argument>unitTests.py</argument>
+              </arguments>
+              <environmentVariables>
+                <PYTHONPATH>${project.basedir}/../ambari-common/src/test/python:${project.basedir}/src/main/python:${project.basedir}/src/main/python/ambari-server-state:${project.basedir}/src/test/python:$PYTHONPATH</PYTHONPATH>
+              </environmentVariables>
+              <skip>${skipTests}</skip>
+            </configuration>
+            <id>python-test</id>
+            <phase>test</phase>
+            <goals>
+              <goal>exec</goal>
             </goals>
           </execution>
         </executions>

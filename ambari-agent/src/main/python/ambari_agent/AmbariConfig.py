@@ -35,7 +35,6 @@ secured_url_port=8441
 prefix=/tmp/ambari-agent
 
 [services]
-serviceToPidMapFile=servicesToPidNames.dict
 pidLookupPath=/var/run/
 
 [stack]
@@ -58,14 +57,119 @@ passphrase_env_var_name=AMBARI_PASSPHRASE
 s = StringIO.StringIO(content)
 config.readfp(s)
 
+imports = [
+  "hdp/manifests/*.pp",
+  "hdp-hadoop/manifests/*.pp",
+  "hdp-hbase/manifests/*.pp",
+  "hdp-zookeeper/manifests/*.pp",
+  "hdp-oozie/manifests/*.pp",
+  "hdp-pig/manifests/*.pp",
+  "hdp-sqoop/manifests/*.pp",
+  "hdp-templeton/manifests/*.pp",
+  "hdp-hive/manifests/*.pp",
+  "hdp-hcat/manifests/*.pp",
+  "hdp-mysql/manifests/*.pp",
+  "hdp-monitor-webserver/manifests/*.pp",
+  "hdp-repos/manifests/*.pp"
+]
+
+rolesToClass = {
+  'NAMENODE': 'hdp-hadoop::namenode',
+  'DATANODE': 'hdp-hadoop::datanode',
+  'SECONDARY_NAMENODE': 'hdp-hadoop::snamenode',
+  'JOBTRACKER': 'hdp-hadoop::jobtracker',
+  'TASKTRACKER': 'hdp-hadoop::tasktracker',
+  'HDFS_CLIENT': 'hdp-hadoop::client',
+  'MAPREDUCE_CLIENT': 'hdp-hadoop::client',
+  'ZOOKEEPER_SERVER': 'hdp-zookeeper',
+  'ZOOKEEPER_CLIENT': 'hdp-zookeeper::client',
+  'HBASE_MASTER': 'hdp-hbase::master',
+  'HBASE_REGIONSERVER': 'hdp-hbase::regionserver',
+  'HBASE_CLIENT': 'hdp-hbase::client',
+  'PIG': 'hdp-pig',
+  'SQOOP': 'hdp-sqoop',
+  'OOZIE_SERVER': 'hdp-oozie::server',
+  'OOZIE_CLIENT': 'hdp-oozie::client',
+  'HIVE_CLIENT': 'hdp-hive::client',
+  'HCAT': 'hdp-hcat',
+  'HIVE_SERVER': 'hdp-hive::server',
+  'HIVE_METASTORE': 'hdp-hive::metastore',
+  'MYSQL_SERVER': 'hdp-mysql::server',
+  'WEBHCAT_SERVER': 'hdp-templeton::server',
+  'DASHBOARD': 'hdp-dashboard',
+  'NAGIOS_SERVER': 'hdp-nagios::server',
+  'GANGLIA_SERVER': 'hdp-ganglia::server',
+  'GANGLIA_MONITOR': 'hdp-ganglia::monitor',
+  'HTTPD': 'hdp-monitor-webserver',
+  'HDFS_SERVICE_CHECK': 'hdp-hadoop::hdfs::service_check',
+  'MAPREDUCE_SERVICE_CHECK': 'hdp-hadoop::mapred::service_check',
+  'ZOOKEEPER_SERVICE_CHECK': 'hdp-zookeeper::zookeeper::service_check',
+  'ZOOKEEPER_QUORUM_SERVICE_CHECK': 'hdp-zookeeper::quorum::service_check',
+  'HBASE_SERVICE_CHECK': 'hdp-hbase::hbase::service_check',
+  'HIVE_SERVICE_CHECK': 'hdp-hive::hive::service_check',
+  'HCAT_SERVICE_CHECK': 'hdp-hcat::hcat::service_check',
+  'OOZIE_SERVICE_CHECK': 'hdp-oozie::oozie::service_check',
+  'PIG_SERVICE_CHECK': 'hdp-pig::pig::service_check',
+  'SQOOP_SERVICE_CHECK': 'hdp-sqoop::sqoop::service_check',
+  'WEBHCAT_SERVICE_CHECK': 'hdp-templeton::templeton::service_check',
+  'DASHBOARD_SERVICE_CHECK': 'hdp-dashboard::dashboard::service_check',
+  'DECOMMISSION_DATANODE': 'hdp-hadoop::hdfs::decommission'
+}
+
+serviceStates = {
+  'START': 'running',
+  'INSTALL': 'installed_and_configured',
+  'STOP': 'stopped'
+}
+
+servicesToPidNames = {
+  'NAMENODE': 'hadoop-[A-Za-z0-9_]+-namenode.pid$',
+  'SECONDARY_NAMENODE': 'hadoop-[A-Za-z0-9_]+-secondarynamenode.pid$',
+  'DATANODE': 'hadoop-[A-Za-z0-9_]+-datanode.pid$',
+  'JOBTRACKER': 'hadoop-[A-Za-z0-9_]+-jobtracker.pid$',
+  'TASKTRACKER': 'hadoop-[A-Za-z0-9_]+-tasktracker.pid$',
+  'OOZIE_SERVER': 'oozie.pid',
+  'ZOOKEEPER_SERVER': 'zookeeper_server.pid',
+  'TEMPLETON_SERVER': 'templeton.pid',
+  'NAGIOS_SERVER': 'nagios.pid',
+  'GANGLIA_SERVER': 'gmetad.pid',
+  'GANGLIA_MONITOR': 'gmond.pid',
+  'HBASE_MASTER': 'hbase-[A-Za-z0-9_]+-master.pid',
+  'HBASE_REGIONSERVER': 'hbase-[A-Za-z0-9_]+-regionserver.pid',
+  'HCATALOG_SERVER': 'hcat.pid',
+  'KERBEROS_SERVER': 'kadmind.pid',
+  'HIVE_SERVER': 'hive-server.pid',
+  'HIVE_METASTORE': 'hive.pid',
+  'MYSQL_SERVER': 'mysqld.pid'
+}
+
+
 class AmbariConfig:
   def getConfig(self):
     global config
     return config
 
+  def getImports(self):
+    global imports
+    return imports
+
+  def getRolesToClass(self):
+    global rolesToClass
+    return rolesToClass
+
+  def getServiceStates(self):
+    global serviceStates
+    return serviceStates
+
+  def getServicesToPidNames(self):
+    global servicesToPidNames
+    return servicesToPidNames
+
+
 def setConfig(customConfig):
   global config
   config = customConfig
+
 
 def main():
   print config

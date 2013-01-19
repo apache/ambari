@@ -76,6 +76,9 @@ Trunk (unreleased changes):
  AMBARI-1198. Ambari API Performance: Parsing of Ganglia json data is slow.
  (jspeidel via mahadev)
 
+ AMBARI-1213. Cleanup python test cases and introduce third party library for
+ mock testing python code. (mahadev)
+
  BUG FIXES
 
  AMBARI-1212. After successful install with Ambari, the user is taken to the

@@ -90,7 +90,7 @@
                 <argument>unitTests.py</argument>
               </arguments>
               <environmentVariables>
-                <PYTHONPATH>src/main/python/ambari_agent:$PYTHONPATH</PYTHONPATH>
+                <PYTHONPATH>${project.basedir}/../ambari-common/src/test/python:${project.basedir}/src/main/python/ambari_agent:$PYTHONPATH</PYTHONPATH>
               </environmentVariables>
               <skip>${skipTests}</skip>
             </configuration>
@@ -292,7 +292,6 @@
             <exclude>src/test/python/dummy*.txt</exclude>
             <exclude>src/main/puppet/modules/stdlib/**</exclude>
             <exclude>**/*.erb</exclude>
-            <exclude>src/main/python/ambari_agent/imports.txt</exclude>
             <exclude>**/*.json</exclude>
           </excludes>
         </configuration>

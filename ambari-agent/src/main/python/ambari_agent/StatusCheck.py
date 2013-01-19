@@ -56,21 +56,16 @@ class StatusCheck:
     except OSError as e:
       logger.info(e.strerror + ' to ' + e.filename)
 
-  def __init__(self, path, mappingFilePath):
+  def __init__(self, path, serviceToPidDict):
     if not os.path.isdir(path):
       raise ValueError("Path argument must be valid directory")
 
-    if not os.path.exists(mappingFilePath):
-      raise IOError("File with services to pid mapping doesn't exist")
     self.path = path
-    self.mappingFilePath = mappingFilePath
+    self.serToPidDict = serviceToPidDict
     self.sh = shellRunner()
     self.pidFilesDict = {}
     self.listFiles(self.path)
 
-
-    with open(self.mappingFilePath) as fd:    
-      self.serToPidDict = dict(self.get_pair(line) for line in fd)
 
   def getIsLive(self, pidPath):
     if not pidPath:

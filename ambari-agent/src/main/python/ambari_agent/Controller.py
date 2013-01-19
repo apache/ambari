@@ -226,8 +226,7 @@ class Controller(threading.Thread):
     self.heartbeatWithServer()
 
   def restartAgent(self):
-    #stopping for now, restart will be added later
-    ProcessHelper.stopAgent()
+    ProcessHelper.restartAgent()
     pass
 
   def sendRequest(self, url, data):

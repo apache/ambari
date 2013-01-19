@@ -18,79 +18,60 @@ See the License for the specific language governing permissions and
 limitations under the License.
 '''
 
-from unittest import TestCase
-from ambari_agent.ServerStatus import ServerStatus
-from ambari_agent.NetUtil import NetUtil
-import ambari_agent.main
-from threading import Thread
-import time
-from ambari_agent.Heartbeat import Heartbeat
-from ambari_agent.ActionQueue import ActionQueue
-from ambari_agent import AmbariConfig
-import socket
-import os
-import logging
-from ambari_agent.Controller import Controller
-import socket
+from ambari_agent import NetUtil
+from mock.mock import MagicMock, patch
+import unittest
 
-NON_EXISTING_DOMAIN = 'non-existing-domain43342432.com'
-BAD_URL = 'http://localhost:54222/badurl/'
+class TestNetUtil(unittest.TestCase):
 
-class TestNetUtil(TestCase):
+  @patch("urlparse.urlparse")
+  @patch("httplib.HTTPSConnection")
+  def test_checkURL(self, httpsConMock, parseMock):
 
-  logger = logging.getLogger()
+    NetUtil.logger = MagicMock()
+    parseMock.return_value = [1, 2]
+    ca_connection = MagicMock()
+    response = MagicMock()
+    response.status = 200
+    ca_connection.getresponse.return_value = response
+    httpsConMock.return_value = ca_connection
 
-  def setUp(self):
-    self.logger.info("Starting TestConnectionRetries test")
-    self.logger.disabled = True
-    self.defaulttimeout = -1.0
-    if hasattr(socket, 'getdefaulttimeout'):
-      # get the default timeout on sockets
-      self.defaulttimeout = socket.getdefaulttimeout()
+    # test 200
+    netutil = NetUtil.NetUtil()
+    self.assertTrue(netutil.checkURL("url"))
 
+    # test fail
+    response.status = 404
+    self.assertFalse(netutil.checkURL("url"))
 
-# Test was failing: BUG-3112
-#  def test_url_checks(self):
-#    netutil = NetUtil()
-#    if hasattr(socket, 'setdefaulttimeout'):
-#      # Set the default timeout on sockets
-#      socket.setdefaulttimeout(1)
-#    self.assertEquals(netutil.checkURL('http://' + NON_EXISTING_DOMAIN), False, "Not existing domain")
-#    self.assertEquals(netutil.checkURL(BAD_URL), False, "Bad url")
-#    self.assertEquals(netutil.checkURL('http://192.168.253.177'), False, "Not reachable IP")
-#    if hasattr(socket, 'setdefaulttimeout'):
-#      # Set the default timeout on sockets
-#      socket.setdefaulttimeout(20)
-#    self.assertEquals(netutil.checkURL('http://www.iana.org/domains/example/'), True, "Good url - HTTP code 200")
-#    self.assertEquals(netutil.checkURL('https://www.iana.org/domains/example/'), True, "Good HTTPS url - HTTP code 200")
+    # test Exception
+    response.status = 200
+    httpsConMock.side_effect = Exception("test")
+    self.assertFalse(netutil.checkURL("url"))
 
 
-  def test_registration_retries(self):
-    netutil = NetUtil()
-    netutil.CONNECT_SERVER_RETRY_INTERVAL_SEC=0.05
-    retries = netutil.try_to_connect(BAD_URL, 3)
-    self.assertEquals(retries, 3)
+  @patch("time.sleep")
+  def test_try_to_connect(self, sleepMock):
 
-  def test_infinit_registration_retries(self):
-    netutil = NetUtil()
-    netutil.CONNECT_SERVER_RETRY_INTERVAL_SEC=0.05
-    thread = Thread(target = netutil.try_to_connect, args = (BAD_URL, -1))
-    thread.start()
-    time.sleep(0.25)
-    # I have to stop the thread anyway, so I'll check results later
-    threadWasAlive = thread.isAlive()
-    netutil.DEBUG_STOP_RETRIES_FLAG = True
-    time.sleep(0.5)
-    # Checking results before thread stop
-    self.assertEquals(threadWasAlive, True, "Thread should still be retrying to connect")
-    # Checking results after thread stop
-    self.assertEquals(thread.isAlive(), False, "Thread should stop now")
+    netutil = NetUtil.NetUtil()
+    checkURL = MagicMock(name="checkURL")
+    checkURL.return_value = True
+    netutil.checkURL = checkURL
+    l = MagicMock()
 
-  def tearDown(self):
-    if self.defaulttimeout is not None and self.defaulttimeout > 0 and hasattr(socket, 'setdefaulttimeout'):
-      # Set the default timeout on sockets
-      socket.setdefaulttimeout(self.defaulttimeout)
-    self.logger.disabled = False
-    self.logger.info("Finished TestConnectionRetries test")
+    # one successful get
+    self.assertEqual(0, netutil.try_to_connect("url", 10))
+
+    # got successful after N retries
+    gets = [True, False, False]
+    def side_effect(*args):
+      return gets.pop()
+    checkURL.side_effect = side_effect
+    self.assertEqual(2, netutil.try_to_connect("url", 10))
+
+    # max retries
+    checkURL.side_effect = None
+    checkURL.return_value = False
+    self.assertEqual(5, netutil.try_to_connect("url", 5))
 
 

@@ -29,12 +29,8 @@ import time
 
 class TestHeartbeat(TestCase):
 
-  def setUp(self):
-    testsPath = os.path.dirname(os.path.realpath(__file__))
-    self.dictPath = testsPath + os.sep + '..' + os.sep + '..' + os.sep + 'main' + os.sep + 'python' + os.sep + 'ambari_agent' + os.sep + 'servicesToPidNames.dict'
 
   def test_build(self):
-    AmbariConfig.config.set('services','serviceToPidMapFile', self.dictPath)
     actionQueue = ActionQueue(AmbariConfig.AmbariConfig().getConfig())
     heartbeat = Heartbeat(actionQueue)
     result = heartbeat.build(100)
@@ -52,7 +48,6 @@ class TestHeartbeat(TestCase):
 
 
   def test_heartbeat_with_status(self):
-    AmbariConfig.config.set('services','serviceToPidMapFile', self.dictPath)
     actionQueue = ActionQueue(AmbariConfig.AmbariConfig().getConfig())
     heartbeat = Heartbeat(actionQueue)
     statusCommand = {
@@ -70,7 +65,6 @@ class TestHeartbeat(TestCase):
     self.assertEquals(len(result['componentStatus']) > 0, True, 'Heartbeat should contain status of HDFS components')
 
   def test_heartbeat_with_status_multiple(self):
-    AmbariConfig.config.set('services','serviceToPidMapFile', self.dictPath)
     actionQueue = ActionQueue(AmbariConfig.AmbariConfig().getConfig())
     actionQueue.IDLE_SLEEP_TIME = 0.01
     heartbeat = Heartbeat(actionQueue)
@@ -97,7 +91,6 @@ class TestHeartbeat(TestCase):
     self.assertEquals(max_number_of_status_entries == NUMBER_OF_COMPONENTS, True)
 
   def test_heartbeat_with_task_in_progress(self):
-    AmbariConfig.config.set('services','serviceToPidMapFile', self.dictPath)
     actionQueue = ActionQueue(AmbariConfig.AmbariConfig().getConfig())
     actionQueue.commandInProgress= {
       'role' : "role",

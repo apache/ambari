@@ -1,5 +1,3 @@
-#!/usr/bin/env python2.6
-
 '''
 Licensed to the Apache Software Foundation (ASF) under one
 or more contributor license agreements.  See the NOTICE file
@@ -18,17 +16,30 @@ See the License for the specific language governing permissions and
 limitations under the License.
 '''
 
-from unittest import TestCase
-from ambari_agent.LiveStatus import LiveStatus
-from ambari_agent import AmbariConfig
-import socket
+import unittest
+import glob
 import os
+import sys
 
-class TestLiveStatus(TestCase):
-  def test_build(self):
-    for component in LiveStatus.COMPONENTS:
-      livestatus = LiveStatus('', component['serviceName'], component['componentName'])
-      result = livestatus.build()
-      print "LiveStatus of {0}: {1}".format(component['serviceName'], str(result))
-      self.assertEquals(len(result) > 0, True, 'Livestatus should not be empty')
-  
+TEST_MASK = 'Test*.py'
+
+def main():
+
+  pwd = os.path.dirname(__file__)
+  if pwd:
+    global TEST_MASK
+    TEST_MASK = pwd + os.sep + TEST_MASK
+
+  tests = glob.glob(TEST_MASK)
+  modules = [os.path.basename(s)[:-3] for s in tests]
+  suites = [unittest.defaultTestLoader.loadTestsFromName(name) for name in
+    modules]
+  testSuite = unittest.TestSuite(suites)
+
+  textRunner = unittest.TextTestRunner(verbosity=2).run(testSuite)
+  return 0 if textRunner.wasSuccessful() else 1
+
+
+if __name__ == "__main__":
+  sys.exit(main())
+
