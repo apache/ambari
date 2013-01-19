@@ -49,32 +49,9 @@ App.MainServiceInfoSummaryView = Em.View.extend({
     var result = [];
     var service = this.get('controller.content');
     if (service.get("id") == "OOZIE" || service.get("id") == "ZOOKEEPER") {
-      var clients = service.get('hostComponents').filterProperty('isClient');
-      if (clients.length > 0) {
-        result = [{
-          'displayName': clients[0].get('displayName'),
-          'isComma': false,
-          'isAnd': false
-        }];
-      }
-      if (clients.length > 1) {
-        result[0].isComma = true;
-        result.push({
-          'displayName': clients[1].get('displayName'),
-          'isComma': false,
-          'isAnd': false
-        });
-      }
-      if (clients.length > 2) {
-        result[1].isAnd = true;
-        result.push({
-          'displayName': clients.length - 2 + ' more',
-          'isComma': false,
-          'isAnd': false
-        });
-      }
+      return service.get('hostComponents').filterProperty('isClient');
     }
-    return result;
+    return [];
   }.property('controller.content'),
 
   hasManyServers: function () {

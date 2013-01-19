@@ -17,6 +17,8 @@ Trunk (unreleased changes):
 
  IMPROVEMENTS
 
+ AMBARI-1220. Oozie service summary update. (yusaku)
+
  AMBARI-1218. Refactor Job Browser User filter. (yusaku)
 
  AMBARI-1217. Tighten up spacing for the rows in the Hosts table. (yusaku)
