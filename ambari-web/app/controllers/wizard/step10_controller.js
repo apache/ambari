@@ -22,7 +22,7 @@ App.WizardStep10Controller = Em.Controller.extend({
   clusterInfo: [],
 
   isNagiosRestartRequired: function() {
-    return this.get('content.controllerName') !== 'installerController' && App.db.getSlaveComponentHosts().findProperty('componentName', 'HBASE_REGIONSERVER').hosts.length;
+    return this.get('content.controllerName') !== 'installerController' && App.Service.find('NAGIOS').get('isLoaded');
   }.property(),
 
   clearStep: function () {
