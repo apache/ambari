@@ -32,7 +32,7 @@ App.MainHostController = Em.ArrayController.extend({
     var installedComponents = componentHelper.getInstalledComponents();
     installedComponents.setEach('checkedForHostFilter', false);
     return installedComponents;
-  }.property(),
+  }.property('App.router.clusterController.isLoaded'),
 
   masterComponents:function () {
     return this.get('componentsForFilter').filterProperty('isMaster', true);
