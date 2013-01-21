@@ -145,6 +145,9 @@ AMBARI-1.2.0 branch:
 
  AMBARI-1136. Add gsInstaller resource provider. (Tom Beerbower via mahadev)
 
+ AMBARI-1202. Unncessary use of xml tree python library in ambari-server
+ setup. Its not being used. (Siddharth Wagle via mahadev)
+
  IMPROVEMENTS
 
  BUG FIXES

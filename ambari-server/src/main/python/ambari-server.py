@@ -28,7 +28,6 @@ import re
 import string
 import glob
 import platform
-import xml.etree.ElementTree as ET
 import shutil
 import stat
 import fileinput
