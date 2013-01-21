@@ -53,6 +53,11 @@ sleepBetweenRetries=1
 keysdir=/tmp/ambari-agent
 server_crt=ca.crt
 passphrase_env_var_name=AMBARI_PASSPHRASE
+
+[heartbeat]
+state_interval = 6
+dirs=/etc/hadoop,/etc/hadoop/conf,/var/run/hadoop,/var/log/hadoop
+rpms=hadoop,openssl,wget,net-snmp,ntpd,ruby,ganglia,nagios
 """
 s = StringIO.StringIO(content)
 config.readfp(s)

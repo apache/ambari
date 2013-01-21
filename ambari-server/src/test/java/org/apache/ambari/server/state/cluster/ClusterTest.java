@@ -29,6 +29,7 @@ import junit.framework.Assert;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.agent.AgentEnv;
+import org.apache.ambari.server.agent.AgentEnv.Directory;
 import org.apache.ambari.server.agent.DiskInfo;
 import org.apache.ambari.server.agent.HostInfo;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
@@ -143,17 +144,15 @@ public class ClusterTest {
     hostInfo.setMounts(mounts);
 
     AgentEnv agentEnv = new AgentEnv();
-    Map<String, String> etcDirs = new HashMap<String, String>();
-    etcDirs.put("hadoop", "not_exist");
-    agentEnv.setEtcDirs(etcDirs);
     
-    Map<String, String> varRunDirs = new HashMap<String, String>();
-    varRunDirs.put("hadoop", "not_exist");
-    agentEnv.setVarRunDirs(varRunDirs);
+    Directory dir1 = new Directory();
+    dir1.setName("/etc/hadoop");
+    dir1.setType("not_exist");
+    Directory dir2 = new Directory();
+    dir2.setName("/var/log/hadoop");
+    dir2.setType("not_exist");
+    agentEnv.setPaths(new Directory[] { dir1, dir2 });
     
-    Map<String, String> varLogDirs = new HashMap<String, String>();
-    varLogDirs.put("hadoop", "not_exist");
-    agentEnv.setVarLogDirs(varLogDirs);
     
     AgentVersion agentVersion = new AgentVersion("0.0.x");
     long currentTime = 1001;

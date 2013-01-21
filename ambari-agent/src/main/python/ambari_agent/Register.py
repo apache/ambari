@@ -61,7 +61,6 @@ class Register:
                   'hardwareProfile'   : self.hardware.get(),
                   'agentEnv'          : agentEnv
                 }
-    print str(time.time())
     return register
 
 def doExec(vals, key, command, preLF=False):

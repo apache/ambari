@@ -135,12 +135,15 @@ class Controller(threading.Thread):
     retry = False
     certVerifFailed = False
 
+    config = AmbariConfig.config
+    hb_interval = config.get('heartbeat', 'state_interval')
+
     #TODO make sure the response id is monotonically increasing
     id = 0
     while not self.DEBUG_STOP_HEARTBITTING:
       try:
         if not retry:
-          data = json.dumps(self.heartbeat.build(self.responseId))
+          data = json.dumps(self.heartbeat.build(self.responseId, int(hb_interval)))
           pass
         else:
           self.DEBUG_HEARTBEAT_RETRIES += 1

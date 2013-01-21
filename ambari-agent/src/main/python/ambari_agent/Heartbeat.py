@@ -54,7 +54,7 @@ class Heartbeat:
                   'hostname'          : socket.getfqdn(),
                   'nodeStatus'        : nodeStatus
                 }
-    if (int(id) >= 0) and (int(id) % state_interval) == 0:
+    if (int(id) >= 0) and state_interval > 0 and (int(id) % state_interval) == 0:
       hostInfo = HostInfo()
       nodeInfo = { }
       # for now, just do the same work as registration

@@ -43,7 +43,8 @@ class TestHeartbeat(TestCase):
     self.assertEquals(len(result['nodeStatus']), 2)
     self.assertEquals(result['nodeStatus']['cause'], "NONE")
     self.assertEquals(result['nodeStatus']['status'], "HEALTHY")
-    self.assertEquals(len(result), 7)
+    # result may or may NOT have an agentEnv structure in it
+    self.assertEquals((len(result) is 6) or (len(result) is 7), True)
     self.assertEquals(not heartbeat.reports, True, "Heartbeat should not contain task in progress")
 
 
