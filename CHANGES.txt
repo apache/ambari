@@ -85,6 +85,9 @@ Trunk (unreleased changes):
  AMBARI-1206. Expose missing metrics on host components. (tbeerbower via
  mahadev)
 
+ AMBARI-1205. Cannot persist service configuration when service is started
+ (Siddharth Wagle via mahadev)
+
  BUG FIXES
 
  AMBARI-1230. There is a big gap in the lower part of the Jobs table header.

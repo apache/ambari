@@ -1811,17 +1811,6 @@ public class AmbariManagementControllerImpl implements
       ServiceComponentHost sch,
       State currentState, State newDesiredState)
           throws AmbariException {
-    if (currentState == State.STARTED
-        || currentState == State.STARTING) {
-      throw new AmbariException("Changing of configs not supported"
-          + " in STARTING or STARTED state"
-          + ", clusterName=" + sch.getClusterName()
-          + ", serviceName=" + sch.getServiceName()
-          + ", componentName=" + sch.getServiceComponentName()
-          + ", hostname=" + sch.getHostName()
-          + ", currentState=" + currentState
-          + ", newDesiredState=" + newDesiredState);
-    }
 
     if (newDesiredState != null) {
       if (!(newDesiredState == State.INIT
