@@ -16,6 +16,9 @@ Trunk (unreleased changes):
  various hadoop artifacts back to Ambari. (Nate Cole via mahadev)
 
  IMPROVEMENTS
+
+ AMBARI-1235. Host health indicator should have a tooltip showing details.
+ (yusaku)
  
  AMBARI-1234. On Heatmap host hover, including list of components running.
  (yusaku)
