@@ -283,6 +283,9 @@ module.exports = Em.Route.extend({
       controller.setCurrentStep('6');
       controller.dataLoading().done(function () {
         controller.loadAllPriorSteps();
+        if (!App.testMode) {              //if test mode is ON don't disable prior steps link.
+          controller.setLowerStepsDisable(6);
+        }
         controller.connectOutlet('wizardStep10', controller.get('content'));
       })
     },

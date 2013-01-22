@@ -17,6 +17,9 @@ Trunk (unreleased changes):
 
  IMPROVEMENTS
 
+ AMBARI-1247. Disable links for previous steps in left nav on Summary step.
+ (yusaku)
+
  AMBARI-1246. Add user minor improvements. (yusaku)
 
  AMBARI-1245. Do not let the user go back to the previous step while host
