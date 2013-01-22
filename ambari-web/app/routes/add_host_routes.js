@@ -131,7 +131,12 @@ module.exports = Em.Route.extend({
         controller.connectOutlet('wizardStep3', controller.get('content'));
       })
     },
-    back: Em.Router.transitionTo('step1'),
+    back: function(router, event){
+      //if install not in progress
+      if(!$(event.target).attr('disabled')){
+        router.transitionTo('step1');
+      }
+    },
     exit: function (router) {
       router.get('wizardStep3Controller').set('stopBootstrap', true);
     },
