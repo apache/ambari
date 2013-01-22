@@ -168,7 +168,7 @@ Em.I18n.translations = {
   'form.password':'Password',
   'form.passwordRetype':'Retype Password',
   'form.saveSuccess':'Successfully saved.',
-  'form.saveError':'Sorry, errors occured.',
+  'form.saveError':'Sorry, errors occurred.',
 
   'form.validator.invalidIp':'Please enter valid ip address',
 
@@ -224,6 +224,8 @@ Em.I18n.translations = {
   'admin.users.password':'Password',
   'admin.users.passwordRetype':'Retype Password',
   'admin.users.username':'Username',
+  'admin.users.createSuccess': 'User successfully created.',
+  'admin.users.createError': 'Error occurred while user creating.',
 
   'question.sure':'Are you sure?',
   'yes':'Yes',

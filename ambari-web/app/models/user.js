@@ -111,7 +111,7 @@ App.CreateUserForm = App.Form.extend({
   }.property('App.router.mainAdminUserCreateController.content'),
 
   fieldsOptions:[
-    { name:"userName", displayName:"Username" },
+    { name:"userName", displayName:"Username", toLowerCase: function(){var v = this.get('value'); this.set('value', v.toLowerCase())}.observes('value') },
     { name:"password", displayName:"Password", displayType:"password", isRequired: function(){ return this.get('form.isObjectNew'); }.property('form.isObjectNew') },
     { name:"passwordRetype", displayName:"Retype Password", displayType:"password", validator:"passwordRetype", isRequired: false },
     { name:"admin", displayName:"Admin", displayType:"checkbox", isRequired:false },

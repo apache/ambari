@@ -41,9 +41,26 @@ App.MainAdminUserCreateView = Em.View.extend({
       }, function (success) {
 
         if (!success) {
+          App.ModalPopup.show({
+            header: Em.I18n.t('admin.users.addButton'),
+            body: Em.I18n.t('admin.users.createError'),
+            primary: 'Ok',
+            secondary: null,
+            onPrimary: function() {
+              this.hide();
+            }
+          });
           return;
         }
-
+        App.ModalPopup.show({
+          header: Em.I18n.t('admin.users.addButton'),
+          body: Em.I18n.t('admin.users.createSuccess'),
+          primary: 'Ok',
+          secondary: null,
+          onPrimary: function() {
+            this.hide();
+          }
+        });
         form.save();
 
         App.router.transitionTo("allUsers");

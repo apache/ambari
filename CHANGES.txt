@@ -17,6 +17,8 @@ Trunk (unreleased changes):
 
  IMPROVEMENTS
 
+ AMBARI-1246. Add user minor improvements. (yusaku)
+
  AMBARI-1245. Do not let the user go back to the previous step while host
  bootstrap is in progress. (yusaku)
 
