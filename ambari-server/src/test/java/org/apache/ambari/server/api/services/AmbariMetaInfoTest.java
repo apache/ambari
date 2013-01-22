@@ -27,18 +27,23 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import org.apache.commons.io.FileUtils;
 
+import com.apple.eawt.AppEvent;
 import junit.framework.Assert;
 
 import org.apache.ambari.server.state.ComponentInfo;
 import org.apache.ambari.server.state.RepositoryInfo;
 import org.apache.ambari.server.state.ServiceInfo;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -52,6 +57,9 @@ public class AmbariMetaInfoTest {
   private AmbariMetaInfo metaInfo = null;
   private final static Logger LOG =
       LoggerFactory.getLogger(AmbariMetaInfoTest.class);
+
+  @Rule
+  public TemporaryFolder tmpFolder = new TemporaryFolder();
 
   @Before
   public void before() throws Exception {
@@ -206,6 +214,32 @@ public class AmbariMetaInfoTest {
     assertEquals(3, centos5Cnt.size());
     assertEquals(3, redhat6cnt.size());
     assertEquals(3, centos6Cnt.size());
+  }
+
+  @Test
+  public void testMetaInfoFileFilter() throws Exception {
+    String buildDir = tmpFolder.getRoot().getAbsolutePath();
+    File stackRoot = new File("src/test/resources/stacks");
+    File stackRootTmp = new File(buildDir + "/ambari-metaInfo"); stackRootTmp.mkdir();
+    FileUtils.copyDirectory(stackRoot, stackRootTmp);
+    AmbariMetaInfo ambariMetaInfo = new AmbariMetaInfo(stackRootTmp);
+    File f1, f2, f3;
+    f1 = new File(stackRootTmp.getAbsolutePath() + "/001.svn"); f1.createNewFile();
+    f2 = new File(stackRootTmp.getAbsolutePath() + "/abcd.svn/001.svn"); f2.mkdirs(); f2.createNewFile();
+    f3 = new File(stackRootTmp.getAbsolutePath() + "/.svn");
+    if (!f3.exists()) {
+      f3.createNewFile();
+    }
+    ambariMetaInfo.init();
+    // Tests the stack is loaded as expected
+    getServices();
+    getComponentsByService();
+    getComponentCategory();
+    getSupportedConfigs();
+    // Check .svn is not part of the stack but abcd.svn is
+    Assert.assertNotNull(ambariMetaInfo.getStackInfo("abcd.svn", "001.svn"));
+    Assert.assertNull(ambariMetaInfo.getStackInfo(".svn", ""));
+    Assert.assertNull(ambariMetaInfo.getServices(".svn", ""));
   }
 
 }

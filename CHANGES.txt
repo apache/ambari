@@ -136,6 +136,9 @@ Trunk (unreleased changes):
  AMBARI-1201. Improve Agent Registration and Heartbeat json. (Nate Cole via
  mahadev)
 
+ AMBARI-1238. AmbariMetaInfoTest getServices() acceptance test failure. 
+ (Siddharth Wagle via mahadev)
+
 AMBARI-1.2.0 branch:
 
  INCOMPATIBLE CHANGES
