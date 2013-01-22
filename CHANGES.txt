@@ -17,6 +17,9 @@ Trunk (unreleased changes):
 
  IMPROVEMENTS
 
+ AMBARI-1244. Install Options - line up the Target Hosts section with the rest
+ of the page. (yusaku)
+
  AMBARI-1235. Host health indicator should have a tooltip showing details.
  (yusaku)
  
