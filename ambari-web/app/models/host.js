@@ -126,11 +126,13 @@ App.Host = DS.Model.extend({
     if (!this.get('isLoaded') || this.get('isSaving')) {
     } else {
       var status;
-      var masterComponents = this.get('hostComponents').filterProperty('isMaster', true);
+      var masterComponents = this.get('hostComponents').filterProperty('isMaster');
       var masterComponentsRunning = masterComponents.everyProperty('workStatus', App.HostComponentStatus.started);
+      var slaveComponents = this.get('hostComponents').filterProperty('isSlave');
+      var slaveComponentsRunning = slaveComponents.everyProperty('workStatus', App.HostComponentStatus.started);
       if (this.get('isNotHeartBeating')) {
         status = 'DEAD-YELLOW';
-      } else if (masterComponentsRunning) {
+      } else if (masterComponentsRunning && slaveComponentsRunning) {
         status = 'LIVE';
       } else if (masterComponents.length > 0 && !masterComponentsRunning) {
         status = 'DEAD';
