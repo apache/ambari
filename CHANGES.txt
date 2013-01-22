@@ -16,6 +16,9 @@ Trunk (unreleased changes):
  various hadoop artifacts back to Ambari. (Nate Cole via mahadev)
 
  IMPROVEMENTS
+ 
+ AMBARI-1234. On Heatmap host hover, including list of components running.
+ (yusaku)
 
  AMBARI-1229. Dashboard - make disk usage pie chart in HDFS summary easier
  to understand. (yusaku)

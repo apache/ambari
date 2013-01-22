@@ -31,6 +31,7 @@ App.MainChartsHeatmapHostDetailView = Em.View.extend({
     metricValue: 'metric-value',
     diskUsage: '10',
     cpuUsage: '10',
-    memoryUsage: '10'
+    memoryUsage: '10',
+    hostComponents: 'host components'
   }
 });
