@@ -17,6 +17,8 @@ Trunk (unreleased changes):
 
  IMPROVEMENTS
 
+ AMBARI-1248. Refactoring of update, services and hosts mapper. (yusaku)
+
  AMBARI-1247. Disable links for previous steps in left nav on Summary step.
  (yusaku)
 

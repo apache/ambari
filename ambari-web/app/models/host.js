@@ -45,8 +45,6 @@ App.Host = DS.Model.extend({
   healthStatus: DS.attr('string'),
   cpuUsage: DS.attr('number'),
   memoryUsage: DS.attr('number'),
-  networkUsage: DS.attr('number'),
-  ioUsage: DS.attr('number'),
   lastHeartBeatTime: DS.attr('number'),
   osType: DS.attr("string"),
   diskInfo: DS.attr('object'),

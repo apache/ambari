@@ -56,6 +56,9 @@ App.HttpClient = Em.Object.create({
     $.extend(options, {
       url: url,
       success: function (data) {
+        try {
+          App.store.commit();
+        } catch (err) {}
         mapper.map(data);
       },
       error: errorHandler

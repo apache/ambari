@@ -22,7 +22,6 @@ var App = require('app');
 App.Service = DS.Model.extend({
 
   serviceName: DS.attr('string'),
-  serviceAudit: DS.hasMany('App.ServiceAudit'),
 
   workStatus: DS.attr('string'),
   alerts: DS.hasMany('App.Alert'),

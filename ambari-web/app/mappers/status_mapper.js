@@ -22,11 +22,6 @@ App.statusMapper = App.QuickDataMapper.create({
     work_status:'ServiceInfo.state'
   },
 
-  config2:{
-    id:'ServiceComponentInfo.component_name',
-    work_status:'host_components[0].HostRoles.state'
-  },
-
   config3:{
     id:'id',
     work_status:'HostRoles.state',
@@ -38,19 +33,9 @@ App.statusMapper = App.QuickDataMapper.create({
     if (json.items) {
       var result = [];
       json.items.forEach(function (item) {
-
-        item.host_components = [];
-        item.components.forEach(function (component) {
-          component.host_components.forEach(function (host_component) {
-            host_component.id = host_component.HostRoles.component_name + "_" + host_component.HostRoles.host_name;
-            item.host_components.push(host_component.id);
-          }, this)
-        }, this);
-
         result.push(this.parseIt(item, this.config));
       }, this);
 
-      //console.log(result)
       var services = App.Service.find();
       result.forEach(function(item){
         var service = services.findProperty('id', item.id);
@@ -59,16 +44,18 @@ App.statusMapper = App.QuickDataMapper.create({
         }
       })
 
+
+      //host_components
       result = [];
       json.items.forEach(function (item) {
         item.components.forEach(function (component) {
           component.host_components.forEach(function (host_component) {
+            host_component.id = host_component.HostRoles.component_name + "_" + host_component.HostRoles.host_name;
             result.push(this.parseIt(host_component, this.config3));
           }, this)
         }, this)
       }, this);
 
-      //console.log(result)
       var hostComponents = App.HostComponent.find();
       result.forEach(function(item){
         var hostComponent = hostComponents.findProperty('id', item.id);

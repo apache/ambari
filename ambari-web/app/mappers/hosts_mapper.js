@@ -18,8 +18,8 @@
 var App = require('app');
 
 App.hostsMapper = App.QuickDataMapper.create({
+
   model: App.Host,
-  tmp_result:[],
   config: {
     id: 'Hosts.host_name',
     host_name: 'Hosts.host_name',
@@ -42,23 +42,17 @@ App.hostsMapper = App.QuickDataMapper.create({
     load_fifteen: 'metrics.load.load_fifteen',
     cpu_usage: 'cpu_usage',
     memory_usage: 'memory_usage',
-    $network_usage: 36,
-    $io_usage: 39,
     last_heart_beat_time: "Hosts.last_heartbeat_time",
     os_arch: 'Hosts.os_arch',
     os_type: 'Hosts.os_type',
     ip: 'Hosts.ip'
   },
   map: function (json) {
-    var self = this;
-    if (!this.get('model')) {
-      return;
-    }
+
     if (json.items) {
 
+      var result = [];
       json.items.forEach(function (item) {
-        var result = [];
-        self.tmp_result=[];
 
         // Disk Usage
         if (item.metrics && item.metrics.disk && item.metrics.disk.disk_total && item.metrics.disk.disk_free) {
@@ -78,48 +72,15 @@ App.hostsMapper = App.QuickDataMapper.create({
           item.memory_usage = memUsedPercent.toFixed(1);
         }
 
-        if(App.Host.find(item.Hosts.host_name).get("hostName") == item.Hosts.host_name){ // UPDATE
+        item.host_components.forEach(function (host_component) {
+          host_component.id = host_component.HostRoles.component_name + "_" + host_component.HostRoles.host_name;
+        }, this);
+        result.push(this.parseIt(item, this.config));
 
-          App.Host.find(item.Hosts.host_name).set("cpuUsage", item.cpu_usage);
-          App.Host.find(item.Hosts.host_name).set("diskUsage", item.disk_usage);
-          App.Host.find(item.Hosts.host_name).set("memoryUsage", item.memory_usage);
-
-          self.tmp_result.push(this.parseIt(item, this.config));
-
-          $.map(self.tmp_result[0], function (e,a){
-            //console.log(a, "------------------", self.tmp_result[0][a])
-            if(typeof(e) === "string" || typeof(e) === "number")
-            {
-              var modelName=self.parseName(a);
-              if(typeof(App.Host.find(self.tmp_result[0].host_name).get(modelName)) !== "undefined"){
-                App.Host.find(self.tmp_result[0].host_name).set(modelName, self.tmp_result[0][a]);
-               // console.log(modelName, "------------------", self.tmp_result[0][a])
-              }
-            }
-          })
-
-        }else{ // ADD
-
-          item.host_components.forEach(function (host_component) {
-            host_component.id = host_component.HostRoles.component_name + "_" + host_component.HostRoles.host_name;
-          }, this);
-          result.push(this.parseIt(item, this.config));
-          App.store.loadMany(this.get('model'), result);
-
-        }
       }, this);
-       //console.log(this.get('model'), result);
 
+      App.store.loadMany(this.get('model'), result);
     }
-  },
-
-  parseName:function(name){
-    var new_name = name.replace(/_\w/g,replacer);
-    function replacer(str, p1, p2, offset, s)
-    {
-     return str[1].toUpperCase();
-    }
-    return new_name;
   }
 
 });
