@@ -17,6 +17,8 @@ Trunk (unreleased changes):
 
  IMPROVEMENTS
 
+ AMBARI-1249. Update mock data to make App.testMode work. (yusaku)
+
  AMBARI-1239. Host health status should show orange when there is at least one
  slave component on the host with state!=STARTED. (yusaku)
 
