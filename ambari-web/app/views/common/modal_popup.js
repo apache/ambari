@@ -23,7 +23,7 @@ App.ModalPopup = Ember.View.extend({
   template: Ember.Handlebars.compile([
     '<div class="modal-backdrop"></div><div class="modal" id="modal" tabindex="-1" role="dialog" aria-labelledby="modal-label" aria-hidden="true">',
     '<div class="modal-header">',
-    '<a class="close" {{action onClose target="view"}}>x</a>',
+    '{{#if showCloseButton}}<a class="close" {{action onClose target="view"}}>x</a>{{/if}}',
     '<h3 id="modal-label">',
     '{{#if headerClass}}{{view headerClass}}',
     '{{else}}{{header}}{{/if}}',
@@ -66,6 +66,11 @@ App.ModalPopup = Ember.View.extend({
   },
 
   showFooter: true,
+
+  /**
+   * Hide or show 'X' button for closing popup
+   */
+  showCloseButton: true,
 
   didInsertElement: function(){
     if(this.autoHeight){

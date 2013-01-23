@@ -799,6 +799,18 @@ App.WizardStep8Controller = Em.Controller.extend({
     }
   },
 
+  /**
+   * Used in progress bar
+   */
+  ajaxQueueLength: function() {
+    return this.get('ajaxQueue').length;
+  }.property('ajaxQueue.length'),
+
+  /**
+   * Used in progress bar
+   */
+  ajaxQueueLeft: 0,
+
   setAmbariUIDb: function () {
     var dbContent = this.get('content.slaveGroupProperties');
     var slaveComponentConfig = this.get("slaveComponentConfig");
@@ -1423,6 +1435,7 @@ App.WizardStep8Controller = Em.Controller.extend({
 
     var first = queue[0];
     this.set('ajaxQueue', queue.slice(1));
+    this.set('ajaxQueueLeft', this.get('ajaxQueue').length);
 
     this.set('ajaxBusy', true);
     console.log('AJAX send ' + first.url);
