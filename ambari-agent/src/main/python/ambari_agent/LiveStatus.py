@@ -91,10 +91,11 @@ class LiveStatus:
   LIVE_STATUS = "STARTED"
   DEAD_STATUS = "INSTALLED"
 
-  def __init__(self, cluster, service, component):
+  def __init__(self, cluster, service, component, globalConfig):
     self.cluster = cluster
     self.service = service
     self.component = component
+    self.globalConfig = globalConfig
 
 
   def belongsToService(self, component):
@@ -104,9 +105,7 @@ class LiveStatus:
   # Live status was stripped from heartbeat after revision e1718dd
   def build(self):
     global SERVICES, COMPONENTS, LIVE_STATUS, DEAD_STATUS
-    pidLookupPath = AmbariConfig.config.get('services','pidLookupPath')
-
-    statusCheck = StatusCheck(pidLookupPath, AmbariConfig.servicesToPidNames)
+    statusCheck = StatusCheck(AmbariConfig.servicesToPidNames, AmbariConfig.pidPathesVars, self.globalConfig)
     livestatus = None
     for component in self.COMPONENTS:
       if component["serviceName"] == self.service and component["componentName"] == self.component:

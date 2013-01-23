@@ -48,8 +48,15 @@ class TestStatusCheck(TestCase):
   def setUp(self):
 
     self.tmpdir = tempfile.mkdtemp()
-    self.tmpdict = { COMPONENT_LIVE : COMPONENT_LIVE_PID,
-                     COMPONENT_DEAD : COMPONENT_DEAD_PID}
+    self.serviceToPidDict = {
+      COMPONENT_LIVE : COMPONENT_LIVE_PID,
+      COMPONENT_DEAD : COMPONENT_DEAD_PID
+    }
+
+    self.pidPathesVars = [
+      {'var' : '',
+      'defaultValue' : self.tmpdir}
+    ]
 
     self.sh = shellRunner()
     
@@ -70,11 +77,7 @@ class TestStatusCheck(TestCase):
     dead_pid_file.close()
 
     #Init status checker
-    self.statusCheck = StatusCheck(self.tmpdir, self.tmpdict)
-
-  # Ensure that status checker throws exceptions on invalid params
-  def test_exceptions(self):
-    self.assertRaises(ValueError,StatusCheck,"tmp","tmp")
+    self.statusCheck = StatusCheck(self.serviceToPidDict,self.pidPathesVars,{})
 
   # Ensure that status checker return True for running process
   def test_live(self):

@@ -36,8 +36,8 @@
   $json_array = json_decode($json_string, true);
   $object = $json_array['beans'][0];
   if ($object['NameDirStatuses'] == "") {
-    echo "UNKNOWN: Namenode directory status not available via http://<nn_host>:port/jmx url" . "\n";
-    exit(3);
+    echo "WARNING: Namenode directory status not available via http://".$host.":".$port."/jmx url" . "\n";
+    exit(1);
   }
   $NameDirStatuses = json_decode($object['NameDirStatuses'], true);
   $failed_dir_count = count($NameDirStatuses['failed']);

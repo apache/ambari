@@ -63,7 +63,8 @@ class TestActionQueue(TestCase):
       'clusterHostInfo': "clusterHostInfo",
       'roleCommand': "roleCommand",
       'configurations': "configurations",
-      'commandType': "EXECUTION_COMMAND"
+      'commandType': "EXECUTION_COMMAND",
+      'configurations':{'global' : {}}
     }
     actionQueue.put(command)
 

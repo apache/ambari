@@ -35,7 +35,6 @@ secured_url_port=8441
 prefix=/tmp/ambari-agent
 
 [services]
-pidLookupPath=/var/run/
 
 [stack]
 installprefix=/tmp
@@ -148,6 +147,28 @@ servicesToPidNames = {
   'MYSQL_SERVER': 'mysqld.pid'
 }
 
+pidPathesVars = [
+  {'var' : 'hadoop_pid_dir_prefix',
+   'defaultValue' : '/var/run/hadoop'},
+  {'var' : 'hadoop_pid_dir_prefix',
+   'defaultValue' : '/var/run/hadoop'},                 
+  {'var' : 'ganglia_runtime_dir',
+   'defaultValue' : '/var/run/ganglia/hdp'},                 
+  {'var' : 'hbase_pid_dir',
+   'defaultValue' : '/var/run/hbase'},                
+  {'var' : '',
+   'defaultValue' : '/var/run/nagios'},                    
+  {'var' : 'zk_pid_dir',
+   'defaultValue' : '/var/run/zookeeper'},             
+  {'var' : 'oozie_pid_dir',
+   'defaultValue' : '/var/run/oozie'},             
+  {'var' : 'hcat_pid_dir',
+   'defaultValue' : '/var/run/webhcat'},                       
+  {'var' : 'hive_pid_dir',
+   'defaultValue' : '/var/run/hive'},                      
+   {'var' : 'mysqld_pid_dir',
+   'defaultValue' : '/var/run/mysqld'}
+]
 
 class AmbariConfig:
   def getConfig(self):
@@ -169,6 +190,10 @@ class AmbariConfig:
   def getServicesToPidNames(self):
     global servicesToPidNames
     return servicesToPidNames
+
+  def getPidPathesVars(self):
+    global pidPathesVars
+    return pidPathesVars
 
 
 def setConfig(customConfig):

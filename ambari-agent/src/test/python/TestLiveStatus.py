@@ -27,7 +27,7 @@ import os
 class TestLiveStatus(TestCase):
   def test_build(self):
     for component in LiveStatus.COMPONENTS:
-      livestatus = LiveStatus('', component['serviceName'], component['componentName'])
+      livestatus = LiveStatus('', component['serviceName'], component['componentName'], {})
       result = livestatus.build()
       print "LiveStatus of {0}: {1}".format(component['serviceName'], str(result))
       self.assertEquals(len(result) > 0, True, 'Livestatus should not be empty')

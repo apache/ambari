@@ -29,7 +29,6 @@ import time
 
 class TestHeartbeat(TestCase):
 
-
   def test_build(self):
     actionQueue = ActionQueue(AmbariConfig.AmbariConfig().getConfig())
     heartbeat = Heartbeat(actionQueue)
@@ -55,7 +54,8 @@ class TestHeartbeat(TestCase):
       "serviceName" : 'HDFS',
       "commandType" : "STATUS_COMMAND",
       "clusterName" : "",
-      "componentName" : "DATANODE"
+      "componentName" : "DATANODE",
+      'configurations':{'global' : {}}
     }
     actionQueue.put(statusCommand)
     actionQueue.start()
@@ -76,7 +76,8 @@ class TestHeartbeat(TestCase):
         "serviceName" : 'HDFS',
         "commandType" : "STATUS_COMMAND",
         "clusterName" : "",
-        "componentName" : "DATANODE"
+        "componentName" : "DATANODE",
+        'configurations':{'global' : {}}
       }
       actionQueue.put(statusCommand)
       time.sleep(0.1)
@@ -102,7 +103,8 @@ class TestHeartbeat(TestCase):
       'stderr' : 'none',
       'exitCode' : 777,
       'serviceName' : "serviceName",
-      'status' : 'IN_PROGRESS'
+      'status' : 'IN_PROGRESS',
+      'configurations':{'global' : {}}
     }
     heartbeat = Heartbeat(actionQueue)
     result = heartbeat.build(100)

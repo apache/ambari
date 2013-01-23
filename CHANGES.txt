@@ -166,6 +166,13 @@ Trunk (unreleased changes):
  AMBARI-1243. Remove unwanted import causing the builds to fail on linux.
  (mahadev)
 
+ AMBARI-1233.  Directory permissions on httpd /var/www/cgi-bin should not be
+ touched by Ambari. (mahadev)
+
+ AMBARI-1170. For live status checks we should only look at the run
+ directories that we get from the server (only for hadoop and its eco system)
+ and not all. (mahadev)
+
 AMBARI-1.2.0 branch:
 
  INCOMPATIBLE CHANGES

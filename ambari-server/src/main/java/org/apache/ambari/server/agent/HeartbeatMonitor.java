@@ -18,7 +18,10 @@
 package org.apache.ambari.server.agent;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.actionmanager.ActionManager;
@@ -145,10 +148,23 @@ public class HeartbeatMonitor implements Runnable {
           LOG.debug("Live status will include status of service " + serviceName +
                 " of cluster " + cl.getClusterName());
         }
+        
+        Map<String, Config> configs = sch.getDesiredConfigs();
+        
+        Map<String, Map<String, String>> configurations =
+            new TreeMap<String, Map<String, String>>();
+        
+        for (Config config : configs.values()) {
+          if (config.getType().equals("global"))
+            configurations.put(config.getType(),
+              config.getProperties());
+        }
+        
         StatusCommand statusCmd = new StatusCommand();
         statusCmd.setClusterName(cl.getClusterName());
         statusCmd.setServiceName(serviceName);
         statusCmd.setComponentName(sch.getServiceComponentName());
+        statusCmd.setConfigurations(configurations);			
         cmds.add(statusCmd);
       }
     }

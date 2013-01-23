@@ -183,7 +183,8 @@ define hdp::directory(
   $mode  = undef,
   $ensure = directory,
   $force = undef,
-  $service_state = 'running'
+  $service_state = 'running',
+  $override_owner = false
   )
 {
  if (($service_state == 'uninstalled') and ($wipeoff_data == true)) {
@@ -195,13 +196,21 @@ define hdp::directory(
     force  => $force
    }
   } elsif ($service_state != 'uninstalled') {
-  file { $name :
-    ensure => present,
-    owner  => $owner,
-    group  => $group,
-    mode   => $mode,
-    force  => $force
-   }
+    if $override_owner == true {
+      file { $name :
+      ensure => present,
+      owner  => $owner,
+      group  => $group,
+      mode   => $mode,
+      force  => $force
+     }
+    } else {
+      file { $name :
+      ensure => present,
+      mode   => $mode,
+      force  => $force
+     }
+    }
   }
 }
 #TODO: check on -R flag and use of recurse
@@ -212,7 +221,8 @@ define hdp::directory_recursive_create(
   $context_tag = undef,
   $ensure = directory,
   $force = undef,
-  $service_state = 'running'
+  $service_state = 'running',
+  $override_owner = true
   )
 {
 
@@ -227,7 +237,8 @@ define hdp::directory_recursive_create(
     mode  => $mode,
     ensure => $ensure,
     force => $force,
-    service_state => $service_state
+    service_state => $service_state,
+    override_owner => $override_owner
   }
   Hdp::Exec["mkdir -p ${name}"] -> Hdp::Directory[$name]
 }
