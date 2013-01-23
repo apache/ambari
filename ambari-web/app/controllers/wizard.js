@@ -42,7 +42,7 @@ App.WizardController = Em.Controller.extend({
   },
 
   setStepsEnable: function () {
-    for (var i = 2; i <= this.totalSteps; i++) {
+    for (var i = 1; i <= this.totalSteps; i++) {
       var step = this.get('isStepDisabled').findProperty('step', i);
       if (i <= this.get('currentStep')) {
         step.set('value', false);

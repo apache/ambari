@@ -116,6 +116,8 @@ Trunk (unreleased changes):
 
  BUG FIXES
 
+ AMBARI-1251. Fix routing issues on Add Host Wizard. (yusaku)
+
  AMBARI-1230. There is a big gap in the lower part of the Jobs table header.
  (yusaku)
 

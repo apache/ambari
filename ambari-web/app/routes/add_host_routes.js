@@ -67,9 +67,6 @@ module.exports = Em.Route.extend({
             addHostController.setCurrentStep('6');
             App.db.data = currentClusterStatus.localdb;
             break;
-          case 'ADD_HOSTS_COMPLETED_5' :
-            router.transitionTo('main.index');
-            break;
           default:
             break;
         }
