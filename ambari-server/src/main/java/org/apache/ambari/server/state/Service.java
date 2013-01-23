@@ -76,11 +76,12 @@ public interface Service {
    */
   public boolean canBeRemoved();
 
-  public void removeAllComponents() throws AmbariException;
+  public void deleteAllComponents() throws AmbariException;
 
   public void deleteServiceComponent(String componentName)
       throws AmbariException;
 
   public boolean isClientOnlyService();
 
+  public void delete() throws AmbariException;
 }

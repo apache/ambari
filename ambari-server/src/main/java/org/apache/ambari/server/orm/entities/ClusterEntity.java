@@ -169,7 +169,7 @@ public class ClusterEntity {
   }
   
   private Collection<ClusterConfigEntity> configEntities;
-  @OneToMany(mappedBy = "clusterEntity")
+  @OneToMany(mappedBy = "clusterEntity", cascade = CascadeType.ALL)
   public Collection<ClusterConfigEntity> getClusterConfigEntities() {
     return configEntities;
   }

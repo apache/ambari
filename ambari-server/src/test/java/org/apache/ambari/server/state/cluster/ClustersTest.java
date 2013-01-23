@@ -18,12 +18,7 @@
 
 package org.apache.ambari.server.state.cluster;
 
-import static org.junit.Assert.fail;
-
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 import com.google.inject.Guice;
 import com.google.inject.Inject;
@@ -38,13 +33,17 @@ import org.apache.ambari.server.HostNotFoundException;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
-import org.apache.ambari.server.state.Cluster;
-import org.apache.ambari.server.state.Clusters;
-import org.apache.ambari.server.state.Host;
-import org.apache.ambari.server.state.StackId;
+import org.apache.ambari.server.orm.dao.*;
+import org.apache.ambari.server.orm.entities.HostComponentDesiredStateEntityPK;
+import org.apache.ambari.server.orm.entities.HostComponentStateEntityPK;
+import org.apache.ambari.server.state.*;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+
+import javax.persistence.EntityManager;
+
+import static org.junit.Assert.*;
 
 public class ClustersTest {
 
@@ -270,4 +269,80 @@ public class ClustersTest {
     // TODO verify dump output?
   }
 
+  @Test
+  public void testDeleteCluster() throws Exception {
+    String c1 = "c1";
+    final String h1 = "h1";
+    final String h2 = "h2";
+
+    clusters.addCluster(c1);
+
+    Cluster cluster = clusters.getCluster(c1);
+    cluster.setDesiredStackVersion(new StackId("HDP-0.1"));
+
+    Config config = injector.getInstance(ConfigFactory.class).createNew(cluster, "t1", new HashMap<String, String>() {{
+      put("prop1", "val1");
+    }});
+    config.setVersionTag("1");
+    config.persist();
+
+    clusters.addHost(h1);
+    clusters.addHost(h2);
+
+    Host host1 = clusters.getHost(h1);
+    host1.setOsType("centos5");
+    Host host2 = clusters.getHost(h2);
+    host2.setOsType("centos5");
+    host1.persist();
+    host2.persist();
+
+    clusters.mapHostsToCluster(new HashSet<String>() {
+      {
+        addAll(Arrays.asList(h1, h2));
+      }
+    }, c1);
+
+
+    Service hdfs = cluster.addService("HDFS");
+    hdfs.persist();
+
+    assertNotNull(injector.getInstance(ClusterServiceDAO.class).findByClusterAndServiceNames(c1, "HDFS"));
+
+    ServiceComponent nameNode = hdfs.addServiceComponent("NAMENODE");
+    nameNode.persist();
+    ServiceComponent dataNode = hdfs.addServiceComponent("DATANODE");
+    dataNode.persist();
+
+    ServiceComponentHost nameNodeHost = nameNode.addServiceComponentHost(h1);
+    nameNodeHost.persist();
+
+    ServiceComponentHost dataNodeHost = dataNode.addServiceComponentHost(h2);
+    dataNodeHost.persist();
+
+    HostComponentStateEntityPK hkspk = new HostComponentStateEntityPK();
+    HostComponentDesiredStateEntityPK hkdspk = new HostComponentDesiredStateEntityPK();
+
+    hkspk.setClusterId(nameNodeHost.getClusterId());
+    hkspk.setHostName(nameNodeHost.getHostName());
+    hkspk.setServiceName(nameNodeHost.getServiceName());
+    hkspk.setComponentName(nameNodeHost.getServiceComponentName());
+
+    hkdspk.setClusterId(nameNodeHost.getClusterId());
+    hkdspk.setHostName(nameNodeHost.getHostName());
+    hkdspk.setServiceName(nameNodeHost.getServiceName());
+    hkdspk.setComponentName(nameNodeHost.getServiceComponentName());
+
+    assertNotNull(injector.getInstance(HostComponentStateDAO.class).findByPK(hkspk));
+    assertNotNull(injector.getInstance(HostComponentDesiredStateDAO.class).findByPK(hkdspk));
+    assertEquals(1, injector.getProvider(EntityManager.class).get().createQuery("SELECT config FROM ClusterConfigEntity config").getResultList().size());
+
+    clusters.deleteCluster(c1);
+
+    assertEquals(2, injector.getInstance(HostDAO.class).findAll().size());
+    assertNull(injector.getInstance(HostComponentStateDAO.class).findByPK(hkspk));
+    assertNull(injector.getInstance(HostComponentDesiredStateDAO.class).findByPK(hkdspk));
+    //configs are removed implicitly by cascade operation
+    assertEquals(0, injector.getProvider(EntityManager.class).get().createQuery("SELECT config FROM ClusterConfigEntity config").getResultList().size());
+
+  }
 }

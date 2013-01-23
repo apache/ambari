@@ -173,6 +173,9 @@ Trunk (unreleased changes):
  directories that we get from the server (only for hadoop and its eco system)
  and not all. (mahadev)
 
+ AMBARI-1250. Upgrade the posgres connector to 9.1.
+ (mahadev)
+
 AMBARI-1.2.0 branch:
 
  INCOMPATIBLE CHANGES

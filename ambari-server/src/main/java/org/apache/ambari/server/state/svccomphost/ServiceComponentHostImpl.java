@@ -1228,13 +1228,47 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
   public void deleteDesiredConfigs(Set<String> configTypes) {
     try {
       writeLock.lock();
+      hostComponentDesiredConfigMappingDAO.removeByType(configTypes);
       for (String configType : configTypes) {
         desiredConfigs.remove(configType);
       }
-      hostComponentDesiredConfigMappingDAO.removeByType(configTypes);
     } finally {
       writeLock.unlock();
     }
+  }
+
+  @Override
+  public void delete() throws AmbariException {
+    try {
+      writeLock.lock();
+      if (persisted) {
+        removeEntities();
+        persisted = false;
+      }
+      desiredConfigs.clear();
+    } finally {
+      writeLock.unlock();
+    }
+
+  }
+
+  @Transactional
+  protected void removeEntities() {
+    HostComponentStateEntityPK pk = new HostComponentStateEntityPK();
+    pk.setClusterId(stateEntity.getClusterId());
+    pk.setComponentName(stateEntity.getComponentName());
+    pk.setServiceName(stateEntity.getServiceName());
+    pk.setHostName(stateEntity.getHostName());
+
+    hostComponentStateDAO.removeByPK(pk);
+
+    HostComponentDesiredStateEntityPK desiredPK = new HostComponentDesiredStateEntityPK();
+    desiredPK.setClusterId(desiredStateEntity.getClusterId());
+    desiredPK.setComponentName(desiredStateEntity.getComponentName());
+    desiredPK.setServiceName(desiredStateEntity.getServiceName());
+    desiredPK.setHostName(desiredStateEntity.getHostName());
+
+    hostComponentDesiredStateDAO.removeByPK(desiredPK);
   }
 
 }

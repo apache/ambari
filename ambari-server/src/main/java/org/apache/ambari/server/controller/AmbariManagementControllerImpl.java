@@ -57,6 +57,7 @@ import org.apache.ambari.server.state.svccomphost.ServiceComponentHostOpInProgre
 import org.apache.ambari.server.state.svccomphost.ServiceComponentHostStartEvent;
 import org.apache.ambari.server.state.svccomphost.ServiceComponentHostStopEvent;
 import org.apache.ambari.server.utils.StageUtils;
+import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -2689,9 +2690,7 @@ public class AmbariManagementControllerImpl implements
   @Override
   public synchronized void deleteCluster(ClusterRequest request)
       throws AmbariException {
-    throw new AmbariException("Delete cluster not supported");
 
-    /*
     if (request.getClusterName() == null
         || request.getClusterName().isEmpty()) {
       // FIXME throw correct error
@@ -2705,13 +2704,22 @@ public class AmbariManagementControllerImpl implements
       // deleting whole cluster
       clusters.deleteCluster(request.getClusterName());
     }
-    */
   }
 
   @Override
   public RequestStatusResponse deleteServices(Set<ServiceRequest> request)
       throws AmbariException {
-    throw new AmbariException("Delete services not supported");
+
+    for (ServiceRequest serviceRequest : request) {
+      if (StringUtils.isEmpty(serviceRequest.getClusterName()) || StringUtils.isEmpty(serviceRequest.getServiceName())) {
+        // FIXME throw correct error
+        throw new AmbariException("invalid arguments");
+      } else {
+        clusters.getCluster(serviceRequest.getClusterName()).deleteService(serviceRequest.getServiceName());
+      }
+    }
+    return null;
+
   }
 
   @Override

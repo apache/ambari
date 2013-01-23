@@ -42,7 +42,7 @@ public class ConfigImpl implements Config {
   private String versionTag;
   private Map<String, String> properties;
   private ClusterConfigEntity entity;
-  
+
   @Inject
   private ClusterDAO clusterDAO;
   @Inject
@@ -111,7 +111,7 @@ public class ConfigImpl implements Config {
   
   @Transactional
   @Override
-  public void persist() {
+  public synchronized void persist() {
     
     ClusterEntity clusterEntity = clusterDAO.findById(cluster.getClusterId());
     
@@ -128,7 +128,7 @@ public class ConfigImpl implements Config {
     clusterEntity.getClusterConfigEntities().add(entity);
     clusterDAO.merge(clusterEntity);
     cluster.refresh();
-    
+
   }
 
 

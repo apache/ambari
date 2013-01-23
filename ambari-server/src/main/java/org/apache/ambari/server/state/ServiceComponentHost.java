@@ -104,4 +104,6 @@ public interface ServiceComponentHost {
   public void debugDump(StringBuilder sb);
 
   public boolean canBeRemoved();
+
+  public void delete() throws AmbariException;
 }

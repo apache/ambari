@@ -75,11 +75,13 @@ public interface ServiceComponent {
 
   public boolean canBeRemoved();
 
-  public void removeAllServiceComponentHosts() throws AmbariException;
+  public void deleteAllServiceComponentHosts() throws AmbariException;
 
-  public void removeServiceComponentHosts(String hostname)
+  public void deleteServiceComponentHosts(String hostname)
       throws AmbariException;
 
   ServiceComponentHost addServiceComponentHost(
       String hostName) throws AmbariException;
+
+  public void delete() throws AmbariException;
 }

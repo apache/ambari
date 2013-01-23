@@ -434,6 +434,7 @@ public class ClusterImpl implements Cluster {
   }
 
   @Override
+  @Transactional
   public synchronized void deleteAllServices() throws AmbariException {
     loadServices();
     LOG.info("Deleting all services for cluster"
@@ -446,11 +447,12 @@ public class ClusterImpl implements Cluster {
             + ", serviceName=" + service.getName());
       }
     }
+
     for (Service service : services.values()) {
-      service.removeAllComponents();
+      service.delete();
     }
+
     services.clear();
-    // FIXME update DB
   }
 
   @Override
@@ -467,9 +469,8 @@ public class ClusterImpl implements Cluster {
           + ", clusterName=" + getClusterName()
           + ", serviceName=" + service.getName());
     }
-    service.removeAllComponents();
+    service.delete();
     services.remove(serviceName);
-    // FIXME update DB
   }
 
   @Override
@@ -485,5 +486,18 @@ public class ClusterImpl implements Cluster {
       }
     }
     return safeToRemove;
+  }
+
+  @Override
+  @Transactional
+  public void delete() throws AmbariException {
+    deleteAllServices();
+    removeEntities();
+    configs.clear();
+  }
+
+  @Transactional
+  protected void removeEntities() throws AmbariException {
+    clusterDAO.removeByPK(getClusterId());
   }
 }

@@ -213,7 +213,7 @@ public class HostImpl implements Host {
 
   }
 
-//  //TODO remove
+//  //TODO delete
 //  public HostImpl(String hostname) {
 //    this.stateMachine = stateMachineFactory.make(this);
 //    ReadWriteLock rwLock = new ReentrantReadWriteLock();

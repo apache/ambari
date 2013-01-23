@@ -18,6 +18,8 @@
 
 package org.apache.ambari.server.state.cluster;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.fail;
 
 import java.util.ArrayList;
@@ -36,6 +38,7 @@ import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.controller.ClusterResponse;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
+import org.apache.ambari.server.orm.dao.ClusterServiceDAO;
 import org.apache.ambari.server.state.AgentVersion;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
@@ -58,6 +61,8 @@ import org.junit.Test;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.google.inject.persist.PersistService;
+
+import javax.persistence.EntityManager;
 
 public class ClusterTest {
 
@@ -290,4 +295,24 @@ public class ClusterTest {
     c1.debugDump(sb);
   }
 
+  @Test
+  public void testDeleteService() throws Exception {
+    c1.addService("MAPREDUCE").persist();
+
+    Service hdfs = c1.addService("HDFS");
+    hdfs.persist();
+    ServiceComponent nameNode = hdfs.addServiceComponent("NAMENODE");
+    nameNode.persist();
+
+
+    assertEquals(2, c1.getServices().size());
+    assertEquals(2, injector.getProvider(EntityManager.class).get().
+        createQuery("SELECT service FROM ClusterServiceEntity service").getResultList().size());
+
+    c1.deleteService("HDFS");
+
+    assertEquals(1, c1.getServices().size());
+    assertEquals(1, injector.getProvider(EntityManager.class).get().
+        createQuery("SELECT service FROM ClusterServiceEntity service").getResultList().size());
+  }
 }

@@ -105,7 +105,7 @@ public class ClusterServiceEntity {
 
   private ServiceDesiredStateEntity serviceDesiredStateEntity;
 
-  @OneToOne(mappedBy = "clusterServiceEntity")
+  @OneToOne(mappedBy = "clusterServiceEntity", cascade = CascadeType.ALL)
   public ServiceDesiredStateEntity getServiceDesiredStateEntity() {
     return serviceDesiredStateEntity;
   }

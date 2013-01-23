@@ -360,7 +360,6 @@ public class ClustersImpl implements Clusters {
   }
 
   @Override
-  @Transactional
   public synchronized void deleteCluster(String clusterName)
       throws AmbariException {
     Cluster cluster = getCluster(clusterName);
@@ -368,9 +367,15 @@ public class ClustersImpl implements Clusters {
       throw new AmbariException("Could not delete cluster"
           + ", clusterName=" + clusterName);
     }
-    cluster.deleteAllServices();
+    LOG.info("Deleting cluster "+ cluster.getClusterName());
+    cluster.delete();
+
+    //clear maps
+    for (Set<Cluster> clusterSet : hostClusterMap.values()) {
+      clusterSet.remove(cluster);
+    }
+    clusterHostMap.remove(cluster.getClusterName());
     clusters.remove(clusterName);
-    // FIXME update DB
   }
 
 }

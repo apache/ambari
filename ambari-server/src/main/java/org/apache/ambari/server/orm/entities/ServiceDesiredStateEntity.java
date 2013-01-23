@@ -115,7 +115,11 @@ public class ServiceDesiredStateEntity {
   private ClusterServiceEntity clusterServiceEntity;
 
   @OneToOne
-  @javax.persistence.JoinColumns({@javax.persistence.JoinColumn(name = "cluster_id", referencedColumnName = "cluster_id", nullable = false), @javax.persistence.JoinColumn(name = "service_name", referencedColumnName = "service_name", nullable = false)})
+  @javax.persistence.JoinColumns(
+      {
+          @JoinColumn(name = "cluster_id", referencedColumnName = "cluster_id", nullable = false),
+          @JoinColumn(name = "service_name", referencedColumnName = "service_name", nullable = false)
+      })
   public ClusterServiceEntity getClusterServiceEntity() {
     return clusterServiceEntity;
   }
