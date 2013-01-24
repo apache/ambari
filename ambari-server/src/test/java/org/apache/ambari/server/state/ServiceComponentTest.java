@@ -39,6 +39,7 @@ import org.apache.ambari.server.orm.entities.HostComponentStateEntity;
 import org.apache.ambari.server.orm.entities.HostComponentStateEntityPK;
 import org.apache.ambari.server.orm.entities.ServiceComponentDesiredStateEntity;
 import org.apache.ambari.server.orm.entities.ServiceComponentDesiredStateEntityPK;
+import org.apache.ambari.server.state.svccomphost.ServiceComponentHostImpl;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -308,4 +309,21 @@ public class ServiceComponentTest {
     Assert.assertFalse(sb.toString().isEmpty());
   }
 
+  @Test
+  public void testCanBeRemoved() throws Exception{
+    String componentName = "NAMENODE";
+    ServiceComponent component = serviceComponentFactory.createNew(service,
+        componentName);
+
+    for (State state : State.values()) {
+      component.setDesiredState(state);
+
+      if (state.isRemovableState()) {
+        org.junit.Assert.assertTrue(component.canBeRemoved());
+      }
+      else {
+        org.junit.Assert.assertFalse(component.canBeRemoved());
+      }
+    }
+  }
 }

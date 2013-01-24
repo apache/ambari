@@ -252,4 +252,31 @@ public class ServiceTest {
     assertEquals(0, mapReduce.getServiceComponents().size());
 
   }
+
+  @Test
+  public void testCanBeRemoved() throws Exception{
+    Service service = cluster.addService("HDFS");
+
+    for (State state : State.values()) {
+      service.setDesiredState(state);
+
+      if (state.isRemovableState()) {
+        org.junit.Assert.assertTrue(service.canBeRemoved());
+      }
+      else {
+        org.junit.Assert.assertFalse(service.canBeRemoved());
+      }
+    }
+
+    ServiceComponent component = service.addServiceComponent("NAMENODE");
+    // can't remove a STARTED component
+    component.setDesiredState(State.STARTED);
+
+    for (State state : State.values()) {
+      service.setDesiredState(state);
+      // should always be false if the sub component can not be removed
+      org.junit.Assert.assertFalse(service.canBeRemoved());
+    }
+  }
+
 }

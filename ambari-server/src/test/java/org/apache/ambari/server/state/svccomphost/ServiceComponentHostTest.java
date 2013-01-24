@@ -22,7 +22,9 @@ import static org.junit.Assert.fail;
 
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 import com.google.inject.Provider;
 import org.apache.ambari.server.AmbariException;
@@ -655,4 +657,20 @@ public class ServiceComponentHostTest {
     }
   }
 
+  @Test
+  public void testCanBeRemoved() throws Exception{
+    ServiceComponentHostImpl impl = (ServiceComponentHostImpl)
+        createNewServiceComponentHost("HDFS", "HDFS_CLIENT", "h1", true);
+
+    for (State state : State.values()) {
+      impl.setState(state);
+
+      if (state.isRemovableState()) {
+        Assert.assertTrue(impl.canBeRemoved());
+      }
+      else {
+        Assert.assertFalse(impl.canBeRemoved());
+      }
+    }
+  }
 }

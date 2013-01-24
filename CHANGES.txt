@@ -15,6 +15,9 @@ Trunk (unreleased changes):
  AMBARI-1163. During agent registration and heartbeat, send information about
  various hadoop artifacts back to Ambari. (Nate Cole via mahadev)
 
+ AMBARI-1194. API support for cascade delete of a specified cluster
+ (Tom Beerbower via mahadev)
+
  IMPROVEMENTS
 
  AMBARI-1236. Display a progress bar during deploy prep. (yusaku)

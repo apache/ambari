@@ -159,7 +159,7 @@ public class ClusterEntity {
 
   private Collection<StageEntity> stages;
 
-  @OneToMany(mappedBy = "cluster")
+  @OneToMany(mappedBy = "cluster", cascade = CascadeType.REMOVE)
   public Collection<StageEntity> getStages() {
     return stages;
   }

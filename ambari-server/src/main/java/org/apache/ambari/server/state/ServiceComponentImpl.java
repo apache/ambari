@@ -487,26 +487,22 @@ public class ServiceComponentImpl implements ServiceComponent {
 
   @Override
   public synchronized boolean canBeRemoved() {
-    State state = getDesiredState();
-    if (state != State.INIT
-        && state != State.UNINSTALLED) {
+    if (!getDesiredState().isRemovableState()) {
       return false;
     }
 
-    boolean safeToRemove = true;
     for (ServiceComponentHost sch : hostComponents.values()) {
       if (!sch.canBeRemoved()) {
-        safeToRemove = false;
         LOG.warn("Found non removable hostcomponent when trying to"
             + " delete service component"
             + ", clusterName=" + getClusterName()
             + ", serviceName=" + getServiceName()
             + ", componentName=" + getName()
             + ", hostname=" + sch.getHostName());
-        break;
+        return false;
       }
     }
-    return safeToRemove;
+    return true;
   }
 
   @Override

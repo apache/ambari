@@ -1212,16 +1212,13 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
   public synchronized boolean canBeRemoved() {
     try {
       readLock.lock();
-      State desiredState = getDesiredState();
-      State liveState = getState();
-      if ((desiredState == State.INIT || desiredState == State.UNINSTALLED)
-          && (liveState == State.INIT || liveState == State.UNINSTALLED)) {
-        return true;
-      }
+
+      return (getDesiredState().isRemovableState() &&
+              getState().isRemovableState());
+
     } finally {
       readLock.unlock();
     }
-    return false;
   }
 
   @Override

@@ -444,24 +444,20 @@ public class ServiceImpl implements Service {
 
   @Override
   public synchronized boolean canBeRemoved() {
-    State state = getDesiredState();
-    if (state != State.INIT
-        && state != State.UNINSTALLED) {
+    if (!getDesiredState().isRemovableState()) {
       return false;
     }
 
-    boolean safeToRemove = true;
     for (ServiceComponent sc : components.values()) {
       if (!sc.canBeRemoved()) {
-        safeToRemove = false;
         LOG.warn("Found non removable component when trying to delete service"
             + ", clusterName=" + cluster.getClusterName()
             + ", serviceName=" + getName()
             + ", componentName=" + sc.getName());
-        break;
+        return false;
       }
     }
-    return safeToRemove;
+    return true;
   }
 
   @Override
