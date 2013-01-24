@@ -222,6 +222,13 @@ public abstract class AbstractProviderModule implements ProviderModule, Resource
             PropertyHelper.getPropertyId("HostRoles", "cluster_name"),
             PropertyHelper.getPropertyId("HostRoles", "host_name"),
             PropertyHelper.getPropertyId("HostRoles", "component_name")));
+        
+        providers.add(new HttpProxyPropertyProvider(
+            new URLStreamProvider(1500),
+            PropertyHelper.getPropertyId("HostRoles", "cluster_name"),
+            PropertyHelper.getPropertyId("HostRoles", "host_name"),
+            PropertyHelper.getPropertyId("HostRoles", "component_name")));
+        
         break;
       default :
         break;

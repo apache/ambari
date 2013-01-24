@@ -18,20 +18,38 @@
 
 package org.apache.ambari.server.controller.internal;
 
-import org.apache.ambari.server.controller.utilities.StreamProvider;
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 import java.net.URLConnection;
 
+import org.apache.ambari.server.controller.utilities.StreamProvider;
+
 /**
  * URL based implementation of a stream provider.
  */
 public class URLStreamProvider implements StreamProvider {
+  
+  private int connTimeout = -1;
+  
+  public URLStreamProvider() {
+  }
+  
+  /**
+   * Provide the connection timeout for the underlying connection.
+   * 
+   * @param connectionTimeout time, in milliseconds, to attempt a connection
+   */
+  public URLStreamProvider(int connectionTimeout) {
+    connTimeout = connectionTimeout;
+  }
+  
   @Override
   public InputStream readFrom(String spec) throws IOException {
     URLConnection connection = new URL(spec).openConnection();
+    if (connTimeout > 0) {
+      connection.setConnectTimeout(connTimeout);
+    }
     connection.setDoOutput(true);
     return connection.getInputStream();
   }
