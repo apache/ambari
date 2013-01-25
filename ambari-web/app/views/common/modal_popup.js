@@ -34,11 +34,15 @@ App.ModalPopup = Ember.View.extend({
     '{{else}}{{#if encodeBody}}{{body}}{{else}}{{{body}}}{{/if}}{{/if}}',
     '</div>',
     '{{#if showFooter}}',
+    '{{#if footerClass}}{{view footerClass}}',
+    '{{else}}',
     '<div class="modal-footer">',
     '{{#if view.secondary}}<a class="btn" {{action onSecondary target="view"}}>{{view.secondary}}</a>{{/if}}',
     '{{#if view.primary}}<a class="btn btn-success" {{action onPrimary target="view"}}>{{view.primary}}</a>{{/if}}',
     '</div>',
     '{{/if}}',
+    '{{/if}}',
+
     '</div>'
   ].join('\n')),
 

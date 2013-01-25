@@ -12,6 +12,9 @@ Trunk (unreleased changes):
 
  NEW FEATURES
 
+ AMBARI-1180. Display host check status results given by the agent as part
+ of host registration. (yusaku)
+
  AMBARI-1252. Fetch Nagios alerts through Ambari Server and not directly
  from Nagios Server. (srimanth via yusaku)
 

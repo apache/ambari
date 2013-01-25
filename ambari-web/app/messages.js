@@ -122,6 +122,12 @@ Em.I18n.translations = {
   'installer.step3.hostInformation.popup.header':'Error in retrieving host Information',
   'installer.step3.hostInformation.popup.body' : 'All bootstrapped hosts registered but unable to retrieve cpu and memory related information',
   'installer.step3.hosts.noHosts':'No hosts to display',
+  'installer.step3.warnings.popup.header':'Host Checks',
+  'installer.step3.warnings.description':'Some warnings were encountered while performing checks against the above hosts.',
+  'installer.step3.warnings.linkText':'Click here to see the warnings.',
+  'installer.step3.warnings.noWarnings':'All host checks were successful.',
+  'installer.step3.warnings.updateChecks.success':'Host Checks successfully updated',
+  'installer.step3.warnings.updateChecks.failed':'Host Checks update failed',
 
   'installer.step4.header':'Choose Services',
   'installer.step4.body':'Choose which services you want to install on your cluster.',
