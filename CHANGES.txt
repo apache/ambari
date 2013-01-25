@@ -135,6 +135,9 @@ Trunk (unreleased changes):
  AMBARI-1205. Cannot persist service configuration when service is started
  (Siddharth Wagle via mahadev)
 
+ AMBARI-1262. Apache Ambari point to dev url, need fix in pom.xml. 
+ (mahadev)
+
  BUG FIXES
 
  AMBARI-1257. Separator missing in between Oozie and ZooKeeper. (yusaku)
