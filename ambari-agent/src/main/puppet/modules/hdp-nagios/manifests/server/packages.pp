@@ -28,9 +28,17 @@ class hdp-nagios::server::packages(
       ensure => 'uninstalled'
     }
   } elsif ($service_state in ['running','stopped','installed_and_configured']) {
-  
 
-  
+  hdp::package { 'perl':
+    ensure      => present,
+    java_needed => false
+  }
+
+  hdp::package { 'perl-Net-SNMP':
+    ensure      => present,
+    java_needed => false
+  }
+
   hdp::package { 'nagios-server':
     ensure      => present,
     java_needed => false

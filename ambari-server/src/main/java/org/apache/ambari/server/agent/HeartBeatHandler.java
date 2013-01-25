@@ -224,6 +224,12 @@ public class HeartBeatHandler {
                   || prevState.equals(State.START_FAILED)
                   || prevState.equals(State.STARTED)
                   || prevState.equals(State.STOP_FAILED)) {
+                if (prevState == State.START_FAILED
+                        && liveState == State.INSTALLED) {
+                  LOG.info("Ignoring INSTALLED state update for " +
+                          "START_FAILED component");
+                  continue;
+                }
                 scHost.setState(liveState);
                 if (!prevState.equals(liveState)) {
                   LOG.info("State of service component " + componentName

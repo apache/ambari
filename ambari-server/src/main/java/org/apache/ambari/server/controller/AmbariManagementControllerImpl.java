@@ -30,6 +30,7 @@ import org.apache.ambari.server.actionmanager.Stage;
 import org.apache.ambari.server.actionmanager.StageFactory;
 import org.apache.ambari.server.agent.ExecutionCommand;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
+import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.metadata.ActionMetadata;
 import org.apache.ambari.server.metadata.RoleCommandOrder;
 import org.apache.ambari.server.security.authorization.User;
@@ -108,6 +109,10 @@ public class AmbariManagementControllerImpl implements
   private Users users;
   @Inject
   private HostsMap hostsMap;
+  @Inject
+  private Configuration configs;
+
+
   
   final private String masterHostname;
 
@@ -126,9 +131,14 @@ public class AmbariManagementControllerImpl implements
     this.gson = injector.getInstance(Gson.class);
     LOG.info("Initializing the AmbariManagementControllerImpl");
     this.masterHostname =  InetAddress.getLocalHost().getCanonicalHostName();
-    this.jdkResourceUrl = "http://" + masterHostname + ":"
-        + AmbariServer.getResourcesPort()
-        + JDK_RESOURCE_LOCATION;
+    
+    if (configs != null) {
+      this.jdkResourceUrl = "http://" + masterHostname + ":"
+          + configs.getClientApiPort()
+          + JDK_RESOURCE_LOCATION; 
+    } else {
+    		this.jdkResourceUrl = null;
+    }
   }
 
   @Override

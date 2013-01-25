@@ -20,7 +20,6 @@ limitations under the License.
 import os
 
 from unittest import TestCase
-from numpy.testing import assert_
 from ambari_agent import manifestGenerator
 import ambari_agent.AmbariConfig
 import tempfile

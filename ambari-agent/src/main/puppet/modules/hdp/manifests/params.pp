@@ -501,6 +501,16 @@ class hdp::params()
       64 => {'ALL' => 'hdp_mon_dashboard'}
     },
 
+    perl =>
+    {
+      64 => {'ALL' => 'perl'}
+    },
+
+    perl-Net-SNMP =>
+    {
+      64 => {'ALL' => 'perl-Net-SNMP'}
+    },
+
     nagios-server => {
       64 => {'ALL' => 'nagios-3.2.3'}
     },

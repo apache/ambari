@@ -194,6 +194,9 @@ Trunk (unreleased changes):
  AMBARI-1250. Upgrade the posgres connector to 9.1.
  (mahadev)
 
+ AMBARI-1259. Fix the host roles live status not go back to INSTALLED if it
+ was in START_FAILED state. (mahadev)
+
 AMBARI-1.2.0 branch:
 
  INCOMPATIBLE CHANGES

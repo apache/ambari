@@ -74,7 +74,6 @@ public class AmbariServer {
   public static final int AGENT_ONE_WAY_AUTH = 8440;
   public static final int AGENT_TWO_WAY_AUTH = 8441;
   public static final int CLIENT_SSL_API_PORT = 8443;
-  public static final int CLIENT_API_PORT = 8080;
 
   private Server server = null;
   private Server serverForAgent = null;
@@ -98,9 +97,6 @@ public class AmbariServer {
     return configs.getServerOsType();
   }
 
-  public static int getResourcesPort() {
-    return CLIENT_API_PORT;
-  }
 
   private static AmbariManagementController clusterController = null;
 
@@ -278,7 +274,7 @@ public class AmbariServer {
       } 
       else  {
         apiConnector = new SelectChannelConnector();
-        apiConnector.setPort(CLIENT_API_PORT);
+        apiConnector.setPort(configs.getClientApiPort());
       }
 
       server.addConnector(apiConnector);

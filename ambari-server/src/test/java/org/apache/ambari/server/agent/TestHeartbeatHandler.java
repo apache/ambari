@@ -17,66 +17,40 @@
  */
 package org.apache.ambari.server.agent;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
-import static org.mockito.Matchers.anyString;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-
-import javax.xml.bind.JAXBException;
-
-import junit.framework.Assert;
-
 import com.google.inject.Guice;
 import com.google.inject.Inject;
 import com.google.inject.Injector;
 import com.google.inject.persist.PersistService;
+import junit.framework.Assert;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.Role;
 import org.apache.ambari.server.RoleCommand;
-import org.apache.ambari.server.actionmanager.ActionDBAccessor;
-import org.apache.ambari.server.actionmanager.ActionDBAccessorImpl;
-import org.apache.ambari.server.actionmanager.ActionDBInMemoryImpl;
-import org.apache.ambari.server.actionmanager.ActionManager;
-import org.apache.ambari.server.actionmanager.HostRoleStatus;
-import org.apache.ambari.server.actionmanager.Stage;
+import org.apache.ambari.server.actionmanager.*;
 import org.apache.ambari.server.agent.HostStatus.Status;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.HostsMap;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
-import org.apache.ambari.server.state.Cluster;
-import org.apache.ambari.server.state.Clusters;
-import org.apache.ambari.server.state.Host;
-import org.apache.ambari.server.state.HostState;
-import org.apache.ambari.server.state.Service;
-import org.apache.ambari.server.state.ServiceComponentHost;
-import org.apache.ambari.server.state.StackId;
-import org.apache.ambari.server.state.State;
+import org.apache.ambari.server.state.*;
 import org.apache.ambari.server.state.fsm.InvalidStateTransitionException;
 import org.apache.ambari.server.state.svccomphost.ServiceComponentHostStartEvent;
 import org.apache.ambari.server.utils.StageUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.codehaus.jackson.JsonGenerationException;
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import javax.xml.bind.JAXBException;
+import java.io.IOException;
+import java.util.*;
+
+import static org.junit.Assert.*;
+import static org.mockito.Matchers.anyString;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 public class TestHeartbeatHandler {
 
@@ -226,6 +200,110 @@ public class TestHeartbeatHandler {
     State componentState2 = serviceComponentHost2.getState();
     assertEquals(State.STARTED, componentState1);
     assertEquals(State.INSTALLED, componentState2);
+  }
+
+  @Test
+  public void testStartFailedStatusHeartbeat() throws Exception {
+    ActionManager am = new ActionManager(0, 0, null, null,
+            new ActionDBInMemoryImpl(), new HostsMap((String) null));
+    final String hostname = "host1";
+    String clusterName = "cluster1";
+    String serviceName = "HDFS";
+    String componentName1 = "DATANODE";
+    String componentName2 = "NAMENODE";
+    String componentName3 = "SECONDARY_NAMENODE";
+    //injector.injectMembers(this);
+
+    clusters.addHost(hostname);
+    clusters.getHost(hostname).setOsType("centos5");
+    clusters.getHost(hostname).persist();
+//    Host hostObject = clusters.getHost(hostname);
+//    hostObject.setIPv4("ipv4");
+//    hostObject.setIPv6("ipv6");
+//    hostObject.setOsType("centos5");
+//    hostObject.persist();
+    clusters.addCluster(clusterName);
+
+    Cluster cluster = clusters.getCluster(clusterName);
+    cluster.setDesiredStackVersion(new StackId("HDP-0.1"));
+
+    @SuppressWarnings("serial")
+    Set<String> hostNames = new HashSet<String>(){{
+      add(hostname);
+    }};
+    clusters.mapHostsToCluster(hostNames, clusterName);
+    Service hdfs = cluster.addService(serviceName);
+    hdfs.persist();
+    hdfs.addServiceComponent(Role.DATANODE.name()).persist();
+    hdfs.getServiceComponent(Role.DATANODE.name()).addServiceComponentHost(hostname).persist();
+    hdfs.addServiceComponent(Role.NAMENODE.name()).persist();
+    hdfs.getServiceComponent(Role.NAMENODE.name()).addServiceComponentHost(hostname).persist();
+    hdfs.addServiceComponent(Role.SECONDARY_NAMENODE.name()).persist();
+    hdfs.getServiceComponent(Role.SECONDARY_NAMENODE.name()).addServiceComponentHost(hostname).persist();
+
+    ActionQueue aq = new ActionQueue();
+    HeartBeatHandler handler = new HeartBeatHandler(clusters, aq, am, injector);
+
+    Register reg = new Register();
+    HostInfo hi = new HostInfo();
+    hi.setHostName("host1");
+    hi.setOS("CentOS");
+    hi.setOSRelease("5.8");
+    reg.setHostname(hostname);
+    reg.setResponseId(0);
+    reg.setHardwareProfile(hi);
+    handler.handleRegistration(reg);
+
+    ServiceComponentHost serviceComponentHost1 = clusters.getCluster(clusterName).getService(serviceName).
+            getServiceComponent(componentName1).getServiceComponentHost(hostname);
+    ServiceComponentHost serviceComponentHost2 = clusters.getCluster(clusterName).getService(serviceName).
+            getServiceComponent(componentName2).getServiceComponentHost(hostname);
+    ServiceComponentHost serviceComponentHost3 = clusters.getCluster(clusterName).getService(serviceName).
+            getServiceComponent(componentName3).getServiceComponentHost(hostname);
+    serviceComponentHost1.setState(State.INSTALLED);
+    serviceComponentHost2.setState(State.START_FAILED);
+    serviceComponentHost3.setState(State.STARTED);
+
+    HeartBeat hb = new HeartBeat();
+    hb.setTimestamp(System.currentTimeMillis());
+    hb.setResponseId(0);
+    hb.setHostname(hostname);
+    hb.setNodeStatus(new HostStatus(Status.HEALTHY, "I am ok"));
+    hb.setReports(new ArrayList<CommandReport>());
+    ArrayList<ComponentStatus> componentStatuses = new ArrayList<ComponentStatus>();
+    ComponentStatus componentStatus1 = new ComponentStatus();
+    componentStatus1.setClusterName(clusterName);
+    componentStatus1.setServiceName(serviceName);
+    componentStatus1.setMessage("I am ok");
+    componentStatus1.setStatus(State.START_FAILED.name());
+    componentStatus1.setComponentName(componentName1);
+    componentStatuses.add(componentStatus1);
+
+    ComponentStatus componentStatus2 = new ComponentStatus();
+    componentStatus2.setClusterName(clusterName);
+    componentStatus2.setServiceName(serviceName);
+    componentStatus2.setMessage("I am ok");
+    componentStatus2.setStatus(State.INSTALLED.name());
+    componentStatus2.setComponentName(componentName2);
+    componentStatuses.add(componentStatus2);
+
+    ComponentStatus componentStatus3 = new ComponentStatus();
+    componentStatus3.setClusterName(clusterName);
+    componentStatus3.setServiceName(serviceName);
+    componentStatus3.setMessage("I am ok");
+    componentStatus3.setStatus(State.INSTALLED.name());
+    componentStatus3.setComponentName(componentName3);
+    componentStatuses.add(componentStatus3);
+
+    hb.setComponentStatus(componentStatuses);
+
+    handler.handleHeartBeat(hb);
+    State componentState1 = serviceComponentHost1.getState();
+    State componentState2 = serviceComponentHost2.getState();
+    State componentState3 = serviceComponentHost3.getState();
+    assertEquals(State.START_FAILED, componentState1);
+    assertEquals(State.START_FAILED, componentState2);
+    assertEquals(State.INSTALLED, componentState3);
   }
 
   @Test
