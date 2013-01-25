@@ -25,6 +25,8 @@ Trunk (unreleased changes):
 
  IMPROVEMENTS
 
+ AMBARI-1253. Use ember-precompiler-brunch npm plugin. (yusaku)
+
  AMBARI-1236. Display a progress bar during deploy prep. (yusaku)
 
  AMBARI-1249. Update mock data to make App.testMode work. (yusaku)
