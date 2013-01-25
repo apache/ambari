@@ -26,6 +26,9 @@ Trunk (unreleased changes):
  AMBARI-1194. API support for cascade delete of a specified cluster
  (Tom Beerbower via mahadev)
 
+ AMBARI-1255. Make the agent hostname determination scriptable. 
+ (mahadev)
+
  IMPROVEMENTS
 
  AMBARI-1254. Modify App Browser to use server-side paging/sorting/filtering.

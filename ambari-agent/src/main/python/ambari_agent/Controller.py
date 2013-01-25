@@ -22,7 +22,7 @@ import logging
 import logging.handlers
 import signal
 import json
-import socket
+import hostname
 import sys, traceback
 import time
 import threading
@@ -53,7 +53,7 @@ class Controller(threading.Thread):
     self.safeMode = True
     self.credential = None
     self.config = config
-    self.hostname = socket.gethostname()
+    self.hostname = hostname.hostname()
     server_secured_url = 'https://' + config.get('server', 'hostname') + ':' + config.get('server', 'secured_url_port')
     self.registerUrl = server_secured_url + '/agent/v1/register/' + self.hostname
     self.heartbeatUrl = server_secured_url + '/agent/v1/heartbeat/' + self.hostname

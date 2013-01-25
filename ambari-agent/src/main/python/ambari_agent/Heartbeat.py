@@ -25,7 +25,7 @@ from ActionQueue import ActionQueue
 from ServerStatus import ServerStatus
 import NetUtil
 import AmbariConfig
-import socket
+import hostname
 import time
 import traceback
 from pprint import pprint, pformat
@@ -51,7 +51,7 @@ class Heartbeat:
     
     heartbeat = { 'responseId'        : int(id),
                   'timestamp'         : timestamp,
-                  'hostname'          : socket.getfqdn(),
+                  'hostname'          : hostname.hostname(),
                   'nodeStatus'        : nodeStatus
                 }
     if (int(id) >= 0) and state_interval > 0 and (int(id) % state_interval) == 0:

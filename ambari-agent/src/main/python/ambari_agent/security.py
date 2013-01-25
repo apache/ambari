@@ -20,6 +20,7 @@ import httplib
 import urllib2
 from urllib2 import Request
 import socket
+import hostname
 import ssl
 import os
 import logging
@@ -52,9 +53,9 @@ class VerifiedHTTPSConnection(httplib.HTTPSConnection):
       self.sock = sock
       self._tunnel()
     agent_key = AmbariConfig.config.get('security', 'keysdir') + os.sep + \
-     socket.gethostname() + ".key"
+     hostname.hostname() + ".key"
     agent_crt = AmbariConfig.config.get('security', 'keysdir') + os.sep \
-    + socket.gethostname() + ".crt" 
+    + hostname.hostname() + ".crt" 
     server_crt = AmbariConfig.config.get('security', 'keysdir') + os.sep \
     + "ca.crt"
     
@@ -112,13 +113,13 @@ class CertificateManager():
     
   def getAgentKeyName(self):
     keysdir = self.config.get('security', 'keysdir')
-    return keysdir + os.sep + socket.gethostname() + ".key"
+    return keysdir + os.sep + hostname.hostname() + ".key"
   def getAgentCrtName(self):
     keysdir = self.config.get('security', 'keysdir')
-    return keysdir + os.sep + socket.gethostname() + ".crt"
+    return keysdir + os.sep + hostname.hostname() + ".crt"
   def getAgentCrtReqName(self):
     keysdir = self.config.get('security', 'keysdir')
-    return keysdir + os.sep + socket.gethostname() + ".csr"
+    return keysdir + os.sep + hostname.hostname() + ".csr"
   def getSrvrCrtName(self):
     keysdir = self.config.get('security', 'keysdir')
     return keysdir + os.sep + "ca.crt"
@@ -161,7 +162,7 @@ class CertificateManager():
     srvr_crt_f.write(response)
       
   def reqSignCrt(self):
-    sign_crt_req_url = self.server_url + '/certs/' + socket.gethostname()
+    sign_crt_req_url = self.server_url + '/certs/' + hostname.hostname()
     agent_crt_req_f = open(self.getAgentCrtReqName())
     agent_crt_req_content = agent_crt_req_f.read()
     passphrase_env_var = self.config.get('security', 'passphrase_env_var_name')
@@ -184,7 +185,7 @@ class CertificateManager():
       logger.error("Certificate signing failed")
 
   def genAgentCrtReq(self):
-    generate_script = GEN_AGENT_KEY % {'hostname': socket.gethostname(),
+    generate_script = GEN_AGENT_KEY % {'hostname': hostname.hostname(),
                                      'keysdir' : self.config.get('security', 'keysdir')}
     logger.info(generate_script)
     p = Popen([generate_script], shell=True, stdout=PIPE)

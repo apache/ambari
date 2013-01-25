@@ -343,16 +343,6 @@ public class HostImpl implements Host {
   public void importHostInfo(HostInfo hostInfo) {
     try {
       writeLock.lock();
-      String fqdn = hostInfo.getFQDN();
-      if (fqdn != null
-          && !fqdn.isEmpty()
-          && !fqdn.equals(getHostName())) {
-        if (! isPersisted()) {
-          setHostName(hostInfo.getHostName());
-        } else {
-          LOG.info("Could not modify hostname of the host that is already persisted to DB");
-        }
-      }
 
       if (hostInfo.getIPAddress() != null
           && !hostInfo.getIPAddress().isEmpty()) {
