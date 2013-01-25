@@ -12,7 +12,11 @@ Trunk (unreleased changes):
 
  NEW FEATURES
 
+ AMBARI-1252. Fetch Nagios alerts through Ambari Server and not directly
+ from Nagios Server. (srimanth via yusaku)
+
  AMBARI-1237. Expose Nagios alerts via Rest API. (Nate Cole via jspeidel)
+
  AMBARI-1163. During agent registration and heartbeat, send information about
  various hadoop artifacts back to Ambari. (Nate Cole via mahadev)
 

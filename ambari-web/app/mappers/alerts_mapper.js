@@ -41,26 +41,28 @@ App.alertsMapper = App.QuickDataMapper.create({
     if (!this.get('model')) {
       return;
     }
-    if (json.alerts) {
+    if (json && json.items && json.items.length>0 && json.items[0].HostRoles && json.items[0].HostRoles.nagios_alerts) {
+      var alertsString = json.items[0].HostRoles.nagios_alerts;
+      var alerts = jQuery.parseJSON(alertsString).alerts;
       if (App.Alert.find().content.length > 0) {
-        this.update(json);
+        this.update(alerts);
       } else {
         var result = [];
-        json.alerts.forEach(function (item) {
+        alerts.forEach(function (item) {
           result.push(this.parseIt(item, this.config));
         }, this);
         App.store.loadMany(this.get('model'), result);
       }
     }
   },
-  update: function(json){
+  update: function(alerts){
     var alertsList = App.Alert.find();
     var titleToAlertMap = {};
     alertsList.forEach(function(alert){
       titleToAlertMap[alert.get('serviceType') + alert.get('title') + alert.get('message')] = alert;
     });
     var newRecords = [];
-    json.alerts.forEach(function(item){
+    alerts.forEach(function(item){
       var existAlert = titleToAlertMap[item.service_type + item.service_description + item.plugin_output];
       if (existAlert == null) {
         newRecords.push(this.parseIt(item, this.config));

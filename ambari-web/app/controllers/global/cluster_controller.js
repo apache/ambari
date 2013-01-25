@@ -210,10 +210,9 @@ App.ClusterController = Em.Controller.extend({
       if (lastSlash > -1) {
         nagiosUrl = nagiosUrl.substring(0, lastSlash);
       }
-      var dataUrl;
+      var dataUrl = this.getUrl('/data/alerts/alerts.json', '/host_components?HostRoles/component_name=NAGIOS_SERVER&fields=HostRoles/nagios_alerts');
       var ajaxOptions = {
-        dataType:"jsonp",
-        jsonp:"jsonp",
+        dataType:"json",
         context:this,
         complete:function (jqXHR, textStatus) {
           this.updateLoadStatus('alerts');
@@ -224,12 +223,6 @@ App.ClusterController = Em.Controller.extend({
           console.log('Nagios $.ajax() response:', error);
         }
       };
-      if (App.testMode) {
-        dataUrl = "/data/alerts/alerts.jsonp";
-        ajaxOptions.jsonpCallback = "jQuery172040994187095202506_1352498338217";
-      } else {
-        dataUrl = nagiosUrl + "/hdp/nagios/nagios_alerts.php?q1=alerts&alert_type=all";
-      }
       App.HttpClient.get(dataUrl, App.alertsMapper, ajaxOptions);
     } else {
       this.updateLoadStatus('alerts');
