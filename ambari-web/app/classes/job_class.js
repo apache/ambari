@@ -31,11 +31,11 @@ App.Job2 = Ember.Object.extend({
   status: "", //string
   input: 0, //number
   output: 0, //number
-  elapsedTime: 0, //number
+  elapsed_time: 0, //number
 
   duration: function() {
-    return date.timingFormat(parseInt(this.get('elapsedTime')));
-  }.property('elapsedTime'),
+    return date.timingFormat(parseInt(this.get('elapsed_time')));
+  }.property('elapsed_time'),
 
   inputFormatted: function () {
     return misc.formatBandwidth(this.get('input'));

@@ -21,13 +21,9 @@
   td .red {
     color: red;
   }
-  .table {
-    thead {
-      th{
-        padding-left: 0 !important;
-        vertical-align: top;
-      }
-    }
+  .table thead th{
+    vertical-align:top;
+    padding-bottom: 0px;
   }
   .avg-table {
     table-layout: fixed;
@@ -42,14 +38,61 @@
     }
   }
 
-  #dataTable {
+  .clear_filter{
+    width:578px;
+  }
+
+  .runsList {
     table-layout: fixed;
+    border: 1px solid silver;
+    th {
+      border-top:none;
+    }
     td {
-      padding-right: 4px;
       word-wrap: break-word;
+    }
+
+    .input-small-app{
+      width:148px
+    }
+
+    .col0,
+    td:first-child + td,
+    th:first-child + th{
+      width: 176px;
+    }
+    .col1,
+    td:first-child + td + td,
+    th:first-child + th + th{
+      width: 118px;
+    }
+    .col2,
+    td:first-child + td + td + td,
+    th:first-child + th + th + th{
+      width: 108px;
+    }
+    .col3,
+    td:first-child + td + td + td + td,
+    th:first-child + th + th + th + th{
+      width: 93px;
+    }
+    .col4,.col5,.col6,.col7,
+    td:first-child + td + td + td + td + td,
+    th:first-child + th + th + th + th + th,
+    td:first-child + td + td + td + td + td + td,
+    th:first-child + th + th + th + th + th + th,
+    td:first-child + td + td + td + td + td + td + td,
+    th:first-child + th + th + th + th + th + th + th,
+    td:first-child + td + td + td + td + td + td + td + td,
+    th:first-child + th + th + th + th + th + th + th + th
+    {
+      width: 88px;
     }
   }
 
+  .dropdown-menu label.checkbox {
+    margin-left: 10px;
+  }
   .dropdown-menu label.checkbox {
     margin-left: 10px;
   }
@@ -87,16 +130,10 @@
     font-size:12px;
   }
   .search-bar {
-    float:right;
+
   }
   .clear {
     clear:both;
-  }
-  > div > .dataTable {
-    border: 1px solid silver;
-    th {
-      border-top:none;
-    }
   }
   .content {
     padding: 0;
@@ -107,15 +144,10 @@
   .app-table-row{
     cursor: pointer;
   }
-  #filter_info {
-    float:left;
-    padding-top:10px;
-
-    > .span4 > a.selected{
+  .filter_info > .span4 > a.selected{
       cursor: default;
       text-decoration: none;
       color: #000;
-    }
   }
   .page-bar {
     border: 1px solid silver;
@@ -124,7 +156,7 @@
       display: inline-block;
       margin:0 10px;
     }
-    .dataTables_length {
+    .items-on-page {
       label {
         display:inline;
       }
@@ -134,7 +166,7 @@
         width:70px;
       }
     }
-    .dataTables_paginate {
+    .paging_two_button {
       a {
         padding:0 5px;
       }

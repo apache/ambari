@@ -79,14 +79,22 @@ App.MainAppsItemBarView = Em.View.extend({
       "&width=" + this.get('width');
     var mapper = App.jobTimeLineMapper;
     mapper.set('model', this);
-    App.HttpClient.get(url, mapper);
+    App.HttpClient.get(url, mapper,{
+      complete:function(jqXHR, textStatus) {
+        console.log("updateTimeLine");
+      }
+    });
   }.observes('getChartData'),
 
   updateTasksView:function () {
     var url = App.testMode ? '/data/apps/jobs/taskview.json' : App.apiPrefix + "/jobhistory/tasklocality?jobId=" + this.get('activeJob').get('id');
     var mapper = App.jobTasksMapper;
     mapper.set('model', this);
-    App.HttpClient.get(url, mapper);
+    App.HttpClient.get(url, mapper,{
+      complete:function(jqXHR, textStatus) {
+        console.log("updateTasksView");
+      }
+    });
   }.observes('getChartData'),
 
   drawJobTimeline:function () {

@@ -24,7 +24,8 @@ App.MainAppsItemController = Em.Controller.extend({
    * Was set outside in App.MainAppsView.
    * It's instance of App.Run model
    */
-  content: null,
+  content: [],
+  jobsLoaded:false,
 
   lastJobId : null,
   gettingJobs:function(){
@@ -41,7 +42,9 @@ App.MainAppsItemController = Em.Controller.extend({
     var url = App.testMode ? '/data/apps/jobs.json' :
       App.apiPrefix + "/jobhistory/job?workflowId=" + currentId;
 
-    App.HttpClient.get(url, App.jobsMapper,{
+    var mapper = App.jobsMapper;
+    mapper.set('controller', this);
+    App.HttpClient.get(url, mapper,{
       complete:function(jqXHR, textStatus) {
         self.set('content.loadAllJobs', true);
       }

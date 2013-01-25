@@ -25,6 +25,9 @@ Trunk (unreleased changes):
 
  IMPROVEMENTS
 
+ AMBARI-1254. Modify App Browser to use server-side paging/sorting/filtering.
+ (yusaku)
+
  AMBARI-1258. Minor refactoring of User Management code. (yusaku)
 
  AMBARI-1253. Use ember-precompiler-brunch npm plugin. (yusaku)

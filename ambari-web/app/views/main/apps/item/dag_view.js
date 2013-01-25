@@ -22,7 +22,12 @@ App.MainAppsItemDagView = Em.View.extend({
   templateName: require('templates/main/apps/item/dag'),
   elementId : 'jobs',
   content:function(){
-    return this.get('controller.content.jobs');
+    //if(this.get("controller.jobsLoaded") == true)
+   // {
+      return this.get('controller.content.jobs');
+  //  }
+      return this.get('controller.content.jobs');
+  //  }
   }.property('controller.content.jobs'),
 
   classNames:['table','dataTable'],
@@ -35,11 +40,11 @@ App.MainAppsItemDagView = Em.View.extend({
     c.forEach(function(item, index){
       result[index] = new Object({
         'name' : item.get('id'),
-        'entityName' : item.get('workflowEntityName'),
+        'entityName' : item.get('workflow_entity_name'),
         'status' : item.get('status') == 'SUCCESS',
         'info' : [],
-        'input' : item.get('inputBytes'),
-        'output' : item.get('outputBytes')
+        'input' : item.get('input'),
+        'output' : item.get('output')
       })
     });
     return result;

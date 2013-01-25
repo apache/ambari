@@ -83,8 +83,8 @@ module.exports = Em.Route.extend({
   apps:Em.Route.extend({
     route:'/apps',
     connectOutlets:function (router) {
-
-      router.get('clusterController').loadRuns();
+      //router.get('clusterController').loadRuns();
+      router.get('mainAppsController').loadRuns();
       router.get('mainController').connectOutlet('mainApps');
     }
   }),

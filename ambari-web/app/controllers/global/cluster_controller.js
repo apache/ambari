@@ -47,9 +47,6 @@ App.ClusterController = Em.Controller.extend({
     'users':false
   }),
 
-  postLoadList:{
-    'runs':false
-  },
   /**
    * load cluster name
    */
@@ -177,22 +174,6 @@ App.ClusterController = Em.Controller.extend({
       return statusDiff;
     });
     this.set('alerts', sortedArray);
-  },
-  loadRuns:function () {
-    if (this.get('postLoadList.runs')) {
-      return;
-    }
-
-    var self = this;
-    var runsUrl = App.testMode ? "/data/apps/runs.json" : App.apiPrefix + "/jobhistory/workflow?orderBy=startTime&sortDir=DESC&limit=" + App.maxRunsForAppBrowser;
-
-    App.HttpClient.get(runsUrl, App.runsMapper, {
-      complete:function (jqXHR, textStatus) {
-        self.set('postLoadList.runs', true);
-      }
-    }, function () {
-      self.set('postLoadList.runs', true);
-    });
   },
 
   /**

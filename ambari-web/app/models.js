@@ -43,3 +43,5 @@ require('models/background_operation');
 require('models/host_component');
 
 require('classes/run_class');
+require('classes/job_class');
+require('classes/job_class');

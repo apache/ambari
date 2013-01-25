@@ -24,9 +24,17 @@ App.runsMapper = App.QuickDataMapper.create({
     if(!this.get('model')) {
       return;
     }
-    if(json && json.workflows) {
+    if(json && json.aaData) {
       var result = [];
-      json.workflows.forEach(function(item) {
+
+      var pagination_info={
+        iTotalDisplayRecords :json.iTotalDisplayRecords ,
+        iTotalRecords:json.iTotalRecords,
+        startIndex:parseInt(json.startIndex)+1,
+        endIndex:parseInt(json.endIndex)+1
+      }
+
+      json.aaData.forEach(function(item) {
         var o = this.parseIt(item, this.config);
 
         var r = '{dag: {';
@@ -47,21 +55,31 @@ App.runsMapper = App.QuickDataMapper.create({
         });
         r = r.substr(0, r.length - 1);
         r += '}}';
-        o.workflow_context = r;
+        o.workflowContext = r;
 
         result.push(o);
       }, this);
-      App.store.loadMany(this.get('model'), result);
+
+      var r = [];
+      result.forEach(function(item){
+        r.push(App.Run2.create(item));
+      });
+
+      App.router.get('mainAppsController').set('content', r);
+      App.router.get('mainAppsController').set('paginationObject', pagination_info);
+      App.router.get('mainAppsController').set('serverData', json.summary);
     }
+
+
   },
   config : {
     id: 'workflowId',
-    app_name: 'workflowName',
-    num_jobs_total: 'numJobsTotal',
-    num_jobs_completed: 'numJobsCompleted',
-    user_name:'userName',
-    start_time: 'startTime',
-    elapsed_time: 'elapsedTime',
+    appName: 'workflowName',
+    numJobsTotal: 'numJobsTotal',
+    numJobsCompleted: 'numJobsCompleted',
+    userName:'userName',
+    startTime: 'startTime',
+    elapsedTime: 'elapsedTime',
     input: 'inputBytes',
     output: 'outputBytes'
   }

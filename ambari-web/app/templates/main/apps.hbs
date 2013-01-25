@@ -17,84 +17,92 @@
 }}
 
 <div id="apps">
-  <table class="table table-bordered table-stripe avg-table">
+  <table class="table table-bordered avg-table">
     <tbody>
     <tr>
-      <td rowspan="3" class="avg-star"><a href="#" {{action "avgStarClick" target="view"}} class="icon-star a"></a></td>
+      <td></td>
       <td>Jobs</td>
       <td>Input</td>
       <td>Output</td>
       <td>Duration</td>
       <td>Oldest</td>
       <td>Most Recent</td>
-      <td></td>
     </tr>
     <tr class="avg-info">
-      <td>{{view.avgData.jobs.avg}}</td>
-      <td>{{view.avgData.input.avg}}</td>
-      <td>{{view.avgData.output.avg}}</td>
-      <td>{{view.avgData.duration.avg}}</td>
-      <td>{{view.avgData.times.oldest}}</td>
-      <td>{{view.avgData.times.youngest}}</td>
       <td>Avg</td>
+      <td>{{summary.jobs.avg}}</td>
+      <td>{{summary.input.avg}}</td>
+      <td>{{summary.output.avg}}</td>
+      <td>{{summary.duration.avg}}</td>
+      <td>{{summary.times.oldest}}</td>
+      <td>{{summary.times.youngest}}</td>
+
     </tr>
     <tr class="compare-info">
-      <td>{{view.avgData.jobs.min}} / {{view.avgData.jobs.max}}</td>
-      <td>{{view.avgData.input.min}} / {{view.avgData.input.max}}</td>
-      <td>{{view.avgData.output.min}} / {{view.avgData.output.max}}</td>
-      <td>{{view.avgData.duration.min}} / {{view.avgData.duration.max}}</td>
-      <td></td>
-      <td></td>
       <td>Min / Max</td>
+      <td>{{summary.jobs.min}} / {{summary.jobs.max}}</td>
+      <td>{{summary.input.min}} / {{summary.input.max}}</td>
+      <td>{{summary.output.min}} / {{summary.output.max}}</td>
+      <td>{{summary.duration.min}} / {{summary.duration.max}}</td>
+      <td></td>
+      <td></td>
     </tr>
     </tbody>
   </table>
-  <div id="filter_info" class="row">
+
+  <div class="filter_info">
+
     <div class="span4" id="filter_buttons">Show:
-      <a href="javascript:void(0)" class="all selected" {{action "clickViewType" target="view"}} data-view-type="all">All
-        ({{view.content.length}})</a> &#124;
-      <a href="javascript:void(0)" class="filtered" {{action "clickViewType" target="view"}} data-view-type="filtered">Filtered
-        ({{view.filtered}})</a> &#124;
-      <a href="javascript:void(0)" class="stared" {{action "clickViewType" target="view"}} data-view-type="starred">Starred ({{view.stared}})</a>
+      <a class="all selected" {{action "clickViewType" target="view"}} data-view-type="all">All
+        ({{controller.paginationObject.iTotalRecords}})</a> &#124;
+      <a class="filtered" {{action "clickViewType" target="view"}} data-view-type="filtered">Filtered
+        ({{controller.filterObject.filteredDisplayRecords}})</a>
     </div>
-    <div class="span2"><a href="#" {{action "clearFilters" target="view"}}>Clear filters</a>&nbsp;&#124;&nbsp;<a
-      href="#" {{action "clearStars" target="view"}}>Clear stars</a></div>
+    <div class="span2 clear_filter">
+        <a {{action "clearFilters" target="view"}}>Clear filters</a>
   </div>
-  <div>
-  </div>
-  <table class="table table-striped" id="dataTable">
+
+   <div class="search-bar">
+        {{view view.appSearchThrough valueBinding="controller.filterObject.sSearch"}}
+      </div>
+
+
+  <table class="table table-striped runsList" id="dataTable">
     <thead>
+    {{#view view.wrapSorting}}
+      {{#each controller.columnsName}}
+        {{#view view.parentView.sortingColumns contentBinding="this"}}
+          {{name}}
+        {{/view}}
+      {{/each}}
+    {{/view}}
     <tr>
-      <th></th>
-      <th></th>
-      <th>App ID</th>
-      <th>Name</th>
-      <th>Type</th>
-      <th>User</th>
-      <th>Jobs</th>
-      <th>Input</th>
-      <th>Output</th>
-      <th>Duration</th>
-      <th>Run Date</th>
-    </tr>
-    <tr>
-      <th class="notActive"><div class="view-wrapper">{{view view.starFilterView viewName="starFilterViewInstance"}}</div></th>
-      <th></th>
-      <th class="notActive"><div class="view-wrapper">{{view view.appidFilterView viewName="appidFilterViewInstance"}}</div> <a href="#" {{action "clearFilterButtonClick" target="view"}} id="view_appidFilterViewInstance" class="ui-icon ui-icon-circle-close ui-appid"></a></th>
-      <th class="notActive"><div class="view-wrapper">{{view view.nameFilterView viewName="nameFilterViewInstance"}}</div> <a href="#" {{action "clearFilterButtonClick" target="view"}} id="view_nameFilterViewInstance" class="ui-icon ui-icon-circle-close ui-name"></a></th>
-      <th class="notActive"><div class="view-wrapper">{{view view.typeSelectView viewName="typeSelectViewInstance"}}</div> <a href="#" {{action "clearFilterButtonClick" target="view"}} id="view_typeSelectViewInstance" class="ui-icon ui-icon-circle-close ui-type"></a></th>
+      <th class="notActive"><div class="view-wrapper">{{view view.appidFilterView valueBinding="controller.filterObject.sSearch_0" viewName="appidFilterViewInstance"}}</div> <a href="#" {{action "clearFilterButtonClick" target="view"}} id="view_appidFilterViewInstance" class="ui-icon ui-icon-circle-close ui-appid"></a></th>
+      <th class="notActive"><div class="view-wrapper">{{view view.nameFilterView valueBinding="controller.filterObject.sSearch_1" viewName="nameFilterViewInstance"}}</div> <a href="#" {{action "clearFilterButtonClick" target="view"}} id="view_nameFilterViewInstance" class="ui-icon ui-icon-circle-close ui-name"></a></th>
+      <th class="notActive"><div class="view-wrapper">{{view view.typeSelectView selectionBinding="controller.filterObject.runType" viewName="typeSelectViewInstance"}}</div> <a href="#" {{action "clearFilterButtonClick" target="view"}} id="view_typeSelectViewInstance" class="ui-icon ui-icon-circle-close ui-type"></a></th>
       <th class="notActive"><div class="view-wrapper">{{view view.userFilterView viewName="userFilterViewInstance"}}</div> <a href="#" {{action "clearFilterButtonClick" target="view"}} id="view_userFilterViewInstance" class="ui-icon ui-icon-circle-close ui-user"></a><input id="user_filter" type="hidden"></th>
-      <th class="notActive"><div class="view-wrapper">{{view view.jobsFilterView viewName="jobsFilterViewInstance"}}</div> <a href="#" {{action "clearFilterButtonClick" target="view"}} id="view_jobsFilterViewInstance" class="ui-icon ui-icon-circle-close ui-jobs"></a></th>
-      <th class="notActive"><div class="view-wrapper">{{view view.inputFilterView viewName="inputFilterViewInstance"}}</div> <a href="#" {{action "clearFilterButtonClick" target="view"}} id="view_inputFilterViewInstance" class="ui-icon ui-icon-circle-close ui-input"></a></th>
-      <th class="notActive"><div class="view-wrapper">{{view view.outputFilterView viewName="outputFilterViewInstance"}}</div> <a href="#" {{action "clearFilterButtonClick" target="view"}} id="view_outputFilterViewInstance" class="ui-icon ui-icon-circle-close ui-output"></a></th>
-      <th class="notActive"><div class="view-wrapper">{{view view.durationFilterView viewName="durationFilterViewInstance"}}</div> <a href="#" {{action "clearFilterButtonClick" target="view"}} id="view_durationFilterViewInstance" class="ui-icon ui-icon-circle-close ui-duration"></a></th>
-      <th class="notActive"><div class="view-wrapper">{{view view.rundateSelectView viewName="rundateSelectViewInstance"}}</div> <a href="#" {{action "clearFilterButtonClick" target="view"}} id="view_rundateSelectViewInstance" class="ui-icon ui-icon-circle-close ui-rundate"></a><input id="custom_rundate_filter" type="hidden"></th>
+      <th class="notActive"><div class="view-wrapper">{{view view.jobsFilterView valueBinding="controller.filterObject.jobs" viewName="jobsFilterViewInstance"}}</div> <a href="#" {{action "clearFilterButtonClick" target="view"}} id="view_jobsFilterViewInstance" class="ui-icon ui-icon-circle-close ui-jobs"></a></th>
+      <th class="notActive"><div class="view-wrapper">{{view view.inputFilterView valueBinding="controller.filterObject.input" viewName="inputFilterViewInstance"}}</div> <a href="#" {{action "clearFilterButtonClick" target="view"}} id="view_inputFilterViewInstance" class="ui-icon ui-icon-circle-close ui-input"></a></th>
+      <th class="notActive"><div class="view-wrapper">{{view view.outputFilterView valueBinding="controller.filterObject.output" viewName="outputFilterViewInstance"}}</div> <a href="#" {{action "clearFilterButtonClick" target="view"}} id="view_outputFilterViewInstance" class="ui-icon ui-icon-circle-close ui-output"></a></th>
+      <th class="notActive"><div class="view-wrapper">{{view view.durationFilterView valueBinding="controller.filterObject.duration" viewName="durationFilterViewInstance"}}</div> <a href="#" {{action "clearFilterButtonClick" target="view"}} id="view_durationFilterViewInstance" class="ui-icon ui-icon-circle-close ui-duration"></a></th>
+      <th class="notActive"><div class="view-wrapper">{{view view.rundateSelectView selectionBinding="controller.filterObject.runDate" viewName="rundateSelectViewInstance"}}</div> <a href="#" {{action "clearFilterButtonClick" target="view"}} id="view_rundateSelectViewInstance" class="ui-icon ui-icon-circle-close ui-rundate"></a><input id="custom_rundate_filter" type="hidden"></th>
     </tr>
     </thead>
     <tbody>
-    {{#each run in view.content}}
+    {{#each run in content}}
       {{view view.containerRow runBinding="run" currentViewBinding="view.appTableRow"}}
     {{/each}}
     </tbody>
   </table>
+
+  <div class="page-bar">
+      <div class="items-on-page">
+          <label>Show: {{view view.runPerPageSelectView viewName="runPerPageSelectView" selectionBinding="controller.filterObject.iDisplayLength"}}</label>
+      </div>
+      <div class="info">{{controller.paginationObject.startIndex}} - {{controller.paginationObject.endIndex}} of {{controller.paginationObject.iTotalDisplayRecords}}</div>
+      <div class="paging_two_button">
+          {{view view.paginationLeft}}
+          {{view view.paginationRight}}
+      </div>
+  </div>
 </div>

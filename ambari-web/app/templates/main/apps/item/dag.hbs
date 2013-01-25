@@ -31,9 +31,9 @@
       </tr>
       </thead>
       <tbody>
-      {{#each job in view.content}}
+      {{#each job in controller.content.jobs}}
       <tr>
-        <td>{{job.workflowEntityName}}</td>
+        <td>{{job.workflow_entity_name}}</td>
         <td>{{job.id}}</td>
         <td>{{job.status}}</td>
         <td>{{job.maps}}</td>

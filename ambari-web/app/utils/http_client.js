@@ -77,6 +77,7 @@ App.HttpClient = Em.Object.create({
    * @param {number} interval - frequecy request
    */
   get: function (url, mapper, data, errorHandler, interval) {
+    var eHandler = data.complete
     var client = this;
     var request = function () {
       client.request(url, data, mapper, errorHandler);

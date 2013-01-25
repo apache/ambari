@@ -29,7 +29,13 @@ App.jobsMapper = App.QuickDataMapper.create({
       json.jobs.forEach(function (item) {
         result.push(this.parseIt(item, this.config));
       }, this);
-      App.store.loadMany(this.get('model'), result);
+
+      var r = Ember.ArrayProxy.create({"content":[]});
+      result.forEach(function(item){
+        r.content.push(App.Job2.create(item));
+      });
+
+      this.set('controller.content.jobs', r.content);
     }
   },
   config:{
