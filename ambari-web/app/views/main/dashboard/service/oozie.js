@@ -19,7 +19,6 @@
 var App = require('app');
 
 App.MainDashboardServiceOozieView = App.MainDashboardServiceView.extend({
-  classNames: ['no-borders'],
   serviceName: 'oozie',
   templateName: require('templates/main/dashboard/service/oozie'),
 
