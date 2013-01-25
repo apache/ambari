@@ -32,10 +32,9 @@ App.MainAdminUserCreateView = Em.View.extend({
       } else{
         form.getField("roles").set("value","user");
       }
-
       parent_controller.sendCommandToServer('/users/' + form.getValues().userName, "POST" , {
         Users: {
-          password: form.getValues().password,
+          password: form.getField("password").get('value'),
           roles: form.getValues().roles
         }
       }, function (success) {
