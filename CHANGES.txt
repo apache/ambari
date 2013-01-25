@@ -203,6 +203,9 @@ Trunk (unreleased changes):
  AMBARI-1259. Fix the host roles live status not go back to INSTALLED if it
  was in START_FAILED state. (mahadev)
 
+ AMBARI-1210. Allow capacity scheduler to be attached to host role configs for
+ CS configurability in the API's. (mahadev)
+
 AMBARI-1.2.0 branch:
 
  INCOMPATIBLE CHANGES

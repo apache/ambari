@@ -254,9 +254,16 @@ define hdp::directory_recursive_create_ignore_failure(
   )
 {
   hdp::exec {"mkdir -p ${name} ; exit 0" :
-    command => "mkdir -p ${name} ; chown ${owner}:${group} ${name}; chmod ${mode} ${name} ; exit 0",
+    command => "mkdir -p ${name} ; exit 0",
     creates => $name
   }
+    hdp::exec {"chown ${owner}:${group} ${name}; exit 0" :
+    command => "chown ${owner}:${group} ${name}; exit 0"
+  }
+    hdp::exec {"chmod ${mode} ${name} ; exit 0" :
+    command => "chmod ${mode} ${name} ; exit 0"
+  }
+  Hdp::Exec["mkdir -p ${name} ; exit 0"] -> Hdp::Exec["chown ${owner}:${group} ${name}; exit 0"] -> Hdp::Exec["chmod ${mode} ${name} ; exit 0"]
 }
 
 ### helper to do exec
