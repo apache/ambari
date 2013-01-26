@@ -73,6 +73,10 @@ case "$1" in
         $0 stop
         $0 start
         ;;
+  upgrade)
+        echo -e "Upgrading ambari-server"
+        $PYTHON /usr/sbin/ambari-server.py $@
+        ;;
   setup)
         echo -e "Run postgresql initdb"
         initdb_res=`/sbin/service postgresql initdb`
@@ -85,7 +89,7 @@ case "$1" in
         $PYTHON /usr/sbin/ambari-server.py $@
         ;;
   *)
-        echo "Usage: /usr/sbin/ambari-server {start|stop|restart|setup} [options]"
+        echo "Usage: /usr/sbin/ambari-server {start|stop|restart|setup|upgrade} [options]"
         exit 1
 esac
 

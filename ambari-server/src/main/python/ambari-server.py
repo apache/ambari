@@ -44,6 +44,7 @@ SETUP_ACTION = "setup"
 START_ACTION = "start"
 STOP_ACTION = "stop"
 RESET_ACTION = "reset"
+UPGRADE_ACTION = "upgrade"
 
 # selinux commands
 GET_SE_LINUX_ST_CMD = "/usr/sbin/sestatus"
@@ -246,6 +247,20 @@ def setup_db(args):
   return retcode
 
 
+
+def upgrade_db(args):
+  #password access to ambari-server and mapred
+  configure_postgres_username_password(args)
+  dbname = args.postgredbname
+  file = args.upgrade_script_file
+  username = args.postgres_username
+  password = args.postgres_password
+  command = SETUP_DB_CMD[:]
+  command[-1] = command[-1].format(file, username, password)
+  retcode, outdata, errdata = run_os_command(command)
+  if not retcode == 0:
+    print errdata
+  return retcode
 
 #
 # Checks SELinux
@@ -735,6 +750,25 @@ def stop(args):
 
 
 #
+# Upgrades the Ambari Server.
+#
+def upgrade(args):
+
+  print 'Checking PostgreSQL...'
+  retcode = check_postgre_up()
+  if not retcode == 0:
+    printErrorMsg ('PostgreSQL server not running. Exiting')
+    sys.exit(retcode)
+
+  print 'Upgrading database...'
+  retcode = upgrade_db(args)
+  if not retcode == 0:
+    printErrorMsg  ('Database upgrade script has failed. Exiting.')
+    sys.exit(retcode)
+
+  print "Ambari Server 'upgrade' finished successfully"
+
+#
 # Prints an "info" messsage.
 #
 def print_info_msg(msg):
@@ -905,6 +939,10 @@ def main():
                               "ambari-server/resources/"
                               "Ambari-DDL-Postgres-DROP.sql",
                       help="File with drop script")
+  parser.add_option('-u', '--upgrade-script-file', default="/var/lib/"
+                              "ambari-server/resources/upgrade/ddl/"
+                              "Ambari-DDL-Postgres-UPGRADE-1.2.1.sql",
+                      help="File with upgrade script")
   parser.add_option('-j', '--java-home', default=None,
                   help="Use specified java_home.  Must be valid on all hosts")
   parser.add_option("-v", "--verbose",
@@ -938,6 +976,8 @@ def main():
     stop(options)
   elif action == RESET_ACTION:
     reset(options)
+  elif action == UPGRADE_ACTION:
+    upgrade(options)
   else:
     parser.error("Invalid action")
 

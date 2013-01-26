@@ -233,6 +233,23 @@
               </sources>
             </mapping>
             <mapping>
+              <directory>/var/lib/ambari-server/resources/upgrade</directory>
+              <filemode>755</filemode>
+              <username>root</username>
+              <groupname>root</groupname>
+            </mapping>
+            <mapping>
+              <directory>/var/lib/ambari-server/resources/upgrade/ddl</directory>
+              <filemode>755</filemode>
+              <username>root</username>
+              <groupname>root</groupname>
+              <sources>
+                <source>
+                  <location>src/main/resources/upgrade/ddl/Ambari-DDL-Postgres-UPGRADE-1.2.1.sql</location>
+                </source>
+              </sources>
+            </mapping>
+            <mapping>
               <directory>/var/lib/ambari-server/resources/stacks</directory>
               <filemode>755</filemode>
               <username>root</username>

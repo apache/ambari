@@ -216,6 +216,9 @@ Trunk (unreleased changes):
  AMBARI-1210. Allow capacity scheduler to be attached to host role configs for
  CS configurability in the API's. (mahadev)
 
+ AMBARI-1256. Host registration can fail due to mount point info not fitting
+ ambari.hosts::disks_info column. (Sumit Mohanty via mahadev)
+
 AMBARI-1.2.0 branch:
 
  INCOMPATIBLE CHANGES
