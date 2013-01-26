@@ -219,6 +219,9 @@ Trunk (unreleased changes):
  AMBARI-1256. Host registration can fail due to mount point info not fitting
  ambari.hosts::disks_info column. (Sumit Mohanty via mahadev)
 
+ AMBARI-1266. Agent checks packages as part of host check but doesn't tell
+ which ones are needed or conflicting. (mahadev)
+
 AMBARI-1.2.0 branch:
 
  INCOMPATIBLE CHANGES
