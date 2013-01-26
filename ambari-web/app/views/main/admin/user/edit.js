@@ -26,24 +26,24 @@ App.MainAdminUserEditView = Em.View.extend({
     var form = this.get("userForm");
     if(form.isValid()) {
       var Users={};
-      if(form.getValues().admin === "" || form.getValues().admin == true) {
+      if(form.getField("admin").get('value') === "" || form.getField("admin").get('value') == true) {
         form.getField("roles").set("value","admin,user");
         form.getField("admin").set("value","true");
       } else{
         form.getField("roles").set("value","user");
       }
 
-      Users.roles = form.getValues().roles;
+      Users.roles = form.getField("roles").get('value');
 
-      if(form.getValues().new_password != "" && form.getValues().old_password != ""){
-        Users.password=form.getValues().new_password;
-        Users.old_password=form.getValues().old_password;
+      if(form.getField("new_password").get('value') != "" && form.getField("old_password").get('value') != "") {
+        Users.password = form.getField("new_password").get('value');
+        Users.old_password = form.getField("old_password").get('value');
       }
 
-      parent_controller.sendCommandToServer('/users/' + form.getValues().userName, "PUT" , {
+      parent_controller.sendCommandToServer('/users/' + form.getField("userName").get('value'), "PUT" , {
        Users:Users
       }, function (success) {
-
+        console.log('success', success);
         if (!success) {
           return;
         }
@@ -57,14 +57,13 @@ App.MainAdminUserEditView = Em.View.extend({
 
   userForm: App.EditUserForm.create({}),
 
-  didInsertElement: function(){
+  didInsertElement: function() {
     var form = this.get('userForm');
-    if( form.getField("isLdap").get("value") )
-    {
+    if(form.getField("isLdap").get("value")) {
       form.getField("old_password").set("disabled",true);
       form.getField("new_password").set("disabled",true);
-    }else{
-      //debugger;
+    }
+    else {
       form.getField("old_password").set("disabled",false);
       form.getField("new_password").set("disabled",false);
     }

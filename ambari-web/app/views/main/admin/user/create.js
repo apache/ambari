@@ -25,17 +25,17 @@ App.MainAdminUserCreateView = Em.View.extend({
     var parent_controller=this.get("controller").controllers.mainAdminUserController;
     var form = this.get("userForm");
     if(form.isValid()) {
-      form.getField("userName").set('value', form.getValues().userName.toLowerCase());
-      if(form.getValues().admin === "" || form.getValues().admin == true) {
+      form.getField("userName").set('value', form.getField("userName").get('value').toLowerCase());
+      if(form.getField("admin").get('value') === "" || form.getField("admin").get('value') == true) {
         form.getField("roles").set("value","admin,user");
         form.getField("admin").set("value","true");
       } else{
         form.getField("roles").set("value","user");
       }
-      parent_controller.sendCommandToServer('/users/' + form.getValues().userName, "POST" , {
+      parent_controller.sendCommandToServer('/users/' + form.getField("userName").get('value'), "POST" , {
         Users: {
           password: form.getField("password").get('value'),
-          roles: form.getValues().roles
+          roles: form.getField("roles").get('value')
         }
       }, function (success) {
 

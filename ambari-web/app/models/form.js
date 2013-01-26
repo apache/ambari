@@ -91,20 +91,6 @@ App.Form = Em.View.extend({
 
   }.observes("object"),
 
-  /**
-   *
-   */
-
-  getValues:function () {
-    var values = {};
-    $.each(this.get('fields'), function () {
-      if (!(this.get('displayType') == 'password' && validator.empty(this.get('value')))) { // if this is not empty password field
-        values[this.get('name')] = this.get('value');
-      }
-    });
-    return values;
-  },
-
   clearValues:function () {
     $.each(this.fields, function () {
       this.set('value', '');
@@ -116,19 +102,21 @@ App.Form = Em.View.extend({
    * @return {Boolean}
    */
   save:function () {
-    var thisForm = this;
     var object = this.get('object');
+    var formValues = {};
+    $.each(this.get('fields'), function () {
+      formValues[this.get('name')] = this.get('value');
+    });
     if (!this.get('isObjectNew')) {
-      $.each(this.getValues(), function (i, v) {
-        object.set(i, v);
+      $.each(formValues, function (k, v) {
+        object.set(k, v);
       });
-    } else {
-      if (this.get('className'))
-      {
-        var rec = App.store.createRecord(this.get('className'), this.getValues());
-        //rec.get('stateManager').send('becameClean');
+    }
+    else {
+      if (this.get('className')) {
+        App.store.createRecord(this.get('className'), formValues);
       }
-      else{
+      else {
         console.log("Please define class name for your form " + this.constructor);
       }
     }

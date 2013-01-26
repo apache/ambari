@@ -215,7 +215,7 @@ module.exports = Em.Route.extend({
       }),
 
       editUser:Em.Route.extend({
-        route:'/edit/:userName',
+        route:'/edit/:user_id',
         connectOutlets:function (router, user) {
           router.get('mainAdminController').connectOutlet('mainAdminUserEdit', user);
         }

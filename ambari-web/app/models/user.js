@@ -26,6 +26,9 @@ App.UserModel = Em.Object.extend({
 
 App.User = DS.Model.extend({
   userName:DS.attr('string'),
+  id:function(){
+    return this.get('userName');
+  }.property('userName'),
   roles:DS.attr('string'),
   isLdap:DS.attr('boolean'),
   type: function(){
@@ -66,12 +69,6 @@ App.EditUserForm = App.Form.extend({
       }
     }
   }.observes('isObjectNew'),
-
-  getValues:function () {
-    var values = this._super();
-    values.type = ['local'];
-    return values;
-  },
 
   isValid:function () {
 
@@ -132,17 +129,8 @@ App.CreateUserForm = App.Form.extend({
     }
   }.observes('isObjectNew'),
 
-  getValues:function () {
-    var values = this._super();
-    values.type = ['local'];
-    values.id = values.userName;
-    return values;
-  },
-
-
   isValid:function () {
     var isValid = this._super();
-    thisForm = this;
 
     var passField = this.get('field.password');
     var passRetype = this.get('field.passwordRetype');
