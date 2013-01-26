@@ -48,7 +48,7 @@ public class HttpProxyPropertyProvider implements PropertyProvider {
   private static final Map<String, String> MAPPINGS = new HashMap<String, String>();
   
   static {
-    URL_TEMPLATES.put("NAGIOS_SERVER", "http://%s/hdp/nagios/nagios_alerts.php?q1=alerts&alert_type=all");
+    URL_TEMPLATES.put("NAGIOS_SERVER", "http://%s/ambarinagios/nagios/nagios_alerts.php?q1=alerts&alert_type=all");
     
     MAPPINGS.put("NAGIOS_SERVER", PropertyHelper.getPropertyId("HostRoles", "nagios_alerts"));
   }

@@ -138,6 +138,10 @@ Trunk (unreleased changes):
  AMBARI-1262. Apache Ambari point to dev url, need fix in pom.xml. 
  (mahadev)
 
+ AMBARI-1207. Remove /hdp as the httpd conf for any of the nagios urls -
+ should replace it with ambarinagios or something else.
+ (mahadev)
+
  BUG FIXES
 
  AMBARI-1257. Separator missing in between Oozie and ZooKeeper. (yusaku)
