@@ -151,6 +151,9 @@ Trunk (unreleased changes):
 
  BUG FIXES
 
+ AMBARI-1172. Alert status change does not change time for the alerts.
+ (srimanth via yusaku) 
+
  AMBARI-1264. Service graphs refresh with spinners. (yusaku)
 
  AMBARI-1257. Separator missing in between Oozie and ZooKeeper. (yusaku)
