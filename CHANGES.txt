@@ -34,6 +34,8 @@ Trunk (unreleased changes):
 
  IMPROVEMENTS
 
+ AMBARI-1265. Job Browser - Filter by Input, output and duration. (yusaku)
+
  AMBARI-1263. Refactoring of User Management code. (yusaku)
 
  AMBARI-1254. Modify App Browser to use server-side paging/sorting/filtering.

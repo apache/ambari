@@ -147,14 +147,9 @@ App.MainAppsController = Em.ArrayController.extend({
      */
     duration:"",
     onDurationChange:function(){
-      var minMaxTmp = this.parseNumber(this.duration);
-      if(parseFloat(minMaxTmp.min) == parseFloat(minMaxTmp.max)){
-        this.set("minDuration" ,Math.ceil((parseFloat(minMaxTmp.min)-0.01)*1000));
-        this.set("maxDuration" ,Math.floor((parseFloat(minMaxTmp.max)+0.01)*1000));
-      }else{
-        this.set("minDuration", parseFloat(minMaxTmp.min)*1000);
-        this.set("maxDuration", parseFloat(minMaxTmp.max)*1000);
-      }
+      var minMaxTmp = this.parseDuration(this.duration);
+      this.set("minDuration", minMaxTmp.min);
+      this.set("maxDuration", minMaxTmp.max);
     }.observes("duration"),
 
     /**
@@ -166,6 +161,47 @@ App.MainAppsController = Em.ArrayController.extend({
       this.set("minStartTime", minMaxTmp.min);
       this.set("maxStartTime", minMaxTmp.max);
     }.observes("runDate"),
+
+    parseDuration:function(value){
+      var tmp={
+        min:"",
+        max:""
+      };
+
+      var compareChar = isNaN(value.charAt(0)) ? value.charAt(0) : false;
+      var compareScale = value.match(/s|m|h/);
+      compareScale = compareScale ? compareScale[0] : "";
+      var compareValue = compareChar ? parseFloat(value.substr(1, value.length)) : parseFloat(value.substr(0, value.length));
+      if(isNaN(compareValue)){
+        return tmp;
+      }
+      switch (compareScale) {
+        case 'h':
+        tmp.min = Math.ceil((parseFloat(compareValue)-0.0001)*1000*60*60);
+        tmp.max = Math.floor((parseFloat(compareValue)+0.0001)*1000*60*60);
+        break;
+        case 'm':
+        tmp.min = Math.ceil((parseFloat(compareValue)-0.001)*1000*60);
+        tmp.max = Math.floor((parseFloat(compareValue)+0.001)*1000*60);
+        break;
+        case 's':
+        tmp.min = Math.ceil((parseFloat(compareValue)-0.01)*1000);
+        tmp.max = Math.floor((parseFloat(compareValue)+0.01)*1000);
+        break;
+        default:
+          tmp.min = Math.max(1024,Math.ceil((compareValue-0.05)*1024));
+          tmp.max = Math.min(1048575,Math.floor((compareValue+0.05)*1024));
+      }
+      switch (compareChar) {
+        case '<':
+          tmp.min="";
+          break;
+        case '>':
+          tmp.max="";
+          break;
+      }
+      return tmp;
+    },
 
     parseDate:function(value){
       var tmp={
@@ -204,22 +240,24 @@ App.MainAppsController = Em.ArrayController.extend({
         min:"",
         max:""
       };
+
       var compareChar = isNaN(value.charAt(0)) ? value.charAt(0) : false;
-      var compareScale = value.charAt(value.length - 1);
+      var compareScale = value.match(/kb|k|mb|m|gb|g/);
+      compareScale = compareScale ? compareScale[0] : "";
       var compareValue = compareChar ? parseFloat(value.substr(1, value.length)) : parseFloat(value.substr(0, value.length));
       if(isNaN(compareValue)){
         return tmp;
       }
       switch (compareScale) {
-        case 'g':
+        case 'g': case 'gb':
           tmp.min = Math.max(1073741824,Math.ceil((compareValue-0.005)*1073741824));
           tmp.max = Math.floor((compareValue+0.005)*1073741824);
           break;
-        case 'm':
+        case 'm': case 'mb':
           tmp.min = Math.max(1048576,Math.ceil((compareValue-0.05)*1048576));
           tmp.max = Math.min(1073741823,Math.floor((compareValue+0.05)*1048576));
           break;
-        case 'k':
+        case 'k': case 'kb':
           tmp.min = Math.max(1024,Math.ceil((compareValue-0.05)*1024));
           tmp.max = Math.min(1048575,Math.floor((compareValue+0.05)*1024));
           break;
