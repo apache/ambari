@@ -298,7 +298,7 @@ App.MainServiceInfoSummaryView = Em.View.extend({
       }
     }
     return graphs;
-  }.property('service'),
+  }.property(''),
 
   loadServiceSummary:function (serviceName) {
 

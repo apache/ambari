@@ -298,6 +298,9 @@ App.ChartLinearTimeView = Ember.View.extend({
    * @type Function
    */
   _refreshGraph: function (jsonData) {
+    if(this.get('isDestroyed')){
+      return;
+    }
     var seriesData = this.transformToSeries(jsonData);
 
     if (this.checkSeries(seriesData)) {

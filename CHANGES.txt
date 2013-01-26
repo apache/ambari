@@ -149,6 +149,8 @@ Trunk (unreleased changes):
 
  BUG FIXES
 
+ AMBARI-1264. Service graphs refresh with spinners. (yusaku)
+
  AMBARI-1257. Separator missing in between Oozie and ZooKeeper. (yusaku)
 
  AMBARI-1251. Fix routing issues on Add Host Wizard. (yusaku)
