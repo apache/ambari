@@ -124,7 +124,6 @@
             <exclude>.git/</exclude>
             <exclude>**/.gitignore</exclude>
             <exclude>**/.gitattributes</exclude>
-
             <!--gitignore content-->
             <exclude>.DS_Store</exclude>
             <exclude>.iml/</exclude>

@@ -29,6 +29,9 @@ Trunk (unreleased changes):
  AMBARI-1255. Make the agent hostname determination scriptable. 
  (mahadev)
 
+ AMBARI-1267. Store example Hive Queries somewhere in Ambari that's easily
+ accessible for demo/test purposes. (mahadev)
+
  IMPROVEMENTS
 
  AMBARI-1254. Modify App Browser to use server-side paging/sorting/filtering.
