@@ -34,6 +34,9 @@ Trunk (unreleased changes):
 
  IMPROVEMENTS
 
+ AMBARI-1271. On Confirm Hosts page, add a link to show the Host Checks popup 
+ in the success message. (yusaku via srimanth)
+
  AMBARI-1193. If Install fails, allow user to go back to any previous step so 
  that the user can retry install with different configuration parameters.
  (yusaku via srimanth)

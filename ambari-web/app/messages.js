@@ -125,6 +125,7 @@ Em.I18n.translations = {
   'installer.step3.warnings.popup.header':'Host Checks',
   'installer.step3.warnings.description':'Some warnings were encountered while performing checks against the above hosts.',
   'installer.step3.warnings.linkText':'Click here to see the warnings.',
+  'installer.step3.noWarnings.linkText':'Click here to see the check results.',
   'installer.step3.warnings.noWarnings':'All host checks were successful.',
   'installer.step3.warnings.updateChecks.success':'Host Checks successfully updated',
   'installer.step3.warnings.updateChecks.failed':'Host Checks update failed',
