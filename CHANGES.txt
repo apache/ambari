@@ -160,6 +160,9 @@ Trunk (unreleased changes):
 
  BUG FIXES
 
+ AMBARI-1273. Edit User: No error message is shown when the user does not 
+ enter the correct "old password". (srimanth)
+
  AMBARI-1172. Alert status change does not change time for the alerts.
  (srimanth via yusaku) 
 

@@ -42,9 +42,17 @@ App.MainAdminUserEditView = Em.View.extend({
 
       parent_controller.sendCommandToServer('/users/' + form.getField("userName").get('value'), "PUT" , {
        Users:Users
-      }, function (success) {
-        console.log('success', success);
+      }, function (success, message) {
         if (!success) {
+          App.ModalPopup.show({
+            header: Em.I18n.t('admin.users.editButton'),
+            body: message,
+            primary: 'Ok',
+            secondary: null,
+            onPrimary: function() {
+              this.hide();
+            }
+          });
           return;
         }
 

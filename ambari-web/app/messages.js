@@ -223,6 +223,7 @@ Em.I18n.translations = {
   'admin.users.delete.header':'Delete {0}',
 
   'admin.users.addButton':'Add Local User',
+  'admin.users.editButton': 'Edit Local User',
   'admin.users.delete':'delete',
   'admin.users.edit':'edit',
   'admin.users.privileges':'Admin',

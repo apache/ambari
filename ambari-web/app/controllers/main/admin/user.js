@@ -92,12 +92,14 @@ App.MainAdminUserController = Em.Controller.extend({
       dataType: 'json',
       timeout: App.timeout,
       success: function(data){
-          callback(true);
+          callback(true, '');
       },
 
       error: function (request, ajaxOptions, error) {
         //do something
-        callback(false);
+        var message = $.parseJSON(request.responseText).message;
+        message = message.substr(message.indexOf(':') + 1); // Remove classname
+        callback(false, message);
         console.log('error on change component host status')
       },
 
