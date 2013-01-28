@@ -27,6 +27,7 @@ App.WizardStep8View = Em.View.extend({
     var controller = this.get('controller');
     controller.loadStep();
   },
+
   spinner : null,
 
   printReview: function() {
@@ -42,15 +43,22 @@ App.WizardStep8View = Em.View.extend({
     return this.get('controller.ajaxQueueLeft');
   }.property('controller.ajaxQueueLeft'),
 
-  showLoadingIndicator: function() {
-    if(this.get('controller.hasErrorOccurred')){
-      return;
-    }
-    if(!this.get('controller.isSubmitDisabled')){
-      return;
-    }
+  // reference to modalPopup to make sure only one instance is created
+  modalPopup: null,
 
-    App.ModalPopup.show({
+  showLoadingIndicator: function() {
+    if (!this.get('controller.isSubmitDisabled')) {
+      if (this.get('modalPopup')) {
+        this.get('modalPopup').hide();
+        this.set('modalPopup', null);
+      }
+      return;
+    }
+    // don't create popup if it already exists
+    if (this.get('modalPopup')) {
+      return;
+    }
+    this.set('modalPopup', App.ModalPopup.show({
       header: '',
 
       showFooter: false,
@@ -80,6 +88,7 @@ App.WizardStep8View = Em.View.extend({
           }
         }.observes('ajaxQueueComplete', 'ajaxQueueLength')
       })
-    });
-  }.observes('controller.isSubmitDisabled','controller.hasErrorOccurred')
+    }));
+  }.observes('controller.isSubmitDisabled')
 });
+

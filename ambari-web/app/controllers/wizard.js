@@ -134,6 +134,16 @@ App.WizardController = Em.Controller.extend({
     if (this.get('isStepDisabled').findProperty('step', step).get('value') !== false) {
       return;
     }
+    // if going back from Step 9 in Install Wizard, delete the checkpoint so that the user is not redirected
+    // to Step 9
+    if (this.get('content.controllerName') == 'installerController' && this.get('currentStep') === '9' && step < 9) {
+      App.clusterStatus.setClusterStatus({
+        clusterName: this.get('clusterName'),
+        clusterState: 'CLUSTER_NOT_CREATED_1',
+        wizardControllerName: 'installerController',
+        localdb: App.db.data
+      });
+    }
     if ((this.get('currentStep') - step) > 1) {
       App.ModalPopup.show({
         header: Em.I18n.t('installer.navigation.warning.header'),

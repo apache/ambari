@@ -29,6 +29,15 @@ App.WizardStep9Controller = Em.Controller.extend({
     return !['STARTED','START FAILED'].contains(this.get('content.cluster.status'));
   }.property('content.cluster.status'),
 
+  // links to previous steps are enabled iff install failed in installer
+  togglePreviousSteps: function () {
+    if ('INSTALL FAILED' === this.get('content.cluster.status') && this.get('content.controllerName') == 'installerController') {
+      App.router.get('installerController').setStepsEnable();
+    } else {
+      App.router.get('installerController').setLowerStepsDisable(9);
+    }
+  }.observes('content.cluster.status', 'content.controllerName'),
+
   mockHostData: require('data/mock/step9_hosts'),
   mockDataPrefix: '/data/wizard/deploy/5_hosts',
   pollDataCounter: 0,

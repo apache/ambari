@@ -104,6 +104,7 @@ App.ModalPopup.reopenClass({
   show: function(options) {
     var popup = this.create(options);
     popup.appendTo('#wrapper');
+    return popup;
   }
 
 })

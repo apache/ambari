@@ -34,6 +34,10 @@ Trunk (unreleased changes):
 
  IMPROVEMENTS
 
+ AMBARI-1193. If Install fails, allow user to go back to any previous step so 
+ that the user can retry install with different configuration parameters.
+ (yusaku via srimanth)
+
  AMBARI-1265. Job Browser - Filter by Input, output and duration. (yusaku)
 
  AMBARI-1263. Refactoring of User Management code. (yusaku)

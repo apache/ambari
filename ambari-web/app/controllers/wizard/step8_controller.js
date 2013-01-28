@@ -754,49 +754,50 @@ App.WizardStep8Controller = Em.Controller.extend({
 
     this.set('isSubmitDisabled', true);
 
-    if (App.testMode || !this.get('content.cluster.requestId')) {
-      // For recovery : set the cluster status
-
-      // We need to do recovery based on whether we are in Add Host or Installer wizard
-      switch (this.get('content.controllerName')) {
-        case 'installerController' :
-          App.clusterStatus.setClusterStatus({
-            clusterName: this.get('clusterName'),
-            clusterState: 'CLUSTER_DEPLOY_PREP_2',
-            wizardControllerName: this.get('content.controllerName'),
-            localdb: App.db.data
-          });
-          break;
-
-        case 'addHostController' :
-          App.clusterStatus.setClusterStatus({
-            clusterName: this.get('clusterName'),
-            clusterState: 'ADD_HOSTS_DEPLOY_PREP_2',
-            wizardControllerName: this.get('content.controllerName'),
-            localdb: App.db.data
-          });
-          break;
-        default :
-          break;
-      }
-
-      this.createCluster();
-      this.createSelectedServices();
-      //this.setAmbariUIDb();
-      this.createConfigurations();
-      this.applyCreatedConfToServices();
-      this.createComponents();
-      this.registerHostsToCluster();
-      this.createAllHostComponents();
-      //this.applyCreatedConfToSlaveGroups();
-      this.ajaxQueueFinished = function () {
-        console.log('everything is loaded')
-        App.router.send('next');
-      };
-      this.doNextAjaxCall();
-    } else {
-      App.router.send('next');
+    // checkpoint the cluster status on the server so that the user can resume from where they left off
+    switch (this.get('content.controllerName')) {
+      case 'installerController':
+        App.clusterStatus.setClusterStatus({
+          clusterName: this.get('clusterName'),
+          clusterState: 'CLUSTER_DEPLOY_PREP_2',
+          wizardControllerName: this.get('content.controllerName'),
+          localdb: App.db.data
+        });
+        break;
+      case 'addHostController':
+        App.clusterStatus.setClusterStatus({
+          clusterName: this.get('clusterName'),
+          clusterState: 'ADD_HOSTS_DEPLOY_PREP_2',
+          wizardControllerName: this.get('content.controllerName'),
+          localdb: App.db.data
+        });
+        break;
+      default:
+        break;
     }
+
+    // delete any existing clusters to start from a clean slate
+    // before creating a new cluster in install wizard
+    // TODO: modify for multi-cluster support
+    if (this.get('content.controllerName') == 'installerController') {
+      var clusterNames = this.getExistingClusterNames();
+      this.deleteClusters(clusterNames);
+    }
+
+    this.createCluster();
+    this.createSelectedServices();
+    this.createConfigurations();
+    this.applyCreatedConfToServices();
+    this.createComponents();
+    this.registerHostsToCluster();
+    this.createAllHostComponents();
+
+    this.ajaxQueueFinished = function () {
+      console.log('everything is loaded')
+      App.router.send('next');
+    };
+    this.doNextAjaxCall();
+
   },
 
   /**
@@ -836,6 +837,49 @@ App.WizardStep8Controller = Em.Controller.extend({
   clusterName: function () {
     return this.get('content.cluster.name');
   }.property('content.cluster.name'),
+
+  // returns an array of existing cluster names.
+  // returns an empty array if there are no existing clusters.
+  getExistingClusterNames: function () {
+    var url = App.apiPrefix + '/clusters';
+
+    var clusterNames = [];
+
+    $.ajax({
+      type: 'GET',
+      url: url,
+      async: false,
+      success: function(data) {
+        var jsonData = jQuery.parseJSON(data);
+        clusterNames = jsonData.items.mapProperty('Clusters.cluster_name');
+        console.log("Got existing cluster names: " + clusterNames);
+      },
+      error: function () {
+        console.log("Failed to get existing cluster names");
+      }
+    });
+
+    return clusterNames;
+  },
+
+  deleteClusters: function (clusterNames) {
+    clusterNames.forEach(function(clusterName) {
+
+      var url = App.apiPrefix + '/clusters/' + clusterName;
+
+      $.ajax({
+        type: 'DELETE',
+        url: url,
+        async: false,
+        success: function () {
+          console.log('DELETE cluster ' + clusterName + ' succeeded');
+        },
+        error: function () {
+          console.log('DELETE cluster ' + clusterName + ' failed');
+        }
+      });
+    });
+  },
 
   /**
    *  The following create* functions are called upon submitting Step 8.
@@ -1444,8 +1488,8 @@ App.WizardStep8Controller = Em.Controller.extend({
   },
 
   /**
-   * We need to do a lot of ajax calls(about 10 or more) async in special order.
-   * To do this i generate array of ajax objects and then send requests step by step.
+   * We need to do a lot of ajax calls async in special order.
+   * To do this, generate array of ajax objects and then send requests step by step.
    * All ajax objects are stored in <code>ajaxQueue</code>
    * @param params
    */
@@ -1487,8 +1531,11 @@ App.WizardStep8Controller = Em.Controller.extend({
       var responseText = JSON.parse(xhr.responseText);
       var controller = App.router.get(App.clusterStatus.wizardControllerName);
       controller.registerErrPopup("Error", responseText.message);
-      self.set('isSubmitDisabled', true);
       self.set('hasErrorOccurred', true);
+      // an error will break the ajax call chain and allow submission again
+      self.set('isSubmitDisabled', false);
+      self.get('ajaxQueue').clear();
+      self.set('ajaxBusy', false);
     }
     this.get('ajaxQueue').pushObject(params);
   }

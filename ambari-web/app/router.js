@@ -80,8 +80,6 @@ App.Router = Em.Router.extend({
   loggedIn: false,
 
   getAuthenticated: function () {
-    // TODO: this needs to be hooked up with server authentication
-//    this.authenticated();
     var auth = App.db.getAuthenticated();
     var authResp = (auth && auth === true);
     this.set('loggedIn', authResp);
@@ -89,20 +87,16 @@ App.Router = Em.Router.extend({
   },
 
   setAuthenticated: function (authenticated) {
-    // TODO: this needs to be hooked up with server authentication
     console.log("TRACE: Entering router:setAuthenticated function");
     App.db.setAuthenticated(authenticated);
     this.set('loggedIn', authenticated);
   },
 
   getLoginName: function () {
-    // TODO: this needs to be hooked up with server authentication
     return App.db.getLoginName();
-
   },
 
   setLoginName: function (loginName) {
-    // TODO: this needs to be hooked up with server authentication
     App.db.setLoginName(loginName);
   },
 
@@ -141,11 +135,12 @@ App.Router = Em.Router.extend({
     var router = this;
     var url = '';
 
-    if(loginName === "admin" && controller.get('password') === 'admin')
-    {
-      url = '/data/users/user_admin.json';
-    }else if(loginName === 'user' && controller.get('password') === 'user'){
-      url = '/data/users/user_user.json';
+    if (App.testMode) {
+      if (loginName === "admin" && controller.get('password') === 'admin') {
+        url = '/data/users/user_admin.json';
+      } else if (loginName === 'user' && controller.get('password') === 'user') {
+        url = '/data/users/user_user.json';
+      }
     }
 
     $.ajax({
