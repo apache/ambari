@@ -54,6 +54,10 @@ App.AddServiceController = App.WizardController.extend({
     isWizard: true
   }),
 
+  /**
+   * return new object extended from clusterStatusTemplate
+   * @return Object
+   */
   getCluster: function(){
     return jQuery.extend({}, this.get('clusterStatusTemplate'), {name: App.router.getClusterName()});
   },
@@ -106,6 +110,9 @@ App.AddServiceController = App.WizardController.extend({
     console.log('AddServiceController:saveInstalledHosts: save hosts ', hostInfo);
   },
 
+  /**
+   * Load services data from server.
+   */
   loadServicesFromServer: function() {
     var displayOrderConfig = require('data/services');
     var apiUrl = '/stacks/HDP/version/1.2.0';
@@ -279,6 +286,7 @@ App.AddServiceController = App.WizardController.extend({
     console.log('addServiceController.slaveComponentHosts: saved hosts', slaveComponentHosts);
     this.set('content.slaveComponentHosts', slaveComponentHosts);
   },
+
   /**
    * return slaveComponents bound to hosts
    * @return {Array}
@@ -354,6 +362,7 @@ App.AddServiceController = App.WizardController.extend({
 
     return result;
   },
+
   /**
    * Load master component hosts data for using in required step controllers
    */
@@ -436,6 +445,10 @@ App.AddServiceController = App.WizardController.extend({
     this.set('content.clients', clients);
     console.log("AddServiceController.loadClients: loaded list ", clients);
   },
+
+  /**
+   * return true if cluster data is loaded and false otherwise
+   */
   dataLoading: function(){
     var dfd = $.Deferred();
     this.connectOutlet('loading');
@@ -451,6 +464,7 @@ App.AddServiceController = App.WizardController.extend({
     }
     return dfd.promise();
   },
+
   /**
    * Generate clients list for selected services and save it to model
    * @param stepController step4WizardController
@@ -500,16 +514,19 @@ App.AddServiceController = App.WizardController.extend({
     }
   },
 
+  /**
+   * load advanced configs for all selected services
+   */
   loadAdvancedConfigs: function () {
     App.db.getSelectedServiceNames().forEach(function (_serviceName) {
       this.loadAdvancedConfig(_serviceName);
     }, this);
   },
-  /**
-   * Generate serviceProperties save it to localdata
-   * called form stepController step6WizardController
-   */
 
+  /**
+   * load advanced config for one service
+   * @param serviceName
+   */
   loadAdvancedConfig: function (serviceName) {
     var self = this;
     var url = (App.testMode) ? '/data/wizard/stack/hdp/version01/' + serviceName + '.json' : App.apiPrefix + '/stacks/HDP/version/1.2.0/services/' + serviceName; // TODO: get this url from the stack selected by the user in Install Options page

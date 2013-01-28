@@ -40,6 +40,9 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
 
   slaveComponentGroups: null,
 
+  /**
+   * clear and set properties to default value
+   */
   clearStep: function () {
     this.set('dataIsLoaded', false);
     this.get('stepConfigs').clear();
@@ -339,7 +342,12 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
     return serviceConfigs;
   },
 
-
+  /**
+   * return site config properties
+   * @param sitename
+   * @param tagname
+   * @return {Object}
+   */
   getSiteConfigProperties: function (sitename, tagname) {
     var self = this;
     var properties = {};
@@ -425,6 +433,9 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
     }, this);
   },
 
+  /**
+   * open popup with appropriate message
+   */
   restartServicePopup: function (event) {
     var header;
     var message;
@@ -551,6 +562,10 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
     return result;
   },
 
+  /**
+   * save new or change exist configs in global configs
+   * @param configs
+   */
   saveGlobalConfigs: function (configs) {
     var globalConfigs = this.get('globalConfigs');
     configs.filterProperty('id', 'puppet var').forEach(function (_config) {
@@ -568,6 +583,10 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
     this.set('globalConfigs', globalConfigs);
   },
 
+  /**
+   * set hive hostnames in global configs
+   * @param globals
+   */
   setHiveHostName: function (globals) {
     if (globals.someProperty('name', 'hive_database')) {
       //TODO: Hive host depends on the type of db selected. Change puppet variable name if postgres is not the default db
@@ -586,12 +605,20 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
     }
   },
 
+  /**
+   * save site configs
+   * @param configs
+   */
   saveSiteConfigs: function (configs) {
     var storedConfigs = configs.filterProperty('id', 'site property').filterProperty('value');
     var uiConfigs = this.loadUiSideConfigs();
     this.set('uiConfigs', storedConfigs.concat(uiConfigs));
   },
 
+  /**
+   * return configs from the UI side
+   * @return {Array}
+   */
   loadUiSideConfigs: function () {
     var uiConfig = [];
     var configs = this.get('configMapping').filterProperty('foreignKey', null);
@@ -618,10 +645,14 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
     }, this);
     return uiConfig;
   },
-  /**
-   * Set all site property that are derived from other puppet-variable
-   */
 
+  /**
+   * return global config value
+   * @param templateName
+   * @param expression
+   * @param name
+   * @return {*}
+   */
   getGlobConfigValue: function (templateName, expression, name) {
     var express = expression.match(/<(.*?)>/g);
     var value = expression;
@@ -724,6 +755,11 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
       }, this);
     }
   },
+
+  /**
+   * try to create configuration and return true for success or false for failure
+   * @return {Boolean}
+   */
   createConfigurations: function () {
     var result = true;
     var serviceConfigTags = this.get('serviceConfigTags');
@@ -744,6 +780,10 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
     return result;
   },
 
+  /**
+   * add newTagName property to each config in serviceConfigs
+   * @param serviceConfigs
+   */
   setNewTagNames: function (serviceConfigs) {
     var time = (new Date).getTime();
     serviceConfigs.forEach(function (_serviceConfigs) {
@@ -751,6 +791,11 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
     }, this);
   },
 
+  /**
+   * send request to the server to create configs and return true for success and false for failure
+   * @param data
+   * @return {*}
+   */
   createConfigSite: function (data) {
     var result;
     var realData = data;
@@ -787,6 +832,11 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
     return result;
   },
 
+  /**
+   * create global site object
+   * @param tagName
+   * @return {Object}
+   */
   createGlobalSiteObj: function (tagName) {
     var globalSiteProperties = {};
     this.get('globalConfigs').forEach(function (_globalSiteObj) {
@@ -804,6 +854,11 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
     return {"type": "global", "tag": tagName, "properties": globalSiteProperties};
   },
 
+  /**
+   * create core site object
+   * @param tagName
+   * @return {Object}
+   */
   createCoreSiteObj: function (tagName) {
     var coreSiteObj = this.get('uiConfigs').filterProperty('filename', 'core-site.xml');
     var coreSiteProperties = {};
@@ -824,6 +879,12 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
     return {"type": "core-site", "tag": tagName, "properties": coreSiteProperties};
   },
 
+  /**
+   * create site object
+   * @param siteName
+   * @param tagName
+   * @return {Object}
+   */
   createSiteObj: function (siteName, tagName) {
     var siteObj = this.get('uiConfigs').filterProperty('filename', siteName + '.xml');
     var siteProperties = {};
@@ -833,6 +894,11 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
     return {"type": siteName, "tag": tagName, "properties": siteProperties};
   },
 
+  /**
+   * apply created configs to service and return true for success and false for failure
+   * @param serviceName
+   * @return {*}
+   */
   applyCreatedConfToService: function (serviceName) {
     var result;
     var clusterName = App.router.getClusterName();
@@ -867,6 +933,11 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
     return result;
   },
 
+  /**
+   * return config for service
+   * @param serviceName
+   * @return {Object}
+   */
   getConfigForService: function (serviceName) {
     var data = {config: {}};
     this.get('serviceConfigTags').forEach(function (_serviceTag) {
@@ -883,6 +954,10 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
     return data;
   },
 
+  /**
+   * return custom comfig
+   * @return {Object}
+   */
   setCustomConfigs: function () {
     var site = this.get('stepConfigs').findProperty('serviceName', this.get('content.serviceName')).get('configs').filterProperty('id', 'conf-site');
     var siteProperties = [];
@@ -961,6 +1036,12 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
     });
   },
 
+  /**
+   * return either specific url for request if testMode is false or testUrl
+   * @param testUrl
+   * @param url
+   * @return {*}
+   */
   getUrl: function (testUrl, url) {
     return (App.testMode) ? testUrl : App.apiPrefix + '/clusters/' + App.router.getClusterName() + url;
   },

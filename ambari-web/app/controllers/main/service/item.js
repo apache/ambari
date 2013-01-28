@@ -173,6 +173,11 @@ App.MainServiceItemController = Em.Controller.extend({
       }
     });
   },
+
+  /**
+   * On click callback for <code>run rebalancer</code> button
+   * @param event
+   */
   runRebalancer: function (event) {
     var self = this;
     App.ModalPopup.show({
@@ -190,6 +195,11 @@ App.MainServiceItemController = Em.Controller.extend({
       }
     });
   },
+
+  /**
+   * On click callback for <code>run compaction</code> button
+   * @param event
+   */
   runCompaction: function (event) {
     var self = this;
     App.ModalPopup.show({
@@ -207,6 +217,11 @@ App.MainServiceItemController = Em.Controller.extend({
       }
     });
   },
+
+  /**
+   * On click callback for <code>run smoke test</code> button
+   * @param event
+   */
   runSmokeTest: function (event) {
     var self = this;
     App.ModalPopup.show({
@@ -236,6 +251,11 @@ App.MainServiceItemController = Em.Controller.extend({
       }
     });
   },
+
+  /**
+   * On click callback for <code>action</code> dropdown menu
+   * @param event
+   */
   doAction: function (event) {
     if ($(event.target).hasClass('disabled') || $(event.target.parentElement).hasClass('disabled')) {
       return;

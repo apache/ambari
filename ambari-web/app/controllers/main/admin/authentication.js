@@ -20,6 +20,10 @@ var App = require('app');
 
 App.MainAdminAuthenticationController = Em.Controller.extend({
   name:'mainAdminAuthenticationController',
+  /**
+   * save user form after editing
+   * @param event
+   */
   save:function (event) {
     var form = event.context;
     if (form.isValid()) {

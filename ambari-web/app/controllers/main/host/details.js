@@ -23,14 +23,26 @@ App.MainHostDetailsController = Em.Controller.extend({
   content: null,
   isFromHosts: false,
 
+  /**
+   * open dashboard page
+   */
   routeHome: function () {
     App.router.transitionTo('main.dashboard');
   },
+
+  /**
+   * open summary page of the selected service
+   * @param event
+   */
   routeToService: function(event){
     var service = event.context;
     App.router.transitionTo('main.services.service.summary',service);
   },
 
+  /**
+   * set new value to isFromHosts property
+   * @param isFromHosts new value
+   */
   setBack: function(isFromHosts){
     this.set('isFromHosts', isFromHosts);
   },
@@ -72,6 +84,10 @@ App.MainHostDetailsController = Em.Controller.extend({
     });
   },
 
+  /**
+   * send command to server to start selected host component
+   * @param event
+   */
   startComponent: function (event) {
     var self = this;
     App.ModalPopup.show({
@@ -124,6 +140,11 @@ App.MainHostDetailsController = Em.Controller.extend({
       }
     });
   },
+
+  /**
+   * send command to server to stop selected host component
+   * @param event
+   */
   stopComponent: function (event) {
     var self = this;
     App.ModalPopup.show({
@@ -176,6 +197,10 @@ App.MainHostDetailsController = Em.Controller.extend({
     });
   },
 
+  /**
+   * send command to server to run decommission on DATANODE
+   * @param event
+   */
   decommission: function(event){
     var self = this;
     var decommissionHostNames = this.get('view.decommissionDataNodeHostNames');
@@ -280,6 +305,10 @@ App.MainHostDetailsController = Em.Controller.extend({
     jQuery.ajax(configsAjax);
   },
 
+  /**
+   * send command to server to run recommission on DATANODE
+   * @param event
+   */
   recommission: function(event){
     var self = this;
     var decommissionHostNames = this.get('view.decommissionDataNodeHostNames');
@@ -354,6 +383,9 @@ App.MainHostDetailsController = Em.Controller.extend({
     })
   },
 
+  /**
+   * show confirmation popup to delete host
+   */
   deleteButtonPopup: function() {
     var self = this;
     App.ModalPopup.show({
@@ -370,6 +402,10 @@ App.MainHostDetailsController = Em.Controller.extend({
       }
     });
   },
+
+  /**
+   * remove host and open hosts page
+   */
   removeHost: function () {
     App.router.get('mainHostController').checkRemoved(this.get('content.id'));
     App.router.transitionTo('hosts');

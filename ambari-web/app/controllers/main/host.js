@@ -59,6 +59,10 @@ App.MainHostController = Em.ArrayController.extend({
     this.set('comeWithFilter', true);
   },
 
+  /**
+   * On click callback for decommission button
+   * @param event
+   */
   decommissionButtonPopup:function () {
     var self = this;
     App.ModalPopup.show({
@@ -75,6 +79,11 @@ App.MainHostController = Em.ArrayController.extend({
       }
     });
   },
+
+  /**
+   * On click callback for delete button
+   * @param event
+   */
   deleteButtonPopup:function () {
     var self = this;
     App.ModalPopup.show({
@@ -91,6 +100,10 @@ App.MainHostController = Em.ArrayController.extend({
       }
     });
   },
+
+  /**
+   * remove selected hosts
+   */
   removeHosts:function () {
     var hosts = this.get('content');
     var selectedHosts = hosts.filterProperty('isChecked', true);
@@ -100,6 +113,10 @@ App.MainHostController = Em.ArrayController.extend({
     this.get('fullContent').removeObjects(selectedHosts);
   },
 
+  /**
+   * remove hosts with id equal host_id
+   * @param host_id
+   */
   checkRemoved:function (host_id) {
     var hosts = this.get('content');
     var selectedHosts = hosts.filterProperty('id', host_id);

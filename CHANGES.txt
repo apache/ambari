@@ -34,6 +34,8 @@ Trunk (unreleased changes):
 
  IMPROVEMENTS
 
+ AMBARI-1272. Controller javascripts need comments. (srimanth)
+ 
  AMBARI-1271. On Confirm Hosts page, add a link to show the Host Checks popup 
  in the success message. (yusaku via srimanth)
 

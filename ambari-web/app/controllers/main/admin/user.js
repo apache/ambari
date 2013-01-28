@@ -20,6 +20,11 @@ var App = require('app');
 
 App.MainAdminUserController = Em.Controller.extend({
   name:'mainAdminUserController',
+
+  /**
+   * send request to the server to delete user if selected user is not current user
+   * @param event
+   */
   deleteRecord:function (event) {
     var self = this;
     if (event.context.get('userName') == App.get('router').getLoginName()) {
@@ -65,6 +70,14 @@ App.MainAdminUserController = Em.Controller.extend({
       }
     });
   },
+
+  /**
+   * send request to the server and call callback function with true if request was success or false if request was failed
+   * @param url
+   * @param method
+   * @param postData
+   * @param callback
+   */
   sendCommandToServer : function(url, method, postData, callback){
     var url =  (App.testMode) ?
         '/data/wizard/deploy/poll_1.json' : //content is the same as ours
