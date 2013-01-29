@@ -18,13 +18,14 @@
 
 package org.apache.ambari.server.api.services;
 
+import org.apache.ambari.server.api.predicate.InvalidQueryException;
+import org.apache.ambari.server.api.predicate.PredicateCompiler;
 import org.apache.ambari.server.api.resources.*;
 import org.apache.ambari.server.api.services.parsers.JsonPropertyParser;
 import org.apache.ambari.server.api.services.parsers.RequestBodyParser;
 import org.apache.ambari.server.api.services.serializers.JsonSerializer;
 import org.apache.ambari.server.api.services.serializers.ResultSerializer;
 import org.apache.ambari.server.controller.internal.TemporalInfoImpl;
-import org.apache.ambari.server.controller.predicate.*;
 import org.apache.ambari.server.controller.spi.Predicate;
 import org.apache.ambari.server.controller.spi.TemporalInfo;
 
@@ -56,11 +57,6 @@ public abstract class BaseRequest implements Request {
    */
   private String m_body;
 
-
-  /**
-   * Predicate operators.
-   */
-  private Pattern m_pattern = Pattern.compile("!=|>=|<=|=|>|<");
 
   /**
    * Associated resource definition
@@ -104,37 +100,12 @@ public abstract class BaseRequest implements Request {
   }
 
   @Override
-  public Predicate getQueryPredicate() {
-    //todo: parse during init
-    //not using getQueryParameters because it assumes '=' operator
-    String uri = getURI();
-    int qsBegin = uri.indexOf("?");
+  public Predicate getQueryPredicate() throws InvalidQueryException {
+    String uri     = getURI();
+    int    qsBegin = uri.indexOf("?");
 
-    if (qsBegin == -1) return null;
-
-    String[] tokens = uri.substring(qsBegin + 1).split("&");
-
-    Set<BasePredicate> setPredicates = new HashSet<BasePredicate>();
-    for (String outerToken : tokens) {
-      if (outerToken.startsWith("_=")) {
-        // NOTE: This is to enable UI to pass a _= parameter for unique query 
-        // string even though the backend doesnt need it.
-        continue;
-      }
-      
-      if (outerToken != null &&  !outerToken.startsWith("fields")) {
-        setPredicates.add(outerToken.contains("|") ?
-            handleOrPredicate(outerToken) : createPredicate(outerToken));
-      }
-    }
-
-    if (setPredicates.size() == 1) {
-      return setPredicates.iterator().next();
-    } else if (setPredicates.size() > 1) {
-      return new AndPredicate(setPredicates.toArray(new BasePredicate[setPredicates.size()]));
-    } else {
-      return null;
-    }
+    return (qsBegin == -1) ? null :
+        getPredicateCompiler().compile(uri.substring(qsBegin + 1));
   }
 
   @Override
@@ -205,43 +176,11 @@ public abstract class BaseRequest implements Request {
     return new ResultPostProcessorImpl(this);
   }
 
-  private BasePredicate createPredicate(String token) {
-
-    Matcher m = m_pattern.matcher(token);
-    m.find();
-
-    String propertyId = token.substring(0, m.start());
-    String     value      = token.substring(m.end());
-    String     operator   = m.group();
-
-    if (operator.equals("=")) {
-      return new EqualsPredicate<String>(propertyId, value);
-    } else if (operator.equals("!=")) {
-      return new NotPredicate(new EqualsPredicate<String>(propertyId, value));
-    } else if (operator.equals("<")) {
-      return new LessPredicate<String>(propertyId, value);
-    } else if (operator.equals(">"))  {
-      return new GreaterPredicate<String>(propertyId, value);
-    } else if (operator.equals("<=")) {
-      return new LessEqualsPredicate<String>(propertyId, value);
-    } else if (operator.equals(">=")) {
-      return new GreaterEqualsPredicate<String>(propertyId, value);
-    } else {
-      throw new RuntimeException("Unknown operator provided in predicate: " + operator);
-    }
-  }
-
-  private BasePredicate handleOrPredicate(String predicate) {
-    Set<BasePredicate> setPredicates = new HashSet<BasePredicate>();
-    String[] tokens = predicate.split("\\|");
-    for (String tok : tokens) {
-      setPredicates.add(createPredicate(tok));
-    }
-
-    return new OrPredicate(setPredicates.toArray(new BasePredicate[setPredicates.size()]));
-  }
-
   protected RequestBodyParser getHttpBodyParser() {
     return new JsonPropertyParser();
+  }
+
+  protected PredicateCompiler getPredicateCompiler() {
+    return new PredicateCompiler();
   }
 }

@@ -18,25 +18,25 @@
 
 package org.apache.ambari.server.api.services;
 
+import org.apache.ambari.server.api.predicate.InvalidQueryException;
+import org.apache.ambari.server.api.predicate.PredicateCompiler;
 import org.apache.ambari.server.controller.internal.TemporalInfoImpl;
-import org.apache.ambari.server.controller.predicate.*;
 import org.apache.ambari.server.controller.spi.Predicate;
 import org.apache.ambari.server.controller.spi.TemporalInfo;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
+import org.junit.Test;
 
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.UriInfo;
+import java.io.UnsupportedEncodingException;
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URLEncoder;
-import java.util.HashSet;
 import java.util.Map;
-import java.util.Set;
 
 import static org.easymock.EasyMock.*;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 
 /**
  * Base tests for service requests.
@@ -44,40 +44,69 @@ import static org.junit.Assert.assertTrue;
 public abstract class BaseRequestTest {
 
   public void testGetQueryPredicate(String uriString) throws Exception {
+    PredicateCompiler compiler = createStrictMock(PredicateCompiler.class);
+    Predicate p = createMock(Predicate.class);
+    UriInfo uriInfo = createMock(UriInfo.class);
+    URI uri = new URI(URLEncoder.encode(uriString, "UTF-8"));
+
+    expect(uriInfo.getRequestUri()).andReturn(uri);
+    expect(compiler.compile(uriString.substring(uriString.indexOf("?") + 1))).andReturn(p);
+
+    replay(uriInfo, compiler, p);
+
+    Request request = getTestRequest(null, null, uriInfo, compiler);
+
+    assertEquals(p, request.getQueryPredicate());
+
+    verify(uriInfo, compiler, p);
+  }
+
+  @Test
+  public void testGetQueryPredicate_noQueryString() throws Exception {
+    String uriString = "http://localhost.com:8080/api/v1/clusters";
+    PredicateCompiler compiler = createStrictMock(PredicateCompiler.class);
     UriInfo uriInfo = createMock(UriInfo.class);
     URI uri = new URI(URLEncoder.encode(uriString, "UTF-8"));
 
     expect(uriInfo.getRequestUri()).andReturn(uri);
 
-    replay(uriInfo);
+    replay(uriInfo, compiler);
 
-    Request request = getTestRequest(null, null, uriInfo);
+    Request request = getTestRequest(null, null, uriInfo, compiler);
 
-    Predicate predicate = request.getQueryPredicate();
+    assertEquals(null, request.getQueryPredicate());
 
-    Set<BasePredicate> setPredicates = new HashSet<BasePredicate>();
-    setPredicates.add(new EqualsPredicate<String>("foo", "bar"));
+    verify(uriInfo, compiler);
+  }
 
-    Set<BasePredicate> setOrPredicates = new HashSet<BasePredicate>();
-    setOrPredicates.add(new EqualsPredicate<String>("orProp1", "5"));
-    setOrPredicates.add(new NotPredicate(new EqualsPredicate<String>("orProp2", "6")));
-    setOrPredicates.add(new LessPredicate<String>("orProp3", "100"));
-    setPredicates.add(new OrPredicate(setOrPredicates.toArray(new BasePredicate[3])));
+  @Test
+  public void testGetQueryPredicate_invalidQuery() throws Exception {
+    String uriString = "http://localhost.com:8080/api/v1/clusters?&foo|";
+    PredicateCompiler compiler = createStrictMock(PredicateCompiler.class);
+    UriInfo uriInfo = createMock(UriInfo.class);
+    URI uri = new URI(URLEncoder.encode(uriString, "UTF-8"));
 
-    setPredicates.add(new NotPredicate(new EqualsPredicate<String>("prop", "5")));
-    setPredicates.add(new GreaterPredicate<String>("prop2", "10"));
-    setPredicates.add(new GreaterEqualsPredicate<String>("prop3", "20"));
-    setPredicates.add(new LessPredicate<String>("prop4", "500"));
-    setPredicates.add(new LessEqualsPredicate<String>("prop5", "1"));
-    Predicate expectedPredicate = new AndPredicate(setPredicates.toArray(new BasePredicate[6]));
+    expect(uriInfo.getRequestUri()).andReturn(uri);
+    expect(compiler.compile(uriString.substring(uriString.indexOf("?") + 1))).
+        andThrow(new InvalidQueryException("test"));
+    replay(uriInfo, compiler);
 
-    assertEquals(expectedPredicate, predicate);
+    Request request = getTestRequest(null, null, uriInfo, compiler);
+
+    try {
+      request.getQueryPredicate();
+      fail("Expected InvalidQueryException due to invalid query");
+    } catch (InvalidQueryException e) {
+      //expected
+    }
+
+    verify(uriInfo, compiler);
   }
 
   public void testGetFields(String fields) {
     UriInfo uriInfo = createMock(UriInfo.class);
     MultivaluedMap<String, String> mapQueryParams = createMock(MultivaluedMap.class);
-    Request request = getTestRequest(null, null, uriInfo);
+    Request request = getTestRequest(null, null, uriInfo, null);
 
     expect(uriInfo.getQueryParameters()).andReturn(mapQueryParams);
     expect(mapQueryParams.getFirst("fields")).andReturn(fields);
@@ -119,5 +148,6 @@ public abstract class BaseRequestTest {
     verify(uriInfo, mapQueryParams);
   }
 
-  protected abstract Request getTestRequest(HttpHeaders headers, String body, UriInfo uriInfo);
+   protected abstract Request getTestRequest(HttpHeaders headers, String body,
+                                             UriInfo uriInfo, PredicateCompiler compiler);
 }

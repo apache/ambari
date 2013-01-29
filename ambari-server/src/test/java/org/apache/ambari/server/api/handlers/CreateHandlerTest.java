@@ -18,6 +18,7 @@
 
 package org.apache.ambari.server.api.handlers;
 
+import org.apache.ambari.server.api.predicate.InvalidQueryException;
 import org.apache.ambari.server.api.resources.ResourceInstance;
 import org.apache.ambari.server.api.services.ResultStatus;
 import org.apache.ambari.server.api.services.persistence.PersistenceManager;
@@ -161,5 +162,22 @@ public class CreateHandlerTest {
     protected PersistenceManager getPersistenceManager() {
       return m_testPm;
     }
+  }
+
+  @Test
+  public void testHandleRequest__InvalidQuery() throws Exception {
+    Request request = createNiceMock(Request.class);
+    ResourceInstance resource = createNiceMock(ResourceInstance.class);
+    Exception e = new InvalidQueryException("test exception");
+
+    expect(request.getResource()).andReturn(resource);
+    expect(request.getQueryPredicate()).andThrow(e);
+    replay(request, resource);
+
+    Result result = new CreateHandler().handleRequest(request);
+    assertEquals(ResultStatus.STATUS.BAD_REQUEST, result.getStatus().getStatus());
+    assertTrue(result.getStatus().getMessage().contains(e.getMessage()));
+
+    verify(request, resource);
   }
 }

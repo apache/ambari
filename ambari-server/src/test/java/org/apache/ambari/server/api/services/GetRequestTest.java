@@ -18,6 +18,7 @@
 
 package org.apache.ambari.server.api.services;
 
+import org.apache.ambari.server.api.predicate.PredicateCompiler;
 import org.junit.Test;
 
 import static org.junit.Assert.*;
@@ -47,7 +48,12 @@ public class GetRequestTest extends BaseRequestTest {
     super.testGetFields(fields);
   }
 
-  protected Request getTestRequest(HttpHeaders headers, String body, UriInfo uriInfo) {
-    return new GetRequest(headers, body, uriInfo, null);
+  protected Request getTestRequest(HttpHeaders headers, String body, UriInfo uriInfo, final PredicateCompiler compiler) {
+    return new GetRequest(headers, body, uriInfo, null) {
+      @Override
+      protected PredicateCompiler getPredicateCompiler() {
+        return compiler;
+      }
+    };
   }
 }

@@ -19,10 +19,12 @@ package org.apache.ambari.server.api;
  */
 
 /**
- * All unit tests.
+ * All api unit tests.
  */
 
 import org.apache.ambari.server.api.handlers.*;
+import org.apache.ambari.server.api.predicate.QueryLexerTest;
+import org.apache.ambari.server.api.predicate.QueryParserTest;
 import org.apache.ambari.server.api.query.QueryImplTest;
 import org.apache.ambari.server.api.resources.ResourceInstanceImplTest;
 import org.apache.ambari.server.api.services.*;
@@ -36,6 +38,7 @@ import org.junit.runners.Suite;
     ComponentServiceTest.class, HostComponentServiceTest.class, ReadHandlerTest.class, QueryImplTest.class,
     JsonPropertyParserTest.class, CreateHandlerTest.class, UpdateHandlerTest.class, DeleteHandlerTest.class,
     PersistenceManagerImplTest.class, GetRequestTest.class, PutRequestTest.class, PostRequestTest.class,
-    DeleteRequestTest.class, JsonSerializerTest.class, QueryCreateHandlerTest.class, ResourceInstanceImplTest.class})
+    DeleteRequestTest.class, JsonSerializerTest.class, QueryCreateHandlerTest.class, ResourceInstanceImplTest.class,
+    QueryLexerTest.class, QueryParserTest.class})
 public class TestSuite {
 }

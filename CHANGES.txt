@@ -12,6 +12,8 @@ Trunk (unreleased changes):
 
  NEW FEATURES
 
+ AMBARI-1280. Support explicit predicate grouping in API queries. (jspeidel)
+
  AMBARI-1180. Display host check status results given by the agent as part
  of host registration. (yusaku)
 

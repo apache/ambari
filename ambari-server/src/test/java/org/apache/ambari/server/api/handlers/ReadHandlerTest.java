@@ -18,6 +18,7 @@
 
 package org.apache.ambari.server.api.handlers;
 
+import org.apache.ambari.server.api.predicate.InvalidQueryException;
 import org.apache.ambari.server.api.query.Query;
 import org.apache.ambari.server.api.resources.ResourceInstance;
 import org.apache.ambari.server.api.services.Request;
@@ -35,6 +36,7 @@ import java.util.Map;
 import static org.easymock.EasyMock.*;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertSame;
+import static org.junit.Assert.assertTrue;
 
 /**
  * Unit tests for ReadHandler.
@@ -243,6 +245,30 @@ public class ReadHandlerTest {
     // not a query, so not found
     assertEquals(ResultStatus.STATUS.NOT_FOUND, result.getStatus().getStatus());
     assertEquals(exception.getMessage(), result.getStatus().getMessage());
+    verify(request, resource, query);
+  }
+
+  @Test
+  public void testHandleRequest__InvalidQueryException() throws Exception {
+    Request request = createStrictMock(Request.class);
+    ResourceInstance resource = createStrictMock(ResourceInstance.class);
+    Query query = createMock(Query.class);
+    InvalidQueryException exception = new InvalidQueryException("test");
+
+    expect(request.getResource()).andReturn(resource);
+    expect(resource.getQuery()).andReturn(query);
+
+    expect(request.getFields()).andReturn(Collections.<String, TemporalInfo>emptyMap());
+
+    expect(request.getQueryPredicate()).andThrow(exception);
+    replay(request, resource, query);
+
+    //test
+    ReadHandler handler = new ReadHandler();
+    Result result = handler.handleRequest(request);
+
+    assertEquals(ResultStatus.STATUS.BAD_REQUEST, result.getStatus().getStatus());
+    assertTrue(result.getStatus().getMessage().contains(exception.getMessage()));
     verify(request, resource, query);
   }
 

@@ -18,10 +18,12 @@
 
 package org.apache.ambari.server.api.handlers;
 
+import org.apache.ambari.server.api.predicate.InvalidQueryException;
 import org.apache.ambari.server.api.resources.ResourceInstance;
 import org.apache.ambari.server.api.services.Request;
 import org.apache.ambari.server.api.services.Result;
 import org.apache.ambari.server.api.services.ResultImpl;
+import org.apache.ambari.server.api.services.ResultStatus;
 import org.apache.ambari.server.api.services.persistence.PersistenceManager;
 import org.apache.ambari.server.api.services.persistence.PersistenceManagerImpl;
 import org.apache.ambari.server.api.util.TreeNode;
@@ -57,7 +59,13 @@ public abstract class BaseManagementHandler implements RequestHandler {
 
   public Result handleRequest(Request request) {
     ResourceInstance resource = request.getResource();
-    Predicate queryPredicate = request.getQueryPredicate();
+    Predicate queryPredicate;
+    try {
+      queryPredicate = request.getQueryPredicate();
+    } catch (InvalidQueryException e) {
+      return new ResultImpl(new ResultStatus(ResultStatus.STATUS.BAD_REQUEST,
+          "Invalid Request: " + e.getMessage()));
+    }
     if (queryPredicate != null) {
       resource.getQuery().setUserPredicate(queryPredicate);
     }
