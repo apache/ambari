@@ -22,5 +22,10 @@ package org.apache.ambari.server.controller.predicate;
  */
 public interface PredicateVisitorAcceptor {
 
+  /**
+   * Accept the given visitor.
+   *
+   * @param visitor  the visitor
+   */
   public void accept(PredicateVisitor visitor);
 }

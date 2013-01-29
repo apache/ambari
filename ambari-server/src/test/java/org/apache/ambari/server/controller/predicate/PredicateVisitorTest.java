@@ -22,7 +22,7 @@ import org.apache.ambari.server.controller.utilities.PropertyHelper;
 import org.junit.Test;
 
 /**
- *
+ *  Tests for predicate visitors.
  */
 public class PredicateVisitorTest {
 
@@ -56,6 +56,17 @@ public class PredicateVisitorTest {
     Assert.assertNull(visitor.visitedComparisonPredicate);
     Assert.assertNull(visitor.visitedArrayPredicate);
     Assert.assertSame(notPredicate, visitor.visitedUnaryPredicate);
+
+
+    CategoryPredicate categoryPredicate = new CategoryIsEmptyPredicate("cat1");
+
+    visitor = new TestPredicateVisitor();
+    categoryPredicate.accept(visitor);
+
+    Assert.assertNull(visitor.visitedComparisonPredicate);
+    Assert.assertNull(visitor.visitedArrayPredicate);
+    Assert.assertNull(visitor.visitedUnaryPredicate);
+    Assert.assertSame(categoryPredicate, visitor.visitedCategoryPredicate);
   }
 
   public static class TestPredicateVisitor implements PredicateVisitor {
@@ -64,6 +75,7 @@ public class PredicateVisitorTest {
     ArrayPredicate visitedArrayPredicate = null;
     UnaryPredicate visitedUnaryPredicate = null;
     AlwaysPredicate visitedAlwaysPredicate = null;
+    CategoryPredicate visitedCategoryPredicate = null;
 
     @Override
     public void acceptComparisonPredicate(ComparisonPredicate predicate) {
@@ -84,6 +96,10 @@ public class PredicateVisitorTest {
     public void acceptAlwaysPredicate(AlwaysPredicate predicate) {
       visitedAlwaysPredicate = predicate;
     }
-  }
 
+    @Override
+    public void acceptCategoryPredicate(CategoryPredicate predicate) {
+      visitedCategoryPredicate = predicate;
+    }
+  }
 }

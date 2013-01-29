@@ -169,6 +169,8 @@ Trunk (unreleased changes):
 
  AMBARI-1269. Refactor ResourceProvider SPI. (tbeerbower)
  
+ AMBARI-1270. Add predicate objects for checking empty resource category. (tbeerbower)
+
  BUG FIXES
 
  AMBARI-1278. Cannot proceed from Step 3 to Step 4 in App.testMode (Next 

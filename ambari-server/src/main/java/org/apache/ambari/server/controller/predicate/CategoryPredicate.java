@@ -15,20 +15,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.apache.ambari.server.controller.predicate;
 
 /**
- * A visitor of predicates.
+ * Base class for predicates based on property categories.
  */
-public interface PredicateVisitor {
+public abstract class CategoryPredicate extends PropertyPredicate implements BasePredicate {
+  public CategoryPredicate(String propertyId) {
+    super(propertyId);
+  }
 
-  public void acceptComparisonPredicate(ComparisonPredicate predicate);
-
-  public void acceptArrayPredicate(ArrayPredicate predicate);
-
-  public void acceptUnaryPredicate(UnaryPredicate predicate);
-
-  public void acceptAlwaysPredicate(AlwaysPredicate predicate);
-
-  public void acceptCategoryPredicate(CategoryPredicate predicate);
+  @Override
+  public void accept(PredicateVisitor visitor) {
+    visitor.acceptCategoryPredicate(this);
+  }
 }
