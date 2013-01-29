@@ -17,8 +17,6 @@
  */
 package org.apache.ambari.server.controller.spi;
 
-import java.util.Map;
-import java.util.Set;
 
 /**
  * The schema is used to describe all of the properties that a resource type
@@ -32,22 +30,12 @@ public interface Schema {
    * </p>
    * For example, the resource 'HostComponent' is uniquely identified by
    * its associated 'Cluster', 'Host' and 'Component' resources.  Passing
-   * the 'Host' resource type to
-   * {@link Schema#getKeyPropertyId(org.apache.ambari.server.controller.spi.Resource.Type)}
-   * on a schema object of a 'HostComponent' resource will return the id of the
-   * property of the foreign key reference from the 'HostComponent' to the 'Host'.
+   * the 'Host' resource type to this method on a schema object of a 'HostComponent'
+   * resource will return the id of the property of the foreign key reference from
+   * the 'HostComponent' to the 'Host'.
    *
    * @param type the resource type
    * @return the key property id for the given resource type
    */
   public String getKeyPropertyId(Resource.Type type);
-
-  /**
-   * Get this schema's map of category and property names.  The map
-   * is keyed by category name and contains sets of property names
-   * for each category.
-   *
-   * @return the map of category and property names
-   */
-  public Map<String, Set<String>> getCategoryProperties();
-}
+  }

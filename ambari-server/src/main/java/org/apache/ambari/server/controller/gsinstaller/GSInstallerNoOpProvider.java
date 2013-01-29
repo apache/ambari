@@ -28,25 +28,9 @@ import java.util.Set;
  */
 public class GSInstallerNoOpProvider extends GSInstallerResourceProvider{
 
-  private final Resource.Type type;
-
   // ----- Constructors ------------------------------------------------------
 
   public GSInstallerNoOpProvider(Resource.Type type, ClusterDefinition clusterDefinition) {
-    super(clusterDefinition);
-    this.type = type;
-  }
-
-
-  // ----- ResourceProvider --------------------------------------------------
-
-  @Override
-  public Set<String> getPropertyIdsForSchema() {
-    return PropertyHelper.getPropertyIds(type);
-  }
-
-  @Override
-  public Map<Resource.Type, String> getKeyPropertyIds() {
-    return PropertyHelper.getKeyPropertyIds(type);
+    super(type, clusterDefinition);
   }
 }

@@ -34,7 +34,7 @@ import java.util.Set;
 /**
  * Resource provider for component resources.
  */
-class ComponentResourceProvider extends ResourceProviderImpl{
+class ComponentResourceProvider extends AbstractResourceProvider {
 
 
   // ----- Property ID constants ---------------------------------------------
@@ -112,7 +112,7 @@ class ComponentResourceProvider extends ResourceProviderImpl{
       }
     });
 
-    Set<String>   requestedIds = PropertyHelper.getRequestPropertyIds(getPropertyIds(), request, predicate);
+    Set<String>   requestedIds = getRequestPropertyIds(request, predicate);
     Set<Resource> resources    = new HashSet<Resource>();
 
     for (ServiceComponentResponse response : responses) {

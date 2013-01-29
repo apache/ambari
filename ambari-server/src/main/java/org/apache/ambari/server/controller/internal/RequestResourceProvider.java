@@ -40,7 +40,7 @@ import java.util.Set;
 /**
  * Resource provider for request resources.
  */
-class RequestResourceProvider extends ResourceProviderImpl{
+class RequestResourceProvider extends AbstractResourceProvider {
 
   // ----- Property ID constants ---------------------------------------------
   // Requests
@@ -78,7 +78,7 @@ class RequestResourceProvider extends ResourceProviderImpl{
   public Set<Resource> getResources(Request request, Predicate predicate)
     throws SystemException, UnsupportedPropertyException, NoSuchResourceException, NoSuchParentResourceException {
 
-    Set<String>         requestedIds         = PropertyHelper.getRequestPropertyIds(getPropertyIds(), request, predicate);
+    Set<String>         requestedIds         = getRequestPropertyIds(request, predicate);
     Map<String, Object> predicateProperties  = PredicateHelper.getProperties(predicate);
 
     final RequestStatusRequest requestStatusRequest = getRequest(predicateProperties);

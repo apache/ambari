@@ -34,7 +34,7 @@ import java.util.Set;
 /**
  * Resource provider for action resources.
  */
-class ActionResourceProvider extends ResourceProviderImpl {
+class ActionResourceProvider extends AbstractResourceProvider {
 
   // ----- Property ID constants ---------------------------------------------
 

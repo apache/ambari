@@ -165,6 +165,8 @@ Trunk (unreleased changes):
  AMBARI-1288. Change "authorization" to "authentication" in props setup for
  LDAP. (mahadev)
 
+ AMBARI-1269. Refactor ResourceProvider SPI. (tbeerbower)
+ 
  BUG FIXES
 
  AMBARI-1278. Cannot proceed from Step 3 to Step 4 in App.testMode (Next 

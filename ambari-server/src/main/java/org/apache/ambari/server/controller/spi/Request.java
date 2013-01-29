@@ -37,7 +37,7 @@ public interface Request {
   public Set<String> getPropertyIds();
 
   /**
-   * Get the set of maps of properties being requested.  Used
+   * Get the property values of the request.  Used
    * for requests to update or create resources.  Each value
    * in the set is a map of properties for a resource being
    * created/updated.  Each map contains property values keyed

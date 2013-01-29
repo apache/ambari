@@ -19,7 +19,6 @@ package org.apache.ambari.server.controller.internal;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -39,7 +38,7 @@ import org.slf4j.LoggerFactory;
 /**
  * Property provider that is used to read HTTP data from another server.
  */
-public class HttpProxyPropertyProvider implements PropertyProvider {
+public class HttpProxyPropertyProvider extends BaseProvider implements PropertyProvider {
 
   protected final static Logger LOG =
       LoggerFactory.getLogger(HttpProxyPropertyProvider.class);
@@ -59,19 +58,17 @@ public class HttpProxyPropertyProvider implements PropertyProvider {
   private String hostNamePropertyId = null;
   private String componentNamePropertyId = null;
   
-  private Set<String> propertyIds = new HashSet<String>();
-  
   public HttpProxyPropertyProvider(
       StreamProvider stream,
       String clusterNamePropertyId,
       String hostNamePropertyId,
       String componentNamePropertyId) {
+
+    super(new HashSet<String>(MAPPINGS.values()));
     this.streamProvider = stream;
     this.clusterNamePropertyId = clusterNamePropertyId;
     this.hostNamePropertyId = hostNamePropertyId;
     this.componentNamePropertyId = componentNamePropertyId;
-    
-    propertyIds.addAll(MAPPINGS.values());
   }
 
   /**
@@ -82,7 +79,7 @@ public class HttpProxyPropertyProvider implements PropertyProvider {
   public Set<Resource> populateResources(Set<Resource> resources,
       Request request, Predicate predicate) throws SystemException {
     
-    Set<String> ids = PropertyHelper.getRequestPropertyIds(propertyIds, request, predicate);
+    Set<String> ids = getRequestPropertyIds(request, predicate);
     
     if (0 == ids.size())
       return resources;
@@ -107,21 +104,6 @@ public class HttpProxyPropertyProvider implements PropertyProvider {
     return resources;
   }
 
-  @Override
-  public Set<String> getPropertyIds() {
-    return propertyIds;
-  }
-
-  @Override
-  public Set<String> checkPropertyIds(Set<String> propertyIds) {
-    if (!this.propertyIds.containsAll(propertyIds)) {
-      Set<String> unsupportedPropertyIds = new HashSet<String>(propertyIds);
-      unsupportedPropertyIds.removeAll(this.propertyIds);
-      return unsupportedPropertyIds;
-    }
-    return Collections.emptySet();
-  }
-  
   private void getHttpResponse(Resource r, String url, String propertyIdToSet) {
     
     InputStream in = null;

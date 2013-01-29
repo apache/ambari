@@ -176,7 +176,7 @@ public abstract class AbstractProviderModule implements ProviderModule, Resource
     switch (type){
       case Cluster :
         providers.add(new GangliaReportPropertyProvider(
-            PropertyHelper.getGangliaPropertyIds(type).get("*"),
+            PropertyHelper.getGangliaPropertyIds(type),
             streamProvider,
             this,
             PropertyHelper.getPropertyId("Clusters", "cluster_name")));

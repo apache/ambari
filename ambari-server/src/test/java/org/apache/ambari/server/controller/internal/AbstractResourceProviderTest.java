@@ -19,7 +19,6 @@
 package org.apache.ambari.server.controller.internal;
 
 import org.apache.ambari.server.controller.*;
-import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
 import org.apache.ambari.server.controller.utilities.PredicateBuilder;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
 import org.apache.ambari.server.controller.RequestStatusResponse;
@@ -30,7 +29,6 @@ import org.apache.ambari.server.controller.spi.ResourceProvider;
 import org.easymock.EasyMock;
 import org.easymock.IArgumentMatcher;
 import org.junit.Assert;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import static org.easymock.EasyMock.anyObject;
@@ -40,6 +38,8 @@ import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.replay;
 import static org.easymock.EasyMock.verify;
 
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
@@ -49,7 +49,7 @@ import java.util.Set;
 /**
  * Resource provider tests.
  */
-public class ResourceProviderImplTest {
+public class AbstractResourceProviderTest {
 
   @Test
   public void testCreateClusterResources() throws Exception{
@@ -64,7 +64,7 @@ public class ResourceProviderImplTest {
     // replay
     replay(managementController, response);
 
-    ResourceProvider provider = ResourceProviderImpl.getResourceProvider(
+    ResourceProvider provider = AbstractResourceProvider.getResourceProvider(
         type,
         PropertyHelper.getPropertyIds(type),
         PropertyHelper.getKeyPropertyIds(type),
@@ -142,7 +142,7 @@ public class ResourceProviderImplTest {
     // replay
     replay(managementController);
 
-    ResourceProvider provider = ResourceProviderImpl.getResourceProvider(
+    ResourceProvider provider = AbstractResourceProvider.getResourceProvider(
         type,
         PropertyHelper.getPropertyIds(type),
         PropertyHelper.getKeyPropertyIds(type),
@@ -204,7 +204,7 @@ public class ResourceProviderImplTest {
     // replay
     replay(managementController, response);
 
-    ResourceProvider provider = ResourceProviderImpl.getResourceProvider(
+    ResourceProvider provider = AbstractResourceProvider.getResourceProvider(
         type,
         PropertyHelper.getPropertyIds(type),
         PropertyHelper.getKeyPropertyIds(type),
@@ -257,7 +257,7 @@ public class ResourceProviderImplTest {
     // replay
     replay(managementController, response);
 
-    ResourceProvider provider = ResourceProviderImpl.getResourceProvider(
+    ResourceProvider provider = AbstractResourceProvider.getResourceProvider(
         type,
         PropertyHelper.getPropertyIds(type),
         PropertyHelper.getKeyPropertyIds(type),
@@ -300,7 +300,7 @@ public class ResourceProviderImplTest {
     // replay
     replay(managementController, response);
 
-    ResourceProvider provider = ResourceProviderImpl.getResourceProvider(
+    ResourceProvider provider = AbstractResourceProvider.getResourceProvider(
         type,
         PropertyHelper.getPropertyIds(type),
         PropertyHelper.getKeyPropertyIds(type),
@@ -335,19 +335,19 @@ public class ResourceProviderImplTest {
     AmbariManagementController managementController = createMock(AmbariManagementController.class);
 
     Set<ServiceResponse> allResponse = new HashSet<ServiceResponse>();
-    allResponse.add(new ServiceResponse(100L, "Cluster100", "Service100", null, "HDP-0.1", null));
-    allResponse.add(new ServiceResponse(100L, "Cluster100", "Service101", null, "HDP-0.1", null));
-    allResponse.add(new ServiceResponse(100L, "Cluster100", "Service102", null, "HDP-0.1", null));
-    allResponse.add(new ServiceResponse(100L, "Cluster100", "Service103", null, "HDP-0.1", null));
-    allResponse.add(new ServiceResponse(100L, "Cluster100", "Service104", null, "HDP-0.1", null));
+    allResponse.add(new ServiceResponse(100L, "Cluster100", "Service100", null, "HDP-0.1", "DEPLOYED"));
+    allResponse.add(new ServiceResponse(100L, "Cluster100", "Service101", null, "HDP-0.1", "DEPLOYED"));
+    allResponse.add(new ServiceResponse(100L, "Cluster100", "Service102", null, "HDP-0.1", "DEPLOYED"));
+    allResponse.add(new ServiceResponse(100L, "Cluster100", "Service103", null, "HDP-0.1", "DEPLOYED"));
+    allResponse.add(new ServiceResponse(100L, "Cluster100", "Service104", null, "HDP-0.1", "DEPLOYED"));
 
     Set<ServiceResponse> nameResponse = new HashSet<ServiceResponse>();
-    nameResponse.add(new ServiceResponse(100L, "Cluster100", "Service102", null, "HDP-0.1", null));
+    nameResponse.add(new ServiceResponse(100L, "Cluster100", "Service102", null, "HDP-0.1", "DEPLOYED"));
 
     Set<ServiceResponse> stateResponse = new HashSet<ServiceResponse>();
-    stateResponse.add(new ServiceResponse(100L, "Cluster100", "Service100", null, "HDP-0.1", null));
-    stateResponse.add(new ServiceResponse(100L, "Cluster100", "Service102", null, "HDP-0.1", null));
-    stateResponse.add(new ServiceResponse(100L, "Cluster100", "Service104", null, "HDP-0.1", null));
+    stateResponse.add(new ServiceResponse(100L, "Cluster100", "Service100", null, "HDP-0.1", "DEPLOYED"));
+    stateResponse.add(new ServiceResponse(100L, "Cluster100", "Service102", null, "HDP-0.1", "DEPLOYED"));
+    stateResponse.add(new ServiceResponse(100L, "Cluster100", "Service104", null, "HDP-0.1", "DEPLOYED"));
 
     // set expectations
     expect(managementController.getServices(anyObject(Set.class))).andReturn(allResponse).once();
@@ -357,7 +357,7 @@ public class ResourceProviderImplTest {
     // replay
     replay(managementController);
 
-    ResourceProvider provider = ResourceProviderImpl.getResourceProvider(
+    ResourceProvider provider = AbstractResourceProvider.getResourceProvider(
         type,
         PropertyHelper.getPropertyIds(type),
         PropertyHelper.getKeyPropertyIds(type),
@@ -370,7 +370,6 @@ public class ResourceProviderImplTest {
 
     // create the request
     Request request = PropertyHelper.getReadRequest(propertyIds);
-
     // get all ... no predicate
     Set<Resource> resources = provider.getResources(request, null);
 
@@ -388,14 +387,15 @@ public class ResourceProviderImplTest {
 
     // get service named Service102
     Predicate  predicate = new PredicateBuilder().property(ServiceResourceProvider.SERVICE_SERVICE_NAME_PROPERTY_ID).equals("Service102").toPredicate();
+    request = PropertyHelper.getReadRequest("ServiceInfo");
     resources = provider.getResources(request, predicate);
 
     Assert.assertEquals(1, resources.size());
-    Assert.assertEquals("Cluster100", resources.iterator().next().getPropertyValue(ServiceResourceProvider.SERVICE_CLUSTER_NAME_PROPERTY_ID));
     Assert.assertEquals("Service102", resources.iterator().next().getPropertyValue(ServiceResourceProvider.SERVICE_SERVICE_NAME_PROPERTY_ID));
 
     // get services where state == "DEPLOYED"
     predicate = new PredicateBuilder().property(ServiceResourceProvider.SERVICE_SERVICE_STATE_PROPERTY_ID).equals("DEPLOYED").toPredicate();
+    request = PropertyHelper.getReadRequest(propertyIds);
     resources = provider.getResources(request, predicate);
 
     Assert.assertEquals(3, resources.size());
@@ -427,7 +427,7 @@ public class ResourceProviderImplTest {
     // replay
     replay(managementController, response);
 
-    ResourceProvider provider = ResourceProviderImpl.getResourceProvider(
+    ResourceProvider provider = AbstractResourceProvider.getResourceProvider(
         type,
         PropertyHelper.getPropertyIds(type),
         PropertyHelper.getKeyPropertyIds(type),
@@ -448,6 +448,72 @@ public class ResourceProviderImplTest {
 
     // verify
     verify(managementController, response);
+  }
+
+  @Test
+  public void testCheckPropertyIds() {
+    Set<String> propertyIds = new HashSet<String>();
+    propertyIds.add("foo");
+    propertyIds.add("cat1/foo");
+    propertyIds.add("cat2/bar");
+    propertyIds.add("cat2/baz");
+    propertyIds.add("cat3/sub1/bam");
+    propertyIds.add("cat4/sub2/sub3/bat");
+    propertyIds.add("cat5/subcat5/map");
+
+    Map<Resource.Type, String> keyPropertyIds = new HashMap<Resource.Type, String>();
+
+    AmbariManagementController managementController = createMock(AmbariManagementController.class);
+
+    AbstractResourceProvider provider =
+        (AbstractResourceProvider) AbstractResourceProvider.getResourceProvider(
+            Resource.Type.Service,
+            propertyIds,
+            keyPropertyIds,
+            managementController);
+
+    Set<String> unsupported = provider.checkPropertyIds(Collections.singleton("foo"));
+    Assert.assertTrue(unsupported.isEmpty());
+
+    // note that key is not in the set of known property ids.  We allow it if its parent is a known property.
+    // this allows for Map type properties where we want to treat the entries as individual properties
+    Assert.assertTrue(provider.checkPropertyIds(Collections.singleton("cat5/subcat5/map/key")).isEmpty());
+
+    unsupported = provider.checkPropertyIds(Collections.singleton("bar"));
+    Assert.assertEquals(1, unsupported.size());
+    Assert.assertTrue(unsupported.contains("bar"));
+
+    unsupported = provider.checkPropertyIds(Collections.singleton("cat1/foo"));
+    Assert.assertTrue(unsupported.isEmpty());
+
+    unsupported = provider.checkPropertyIds(Collections.singleton("cat1"));
+    Assert.assertTrue(unsupported.isEmpty());
+  }
+
+  @Test
+  public void testGetPropertyIds() {
+    Set<String> propertyIds = new HashSet<String>();
+    propertyIds.add("p1");
+    propertyIds.add("foo");
+    propertyIds.add("cat1/foo");
+    propertyIds.add("cat2/bar");
+    propertyIds.add("cat2/baz");
+    propertyIds.add("cat3/sub1/bam");
+    propertyIds.add("cat4/sub2/sub3/bat");
+
+    Map<Resource.Type, String> keyPropertyIds = new HashMap<Resource.Type, String>();
+
+    AmbariManagementController managementController = createMock(AmbariManagementController.class);
+
+    AbstractResourceProvider provider =
+        (AbstractResourceProvider) AbstractResourceProvider.getResourceProvider(
+            Resource.Type.Service,
+            propertyIds,
+            keyPropertyIds,
+            managementController);
+
+    Set<String> supportedPropertyIds = provider.getPropertyIds();
+    Assert.assertTrue(supportedPropertyIds.containsAll(propertyIds));
   }
 
 
@@ -473,7 +539,7 @@ public class ResourceProviderImplTest {
   }
 
 
-  // ----- innner classes ----------------------------------------------------
+  // ----- inner classes -----------------------------------------------------
 
   public static class ClusterRequestMatcher extends ClusterRequest implements IArgumentMatcher {
 

@@ -109,7 +109,7 @@ public class ClusterControllerImpl implements ClusterController {
     synchronized (schemas) {
       schema = schemas.get(type);
       if (schema == null) {
-        schema = new SchemaImpl(ensureResourceProvider(type), ensurePropertyProviders(type));
+        schema = new SchemaImpl(ensureResourceProvider(type));
         schemas.put(type, schema);
       }
     }

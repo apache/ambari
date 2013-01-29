@@ -121,6 +121,25 @@ public class ResourceImpl implements Resource {
   }
 
   @Override
+  public void addCategory(String id) {
+    TreeNode<Map<String, Object>> node;
+    if (id != null) {
+      node = m_treeProperties.getChild(id);
+      if (node == null) {
+        String[] tokens = id.split("/");
+        node = m_treeProperties;
+        for (String t : tokens) {
+          TreeNode<Map<String, Object>> child = node.getChild(t);
+          if (child == null) {
+            child = node.addChild(new HashMap<String, Object>(), t);
+          }
+          node = child;
+        }
+      }
+    }
+  }
+
+  @Override
   public Object getPropertyValue(String id) {
     String category = PropertyHelper.getPropertyCategory(id);
     TreeNode<Map<String, Object>> node = (category == null) ? m_treeProperties :

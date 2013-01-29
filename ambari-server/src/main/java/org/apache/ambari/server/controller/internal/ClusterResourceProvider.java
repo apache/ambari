@@ -43,7 +43,7 @@ import java.util.Set;
 /**
  * Resource provider for cluster resources.
  */
-class ClusterResourceProvider extends ResourceProviderImpl{
+class ClusterResourceProvider extends AbstractResourceProvider {
 
   // ----- Property ID constants ---------------------------------------------
 
@@ -100,7 +100,7 @@ class ClusterResourceProvider extends ResourceProviderImpl{
       throws SystemException, UnsupportedPropertyException, NoSuchResourceException, NoSuchParentResourceException {
 
     final ClusterRequest clusterRequest = getRequest(PredicateHelper.getProperties(predicate));
-    Set<String> requestedIds = PropertyHelper.getRequestPropertyIds(getPropertyIds(), request, predicate);
+    Set<String> requestedIds = getRequestPropertyIds(request, predicate);
 
     // TODO : handle multiple requests
     Set<ClusterResponse> responses = getResources(new Command<Set<ClusterResponse>>() {

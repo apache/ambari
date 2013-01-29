@@ -46,7 +46,7 @@ import java.util.Map.Entry;
 /**
  * Resource provider for configuration resources.
  */
-class ConfigurationResourceProvider extends ResourceProviderImpl {
+class ConfigurationResourceProvider extends AbstractResourceProvider {
 
   // ----- Property ID constants ---------------------------------------------
 

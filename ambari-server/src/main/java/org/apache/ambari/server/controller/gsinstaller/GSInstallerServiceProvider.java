@@ -22,7 +22,6 @@ import org.apache.ambari.server.controller.internal.ResourceImpl;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
 
-import java.util.Map;
 import java.util.Set;
 
 /**
@@ -43,21 +42,8 @@ public class GSInstallerServiceProvider extends GSInstallerResourceProvider{
    * @param clusterDefinition  the cluster definition
    */
   public GSInstallerServiceProvider(ClusterDefinition clusterDefinition) {
-    super(clusterDefinition);
+    super(Resource.Type.Service, clusterDefinition);
     initServiceResources();
-  }
-
-
-  // ----- ResourceProvider --------------------------------------------------
-
-  @Override
-  public Set<String> getPropertyIdsForSchema() {
-    return PropertyHelper.getPropertyIds(Resource.Type.Service);
-  }
-
-  @Override
-  public Map<Resource.Type, String> getKeyPropertyIds() {
-    return PropertyHelper.getKeyPropertyIds(Resource.Type.Service);
   }
 
 

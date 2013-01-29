@@ -18,9 +18,9 @@
 
 package org.apache.ambari.server.controller.ganglia;
 
+import org.apache.ambari.server.controller.internal.AbstractPropertyProvider;
 import org.apache.ambari.server.controller.internal.PropertyInfo;
 import org.apache.ambari.server.controller.spi.*;
-import org.apache.ambari.server.controller.utilities.PropertyHelper;
 import org.apache.ambari.server.controller.utilities.StreamProvider;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.type.TypeReference;
@@ -28,7 +28,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -39,14 +38,7 @@ import java.util.Set;
  * Property provider implementation for a Ganglia source. This provider is specialized
  * to pull metrics from existing Ganglia reports.
  */
-public class GangliaReportPropertyProvider implements PropertyProvider {
-
-  /**
-   * Set of property ids supported by this provider.
-   */
-  private final Set<String> propertyIds;
-
-  private final Map<String, PropertyInfo> componentMetrics;
+public class GangliaReportPropertyProvider extends AbstractPropertyProvider {
 
   private final StreamProvider streamProvider;
 
@@ -65,17 +57,15 @@ public class GangliaReportPropertyProvider implements PropertyProvider {
 
   // ----- Constructors ------------------------------------------------------
 
-  public GangliaReportPropertyProvider(Map<String, PropertyInfo> componentMetrics,
+  public GangliaReportPropertyProvider(Map<String, Map<String, PropertyInfo>> componentPropertyInfoMap,
                                        StreamProvider streamProvider,
                                        GangliaHostProvider hostProvider,
                                        String clusterNamePropertyId) {
+    super(componentPropertyInfoMap);
 
-    this.componentMetrics      = componentMetrics;
     this.streamProvider        = streamProvider;
     this.hostProvider          = hostProvider;
     this.clusterNamePropertyId = clusterNamePropertyId;
-
-    propertyIds = new HashSet<String>(componentMetrics.keySet());
   }
 
 
@@ -92,21 +82,6 @@ public class GangliaReportPropertyProvider implements PropertyProvider {
       }
     }
     return keepers;
-  }
-
-  @Override
-  public Set<String> getPropertyIds() {
-    return propertyIds;
-  }
-
-  @Override
-  public Set<String> checkPropertyIds(Set<String> propertyIds) {
-    if (!this.propertyIds.containsAll(propertyIds)) {
-      Set<String> unsupportedPropertyIds = new HashSet<String>(propertyIds);
-      unsupportedPropertyIds.removeAll(this.propertyIds);
-      return unsupportedPropertyIds;
-    }
-    return Collections.emptySet();
   }
 
 
@@ -126,6 +101,8 @@ public class GangliaReportPropertyProvider implements PropertyProvider {
   private boolean populateResource(Resource resource, Request request, Predicate predicate)
       throws SystemException {
 
+    Set<String> propertyIds = getPropertyIds();
+
     if (propertyIds.isEmpty()) {
       return true;
     }
@@ -139,8 +116,7 @@ public class GangliaReportPropertyProvider implements PropertyProvider {
       return true;
     }
 
-    setProperties(resource, clusterName, request,
-        PropertyHelper.getRequestPropertyIds(propertyIds, request, predicate));
+    setProperties(resource, clusterName, request, getRequestPropertyIds(request, predicate));
 
     return true;
   }
@@ -170,8 +146,8 @@ public class GangliaReportPropertyProvider implements PropertyProvider {
           }
         }
       } catch (IOException e) {
-        if (LOG.isDebugEnabled()) {
-          LOG.debug("Caught exception getting Ganglia metrics : " + e + " : spec=" + spec);
+        if (LOG.isErrorEnabled()) {
+          LOG.error("Caught exception getting Ganglia metrics : " + e + " : spec=" + spec);
         }
         return false;
       }
@@ -179,16 +155,17 @@ public class GangliaReportPropertyProvider implements PropertyProvider {
     return true;
   }
 
-
   private Map<String, Map<String, String>> getPropertyIdMaps(Request request, Set<String> ids) {
     Map<String, Map<String, String>> propertyMap = new HashMap<String, Map<String, String>>();
 
-    for (String propertyId : ids) {
-      PropertyInfo propertyInfo = componentMetrics.get(propertyId);
+    for (String id : ids) {
+      Map<String, PropertyInfo> propertyInfoMap = getPropertyInfoMap("*", id);
 
-      if (propertyInfo != null) {
+      for (Map.Entry<String, PropertyInfo> entry : propertyInfoMap.entrySet()) {
+        String propertyId = entry.getKey();
+        PropertyInfo propertyInfo = entry.getValue();
 
-        TemporalInfo temporalInfo = request.getTemporalInfo(propertyId);
+        TemporalInfo temporalInfo = request.getTemporalInfo(id);
 
         if (temporalInfo != null && propertyInfo.isTemporal()) {
           String propertyName = propertyInfo.getPropertyId();
@@ -215,7 +192,6 @@ public class GangliaReportPropertyProvider implements PropertyProvider {
 
   /**
    * Get value from the given metric.
-   *
    *
    * @param metric     the metric
    */

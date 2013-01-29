@@ -17,8 +17,6 @@
  */
 package org.apache.ambari.server.controller.spi;
 
-import org.apache.ambari.server.AmbariException;
-
 import java.util.Set;
 
 /**
@@ -44,14 +42,6 @@ public interface PropertyProvider {
    */
   public Set<Resource> populateResources(Set<Resource> resources, Request request, Predicate predicate)
       throws SystemException;
-
-  /**
-   * Get the set of property ids for the properties that this provider can provide.
-   *
-   * @return the set of property ids for the properties that this provider can provide
-   */
-  // TODO : remove this
-  public Set<String> getPropertyIds();
 
   /**
    * Check whether the set of given property ids is supported by this resource

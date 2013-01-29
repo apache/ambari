@@ -34,7 +34,7 @@ import java.util.Set;
 /**
  * Resource provider for host component resources.
  */
-class HostComponentResourceProvider extends ResourceProviderImpl {
+class HostComponentResourceProvider extends AbstractResourceProvider {
 
   // ----- Property ID constants ---------------------------------------------
 
@@ -108,7 +108,7 @@ class HostComponentResourceProvider extends ResourceProviderImpl {
     }
 
     Set<Resource> resources    = new HashSet<Resource>();
-    Set<String>   requestedIds = PropertyHelper.getRequestPropertyIds(getPropertyIds(), request, predicate);
+    Set<String>   requestedIds = getRequestPropertyIds(request, predicate);
 
     Set<ServiceComponentHostResponse> responses = getResources(new Command<Set<ServiceComponentHostResponse>>() {
       @Override

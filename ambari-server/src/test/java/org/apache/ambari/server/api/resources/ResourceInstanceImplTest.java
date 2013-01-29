@@ -23,8 +23,10 @@ package org.apache.ambari.server.api.resources;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.junit.Test;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 
 import static org.easymock.EasyMock.*;
 import static org.junit.Assert.assertFalse;
@@ -45,6 +47,7 @@ public class ResourceInstanceImplTest {
 
     // expectations
     expect(resourceDefinition.getType()).andReturn(Resource.Type.Service).anyTimes();
+    expect(resourceDefinition.getSubResourceDefinitions()).andReturn(Collections.<SubResourceDefinition>emptySet()).anyTimes();
 
     replay(resourceDefinition);
 
@@ -65,6 +68,7 @@ public class ResourceInstanceImplTest {
 
     // expectations
     expect(resourceDefinition.getType()).andReturn(Resource.Type.Service).anyTimes();
+    expect(resourceDefinition.getSubResourceDefinitions()).andReturn(Collections.<SubResourceDefinition>emptySet()).anyTimes();
 
     replay(resourceDefinition);
 

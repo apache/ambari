@@ -33,7 +33,7 @@ import java.util.Set;
 /**
  * Resource provider for user resources.
  */
-class UserResourceProvider extends ResourceProviderImpl{
+class UserResourceProvider extends AbstractResourceProvider {
 
   // ----- Property ID constants ---------------------------------------------
 
@@ -106,7 +106,7 @@ class UserResourceProvider extends ResourceProviderImpl{
           + ", userResponseSize=" + responses.size());
     }
 
-    Set<String>   requestedIds = PropertyHelper.getRequestPropertyIds(getPropertyIds(), request, predicate);
+    Set<String>   requestedIds = getRequestPropertyIds(request, predicate);
     Set<Resource> resources    = new HashSet<Resource>();
 
     for (UserResponse userResponse : responses) {

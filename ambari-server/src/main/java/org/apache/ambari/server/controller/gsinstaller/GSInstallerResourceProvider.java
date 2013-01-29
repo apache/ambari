@@ -29,8 +29,10 @@ import org.apache.ambari.server.controller.spi.ResourceAlreadyExistsException;
 import org.apache.ambari.server.controller.spi.ResourceProvider;
 import org.apache.ambari.server.controller.spi.SystemException;
 import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
+import org.apache.ambari.server.controller.utilities.PropertyHelper;
 
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -42,6 +44,10 @@ public abstract class GSInstallerResourceProvider implements ResourceProvider {
 
   private final Set<Resource> resources = new HashSet<Resource>();
 
+  private final Resource.Type type;
+
+  private final Set<String> propertyIds;
+
 
   // ----- Constructors ------------------------------------------------------
 
@@ -50,8 +56,13 @@ public abstract class GSInstallerResourceProvider implements ResourceProvider {
    *
    * @param clusterDefinition  the cluster definition
    */
-  public GSInstallerResourceProvider(ClusterDefinition clusterDefinition) {
+  public GSInstallerResourceProvider(Resource.Type type, ClusterDefinition clusterDefinition) {
+    this.type              = type;
     this.clusterDefinition = clusterDefinition;
+
+    Set<String> propertyIds = PropertyHelper.getPropertyIds(type);
+    this.propertyIds = new HashSet<String>(propertyIds);
+    this.propertyIds.addAll(PropertyHelper.getCategories(propertyIds));
   }
 
 
@@ -90,9 +101,14 @@ public abstract class GSInstallerResourceProvider implements ResourceProvider {
   }
 
   @Override
+  public Map<Resource.Type, String> getKeyPropertyIds() {
+    return PropertyHelper.getKeyPropertyIds(type);
+  }
+
+  @Override
   public Set<String> checkPropertyIds(Set<String> propertyIds) {
     propertyIds = new HashSet<String>(propertyIds);
-    propertyIds.removeAll(getPropertyIdsForSchema());
+    propertyIds.removeAll(this.propertyIds);
     return propertyIds;
   }
 

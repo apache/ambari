@@ -18,10 +18,10 @@
 
 package org.apache.ambari.server.controller.jmx;
 
+import org.apache.ambari.server.controller.internal.AbstractPropertyProvider;
 import org.apache.ambari.server.controller.internal.PropertyInfo;
 import org.apache.ambari.server.controller.spi.*;
 import org.apache.ambari.server.controller.utilities.StreamProvider;
-import org.apache.ambari.server.controller.utilities.PropertyHelper;
 import org.codehaus.jackson.map.DeserializationConfig;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.map.ObjectReader;
@@ -30,7 +30,6 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -41,17 +40,10 @@ import java.util.Set;
 /**
  * Property provider implementation for JMX sources.
  */
-public class JMXPropertyProvider implements PropertyProvider {
+public class JMXPropertyProvider extends AbstractPropertyProvider {
 
   private static final String NAME_KEY = "name";
   private static final String PORT_KEY = "tag.port";
-
-  /**
-   * Set of property ids supported by this provider.
-   */
-  private final Set<String> propertyIds;
-
-  private final Map<String, Map<String, PropertyInfo>> componentMetrics;
 
   private final StreamProvider streamProvider;
 
@@ -102,17 +94,14 @@ public class JMXPropertyProvider implements PropertyProvider {
                              String clusterNamePropertyId,
                              String hostNamePropertyId,
                              String componentNamePropertyId) {
-    this.componentMetrics         = componentMetrics;
+
+    super(componentMetrics);
+
     this.streamProvider           = streamProvider;
     this.jmxHostProvider          = jmxHostProvider;
     this.clusterNamePropertyId    = clusterNamePropertyId;
     this.hostNamePropertyId       = hostNamePropertyId;
     this.componentNamePropertyId  = componentNamePropertyId;
-
-    propertyIds = new HashSet<String>();
-    for (Map.Entry<String, Map<String, PropertyInfo>> entry : componentMetrics.entrySet()) {
-      propertyIds.addAll(entry.getValue().keySet());
-    }
   }
 
 
@@ -132,21 +121,6 @@ public class JMXPropertyProvider implements PropertyProvider {
     return keepers;
   }
 
-  @Override
-  public Set<String> getPropertyIds() {
-    return propertyIds;
-  }
-
-  @Override
-  public Set<String> checkPropertyIds(Set<String> propertyIds) {
-    if (!this.propertyIds.containsAll(propertyIds)) {
-      Set<String> unsupportedPropertyIds = new HashSet<String>(propertyIds);
-      unsupportedPropertyIds.removeAll(this.propertyIds);
-      return unsupportedPropertyIds;
-    }
-    return Collections.emptySet();
-  }
-
 
   // ----- helper methods ----------------------------------------------------
 
@@ -162,7 +136,7 @@ public class JMXPropertyProvider implements PropertyProvider {
   private boolean populateResource(Resource resource, Request request, Predicate predicate)
       throws SystemException {
 
-    Set<String> ids = PropertyHelper.getRequestPropertyIds(propertyIds, request, predicate);
+    Set<String> ids = getRequestPropertyIds(request, predicate);
     if (ids.isEmpty()) {
       return true;
     }
@@ -179,9 +153,8 @@ public class JMXPropertyProvider implements PropertyProvider {
       hostName = (String) resource.getPropertyValue(hostNamePropertyId);
     }
 
-    Map<String, PropertyInfo> metrics = componentMetrics.get(componentName);
-
-    if (metrics == null || hostName == null || port == null) {
+    if (getComponentMetrics().get(componentName) == null ||
+        hostName == null || port == null) {
       return true;
     }
 
@@ -201,51 +174,56 @@ public class JMXPropertyProvider implements PropertyProvider {
       }
 
       for (String propertyId : ids) {
+        Map<String, PropertyInfo> propertyInfoMap = getPropertyInfoMap(componentName, propertyId);
 
-        PropertyInfo propertyInfo = metrics.get(propertyId);
+        for (Map.Entry<String, PropertyInfo> entry : propertyInfoMap.entrySet()) {
 
-        if (propertyInfo != null && propertyInfo.isPointInTime()) {
+          PropertyInfo propertyInfo = entry.getValue();
+          propertyId = entry.getKey();
 
-          String property = propertyInfo.getPropertyId();
-          String category = "";
+          if (propertyInfo.isPointInTime()) {
 
-          List<String> keyList = new LinkedList<String>();
-          int keyStartIndex = property.indexOf('[', 0);
-          int firstKeyIndex = keyStartIndex > -1 ? keyStartIndex : property.length();
-          while (keyStartIndex > -1) {
-            int keyEndIndex = property.indexOf(']', keyStartIndex);
-            if (keyEndIndex > -1 & keyEndIndex > keyStartIndex) {
-              keyList.add(property.substring(keyStartIndex + 1, keyEndIndex));
-              keyStartIndex = property.indexOf('[', keyEndIndex);
-            }
-            else {
-              keyStartIndex = -1;
-            }
-          }
+            String property = propertyInfo.getPropertyId();
+            String category = "";
 
-
-          int dotIndex = property.lastIndexOf('.', firstKeyIndex - 1);
-          if (dotIndex != -1){
-            category = property.substring(0, dotIndex);
-            property = property.substring(dotIndex + 1, firstKeyIndex);
-          }
-
-          Map<String, Object> properties = categories.get(category);
-          if (properties != null && properties.containsKey(property)) {
-            Object value = properties.get(property);
-            if (keyList.size() > 0 && value instanceof Map) {
-              Map map = (Map) value;
-              for (String key : keyList) {
-                value = map.get(key);
-                if (value instanceof Map) {
-                  map = (Map) value;
-                }
-                else {
-                  break;
-                }
+            List<String> keyList = new LinkedList<String>();
+            int keyStartIndex = property.indexOf('[', 0);
+            int firstKeyIndex = keyStartIndex > -1 ? keyStartIndex : property.length();
+            while (keyStartIndex > -1) {
+              int keyEndIndex = property.indexOf(']', keyStartIndex);
+              if (keyEndIndex > -1 & keyEndIndex > keyStartIndex) {
+                keyList.add(property.substring(keyStartIndex + 1, keyEndIndex));
+                keyStartIndex = property.indexOf('[', keyEndIndex);
+              }
+              else {
+                keyStartIndex = -1;
               }
             }
-            resource.setProperty(propertyId, value);
+
+
+            int dotIndex = property.lastIndexOf('.', firstKeyIndex - 1);
+            if (dotIndex != -1){
+              category = property.substring(0, dotIndex);
+              property = property.substring(dotIndex + 1, firstKeyIndex);
+            }
+
+            Map<String, Object> properties = categories.get(category);
+            if (properties != null && properties.containsKey(property)) {
+              Object value = properties.get(property);
+              if (keyList.size() > 0 && value instanceof Map) {
+                Map map = (Map) value;
+                for (String key : keyList) {
+                  value = map.get(key);
+                  if (value instanceof Map) {
+                    map = (Map) value;
+                  }
+                  else {
+                    break;
+                  }
+                }
+              }
+              resource.setProperty(propertyId, value);
+            }
           }
         }
       }
@@ -289,7 +267,6 @@ public class JMXPropertyProvider implements PropertyProvider {
    * @return the spec
    */
   protected String getSpec(String jmxSource) {
-//    return "http://" + jmxSource + "/jmx?qry=Hadoop:*";
     return "http://" + jmxSource + "/jmx";
   }
 }

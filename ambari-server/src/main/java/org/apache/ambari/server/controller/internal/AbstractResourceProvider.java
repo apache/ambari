@@ -18,7 +18,6 @@
 
 package org.apache.ambari.server.controller.internal;
 
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -39,14 +38,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Basic resource provider implementation that maps to a management controller.
+ * Abstract resource provider implementation that maps to an Ambari management controller.
  */
-public abstract class ResourceProviderImpl implements ResourceProvider, ObservableResourceProvider {
-
-  /**
-   * The set of property ids supported by this resource provider.
-   */
-  private final Set<String> propertyIds;
+public abstract class AbstractResourceProvider extends BaseProvider implements ResourceProvider, ObservableResourceProvider {
 
   /**
    * The management controller to delegate to.
@@ -65,7 +59,7 @@ public abstract class ResourceProviderImpl implements ResourceProvider, Observab
 
 
   protected final static Logger LOG =
-      LoggerFactory.getLogger(ResourceProviderImpl.class);
+      LoggerFactory.getLogger(AbstractResourceProvider.class);
 
     // ----- Constructors ------------------------------------------------------
   /**
@@ -75,10 +69,10 @@ public abstract class ResourceProviderImpl implements ResourceProvider, Observab
    * @param keyPropertyIds        the key property ids
    * @param managementController  the management controller
    */
-  protected ResourceProviderImpl(Set<String> propertyIds,
-                               Map<Resource.Type, String> keyPropertyIds,
-                               AmbariManagementController managementController) {
-    this.propertyIds          = propertyIds;
+  protected AbstractResourceProvider(Set<String> propertyIds,
+                                     Map<Resource.Type, String> keyPropertyIds,
+                                     AmbariManagementController managementController) {
+    super(propertyIds);
     this.keyPropertyIds       = keyPropertyIds;
     this.managementController = managementController;
   }
@@ -87,23 +81,8 @@ public abstract class ResourceProviderImpl implements ResourceProvider, Observab
   // ----- ResourceProvider --------------------------------------------------
 
   @Override
-  public Set<String> getPropertyIdsForSchema() {
-    return propertyIds;
-  }
-
-  @Override
   public Map<Resource.Type, String> getKeyPropertyIds() {
     return keyPropertyIds;
-  }
-
-  @Override
-  public Set<String> checkPropertyIds(Set<String> propertyIds) {
-    if (!this.propertyIds.containsAll(propertyIds)) {
-      Set<String> unsupportedPropertyIds = new HashSet<String>(propertyIds);
-      unsupportedPropertyIds.removeAll(this.propertyIds);
-      return unsupportedPropertyIds;
-    }
-    return Collections.emptySet();
   }
 
 
@@ -123,15 +102,6 @@ public abstract class ResourceProviderImpl implements ResourceProvider, Observab
 
 
   // ----- accessors ---------------------------------------------------------
-
-  /**
-   * Get the associated property ids.
-   *
-   * @return the property ids
-   */
-  protected Set<String> getPropertyIds() {
-    return propertyIds;
-  }
 
   /**
    * Get the associated management controller.
@@ -185,7 +155,10 @@ public abstract class ResourceProviderImpl implements ResourceProvider, Observab
   }
 
   /**
-   * Get a set of properties from the given property map and predicate.
+   * Get a set of properties from the given predicate.  The returned set of
+   * property/value mappings is required to generate delete or get requests
+   * to the back end which does not deal with predicates.  Note that the
+   * single predicate can result in multiple backend requests.
    *
    * @param givenPredicate           the predicate
    *
@@ -194,7 +167,7 @@ public abstract class ResourceProviderImpl implements ResourceProvider, Observab
   protected Set<Map<String, Object>> getPropertyMaps(Predicate givenPredicate)
     throws UnsupportedPropertyException, SystemException, NoSuchResourceException, NoSuchParentResourceException {
 
-    SimplifyingPredicateVisitor visitor = new SimplifyingPredicateVisitor(propertyIds);
+    SimplifyingPredicateVisitor visitor = new SimplifyingPredicateVisitor(getPropertyIds());
     PredicateHelper.visit(givenPredicate, visitor);
     List<BasePredicate> predicates = visitor.getSimplifiedPredicates();
 
@@ -207,7 +180,10 @@ public abstract class ResourceProviderImpl implements ResourceProvider, Observab
   }
 
   /**
-   * Get a set of properties from the given property map and predicate.
+   * Get a set of properties from the given property map and predicate.  The
+   * returned set of property/value mappings is required to generate update or create
+   * requests to the back end which does not deal with predicates.  Note that
+   * the single property map & predicate can result in multiple backend requests.
    *
    * @param requestPropertyMap  the request properties (for update)
    * @param givenPredicate           the predicate
@@ -244,12 +220,9 @@ public abstract class ResourceProviderImpl implements ResourceProvider, Observab
    * @return the request status
    */
   protected RequestStatus getRequestStatus(RequestStatusResponse response) {
-
     if (response != null){
       Resource requestResource = new ResourceImpl(Resource.Type.Request);
       requestResource.setProperty(PropertyHelper.getPropertyId("Requests", "id"), response.getRequestId());
-      // TODO : how do we tell what a request status is?
-      // for now make everything InProgress
       requestResource.setProperty(PropertyHelper.getPropertyId("Requests", "status"), "InProgress");
       return new RequestStatusImpl(requestResource);
     }
@@ -257,31 +230,90 @@ public abstract class ResourceProviderImpl implements ResourceProvider, Observab
   }
 
   /**
-   * Set a property value on the given resource for the given id and value.
-   * Make sure that the id is in the given set of requested ids.
+   * Invoke a command against the Ambari backend to create resources and map
+   * any {@link AmbariException} to the types appropriate for the
+   * {@link ResourceProvider} interface.
    *
-   * @param resource      the resource
-   * @param propertyId    the property id
-   * @param value         the value to set
-   * @param requestedIds  the requested set of property ids
+   * @param command  the command to invoke
+   * @param <T>      the type of the response
+   *
+   * @return the response
+   *
+   * @throws SystemException                thrown if a system exception occurred
+   * @throws ResourceAlreadyExistsException thrown if a resource already exists
+   * @throws NoSuchParentResourceException  thrown if a parent of a resource doesn't exist
    */
-  protected static void setResourceProperty(Resource resource, String propertyId, Object value, Set<String> requestedIds) {
-    if (requestedIds.contains(propertyId)) {
-      if (LOG.isDebugEnabled()) {
-        LOG.debug("Setting property for resource"
-            + ", resourceType=" + resource.getType()
-            + ", propertyId=" + propertyId
-            + ", value=" + value);
+  protected <T> T createResources(Command<T> command)
+      throws SystemException, ResourceAlreadyExistsException, NoSuchParentResourceException {
+    try {
+      return command.invoke();
+    } catch (ParentObjectNotFoundException e) {
+      throw new NoSuchParentResourceException(e.getMessage(), e);
+    } catch (DuplicateResourceException e) {
+      throw new ResourceAlreadyExistsException(e.getMessage());
+    } catch (AmbariException e) {
+      if (LOG.isErrorEnabled()) {
+        LOG.error("Caught AmbariException when creating a resource", e);
       }
-      resource.setProperty(propertyId, value);
+      throw new SystemException("An internal system exception occurred: " + e.getMessage(), e);
     }
-    else {
-      if (LOG.isDebugEnabled()) {
-        LOG.debug("Skipping property for resource as not in requestedIds"
-            + ", resourceType=" + resource.getType()
-            + ", propertyId=" + propertyId
-            + ", value=" + value);
+  }
+
+  /**
+   * Invoke a command against the Ambari backend to get resources and map
+   * any {@link AmbariException} to the types appropriate for the
+   * {@link ResourceProvider} interface.
+   *
+   * @param command  the command to invoke
+   * @param <T>      the type of the response
+   *
+   * @return the response
+   *
+   * @throws SystemException                thrown if a system exception occurred
+   * @throws NoSuchParentResourceException  thrown if a parent of a resource doesn't exist
+   */
+  protected <T> T getResources (Command<T> command)
+      throws SystemException, NoSuchResourceException, NoSuchParentResourceException {
+    try {
+      return command.invoke();
+    } catch (ObjectNotFoundException e) {
+      throw new NoSuchResourceException("The requested resource doesn't exist: " + e.getMessage(), e);
+    } catch (ParentObjectNotFoundException e) {
+      throw new NoSuchParentResourceException(e.getMessage(), e);
+    } catch (AmbariException e) {
+      if (LOG.isErrorEnabled()) {
+        LOG.error("Caught AmbariException when getting a resource", e);
       }
+      throw new SystemException("An internal system exception occurred: " + e.getMessage(), e);
+    }
+  }
+
+  /**
+   * Invoke a command against the Ambari backend to modify resources and map
+   * any {@link AmbariException} to the types appropriate for the
+   * {@link ResourceProvider} interface.
+   *
+   * @param command  the command to invoke
+   * @param <T>      the type of the response
+   *
+   * @return the response
+   *
+   * @throws SystemException                thrown if a system exception occurred
+   * @throws NoSuchParentResourceException  thrown if a parent of a resource doesn't exist
+   */
+  protected <T> T modifyResources (Command<T> command)
+      throws SystemException, NoSuchResourceException, NoSuchParentResourceException {
+    try {
+      return command.invoke();
+    } catch (ObjectNotFoundException e) {
+      throw new NoSuchResourceException("The specified resource doesn't exist: " + e.getMessage(), e);
+    } catch (ParentObjectNotFoundException e) {
+      throw new NoSuchParentResourceException(e.getMessage(), e);
+    } catch (AmbariException e) {
+      if (LOG.isErrorEnabled()) {
+        LOG.error("Caught AmbariException when modifying a resource", e);
+      }
+      throw new SystemException("An internal system exception occurred: " + e.getMessage(), e);
     }
   }
 
@@ -325,55 +357,22 @@ public abstract class ResourceProviderImpl implements ResourceProvider, Observab
     }
   }
 
-  protected <T> T createResources(Command<T> command)
-      throws SystemException, ResourceAlreadyExistsException, NoSuchParentResourceException {
-    try {
-      return command.invoke();
-    } catch (ParentObjectNotFoundException e) {
-      throw new NoSuchParentResourceException(e.getMessage(), e);
-    } catch (DuplicateResourceException e) {
-      throw new ResourceAlreadyExistsException(e.getMessage());
-    } catch (AmbariException e) {
-      if (LOG.isErrorEnabled()) {
-        LOG.error("Caught AmbariException when creating a resource", e);
-      }
-      throw new SystemException("An internal system exception occurred: " + e.getMessage(), e);
-    }
-  }
 
-  protected <T> T getResources (Command<T> command)
-      throws SystemException, NoSuchResourceException, NoSuchParentResourceException {
-    try {
-      return command.invoke();
-    } catch (ObjectNotFoundException e) {
-      throw new NoSuchResourceException("The requested resource doesn't exist: " + e.getMessage(), e);
-    } catch (ParentObjectNotFoundException e) {
-      throw new NoSuchParentResourceException(e.getMessage(), e);
-    } catch (AmbariException e) {
-      if (LOG.isErrorEnabled()) {
-        LOG.error("Caught AmbariException when getting a resource", e);
-      }
-      throw new SystemException("An internal system exception occurred: " + e.getMessage(), e);
-    }
-  }
+  // ----- Inner interface ---------------------------------------------------
 
-  protected <T> T modifyResources (Command<T> command)
-      throws SystemException, NoSuchResourceException, NoSuchParentResourceException {
-    try {
-      return command.invoke();
-    } catch (ObjectNotFoundException e) {
-      throw new NoSuchResourceException("The specified resource doesn't exist: " + e.getMessage(), e);
-    } catch (ParentObjectNotFoundException e) {
-      throw new NoSuchParentResourceException(e.getMessage(), e);
-    } catch (AmbariException e) {
-      if (LOG.isErrorEnabled()) {
-        LOG.error("Caught AmbariException when modifying a resource", e);
-      }
-      throw new SystemException("An internal system exception occurred: " + e.getMessage(), e);
-    }
-  }
-
+  /**
+   * Command to invoke against the Ambari backend.
+   *
+   * @param <T>  the response type
+   */
   protected interface Command<T> {
+    /**
+     * Invoke this command.
+     *
+     * @return  the response
+     *
+     * @throws AmbariException thrown if a problem occurred during invocation
+     */
     public T invoke() throws AmbariException;
   }
 }

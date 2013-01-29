@@ -110,11 +110,11 @@ public class ResourceInstanceImpl implements ResourceInstance {
         ResourceInstance resource = m_resourceFactory.createResource(subResDef.getType(), getIds());
 
         // ensure pk is returned
-        resource.getQuery().addProperty(m_controller.getSchema(
+        resource.getQuery().addLocalProperty(m_controller.getSchema(
             subResDef.getType()).getKeyPropertyId(subResDef.getType()));
         // add additionally required fk properties
         for (Resource.Type fkType : subResDef.getAdditionalForeignKeys()) {
-          resource.getQuery().addProperty(m_controller.getSchema(subResDef.getType()).getKeyPropertyId(fkType));
+          resource.getQuery().addLocalProperty(m_controller.getSchema(subResDef.getType()).getKeyPropertyId(fkType));
         }
 
         String subResourceName = subResDef.isCollection() ? resource.getResourceDefinition().getPluralName() :

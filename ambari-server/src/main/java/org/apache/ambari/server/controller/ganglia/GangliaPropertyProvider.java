@@ -18,30 +18,22 @@
 
 package org.apache.ambari.server.controller.ganglia;
 
+import org.apache.ambari.server.controller.internal.AbstractPropertyProvider;
 import org.apache.ambari.server.controller.internal.PropertyInfo;
 import org.apache.ambari.server.controller.spi.*;
-import org.apache.ambari.server.controller.utilities.PropertyHelper;
 import org.apache.ambari.server.controller.utilities.StreamProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.*;
 
 /**
  * Abstract property provider implementation for a Ganglia source.
  */
-public abstract class GangliaPropertyProvider implements PropertyProvider {
-
-  /**
-   * Set of property ids supported by this provider.
-   */
-  private final Set<String> propertyIds;
-
-  private final Map<String, Map<String, PropertyInfo>> componentPropertyInfoMap;
+public abstract class GangliaPropertyProvider extends AbstractPropertyProvider {
 
   private final StreamProvider streamProvider;
 
@@ -52,8 +44,6 @@ public abstract class GangliaPropertyProvider implements PropertyProvider {
   private final String hostNamePropertyId;
 
   private final String componentNamePropertyId;
-
-
 
   /**
    * Map of Ganglia cluster names keyed by component type.
@@ -81,18 +71,14 @@ public abstract class GangliaPropertyProvider implements PropertyProvider {
                                  String clusterNamePropertyId,
                                  String hostNamePropertyId,
                                  String componentNamePropertyId) {
-    this.componentPropertyInfoMap = componentPropertyInfoMap;
+
+    super(componentPropertyInfoMap);
+
     this.streamProvider           = streamProvider;
     this.hostProvider             = hostProvider;
     this.clusterNamePropertyId    = clusterNamePropertyId;
     this.hostNamePropertyId       = hostNamePropertyId;
     this.componentNamePropertyId  = componentNamePropertyId;
-
-    propertyIds  = new HashSet<String>();
-
-    for (Map.Entry<String, Map<String, PropertyInfo>> entry : componentPropertyInfoMap.entrySet()) {
-      propertyIds.addAll(entry.getValue().keySet());
-    }
   }
 
 
@@ -102,7 +88,7 @@ public abstract class GangliaPropertyProvider implements PropertyProvider {
   public Set<Resource> populateResources(Set<Resource> resources, Request request, Predicate predicate)
       throws SystemException {
 
-    Set<String> ids = PropertyHelper.getRequestPropertyIds(propertyIds, request, predicate);
+    Set<String> ids = getRequestPropertyIds(request, predicate);
     if (ids.isEmpty()) {
       return resources;
     }
@@ -121,21 +107,6 @@ public abstract class GangliaPropertyProvider implements PropertyProvider {
     }
     //todo: ignoring keepers returned by the provider
     return resources;
-  }
-
-  @Override
-  public Set<String> getPropertyIds() {
-    return propertyIds;
-  }
-
-  @Override
-  public Set<String> checkPropertyIds(Set<String> propertyIds) {
-    if (!this.propertyIds.containsAll(propertyIds)) {
-      Set<String> unsupportedPropertyIds = new HashSet<String>(propertyIds);
-      unsupportedPropertyIds.removeAll(this.propertyIds);
-      return unsupportedPropertyIds;
-    }
-    return Collections.emptySet();
   }
 
 
@@ -229,23 +200,23 @@ public abstract class GangliaPropertyProvider implements PropertyProvider {
       ResourceKey key =
           new ResourceKey(getHostName(resource), getGangliaClusterName(resource, clusterName));
 
-      Map<String, PropertyInfo> metrics = componentPropertyInfoMap.get(getComponentName(resource));
+      for (String id : ids) {
+        Map<String, PropertyInfo> propertyInfoMap = getPropertyInfoMap(getComponentName(resource), id);
 
-      if (metrics != null) {
-        for (String propertyId : ids) {
-          PropertyInfo propertyInfo = metrics.get(propertyId);
-          if (propertyInfo != null) {
-            TemporalInfo temporalInfo = request.getTemporalInfo(propertyId);
+        for (Map.Entry<String, PropertyInfo> entry : propertyInfoMap.entrySet()) {
+          String propertyId = entry.getKey();
+          PropertyInfo propertyInfo = entry.getValue();
 
-            if ((temporalInfo == null && propertyInfo.isPointInTime()) || (temporalInfo != null && propertyInfo.isTemporal())) {
-              RRDRequest rrdRequest = requests.get(temporalInfo);
-              if (rrdRequest == null) {
-                rrdRequest = new RRDRequest(clusterName, temporalInfo);
-                requests.put(temporalInfo, rrdRequest);
-              }
-              rrdRequest.putResource(key, resource);
-              rrdRequest.putPropertyId(propertyInfo.getPropertyId(), propertyId);
+          TemporalInfo temporalInfo = request.getTemporalInfo(id);
+
+          if ((temporalInfo == null && propertyInfo.isPointInTime()) || (temporalInfo != null && propertyInfo.isTemporal())) {
+            RRDRequest rrdRequest = requests.get(temporalInfo);
+            if (rrdRequest == null) {
+              rrdRequest = new RRDRequest(clusterName, temporalInfo);
+              requests.put(temporalInfo, rrdRequest);
             }
+            rrdRequest.putResource(key, resource);
+            rrdRequest.putPropertyId(propertyInfo.getPropertyId(), propertyId);
           }
         }
       }
@@ -495,7 +466,7 @@ public abstract class GangliaPropertyProvider implements PropertyProvider {
     private void populateResource(Resource resource, GangliaMetric gangliaMetric) {
       Set<String> propertyIdSet = metrics.get(gangliaMetric.getMetric_name());
       if (propertyIdSet != null) {
-        Map<String, PropertyInfo> metricsMap = componentPropertyInfoMap.get(getComponentName(resource));
+        Map<String, PropertyInfo> metricsMap = getComponentMetrics().get(getComponentName(resource));
         if (metricsMap != null) {
           for (String propertyId : propertyIdSet) {
             if (propertyId != null) {
