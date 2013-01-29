@@ -162,6 +162,9 @@ Trunk (unreleased changes):
 
  BUG FIXES
 
+ AMBARI-1275. Incorrect displaying "Background operations" window after 
+ changing state of component. (srimanth)
+
  AMBARI-1273. Edit User: No error message is shown when the user does not 
  enter the correct "old password". (srimanth)
 
