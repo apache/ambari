@@ -160,6 +160,8 @@ Trunk (unreleased changes):
  should replace it with ambarinagios or something else.
  (mahadev)
 
+ AMBARI-1277. Failing build due to url moved on Suse. (mahadev)
+
  BUG FIXES
 
  AMBARI-1276. Job Graphs need to show x-axis ticks for elapsed time since 
