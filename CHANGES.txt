@@ -262,6 +262,9 @@ Trunk (unreleased changes):
  AMBARI-1266. Agent checks packages as part of host check but doesn't tell
  which ones are needed or conflicting. (mahadev)
 
+ AMBARI-1291. Incorrect directory for MySQL component on SLES-11.1sp1.
+ (mahadev)
+
 AMBARI-1.2.0 branch:
 
  INCOMPATIBLE CHANGES

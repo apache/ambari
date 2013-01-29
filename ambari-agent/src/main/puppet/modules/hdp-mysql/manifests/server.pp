@@ -41,10 +41,15 @@ class hdp-mysql::server(
 
     if ($hdp::params::hdp_os_type == "suse") {
       # On Suse, creating symlink from default mysqld pid file to expected /var/run location
-      file { '/var/run/mysqld.pid':
-         ensure => 'link',
-         target => '/var/lib/mysql/mysqld.pid',
-         require => Hdp::Package['mysql'],
+	  
+      hdp::directory_recursive_create {'/var/run/mysqld/':
+        require => Hdp::Package['mysql']
+      }
+	  
+      file { '/var/run/mysqld/mysqld.pid':
+        ensure => 'link',
+        target => '/var/lib/mysql/mysqld.pid',
+        require => Hdp::Directory_recursive_create['/var/run/mysqld/'],
       }
     }
 
@@ -77,7 +82,7 @@ class hdp-mysql::server(
     if ($hdp::params::hdp_os_type == "suse") {
       service {$service_name:
         ensure => $mysqld_state,
-        require => File['/var/run/mysqld.pid'],
+        require => File['/var/run/mysqld/mysqld.pid'],
         notify  => File['/tmp/addMysqlUser.sh']
       }
     } else {
