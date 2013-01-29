@@ -112,6 +112,7 @@ App.WizardStep3Controller = Em.Controller.extend({
         this.get('bootHosts').setEach('bootStatus', 'REGISTERED');
         this.get('bootHosts').setEach('cpu', '2');
         this.get('bootHosts').setEach('memory', '2000000');
+        this.set('isSubmitDisabled', false);
       } else {
         this.set('registrationStartedAt', null);
         this.get('bootHosts').setEach('bootStatus', 'DONE');

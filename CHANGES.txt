@@ -164,6 +164,9 @@ Trunk (unreleased changes):
 
  BUG FIXES
 
+ AMBARI-1278. Cannot proceed from Step 3 to Step 4 in App.testMode (Next 
+ button is disabled). (srimanth)
+
  AMBARI-1276. Job Graphs need to show x-axis ticks for elapsed time since 
  submission. (srimanth)
 
