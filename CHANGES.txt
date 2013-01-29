@@ -162,6 +162,9 @@ Trunk (unreleased changes):
 
  BUG FIXES
 
+ AMBARI-1276. Job Graphs need to show x-axis ticks for elapsed time since 
+ submission. (srimanth)
+
  AMBARI-1275. Incorrect displaying "Background operations" window after 
  changing state of component. (srimanth)
 

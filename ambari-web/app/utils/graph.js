@@ -32,7 +32,7 @@ module.exports = {
     }
   },
   /**
-   * Get min, max for X and max for Y for provided series
+   * Get min, max for X and Y for provided series
    * @param series
    * @return {Object}
    */
@@ -40,10 +40,14 @@ module.exports = {
     var maxY = 0;
     var maxX = 0;
     var minX = 2147465647; // max timestamp value
+    var minY = 2147465647;
     if (series.length > 0) {
       series.forEach(function(item){
         if (item.y > maxY) {
           maxY = item.y;
+        }
+        if (item.y < minY) {
+          minY = item.y;
         }
         if (item.x > maxX) {
           maxX = item.x;
@@ -53,7 +57,31 @@ module.exports = {
         }
       });
     }
-    return {maxX: maxX, minX: minX, maxY: maxY};
+    return {maxX: maxX, minX: minX, maxY: maxY, minY: minY};
+  },
+  /**
+   * Get min, max for x and Y for all provided series
+   * @param args array of series
+   * @return {Object}
+   */
+  getExtInAllSeries: function(args) {
+    var maxx = [];
+    var minx = [];
+    var maxy = [];
+    var miny = [];
+    for (var i = 0; i < args.length; i++) {
+      var localExt = this.getExtInSeries(args[i]);
+      maxx.push(localExt.maxX);
+      minx.push(localExt.minX);
+      maxy.push(localExt.maxY);
+      miny.push(localExt.minY);
+    }
+    return {
+      maxX: Math.max.apply(null, maxx),
+      minX: Math.min.apply(null, minx),
+      maxY: Math.max.apply(null, maxy),
+      minY: Math.min.apply(null, miny)
+    };
   },
   /**
    * Get coordinates for new circle in the graph
@@ -62,27 +90,33 @@ module.exports = {
    * @return {Object}
    */
   getNewCircle: function() {
-    var maxx = [];
-    var minx = [];
-    var maxy = [];
-    for (var i = 0; i < arguments.length; i++) {
-      var localExt = this.getExtInSeries(arguments[i]);
-      maxx.push(localExt.maxX);
-      minx.push(localExt.minX);
-      maxy.push(localExt.maxY);
-    }
-    var maxX = Math.max.apply(null, maxx);
-    var minX = Math.min.apply(null, minx);
+    var ext = this.getExtInAllSeries(arguments);
     var newX;
-    if (minX != 2147465647) {
-      newX = maxX + Math.round((maxX - minX) * 0.2);
+    if (ext.minX != 2147465647) {
+      newX = ext.maxX + Math.round((ext.maxX - ext.minX) * 0.2);
     }
     else {
       newX = (new Date()).getTime();
     }
-    var newY = Math.max.apply(null, maxy) * 1.2;
-    return {x: newX, y: newY, r: 0, io: 0};
+    var newY = ext.maxY * 1.2;
+    return {
+      x: newX,
+      y: newY,
+      r: 0,
+      io: 0
+    };
   },
+  /**
+   *
+   * @param map
+   * @param shuffle
+   * @param reduce
+   * @param w
+   * @param h
+   * @param element
+   * @param legend_id
+   * @param timeline_id
+   */
   drawJobTimeLine:function (map, shuffle, reduce, w, h, element, legend_id, timeline_id) {
     map = $.parseJSON(map);
     shuffle = $.parseJSON(shuffle);
@@ -92,6 +126,10 @@ module.exports = {
       return;
     }
     this.uniformSeries(map, reduce, shuffle);
+    var ext = this.getExtInAllSeries([map, reduce, shuffle]);
+    var submitTime = ext.minX;
+    var maxX = ext.maxX; // Used on X-axis time stamps
+
     var graph = new Rickshaw.Graph({
       width:w,
       height:h,
@@ -144,9 +182,9 @@ module.exports = {
     var xAxis = new Rickshaw.Graph.Axis.Time({
       graph:graph,
       timeUnit: {
-        name: '1 min',
-        seconds: 60,
-        formatter: function(d) { return d.toUTCString().match(/(\d+:\d+):/)[1] }
+        name: 'Custom',
+        seconds: Math.round((maxX - submitTime) / 2),
+        formatter: function(d) { return (new Date(d)).getTime() / 1000 - submitTime + 's'; }
       }
     });
     xAxis.render();
@@ -170,6 +208,19 @@ module.exports = {
       //element:document.getElementById(timeline_id)
     });*/
   },
+  /**
+   *
+   * @param mapNodeLocal
+   * @param mapRackLocal
+   * @param mapOffSwitch
+   * @param reduceOffSwitch
+   * @param submitTime
+   * @param w
+   * @param h
+   * @param element
+   * @param legend_id
+   * @param timeline_id
+   */
   drawJobTasks:function (mapNodeLocal, mapRackLocal, mapOffSwitch, reduceOffSwitch, submitTime, w, h, element, legend_id, timeline_id) {
     mapNodeLocal = $.parseJSON(mapNodeLocal);
     mapRackLocal = $.parseJSON(mapRackLocal);
@@ -181,6 +232,8 @@ module.exports = {
     }
     this.uniformSeries(mapNodeLocal, mapRackLocal, mapOffSwitch, reduceOffSwitch);
     var newC = this.getNewCircle(mapNodeLocal, mapRackLocal, mapOffSwitch, reduceOffSwitch);
+    var ext = this.getExtInAllSeries([mapNodeLocal, mapRackLocal, mapOffSwitch, reduceOffSwitch]);
+    var maxX = ext.maxX; // Used on X-axis time stamps
     mapNodeLocal.push(newC);
     mapRackLocal.push(newC);
     mapOffSwitch.push(newC);
@@ -240,9 +293,9 @@ module.exports = {
     var xAxis = new Rickshaw.Graph.Axis.Time({
       graph:graph,
       timeUnit: {
-        name: '30 seconds',
-        seconds: 30,
-        formatter: function(d) { return (new Date(d)).getTime() / 1000 - submitTime + 's' }
+        name: 'Custom',
+        seconds: Math.round((maxX - submitTime) / 2),
+        formatter: function(d) { return (new Date(d)).getTime() / 1000 - submitTime + 's'; }
       },
       ticksTreatment:ticksTreatment
     });
