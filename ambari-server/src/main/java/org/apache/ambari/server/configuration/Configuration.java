@@ -71,21 +71,21 @@ public class Configuration {
 
   public static final String CLIENT_SECURITY_KEY = "client.security";
   public static final String CLIENT_API_PORT_KEY = "client.api.port";
-  public static final String LDAP_USE_SSL_KEY = "authorization.ldap.useSSL";
+  public static final String LDAP_USE_SSL_KEY = "authentication.ldap.useSSL";
   public static final String LDAP_PRIMARY_URL_KEY =
-      "authorization.ldap.primaryUrl";
+      "authentication.ldap.primaryUrl";
   public static final String LDAP_SECONDARY_URL_KEY =
-      "authorization.ldap.secondaryUrl";
+      "authentication.ldap.secondaryUrl";
   public static final String LDAP_BASE_DN_KEY =
-      "authorization.ldap.baseDn";
+      "authentication.ldap.baseDn";
   public static final String LDAP_BIND_ANONYMOUSLY_KEY =
-      "authorization.ldap.bindAnonymously";
+      "authentication.ldap.bindAnonymously";
   public static final String LDAP_MANAGER_DN_KEY =
-      "authorization.ldap.managerDn";
+      "authentication.ldap.managerDn";
   public static final String LDAP_MANAGER_PASSWORD_KEY =
-      "authorization.ldap.managerPassword";
+      "authentication.ldap.managerPassword";
   public static final String LDAP_USERNAME_ATTRIBUTE_KEY =
-      "authorization.ldap.usernameAttribute";
+      "authentication.ldap.usernameAttribute";
 
   public static final String USER_ROLE_NAME_KEY =
       "authorization.userRoleName";

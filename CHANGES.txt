@@ -162,6 +162,9 @@ Trunk (unreleased changes):
 
  AMBARI-1277. Failing build due to url moved on Suse. (mahadev)
 
+ AMBARI-1288. Change "authorization" to "authentication" in props setup for
+ LDAP. (mahadev)
+
  BUG FIXES
 
  AMBARI-1278. Cannot proceed from Step 3 to Step 4 in App.testMode (Next 
