@@ -60,12 +60,11 @@
     </div>
     <div class="span2 clear_filter">
         <a {{action "clearFilters" target="view"}}>Clear filters</a>
-  </div>
-
-   <div class="search-bar">
+    </div>
+    <div class="search-bar">
         {{view view.appSearchThrough valueBinding="controller.filterObject.sSearch"}}
-      </div>
-
+    </div>
+  </div>
 
   <table class="table table-striped runsList" id="dataTable">
     <thead>

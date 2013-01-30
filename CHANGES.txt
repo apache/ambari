@@ -36,6 +36,9 @@ Trunk (unreleased changes):
 
  IMPROVEMENTS
 
+ AMBARI-1279. Make sure that Ambari Web renders all elements correctly when
+ the browser width is 1024px or narrower. (srimanth via yusaku)
+
  AMBARI-1274. Shrink top nav height. (srimanth)
  
  AMBARI-1272. Controller javascripts need comments. (srimanth)

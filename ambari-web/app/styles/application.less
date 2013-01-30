@@ -36,6 +36,7 @@ html, body {
 #main {
   overflow: visible;
   padding-bottom: @footer-height;
+  min-width: 980px;
 }
 
 footer {
@@ -1523,7 +1524,7 @@ a:focus {
   .host-metrics {
     [class*="span"] {
       float: left;
-      margin-left: 5px;
+      margin: 0;
     }
     .chart-container {
       .chart-x-axis {
@@ -1885,6 +1886,9 @@ ul.filter {
     .hosts {
       height: 430px;
     }
+  }
+  .legend-column {
+    min-width: 160px;
   }
   .heatmap_host_details {
     font-size: 12px;
@@ -2280,7 +2284,7 @@ ul.inline li {
   background-position: 0;
 }
 // COMBOBOX FIXES END
-@media all and (max-width: 1152px) {
+@media all and (max-width: 1200px) {
   #main-nav {
     li.span2 {
       width: 120px;

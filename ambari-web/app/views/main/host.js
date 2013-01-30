@@ -49,6 +49,7 @@ App.MainHostView = Em.View.extend({
       "iDisplayLength": 10,
       "aLengthMenu": [[10, 25, 50, 100, -1], [10, 25, 50, 100, "All"]],
       "oSearch": {"bSmart":false},
+      "bAutoWidth": false,
       "aoColumns":[
         { "bSortable": false },
         { "sType":"html" },
