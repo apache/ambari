@@ -302,6 +302,8 @@ Trunk (unreleased changes):
  AMBARI-1301. Live status checks dont get triggered on server restart.
  (mahadev)
 
+ AMBARI-1285. Some host Ganglia metrics may be missing in some cases. (tbeerbower)
+
 AMBARI-1.2.0 branch:
 
  INCOMPATIBLE CHANGES

@@ -307,7 +307,7 @@ jvm.metrics.gcCount
 115576389.233
 [AMBARI_DP_END]
 sum
-HDPSlaves
+HDPNameNode
 domU-12-31-39-0E-34-E3.compute-1.internal
 jvm.metrics.gcCount
 1358434800

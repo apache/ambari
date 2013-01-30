@@ -48,16 +48,16 @@ public abstract class GangliaPropertyProvider extends AbstractPropertyProvider {
   /**
    * Map of Ganglia cluster names keyed by component type.
    */
-  public static final Map<String, String> GANGLIA_CLUSTER_NAMES = new HashMap<String, String>();
+  public static final Map<String, String> GANGLIA_CLUSTER_NAME_MAP = new HashMap<String, String>();
 
   static {
-    GANGLIA_CLUSTER_NAMES.put("NAMENODE",           "HDPNameNode");
-    GANGLIA_CLUSTER_NAMES.put("DATANODE",           "HDPSlaves");
-    GANGLIA_CLUSTER_NAMES.put("JOBTRACKER",         "HDPJobTracker");
-    GANGLIA_CLUSTER_NAMES.put("TASKTRACKER",        "HDPSlaves");
-    GANGLIA_CLUSTER_NAMES.put("HBASE_MASTER",       "HDPHBaseMaster");
-    GANGLIA_CLUSTER_NAMES.put("HBASE_CLIENT",       "HDPSlaves");
-    GANGLIA_CLUSTER_NAMES.put("HBASE_REGIONSERVER", "HDPSlaves");
+    GANGLIA_CLUSTER_NAME_MAP.put("NAMENODE", "HDPNameNode");
+    GANGLIA_CLUSTER_NAME_MAP.put("DATANODE", "HDPSlaves");
+    GANGLIA_CLUSTER_NAME_MAP.put("JOBTRACKER", "HDPJobTracker");
+    GANGLIA_CLUSTER_NAME_MAP.put("TASKTRACKER", "HDPSlaves");
+    GANGLIA_CLUSTER_NAME_MAP.put("HBASE_MASTER", "HDPHBaseMaster");
+    GANGLIA_CLUSTER_NAME_MAP.put("HBASE_CLIENT", "HDPSlaves");
+    GANGLIA_CLUSTER_NAME_MAP.put("HBASE_REGIONSERVER", "HDPSlaves");
   }
 
   protected final static Logger LOG =
@@ -137,7 +137,7 @@ public abstract class GangliaPropertyProvider extends AbstractPropertyProvider {
    *
    * @return the ganglia cluster name
    */
-  protected abstract String getGangliaClusterName(Resource resource, String clusterName);
+  protected abstract Set<String> getGangliaClusterNames(Resource resource, String clusterName);
 
 
   /**
@@ -197,26 +197,30 @@ public abstract class GangliaPropertyProvider extends AbstractPropertyProvider {
         requestMap.put(clusterName, requests);
       }
 
-      ResourceKey key =
-          new ResourceKey(getHostName(resource), getGangliaClusterName(resource, clusterName));
+      Set<String> gangliaClusterNames = getGangliaClusterNames(resource, clusterName);
 
-      for (String id : ids) {
-        Map<String, PropertyInfo> propertyInfoMap = getPropertyInfoMap(getComponentName(resource), id);
+      for (String gangliaClusterName : gangliaClusterNames) {
+        ResourceKey key =
+            new ResourceKey(getHostName(resource), gangliaClusterName);
 
-        for (Map.Entry<String, PropertyInfo> entry : propertyInfoMap.entrySet()) {
-          String propertyId = entry.getKey();
-          PropertyInfo propertyInfo = entry.getValue();
+        for (String id : ids) {
+          Map<String, PropertyInfo> propertyInfoMap = getPropertyInfoMap(getComponentName(resource), id);
 
-          TemporalInfo temporalInfo = request.getTemporalInfo(id);
+          for (Map.Entry<String, PropertyInfo> entry : propertyInfoMap.entrySet()) {
+            String propertyId = entry.getKey();
+            PropertyInfo propertyInfo = entry.getValue();
 
-          if ((temporalInfo == null && propertyInfo.isPointInTime()) || (temporalInfo != null && propertyInfo.isTemporal())) {
-            RRDRequest rrdRequest = requests.get(temporalInfo);
-            if (rrdRequest == null) {
-              rrdRequest = new RRDRequest(clusterName, temporalInfo);
-              requests.put(temporalInfo, rrdRequest);
+            TemporalInfo temporalInfo = request.getTemporalInfo(id);
+
+            if ((temporalInfo == null && propertyInfo.isPointInTime()) || (temporalInfo != null && propertyInfo.isTemporal())) {
+              RRDRequest rrdRequest = requests.get(temporalInfo);
+              if (rrdRequest == null) {
+                rrdRequest = new RRDRequest(clusterName, temporalInfo);
+                requests.put(temporalInfo, rrdRequest);
+              }
+              rrdRequest.putResource(key, resource);
+              rrdRequest.putPropertyId(propertyInfo.getPropertyId(), propertyId);
             }
-            rrdRequest.putResource(key, resource);
-            rrdRequest.putPropertyId(propertyInfo.getPropertyId(), propertyId);
           }
         }
       }
