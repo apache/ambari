@@ -175,9 +175,13 @@ Trunk (unreleased changes):
 
  AMBARI-1269. Refactor ResourceProvider SPI. (tbeerbower)
  
- AMBARI-1270. Add predicate objects for checking empty resource category. (tbeerbower)
+ AMBARI-1270. Add predicate objects for checking empty resource category.
+ (tbeerbower)
 
  BUG FIXES
+
+ AMBARI-1292. Add hosts should skip host checks on existing list of cluster
+ nodes. (srimanth via yusaku)
 
  AMBARI-1290. Left border is missing from the summary section on Jobs page.
  (srimanth via yusaku)

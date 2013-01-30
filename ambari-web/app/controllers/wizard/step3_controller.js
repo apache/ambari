@@ -645,10 +645,32 @@ App.WizardStep3Controller = Em.Controller.extend({
   checksUpdateProgress:0,
   checksUpdateStatus: null,
   /**
+   * filter data for warnings parse
+   * is data from host in bootStrap
+   * @param data
+   * @return {Object}
+   */
+  filterBootHosts: function(data){
+    var bootHosts = this.get('bootHosts');
+    var filteredData = {
+      href: data.href,
+      items: []
+    };
+    bootHosts.forEach(function(bootHost){
+      data.items.forEach(function(host){
+        if(host.Hosts.host_name == bootHost.get('name')){
+          filteredData.items.push(host);
+        }
+      })
+    })
+    return filteredData;
+  },
+  /**
    * parse warnings data for each host and total
    * @param data
    */
   parseWarnings: function(data){
+    data = this.filterBootHosts(data);
     var warnings = [];
     var totalWarnings = {
       hostName: 'All Hosts',
