@@ -44,7 +44,9 @@ App.MainAppsItemDagView = Em.View.extend({
         'status' : item.get('status') == 'SUCCESS',
         'info' : [],
         'input' : item.get('input'),
-        'output' : item.get('output')
+        'output' : item.get('output'),
+        'submitTime' : item.get('submit_time'),
+        'elapsedTime' : item.get('elapsed_time')
       })
     });
     return result;
@@ -130,9 +132,8 @@ App.MainAppsItemDagView = Em.View.extend({
     var dagSchema = this.get('controller.content.workflowContext');
     var jobs = this.get('jobs');
     this.resizeModal();
-    var graph = new DagViewer(false, 'dag_viewer')
-        .setPhysicalParametrs(this.$().width(), 300, -800, 0.01)
+    var graph = new DagViewer('dag_viewer')
         .setData(dagSchema, jobs)
-        .drawDag(10, 20, 100);
+        .drawDag(this.$().width(), 300, 20);
   }
 });

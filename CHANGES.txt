@@ -36,6 +36,8 @@ Trunk (unreleased changes):
 
  IMPROVEMENTS
 
+ AMBARI-1268. Improve DAG UI. (billie via yusaku)
+
  AMBARI-1289. App page: remove old ode and fix test mode. (srimanth via
  yusaku)
 

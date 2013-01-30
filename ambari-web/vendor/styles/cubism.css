@@ -6,69 +6,57 @@
   width: 100%;
 }
 
-#dag_viewer line.link {
+#dag_viewer .axis path,
+#dag_viewer .axis line {
+  fill: none;
+  stroke: #000;
+  shape-rendering: crispEdges;
+}
+
+#dag_viewer line.link,
+#dag_viewer path.link {
   fill: none;
   stroke: #666;
   stroke-width: 2.5px;
 }
 
+#dag_viewer line.link.finished,
+#dag_viewer path.link.finished {
+  stroke: #444;
+}
+
 #dag_viewer marker#finished {
-  fill: green;
+  fill: #444;
 }
 
-#dag_viewer line.link.finished {
-  stroke: green;
+#dag_viewer marker#circle {
+  fill: #666;
+  stroke: none;
 }
 
-#dag_viewer circle {
+#dag_viewer line.source.mark,
+#dag_viewer line.target.mark {
+  stroke: #666;
+  stroke-width: 2.5px;
+}
+
+#dag_viewer rect {
   fill: #ccc;
   stroke: #333;
   stroke-width: 1.5px;
 }
 
-#dag_viewer circle.finished {
-  fill: green;
+#dag_viewer rect.finished {
+  fill: #69BE28;
 }
 
-#dag_viewer text {
-  font: 20px sans-serif;
+#dag_viewer text.joblabel {
   pointer-events: none;
-}
-
-#dag_viewer text.hover {
-  font: 10px sans-serif;
-}
-
-#dag_viewer text.hover.shadow {
-  stroke: #fff;
-  stroke-width: 4px;
-  stroke-opacity: .8;
+  text-anchor: middle;
 }
 
 #dag_viewer text.shadow {
   stroke: #fff;
-  stroke-width: 4px;
+  stroke-width: 3px;
   stroke-opacity: .8;
 }
-
-#dag_viewer .snode rect {
-  cursor: move;
-  fill-opacity: .9;
-  shape-rendering: crispEdges;
-}
-
-#dag_viewer .snode text {
-  pointer-events: none;
-  text-shadow: 0 1px 0 #fff;
-}
-
-#dag_viewer .slink {
-  fill: none;
-  stroke: #000;
-  stroke-opacity: .2;
-}
-
-#dag_viewer .slink:hover {
-  stroke-opacity: .5;
-}
-
