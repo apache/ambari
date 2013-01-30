@@ -36,6 +36,9 @@ Trunk (unreleased changes):
 
  IMPROVEMENTS
 
+ AMBARI-1296. Task log popup footer should be statically placed only the
+ content should scroll vertically. (Jaimin Jetly via yusaku)
+
  AMBARI-1295. Move cluster name display from the main nav to the top nav.
  (Jaimin Jetly via yusaku)
 
