@@ -188,6 +188,10 @@ Trunk (unreleased changes):
 
  BUG FIXES
 
+ AMBARI-1297. Edit User: if "old password" is not specified and "new
+ password" is specified, password update silently fails. (Jaimin Jetly via
+ yusaku)
+
  AMBARI-1282. Admin user can lose its own admin privilege. (Jaimin Jetly
  via yusaku)
 

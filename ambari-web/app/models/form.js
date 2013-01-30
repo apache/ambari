@@ -71,14 +71,6 @@ App.Form = Em.View.extend({
     return isValid;
   },
 
-  isObjectNew:function () {
-    var object = this.get('object');
-    if(object instanceof App.User){
-      return false;
-    }
-    return !(object instanceof DS.Model && object.get('id'));
-  }.property("object"),
-
   updateValues:function () {
     var object = this.get('object');
     if (object instanceof Em.Object) {
@@ -95,36 +87,6 @@ App.Form = Em.View.extend({
     $.each(this.fields, function () {
       this.set('value', '');
     });
-  },
-
-  /**
-   * need to refactor for integration
-   * @return {Boolean}
-   */
-  save:function () {
-    var object = this.get('object');
-    var formValues = {};
-    $.each(this.get('fields'), function () {
-      formValues[this.get('name')] = this.get('value');
-    });
-    if (!this.get('isObjectNew')) {
-      $.each(formValues, function (k, v) {
-        object.set(k, v);
-      });
-    }
-    else {
-      if (this.get('className')) {
-        App.store.createRecord(this.get('className'), formValues);
-      }
-      else {
-        console.log("Please define class name for your form " + this.constructor);
-      }
-    }
-
-    //App.store.commit();
-    this.set('result', 1);
-
-    return true;
   },
 
   visibleFields:function () {
@@ -150,16 +112,7 @@ App.Form = Em.View.extend({
     }
 
     return text;
-  }.property('result'),
-
-  saveButtonText:function () {
-    return Em.I18n.t(this.get('i18nprefix') + (this.get('isObjectNew') ? "create" : "save"));
-  }.property('isObjectNew')
-
-//  not recommended
-//  cancelButtonText:function () {
-//    return Em.I18n.t(this.get('i18nprefix') + 'cancel').property();
-//  }
+  }.property('result')
 });
 
 App.FormField = Em.Object.extend({ // try to realize this as view

@@ -47,7 +47,6 @@ App.Authentication.FIXTURES = [
 
 App.AuthenticationForm = App.Form.extend({
   testResult:false,
-  isObjectNew:false,
   fieldsOptions:[
     { name:"method", displayName:"", isRequired:false, displayType:"select",
       values:[
@@ -104,6 +103,6 @@ App.AuthenticationForm = App.Form.extend({
   }.property('testResult'),
   testConfigurationClass:function () {
     return this.get('testResult') ? "text-success" : "text-error";
-  }.property('testConfigurationMessage'),
+  }.property('testConfigurationMessage')
 })
 ;
