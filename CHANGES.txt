@@ -186,9 +186,14 @@ Trunk (unreleased changes):
  AMBARI-1270. Add predicate objects for checking empty resource category.
  (tbeerbower)
 
- AMBARI - 1286. Set version number property in gsInstaller cluster resource provider. (tbeerbower)
+ AMBARI - 1286. Set version number property in gsInstaller cluster resource
+ provider. (tbeerbower)
 
  BUG FIXES
+
+ AMBARI-1300.  Service status / host component status can get stuck in the
+ green blinking state if stop fails - no further operation can be performed.
+ (srimanth via yusaku) 
 
  AMBARI-1297. Edit User: if "old password" is not specified and "new
  password" is specified, password update silently fails. (Jaimin Jetly via

@@ -114,15 +114,14 @@ App.QuickDataMapper = App.ServerDataMapper.extend({
   },
 
   calculateState: function (json) {
-    var stateEqual = (json.desired_status != json.work_status);
-    if (stateEqual) {
-      if (json.desired_status == 'STARTED' && json.work_status == 'INSTALLED') {
-        json.work_status = 'STARTING';
-      } else if (json.desired_status == 'INSTALLED' && json.work_status == 'STARTED') {
-        json.work_status = 'STOPPING';
-      }
-    }
-
+//    var stateEqual = (json.desired_status != json.work_status);
+//    if (stateEqual) {
+//      if (json.desired_status == 'STARTED' && json.work_status == 'INSTALLED') {
+//        json.work_status = 'STARTING';
+//      } else if (json.desired_status == 'INSTALLED' && json.work_status == 'STARTED') {
+//        json.work_status = 'STOPPING';
+//      }
+//    }
     return json;
   }
 });
