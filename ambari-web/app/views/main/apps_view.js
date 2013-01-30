@@ -17,46 +17,16 @@
  */
 
 var App = require('app');
-var date = require('utils/date');
-var validator = require('utils/validator');
-var misc = require('utils/misc');
 
 App.MainAppsView = Em.View.extend({
   templateName:require('templates/main/apps'),
 
-  /**
-   * Choose view type for apps list:
-   * all - show all runs
-   * filtered - show only filtered runs
-   * starred - show only filtered runs with stars selected
-   */
-
-  defaultViewType:'all',
   /**
    * List of users
    */
   users:function () {
     return this.get('controller.content').mapProperty("userName").uniq();
   }.property('controller.content.length'),
-  /**
-   * jQuery collection of stars icons (in dataTables). Saved here for easy "turning off"
-   */
-  smallStarsIcons:null,
-
-  stared:function () {
-    return this.get('controller.staredRunsLength');
-  }.property('controller.staredRunsLength'),
-  /**
-   * Count of filtered runs
-   */
-  filtered:null,
-  /**
-   * Flag for avgData
-   */
-  whatAvgShow:true, // true - for filtered data, false - for starred
-  /**
-   * avg data for display. Can be stared or filtered. Based on whatAvgShow
-   */
 
   //Pagination left/right buttons css class
   paginationLeft : Ember.View.extend({
@@ -357,7 +327,7 @@ App.MainAppsView = Em.View.extend({
   }),
 
   /**
-   * Onclick handler for <code>Show All/Filtered/code> links
+   * Onclick handler for Show All/Filtered buttons
    */
   clickViewType:function (event) {
     this.set("controller.filterObject.viewTypeClickEvent", true);
@@ -383,28 +353,6 @@ App.MainAppsView = Em.View.extend({
     this.set("controller.filterObject.viewTypeClickEvent", false);
   }.observes("controller.filterObject.viewType"),
 
-  loaded:false,
-  inserted:false,
-
-  onLoad:function () {
-    if (this.get('loaded')) {
-      return;
-    }
-    if (!App.router.get('clusterController.postLoadList.runs')) {
-      return;
-    }
-    if (!this.get('inserted')) {
-      return;
-    }
-
-    this.set('loaded', true);
-    var self = this;
-  }.observes('App.router.clusterController.postLoadList.runs'),
-
-  didInsertElement:function () {
-    this.set('inserted', true);
-    this.onLoad();
-  },
   /**
    * reset all filters in dataTable
    *
@@ -445,25 +393,6 @@ App.MainAppsView = Em.View.extend({
       this.get(viewName).get('clearFilter')(this.get(viewName));
     }
   },
-
-  /**
-   * refresh average info in top block when filtered changes
-   */
-  averageRefresh:function () {
-    var rows = this.get('oTable')._('tr', {"filter":"applied"});
-    this.get('controller').clearFilteredRuns();
-    var ids = [];
-    for (var i = 0; i < rows.length; i++) {
-      ids.push(rows[i][1]);
-    }
-    this.get('controller').filterFilteredRuns(ids);
-  }.observes('filtered'),
-
-
-
-
-
-
 
   /**
    * This Container View is used to render static table row(appTableRow) and additional dynamic content

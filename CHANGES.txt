@@ -36,6 +36,9 @@ Trunk (unreleased changes):
 
  IMPROVEMENTS
 
+ AMBARI-1289. App page: remove old ode and fix test mode. (srimanth via
+ yusaku)
+
  AMBARI-1279. Make sure that Ambari Web renders all elements correctly when
  the browser width is 1024px or narrower. (srimanth via yusaku)
 

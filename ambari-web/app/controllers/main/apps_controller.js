@@ -30,7 +30,7 @@ App.MainAppsController = Em.ArrayController.extend({
 
 
   loadRuns:function () {
-    console.log("--------------------loadRuns");
+
     this.set('loading', true);
     var self = this;
 
