@@ -36,6 +36,9 @@ Trunk (unreleased changes):
 
  IMPROVEMENTS
 
+ AMBARI-1295. Move cluster name display from the main nav to the top nav.
+ (Jaimin Jetly via yusaku)
+
  AMBARI-1268. Improve DAG UI. (billie via yusaku)
 
  AMBARI-1289. App page: remove old ode and fix test mode. (srimanth via

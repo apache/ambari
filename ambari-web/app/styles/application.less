@@ -77,8 +77,14 @@ footer {
     }
 
     .brand.cluster-name {
-      padding-left: 0px;
+      margin-left: 10px;
+
+      .operations-count {
+        background-color: #006DCC;
+      }
     }
+
+
   }
 
   .navbar .nav {
@@ -116,14 +122,7 @@ footer {
 }
 
 #main-nav {
-  .brand {
-    font-size: 17px;
-    border-right: 1px solid rgba(0, 0, 0, 0.08);
-    color: #555555;
-  }
-  .operations-count {
-    background-color: #006DCC;
-  }
+
   li {
     font-size: 15px;
     border-left: 1px solid #fefefe;
@@ -134,6 +133,18 @@ footer {
     padding: 0;
     margin: 0;
     width: 140px;
+  }
+
+  li:first-child{
+    border-left: none;
+    a{
+      border-radius: 4px 0 0 4px;
+    }
+  }
+
+  .navbar-inner{
+    padding-left: 0;
+    border-left: 0;
   }
 
   margin-bottom: 20px;
@@ -2332,12 +2343,6 @@ ul.inline li {
 
 .btn-primary:active, .btn-primary.active, .btn-primary.disabled, .btn-primary[disabled] {
   background-color: #555555;
-}
-
-#main-nav .brand {
-  background-color: #777777;
-  color: #FFFFFF;
-  text-shadow: none;
 }
 
 .modal-body {

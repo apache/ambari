@@ -21,23 +21,6 @@ require('models/background_operation');
 
 App.MainController = Em.Controller.extend({
   name: 'mainController',
-  
-  clusterName: function () {
-    var name = App.router.get('clusterController.clusterName');
-    if (name) {
-      return name;
-    }
-    return 'My Cluster';
-  }.property('App.router.clusterController.clusterName'),
-  
-  clusterDisplayName: function () {
-    var name = App.router.get('clusterController.clusterName');
-    if (name) {
-      var displayName = name.length > 13 ? name.substr(0, 10) + "..." : name;
-      return displayName.capitalize();
-    }
-    return 'My Cluster';
-  }.property('App.router.clusterController.clusterName'),
 
   updateTitle: function(){
     var name = App.router.get('clusterController.clusterName');
