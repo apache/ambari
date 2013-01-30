@@ -299,6 +299,9 @@ Trunk (unreleased changes):
  AMBARI-1291. Incorrect directory for MySQL component on SLES-11.1sp1.
  (mahadev)
 
+ AMBARI-1301. Live status checks dont get triggered on server restart.
+ (mahadev)
+
 AMBARI-1.2.0 branch:
 
  INCOMPATIBLE CHANGES

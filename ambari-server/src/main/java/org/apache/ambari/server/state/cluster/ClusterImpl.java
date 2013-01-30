@@ -32,8 +32,6 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
-import com.google.gson.Gson;
-import com.google.inject.persist.Transactional;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.ServiceComponentHostNotFoundException;
 import org.apache.ambari.server.ServiceNotFoundException;
@@ -47,15 +45,18 @@ import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Config;
 import org.apache.ambari.server.state.ConfigFactory;
 import org.apache.ambari.server.state.Service;
+import org.apache.ambari.server.state.ServiceComponent;
 import org.apache.ambari.server.state.ServiceComponentHost;
 import org.apache.ambari.server.state.ServiceFactory;
 import org.apache.ambari.server.state.StackId;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.gson.Gson;
 import com.google.inject.Inject;
 import com.google.inject.Injector;
 import com.google.inject.assistedinject.Assisted;
+import com.google.inject.persist.Transactional;
 
 public class ClusterImpl implements Cluster {
 
@@ -66,7 +67,6 @@ public class ClusterImpl implements Cluster {
   private Clusters clusters;
 
   private StackId desiredStackVersion;
-  private StackId desiredState;
 
   private Map<String, Service> services = null;
 
@@ -114,8 +114,9 @@ public class ClusterImpl implements Cluster {
         Map<String, Map<String, ServiceComponentHost>>>();
     this.serviceComponentHostsByHost = new HashMap<String,
         List<ServiceComponentHost>>();
-    this.desiredStackVersion = gson.fromJson(clusterEntity.getDesiredStackVersion(), StackId.class);
-
+    this.desiredStackVersion = gson.fromJson(
+        clusterEntity.getDesiredStackVersion(), StackId.class);
+    loadServiceHostComponents();
     configs = new HashMap<String, Map<String, Config>>();
     if (!clusterEntity.getClusterConfigEntities().isEmpty()) {
       for (ClusterConfigEntity entity : clusterEntity.getClusterConfigEntities()) {
@@ -129,11 +130,57 @@ public class ClusterImpl implements Cluster {
         configs.get(entity.getType()).put(entity.getTag(), config);
       }
     }
-
-
+  }
+  
+  
+  /**
+   * Make sure we load all the service host components.
+   * We need this for live status checks.
+   */
+  public void loadServiceHostComponents() {
+    loadServices();
+    LOG.info("Loading Service Host Components");
+    if (services != null) {
+      for (Map.Entry<String, Service> serviceKV: services.entrySet()) {
+        /* get all the service component hosts **/
+        Service service = serviceKV.getValue();
+        if (!serviceComponentHosts.containsKey(service.getName())) {
+          serviceComponentHosts.put(service.getName(), new HashMap<String, 
+              Map<String, ServiceComponentHost>>());
+        }
+        for (Map.Entry<String, ServiceComponent> svcComponent:
+            service.getServiceComponents().entrySet()) {
+          ServiceComponent comp = svcComponent.getValue();
+          String componentName = svcComponent.getKey();
+          if (!serviceComponentHosts.get(service.getName()).containsKey(componentName)) {
+            serviceComponentHosts.get(service.getName()).put(componentName, 
+                new HashMap<String, ServiceComponentHost>());
+          }
+          /** Get Service Host Components **/
+          for (Map.Entry<String, ServiceComponentHost> svchost:
+              comp.getServiceComponentHosts().entrySet()) {
+              String hostname = svchost.getKey();
+              ServiceComponentHost svcHostComponent = svchost.getValue();
+              if (!serviceComponentHostsByHost.containsKey(hostname)) {
+                serviceComponentHostsByHost.put(hostname, 
+                    new ArrayList<ServiceComponentHost>());
+              }
+              List<ServiceComponentHost> compList =  serviceComponentHostsByHost.get(hostname);
+              compList.add(svcHostComponent);
+              
+              if (!serviceComponentHosts.get(service.getName()).get(componentName)
+                  .containsKey(hostname)) {
+                serviceComponentHosts.get(service.getName()).get(componentName)
+                .put(hostname, svcHostComponent);
+              }
+          }       
+        }
+      }
+    }
   }
 
   private void loadServices() {
+    LOG.info("clusterEntity " + clusterEntity.getClusterServiceEntities() );
     if (services == null) {
       synchronized (this) {
         if (services == null) {
