@@ -28,7 +28,7 @@ App.MainAdminUserEditView = Em.View.extend({
       var Users={};
       if(form.getField("admin").get('value') === "" || form.getField("admin").get('value') == true) {
         form.getField("roles").set("value","admin,user");
-        form.getField("admin").set("value","true");
+        form.getField("admin").set("value", true);
       } else{
         form.getField("roles").set("value","user");
       }

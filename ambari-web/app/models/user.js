@@ -49,7 +49,7 @@ App.EditUserForm = App.Form.extend({
 
   fieldsOptions:[
     { name:"userName", displayName:"Username" },
-    { name:"old_password", displayName:"Old Password", displayType:"password", isRequired: function(){ return this.get('form.isObjectNew'); }.property('form.isObjectNew') },
+    { name:"old_password", displayName:"Current Password", displayType:"password", isRequired: function(){ return this.get('form.isObjectNew'); }.property('form.isObjectNew') },
     { name:"new_password", displayName:"New Password", displayType:"password",  isRequired: false },
     { name:"admin", displayName:"Admin", displayType:"checkbox", isRequired:false },
     { name:"roles", displayName:"Role", isRequired:false, isHidden:true },

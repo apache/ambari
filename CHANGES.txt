@@ -185,6 +185,9 @@ Trunk (unreleased changes):
 
  BUG FIXES
 
+ AMBARI-1282. Admin user can lose its own admin privilege. (Jaimin Jetly
+ via yusaku)
+
  AMBARI-1292. Add hosts should skip host checks on existing list of cluster
  nodes. (srimanth via yusaku)
 
