@@ -179,6 +179,9 @@ Trunk (unreleased changes):
 
  BUG FIXES
 
+ AMBARI-1290. Left border is missing from the summary section on Jobs page.
+ (srimanth via yusaku)
+
  AMBARI-1278. Cannot proceed from Step 3 to Step 4 in App.testMode (Next 
  button is disabled). (srimanth)
 
