@@ -52,7 +52,9 @@ public class GSInstallerClusterProviderTest {
     Predicate predicate = new PredicateBuilder().property(GSInstallerClusterProvider.CLUSTER_NAME_PROPERTY_ID).equals("ambari").toPredicate();
     Set<Resource> resources = provider.getResources(PropertyHelper.getReadRequest(), predicate);
     Assert.assertEquals(1, resources.size());
-    Assert.assertEquals("ambari", resources.iterator().next().getPropertyValue(GSInstallerClusterProvider.CLUSTER_NAME_PROPERTY_ID));
+    Resource next = resources.iterator().next();
+    Assert.assertEquals("ambari",    next.getPropertyValue(GSInstallerClusterProvider.CLUSTER_NAME_PROPERTY_ID));
+    Assert.assertEquals("HDP-1.2.0", next.getPropertyValue(GSInstallerClusterProvider.CLUSTER_VERSION_PROPERTY_ID));
 
     predicate = new PredicateBuilder().property(GSInstallerClusterProvider.CLUSTER_NAME_PROPERTY_ID).equals("non-existent Cluster").toPredicate();
     resources = provider.getResources(PropertyHelper.getReadRequest(), predicate);

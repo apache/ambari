@@ -36,12 +36,16 @@ public class ClusterDefinition {
   private static final String CLUSTER_DEFINITION_FILE = "gsInstaller-hosts.txt";
   private static final String DEFAULT_CLUSTER_NAME    = "ambari";
   private static final String CLUSTER_NAME_TAG        = "CLUSTER=";
+  private static final String DEFAULT_VERSION_ID      = "HDP-1.2.0";
+  private static final String VERSION_ID_TAG          = "VERSION=";
 
-  private final String clusterName;
   private final Set<String> services = new HashSet<String>();
   private final Set<String> hosts = new HashSet<String>();
   private final Map<String, Set<String>> components = new HashMap<String, Set<String>>();
   private final Map<String, Map<String, Set<String>>> hostComponents = new HashMap<String, Map<String, Set<String>>>();
+
+  private String clusterName;
+  private String versionId;
 
 
   // ----- Constructors ------------------------------------------------------
@@ -50,7 +54,9 @@ public class ClusterDefinition {
    * Create a cluster definition.
    */
   public ClusterDefinition() {
-    this.clusterName = readClusterDefinition();
+    clusterName = DEFAULT_CLUSTER_NAME;
+    versionId   = DEFAULT_VERSION_ID;
+    readClusterDefinition();
   }
 
 
@@ -63,6 +69,15 @@ public class ClusterDefinition {
    */
   public String getClusterName() {
     return clusterName;
+  }
+
+  /**
+   * Get the name of the cluster.
+   *
+   * @return the cluster name
+   */
+  public String getVersionId() {
+    return versionId;
   }
 
   /**
@@ -116,12 +131,8 @@ public class ClusterDefinition {
 
   /**
    * Read the gsInstaller cluster definition file.
-   *
-   * @return the cluster name
    */
-  private String readClusterDefinition() {
-    String clusterName = DEFAULT_CLUSTER_NAME;
-
+  private void readClusterDefinition() {
     try {
       InputStream    is = this.getClass().getClassLoader().getResourceAsStream(CLUSTER_DEFINITION_FILE);
       BufferedReader br = new BufferedReader(new InputStreamReader(is));
@@ -131,6 +142,9 @@ public class ClusterDefinition {
         line = line.trim();
         if (line.startsWith(CLUSTER_NAME_TAG)) {
           clusterName = line.substring(CLUSTER_NAME_TAG.length());
+        }
+        else if (line.startsWith(VERSION_ID_TAG)) {
+          versionId = line.substring(VERSION_ID_TAG.length());
         }
         else {
           String[] parts = line.split("\\s+");
@@ -167,6 +181,5 @@ public class ClusterDefinition {
       String msg = "Caught exception reading " + CLUSTER_DEFINITION_FILE + ".";
       throw new IllegalStateException(msg, e);
     }
-    return clusterName;
   }
 }

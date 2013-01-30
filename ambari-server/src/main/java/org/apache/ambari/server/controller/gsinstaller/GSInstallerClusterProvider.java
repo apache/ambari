@@ -28,7 +28,8 @@ import org.apache.ambari.server.controller.utilities.PropertyHelper;
 public class GSInstallerClusterProvider extends GSInstallerResourceProvider{
 
   // Clusters
-  protected static final String CLUSTER_NAME_PROPERTY_ID = PropertyHelper.getPropertyId("Clusters", "cluster_name");
+  protected static final String CLUSTER_NAME_PROPERTY_ID    = PropertyHelper.getPropertyId("Clusters", "cluster_name");
+  protected static final String CLUSTER_VERSION_PROPERTY_ID = PropertyHelper.getPropertyId("Clusters", "version");
 
 
   // ----- Constructors ------------------------------------------------------
@@ -51,7 +52,9 @@ public class GSInstallerClusterProvider extends GSInstallerResourceProvider{
    */
   private void initClusterResources() {
     Resource cluster = new ResourceImpl(Resource.Type.Cluster);
-    cluster.setProperty(CLUSTER_NAME_PROPERTY_ID, getClusterDefinition().getClusterName());
+    ClusterDefinition clusterDefinition = getClusterDefinition();
+    cluster.setProperty(CLUSTER_NAME_PROPERTY_ID, clusterDefinition.getClusterName());
+    cluster.setProperty(CLUSTER_VERSION_PROPERTY_ID, clusterDefinition.getVersionId());
     addResource(cluster);
   }
 }

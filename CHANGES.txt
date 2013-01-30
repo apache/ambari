@@ -186,6 +186,8 @@ Trunk (unreleased changes):
  AMBARI-1270. Add predicate objects for checking empty resource category.
  (tbeerbower)
 
+ AMBARI - 1286. Set version number property in gsInstaller cluster resource provider. (tbeerbower)
+
  BUG FIXES
 
  AMBARI-1297. Edit User: if "old password" is not specified and "new
