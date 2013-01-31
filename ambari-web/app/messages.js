@@ -417,7 +417,12 @@ Em.I18n.translations = {
   'timeRange.presets.1year':'1yr',
 
   'apps.filters.customRunDate':'Run Date custom filter',
-  'apps.dagCharts.popup':'DAG/Charts',
+  'apps.dagCharts.popup':'Job Charts',
+  'apps.dagCharts.popup.job': 'Job',
+  'apps.dagCharts.popup.dag':'DAG',
+  'apps.dagCharts.popup.tasks':'Timeline & Tasks',
+  'apps.dagCharts.popup.tasks.timeline':'Job Timeline',
+  'apps.dagCharts.popup.tasks.tasks':'Job Tasks',
   'apps.isRunning.popup.title':'Is running',
   'apps.isRunning.popup.content':'Job is running now',
 

@@ -36,6 +36,9 @@ Trunk (unreleased changes):
 
  IMPROVEMENTS
 
+ AMBARI-1302. Minor label cleanup on Jobs Charts popup. (Arun Kandregula via
+ yusaku)
+
  AMBARI-1296. Task log popup footer should be statically placed only the
  content should scroll vertically. (Jaimin Jetly via yusaku)
 

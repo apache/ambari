@@ -24,12 +24,12 @@ App.MainAppsItemView = Em.View.extend({
   templateName:require('templates/main/apps/item'),
   menuTabs:[
     Em.Object.create({
-      label:'DAG',
+      label:Em.I18n.t('apps.dagCharts.popup.dag'),
       active:'active',
       content:'App.MainAppsItemDagView'
     }),
     Em.Object.create({
-      label:'Charts',
+      label:Em.I18n.t('apps.dagCharts.popup.tasks'),
       active:'',
       content:'App.MainAppsItemBarView'
     })
