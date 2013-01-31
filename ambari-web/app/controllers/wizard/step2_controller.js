@@ -25,7 +25,7 @@ App.WizardStep2Controller = Em.Controller.extend({
   isPattern: false,
   bootRequestId:  null,
   hasSubmitted: false,
-
+  inputtedAgainHostNames: [],
   hostNames: function () {
     return this.get('content.installOptions.hostNames');
   }.property('content.installOptions.hostNames'),
@@ -54,11 +54,14 @@ App.WizardStep2Controller = Em.Controller.extend({
   updateHostNameArr: function(){
     this.hostNameArr = this.get('hostNames').trim().split(new RegExp("\\s+", "g"));
     this.patternExpression();
+    this.get('inputtedAgainHostNames').clear();
     var installedHostNames = App.Host.find().mapProperty('hostName');
     var tempArr = [];
     for (i = 0; i < this.hostNameArr.length; i++) {
       if (!installedHostNames.contains(this.hostNameArr[i])) {
         tempArr.push(this.hostNameArr[i]);
+      } else {
+        this.get('inputtedAgainHostNames').push(this.hostNameArr[i]);
       }
     }
     this.set('hostNameArr', tempArr);
@@ -164,7 +167,7 @@ App.WizardStep2Controller = Em.Controller.extend({
     this.updateHostNameArr();
 
     if (!this.hostNameArr.length) {
-      this.set('hostsError', Em.I18n.t('installer.step2.hostName.error.required'));
+      this.set('hostsError', Em.I18n.t('installer.step2.hostName.error.already_installed'));
       return false;
     }
 
@@ -173,8 +176,21 @@ App.WizardStep2Controller = Em.Controller.extend({
       this.hostNamePatternPopup(this.hostNameArr);
       return false;
     }
-
-    this.proceedNext();
+    if (this.get('inputtedAgainHostNames').length) {
+      var self = this;
+      App.ModalPopup.show({
+        header: 'Warning',
+        onPrimary: function () {
+          self.proceedNext();
+          this.hide();
+        },
+        bodyClass: Ember.View.extend({
+          template: Ember.Handlebars.compile('<p>These hosts are already installed on the cluster and will be ignored:</p><p>' + self.get('inputtedAgainHostNames').join(', ') + '</p><p>Do you want to continue?</p>')
+        })
+      });
+    } else {
+      this.proceedNext();
+    }
   },
   /**
    * check is there a pattern expression in host name textarea

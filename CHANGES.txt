@@ -38,6 +38,8 @@ Trunk (unreleased changes):
 
  IMPROVEMENTS
  
+ AMBARI-1327. Add Hosts. Remove existig hosts display. (Alexandr Antonenko via jspeidel)
+
  AMBARI-1326. Remake clearFilters function in app_view (part 3). (srimanth)
  
  AMBARI-1305. Make sure that Ambari Web renders all elements correctly when
