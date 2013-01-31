@@ -191,7 +191,11 @@ Trunk (unreleased changes):
 
  BUG FIXES
 
- AMBARI-1300.  Service status / host component status can get stuck in the
+ AMBARI-1281. Heatmap does not show up if the cluster was installed by going
+ back to a previous step from the Deploy step after an install failure.
+ (yusaku)
+
+ AMBARI-1300. Service status / host component status can get stuck in the
  green blinking state if stop fails - no further operation can be performed.
  (srimanth via yusaku) 
 
