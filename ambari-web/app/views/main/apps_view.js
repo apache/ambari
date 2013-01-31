@@ -257,6 +257,14 @@ App.MainAppsView = Em.View.extend({
     }
   },
   /**
+   * Clears up last job ID when coming in fresh to page.
+   * Not doing this will result in failure to load job
+   * data, and subsequently the popup dialog.
+   */
+  didInsertElement: function(){
+    App.router.get('mainAppsItemController').set('lastJobId', null);
+  },
+  /**
    *
    */
   onChangeViewType: function () {

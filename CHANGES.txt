@@ -213,6 +213,9 @@ Trunk (unreleased changes):
 
  BUG FIXES
 
+ AMBARI-1321. Switching out of Jobs page does not launch popup anymore.
+ (srimanth via yusaku) 
+
  AMBARI-1313. Alert time jumps between 'less than a minute ago' and 'about a
  minute ago'. (srimanth via yusaku) 
 
