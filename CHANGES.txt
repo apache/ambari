@@ -202,6 +202,9 @@ Trunk (unreleased changes):
 
  BUG FIXES
 
+ AMBARI-1304. When switching jobs in timeline + tasks charts, blank charts show.
+ (Arun Kandregula via yusaku) 
+
  AMBARI-1317. Deploy progress returns to deploy screen (momentarily).
  (Arun Kandregula via yusaku) 
 

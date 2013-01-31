@@ -59,7 +59,7 @@
       "elapsedTime": 27080,
       "inputBytes": 1550,
       "outputBytes": 1547,
-      "numJobsTotal": 1,
+      "numJobsTotal": 3,
       "numJobsCompleted": 1,
       "workflowContext": {
         "workflowDag": {
