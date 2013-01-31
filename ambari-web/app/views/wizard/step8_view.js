@@ -83,10 +83,10 @@ App.WizardStep8View = Em.View.extend({
         }.property('ajaxQueueComplete', 'ajaxQueueLength'),
 
         autoHide: function() {
-          if (this.get('ajaxQueueComplete') === this.get('ajaxQueueLength')) {
+          if (this.get('controller.servicesInstalled')) {
             this.get('parentView').hide();
           }
-        }.observes('ajaxQueueComplete', 'ajaxQueueLength')
+        }.observes('controller.servicesInstalled')
       })
     }));
   }.observes('controller.isSubmitDisabled')

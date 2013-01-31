@@ -30,6 +30,7 @@ App.WizardStep8Controller = Em.Controller.extend({
   slaveComponentConfig: null,
   isSubmitDisabled: false,
   hasErrorOccurred: false,
+  servicesInstalled: false,
 
   selectedServices: function () {
     return this.get('content.services').filterProperty('isSelected', true).filterProperty('isInstalled', false);
@@ -40,6 +41,7 @@ App.WizardStep8Controller = Em.Controller.extend({
     this.get('configs').clear();
     this.get('globals').clear();
     this.get('clusterInfo').clear();
+    this.set('servicesInstalled', false);
   },
 
   loadStep: function () {

@@ -214,6 +214,7 @@ module.exports = Em.Route.extend({
         wizardControllerName: App.router.get('addHostController.name'),
         localdb: App.db.data
       });
+      wizardStep8Controller.set('servicesInstalled', true);
       router.transitionTo('step5');
     }
   }),
