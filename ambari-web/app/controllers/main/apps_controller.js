@@ -310,6 +310,11 @@ App.MainAppsController = Em.ArrayController.extend({
       }
       return tmp;
     },
+
+    /**
+     * Create link for server request
+     * @return {String}
+     */
     createAppLink:function(){
       var link = "/jobhistory/datatable?";
 
@@ -385,6 +390,25 @@ App.MainAppsController = Em.ArrayController.extend({
       return link;
     }
   }),
+
+  /**
+   * reset all filters in table
+   *
+   */
+  clearFilters: function () {
+    var obj=this.get("filterObject");
+    obj.set("sSearch_0","");
+    obj.set("sSearch_1","");
+    obj.set("sSearch_2","");
+    obj.set("sSearch_3","");
+    obj.set("runType","Any");
+    obj.set("jobs","");
+    obj.set("input","");
+    obj.set("output","");
+    obj.set("duration","");
+    obj.set("runDate","Any");
+  },
+
 
   runUrl : "/jobhistory/datatable",
   runTimeout : null,

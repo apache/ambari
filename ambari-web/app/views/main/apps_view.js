@@ -286,23 +286,6 @@ App.MainAppsView = Em.View.extend({
   }.observes("controller.filterObject.viewType"),
 
   /**
-   * reset all filters in table
-   *
-   */
-  clearFilters: function (event) {
-    this.set("controller.filterObject.sSearch_0","");
-    this.set("controller.filterObject.sSearch_1","");
-    this.set("controller.filterObject.sSearch_2","");
-    this.set("controller.filterObject.sSearch_3","");
-    this.set("controller.filterObject.runType","Any");
-    this.set("controller.filterObject.jobs","");
-    this.set("controller.filterObject.input","");
-    this.set("controller.filterObject.output","");
-    this.set("controller.filterObject.duration","");
-    this.set("controller.filterObject.runDate","Any");
-  },
-
-  /**
    * This Container View is used to render static table row(appTableRow) and additional dynamic content
    */
   containerRow: Em.ContainerView.extend({

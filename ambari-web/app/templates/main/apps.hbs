@@ -59,7 +59,7 @@
         ({{controller.filterObject.filteredDisplayRecords}})</a>
     </div>
     <div class="span2 clear_filter">
-        <a {{action "clearFilters" target="view"}}>{{t apps.filters.clearFilters}}</a>
+        <a {{action "clearFilters" target="controller"}}>{{t apps.filters.clearFilters}}</a>
     </div>
     <div class="search-bar">
         {{view view.appSearchThrough valueBinding="controller.filterObject.sSearch"}}
