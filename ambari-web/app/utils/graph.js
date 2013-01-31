@@ -252,7 +252,7 @@ module.exports = {
         },
         {
           data:mapRackLocal,
-          color:'lightblue',
+          color:'#66B366',
           name:'rack_local_map'
         },
         {

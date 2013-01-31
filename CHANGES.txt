@@ -36,6 +36,8 @@ Trunk (unreleased changes):
 
  IMPROVEMENTS
 
+ AMBARI-1306. Change color of rack_local_map to #66B366. (yusaku)
+
  AMBARI-1311. Host health indicator should have a tooltip showing few details - 
  refactoring. (Arun Kandregula via yusaku)
 
