@@ -44,19 +44,51 @@ public class ClusterDefinition {
   private final Map<String, Set<String>> components = new HashMap<String, Set<String>>();
   private final Map<String, Map<String, Set<String>>> hostComponents = new HashMap<String, Map<String, Set<String>>>();
 
+  private final GSInstallerStateProvider stateProvider;
   private String clusterName;
   private String versionId;
 
+  /**
+   * Index of host names to host component state.
+   */
+  private final Map<String, Set<HostComponentState>> hostStateMap = new HashMap<String, Set<HostComponentState>>();
+
+  /**
+   * Index of service names to host component state.
+   */
+  private final Map<String, Set<HostComponentState>> serviceStateMap = new HashMap<String, Set<HostComponentState>>();
+
+  /**
+   * Index of component names to host component state.
+   */
+  private final Map<String, Set<HostComponentState>> componentStateMap = new HashMap<String, Set<HostComponentState>>();
+
+  /**
+   * Index of host component names to host component state.
+   */
+  private final Map<String, HostComponentState> hostComponentStateMap = new HashMap<String, HostComponentState>();
+
+  /**
+   * Component name mapping to account for differences in what is provided by the gsInstaller
+   * and what is expected by the Ambari providers.
+   */
+  private static final Map<String, String> componentNameMap = new HashMap<String, String>();
+
+  static {
+    componentNameMap.put("GANGLIA", "GANGLIA_SERVER");
+  }
 
   // ----- Constructors ------------------------------------------------------
 
   /**
    * Create a cluster definition.
    */
-  public ClusterDefinition() {
-    clusterName = DEFAULT_CLUSTER_NAME;
-    versionId   = DEFAULT_VERSION_ID;
+  public ClusterDefinition(GSInstallerStateProvider stateProvider) {
+    this.stateProvider = stateProvider;
+    this.clusterName   = DEFAULT_CLUSTER_NAME;
+    this.versionId     = DEFAULT_VERSION_ID;
     readClusterDefinition();
+    setHostComponentState();
   }
 
 
@@ -126,6 +158,53 @@ public class ClusterDefinition {
     return resultSet == null ? Collections.<String>emptySet() : resultSet;
   }
 
+  /**
+   * Get the host state from the given host name.
+   *
+   * @param hostName  the host name
+   *
+   * @return the host state
+   */
+  public String getHostState(String hostName) {
+    return isHealthy(hostStateMap.get(hostName)) ? "HEALTHY" : "INIT";
+  }
+
+  /**
+   * Get the service state from the given service name.
+   *
+   * @param serviceName  the service name
+   *
+   * @return the service state
+   */
+  public String getServiceState(String serviceName) {
+    return isHealthy(serviceStateMap.get(serviceName)) ? "STARTED" : "INIT";
+  }
+
+  /**
+   * Get the component state from the give service name and component name.
+   *
+   * @param serviceName    the service name
+   * @param componentName  the component name
+   *
+   * @return the component state
+   */
+  public String getComponentState(String serviceName, String componentName) {
+    return isHealthy(componentStateMap.get(getComponentKey(serviceName, componentName))) ? "STARTED" : "INIT";
+  }
+
+  /**
+   * Get the host component name from the given host name, service name and component name.
+   *
+   * @param hostName       the host name
+   * @param serviceName    the service name
+   * @param componentName  the component name
+   *
+   * @return the host component state
+   */
+  public String getHostComponentState(String hostName, String serviceName, String componentName) {
+    return isHealthy(hostComponentStateMap.get(getHostComponentKey(hostName, serviceName, componentName))) ? "STARTED" : "INIT";
+  }
+
 
   // ----- helper methods ----------------------------------------------------
 
@@ -154,6 +233,11 @@ public class ClusterDefinition {
           String componentName = parts[1];
           String hostName      = parts[2];
 
+          // translate the component name if required
+          if (componentNameMap.containsKey(componentName)) {
+            componentName = componentNameMap.get(componentName);
+          }
+
           services.add(serviceName);
           Set<String> serviceComponents = components.get(serviceName);
           if (serviceComponents == null) {
@@ -180,6 +264,153 @@ public class ClusterDefinition {
     } catch (IOException e) {
       String msg = "Caught exception reading " + CLUSTER_DEFINITION_FILE + ".";
       throw new IllegalStateException(msg, e);
+    }
+  }
+
+  /**
+   * Set the host component state maps.
+   */
+  private void setHostComponentState() {
+    for (Map.Entry<String, Map<String, Set<String>>> serviceEntry : hostComponents.entrySet()) {
+      String serviceName = serviceEntry.getKey();
+
+      for (Map.Entry<String, Set<String>> hostEntry : serviceEntry.getValue().entrySet()) {
+        String hostName = hostEntry.getKey();
+
+        for (String componentName : hostEntry.getValue()) {
+
+          HostComponentState state = new HostComponentState(hostName, componentName);
+
+          // add state to hosts
+          addState(hostName, hostStateMap, state);
+
+          // add state to services
+          addState(serviceName, serviceStateMap, state);
+
+          // add state to components
+          addState(getComponentKey(serviceName, componentName), componentStateMap, state);
+
+          // add state to host components
+          hostComponentStateMap.put(getHostComponentKey(hostName, serviceName, componentName), state);
+        }
+      }
+    }
+  }
+
+  /**
+   * Add the given host component state object to the given map of state objects.
+   *
+   * @param hostName  the host name
+   * @param stateMap  the map of state objects
+   * @param state     the state
+   */
+  private static void addState(String hostName, Map<String, Set<HostComponentState>> stateMap, HostComponentState state) {
+    Set<HostComponentState> states = stateMap.get(hostName);
+    if (states == null) {
+      states = new HashSet<HostComponentState>();
+      stateMap.put(hostName, states);
+    }
+    states.add(state);
+  }
+
+  /**
+   * Get a key from the given service name and component name.
+   *
+   * @param serviceName    the service name
+   * @param componentName  the component name
+   *
+   * @return the key
+   */
+  private String getComponentKey(String serviceName, String componentName) {
+    return serviceName + "." + componentName;
+  }
+
+  /**
+   * Get a key from the given host name, service name and component name.
+   *
+   * @param hostName       the host name
+   * @param serviceName    the service name
+   * @param componentName  the component name
+   *
+   * @return the key
+   */
+  private String getHostComponentKey(String hostName, String serviceName, String componentName) {
+    return hostName + "." + serviceName + "." + componentName;
+  }
+
+  /**
+   * Determine whether or not the host components associated
+   * with the given states are healthy.
+   *
+   * @param states  the states
+   *
+   * @return true if the associated host components are healthy
+   */
+  private boolean isHealthy(Set<HostComponentState> states) {
+    if (states != null) {
+      for (HostComponentState state : states) {
+        if (!state.isHealthy()) {
+          return false;
+        }
+      }
+    }
+    return true;
+  }
+
+  /**
+   * Determine whether or not the host component associated
+   * with the given state is healthy.
+   *
+   * @param state  the state
+   *
+   * @return true if the associated host component is healthy
+   */
+  private boolean isHealthy(HostComponentState state) {
+    return state == null || state.isHealthy();
+  }
+
+
+  // ----- inner classes -----------------------------------------------------
+
+  /**
+   * A state object used to check the health of a host component.
+   */
+  private class HostComponentState {
+    private final String hostName;
+    private final String componentName;
+    private boolean healthy = true;
+    private long lastAccess;
+
+    /**
+     * Expiry for the health value.
+     */
+    private static final int EXPIRY = 15000;
+
+    // ----- Constructor -----------------------------------------------------
+
+    /**
+     * Constructor.
+     *
+     * @param hostName       the host name
+     * @param componentName  the component name
+     */
+    HostComponentState(String hostName, String componentName) {
+      this.hostName      = hostName;
+      this.componentName = componentName;
+    }
+
+    /**
+     * Determine whether or not the associated host component is healthy.
+     *
+     * @return true if the associated host component is healthy
+     */
+    public boolean isHealthy() {
+      if (System.currentTimeMillis() - lastAccess > EXPIRY) {
+        // health value has expired... get it again
+        healthy = stateProvider.isHealthy(hostName, componentName);
+        this.lastAccess = System.currentTimeMillis();
+      }
+      return healthy;
     }
   }
 }

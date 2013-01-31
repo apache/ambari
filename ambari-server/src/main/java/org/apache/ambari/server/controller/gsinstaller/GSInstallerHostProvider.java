@@ -19,6 +19,8 @@
 package org.apache.ambari.server.controller.gsinstaller;
 
 import org.apache.ambari.server.controller.internal.ResourceImpl;
+import org.apache.ambari.server.controller.spi.Predicate;
+import org.apache.ambari.server.controller.spi.Request;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
 
@@ -34,6 +36,8 @@ public class GSInstallerHostProvider extends GSInstallerResourceProvider{
       PropertyHelper.getPropertyId("Hosts", "cluster_name");
   protected static final String HOST_NAME_PROPERTY_ID =
       PropertyHelper.getPropertyId("Hosts", "host_name");
+  protected static final String HOST_STATE_PROPERTY_ID =
+      PropertyHelper.getPropertyId("Hosts", "host_state");
 
 
   // ----- Constructors ------------------------------------------------------
@@ -49,19 +53,33 @@ public class GSInstallerHostProvider extends GSInstallerResourceProvider{
   }
 
 
+  // ----- GSInstallerResourceProvider ---------------------------------------
+
+  @Override
+  public void updateProperties(Resource resource, Request request, Predicate predicate) {
+    Set<String> propertyIds = getRequestPropertyIds(request, predicate);
+    if (propertyIds.contains(HOST_STATE_PROPERTY_ID)) {
+      String hostName = (String) resource.getPropertyValue(HOST_NAME_PROPERTY_ID);
+      resource.setProperty(HOST_STATE_PROPERTY_ID, getClusterDefinition().getHostState(hostName));
+    }
+  }
+
+
   // ----- helper methods ----------------------------------------------------
 
   /**
    * Create the resources based on the cluster definition.
    */
   private void initHostResources() {
-    String      clusterName = getClusterDefinition().getClusterName();
-    Set<String> hosts       = getClusterDefinition().getHosts();
+    ClusterDefinition clusterDefinition = getClusterDefinition();
+    String            clusterName       = clusterDefinition.getClusterName();
+    Set<String>       hosts             = clusterDefinition.getHosts();
 
     for (String hostName : hosts) {
       Resource host = new ResourceImpl(Resource.Type.Host);
       host.setProperty(HOST_CLUSTER_NAME_PROPERTY_ID, clusterName);
       host.setProperty(HOST_NAME_PROPERTY_ID, hostName);
+
       addResource(host);
     }
   }

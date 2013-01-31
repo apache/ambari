@@ -19,6 +19,8 @@
 package org.apache.ambari.server.controller.gsinstaller;
 
 import org.apache.ambari.server.controller.internal.ResourceImpl;
+import org.apache.ambari.server.controller.spi.Predicate;
+import org.apache.ambari.server.controller.spi.Request;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
 
@@ -33,6 +35,7 @@ public class GSInstallerComponentProvider extends GSInstallerResourceProvider{
   protected static final String COMPONENT_CLUSTER_NAME_PROPERTY_ID    = PropertyHelper.getPropertyId("ServiceComponentInfo", "cluster_name");
   protected static final String COMPONENT_SERVICE_NAME_PROPERTY_ID    = PropertyHelper.getPropertyId("ServiceComponentInfo", "service_name");
   protected static final String COMPONENT_COMPONENT_NAME_PROPERTY_ID  = PropertyHelper.getPropertyId("ServiceComponentInfo", "component_name");
+  protected static final String COMPONENT_STATE_PROPERTY_ID           = PropertyHelper.getPropertyId("ServiceComponentInfo", "state");
 
 
   // ----- Constructors ------------------------------------------------------
@@ -45,6 +48,20 @@ public class GSInstallerComponentProvider extends GSInstallerResourceProvider{
   public GSInstallerComponentProvider(ClusterDefinition clusterDefinition) {
     super(Resource.Type.Component, clusterDefinition);
     initComponentResources();
+  }
+
+
+  // ----- GSInstallerResourceProvider ---------------------------------------
+
+  @Override
+  public void updateProperties(Resource resource, Request request, Predicate predicate) {
+
+    Set<String> propertyIds = getRequestPropertyIds(request, predicate);
+    if (propertyIds.contains(COMPONENT_STATE_PROPERTY_ID)) {
+      String serviceName   = (String) resource.getPropertyValue(COMPONENT_SERVICE_NAME_PROPERTY_ID);
+      String componentName = (String) resource.getPropertyValue(COMPONENT_COMPONENT_NAME_PROPERTY_ID);
+      resource.setProperty(COMPONENT_STATE_PROPERTY_ID, getClusterDefinition().getComponentState(serviceName, componentName));
+    }
   }
 
 
@@ -63,6 +80,7 @@ public class GSInstallerComponentProvider extends GSInstallerResourceProvider{
         component.setProperty(COMPONENT_CLUSTER_NAME_PROPERTY_ID, clusterName);
         component.setProperty(COMPONENT_SERVICE_NAME_PROPERTY_ID, serviceName);
         component.setProperty(COMPONENT_COMPONENT_NAME_PROPERTY_ID, componentName);
+
         addResource(component);
       }
     }

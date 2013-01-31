@@ -35,7 +35,7 @@ public class GSInstallerComponentProviderTest {
 
   @Test
   public void testGetResources() throws Exception {
-    ClusterDefinition clusterDefinition = new ClusterDefinition();
+    ClusterDefinition clusterDefinition = new ClusterDefinition(new TestGSInstallerStateProvider());
     GSInstallerResourceProvider provider = new GSInstallerComponentProvider(clusterDefinition);
     Set<Resource> resources = provider.getResources(PropertyHelper.getReadRequest(), null);
     Assert.assertEquals(25, resources.size());
@@ -43,7 +43,7 @@ public class GSInstallerComponentProviderTest {
 
   @Test
   public void testGetResourcesWithPredicate() throws Exception {
-    ClusterDefinition clusterDefinition = new ClusterDefinition();
+    ClusterDefinition clusterDefinition = new ClusterDefinition(new TestGSInstallerStateProvider());
     GSInstallerResourceProvider provider = new GSInstallerComponentProvider(clusterDefinition);
     Predicate predicate = new PredicateBuilder().property(GSInstallerComponentProvider.COMPONENT_COMPONENT_NAME_PROPERTY_ID).equals("TASKTRACKER").toPredicate();
     Set<Resource> resources = provider.getResources(PropertyHelper.getReadRequest(), predicate);
@@ -61,7 +61,7 @@ public class GSInstallerComponentProviderTest {
 
   @Test
   public void testCreateResources() throws Exception {
-    ClusterDefinition clusterDefinition = new ClusterDefinition();
+    ClusterDefinition clusterDefinition = new ClusterDefinition(new TestGSInstallerStateProvider());
     GSInstallerResourceProvider provider = new GSInstallerComponentProvider(clusterDefinition);
 
     try {
@@ -74,7 +74,7 @@ public class GSInstallerComponentProviderTest {
 
   @Test
   public void testUpdateResources() throws Exception {
-    ClusterDefinition clusterDefinition = new ClusterDefinition();
+    ClusterDefinition clusterDefinition = new ClusterDefinition(new TestGSInstallerStateProvider());
     GSInstallerResourceProvider provider = new GSInstallerComponentProvider(clusterDefinition);
 
     try {
@@ -87,7 +87,7 @@ public class GSInstallerComponentProviderTest {
 
   @Test
   public void testDeleteResources() throws Exception {
-    ClusterDefinition clusterDefinition = new ClusterDefinition();
+    ClusterDefinition clusterDefinition = new ClusterDefinition(new TestGSInstallerStateProvider());
     GSInstallerResourceProvider provider = new GSInstallerComponentProvider(clusterDefinition);
 
     try {

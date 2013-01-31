@@ -22,18 +22,66 @@ import org.apache.ambari.server.controller.internal.AbstractProviderModule;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.spi.ResourceProvider;
 
+import java.io.IOException;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.util.HashMap;
+import java.util.Map;
+
 /**
  * A provider module implementation that uses the GSInstaller resource provider.
  */
-public class GSInstallerProviderModule extends AbstractProviderModule {
+public class GSInstallerProviderModule extends AbstractProviderModule implements GSInstallerStateProvider{
 
   private final ClusterDefinition clusterDefinition;
+
+  private static final Map<String, String> PORTS = new HashMap<String, String>();
+
+  static {
+    PORTS.put("NAMENODE", "50070");
+    PORTS.put("DATANODE", "50075");
+    PORTS.put("JOBTRACKER", "50030");
+    PORTS.put("TASKTRACKER", "50060");
+    PORTS.put("HBASE_MASTER", "60010");
+  }
+
+  private static final int TIMEOUT = 5000;
+
 
   // ----- Constructors ------------------------------------------------------
 
   public GSInstallerProviderModule() {
-    clusterDefinition = new ClusterDefinition();
+    clusterDefinition = new ClusterDefinition(this);
   }
+
+
+  // ----- GSInstallerStateProvider ------------------------------------------
+
+  @Override
+  public boolean isHealthy(String hostName, String componentName) {
+    String port = PORTS.get(componentName);
+    if (port != null) {
+      StringBuilder sb = new StringBuilder();
+      sb.append("http://").append(hostName);
+      sb.append(":").append(port);
+
+      try {
+        HttpURLConnection connection = (HttpURLConnection) new URL(sb.toString()).openConnection();
+
+        connection.setRequestMethod("HEAD");
+        connection.setConnectTimeout(TIMEOUT);
+        connection.setReadTimeout(TIMEOUT);
+
+        int code = connection.getResponseCode();
+
+        return code >= 200 && code <= 399;
+      } catch (IOException exception) {
+        return false;
+      }
+    }
+    return true;
+  }
+
 
   // ----- utility methods ---------------------------------------------------
 

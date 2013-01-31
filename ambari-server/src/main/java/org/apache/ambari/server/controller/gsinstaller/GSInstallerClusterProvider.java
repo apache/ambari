@@ -19,6 +19,8 @@
 package org.apache.ambari.server.controller.gsinstaller;
 
 import org.apache.ambari.server.controller.internal.ResourceImpl;
+import org.apache.ambari.server.controller.spi.Predicate;
+import org.apache.ambari.server.controller.spi.Request;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
 
@@ -45,6 +47,14 @@ public class GSInstallerClusterProvider extends GSInstallerResourceProvider{
   }
 
 
+  // ----- GSInstallerResourceProvider ---------------------------------------
+
+  @Override
+  public void updateProperties(Resource resource, Request request, Predicate predicate) {
+    // Do nothing
+  }
+
+
   // ----- helper methods ----------------------------------------------------
 
   /**
@@ -55,6 +65,7 @@ public class GSInstallerClusterProvider extends GSInstallerResourceProvider{
     ClusterDefinition clusterDefinition = getClusterDefinition();
     cluster.setProperty(CLUSTER_NAME_PROPERTY_ID, clusterDefinition.getClusterName());
     cluster.setProperty(CLUSTER_VERSION_PROPERTY_ID, clusterDefinition.getVersionId());
+
     addResource(cluster);
   }
 }

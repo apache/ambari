@@ -15,27 +15,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.apache.ambari.server.controller.gsinstaller;
 
-import org.apache.ambari.server.controller.spi.Predicate;
-import org.apache.ambari.server.controller.spi.Request;
-import org.apache.ambari.server.controller.spi.Resource;
-
 /**
- * A NO-OP resource provider for a gsInstaller defined cluster.
+ * Test gsInstaller state provider.
  */
-public class GSInstallerNoOpProvider extends GSInstallerResourceProvider{
+public class TestGSInstallerStateProvider implements GSInstallerStateProvider {
 
-  // ----- GSInstallerResourceProvider ---------------------------------------
+  private boolean healthy = true;
 
-  @Override
-  public void updateProperties(Resource resource, Request request, Predicate predicate) {
-    // Do nothing
+  public void setHealthy(boolean healthy) {
+    this.healthy = healthy;
   }
 
-  // ----- Constructors ------------------------------------------------------
-
-  public GSInstallerNoOpProvider(Resource.Type type, ClusterDefinition clusterDefinition) {
-    super(type, clusterDefinition);
+  @Override
+  public boolean isHealthy(String hostName, String componentName) {
+    return healthy;
   }
 }

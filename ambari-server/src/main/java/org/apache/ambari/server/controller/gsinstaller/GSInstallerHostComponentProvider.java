@@ -19,6 +19,8 @@
 package org.apache.ambari.server.controller.gsinstaller;
 
 import org.apache.ambari.server.controller.internal.ResourceImpl;
+import org.apache.ambari.server.controller.spi.Predicate;
+import org.apache.ambari.server.controller.spi.Request;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
 
@@ -34,6 +36,8 @@ public class GSInstallerHostComponentProvider extends GSInstallerResourceProvide
   protected static final String HOST_COMPONENT_SERVICE_NAME_PROPERTY_ID   = PropertyHelper.getPropertyId("HostRoles", "service_name");
   protected static final String HOST_COMPONENT_COMPONENT_NAME_PROPERTY_ID = PropertyHelper.getPropertyId("HostRoles", "component_name");
   protected static final String HOST_COMPONENT_HOST_NAME_PROPERTY_ID      = PropertyHelper.getPropertyId("HostRoles", "host_name");
+  protected static final String HOST_COMPONENT_STATE_PROPERTY_ID          = PropertyHelper.getPropertyId("HostRoles", "state");
+  protected static final String HOST_COMPONENT_DESIRED_STATE_PROPERTY_ID  = PropertyHelper.getPropertyId("HostRoles", "desired_state");
 
 
   // ----- Constructors ------------------------------------------------------
@@ -46,6 +50,25 @@ public class GSInstallerHostComponentProvider extends GSInstallerResourceProvide
   public GSInstallerHostComponentProvider(ClusterDefinition clusterDefinition) {
     super(Resource.Type.HostComponent, clusterDefinition);
     initHostComponentResources();
+  }
+
+
+  // ----- GSInstallerResourceProvider ---------------------------------------
+
+  @Override
+  public void updateProperties(Resource resource, Request request, Predicate predicate) {
+    Set<String> propertyIds = getRequestPropertyIds(request, predicate);
+    if (propertyIds.contains(HOST_COMPONENT_STATE_PROPERTY_ID) ||
+        propertyIds.contains(HOST_COMPONENT_DESIRED_STATE_PROPERTY_ID)) {
+      String serviceName   = (String) resource.getPropertyValue(HOST_COMPONENT_SERVICE_NAME_PROPERTY_ID);
+      String componentName = (String) resource.getPropertyValue(HOST_COMPONENT_COMPONENT_NAME_PROPERTY_ID);
+      String hostName      = (String) resource.getPropertyValue(HOST_COMPONENT_HOST_NAME_PROPERTY_ID);
+
+      String hostComponentState = getClusterDefinition().getHostComponentState(hostName, serviceName, componentName);
+
+      resource.setProperty(HOST_COMPONENT_STATE_PROPERTY_ID, hostComponentState);
+      resource.setProperty(HOST_COMPONENT_DESIRED_STATE_PROPERTY_ID, hostComponentState);
+    }
   }
 
 
@@ -67,6 +90,7 @@ public class GSInstallerHostComponentProvider extends GSInstallerResourceProvide
           hostComponent.setProperty(HOST_COMPONENT_SERVICE_NAME_PROPERTY_ID, serviceName);
           hostComponent.setProperty(HOST_COMPONENT_COMPONENT_NAME_PROPERTY_ID, componentName);
           hostComponent.setProperty(HOST_COMPONENT_HOST_NAME_PROPERTY_ID, hostName);
+
           addResource(hostComponent);
         }
       }

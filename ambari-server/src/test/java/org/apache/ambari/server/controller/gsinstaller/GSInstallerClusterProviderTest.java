@@ -35,7 +35,7 @@ public class GSInstallerClusterProviderTest {
 
   @Test
   public void testGetResources() throws Exception {
-    ClusterDefinition clusterDefinition = new ClusterDefinition();
+    ClusterDefinition clusterDefinition = new ClusterDefinition(new TestGSInstallerStateProvider());
 
     GSInstallerResourceProvider provider = new GSInstallerClusterProvider(clusterDefinition);
     Set<Resource> resources = provider.getResources(PropertyHelper.getReadRequest(), null);
@@ -45,7 +45,7 @@ public class GSInstallerClusterProviderTest {
 
   @Test
   public void testGetResourcesWithPredicate() throws Exception {
-    ClusterDefinition clusterDefinition = new ClusterDefinition();
+    ClusterDefinition clusterDefinition = new ClusterDefinition(new TestGSInstallerStateProvider());
 
     GSInstallerResourceProvider provider = new GSInstallerClusterProvider(clusterDefinition);
 
@@ -63,7 +63,7 @@ public class GSInstallerClusterProviderTest {
 
   @Test
   public void testCreateResources() throws Exception {
-    ClusterDefinition clusterDefinition = new ClusterDefinition();
+    ClusterDefinition clusterDefinition = new ClusterDefinition(new TestGSInstallerStateProvider());
     GSInstallerResourceProvider provider = new GSInstallerClusterProvider(clusterDefinition);
 
     try {
@@ -76,7 +76,7 @@ public class GSInstallerClusterProviderTest {
 
   @Test
   public void testUpdateResources() throws Exception {
-    ClusterDefinition clusterDefinition = new ClusterDefinition();
+    ClusterDefinition clusterDefinition = new ClusterDefinition(new TestGSInstallerStateProvider());
     GSInstallerResourceProvider provider = new GSInstallerClusterProvider(clusterDefinition);
 
     try {
@@ -89,7 +89,7 @@ public class GSInstallerClusterProviderTest {
 
   @Test
   public void testDeleteResources() throws Exception {
-    ClusterDefinition clusterDefinition = new ClusterDefinition();
+    ClusterDefinition clusterDefinition = new ClusterDefinition(new TestGSInstallerStateProvider());
     GSInstallerResourceProvider provider = new GSInstallerClusterProvider(clusterDefinition);
 
     try {

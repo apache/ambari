@@ -29,11 +29,13 @@ import org.apache.ambari.server.controller.spi.ResourceAlreadyExistsException;
 import org.apache.ambari.server.controller.spi.ResourceProvider;
 import org.apache.ambari.server.controller.spi.SystemException;
 import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
+import org.apache.ambari.server.controller.utilities.PredicateHelper;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
 
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+
 
 /**
  * An abstract resource provider for a gsInstaller defined cluster.
@@ -82,7 +84,9 @@ public abstract class GSInstallerResourceProvider implements ResourceProvider {
 
     for (Resource resource : resources) {
       if (predicate == null || predicate.evaluate(resource)) {
-        resultSet.add(new ResourceImpl(resource));
+        ResourceImpl newResource = new ResourceImpl(resource);
+        updateProperties(newResource, request, predicate);
+        resultSet.add(newResource);
       }
     }
     return resultSet;
@@ -113,6 +117,18 @@ public abstract class GSInstallerResourceProvider implements ResourceProvider {
   }
 
 
+  // ----- GSInstallerResourceProvider ---------------------------------------
+
+  /**
+   * Update the resource with any properties handled by the resource provider.
+   *
+   * @param resource   the resource to update
+   * @param request    the request
+   * @param predicate  the predicate
+   */
+  public abstract void updateProperties(Resource resource, Request request, Predicate predicate);
+
+
   // ----- accessors ---------------------------------------------------------
 
   /**
@@ -128,10 +144,34 @@ public abstract class GSInstallerResourceProvider implements ResourceProvider {
   // ----- helper methods ----------------------------------------------------
 
   /**
-   * Add a resource to the set of resources provided by this provider.
+   * Get the set of property ids required to satisfy the given request.
    *
-   * @param resource  the resource to add
+   * @param request              the request
+   * @param predicate            the predicate
+   *
+   * @return the set of property ids needed to satisfy the request
    */
+  protected Set<String> getRequestPropertyIds(Request request, Predicate predicate) {
+    Set<String> propertyIds  = request.getPropertyIds();
+
+    // if no properties are specified, then return them all
+    if (propertyIds == null || propertyIds.isEmpty()) {
+      return new HashSet<String>(this.propertyIds);
+    }
+
+    propertyIds = new HashSet<String>(propertyIds);
+
+    if (predicate != null) {
+      propertyIds.addAll(PredicateHelper.getPropertyIds(predicate));
+    }
+    return propertyIds;
+  }
+
+  /**
+  * Add a resource to the set of resources provided by this provider.
+  *
+  * @param resource  the resource to add
+  */
   protected void addResource(Resource resource) {
     resources.add(resource);
   }

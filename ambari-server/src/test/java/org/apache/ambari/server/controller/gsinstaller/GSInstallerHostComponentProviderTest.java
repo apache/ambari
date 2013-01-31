@@ -35,7 +35,7 @@ public class GSInstallerHostComponentProviderTest {
 
   @Test
   public void testGetResources() throws Exception {
-    ClusterDefinition clusterDefinition = new ClusterDefinition();
+    ClusterDefinition clusterDefinition = new ClusterDefinition(new TestGSInstallerStateProvider());
     GSInstallerResourceProvider provider = new GSInstallerHostComponentProvider(clusterDefinition);
     Set<Resource> resources = provider.getResources(PropertyHelper.getReadRequest(), null);
     Assert.assertEquals(33, resources.size());
@@ -43,7 +43,7 @@ public class GSInstallerHostComponentProviderTest {
 
   @Test
   public void testGetResourcesWithPredicate() throws Exception {
-    ClusterDefinition clusterDefinition = new ClusterDefinition();
+    ClusterDefinition clusterDefinition = new ClusterDefinition(new TestGSInstallerStateProvider());
     GSInstallerResourceProvider provider = new GSInstallerHostComponentProvider(clusterDefinition);
     Predicate predicate = new PredicateBuilder().property(GSInstallerHostComponentProvider.HOST_COMPONENT_SERVICE_NAME_PROPERTY_ID).equals("MAPREDUCE").toPredicate();
     Set<Resource> resources = provider.getResources(PropertyHelper.getReadRequest(), predicate);
@@ -56,7 +56,7 @@ public class GSInstallerHostComponentProviderTest {
 
   @Test
   public void testCreateResources() throws Exception {
-    ClusterDefinition clusterDefinition = new ClusterDefinition();
+    ClusterDefinition clusterDefinition = new ClusterDefinition(new TestGSInstallerStateProvider());
     GSInstallerResourceProvider provider = new GSInstallerHostComponentProvider(clusterDefinition);
 
     try {
@@ -69,7 +69,7 @@ public class GSInstallerHostComponentProviderTest {
 
   @Test
   public void testUpdateResources() throws Exception {
-    ClusterDefinition clusterDefinition = new ClusterDefinition();
+    ClusterDefinition clusterDefinition = new ClusterDefinition(new TestGSInstallerStateProvider());
     GSInstallerResourceProvider provider = new GSInstallerHostComponentProvider(clusterDefinition);
 
     try {
@@ -82,7 +82,7 @@ public class GSInstallerHostComponentProviderTest {
 
   @Test
   public void testDeleteResources() throws Exception {
-    ClusterDefinition clusterDefinition = new ClusterDefinition();
+    ClusterDefinition clusterDefinition = new ClusterDefinition(new TestGSInstallerStateProvider());
     GSInstallerResourceProvider provider = new GSInstallerHostComponentProvider(clusterDefinition);
 
     try {
