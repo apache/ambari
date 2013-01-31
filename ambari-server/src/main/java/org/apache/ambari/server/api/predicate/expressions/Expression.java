@@ -18,6 +18,7 @@
 
 package org.apache.ambari.server.api.predicate.expressions;
 
+import org.apache.ambari.server.api.predicate.InvalidQueryException;
 import org.apache.ambari.server.api.predicate.operators.Operator;
 import org.apache.ambari.server.controller.spi.Predicate;
 
@@ -49,7 +50,7 @@ public interface Expression<T> {
    * Get the predicate representation of the expression.
    * @return a predicate instance for the expression
    */
-  public Predicate toPredicate();
+  public Predicate toPredicate() throws InvalidQueryException;
 
   /**
    * Set the expressions left operand.

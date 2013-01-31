@@ -18,6 +18,7 @@
 
 package org.apache.ambari.server.api.predicate.operators;
 
+import org.apache.ambari.server.api.predicate.InvalidQueryException;
 import org.apache.ambari.server.controller.spi.Predicate;
 
 /**
@@ -30,6 +31,7 @@ public interface RelationalOperator extends Operator {
    * @param prop  left operand
    * @param val   right operand
    * @return  a predicate instance for this operator.
+   * @throws  InvalidQueryException if unable to build the predicate because of invalid operands
    */
-  public Predicate toPredicate(String prop, String val);
+  public Predicate toPredicate(String prop, String val) throws InvalidQueryException;
 }

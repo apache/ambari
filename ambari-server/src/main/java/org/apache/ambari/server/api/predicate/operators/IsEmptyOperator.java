@@ -16,37 +16,36 @@
  * limitations under the License.
  */
 
-package org.apache.ambari.server.api.predicate.expressions;
+package org.apache.ambari.server.api.predicate.operators;
 
 import org.apache.ambari.server.api.predicate.InvalidQueryException;
-import org.apache.ambari.server.api.predicate.operators.RelationalOperator;
+import org.apache.ambari.server.controller.predicate.CategoryIsEmptyPredicate;
 import org.apache.ambari.server.controller.spi.Predicate;
 
 /**
- * Relational Expression.
- * Consists of a property name for the left operand, a relational operator
- * and a value as the right operand.
+ * Operator that is used to determine if a category is empty, meaning that it doesn't
+ * contain any properties.
  */
-public class RelationalExpression extends AbstractExpression<String> {
-
-  /**
-   * Constructor.
-   *
-   * @param op  relational operator
-   */
-  public RelationalExpression(RelationalOperator op) {
-    super(op);
+public class IsEmptyOperator extends AbstractOperator implements RelationalOperator {
+  public IsEmptyOperator() {
+    super(0);
   }
 
   @Override
-  public Predicate toPredicate() throws InvalidQueryException {
-    return ((RelationalOperator) getOperator()).
-        toPredicate(getLeftOperand(), getRightOperand());
+  public String getName() {
+    return "IsEmptyOperator";
   }
 
   @Override
-  public String toString() {
-    return "RelationalExpression{ property='" + getLeftOperand() + "\', value='"
-        + getRightOperand() + "\', op=" + getOperator() + " }";
+  public Predicate toPredicate(String prop, String val) throws InvalidQueryException {
+    if (val != null) {
+      throw new InvalidQueryException("'isEmpty' operator shouldn't have a right operand but one exists: " + val);
+    }
+    return new CategoryIsEmptyPredicate(prop);
+  }
+
+  @Override
+  public TYPE getType() {
+    return TYPE.IS_EMPTY;
   }
 }

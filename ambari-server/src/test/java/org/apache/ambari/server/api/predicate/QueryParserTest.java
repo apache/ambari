@@ -114,7 +114,7 @@ public class QueryParserTest {
   }
 
   @Test
-  public void testParse_simpleNotOp() throws Exception {
+  public void testParse_NotOp__simple() throws Exception {
     List<Token> listTokens = new ArrayList<Token>();
     //!a=b
     listTokens.add(new Token(Token.TYPE.LOGICAL_UNARY_OPERATOR, "!"));
@@ -150,6 +150,93 @@ public class QueryParserTest {
     AndPredicate andPred = new AndPredicate(aPred, notPred);
 
     assertEquals(andPred, p);
+  }
+
+  @Test
+  public void testParse_InOp__simple() throws Exception {
+    List<Token> listTokens = new ArrayList<Token>();
+    // foo.in(one,two,3)
+    listTokens.add(new Token(Token.TYPE.RELATIONAL_OPERATOR_FUNC, ".in("));
+    listTokens.add(new Token(Token.TYPE.PROPERTY_OPERAND, "foo"));
+    listTokens.add(new Token(Token.TYPE.VALUE_OPERAND, "one,two,3"));
+    listTokens.add(new Token(Token.TYPE.BRACKET_CLOSE, ")"));
+
+    QueryParser parser = new QueryParser();
+    Predicate p = parser.parse(listTokens.toArray(new Token[listTokens.size()]));
+
+    EqualsPredicate ep1 = new EqualsPredicate("foo", "one");
+    EqualsPredicate ep2 = new EqualsPredicate("foo", "two");
+    EqualsPredicate ep3 = new EqualsPredicate("foo", "3");
+
+    OrPredicate orPredicate = new OrPredicate(ep1, ep2, ep3);
+
+    assertEquals(orPredicate, p);
+  }
+
+  @Test
+  public void testParse_InOp__exception() throws Exception {
+    List<Token> listTokens = new ArrayList<Token>();
+    // foo.in()
+    listTokens.add(new Token(Token.TYPE.RELATIONAL_OPERATOR_FUNC, ".in("));
+    listTokens.add(new Token(Token.TYPE.PROPERTY_OPERAND, "foo"));
+    listTokens.add(new Token(Token.TYPE.BRACKET_CLOSE, ")"));
+
+    QueryParser parser = new QueryParser();
+    try {
+      parser.parse(listTokens.toArray(new Token[listTokens.size()]));
+      fail("Expected InvalidQueryException due to missing right operand");
+    } catch (InvalidQueryException e) {
+      // expected
+    }
+  }
+
+  @Test
+  public void testParse_isEmptyOp__simple() throws Exception {
+    List<Token> listTokens = new ArrayList<Token>();
+    // category1.isEmpty()
+    listTokens.add(new Token(Token.TYPE.RELATIONAL_OPERATOR_FUNC, ".isEmpty("));
+    listTokens.add(new Token(Token.TYPE.PROPERTY_OPERAND, "category1"));
+    listTokens.add(new Token(Token.TYPE.BRACKET_CLOSE, ")"));
+
+    QueryParser parser = new QueryParser();
+    Predicate p = parser.parse(listTokens.toArray(new Token[listTokens.size()]));
+
+    assertEquals(new CategoryIsEmptyPredicate("category1"), p);
+  }
+
+  @Test
+  public void testParse_isEmptyOp__exception() throws Exception {
+    List<Token> listTokens = new ArrayList<Token>();
+    // category1.isEmpty()
+    listTokens.add(new Token(Token.TYPE.RELATIONAL_OPERATOR_FUNC, ".isEmpty("));
+    listTokens.add(new Token(Token.TYPE.PROPERTY_OPERAND, "category1"));
+    // missing closing bracket
+
+    QueryParser parser = new QueryParser();
+    try {
+      parser.parse(listTokens.toArray(new Token[listTokens.size()]));
+      fail("Expected InvalidQueryException due to missing closing bracket");
+    } catch (InvalidQueryException e) {
+      // expected
+    }
+  }
+
+  @Test
+  public void testParse_isEmptyOp__exception2() throws Exception {
+    List<Token> listTokens = new ArrayList<Token>();
+    // category1.isEmpty()
+    listTokens.add(new Token(Token.TYPE.RELATIONAL_OPERATOR_FUNC, ".isEmpty("));
+    listTokens.add(new Token(Token.TYPE.PROPERTY_OPERAND, "category1"));
+    listTokens.add(new Token(Token.TYPE.VALUE_OPERAND, "one,two,3"));
+    listTokens.add(new Token(Token.TYPE.BRACKET_CLOSE, ")"));
+
+    QueryParser parser = new QueryParser();
+    try {
+      parser.parse(listTokens.toArray(new Token[listTokens.size()]));
+      fail("Expected InvalidQueryException due to existence of right operand");
+    } catch (InvalidQueryException e) {
+      // expected
+    }
   }
 
   @Test

@@ -34,6 +34,8 @@ public class Token {
     VALUE_OPERAND,
     /** Relational operator */
     RELATIONAL_OPERATOR,
+    /** Relational operator function */
+    RELATIONAL_OPERATOR_FUNC,
     /** Logical operator */
     LOGICAL_OPERATOR,
     /** Logical unary operator such as !*/

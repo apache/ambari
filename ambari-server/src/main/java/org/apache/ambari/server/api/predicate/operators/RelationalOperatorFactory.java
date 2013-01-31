@@ -29,7 +29,8 @@ public class RelationalOperatorFactory {
    * of the operator.
    *
    * @param operator  the string representation of the operator
-   * @return relationl operator for the given string
+   *
+   * @return relational operator for the given string
    * @throws InvalidQueryException if an invalid operator is passed in
    */
   public static RelationalOperator createOperator(String operator) throws InvalidQueryException {
@@ -37,14 +38,18 @@ public class RelationalOperatorFactory {
       return new NotEqualsOperator();
     } else if ("=".equals(operator)) {
       return new EqualsOperator();
-    } if ("<=".equals(operator)) {
+    } else if ("<=".equals(operator)) {
       return new LessEqualsOperator();
-    } if ("<".equals(operator)) {
+    } else if ("<".equals(operator)) {
       return new LessOperator();
-    }else if (">=".equals(operator)) {
+    } else if (">=".equals(operator)) {
       return new GreaterEqualsOperator();
-    } if (">".equals(operator)) {
+    } else if (">".equals(operator)) {
       return new GreaterOperator();
+    } else if (".in(".equals(operator)) {
+      return new InOperator();
+    } else if (".isEmpty(".equals(operator)) {
+      return new IsEmptyOperator();
     } else {
       throw new RuntimeException("Invalid Operator Type: " + operator);
     }

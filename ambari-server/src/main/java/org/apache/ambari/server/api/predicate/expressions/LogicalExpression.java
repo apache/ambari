@@ -18,6 +18,7 @@
 
 package org.apache.ambari.server.api.predicate.expressions;
 
+import org.apache.ambari.server.api.predicate.InvalidQueryException;
 import org.apache.ambari.server.api.predicate.operators.LogicalOperator;
 import org.apache.ambari.server.controller.spi.Predicate;
 
@@ -42,7 +43,7 @@ public class LogicalExpression extends AbstractExpression<Expression> {
 
 
   @Override
-  public Predicate toPredicate() {
+  public Predicate toPredicate() throws InvalidQueryException {
     return ((LogicalOperator) getOperator()).
         toPredicate(getLeftOperand().toPredicate(), getRightOperand().toPredicate());
   }

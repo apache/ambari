@@ -35,7 +35,9 @@ public interface Operator {
     NOT_EQUAL,
     AND,
     OR,
-    NOT
+    NOT,
+    IN,
+    IS_EMPTY
   }
 
   /**

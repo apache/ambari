@@ -51,6 +51,7 @@ public class QueryParser {
     TOKEN_HANDLERS.put(Token.TYPE.LOGICAL_UNARY_OPERATOR, new LogicalUnaryOperatorTokenHandler());
     TOKEN_HANDLERS.put(Token.TYPE.PROPERTY_OPERAND, new PropertyOperandTokenHandler());
     TOKEN_HANDLERS.put(Token.TYPE.VALUE_OPERAND, new ValueOperandTokenHandler());
+    TOKEN_HANDLERS.put(Token.TYPE.RELATIONAL_OPERATOR_FUNC, new RelationalOperatorFuncTokenHandler());
   }
 
   /**
@@ -93,10 +94,10 @@ public class QueryParser {
    * @throws InvalidQueryException if unable to properly parse the tokens into a parse context
    */
   private ParseContext parseExpressions(Token[] tokens) throws InvalidQueryException {
-    ParseContext ctx = new ParseContext();
+    ParseContext ctx = new ParseContext(tokens);
 
-    for (Token token : tokens) {
-      TOKEN_HANDLERS.get(token.getType()).handleToken(token, ctx);
+    while (ctx.getCurrentTokensIndex() < tokens.length) {
+      TOKEN_HANDLERS.get(tokens[ctx.getCurrentTokensIndex()].getType()).handleToken(ctx);
     }
 
     if (ctx.getPrecedenceLevel() != 0) {
@@ -128,10 +129,8 @@ public class QueryParser {
         stack.addAll(exp.merge(left, right, precedenceLevel));
       }
       return mergeExpressions(new ArrayList<Expression>(stack), precedenceLevel - 1);
-
-    } else {
-      return listExpressions;
     }
+    return listExpressions;
   }
 
   /**
@@ -142,6 +141,16 @@ public class QueryParser {
      * The current context precedence level.  This is dictated by bracket tokens.
      */
     private int m_precedence = 0;
+
+    /**
+     * Current position in tokens array
+     */
+    private int m_tokensIdx = 0;
+
+    /**
+     * Tokens
+     */
+    private Token[] m_tokens;
 
     /**
      * The type of the previous token used in validation.
@@ -157,6 +166,35 @@ public class QueryParser {
      * Highest precedence level in expression.
      */
     int m_maxPrecedence = 0;
+
+    public ParseContext(Token[] tokens) {
+      m_tokens = tokens;
+    }
+
+    /**
+     * Get array of all tokens.
+     * @return token array
+     */
+    public Token[] getTokens() {
+      return m_tokens;
+    }
+
+    /**
+     * Get the current position in the tokens array.
+     * @return the current tokens index
+     */
+    public int getCurrentTokensIndex() {
+      return m_tokensIdx;
+    }
+
+    /**
+     * Set the current position in the tokens array.
+     * Each handler should set this value after processing a token(s).
+     * @param idx  current tokens index
+     */
+    public void setCurrentTokensIndex(int idx) {
+      m_tokensIdx = idx;
+    }
 
     /**
      * Increment the context precedence level.
@@ -267,28 +305,29 @@ public class QueryParser {
      * Process a token. Handles common token processing functionality then delegates to the individual
      * concrete handlers.
      *
-     * @param token  the token to process
      * @param ctx    the current parse context
      * @throws InvalidQueryException if unable to process the token
      */
-    public void handleToken(Token token, ParseContext ctx) throws InvalidQueryException {
+    public void handleToken(ParseContext ctx) throws InvalidQueryException {
+      Token token = ctx.getTokens()[ctx.getCurrentTokensIndex()];
       if (! validate(ctx.getPreviousTokenType())) {
         throw new InvalidQueryException("Unexpected token encountered in query string. Last Token Type=" +
             ctx.getPreviousTokenType() + ", Current Token[type=" + token.getType() +
             ", value='" + token.getValue() + "']");
       }
       ctx.setTokenType(token.getType());
-      _handleToken(token, ctx);
+
+      int idxIncrement = _handleToken(ctx);
+      ctx.setCurrentTokensIndex(ctx.getCurrentTokensIndex() + idxIncrement);
     }
 
     /**
      * Process a token.
      *
-     * @param token  the token to process
      * @param ctx    the current parse context
      * @throws InvalidQueryException if unable to process the token
      */
-    public abstract void _handleToken(Token token, ParseContext ctx) throws InvalidQueryException;
+    public abstract int _handleToken(ParseContext ctx) throws InvalidQueryException;
 
     /**
      * Validate the token based on the previous token.
@@ -305,8 +344,9 @@ public class QueryParser {
   private class BracketOpenTokenHandler extends TokenHandler {
 
     @Override
-    public void _handleToken(Token token, ParseContext ctx) {
+    public int _handleToken(ParseContext ctx) {
       ctx.incPrecedenceLevel(Operator.MAX_OP_PRECEDENCE);
+      return 1;
     }
 
     @Override
@@ -323,8 +363,10 @@ public class QueryParser {
    */
   private class BracketCloseTokenHandler extends TokenHandler {
     @Override
-    public void _handleToken(Token token, ParseContext ctx) throws InvalidQueryException{
+    public int _handleToken(ParseContext ctx) throws InvalidQueryException{
       ctx.decPrecedenceLevel(Operator.MAX_OP_PRECEDENCE);
+
+      return 1;
     }
 
     @Override
@@ -339,10 +381,55 @@ public class QueryParser {
    */
   private class RelationalOperatorTokenHandler extends TokenHandler {
     @Override
-    public void _handleToken(Token token, ParseContext ctx) throws InvalidQueryException {
+    public int _handleToken(ParseContext ctx) throws InvalidQueryException {
+      Token token = ctx.getTokens()[ctx.getCurrentTokensIndex()];
       RelationalOperator relationalOp = RelationalOperatorFactory.createOperator(token.getValue());
       //todo: use factory to create expression
       ctx.addExpression(new RelationalExpression(relationalOp));
+
+      return 1;
+    }
+
+    @Override
+    public boolean validate(Token.TYPE previousTokenType) {
+      return previousTokenType == null                     ||
+          previousTokenType == Token.TYPE.BRACKET_OPEN     ||
+          previousTokenType == Token.TYPE.LOGICAL_OPERATOR ||
+          previousTokenType == Token.TYPE.LOGICAL_UNARY_OPERATOR;
+    }
+  }
+
+  /**
+   * Relational Operator function token handler
+   */
+  private class RelationalOperatorFuncTokenHandler extends TokenHandler {
+    @Override
+    public int _handleToken(ParseContext ctx) throws InvalidQueryException {
+      Token[]            tokens       = ctx.getTokens();
+      int                idx          = ctx.getCurrentTokensIndex();
+      Token              token        = tokens[idx];
+      RelationalOperator relationalOp = RelationalOperatorFactory.createOperator(token.getValue());
+
+      ctx.addExpression(new RelationalExpression(relationalOp));
+      ctx.setCurrentTokensIndex(++idx);
+
+      TokenHandler propertyHandler = new PropertyOperandTokenHandler();
+      propertyHandler.handleToken(ctx);
+
+      // handle right operand if applicable to operator
+      idx = ctx.getCurrentTokensIndex();
+      if (ctx.getCurrentTokensIndex() < tokens.length &&
+          tokens[idx].getType().equals(Token.TYPE.VALUE_OPERAND)) {
+        TokenHandler valueHandler = new ValueOperandTokenHandler();
+        valueHandler.handleToken(ctx);
+      }
+
+      // skip closing bracket
+      idx = ctx.getCurrentTokensIndex();
+      if (idx >= tokens.length || tokens[idx].getType() != Token.TYPE.BRACKET_CLOSE) {
+        throw new InvalidQueryException("Missing closing bracket for in expression.") ;
+      }
+      return 1;
     }
 
     @Override
@@ -359,10 +446,13 @@ public class QueryParser {
    */
   private class LogicalOperatorTokenHandler extends TokenHandler {
     @Override
-    public void _handleToken(Token token, ParseContext ctx) throws InvalidQueryException {
+    public int _handleToken(ParseContext ctx) throws InvalidQueryException {
+      Token token = ctx.getTokens()[ctx.getCurrentTokensIndex()];
       LogicalOperator logicalOp = LogicalOperatorFactory.createOperator(token.getValue(), ctx.getPrecedenceLevel());
       ctx.updateMaxPrecedence(logicalOp.getPrecedence());
       ctx.addExpression(LogicalExpressionFactory.createLogicalExpression(logicalOp));
+
+      return 1;
     }
 
     @Override
@@ -389,13 +479,17 @@ public class QueryParser {
    */
   private class PropertyOperandTokenHandler extends TokenHandler {
     @Override
-    public void _handleToken(Token token, ParseContext ctx) throws InvalidQueryException {
+    public int _handleToken(ParseContext ctx) throws InvalidQueryException {
+      Token token = ctx.getTokens()[ctx.getCurrentTokensIndex()];
       ctx.getPrecedingExpression().setLeftOperand(token.getValue());
+
+      return 1;
     }
 
     @Override
     public boolean validate(Token.TYPE previousTokenType) {
-      return previousTokenType == Token.TYPE.RELATIONAL_OPERATOR;
+      return previousTokenType == Token.TYPE.RELATIONAL_OPERATOR ||
+          previousTokenType == Token.TYPE.RELATIONAL_OPERATOR_FUNC;
     }
   }
 
@@ -404,8 +498,11 @@ public class QueryParser {
    */
   private class ValueOperandTokenHandler extends TokenHandler {
     @Override
-    public void _handleToken(Token token, ParseContext ctx) throws InvalidQueryException {
+    public int _handleToken(ParseContext ctx) throws InvalidQueryException {
+      Token token = ctx.getTokens()[ctx.getCurrentTokensIndex()];
       ctx.getPrecedingExpression().setRightOperand(token.getValue());
+
+      return 1;
     }
 
     @Override

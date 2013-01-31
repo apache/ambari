@@ -30,13 +30,14 @@ import java.util.regex.Pattern;
  * a regular expression which splits on a set of deliminators which includes
  * operators and brackets.
  *
- * Second, each string token is converted into a Token with type an value information.
+ * Second, each string token is converted into a Token with type and value information.
  */
 public class QueryLexer {
   /**
    * All valid deliminators.
    */
-  private static final String[] ALL_DELIMS = {"<=",">=","!=","=","<",">","&","|","!","(", ")"};
+  private static final String[] ALL_DELIMS =
+      {".in\\(",".isEmpty\\(","<=",">=","!=","=","<",">","&","|","!","(", ")"};
 
   /**
    * Map of token type to list of valid handlers for next token.
@@ -54,6 +55,7 @@ public class QueryLexer {
    * Register token handlers.
    */
   public QueryLexer() {
+    //todo: refactor handler registration
     List<TokenHandler> listHandlers = new ArrayList<TokenHandler>();
     listHandlers.add(new LogicalUnaryOperatorTokenHandler());
     listHandlers.add(new OpenBracketTokenHandler());
@@ -65,11 +67,17 @@ public class QueryLexer {
 
     listHandlers= new ArrayList<TokenHandler>();
     listHandlers.add(new RelationalOperatorTokenHandler());
+    listHandlers.add(new RelationalOperatorFuncTokenHandler());
     TOKEN_HANDLERS.put(Token.TYPE.PROPERTY_OPERAND, listHandlers);
 
     listHandlers = new ArrayList<TokenHandler>();
     listHandlers.add(new ValueOperandTokenHandler());
     TOKEN_HANDLERS.put(Token.TYPE.RELATIONAL_OPERATOR, listHandlers);
+
+    listHandlers = new ArrayList<TokenHandler>();
+    listHandlers.add(new CloseBracketTokenHandler());
+    listHandlers.add(new ValueOperandTokenHandler());
+    TOKEN_HANDLERS.put(Token.TYPE.RELATIONAL_OPERATOR_FUNC, listHandlers);
 
     listHandlers = new ArrayList<TokenHandler>();
     listHandlers.add(new CloseBracketTokenHandler());
@@ -90,7 +98,6 @@ public class QueryLexer {
   public Token[] tokens(String exp) throws InvalidQueryException {
 
     ScanContext ctx = new ScanContext();
-
     for (String tok : parseStringTokens(exp)) {
       List<TokenHandler> listHandlers = TOKEN_HANDLERS.get(ctx.getLastTokenType());
       boolean            processed    = false;
@@ -105,7 +112,6 @@ public class QueryLexer {
             tok + "\', previous token type=" + ctx.getLastTokenType());
       }
     }
-
     return ctx.getTokenList().toArray(new Token[ctx.getTokenList().size()]);
   }
 
@@ -267,7 +273,6 @@ public class QueryLexer {
     }
   }
 
-
   /**
    * Token handler base class.
    * Token handlers are responsible for processing specific token type.
@@ -365,7 +370,7 @@ public class QueryLexer {
 
     @Override
     public boolean handles(String token, Token.TYPE previousTokenType) {
-      return token.matches("[^!&\\|<=|>=|!=|=|<|>\\(\\)]+");
+      return token.matches("[^!&\\|<=|>=|!=|=|<|>]+");
     }
   }
 
@@ -390,7 +395,7 @@ public class QueryLexer {
   }
 
   /**
-   * Close Bracker token handler.
+   * Close Bracket token handler.
    */
   private class CloseBracketTokenHandler extends TokenHandler {
     @Override
@@ -414,7 +419,7 @@ public class QueryLexer {
    */
   private class RelationalOperatorTokenHandler extends TokenHandler {
     @Override
-  public void _handleToken(String token, ScanContext ctx) throws InvalidQueryException {
+    public void _handleToken(String token, ScanContext ctx) throws InvalidQueryException {
       ctx.addToken(new Token(Token.TYPE.RELATIONAL_OPERATOR, token));
       ctx.addToken(new Token(Token.TYPE.PROPERTY_OPERAND, ctx.getPropertyOperand()));
     }
@@ -429,6 +434,29 @@ public class QueryLexer {
       return token.matches("<=|>=|!=|=|<|>");
     }
   }
+
+  /**
+   * Relational Operator function token handler.
+   */
+  private class RelationalOperatorFuncTokenHandler extends TokenHandler {
+    @Override
+    public void _handleToken(String token, ScanContext ctx) throws InvalidQueryException {
+      ctx.addToken(new Token(Token.TYPE.RELATIONAL_OPERATOR_FUNC, token));
+      ctx.addToken(new Token(Token.TYPE.PROPERTY_OPERAND, ctx.getPropertyOperand()));
+    }
+
+    @Override
+    public Token.TYPE getType() {
+      return Token.TYPE.RELATIONAL_OPERATOR_FUNC;
+    }
+
+    //todo: add a unary relational operator func
+    @Override
+    public boolean handles(String token, Token.TYPE previousTokenType) {
+      return token.matches("\\.[a-zA-Z]+\\(");
+    }
+  }
+
 
   /**
    * Logical Operator token handler.

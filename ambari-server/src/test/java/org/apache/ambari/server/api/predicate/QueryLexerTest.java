@@ -84,14 +84,40 @@ public class QueryLexerTest {
 
   @Test
   public void testUnaryNot() throws Exception {
+    QueryLexer lexer = new QueryLexer();
+    Token[] tokens = lexer.tokens("!foo<5");
+
     List<Token> listTokens = new ArrayList<Token>();
     listTokens.add(new Token(Token.TYPE.LOGICAL_UNARY_OPERATOR, "!"));
     listTokens.add(new Token(Token.TYPE.RELATIONAL_OPERATOR, "<"));
     listTokens.add(new Token(Token.TYPE.PROPERTY_OPERAND, "foo"));
     listTokens.add(new Token(Token.TYPE.VALUE_OPERAND, "5"));
+    assertArrayEquals(listTokens.toArray(new Token[listTokens.size()]), tokens);
+  }
 
+  @Test
+  public void testInOperator() throws Exception {
     QueryLexer lexer = new QueryLexer();
-    Token[] tokens = lexer.tokens("!foo<5");
+    Token[] tokens = lexer.tokens("foo.in(one, two, 3)");
+
+    List<Token> listTokens = new ArrayList<Token>();
+    listTokens.add(new Token(Token.TYPE.RELATIONAL_OPERATOR_FUNC, ".in("));
+    listTokens.add(new Token(Token.TYPE.PROPERTY_OPERAND, "foo"));
+    listTokens.add(new Token(Token.TYPE.VALUE_OPERAND, "one, two, 3"));
+    listTokens.add(new Token(Token.TYPE.BRACKET_CLOSE, ")"));
+
+    assertArrayEquals(listTokens.toArray(new Token[listTokens.size()]), tokens);
+  }
+
+  @Test
+  public void testIsEmptyOperator() throws Exception {
+    QueryLexer lexer = new QueryLexer();
+    Token[] tokens = lexer.tokens("category1.isEmpty()");
+
+    List<Token> listTokens = new ArrayList<Token>();
+    listTokens.add(new Token(Token.TYPE.RELATIONAL_OPERATOR_FUNC, ".isEmpty("));
+    listTokens.add(new Token(Token.TYPE.PROPERTY_OPERAND, "category1"));
+    listTokens.add(new Token(Token.TYPE.BRACKET_CLOSE, ")"));
 
     assertArrayEquals(listTokens.toArray(new Token[listTokens.size()]), tokens);
   }
