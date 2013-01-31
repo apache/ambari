@@ -432,7 +432,7 @@ App.MainAppsController = Em.ArrayController.extend({
       'filterObject.viewType'
   ),
 
-  serverData: null,
+  serverData: "",
   summary: null,
 
   /**
@@ -444,28 +444,28 @@ App.MainAppsController = Em.ArrayController.extend({
     if(!summary){
       tmp = {
         'jobs': {
-          'avg': 'undefined',
-          'min': 'undefined',
-          'max': 'undefined'
+          'avg': '-',
+          'min': '-',
+          'max': '-'
         },
         'input': {
-          'avg': 'undefined',
-          'min': 'undefined',
-          'max': 'undefined'
+          'avg': '-',
+          'min': '-',
+          'max': '-'
         },
         'output': {
-          'avg': 'undefined',
-          'min': 'undefined',
-          'max': 'undefined'
+          'avg': '-',
+          'min': '-',
+          'max': '-'
         },
         'duration': {
-          'avg': 'undefined',
-          'min': 'undefined',
-          'max': 'undefined'
+          'avg': '-',
+          'min': '-',
+          'max': '-'
         },
         'times': {
-          'oldest': 'undefined',
-          'youngest': 'undefined'
+          'oldest': '-',
+          'youngest': '-'
         }
       };
     }else{

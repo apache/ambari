@@ -66,8 +66,8 @@ App.runsMapper = App.QuickDataMapper.create({
       });
 
       App.router.get('mainAppsController').set('content', r);
-      App.router.get('mainAppsController').set('paginationObject', pagination_info);
       App.router.get('mainAppsController').set('serverData', json.summary);
+      App.router.get('mainAppsController').set('paginationObject', pagination_info);
     }
 
 

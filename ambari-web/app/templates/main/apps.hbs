@@ -88,9 +88,15 @@
     </tr>
     </thead>
     <tbody>
-    {{#each run in content}}
-      {{view view.containerRow runBinding="run" currentViewBinding="view.appTableRow"}}
-    {{/each}}
+       {{#if  view.emptyData}}
+         <tr>
+           <td class="no-data" colspan="9">No jobs to display</td>
+         </tr>
+       {{else}}
+         {{#each run in content}}
+           {{view view.containerRow runBinding="run" currentViewBinding="view.appTableRow"}}
+         {{/each}}
+       {{/if}}
     </tbody>
   </table>
 

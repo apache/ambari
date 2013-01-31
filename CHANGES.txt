@@ -36,6 +36,9 @@ Trunk (unreleased changes):
 
  IMPROVEMENTS
 
+ AMBARI-1308. Properly display Apps page aggregate summary and data table when
+ there are no data to be show. (Arun Kandregula via yusaku)
+
  AMBARI-1306. Change color of rack_local_map to #66B366. (yusaku)
 
  AMBARI-1311. Host health indicator should have a tooltip showing few details - 

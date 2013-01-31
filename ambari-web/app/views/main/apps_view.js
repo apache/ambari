@@ -64,6 +64,19 @@ App.MainAppsView = Em.View.extend({
     }
   }),
 
+  emptyData:true,
+
+  emptyDataObserver:function(){
+    //debugger;
+    if(this.get("controller.paginationObject.iTotalRecords") != null && this.get("controller.paginationObject.iTotalDisplayRecords")>0){
+      this.set("emptyData",false);
+    }else{
+      this.set("emptyData",true);
+      this.set("controller.serverData",null);
+    }
+  }.observes("controller.paginationObject.iTotalDisplayRecords","controller.paginationObject.iTotalRecords"),
+
+
   /**
    * View for RunPerPage select component
    */
