@@ -202,6 +202,10 @@ Trunk (unreleased changes):
 
  BUG FIXES
 
+ AMBARI-1316. Vertical scrollbar shows regardless of how tall the browser height
+ is (content height is always slightly taller than viewport). (Arun Kandregula via
+ yusaku)
+
  AMBARI-1315. Inconsistent error/warning status in Deploy step; install
  stalls. (Arun Kandregula via yusaku)
 
