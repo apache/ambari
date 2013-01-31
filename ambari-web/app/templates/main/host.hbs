@@ -59,7 +59,7 @@
     {{#view view.HostView contentBinding="host"}}
     <tr>
       <td class="first">
-        <span {{bindAttr class="host.healthClass"}} {{bindAttr title="view.healthToolTip" }}></span>
+        <span {{bindAttr class="host.healthClass"}} {{bindAttr title="host.healthToolTip" }}></span>
       </td>
       <td class="name">
         <a title="{{unbound host.publicHostName}}" href="#" {{action "showDetails" host}}>{{unbound host.publicHostNameFormatted}}</a>

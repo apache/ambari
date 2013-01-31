@@ -36,6 +36,9 @@ Trunk (unreleased changes):
 
  IMPROVEMENTS
 
+ AMBARI-1311. Host health indicator should have a tooltip showing few details - 
+ refactoring. (Arun Kandregula via yusaku)
+
  AMBARI-1303. Remake clearFilters function in app_view. (Arun Kandregula via
  yusaku)
 

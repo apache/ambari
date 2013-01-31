@@ -71,35 +71,6 @@ App.MainHostView = Em.View.extend({
   HostView:Em.View.extend({
     content:null,
 
-    healthToolTip: function(){
-      var hostComponents = this.get('content.hostComponents').filter(function(item){
-        if(item.get('workStatus') !== App.HostComponentStatus.started){
-          return true;
-        }
-      });
-      var output = '';
-      switch (this.get('content.healthClass')){
-        case 'health-status-DEAD':
-          hostComponents = hostComponents.filterProperty('isMaster', true);
-          output = Em.I18n.t('hosts.host.healthStatus.mastersDown');
-          hostComponents.forEach(function(hc, index){
-            output += (index == (hostComponents.length-1)) ? hc.get('displayName') : (hc.get('displayName')+", ");
-          }, this);
-          break;
-        case 'health-status-DEAD-YELLOW':
-          output = Em.I18n.t('hosts.host.healthStatus.heartBeatNotReceived');
-          break;
-        case 'health-status-DEAD-ORANGE':
-          hostComponents = hostComponents.filterProperty('isSlave', true);
-          output = Em.I18n.t('hosts.host.healthStatus.slavesDown');
-          hostComponents.forEach(function(hc, index){
-            output += (index == (hostComponents.length-1)) ? hc.get('displayName') : (hc.get('displayName')+", ");
-          }, this);
-          break;
-      }
-      return output;
-    }.property('content.healthClass'),
-
     shortLabels: function() {
       var labels = this.get('content.hostComponents').getEach('displayName');
       var shortLabels = '';
