@@ -29,9 +29,16 @@
   <name>Ambari Web</name>
   <version>1.0.3-SNAPSHOT</version>
   <description>Ambari Web</description>
+  <properties>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+  </properties>
   <build>
     <plugins>
-       <plugin>
+      <plugin>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <version>3.0</version>
+      </plugin>
+      <plugin>
         <groupId>org.codehaus.mojo</groupId>
         <artifactId>rpm-maven-plugin</artifactId>
         <version>2.0.1</version>

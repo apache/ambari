@@ -35,6 +35,10 @@ Trunk (unreleased changes):
  accessible for demo/test purposes. (mahadev)
 
  IMPROVEMENTS
+ 
+ AMBARI-1305. Make sure that Ambari Web renders all elements correctly when
+ the browser width is 1024px or narrower (refactor). (Arun Kandregula via 
+ yusaku) 
 
  AMBARI-1312. Remake clearFilters function in app_view (part2). (Arun Kandregula
  via yusaku) 

@@ -99,9 +99,6 @@ App.WizardStep3Controller = Em.Controller.extend({
 
   navigateStep: function () {
     this.loadStep();
-    if(App.testMode){
-      this.getHostInfo();
-    }
     if (this.get('content.installOptions.manualInstall') !== true) {
       if (!App.db.getBootStatus()) {
         this.startBootstrap();
@@ -109,6 +106,7 @@ App.WizardStep3Controller = Em.Controller.extend({
     } else {
       this.set('bootHosts', this.get('hosts'));
       if (App.testMode) {
+        this.getHostInfo();
         this.get('bootHosts').setEach('bootStatus', 'REGISTERED');
         this.get('bootHosts').setEach('cpu', '2');
         this.get('bootHosts').setEach('memory', '2000000');
