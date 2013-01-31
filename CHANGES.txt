@@ -35,6 +35,9 @@ Trunk (unreleased changes):
  accessible for demo/test purposes. (mahadev)
 
  IMPROVEMENTS
+
+ AMBARI-1312. Remake clearFilters function in app_view (part2). (Arun Kandregula
+ via yusaku) 
  
  AMBARI-1309. Remove all text from Apps views, controllers, templates to 
  messages.js. (Arun Kandregula via yusaku)

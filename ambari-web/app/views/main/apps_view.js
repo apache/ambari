@@ -66,8 +66,14 @@ App.MainAppsView = Em.View.extend({
     }
   }),
 
+  /**
+   * If there are table rows with runs.
+   */
   emptyData:true,
 
+  /*
+   If no runs to display set emptyData to true and reset Avg table data, else to set emptyData to false.
+   */
   emptyDataObserver:function(){
     //debugger;
     if(this.get("controller.paginationObject.iTotalRecords") != null && this.get("controller.paginationObject.iTotalDisplayRecords")>0){
@@ -83,7 +89,6 @@ App.MainAppsView = Em.View.extend({
    * View for RunPerPage select component
    */
   runPerPageSelectView: Em.Select.extend({
-
     selected: '10',
     content: ['10', '25', '50', '100']
   }),
@@ -267,26 +272,20 @@ App.MainAppsView = Em.View.extend({
   }.observes("controller.filterObject.viewType"),
 
   /**
-   * reset all filters in dataTable
+   * reset all filters in table
    *
-   * @param event
    */
   clearFilters: function (event) {
-    this._childViews.forEach(function (item) {
-      if (item.get("viewName") === "runPerPageSelectView") {
-        return "";
-      }
-      if (item.get('tagName') === 'input') {
-        item.set('value', '');
-      }
-      if (item.get('tagName') === 'select') {
-        item.set('value', 'Any');
-        item.change();
-      }
-      if (item.get('multiple')) {
-        item.get('clearFilter')(item);
-      }
-    });
+    this.set("controller.filterObject.sSearch_0","");
+    this.set("controller.filterObject.sSearch_1","");
+    this.set("controller.filterObject.sSearch_2","");
+    this.set("controller.filterObject.sSearch_3","");
+    this.set("controller.filterObject.runType","Any");
+    this.set("controller.filterObject.jobs","");
+    this.set("controller.filterObject.input","");
+    this.set("controller.filterObject.output","");
+    this.set("controller.filterObject.duration","");
+    this.set("controller.filterObject.runDate","Any");
   },
 
   /**
