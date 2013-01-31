@@ -217,6 +217,8 @@ Trunk (unreleased changes):
 
  BUG FIXES
 
+ AMBARI-1325. Left border is missing from the main nav. (srimanth)
+ 
  AMBARI-1324. Job Browser default sort order should be Run Date DESC. (srimanth)
  
  AMBARI-1323. Job Browser's column sizing needs to be improved on Firefox. (srimanth)
