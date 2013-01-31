@@ -221,6 +221,8 @@ Trunk (unreleased changes):
 
  BUG FIXES
 
+ AMBARI-1164. Disk info ganglia metrics is broken for some OS. (Dmytro Shkvyra via jspeidel)
+
  AMBARI-1325. Left border is missing from the main nav. (srimanth)
  
  AMBARI-1324. Job Browser default sort order should be Run Date DESC. (srimanth)

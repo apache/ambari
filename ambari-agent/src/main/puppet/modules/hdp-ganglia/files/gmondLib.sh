@@ -220,6 +220,19 @@ collection_group {
   }
 }
 
+/* This collection group will send general info about this host total memory every
+   180 secs.
+   This information doesn't change between reboots and is only collected
+   once. This information needed for heatmap showing */
+ collection_group {
+   collect_once = yes
+   time_threshold = 180
+   metric {
+    name = "mem_total"
+    title = "Memory Total"
+   }
+ }
+
 /* This collection group will send general info about this host every
    1200 secs.
    This information doesn't change between reboots and is only collected
@@ -234,10 +247,6 @@ collection_group {
   metric {
     name = "cpu_speed"
     title = "CPU Speed"
-  }
-  metric {
-    name = "mem_total"
-    title = "Memory Total"
   }
   /* Should this be here? Swap can be added/removed between reboots. */
   metric {
@@ -426,16 +435,6 @@ collection_group {
   }
 }
 
-/* Different than 2.5.x default since the old config made no sense */
-collection_group {
-  collect_every = 1800
-  time_threshold = 3600
-  metric {
-    name = "disk_total"
-    value_threshold = 1.0
-    title = "Total Disk Space"
-  }
-}
 
 collection_group {
   collect_every = 40
@@ -449,6 +448,11 @@ collection_group {
     name = "part_max_used"
     value_threshold = 1.0
     title = "Maximum Disk Space Used"
+  }
+  metric {
+    name = "disk_total"
+    value_threshold = 1.0
+    title = "Total Disk Space"
   }
 }
 
