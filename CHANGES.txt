@@ -217,6 +217,8 @@ Trunk (unreleased changes):
 
  BUG FIXES
 
+ AMBARI-1324. Job Browser default sort order should be Run Date DESC. (srimanth)
+ 
  AMBARI-1323. Job Browser's column sizing needs to be improved on Firefox. (srimanth)
 
  AMBARI-1321. Switching out of Jobs page does not launch popup anymore.

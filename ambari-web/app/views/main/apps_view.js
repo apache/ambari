@@ -103,8 +103,14 @@ App.MainAppsView = Em.View.extend({
     class: "sorting",
     widthClass: "",
     content: null,
+    defaultColumn: 8,
+
     didInsertElement: function () {
       this.set("widthClass", "col" + this.content.index);
+      if (this.content.index == this.defaultColumn) {
+        this.setControllerObj(this.content.index, "DESC");
+        this.set("class", "sorting_desc");
+      }
     },
     click: function (event) {
       console.log(this.class);
