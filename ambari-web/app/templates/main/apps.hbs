@@ -66,7 +66,7 @@
     </div>
   </div>
 
-  <table class="table table-striped runsList" id="dataTable">
+  <table class="table table-striped runsList">
     <thead>
     {{#view view.wrapSorting}}
       {{#each controller.columnsName}}
@@ -76,15 +76,15 @@
       {{/each}}
     {{/view}}
     <tr>
-      <th class="notActive"><div class="view-wrapper">{{view view.appidFilterView valueBinding="controller.filterObject.sSearch_0" viewName="appidFilterViewInstance"}}</div> <a href="#" {{action "clearFilterButtonClick" target="view"}} id="view_appidFilterViewInstance" class="ui-icon ui-icon-circle-close ui-appid"></a></th>
-      <th class="notActive"><div class="view-wrapper">{{view view.nameFilterView valueBinding="controller.filterObject.sSearch_1" viewName="nameFilterViewInstance"}}</div> <a href="#" {{action "clearFilterButtonClick" target="view"}} id="view_nameFilterViewInstance" class="ui-icon ui-icon-circle-close ui-name"></a></th>
-      <th class="notActive"><div class="view-wrapper">{{view view.typeSelectView selectionBinding="controller.filterObject.runType" viewName="typeSelectViewInstance"}}</div> <a href="#" {{action "clearFilterButtonClick" target="view"}} id="view_typeSelectViewInstance" class="ui-icon ui-icon-circle-close ui-type"></a></th>
-      <th class="notActive"><div class="view-wrapper">{{view view.userFilterView viewName="userFilterViewInstance"}}</div> <a href="#" {{action "clearFilterButtonClick" target="view"}} id="view_userFilterViewInstance" class="ui-icon ui-icon-circle-close ui-user"></a><input id="user_filter" type="hidden"></th>
-      <th class="notActive"><div class="view-wrapper">{{view view.jobsFilterView valueBinding="controller.filterObject.jobs" viewName="jobsFilterViewInstance"}}</div> <a href="#" {{action "clearFilterButtonClick" target="view"}} id="view_jobsFilterViewInstance" class="ui-icon ui-icon-circle-close ui-jobs"></a></th>
-      <th class="notActive"><div class="view-wrapper">{{view view.inputFilterView valueBinding="controller.filterObject.input" viewName="inputFilterViewInstance"}}</div> <a href="#" {{action "clearFilterButtonClick" target="view"}} id="view_inputFilterViewInstance" class="ui-icon ui-icon-circle-close ui-input"></a></th>
-      <th class="notActive"><div class="view-wrapper">{{view view.outputFilterView valueBinding="controller.filterObject.output" viewName="outputFilterViewInstance"}}</div> <a href="#" {{action "clearFilterButtonClick" target="view"}} id="view_outputFilterViewInstance" class="ui-icon ui-icon-circle-close ui-output"></a></th>
-      <th class="notActive"><div class="view-wrapper">{{view view.durationFilterView valueBinding="controller.filterObject.duration" viewName="durationFilterViewInstance"}}</div> <a href="#" {{action "clearFilterButtonClick" target="view"}} id="view_durationFilterViewInstance" class="ui-icon ui-icon-circle-close ui-duration"></a></th>
-      <th class="notActive"><div class="view-wrapper">{{view view.rundateSelectView selectionBinding="controller.filterObject.runDate" viewName="rundateSelectViewInstance"}}</div> <a href="#" {{action "clearFilterButtonClick" target="view"}} id="view_rundateSelectViewInstance" class="ui-icon ui-icon-circle-close ui-rundate"></a><input id="custom_rundate_filter" type="hidden"></th>
+      <th>{{view view.appIdFilterView}}</th>
+      <th>{{view view.nameFilterView}}</th>
+      <th>{{view view.typeFilterView}}</th>
+      <th>{{view view.userFilterView}}</th>
+      <th>{{view view.jobsFilterView}}</th>
+      <th>{{view view.inputFilterView}}</th>
+      <th>{{view view.outputFilterView}}</th>
+      <th>{{view view.durationFilterView}}</th>
+      <th>{{view view.runDateFilterView}}</th>
     </tr>
     </thead>
     <tbody>

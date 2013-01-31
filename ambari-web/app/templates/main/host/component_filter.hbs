@@ -16,7 +16,6 @@
 * limitations under the License.
 }}
 
-<div {{bindAttr class="view.btnGroupClass"}}>
     <button class="btn btn-info single-btn-group" {{action "clickFilterButton" target="view"}}>
         Components <span class="caret"></span>
     </button>
@@ -68,8 +67,7 @@
             </ul>
         </li>
         <li>
-            <button class="btn" {{action "closeFilters" target="view"}}>Cancel</button>
+            <button class="btn" {{action "closeFilter" target="view"}}>Cancel</button>
             <button class="btn btn-primary" {{action "applyFilter" target="view"}}>Apply</button>
         </li>
     </ul>
-</div>

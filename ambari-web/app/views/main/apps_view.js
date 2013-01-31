@@ -17,323 +17,221 @@
  */
 
 var App = require('app');
+var filters = require('views/common/filter_view');
 
 App.MainAppsView = Em.View.extend({
-  templateName:require('templates/main/apps'),
-
-  /**
-   * List of users
-   */
-  users:function () {
-    return this.get('controller.content').mapProperty("userName").uniq();
-  }.property('controller.content.length'),
+  templateName: require('templates/main/apps'),
 
   //Pagination left/right buttons css class
-  paginationLeft : Ember.View.extend({
+  paginationLeft: Ember.View.extend({
     tagName: 'a',
     template: Ember.Handlebars.compile('<i class="icon-arrow-left"></i>'),
     classNameBindings: ['class'],
-    class:"",
-    calculateClass: function(){
-      if(parseInt(this.get("controller.paginationObject.startIndex"))>1){
-        this.set("class","paginate_previous");
-      }else{
-        this.set("class","paginate_disabled_previous");
+    class: "",
+    calculateClass: function () {
+      if (parseInt(this.get("controller.paginationObject.startIndex")) > 1) {
+        this.set("class", "paginate_previous");
+      } else {
+        this.set("class", "paginate_disabled_previous");
       }
     }.observes("controller.paginationObject"),
-    click: function(event){
-      if(this.class == "paginate_previous"){
-        var startIndex=parseInt(this.get("controller.paginationObject.startIndex"))-1;
-        var showRows=parseInt(this.get("controller.filterObject.iDisplayLength"));
-        var startDisplayValue = Math.max(0,startIndex-showRows);
+    click: function (event) {
+      if (this.class == "paginate_previous") {
+        var startIndex = parseInt(this.get("controller.paginationObject.startIndex")) - 1;
+        var showRows = parseInt(this.get("controller.filterObject.iDisplayLength"));
+        var startDisplayValue = Math.max(0, startIndex - showRows);
         this.set("controller.filterObject.iDisplayStart", startDisplayValue);
       }
     }
   }),
-  paginationRight : Ember.View.extend({
+  paginationRight: Ember.View.extend({
     tagName: 'a',
     template: Ember.Handlebars.compile('<i class="icon-arrow-right"></i>'),
     classNameBindings: ['class'],
-    class:"",
-    calculateClass: function(){
-      if((parseInt(this.get("controller.paginationObject.endIndex"))+1)<parseInt(this.get("controller.paginationObject.iTotalDisplayRecords"))){
-        this.set("class","paginate_next");
-      }else{
-        this.set("class","paginate_disabled_next");
+    class: "",
+    calculateClass: function () {
+      if ((parseInt(this.get("controller.paginationObject.endIndex")) + 1) < parseInt(this.get("controller.paginationObject.iTotalDisplayRecords"))) {
+        this.set("class", "paginate_next");
+      } else {
+        this.set("class", "paginate_disabled_next");
       }
     }.observes("controller.paginationObject"),
-    click: function(event){
-      if(this.class == "paginate_next"){
+    click: function (event) {
+      if (this.class == "paginate_next") {
         var startDisplayValue = parseInt(this.get("controller.paginationObject.endIndex"));
         this.set("controller.filterObject.iDisplayStart", startDisplayValue);
       }
     }
   }),
 
-  wrapSorting:Ember.View.extend({
+  /**
+   * View for RunPerPage select component
+   */
+  runPerPageSelectView: Em.Select.extend({
+
+    selected: '10',
+    content: ['10', '25', '50', '100']
+  }),
+
+  wrapSorting: Ember.View.extend({
     tagName: 'tr'
   }),
 
   sortingColumns: Ember.View.extend({
     tagName: 'th',
-    classNameBindings: ['class','widthClass'],
-    class:"sorting",
-    widthClass:"",
+    classNameBindings: ['class', 'widthClass'],
+    class: "sorting",
+    widthClass: "",
     content: null,
-    didInsertElement:function(){
-      this.set("widthClass","col"+this.content.index);
+    didInsertElement: function () {
+      this.set("widthClass", "col" + this.content.index);
     },
-    click: function(event){
+    click: function (event) {
       console.log(this.class);
-      if(this.class == "sorting"){
+      if (this.class == "sorting") {
         this.resetSortClass();
-        this.setControllerObj(this.content.index,"ASC");
+        this.setControllerObj(this.content.index, "ASC");
         this.set("class", "sorting_asc");
-      }else if(this.class == "sorting_asc"){
-        this.setControllerObj(this.content.index,"DESC");
+      } else if (this.class == "sorting_asc") {
+        this.setControllerObj(this.content.index, "DESC");
         this.set("class", "sorting_desc");
-      }else if(this.class == "sorting_desc"){
-        this.setControllerObj("","");
+      } else if (this.class == "sorting_desc") {
+        this.setControllerObj("", "");
         this.set("class", "sorting");
       }
     },
-    resetSortClass:function(){
-      this.get("parentView.childViews").map(function(a,e){a.get("childViews")[0].set("class","sorting")});
+    resetSortClass: function () {
+      this.get("parentView.childViews").map(function (a, e) {
+        a.get("childViews")[0].set("class", "sorting")
+      });
     },
-    setControllerObj:function(col,dir){
+    setControllerObj: function (col, dir) {
       this.set("controller.filterObject.iSortCol_0", col);
       this.set("controller.filterObject.sSortDir_0", dir);
     }
   }),
 
   /**
-   * Filter-field for AppId
-   */
-  appidFilterView:Em.TextField.extend({
-    classNames:['input-small-app'],
-    type:'text',
-    placeholder:'Any ID',
-    elementId:'appid_filter',
-    filtering:function () {
-      if (this.get('value') == '') {
-        this.$().closest('th').addClass('notActive');
-      }
-      else {
-        this.$().closest('th').removeClass('notActive');
-      }
-    }.observes('value')
-  }),
-  /**
    * Filter-field for Search
    */
-  appSearchThrough:Em.TextField.extend({
-    classNames:['input-medium'],
-    type:'text',
-    placeholder:'Search',
-    filtering:function () {
-      if (this.get('value') == '') {
-        this.$().closest('th').addClass('notActive');
-      }
-      else {
-        this.$().closest('th').removeClass('notActive');
-      }
-    }.observes('value')
+  appSearchThrough: Em.TextField.extend({
+    classNames: ['input-medium'],
+    type: 'text',
+    placeholder: 'Search'
   }),
   /**
-   * Filter-field for name
+   * Filter-field for App ID.
+   * Based on <code>filters</code> library
    */
-  nameFilterView:Em.TextField.extend({
-    classNames:['input-small'],
-    type:'text',
-    placeholder:'Any Name',
-    filtering:function () {
-      if (this.get('value') == '') {
-        this.$().closest('th').addClass('notActive');
-      }
-      else {
-        this.$().closest('th').removeClass('notActive');
-      }
-    }.observes('value')
+  appIdFilterView: filters.createTextView({
+    valueBinding: "controller.filterObject.sSearch_0"
   }),
   /**
-   * dataTable filter views
+   * Filter-field for name.
+   * Based on <code>filters</code> library
    */
-  typeSelectView:Em.Select.extend({
-    classNames:['input-small'],
-    selected:'Any',
-    content:['Any', 'Pig', 'Hive', 'MapReduce'],
-    change:function (event) {
-      if (this.get('selection') === 'Any') {
-        this.$().closest('th').addClass('notActive');
-      }
-      else {
-        this.$().closest('th').removeClass('notActive');
-      }
-    }
+  nameFilterView: filters.createTextView({
+    valueBinding: "controller.filterObject.sSearch_1",
+    fieldType: 'input-small'
   }),
   /**
-   * dataTable filter views
+   * Filter-field for type.
+   * Based on <code>filters</code> library
    */
-  runPerPageSelectView:Em.Select.extend({
-
-    selected:'10',
-    content:['10', '25', '50', '100']
-  }),
-  /**
-   * Filter-list for User
-   */
-  userFilterView:Em.View.extend({
-    classNames:['btn-group'],
-    classNameBindings:['open'],
-    multiple:true,
-    open:false,
-    users:function () {
-      var users = [];
-      for (var i = 0; i < this.get('parentView').get('users').length; i++)
-        users.push(Ember.Object.create({
-          name:this.get('parentView').get('users')[i],
-          checked:false
-        }));
-      return users;
-    }.property('parentView.users'),
-    templateName:require('templates/main/apps/user_filter'),
-    allComponentsChecked:false,
-    toggleAllComponents:function () {
-      var checked = this.get('allComponentsChecked');
-      this.get('users').forEach(function (item) {
-        item.set('checked', checked);
-      });
-    }.observes('allComponentsChecked'),
-    clickFilterButton:function (event) {
-      this.set('open', !this.get('open'));
-    },
-    clearFilter:function (self) {
-      self.set('allComponentsChecked', true);
-      self.set('allComponentsChecked', false);
-      jQuery('#user_filter').val([]);
-      self.get('parentView').get('controller.filterObject').set("sSearch_3","");
-      jQuery('#user_filter').closest('th').addClass('notActive');
-    },
-    closeFilter:function () {
-      this.set('open', false);
-    },
-    applyFilter:function () {
-      var chosenUsers = new Array();
-      this.set('open', !this.get('open'));
-      this.get('users').forEach(function (item) {
-        if (item.get('checked')) chosenUsers.push(item.get('name'));
-      });
-
-      /**
-       * Set filterObject
-       */
-      this.get('parentView').get('controller.filterObject').set("sSearch_3",chosenUsers)
-
-      jQuery('#user_filter').val(chosenUsers);
-      if (chosenUsers.length == 0) {
-        this.$().closest('th').addClass('notActive');
-      }
-      else {
-        this.$().closest('th').removeClass('notActive');
-      }
-    }
-  }),
-  /**
-   * Filter-field for jobs
-   */
-  jobsFilterView:Em.TextField.extend({
-    classNames:['input-mini'],
-    type:'text',
-    placeholder:'Any ',
-    elementId:'jobs_filter',
-    filtering:function () {
-      if (this.get('value') == '') {
-        this.$().closest('th').addClass('notActive');
-      }
-      else {
-        this.$().closest('th').removeClass('notActive');
-      }
-      //this.get('parentView').get('applyFilter')(this.get('parentView'), 6);
-    }.observes('value')
+  typeFilterView: filters.createSelectView({
+    fieldType: 'input-small',
+    valueBinding: "controller.filterObject.runType",
+    content: ['Any', 'Pig', 'Hive', 'MapReduce']
   }),
 
   /**
-   * Filter-field for Input
+   * Filter-list for User.
+   * Based on <code>filters</code> library
    */
-  inputFilterView:Em.TextField.extend({
-    classNames:['input-mini'],
-    type:'text',
-    placeholder:'Any ',
-    elementId:'input_filter',
-    filtering:function () {
-      if (this.get('value') == '') {
-        this.$().closest('th').addClass('notActive');
+  userFilterView: filters.createComponentView({
+    /**
+     * Inner FilterView. Used just to render component. Value bind to <code>mainview.value</code> property
+     * Base methods was implemented in <code>filters.componentFieldView</code>
+     */
+    filterView: filters.componentFieldView.extend({
+      templateName:require('templates/main/apps/user_filter'),
+
+      usersBinding: 'controller.users',
+
+      allComponentsChecked:false,
+      toggleAllComponents:function () {
+        var checked = this.get('allComponentsChecked');
+        this.get('users').setEach('checked', checked);
+      }.observes('allComponentsChecked'),
+
+      clearFilter:function() {
+        this.set('allComponentsChecked', false);
+
+        this.get('users').setEach('checked', false);
+
+        this._super();
+      },
+
+      applyFilter:function() {
+        this._super();
+
+        var chosenUsers = this.get('users').filterProperty('checked', true).mapProperty('name');
+        this.set('value', chosenUsers.toString());
       }
-      else {
-        this.$().closest('th').removeClass('notActive');
-      }
-    }.observes('value')
+    }),
+
+    valueBinding: 'controller.filterObject.sSearch_3'
   }),
   /**
-   * Filter-field for Output
+   * Filter-field for jobs.
+   * Based on <code>filters</code> library
    */
-  outputFilterView:Em.TextField.extend({
-    classNames:['input-mini'],
-    type:'text',
-    placeholder:'Any ',
-    elementId:'output_filter',
-    filtering:function () {
-      if (this.get('value') == '') {
-        this.$().closest('th').addClass('notActive');
-      }
-      else {
-        this.$().closest('th').removeClass('notActive');
-      }
-    }.observes('value')
+  jobsFilterView: filters.createTextView({
+    fieldType: 'input-super-mini',
+    valueBinding: "controller.filterObject.jobs"
   }),
   /**
-   * Filter-field for Duration
+   * Filter-field for Input.
+   * Based on <code>filters</code> library
    */
-  durationFilterView:Em.TextField.extend({
-    classNames:['input-mini'],
-    type:'text',
-    placeholder:'Any ',
-    elementId:'duration_filter',
-    filtering:function () {
-      if (this.get('value') == '') {
-        this.$().closest('th').addClass('notActive');
-      }
-      else {
-        this.$().closest('th').removeClass('notActive');
-      }
-    }.observes('value')
+  inputFilterView: filters.createTextView({
+    fieldType: 'input-super-mini',
+    valueBinding: "controller.filterObject.input"
   }),
   /**
-   * Filter-field for RunDate
+   * Filter-field for Output.
+   * Based on <code>filters</code> library
    */
-  rundateSelectView:Em.Select.extend({
-    content:['Any', 'Past 1 Day', 'Past 2 Days', 'Past 7 Days', 'Past 14 Days', 'Past 30 Days'],
-    selected:'Any',
-    classNames:['input-medium'],
-    elementId:'rundate_filter',
-    change:function (event) {
-      if (this.get('selection') == 'Any') {
-        this.$().closest('th').addClass('notActive');
-      }
-      else {
-        this.$().closest('th').removeClass('notActive');
-      }
-    }
+  outputFilterView: filters.createTextView({
+    fieldType: 'input-super-mini',
+    valueBinding: "controller.filterObject.output"
+  }),
+  /**
+   * Filter-field for Duration.
+   * Based on <code>filters</code> library
+   */
+  durationFilterView: filters.createTextView({
+    fieldType: 'input-super-mini',
+    valueBinding: "controller.filterObject.duration"
+  }),
+  /**
+   * Filter-field for RunDate.
+   * Based on <code>filters</code> library
+   */
+  runDateFilterView: filters.createSelectView({
+    fieldType: 'input-medium',
+    valueBinding: "controller.filterObject.runDate",
+    content: ['Any', 'Past 1 Day', 'Past 2 Days', 'Past 7 Days', 'Past 14 Days', 'Past 30 Days']
   }),
 
   /**
    * Onclick handler for Show All/Filtered buttons
    */
-  clickViewType:function (event) {
+  clickViewType: function (event) {
     this.set("controller.filterObject.viewTypeClickEvent", true);
-    if($(event.target).hasClass("filtered")){
+    if ($(event.target).hasClass("filtered")) {
       this.set("controller.filterObject.viewType", "filtered");
-    }else{
+    } else {
       this.set("controller.filterObject.allFilterActivated", true);
       this.set("controller.filterObject.viewType", "all");
     }
@@ -341,7 +239,7 @@ App.MainAppsView = Em.View.extend({
   /**
    *
    */
-  onChangeViewType:function () {
+  onChangeViewType: function () {
     var tmpViewType = this.get('controller.filterObject.viewType');
     var filterButtons = $("#filter_buttons").children();
     filterButtons.each(function (index, element) {
@@ -358,9 +256,9 @@ App.MainAppsView = Em.View.extend({
    *
    * @param event
    */
-  clearFilters:function (event) {
+  clearFilters: function (event) {
     this._childViews.forEach(function (item) {
-      if(item.get("viewName") === "runPerPageSelectView"){
+      if (item.get("viewName") === "runPerPageSelectView") {
         return "";
       }
       if (item.get('tagName') === 'input') {
@@ -375,70 +273,52 @@ App.MainAppsView = Em.View.extend({
       }
     });
   },
-  /**
-   * Clear selected filter
-   * @param event
-   */
-  clearFilterButtonClick:function (event) {
-    var viewName = event.target.id.replace('view_', '');
-    var elementId = this.get(viewName).get('elementId');
-    if (this.get(viewName).get('tagName') === 'input') {
-      this.get(viewName).set('value', '');
-    }
-    if (this.get(viewName).get('tagName') === 'select') {
-      this.get(viewName).set('value', 'Any');
-      this.get(viewName).change();
-    }
-    if (this.get(viewName).get('multiple')) {
-      this.get(viewName).get('clearFilter')(this.get(viewName));
-    }
-  },
 
   /**
    * This Container View is used to render static table row(appTableRow) and additional dynamic content
    */
-  containerRow:Em.ContainerView.extend({
+  containerRow: Em.ContainerView.extend({
 
     /**
      * Unique row id
      */
-    id:function () {
+    id: function () {
       return this.get('run.id');
     }.property("run.id"),
 
     /**
      * Show/hide additional content appropriated for this row
      */
-    expandToggle:function () {
+    expandToggle: function () {
       //App.router.get('mainAppsItemController').set('jobsLoaded', false);
       App.router.get('mainAppsItemController').set('content', this.get('run'));
       App.ModalPopup.show({
-        classNames:['big-modal'],
-        header:Em.I18n.t('apps.dagCharts.popup'),
-        bodyClass:App.MainAppsItemView.extend({
-          controllerBinding:'App.router.mainAppsItemController'
+        classNames: ['big-modal'],
+        header: Em.I18n.t('apps.dagCharts.popup'),
+        bodyClass: App.MainAppsItemView.extend({
+          controllerBinding: 'App.router.mainAppsItemController'
         }),
-        onPrimary:function () {
+        onPrimary: function () {
           this.hide();
         },
-        secondary:null
+        secondary: null
       });
     }
   }),
   /**
    * Table-row view
    */
-  appTableRow:Em.View.extend({
-    templateName:require('templates/main/apps/list_row'),
-    classNames:['app-table-row'],
-    tagName:"tr",
-    mouseEnter:function (event, view) {
+  appTableRow: Em.View.extend({
+    templateName: require('templates/main/apps/list_row'),
+    classNames: ['app-table-row'],
+    tagName: "tr",
+    mouseEnter: function (event, view) {
       $(event.currentTarget).addClass("hover")
     },
-    mouseLeave:function (event, view) {
+    mouseLeave: function (event, view) {
       $(event.currentTarget).removeClass("hover");
     },
-    click:function (event, view) {
+    click: function (event, view) {
       this.get('parentView').expandToggle();
     }
 

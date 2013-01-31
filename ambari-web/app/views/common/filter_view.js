@@ -16,20 +16,42 @@
  * limitations under the License.
  */
 
+/**
+ * Wrapper View for all filter components. Layout template and common actions are located inside of it.
+ * Logic specific for data component(input, select, or custom multi select, which fire any changes on interface) are
+ * located in inner view - <code>filterView</code>.
+ *
+ * If we want to have input filter, put <code>textFieldView</code> to it.
+ * All inner views implemented below this view.
+ * @type {*}
+ */
 var wrapperView = Ember.View.extend({
   classNames: ['view-wrapper'],
-  layout: Ember.Handlebars.compile('<a href="#" {{action "clearFilter" target="view"}} class="ui-icon ui-icon-circle-close ui-name"></a> {{yield}}'),
+  layout: Ember.Handlebars.compile('<a href="#" {{action "clearFilter" target="view"}} class="ui-icon ui-icon-circle-close"></a> {{yield}}'),
   template: Ember.Handlebars.compile('{{#if view.fieldId}}<input type="hidden" id="{{unbound view.fieldId}}" value="" />{{/if}} {{view view.filterView}}'),
 
   value: null,
+
+  /**
+   * If this field is exists we dynamically create hidden input element and set value there.
+   * Used for some cases, where this values will be used outside of component
+   */
+  fieldId: null,
 
   clearFilter: function(){
     this.set('value', this.get('emptyValue'));
     return false;
   },
 
+  /**
+   * Use to determine whether filter is clear or not. Also when we want to set empty value
+   */
   emptyValue: '',
 
+  /**
+   * Whether our <code>value</code> is empty or not
+   * @return {Boolean}
+   */
   isEmpty: function(){
     if(this.get('value') === null){
       return true;
@@ -37,6 +59,11 @@ var wrapperView = Ember.View.extend({
     return this.get('value').toString() === this.get('emptyValue').toString();
   },
 
+  /**
+   * Show/Hide <code>Clear filter</code> button.
+   * Also this method updates computed field related to <code>fieldId</code> if it exists.
+   * Call <code>onChangeValue</code> callback when everything is done.
+   */
   showClearFilter: function(){
     if(!this.get('parentNode')){
       return;
@@ -62,13 +89,14 @@ var wrapperView = Ember.View.extend({
 
   },
 
+  /**
+   * Filter components is located here. Should be redefined
+   */
   filterView: Em.View,
 
-  init: function(){
-    this.set('value', this.get('emptyValue'));
-    this._super();
-  },
-
+  /**
+   * Update class of parentNode(hide clear filter button) on page load
+   */
   didInsertElement: function(){
     var parent = this.$().parent();
     this.set('parentNode', parent);
@@ -76,62 +104,45 @@ var wrapperView = Ember.View.extend({
   }
 });
 
+/**
+ * Simple input control for wrapperView
+ */
 var textFieldView = Ember.TextField.extend({
   type:'text',
   placeholder: 'Any',
   valueBinding: "parentView.value"
 });
 
+/**
+ * Simple multiselect control for wrapperView.
+ * Used to render blue button and popup, which opens on button click.
+ * All content related logic should be implemented manually outside of it
+ */
 var componentFieldView = Ember.View.extend({
-  templateName: require('templates/main/host/component_filter'),
   classNames: ['btn-group'],
-  classNameBindings: ['open'],
-  multiple: true,
+  classNameBindings: ['isFilterOpen:open:'],
 
+  /**
+   * Whether popup is shown or not
+   */
   isFilterOpen: false,
 
-  btnGroupClass:function () {
-    return this.get('isFilterOpen') ? 'btn-group open' : 'btn-group';
-  }.property('isFilterOpen'),
-
+  /**
+   * We have <code>value</code> property similar to inputs <code>value</code> property
+   */
   valueBinding: 'parentView.value',
-  masterComponentsBinding: 'controller.masterComponents',
-  slaveComponentsBinding: 'controller.slaveComponents',
-  clientComponentsBinding: 'controller.clientComponents',
-
-  masterComponentsChecked:false,
-  toggleMasterComponents:function () {
-    this.get('masterComponents').setEach('checkedForHostFilter', this.get('masterComponentsChecked'));
-  }.observes('masterComponentsChecked'),
-
-  slaveComponentsChecked:false,
-  toggleSlaveComponents:function () {
-    this.get('slaveComponents').setEach('checkedForHostFilter', this.get('slaveComponentsChecked'));
-  }.observes('slaveComponentsChecked'),
-
-  clientComponentsChecked: false,
-  toggleClientComponents: function() {
-    this.get('clientComponents').setEach('checkedForHostFilter', this.get('clientComponentsChecked'));
-  }.observes('clientComponentsChecked'),
 
   /**
    * Clear filter to initial state
    */
-  clearFilter:function() {
-    this.set('masterComponentsChecked', false);
-    this.set('slaveComponentsChecked', false);
-    this.set('clientComponentsChecked', false);
-
-    this.get('masterComponents').setEach('checkedForHostFilter', false);
-    this.get('slaveComponents').setEach('checkedForHostFilter', false);
-    this.get('clientComponents').setEach('checkedForHostFilter', false);
-    this.set('value', []);
+  clearFilter: function(){
+    this.set('value', '');
   },
 
   /**
    * Onclick handler for <code>cancel filter</code> button
    */
-  closeFilters:function () {
+  closeFilter:function () {
     $(document).unbind('click');
     this.set('isFilterOpen', false);
   },
@@ -140,20 +151,7 @@ var componentFieldView = Ember.View.extend({
    * Onclick handler for <code>apply filter</code> button
    */
   applyFilter:function() {
-    this.closeFilters();
-
-    var chosenComponents = [];
-
-    this.get('masterComponents').filterProperty('checkedForHostFilter', true).forEach(function(item){
-      chosenComponents.push(item.get('displayName'));
-    });
-    this.get('slaveComponents').filterProperty('checkedForHostFilter', true).forEach(function(item){
-      chosenComponents.push(item.get('displayName'));
-    });
-    this.get('clientComponents').filterProperty('checkedForHostFilter', true).forEach(function(item){
-      chosenComponents.push(item.get('displayName'));
-    });
-    this.set('value', chosenComponents);
+    this.closeFilter();
   },
 
   /**
@@ -175,21 +173,38 @@ var componentFieldView = Ember.View.extend({
         firstClick = false;
       });
     }
-  },
-
-  didInsertElement:function () {
-    if (this.get('controller.comeWithFilter')) {
-      this.applyFilter();
-      this.set('controller.comeWithFilter', false);
-    } else {
-      this.clearFilter();
-    }
   }
 });
 
+/**
+ * Simple select control for wrapperView
+ */
+var selectFieldView = Ember.Select.extend({
+  selectionBinding: 'parentView.value',
+  contentBinding: 'parentView.content'
+});
+
+/**
+ * Result object, which will be accessible outside
+ * @type {Object}
+ */
 module.exports = {
+  /**
+   * You can access wrapperView outside
+   */
   wrapperView : wrapperView,
 
+  /**
+   * And also controls views if need it
+   */
+  textFieldView : textFieldView,
+  selectFieldView: selectFieldView,
+  componentFieldView: componentFieldView,
+
+  /**
+   * Quick create input filters
+   * @param config parameters of <code>wrapperView</code>
+   */
   createTextView : function(config){
 
     config.fieldType = config.fieldType || 'input-medium';
@@ -199,9 +214,12 @@ module.exports = {
 
     return wrapperView.extend(config);
   },
+
+  /**
+   * Quick create multiSelect filters
+   * @param config parameters of <code>wrapperView</code>
+   */
   createComponentView : function(config){
-    config.filterView = componentFieldView;
-    config.emptyValue = [];
     config.clearFilter = function(){
       this.forEachChildView(function(item){
         if(item.clearFilter){
@@ -210,6 +228,21 @@ module.exports = {
       });
       return false;
     };
+
+    return wrapperView.extend(config);
+  },
+
+  /**
+   * Quick create select filters
+   * @param config parameters of <code>wrapperView</code>
+   */
+  createSelectView: function(config){
+
+    config.fieldType = config.fieldType || 'input-medium';
+    config.filterView = selectFieldView.extend({
+      classNames : [ config.fieldType ]
+    });
+    config.emptyValue = 'Any';
 
     return wrapperView.extend(config);
   }

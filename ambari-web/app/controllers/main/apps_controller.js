@@ -28,6 +28,19 @@ App.MainAppsController = Em.ArrayController.extend({
   loaded : false,
   loading : false,
 
+  /**
+   * List of users.
+   * Will be used for filtering in user column.
+   * Go to App.MainAppsView.userFilterView for more information
+   */
+  users: function () {
+    return this.get('content').mapProperty("userName").uniq().map(function(userName){
+      return {
+        name: userName,
+        checked: false
+      };
+    });
+  }.property('content.length'),
 
   loadRuns:function () {
 

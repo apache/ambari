@@ -36,6 +36,9 @@ Trunk (unreleased changes):
 
  IMPROVEMENTS
 
+ AMBARI-1303. Remake clearFilters function in app_view. (Arun Kandregula via
+ yusaku)
+
  AMBARI-1302. Minor label cleanup on Jobs Charts popup. (Arun Kandregula via
  yusaku)
 
