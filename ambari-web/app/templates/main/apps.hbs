@@ -21,15 +21,15 @@
     <tbody>
     <tr>
       <td></td>
-      <td>Jobs</td>
-      <td>Input</td>
-      <td>Output</td>
-      <td>Duration</td>
-      <td>Oldest</td>
-      <td>Most Recent</td>
+      <td>{{t apps.avgTable.jobs}}</td>
+      <td>{{t apps.avgTable.input}}</td>
+      <td>{{t apps.avgTable.output}}</td>
+      <td>{{t apps.avgTable.duration}}</td>
+      <td>{{t apps.avgTable.oldest}}</td>
+      <td>{{t apps.avgTable.mostRecent}}</td>
     </tr>
     <tr class="avg-info">
-      <td>Avg</td>
+      <td>{{t apps.avgTable.avg}}</td>
       <td>{{summary.jobs.avg}}</td>
       <td>{{summary.input.avg}}</td>
       <td>{{summary.output.avg}}</td>
@@ -39,7 +39,7 @@
 
     </tr>
     <tr class="compare-info">
-      <td>Min / Max</td>
+      <td>{{t apps.avgTable.min}} / {{t apps.avgTable.max}}</td>
       <td>{{summary.jobs.min}} / {{summary.jobs.max}}</td>
       <td>{{summary.input.min}} / {{summary.input.max}}</td>
       <td>{{summary.output.min}} / {{summary.output.max}}</td>
@@ -52,14 +52,14 @@
 
   <div class="filter_info">
 
-    <div class="span4" id="filter_buttons">Show:
-      <a class="all selected" {{action "clickViewType" target="view"}} data-view-type="all">All
+    <div class="span4" id="filter_buttons">{{t apps.filters.show}}:
+      <a class="all selected" {{action "clickViewType" target="view"}} data-view-type="all">{{t apps.filters.all}}
         ({{controller.paginationObject.iTotalRecords}})</a> &#124;
-      <a class="filtered" {{action "clickViewType" target="view"}} data-view-type="filtered">Filtered
+      <a class="filtered" {{action "clickViewType" target="view"}} data-view-type="filtered">{{t apps.filters.filtered}}
         ({{controller.filterObject.filteredDisplayRecords}})</a>
     </div>
     <div class="span2 clear_filter">
-        <a {{action "clearFilters" target="view"}}>Clear filters</a>
+        <a {{action "clearFilters" target="view"}}>{{t apps.filters.clearFilters}}</a>
     </div>
     <div class="search-bar">
         {{view view.appSearchThrough valueBinding="controller.filterObject.sSearch"}}
@@ -90,7 +90,7 @@
     <tbody>
        {{#if  view.emptyData}}
          <tr>
-           <td class="no-data" colspan="9">No jobs to display</td>
+           <td class="no-data" colspan="9">{{t apps.filters.nothingToShow}}</td>
          </tr>
        {{else}}
          {{#each run in content}}
@@ -102,9 +102,9 @@
 
   <div class="page-bar">
       <div class="items-on-page">
-          <label>Show: {{view view.runPerPageSelectView viewName="runPerPageSelectView" selectionBinding="controller.filterObject.iDisplayLength"}}</label>
+          <label>{{t apps.filters.show}}: {{view view.runPerPageSelectView viewName="runPerPageSelectView" selectionBinding="controller.filterObject.iDisplayLength"}}</label>
       </div>
-      <div class="info">{{controller.paginationObject.startIndex}} - {{controller.paginationObject.endIndex}} of {{controller.paginationObject.iTotalDisplayRecords}}</div>
+      <div class="info">{{view.paginationInfo}}</div>
       <div class="paging_two_button">
           {{view view.paginationLeft}}
           {{view view.paginationRight}}

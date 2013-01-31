@@ -35,6 +35,9 @@ Trunk (unreleased changes):
  accessible for demo/test purposes. (mahadev)
 
  IMPROVEMENTS
+ 
+ AMBARI-1309. Remove all text from Apps views, controllers, templates to 
+ messages.js. (Arun Kandregula via yusaku)
 
  AMBARI-1308. Properly display Apps page aggregate summary and data table when
  there are no data to be show. (Arun Kandregula via yusaku)
