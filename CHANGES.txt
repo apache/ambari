@@ -213,6 +213,9 @@ Trunk (unreleased changes):
 
  BUG FIXES
 
+ AMBARI-1313. Alert time jumps between 'less than a minute ago' and 'about a
+ minute ago'. (srimanth via yusaku) 
+
  AMBARI-1304. When switching jobs in timeline + tasks charts, blank charts show.
  (Arun Kandregula via yusaku) 
 
