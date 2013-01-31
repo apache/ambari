@@ -26,7 +26,10 @@ App.WizardStep1Controller = Em.Controller.extend({
   loadStep: function () {
     this.set('hasSubmitted',false);
   },
-
+  /**
+   * validate cluster name
+   * set clusterNameError if validation fails
+   */
   invalidClusterName : function(){
     if(!this.get('hasSubmitted')){
       this.set('clusterNameError', '');

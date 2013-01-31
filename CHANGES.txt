@@ -199,6 +199,9 @@ Trunk (unreleased changes):
 
  BUG FIXES
 
+ AMBARI-1315. Inconsistent error/warning status in Deploy step; install
+ stalls. (Arun Kandregula via yusaku)
+
  AMBARI-1281. Heatmap does not show up if the cluster was installed by going
  back to a previous step from the Deploy step after an install failure.
  (yusaku)

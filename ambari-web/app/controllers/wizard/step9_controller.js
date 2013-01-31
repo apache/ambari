@@ -127,6 +127,17 @@ App.WizardStep9Controller = Em.Controller.extend({
     this.clearStep();
     this.renderHosts(this.loadHosts());
   },
+  /**
+   * reset status and message of all hosts when retry install
+   */
+  resetHostsForRetry: function(){
+    var hosts = this.get('content.hosts');
+    for (var name in hosts) {
+      hosts[name].status = "pending";
+      hosts[name].message = 'Waiting';
+    }
+    this.set('content.hosts', hosts);
+  },
 
   loadHosts: function () {
     var hostInfo = this.get('content.hosts');
