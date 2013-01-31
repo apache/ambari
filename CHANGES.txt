@@ -350,6 +350,11 @@ Trunk (unreleased changes):
 
  AMBARI-1285. Some host Ganglia metrics may be missing in some cases. (tbeerbower)
 
+ AMBARI-1310. Get rid of mvn warnings. (Arun Kumar via mahadev)
+
+ AMBARI-1314. Hostname test is failing in some environments. (Nate Cole via
+ mahadev) 
+
 AMBARI-1.2.0 branch:
 
  INCOMPATIBLE CHANGES

@@ -133,6 +133,7 @@ public abstract class GangliaPropertyProvider extends AbstractPropertyProvider {
   /**
    * Get the ganglia cluster name for the given resource.
    *
+   *
    * @param resource  the resource
    *
    * @return the ganglia cluster name

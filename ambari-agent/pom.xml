@@ -30,6 +30,7 @@
   <name>Ambari Agent</name>
   <description>Ambari Agent</description>
   <properties>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <final.name>${project.artifactId}-${project.version}</final.name>
     <package.release>1</package.release>
     <package.prefix>/usr</package.prefix>
@@ -59,6 +60,10 @@
   </profiles>
   <build>
     <plugins>
+      <plugin>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <version>3.0</version>
+      </plugin>
       <plugin>
         <artifactId>maven-assembly-plugin</artifactId>
         <configuration>
