@@ -186,9 +186,11 @@ class HostComponentResourceProvider extends AbstractResourceProvider {
     Set<String> unsupportedProperties = new HashSet<String>();
 
     for (String propertyId : propertyIds) {
-      String propertyCategory = PropertyHelper.getPropertyCategory(propertyId);
-      if (propertyCategory == null || !propertyCategory.equals("config")) {
-        unsupportedProperties.add(propertyId);
+      if (!propertyId.equals("config")) {
+        String propertyCategory = PropertyHelper.getPropertyCategory(propertyId);
+        if (propertyCategory == null || !propertyCategory.equals("config")) {
+          unsupportedProperties.add(propertyId);
+        }
       }
     }
     return unsupportedProperties;

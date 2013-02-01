@@ -139,7 +139,8 @@ class ComponentResourceProvider extends AbstractResourceProvider {
       Map<String, String>     configMap   = new HashMap<String,String>();
 
       for (Map.Entry<String,Object> entry : propertyMap.entrySet()) {
-        if (PropertyHelper.getPropertyCategory(entry.getKey()).equals("config")) {
+        String propertyCategory = PropertyHelper.getPropertyCategory(entry.getKey());
+        if (propertyCategory != null && propertyCategory.equals("config")) {
           configMap.put(PropertyHelper.getPropertyName(entry.getKey()), (String) entry.getValue());
         }
       }

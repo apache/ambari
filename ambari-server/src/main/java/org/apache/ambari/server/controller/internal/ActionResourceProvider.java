@@ -120,8 +120,11 @@ class ActionResourceProvider extends AbstractResourceProvider {
     Map<String, String> params = new HashMap<String, String>();
     for (Entry<String, Object> entry : properties.entrySet()) {
       String propertyid = entry.getKey();
-      if (PropertyHelper.getPropertyCategory(propertyid).equals("parameters")
-          && null != entry.getValue()) {
+
+      String propertyCategory = PropertyHelper.getPropertyCategory(propertyid);
+      if (propertyCategory != null &&
+          propertyCategory.equals("parameters") &&
+          null != entry.getValue()) {
         params.put(PropertyHelper.getPropertyName(propertyid), entry.getValue().toString());
       }
     }

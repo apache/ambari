@@ -223,6 +223,8 @@ Trunk (unreleased changes):
 
  BUG FIXES
 
+ AMBARI-1331. Step 8 hangs on deploy tas 2 of 59, server has exception (tbeerbower)
+
  AMBARI-1164. Disk info ganglia metrics is broken for some OS. (Dmytro Shkvyra via jspeidel)
 
  AMBARI-1325. Left border is missing from the main nav. (srimanth)

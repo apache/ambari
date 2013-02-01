@@ -31,7 +31,6 @@ import org.easymock.IArgumentMatcher;
 import org.junit.Assert;
 import org.junit.Test;
 
-import static org.easymock.EasyMock.anyObject;
 import static org.easymock.EasyMock.createMock;
 import static org.easymock.EasyMock.createNiceMock;
 import static org.easymock.EasyMock.expect;
@@ -135,9 +134,9 @@ public class AbstractResourceProviderTest {
     idResponse.add(new ClusterResponse(103L, "Cluster103", null, null));
 
     // set expectations
-    expect(managementController.getClusters(anyObject(Set.class))).andReturn(allResponse).once();
-    expect(managementController.getClusters(anyObject(Set.class))).andReturn(nameResponse).once();
-    expect(managementController.getClusters(anyObject(Set.class))).andReturn(idResponse).once();
+    expect(managementController.getClusters(EasyMock.<Set<ClusterRequest>>anyObject())).andReturn(allResponse).once();
+    expect(managementController.getClusters(EasyMock.<Set<ClusterRequest>>anyObject())).andReturn(nameResponse).once();
+    expect(managementController.getClusters(EasyMock.<Set<ClusterRequest>>anyObject())).andReturn(idResponse).once();
 
     // replay
     replay(managementController);
@@ -197,7 +196,7 @@ public class AbstractResourceProviderTest {
     nameResponse.add(new ClusterResponse(102L, "Cluster102", null, null));
 
     // set expectations
-    expect(managementController.getClusters(anyObject(Set.class))).andReturn(nameResponse).once();
+    expect(managementController.getClusters(EasyMock.<Set<ClusterRequest>>anyObject())).andReturn(nameResponse).once();
     expect(managementController.updateCluster(Matchers.clusterRequest(102L, "Cluster102", "HDP-0.1", null))).andReturn(response).once();
     expect(managementController.updateCluster(Matchers.clusterRequest(103L, null, "HDP-0.1", null))).andReturn(response).once();
 
@@ -247,9 +246,6 @@ public class AbstractResourceProviderTest {
     AmbariManagementController managementController = createMock(AmbariManagementController.class);
     RequestStatusResponse response = createNiceMock(RequestStatusResponse.class);
 
-    Set<ClusterResponse> nameResponse = new HashSet<ClusterResponse>();
-    nameResponse.add(new ClusterResponse(102L, "Cluster102", null, null));
-
     // set expectations
     managementController.deleteCluster(Matchers.clusterRequest(null, "Cluster102", null, null));
     managementController.deleteCluster(Matchers.clusterRequest(103L, null, null, null));
@@ -293,9 +289,7 @@ public class AbstractResourceProviderTest {
     AmbariManagementController managementController = createMock(AmbariManagementController.class);
     RequestStatusResponse response = createNiceMock(RequestStatusResponse.class);
 
-//    Set<ServiceRequest> requests = new HashSet<ServiceRequest>();
-//    requests.add(Matchers.serviceRequest("Cluster100", "Service100", null, "DEPLOYED"));
-    managementController.createServices(anyObject(Set.class));
+    managementController.createServices(Matchers.serviceRequestSet("Cluster100", "Service100", null, "DEPLOYED"));
 
     // replay
     replay(managementController, response);
@@ -350,9 +344,9 @@ public class AbstractResourceProviderTest {
     stateResponse.add(new ServiceResponse(100L, "Cluster100", "Service104", null, "HDP-0.1", "DEPLOYED"));
 
     // set expectations
-    expect(managementController.getServices(anyObject(Set.class))).andReturn(allResponse).once();
-    expect(managementController.getServices(anyObject(Set.class))).andReturn(nameResponse).once();
-    expect(managementController.getServices(anyObject(Set.class))).andReturn(stateResponse).once();
+    expect(managementController.getServices(EasyMock.<Set<ServiceRequest>>anyObject())).andReturn(allResponse).once();
+    expect(managementController.getServices(EasyMock.<Set<ServiceRequest>>anyObject())).andReturn(nameResponse).once();
+    expect(managementController.getServices(EasyMock.<Set<ServiceRequest>>anyObject())).andReturn(stateResponse).once();
 
     // replay
     replay(managementController);
@@ -422,7 +416,7 @@ public class AbstractResourceProviderTest {
     RequestStatusResponse response = createNiceMock(RequestStatusResponse.class);
 
     // set expectations
-    expect(managementController.updateServices(anyObject(Set.class))).andReturn(response).once();
+    expect(managementController.updateServices(EasyMock.<Set<ServiceRequest>>anyObject())).andReturn(response).once();
 
     // replay
     replay(managementController, response);
@@ -527,9 +521,22 @@ public class AbstractResourceProviderTest {
       return null;
     }
 
-    public static ServiceRequest serviceRequest(String clusterName, String serviceName, Map<String, String> configVersions, String desiredState)
+    public static Set<ServiceRequest> serviceRequestSet(String clusterName, String serviceName, Map<String, String> configVersions, String desiredState)
     {
-      EasyMock.reportMatcher(new ServiceRequestMatcher(clusterName, serviceName, configVersions, desiredState));
+      EasyMock.reportMatcher(new ServiceRequestSetMatcher(clusterName, serviceName, configVersions, desiredState));
+      return null;
+    }
+
+    public static Set<ServiceComponentRequest> componentRequestSet(String clusterName, String serviceName, String componentName,
+                                                           Map<String, String> configVersions, String desiredState)
+    {
+      EasyMock.reportMatcher(new ComponentRequestSetMatcher(clusterName, serviceName, componentName, configVersions, desiredState));
+      return null;
+    }
+
+    public static ConfigurationRequest configurationRequest(String clusterName, String type, String tag, Map<String, String> configs)
+    {
+      EasyMock.reportMatcher(new ConfigurationRequestMatcher(clusterName, type, tag, configs));
       return null;
     }
   }
@@ -562,25 +569,100 @@ public class AbstractResourceProviderTest {
     }
   }
 
-  public static class ServiceRequestMatcher extends ServiceRequest implements IArgumentMatcher {
+  public static class ServiceRequestSetMatcher extends HashSet<ServiceRequest> implements IArgumentMatcher {
 
-    public ServiceRequestMatcher(String clusterName, String serviceName, Map<String, String> configVersions, String desiredState) {
-      super(clusterName, serviceName, configVersions, desiredState);
+    private final ServiceRequest serviceRequest;
+
+    public ServiceRequestSetMatcher(String clusterName, String serviceName, Map<String, String> configVersions, String desiredState) {
+      this.serviceRequest = new ServiceRequest(clusterName, serviceName, configVersions, desiredState);
+      add(this.serviceRequest);
     }
 
     @Override
     public boolean matches(Object o) {
-      return o instanceof ServiceRequest &&
-          eq(((ServiceRequest) o).getClusterName(), getClusterName()) &&
-          eq(((ServiceRequest) o).getServiceName(), getServiceName()) &&
-          eq(((ServiceRequest) o).getConfigVersions(), getConfigVersions()) &&
-          eq(((ServiceRequest) o).getDesiredState(), getDesiredState());
+      if (!(o instanceof Set)) {
+        return false;
+      }
+
+      Set set = (Set) o;
+
+      if (set.size() != 1) {
+        return false;
+      }
+
+      Object request = set.iterator().next();
+
+      return request instanceof ServiceRequest &&
+          eq(((ServiceRequest) request).getClusterName(), serviceRequest.getClusterName()) &&
+          eq(((ServiceRequest) request).getServiceName(), serviceRequest.getServiceName()) &&
+          eq(((ServiceRequest) request).getConfigVersions(), serviceRequest.getConfigVersions()) &&
+          eq(((ServiceRequest) request).getDesiredState(), serviceRequest.getDesiredState());
+    }
+
+    @Override
+    public void appendTo(StringBuffer stringBuffer) {
+      stringBuffer.append("ServiceRequestSetMatcher(" + "" + ")");
+    }
+  }
+
+  public static class ComponentRequestSetMatcher extends HashSet<ServiceComponentRequest> implements IArgumentMatcher {
+
+    private final ServiceComponentRequest serviceComponentRequest;
+
+    public ComponentRequestSetMatcher(String clusterName, String serviceName, String componentName,
+                                   Map<String, String> configVersions, String desiredState) {
+      this.serviceComponentRequest = new ServiceComponentRequest(clusterName, serviceName, componentName, configVersions, desiredState);
+      add(this.serviceComponentRequest);
+    }
+
+    @Override
+    public boolean matches(Object o) {
+
+      if (!(o instanceof Set)) {
+        return false;
+      }
+
+      Set set = (Set) o;
+
+      if (set.size() != 1) {
+        return false;
+      }
+
+      Object request = set.iterator().next();
+
+      return request instanceof ServiceComponentRequest &&
+          eq(((ServiceComponentRequest) request).getClusterName(), serviceComponentRequest.getClusterName()) &&
+          eq(((ServiceComponentRequest) request).getServiceName(), serviceComponentRequest.getServiceName()) &&
+          eq(((ServiceComponentRequest) request).getComponentName(), serviceComponentRequest.getComponentName()) &&
+          eq(((ServiceComponentRequest) request).getConfigVersions(), serviceComponentRequest.getConfigVersions()) &&
+          eq(((ServiceComponentRequest) request).getDesiredState(), serviceComponentRequest.getDesiredState());
+    }
+
+    @Override
+    public void appendTo(StringBuffer stringBuffer) {
+      stringBuffer.append("ComponentRequestMatcher(" + "" + ")");
+    }
+  }
+
+  public static class ConfigurationRequestMatcher extends ConfigurationRequest implements IArgumentMatcher {
+
+    public ConfigurationRequestMatcher(String clusterName, String type, String tag, Map<String, String> configs) {
+      super(clusterName, type, tag, configs);
+    }
+
+    @Override
+    public boolean matches(Object o) {
+      return o instanceof ConfigurationRequest &&
+          eq(((ConfigurationRequest) o).getClusterName(), getClusterName()) &&
+          eq(((ConfigurationRequest) o).getType(), getType()) &&
+          eq(((ConfigurationRequest) o).getVersionTag(), getVersionTag()) &&
+          eq(((ConfigurationRequest) o).getConfigs(), getConfigs());
 
     }
 
     @Override
     public void appendTo(StringBuffer stringBuffer) {
-      stringBuffer.append("ClusterRequestMatcher(" + "" + ")");
+      stringBuffer.append("ConfigurationRequestMatcher(" + "" + ")");
     }
   }
 
@@ -597,5 +679,4 @@ public class AbstractResourceProviderTest {
       return lastEvent;
     }
   }
-
 }
