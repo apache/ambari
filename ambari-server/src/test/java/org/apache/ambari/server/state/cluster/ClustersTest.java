@@ -211,14 +211,20 @@ public class ClustersTest {
 
     clusters.mapHostToCluster(h1, c1);
     clusters.mapHostToCluster(h2, c1);
-
+    
     try {
       clusters.mapHostToCluster(h1, c1);
       fail("Expected exception for duplicate");
     } catch (DuplicateResourceException e) {
       // expected
     }
-
+    
+    /* make sure 2 host mapping to same cluster are the same cluster objects */
+    
+    Cluster c3 = (Cluster) clusters.getClustersForHost(h1).toArray()[0];
+    Cluster c4 = (Cluster) clusters.getClustersForHost(h2).toArray()[0];
+    
+    Assert.assertEquals(c3, c4);
     Set<String> hostnames = new HashSet<String>();
     hostnames.add(h1);
     hostnames.add(h2);
@@ -227,7 +233,7 @@ public class ClustersTest {
 
     c = clusters.getClustersForHost(h1);
     Assert.assertEquals(2, c.size());
-
+    
     c = clusters.getClustersForHost(h2);
     Assert.assertEquals(2, c.size());
 

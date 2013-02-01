@@ -103,6 +103,8 @@ public class ClusterImpl implements Cluster {
   private ConfigFactory configFactory;
   @Inject
   private Gson gson;
+  
+  private volatile boolean svcHostsLoaded = false;
 
   @Inject
   public ClusterImpl(@Assisted ClusterEntity clusterEntity,
@@ -116,7 +118,6 @@ public class ClusterImpl implements Cluster {
         List<ServiceComponentHost>>();
     this.desiredStackVersion = gson.fromJson(
         clusterEntity.getDesiredStackVersion(), StackId.class);
-    loadServiceHostComponents();
     configs = new HashMap<String, Map<String, Config>>();
     if (!clusterEntity.getClusterConfigEntities().isEmpty()) {
       for (ClusterConfigEntity entity : clusterEntity.getClusterConfigEntities()) {
@@ -137,9 +138,10 @@ public class ClusterImpl implements Cluster {
    * Make sure we load all the service host components.
    * We need this for live status checks.
    */
-  public void loadServiceHostComponents() {
+  public synchronized void loadServiceHostComponents() {
     loadServices();
     LOG.info("Loading Service Host Components");
+    if (svcHostsLoaded) return;
     if (services != null) {
       for (Map.Entry<String, Service> serviceKV: services.entrySet()) {
         /* get all the service component hosts **/
@@ -177,6 +179,7 @@ public class ClusterImpl implements Cluster {
         }
       }
     }
+    svcHostsLoaded = true;
   }
 
   private void loadServices() {
@@ -197,6 +200,7 @@ public class ClusterImpl implements Cluster {
 
   public ServiceComponentHost getServiceComponentHost(String serviceName,
       String serviceComponentName, String hostname) throws AmbariException {
+    loadServiceHostComponents();
     if (!serviceComponentHosts.containsKey(serviceName)
         || !serviceComponentHosts.get(serviceName)
             .containsKey(serviceComponentName)
@@ -234,6 +238,7 @@ public class ClusterImpl implements Cluster {
 
   public synchronized void addServiceComponentHost(
       ServiceComponentHost svcCompHost) throws AmbariException {
+    loadServiceHostComponents();
     if (LOG.isDebugEnabled()) {
       LOG.debug("Trying to add ServiceComponentHost to ClusterHostMap cache"
           + ", serviceName=" + svcCompHost.getServiceName()
@@ -305,6 +310,7 @@ public class ClusterImpl implements Cluster {
   @Override
   public synchronized List<ServiceComponentHost> getServiceComponentHosts(
       String hostname) {
+    loadServiceHostComponents();
     if (serviceComponentHostsByHost.containsKey(hostname)) {
       return Collections.unmodifiableList(
           serviceComponentHostsByHost.get(hostname));

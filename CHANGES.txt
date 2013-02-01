@@ -379,6 +379,9 @@ Trunk (unreleased changes):
  AMBARI-1314. Hostname test is failing in some environments. (Nate Cole via
  mahadev) 
 
+ AMBARI-1330. Cluster missing hosts after successful install and restart.
+ (mahadev)
+
 AMBARI-1.2.0 branch:
 
  INCOMPATIBLE CHANGES
