@@ -85,7 +85,7 @@ Em.I18n.translations = {
   'installer.step2.hostPattern.tooltip.title':'Pattern Expressions',
   'installer.step2.hostPattern.tooltip.content':'You can use pattern expressions to specify a number of target hosts. For example, to specify host01.domain thru host10.domain, enter host[01-10].domain in the target hosts textarea.',
   'installer.step2.hostName.error.required':'You must specify at least one host name',
-  'installer.step2.hostName.error.already_installed':'all these hosts are already installed',
+  'installer.step2.hostName.error.already_installed':'All these hosts are already part of the cluster',
   'installer.step2.hostName.error.notRequired':'Host Names will be ignored if not using SSH to automatically configure hosts',
   'installer.step2.hostName.error.invalid':'Invalid Host Name(s)',
   'installer.step2.hostName.pattern.header':'Host name pattern expressions',

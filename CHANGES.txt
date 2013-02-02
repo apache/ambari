@@ -38,6 +38,9 @@ Trunk (unreleased changes):
 
  IMPROVEMENTS
 
+ AMBARI-1335. Show validation error when the user specifies target hosts that are
+ already part of the cluster. (yusaku)
+
  AMBARI-1337. Refactor Job Browser filter. (yusaku)
 
  AMBARI-1336. Externalize text to messages.js. (yusaku)
