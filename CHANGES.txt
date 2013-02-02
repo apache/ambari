@@ -38,6 +38,9 @@ Trunk (unreleased changes):
 
  IMPROVEMENTS
 
+ AMBARI-1334. Show hosts that have failed install tasks as "red" to allow the user
+ to easily identify source of failure. (yusaku)
+
  AMBARI-1333. Add username validation for Ambari local users. (yusaku) 
 
  AMBARI-1329. Adjust job browser column sizing. (yusaku)

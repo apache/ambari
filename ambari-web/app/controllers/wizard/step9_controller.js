@@ -338,7 +338,7 @@ App.WizardStep9Controller = Em.Controller.extend({
     if (actions.someProperty('Tasks.status', 'FAILED') || actions.someProperty('Tasks.status', 'ABORTED') || actions.someProperty('Tasks.status', 'TIMEDOUT')) {
       contentHost.set('status', 'warning');
     }
-    if (this.get('content.cluster.status') === 'PENDING' && this.isMasterFailed(actions)) {
+    if (this.get('content.cluster.status') === 'PENDING' && actions.someProperty('Tasks.status', 'FAILED')) {
       contentHost.set('status', 'failed');
     }
   },
@@ -403,19 +403,6 @@ App.WizardStep9Controller = Em.Controller.extend({
       }
     }, this);
     return failed;
-  },
-
-  //return true if there is at least one FAILED task of master component install
-  isMasterFailed: function(polledData) {
-    var result = false;
-    polledData.filterProperty('Tasks.status', 'FAILED').mapProperty('Tasks.role').forEach (
-        function (task) {
-          if (!['DATANODE', 'TASKTRACKER', 'HBASE_REGIONSERVER', 'GANGLIA_MONITOR'].contains(task)) {
-            result = true;
-          }
-        }
-    );
-    return result;
   },
 
   // makes a state transition
