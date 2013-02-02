@@ -38,6 +38,8 @@ Trunk (unreleased changes):
 
  IMPROVEMENTS
 
+ AMBARI-1337. Refactor Job Browser filter. (yusaku)
+
  AMBARI-1336. Externalize text to messages.js. (yusaku)
 
  AMBARI-1334. Show hosts that have failed install tasks as "red" to allow the user
