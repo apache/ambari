@@ -37,6 +37,8 @@ Trunk (unreleased changes):
  accessible for demo/test purposes. (mahadev)
 
  IMPROVEMENTS
+
+ AMBARI-1329. Adjust job browser column sizing. (yusaku)
  
  AMBARI-1327. Add Hosts. Remove existig hosts display. (Alexandr Antonenko via jspeidel)
 
