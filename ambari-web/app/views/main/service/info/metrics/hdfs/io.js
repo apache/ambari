@@ -28,7 +28,7 @@ var App = require('app');
  */
 App.ChartServiceMetricsHDFS_IO = App.ChartLinearTimeView.extend({
   id: "service-metrics-hdfs-io",
-  title: "HDFS I/O",
+  title: Em.I18n.t('services.service.info.metrics.hdfs.io'),
   yAxisFormatter: App.ChartLinearTimeView.BytesFormatter,
   renderer: 'line',
   url: function () {

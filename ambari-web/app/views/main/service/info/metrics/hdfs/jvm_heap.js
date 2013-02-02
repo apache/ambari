@@ -28,7 +28,7 @@ var App = require('app');
  */
 App.ChartServiceMetricsHDFS_JVMHeap = App.ChartLinearTimeView.extend({
   id: "service-metrics-hdfs-jvm-heap",
-  title: "JVM Memory Status",
+  title: Em.I18n.t('services.service.info.metrics.hdfs.jvmHeap'),
   yAxisFormatter: App.ChartLinearTimeView.BytesFormatter,
   renderer: 'line',
   url: function () {

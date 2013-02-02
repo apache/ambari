@@ -28,7 +28,7 @@ var App = require('app');
  */
 App.ChartServiceMetricsHDFS_SpaceUtilization = App.ChartLinearTimeView.extend({
   id: "service-metrics-hdfs-space-utilization",
-  title: "Total Space Utilization",
+  title: Em.I18n.t('services.service.info.metrics.hdfs.spaceUtilization'),
   yAxisFormatter: App.ChartLinearTimeView.BytesFormatter,
   renderer: 'line',
   url: function () {

@@ -37,7 +37,7 @@ App.ChartClusterMetricsNetwork = App.ChartLinearTimeView.extend({
     );
   }.property('clusterName').volatile(),
 
-  title: "Network Usage",
+  title: Em.I18n.t('dashboard.clusterMetrics.network'),
   yAxisFormatter: App.ChartLinearTimeView.BytesFormatter,
   renderer: 'line',
 

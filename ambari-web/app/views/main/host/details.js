@@ -27,7 +27,7 @@ App.MainHostDetailsView = Em.View.extend({
   }.property('App.router.mainHostDetailsController.content'),
 
   maintenance: function(){
-    var options = [{action: 'deleteHost', 'label': 'Delete Host'}];
+    var options = [{action: 'deleteHost', 'label': this.t('hosts.host.details.deleteHost')}];
     return options;
   }.property('controller.content')
 });

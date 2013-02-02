@@ -27,14 +27,14 @@ App.MainMenuView = Em.CollectionView.extend({
   classNames:['nav'],
   content:function(){
     var result = [
-      { label:'Dashboard', routing:'dashboard', active:'active'},
-      { label:'Heatmaps', routing:'charts'},
-      { label:'Services', routing:'services'},
-      { label:'Hosts', routing:'hosts'},
-      { label:'Jobs', routing:'apps'}
+      { label:Em.I18n.t('menu.item.dashboard'), routing:'dashboard', active:'active'},
+      { label:Em.I18n.t('menu.item.heatmaps'), routing:'charts'},
+      { label:Em.I18n.t('menu.item.services'), routing:'services'},
+      { label:Em.I18n.t('menu.item.hosts'), routing:'hosts'},
+      { label:Em.I18n.t('menu.item.jobs'), routing:'apps'}
 
     ];
-      if(App.db.getUser().admin) result.push({ label:'Admin', routing:'admin'});
+      if(App.db.getUser().admin) result.push({ label:Em.I18n.t('menu.item.admin'), routing:'admin'});
     return result;
   }.property(),
     /**

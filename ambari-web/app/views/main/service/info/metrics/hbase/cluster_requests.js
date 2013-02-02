@@ -28,7 +28,7 @@ var App = require('app');
  */
 App.ChartServiceMetricsHBASE_ClusterRequests = App.ChartLinearTimeView.extend({
   id: "service-metrics-hbase-cluster-requests",
-  title: "Cluster Requests",
+  title: Em.I18n.t('services.service.info.metrics.hbase.clusterRequests'),
 
   url: function () {
     return App.formatUrl(

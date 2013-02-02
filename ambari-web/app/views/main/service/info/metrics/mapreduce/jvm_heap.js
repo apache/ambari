@@ -28,7 +28,7 @@ var App = require('app');
  */
 App.ChartServiceMetricsMapReduce_JVMHeap = App.ChartLinearTimeView.extend({
   id: "service-metrics-mapreduce-jvm-heap",
-  title: "JVM Memory Status",
+  title: Em.I18n.t('services.service.info.metrics.mapreduce.jvmHeap'),
   yAxisFormatter: App.ChartLinearTimeView.BytesFormatter,
   renderer: 'line',
   url: function () {

@@ -28,7 +28,7 @@ var App = require('app');
  */
 App.ChartServiceMetricsHBASE_HlogSplitTime = App.ChartLinearTimeView.extend({
   id: "service-metrics-hbase-hlog-split-time",
-  title: "HLog Split Time",
+  title: Em.I18n.t('services.service.info.metrics.hbase.hlogSplitTime'),
   yAxisFormatter: App.ChartLinearTimeView.TimeElapsedFormatter,
 
   url: function () {

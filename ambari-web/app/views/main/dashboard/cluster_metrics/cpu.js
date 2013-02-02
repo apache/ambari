@@ -36,7 +36,7 @@ App.ChartClusterMetricsCPU = App.ChartLinearTimeView.extend({
     );
   }.property('clusterName').volatile(),
 
-  title: "CPU Usage",
+  title: Em.I18n.t('dashboard.clusterMetrics.cpu'),
   yAxisFormatter: App.ChartLinearTimeView.PercentageFormatter,
   
   transformToSeries: function (jsonData) {

@@ -58,6 +58,15 @@ Em.I18n.translations = {
 
   'installer.header':'Cluster Install Wizard',
   'installer.navigation.warning.header':'Navigation Warning',
+
+  'installer.controls.serviceConfigPopover.title':'{0}<br><small>{1}</small>',
+  'installer.controls.serviceConfigMultipleHosts.other':'1 other',
+  'installer.controls.serviceConfigMultipleHosts.others':'{0} others',
+  'installer.controls.serviceConfigMasterHosts.header':'{0} Hosts',
+  'installer.controls.addSlaveComponentGroupButton.title':'Add a {0} Group',
+  'installer.controls.addSlaveComponentGroupButton.content':'If you need different settings on certain {0}s, you can add a {1} group.<br>All {2}s within the same group will have the same set of settings.  You can create multiple groups.',
+  'installer.controls.slaveComponentChangeGroupName.error':'group with this name already exist',
+
   'installer.step1.header':'Welcome',
   'installer.step1.body.header':'Welcome to Apache Ambari!',
   'installer.step1.body':'Ambari makes it easy to install, manage, and monitor Hadoop clusters.<br>' +
@@ -147,6 +156,7 @@ Em.I18n.translations = {
   'installer.step6.body':'Assign slave and client components to hosts you want to run them on.<br/>Hosts that are assigned master components are shown with <i class=icon-asterisks>&#10037</i>. <br/>&quot;Client&quot; will install ',
   'installer.step6.error.mustSelectOne':'You must assign at least one host to each.',
   'installer.step6.error.mustSelectOneForHost':'You must assign at least one slave/client component to each.',
+  'installer.step6.wizardStep6Host.title':'master components hosted on {0}',
 
   'installer.step7.header':'Customize Services',
   'installer.step7.body':'We have come up with recommended configurations for the services you selected.  Customize them as you see fit.',
@@ -165,6 +175,13 @@ Em.I18n.translations = {
   'installer.step9.host.status.failed':'Failures encountered',
   'installer.step9.host.status.nothingToInstall':'Waiting (Nothing to install)',
   'installer.step9.hostLog.popup.header':'Tasks. executed on ',
+  'installer.step9.hostLog.popup.categories.all':'All',
+  'installer.step9.hostLog.popup.categories.pending':'Queued / Pending',
+  'installer.step9.hostLog.popup.categories.in_progress':'In Progress',
+  'installer.step9.hostLog.popup.categories.failed':'Failed',
+  'installer.step9.hostLog.popup.categories.completed':'Success',
+  'installer.step9.hostLog.popup.categories.aborted':'Cancelled',
+  'installer.step9.hostLog.popup.categories.timedout':'Timed Out',
 
   'installer.step10.header':'Summary',
   'installer.step10.body':'Here is the summary of the install process.',
@@ -243,6 +260,7 @@ Em.I18n.translations = {
   'question.sure':'Are you sure?',
   'yes':'Yes',
   'no':'No',
+  'and':'and',
 
   'services.service.start':'Start',
   'services.service.stop':'Stop',
@@ -292,7 +310,48 @@ Em.I18n.translations = {
   'services.service.summary.notRunning':'Not Running',
   'services.service.summary.notAvailable':'n/a',
 
+  'services.service.info.metrics.hbase.clusterRequests':'Cluster Requests',
+  'services.service.info.metrics.hbase.hlogSplitSize':'HLog Split Size',
+  'services.service.info.metrics.hbase.hlogSplitTime':'HLog Split Time',
+  'services.service.info.metrics.hbase.regionServerQueueSize':'RegionServer Queue Size',
+  'services.service.info.metrics.hbase.regionServerRegions':'RegionServer Regions',
+  'services.service.info.metrics.hbase.regionServerRequests':'RegionServer Requests',
+
+  'services.service.info.metrics.hdfs.blockStatus':'Block Status',
+  'services.service.info.metrics.hdfs.fileOperations':'File Operations',
+  'services.service.info.metrics.hdfs.gc':'Garbage Collection',
+  'services.service.info.metrics.hdfs.io':'HDFS I/O',
+  'services.service.info.metrics.hdfs.jvmHeap':'JVM Memory Status',
+  'services.service.info.metrics.hdfs.jvmThreads':'JVM Thread Status',
+  'services.service.info.metrics.hdfs.rpc':'RPC',
+  'services.service.info.metrics.hdfs.spaceUtilization':'Total Space Utilization',
+
+  'services.service.info.metrics.mapreduce.gc':'Garbage Collection',
+  'services.service.info.metrics.mapreduce.jobsStatus':'Jobs Status',
+  'services.service.info.metrics.mapreduce.jvmHeap':'JVM Memory Status',
+  'services.service.info.metrics.mapreduce.jvmThreads':'JVM Thread Status',
+  'services.service.info.metrics.mapreduce.mapSlots':'Map Slots Utilization',
+  'services.service.info.metrics.mapreduce.reduceSlots':'Reduce Slots Utilization',
+  'services.service.info.metrics.mapreduce.rpc':'RPC',
+  'services.service.info.metrics.mapreduce.tasksRunningWaiting':'Tasks (Running/Waiting)',
+
+  'services.service.info.menu.summary':'Summary',
+  'services.service.info.menu.configs':'Configs',
+  'services.service.info.summary.hostsRunningMonitor':'{0} hosts running monitor',
+  'services.service.info.summary.hostRunningMonitor':'1 host running monitor',
+  'services.service.info.summary.serversHostCount':'{0} more',
+
   'services.add.header':'Add Service Wizard',
+
+
+  'hosts.host.metrics.cpu':'CPU Usage',
+  'hosts.host.metrics.disk':'Disk Usage',
+  'hosts.host.metrics.load':'Load',
+  'hosts.host.metrics.memory':'Memory Usage',
+  'hosts.host.metrics.network':'Network Usage',
+  'hosts.host.metrics.processes':'Processes',
+
+  'hosts.host.details.deleteHost':'Delete Host',
 
   'hosts.host.start.popup.header':'Confirmation',
   'hosts.host.stop.popup.header':'Confirmation',
@@ -338,6 +397,12 @@ Em.I18n.translations = {
   'metric.more.memory':'Memory',
   'metric.more.network':'Network',
   'metric.more.process':'Process',
+
+  'dashboard.clusterMetrics.cpu':'CPU Usage',
+  'dashboard.clusterMetrics.load':'Cluster Load',
+  'dashboard.clusterMetrics.memory':'Memory Usage',
+  'dashboard.clusterMetrics.network':'Network Usage',
+
 
   'dashboard.services':'Services',
   'dashboard.services.hosts':'Hosts',
@@ -446,6 +511,13 @@ Em.I18n.translations = {
   'apps.isRunning.popup.title':'Is running',
   'apps.isRunning.popup.content':'Job is running now',
 
-  'nagios.alerts.unavailable':'Alerts Unavailable'
+  'nagios.alerts.unavailable':'Alerts Unavailable',
+
+  'menu.item.dashboard':'Dashboard',
+  'menu.item.heatmaps':'Heatmaps',
+  'menu.item.services':'Services',
+  'menu.item.hosts':'Hosts',
+  'menu.item.jobs':'Jobs',
+  'menu.item.admin':'Admin'
 
 };

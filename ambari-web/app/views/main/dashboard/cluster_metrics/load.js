@@ -38,7 +38,7 @@ App.ChartClusterMetricsLoad = App.ChartLinearTimeView.extend({
   }.property('clusterName').volatile(),
 
   renderer: 'line',
-  title: "Cluster Load",
+  title: Em.I18n.t('dashboard.clusterMetrics.load'),
   
   transformToSeries: function(jsonData){
     var seriesArray = [];

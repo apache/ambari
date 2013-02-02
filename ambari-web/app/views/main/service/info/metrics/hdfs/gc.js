@@ -28,7 +28,7 @@ var App = require('app');
  */
 App.ChartServiceMetricsHDFS_GC = App.ChartLinearTimeView.extend({
   id: "service-metrics-hdfs-gc",
-  title: "Garbage Collection",
+  title: Em.I18n.t('services.service.info.metrics.hdfs.gc'),
   yAxisFormatter: App.ChartLinearTimeView.TimeElapsedFormatter,
 
   url: function () {

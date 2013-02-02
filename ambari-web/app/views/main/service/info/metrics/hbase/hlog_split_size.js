@@ -28,7 +28,7 @@ var App = require('app');
  */
 App.ChartServiceMetricsHBASE_HlogSplitSize = App.ChartLinearTimeView.extend({
   id: "service-metrics-hbase-hlog-split-size",
-  title: "HLog Split Size",
+  title: Em.I18n.t('services.service.info.metrics.hbase.hlogSplitSize'),
   yAxisFormatter: App.ChartLinearTimeView.BytesFormatter,
 
   url: function () {

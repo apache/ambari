@@ -28,7 +28,7 @@ var App = require('app');
  */
 App.ChartServiceMetricsMapReduce_TasksRunningWaiting = App.ChartLinearTimeView.extend({
   id: "service-metrics-mapreduce-tasks-running-waiting",
-  title: "Tasks (Running/Waiting)",
+  title: Em.I18n.t('services.service.info.metrics.mapreduce.tasksRunningWaiting'),
   renderer: 'line',
   url: function () {
     return App.formatUrl(

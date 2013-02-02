@@ -28,7 +28,7 @@ var App = require('app');
  */
 App.ChartHostMetricsProcesses = App.ChartLinearTimeView.extend({
   id: "host-metrics-processes",
-  title: "Processes",
+  title: Em.I18n.t('hosts.host.metrics.processes'),
   renderer: 'line',
   url: function () {
     return App.formatUrl(

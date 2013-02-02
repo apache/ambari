@@ -28,7 +28,7 @@ var App = require('app');
  */
 App.ChartServiceMetricsHDFS_RPC = App.ChartLinearTimeView.extend({
   id: "service-metrics-hdfs-rpc",
-  title: "RPC",
+  title: Em.I18n.t('services.service.info.metrics.hdfs.rpc'),
   yAxisFormatter: App.ChartLinearTimeView.TimeElapsedFormatter,
 
   url: function () {

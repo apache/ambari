@@ -28,7 +28,7 @@ var App = require('app');
  */
 App.ChartServiceMetricsHDFS_FileOperations = App.ChartLinearTimeView.extend({
   id: "service-metrics-hdfs-file-operations",
-  title: "File Operations",
+  title: Em.I18n.t('services.service.info.metrics.hdfs.fileOperations'),
   renderer: 'line',
   url: function () {
     var hdfsService = App.HDFSService.find().objectAt(0);

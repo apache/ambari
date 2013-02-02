@@ -28,7 +28,7 @@ var App = require('app');
  */
 App.ChartServiceMetricsMapReduce_JVMThreads = App.ChartLinearTimeView.extend({
   id: "service-metrics-mapreduce-jvm-threads",
-  title: "JVM Thread Status",
+  title: Em.I18n.t('services.service.info.metrics.mapreduce.jvmThreads'),
   renderer: 'line',
   url: function () {
     var mrService = App.MapReduceService.find().objectAt(0);

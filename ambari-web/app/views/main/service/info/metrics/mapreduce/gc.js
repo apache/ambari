@@ -28,7 +28,7 @@ var App = require('app');
  */
 App.ChartServiceMetricsMapReduce_GC = App.ChartLinearTimeView.extend({
   id: "service-metrics-mapreduce-gc",
-  title: "Garbage Collection",
+  title: Em.I18n.t('services.service.info.metrics.mapreduce.gc'),
   yAxisFormatter: App.ChartLinearTimeView.TimeElapsedFormatter,
 
   url: function () {

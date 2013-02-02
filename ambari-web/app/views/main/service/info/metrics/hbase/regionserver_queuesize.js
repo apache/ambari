@@ -28,7 +28,7 @@ var App = require('app');
  */
 App.ChartServiceMetricsHBASE_RegionServerQueueSize = App.ChartLinearTimeView.extend({
   id: "service-metrics-hbase-regionserver-queuesize",
-  title: "RegionServer Queue Size",
+  title: Em.I18n.t('services.service.info.metrics.hbase.regionServerQueueSize'),
   renderer: 'line',
   url: function () {
     return App.formatUrl(

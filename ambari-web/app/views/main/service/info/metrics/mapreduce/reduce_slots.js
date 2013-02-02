@@ -28,7 +28,7 @@ var App = require('app');
  */
 App.ChartServiceMetricsMapReduce_ReduceSlots = App.ChartLinearTimeView.extend({
   id: "service-metrics-mapreduce-reduce-slots",
-  title: "Reduce Slots Utilization",
+  title: Em.I18n.t('services.service.info.metrics.mapreduce.reduceSlots'),
   renderer: 'line',
   url: function () {
     return App.formatUrl(

@@ -36,7 +36,7 @@ App.ChartClusterMetricsMemory = App.ChartLinearTimeView.extend({
     );
   }.property('clusterName').volatile(),
 
-  title: "Memory Usage",
+  title: Em.I18n.t('dashboard.clusterMetrics.memory'),
   yAxisFormatter: App.ChartLinearTimeView.BytesFormatter,
   renderer: 'line',
   transformToSeries: function (jsonData) {

@@ -28,7 +28,7 @@ var App = require('app');
  */
 App.ChartServiceMetricsHBASE_RegionServerReadWriteRequests = App.ChartLinearTimeView.extend({
   id: "service-metrics-hbase-regionserver-rw-requests",
-  title: "RegionServer Requests",
+  title: Em.I18n.t('services.service.info.metrics.hbase.regionServerRequests'),
   renderer: 'line',
   url: function () {
     return App.formatUrl(

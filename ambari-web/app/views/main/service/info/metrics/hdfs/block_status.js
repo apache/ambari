@@ -28,7 +28,7 @@ var App = require('app');
  */
 App.ChartServiceMetricsHDFS_BlockStatus = App.ChartLinearTimeView.extend({
   id: "service-metrics-hdfs-block-status",
-  title: "Block Status",
+  title: Em.I18n.t('services.service.info.metrics.hdfs.blockStatus'),
   renderer: 'line',
   url: function () {
     var hdfsService = App.HDFSService.find().objectAt(0);

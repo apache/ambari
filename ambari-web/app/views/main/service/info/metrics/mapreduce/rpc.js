@@ -28,7 +28,7 @@ var App = require('app');
  */
 App.ChartServiceMetricsMapReduce_RPC = App.ChartLinearTimeView.extend({
   id: "service-metrics-mapreduce-rpc",
-  title: "RPC",
+  title: Em.I18n.t('services.service.info.metrics.mapreduce.rpc'),
   yAxisFormatter: App.ChartLinearTimeView.TimeElapsedFormatter,
 
   url: function () {

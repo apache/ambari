@@ -91,7 +91,7 @@ App.MainServiceInfoSummaryView = Em.View.extend({
       if (servers.length > 2) {
         result[1].isAnd = true;
         result.push({
-          'host': servers.length - 2 + ' more',
+          'host': Em.I18n.t('services.service.info.summary.serversHostCount').format(servers.length - 2),
           'isComma': false,
           'isAnd': false
         });
@@ -106,7 +106,7 @@ App.MainServiceInfoSummaryView = Em.View.extend({
     if (service.get("id") == "GANGLIA") {
       var monitors = service.get('hostComponents').filterProperty('isMaster', false);
       if (monitors.length) {
-        result = monitors.length - 1 ? monitors.length + ' hosts running monitor' : '1 host running monitor';
+        result = monitors.length - 1 ? Em.I18n.t('services.service.info.summary.hostsRunningMonitor').format(monitors.length) : Em.I18n.t('services.service.info.summary.hostRunningMonitor');
       }
     }
     return result;
