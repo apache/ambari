@@ -38,6 +38,8 @@ Trunk (unreleased changes):
 
  IMPROVEMENTS
 
+ AMBARI-1333. Add username validation for Ambari local users. (yusaku) 
+
  AMBARI-1329. Adjust job browser column sizing. (yusaku)
  
  AMBARI-1327. Add Hosts. Remove existig hosts display. (Alexandr Antonenko via jspeidel)

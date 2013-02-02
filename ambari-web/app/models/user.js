@@ -75,7 +75,7 @@ App.EditUserForm = App.Form.extend({
     var oldPass = this.get('field.old_password');
 
     if (!validator.empty(newPass.get('value')) && validator.empty(oldPass.get('value'))) {
-        oldPass.set('errorMessage', "This is required");
+        oldPass.set('errorMessage', this.t('admin.users.editError.requiredField'));
         isValid = false;
     }
 
@@ -122,7 +122,7 @@ App.CreateUserForm = App.Form.extend({
 
     if (!validator.empty(passField.get('value'))) {
       if (passField.get('value') != passRetype.get('value')) {
-        passRetype.set('errorMessage', "Passwords are different");
+        passRetype.set('errorMessage', this.t('admin.users.createError.passwordValidation'));
         isValid = false;
       }
     }
@@ -131,10 +131,16 @@ App.CreateUserForm = App.Form.extend({
       var users = App.User.find();
       var userNameField = this.getField('userName');
       var userName = userNameField.get('value');
-        if (users.mapProperty('userName').contains(userName)) {
-          userNameField.set('errorMessage', 'User with the same name is already exists');
-          return isValid = false;
-        }
+
+      if (!validator.isValidUserName(userName)) {
+        userNameField.set('errorMessage', this.t('admin.users.createError.userNameValidation'));
+        isValid = false;
+      }
+
+      if (users.mapProperty('userName').contains(userName)) {
+        userNameField.set('errorMessage', this.t('admin.users.createError.userNameExists'));
+        return isValid = false;
+      }
     }
 
     return isValid;

@@ -81,6 +81,16 @@ module.exports = {
     return domainRegex.test(value);
   },
 
+  /**
+   * validate username
+   * @param value
+   * @return {Boolean}
+   */
+  isValidUserName: function(value) {
+    var usernameRegex = /^[a-z]([-a-z0-9]{0,30})\$?$/;
+    return usernameRegex.test(value);
+  },
+
   empty:function (e) {
     switch (e) {
       case "":

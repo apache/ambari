@@ -235,6 +235,10 @@ Em.I18n.translations = {
   'admin.users.username':'Username',
   'admin.users.createSuccess': 'User successfully created.',
   'admin.users.createError': 'Error occurred while user creating.',
+  'admin.users.createError.userNameValidation': 'User name should contains only letters and digits and start with letter',
+  'admin.users.createError.passwordValidation': 'Passwords are different',
+  'admin.users.createError.userNameExists': 'User with the same name is already exists',
+  'admin.users.editError.requiredField': 'This is required',
 
   'question.sure':'Are you sure?',
   'yes':'Yes',
