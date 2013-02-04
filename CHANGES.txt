@@ -38,6 +38,9 @@ Trunk (unreleased changes):
 
  IMPROVEMENTS
 
+ AMBARI-1339. Validate usernames in Misc section of Customize Services step
+ in Install Wizard. (yusaku)
+
  AMBARI-1335. Show validation error when the user specifies target hosts that are
  already part of the cluster. (yusaku)
 

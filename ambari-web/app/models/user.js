@@ -133,7 +133,7 @@ App.CreateUserForm = App.Form.extend({
       var userName = userNameField.get('value');
 
       if (!validator.isValidUserName(userName)) {
-        userNameField.set('errorMessage', this.t('admin.users.createError.userNameValidation'));
+        userNameField.set('errorMessage', this.t('users.userName.validationFail'));
         isValid = false;
       }
 

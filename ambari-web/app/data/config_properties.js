@@ -647,7 +647,7 @@ module.exports =
       "description": "",
       "defaultValue": "users",
       "isReconfigurable": false,
-      "displayType": "advanced",
+      "displayType": "user",
       "isVisible": true,
       "filename": "core-site.xml",
       "domain": "global",

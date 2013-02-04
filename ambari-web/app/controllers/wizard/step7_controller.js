@@ -290,7 +290,7 @@ App.WizardStep7Controller = Em.Controller.extend({
 
   /**
    * Set display names of the property tfrom he puppet/global names
-   * @param: displayNames: a field to be set with displayNames
+   * @param displayNames: a field to be set with displayNames
    * @param names: array of property puppet/global names
    * @param configProperties: array of config properties of the respective service to the name param
    */
@@ -304,7 +304,7 @@ App.WizardStep7Controller = Em.Controller.extend({
 
   /**
    * Display Error Message with service name, its custom configuration name and displaynames on the page
-   * @param: customConfig: array with custom configuration, serviceName and displayNames relative to custom configuration
+   * @param customConfig: array with custom configuration, serviceName and displayNames relative to custom configuration
    */
   showCustomConfigErrMsg: function (customConfig) {
 
