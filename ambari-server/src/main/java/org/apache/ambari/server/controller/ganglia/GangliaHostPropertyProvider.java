@@ -22,13 +22,25 @@ import org.apache.ambari.server.controller.internal.PropertyInfo;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.utilities.StreamProvider;
 
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * Ganglia property provider implementation for host resources.
  */
 public class GangliaHostPropertyProvider extends GangliaPropertyProvider{
+  /**
+   * Set of Ganglia cluster names.
+   */
+ private static final Set<String> GANGLIA_CLUSTER_NAMES = new HashSet<String>();
 
+ static {
+   GANGLIA_CLUSTER_NAMES.add("HDPNameNode");
+   GANGLIA_CLUSTER_NAMES.add("HDPSlaves");
+   GANGLIA_CLUSTER_NAMES.add("HDPJobTracker");
+   GANGLIA_CLUSTER_NAMES.add("HDPHBaseMaster");
+ }
 
   // ----- Constructors ------------------------------------------------------
 
@@ -56,7 +68,7 @@ public class GangliaHostPropertyProvider extends GangliaPropertyProvider{
   }
 
   @Override
-  protected String getGangliaClusterName(Resource resource, String clusterName) {
-    return "HDPSlaves";
+  protected Set<String> getGangliaClusterNames(Resource resource, String clusterName) {
+    return GANGLIA_CLUSTER_NAMES;
   }
 }

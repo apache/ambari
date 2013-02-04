@@ -34,7 +34,6 @@ App.Host = DS.Model.extend({
   hostName: DS.attr('string'),
   publicHostName: DS.attr('string'),
   cluster: DS.belongsTo('App.Cluster'),
-  components: DS.hasMany('App.Component'),
   hostComponents: DS.hasMany('App.HostComponent'),
   cpu: DS.attr('string'),
   memory: DS.attr('string'),
@@ -46,8 +45,6 @@ App.Host = DS.Model.extend({
   healthStatus: DS.attr('string'),
   cpuUsage: DS.attr('number'),
   memoryUsage: DS.attr('number'),
-  networkUsage: DS.attr('number'),
-  ioUsage: DS.attr('number'),
   lastHeartBeatTime: DS.attr('number'),
   osType: DS.attr("string"),
   diskInfo: DS.attr('object'),
@@ -129,11 +126,13 @@ App.Host = DS.Model.extend({
     if (!this.get('isLoaded') || this.get('isSaving')) {
     } else {
       var status;
-      var masterComponents = this.get('components').filterProperty('isMaster', true);
-      var masterComponentsRunning = masterComponents.everyProperty('workStatus', App.Component.Status.started);
+      var masterComponents = this.get('hostComponents').filterProperty('isMaster');
+      var masterComponentsRunning = masterComponents.everyProperty('workStatus', App.HostComponentStatus.started);
+      var slaveComponents = this.get('hostComponents').filterProperty('isSlave');
+      var slaveComponentsRunning = slaveComponents.everyProperty('workStatus', App.HostComponentStatus.started);
       if (this.get('isNotHeartBeating')) {
         status = 'DEAD-YELLOW';
-      } else if (masterComponentsRunning) {
+      } else if (masterComponentsRunning && slaveComponentsRunning) {
         status = 'LIVE';
       } else if (masterComponents.length > 0 && !masterComponentsRunning) {
         status = 'DEAD';
@@ -145,7 +144,7 @@ App.Host = DS.Model.extend({
       }
     }
     return 'health-status-' + healthStatus;
-  }.property('healthStatus', 'components.@each.workStatus')
+  }.property('healthStatus', 'hostComponents.@each.workStatus')
 });
 
 App.Host.FIXTURES = [];

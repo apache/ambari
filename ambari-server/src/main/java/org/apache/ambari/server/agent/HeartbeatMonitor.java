@@ -19,13 +19,19 @@ package org.apache.ambari.server.agent;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.actionmanager.ActionManager;
-import org.apache.ambari.server.state.*;
+import org.apache.ambari.server.state.Cluster;
+import org.apache.ambari.server.state.Clusters;
+import org.apache.ambari.server.state.Config;
+import org.apache.ambari.server.state.Host;
+import org.apache.ambari.server.state.HostState;
+import org.apache.ambari.server.state.ServiceComponentHost;
 import org.apache.ambari.server.state.fsm.InvalidStateTransitionException;
 import org.apache.ambari.server.state.host.HostHeartbeatLostEvent;
-import org.apache.ambari.server.state.host.HostStatusUpdatesReceivedEvent;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -145,10 +151,23 @@ public class HeartbeatMonitor implements Runnable {
           LOG.debug("Live status will include status of service " + serviceName +
                 " of cluster " + cl.getClusterName());
         }
+        
+        Map<String, Config> configs = sch.getDesiredConfigs();
+        
+        Map<String, Map<String, String>> configurations =
+            new TreeMap<String, Map<String, String>>();
+        
+        for (Config config : configs.values()) {
+          if (config.getType().equals("global"))
+            configurations.put(config.getType(),
+              config.getProperties());
+        }
+        
         StatusCommand statusCmd = new StatusCommand();
         statusCmd.setClusterName(cl.getClusterName());
         statusCmd.setServiceName(serviceName);
         statusCmd.setComponentName(sch.getServiceComponentName());
+        statusCmd.setConfigurations(configurations);			
         cmds.add(statusCmd);
       }
     }

@@ -26,9 +26,7 @@ App.MainServiceController = Em.ArrayController.extend({
     }
     return App.Service.find();
   }.property('App.router.clusterController.isLoaded'),
-  isAdmin: function(){
-    return App.db.getUser().admin;
-  }.property('App.router.loginController.loginName'),
+
   hdfsService: function () {
     var hdfsSvcs = App.HDFSService.find();
     if (hdfsSvcs && hdfsSvcs.get('length') > 0) {

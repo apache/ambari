@@ -24,6 +24,7 @@ import java.util.concurrent.atomic.AtomicLong;
 
 import org.apache.ambari.server.agent.ActionQueue;
 import org.apache.ambari.server.agent.CommandReport;
+import org.apache.ambari.server.controller.HostsMap;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.utils.StageUtils;
 import org.slf4j.Logger;
@@ -42,17 +43,19 @@ public class ActionManager {
   private final ActionScheduler scheduler;
   private final ActionDBAccessor db;
   private final ActionQueue actionQueue;
+  private final HostsMap hostsMap;
   private static Logger LOG = LoggerFactory.getLogger(ActionManager.class);
   private final AtomicLong requestCounter;
 
   @Inject
   public ActionManager(@Named("schedulerSleeptime") long schedulerSleepTime,
       @Named("actionTimeout") long actionTimeout,
-      ActionQueue aq, Clusters fsm, ActionDBAccessor db) {
+      ActionQueue aq, Clusters fsm, ActionDBAccessor db, HostsMap hostsMap) {
     this.actionQueue = aq;
     this.db = db;
+    this.hostsMap = hostsMap;
     scheduler = new ActionScheduler(schedulerSleepTime, actionTimeout, db,
-        actionQueue, fsm, 2);
+        actionQueue, fsm, 2, hostsMap);
     requestCounter = new AtomicLong(
         db.getLastPersistedRequestIdWhenInitialized());
   }

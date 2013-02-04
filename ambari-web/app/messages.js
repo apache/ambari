@@ -79,11 +79,11 @@ Em.I18n.translations = {
   'installer.step2.hostName.error.notRequired':'Host Names will be ignored if not using SSH to automatically configure hosts',
   'installer.step2.hostName.error.invalid':'Invalid Host Name(s)',
   'installer.step2.hostName.pattern.header':'Host name pattern expressions',
-  'installer.step2.sshKey':'Host Connectivity Information',
+  'installer.step2.sshKey':'Host Registration Information',
   'installer.step2.sshKey.error.required':'SSH Private Key is required',
   'installer.step2.passphrase.error.match':'Passphrases do not match',
   'installer.step2.manualInstall.label':'Do not use SSH to automatically configure hosts ',
-  'installer.step2.manualInstall.info':'By not using SSH to connect to the target hosts, you must manually install and start the ' +
+  'installer.step2.manualInstall.info':'By not using SSH to connect to the target hosts, you must manually install the ' +
     'Ambari Agent on each host in order for the wizard to perform the necessary configurations and software installs.',
   'installer.step2.advancedOption':'Advanced Options',
   'installer.step2.repoConf':'Software Repository Configuration File Path',
@@ -92,22 +92,22 @@ Em.I18n.translations = {
   'installer.step2.localRepo.label_instead':'instead of downloading software packages from the Internet',
   'installer.step2.localRepo.error.required':'Local repository file path is required',
   'installer.step2.localRepo.tooltip.title':'Local Software Repository',
-  'installer.step2.localRepo.tooltip.content': 'The install process requires access to the Internet to fetch software ' +
+  'installer.step2.localRepo.tooltip.content': 'The cluster install requires access to the Internet to fetch software ' +
     'from a remote repository. In some cases, adequate bandwidth is not available and you want to prevent downloading ' +
     'packages from the remote repository over and over again. Other times, Internet access is not available from the ' +
     'hosts in your cluster. In these situations, you must set up a version of the repository that your machines can ' +
     'access locally and this is called a <b>Local Software Repository</b>',
   'installer.step2.javaHome.label' : 'Path to 64-bit JDK',
-  'installer.step2.javaHome.label2' : 'on all hosts',
   'installer.step2.javaHome.tooltip.title' : 'JAVA_HOME',
   'installer.step2.javaHome.tooltip.content' : 'Path to 64-bit JAVA_HOME. /usr/jdk/jdk1.6.0_31 is the default used by Ambari. You can override this to a specific path that contains the JDK. <br/> Note: the path must be valid on <b>ALL</b> hosts in your cluster.',
   'installer.step2.useSsh.provide' : 'Provide your',
   'installer.step2.useSsh.provide_id_rsa' : '(id_rsa for root) and use SSH to automatically register hosts',
   'installer.step2.useSsh.tooltip.title':'SSH Private Key',
   'installer.step2.useSsh.tooltip.content':'The <b>SSH Private Key File</b> is used for the root access to the target hosts in your cluster.',
-  'installer.step2.manualInstall.tooltip.title':'Not Using SSH (Manual Install)',
-  'installer.step2.manualInstall.tooltip.content':'If you do not wish Ambari to automatically configure the target hosts via SSH,' +
-    ' you have the option of configuring them yourself.  This involves installing and starting Ambari Agent on each of your target hosts.',
+  'installer.step2.manualInstall.perform':'Perform',
+  'installer.step2.manualInstall.perform_on_hosts':'on hosts and do not use SSH',
+  'installer.step2.manualInstall.tooltip.title':'manual registration',
+  'installer.step2.manualInstall.tooltip.content':'Manually registering the Ambari Agent on each host eliminates the need for SSH and should be performed prior to continuing cluster installation.',
   'installer.step2.manualInstall.popup.header':'Before You Proceed',
   'installer.step2.manualInstall.popup.body':'You must install Ambari Agents on each host you want to manage before you proceed.',
 
@@ -121,6 +121,15 @@ Em.I18n.translations = {
   'installer.step3.hosts.retry.popup.body':'Are you sure you want to retry discovery of the selected host(s)?',
   'installer.step3.hostInformation.popup.header':'Error in retrieving host Information',
   'installer.step3.hostInformation.popup.body' : 'All bootstrapped hosts registered but unable to retrieve cpu and memory related information',
+  'installer.step3.hosts.noHosts':'No hosts to display',
+  'installer.step3.warnings.popup.header':'Host Checks',
+  'installer.step3.warnings.description':'Some warnings were encountered while performing checks against the above hosts.',
+  'installer.step3.warnings.linkText':'Click here to see the warnings.',
+  'installer.step3.noWarnings.linkText':'Click here to see the check results.',
+  'installer.step3.warnings.noWarnings':'All host checks were successful.',
+  'installer.step3.warnings.updateChecks.success':'Host Checks successfully updated',
+  'installer.step3.warnings.updateChecks.failed':'Host Checks update failed',
+
   'installer.step4.header':'Choose Services',
   'installer.step4.body':'Choose which services you want to install on your cluster.',
   'installer.step4.mapreduceCheck.popup.header':'MapReduce Needed',
@@ -166,7 +175,7 @@ Em.I18n.translations = {
   'form.password':'Password',
   'form.passwordRetype':'Retype Password',
   'form.saveSuccess':'Successfully saved.',
-  'form.saveError':'Sorry, errors occured.',
+  'form.saveError':'Sorry, errors occurred.',
 
   'form.validator.invalidIp':'Please enter valid ip address',
 
@@ -214,6 +223,7 @@ Em.I18n.translations = {
   'admin.users.delete.header':'Delete {0}',
 
   'admin.users.addButton':'Add Local User',
+  'admin.users.editButton': 'Edit Local User',
   'admin.users.delete':'delete',
   'admin.users.edit':'edit',
   'admin.users.privileges':'Admin',
@@ -222,6 +232,8 @@ Em.I18n.translations = {
   'admin.users.password':'Password',
   'admin.users.passwordRetype':'Retype Password',
   'admin.users.username':'Username',
+  'admin.users.createSuccess': 'User successfully created.',
+  'admin.users.createError': 'Error occurred while user creating.',
 
   'question.sure':'Are you sure?',
   'yes':'Yes',
@@ -272,6 +284,8 @@ Em.I18n.translations = {
   'services.service.actions.run.smoke':'Run Smoke Test',
   'services.service.actions.maintenance':'Maintenance',
   'services.service.summary.unknown':'unknown',
+  'services.service.summary.notRunning':'Not Running',
+  'services.service.summary.notAvailable':'n/a',
 
   'services.add.header':'Add Service Wizard',
 
@@ -279,6 +293,9 @@ Em.I18n.translations = {
   'hosts.host.stop.popup.header':'Confirmation',
   'hosts.host.start.popup.body':'Are you sure?',
   'hosts.host.stop.popup.body':'Are you sure?',
+  'hosts.host.healthStatus.heartBeatNotReceived':'The server has not received a heartbeat from this host for more than 3 minutes.',
+  'hosts.host.healthStatus.mastersDown':"The following master components are down:\n",
+  'hosts.host.healthStatus.slavesDown':"The following slave components are down:\n",
   'hosts.decommission.popup.body':'Are you sure?',
   'hosts.decommission.popup.header':'Confirmation',
   'hosts.delete.popup.body':'Are you sure?',
@@ -287,7 +304,6 @@ Em.I18n.translations = {
   'hosts.cant.do.popup.masterList.body':'You cannot delete this host because it is hosting following master services: {0}.',
   'hosts.cant.do.popup.workingList.body':'You cannot delete this host because following slave services are not fully stopped or decommissioned: {0}.',
   'hosts.add.header':'Add Host Wizard',
-  'hosts.add.step2.warning':'Hosts are already part of the cluster and will be ignored',
   'hosts.assignRack':'Assign Rack',
 
   'charts.horizon.chart.showText':'show',
@@ -337,7 +353,7 @@ Em.I18n.translations = {
   'dashboard.services.hdfs.nodes.uptime':'NameNode Uptime',
   'dashboard.services.hdfs.nodes.heap':'NameNode Heap',
   'dashboard.services.hdfs.nodes.heapUsed':'{0} / {1} ({2}% used)',
-  'dashboard.services.hdfs.chart.label':'Capacity (Free/Used)',
+  'dashboard.services.hdfs.chart.label':'Capacity (Used/Total)',
 
   'dashboard.services.mapreduce.summary':'{0} of {1} trackers live, {2} jobs running, {3} jobs waiting',
   'dashboard.services.mapreduce.taskTrackers':'TaskTrackers',
@@ -378,6 +394,17 @@ Em.I18n.translations = {
   'dashboard.services.hbase.masterStarted':'Master Started',
   'dashboard.services.hbase.masterActivated':'Master Activated',
 
+  'dashboard.services.hive.client': '{0} Hive Client',
+  'dashboard.services.hive.clients': '{0} Hive Clients',
+
+  'dashboard.services.oozie.client': '{0} Oozie Client',
+  'dashboard.services.oozie.clients': '{0} Oozie Clients',
+  'dashboard.services.oozie.webUi': 'Oozie Web UI',
+
+  'dashboard.services.zookeeper.prefix': '{0} of',
+  'dashboard.services.zookeeper.title': '{0} ZooKeepers',
+  'dashboard.services.zookeeper.postfix': 'running',
+
   'dashboard.services.configs.popup.stopService.header':'Stop service',
   'dashboard.services.configs.popup.stopService.body' : 'Service needs to be stopped for reconfiguration',
   'dashboard.services.configs.popup.restartService.header' : 'Restart service',
@@ -390,7 +417,14 @@ Em.I18n.translations = {
   'timeRange.presets.1year':'1yr',
 
   'apps.filters.customRunDate':'Run Date custom filter',
-  'apps.dagCharts.popup':'DAG/Charts',
+  'apps.dagCharts.popup':'Job Charts',
+  'apps.dagCharts.popup.job': 'Job',
+  'apps.dagCharts.popup.dag':'DAG',
+  'apps.dagCharts.popup.tasks':'Timeline & Tasks',
+  'apps.dagCharts.popup.tasks.timeline':'Job Timeline',
+  'apps.dagCharts.popup.tasks.tasks':'Job Tasks',
+  'apps.isRunning.popup.title':'Is running',
+  'apps.isRunning.popup.content':'Job is running now',
 
   'nagios.alerts.unavailable':'Alerts Unavailable'
 

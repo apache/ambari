@@ -25,6 +25,7 @@ import java.util.List;
 import org.apache.ambari.server.Role;
 import org.apache.ambari.server.RoleCommand;
 import org.apache.ambari.server.actionmanager.Stage;
+import org.apache.ambari.server.controller.HostsMap;
 import org.apache.ambari.server.metadata.RoleCommandOrder;
 import org.apache.ambari.server.state.svccomphost.ServiceComponentHostStartEvent;
 import org.apache.ambari.server.utils.StageUtils;

@@ -1,4 +1,5 @@
 #!/usr/bin/env python2.6
+# -*- coding: utf-8 -*-
 
 '''
 Licensed to the Apache Software Foundation (ASF) under one
@@ -18,308 +19,316 @@ See the License for the specific language governing permissions and
 limitations under the License.
 '''
 
-from unittest import TestCase
-from ambari_agent.Register import Register
-from ambari_agent.Controller import Controller
-from ambari_agent.Heartbeat import Heartbeat
-from ambari_agent.ActionQueue import ActionQueue
-from ambari_agent import AmbariConfig
-from ambari_agent.NetUtil import NetUtil
-import socket, ConfigParser, logging
-import os, pprint, json, sys
-from threading import Thread
-import time
-import Queue
+import StringIO
+import unittest
+from ambari_agent import Controller
+import sys
+from mock.mock import patch, MagicMock, call
 
 
-BAD_URL = 'http://localhost:54222/badurl/'
+class TestController(unittest.TestCase):
 
-logger = logging.getLogger()
+  @patch("threading.Thread")
+  @patch("threading.Lock")
+  @patch("socket.gethostname")
+  @patch.object(Controller, "NetUtil")
+  def setUp(self, NetUtil_mock, hostnameMock, lockMock, threadMock):
 
-class TestController(TestCase):
+    Controller.logger = MagicMock()
+    hostnameMock.return_value = "test_hostname"
+    lockMock.return_value = MagicMock()
+    NetUtil_mock.return_value = MagicMock()
 
-  def setUp(self):
-    logger.disabled = True
-    self.defaulttimeout = -1.0
-    if hasattr(socket, 'getdefaulttimeout'):
-      # get the default timeout on sockets
-      self.defaulttimeout = socket.getdefaulttimeout()
+    config = MagicMock()
+    config.get.return_value = "something"
 
-
-  def tearDown(self):
-    if self.defaulttimeout is not None and self.defaulttimeout > 0 and hasattr(socket, 'setdefaulttimeout'):
-      # Set the default timeout on sockets
-      socket.setdefaulttimeout(self.defaulttimeout)
-    logger.disabled = False
+    self.controller = Controller.Controller(config)
 
 
-  def test_reregister_loop(self):
-    class ControllerMock(Controller):
-      def __init__(self, config, range=0):
-        self.repeatRegistration = False
-        self.range = range
+  @patch.object(Controller, "Heartbeat")
+  @patch.object(Controller, "Register")
+  @patch.object(Controller, "ActionQueue")
+  def test_start(self, ActionQueue_mock, Register_mock, Heartbeat_mock):
 
-      callCounter = 0
+    aq = MagicMock()
+    ActionQueue_mock.return_value = aq
 
-      def registerAndHeartbeat(self):
-        if self.callCounter < 3:
-          self.repeatRegistration = True;
-          self.callCounter += 1
-        else:
-          self.repeatRegistration = False;
+    self.controller.start()
+    self.assertTrue(ActionQueue_mock.called)
+    self.assertTrue(aq.start.called)
+    self.assertTrue(Register_mock.called)
+    self.assertTrue(Heartbeat_mock.called)
 
-    config = ConfigParser.RawConfigParser()
-    mock = ControllerMock(config)
-    mock.run()
-    self.assertEquals(mock.callCounter, 3)
-    pass
+  @patch("json.dumps")
+  @patch("json.loads")
+  @patch("time.sleep")
+  @patch("pprint.pformat")
+  @patch.object(Controller, "randint")
+  def test_registerWithServer(self, randintMock, pformatMock, sleepMock,
+                              loadsMock, dumpsMock):
 
+    out = StringIO.StringIO()
+    sys.stdout = out
 
-  def test_nonincremental_ids1(self):
-    '''
-      test to make sure nothing we act appropriately on getting non incremental reponse ids
-    '''
-    #timings adjustment
-    netutil = NetUtil()
-    netutil.HEARTBEAT_IDDLE_INTERVAL_SEC=0.05
-    netutil.HEARTBEAT_NOT_IDDLE_INTERVAL_SEC=0.05
-    #building fake responces
-    responces = Queue.Queue()
-    responce1 = {
-      'responseId':8,
-      'executionCommands':[],
-      'statusCommands':[],
-      'restartAgent':'False',
-      }
-    responce1 = json.dumps(responce1)
+    register = MagicMock()
+    self.controller.register = register
 
-    responce2 = {
-      'responseId':11,
-      'executionCommands':[],
-      'statusCommands':[],
-      'restartAgent':'False',
-      }
-    responce2 = json.dumps(responce2)
-    responces.put(responce1)
-    responces.put(responce2)
-    #building heartbeat object
-    testsPath = os.path.dirname(os.path.realpath(__file__))
-    dictPath = testsPath + os.sep + '..' + os.sep + '..' + os.sep + 'main' + os.sep + 'python' + os.sep + 'ambari_agent' + os.sep + 'servicesToPidNames.dict'
-    AmbariConfig.config.set('services','serviceToPidMapFile', dictPath)
-    actionQueue = ActionQueue(AmbariConfig.AmbariConfig().getConfig())
-    heartbeat = Heartbeat(actionQueue)
-    # testing controller with our heartbeat
-    controller = self.ControllerMock_fake_restartAgent(AmbariConfig.config, responces)
-    controller.heartbeat = heartbeat
-    controller.actionQueue = actionQueue
-    controller.logger = logger
-    controller.netutil = netutil
-    controller.heartbeatWithServer()
-    restarts = controller.restartCount
-    self.assertEquals(restarts, 1, "Agent should restart on non incremental responce ids")
-    pass
+    sendRequest = MagicMock()
+    self.controller.sendRequest = sendRequest
+
+    dumpsMock.return_value = "request"
+    response = {"responseId":1,}
+    loadsMock.return_value = response
+
+    self.assertEqual(response, self.controller.registerWithServer())
+
+    response["statusCommands"] = "commands"
+    self.controller.addToQueue = MagicMock(name="addToQueue")
+
+    self.assertEqual(response, self.controller.registerWithServer())
+    self.controller.addToQueue.assert_called_with("commands")
+
+    calls = []
+
+    def side_effect(*args):
+      if len(calls) == 0:
+        calls.append(1)
+        raise Exception("test")
+      return "request"
+
+    del response["statusCommands"]
+
+    dumpsMock.side_effect = side_effect
+    self.assertEqual(response, self.controller.registerWithServer())
+    self.assertTrue(randintMock.called)
+    self.assertTrue(sleepMock.called)
+
+    sys.stdout = sys.__stdout__
+
+    self.controller.sendRequest = Controller.Controller.sendRequest
+    self.controller.addToQueue = Controller.Controller.addToQueue
 
 
-  def test_nonincremental_ids2(self):
-    '''
-      test to make sure nothing we act appropriately on getting incremental reponse ids
-    '''
-    #timings adjustment
-    netutil = NetUtil()
-    netutil.HEARTBEAT_IDDLE_INTERVAL_SEC=0.05
-    netutil.HEARTBEAT_NOT_IDDLE_INTERVAL_SEC=0.05
-    #building fake responces
-    responces = Queue.Queue()
-    responce1 = {
-      'responseId':8,
-      'executionCommands':[],
-      'statusCommands':[],
-      'restartAgent':'False',
-      }
-    responce1 = json.dumps(responce1)
+  @patch("pprint.pformat")
+  def test_addToQueue(self, pformatMock):
 
-    responce2 = {
-      'responseId':9,
-      'executionCommands':[],
-      'statusCommands':[],
-      'restartAgent':'False',
-      }
-    responce2 = json.dumps(responce2)
-    responces.put(responce1)
-    responces.put(responce2)
-    #building heartbeat object
-    testsPath = os.path.dirname(os.path.realpath(__file__))
-    dictPath = testsPath + os.sep + '..' + os.sep + '..' + os.sep + 'main' + os.sep + 'python' + os.sep + 'ambari_agent' + os.sep + 'servicesToPidNames.dict'
-    AmbariConfig.config.set('services','serviceToPidMapFile', dictPath)
-    actionQueue = ActionQueue(AmbariConfig.AmbariConfig().getConfig())
-    heartbeat = Heartbeat(actionQueue)
-    # testing controller with our heartbeat
-    controller = self.ControllerMock_fake_restartAgent(AmbariConfig.config, responces)
-    controller.heartbeat = heartbeat
-    controller.actionQueue = actionQueue
-    controller.logger = logger
-    controller.netutil = netutil
-    controller.heartbeatWithServer()
-    restarts = controller.restartCount
-    self.assertEquals(restarts, 0, "Agent should not restart on incremental responce ids")
-    pass
+    actionQueue = MagicMock()
+    self.controller.actionQueue = actionQueue
+    self.controller.addToQueue(None)
+    self.assertFalse(actionQueue.put.called)
+    self.controller.addToQueue("cmd")
+    self.assertTrue(actionQueue.put.called)
 
 
-  def test_reregister(self):
-    '''
-      test to make sure if we can get a re register command, we register with the server
-    '''
-    #timings adjustment
-    netutil = NetUtil()
-    netutil.HEARTBEAT_IDDLE_INTERVAL_SEC=0.05
-    netutil.HEARTBEAT_NOT_IDDLE_INTERVAL_SEC=0.05
-    #building fake responces
-    responces = Queue.Queue()
-    responce1 = {
-      'responseId':8,
-      'executionCommands':[],
-      'statusCommands':[],
-      'restartAgent':'true',
-      }
-    responce1 = json.dumps(responce1)
-    responces.put(responce1)
-    #building heartbeat object
-    testsPath = os.path.dirname(os.path.realpath(__file__))
-    dictPath = testsPath + os.sep + '..' + os.sep + '..' + os.sep + 'main' + os.sep + 'python' + os.sep + 'ambari_agent' + os.sep + 'servicesToPidNames.dict'
-    AmbariConfig.config.set('services','serviceToPidMapFile', dictPath)
-    actionQueue = ActionQueue(AmbariConfig.AmbariConfig().getConfig())
-    heartbeat = Heartbeat(actionQueue)
-    # testing controller with our heartbeat
-    controller = self.ControllerMock_fake_restartAgent(AmbariConfig.config, responces)
-    controller.heartbeat = heartbeat
-    controller.actionQueue = actionQueue
-    controller.logger = logger
-    controller.netutil = netutil
-    controller.heartbeatWithServer()
-    restarts = controller.restartCount
-    self.assertEquals(restarts, 1, "Agent should restart if we get a re register command")
+  @patch("urllib2.build_opener")
+  @patch("urllib2.install_opener")
+  def test_run(self, installMock, buildMock):
+
+    buildMock.return_value = "opener"
+    registerAndHeartbeat  = MagicMock("registerAndHeartbeat")
+    calls = []
+    def side_effect():
+      if len(calls) == 0:
+        self.controller.repeatRegistration = True
+      calls.append(1)
+    registerAndHeartbeat.side_effect = side_effect
+    self.controller.registerAndHeartbeat = registerAndHeartbeat
+
+    # repeat registration
+    self.controller.run()
+
+    self.assertTrue(buildMock.called)
+    installMock.called_once_with("opener")
+    self.assertEqual(2, registerAndHeartbeat.call_count)
+
+    # one call, +1
+    registerAndHeartbeat.side_effect = None
+    self.controller.run()
+    self.assertEqual(3, registerAndHeartbeat.call_count)
 
 
-  def test_heartbeat_retries(self):
-    netutil = NetUtil()
-    netutil.HEARTBEAT_IDDLE_INTERVAL_SEC=0.05
-    netutil.HEARTBEAT_NOT_IDDLE_INTERVAL_SEC=0.05
-    #building heartbeat object
-    testsPath = os.path.dirname(os.path.realpath(__file__))
-    dictPath = testsPath + os.sep + '..' + os.sep + '..' + os.sep + 'main' + os.sep + 'python' + os.sep + 'ambari_agent' + os.sep + 'servicesToPidNames.dict'
-    AmbariConfig.config.set('services','serviceToPidMapFile', dictPath)
-    actionQueue = ActionQueue(AmbariConfig.AmbariConfig().getConfig())
-    heartbeat = Heartbeat(actionQueue)
-    # testing controller with our heartbeat and wrong url
-    controller = self.ControllerMock_failure_sendRequest(AmbariConfig.config)
-    controller.heartbeat = heartbeat
-    controller.actionQueue = actionQueue
-    controller.logger = logger
-    controller.netutil = netutil
-    thread = Thread(target =  controller.heartbeatWithServer)
-    thread.start()
-    time.sleep(0.5)
+  def test_heartbeatWithServer(self, installMock, buildMock):
 
-    # I have to stop the thread anyway, so I'll check results later
-    threadWasAlive = thread.isAlive()
-    successfull_heartbits0 = controller.DEBUG_SUCCESSFULL_HEARTBEATS
-    heartbeat_retries0 = controller.DEBUG_HEARTBEAT_RETRIES
-    # Stopping thread
-    controller.DEBUG_STOP_HEARTBITTING = True
-    time.sleep(0.3)
-    # Checking results before thread stop
-    self.assertEquals(threadWasAlive, True, "Heartbeat should be alive now")
-    self.assertEquals(successfull_heartbits0, 0, "Heartbeat should not have any success")
-    self.assertEquals(heartbeat_retries0 > 1, True, "Heartbeat should retry connecting")
-    # Checking results after thread stop
-    self.assertEquals(thread.isAlive(), False, "Heartbeat should stop now")
-    self.assertEquals(controller.DEBUG_SUCCESSFULL_HEARTBEATS, 0, "Heartbeat should not have any success")
+    registerAndHeartbeat = MagicMock(name="registerAndHeartbeat")
+
+    self.controller.registerAndHeartbeat = registerAndHeartbeat
+    self.controller.run()
+    self.assertTrue(installMock.called)
+    self.assertTrue(buildMock.called)
+    self.controller.registerAndHeartbeat.assert_called_once_with()
+
+    calls = []
+    def switchBool():
+      if len(calls) == 0:
+        self.controller.repeatRegistration = True
+        calls.append(1)
+      self.controller.repeatRegistration = False
+
+    registerAndHeartbeat.side_effect = switchBool
+    self.controller.run()
+    self.assertEqual(2, registerAndHeartbeat.call_count)
+
+    self.controller.registerAndHeartbeat = \
+      Controller.Controller.registerAndHeartbeat
 
 
-  def test_status_command_on_registration(self):
-    '''
-    test to make sure if we get a status check command from the server, we are able to evaluate and register at the server
-    '''
-    #timings adjustment
-    netutil = NetUtil()
-    netutil.HEARTBEAT_IDDLE_INTERVAL_SEC=0.05
-    netutil.HEARTBEAT_NOT_IDDLE_INTERVAL_SEC=0.05
-    #building fake registration responce
-    responces = Queue.Queue()
-    responce1 = {
-      'response':'OK',
-      'responseId':8,
-      'statusCommands':[{
-        'clusterName' : "c1",
-        'commandType' : "STATUS_COMMAND",
-        'componentName' : "NAMENODE",
-        'serviceName' : "HDFS",
-        }],
-      }
-    responce1 = json.dumps(responce1)
-    responces.put(responce1)
-    #building heartbeat object
-    testsPath = os.path.dirname(os.path.realpath(__file__))
-    dictPath = testsPath + os.sep + '..' + os.sep + '..' + os.sep + 'main' + os.sep + 'python' + os.sep + 'ambari_agent' + os.sep + 'servicesToPidNames.dict'
-    AmbariConfig.config.set('services','serviceToPidMapFile', dictPath)
-    actionQueue = ActionQueue(AmbariConfig.AmbariConfig().getConfig())
-    heartbeat = Heartbeat(actionQueue)
-    # testing controller with our heartbeat
-    controller = self.ControllerMock_fake_restartAgent(AmbariConfig.config, responces)
-    controller.heartbeat = heartbeat
-    controller.actionQueue = actionQueue
-    controller.logger = logger
-    controller.netutil = netutil
-    controller.registerWithServer()
-    # If test does not hang, registration is successful
-    # So, checking queue
-    queue = controller.actionQueue.getCommandQueue()
-    self.assertEquals(queue.qsize(), 1, "Status command should be queued once")
-    # Checking parsed status command
-    command = queue.get()
-    self.assertEquals(command['clusterName'], 'c1')
-    self.assertEquals(command['commandType'], 'STATUS_COMMAND')
-    self.assertEquals(command['componentName'], 'NAMENODE')
-    self.assertEquals(command['serviceName'], 'HDFS')
+  @patch("time.sleep")
+  def test_registerAndHeartbeat(self, sleepMock):
+
+    registerWithServer = MagicMock(name="registerWithServer")
+    registerWithServer.return_value = {"response":"resp"}
+    self.controller.registerWithServer = registerWithServer
+    heartbeatWithServer = MagicMock(name="heartbeatWithServer")
+    self.controller.heartbeatWithServer = heartbeatWithServer
+
+    self.controller.registerAndHeartbeat()
+    registerWithServer.assert_called_once_with()
+    heartbeatWithServer.assert_called_once_with()
+
+    self.controller.registerWithServer = \
+      Controller.Controller.registerWithServer
+    self.controller.heartbeatWithServer = \
+      Controller.Controller.registerWithServer
 
 
-  class ControllerMock_fake_restartAgent(Controller):
-    def __init__(self, config, responces, range=3):
-      self.repeatRegistration = False
-      self.responces = responces
-      self.heartbeatUrl = "fakeurl"
-      self.registerUrl = "fakeregisterurl"
-      self.responseId = 7
-      self.register = Register()
-      self.range = range
-      
-    def restartAgent(self):
-      self.restartCount += 1
-      pass
+  @patch.object(Controller, "ProcessHelper")
+  def test_restartAgent(self, ProcessHelper_mock):
 
-    restartCount = 0
-
-    def sendRequest(self, url, data):
-      responce = self.responces.get(block=False)
-      if self.responces.empty():
-        self.DEBUG_STOP_HEARTBITTING = True # Because we have nothing to reply next time
-      return responce
+    self.controller.restartAgent()
+    self.assertTrue(ProcessHelper_mock.restartAgent.called)
 
 
-  class ControllerMock_failure_sendRequest(Controller):
-    def __init__(self, config, range=0):
-      self.repeatRegistration = False
-      self.heartbeatUrl = "fakeurl"
-      self.registerUrl = "fakeregisterurl"
-      self.responseId = 7
-      self.register = Register()
-      self.range = range
+  @patch("urllib2.Request")
+  @patch.object(Controller, "security")
+  def test_sendRequest(self, security_mock, requestMock):
 
-    def restartAgent(self):
-      self.restartCount += 1
-      pass
+    conMock = MagicMock()
+    conMock.request.return_value = "response"
+    security_mock.CachedHTTPSConnection.return_value = conMock
+    url = "url"
+    data = "data"
+    requestMock.return_value = "request"
 
-    restartCount = 0
+    self.controller.cachedconnect = None
 
-    def sendRequest(self, url, data):
-      raise Exception("Fake exception")
+    self.assertEqual("response", self.controller.sendRequest(url, data))
+    security_mock.CachedHTTPSConnection.assert_called_once_with(
+      self.controller.config)
+    requestMock.called_once_with(url, data,
+      {'Content-Type': 'application/json'})
+
+
+  @patch("time.sleep")
+  @patch("json.loads")
+  @patch("json.dumps")
+  def test_heartbeatWithServer(self, dumpsMock, loadsMock, sleepMock):
+
+    out = StringIO.StringIO()
+    sys.stdout = out
+
+    hearbeat = MagicMock()
+    self.controller.heartbeat = hearbeat
+
+    dumpsMock.return_value = "data"
+
+    sendRequest = MagicMock(name="sendRequest")
+    self.controller.sendRequest = sendRequest
+
+    self.controller.responseId = 1
+    response = {"responseId":"2", "restartAgent":"false"}
+    loadsMock.return_value = response
+
+    def one_heartbeat(*args, **kwargs):
+      self.controller.DEBUG_STOP_HEARTBITTING = True
+      return "data"
+
+    sendRequest.side_effect = one_heartbeat
+
+    actionQueue = MagicMock()
+    actionQueue.isIdle.return_value = True
+
+    # one successful request, after stop
+    self.controller.actionQueue = actionQueue
+    self.controller.heartbeatWithServer()
+    self.assertTrue(sendRequest.called)
+
+    calls = []
+    def retry(*args, **kwargs):
+      if len(calls) == 0:
+        calls.append(1)
+        response["responseId"] = "3"
+        raise Exception()
+      if len(calls) > 0:
+        self.controller.DEBUG_STOP_HEARTBITTING = True
+      return "data"
+
+    # exception, retry, successful and stop
+    sendRequest.side_effect = retry
+    self.controller.DEBUG_STOP_HEARTBITTING = False
+    self.controller.heartbeatWithServer()
+
+    self.assertEqual(1, self.controller.DEBUG_SUCCESSFULL_HEARTBEATS)
+
+    # retry registration
+    response["registrationCommand"] = "true"
+    sendRequest.side_effect = one_heartbeat
+    self.controller.DEBUG_STOP_HEARTBITTING = False
+    self.controller.heartbeatWithServer()
+
+    self.assertTrue(self.controller.repeatRegistration)
+
+    # wrong responseId => restart
+    response = {"responseId":"2", "restartAgent":"false"}
+    loadsMock.return_value = response
+
+    restartAgent = MagicMock(name="restartAgent")
+    self.controller.restartAgent = restartAgent
+    self.controller.DEBUG_STOP_HEARTBITTING = False
+    self.controller.heartbeatWithServer()
+
+    restartAgent.assert_called_once_with()
+
+    # executionCommands, statusCommands
+    self.controller.responseId = 1
+    addToQueue = MagicMock(name="addToQueue")
+    self.controller.addToQueue = addToQueue
+    response["executionCommands"] = "executionCommands"
+    response["statusCommands"] = "statusCommands"
+    self.controller.DEBUG_STOP_HEARTBITTING = False
+    self.controller.heartbeatWithServer()
+
+    addToQueue.assert_has_calls([call("executionCommands"),
+                                 call("statusCommands")])
+
+    # restartAgent command
+    self.controller.responseId = 1
+    self.controller.DEBUG_STOP_HEARTBITTING = False
+    response["restartAgent"] = "true"
+    restartAgent = MagicMock(name="restartAgent")
+    self.controller.restartAgent = restartAgent
+    self.controller.heartbeatWithServer()
+
+    restartAgent.assert_called_once_with()
+
+    # actionQueue not idle
+    self.controller.responseId = 1
+    self.controller.DEBUG_STOP_HEARTBITTING = False
+    actionQueue.isIdle.return_value = False
+    response["restartAgent"] = "false"
+    self.controller.heartbeatWithServer()
+
+    sleepMock.assert_called_with(
+      self.controller.netutil.HEARTBEAT_NOT_IDDLE_INTERVAL_SEC)
+
+    sys.stdout = sys.__stdout__
+    self.controller.sendRequest = Controller.Controller.sendRequest
+    self.controller.sendRequest = Controller.Controller.addToQueue
+
+
+if __name__ == "__main__":
+
+  unittest.main(verbosity=2)
+
+
+
+

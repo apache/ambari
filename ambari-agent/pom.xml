@@ -19,14 +19,14 @@
   <parent>
     <groupId>org.apache.ambari</groupId>
     <artifactId>ambari-project</artifactId>
-    <version>1.2.0-SNAPSHOT</version>
+    <version>1.2.1-SNAPSHOT</version>
     <relativePath>../ambari-project</relativePath>
   </parent>
   <modelVersion>4.0.0</modelVersion>
   <groupId>org.apache.ambari</groupId>
   <artifactId>ambari-agent</artifactId>
   <packaging>pom</packaging>
-  <version>1.2.0-SNAPSHOT</version>
+  <version>1.2.1-SNAPSHOT</version>
   <name>Ambari Agent</name>
   <description>Ambari Agent</description>
   <properties>
@@ -38,22 +38,22 @@
     <package.pid.dir>/var/run/ambari-agent</package.pid.dir>
     <skipTests>false</skipTests>
     <facter.tar>http://downloads.puppetlabs.com/facter/facter-1.6.10.tar.gz</facter.tar>
-    <puppet.tar>http://www.puppetlabs.com/downloads/puppet/puppet-2.7.9.tar.gz</puppet.tar>
+    <puppet.tar>http://downloads.puppetlabs.com/puppet/puppet-2.7.9.tar.gz</puppet.tar>
     <install.dir>/usr/lib/python2.6/site-packages/ambari_agent</install.dir>
-    <ruby.tar>http://s3.amazonaws.com/dev.hortonworks.com/HDP-UTILS-1.1.0.15/repos/centos6/ruby-1.8.7-p370.tar.gz</ruby.tar>
+    <ruby.tar>http://public-repo-1.hortonworks.com/HDP-UTILS-1.1.0.15/repos/centos6/ruby-1.8.7-p370.tar.gz</ruby.tar>
     <lib.dir>/usr/lib/ambari-agent/lib</lib.dir>
   </properties>
   <profiles>
     <profile>
       <id>suse11</id>
       <properties>
-        <ruby.tar>http://s3.amazonaws.com/dev.hortonworks.com/HDP-UTILS-1.1.0.15/repos/suse11/ruby-1.8.7-p370.tar.gz</ruby.tar>
+        <ruby.tar>http://public-repo-1.hortonworks.com/HDP-UTILS-1.1.0.15/repos/suse11/ruby-1.8.7-p370.tar.gz</ruby.tar>
       </properties>
     </profile>
     <profile>
       <id>centos5</id>
       <properties>
-        <ruby.tar>http://s3.amazonaws.com/dev.hortonworks.com/HDP-UTILS-1.1.0.15/repos/centos5/ruby-1.8.7-p370.tar.gz</ruby.tar>
+        <ruby.tar>http://public-repo-1.hortonworks.com/HDP-UTILS-1.1.0.15/repos/centos5/ruby-1.8.7-p370.tar.gz</ruby.tar>
       </properties>
     </profile>
   </profiles>
@@ -90,7 +90,7 @@
                 <argument>unitTests.py</argument>
               </arguments>
               <environmentVariables>
-                <PYTHONPATH>src/main/python/ambari_agent:$PYTHONPATH</PYTHONPATH>
+                <PYTHONPATH>${project.basedir}/../ambari-common/src/test/python:${project.basedir}/src/main/python/ambari_agent:$PYTHONPATH</PYTHONPATH>
               </environmentVariables>
               <skip>${skipTests}</skip>
             </configuration>
@@ -150,6 +150,10 @@
             <scriptFile>src/main/package/rpm/preinstall.sh</scriptFile>
             <fileEncoding>utf-8</fileEncoding>
           </preinstallScriptlet>
+          <preremoveScriptlet>
+            <script>mv /etc/ambari-agent/conf /etc/ambari-agent/conf.save</script>
+          </preremoveScriptlet>
+
           <needarch>x86_64</needarch>
           <autoRequires>false</autoRequires>
           <mappings>
@@ -169,6 +173,17 @@
                 </source>
               </sources>
             </mapping>
+             <mapping>
+              <directory>${lib.dir}/examples</directory>
+              <filemode>755</filemode>
+              <username>root</username>
+              <groupname>root</groupname>
+              <sources>
+                <source>
+                  <location>src/examples</location>
+                </source>
+              </sources>
+            </mapping>
             <mapping>
               <directory>/var/lib/${project.artifactId}/puppet</directory>
               <filemode>755</filemode>
@@ -182,6 +197,7 @@
             </mapping>
             <mapping>
               <directory>${package.conf.dir}</directory>
+              <configuration>true</configuration>
               <filemode>755</filemode>
               <username>root</username>
               <groupname>root</groupname>
@@ -285,10 +301,10 @@
         <artifactId>apache-rat-plugin</artifactId>
         <configuration>
           <excludes>
+            <exclude>src/examples/*</exclude>
             <exclude>src/test/python/dummy*.txt</exclude>
             <exclude>src/main/puppet/modules/stdlib/**</exclude>
             <exclude>**/*.erb</exclude>
-            <exclude>src/main/python/ambari_agent/imports.txt</exclude>
             <exclude>**/*.json</exclude>
           </excludes>
         </configuration>

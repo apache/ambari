@@ -98,28 +98,26 @@ class hdp::pre_install_pkgs
 
 class hdp::create_smoke_user()
 {
+
   $smoke_group = $hdp::params::smoke_user_group
   $smoke_user = $hdp::params::smokeuser
   $security_enabled = $hdp::params::security_enabled
 
-  
   if ( $smoke_group != $proxyuser_group) {
     group { $smoke_group :
       ensure => present
     }
   }
-
-  group { $proxyuser_group :
-    ensure => present
+  
+  if ($hdp::params::user_group != $proxyuser_group) {
+    group { $proxyuser_group :
+      ensure => present
+    }
   }
-
-  hdp::user { $smoke_user: gid => $proxyuser_group}
-
-  $cmd = "usermod -g  $smoke_group  $smoke_user"
-  $check_group_cmd = "id -gn $smoke_user | grep $smoke_group"
-  hdp::exec{ $cmd:
-     command => $cmd,
-     unless => $check_group_cmd
+  
+  hdp::user { $smoke_user: 
+              gid    => $hdp::params::user_group,
+              groups => ["$proxyuser_group"]
   }
 
   if ($security_enabled == true) {
@@ -133,11 +131,7 @@ class hdp::create_smoke_user()
      }
   }
 
-  if ( $smoke_group != $proxyuser_group) {
-    Group[$smoke_group] -> Group[$proxyuser_group] -> Hdp::User[$smoke_user] -> Hdp::Exec[$cmd]
-  } else {
-    Group[$smoke_group] -> Hdp::User[$smoke_user] -> Hdp::Exec[$cmd]
-  }
+  Group<||> -> Hdp::User[$smoke_user]
 }
 
 
@@ -153,7 +147,8 @@ class hdp::set_selinux()
 
 define hdp::user(
   $gid = $hdp::params::user_group,
-  $just_validate = undef
+  $just_validate = undef,
+  $groups = undef
 )
 {
   $user_info = $hdp::params::user_info[$name]
@@ -175,7 +170,8 @@ define hdp::user(
       ensure     => present,
       managehome => true,
       gid        => $gid, #TODO either remove this to support LDAP env or fix it
-      shell      => '/bin/bash'
+      shell      => '/bin/bash',
+      groups     => $groups 
     }
   }
 }
@@ -187,7 +183,8 @@ define hdp::directory(
   $mode  = undef,
   $ensure = directory,
   $force = undef,
-  $service_state = 'running'
+  $service_state = 'running',
+  $override_owner = false
   )
 {
  if (($service_state == 'uninstalled') and ($wipeoff_data == true)) {
@@ -199,13 +196,21 @@ define hdp::directory(
     force  => $force
    }
   } elsif ($service_state != 'uninstalled') {
-  file { $name :
-    ensure => present,
-    owner  => $owner,
-    group  => $group,
-    mode   => $mode,
-    force  => $force
-   }
+    if $override_owner == true {
+      file { $name :
+      ensure => present,
+      owner  => $owner,
+      group  => $group,
+      mode   => $mode,
+      force  => $force
+     }
+    } else {
+      file { $name :
+      ensure => present,
+      mode   => $mode,
+      force  => $force
+     }
+    }
   }
 }
 #TODO: check on -R flag and use of recurse
@@ -216,7 +221,8 @@ define hdp::directory_recursive_create(
   $context_tag = undef,
   $ensure = directory,
   $force = undef,
-  $service_state = 'running'
+  $service_state = 'running',
+  $override_owner = true
   )
 {
 
@@ -231,7 +237,8 @@ define hdp::directory_recursive_create(
     mode  => $mode,
     ensure => $ensure,
     force => $force,
-    service_state => $service_state
+    service_state => $service_state,
+    override_owner => $override_owner
   }
   Hdp::Exec["mkdir -p ${name}"] -> Hdp::Directory[$name]
 }
@@ -247,9 +254,16 @@ define hdp::directory_recursive_create_ignore_failure(
   )
 {
   hdp::exec {"mkdir -p ${name} ; exit 0" :
-    command => "mkdir -p ${name} ; chown ${owner}:${group} ${name}; chmod ${mode} ${name} ; exit 0",
+    command => "mkdir -p ${name} ; exit 0",
     creates => $name
   }
+    hdp::exec {"chown ${owner}:${group} ${name}; exit 0" :
+    command => "chown ${owner}:${group} ${name}; exit 0"
+  }
+    hdp::exec {"chmod ${mode} ${name} ; exit 0" :
+    command => "chmod ${mode} ${name} ; exit 0"
+  }
+  Hdp::Exec["mkdir -p ${name} ; exit 0"] -> Hdp::Exec["chown ${owner}:${group} ${name}; exit 0"] -> Hdp::Exec["chmod ${mode} ${name} ; exit 0"]
 }
 
 ### helper to do exec

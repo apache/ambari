@@ -30,6 +30,7 @@ import org.apache.ambari.server.actionmanager.Stage;
 import org.apache.ambari.server.actionmanager.StageFactory;
 import org.apache.ambari.server.agent.ExecutionCommand;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
+import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.metadata.ActionMetadata;
 import org.apache.ambari.server.metadata.RoleCommandOrder;
 import org.apache.ambari.server.security.authorization.User;
@@ -57,6 +58,7 @@ import org.apache.ambari.server.state.svccomphost.ServiceComponentHostOpInProgre
 import org.apache.ambari.server.state.svccomphost.ServiceComponentHostStartEvent;
 import org.apache.ambari.server.state.svccomphost.ServiceComponentHostStopEvent;
 import org.apache.ambari.server.utils.StageUtils;
+import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -105,7 +107,13 @@ public class AmbariManagementControllerImpl implements
   private AmbariMetaInfo ambariMetaInfo;
   @Inject
   private Users users;
+  @Inject
+  private HostsMap hostsMap;
+  @Inject
+  private Configuration configs;
 
+
+  
   final private String masterHostname;
 
   final private static String JDK_RESOURCE_LOCATION =
@@ -123,9 +131,14 @@ public class AmbariManagementControllerImpl implements
     this.gson = injector.getInstance(Gson.class);
     LOG.info("Initializing the AmbariManagementControllerImpl");
     this.masterHostname =  InetAddress.getLocalHost().getCanonicalHostName();
-    this.jdkResourceUrl = "http://" + masterHostname + ":"
-        + AmbariServer.getResourcesPort()
-        + JDK_RESOURCE_LOCATION;
+    
+    if (configs != null) {
+      this.jdkResourceUrl = "http://" + masterHostname + ":"
+          + configs.getClientApiPort()
+          + JDK_RESOURCE_LOCATION; 
+    } else {
+    		this.jdkResourceUrl = null;
+    }
   }
 
   @Override
@@ -898,7 +911,7 @@ public class AmbariManagementControllerImpl implements
 
     // Generate cluster host info
     execCmd.setClusterHostInfo(
-        StageUtils.getClusterHostInfo(cluster));
+        StageUtils.getClusterHostInfo(cluster, hostsMap));
 
     Host host = clusters.getHost(scHost.getHostName());
 
@@ -1687,7 +1700,7 @@ public class AmbariManagementControllerImpl implements
         // Generate cluster host info
         stage.getExecutionCommandWrapper(clientHost, smokeTestRole)
             .getExecutionCommand()
-            .setClusterHostInfo(StageUtils.getClusterHostInfo(cluster));
+            .setClusterHostInfo(StageUtils.getClusterHostInfo(cluster, hostsMap));
       }
 
       RoleGraph rg = new RoleGraph(rco);
@@ -1809,17 +1822,6 @@ public class AmbariManagementControllerImpl implements
       ServiceComponentHost sch,
       State currentState, State newDesiredState)
           throws AmbariException {
-    if (currentState == State.STARTED
-        || currentState == State.STARTING) {
-      throw new AmbariException("Changing of configs not supported"
-          + " in STARTING or STARTED state"
-          + ", clusterName=" + sch.getClusterName()
-          + ", serviceName=" + sch.getServiceName()
-          + ", componentName=" + sch.getServiceComponentName()
-          + ", hostname=" + sch.getHostName()
-          + ", currentState=" + currentState
-          + ", newDesiredState=" + newDesiredState);
-    }
 
     if (newDesiredState != null) {
       if (!(newDesiredState == State.INIT
@@ -2698,9 +2700,7 @@ public class AmbariManagementControllerImpl implements
   @Override
   public synchronized void deleteCluster(ClusterRequest request)
       throws AmbariException {
-    throw new AmbariException("Delete cluster not supported");
 
-    /*
     if (request.getClusterName() == null
         || request.getClusterName().isEmpty()) {
       // FIXME throw correct error
@@ -2714,13 +2714,22 @@ public class AmbariManagementControllerImpl implements
       // deleting whole cluster
       clusters.deleteCluster(request.getClusterName());
     }
-    */
   }
 
   @Override
   public RequestStatusResponse deleteServices(Set<ServiceRequest> request)
       throws AmbariException {
-    throw new AmbariException("Delete services not supported");
+
+    for (ServiceRequest serviceRequest : request) {
+      if (StringUtils.isEmpty(serviceRequest.getClusterName()) || StringUtils.isEmpty(serviceRequest.getServiceName())) {
+        // FIXME throw correct error
+        throw new AmbariException("invalid arguments");
+      } else {
+        clusters.getCluster(serviceRequest.getClusterName()).deleteService(serviceRequest.getServiceName());
+      }
+    }
+    return null;
+
   }
 
   @Override
@@ -3156,7 +3165,7 @@ public class AmbariManagementControllerImpl implements
         .getExecutionCommandWrapper(hostName, actionRequest.getActionName())
         .getExecutionCommand()
         .setClusterHostInfo(
-            StageUtils.getClusterHostInfo(clusters.getCluster(clusterName)));
+            StageUtils.getClusterHostInfo(clusters.getCluster(clusterName), hostsMap));
   }
 
   private void addDecommissionDatanodeAction(

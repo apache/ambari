@@ -1,0 +1,49 @@
+{
+  "jobs": [
+    {
+      "jobId": "job_201301280808_0002",
+      "jobName": "oozie:action:T\\=map-reduce:W\\=map-reduce-wf:A\\=mr-node:ID\\=0000000-130128081151371-oozie-oozi-W",
+      "status": "SUCCESS",
+      "userName": "ambari_qa",
+      "submitTime": 1359378922503,
+      "elapsedTime": 27080,
+      "maps": 1,
+      "reduces": 1,
+      "inputBytes": 1550,
+      "outputBytes": 1547,
+      "confPath": "hdfs:\/\/ip-10-83-1-168\\.ec2\\.internal:8020\/user\/ambari_qa\/\\.staging\/job_201301280808_0004\/job\\.xml",
+      "workflowId": "mr_201301280808_0002",
+      "workflowEntityName": "X"
+    },
+    {
+      "jobId": "job_201301280808_0004",
+      "jobName": "oozie:action:T\\=map-reduce:W\\=map-reduce-wf:A\\=mr-node:ID\\=0000000-130128081151371-oozie-oozi-W",
+      "status": "SUCCESS",
+      "userName": "ambari_qa",
+      "submitTime": 1359378922503,
+      "elapsedTime": 27080,
+      "maps": 1,
+      "reduces": 1,
+      "inputBytes": 1550,
+      "outputBytes": 1547,
+      "confPath": "hdfs:\/\/ip-10-83-1-168\\.ec2\\.internal:8020\/user\/ambari_qa\/\\.staging\/job_201301280808_0004\/job\\.xml",
+      "workflowId": "mr_201301280808_0004",
+      "workflowEntityName": "X"
+    },
+    {
+      "jobId": "job_201301280808_0003",
+      "jobName": "oozie:action:T\\=map-reduce:W\\=map-reduce-wf:A\\=mr-node:ID\\=0000000-130128081151371-oozie-oozi-W",
+      "status": "SUCCESS",
+      "userName": "ambari_qa",
+      "submitTime": 1359378922503,
+      "elapsedTime": 27080,
+      "maps": 1,
+      "reduces": 1,
+      "inputBytes": 1550,
+      "outputBytes": 1547,
+      "confPath": "hdfs:\/\/ip-10-83-1-168\\.ec2\\.internal:8020\/user\/ambari_qa\/\\.staging\/job_201301280808_0004\/job\\.xml",
+      "workflowId": "mr_201301280808_0003",
+      "workflowEntityName": "X"
+    }
+  ]
+}

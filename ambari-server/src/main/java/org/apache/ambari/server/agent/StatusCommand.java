@@ -18,6 +18,7 @@
 package org.apache.ambari.server.agent;
 
 import java.util.List;
+import java.util.Map;
 
 import org.codehaus.jackson.annotate.JsonProperty;
 
@@ -33,6 +34,7 @@ public class StatusCommand extends AgentCommand {
   private String clusterName;
   private String serviceName;
   private String componentName;
+  private Map<String, Map<String, String>> configurations;
 
   @JsonProperty("clusterName")
   public String getClusterName() {
@@ -62,5 +64,15 @@ public class StatusCommand extends AgentCommand {
   @JsonProperty("componentName")
   public void setComponentName(String componentName) {
     this.componentName = componentName;
+  }
+  
+  @JsonProperty("configurations")
+  public Map<String, Map<String, String>> getConfigurations() {
+    return configurations;
+  }
+
+  @JsonProperty("configurations")
+  public void setConfigurations(Map<String, Map<String, String>> configurations) {
+    this.configurations = configurations;
   }
 }

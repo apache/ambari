@@ -18,16 +18,15 @@
 
 package org.apache.ambari.server.controller;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.apache.ambari.server.agent.AgentEnv;
 import org.apache.ambari.server.agent.DiskInfo;
 import org.apache.ambari.server.state.AgentVersion;
 import org.apache.ambari.server.state.HostHealthStatus;
-
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
 
 public class HostResponse {
 
@@ -84,6 +83,11 @@ public class HostResponse {
    * Last heartbeat timestamp from the Host
    */
   private long lastHeartbeatTime;
+  
+  /**
+   * Last environment information
+   */
+  private AgentEnv lastAgentEnv;
 
   /**
    * Last registration timestamp for the Host
@@ -438,5 +442,18 @@ public class HostResponse {
   public void setHostState(String hostState) {
     this.hostState = hostState;
   }
+
+  
+  public AgentEnv getLastAgentEnv() {
+    return lastAgentEnv;
+  }
+  
+  /**
+   * @param lastAgentEnv
+   */
+  public void setLastAgentEnv(AgentEnv agentEnv) {
+    lastAgentEnv = agentEnv;
+  }
+  
 
 }

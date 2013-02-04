@@ -108,4 +108,9 @@ public class ClusterDAO {
     remove(findByName(clusterName));
   }
 
+  @Transactional
+  public void removeByPK(long id) {
+    remove(findById(id));
+  }
+
 }

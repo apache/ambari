@@ -19,16 +19,19 @@
 
 package org.apache.ambari.server.state.host;
 
+import org.apache.ambari.server.agent.AgentEnv;
 import org.apache.ambari.server.state.HostEvent;
 import org.apache.ambari.server.state.HostEventType;
 
 public class HostHealthyHeartbeatEvent extends HostEvent {
 
   private final long heartbeatTime;
+  private AgentEnv agentEnv = null;
 
-  public HostHealthyHeartbeatEvent(String hostName, long heartbeatTime) {
+  public HostHealthyHeartbeatEvent(String hostName, long heartbeatTime, AgentEnv env) {
     super(hostName, HostEventType.HOST_HEARTBEAT_HEALTHY);
     this.heartbeatTime = heartbeatTime;
+    agentEnv = env;
   }
 
   /**
@@ -36,6 +39,14 @@ public class HostHealthyHeartbeatEvent extends HostEvent {
    */
   public long getHeartbeatTime() {
     return heartbeatTime;
+  }
+  
+  /**
+   * @return the heartbeatinfo, if present.  Can return <code>null</code> if
+   * there was no new status.
+   */
+  public AgentEnv getAgentEnv() {
+    return agentEnv;
   }
 
 }

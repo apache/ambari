@@ -414,8 +414,10 @@ public class ServiceImpl implements Service {
     serviceDesiredStateDAO.create(serviceDesiredStateEntity);
     clusterEntity.getClusterServiceEntities().add(serviceEntity);
     clusterDAO.merge(clusterEntity);
-    serviceEntity = clusterServiceDAO.merge(serviceEntity);
-    serviceDesiredStateEntity = serviceDesiredStateDAO.merge(serviceDesiredStateEntity);
+//    serviceEntity =
+        clusterServiceDAO.merge(serviceEntity);
+//    serviceDesiredStateEntity =
+        serviceDesiredStateDAO.merge(serviceDesiredStateEntity);
   }
 
   @Transactional
@@ -442,28 +444,25 @@ public class ServiceImpl implements Service {
 
   @Override
   public synchronized boolean canBeRemoved() {
-    State state = getDesiredState();
-    if (state != State.INIT
-        && state != State.UNINSTALLED) {
+    if (!getDesiredState().isRemovableState()) {
       return false;
     }
 
-    boolean safeToRemove = true;
     for (ServiceComponent sc : components.values()) {
       if (!sc.canBeRemoved()) {
-        safeToRemove = false;
         LOG.warn("Found non removable component when trying to delete service"
             + ", clusterName=" + cluster.getClusterName()
             + ", serviceName=" + getName()
             + ", componentName=" + sc.getName());
-        break;
+        return false;
       }
     }
-    return safeToRemove;
+    return true;
   }
 
   @Override
-  public synchronized void removeAllComponents() throws AmbariException {
+  @Transactional
+  public synchronized void deleteAllComponents() throws AmbariException {
     LOG.info("Deleting all components for service"
         + ", clusterName=" + cluster.getClusterName()
         + ", serviceName=" + getName());
@@ -477,11 +476,12 @@ public class ServiceImpl implements Service {
             + ", componentName=" + component.getName());
       }
     }
-    for (ServiceComponent component : components.values()) {
-      component.removeAllServiceComponentHosts();
+
+    for (ServiceComponent serviceComponent : components.values()) {
+      serviceComponent.delete();
     }
+
     components.clear();
-    // FIXME update DB
   }
 
   @Override
@@ -499,14 +499,36 @@ public class ServiceImpl implements Service {
           + ", serviceName=" + getName()
           + ", componentName=" + componentName);
     }
-    component.removeAllServiceComponentHosts();
+
+    component.delete();
     components.remove(componentName);
-    // FIXME update DB
   }
 
   @Override
   public boolean isClientOnlyService() {
     return isClientOnlyService;
+  }
+
+  @Override
+  @Transactional
+  public synchronized void delete() throws AmbariException {
+    deleteAllComponents();
+
+    if (persisted) {
+      removeEntities();
+      persisted = false;
+    }
+
+    desiredConfigs.clear();
+  }
+
+  @Transactional
+  protected void removeEntities() throws AmbariException {
+    ClusterServiceEntityPK pk = new ClusterServiceEntityPK();
+    pk.setClusterId(getClusterId());
+    pk.setServiceName(getName());
+
+    clusterServiceDAO.removeByPK(pk);
   }
 
 }

@@ -41,33 +41,80 @@ App.alertsMapper = App.QuickDataMapper.create({
     if (!this.get('model')) {
       return;
     }
-    if (json.alerts) {
+    if (json && json.items && json.items.length>0 && json.items[0].HostRoles && json.items[0].HostRoles.nagios_alerts) {
+      var alertsString = json.items[0].HostRoles.nagios_alerts;
+      var alerts = jQuery.parseJSON(alertsString).alerts;
       if (App.Alert.find().content.length > 0) {
-        this.update(json);
+        this.update(alerts);
       } else {
         var result = [];
-        json.alerts.forEach(function (item) {
-          result.push(this.parseIt(item, this.config));
+        alerts.forEach(function(item){
+          var applyConfig = jQuery.extend({}, this.config);
+          if (item.current_state && item.last_hard_state && item.current_state != item.last_hard_state) {
+            switch (item.current_state) {
+              case "0":
+                applyConfig['date'] = 'last_time_ok';
+                break;
+              case "1":
+                applyConfig['date'] = 'last_time_warning';
+                break;
+              case "2":
+                applyConfig['date'] = 'last_time_critical';
+                break;
+            }
+          }
+          result.push(this.parseIt(item, applyConfig));
         }, this);
         App.store.loadMany(this.get('model'), result);
       }
     }
   },
-  update: function(json){
+  update: function(alerts){
     var alertsList = App.Alert.find();
     var titleToAlertMap = {};
     alertsList.forEach(function(alert){
       titleToAlertMap[alert.get('serviceType') + alert.get('title') + alert.get('message')] = alert;
     });
     var newRecords = [];
-    json.alerts.forEach(function(item){
+    alerts.forEach(function(item){
       var existAlert = titleToAlertMap[item.service_type + item.service_description + item.plugin_output];
       if (existAlert == null) {
-        newRecords.push(this.parseIt(item, this.config));
+        var applyConfig = jQuery.extend({}, this.config);
+        if (item.current_state && item.last_hard_state && item.current_state != item.last_hard_state) {
+          switch (item.current_state) {
+            case "0":
+              applyConfig['date'] = 'last_time_ok';
+              break;
+            case "1":
+              applyConfig['date'] = 'last_time_warning';
+              break;
+            case "2":
+              applyConfig['date'] = 'last_time_critical';
+              break;
+          }
+        }
+        newRecords.push(this.parseIt(item, applyConfig));
       } else {
         // update record
         existAlert.set('serviceType', item.service_type);
-        existAlert.set('date', DS.attr.transforms.date.from(item.last_hard_state_change));
+        if (item.current_state && item.last_hard_state && item.current_state != item.last_hard_state) {
+          switch (item.current_state) {
+            case "0":
+              existAlert.set('date', DS.attr.transforms.date.from(item.last_time_ok));
+              break;
+            case "1":
+              existAlert.set('date', DS.attr.transforms.date.from(item.last_time_warning));
+              break;
+            case "2":
+              existAlert.set('date', DS.attr.transforms.date.from(item.last_time_critical));
+              break;
+            default:
+              existAlert.set('date', DS.attr.transforms.date.from(item.last_hard_state_change));
+              break;
+          }
+        }else{
+          existAlert.set('date', DS.attr.transforms.date.from(item.last_hard_state_change));
+        }
         existAlert.set('status', item.current_state);
         existAlert.set('message', item.plugin_output);
         existAlert.set('lastHardStateChange', item.last_hard_state_change);

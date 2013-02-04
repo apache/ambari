@@ -26,10 +26,8 @@ require('models/cluster_states');
 require('models/hosts');
 require('models/quick_links');
 require('models/service');
-require('models/component');
 require('models/service_config');
 require('models/service_audit');
-require('models/service_metrics');
 require('models/service/hdfs');
 require('models/service/mapreduce');
 require('models/service/hbase');
@@ -43,3 +41,7 @@ require('models/run');
 require('models/app');
 require('models/background_operation');
 require('models/host_component');
+
+require('classes/run_class');
+require('classes/job_class');
+require('classes/job_class');

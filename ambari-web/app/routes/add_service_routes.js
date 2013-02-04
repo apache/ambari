@@ -44,6 +44,9 @@ module.exports = Em.Route.extend({
             this.hide();
             App.router.get('updateController').set('isWorking', true);
             App.router.transitionTo('main.services')
+          },
+          didInsertElement: function(){
+            this.fitHeight();
           }
         });
         router.transitionTo('step' + addServiceController.get('currentStep'));

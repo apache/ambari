@@ -16,7 +16,7 @@
   <parent>
     <groupId>org.apache.ambari</groupId>
     <artifactId>ambari-project</artifactId>
-    <version>1.2.0-SNAPSHOT</version>
+    <version>1.2.1-SNAPSHOT</version>
     <relativePath>../ambari-project</relativePath>
   </parent>
   <modelVersion>4.0.0</modelVersion>
@@ -24,7 +24,7 @@
   <artifactId>ambari-server</artifactId>
   <packaging>jar</packaging>
   <name>Ambari Server</name>
-  <version>1.2.0-SNAPSHOT</version>
+  <version>1.2.1-SNAPSHOT</version>
   <description>Ambari Server</description>
   <properties>
     <python.ver>python &gt;= 2.6</python.ver>
@@ -64,6 +64,9 @@
 
             <!--gitignore content-->
             <exclude>src/main/resources/db/newcerts/**</exclude>
+
+            <!--test samples-->
+            <exclude>src/test/resources/TestAmbaryServer.samples/**</exclude>
           </excludes>
         </configuration>
       </plugin>
@@ -96,6 +99,9 @@
             <require>openssl</require>
             <require>${python.ver}</require>
           </requires>
+          <preremoveScriptlet>
+            <script>mv /etc/ambari-server/conf /etc/ambari-server/conf.save</script>
+          </preremoveScriptlet>
           <mappings>
             <mapping>
               <directory>/usr/lib/ambari-server</directory>
@@ -227,6 +233,23 @@
               </sources>
             </mapping>
             <mapping>
+              <directory>/var/lib/ambari-server/resources/upgrade</directory>
+              <filemode>755</filemode>
+              <username>root</username>
+              <groupname>root</groupname>
+            </mapping>
+            <mapping>
+              <directory>/var/lib/ambari-server/resources/upgrade/ddl</directory>
+              <filemode>755</filemode>
+              <username>root</username>
+              <groupname>root</groupname>
+              <sources>
+                <source>
+                  <location>src/main/resources/upgrade/ddl/Ambari-DDL-Postgres-UPGRADE-1.2.1.sql</location>
+                </source>
+              </sources>
+            </mapping>
+            <mapping>
               <directory>/var/lib/ambari-server/resources/stacks</directory>
               <filemode>755</filemode>
               <username>root</username>
@@ -272,6 +295,31 @@
             <phase>verify</phase>
             <goals>
               <goal>check</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>exec-maven-plugin</artifactId>
+        <version>1.2</version>
+        <executions>
+          <execution>
+            <configuration>
+              <executable>python2.6</executable>
+              <workingDirectory>src/test/python</workingDirectory>
+              <arguments>
+                <argument>unitTests.py</argument>
+              </arguments>
+              <environmentVariables>
+                <PYTHONPATH>${project.basedir}/../ambari-common/src/test/python:${project.basedir}/src/main/python:${project.basedir}/src/main/python/ambari-server-state:${project.basedir}/src/test/python:$PYTHONPATH</PYTHONPATH>
+              </environmentVariables>
+              <skip>${skipTests}</skip>
+            </configuration>
+            <id>python-test</id>
+            <phase>test</phase>
+            <goals>
+              <goal>exec</goal>
             </goals>
           </execution>
         </executions>
@@ -500,7 +548,7 @@
     <dependency>
       <groupId>postgresql</groupId>
       <artifactId>postgresql</artifactId>
-      <version>8.3-603.jdbc4</version>
+      <version>9.1-901.jdbc4</version>
     </dependency>
   </dependencies>
   <!--<reporting>

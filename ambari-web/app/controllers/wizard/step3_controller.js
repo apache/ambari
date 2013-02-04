@@ -99,6 +99,9 @@ App.WizardStep3Controller = Em.Controller.extend({
 
   navigateStep: function () {
     this.loadStep();
+    if(App.testMode){
+      this.getHostInfo();
+    }
     if (this.get('content.installOptions.manualInstall') !== true) {
       if (!App.db.getBootStatus()) {
         this.startBootstrap();
@@ -109,7 +112,6 @@ App.WizardStep3Controller = Em.Controller.extend({
         this.get('bootHosts').setEach('bootStatus', 'REGISTERED');
         this.get('bootHosts').setEach('cpu', '2');
         this.get('bootHosts').setEach('memory', '2000000');
-        this.getHostInfo();
       } else {
         this.set('registrationStartedAt', null);
         this.get('bootHosts').setEach('bootStatus', 'DONE');
@@ -245,6 +247,8 @@ App.WizardStep3Controller = Em.Controller.extend({
   },
 
   retrySelectedHosts: function () {
+    //to display all hosts
+    this.set('category', 'All');
     if (!this.get('isRetryDisabled')) {
       this.set('isRetryDisabled', true);
       var selectedHosts = this.get('bootHosts').filterProperty('bootStatus', 'FAILED');
@@ -267,6 +271,28 @@ App.WizardStep3Controller = Em.Controller.extend({
     this.doBootstrap();
   },
 
+  isInstallInProgress: function(){
+    var bootStatuses = this.get('bootHosts').getEach('bootStatus');
+    if(bootStatuses.length &&
+      (bootStatuses.contains('REGISTERING') ||
+        bootStatuses.contains('DONE') ||
+        bootStatuses.contains('RUNNING') ||
+        bootStatuses.contains('PENDING'))){
+      return true;
+    }
+    return false;
+  }.property('bootHosts.@each.bootStatus'),
+
+  disablePreviousSteps: function(){
+    if(this.get('isInstallInProgress')){
+      App.router.get('installerController').setLowerStepsDisable(3);
+      this.set('isSubmitDisabled', true);
+    } else {
+      App.router.get('installerController.isStepDisabled').findProperty('step', 1).set('value', false);
+      App.router.get('installerController.isStepDisabled').findProperty('step', 2).set('value', false);
+    }
+  }.observes('isInstallInProgress'),
+
   doBootstrap: function () {
     if (this.get('stopBootstrap')) {
       return;
@@ -287,6 +313,26 @@ App.WizardStep3Controller = Em.Controller.extend({
           }
           console.log("TRACE: In success function for the GET bootstrap call");
           var keepPolling = self.parseHostInfo(data.hostsStatus);
+
+          // Single host : if the only hostname is invalid (data.status == 'ERROR')
+          // Multiple hosts : if one or more hostnames are invalid
+          // following check will mark the bootStatus as 'FAILED' for the invalid hostname
+          if (data.status == 'ERROR' || data.hostsStatus.length != self.get('bootHosts').length) {
+
+            var hosts = self.get('bootHosts');
+
+            for (var i = 0; i < hosts.length; i++) {
+
+              var isValidHost = data.hostsStatus.someProperty('hostName', hosts[i].get('name'));
+              if(hosts[i].get('bootStatus') !== 'REGISTERED'){
+                if (!isValidHost) {
+                  hosts[i].set('bootStatus', 'FAILED');
+                  hosts[i].set('bootLog', 'Registration with the server failed.');
+                }
+              }
+            }
+          }
+
           if (data.hostsStatus.someProperty('status', 'DONE') || data.hostsStatus.someProperty('status', 'FAILED')) {
             // kicking off registration polls after at least one host has succeeded
             self.startRegistration();
@@ -435,7 +481,7 @@ App.WizardStep3Controller = Em.Controller.extend({
     var self = this;
     var kbPerGb = 1024;
     var hosts = this.get('bootHosts');
-    var url = App.testMode ? '/data/wizard/bootstrap/single_host_information.json' : App.apiPrefix + '/hosts?fields=Hosts/total_mem,Hosts/cpu_count,Hosts/disk_info';
+    var url = App.testMode ? '/data/wizard/bootstrap/two_hosts_information.json' : App.apiPrefix + '/hosts?fields=Hosts/total_mem,Hosts/cpu_count,Hosts/disk_info,Hosts/last_agent_env';
     var method = 'GET';
     $.ajax({
       type: 'GET',
@@ -444,6 +490,7 @@ App.WizardStep3Controller = Em.Controller.extend({
       timeout: App.timeout,
       success: function (data) {
         var jsonData = (App.testMode) ? data : jQuery.parseJSON(data);
+        self.parseWarnings(jsonData);
         hosts.forEach(function (_host) {
           var host = (App.testMode) ? jsonData.items[0] : jsonData.items.findProperty('Hosts.host_name', _host.name);
           if (App.skipBootstrap) {
@@ -541,6 +588,330 @@ App.WizardStep3Controller = Em.Controller.extend({
         })
       })
     });
+  },
+  /**
+   * check warnings from server and put it in parsing
+    */
+  rerunChecks: function(){
+    var self = this;
+    var url = App.testMode ? '/data/wizard/bootstrap/two_hosts_information.json' : App.apiPrefix + '/hosts?fields=Hosts/last_agent_env';
+    var currentProgress = 0;
+    var interval = setInterval(function(){
+      self.set('checksUpdateProgress', Math.ceil((++currentProgress/60)*100))
+    }, 1000);
+    setTimeout(function(){
+      clearInterval(interval);
+      $.ajax({
+        type: 'GET',
+        url: url,
+        contentType: 'application/json',
+        timeout: App.timeout,
+        success: function (data) {
+          var jsonData = (App.testMode) ? data : jQuery.parseJSON(data);
+          self.set('checksUpdateProgress', 100);
+          self.set('checksUpdateStatus', 'SUCCESS');
+          self.parseWarnings(jsonData);
+        },
+        error: function () {
+          self.set('checksUpdateProgress', 100);
+          self.set('checksUpdateStatus', 'FAILED');
+          console.log('INFO: Getting host information(last_agent_env) from the server failed');
+        },
+        statusCode: require('data/statusCodes')
+      })
+    }, this.get('warningsTimeInterval'));
+
+  },
+  warnings: [],
+  warningsTimeInterval: 60000,
+  /**
+   * check are hosts have any warnings
+   */
+  isHostHaveWarnings: function(){
+    var isWarning = false;
+    this.get('warnings').forEach(function(warning){
+      if(!isWarning && (warning.directoriesFiles.someProperty('isWarn', true) ||
+      warning.packages.someProperty('isWarn', true) ||
+      warning.processes.someProperty('isWarn', true))){
+        isWarning = true;
+      }
+    }, this);
+    return isWarning;
+  }.property('warnings'),
+  isWarningsBoxVisible: function(){
+    return (App.testMode) ? true : !this.get('isSubmitDisabled');
+  }.property('isSubmitDisabled'),
+  checksUpdateProgress:0,
+  checksUpdateStatus: null,
+  /**
+   * filter data for warnings parse
+   * is data from host in bootStrap
+   * @param data
+   * @return {Object}
+   */
+  filterBootHosts: function(data){
+    var bootHosts = this.get('bootHosts');
+    var filteredData = {
+      href: data.href,
+      items: []
+    };
+    bootHosts.forEach(function(bootHost){
+      data.items.forEach(function(host){
+        if(host.Hosts.host_name == bootHost.get('name')){
+          filteredData.items.push(host);
+        }
+      })
+    })
+    return filteredData;
+  },
+  /**
+   * parse warnings data for each host and total
+   * @param data
+   */
+  parseWarnings: function(data){
+    data = this.filterBootHosts(data);
+    var warnings = [];
+    var totalWarnings = {
+      hostName: 'All Hosts',
+      directoriesFiles: [],
+      packages: [],
+      processes: []
+    }
+    //alphabetical sorting
+    var sortingFunc = function(a, b){
+      var a1= a.name, b1= b.name;
+      if(a1== b1) return 0;
+      return a1> b1? 1: -1;
+    }
+    data.items.forEach(function(host){
+      var warningsByHost = {
+        hostName: host.Hosts.host_name,
+        directoriesFiles: [],
+        packages: [],
+        processes: []
+      };
+
+      //render all directories and files for each host
+      host.Hosts.last_agent_env.paths.forEach(function(path){
+        var parsedPath = {
+          name: path.name,
+          isWarn: (path.type == 'not_exist') ? false : true,
+          message: (path.type == 'not_exist') ? 'OK' : 'WARN: already exists on host'
+        }
+        warningsByHost.directoriesFiles.push(parsedPath);
+        // parsing total warnings
+        if(!totalWarnings.directoriesFiles.someProperty('name', parsedPath.name)){
+          totalWarnings.directoriesFiles.push({
+            name:parsedPath.name,
+            isWarn: parsedPath.isWarn,
+            message: (parsedPath.isWarn) ? 'WARN: already exists on 1 host': 'OK',
+            warnCount: (parsedPath.isWarn) ? 1 : 0
+          })
+        } else if(parsedPath.isWarn){
+            totalWarnings.directoriesFiles.forEach(function(item, index){
+              if(item.name == parsedPath.name){
+                totalWarnings.directoriesFiles[index].isWarn = true;
+                totalWarnings.directoriesFiles[index].warnCount++;
+                totalWarnings.directoriesFiles[index].message = 'WARN: already exists on '+ totalWarnings.directoriesFiles[index].warnCount +' hosts';
+              }
+            });
+        }
+      }, this);
+
+      //render all packages for each host
+      host.Hosts.last_agent_env.rpms.forEach(function(_package){
+        var parsedPackage = {
+          name: _package.name,
+          isWarn: _package.installed,
+          message: (_package.installed) ? 'WARN: already installed on host' : 'OK'
+        }
+        warningsByHost.packages.push(parsedPackage);
+        // parsing total warnings
+        if(!totalWarnings.packages.someProperty('name', parsedPackage.name)){
+          totalWarnings.packages.push({
+            name:parsedPackage.name,
+            isWarn: parsedPackage.isWarn,
+            message: (parsedPackage.isWarn) ? 'WARN: already exists on 1 host': 'OK',
+            warnCount: (parsedPackage.isWarn) ? 1 : 0
+          })
+        } else if(parsedPackage.isWarn){
+          totalWarnings.packages.forEach(function(item, index){
+            if(item.name == parsedPackage.name){
+              totalWarnings.packages[index].isWarn = true;
+              totalWarnings.packages[index].warnCount++;
+              totalWarnings.packages[index].message = 'WARN: already exists on '+ totalWarnings.packages[index].warnCount +' hosts';
+            }
+          });
+        }
+      }, this);
+
+      // render all process for each host
+      host.Hosts.last_agent_env.javaProcs.forEach(function(process){
+          var parsedProcess = {
+            user: process.user,
+            isWarn: process.hadoop,
+            pid: process.pid,
+            command: process.command,
+            shortCommand: (process.command.substr(0, 15)+'...'),
+            message: (process.hadoop) ? 'WARN: running on host' : 'OK'
+          }
+          warningsByHost.processes.push(parsedProcess);
+          // parsing total warnings
+          if(!totalWarnings.processes.someProperty('pid', parsedProcess.name)){
+            totalWarnings.processes.push({
+              user: process.user,
+              pid: process.pid,
+              command: process.command,
+              shortCommand: (process.command.substr(0, 15)+'...'),
+              isWarn: parsedProcess.isWarn,
+              message: (parsedProcess.isWarn) ? 'WARN: running on 1 host': 'OK',
+              warnCount: (parsedProcess.isWarn) ? 1 : 0
+            })
+          } else if(parsedProcess.isWarn){
+            totalWarnings.processes.forEach(function(item, index){
+              if(item.pid == parsedProcess.pid){
+                totalWarnings.processes[index].isWarn = true;
+                totalWarnings.processes[index].warnCount++;
+                totalWarnings.processes[index].message = 'WARN: running on '+ totalWarnings.processes[index].warnCount +' hosts';
+              }
+            });
+          }
+      }, this);
+      warningsByHost.directoriesFiles.sort(sortingFunc);
+      warningsByHost.packages.sort(sortingFunc);
+      warnings.push(warningsByHost);
+    }, this);
+
+    totalWarnings.directoriesFiles.sort(sortingFunc);
+    totalWarnings.packages.sort(sortingFunc);
+    warnings.unshift(totalWarnings);
+    this.set('warnings', warnings);
+  },
+  /**
+   * open popup that contain hosts' warnings
+   * @param event
+   */
+  hostWarningsPopup: function(event){
+    var self = this;
+    App.ModalPopup.show({
+
+      header: Em.I18n.t('installer.step3.warnings.popup.header'),
+      secondary: 'Rerun Checks',
+      primary: 'Close',
+      onPrimary: function () {
+        self.set('checksUpdateStatus', null);
+        this.hide();
+      },
+      onClose: function(){
+        self.set('checksUpdateStatus', null);
+        this.hide();
+      },
+      onSecondary: function() {
+        self.rerunChecks();
+      },
+
+      footerClass: Ember.View.extend({
+        template: Ember.Handlebars.compile([
+          '<div class="update-progress pull-left">',
+          '{{#if view.isUpdateInProgress}}',
+          '<div class="progress-info active progress">',
+          '<div class="bar" {{bindAttr style="view.progressWidth"}}></div></div>',
+          '{{else}}<label {{bindAttr class="view.updateStatusClass"}}>{{view.updateStatus}}</label>',
+          '{{/if}}</div>',
+          '{{#if view.parentView.secondary}}<button type="button" class="btn btn-info" {{bindAttr disabled="view.isUpdateInProgress"}} {{action onSecondary target="view.parentView"}}><i class="icon-repeat"></i>&nbsp;{{view.parentView.secondary}}</button>{{/if}}',
+          '{{#if view.parentView.primary}}<button type="button" class="btn" {{action onPrimary target="view.parentView"}}>{{view.parentView.primary}}</button>{{/if}}'
+        ].join('')),
+        classNames: ['modal-footer', 'host-checks-update'],
+        progressWidth: function(){
+          return 'width:'+App.router.get('wizardStep3Controller.checksUpdateProgress')+'%';
+        }.property('App.router.wizardStep3Controller.checksUpdateProgress'),
+        isUpdateInProgress: function(){
+          if((App.router.get('wizardStep3Controller.checksUpdateProgress') > 0) &&
+             (App.router.get('wizardStep3Controller.checksUpdateProgress') < 100)){
+            return true;
+          }
+        }.property('App.router.wizardStep3Controller.checksUpdateProgress'),
+        updateStatusClass:function(){
+          var status = App.router.get('wizardStep3Controller.checksUpdateStatus');
+          if(status === 'SUCCESS'){
+            return 'text-success';
+          } else if(status === 'FAILED'){
+            return 'text-error';
+          } else {
+            return null;
+          }
+        }.property('App.router.wizardStep3Controller.checksUpdateStatus'),
+        updateStatus:function(){
+          var status = App.router.get('wizardStep3Controller.checksUpdateStatus');
+          if(status === 'SUCCESS'){
+            return Em.I18n.t('installer.step3.warnings.updateChecks.success');
+          } else if(status === 'FAILED'){
+            return Em.I18n.t('installer.step3.warnings.updateChecks.failed');
+          } else {
+            return null;
+          }
+        }.property('App.router.wizardStep3Controller.checksUpdateStatus')
+      }),
+
+      bodyClass: Ember.View.extend({
+        templateName: require('templates/wizard/step3_host_warnings_popup'),
+        warnings: function(){
+          return App.router.get('wizardStep3Controller.warnings');
+        }.property('App.router.wizardStep3Controller.warnings'),
+        categories: function(){
+          var categories = this.get('warnings').getEach('hostName');
+          return categories;
+        }.property('warnings'),
+        category: 'All Hosts',
+        content: function(){
+          return this.get('warnings').findProperty('hostName', this.get('category'));
+        }.property('category', 'warnings'),
+        /**
+         * generate detailed content to show it in new window
+         */
+        contentInDetails: function(){
+          var content = this.get('content');
+          var newContent = '';
+          if(content.hostName == 'All Hosts'){
+            newContent += '<h4>Warnings across all hosts</h4>';
+          } else {
+            newContent += '<h4>Warnings on ' + content.hostName + '</h4>';
+          }
+          newContent += '<div>DIRECTORIES AND FILES</div><div>';
+          content.directoriesFiles.filterProperty('isWarn', true).forEach(function(path){
+              newContent += path.name + '&nbsp;'
+          });
+          if(content.directoriesFiles.filterProperty('isWarn', true).length == 0){
+            newContent += 'No warnings';
+          }
+          newContent += '</div><br/><div>PACKAGES</div><div>';
+          content.packages.filterProperty('isWarn', true).forEach(function(_package){
+              newContent += _package.name + '&nbsp;'
+          });
+          if(content.packages.filterProperty('isWarn', true).length == 0){
+            newContent += 'No warnings';
+          }
+          newContent += '</div><br/><div>PROCESSES</div><div>';
+          content.processes.filterProperty('isWarn', true).forEach(function(process, index){
+              newContent += '(' + content.hostName + ',' + process.pid + ',' + process.user + ')';
+              newContent += (index != (content.processes.filterProperty('isWarn', true).length-1)) ? ',' : '';
+          })
+          if(content.processes.filterProperty('isWarn', true).length == 0){
+            newContent += 'No warnings';
+          }
+          return newContent;
+        }.property('content'),
+        /**
+         * open new browser tab with detailed content
+         */
+        openWarningsInDialog: function(){
+          var newWindow = window.open('', this.get('category')+' warnings');
+          var newDocument = newWindow.document;
+          newDocument.write(this.get('contentInDetails'));
+          newWindow.focus();
+        }
+      })
+    })
   },
 
   // TODO: dummy button. Remove this after the hook up with actual REST API.

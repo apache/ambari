@@ -198,7 +198,7 @@ jQuery.extend($.fn.dataTableExt.afnFiltering.push(
             break;
           case 'ambari-bandwidth':
             if (cellValue && match) {
-              bandwidthFilter(cellValue, aData[inputFilters[i].iColumn]);
+              bandwidthFilter(cellValue, aData[inputFilters[i].iColumn], inputFilters[i].iColumn);
             }
             break;
           case 'star':
@@ -220,7 +220,8 @@ jQuery.extend($.fn.dataTableExt.afnFiltering.push(
         match = false;
         rowValue = (jQuery(rowValue).text()) ? jQuery(rowValue).text() : rowValue;
         for (var i = 0; i < options.length; i++) {
-          if (rowValue.indexOf(options[i]) !== -1) match = true;
+          var str = new RegExp('(\\W|^)' + options[i] + '(\\W|$)');
+          if (rowValue.search(str) !== -1) match = true;
         }
       }
 
@@ -254,17 +255,27 @@ jQuery.extend($.fn.dataTableExt.afnFiltering.push(
         }
       }
 
-      function bandwidthFilter(rangeExp, rowValue) {
+      function bandwidthFilter(rangeExp, rowValue, iColumn) {
         //rowValue = $(rowValue).text();
-        var compareChar = rangeExp.charAt(0);
+        var compareChar = isNaN(rangeExp.charAt(0)) ? rangeExp.charAt(0) : false;
         var compareScale = rangeExp.charAt(rangeExp.length - 1);
-        var compareValue = isNaN(parseFloat(compareScale)) ? parseFloat(rangeExp.substr(1, rangeExp.length - 2)) : parseFloat(rangeExp.substr(1, rangeExp.length - 1));
+        var compareValue = compareChar ? parseFloat(rangeExp.substr(1, rangeExp.length)) : parseFloat(rangeExp.substr(0, rangeExp.length));
         switch (compareScale) {
+          case 'g':
+            compareValue *= 1073741824;
+            break;
           case 'm':
             compareValue *= 1048576;
             break;
-          default:
+          case 'k':
             compareValue *= 1024;
+            break;
+          default:
+            if (iColumn=='4') {
+              compareValue *= 1073741824;
+            } else {
+              compareValue *= 1024;
+            }
         }
         rowValue = (jQuery(rowValue).text()) ? jQuery(rowValue).text() : rowValue;
 
@@ -280,6 +291,9 @@ jQuery.extend($.fn.dataTableExt.afnFiltering.push(
             case 'MB':
               convertedRowValue = parseFloat(rowValue)*1048576;
               break;
+            case 'GB':
+              convertedRowValue = parseFloat(rowValue)*1073741824;
+              break;
           }
         }
         match = false;
@@ -290,11 +304,10 @@ jQuery.extend($.fn.dataTableExt.afnFiltering.push(
           case '>':
             if (compareValue < convertedRowValue) match = true;
             break;
+          case false:
           case '=':
             if (compareValue == convertedRowValue) match = true;
             break;
-          default:
-            match = false;
         }
       }
 

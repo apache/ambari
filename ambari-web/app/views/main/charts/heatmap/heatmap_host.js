@@ -54,6 +54,12 @@ App.MainChartsHeatmapHostView = Em.View.extend({
         } else {
           val = val.toFixed(1);
         }
+      } else if (i == 'hostComponents') {
+        if (val == undefined) {
+          val = null;
+        } else {
+          val = val.filterProperty('isMaster').concat(val.filterProperty('isSlave')).mapProperty('displayName').join(', ');
+        }
       }
       view.set('details.' + i, val);
     });

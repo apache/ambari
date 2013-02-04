@@ -143,6 +143,9 @@ class TestPuppetExecutor(TestCase):
       self.subprocess_mockup.tmperr = tmperr
       return self.subprocess_mockup
 
+    def runShellKillPgrp(self, puppet):
+      puppet.terminate()  # note: In real code, subprocess.terminate() is not called
+      pass
 
   class Subprocess_mockup():
 
@@ -154,6 +157,7 @@ class TestPuppetExecutor(TestCase):
     was_terminated = False
     tmpout = None
     tmperr = None
+    pid=-1
 
     def communicate(self):
       self.started_event.set()

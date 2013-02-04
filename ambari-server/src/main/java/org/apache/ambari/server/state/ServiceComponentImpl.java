@@ -487,30 +487,27 @@ public class ServiceComponentImpl implements ServiceComponent {
 
   @Override
   public synchronized boolean canBeRemoved() {
-    State state = getDesiredState();
-    if (state != State.INIT
-        && state != State.UNINSTALLED) {
+    if (!getDesiredState().isRemovableState()) {
       return false;
     }
 
-    boolean safeToRemove = true;
     for (ServiceComponentHost sch : hostComponents.values()) {
       if (!sch.canBeRemoved()) {
-        safeToRemove = false;
         LOG.warn("Found non removable hostcomponent when trying to"
             + " delete service component"
             + ", clusterName=" + getClusterName()
             + ", serviceName=" + getServiceName()
             + ", componentName=" + getName()
             + ", hostname=" + sch.getHostName());
-        break;
+        return false;
       }
     }
-    return safeToRemove;
+    return true;
   }
 
   @Override
-  public synchronized void removeAllServiceComponentHosts()
+  @Transactional
+  public synchronized void deleteAllServiceComponentHosts()
       throws AmbariException {
     LOG.info("Deleting all servicecomponenthosts for component"
         + ", clusterName=" + getClusterName()
@@ -527,12 +524,16 @@ public class ServiceComponentImpl implements ServiceComponent {
             + ", hostname=" + sch.getHostName());
       }
     }
+
+    for (ServiceComponentHost serviceComponentHost : hostComponents.values()) {
+      serviceComponentHost.delete();
+    }
+
     hostComponents.clear();
-    // FIXME update DB
   }
 
   @Override
-  public synchronized void removeServiceComponentHosts(String hostname)
+  public synchronized void deleteServiceComponentHosts(String hostname)
       throws AmbariException {
     ServiceComponentHost sch = getServiceComponentHost(hostname);
     LOG.info("Deleting servicecomponenthost for cluster"
@@ -547,16 +548,39 @@ public class ServiceComponentImpl implements ServiceComponent {
           + ", componentName=" + getName()
           + ", hostname=" + sch.getHostName());
     }
+    sch.delete();
     hostComponents.remove(hostname);
-    // FIXME update DB
   }
 
   @Override
   public synchronized void deleteDesiredConfigs(Set<String> configTypes) {
+    componentConfigMappingDAO.removeByType(configTypes);
     for (String configType : configTypes) {
       desiredConfigs.remove(configType);
     }
-    componentConfigMappingDAO.removeByType(configTypes);
+  }
+
+  @Override
+  @Transactional
+  public synchronized void delete() throws AmbariException {
+    deleteAllServiceComponentHosts();
+
+    if (persisted) {
+      removeEntities();
+      persisted = false;
+    }
+
+    desiredConfigs.clear();
+  }
+
+  @Transactional
+  protected void removeEntities() throws AmbariException {
+    ServiceComponentDesiredStateEntityPK pk = new ServiceComponentDesiredStateEntityPK();
+    pk.setClusterId(getClusterId());
+    pk.setComponentName(getName());
+    pk.setServiceName(getServiceName());
+
+    serviceComponentDesiredStateDAO.removeByPK(pk);
   }
 
 }

@@ -55,6 +55,27 @@ public class ResourceImpl implements Resource {
     this.type = type;
   }
 
+  /**
+   * Copy constructor
+   *
+   * @param resource  the resource to copy
+   */
+  public ResourceImpl(Resource resource) {
+    this.type = resource.getType();
+
+    for (Map.Entry<String, Map<String, Object>> categoryEntry : resource.getPropertiesMap().entrySet()) {
+      String category = categoryEntry.getKey();
+      Map<String, Object> propertyMap = categoryEntry.getValue();
+      if (propertyMap != null) {
+        for (Map.Entry<String, Object> propertyEntry : propertyMap.entrySet()) {
+          String propertyId    = (category == null ? "" : category + "/") + propertyEntry.getKey();
+          Object propertyValue = propertyEntry.getValue();
+          setProperty(propertyId, propertyValue);
+        }
+      }
+    }
+  }
+
 
   // ----- Resource ----------------------------------------------------------
 

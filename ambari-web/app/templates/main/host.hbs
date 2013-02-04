@@ -17,7 +17,7 @@
 }}
 
 <div id="hosts">
-  {{#if controller.isAdmin}}
+  {{#if App.isAdmin}}
   <div class="box-header">
     <div class="button-section">
       <button class="btn btn-inverse add-host-button" {{action addHost}}>
@@ -41,16 +41,15 @@
       <th></th>
       <th></th>
     </tr>
+    <tr>
       <th class="first">&nbsp;</th>
-      <th class="notActive"><div class="view-wrapper">{{view view.nameFilterView viewName="nameFilterViewInstance"}}</div> <a href="#" {{action "clearFilterButtonClick" target="view"}} id="view_nameFilterViewInstance" class="ui-icon ui-icon-circle-close ui-name"></a></th>
-      <th class="notActive"><div class="view-wrapper">{{view view.rackFilterView viewName="ipFilterViewInstance"}}</div> <a href="#" {{action "clearFilterButtonClick" target="view"}} id="view_ipFilterViewInstance" class="ui-icon ui-icon-circle-close ui-rack"></a></th>
-      <th class="notActive"><div class="view-wrapper">{{view view.cpuFilterView viewName="cpuFilterViewInstance"}}</div> <a href="#" {{action "clearFilterButtonClick" target="view"}} id="view_cpuFilterViewInstance" class="ui-icon ui-icon-circle-close ui-cpu"></a></th>
-      <th class="notActive"><div class="view-wrapper">{{view view.ramFilterView viewName="ramFilterViewInstance"}}</div> <a href="#" {{action "clearFilterButtonClick" target="view"}} id="view_ramFilterViewInstance" class="ui-icon ui-icon-circle-close ui-ram"></a></th>
+      <th>{{view view.nameFilterView}}</th>
+      <th>{{view view.ipFilterView}}</th>
+      <th>{{view view.cpuFilterView}}</th>
+      <th>{{view view.ramFilterView}}</th>
       <th></th>
-      <th class="notActive"><div class="view-wrapper">{{view view.loadAvgFilterView viewName="loadAvgFilterViewInstance"}}</div> <a href="#" {{action "clearFilterButtonClick" target="view"}} id="view_loadAvgFilterViewInstance" class="ui-icon ui-icon-circle-close ui-load_avg"></a></th>
-      <th class="notActive"><input id="components_filter" type="hidden" />
-          <div class="view-wrapper">{{view view.componentsFilterView viewName="componentsFilterViewInstance"}}</div> <a href="#" {{action "clearFilterButtonClick" target="view"}} id="view_componentsFilterViewInstance" class="ui-icon ui-icon-circle-close ui-components"></a>
-      </th>
+      <th>{{view view.loadAvgFilterView}}</th>
+      <th>{{view view.componentsFilterView}}</th>
       <th></th>
       <th></th>
     </tr>
@@ -60,7 +59,7 @@
     {{#view view.HostView contentBinding="host"}}
     <tr>
       <td class="first">
-        <span {{bindAttr class="host.healthClass"}}></span>
+        <span {{bindAttr class="host.healthClass"}} {{bindAttr title="view.healthToolTip" }}></span>
       </td>
       <td class="name">
         <a title="{{unbound host.publicHostName}}" href="#" {{action "showDetails" host}}>{{unbound host.publicHostNameFormatted}}</a>

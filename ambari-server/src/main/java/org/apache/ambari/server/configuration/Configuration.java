@@ -47,7 +47,7 @@ public class Configuration {
   public static final String BOOTSTRAP_DIR_DEFAULT = "/var/run/ambari-server/bootstrap";
   public static final String WEBAPP_DIR = "webapp.dir";
   public static final String BOOTSTRAP_SCRIPT = "bootstrap.script";
-    public static final String BOOTSTRAP_SCRIPT_DEFAULT =  "/usr/bin/ambari_bootstrap";
+  public static final String BOOTSTRAP_SCRIPT_DEFAULT =  "/usr/bin/ambari_bootstrap";
   public static final String BOOTSTRAP_SETUP_AGENT_SCRIPT = "bootstrap.setup_agent.script";
   public static final String BOOTSTRAP_SETUP_AGENT_PASSWORD = "bootstrap.setup_agent.password";
   public static final String BOOTSTRAP_MASTER_HOSTNAME = "bootstrap.master_host_name";
@@ -70,21 +70,22 @@ public class Configuration {
 
 
   public static final String CLIENT_SECURITY_KEY = "client.security";
-  public static final String LDAP_USE_SSL_KEY = "authorization.ldap.useSSL";
+  public static final String CLIENT_API_PORT_KEY = "client.api.port";
+  public static final String LDAP_USE_SSL_KEY = "authentication.ldap.useSSL";
   public static final String LDAP_PRIMARY_URL_KEY =
-      "authorization.ldap.primaryUrl";
+      "authentication.ldap.primaryUrl";
   public static final String LDAP_SECONDARY_URL_KEY =
-      "authorization.ldap.secondaryUrl";
+      "authentication.ldap.secondaryUrl";
   public static final String LDAP_BASE_DN_KEY =
-      "authorization.ldap.baseDn";
+      "authentication.ldap.baseDn";
   public static final String LDAP_BIND_ANONYMOUSLY_KEY =
-      "authorization.ldap.bindAnonymously";
+      "authentication.ldap.bindAnonymously";
   public static final String LDAP_MANAGER_DN_KEY =
-      "authorization.ldap.managerDn";
+      "authentication.ldap.managerDn";
   public static final String LDAP_MANAGER_PASSWORD_KEY =
-      "authorization.ldap.managerPassword";
+      "authentication.ldap.managerPassword";
   public static final String LDAP_USERNAME_ATTRIBUTE_KEY =
-      "authorization.ldap.usernameAttribute";
+      "authentication.ldap.usernameAttribute";
 
   public static final String USER_ROLE_NAME_KEY =
       "authorization.userRoleName";
@@ -105,6 +106,9 @@ public class Configuration {
   public static final String OS_VERSION_KEY =
       "server.os_type";
 
+  public static final String SRVR_HOSTS_MAPPING = 
+      "server.hosts.mapping";
+
   private static final String SRVR_KSTR_DIR_DEFAULT = ".";
   public static final String SRVR_CRT_NAME_DEFAULT = "ca.crt";
   public static final String SRVR_KEY_NAME_DEFAULT = "ca.key";
@@ -116,6 +120,7 @@ public class Configuration {
       "/var/share/ambari/resources/";
 
   private static final String CLIENT_SECURITY_DEFAULT = "local";
+  private static final int CLIENT_API_PORT_DEFAULT = 8080;
 
   private static final String USER_ROLE_NAME_DEFAULT = "user";
   private static final String ADMIN_ROLE_NAME_DEFAULT = "admin";
@@ -128,6 +133,8 @@ public class Configuration {
 
   //TODO for development purposes only, should be changed to 'false'
   private static final String PERSISTENCE_IN_MEMORY_DEFAULT = "true";
+
+
 
 
   private static final Logger LOG = LoggerFactory.getLogger(
@@ -163,7 +170,7 @@ public class Configuration {
     configsMap.put(KSTR_NAME_KEY, properties.getProperty(
         KSTR_NAME_KEY, KSTR_NAME_DEFAULT));
     configsMap.put(SRVR_CRT_PASS_FILE_KEY, properties.getProperty(
-     SRVR_CRT_PASS_FILE_KEY, SRVR_CRT_PASS_FILE_DEFAULT));
+        SRVR_CRT_PASS_FILE_KEY, SRVR_CRT_PASS_FILE_DEFAULT));
     configsMap.put(PASSPHRASE_ENV_KEY, properties.getProperty(
         PASSPHRASE_ENV_KEY, PASSPHRASE_ENV_DEFAULT));
     configsMap.put(PASSPHRASE_KEY, System.getenv(configsMap.get(
@@ -175,7 +182,7 @@ public class Configuration {
     configsMap.put(RESOURCES_DIR_KEY, properties.getProperty(
         RESOURCES_DIR_KEY, RESOURCES_DIR_DEFAULT));
     configsMap.put(SRVR_CRT_PASS_LEN_KEY, properties.getProperty(
-     SRVR_CRT_PASS_LEN_KEY, SRVR_CRT_PASS_LEN_DEFAULT));
+        SRVR_CRT_PASS_LEN_KEY, SRVR_CRT_PASS_LEN_DEFAULT));
 
     File passFile = new File(configsMap.get(SRVR_KSTR_DIR_KEY) + File.separator
         + configsMap.get(SRVR_CRT_PASS_FILE_KEY));
@@ -189,12 +196,12 @@ public class Configuration {
         FileUtils.writeStringToFile(passFile, randStr);
 
       } catch (IOException e) {
-          e.printStackTrace();
-          throw new RuntimeException(
+        e.printStackTrace();
+        throw new RuntimeException(
             "Error reading certificate password from file");
       }
     } else {
-        LOG.info("Reading password from existing file");
+      LOG.info("Reading password from existing file");
       try {
         randStr = FileUtils.readFileToString(passFile);
       } catch (IOException e) {
@@ -226,7 +233,7 @@ public class Configuration {
       LOG.info("No configuration file " + CONFIG_FILE + " found in classpath.", fnf);
     } catch (IOException ie) {
       throw new IllegalArgumentException("Can't read configuration file " +
-       CONFIG_FILE, ie);
+          CONFIG_FILE, ie);
     }
 
     return properties;
@@ -235,7 +242,7 @@ public class Configuration {
   public File getBootStrapDir() {
     String fileName = properties.getProperty(BOOTSTRAP_DIR);
     if (fileName == null) {
-        fileName = BOOTSTRAP_DIR_DEFAULT;
+      fileName = BOOTSTRAP_DIR_DEFAULT;
     }
     return new File(fileName);
   }
@@ -287,6 +294,15 @@ public class Configuration {
   public String getWebAppDir() {
     LOG.info("Web App DIR test " + properties.getProperty(WEBAPP_DIR));
     return properties.getProperty(WEBAPP_DIR, "web");
+  }
+
+  /**
+   * Get the file that will be used for host mapping.
+   * @return null if such a file is not present, value if present.
+   */
+  public String getHostsMapFile() {
+    LOG.info("Hosts Mapping File " +  properties.getProperty(SRVR_HOSTS_MAPPING));
+    return properties.getProperty(SRVR_HOSTS_MAPPING);
   }
 
   /**
@@ -378,6 +394,11 @@ public class Configuration {
 
   public String getMasterHostname(String defaultValue) {
     return properties.getProperty(BOOTSTRAP_MASTER_HOSTNAME, defaultValue);
+  }
+
+
+  public int getClientApiPort() {
+    return Integer.parseInt(properties.getProperty(CLIENT_API_PORT_KEY, String.valueOf(CLIENT_API_PORT_DEFAULT)));
   }
 
 }

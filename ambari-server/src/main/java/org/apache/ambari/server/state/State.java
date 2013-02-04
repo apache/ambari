@@ -121,4 +121,22 @@ public enum State {
     }
   }
 
+  /**
+   * Indicates whether or not the resource with this state
+   * can be removed.
+   *
+   * @return true if this is a removable state
+   */
+  public boolean isRemovableState() {
+    switch (State.values()[this.state]) {
+      case INIT:
+      case INSTALLING:
+      case INSTALLED:
+      case INSTALL_FAILED:
+      case UNINSTALLED:
+        return true;
+      default:
+        return false;
+    }
+  }
 }

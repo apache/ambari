@@ -21,9 +21,10 @@ var App = require('app');
 
 App.WizardController = Em.Controller.extend({
 
-  isStepDisabled: [],
+  isStepDisabled: null,
 
   init: function () {
+    this.set('isStepDisabled', []);
     this.clusters = App.Cluster.find();
     this.isStepDisabled.pushObject(Ember.Object.create({
       step: 1,
@@ -41,7 +42,7 @@ App.WizardController = Em.Controller.extend({
   },
 
   setStepsEnable: function () {
-    for (var i = 2; i <= this.totalSteps; i++) {
+    for (var i = 1; i <= this.totalSteps; i++) {
       var step = this.get('isStepDisabled').findProperty('step', i);
       if (i <= this.get('currentStep')) {
         step.set('value', false);
@@ -132,6 +133,16 @@ App.WizardController = Em.Controller.extend({
   gotoStep: function (step) {
     if (this.get('isStepDisabled').findProperty('step', step).get('value') !== false) {
       return;
+    }
+    // if going back from Step 9 in Install Wizard, delete the checkpoint so that the user is not redirected
+    // to Step 9
+    if (this.get('content.controllerName') == 'installerController' && this.get('currentStep') === '9' && step < 9) {
+      App.clusterStatus.setClusterStatus({
+        clusterName: this.get('clusterName'),
+        clusterState: 'CLUSTER_NOT_CREATED_1',
+        wizardControllerName: 'installerController',
+        localdb: App.db.data
+      });
     }
     if ((this.get('currentStep') - step) > 1) {
       App.ModalPopup.show({

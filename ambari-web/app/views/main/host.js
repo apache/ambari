@@ -18,6 +18,8 @@
 
 var App = require('app');
 require('utils/data_table');
+var filters = require('views/common/filter_view');
+var date = require('utils/date');
 
 App.MainHostView = Em.View.extend({
   templateName:require('templates/main/host'),
@@ -46,6 +48,8 @@ App.MainHostView = Em.View.extend({
       "bSortCellsTop": true,
       "iDisplayLength": 10,
       "aLengthMenu": [[10, 25, 50, 100, -1], [10, 25, 50, 100, "All"]],
+      "oSearch": {"bSmart":false},
+      "bAutoWidth": false,
       "aoColumns":[
         { "bSortable": false },
         { "sType":"html" },
@@ -57,7 +61,8 @@ App.MainHostView = Em.View.extend({
         { "sType":"html", "bSortable": false  },
         { "bVisible": false }, // hidden column for raw public host name value
         { "bVisible": false } // hidden column for raw components list
-      ]
+      ],
+      "aaSorting": [[ 1, "asc" ]]
     });
     this.set('oTable', oTable);
     this.set('allComponentsChecked', true); // select all components (checkboxes) on start.
@@ -66,9 +71,37 @@ App.MainHostView = Em.View.extend({
   HostView:Em.View.extend({
     content:null,
 
+    healthToolTip: function(){
+      var hostComponents = this.get('content.hostComponents').filter(function(item){
+        if(item.get('workStatus') !== App.HostComponentStatus.started){
+          return true;
+        }
+      });
+      var output = '';
+      switch (this.get('content.healthClass')){
+        case 'health-status-DEAD':
+          hostComponents = hostComponents.filterProperty('isMaster', true);
+          output = Em.I18n.t('hosts.host.healthStatus.mastersDown');
+          hostComponents.forEach(function(hc, index){
+            output += (index == (hostComponents.length-1)) ? hc.get('displayName') : (hc.get('displayName')+", ");
+          }, this);
+          break;
+        case 'health-status-DEAD-YELLOW':
+          output = Em.I18n.t('hosts.host.healthStatus.heartBeatNotReceived');
+          break;
+        case 'health-status-DEAD-ORANGE':
+          hostComponents = hostComponents.filterProperty('isSlave', true);
+          output = Em.I18n.t('hosts.host.healthStatus.slavesDown');
+          hostComponents.forEach(function(hc, index){
+            output += (index == (hostComponents.length-1)) ? hc.get('displayName') : (hc.get('displayName')+", ");
+          }, this);
+          break;
+      }
+      return output;
+    }.property('content.healthClass'),
+
     shortLabels: function() {
-      var components = this.get('labels');
-      var labels = this.get('content.components').getEach('displayName');
+      var labels = this.get('content.hostComponents').getEach('displayName');
       var shortLabels = '';
       var c = 0;
       labels.forEach(function(label) {
@@ -87,8 +120,8 @@ App.MainHostView = Em.View.extend({
     }.property('labels'),
 
     labels: function(){
-      return this.get('content.components').getEach('displayName').join('\n');
-    }.property('content.components.@each'),
+      return this.get('content.hostComponents').getEach('displayName').join('\n');
+    }.property('content.hostComponents.@each'),
 
     usageStyle:function () {
       return "width:" + this.get('content.diskUsage') + "%";
@@ -97,320 +130,169 @@ App.MainHostView = Em.View.extend({
 
   }),
 
-  nameFilterView: Em.TextField.extend({
-    classNames:['input-medium'],
-    type:'text',
-    placeholder: 'Any Name',
-    filtering:function(){
-      if (this.get('value') == '') {
-        this.$().closest('th').addClass('notActive');
-      }
-      else {
-        this.$().closest('th').removeClass('notActive');
-      }
-      this.get('parentView').get('applyFilter')(this.get('parentView'), 8, this.get('value'));
-    }.observes('value')
-  }),
-
-  rackFilterView: Em.TextField.extend({
-    classNames:['input-medium'],
-    type:'text',
-    placeholder: 'Any Name',
-    filtering:function(){
-      if (this.get('value') == '') {
-        this.$().closest('th').addClass('notActive');
-      }
-      else {
-        this.$().closest('th').removeClass('notActive');
-      }
-      this.get('parentView').get('applyFilter')(this.get('parentView'), 2, this.get('value'));
-    }.observes('value')
-  }),
   /**
-   * Filter-field for cpu
+   * Filter view for name column
+   * Based on <code>filters</code> library
    */
-  cpuFilterView: Em.TextField.extend({
-    classNames:['input-mini'],
-    type:'text',
-    placeholder: 'Any ',
-    elementId:'cpu_filter',
-    filtering:function(){
-      if (this.get('value') == '') {
-        this.$().closest('th').addClass('notActive');
-      }
-      else {
-        this.$().closest('th').removeClass('notActive');
-      }
-      this.get('parentView').get('applyFilter')(this.get('parentView'), 3);
-    }.observes('value')
+  nameFilterView: filters.createTextView({
+    onChangeValue: function(){
+      this.get('parentView').updateFilter(8, this.get('value'));
+    }
   }),
+
   /**
-   * Filter-field for load avg
+   * Filter view for ip column
+   * Based on <code>filters</code> library
    */
-  loadAvgFilterView: Em.TextField.extend({
-    classNames:['input-mini'],
-    type:'text',
-    placeholder: 'Any ',
-    elementId:'load_avg_filter',
-    filtering:function(){
-      if (this.get('value') == '') {
-        this.$().closest('th').addClass('notActive');
-      }
-      else {
-        this.$().closest('th').removeClass('notActive');
-      }
-      this.get('parentView').get('applyFilter')(this.get('parentView'), 5);
-    }.observes('value')
+  ipFilterView: filters.createTextView({
+    onChangeValue: function(){
+      this.get('parentView').updateFilter(2, this.get('value'));
+    }
   }),
+
   /**
-   * Filter-field for RAM
+   * Filter view for Cpu column
+   * Based on <code>filters</code> library
    */
-  ramFilterView: Em.TextField.extend({
-    classNames:['input-mini'],
-    type:'text',
-    placeholder: 'Any ',
-    elementId: 'ram_filter',
-    filtering:function(){
-      if (this.get('value') == '') {
-        this.$().closest('th').addClass('notActive');
-      }
-      else {
-        this.$().closest('th').removeClass('notActive');
-      }
-      this.get('parentView').get('applyFilter')(this.get('parentView'), 4);
-    }.observes('value')
+  cpuFilterView: filters.createTextView({
+    fieldType: 'input-mini',
+    fieldId: 'cpu_filter',
+    onChangeValue: function(){
+      this.get('parentView').updateFilter(3);
+    }
   }),
+
   /**
-   * Filter-list for Components
+   * Filter view for LoadAverage column
+   * Based on <code>filters</code> library
    */
-  componentsFilterView: Em.View.extend({
-    classNames:['btn-group'],
-    classNameBindings: ['open'],
-    multiple:true,
-    open: false,
+  loadAvgFilterView: filters.createTextView({
+    fieldType: 'input-mini',
+    fieldId: 'load_avg_filter',
+    onChangeValue: function(){
+      this.get('parentView').updateFilter(5);
+    }
+  }),
 
-    isFilterOpen:false,
+  /**
+   * Filter view for Ram column
+   * Based on <code>filters</code> library
+   */
+  ramFilterView: filters.createTextView({
+    fieldType: 'input-mini',
+    fieldId: 'ram_filter',
+    onChangeValue: function(){
+      this.get('parentView').updateFilter(4);
+    }
+  }),
 
-    btnGroupClass:function () {
-      return this.get('isFilterOpen') ? 'btn-group open' : 'btn-group';
-    }.property('isFilterOpen'),
+  /**
+   * Filter view for HostComponents column
+   * Based on <code>filters</code> library
+   */
+  componentsFilterView: filters.createComponentView({
+    /**
+     * Inner FilterView. Used just to render component. Value bind to <code>mainview.value</code> property
+     * Base methods was implemented in <code>filters.componentFieldView</code>
+     */
+    filterView: filters.componentFieldView.extend({
+      templateName: require('templates/main/host/component_filter'),
 
-    allComponentsChecked:false,
-    toggleAllComponents:function () {
-      this.set('masterComponentsChecked', this.get('allComponentsChecked'));
-      this.set('slaveComponentsChecked', this.get('allComponentsChecked'));
-      this.set('clientComponentsChecked', this.get('allComponentsChecked'));
-    }.observes('allComponentsChecked'),
+      /**
+       * Next three lines bind data to this view
+       */
+      masterComponentsBinding: 'controller.masterComponents',
+      slaveComponentsBinding: 'controller.slaveComponents',
+      clientComponentsBinding: 'controller.clientComponents',
 
-    masterComponentsChecked:false,
-    toggleMasterComponents:function () {
-      var checked = this.get('masterComponentsChecked');
-      this.get('masterComponents').forEach(function (comp) {
-        comp.set('checkedForHostFilter', checked);
-      });
-    }.observes('masterComponentsChecked'),
+      /**
+       * Checkbox for quick selecting/deselecting of master components
+       */
+      masterComponentsChecked:false,
+      toggleMasterComponents:function () {
+        this.get('masterComponents').setEach('checkedForHostFilter', this.get('masterComponentsChecked'));
+      }.observes('masterComponentsChecked'),
 
-    slaveComponentsChecked:false,
-    toggleSlaveComponents:function () {
-      var checked = this.get('slaveComponentsChecked');
-      this.get('slaveComponents').forEach(function (comp) {
-        comp.set('checkedForHostFilter', checked);
-      });
-    }.observes('slaveComponentsChecked'),
+      /**
+       * Checkbox for quick selecting/deselecting of slave components
+       */
+      slaveComponentsChecked:false,
+      toggleSlaveComponents:function () {
+        this.get('slaveComponents').setEach('checkedForHostFilter', this.get('slaveComponentsChecked'));
+      }.observes('slaveComponentsChecked'),
 
-    clientComponentsChecked: false,
-    toggleClientComponents: function() {
-      var checked = this.get('clientComponentsChecked');
-      this.get('clientComponents').forEach(function(comp) {
-        comp.set('checkedForHostFilter', checked);
-      });
-    }.observes('clientComponentsChecked'),
+      /**
+       * Checkbox for quick selecting/deselecting of client components
+       */
+      clientComponentsChecked: false,
+      toggleClientComponents: function() {
+        this.get('clientComponents').setEach('checkedForHostFilter', this.get('clientComponentsChecked'));
+      }.observes('clientComponentsChecked'),
 
-    masterComponents:function(){
-      var masterComponents = [];
-      for(var i = 0; i < this.get('parentView').get('controller.masterComponents').length; i++) {
-        masterComponents.push(this.get('parentView').get('controller.masterComponents')[i]);
-      }
-      return masterComponents;
-    }.property('parentView.controller.masterComponents'),
+      /**
+       * Clear filter.
+       * Called by parent view, when user clicks on <code>x</code> button(clear button)
+       */
+      clearFilter:function() {
+        this.set('masterComponentsChecked', false);
+        this.set('slaveComponentsChecked', false);
+        this.set('clientComponentsChecked', false);
 
-    slaveComponents:function(){
-      var slaveComponents = [];
-      for(var i = 0; i < this.get('parentView').get('controller.slaveComponents').length; i++) {
-        slaveComponents.push(this.get('parentView').get('controller.slaveComponents')[i]);
-      }
-      return slaveComponents;
-    }.property('parentView.controller.slaveComponents'),
+        this.get('masterComponents').setEach('checkedForHostFilter', false);
+        this.get('slaveComponents').setEach('checkedForHostFilter', false);
+        this.get('clientComponents').setEach('checkedForHostFilter', false);
 
-    clientComponents: function() {
-      var clientComponents = [];
-      for (var i = 0; i < this.get('parentView').get('controller.clientComponents').length; i++) {
-        clientComponents.push(this.get('parentView').get('controller.clientComponents')[i]);
-      }
-      return clientComponents;
-    }.property('parentView.controller.clientComponents'),
+        this._super();
+      },
 
-    template: Ember.Handlebars.compile('<div {{bindAttr class="view.btnGroupClass"}} >'+
-      '<button class="btn btn-info single-btn-group" {{action "clickFilterButton" target="view"}}>' +
-        'Components ' +
-        '<span class="caret"></span>' +
-       '</button>' +
-        '<ul class="dropdown-menu filter-components" id="filter-dropdown">' +
-          '<li>' +
-            '<ul>' +
-              '<li>' +
-                  '<label class="checkbox">' +
-                    '{{view Ember.Checkbox checkedBinding="view.allComponentsChecked"}} All' +
-                  '</label>' +
-                '</li>' +
-                '<li>' +
-                  '<label class="checkbox">' +
-                    '{{view Ember.Checkbox checkedBinding="view.masterComponentsChecked"}} Master Components:' +
-                  '</label>' +
-                  '<ul>' +
-                    '{{#each component in masterComponents}}' +
-                      '<li>' +
-                        '<label class="checkbox">' +
-                          '{{view Ember.Checkbox checkedBinding="component.checkedForHostFilter" }} {{unbound component.displayName}}' +
-                        '</label>' +
-                      ' </li>' +
-                    '{{/each}}' +
-                  '</ul>' +
-                '</li>' +
-                '<li>' +
-                  '<label class="checkbox">' +
-                    '{{view Ember.Checkbox checkedBinding="view.slaveComponentsChecked"}} Slave Components:' +
-                  '</label>' +
-                  '<ul>' +
-                    '{{#each component in slaveComponents}}' +
-                      '<li>' +
-                        '<label class="checkbox">' +
-                          '{{view Ember.Checkbox checkedBinding="component.checkedForHostFilter" }} {{unbound component.displayName}}' +
-                        '</label>' +
-                      '</li>' +
-                    '{{/each}}' +
-                  '</ul>' +
-                '</li>' +
-                '<li>' +
-                  '<label class="checkbox">' +
-                    '{{view Ember.Checkbox checkedBinding="view.clientComponentsChecked"}} Client Components:' +
-                  '</label>' +
-                  '<ul>' +
-                    '{{#each component in clientComponents}}' +
-                      '<li>' +
-                        '<label class="checkbox">' +
-                          '{{view Ember.Checkbox checkedBinding="component.checkedForHostFilter" }} {{unbound component.displayName}}' +
-                        '</label>' +
-                      '</li>' +
-                    '{{/each}}' +
-                  '</ul>' +
-                '</li>' +
-            '</ul>' +
-          '</li>' +
-          '<li>' +
-            '<button class="btn" {{action "closeFilters" target="view"}}>' +
-              'Cancel' +
-            '</button> ' +
-            '<button class="btn btn-primary" {{action "applyFilter" target="view"}}>' +
-              'Apply' +
-            '</button>' +
-          '</li>' +
-        '</ul>' +
-      '</div>'),
+      /**
+       * Onclick handler for <code>Apply filter</code> button
+       */
+      applyFilter:function() {
+        this._super();
 
-    clearFilter:function(self) {
-      self.set('allComponentsChecked', true);
-      self.set('allComponentsChecked', false);
-      jQuery('#components_filter').val([]);
-      self.get('parentView').get('oTable').fnFilter('', 6);
-      jQuery('#components_filter').closest('th').addClass('notActive');
-    },
-    closeFilters:function () {
-      $(document).unbind('click');
-      this.clickFilterButton();
-    },
+        var chosenComponents = [];
 
-    clickFilterButton:function () {
-      var self = this;
-      this.set('isFilterOpen', !this.get('isFilterOpen'));
-      if (this.get('isFilterOpen')) {
-        var filters = App.router.get('mainHostController.filters.components');
-        $('.filter-component').each(function() {
-          var componentId = parseInt($(this).attr('id').replace('component-', ''));
-          var index = filters.indexOf(componentId);
-          $(this).attr('checked', index == -1);
+        this.get('masterComponents').filterProperty('checkedForHostFilter', true).forEach(function(item){
+          chosenComponents.push(item.get('displayName'));
         });
-
-        var dropDown = $('#filter-dropdown');
-        var firstClick = true;
-        $(document).bind('click', function (e) {
-          if (!firstClick && $(e.target).closest(dropDown).length == 0) {
-            self.set('isFilterOpen', false);
-            $(document).unbind('click');
-          }
-          firstClick = false;
+        this.get('slaveComponents').filterProperty('checkedForHostFilter', true).forEach(function(item){
+          chosenComponents.push(item.get('displayName'));
         });
-      }
-    },
+        this.get('clientComponents').filterProperty('checkedForHostFilter', true).forEach(function(item){
+          chosenComponents.push(item.get('displayName'));
+        });
+        this.set('value', chosenComponents.toString());
+      },
 
-    didInsertElement:function () {
-      if (this.get('controller.comeWithFilter')) {
-        this.applyFilter();
-        this.closeFilters();
+      didInsertElement:function () {
+        if (this.get('controller.comeWithFilter')) {
+          this.applyFilter();
+          this.set('controller.comeWithFilter', false);
+        } else {
+          this.clearFilter();
+        }
       }
-    },
 
-    applyFilter:function() {
-      var chosenComponents = new Array();
-
-      this.set('isFilterOpen', !this.get('isFilterOpen'));
-      this.get('masterComponents').forEach(function(item){
-        if(item.get('checkedForHostFilter')) chosenComponents.push(item.get('displayName'));
-      });
-      this.get('slaveComponents').forEach(function(item){
-        if(item.get('checkedForHostFilter')) chosenComponents.push(item.get('displayName'));
-      });
-      this.get('clientComponents').forEach(function(item){
-        if(item.get('checkedForHostFilter')) chosenComponents.push(item.get('displayName'));
-      });
-      jQuery('#components_filter').val(chosenComponents);
-      this.get('parentView').get('applyFilter')(this.get('parentView'), 9);
-      if (chosenComponents.length == 0) {
-        this.$().closest('th').addClass('notActive');
-      }
-      else {
-        this.$().closest('th').removeClass('notActive');
-      }
+    }),
+    fieldId: 'components_filter',
+    onChangeValue: function(){
+      this.get('parentView').updateFilter(9);
     }
   }),
+
+  startIndex : function(){
+    return Math.random();
+  }.property(),
+
   /**
-   * Clear selected filter
-   * @param event
-   */
-  clearFilterButtonClick: function(event) {
-    var viewName = event.target.id.replace('view_', '');
-    var elementId = this.get(viewName).get('elementId');
-    if(this.get(viewName).get('tagName') === 'input') {
-      this.get(viewName).set('value', '');
-    }
-    if(this.get(viewName).get('tagName') === 'select') {
-      this.get(viewName).set('value', 'Any');
-      this.get(viewName).change();
-    }
-    if(this.get(viewName).get('multiple')) {
-      this.get(viewName).get('clearFilter')(this.get(viewName));
-    }
-  },
-  /**
-   * apply each filter to dataTable
+   * Apply each filter to dataTable
    *
-   * @param {parentView}
-   * @param {iColumn} number of column by which filter
-   * @param {value}
+   * @param iColumn number of column by which filter
+   * @param value
    */
-  applyFilter:function(parentView, iColumn, value) {
-    value = (value) ? value : '';
-    parentView.get('oTable').fnFilter(value, iColumn);
+  updateFilter: function(iColumn, value){
+    this.get('oTable').fnFilter(value || '', iColumn);
   }
 
 });

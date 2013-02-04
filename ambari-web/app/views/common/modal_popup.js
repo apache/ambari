@@ -23,7 +23,7 @@ App.ModalPopup = Ember.View.extend({
   template: Ember.Handlebars.compile([
     '<div class="modal-backdrop"></div><div class="modal" id="modal" tabindex="-1" role="dialog" aria-labelledby="modal-label" aria-hidden="true">',
     '<div class="modal-header">',
-    '<a class="close" {{action onClose target="view"}}>x</a>',
+    '{{#if showCloseButton}}<a class="close" {{action onClose target="view"}}>x</a>{{/if}}',
     '<h3 id="modal-label">',
     '{{#if headerClass}}{{view headerClass}}',
     '{{else}}{{header}}{{/if}}',
@@ -34,11 +34,15 @@ App.ModalPopup = Ember.View.extend({
     '{{else}}{{#if encodeBody}}{{body}}{{else}}{{{body}}}{{/if}}{{/if}}',
     '</div>',
     '{{#if showFooter}}',
+    '{{#if footerClass}}{{view footerClass}}',
+    '{{else}}',
     '<div class="modal-footer">',
     '{{#if view.secondary}}<a class="btn" {{action onSecondary target="view"}}>{{view.secondary}}</a>{{/if}}',
     '{{#if view.primary}}<a class="btn btn-success" {{action onPrimary target="view"}}>{{view.primary}}</a>{{/if}}',
     '</div>',
     '{{/if}}',
+    '{{/if}}',
+
     '</div>'
   ].join('\n')),
 
@@ -67,12 +71,31 @@ App.ModalPopup = Ember.View.extend({
 
   showFooter: true,
 
+  /**
+   * Hide or show 'X' button for closing popup
+   */
+  showCloseButton: true,
+
   didInsertElement: function(){
     if(this.autoHeight){
       this._super();
       var block = this.$().find('#modal > .modal-body').first();
-      block.css('max-height', $(window).height()- block.offset().top - 100); // fix popup height
+      block.css('max-height', $(window).height()- block.offset().top - 300); // fix popup height
     }
+  },
+
+  fitHeight: function(){
+    var popup = this.$().find('#modal');
+    var block = this.$().find('#modal > .modal-body');
+    var wh = $(window).height();
+
+    var top = wh * .05;
+    popup.css({
+      'top' : top + 'px',
+      'marginTop' : 0
+    });
+
+    block.css('max-height', $(window).height()- top * 2 - 100);
   }
 });
 
@@ -81,6 +104,7 @@ App.ModalPopup.reopenClass({
   show: function(options) {
     var popup = this.create(options);
     popup.appendTo('#wrapper');
+    return popup;
   }
 
 })

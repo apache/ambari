@@ -22,7 +22,12 @@ App.MainAppsItemDagView = Em.View.extend({
   templateName: require('templates/main/apps/item/dag'),
   elementId : 'jobs',
   content:function(){
-    return this.get('controller.content.jobs');
+    //if(this.get("controller.jobsLoaded") == true)
+   // {
+      return this.get('controller.content.jobs');
+  //  }
+      return this.get('controller.content.jobs');
+  //  }
   }.property('controller.content.jobs'),
 
   classNames:['table','dataTable'],
@@ -35,11 +40,13 @@ App.MainAppsItemDagView = Em.View.extend({
     c.forEach(function(item, index){
       result[index] = new Object({
         'name' : item.get('id'),
-        'entityName' : item.get('workflowEntityName'),
+        'entityName' : item.get('workflow_entity_name'),
         'status' : item.get('status') == 'SUCCESS',
         'info' : [],
-        'input' : item.get('inputBytes'),
-        'output' : item.get('outputBytes')
+        'input' : item.get('input'),
+        'output' : item.get('output'),
+        'submitTime' : item.get('submit_time'),
+        'elapsedTime' : item.get('elapsed_time')
       })
     });
     return result;
@@ -61,6 +68,29 @@ App.MainAppsItemDagView = Em.View.extend({
     });
 
   }.observes('controller.content.loadAllJobs'),
+
+  resizeModal: function () {
+    var modal = $('.modal');
+    var body = $('body');
+    modal.find('.modal-body').first().css('max-height', 'none');
+    var modalHeight = modal.height() + 300;
+    var bodyHeight = body.height();
+    if (modalHeight > bodyHeight) {
+      modal.css('top', '20px');
+      $('.modal-body').height(bodyHeight - 180);
+    } else {
+      modal.css('top', (bodyHeight - modalHeight) / 2 + 'px');
+    }
+
+    var modalWidth = modal.width();
+    var bodyWidth = body.width();
+    if (modalWidth > bodyWidth) {
+      modal.css('left', '10px');
+      modal.width(bodyWidth - 20);
+    } else {
+      modal.css('left', (bodyWidth - modalWidth) / 2 + 'px');
+    }
+  },
 
   didInsertElement: function(){
     this.onLoad();
@@ -101,9 +131,9 @@ App.MainAppsItemDagView = Em.View.extend({
     innerTable.fnSettings().oFeatures.bFilter = false;
     var dagSchema = this.get('controller.content.workflowContext');
     var jobs = this.get('jobs');
-    var graph = new DagViewer(false, 'dag_viewer')
-        .setPhysicalParametrs(this.$().width(), 300, -800, 0.01)
+    this.resizeModal();
+    var graph = new DagViewer('dag_viewer')
         .setData(dagSchema, jobs)
-        .drawDag(10, 20, 100);
+        .drawDag(this.$().width(), 300, 20);
   }
 });

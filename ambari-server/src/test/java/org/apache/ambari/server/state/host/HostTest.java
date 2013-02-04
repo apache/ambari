@@ -29,10 +29,10 @@ import java.util.List;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.actionmanager.ActionManager;
 import org.apache.ambari.server.agent.ActionQueue;
+import org.apache.ambari.server.agent.AgentEnv;
 import org.apache.ambari.server.agent.DiskInfo;
 import org.apache.ambari.server.agent.HeartBeatHandler;
 import org.apache.ambari.server.agent.HostInfo;
-import org.apache.ambari.server.agent.TestHeartbeatHandler;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
 import org.apache.ambari.server.orm.dao.HostDAO;
@@ -142,15 +142,19 @@ public class HostTest {
 
     AgentVersion agentVersion = null;
     long currentTime = System.currentTimeMillis();
+    
+    AgentEnv agentEnv = new AgentEnv();
 
     HostRegistrationRequestEvent e =
         new HostRegistrationRequestEvent("foo", agentVersion, currentTime,
-            info);
+            info, agentEnv);
     if (!firstReg) {
       Assert.assertTrue(host.isPersisted());
     }
     host.handleEvent(e);
     Assert.assertEquals(currentTime, host.getLastRegistrationTime());
+    
+    Assert.assertNotNull(host.getLastAgentEnv());
 
     HostEntity entity = hostDAO.findByName(host.getHostName());
     Assert.assertEquals(currentTime,
@@ -173,7 +177,7 @@ public class HostTest {
   private void sendHealthyHeartbeat(Host host, long counter)
       throws Exception {
     HostHealthyHeartbeatEvent e = new HostHealthyHeartbeatEvent(
-        host.getHostName(), counter);
+        host.getHostName(), counter, null);
     host.handleEvent(e);
   }
 

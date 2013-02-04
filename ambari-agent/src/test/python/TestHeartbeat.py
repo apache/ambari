@@ -29,12 +29,7 @@ import time
 
 class TestHeartbeat(TestCase):
 
-  def setUp(self):
-    testsPath = os.path.dirname(os.path.realpath(__file__))
-    self.dictPath = testsPath + os.sep + '..' + os.sep + '..' + os.sep + 'main' + os.sep + 'python' + os.sep + 'ambari_agent' + os.sep + 'servicesToPidNames.dict'
-
   def test_build(self):
-    AmbariConfig.config.set('services','serviceToPidMapFile', self.dictPath)
     actionQueue = ActionQueue(AmbariConfig.AmbariConfig().getConfig())
     heartbeat = Heartbeat(actionQueue)
     result = heartbeat.build(100)
@@ -47,19 +42,20 @@ class TestHeartbeat(TestCase):
     self.assertEquals(len(result['nodeStatus']), 2)
     self.assertEquals(result['nodeStatus']['cause'], "NONE")
     self.assertEquals(result['nodeStatus']['status'], "HEALTHY")
-    self.assertEquals(len(result), 6)
+    # result may or may NOT have an agentEnv structure in it
+    self.assertEquals((len(result) is 6) or (len(result) is 7), True)
     self.assertEquals(not heartbeat.reports, True, "Heartbeat should not contain task in progress")
 
 
   def test_heartbeat_with_status(self):
-    AmbariConfig.config.set('services','serviceToPidMapFile', self.dictPath)
     actionQueue = ActionQueue(AmbariConfig.AmbariConfig().getConfig())
     heartbeat = Heartbeat(actionQueue)
     statusCommand = {
       "serviceName" : 'HDFS',
       "commandType" : "STATUS_COMMAND",
       "clusterName" : "",
-      "componentName" : "DATANODE"
+      "componentName" : "DATANODE",
+      'configurations':{'global' : {}}
     }
     actionQueue.put(statusCommand)
     actionQueue.start()
@@ -70,7 +66,6 @@ class TestHeartbeat(TestCase):
     self.assertEquals(len(result['componentStatus']) > 0, True, 'Heartbeat should contain status of HDFS components')
 
   def test_heartbeat_with_status_multiple(self):
-    AmbariConfig.config.set('services','serviceToPidMapFile', self.dictPath)
     actionQueue = ActionQueue(AmbariConfig.AmbariConfig().getConfig())
     actionQueue.IDLE_SLEEP_TIME = 0.01
     heartbeat = Heartbeat(actionQueue)
@@ -81,7 +76,8 @@ class TestHeartbeat(TestCase):
         "serviceName" : 'HDFS',
         "commandType" : "STATUS_COMMAND",
         "clusterName" : "",
-        "componentName" : "DATANODE"
+        "componentName" : "DATANODE",
+        'configurations':{'global' : {}}
       }
       actionQueue.put(statusCommand)
       time.sleep(0.1)
@@ -97,7 +93,6 @@ class TestHeartbeat(TestCase):
     self.assertEquals(max_number_of_status_entries == NUMBER_OF_COMPONENTS, True)
 
   def test_heartbeat_with_task_in_progress(self):
-    AmbariConfig.config.set('services','serviceToPidMapFile', self.dictPath)
     actionQueue = ActionQueue(AmbariConfig.AmbariConfig().getConfig())
     actionQueue.commandInProgress= {
       'role' : "role",
@@ -108,7 +103,8 @@ class TestHeartbeat(TestCase):
       'stderr' : 'none',
       'exitCode' : 777,
       'serviceName' : "serviceName",
-      'status' : 'IN_PROGRESS'
+      'status' : 'IN_PROGRESS',
+      'configurations':{'global' : {}}
     }
     heartbeat = Heartbeat(actionQueue)
     result = heartbeat.build(100)

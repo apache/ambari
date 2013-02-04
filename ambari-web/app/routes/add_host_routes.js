@@ -44,9 +44,12 @@ module.exports = Em.Route.extend({
           this.hide();
           App.router.get('updateController').set('isWorking', true);
           router.transitionTo('hosts.index');
+        },
+        didInsertElement: function(){
+          this.fitHeight();
         }
       });
-
+      App.clusterStatus.updateFromServer();
       var currentClusterStatus = App.clusterStatus.get('value');
 
       if (currentClusterStatus) {
@@ -63,9 +66,6 @@ module.exports = Em.Route.extend({
           case 'ADD_HOSTS_INSTALLED_4' :
             addHostController.setCurrentStep('6');
             App.db.data = currentClusterStatus.localdb;
-            break;
-          case 'ADD_HOSTS_COMPLETED_5' :
-            router.transitionTo('main.index');
             break;
           default:
             break;
@@ -128,7 +128,12 @@ module.exports = Em.Route.extend({
         controller.connectOutlet('wizardStep3', controller.get('content'));
       })
     },
-    back: Em.Router.transitionTo('step1'),
+    back: function(router, event){
+      //if install not in progress
+      if(!$(event.target).attr('disabled')){
+        router.transitionTo('step1');
+      }
+    },
     exit: function (router) {
       router.get('wizardStep3Controller').set('stopBootstrap', true);
     },
@@ -203,12 +208,13 @@ module.exports = Em.Route.extend({
       addHostController.setInfoForStep9();
 
       // We need to do recovery based on whether we are in Add Host or Installer wizard
-      App.clusterStatus.set('value', {
+      App.clusterStatus.setClusterStatus({
         clusterName: this.get('clusterName'),
         clusterState: 'ADD_HOSTS_INSTALLING_3',
         wizardControllerName: App.router.get('addHostController.name'),
         localdb: App.db.data
       });
+      wizardStep8Controller.set('servicesInstalled', true);
       router.transitionTo('step5');
     }
   }),
@@ -237,7 +243,7 @@ module.exports = Em.Route.extend({
           addHostController.installServices(isRetry);
           addHostController.setInfoForStep9();
           // We need to do recovery based on whether we are in Add Host or Installer wizard
-          App.clusterStatus.set('value', {
+          App.clusterStatus.setClusterStatus({
             clusterName: this.get('clusterName'),
             clusterState: 'ADD_HOSTS_INSTALLING_3',
             wizardControllerName: App.router.get('addHostController.name'),
@@ -256,7 +262,7 @@ module.exports = Em.Route.extend({
       addHostController.saveInstalledHosts(wizardStep9Controller);
 
       // We need to do recovery based on whether we are in Add Host or Installer wizard
-      App.clusterStatus.set('value', {
+      App.clusterStatus.setClusterStatus({
         clusterName: this.get('clusterName'),
         clusterState: 'ADD_HOSTS_INSTALLED_4',
         wizardControllerName: App.router.get('addHostController.name'),
@@ -275,6 +281,9 @@ module.exports = Em.Route.extend({
       controller.setCurrentStep('6');
       controller.dataLoading().done(function () {
         controller.loadAllPriorSteps();
+        if (!App.testMode) {              //if test mode is ON don't disable prior steps link.
+          controller.setLowerStepsDisable(6);
+        }
         controller.connectOutlet('wizardStep10', controller.get('content'));
       })
     },
@@ -288,7 +297,7 @@ module.exports = Em.Route.extend({
 
 
         // We need to do recovery based on whether we are in Add Host or Installer wizard
-        App.clusterStatus.set('value', {
+        App.clusterStatus.setClusterStatus({
           clusterName: this.get('clusterName'),
           clusterState: 'ADD_HOSTS_COMPLETED_5',
           wizardControllerName: App.router.get('addHostController.name'),

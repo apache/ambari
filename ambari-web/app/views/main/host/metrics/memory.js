@@ -32,14 +32,19 @@ App.ChartHostMetricsMemory = App.ChartLinearTimeView.extend({
   yAxisFormatter: App.ChartLinearTimeView.BytesFormatter,
   renderer: 'line',
   url: function () {
-    return App.formatUrl(App.apiPrefix + "/clusters/{clusterName}/hosts/{hostName}?fields=metrics/memory/swap_free[{fromSeconds},{toSeconds},{stepSeconds}],metrics/memory/mem_shared[{fromSeconds},{toSeconds},{stepSeconds}],metrics/memory/mem_free[{fromSeconds},{toSeconds},{stepSeconds}],metrics/memory/mem_cached[{fromSeconds},{toSeconds},{stepSeconds}],metrics/memory/mem_buffers[{fromSeconds},{toSeconds},{stepSeconds}]", {
-      clusterName: App.router.get('clusterController.clusterName'),
-      hostName: this.get('content').get('hostName')
-    }, "/data/hosts/metrics/memory.json");
-  }.property('App.router.clusterController.clusterName').volatile(),
+    return App.formatUrl(
+      this.get('urlPrefix') + "/hosts/{hostName}?fields=metrics/memory/swap_free[{fromSeconds},{toSeconds},{stepSeconds}],metrics/memory/mem_shared[{fromSeconds},{toSeconds},{stepSeconds}],metrics/memory/mem_free[{fromSeconds},{toSeconds},{stepSeconds}],metrics/memory/mem_cached[{fromSeconds},{toSeconds},{stepSeconds}],metrics/memory/mem_buffers[{fromSeconds},{toSeconds},{stepSeconds}]",
+      {
+        clusterName: this.get('clusterName'),
+        hostName: this.get('content').get('hostName')
+      },
+      "/data/hosts/metrics/memory.json"
+    );
+  }.property('clusterName').volatile(),
 
   transformToSeries: function (jsonData) {
     var seriesArray = [];
+    var KB = Math.pow(2, 10);
     if (jsonData && jsonData.metrics && jsonData.metrics.memory) {
       for ( var name in jsonData.metrics.memory) {
         var displayName;
@@ -64,22 +69,11 @@ App.ChartHostMetricsMemory = App.ChartLinearTimeView.extend({
             break;
         }
         if (seriesData) {
-          // Is it a string?
-          if ("string" == typeof seriesData) {
-            seriesData = JSON.parse(seriesData);
+          var s = this.transformData(seriesData, displayName);
+          for (var i = 0; i < s.data.length; i++) {
+            s.data[i].y *= KB;
           }
-          // We have valid data
-          var KB = Math.pow(2,10);
-          var series = {};
-          series.name = displayName;
-          series.data = [];
-          for ( var index = 0; index < seriesData.length; index++) {
-            series.data.push({
-              x: seriesData[index][1],
-              y: seriesData[index][0] * KB
-            });
-          }
-          seriesArray.push(series);
+          seriesArray.push(s);
         }
       }
     }

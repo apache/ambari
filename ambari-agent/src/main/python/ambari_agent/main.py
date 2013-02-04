@@ -111,18 +111,6 @@ def main():
         os.kill(pid, signal.SIGKILL)
       os._exit(1)
 
-  # Check if there is another instance running
-  if os.path.isfile(ProcessHelper.pidfile):
-    print("%s already exists, exiting" % ProcessHelper.pidfile)
-    sys.exit(1)
-  else:
-    # Daemonize current instance of Ambari Agent
-    #retCode = createDaemon()
-    pid = str(os.getpid())
-    file(ProcessHelper.pidfile, 'w').write(pid)
-
-  credential = None
-
   # Check for ambari configuration file.
   try:
     config = AmbariConfig.config
@@ -133,6 +121,25 @@ def main():
       raise Exception("No config found, use default")
   except Exception, err:
     logger.warn(err)
+
+  # Check if there is another instance running
+  if os.path.isfile(ProcessHelper.pidfile):
+    print("%s already exists, exiting" % ProcessHelper.pidfile)
+    sys.exit(1)
+  # check if ambari prefix exists
+  elif not os.path.isdir(config.get("agent", "prefix")):
+    msg = "Ambari prefix dir %s does not exists, can't continue" \
+          % config.get("agent", "prefix")
+    logger.error(msg)
+    print(msg)
+    sys.exit(1)
+  else:
+    # Daemonize current instance of Ambari Agent
+    #retCode = createDaemon()
+    pid = str(os.getpid())
+    file(ProcessHelper.pidfile, 'w').write(pid)
+
+  credential = None
 
   killstaleprocesses()
 

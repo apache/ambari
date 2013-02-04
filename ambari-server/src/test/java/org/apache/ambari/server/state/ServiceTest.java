@@ -18,8 +18,6 @@
 
 package org.apache.ambari.server.state;
 
-import static org.junit.Assert.fail;
-
 import java.util.HashMap;
 import java.util.Map;
 
@@ -37,6 +35,8 @@ import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+
+import static org.junit.Assert.*;
 
 public class ServiceTest {
 
@@ -222,6 +222,61 @@ public class ServiceTest {
     // TODO better checks?
     Assert.assertFalse(sb.toString().isEmpty());
 
+  }
+
+  @Test
+  public void testDeleteServiceComponent() throws Exception {
+    Service hdfs = cluster.addService("HDFS");
+    Service mapReduce = cluster.addService("MAPREDUCE");
+
+    hdfs.persist();
+
+    ServiceComponent nameNode = hdfs.addServiceComponent("NAMENODE");
+    nameNode.persist();
+    ServiceComponent jobTracker = mapReduce.addServiceComponent("JOBTRACKER");
+
+    assertEquals(2, cluster.getServices().size());
+    assertEquals(1, hdfs.getServiceComponents().size());
+    assertEquals(1, mapReduce.getServiceComponents().size());
+    assertTrue(hdfs.isPersisted());
+    assertFalse(mapReduce.isPersisted());
+
+    hdfs.deleteServiceComponent("NAMENODE");
+
+    assertEquals(0, hdfs.getServiceComponents().size());
+    assertEquals(1, mapReduce.getServiceComponents().size());
+
+    mapReduce.deleteServiceComponent("JOBTRACKER");
+
+    assertEquals(0, hdfs.getServiceComponents().size());
+    assertEquals(0, mapReduce.getServiceComponents().size());
+
+  }
+
+  @Test
+  public void testCanBeRemoved() throws Exception{
+    Service service = cluster.addService("HDFS");
+
+    for (State state : State.values()) {
+      service.setDesiredState(state);
+
+      if (state.isRemovableState()) {
+        org.junit.Assert.assertTrue(service.canBeRemoved());
+      }
+      else {
+        org.junit.Assert.assertFalse(service.canBeRemoved());
+      }
+    }
+
+    ServiceComponent component = service.addServiceComponent("NAMENODE");
+    // can't remove a STARTED component
+    component.setDesiredState(State.STARTED);
+
+    for (State state : State.values()) {
+      service.setDesiredState(state);
+      // should always be false if the sub component can not be removed
+      org.junit.Assert.assertFalse(service.canBeRemoved());
+    }
   }
 
 }

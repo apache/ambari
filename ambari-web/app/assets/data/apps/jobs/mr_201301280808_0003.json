@@ -1,0 +1,19 @@
+{
+  "jobs": [
+    {
+      "jobId": "job_201301280808_0003",
+      "jobName": "oozie:launcher:T\\=map-reduce:W\\=map-reduce-wf:A\\=mr-node:ID\\=0000000-130128081151371-oozie-oozi-W",
+      "status": "SUCCESS",
+      "userName": "ambari_qa",
+      "submitTime": 1359378907927,
+      "elapsedTime": 19186,
+      "maps": 1,
+      "reduces": 0,
+      "inputBytes": 37485,
+      "outputBytes": 37458,
+      "confPath": "hdfs:\/\/ip-10-83-1-168\\.ec2\\.internal:8020\/user\/ambari_qa\/\\.staging\/job_201301280808_0003\/job\\.xml",
+      "workflowId": "mr_201301280808_0003",
+      "workflowEntityName": "X"
+    }
+  ]
+}

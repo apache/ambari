@@ -49,6 +49,16 @@
         "pointInTime" : true,
         "temporal" : false
       },
+      "ServiceComponentInfo/NonHeapMemoryMax":{
+        "metric" : "java.lang:type=Memory.NonHeapMemoryUsage[max]",
+        "pointInTime" : true,
+        "temporal" : false
+      },
+      "ServiceComponentInfo/NonHeapMemoryUsed":{
+        "metric" : "java.lang:type=Memory.NonHeapMemoryUsage[used]",
+        "pointInTime" : true,
+        "temporal" : false
+      },
       "ServiceComponentInfo/LiveNodes":{
         "metric" : "Hadoop:service=NameNode,name=NameNodeInfo.LiveNodes",
         "pointInTime" : true,
@@ -558,6 +568,16 @@
         "pointInTime" : true,
         "temporal" : false
       },
+      "ServiceComponentInfo/NonHeapMemoryMax":{
+        "metric" : "java.lang:type=Memory.NonHeapMemoryUsage[max]",
+        "pointInTime" : true,
+        "temporal" : false
+      },
+      "ServiceComponentInfo/NonHeapMemoryUsed":{
+        "metric" : "java.lang:type=Memory.NonHeapMemoryUsage[used]",
+        "pointInTime" : true,
+        "temporal" : false
+      },
       "ServiceComponentInfo/Queue/jobs_completed":{
         "metric" : "Hadoop:service=JobTracker,name=QueueMetrics,q=default.jobs_completed",
         "pointInTime" : true,
@@ -971,7 +991,6 @@
     },
 
     "HBASE_MASTER":{
-
       "ServiceComponentInfo/AverageLoad":{
         "metric" : "hadoop:service=Master,name=Master.AverageLoad",
         "pointInTime" : true,
@@ -984,6 +1003,16 @@
       },
       "ServiceComponentInfo/HeapMemoryUsed":{
         "metric" : "java.lang:type=Memory.HeapMemoryUsage[used]",
+        "pointInTime" : true,
+        "temporal" : false
+      },
+      "ServiceComponentInfo/NonHeapMemoryMax":{
+        "metric" : "java.lang:type=Memory.NonHeapMemoryUsage[max]",
+        "pointInTime" : true,
+        "temporal" : false
+      },
+      "ServiceComponentInfo/NonHeapMemoryUsed":{
+        "metric" : "java.lang:type=Memory.NonHeapMemoryUsage[used]",
         "pointInTime" : true,
         "temporal" : false
       },
@@ -1148,6 +1177,26 @@
       },
       "metrics/dfs/namenode/blockReport_num_ops":{
         "metric" : "Hadoop:service=NameNode,name=NameNode.blockReport_num_ops",
+        "pointInTime" : true,
+        "temporal" : false
+      },
+      "metrics/jvm/HeapMemoryMax":{
+        "metric" : "java.lang:type=Memory.HeapMemoryUsage[max]",
+        "pointInTime" : true,
+        "temporal" : false
+      },
+      "metrics/jvm/HeapMemoryUsed":{
+        "metric" : "java.lang:type=Memory.HeapMemoryUsage[used]",
+        "pointInTime" : true,
+        "temporal" : false
+      },
+      "metrics/jvm/NonHeapMemoryMax":{
+        "metric" : "java.lang:type=Memory.NonHeapMemoryUsage[max]",
+        "pointInTime" : true,
+        "temporal" : false
+      },
+      "metrics/jvm/NonHeapMemoryUsed":{
+        "metric" : "java.lang:type=Memory.NonHeapMemoryUsage[used]",
         "pointInTime" : true,
         "temporal" : false
       },
@@ -1513,6 +1562,26 @@
         "pointInTime" : true,
         "temporal" : false
       },
+      "metrics/jvm/HeapMemoryMax":{
+        "metric" : "java.lang:type=Memory.HeapMemoryUsage[max]",
+        "pointInTime" : true,
+        "temporal" : false
+      },
+      "metrics/jvm/HeapMemoryUsed":{
+        "metric" : "java.lang:type=Memory.HeapMemoryUsage[used]",
+        "pointInTime" : true,
+        "temporal" : false
+      },
+      "metrics/jvm/NonHeapMemoryMax":{
+        "metric" : "java.lang:type=Memory.NonHeapMemoryUsage[max]",
+        "pointInTime" : true,
+        "temporal" : false
+      },
+      "metrics/jvm/NonHeapMemoryUsed":{
+        "metric" : "java.lang:type=Memory.NonHeapMemoryUsage[used]",
+        "pointInTime" : true,
+        "temporal" : false
+      },
       "metrics/jvm/gcCount":{
         "metric" : "Hadoop:service=DataNode,name=jvm.gcCount",
         "pointInTime" : true,
@@ -1805,6 +1874,26 @@
       }
     },
     "JOBTRACKER":{
+      "metrics/jvm/HeapMemoryMax":{
+        "metric" : "java.lang:type=Memory.HeapMemoryUsage[max]",
+        "pointInTime" : true,
+        "temporal" : false
+      },
+      "metrics/jvm/HeapMemoryUsed":{
+        "metric" : "java.lang:type=Memory.HeapMemoryUsage[used]",
+        "pointInTime" : true,
+        "temporal" : false
+      },
+      "metrics/jvm/NonHeapMemoryMax":{
+        "metric" : "java.lang:type=Memory.NonHeapMemoryUsage[max]",
+        "pointInTime" : true,
+        "temporal" : false
+      },
+      "metrics/jvm/NonHeapMemoryUsed":{
+        "metric" : "java.lang:type=Memory.NonHeapMemoryUsage[used]",
+        "pointInTime" : true,
+        "temporal" : false
+      },
       "metrics/jvm/gcCount":{
         "metric" : "Hadoop:service=JobTracker,name=jvm.gcCount",
         "pointInTime" : true,
@@ -2097,6 +2186,26 @@
       }
     },
     "TASKTRACKER":{
+      "metrics/jvm/HeapMemoryMax":{
+        "metric" : "java.lang:type=Memory.HeapMemoryUsage[max]",
+        "pointInTime" : true,
+        "temporal" : false
+      },
+      "metrics/jvm/HeapMemoryUsed":{
+        "metric" : "java.lang:type=Memory.HeapMemoryUsage[used]",
+        "pointInTime" : true,
+        "temporal" : false
+      },
+      "metrics/jvm/NonHeapMemoryMax":{
+        "metric" : "java.lang:type=Memory.NonHeapMemoryUsage[max]",
+        "pointInTime" : true,
+        "temporal" : false
+      },
+      "metrics/jvm/NonHeapMemoryUsed":{
+        "metric" : "java.lang:type=Memory.NonHeapMemoryUsage[used]",
+        "pointInTime" : true,
+        "temporal" : false
+      },
       "metrics/jvm/gcCount":{
         "metric" : "Hadoop:service=TaskTracker,name=jvm.gcCount",
         "pointInTime" : true,
@@ -2239,6 +2348,31 @@
       }
     },
     "HBASE_MASTER":{
+      "metrics/load/AverageLoad":{
+        "metric" : "hadoop:service=Master,name=Master.AverageLoad",
+        "pointInTime" : true,
+        "temporal" : false
+      },
+      "metrics/jvm/HeapMemoryMax":{
+        "metric" : "java.lang:type=Memory.HeapMemoryUsage[max]",
+        "pointInTime" : true,
+        "temporal" : false
+      },
+      "metrics/jvm/HeapMemoryUsed":{
+        "metric" : "java.lang:type=Memory.HeapMemoryUsage[used]",
+        "pointInTime" : true,
+        "temporal" : false
+      },
+      "metrics/jvm/NonHeapMemoryMax":{
+        "metric" : "java.lang:type=Memory.NonHeapMemoryUsage[max]",
+        "pointInTime" : true,
+        "temporal" : false
+      },
+      "metrics/jvm/NonHeapMemoryUsed":{
+        "metric" : "java.lang:type=Memory.NonHeapMemoryUsage[used]",
+        "pointInTime" : true,
+        "temporal" : false
+      }
     }
   }
 }

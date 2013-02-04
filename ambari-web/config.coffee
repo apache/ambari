@@ -78,6 +78,10 @@ exports.config =
       precompile: true
       defaultExtension: 'hbs'
       joinTo: 'javascripts/app.js' : /^app/
+      paths:
+        jquery: 'vendor/scripts/jquery-1.7.2.min.js'
+        handlebars: 'vendor/scripts/handlebars-1.0.0.beta.6.js'
+        ember: 'vendor/scripts/ember-latest.js'
 
   server:
     port: 3333

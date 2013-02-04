@@ -21,6 +21,7 @@ package org.apache.ambari.server.state;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.ambari.server.agent.AgentEnv;
 import org.apache.ambari.server.agent.DiskInfo;
 import org.apache.ambari.server.agent.HostInfo;
 import org.apache.ambari.server.controller.HostResponse;
@@ -209,6 +210,16 @@ public interface Host {
    */
   public void setLastHeartbeatTime(long lastHeartbeatTime);
 
+  /**
+   * Sets the latest agent environment that arrived in a heartbeat.
+   */
+  public void setLastAgentEnv(AgentEnv env);
+  
+  /**
+   * Gets the latest agent environment that arrived in a heartbeat.
+   */
+  public AgentEnv getLastAgentEnv();
+  
   /**
    * Version of the Ambari Agent running on the host
    * @return the agentVersion

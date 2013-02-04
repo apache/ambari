@@ -23,55 +23,53 @@ App.clusterStatus = Ember.Object.create({
   clusterState: 'CLUSTER_NOT_CREATED_1',
   wizardControllerName: null,
   localdb: null,
-  key: function () {
-    return 'CLUSTER_CURRENT_STATUS';
-  }.property(),
-  value: function (key, newValue) {
-    // getter
-    if (arguments.length == 1) {
-
-      var url = App.apiPrefix + '/persist/' + this.get('key');
-      jQuery.ajax(
-        {
-          url: url,
-          context: this,
-          async: false,
-          success: function (response) {
-            if (response) {
-              var newValue = jQuery.parseJSON(response);
-              if (newValue.clusterState) {
-                this.set('clusterState', newValue.clusterState);
-              }
-              if (newValue.clusterName) {
-                this.set('clusterName', newValue.clusterName);
-              }
-              if (newValue.wizardControllerName) {
-                this.set('wizardControllerName', newValue.wizardControllerName);
-              }
-              if (newValue.localdb) {
-                this.set('localdb', newValue.localdb);
-              }
-            } else {
-              // default status already set
+  key: 'CLUSTER_CURRENT_STATUS',
+  /**
+   * get cluster data from server and update cluster status
+   */
+  updateFromServer: function(){
+    var url = App.apiPrefix + '/persist/' + this.get('key');
+    jQuery.ajax(
+      {
+        url: url,
+        context: this,
+        async: false,
+        success: function (response) {
+          if (response) {
+            var newValue = jQuery.parseJSON(response);
+            if (newValue.clusterState) {
+              this.set('clusterState', newValue.clusterState);
             }
-          },
-          error: function (xhr) {
-            if (xhr.status == 404) {
-              // default status already set
-              console.log('Persist API did NOT find the key CLUSTER_CURRENT_STATUS');
+            if (newValue.clusterName) {
+              this.set('clusterName', newValue.clusterName);
             }
+            if (newValue.wizardControllerName) {
+              this.set('wizardControllerName', newValue.wizardControllerName);
+            }
+            if (newValue.localdb) {
+              this.set('localdb', newValue.localdb);
+            }
+          } else {
+            // default status already set
           }
-        }
-      );
-
-      return {
-        clusterName: this.get('clusterName'),
-        clusterState: this.get('clusterState'),
-        wizardControllerName: this.get('wizardControllerName'),
-        localdb: this.get('localdb')
-      };
-
-    } else if (newValue) {
+        },
+        error: function (xhr) {
+          if (xhr.status == 404) {
+            // default status already set
+            console.log('Persist API did NOT find the key CLUSTER_CURRENT_STATUS');
+          }
+        },
+        statusCode: require('data/statusCodes')
+      }
+    );
+  },
+  /**
+   * update cluster status and post it on server
+   * @param newValue
+   * @return {*}
+   */
+  setClusterStatus: function(newValue){
+    if (newValue) {
       //setter
       if (newValue.clusterState) {
         this.set('clusterState', newValue.clusterState);
@@ -107,11 +105,19 @@ App.clusterStatus = Ember.Object.create({
           console.log('BeforeSend: persistKeyValues', keyValuePair);
         }
       });
-
       return newValue;
-
     }
-
-  }.property('clusterName', 'clusterState', 'localdb')
+  },
+  /**
+   * general info about cluster
+   */
+  value: function () {
+      return {
+        clusterName: this.get('clusterName'),
+        clusterState: this.get('clusterState'),
+        wizardControllerName: this.get('wizardControllerName'),
+        localdb: this.get('localdb')
+      };
+  }.property('clusterName', 'clusterState', 'localdb', 'wizardControllerName')
 
 });

@@ -162,12 +162,14 @@ class hdp-nagios::server(
       notify => Class['hdp-nagios::server::services']
     }
 
+    class { 'hdp-nagios::server::enable_snmp': }
+
     class { 'hdp-nagios::server::web_permisssions': }
 
     class { 'hdp-nagios::server::services': ensure => $service_state}
 	
 	
-	Class['hdp-nagios::server::packages'] -> Hdp::Directory[$nagios_config_dir] -> Hdp::Directory[$plugins_dir] -> Hdp::Directory_recursive_create[$nagios_pid_dir] ->
+	Class['hdp-nagios::server::packages'] -> Class['hdp-nagios::server::enable_snmp']-> Hdp::Directory[$nagios_config_dir] -> Hdp::Directory[$plugins_dir] -> Hdp::Directory_recursive_create[$nagios_pid_dir] ->
 	Hdp::Directory[$nagios_obj_dir] -> Hdp::Directory_Recursive_Create[$nagios_var_dir] ->
 	Hdp::Directory_Recursive_Create[$check_result_path] -> Hdp::Directory_Recursive_Create[$nagios_rw_dir] ->
 	Class['hdp-nagios::server::config'] -> Class['hdp-nagios::server::web_permisssions'] -> Class['hdp-nagios::server::services'] -> Class['hdp-monitor-webserver']
@@ -216,4 +218,13 @@ class hdp-nagios::server::services($ensure)
     service { 'nagios': ensure => $ensure}
     anchor{'hdp-nagios::server::services::begin':} ->  Service['nagios'] ->  anchor{'hdp-nagios::server::services::end':}
   }
+}
+
+class hdp-nagios::server::enable_snmp() {
+
+  exec { "enable_snmp":
+    command => "service snmpd start; chkconfig snmpd on",
+    path    => "/usr/local/bin/:/bin/:/sbin/",
+  }
+
 }

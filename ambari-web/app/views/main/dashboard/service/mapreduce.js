@@ -31,14 +31,22 @@ App.MainDashboardServiceMapreduceView = App.MainDashboardServiceView.extend({
     }.property('_parentView.data.chart')
   }),
 
+  version: function(){
+    return this.formatUnavailable(this.get('service.version'));
+  }.property('service.version'),
+
   jobTrackerUptime: function () {
     var uptime = this.get('service').get('jobTrackerStartTime');
-    var diff = (new Date()).getTime() - uptime;
-    if (diff < 0) {
-      diff = 0;
+    if (uptime && uptime > 0){
+      var diff = (new Date()).getTime() - uptime;
+      if (diff < 0) {
+        diff = 0;
+      }
+      var formatted = date.timingFormat(diff);
+      return this.t('dashboard.services.uptime').format(formatted);
+
     }
-    var formatted = date.timingFormat(diff);
-    return this.t('dashboard.services.uptime').format(formatted);
+    return this.t('services.service.summary.notRunning');
   }.property("service.jobTrackerStartTime"),
 
   summaryHeader: function () {
@@ -60,8 +68,8 @@ App.MainDashboardServiceMapreduceView = App.MainDashboardServiceView.extend({
   }.property('service.aliveTrackers', 'service.taskTrackers'),
 
   trackersHeapSummary: function () {
-    var heapUsed = this.get('service').get('jobTrackerHeapUsed') || 90;
-    var heapMax = this.get('service').get('jobTrackerHeapMax') || 90;
+    var heapUsed = this.get('service').get('jobTrackerHeapUsed') || 0;
+    var heapMax = this.get('service').get('jobTrackerHeapMax') || 0;
     var percent = heapMax > 0 ? 100 * heapUsed / heapMax : 0;
     return this.t('dashboard.services.mapreduce.jobTrackerHeapSummary').format(heapUsed.bytesToSize(1, "parseFloat"), heapMax.bytesToSize(1, "parseFloat"), percent.toFixed(1));
   }.property('service.jobTrackerHeapUsed', 'service.jobTrackerHeapMax'),
@@ -69,31 +77,31 @@ App.MainDashboardServiceMapreduceView = App.MainDashboardServiceView.extend({
   jobsSummary: function () {
     var svc = this.get('service');
     var template = this.t('dashboard.services.mapreduce.jobsSummary');
-    return template.format(svc.get('jobsSubmitted'), svc.get('jobsCompleted'));
+    return template.format(this.formatUnavailable(svc.get('jobsSubmitted')), this.formatUnavailable(svc.get('jobsCompleted')));
   }.property('service.jobsSubmitted', 'service.jobsCompleted'),
 
   mapSlotsSummary: function () {
     var svc = this.get('service');
     var template = this.t('dashboard.services.mapreduce.mapSlotsSummary');
-    return template.format(svc.get('mapSlotsOccupied'), svc.get('mapSlotsReserved'));
+    return template.format(this.formatUnavailable(svc.get('mapSlotsOccupied')), this.formatUnavailable(svc.get('mapSlotsReserved')));
   }.property('service.mapSlotsOccupied', 'service.mapSlotsReserved'),
 
   reduceSlotsSummary: function () {
     var svc = this.get('service');
     var template = this.t('dashboard.services.mapreduce.reduceSlotsSummary');
-    return template.format(svc.get('reduceSlotsOccupied'), svc.get('reduceSlotsReserved'));
+    return template.format(this.formatUnavailable(svc.get('reduceSlotsOccupied')), this.formatUnavailable(svc.get('reduceSlotsReserved')));
   }.property('service.reduceSlotsOccupied', 'service.reduceSlotsReserved'),
 
   mapTasksSummary: function () {
     var svc = this.get('service');
     var template = this.t('dashboard.services.mapreduce.tasksSummary');
-    return template.format(svc.get('mapsRunning'), svc.get('mapsWaiting'));
+    return template.format(this.formatUnavailable(svc.get('mapsRunning')), this.formatUnavailable(svc.get('mapsWaiting')));
   }.property('service.mapsRunning', 'service.mapsWaiting'),
 
   reduceTasksSummary: function () {
     var svc = this.get('service');
     var template = this.t('dashboard.services.mapreduce.tasksSummary');
-    return template.format(svc.get('reducesRunning'), svc.get('reducesWaiting'));
+    return template.format(this.formatUnavailable(svc.get('reducesRunning')), this.formatUnavailable(svc.get('reducesWaiting')));
   }.property('service.reducesRunning', 'service.reducesWaiting'),
 
   slotsCapacitySummary: function () {
@@ -109,13 +117,6 @@ App.MainDashboardServiceMapreduceView = App.MainDashboardServiceView.extend({
   }.property('service.mapSlots', 'service.reduceSlots', 'service.aliveTrackers'),
 
   taskTrackerComponent: function () {
-    return App.Component.find().findProperty('componentName', 'TASKTRACKER');
-  }.property('components'),
-
-  isCollapsed: false,
-
-  toggleInfoView: function() {
-    $('#mapreduce-info').toggle('blind', 200);
-    this.set('isCollapsed', !this.isCollapsed);
-  }
+    return App.HostComponent.find().findProperty('componentName', 'TASKTRACKER');
+  }.property()
 });

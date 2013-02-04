@@ -27,7 +27,7 @@ if [[ -z "${BUILD_DIR}" ]]; then
 fi
 
 if [[ -z "${VERSION}" ]]; then
-  VERSION="0.0.2.15"
+  VERSION="1.2.1.2"
 fi
 
 if [[ -z "${RELEASE}" ]]; then

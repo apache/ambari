@@ -71,14 +71,6 @@ App.Form = Em.View.extend({
     return isValid;
   },
 
-  isObjectNew:function () {
-    var object = this.get('object');
-    if(object instanceof App.User){
-      return false;
-    }
-    return !(object instanceof DS.Model && object.get('id'));
-  }.property("object"),
-
   updateValues:function () {
     var object = this.get('object');
     if (object instanceof Em.Object) {
@@ -91,52 +83,10 @@ App.Form = Em.View.extend({
 
   }.observes("object"),
 
-  /**
-   *
-   */
-
-  getValues:function () {
-    var values = {};
-    $.each(this.get('fields'), function () {
-      if (!(this.get('displayType') == 'password' && validator.empty(this.get('value')))) { // if this is not empty password field
-        values[this.get('name')] = this.get('value');
-      }
-    });
-    return values;
-  },
-
   clearValues:function () {
     $.each(this.fields, function () {
       this.set('value', '');
     });
-  },
-
-  /**
-   * need to refactor for integration
-   * @return {Boolean}
-   */
-  save:function () {
-    var thisForm = this;
-    var object = this.get('object');
-    if (!this.get('isObjectNew')) {
-      $.each(this.getValues(), function (i, v) {
-        object.set(i, v);
-      });
-    } else {
-      if (this.get('className'))
-      {
-        var rec = App.store.createRecord(this.get('className'), this.getValues());
-        //rec.get('stateManager').send('becameClean');
-      }
-      else{
-        console.log("Please define class name for your form " + this.constructor);
-      }
-    }
-
-    //App.store.commit();
-    this.set('result', 1);
-
-    return true;
   },
 
   visibleFields:function () {
@@ -162,16 +112,7 @@ App.Form = Em.View.extend({
     }
 
     return text;
-  }.property('result'),
-
-  saveButtonText:function () {
-    return Em.I18n.t(this.get('i18nprefix') + (this.get('isObjectNew') ? "create" : "save"));
-  }.property('isObjectNew')
-
-//  not recommended
-//  cancelButtonText:function () {
-//    return Em.I18n.t(this.get('i18nprefix') + 'cancel').property();
-//  }
+  }.property('result')
 });
 
 App.FormField = Em.Object.extend({ // try to realize this as view

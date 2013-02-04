@@ -18,7 +18,7 @@
     "css-brunch":">= 1.0 < 1.5",
     "uglify-js-brunch":">= 1.0 < 1.5",
     "clean-css-brunch":">= 1.0 < 1.5",
-    "ember-handlebars-brunch":"git://github.com/icholy/ember-handlebars-brunch.git",
+    "ember-precompiler-brunch":">= 1.0 < 1.5",
     "less-brunch":">= 1.0 < 1.5"
   },
   "devDependencies":{

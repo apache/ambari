@@ -101,4 +101,6 @@ public interface Cluster {
   public void deleteService(String serviceName) throws AmbariException;
 
   public boolean canBeRemoved();
+
+  public void delete() throws AmbariException;
 }

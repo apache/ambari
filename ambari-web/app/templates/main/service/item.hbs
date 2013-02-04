@@ -17,7 +17,7 @@
 }}
 
 {{view App.MainServiceInfoMenuView configTabBinding="view.hasConfigTab"}}
-{{#if controller.isAdmin}}
+{{#if App.isAdmin}}
 <div class="service-button">
   {{#if view.hasMaintenanceControl}}
   <div class="btn-group display-inline-block">
@@ -28,7 +28,7 @@
     <ul class="dropdown-menu">
       <!-- dropdown menu links -->
       {{#each option in view.maintenance}}
-      <li>
+      <li {{bindAttr class="controller.content.isStopDisabled:disabled"}}>
         <a {{action "doAction" option.action target="controller" href=true}}>{{option.label}}</a>
       </li>
       {{/each}}

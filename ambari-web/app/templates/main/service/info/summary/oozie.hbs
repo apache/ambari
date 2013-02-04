@@ -16,7 +16,7 @@
 * limitations under the License.
 }}
 
-{{#each component in controller.content.components}}
+{{#each component in controller.content.hostComponents}}
   {{#if component.isMaster}}
     <tr>
         <td class="summary-label">Server</td>
@@ -27,10 +27,7 @@
 <tr>
   <td class="summary-label">Clients</td>
   <td>
-    {{#each view.clients}}
-      <a {{action filterHosts view.clientObj}} href="javascript:void(null)">{{displayName}}</a>{{#if isComma}}, {{/if}}
-      {{#if isAnd}} and {{/if}}
-    {{/each}}
+    <a {{action filterHosts view.clientObj}} href="javascript:void(null)">{{view.clients.length}} Oozie Client{{#if view.hasManyClients}}s{{/if}}</a>
   </td>
 </tr>
 <tr>

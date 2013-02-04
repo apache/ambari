@@ -81,7 +81,7 @@
         </thead>
 
         <tbody>
-
+        {{#if visibleHosts.length}}
         {{#each host in visibleHosts}}
         {{#view App.WizardHostView categoryBinding="controller.category" hostInfoBinding="host"}}
         <td>
@@ -108,6 +108,11 @@
         </td>
         {{/view}}
         {{/each}}
+        {{else}}
+        <tr>
+            <td colspan="5"><p>{{t installer.step3.hosts.noHosts}}</p></td>
+        </tr>
+        {{/if}}
 
         </tbody>
 
@@ -119,8 +124,21 @@
       </div>
     </div>
   </div>
+    {{#if isWarningsBoxVisible}}
+      {{#if isHostHaveWarnings}}
+      <div class="alert alert-warn">
+        {{t installer.step3.warnings.description}}<br>
+        <a href="javascript:void(0)" {{action hostWarningsPopup warnings target="controller"}}>{{t installer.step3.warnings.linkText}}</a>
+      </div>
+      {{else}}
+      <div class="alert alert-success">
+        {{t installer.step3.warnings.noWarnings}}
+        <a href="javascript:void(0)" {{action hostWarningsPopup warnings target="controller"}}>{{t installer.step3.noWarnings.linkText}}</a>
+      </div>
+      {{/if}}
+    {{/if}}
   <div class="btn-area">
-    <a class="btn pull-left" {{action back}}>&larr; Back</a>
+    <a class="btn pull-left" {{bindAttr disabled="isInstallInProgress"}} {{action back}}>&larr; Back</a>
     <a class="btn btn-success pull-right" {{bindAttr disabled="isSubmitDisabled"}} {{action submit target="controller"}}>Next &rarr;</a>
   </div>
 </div>

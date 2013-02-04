@@ -28,6 +28,7 @@ import org.apache.ambari.server.Role;
 import org.apache.ambari.server.ServiceComponentNotFoundException;
 import org.apache.ambari.server.agent.ActionQueue;
 import org.apache.ambari.server.agent.ExecutionCommand;
+import org.apache.ambari.server.controller.HostsMap;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Service;
@@ -54,11 +55,13 @@ class ActionScheduler implements Runnable {
   private final ActionQueue actionQueue;
   private final Clusters fsmObject;
   private boolean taskTimeoutAdjustment = true;
+  private final HostsMap hostsMap;
 
   public ActionScheduler(long sleepTimeMilliSec, long actionTimeoutMilliSec,
       ActionDBAccessor db, ActionQueue actionQueue, Clusters fsmObject,
-      int maxAttempts) {
+      int maxAttempts, HostsMap hostsMap) {
     this.sleepTime = sleepTimeMilliSec;
+    this.hostsMap = hostsMap;
     this.actionTimeout = actionTimeoutMilliSec;
     this.db = db;
     this.actionQueue = actionQueue;
@@ -283,6 +286,8 @@ class ActionScheduler implements Runnable {
     s.setLastAttemptTime(hostname, roleStr, now);
     s.incrementAttemptCount(hostname, roleStr);
     LOG.info("Scheduling command: "+cmd.toString()+" for host: "+hostname);
+    /** change the hostname in the command for the host itself **/
+    cmd.setHostname(hostsMap.getHostMap(hostname));
     actionQueue.enqueue(hostname, cmd);
     db.hostRoleScheduled(s, hostname, roleStr);
   }

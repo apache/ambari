@@ -24,7 +24,7 @@ import logging
 from uuid import getnode as get_mac
 from shell import shellRunner
 from datetime import datetime
-from AmbariConfig import AmbariConfig
+import AmbariConfig
 
 
 logger = logging.getLogger()
@@ -37,16 +37,14 @@ non_global_configuration_types = ["hdfs-site", "core-site",
                              "webhcat-site", "hdfs-exclude-file"]
 
 #read static imports from file and write them to manifest
-def writeImports(outputFile, modulesdir, inputFileName='imports.txt'):
-  inputFile = open(inputFileName, 'r')
+def writeImports(outputFile, modulesdir, importsList):
   logger.info("Modules dir is " + modulesdir)
   outputFile.write('#' + datetime.now().strftime('%d.%m.%Y %H:%M:%S') + os.linesep)
-  for line in inputFile:
+  for line in importsList:
     modulename = line.rstrip()
     line = "import '" + modulesdir + os.sep + modulename + "'" + os.linesep
     outputFile.write(line)
-    
-  inputFile.close()
+
 
 def generateManifest(parsedJson, fileName, modulesdir, ambariconfig):
   logger.info("JSON Received:")
@@ -77,13 +75,9 @@ def generateManifest(parsedJson, fileName, modulesdir, ambariconfig):
   #writing manifest
   manifest = open(fileName, 'w')
   #Check for Ambari Config and make sure you pick the right imports file
-  importsfile = "imports.txt"
-  if ambariconfig.has_option('puppet', 'imports_file') :
-    importsfile = ambariconfig.get('puppet', 'imports_file')
     
-  logger.info("Using imports file " + importsfile)   
   #writing imports from external static file
-  writeImports(outputFile=manifest, modulesdir=modulesdir, inputFileName=importsfile)
+  writeImports(outputFile=manifest, modulesdir=modulesdir, importsList=AmbariConfig.imports)
   
   #writing nodes
   writeNodes(manifest, clusterHostInfo)
@@ -116,17 +110,6 @@ def generateManifest(parsedJson, fileName, modulesdir, ambariconfig):
      
   manifest.close()
     
-  
-  #read dictionary
-def readDict(file, separator='='):
-  result = dict()
-  
-  for line in file :
-    dictTuple = line.partition(separator)
-    result[dictTuple[0].strip()] = dictTuple[2].strip()
-  
-  return result
-  
 
   #write nodes
 def writeNodes(outputFile, clusterHostInfo):
@@ -209,21 +192,9 @@ def writeNonGlobalConfigurations(outputFile, xmlConfigs):
 def writeTasks(outputFile, roles, ambariconfig, clusterHostInfo=None, 
                hostname="localhost"):
   #reading dictionaries
-  rolestoclass = "rolesToClass.dict"
-  if ambariconfig.has_option('puppet','roles_to_class'):
-    rolestoclass = ambariconfig.get('puppet', 'roles_to_class')
-                              
-  rolesToClassFile = open(rolestoclass, 'r')
-  rolesToClass = readDict(rolesToClassFile)
-  rolesToClassFile.close()
+  rolesToClass = AmbariConfig.rolesToClass
 
-  servicestates = "serviceStates.dict"
-  if ambariconfig.has_option('puppet','service_states'):
-    servicestates = ambariconfig.get('puppet', 'service_states')
-                              
-  serviceStatesFile =  open(servicestates, 'r')
-  serviceStates = readDict(serviceStatesFile)
-  serviceStatesFile.close()
+  serviceStates = AmbariConfig.serviceStates
 
   outputFile.write('node /default/ {\n ')
 

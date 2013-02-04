@@ -26,11 +26,8 @@ import os
 
 class TestLiveStatus(TestCase):
   def test_build(self):
-    testsPath = os.path.dirname(os.path.realpath(__file__))
-    dictPath = testsPath + os.sep + '..' + os.sep + '..' + os.sep + 'main' + os.sep + 'python' + os.sep + 'ambari_agent' + os.sep + 'servicesToPidNames.dict'
-    AmbariConfig.config.set('services','serviceToPidMapFile', dictPath)
     for component in LiveStatus.COMPONENTS:
-      livestatus = LiveStatus('', component['serviceName'], component['componentName'])
+      livestatus = LiveStatus('', component['serviceName'], component['componentName'], {})
       result = livestatus.build()
       print "LiveStatus of {0}: {1}".format(component['serviceName'], str(result))
       self.assertEquals(len(result) > 0, True, 'Livestatus should not be empty')

@@ -19,11 +19,14 @@
 var App = require('app');
 
 App.WizardStep10Controller = Em.Controller.extend({
-  name: 'wizardStep10Controller',
   clusterInfo: [],
 
+  /**
+   * check if were added regionservers then NAGIOS services should be restarted
+   * to update number of regionservers in NAGIOS
+   */
   isNagiosRestartRequired: function() {
-    return App.db.getSelectedServiceNames().contains('NAGIOS') && this.get('content.controllerName') !== 'installerController';
+    return this.get('content.controllerName') !== 'installerController' && App.Service.find('NAGIOS').get('isLoaded');
   }.property(),
 
   clearStep: function () {

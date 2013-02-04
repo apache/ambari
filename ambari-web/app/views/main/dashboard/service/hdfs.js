@@ -23,6 +23,11 @@ App.MainDashboardServiceHdfsView = App.MainDashboardServiceView.extend({
   serviceName: 'HDFS',
   Chart: App.ChartPieView.extend({
     service: null,
+    color: '#0066B3',
+    stroke: '#0066B3',
+    palette: new Rickshaw.Color.Palette({
+      scheme: [ 'rgba(0,102,179,0)', 'rgba(0,102,179,1)'].reverse()
+    }),
     data: function () {
       var total = this.get('service.capacityTotal') + 0;
       var remaining = (this.get('service.capacityRemaining') + 0);
@@ -31,14 +36,36 @@ App.MainDashboardServiceHdfsView = App.MainDashboardServiceView.extend({
     }.property('service.capacityUsed', 'service.capacityTotal')
   }),
 
+  version: function(){
+    return this.formatUnavailable(this.get('service.version'));
+  }.property('service.version'),
+  dfsTotalBlocks: function(){
+    return this.formatUnavailable(this.get('service.dfsTotalBlocks'));
+  }.property('service.dfsTotalBlocks'),
+  dfsTotalFiles: function(){
+    return this.formatUnavailable(this.get('service.dfsTotalFiles'));
+  }.property('service.dfsTotalFiles'),
+  dfsCorruptBlocks: function(){
+    return this.formatUnavailable(this.get('service.dfsCorruptBlocks'));
+  }.property('service.dfsCorruptBlocks'),
+  dfsMissingBlocks: function(){
+    return this.formatUnavailable(this.get('service.dfsMissingBlocks'));
+  }.property('service.dfsMissingBlocks'),
+  dfsUnderReplicatedBlocks: function(){
+    return this.formatUnavailable(this.get('service.dfsUnderReplicatedBlocks'));
+  }.property('service.dfsUnderReplicatedBlocks'),
+
   nodeUptime: function () {
     var uptime = this.get('service').get('nameNodeStartTime');
-    var diff = (new Date()).getTime() - uptime;
-    if (diff < 0) {
-      diff = 0;
+    if (uptime && uptime > 0){
+      var diff = (new Date()).getTime() - uptime;
+      if (diff < 0) {
+        diff = 0;
+      }
+      var formatted = date.timingFormat(diff);
+      return this.t('dashboard.services.uptime').format(formatted);
     }
-    var formatted = date.timingFormat(diff);
-    return this.t('dashboard.services.uptime').format(formatted);
+    return this.t('services.service.summary.notRunning');
   }.property("service.nameNodeStartTime"),
 
   nodeWebUrl: function () {
@@ -87,15 +114,8 @@ App.MainDashboardServiceHdfsView = App.MainDashboardServiceView.extend({
   }.property('service.capacityUsed', 'service.capacityTotal'),
 
   dataNodeComponent: function () {
-    return App.Component.find().findProperty('componentName', 'DATANODE');
+    return App.HostComponent.find().findProperty('componentName', 'DATANODE');
   }.property('+'),
-
-  isCollapsed: false,
-
-  toggleInfoView: function () {
-    $('#hdfs-info').toggle('blind', 200);
-    this.set('isCollapsed', !this.isCollapsed);
-  },
 
   isSafeMode: function () {
     var safeMode = this.get('service.safeModeStatus');

@@ -29,7 +29,13 @@ App.jobsMapper = App.QuickDataMapper.create({
       json.jobs.forEach(function (item) {
         result.push(this.parseIt(item, this.config));
       }, this);
-      App.store.loadMany(this.get('model'), result);
+
+      var r = Ember.ArrayProxy.create({"content":[]});
+      result.forEach(function(item){
+        r.content.push(App.Job2.create(item));
+      });
+
+      this.set('controller.content.jobs', r.content);
     }
   },
   config:{
@@ -38,7 +44,6 @@ App.jobsMapper = App.QuickDataMapper.create({
     job_name:'jobName',
     workflow_entity_name:'workflowEntityName',
     user_name:'userName',
-    conf_path:'confPath',
     submit_time:'submitTime',
     maps:'maps',
     reduces:'reduces',
@@ -50,6 +55,7 @@ App.jobsMapper = App.QuickDataMapper.create({
 });
 
 App.jobTimeLineMapper = App.QuickDataMapper.create({
+  model: null, //model will be set outside of mapper
   config:{
     map:'map',
     shuffle:'shuffle',
@@ -66,6 +72,7 @@ App.jobTimeLineMapper = App.QuickDataMapper.create({
 });
 
 App.jobTasksMapper = App.QuickDataMapper.create({
+  model: null, //model will be set outside of mapper
   config:{
     mapNodeLocal:'mapNodeLocal',
     mapRackLocal:'mapRackLocal',

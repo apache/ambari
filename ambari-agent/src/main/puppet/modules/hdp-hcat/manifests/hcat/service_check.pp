@@ -43,8 +43,8 @@ class hdp-hcat::hcat::service_check()
     mode => '0755',
   }
 
-  exec { '/tmp/hcatSmoke.sh':
-    command   => "su - ${smoke_test_user} -c '${smoke_user_kinitcmd}sh /tmp/hcatSmoke.sh hcatsmoke${unique}'",
+  exec { 'hcatSmoke.sh prepare':
+    command   => "su - ${smoke_test_user} -c '${smoke_user_kinitcmd}sh /tmp/hcatSmoke.sh hcatsmoke${unique} prepare'",
     tries     => 3,
     try_sleep => 5,
     require   => File['/tmp/hcatSmoke.sh'],
@@ -56,8 +56,17 @@ class hdp-hcat::hcat::service_check()
   hdp-hadoop::exec-hadoop { 'hcat::service_check::test':
     command     => $test_cmd,
     refreshonly => true,
-    require     => Exec['/tmp/hcatSmoke.sh'],
-    before      => Anchor['hdp-hcat::hcat::service_check::end'] 
+    require     => Exec['hcatSmoke.sh prepare'],
+  }
+
+  exec { 'hcatSmoke.sh cleanup':
+    command   => "su - ${smoke_test_user} -c '${smoke_user_kinitcmd}sh /tmp/hcatSmoke.sh hcatsmoke${unique} cleanup'",
+    tries     => 3,
+    try_sleep => 5,
+    path      => '/usr/sbin:/sbin:/usr/local/bin:/bin:/usr/bin',
+    require   => Hdp-hadoop::Exec-hadoop['hcat::service_check::test'],
+    before    => Anchor['hdp-hcat::hcat::service_check::end'],
+    logoutput => "true"
   }
   
   anchor{ 'hdp-hcat::hcat::service_check::end':}

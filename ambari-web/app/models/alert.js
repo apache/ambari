@@ -79,12 +79,23 @@ App.Alert = DS.Model.extend({
       }
       var prevSuffix = $.timeago.settings.strings.suffixAgo;
       $.timeago.settings.strings.suffixAgo = '';
-      var since = prefix + $.timeago(d);
+      var since = prefix + $.timeago(this.makeTimeAtleastMinuteAgo(d));
       $.timeago.settings.strings.suffixAgo = prevSuffix;
       return since;
     }
     return "";
   }.property('date', 'status'),
+  
+  makeTimeAtleastMinuteAgo: function(d){
+    var diff = new Date().getTime() - d.getTime();
+    if (diff < 60000) {
+      diff = 60000 - diff;
+      var newD = new Date(d.getTime() - diff );
+      //console.log("Making time more than 1 minute. New time=",newD,", Old time=",d);
+      return newD;
+    }
+    return d;
+  },
 
   /**
    * Provides more details about when this alert happened.

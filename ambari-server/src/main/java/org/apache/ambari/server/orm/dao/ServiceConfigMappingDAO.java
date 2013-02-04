@@ -58,7 +58,7 @@ public class ServiceConfigMappingDAO {
                 + " WHERE "
                 + " config.clusterId = ?1"
                 + " AND config.serviceName = ?2"
-                + " AND config.configType IN ?5",
+                + " AND config.configType IN ?3",
             ServiceConfigMappingEntity.class);
     return daoUtils.selectList(query, clusterId, serviceName, configTypes);
   }

@@ -33,6 +33,8 @@ public class DataTable {
   int sEcho;
   int iTotalRecords;
   int iTotalDisplayRecords;
+  int startIndex;
+  int endIndex;
   List<WorkflowDBEntry> aaData;
   Summary summary;
   
@@ -204,6 +206,22 @@ public class DataTable {
   
   public void setiTotalDisplayRecords(int iTotalDisplayRecords) {
     this.iTotalDisplayRecords = iTotalDisplayRecords;
+  }
+  
+  public int getStartIndex() {
+    return startIndex;
+  }
+  
+  public void setStartIndex(int startIndex) {
+    this.startIndex = startIndex;
+  }
+  
+  public int getEndIndex() {
+    return endIndex;
+  }
+  
+  public void setEndIndex(int endIndex) {
+    this.endIndex = endIndex;
   }
   
   public List<WorkflowDBEntry> getAaData() {

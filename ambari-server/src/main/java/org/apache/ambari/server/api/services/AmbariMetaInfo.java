@@ -31,6 +31,7 @@ import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 import java.io.File;
+import java.io.FilenameFilter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -75,7 +76,14 @@ public class AmbariMetaInfo {
     private static final String PROPERTY_XML_PROPERTY_NAME = "name";
     private static final String PROPERTY_XML_PROPERTY_VALUE = "value";
     private static final String PROPERTY_XML_PROPERTY_DESCRIPTION = "description";
-
+    private static final FilenameFilter FILENAME_FILTER = new FilenameFilter() {
+      @Override
+      public boolean accept(File dir, String s) {
+        if (s.equals(".svn") || s.equals(".git"))
+          return false;
+        return true;
+      }
+    };
 
     /**
      * Ambari Meta Info Object
@@ -357,11 +365,11 @@ public class AmbariMetaInfo {
             throw new IOException("" + Configuration.METADETA_DIR_PATH
                     + " should be a directory with stack"
                     + ", stackRoot=" + stackRoot.getAbsolutePath());
-        File[] stacks = stackRoot.listFiles();
+        File[] stacks = stackRoot.listFiles(FILENAME_FILTER);
         for (File stackFolder : stacks) {
             if (stackFolder.isFile())
                 continue;
-            File[] concretStacks = stackFolder.listFiles();
+            File[] concretStacks = stackFolder.listFiles(FILENAME_FILTER);
             for (File stack : concretStacks) {
                 if (stack.isFile())
                     continue;
@@ -395,7 +403,7 @@ public class AmbariMetaInfo {
                 // Get services for this stack
                 File servicesRootFolder = new File(stack.getAbsolutePath()
                         + File.separator + SERVICES_FOLDER_NAME);
-                File[] servicesFolders = servicesRootFolder.listFiles();
+                File[] servicesFolders = servicesRootFolder.listFiles(FILENAME_FILTER);
 
                 if (servicesFolders != null) {
                     for (File serviceFolder : servicesFolders) {
@@ -421,7 +429,7 @@ public class AmbariMetaInfo {
                         // Get all properties from all "configs/*-site.xml" files
                         File serviceConfigFolder = new File(serviceFolder.getAbsolutePath()
                                 + File.separator + SERVICE_CONFIG_FOLDER_NAME);
-                        File[] configFiles = serviceConfigFolder.listFiles();
+                        File[] configFiles = serviceConfigFolder.listFiles(FILENAME_FILTER);
                         if (configFiles != null) {
                             for (File config : configFiles) {
                                 if (config.getName().endsWith(SERVICE_CONFIG_FILE_NAME_POSTFIX)) {

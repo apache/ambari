@@ -23,10 +23,11 @@ import json
 from Hardware import Hardware
 from ActionQueue import ActionQueue
 from ServerStatus import ServerStatus
-import socket
+import hostname
 import time
 import urllib2
 import subprocess
+from HostInfo import HostInfo
 
 
 firstContact = True
@@ -36,23 +37,20 @@ class Register:
   def __init__(self):
     self.hardware = Hardware()
 
-  def pfqdn(self):
-    try:
-      handle = urllib2.urlopen('http://169.254.169.254/latest/meta-data/public-hostname', '', 3)
-      str = handle.read()
-      handle.close()
-      return str
-    except Exception, e:
-      return socket.getfqdn()
-
   def build(self, id='-1'):
     global clusterId, clusterDefinitionRevision, firstContact
     timestamp = int(time.time()*1000)
+   
+    hostInfo = HostInfo() 
+    agentEnv = { }
+    hostInfo.register(agentEnv)
+    
     register = { 'responseId'        : int(id),
                   'timestamp'         : timestamp,
-                  'hostname'          : socket.getfqdn(),
-                  'publicHostname'    : self.pfqdn(),
+                  'hostname'          : hostname.hostname(),
+                  'publicHostname'    : hostname.public_hostname(),
                   'hardwareProfile'   : self.hardware.get(),
+                  'agentEnv'          : agentEnv
                 }
     return register
 

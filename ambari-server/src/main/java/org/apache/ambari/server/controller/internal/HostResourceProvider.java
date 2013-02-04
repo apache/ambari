@@ -68,6 +68,8 @@ class HostResourceProvider extends ResourceProviderImpl{
       PropertyHelper.getPropertyId("Hosts", "host_health_report");
   protected static final String HOST_STATE_PROPERTY_ID =
       PropertyHelper.getPropertyId("Hosts", "host_state");
+  protected static final String HOST_LAST_AGENT_ENV_PROPERTY_ID =
+      PropertyHelper.getPropertyId("Hosts", "last_agent_env");
 
   private static Set<String> pkPropertyIds =
       new HashSet<String>(Arrays.asList(new String[]{
@@ -167,6 +169,8 @@ class HostResourceProvider extends ResourceProviderImpl{
           response.getRackInfo(), requestedIds);
       setResourceProperty(resource, HOST_LAST_HEARTBEAT_TIME_PROPERTY_ID,
           response.getLastHeartbeatTime(), requestedIds);
+      setResourceProperty(resource, HOST_LAST_AGENT_ENV_PROPERTY_ID,
+          response.getLastAgentEnv(), requestedIds);
       setResourceProperty(resource, HOST_LAST_REGISTRATION_TIME_PROPERTY_ID,
           response.getLastRegistrationTime(), requestedIds);
       setResourceProperty(resource, HOST_HOST_STATUS_PROPERTY_ID,

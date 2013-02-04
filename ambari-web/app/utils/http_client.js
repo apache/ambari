@@ -56,6 +56,9 @@ App.HttpClient = Em.Object.create({
     $.extend(options, {
       url: url,
       success: function (data) {
+        try {
+          App.store.commit();
+        } catch (err) {}
         mapper.map(data);
       },
       error: errorHandler
@@ -74,6 +77,7 @@ App.HttpClient = Em.Object.create({
    * @param {number} interval - frequecy request
    */
   get: function (url, mapper, data, errorHandler, interval) {
+    var eHandler = data.complete
     var client = this;
     var request = function () {
       client.request(url, data, mapper, errorHandler);

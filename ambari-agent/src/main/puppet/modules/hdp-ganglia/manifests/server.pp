@@ -130,7 +130,8 @@ class hdp-ganglia::server::files(
 
   $rrd_py_path = $hdp::params::rrd_py_path [$hdp::params::hdp_os_type]
   hdp::directory_recursive_create{$rrd_py_path:
-    ensure => "directory"  
+    ensure => "directory", 
+    override_owner => false 
   }
 
   $rrd_py_file_path = "${rrd_py_path}/rrd.py"

@@ -93,7 +93,7 @@ App.MainHostSummaryView = Em.View.extend({
   sortedComponents: function() {
     var slaveComponents = [];
     var masterComponents = [];
-    this.get('content.components').forEach(function(component){
+    this.get('content.hostComponents').forEach(function(component){
       if(component.get('isMaster')){
         masterComponents.push(component);
       } else if(component.get('isSlave')) {
@@ -104,7 +104,7 @@ App.MainHostSummaryView = Em.View.extend({
   }.property('content'),
   clients: function(){
     var clients = [];
-    this.get('content.components').forEach(function(component){
+    this.get('content.hostComponents').forEach(function(component){
       if(!component.get('componentName')){
         //temporary fix because of different data in hostComponents and serviceComponents
         return;
@@ -122,6 +122,11 @@ App.MainHostSummaryView = Em.View.extend({
 
   ComponentView: Em.View.extend({
     content: null,
+    didInsertElement: function () {
+      if (this.get('isInProgress')) {
+        this.doBlinking();
+      }
+    },
     hostComponent: function(){
       var hostComponent = null;
       var serviceComponent = this.get('content');
@@ -138,7 +143,7 @@ App.MainHostSummaryView = Em.View.extend({
         workStatus = hostComponent.get('workStatus');
       }
       return workStatus;
-    }.property('content.workStatus', 'hostComponent.workStatus'),
+    }.property('content.workStatus','hostComponent.workStatus'),
     statusClass: function(){
       var statusClass = null;
       if(this.get('isDataNode')){
@@ -147,14 +152,14 @@ App.MainHostSummaryView = Em.View.extend({
           return 'health-status-DEAD-ORANGE';
         }
       }
-      return 'health-status-' + App.Component.Status.getKeyName(this.get('workStatus'));
-    }.property('workStatus'),
+      return 'health-status-' + App.HostComponentStatus.getKeyName(this.get('workStatus'));
+    }.property('workStatus', 'isDataNodeRecommissionAvailable'),
     /**
      * Disable element while component is starting/stopping
      */
     disabledClass:function(){
       var workStatus = this.get('workStatus');
-      if([App.Component.Status.starting, App.Component.Status.stopping].contains(workStatus) ){
+      if([App.HostComponentStatus.starting, App.HostComponentStatus.stopping].contains(workStatus) ){
         return 'disabled';
       } else {
         return '';
@@ -166,7 +171,7 @@ App.MainHostSummaryView = Em.View.extend({
     doBlinking : function(){
       var workStatus = this.get('workStatus');
       var self = this;
-      var pulsate = [ App.Component.Status.starting, App.Component.Status.stopping ].contains(workStatus);
+      var pulsate = [ App.HostComponentStatus.starting, App.HostComponentStatus.stopping ].contains(workStatus);
       if (!pulsate && this.get('isDataNode')) {
         var dataNodeComponent = this.get('content');
         if (dataNodeComponent)
@@ -182,11 +187,17 @@ App.MainHostSummaryView = Em.View.extend({
      * Start blinking when host component is starting/stopping
      */
     startBlinking:function(){
+      this.$('.components-health').stop(true, true);
+      this.$('.components-health').css({opacity: 1.0});
       this.doBlinking();
     }.observes('workStatus'),
 
     isStart : function() {
-      return (this.get('workStatus') === App.Component.Status.started || this.get('workStatus') === App.Component.Status.starting);
+      return (this.get('workStatus') === App.HostComponentStatus.started || this.get('workStatus') === App.HostComponentStatus.starting);
+    }.property('workStatus'),
+
+    isInProgress : function() {
+      return (this.get('workStatus') === App.HostComponentStatus.stopping || this.get('workStatus') === App.HostComponentStatus.starting);
     }.property('workStatus'),
     /**
      * Shows whether we need to show Decommision/Recomission buttons

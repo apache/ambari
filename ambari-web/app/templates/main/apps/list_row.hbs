@@ -15,8 +15,7 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 }}
-<td><a href="#" {{action "starClick" target="controller"}}><span class="icon-star"></span></a></td>
-<td>{{unbound run.id}}</td>
+
 <td class="appId" title="{{unbound run.id}}">{{unbound run.idFormatted}}</td>
 <td>{{unbound run.appName}}</td>
 <td>{{unbound run.type}}</td>
@@ -25,4 +24,12 @@
 <td>{{unbound run.inputFormatted}}</td>
 <td>{{unbound run.outputFormatted}}</td>
 <td>{{unbound run.duration}}</td>
-<td ><span title="{{unbound run.lastUpdateTimeFormatted}}">{{unbound run.lastUpdateTimeFormattedShort}}</span>&nbsp;{{#if run.isRunning}}<b class='red'>*</b>{{/if}}</td>
+{{#if run.isRunning}}
+<td rel="popover" {{translateAttr title="apps.isRunning.popup.title" data-content="apps.isRunning.popup.content"}}>
+    <span title="{{unbound run.lastUpdateTimeFormatted}}">{{unbound run.lastUpdateTimeFormattedShort}}</span>
+    <b class='red'>*</b></td>
+{{else}}
+<td>
+    <span title="{{unbound run.lastUpdateTimeFormatted}}">{{unbound run.lastUpdateTimeFormattedShort}}</span>
+</td>
+{{/if}}

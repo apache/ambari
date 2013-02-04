@@ -1,0 +1,19 @@
+{
+  "jobs": [
+    {
+      "jobId": "job_201301280808_0001",
+      "jobName": "word count",
+      "status": "SUCCESS",
+      "userName": "ambari_qa",
+      "submitTime": 1359378637135,
+      "elapsedTime": 30215,
+      "maps": 1,
+      "reduces": 1,
+      "inputBytes": 1942,
+      "outputBytes": 1908,
+      "confPath": "hdfs:\/\/ip-10-83-1-168\\.ec2\\.internal:8020\/user\/ambari_qa\/\\.staging\/job_201301280808_0001\/job\\.xml",
+      "workflowId": "mr_201301280808_0001",
+      "workflowEntityName": "X"
+    }
+  ]
+}

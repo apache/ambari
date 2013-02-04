@@ -18,12 +18,12 @@
 
 <div class="btn-group">
   <button class="btn btn-primary dropdown-toggle" data-toggle="dropdown">
-    Job {{view.activeJob.id}} - {{view.activeJob.run.id}}
+    {{t apps.dagCharts.popup.job}} {{view.activeJob.id}} - {{view.activeJob.run.id}}
     <span class="caret"></span>
   </button>
   <ul class="dropdown-menu">
     {{#each job in view.content}}
-    <li><a {{action "selectJob" job target="view"}} href="javascript:void(null)">Job {{job.id}} - {{job.run.id}}</a></li>
+    <li><a {{action "selectJob" job target="view"}} href="javascript:void(null)">{{t apps.dagCharts.popup.job}} {{job.id}} - {{job.run.id}}</a></li>
     {{/each}}
   </ul>
 </div>
@@ -31,8 +31,9 @@
 <div id="graph1" class="pull-left">
   <div class="pull-left">
     <div id="graph1_desc" class="graph_desc">
-      <h4>Job Timeline</h4>
+      <h4>{{t apps.dagCharts.popup.tasks.timeline}}</h4>
     </div>
+    <div id="y-axis"></div>
     <div id="chart"></div>
     <div id="timeline1"></div>
   </div>
@@ -43,8 +44,9 @@
 <div id="graph2" class="pull-right">
   <div class="pull-left">
     <div id="graph2_desc" class="graph_desc">
-      <h4>Job Tasks' View</h4>
+      <h4>{{t apps.dagCharts.popup.tasks.tasks}}</h4>
     </div>
+    <div id="y-axis2"></div>
     <div id="job_tasks"></div>
     <div id="timeline2"></div>
   </div>

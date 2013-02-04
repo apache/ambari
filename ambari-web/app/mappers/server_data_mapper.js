@@ -86,6 +86,9 @@ App.QuickDataMapper = App.ServerDataMapper.extend({
               result[i].push(this.parseIt(_data[index], config[i]));
             }
           }
+          if(_type == 'array'){
+            result[i] = result[i].sort();
+          }
         }
       }
     }
@@ -108,5 +111,17 @@ App.QuickDataMapper = App.ServerDataMapper.extend({
       pathArr.splice(0, 1);
     }
     return current;
+  },
+
+  calculateState: function (json) {
+//    var stateEqual = (json.desired_status != json.work_status);
+//    if (stateEqual) {
+//      if (json.desired_status == 'STARTED' && json.work_status == 'INSTALLED') {
+//        json.work_status = 'STARTING';
+//      } else if (json.desired_status == 'INSTALLED' && json.work_status == 'STARTED') {
+//        json.work_status = 'STOPPING';
+//      }
+//    }
+    return json;
   }
 });

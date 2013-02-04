@@ -17,64 +17,502 @@
  */
 
 var App = require('app');
-require('utils/jquery.unique');
+var misc = require('utils/misc');
+var date = require('utils/date');
 
 App.MainAppsController = Em.ArrayController.extend({
 
   name:'mainAppsController',
-  content: function(){
-    return App.Run.find();
-  }.property('App.router.clusterController.postLoadList.runs'),
+  content: [],
+
+  loaded : false,
+  loading : false,
+
   /**
-   * Mark all Runs as not Filtered
+   * List of users.
+   * Will be used for filtering in user column.
+   * Go to App.MainAppsView.userFilterView for more information
    */
-  clearFilteredRuns: function() {
-    this.get('content').setEach('isFiltered', false);
-    this.set('filteredRunsLength', 0);
-  },
-  /**
-   * Mark Run as filtered
-   * @param id runId
-   */
-  addFilteredRun: function(id) {
-    this.get('content').findProperty('id', id).set('isFiltered', true);
-    this.set('filteredRunsLength', this.get('content').filterProperty('isFiltered', true).length);
-  },
-  /**
-   * Mark Runs as filtered
-   * @param ids array of Run id
-   */
-  filterFilteredRuns: function(ids) {
-    this.get('content').filter(function(item) {
-      if ($.inArray(item.get('id'), ids) !== -1) {
-        item.set('isFiltered', true);
+  users: function () {
+    return this.get('content').mapProperty("userName").uniq().map(function(userName){
+      return {
+        name: userName,
+        checked: false
+      };
+    });
+  }.property('content.length'),
+
+  loadRuns:function () {
+
+    this.set('loading', true);
+    var self = this;
+
+    //var runsUrl = App.testMode ? "/data/apps/runs.json" : App.apiPrefix + "/jobhistory/workflow?orderBy=startTime&sortDir=DESC&limit=" + App.maxRunsForAppBrowser;
+    var runsUrl = App.testMode ? "/data/apps/runs.json" : App.apiPrefix + this.get("runUrl");
+
+    App.HttpClient.get(runsUrl, App.runsMapper, {
+      complete:function (jqXHR, textStatus) {
+        self.set('loading', false);
+        self.set('loaded', true);
       }
     });
-    this.set('filteredRunsLength', this.get('content').filterProperty('isFiltered', true).length);
   },
-  /**
-   * Identifier of the last starred/unstarred run
+
+  //Pagination Object
+
+  paginationObject:{
+    iTotalDisplayRecords :null,
+    iTotalRecords:null,
+    startIndex:null,
+    endIndex:null
+  },
+
+  /*
+   Set number of filtered jobs when switching to all jobs
    */
-  lastStarClicked: null,
-  /**
-   * Starred Runs count
-   */
-  staredRunsLength: function() {
-    return this.get('content').filterProperty('isStared', true).length;
-  }.property('content'),
-  /**
-   * Click on star on table row
-   * @return {Boolean} false for prevent default event handler
-   */
-  starClick: function(event) {
-    event.target.classList.toggle('stared');
-    var id = jQuery(event.target).parent().parent().parent().find('.appId').attr('title');
-    var run = this.get('content').findProperty('id', id);
-    if (run) {
-      run.set('isStared', !run.get('isStared'));
+  iTotalDisplayRecordsObserver:function(){
+    if(this.get("filterObject.allFilterActivated")){
+      //this.set("paginationObject.filteredDisplayRecords","-10");
+      this.set("filterObject.allFilterActivated", false);
+    }else{
+      this.set("filterObject.filteredDisplayRecords",this.get("paginationObject.iTotalDisplayRecords"));
     }
-    this.set('staredRunsLength', this.get('content').filterProperty('isStared', true).length);
-    this.set('lastStarClicked', id);
-    return false;
-  }
+  }.observes("paginationObject.iTotalDisplayRecords"),
+
+
+  //Filter object
+
+  filterObject : Ember.Object.create({
+    sSearch_0:"",
+    sSearch_1:"",
+    sSearch_2:"",
+    sSearch_3:"",
+    minJobs:"",
+    maxJobs:"",
+    minInputBytes:"",
+    maxInputBytes:"",
+    minOutputBytes:"",
+    maxOutputBytes:"",
+    minDuration:"",
+    maxDuration:"",
+    minStartTime:"",
+    maxStartTime:"",
+    sSearch:"",
+    iDisplayLength:"",
+    iDisplayStart:"",
+    iSortCol_0:"",
+    sSortDir_0:"",
+
+    allFilterActivated:false,
+    filteredDisplayRecords:null,
+
+    viewType:"all",
+    viewTypeClickEvent:false,
+
+    /**
+     * Direct binding to job filter field
+     */
+    runType:"",
+    onRunTypeChange:function(){
+      if(this.runType == "MapReduce"){
+        this.set("sSearch_2","mr");
+      }else if(this.runType == "Hive"){
+        this.set("sSearch_2","hive");
+      }else if(this.runType == "Pig"){
+        this.set("sSearch_2","pig");
+      }else{
+        this.set("sSearch_2","");
+      }
+    }.observes("runType"),
+
+    /**
+     * Direct binding to job filter field
+     */
+    jobs:"",
+    onJobsChange:function(){
+      var minMaxTmp = this.parseNumber(this.jobs);
+      this.set("minJobs", minMaxTmp.min);
+      this.set("maxJobs", minMaxTmp.max);
+    }.observes("jobs"),
+
+    /**
+     * Direct binding to Input filter field
+     */
+    input:"",
+    onInputChange:function(){
+      var minMaxTmp = this.parseBandWidth(this.input);
+      this.set("minInputBytes", minMaxTmp.min);
+      this.set("maxInputBytes", minMaxTmp.max);
+    }.observes("input"),
+
+    /**
+     * Direct binding to Output filter field
+     */
+    output:"",
+    onOutputChange:function(){
+      var minMaxTmp = this.parseBandWidth(this.output);
+      this.set("minOutputBytes", minMaxTmp.min);
+      this.set("maxOutputBytes", minMaxTmp.max);
+    }.observes("output"),
+
+    /**
+     * Direct binding to Duration filter field
+     */
+    duration:"",
+    onDurationChange:function(){
+      var minMaxTmp = this.parseDuration(this.duration);
+      this.set("minDuration", minMaxTmp.min);
+      this.set("maxDuration", minMaxTmp.max);
+    }.observes("duration"),
+
+    /**
+     * Direct binding to Run Date filter field
+     */
+    runDate:"",
+    onRunDateChange:function(){
+      var minMaxTmp = this.parseDate(this.runDate);
+      this.set("minStartTime", minMaxTmp.min);
+      this.set("maxStartTime", minMaxTmp.max);
+    }.observes("runDate"),
+
+    parseDuration:function(value){
+      var tmp={
+        min:"",
+        max:""
+      };
+
+      var compareChar = isNaN(value.charAt(0)) ? value.charAt(0) : false;
+      var compareScale = value.match(/s|m|h/);
+      compareScale = compareScale ? compareScale[0] : "";
+      var compareValue = compareChar ? parseFloat(value.substr(1, value.length)) : parseFloat(value.substr(0, value.length));
+      if(isNaN(compareValue)){
+        return tmp;
+      }
+      switch (compareScale) {
+        case 'h':
+        tmp.min = Math.ceil((parseFloat(compareValue)-0.0001)*1000*60*60);
+        tmp.max = Math.floor((parseFloat(compareValue)+0.0001)*1000*60*60);
+        break;
+        case 'm':
+        tmp.min = Math.ceil((parseFloat(compareValue)-0.001)*1000*60);
+        tmp.max = Math.floor((parseFloat(compareValue)+0.001)*1000*60);
+        break;
+        case 's':
+        tmp.min = Math.ceil((parseFloat(compareValue)-0.01)*1000);
+        tmp.max = Math.floor((parseFloat(compareValue)+0.01)*1000);
+        break;
+        default:
+          tmp.min = Math.max(1024,Math.ceil((compareValue-0.05)*1024));
+          tmp.max = Math.min(1048575,Math.floor((compareValue+0.05)*1024));
+      }
+      switch (compareChar) {
+        case '<':
+          tmp.min="";
+          break;
+        case '>':
+          tmp.max="";
+          break;
+      }
+      return tmp;
+    },
+
+    parseDate:function(value){
+      var tmp={
+        min:"",
+        max:""
+      };
+      var nowTime = new Date().getTime();
+
+      switch (value){
+        case 'Any':
+          break;
+        case 'Past 1 Day':
+          tmp.min= nowTime - 86400000;
+          break;
+        case 'Past 2 Days':
+          tmp.min= nowTime - 172800000;
+          break;
+        case 'Past 7 Days':
+          tmp.min= nowTime - 604800000;
+          break;
+        case 'Past 14 Days':
+          tmp.min= nowTime - 1209600000;
+          break;
+        case 'Past 30 Days':
+          tmp.min= nowTime - 2592000000;
+          break;
+        case 'Running Now':
+          tmp.min= nowTime;
+          break;
+      }
+      return tmp;
+    },
+
+    parseBandWidth:function(value){
+      var tmp={
+        min:"",
+        max:""
+      };
+
+      var compareChar = isNaN(value.charAt(0)) ? value.charAt(0) : false;
+      var compareScale = value.match(/kb|k|mb|m|gb|g/);
+      compareScale = compareScale ? compareScale[0] : "";
+      var compareValue = compareChar ? parseFloat(value.substr(1, value.length)) : parseFloat(value.substr(0, value.length));
+      if(isNaN(compareValue)){
+        return tmp;
+      }
+      switch (compareScale) {
+        case 'g': case 'gb':
+          tmp.min = Math.max(1073741824,Math.ceil((compareValue-0.005)*1073741824));
+          tmp.max = Math.floor((compareValue+0.005)*1073741824);
+          break;
+        case 'm': case 'mb':
+          tmp.min = Math.max(1048576,Math.ceil((compareValue-0.05)*1048576));
+          tmp.max = Math.min(1073741823,Math.floor((compareValue+0.05)*1048576));
+          break;
+        case 'k': case 'kb':
+          tmp.min = Math.max(1024,Math.ceil((compareValue-0.05)*1024));
+          tmp.max = Math.min(1048575,Math.floor((compareValue+0.05)*1024));
+          break;
+        default:
+          tmp.min = Math.max(1024,Math.ceil((compareValue-0.05)*1024));
+          tmp.max = Math.min(1048575,Math.floor((compareValue+0.05)*1024));
+      }
+      switch (compareChar) {
+        case '<':
+          tmp.min="";
+          break;
+        case '>':
+          tmp.max="";
+          break;
+      }
+      return tmp;
+    },
+    parseNumber:function(value){
+      var tmp={
+        min:"",
+        max:""
+      };
+      switch (value.charAt(0)) {
+        case '<':
+          tmp.max=value.substr(1);
+          break;
+        case '>':
+          tmp.min=value.substr(1);
+          break;
+        case '=':
+          tmp.min=value.substr(1);
+          tmp.max=value.substr(1);
+          break;
+        default:
+          tmp.min=value;
+          tmp.max=value;
+      }
+      return tmp;
+    },
+    createAppLink:function(){
+      var link = "/jobhistory/datatable?";
+
+      if(this.sSearch_0){
+        link +=  "sSearch_0=" + this.sSearch_0 + "&";
+      }
+      if(this.sSearch_1){
+        link +=  "sSearch_1=" + this.sSearch_1 + "&";
+      }
+      if(this.sSearch_2 && this.sSearch_2 != "Any"){
+        link +=  "sSearch_2=" + this.sSearch_2 + "&";
+      }
+      if(this.sSearch_3){
+        link +=  "sSearch_3=" + this.sSearch_3 + "&";
+      }
+      if(this.minJobs){
+        link +=  "minJobs=" + this.minJobs + "&";
+      }
+      if(this.maxJobs){
+        link +=  "maxJobs=" + this.maxJobs + "&";
+      }
+      if(this.minInputBytes){
+        link +=  "minInputBytes=" + this.minInputBytes + "&";
+      }
+      if(this.maxInputBytes){
+        link +=  "maxInputBytes=" + this.maxInputBytes + "&";
+      }
+      if(this.minOutputBytes){
+        link +=  "minOutputBytes=" + this.minOutputBytes + "&";
+      }
+      if(this.maxOutputBytes){
+        link +=  "maxOutputBytes=" + this.maxOutputBytes + "&";
+      }
+      if(this.minDuration){
+        link +=  "minDuration=" + this.minDuration + "&";
+      }
+      if(this.maxDuration){
+        link +=  "maxDuration=" + this.maxDuration + "&";
+      }
+      if(this.minStartTime){
+        link +=  "minStartTime=" + this.minStartTime + "&";
+      }
+      if(this.maxStartTime){
+        link +=  "maxStartTime=" + this.maxStartTime + "&";
+      }
+      if(this.sSearch){
+        link +=  "sSearch=" + this.sSearch + "&";
+      }
+      if(this.iDisplayLength){
+        link +=  "iDisplayLength=" + this.iDisplayLength + "&";
+      }
+      if(this.iDisplayStart){
+        link +=  "iDisplayStart=" + this.iDisplayStart + "&";
+      }
+      if(this.iSortCol_0){
+        link +=  "iSortCol_0=" + this.iSortCol_0 + "&";
+      }
+      if(this.sSortDir_0){
+        link +=  "sSortDir_0=" + this.sSortDir_0 + "&";
+      }
+
+      link = link.slice(0,link.length-1);
+
+      var valueInString=link.match(/&/g);
+
+      if(!this.get("viewTypeClickEvent"))
+      if(valueInString != null){
+        this.set("viewType","filtered");
+      }else{
+        this.set("viewType","all");
+      }
+
+      return link;
+    }
+  }),
+
+  runUrl : "/jobhistory/datatable",
+  runTimeout : null,
+
+  valueObserver: function(){
+    var link = this.get('filterObject').createAppLink();
+
+    if(this.get("filterObject.viewType") == "filtered"){
+      this.set("runUrl", link);
+    }else{
+      this.set("runUrl",  "/jobhistory/datatable?iDisplayLength="+this.get('filterObject.iDisplayLength'));
+    }
+
+    var timeout = this.get('runTimeout');
+    var self = this;
+
+    clearTimeout(timeout);
+    timeout = setTimeout(function(){
+      console.log(self.get("runUrl"));
+      self.loadRuns();
+    }, 300);
+
+    this.set('runTimeout', timeout);
+
+  }.observes(
+      'filterObject.sSearch_0',
+      'filterObject.sSearch_1',
+      'filterObject.sSearch_2',
+      'filterObject.sSearch_3',
+      'filterObject.minJobs',
+      'filterObject.maxJobs',
+      'filterObject.minInputBytes',
+      'filterObject.maxInputBytes',
+      'filterObject.minOutputBytes',
+      'filterObject.maxOutputBytes',
+      'filterObject.minDuration',
+      'filterObject.maxDuration',
+      'filterObject.minStartTime',
+      'filterObject.maxStartTime',
+      'filterObject.sSearch',
+      'filterObject.iDisplayLength',
+      'filterObject.iDisplayStart',
+      'filterObject.iSortCol_0',
+      'filterObject.sSortDir_0',
+      'filterObject.viewType'
+  ),
+
+  serverData: "",
+  summary: null,
+
+  /**
+   * Observer for summary data from server
+   */
+  summaryInfo: function(){
+    var tmp;
+    var summary = this.get('serverData');
+    if(!summary){
+      tmp = {
+        'jobs': {
+          'avg': '-',
+          'min': '-',
+          'max': '-'
+        },
+        'input': {
+          'avg': '-',
+          'min': '-',
+          'max': '-'
+        },
+        'output': {
+          'avg': '-',
+          'min': '-',
+          'max': '-'
+        },
+        'duration': {
+          'avg': '-',
+          'min': '-',
+          'max': '-'
+        },
+        'times': {
+          'oldest': '-',
+          'youngest': '-'
+        }
+      };
+    }else{
+      tmp = {
+        'jobs': {
+          'avg': summary.jobs.avg.toFixed(2),
+          'min': summary.jobs.min,
+          'max': summary.jobs.max
+        },
+        'input': {
+          'avg': misc.formatBandwidth(summary.input.avg),
+          'min': misc.formatBandwidth(summary.input.min),
+          'max': misc.formatBandwidth(summary.input.max)
+        },
+        'output': {
+          'avg': misc.formatBandwidth(summary.output.avg),
+          'min': misc.formatBandwidth(summary.output.min),
+          'max': misc.formatBandwidth(summary.output.max)
+        },
+        'duration': {
+          'avg': date.timingFormat(Math.round(summary.duration.avg)),
+          'min': date.timingFormat(summary.duration.min),
+          'max': date.timingFormat(summary.duration.max)
+        },
+        'times': {
+          'oldest': new Date(summary.times.oldest).toDateString(),
+          'youngest': new Date(summary.times.youngest).toDateString()
+        }
+      };
+    }
+    this.set("summary",tmp);
+  }.observes('serverData'),
+
+
+  columnsName: Ember.ArrayController.create({
+    content: [
+      { name: 'App ID', index: 0 },
+      { name: 'Name', index: 1 },
+      { name: 'Type', index: 2 },
+      { name: 'User', index: 3 },
+      { name: 'Jobs', index: 4 },
+      { name: 'Input', index: 5 },
+      { name: 'Output', index: 6 },
+      { name: 'Duration', index: 7 },
+      { name: 'Run Date', index: 8 }
+    ]
+  })
+
+
 })

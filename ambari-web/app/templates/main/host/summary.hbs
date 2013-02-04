@@ -48,13 +48,13 @@
           {{#each component in view.sortedComponents}}
           <div class="row-fluid">
           {{#view view.ComponentView contentBinding="component" decommissionDataNodeHostNamesBinding="view.decommissionDataNodeHostNames"}}
-            <div class="span8">
+            <div class="span7">
               <span {{bindAttr class="view.statusClass :components-health"}}></span>&nbsp;
               {{component.displayName}}&nbsp;/&nbsp;
               <a href="#" {{action routeToService component.service target="controller"  }}>{{component.service.displayName}}</a>
             </div>
-            <div class="span4">
-              {{#if controller.isAdmin}}
+            <div class="span5">
+              {{#if App.isAdmin}}
               <div class="btn-group">
                 <a {{ bindAttr class=":btn :dropdown-toggle view.disabledClass"}} data-toggle="dropdown">
                   Action

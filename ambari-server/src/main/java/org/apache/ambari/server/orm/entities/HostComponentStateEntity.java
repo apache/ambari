@@ -158,7 +158,7 @@ public class HostComponentStateEntity {
 
   private Collection<HostComponentConfigMappingEntity> configMappingEntities;
   @OneToMany(mappedBy = "hostComponentStateEntity", cascade = CascadeType.ALL)
-  public Collection<HostComponentConfigMappingEntity> getHostComponentConfigMappingEntities() {
+   public Collection<HostComponentConfigMappingEntity> getHostComponentConfigMappingEntities() {
     return configMappingEntities;
   }
 

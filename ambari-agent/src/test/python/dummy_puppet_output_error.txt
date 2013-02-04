@@ -41,5 +41,5 @@ debug: Storing state
 debug: Stored state in 0.01 seconds
 notice: Finished catalog run in 0.23 seconds
 debug: Finishing transaction 70171638871060
-debug: Received report to process from ambari-dmi.cybervisiontech.com.ua
-debug: Processing report from ambari-dmi.cybervisiontech.com.ua with processor Puppet::Reports::Store
+debug: Received report to process from ambari-dmi
+debug: Processing report from ambari-dmi with processor Puppet::Reports::Store

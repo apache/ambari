@@ -21,7 +21,7 @@
   <artifactId>ambari</artifactId>
   <packaging>pom</packaging>
   <name>Ambari Main</name>
-  <version>1.2.0-SNAPSHOT</version>
+  <version>1.2.1-SNAPSHOT</version>
   <description>Ambari</description>
   <pluginRepositories>
     <pluginRepository>
@@ -115,7 +115,6 @@
           <excludes>
             <exclude>**/*.json</exclude>
             <exclude>derby.log</exclude>
-            <exclude>CHANGES.txt</exclude>
             <exclude>AMBARI-666-CHANGES.txt</exclude>
             <exclude>pass.txt</exclude>
             <exclude>contrib/addons/test/dataServices/jmx/data/cluster_configuration.json.nohbase</exclude>
@@ -125,7 +124,6 @@
             <exclude>.git/</exclude>
             <exclude>**/.gitignore</exclude>
             <exclude>**/.gitattributes</exclude>
-
             <!--gitignore content-->
             <exclude>.DS_Store</exclude>
             <exclude>.iml/</exclude>
@@ -137,6 +135,11 @@
             <exclude>.hg</exclude>
             <exclude>.hgignore</exclude>
             <exclude>.hgtags</exclude>
+
+
+            <!--Python Mock library (BSD license)-->
+            <exclude>ambari-common/src/test/python/mock/**</exclude>
+
           </excludes>
         </configuration>
       </plugin>

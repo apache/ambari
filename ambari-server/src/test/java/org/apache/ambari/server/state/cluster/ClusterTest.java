@@ -18,24 +18,34 @@
 
 package org.apache.ambari.server.state.cluster;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import static org.mockito.Mockito.*;
 
-import com.google.inject.Guice;
-import com.google.inject.Injector;
-import com.google.inject.persist.PersistService;
+import javax.persistence.EntityManager;
+
 import junit.framework.Assert;
 
 import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.agent.AgentEnv;
+import org.apache.ambari.server.agent.AgentEnv.Directory;
 import org.apache.ambari.server.agent.DiskInfo;
 import org.apache.ambari.server.agent.HostInfo;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.controller.ClusterResponse;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
+import org.apache.ambari.server.orm.entities.ClusterEntity;
+import org.apache.ambari.server.orm.entities.ClusterServiceEntity;
+import org.apache.ambari.server.orm.entities.HostEntity;
+import org.apache.ambari.server.orm.entities.HostStateEntity;
+import org.apache.ambari.server.orm.entities.ServiceDesiredStateEntity;
 import org.apache.ambari.server.state.AgentVersion;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
@@ -54,9 +64,17 @@ import org.apache.ambari.server.state.host.HostRegistrationRequestEvent;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.google.gson.Gson;
+import com.google.inject.Guice;
+import com.google.inject.Injector;
+import com.google.inject.persist.PersistService;
 
 public class ClusterTest {
-
+  private static final Logger LOG = LoggerFactory.getLogger(ClusterTest.class);
+  
   private Clusters clusters;
   private Cluster c1;
   private Injector injector;
@@ -139,11 +157,22 @@ public class ClusterTest {
         "5000000", "4000000", "10%", "size", "fstype"));
     hostInfo.setMounts(mounts);
 
+    AgentEnv agentEnv = new AgentEnv();
+    
+    Directory dir1 = new Directory();
+    dir1.setName("/etc/hadoop");
+    dir1.setType("not_exist");
+    Directory dir2 = new Directory();
+    dir2.setName("/var/log/hadoop");
+    dir2.setType("not_exist");
+    agentEnv.setPaths(new Directory[] { dir1, dir2 });
+    
+    
     AgentVersion agentVersion = new AgentVersion("0.0.x");
     long currentTime = 1001;
 
     clusters.getHost("h1").handleEvent(new HostRegistrationRequestEvent(
-        "h1", agentVersion, currentTime, hostInfo));
+        "h1", agentVersion, currentTime, hostInfo, agentEnv));
 
     Assert.assertEquals(HostState.WAITING_FOR_HOST_STATUS_UPDATES,
         clusters.getHost("h1").getState());
@@ -152,7 +181,7 @@ public class ClusterTest {
 
     try {
       clusters.getHost("h1").handleEvent(
-          new HostHealthyHeartbeatEvent("h1", currentTime));
+          new HostHealthyHeartbeatEvent("h1", currentTime, null));
       fail("Exception should be thrown on invalid event");
     }
     catch (InvalidStateTransitionException e) {
@@ -262,6 +291,70 @@ public class ClusterTest {
     // public Config getConfig(String configType, String versionTag);
     // public void addConfig(Config config);
   }
+  
+  public ClusterEntity createDummyData() {
+    ClusterEntity clusterEntity = new ClusterEntity();
+    clusterEntity.setClusterName("test_cluster1");
+    clusterEntity.setClusterInfo("test_cluster_info1");
+
+    HostEntity host1 = new HostEntity();
+    HostEntity host2 = new HostEntity();
+    HostEntity host3 = new HostEntity();
+
+    host1.setHostName("test_host1");
+    host2.setHostName("test_host2");
+    host3.setHostName("test_host3");
+    host1.setIpv4("192.168.0.1");
+    host2.setIpv4("192.168.0.2");
+    host3.setIpv4("192.168.0.3");
+
+    List<HostEntity> hostEntities = new ArrayList<HostEntity>();
+    hostEntities.add(host1);
+    hostEntities.add(host2);
+
+    clusterEntity.setHostEntities(hostEntities);
+    clusterEntity.setClusterConfigEntities(Collections.EMPTY_LIST);
+    //both sides of relation should be set when modifying in runtime
+    host1.setClusterEntities(Arrays.asList(clusterEntity));
+    host2.setClusterEntities(Arrays.asList(clusterEntity));
+
+    HostStateEntity hostStateEntity1 = new HostStateEntity();
+    hostStateEntity1.setCurrentState(HostState.HEARTBEAT_LOST);
+    hostStateEntity1.setHostEntity(host1);
+    HostStateEntity hostStateEntity2 = new HostStateEntity();
+    hostStateEntity2.setCurrentState(HostState.HEALTHY);
+    hostStateEntity2.setHostEntity(host2);
+    host1.setHostStateEntity(hostStateEntity1);
+    host2.setHostStateEntity(hostStateEntity2);
+
+    ClusterServiceEntity clusterServiceEntity = new ClusterServiceEntity();
+    clusterServiceEntity.setServiceName("HDFS");
+    clusterServiceEntity.setClusterEntity(clusterEntity);
+    clusterServiceEntity.setServiceComponentDesiredStateEntities(
+        Collections.EMPTY_LIST);
+    clusterServiceEntity.setServiceConfigMappings(Collections.EMPTY_LIST);
+    ServiceDesiredStateEntity stateEntity = mock(ServiceDesiredStateEntity.class);
+    Gson gson = new Gson();
+    when(stateEntity.getDesiredStackVersion()).thenReturn(gson.toJson(new StackId("HDP-0.1"),
+        StackId.class));
+    clusterServiceEntity.setServiceDesiredStateEntity(stateEntity);
+    List<ClusterServiceEntity> clusterServiceEntities = new ArrayList<ClusterServiceEntity>();
+    clusterServiceEntities.add(clusterServiceEntity);
+    clusterEntity.setClusterServiceEntities(clusterServiceEntities);
+    return clusterEntity;
+  }
+  
+  @Test
+  public void testClusterRecovery() throws AmbariException {
+    ClusterEntity entity = createDummyData();
+    ClusterImpl cluster = new ClusterImpl(entity, injector);
+    Service service = cluster.getService("HDFS");
+    /* make sure the services are recovered */
+    Assert.assertEquals("HDFS",service.getName());
+    Map<String, Service> services = cluster.getServices();
+    Assert.assertNotNull(services.get("HDFS"));
+  }
+  
 
   @Test
   public void testConvertToResponse() throws AmbariException {
@@ -275,4 +368,24 @@ public class ClusterTest {
     c1.debugDump(sb);
   }
 
+  @Test
+  public void testDeleteService() throws Exception {
+    c1.addService("MAPREDUCE").persist();
+
+    Service hdfs = c1.addService("HDFS");
+    hdfs.persist();
+    ServiceComponent nameNode = hdfs.addServiceComponent("NAMENODE");
+    nameNode.persist();
+
+
+    assertEquals(2, c1.getServices().size());
+    assertEquals(2, injector.getProvider(EntityManager.class).get().
+        createQuery("SELECT service FROM ClusterServiceEntity service").getResultList().size());
+
+    c1.deleteService("HDFS");
+
+    assertEquals(1, c1.getServices().size());
+    assertEquals(1, injector.getProvider(EntityManager.class).get().
+        createQuery("SELECT service FROM ClusterServiceEntity service").getResultList().size());
+  }
 }

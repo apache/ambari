@@ -14,7 +14,8 @@
  * License for the specific language governing permissions and limitations under
  * the License.
  */
-var stringUtils = require('utils/string_utils');
+
+var App = require('app');
 
 App.servicesMapper = App.QuickDataMapper.create({
   servicesSortOrder: [
@@ -47,13 +48,7 @@ App.servicesMapper = App.QuickDataMapper.create({
     id: 'ServiceInfo.service_name',
     service_name: 'ServiceInfo.service_name',
     work_status: 'ServiceInfo.state',
-    $service_audit: [ 1, 2, 3 ],
     $alerts: [ 1, 2, 3 ],
-    components_key: 'components',
-    components_type: 'array',
-    components: {
-      item: 'ServiceComponentInfo.component_name'
-    },
     host_components: 'host_components'
   },
   hdfsConfig: {
@@ -115,28 +110,14 @@ App.servicesMapper = App.QuickDataMapper.create({
     heap_memory_max: 'masterComponent.ServiceComponentInfo.HeapMemoryMax'
   },
 
-  model2: App.Component,
-  config2: {
-    id: 'ServiceComponentInfo.component_name',
-    component_name: 'ServiceComponentInfo.component_name',
-    service_id: 'ServiceComponentInfo.service_name',
-    // TODO - PROBLEM:
-    // below statements are a problem for multiple 
-    // host_component components. Because it randomly
-    // picks one of the hosts. Especially the host details
-    // page must be careful because, it will randomly
-    // pick a host.
-    work_status: 'host_components[0].HostRoles.state',
-    host_id: 'host_components[0].HostRoles.host_name'
-  },
-
   model3: App.HostComponent,
   config3: {
     id: 'id',
     work_status: 'HostRoles.state',
+    desired_status: 'HostRoles.desired_state',
     component_name: 'HostRoles.component_name',
     host_id: 'HostRoles.host_name',
-    service_id: 'component[0].ServiceComponentInfo.service_name'
+    $service_id: 'none' /* will be set outside of parse function */
   },
 
   map: function (json) {
@@ -150,27 +131,13 @@ App.servicesMapper = App.QuickDataMapper.create({
         var finalConfig = jQuery.extend({}, this.config);
         var finalJson = [];
         item.host_components = [];
-//        var json = this.parseIt(item, this.config);
-//        if(App.Service.find().someProperty('id', json.id)){
-//          var fieldsToUpdate = [
-//            'work_status',
-//            'components',
-//            'host_components'
-//          ]
-//          this.updateRecord(App.Service.find().findProperty('id', json.id), json, fieldsToUpdate);
-//          return;
-//        }
-
-        if (this.get('model').find(item.ServiceInfo.service_name).get('isLoaded')) {
-          this.update(item);
-          return;
-        }
         item.components.forEach(function (component) {
           component.host_components.forEach(function (host_component) {
             host_component.id = host_component.HostRoles.component_name + "_" + host_component.HostRoles.host_name;
             item.host_components.push(host_component.id);
-          }, this)
+          }, this);
         }, this);
+        item.host_components.sort();
 
         if (item && item.ServiceInfo && item.ServiceInfo.service_name == "HDFS") {
           // Change the JSON so that it is easy to map
@@ -194,156 +161,27 @@ App.servicesMapper = App.QuickDataMapper.create({
       result = this.sortByOrder(this.get('servicesSortOrder'), result);
       App.store.loadMany(this.get('model'), result);
 
-      // Service components
-      result = [];
-      json.items.forEach(function(item){
-        item.components.forEach(function(component){
-          result.push(this.parseIt(component, this.config2));
-        }, this)
-      }, this);
-      var newComponents = [];
-      result.forEach(function(componentJson){
-        var component = App.Component.find(componentJson.id);
-        if (component && component.get('isLoaded')) { // UPDATE
-          if (componentJson.work_status) {
-            component.set('workStatus', componentJson.work_status);
-          }
-          if (componentJson.host_id) {
-            component.set('host', App.Host.find(componentJson.host_id));
-          }
-        } else {
-          newComponents.push(componentJson);
-        }
-      });
-      if (newComponents.length > 0) {
-        App.store.loadMany(this.get('model2'), newComponents);
-      }
-
       // Host components
       result = [];
       json.items.forEach(function(item){
         item.components.forEach(function(component){
+          var service = component.ServiceComponentInfo.service_name;
           component.host_components.forEach(function(host_component){
-            result.push(this.parseIt(host_component, this.config3));
+            var comp = this.parseIt(host_component, this.config3);
+            comp.service_id = service;
+            result.push(comp);
           }, this)
         }, this)
       }, this);
-      var newHostComponents = [];
+
       result.forEach(function(hcJson){
-        hcJson.id = hcJson.component_name + '_' + hcJson.host_id;
-        var component = App.HostComponent.find(hcJson.id);
-        if (component && component.get('isLoaded')) { // UPDATE
-          if (hcJson.work_status) {
-            component.set('workStatus', hcJson.work_status);
-          }
-          if (hcJson.component_name) {
-            component.set('componentName', hcJson.component_name);
-          }
-          if (hcJson.host_id) {
-            component.set('host', App.Host.find(hcJson.host_id));
-          }
-          if (hcJson.service_id) {
-            component.set('service', App.Service.find(hcJson.service_id));
-          }
-        } else {
-          newHostComponents.push(hcJson);
-        }
-      });
-      if (newHostComponents.length > 0) {
-        App.store.loadMany(this.get('model3'), newHostComponents);
-      }
+        this.calculateState(hcJson);
+      }, this);
+
+      App.store.loadMany(this.get('model3'), result);
     }
   },
-  update: function (service) {
-    var finalJson;
-    switch (service.ServiceInfo.service_name) {
-      case 'HDFS':
-        finalJson = this.hdfsMapper(service);
-        App.HDFSService.find().map(function (e) {
-          e.set("version", finalJson.version);
-          e.set("nameNodeStartTime", finalJson.name_node_start_time);
-          e.set("jvmMemoryHeapCommitted", finalJson.jvm_memory_heap_committed);
-          e.set("jvmMemoryHeapUsed", finalJson.jvm_memory_heap_used);
-          e.set("capacityUsed", finalJson.capacity_used);
-          e.set("capacityTotal", finalJson.capacity_total);
-          e.set("dfsTotalBlocks", finalJson.dfs_total_blocks);
-          e.set("dfsCorruptBlocks", finalJson.dfs_corrupt_blocks);
-          e.set("dfsMissingBlocks", finalJson.dfs_missing_blocks);
-          e.set("dfsUnderReplicatedBlocks", finalJson.dfs_under_replicated_blocks);
-          e.set("dfsTotalFiles", finalJson.dfs_total_files);
-          e.set("upgradeStatus", finalJson.upgrade_status);
-          e.set("safeModeStatus", finalJson.safe_mode_status);
-          // Live data nodes
-          var dataNodes = e.get('liveDataNodes');
-          if (dataNodes) {
-            dataNodes.clear();
-            finalJson.live_data_nodes.forEach(function (ldn) {
-              dataNodes.pushObject(App.Host.find(ldn));
-            });
-          }
-          // Decommission data nodes
-          dataNodes = e.get('decommissionDataNodes');
-          if (dataNodes) {
-            dataNodes.clear();
-            finalJson.decommission_data_nodes.forEach(function (ldn) {
-              dataNodes.pushObject(App.Host.find(ldn));
-            });
-          }
-          // Dead data nodes
-          dataNodes = e.get('deadDataNodes');
-          if (dataNodes) {
-            dataNodes.clear();
-            finalJson.dead_data_nodes.forEach(function (ldn) {
-              dataNodes.pushObject(App.Host.find(ldn));
-            });
-          }
-        });
-        break;
-      case 'MAPREDUCE':
-        finalJson = this.mapreduceMapper(service);
-        App.MapReduceService.find().map(function (e) {
-          e.set("version", finalJson.version);
-          e.set("jobTrackerStartTime", finalJson.job_tracker_start_time);
-          e.set("jobTrackerHeapUsed", finalJson.job_tracker_heap_used);
-          e.set("jobTrackerHeapMax", finalJson.job_tracker_heap_max);
-          e.set("mapSlots", finalJson.map_slots);
-          e.set("reduceSlots", finalJson.reduce_slots);
-          e.set("jobsSubmitted", finalJson.jobs_submitted);
-          e.set("jobsCompleted", finalJson.jobs_completed);
-          e.set("mapSlotsOccupied", finalJson.map_slots_occupied);
-          e.set("mapSlotsReserved", finalJson.map_slots_reserved);
-          e.set("reduceSlotsOccupied", finalJson.reduce_slots_occupied);
-          e.set("reduceSlotsReserved", finalJson.reduce_slots_reserved);
-          e.set("mapsRunning", finalJson.maps_running);
-          e.set("mapsWaiting", finalJson.maps_waiting);
-          e.set("reducesRunning", finalJson.reduces_running);
-          e.set("reducesWaiting", finalJson.reduces_waiting);
-          e.set("trackersDecommissioned", finalJson.trackers_decommissioned);
-        })
-        break;
-      case 'HBASE':
-        finalJson = this.hbaseMapper(service);
-        App.HBaseService.find().map(function (e) {
-          e.set("version", finalJson.version);
-          e.set("masterStartTime", finalJson.master_start_time);
-          e.set("masterActiveTime", finalJson.master_active_time);
-          e.set("averageLoad", finalJson.average_load);
-          e.set("regionsInTransition", finalJson.regions_in_transition);
-          e.set("revision", finalJson.revision);
-          e.set("heapMemoryUsed", finalJson.heap_memory_used);
-          e.set("heapMemoryMax", finalJson.heap_memory_max);
-        })
-        break;
-      default:
-        this.otherMapper(service);
-    }
-  },
-  otherMapper: function (item) {
-    var result = [];
-    if (App.Service.find(item.ServiceInfo.service_name).get("serviceName") == item.ServiceInfo.service_name) {
-      //update other service
-    }
-  },
+
   hdfsMapper: function (item) {
     var result = [];
     var finalConfig = jQuery.extend({}, this.config);
@@ -475,22 +313,5 @@ App.servicesMapper = App.QuickDataMapper.create({
     finalJson = this.parseIt(item, finalConfig);
     finalJson.quick_links = [13, 14, 15, 16, 17, 18];
     return finalJson;
-  },
-  updateRecord: function (record, json, fieldsToUpdate) {
-    for (var field in fieldsToUpdate) {
-      if (json[field] !== undefined) {
-        if(json[field] instanceof Array){
-          this.updateHasMany(record, stringUtils.underScoreToCamelCase(field), json[field]);
-        } else {
-          record.set(stringUtils.underScoreToCamelCase(field), json[field]);
-        }
-      }
-    }
-  },
-  updateHasMany: function(record, field, items ){
-    record.get(field).clear();
-    items.forEach(function (item) {
-      record.get(field).pushObject(record.get(field).type.find().findProperty('id', item));
-    });
   }
 });

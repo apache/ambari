@@ -245,7 +245,7 @@ public class HostRoleCommandEntity {
 
   private ExecutionCommandEntity executionCommand;
 
-  @OneToOne(mappedBy = "hostRoleCommand")
+  @OneToOne(mappedBy = "hostRoleCommand", cascade = CascadeType.REMOVE)
   public ExecutionCommandEntity getExecutionCommand() {
     return executionCommand;
   }

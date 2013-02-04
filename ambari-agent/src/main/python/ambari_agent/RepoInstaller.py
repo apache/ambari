@@ -25,6 +25,7 @@ from shell import shellRunner
 from manifestGenerator import writeImports
 from pprint import pprint, pformat
 import ast
+import AmbariConfig
 import urlparse, urllib
 import re
 
@@ -60,10 +61,8 @@ class RepoInstaller:
     for repo in self.repoInfoList:
       repoFile = open(self.path + os.sep + repo['repoId'] + '-' + 
                       str(self.taskId) + PUPPET_EXT, 'w+')
-      importsfile = "imports.txt"
-      if self.config.has_option('puppet','imports_file'):
-        importsfile = self.config.get('puppet', 'imports_file')
-      writeImports(repoFile, self.modulesdir, importsfile)
+
+      writeImports(repoFile, self.modulesdir, AmbariConfig.imports)
       
       baseUrl = ''
       mirrorList = ''

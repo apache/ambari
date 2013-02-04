@@ -28,15 +28,9 @@ import re
 logger = logging.getLogger()
 
 
-
-
-
 class StatusCheck:
-
-  def get_pair(self, line):
-    key, sep, value = line.strip().partition("=")
-    return key, value
-
+    
+    
   def listFiles(self, dir):
     basedir = dir
     logger.debug("Files in " + os.path.abspath(dir) + ": ")
@@ -45,9 +39,9 @@ class StatusCheck:
       if os.path.isdir(dir):
         for item in os.listdir(dir):
             if os.path.isfile(item) and item.endswith('.pid'):
-              self.pidFilesDict[item.split(os.sep).pop()] = item
+              self.pidFilesDict[item.split(os.sep).pop()] = os.getcwd() + os.sep + item
             else:
-                subdirlist.append(os.path.join(basedir, item))
+              subdirlist.append(os.path.join(basedir, item))
         for subdir in subdirlist:
             self.listFiles(subdir)
       else:
@@ -55,24 +49,35 @@ class StatusCheck:
           self.pidFilesDict[dir.split(os.sep).pop()] = dir
     except OSError as e:
       logger.info(e.strerror + ' to ' + e.filename)
+      
+  def fillDirValues(self):
+    try:
+      for pidVar in self.pidPathesVars:
+        pidVarName = pidVar['var']
+        pidDefaultvalue = pidVar['defaultValue']
+        if self.globalConfig.has_key(pidVarName):
+          self.pidPathes.append(self.globalConfig[pidVarName])
+        else:
+          self.pidPathes.append(pidDefaultvalue)
+    except Exception as e:
+        logger.error("Error while filling directories values " + str(e))
+        
+  def __init__(self, serviceToPidDict, pidPathesVars, globalConfig):
 
-  def __init__(self, path, mappingFilePath):
-    if not os.path.isdir(path):
-      raise ValueError("Path argument must be valid directory")
-
-    if not os.path.exists(mappingFilePath):
-      raise IOError("File with services to pid mapping doesn't exist")
-    self.path = path
-    self.mappingFilePath = mappingFilePath
+    self.serToPidDict = serviceToPidDict
+    self.pidPathesVars = pidPathesVars
+    self.pidPathes = []
     self.sh = shellRunner()
     self.pidFilesDict = {}
-    self.listFiles(self.path)
-
-
-    with open(self.mappingFilePath) as fd:    
-      self.serToPidDict = dict(self.get_pair(line) for line in fd)
+    self.globalConfig = globalConfig
+    
+    self.fillDirValues()
+    
+    for pidPath in self.pidPathes:
+      self.listFiles(pidPath)
 
   def getIsLive(self, pidPath):
+
     if not pidPath:
       return False
 
@@ -97,7 +102,7 @@ class StatusCheck:
     try:
       pidPath = None
       pidPattern = self.serToPidDict[serviceCode]
-      logger.info( 'pidPattern: ' + pidPattern)
+      logger.info('pidPattern: ' + pidPattern)
     except KeyError as e:
       logger.warn('There is no mapping for ' + serviceCode)
       return None

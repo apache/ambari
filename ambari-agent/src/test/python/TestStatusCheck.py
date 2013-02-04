@@ -46,9 +46,17 @@ DEAD_PID=0
 class TestStatusCheck(TestCase):
 
   def setUp(self):
+
     self.tmpdir = tempfile.mkdtemp()
-    self.tmpdict = tempfile.NamedTemporaryFile(dir=self.tmpdir)
-    self.tmpdict = open(self.tmpdir + os.sep + MAPPING_FILE_NAME, 'w')
+    self.serviceToPidDict = {
+      COMPONENT_LIVE : COMPONENT_LIVE_PID,
+      COMPONENT_DEAD : COMPONENT_DEAD_PID
+    }
+
+    self.pidPathesVars = [
+      {'var' : '',
+      'defaultValue' : self.tmpdir}
+    ]
 
     self.sh = shellRunner()
     
@@ -56,10 +64,6 @@ class TestStatusCheck(TestCase):
     p = subprocess.Popen([COMPONENT_LIVE_CMD], stdout=subprocess.PIPE, 
                          stderr=subprocess.PIPE, shell=True, close_fds=True)
 
-    #Write mapping for pid files for both live and dead process
-    self.tmpdict.write(COMPONENT_LIVE + '=' + COMPONENT_LIVE_PID + os.linesep)
-    self.tmpdict.write(COMPONENT_DEAD + '=' + COMPONENT_DEAD_PID + os.linesep)
-    self.tmpdict.close()
 
     #Write pid of live process to file
     live_pid_file = open(self.tmpdir + os.sep + COMPONENT_LIVE_PID, 'w')
@@ -73,12 +77,7 @@ class TestStatusCheck(TestCase):
     dead_pid_file.close()
 
     #Init status checker
-    self.statusCheck = StatusCheck(self.tmpdir, self.tmpdict.name)
-
-  # Ensure that status checker throws exceptions on invalid params
-  def test_exceptions(self):
-    self.assertRaises(ValueError,StatusCheck,"tmp","tmp")
-    self.assertRaises(IOError, StatusCheck,self.tmpdir,"tmp")
+    self.statusCheck = StatusCheck(self.serviceToPidDict,self.pidPathesVars,{})
 
   # Ensure that status checker return True for running process
   def test_live(self):

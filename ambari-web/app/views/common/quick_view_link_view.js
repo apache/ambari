@@ -25,15 +25,15 @@ App.QuickViewLinks = Em.View.extend({
    */
   quickLinks:function () {
     var serviceName = this.get('content.serviceName');
-    var components = this.get('content.components');
+    var components = this.get('content.hostComponents');
     var host;
 
     if (serviceName === 'HDFS') {
-      host = components.filterProperty('id', 'NAMENODE').objectAt(0).get('host.publicHostName');
+      host = components.findProperty('componentName', 'NAMENODE').get('host.publicHostName');
     } else if (serviceName === 'MAPREDUCE') {
-      host = components.filterProperty('id', 'JOBTRACKER').objectAt(0).get('host.publicHostName');
+      host = components.findProperty('componentName', 'JOBTRACKER').get('host.publicHostName');
     } else if (serviceName === 'HBASE') {
-      host = components.filterProperty('id', 'HBASE_MASTER').objectAt(0).get('host.publicHostName');
+      host = components.findProperty('componentName', 'HBASE_MASTER').get('host.publicHostName');
     }
     if (!host) {
       return [];

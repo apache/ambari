@@ -27,6 +27,7 @@ App.WizardStep8View = Em.View.extend({
     var controller = this.get('controller');
     controller.loadStep();
   },
+
   spinner : null,
 
   printReview: function() {
@@ -34,49 +35,60 @@ App.WizardStep8View = Em.View.extend({
     o.jqprint();
   },
 
-  showLoadingIndicator: function(){
-    if(this.get('controller.hasErrorOccurred')){
-      $('.spinner').hide();
-      return;
-    }
-    if(!this.get('controller.isSubmitDisabled')){
-      return;
-    }
+  ajaxQueueLength: function() {
+    return this.get('controller.ajaxQueueLength');
+  }.property('controller.ajaxQueueLength'),
 
-    var opts = {
-      lines: 13, // The number of lines to draw
-      length: 7, // The length of each line
-      width: 4, // The line thickness
-      radius: 10, // The radius of the inner circle
-      corners: 1, // Corner roundness (0..1)
-      rotate: 0, // The rotation offset
-      color: '#000', // #rgb or #rrggbb
-      speed: 1, // Rounds per second
-      trail: 60, // Afterglow percentage
-      shadow: false, // Whether to render a shadow
-      hwaccel: false, // Whether to use hardware acceleration
-      className: 'spinner', // The CSS class to assign to the spinner
-      zIndex: 2e9, // The z-index (defaults to 2000000000)
-      top: 'auto', // Top position relative to parent in px
-      left: 'auto' // Left position relative to parent in px
-    };
-    var target = $('#spinner')[0];
-    this.set('spinner', new Spinner(opts).spin(target));
+  ajaxQueueLeft: function() {
+    return this.get('controller.ajaxQueueLeft');
+  }.property('controller.ajaxQueueLeft'),
 
-    /*var el = $('#spinner').children('b');
-    el.css('display', 'inline-block');
-    var deg = 0;
-    var timeoutId = setInterval(function(){
-      if(!$('#spinner').length){
-        clearInterval(timeoutId);
+  // reference to modalPopup to make sure only one instance is created
+  modalPopup: null,
+
+  showLoadingIndicator: function() {
+    if (!this.get('controller.isSubmitDisabled')) {
+      if (this.get('modalPopup')) {
+        this.get('modalPopup').hide();
+        this.set('modalPopup', null);
       }
-      deg += 15;
-      deg %= 360;
-      el.css('transform', 'rotate(' + deg + 'deg)');
-      el.css('-ms-transform', 'rotate(' + deg + 'deg)');
-      el.css('-o-transform', 'rotate(' + deg + 'deg)');
-      el.css('-moz-transform', 'rotate(' + deg + 'deg)');
-      el.css('-webkit-transform', 'rotate(' + deg + 'deg)');
-    }, 80);*/
-  }.observes('controller.isSubmitDisabled','controller.hasErrorOccurred')
+      return;
+    }
+    // don't create popup if it already exists
+    if (this.get('modalPopup')) {
+      return;
+    }
+    this.set('modalPopup', App.ModalPopup.show({
+      header: '',
+
+      showFooter: false,
+
+      showCloseButton: false,
+
+      bodyClass: Ember.View.extend({
+        templateName: require('templates/wizard/step8_log_popup'),
+
+        controllerBinding: 'App.router.wizardStep8Controller',
+
+        ajaxQueueLength: function() {
+          return this.get('controller.ajaxQueueLength');
+        }.property(),
+
+        ajaxQueueComplete: function() {
+          return this.get('ajaxQueueLength') - this.get('controller.ajaxQueueLeft');
+        }.property('controller.ajaxQueueLeft', 'ajaxQueueLength'),
+
+        barWidth: function () {
+          return 'width: ' + (this.get('ajaxQueueComplete') / this.get('ajaxQueueLength') * 100) + '%;';
+        }.property('ajaxQueueComplete', 'ajaxQueueLength'),
+
+        autoHide: function() {
+          if (this.get('controller.servicesInstalled')) {
+            this.get('parentView').hide();
+          }
+        }.observes('controller.servicesInstalled')
+      })
+    }));
+  }.observes('controller.isSubmitDisabled')
 });
+

@@ -19,7 +19,7 @@
   <parent>
     <groupId>org.apache.ambari</groupId>
     <artifactId>ambari-project</artifactId>
-    <version>1.2.0-SNAPSHOT</version>
+    <version>1.2.1-SNAPSHOT</version>
     <relativePath>../ambari-project</relativePath>
   </parent>
   <modelVersion>4.0.0</modelVersion>
@@ -27,7 +27,7 @@
   <artifactId>ambari-web</artifactId>
   <packaging>pom</packaging>
   <name>Ambari Web</name>
-  <version>1.0.3-SNAPSHOT</version>
+  <version>1.2.1-SNAPSHOT</version>
   <description>Ambari Web</description>
   <build>
     <plugins>
@@ -80,6 +80,7 @@
             <configuration>
               <target name="ambari-web-compile">
                 <exec dir="${basedir}" executable="npm" failonerror="false">
+                  <env key="PYTHON" value="python2.6" />
                   <arg value="install"/>
                 </exec>
                 <exec dir="${basedir}" executable="brunch" failonerror="false">

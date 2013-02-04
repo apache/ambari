@@ -139,7 +139,7 @@ public class ResourceInstanceImpl implements ResourceInstance {
     ResourceInstanceImpl that = (ResourceInstanceImpl) o;
 
     return m_mapResourceIds.equals(that.m_mapResourceIds) &&
-           m_query.equals(that.m_query) &&
+           m_query == that.m_query &&
            m_resourceDefinition.equals(that.m_resourceDefinition) &&
            m_mapSubResources == null ? that.m_mapSubResources == null :
                m_mapSubResources.equals(that.m_mapSubResources);
@@ -147,7 +147,7 @@ public class ResourceInstanceImpl implements ResourceInstance {
 
   @Override
   public int hashCode() {
-    int result =m_query.hashCode();
+    int result = 13;
     result = 31 * result + m_mapResourceIds.hashCode();
     result = 31 * result + m_resourceDefinition.hashCode();
     result = 31 * result + (m_mapSubResources != null ? m_mapSubResources.hashCode() : 0);

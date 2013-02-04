@@ -35,6 +35,21 @@ module.exports = {
     var floatRegex = /^-?(?:\d+|\d{1,3}(?:,\d{3})+)?(?:\.\d+)?$/;
     return floatRegex.test(value);
   },
+  /**
+   * validate directory with slash at the start
+   * @param value
+   * @return {Boolean}
+   */
+  isValidDir: function(value){
+    var floatRegex = /^\/[0-9a-z]*/;
+    var dirs = value.replace(/,/g,' ').trim().split(new RegExp("\\s+", "g"));
+    for(var i = 0; i < dirs.length; i++){
+      if(!floatRegex.test(dirs[i])){
+        return false;
+      }
+    }
+    return true;
+  },
 
   /**
    * validate ip address with port

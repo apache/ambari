@@ -49,32 +49,9 @@ App.MainServiceInfoSummaryView = Em.View.extend({
     var result = [];
     var service = this.get('controller.content');
     if (service.get("id") == "OOZIE" || service.get("id") == "ZOOKEEPER") {
-      var clients = service.get('hostComponents').filterProperty('isClient');
-      if (clients.length > 0) {
-        result = [{
-          'displayName': clients[0].get('displayName'),
-          'isComma': false,
-          'isAnd': false
-        }];
-      }
-      if (clients.length > 1) {
-        result[0].isComma = true;
-        result.push({
-          'displayName': clients[1].get('displayName'),
-          'isComma': false,
-          'isAnd': false
-        });
-      }
-      if (clients.length > 2) {
-        result[1].isAnd = true;
-        result.push({
-          'displayName': clients.length - 2 + ' more',
-          'isComma': false,
-          'isAnd': false
-        });
-      }
+      return service.get('hostComponents').filterProperty('isClient');
     }
-    return result;
+    return [];
   }.property('controller.content'),
 
   hasManyServers: function () {
@@ -142,7 +119,7 @@ App.MainServiceInfoSummaryView = Em.View.extend({
   monitorsObj: function(){
     var service = this.get('controller.content');
     if (service.get("id") == "GANGLIA") {
-      var monitors = service.get('components').filterProperty('isMaster', false);
+      var monitors = service.get('hostComponents').filterProperty('isMaster', false);
       if (monitors.length) {
         return monitors[0];
       }
@@ -157,7 +134,7 @@ App.MainServiceInfoSummaryView = Em.View.extend({
   serversHost: function() {
     var service = this.get('controller.content');
     if (service.get("id") == "ZOOKEEPER") {
-      var servers = service.get('components').filterProperty('isMaster');
+      var servers = service.get('hostComponents').filterProperty('isMaster');
       if (servers.length > 0) {
         return servers[0];
       }
@@ -172,7 +149,7 @@ App.MainServiceInfoSummaryView = Em.View.extend({
   clientObj: function() {
     var service = this.get('controller.content');
     if (service.get("id") == "OOZIE" || service.get("id") == "ZOOKEEPER") {
-      var clients = service.get('components').filterProperty('isMaster', false);
+      var clients = service.get('hostComponents').filterProperty('isMaster', false);
       if (clients.length > 0) {
         return clients[0];
       }
@@ -190,7 +167,7 @@ App.MainServiceInfoSummaryView = Em.View.extend({
   gangliaServer:function(){
     var service=this.get('controller.content');
     if(service.get("id") == "GANGLIA"){
-      return service.get("components").findProperty('isMaster', true).get("host").get("publicHostName");
+      return service.get("hostComponents").findProperty('isMaster', true).get("host").get("publicHostName");
     }else{
       return "";
     }
@@ -198,7 +175,7 @@ App.MainServiceInfoSummaryView = Em.View.extend({
   nagiosServer:function(){
     var service=this.get('controller.content');
     if(service.get("id") == "NAGIOS"){
-      return service.get("components").findProperty('isMaster', true).get("host").get("publicHostName");
+      return service.get("hostComponents").findProperty('isMaster', true).get("host").get("publicHostName");
     }else{
       return "";
     }
@@ -206,7 +183,7 @@ App.MainServiceInfoSummaryView = Em.View.extend({
   oozieServer:function(){
     var service=this.get('controller.content');
     if(service.get("id") == "OOZIE"){
-      return service.get("components").findProperty('isMaster', true).get("host").get("publicHostName");
+      return service.get("hostComponents").findProperty('isMaster', true).get("host").get("publicHostName");
     }else{
       return "";
     }
@@ -224,7 +201,7 @@ App.MainServiceInfoSummaryView = Em.View.extend({
     var service=this.get('controller.content');
     if(service.get("id") == "HIVE"){
       var self = this;
-      var components = service.get("components");
+      var components = service.get("hostComponents");
       if(components){
         components.forEach(function(component){
           var ci = {
@@ -321,7 +298,7 @@ App.MainServiceInfoSummaryView = Em.View.extend({
       }
     }
     return graphs;
-  }.property('service'),
+  }.property(''),
 
   loadServiceSummary:function (serviceName) {
 

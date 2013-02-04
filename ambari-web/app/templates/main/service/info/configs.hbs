@@ -54,7 +54,7 @@
           </div>
       {{/each}}
     </div>
-    {{#if App.router.loginController.isAdmin}}
+    {{#if App.isAdmin}}
     <p class="pull-right">
         <!--<input class="btn btn-primary" type="button" value="Save" {{!bindAttr disabled="isSubmitDisabled"}} />-->
         <a class="btn btn-primary" {{bindAttr disabled="isSubmitDisabled"}}

@@ -44,7 +44,7 @@ module.exports = {
 		console.log("Error code 500: Internal Error on server side.");
 	},
 	501: function () {
-		console.log("Error code 501: Not implementd yet.");
+		console.log("Error code 501: Not implemented yet.");
 	},
 	502: function () {
 		console.log("Error code 502: Services temporarily overloaded.");

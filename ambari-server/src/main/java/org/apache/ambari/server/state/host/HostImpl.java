@@ -33,6 +33,7 @@ import com.google.inject.assistedinject.Assisted;
 import com.google.inject.persist.Transactional;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.agent.DiskInfo;
+import org.apache.ambari.server.agent.AgentEnv;
 import org.apache.ambari.server.agent.HostInfo;
 import org.apache.ambari.server.controller.HostResponse;
 import org.apache.ambari.server.orm.dao.ClusterDAO;
@@ -72,6 +73,7 @@ public class HostImpl implements Host {
   private Clusters clusters;
 
   private long lastHeartbeatTime = 0L;
+  private AgentEnv lastAgentEnv = null;
   private boolean persisted = false;
 
   private static final String HARDWAREISA = "hardware_isa";
@@ -211,7 +213,7 @@ public class HostImpl implements Host {
 
   }
 
-//  //TODO remove
+//  //TODO delete
 //  public HostImpl(String hostname) {
 //    this.stateMachine = stateMachineFactory.make(this);
 //    ReadWriteLock rwLock = new ReentrantReadWriteLock();
@@ -231,6 +233,7 @@ public class HostImpl implements Host {
       host.setLastRegistrationTime(e.registrationTime);
       //Initialize heartbeat time and timeInState with registration time.
       host.setLastHeartbeatTime(e.registrationTime);
+      host.setLastAgentEnv(e.agentEnv);
       host.setTimeInState(e.registrationTime);
       host.setAgentVersion(e.agentVersion);
       host.setPublicHostName(e.publicHostName);
@@ -270,8 +273,10 @@ public class HostImpl implements Host {
       long heartbeatTime = 0;
       switch (event.getType()) {
         case HOST_HEARTBEAT_HEALTHY:
-          heartbeatTime =
-            ((HostHealthyHeartbeatEvent)event).getHeartbeatTime();
+          HostHealthyHeartbeatEvent hhevent = (HostHealthyHeartbeatEvent) event;
+          heartbeatTime = hhevent.getHeartbeatTime();
+          if (null != hhevent.getAgentEnv())
+            host.setLastAgentEnv(hhevent.getAgentEnv());
           break;
         case HOST_HEARTBEAT_UNHEALTHY:
           heartbeatTime =
@@ -284,6 +289,7 @@ public class HostImpl implements Host {
         LOG.error("heartbeatTime = 0 !!!");
         // TODO handle error
       }
+      // host.setLastHeartbeatState(new Object());
       host.setLastHeartbeatTime(heartbeatTime);
     }
   }
@@ -337,16 +343,6 @@ public class HostImpl implements Host {
   public void importHostInfo(HostInfo hostInfo) {
     try {
       writeLock.lock();
-      String fqdn = hostInfo.getFQDN();
-      if (fqdn != null
-          && !fqdn.isEmpty()
-          && !fqdn.equals(getHostName())) {
-        if (! isPersisted()) {
-          setHostName(hostInfo.getHostName());
-        } else {
-          LOG.info("Could not modify hostname of the host that is already persisted to DB");
-        }
-      }
 
       if (hostInfo.getIPAddress() != null
           && !hostInfo.getIPAddress().isEmpty()) {
@@ -442,6 +438,19 @@ public class HostImpl implements Host {
     finally {
       writeLock.unlock();
     }
+  }
+
+  /**
+   * @param hostInfo
+   */
+  @Override
+  public void setLastAgentEnv(AgentEnv env) {
+    lastAgentEnv = env;
+  }
+  
+  @Override
+  public AgentEnv getLastAgentEnv() {
+    return lastAgentEnv;
   }
 
   @Override
@@ -915,6 +924,7 @@ public class HostImpl implements Host {
       r.setIpv4(getIPv4());
       r.setIpv6(getIPv6());
       r.setLastHeartbeatTime(getLastHeartbeatTime());
+      r.setLastAgentEnv(lastAgentEnv);
       r.setLastRegistrationTime(getLastRegistrationTime());
       r.setOsArch(getOsArch());
       r.setOsInfo(getOsInfo());

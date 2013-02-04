@@ -146,78 +146,76 @@ App.HostStatusView = Em.View.extend({
           return this.get('parentView.obj');
         }.property('parentView.obj'),
 
-        startedTasks:[], // initialized in didInsertElement
-
         task: null, // set in showTaskLog; contains task info including stdout and stderr
         /**
-         * sort task array by request Id
+         * sort task array by Id
          * @param tasks
          * @return {Array}
          */
 
-        sortTasksByRequest: function(tasks){
+        sortTasksById: function(tasks){
           var result = [];
-          var requestId = 1;
+          var id = 1;
           for(var i = 0; i < tasks.length; i++){
-            requestId = (tasks[i].Tasks.request_id > requestId) ? tasks[i].Tasks.request_id : requestId;
+            id = (tasks[i].Tasks.id > id) ? tasks[i].Tasks.id : id;
           }
-          while(requestId >= 1){
+          while(id >= 1){
             for(var j = 0; j < tasks.length; j++){
-              if(requestId == tasks[j].Tasks.request_id){
+              if(id == tasks[j].Tasks.id){
                 result.push(tasks[j]);
               }
             }
-            requestId--;
+            id--;
           }
           result.reverse();
           return result;
         },
 
+        groupTasksByRole: function (tasks) {
+          var sortedTasks = [];
+          var taskRoles = tasks.mapProperty('Tasks.role').uniq();
+          for (var i = 0; i < taskRoles.length; i++) {
+            sortedTasks = sortedTasks.concat(tasks.filterProperty('Tasks.role', taskRoles[i]))
+          }
+          return sortedTasks;
+        },
+
         visibleTasks: function () {
-          var self=this;
+          var self = this;
           self.set("isEmptyList", true);
           if (this.get('category.value')) {
             var filter = this.get('category.value');
-            $.each(this.get("roles"),function(a,e){
+            var tasks = this.get('tasks');
+            tasks.setEach("isVisible", false);
 
-              e.taskInfos.setEach("isVisible", false);
+            if (filter == "all") {
+              tasks.setEach("isVisible", true);
+            }
+            else if (filter == "pending") {
+              tasks.filterProperty("status", "pending").setEach("isVisible", true);
+              tasks.filterProperty("status", "queued").setEach("isVisible", true);
+            }
+            else if (filter == "in_progress") {
+              tasks.filterProperty("status", "in_progress").setEach("isVisible", true);
+            }
+            else if (filter == "failed") {
+              tasks.filterProperty("status", "failed").setEach("isVisible", true);
+            }
+            else if (filter == "completed") {
+              tasks.filterProperty("status", "completed").setEach("isVisible", true);
+            }
+            else if (filter == "aborted") {
+              tasks.filterProperty("status", "aborted").setEach("isVisible", true);
+            }
+            else if (filter == "timedout") {
+              tasks.filterProperty("status", "timedout").setEach("isVisible", true);
+            }
 
-              if(filter == "all")
-              {
-                e.taskInfos.setEach("isVisible", true);
-              }
-              else if(filter == "pending")
-              {
-                e.taskInfos.filterProperty("status", "pending").setEach("isVisible", true);
-                e.taskInfos.filterProperty("status", "queued").setEach("isVisible", true);
-              }
-              else if(filter == "in_progress")
-              {
-                e.taskInfos.filterProperty("status", "in_progress").setEach("isVisible", true);
-              }
-              else if(filter == "failed")
-              {
-                e.taskInfos.filterProperty("status", "failed").setEach("isVisible", true);
-              }
-              else if(filter == "completed")
-              {
-                e.taskInfos.filterProperty("status", "completed").setEach("isVisible", true);
-              }
-              else if(filter == "aborted")
-              {
-                e.taskInfos.filterProperty("status", "aborted").setEach("isVisible", true);
-              }
-              else if(filter == "timedout")
-              {
-                e.taskInfos.filterProperty("status", "timedout").setEach("isVisible", true);
-              }
-
-              if(e.taskInfos.filterProperty("isVisible", true).length >0){
-                self.set("isEmptyList", false);
-              }
-            })
+            if (tasks.filterProperty("isVisible", true).length > 0) {
+              self.set("isEmptyList", false);
+            }
           }
-        }.observes('category'),
+        }.observes('category', 'tasks'),
 
         categories: [
             Ember.Object.create({value: 'all', label: 'All' }),
@@ -231,46 +229,40 @@ App.HostStatusView = Em.View.extend({
 
         category: null,
 
-        roles:function () {
-          var roleArr = [];
+        tasks: function () {
+          var tasksArr = [];
           var tasks = this.getStartedTasks(host);
-          tasks = this.sortTasksByRequest(tasks);
+          tasks = this.sortTasksById(tasks);
+          tasks = this.groupTasksByRole(tasks);
           if (tasks.length) {
-            var _roles = tasks.mapProperty('Tasks.role').uniq();
-            _roles.forEach(function (_role) {
-              var taskInfos = [];
-              var roleObj = {};
-              roleObj.roleName = App.format.role(_role);
-              tasks.filterProperty('Tasks.role', _role).forEach(function (_task) {
-                var taskInfo = Ember.Object.create({});
-                taskInfo.set('requestId', _task.Tasks.request_id);
-                taskInfo.set('command', _task.Tasks.command.toLowerCase());
-                taskInfo.set('status', App.format.taskStatus(_task.Tasks.status));
-                taskInfo.set('url', _task.href);
-                taskInfo.set('roleName', roleObj.roleName);
-                taskInfo.set('isVisible', true);
-                taskInfo.set('icon', '');
-                if (taskInfo.get('status') == 'pending' || taskInfo.get('status') == 'queued') {
-                  taskInfo.set('icon', 'icon-cog');
-                } else if (taskInfo.get('status') == 'in_progress') {
-                  taskInfo.set('icon', 'icon-cogs');
-                } else if (taskInfo.get('status') == 'completed') {
-                  taskInfo.set('icon', ' icon-ok');
-                } else if (taskInfo.get('status') == 'failed') {
-                  taskInfo.set('icon', 'icon-exclamation-sign');
-                } else if (taskInfo.get('status') == 'aborted') {
-                  taskInfo.set('icon', 'icon-remove');
-                } else if (taskInfo.get('status') == 'timedout') {
-                  taskInfo.set('icon', 'icon-time');
-                }
-                taskInfos.pushObject(taskInfo);
-              }, this);
-              roleObj.taskInfos = taskInfos;
-              roleArr.pushObject(roleObj);
+            tasks.forEach(function (_task) {
+              var taskInfo = Ember.Object.create({});
+              taskInfo.set('id', _task.Tasks.id);
+              taskInfo.set('command', _task.Tasks.command.toLowerCase());
+              taskInfo.set('status', App.format.taskStatus(_task.Tasks.status));
+              taskInfo.set('role', App.format.role(_task.Tasks.role));
+              taskInfo.set('stderr', _task.Tasks.stderr);
+              taskInfo.set('stdout', _task.Tasks.stdout);
+              taskInfo.set('isVisible', true);
+              taskInfo.set('icon', '');
+              if (taskInfo.get('status') == 'pending' || taskInfo.get('status') == 'queued') {
+                taskInfo.set('icon', 'icon-cog');
+              } else if (taskInfo.get('status') == 'in_progress') {
+                taskInfo.set('icon', 'icon-cogs');
+              } else if (taskInfo.get('status') == 'completed') {
+                taskInfo.set('icon', ' icon-ok');
+              } else if (taskInfo.get('status') == 'failed') {
+                taskInfo.set('icon', 'icon-exclamation-sign');
+              } else if (taskInfo.get('status') == 'aborted') {
+                taskInfo.set('icon', 'icon-remove');
+              } else if (taskInfo.get('status') == 'timedout') {
+                taskInfo.set('icon', 'icon-time');
+              }
+              tasksArr.push(taskInfo);
             }, this);
           }
-          return roleArr;
-        }.property('startedTasks.@each'),
+          return tasksArr;
+        }.property('App.router.wizardStep9Controller.logTasksChangesCounter'),
 
         backToTaskList: function(event, context) {
           this.destroyClipBoard();
@@ -292,44 +284,28 @@ App.HostStatusView = Em.View.extend({
           newdocument.close();
         },
 
-        toggleTaskLog:function (event, context) {
-          if(this.isLogWrapHidden){
+        openedTaskId: 0,
 
-            var taskInfo = event.context;
-            this.set("isLogWrapHidden",false);
-
-            $(".task-detail-log-rolename")
-                .html(taskInfo.roleName + " " + taskInfo.command)
-
-            $(".task-detail-status-ico")
-                .removeClass()
-                .addClass(taskInfo.status + " task-detail-status-ico " + taskInfo.icon);
-
-            var url = (App.testMode) ? '/data/wizard/deploy/task_log.json' : taskInfo.url;
-            $.ajax({
-              url:url,
-              dataType:'text',
-              timeout:App.timeout,
-              success:function (data) {
-                var task = $.parseJSON(data);
-                $(".stderr").html(task.Tasks.stderr);
-                $(".stdout").html(task.Tasks.stdout);
-                $(".modal").scrollTop(0);
-                $(".modal-body").scrollTop(0);
-              },
-              error:function () {
-                alert('Failed to retrieve task log');
-              }
-            });
-          }else{
-            this.set("isLogWrapHidden",true);
+        openedTask: function () {
+          if (!this.get('openedTaskId')) {
+            return Ember.Object.create();
           }
+          return this.get('tasks').findProperty('id', this.get('openedTaskId'));
+        }.property('tasks', 'openedTaskId'),
 
-
-
-
-
+        toggleTaskLog: function (event, context) {
+          if (this.isLogWrapHidden) {
+            var taskInfo = event.context;
+            this.set("isLogWrapHidden", false);
+            this.set('openedTaskId', taskInfo.id);
+            $(".modal").scrollTop(0);
+            $(".modal-body").scrollTop(0);
+          } else {
+            this.set("isLogWrapHidden", true);
+            this.set('openedTaskId', 0);
+          }
         },
+
         textTrigger:function (event) {
           if($(".task-detail-log-clipboard").length > 0)
           {

@@ -22,7 +22,9 @@ import org.apache.ambari.server.controller.internal.PropertyInfo;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.utilities.StreamProvider;
 
+import java.util.Collections;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * Ganglia property provider implementation for component resources.
@@ -56,7 +58,7 @@ public class GangliaComponentPropertyProvider extends GangliaPropertyProvider {
   }
 
   @Override
-  protected String getGangliaClusterName(Resource resource, String clusterName) {
-    return GANGLIA_CLUSTER_NAMES.get(getComponentName(resource));
+  protected Set<String> getGangliaClusterNames(Resource resource, String clusterName) {
+    return Collections.singleton(GANGLIA_CLUSTER_NAME_MAP.get(getComponentName(resource)));
   }
 }

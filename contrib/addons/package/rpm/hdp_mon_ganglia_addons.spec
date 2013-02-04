@@ -24,7 +24,7 @@
 
 Summary: Ganglia Add-ons for HDP Monitoring Dashboard
 Name: hdp_mon_ganglia_addons
-Version: 0.0.2.15
+Version: 1.2.1.2
 URL: http://hortonworks.com
 Release: 1
 License: Apache License, Version 2.0

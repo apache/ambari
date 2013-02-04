@@ -18,6 +18,7 @@
 
 package org.apache.ambari.server.state.host;
 
+import org.apache.ambari.server.agent.AgentEnv;
 import org.apache.ambari.server.agent.HostInfo;
 import org.apache.ambari.server.state.AgentVersion;
 import org.apache.ambari.server.state.HostEvent;
@@ -29,19 +30,21 @@ public class HostRegistrationRequestEvent extends HostEvent {
   final HostInfo hostInfo;
   final AgentVersion agentVersion;
   final String publicHostName;
+  final AgentEnv agentEnv;
 
   public HostRegistrationRequestEvent(String hostName,
-      AgentVersion agentVersion, long registrationTime, HostInfo hostInfo) {
-    this(hostName, hostName, agentVersion, registrationTime, hostInfo);
+      AgentVersion agentVersion, long registrationTime, HostInfo hostInfo, AgentEnv env) {
+    this(hostName, hostName, agentVersion, registrationTime, hostInfo, env);
   }
   
   public HostRegistrationRequestEvent(String hostName, String publicName,
-      AgentVersion agentVersion, long registrationTime, HostInfo hostInfo) {
+      AgentVersion agentVersion, long registrationTime, HostInfo hostInfo, AgentEnv env) {
     super(hostName, HostEventType.HOST_REGISTRATION_REQUEST);
     this.registrationTime = registrationTime;
     this.hostInfo = hostInfo;
     this.agentVersion = agentVersion;
     this.publicHostName = (null == publicName) ? hostName : publicName;
+    this.agentEnv = env;
   }
 
 

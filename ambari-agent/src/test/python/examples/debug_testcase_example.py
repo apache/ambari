@@ -26,18 +26,16 @@ from ambari_agent.ActionQueue import ActionQueue
 from ambari_agent import AmbariConfig
 from ambari_agent.NetUtil import NetUtil
 import socket, ConfigParser, logging
-import os, pprint, json, sys
+import os, pprint, json, sys, unittest
 from threading import Thread
 import time
 import Queue
 
-
-BAD_URL = 'http://localhost:54222/badurl/'
 logger = logging.getLogger()
 
-class TestController():
+class TestController(TestCase):
 
-# This file should be put to ambari-agent/src/main/python/debug_testcase_example.py.
+# This file should be put to ambari-agent/src/main/python/ambari-agent/debug_testcase_example.py.
 # After installing python plugin and adjusting test,
 # it may be run in IntelliJ IDEA debugger
 
@@ -68,10 +66,7 @@ def main(argv=None):
   stream_handler.setFormatter(formatter)
   logger.addHandler(stream_handler)
 
-  test = TestController()
-  test.setUp()
-  test.test_custom()
-  test.tearDown()
+  unittest.main()
 
 if __name__ == '__main__':
   main()

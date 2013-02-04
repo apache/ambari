@@ -24,6 +24,10 @@ App.HostComponent = DS.Model.extend({
   host: DS.belongsTo('App.Host'),
   service: DS.belongsTo('App.Service'),
   isClient:function () {
+    if(['PIG', 'SQOOP', 'HCAT'].contains(this.get('componentName'))){
+      return true;
+    }
+
     return Boolean(this.get('componentName').match(/_client/gi));
   }.property('componentName'),
   isRunning: function(){
@@ -51,7 +55,6 @@ App.HostComponent = DS.Model.extend({
       default:
         return false;
     }
-    return this.get('componentName');
   }.property('componentName'),
   isSlave: function(){
     switch (this.get('componentName')) {
@@ -63,7 +66,6 @@ App.HostComponent = DS.Model.extend({
       default:
         return false;
     }
-    return this.get('componentName');
   }.property('componentName'),
   /**
    * A host-component is decommissioning when it is in HDFS service's list of
@@ -83,15 +85,18 @@ App.HostComponent = DS.Model.extend({
     }
     return decommissioning;
   }.property('componentName', 'host.hostName', 'App.router.mainServiceController.hdfsService.decommissionDataNodes.@each.hostName')
-})
+});
 
-App.HostComponent.Status = {
+App.HostComponent.FIXTURES = [];
+
+App.HostComponentStatus = {
   started: "STARTED",
   starting: "STARTING",
   stopped: "INSTALLED",
   stopping: "STOPPING",
   stop_failed: "STOP_FAILED",
   start_failed: "START_FAILED",
+  install_failed: "INSTALL_FAILED",
 
   getKeyName:function(value){
     switch(value){
@@ -107,10 +112,10 @@ App.HostComponent.Status = {
         return 'stop_failed';
       case this.start_failed:
         return 'start_failed';
+      case this.install_failed:
+        return 'install_failed';
     }
     return 'none';
   }
 }
-
-App.HostComponent.FIXTURES = [];
 

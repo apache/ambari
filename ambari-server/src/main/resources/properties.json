@@ -27,6 +27,7 @@
         "Hosts/os_type",
         "Hosts/rack_info",
         "Hosts/last_heartbeat_time",
+        "Hosts/last_agent_env",
         "Hosts/last_registration_time",
         "Hosts/disk_info",
         "Hosts/host_status",

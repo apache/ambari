@@ -20,7 +20,8 @@
 var App = require('app');
 
 App.SshKeyFileUploader = Ember.View.extend({
-  template:Ember.Handlebars.compile('<input type="file" />'),
+  template:Ember.Handlebars.compile('<input type="file" {{bindAttr disabled="view.disabled"}} />'),
+  classNames: ['ssh-key-input-indentation'],
 
   change: function (e) {
     var self=this;
@@ -61,62 +62,9 @@ App.WizardStep2View = Em.View.extend({
     this.set('controller.sshKeyError',null);
     this.loadHostsInfo();
   },
-  /**
-   * Config for displaying more hosts
-   * if oldHosts.length more than config.count that configuration will be applied
-   */
-  hostDisplayConfig: [
-    {
-      count: 0,
-      delimitery: '<br/>',
-      popupDelimitery: '<br />'
-    },
-    {
-      count: 10,
-      delimitery: ', ',
-      popupDelimitery: '<br />'
-    },
-    {
-      count: 50,
-      delimitery: ', ',
-      popupDelimitery: ', '
-    }
-  ],
-  showMoreHosts: function () {
-    var self = this;
-    App.ModalPopup.show({
-      header: "Hosts are already part of the cluster and will be ignored",
-      body: self.get('hostsInfo.oldHostNamesMore'),
-      encodeBody: false,
-      onPrimary: function () {
-        this.hide();
-      },
-      secondary: null
-    });
-  },
+
   loadHostsInfo: function(){
-
     var hostsInfo = Em.Object.create();
-
-    var oldHostNames = App.Host.find().getEach('id');
-    var k = 10;
-
-    var usedConfig = false;
-    this.get('hostDisplayConfig').forEach(function (config) {
-      if (oldHostNames.length > config.count) {
-        usedConfig = config;
-      }
-    });
-
-    k = usedConfig.count ? usedConfig.count : oldHostNames.length;
-    var displayedHostNames = oldHostNames.slice(0, k);
-    hostsInfo.set('oldHostNames', displayedHostNames.join(usedConfig.delimitery));
-    if (usedConfig.count) {
-      var moreHostNames = oldHostNames.slice(k + 1);
-      hostsInfo.set('oldHostNamesMore', moreHostNames.join(usedConfig.popupDelimitery));
-      hostsInfo.set('showMoreHostsText', "...and %@ more".fmt(moreHostNames.length));
-    }
-
     this.set('hostsInfo', hostsInfo);
   },
 
@@ -132,25 +80,9 @@ App.WizardStep2View = Em.View.extend({
     return this.get("controller.content.installOptions.manualInstall");
   }.property("controller.content.installOptions.manualInstall"),
 
-  sshKeyClass:function() {
-    return (this.get("isFileApi")) ? "hide" : "" ;
-  }.property("isFileApi"),
-
   isFileApi: function () {
     return (window.File && window.FileReader && window.FileList) ? true : false ;
   }.property(),
-
-  sshKeyPreviewClass: function() {
-    if (this.get('controller.content.installOptions.sshKey').trim() != '') {
-      if (this.get('controller.content.installOptions.manualInstall')) {
-        return 'sshKey-file-view disabled';
-      } else {
-        return 'sshKey-file-view';
-      }
-    } else {
-      return 'hidden';
-    }
-  }.property('controller.content.installOptions.sshKey', 'controller.content.installOptions.manualInstall'),
 
   manualInstallPopup: function(){
     if(!this.get('controller.content.installOptions.useSsh')){
@@ -165,8 +97,35 @@ App.WizardStep2View = Em.View.extend({
       });
     }
     this.set('controller.content.installOptions.manualInstall', !this.get('controller.content.installOptions.useSsh'));
-  }.observes('controller.content.installOptions.useSsh')
+  }.observes('controller.content.installOptions.useSsh'),
 
+  providingSSHKeyRadioButton: Ember.Checkbox.extend({
+    tagName: 'input',
+    attributeBindings: ['type', 'checked'],
+    checked: function () {
+      return this.get('controller.content.installOptions.useSsh');
+    }.property('controller.content.installOptions.useSsh'),
+    type: 'radio',
+
+    click: function () {
+      this.set('controller.content.installOptions.useSsh', true);
+      this.set('controller.content.installOptions.manualInstall', false);
+    }
+  }),
+
+  manualRegistrationRadioButton: Ember.Checkbox.extend({
+    tagName: 'input',
+    attributeBindings: ['type', 'checked'],
+    checked: function () {
+      return this.get('controller.content.installOptions.manualInstall');
+    }.property('controller.content.installOptions.manualInstall'),
+    type: 'radio',
+
+    click: function () {
+      this.set('controller.content.installOptions.manualInstall', true);
+      this.set('controller.content.installOptions.useSsh', false);
+    }
+  })
 });
 
 

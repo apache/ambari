@@ -83,8 +83,8 @@ module.exports = Em.Route.extend({
   apps:Em.Route.extend({
     route:'/apps',
     connectOutlets:function (router) {
-
-      router.get('clusterController').loadRuns();
+      //router.get('clusterController').loadRuns();
+      router.get('mainAppsController').loadRuns();
       router.get('mainController').connectOutlet('mainApps');
     }
   }),
@@ -149,6 +149,7 @@ module.exports = Em.Route.extend({
 
     addHost:function (router) {
       if(App.clusterStatus){
+        App.clusterStatus.updateFromServer();
         var currentClusterStatus = App.clusterStatus.get('value');
         if(currentClusterStatus && currentClusterStatus.clusterState=="ADD_HOSTS_COMPLETED_5"){
           // The last time add hosts ran, it left the status
@@ -214,7 +215,7 @@ module.exports = Em.Route.extend({
       }),
 
       editUser:Em.Route.extend({
-        route:'/edit/:userName',
+        route:'/edit/:user_id',
         connectOutlets:function (router, user) {
           router.get('mainAdminController').connectOutlet('mainAdminUserEdit', user);
         }

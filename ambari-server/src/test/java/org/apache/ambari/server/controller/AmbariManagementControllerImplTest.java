@@ -56,7 +56,7 @@ public class AmbariManagementControllerImplTest {
     injector.injectMembers(capture(controllerCapture));
     expect(injector.getInstance(Gson.class)).andReturn(null);
 
-    // getClusters
+    // getCluster
     expect(clusters.getCluster("cluster1")).andReturn(cluster);
     expect(cluster.convertToResponse()).andReturn(response);
 
@@ -95,7 +95,7 @@ public class AmbariManagementControllerImplTest {
     injector.injectMembers(capture(controllerCapture));
     expect(injector.getInstance(Gson.class)).andReturn(null);
 
-    // getClusters
+    // getCluster
     expect(clusters.getCluster("cluster1")).andThrow(new ClusterNotFoundException("cluster1"));
 
     // replay mocks
@@ -148,7 +148,7 @@ public class AmbariManagementControllerImplTest {
     injector.injectMembers(capture(controllerCapture));
     expect(injector.getInstance(Gson.class)).andReturn(null);
 
-    // getClusters
+    // getCluster
     expect(clusters.getCluster("cluster1")).andThrow(new ClusterNotFoundException("cluster1"));
     expect(clusters.getCluster("cluster2")).andReturn(cluster);
     expect(clusters.getCluster("cluster3")).andReturn(cluster2);

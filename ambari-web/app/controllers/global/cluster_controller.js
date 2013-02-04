@@ -47,9 +47,6 @@ App.ClusterController = Em.Controller.extend({
     'users':false
   }),
 
-  postLoadList:{
-    'runs':false
-  },
   /**
    * load cluster name
    */
@@ -94,7 +91,7 @@ App.ClusterController = Em.Controller.extend({
       var svcs = App.Service.find();
       var gangliaSvc = svcs.findProperty("serviceName", "GANGLIA");
       if (gangliaSvc) {
-        var svcComponents = gangliaSvc.get('components');
+        var svcComponents = gangliaSvc.get('hostComponents');
         if (svcComponents) {
           var gangliaSvcComponent = svcComponents.findProperty("componentName", "GANGLIA_SERVER");
           if (gangliaSvcComponent) {
@@ -128,7 +125,7 @@ App.ClusterController = Em.Controller.extend({
       var svcs = App.Service.find();
       var nagiosSvc = svcs.findProperty("serviceName", "NAGIOS");
       if (nagiosSvc) {
-        var svcComponents = nagiosSvc.get('components');
+        var svcComponents = nagiosSvc.get('hostComponents');
         if (svcComponents) {
           var nagiosSvcComponent = svcComponents.findProperty("componentName", "NAGIOS_SERVER");
           if (nagiosSvcComponent) {
@@ -145,7 +142,7 @@ App.ClusterController = Em.Controller.extend({
       }
       return null;
     }
-  }.property('App.router.updateController.isUpdated','dataLoadList.services'),
+  }.property('App.router.updateController.isUpdated', 'dataLoadList.services', 'dataLoadList.hosts'),
 
   isNagiosInstalled:function () {
     if (App.testMode) {
@@ -178,22 +175,6 @@ App.ClusterController = Em.Controller.extend({
     });
     this.set('alerts', sortedArray);
   },
-  loadRuns:function () {
-    if (this.get('postLoadList.runs')) {
-      return;
-    }
-
-    var self = this;
-    var runsUrl = App.testMode ? "/data/apps/runs.json" : App.apiPrefix + "/jobhistory/workflow?orderBy=startTime&sortDir=DESC&limit=" + App.maxRunsForAppBrowser;
-
-    App.HttpClient.get(runsUrl, App.runsMapper, {
-      complete:function (jqXHR, textStatus) {
-        self.set('postLoadList.runs', true);
-      }
-    }, function () {
-      self.set('postLoadList.runs', true);
-    });
-  },
 
   /**
    * This method automatically loads alerts when Nagios URL
@@ -210,10 +191,9 @@ App.ClusterController = Em.Controller.extend({
       if (lastSlash > -1) {
         nagiosUrl = nagiosUrl.substring(0, lastSlash);
       }
-      var dataUrl;
+      var dataUrl = this.getUrl('/data/alerts/alerts.json', '/host_components?HostRoles/component_name=NAGIOS_SERVER&fields=HostRoles/nagios_alerts');
       var ajaxOptions = {
-        dataType:"jsonp",
-        jsonp:"jsonp",
+        dataType:"json",
         context:this,
         complete:function (jqXHR, textStatus) {
           this.updateLoadStatus('alerts');
@@ -224,12 +204,6 @@ App.ClusterController = Em.Controller.extend({
           console.log('Nagios $.ajax() response:', error);
         }
       };
-      if (App.testMode) {
-        dataUrl = "/data/alerts/alerts.jsonp";
-        ajaxOptions.jsonpCallback = "jQuery172040994187095202506_1352498338217";
-      } else {
-        dataUrl = nagiosUrl + "/hdp/nagios/nagios_alerts.php?q1=alerts&alert_type=all";
-      }
       App.HttpClient.get(dataUrl, App.alertsMapper, ajaxOptions);
     } else {
       this.updateLoadStatus('alerts');

@@ -20,5 +20,10 @@ var App = require('app');
 
 App.MainDashboardServiceHiveView = App.MainDashboardServiceView.extend({
   templateName: require('templates/main/dashboard/service/hive'),
-  serviceName: 'hive'
+  serviceName: 'hive',
+
+  titleMasters: function(){
+    var masters = this.get('masters');
+    return [masters.findProperty('componentName', 'HIVE_SERVER'), masters.findProperty('componentName', 'HIVE_METASTORE')];
+  }.property('service')
 });

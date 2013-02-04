@@ -110,8 +110,6 @@ class hdp::params()
     $public_webhcat_server_host = hdp_default("webhcat_server_host")
   }
 
-  ############ Hdfs directories
-  $hbase_hdfs_root_dir = hdp_default("hadoop/hbase-site/hbase_hdfs_root_dir","/apps/hbase/data")
 
   ############ users
   $user_info = hdp_default("user_info",{})
@@ -133,6 +131,13 @@ class hdp::params()
 
   $smokeuser = hdp_default("smokeuser","ambari_qa")
   $smoke_user_group = hdp_default("smoke_user_group","users")
+  
+  ############ Hdfs directories
+  $hbase_hdfs_root_dir = hdp_default("hadoop/hbase-site/hbase_hdfs_root_dir","/apps/hbase/data")
+  $oozie_hdfs_user_dir = hdp_default("oozie_hdfs_user_dir", "/user/oozie")
+  $hcat_hdfs_user_dir = hdp_default("hcat_hdfs_user_dir", "/user/hcat")
+  $hive_hdfs_user_dir = hdp_default("hive_hdfs_user_dir", "/user/hive")
+  $smoke_hdfs_user_dir = hdp_default("smoke_hdfs_user_dir", "/user/${smokeuser}")
 
   #because of Puppet user resource issue make sure that $hadoop_user is different from user_group
   if ($security_enabled == true) {
@@ -494,6 +499,16 @@ class hdp::params()
     },
     dashboard => {
       64 => {'ALL' => 'hdp_mon_dashboard'}
+    },
+
+    perl =>
+    {
+      64 => {'ALL' => 'perl'}
+    },
+
+    perl-Net-SNMP =>
+    {
+      64 => {'ALL' => 'perl-Net-SNMP'}
     },
 
     nagios-server => {

@@ -26,6 +26,9 @@ App.UserModel = Em.Object.extend({
 
 App.User = DS.Model.extend({
   userName:DS.attr('string'),
+  id:function(){
+    return this.get('userName');
+  }.property('userName'),
   roles:DS.attr('string'),
   isLdap:DS.attr('boolean'),
   type: function(){
@@ -46,7 +49,7 @@ App.EditUserForm = App.Form.extend({
 
   fieldsOptions:[
     { name:"userName", displayName:"Username" },
-    { name:"old_password", displayName:"Old Password", displayType:"password", isRequired: function(){ return this.get('form.isObjectNew'); }.property('form.isObjectNew') },
+    { name:"old_password", displayName:"Current Password", displayType:"password", isRequired: false },
     { name:"new_password", displayName:"New Password", displayType:"password",  isRequired: false },
     { name:"admin", displayName:"Admin", displayType:"checkbox", isRequired:false },
     { name:"roles", displayName:"Role", isRequired:false, isHidden:true },
@@ -54,54 +57,46 @@ App.EditUserForm = App.Form.extend({
   ],
   fields:[],
   disableUsername:function () {
-    var field = this.getField("userName");
-    if (field) field.set("disabled", this.get('isObjectNew') ? false : "disabled");
-  }.observes('isObjectNew'),
+    this.getField("userName").set("disabled", "disabled");
+  }.observes('object'),
   disableAdminCheckbox:function () {
-    if (!this.get('isObjectNew')) {
-      var object = this.get('object');
-      var field = this.getField("admin");
-      if (field) {
-        field.set("disabled", (object.get('userName') == App.get('router').getLoginName()) ? "disabled" : false);
-      }
+    var object = this.get('object');
+    if (object) {
+      this.getField("admin").set("disabled", (object.get('userName') == App.get('router').getLoginName()) ? "disabled" : false);
     }
-  }.observes('isObjectNew'),
-
-  getValues:function () {
-    var values = this._super();
-    values.type = ['local'];
-    return values;
-  },
+  }.observes('object'),
 
   isValid:function () {
 
     var isValid = this._super();
     thisForm = this;
 
-    var passField = this.get('field.password');
-    var passRetype = this.get('field.passwordRetype');
+    var newPass = this.get('field.new_password');
+    var oldPass = this.get('field.old_password');
 
-    if (!validator.empty(passField.get('value'))) {
-      if (passField.get('value') != passRetype.get('value')) {
-        passRetype.set('errorMessage', "Passwords are different");
+    if (!validator.empty(newPass.get('value')) && validator.empty(oldPass.get('value'))) {
+        oldPass.set('errorMessage', "This is required");
         isValid = false;
-      }
-    }
-
-    if (isValid && this.get('isObjectNew')) {
-      var users = App.User.find();
-      var userNameField = this.getField('userName');
-      var userName = userNameField.get('value');
-
-      users.forEach(function (user) {
-        if (userName == user.get('userName')) {
-          userNameField.set('errorMessage', 'User with the same name is already exists');
-          return isValid = false;
-        }
-      });
     }
 
     return isValid;
+  },
+
+  save: function () {
+    var object = this.get('object');
+    var formValues = {};
+    $.each(this.get('fields'), function () {
+      formValues[this.get('name')] = this.get('value');
+    });
+
+    $.each(formValues, function (k, v) {
+      object.set(k, v);
+    });
+
+    //App.store.commit();
+    this.set('result', 1);
+
+    return true;
   }
 });
 App.CreateUserForm = App.Form.extend({
@@ -111,38 +106,16 @@ App.CreateUserForm = App.Form.extend({
   }.property('App.router.mainAdminUserCreateController.content'),
 
   fieldsOptions:[
-    { name:"userName", displayName:"Username" },
-    { name:"password", displayName:"Password", displayType:"password", isRequired: function(){ return this.get('form.isObjectNew'); }.property('form.isObjectNew') },
-    { name:"passwordRetype", displayName:"Retype Password", displayType:"password", validator:"passwordRetype", isRequired: false },
+    { name:"userName", displayName:"Username", toLowerCase: function(){var v = this.get('value'); this.set('value', v.toLowerCase())}.observes('value') },
+    { name:"password", displayName:"Password", displayType:"password", isRequired: true },
+    { name:"passwordRetype", displayName:"Retype Password", displayType:"password", validator:"passwordRetype", isRequired: true },
     { name:"admin", displayName:"Admin", displayType:"checkbox", isRequired:false },
     { name:"roles", displayName:"Role", isRequired:false, isHidden:true }
   ],
   fields:[],
-  disableUsername:function () {
-    var field = this.getField("userName");
-    if (field) field.set("disabled", this.get('isObjectNew') ? false : "disabled");
-  }.observes('isObjectNew'),
-  disableAdminCheckbox:function () {
-    if (!this.get('isObjectNew')) {
-      var object = this.get('object');
-      var field = this.getField("admin");
-      if (field) {
-        field.set("disabled", (object.get('userName') == App.get('router').getLoginName()) ? "disabled" : false);
-      }
-    }
-  }.observes('isObjectNew'),
-
-  getValues:function () {
-    var values = this._super();
-    values.type = ['local'];
-    values.id = values.userName;
-    return values;
-  },
-
 
   isValid:function () {
     var isValid = this._super();
-    thisForm = this;
 
     var passField = this.get('field.password');
     var passRetype = this.get('field.passwordRetype');
@@ -154,20 +127,38 @@ App.CreateUserForm = App.Form.extend({
       }
     }
 
-    if (isValid && this.get('isObjectNew')) {
+    if (isValid) {
       var users = App.User.find();
       var userNameField = this.getField('userName');
       var userName = userNameField.get('value');
-
-      users.forEach(function (user) {
-        if (userName == user.get('userName')) {
+        if (users.mapProperty('userName').contains(userName)) {
           userNameField.set('errorMessage', 'User with the same name is already exists');
           return isValid = false;
         }
-      });
     }
 
     return isValid;
+  },
+
+  save: function () {
+
+    var object = this.get('object');
+    var formValues = {};
+    $.each(this.get('fields'), function () {
+      formValues[this.get('name')] = this.get('value');
+    });
+
+    if (this.get('className')) {
+      App.store.createRecord(this.get('className'), formValues);
+    }
+    else {
+      console.log("Please define class name for your form " + this.constructor);
+    }
+
+    //App.store.commit();
+    this.set('result', 1);
+
+    return true;
   }
 });
 App.User.FIXTURES = [];

@@ -147,6 +147,11 @@ public class QueryImpl implements Query {
       m_mapSubResources.putAll(m_resource.getSubResources());
     }
 
+    if (LOG.isInfoEnabled()) {
+      //todo: include predicate info.  Need to implement toString for all predicates.
+      LOG.info("Executing resource query: " + m_resource.getIds());
+    }
+
     Predicate predicate = createPredicate(m_resource);
     Iterable<Resource> iterResource = getClusterController().getResources(
         resourceType, createRequest(), predicate);
@@ -157,7 +162,7 @@ public class QueryImpl implements Query {
       // add a child node for the resource and provide a unique name.  The name is never used.
       //todo: provide a more meaningful node name
       TreeNode<Resource> node = tree.addChild(resource, resource.getType() + ":" + count++);
-       for (Map.Entry<String, ResourceInstance> entry : m_mapSubResources.entrySet()) {
+      for (Map.Entry<String, ResourceInstance> entry : m_mapSubResources.entrySet()) {
         String subResCategory = entry.getKey();
         ResourceInstance r = entry.getValue();
 

@@ -19,7 +19,9 @@ var App = require('app');
 
 App.MainChartsHeatmapController = Em.Controller.extend({
   name: 'mainChartsHeatmapController',
-  cluster: App.Cluster.find(1),
+  cluster: function() {
+    return App.Cluster.find().objectAt(0);
+  }.property(''),
   allMetrics: function(){
     var metrics = [
       Em.Object.create({

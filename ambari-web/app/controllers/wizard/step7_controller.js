@@ -172,8 +172,7 @@ App.WizardStep7Controller = Em.Controller.extend({
 
         console.log('pushing ' + serviceConfig.serviceName, serviceConfig);
 
-        if (this.get('selectedServiceNames').contains(serviceConfig.serviceName)) {
-          // AMBARI-1139 - Hiding MISC section // || serviceConfig.serviceName === 'MISC') {
+        if (this.get('selectedServiceNames').contains(serviceConfig.serviceName) || serviceConfig.serviceName === 'MISC') {
           serviceConfig.showConfig = true;
         }
 

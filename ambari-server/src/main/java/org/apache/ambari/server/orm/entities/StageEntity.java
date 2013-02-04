@@ -111,7 +111,7 @@ public class StageEntity {
 
   private Collection<HostRoleCommandEntity> hostRoleCommands;
 
-  @OneToMany(mappedBy = "stage")
+  @OneToMany(mappedBy = "stage", cascade = CascadeType.REMOVE)
   public Collection<HostRoleCommandEntity> getHostRoleCommands() {
     return hostRoleCommands;
   }
@@ -122,7 +122,7 @@ public class StageEntity {
 
   private Collection<RoleSuccessCriteriaEntity> roleSuccessCriterias;
 
-  @OneToMany(mappedBy = "stage")
+  @OneToMany(mappedBy = "stage", cascade = CascadeType.REMOVE)
   public Collection<RoleSuccessCriteriaEntity> getRoleSuccessCriterias() {
     return roleSuccessCriterias;
   }

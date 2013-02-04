@@ -22,7 +22,7 @@ import logging
 import logging.handlers
 import signal
 import json
-import socket
+import hostname
 import sys, traceback
 import time
 import threading
@@ -53,7 +53,7 @@ class Controller(threading.Thread):
     self.safeMode = True
     self.credential = None
     self.config = config
-    self.hostname = socket.gethostname()
+    self.hostname = hostname.hostname()
     server_secured_url = 'https://' + config.get('server', 'hostname') + ':' + config.get('server', 'secured_url_port')
     self.registerUrl = server_secured_url + '/agent/v1/register/' + self.hostname
     self.heartbeatUrl = server_secured_url + '/agent/v1/heartbeat/' + self.hostname
@@ -135,12 +135,15 @@ class Controller(threading.Thread):
     retry = False
     certVerifFailed = False
 
+    config = AmbariConfig.config
+    hb_interval = config.get('heartbeat', 'state_interval')
+
     #TODO make sure the response id is monotonically increasing
     id = 0
     while not self.DEBUG_STOP_HEARTBITTING:
       try:
         if not retry:
-          data = json.dumps(self.heartbeat.build(self.responseId))
+          data = json.dumps(self.heartbeat.build(self.responseId, int(hb_interval)))
           pass
         else:
           self.DEBUG_HEARTBEAT_RETRIES += 1
@@ -226,8 +229,7 @@ class Controller(threading.Thread):
     self.heartbeatWithServer()
 
   def restartAgent(self):
-    #stopping for now, restart will be added later
-    ProcessHelper.stopAgent()
+    ProcessHelper.restartAgent()
     pass
 
   def sendRequest(self, url, data):
