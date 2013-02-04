@@ -261,6 +261,9 @@ App.WizardStep9Controller = Em.Controller.extend({
     }
   },
 
+  /**
+   * run start/check services after installation phase
+   */
   launchStartServices: function () {
     var self = this;
     var clusterName = this.get('content.cluster.name');
@@ -269,7 +272,7 @@ App.WizardStep9Controller = Em.Controller.extend({
     var method = 'PUT';
 
     if (this.get('content.controllerName') === 'addHostController') {
-      url = App.apiPrefix + '/clusters/' + clusterName + '/host_components?HostRoles/component_name=GANGLIA_MONITOR|HostRoles/component_name=HBASE_REGIONSERVER|HostRoles/component_name=DATANODE|HostRoles/component_name=TASKTRACKER&HostRoles/state=INSTALLED';
+      url = App.apiPrefix + '/clusters/' + clusterName + '/host_components?(HostRoles/component_name=GANGLIA_MONITOR|HostRoles/component_name=HBASE_REGIONSERVER|HostRoles/component_name=DATANODE|HostRoles/component_name=TASKTRACKER)&(HostRoles/state=INSTALLED)';
       data = '{"HostRoles": {"state": "STARTED"}}';
     }
 
