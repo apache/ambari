@@ -38,6 +38,8 @@ Trunk (unreleased changes):
 
  IMPROVEMENTS
 
+ AMBARI-1340. Enhance Install/Start/Test progress display. (yusaku) 
+
  AMBARI-1339. Validate usernames in Misc section of Customize Services step
  in Install Wizard. (yusaku)
 
