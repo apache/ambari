@@ -38,6 +38,9 @@ Trunk (unreleased changes):
 
  IMPROVEMENTS
 
+ AMBARI-1342. Hive client is not installed on Nagios server host.
+ (jaimin)
+
  AMBARI-1341. Add Hosts: update the API call for new operator precedence.
  (yusaku) 
 
@@ -1419,3 +1422,4 @@ AMBARI-666 branch:
   AMBARI-684. Remove non-required dependencies from pom files (hitesh via jitendra)
 
   AMBARI-680. Fix pom structure. (hitesh)
+
