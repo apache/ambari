@@ -49,15 +49,15 @@ Trunk (unreleased changes):
  AMBARI-1339. Validate usernames in Misc section of Customize Services step
  in Install Wizard. (yusaku)
 
- AMBARI-1335. Show validation error when the user specifies target hosts that are
- already part of the cluster. (yusaku)
+ AMBARI-1335. Show validation error when the user specifies target hosts that
+ are already part of the cluster. (yusaku)
 
  AMBARI-1337. Refactor Job Browser filter. (yusaku)
 
  AMBARI-1336. Externalize text to messages.js. (yusaku)
 
- AMBARI-1334. Show hosts that have failed install tasks as "red" to allow the user
- to easily identify source of failure. (yusaku)
+ AMBARI-1334. Show hosts that have failed install tasks as "red" to allow the
+ user to easily identify source of failure. (yusaku)
 
  AMBARI-1333. Add username validation for Ambari local users. (yusaku) 
 
@@ -248,7 +248,11 @@ Trunk (unreleased changes):
 
  BUG FIXES
 
- AMBARI-1331. Step 8 hangs on deploy tas 2 of 59, server has exception (tbeerbower)
+ AMBARI-1346. The number of task trackers does not reflect the actual number
+ in MapReduce service summary after new TaskTrackers have been added until
+ page refresh. (yusaku)
+
+ AMBARI-1331. Step 8 hangs on deploy task 2 of 59, server has exception (tbeerbower)
 
  AMBARI-1164. Disk info ganglia metrics is broken for some OS. (Dmytro Shkvyra via jspeidel)
 
@@ -271,8 +275,8 @@ Trunk (unreleased changes):
  (Arun Kandregula via yusaku) 
 
  AMBARI-1316. Vertical scrollbar shows regardless of how tall the browser height
- is (content height is always slightly taller than viewport). (Arun Kandregula via
- yusaku)
+ is (content height is always slightly taller than viewport). (Arun Kandregula
+ via yusaku)
 
  AMBARI-1315. Inconsistent error/warning status in Deploy step; install
  stalls. (Arun Kandregula via yusaku)

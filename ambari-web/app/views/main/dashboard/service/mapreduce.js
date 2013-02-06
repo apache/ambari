@@ -65,7 +65,7 @@ App.MainDashboardServiceMapreduceView = App.MainDashboardServiceView.extend({
     var totalCount = svc.get('taskTrackers').get('length');
     var template = this.t('dashboard.services.mapreduce.trackersSummary');
     return template.format(liveCount, totalCount);
-  }.property('service.aliveTrackers', 'service.taskTrackers'),
+  }.property('service.aliveTrackers.length', 'service.taskTrackers.length'),
 
   trackersHeapSummary: function () {
     var heapUsed = this.get('service').get('jobTrackerHeapUsed') || 0;
