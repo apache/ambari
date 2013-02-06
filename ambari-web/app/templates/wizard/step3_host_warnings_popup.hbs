@@ -26,7 +26,7 @@
               }}
             </div>
         <div class="span3 offset3">
-            <a href="javascript.void(0)" title="Show Details" {{action openWarningsInDialog target="view"}} class="task-detail-open-dialog"><i class="icon-external-link"></i> Show Details</a>
+            <a href="javascript.void(0)" title="Show Details" {{action openWarningsInDialog target="view"}} class="task-detail-open-dialog"><i class="icon-external-link"></i> {{t installer.step3.hostWarningsPopup.details}}</a>
         </div>
     </div>
     <div class="content-area">
@@ -34,7 +34,7 @@
               <table class="table">
                   <thead>
                   <tr>
-                      <th class="category-title" colspan="2">DIRECTORIES & FILES</th>
+                      <th class="category-title" colspan="2">{{t installer.step3.hostWarningsPopup.directoriesAndFiles}}</th>
                   </tr>
                   </thead>
                   <tbody>
@@ -58,7 +58,7 @@
               <table class="table">
                   <thead>
                   <tr>
-                      <th class="category-title" colspan="2">PACKAGES</th>
+                      <th class="category-title" colspan="2">{{t installer.step3.hostWarningsPopup.packages}}</th>
                   </tr>
                   </thead>
                   <tbody>
@@ -82,7 +82,7 @@
               <table class="table">
                   <thead>
                   <tr>
-                      <th class="category-title" colspan="2">PROCESSES</th>
+                      <th class="category-title" colspan="2">{{t installer.step3.hostWarningsPopup.processes}}</th>
                   </tr>
                   </thead>
                   <tbody>
@@ -103,7 +103,7 @@
                     </tr>
                     {{/each}}
                   {{else}}
-                  <tr><td colspan="2">No processes to display</td></tr>
+                  <tr><td colspan="2">{{t installer.step3.hostWarningsPopup.noProcesses}}</td></tr>
                   {{/if}}
                   </tbody>
               </table>

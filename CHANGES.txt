@@ -40,6 +40,8 @@ Trunk (unreleased changes):
 
  IMPROVEMENTS
 
+ AMBARI-1348. Externalize strings to messages.js. (yusaku)
+
  AMBARI-1342. Hive client is not installed on Nagios server host.
  (jaimin)
 

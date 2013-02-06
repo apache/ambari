@@ -38,6 +38,10 @@ App.WizardStep9View = Em.View.extend({
     return barWidth;
   }.property('controller.progress'),
 
+  progressMessage: function() {
+    return Em.I18n.t('installer.step9.overallProgress').format(this.get('controller.progress'));
+  }.property('controller.progress'),
+
   onStatus:function () {
     if (this.get('controller.status') === 'info') {
       this.set('resultMsg', '');

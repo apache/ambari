@@ -25,16 +25,16 @@
   <table class="table table-striped">
     <thead>
     <tr>
-      <th class="span3">Service
+      <th class="span3">{{t common.service}}
         <span style="margin-left:10px">
-          <a href="#" {{action selectAll target="controller"}} {{bindAttr class="isAll:selected:deselected"}}>all</a>
+          <a href="#" {{action selectAll target="controller"}} {{bindAttr class="isAll:selected:deselected"}}>{{t all}}</a>
                 |
                 <a
-                  href="#" {{action selectMinimum target="controller"}} {{bindAttr class="isMinimum:selected:deselected"}}>minimum</a>
+                  href="#" {{action selectMinimum target="controller"}} {{bindAttr class="isMinimum:selected:deselected"}}>{{t minimum}}</a>
         </span>
       </th>
-      <th>Version</th>
-      <th>Description</th>
+      <th>{{t common.version}}</th>
+      <th>{{t common.description}}</th>
     </tr>
     </thead>
     <tbody>
@@ -54,9 +54,9 @@
 
   <div class="btn-area">
     {{#unless view.parentView.controller.hideBackButton}}
-    <a class="btn pull-left" {{action back}}>&larr; Back
+    <a class="btn pull-left" {{action back}}>&larr; {{t common.back}}
     </a>
     {{/unless}}
-    <a class="btn btn-success pull-right" {{bindAttr disabled="isSubmitDisabled"}} {{action submit target="controller"}}> Next &rarr;</a>
+    <a class="btn btn-success pull-right" {{bindAttr disabled="isSubmitDisabled"}} {{action submit target="controller"}}> {{t common.next}} &rarr;</a>
   </div>
 </div>

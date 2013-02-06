@@ -201,6 +201,7 @@ App.SlaveComponentGroupsController = Em.ArrayController.extend({
       header: componentName + ' Groups',
       bodyClass: Ember.View.extend({
         controllerBinding: 'App.router.slaveComponentGroupsController',
+        header: Em.I18n.t('installer.slaveComponentHostsPopup.header').format(this.get('selectedComponentDisplayName')),
         templateName: require('templates/wizard/slave_component_hosts_popup')
       }),
       onPrimary: function (event) {

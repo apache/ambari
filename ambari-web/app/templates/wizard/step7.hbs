@@ -78,10 +78,10 @@
   {{/if}}
 
     <div class="btn-area">
-        <a class="btn" {{action back}}>&larr; Back</a>
+        <a class="btn" {{action back}}>&larr; {{t common.back}}</a>
 
         <a
                 class="btn btn-success pull-right" {{bindAttr disabled="isSubmitDisabled"}}
-          {{action submit target="controller"}}>Next &rarr;</a>
+          {{action submit target="controller"}}>{{t common.next}} &rarr;</a>
     </div>
 </div>

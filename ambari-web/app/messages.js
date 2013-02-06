@@ -23,6 +23,62 @@ Em.I18n.translations = {
   'app.reloadPopup.text': 'Trying to connect to server...',
   'app.reloadPopup.header': 'Reload Page',
 
+  'app.loadingPlaceholder': 'Loading...',
+  'app.sighout':'Sign out',
+
+  'apply':'apply',
+  'and':'and',
+  'none':'none',
+  'all':'all',
+  'minimum':'minimum',
+  'from':'From',
+  'to':'To',
+
+  'common.learnMore':'Learn more',
+  'common.back':'Back',
+  'common.prev':'Prev',
+  'common.next':'Next',
+  'common.host':'Host',
+  'common.group':'Group',
+  'common.progress':'Progress',
+  'common.status':'Status',
+  'common.action':'Action',
+  'common.remove':'Remove',
+  'common.retry':'Retry',
+  'common.show':'Show',
+  'common.hide':'Hide',
+  'common.cancel':'Cancel',
+  'common.apply':'Apply',
+  'common.service': 'Service',
+  'common.version':'Version',
+  'common.description':'Description',
+  'common.client':'Client',
+  'common.regionServer':'RegionServer',
+  'common.taskTracker':'TaskTracker',
+  'common.dataNode':'DataNode',
+  'common.print':'Print',
+  'common.deploy':'Deploy',
+  'common.message':'Message',
+  'common.tasks':'Tasks',
+  'common.open':'Open',
+  'common.copy':'Copy',
+  'common.complete':'Complete',
+  'common.metrics':'Metrics',
+  'common.timeRange':'Time Range',
+  'common.name':'Name',
+  'common.ipAddress':'IP Address',
+  'common.cpu':'CPU',
+  'common.ram':'RAM',
+  'common.diskUsage':'Disk Usage',
+  'common.loadAvg':'Load Avg',
+  'common.components':'Components',
+  'common.quickLinks':'Quick Links',
+  'common.save':'Save',
+  'common.servers':'Servers',
+  'common.clients':'Clients',
+
+  'popup.highlight':'click to highlight',
+
   'login.header':'Sign in',
   'login.username':'Username',
   'login.password':'Password',
@@ -60,6 +116,12 @@ Em.I18n.translations = {
 
   'installer.header':'Cluster Install Wizard',
   'installer.navigation.warning.header':'Navigation Warning',
+
+  'installer.mockData':'mockData',
+  'installer.pollData':'pollData',
+  'installer.noHostsAssigned':'No host assigned',
+  'installer.slaveComponentHosts.selectHosts':'select hosts for this group',
+  'installer.slaveComponentHostsPopup.header':'Select which hosts should belong to which {0} group',
 
   'installer.controls.serviceConfigPopover.title':'{0}<br><small>{1}</small>',
   'installer.controls.serviceConfigMultipleHosts.other':'1 other',
@@ -122,6 +184,8 @@ Em.I18n.translations = {
   'installer.step2.manualInstall.tooltip.content':'Manually registering the Ambari Agent on each host eliminates the need for SSH and should be performed prior to continuing cluster installation.',
   'installer.step2.manualInstall.popup.header':'Before You Proceed',
   'installer.step2.manualInstall.popup.body':'You must install Ambari Agents on each host you want to manage before you proceed.',
+  'installer.step2.orUse':'Or use',
+  'installer.step2.registerAndConfirm':'Register and Confirm',
 
   'installer.step3.header':'Confirm Hosts',
   'installer.step3.body':'Registering your hosts.<br>' +
@@ -133,6 +197,11 @@ Em.I18n.translations = {
   'installer.step3.hosts.retry.popup.body':'Are you sure you want to retry discovery of the selected host(s)?',
   'installer.step3.hostInformation.popup.header':'Error in retrieving host Information',
   'installer.step3.hostInformation.popup.body' : 'All bootstrapped hosts registered but unable to retrieve cpu and memory related information',
+  'installer.step3.hostWarningsPopup.details':'Show Details',
+  'installer.step3.hostWarningsPopup.directoriesAndFiles':'DIRECTORIES & FILES',
+  'installer.step3.hostWarningsPopup.packages':'PACKAGES',
+  'installer.step3.hostWarningsPopup.processes':'PROCESSES',
+  'installer.step3.hostWarningsPopup.noProcesses':'No processes to display',
   'installer.step3.hosts.noHosts':'No hosts to display',
   'installer.step3.warnings.popup.header':'Host Checks',
   'installer.step3.warnings.description':'Some warnings were encountered while performing checks against the above hosts.',
@@ -141,6 +210,8 @@ Em.I18n.translations = {
   'installer.step3.warnings.noWarnings':'All host checks were successful.',
   'installer.step3.warnings.updateChecks.success':'Host Checks successfully updated',
   'installer.step3.warnings.updateChecks.failed':'Host Checks update failed',
+  'installer.step3.removeSelected':'Remove Selected',
+  'installer.step3.retryFailed':'Retry Failed',
 
   'installer.step4.header':'Choose Services',
   'installer.step4.body':'Choose which services you want to install on your cluster.',
@@ -184,6 +255,8 @@ Em.I18n.translations = {
   'installer.step9.hostLog.popup.categories.completed':'Success',
   'installer.step9.hostLog.popup.categories.aborted':'Cancelled',
   'installer.step9.hostLog.popup.categories.timedout':'Timed Out',
+  'installer.step9.hostLog.popup.noTasksToShow':'No tasks to show',
+  'installer.step9.overallProgress':'{0} % overall',
 
   'installer.step10.header':'Summary',
   'installer.step10.body':'Here is the summary of the install process.',
@@ -261,7 +334,6 @@ Em.I18n.translations = {
   'question.sure':'Are you sure?',
   'yes':'Yes',
   'no':'No',
-  'and':'and',
 
   'services.service.start':'Start',
   'services.service.stop':'Stop',
@@ -341,9 +413,16 @@ Em.I18n.translations = {
   'services.service.info.summary.hostsRunningMonitor':'{0} hosts running monitor',
   'services.service.info.summary.hostRunningMonitor':'1 host running monitor',
   'services.service.info.summary.serversHostCount':'{0} more',
+  'services.service.info.summary.nagiosWebUI':'Nagios Web UI',
+  'services.service.info.summary.nagios.noAlerts':'No alerts',
+  'services.service.info.summary.nagios.alerts':'Nagios service required for viewing alerts',
 
   'services.add.header':'Add Service Wizard',
+  'services.service.add':'Add Service',
 
+
+  'hosts.host.add':'Add New Hosts',
+  'hosts.host.back':'Back to Hosts',
 
   'hosts.host.metrics.cpu':'CPU Usage',
   'hosts.host.metrics.disk':'Disk Usage',
@@ -353,6 +432,10 @@ Em.I18n.translations = {
   'hosts.host.metrics.processes':'Processes',
 
   'hosts.host.details.deleteHost':'Delete Host',
+
+  'host.host.componentFilter.master':'Master Components',
+  'host.host.componentFilter.slave':'Slave Components',
+  'host.host.componentFilter.client':'Client Components',
 
   'hosts.host.start.popup.header':'Confirmation',
   'hosts.host.stop.popup.header':'Confirmation',
@@ -377,7 +460,7 @@ Em.I18n.translations = {
   'charts.horizon.chart.attributes.memory':'Memory',
   'charts.horizon.chart.attributes.network':'Network',
   'charts.horizon.chart.attributes.io':'I/O',
-  
+
   'charts.heatmap.category.host':'Host',
   'charts.heatmap.item.host.memory':'Memory Used',
   'charts.heatmap.item.host.disk':'Disk Space Used',
@@ -386,6 +469,7 @@ Em.I18n.translations = {
   'charts.heatmap.category.mapreduce': 'MapReduce',
   'charts.heatmap.unknown': 'Unknown',
 
+  'metric.notFound':'no items found',
   'metric.default':'combined',
   'metric.cpu':'cpu',
   'metric.memory':'disk used',
@@ -398,6 +482,8 @@ Em.I18n.translations = {
   'metric.more.memory':'Memory',
   'metric.more.network':'Network',
   'metric.more.process':'Process',
+
+  'dashboard.clusterMetrics':'Cluster Metrics',
 
   'dashboard.clusterMetrics.cpu':'CPU Usage',
   'dashboard.clusterMetrics.load':'Cluster Load',
@@ -472,6 +558,9 @@ Em.I18n.translations = {
   'dashboard.services.oozie.clients': '{0} Oozie Clients',
   'dashboard.services.oozie.webUi': 'Oozie Web UI',
 
+  'dashboard.services.ganglia.webUi': 'Ganglia Web UI',
+  'dashboard.services.ganglia.monitors': 'Ganglia Monitors',
+
   'dashboard.services.zookeeper.prefix': '{0} of',
   'dashboard.services.zookeeper.title': '{0} ZooKeepers',
   'dashboard.services.zookeeper.postfix': 'running',
@@ -499,7 +588,6 @@ Em.I18n.translations = {
   'apps.filters.all': 'All',
   'apps.filters.filtered': 'Filtered',
   'apps.filters.clearFilters': 'Clear filters',
-  'apps.filters.show': 'Show',
   'apps.filters.paginationInfo': '{0} - {1} of {2}',
   'apps.filters.customRunDate':'Run Date custom filter',
   'apps.filters.nothingToShow': 'No jobs to display',
