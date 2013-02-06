@@ -68,9 +68,9 @@ App.WizardStep8View = Em.View.extend({
       bodyClass: Ember.View.extend({
         templateName: require('templates/wizard/step8_log_popup'),
 
-        messsage: function() {
-          return 'Preparing to Deploy: <strong>'+this.get('ajaxQueueComplete')+'</strong> of <strong>'+this.get('ajaxQueueLength')+'</strong> tasks completed.';
-        }.property(),
+        message: function() {
+          return Em.I18n.t('installer.step8.deployPopup.message').format(this.get('ajaxQueueComplete'), this.get('ajaxQueueLength'));
+        }.property('ajaxQueueComplete', 'ajaxQueueLength'),
 
         controllerBinding: 'App.router.wizardStep8Controller',
 

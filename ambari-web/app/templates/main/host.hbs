@@ -22,7 +22,7 @@
     <div class="button-section">
       <button class="btn btn-inverse add-host-button" {{action addHost}}>
         <i class="icon-plus icon-white"></i>
-        Add New Hosts
+        {{t hosts.host.add}}
       </button>
     </div>
   </div>
@@ -31,13 +31,13 @@
     <thead>
     <tr>
       <th class="first">&nbsp;</th>
-      <th>Name</th>
-      <th>IP Address</th>
-      <th>CPU</th>
-      <th>RAM</th>
-      <th>Disk Usage</th>
-      <th>Load Avg</th>
-      <th>Components</th>
+      <th>{{t common.name}}</th>
+      <th>{{t common.ipAddress}}</th>
+      <th>{{t common.cpu}}</th>
+      <th>{{t common.ram}}</th>
+      <th>{{t common.diskUsage}}</th>
+      <th>{{t common.loadAvg}}</th>
+      <th>{{t common.components}}</th>
       <th></th>
       <th></th>
     </tr>

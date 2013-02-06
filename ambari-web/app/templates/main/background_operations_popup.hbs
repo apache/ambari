@@ -21,7 +21,7 @@
 <div>
   <a {{action showOperationLog target="view"}} href="#">
     <i {{bindAttr class="view.iconClass"}}></i>
-    {{#if view.isOpen}}Hide{{else}}Show{{/if}} info about {{operation.command}} {{operation.role}}
+    {{#if view.isOpen}}{{t common.hide}}{{else}}{{t common.show}}{{/if}} info about {{operation.command}} {{operation.role}}
     on {{operation.host_name}}
   </a>
   {{#if view.hasProgressBar}}
@@ -30,7 +30,7 @@
   </div>
   {{/if}}
   <div class="content-area">
-    <div class="textTrigger">click to highlight</div>
+    <div class="textTrigger">{{t popup.highlight}}</div>
     {{#if view.isOpen}}
     {{#if view.isTextArea}}
     <div>

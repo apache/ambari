@@ -232,11 +232,12 @@ Em.I18n.translations = {
   'installer.step6.wizardStep6Host.title':'master components hosted on {0}',
 
   'installer.step7.header':'Customize Services',
-  'installer.step7.body':'We have come up with recommended configurations for the services you selected.  Customize them as you see fit.',
-  'installer.step7.attentionNeeded':'<strong>Attention:</strong> Some configurations need your attention before you can proceed.',
+  'installer.step7.body':'We have come up with recommended configurations for the services you selected. Customize them as you see fit.',
+  'installer.step7.attentionNeeded':'<b>Attention:</b> Some configurations need your attention before you can proceed.',
 
   'installer.step8.header':'Review',
   'installer.step8.body':'Please review the configuration before installation',
+  'installer.step8.deployPopup.message':'Preparing to Deploy: {0} of {1} tasks completed.',
 
   'installer.step9.header':'Install, Start and Test',
   'installer.step9.body':'Please wait while the selected services are installed and started.',

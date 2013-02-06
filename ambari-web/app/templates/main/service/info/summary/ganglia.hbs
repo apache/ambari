@@ -24,10 +24,10 @@
   {{/if}}
 {{/each}}
 <tr>
-  <td class="summary-label">Ganglia Monitors</td>
+  <td class="summary-label">{{t dashboard.services.ganglia.monitors}}</td>
   <td><a {{action filterHosts view.monitorsObj}} href="javascript:void(null)">{{view.monitors}}</a></td>
 </tr>
 <tr>
-  <td class="summary-label">Ganglia Web UI</td>
+  <td class="summary-label">{{t dashboard.services.ganglia.webUi}}</td>
   <td><a target=_blank href="http://{{unbound view.gangliaServer}}/ganglia">{{view.gangliaServer}}/ganglia</a></td>
 </tr>

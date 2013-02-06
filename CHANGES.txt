@@ -255,6 +255,8 @@ Trunk (unreleased changes):
 
  BUG FIXES
 
+ AMBARI-1353. "Missing translation" shown in Job Browser. (jaimin)
+
  AMBARI-1351. Provide consistent ordering of hosts in heatmap. (jaimin)
 
  AMBARI_1344. mapred.tasktracker.reduce.tasks.maximum in mapred-site.xml is not

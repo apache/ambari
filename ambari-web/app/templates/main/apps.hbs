@@ -52,7 +52,7 @@
 
   <div class="filter_info">
 
-    <div class="span4" id="filter_buttons">{{t apps.filters.show}}:
+    <div class="span4" id="filter_buttons">{{t common.show}}:
       <a class="all selected" {{action "clickViewType" target="view"}} data-view-type="all">{{t apps.filters.all}}
         ({{controller.paginationObject.iTotalRecords}})</a> &#124;
       <a class="filtered" {{action "clickViewType" target="view"}} data-view-type="filtered">{{t apps.filters.filtered}}
@@ -102,7 +102,7 @@
 
   <div class="page-bar">
       <div class="items-on-page">
-          <label>{{t apps.filters.show}}: {{view view.runPerPageSelectView viewName="runPerPageSelectView" selectionBinding="controller.filterObject.iDisplayLength"}}</label>
+          <label>{{t common.show}}: {{view view.runPerPageSelectView viewName="runPerPageSelectView" selectionBinding="controller.filterObject.iDisplayLength"}}</label>
       </div>
       <div class="info">{{view.paginationInfo}}</div>
       <div class="paging_two_button">
