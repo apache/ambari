@@ -255,6 +255,9 @@ Trunk (unreleased changes):
 
  BUG FIXES
 
+ AMBARI_1344. mapred.tasktracker.reduce.tasks.maximum in mapred-site.xml is not
+ taking effect. (yusaku)
+
  AMBARI-1345. Alerts are not showing up at all in Service pages. (yusaku)
 
  AMBARI-1346. The number of task trackers does not reflect the actual number

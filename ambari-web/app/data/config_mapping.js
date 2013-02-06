@@ -383,7 +383,7 @@ module.exports = [
     "filename": "mapred-site.xml"
   },
   {
-    "name": "mapred.tasktracker.red.tasks.maximum",
+    "name": "mapred.tasktracker.reduce.tasks.maximum",
     "templateName": ["mapred_red_tasks_max"],
     "foreignKey": null,
     "value": "<templateName[0]>",
