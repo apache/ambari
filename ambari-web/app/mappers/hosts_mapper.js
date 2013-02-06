@@ -78,9 +78,24 @@ App.hostsMapper = App.QuickDataMapper.create({
         result.push(this.parseIt(item, this.config));
 
       }, this);
-
+      result = this.sortByPublicHostName(result);
       App.store.loadMany(this.get('model'), result);
     }
+  },
+  /**
+   * Default data sorting by public_host_name field
+   * @param data
+   * @return {Array}
+   */
+  sortByPublicHostName: function(data) {
+    data.sort(function(a, b) {
+      var ap = a.public_host_name;
+      var bp = b.public_host_name;
+      if (ap > bp) return 1;
+      if (ap < bp) return -1;
+      return 0;
+    });
+    return data;
   }
 
 });
