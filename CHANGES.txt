@@ -255,6 +255,8 @@ Trunk (unreleased changes):
 
  BUG FIXES
 
+ AMBARI-1354. "No alerts" badge on the Host Detail page should be green, not red. (jaimin)
+
  AMBARI-1353. "Missing translation" shown in Job Browser. (jaimin)
 
  AMBARI-1351. Provide consistent ordering of hosts in heatmap. (jaimin)

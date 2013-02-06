@@ -442,6 +442,7 @@ Em.I18n.translations = {
   'hosts.host.stop.popup.header':'Confirmation',
   'hosts.host.start.popup.body':'Are you sure?',
   'hosts.host.stop.popup.body':'Are you sure?',
+  'hosts.host.alert.noAlerts':'No alerts',
   'hosts.host.healthStatus.heartBeatNotReceived':'The server has not received a heartbeat from this host for more than 3 minutes.',
   'hosts.host.healthStatus.mastersDown':"The following master components are down:\n",
   'hosts.host.healthStatus.slavesDown':"The following slave components are down:\n",

@@ -21,7 +21,7 @@
   {{#if view.content.alertsCount}}
     <span class="label label-important alerts-count" {{action "showAlertsPopup" content target="App.router.mainHostController"}}>{{view.content.alertsCount}}</span>
   {{else}}
-    <span class="label label-important alerts-count">No alerts</span>
+    <span class="label label-success alerts-count">{{t hosts.host.alert.noAlerts}}</span>
   {{/if}}
   <div><a href="javascript:void(null)" data-toggle="modal" {{action backToHostsList}}><i class="icon-arrow-left"></i>&nbsp;{{t hosts.host.back}}</a></div>
 <!--   {{#if App.isAdmin}} -->
