@@ -63,6 +63,9 @@
       </td>
       <td class="name">
         <a title="{{unbound host.publicHostName}}" href="#" {{action "showDetails" host}}>{{unbound host.publicHostNameFormatted}}</a>
+        {{#if host.alertsCount}}
+          <span class="label label-important alerts-count" {{action "showAlertsPopup" host target="controller"}}>{{host.alertsCount}}</span>
+        {{/if}}
       </td>
       <td>{{host.ip}}</td>
       <td>{{host.cpu}}</td>

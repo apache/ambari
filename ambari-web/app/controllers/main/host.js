@@ -25,6 +25,10 @@ App.MainHostController = Em.ArrayController.extend({
   content: App.Host.find(),
   comeWithFilter: false,
 
+  hostsWithAlerts: function () {
+    return App.Alert.find().mapProperty('hostName').uniq();
+  }.property('App.router.clusterController.alerts.length'),
+
   /**
    * Components which will be shown in component filter
    */
@@ -99,6 +103,38 @@ App.MainHostController = Em.ArrayController.extend({
         this.hide();
       }
     });
+  },
+
+  showAlertsPopup: function (event) {
+    var host = event.context;
+    App.ModalPopup.show({
+      header: this.t('services.alerts.headingOfList'),
+      bodyClass: Ember.View.extend({
+        hostAlerts: function () {
+          var allAlerts = App.router.get('clusterController.alerts');
+          if (host) {
+            return allAlerts.filterProperty('hostName', host.get('hostName'));
+          }
+          return 0;
+        }.property('App.router.clusterController.alerts'),
+
+        closePopup: function () {
+          this.get('parentView').hide();
+        },
+
+        templateName: require('templates/main/host/alerts_popup')
+      }),
+      primary: 'Close',
+      onPrimary: function() {
+        this.hide();
+      },
+      secondary : null,
+      didInsertElement: function () {
+        this.$().find('.modal-footer').addClass('align-center');
+        this.$().children('.modal').css({'margin-top': '-350px'});
+      }
+    });
+    event.stopPropagation();
   },
 
   /**

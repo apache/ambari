@@ -67,18 +67,10 @@ App.MainMenuView = Em.CollectionView.extend({
     active:'',
 
     alertsCount:function () {
-      if (this.get('content').routing == 'dashboard') {
-        return App.router.get('mainDashboardController.alertsCount');
+      if (this.get('content').routing == 'hosts') {
+        return App.router.get('mainHostController.hostsWithAlerts').length;
       }
-    }.property(),
-
-//    hostDetailsOperationsCount:function () {
-//      if (this.get('content').routing == 'hosts') {
-//        if (App.router.currentState.parentState.name == 'hostDetails') {
-//          return App.router.get('mainHostDetailsController.hostOperationsCount');
-//        }
-//      }
-//    }.property('App.router.currentState.parentState.name', 'App.router.mainHostDetailsController.hostOperationsCount'),
+    }.property('App.router.mainHostController.hostsWithAlerts.length'),
 
     templateName: require('templates/main/menu_item')
   })

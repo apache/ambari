@@ -18,6 +18,11 @@
 
 <div id="host-details">
   <span {{bindAttr class="view.content.healthClass"}} {{bindAttr title="view.content.healthToolTip" }}></span><span class='host-title'>{{unbound view.content.publicHostName}}</span>
+  {{#if view.content.alertsCount}}
+    <span class="label label-important alerts-count" {{action "showAlertsPopup" content target="App.router.mainHostController"}}>{{view.content.alertsCount}}</span>
+  {{else}}
+    <span class="label label-important alerts-count">No alerts</span>
+  {{/if}}
   <div><a href="javascript:void(null)" data-toggle="modal" {{action backToHostsList}}><i class="icon-arrow-left"></i>&nbsp;Back to Hosts</a></div>
 <!--   {{#if App.isAdmin}} -->
 <!--   <div class="host-maintenance"> -->
