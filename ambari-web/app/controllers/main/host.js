@@ -26,7 +26,7 @@ App.MainHostController = Em.ArrayController.extend({
   comeWithFilter: false,
 
   hostsWithAlerts: function () {
-    return App.Alert.find().mapProperty('hostName').uniq();
+    return App.router.get('clusterController.alerts').filterProperty('isOk', false).mapProperty('hostName').uniq();
   }.property('App.router.clusterController.alerts.length'),
 
   /**
@@ -113,7 +113,7 @@ App.MainHostController = Em.ArrayController.extend({
         hostAlerts: function () {
           var allAlerts = App.router.get('clusterController.alerts');
           if (host) {
-            return allAlerts.filterProperty('hostName', host.get('hostName'));
+            return allAlerts.filterProperty('hostName', host.get('hostName')).filterProperty('isOk', false);
           }
           return 0;
         }.property('App.router.clusterController.alerts'),

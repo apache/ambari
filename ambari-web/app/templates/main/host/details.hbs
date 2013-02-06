@@ -18,8 +18,8 @@
 
 <div id="host-details">
   <span {{bindAttr class="view.content.healthClass"}} {{bindAttr title="view.content.healthToolTip" }}></span><span class='host-title'>{{unbound view.content.publicHostName}}</span>
-  {{#if view.content.alertsCount}}
-    <span class="label label-important alerts-count" {{action "showAlertsPopup" content target="App.router.mainHostController"}}>{{view.content.alertsCount}}</span>
+  {{#if view.content.criticalAlertsCount}}
+  <span class="label label-important alerts-count" {{action "showAlertsPopup" content target="App.router.mainHostController"}}>{{view.content.criticalAlertsCount}}</span>
   {{else}}
     <span class="label label-success alerts-count">{{t hosts.host.alert.noAlerts}}</span>
   {{/if}}

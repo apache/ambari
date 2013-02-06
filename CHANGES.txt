@@ -255,6 +255,9 @@ Trunk (unreleased changes):
 
  BUG FIXES
 
+ AMBARI-1352. Host-level alert badges should only show the total number
+ of CRIT and WARN alerts for the host excluding OK. (jaimin)
+
  AMBARI-1355. Inconsistent casing and component name for alert title. (jaimin)
 
  AMBARI-1354. "No alerts" badge on the Host Detail page should be green, not red. (jaimin)

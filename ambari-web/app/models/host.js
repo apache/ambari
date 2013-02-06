@@ -52,8 +52,8 @@ App.Host = DS.Model.extend({
   loadFive:DS.attr('number'),
   loadFifteen:DS.attr('number'),
 
-  alertsCount: function () {
-    return App.Alert.find().filterProperty('hostName', this.get('hostName')).length;
+  criticalAlertsCount: function () {
+    return App.router.get('clusterController.alerts').filterProperty('hostName', this.get('hostName')).filterProperty('isOk', false).length;
   }.property('App.router.clusterController.alerts.length'),
 
   publicHostNameFormatted: function() {
