@@ -301,7 +301,16 @@ function hdp_mon_generate_response( $response_data )
           }
           $servicestatus['service_type'] = get_service_type($servicestatus['service_description']);
           $srv_desc = explode ("::",$servicestatus['service_description'],2);
-          $servicestatus['service_description'] = $srv_desc[1];
+
+          switch ($srv_desc[0]) {
+            case "DATANODE":
+            case "TASKTRACKER":
+            case "REGIONSERVER":
+              $servicestatus['service_description'] = $srv_desc[0] . ' ' . $srv_desc[1];
+              break;
+            default:
+              $servicestatus['service_description'] = $srv_desc[1];
+          }
         }
         break;
       case "nok":
@@ -362,18 +371,25 @@ function hdp_mon_generate_response( $response_data )
   {
     $pieces = explode("::", $service_description);
     switch ($pieces[0]) {
+	  case "DATANODE":
       case "NAMENODE":
         $pieces[0] = "HDFS";
         break;
       case "JOBTRACKER":
+	  case "TASKTRACKER":
         $pieces[0] = "MAPREDUCE";
         break;
       case "HBASEMASTER":
+      case "REGIONSERVER":
         $pieces[0] = "HBASE";
         break;
       case "HIVE-METASTORE":
         $pieces[0] = "HIVE";
         break;
+      case "ZKSERVERS":
+	    $pieces[0] = "ZOOKEEPER";
+        break;
+      case "NAGIOS":
       case "HDFS":
       case "MAPREDUCE":
       case "HBASE":
