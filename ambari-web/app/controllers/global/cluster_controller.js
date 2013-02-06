@@ -191,7 +191,7 @@ App.ClusterController = Em.Controller.extend({
       if (lastSlash > -1) {
         nagiosUrl = nagiosUrl.substring(0, lastSlash);
       }
-      var dataUrl = this.getUrl('/data/alerts/alerts.json', '/host_components?HostRoles/component_name=NAGIOS_SERVER&fields=HostRoles/nagios_alerts');
+      var dataUrl = this.getUrl('/data/alerts/alerts.json', '/host_components?fields=HostRoles/nagios_alerts&HostRoles/component_name=NAGIOS_SERVER');
       var ajaxOptions = {
         dataType:"json",
         context:this,

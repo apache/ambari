@@ -248,6 +248,8 @@ Trunk (unreleased changes):
 
  BUG FIXES
 
+ AMBARI-1345. Alerts are not showing up at all in Service pages. (yusaku)
+
  AMBARI-1346. The number of task trackers does not reflect the actual number
  in MapReduce service summary after new TaskTrackers have been added until
  page refresh. (yusaku)
