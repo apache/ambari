@@ -67,7 +67,7 @@ module.exports = [
     configCategories: [
       App.ServiceConfigCategory.create({ name: 'Advanced'})
     ],
-    configs: configProperties.filterProperty('serviceName', 'WEBCHAT')
+    configs: configProperties.filterProperty('serviceName', 'WEBHCAT')
   },
 
   {
