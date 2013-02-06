@@ -255,6 +255,8 @@ Trunk (unreleased changes):
 
  BUG FIXES
 
+ AMBARI-1355. Inconsistent casing and component name for alert title. (jaimin)
+
  AMBARI-1354. "No alerts" badge on the Host Detail page should be green, not red. (jaimin)
 
  AMBARI-1353. "Missing translation" shown in Job Browser. (jaimin)

@@ -311,6 +311,7 @@ function hdp_mon_generate_response( $response_data )
             default:
               $servicestatus['service_description'] = $srv_desc[1];
           }
+            $servicestatus['service_description'] = format_description($servicestatus['service_description']);
         }
         break;
       case "nok":
@@ -365,6 +366,43 @@ function hdp_mon_generate_response( $response_data )
     }
     /* echo "COUNT : " . count ($services_objects) . "\n"; */
     return $services_objects;
+  }
+
+  function format_description ($service_description)
+  {
+      $patterns[0] = "/tasktracker/i";
+      $patterns[1] = "/datanode/i";
+      $patterns[2] = "/namenode/i";
+      $patterns[3] = "/jobtracker/i";
+      $patterns[4] = "/hbaseMaster/i";
+      $patterns[5] = "/hive-metastore/i";
+      $patterns[6] = "/webhcat/i";
+      $patterns[7] = "/zookeeper/i";
+      $patterns[8] = "/zkserver/i";
+      $patterns[9] = "/oozie/i";
+      $patterns[10] = "/region server/i";
+      $patterns[11] = "/region/i";
+      $patterns[12] = "/server/i";
+      $patterns[13] = "/servers/i";
+
+      $replacements[0] = "TaskTracker";
+      $replacements[1] = "DataNode";
+      $replacements[2] = "NameNode";
+      $replacements[3] = "JobTracker";
+      $replacements[4] = "HBase Master";
+      $replacements[5] = "Hive Metastore";
+      $replacements[6] = "WebHCat Server";
+      $replacements[7] = "ZooKeeper";
+      $replacements[8] = "ZooKeeper Server";
+      $replacements[9] = "Oozie Server";
+      $replacements[10] = "RegionServer";
+      $replacements[11] = "Region";
+      $replacements[12] = "Server";
+      $replacements[13] = "Servers";
+
+      $result =  preg_replace($patterns, $replacements, $service_description);
+
+    return $result;
   }
 
   function get_service_type($service_description)
