@@ -65,6 +65,9 @@ App.MainAppsItemDagView = Em.View.extend({
 
     Ember.run.next(function(){
       self.draw();
+      if (self.get('jobs').length === 1) {
+        self.$().find('table tr td:first-child, table tr th:first-child').remove();
+      }
     });
 
   }.observes('controller.content.loadAllJobs'),

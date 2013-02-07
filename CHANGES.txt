@@ -262,6 +262,8 @@ Trunk (unreleased changes):
 
  BUG FIXES
 
+ AMBARI-1367. Job# for Mapreduce jobs is seen as x. (jaimin)
+
  AMBARI-1363. Graphs jump around upon loading. (jaimin)
 
  AMBARI-1362. Alerts for the hosts with ZooKeeper Server grows on every poll. (jaimin)
