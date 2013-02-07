@@ -73,11 +73,11 @@ App.alertsMapper = App.QuickDataMapper.create({
     var alertsList = App.Alert.find();
     var titleToAlertMap = {};
     alertsList.forEach(function(alert){
-      titleToAlertMap[alert.get('serviceType') + alert.get('title') + alert.get('message')] = alert;
+      titleToAlertMap[alert.get('serviceType') + alert.get('title') + alert.get('hostName')] = alert;
     });
     var newRecords = [];
     alerts.forEach(function(item){
-      var existAlert = titleToAlertMap[item.service_type + item.service_description + item.plugin_output];
+      var existAlert = titleToAlertMap[item.service_type + item.service_description + item.host_name];
       if (existAlert == null) {
         var applyConfig = jQuery.extend({}, this.config);
         if (item.current_state && item.last_hard_state && item.current_state != item.last_hard_state) {
@@ -125,7 +125,7 @@ App.alertsMapper = App.QuickDataMapper.create({
         existAlert.set('lastTimeCritical', item.last_time_critical);
         existAlert.set('lastCheck', item.last_check);
         existAlert.set('isFlapping', item.is_flapping);
-        delete titleToAlertMap[item.service_type + item.service_description + item.plugin_output];
+        delete titleToAlertMap[item.service_type + item.service_description + item.host_name];
       }
     }, this);
     for ( var e in titleToAlertMap) {
