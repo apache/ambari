@@ -258,7 +258,7 @@ App.HostStatusView = Em.View.extend({
               } else if (taskInfo.get('status') == 'failed') {
                 taskInfo.set('icon', 'icon-exclamation-sign');
               } else if (taskInfo.get('status') == 'aborted') {
-                taskInfo.set('icon', 'icon-remove');
+                taskInfo.set('icon', 'icon-minus');
               } else if (taskInfo.get('status') == 'timedout') {
                 taskInfo.set('icon', 'icon-time');
               }
