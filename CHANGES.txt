@@ -258,7 +258,9 @@ Trunk (unreleased changes):
 
  BUG FIXES
 
- AMBARI-1359: App Browser rows colours should alternate from dark grey to light 
+ AMBARI-1360. Mouse cursor hover behavior is strange on Job Browser. (jaimin) 
+
+ AMBARI-1359. App Browser rows colours should alternate from dark grey to light 
  grey and back. (jaimin)
 
  AMBARI-1356. Error in filtering Configuration properties maintained at UI for 
