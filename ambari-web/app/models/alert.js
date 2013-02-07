@@ -61,6 +61,20 @@ App.Alert = DS.Model.extend({
   }.property('status'),
 
   /**
+   * Used to show only required alerts at the service level
+   */
+  ignoredForServices: function() {
+    return ['TaskTracker process down', 'RegionServer process down', 'DataNode process down', 'DataNode storage full', 'ZooKeeper Server process down'].contains(this.get('title'));
+  }.property('title'),
+
+  /**
+   * Used to show only required alerts at the host level
+   */
+  ignoredForHosts: function() {
+    return this.get('title').indexOf('Percent') != -1;
+  }.property('title'),
+
+  /**
    * Provides how long ago this alert happened.
    * 
    * @type {String}

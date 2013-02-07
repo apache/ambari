@@ -68,9 +68,9 @@ App.MainMenuView = Em.CollectionView.extend({
 
     alertsCount:function () {
       if (this.get('content').routing == 'hosts') {
-        return App.router.get('mainHostController.hostsWithAlerts').length;
+        return App.router.get('mainHostController.alerts').length;
       }
-    }.property('App.router.mainHostController.hostsWithAlerts.length'),
+    }.property('App.router.mainHostController.alerts.length'),
 
     templateName: require('templates/main/menu_item')
   })

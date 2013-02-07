@@ -64,7 +64,7 @@ App.MainServiceMenuView = Em.CollectionView.extend({
       var allAlerts = App.router.get('clusterController.alerts');
       var serviceId = this.get('content.serviceName');
       if (serviceId) {
-        return allAlerts.filterProperty('serviceType', serviceId).filterProperty('isOk', false).length;
+        return allAlerts.filterProperty('serviceType', serviceId).filterProperty('isOk', false).filterProperty('ignoredForServices', false).length;
       }
       return 0;
     }.property('App.router.clusterController.alerts'),

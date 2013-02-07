@@ -19,9 +19,9 @@
 <div id="host-details">
   <span {{bindAttr class="view.content.healthClass"}} {{bindAttr title="view.content.healthToolTip" }}></span><span class='host-title'>{{unbound view.content.publicHostName}}</span>
   {{#if view.content.criticalAlertsCount}}
-  <span class="label label-important alerts-count" {{action "showAlertsPopup" content target="App.router.mainHostController"}}>{{view.content.criticalAlertsCount}}</span>
+    <span class="label label-important alerts-count" {{action "showAlertsPopup" content target="App.router.mainHostController"}}>{{view.content.criticalAlertsCount}}</span>
   {{else}}
-    <span class="label label-success alerts-count">{{t hosts.host.alert.noAlerts}}</span>
+    <span class="label label-success alerts-count" {{action "showAlertsPopup" content target="App.router.mainHostController"}}>{{t hosts.host.alert.noAlerts}}</span>
   {{/if}}
   <div><a href="javascript:void(null)" data-toggle="modal" {{action backToHostsList}}><i class="icon-arrow-left"></i>&nbsp;{{t hosts.host.back}}</a></div>
 <!--   {{#if App.isAdmin}} -->

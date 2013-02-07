@@ -25,8 +25,8 @@ App.MainHostController = Em.ArrayController.extend({
   content: App.Host.find(),
   comeWithFilter: false,
 
-  hostsWithAlerts: function () {
-    return App.router.get('clusterController.alerts').filterProperty('isOk', false).mapProperty('hostName').uniq();
+  alerts: function () {
+    return App.router.get('clusterController.alerts').filterProperty('isOk', false).filterProperty('ignoredForHosts', false);
   }.property('App.router.clusterController.alerts.length'),
 
   /**
@@ -111,9 +111,9 @@ App.MainHostController = Em.ArrayController.extend({
       header: this.t('services.alerts.headingOfList'),
       bodyClass: Ember.View.extend({
         hostAlerts: function () {
-          var allAlerts = App.router.get('clusterController.alerts');
+          var allAlerts = App.router.get('clusterController.alerts').filterProperty('ignoredForHosts', false);
           if (host) {
-            return allAlerts.filterProperty('hostName', host.get('hostName')).filterProperty('isOk', false);
+            return allAlerts.filterProperty('hostName', host.get('hostName'));
           }
           return 0;
         }.property('App.router.clusterController.alerts'),

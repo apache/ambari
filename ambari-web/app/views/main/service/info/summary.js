@@ -394,11 +394,5 @@ App.MainServiceInfoSummaryView = Em.View.extend({
     });
 
     return names.length ? names.join(', ') : false;
-  }.property('clientComponents'),
-  hasAlertsBox: function(){
-    var services = [
-      'NAGIOS'
-    ];
-    return -1 === services.indexOf(this.get('controller.content.serviceName'));
-  }.property('controller.content.serviceName')
+  }.property('clientComponents')
 });

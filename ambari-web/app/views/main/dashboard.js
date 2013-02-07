@@ -96,7 +96,7 @@ App.MainDashboardView = Em.View.extend({
           var allAlerts = App.router.get('clusterController.alerts');
           var serviceId = this.get('service.serviceName');
           if (serviceId) {
-            return allAlerts.filterProperty('serviceType', serviceId).filterProperty('isOk', false);
+            return allAlerts.filterProperty('serviceType', serviceId).filterProperty('isOk', false).filterProperty('ignoredForServices', false);
           }
           return 0;
         }.property('App.router.clusterController.alerts'),

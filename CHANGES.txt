@@ -40,6 +40,8 @@ Trunk (unreleased changes):
 
  IMPROVEMENTS
 
+ AMBARI-1366. Nagios alert tweaks. (jaimin)
+
  AMBARI-1365. Make Hosts table update dynamically. (jaimin)
 
  AMBARI-1361. Install progress dialog WARN icon + color. (jaimin)
