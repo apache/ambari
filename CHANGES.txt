@@ -263,6 +263,8 @@ Trunk (unreleased changes):
  mahadev)
 
  BUG FIXES
+ 
+ AMBARI-1350. UI screen shifts left-right depending on scrollbar. (jaimin)
 
  AMBARI-1367. Job# for Mapreduce jobs is seen as x. (jaimin)
 
