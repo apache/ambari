@@ -43,7 +43,6 @@ $.ajaxSetup({
 
 require('messages');
 require('utils/base64');
-require('utils/data_table');
 require('utils/db');
 require('utils/helper');
 require('models');

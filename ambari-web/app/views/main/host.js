@@ -17,55 +17,18 @@
  */
 
 var App = require('app');
-require('utils/data_table');
 var filters = require('views/common/filter_view');
 var date = require('utils/date');
 
 App.MainHostView = Em.View.extend({
   templateName:require('templates/main/host'),
-  controller:function () {
-    return App.router.get('mainHostController');
-  }.property(),
   content:function () {
     return App.router.get('mainHostController.content');
   }.property('App.router.mainHostController.content'),
   oTable: null,
 
   didInsertElement:function () {
-    var oTable = $('#hosts-table').dataTable({
-      "sDom": '<"search-bar"f><"clear">rt<"page-bar"lip><"clear">',
-      "oLanguage": {
-        "sSearch": "Search:",
-        "sLengthMenu": "Show: _MENU_",
-        "sInfo": "_START_ - _END_ of _TOTAL_",
-        "sInfoEmpty": "0 - _END_ of _TOTAL_",
-        "sInfoFiltered": "",
-        "oPaginate":{
-          "sPrevious": "<i class='icon-arrow-left'></i>",
-          "sNext": "<i class='icon-arrow-right'></i>"
-        }
-      },
-      "bSortCellsTop": true,
-      "iDisplayLength": 10,
-      "aLengthMenu": [[10, 25, 50, 100, -1], [10, 25, 50, 100, "All"]],
-      "oSearch": {"bSmart":false},
-      "bAutoWidth": false,
-      "aoColumns":[
-        { "bSortable": false },
-        { "sType":"html" },
-        { "sType":"html" },
-        { "sType":"num-html" },
-        { "sType":"ambari-bandwidth" },
-        { "sType":"html" },
-        { "sType":"num-html" },
-        { "sType":"html", "bSortable": false  },
-        { "bVisible": false }, // hidden column for raw public host name value
-        { "bVisible": false } // hidden column for raw components list
-      ],
-      "aaSorting": [[ 1, "asc" ]]
-    });
-    this.set('oTable', oTable);
-    this.set('allComponentsChecked', true); // select all components (checkboxes) on start.
+    this.filter()
   },
 
   HostView:Em.View.extend({
@@ -107,7 +70,7 @@ App.MainHostView = Em.View.extend({
    */
   nameFilterView: filters.createTextView({
     onChangeValue: function(){
-      this.get('parentView').updateFilter(8, this.get('value'));
+      this.get('parentView').updateFilter(1, this.get('value'), 'string');
     }
   }),
 
@@ -117,7 +80,7 @@ App.MainHostView = Em.View.extend({
    */
   ipFilterView: filters.createTextView({
     onChangeValue: function(){
-      this.get('parentView').updateFilter(2, this.get('value'));
+      this.get('parentView').updateFilter(2, this.get('value'), 'string');
     }
   }),
 
@@ -129,7 +92,7 @@ App.MainHostView = Em.View.extend({
     fieldType: 'input-mini',
     fieldId: 'cpu_filter',
     onChangeValue: function(){
-      this.get('parentView').updateFilter(3);
+      this.get('parentView').updateFilter(3, this.get('value'), 'number');
     }
   }),
 
@@ -141,7 +104,7 @@ App.MainHostView = Em.View.extend({
     fieldType: 'input-mini',
     fieldId: 'load_avg_filter',
     onChangeValue: function(){
-      this.get('parentView').updateFilter(5);
+      this.get('parentView').updateFilter(5, this.get('value'), 'number');
     }
   }),
 
@@ -153,7 +116,7 @@ App.MainHostView = Em.View.extend({
     fieldType: 'input-mini',
     fieldId: 'ram_filter',
     onChangeValue: function(){
-      this.get('parentView').updateFilter(4);
+      this.get('parentView').updateFilter(4, this.get('value'), 'ambari-bandwidth');
     }
   }),
 
@@ -225,13 +188,13 @@ App.MainHostView = Em.View.extend({
         var chosenComponents = [];
 
         this.get('masterComponents').filterProperty('checkedForHostFilter', true).forEach(function(item){
-          chosenComponents.push(item.get('displayName'));
+          chosenComponents.push(item.get('id'));
         });
         this.get('slaveComponents').filterProperty('checkedForHostFilter', true).forEach(function(item){
-          chosenComponents.push(item.get('displayName'));
+          chosenComponents.push(item.get('id'));
         });
         this.get('clientComponents').filterProperty('checkedForHostFilter', true).forEach(function(item){
-          chosenComponents.push(item.get('displayName'));
+          chosenComponents.push(item.get('id'));
         });
         this.set('value', chosenComponents.toString());
       },
@@ -246,9 +209,8 @@ App.MainHostView = Em.View.extend({
       }
 
     }),
-    fieldId: 'components_filter',
     onChangeValue: function(){
-      this.get('parentView').updateFilter(9);
+      this.get('parentView').updateFilter(6, this.get('value'), 'multiple');
     }
   }),
 
@@ -257,13 +219,95 @@ App.MainHostView = Em.View.extend({
   }.property(),
 
   /**
-   * Apply each filter to dataTable
+   * Apply each filter to host
    *
    * @param iColumn number of column by which filter
    * @param value
    */
-  updateFilter: function(iColumn, value){
-    this.get('oTable').fnFilter(value || '', iColumn);
-  }
-
+  updateFilter: function(iColumn, value, type){
+    var filterCondition = this.get('filterConditions').findProperty('iColumn', iColumn);
+    if(filterCondition) {
+      filterCondition.value = value;
+    } else {
+      filterCondition = {
+        iColumn: iColumn,
+        value: value,
+        type: type
+      }
+      this.get('filterConditions').push(filterCondition);
+    }
+    this.filter();
+  },
+  /**
+   * associations between host property and column index
+   */
+  colPropAssoc: function(){
+    var associations = [];
+    associations[1] = 'publicHostName';
+    associations[2] = 'ip';
+    associations[3] = 'cpu';
+    associations[4] = 'memoryFormatted';
+    associations[5] = 'loadAvg';
+    associations[6] = 'hostComponents';
+    return associations;
+  }.property(),
+  globalSearchValue:null,
+  /**
+   * filter table by all fields
+   */
+  globalFilter: function(){
+    var content = this.get('content');
+    var searchValue = this.get('globalSearchValue');
+    var result;
+    if(searchValue){
+      result = content.filter(function(host){
+        var match = false;
+        this.get('colPropAssoc').forEach(function(item){
+          var filterFunc = filters.getFilterByType('string', false);
+          if(item === 'hostComponents'){
+            filterFunc = filters.getFilterByType('multiple', true);
+          }
+          if(!match){
+            match = filterFunc(host.get(item), searchValue);
+          }
+        });
+        return match;
+      }, this);
+      this.set('filteredContent', result);
+    } else {
+      this.filter();
+    }
+  }.observes('globalSearchValue', 'content'),
+  /**
+   * contain filter conditions for each column
+   */
+  filterConditions: [],
+  filteredContent: null,
+  /**
+   * filter table by filterConditions
+   */
+  filter: function(){
+    var content = this.get('content');
+    var filterConditions = this.get('filterConditions').filterProperty('value');
+    var result;
+    var self = this;
+    var assoc = this.get('colPropAssoc');
+    if(!this.get('globalSearchValue')){
+      if(filterConditions.length){
+        result = content.filter(function(host){
+          var match = true;
+          filterConditions.forEach(function(condition){
+            var filterFunc = filters.getFilterByType(condition.type, false);
+            if(match){
+              match = filterFunc(host.get(assoc[condition.iColumn]), condition.value);
+            }
+          });
+          return match;
+        });
+        this.set('filteredContent', result);
+      } else {
+        this.set('filteredContent', content);
+      }
+    }
+  }.observes('content')
 });

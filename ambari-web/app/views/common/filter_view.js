@@ -245,5 +245,138 @@ module.exports = {
     config.emptyValue = 'Any';
 
     return wrapperView.extend(config);
+  },
+  /**
+   * returns the filter function, which depends on the type of property
+   * @param type
+   * @param isGlobal check is search global
+   * @return {Function}
+   */
+  getFilterByType: function(type, isGlobal){
+    switch (type){
+      case 'ambari-bandwidth':
+        return function(rowValue, rangeExp){
+          var compareChar = isNaN(rangeExp.charAt(0)) ? rangeExp.charAt(0) : false;
+          var compareScale = rangeExp.charAt(rangeExp.length - 1);
+          var compareValue = compareChar ? parseFloat(rangeExp.substr(1, rangeExp.length)) : parseFloat(rangeExp.substr(0, rangeExp.length));
+          var match = false;
+          if (rangeExp.length == 1 && compareChar !== false) {
+            // User types only '=' or '>' or '<', so don't filter column values
+            match = true;
+            return match;
+          }
+          switch (compareScale) {
+            case 'g':
+              compareValue *= 1073741824;
+              break;
+            case 'm':
+              compareValue *= 1048576;
+              break;
+            case 'k':
+              compareValue *= 1024;
+              break;
+            default:
+              //default value in GB
+              compareValue *= 1073741824;
+          }
+          rowValue = (jQuery(rowValue).text()) ? jQuery(rowValue).text() : rowValue;
+
+          var convertedRowValue;
+          if (rowValue === '<1KB') {
+            convertedRowValue = 1;
+          } else {
+            var rowValueScale = rowValue.substr(rowValue.length - 2, 2);
+            switch (rowValueScale) {
+              case 'KB':
+                convertedRowValue = parseFloat(rowValue)*1024;
+                break;
+              case 'MB':
+                convertedRowValue = parseFloat(rowValue)*1048576;
+                break;
+              case 'GB':
+                convertedRowValue = parseFloat(rowValue)*1073741824;
+                break;
+            }
+          }
+
+          switch (compareChar) {
+            case '<':
+              if (compareValue > convertedRowValue) match = true;
+              break;
+            case '>':
+              if (compareValue < convertedRowValue) match = true;
+              break;
+            case false:
+            case '=':
+              if (compareValue == convertedRowValue) match = true;
+              break;
+          }
+          return match;
+        }
+        break;
+      case 'number':
+        return function(rowValue, rangeExp){
+          var compareChar = rangeExp.charAt(0);
+          var compareValue;
+          var match = false;
+          if (rangeExp.length == 1) {
+            if (isNaN(parseInt(compareChar))) {
+              // User types only '=' or '>' or '<', so don't filter column values
+              match = true;
+              return match;
+            }
+            else {
+              compareValue = parseFloat(parseFloat(rangeExp).toFixed(2));
+            }
+          }
+          else {
+            if (isNaN(parseInt(compareChar))) {
+              compareValue = parseFloat(parseFloat(rangeExp.substr(1, rangeExp.length)).toFixed(2));
+            }
+            else {
+              compareValue = parseFloat(parseFloat(rangeExp.substr(0, rangeExp.length)).toFixed(2));
+            }
+          }
+          rowValue = parseFloat((jQuery(rowValue).text()) ? jQuery(rowValue).text() : rowValue);
+          match = false;
+          switch (compareChar) {
+            case '<':
+              if (compareValue > rowValue) match = true;
+              break;
+            case '>':
+              if (compareValue < rowValue) match = true;
+              break;
+            case '=':
+              if (compareValue == rowValue) match = true;
+              break;
+            default:
+              if (rangeExp == rowValue) match = true;
+          }
+          return match;
+        }
+        break;
+      case 'multiple':
+        return function(origin, compareValue){
+          var options = compareValue.split(',');
+          var rowValue = origin.mapProperty('componentName').join(" ");
+          var str = new RegExp(compareValue, "i");
+          for (var i = 0; i < options.length; i++) {
+            if(!isGlobal) {
+              str = new RegExp('(\\W|^)' + options[i] + '(\\W|$)');
+            }
+            if (rowValue.search(str) !== -1) {
+              return true;
+            }
+          }
+          return false;
+        }
+        break;
+      case 'string':
+      default:
+        return function(origin, compareValue){
+          var regex = new RegExp(compareValue,"i");
+          return regex.test(origin);
+        }
+    }
   }
 };

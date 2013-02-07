@@ -424,6 +424,7 @@ Em.I18n.translations = {
 
   'hosts.host.add':'Add New Hosts',
   'hosts.host.back':'Back to Hosts',
+  'hosts.table.noHosts':'No hosts to display',
 
   'hosts.host.metrics.cpu':'CPU Usage',
   'hosts.host.metrics.disk':'Disk Usage',

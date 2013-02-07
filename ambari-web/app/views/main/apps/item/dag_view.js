@@ -97,38 +97,6 @@ App.MainAppsItemDagView = Em.View.extend({
   },
 
   draw: function(){
-
-    var innerTable = this.$('#innerTable').dataTable({
-      "sDom": 'rt<"page-bar"lip><"clear">',
-      "oLanguage": {
-        "sSearch": "<i class='icon-question-sign'>&nbsp;Search</i>",
-        "sLengthMenu": "Show: _MENU_",
-        "sInfo": "_START_ - _END_ of _TOTAL_",
-        "oPaginate":{
-          "sPrevious": "<i class='icon-arrow-left'></i>",
-          "sNext": "<i class='icon-arrow-right'></i>"
-        }
-      },
-      "iDisplayLength": 5,
-      "aLengthMenu": [[5, 10, 25, 50, -1], [5, 10, 25, 50, "All"]],
-      "aaSorting": [],
-      "aoColumns":[
-        null,
-        null,
-        null,
-        null,
-        null,
-        { "sType":"ambari-bandwidth" },
-        { "sType":"ambari-bandwidth" },
-        null
-      ]
-    });
-
-    // Hard reset filter settings
-    innerTable.fnSettings().aiDisplay = innerTable.fnSettings().aiDisplayMaster.slice();
-    // Redraw table
-    innerTable.fnDraw(false);
-    innerTable.fnSettings().oFeatures.bFilter = false;
     var dagSchema = this.get('controller.content.workflowContext');
     var jobs = this.get('jobs');
     this.resizeModal();

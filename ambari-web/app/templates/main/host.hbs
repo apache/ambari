@@ -17,16 +17,21 @@
 }}
 
 <div id="hosts">
-  {{#if App.isAdmin}}
+
   <div class="box-header">
-    <div class="button-section">
+    <div class="pull-left">
+        <span>Search:&nbsp;</span>{{view Ember.TextField valueBinding="view.globalSearchValue"}}
+    </div>
+    {{#if App.isAdmin}}
+    <div class="button-section pull-right">
       <button class="btn btn-inverse add-host-button" {{action addHost}}>
         <i class="icon-plus icon-white"></i>
         {{t hosts.host.add}}
       </button>
     </div>
+    {{/if}}
   </div>
-  {{/if}}
+
   <table class="datatable table table-bordered table-striped" id="hosts-table">
     <thead>
     <tr>
@@ -38,8 +43,6 @@
       <th>{{t common.diskUsage}}</th>
       <th>{{t common.loadAvg}}</th>
       <th>{{t common.components}}</th>
-      <th></th>
-      <th></th>
     </tr>
     <tr>
       <th class="first">&nbsp;</th>
@@ -50,12 +53,11 @@
       <th></th>
       <th>{{view view.loadAvgFilterView}}</th>
       <th>{{view view.componentsFilterView}}</th>
-      <th></th>
-      <th></th>
     </tr>
     </thead>
     <tbody>
-    {{#each host in controller}}
+    {{#if view.filteredContent.length}}
+    {{#each host in view.filteredContent}}
     {{#view view.HostView contentBinding="host"}}
     <tr>
       <td class="first">
@@ -79,15 +81,17 @@
       <td>
         <span title="{{unbound view.labels}}">{{view.shortLabels}}</span>
       </td>
-      <td>
-        {{host.publicHostName}}
-      </td>
-      <td>
-        {{view.labels}}
-      </td>
     </tr>
     {{/view}}
     {{/each}}
+    {{else}}
+    <tr>
+        <td class="first"></td>
+        <td colspan="7">
+            {{t hosts.table.noHosts}}
+        </td>
+    </tr>
+    {{/if}}
     </tbody>
   </table>
 </div>
