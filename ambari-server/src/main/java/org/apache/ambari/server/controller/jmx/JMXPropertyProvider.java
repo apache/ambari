@@ -49,8 +49,6 @@ public class JMXPropertyProvider extends AbstractPropertyProvider {
 
   private final JMXHostProvider jmxHostProvider;
 
-  private static final Map<String, String> JMX_PORTS = new HashMap<String, String>();
-
   private final String clusterNamePropertyId;
 
   private final String hostNamePropertyId;
@@ -61,12 +59,6 @@ public class JMXPropertyProvider extends AbstractPropertyProvider {
 
 
   static {
-    JMX_PORTS.put("NAMENODE",     "50070");
-    JMX_PORTS.put("DATANODE",     "50075");
-    JMX_PORTS.put("JOBTRACKER",   "50030");
-    JMX_PORTS.put("TASKTRACKER",  "50060");
-    JMX_PORTS.put("HBASE_MASTER", "60010");
-
     ObjectMapper objectMapper = new ObjectMapper();
     objectMapper.configure(DeserializationConfig.Feature.USE_ANNOTATIONS, false);
     objectReader = objectMapper.reader(JMXMetricHolder.class);
@@ -143,7 +135,7 @@ public class JMXPropertyProvider extends AbstractPropertyProvider {
 
     String clusterName   = (String) resource.getPropertyValue(clusterNamePropertyId);
     String componentName = (String) resource.getPropertyValue(componentNamePropertyId);
-    String port          = JMX_PORTS.get(componentName);
+    String port          = jmxHostProvider.getPort(clusterName, componentName);
 
     String hostName;
     if (hostNamePropertyId == null) {
@@ -269,4 +261,5 @@ public class JMXPropertyProvider extends AbstractPropertyProvider {
   protected String getSpec(String jmxSource) {
     return "http://" + jmxSource + "/jmx";
   }
+
 }

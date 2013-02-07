@@ -37,4 +37,15 @@ public interface JMXHostProvider {
    * @throws SystemException of unable to ge the JMX host name
    */
   public String getHostName(String clusterName, String componentName) throws SystemException;
+
+  /**
+   * Get the port for specified cluster name and component
+   *
+   * @param clusterName
+   * @param componentName
+   * @return
+   * @throws SystemException
+   */
+  public String getPort(String clusterName, String componentName) throws
+    SystemException;
 }

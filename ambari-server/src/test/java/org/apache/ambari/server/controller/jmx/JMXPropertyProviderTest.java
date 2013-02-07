@@ -18,16 +18,25 @@
 
 package org.apache.ambari.server.controller.jmx;
 
+import com.google.inject.Guice;
+import com.google.inject.Injector;
+import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.api.services.AmbariMetaInfo;
+import org.apache.ambari.server.controller.*;
+import org.apache.ambari.server.controller.internal.AbstractProviderModule;
+import org.apache.ambari.server.controller.internal.DefaultProviderModule;
 import org.apache.ambari.server.controller.internal.ResourceImpl;
-import org.apache.ambari.server.controller.spi.Request;
-import org.apache.ambari.server.controller.spi.Resource;
+import org.apache.ambari.server.controller.spi.*;
+import org.apache.ambari.server.controller.utilities.PredicateBuilder;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
+import org.apache.ambari.server.orm.GuiceJpaInitializer;
+import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
+import org.apache.ambari.server.state.*;
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Test;
+import java.util.*;
 
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Set;
 
 /**
  * JMX property provider tests.
@@ -36,12 +45,10 @@ public class JMXPropertyProviderTest {
   protected static final String HOST_COMPONENT_HOST_NAME_PROPERTY_ID = PropertyHelper.getPropertyId("HostRoles", "host_name");
   protected static final String HOST_COMPONENT_COMPONENT_NAME_PROPERTY_ID = PropertyHelper.getPropertyId("HostRoles", "component_name");
 
-
   @Test
   public void testGetResources() throws Exception {
-
     TestStreamProvider  streamProvider = new TestStreamProvider();
-      TestJMXHostProvider hostProvider = new TestJMXHostProvider();
+    TestJMXHostProvider hostProvider = new TestJMXHostProvider();
 
     JMXPropertyProvider propertyProvider = new JMXPropertyProvider(
         PropertyHelper.getJMXPropertyIds(Resource.Type.HostComponent),
@@ -180,5 +187,23 @@ public class JMXPropertyProviderTest {
     public String getHostName(String clusterName, String componentName) {
       return null;
     }
+
+    @Override
+    public String getPort(String clusterName, String componentName) throws
+      SystemException {
+      if (componentName.equals("NAMENODE"))
+        return "50070";
+      else if (componentName.equals("DATANODE"))
+        return "50075";
+      else if (componentName.equals("JOBTRACKER"))
+        return "50030";
+      else if (componentName.equals("TASKTRACKER"))
+        return "50060";
+      else if (componentName.equals("HBASE_MASTER"))
+        return "60010";
+      else
+        return null;
+    }
+
   }
 }
