@@ -44,22 +44,24 @@
         </div>
 			</div>
 			<div class="graphs-container">
-				<div class="row">
-					<div class="span6">
-						<div class="row">
-							<div class="span3">{{view App.ChartClusterMetricsNetwork}}</div>
-							<div class="span3">{{view App.ChartClusterMetricsLoad}}</div>
-						</div>
-					</div>
-				</div>
-				<div class="row">
-					<div class="span6">
-						<div class="row">
-							<div class="span3">{{view App.ChartClusterMetricsMemory}}</div>
-							<div class="span3">{{view App.ChartClusterMetricsCPU}}</div>
-						</div>
-					</div>
-				</div>
+        <table class="graphs">
+          <tr>
+            <td>
+              {{view App.ChartClusterMetricsNetwork}}
+            </td>
+            <td>
+              {{view App.ChartClusterMetricsLoad}}
+            </td>
+          </tr>
+          <tr>
+            <td>
+              {{view App.ChartClusterMetricsMemory}}
+            </td>
+            <td>
+              {{view App.ChartClusterMetricsCPU}}
+            </td>
+          </tr>
+        </table>
 			</div>
 		</div>
 	</div>

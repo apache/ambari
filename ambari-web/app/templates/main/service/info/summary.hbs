@@ -152,12 +152,20 @@
         </div>
       </div>
       
-      <div class="summary-metric-graphs row-fluid">
-        {{#each graph in view.serviceMetricGraphs}}
-          <div class="span3">
-            {{view graph}}
-          </div> 
-        {{/each}}
+      <div class="">
+        <table class="graphs">
+          {{#each graphs in view.serviceMetricGraphs}}
+            <tr>
+              {{#each graph in graphs}}
+                <td>
+                  <div class="">
+                    {{view graph}}
+                  </div>
+                </td>
+              {{/each}}
+            </tr>
+          {{/each}}
+        </table>
       </div>
       
     </div>

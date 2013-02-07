@@ -266,32 +266,32 @@ App.MainServiceInfoSummaryView = Em.View.extend({
     if (svcName) {
       switch (svcName.toLowerCase()) {
         case 'hdfs':
-          graphs = [ App.ChartServiceMetricsHDFS_SpaceUtilization.extend(),
+          graphs = [ [App.ChartServiceMetricsHDFS_SpaceUtilization.extend(),
             App.ChartServiceMetricsHDFS_FileOperations.extend(),
             App.ChartServiceMetricsHDFS_BlockStatus.extend(),
-            App.ChartServiceMetricsHDFS_IO.extend(),
-            App.ChartServiceMetricsHDFS_RPC.extend(),
+            App.ChartServiceMetricsHDFS_IO.extend()],
+            [App.ChartServiceMetricsHDFS_RPC.extend(),
             App.ChartServiceMetricsHDFS_GC.extend(),
             App.ChartServiceMetricsHDFS_JVMHeap.extend(),
-            App.ChartServiceMetricsHDFS_JVMThreads.extend()];
+            App.ChartServiceMetricsHDFS_JVMThreads.extend()]];
           break;
         case 'mapreduce':
-          graphs = [ App.ChartServiceMetricsMapReduce_JobsStatus.extend(),
+          graphs = [ [App.ChartServiceMetricsMapReduce_JobsStatus.extend(),
             App.ChartServiceMetricsMapReduce_TasksRunningWaiting.extend(),
             App.ChartServiceMetricsMapReduce_MapSlots.extend(),
-            App.ChartServiceMetricsMapReduce_ReduceSlots.extend(),
-            App.ChartServiceMetricsMapReduce_GC.extend(),
+            App.ChartServiceMetricsMapReduce_ReduceSlots.extend()],
+            [App.ChartServiceMetricsMapReduce_GC.extend(),
             App.ChartServiceMetricsMapReduce_RPC.extend(),
             App.ChartServiceMetricsMapReduce_JVMHeap.extend(),
-            App.ChartServiceMetricsMapReduce_JVMThreads.extend()];
+            App.ChartServiceMetricsMapReduce_JVMThreads.extend()]];
           break;
         case 'hbase':
-          graphs = [  App.ChartServiceMetricsHBASE_ClusterRequests.extend(),
+          graphs = [  [App.ChartServiceMetricsHBASE_ClusterRequests.extend(),
             App.ChartServiceMetricsHBASE_RegionServerReadWriteRequests.extend(),
             App.ChartServiceMetricsHBASE_RegionServerRegions.extend(),
-            App.ChartServiceMetricsHBASE_RegionServerQueueSize.extend(),
-            App.ChartServiceMetricsHBASE_HlogSplitTime.extend(),
-            App.ChartServiceMetricsHBASE_HlogSplitSize.extend()];
+            App.ChartServiceMetricsHBASE_RegionServerQueueSize.extend()],
+            [App.ChartServiceMetricsHBASE_HlogSplitTime.extend(),
+            App.ChartServiceMetricsHBASE_HlogSplitSize.extend()]];
           break;
         default:
           break;
