@@ -91,13 +91,13 @@ function hdp_mon_generate_response( $response_data )
   define ("warn", "1");
   define ("critical", "2");
 
-  define ("HDFS_SERVICE_CHECK", "NAMENODE::Namenode Process down");
-  define ("MAPREDUCE_SERVICE_CHECK", "JOBTRACKER::Jobtracker Process down");
-  define ("HBASE_SERVICE_CHECK", "HBASEMASTER::HBaseMaster Process down");
-  define ("ZOOKEEPER_SERVICE_CHECK", "ZOOKEEPER::Percent zookeeper servers down");
-  define ("HIVE_METASTORE_SERVICE_CHECK", "HIVE-METASTORE::HIVE-METASTORE status check");
-  define ("OOZIE_SERVICE_CHECK", "OOZIE::Oozie status check");
-  define ("TEMPLETON_SERVICE_CHECK", "TEMPLETON::Templeton status check");
+  define ("HDFS_SERVICE_CHECK", "NAMENODE::NameNode process down");
+  define ("MAPREDUCE_SERVICE_CHECK", "JOBTRACKER::JobTracker process down");
+  define ("HBASE_SERVICE_CHECK", "HBASEMASTER::HBaseMaster process down");
+  define ("ZOOKEEPER_SERVICE_CHECK", "ZOOKEEPER::Percent ZooKeeper Servers down");
+  define ("HIVE_METASTORE_SERVICE_CHECK", "HIVE-METASTORE::Hive Metastore status check");
+  define ("OOZIE_SERVICE_CHECK", "OOZIE::Oozie Server status check");
+  define ("WEBHCAT_SERVICE_CHECK", "WEBHCAT::WebHCat Server status check");
   define ("PUPPET_SERVICE_CHECK", "PUPPET::Puppet agent down");
 
   /* If SUSE, status file is under /var/lib/nagios */
@@ -196,10 +196,10 @@ function hdp_mon_generate_response( $response_data )
         }
         continue;
       }
-      if (getParameter($object, "service_description") == TEMPLETON_SERVICE_CHECK) {
-        $services_object["TEMPLETON"] = getParameter($object, "last_hard_state");
-        if ($services_object["TEMPLETON"] >= 1) {
-          $services_object["TEMPLETON"] = 1;
+      if (getParameter($object, "service_description") == WEBHCAT_SERVICE_CHECK) {
+        $services_object["WEBHCAT"] = getParameter($object, "last_hard_state");
+        if ($services_object["WEBHCAT"] >= 1) {
+          $services_object["WEBHCAT"] = 1;
         }
         continue;
       }
@@ -302,16 +302,7 @@ function hdp_mon_generate_response( $response_data )
           $servicestatus['service_type'] = get_service_type($servicestatus['service_description']);
           $srv_desc = explode ("::",$servicestatus['service_description'],2);
 
-          switch ($srv_desc[0]) {
-            case "DATANODE":
-            case "TASKTRACKER":
-            case "REGIONSERVER":
-              $servicestatus['service_description'] = $srv_desc[0] . ' ' . $srv_desc[1];
-              break;
-            default:
-              $servicestatus['service_description'] = $srv_desc[1];
-          }
-            $servicestatus['service_description'] = format_description($servicestatus['service_description']);
+          $servicestatus['service_description'] = $srv_desc[1];
         }
         break;
       case "nok":
@@ -366,43 +357,6 @@ function hdp_mon_generate_response( $response_data )
     }
     /* echo "COUNT : " . count ($services_objects) . "\n"; */
     return $services_objects;
-  }
-
-  function format_description ($service_description)
-  {
-      $patterns[0] = "/tasktracker/i";
-      $patterns[1] = "/datanode/i";
-      $patterns[2] = "/namenode/i";
-      $patterns[3] = "/jobtracker/i";
-      $patterns[4] = "/hbaseMaster/i";
-      $patterns[5] = "/hive-metastore/i";
-      $patterns[6] = "/webhcat/i";
-      $patterns[7] = "/zookeeper/i";
-      $patterns[8] = "/zkserver/i";
-      $patterns[9] = "/oozie/i";
-      $patterns[10] = "/region server/i";
-      $patterns[11] = "/region/i";
-      $patterns[12] = "/server/i";
-      $patterns[13] = "/servers/i";
-
-      $replacements[0] = "TaskTracker";
-      $replacements[1] = "DataNode";
-      $replacements[2] = "NameNode";
-      $replacements[3] = "JobTracker";
-      $replacements[4] = "HBase Master";
-      $replacements[5] = "Hive Metastore";
-      $replacements[6] = "WebHCat Server";
-      $replacements[7] = "ZooKeeper";
-      $replacements[8] = "ZooKeeper Server";
-      $replacements[9] = "Oozie Server";
-      $replacements[10] = "RegionServer";
-      $replacements[11] = "Region";
-      $replacements[12] = "Server";
-      $replacements[13] = "Servers";
-
-      $result =  preg_replace($patterns, $replacements, $service_description);
-
-    return $result;
   }
 
   function get_service_type($service_description)

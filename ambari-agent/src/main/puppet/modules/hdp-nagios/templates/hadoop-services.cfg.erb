@@ -47,7 +47,7 @@ define service {
         use                     hadoop-service
         service_description     HDFS::Percent DataNodes storage full
         servicegroups           HDFS
-        check_command           check_aggregate!"DATANODE::Storage full"!10%!30%
+        check_command           check_aggregate!"DATANODE::DataNode storage full"!10%!30%
         normal_check_interval   2
         retry_check_interval    1 
         max_check_attempts      1
@@ -58,7 +58,7 @@ define service {
         use                     hadoop-service
         service_description     HDFS::Percent DataNodes down
         servicegroups           HDFS
-        check_command           check_aggregate!"DATANODE::Process down"!10%!30%
+        check_command           check_aggregate!"DATANODE::DataNode process down"!10%!30%
         normal_check_interval   0.5
         retry_check_interval    0.25
         max_check_attempts      3
@@ -70,7 +70,7 @@ define service {
         use                     hadoop-service
         service_description     MAPREDUCE::Percent TaskTrackers down
         servicegroups           MAPREDUCE
-        check_command           check_aggregate!"TASKTRACKER::Process down"!10%!30%
+        check_command           check_aggregate!"TASKTRACKER::TaskTracker process down"!10%!30%
         normal_check_interval   0.5
         retry_check_interval    0.25
         max_check_attempts      3
@@ -81,9 +81,9 @@ define service {
 define service {
         hostgroup_name          nagios-server
         use                     hadoop-service
-        service_description     ZOOKEEPER::Percent zookeeper servers down
+        service_description     ZOOKEEPER::Percent ZooKeeper Servers down
         servicegroups           ZOOKEEPER
-        check_command           check_aggregate!"ZKSERVERS::ZKSERVERS Process down"!35%!70%
+        check_command           check_aggregate!"ZOOKEEPER::ZooKeeper Server process down"!35%!70%
         normal_check_interval   0.5
         retry_check_interval    0.25
         max_check_attempts      3
@@ -95,9 +95,9 @@ define service {
 define service {
         hostgroup_name          nagios-server
         use                     hadoop-service
-        service_description     HBASE::Percent region servers down
+        service_description     HBASE::Percent RegionServers down
         servicegroups           HBASE
-        check_command           check_aggregate!"REGIONSERVER::Process down"!10%!30%
+        check_command           check_aggregate!"REGIONSERVER::RegionServer process down"!10%!30%
         normal_check_interval   0.5
         retry_check_interval    0.25
         max_check_attempts      3
@@ -110,7 +110,7 @@ define service {
 define service {
         hostgroup_name          ganglia-server
         use                     hadoop-service
-        service_description     GANGLIA::Ganglia [gmetad] Process down
+        service_description     GANGLIA::Ganglia [gmetad] process down
         servicegroups           GANGLIA
         check_command           check_tcp!8651!-w 1 -c 1
         normal_check_interval   0.25
@@ -121,7 +121,7 @@ define service {
 define service {
         hostgroup_name          ganglia-server
         use                     hadoop-service
-        service_description     GANGLIA::Ganglia collector [gmond] Process down alert for slaves
+        service_description     GANGLIA::Ganglia Collector [gmond] process down alert for slaves
         servicegroups           GANGLIA
         check_command           check_tcp!8660!-w 1 -c 1
         normal_check_interval   0.25
@@ -132,7 +132,7 @@ define service {
 define service {
         hostgroup_name          ganglia-server
         use                     hadoop-service
-        service_description     GANGLIA::Ganglia collector [gmond] Process down alert for namenode
+        service_description     GANGLIA::Ganglia Collector [gmond] process down alert for NameNode
         servicegroups           GANGLIA
         check_command           check_tcp!8661!-w 1 -c 1
         normal_check_interval   0.25
@@ -143,7 +143,7 @@ define service {
 define service {
         hostgroup_name          ganglia-server
         use                     hadoop-service
-        service_description     GANGLIA::Ganglia collector [gmond] Process down alert for jobtracker
+        service_description     GANGLIA::Ganglia Collector [gmond] process down alert for JobTracker
         servicegroups           GANGLIA
         check_command           check_tcp!8662!-w 1 -c 1
         normal_check_interval   0.25
@@ -155,7 +155,7 @@ define service {
 define service {
         hostgroup_name          ganglia-server
         use                     hadoop-service
-        service_description     GANGLIA::Ganglia collector [gmond] Process down alert for hbasemaster
+        service_description     GANGLIA::Ganglia Collector [gmond] process down alert for HBase Master
         servicegroups           GANGLIA
         check_command           check_tcp!8663!-w 1 -c 1
         normal_check_interval   0.25
@@ -170,7 +170,7 @@ define service {
 define service {
         hostgroup_name          snamenode
         use                     hadoop-service
-        service_description     NAMENODE::Secondary Namenode Process down
+        service_description     NAMENODE::Secondary NameNode process down
         servicegroups           HDFS
         check_command           check_tcp!50090!-w 1 -c 1
         normal_check_interval   0.5
@@ -183,7 +183,7 @@ define service {
 define service {
         hostgroup_name          namenode
         use                     hadoop-service
-        service_description     NAMENODE::Namenode Web UI down
+        service_description     NAMENODE::NameNode Web UI down
         servicegroups           HDFS
         check_command           check_webui!namenode
         normal_check_interval   1
@@ -194,7 +194,7 @@ define service {
 define service {
         hostgroup_name          namenode
         use                     hadoop-service
-        service_description     NAMENODE::Namenode Edit logs directory status
+        service_description     NAMENODE::NameNode edit logs directory status
         servicegroups           HDFS
         check_command           check_name_dir_status!50070
         normal_check_interval   0.5
@@ -205,7 +205,7 @@ define service {
 define service {        
         hostgroup_name          namenode        
         use                     hadoop-service
-        service_description     NAMENODE::Namenode Host CPU utilization
+        service_description     NAMENODE::NameNode host CPU utilization
         servicegroups           HDFS
         check_command           check_cpu!200%!250%
         normal_check_interval   5
@@ -217,7 +217,7 @@ define service {
 define service {
         hostgroup_name          namenode
         use                     hadoop-service
-        service_description     NAMENODE::Namenode Process down
+        service_description     NAMENODE::NameNode process down
         servicegroups           HDFS
         check_command           check_tcp!8020!-w 1 -c 1
         normal_check_interval   0.5
@@ -239,7 +239,7 @@ define service {
 define service {
         hostgroup_name          namenode
         use                     hadoop-service
-        service_description     HDFS::HDFS Capacity utilization
+        service_description     HDFS::HDFS capacity utilization
         servicegroups           HDFS
         check_command           check_hdfs_capacity!50070!80%!90%
         normal_check_interval   10
@@ -250,7 +250,7 @@ define service {
 define service {
         hostgroup_name          namenode
         use                     hadoop-service
-        service_description     HDFS::Namenode RPC Latency
+        service_description     HDFS::NameNode RPC latency
         servicegroups           HDFS
         check_command           check_rpcq_latency!NameNode!50070!3000!5000
         normal_check_interval   5
@@ -286,7 +286,7 @@ define service {
 define service {
         hostgroup_name          jobtracker
         use                     hadoop-service
-        service_description     JOBTRACKER::Jobtracker CPU utilization
+        service_description     JOBTRACKER::JobTracker CPU utilization
         servicegroups           MAPREDUCE
         check_command           check_cpu!200%!250%
         normal_check_interval   5
@@ -298,7 +298,7 @@ define service {
 define service {
         hostgroup_name          jobtracker
         use                     hadoop-service
-        service_description     JOBTRACKER::Jobtracker Process down
+        service_description     JOBTRACKER::JobTracker process down
         servicegroups           MAPREDUCE
         check_command           check_tcp!50030!-w 1 -c 1
         normal_check_interval   0.5
@@ -309,7 +309,7 @@ define service {
 define service {
         hostgroup_name          jobtracker
         use                     hadoop-service
-        service_description     MAPREDUCE::JobTracker RPC Latency
+        service_description     MAPREDUCE::JobTracker RPC latency
         servicegroups           MAPREDUCE
         check_command           check_rpcq_latency!JobTracker!50030!3000!5000
         normal_check_interval   5
@@ -323,7 +323,7 @@ define service {
 define service {
         hostgroup_name          slaves
         use                     hadoop-service
-        service_description     DATANODE::Process down
+        service_description     DATANODE::DataNode process down
         servicegroups           HDFS
         check_command           check_tcp!<%=scope.function_hdp_template_var("dfs_datanode_address")%>!-w 1 -c 1
         normal_check_interval   1
@@ -334,7 +334,7 @@ define service {
 define service {
         hostgroup_name          slaves
         use                     hadoop-service
-        service_description     DATANODE::Storage full
+        service_description     DATANODE::DataNode storage full
         servicegroups           HDFS
         check_command           check_datanode_storage!<%=scope.function_hdp_template_var("dfs_datanode_http_address")%>!90%!90%
         normal_check_interval   5
@@ -346,7 +346,7 @@ define service {
 define service {
         hostgroup_name          slaves
         use                     hadoop-service
-        service_description     TASKTRACKER::Process down
+        service_description     TASKTRACKER::TaskTracker process down
         servicegroups           MAPREDUCE
         check_command           check_tcp!50060!-w 1 -c 1
         normal_check_interval   1
@@ -360,7 +360,7 @@ define service {
 define service {
         hostgroup_name          zookeeper-servers
         use                     hadoop-service
-        service_description     ZKSERVERS::ZKSERVERS Process down
+        service_description     ZOOKEEPER::ZooKeeper Server process down
         servicegroups           ZOOKEEPER
         check_command           check_tcp!2181!-w 1 -c 1
         normal_check_interval   1
@@ -374,7 +374,7 @@ define service {
 define service {
         hostgroup_name          region-servers
         use                     hadoop-service
-        service_description     REGIONSERVER::Process down
+        service_description     REGIONSERVER::RegionServer process down
         servicegroups           HBASE
         check_command           check_tcp!60020!-w 1 -c 1
         normal_check_interval   1
@@ -386,7 +386,7 @@ define service {
 define service {
         hostgroup_name          hbasemaster
         use                     hadoop-service
-        service_description     HBASEMASTER::HBase Web UI down
+        service_description     HBASEMASTER::HBase Master Web UI down
         servicegroups           HBASE
         check_command           check_webui!hbase
         normal_check_interval   1
@@ -397,7 +397,7 @@ define service {
 define service {
         hostgroup_name          hbasemaster
         use                     hadoop-service
-        service_description     HBASEMASTER::HBaseMaster CPU utilization
+        service_description     HBASEMASTER::HBase Master CPU utilization
         servicegroups           HBASE
         check_command           check_cpu!200%!250%
         normal_check_interval   5
@@ -408,7 +408,7 @@ define service {
 define service {
         hostgroup_name          hbasemaster
         use                     hadoop-service
-        service_description     HBASEMASTER::HBaseMaster Process down
+        service_description     HBASEMASTER::HBase Master process down
         servicegroups           HBASE
         check_command           check_tcp!60000!-w 1 -c 1
         normal_check_interval   0.5
@@ -422,7 +422,7 @@ define service {
 define service {
         hostgroup_name          hiveserver
         use                     hadoop-service
-        service_description     HIVE-METASTORE::HIVE-METASTORE status check
+        service_description     HIVE-METASTORE::Hive Metastore status check
         servicegroups           HIVE-METASTORE
         <%if scope.function_hdp_template_var("security_enabled")-%>
         check_command           check_hive_metastore_status!9083!<%=scope.function_hdp_template_var("java64_home")%>!true!<%=scope.function_hdp_template_var("keytab_path")%>/<%=scope.function_hdp_template_var("nagios_user")%>.headless.keytab!<%=scope.function_hdp_template_var("nagios_user")%>
@@ -439,7 +439,7 @@ define service {
 define service {
         hostgroup_name          oozie-server
         use                     hadoop-service
-        service_description     OOZIE::Oozie status check
+        service_description     OOZIE::Oozie Server status check
         servicegroups           OOZIE
         <%if scope.function_hdp_template_var("security_enabled")-%>
         check_command           check_oozie_status!11000!<%=scope.function_hdp_template_var("java64_home")%>!true!<%=scope.function_hdp_template_var("keytab_path")%>/<%=scope.function_hdp_template_var("nagios_user")%>.headless.keytab!<%=scope.function_hdp_template_var("nagios_user")%>
@@ -456,7 +456,7 @@ define service {
 define service {
         hostgroup_name          webhcat-server
         use                     hadoop-service
-        service_description     WEBHCAT::WEBHCAT status check
+        service_description     WEBHCAT::WebHCat Server status check
         servicegroups           WEBHCAT 
         <%if scope.function_hdp_template_var("security_enabled")-%>
         check_command           check_templeton_status!50111!v1!true!<%=scope.function_hdp_template_var("keytab_path")%>/<%=scope.function_hdp_template_var("nagios_user")%>.headless.keytab!<%=scope.function_hdp_template_var("nagios_user")%>

@@ -45,14 +45,14 @@ jobtracker)
 namenode)
     nnweburl="http://$host:50070"
     if [[ `checkurl "$nnweburl"` -ne 0 ]] ; then 
-      echo "WARNING: NameNode web UI not accessible : $nnweburl";
+      echo "WARNING: NameNode Web UI not accessible : $nnweburl";
       exit 1;
     fi
     ;;
 jobhistory)
     jhweburl="http://$host:51111/jobhistoryhome.jsp"
     if [[ `checkurl "$jhweburl"` -ne 0 ]]; then 
-      echo "WARNING: Jobhistory web UI not accessible : $jhweburl";
+      echo "WARNING: JobHistory Web UI not accessible : $jhweburl";
       exit 1;
     fi
     ;;
@@ -60,7 +60,7 @@ hbase)
     hbaseweburl="http://$host:60010/master-status"
     jhweburl="http://domU-12-31-39-16-DC-FB.compute-1.internal:51111/jobhistoryhome.jsp"
     if [[ `checkurl "$hbaseweburl"` -ne 0 ]]; then 
-      echo "WARNING: Hbase Master web UI not accessible : $hbaseweburl"; 
+      echo "WARNING: HBase Master Web UI not accessible : $hbaseweburl";
       exit 1;
     fi
     ;;
