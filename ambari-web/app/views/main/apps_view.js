@@ -323,6 +323,17 @@ App.MainAppsView = Em.View.extend({
     templateName: require('templates/main/apps/list_row'),
     classNames: ['app-table-row'],
     tagName: "tr",
+    onLoad: function() {
+      var run = this.get('parentView.run');
+      if (run.index) {
+        var strip = (run.index % 2) ? 'odd' : 'even';
+        this.$().addClass(strip);
+      }
+    }.observes('parentView.run'),
+
+    didInsertElement: function() {
+      this.onLoad();
+    },
     mouseEnter: function (event, view) {
       $(event.currentTarget).addClass("hover")
     },

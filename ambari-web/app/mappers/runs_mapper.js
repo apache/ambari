@@ -34,7 +34,7 @@ App.runsMapper = App.QuickDataMapper.create({
         endIndex:parseInt(json.endIndex)+1
       }
 
-      json.aaData.forEach(function(item) {
+      json.aaData.forEach(function(item, index) {
         var o = this.parseIt(item, this.config);
 
         var r = '{dag: {';
@@ -56,7 +56,7 @@ App.runsMapper = App.QuickDataMapper.create({
         r = r.substr(0, r.length - 1);
         r += '}}';
         o.workflowContext = r;
-
+        o.index = index + 1;
         result.push(o);
       }, this);
 
