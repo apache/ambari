@@ -119,7 +119,7 @@
           <excludes>
             <exclude>**/*.json</exclude>
             <exclude>derby.log</exclude>
-            <exclude>AMBARI-666-CHANGES.txt</exclude>
+            <exclude>CHANGES.txt</exclude>
             <exclude>pass.txt</exclude>
             <exclude>contrib/addons/test/dataServices/jmx/data/cluster_configuration.json.nohbase</exclude>
 

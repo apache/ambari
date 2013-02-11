@@ -61,6 +61,9 @@
             <exclude>pass.txt</exclude>
             <exclude>derby.log</exclude>
             <exclude>src/test/resources/users.ldif</exclude>
+            <exclude>src/test/resources/gsInstaller-hosts.txt</exclude>
+            <exclude>src/test/resources/temporal_ganglia_data.txt</exclude>
+            <exclude>src/test/resources/users.ldif</exclude>
             <exclude>src/main/resources/ca.config</exclude>
             <exclude>src/main/resources/db/serial</exclude>
             <exclude>src/main/resources/db/index.txt</exclude>
