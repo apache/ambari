@@ -51,6 +51,28 @@ App.MainHostController = Em.ArrayController.extend({
   }.property('componentsForFilter'),
 
   /**
+   * Is true if alets filter is active
+   */
+  filteredByAlerts:false,
+
+  /**
+   * Is true if Hosts page was opened by clicking on alerts count badge
+   */
+  comeWithAlertsFilter: false,
+
+  /**
+   * Enable or disable filtering by alets
+   */
+  filterByAlerts: function () {
+    if (App.router.get('currentState.name') == 'index') {
+      this.set('filteredByAlerts', !this.get('filteredByAlerts'));
+    } else {
+      App.router.transitionTo('hosts.index');
+      this.set('comeWithAlertsFilter', true);
+    }
+  },
+
+  /**
    * Filter hosts by componentName of <code>component</code>
    * @param component App.HostComponent
    */

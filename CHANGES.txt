@@ -40,6 +40,8 @@ Trunk (unreleased changes):
 
  IMPROVEMENTS
 
+ AMBARI-1374. Add filter by alerts on the Hosts page. (jaimin)
+
  AMBARI-1373. Since there is the ability to log in to Ambari Web as 
  different users the current user should be indicated. (jaimin)
 

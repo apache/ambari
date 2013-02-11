@@ -22,4 +22,6 @@
   {{view App.AlertItemView contentBinding="this"}}
   {{/each}}
 </ul>
+{{else}}
+  {{t hosts.host.alert.noAlerts.message}}
 {{/if}}

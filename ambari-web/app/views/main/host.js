@@ -28,7 +28,13 @@ App.MainHostView = Em.View.extend({
   oTable: null,
 
   didInsertElement:function () {
-    this.filter()
+    this.filter();
+    if (this.get('controller.comeWithAlertsFilter')) {
+      this.set('controller.comeWithAlertsFilter', false);
+      this.set('controller.filteredByAlerts', true);
+    } else {
+      this.set('controller.filteredByAlerts', false);
+    }
   },
 
   HostView:Em.View.extend({
@@ -214,6 +220,17 @@ App.MainHostView = Em.View.extend({
     }
   }),
 
+  /**
+   * Filter hosts by hosts with at least one alert
+   */
+  filterByAlerts:function() {
+    if (this.get('controller.filteredByAlerts')) {
+      this.updateFilter(7, '>0', 'number')
+    } else {
+      this.updateFilter(7, '', 'number')
+    }
+  }.observes('controller.filteredByAlerts'),
+
   startIndex : function(){
     return Math.random();
   }.property(),
@@ -249,6 +266,7 @@ App.MainHostView = Em.View.extend({
     associations[4] = 'memoryFormatted';
     associations[5] = 'loadAvg';
     associations[6] = 'hostComponents';
+    associations[7] = 'criticalAlertsCount';
     return associations;
   }.property(),
   globalSearchValue:null,
