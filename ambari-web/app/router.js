@@ -79,6 +79,10 @@ App.Router = Em.Router.extend({
 
   loggedIn: false,
 
+  loginName: function() {
+    return this.getLoginName();
+  }.property('loggedIn'),
+
   getAuthenticated: function () {
     var auth = App.db.getAuthenticated();
     var authResp = (auth && auth === true);

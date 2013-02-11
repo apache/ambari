@@ -40,6 +40,9 @@ Trunk (unreleased changes):
 
  IMPROVEMENTS
 
+ AMBARI-1373. Since there is the ability to log in to Ambari Web as 
+ different users the current user should be indicated. (jaimin)
+
  AMBARI-1366. Nagios alert tweaks. (jaimin)
 
  AMBARI-1365. Make Hosts table update dynamically. (jaimin)
