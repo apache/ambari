@@ -263,6 +263,8 @@ Trunk (unreleased changes):
  mahadev)
 
  BUG FIXES
+
+ AMBARI-1372. three sorting states on jobs table. (jaimin)
  
  AMBARI-1350. UI screen shifts left-right depending on scrollbar. (jaimin)
 

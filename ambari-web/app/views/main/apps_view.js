@@ -122,8 +122,8 @@ App.MainAppsView = Em.View.extend({
         this.setControllerObj(this.content.index, "DESC");
         this.set("class", "sorting_desc");
       } else if (this.class == "sorting_desc") {
-        this.setControllerObj("", "");
-        this.set("class", "sorting");
+        this.setControllerObj(this.content.index, "ASC");
+        this.set("class", "sorting_asc");
       }
     },
     resetSortClass: function () {
