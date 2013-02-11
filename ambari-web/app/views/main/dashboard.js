@@ -105,6 +105,10 @@ App.MainDashboardView = Em.View.extend({
           return this.get('warnAlerts').length;
         }.property('warnAlerts'),
 
+        warnAlertsMessage: function() {
+          return Em.I18n.t('services.alerts.head').format(this.get('warnAlertsCount'));
+        }.property('warnAlertsCount'),
+
         nagiosUrl: function () {
           return App.router.get('clusterController.nagiosUrl');
         }.property('App.router.clusterController.nagiosUrl'),

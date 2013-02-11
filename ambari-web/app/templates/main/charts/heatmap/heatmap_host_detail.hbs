@@ -17,20 +17,20 @@
 }}
 
 <b>{{view.details.publicHostName}}</b><br/>
-OS: {{view.details.osType}}<br/>
-IP: {{view.details.ip}}<br/>
+{{t common.os}}: {{view.details.osType}}<br/>
+{{t common.ipAddress}}: {{view.details.ip}}<br/>
 {{#if view.details.metricName}}
   {{view.details.metricName}}: {{view.details.metricValue}}<br/>
 {{/if}}
 {{#if view.details.diskUsage}}
-  Disk: {{view.details.diskUsage}}% <br/>
+  {{t common.disk}}: {{view.details.diskUsage}}% <br/>
 {{/if}}
 {{#if view.details.cpuUsage}}
-  CPU: {{view.details.cpuUsage}}%<br/>
+  {{t common.cpu}}: {{view.details.cpuUsage}}%<br/>
 {{/if}}
 {{#if view.details.memoryUsage}}
-  Memory: {{view.details.memoryUsage}}%<br/>
+  {{t common.memory}}: {{view.details.memoryUsage}}%<br/>
 {{/if}}
 {{#if view.details.hostComponents}}
-  Components: {{view.details.hostComponents}}<br/>
+  {{t common.components}}: {{view.details.hostComponents}}<br/>
 {{/if}}

@@ -69,6 +69,7 @@ Em.I18n.translations = {
   'common.ipAddress':'IP Address',
   'common.cpu':'CPU',
   'common.ram':'RAM',
+  'common.disk':'Disk',
   'common.diskUsage':'Disk Usage',
   'common.loadAvg':'Load Avg',
   'common.components':'Components',
@@ -76,6 +77,14 @@ Em.I18n.translations = {
   'common.save':'Save',
   'common.servers':'Servers',
   'common.clients':'Clients',
+  'common.user': 'User',
+  'common.os':'OS',
+  'common.memory':'Memory',
+  'common.maximum':'Maximum',
+  'common.start':'Start',
+  'common.stop':'Stop',
+  'common.decommission':'Decommission',
+  'common.recommission':'Recommission',
 
   'popup.highlight':'click to highlight',
 
@@ -103,7 +112,8 @@ Em.I18n.translations = {
   'services.zookeeper.description':'ZooKeeper desc',
   'services.hbase.description':'Non-relational distributed database and centralized service for configuration management & synchronization',
   'services.hive.databaseComponent':'Database Server',
-  
+
+  'services.alerts.head':'You have {0} critical alert notification(s).',
   'services.alerts.OK.timePrefix': 'OK for ',
   'services.alerts.WARN.timePrefix': 'WARN for ',
   'services.alerts.CRIT.timePrefix': 'CRIT for ',
@@ -332,6 +342,8 @@ Em.I18n.translations = {
   'admin.users.createError.userNameExists': 'User with the same name is already exists',
   'admin.users.editError.requiredField': 'This is required',
 
+  'admin.confirmUninstall':'Confirm Uninstall',
+
   'question.sure':'Are you sure?',
   'yes':'Yes',
   'no':'No',
@@ -433,6 +445,11 @@ Em.I18n.translations = {
   'hosts.host.metrics.network':'Network Usage',
   'hosts.host.metrics.processes':'Processes',
 
+  'hosts.host.summary.header':'Summary',
+  'hosts.host.summary.hostname':'Hostname',
+  'hosts.host.summary.agentHeartbeat':'Agent <br/> Heartbeat',
+  'hosts.host.summary.hostMetrics':'Host Metrics',
+
   'hosts.host.details.deleteHost':'Delete Host',
 
   'host.host.componentFilter.master':'Master Components',
@@ -464,6 +481,8 @@ Em.I18n.translations = {
   'charts.horizon.chart.attributes.memory':'Memory',
   'charts.horizon.chart.attributes.network':'Network',
   'charts.horizon.chart.attributes.io':'I/O',
+
+  'charts.heatmap.selectMetric':'Select Metric...',
 
   'charts.heatmap.category.host':'Host',
   'charts.heatmap.item.host.memory':'Memory Used',
@@ -515,6 +534,7 @@ Em.I18n.translations = {
   'dashboard.services.hdfs.nodes.heap':'NameNode Heap',
   'dashboard.services.hdfs.nodes.heapUsed':'{0} / {1} ({2}% used)',
   'dashboard.services.hdfs.chart.label':'Capacity (Used/Total)',
+  'dashboard.services.hdfs.blockErrors':'{0} corrupt / {1} missing / {2} under replicated',
 
   'dashboard.services.mapreduce.summary':'{0} of {1} trackers live, {2} jobs running, {3} jobs waiting',
   'dashboard.services.mapreduce.taskTrackers':'TaskTrackers',
@@ -579,6 +599,15 @@ Em.I18n.translations = {
   'timeRange.presets.1week':'1wk',
   'timeRange.presets.1month':'1mo',
   'timeRange.presets.1year':'1yr',
+
+  'apps.item.dag.job': 'Job',
+  'apps.item.dag.jobId': 'Job Id',
+  'apps.item.dag.status': 'Status',
+  'apps.item.dag.maps': 'Maps',
+  'apps.item.dag.reduces': 'Reduces',
+  'apps.item.dag.input': 'Input',
+  'apps.item.dag.output': 'Output',
+  'apps.item.dag.duration': 'Duration',
 
   'apps.avgTable.avg': 'Avg',
   'apps.avgTable.min': 'Min',

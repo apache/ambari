@@ -40,6 +40,8 @@ Trunk (unreleased changes):
 
  IMPROVEMENTS
 
+ AMBARI-1375. Remove text from templates (main). (jaimin)
+
  AMBARI-1374. Add filter by alerts on the Hosts page. (jaimin)
 
  AMBARI-1373. Since there is the ability to log in to Ambari Web as 
