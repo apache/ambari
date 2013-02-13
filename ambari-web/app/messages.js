@@ -401,7 +401,7 @@ Em.I18n.translations = {
   'services.service.info.metrics.hbase.hlogSplitTime':'HLog Split Time',
   'services.service.info.metrics.hbase.regionServerQueueSize':'RegionServer Queue Size',
   'services.service.info.metrics.hbase.regionServerRegions':'RegionServer Regions',
-  'services.service.info.metrics.hbase.regionServerRequests':'RegionServer Requests',
+  'services.service.info.metrics.hbase.regionServerRequests':'Cumulative Requests',
 
   'services.service.info.metrics.hdfs.blockStatus':'Block Status',
   'services.service.info.metrics.hdfs.fileOperations':'File Operations',
