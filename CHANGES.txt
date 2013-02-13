@@ -271,6 +271,9 @@ Trunk (unreleased changes):
 
  BUG FIXES
 
+ AMBARI-1376. Wrong calculation of duration filter on apps page. (jaimin via
+ yusaku)
+
  AMBARI-1165. Change the dashboard graph for HBase since its using cumulative
  metrics. (yusaku)
 

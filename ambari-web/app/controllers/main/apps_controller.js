@@ -72,7 +72,6 @@ App.MainAppsController = Em.ArrayController.extend({
    */
   iTotalDisplayRecordsObserver:function(){
     if(this.get("filterObject.allFilterActivated")){
-      //this.set("paginationObject.filteredDisplayRecords","-10");
       this.set("filterObject.allFilterActivated", false);
     }else{
       this.set("filterObject.filteredDisplayRecords",this.get("paginationObject.iTotalDisplayRecords"));
@@ -202,8 +201,8 @@ App.MainAppsController = Em.ArrayController.extend({
         tmp.max = Math.floor((parseFloat(compareValue)+0.01)*1000);
         break;
         default:
-          tmp.min = Math.max(1024,Math.ceil((compareValue-0.05)*1024));
-          tmp.max = Math.min(1048575,Math.floor((compareValue+0.05)*1024));
+          tmp.min = Math.ceil((parseFloat(compareValue)-0.01)*1000);
+          tmp.max = Math.floor((parseFloat(compareValue)+0.01)*1000);
       }
       switch (compareChar) {
         case '<':
