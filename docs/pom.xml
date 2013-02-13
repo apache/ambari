@@ -28,7 +28,7 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>org.apache.ambari</groupId>
-    <version>1.0.0-SNAPSHOT</version>
+    <version>1.2.0-SNAPSHOT</version>
     <artifactId>ambari</artifactId>
     <packaging>pom</packaging>
 
@@ -165,7 +165,19 @@
             <organization>
                                 
             </organization>            
-        </developer>             
+        </developer>
+        <developer>
+            <id>jaimin</id>
+            <name>Jaimin Jetly</name>
+            <email>jaimin@apache.org</email>
+            <timezone>-8</timezone>
+            <roles>
+                <role>Committer</role>
+            </roles>
+            <organization>
+                Hortonworks
+            </organization>
+        </developer>
         <developer>
             <id>jitendra</id>
             <name>Jitendra Pandey</name>

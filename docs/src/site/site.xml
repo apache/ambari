@@ -33,7 +33,7 @@
   </custom>
   <bannerLeft>
     <name>Ambari</name>
-    <src>http://incubator.apache.org/ambari/images/apache-ambari-project.png</src>
+    <src>http://incubator.apache.org/ambari/images/apache-ambari-project.jpg</src>
     <href>http://incubator.apache.org/ambari</href>
   </bannerLeft>
 
@@ -82,11 +82,13 @@
     </menu>
 
     <menu name="Releases">
-        <item name="1.2.0 (coming soon)" href="whats-new.html"/>
+        <item name="1.2.1 (coming soon)" href="whats-new.html"/>
+        <item name="1.2.0" href="http://www.apache.org/dist/incubator/ambari/ambari-1.2.0/"/>
         <item name="0.9" href="http://www.apache.org/dist/incubator/ambari/ambari-0.9-incubating/"/>
     </menu>
 
     <menu name="Documentation">
+        <item name="Install Guide for 1.2.1" href="1.2.1/installing-hadoop-using-ambari/content/index.html"/>
         <item name="Install Guide for 1.2.0" href="1.2.0/installing-hadoop-using-ambari/content/index.html"/>
         <item name="Install Guide for 0.9" href="install-0.9.html"/>
     </menu>

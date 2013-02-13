@@ -66,15 +66,13 @@ Introduction
 
 Ambari Source
 
-  Follow the  {{{./install-0.9.html} installation guide for 0.9 (stable)}} or check out the work going on in {{{./whats-new.html} trunk}} for the upcoming 1.2.0 release.
+  Follow the  {{{./1.2.0/installing-hadoop-using-ambari/content/index.html} installation guide for 1.2.0 (stable)}} or check out the work going on in {{{./whats-new.html} trunk}} for the upcoming 1.2.1 release.
 
 Roadmap
 
   * Support for additional Operating Systems
 
-    * Ambari currently supports 64-bit RHEL and CentOS 5 + 6
-
-    * SLES 11 support (1.2.0)
+    * Ambari currently supports 64-bit RHEL/CentOS 5 + 6 and SLES 11
 
   []
 
