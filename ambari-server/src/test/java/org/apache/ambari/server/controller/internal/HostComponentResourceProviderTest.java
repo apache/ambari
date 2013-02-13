@@ -20,8 +20,8 @@ package org.apache.ambari.server.controller.internal;
 
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.RequestStatusResponse;
-import org.apache.ambari.server.controller.ServiceComponentRequest;
-import org.apache.ambari.server.controller.ServiceComponentResponse;
+import org.apache.ambari.server.controller.ServiceComponentHostRequest;
+import org.apache.ambari.server.controller.ServiceComponentHostResponse;
 import org.apache.ambari.server.controller.spi.Predicate;
 import org.apache.ambari.server.controller.spi.Request;
 import org.apache.ambari.server.controller.spi.Resource;
@@ -32,6 +32,8 @@ import org.easymock.EasyMock;
 import org.junit.Assert;
 import org.junit.Test;
 
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
@@ -45,19 +47,19 @@ import static org.easymock.EasyMock.replay;
 import static org.easymock.EasyMock.verify;
 
 /**
- * Tests for the component resource provider.
+ * HostComponentResourceProvider tests.
  */
-public class ComponentResourceProviderTest {
+public class HostComponentResourceProviderTest {
   @Test
   public void testCreateResources() throws Exception {
-    Resource.Type type = Resource.Type.Component;
+    Resource.Type type = Resource.Type.HostComponent;
 
     AmbariManagementController managementController = createMock(AmbariManagementController.class);
     RequestStatusResponse response = createNiceMock(RequestStatusResponse.class);
 
-    managementController.createComponents(
-        AbstractResourceProviderTest.Matcher.getComponentRequestSet(
-            "Cluster100", "Service100", "Component100", null, null));
+    managementController.createHostComponents(
+        AbstractResourceProviderTest.Matcher.getHostComponentRequestSet(
+            "Cluster100", "Service100", "Component100", "Host100", null, null));
 
     // replay
     replay(managementController, response);
@@ -75,9 +77,10 @@ public class ComponentResourceProviderTest {
     Map<String, Object> properties = new LinkedHashMap<String, Object>();
 
     // add properties to the request map
-    properties.put(ComponentResourceProvider.COMPONENT_CLUSTER_NAME_PROPERTY_ID, "Cluster100");
-    properties.put(ComponentResourceProvider.COMPONENT_SERVICE_NAME_PROPERTY_ID, "Service100");
-    properties.put(ComponentResourceProvider.COMPONENT_COMPONENT_NAME_PROPERTY_ID, "Component100");
+    properties.put(HostComponentResourceProvider.HOST_COMPONENT_CLUSTER_NAME_PROPERTY_ID, "Cluster100");
+    properties.put(HostComponentResourceProvider.HOST_COMPONENT_SERVICE_NAME_PROPERTY_ID, "Service100");
+    properties.put(HostComponentResourceProvider.HOST_COMPONENT_COMPONENT_NAME_PROPERTY_ID, "Component100");
+    properties.put(HostComponentResourceProvider.HOST_COMPONENT_HOST_NAME_PROPERTY_ID, "Host100");
 
     propertySet.add(properties);
 
@@ -92,19 +95,22 @@ public class ComponentResourceProviderTest {
 
   @Test
   public void testGetResources() throws Exception {
-    Resource.Type type = Resource.Type.Component;
+    Resource.Type type = Resource.Type.HostComponent;
 
     AmbariManagementController managementController = createMock(AmbariManagementController.class);
 
-    Set<ServiceComponentResponse> allResponse = new HashSet<ServiceComponentResponse>();
-    allResponse.add(new ServiceComponentResponse(100L, "Cluster100", "Service100", "Component100", null, null, ""));
-    allResponse.add(new ServiceComponentResponse(100L, "Cluster100", "Service100", "Component101", null, null, ""));
-    allResponse.add(new ServiceComponentResponse(100L, "Cluster100", "Service100", "Component102", null, null, ""));
+    Set<ServiceComponentHostResponse> allResponse = new HashSet<ServiceComponentHostResponse>();
+    allResponse.add(new ServiceComponentHostResponse(
+        "Cluster100", "Service100", "Component100", "Host100", null, null, "", "", "" ));
+    allResponse.add(new ServiceComponentHostResponse(
+        "Cluster100", "Service100", "Component101", "Host100", null, null, "", "", "" ));
+    allResponse.add(new ServiceComponentHostResponse(
+        "Cluster100", "Service100", "Component102", "Host100", null, null, "", "", "" ));
 
     // set expectations
-    expect(managementController.getComponents(
-        AbstractResourceProviderTest.Matcher.getComponentRequestSet(
-            "Cluster100", null, null, null, null))).andReturn(allResponse).once();
+    expect(managementController.getHostComponents(
+        AbstractResourceProviderTest.Matcher.getHostComponentRequestSet(
+            "Cluster100", null, null, null, null, null))).andReturn(allResponse).once();
 
     // replay
     replay(managementController);
@@ -117,11 +123,11 @@ public class ComponentResourceProviderTest {
 
     Set<String> propertyIds = new HashSet<String>();
 
-    propertyIds.add(ComponentResourceProvider.COMPONENT_CLUSTER_NAME_PROPERTY_ID);
-    propertyIds.add(ComponentResourceProvider.COMPONENT_COMPONENT_NAME_PROPERTY_ID);
+    propertyIds.add(HostComponentResourceProvider.HOST_COMPONENT_CLUSTER_NAME_PROPERTY_ID);
+    propertyIds.add(HostComponentResourceProvider.HOST_COMPONENT_COMPONENT_NAME_PROPERTY_ID);
 
-    Predicate predicate = new PredicateBuilder().property(ComponentResourceProvider.COMPONENT_CLUSTER_NAME_PROPERTY_ID).
-        equals("Cluster100").toPredicate();
+    Predicate predicate = new PredicateBuilder().property(
+        HostComponentResourceProvider.HOST_COMPONENT_CLUSTER_NAME_PROPERTY_ID).equals("Cluster100").toPredicate();
     Request request = PropertyHelper.getReadRequest(propertyIds);
     Set<Resource> resources = provider.getResources(request, predicate);
 
@@ -129,12 +135,13 @@ public class ComponentResourceProviderTest {
     Set<String> names = new HashSet<String>();
     for (Resource resource : resources) {
       String clusterName = (String) resource.getPropertyValue(
-          ComponentResourceProvider.COMPONENT_CLUSTER_NAME_PROPERTY_ID);
+          HostComponentResourceProvider.HOST_COMPONENT_CLUSTER_NAME_PROPERTY_ID);
       Assert.assertEquals("Cluster100", clusterName);
-      names.add((String) resource.getPropertyValue(ComponentResourceProvider.COMPONENT_COMPONENT_NAME_PROPERTY_ID));
+      names.add((String) resource.getPropertyValue(
+          HostComponentResourceProvider.HOST_COMPONENT_COMPONENT_NAME_PROPERTY_ID));
     }
     // Make sure that all of the response objects got moved into resources
-    for (ServiceComponentResponse response : allResponse ) {
+    for (ServiceComponentHostResponse response : allResponse ) {
       Assert.assertTrue(names.contains(response.getComponentName()));
     }
 
@@ -144,20 +151,21 @@ public class ComponentResourceProviderTest {
 
   @Test
   public void testUpdateResources() throws Exception {
-    Resource.Type type = Resource.Type.Component;
+    Resource.Type type = Resource.Type.HostComponent;
 
     AmbariManagementController managementController = createMock(AmbariManagementController.class);
     RequestStatusResponse response = createNiceMock(RequestStatusResponse.class);
 
-    Set<ServiceComponentResponse> nameResponse = new HashSet<ServiceComponentResponse>();
-    nameResponse.add(new ServiceComponentResponse(102L, "Cluster102", "Service", "Component", null, "1", "STARTED"));
+    Set<ServiceComponentHostResponse> nameResponse = new HashSet<ServiceComponentHostResponse>();
+    nameResponse.add(new ServiceComponentHostResponse(
+        "Cluster102", "Service100", "Component100", "Host100", null, null, "STARTED", "", ""));
 
     // set expectations
-    expect(managementController.getComponents(EasyMock.<Set<ServiceComponentRequest>>anyObject())).
-        andReturn(nameResponse).once();
-    expect(managementController.updateComponents(
-        AbstractResourceProviderTest.Matcher.getComponentRequestSet(
-            "Cluster102", "Service", "Component", null, "STARTED"))).andReturn(response).once();
+    expect(managementController.getHostComponents(
+        EasyMock.<Set<ServiceComponentHostRequest>>anyObject())).andReturn(nameResponse).once();
+    expect(managementController.updateHostComponents(
+        AbstractResourceProviderTest.Matcher.getHostComponentRequestSet(
+            "Cluster102", null, "Component100", "Host100", null, "STARTED"))).andReturn(response).once();
 
     // replay
     replay(managementController, response);
@@ -170,14 +178,14 @@ public class ComponentResourceProviderTest {
 
     Map<String, Object> properties = new LinkedHashMap<String, Object>();
 
-    properties.put(ComponentResourceProvider.COMPONENT_STATE_PROPERTY_ID, "STARTED");
+    properties.put(HostComponentResourceProvider.HOST_COMPONENT_STATE_PROPERTY_ID, "STARTED");
 
     // create the request
     Request request = PropertyHelper.getUpdateRequest(properties);
 
     // update the cluster named Cluster102
-    Predicate predicate = new PredicateBuilder().property(ClusterResourceProvider.CLUSTER_NAME_PROPERTY_ID).
-        equals("Cluster102").toPredicate();
+    Predicate predicate = new PredicateBuilder().property(
+        HostComponentResourceProvider.HOST_COMPONENT_CLUSTER_NAME_PROPERTY_ID).equals("Cluster102").toPredicate();
     provider.updateResources(request, predicate);
 
     // verify
@@ -186,14 +194,15 @@ public class ComponentResourceProviderTest {
 
   @Test
   public void testDeleteResources() throws Exception {
-    Resource.Type type = Resource.Type.Component;
+    Resource.Type type = Resource.Type.HostComponent;
 
     AmbariManagementController managementController = createMock(AmbariManagementController.class);
     RequestStatusResponse response = createNiceMock(RequestStatusResponse.class);
 
     // set expectations
-    expect(managementController.deleteComponents(AbstractResourceProviderTest.Matcher.
-        getComponentRequestSet(null, null, "Component100", null, null))).andReturn(response);
+    expect(managementController.deleteHostComponents(
+        AbstractResourceProviderTest.Matcher.getHostComponentRequestSet(
+            null, null, "Component100", "Host100", null, null))).andReturn(response);
 
     // replay
     replay(managementController, response);
@@ -208,19 +217,66 @@ public class ComponentResourceProviderTest {
 
     ((ObservableResourceProvider)provider).addObserver(observer);
 
-    Predicate  predicate = new PredicateBuilder().property(
-        ComponentResourceProvider.COMPONENT_COMPONENT_NAME_PROPERTY_ID).equals("Component100").toPredicate();
+    Predicate predicate = new PredicateBuilder().
+        property(HostComponentResourceProvider.HOST_COMPONENT_COMPONENT_NAME_PROPERTY_ID).equals("Component100").and().
+        property(HostComponentResourceProvider.HOST_COMPONENT_HOST_NAME_PROPERTY_ID).equals("Host100").toPredicate();
     provider.deleteResources(predicate);
 
 
     ResourceProviderEvent lastEvent = observer.getLastEvent();
     Assert.assertNotNull(lastEvent);
-    Assert.assertEquals(Resource.Type.Component, lastEvent.getResourceType());
+    Assert.assertEquals(Resource.Type.HostComponent, lastEvent.getResourceType());
     Assert.assertEquals(ResourceProviderEvent.Type.Delete, lastEvent.getType());
     Assert.assertEquals(predicate, lastEvent.getPredicate());
     Assert.assertNull(lastEvent.getRequest());
 
     // verify
     verify(managementController, response);
+  }
+
+  @Test
+  public void testCheckPropertyIds() throws Exception {
+    Set<String> propertyIds = new HashSet<String>();
+    propertyIds.add("foo");
+    propertyIds.add("cat1/foo");
+    propertyIds.add("cat2/bar");
+    propertyIds.add("cat2/baz");
+    propertyIds.add("cat3/sub1/bam");
+    propertyIds.add("cat4/sub2/sub3/bat");
+    propertyIds.add("cat5/subcat5/map");
+
+    Map<Resource.Type, String> keyPropertyIds = new HashMap<Resource.Type, String>();
+
+    AmbariManagementController managementController = createMock(AmbariManagementController.class);
+
+    AbstractResourceProvider provider =
+        (AbstractResourceProvider) AbstractResourceProvider.getResourceProvider(
+            Resource.Type.HostComponent,
+            propertyIds,
+            keyPropertyIds,
+            managementController);
+
+    Set<String> unsupported = provider.checkPropertyIds(Collections.singleton("foo"));
+    Assert.assertTrue(unsupported.isEmpty());
+
+    // note that key is not in the set of known property ids.  We allow it if its parent is a known property.
+    // this allows for Map type properties where we want to treat the entries as individual properties
+    Assert.assertTrue(provider.checkPropertyIds(Collections.singleton("cat5/subcat5/map/key")).isEmpty());
+
+    unsupported = provider.checkPropertyIds(Collections.singleton("bar"));
+    Assert.assertEquals(1, unsupported.size());
+    Assert.assertTrue(unsupported.contains("bar"));
+
+    unsupported = provider.checkPropertyIds(Collections.singleton("cat1/foo"));
+    Assert.assertTrue(unsupported.isEmpty());
+
+    unsupported = provider.checkPropertyIds(Collections.singleton("cat1"));
+    Assert.assertTrue(unsupported.isEmpty());
+
+    unsupported = provider.checkPropertyIds(Collections.singleton("config"));
+    Assert.assertTrue(unsupported.isEmpty());
+
+    unsupported = provider.checkPropertyIds(Collections.singleton("config/unknown_property"));
+    Assert.assertTrue(unsupported.isEmpty());
   }
 }

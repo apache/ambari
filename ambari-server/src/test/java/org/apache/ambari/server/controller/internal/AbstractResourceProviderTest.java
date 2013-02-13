@@ -18,431 +18,35 @@
 
 package org.apache.ambari.server.controller.internal;
 
-import org.apache.ambari.server.controller.*;
-import org.apache.ambari.server.controller.utilities.PredicateBuilder;
-import org.apache.ambari.server.controller.utilities.PropertyHelper;
-import org.apache.ambari.server.controller.RequestStatusResponse;
-import org.apache.ambari.server.controller.spi.Predicate;
-import org.apache.ambari.server.controller.spi.Request;
+import org.apache.ambari.server.controller.ActionRequest;
+import org.apache.ambari.server.controller.AmbariManagementController;
+import org.apache.ambari.server.controller.ClusterRequest;
+import org.apache.ambari.server.controller.ConfigurationRequest;
+import org.apache.ambari.server.controller.HostRequest;
+import org.apache.ambari.server.controller.RequestStatusRequest;
+import org.apache.ambari.server.controller.ServiceComponentHostRequest;
+import org.apache.ambari.server.controller.ServiceComponentRequest;
+import org.apache.ambari.server.controller.ServiceRequest;
+import org.apache.ambari.server.controller.TaskStatusRequest;
+import org.apache.ambari.server.controller.UserRequest;
 import org.apache.ambari.server.controller.spi.Resource;
-import org.apache.ambari.server.controller.spi.ResourceProvider;
 import org.easymock.EasyMock;
 import org.easymock.IArgumentMatcher;
 import org.junit.Assert;
 import org.junit.Test;
 
-import static org.easymock.EasyMock.createMock;
-import static org.easymock.EasyMock.createNiceMock;
-import static org.easymock.EasyMock.expect;
-import static org.easymock.EasyMock.replay;
-import static org.easymock.EasyMock.verify;
-
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
+
+import static org.easymock.EasyMock.createMock;
 
 /**
  * Resource provider tests.
  */
 public class AbstractResourceProviderTest {
-
-  @Test
-  public void testCreateClusterResources() throws Exception{
-    Resource.Type type = Resource.Type.Cluster;
-
-    AmbariManagementController managementController = createMock(AmbariManagementController.class);
-    RequestStatusResponse response = createNiceMock(RequestStatusResponse.class);
-
-    managementController.createCluster(Matchers.clusterRequest(null, "Cluster100", "HDP-0.1", null));
-    managementController.createCluster(Matchers.clusterRequest(99L, null, "HDP-0.1", null));
-
-    // replay
-    replay(managementController, response);
-
-    ResourceProvider provider = AbstractResourceProvider.getResourceProvider(
-        type,
-        PropertyHelper.getPropertyIds(type),
-        PropertyHelper.getKeyPropertyIds(type),
-        managementController);
-
-    TestObserver observer = new TestObserver();
-
-    ((ObservableResourceProvider)provider).addObserver(observer);
-
-    // add the property map to a set for the request.  add more maps for multiple creates
-    Set<Map<String, Object>> propertySet = new LinkedHashSet<Map<String, Object>>();
-
-    // Cluster 1: create a map of properties for the request
-    Map<String, Object> properties = new LinkedHashMap<String, Object>();
-
-    // add the cluster name to the properties map
-    properties.put(ClusterResourceProvider.CLUSTER_NAME_PROPERTY_ID, "Cluster100");
-
-    // add the version to the properties map
-    properties.put(ClusterResourceProvider.CLUSTER_VERSION_PROPERTY_ID, "HDP-0.1");
-
-    propertySet.add(properties);
-
-    // Cluster 2: create a map of properties for the request
-    properties = new LinkedHashMap<String, Object>();
-
-    // add the cluster id to the properties map
-    properties.put(ClusterResourceProvider.CLUSTER_ID_PROPERTY_ID, 99L);
-
-    // add the version to the properties map
-    properties.put(ClusterResourceProvider.CLUSTER_VERSION_PROPERTY_ID, "HDP-0.1");
-
-    propertySet.add(properties);
-
-    // create the request
-    Request request = PropertyHelper.getCreateRequest(propertySet);
-
-    provider.createResources(request);
-
-    ResourceProviderEvent lastEvent = observer.getLastEvent();
-    Assert.assertNotNull(lastEvent);
-    Assert.assertEquals(Resource.Type.Cluster, lastEvent.getResourceType());
-    Assert.assertEquals(ResourceProviderEvent.Type.Create, lastEvent.getType());
-    Assert.assertEquals(request, lastEvent.getRequest());
-    Assert.assertNull(lastEvent.getPredicate());
-
-    // verify
-    verify(managementController, response);
-  }
-
-  @Test
-  public void testGetClusterResources() throws Exception{
-    Resource.Type type = Resource.Type.Cluster;
-
-    AmbariManagementController managementController = createMock(AmbariManagementController.class);
-
-    Set<ClusterResponse> allResponse = new HashSet<ClusterResponse>();
-    allResponse.add(new ClusterResponse(100L, "Cluster100", null, null));
-    allResponse.add(new ClusterResponse(101L, "Cluster101", null, null));
-    allResponse.add(new ClusterResponse(102L, "Cluster102", null, null));
-    allResponse.add(new ClusterResponse(103L, "Cluster103", null, null));
-    allResponse.add(new ClusterResponse(104L, "Cluster104", null, null));
-
-    Set<ClusterResponse> nameResponse = new HashSet<ClusterResponse>();
-    nameResponse.add(new ClusterResponse(102L, "Cluster102", null, null));
-
-    Set<ClusterResponse> idResponse = new HashSet<ClusterResponse>();
-    idResponse.add(new ClusterResponse(103L, "Cluster103", null, null));
-
-    // set expectations
-    expect(managementController.getClusters(EasyMock.<Set<ClusterRequest>>anyObject())).andReturn(allResponse).once();
-    expect(managementController.getClusters(EasyMock.<Set<ClusterRequest>>anyObject())).andReturn(nameResponse).once();
-    expect(managementController.getClusters(EasyMock.<Set<ClusterRequest>>anyObject())).andReturn(idResponse).once();
-
-    // replay
-    replay(managementController);
-
-    ResourceProvider provider = AbstractResourceProvider.getResourceProvider(
-        type,
-        PropertyHelper.getPropertyIds(type),
-        PropertyHelper.getKeyPropertyIds(type),
-        managementController);
-
-    Set<String> propertyIds = new HashSet<String>();
-
-    propertyIds.add(ClusterResourceProvider.CLUSTER_ID_PROPERTY_ID);
-    propertyIds.add(ClusterResourceProvider.CLUSTER_NAME_PROPERTY_ID);
-
-    // create the request
-    Request request = PropertyHelper.getReadRequest(propertyIds);
-
-    // get all ... no predicate
-    Set<Resource> resources = provider.getResources(request, null);
-
-    Assert.assertEquals(5, resources.size());
-    for (Resource resource : resources) {
-      Long id = (Long) resource.getPropertyValue(ClusterResourceProvider.CLUSTER_ID_PROPERTY_ID);
-      String name = (String) resource.getPropertyValue(ClusterResourceProvider.CLUSTER_NAME_PROPERTY_ID);
-      Assert.assertEquals(name, "Cluster" + id);
-    }
-
-    // get cluster named Cluster102
-    Predicate  predicate = new PredicateBuilder().property(ClusterResourceProvider.CLUSTER_NAME_PROPERTY_ID).equals("Cluster102").toPredicate();
-    resources = provider.getResources(request, predicate);
-
-    Assert.assertEquals(1, resources.size());
-    Assert.assertEquals(102L, resources.iterator().next().getPropertyValue(ClusterResourceProvider.CLUSTER_ID_PROPERTY_ID));
-    Assert.assertEquals("Cluster102", resources.iterator().next().getPropertyValue(ClusterResourceProvider.CLUSTER_NAME_PROPERTY_ID));
-
-    // get cluster with id == 103
-    predicate = new PredicateBuilder().property(ClusterResourceProvider.CLUSTER_ID_PROPERTY_ID).equals(103L).toPredicate();
-    resources = provider.getResources(request, predicate);
-
-    Assert.assertEquals(1, resources.size());
-    Assert.assertEquals(103L, resources.iterator().next().getPropertyValue(ClusterResourceProvider.CLUSTER_ID_PROPERTY_ID));
-    Assert.assertEquals("Cluster103", resources.iterator().next().getPropertyValue(ClusterResourceProvider.CLUSTER_NAME_PROPERTY_ID));
-
-    // verify
-    verify(managementController);
-  }
-
-  @Test
-  public void testUpdateClusterResources() throws Exception{
-    Resource.Type type = Resource.Type.Cluster;
-
-    AmbariManagementController managementController = createMock(AmbariManagementController.class);
-    RequestStatusResponse response = createNiceMock(RequestStatusResponse.class);
-
-    Set<ClusterResponse> nameResponse = new HashSet<ClusterResponse>();
-    nameResponse.add(new ClusterResponse(102L, "Cluster102", null, null));
-
-    // set expectations
-    expect(managementController.getClusters(EasyMock.<Set<ClusterRequest>>anyObject())).andReturn(nameResponse).once();
-    expect(managementController.updateCluster(Matchers.clusterRequest(102L, "Cluster102", "HDP-0.1", null))).andReturn(response).once();
-    expect(managementController.updateCluster(Matchers.clusterRequest(103L, null, "HDP-0.1", null))).andReturn(response).once();
-
-    // replay
-    replay(managementController, response);
-
-    ResourceProvider provider = AbstractResourceProvider.getResourceProvider(
-        type,
-        PropertyHelper.getPropertyIds(type),
-        PropertyHelper.getKeyPropertyIds(type),
-        managementController);
-
-    TestObserver observer = new TestObserver();
-
-    ((ObservableResourceProvider)provider).addObserver(observer);
-
-    Map<String, Object> properties = new LinkedHashMap<String, Object>();
-
-    properties.put(ClusterResourceProvider.CLUSTER_VERSION_PROPERTY_ID, "HDP-0.1");
-
-    // create the request
-    Request request = PropertyHelper.getUpdateRequest(properties);
-
-    // update the cluster named Cluster102
-    Predicate  predicate = new PredicateBuilder().property(ClusterResourceProvider.CLUSTER_NAME_PROPERTY_ID).equals("Cluster102").toPredicate();
-    provider.updateResources(request, predicate);
-
-    // update the cluster where id == 103
-    predicate = new PredicateBuilder().property(ClusterResourceProvider.CLUSTER_ID_PROPERTY_ID).equals(103L).toPredicate();
-    provider.updateResources(request, predicate);
-
-    ResourceProviderEvent lastEvent = observer.getLastEvent();
-    Assert.assertNotNull(lastEvent);
-    Assert.assertEquals(Resource.Type.Cluster, lastEvent.getResourceType());
-    Assert.assertEquals(ResourceProviderEvent.Type.Update, lastEvent.getType());
-    Assert.assertEquals(request, lastEvent.getRequest());
-    Assert.assertEquals(predicate, lastEvent.getPredicate());
-
-    // verify
-    verify(managementController, response);
-  }
-
-  @Test
-  public void testDeleteClusterResources() throws Exception{
-    Resource.Type type = Resource.Type.Cluster;
-
-    AmbariManagementController managementController = createMock(AmbariManagementController.class);
-    RequestStatusResponse response = createNiceMock(RequestStatusResponse.class);
-
-    // set expectations
-    managementController.deleteCluster(Matchers.clusterRequest(null, "Cluster102", null, null));
-    managementController.deleteCluster(Matchers.clusterRequest(103L, null, null, null));
-
-    // replay
-    replay(managementController, response);
-
-    ResourceProvider provider = AbstractResourceProvider.getResourceProvider(
-        type,
-        PropertyHelper.getPropertyIds(type),
-        PropertyHelper.getKeyPropertyIds(type),
-        managementController);
-
-    TestObserver observer = new TestObserver();
-
-    ((ObservableResourceProvider)provider).addObserver(observer);
-
-    // delete the cluster named Cluster102
-    Predicate  predicate = new PredicateBuilder().property(ClusterResourceProvider.CLUSTER_NAME_PROPERTY_ID).equals("Cluster102").toPredicate();
-    provider.deleteResources(predicate);
-
-    // delete the cluster where id == 103
-    predicate = new PredicateBuilder().property(ClusterResourceProvider.CLUSTER_ID_PROPERTY_ID).equals(103L).toPredicate();
-    provider.deleteResources(predicate);
-
-    ResourceProviderEvent lastEvent = observer.getLastEvent();
-    Assert.assertNotNull(lastEvent);
-    Assert.assertEquals(Resource.Type.Cluster, lastEvent.getResourceType());
-    Assert.assertEquals(ResourceProviderEvent.Type.Delete, lastEvent.getType());
-    Assert.assertEquals(predicate, lastEvent.getPredicate());
-    Assert.assertNull(lastEvent.getRequest());
-
-    // verify
-    verify(managementController, response);
-  }
-
-  @Test
-  public void testCreateServiceResources() throws Exception{
-    Resource.Type type = Resource.Type.Service;
-
-    AmbariManagementController managementController = createMock(AmbariManagementController.class);
-    RequestStatusResponse response = createNiceMock(RequestStatusResponse.class);
-
-    managementController.createServices(Matchers.serviceRequestSet("Cluster100", "Service100", null, "DEPLOYED"));
-
-    // replay
-    replay(managementController, response);
-
-    ResourceProvider provider = AbstractResourceProvider.getResourceProvider(
-        type,
-        PropertyHelper.getPropertyIds(type),
-        PropertyHelper.getKeyPropertyIds(type),
-        managementController);
-
-    // add the property map to a set for the request.  add more maps for multiple creates
-    Set<Map<String, Object>> propertySet = new LinkedHashSet<Map<String, Object>>();
-
-    // Service 1: create a map of properties for the request
-    Map<String, Object> properties = new LinkedHashMap<String, Object>();
-
-    // add properties to the request map
-    properties.put(ServiceResourceProvider.SERVICE_CLUSTER_NAME_PROPERTY_ID, "Cluster100");
-    properties.put(ServiceResourceProvider.SERVICE_SERVICE_NAME_PROPERTY_ID, "Service100");
-    properties.put(ServiceResourceProvider.SERVICE_SERVICE_STATE_PROPERTY_ID, "DEPLOYED");
-
-    propertySet.add(properties);
-
-    // create the request
-    Request request = PropertyHelper.getCreateRequest(propertySet);
-
-    provider.createResources(request);
-
-    // verify
-    verify(managementController, response);
-  }
-
-  @Test
-  public void testGetServiceResources() throws Exception{
-    Resource.Type type = Resource.Type.Service;
-
-    AmbariManagementController managementController = createMock(AmbariManagementController.class);
-
-    Set<ServiceResponse> allResponse = new HashSet<ServiceResponse>();
-    allResponse.add(new ServiceResponse(100L, "Cluster100", "Service100", null, "HDP-0.1", "DEPLOYED"));
-    allResponse.add(new ServiceResponse(100L, "Cluster100", "Service101", null, "HDP-0.1", "DEPLOYED"));
-    allResponse.add(new ServiceResponse(100L, "Cluster100", "Service102", null, "HDP-0.1", "DEPLOYED"));
-    allResponse.add(new ServiceResponse(100L, "Cluster100", "Service103", null, "HDP-0.1", "DEPLOYED"));
-    allResponse.add(new ServiceResponse(100L, "Cluster100", "Service104", null, "HDP-0.1", "DEPLOYED"));
-
-    Set<ServiceResponse> nameResponse = new HashSet<ServiceResponse>();
-    nameResponse.add(new ServiceResponse(100L, "Cluster100", "Service102", null, "HDP-0.1", "DEPLOYED"));
-
-    Set<ServiceResponse> stateResponse = new HashSet<ServiceResponse>();
-    stateResponse.add(new ServiceResponse(100L, "Cluster100", "Service100", null, "HDP-0.1", "DEPLOYED"));
-    stateResponse.add(new ServiceResponse(100L, "Cluster100", "Service102", null, "HDP-0.1", "DEPLOYED"));
-    stateResponse.add(new ServiceResponse(100L, "Cluster100", "Service104", null, "HDP-0.1", "DEPLOYED"));
-
-    // set expectations
-    expect(managementController.getServices(EasyMock.<Set<ServiceRequest>>anyObject())).andReturn(allResponse).once();
-    expect(managementController.getServices(EasyMock.<Set<ServiceRequest>>anyObject())).andReturn(nameResponse).once();
-    expect(managementController.getServices(EasyMock.<Set<ServiceRequest>>anyObject())).andReturn(stateResponse).once();
-
-    // replay
-    replay(managementController);
-
-    ResourceProvider provider = AbstractResourceProvider.getResourceProvider(
-        type,
-        PropertyHelper.getPropertyIds(type),
-        PropertyHelper.getKeyPropertyIds(type),
-        managementController);
-
-    Set<String> propertyIds = new HashSet<String>();
-
-    propertyIds.add(ServiceResourceProvider.SERVICE_CLUSTER_NAME_PROPERTY_ID);
-    propertyIds.add(ServiceResourceProvider.SERVICE_SERVICE_NAME_PROPERTY_ID);
-
-    // create the request
-    Request request = PropertyHelper.getReadRequest(propertyIds);
-    // get all ... no predicate
-    Set<Resource> resources = provider.getResources(request, null);
-
-    Assert.assertEquals(5, resources.size());
-    Set<String> names = new HashSet<String>();
-    for (Resource resource : resources) {
-      String clusterName = (String) resource.getPropertyValue(ServiceResourceProvider.SERVICE_CLUSTER_NAME_PROPERTY_ID);
-      Assert.assertEquals("Cluster100", clusterName);
-      names.add((String) resource.getPropertyValue(ServiceResourceProvider.SERVICE_SERVICE_NAME_PROPERTY_ID));
-    }
-    // Make sure that all of the response objects got moved into resources
-    for (ServiceResponse serviceResponse : allResponse ) {
-      Assert.assertTrue(names.contains(serviceResponse.getServiceName()));
-    }
-
-    // get service named Service102
-    Predicate  predicate = new PredicateBuilder().property(ServiceResourceProvider.SERVICE_SERVICE_NAME_PROPERTY_ID).equals("Service102").toPredicate();
-    request = PropertyHelper.getReadRequest("ServiceInfo");
-    resources = provider.getResources(request, predicate);
-
-    Assert.assertEquals(1, resources.size());
-    Assert.assertEquals("Service102", resources.iterator().next().getPropertyValue(ServiceResourceProvider.SERVICE_SERVICE_NAME_PROPERTY_ID));
-
-    // get services where state == "DEPLOYED"
-    predicate = new PredicateBuilder().property(ServiceResourceProvider.SERVICE_SERVICE_STATE_PROPERTY_ID).equals("DEPLOYED").toPredicate();
-    request = PropertyHelper.getReadRequest(propertyIds);
-    resources = provider.getResources(request, predicate);
-
-    Assert.assertEquals(3, resources.size());
-    names = new HashSet<String>();
-    for (Resource resource : resources) {
-      String clusterName = (String) resource.getPropertyValue(ServiceResourceProvider.SERVICE_CLUSTER_NAME_PROPERTY_ID);
-      Assert.assertEquals("Cluster100", clusterName);
-      names.add((String) resource.getPropertyValue(ServiceResourceProvider.SERVICE_SERVICE_NAME_PROPERTY_ID));
-    }
-    // Make sure that all of the response objects got moved into resources
-    for (ServiceResponse serviceResponse : stateResponse ) {
-      Assert.assertTrue(names.contains(serviceResponse.getServiceName()));
-    }
-
-    // verify
-    verify(managementController);
-  }
-
-  @Test
-  public void testUpdateServiceResources() throws Exception{
-    Resource.Type type = Resource.Type.Service;
-
-    AmbariManagementController managementController = createMock(AmbariManagementController.class);
-    RequestStatusResponse response = createNiceMock(RequestStatusResponse.class);
-
-    // set expectations
-    expect(managementController.updateServices(EasyMock.<Set<ServiceRequest>>anyObject())).andReturn(response).once();
-
-    // replay
-    replay(managementController, response);
-
-    ResourceProvider provider = AbstractResourceProvider.getResourceProvider(
-        type,
-        PropertyHelper.getPropertyIds(type),
-        PropertyHelper.getKeyPropertyIds(type),
-        managementController);
-
-    // add the property map to a set for the request.
-    Map<String, Object> properties = new LinkedHashMap<String, Object>();
-
-    properties.put(ServiceResourceProvider.SERVICE_SERVICE_STATE_PROPERTY_ID, "DEPLOYED");
-
-    // create the request
-    Request request = PropertyHelper.getUpdateRequest(properties);
-
-    // update the service named Service102
-    Predicate  predicate = new PredicateBuilder().property(ServiceResourceProvider.SERVICE_CLUSTER_NAME_PROPERTY_ID).equals("Cluster100").
-        and().property(ServiceResourceProvider.SERVICE_SERVICE_NAME_PROPERTY_ID).equals("Service102").toPredicate();
-    provider.updateResources(request, predicate);
-
-    // verify
-    verify(managementController, response);
-  }
 
   @Test
   public void testCheckPropertyIds() {
@@ -513,41 +117,108 @@ public class AbstractResourceProviderTest {
 
   // ----- helper methods ----------------------------------------------------
 
-  public static class Matchers
-  {
-    public static ClusterRequest clusterRequest(Long clusterId, String clusterName, String stackVersion, Set<String> hostNames)
-    {
-      EasyMock.reportMatcher(new ClusterRequestMatcher(clusterId, clusterName, stackVersion, hostNames));
-      return null;
-    }
-
-    public static Set<ServiceRequest> serviceRequestSet(String clusterName, String serviceName, Map<String, String> configVersions, String desiredState)
-    {
-      EasyMock.reportMatcher(new ServiceRequestSetMatcher(clusterName, serviceName, configVersions, desiredState));
-      return null;
-    }
-
-    public static Set<ServiceComponentRequest> componentRequestSet(String clusterName, String serviceName, String componentName,
-                                                           Map<String, String> configVersions, String desiredState)
-    {
-      EasyMock.reportMatcher(new ComponentRequestSetMatcher(clusterName, serviceName, componentName, configVersions, desiredState));
-      return null;
-    }
-
-    public static ConfigurationRequest configurationRequest(String clusterName, String type, String tag, Map<String, String> configs)
-    {
-      EasyMock.reportMatcher(new ConfigurationRequestMatcher(clusterName, type, tag, configs));
-      return null;
-    }
-  }
-
-  public static boolean eq(Object left, Object right) {
+  /**
+   * Equals check that accounts for nulls.
+   *
+   * @param left   the left object
+   * @param right  the right object
+   *
+   * @return true if the left and right object are equal or both null
+   */
+  private static boolean eq(Object left, Object right) {
     return  left == null ? right == null : right != null && left.equals(right);
   }
 
 
   // ----- inner classes -----------------------------------------------------
 
+  /**
+   * Utility class for getting various AmbariManagmentController request related matchers.
+   */
+  public static class Matcher
+  {
+    public static ClusterRequest getClusterRequest(
+        Long clusterId, String clusterName, String stackVersion, Set<String> hostNames)
+    {
+      EasyMock.reportMatcher(new ClusterRequestMatcher(clusterId, clusterName, stackVersion, hostNames));
+      return null;
+    }
+
+    public static ConfigurationRequest getConfigurationRequest(
+        String clusterName, String type, String tag, Map<String, String> configs)
+    {
+      EasyMock.reportMatcher(new ConfigurationRequestMatcher(clusterName, type, tag, configs));
+      return null;
+    }
+
+    public static RequestStatusRequest getRequestRequest(Long requestId)
+    {
+      EasyMock.reportMatcher(new RequestRequestMatcher(requestId));
+      return null;
+    }
+
+    public static Set<ActionRequest> getActionRequestSet(String clusterName, String serviceName, String actionName)
+    {
+      EasyMock.reportMatcher(new ActionRequestSetMatcher(clusterName, serviceName, actionName));
+      return null;
+    }
+
+    public static Set<ServiceComponentRequest> getComponentRequestSet(String clusterName, String serviceName,
+                                                                      String componentName,
+                                                                      Map<String, String> configVersions,
+                                                                      String desiredState)
+    {
+      EasyMock.reportMatcher(new ComponentRequestSetMatcher(clusterName, serviceName, componentName,
+          configVersions, desiredState));
+      return null;
+    }
+
+    public static Set<ConfigurationRequest> getConfigurationRequestSet(String clusterName, String type,
+                                                                       String tag, Map<String, String> configs)
+    {
+      EasyMock.reportMatcher(new ConfigurationRequestSetMatcher(clusterName, type, tag, configs));
+      return null;
+    }
+
+    public static Set<HostRequest> getHostRequestSet(String hostname, String clusterName,
+                                                     Map<String, String> hostAttributes)
+    {
+      EasyMock.reportMatcher(new HostRequestSetMatcher(hostname, clusterName, hostAttributes));
+      return null;
+    }
+
+    public static Set<ServiceComponentHostRequest> getHostComponentRequestSet(
+        String clusterName, String serviceName, String componentName, String hostName,
+        Map<String, String> configVersions, String desiredState)
+    {
+      EasyMock.reportMatcher(new HostComponentRequestSetMatcher(
+          clusterName, serviceName, componentName, hostName, configVersions, desiredState));
+      return null;
+    }
+
+    public static Set<ServiceRequest> getServiceRequestSet(String clusterName, String serviceName,
+                                                           Map<String, String> configVersions, String desiredState)
+    {
+      EasyMock.reportMatcher(new ServiceRequestSetMatcher(clusterName, serviceName, configVersions, desiredState));
+      return null;
+    }
+
+    public static Set<TaskStatusRequest> getTaskRequestSet(Long requestId, Long taskId)
+    {
+      EasyMock.reportMatcher(new TaskRequestSetMatcher(requestId, taskId));
+      return null;
+    }
+
+    public static Set<UserRequest> getUserRequestSet(String name)
+    {
+      EasyMock.reportMatcher(new UserRequestSetMatcher(name));
+      return null;
+    }
+  }
+
+  /**
+   * Matcher for a ClusterRequest.
+   */
   public static class ClusterRequestMatcher extends ClusterRequest implements IArgumentMatcher {
 
     public ClusterRequestMatcher(Long clusterId, String clusterName, String stackVersion, Set<String> hostNames) {
@@ -565,17 +236,67 @@ public class AbstractResourceProviderTest {
 
     @Override
     public void appendTo(StringBuffer stringBuffer) {
-      stringBuffer.append("ClusterRequestMatcher(" + "" + ")");
+      stringBuffer.append("ClusterRequestMatcher(" + super.toString() + ")");
     }
   }
 
-  public static class ServiceRequestSetMatcher extends HashSet<ServiceRequest> implements IArgumentMatcher {
+  /**
+   * Matcher for a ConfigurationRequest.
+   */
+  public static class ConfigurationRequestMatcher extends ConfigurationRequest implements IArgumentMatcher {
 
-    private final ServiceRequest serviceRequest;
+    public ConfigurationRequestMatcher(String clusterName, String type, String tag, Map<String, String> configs) {
+      super(clusterName, type, tag, configs);
+    }
 
-    public ServiceRequestSetMatcher(String clusterName, String serviceName, Map<String, String> configVersions, String desiredState) {
-      this.serviceRequest = new ServiceRequest(clusterName, serviceName, configVersions, desiredState);
-      add(this.serviceRequest);
+    @Override
+    public boolean matches(Object o) {
+      return o instanceof ConfigurationRequest &&
+          eq(((ConfigurationRequest) o).getClusterName(), getClusterName()) &&
+          eq(((ConfigurationRequest) o).getType(), getType()) &&
+          eq(((ConfigurationRequest) o).getVersionTag(), getVersionTag()) &&
+          eq(((ConfigurationRequest) o).getConfigs(), getConfigs());
+
+    }
+
+    @Override
+    public void appendTo(StringBuffer stringBuffer) {
+      stringBuffer.append("ConfigurationRequestMatcher(" + super.toString() + ")");
+    }
+  }
+
+  /**
+   * Matcher for a RequestStatusRequest.
+   */
+  public static class RequestRequestMatcher extends RequestStatusRequest implements IArgumentMatcher {
+
+    public RequestRequestMatcher(Long requestId) {
+      super(requestId, "");
+    }
+
+    @Override
+    public boolean matches(Object o) {
+
+      return o instanceof RequestStatusRequest &&
+          eq(((RequestStatusRequest) o).getRequestId(), getRequestId());
+    }
+
+    @Override
+    public void appendTo(StringBuffer stringBuffer) {
+      stringBuffer.append("RequestRequestMatcher(" + super.toString() + ")");
+    }
+  }
+
+  /**
+   * Matcher for a ActionRequest set containing a single request.
+   */
+  public static class ActionRequestSetMatcher extends HashSet<ActionRequest> implements IArgumentMatcher {
+
+    private final ActionRequest actionRequest;
+
+    public ActionRequestSetMatcher(String clusterName, String serviceName, String actionName) {
+      this.actionRequest = new ActionRequest(clusterName, serviceName, actionName, null);
+      add(this.actionRequest);
     }
 
     @Override
@@ -592,26 +313,29 @@ public class AbstractResourceProviderTest {
 
       Object request = set.iterator().next();
 
-      return request instanceof ServiceRequest &&
-          eq(((ServiceRequest) request).getClusterName(), serviceRequest.getClusterName()) &&
-          eq(((ServiceRequest) request).getServiceName(), serviceRequest.getServiceName()) &&
-          eq(((ServiceRequest) request).getConfigVersions(), serviceRequest.getConfigVersions()) &&
-          eq(((ServiceRequest) request).getDesiredState(), serviceRequest.getDesiredState());
+      return request instanceof ActionRequest &&
+          eq(((ActionRequest) request).getClusterName(), actionRequest.getClusterName()) &&
+          eq(((ActionRequest) request).getServiceName(), actionRequest.getServiceName()) &&
+          eq(((ActionRequest) request).getActionName(), actionRequest.getActionName());
     }
 
     @Override
     public void appendTo(StringBuffer stringBuffer) {
-      stringBuffer.append("ServiceRequestSetMatcher(" + "" + ")");
+      stringBuffer.append("ActionRequestSetMatcher(" + actionRequest + ")");
     }
   }
 
+  /**
+   * Matcher for a ServiceComponentRequest set containing a single request.
+   */
   public static class ComponentRequestSetMatcher extends HashSet<ServiceComponentRequest> implements IArgumentMatcher {
 
     private final ServiceComponentRequest serviceComponentRequest;
 
     public ComponentRequestSetMatcher(String clusterName, String serviceName, String componentName,
                                    Map<String, String> configVersions, String desiredState) {
-      this.serviceComponentRequest = new ServiceComponentRequest(clusterName, serviceName, componentName, configVersions, desiredState);
+      this.serviceComponentRequest =
+          new ServiceComponentRequest(clusterName, serviceName, componentName, configVersions, desiredState);
       add(this.serviceComponentRequest);
     }
 
@@ -640,33 +364,252 @@ public class AbstractResourceProviderTest {
 
     @Override
     public void appendTo(StringBuffer stringBuffer) {
-      stringBuffer.append("ComponentRequestMatcher(" + "" + ")");
+      stringBuffer.append("ComponentRequestSetMatcher(" + serviceComponentRequest + ")");
     }
   }
 
-  public static class ConfigurationRequestMatcher extends ConfigurationRequest implements IArgumentMatcher {
+  /**
+   * Matcher for a ConfigurationRequest set containing a single request.
+   */
+  public static class ConfigurationRequestSetMatcher extends HashSet<ConfigurationRequest> implements IArgumentMatcher {
 
-    public ConfigurationRequestMatcher(String clusterName, String type, String tag, Map<String, String> configs) {
-      super(clusterName, type, tag, configs);
+    private final ConfigurationRequest configurationRequest;
+
+    public ConfigurationRequestSetMatcher(String clusterName, String type, String tag, Map<String, String> configs) {
+      this.configurationRequest = new ConfigurationRequest(clusterName, type, tag, configs);
+      add(this.configurationRequest);
     }
 
     @Override
     public boolean matches(Object o) {
-      return o instanceof ConfigurationRequest &&
-          eq(((ConfigurationRequest) o).getClusterName(), getClusterName()) &&
-          eq(((ConfigurationRequest) o).getType(), getType()) &&
-          eq(((ConfigurationRequest) o).getVersionTag(), getVersionTag()) &&
-          eq(((ConfigurationRequest) o).getConfigs(), getConfigs());
 
+      if (!(o instanceof Set)) {
+        return false;
+      }
+
+      Set set = (Set) o;
+
+      if (set.size() != 1) {
+        return false;
+      }
+
+      Object request = set.iterator().next();
+
+      return request instanceof ConfigurationRequest &&
+          eq(((ConfigurationRequest) request).getClusterName(), configurationRequest.getClusterName()) &&
+          eq(((ConfigurationRequest) request).getType(), configurationRequest.getType()) &&
+          eq(((ConfigurationRequest) request).getVersionTag(), configurationRequest.getVersionTag()) &&
+          eq(((ConfigurationRequest) request).getConfigs(), configurationRequest.getConfigs());
     }
 
     @Override
     public void appendTo(StringBuffer stringBuffer) {
-      stringBuffer.append("ConfigurationRequestMatcher(" + "" + ")");
+      stringBuffer.append("ConfigurationRequestSetMatcher(" + configurationRequest + ")");
     }
   }
 
-  public class TestObserver implements ResourceProviderObserver {
+  /**
+   * Matcher for a HostRequest set containing a single request.
+   */
+  public static class HostRequestSetMatcher extends HashSet<HostRequest> implements IArgumentMatcher {
+
+    private final HostRequest hostRequest;
+
+    public HostRequestSetMatcher(String hostname, String clusterName, Map<String, String> hostAttributes) {
+      this.hostRequest = new HostRequest(hostname, clusterName, hostAttributes);
+      add(this.hostRequest);
+    }
+
+    @Override
+    public boolean matches(Object o) {
+      if (!(o instanceof Set)) {
+        return false;
+      }
+
+      Set set = (Set) o;
+
+      if (set.size() != 1) {
+        return false;
+      }
+
+      Object request = set.iterator().next();
+
+      return request instanceof HostRequest &&
+          eq(((HostRequest) request).getClusterName(), hostRequest.getClusterName()) &&
+          eq(((HostRequest) request).getHostname(), hostRequest.getHostname()) &&
+          eq(((HostRequest) request).getHostAttributes(), hostRequest.getHostAttributes());
+    }
+
+    @Override
+    public void appendTo(StringBuffer stringBuffer) {
+      stringBuffer.append("HostRequestSetMatcher(" + hostRequest + ")");
+    }
+  }
+
+  /**
+   * Matcher for a ServiceComponentHostRequest set containing a single request.
+   */
+  public static class HostComponentRequestSetMatcher extends HashSet<ServiceComponentHostRequest>
+      implements IArgumentMatcher {
+
+    private final ServiceComponentHostRequest hostComponentRequest;
+
+    public HostComponentRequestSetMatcher(String clusterName, String serviceName, String componentName, String hostName,
+                                      Map<String, String> configVersions, String desiredState) {
+      this.hostComponentRequest =
+          new ServiceComponentHostRequest(clusterName, serviceName, componentName,
+              hostName, configVersions, desiredState);
+      add(this.hostComponentRequest);
+    }
+
+    @Override
+    public boolean matches(Object o) {
+
+      if (!(o instanceof Set)) {
+        return false;
+      }
+
+      Set set = (Set) o;
+
+      if (set.size() != 1) {
+        return false;
+      }
+
+      Object request = set.iterator().next();
+
+      return request instanceof ServiceComponentHostRequest &&
+          eq(((ServiceComponentHostRequest) request).getClusterName(), hostComponentRequest.getClusterName()) &&
+          eq(((ServiceComponentHostRequest) request).getServiceName(), hostComponentRequest.getServiceName()) &&
+          eq(((ServiceComponentHostRequest) request).getComponentName(), hostComponentRequest.getComponentName()) &&
+          eq(((ServiceComponentHostRequest) request).getHostname(), hostComponentRequest.getHostname()) &&
+          eq(((ServiceComponentHostRequest) request).getConfigVersions(), hostComponentRequest.getConfigVersions()) &&
+          eq(((ServiceComponentHostRequest) request).getDesiredState(), hostComponentRequest.getDesiredState());
+    }
+
+    @Override
+    public void appendTo(StringBuffer stringBuffer) {
+      stringBuffer.append("HostComponentRequestSetMatcher(" + hostComponentRequest + ")");
+    }
+  }
+
+  /**
+   * Matcher for a ServiceRequest set containing a single request.
+   */
+  public static class ServiceRequestSetMatcher extends HashSet<ServiceRequest> implements IArgumentMatcher {
+
+    private final ServiceRequest serviceRequest;
+
+    public ServiceRequestSetMatcher(
+        String clusterName, String serviceName, Map<String, String> configVersions, String desiredState) {
+      this.serviceRequest = new ServiceRequest(clusterName, serviceName, configVersions, desiredState);
+      add(this.serviceRequest);
+    }
+
+    @Override
+    public boolean matches(Object o) {
+      if (!(o instanceof Set)) {
+        return false;
+      }
+
+      Set set = (Set) o;
+
+      if (set.size() != 1) {
+        return false;
+      }
+
+      Object request = set.iterator().next();
+
+      return request instanceof ServiceRequest &&
+          eq(((ServiceRequest) request).getClusterName(), serviceRequest.getClusterName()) &&
+          eq(((ServiceRequest) request).getServiceName(), serviceRequest.getServiceName()) &&
+          eq(((ServiceRequest) request).getConfigVersions(), serviceRequest.getConfigVersions()) &&
+          eq(((ServiceRequest) request).getDesiredState(), serviceRequest.getDesiredState());
+    }
+
+    @Override
+    public void appendTo(StringBuffer stringBuffer) {
+      stringBuffer.append("ServiceRequestSetMatcher(" + serviceRequest + ")");
+    }
+  }
+
+  /**
+   * Matcher for a TaskStatusRequest set containing a single request.
+   */
+  public static class TaskRequestSetMatcher extends HashSet<TaskStatusRequest> implements IArgumentMatcher {
+
+    private final TaskStatusRequest taskStatusRequest;
+
+    public TaskRequestSetMatcher(Long requestId, Long taskId) {
+      this.taskStatusRequest = new TaskStatusRequest(requestId, taskId);
+      add(this.taskStatusRequest);
+    }
+
+    @Override
+    public boolean matches(Object o) {
+
+      if (!(o instanceof Set)) {
+        return false;
+      }
+
+      Set set = (Set) o;
+
+      if (set.size() != 1) {
+        return false;
+      }
+
+      Object request = set.iterator().next();
+
+      return request instanceof TaskStatusRequest &&
+          eq(((TaskStatusRequest) request).getRequestId(), taskStatusRequest.getRequestId());
+    }
+
+    @Override
+    public void appendTo(StringBuffer stringBuffer) {
+      stringBuffer.append("TaskRequestSetMatcher(" + taskStatusRequest + ")");
+    }
+  }
+
+  /**
+   * Matcher for a UserRequest set containing a single request.
+   */
+  public static class UserRequestSetMatcher extends HashSet<UserRequest> implements IArgumentMatcher {
+
+    private final UserRequest userRequest;
+
+    public UserRequestSetMatcher(String name) {
+      this.userRequest = new UserRequest(name);
+      add(this.userRequest);
+    }
+
+    @Override
+    public boolean matches(Object o) {
+
+      if (!(o instanceof Set)) {
+        return false;
+      }
+
+      Set set = (Set) o;
+
+      if (set.size() != 1) {
+        return false;
+      }
+
+      Object request = set.iterator().next();
+
+      return request instanceof UserRequest &&
+          eq(((UserRequest) request).getUsername(), userRequest.getUsername());
+    }
+
+    @Override
+    public void appendTo(StringBuffer stringBuffer) {
+      stringBuffer.append("UserRequestSetMatcher(" + userRequest + ")");
+    }
+  }
+
+  /**
+   * A test observer that records the last event.
+   */
+  public static class TestObserver implements ResourceProviderObserver {
 
     ResourceProviderEvent lastEvent = null;
 

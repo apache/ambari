@@ -19,7 +19,6 @@
 package org.apache.ambari.server.controller.internal;
 
 import org.apache.ambari.server.controller.AmbariManagementController;
-import org.apache.ambari.server.controller.ConfigurationResponse;
 import org.apache.ambari.server.controller.RequestStatusResponse;
 import org.apache.ambari.server.controller.spi.Predicate;
 import org.apache.ambari.server.controller.spi.Request;
@@ -30,8 +29,6 @@ import org.apache.ambari.server.controller.utilities.PropertyHelper;
 import org.junit.Assert;
 import org.junit.Test;
 
-import java.util.Collections;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
@@ -45,40 +42,44 @@ import static org.easymock.EasyMock.replay;
 import static org.easymock.EasyMock.verify;
 
 /**
- * Tests for the configuration resource provider.
+ * RequestResourceProvider tests.
  */
-public class ConfigurationResourceProviderTest {
+public class RequestResourceProviderTest {
   @Test
   public void testCreateResources() throws Exception {
+    Resource.Type type = Resource.Type.Request;
 
     AmbariManagementController managementController = createMock(AmbariManagementController.class);
     RequestStatusResponse response = createNiceMock(RequestStatusResponse.class);
 
-    managementController.createConfiguration(AbstractResourceProviderTest.Matcher.getConfigurationRequest(
-        "Cluster100", "type", "tag", new HashMap<String, String>()));
-
     // replay
     replay(managementController, response);
 
-    ConfigurationResourceProvider provider = new ConfigurationResourceProvider(
-        PropertyHelper.getPropertyIds(Resource.Type.Configuration ),
-        PropertyHelper.getKeyPropertyIds(Resource.Type.Configuration),
+    ResourceProvider provider = AbstractResourceProvider.getResourceProvider(
+        type,
+        PropertyHelper.getPropertyIds(type),
+        PropertyHelper.getKeyPropertyIds(type),
         managementController);
 
+    // add the property map to a set for the request.  add more maps for multiple creates
     Set<Map<String, Object>> propertySet = new LinkedHashSet<Map<String, Object>>();
 
     Map<String, Object> properties = new LinkedHashMap<String, Object>();
 
-    properties.put(ConfigurationResourceProvider.CONFIGURATION_CLUSTER_NAME_PROPERTY_ID, "Cluster100");
-    properties.put(ConfigurationResourceProvider.CONFIGURATION_CONFIG_TAG_PROPERTY_ID, "tag");
-    properties.put(ConfigurationResourceProvider.CONFIGURATION_CONFIG_TYPE_PROPERTY_ID, "type");
+    // add properties to the request map
+    properties.put(RequestResourceProvider.REQUEST_ID_PROPERTY_ID, "Request100");
 
     propertySet.add(properties);
 
     // create the request
     Request request = PropertyHelper.getCreateRequest(propertySet);
 
-    provider.createResources(request);
+    try {
+      provider.createResources(request);
+      Assert.fail("Expected an UnsupportedOperationException");
+    } catch (UnsupportedOperationException e) {
+      // expected
+    }
 
     // verify
     verify(managementController, response);
@@ -86,19 +87,16 @@ public class ConfigurationResourceProviderTest {
 
   @Test
   public void testGetResources() throws Exception {
-    Resource.Type type = Resource.Type.Configuration;
+    Resource.Type type = Resource.Type.Request;
 
     AmbariManagementController managementController = createMock(AmbariManagementController.class);
 
-    Set<ConfigurationResponse> allResponse = new HashSet<ConfigurationResponse>();
-    allResponse.add(new ConfigurationResponse("Cluster100", "type", "tag1", null));
-    allResponse.add(new ConfigurationResponse("Cluster100", "type", "tag2", null));
-    allResponse.add(new ConfigurationResponse("Cluster100", "type", "tag3", null));
+    Set<RequestStatusResponse> allResponse = new HashSet<RequestStatusResponse>();
+    allResponse.add(new RequestStatusResponse(100L));
 
     // set expectations
-    expect(managementController.getConfigurations(
-        AbstractResourceProviderTest.Matcher.getConfigurationRequestSet(
-            "Cluster100", null, null, Collections.<String, String>emptyMap()))).andReturn(allResponse).once();
+    expect(managementController.getRequestStatus(AbstractResourceProviderTest.Matcher.getRequestRequest(100L))).
+        andReturn(allResponse).once();
 
     // replay
     replay(managementController);
@@ -111,36 +109,25 @@ public class ConfigurationResourceProviderTest {
 
     Set<String> propertyIds = new HashSet<String>();
 
-    propertyIds.add(ConfigurationResourceProvider.CONFIGURATION_CLUSTER_NAME_PROPERTY_ID);
-    propertyIds.add(ConfigurationResourceProvider.CONFIGURATION_CONFIG_TAG_PROPERTY_ID);
+    propertyIds.add(RequestResourceProvider.REQUEST_ID_PROPERTY_ID);
 
-    Predicate predicate = new PredicateBuilder().property(
-        ConfigurationResourceProvider.CONFIGURATION_CLUSTER_NAME_PROPERTY_ID).equals("Cluster100").toPredicate();
+    Predicate predicate = new PredicateBuilder().property(RequestResourceProvider.REQUEST_ID_PROPERTY_ID).equals("100").
+        toPredicate();
     Request request = PropertyHelper.getReadRequest(propertyIds);
     Set<Resource> resources = provider.getResources(request, predicate);
 
-    Assert.assertEquals(3, resources.size());
-    Set<String> tags = new HashSet<String>();
+    Assert.assertEquals(1, resources.size());
     for (Resource resource : resources) {
-      String clusterName = (String) resource.getPropertyValue(
-          ConfigurationResourceProvider.CONFIGURATION_CLUSTER_NAME_PROPERTY_ID);
-      Assert.assertEquals("Cluster100", clusterName);
-      tags.add((String) resource.getPropertyValue(
-          ConfigurationResourceProvider.CONFIGURATION_CONFIG_TAG_PROPERTY_ID));
-    }
-    // Make sure that all of the response objects got moved into resources
-    for (ConfigurationResponse response : allResponse ) {
-      Assert.assertTrue(tags.contains(response.getVersionTag()));
+      long userName = (Long) resource.getPropertyValue(RequestResourceProvider.REQUEST_ID_PROPERTY_ID);
+      Assert.assertEquals(100L, userName);
     }
 
     // verify
-    verify(managementController);
-
-  }
+    verify(managementController);  }
 
   @Test
   public void testUpdateResources() throws Exception {
-    Resource.Type type = Resource.Type.Configuration;
+    Resource.Type type = Resource.Type.Request;
 
     AmbariManagementController managementController = createMock(AmbariManagementController.class);
     RequestStatusResponse response = createNiceMock(RequestStatusResponse.class);
@@ -160,8 +147,8 @@ public class ConfigurationResourceProviderTest {
     // create the request
     Request request = PropertyHelper.getUpdateRequest(properties);
 
-    Predicate predicate = new PredicateBuilder().property(
-        ConfigurationResourceProvider.CONFIGURATION_CONFIG_TAG_PROPERTY_ID).equals("Configuration100").toPredicate();
+    Predicate predicate = new PredicateBuilder().property(RequestResourceProvider.REQUEST_ID_PROPERTY_ID).
+        equals("Request100").toPredicate();
 
     try {
       provider.updateResources(request, predicate);
@@ -176,7 +163,7 @@ public class ConfigurationResourceProviderTest {
 
   @Test
   public void testDeleteResources() throws Exception {
-    Resource.Type type = Resource.Type.Configuration;
+    Resource.Type type = Resource.Type.Request;
 
     AmbariManagementController managementController = createMock(AmbariManagementController.class);
 
@@ -189,8 +176,8 @@ public class ConfigurationResourceProviderTest {
         PropertyHelper.getKeyPropertyIds(type),
         managementController);
 
-    Predicate predicate = new PredicateBuilder().property(
-        ConfigurationResourceProvider.CONFIGURATION_CONFIG_TAG_PROPERTY_ID).equals("Configuration100").toPredicate();
+    Predicate predicate = new PredicateBuilder().property(RequestResourceProvider.REQUEST_ID_PROPERTY_ID).
+        equals("Request100").toPredicate();
     try {
       provider.deleteResources(predicate);
       Assert.fail("Expected an UnsupportedOperationException");
