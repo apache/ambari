@@ -96,8 +96,17 @@ Em.I18n.translations = {
   
   'graphs.noData.title': 'No Data',
   'graphs.noData.message': 'There was no data available. Possible reasons include inaccessible Ganglia service.',
+  'graphs.noDataAtTime.message': 'No available data for the time period.',
   'graphs.error.title': 'Error',
   'graphs.error.message': 'There was a problem getting data for the chart ({0}: {1})',
+  'graphs.timeRange.hour': 'Last 1 hour',
+  'graphs.timeRange.twoHours': 'Last 2 hours',
+  'graphs.timeRange.fourHours': 'Last 4 hours',
+  'graphs.timeRange.twelveHours': 'Last 12 hours',
+  'graphs.timeRange.day': 'Last 24 hours',
+  'graphs.timeRange.week': 'Last 1 week',
+  'graphs.timeRange.month': 'Last 1 month',
+  'graphs.timeRange.year': 'Last 1 year',
 
   'users.userName.validationFail': 'Value should contains only letters and digits and start with letter',
 
@@ -437,6 +446,7 @@ Em.I18n.translations = {
   'hosts.host.add':'Add New Hosts',
   'hosts.host.back':'Back to Hosts',
   'hosts.table.noHosts':'No hosts to display',
+  'hosts.table.Search': 'Search:',
 
   'hosts.host.metrics.cpu':'CPU Usage',
   'hosts.host.metrics.disk':'Disk Usage',

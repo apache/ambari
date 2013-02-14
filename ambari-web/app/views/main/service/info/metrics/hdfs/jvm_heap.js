@@ -31,17 +31,8 @@ App.ChartServiceMetricsHDFS_JVMHeap = App.ChartLinearTimeView.extend({
   title: Em.I18n.t('services.service.info.metrics.hdfs.jvmHeap'),
   yAxisFormatter: App.ChartLinearTimeView.BytesFormatter,
   renderer: 'line',
-  url: function () {
-    var hdfsService = App.HDFSService.find().objectAt(0);
-    var nameNodeHostName = hdfsService.get('nameNode').get('hostName');
-    return App.formatUrl(
-      this.get('urlPrefix') + "/hosts/{hostName}/host_components/NAMENODE?fields=metrics/jvm/memNonHeapUsedM[{fromSeconds},{toSeconds},{stepSeconds}],metrics/jvm/memNonHeapCommittedM[{fromSeconds},{toSeconds},{stepSeconds}],metrics/jvm/memHeapUsedM[{fromSeconds},{toSeconds},{stepSeconds}],metrics/jvm/memHeapCommittedM[{fromSeconds},{toSeconds},{stepSeconds}]",
-      {
-        hostName: nameNodeHostName
-      },
-      "/data/services/metrics/hdfs/jvm_heap.json"
-    );
-  }.property('clusterName').volatile(),
+  sourceUrl:"/hosts/{nameNodeName}/host_components/NAMENODE?fields=metrics/jvm/memNonHeapUsedM[{fromSeconds},{toSeconds},{stepSeconds}],metrics/jvm/memNonHeapCommittedM[{fromSeconds},{toSeconds},{stepSeconds}],metrics/jvm/memHeapUsedM[{fromSeconds},{toSeconds},{stepSeconds}],metrics/jvm/memHeapCommittedM[{fromSeconds},{toSeconds},{stepSeconds}]",
+  mockUrl: "/data/services/metrics/hdfs/jvm_heap.json",
 
   transformToSeries: function (jsonData) {
     var seriesArray = [];

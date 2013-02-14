@@ -30,13 +30,8 @@ App.ChartServiceMetricsHBASE_RegionServerReadWriteRequests = App.ChartLinearTime
   id: "service-metrics-hbase-regionserver-rw-requests",
   title: Em.I18n.t('services.service.info.metrics.hbase.regionServerRequests'),
   renderer: 'line',
-  url: function () {
-    return App.formatUrl(
-      this.get('urlPrefix') + "/services/HBASE/components/HBASE_REGIONSERVER?fields=metrics/hbase/regionserver/readRequestsCount[{fromSeconds},{toSeconds},{stepSeconds}],metrics/hbase/regionserver/writeRequestsCount[{fromSeconds},{toSeconds},{stepSeconds}]",
-      {},
-      "/data/services/metrics/hbase/regionserver_rw_requests.json"
-    );
-  }.property('clusterName').volatile(),
+  sourceUrl: "/services/HBASE/components/HBASE_REGIONSERVER?fields=metrics/hbase/regionserver/readRequestsCount[{fromSeconds},{toSeconds},{stepSeconds}],metrics/hbase/regionserver/writeRequestsCount[{fromSeconds},{toSeconds},{stepSeconds}]",
+  mockUrl: "/data/services/metrics/hbase/regionserver_rw_requests.json",
 
   transformToSeries: function (jsonData) {
     var seriesArray = [];

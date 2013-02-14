@@ -30,18 +30,8 @@ App.ChartServiceMetricsMapReduce_RPC = App.ChartLinearTimeView.extend({
   id: "service-metrics-mapreduce-rpc",
   title: Em.I18n.t('services.service.info.metrics.mapreduce.rpc'),
   yAxisFormatter: App.ChartLinearTimeView.TimeElapsedFormatter,
-
-  url: function () {
-    var mrService = App.MapReduceService.find().objectAt(0);
-    var jtHostName = mrService.get('jobTracker').get('hostName');
-    return App.formatUrl(
-      this.get('urlPrefix') + "/hosts/{hostName}/host_components/JOBTRACKER?fields=metrics/rpc/RpcQueueTime_avg_time[{fromSeconds},{toSeconds},{stepSeconds}]",
-      {
-        hostName: jtHostName
-      },
-      "/data/services/metrics/mapreduce/rpc.json"
-    );
-  }.property('clusterName').volatile(),
+  sourceUrl: "/hosts/{jobTrackerNode}/host_components/JOBTRACKER?fields=metrics/rpc/RpcQueueTime_avg_time[{fromSeconds},{toSeconds},{stepSeconds}]",
+  mockUrl: "/data/services/metrics/mapreduce/rpc.json",
 
   transformToSeries: function (jsonData) {
     var seriesArray = [];

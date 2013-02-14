@@ -30,17 +30,8 @@ App.ChartServiceMetricsHDFS_JVMThreads = App.ChartLinearTimeView.extend({
   id: "service-metrics-hdfs-jvm-threads",
   title: Em.I18n.t('services.service.info.metrics.hdfs.jvmThreads'),
   renderer: 'line',
-  url: function () {
-    var hdfsService = App.HDFSService.find().objectAt(0);
-    var nameNodeHostName = hdfsService.get('nameNode').get('hostName');
-    return App.formatUrl(
-      this.get('urlPrefix') + "/hosts/{hostName}/host_components/NAMENODE?fields=metrics/jvm/threadsRunnable[{fromSeconds},{toSeconds},{stepSeconds}],metrics/jvm/threadsBlocked[{fromSeconds},{toSeconds},{stepSeconds}],metrics/jvm/threadsWaiting[{fromSeconds},{toSeconds},{stepSeconds}],metrics/jvm/threadsTimedWaiting[{fromSeconds},{toSeconds},{stepSeconds}]",
-      {
-        hostName: nameNodeHostName
-      },
-      "/data/services/metrics/hdfs/jvm_threads.json"
-    );
-  }.property('clusterName').volatile(),
+  sourceUrl: "/hosts/{nameNodeName}/host_components/NAMENODE?fields=metrics/jvm/threadsRunnable[{fromSeconds},{toSeconds},{stepSeconds}],metrics/jvm/threadsBlocked[{fromSeconds},{toSeconds},{stepSeconds}],metrics/jvm/threadsWaiting[{fromSeconds},{toSeconds},{stepSeconds}],metrics/jvm/threadsTimedWaiting[{fromSeconds},{toSeconds},{stepSeconds}]",
+  mockUrl: "/data/services/metrics/hdfs/jvm_threads.json",
 
   transformToSeries: function (jsonData) {
     var seriesArray = [];

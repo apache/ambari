@@ -30,13 +30,8 @@ App.ChartServiceMetricsMapReduce_TasksRunningWaiting = App.ChartLinearTimeView.e
   id: "service-metrics-mapreduce-tasks-running-waiting",
   title: Em.I18n.t('services.service.info.metrics.mapreduce.tasksRunningWaiting'),
   renderer: 'line',
-  url: function () {
-    return App.formatUrl(
-      this.get('urlPrefix') + "/services/MAPREDUCE/components/JOBTRACKER?fields=metrics/mapred/jobtracker/running_maps[{fromSeconds},{toSeconds},{stepSeconds}],metrics/mapred/jobtracker/running_reduces[{fromSeconds},{toSeconds},{stepSeconds}],metrics/mapred/jobtracker/waiting_maps[{fromSeconds},{toSeconds},{stepSeconds}],metrics/mapred/jobtracker/waiting_reduces[{fromSeconds},{toSeconds},{stepSeconds}]",
-      {},
-      "/data/services/metrics/mapreduce/tasks_running_waiting.json"
-    );
-  }.property('clusterName').volatile(),
+  sourceUrl: "/services/MAPREDUCE/components/JOBTRACKER?fields=metrics/mapred/jobtracker/running_maps[{fromSeconds},{toSeconds},{stepSeconds}],metrics/mapred/jobtracker/running_reduces[{fromSeconds},{toSeconds},{stepSeconds}],metrics/mapred/jobtracker/waiting_maps[{fromSeconds},{toSeconds},{stepSeconds}],metrics/mapred/jobtracker/waiting_reduces[{fromSeconds},{toSeconds},{stepSeconds}]",
+  mockUrl: "/data/services/metrics/mapreduce/tasks_running_waiting.json",
 
   transformToSeries: function (jsonData) {
     var seriesArray = [];

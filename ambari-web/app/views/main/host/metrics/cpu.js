@@ -31,16 +31,8 @@ App.ChartHostMetricsCPU = App.ChartLinearTimeView.extend({
   title: Em.I18n.t('hosts.host.metrics.cpu'),
   yAxisFormatter: App.ChartLinearTimeView.PercentageFormatter,
 
-
-  url: function () {
-    return App.formatUrl(
-      this.get('urlPrefix') + "/hosts/{hostName}?fields=metrics/cpu/cpu_user[{fromSeconds},{toSeconds},{stepSeconds}],metrics/cpu/cpu_wio[{fromSeconds},{toSeconds},{stepSeconds}],metrics/cpu/cpu_nice[{fromSeconds},{toSeconds},{stepSeconds}],metrics/cpu/cpu_aidle[{fromSeconds},{toSeconds},{stepSeconds}],metrics/cpu/cpu_system[{fromSeconds},{toSeconds},{stepSeconds}],metrics/cpu/cpu_idle[{fromSeconds},{toSeconds},{stepSeconds}]",
-      {
-        hostName: this.get('content').get('hostName')
-      },
-      "/data/hosts/metrics/cpu.json"
-    );
-  }.property('clusterName').volatile(),
+  sourceUrl: "/hosts/{hostName}?fields=metrics/cpu/cpu_user[{fromSeconds},{toSeconds},{stepSeconds}],metrics/cpu/cpu_wio[{fromSeconds},{toSeconds},{stepSeconds}],metrics/cpu/cpu_nice[{fromSeconds},{toSeconds},{stepSeconds}],metrics/cpu/cpu_aidle[{fromSeconds},{toSeconds},{stepSeconds}],metrics/cpu/cpu_system[{fromSeconds},{toSeconds},{stepSeconds}],metrics/cpu/cpu_idle[{fromSeconds},{toSeconds},{stepSeconds}]",
+  mockUrl: "/data/hosts/metrics/cpu.json",
 
   transformToSeries: function (jsonData) {
     var seriesArray = [];

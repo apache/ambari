@@ -31,13 +31,8 @@ App.ChartServiceMetricsHBASE_HlogSplitTime = App.ChartLinearTimeView.extend({
   title: Em.I18n.t('services.service.info.metrics.hbase.hlogSplitTime'),
   yAxisFormatter: App.ChartLinearTimeView.TimeElapsedFormatter,
 
-  url: function () {
-    return App.formatUrl(
-      this.get('urlPrefix') + "/services/HBASE/components/HBASE_MASTER?fields=metrics/hbase/master/splitTime_avg_time[{fromSeconds},{toSeconds},{stepSeconds}]",
-      {},
-      "/data/services/metrics/hbase/hlog_split_time.json"
-    );
-  }.property('clusterName').volatile(),
+  sourceUrl: "/services/HBASE/components/HBASE_MASTER?fields=metrics/hbase/master/splitTime_avg_time[{fromSeconds},{toSeconds},{stepSeconds}]",
+  mockUrl: "/data/services/metrics/hbase/hlog_split_time.json",
 
   transformToSeries: function (jsonData) {
     var seriesArray = [];

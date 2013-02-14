@@ -30,13 +30,8 @@ App.ChartServiceMetricsMapReduce_JobsStatus = App.ChartLinearTimeView.extend({
   id: "service-metrics-mapreduce-jobs-status",
   title: Em.I18n.t('services.service.info.metrics.mapreduce.jobsStatus'),
   renderer: 'line',
-  url: function () {
-    return App.formatUrl(
-      this.get('urlPrefix') + "/services/MAPREDUCE/components/JOBTRACKER?fields=metrics/mapred/jobtracker/jobs_completed[{fromSeconds},{toSeconds},{stepSeconds}],metrics/mapred/jobtracker/jobs_preparing[{fromSeconds},{toSeconds},{stepSeconds}],metrics/mapred/jobtracker/jobs_failed[{fromSeconds},{toSeconds},{stepSeconds}],metrics/mapred/jobtracker/jobs_submitted[{fromSeconds},{toSeconds},{stepSeconds}],metrics/mapred/jobtracker/jobs_failed[{fromSeconds},{toSeconds},{stepSeconds}],metrics/mapred/jobtracker/jobs_running[{fromSeconds},{toSeconds},{stepSeconds}]",
-      {},
-      "/data/services/metrics/mapreduce/jobs_status.json"
-    );
-  }.property('clusterName').volatile(),
+  sourceUrl: "/services/MAPREDUCE/components/JOBTRACKER?fields=metrics/mapred/jobtracker/jobs_completed[{fromSeconds},{toSeconds},{stepSeconds}],metrics/mapred/jobtracker/jobs_preparing[{fromSeconds},{toSeconds},{stepSeconds}],metrics/mapred/jobtracker/jobs_failed[{fromSeconds},{toSeconds},{stepSeconds}],metrics/mapred/jobtracker/jobs_submitted[{fromSeconds},{toSeconds},{stepSeconds}],metrics/mapred/jobtracker/jobs_failed[{fromSeconds},{toSeconds},{stepSeconds}],metrics/mapred/jobtracker/jobs_running[{fromSeconds},{toSeconds},{stepSeconds}]",
+  mockUrl: "/data/services/metrics/mapreduce/jobs_status.json",
 
   transformToSeries: function (jsonData) {
     var seriesArray = [];

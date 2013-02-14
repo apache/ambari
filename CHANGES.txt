@@ -40,6 +40,9 @@ Trunk (unreleased changes):
 
  IMPROVEMENTS
 
+ AMBARI-1427. Add ability to increase the time range for the zoomed-in graphs
+ beyond last one hour. (yusaku) 
+
  AMBARI-1375. Remove text from templates (main). (jaimin)
 
  AMBARI-1374. Add filter by alerts on the Hosts page. (jaimin)

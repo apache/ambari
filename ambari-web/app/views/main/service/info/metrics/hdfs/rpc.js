@@ -30,18 +30,8 @@ App.ChartServiceMetricsHDFS_RPC = App.ChartLinearTimeView.extend({
   id: "service-metrics-hdfs-rpc",
   title: Em.I18n.t('services.service.info.metrics.hdfs.rpc'),
   yAxisFormatter: App.ChartLinearTimeView.TimeElapsedFormatter,
-
-  url: function () {
-    var hdfsService = App.HDFSService.find().objectAt(0);
-    var nameNodeHostName = hdfsService.get('nameNode').get('hostName');
-    return App.formatUrl(
-      this.get('urlPrefix') + "/hosts/{hostName}/host_components/NAMENODE?fields=metrics/rpc/RpcQueueTime_avg_time[{fromSeconds},{toSeconds},{stepSeconds}]",
-      {
-        hostName: nameNodeHostName
-      },
-      "/data/services/metrics/hdfs/rpc.json"
-    );
-  }.property('clusterName').volatile(),
+  sourceUrl: "/hosts/{nameNodeName}/host_components/NAMENODE?fields=metrics/rpc/RpcQueueTime_avg_time[{fromSeconds},{toSeconds},{stepSeconds}]",
+  mockUrl: "/data/services/metrics/hdfs/rpc.json",
 
   transformToSeries: function (jsonData) {
     var seriesArray = [];

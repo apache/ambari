@@ -30,17 +30,8 @@ App.ChartServiceMetricsMapReduce_JVMThreads = App.ChartLinearTimeView.extend({
   id: "service-metrics-mapreduce-jvm-threads",
   title: Em.I18n.t('services.service.info.metrics.mapreduce.jvmThreads'),
   renderer: 'line',
-  url: function () {
-    var mrService = App.MapReduceService.find().objectAt(0);
-    var jtHostName = mrService.get('jobTracker').get('hostName');
-    return App.formatUrl(
-      this.get('urlPrefix') + "/hosts/{hostName}/host_components/JOBTRACKER?fields=metrics/jvm/threadsRunnable[{fromSeconds},{toSeconds},{stepSeconds}],metrics/jvm/threadsBlocked[{fromSeconds},{toSeconds},{stepSeconds}],metrics/jvm/threadsWaiting[{fromSeconds},{toSeconds},{stepSeconds}],metrics/jvm/threadsTimedWaiting[{fromSeconds},{toSeconds},{stepSeconds}]",
-      {
-        hostName: jtHostName
-      },
-      "/data/services/metrics/mapreduce/jvm_threads.json"
-    );
-  }.property('clusterName').volatile(),
+  sourceUrl: "/hosts/{jobTrackerNode}/host_components/JOBTRACKER?fields=metrics/jvm/threadsRunnable[{fromSeconds},{toSeconds},{stepSeconds}],metrics/jvm/threadsBlocked[{fromSeconds},{toSeconds},{stepSeconds}],metrics/jvm/threadsWaiting[{fromSeconds},{toSeconds},{stepSeconds}],metrics/jvm/threadsTimedWaiting[{fromSeconds},{toSeconds},{stepSeconds}]",
+  mockUrl: "/data/services/metrics/mapreduce/jvm_threads.json",
 
   transformToSeries: function (jsonData) {
     var seriesArray = [];

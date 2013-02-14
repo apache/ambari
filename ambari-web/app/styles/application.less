@@ -232,6 +232,27 @@ h1 {
   z-index: 1050;
 }
 
+.arrow-right {
+  display: inline-block;
+  margin: 0 0 20px 70px;
+  border-top: 70px solid transparent;
+  border-bottom: 70px solid transparent;
+  border-left: 20px solid transparent;
+}
+
+.arrow-left {
+  display: inline-block;
+  margin: 0 -10px 20px 3px;
+  border-top: 70px solid transparent;
+  border-bottom: 70px solid transparent;
+  border-right:20px solid transparent;
+}
+
+.visibleArrow {
+  border-right-color: #dedede;
+  border-left-color: #dedede;
+}
+
 #installer, #add-host, #add-service {
   h2 {
     margin-top: 0;
@@ -944,7 +965,7 @@ a:focus {
 }
 
 .modal-graph-line {
-  width: 790px;
+  width: 810px;
   .modal-body {
     min-height: 420px !important;
     overflow: hidden;
@@ -1051,6 +1072,9 @@ a:focus {
       background-color: #999 !important;
     }
   }
+  .rickshaw_legend:empty {
+    padding: 0;
+  }
   .rickshaw_graph {
     .x_tick{
       .title {
@@ -1069,6 +1093,15 @@ a:focus {
   .chart-title {
     text-align: center;
     font-size: small;
+  }
+}
+
+.modal-body{
+  .show {
+    display: inline-block;
+  }
+  .time-label {
+    text-align: center;
   }
 }
 
@@ -1244,6 +1277,7 @@ table.graphs {
     top: 10px;
   }
   .box-header {
+    margin-left: 0;
     .btn-group {
       float: left;
     }

@@ -29,14 +29,9 @@ var App = require('app');
  */
 App.ChartClusterMetricsLoad = App.ChartLinearTimeView.extend({
   id: "cluster-metrics-load",
-  url: function () {
-    return App.formatUrl(
-      this.get('urlPrefix') + "?fields=metrics/load[{fromSeconds},{toSeconds},{stepSeconds}]",
-      {},
-      "/data/cluster_metrics/load_1hr.json"
-    );
-  }.property('clusterName').volatile(),
-
+  sourceUrl: "?fields=metrics/load[{fromSeconds},{toSeconds},{stepSeconds}]",
+  mockUrl: "/data/cluster_metrics/load_1hr.json",
+  isTimePagingDisable: true,
   renderer: 'line',
   title: Em.I18n.t('dashboard.clusterMetrics.load'),
   

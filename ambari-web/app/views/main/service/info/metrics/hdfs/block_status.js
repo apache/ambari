@@ -30,17 +30,8 @@ App.ChartServiceMetricsHDFS_BlockStatus = App.ChartLinearTimeView.extend({
   id: "service-metrics-hdfs-block-status",
   title: Em.I18n.t('services.service.info.metrics.hdfs.blockStatus'),
   renderer: 'line',
-  url: function () {
-    var hdfsService = App.HDFSService.find().objectAt(0);
-    var nameNodeHostName = hdfsService.get('nameNode').get('hostName');
-    return App.formatUrl(
-      this.get('urlPrefix') + "/hosts/{hostName}/host_components/NAMENODE?fields=metrics/dfs/FSNamesystem/PendingReplicationBlocks[{fromSeconds},{toSeconds},{stepSeconds}],metrics/dfs/FSNamesystem/UnderReplicatedBlocks[{fromSeconds},{toSeconds},{stepSeconds}]",
-      {
-        hostName: nameNodeHostName
-      },
-      "/data/services/metrics/hdfs/block_status.json"
-    );
-  }.property('clusterName').volatile(),
+  sourceUrl: "/hosts/{nameNodeName}/host_components/NAMENODE?fields=metrics/dfs/FSNamesystem/PendingReplicationBlocks[{fromSeconds},{toSeconds},{stepSeconds}],metrics/dfs/FSNamesystem/UnderReplicatedBlocks[{fromSeconds},{toSeconds},{stepSeconds}]",
+  mockUrl:"/data/services/metrics/hdfs/block_status.json",
 
   transformToSeries: function (jsonData) {
     var seriesArray = [];
