@@ -101,19 +101,8 @@ debug('##Configs generation for hdp-hadoop')
       configuration => $configuration['capacity-scheduler'],
       owner => $hdp-hadoop::params::hdfs_user,
       group => $hdp::params::user_group,
-      replace => true,
     }
-  } else { #   This file will just be a static file for now. - BUG-3195
-    file {"capacity-scheduler.xml":
-      ensure  => present,
-      source => "puppet:///modules/hdp-hadoop/capacity-scheduler.xml",
-      mode => '0744',
-      path => "${hdp-hadoop::params::conf_dir}/capacity-scheduler.xml",
-      owner => $hdp-hadoop::params::mapred_user,
-      group => $hdp::params::user_group,
-      replace => true,
-    }
-  }
+  } 
 
 
   if has_key($configuration, 'hdfs-site') {

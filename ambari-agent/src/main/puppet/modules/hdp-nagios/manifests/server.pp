@@ -149,7 +149,7 @@ class hdp-nagios::server(
     if ($service_state == 'installed_and_configured') {
       $webserver_state = 'restart'
     } elsif ($service_state == 'running') {
-      $webserver_state = 'running'
+      $webserver_state = 'restart'
     } else {
       # We are never stopping httpd
       #$webserver_state = $service_state

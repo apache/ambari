@@ -17,11 +17,9 @@
  */
 package org.apache.ambari.server.actionmanager;
 
-import java.util.Collection;
-import java.util.List;
-import java.util.Set;
-import java.util.concurrent.atomic.AtomicLong;
-
+import com.google.inject.Inject;
+import com.google.inject.Singleton;
+import com.google.inject.name.Named;
 import org.apache.ambari.server.agent.ActionQueue;
 import org.apache.ambari.server.agent.CommandReport;
 import org.apache.ambari.server.controller.HostsMap;
@@ -30,9 +28,10 @@ import org.apache.ambari.server.utils.StageUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.inject.Inject;
-import com.google.inject.Singleton;
-import com.google.inject.name.Named;
+import java.util.Collection;
+import java.util.List;
+import java.util.Set;
+import java.util.concurrent.atomic.AtomicLong;
 
 
 /**
@@ -75,6 +74,9 @@ public class ActionManager {
       LOG.info("Persisting stage into db: " + s.toString());
     }
     db.persistActions(stages);
+
+    // Now scheduler should process actions
+    scheduler.awake();
   }
 
   public List<Stage> getRequestStatus(long requestId) {

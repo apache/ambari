@@ -278,6 +278,9 @@ Trunk (unreleased changes):
 
  AMBARI-1411. Missing unit test coverage for resource providers. (tbeerbower)
 
+ AMBARI-1433. Allow capacity scheduler to be configurable via the API's.
+ (mahadev)
+
  BUG FIXES
 
  AMBARI-1431. Hosts table no longer allows sorting. (yusaku)

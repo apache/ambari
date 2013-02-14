@@ -17,32 +17,25 @@
  */
 package org.apache.ambari.server.actionmanager;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.TreeMap;
-
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.Role;
 import org.apache.ambari.server.ServiceComponentNotFoundException;
 import org.apache.ambari.server.agent.ActionQueue;
 import org.apache.ambari.server.agent.ExecutionCommand;
 import org.apache.ambari.server.controller.HostsMap;
-import org.apache.ambari.server.state.Cluster;
-import org.apache.ambari.server.state.Clusters;
-import org.apache.ambari.server.state.Service;
-import org.apache.ambari.server.state.ServiceComponent;
-import org.apache.ambari.server.state.ServiceComponentHost;
+import org.apache.ambari.server.state.*;
 import org.apache.ambari.server.state.fsm.InvalidStateTransitionException;
 import org.apache.ambari.server.state.svccomphost.ServiceComponentHostOpFailedEvent;
-import org.apache.ambari.server.utils.StageUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-//This class encapsulates the action scheduler thread.
-//Action schedule frequently looks at action database and determines if
-//there is an action that can be scheduled.
+import java.util.*;
+
+/**
+ * This class encapsulates the action scheduler thread.
+ * Action schedule frequently looks at action database and determines if
+ * there is an action that can be scheduled.
+ */
 class ActionScheduler implements Runnable {
 
   private static Logger LOG = LoggerFactory.getLogger(ActionScheduler.class);
@@ -56,6 +49,14 @@ class ActionScheduler implements Runnable {
   private final Clusters fsmObject;
   private boolean taskTimeoutAdjustment = true;
   private final HostsMap hostsMap;
+  private final Object wakeupSyncObject = new Object();
+
+  /**
+   * true if scheduler should run ASAP.
+   * We need this flag to avoid sleep in situations, when
+   * we receive awake() request during running a scheduler iteration.
+   */
+  private boolean activeAwakeRequest = false;
 
   public ActionScheduler(long sleepTimeMilliSec, long actionTimeoutMilliSec,
       ActionDBAccessor db, ActionQueue actionQueue, Clusters fsmObject,
@@ -79,11 +80,28 @@ class ActionScheduler implements Runnable {
     schedulerThread.interrupt();
   }
 
+  /**
+   * Should be called from another thread when we want scheduler to
+   * make a run ASAP (for example, to process desired configs of SCHs).
+   * The method is guaranteed to return quickly.
+   */
+  public void awake() {
+    synchronized (wakeupSyncObject) {
+      activeAwakeRequest = true;
+      wakeupSyncObject.notify();
+    }
+  }
+
   @Override
   public void run() {
     while (shouldRun) {
       try {
-        Thread.sleep(sleepTime);
+        synchronized (wakeupSyncObject) {
+          if (!activeAwakeRequest) {
+              wakeupSyncObject.wait(sleepTime);
+          }
+          activeAwakeRequest = false;
+        }
         doWork();
       } catch (InterruptedException ex) {
         LOG.warn("Scheduler thread is interrupted going to stop", ex);

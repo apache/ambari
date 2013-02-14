@@ -420,7 +420,7 @@ def download_jdk(args):
 
   try:
     jdk_url = properties['jdk.url']
-    resources_dir = properties['resources.dir']
+    resources_dir = properties['resources.dir']  
   except (KeyError), e:
     print 'Property ' + str(e) + ' is not defined at ' + conf_file
     return -1
@@ -432,7 +432,7 @@ def download_jdk(args):
       #Get Header from url,to get file size then
       retcode, out, err = run_os_command(size_command)
       if out.find("Content-Length") == -1:
-        print "Request headr doesn't contain Content-Length";
+        print "Request header doesn't contain Content-Length";
         return -1
       start_with = int(out.find("Content-Length") + len("Content-Length") + 2)
       end_with = out.find("\r\n", start_with)
@@ -458,7 +458,43 @@ def download_jdk(args):
       return -1
   else:
     print "JDK already exists using " + dest_file
+  
+  try:
+     out = install_jdk(dest_file)
+     jdk_version = re.search('Creating (jdk.*)/jre', out).group(1)
+  except Exception, e:
+     print "Installation of JDK was failed: %s\n" % e.message
+     file_exists = os.path.isfile(dest_file)
+     if file_exists:
+        ok = get_YN_input("JDK found at "+dest_file+". "
+                    "Would you like to re-download the JDK [y/n] (y)? ", True)
+        if (ok == False):
+           print "Unable to install JDK. Please remove JDK file found at "+ dest_file +" and re-run Ambari Server setup" 
+           return -1
+        else:
+           track_jdk(JDK_LOCAL_FILENAME, jdk_url, dest_file)
+           print 'Successfully re-downloaded JDK distribution to ' + dest_file 
+           try:
+               out = install_jdk(dest_file)
+               jdk_version = re.search('Creating (jdk.*)/jre', out).group(1)
+           except Exception, e:
+               print "Installation of JDK was failed: %s\n" % e.message
+               print "Unable to install JDK. Please remove JDK, file found at "+ dest_file +" and re-run Ambari Server setup" 
+               return -1              
+  
+     else:
+         print "Unable to install JDK. File "+ dest_file +"does not exist, please re-run Ambari Server setup"
+         return -1
+  
+  print "Successfully installed JDK to {0}/{1}".\
+      format(JDK_INSTALL_DIR, jdk_version)
+  write_property(JAVA_HOME_PROPERTY, "{0}/{1}".
+      format(JDK_INSTALL_DIR, jdk_version))
+  return 0
 
+class RetCodeException(Exception): pass
+
+def install_jdk(dest_file):
   ok = get_YN_input("To install the Oracle JDK you must accept the "
                     "license terms found at "
                     "http://www.oracle.com/technetwork/java/javase/"
@@ -475,14 +511,9 @@ def download_jdk(args):
   retcode, out, err = run_os_command(MAKE_FILE_EXECUTABLE_CMD.format(dest_file))
   retcode, out, err = run_os_command(dest_file + ' -noregister')
   os.chdir(savedPath)
-  jdk_version = re.search('Creating (jdk.*)/jre', out).group(1)
-  print "Successfully installed JDK to {0}/{1}".\
-      format(JDK_INSTALL_DIR, jdk_version)
-  write_property(JAVA_HOME_PROPERTY, "{0}/{1}".
-      format(JDK_INSTALL_DIR, jdk_version))
-  return 0
-
-
+  if (retcode != 0):
+       raise RetCodeException("Installation JDK returned code %s" % retcode) 
+  return out  
 
 def get_postgre_status():
   retcode, out, err = run_os_command(PG_ST_CMD)

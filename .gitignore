@@ -7,6 +7,7 @@
 target
 /ambari-server/derby.log
 /ambari-server/pass.txt
+/ambari-web/npm-debug.log
 /ambari-web/public/
 /ambari-web/node_modules/
 *.pyc
