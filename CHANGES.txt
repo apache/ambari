@@ -40,6 +40,8 @@ Trunk (unreleased changes):
 
  IMPROVEMENTS
 
+ AMBARI-1430. Increase UI timeout for long running API operations. (yusaku)
+
  AMBARI-1427. Add ability to increase the time range for the zoomed-in graphs
  beyond last one hour. (yusaku) 
 

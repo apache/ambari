@@ -28,7 +28,7 @@ App.defaultLocalStackVersion = 'HDPLocal-1.2.0';
 App.defaultJavaHome = '/usr/jdk/jdk1.6.0_31';
 App.addServicesEnabled = false;
 // default AJAX timeout
-App.timeout = 20000;
+App.timeout = 180000;
 // max number of retries for certain AJAX calls
 App.maxRetries = 3;
 App.bgOperationsUpdateInterval = 6000;
