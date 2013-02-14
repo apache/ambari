@@ -27,3 +27,22 @@ Returns a collection of all hosts in a given cluster.
 **Response**
 
     200 OK
+    {
+    	"href" : "http://your.ambari.server/api/v1/clusters/c1/hosts/",
+    	"items" : [
+    		{
+      			"href" : "http://your.ambari.server/api/v1/clusters/c1/hosts/host1",
+      			"Hosts" : {
+        			"cluster_name" : "c1",
+        			"host_name" : "host1"
+      			}
+    		},
+    		{
+      			"href" : "http://your.ambari.server/api/v1/clusters/c1/hosts/host2",
+      			"Hosts" : {
+        			"cluster_name" : "c1",
+        			"host_name" : "host2"
+      			}
+    		}
+    	]
+	}  	

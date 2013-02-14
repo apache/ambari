@@ -27,4 +27,31 @@ Returns a collection of components running on a given host.
 **Response**
 
     200 OK
-
+    {
+    	"href" : "http://your.ambari.server/api/v1/clusters/c1/hosts/host1/host_components",
+    	items" : [
+    		{
+      			"href" : "your.ambari.server/api/v1/clusters/c1/hosts/host1/host_components/DATANODE",
+      			"HostRoles" : {
+        			"cluster_name" : "c1",
+        			"component_name" : "DATANODE",
+        			"host_name" : "host1"
+      			},
+      			"host" : {
+        			"href" : "http://your.ambari.server/api/v1/clusters/c1/hosts/host1"
+      			}
+    		},
+			{
+      			"href" : "your.ambari.server/api/v1/clusters/c1/hosts/host1/host_components/HBASE_CLIENT",
+      			"HostRoles" : {
+        			"cluster_name" : "c1",
+        			"component_name" : "HBASE_CLIENT",
+        			"host_name" : "host1"
+      			},
+      			"host" : {
+        			"href" : "http://your.ambari.server/api/v1/clusters/c1/hosts/host1"
+      			}
+    		},
+    		...
+		]
+	}

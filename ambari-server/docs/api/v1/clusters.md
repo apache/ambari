@@ -1,3 +1,4 @@
+
 <!---
 Licensed to the Apache Software Foundation (ASF) under one or more
 contributor license agreements. See the NOTICE file distributed with
@@ -29,11 +30,13 @@ Returns a collection of the currently configured clusters.
     200 OK
     {
       "href" : "http://your.ambari.server/api/v1/clusters",
-      "items" : [ {
-        "href" : "http://your.ambari.server/api/v1/clusters/MyCluster",
-        "Clusters" : {
-          "cluster_name" : "MyCluster",
-          "version" : "HDP-1.2.0"
-        }
-      } ]
-    }
+      "items" : [ 
+      		{
+        		"href" : "http://your.ambari.server/api/v1/clusters/c1",
+        		"Clusters" : {
+          			"cluster_name" : "c1",
+          			"version" : "HDP-1.2.0"
+        		}
+      		} 	
+    	]
+	}
