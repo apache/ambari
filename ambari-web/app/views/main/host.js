@@ -18,6 +18,7 @@
 
 var App = require('app');
 var filters = require('views/common/filter_view');
+var sort = require('views/common/sort_view');
 var date = require('utils/date');
 
 App.MainHostView = Em.View.extend({
@@ -36,10 +37,35 @@ App.MainHostView = Em.View.extend({
       this.set('controller.filteredByAlerts', false);
     }
   },
-
+  sortView: sort.wrapperView,
+  nameSort: sort.fieldView.extend({
+    name:'publicHostName',
+    displayName: Em.I18n.t('common.name')
+  }),
+  ipSort: sort.fieldView.extend({
+    name:'ip',
+    displayName: Em.I18n.t('common.ipAddress'),
+    type: 'ip'
+  }),
+  cpuSort: sort.fieldView.extend({
+    name:'cpu',
+    displayName: Em.I18n.t('common.cpu')
+  }),
+  memorySort: sort.fieldView.extend({
+    name:'memory',
+    displayName: Em.I18n.t('common.ram')
+  }),
+  diskUsageSort: sort.fieldView.extend({
+    name:'diskUsage',
+    displayName: Em.I18n.t('common.diskUsage')
+  }),
+  loadAvgSort: sort.fieldView.extend({
+    name:'loadAvg',
+    displayName: Em.I18n.t('common.loadAvg')
+  }),
   HostView:Em.View.extend({
     content:null,
-
+    tagName: 'tr',
     shortLabels: function() {
       var labels = this.get('content.hostComponents').getEach('displayName');
       var shortLabels = '';

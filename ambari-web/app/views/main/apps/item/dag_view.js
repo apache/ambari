@@ -17,6 +17,7 @@
  */
 
 var App = require('app');
+var sort = require('views/common/sort_view');
 
 App.MainAppsItemDagView = Em.View.extend({
   templateName: require('templates/main/apps/item/dag'),
@@ -54,6 +55,10 @@ App.MainAppsItemDagView = Em.View.extend({
 
   loaded : false,
 
+  hasManyJobs: function(){
+    return (this.get('content') && this.get('content').length > 1);
+  }.property('content'),
+
   onLoad:function (){
     if(!this.get('controller.content.loadAllJobs') || this.get('loaded')){
       return;
@@ -65,9 +70,6 @@ App.MainAppsItemDagView = Em.View.extend({
 
     Ember.run.next(function(){
       self.draw();
-      if (self.get('jobs').length === 1) {
-        self.$().find('table tr td:first-child, table tr th:first-child').remove();
-      }
     });
 
   }.observes('controller.content.loadAllJobs'),
@@ -106,5 +108,38 @@ App.MainAppsItemDagView = Em.View.extend({
     var graph = new DagViewer('dag_viewer')
         .setData(dagSchema, jobs)
         .drawDag(this.$().width(), 300, 20);
-  }
+  },
+  sortView: sort.wrapperView,
+  nameSort: sort.fieldView.extend({
+    name:'workflow_entity_name',
+    displayName: Em.I18n.t('apps.item.dag.job')
+  }),
+  idSort: sort.fieldView.extend({
+    name:'id',
+    displayName: Em.I18n.t('apps.item.dag.jobId')
+  }),
+  statusSort: sort.fieldView.extend({
+    name:'status',
+    displayName: Em.I18n.t('apps.item.dag.status')
+  }),
+  mapsSort: sort.fieldView.extend({
+    name:'maps',
+    displayName: Em.I18n.t('apps.item.dag.maps')
+  }),
+  reducesSort: sort.fieldView.extend({
+    name:'reduces',
+    displayName: Em.I18n.t('apps.item.dag.reduces')
+  }),
+  inputSort: sort.fieldView.extend({
+    name:'input',
+    displayName: Em.I18n.t('apps.item.dag.input')
+  }),
+  outputSort: sort.fieldView.extend({
+    name:'output',
+    displayName: Em.I18n.t('apps.item.dag.output')
+  }),
+  durationSort: sort.fieldView.extend({
+    name:'elapsed_time',
+    displayName: Em.I18n.t('apps.item.dag.duration')
+  })
 });

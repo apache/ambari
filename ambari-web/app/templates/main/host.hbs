@@ -35,14 +35,16 @@
   <table class="datatable table table-bordered table-striped" id="hosts-table">
     <thead>
     <tr>
-      <th class="first">&nbsp;</th>
-      <th>{{t common.name}}</th>
-      <th>{{t common.ipAddress}}</th>
-      <th>{{t common.cpu}}</th>
-      <th>{{t common.ram}}</th>
-      <th>{{t common.diskUsage}}</th>
-      <th>{{t common.loadAvg}}</th>
-      <th>{{t common.components}}</th>
+        {{#view view.sortView contentBinding="view.filteredContent"}}
+          <th class="first"></th>
+          {{view view.parentView.nameSort}}
+          {{view view.parentView.ipSort}}
+          {{view view.parentView.cpuSort}}
+          {{view view.parentView.memorySort}}
+          {{view view.parentView.diskUsageSort}}
+          {{view view.parentView.loadAvgSort}}
+          <th>{{t common.components}}</th>
+        {{/view}}
     </tr>
     <tr>
       <th class="first">&nbsp;</th>
@@ -59,7 +61,6 @@
     {{#if view.filteredContent.length}}
     {{#each host in view.filteredContent}}
     {{#view view.HostView contentBinding="host"}}
-    <tr>
       <td class="first">
         <span {{bindAttr class="host.healthClass"}} {{bindAttr title="host.healthToolTip" }}></span>
       </td>
@@ -81,7 +82,6 @@
       <td>
         <span title="{{unbound view.labels}}">{{view.shortLabels}}</span>
       </td>
-    </tr>
     {{/view}}
     {{/each}}
     {{else}}

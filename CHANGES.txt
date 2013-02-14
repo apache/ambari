@@ -278,6 +278,8 @@ Trunk (unreleased changes):
 
  BUG FIXES
 
+ AMBARI-1431. Hosts table no longer allows sorting. (yusaku)
+
  AMBARI-1376. Wrong calculation of duration filter on apps page. (jaimin via
  yusaku)
 
