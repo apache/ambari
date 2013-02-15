@@ -40,6 +40,8 @@ Trunk (unreleased changes):
 
  IMPROVEMENTS
 
+ AMBARI-1437. Update stack version. (yusaku)
+
  AMBARI-1429. Update API docs. (jspeidel)
 
  AMBARI-1430. Increase UI timeout for long running API operations. (yusaku)
