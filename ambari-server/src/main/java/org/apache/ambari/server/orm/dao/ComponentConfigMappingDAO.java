@@ -49,6 +49,7 @@ public class ComponentConfigMappingDAO {
     return daoUtils.selectList(query, configTypes);
   }
 
+  @Transactional
   public List<ComponentConfigMappingEntity> findByComponentAndType(long clusterId, String serviceName, String componentName,
                                                                    Collection<String> configTypes) {
     if (configTypes.isEmpty()) {

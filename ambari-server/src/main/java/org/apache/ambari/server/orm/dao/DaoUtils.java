@@ -27,7 +27,7 @@ import java.util.Collections;
 import java.util.List;
 
 @Singleton
-public class DaoUtils {
+class DaoUtils {
 
   public <T> List<T> selectList(TypedQuery<T> query, Object... parameters) {
     setParameters(query, parameters);

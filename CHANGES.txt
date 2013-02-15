@@ -283,6 +283,9 @@ Trunk (unreleased changes):
  AMBARI-1433. Allow capacity scheduler to be configurable via the API's.
  (mahadev)
 
+ AMBARI-1435. L2 Cache does not work due to Eclipse Link exception.
+ (Sid Wagle via mahadev)
+
  BUG FIXES
 
  AMBARI-1431. Hosts table no longer allows sorting. (yusaku)

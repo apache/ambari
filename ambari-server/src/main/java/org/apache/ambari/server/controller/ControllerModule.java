@@ -17,17 +17,15 @@
  */
 
 package org.apache.ambari.server.controller;
+
 import com.google.gson.Gson;
 import com.google.inject.Scopes;
 import com.google.inject.assistedinject.FactoryModuleBuilder;
-import com.google.inject.matcher.Matchers;
-import com.google.inject.persist.Transactional;
 import com.google.inject.persist.jpa.JpaPersistModule;
 import org.apache.ambari.server.actionmanager.*;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.orm.PersistenceType;
-import org.apache.ambari.server.orm.dao.ClearEntityManagerInterceptor;
 import org.apache.ambari.server.state.*;
 import org.apache.ambari.server.state.cluster.ClusterFactory;
 import org.apache.ambari.server.state.cluster.ClusterImpl;
@@ -45,14 +43,13 @@ import java.util.Properties;
 
 /**
  * Used for injection purposes.
- *
  */
 public class ControllerModule extends AbstractModule {
 
   private final Configuration configuration;
   private final AmbariMetaInfo ambariMetaInfo;
   private final HostsMap hostsMap;
-  
+
   public ControllerModule() throws Exception {
     configuration = new Configuration();
     ambariMetaInfo = new AmbariMetaInfo(configuration);
@@ -67,13 +64,11 @@ public class ControllerModule extends AbstractModule {
 
   @Override
   protected void configure() {
-    bindInterceptors();
     installFactories();
 
     bind(Configuration.class).toInstance(configuration);
     bind(AmbariMetaInfo.class).toInstance(ambariMetaInfo);
     bind(HostsMap.class).toInstance(hostsMap);
-    
     bind(PasswordEncoder.class).toInstance(new StandardPasswordEncoder());
 
     JpaPersistModule jpaPersistModule = new JpaPersistModule(configuration.getPersistenceType().getUnitName());
@@ -115,10 +110,4 @@ public class ControllerModule extends AbstractModule {
     install(new FactoryModuleBuilder().build(HostRoleCommandFactory.class));
   }
 
-  private void bindInterceptors() {
-    ClearEntityManagerInterceptor clearEntityManagerInterceptor = new ClearEntityManagerInterceptor();
-    requestInjection(clearEntityManagerInterceptor);
-    bindInterceptor(Matchers.any(), Matchers.annotatedWith(Transactional.class), clearEntityManagerInterceptor);
-
-  }
 }

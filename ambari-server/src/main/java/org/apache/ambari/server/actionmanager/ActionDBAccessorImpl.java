@@ -181,6 +181,8 @@ public class ActionDBAccessorImpl implements ActionDBAccessor {
         hostRoleCommand.setTaskId(hostRoleCommandEntity.getTaskId());
         ExecutionCommandEntity executionCommandEntity = hostRoleCommand.constructExecutionCommandEntity();
         executionCommandEntity.setHostRoleCommand(hostRoleCommandEntity);
+
+        executionCommandEntity.setTaskId(hostRoleCommandEntity.getTaskId());
         hostRoleCommandEntity.setExecutionCommand(executionCommandEntity);
 
         executionCommandDAO.create(hostRoleCommandEntity.getExecutionCommand());

@@ -12,87 +12,58 @@
 <persistence xmlns="http://java.sun.com/xml/ns/persistence"
   version="2.0">
 
-  <persistence-unit name="ambari-postgres">
+  <persistence-unit name="ambari-postgres" transaction-type="RESOURCE_LOCAL">
+    <provider>org.eclipse.persistence.jpa.PersistenceProvider</provider>
     <class>org.apache.ambari.server.orm.entities.ClusterEntity</class>
-    <class>org.apache.ambari.server.orm.entities.ClusterConfigEntity
-    </class>
-    <class>org.apache.ambari.server.orm.entities.ClusterServiceEntity
-    </class>
-    <class>org.apache.ambari.server.orm.entities.ClusterStateEntity
-    </class>
-    <class>org.apache.ambari.server.orm.entities.ComponentConfigMappingEntity
-    </class>
-    <class>org.apache.ambari.server.orm.entities.HostComponentConfigMappingEntity
-    </class>
-    <class>org.apache.ambari.server.orm.entities.HostComponentDesiredConfigMappingEntity
-    </class>
-    <class>org.apache.ambari.server.orm.entities.HostComponentDesiredStateEntity
-    </class>
-    <class>org.apache.ambari.server.orm.entities.HostComponentStateEntity
-    </class>
+    <class>org.apache.ambari.server.orm.entities.ClusterConfigEntity</class>
+    <class>org.apache.ambari.server.orm.entities.ClusterServiceEntity</class>
+    <class>org.apache.ambari.server.orm.entities.ClusterStateEntity</class>
+    <class>org.apache.ambari.server.orm.entities.ComponentConfigMappingEntity</class>
+    <class>org.apache.ambari.server.orm.entities.HostComponentConfigMappingEntity</class>
+    <class>org.apache.ambari.server.orm.entities.HostComponentDesiredConfigMappingEntity</class>
+    <class>org.apache.ambari.server.orm.entities.HostComponentDesiredStateEntity</class>
+    <class>org.apache.ambari.server.orm.entities.HostComponentStateEntity</class>
     <class>org.apache.ambari.server.orm.entities.HostEntity</class>
     <class>org.apache.ambari.server.orm.entities.HostStateEntity</class>
-    <class>org.apache.ambari.server.orm.entities.ServiceComponentDesiredStateEntity
-    </class>
-    <class>org.apache.ambari.server.orm.entities.ServiceConfigMappingEntity
-    </class>
-    <class>org.apache.ambari.server.orm.entities.ServiceDesiredStateEntity
-    </class>
+    <class>org.apache.ambari.server.orm.entities.ServiceComponentDesiredStateEntity</class>
+    <class>org.apache.ambari.server.orm.entities.ServiceConfigMappingEntity</class>
+    <class>org.apache.ambari.server.orm.entities.ServiceDesiredStateEntity</class>
     <class>org.apache.ambari.server.orm.entities.RoleEntity</class>
     <class>org.apache.ambari.server.orm.entities.UserEntity</class>
-    <class>org.apache.ambari.server.orm.entities.ExecutionCommandEntity
-    </class>
-    <class>org.apache.ambari.server.orm.entities.HostRoleCommandEntity
-    </class>
-    <class>org.apache.ambari.server.orm.entities.RoleSuccessCriteriaEntity
-    </class>
+    <class>org.apache.ambari.server.orm.entities.ExecutionCommandEntity</class>
+    <class>org.apache.ambari.server.orm.entities.HostRoleCommandEntity</class>
+    <class>org.apache.ambari.server.orm.entities.RoleSuccessCriteriaEntity</class>
     <class>org.apache.ambari.server.orm.entities.StageEntity</class>
     <class>org.apache.ambari.server.orm.entities.KeyValueEntity</class>
 
     <properties>
       <property name="javax.persistence.jdbc.url" value="jdbc:postgresql://localhost/ambari" />
       <property name="javax.persistence.jdbc.driver" value="org.postgresql.Driver" />
-      <property name="eclipselink.cache.shared.default" value="false" />
-      <property name="eclipselink.cache.size.default" value="0" />
-      <property name="eclipselink.cache.type.default" value="None" />
-      <property name="eclipselink.query-results-cache" value="false" />
+      <property name="eclipselink.cache.size.default" value="3000" />
     </properties>
   </persistence-unit>
 
-  <persistence-unit name="ambari-javadb">
+  <persistence-unit name="ambari-javadb" transaction-type="RESOURCE_LOCAL">
+    <provider>org.eclipse.persistence.jpa.PersistenceProvider</provider>
     <class>org.apache.ambari.server.orm.entities.ClusterEntity</class>
-    <class>org.apache.ambari.server.orm.entities.ClusterConfigEntity
-    </class>
-    <class>org.apache.ambari.server.orm.entities.ClusterServiceEntity
-    </class>
-    <class>org.apache.ambari.server.orm.entities.ClusterStateEntity
-    </class>
-    <class>org.apache.ambari.server.orm.entities.ComponentConfigMappingEntity
-    </class>
-    <class>org.apache.ambari.server.orm.entities.HostComponentConfigMappingEntity
-    </class>
-    <class>org.apache.ambari.server.orm.entities.HostComponentDesiredConfigMappingEntity
-    </class>
-    <class>org.apache.ambari.server.orm.entities.HostComponentDesiredStateEntity
-    </class>
-    <class>org.apache.ambari.server.orm.entities.HostComponentStateEntity
-    </class>
+    <class>org.apache.ambari.server.orm.entities.ClusterConfigEntity</class>
+    <class>org.apache.ambari.server.orm.entities.ClusterServiceEntity</class>
+    <class>org.apache.ambari.server.orm.entities.ClusterStateEntity</class>
+    <class>org.apache.ambari.server.orm.entities.ComponentConfigMappingEntity</class>
+    <class>org.apache.ambari.server.orm.entities.HostComponentConfigMappingEntity</class>
+    <class>org.apache.ambari.server.orm.entities.HostComponentDesiredConfigMappingEntity</class>
+    <class>org.apache.ambari.server.orm.entities.HostComponentDesiredStateEntity</class>
+    <class>org.apache.ambari.server.orm.entities.HostComponentStateEntity</class>
     <class>org.apache.ambari.server.orm.entities.HostEntity</class>
     <class>org.apache.ambari.server.orm.entities.HostStateEntity</class>
-    <class>org.apache.ambari.server.orm.entities.ServiceComponentDesiredStateEntity
-    </class>
-    <class>org.apache.ambari.server.orm.entities.ServiceConfigMappingEntity
-    </class>
-    <class>org.apache.ambari.server.orm.entities.ServiceDesiredStateEntity
-    </class>
+    <class>org.apache.ambari.server.orm.entities.ServiceComponentDesiredStateEntity</class>
+    <class>org.apache.ambari.server.orm.entities.ServiceConfigMappingEntity</class>
+    <class>org.apache.ambari.server.orm.entities.ServiceDesiredStateEntity</class>
     <class>org.apache.ambari.server.orm.entities.RoleEntity</class>
     <class>org.apache.ambari.server.orm.entities.UserEntity</class>
-    <class>org.apache.ambari.server.orm.entities.ExecutionCommandEntity
-    </class>
-    <class>org.apache.ambari.server.orm.entities.HostRoleCommandEntity
-    </class>
-    <class>org.apache.ambari.server.orm.entities.RoleSuccessCriteriaEntity
-    </class>
+    <class>org.apache.ambari.server.orm.entities.ExecutionCommandEntity</class>
+    <class>org.apache.ambari.server.orm.entities.HostRoleCommandEntity</class>
+    <class>org.apache.ambari.server.orm.entities.RoleSuccessCriteriaEntity</class>
     <class>org.apache.ambari.server.orm.entities.StageEntity</class>
     <class>org.apache.ambari.server.orm.entities.KeyValueEntity</class>
 
@@ -102,11 +73,8 @@
       <property name="javax.persistence.jdbc.driver" value="org.apache.derby.jdbc.EmbeddedDriver" />
       <property name="eclipselink.ddl-generation" value="drop-and-create-tables" />
       <property name="eclipselink.orm.throw.exceptions" value="true" />
-      <property name="eclipselink.cache.shared.default" value="false" />
-      <property name="eclipselink.cache.size.default" value="0" />
-      <property name="eclipselink.cache.type.default" value="None" />
-      <property name="eclipselink.query-results-cache" value="false" />
-      <!-- <property name="eclipselink.logging.level" value="FINE"/> -->
+      <property name="eclipselink.cache.size.default" value="3000" />
+      <!--<property name="eclipselink.logging.level" value="FINEST"/>-->
     </properties>
   </persistence-unit>
 </persistence>
