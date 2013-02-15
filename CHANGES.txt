@@ -289,6 +289,8 @@ Trunk (unreleased changes):
  AMBARI-1436. Threads blocking on ClustersImpl.getHost for several minutes.
  (Sid Wagle via mahadev)
 
+ AMBARI-1438. Add new stack definition for new stacks. (mahadev)
+
  BUG FIXES
 
  AMBARI-1431. Hosts table no longer allows sorting. (yusaku)
