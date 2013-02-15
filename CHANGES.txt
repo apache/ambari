@@ -495,6 +495,9 @@ Trunk (unreleased changes):
  AMBARI-1432. Ambari Agent registration hangs due to Acceptor bug in Jetty for
  not reading through accepted connections. (mahadev)
 
+ AMBARI-1434. Change state to installed from start_failed if there is any
+ issue in starting a host component. (mahadev)
+
 AMBARI-1.2.0 branch:
 
  INCOMPATIBLE CHANGES
