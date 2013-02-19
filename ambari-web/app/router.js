@@ -34,11 +34,11 @@ App.Router = Em.Router.extend({
   },
 
 
-  clearAllSteps: function() {
+  clearAllSteps: function () {
     this.get('installerController').clear();
     this.get('addHostController').clear();
     this.get('addServiceController').clear();
-    for (i = 1; i<11; i++) {
+    for (i = 1; i < 11; i++) {
       this.set('wizardStep' + i + 'Controller.hasSubmitted', false);
       this.set('wizardStep' + i + 'Controller.isDisabled', true);
     }
@@ -49,7 +49,7 @@ App.Router = Em.Router.extend({
    * @return {*}
    */
 
-  getClusterName: function(){
+  getClusterName: function () {
     return App.router.get('clusterController').get('clusterName');
   },
 
@@ -148,8 +148,8 @@ App.Router = Em.Router.extend({
     }
 
     $.ajax({
-      url : (App.testMode) ? url  : App.apiPrefix + '/users/' + loginName ,
-      dataType : 'json',
+      url: (App.testMode) ? url : App.apiPrefix + '/users/' + loginName,
+      dataType: 'json',
       type: 'GET',
       beforeSend: function (xhr) {
         xhr.setRequestHeader("Authorization", "Basic " + hash);
@@ -170,16 +170,16 @@ App.Router = Em.Router.extend({
 
         var resp = data;
         var isAdmin = resp.Users.roles.indexOf('admin') >= 0;
-        if(isAdmin){
+        if (isAdmin) {
           router.setAuthenticated(true);
           router.setLoginName(loginName);
-          App.usersMapper.map({"items":[data]});
+          App.usersMapper.map({"items": [data]});
           router.setUser(App.User.find(loginName));
           router.transitionTo(router.getSection());
           postLogin(true);
         } else {
           $.ajax({
-            url:  (App.testMode) ? '/data/clusters/info.json' : App.apiPrefix + '/clusters',
+            url: (App.testMode) ? '/data/clusters/info.json' : App.apiPrefix + '/clusters',
             dataType: 'text',
             type: 'GET',
             success: function (data) {
@@ -187,7 +187,7 @@ App.Router = Em.Router.extend({
               if (clusterResp.items.length) {
                 router.setAuthenticated(true);
                 router.setLoginName(loginName);
-                App.usersMapper.map({"items":[resp]});
+                App.usersMapper.map({"items": [resp]});
                 router.setUser(App.User.find(loginName));
                 router.transitionTo(router.getSection());
                 postLogin(true);
@@ -226,10 +226,10 @@ App.Router = Em.Router.extend({
         console.log("TRACE: value of the url is: " + url);
         var stacks = [];
         jsonData.forEach(function (_stack) {
-         stacks.pushObject({
-           name:_stack.name,
-           version: _stack.version
-         });
+          stacks.pushObject({
+            name: _stack.name,
+            version: _stack.version
+          });
         }, this);
         App.db.setAmbariStacks(stacks);
         console.log('TRACEIINNGG: ambaristacks: ' + JSON.stringify(App.db.getAmbariStacks()));
@@ -247,8 +247,12 @@ App.Router = Em.Router.extend({
   },
 
   getSection: function () {
-    if (App.alwaysGoToInstaller) {
-      return 'installer';
+    if (App.testMode) {
+      if (App.alwaysGoToInstaller) {
+        return 'installer';
+      } else {
+        return 'main';
+      }
     }
     App.clusterStatus.updateFromServer();
     var clusterStatusOnServer = App.clusterStatus.get('value');
@@ -263,7 +267,7 @@ App.Router = Em.Router.extend({
     }
   },
 
-  logOff: function(context){
+  logOff: function (context) {
     $('title').text('Ambari');
     var hash = window.btoa(this.get('loginController.loginName') + ":" + this.get('loginController.password'));
 
