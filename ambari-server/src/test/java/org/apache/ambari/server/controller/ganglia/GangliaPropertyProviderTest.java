@@ -86,22 +86,32 @@ public class GangliaPropertyProviderTest {
     //http://ec2-174-129-152-147.compute-1.amazonaws.com/cgi-bin/rrd.py?c=HDPSlaves&m=jvm.metrics.gcCount,mapred.shuffleOutput.shuffle_exceptions_caught,mapred.shuffleOutput.shuffle_failed_outputs,mapred.shuffleOutput.shuffle_output_bytes,mapred.shuffleOutput.shuffle_success_outputs&s=10&e=20&r=1&h=ip-10-85-111-149.ec2.internal
 
     Set<String> properties = new HashSet<String>();
-    properties.add(PropertyHelper.getPropertyId("metrics/mapred/shuffleOutput", "shuffle_exceptions_caught"));
-    properties.add(PropertyHelper.getPropertyId("metrics/mapred/shuffleOutput", "shuffle_failed_outputs"));
-    properties.add(PropertyHelper.getPropertyId("metrics/mapred/shuffleOutput", "shuffle_output_bytes"));
-    properties.add(PropertyHelper.getPropertyId("metrics/mapred/shuffleOutput", "shuffle_success_outputs"));
+    String shuffle_exceptions_caught = PropertyHelper.getPropertyId("metrics/mapred/shuffleOutput", "shuffle_exceptions_caught");
+    String shuffle_failed_outputs    = PropertyHelper.getPropertyId("metrics/mapred/shuffleOutput", "shuffle_failed_outputs");
+    String shuffle_output_bytes      = PropertyHelper.getPropertyId("metrics/mapred/shuffleOutput", "shuffle_output_bytes");
+    String shuffle_success_outputs   = PropertyHelper.getPropertyId("metrics/mapred/shuffleOutput", "shuffle_success_outputs");
+
+    properties.add(shuffle_exceptions_caught);
+    properties.add(shuffle_failed_outputs);
+    properties.add(shuffle_output_bytes);
+    properties.add(shuffle_success_outputs);
     request = PropertyHelper.getReadRequest(properties, temporalInfoMap);
+
+    temporalInfoMap.put(shuffle_exceptions_caught, new TemporalInfoImpl(10L, 20L, 1L));
+    temporalInfoMap.put(shuffle_failed_outputs, new TemporalInfoImpl(10L, 20L, 1L));
+    temporalInfoMap.put(shuffle_output_bytes, new TemporalInfoImpl(10L, 20L, 1L));
+    temporalInfoMap.put(shuffle_success_outputs, new TemporalInfoImpl(10L, 20L, 1L));
 
     Assert.assertEquals(1, propertyProvider.populateResources(Collections.singleton(resource), request, null).size());
 
-    Assert.assertEquals("http://domU-12-31-39-0E-34-E1.compute-1.internal/cgi-bin/rrd.py?c=HDPSlaves&h=domU-12-31-39-0E-34-E1.compute-1.internal&m=mapred.shuffleOutput.shuffle_output_bytes,mapred.shuffleOutput.shuffle_success_outputs,mapred.shuffleOutput.shuffle_failed_outputs,mapred.shuffleOutput.shuffle_exceptions_caught&e=now&pt=true",
+    Assert.assertEquals("http://domU-12-31-39-0E-34-E1.compute-1.internal/cgi-bin/rrd.py?c=HDPSlaves&h=domU-12-31-39-0E-34-E1.compute-1.internal&m=mapred.shuffleOutput.shuffle_output_bytes,mapred.shuffleOutput.shuffle_success_outputs,mapred.shuffleOutput.shuffle_failed_outputs,mapred.shuffleOutput.shuffle_exceptions_caught&s=10&e=20&r=1",
         streamProvider.getLastSpec());
 
     Assert.assertEquals(6, PropertyHelper.getProperties(resource).size());
-    Assert.assertNotNull(resource.getPropertyValue(PropertyHelper.getPropertyId("metrics/mapred/shuffleOutput", "shuffle_exceptions_caught")));
-    Assert.assertNotNull(resource.getPropertyValue(PropertyHelper.getPropertyId("metrics/mapred/shuffleOutput", "shuffle_failed_outputs")));
-    Assert.assertNotNull(resource.getPropertyValue(PropertyHelper.getPropertyId("metrics/mapred/shuffleOutput", "shuffle_output_bytes")));
-    Assert.assertNotNull(resource.getPropertyValue(PropertyHelper.getPropertyId("metrics/mapred/shuffleOutput", "shuffle_success_outputs")));
+    Assert.assertNotNull(resource.getPropertyValue(shuffle_exceptions_caught));
+    Assert.assertNotNull(resource.getPropertyValue(shuffle_failed_outputs));
+    Assert.assertNotNull(resource.getPropertyValue(shuffle_output_bytes));
+    Assert.assertNotNull(resource.getPropertyValue(shuffle_success_outputs));
   }
 
 
