@@ -41,7 +41,7 @@ public class JMXPropertyProviderTest {
   @Test
   public void testGetResources() throws Exception {
     TestStreamProvider  streamProvider = new TestStreamProvider();
-    TestJMXHostProvider hostProvider = new TestJMXHostProvider();
+    TestJMXHostProvider hostProvider = new TestJMXHostProvider(false);
 
     JMXPropertyProvider propertyProvider = new JMXPropertyProvider(
         PropertyHelper.getJMXPropertyIds(Resource.Type.HostComponent),
@@ -59,7 +59,7 @@ public class JMXPropertyProviderTest {
 
     Assert.assertEquals(1, propertyProvider.populateResources(Collections.singleton(resource), request, null).size());
 
-    Assert.assertEquals(propertyProvider.getSpec("domu-12-31-39-0e-34-e1.compute-1.internal:50070"), streamProvider.getLastSpec());
+    Assert.assertEquals(propertyProvider.getSpec("domu-12-31-39-0e-34-e1.compute-1.internal", "50070"), streamProvider.getLastSpec());
 
     // see test/resources/hdfs_namenode_jmx.json for values
     Assert.assertEquals(13670605,  resource.getPropertyValue(PropertyHelper.getPropertyId("metrics/rpc", "ReceivedBytes")));
@@ -81,7 +81,7 @@ public class JMXPropertyProviderTest {
 
     propertyProvider.populateResources(Collections.singleton(resource), request, null);
 
-    Assert.assertEquals(propertyProvider.getSpec("domu-12-31-39-14-ee-b3.compute-1.internal:50075"), streamProvider.getLastSpec());
+    Assert.assertEquals(propertyProvider.getSpec("domu-12-31-39-14-ee-b3.compute-1.internal", "50075"), streamProvider.getLastSpec());
 
     // see test/resources/hdfs_datanode_jmx.json for values
     Assert.assertEquals(856,  resource.getPropertyValue(PropertyHelper.getPropertyId("metrics/rpc", "ReceivedBytes")));
@@ -111,7 +111,7 @@ public class JMXPropertyProviderTest {
 
     propertyProvider.populateResources(Collections.singleton(resource), request, null);
 
-    Assert.assertEquals(propertyProvider.getSpec("domu-12-31-39-14-ee-b3.compute-1.internal:50030"), streamProvider.getLastSpec());
+    Assert.assertEquals(propertyProvider.getSpec("domu-12-31-39-14-ee-b3.compute-1.internal", "50030"), streamProvider.getLastSpec());
 
     // see test/resources/mapreduce_jobtracker_jmx.json for values
     Assert.assertEquals(9, PropertyHelper.getProperties(resource).size());
@@ -146,7 +146,7 @@ public class JMXPropertyProviderTest {
 
     propertyProvider.populateResources(Collections.singleton(resource), request, null);
 
-    Assert.assertEquals(propertyProvider.getSpec("domu-12-31-39-14-ee-b3.compute-1.internal:50060"), streamProvider.getLastSpec());
+    Assert.assertEquals(propertyProvider.getSpec("domu-12-31-39-14-ee-b3.compute-1.internal", "50060"), streamProvider.getLastSpec());
 
     Assert.assertEquals(10, PropertyHelper.getProperties(resource).size());
     Assert.assertEquals(954466304, resource.getPropertyValue(PropertyHelper.getPropertyId("metrics/jvm", "HeapMemoryMax")));
@@ -177,7 +177,7 @@ public class JMXPropertyProviderTest {
 
     propertyProvider.populateResources(Collections.singleton(resource), request, null);
 
-    Assert.assertEquals(propertyProvider.getSpec("domu-12-31-39-14-ee-b3.compute-1.internal:60010"), streamProvider.getLastSpec());
+    Assert.assertEquals(propertyProvider.getSpec("domu-12-31-39-14-ee-b3.compute-1.internal", "60010"), streamProvider.getLastSpec());
 
     Assert.assertEquals(7, PropertyHelper.getProperties(resource).size());
     Assert.assertEquals(1069416448, resource.getPropertyValue(PropertyHelper.getPropertyId("metrics/jvm", "HeapMemoryMax")));
@@ -189,7 +189,45 @@ public class JMXPropertyProviderTest {
     Assert.assertNull(resource.getPropertyValue(PropertyHelper.getPropertyId("metrics/jvm", "gcCount")));
   }
 
+  @Test
+  public void testGetResourcesWithUnknownPort() throws Exception {
+    TestStreamProvider  streamProvider = new TestStreamProvider();
+    TestJMXHostProvider hostProvider = new TestJMXHostProvider(true);
+
+    JMXPropertyProvider propertyProvider = new JMXPropertyProvider(
+        PropertyHelper.getJMXPropertyIds(Resource.Type.HostComponent),
+        streamProvider,
+        hostProvider, PropertyHelper.getPropertyId("HostRoles", "cluster_name"), PropertyHelper.getPropertyId("HostRoles", "host_name"), PropertyHelper.getPropertyId("HostRoles", "component_name"));
+
+    // namenode
+    Resource resource = new ResourceImpl(Resource.Type.HostComponent);
+
+    resource.setProperty(HOST_COMPONENT_HOST_NAME_PROPERTY_ID, "domu-12-31-39-0e-34-e1.compute-1.internal");
+    resource.setProperty(HOST_COMPONENT_COMPONENT_NAME_PROPERTY_ID, "NAMENODE");
+
+    // request with an empty set should get all supported properties
+    Request request = PropertyHelper.getReadRequest(Collections.<String>emptySet());
+
+    Assert.assertEquals(1, propertyProvider.populateResources(Collections.singleton(resource), request, null).size());
+
+    Assert.assertEquals(propertyProvider.getSpec("domu-12-31-39-0e-34-e1.compute-1.internal", "50070"), streamProvider.getLastSpec());
+
+    // see test/resources/hdfs_namenode_jmx.json for values
+    Assert.assertEquals(13670605,  resource.getPropertyValue(PropertyHelper.getPropertyId("metrics/rpc", "ReceivedBytes")));
+    Assert.assertEquals(28,      resource.getPropertyValue(PropertyHelper.getPropertyId("metrics/dfs/namenode", "CreateFileOps")));
+    Assert.assertEquals(1006632960, resource.getPropertyValue(PropertyHelper.getPropertyId("metrics/jvm", "HeapMemoryMax")));
+    Assert.assertEquals(473433016, resource.getPropertyValue(PropertyHelper.getPropertyId("metrics/jvm", "HeapMemoryUsed")));
+    Assert.assertEquals(136314880, resource.getPropertyValue(PropertyHelper.getPropertyId("metrics/jvm", "NonHeapMemoryMax")));
+    Assert.assertEquals(23634400, resource.getPropertyValue(PropertyHelper.getPropertyId("metrics/jvm", "NonHeapMemoryUsed")));
+  }
+
   private static class TestJMXHostProvider implements JMXHostProvider {
+    private final boolean unknownPort;
+
+    private TestJMXHostProvider(boolean unknownPort) {
+      this.unknownPort = unknownPort;
+    }
+
     @Override
     public String getHostName(String clusterName, String componentName) {
       return null;
@@ -198,6 +236,10 @@ public class JMXPropertyProviderTest {
     @Override
     public String getPort(String clusterName, String componentName) throws
       SystemException {
+
+      if (unknownPort) {
+        return null;
+      }
       if (componentName.equals("NAMENODE"))
         return "50070";
       else if (componentName.equals("DATANODE"))

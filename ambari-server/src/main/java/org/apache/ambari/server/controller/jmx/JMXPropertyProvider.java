@@ -49,6 +49,8 @@ public class JMXPropertyProvider extends AbstractPropertyProvider {
 
   private final JMXHostProvider jmxHostProvider;
 
+  private static final Map<String, String> DEFAULT_JMX_PORTS = new HashMap<String, String>();
+
   private final String clusterNamePropertyId;
 
   private final String hostNamePropertyId;
@@ -59,6 +61,12 @@ public class JMXPropertyProvider extends AbstractPropertyProvider {
 
 
   static {
+    DEFAULT_JMX_PORTS.put("NAMENODE",     "50070");
+    DEFAULT_JMX_PORTS.put("DATANODE",     "50075");
+    DEFAULT_JMX_PORTS.put("JOBTRACKER",   "50030");
+    DEFAULT_JMX_PORTS.put("TASKTRACKER",  "50060");
+    DEFAULT_JMX_PORTS.put("HBASE_MASTER", "60010");
+
     ObjectMapper objectMapper = new ObjectMapper();
     objectMapper.configure(DeserializationConfig.Feature.USE_ANNOTATIONS, false);
     objectReader = objectMapper.reader(JMXMetricHolder.class);
@@ -117,6 +125,18 @@ public class JMXPropertyProvider extends AbstractPropertyProvider {
   // ----- helper methods ----------------------------------------------------
 
   /**
+   * Get the spec to locate the JMX stream from the given host and port
+   *
+   * @param hostName  the host name
+   * @param port      the port
+   *
+   * @return the spec
+   */
+  protected String getSpec(String hostName, String port) {
+    return "http://" + hostName + ":" + port + "/jmx";
+  }
+
+  /**
    * Populate a resource by obtaining the requested JMX properties.
    *
    * @param resource  the resource to be populated
@@ -133,25 +153,31 @@ public class JMXPropertyProvider extends AbstractPropertyProvider {
       return true;
     }
 
-    String clusterName   = (String) resource.getPropertyValue(clusterNamePropertyId);
     String componentName = (String) resource.getPropertyValue(componentNamePropertyId);
-    String port          = jmxHostProvider.getPort(clusterName, componentName);
 
-    String hostName;
-    if (hostNamePropertyId == null) {
-      hostName = jmxHostProvider.getHostName(clusterName, componentName);
-    }
-    else {
-      hostName = (String) resource.getPropertyValue(hostNamePropertyId);
-    }
-
-    if (getComponentMetrics().get(componentName) == null ||
-        hostName == null || port == null) {
+    if (getComponentMetrics().get(componentName) == null) {
+      // If there are no metrics defined for the given component then there is nothing to do.
       return true;
     }
 
-    String spec = getSpec(hostName + ":" + port);
-    InputStream in = null;
+    String clusterName = (String) resource.getPropertyValue(clusterNamePropertyId);
+
+    String port = getPort(clusterName, componentName);
+    if (port == null) {
+      String error = "Unable to get JMX metrics.  No port value for " + componentName;
+      logError(error, null);
+      throw new SystemException(error, null);
+    }
+
+    String hostName = getHost(resource, clusterName, componentName);
+    if (hostName == null) {
+      String error = "Unable to get JMX metrics.  No host name for " + componentName;
+      logError(error, null);
+      throw new SystemException(error, null);
+    }
+
+    String      spec = getSpec(hostName, port);
+    InputStream in   = null;
     try {
       in = streamProvider.readFrom(spec);
       JMXMetricHolder metricHolder = objectReader.readValue(in);
@@ -192,7 +218,6 @@ public class JMXPropertyProvider extends AbstractPropertyProvider {
               }
             }
 
-
             int dotIndex = property.lastIndexOf('.', firstKeyIndex - 1);
             if (dotIndex != -1){
               category = property.substring(0, dotIndex);
@@ -220,22 +245,29 @@ public class JMXPropertyProvider extends AbstractPropertyProvider {
         }
       }
     } catch (IOException e) {
-      if (LOG.isErrorEnabled()) {
-        LOG.error("Caught exception getting JMX metrics : spec=" + spec, e);
-      }
+      logError(spec, e);
     } finally {
       if (in != null) {
         try {
           in.close();
         } catch (IOException e) {
-          if (LOG.isWarnEnabled()) {
-            LOG.warn("Unable to close http input steam : spec=" + spec, e);
-          }
+            logError("Unable to close http input steam : spec=" + spec, e);
         }
       }
     }
 
     return true;
+  }
+
+  private String getPort(String clusterName, String componentName) throws SystemException {
+    String port = jmxHostProvider.getPort(clusterName, componentName);
+    return port == null ? DEFAULT_JMX_PORTS.get(componentName) : port;
+  }
+
+  private String getHost(Resource resource, String clusterName, String componentName) throws SystemException {
+    return hostNamePropertyId == null ?
+        jmxHostProvider.getHostName(clusterName, componentName) :
+        (String) resource.getPropertyValue(hostNamePropertyId);
   }
 
   private String getCategory(Map<String, Object> bean) {
@@ -251,15 +283,13 @@ public class JMXPropertyProvider extends AbstractPropertyProvider {
     return null;
   }
 
-  /**
-   * Get the spec to locate the JMX stream from the given source
-   *
-   * @param jmxSource  the source (host and port)
-   *
-   * @return the spec
-   */
-  protected String getSpec(String jmxSource) {
-    return "http://" + jmxSource + "/jmx";
+  private static void logError(String error, IOException e) {
+    if (LOG.isErrorEnabled()) {
+      if (e == null) {
+        LOG.error("Caught exception getting JMX metrics : spec=" + error);
+      } else {
+        LOG.error("Caught exception getting JMX metrics : spec=" + error, e);
+      }
+    }
   }
-
 }
