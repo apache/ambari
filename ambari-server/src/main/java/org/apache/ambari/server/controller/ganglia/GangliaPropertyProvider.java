@@ -250,7 +250,7 @@ public abstract class GangliaPropertyProvider extends AbstractPropertyProvider {
                          TemporalInfo temporalInfo) throws SystemException {
 
     String clusters = getSetString(clusterSet, -1);
-    String hosts    = getSetString(hostSet, -1);
+    String hosts    = getSetString(hostSet, 100);
     String metrics  = getSetString(metricSet, 50);
 
     StringBuilder sb = new StringBuilder();

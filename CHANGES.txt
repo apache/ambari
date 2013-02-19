@@ -298,6 +298,9 @@ Trunk (unreleased changes):
 
  AMBARI-1439. rrd file location should be configurable through UI. (jaimin)
 
+ AMBARI-1446. URL used by API to invoke Ganglia rrd script may exceed max length 
+              for query string for large clusters. (jspeidel)
+
  AMBARI-1431. Hosts table no longer allows sorting. (yusaku)
 
  AMBARI-1376. Wrong calculation of duration filter on apps page. (jaimin via
