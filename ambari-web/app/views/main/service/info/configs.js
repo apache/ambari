@@ -23,31 +23,5 @@ App.MainServiceInfoConfigsView = Em.View.extend({
   didInsertElement: function () {
     var controller = this.get('controller');
     controller.loadStep();
-  },
-  onToggleBlock: function(event){
-    $(document.getElementById(event.context.name)).toggle('blind', 500);
-    event.context.set('isCollapsed', !event.context.get('isCollapsed'));
   }
-});
-
-App.ServiceConfigsByCategoryView = Ember.View.extend({
-
-  content: null,
-
-
-  category: null,
-  serviceConfigs: null, // General, Advanced, NameNode, SNameNode, DataNode, etc.
-
-  categoryConfigs: function () {
-    return this.get('serviceConfigs').filterProperty('category', this.get('category.name'))
-  }.property('serviceConfigs.@each').cacheable(),
-  didInsertElement: function () {
-    if (this.get('category.name') == 'Advanced') {
-      this.set('category.isCollapsed', true);
-      $("#Advanced").hide();
-    } else {
-      this.set('category.isCollapsed', false);
-    }
-  },
-  layout: Ember.Handlebars.compile('<div {{bindAttr id="view.category.name"}} class="accordion-body collapse in"><div class="accordion-inner">{{yield}}</div></div>')
 });

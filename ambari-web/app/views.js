@@ -30,6 +30,7 @@ require('views/common/metric');
 require('views/common/time_range');
 require('views/common/form/field');
 require('views/common/quick_view_link_view');
+require('views/common/services_config');
 require('views/login');
 require('views/main');
 require('views/main/menu');

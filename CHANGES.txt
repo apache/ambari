@@ -45,6 +45,9 @@ Trunk (unreleased changes):
 
  IMPROVEMENTS
 
+ AMBARI-1444. Make install, service & host configuration pages reuse same
+ configuration code. (srimanth via yusaku)
+
  AMBARI-1457. Improve Job Diagnostics. (Billie Rinaldi via yusaku)
  
  AMBARI-1453. Move Ambari Web application config from initialize.js to

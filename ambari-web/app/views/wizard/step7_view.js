@@ -21,58 +21,6 @@ var App = require('app');
 
 App.WizardStep7View = Em.View.extend({
 
-  templateName: require('templates/wizard/step7'),
+  templateName: require('templates/wizard/step7')
 
-  didInsertElement: function () {
-    var controller = this.get('controller');
-    var slaveController = App.router.get('slaveComponentGroupsController');
-    controller.loadStep();
-    //slaveController.loadStep();  // TODO: remove it to enable slaveConfiguration
-  },
-  onToggleBlock: function(event){
-    $(document.getElementById(event.context.name)).toggle('blind', 500);
-    event.context.set('isCollapsed', !event.context.get('isCollapsed'));
-  }
-
-});
-
-/**
- * Since we need to use local Views and Controllers we should put them into separate context
- * @type {*|Object}
- */
-App.WizardStep7 = App.WizardStep7 || {};
-
-App.WizardStep7.ServiceConfigsByCategoryView = Ember.View.extend({
-
-  content: null,
-
-  category: null,
-  serviceConfigs: null, // General, Advanced, NameNode, SNameNode, DataNode, etc.
-
-  categoryConfigs: function () {
-    return this.get('serviceConfigs').filterProperty('category', this.get('category.name'))
-  }.property('serviceConfigs.@each').cacheable(),
-  didInsertElement: function () {
-    if (this.get('category.name') == 'Advanced') {
-      this.set('category.isCollapsed', true);
-      $("#Advanced").hide();
-    } else {
-      this.set('category.isCollapsed', false);
-    }
-  },
-  layout: Ember.Handlebars.compile('<div {{bindAttr id="view.category.name"}} class="accordion-body collapse in"><div class="accordion-inner">{{yield}}</div></div>')
-});
-
-App.WizardStep7.ServiceConfigTab = Ember.View.extend({
-
-  tagName: 'li',
-
-  selectService: function (event) {
-    this.set('controller.selectedService', event.context);
-  },
-
-  didInsertElement: function () {
-    var serviceName = this.get('controller.selectedService.serviceName');
-    this.$('a[href="#' + serviceName + '"]').tab('show');
-  }
 });

@@ -16,17 +16,19 @@
 * limitations under the License.
 }}
 
-<div id="serviceConfig">
-  {{#if dataIsLoaded}}
-    {{view App.ServiceConfigView}}
-    {{#if App.isAdmin}}
-      <p class="pull-right">
-        <!--<input class="btn btn-primary" type="button" value="Save" {{!bindAttr disabled="isSubmitDisabled"}} />-->
-        <a class="btn btn-primary" {{bindAttr disabled="isSubmitDisabled"}}
-          {{action restartServicePopup target="controller"}}>{{t common.save}}</a>
-      </p>
+<ul class="nav nav-tabs">
+  {{#each service in controller.stepConfigs}}
+    {{#if service.showConfig}}
+      {{#view App.ServiceConfigTab}}
+        <a class="active" href="#{{unbound service.serviceName}}"
+           data-toggle="tab" {{action selectService service target="view"}}>
+          {{service.displayName}}{{#if service.errorCount}}<span
+                class="badge badge-important">{{service.errorCount}}</span>{{/if}}</a>
+      {{/view}}
     {{/if}}
-  {{else}}
-    <div class="spinner"></div>
-  {{/if}}
-</div>
+  {{/each}}
+</ul>
+{{view App.ServiceConfigView}}
+{{#if isSubmitDisabled}}
+  <div class="alert">{{t installer.step7.attentionNeeded}}</div>
+{{/if}}
