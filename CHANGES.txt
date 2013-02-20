@@ -298,6 +298,9 @@ Trunk (unreleased changes):
 
  BUG FIXES
 
+ AMBARI-1456. Cannot proceed after bootstrapping in some cases due to a
+ run-time error while running host checks. (yusaku)
+
  AMBARI-1449. Failure popup shown for reconfiguring HDFS when MapReduce 
  is not selected. (jaimin)
 

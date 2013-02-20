@@ -691,6 +691,12 @@ App.WizardStep3Controller = Em.Controller.extend({
       };
 
       //render all directories and files for each host
+      if (!host.Hosts.last_agent_env) {
+        // in some unusual circumstances when last_agent_env is not available from the host,
+        // skip the host and proceed to process the rest of the hosts.
+        console.log("last_agent_env is missing for " + host.Hosts.host_name + ".  Skipping host check.");
+        return;
+      }
       host.Hosts.last_agent_env.paths.forEach(function(path){
         var parsedPath = {
           name: path.name,
