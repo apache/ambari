@@ -251,7 +251,7 @@ App.Router = Em.Router.extend({
       if (App.alwaysGoToInstaller) {
         return 'installer';
       } else {
-        return 'main';
+        return 'main.index';
       }
     }
     App.clusterStatus.updateFromServer();

@@ -315,6 +315,9 @@ Trunk (unreleased changes):
 
  BUG FIXES
 
+ AMBARI-1455. Setting App.testMode=true, alwaysGoToInstaller=true does not
+ render the Dashboard properly upon login. (yusaku)
+
  AMBARI-1452. Graphs look broken when network connectivity is lost between
  Ambari Web and Ambari Server. (yusaku)
 
