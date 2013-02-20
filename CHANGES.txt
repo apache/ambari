@@ -298,6 +298,9 @@ Trunk (unreleased changes):
 
  BUG FIXES
 
+ AMBARI-1452. Graphs look broken when network connectivity is lost between
+ Ambari Web and Ambari Server. (yusaku)
+
  AMBARI-1441. Validation for username used in service configs is broken.
  (yusaku)
 

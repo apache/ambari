@@ -173,9 +173,18 @@ App.ChartLinearTimeView = Ember.View.extend({
    * @type: Function
    */
   _showMessage: function(type, title, message){
-    var chartOverlayId = '#' + this.id + '-chart';
+    var chartOverlay = '#' + this.id;
+    var chartOverlayId = chartOverlay + '-chart';
+    var chartOverlayY = chartOverlay + '-yaxis';
+    var chartOverlayX = chartOverlay + '-xaxis';
+    var chartOverlayLegend = chartOverlay + '-legend';
+    var chartOverlayTimeline = chartOverlay + '-timeline';
     if (this.get('isPopup')) {
       chartOverlayId += this.get('popupSuffix');
+      chartOverlayY += this.get('popupSuffix');
+      chartOverlayX += this.get('popupSuffix');
+      chartOverlayLegend += this.get('popupSuffix');
+      chartOverlayTimeline += this.get('popupSuffix');
     }
     var typeClass;
     switch (type) {
@@ -192,7 +201,7 @@ App.ChartLinearTimeView = Ember.View.extend({
         typeClass = '';
         break;
     }
-    $(chartOverlayId).html('');
+    $(chartOverlayId+', '+chartOverlayY+', '+chartOverlayX+', '+chartOverlayLegend+', '+chartOverlayTimeline).html('');
     $(chartOverlayId).append('<div class=\"alert '+typeClass+'\"><strong>'+title+'</strong> '+message+'</div>');
   },
 
