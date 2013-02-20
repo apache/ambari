@@ -37,13 +37,20 @@ public interface DBConnector {
   
   public DataTable fetchWorkflows(int offset, int limit, String searchTerm, int echo, WorkflowFields field, boolean sortAscending, String searchWorkflowId,
       String searchWorkflowName, String searchWorkflowType, String searchUserName, int minJobs, int maxJobs, long minInputBytes, long maxInputBytes,
-      long minOutputBytes, long maxOutputBytes, long minDuration, long maxDuration, long minStartTime, long maxStartTime) throws IOException;
+      long minOutputBytes, long maxOutputBytes, long minDuration, long maxDuration, long minStartTime, long maxStartTime, long minFinishTime, long maxFinishTime)
+      throws IOException;
   
   public List<JobDBEntry> fetchJobDetails(String workflowID) throws IOException;
   
+  public List<JobDBEntry> fetchJobDetails(long minFinishTime, long maxStartTime) throws IOException;
+  
   public long[] fetchJobStartStopTimes(String jobID) throws IOException;
   
-  public List<TaskAttempt> fetchTaskAttempts(String jobID, String taskType) throws IOException;
+  public List<TaskAttempt> fetchJobTaskAttempts(String jobID) throws IOException;
+  
+  public List<TaskAttempt> fetchWorkflowTaskAttempts(String workflowID) throws IOException;
+  
+  public List<TaskAttempt> fetchTaskAttempts(long minFinishTime, long maxStartTime) throws IOException;
   
   public void close();
 }

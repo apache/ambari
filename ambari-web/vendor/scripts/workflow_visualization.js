@@ -85,15 +85,14 @@ DagViewer.prototype._addLink = function (sourceNode, targetNode) {
 //                 nodeHeight = 15, labelFontSize = 10, maxLabelWidth = 120
 //                 nodeHeight = 40, labelFontSize = 20, maxLabelWidth = 260
 //                 nodeHeight = 30, labelFontSize = 16
-DagViewer.prototype.drawDag = function (svgw, svgh, nodeHeight, labelFontSize, maxLabelWidth, axisPadding, svgPadding) {
-  this._addTimelineGraph(svgw, svgh, nodeHeight || 20, labelFontSize || 14, maxLabelWidth || 180, axisPadding || 30, svgPadding || 20);
+DagViewer.prototype.drawDag = function (svgw, svgh, nodeHeight, labelFontSize, maxLabelWidth, axisPadding) {
+  this._addTimelineGraph(svgw, svgh, nodeHeight || 20, labelFontSize || 14, maxLabelWidth || 180, axisPadding || 30);
   return this;
 }
 
 // draw timeline graph
-DagViewer.prototype._addTimelineGraph = function (svgw, svgh, nodeHeight, labelFontSize, maxLabelWidth, axisPadding, svgPadding) {
-  // want to avoid having unnecessary scrollbars, so we need to size the div slightly larger than the svg
-  svgw = svgw - svgPadding;
+DagViewer.prototype._addTimelineGraph = function (svgw, svgh, nodeHeight, labelFontSize, maxLabelWidth, axisPadding) {
+  svgw = svgw;
 
   var margin = {"top":10, "bottom":10, "left":30, "right":30};
   var w = svgw - margin.left - margin.right;
@@ -157,15 +156,26 @@ DagViewer.prototype._addTimelineGraph = function (svgw, svgh, nodeHeight, labelF
   }
 
   var h = 2*axisPadding + 2*nodeHeight*(maxIndex+1);
-  d3.select("div#" + this._id)
-    .attr("style","width:"+(svgw+svgPadding)+"px;height:"+Math.min(svgh,h+margin.top+margin.bottom+svgPadding)+"px;overflow:auto;padding:none;");
-  svgh = h + margin.top + margin.bottom;
+  var realh = svgh - margin.top - margin.bottom;
+  var scale = 1;
+  if (h > realh)
+    scale = realh / h;
+  svgh = Math.min(svgh, h + margin.top + margin.bottom);
   var svg = d3.select("div#" + this._id).append("svg:svg")
     .attr("width", svgw+"px")
     .attr("height", svgh+"px");
+    
   var svgg = svg.append("g")
-    .attr("transform", "translate("+margin.left+","+margin.top+")");
-  
+    .attr("transform", "translate("+margin.left+","+margin.top+") scale("+scale+")");
+  // add an untranslated white rectangle below everything
+  // so mouse doesn't have to be over nodes for panning/zooming
+  svgg.append("svg:rect")
+    .attr("x", 0)
+    .attr("y", 0)
+    .attr("width", svgw)
+    .attr("height", svgh/scale)
+    .attr("style", "fill:white;stroke:none");
+ 
   // create axes
   var x = d3.time.scale()
     .domain([0, elapsedTime])
@@ -196,18 +206,17 @@ DagViewer.prototype._addTimelineGraph = function (svgw, svgh, nodeHeight, labelF
     return weeks + "w " + (x==0 ? "" : " " + x + "d");
   };
   var topAxis = d3.svg.axis()
-    .scale(x)
-    .orient("bottom")
-    .tickFormat(tickFormatter);
+    .scale(d3.time.scale().domain([startTime, startTime+elapsedTime]).range([0, w]))
+    .orient("bottom");
   var bottomAxis = d3.svg.axis()
     .scale(x)
     .orient("top")
     .tickFormat(tickFormatter);
   svgg.append("g")
-    .attr("class", "x axis")
+    .attr("class", "x axis top")
     .call(topAxis);
   svgg.append("g")
-    .attr("class", "x axis")
+    .attr("class", "x axis bottom")
     .call(bottomAxis)
     .attr("transform", "translate(0,"+h+")");
   
@@ -313,7 +322,8 @@ DagViewer.prototype._addTimelineGraph = function (svgw, svgh, nodeHeight, labelF
     .attr("x", function(d) {
       var goal = d.x + d.w/2;
       var halfLabel = maxLabelWidth/2;
-      if (goal < halfLabel) return halfLabel;      else if (goal > w-halfLabel) return w-halfLabel;
+      if (goal < halfLabel) return halfLabel;
+      else if (goal > w-halfLabel) return w-halfLabel;
       return goal;
     } )
     .attr("y", function(d) { return d.y + d.h + labelFontSize; } )
@@ -338,4 +348,10 @@ DagViewer.prototype._addTimelineGraph = function (svgw, svgh, nodeHeight, labelF
     .text(function (d) {
       return d.name;
     });
+
+  svg.call(d3.behavior.zoom().on("zoom", function() {
+    var left = Math.min(Math.max(d3.event.translate[0]+margin.left, margin.left-w*d3.event.scale*scale), margin.left+w);
+    var top = Math.min(Math.max(d3.event.translate[1]+margin.top, margin.top-h*d3.event.scale*scale), margin.top+h);
+    svgg.attr("transform", "translate("+left+","+top+") scale("+(d3.event.scale*scale)+")");
+  }));
 }

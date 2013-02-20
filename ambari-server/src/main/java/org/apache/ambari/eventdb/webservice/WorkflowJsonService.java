@@ -112,7 +112,8 @@ public class WorkflowJsonService {
       @DefaultValue("-1") @QueryParam("minInputBytes") long minInputBytes, @DefaultValue("-1") @QueryParam("maxInputBytes") long maxInputBytes,
       @DefaultValue("-1") @QueryParam("minOutputBytes") long minOutputBytes, @DefaultValue("-1") @QueryParam("maxOutputBytes") long maxOutputBytes,
       @DefaultValue("-1") @QueryParam("minDuration") long minDuration, @DefaultValue("-1") @QueryParam("maxDuration") long maxDuration,
-      @DefaultValue("-1") @QueryParam("minStartTime") long minStartTime, @DefaultValue("-1") @QueryParam("maxStartTime") long maxStartTime) {
+      @DefaultValue("-1") @QueryParam("minStartTime") long minStartTime, @DefaultValue("-1") @QueryParam("maxStartTime") long maxStartTime,
+      @DefaultValue("-1") @QueryParam("minFinishTime") long minFinishTime, @DefaultValue("-1") @QueryParam("maxFinishTime") long maxFinishTime) {
     
     if (start < 0)
       start = 0;
@@ -152,6 +153,9 @@ public class WorkflowJsonService {
       case 8: // startTime
         field = WorkflowFields.STARTTIME;
         break;
+      case 9: // lastUpdateTime
+        field = WorkflowFields.LASTUPDATETIME;
+        break;
       default:
         field = WorkflowFields.WORKFLOWID;
     }
@@ -161,7 +165,7 @@ public class WorkflowJsonService {
     try {
       conn = getConnector();
       table = conn.fetchWorkflows(start, amount, searchTerm, echo, field, sortAscending, workflowId, workflowName, workflowType, userName, minJobs, maxJobs,
-          minInputBytes, maxInputBytes, minOutputBytes, maxOutputBytes, minDuration, maxDuration, minStartTime, maxStartTime);
+          minInputBytes, maxInputBytes, minOutputBytes, maxOutputBytes, minDuration, maxDuration, minStartTime, maxStartTime, minFinishTime, maxFinishTime);
     } catch (IOException e) {
       e.printStackTrace();
     } finally {
@@ -175,12 +179,16 @@ public class WorkflowJsonService {
   @GET
   @Produces(MediaType.APPLICATION_JSON)
   @Path("/job")
-  public Jobs getJobs(@QueryParam("workflowId") String workflowId) {
+  public Jobs getJobs(@QueryParam("workflowId") String workflowId, @DefaultValue("-1") @QueryParam("startTime") long minFinishTime,
+      @DefaultValue("-1") @QueryParam("endTime") long maxStartTime) {
     Jobs jobs = new Jobs();
     PostgresConnector conn = null;
     try {
       conn = getConnector();
-      jobs.setJobs(conn.fetchJobDetails(workflowId));
+      if (workflowId != null)
+        jobs.setJobs(conn.fetchJobDetails(workflowId));
+      else if (maxStartTime >= minFinishTime)
+        jobs.setJobs(conn.fetchJobDetails(minFinishTime, maxStartTime));
     } catch (IOException e) {
       e.printStackTrace();
       jobs.setJobs(EMPTY_JOBS);
@@ -195,20 +203,35 @@ public class WorkflowJsonService {
   @GET
   @Produces(MediaType.APPLICATION_JSON)
   @Path("/task")
-  public TaskData getTaskDetails(@QueryParam("jobId") String jobId, @QueryParam("width") int steps) {
+  public TaskData getTaskSummary(@QueryParam("jobId") String jobId, @QueryParam("width") int steps,
+      @DefaultValue("-1") @QueryParam("startTime") long minFinishTime, @DefaultValue("-1") @QueryParam("endTime") long maxStartTime) {
     TaskData points = new TaskData();
     PostgresConnector conn = null;
     try {
       conn = getConnector();
-      long[] times = conn.fetchJobStartStopTimes(jobId);
-      if (times != null) {
-        double submitTimeSecs = times[0] / 1000.0;
-        double finishTimeSecs = times[1] / 1000.0;
+      List<TaskAttempt> taskAttempts = null;
+      long startTime = -1;
+      long endTime = -1;
+      if (jobId != null) {
+        long[] times = conn.fetchJobStartStopTimes(jobId);
+        if (times != null) {
+          startTime = times[0];
+          endTime = times[1];
+          taskAttempts = conn.fetchJobTaskAttempts(jobId);
+        }
+      } else {
+        startTime = minFinishTime;
+        endTime = maxStartTime;
+        taskAttempts = conn.fetchTaskAttempts(minFinishTime, maxStartTime);
+      }
+      if (startTime > 0 && endTime > 0 && endTime >= startTime) {
+        double submitTimeSecs = startTime / 1000.0;
+        double finishTimeSecs = endTime / 1000.0;
         double step = (finishTimeSecs - submitTimeSecs) / steps;
         if (step < 1)
           step = 1;
-        getMapDetails(conn, points, jobId, submitTimeSecs, finishTimeSecs, step);
-        getReduceDetails(conn, points, jobId, submitTimeSecs, finishTimeSecs, step);
+        if (taskAttempts != null)
+          getTaskDetails(taskAttempts, points, submitTimeSecs, finishTimeSecs, step);
       }
     } catch (IOException e) {
       e.printStackTrace();
@@ -222,8 +245,31 @@ public class WorkflowJsonService {
   
   @GET
   @Produces(MediaType.APPLICATION_JSON)
+  @Path("/taskdetails")
+  public List<TaskAttempt> getTaskDetails(@QueryParam("jobId") String jobId, @QueryParam("workflowId") String workflowId) {
+    List<TaskAttempt> taskAttempts = new ArrayList<TaskAttempt>();
+    PostgresConnector conn = null;
+    try {
+      conn = getConnector();
+      if (jobId != null) {
+        taskAttempts = conn.fetchJobTaskAttempts(jobId);
+      } else if (workflowId != null) {
+        taskAttempts = conn.fetchWorkflowTaskAttempts(workflowId);
+      }
+    } catch (IOException e) {
+      e.printStackTrace();
+    } finally {
+      if (conn != null) {
+        conn.close();
+      }
+    }
+    return taskAttempts;
+  }
+  
+  @GET
+  @Produces(MediaType.APPLICATION_JSON)
   @Path("/tasklocality")
-  public TaskLocalityData getTaskLocalityDetails(@QueryParam("jobId") String jobId, @DefaultValue("4") @QueryParam("minr") int minr,
+  public TaskLocalityData getTaskLocalitySummary(@QueryParam("jobId") String jobId, @DefaultValue("4") @QueryParam("minr") int minr,
       @DefaultValue("24") @QueryParam("maxr") int maxr) {
     if (maxr < minr)
       maxr = minr;
@@ -245,38 +291,32 @@ public class WorkflowJsonService {
     return data;
   }
   
-  private static void getMapDetails(PostgresConnector conn, TaskData points, String jobId, double submitTimeSecs, double finishTimeSecs, double step)
+  private static void getTaskDetails(List<TaskAttempt> taskAttempts, TaskData points, double submitTimeSecs, double finishTimeSecs, double step)
       throws IOException {
-    List<TaskAttempt> taskAttempts = conn.fetchTaskAttempts(jobId, "MAP");
     List<Point> mapPoints = new ArrayList<Point>();
-    for (double time = submitTimeSecs; time < finishTimeSecs; time += step) {
-      int numTasks = 0;
-      for (TaskAttempt taskAttempt : taskAttempts)
-        if ((taskAttempt.getStartTime() / 1000.0) <= (time + step) && (taskAttempt.getFinishTime() / 1000.0) >= time)
-          numTasks++;
-      mapPoints.add(new Point(Math.round(time), numTasks));
-    }
-    points.setMapData(mapPoints);
-  }
-  
-  private static void getReduceDetails(PostgresConnector conn, TaskData points, String jobId, double submitTimeSecs, double finishTimeSecs, double step)
-      throws IOException {
-    List<TaskAttempt> taskAttempts = conn.fetchTaskAttempts(jobId, "REDUCE");
     List<Point> shufflePoints = new ArrayList<Point>();
     List<Point> reducePoints = new ArrayList<Point>();
     for (double time = submitTimeSecs; time < finishTimeSecs; time += step) {
+      int numTasks = 0;
       int numShuffleTasks = 0;
       int numReduceTasks = 0;
       for (TaskAttempt taskAttempt : taskAttempts) {
-        if ((taskAttempt.getStartTime() / 1000.0) <= (time + step) && (taskAttempt.getShuffleFinishTime() / 1000.0) >= time) {
-          numShuffleTasks++;
-        } else if ((taskAttempt.getShuffleFinishTime() / 1000.0) < (time + step) && (taskAttempt.getFinishTime() / 1000.0) >= time) {
-          numReduceTasks++;
+        if (taskAttempt.getTaskType().equals("MAP")) {
+          if ((taskAttempt.getStartTime() / 1000.0) <= (time + step) && (taskAttempt.getFinishTime() / 1000.0) >= time)
+            numTasks++;
+        } else if (taskAttempt.getTaskType().equals("REDUCE")) {
+          if ((taskAttempt.getStartTime() / 1000.0) <= (time + step) && (taskAttempt.getShuffleFinishTime() / 1000.0) >= time) {
+            numShuffleTasks++;
+          } else if ((taskAttempt.getShuffleFinishTime() / 1000.0) < (time + step) && (taskAttempt.getFinishTime() / 1000.0) >= time) {
+            numReduceTasks++;
+          }
         }
       }
+      mapPoints.add(new Point(Math.round(time), numTasks));
       shufflePoints.add(new Point(Math.round(time), numShuffleTasks));
       reducePoints.add(new Point(Math.round(time), numReduceTasks));
     }
+    points.setMapData(mapPoints);
     points.setShuffleData(shufflePoints);
     points.setReduceData(reducePoints);
   }
@@ -285,15 +325,14 @@ public class WorkflowJsonService {
       int maxr) throws IOException {
     long submitTimeX = transformX(submitTime);
     long finishTimeX = transformX(finishTime);
-    List<TaskAttempt> mapAttempts = conn.fetchTaskAttempts(jobId, "MAP");
-    List<TaskAttempt> reduceAttempts = conn.fetchTaskAttempts(jobId, "REDUCE");
-    Set<Long> xPoints = getXPoints(mapAttempts, reduceAttempts, submitTimeX, finishTimeX);
+    List<TaskAttempt> taskAttempts = conn.fetchJobTaskAttempts(jobId);
+    Set<Long> xPoints = getXPoints(taskAttempts, submitTimeX, finishTimeX);
     Long[] xList = xPoints.toArray(new Long[xPoints.size()]);
     MinMax io = new MinMax();
-    data.setMapNodeLocal(processLocalityData(mapAttempts, "NODE_LOCAL", xList, io));
-    data.setMapRackLocal(processLocalityData(mapAttempts, "RACK_LOCAL", xList, io));
-    data.setMapOffSwitch(processLocalityData(mapAttempts, "OFF_SWITCH", xList, io));
-    data.setReduceOffSwitch(processLocalityData(reduceAttempts, "OFF_SWITCH", xList, io));
+    data.setMapNodeLocal(processLocalityData(taskAttempts, "MAP", "NODE_LOCAL", xList, io));
+    data.setMapRackLocal(processLocalityData(taskAttempts, "MAP", "RACK_LOCAL", xList, io));
+    data.setMapOffSwitch(processLocalityData(taskAttempts, "MAP", "OFF_SWITCH", xList, io));
+    data.setReduceOffSwitch(processLocalityData(taskAttempts, "REDUCE", "OFF_SWITCH", xList, io));
     setRValues(data.getMapNodeLocal(), minr, maxr, io.max);
     setRValues(data.getMapRackLocal(), minr, maxr, io.max);
     setRValues(data.getMapOffSwitch(), minr, maxr, io.max);
@@ -319,7 +358,7 @@ public class WorkflowJsonService {
     return time;
   }
   
-  private static Set<Long> getXPoints(List<TaskAttempt> mapAttempts, List<TaskAttempt> reduceAttempts, long submitTimeX, long finishTimeX) {
+  private static Set<Long> getXPoints(List<TaskAttempt> taskAttempts, long submitTimeX, long finishTimeX) {
     TreeSet<Long> xPoints = new TreeSet<Long>();
     TreeSet<TaskAttempt> sortedAttempts = new TreeSet<TaskAttempt>(new Comparator<TaskAttempt>() {
       @Override
@@ -331,8 +370,7 @@ public class WorkflowJsonService {
         return t1.getTaskAttemptId().compareTo(t2.getTaskAttemptId());
       }
     });
-    sortedAttempts.addAll(mapAttempts);
-    sortedAttempts.addAll(reduceAttempts);
+    sortedAttempts.addAll(taskAttempts);
     getXPoints(sortedAttempts, xPoints);
     xPoints.add(submitTimeX);
     xPoints.add(finishTimeX);
@@ -362,11 +400,11 @@ public class WorkflowJsonService {
     return index;
   }
   
-  private static List<DataPoint> processLocalityData(List<TaskAttempt> taskAttempts, String locality, Long[] xPoints, MinMax io) {
+  private static List<DataPoint> processLocalityData(List<TaskAttempt> taskAttempts, String taskType, String locality, Long[] xPoints, MinMax io) {
     List<DataPoint> data = new ArrayList<DataPoint>();
     int i = 0;
     for (TaskAttempt taskAttempt : taskAttempts) {
-      if (locality.equals(taskAttempt.getLocality())) {
+      if (taskType.equals(taskAttempt.getTaskType()) && locality.equals(taskAttempt.getLocality())) {
         DataPoint point = new DataPoint();
         point.setX(transformX(taskAttempt.getStartTime()));
         point.setY(transformY(taskAttempt.getFinishTime() - taskAttempt.getStartTime()));

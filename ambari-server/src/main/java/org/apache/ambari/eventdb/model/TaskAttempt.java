@@ -61,6 +61,7 @@ public class TaskAttempt {
   
   public static final String TASK_ATTEMPT_FIELDS = TaskAttemptFields.join();
   
+  private String jobId;
   private String taskAttemptId;
   private String taskType;
   private long startTime;
@@ -74,6 +75,14 @@ public class TaskAttempt {
   private String locality;
   
   public TaskAttempt() {}
+  
+  public String getJobId() {
+    return jobId;
+  }
+  
+  public void setJobId(String jobId) {
+    this.jobId = jobId;
+  }
   
   public String getTaskAttemptId() {
     return taskAttemptId;
@@ -134,19 +143,19 @@ public class TaskAttempt {
   public long getInputBytes() {
     return inputBytes;
   }
-
+  
   public long getOutputBytes() {
     return outputBytes;
   }
-
+  
   public void setInputBytes(long inputBytes) {
     this.inputBytes = inputBytes;
   }
-
+  
   public void setOutputBytes(long outputBytes) {
     this.outputBytes = outputBytes;
   }
-
+  
   public String getStatus() {
     return status;
   }

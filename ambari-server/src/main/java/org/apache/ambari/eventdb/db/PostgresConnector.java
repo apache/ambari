@@ -75,9 +75,17 @@ public class PostgresConnector implements DBConnector {
         + WorkflowFields.STARTTIME + ") as " + SummaryFields.youngest + ", max(" + WorkflowFields.STARTTIME + ") as " + SummaryFields.oldest + " FROM "
         + WORKFLOW_TABLE_NAME),
     FJD_PS("SELECT " + JobDBEntry.JOB_FIELDS + " FROM " + JOB_TABLE_NAME + " WHERE " + JobFields.WORKFLOWID.toString() + " = ?"),
+    FJD_TIMERANGE_PS("SELECT " + JobDBEntry.JOB_FIELDS + " FROM " + JOB_TABLE_NAME + " WHERE " + JobFields.FINISHTIME.toString() + " >= ? AND "
+        + JobFields.SUBMITTIME.toString() + " <= ? ORDER BY " + JobFields.WORKFLOWID + ", " + JobFields.JOBID),
     FJSS_PS("SELECT " + JobFields.SUBMITTIME + ", " + JobFields.FINISHTIME + " FROM " + JOB_TABLE_NAME + " WHERE " + JobFields.JOBID + " = ?"),
-    FTA_PS("SELECT " + TaskAttempt.TASK_ATTEMPT_FIELDS + " FROM " + TASK_ATTEMPT_TABLE_NAME + " WHERE " + TaskAttemptFields.JOBID + " = ? AND "
-        + TaskAttemptFields.TASKTYPE + " = ? ORDER BY " + TaskAttemptFields.STARTTIME);
+    FJTA_PS("SELECT " + TaskAttempt.TASK_ATTEMPT_FIELDS + " FROM " + TASK_ATTEMPT_TABLE_NAME + " WHERE " + TaskAttemptFields.JOBID + " = ? ORDER BY "
+        + TaskAttemptFields.STARTTIME),
+    FWTA_PS("SELECT " + TaskAttempt.TASK_ATTEMPT_FIELDS + " FROM " + TASK_ATTEMPT_TABLE_NAME + ", (SELECT " + JobFields.JOBID + " as id FROM " + JOB_TABLE_NAME
+        + " WHERE " + JobFields.WORKFLOWID + " = ?) AS jobs WHERE " + TASK_ATTEMPT_TABLE_NAME + "." + TaskAttemptFields.JOBID + " = jobs.id "
+        + " ORDER BY " + TaskAttemptFields.JOBID + "," + TaskAttemptFields.STARTTIME + ", " + TaskAttemptFields.FINISHTIME),
+    FTA_TIMERANGE_PS("SELECT " + TaskAttempt.TASK_ATTEMPT_FIELDS + " FROM " + TASK_ATTEMPT_TABLE_NAME + " WHERE " + TaskAttemptFields.FINISHTIME + " >= ? AND "
+        + TaskAttemptFields.STARTTIME + " <= ? AND (" + TaskAttemptFields.TASKTYPE + " = 'MAP' OR  " + TaskAttemptFields.TASKTYPE + " = 'REDUCE') ORDER BY "
+        + TaskAttemptFields.STARTTIME);
     
     private String statementString;
     
@@ -219,7 +227,8 @@ public class PostgresConnector implements DBConnector {
   @Override
   public DataTable fetchWorkflows(int offset, int limit, String searchTerm, int echo, WorkflowFields col, boolean sortAscending, String searchWorkflowId,
       String searchWorkflowName, String searchWorkflowType, String searchUserName, int minJobs, int maxJobs, long minInputBytes, long maxInputBytes,
-      long minOutputBytes, long maxOutputBytes, long minDuration, long maxDuration, long minStartTime, long maxStartTime) throws IOException {
+      long minOutputBytes, long maxOutputBytes, long minDuration, long maxDuration, long minStartTime, long maxStartTime, long minFinishTime, long maxFinishTime)
+      throws IOException {
     int total = 0;
     PreparedStatement ps = getPS(Statements.FW_COUNT_PS);
     ResultSet rs = null;
@@ -239,7 +248,7 @@ public class PostgresConnector implements DBConnector {
     }
     
     String searchClause = buildSearchClause(searchTerm, searchWorkflowId, searchWorkflowName, searchWorkflowType, searchUserName, minJobs, maxJobs,
-        minInputBytes, maxInputBytes, minOutputBytes, maxOutputBytes, minDuration, maxDuration, minStartTime, maxStartTime);
+        minInputBytes, maxInputBytes, minOutputBytes, maxOutputBytes, minDuration, maxDuration, minStartTime, maxStartTime, minFinishTime, maxFinishTime);
     List<WorkflowDBEntry> workflows = fetchWorkflows(getQualifiedPS(Statements.FW_PS, searchClause, col, sortAscending, offset, limit));
     Summary summary = fetchSummary(getQualifiedPS(Statements.FW_SUMMARY_PS, searchClause));
     DataTable table = new DataTable();
@@ -258,6 +267,28 @@ public class PostgresConnector implements DBConnector {
     return table;
   }
   
+  private static JobDBEntry getJobDBEntry(ResultSet rs) throws SQLException {
+    JobDBEntry j = new JobDBEntry();
+    j.setConfPath(JobFields.CONFPATH.getString(rs));
+    j.setSubmitTime(JobFields.SUBMITTIME.getLong(rs));
+    long finishTime = JobFields.FINISHTIME.getLong(rs);
+    if (finishTime > j.getSubmitTime())
+      j.setElapsedTime(finishTime - j.getSubmitTime());
+    else
+      j.setElapsedTime(0);
+    j.setInputBytes(JobFields.INPUTBYTES.getLong(rs));
+    j.setJobId(JobFields.JOBID.getString(rs));
+    j.setJobName(JobFields.JOBNAME.getString(rs));
+    j.setMaps(JobFields.MAPS.getInt(rs));
+    j.setOutputBytes(JobFields.OUTPUTBYTES.getLong(rs));
+    j.setReduces(JobFields.REDUCES.getInt(rs));
+    j.setStatus(JobFields.STATUS.getString(rs));
+    j.setUserName(JobFields.USERNAME.getString(rs));
+    j.setWorkflowEntityName(JobFields.WORKFLOWENTITYNAME.getString(rs));
+    j.setWorkflowId(JobFields.WORKFLOWID.getString(rs));
+    return j;
+  }
+  
   @Override
   public List<JobDBEntry> fetchJobDetails(String workflowId) throws IOException {
     PreparedStatement ps = getPS(Statements.FJD_PS);
@@ -267,25 +298,34 @@ public class PostgresConnector implements DBConnector {
       ps.setString(1, workflowId);
       rs = ps.executeQuery();
       while (rs.next()) {
-        JobDBEntry j = new JobDBEntry();
-        j.setConfPath(JobFields.CONFPATH.getString(rs));
-        j.setSubmitTime(JobFields.SUBMITTIME.getLong(rs));
-        long finishTime = JobFields.FINISHTIME.getLong(rs);
-        if (finishTime > j.getSubmitTime())
-          j.setElapsedTime(finishTime - j.getSubmitTime());
-        else
-          j.setElapsedTime(0);
-        j.setInputBytes(JobFields.INPUTBYTES.getLong(rs));
-        j.setJobId(JobFields.JOBID.getString(rs));
-        j.setJobName(JobFields.JOBNAME.getString(rs));
-        j.setMaps(JobFields.MAPS.getInt(rs));
-        j.setOutputBytes(JobFields.OUTPUTBYTES.getLong(rs));
-        j.setReduces(JobFields.REDUCES.getInt(rs));
-        j.setStatus(JobFields.STATUS.getString(rs));
-        j.setUserName(JobFields.USERNAME.getString(rs));
-        j.setWorkflowEntityName(JobFields.WORKFLOWENTITYNAME.getString(rs));
-        j.setWorkflowId(JobFields.WORKFLOWID.getString(rs));
-        jobs.add(j);
+        jobs.add(getJobDBEntry(rs));
+      }
+      rs.close();
+    } catch (SQLException e) {
+      throw new IOException(e);
+    } finally {
+      if (rs != null)
+        try {
+          rs.close();
+        } catch (SQLException e) {
+          LOG.error("Exception while closing ResultSet", e);
+        }
+      
+    }
+    return jobs;
+  }
+  
+  @Override
+  public List<JobDBEntry> fetchJobDetails(long minFinishTime, long maxStartTime) throws IOException {
+    PreparedStatement ps = getPS(Statements.FJD_TIMERANGE_PS);
+    List<JobDBEntry> jobs = new ArrayList<JobDBEntry>();
+    ResultSet rs = null;
+    try {
+      ps.setLong(1, minFinishTime);
+      ps.setLong(2, maxStartTime);
+      rs = ps.executeQuery();
+      while (rs.next()) {
+        jobs.add(getJobDBEntry(rs));
       }
       rs.close();
     } catch (SQLException e) {
@@ -332,29 +372,84 @@ public class PostgresConnector implements DBConnector {
     return times;
   }
   
+  private static TaskAttempt getTaskAttempt(ResultSet rs) throws SQLException {
+    TaskAttempt t = new TaskAttempt();
+    t.setFinishTime(TaskAttemptFields.FINISHTIME.getLong(rs));
+    t.setInputBytes(TaskAttemptFields.INPUTBYTES.getLong(rs));
+    t.setJobId(TaskAttemptFields.JOBID.getString(rs));
+    t.setLocality(TaskAttemptFields.LOCALITY.getString(rs));
+    t.setMapFinishTime(TaskAttemptFields.MAPFINISHTIME.getLong(rs));
+    t.setOutputBytes(TaskAttemptFields.OUTPUTBYTES.getLong(rs));
+    t.setShuffleFinishTime(TaskAttemptFields.SHUFFLEFINISHTIME.getLong(rs));
+    t.setSortFinishTime(TaskAttemptFields.SORTFINISHTIME.getLong(rs));
+    t.setStartTime(TaskAttemptFields.STARTTIME.getLong(rs));
+    t.setStatus(TaskAttemptFields.STATUS.getString(rs));
+    t.setTaskAttemptId(TaskAttemptFields.TASKATTEMPTID.getString(rs));
+    t.setTaskType(TaskAttemptFields.TASKTYPE.getString(rs));
+    return t;
+  }
+  
   @Override
-  public List<TaskAttempt> fetchTaskAttempts(String jobID, String taskType) throws IOException {
-    PreparedStatement ps = getPS(Statements.FTA_PS);
+  public List<TaskAttempt> fetchTaskAttempts(long minFinishTime, long maxStartTime) throws IOException {
+    PreparedStatement ps = getPS(Statements.FTA_TIMERANGE_PS);
+    List<TaskAttempt> taskAttempts = new ArrayList<TaskAttempt>();
+    ResultSet rs = null;
+    try {
+      ps.setLong(1, minFinishTime);
+      ps.setLong(2, maxStartTime);
+      rs = ps.executeQuery();
+      while (rs.next()) {
+        taskAttempts.add(getTaskAttempt(rs));
+      }
+      rs.close();
+    } catch (SQLException e) {
+      throw new IOException(e);
+    } finally {
+      if (rs != null)
+        try {
+          rs.close();
+        } catch (SQLException e) {
+          LOG.error("Exception while closing ResultSet", e);
+        }
+    }
+    return taskAttempts;
+  }
+  
+  @Override
+  public List<TaskAttempt> fetchJobTaskAttempts(String jobID) throws IOException {
+    PreparedStatement ps = getPS(Statements.FJTA_PS);
     List<TaskAttempt> taskAttempts = new ArrayList<TaskAttempt>();
     ResultSet rs = null;
     try {
       ps.setString(1, jobID);
-      ps.setString(2, taskType);
       rs = ps.executeQuery();
       while (rs.next()) {
-        TaskAttempt t = new TaskAttempt();
-        t.setFinishTime(TaskAttemptFields.FINISHTIME.getLong(rs));
-        t.setInputBytes(TaskAttemptFields.INPUTBYTES.getLong(rs));
-        t.setLocality(TaskAttemptFields.LOCALITY.getString(rs));
-        t.setMapFinishTime(TaskAttemptFields.MAPFINISHTIME.getLong(rs));
-        t.setOutputBytes(TaskAttemptFields.OUTPUTBYTES.getLong(rs));
-        t.setShuffleFinishTime(TaskAttemptFields.SHUFFLEFINISHTIME.getLong(rs));
-        t.setSortFinishTime(TaskAttemptFields.SORTFINISHTIME.getLong(rs));
-        t.setStartTime(TaskAttemptFields.STARTTIME.getLong(rs));
-        t.setStatus(TaskAttemptFields.STATUS.getString(rs));
-        t.setTaskAttemptId(TaskAttemptFields.TASKATTEMPTID.getString(rs));
-        t.setTaskType(TaskAttemptFields.TASKTYPE.getString(rs));
-        taskAttempts.add(t);
+        taskAttempts.add(getTaskAttempt(rs));
+      }
+      rs.close();
+    } catch (SQLException e) {
+      throw new IOException(e);
+    } finally {
+      if (rs != null)
+        try {
+          rs.close();
+        } catch (SQLException e) {
+          LOG.error("Exception while closing ResultSet", e);
+        }
+    }
+    return taskAttempts;
+  }
+  
+  @Override
+  public List<TaskAttempt> fetchWorkflowTaskAttempts(String workflowId) throws IOException {
+    PreparedStatement ps = getPS(Statements.FWTA_PS);
+    List<TaskAttempt> taskAttempts = new ArrayList<TaskAttempt>();
+    ResultSet rs = null;
+    try {
+      ps.setString(1, workflowId);
+      rs = ps.executeQuery();
+      while (rs.next()) {
+        taskAttempts.add(getTaskAttempt(rs));
       }
       rs.close();
     } catch (SQLException e) {
@@ -377,6 +472,7 @@ public class PostgresConnector implements DBConnector {
     synchronized (preparedStatements) {
       if (!preparedStatements.containsKey(statement)) {
         try {
+          // LOG.debug("preparing " + statement.getStatementString());
           preparedStatements.put(statement, db.prepareStatement(statement.getStatementString()));
         } catch (SQLException e) {
           throw new IOException(e);
@@ -451,7 +547,7 @@ public class PostgresConnector implements DBConnector {
   
   private static String buildSearchClause(String searchTerm, String searchWorkflowId, String searchWorkflowName, String searchWorkflowType,
       String searchUserName, int minJobs, int maxJobs, long minInputBytes, long maxInputBytes, long minOutputBytes, long maxOutputBytes, long minDuration,
-      long maxDuration, long minStartTime, long maxStartTime) {
+      long maxDuration, long minStartTime, long maxStartTime, long minFinishTime, long maxFinishTime) {
     StringBuilder sb = new StringBuilder();
     sb.append(WHERE);
     if (searchTerm != null && searchTerm.length() > 0) {
@@ -476,6 +572,7 @@ public class PostgresConnector implements DBConnector {
     addRangeSearch(sb, WorkflowFields.OUTPUTBYTES, minOutputBytes, maxOutputBytes);
     addRangeSearch(sb, WorkflowFields.DURATION, minDuration, maxDuration);
     addRangeSearch(sb, WorkflowFields.STARTTIME, minStartTime, maxStartTime);
+    addRangeSearch(sb, WorkflowFields.LASTUPDATETIME, minFinishTime, maxFinishTime);
     
     if (sb.length() == WHERE.length())
       return "";

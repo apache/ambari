@@ -29,6 +29,7 @@ import java.util.List;
 @XmlRootElement
 @XmlAccessorType(XmlAccessType.FIELD)
 public class Jobs {
+  int numJobs;
   List<JobDBEntry> jobs;
   
   public static class JobDBEntry {
@@ -195,11 +196,20 @@ public class Jobs {
   
   public Jobs() {}
   
+  public int getNumJobs() {
+    return numJobs;
+  }
+  
+  public void setNumJobs(int numJobs) {
+    this.numJobs = numJobs;
+  }
+  
   public List<JobDBEntry> getJobs() {
     return jobs;
   }
   
   public void setJobs(List<JobDBEntry> jobs) {
     this.jobs = jobs;
+    this.numJobs = jobs.size();
   }
 }
