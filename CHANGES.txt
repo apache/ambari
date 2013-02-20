@@ -298,6 +298,9 @@ Trunk (unreleased changes):
 
  BUG FIXES
 
+ AMBARI-1441. Validation for username used in service configs is broken.
+ (yusaku)
+
  AMBARI-1456. Cannot proceed after bootstrapping in some cases due to a
  run-time error while running host checks. (yusaku)
 
