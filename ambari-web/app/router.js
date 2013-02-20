@@ -192,7 +192,7 @@ App.Router = Em.Router.extend({
                 router.transitionTo(router.getSection());
                 postLogin(true);
               } else {
-                controller.set('errorMessage', "Your administrator has not set up a Hadoop cluster yet.");
+                controller.set('errorMessage', Em.I18n.t('router.hadoopClusterNotSetUp'));
               }
             },
             error: function (req) {
@@ -337,7 +337,7 @@ App.Router = Em.Router.extend({
       },
 
       connectOutlets: function (router, context) {
-        $('title').text('Ambari');
+        $('title').text(Em.I18n.t('app.name'));
         console.log('/login:connectOutlet');
         console.log('currentStep is: ' + router.getInstallerCurrentStep());
         console.log('authenticated is: ' + router.getAuthenticated());

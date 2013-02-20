@@ -109,7 +109,7 @@ var wrapperView = Ember.View.extend({
  */
 var textFieldView = Ember.TextField.extend({
   type:'text',
-  placeholder: 'Any',
+  placeholder: Em.I18n.t('any'),
   valueBinding: "parentView.value"
 });
 
@@ -242,7 +242,7 @@ module.exports = {
     config.filterView = selectFieldView.extend({
       classNames : [ config.fieldType ]
     });
-    config.emptyValue = 'Any';
+    config.emptyValue = Em.I18n.t('any');
 
     return wrapperView.extend(config);
   },

@@ -20,8 +20,8 @@ var App = require('app');
 
 App.MainAdminAdvancedPasswordView = App.Form.extend({
   fieldsOptions:[
-    { name:"password", displayName:"Password", displayType:"password", disableRequiredOnExistent:true },
-    { name:"passwordRetype", displayName:"Retype Password", displayType:"passwordRetype", disableRequiredOnExistent:true }
+    { name:"password", displayName:Em.I18n.t('form.password'), displayType:"password", disableRequiredOnExistent:true },
+    { name:"passwordRetype", displayName:Em.I18n.t('form.passwordRetype'), displayType:"passwordRetype", disableRequiredOnExistent:true }
   ],
   fields: []
 });

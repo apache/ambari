@@ -41,10 +41,10 @@ App.ChartServiceMetricsHBASE_RegionServerReadWriteRequests = App.ChartLinearTime
         var seriesData = jsonData.metrics.hbase.regionserver[name];
         switch (name) {
           case "writeRequestsCount":
-            displayName = "Write Requests";
+            displayName = Em.I18n.t('services.service.info.metrics.hbase.regionServerRequests.displayNames.writeRequests');
             break;
           case "readRequestsCount":
-            displayName = "Read Requests";
+            displayName = Em.I18n.t('services.service.info.metrics.hbase.regionServerRequests.displayNames.readRequests');
             break;
           default:
             break;

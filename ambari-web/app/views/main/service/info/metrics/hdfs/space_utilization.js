@@ -43,13 +43,13 @@ App.ChartServiceMetricsHDFS_SpaceUtilization = App.ChartLinearTimeView.extend({
         var seriesData = jsonData.metrics.dfs.FSNamesystem[name];
         switch (name) {
           case "CapacityRemainingGB":
-            displayName = "Capacity Remaining";
+            displayName = Em.I18n.t('services.service.info.metrics.hdfs.spaceUtilization.displayNames.capacityRemainingGB');
             break;
           case "CapacityUsedGB":
-            displayName = "Capacity Used";
+            displayName = Em.I18n.t('services.service.info.metrics.hdfs.spaceUtilization.displayNames.capacityUsedGB');
             break;
           case "CapacityTotalGB":
-            displayName = "Capacity Total";
+            displayName = Em.I18n.t('services.service.info.metrics.hdfs.spaceUtilization.displayNames.capacityTotalGB');
             break;
           default:
             break;

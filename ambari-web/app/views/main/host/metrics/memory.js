@@ -43,19 +43,19 @@ App.ChartHostMetricsMemory = App.ChartLinearTimeView.extend({
         var seriesData = jsonData.metrics.memory[name];
         switch (name) {
           case "mem_shared":
-            displayName = "Shared";
+            displayName = Em.I18n.t('hosts.host.metrics.memory.displayNames.mem_shared');
             break;
           case "swap_free":
-            displayName = "Swap";
+            displayName = Em.I18n.t('hosts.host.metrics.memory.displayNames.swap_free');
             break;
           case "mem_buffers":
-            displayName = "Buffers";
+            displayName = Em.I18n.t('hosts.host.metrics.memory.displayNames.mem_buffers');
             break;
           case "mem_free":
-            displayName = "Free";
+            displayName = Em.I18n.t('hosts.host.metrics.memory.displayNames.mem_free');
             break;
           case "mem_cached":
-            displayName = "Cached";
+            displayName = Em.I18n.t('hosts.host.metrics.memory.displayNames.mem_cached');
             break;
           default:
             break;

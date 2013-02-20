@@ -41,7 +41,7 @@ App.ChartServiceMetricsHDFS_RPC = App.ChartLinearTimeView.extend({
         var seriesData = jsonData.metrics.rpc[name];
         switch (name) {
           case "RpcQueueTime_avg_time":
-            displayName = "Queue Average Wait Time";
+            displayName = Em.I18n.t('services.service.info.metrics.hdfs.rpc.displayNames.rpcQueueTimeAvgTime');
             break;
           default:
             break;

@@ -42,7 +42,7 @@ App.ChartServiceMetricsHBASE_HlogSplitTime = App.ChartLinearTimeView.extend({
         var seriesData = jsonData.metrics.hbase.master[name];
         switch (name) {
           case "splitTime_avg_time":
-            displayName = "Split Time";
+            displayName = Em.I18n.t('services.service.info.metrics.hbase.hlogSplitTime.displayNames.splitTime');
             break;
           default:
             break;

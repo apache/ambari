@@ -43,7 +43,7 @@ App.ChartClusterMetricsCPU = App.ChartLinearTimeView.extend({
         var seriesData = jsonData.metrics.cpu[name];
         if (seriesData) {
           var s = this.transformData(seriesData, displayName);
-          if ('Idle' == s.name) {
+          if (Em.I18n.t('dashboard.clusterMetrics.cpu.displayNames.idle') == s.name) {
             cpu_idle = s;
           }
           else {
@@ -57,7 +57,7 @@ App.ChartClusterMetricsCPU = App.ChartLinearTimeView.extend({
   },
   
   colorForSeries: function (series) {
-    if ("Idle" == series.name){
+    if (Em.I18n.t('dashboard.clusterMetrics.cpu.displayNames.idle') == series.name){
       return '#CFECEC';
     }
     return null;

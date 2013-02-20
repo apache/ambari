@@ -44,7 +44,7 @@ App.WizardStep6View = Em.View.extend({
           label = label + ',';
   }
       } else {
-        label = label + ' and ' + _client.display_name + '.';
+        label = label + ' ' + Em.I18n.t('and') + ' ' + _client.display_name + '.';
       }
     }, this);
     this.set('label', label);

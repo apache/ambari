@@ -97,11 +97,12 @@ App.ServiceConfigPasswordField = Ember.TextField.extend({
   type: 'password',
   valueBinding: 'serviceConfig.value',
   classNames: [ 'span3' ],
-  placeholder: 'Type password',
+  placeholder: Em.I18n.t('form.item.placeholders.typePassword'),
 
-  template: Ember.Handlebars.compile('{{view view.retypePasswordView placeholder="Retype password"}}'),
+  template: Ember.Handlebars.compile('{{view view.retypePasswordView}}'),
 
   retypePasswordView: Ember.TextField.extend({
+    placeholder: Em.I18n.t('form.passwordRetype'),
     type: 'password',
     classNames: [ 'span3', 'retyped-password' ],
     valueBinding: 'parentView.serviceConfig.retypedPassword'

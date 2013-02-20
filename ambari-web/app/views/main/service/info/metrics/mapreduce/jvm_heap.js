@@ -43,16 +43,16 @@ App.ChartServiceMetricsMapReduce_JVMHeap = App.ChartLinearTimeView.extend({
         var seriesData = jsonData.metrics.jvm[name];
         switch (name) {
           case "memHeapCommittedM":
-            displayName = "Heap Memory Committed";
+            displayName = Em.I18n.t('services.service.info.metrics.mapreduce.jvmHeap.displayNames.memHeapCommittedM');
             break;
           case "memNonHeapUsedM":
-            displayName = "Non Heap Memory Used";
+            displayName = Em.I18n.t('services.service.info.metrics.mapreduce.jvmHeap.displayNames.memNonHeapUsedM');
             break;
           case "memHeapUsedM":
-            displayName = "Heap Memory Used";
+            displayName = Em.I18n.t('services.service.info.metrics.mapreduce.jvmHeap.displayNames.memHeapUsedM');
             break;
           case "memNonHeapCommittedM":
-            displayName = "Non Heap Memory Committed";
+            displayName = Em.I18n.t('services.service.info.metrics.mapreduce.jvmHeap.displayNames.memNonHeapCommittedM');
             break;
           default:
             break;

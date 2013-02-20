@@ -41,7 +41,7 @@ App.ChartServiceMetricsMapReduce_GC = App.ChartLinearTimeView.extend({
         var seriesData = jsonData.metrics.jvm[name];
         switch (name) {
           case "gcTimeMillis":
-            displayName = "Time";
+            displayName = Em.I18n.t('services.service.info.metrics.mapreduce.gc.displayNames.gcTimeMillis');
             break;
           default:
             break;

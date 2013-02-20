@@ -40,7 +40,7 @@ App.ChartServiceMetricsHBASE_ClusterRequests = App.ChartLinearTimeView.extend({
         var seriesData = jsonData.metrics.hbase.master[name];
         switch (name) {
           case "cluster_requests":
-            displayName = "Request Count";
+            displayName = Em.I18n.t('services.service.info.metrics.hbase.clusterRequests.displayNames.requestCount');
             break;
           default:
             break;

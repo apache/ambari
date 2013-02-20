@@ -43,29 +43,29 @@ App.ChartHostMetricsCPU = App.ChartLinearTimeView.extend({
         var seriesData = jsonData.metrics.cpu[name];
         switch (name) {
           case "cpu_wio":
-            displayName = "CPU I/O Idle";
+            displayName = Em.I18n.t('hosts.host.metrics.cpu.displayNames.cpu_wio');
             break;
           case "cpu_idle":
-            displayName = "CPU Idle";
+            displayName = Em.I18n.t('hosts.host.metrics.cpu.displayNames.cpu_idle');
             break;
           case "cpu_nice":
-            displayName = "CPU Nice";
+            displayName = Em.I18n.t('hosts.host.metrics.cpu.displayNames.cpu_nice');
             break;
           case "cpu_aidle":
-            displayName = "CPU Boot Idle";
+            displayName = Em.I18n.t('hosts.host.metrics.cpu.displayNames.cpu_aidle');
             break;
           case "cpu_system":
-            displayName = "CPU System";
+            displayName = Em.I18n.t('hosts.host.metrics.cpu.displayNames.cpu_system');
             break;
           case "cpu_user":
-            displayName = "CPU User";
+            displayName = Em.I18n.t('hosts.host.metrics.cpu.displayNames.cpu_user');
             break;
           default:
             break;
         }
         if (seriesData) {
           var s = this.transformData(seriesData, displayName);
-          if ('CPU Idle' == s.name) {
+          if (Em.I18n.t('hosts.host.metrics.cpu.displayNames.cpu_idle') == s.name) {
             cpu_idle = s;
           }
           else {
@@ -79,7 +79,7 @@ App.ChartHostMetricsCPU = App.ChartLinearTimeView.extend({
   },
 
   colorForSeries: function (series) {
-    if ("CPU Idle" == series.name) {
+    if (Em.I18n.t('hosts.host.metrics.cpu.displayNames.cpu_idle') == series.name) {
       return '#CFECEC';
     }
     return null;

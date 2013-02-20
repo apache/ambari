@@ -41,10 +41,10 @@ App.ChartServiceMetricsHBASE_RegionServerQueueSize = App.ChartLinearTimeView.ext
         var seriesData = jsonData.metrics.hbase.regionserver[name];
         switch (name) {
           case "compactionQueueSize":
-            displayName = "Compaction Queue Size";
+            displayName = Em.I18n.t('services.service.info.metrics.hbase.regionServerQueueSize.displayNames.compactionQueueSize');
             break;
           case "flushQueueSize":
-            displayName = "Flush Queue Size";
+            displayName = Em.I18n.t('services.service.info.metrics.hbase.regionServerQueueSize.displayNames.flushQueueSize');
             break;
           default:
             break;

@@ -41,10 +41,10 @@ App.ChartServiceMetricsHDFS_BlockStatus = App.ChartLinearTimeView.extend({
         var seriesData = jsonData.metrics.dfs.FSNamesystem[name];
         switch (name) {
           case "PendingReplicationBlocks":
-            displayName = "Pending Replication Blocks";
+            displayName = Em.I18n.t('services.service.info.metrics.hdfs.blockStatus.displayNames.pendingReplicationBlocks');
             break;
           case "UnderReplicatedBlocks":
-            displayName = "Under Replicated Blocks";
+            displayName = Em.I18n.t('services.service.info.metrics.hdfs.blockStatus.displayNames.underReplicatedBlocks');
             break;
           default:
             break;

@@ -20,5 +20,5 @@ var App = require('app');
 
 App.LoadingView = Em.View.extend({
     tagName: 'h2',
-    template: Ember.Handlebars.compile('Loading...')
+    template: Ember.Handlebars.compile('{{t app.loadingPlaceholder}}')
 });

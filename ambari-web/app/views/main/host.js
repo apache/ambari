@@ -80,7 +80,7 @@ App.MainHostView = Em.View.extend({
       });
       shortLabels = shortLabels.substr(0, shortLabels.length - 2);
       if (labels.length > 2) {
-        shortLabels += ' and ' + (labels.length - 2) + ' more';
+        shortLabels += ' ' + Em.I18n.t('and') + ' ' + (labels.length - 2) + ' ' + Em.I18n.t('more');
       }
       return shortLabels;
     }.property('labels'),

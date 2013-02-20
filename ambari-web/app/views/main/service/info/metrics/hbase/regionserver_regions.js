@@ -41,7 +41,7 @@ App.ChartServiceMetricsHBASE_RegionServerRegions = App.ChartLinearTimeView.exten
         var seriesData = jsonData.metrics.hbase.regionserver[name];
         switch (name) {
           case "regions":
-            displayName = "Regions";
+            displayName = Em.I18n.t('services.service.info.metrics.hbase.regionServerRegions.displayNames.regions');
             break;
           default:
             break;

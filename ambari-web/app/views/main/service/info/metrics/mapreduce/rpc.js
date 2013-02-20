@@ -41,7 +41,7 @@ App.ChartServiceMetricsMapReduce_RPC = App.ChartLinearTimeView.extend({
         var seriesData = jsonData.metrics.rpc[name];
         switch (name) {
           case "RpcQueueTime_avg_time":
-            displayName = "Queue Average Wait Time";
+            displayName = Em.I18n.t('services.service.info.metrics.mapreduce.rpc.displayNames.RpcQueueTimeAvgTime');
             break;
           default:
             break;

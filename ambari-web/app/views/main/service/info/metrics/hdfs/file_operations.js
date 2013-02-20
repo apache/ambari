@@ -41,13 +41,13 @@ App.ChartServiceMetricsHDFS_FileOperations = App.ChartLinearTimeView.extend({
         var seriesData = jsonData.metrics.dfs.namenode[name];
         switch (name) {
           case "FileInfoOps":
-            displayName = "File Information Operations";
+            displayName = Em.I18n.t('services.service.info.metrics.hdfs.fileOperations.displayNames.fileInformationOperations');
             break;
           case "DeleteFileOps":
-            displayName = "Delete File Operations";
+            displayName = Em.I18n.t('services.service.info.metrics.hdfs.fileOperations.displayNames.deleteFileOperations');
             break;
           case "CreateFileOps":
-            displayName = "Create File Operations";
+            displayName = Em.I18n.t('services.service.info.metrics.hdfs.fileOperations.displayNames.createFileOperations');
             break;
           default:
             break;

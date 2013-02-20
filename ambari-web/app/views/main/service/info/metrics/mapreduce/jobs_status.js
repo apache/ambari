@@ -41,19 +41,19 @@ App.ChartServiceMetricsMapReduce_JobsStatus = App.ChartLinearTimeView.extend({
         var seriesData = jsonData.metrics.mapred.jobtracker[name];
         switch (name) {
           case "jobs_running":
-            displayName = "Running";
+            displayName = Em.I18n.t('services.service.info.metrics.mapreduce.jobsStatus.displayNames.jobsRunning');
             break;
           case "jobs_failed":
-            displayName = "Failed";
+            displayName = Em.I18n.t('services.service.info.metrics.mapreduce.jobsStatus.displayNames.jobsFailed');
             break;
           case "jobs_completed":
-            displayName = "Succeeded";
+            displayName = Em.I18n.t('services.service.info.metrics.mapreduce.jobsStatus.displayNames.jobsCompleted');
             break;
           case "jobs_preparing":
-            displayName = "Preparing";
+            displayName = Em.I18n.t('services.service.info.metrics.mapreduce.jobsStatus.displayNames.jobsPreparing');
             break;
           case "jobs_submitted":
-            displayName = "Submitted";
+            displayName = Em.I18n.t('services.service.info.metrics.mapreduce.jobsStatus.displayNames.jobsSubmitted');
             break;
           default:
             break;

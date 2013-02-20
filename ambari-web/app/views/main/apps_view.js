@@ -143,7 +143,7 @@ App.MainAppsView = Em.View.extend({
   appSearchThrough: Em.TextField.extend({
     classNames: ['input-medium'],
     type: 'text',
-    placeholder: 'Search'
+    placeholder: Em.I18n.t('common.search')
   }),
   /**
    * Filter-field for App ID.

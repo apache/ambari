@@ -41,16 +41,16 @@ App.ChartServiceMetricsMapReduce_TasksRunningWaiting = App.ChartLinearTimeView.e
         var seriesData = jsonData.metrics.mapred.jobtracker[name];
         switch (name) {
           case "running_maps":
-            displayName = "Running Map Tasks";
+            displayName = Em.I18n.t('services.service.info.metrics.mapreduce.tasksRunningWaiting.displayNames.runningMaps');
             break;
           case "running_reduces":
-            displayName = "Running Reduce Tasks";
+            displayName = Em.I18n.t('services.service.info.metrics.mapreduce.tasksRunningWaiting.displayNames.runningReduces');
             break;
           case "waiting_maps":
-            displayName = "Waiting Map Tasks";
+            displayName = Em.I18n.t('services.service.info.metrics.mapreduce.tasksRunningWaiting.displayNames.waitingMaps');
             break;
           case "waiting_reduces":
-            displayName = "Waiting Reduce Tasks";
+            displayName = Em.I18n.t('services.service.info.metrics.mapreduce.tasksRunningWaiting.displayNames.waitingReduces');
             break;
           default:
             break;

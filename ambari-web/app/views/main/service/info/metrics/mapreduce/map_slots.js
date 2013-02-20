@@ -41,10 +41,10 @@ App.ChartServiceMetricsMapReduce_MapSlots = App.ChartLinearTimeView.extend({
         var seriesData = jsonData.metrics.mapred.jobtracker[name];
         switch (name) {
           case "reserved_map_slots":
-            displayName = "Map Slots Reserved";
+            displayName = Em.I18n.t('services.service.info.metrics.mapreduce.mapSlots.displayNames.reservedMapSlots');
             break;
           case "occupied_map_slots":
-            displayName = "Map Slots Occupied";
+            displayName = Em.I18n.t('services.service.info.metrics.mapreduce.mapSlots.displayNames.occupiedMapSlots');
             break;
           default:
             break;

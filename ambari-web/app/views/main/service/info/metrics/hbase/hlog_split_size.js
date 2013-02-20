@@ -42,7 +42,7 @@ App.ChartServiceMetricsHBASE_HlogSplitSize = App.ChartLinearTimeView.extend({
         var seriesData = jsonData.metrics.hbase.master[name];
         switch (name) {
           case "splitSize_avg_time":
-            displayName = "Split Size";
+            displayName = Em.I18n.t('services.service.info.metrics.hbase.hlogSplitSize.displayNames.splitSize');
             break;
           default:
             break;

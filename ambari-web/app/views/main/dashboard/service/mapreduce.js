@@ -111,7 +111,7 @@ App.MainDashboardServiceMapreduceView = App.MainDashboardServiceView.extend({
     if(liveNodeCount != 0){
       var avg = (mapSlots + reduceSlots) / liveNodeCount;
     }else{
-      avg = "n/a ";
+      avg = Em.I18n.t('services.service.summary.notAvailable') + " ";
     }
     return this.t('dashboard.services.mapreduce.slotCapacitySummary').format(mapSlots, reduceSlots, avg);
   }.property('service.mapSlots', 'service.reduceSlots', 'service.aliveTrackers'),

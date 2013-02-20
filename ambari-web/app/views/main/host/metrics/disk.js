@@ -46,10 +46,10 @@ App.ChartHostMetricsDisk = App.ChartLinearTimeView.extend({
         var seriesData = jsonData.metrics.disk[name];
         switch (name) {
           case "disk_total":
-            displayName = "Total";
+            displayName = Em.I18n.t('hosts.host.metrics.disk.displayNames.disk_total');
             break;
           case "disk_free":
-            displayName = "Available";
+            displayName = Em.I18n.t('hosts.host.metrics.disk.displayNames.disk_free');
             break;
           default:
             break;

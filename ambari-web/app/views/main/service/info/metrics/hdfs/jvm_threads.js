@@ -41,16 +41,16 @@ App.ChartServiceMetricsHDFS_JVMThreads = App.ChartLinearTimeView.extend({
         var seriesData = jsonData.metrics.jvm[name];
         switch (name) {
           case "threadsBlocked":
-            displayName = "Threads Blocked";
+            displayName = Em.I18n.t('services.service.info.metrics.hdfs.jvmThreads.displayNames.threadsBlocked');
             break;
           case "threadsWaiting":
-            displayName = "Threads Waiting";
+            displayName = Em.I18n.t('services.service.info.metrics.hdfs.jvmThreads.displayNames.threadsWaiting');
             break;
           case "threadsTimedWaiting":
-            displayName = "Threads Timed Waiting";
+            displayName = Em.I18n.t('services.service.info.metrics.hdfs.jvmThreads.displayNames.threadsTimedWaiting');
             break;
           case "threadsRunnable":
-            displayName = "Threads Runnable";
+            displayName = Em.I18n.t('services.service.info.metrics.hdfs.jvmThreads.displayNames.threadsRunnable');
             break;
           default:
             break;

@@ -47,7 +47,7 @@ App.MainAdminUserEditView = Em.View.extend({
           App.ModalPopup.show({
             header: Em.I18n.t('admin.users.editButton'),
             body: message,
-            primary: 'Ok',
+            primary: Em.I18n.t('ok'),
             secondary: null,
             onPrimary: function() {
               this.hide();

@@ -42,10 +42,10 @@ App.ChartServiceMetricsHDFS_IO = App.ChartLinearTimeView.extend({
         var seriesData = jsonData.metrics.dfs.datanode[name];
         switch (name) {
           case "bytes_written":
-            displayName = "Bytes Written";
+            displayName = Em.I18n.t('services.service.info.metrics.hdfs.io.displayNames.bytesWritten');
             break;
           case "bytes_read":
-            displayName = "Bytes Read";
+            displayName = Em.I18n.t('services.service.info.metrics.hdfs.io.displayNames.bytesRead');
             break;
           default:
             break;

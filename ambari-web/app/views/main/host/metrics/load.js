@@ -41,13 +41,13 @@ App.ChartHostMetricsLoad = App.ChartLinearTimeView.extend({
         var seriesData = jsonData.metrics.load[name];
         switch (name) {
           case "load_fifteen":
-            displayName = "15 Minute Load";
+            displayName = Em.I18n.t('hosts.host.metrics.load.displayNames.load_fifteen');
             break;
           case "load_one":
-            displayName = "1 Minute Load";
+            displayName = Em.I18n.t('hosts.host.metrics.load.displayNames.load_one');
             break;
           case "load_five":
-            displayName = "5 Minute Load";
+            displayName = Em.I18n.t('hosts.host.metrics.load.displayNames.load_five');
             break;
           default:
             break;

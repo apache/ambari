@@ -87,7 +87,7 @@ App.WizardStep2View = Em.View.extend({
   manualInstallPopup: function(){
     if(!this.get('controller.content.installOptions.useSsh')){
       App.ModalPopup.show({
-        header: "Warning",
+        header: Em.I18n.t('common.warning'),
         body: Em.I18n.t('installer.step2.manualInstall.info'),
         encodeBody: false,
         onPrimary: function () {

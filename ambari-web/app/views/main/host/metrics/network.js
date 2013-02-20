@@ -42,16 +42,16 @@ App.ChartHostMetricsNetwork = App.ChartLinearTimeView.extend({
         var seriesData = jsonData.metrics.network[name];
         switch (name) {
           case "pkts_out":
-            displayName = "Packets Out";
+            displayName = Em.I18n.t('hosts.host.metrics.network.displayNames.pkts_out');
             break;
           case "bytes_in":
-            displayName = "Bytes In";
+            displayName = Em.I18n.t('hosts.host.metrics.network.displayNames.bytes_in');
             break;
           case "bytes_out":
-            displayName = "Bytes Out";
+            displayName = Em.I18n.t('hosts.host.metrics.network.displayNames.bytes_out');
             break;
           case "pkts_in":
-            displayName = "Packets In";
+            displayName = Em.I18n.t('hosts.host.metrics.network.displayNames.pkts_in');
             break;
           default:
             break;

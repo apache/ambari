@@ -43,7 +43,7 @@ App.MainAdminUserCreateView = Em.View.extend({
           App.ModalPopup.show({
             header: Em.I18n.t('admin.users.addButton'),
             body: Em.I18n.t('admin.users.createError'),
-            primary: 'Ok',
+            primary: Em.I18n.t('ok'),
             secondary: null,
             onPrimary: function() {
               this.hide();
@@ -54,7 +54,7 @@ App.MainAdminUserCreateView = Em.View.extend({
         App.ModalPopup.show({
           header: Em.I18n.t('admin.users.addButton'),
           body: Em.I18n.t('admin.users.createSuccess'),
-          primary: 'Ok',
+          primary: Em.I18n.t('ok'),
           secondary: null,
           onPrimary: function() {
             this.hide();

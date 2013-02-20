@@ -94,7 +94,7 @@ App.MainDashboardServiceHdfsView = App.MainDashboardServiceView.extend({
     var used = total - remaining;
     var percent = total > 0 ? ((used * 100) / total).toFixed(1) : 0;
     if (percent == "NaN" || percent < 0) {
-      percent = "n/a ";
+      percent = Em.I18n.t('services.service.summary.notAvailable') + " ";
     }
     return text.format(liveCount, totalCount, percent);
   }.property('service.liveDataNodes', 'service.dataNodes', 'service.capacityUsed', 'service.capacityTotal'),
@@ -106,7 +106,7 @@ App.MainDashboardServiceHdfsView = App.MainDashboardServiceView.extend({
     var used = total - remaining;
     var percent = total > 0 ? ((used * 100) / total).toFixed(1) : 0;
     if (percent == "NaN" || percent < 0) {
-      percent = "n/a ";
+      percent = Em.I18n.t('services.service.summary.notAvailable') + " ";
     }
     if (used < 0) {
       used = 0;
@@ -119,7 +119,7 @@ App.MainDashboardServiceHdfsView = App.MainDashboardServiceView.extend({
 
   dataNodeComponent: function () {
     return App.HostComponent.find().findProperty('componentName', 'DATANODE');
-  }.property('+'),
+  }.property(),
 
   isSafeMode: function () {
     var safeMode = this.get('service.safeModeStatus');

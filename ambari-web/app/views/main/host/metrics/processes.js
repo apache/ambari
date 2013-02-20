@@ -41,10 +41,10 @@ App.ChartHostMetricsProcesses = App.ChartLinearTimeView.extend({
         var seriesData = jsonData.metrics.process[name];
         switch (name) {
           case "proc_total":
-            displayName = "Total Processes";
+            displayName = Em.I18n.t('hosts.host.metrics.processes.displayNames.proc_total');
             break;
           case "proc_run":
-            displayName = "Processes Run";
+            displayName = Em.I18n.t('hosts.host.metrics.processes.displayNames.proc_run');
             break;
           default:
             break;
