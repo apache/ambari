@@ -293,6 +293,9 @@ Trunk (unreleased changes):
 
  AMBARI-1448. Enabling stack upgrade via Ambari Server. (mahadev)
 
+ AMBARI-1439. rrd file location should be read from global config. (Siddharth
+ Wagle via mahadev).
+
  BUG FIXES
 
  AMBARI-1445. Redirect to main app page when testMode flag is set True and

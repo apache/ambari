@@ -22,6 +22,7 @@ cd `dirname ${0}`;
 
 GANGLIA_CONF_DIR=<%=scope.function_hdp_template_var("ganglia_conf_dir")%>;
 GANGLIA_RUNTIME_DIR=<%=scope.function_hdp_template_var("ganglia_runtime_dir")%>;
+RRDCACHED_BASE_DIR=<%=scope.function_hdp_template_var("rrdcached_base_dir")%>;
 
 # This file contains all the info about each Ganglia Cluster in our Grid.
 GANGLIA_CLUSTERS_CONF_FILE=./gangliaClusters.conf;
