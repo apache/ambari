@@ -23,7 +23,12 @@ App.MainAdminMenuView = Em.CollectionView.extend({
     {
       route:'user',
       label:'Users'
-    }/*,
+    },
+    {
+      route:'cluster',
+      label:'Cluster'
+    }
+    /*,
     {
       route:'authentication',
       label:'Authentication'
@@ -61,6 +66,6 @@ App.MainAdminMenuView = Em.CollectionView.extend({
   itemViewClass:Em.View.extend({
     classNameBindings:["active"],
     active:"",
-    template:Ember.Handlebars.compile('<a {{action adminNavigate view.content.route }} href="#"> {{unbound view.content.label}}</a>')
+    template:Ember.Handlebars.compile('<a class="text-center" {{action adminNavigate view.content.route }} href="#"> {{unbound view.content.label}}</a>')
   })
 });

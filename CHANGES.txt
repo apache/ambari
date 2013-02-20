@@ -12,6 +12,8 @@ Trunk (unreleased changes):
 
  NEW FEATURES
 
+ AMBARI-1459. Add Admin > Cluster page. (yusaku)
+
  AMBARI-1454. Service page: add "Reassign <Master Component>" action items
  to "Maintenance" pulldown. (yusaku)
 

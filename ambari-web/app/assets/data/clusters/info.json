@@ -4,7 +4,8 @@
     {
       "href" : "http://ambari:9998/clusters/mycluster",
       "Clusters" : {
-        "cluster_name" : "mycluster"
+        "cluster_name" : "mycluster",
+        "version" : "HDP-1.2.2"
       }
     }
   ]

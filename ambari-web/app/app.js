@@ -36,8 +36,14 @@ module.exports = Em.Application.create({
    * return url prefix with number value of version of HDP stack
    */
   stackVersionURL:function(){
-    return '/stacks/HDP/version/' + App.defaultStackVersion.replace(/HDP-/g, '');
-  }.property()
+    var stackVersion = this.get('currentStackVersion') || this.get('defaultStackVersion');
+    return '/stacks/HDP/version/' + stackVersion.replace(/HDP-/g, '');
+  }.property('currentStackVersion'),
+  clusterName: null,
+  currentStackVersion: null,
+  ready: function(){
+    this.set('currentStackVersion', this.get('defaultStackVersion'));
+  }
 });
 
 /**

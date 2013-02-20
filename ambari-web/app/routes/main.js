@@ -222,6 +222,14 @@ module.exports = Em.Route.extend({
       })
     }),
 
+    adminCluster:Em.Route.extend({
+      route:'/cluster',
+      connectOutlets:function (router) {
+        router.set('mainAdminController.category', "cluster");
+        router.get('mainAdminController').connectOutlet('mainAdminCluster');
+      }
+    }),
+
     adminAuthentication:Em.Route.extend({
       route:'/authentication',
       connectOutlets:function (router) {

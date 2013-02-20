@@ -26,6 +26,7 @@ require('controllers/installer');
 require('controllers/global/background_operations_controller');
 require('controllers/main');
 require('controllers/main/admin');
+require('controllers/main/admin/cluster');
 require('controllers/main/admin/user');
 require('controllers/main/admin/user/edit');
 require('controllers/main/admin/user/create');

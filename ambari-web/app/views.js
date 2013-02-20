@@ -47,6 +47,7 @@ require('views/main/host/metrics/memory');
 require('views/main/host/metrics/network');
 require('views/main/host/metrics/processes');
 require('views/main/admin');
+require('views/main/admin/cluster');
 require('views/main/admin/advanced');
 require('views/main/admin/advanced/password');
 require('views/main/admin/audit');
