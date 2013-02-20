@@ -253,24 +253,34 @@ App.MainServiceItemController = Em.Controller.extend({
   },
 
   /**
+   * On click callback for <code>Reassign <master component></code> button
+   * @param hostComponent
+   */
+  reassignMaster: function (hostComponent) {
+    console.log('In Reassign Master', hostComponent);
+    App.ModalPopup.show({
+      header: 'Reassign Master Wizard',
+      body: 'Reassign Master Wizard',
+      secondary: false,
+      onPrimary: function() {
+        this.hide();
+      }
+    });
+  },
+
+  /**
    * On click callback for <code>action</code> dropdown menu
+   * Calls runSmokeTest, runRebalancer, runCompaction or reassignMaster depending on context
    * @param event
    */
   doAction: function (event) {
     if ($(event.target).hasClass('disabled') || $(event.target.parentElement).hasClass('disabled')) {
       return;
     }
-    var methodName = event.context;
-    switch (methodName) {
-      case 'runRebalancer':
-        this.runRebalancer();
-        break;
-      case 'runCompaction':
-        this.runCompaction();
-        break;
-      case 'runSmokeTest':
-        this.runSmokeTest();
-        break;
+    var methodName = event.context.action;
+    var context = event.context.context;
+    if (methodName) {
+      this[methodName](context);
     }
   }
 })

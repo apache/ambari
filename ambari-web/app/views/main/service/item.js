@@ -32,6 +32,9 @@ App.MainServiceItemView = Em.View.extend({
 //        break;
       default:
         options.push({action: 'runSmokeTest', 'label': Em.I18n.t('services.service.actions.run.smoke')});
+        this.get('controller.content.hostComponents').filterProperty('isMaster').forEach (function (hostComponent){
+          options.push({action: 'reassignMaster', context: hostComponent, 'label': Em.I18n.t('services.service.actions.reassign.master').format(hostComponent.get('displayName'))});
+        })
     }
     return options;
   }.property('controller.content'),

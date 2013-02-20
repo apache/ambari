@@ -12,6 +12,9 @@ Trunk (unreleased changes):
 
  NEW FEATURES
 
+ AMBARI-1454. Service page: add "Reassign <Master Component>" action items
+ to "Maintenance" pulldown. (yusaku)
+
  AMBARI-1349. Expose host-specific Nagios alerts in Ambari Web. (yusaku)
 
  AMBARI-1294. Add isEmpty() query operator support. (jspeidel)
