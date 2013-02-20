@@ -183,80 +183,80 @@ App.WizardStep9Controller = Em.Controller.extend({
       case 'INSTALL':
         switch (task.status) {
           case 'PENDING':
-            return 'Preparing to install ' + role;
+            return Em.I18n.t('installer.step9.serviceStatus.install.pending') + role;
           case 'QUEUED' :
-            return 'Waiting to install ' + role;
+            return Em.I18n.t('installer.step9.serviceStatus.install.queued') + role;
           case 'IN_PROGRESS':
-            return 'Installing ' + role;
+            return Em.I18n.t('installer.step9.serviceStatus.install.inProgress') + role;
           case 'COMPLETED' :
-            return 'Successfully installed ' + role;
+            return Em.I18n.t('installer.step9.serviceStatus.install.completed') + role;
           case 'FAILED':
-            return 'Failed to install ' + role;
+            return Em.I18n.t('installer.step9.serviceStatus.install.failed') + role;
         }
       case 'UNINSTALL':
         switch (task.status) {
           case 'PENDING':
-            return 'Preparing to uninstall ' + role;
+            return Em.I18n.t('installer.step9.serviceStatus.uninstall.pending') + role;
           case 'QUEUED' :
-            return 'Waiting to uninstall ' + role;
+            return Em.I18n.t('installer.step9.serviceStatus.uninstall.queued') + role;
           case 'IN_PROGRESS':
-            return 'Uninstalling ' + role;
+            return Em.I18n.t('installer.step9.serviceStatus.uninstall.inProgress') + role;
           case 'COMPLETED' :
-            return 'Successfully uninstalled ' + role;
+            return Em.I18n.t('installer.step9.serviceStatus.uninstall.completed') + role;
           case 'FAILED':
-            return 'Failed to uninstall ' + role;
+            return Em.I18n.t('installer.step9.serviceStatus.uninstall.failed') + role;
         }
       case 'START' :
         switch (task.status) {
           case 'PENDING':
-            return 'Preparing to start ' + role;
+            return Em.I18n.t('installer.step9.serviceStatus.start.pending') + role;
           case 'QUEUED' :
-            return 'Waiting to start ' + role;
+            return Em.I18n.t('installer.step9.serviceStatus.start.queued') + role;
           case 'IN_PROGRESS':
-            return 'Starting ' + role;
+            return Em.I18n.t('installer.step9.serviceStatus.start.inProgress') + role;
           case 'COMPLETED' :
-            return role + ' started successfully';
+            return role + Em.I18n.t('installer.step9.serviceStatus.start.completed');
           case 'FAILED':
-            return role + ' failed to start';
+            return role + Em.I18n.t('installer.step9.serviceStatus.start.failed');
         }
       case 'STOP' :
         switch (task.status) {
           case 'PENDING':
-            return 'Preparing to stop ' + role;
+            return Em.I18n.t('installer.step9.serviceStatus.stop.pending') + role;
           case 'QUEUED' :
-            return 'Waiting to stop ' + role;
+            return Em.I18n.t('installer.step9.serviceStatus.stop.queued') + role;
           case 'IN_PROGRESS':
-            return 'Stopping ' + role;
+            return Em.I18n.t('installer.step9.serviceStatus.stop.inProgress') + role;
           case 'COMPLETED' :
-            return role + ' stopped successfully';
+            return role + Em.I18n.t('installer.step9.serviceStatus.stop.completed');
           case 'FAILED':
-            return role + ' failed to stop';
+            return role + Em.I18n.t('installer.step9.serviceStatus.stop.failed');
         }
       case 'EXECUTE' :
         switch (task.status) {
           case 'PENDING':
-            return 'Preparing to execute ' + role;
+            return Em.I18n.t('installer.step9.serviceStatus.execute.pending') + role;
           case 'QUEUED' :
-            return 'Waiting to execute ' + role;
+            return Em.I18n.t('installer.step9.serviceStatus.execute.queued') + role;
           case 'IN_PROGRESS':
-            return 'Executing ' + role;
+            return Em.I18n.t('installer.step9.serviceStatus.execute.inProgress') + role;
           case 'COMPLETED' :
-            return role + ' executed successfully';
+            return role + Em.I18n.t('installer.step9.serviceStatus.execute.completed');
           case 'FAILED':
-            return role + ' failed to execute';
+            return role + Em.I18n.t('installer.step9.serviceStatus.execute.failed');
         }
       case 'ABORT' :
         switch (task.status) {
           case 'PENDING':
-            return 'Preparing to abort ' + role;
+            return Em.I18n.t('installer.step9.serviceStatus.abort.pending') + role;
           case 'QUEUED' :
-            return 'Waiting to abort ' + role;
+            return Em.I18n.t('installer.step9.serviceStatus.abort.queued') + role;
           case 'IN_PROGRESS':
-            return 'Aborting ' + role;
+            return Em.I18n.t('installer.step9.serviceStatus.abort.inProgress') + role;
           case 'COMPLETED' :
-            return role + ' aborted successfully';
+            return role + Em.I18n.t('installer.step9.serviceStatus.abort.completed');
           case 'FAILED':
-            return role + ' failed to abort';
+            return role + Em.I18n.t('installer.step9.serviceStatus.abort.failed');
         }
     }
   },

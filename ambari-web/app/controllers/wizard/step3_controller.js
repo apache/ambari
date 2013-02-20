@@ -65,13 +65,13 @@ App.WizardStep3Controller = Em.Controller.extend({
     });
 
     var categories = [
-      self.categoryObject.create({value: 'All', hostsCount: function () {
+      self.categoryObject.create({value: Em.I18n.t('common.all'), hostsCount: function () {
         return this.get('controller.hosts.length');
       }.property('controller.hosts.length') }),
-      self.categoryObject.create({value: 'Installing', hostsBootStatus: 'RUNNING'}),
-      self.categoryObject.create({value: 'Registering', hostsBootStatus: 'REGISTERING'}),
-      self.categoryObject.create({value: 'Success', hostsBootStatus: 'REGISTERED' }),
-      self.categoryObject.create({value: 'Fail', hostsBootStatus: 'FAILED', last: true })
+      self.categoryObject.create({value: Em.I18n.t('installer.step3.hosts.status.installing'), hostsBootStatus: 'RUNNING'}),
+      self.categoryObject.create({value: Em.I18n.t('installer.step3.hosts.status.registering'), hostsBootStatus: 'REGISTERING'}),
+      self.categoryObject.create({value: Em.I18n.t('common.success'), hostsBootStatus: 'REGISTERED' }),
+      self.categoryObject.create({value: Em.I18n.t('common.fail'), hostsBootStatus: 'FAILED', last: true })
     ];
 
     this.set('category', categories.get('firstObject'));
@@ -326,7 +326,7 @@ App.WizardStep3Controller = Em.Controller.extend({
               if(hosts[i].get('bootStatus') !== 'REGISTERED'){
                 if (!isValidHost) {
                   hosts[i].set('bootStatus', 'FAILED');
-                  hosts[i].set('bootLog', 'Registration with the server failed.');
+                  hosts[i].set('bootLog', Em.I18n.t('installer.step3.hosts.bootLog.failed'));
                 }
               }
             }
@@ -410,7 +410,7 @@ App.WizardStep3Controller = Em.Controller.extend({
           switch (_host.get('bootStatus')) {
             case 'DONE':
               _host.set('bootStatus', 'REGISTERING');
-              _host.set('bootLog', (_host.get('bootLog') != null ? _host.get('bootLog') : '') + '\nRegistering with the server...');
+              _host.set('bootLog', (_host.get('bootLog') != null ? _host.get('bootLog') : '') + Em.I18n.t('installer.step3.hosts.bootLog.registering'));
               // update registration timestamp so that the timeout is computed from the last host that finished bootstrapping
               self.set('registrationStartedAt', new Date().getTime());
               stopPolling = false;
@@ -419,7 +419,7 @@ App.WizardStep3Controller = Em.Controller.extend({
               if (jsonData.items.someProperty('Hosts.host_name', _host.name)) {
                 console.log(_host.name + ' has been registered');
                 _host.set('bootStatus', 'REGISTERED');
-                _host.set('bootLog', (_host.get('bootLog') != null ? _host.get('bootLog') : '') + '\nRegistration with the server succeeded.');
+                _host.set('bootLog', (_host.get('bootLog') != null ? _host.get('bootLog') : '') + Em.I18n.t('installer.step3.hosts.bootLog.registering'));
               } else {
                 console.log(_host.name + ' is registering...');
                 stopPolling = false;
@@ -447,7 +447,7 @@ App.WizardStep3Controller = Em.Controller.extend({
           console.log('registration timed out');
           hosts.filterProperty('bootStatus', 'REGISTERING').forEach(function (_host) {
             _host.set('bootStatus', 'FAILED');
-            _host.set('bootLog', (_host.get('bootLog') != null ? _host.get('bootLog') : '') + '\nRegistration with the server failed.');
+            _host.set('bootLog', (_host.get('bootLog') != null ? _host.get('bootLog') : '') + Em.I18n.t('installer.step3.hosts.bootLog.failed'));
           });
           self.getHostInfo();
         }
@@ -553,9 +553,9 @@ App.WizardStep3Controller = Em.Controller.extend({
           var button = $(this.get('element')).find('.textTrigger');
           button.click(function () {
             if (self.get('isTextArea')) {
-              $(this).text('click to highlight');
+              $(this).text(Em.I18n.t('installer.step3.hostLogPopup.highlight'));
             } else {
-              $(this).text('press CTRL+C');
+              $(this).text(Em.I18n.t('installer.step3.hostLogPopup.copy'));
             }
             self.set('isTextArea', !self.get('isTextArea'));
           });
@@ -701,7 +701,7 @@ App.WizardStep3Controller = Em.Controller.extend({
         var parsedPath = {
           name: path.name,
           isWarn: (path.type == 'not_exist') ? false : true,
-          message: (path.type == 'not_exist') ? 'OK' : 'WARN: already exists on host'
+          message: (path.type == 'not_exist') ? Em.I18n.t('ok') : Em.I18n.t('installer.step3.hostWarningsPopup.existOnHost')
         }
         warningsByHost.directoriesFiles.push(parsedPath);
         // parsing total warnings
@@ -709,7 +709,7 @@ App.WizardStep3Controller = Em.Controller.extend({
           totalWarnings.directoriesFiles.push({
             name:parsedPath.name,
             isWarn: parsedPath.isWarn,
-            message: (parsedPath.isWarn) ? 'WARN: already exists on 1 host': 'OK',
+            message: (parsedPath.isWarn) ? Em.I18n.t('installer.step3.hostWarningsPopup.existOnOneHost') : Em.I18n.t('ok'),
             warnCount: (parsedPath.isWarn) ? 1 : 0
           })
         } else if(parsedPath.isWarn){
@@ -717,7 +717,7 @@ App.WizardStep3Controller = Em.Controller.extend({
               if(item.name == parsedPath.name){
                 totalWarnings.directoriesFiles[index].isWarn = true;
                 totalWarnings.directoriesFiles[index].warnCount++;
-                totalWarnings.directoriesFiles[index].message = 'WARN: already exists on '+ totalWarnings.directoriesFiles[index].warnCount +' hosts';
+                totalWarnings.directoriesFiles[index].message = Em.I18n.t('installer.step3.hostWarningsPopup.existOnManyHost').format(totalWarnings.directoriesFiles[index].warnCount);
               }
             });
         }
@@ -728,7 +728,7 @@ App.WizardStep3Controller = Em.Controller.extend({
         var parsedPackage = {
           name: _package.name,
           isWarn: _package.installed,
-          message: (_package.installed) ? 'WARN: already installed on host' : 'OK'
+          message: (_package.installed) ? Em.I18n.t('installer.step3.hostWarningsPopup.installedOnHost') : Em.I18n.t('ok')
         }
         warningsByHost.packages.push(parsedPackage);
         // parsing total warnings
@@ -736,7 +736,7 @@ App.WizardStep3Controller = Em.Controller.extend({
           totalWarnings.packages.push({
             name:parsedPackage.name,
             isWarn: parsedPackage.isWarn,
-            message: (parsedPackage.isWarn) ? 'WARN: already exists on 1 host': 'OK',
+            message: (parsedPackage.isWarn) ? Em.I18n.t('installer.step3.hostWarningsPopup.installedOnOneHost') : Em.I18n.t('ok'),
             warnCount: (parsedPackage.isWarn) ? 1 : 0
           })
         } else if(parsedPackage.isWarn){
@@ -744,7 +744,7 @@ App.WizardStep3Controller = Em.Controller.extend({
             if(item.name == parsedPackage.name){
               totalWarnings.packages[index].isWarn = true;
               totalWarnings.packages[index].warnCount++;
-              totalWarnings.packages[index].message = 'WARN: already exists on '+ totalWarnings.packages[index].warnCount +' hosts';
+              totalWarnings.packages[index].message = Em.I18n.t('installer.step3.hostWarningsPopup.installedOnManyHost').format(totalWarnings.packages[index].warnCount);
             }
           });
         }
@@ -758,7 +758,7 @@ App.WizardStep3Controller = Em.Controller.extend({
             pid: process.pid,
             command: process.command,
             shortCommand: (process.command.substr(0, 15)+'...'),
-            message: (process.hadoop) ? 'WARN: running on host' : 'OK'
+            message: (process.hadoop) ? Em.I18n.t('installer.step3.hostWarningsPopup.runningOnHost') : Em.I18n.t('ok')
           }
           warningsByHost.processes.push(parsedProcess);
           // parsing total warnings
@@ -769,7 +769,7 @@ App.WizardStep3Controller = Em.Controller.extend({
               command: process.command,
               shortCommand: (process.command.substr(0, 15)+'...'),
               isWarn: parsedProcess.isWarn,
-              message: (parsedProcess.isWarn) ? 'WARN: running on 1 host': 'OK',
+              message: (parsedProcess.isWarn) ? Em.I18n.t('installer.step3.hostWarningsPopup.runningOnOneHost') : Em.I18n.t('ok'),
               warnCount: (parsedProcess.isWarn) ? 1 : 0
             })
           } else if(parsedProcess.isWarn){
@@ -777,7 +777,7 @@ App.WizardStep3Controller = Em.Controller.extend({
               if(item.pid == parsedProcess.pid){
                 totalWarnings.processes[index].isWarn = true;
                 totalWarnings.processes[index].warnCount++;
-                totalWarnings.processes[index].message = 'WARN: running on '+ totalWarnings.processes[index].warnCount +' hosts';
+                totalWarnings.processes[index].message = Em.I18n.t('installer.step3.hostWarningsPopup.runningOnManyHost').format(totalWarnings.processes[index].warnCount);
               }
             });
           }
@@ -801,8 +801,8 @@ App.WizardStep3Controller = Em.Controller.extend({
     App.ModalPopup.show({
 
       header: Em.I18n.t('installer.step3.warnings.popup.header'),
-      secondary: 'Rerun Checks',
-      primary: 'Close',
+      secondary: Em.I18n.t('installer.step3.hostWarningsPopup.rerunChecks'),
+      primary: Em.I18n.t('common.close'),
       onPrimary: function () {
         self.set('checksUpdateStatus', null);
         this.hide();
@@ -878,23 +878,23 @@ App.WizardStep3Controller = Em.Controller.extend({
           var content = this.get('content');
           var newContent = '';
           if(content.hostName == 'All Hosts'){
-            newContent += '<h4>Warnings across all hosts</h4>';
+            newContent += '<h4>'+Em.I18n.t('installer.step3.warningsWindow.allHosts')+'</h4>';
           } else {
-            newContent += '<h4>Warnings on ' + content.hostName + '</h4>';
+            newContent += '<h4>' + Em.I18n.t('installer.step3.warningsWindow.warningsOn') + content.hostName + '</h4>';
           }
-          newContent += '<div>DIRECTORIES AND FILES</div><div>';
+          newContent += '<div>' + Em.I18n.t('installer.step3.warningsWindow.directoriesAndFiles') + '</div><div>';
           content.directoriesFiles.filterProperty('isWarn', true).forEach(function(path){
               newContent += path.name + '&nbsp;'
           });
           if(content.directoriesFiles.filterProperty('isWarn', true).length == 0){
-            newContent += 'No warnings';
+            newContent += Em.I18n.t('installer.step3.warningsWindow.noWarnings');
           }
           newContent += '</div><br/><div>PACKAGES</div><div>';
           content.packages.filterProperty('isWarn', true).forEach(function(_package){
               newContent += _package.name + '&nbsp;'
           });
           if(content.packages.filterProperty('isWarn', true).length == 0){
-            newContent += 'No warnings';
+            newContent += Em.I18n.t('installer.step3.warningsWindow.noWarnings');
           }
           newContent += '</div><br/><div>PROCESSES</div><div>';
           content.processes.filterProperty('isWarn', true).forEach(function(process, index){
@@ -902,7 +902,7 @@ App.WizardStep3Controller = Em.Controller.extend({
               newContent += (index != (content.processes.filterProperty('isWarn', true).length-1)) ? ',' : '';
           })
           if(content.processes.filterProperty('isWarn', true).length == 0){
-            newContent += 'No warnings';
+            newContent += Em.I18n.t('installer.step3.warningsWindow.noWarnings');
           }
           return newContent;
         }.property('content'),

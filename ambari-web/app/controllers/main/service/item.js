@@ -71,8 +71,8 @@ App.MainServiceItemController = Em.Controller.extend({
     App.ModalPopup.show({
       header: Em.I18n.t('services.service.confirmation.header'),
       body: Em.I18n.t('services.service.confirmation.body'),
-      primary: 'Yes',
-      secondary: 'No',
+      primary: Em.I18n.t('yes'),
+      secondary: Em.I18n.t('no'),
       onPrimary: function () {
         self.sendCommandToServer('/services/' + self.get('content.serviceName').toUpperCase(), "PUT", {
           ServiceInfo: {
@@ -130,8 +130,8 @@ App.MainServiceItemController = Em.Controller.extend({
     App.ModalPopup.show({
       header: Em.I18n.t('services.service.confirmation.header'),
       body: Em.I18n.t('services.service.confirmation.body'),
-      primary: 'Yes',
-      secondary: 'No',
+      primary: Em.I18n.t('yes'),
+      secondary: Em.I18n.t('no'),
       onPrimary: function() {
         self.sendCommandToServer('/services/' + self.get('content.serviceName').toUpperCase(), "PUT",{
           ServiceInfo:{
@@ -183,8 +183,8 @@ App.MainServiceItemController = Em.Controller.extend({
     App.ModalPopup.show({
       header: Em.I18n.t('services.service.confirmation.header'),
       body: Em.I18n.t('services.service.confirmation.body'),
-      primary: 'Yes',
-      secondary: 'No',
+      primary: Em.I18n.t('yes'),
+      secondary: Em.I18n.t('no'),
       onPrimary: function() {
         self.content.set('runRebalancer', true);
         App.router.get('backgroundOperationsController').showPopup();
@@ -205,8 +205,8 @@ App.MainServiceItemController = Em.Controller.extend({
     App.ModalPopup.show({
       header: Em.I18n.t('services.service.confirmation.header'),
       body: Em.I18n.t('services.service.confirmation.body'),
-      primary: 'Yes',
-      secondary: 'No',
+      primary: Em.I18n.t('yes'),
+      secondary: Em.I18n.t('no'),
       onPrimary: function() {
         self.content.set('runCompaction', true);
         App.router.get('backgroundOperationsController').showPopup();
@@ -227,8 +227,8 @@ App.MainServiceItemController = Em.Controller.extend({
     App.ModalPopup.show({
       header: Em.I18n.t('services.service.confirmation.header'),
       body: Em.I18n.t('services.service.confirmation.body'),
-      primary: 'Yes',
-      secondary: 'No',
+      primary: Em.I18n.t('yes'),
+      secondary: Em.I18n.t('no'),
       onPrimary: function() {
 
         var serviceName = self.get('content.serviceName').toUpperCase();

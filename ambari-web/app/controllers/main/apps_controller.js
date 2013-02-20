@@ -482,15 +482,15 @@ App.MainAppsController = Em.ArrayController.extend({
 
   columnsName: Ember.ArrayController.create({
     content: [
-      { name: 'App ID', index: 0 },
-      { name: 'Name', index: 1 },
-      { name: 'Type', index: 2 },
-      { name: 'User', index: 3 },
-      { name: 'Jobs', index: 4 },
-      { name: 'Input', index: 5 },
-      { name: 'Output', index: 6 },
-      { name: 'Duration', index: 7 },
-      { name: 'Run Date', index: 8 }
+      { name: Em.I18n.t('apps.table.column.appId'), index: 0 },
+      { name: Em.I18n.t('common.name'), index: 1 },
+      { name: Em.I18n.t('common.type'), index: 2 },
+      { name: Em.I18n.t('common.user'), index: 3 },
+      { name: Em.I18n.t('apps.avgTable.jobs'), index: 4 },
+      { name: Em.I18n.t('apps.avgTable.input'), index: 5 },
+      { name: Em.I18n.t('apps.avgTable.output'), index: 6 },
+      { name: Em.I18n.t('apps.avgTable.duration'), index: 7 },
+      { name: Em.I18n.t('apps.table.column.runDate'), index: 8 }
     ]
   })
 

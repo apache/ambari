@@ -30,7 +30,7 @@ var App = require('app');
  * 
  */
 App.MainChartHeatmapMemoryUsedMetric = App.MainChartHeatmapMetric.extend({
-  name: 'Memory Used %',
+  name: Em.I18n.t('charts.heatmap.metrics.memoryUsed'),
   maximumValue: 100,
   defaultMetric: 'metrics.memory',
   units: '%',

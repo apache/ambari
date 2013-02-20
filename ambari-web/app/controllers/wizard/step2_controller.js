@@ -179,13 +179,13 @@ App.WizardStep2Controller = Em.Controller.extend({
     if (this.get('inputtedAgainHostNames').length) {
       var self = this;
       App.ModalPopup.show({
-        header: 'Warning',
+        header: Em.I18n.t('common.warning'),
         onPrimary: function () {
           self.proceedNext();
           this.hide();
         },
         bodyClass: Ember.View.extend({
-          template: Ember.Handlebars.compile('<p>These hosts are already installed on the cluster and will be ignored:</p><p>' + self.get('inputtedAgainHostNames').join(', ') + '</p><p>Do you want to continue?</p>')
+          template: Ember.Handlebars.compile('<p>{{t installer.step2.evaluateStep.installedHosts}}</p><p>' + self.get('inputtedAgainHostNames').join(', ') + '</p><p>{{t installer.step2.evaluateStep.continueConfirm}}</p>')
         })
       });
     } else {
@@ -250,7 +250,7 @@ App.WizardStep2Controller = Em.Controller.extend({
     var requestId = App.router.get(this.get('content.controllerName')).launchBootstrap(bootStrapData);
     if (requestId == '0') {
       var controller = App.router.get(App.clusterStatus.wizardControllerName);
-      controller.registerErrPopup('Information', 'Host Registration is currently in progress.  Please try again later.');
+      controller.registerErrPopup(Em.I18n.t('common.information'), Em.I18n.t('installer.step2.evaluateStep.hostRegInProgress'));
     } else if (requestId) {
       this.set('content.installOptions.bootRequestId', requestId);
       this.saveHosts();

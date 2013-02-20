@@ -21,7 +21,7 @@ var App = require('app');
  * 
  */
 App.MainChartHeatmapDiskSpaceUsedMetric = App.MainChartHeatmapMetric.extend({
-  name: 'Disk Space Used %',
+  name: Em.I18n.t('charts.heatmap.metrics.diskSpaceUsed'),
   maximumValue: 100,
   defaultMetric: 'metrics.disk',
   units: '%',

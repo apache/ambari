@@ -57,7 +57,7 @@ App.WizardStep10Controller = Em.Controller.extend({
     }, this);
     slaveHosts = hostObj.mapProperty('hostName').uniq();
     var registeredHosts = App.Host.find().mapProperty('hostName').concat(masterHosts.concat(slaveHosts)).uniq();
-    var registerHostsStatement = 'The cluster consists of ' + registeredHosts.length + ' hosts';
+    var registerHostsStatement = Em.I18n.t('installer.step10.hostsSummary').format(registeredHosts.length);
     var registerHostsObj = Ember.Object.create({
       id: 1,
       color: 'text-info',
@@ -79,7 +79,7 @@ App.WizardStep10Controller = Em.Controller.extend({
     var succeededHosts = hostsInfo.filterProperty('status', 'success');
     var warnedHosts = hostsInfo.filterProperty('status', 'warning').concat(hostsInfo.filterProperty('status', 'failed'));
     if (succeededHosts.length) {
-      var successStatement = 'Installed and started services successfully on ' + succeededHosts.length + ' new ' + ((succeededHosts.length > 1) ? 'hosts' : 'host');
+      var successStatement = Em.I18n.t('installer.step10.servicesSummary').format(succeededHosts.length) + ((succeededHosts.length > 1) ? Em.I18n.t('installer.step8.hosts') : Em.I18n.t('installer.step8.host'));
       this.get('clusterInfo').findProperty('id', 1).get('status').pushObject(Ember.Object.create({
         id: 1,
         color: 'text-success',
@@ -88,7 +88,7 @@ App.WizardStep10Controller = Em.Controller.extend({
     }
 
     if (warnedHosts.length) {
-      var warnStatement = warnedHosts.length + ' warnings';
+      var warnStatement = warnedHosts.length + Em.I18n.t('installer.step10.warnings');
       this.get('clusterInfo').findProperty('id', 1).get('status').pushObject(Ember.Object.create({
         id: 2,
         color: 'text-warning',
@@ -100,14 +100,14 @@ App.WizardStep10Controller = Em.Controller.extend({
         var clusterState;
         console.log("Content.cluster.status is: " + this.get('content.cluster.status'));
         if (this.get('content.cluster.status') === 'INSTALL FAILED') {
-          clusterState = 'Installing ';
+          clusterState = Em.I18n.t('installer.step10.clusterState.installing');
         } else if (this.get('content.cluster.status') === 'START FAILED') {
-          clusterState = 'Starting ';
+          clusterState = Em.I18n.t('installer.step10.clusterState.starting');
         }
         console.log('host value is: ' + JSON.stringify(_host));
         var failedTasks = _host.tasks.filterProperty('Tasks.status', 'FAILED');
         failedTasks.forEach(function (_task) {
-          var taskStatement = clusterState + App.format.role(_task.Tasks.role) + ' failed on ' + _host.name;
+          var taskStatement = clusterState + App.format.role(_task.Tasks.role) + Em.I18n.t('installer.step10.taskStatus.failed') + _host.name;
           this.get('clusterInfo').findProperty('id', 1).get('status').findProperty('id', 2).get('statements').pushObject(Ember.Object.create({
             status: 'failed',
             color: 'text-info',
@@ -117,7 +117,7 @@ App.WizardStep10Controller = Em.Controller.extend({
 
         var abortedTasks = _host.tasks.filterProperty('Tasks.status', 'ABORTED');
         abortedTasks.forEach(function (_task) {
-          var abortStatement = clusterState + App.format.role(_task.Tasks.role) + ' aborted on ' + _host.name;
+          var abortStatement = clusterState + App.format.role(_task.Tasks.role) + Em.I18n.t('installer.step10.taskStatus.aborted') + _host.name;
           this.get('clusterInfo').findProperty('id', 1).get('status').findProperty('id', 2).get('statements').pushObject(Ember.Object.create({
             status: 'aborted',
             color: 'text-info',
@@ -127,7 +127,7 @@ App.WizardStep10Controller = Em.Controller.extend({
 
         var timedOutTasks = _host.tasks.filterProperty('Tasks.status', 'TIMEDOUT');
         timedOutTasks.forEach(function (_task) {
-          var timedOutStatement = clusterState + App.format.role(_task.Tasks.role) + ' timed out on ' + _host.name;
+          var timedOutStatement = clusterState + App.format.role(_task.Tasks.role) + Em.I18n.t('installer.step10.taskStatus.timedOut') + _host.name;
           this.get('clusterInfo').findProperty('id', 1).get('status').findProperty('id', 2).get('statements').pushObject(Ember.Object.create({
             status: 'timedout',
             color: 'text-info',
@@ -144,7 +144,7 @@ App.WizardStep10Controller = Em.Controller.extend({
     if (this.get('content.cluster.status') === 'INSTALL FAILED') {
       this.get('clusterInfo').pushObject(Ember.Object.create({
         id: 2,
-        displayStatement: 'Installing master services failed',
+        displayStatement: Em.I18n.t('installer.step10.installStatus.failed'),
         color: 'text-error',
         status: []
       }));
@@ -152,7 +152,7 @@ App.WizardStep10Controller = Em.Controller.extend({
     } else {
       this.get('clusterInfo').pushObject(Ember.Object.create({
         id: 2,
-        displayStatement: 'Master services installed',
+        displayStatement: Em.I18n.t('installer.step10.installStatus.installed'),
         color: 'text-success',
         status: []
       }));
@@ -197,7 +197,7 @@ App.WizardStep10Controller = Em.Controller.extend({
 
   loadNn: function (component) {
     if (component.get('hostName')) {
-      var statement = 'NameNode installed on ' + component.get('hostName');
+      var statement = Em.I18n.t('installer.step10.master.nameNode') + component.get('hostName');
       this.get('clusterInfo').findProperty('id', 2).get('status').pushObject(Ember.Object.create({
         id: 1,
         color: 'text-info',
@@ -210,7 +210,7 @@ App.WizardStep10Controller = Em.Controller.extend({
 
   loadSnn: function (component) {
     if (component.get('hostName')) {
-      var statement = 'SecondaryNameNode installed on ' + component.get('hostName');
+      var statement = Em.I18n.t('installer.step10.master.secondaryNameNode') + component.get('hostName');
       this.get('clusterInfo').findProperty('id', 2).get('status').pushObject(Ember.Object.create({
         id: 1,
         color: 'text-info',
@@ -223,7 +223,7 @@ App.WizardStep10Controller = Em.Controller.extend({
 
   loadJt: function (component) {
     if (component.get('hostName')) {
-      var statement = 'JobTracker installed on ' + component.get('hostName');
+      var statement = Em.I18n.t('installer.step10.master.jobTracker') + component.get('hostName');
       this.get('clusterInfo').findProperty('id', 2).get('status').pushObject(Ember.Object.create({
         id: 1,
         color: 'text-info',
@@ -239,11 +239,11 @@ App.WizardStep10Controller = Em.Controller.extend({
     if (hostLength) {
       var hostVal;
       if (hostLength === 1) {
-        hostVal = 'host';
+        hostVal = Em.I18n.t('installer.step8.host');
       } else {
-        hostVal = 'hosts';
+        hostVal = Em.I18n.t('installer.step8.hosts');
       }
-      var statement = 'ZooKeeper installed on ' + component.get('hostName').length + ' ' + hostVal;
+      var statement = Em.I18n.t('installer.step10.master.zooKeeper') + component.get('hostName').length + ' ' + hostVal;
       this.get('clusterInfo').findProperty('id', 2).get('status').pushObject(Ember.Object.create({
         id: 1,
         color: 'text-info',
@@ -256,7 +256,7 @@ App.WizardStep10Controller = Em.Controller.extend({
 
   loadHb: function (component) {
     if (component.get('hostName')) {
-      var statement = 'HBase Master installed on ' + component.get('hostName');
+      var statement = Em.I18n.t('installer.step10.master.hbase') + component.get('hostName');
       this.get('clusterInfo').findProperty('id', 2).get('status').pushObject(Ember.Object.create({
         id: 1,
         color: 'text-info',
@@ -269,7 +269,7 @@ App.WizardStep10Controller = Em.Controller.extend({
 
   loadHiveServer: function (component) {
     if (component.get('hostName')) {
-      var statement = 'Hive Metastore installed on ' + component.get('hostName');
+      var statement = Em.I18n.t('installer.step10.master.hiveMetastore') + component.get('hostName');
       this.get('clusterInfo').findProperty('id', 2).get('status').pushObject(Ember.Object.create({
         id: 1,
         color: 'text-info',
@@ -282,7 +282,7 @@ App.WizardStep10Controller = Em.Controller.extend({
 
   loadOozieServer: function (component) {
     if (component.get('hostName')) {
-      var statement = 'Oozie Server installed on ' + component.get('hostName');
+      var statement = Em.I18n.t('installer.step10.master.oozie') + component.get('hostName');
       this.get('clusterInfo').findProperty('id', 2).get('status').pushObject(Ember.Object.create({
         id: 1,
         color: 'text-info',
@@ -295,7 +295,7 @@ App.WizardStep10Controller = Em.Controller.extend({
 
   loadGanglia: function (component) {
     if (component.get('hostName')) {
-      var statement = 'Ganglia Server installed on ' + component.get('hostName');
+      var statement = Em.I18n.t('installer.step10.master.ganglia') + component.get('hostName');
       this.get('clusterInfo').findProperty('id', 2).get('status').pushObject(Ember.Object.create({
         id: 1,
         color: 'text-info',
@@ -308,7 +308,7 @@ App.WizardStep10Controller = Em.Controller.extend({
 
   loadNagios: function (component) {
     if (component.get('hostName')) {
-      var statement = 'Nagios Server installed on ' + component.get('hostName');
+      var statement = Em.I18n.t('installer.step10.master.nagios') + component.get('hostName');
       this.get('clusterInfo').findProperty('id', 2).get('status').pushObject(Ember.Object.create({
         id: 1,
         color: 'text-info',
@@ -321,17 +321,17 @@ App.WizardStep10Controller = Em.Controller.extend({
 
   loadStartedServices: function (component) {
     if (this.get('content.cluster.status') === 'STARTED') {
-      var statement = 'All services started';
+      var statement = Em.I18n.t('installer.step10.startStatus.started');
       this.get('clusterInfo').pushObject(Ember.Object.create({
         id: 3,
         color: 'text-success',
-        displayStatement: 'All services started',
+        displayStatement: Em.I18n.t('installer.step10.startStatus.started'),
         status: []
       }));
       this.get('clusterInfo').pushObject(Ember.Object.create({
         id: 4,
         color: 'text-success',
-        displayStatement: 'All tests passed',
+        displayStatement: Em.I18n.t('installer.step10.startStatus.passed'),
         status: []
       }));
       return true;
@@ -339,7 +339,7 @@ App.WizardStep10Controller = Em.Controller.extend({
       this.get('clusterInfo').pushObject(Ember.Object.create({
         id: 3,
         color: 'text-error',
-        displayStatement: 'Starting services failed',
+        displayStatement: Em.I18n.t('installer.step10.startStatus.failed'),
         status: []
       }));
       return false;
@@ -354,9 +354,9 @@ App.WizardStep10Controller = Em.Controller.extend({
       var seconds = Math.floor((this.get('content.cluster.installTime') - minutes) * secondsPerMinute);
       var statement;
       if (minutes !== 0) {
-        statement = 'Install and start completed in ' + minutes + ' minutes and ' + seconds + ' seconds';
+        statement = Em.I18n.t('installer.step10.installTime.minutes').format(minutes, seconds);
       } else {
-        statement = 'Install and start completed in ' + seconds + ' seconds';
+        statement = Em.I18n.t('installer.step10.installTime.seconds').format(seconds);
       }
       this.get('clusterInfo').pushObject(Ember.Object.create({
         id: 5,

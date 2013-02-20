@@ -94,8 +94,8 @@ App.MainHostController = Em.ArrayController.extend({
     App.ModalPopup.show({
       header:Em.I18n.t('hosts.decommission.popup.header'),
       body:Em.I18n.t('hosts.decommission.popup.body'),
-      primary:'Yes',
-      secondary:'No',
+      primary:Em.I18n.t('yes'),
+      secondary:Em.I18n.t('no'),
       onPrimary:function () {
         alert('do');
         this.hide();
@@ -115,8 +115,8 @@ App.MainHostController = Em.ArrayController.extend({
     App.ModalPopup.show({
       header:Em.I18n.t('hosts.delete.popup.header'),
       body:Em.I18n.t('hosts.delete.popup.body'),
-      primary:'Yes',
-      secondary:'No',
+      primary:Em.I18n.t('yes'),
+      secondary:Em.I18n.t('no'),
       onPrimary:function () {
         self.removeHosts();
         this.hide();
@@ -146,7 +146,7 @@ App.MainHostController = Em.ArrayController.extend({
 
         templateName: require('templates/main/host/alerts_popup')
       }),
-      primary: 'Close',
+      primary: Em.I18n.t('common.close'),
       onPrimary: function() {
         this.hide();
       },

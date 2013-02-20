@@ -28,7 +28,7 @@ App.MainController = Em.Controller.extend({
       name = name.length > 13 ? name.substr(0, 10) + "..." : name;
       name = name.capitalize();
     } else {
-      name = 'Loading';
+      name = Em.I18n.t('common.loading');
     }
     $('title').text('Ambari - ' + name);
   }.observes('App.router.clusterController.clusterName'),

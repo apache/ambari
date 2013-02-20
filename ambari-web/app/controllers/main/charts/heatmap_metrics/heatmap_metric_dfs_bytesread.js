@@ -21,7 +21,7 @@ var App = require('app');
  * 
  */
 App.MainChartHeatmapDFSBytesReadMetric = App.MainChartHeatmapDFSMetrics.extend({
-  name: 'Bytes Read',
+  name: Em.I18n.t('charts.heatmap.metrics.bytesRead'),
   maximumValue: 1024, // 1GB
   defaultMetric: 'metrics.dfs.datanode.bytes_read',
   units: 'MB',

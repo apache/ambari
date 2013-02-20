@@ -198,7 +198,7 @@ App.SlaveComponentGroupsController = Em.ArrayController.extend({
     var componentName = event.context;
     var component = this.get('selectedSlaveComponent');
     App.ModalPopup.show({
-      header: componentName + ' Groups',
+      header: componentName + Em.I18n.t('installer.controls.slaveComponentGroups'),
       bodyClass: Ember.View.extend({
         controllerBinding: 'App.router.slaveComponentGroupsController',
         header: Em.I18n.t('installer.slaveComponentHostsPopup.header').format(this.get('selectedComponentDisplayName')),

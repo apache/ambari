@@ -21,7 +21,7 @@ var App = require('app');
  * 
  */
 App.MainChartHeatmapDFSBytesWrittenMetric = App.MainChartHeatmapDFSMetrics.extend({
-  name: 'Bytes Written',
+  name: Em.I18n.t('charts.heatmap.metrics.bytesWritten'),
   maximumValue: 1024, // 1GB
   defaultMetric: 'metrics.dfs.datanode.bytes_written',
   units: 'MB',

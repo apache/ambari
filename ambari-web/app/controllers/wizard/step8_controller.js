@@ -502,7 +502,7 @@ App.WizardStep8Controller = Em.Controller.extend({
      groupLabel = 'groups';
      }
      */
-    dnComponent.set('component_value', totalDnHosts + ' hosts');
+    dnComponent.set('component_value', totalDnHosts + Em.I18n.t('installer.step8.hosts'));
   },
 
 
@@ -541,7 +541,7 @@ App.WizardStep8Controller = Em.Controller.extend({
      groupLabel = 'groups';
      }
      */
-    ttComponent.set('component_value', totalTtHosts + ' hosts');
+    ttComponent.set('component_value', totalTtHosts + Em.I18n.t('installer.step8.hosts'));
   },
 
   /**
@@ -619,7 +619,7 @@ App.WizardStep8Controller = Em.Controller.extend({
      } else {
      groupLabel = 'groups';
      } */
-    rsComponent.set('component_value', totalRsHosts + ' hosts');
+    rsComponent.set('component_value', totalRsHosts + Em.I18n.t('installer.step8.hosts'));
   },
 
   /**
@@ -642,9 +642,9 @@ App.WizardStep8Controller = Em.Controller.extend({
     var zkHostNames = this.get('content.masterComponentHosts').filterProperty('display_name', 'ZooKeeper').length;
     var hostSuffix;
     if (zkHostNames === 1) {
-      hostSuffix = 'host';
+      hostSuffix = Em.I18n.t('installer.step8.host');
     } else {
-      hostSuffix = 'hosts';
+      hostSuffix = Em.I18n.t('installer.step8.hosts');
     }
     serverComponent.set('component_value', zkHostNames + ' ' + hostSuffix);
   },
@@ -1540,7 +1540,7 @@ App.WizardStep8Controller = Em.Controller.extend({
     params.error = function (xhr, status, error) {
       var responseText = JSON.parse(xhr.responseText);
       var controller = App.router.get(App.clusterStatus.wizardControllerName);
-      controller.registerErrPopup("Error", responseText.message);
+      controller.registerErrPopup(Em.I18n.t('common.error'), responseText.message);
       self.set('hasErrorOccurred', true);
       // an error will break the ajax call chain and allow submission again
       self.set('isSubmitDisabled', false);

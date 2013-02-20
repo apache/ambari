@@ -93,8 +93,8 @@ App.MainHostDetailsController = Em.Controller.extend({
     App.ModalPopup.show({
       header: Em.I18n.t('hosts.host.start.popup.header'),
       body: Em.I18n.t('hosts.host.start.popup.body'),
-      primary: 'Yes',
-      secondary: 'No',
+      primary: Em.I18n.t('yes'),
+      secondary: Em.I18n.t('no'),
       onPrimary: function() {
         var component = event.context;
 
@@ -150,8 +150,8 @@ App.MainHostDetailsController = Em.Controller.extend({
     App.ModalPopup.show({
       header: Em.I18n.t('hosts.host.start.popup.header'),
       body: Em.I18n.t('hosts.host.start.popup.body'),
-      primary: 'Yes',
-      secondary: 'No',
+      primary: Em.I18n.t('yes'),
+      secondary: Em.I18n.t('no'),
       onPrimary: function() {
         var component = event.context;
 
@@ -210,8 +210,8 @@ App.MainHostDetailsController = Em.Controller.extend({
     App.ModalPopup.show({
       header: Em.I18n.t('hosts.host.start.popup.header'),
       body: Em.I18n.t('hosts.host.start.popup.body'),
-      primary: 'Yes',
-      secondary: 'No',
+      primary: Em.I18n.t('yes'),
+      secondary: Em.I18n.t('no'),
       onPrimary: function(){
         var component = event.context;
         // Only HDFS service as of now
@@ -318,8 +318,8 @@ App.MainHostDetailsController = Em.Controller.extend({
     App.ModalPopup.show({
       header: Em.I18n.t('hosts.host.start.popup.header'),
       body: Em.I18n.t('hosts.host.start.popup.body'),
-      primary: 'Yes',
-      secondary: 'No',
+      primary: Em.I18n.t('yes'),
+      secondary: Em.I18n.t('no'),
       onPrimary: function(){
         var component = event.context;
         // Only HDFS service as of now
@@ -375,7 +375,7 @@ App.MainHostDetailsController = Em.Controller.extend({
       header: Em.I18n.t('hosts.cant.do.popup.header'),
       html: true,
       body: masterString + workingString,
-      primary: "OK",
+      primary: Em.I18n.t('ok'),
       secondary: null,
       onPrimary: function() {
         this.hide();
@@ -391,8 +391,8 @@ App.MainHostDetailsController = Em.Controller.extend({
     App.ModalPopup.show({
       header: Em.I18n.t('hosts.delete.popup.header'),
       body: Em.I18n.t('hosts.delete.popup.body'),
-      primary: 'Yes',
-      secondary: 'No',
+      primary: Em.I18n.t('yes'),
+      secondary: Em.I18n.t('no'),
       onPrimary: function() {
         self.removeHost();
         this.hide();

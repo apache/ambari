@@ -21,7 +21,7 @@ var App = require('app');
  * 
  */
 App.MainChartHeatmapDFSMemHeapUsedMetric = App.MainChartHeatmapDFSMetrics.extend({
-  name: 'JVM Heap Memory Used',
+  name: Em.I18n.t('charts.heatmap.metrics.DFSMemHeapUsed'),
   maximumValue: 512,
   defaultMetric: 'metrics.jvm.memHeapUsedM',
   units: 'MB',

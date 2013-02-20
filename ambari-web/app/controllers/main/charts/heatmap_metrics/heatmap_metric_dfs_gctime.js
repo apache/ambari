@@ -21,7 +21,7 @@ var App = require('app');
  * 
  */
 App.MainChartHeatmapDFSGCTimeMillisMetric = App.MainChartHeatmapDFSMetrics.extend({
-  name: 'Garbage Collection Time',
+  name: Em.I18n.t('charts.heatmap.metrics.DFSGarbageCollection'),
   maximumValue: 10000,
   defaultMetric: 'metrics.jvm.gcTimeMillis',
   units: ' ms',

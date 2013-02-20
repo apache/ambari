@@ -79,7 +79,7 @@ App.WizardStep5Controller = Em.Controller.extend({
           cpu:_host.cpu,
           memory:_host.memory,
           disk_info:_host.disk_info,
-          host_info:"%@ (%@, %@ cores)".fmt(_host.name, (_host.memory * 1024).bytesToSize(1, 'parseFloat'), _host.cpu)
+          host_info: Em.I18n.t('installer.step5.hostInfo').fmt(_host.name, (_host.memory * 1024).bytesToSize(1, 'parseFloat'), _host.cpu)
 
 //          Uncomment to test sorting with random cpu, memory, host_info
 //          cpu:function () {

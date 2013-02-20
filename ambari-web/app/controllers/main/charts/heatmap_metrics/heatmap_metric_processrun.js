@@ -30,7 +30,7 @@ var App = require('app');
  * 
  */
 App.MainChartHeatmapProcessRunMetric = App.MainChartHeatmapMetric.extend({
-  name: 'Total Running Processes',
+  name: Em.I18n.t('charts.heatmap.metrics.processRun'),
   maximumValue: 1,
   defaultMetric: 'metrics.process.proc_run',
   units: 'Processes',

@@ -268,19 +268,19 @@ App.WizardStep7Controller = Em.Controller.extend({
     var displayMsg = null;
     if (displayNames && displayNames.length) {
       if (displayNames.length === 1) {
-        displayMsg = siteProperty + ' as ' + displayNames[0];
+        displayMsg = siteProperty + ' '+Em.I18n.t('as')+' ' + displayNames[0];
       } else {
         var name = null;
         displayNames.forEach(function (_name, index) {
           if (index === 0) {
             name = _name;
           } else if (index === displayNames.length - 1) {
-            name = name + ' and ' + _name;
+            name = name + ' '+Em.I18n.t('and')+' ' + _name;
           } else {
             name = name + ', ' + _name;
           }
         }, this);
-        displayMsg = siteProperty + ' as ' + name;
+        displayMsg = siteProperty + ' '+Em.I18n.t('as')+' ' + name;
       }
     } else {
       displayMsg = siteProperty;
@@ -309,14 +309,14 @@ App.WizardStep7Controller = Em.Controller.extend({
   showCustomConfigErrMsg: function (customConfig) {
 
     App.ModalPopup.show({
-      header: 'Custom configuration error: ',
-      primary: 'OK',
+      header: Em.I18n.t('installer.step7.ConfigErrMsg.header'),
+      primary: Em.I18n.t('ok'),
       secondary: null,
       onPrimary: function () {
         this.hide();
       },
       bodyClass: Ember.View.extend({
-        message: 'Error in custom configuration. Some properties entered in the box are already exposed on this page',
+        message: Em.I18n.t('installer.step7.ConfigErrMsg.message'),
         siteProperties: customConfig,
         getDisplayMessage: function () {
 

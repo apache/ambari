@@ -21,7 +21,7 @@ var App = require('app');
  * 
  */
 App.MainChartHeatmapMapreduceReducesRunningMetric = App.MainChartHeatmapMapreduceMetrics.extend({
-  name: 'Reduces Running',
+  name: Em.I18n.t('charts.heatmap.metrics.reducesRunning'),
   maximumValue: 100,
   defaultMetric: 'metrics.mapred.tasktracker.reduces_running',
   units: ' reduces',

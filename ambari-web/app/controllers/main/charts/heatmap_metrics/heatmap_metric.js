@@ -168,13 +168,13 @@ App.MainChartHeatmapMetric = Em.Object.extend({
     defs.push(Em.Object.create({
       from: NaN,
       to: NaN,
-      label: "Invalid data",
+      label: Em.I18n.t('charts.heatmap.label.invalidData'),
       cssStyle: hatchStyle
     }));
     defs.push(Em.Object.create({
       from: -1,
       to: -1,
-      label: "Not Applicable",
+      label: Em.I18n.t('charts.heatmap.label.notApplicable'),
       cssStyle: "background-color:rgb(200, 200, 200)"
     }));
     return defs;
