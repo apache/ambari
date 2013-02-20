@@ -19,27 +19,7 @@
 
 window.App = require('app');
 
-App.testMode = false;
-App.skipBootstrap = false;
-App.alwaysGoToInstaller = false;
-App.apiPrefix = '/api/v1';
-App.defaultStackVersion = 'HDP-1.2.2';
-App.defaultLocalStackVersion = 'HDPLocal-1.2.2';
-App.defaultJavaHome = '/usr/jdk/jdk1.6.0_31';
-App.addServicesEnabled = false;
-// default AJAX timeout
-App.timeout = 180000;
-// max number of retries for certain AJAX calls
-App.maxRetries = 3;
-App.bgOperationsUpdateInterval = 6000;
-App.componentsUpdateInterval = 6000;
-App.contentUpdateInterval = 15000;
-App.maxRunsForAppBrowser = 500;
-
-// this is to make sure that IE does not cache data when making AJAX calls to the server
-$.ajaxSetup({
-  cache: false
-});
+require('config');
 
 require('messages');
 require('utils/base64');
@@ -65,11 +45,6 @@ require('mappers/service_mapper');
 require('utils/http_client');
 
 App.initialize();
-
-/**
- * Test Mode values
- */
-App.test_hostname = 'hostname';
 
 console.log('after initialize');
 console.log('TRACE: app.js-> localStorage:Ambari.authenticated=' + localStorage.getItem('Ambari' + 'authenticated'));

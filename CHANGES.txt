@@ -42,6 +42,9 @@ Trunk (unreleased changes):
  accessible for demo/test purposes. (mahadev)
 
  IMPROVEMENTS
+ 
+ AMBARI-1453. Move Ambari Web application config from initialize.js to
+ another config file. (yusaku)
 
  AMBARI-1450. Remove hard-coded stack version. (yusaku)
 
