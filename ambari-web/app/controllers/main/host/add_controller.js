@@ -139,7 +139,7 @@ App.AddHostController = App.WizardController.extend({
    */
   loadServicesFromServer: function() {
     var displayOrderConfig = require('data/services');
-    var apiUrl = '/stacks/HDP/version/1.2.0';
+    var apiUrl = App.get('stackVersionURL');
     var apiService = this.loadServiceComponents(displayOrderConfig, apiUrl);
     //
     apiService.forEach(function(item, index){

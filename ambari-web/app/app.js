@@ -31,6 +31,12 @@ module.exports = Em.Application.create({
   isAdmin : function(){
     var user = this.db && this.db.getUser();
     return user ? user.admin : false;
+  }.property(),
+  /**
+   * return url prefix with number value of version of HDP stack
+   */
+  stackVersionURL:function(){
+    return '/stacks/HDP/version/' + App.defaultStackVersion.replace(/HDP-/g, '');
   }.property()
 });
 

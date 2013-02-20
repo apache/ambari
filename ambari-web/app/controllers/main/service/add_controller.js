@@ -115,7 +115,7 @@ App.AddServiceController = App.WizardController.extend({
    */
   loadServicesFromServer: function() {
     var displayOrderConfig = require('data/services');
-    var apiUrl = '/stacks/HDP/version/1.2.0';
+    var apiUrl = App.get('stackVersionURL');
     var apiService = this.loadServiceComponents(displayOrderConfig, apiUrl);
     //
     apiService.forEach(function(item, index){
@@ -529,7 +529,7 @@ App.AddServiceController = App.WizardController.extend({
    */
   loadAdvancedConfig: function (serviceName) {
     var self = this;
-    var url = (App.testMode) ? '/data/wizard/stack/hdp/version01/' + serviceName + '.json' : App.apiPrefix + '/stacks/HDP/version/1.2.0/services/' + serviceName; // TODO: get this url from the stack selected by the user in Install Options page
+    var url = (App.testMode) ? '/data/wizard/stack/hdp/version01/' + serviceName + '.json' : App.apiPrefix + App.get('stackVersionURL') +'/services/' + serviceName; // TODO: get this url from the stack selected by the user in Install Options page
     var method = 'GET';
     $.ajax({
       type: method,

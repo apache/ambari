@@ -43,6 +43,8 @@ Trunk (unreleased changes):
 
  IMPROVEMENTS
 
+ AMBARI-1450. Remove hard-coded stack version. (yusaku)
+
  AMABRI-1458. Externalize strings from views to messages.js. (yusaku)
 
  AMBARI-1437. Update stack version. (yusaku)
