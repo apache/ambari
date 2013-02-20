@@ -298,6 +298,9 @@ Trunk (unreleased changes):
 
  BUG FIXES
 
+ AMBARI-1449. Failure popup shown for reconfiguring HDFS when MapReduce 
+ is not selected. (jaimin)
+
  AMBARI-1445. Redirect to main app page when testMode flag is set True and
  alwaysGoToInstaller flag is set False. (jaimin)
 

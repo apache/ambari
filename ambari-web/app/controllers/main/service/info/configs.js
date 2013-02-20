@@ -441,30 +441,30 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
     var message;
     var value;
     var flag;
-    if ((this.get('content.serviceName') !== 'HDFS' && this.get('content.isStopped') === true) || (this.get('content.serviceName') === 'HDFS') && this.get('content.isStopped') === true && App.Service.find('MAPREDUCE').get('isStopped')) {
+    if ((this.get('content.serviceName') !== 'HDFS' && this.get('content.isStopped') === true) || ((this.get('content.serviceName') === 'HDFS') && this.get('content.isStopped') === true && (!App.Service.find().someProperty('id', 'MAPREDUCE') || App.Service.find('MAPREDUCE').get('isStopped')))) {
       var result = this.saveServiceConfigProperties();
       flag = result.flag;
       if (flag === true) {
-        header = 'Start Service';
-        message = 'Service configuration applied successfully';
+        header = Em.I18n.t('services.service.config.startService');
+        message = Em.I18n.t('services.service.config.saveConfig');
       } else {
-        header = 'Faliure';
+        header = Em.I18n.t('common.failure');
         message = result.message;
         value = result.value;
       }
 
     } else {
-      if (this.get('content.serviceName') !== 'HDFS') {
-        header = 'Stop Service';
-        message = 'Stop the service and wait till it stops completely. Thereafter you can apply configuration changes';
+      if (this.get('content.serviceName') !== 'HDFS' || (this.get('content.serviceName') === 'HDFS' && !App.Service.find().someProperty('id', 'MAPREDUCE'))) {
+        header = Em.I18n.t('services.service.config.stopService');
+        message = Em.I18n.t('services.service.config.msgServiceStop');
       } else {
-        header = 'Stop Services';
-        message = 'Stop HDFS and MapReduce. Wait till both of them stops completely. Thereafter you can apply configuration changes';
+        header = Em.I18n.t('services.service.config.stopService');
+        message = Em.I18n.t('services.service.config.msgHDFSMapRServiceStop');
       }
     }
     App.ModalPopup.show({
       header: header,
-      primary: 'OK',
+      primary: Em.I18n.t('ok'),
       secondary: null,
       onPrimary: function () {
         this.hide();
@@ -483,19 +483,19 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
               /////////
               if (displayNames && displayNames.length) {
                 if (displayNames.length === 1) {
-                  displayMsg.push(displayProperty + ' as ' + displayNames[0]);
+                  displayMsg.push(displayProperty + Em.I18n.t('as') + displayNames[0]);
                 } else {
                   var name;
                   displayNames.forEach(function (_name, index) {
                     if (index === 0) {
                       name = _name;
                     } else if (index === siteProperties.length - 1) {
-                      name = name + ' and ' + _name;
+                      name = name + Em.I18n.t('and') + _name;
                     } else {
                       name = name + ', ' + _name;
                     }
                   }, this);
-                  displayMsg.push(displayProperty + ' as ' + name);
+                  displayMsg.push(displayProperty + Em.I18n.t('as') + name);
 
                 }
               } else {
@@ -541,22 +541,29 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
     result.flag = customConfigResult.flag;
     result.value = customConfigResult.value;
     /*
-    For now, we are skipping validation checks to see if the user is overriding already-defined paramaters, as
-    the user needs this flexibility.  We may turn this back on as a warning in the future...
-    if (result.flag !== true) {
-      result.message = 'Error in custom configuration. Some properties entered in the box are already exposed on this page';
-      return result;
-    }
-    */
+     For now, we are skipping validation checks to see if the user is overriding already-defined paramaters, as
+     the user needs this flexibility.  We may turn this back on as a warning in the future...
+     if (result.flag !== true) {
+     result.message = 'Error in custom configuration. Some properties entered in the box are already exposed on this page';
+     return result;
+     }
+     */
     result.flag = result.flag && this.createConfigurations();
     if (result.flag === true) {
       if (this.get('content.serviceName') !== 'HDFS') {
         result.flag = this.applyCreatedConfToService(this.get('content.serviceName'));
       } else {
-        result.flag = this.applyCreatedConfToService(this.get('content.serviceName')) && this.applyCreatedConfToService('MAPREDUCE');
+        var mapRFlag = true;
+        if (App.Service.find().someProperty('id', 'MAPREDUCE')) {
+          mapRFlag = this.applyCreatedConfToService('MAPREDUCE');
+        }
+        if (!mapRFlag) {
+          result.message = Em.I18n.t('services.service.config.failSaveConfig');
+        }
+        result.flag = this.applyCreatedConfToService(this.get('content.serviceName')) && mapRFlag;
       }
     } else {
-      result.message = 'Faliure in applying service configuration';
+      result.message = Em.I18n.t('services.service.config.failCreateConfig');
     }
     console.log("The result from applyCreatdConfToService is: " + result);
     return result;
