@@ -45,6 +45,7 @@ START_ACTION = "start"
 STOP_ACTION = "stop"
 RESET_ACTION = "reset"
 UPGRADE_ACTION = "upgrade"
+UPGRADE_STACK_ACTION = "upgradestack"
 
 # selinux commands
 GET_SE_LINUX_ST_CMD = "/usr/sbin/sestatus"
@@ -64,6 +65,9 @@ IP_TBLS_SRVC_NT_FND = "iptables: unrecognized service"
 # server commands
 ambari_provider_module_option = ""
 ambari_provider_module = os.environ.get('AMBARI_PROVIDER_MODULE')
+
+# constants
+STACK_NAME_VER_SEP = "-"
 
 if ambari_provider_module is not None:
   ambari_provider_module_option = "-Dprovider.module.class=" +\
@@ -96,6 +100,8 @@ AMBARI_PROPERTIES_FILE="ambari.properties"
 
 SETUP_DB_CMD = ['su', 'postgres',
         '--command=psql -f {0} -v username=\'"{1}"\' -v password="\'{2}\'"']
+UPGRADE_STACK_CMD = ['su', 'postgres',
+        '--command=psql -f {0} -v stack_name="\'{1}\'"  -v stack_version="\'{2}\'"']
 PG_ST_CMD = "/sbin/service postgresql status"
 PG_START_CMD = "/sbin/service postgresql start"
 PG_RESTART_CMD = "/sbin/service postgresql restart"
@@ -257,6 +263,19 @@ def upgrade_db(args):
   password = args.postgres_password
   command = SETUP_DB_CMD[:]
   command[-1] = command[-1].format(file, username, password)
+  retcode, outdata, errdata = run_os_command(command)
+  if not retcode == 0:
+    print errdata
+  return retcode
+
+def upgrade_stack(args, stack_id):
+  #password access to ambari-server and mapred
+  configure_postgres_username_password(args)
+  dbname = args.postgredbname
+  file = args.upgrade_stack_script_file
+  stack_name, stack_version = stack_id.split(STACK_NAME_VER_SEP)
+  command = UPGRADE_STACK_CMD[:]
+  command[-1] = command[-1].format(file, stack_name, stack_version)
   retcode, outdata, errdata = run_os_command(command)
   if not retcode == 0:
     print errdata
@@ -908,7 +927,7 @@ def configure_postgres_username_password(args):
   try:
     properties.load(open(conf_file))
   except Exception, e:
-    print 'Could not read "%s": %s' % (conf_file, e)
+    print 'Could not read ambari config file "%s": %s' % (conf_file, e)
     return -1
 
   username = properties[JDBC_USER_NAME_PROPERTY]
@@ -959,7 +978,7 @@ def configure_postgres_username_password(args):
 # Main.
 #
 def main():
-  parser = optparse.OptionParser(usage="usage: %prog [options] action",)
+  parser = optparse.OptionParser(usage="usage: %prog [options] action [stack_id]",)
   parser.add_option('-d', '--postgredbname', default='ambari',
                       help="Database name in postgresql")
   parser.add_option('-f', '--init-script-file',
@@ -974,6 +993,10 @@ def main():
                               "ambari-server/resources/upgrade/ddl/"
                               "Ambari-DDL-Postgres-UPGRADE-1.2.1.sql",
                       help="File with upgrade script")
+  parser.add_option('-t', '--upgrade-stack-script-file', default="/var/lib/"
+                              "ambari-server/resources/upgrade/dml/"
+                              "Ambari-DML-Postgres-UPGRADE_STACK.sql",
+                      help="File with stack upgrade script")
   parser.add_option('-j', '--java-home', default=None,
                   help="Use specified java_home.  Must be valid on all hosts")
   parser.add_option("-v", "--verbose",
@@ -993,12 +1016,23 @@ def main():
   global SILENT
   SILENT = options.silent
 
-  if not len(args) == 1:
+
+  
+  if len(args) == 0:
     print parser.print_help()
-    parser.error("Invalid number of arguments")
+    parser.error("No action entered")
 	
   action = args[0]
-
+  
+  if action == UPGRADE_STACK_ACTION:
+    args_number_required = 2
+  else:
+    args_number_required = 1
+	
+  if len(args) < args_number_required:
+    print parser.print_help()
+    parser.error("Invalid number of arguments. Entered: " + str(len(args)) + ", required: " + str(args_number_required))
+ 
   if action == SETUP_ACTION:
     setup(options)
   elif action == START_ACTION:
@@ -1009,6 +1043,9 @@ def main():
     reset(options)
   elif action == UPGRADE_ACTION:
     upgrade(options)
+  elif action == UPGRADE_STACK_ACTION:
+    stack_id = args[1]
+    upgrade_stack(options, stack_id)
   else:
     parser.error("Invalid action")
 

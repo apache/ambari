@@ -291,6 +291,8 @@ Trunk (unreleased changes):
 
  AMBARI-1438. Add new stack definition for new stacks. (mahadev)
 
+ AMBARI-1448. Enabling stack upgrade via Ambari Server. (mahadev)
+
  BUG FIXES
 
  AMBARI-1445. Redirect to main app page when testMode flag is set True and

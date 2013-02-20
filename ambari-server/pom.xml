@@ -258,6 +258,17 @@
               </sources>
             </mapping>
             <mapping>
+              <directory>/var/lib/ambari-server/resources/upgrade/dml</directory>
+              <filemode>755</filemode>
+              <username>root</username>
+              <groupname>root</groupname>
+              <sources>
+                <source>
+                  <location>src/main/resources/upgrade/dml/Ambari-DML-Postgres-UPGRADE_STACK.sql</location>
+                </source>
+              </sources>
+            </mapping>
+            <mapping>
               <directory>/var/lib/ambari-server/resources/stacks</directory>
               <filemode>755</filemode>
               <username>root</username>
