@@ -124,6 +124,26 @@
         "pointInTime" : true,
         "temporal" : false
       },
+      "metrics/dfs/FSNamesystem/CapacityTotal":{
+        "metric" : "Hadoop:service=NameNode,name=FSNamesystemMetrics.CapacityTotal",
+        "pointInTime" : true,
+        "temporal" : false
+      },
+      "metrics/dfs/FSNamesystem/CapacityUsed":{
+        "metric" : "Hadoop:service=NameNode,name=FSNamesystemMetrics.CapacityUsed",
+        "pointInTime" : true,
+        "temporal" : false
+      },
+      "metrics/dfs/FSNamesystem/CapacityRemaining":{
+        "metric" : "Hadoop:service=NameNode,name=FSNamesystemMetrics.CapacityRemaining",
+        "pointInTime" : true,
+        "temporal" : false
+      },
+      "metrics/dfs/FSNamesystem/CapacityNonDFSUsed":{
+        "metric" : "Hadoop:service=NameNode,name=FSNamesystemMetrics.CapacityNonDFSUsed",
+        "pointInTime" : true,
+        "temporal" : false
+      },
       "metrics/dfs/FSNamesystem/CapacityRemainingGB":{
         "metric" : "Hadoop:service=NameNode,name=FSNamesystemMetrics.CapacityRemainingGB",
         "pointInTime" : true,
@@ -3336,6 +3356,26 @@
       },
       "metrics/dfs/FSNamesystem/CapacityRemainingGB":{
         "metric" : "Hadoop:service=NameNode,name=FSNamesystemMetrics.CapacityRemainingGB",
+        "pointInTime" : true,
+        "temporal" : false
+      },
+      "metrics/dfs/FSNamesystem/CapacityTotal":{
+        "metric" : "Hadoop:service=NameNode,name=FSNamesystemMetrics.CapacityTotal",
+        "pointInTime" : true,
+        "temporal" : false
+      },
+      "metrics/dfs/FSNamesystem/CapacityUsed":{
+        "metric" : "Hadoop:service=NameNode,name=FSNamesystemMetrics.CapacityUsed",
+        "pointInTime" : true,
+        "temporal" : false
+      },
+      "metrics/dfs/FSNamesystem/CapacityRemaining":{
+        "metric" : "Hadoop:service=NameNode,name=FSNamesystemMetrics.CapacityRemaining",
+        "pointInTime" : true,
+        "temporal" : false
+      },
+      "metrics/dfs/FSNamesystem/CapacityNonDFSUsed":{
+        "metric" : "Hadoop:service=NameNode,name=FSNamesystemMetrics.CapacityNonDFSUsed",
         "pointInTime" : true,
         "temporal" : false
       },
