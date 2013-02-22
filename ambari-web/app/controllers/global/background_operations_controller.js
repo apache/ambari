@@ -41,15 +41,6 @@ App.BackgroundOperationsController = Em.Controller.extend({
   updateInterval: App.bgOperationsUpdateInterval,
   url : '',
 
-  generateUrl: function(){
-    var url = App.testMode ?
-      '/data/background_operations/list_on_start.json' :
-      App.apiPrefix + '/clusters/' + App.router.getClusterName() + '/requests/?fields=tasks/*';
-
-    this.set('url', url);
-    return url;
-  },
-
   timeoutId : null,
 
   /**
@@ -100,38 +91,29 @@ App.BackgroundOperationsController = Em.Controller.extend({
     if(!this.get('isWorking')){
       return;
     }
-    var self = this;
 
     if(!App.router.getClusterName()){
       this.loadOperationsDelayed(this.get('updateInterval')/2, 'error:clusterName');
       return;
     }
 
-    var url = this.get('url');
-    if(!url){
-      url = this.generateUrl();
-    }
+    App.ajax.send({
+      'name': 'background_operations',
+      'sender': this,
+      'success': 'ajaxSuccess', //todo provide interfaces for strings and functions
+      'error': 'ajaxError'
+    })
 
-    $.ajax({
-      type: "GET",
-      url: url,
-      dataType: 'json',
-      timeout: App.timeout,
-      success: function (data) {
-        //refresh model
-        self.updateBackgroundOperations(data);
-
-        self.loadOperationsDelayed();
-      },
-
-      error: function (request, ajaxOptions, error) {
-        self.loadOperationsDelayed(null, 'error:response error');
-      },
-
-      statusCode: require('data/statusCodes')
-    });
 
   }.observes('isWorking'),
+
+  ajaxSuccess: function(data) {
+    this.updateBackgroundOperations(data);
+    this.loadOperationsDelayed();
+  },
+  ajaxError: function(request, ajaxOptions, error) {
+    this.loadOperationsDelayed(null, 'error:response error');
+  },
 
   /**
    * Update info about background operations

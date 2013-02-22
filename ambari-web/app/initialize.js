@@ -31,6 +31,8 @@ require('templates');
 require('views');
 require('router');
 
+require('utils/ajax');
+
 require('mappers/server_data_mapper');
 require('mappers/status_mapper');
 require('mappers/hosts_mapper');
@@ -45,6 +47,11 @@ require('mappers/service_mapper');
 require('utils/http_client');
 
 App.initialize();
+
+/**
+ * Test Mode values
+ */
+App.test_hostname = 'hostname';
 
 console.log('after initialize');
 console.log('TRACE: app.js-> localStorage:Ambari.authenticated=' + localStorage.getItem('Ambari' + 'authenticated'));
