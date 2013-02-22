@@ -45,21 +45,3 @@ App.MainServiceItemView = Em.View.extend({
     return this.get("controller.content.isConfigurable");
   }.property('controller.content.isConfigurable')
 });
-
-App.MainServiceItemOperations = Em.View.extend({
-  content: null,
-  classNames: ['background-operations'],
-  classNameBindings: ['isOpen'],
-  isOpen: false,
-  logDetails: null,
-  isOpenShowLog: false,
-  iconClass: function(){
-    return this.get('isOpen') ? 'icon-minus' : 'icon-plus';
-  }.property('isOpen'),
-  openDetails: function(){
-    this.set('isOpen', !this.get('isOpen'))
-  },
-  showOperationLog:function(){
-    this.set('isOpenShowLog', !this.get('isOpenShowLog'))
-  }
-});

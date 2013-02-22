@@ -90,54 +90,43 @@ App.MainHostDetailsController = Em.Controller.extend({
    */
   startComponent: function (event) {
     var self = this;
-    App.ModalPopup.show({
-      header: Em.I18n.t('hosts.host.start.popup.header'),
-      body: Em.I18n.t('hosts.host.start.popup.body'),
-      primary: Em.I18n.t('yes'),
-      secondary: Em.I18n.t('no'),
-      onPrimary: function() {
-        var component = event.context;
+    App.showConfirmationPopup(function() {
+      var component = event.context;
 
-        self.sendCommandToServer('/hosts/' + self.get('content.hostName') + '/host_components/' + component.get('componentName').toUpperCase(),{
-          HostRoles:{
-            state: 'STARTED'
-          }
-        }, function(requestId){
+      self.sendCommandToServer('/hosts/' + self.get('content.hostName') + '/host_components/' + component.get('componentName').toUpperCase(),{
+        HostRoles:{
+          state: 'STARTED'
+        }
+      }, function(requestId){
 
-          if(!requestId){
-            return;
-          }
+        if(!requestId){
+          return;
+        }
 
-          console.log('Send request for STARTING successfully');
+        console.log('Send request for STARTING successfully');
 
-          if (App.testMode) {
-            component.set('workStatus', App.HostComponentStatus.starting);
-            setTimeout(function(){
-              component.set('workStatus', App.HostComponentStatus.started);
-            },10000);
-          } else {
-            App.router.get('clusterController').loadUpdatedStatusDelayed(500);
-            App.router.get('backgroundOperationsController.eventsArray').push({
-              "when" : function(controller){
-                var result = (controller.getOperationsForRequestId(requestId).length == 0);
-                console.log('startComponent.when = ', result)
-                return result;
-              },
-              "do" : function(){
-                App.router.get('clusterController').loadUpdatedStatus();
-              }
-            });
-          }
+        if (App.testMode) {
+          component.set('workStatus', App.HostComponentStatus.starting);
+          setTimeout(function(){
+            component.set('workStatus', App.HostComponentStatus.started);
+          },App.testModeDelayForActions);
+        } else {
+          App.router.get('clusterController').loadUpdatedStatusDelayed(500);
+          App.router.get('backgroundOperationsController.eventsArray').push({
+            "when" : function(controller){
+              var result = (controller.getOperationsForRequestId(requestId).length == 0);
+              console.log('startComponent.when = ', result)
+              return result;
+            },
+            "do" : function(){
+              App.router.get('clusterController').loadUpdatedStatus();
+            }
+          });
+        }
 
-          App.router.get('backgroundOperationsController').showPopup();
+        App.router.get('backgroundOperationsController').showPopup();
 
-        });
-
-        this.hide();
-      },
-      onSecondary: function() {
-        this.hide();
-      }
+      });
     });
   },
 
@@ -147,53 +136,43 @@ App.MainHostDetailsController = Em.Controller.extend({
    */
   stopComponent: function (event) {
     var self = this;
-    App.ModalPopup.show({
-      header: Em.I18n.t('hosts.host.start.popup.header'),
-      body: Em.I18n.t('hosts.host.start.popup.body'),
-      primary: Em.I18n.t('yes'),
-      secondary: Em.I18n.t('no'),
-      onPrimary: function() {
-        var component = event.context;
+    App.showConfirmationPopup(function() {
+      var component = event.context;
 
-        self.sendCommandToServer('/hosts/' + self.get('content.hostName') + '/host_components/' + component.get('componentName').toUpperCase(),{
-          HostRoles:{
-            state: 'INSTALLED'
-          }
-        }, function(requestId){
-          if(!requestId){
-            return
-          }
+      self.sendCommandToServer('/hosts/' + self.get('content.hostName') + '/host_components/' + component.get('componentName').toUpperCase(),{
+        HostRoles:{
+          state: 'INSTALLED'
+        }
+      }, function(requestId){
+        if(!requestId){
+          return
+        }
 
-          console.log('Send request for STOPPING successfully');
+        console.log('Send request for STOPPING successfully');
 
-          if (App.testMode) {
-            component.set('workStatus', App.HostComponentStatus.stopping);
-            setTimeout(function(){
-              component.set('workStatus', App.HostComponentStatus.stopped);
-            },10000);
-          } else {
-            App.router.get('clusterController').loadUpdatedStatus();
-            App.router.get('backgroundOperationsController.eventsArray').push({
-              "when" : function(controller){
-                var result = (controller.getOperationsForRequestId(requestId).length == 0);
-                console.log('stopComponent.when = ', result)
-                return result;
-              },
-              "do" : function(){
-                App.router.get('clusterController').loadUpdatedStatus();
-              }
-            });
-          }
+        if (App.testMode) {
+          component.set('workStatus', App.HostComponentStatus.stopping);
+          setTimeout(function(){
+            component.set('workStatus', App.HostComponentStatus.stopped);
+          },App.testModeDelayForActions);
+        } else {
+          App.router.get('clusterController').loadUpdatedStatus();
+          App.router.get('backgroundOperationsController.eventsArray').push({
+            "when" : function(controller){
+              var result = (controller.getOperationsForRequestId(requestId).length == 0);
+              console.log('stopComponent.when = ', result)
+              return result;
+            },
+            "do" : function(){
+              App.router.get('clusterController').loadUpdatedStatus();
+            }
+          });
+        }
 
-          App.router.get('backgroundOperationsController').showPopup();
+        App.router.get('backgroundOperationsController').showPopup();
 
-        });
+      });
 
-        this.hide();
-      },
-      onSecondary: function() {
-        this.hide();
-      }
     });
   },
 
@@ -207,29 +186,19 @@ App.MainHostDetailsController = Em.Controller.extend({
     if (decommissionHostNames == null) {
       decommissionHostNames = [];
     }
-    App.ModalPopup.show({
-      header: Em.I18n.t('hosts.host.start.popup.header'),
-      body: Em.I18n.t('hosts.host.start.popup.body'),
-      primary: Em.I18n.t('yes'),
-      secondary: Em.I18n.t('no'),
-      onPrimary: function(){
-        var component = event.context;
-        // Only HDFS service as of now
-        var svcName = component.get('service.serviceName');
-        if (svcName === "HDFS") {
-          var hostName = self.get('content.hostName');
-          var index = decommissionHostNames.indexOf(hostName);
-          if (index < 0) {
-            decommissionHostNames.push(hostName);
-          }
-          self.doDatanodeDecommission(decommissionHostNames);
+    App.showConfirmationPopup(function(){
+      var component = event.context;
+      // Only HDFS service as of now
+      var svcName = component.get('service.serviceName');
+      if (svcName === "HDFS") {
+        var hostName = self.get('content.hostName');
+        var index = decommissionHostNames.indexOf(hostName);
+        if (index < 0) {
+          decommissionHostNames.push(hostName);
         }
-        App.router.get('backgroundOperationsController').showPopup();
-        this.hide();
-      },
-      onSecondary: function() {
-        this.hide();
+        self.doDatanodeDecommission(decommissionHostNames);
       }
+      App.router.get('backgroundOperationsController').showPopup();
     });
   },
 
@@ -315,27 +284,17 @@ App.MainHostDetailsController = Em.Controller.extend({
     if (decommissionHostNames == null) {
       decommissionHostNames = [];
     }
-    App.ModalPopup.show({
-      header: Em.I18n.t('hosts.host.start.popup.header'),
-      body: Em.I18n.t('hosts.host.start.popup.body'),
-      primary: Em.I18n.t('yes'),
-      secondary: Em.I18n.t('no'),
-      onPrimary: function(){
-        var component = event.context;
-        // Only HDFS service as of now
-        var svcName = component.get('service.serviceName');
-        if (svcName === "HDFS") {
-          var hostName = self.get('content.hostName');
-          var index = decommissionHostNames.indexOf(hostName);
-          decommissionHostNames.splice(index, 1);
-          self.doDatanodeDecommission(decommissionHostNames);
-        }
-        App.router.get('backgroundOperationsController').showPopup();
-        this.hide();
-      },
-      onSecondary: function(){
-        this.hide();
+    App.showConfirmationPopup(function(){
+      var component = event.context;
+      // Only HDFS service as of now
+      var svcName = component.get('service.serviceName');
+      if (svcName === "HDFS") {
+        var hostName = self.get('content.hostName');
+        var index = decommissionHostNames.indexOf(hostName);
+        decommissionHostNames.splice(index, 1);
+        self.doDatanodeDecommission(decommissionHostNames);
       }
+      App.router.get('backgroundOperationsController').showPopup();
     });
   },
 
@@ -388,18 +347,8 @@ App.MainHostDetailsController = Em.Controller.extend({
    */
   deleteButtonPopup: function() {
     var self = this;
-    App.ModalPopup.show({
-      header: Em.I18n.t('hosts.delete.popup.header'),
-      body: Em.I18n.t('hosts.delete.popup.body'),
-      primary: Em.I18n.t('yes'),
-      secondary: Em.I18n.t('no'),
-      onPrimary: function() {
-        self.removeHost();
-        this.hide();
-      },
-      onSecondary: function() {
-        this.hide();
-      }
+    App.showConfirmationPopup(function(){
+      self.removeHost();
     });
   },
 

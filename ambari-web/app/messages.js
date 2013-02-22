@@ -37,6 +37,9 @@ Em.I18n.translations = {
   'as':'as',
   'any': 'Any',
   'more':'more',
+  'yes':'Yes',
+  'no':'No',
+
 
   'common.learnMore':'Learn more',
   'common.back':'Back',
@@ -101,7 +104,10 @@ Em.I18n.translations = {
   'common.loading': 'Loading',
   'common.search': 'Search',
 
+  'question.sure':'Are you sure {0}?',
+
   'popup.highlight':'click to highlight',
+  'popup.confirmation.commonHeader':'Confirmation',
 
   'router.hadoopClusterNotSetUp':'Your administrator has not set up a Hadoop cluster yet.',
 
@@ -232,9 +238,7 @@ Em.I18n.translations = {
     'Please confirm the host list and remove any hosts that you do not want to include in the cluster.',
   'installer.step3.hostLog.popup.header':'Registration log for {0}',
   'installer.step3.hosts.remove.popup.header':'Remove Hosts',
-  'installer.step3.hosts.remove.popup.body':'Are you sure you want to remove the selected host(s)?',
-  'installer.step3.hosts.retry.popup.header':'Retry Host Discovery',
-  'installer.step3.hosts.retry.popup.body':'Are you sure you want to retry discovery of the selected host(s)?',
+  'installer.step3.hosts.remove.popup.body':' you want to remove the selected host(s)',
   'installer.step3.hostInformation.popup.header':'Error in retrieving host Information',
   'installer.step3.hostInformation.popup.body' : 'All bootstrapped hosts registered but unable to retrieve cpu and memory related information',
   'installer.step3.hostWarningsPopup.details':'Show Details',
@@ -457,14 +461,8 @@ Em.I18n.translations = {
   'admin.cluster.upgradeAvailable':'Upgrade available',
   'admin.cluster.upgradeUnavailable':'Upgrade unavailable',
 
-  'question.sure':'Are you sure?',
-  'yes':'Yes',
-  'no':'No',
-
   'services.service.start':'Start',
   'services.service.stop':'Stop',
-  'services.service.confirmation.header':'Confirmation',
-  'services.service.confirmation.body':'Are you sure?',
   'services.service.summary.version':'Version',
   'services.service.summary.nameNode':'NameNode Web UI',
   'services.service.summary.nameNodeUptime':'NameNode Uptime',
@@ -651,19 +649,11 @@ Em.I18n.translations = {
   'host.host.componentFilter.slave':'Slave Components',
   'host.host.componentFilter.client':'Client Components',
 
-  'hosts.host.start.popup.header':'Confirmation',
-  'hosts.host.stop.popup.header':'Confirmation',
-  'hosts.host.start.popup.body':'Are you sure?',
-  'hosts.host.stop.popup.body':'Are you sure?',
   'hosts.host.alert.noAlerts':'No alerts',
   'hosts.host.alert.noAlerts.message':'There are no alerts for this host.',
   'hosts.host.healthStatus.heartBeatNotReceived':'The server has not received a heartbeat from this host for more than 3 minutes.',
   'hosts.host.healthStatus.mastersDown':"The following master components are down:\n",
   'hosts.host.healthStatus.slavesDown':"The following slave components are down:\n",
-  'hosts.decommission.popup.body':'Are you sure?',
-  'hosts.decommission.popup.header':'Confirmation',
-  'hosts.delete.popup.body':'Are you sure?',
-  'hosts.delete.popup.header':'Confirmation',
   'hosts.cant.do.popup.header':'Operation not allowed',
   'hosts.cant.do.popup.masterList.body':'You cannot delete this host because it is hosting following master services: {0}.',
   'hosts.cant.do.popup.workingList.body':'You cannot delete this host because following slave services are not fully stopped or decommissioned: {0}.',

@@ -195,20 +195,13 @@ App.WizardStep3Controller = Em.Controller.extend({
 
   removeHosts: function (hosts) {
     var self = this;
-
-    App.ModalPopup.show({
-      header: Em.I18n.t('installer.step3.hosts.remove.popup.header'),
-      onPrimary: function () {
-        App.router.send('removeHosts', hosts);
-        self.hosts.removeObjects(hosts);
-        if (!self.hosts.length) {
-          self.set('isSubmitDisabled', true);
-        }
-        this.hide();
-      },
-      body: Em.I18n.t('installer.step3.hosts.remove.popup.body')
-    });
-
+    App.showConfirmationPopup(function() {
+      App.router.send('removeHosts', hosts);
+      self.hosts.removeObjects(hosts);
+      if (!self.hosts.length) {
+        self.set('isSubmitDisabled', true);
+      }
+    },Em.I18n.t('installer.step3.hosts.remove.popup.body'));
   },
 
   /* Removes a single element on the trash icon click. Called from View */

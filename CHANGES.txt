@@ -45,6 +45,8 @@ Trunk (unreleased changes):
 
  IMPROVEMENTS
 
+ AMBARI-1470. Refactor confirmation popups. (yusaku)
+
  AMBARI-1414. Expose fine grained HDFS capacity metrics in API. (tbeerbower)
 
  AMBARI-1444. Make install, service & host configuration pages reuse same

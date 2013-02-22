@@ -91,18 +91,8 @@ App.MainHostController = Em.ArrayController.extend({
    */
   decommissionButtonPopup:function () {
     var self = this;
-    App.ModalPopup.show({
-      header:Em.I18n.t('hosts.decommission.popup.header'),
-      body:Em.I18n.t('hosts.decommission.popup.body'),
-      primary:Em.I18n.t('yes'),
-      secondary:Em.I18n.t('no'),
-      onPrimary:function () {
-        alert('do');
-        this.hide();
-      },
-      onSecondary:function () {
-        this.hide();
-      }
+    App.showConfirmationPopup(function(){
+      alert('do');
     });
   },
 
@@ -112,18 +102,8 @@ App.MainHostController = Em.ArrayController.extend({
    */
   deleteButtonPopup:function () {
     var self = this;
-    App.ModalPopup.show({
-      header:Em.I18n.t('hosts.delete.popup.header'),
-      body:Em.I18n.t('hosts.delete.popup.body'),
-      primary:Em.I18n.t('yes'),
-      secondary:Em.I18n.t('no'),
-      onPrimary:function () {
-        self.removeHosts();
-        this.hide();
-      },
-      onSecondary:function () {
-        this.hide();
-      }
+    App.showConfirmationPopup(function(){
+      self.removeHosts();
     });
   },
 

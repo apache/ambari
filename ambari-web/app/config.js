@@ -19,6 +19,7 @@
 var App = require('app');
 
 App.testMode = false;
+App.testModeDelayForActions = 10000;
 App.skipBootstrap = false;
 App.alwaysGoToInstaller = false;
 App.apiPrefix = '/api/v1';
