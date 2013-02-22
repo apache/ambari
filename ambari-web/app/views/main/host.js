@@ -37,6 +37,87 @@ App.MainHostView = Em.View.extend({
       this.set('controller.filteredByAlerts', false);
     }
   },
+
+  /**
+   * return pagination information displayed on the hosts page
+   */
+  paginationInfo: function () {
+    return this.t('apps.filters.paginationInfo').format(this.get('startIndex'), this.get('endIndex'), this.get('filteredContent.length'));
+  }.property('displayLength', 'filteredContent.length', 'startIndex', 'endIndex'),
+
+  paginationLeft: Ember.View.extend({
+    tagName: 'a',
+    template: Ember.Handlebars.compile('<i class="icon-arrow-left"></i>'),
+    classNameBindings: ['class'],
+    class: function () {
+      if (this.get("parentView.startIndex") > 1) {
+       return "paginate_previous";
+      }
+      return "paginate_disabled_previous";
+    }.property("parentView.startIndex", 'filteredContent.length'),
+
+    click: function () {
+      this.get('parentView').previousPage();
+    }
+  }),
+
+  paginationRight: Ember.View.extend({
+    tagName: 'a',
+    template: Ember.Handlebars.compile('<i class="icon-arrow-right"></i>'),
+    classNameBindings: ['class'],
+    class: function () {
+      if ((this.get("parentView.endIndex")) < this.get("parentView.filteredContent.length")) {
+       return "paginate_next";
+      }
+      return "paginate_disabled_next";
+    }.property("parentView.endIndex", 'filteredContent.length'),
+
+    click: function () {
+      this.get('parentView').nextPage();
+    }
+  }),
+
+  hostPerPageSelectView: Em.Select.extend({
+    content: ['10', '25', '50']
+  }),
+
+  // start index for displayed content on the hosts page
+  startIndex: 1,
+
+  // calculate end index for displayed content on the hosts page
+  endIndex: function () {
+    return Math.min(this.get('filteredContent.length'), this.get('startIndex') + parseInt(this.get('displayLength')) - 1);
+  }.property('startIndex', 'displayLength', 'filteredContent.length'),
+
+  /**
+   * onclick handler for previous page button on the hosts page
+   */
+  previousPage: function () {
+    var result = this.get('startIndex') - parseInt(this.get('displayLength'));
+    if (result  < 2) {
+      result = 1;
+    }
+    this.set('startIndex', result);
+  },
+
+  /**
+   * onclick handler for next page button on the hosts page
+   */
+  nextPage: function () {
+    var result = this.get('startIndex') + parseInt(this.get('displayLength'));
+    if (result - 1 < this.get('filteredContent.length')) {
+      this.set('startIndex', result);
+    }
+  },
+
+  // the number of hosts to show on every page of the hosts page view
+  displayLength: null,
+
+  // calculates default value for startIndex property after applying filter or changing displayLength
+  updatePaging: function () {
+      this.set('startIndex', Math.min(1, this.get('filteredContent.length')));
+  }.observes('displayLength', 'filteredContent.length'),
+
   sortView: sort.wrapperView,
   nameSort: sort.fieldView.extend({
     name:'publicHostName',
@@ -257,10 +338,6 @@ App.MainHostView = Em.View.extend({
     }
   }.observes('controller.filteredByAlerts'),
 
-  startIndex : function(){
-    return Math.random();
-  }.property(),
-
   /**
    * Apply each filter to host
    *
@@ -326,7 +403,13 @@ App.MainHostView = Em.View.extend({
    * contain filter conditions for each column
    */
   filterConditions: [],
-  filteredContent: null,
+  filteredContent: [],
+
+  // contain content to show on the current page of hosts page view
+  pageContent: function () {
+    return this.get('filteredContent').slice(this.get('startIndex') - 1, this.get('endIndex'));
+  }.property('filteredContent.length', 'startIndex', 'endIndex'),
+
   /**
    * filter table by filterConditions
    */
@@ -350,7 +433,7 @@ App.MainHostView = Em.View.extend({
         });
         this.set('filteredContent', result);
       } else {
-        this.set('filteredContent', content);
+        this.set('filteredContent', content.toArray());
       }
     }
   }.observes('content')

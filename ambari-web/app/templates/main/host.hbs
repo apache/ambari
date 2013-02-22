@@ -58,8 +58,8 @@
     </tr>
     </thead>
     <tbody>
-    {{#if view.filteredContent.length}}
-    {{#each host in view.filteredContent}}
+    {{#if view.pageContent}}
+    {{#each host in view.pageContent}}
     {{#view view.HostView contentBinding="host"}}
       <td class="first">
         <span {{bindAttr class="host.healthClass"}} {{bindAttr title="host.healthToolTip" }}></span>
@@ -94,4 +94,15 @@
     {{/if}}
     </tbody>
   </table>
+
+  <div class="page-bar">
+    <div class="items-on-page">
+      <label>{{t common.show}}: {{view view.hostPerPageSelectView selectionBinding="view.displayLength"}}</label>
+    </div>
+    <div class="info">{{view.paginationInfo}}</div>
+    <div class="paging_two_button">
+      {{view view.paginationLeft}}
+      {{view view.paginationRight}}
+    </div>
+  </div>
 </div>

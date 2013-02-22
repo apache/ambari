@@ -106,10 +106,10 @@ var fieldView = Em.View.extend({
    */
   click: function(event){
     if(this.get('status') === 'sorting_desc'){
-      this.get('parentView').sort(this, true);
+      this.get('parentView').sort(this, false);
       this.set('status', 'sorting_asc');
     } else {
-      this.get('parentView').sort(this, false);
+      this.get('parentView').sort(this, true);
       this.set('status', 'sorting_desc');
     }
   }

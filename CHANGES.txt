@@ -51,6 +51,8 @@ Trunk (unreleased changes):
 
  IMPROVEMENTS
 
+ AMBARI-1484. Reintroduce client-side paging for Hosts table. (yusaku)
+
  AMBARI-1473. Further optimization of querying host information from the
  server. (yusaku)
 
