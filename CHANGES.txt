@@ -45,6 +45,8 @@ Trunk (unreleased changes):
 
  IMPROVEMENTS
 
+ AMBARI-1460. Optimize query call for retrieving host information. (yusaku)
+
  AMBARI-1470. Refactor confirmation popups. (yusaku)
 
  AMBARI-1414. Expose fine grained HDFS capacity metrics in API. (tbeerbower)
