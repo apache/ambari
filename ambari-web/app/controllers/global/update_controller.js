@@ -82,7 +82,7 @@ App.UpdateController = Em.Controller.extend({
 
   updateHost:function(callback) {
     var self = this;
-      var hostsUrl = this.getUrl('/data/hosts/hosts.json', '/hosts?fields=Hosts/host_name,Hosts/public_host_name,Hosts/cpu_count,Hosts/total_mem,Hosts/host_status,Hosts/last_heartbeat_time,Hosts/os_arch,Hosts/os_type,Hosts/ip,host_components,metrics/disk,metrics/cpu,metrics/load,metrics/memory');
+      var hostsUrl = this.getUrl('/data/hosts/hosts.json', '/hosts?fields=Hosts/host_name,Hosts/public_host_name,Hosts/cpu_count,Hosts/total_mem,Hosts/host_status,Hosts/last_heartbeat_time,Hosts/os_arch,Hosts/os_type,Hosts/ip,host_components,metrics/disk,metrics/load/load_one');
       App.HttpClient.get(hostsUrl, App.hostsMapper, {
         complete:function (jqXHR, textStatus) {
           callback();

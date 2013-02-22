@@ -51,6 +51,9 @@ Trunk (unreleased changes):
 
  IMPROVEMENTS
 
+ AMBARI-1473. Further optimization of querying host information from the
+ server. (yusaku)
+
  AMBARI-1472. Update HBase service/host health status. (yusaku)
 
  AMBARI-1471. Refactor ajax calls. (yusaku)
