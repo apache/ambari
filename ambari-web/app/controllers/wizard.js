@@ -421,6 +421,7 @@ App.WizardController = Em.Controller.extend({
     App.db.setSlaveProperties(undefined);
     App.db.setInstallOptions(undefined);
     App.db.setAllHostNamesPattern(undefined);
+    App.db.setUpgradeOptions(undefined);
   },
 
   installOptionsTemplate: {

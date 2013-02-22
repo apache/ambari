@@ -396,6 +396,15 @@ Em.I18n.translations = {
   'installer.stackUpgrade.step1.upgradeStackVersion':'Upgrade stack version',
   'installer.stackUpgrade.step1.description':'This Stack Upgrade Wizard will walk you through the steps of upgrading the cluster to the latest available stack version.',
 
+  'installer.stackUpgrade.step2.notice.header':'Important before you proceed, please perform following.',
+  'installer.stackUpgrade.step2.notice.first':'Make sure that your NameNode is backed up.',
+  'installer.stackUpgrade.step2.notice.second':'Make sure that your NameNode is backed up.',
+  'installer.stackUpgrade.step2.notice.third':'Make sure that your NameNode is backed up.',
+  'installer.stackUpgrade.step2.notice.complete':'Once you have completed the above, click on Upgrade to initiate the upgrade process on all hosts in your cluster',
+  'installer.stackUpgrade.step2.advancedOption':'Advanced Option',
+  'installer.stackUpgrade.step2.localRepository':'Use a local repository',
+  'installer.stackUpgrade.step2.popup.body':'We cannot proceed since some of the master components are not currently running. Please ensure that all services are running before continuing.',
+
   'form.create':'Create',
   'form.save':'Save',
   'form.cancel':'Cancel',

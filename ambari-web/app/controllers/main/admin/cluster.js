@@ -33,8 +33,8 @@ App.MainAdminClusterController = Em.Controller.extend({
         '/data/wizard/stack/stacks.json'
       );
       var upgradeVersion = this.get('upgradeVersion') || App.defaultStackVersion;
-      var installedServices = [];
-      var newServices = [];
+      var installedServices = {};
+      var newServices = {};
       $.ajax({
         type: "GET",
         url: url,
@@ -66,26 +66,28 @@ App.MainAdminClusterController = Em.Controller.extend({
     var result = [];
     var installedServices = App.Service.find().mapProperty('serviceName');
     var displayOrderConfig = require('data/services');
-    // loop through all the service components
-    for (var i = 0; i < displayOrderConfig.length; i++) {
-      var entry = oldServices.services.findProperty("name", displayOrderConfig[i].serviceName);
-      if (installedServices.contains(entry.name)) {
-        var myService = Em.Object.create({
-          serviceName: entry.name,
-          displayName: displayOrderConfig[i].displayName,
-          isDisabled: i === 0,
-          isSelected: true,
-          isInstalled: false,
-          isHidden: displayOrderConfig[i].isHidden,
-          description: entry.comment,
-          version: entry.version,
-          newVersion: newServices.services.findProperty("name", displayOrderConfig[i].serviceName).version
-        });
-        //From 1.3.0 for Hive we display only "Hive" (but it installes HCat and WebHCat as well)
-        if (this.get('upgradeVersion').replace(/HDP-/, '') >= '1.3.0' && displayOrderConfig[i].serviceName == 'HIVE') {
-          myService.set('displayName', 'Hive');
+    if(oldServices.services && newServices.services){
+      // loop through all the service components
+      for (var i = 0; i < displayOrderConfig.length; i++) {
+        var entry = oldServices.services.findProperty("name", displayOrderConfig[i].serviceName);
+        if (installedServices.contains(entry.name)) {
+          var myService = Em.Object.create({
+            serviceName: entry.name,
+            displayName: displayOrderConfig[i].displayName,
+            isDisabled: i === 0,
+            isSelected: true,
+            isInstalled: false,
+            isHidden: displayOrderConfig[i].isHidden,
+            description: entry.comment,
+            version: entry.version,
+            newVersion: newServices.services.findProperty("name", displayOrderConfig[i].serviceName).version
+          });
+          //From 1.3.0 for Hive we display only "Hive" (but it installes HCat and WebHCat as well)
+          if (this.get('upgradeVersion').replace(/HDP-/, '') >= '1.3.0' && displayOrderConfig[i].serviceName == 'HIVE') {
+            myService.set('displayName', 'Hive');
+          }
+          result.push(myService);
         }
-        result.push(myService);
       }
     }
     this.set('services', result);

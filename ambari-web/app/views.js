@@ -122,4 +122,5 @@ require('views/wizard/step8_view');
 require('views/wizard/step9_view');
 require('views/wizard/step10_view');
 require('views/wizard/stack_upgrade/step1_view');
+require('views/wizard/stack_upgrade/step2_view');
 require('views/loading');

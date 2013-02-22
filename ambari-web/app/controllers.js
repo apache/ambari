@@ -72,5 +72,6 @@ require('controllers/wizard/step8_controller');
 require('controllers/wizard/step9_controller');
 require('controllers/wizard/step10_controller');
 require('controllers/wizard/stack_upgrade/step1_controller');
+require('controllers/wizard/stack_upgrade/step2_controller');
 require('controllers/global/cluster_controller');
 require('controllers/global/update_controller');

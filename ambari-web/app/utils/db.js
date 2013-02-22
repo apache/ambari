@@ -213,6 +213,13 @@ App.db.setCluster = function (status) {
   localStorage.setObject('ambari', App.db.data);
 };
 
+App.db.setUpgradeOptions = function (upgradeOptions) {
+  App.db.data = localStorage.getObject('ambari');
+  App.db.data.StackUpgrade.upgradeOptions = upgradeOptions;
+  console.log('db.setUpgradeOptions called: ' + JSON.stringify(upgradeOptions));
+  localStorage.setObject('ambari', App.db.data);
+};
+
 /**
  * Set current step value for specified Wizard Type
  * @param wizardType
@@ -355,6 +362,12 @@ App.db.getCluster = function () {
   console.log('TRACE: Entering db:getClusterStatus function');
   App.db.data = localStorage.getObject('ambari');
   return App.db.data.Installer.clusterStatus;
+};
+
+App.db.getUpgradeOptions = function () {
+  console.log('TRACE: Entering db:getUpgradeOptions function');
+  App.db.data = localStorage.getObject('ambari');
+  return App.db.data.StackUpgrade.upgradeOptions;
 };
 
 module.exports = App.db;

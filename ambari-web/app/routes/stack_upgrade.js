@@ -71,9 +71,7 @@ module.exports = Em.Route.extend({
       controller.loadAllPriorSteps();
       controller.connectOutlet('stackUpgradeStep1', controller.get('content'));
     },
-    next: function(router){
-      //Em.Router.transitionTo('step2');
-    }
+    next: Em.Router.transitionTo('step2')
   }),
 
   step2: Em.Route.extend({
@@ -82,11 +80,18 @@ module.exports = Em.Route.extend({
       console.log('in stackUpgrade.step2:connectOutlets');
       var controller = router.get('stackUpgradeController');
       controller.setCurrentStep('2');
+      controller.loadAllPriorSteps();
       controller.connectOutlet('stackUpgradeStep2', controller.get('content'));
     },
     back: Em.Router.transitionTo('step1'),
-    next: function (router, context) {
-      router.transitionTo('step3');
+    next: function(router){
+      /*router.transitionTo('step3');
+       App.clusterStatus.setClusterStatus({
+       clusterName: this.get('clusterName'),
+       clusterState: 'UPGRADING_STACK',
+       wizardControllerName: 'stackUpgradeController',
+       localdb: App.db.data
+       });*/
     }
   }),
 
@@ -97,10 +102,12 @@ module.exports = Em.Route.extend({
       var controller = router.get('stackUpgradeController');
       controller.setCurrentStep('3');
       controller.setLowerStepsDisable(3);
+      controller.loadAllPriorSteps();
       controller.connectOutlet('stackUpgradeStep3', controller.get('content'));
     },
-    back: Em.Router.transitionTo('step2'),
-    complete: function (router, context) {
+    retry: function(router){
+    },
+    done: function (router, context) {
       App.router.get('updateController').set('isWorking', true);
       $(context.currentTarget).parents("#modal").find(".close").trigger('click');
 

@@ -51,12 +51,36 @@ App.StackUpgradeController = App.WizardController.extend({
     return jQuery.extend({}, this.get('clusterStatusTemplate'), {name: App.get('ClusterName')});
   },
   /**
+   * return new object extended from upgradeOptionsTemplate
+   * @return Object
+   */
+  getUpgradeOptions: function(){
+    return jQuery.extend({}, this.get('upgradeOptionsTemplate'));
+  },
+  /**
    * Load data for all steps until <code>current step</code>
    */
   loadAllPriorSteps: function () {
     this.load('cluster');
+    this.load('upgradeOptions');
   },
-
+  upgradeOptionsTemplate:{
+    localRepo: false
+  },
+  clear: function () {
+    this.set('content', Ember.Object.create({
+      servicesInfo: function(){
+        return App.router.get('mainAdminClusterController.services');
+      }.property('App.router.mainAdminClusterController.services'),
+      upgradeVersion: function(){
+        return App.router.get('mainAdminClusterController.upgradeVersion');
+      }.property('App.router.mainAdminClusterController.upgradeVersion'),
+      'controllerName': this.get('content.controllerName'),
+      'isWizard': !(this.get('content.controllerName') === 'installerController')
+    }));
+    this.set('currentStep', 0);
+    this.clearStorageData();
+  },
   /**
    * Finish upgrade
    */
