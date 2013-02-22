@@ -330,6 +330,9 @@ Trunk (unreleased changes):
  AMBARI-1474. Upgrade stack definition for HBase for 1.2.2 since the version
  is upgraded. (mahadev)
 
+ AMBARI-1475. Update the version of ambari artifacts to 1.2.2 snapshot.
+ (mahadev)
+
  BUG FIXES
 
  AMBARI-1455. Setting App.testMode=true, alwaysGoToInstaller=true does not
