@@ -132,7 +132,7 @@ Number.prototype.bytesToSize = function (precision, parseType/* = 'parseInt' */)
   }
 
   var value = this;
-  var sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
+  var sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB', 'PB'];
   var posttxt = 0;
   if (this == 0) return 'n/a';
   while (value >= 1024) {

@@ -342,6 +342,8 @@ Trunk (unreleased changes):
 
  BUG FIXES
 
+ AMBARI-1462. PB (petabytes) is shown as "undefined". (yusaku)
+
  AMBARI-1455. Setting App.testMode=true, alwaysGoToInstaller=true does not
  render the Dashboard properly upon login. (yusaku)
 
