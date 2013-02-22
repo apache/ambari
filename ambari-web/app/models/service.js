@@ -37,7 +37,11 @@ App.Service = DS.Model.extend({
 
   healthStatus: function () {
     var components = this.get('hostComponents').filterProperty('isMaster', true);
-    if (components.everyProperty('workStatus', App.HostComponentStatus.started)) {
+    var isGreen = (this.get('serviceName') === 'HBASE' ?
+      components.someProperty('workStatus', App.HostComponentStatus.started) :
+      components.everyProperty('workStatus', App.HostComponentStatus.started)) ;
+
+    if (isGreen) {
       return 'green';
     } else if (components.someProperty('workStatus', App.HostComponentStatus.starting)) {
       return 'green-blinking';
