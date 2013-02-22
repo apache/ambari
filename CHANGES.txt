@@ -573,6 +573,9 @@ Trunk (unreleased changes):
  AMBARI-1434. Change state to installed from start_failed if there is any
  issue in starting a host component. (mahadev)
 
+ AMBARI-1476. Change webhcat-env.sh to export HADOOP_HOME
+ (mahadev)
+
 AMBARI-1.2.0 branch:
 
  INCOMPATIBLE CHANGES
