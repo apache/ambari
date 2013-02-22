@@ -191,11 +191,9 @@ public class QueryLexer {
     private List<Token> m_listTokens = new ArrayList<Token>();
 
     /**
-     * Whether the current expression should be ignored.
-     * This is used to ignore portions of the query string that are
-     * not query specific.
+     * If non-null, ignore all tokens up to and including this token type.
      */
-    private boolean m_ignore = false;
+    private Token.TYPE m_ignoreSegmentEndToken = null;
 
     /**
      * Constructor.
@@ -206,12 +204,12 @@ public class QueryLexer {
     }
 
     /**
-     * Set the ignore tokens flag.
+     * Ignore all subsequent tokens up to and including the provided token.
      *
-     * @param ignore  true to ignore tokens; false otherwise
+     * @param type  the last token type of the ignore segment
      */
-    public void setIgnoreTokens(boolean ignore) {
-      m_ignore = ignore;
+    public void setIgnoreSegmentEndToken(Token.TYPE type) {
+      m_ignoreSegmentEndToken = type;
     }
 
     /**
@@ -258,8 +256,10 @@ public class QueryLexer {
      * @param token  the token to add
      */
     public void addToken(Token token) {
-      if (! m_ignore) {
+      if (m_ignoreSegmentEndToken == null) {
         m_listTokens.add(token);
+      } else if (token.getType() == m_ignoreSegmentEndToken) {
+        m_ignoreSegmentEndToken = null;
       }
     }
 
@@ -335,10 +335,14 @@ public class QueryLexer {
       if (! SET_IGNORE.contains(token)) {
         ctx.setPropertyOperand(token);
       } else {
-        ctx.setIgnoreTokens(true);
-        if (!ctx.getTokenList().isEmpty()) {
-        // remove '&' token that separates ignored token and query
+        if (!ctx.getTokenList().isEmpty() ) {
+          // ignore through next value operand
+          ctx.setIgnoreSegmentEndToken(Token.TYPE.VALUE_OPERAND);
+          // remove preceding '&' token
           ctx.getTokenList().remove(ctx.getTokenList().size() -1);
+        } else {
+          // first expression.  Ignore and strip out next '&'
+          ctx.setIgnoreSegmentEndToken(Token.TYPE.LOGICAL_OPERATOR);
         }
       }
     }
@@ -465,7 +469,6 @@ public class QueryLexer {
     @Override
     public void _handleToken(String token, ScanContext ctx) throws InvalidQueryException {
       ctx.addToken(new Token(Token.TYPE.LOGICAL_OPERATOR, token));
-      ctx.setIgnoreTokens(false);
     }
 
     @Override

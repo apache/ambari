@@ -25,6 +25,8 @@ import org.apache.ambari.server.api.resources.ResourceInstanceFactory;
 import org.apache.ambari.server.api.resources.ResourceInstanceFactoryImpl;
 import org.apache.ambari.server.api.services.serializers.ResultSerializer;
 import org.apache.ambari.server.controller.spi.Resource;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.Response;
@@ -47,6 +49,11 @@ public abstract class BaseService {
   private RequestHandlerFactory m_handlerFactory = new RequestHandlerFactory();
 
   /**
+   *  Logger instance.
+   */
+  private final static Logger LOG = LoggerFactory.getLogger(BaseService.class);
+
+  /**
    * All requests are funneled through this method so that common logic can be executed.
    * This consists of creating a {@link Request} instance, invoking the correct {@link RequestHandler} and
    * applying the proper {@link ResultSerializer} to the result.
@@ -64,6 +71,8 @@ public abstract class BaseService {
 
     Request request = getRequestFactory().createRequest(
         headers, body, uriInfo, requestType, resource);
+
+    LOG.info("Handling API Request: '" + request.getURI() + "'");
 
     Result result = getRequestHandler(request.getRequestType()).handleRequest(request);
     if (! result.getStatus().isErrorState()) {

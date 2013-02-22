@@ -195,6 +195,79 @@ public class QueryLexerTest {
   }
 
   @Test
+  public void testTokens_ignore__multipleIgnoreFields() throws InvalidQueryException {
+    List<Token> listTokens = new ArrayList<Token>();
+    listTokens.add(new Token(Token.TYPE.RELATIONAL_OPERATOR, "="));
+    listTokens.add(new Token(Token.TYPE.PROPERTY_OPERAND, "foo"));
+    listTokens.add(new Token(Token.TYPE.VALUE_OPERAND, "1"));
+
+    QueryLexer lexer = new QueryLexer();
+    Token[] tokens = lexer.tokens("fields=a/b&foo=1&_=5555555");
+
+    assertArrayEquals(listTokens.toArray(new Token[listTokens.size()]), tokens);
+  }
+
+  @Test
+  public void testTokens_ignore__multipleConsecutiveIgnoreFields() throws InvalidQueryException {
+    List<Token> listTokens = new ArrayList<Token>();
+    listTokens.add(new Token(Token.TYPE.RELATIONAL_OPERATOR, "="));
+    listTokens.add(new Token(Token.TYPE.PROPERTY_OPERAND, "foo"));
+    listTokens.add(new Token(Token.TYPE.VALUE_OPERAND, "1"));
+
+    QueryLexer lexer = new QueryLexer();
+    Token[] tokens = lexer.tokens("foo=1&fields=a/b&_=5555555");
+
+    assertArrayEquals(listTokens.toArray(new Token[listTokens.size()]), tokens);
+  }
+
+  @Test
+  public void testTokens_ignore__multipleConsecutiveIgnoreFields2() throws InvalidQueryException {
+    List<Token> listTokens = new ArrayList<Token>();
+    listTokens.add(new Token(Token.TYPE.RELATIONAL_OPERATOR, "="));
+    listTokens.add(new Token(Token.TYPE.PROPERTY_OPERAND, "foo"));
+    listTokens.add(new Token(Token.TYPE.VALUE_OPERAND, "1"));
+
+    QueryLexer lexer = new QueryLexer();
+    Token[] tokens = lexer.tokens("fields=a/b&_=5555555&foo=1");
+
+    assertArrayEquals(listTokens.toArray(new Token[listTokens.size()]), tokens);
+  }
+
+  @Test
+  public void testTokens_ignore__fieldsMiddle() throws InvalidQueryException {
+    List<Token> listTokens = new ArrayList<Token>();
+    listTokens.add(new Token(Token.TYPE.RELATIONAL_OPERATOR, "="));
+    listTokens.add(new Token(Token.TYPE.PROPERTY_OPERAND, "foo"));
+    listTokens.add(new Token(Token.TYPE.VALUE_OPERAND, "1"));
+    listTokens.add(new Token(Token.TYPE.LOGICAL_OPERATOR, "&"));
+    listTokens.add(new Token(Token.TYPE.RELATIONAL_OPERATOR, "="));
+    listTokens.add(new Token(Token.TYPE.PROPERTY_OPERAND, "bar"));
+    listTokens.add(new Token(Token.TYPE.VALUE_OPERAND, "2"));
+
+    QueryLexer lexer = new QueryLexer();
+    Token[] tokens = lexer.tokens("foo=1&fields=a/b&bar=2");
+
+    assertArrayEquals(listTokens.toArray(new Token[listTokens.size()]), tokens);
+  }
+
+  @Test
+  public void testTokens_ignore__fieldsMiddle2() throws InvalidQueryException {
+    List<Token> listTokens = new ArrayList<Token>();
+    listTokens.add(new Token(Token.TYPE.RELATIONAL_OPERATOR, "="));
+    listTokens.add(new Token(Token.TYPE.PROPERTY_OPERAND, "foo"));
+    listTokens.add(new Token(Token.TYPE.VALUE_OPERAND, "1"));
+    listTokens.add(new Token(Token.TYPE.LOGICAL_OPERATOR, "&"));
+    listTokens.add(new Token(Token.TYPE.RELATIONAL_OPERATOR, "="));
+    listTokens.add(new Token(Token.TYPE.PROPERTY_OPERAND, "bar"));
+    listTokens.add(new Token(Token.TYPE.VALUE_OPERAND, "2"));
+
+    QueryLexer lexer = new QueryLexer();
+    Token[] tokens = lexer.tokens("foo=1&fields=a/b,c&_=123&bar=2");
+
+    assertArrayEquals(listTokens.toArray(new Token[listTokens.size()]), tokens);
+  }
+
+  @Test
   public void testTokens_invalidRelationalOp() {
     try {
       new QueryLexer().tokens("foo=1&bar|5");

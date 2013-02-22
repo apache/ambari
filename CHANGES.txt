@@ -380,6 +380,9 @@ Trunk (unreleased changes):
 
  AMBARI-1439. rrd file location should be configurable through UI. (jaimin)
 
+ AMBARI-1479. Query Lexer sometimes fails to properly parse query strings with
+              ignored properties such as 'fields' present. (jspeidel)
+ 
  AMBARI-1446. URL used by API to invoke Ganglia rrd script may exceed max length 
               for query string for large clusters. (jspeidel)
 
