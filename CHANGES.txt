@@ -318,6 +318,9 @@ Trunk (unreleased changes):
  AMBARI-1357. Smoke Tests failing on secure cluster. (Siddharth Wagle via
  mahadev)
 
+ AMBARI-1343. Service Check fails after secure install due to wrong kinit
+ path. (Siddharth Wagle via mahadev) 
+
  BUG FIXES
 
  AMBARI-1455. Setting App.testMode=true, alwaysGoToInstaller=true does not

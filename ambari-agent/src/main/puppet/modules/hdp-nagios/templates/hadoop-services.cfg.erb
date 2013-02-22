@@ -425,7 +425,7 @@ define service {
         service_description     HIVE-METASTORE::Hive Metastore status check
         servicegroups           HIVE-METASTORE
         <%if scope.function_hdp_template_var("security_enabled")-%>
-        check_command           check_hive_metastore_status!9083!<%=scope.function_hdp_template_var("java64_home")%>!true!<%=scope.function_hdp_template_var("keytab_path")%>/<%=scope.function_hdp_template_var("nagios_user")%>.headless.keytab!<%=scope.function_hdp_template_var("nagios_user")%>
+        check_command           check_hive_metastore_status!9083!<%=scope.function_hdp_template_var("java64_home")%>!true!<%=scope.function_hdp_template_var("keytab_path")%>/<%=scope.function_hdp_template_var("nagios_user")%>.headless.keytab!<%=scope.function_hdp_template_var("nagios_user")%>!<%=scope.function_hdp_template_var("kinit_path_local")%>/"/usr/bin/kinit"
         <%else-%>
         check_command           check_hive_metastore_status!9083!<%=scope.function_hdp_template_var("java64_home")%>!false
         <%end-%>
@@ -442,7 +442,7 @@ define service {
         service_description     OOZIE::Oozie Server status check
         servicegroups           OOZIE
         <%if scope.function_hdp_template_var("security_enabled")-%>
-        check_command           check_oozie_status!11000!<%=scope.function_hdp_template_var("java64_home")%>!true!<%=scope.function_hdp_template_var("keytab_path")%>/<%=scope.function_hdp_template_var("nagios_user")%>.headless.keytab!<%=scope.function_hdp_template_var("nagios_user")%>
+        check_command           check_oozie_status!11000!<%=scope.function_hdp_template_var("java64_home")%>!true!<%=scope.function_hdp_template_var("keytab_path")%>/<%=scope.function_hdp_template_var("nagios_user")%>.headless.keytab!<%=scope.function_hdp_template_var("nagios_user")%>!<%=scope.function_hdp_template_var("kinit_path_local")%>/"/usr/bin/kinit"
         <%else-%>
         check_command           check_oozie_status!11000!<%=scope.function_hdp_template_var("java64_home")%>!false
         <%end-%>
@@ -459,7 +459,7 @@ define service {
         service_description     WEBHCAT::WebHCat Server status check
         servicegroups           WEBHCAT 
         <%if scope.function_hdp_template_var("security_enabled")-%>
-        check_command           check_templeton_status!50111!v1!true!<%=scope.function_hdp_template_var("keytab_path")%>/<%=scope.function_hdp_template_var("nagios_user")%>.headless.keytab!<%=scope.function_hdp_template_var("nagios_user")%>
+        check_command           check_templeton_status!50111!v1!true!<%=scope.function_hdp_template_var("keytab_path")%>/<%=scope.function_hdp_template_var("nagios_user")%>.headless.keytab!<%=scope.function_hdp_template_var("nagios_user")%>!<%=scope.function_hdp_template_var("kinit_path_local")%>/"/usr/bin/kinit"
         <%else-%>
         check_command           check_templeton_status!50111!v1!false
         <%end-%>

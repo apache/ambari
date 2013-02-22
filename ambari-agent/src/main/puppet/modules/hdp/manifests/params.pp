@@ -33,6 +33,7 @@ class hdp::params()
   $kerberos_domain = hdp_default("kerberos_domain","EXAMPLE.COM")
   $smoketest_user_secure_uid = hdp_default("smoketest_user_secure_uid",1012)
   ## $smoketest_user_secure_uid = 1012
+  $kinit_path_local = hdp_default("kinit_path_local","/usr/bin/kinit")
 
   ###### hostnames
   $namenode_host = hdp_default("namenode_host")

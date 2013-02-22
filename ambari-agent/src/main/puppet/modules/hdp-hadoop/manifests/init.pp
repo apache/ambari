@@ -297,7 +297,7 @@ define hdp-hadoop::exec-hadoop(
       $keytab = "${hdp-hadoop::params::keytab_path}/${user}.headless.keytab" 
       $principal = $user
     }
-    $kinit_if_needed = "/usr/kerberos/bin/kinit  -kt ${keytab} ${principal}; "
+    $kinit_if_needed = "${kinit_path_local} -kt ${keytab} ${principal}; "
   } else {
     $kinit_if_needed = ""
   }

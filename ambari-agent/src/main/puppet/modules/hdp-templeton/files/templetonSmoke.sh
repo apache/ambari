@@ -27,7 +27,7 @@ export security_enabled=$4
 export ttonurl="http://${ttonhost}:50111/templeton/v1"
 
 if [[ $security_enabled == "true" ]]; then
-  kinitcmd="/usr/kerberos/bin/kinit  -kt ${smoke_user_keytab} ${smoke_test_user}; "
+  kinitcmd="${kinit_path_local}  -kt ${smoke_user_keytab} ${smoke_test_user}; "
 else
   kinitcmd=""
 fi

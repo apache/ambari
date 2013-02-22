@@ -23,6 +23,7 @@
 user=""
 secure="false"
 keytab=""
+kinit_path="/usr/kerberos/bin/kinit"
 while getopts ":u:k:s" opt; do
   case $opt in
     u)
@@ -57,8 +58,12 @@ if [[ "$keytab" == "" ]]; then
   keytab="/homes/$user/$user.headless.keytab"
 fi
 
+if [[ ! -f "$kinit_path" ]]; then
+  kinit_path="kinit"
+fi
+
 if [[ "$secure" == "true" ]]; then
-  sudo -u $user -i "/usr/kerberos/bin/kinit -kt $keytab $user" > ${outfile} 2>&1
+  sudo -u $user -i "$kinit_path -kt $keytab $user" > ${outfile} 2>&1
 fi
 
 output=`sudo -u $user -i "echo status | /usr/bin/hbase --config /etc/hbase shell"`

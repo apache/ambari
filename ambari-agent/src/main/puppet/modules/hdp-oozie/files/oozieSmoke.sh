@@ -77,7 +77,7 @@ sed -i "s|jobTracker=localhost:9001|jobTracker=$JOBTRACKER|g" examples/apps/map-
 sed -i "s|oozie.wf.application.path=hdfs://localhost:9000|oozie.wf.application.path=$NAMENODE|g" examples/apps/map-reduce/job.properties
 
 if [[ $security_enabled == "true" ]]; then
-  kinitcmd="/usr/kerberos/bin/kinit  -kt ${smoke_user_keytab} ${smoke_test_user}; "
+  kinitcmd="${kinit_path_local} -kt ${smoke_user_keytab} ${smoke_test_user}; "
   echo "dfs.namenode.kerberos.principal=nn/`echo ${NNHOST} | tr '[:upper:]' '[:lower:]'`@${realm}" >> examples/apps/map-reduce/job.properties
   echo "mapreduce.jobtracker.kerberos.principal=jt/`echo ${JTHOST} | tr '[:upper:]' '[:lower:]'`@${realm}" >> examples/apps/map-reduce/job.properties
 else 
