@@ -29,41 +29,45 @@ App.statusMapper = App.QuickDataMapper.create({
   },
 
   map:function (json) {
+    var start = new Date().getTime();
+    console.log('in status mapper');
 
     if (json.items) {
-      var result = [];
+      var result = {};
       json.items.forEach(function (item) {
-        result.push(this.parseIt(item, this.config));
+        item = this.parseIt(item, this.config);
+        result[item.id] = item;
       }, this);
 
       var services = App.Service.find();
-      result.forEach(function(item){
-        var service = services.findProperty('id', item.id);
-        if(service){
+      services.forEach(function(service) {
+        var item = result[service.get('id')];
+        if (item) {
           service.set('workStatus', item.work_status);
         }
-      })
-
+      });
 
       //host_components
-      result = [];
+      result = {};
       json.items.forEach(function (item) {
         item.components.forEach(function (component) {
           component.host_components.forEach(function (host_component) {
             host_component.id = host_component.HostRoles.component_name + "_" + host_component.HostRoles.host_name;
-            result.push(this.parseIt(host_component, this.config3));
+            result[host_component.id] = this.parseIt(host_component, this.config3);
           }, this)
         }, this)
       }, this);
 
       var hostComponents = App.HostComponent.find();
-      result.forEach(function(item){
-        var hostComponent = hostComponents.findProperty('id', item.id);
-        if(hostComponent){
-          item = this.calculateState(item);
-          hostComponent.set('workStatus', item.work_status);
+
+      hostComponents.forEach(function(hostComponent) {
+        var item = result[hostComponent.get('id')];
+        if (item) {
+         hostComponent.set('workStatus', item.work_status);
         }
-      }, this)
+      });
+
+      console.log('out status mapper.  Took ' + (new Date().getTime() - start) + 'ms');
     }
   }
 });
