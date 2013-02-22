@@ -309,6 +309,7 @@ Em.I18n.translations = {
   'installer.step8.deployPopup.message':'Preparing to Deploy: {0} of {1} tasks completed.',
   'installer.step8.hosts':' hosts',
   'installer.step8.host':' host',
+  'installer.step8.other':' and {0} other hosts',
 
   'installer.step9.header':'Install, Start and Test',
   'installer.step9.body':'Please wait while the selected services are installed and started.',

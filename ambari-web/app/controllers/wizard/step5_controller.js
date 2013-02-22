@@ -24,31 +24,13 @@ App.WizardStep5Controller = Em.Controller.extend({
 
   hosts:[],
 
-  selectedServices:[],
   selectedServicesMasters:[],
-  zId:0,
-
-  hasHiveServer: function () {
-    return this.get('selectedServicesMasters').findProperty('component_name', 'HIVE_SERVER');
-  }.property('selectedServicesMasters'),
-
-  updateHiveCoHosts: function () {
-    var hiveServer =  this.get('selectedServicesMasters').findProperty('component_name', 'HIVE_SERVER');
-    var hiveMetastore = this.get('selectedServicesMasters').findProperty('component_name', 'HIVE_METASTORE');
-    var webHCatServer = this.get('selectedServicesMasters').findProperty('component_name', 'WEBHCAT_SERVER');
-    if (hiveServer && hiveMetastore && webHCatServer) {
-      this.get('selectedServicesMasters').findProperty('component_name', 'HIVE_METASTORE').set('selectedHost', hiveServer.get('selectedHost'));
-      this.get('selectedServicesMasters').findProperty('component_name', 'WEBHCAT_SERVER').set('selectedHost', hiveServer.get('selectedHost'));
-    }
-  }.observes('selectedServicesMasters.@each.selectedHost'),
 
   components:require('data/service_components'),
 
   clearStep:function () {
     this.set('hosts', []);
-    this.set('selectedServices', []);
     this.set('selectedServicesMasters', []);
-    this.set('zId', 0);
   },
 
   loadStep:function () {
@@ -57,9 +39,29 @@ App.WizardStep5Controller = Em.Controller.extend({
     this.renderHostInfo();
     this.renderComponents(this.loadComponents());
 
+    this.updateComponent('ZOOKEEPER_SERVER');
+    this.updateComponent('HBASE_MASTER');
+
     if (!this.get("selectedServicesMasters").filterProperty('isInstalled', false).length) {
       console.log('no master components to add');
       App.router.send('next');
+    }
+  },
+
+  /**
+   * Used to set showAddControl flag for ZOOKEEPER_SERVER and HBASE_SERVER
+   */
+  updateComponent: function(componentName){
+    var component = this.last(componentName);
+    if (component) {
+      if (this.get("selectedServicesMasters").filterProperty("component_name", componentName).length < this.get("hosts.length")) {
+        component.set('showAddControl', true);
+      } else {
+        component.set('showRemoveControl', false);
+      }
+      if(componentName == 'ZOOKEEPER_SERVER'){
+        this.rebalanceZookeeperHosts();
+      }
     }
   },
 
@@ -69,62 +71,44 @@ App.WizardStep5Controller = Em.Controller.extend({
   renderHostInfo:function () {
 
     var hostInfo = this.get('content.hosts');
+    var result = [];
 
     for (var index in hostInfo) {
       var _host = hostInfo[index];
       if (_host.bootStatus === 'REGISTERED') {
-        var hostObj = Ember.Object.create({
+        result.push(Ember.Object.create({
           host_name:_host.name,
 
           cpu:_host.cpu,
           memory:_host.memory,
           disk_info:_host.disk_info,
           host_info: Em.I18n.t('installer.step5.hostInfo').fmt(_host.name, (_host.memory * 1024).bytesToSize(1, 'parseFloat'), _host.cpu)
-
-//          Uncomment to test sorting with random cpu, memory, host_info
-//          cpu:function () {
-//            return parseInt(2 + Math.random() * 4);
-//          }.property(),
-//          memory:function () {
-//            return parseInt((Math.random() * 4000000000) + 4000000000);
-//          }.property(),
-//
-//          host_info:function () {
-//            return "%@ (%@, %@ cores)".fmt(this.get('host_name'), (this.get('memory') * 1024).bytesToSize(1, 'parseFloat'), this.get('cpu'));
-//          }.property('cpu', 'memory')
-
-        });
-
-        this.get("hosts").pushObject(hostObj);
+        }));
       }
     }
+    this.set("hosts", result);
   },
 
   /**
    * Load services info to appropriate variable and return masterComponentHosts
-   * @return {Ember.Set}
+   * @return Array
    */
   loadComponents:function () {
 
     var services = this.get('content.services')
       .filterProperty('isSelected', true).mapProperty('serviceName'); //list of shown services
 
-    services.forEach(function (item) {
-      this.get("selectedServices").pushObject(Ember.Object.create({service_name:item}));
-    }, this);
-
-    var masterHosts = this.get('content.masterComponentHosts'); //saved to local storadge info
-
-    var resultComponents = new Ember.Set();
-
     var masterComponents = this.get('components').filterProperty('isMaster', true); //get full list from mock data
+    var masterHosts = this.get('content.masterComponentHosts'); //saved to local storage info
+
+    var resultComponents = [];
 
     var servicesLength = services.length;
     for (var index = 0; index < servicesLength; index++) {
       var componentInfo = masterComponents.filterProperty('service_name', services[index]);
 
       componentInfo.forEach(function (_componentInfo) {
-        if (_componentInfo.component_name == 'ZOOKEEPER_SERVER') {
+        if (_componentInfo.component_name == 'ZOOKEEPER_SERVER' || _componentInfo.component_name == 'HBASE_MASTER') {
           var savedComponents = masterHosts.filterProperty('component', _componentInfo.component_name);
           if (savedComponents.length) {
 
@@ -136,7 +120,8 @@ App.WizardStep5Controller = Em.Controller.extend({
               zooKeeperHost.availableHosts = [];
               zooKeeperHost.serviceId = services[index];
               zooKeeperHost.isInstalled = item.isInstalled;
-              resultComponents.add(zooKeeperHost);
+              zooKeeperHost.isHiveCoHost = false;
+              resultComponents.push(zooKeeperHost);
             })
 
           } else {
@@ -151,7 +136,7 @@ App.WizardStep5Controller = Em.Controller.extend({
               zooKeeperHost.serviceId = services[index];
               zooKeeperHost.isInstalled = false;
               zooKeeperHost.isHiveCoHost = false;
-              resultComponents.add(zooKeeperHost);
+              resultComponents.push(zooKeeperHost);
             });
 
           }
@@ -165,7 +150,7 @@ App.WizardStep5Controller = Em.Controller.extend({
           componentObj.serviceId = services[index];
           componentObj.availableHosts = [];
           componentObj.isHiveCoHost = ['HIVE_METASTORE', 'WEBHCAT_SERVER'].contains(_componentInfo.component_name);
-          resultComponents.add(componentObj);
+          resultComponents.push(componentObj);
         }
       }, this);
     }
@@ -178,38 +163,44 @@ App.WizardStep5Controller = Em.Controller.extend({
    * @param masterComponents
    */
   renderComponents:function (masterComponents) {
-    var zookeeperComponent = null, componentObj = null;
-    var services = this.get('selectedServicesMasters').slice(0);
-    if (services.length) {
-      this.set('selectedServicesMasters', []);
-    }
-
     var countZookeeper = masterComponents.filterProperty('display_name', 'ZooKeeper').length;
+    var countHbaseMaster = masterComponents.filterProperty('component_name', 'HBASE_MASTER').length;
+    var zid = 1;
+    var hid = 1;
+    var result = [];
 
     masterComponents.forEach(function (item) {
-      //add the zookeeper component at the end if exists
-      console.log("TRACE: render master component name is: " + item.component_name);
-      if (item.display_name === "ZooKeeper") {
-        if (services.length) {
-          services.forEach(function (_service) {
-            this.get('selectedServicesMasters').pushObject(_service);
-          }, this);
-        }
-        this.set('zId', parseInt(this.get('zId')) + 1);
-        zookeeperComponent = Ember.Object.create(item);
-        zookeeperComponent.set('zId', this.get('zId'));
-        zookeeperComponent.set("showRemoveControl", countZookeeper > 1);
-        zookeeperComponent.set("availableHosts", this.get("hosts").slice(0));
-        this.get("selectedServicesMasters").pushObject(zookeeperComponent);
 
-      } else {
-        componentObj = Ember.Object.create(item);
-        componentObj.set("availableHosts", this.get("hosts").slice(0));
-        this.get("selectedServicesMasters").pushObject(componentObj);
+      var componentObj = Ember.Object.create(item);
+      console.log("TRACE: render master component name is: " + item.component_name);
+
+      if (item.display_name === "ZooKeeper") {
+        componentObj.set('zId', zid++);
+        componentObj.set("showRemoveControl", countZookeeper > 1);
+      } else if(item.component_name === "HBASE_MASTER"){
+        componentObj.set('zId', hid++);
+        componentObj.set("showRemoveControl", countHbaseMaster > 1);
       }
+      componentObj.set("availableHosts", this.get("hosts"));
+      result.push(componentObj);
     }, this);
 
+    this.set("selectedServicesMasters", result);
   },
+
+  hasHiveServer: function () {
+    return !!this.get('selectedServicesMasters').findProperty('component_name', 'HIVE_SERVER');
+  }.property('selectedServicesMasters'),
+
+  updateHiveCoHosts: function () {
+    var hiveServer =  this.get('selectedServicesMasters').findProperty('component_name', 'HIVE_SERVER');
+    var hiveMetastore = this.get('selectedServicesMasters').findProperty('component_name', 'HIVE_METASTORE');
+    var webHCatServer = this.get('selectedServicesMasters').findProperty('component_name', 'WEBHCAT_SERVER');
+    if (hiveServer && hiveMetastore && webHCatServer) {
+      this.get('selectedServicesMasters').findProperty('component_name', 'HIVE_METASTORE').set('selectedHost', hiveServer.get('selectedHost'));
+      this.get('selectedServicesMasters').findProperty('component_name', 'WEBHCAT_SERVER').set('selectedHost', hiveServer.get('selectedHost'));
+    }
+  }.observes('selectedServicesMasters.@each.selectedHost'),
 
   getKerberosServer:function (noOfHosts) {
     var hosts = this.get('hosts');
@@ -382,7 +373,7 @@ App.WizardStep5Controller = Em.Controller.extend({
       case 'JOBTRACKER':
         return this.getJobTracker(noOfHosts).host_name;
       case 'HBASE_MASTER':
-        return this.getHBaseMaster(noOfHosts).host_name;
+        return [this.getHBaseMaster(noOfHosts).host_name];
       case 'OOZIE_SERVER':
         return this.getOozieServer(noOfHosts).host_name;
       case 'HIVE_SERVER':
@@ -429,52 +420,51 @@ App.WizardStep5Controller = Em.Controller.extend({
     return (this.get("hosts.length") - this.get("masterHostMapping.length"));
   }.property("selectedServicesMasters.@each.selectedHost"),
 
-  hasZookeeper:function () {
-    return this.selectedServices.findProperty("service_name", "ZooKeeper");
-  }.property("selectedServices"),
-
   //methods
   getAvailableHosts:function (componentName) {
-    var assignableHosts = [],
-      zookeeperHosts = null;
+    var selectedHosts = this.get("selectedServicesMasters").filterProperty("component_name", componentName).mapProperty("selectedHost").uniq();
 
-    if (componentName === "ZooKeeper") {
-      zookeeperHosts = this.get("selectedServicesMasters").filterProperty("display_name", "ZooKeeper").mapProperty("selectedHost").uniq();
-      this.get("hosts").forEach(function (item) {
-        if (!(zookeeperHosts.contains(item.get("host_name")))) {
-          assignableHosts.pushObject(item);
-        }
-      }, this);
-      return assignableHosts;
+    return this.get('hosts').filter(function(item){
+      return !selectedHosts.contains(item.get("host_name"));
+    });
 
-    } else {
-      return this.get("hosts");
-    }
   },
 
-  assignHostToMaster:function (masterService, selectedHost, zId) {
-    if (selectedHost && masterService) {
-      if ((masterService === "ZooKeeper") && zId) {
-        this.get('selectedServicesMasters').findProperty("zId", zId).set("selectedHost", selectedHost);
+  /**
+   * On change callback for selects
+   * @param componentName
+   * @param selectedHost
+   * @param zId
+   */
+  assignHostToMaster:function (componentName, selectedHost, zId) {
+    if (selectedHost && componentName) {
+      if ((componentName === "ZOOKEEPER_SERVER") && zId) {
+        this.get('selectedServicesMasters').filterProperty('component_name', componentName).findProperty("zId", zId).set("selectedHost", selectedHost);
         this.rebalanceZookeeperHosts();
-      }
-      else {
-        this.get('selectedServicesMasters').findProperty("display_name", masterService).set("selectedHost", selectedHost);
+      } else if(zId){ //Hbase
+        this.get('selectedServicesMasters').filterProperty('component_name', componentName).findProperty("zId", zId).set("selectedHost", selectedHost);
+      } else {
+        this.get('selectedServicesMasters').findProperty("component_name", componentName).set("selectedHost", selectedHost);
       }
 
     }
   },
 
-  lastZooKeeper:function () {
-    var currentZooKeepers = this.get("selectedServicesMasters").filterProperty("display_name", "ZooKeeper");
-    if (currentZooKeepers) {
-      return currentZooKeepers.get("lastObject");
-    }
-
-    return null;
+  /**
+   * Returns last component of selected type
+   * @param componentName
+   * @return {*}
+   */
+  last: function(componentName){
+    return this.get("selectedServicesMasters").filterProperty("component_name", componentName).get("lastObject");
   },
 
-  addZookeepers:function () {
+  /**
+   * Add new component to ZooKeeper Server and Hbase master
+   * @param componentName
+   * @return {Boolean}
+   */
+  addComponent:function (componentName) {
     /*
      *Logic: If ZooKeeper service is selected then there can be
      * minimum 1 ZooKeeper master in total, and
@@ -482,25 +472,22 @@ App.WizardStep5Controller = Em.Controller.extend({
      */
 
     var maxNumZooKeepers = this.get("hosts.length"),
-      currentZooKeepers = this.get("selectedServicesMasters").filterProperty("display_name", "ZooKeeper"),
+      currentZooKeepers = this.get("selectedServicesMasters").filterProperty("component_name", componentName),
       newZookeeper = null,
       zookeeperHosts = null,
       suggestedHost = null,
       i = 0,
       lastZoo = null;
-    console.log('hosts legth is: ' + maxNumZooKeepers);
-    //work only if the Zookeeper service is selected in previous step
-    if (!this.get("selectedServices").mapProperty("service_name").contains("ZOOKEEPER")) {
+
+    if (!currentZooKeepers.length) {
       console.log('ALERT: Zookeeper service was not selected');
       return false;
     }
 
     if (currentZooKeepers.get("length") < maxNumZooKeepers) {
-      console.log('currentZookeeper length less than maximum. Its: ' + currentZooKeepers.get("length"))
+
       currentZooKeepers.set("lastObject.showAddControl", false);
-      if (currentZooKeepers.get("length") >= 1) {
-        currentZooKeepers.set("lastObject.showRemoveControl", true);
-      }
+      currentZooKeepers.set("lastObject.showRemoveControl", true);
 
       //create a new zookeeper based on an existing one
       newZookeeper = Ember.Object.create({});
@@ -508,7 +495,7 @@ App.WizardStep5Controller = Em.Controller.extend({
       newZookeeper.set("display_name", lastZoo.get("display_name"));
       newZookeeper.set("component_name", lastZoo.get("component_name"));
       newZookeeper.set("selectedHost", lastZoo.get("selectedHost"));
-      newZookeeper.set("availableHosts", this.getAvailableHosts("ZooKeeper"));
+      newZookeeper.set("availableHosts", this.getAvailableHosts(componentName));
 
       if (currentZooKeepers.get("length") === (maxNumZooKeepers - 1)) {
         newZookeeper.set("showAddControl", false);
@@ -529,31 +516,36 @@ App.WizardStep5Controller = Em.Controller.extend({
 
       newZookeeper.set("selectedHost", suggestedHost);
       newZookeeper.set("zId", (currentZooKeepers.get("lastObject.zId") + 1));
-      this.set('zId', parseInt(this.get('zId')) + 1);
 
-      this.get("selectedServicesMasters").pushObject(newZookeeper);
+      this.get("selectedServicesMasters").insertAt(this.get("selectedServicesMasters").indexOf(lastZoo) + 1, newZookeeper);
 
-      this.rebalanceZookeeperHosts();
+      if(componentName == 'ZOOKEEPER_SERVER'){
+        this.rebalanceZookeeperHosts();
+      }
 
       return true;
     }
     return false;//if no more zookeepers can be added
   },
 
-  removeZookeepers:function (zId) {
-    var currentZooKeepers;
+  /**
+   * Remove component from ZooKeeper server or Hbase Master
+   * @param componentName
+   * @param zId
+   * @return {Boolean}
+   */
+  removeComponent:function (componentName, zId) {
+    var currentZooKeepers = this.get("selectedServicesMasters").filterProperty("component_name", componentName)
 
     //work only if the Zookeeper service is selected in previous step
-    if (!this.get("selectedServices").mapProperty("service_name").contains("ZOOKEEPER")) {
+    if (!currentZooKeepers.length) {
       return false;
     }
 
-    currentZooKeepers = this.get("selectedServicesMasters").filterProperty("display_name", "ZooKeeper");
-
     if (currentZooKeepers.get("length") > 1) {
-      this.get("selectedServicesMasters").removeAt(this.get("selectedServicesMasters").indexOf(this.get("selectedServicesMasters").findProperty("zId", zId)));
+      this.get("selectedServicesMasters").removeAt(this.get("selectedServicesMasters").indexOf(currentZooKeepers.findProperty("zId", zId)));
 
-      currentZooKeepers = this.get("selectedServicesMasters").filterProperty("display_name", "ZooKeeper");
+      currentZooKeepers = this.get("selectedServicesMasters").filterProperty("component_name", componentName);
       if (currentZooKeepers.get("length") < this.get("hosts.length")) {
         currentZooKeepers.set("lastObject.showAddControl", true);
       }
@@ -561,8 +553,9 @@ App.WizardStep5Controller = Em.Controller.extend({
       if (currentZooKeepers.get("length") === 1) {
         currentZooKeepers.set("lastObject.showRemoveControl", false);
       }
-      this.set('zId', parseInt(this.get('zId')) - 1);
-      this.rebalanceZookeeperHosts();
+      if(componentName == 'ZOOKEEPER_SERVER'){
+        this.rebalanceZookeeperHosts();
+      }
 
       return true;
     }

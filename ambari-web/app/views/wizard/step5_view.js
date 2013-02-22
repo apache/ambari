@@ -24,17 +24,7 @@ App.WizardStep5View = Em.View.extend({
   templateName:require('templates/wizard/step5'),
 
   didInsertElement:function () {
-    var controller = this.get('controller');
-    controller.loadStep();
-
-    if (controller.lastZooKeeper()) {
-      if (controller.get("selectedServicesMasters").filterProperty("display_name", "ZooKeeper").length < controller.get("hosts.length")) {
-        controller.lastZooKeeper().set('showAddControl', true);
-      } else {
-        controller.lastZooKeeper().set('showRemoveControl', false);
-      }
-      controller.rebalanceZookeeperHosts();
-    }
+    this.get('controller').loadStep();
   }
 
 });
@@ -43,7 +33,7 @@ App.SelectHostView = Em.Select.extend({
   content:[],
   zId:null,
   selectedHost:null,
-  serviceName:null,
+  componentName:null,
   attributeBindings:['disabled'],
 
   filterContent:function () {
@@ -75,16 +65,12 @@ App.SelectHostView = Em.Select.extend({
 
   }.observes('content'),
 
-  init:function () {
-    this._super();
-    this.propertyDidChange('content');
-  },
-
   change:function () {
-    this.get('controller').assignHostToMaster(this.get("serviceName"), this.get("value"), this.get("zId"));
+    this.get('controller').assignHostToMaster(this.get("componentName"), this.get("value"), this.get("zId"));
   },
 
   didInsertElement:function () {
+    this.filterContent();
     this.set("value", this.get("selectedHost"));
   }
 });
@@ -96,17 +82,18 @@ App.AddControlView = Em.View.extend({
   template:Ember.Handlebars.compile('+'),
 
   click:function () {
-    this.get('controller').addZookeepers();
+    this.get('controller').addComponent(this.get('componentName'));
   }
 });
 
 App.RemoveControlView = Em.View.extend({
   zId:null,
+  componentName:null,
   tagName:"span",
   classNames:["badge", "badge-important"],
   template:Ember.Handlebars.compile('-'),
 
   click:function () {
-    this.get('controller').removeZookeepers(this.get("zId"));
+    this.get('controller').removeComponent(this.get('componentName'), this.get("zId"));
   }
 });

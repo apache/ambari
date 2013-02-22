@@ -150,7 +150,7 @@ App.ServiceConfigProperty = Ember.Object.extend({
         this.set('value', slaveComponentHostsInDB.findProperty('componentName', 'TASKTRACKER').hosts.mapProperty('hostName'));
         break;
       case 'hbasemaster_host':
-        this.set('value', masterComponentHostsInDB.findProperty('component', 'HBASE_MASTER').hostName);
+        this.set('value', masterComponentHostsInDB.filterProperty('component', 'HBASE_MASTER').mapProperty('hostName'));
         break;
       case 'regionserver_hosts':
         this.set('value', slaveComponentHostsInDB.findProperty('componentName', 'HBASE_REGIONSERVER').hosts.mapProperty('hostName'));

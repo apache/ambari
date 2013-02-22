@@ -605,8 +605,12 @@ App.WizardStep8Controller = Em.Controller.extend({
   },
 
   loadMasterValue: function (hbaseMaster) {
-    var hbaseHostName = this.get('content.masterComponentHosts').findProperty('display_name', 'HBase Master');
-    hbaseMaster.set('component_value', hbaseHostName.hostName);
+    var hbaseHostName = this.get('content.masterComponentHosts').filterProperty('display_name', 'HBase Master');
+    if(hbaseHostName.length == 1){
+      hbaseMaster.set('component_value', hbaseHostName[0].hostName);
+    } else {
+      hbaseMaster.set('component_value', hbaseHostName[0].hostName + Em.I18n.t('installer.step8.other').format(hbaseHostName.length - 1));
+    }
   },
 
   loadRegionServerValue: function (rsComponent) {

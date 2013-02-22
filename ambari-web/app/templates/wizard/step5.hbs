@@ -40,19 +40,15 @@
             optionValuePath="content.host_name"
             optionLabelPath="content.host_info"
             selectedHostBinding="selectedHost"
-            serviceNameBinding="display_name"
+            componentNameBinding="component_name"
             zIdBinding="zId"
             disabledBinding="isInstalled"
           }}
           {{#if showAddControl}}
-          {{view App.AddControlView
-            componentNameBinding="display_name"
-          }}
+            {{view App.AddControlView componentNameBinding="component_name"}}
           {{/if}}
           {{#if showRemoveControl}}
-          {{view App.RemoveControlView
-            zIdBinding="zId"
-          }}
+            {{view App.RemoveControlView componentNameBinding="component_name" zIdBinding="zId"}}
           {{/if}}
         </div>
         {{/if}}
