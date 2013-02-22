@@ -324,6 +324,9 @@ Trunk (unreleased changes):
  AMBARI-1465. Minimize Read and Write locks for createHosts. (Siddharth Wagle
  via mahadev)
 
+ AMBARI-1466. Optimize ganglia rrd script to be able to respond within
+ reasonable time to queries made by the UI. (mahadev)
+
  BUG FIXES
 
  AMBARI-1455. Setting App.testMode=true, alwaysGoToInstaller=true does not
