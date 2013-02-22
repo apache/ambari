@@ -32,34 +32,65 @@ App.UpdateController = Em.Controller.extend({
     return (App.testMode) ? testUrl : App.apiPrefix + '/clusters/' + this.get('clusterName') + url;
   },
 
+  /**
+   * Wrapper for all updates
+   */
   updateAll:function(){
-    var timeIntervalId = this.get('timeIntervalId');
-    var self = this;
-    if(this.get('isWorking')){
-      if(timeIntervalId) return;
-      this.set('timeIntervalId', setInterval(function(){
-        self.updateAllWrapper();
-      }, App.contentUpdateInterval));
-    } else {
-      clearInterval(timeIntervalId);
-      this.set('timeIntervalId', null);
+    if(this.get('isWorking')) {
+      this.update('updateHost');
+      this.update('updateServiceMetric');
+      this.update('graphsUpdate');
     }
   }.observes('isWorking'),
 
-  updateAllWrapper: function() {
-    this.updateHost();
-    this.updateServiceMetric();
-    this.graphsUpdate();
+  /**
+   * States for each update method (each field - method name)
+   */
+  states: {
+    'updateHost': null,
+    'updateServiceMetric': null,
+    'graphsUpdate': null
   },
 
-  updateHost:function(){
+  /**
+   * Callback for each update method
+   * @param {String} name - state name
+   * @return {Function}
+   */
+  updateCallback: function(name) {
+    var self = this;
+    return function() {
+      self.update(name);
+    }
+  },
+
+  /**
+   * Common method that executes provided by name update method (name from states object)
+   * @param {String} name - key in the states object
+   * @return {Boolean}
+   */
+  update: function(name) {
+    if(!this.get('isWorking')) {
+      return false;
+    }
+    clearTimeout(this.states[name]);
+    var self = this;
+    this.states[name] = setTimeout(function() {
+      self[name](self.updateCallback(name));
+    }, App.contentUpdateInterval);
+  },
+
+  updateHost:function(callback) {
+    var self = this;
       var hostsUrl = this.getUrl('/data/hosts/hosts.json', '/hosts?fields=Hosts/host_name,Hosts/public_host_name,Hosts/cpu_count,Hosts/total_mem,Hosts/host_status,Hosts/last_heartbeat_time,Hosts/os_arch,Hosts/os_type,Hosts/ip,host_components,metrics/disk,metrics/cpu,metrics/load,metrics/memory');
       App.HttpClient.get(hostsUrl, App.hostsMapper, {
-        complete:function (jqXHR, textStatus) {}
+        complete:function (jqXHR, textStatus) {
+          callback();
+        }
       });
   },
   graphs: [],
-  graphsUpdate: function () {
+  graphsUpdate: function (callback) {
       var existedGraphs = [];
       this.get('graphs').forEach(function (_graph) {
         var view = Em.View.views[_graph.id];
@@ -73,12 +104,14 @@ App.UpdateController = Em.Controller.extend({
           }
         }
       });
-      this.set('graphs', existedGraphs);
+    callback();
+    this.set('graphs', existedGraphs);
   },
-  
+
   /**
    * Updates the services information. 
-   * 
+   *
+   * @param callback
    * @param isInitialLoad  If true, only basic information is loaded.
    */
   updateServiceMetric: function (callback, isInitialLoad) {
@@ -90,9 +123,11 @@ App.UpdateController = Em.Controller.extend({
     var callback = callback || function (jqXHR, textStatus) {
       self.set('isUpdated', true);
     };
-    App.HttpClient.get(servicesUrl, App.servicesMapper, {
-      complete: callback
-    });
+      App.HttpClient.get(servicesUrl, App.servicesMapper, {
+        complete: function() {
+          callback();
+        }
+      });
   }
 
 

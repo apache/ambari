@@ -74,7 +74,7 @@ App.HttpClient = Em.Object.create({
    * @param {App.ServerDataMapper} mapper - json processor
    * @param {Object} data - ajax data property
    * @param {function} errorHandler
-   * @param {number} interval - frequecy request
+   * @param {number} interval - frequency request
    */
   get: function (url, mapper, data, errorHandler, interval) {
     var eHandler = data.complete

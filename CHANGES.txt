@@ -348,6 +348,9 @@ Trunk (unreleased changes):
 
  BUG FIXES
 
+ AMBARI-1467. UI should block on cluster metric api call before making
+ subsequent one. (yusaku)
+
  AMBARI-1462. PB (petabytes) is shown as "undefined". (yusaku)
 
  AMBARI-1455. Setting App.testMode=true, alwaysGoToInstaller=true does not
