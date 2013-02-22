@@ -21,9 +21,20 @@ var App = require('app');
 App.WizardStep5Controller = Em.Controller.extend({
 
   name:"wizardStep5Controller",
+  title: function () {
+    if (this.get('content.controllerName') == 'reassignMasterController') {
+      return Em.I18n.t('installer.step5.reassign.header');
+    }
+    return Em.I18n.t('installer.step5.header');
+  }.property('content.controllerName'),
+
+  isReassignWizard: function () {
+    return this.get('content.controllerName') == 'reassignMasterController';
+  }.property(),
 
   hosts:[],
 
+  servicesMasters:[],
   selectedServicesMasters:[],
 
   components:require('data/service_components'),
@@ -31,6 +42,7 @@ App.WizardStep5Controller = Em.Controller.extend({
   clearStep:function () {
     this.set('hosts', []);
     this.set('selectedServicesMasters', []);
+    this.set('servicesMasters', []);
   },
 
   loadStep:function () {
@@ -186,6 +198,12 @@ App.WizardStep5Controller = Em.Controller.extend({
     }, this);
 
     this.set("selectedServicesMasters", result);
+    if (this.get('isReassignWizard')) {
+      var component = result.findProperty('component_name', this.get('content.reassign.component_name')).set('isInstalled', false);
+      this.set('servicesMasters', [component]);
+    } else {
+      this.set('servicesMasters', result);
+    }
   },
 
   hasHiveServer: function () {

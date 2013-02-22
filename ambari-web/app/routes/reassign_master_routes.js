@@ -64,7 +64,24 @@ module.exports = Em.Route.extend({
       })
     },
     next: function (router) {
-      //router.transitionTo('step2');
+      router.transitionTo('step2');
+    }
+  }),
+
+  step2: Em.Route.extend({
+    route: '/step2',
+    connectOutlets: function (router) {
+      console.log('in reassignMaster.step2:connectOutlets');
+      var controller = router.get('reassignMasterController');
+      controller.setCurrentStep('2');
+      controller.dataLoading().done(function () {
+        controller.loadAllPriorSteps();
+        controller.connectOutlet('wizardStep5', controller.get('content'));
+      })
+
+    },
+    back: Em.Router.transitionTo('step1'),
+    next: function () {
     }
   }),
 

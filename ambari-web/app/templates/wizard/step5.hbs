@@ -16,7 +16,7 @@
 * limitations under the License.
 }}
 
-<h2>{{t installer.step5.header}}</h2>
+<h2>{{title}}</h2>
 <div class="alert alert-info">
   {{t installer.step5.body}}
   {{#if hasHiveServer}}
@@ -28,7 +28,7 @@
   <div class="select-hosts">
     <form class="form-horizontal">
       <!-- View for array controller -->
-      {{#each selectedServicesMasters}}
+      {{#each servicesMasters}}
       <div class="control-group">
         <label class="control-label">{{display_name}}:</label>
         {{#if isHiveCoHost}}
