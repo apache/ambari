@@ -45,6 +45,9 @@ Trunk (unreleased changes):
 
  IMPROVEMENTS
 
+ AMBARI-1461. Optimize query for getting service and host component status back
+ from the server. (yusaku)
+
  AMBARI-1460. Optimize query call for retrieving host information. (yusaku)
 
  AMBARI-1470. Refactor confirmation popups. (yusaku)

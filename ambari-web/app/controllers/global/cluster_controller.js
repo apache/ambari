@@ -259,7 +259,7 @@ App.ClusterController = Em.Controller.extend({
       return;
     }
     
-    var servicesUrl = this.getUrl('/data/dashboard/services.json', '/services?fields=components/ServiceComponentInfo,components/host_components,components/host_components/HostRoles');
+    var servicesUrl = this.getUrl('/data/dashboard/services.json', '/services?fields=ServiceInfo,components/host_components/HostRoles/desired_state,components/host_components/HostRoles/state');
 
     var self = this;
     App.HttpClient.get(servicesUrl, App.statusMapper, {
