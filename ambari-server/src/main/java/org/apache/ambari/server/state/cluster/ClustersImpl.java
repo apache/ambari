@@ -18,13 +18,7 @@
 
 package org.apache.ambari.server.state.cluster;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
@@ -46,7 +40,6 @@ import org.apache.ambari.server.orm.entities.HostEntity;
 import org.apache.ambari.server.state.*;
 import org.apache.ambari.server.state.HostHealthStatus.HealthStatus;
 import org.apache.ambari.server.state.host.HostFactory;
-import org.apache.ambari.server.state.host.HostImpl;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -285,6 +278,112 @@ public class ClustersImpl implements Clusters {
       return false;
     }
     return repos.containsKey(h.getOsType());
+  }
+
+  @Override
+  @Transactional
+  public void updateHostWithClusterAndAttributes(Map<String, Set<String>> hostClusters, Map<String,
+      Map<String, String>> hostAttributes)
+      throws AmbariException {
+    loadClustersAndHosts();
+    w.lock();
+    try {
+      if (hostClusters != null) {
+        Map<String, Host> hostMap = getHostsMap(hostClusters.keySet());
+        Set<String> clusterNames = new HashSet<String>();
+        for (Set<String> cSet : hostClusters.values()) {
+          clusterNames.addAll(cSet);
+        }
+        Map<String, Cluster> clusterMap = getClustersMap(clusterNames);
+
+        for (String hostname : hostClusters.keySet()) {
+          Host host = hostMap.get(hostname);
+          Map<String, String>  attributes = hostAttributes.get(hostname);
+          if (attributes != null && !attributes.isEmpty()){
+            host.setHostAttributes(attributes);
+          }
+
+          Set<String> hostClusterNames = hostClusters.get(hostname);
+          for (String clusterName : hostClusterNames) {
+            if (clusterName != null && !clusterName.isEmpty()) {
+              Cluster cluster = clusterMap.get(clusterName);
+
+              for (Cluster c : hostClusterMap.get(hostname)) {
+                if (c.getClusterName().equals(clusterName)) {
+                  throw new DuplicateResourceException("Attempted to create a host which already exists: clusterName=" +
+                      clusterName + ", hostName=" + hostname);
+                }
+              }
+
+              if (!isOsSupportedByClusterStack(cluster, host)) {
+                String message = "Trying to map host to cluster where stack does not"
+                    + " support host's os type"
+                    + ", clusterName=" + clusterName
+                    + ", clusterStackId=" + cluster.getDesiredStackVersion().getStackId()
+                    + ", hostname=" + hostname
+                    + ", hostOsType=" + host.getOsType();
+                LOG.warn(message);
+                throw new AmbariException(message);
+              }
+
+              mapHostClusterEntities(hostname, cluster.getClusterId());
+
+              hostClusterMap.get(hostname).add(cluster);
+              clusterHostMap.get(clusterName).add(host);
+
+              if (LOG.isDebugEnabled()) {
+                LOG.debug("Mapping a host to a cluster"
+                    + ", clusterName=" + clusterName
+                    + ", clusterId=" + cluster.getClusterId()
+                    + ", hostname=" + hostname);
+              }
+            }
+          }
+        }
+      }
+    } finally {
+      w.unlock();
+    }
+  }
+
+  @Transactional
+  private Map<String, Host> getHostsMap(Collection<String> hostSet) throws
+      HostNotFoundException {
+    loadClustersAndHosts();
+    Map<String, Host> hostMap = new HashMap<String, Host>();
+    r.lock();
+    try {
+      for (String host : hostSet) {
+        if (!hosts.containsKey(host))
+          throw new HostNotFoundException(host);
+        else
+          hostMap.put(host, hosts.get(host));
+      }
+    } finally {
+      r.unlock();
+    }
+    return hostMap;
+  }
+
+  @Transactional
+  private Map<String, Cluster> getClustersMap(Collection<String> clusterSet) throws
+      ClusterNotFoundException {
+    loadClustersAndHosts();
+    Map<String, Cluster> clusterMap = new HashMap<String, Cluster>();
+    r.lock();
+    try {
+      for (String c : clusterSet) {
+        if (c != null) {
+          if (!clusters.containsKey(c))
+            throw new ClusterNotFoundException(c);
+          else
+            clusterMap.put(c, clusters.get(c));
+        }
+      }
+    } finally {
+      r.unlock();
+    }
+    return clusterMap;
   }
 
   @Override

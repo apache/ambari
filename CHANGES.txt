@@ -320,6 +320,9 @@ Trunk (unreleased changes):
 
  AMBARI-1343. Service Check fails after secure install due to wrong kinit
  path. (Siddharth Wagle via mahadev) 
+ 
+ AMBARI-1465. Minimize Read and Write locks for createHosts. (Siddharth Wagle
+ via mahadev)
 
  BUG FIXES
 

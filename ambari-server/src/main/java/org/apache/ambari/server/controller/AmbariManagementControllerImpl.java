@@ -22,6 +22,7 @@ import java.net.InetAddress;
 import java.util.*;
 import java.util.Map.Entry;
 
+import com.google.inject.persist.Transactional;
 import org.apache.ambari.server.*;
 import org.apache.ambari.server.actionmanager.ActionManager;
 import org.apache.ambari.server.actionmanager.HostRoleCommand;
@@ -594,16 +595,19 @@ public class AmbariManagementControllerImpl implements
           "These hosts have not been registered with the server: " + names.toString());
     }
 
+    Map<String, Set<String>> hostClustersMap = new HashMap<String, Set<String>>();
+    Map<String, Map<String, String>> hostAttributes = new HashMap<String, Map<String, String>>();
     for (HostRequest request : requests) {
-      if (request.getClusterName() != null) {
-        clusters.mapHostToCluster(request.getHostname(), request.getClusterName());
-      }
-
-      if (request.getHostAttributes() != null) {
-        clusters.getHost(request.getHostname()).
-            setHostAttributes(request.getHostAttributes());
+      if (request.getHostname() != null) {
+        Set<String> clusters = new HashSet<String>();
+        clusters.add(request.getClusterName());
+        hostClustersMap.put(request.getHostname(), clusters);
+        if (request.getHostAttributes() != null) {
+          hostAttributes.put(request.getHostname(), request.getHostAttributes());
+        }
       }
     }
+    clusters.updateHostWithClusterAndAttributes(hostClustersMap, hostAttributes);
   }
 
   @Override

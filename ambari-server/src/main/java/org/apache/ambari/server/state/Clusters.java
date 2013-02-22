@@ -105,4 +105,7 @@ public interface Clusters {
 
   public void deleteCluster(String clusterName) throws AmbariException;
 
+  public void updateHostWithClusterAndAttributes(Map<String, Set<String>> hostsClusters, Map<String,
+    Map<String, String>> hostAttributes)
+    throws AmbariException;
 }
