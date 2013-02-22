@@ -60,7 +60,9 @@ define hdp::java::package(
  
   if ($security_enabled == true) {
     hdp::java::jce::package{ $name:
-      java_home_dir  => $java_home
+      java_home_dir  => $java_home,
+      jdk_location => $jdk_location,
+      jdk_bin => $jdk_bin
     }
   }
 

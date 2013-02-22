@@ -3160,17 +3160,19 @@ public class AmbariManagementControllerImpl implements
         configurations.put(entry.getValue().getType(), entry.getValue().getProperties());
       }
     }
-    
-    stage.getExecutionCommandWrapper(hostName,
-        actionRequest.getActionName()).getExecutionCommand()
-        .setConfigurations(configurations); 
-    
+
+    ExecutionCommand execCmd = stage.getExecutionCommandWrapper(hostName,
+      actionRequest.getActionName()).getExecutionCommand();
+
+    execCmd.setConfigurations(configurations);
+
+    Map<String, String> params = new TreeMap<String, String>();
+    params.put("jdk_location", this.jdkResourceUrl);
+    execCmd.setHostLevelParams(params);
+
     // Generate cluster host info
-    stage
-        .getExecutionCommandWrapper(hostName, actionRequest.getActionName())
-        .getExecutionCommand()
-        .setClusterHostInfo(
-            StageUtils.getClusterHostInfo(clusters.getCluster(clusterName), hostsMap));
+    execCmd.setClusterHostInfo(
+      StageUtils.getClusterHostInfo(clusters.getCluster(clusterName), hostsMap));
   }
 
   private void addDecommissionDatanodeAction(
@@ -3218,10 +3220,16 @@ public class AmbariManagementControllerImpl implements
         new ServiceComponentHostOpInProgressEvent(Role.DECOMMISSION_DATANODE
             .toString(), namenodeHost, System.currentTimeMillis()),
         clusterName, serviceName);
-    stage.getExecutionCommandWrapper(namenodeHost,
-        Role.DECOMMISSION_DATANODE.toString()).getExecutionCommand()
-        .setConfigurations(configurations);
-    
+
+    ExecutionCommand execCmd = stage.getExecutionCommandWrapper(namenodeHost,
+      Role.DECOMMISSION_DATANODE.toString()).getExecutionCommand();
+
+    execCmd.setConfigurations(configurations);
+
+    Map<String, String> params = new TreeMap<String, String>();
+    params.put("jdk_location", this.jdkResourceUrl);
+    execCmd.setHostLevelParams(params);
+
   }
 
   @Override

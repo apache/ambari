@@ -20,16 +20,21 @@
 #
 
 define hdp::java::jce::package(
-  $java_home_dir
+  $java_home_dir, $jdk_location, $jdk_bin
 )
 {
   include hdp::params
 
   $jce_policy_zip = $hdp::params::jce_policy_zip
   $artifact_dir = $hdp::params::artifact_dir
-  $jce_location = $hdp::params::jce_location
   $jce_curl_target = "${artifact_dir}/${jce_policy_zip}"
-  
+
+  if $jdk_location != '' and $jdk_bin != ''  {
+    $jce_location = regsubst($jdk_location, $jdk_bin, '')
+  } else {
+    $jce_location = $hdp::params::jce_location
+  }
+
   #TODO:SUHAS how to avoid redownload and install if correct version already present.
   # may be check the file sizes for local_policy and export_US policy jars? 
   # UNLESS  => "test -e ${java_exec}"
