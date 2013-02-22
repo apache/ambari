@@ -327,6 +327,9 @@ Trunk (unreleased changes):
  AMBARI-1466. Optimize ganglia rrd script to be able to respond within
  reasonable time to queries made by the UI. (mahadev)
 
+ AMBARI-1474. Upgrade stack definition for HBase for 1.2.2 since the version
+ is upgraded. (mahadev)
+
  BUG FIXES
 
  AMBARI-1455. Setting App.testMode=true, alwaysGoToInstaller=true does not
