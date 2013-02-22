@@ -103,6 +103,8 @@ Em.I18n.translations = {
   'common.error': 'Error',
   'common.loading': 'Loading',
   'common.search': 'Search',
+  'common.confirm': 'Confirm',
+  'common.upgrade': 'Upgrade',
 
   'question.sure':'Are you sure {0}?',
 
@@ -385,6 +387,13 @@ Em.I18n.translations = {
   'installer.step10.startStatus.started':'All services started',
   'installer.step10.installTime.seconds':'Install and start completed in {0} seconds',
   'installer.step10.installTime.minutes':'Install and start completed in {0} minutes and {1} seconds',
+
+  'installer.stackUpgrade.header':'Stack Upgrade Wizard',
+  'installer.stackUpgrade.step1.newVersion':'New Version',
+  'installer.stackUpgrade.step1.installedVersion':'Installed Version',
+  'installer.stackUpgrade.step1.installedStackVersion':'Installed stack version',
+  'installer.stackUpgrade.step1.upgradeStackVersion':'Upgrade stack version',
+  'installer.stackUpgrade.step1.description':'This Stack Upgrade Wizard will walk you through the steps of upgrading the cluster to the latest available stack version.',
 
   'form.create':'Create',
   'form.save':'Save',

@@ -53,7 +53,8 @@ App.db.cleanUp = function () {
     },
     'Installer' : {},
     'AddHost' : {},
-    'AddService' : {}
+    'AddService' : {},
+    'StackUpgrade' : {}
   };
   console.log("In cleanup./..");
   localStorage.setObject('ambari', App.db.data);

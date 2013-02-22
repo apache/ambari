@@ -18,7 +18,7 @@
 
 <div class="admin-cluster">
     <div class="header">
-        <strong>{{t admin.cluster.stackVersion}}: {{currentVersion}}
+        <strong>{{t admin.cluster.stackVersion}}: {{App.currentStackVersion}}
             (<a href="true" {{bindAttr class="view.isUpgradeAvailable::inactive"}}{{action "upgradeStack"}}>
             {{#if view.isUpgradeAvailable}}{{t admin.cluster.upgradeAvailable}}: {{upgradeVersion}}
             {{else}} {{t admin.cluster.upgradeUnavailable}}

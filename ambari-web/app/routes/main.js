@@ -261,13 +261,17 @@ module.exports = Em.Route.extend({
         router.get('mainAdminController').connectOutlet('mainAdminAudit');
       }
     }),
+    upgradeStack:function (router, event) {
+      if(!$(event.currentTarget).hasClass('inactive')){
+        router.transitionTo('stackUpgrade');
+      }
+    },
 
     adminNavigate:function (router, object) {
-      Em.run.next(function () {
-        router.transitionTo('admin' + object.context.capitalize());
-      });
+      router.transitionTo('admin' + object.context.capitalize());
     }
   }),
+  stackUpgrade:require('routes/stack_upgrade'),
 
   dashboard:Em.Route.extend({
     route:'/dashboard',
