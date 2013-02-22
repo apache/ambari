@@ -12,6 +12,8 @@ Trunk (unreleased changes):
 
  NEW FEATURES
 
+ AMBARI-1482. Reassign Master Wizard - Step 1. (yusaku)
+
  AMBARI-1481. Stack Upgrade Wizard - Step 2 (confirm and check all master
  components are running). (yusaku)
 

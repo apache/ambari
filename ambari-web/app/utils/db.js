@@ -54,7 +54,8 @@ App.db.cleanUp = function () {
     'Installer' : {},
     'AddHost' : {},
     'AddService' : {},
-    'StackUpgrade' : {}
+    'StackUpgrade' : {},
+    'ReassignMaster' : {}
   };
   console.log("In cleanup./..");
   localStorage.setObject('ambari', App.db.data);
@@ -220,6 +221,12 @@ App.db.setUpgradeOptions = function (upgradeOptions) {
   localStorage.setObject('ambari', App.db.data);
 };
 
+App.db.setMasterToReassign = function (masterComponent) {
+  App.db.data = localStorage.getObject('ambari');
+  App.db.data.ReassignMaster.masterComponent = masterComponent;
+  localStorage.setObject('ambari', App.db.data);
+};
+
 /**
  * Set current step value for specified Wizard Type
  * @param wizardType
@@ -362,6 +369,11 @@ App.db.getCluster = function () {
   console.log('TRACE: Entering db:getClusterStatus function');
   App.db.data = localStorage.getObject('ambari');
   return App.db.data.Installer.clusterStatus;
+};
+
+App.db.getMasterToReassign = function () {
+  App.db.data = localStorage.getObject('ambari');
+  return App.db.data.ReassignMaster.masterComponent;
 };
 
 App.db.getUpgradeOptions = function () {

@@ -355,6 +355,8 @@ module.exports = Em.Route.extend({
   }),
 
   serviceAdd:require('routes/add_service_routes'),
+  reassignMaster:require('routes/reassign_master_routes'),
+
 
   selectService:Em.Route.transitionTo('services.service'),
   selectHost:function (router, event) {

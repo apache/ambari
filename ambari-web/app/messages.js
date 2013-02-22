@@ -388,6 +388,7 @@ Em.I18n.translations = {
   'installer.step10.startStatus.started':'All services started',
   'installer.step10.installTime.seconds':'Install and start completed in {0} seconds',
   'installer.step10.installTime.minutes':'Install and start completed in {0} minutes and {1} seconds',
+  'installer.step11.header':'Prerequisites',
 
   'installer.stackUpgrade.header':'Stack Upgrade Wizard',
   'installer.stackUpgrade.step1.newVersion':'New Version',
@@ -621,6 +622,7 @@ Em.I18n.translations = {
   'services.service.config.failSaveConfig':'Failure in applying service configuration',
 
   'services.add.header':'Add Service Wizard',
+  'services.reassign.header':'Reassign Master Wizard',
   'services.service.add':'Add Service',
 
 

@@ -193,14 +193,8 @@ App.MainServiceItemController = Em.Controller.extend({
    */
   reassignMaster: function (hostComponent) {
     console.log('In Reassign Master', hostComponent);
-    App.ModalPopup.show({
-      header: 'Reassign Master Wizard',
-      body: 'Reassign Master Wizard',
-      secondary: false,
-      onPrimary: function() {
-        this.hide();
-      }
-    });
+    App.router.get('reassignMasterController').saveComponentToReassign(hostComponent);
+    App.router.transitionTo('reassignMaster');
   },
 
   /**
