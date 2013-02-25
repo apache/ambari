@@ -29,7 +29,8 @@ import os, pprint, json,stat
 class TestHostname(TestCase):
 
   def test_hostname(self):
-    self.assertEquals(hostname.hostname(), socket.gethostname(), "hostname should equal the socket-based hostname")
+    self.assertEquals(hostname.hostname(), socket.getfqdn(), 
+                      "hostname should equal the socket-based hostname")
     pass
 
   def test_hostname_override(self):
