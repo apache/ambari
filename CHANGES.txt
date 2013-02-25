@@ -369,6 +369,9 @@ Trunk (unreleased changes):
  AMBARI-1475. Update the version of ambari artifacts to 1.2.2 snapshot.
  (mahadev)
 
+ AMBARI-1489. Add hadoop-lzo to be one of the rpms to check for before
+ installation. (mahadev)
+
  BUG FIXES
 
  AMBARI-1480. Comparison predicate should account for null values. (tbeerbower)
