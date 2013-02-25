@@ -31,8 +31,12 @@ public class EqualsPredicate<T> extends ComparisonPredicate<T> {
 
   @Override
   public boolean evaluate(Resource resource) {
-    Object propertyValue = resource.getPropertyValue(getPropertyId());
-    return propertyValue != null && compareValueTo(propertyValue) == 0;
+    Object propertyValue  = resource.getPropertyValue(getPropertyId());
+    Object predicateValue = getValue();
+
+    return predicateValue == null ?
+        propertyValue == null :
+        propertyValue != null && compareValueTo(propertyValue) == 0;
   }
 
   @Override

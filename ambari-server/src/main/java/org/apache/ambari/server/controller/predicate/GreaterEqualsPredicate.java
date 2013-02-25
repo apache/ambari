@@ -25,8 +25,19 @@ import org.apache.ambari.server.controller.spi.Resource;
  */
 public class GreaterEqualsPredicate<T> extends ComparisonPredicate<T> {
 
+  /**
+   * Construct a GreaterEqualsPredicate.
+   *
+   * @param propertyId  the property id
+   * @param value       the value
+   *
+   * @throws IllegalArgumentException if the given value is null
+   */
   public GreaterEqualsPredicate(String propertyId, Comparable<T> value) {
     super(propertyId, value);
+    if (value == null) {
+      throw new IllegalArgumentException("Value can't be null.");
+    }
   }
 
   @Override

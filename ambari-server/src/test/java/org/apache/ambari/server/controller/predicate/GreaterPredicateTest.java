@@ -48,6 +48,16 @@ public class GreaterPredicateTest {
   }
 
   @Test
+  public void testNullValue() {
+    try {
+      new GreaterPredicate<Integer>("category/foo", null);
+      Assert.fail("Expected IllegalArgumentException for null value.");
+    } catch (IllegalArgumentException e) {
+      // expected
+    }
+  }
+
+  @Test
   public void testGetProperties() {
     String propertyId = PropertyHelper.getPropertyId("category1", "foo");
     GreaterPredicate predicate = new GreaterPredicate<Integer>(propertyId, 10);

@@ -25,8 +25,19 @@ import org.apache.ambari.server.controller.spi.Resource;
  */
 public class LessEqualsPredicate<T> extends ComparisonPredicate<T> {
 
+  /**
+   * Construct a LessEqualsPredicate.
+   *
+   * @param propertyId  the property id
+   * @param value       the value
+   *
+   * @throws IllegalArgumentException if the given value is null
+   */
   public LessEqualsPredicate(String propertyId, Comparable<T> value) {
     super(propertyId, value);
+    if (value == null) {
+      throw new IllegalArgumentException("Value can't be null.");
+    }
   }
 
   @Override

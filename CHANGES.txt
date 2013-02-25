@@ -366,6 +366,8 @@ Trunk (unreleased changes):
 
  BUG FIXES
 
+ AMBARI-1480. Comparison predicate should account for null values. (tbeerbower)
+
  AMBARI-1467. UI should block on cluster metric api call before making
  subsequent one. (yusaku)
 

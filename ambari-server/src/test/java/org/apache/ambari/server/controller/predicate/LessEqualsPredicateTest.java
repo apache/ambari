@@ -48,6 +48,16 @@ public class LessEqualsPredicateTest {
   }
 
   @Test
+  public void testNullValue() {
+    try {
+      new LessEqualsPredicate<Integer>("category/foo", null);
+      Assert.fail("Expected IllegalArgumentException for null value.");
+    } catch (IllegalArgumentException e) {
+      // expected
+    }
+  }
+
+  @Test
   public void testGetProperties() {
     String propertyId = PropertyHelper.getPropertyId("category1", "foo");
     LessEqualsPredicate predicate = new LessEqualsPredicate<Integer>(propertyId, 10);

@@ -27,7 +27,7 @@ import org.junit.Test;
 import java.util.Set;
 
 /**
- *
+ * Equals predicate tests.
  */
 public class EqualsPredicateTest {
 
@@ -48,6 +48,19 @@ public class EqualsPredicateTest {
     predicate = new EqualsPredicate<String>(propertyId, "bar");
 
     Assert.assertFalse(predicate.evaluate(resource));
+  }
+
+  @Test
+  public void testApplyNullValue() {
+    Resource resource = new ResourceImpl(Resource.Type.HostComponent);
+    String propertyId = PropertyHelper.getPropertyId("category1", "foo");
+    Predicate predicate = new EqualsPredicate<String>(propertyId, null);
+
+    resource.setProperty(propertyId, "monkey");
+    Assert.assertFalse(predicate.evaluate(resource));
+
+    resource.setProperty(propertyId, null);
+    Assert.assertTrue(predicate.evaluate(resource));
   }
 
   @Test
