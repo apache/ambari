@@ -203,7 +203,7 @@ public class WorkflowJsonService {
   @GET
   @Produces(MediaType.APPLICATION_JSON)
   @Path("/task")
-  public TaskData getTaskSummary(@QueryParam("jobId") String jobId, @QueryParam("width") int steps,
+  public TaskData getTaskSummary(@QueryParam("jobId") String jobId, @QueryParam("width") int steps, @QueryParam("workflowId") String workflowId,
       @DefaultValue("-1") @QueryParam("startTime") long minFinishTime, @DefaultValue("-1") @QueryParam("endTime") long maxStartTime) {
     TaskData points = new TaskData();
     PostgresConnector conn = null;
@@ -222,7 +222,10 @@ public class WorkflowJsonService {
       } else {
         startTime = minFinishTime;
         endTime = maxStartTime;
-        taskAttempts = conn.fetchTaskAttempts(minFinishTime, maxStartTime);
+        if (workflowId != null)
+          taskAttempts = conn.fetchWorkflowTaskAttempts(workflowId);
+        else
+          taskAttempts = conn.fetchTaskAttempts(minFinishTime, maxStartTime);
       }
       if (startTime > 0 && endTime > 0 && endTime >= startTime) {
         double submitTimeSecs = startTime / 1000.0;

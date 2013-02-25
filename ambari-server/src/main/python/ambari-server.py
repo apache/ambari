@@ -74,8 +74,9 @@ if ambari_provider_module is not None:
                                   ambari_provider_module + " "
 
 SERVER_START_CMD="{0}" + os.sep + "bin" + os.sep +\
-                 "java -server -XX:NewRatio=2 "\
+                 "java -server -XX:NewRatio=3 "\
                  "-XX:+UseConcMarkSweepGC " +\
+                 "-XX:-UseGCOverheadLimit -XX:CMSInitiatingOccupancyFraction=60" +\
                  ambari_provider_module_option +\
                  os.getenv('AMBARI_JVM_ARGS','-Xms512m -Xmx2048m') +\
                  " -cp {1}"+ os.pathsep + "{2}" +\
@@ -1097,7 +1098,7 @@ def main():
     parser.error("No action entered")
 	
   action = args[0]
-  
+
   if action == UPGRADE_STACK_ACTION:
     args_number_required = 2
   else:
