@@ -186,6 +186,7 @@ App.ClusterController = Em.Controller.extend({
    * property, which will trigger the alerts property.
    */
   loadAlerts:function () {
+    var self=this;
     if(App.router.get('updateController.isUpdated')){
       return;
     }
@@ -200,8 +201,8 @@ App.ClusterController = Em.Controller.extend({
         dataType:"json",
         context:this,
         complete:function (jqXHR, textStatus) {
-          this.updateLoadStatus('alerts');
-          this.updateAlerts();
+          self.updateLoadStatus('alerts');
+          self.updateAlerts();
         },
         error: function(jqXHR, testStatus, error) {
           // this.showMessage(Em.I18n.t('nagios.alerts.unavailable'));

@@ -52,5 +52,19 @@ App.MainController = Em.Controller.extend({
     App.router.get('updateController').set('isWorking', false);
     App.router.get('backgroundOperationsController').set('isWorking', false);
     App.router.get('clusterController').set('isWorking', false);
-  }
+  },
+
+  reloadTimeOut: null,
+
+  pageReload: function () {
+
+    clearTimeout(this.get("reloadTimeOut"));
+
+    this.set('reloadTimeOut',
+        setTimeout(function () {
+          location.reload()
+        }, App.pageReloadTime)
+    );
+  }.observes("App.router.location.lastSetURL")
+
 })

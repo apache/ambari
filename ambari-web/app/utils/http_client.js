@@ -38,6 +38,9 @@ App.HttpClient = Em.Object.create({
     }
   },
 
+  emptyFunc: function () {
+  },
+
   /**
    * @param {string} url
    * @param {Object} ajaxOptions
@@ -51,22 +54,41 @@ App.HttpClient = Em.Object.create({
       errorHandler = this.defaultErrorHandler;
     }
 
-    var options = {dataType: 'json'}; // default ajax options;
+    var xhr = new XMLHttpRequest();
+    var curTime = new Date().getTime();
 
-    $.extend(options, {
-      url: url,
-      success: function (data) {
-        try {
-          App.store.commit();
-        } catch (err) {}
-        mapper.map(data);
-      },
-      error: errorHandler
-    });
+    xhr.open('GET', url + "?_=" + curTime, true);
+    xhr.send(null);
 
-    $.extend(options, ajaxOptions);
+    this.onReady(xhr, "", ajaxOptions, mapper, errorHandler);
+  },
 
-    $.ajax(options);
+  /*
+   This function checks if we get response from server
+   Not using onreadystatechange cuz of possible closure
+   */
+  onReady: function (xhr, tm, tmp_val, mapper, errorHandler) {
+    var self = this;
+    clearTimeout(tm);
+    var timeout = setTimeout(function () {
+      if (xhr.readyState == 4) {
+        if (xhr.status == 200) {
+          mapper.map($.parseJSON(xhr.responseText));
+          tmp_val.complete.call(self);
+          xhr.abort();
+        } else {
+          errorHandler(xhr , "error", xhr.statusText);
+        }
+
+        tmp_val = null;
+        xhr = self.emptyFunc();
+        clearTimeout(timeout);
+        timeout = null;
+
+      } else {
+        self.onReady(xhr, timeout, tmp_val, mapper, errorHandler);
+      }
+    }, 10);
   },
 
   /**
@@ -78,9 +100,16 @@ App.HttpClient = Em.Object.create({
    */
   get: function (url, mapper, data, errorHandler, interval) {
     var eHandler = data.complete
+    if (!errorHandler && data.error) {
+      errorHandler = data.error;
+    }
     var client = this;
     var request = function () {
       client.request(url, data, mapper, errorHandler);
+      url=null;
+      data=null;
+      mapper=null;
+      errorHandler=null;
     }
 
     interval = "" + interval;
@@ -113,7 +142,7 @@ App.HttpClient = Em.Object.create({
 });
 
 /*App.HttpClient.get(
-  'http://nagiosserver/hdp/nagios/nagios_alerts.php?q1=alerts&alert_type=all',
-  App.alertsMapper,
-  { dataType: 'jsonp', jsonp: 'jsonp' }
-);*/
+ 'http://nagiosserver/hdp/nagios/nagios_alerts.php?q1=alerts&alert_type=all',
+ App.alertsMapper,
+ { dataType: 'jsonp', jsonp: 'jsonp' }
+ );*/

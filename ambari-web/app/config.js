@@ -35,6 +35,7 @@ App.bgOperationsUpdateInterval = 6000;
 App.componentsUpdateInterval = 6000;
 App.contentUpdateInterval = 15000;
 App.maxRunsForAppBrowser = 500;
+App.pageReloadTime=3600000;
 
 // this is to make sure that IE does not cache data when making AJAX calls to the server
 $.ajaxSetup({
