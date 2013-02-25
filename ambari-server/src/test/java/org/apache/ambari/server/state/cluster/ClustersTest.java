@@ -27,15 +27,16 @@ import com.google.inject.persist.PersistService;
 import junit.framework.Assert;
 
 import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.ClusterNotFoundException;
 import org.apache.ambari.server.DuplicateResourceException;
 import org.apache.ambari.server.HostNotFoundException;
-import org.apache.ambari.server.api.services.AmbariMetaInfo;
-import org.apache.ambari.server.orm.GuiceJpaInitializer;
-import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
+import org.apache.ambari.server.orm.entities.ClusterStateEntity;
 import org.apache.ambari.server.orm.dao.*;
 import org.apache.ambari.server.orm.entities.HostComponentDesiredStateEntityPK;
 import org.apache.ambari.server.orm.entities.HostComponentStateEntityPK;
+import org.apache.ambari.server.orm.GuiceJpaInitializer;
+import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
 import org.apache.ambari.server.state.*;
 import org.junit.After;
 import org.junit.Before;
@@ -312,7 +313,7 @@ public class ClustersTest {
     Service hdfs = cluster.addService("HDFS");
     hdfs.persist();
 
-    assertNotNull(injector.getInstance(ClusterServiceDAO.class).findByClusterAndServiceNames(c1, "HDFS"));
+    Assert.assertNotNull(injector.getInstance(ClusterServiceDAO.class).findByClusterAndServiceNames(c1, "HDFS"));
 
     ServiceComponent nameNode = hdfs.addServiceComponent("NAMENODE");
     nameNode.persist();
@@ -338,17 +339,64 @@ public class ClustersTest {
     hkdspk.setServiceName(nameNodeHost.getServiceName());
     hkdspk.setComponentName(nameNodeHost.getServiceComponentName());
 
-    assertNotNull(injector.getInstance(HostComponentStateDAO.class).findByPK(hkspk));
-    assertNotNull(injector.getInstance(HostComponentDesiredStateDAO.class).findByPK(hkdspk));
-    assertEquals(1, injector.getProvider(EntityManager.class).get().createQuery("SELECT config FROM ClusterConfigEntity config").getResultList().size());
+    Assert.assertNotNull(injector.getInstance(HostComponentStateDAO.class).findByPK(hkspk));
+    Assert.assertNotNull(injector.getInstance(HostComponentDesiredStateDAO.class).findByPK(hkdspk));
+    Assert.assertEquals(1, injector.getProvider(EntityManager.class).get().createQuery("SELECT config FROM ClusterConfigEntity config").getResultList().size());
 
     clusters.deleteCluster(c1);
 
-    assertEquals(2, injector.getInstance(HostDAO.class).findAll().size());
-    assertNull(injector.getInstance(HostComponentStateDAO.class).findByPK(hkspk));
-    assertNull(injector.getInstance(HostComponentDesiredStateDAO.class).findByPK(hkdspk));
+    Assert.assertEquals(2, injector.getInstance(HostDAO.class).findAll().size());
+    Assert.assertNull(injector.getInstance(HostComponentStateDAO.class).findByPK(hkspk));
+    Assert.assertNull(injector.getInstance(HostComponentDesiredStateDAO.class).findByPK(hkdspk));
     //configs are removed implicitly by cascade operation
-    assertEquals(0, injector.getProvider(EntityManager.class).get().createQuery("SELECT config FROM ClusterConfigEntity config").getResultList().size());
+    Assert.assertEquals(0, injector.getProvider(EntityManager.class).get().createQuery("SELECT config FROM ClusterConfigEntity config").getResultList().size());
 
+  }
+  @Test
+  public void testSetCurrentStackVersion() throws AmbariException {
+
+    String c1 = "foo3";
+
+    try
+    {
+      clusters.setCurrentStackVersion("", null);
+      fail("Exception should be thrown on invalid set");
+    }
+      catch (AmbariException e) {
+      // Expected
+    }
+
+    try
+    {
+      clusters.setCurrentStackVersion(c1, null);
+      fail("Exception should be thrown on invalid set");
+    }
+    catch (AmbariException e) {
+      // Expected
+    }
+
+    StackId stackId = new StackId("HDP-0.1");
+
+    try
+    {
+      clusters.setCurrentStackVersion(c1, stackId);
+      fail("Exception should be thrown on invalid set");
+    }
+    catch (AmbariException e) {
+      // Expected
+      Assert.assertTrue(e.getMessage().contains("Cluster not found"));
+    }
+
+    clusters.addCluster(c1);
+    clusters.setCurrentStackVersion(c1, stackId);
+
+    Assert.assertNotNull(clusters.getCluster(c1));
+    ClusterStateEntity entity = injector.getInstance(ClusterStateDAO.class).findByPK(clusters.getCluster(c1).getClusterId());
+    Assert.assertNotNull(entity);
+    Assert.assertTrue(entity.getCurrentStackVersion().contains(stackId.getStackName()) &&
+        entity.getCurrentStackVersion().contains(stackId.getStackVersion()));
+    Assert.assertTrue(clusters.getCluster(c1).getCurrentStackVersion().getStackName().equals(stackId.getStackName()));
+    Assert.assertTrue(
+        clusters.getCluster(c1).getCurrentStackVersion().getStackVersion().equals(stackId.getStackVersion()));
   }
 }

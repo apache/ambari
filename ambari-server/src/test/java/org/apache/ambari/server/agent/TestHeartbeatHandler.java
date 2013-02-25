@@ -28,8 +28,10 @@ import static org.apache.ambari.server.agent.DummyHeartbeatConstants.DummyStackI
 import static org.apache.ambari.server.agent.DummyHeartbeatConstants.HBASE;
 import static org.apache.ambari.server.agent.DummyHeartbeatConstants.HBASE_MASTER;
 import static org.apache.ambari.server.agent.DummyHeartbeatConstants.HDFS;
+import static org.apache.ambari.server.agent.DummyHeartbeatConstants.HDFS_CLIENT;
 import static org.apache.ambari.server.agent.DummyHeartbeatConstants.NAMENODE;
 import static org.apache.ambari.server.agent.DummyHeartbeatConstants.SECONDARY_NAMENODE;
+
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
@@ -175,13 +177,7 @@ public class TestHeartbeatHandler {
     ActionManager am = new ActionManager(0, 0, null, null,
             new ActionDBInMemoryImpl(), new HostsMap((String) null));
 
-    clusters.addHost(DummyHostname1);
-    clusters.getHost(DummyHostname1).setOsType(DummyOsType);
-    clusters.getHost(DummyHostname1).persist();
-    clusters.addCluster(DummyCluster);
-
-    Cluster cluster = clusters.getCluster(DummyCluster);
-    cluster.setDesiredStackVersion(new StackId(DummyStackId));
+    Cluster cluster = getDummyCluster();
 
     @SuppressWarnings("serial")
     Set<String> hostNames = new HashSet<String>(){{
@@ -198,17 +194,7 @@ public class TestHeartbeatHandler {
     hdfs.getServiceComponent(SECONDARY_NAMENODE).addServiceComponentHost(DummyHostname1).persist();
 
     ActionQueue aq = new ActionQueue();
-    HeartBeatHandler handler = new HeartBeatHandler(clusters, aq, am, injector);
-
-    Register reg = new Register();
-    HostInfo hi = new HostInfo();
-    hi.setHostName(DummyHostname1);
-    hi.setOS(DummyOs);
-    hi.setOSRelease(DummyOSRelease);
-    reg.setHostname(DummyHostname1);
-    reg.setResponseId(0);
-    reg.setHardwareProfile(hi);
-    handler.handleRegistration(reg);
+    HeartBeatHandler handler = getHeartBeatHandler(am, aq);
 
     ServiceComponentHost serviceComponentHost1 = clusters.getCluster(DummyCluster).getService(HDFS).
             getServiceComponent(DATANODE).getServiceComponentHost(DummyHostname1);
@@ -245,13 +231,7 @@ public class TestHeartbeatHandler {
   public void testLiveStatusUpdateAfterStopFailed() throws Exception {
     ActionManager am = new ActionManager(0, 0, null, null,
             new ActionDBInMemoryImpl(), new HostsMap((String) null));
-    clusters.addHost(DummyHostname1);
-    clusters.getHost(DummyHostname1).setOsType(DummyOsType);
-    clusters.getHost(DummyHostname1).persist();
-    clusters.addCluster(DummyCluster);
-
-    Cluster cluster = clusters.getCluster(DummyCluster);
-    cluster.setDesiredStackVersion(new StackId(DummyStackId));
+    Cluster cluster = getDummyCluster();
 
     @SuppressWarnings("serial")
     Set<String> hostNames = new HashSet<String>(){{
@@ -268,17 +248,7 @@ public class TestHeartbeatHandler {
             addServiceComponentHost(DummyHostname1).persist();
 
     ActionQueue aq = new ActionQueue();
-    HeartBeatHandler handler = new HeartBeatHandler(clusters, aq, am, injector);
-
-    Register reg = new Register();
-    HostInfo hi = new HostInfo();
-    hi.setHostName(DummyHostname1);
-    hi.setOS(DummyOs);
-    hi.setOSRelease(DummyOSRelease);
-    reg.setHostname(DummyHostname1);
-    reg.setResponseId(0);
-    reg.setHardwareProfile(hi);
-    handler.handleRegistration(reg);
+    HeartBeatHandler handler = getHeartBeatHandler(am, aq);
 
     ServiceComponentHost serviceComponentHost1 = clusters.
             getCluster(DummyCluster).getService(HDFS).
@@ -580,13 +550,7 @@ public class TestHeartbeatHandler {
   public void testTaskInProgressHandling() throws AmbariException, InvalidStateTransitionException {
     ActionManager am = new ActionManager(0, 0, null, null,
             new ActionDBInMemoryImpl(), new HostsMap((String) null));
-    clusters.addHost(DummyHostname1);
-    clusters.getHost(DummyHostname1).setOsType(DummyOsType);
-    clusters.getHost(DummyHostname1).persist();
-    clusters.addCluster(DummyCluster);
-
-    Cluster cluster = clusters.getCluster(DummyCluster);
-    cluster.setDesiredStackVersion(new StackId(DummyStackId));
+    Cluster cluster = getDummyCluster();
 
     @SuppressWarnings("serial")
     Set<String> hostNames = new HashSet<String>(){{
@@ -603,17 +567,7 @@ public class TestHeartbeatHandler {
     hdfs.getServiceComponent(SECONDARY_NAMENODE).addServiceComponentHost(DummyHostname1).persist();
 
     ActionQueue aq = new ActionQueue();
-    HeartBeatHandler handler = new HeartBeatHandler(clusters, aq, am, injector);
-
-    Register reg = new Register();
-    HostInfo hi = new HostInfo();
-    hi.setHostName(DummyHostname1);
-    hi.setOS(DummyOs);
-    hi.setOSRelease(DummyOSRelease);
-    reg.setHostname(DummyHostname1);
-    reg.setResponseId(0);
-    reg.setHardwareProfile(hi);
-    handler.handleRegistration(reg);
+    HeartBeatHandler handler = getHeartBeatHandler(am, aq);
 
     ServiceComponentHost serviceComponentHost1 = clusters.getCluster(DummyCluster).getService(HDFS).
             getServiceComponent(DATANODE).getServiceComponentHost(DummyHostname1);
@@ -644,5 +598,114 @@ public class TestHeartbeatHandler {
     handler.handleHeartBeat(hb);
     State componentState1 = serviceComponentHost1.getState();
     assertEquals("Host state should still be installing", State.INSTALLING, componentState1);
+  }
+
+  @Test
+  public void testStatusHeartbeatWithVersion() throws Exception {
+    ActionManager am = new ActionManager(0, 0, null, null,
+        new ActionDBInMemoryImpl(), new HostsMap((String) null));
+    Cluster cluster = getDummyCluster();
+
+    @SuppressWarnings("serial")
+    Set<String> hostNames = new HashSet<String>(){{
+      add(DummyHostname1);
+    }};
+
+    clusters.mapHostsToCluster(hostNames, DummyCluster);
+
+    Service hdfs = cluster.addService(HDFS);
+    hdfs.persist();
+    hdfs.addServiceComponent(DATANODE).persist();
+    hdfs.getServiceComponent(DATANODE).addServiceComponentHost(DummyHostname1).persist();
+    hdfs.addServiceComponent(NAMENODE).persist();
+    hdfs.getServiceComponent(NAMENODE).addServiceComponentHost(DummyHostname1).persist();
+    hdfs.addServiceComponent(HDFS_CLIENT).persist();
+    hdfs.getServiceComponent(HDFS_CLIENT).addServiceComponentHost(DummyHostname1).persist();
+
+    ServiceComponentHost serviceComponentHost1 = clusters.getCluster(DummyCluster).getService(HDFS).
+        getServiceComponent(DATANODE).getServiceComponentHost(DummyHostname1);
+    ServiceComponentHost serviceComponentHost2 = clusters.getCluster(DummyCluster).getService(HDFS).
+        getServiceComponent(NAMENODE).getServiceComponentHost(DummyHostname1);
+    ServiceComponentHost serviceComponentHost3 = clusters.getCluster(DummyCluster).getService(HDFS).
+        getServiceComponent(HDFS_CLIENT).getServiceComponentHost(DummyHostname1);
+
+    StackId stack130 = new StackId("HDP-1.3.0");
+    StackId stack122 = new StackId("HDP-1.2.2");
+
+    serviceComponentHost1.setState(State.INSTALLED);
+    serviceComponentHost2.setState(State.STARTED);
+    serviceComponentHost3.setState(State.STARTED);
+    serviceComponentHost1.setStackVersion(stack130);
+    serviceComponentHost2.setStackVersion(stack122);
+    serviceComponentHost3.setStackVersion(stack122);
+
+    HeartBeat hb = new HeartBeat();
+    hb.setTimestamp(System.currentTimeMillis());
+    hb.setResponseId(0);
+    hb.setHostname(DummyHostname1);
+    hb.setNodeStatus(new HostStatus(Status.HEALTHY, DummyHostStatus));
+    hb.setReports(new ArrayList<CommandReport>());
+
+    ArrayList<ComponentStatus> componentStatuses = new ArrayList<ComponentStatus>();
+    ComponentStatus componentStatus1 =
+        createComponentStatus(DummyCluster, HDFS, DummyHostStatus, State.STARTED, DATANODE, "HDP-1.3.0");
+    ComponentStatus componentStatus2 =
+        createComponentStatus(DummyCluster, HDFS, DummyHostStatus, State.STARTED, NAMENODE, "");
+    ComponentStatus componentStatus3 =
+        createComponentStatus(DummyCluster, HDFS, DummyHostStatus, State.INSTALLED, HDFS_CLIENT, "HDP-1.3.0");
+
+    componentStatuses.add(componentStatus1);
+    componentStatuses.add(componentStatus2);
+    componentStatuses.add(componentStatus3);
+    hb.setComponentStatus(componentStatuses);
+
+    ActionQueue aq = new ActionQueue();
+    HeartBeatHandler handler = getHeartBeatHandler(am, aq);
+    handler.handleHeartBeat(hb);
+    assertEquals("Matching value " + serviceComponentHost1.getStackVersion(),
+        stack130, serviceComponentHost1.getStackVersion());
+    assertEquals("Matching value " + serviceComponentHost2.getStackVersion(),
+        stack122, serviceComponentHost2.getStackVersion());
+    assertEquals("Matching value " + serviceComponentHost3.getStackVersion(),
+        stack130, serviceComponentHost3.getStackVersion());
+  }
+
+  private ComponentStatus createComponentStatus(String clusterName, String serviceName, String message,
+                                                State state, String componentName, String stackVersion) {
+    ComponentStatus componentStatus1 = new ComponentStatus();
+    componentStatus1.setClusterName(clusterName);
+    componentStatus1.setServiceName(serviceName);
+    componentStatus1.setMessage(message);
+    componentStatus1.setStatus(state.name());
+    componentStatus1.setComponentName(componentName);
+    componentStatus1.setStackVersion(stackVersion);
+    return componentStatus1;
+  }
+
+  private HeartBeatHandler getHeartBeatHandler(ActionManager am, ActionQueue aq)
+      throws InvalidStateTransitionException, AmbariException {
+    HeartBeatHandler handler = new HeartBeatHandler(clusters, aq, am, injector);
+    Register reg = new Register();
+    HostInfo hi = new HostInfo();
+    hi.setHostName(DummyHostname1);
+    hi.setOS(DummyOs);
+    hi.setOSRelease(DummyOSRelease);
+    reg.setHostname(DummyHostname1);
+    reg.setResponseId(0);
+    reg.setHardwareProfile(hi);
+    handler.handleRegistration(reg);
+    return handler;
+  }
+
+  private Cluster getDummyCluster()
+      throws AmbariException {
+    clusters.addHost(DummyHostname1);
+    clusters.getHost(DummyHostname1).setOsType(DummyOsType);
+    clusters.getHost(DummyHostname1).persist();
+    clusters.addCluster(DummyCluster);
+
+    Cluster cluster = clusters.getCluster(DummyCluster);
+    cluster.setDesiredStackVersion(new StackId(DummyStackId));
+    return cluster;
   }
 }

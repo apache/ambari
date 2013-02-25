@@ -27,6 +27,9 @@ import javax.persistence.OneToOne;
 @Entity
 public class ClusterStateEntity {
   private Long clusterId;
+  private String currentClusterState = "";
+  private String currentStackVersion = "";
+  private ClusterEntity clusterEntity;
 
   @javax.persistence.Column(name = "cluster_id", nullable = false, insertable = false, updatable = false, length = 10)
   @Id
@@ -38,8 +41,6 @@ public class ClusterStateEntity {
     this.clusterId = clusterId;
   }
 
-  private String currentClusterState = "";
-
   @javax.persistence.Column(name = "current_cluster_state", nullable = false, insertable = true, updatable = true)
   @Basic
   public String getCurrentClusterState() {
@@ -50,7 +51,17 @@ public class ClusterStateEntity {
     this.currentClusterState = currentClusterState;
   }
 
-  @Override
+  @javax.persistence.Column(name = "current_stack_version", nullable = false, insertable = true, updatable = true)
+  @Basic
+  public String getCurrentStackVersion() {
+    return currentStackVersion;
+  }
+
+  public void setCurrentStackVersion(String currentStackVersion) {
+    this.currentStackVersion = currentStackVersion;
+  }
+
+    @Override
   public boolean equals(Object o) {
     if (this == o) return true;
     if (o == null || getClass() != o.getClass()) return false;
@@ -58,8 +69,10 @@ public class ClusterStateEntity {
     ClusterStateEntity that = (ClusterStateEntity) o;
 
     if (clusterId != null ? !clusterId.equals(that.clusterId) : that.clusterId != null) return false;
-    if (currentClusterState != null ? !currentClusterState.equals(that.currentClusterState) : that.currentClusterState != null)
-      return false;
+    if (currentClusterState != null
+        ? !currentClusterState.equals(that.currentClusterState) : that.currentClusterState != null) return false;
+    if (currentStackVersion != null
+        ? !currentStackVersion.equals(that.currentStackVersion) : that.currentStackVersion != null) return false;
 
     return true;
   }
@@ -70,8 +83,6 @@ public class ClusterStateEntity {
     result = 31 * result + (currentClusterState != null ? currentClusterState.hashCode() : 0);
     return result;
   }
-
-  private ClusterEntity clusterEntity;
 
   @OneToOne
   @javax.persistence.JoinColumn(name = "cluster_id", referencedColumnName = "cluster_id", nullable = false)

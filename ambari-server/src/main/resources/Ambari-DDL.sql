@@ -173,6 +173,7 @@ CREATE TABLE ClusterState
 (
 cluster_id BIGINT NOT NULL references Clusters(cluster_id),
 current_cluster_state VARCHAR DEFAULT '' NOT NULL,
+current_stack_version VARCHAR DEFAULT '' NOT NULL,
 PRIMARY KEY (cluster_id)
 );
 

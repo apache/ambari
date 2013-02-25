@@ -38,5 +38,6 @@ public interface DummyHeartbeatConstants {
   String NAMENODE = Role.NAMENODE.name();
   String SECONDARY_NAMENODE = Role.SECONDARY_NAMENODE.name();
   String HBASE_MASTER = Role.HBASE_MASTER.name();
+  String HDFS_CLIENT  = Role.HDFS_CLIENT.name();
 
 }

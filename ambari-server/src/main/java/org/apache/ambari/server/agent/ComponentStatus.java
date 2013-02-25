@@ -25,6 +25,7 @@ public class ComponentStatus {
   String status;
   String serviceName;
   String clusterName;
+  String stackVersion;
 
   public String getComponentName() {
     return this.componentName;
@@ -48,6 +49,14 @@ public class ComponentStatus {
 
   public void setStatus(String status) {
     this.status = status;
+  }
+
+  public String getStackVersion() {
+    return this.stackVersion;
+  }
+
+  public void setStackVersion(String stackVersion) {
+    this.stackVersion = stackVersion;
   }
 
   public String getMsg() {
@@ -82,6 +91,7 @@ public class ComponentStatus {
             ", status='" + status + '\'' +
             ", serviceName='" + serviceName + '\'' +
             ", clusterName='" + clusterName + '\'' +
+            ", stackVersion='" + stackVersion + '\'' +
             '}';
   }
 }

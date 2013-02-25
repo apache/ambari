@@ -195,8 +195,9 @@ public class AmbariManagementControllerImpl implements
     clusters.addCluster(request.getClusterName());
     Cluster c = clusters.getCluster(request.getClusterName());
     if (request.getStackVersion() != null) {
-      c.setDesiredStackVersion(
-          new StackId(request.getStackVersion()));
+      StackId newStackId = new StackId(request.getStackVersion());
+      c.setDesiredStackVersion(newStackId);
+      clusters.setCurrentStackVersion(request.getClusterName(), newStackId);
     }
 
     if (request.getHostNames() != null) {

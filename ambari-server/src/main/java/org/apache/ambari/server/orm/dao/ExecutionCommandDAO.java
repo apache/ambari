@@ -51,7 +51,7 @@ public class ExecutionCommandDAO {
   }
 
   @Transactional
-  public void removeByPK(int taskId) {
+  public void removeByPK(long taskId) {
     remove(findByPK(taskId));
   }
 }

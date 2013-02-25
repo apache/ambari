@@ -189,6 +189,29 @@ public class ClustersImpl implements Clusters {
   }
 
   @Override
+  public void setCurrentStackVersion(String clusterName, StackId stackId)
+      throws AmbariException{
+    if(stackId == null || clusterName == null || clusterName.isEmpty()){
+      LOG.warn("Unable to set version for cluster " + clusterName);
+      throw new AmbariException("Unable to set"
+          + " version=" + stackId
+          + " for cluster " + clusterName);
+    }
+
+    loadClustersAndHosts();
+    r.lock();
+    try {
+      if (!clusters.containsKey(clusterName)) {
+        throw new ClusterNotFoundException(clusterName);
+      }
+      Cluster cluster = clusters.get(clusterName);
+      cluster.setCurrentStackVersion(stackId);
+    } finally {
+      r.unlock();
+    }
+  }
+
+  @Override
   @Transactional
   public List<Host> getHosts() {
     loadClustersAndHosts();
@@ -521,7 +544,7 @@ public class ClustersImpl implements Clusters {
   }
 
   @Override
-  public synchronized void deleteCluster(String clusterName)
+  public void deleteCluster(String clusterName)
       throws AmbariException {
     loadClustersAndHosts();
     w.lock();

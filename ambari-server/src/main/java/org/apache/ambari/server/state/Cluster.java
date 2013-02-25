@@ -69,38 +69,104 @@ public interface Cluster {
   public List<ServiceComponentHost> getServiceComponentHosts(String hostname);
 
   /**
-   * Get Stack Version
+   * Get desired stack version
    * @return
    */
   public StackId getDesiredStackVersion();
 
   /**
-   * Set stack version
+   * Set desired stack version
    * @param stackVersion
    */
   public void setDesiredStackVersion(StackId stackVersion);
 
+  /**
+   * Get current stack version
+   * @return
+   */
+  public StackId getCurrentStackVersion();
+
+  /**
+   * Set current stack version
+   * @param stackVersion
+   */
+  public void setCurrentStackVersion(StackId stackVersion) throws AmbariException;
+
+  /**
+   * Get desired config based on the given config type name
+   * @param configType
+   * @return
+   */
   public Map<String, Config> getDesiredConfigsByType(String configType);
 
+  /**
+   * Get the desired config of given type and version
+   * @param configType
+   * @param versionTag
+   * @return
+   */
   public Config getDesiredConfig(String configType, String versionTag);
 
+  /**
+   * Add the desired config for the cluster
+   * @param config
+   */
   public void addDesiredConfig(Config config);
 
+  /**
+   * Get all configs associated with the cluster
+   * @return
+   */
   public Collection<Config> getAllConfigs();
 
+  /**
+   * Creates a cluster response based on the current cluster definition
+   * @return
+   * @throws AmbariException
+   */
   public ClusterResponse convertToResponse() throws AmbariException;
 
+  /**
+   * Refreshes the cluster details
+   */
   public void refresh();
 
+  /**
+   * Creates a debug dump based on the current cluster state
+   * @param sb
+   */
   public void debugDump(StringBuilder sb);
 
-  Service addService(String serviceName) throws AmbariException;
-
+  /**
+   * Delete all the services associated with this cluster
+   * @throws AmbariException
+   */
   public void deleteAllServices() throws AmbariException;
 
+  /**
+   * Delete the named service associated with this cluster
+   * @param serviceName
+   * @throws AmbariException
+   */
   public void deleteService(String serviceName) throws AmbariException;
 
+  /**
+   * Gets if the cluster can be deleted
+   * @return
+   */
   public boolean canBeRemoved();
 
+  /**
+   * Delete the cluster
+   * @throws AmbariException
+   */
   public void delete() throws AmbariException;
+
+  /**
+   * Add service to the cluster
+   * @param serviceName
+   * @return
+   * @throws AmbariException
+   */
+  Service addService(String serviceName) throws AmbariException;
 }

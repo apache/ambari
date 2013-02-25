@@ -30,8 +30,8 @@ public class ClusterStateDAO {
   Provider<EntityManager> entityManagerProvider;
 
   @Transactional
-  public ClusterStateEntity findByPK(String clusterName) {
-    return entityManagerProvider.get().find(ClusterStateEntity.class, clusterName);
+  public ClusterStateEntity findByPK(long clusterId) {
+    return entityManagerProvider.get().find(ClusterStateEntity.class, clusterId);
   }
 
   @Transactional
@@ -55,8 +55,8 @@ public class ClusterStateDAO {
   }
 
   @Transactional
-  public void removeByPK(String clusterName) {
-    remove(findByPK(clusterName));
+  public void removeByPK(long clusterId) {
+    remove(findByPK(clusterId));
   }
 
 }

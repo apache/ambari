@@ -36,7 +36,7 @@ CREATE TABLE ambari.clusterservices (service_name VARCHAR(255) NOT NULL, cluster
 
 GRANT ALL PRIVILEGES ON TABLE ambari.clusterservices TO :username;
 
-CREATE TABLE ambari.clusterstate (cluster_id BIGINT NOT NULL, current_cluster_state VARCHAR(255) NOT NULL, PRIMARY KEY (cluster_id));
+CREATE TABLE ambari.clusterstate (cluster_id BIGINT NOT NULL, current_cluster_state VARCHAR(255) NOT NULL, current_stack_version VARCHAR(255) NOT NULL, PRIMARY KEY (cluster_id));
 
 GRANT ALL PRIVILEGES ON TABLE ambari.clusterstate TO :username;
 

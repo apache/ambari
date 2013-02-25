@@ -3774,8 +3774,5 @@ public class AmbariManagementControllerTest {
     Assert.assertEquals(1, taskStatuses.size());
     Assert.assertEquals(Role.PIG_SERVICE_CHECK.toString(),
         taskStatuses.get(0).getRole());
-
-
   }
-
 }

@@ -37,9 +37,11 @@ import org.apache.ambari.server.ServiceComponentHostNotFoundException;
 import org.apache.ambari.server.ServiceNotFoundException;
 import org.apache.ambari.server.controller.ClusterResponse;
 import org.apache.ambari.server.orm.dao.ClusterDAO;
+import org.apache.ambari.server.orm.dao.ClusterStateDAO;
 import org.apache.ambari.server.orm.entities.ClusterConfigEntity;
 import org.apache.ambari.server.orm.entities.ClusterEntity;
 import org.apache.ambari.server.orm.entities.ClusterServiceEntity;
+import org.apache.ambari.server.orm.entities.ClusterStateEntity;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Config;
@@ -57,6 +59,8 @@ import com.google.inject.Inject;
 import com.google.inject.Injector;
 import com.google.inject.assistedinject.Assisted;
 import com.google.inject.persist.Transactional;
+
+import javax.persistence.RollbackException;
 
 public class ClusterImpl implements Cluster {
 
@@ -95,6 +99,8 @@ public class ClusterImpl implements Cluster {
 
   @Inject
   private ClusterDAO clusterDAO;
+  @Inject
+  private ClusterStateDAO clusterStateDAO;
 //  @Inject
 //  private ClusterServiceDAO clusterServiceDAO;
   @Inject
@@ -190,7 +196,7 @@ public class ClusterImpl implements Cluster {
   }
 
   private void loadServices() {
-    LOG.info("clusterEntity " + clusterEntity.getClusterServiceEntities() );
+    LOG.info("clusterEntity " + clusterEntity.getClusterServiceEntities());
     if (services == null) {
       writeLock.lock();
       try {
@@ -450,37 +456,49 @@ public class ClusterImpl implements Cluster {
     } finally {
       readWriteLock.writeLock().unlock();
     }
-
   }
 
-  public StackId getDesiredState() {
-    //TODO separate implementation, mapped to StackVersion for now
-//    return desiredState; for separate implementation
-    readWriteLock.readLock().lock();
-    try {
-      return getDesiredStackVersion();
-    } finally {
-      readWriteLock.readLock().unlock();
+  @Override
+  public StackId getCurrentStackVersion() {
+    ClusterStateEntity clusterStateEntity = clusterEntity.getClusterStateEntity();
+    if(clusterStateEntity != null)
+    {
+      String stackVersion = clusterStateEntity.getCurrentStackVersion();
+      if(stackVersion != null && !stackVersion.isEmpty())
+      {
+        return gson.fromJson(stackVersion, StackId.class);
+      }
     }
-
+    return null;
   }
 
-  public void setDesiredState(StackId desiredState) {
-    //TODO separate implementation, mapped to StackVersion for now
-//    LOG.debug("Changing desired state of cluster, clusterName={}, clusterId={}, oldState={}, newState={}",
-//        getClusterName(), getClusterId(), this.desiredState, desiredState);
-//    clusterEntity.setDesiredClusterState(gson.toJson(desiredState));
-//    clusterDAO.merge(clusterEntity);
-//    this.desiredState = desiredState;
-    readWriteLock.writeLock().lock();
+  @Override
+  public void setCurrentStackVersion(StackId stackVersion)
+  throws AmbariException {
+    writeLock.lock();
     try {
-      setDesiredStackVersion(desiredState);
+        ClusterStateEntity clusterStateEntity = clusterStateDAO.findByPK(clusterEntity.getClusterId());
+        if (clusterStateEntity == null) {
+          clusterStateEntity = new ClusterStateEntity();
+          clusterStateEntity.setClusterId(clusterEntity.getClusterId());
+          clusterStateEntity.setCurrentStackVersion(gson.toJson(stackVersion));
+          clusterStateEntity.setClusterEntity(clusterEntity);
+          clusterStateDAO.create(clusterStateEntity);
+          clusterStateEntity = clusterStateDAO.merge(clusterStateEntity);
+          clusterEntity.setClusterStateEntity(clusterStateEntity);
+          clusterEntity = clusterDAO.merge(clusterEntity);
+        } else {
+          clusterStateEntity.setCurrentStackVersion(gson.toJson(stackVersion));
+        }
+    } catch (RollbackException e) {
+      LOG.warn("Unable to set version " + stackVersion + " for cluster " + getClusterName());
+      throw new AmbariException("Unable to set"
+          + " version=" + stackVersion
+          + " for cluster " + getClusterName(), e);
     } finally {
-      readWriteLock.writeLock().unlock();
+      writeLock.unlock();
     }
-
   }
-
 
   @Override
   public Map<String, Config> getDesiredConfigsByType(String configType) {
@@ -493,7 +511,6 @@ public class ClusterImpl implements Cluster {
     } finally {
       readWriteLock.writeLock().unlock();
     }
-
   }
 
   @Override
@@ -508,7 +525,6 @@ public class ClusterImpl implements Cluster {
     } finally {
       readWriteLock.readLock().unlock();
     }
-
   }
 
   @Override
@@ -529,7 +545,6 @@ public class ClusterImpl implements Cluster {
     } finally {
       readWriteLock.writeLock().unlock();
     }
-
   }
 
   public Collection<Config> getAllConfigs() {
@@ -545,7 +560,6 @@ public class ClusterImpl implements Cluster {
     } finally {
       readWriteLock.readLock().unlock();
     }
-
   }
 
   @Override
@@ -560,7 +574,6 @@ public class ClusterImpl implements Cluster {
     } finally {
       readWriteLock.readLock().unlock();
     }
-
   }
 
   public void debugDump(StringBuilder sb) {
@@ -585,7 +598,6 @@ public class ClusterImpl implements Cluster {
     } finally {
       readWriteLock.readLock().unlock();
     }
-
   }
 
   @Override
@@ -598,7 +610,6 @@ public class ClusterImpl implements Cluster {
     } finally {
       readWriteLock.writeLock().unlock();
     }
-
   }
 
   @Override
@@ -626,7 +637,6 @@ public class ClusterImpl implements Cluster {
     } finally {
       readWriteLock.writeLock().unlock();
     }
-
   }
 
   @Override
@@ -650,7 +660,6 @@ public class ClusterImpl implements Cluster {
     } finally {
       readWriteLock.writeLock().unlock();
     }
-
   }
 
   @Override
@@ -671,7 +680,6 @@ public class ClusterImpl implements Cluster {
     } finally {
       readWriteLock.readLock().unlock();
     }
-
   }
 
   @Override
@@ -685,7 +693,6 @@ public class ClusterImpl implements Cluster {
     } finally {
       readWriteLock.writeLock().unlock();
     }
-
   }
 
   @Transactional

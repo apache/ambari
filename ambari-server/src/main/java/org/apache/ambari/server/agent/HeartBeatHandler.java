@@ -233,6 +233,12 @@ public class HeartBeatHandler {
                       + " at host " + hostname);
                 }
               }
+
+              if(null != status.getStackVersion() && !status.getStackVersion().isEmpty())
+              {
+                scHost.setStackVersion(new StackId(status.getStackVersion()));
+              }
+
               // TODO need to get config version and stack version from live state
             } else {
               // TODO: What should be done otherwise?
@@ -263,6 +269,16 @@ public class HeartBeatHandler {
                 + ", componentName=" + status.getComponentName()
                 + ", hostname=" + hostname);
             // FIXME ignore invalid live update and continue for now?
+            continue;
+          }
+          catch (RuntimeException e) {
+            LOG.warn("Received a live status with invalid payload"
+                + " service"
+                + ", clusterName=" + status.getClusterName()
+                + ", serviceName=" + status.getServiceName()
+                + ", componentName=" + status.getComponentName()
+                + ", hostname=" + hostname
+                + ", error=" + e.getMessage());
             continue;
           }
         }
