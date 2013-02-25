@@ -18,15 +18,22 @@
 
 var App = require('app');
 
-App.MainAdminView = Em.View.extend({
-  templateName: require('templates/main/admin'),
-  selectedBinding: 'controller.selected',
-  NavItemView: Ember.View.extend({
-    tagName: 'li',
-    classNameBindings: 'isActive:active'.w(),
-    isActive: function () {
-      return this.get('item') === this.get('parentView.selected');
-    }.property('item', 'parentView.selected').cacheable()
-  })
+App.MainAdminSecurityAddMenuView = Em.View.extend({
+
+  templateName: require('templates/main/admin/security/add/menu'),
+
+  isStep1Disabled: function () {
+    return this.get('controller.isStepDisabled').findProperty('step',1).get('value');
+  }.property('controller.isStepDisabled.@each.value').cacheable(),
+
+  isStep2Disabled: function () {
+    return this.get('controller.isStepDisabled').findProperty('step',2).get('value');
+  }.property('controller.isStepDisabled.@each.value').cacheable(),
+
+  isStep3Disabled: function () {
+    return this.get('controller.isStepDisabled').findProperty('step',3).get('value');
+  }.property('controller.isStepDisabled.@each.value').cacheable()
+
 });
+
 

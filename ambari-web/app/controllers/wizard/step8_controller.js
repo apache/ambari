@@ -26,6 +26,7 @@ App.WizardStep8Controller = Em.Controller.extend({
   services: [],
   configs: [],
   globals: [],
+  ajaxQueue: [],
   configMapping: require('data/config_mapping'),
   slaveComponentConfig: null,
   isSubmitDisabled: false,
@@ -799,7 +800,7 @@ App.WizardStep8Controller = Em.Controller.extend({
     this.createAllHostComponents();
 
     this.ajaxQueueFinished = function () {
-      console.log('everything is loaded')
+      console.log('everything is loaded');
       App.router.send('next');
     };
     this.doNextAjaxCall();
@@ -1473,7 +1474,7 @@ App.WizardStep8Controller = Em.Controller.extend({
     }
   },
 
-  ajaxQueue: [],
+
 
   ajaxQueueFinished: function () {
     //do something

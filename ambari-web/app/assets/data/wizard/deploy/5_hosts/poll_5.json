@@ -388,7 +388,7 @@
       "Tasks" : {
         "exit_code" : 999,
         "stdout" : "",
-        "status" : "QUEUED",
+        "status" : "COMPLETED",
         "stderr" : "",
         "host_name" : "host5",
         "id" : 11,

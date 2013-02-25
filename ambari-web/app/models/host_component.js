@@ -117,5 +117,5 @@ App.HostComponentStatus = {
     }
     return 'none';
   }
-}
+};
 

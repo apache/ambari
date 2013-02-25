@@ -12,6 +12,8 @@ Trunk (unreleased changes):
 
  NEW FEATURES
 
+ AMBARI-1490. Implement initial layout for "Add security" wizard. (jaimin)
+
  AMBARI-1483. Reassign Master Wizard - Step 2. (yusaku)
 
  AMBARI-1482. Reassign Master Wizard - Step 1. (yusaku)

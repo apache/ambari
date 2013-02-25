@@ -16,23 +16,19 @@
 * limitations under the License.
 }}
 
-<div class="row-fluid">
-  <div id="main-admin-menu" class="well span2">
-      <ul>
-        {{#view view.NavItemView item="user" }}
-            <a class="text-center" href="javascript:void(null);" {{action goToAdminUser}} > Users</a>
-        {{/view}}
-        {{#view view.NavItemView item="security" }}
-            <a class="text-center" href="javascript:void(null);" {{action goToAdminSecurity}} > Security</a>
-        {{/view}}
-        {{#view view.NavItemView item="cluster" }}
-          <a class="text-center" href="javascript:void(null);" {{action goToAdminCluster}} > Cluster</a>
-        {{/view}}
-      </ul>
-  </div>
-  <div class="span10">
-    <div class="row-fluid">
-      {{outlet}}
-    </div>
-  </div>
+<h2>{{t admin.security.step1.header}}</h2>
+<p class="alert">
+  {{t admin.security.step1.body.header}}
+</p>
+<div class="alert alert-info">
+    <ol>
+        <li>{{t admin.security.step1.body.instruction1}}</li>
+        <li>{{t admin.security.step1.body.instruction2}}</li>
+        <li>{{t admin.security.step1.body.instruction3}}</li>
+    </ol>
+</div>
+
+
+<div class="btn-area">
+    <a class="btn btn-success pull-right" {{action "next"}}>Next &rarr;</a>
 </div>

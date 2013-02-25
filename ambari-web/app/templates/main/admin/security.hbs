@@ -16,23 +16,25 @@
 * limitations under the License.
 }}
 
-<div class="row-fluid">
-  <div id="main-admin-menu" class="well span2">
-      <ul>
-        {{#view view.NavItemView item="user" }}
-            <a class="text-center" href="javascript:void(null);" {{action goToAdminUser}} > Users</a>
-        {{/view}}
-        {{#view view.NavItemView item="security" }}
-            <a class="text-center" href="javascript:void(null);" {{action goToAdminSecurity}} > Security</a>
-        {{/view}}
-        {{#view view.NavItemView item="cluster" }}
-          <a class="text-center" href="javascript:void(null);" {{action goToAdminCluster}} > Cluster</a>
-        {{/view}}
-      </ul>
+{{#if securityEnabled}}
+  <div>
+    <p class="text-success">{{t admin.security.enabled}}
+      <a
+              class="btn btn-padding btn-warning" {{bindAttr disabled="isSubmitDisabled"}} {{action notifySecurityOffPopup target="controller"}}>{{t admin.security.button.disable}}
+      </a> <br/>
+    </p>
   </div>
-  <div class="span10">
-    <div class="row-fluid">
-      {{outlet}}
-    </div>
+  <div>
+    {{outlet}}
   </div>
-</div>
+{{else}}
+  <div>
+    <p class="text-error">{{t admin.security.disabled}}
+      <a
+              class="btn btn-padding btn-success" {{action notifySecurityAddPopup target="controller"}}>{{t admin.security.button.enable}}
+      </a> <br/>
+    </p>
+
+    <p class="alert alert-info">{{t admin.security.recommend.enable}}</p>
+  </div>
+{{/if}}

@@ -51,11 +51,14 @@ App.db.cleanUp = function () {
       'loginName': '',
       'authenticated': false
     },
+
     'Installer' : {},
     'AddHost' : {},
     'AddService' : {},
     'StackUpgrade' : {},
-    'ReassignMaster' : {}
+    'ReassignMaster' : {},
+    'AddSecurity': {}
+
   };
   console.log("In cleanup./..");
   localStorage.setObject('ambari', App.db.data);
@@ -129,7 +132,7 @@ App.db.setHosts = function (hostInfo) {
   localStorage.setObject('ambari', App.db.data);
 };
 
-App.db.setInstallOptions = function(installOptions){
+App.db.setInstallOptions = function (installOptions) {
   console.log('TRACE: Entering db:setInstallOptions function');
   App.db.data = localStorage.getObject('ambari');
   App.db.data.Installer.installOptions = installOptions;
@@ -195,7 +198,7 @@ App.db.setServiceConfigs = function (serviceConfigs) {
   localStorage.setObject('ambari', App.db.data);
 };
 
-App.db.setAdvancedServiceConfig = function(serviceConfigs) {
+App.db.setAdvancedServiceConfig = function (serviceConfigs) {
   App.db.data = localStorage.getObject('ambari');
   App.db.data.Installer.advanceServiceConfigs = serviceConfigs;
   localStorage.setObject('ambari', App.db.data);
@@ -243,6 +246,21 @@ App.db.setWizardCurrentStep = function (wizardType, currentStep) {
 
   App.db.data[wizardType.capitalize()].currentStep = currentStep;
 
+  localStorage.setObject('ambari', App.db.data);
+};
+
+App.db.setSecurityWizardStatus = function (status) {
+  App.db.data = localStorage.getObject('ambari');
+  if (!App.db.data.AddSecurity) {
+    App.db.data.AddSecurity = {};
+  }
+  App.db.data.AddSecurity.status = status;
+  localStorage.setObject('ambari', App.db.data);
+};
+
+App.db.setSecurityStage = function (securityStage) {
+  App.db.data = localStorage.getObject('ambari');
+  App.db.data.AddSecurity.securityStage = securityStage;
   localStorage.setObject('ambari', App.db.data);
 };
 
@@ -356,7 +374,7 @@ App.db.getServiceConfigs = function () {
   return App.db.data.Installer.serviceConfigs;
 };
 
-App.db.getAdvancedServiceConfig = function() {
+App.db.getAdvancedServiceConfig = function () {
   App.db.data = localStorage.getObject('ambari');
   return App.db.data.Installer.advanceServiceConfigs;
 };
@@ -386,6 +404,20 @@ App.db.getUpgradeOptions = function () {
   console.log('TRACE: Entering db:getUpgradeOptions function');
   App.db.data = localStorage.getObject('ambari');
   return App.db.data.StackUpgrade.upgradeOptions;
+}
+
+App.db.getSecurityWizardStatus = function () {
+  App.db.data = localStorage.getObject('ambari');
+  if (!App.db.data.AddSecurity) {
+    App.db.data.AddSecurity = {};
+  }
+  return App.db.data.AddSecurity.status;
+};
+
+App.db.getSecurityStage = function () {
+  App.db.data = localStorage.getObject('ambari');
+  return App.db.data.AddSecurity.securityStage;
+
 };
 
 module.exports = App.db;

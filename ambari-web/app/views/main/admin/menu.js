@@ -18,11 +18,17 @@
 
 var App = require('app');
 
+// This logic is substituted by MainAdminView for now.
 App.MainAdminMenuView = Em.CollectionView.extend({
-  content:[
+  //contentBinding: 'controller',
+  /*content: [
     {
       route:'user',
       label:'Users'
+    },
+    {
+      route:'security',
+      label:'Security'
     },
     {
       route:'cluster',
@@ -33,30 +39,41 @@ App.MainAdminMenuView = Em.CollectionView.extend({
       route:'authentication',
       label:'Authentication'
     },
-    {
-      route:'security',
-      label:'Security'
+
+{
+      route: 'user',
+      label: 'Users'
+
     },
     {
-      route:'audit',
-      label:'Audit'
-    }*/
+      route: 'security',
+      label: 'Security'
+    }/*,
+     {
+     route:'authentication',
+     label:'Authentication'
+     },
+
+     {
+     route:'audit',
+     label:'Audit'
+     }*/
     /*,
-    {
-      route:'advanced',
-      label:'Advanced'
-    }
-    */
+     {
+     route:'advanced',
+     label:'Advanced'
+     }
+
   ],
   tagName: "ul",
   classNames: ["nav", "nav-list"],
 
-  init: function(){
+  init: function () {
     this._super();
     this.activateView(); // default selected menu
   },
 
-  activateView:function () {
+  activateView: function () {
     var route = App.get('router.mainAdminController.category');
     $.each(this._childViews, function () {
       this.set('active', (this.get('content.route') == route ? "active" : ""));
@@ -68,4 +85,5 @@ App.MainAdminMenuView = Em.CollectionView.extend({
     active:"",
     template:Ember.Handlebars.compile('<a class="text-center" {{action adminNavigate view.content.route }} href="#"> {{unbound view.content.label}}</a>')
   })
+*/
 });
