@@ -57,7 +57,7 @@ App.HttpClient = Em.Object.create({
     var xhr = new XMLHttpRequest();
     var curTime = new Date().getTime();
 
-    xhr.open('GET', url + "?_=" + curTime, true);
+    xhr.open('GET', url + (url.indexOf('?') >= 0 ? '&_=' : '?_=') + curTime, true);
     xhr.send(null);
 
     this.onReady(xhr, "", ajaxOptions, mapper, errorHandler);
