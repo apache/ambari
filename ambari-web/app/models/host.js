@@ -113,7 +113,7 @@ App.Host = DS.Model.extend({
    * Return true if host not heartbeating last 180 seconds
    */
   isNotHeartBeating : function(){
-    return ((new Date()).getTime() - this.get('lastHeartBeatTime')) > 180 * 1000;
+    return (App.testMode) ? false : ((new Date()).getTime() - this.get('lastHeartBeatTime')) > 180 * 1000;
   }.property('lastHeartBeatTime'),
 
   loadAvg: function() {
@@ -139,7 +139,7 @@ App.Host = DS.Model.extend({
       } else if (masterComponentsRunning && slaveComponentsRunning) {
         status = 'LIVE';
       } else if (masterComponents.length > 0 && !masterComponentsRunning) {
-        status = 'DEAD';
+        status = 'DEAD-RED';
       } else {
         status = 'DEAD-ORANGE';
       }
@@ -157,7 +157,7 @@ App.Host = DS.Model.extend({
     });
     var output = '';
     switch (this.get('healthClass')){
-      case 'health-status-DEAD':
+      case 'health-status-DEAD-RED':
         hostComponents = hostComponents.filterProperty('isMaster', true);
         output = Em.I18n.t('hosts.host.healthStatus.mastersDown');
         hostComponents.forEach(function(hc, index){

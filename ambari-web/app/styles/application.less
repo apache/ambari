@@ -514,7 +514,7 @@ a:focus {
 }
 
 @status-live-marker: url("/img/health-status-live.png");
-@status-dead-marker: url("/img/health-status-dead.png");
+@status-dead-red-marker: url("/img/health-status-dead.png");
 @status-dead-orange-marker: url("/img/health-status-dead-orange.png");
 @status-dead-yellow-marker: url("/img/health-status-dead-yellow.png");
 @status-ok-marker: url("/img/status-ok.jpg");
@@ -784,9 +784,9 @@ a:focus {
     .tab-marker-position;
     background-image: @status-live-marker;
   }
-  .health-status-DEAD, .health-status-STOPPING {
+  .health-status-DEAD-RED, .health-status-STOPPING {
     .tab-marker-position;
-    background-image: @status-dead-marker;
+    background-image: @status-dead-red-marker;
   }
   .health-status-DEAD-ORANGE {
     .tab-marker-position;
@@ -1178,9 +1178,9 @@ a:focus {
       .tab-marker-position;
       background-image: @status-live-marker;
     }
-    .health-status-DEAD, .health-status-STOPPING {
+    .health-status-DEAD-RED, .health-status-STOPPING {
       .tab-marker-position;
-      background-image: @status-dead-marker;
+      background-image: @status-dead-red-marker;
     }
     .health-status-undefined {
       .tab-marker-position;
@@ -1336,18 +1336,28 @@ table.graphs {
 
   .health-status-HEALTHY{
     background-image: @status-live-marker;
+    background-repeat:no-repeat;
+    background-position:center;
   }
   .health-status-LIVE {
     background-image: @status-live-marker;
+    background-repeat:no-repeat;
+    background-position:center;
   }
-  .health-status-DEAD {
-    background-image: @status-dead-marker;
+  .health-status-DEAD-RED {
+    background-image: @status-dead-red-marker;
+    background-repeat:no-repeat;
+    background-position:center;
   }
   .health-status-DEAD-ORANGE {
     background-image: @status-dead-orange-marker;
+    background-repeat:no-repeat;
+    background-position:center;
   }
   .health-status-DEAD-YELLOW {
     background-image: @status-dead-yellow-marker;
+    background-repeat:no-repeat;
+    background-position:center;
   }
   .host-name-search {
     position: relative;
@@ -1368,6 +1378,16 @@ table.graphs {
     }
     .btn.add-host-button {
       float: right;
+    }
+    .health-status-bar {
+      font-size: 13px;
+      position: relative;
+      top: 20px;
+      left: 10px;
+      .active a{
+        text-decoration: none;
+        color: #000000;
+      }
     }
   }
   .progress {
@@ -1612,7 +1632,7 @@ url-prefix
 }
 
 .health-status-installed, .health-status-stopping {
-  background-image: @status-dead-marker;
+  background-image: @status-dead-red-marker;
   .marker;
 }
 
@@ -1621,8 +1641,8 @@ url-prefix
   .marker;
 }
 
-.health-status-DEAD {
-  background-image: @status-dead-marker;
+.health-status-DEAD-RED {
+  background-image: @status-dead-red-marker;
   .marker;
 }
 

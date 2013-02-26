@@ -178,6 +178,64 @@ App.MainHostView = Em.View.extend({
   }),
 
   /**
+   * Category view for all hosts
+   */
+  categoryObject: Em.Object.extend({
+
+    hostsCount: function () {
+      var statusString = this.get('healthStatusValue');
+      if (statusString == "") {
+        return this.get('view.content').get('length');
+      } else {
+        return this.get('view.content').filterProperty('healthClass', statusString ).get('length');
+      }
+
+    }.property('view.content.@each.healthClass'),
+
+    label: function () {
+      return "%@ (%@)".fmt(this.get('value'), this.get('hostsCount'));
+    }.property('value', 'hostsCount')
+  }),
+
+  getCategory: function(field, value){
+    return this.get('categories').find(function(item) {
+      return item.get(field) == value;
+    });
+  },
+
+  categories: function () {
+    var self = this;
+    self.categoryObject.reopen({
+      view: self,
+      isActive: function() {
+        return this.get('view.category') == this;
+      }.property('view.category'),
+      itemClass: function() {
+        return this.get('isActive') ? 'active' : '';
+      }.property('isActive')
+    });
+
+    var categories = [
+      self.categoryObject.create({value: Em.I18n.t('common.all'), healthStatusValue: ''}),
+      self.categoryObject.create({value: Em.I18n.t('hosts.host.healthStatusCategory.green'), healthStatusValue: 'health-status-LIVE'}),
+      self.categoryObject.create({value: Em.I18n.t('hosts.host.healthStatusCategory.red'), healthStatusValue: 'health-status-DEAD-RED'}),
+      self.categoryObject.create({value: Em.I18n.t('hosts.host.healthStatusCategory.orange'), healthStatusValue: 'health-status-DEAD-ORANGE'}),
+      self.categoryObject.create({value: Em.I18n.t('hosts.host.healthStatusCategory.yellow'), healthStatusValue: 'health-status-DEAD-YELLOW', last: true })
+    ];
+
+    this.set('category', categories.get('firstObject'));
+
+    return categories;
+  }.property(),
+
+  category: false,
+
+  selectCategory: function(event, context){
+    this.set('category', event.context);
+    this.updateFilter(0, event.context.get('healthStatusValue'), 'string');
+  },
+
+  /**
    * Filter view for name column
    * Based on <code>filters</code> library
    */
@@ -358,11 +416,13 @@ App.MainHostView = Em.View.extend({
     }
     this.filter();
   },
+
   /**
    * associations between host property and column index
    */
   colPropAssoc: function(){
     var associations = [];
+    associations[0] = 'healthClass';
     associations[1] = 'publicHostName';
     associations[2] = 'ip';
     associations[3] = 'cpu';
@@ -372,7 +432,9 @@ App.MainHostView = Em.View.extend({
     associations[7] = 'criticalAlertsCount';
     return associations;
   }.property(),
+
   globalSearchValue:null,
+
   /**
    * filter table by all fields
    */
@@ -399,10 +461,13 @@ App.MainHostView = Em.View.extend({
       this.filter();
     }
   }.observes('globalSearchValue', 'content'),
+
   /**
    * contain filter conditions for each column
    */
   filterConditions: [],
+  filteredContent: null,
+
   filteredContent: [],
 
   // contain content to show on the current page of hosts page view
@@ -437,4 +502,5 @@ App.MainHostView = Em.View.extend({
       }
     }
   }.observes('content')
+
 });

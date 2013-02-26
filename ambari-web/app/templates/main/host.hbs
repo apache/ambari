@@ -18,25 +18,39 @@
 
 <div id="hosts">
 
-  <div class="box-header row">
-    <div class="pull-left">
-        <span>{{t common.search}}&nbsp;</span>{{view Ember.TextField valueBinding="view.globalSearchValue"}}
+  <div class="box-header">
+
+    <div class="health-status-bar" >
+      {{#each category in view.categories}}
+        <span {{bindAttr class="category.itemClass"}}>
+          <span {{bindAttr class="category.healthStatusValue"}}> &nbsp;&nbsp;&nbsp; </span>
+          <a {{action selectCategory category target="view"}} href="#">
+            {{category.label}}
+          </a>
+        </span>
+          {{#unless category.last}}
+            |
+          {{/unless}}
+      {{/each}}
     </div>
+
     {{#if App.isAdmin}}
-    <div class="button-section pull-right">
+    <div class="button-section pull-right ">
       <button class="btn btn-inverse add-host-button" {{action addHost}}>
         <i class="icon-plus icon-white"></i>
         {{t hosts.host.add}}
       </button>
     </div>
     {{/if}}
+
   </div>
+
 
   <table class="datatable table table-bordered table-striped" id="hosts-table">
     <thead>
     <tr>
         {{#view view.sortView contentBinding="view.filteredContent"}}
-          <th class="first"></th>
+          <th class="first"> </th>
           {{view view.parentView.nameSort}}
           {{view view.parentView.ipSort}}
           {{view view.parentView.cpuSort}}
@@ -47,7 +61,7 @@
         {{/view}}
     </tr>
     <tr>
-      <th class="first">&nbsp;</th>
+      <th class="first"> </th>
       <th>{{view view.nameFilterView}}</th>
       <th>{{view view.ipFilterView}}</th>
       <th>{{view view.cpuFilterView}}</th>

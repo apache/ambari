@@ -63,6 +63,8 @@ Trunk (unreleased changes):
 
  IMPROVEMENTS
 
+ AMBARI-1505. Hosts page: add filtering by host status. (yusaku)
+
  AMBARI-1496. Make all service properties reconfigurable. (jaimin)
 
  AMBARI-1477. Improve performance for App.statusMapper. (yusaku)
