@@ -61,11 +61,12 @@ public class JMXPropertyProvider extends AbstractPropertyProvider {
 
 
   static {
-    DEFAULT_JMX_PORTS.put("NAMENODE",     "50070");
-    DEFAULT_JMX_PORTS.put("DATANODE",     "50075");
-    DEFAULT_JMX_PORTS.put("JOBTRACKER",   "50030");
-    DEFAULT_JMX_PORTS.put("TASKTRACKER",  "50060");
-    DEFAULT_JMX_PORTS.put("HBASE_MASTER", "60010");
+    DEFAULT_JMX_PORTS.put("NAMENODE",           "50070");
+    DEFAULT_JMX_PORTS.put("DATANODE",           "50075");
+    DEFAULT_JMX_PORTS.put("JOBTRACKER",         "50030");
+    DEFAULT_JMX_PORTS.put("TASKTRACKER",        "50060");
+    DEFAULT_JMX_PORTS.put("HBASE_MASTER",       "60010");
+    DEFAULT_JMX_PORTS.put("HBASE_REGIONSERVER", "60030");
 
     ObjectMapper objectMapper = new ObjectMapper();
     objectMapper.configure(DeserializationConfig.Feature.USE_ANNOTATIONS, false);

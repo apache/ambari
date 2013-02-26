@@ -62,7 +62,7 @@ public class GSInstallerServiceProviderTest {
   @Test
   public void testGetResourcesCheckState() throws Exception {
     TestGSInstallerStateProvider stateProvider = new TestGSInstallerStateProvider();
-    ClusterDefinition clusterDefinition = new ClusterDefinition(stateProvider);
+    ClusterDefinition clusterDefinition = new ClusterDefinition(stateProvider, 500);
     GSInstallerResourceProvider provider = new GSInstallerServiceProvider(clusterDefinition);
     Predicate predicate = new PredicateBuilder().property(GSInstallerServiceProvider.SERVICE_SERVICE_NAME_PROPERTY_ID).equals("MAPREDUCE").toPredicate();
     Set<Resource> resources = provider.getResources(PropertyHelper.getReadRequest(), predicate);
@@ -75,7 +75,7 @@ public class GSInstallerServiceProviderTest {
     stateProvider.setHealthy(false);
 
     // need to wait for old state value to expire
-    Thread.sleep(15001);
+    Thread.sleep(501);
 
     resources = provider.getResources(PropertyHelper.getReadRequest(), predicate);
     Assert.assertEquals(1, resources.size());

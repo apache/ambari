@@ -376,6 +376,8 @@ Trunk (unreleased changes):
 
  BUG FIXES
 
+ AMBARI-1463. State of HBase region server not updated when instance is shut down on a cluster not installed via Ambari. (tbeerbower)
+ 
  AMBARI-1494. Browser memory consumption issues. (jaimin)
 
  AMBARI-1480. Comparison predicate should account for null values. (tbeerbower)

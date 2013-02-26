@@ -38,11 +38,12 @@ public class GSInstallerProviderModule extends AbstractProviderModule implements
   private static final Map<String, String> PORTS = new HashMap<String, String>();
 
   static {
-    PORTS.put("NAMENODE", "50070");
-    PORTS.put("DATANODE", "50075");
-    PORTS.put("JOBTRACKER", "50030");
-    PORTS.put("TASKTRACKER", "50060");
-    PORTS.put("HBASE_MASTER", "60010");
+    PORTS.put("NAMENODE",           "50070");
+    PORTS.put("DATANODE",           "50075");
+    PORTS.put("JOBTRACKER",         "50030");
+    PORTS.put("TASKTRACKER",        "50060");
+    PORTS.put("HBASE_MASTER",       "60010");
+    PORTS.put("HBASE_REGIONSERVER", "60030");
   }
 
   private static final int TIMEOUT = 5000;

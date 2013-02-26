@@ -69,6 +69,11 @@ public class ClusterDefinition {
   private final Map<String, HostComponentState> hostComponentStateMap = new HashMap<String, HostComponentState>();
 
   /**
+   * Expiry for the health value.
+   */
+  private static final int DEFAULT_STATE_EXPIRY = 15000;
+
+  /**
    * Component name mapping to account for differences in what is provided by the gsInstaller
    * and what is expected by the Ambari providers.
    */
@@ -82,15 +87,26 @@ public class ClusterDefinition {
 
   /**
    * Create a cluster definition.
+   *
+   * @param stateProvider  the state provider
    */
   public ClusterDefinition(GSInstallerStateProvider stateProvider) {
+    this(stateProvider, DEFAULT_STATE_EXPIRY);
+  }
+
+  /**
+   * Create a cluster definition.
+   *
+   * @param stateProvider  the state provider
+   * @param stateExpiry    the state expiry
+   */
+  public ClusterDefinition(GSInstallerStateProvider stateProvider, int stateExpiry) {
     this.stateProvider = stateProvider;
     this.clusterName   = DEFAULT_CLUSTER_NAME;
     this.versionId     = DEFAULT_VERSION_ID;
     readClusterDefinition();
-    setHostComponentState();
+    setHostComponentState(stateExpiry);
   }
-
 
   // ----- ClusterDefinition -------------------------------------------------
 
@@ -270,7 +286,7 @@ public class ClusterDefinition {
   /**
    * Set the host component state maps.
    */
-  private void setHostComponentState() {
+  private void setHostComponentState(int stateExpiry) {
     for (Map.Entry<String, Map<String, Set<String>>> serviceEntry : hostComponents.entrySet()) {
       String serviceName = serviceEntry.getKey();
 
@@ -279,7 +295,7 @@ public class ClusterDefinition {
 
         for (String componentName : hostEntry.getValue()) {
 
-          HostComponentState state = new HostComponentState(hostName, componentName);
+          HostComponentState state = new HostComponentState(hostName, componentName, stateExpiry);
 
           // add state to hosts
           addState(hostName, hostStateMap, state);
@@ -378,13 +394,9 @@ public class ClusterDefinition {
   private class HostComponentState {
     private final String hostName;
     private final String componentName;
+    private final int expiry;
     private boolean healthy = true;
     private long lastAccess;
-
-    /**
-     * Expiry for the health value.
-     */
-    private static final int EXPIRY = 15000;
 
     // ----- Constructor -----------------------------------------------------
 
@@ -394,9 +406,10 @@ public class ClusterDefinition {
      * @param hostName       the host name
      * @param componentName  the component name
      */
-    HostComponentState(String hostName, String componentName) {
+    HostComponentState(String hostName, String componentName, int expiry) {
       this.hostName      = hostName;
       this.componentName = componentName;
+      this.expiry        = expiry;
     }
 
     /**
@@ -405,7 +418,7 @@ public class ClusterDefinition {
      * @return true if the associated host component is healthy
      */
     public boolean isHealthy() {
-      if (System.currentTimeMillis() - lastAccess > EXPIRY) {
+      if (System.currentTimeMillis() - lastAccess > expiry) {
         // health value has expired... get it again
         healthy = stateProvider.isHealthy(hostName, componentName);
         this.lastAccess = System.currentTimeMillis();
