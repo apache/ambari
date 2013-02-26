@@ -45,7 +45,7 @@ class hdp-hadoop::params(
     $enable_security_authorization = false
     $security_type = "simple"
     $task_controller = "org.apache.hadoop.mapred.DefaultTaskController"
-    $dfs_datanode_address = 50010
+    $dfs_datanode_address = 50075
     $dfs_datanode_http_address = 50075
   }
 

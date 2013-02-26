@@ -636,6 +636,8 @@ Trunk (unreleased changes):
  AMBARI-1487. Fix alerts at host level if MapReduce is not selected not to
  alert for tasktrackers not running. (mahadev)
 
+ AMBARI-1488. Nagios script causes unwanted Datanode logs. (mahadev)
+
 AMBARI-1.2.0 branch:
 
  INCOMPATIBLE CHANGES
