@@ -186,9 +186,12 @@ App.ClusterController = Em.Controller.extend({
    * property, which will trigger the alerts property.
    */
   loadAlerts:function () {
+    if(App.Alert.find().content.length > 0){
+      return false;
+    }
     var self=this;
     if(App.router.get('updateController.isUpdated')){
-      return;
+      return false;
     }
     var nagiosUrl = this.get('nagiosUrl');
     if (nagiosUrl) {
@@ -214,6 +217,7 @@ App.ClusterController = Em.Controller.extend({
       this.updateLoadStatus('alerts');
       console.log("No Nagios URL provided.")
     }
+    return true;
   }.observes('nagiosUrl'),
 
   /**

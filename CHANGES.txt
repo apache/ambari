@@ -376,6 +376,8 @@ Trunk (unreleased changes):
 
  BUG FIXES
 
+ AMBARI-1501. Nagios alerts do not update automatically. (yusaku)
+
  AMBARI-1503. Ajax call sometimes adds multiple question marks in the query
  causing bad requests. (yusaku)
 
