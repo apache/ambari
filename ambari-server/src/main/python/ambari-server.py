@@ -76,7 +76,7 @@ if ambari_provider_module is not None:
 SERVER_START_CMD="{0}" + os.sep + "bin" + os.sep +\
                  "java -server -XX:NewRatio=3 "\
                  "-XX:+UseConcMarkSweepGC " +\
-                 "-XX:-UseGCOverheadLimit -XX:CMSInitiatingOccupancyFraction=60" +\
+                 "-XX:-UseGCOverheadLimit -XX:CMSInitiatingOccupancyFraction=60 " +\
                  ambari_provider_module_option +\
                  os.getenv('AMBARI_JVM_ARGS','-Xms512m -Xmx2048m') +\
                  " -cp {1}"+ os.pathsep + "{2}" +\
