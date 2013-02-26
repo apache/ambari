@@ -633,6 +633,9 @@ Trunk (unreleased changes):
  AMBARI-1495. Out of Memory Issues on Ambari Server when server is running on
  single core. (mahadev)
 
+ AMBARI-1487. Fix alerts at host level if MapReduce is not selected not to
+ alert for tasktrackers not running. (mahadev)
+
 AMBARI-1.2.0 branch:
 
  INCOMPATIBLE CHANGES

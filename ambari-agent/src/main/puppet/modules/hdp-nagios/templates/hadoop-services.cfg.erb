@@ -316,6 +316,19 @@ define service {
         retry_check_interval    1 
         max_check_attempts      5
 }
+
+# MAPREDUCE::TASKTRACKER Checks 
+define service {
+        hostgroup_name          slaves
+        use                     hadoop-service
+        service_description     TASKTRACKER::TaskTracker process down
+        servicegroups           MAPREDUCE
+        check_command           check_tcp!50060!-w 1 -c 1
+        normal_check_interval   1
+        retry_check_interval    0.5
+        max_check_attempts      3
+}
+
 <%end-%>
 
 <%if scope.function_hdp_nagios_members_exist('slaves')-%>
@@ -342,17 +355,6 @@ define service {
         max_check_attempts      2
 }
 
-# MAPREDUCE::TASKTRACKER Checks 
-define service {
-        hostgroup_name          slaves
-        use                     hadoop-service
-        service_description     TASKTRACKER::TaskTracker process down
-        servicegroups           MAPREDUCE
-        check_command           check_tcp!50060!-w 1 -c 1
-        normal_check_interval   1
-        retry_check_interval    0.5
-        max_check_attempts      3
-}
 <%end-%>
 
 <%if scope.function_hdp_nagios_members_exist('zookeeper-servers')-%>
