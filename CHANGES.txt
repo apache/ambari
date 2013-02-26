@@ -63,6 +63,8 @@ Trunk (unreleased changes):
 
  IMPROVEMENTS
 
+ AMBARI-1496. Make all service properties reconfigurable. (jaimin)
+
  AMBARI-1477. Improve performance for App.statusMapper. (yusaku)
 
  AMBARI-1484. Reintroduce client-side paging for Hosts table. (yusaku)

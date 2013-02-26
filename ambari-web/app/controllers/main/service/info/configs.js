@@ -537,9 +537,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
     var configs = this.get('stepConfigs').findProperty('serviceName', this.get('content.serviceName')).get('configs');
     this.saveGlobalConfigs(configs);
     this.saveSiteConfigs(configs);
-    var customConfigResult = this.setCustomConfigs();
-    result.flag = customConfigResult.flag;
-    result.value = customConfigResult.value;
+    this.setCustomConfigs();
     /*
      For now, we are skipping validation checks to see if the user is overriding already-defined paramaters, as
      the user needs this flexibility.  We may turn this back on as a warning in the future...
@@ -548,7 +546,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
      return result;
      }
      */
-    result.flag = result.flag && this.createConfigurations();
+    result.flag =  this.createConfigurations();
     if (result.flag === true) {
       if (this.get('content.serviceName') !== 'HDFS') {
         result.flag = this.applyCreatedConfToService(this.get('content.serviceName'));
@@ -963,7 +961,6 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
 
   /**
    * return custom comfig
-   * @return {Object}
    */
   setCustomConfigs: function () {
     var site = this.get('stepConfigs').findProperty('serviceName', this.get('content.serviceName')).get('configs').filterProperty('id', 'conf-site');
@@ -982,35 +979,11 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
             var key = matches[1];
             var value = matches[2];
             // Check that entered config is allowed to reconfigure
-            if (this.get('uiConfigs').filterProperty('filename', _site.name + '.xml').someProperty('name', key)) {
-              var property = {
-                siteProperty: null,
-                displayNames: []
-              };
-              if (_site.name !== 'core-site') {
-                property.siteProperty = key;
-
-                if (this.get('configMapping').someProperty('name', key)) {
-                  this.setPropertyDisplayNames(property.displayNames, this.get('configMapping').findProperty('name', key).templateName);
-                }
-                siteProperties.push(property);
-                flag = false;
-              } else {
-                this.setSiteProperty(key, value, _site.name + '.xml');
-              }
-            } else if (flag) {
-              this.setSiteProperty(key, value, _site.name + '.xml');
-            }
+            this.setSiteProperty(key, value, _site.name + '.xml');
           }
         }, this);
       }
     }, this);
-
-    var result = {
-      flag: flag,
-      value: siteProperties
-    };
-    return result;
   },
 
   /**

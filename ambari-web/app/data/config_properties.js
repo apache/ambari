@@ -1251,7 +1251,7 @@ module.exports =
     {
       "id": "puppet var",
       "name": "tasktracker_hosts",
-      "displayName": "TaskTracer hosts",
+      "displayName": "TaskTracker hosts",
       "value": "",
       "defaultValue": "",
       "description": "The hosts that have been assigned to run TaskTracker",
