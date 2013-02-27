@@ -39,6 +39,7 @@ import org.apache.ambari.server.controller.ClusterResponse;
 import org.apache.ambari.server.orm.dao.ClusterDAO;
 import org.apache.ambari.server.orm.dao.ClusterStateDAO;
 import org.apache.ambari.server.orm.entities.ClusterConfigEntity;
+import org.apache.ambari.server.orm.entities.ClusterConfigMappingEntity;
 import org.apache.ambari.server.orm.entities.ClusterEntity;
 import org.apache.ambari.server.orm.entities.ClusterServiceEntity;
 import org.apache.ambari.server.orm.entities.ClusterStateEntity;
@@ -77,7 +78,7 @@ public class ClusterImpl implements Cluster {
   /**
    * [ Config Type -> [ Config Version Tag -> Config ] ]
    */
-  private Map<String, Map<String, Config>> configs;
+  private Map<String, Map<String, Config>> allConfigs;
 
   /**
    * [ ServiceName -> [ ServiceComponentName -> [ HostName -> [ ... ] ] ] ]
@@ -124,17 +125,17 @@ public class ClusterImpl implements Cluster {
         List<ServiceComponentHost>>();
     this.desiredStackVersion = gson.fromJson(
         clusterEntity.getDesiredStackVersion(), StackId.class);
-    configs = new HashMap<String, Map<String, Config>>();
+    allConfigs = new HashMap<String, Map<String, Config>>();
     if (!clusterEntity.getClusterConfigEntities().isEmpty()) {
       for (ClusterConfigEntity entity : clusterEntity.getClusterConfigEntities()) {
 
-        if (!configs.containsKey(entity.getType())) {
-          configs.put(entity.getType(), new HashMap<String, Config>());
+        if (!allConfigs.containsKey(entity.getType())) {
+          allConfigs.put(entity.getType(), new HashMap<String, Config>());
         }
 
         Config config = configFactory.createExisting(this, entity);
 
-        configs.get(entity.getType()).put(entity.getTag(), config);
+        allConfigs.get(entity.getType()).put(entity.getTag(), config);
       }
     }
   }
@@ -501,34 +502,34 @@ public class ClusterImpl implements Cluster {
   }
 
   @Override
-  public Map<String, Config> getDesiredConfigsByType(String configType) {
+  public Map<String, Config> getConfigsByType(String configType) {
     readWriteLock.writeLock().lock();
     try {
-      if (!configs.containsKey(configType))
+      if (!allConfigs.containsKey(configType))
         return null;
 
-      return Collections.unmodifiableMap(configs.get(configType));
+      return Collections.unmodifiableMap(allConfigs.get(configType));
     } finally {
       readWriteLock.writeLock().unlock();
     }
   }
 
   @Override
-  public Config getDesiredConfig(String configType, String versionTag) {
+  public Config getConfig(String configType, String versionTag) {
     readWriteLock.readLock().lock();
     try {
-      if (!configs.containsKey(configType)
-          || !configs.get(configType).containsKey(versionTag)) {
+      if (!allConfigs.containsKey(configType)
+          || !allConfigs.get(configType).containsKey(versionTag)) {
         return null;
       }
-      return configs.get(configType).get(versionTag);
+      return allConfigs.get(configType).get(versionTag);
     } finally {
       readWriteLock.readLock().unlock();
     }
   }
 
   @Override
-  public void addDesiredConfig(Config config) {
+  public void addConfig(Config config) {
     readWriteLock.writeLock().lock();
     try {
       if (config.getType() == null
@@ -537,21 +538,21 @@ public class ClusterImpl implements Cluster {
           || config.getVersionTag().isEmpty()) {
         // TODO throw error
       }
-      if (!configs.containsKey(config.getType())) {
-        configs.put(config.getType(), new HashMap<String, Config>());
+      if (!allConfigs.containsKey(config.getType())) {
+        allConfigs.put(config.getType(), new HashMap<String, Config>());
       }
 
-      configs.get(config.getType()).put(config.getVersionTag(), config);
+      allConfigs.get(config.getType()).put(config.getVersionTag(), config);
     } finally {
       readWriteLock.writeLock().unlock();
     }
   }
-
+  
   public Collection<Config> getAllConfigs() {
     readWriteLock.readLock().lock();
     try {
       List<Config> list = new ArrayList<Config>();
-      for (Entry<String, Map<String, Config>> entry : configs.entrySet()) {
+      for (Entry<String, Map<String, Config>> entry : allConfigs.entrySet()) {
         for (Config config : entry.getValue().values()) {
           list.add(config);
         }
@@ -689,7 +690,7 @@ public class ClusterImpl implements Cluster {
     try {
       deleteAllServices();
       removeEntities();
-      configs.clear();
+      allConfigs.clear();
     } finally {
       readWriteLock.writeLock().unlock();
     }
@@ -699,4 +700,45 @@ public class ClusterImpl implements Cluster {
   protected void removeEntities() throws AmbariException {
     clusterDAO.removeByPK(getClusterId());
   }
+  
+  @Override
+  public void addDesiredConfig(Config config) {
+    
+    Config currentDesired = getDesiredConfigByType(config.getType());
+    
+    // do not set if it is already the current
+    if (null != currentDesired && currentDesired.getVersionTag().equals(config.getVersionTag())) {
+      return;
+    }
+
+    for (ClusterConfigMappingEntity e : clusterEntity.getConfigMappingEntities()) {
+      if (e.isSelected() > 0 && e.getType().equals(config.getType()))
+        e.setSelected(0);
+    }
+    
+    ClusterConfigMappingEntity entity = new ClusterConfigMappingEntity();
+    entity.setClusterEntity(clusterEntity);
+    entity.setClusterId(clusterEntity.getClusterId());
+    entity.setCreateTimestamp(Long.valueOf (new java.util.Date().getTime()));
+    entity.setSelected(1);
+    entity.setType(config.getType());
+    entity.setVersion(config.getVersionTag());
+    clusterEntity.getConfigMappingEntities().add(entity);
+    
+    clusterDAO.merge(clusterEntity);
+    
+  }
+  
+  @Override
+  public Config getDesiredConfigByType(String configType) {
+    
+    for (ClusterConfigMappingEntity e : clusterEntity.getConfigMappingEntities()) {
+      if (e.isSelected() > 0 && e.getType().equals(configType)) {
+        return getConfig(e.getType(), e.getVersion());
+      }
+    }    
+    
+    return null;
+  }
+  
 }

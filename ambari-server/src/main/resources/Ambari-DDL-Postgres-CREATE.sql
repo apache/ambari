@@ -32,6 +32,9 @@ CREATE TABLE ambari.clusterconfig (version_tag VARCHAR(255) NOT NULL, type_name 
 
 GRANT ALL PRIVILEGES ON TABLE ambari.clusterconfig TO :username;
 
+CREATE TABLE ambari.clusterconfigmapping (cluster_id bigint NOT NULL, type_name VARCHAR(255) NOT NULL, version_tag VARCHAR(255) NOT NULL, create_timestamp BIGINT NOT NULL, selected INTEGER NOT NULL DEFAULT 0, PRIMARY KEY (cluster_id, type_name, create_timestamp));
+GRANT ALL PRIVILEGES ON TABLE ambari.clusterconfigmapping TO :username;
+
 CREATE TABLE ambari.clusterservices (service_name VARCHAR(255) NOT NULL, cluster_id BIGINT NOT NULL, service_enabled INTEGER NOT NULL, PRIMARY KEY (service_name, cluster_id));
 
 GRANT ALL PRIVILEGES ON TABLE ambari.clusterservices TO :username;
@@ -110,6 +113,7 @@ GRANT ALL PRIVILEGES ON TABLE ambari.key_value_store TO :username;
 
 ALTER TABLE ambari.clusterconfig ADD CONSTRAINT FK_clusterconfig_cluster_id FOREIGN KEY (cluster_id) REFERENCES ambari.clusters (cluster_id);
 ALTER TABLE ambari.clusterservices ADD CONSTRAINT FK_clusterservices_cluster_id FOREIGN KEY (cluster_id) REFERENCES ambari.clusters (cluster_id);
+ALTER TABLE ambari.clusterconfigmapping ADD CONSTRAINT FK_clusterconfigmapping_cluster_id FOREIGN KEY (cluster_id) REFERENCES ambari.clusters (cluster_id);
 ALTER TABLE ambari.clusterstate ADD CONSTRAINT FK_clusterstate_cluster_id FOREIGN KEY (cluster_id) REFERENCES ambari.clusters (cluster_id);
 ALTER TABLE ambari.componentconfigmapping ADD CONSTRAINT FK_componentconfigmapping_config_tag FOREIGN KEY (config_tag, config_type, cluster_id) REFERENCES ambari.clusterconfig (version_tag, type_name, cluster_id);
 ALTER TABLE ambari.componentconfigmapping ADD CONSTRAINT FK_componentconfigmapping_component_name FOREIGN KEY (component_name, cluster_id, service_name) REFERENCES ambari.servicecomponentdesiredstate (component_name, cluster_id, service_name);

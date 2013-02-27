@@ -22,7 +22,6 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.fail;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -34,8 +33,17 @@ import java.util.Set;
 
 import junit.framework.Assert;
 
-import org.apache.ambari.server.*;
-import org.apache.ambari.server.actionmanager.*;
+import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.ClusterNotFoundException;
+import org.apache.ambari.server.DuplicateResourceException;
+import org.apache.ambari.server.ParentObjectNotFoundException;
+import org.apache.ambari.server.Role;
+import org.apache.ambari.server.RoleCommand;
+import org.apache.ambari.server.actionmanager.ActionDBAccessor;
+import org.apache.ambari.server.actionmanager.ExecutionCommandWrapper;
+import org.apache.ambari.server.actionmanager.HostRoleCommand;
+import org.apache.ambari.server.actionmanager.HostRoleStatus;
+import org.apache.ambari.server.actionmanager.Stage;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
@@ -66,8 +74,6 @@ import org.slf4j.LoggerFactory;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.google.inject.persist.PersistService;
-
-import javax.xml.bind.JAXBException;
 
 public class AmbariManagementControllerTest {
 
@@ -1271,9 +1277,9 @@ public class AmbariManagementControllerTest {
     c2.setVersionTag("v1");
     c3.setVersionTag("v1");
 
-    cluster.addDesiredConfig(c1);
-    cluster.addDesiredConfig(c2);
-    cluster.addDesiredConfig(c3);
+    cluster.addConfig(c1);
+    cluster.addConfig(c2);
+    cluster.addConfig(c3);
     c1.persist();
     c2.persist();
     c3.persist();

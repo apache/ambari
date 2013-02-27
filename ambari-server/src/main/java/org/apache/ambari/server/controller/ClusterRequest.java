@@ -32,6 +32,8 @@ public class ClusterRequest {
   private String stackVersion; // for CREATE/UPDATE
 
   Set<String> hostNames; // CREATE/UPDATE
+  
+  private ConfigurationRequest config = null;
 
   public ClusterRequest(Long clusterId, String clusterName,
       String stackVersion, Set<String> hostNames) {
@@ -41,7 +43,7 @@ public class ClusterRequest {
     this.stackVersion = stackVersion;
     this.hostNames = hostNames;
   }
-
+  
   /**
    * @return the clusterId
    */
@@ -91,6 +93,22 @@ public class ClusterRequest {
   public void setHostNames(Set<String> hostNames) {
     this.hostNames = hostNames;
   }
+  
+  /**
+   * Sets the config request (if any)
+   * @param configRequest
+   */
+  public void setDesiredConfig(ConfigurationRequest configRequest) {
+    config = configRequest;
+  }
+  
+  /**
+   * Gets any configuration-based request (if any).
+   * @return the configuration request, or <code>null</code> if none is set.
+   */
+  public ConfigurationRequest getDesiredConfig() {
+    return config;
+  }
 
   @Override
   public String toString() {
@@ -112,5 +130,6 @@ public class ClusterRequest {
     sb.append("] }");
     return sb.toString();
   }
+  
 
 }

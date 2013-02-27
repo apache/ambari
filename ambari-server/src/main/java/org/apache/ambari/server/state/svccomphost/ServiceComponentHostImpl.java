@@ -782,7 +782,7 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
       Map<String, Config> map = new HashMap<String, Config>();
       Cluster cluster = clusters.getClusterById(getClusterId());
       for (Entry<String, String> entry : configs.entrySet()) {
-        Config config = cluster.getDesiredConfig(
+        Config config = cluster.getConfig(
             entry.getKey(), entry.getValue());
         if (null != config) {
           map.put(entry.getKey(), config);
@@ -957,7 +957,7 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
     try {
       readLock.lock();
       for (Entry<String, String> entry : desiredConfigs.entrySet()) {
-        Config config = clusters.getClusterById(getClusterId()).getDesiredConfig(
+        Config config = clusters.getClusterById(getClusterId()).getConfig(
             entry.getKey(), entry.getValue());
         if (null != config) {
           map.put(entry.getKey(), config);

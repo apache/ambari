@@ -157,11 +157,11 @@ public class ServiceComponentHostTest {
     Map<String, String> configs = new HashMap<String, String>();
 
     Cluster c = clusters.getCluster("C1");
-    if (c.getDesiredConfig("time", "" + timestamp) == null) {
+    if (c.getConfig("time", "" + timestamp) == null) {
       Config config = configFactory.createNew (c, "time",
           new HashMap<String, String>());
       config.setVersionTag("" + timestamp);
-      c.addDesiredConfig(config);
+      c.addConfig(config);
       config.persist();
     }
 

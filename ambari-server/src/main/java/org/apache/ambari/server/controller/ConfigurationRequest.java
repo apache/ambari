@@ -17,6 +17,7 @@
  */
 package org.apache.ambari.server.controller;
 
+import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -34,11 +35,15 @@ public class ConfigurationRequest {
 
   private Map<String, String> configs;
 
+  public ConfigurationRequest() {
+    configs = new HashMap<String, String>();
+  }
+  
   public ConfigurationRequest(String clusterName,
                               String type,
                               String tag,
                               Map<String, String> configs) {
-    super();
+
     this.clusterName = clusterName;
     this.configs = configs;
     this.type = type;
@@ -77,14 +82,14 @@ public class ConfigurationRequest {
   /**
    * @return the configs
    */
-  public Map<String, String> getConfigs() {
+  public Map<String, String> getProperties() {
     return configs;
   }
 
   /**
    * @param configs the configs to set
    */
-  public void setConfigs(Map<String, String> configs) {
+  public void setProperties(Map<String, String> configs) {
     this.configs = configs;
   }
 

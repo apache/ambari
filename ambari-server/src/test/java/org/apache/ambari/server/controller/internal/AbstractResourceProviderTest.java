@@ -255,7 +255,7 @@ public class AbstractResourceProviderTest {
           eq(((ConfigurationRequest) o).getClusterName(), getClusterName()) &&
           eq(((ConfigurationRequest) o).getType(), getType()) &&
           eq(((ConfigurationRequest) o).getVersionTag(), getVersionTag()) &&
-          eq(((ConfigurationRequest) o).getConfigs(), getConfigs());
+          eq(((ConfigurationRequest) o).getProperties(), getProperties());
 
     }
 
@@ -399,7 +399,7 @@ public class AbstractResourceProviderTest {
           eq(((ConfigurationRequest) request).getClusterName(), configurationRequest.getClusterName()) &&
           eq(((ConfigurationRequest) request).getType(), configurationRequest.getType()) &&
           eq(((ConfigurationRequest) request).getVersionTag(), configurationRequest.getVersionTag()) &&
-          eq(((ConfigurationRequest) request).getConfigs(), configurationRequest.getConfigs());
+          eq(((ConfigurationRequest) request).getProperties(), configurationRequest.getProperties());
     }
 
     @Override

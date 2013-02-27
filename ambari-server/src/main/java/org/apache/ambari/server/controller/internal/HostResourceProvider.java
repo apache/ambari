@@ -236,6 +236,16 @@ class HostResourceProvider extends AbstractResourceProvider {
   protected Set<String> getPKPropertyIds() {
     return pkPropertyIds;
   }
+  
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public Set<String> checkPropertyIds(Set<String> propertyIds) {
+      Set<String> baseUnsupported = super.checkPropertyIds(propertyIds);
+      
+      return checkConfigPropertyIds(baseUnsupported, "Hosts");
+  }
 
   /**
    * Get a host request object from a map of property values.

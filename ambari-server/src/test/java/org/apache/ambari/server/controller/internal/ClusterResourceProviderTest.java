@@ -18,6 +18,18 @@
 
 package org.apache.ambari.server.controller.internal;
 
+import static org.easymock.EasyMock.createMock;
+import static org.easymock.EasyMock.createNiceMock;
+import static org.easymock.EasyMock.expect;
+import static org.easymock.EasyMock.replay;
+import static org.easymock.EasyMock.verify;
+
+import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
+import java.util.Map;
+import java.util.Set;
+
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.ClusterRequest;
 import org.apache.ambari.server.controller.ClusterResponse;
@@ -31,18 +43,6 @@ import org.apache.ambari.server.controller.utilities.PropertyHelper;
 import org.easymock.EasyMock;
 import org.junit.Assert;
 import org.junit.Test;
-
-import java.util.HashSet;
-import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
-import java.util.Map;
-import java.util.Set;
-
-import static org.easymock.EasyMock.createMock;
-import static org.easymock.EasyMock.createNiceMock;
-import static org.easymock.EasyMock.expect;
-import static org.easymock.EasyMock.replay;
-import static org.easymock.EasyMock.verify;
 
 /**
  * ClusterResourceProvider tests.
@@ -250,6 +250,53 @@ public class ClusterResourceProviderTest {
 
     // verify
     verify(managementController, response);
+  }
+  
+  @Test
+  public void testUpdateWithConfiguration() throws Exception {
+
+    AmbariManagementController managementController = createMock(AmbariManagementController.class);
+    RequestStatusResponse response = createNiceMock(RequestStatusResponse.class);
+
+    Set<ClusterResponse> nameResponse = new HashSet<ClusterResponse>();
+    nameResponse.add(new ClusterResponse(100L, "Cluster100", null, null));
+
+    // set expectations
+    expect(managementController.getClusters(EasyMock.<Set<ClusterRequest>>anyObject())).andReturn(nameResponse).once();
+    expect(managementController.updateCluster(EasyMock.anyObject(ClusterRequest.class))).andReturn(response).once();
+
+    // replay
+    replay(managementController, response);
+
+    Set<Map<String, Object>> propertySet = new LinkedHashSet<Map<String, Object>>();
+
+    Map<String, Object> properties = new LinkedHashMap<String, Object>();
+
+    properties.put(ClusterResourceProvider.CLUSTER_NAME_PROPERTY_ID, "Cluster100");
+    properties.put(PropertyHelper.getPropertyId("Clusters.desired_config", "type"), "global");
+    properties.put(PropertyHelper.getPropertyId("Clusters.desired_config", "tag"), "version1");
+    properties.put(PropertyHelper.getPropertyId("Clusters.desired_config.properties", "a"), "b");
+    properties.put(PropertyHelper.getPropertyId("Clusters.desired_config.properties", "x"), "y");
+
+    propertySet.add(properties);
+
+    // create the request
+    Request request = PropertyHelper.getUpdateRequest(properties);
+    
+    Predicate  predicate = new PredicateBuilder().property(
+        ClusterResourceProvider.CLUSTER_NAME_PROPERTY_ID).equals("Cluster100").toPredicate();
+    
+    ResourceProvider provider = AbstractResourceProvider.getResourceProvider(
+        Resource.Type.Cluster,
+        PropertyHelper.getPropertyIds(Resource.Type.Cluster),
+        PropertyHelper.getKeyPropertyIds(Resource.Type.Cluster),
+        managementController);
+    
+    provider.updateResources(request, predicate);
+
+    // verify
+    verify(managementController, response);
+
   }
 
   @Test

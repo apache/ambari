@@ -4,6 +4,7 @@
         "Clusters/cluster_name",
         "Clusters/version",
         "Clusters/state",
+        "Clusters/desired_config",
         "_"
     ],
     "Service":[

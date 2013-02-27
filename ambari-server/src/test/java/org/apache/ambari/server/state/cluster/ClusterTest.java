@@ -20,13 +20,15 @@ package org.apache.ambari.server.state.cluster;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import static org.mockito.Mockito.*;
 
 import javax.persistence.EntityManager;
 
@@ -49,6 +51,8 @@ import org.apache.ambari.server.orm.entities.ServiceDesiredStateEntity;
 import org.apache.ambari.server.state.AgentVersion;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
+import org.apache.ambari.server.state.Config;
+import org.apache.ambari.server.state.ConfigFactory;
 import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.HostState;
 import org.apache.ambari.server.state.Service;
@@ -82,6 +86,7 @@ public class ClusterTest {
   private ServiceComponentFactory serviceComponentFactory;
   private ServiceComponentHostFactory serviceComponentHostFactory;
   private AmbariMetaInfo metaInfo;
+  private ConfigFactory configFactory;
 
   @Before
   public void setup() throws Exception {
@@ -93,6 +98,7 @@ public class ClusterTest {
         ServiceComponentFactory.class);
     serviceComponentHostFactory = injector.getInstance(
         ServiceComponentHostFactory.class);
+    configFactory = injector.getInstance(ConfigFactory.class);
     metaInfo = injector.getInstance(AmbariMetaInfo.class);
     metaInfo.init();
     clusters.addCluster("c1");
@@ -286,10 +292,33 @@ public class ClusterTest {
 
   @Test
   public void testGetAndSetConfigs() {
-    // FIXME write unit tests
-    // public Map<String, Config> getConfigsByType(String configType);
-    // public Config getConfig(String configType, String versionTag);
-    // public void addConfig(Config config);
+    Config config1 = configFactory.createNew(c1, "global",
+        new HashMap<String, String>() {{ put("a", "b"); }});
+    config1.setVersionTag("version1");
+    
+    Config config2 = configFactory.createNew(c1, "global",
+        new HashMap<String, String>() {{ put("x", "y"); }});
+    config2.setVersionTag("version2");
+    
+    Config config3 = configFactory.createNew(c1, "core-site",
+        new HashMap<String, String>() {{ put("x", "y"); }});
+    config3.setVersionTag("version2");    
+    
+    c1.addConfig(config1);
+    c1.addConfig(config2);
+    c1.addConfig(config3);
+    
+    c1.addDesiredConfig(config1);
+    Config res = c1.getDesiredConfigByType("global");
+    Assert.assertNotNull("Expected non-null config", res);
+    
+    res = c1.getDesiredConfigByType("core-site");
+    Assert.assertNull("Expected null config", res);
+    
+    c1.addDesiredConfig(config2);
+    res = c1.getDesiredConfigByType("global");
+    Assert.assertEquals("Expected version tag to be 'version2'", "version2", res.getVersionTag());
+    
   }
   
   public ClusterEntity createDummyData() {

@@ -286,7 +286,7 @@ public class ServiceComponentImpl implements ServiceComponent {
   public synchronized Map<String, Config> getDesiredConfigs() {
     Map<String, Config> map = new HashMap<String, Config>();
     for (Entry<String, String> entry : desiredConfigs.entrySet()) {
-      Config config = service.getCluster().getDesiredConfig(entry.getKey(), entry.getValue());
+      Config config = service.getCluster().getConfig(entry.getKey(), entry.getValue());
       if (null != config) {
         map.put(entry.getKey(), config);
       }

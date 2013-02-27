@@ -19,11 +19,29 @@
 package org.apache.ambari.server.controller;
 
 import java.net.InetAddress;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
+import java.util.TreeMap;
 
-import com.google.inject.persist.Transactional;
-import org.apache.ambari.server.*;
+import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.ClusterNotFoundException;
+import org.apache.ambari.server.DuplicateResourceException;
+import org.apache.ambari.server.HostNotFoundException;
+import org.apache.ambari.server.ObjectNotFoundException;
+import org.apache.ambari.server.ParentObjectNotFoundException;
+import org.apache.ambari.server.Role;
+import org.apache.ambari.server.RoleCommand;
+import org.apache.ambari.server.ServiceComponentHostNotFoundException;
+import org.apache.ambari.server.ServiceComponentNotFoundException;
+import org.apache.ambari.server.ServiceNotFoundException;
+import org.apache.ambari.server.StackNotFoundException;
 import org.apache.ambari.server.actionmanager.ActionManager;
 import org.apache.ambari.server.actionmanager.HostRoleCommand;
 import org.apache.ambari.server.actionmanager.RequestStatus;
@@ -836,7 +854,7 @@ public class AmbariManagementControllerImpl implements
     if (null == request.getClusterName() || request.getClusterName().isEmpty()
         || null == request.getType() || request.getType().isEmpty()
         || null == request.getVersionTag() || request.getVersionTag().isEmpty()
-        || null == request.getConfigs() || request.getConfigs().isEmpty()) {
+        || null == request.getProperties() || request.getProperties().isEmpty()) {
       throw new IllegalArgumentException("Invalid Arguments,"
           + " clustername, config type, config version and configs should not"
           + " be null or empty");
@@ -844,7 +862,7 @@ public class AmbariManagementControllerImpl implements
 
     Cluster cluster = clusters.getCluster(request.getClusterName());
 
-    Map<String, Config> configs = cluster.getDesiredConfigsByType(
+    Map<String, Config> configs = cluster.getConfigsByType(
         request.getType());
     if (null == configs) {
       configs = new HashMap<String, Config>();
@@ -857,12 +875,12 @@ public class AmbariManagementControllerImpl implements
     }
 
     config = configFactory.createNew (cluster, request.getType(),
-        request.getConfigs());
+        request.getProperties());
     config.setVersionTag(request.getVersionTag());
 
     config.persist();
 
-    cluster.addDesiredConfig(config);
+    cluster.addConfig(config);
   }
 
   @Override
@@ -1328,7 +1346,7 @@ public class AmbariManagementControllerImpl implements
 
     // !!! if only one, then we need full properties
     if (null != request.getType() && null != request.getVersionTag()) {
-      Config config = cluster.getDesiredConfig(request.getType(),
+      Config config = cluster.getConfig(request.getType(),
           request.getVersionTag());
       if (null != config) {
         ConfigurationResponse response = new ConfigurationResponse(
@@ -1339,7 +1357,7 @@ public class AmbariManagementControllerImpl implements
     }
     else {
       if (null != request.getType()) {
-        Map<String, Config> configs = cluster.getDesiredConfigsByType(
+        Map<String, Config> configs = cluster.getConfigsByType(
             request.getType());
 
         if (null != configs) {
@@ -1386,14 +1404,32 @@ public class AmbariManagementControllerImpl implements
     }
 
     final Cluster c = clusters.getCluster(request.getClusterName());
-    clusters.mapHostsToCluster(request.getHostNames(),
-        request.getClusterName());
+    if (null != request.getHostNames()) {
+      clusters.mapHostsToCluster(request.getHostNames(),
+          request.getClusterName());
+    }
 
     if (!request.getStackVersion().equals(
         c.getDesiredStackVersion().getStackId())) {
       throw new IllegalArgumentException("Update of desired stack version"
           + " not supported");
     }
+    
+    // set or create configuration mapping (and optionally create the map of properties)
+    if (null != request.getDesiredConfig()) {
+      ConfigurationRequest cr = request.getDesiredConfig();
+      
+      if (null != cr.getProperties() && cr.getProperties().size() > 0) {
+        cr.setClusterName(c.getClusterName());
+        createConfiguration(cr);
+      }
+      
+      Config baseConfig = c.getConfig(cr.getType(), cr.getVersionTag());
+      if (null != baseConfig)
+        c.addDesiredConfig(baseConfig);
+      
+    }
+    
 
     return null;
   }
@@ -1948,7 +1984,7 @@ public class AmbariManagementControllerImpl implements
                 + ", configType=" + entry.getKey()
                 + ", configTag=" + entry.getValue());
           }
-          Config config = cluster.getDesiredConfig(
+          Config config = cluster.getConfig(
               entry.getKey(), entry.getValue());
           if (null == config) {
             // throw error for invalid config
@@ -2105,7 +2141,7 @@ public class AmbariManagementControllerImpl implements
         Map<String, Config> updated = new HashMap<String, Config>();
 
         for (Entry<String,String> entry : request.getConfigVersions().entrySet()) {
-          Config config = cluster.getDesiredConfig(entry.getKey(), entry.getValue());
+          Config config = cluster.getConfig(entry.getKey(), entry.getValue());
           updated.put(config.getType(), config);
         }
 
@@ -2243,7 +2279,7 @@ public class AmbariManagementControllerImpl implements
 
         for (Entry<String,String> entry :
             request.getConfigVersions().entrySet()) {
-          Config config = cluster.getDesiredConfig(
+          Config config = cluster.getConfig(
               entry.getKey(), entry.getValue());
           if (null == config) {
             // throw error for invalid config
@@ -2374,7 +2410,7 @@ public class AmbariManagementControllerImpl implements
 
         for (Entry<String,String> entry :
           request.getConfigVersions().entrySet()) {
-          Config config = cluster.getDesiredConfig(
+          Config config = cluster.getConfig(
               entry.getKey(), entry.getValue());
           updated.put(config.getType(), config);
         }
@@ -2563,7 +2599,7 @@ public class AmbariManagementControllerImpl implements
 
         for (Entry<String,String> entry :
             request.getConfigVersions().entrySet()) {
-          Config config = cluster.getDesiredConfig(
+          Config config = cluster.getConfig(
               entry.getKey(), entry.getValue());
           if (null == config) {
             throw new AmbariException("Trying to update servicecomponenthost"
@@ -2664,7 +2700,7 @@ public class AmbariManagementControllerImpl implements
         Map<String, Config> updated = new HashMap<String, Config>();
 
         for (Entry<String,String> entry : request.getConfigVersions().entrySet()) {
-          Config config = cluster.getDesiredConfig(
+          Config config = cluster.getConfig(
               entry.getKey(), entry.getValue());
           updated.put(config.getType(), config);
 
@@ -3202,7 +3238,7 @@ public class AmbariManagementControllerImpl implements
           + " when decommissioning datanodes");
     }
 
-    Config config = clusters.getCluster(clusterName).getDesiredConfig(
+    Config config = clusters.getCluster(clusterName).getConfig(
         "hdfs-exclude-file", excludeFileTag);
 
     Map<String, Map<String, String>> configurations =

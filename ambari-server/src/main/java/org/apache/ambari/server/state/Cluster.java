@@ -79,7 +79,8 @@ public interface Cluster {
    * @param stackVersion
    */
   public void setDesiredStackVersion(StackId stackVersion);
-
+  
+  
   /**
    * Get current stack version
    * @return
@@ -93,31 +94,51 @@ public interface Cluster {
   public void setCurrentStackVersion(StackId stackVersion) throws AmbariException;
 
   /**
-   * Get desired config based on the given config type name
-   * @param configType
-   * @return
+   * Gets all configs that match the specified type.  Result is not the
+   * DESIRED configuration for a cluster.
+   * @param configType  the config type to return
+   * @return  a map of configuration objects that have been set for the given type 
    */
-  public Map<String, Config> getDesiredConfigsByType(String configType);
+  public Map<String, Config> getConfigsByType(String configType);
 
   /**
-   * Get the desired config of given type and version
-   * @param configType
-   * @param versionTag
-   * @return
+   * Gets the specific config that matches the specified type and tag.  This not
+   * necessarily a DESIRED configuration that applies to a cluster.
+   * @param configType  the config type to find
+   * @param versionTag  the config version to find
+   * @return  a {@link Config} object, or <code>null</code> if the specific type
+   *          and version have not been set.
    */
-  public Config getDesiredConfig(String configType, String versionTag);
+  public Config getConfig(String configType, String versionTag);
 
   /**
-   * Add the desired config for the cluster
-   * @param config
+   * Sets a specific config.  NOTE:  This is not a DESIRED configuration that
+   * applies to a cluster.
+   * @param config  the config instance to add
    */
-  public void addDesiredConfig(Config config);
+  public void addConfig(Config config);
 
   /**
-   * Get all configs associated with the cluster
-   * @return
+   * Gets all configurations defined for a cluster.
+   * @return  the collection of all configs that have been defined.
    */
   public Collection<Config> getAllConfigs();
+  
+  /**
+   * Adds and sets a DESIRED configuration to be applied to a cluster.  There
+   * can be only one selected config per type.
+   * @param config  the {@link Config} object to set as desired
+   */
+  public void addDesiredConfig(Config config);
+  
+  /**
+   * Gets the desired (and selected) config by type.
+   * @param configType  the type of configuration
+   * @return  the {@link Config} instance, or <code>null</code> if the type has
+   * not been set.
+   */
+  public Config getDesiredConfigByType(String configType);
+  
 
   /**
    * Creates a cluster response based on the current cluster definition

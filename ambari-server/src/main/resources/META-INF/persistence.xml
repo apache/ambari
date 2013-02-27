@@ -35,6 +35,7 @@
     <class>org.apache.ambari.server.orm.entities.RoleSuccessCriteriaEntity</class>
     <class>org.apache.ambari.server.orm.entities.StageEntity</class>
     <class>org.apache.ambari.server.orm.entities.KeyValueEntity</class>
+    <class>org.apache.ambari.server.orm.entities.ClusterConfigMappingEntity</class>
 
     <properties>
       <property name="javax.persistence.jdbc.url" value="jdbc:postgresql://localhost/ambari" />
@@ -66,7 +67,7 @@
     <class>org.apache.ambari.server.orm.entities.RoleSuccessCriteriaEntity</class>
     <class>org.apache.ambari.server.orm.entities.StageEntity</class>
     <class>org.apache.ambari.server.orm.entities.KeyValueEntity</class>
-
+    <class>org.apache.ambari.server.orm.entities.ClusterConfigMappingEntity</class>
 
     <properties>
       <property name="javax.persistence.jdbc.url" value="jdbc:derby:memory:myDB;create=true" />

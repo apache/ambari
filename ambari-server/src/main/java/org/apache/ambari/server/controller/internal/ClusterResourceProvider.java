@@ -17,10 +17,18 @@
  */
 package org.apache.ambari.server.controller.internal;
 
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
+
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.ClusterRequest;
 import org.apache.ambari.server.controller.ClusterResponse;
+import org.apache.ambari.server.controller.ConfigurationRequest;
 import org.apache.ambari.server.controller.RequestStatusResponse;
 import org.apache.ambari.server.controller.spi.NoSuchParentResourceException;
 import org.apache.ambari.server.controller.spi.NoSuchResourceException;
@@ -33,12 +41,6 @@ import org.apache.ambari.server.controller.spi.SystemException;
 import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
 import org.apache.ambari.server.controller.utilities.PredicateHelper;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
-
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
 
 /**
  * Resource provider for cluster resources.
@@ -137,6 +139,7 @@ class ClusterResourceProvider extends AbstractResourceProvider {
   public RequestStatus updateResources(Request request, Predicate predicate)
       throws SystemException, UnsupportedPropertyException, NoSuchResourceException, NoSuchParentResourceException {
 
+    
     for (Map<String, Object> propertyMap : getPropertyMaps(request.getProperties().iterator().next(), predicate)) {
       final ClusterRequest clusterRequest = getRequest(propertyMap);
 
@@ -184,10 +187,43 @@ class ClusterResourceProvider extends AbstractResourceProvider {
    * @return the cluster request object
    */
   private ClusterRequest getRequest(Map<String, Object> properties) {
-    return new ClusterRequest(
+    ClusterRequest cr = new ClusterRequest(
         (Long) properties.get(CLUSTER_ID_PROPERTY_ID),
         (String) properties.get(CLUSTER_NAME_PROPERTY_ID),
         (String) properties.get(CLUSTER_VERSION_PROPERTY_ID),
         null);
+    
+    // as a convenience, allow consumers to specify name/value overrides in this
+    // call instead of forcing a cluster call to do that work
+    for (Entry<String, Object> entry : properties.entrySet()) {
+      String absCategory = PropertyHelper.getPropertyCategory(entry.getKey());
+      String propName = PropertyHelper.getPropertyName(entry.getKey());
+      
+      if (absCategory.startsWith("Clusters.desired_config")) {
+        ConfigurationRequest config = (null == cr.getDesiredConfig()) ? new ConfigurationRequest() : cr.getDesiredConfig();
+        cr.setDesiredConfig(config);
+        
+        if (propName.equals ("type"))
+          config.setType(entry.getValue().toString());
+        else if (propName.equals ("tag"))
+          config.setVersionTag(entry.getValue().toString());
+        else if (absCategory.endsWith(".properties")) {
+          config.getProperties().put(propName, entry.getValue().toString());
+        }
+        
+      }
+    }
+    
+    return cr;
+  }
+  
+  /**
+   * {@inheritDoc}  Overridden to support configuration.
+   */
+  @Override
+  public Set<String> checkPropertyIds(Set<String> propertyIds) {
+    Set<String> baseUnsupported = super.checkPropertyIds(propertyIds);
+    
+    return checkConfigPropertyIds(baseUnsupported, "Clusters");
   }
 }

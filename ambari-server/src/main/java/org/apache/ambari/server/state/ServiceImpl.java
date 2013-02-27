@@ -239,7 +239,7 @@ public class ServiceImpl implements Service {
   public synchronized Map<String, Config> getDesiredConfigs() {
     Map<String, Config> map = new HashMap<String, Config>();
     for (Entry<String, String> entry : desiredConfigs.entrySet()) {
-      Config config = cluster.getDesiredConfig(entry.getKey(), entry.getValue());
+      Config config = cluster.getConfig(entry.getKey(), entry.getValue());
       if (null != config) {
         map.put(entry.getKey(), config);
       } else {

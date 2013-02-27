@@ -177,4 +177,16 @@ public class ClusterEntity {
   public void setClusterConfigEntities(Collection<ClusterConfigEntity> entities) {
     configEntities = entities;
   }
+  
+  private Collection<ClusterConfigMappingEntity> configMappingEntities;
+  @OneToMany(mappedBy = "clusterEntity", cascade = CascadeType.ALL)
+  public Collection<ClusterConfigMappingEntity> getConfigMappingEntities() {
+    return configMappingEntities;
+  }
+  
+  public void setConfigMappingEntities(Collection<ClusterConfigMappingEntity> entities) {
+    configMappingEntities = entities;
+  }
+  
+
 }

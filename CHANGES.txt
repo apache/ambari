@@ -67,6 +67,8 @@ Trunk (unreleased changes):
 
  IMPROVEMENTS
 
+ AMBARI-1502. Add the ability to assign configuration to a cluster. (Nate Cole via tbeerbower)
+
  AMBARI-1505. Hosts page: add filtering by host status. (yusaku)
 
  AMBARI-1496. Make all service properties reconfigurable. (jaimin)
