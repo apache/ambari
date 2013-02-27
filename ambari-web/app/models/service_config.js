@@ -40,7 +40,10 @@ App.ServiceConfig = Ember.Object.extend({
 
 App.ServiceConfigCategory = Ember.Object.extend({
   name: null,
-
+  /**
+   *  We cant have spaces in the name as this is being used as HTML element id while rendering. Hence we introduced 'displayName' where we can have spaces like 'Secondary Name Node' etc.
+   */
+  displayName: null,
   slaveConfigs: null,
   primaryName: function () {
     switch (this.get('name')) {
@@ -76,7 +79,12 @@ App.ServiceConfigCategory = Ember.Object.extend({
       }, this);
     }
     return length;
-  }.property('slaveConfigs.groups.@each.errorCount')
+  }.property('slaveConfigs.groups.@each.errorCount'),
+  
+  isAdvanced : function(){
+    var name = this.get('name');
+    return name.indexOf("Advanced") !== -1 ;
+  }.property('name')
 });
 
 
@@ -118,7 +126,23 @@ App.ServiceConfigProperty = Ember.Object.extend({
   errorMessage: '',
   serviceConfig: null, // points to the parent App.ServiceConfig object
   filename: '',
-
+  isOriginalSCP : true, // if true, then this is original SCP instance and its value is not overridden value.
+  parentSCP: null, // This is the main SCP which is overridden by this. Set only when isOriginalSCP is false. 
+  selectedHostOptions : null, // contain array of hosts configured with overridden value
+  overrides : null,
+  /**
+   * No override capabilities for fields which are not edtiable
+   * and fields which represent master hosts.
+   */
+  isOverridable : function() {
+  	var editable = this.get('isEditable');
+  	var dt = this.get('displayType');
+  	return editable && ("masterHost"!=dt);
+  }.property('isEditable', 'displayType'),
+  isOverridden: function() {
+    var overrides = this.get('overrides');
+    return overrides != null;
+  }.property('overrides'),
   init: function () {
     if (this.get('id') === 'puppet var') {
       this.set('value', this.get('defaultValue'));
@@ -396,6 +420,35 @@ App.ServiceConfigProperty = Ember.Object.extend({
           }
       }
     }
+
+    if (!isError) {
+      // Check if this value is already in any of the overrides
+      var self = this;
+      var isOriginalSCP = this.get('isOriginalSCP');
+      var parentSCP = this.get('parentSCP');
+      if (!isOriginalSCP) {
+        var hosts = this.get('selectedHostOptions');
+        if(hosts==null || hosts.get('length')<1){
+          this.set('errorMessage', 'Select hosts to apply exception to');
+          isError = true;
+        }
+        if (!isError && parentSCP != null) {
+          if (value === parentSCP.get('value')) {
+            this.set('errorMessage', 'Host exceptions must have different value');
+            isError = true;
+          } else {
+            var overrides = parentSCP.get('overrides');
+            overrides.forEach(function (override) {
+              if (self != override && value === override.get('value')) {
+                self.set('errorMessage', 'Multiple host exceptions cannot have same value');
+                isError = true;
+              }
+            });
+          }
+        }
+      }
+    }
+    
     if (!isError) {
       this.set('errorMessage', '');
     }
@@ -403,3 +456,7 @@ App.ServiceConfigProperty = Ember.Object.extend({
 
 });
 
+App.ServiceConfigProperty.SelectListItem = Ember.Object.extend({
+  value :null,
+  label : null
+});

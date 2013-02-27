@@ -76,7 +76,7 @@ App.WizardStep7Controller = Em.Controller.extend({
     var serviceConfigs = this.get('serviceConfigs');
     var advancedConfig = this.get('content.advancedServiceConfig') || [];
     this.loadAdvancedConfig(serviceConfigs, advancedConfig);
-    this.loadCustomConfig();
+    //////this.loadCustomConfig();
     this.renderServiceConfigs(serviceConfigs);
     var storedServices = this.get('content.serviceConfigProperties');
     if (storedServices) {
@@ -112,17 +112,21 @@ App.WizardStep7Controller = Em.Controller.extend({
           if (this.get('configMapping').someProperty('name', _config.name)) {
           } else if (!(service.configs.someProperty('name', _config.name))) {
             _config.id = "site property";
-            _config.category = 'Advanced';
+            // ////_config.category = 'Advanced';
+            if (_config.filename === "core-site.xml")
+              _config.category = 'AdvancedCoreSite';
+            else if (_config.filename === "hdfs-site.xml")
+              _config.category = 'AdvancedHDFSSite';
+            else if (_config.filename === "mapred-site.xml")
+              _config.category = 'AdvancedMapredSite';
             _config.displayName = _config.name;
             _config.defaultValue = _config.value;
             // make all advanced configs optional and populated by default
             /*
-             if (/\${.*}/.test(_config.value) || (service.serviceName !== 'OOZIE' && service.serviceName !== 'HBASE')) {
-             _config.isRequired = false;
-             _config.value = '';
-             } else if (/^\s+$/.test(_config.value)) {
-             _config.isRequired = false;
-             }
+             * if (/\${.*}/.test(_config.value) || (service.serviceName !==
+             * 'OOZIE' && service.serviceName !== 'HBASE')) { _config.isRequired =
+             * false; _config.value = ''; } else if
+             * (/^\s+$/.test(_config.value)) { _config.isRequired = false; }
              */
             _config.isRequired = false;
             _config.isVisible = true;
@@ -376,6 +380,91 @@ App.WizardStep7Controller = Em.Controller.extend({
        }
        */
     }
-  }
+  }, 
+  
+  /**
+   * Provides service component name and display-name information for 
+   * the current selected service. 
+   */
+  getCurrentServiceComponents: function () {
+    var selectedServiceName = this.get('selectedService.serviceName');
+    var masterComponents = this.get('content.masterComponentHosts');
+    var slaveComponents = this.get('content.slaveComponentHosts');
+    var scMaps = require('data/service_components');
+    
+    var validComponents = Ember.A([]);
+    var seenComponents = {};
+    masterComponents.forEach(function(component){
+      var cn = component.component
+      var cdn = component.display_name;
+      if(component.serviceId===selectedServiceName && !seenComponents[cn]){
+        validComponents.pushObject(Ember.Object.create({
+          componentName: cn,
+          displayName: cdn,
+          selected: false
+        }));
+        seenComponents[cn] = cn;
+      }
+    });
+    slaveComponents.forEach(function(component){
+      var cn = component.componentName
+      var cdn = component.displayName;
+      var componentDef = scMaps.findProperty('component_name', cn);
+      if(componentDef!=null && selectedServiceName===componentDef.service_name && !seenComponents[cn]){
+        validComponents.pushObject(Ember.Object.create({
+          componentName: cn,
+          displayName: cdn,
+          selected: false
+        }));
+        seenComponents[cn] = cn;
+      }
+    });
+    return validComponents;
+  }.property('content'),
+  
+
+  getAllHosts: function () {
+    // Load hosts
+    var allHosts = Ember.A([]);
+    var hostNameToHostMap = {};
+    var hosts = this.get('content.hosts');
+    for ( var hostName in hosts) {
+      var host = hosts[hostName];
+      hostNameToHostMap[hostName] = App.Host.createRecord({
+        hostName: host.name,
+        publicHostName: host.name,
+        cpu: host.cpu,
+        memory: host.memory
+      });
+      allHosts.pushObject(hostNameToHostMap[hostName]);
+    }
+
+    // Load host-components
+    var masterComponents = this.get('content.masterComponentHosts');
+    var slaveComponents = this.get('content.slaveComponentHosts');
+    masterComponents.forEach(function (component) {
+      var host = hostNameToHostMap[component.hostName];
+      var hc = App.HostComponent.createRecord({
+        componentName: component.component,
+        host: host
+      });
+      if (host != null) {
+        host.get('hostComponents').pushObject(hc);
+      }
+    });
+    slaveComponents.forEach(function (component) {
+      component.hosts.forEach(function (host) {
+        var h = hostNameToHostMap[host.hostName];
+        var hc = App.HostComponent.createRecord({
+          componentName: component.componentName,
+          host: h
+        });
+        if (h != null) {
+          h.get('hostComponents').pushObject(hc);
+        }
+      });
+    });
+    return allHosts;
+  }.property('content')
 
 });

@@ -31,7 +31,7 @@
   }, {
     "name" : "oozie.service.ConfigurationService.ignore.system.properties",
     "value" : "\n      oozie.service.AuthorizationService.security.enabled\n    ",
-    "description" : "\n      Specifies \"oozie.*\" properties to cannot be overriden via Java system properties.\n      Property names must be separted by commas.\n    ",
+    "description" : "\n      Specifies \"oozie.*\" properties to cannot be overridden via Java system properties.\n      Property names must be separted by commas.\n    ",
     "filename" : "oozie-site.xml"
   }, {
     "name" : "oozie.service.SchedulerService.threads",

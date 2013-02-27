@@ -12,6 +12,9 @@ Trunk (unreleased changes):
 
  NEW FEATURES
 
+ AMBARI-1509. Frontend: For service configurations provide ability to 
+ enter host level exceptions (srimanth)
+
  AMBARI-1508. Introduce a new section "Capacity scheduler" under MapReduce
  Service in step7 (Configure services) of Installer and Service 
  Reconfig. (jaimin)

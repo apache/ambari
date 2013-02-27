@@ -27,11 +27,13 @@ module.exports = [
     displayName: 'HDFS',
     filename: 'hdfs-site',
     configCategories: [
-      App.ServiceConfigCategory.create({ name: 'NameNode'}),
-      App.ServiceConfigCategory.create({ name: 'SNameNode'}),
-      App.ServiceConfigCategory.create({ name: 'DataNode'}),
-      App.ServiceConfigCategory.create({ name: 'General'}),
-      App.ServiceConfigCategory.create({ name: 'Advanced'})
+      App.ServiceConfigCategory.create({ name: 'NameNode', displayName : 'NameNode'}),
+      App.ServiceConfigCategory.create({ name: 'SNameNode', displayName : 'Secondary Name Node'}),
+      App.ServiceConfigCategory.create({ name: 'DataNode', displayName : 'DataNode'}),
+      App.ServiceConfigCategory.create({ name: 'General', displayName : 'General'}),
+      App.ServiceConfigCategory.create({ name: 'Advanced', displayName : 'Advanced'}),
+      App.ServiceConfigCategory.create({ name: 'AdvancedCoreSite', displayName : 'Advanced Core Site'}),
+      App.ServiceConfigCategory.create({ name: 'AdvancedHDFSSite', displayName : 'Advanced HDFS Site'})
     ],
     configs: configProperties.filterProperty('serviceName', 'HDFS')
   },
@@ -41,11 +43,12 @@ module.exports = [
     displayName: 'MapReduce',
     filename: 'mapred-site',
     configCategories: [
-      App.ServiceConfigCategory.create({ name: 'JobTracker'}),
-      App.ServiceConfigCategory.create({ name: 'TaskTracker'}),
-      App.ServiceConfigCategory.create({ name: 'General'}),
-      App.ServiceConfigCategory.create({ name: 'Capacity Scheduler'}),
-      App.ServiceConfigCategory.create({ name: 'Advanced'})
+      App.ServiceConfigCategory.create({ name: 'JobTracker', displayName : 'JobTracker'}),
+      App.ServiceConfigCategory.create({ name: 'TaskTracker', displayName : 'TaskTracker'}),
+      App.ServiceConfigCategory.create({ name: 'General', displayName : 'General'}),
+      App.ServiceConfigCategory.create({ name: 'Advanced', displayName : 'Advanced'}),
+      App.ServiceConfigCategory.create({ name: 'Capacity Scheduler', displayName : 'Capacity Scheduler'}),
+      App.ServiceConfigCategory.create({ name: 'AdvancedMapredSite', displayName : 'Advanced MapReduce Site'})
     ],
     configs: configProperties.filterProperty('serviceName', 'MAPREDUCE')
   },
@@ -55,8 +58,8 @@ module.exports = [
     displayName: 'Hive/HCat',
     filename: 'hive-site',
     configCategories: [
-      App.ServiceConfigCategory.create({ name: 'Hive Metastore'}),
-      App.ServiceConfigCategory.create({ name: 'Advanced'})
+      App.ServiceConfigCategory.create({ name: 'Hive Metastore', displayName : 'Hive Metastore'}),
+      App.ServiceConfigCategory.create({ name: 'Advanced', displayName : 'Advanced'})
     ],
     configs: configProperties.filterProperty('serviceName', 'HIVE')
   },
@@ -66,7 +69,7 @@ module.exports = [
     displayName: 'WebHCat',
     filename: 'webhcat-site',
     configCategories: [
-      App.ServiceConfigCategory.create({ name: 'Advanced'})
+      App.ServiceConfigCategory.create({ name: 'Advanced', displayName : 'Advanced'})
     ],
     configs: configProperties.filterProperty('serviceName', 'WEBHCAT')
   },
@@ -76,10 +79,10 @@ module.exports = [
     displayName: 'HBase',
     filename: 'hbase-site',
     configCategories: [
-      App.ServiceConfigCategory.create({ name: 'HBase Master'}),
-      App.ServiceConfigCategory.create({ name: 'RegionServer'}),
-      App.ServiceConfigCategory.create({ name: 'General'}),
-      App.ServiceConfigCategory.create({ name: 'Advanced'})
+      App.ServiceConfigCategory.create({ name: 'HBase Master', displayName : 'HBase Master'}),
+      App.ServiceConfigCategory.create({ name: 'RegionServer', displayName : 'RegionServer'}),
+      App.ServiceConfigCategory.create({ name: 'General', displayName : 'General'}),
+      App.ServiceConfigCategory.create({ name: 'Advanced', displayName : 'Advanced'})
     ],
     configs: configProperties.filterProperty('serviceName', 'HBASE')
   },
@@ -88,8 +91,8 @@ module.exports = [
     serviceName: 'ZOOKEEPER',
     displayName: 'ZooKeeper',
     configCategories: [
-      App.ServiceConfigCategory.create({ name: 'ZooKeeper Server'}),
-      App.ServiceConfigCategory.create({ name: 'Advanced'})
+      App.ServiceConfigCategory.create({ name: 'ZooKeeper Server', displayName : 'ZooKeeper Server'}),
+      App.ServiceConfigCategory.create({ name: 'Advanced', displayName : 'Advanced'})
     ],
     configs: configProperties.filterProperty('serviceName', 'ZOOKEEPER')
   },
@@ -99,8 +102,8 @@ module.exports = [
     displayName: 'Oozie',
     filename: 'oozie-site',
     configCategories: [
-      App.ServiceConfigCategory.create({ name: 'Oozie Server'}),
-      App.ServiceConfigCategory.create({ name: 'Advanced'})
+      App.ServiceConfigCategory.create({ name: 'Oozie Server', displayName : 'Oozie Server'}),
+      App.ServiceConfigCategory.create({ name: 'Advanced', displayName : 'Advanced'})
     ],
     configs: configProperties.filterProperty('serviceName', 'OOZIE')
   },
@@ -109,7 +112,7 @@ module.exports = [
     serviceName: 'NAGIOS',
     displayName: 'Nagios',
     configCategories: [
-      App.ServiceConfigCategory.create({ name: 'General'})
+      App.ServiceConfigCategory.create({ name: 'General', displayName : 'General'})
     ],
     configs: configProperties.filterProperty('serviceName', 'NAGIOS')
   },
@@ -119,7 +122,7 @@ module.exports = [
     displayName: 'Misc',
     configCategories: [
       App.ServiceConfigCategory.create({ name: 'General'}),
-      App.ServiceConfigCategory.create({ name: 'Users and Groups'})
+      App.ServiceConfigCategory.create({ name: 'Users and Groups', displayName : 'Users and Groups'})
     ],
     configs: configProperties.filterProperty('serviceName', 'MISC')
   }

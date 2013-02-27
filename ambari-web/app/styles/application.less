@@ -442,11 +442,58 @@ h1 {
     .control-label {
       text-align: left;
     }
-    .control-group {
+    .entry-row {
       margin: 10px 0;
+      .control-label-span{
+        width: auto !important;
+      }
+      .action{
+        margin-left: 7px;
+        margin-right: 3px;
+      }
+      .control-group {
+        margin: 0px;
+        .overrideField {
+          display: block;
+          margin-top: 5px;
+          margin-bottom: 5px;
+        }
+        .error {
+        }
+      }
     }
     form {
       margin-bottom: 0;
+    }
+  }
+  .accordion-group.AdvancedCoreSite {
+    .control-label {
+      float: none;
+      text-align: left;
+      width: auto;
+    }
+    .controls {
+      margin-left: 0;
+    }
+  }
+  .accordion-group.AdvancedHDFSSite {
+    .control-label {
+      float: none;
+      text-align: left;
+      width: auto;
+    }
+    .controls {
+      margin-left: 0;
+    }
+  }
+  .accordion-group.AdvancedMapredSite {
+    .control-label {
+      float: none;
+      text-align: left;
+      width: auto;
+    }
+    .controls {
+      margin-left: 0;
     }
   }
   .accordion-group.Advanced {
@@ -505,6 +552,19 @@ h1 {
   #slave-hosts-popup {
     ul {
       list-style-type: none;
+    }
+  }
+  .common-config-category {
+    .action {
+      cursor: pointer;
+      .icon-plus-sign {
+        color: #5AB400;
+        margin-right: 2px;
+      }
+      .icon-minus-sign {
+        color: #FF4B4B;
+        margin-right: 2px;
+      }
     }
   }
 }
@@ -614,6 +674,54 @@ a:focus {
 
   .modal-body {
     max-height: 403px;
+    .form-horizontal{
+      .each-row{
+        margin-top: 10px;
+      }
+      .each-row.control-label{
+        float:left;
+        clear:both;
+      }
+      .override-controls{
+        .input-append{
+          input{
+            -webkit-border-radius: 4px 0 0 4px;
+            -moz-border-radius: 4px 0 0 4px;
+            border-radius: 4px 0 0 4px;
+          }
+          .btn-group{
+            display: inline-block;
+            margin-left: -1px;
+            .btn{
+              -webkit-border-radius: 0 4px 4px 0;
+              -moz-border-radius: 0 4px 4px 0;
+              border-radius: 0 4px 4px 0;
+            }
+          }
+        }
+        .hosts-table-container{
+          width:100%;
+          height: 280px;
+          overflow: auto;
+          border: 1px solid #eee;
+        }
+        table{
+          th {
+            background-color: #d9edf7;
+          }
+          margin: 0 auto;
+        }
+        .message{
+          color: #777;
+        }
+      }
+      .control-label{
+         width:auto;
+      }
+      .overrideSelectBox {
+        width:100%;
+      }
+    }
   }
 
   .clear {

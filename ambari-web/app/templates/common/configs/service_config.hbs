@@ -18,7 +18,7 @@
 
 <div class="accordion">
   {{#each category in selectedService.configCategories}}
-    <div class="accordion-group {{unbound category.name}}">
+    <div class="accordion-group {{unbound category.name}} common-config-category">
       <div class="accordion-heading" {{action "onToggleBlock" category target="view"}}>
         {{#if category.isCollapsed}}
           <i class='icon-caret-right pull-left accordion-toggle'></i>
@@ -26,7 +26,7 @@
           <i class='icon-caret-down pull-left accordion-toggle'></i>
         {{/if}}
         <a class="accordion-toggle">
-          {{category.name}}
+          {{category.displayName}}
         </a>
       </div>
 
@@ -36,17 +36,33 @@
 
           {{#each view.categoryConfigs}}
             {{#if isVisible}}
-              <div {{bindAttr class="errorMessage:error: :control-group"}}>
-                <label class="control-label">{{displayName}}</label>
-
+              <div class="entry-row">
+                <span {{bindAttr class="errorMessage:error: :control-group :control-label-span"}}>
+                  <label class="control-label">{{displayName}}</label>
+                </span>
                 <div class="controls">
-                  {{view viewClass serviceConfigBinding="this" categoryConfigsBinding="view.categoryConfigs"}}
-                  <span class="help-inline">{{errorMessage}}</span>
+                  {{! Here serviceConfigBinding should ideally be serviceConfigPropertyBinding }}
+                  <div {{bindAttr class="errorMessage:error: :control-group"}}>
+                    {{view viewClass serviceConfigBinding="this" categoryConfigsBinding="view.categoryConfigs" }}
+                    {{#if isOverridable}}
+                      <a class="action" {{action "createOverrideProperty" this target="view" }} ><i class="icon-plus-sign"></i>Exception</a>
+                    {{/if}}
+                    <span class="help-inline">{{errorMessage}}</span>
+                  </div>
+                  {{#if this.isOverridden}}
+                    {{view App.ServiceConfigView.SCPOverriddenRowsView serviceConfigPropertyBinding="this"}}
+                  {{/if}}
                 </div>
               </div>
             {{/if}}
           {{/each}}
 
+          {{! For Advanced, Advanced Core Site, Advanced HDFS Site sections, show the 'Add Property' link.}}
+          {{# if category.isAdvanced }}
+            <div>
+              <a href="#" {{action "showAddPropertyWindow" this target="view" }} >Add Property...</a>
+            </div>
+          {{/if}}
         </form>
       {{/view}}
     </div>

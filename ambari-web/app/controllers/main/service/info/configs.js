@@ -261,7 +261,6 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
   getSitesConfigProperties: function (advancedConfig) {
     var serviceConfigs = [];
     var globalConfigs = [];
-    var localServiceConfigs = this.get('serviceConfigs').findProperty('serviceName', this.get('content.serviceName'));
 
     this.get('serviceConfigTags').forEach(function (_tag) {
       var properties = this.getSiteConfigProperties(_tag.siteName, _tag.tagName);
@@ -318,24 +317,23 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
           serviceConfigObj.options = this.get('configs').someProperty('name', index) ? this.get('configs').findProperty('name', index).options : null;
           globalConfigs.pushObject(serviceConfigObj);
         } else if (!this.get('configMapping').someProperty('name', index)) {
+          serviceConfigObj.id = 'site property';
+          serviceConfigObj.displayType = 'advanced';
+          serviceConfigObj.displayName = index;
+          serviceConfigObj.serviceName = this.get('content.serviceName');
           if (advancedConfig.someProperty('name', index)) {
-            serviceConfigObj.id = 'site property';
-            serviceConfigObj.serviceName = this.get('content.serviceName');
-            serviceConfigObj.category = 'Advanced';
-            serviceConfigObj.displayName = index;
-            serviceConfigObj.displayType = 'advanced';
             if (advancedConfig.findProperty('name', index).filename) {
               serviceConfigObj.filename = advancedConfig.findProperty('name', index).filename;
             }
-            serviceConfigs.pushObject(serviceConfigObj);
-          } else {
-            serviceConfigObj.id = 'conf-site';
-            serviceConfigObj.serviceName = this.get('content.serviceName');
-            this.get('customConfig').pushObject(serviceConfigObj);
           }
-
+          if (serviceConfigObj.filename === "core-site.xml")
+            serviceConfigObj.category = 'AdvancedCoreSite';
+          else if (serviceConfigObj.filename === "hdfs-site.xml")
+            serviceConfigObj.category = 'AdvancedHDFSSite';
+          else if (serviceConfigObj.filename === "mapred-site.xml")
+            serviceConfigObj.category = 'AdvancedMapredSite';
+          serviceConfigs.pushObject(serviceConfigObj);
         }
-
       }
     }, this);
     this.set('globalConfigs', globalConfigs);
@@ -1072,7 +1070,35 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
         globalConfigs.push(hbaseMasterHost);
         break;
     }
-  }
+  },
+  
+  /**
+   * Provides service component name and display-name information for 
+   * the current selected service. 
+   */
+  getCurrentServiceComponents: function () {
+    var service = this.get('content');
+    var components = service.get('hostComponents');
+    var validComponents = Ember.A([]);
+    var seenComponents = {};
+    components.forEach(function(component){
+      var cn = component.get('componentName');
+      var cdn = component.get('displayName');
+      if(!seenComponents[cn]){
+        validComponents.push(Ember.Object.create({
+          componentName: cn,
+          displayName: cdn,
+          selected: false
+        }));
+        seenComponents[cn] = cn;
+      }
+    });
+    return validComponents;
+  }.property('content'),
+  
+  getAllHosts: function () {
+    return App.router.get('mainHostController.content');
+  }.property('App.router.mainHostController.content')
 
 });
 
