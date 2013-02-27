@@ -73,6 +73,9 @@ App.HttpClient = Em.Object.create({
     var timeout = setTimeout(function () {
       if (xhr.readyState == 4) {
         if (xhr.status == 200) {
+          try {
+            App.store.commit();
+          } catch (err) {}
           mapper.map($.parseJSON(xhr.responseText));
           tmp_val.complete.call(self);
           xhr.abort();
