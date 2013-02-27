@@ -58,6 +58,8 @@ App.statusMapper = App.QuickDataMapper.create({
         }, this)
       }, this);
 
+      // console.profile("App.statusMapper.map() profile");
+
       var hostComponents = App.HostComponent.find();
 
       hostComponents.forEach(function(hostComponent) {
@@ -66,6 +68,8 @@ App.statusMapper = App.QuickDataMapper.create({
          hostComponent.set('workStatus', item.work_status);
         }
       });
+
+      // console.profileEnd();
 
       console.log('out status mapper.  Took ' + (new Date().getTime() - start) + 'ms');
     }

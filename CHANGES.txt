@@ -387,6 +387,9 @@ Trunk (unreleased changes):
 
  BUG FIXES
 
+ AMBARI-1519. Ambari Web goes back and forth between frozen and usable state
+ peridocially on a large cluster. (yusaku)
+
  AMBARI-1499. Add hosts is broken. (yusaku)
 
  AMBARI-1501. Nagios alerts do not update automatically. (yusaku)

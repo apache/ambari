@@ -35,24 +35,45 @@ App.Service = DS.Model.extend({
     return !(this.get('healthStatus') == 'green');
   }.property('healthStatus'),
 
-  healthStatus: function () {
+  // Instead of making healthStatus a computed property that listens on hostComponents.@each.workStatus,
+  // we are creating a separate observer _updateHealthStatus.  This is so that healthStatus is updated
+  // only once after the run loop.  This is because Ember invokes the computed property every time
+  // a property that it depends on changes.  For example, App.statusMapper's map function would invoke
+  // the computed property too many times and freezes the UI without this hack.
+  // See http://stackoverflow.com/questions/12467345/ember-js-collapsing-deferring-expensive-observers-or-computed-properties
+  healthStatus: '',
+
+  updateHealthStatus: function () {
+    // console.log('model:service.healthStatus ' + this.get('serviceName'));
     var components = this.get('hostComponents').filterProperty('isMaster', true);
     var isGreen = (this.get('serviceName') === 'HBASE' ?
       components.someProperty('workStatus', App.HostComponentStatus.started) :
       components.everyProperty('workStatus', App.HostComponentStatus.started)) ;
 
     if (isGreen) {
-      return 'green';
+      this.set('healthStatus', 'green');
     } else if (components.someProperty('workStatus', App.HostComponentStatus.starting)) {
-      return 'green-blinking';
+      this.set('healthStatus', 'green-blinking');
     } else if (components.someProperty('workStatus', App.HostComponentStatus.stopped)) {
-      return 'red';
+      this.set('healthStatus', 'red');
     } else {
-      return 'red-blinking';
+      this.set('healthStatus', 'red-blinking');
     }
-  }.property('hostComponents.@each.workStatus'),
+  },
 
-  isStopped: function () {
+  /**
+   * Every time when changes workStatus of any component we schedule recalculating values related from them
+   */
+  _updateHealthStatus: (function() {
+    Ember.run.once(this, 'updateHealthStatus');
+    Ember.run.once(this, 'updateIsStopped');
+    Ember.run.once(this, 'updateIsStarted');
+  }).observes('hostComponents.@each.workStatus'),
+
+  isStopped: false,
+  isStarted: false,
+
+  updateIsStopped: function () {
     var components = this.get('hostComponents');
     var flag = true;
     components.forEach(function (_component) {
@@ -60,13 +81,16 @@ App.Service = DS.Model.extend({
         flag = false;
       }
     }, this);
-    return flag;
-  }.property('hostComponents.@each.workStatus'),
+    this.set('isStopped', flag);
+  },
 
-  isStarted: function () {
+  updateIsStarted: function () {
     var components = this.get('hostComponents').filterProperty('isMaster', true);
-    return components.everyProperty('workStatus', App.HostComponentStatus.started);
-  }.property('hostComponents.@each.workStatus'),
+    this.set('isStarted',
+      components.everyProperty('workStatus', App.HostComponentStatus.started)
+    );
+  },
+
   isMaintained: function () {
     var maintainedServices = [
       "HDFS",
@@ -79,10 +103,9 @@ App.Service = DS.Model.extend({
       "PIG",
       "SQOOP"
     ];
-    for (var i in maintainedServices) {
-      if (this.get('serviceName') == maintainedServices[i]) return true;
-    }
+    return maintainedServices.contains(this.get('serviceName'));
   }.property('serviceName'),
+
   isConfigurable: function () {
     var configurableServices = [
       "HDFS",
@@ -96,10 +119,9 @@ App.Service = DS.Model.extend({
       "SQOOP",
       "NAGIOS"
     ];
-    for (var i in configurableServices) {
-      if (this.get('serviceName') == configurableServices[i]) return true;
-    }
+    return configurableServices.contains(this.get('serviceName'));
   }.property('serviceName'),
+
   displayName: function () {
     switch (this.get('serviceName').toLowerCase()) {
       case 'hdfs':
@@ -133,7 +155,7 @@ App.Service = DS.Model.extend({
 
 App.Service.Health = {
   live: "LIVE",
-  dead: "DEAD",
+  dead: "DEAD-RED",
   starting: "STARTING",
   stopping: "STOPPING",
 
