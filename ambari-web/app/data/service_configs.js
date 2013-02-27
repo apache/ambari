@@ -44,6 +44,7 @@ module.exports = [
       App.ServiceConfigCategory.create({ name: 'JobTracker'}),
       App.ServiceConfigCategory.create({ name: 'TaskTracker'}),
       App.ServiceConfigCategory.create({ name: 'General'}),
+      App.ServiceConfigCategory.create({ name: 'Capacity Scheduler'}),
       App.ServiceConfigCategory.create({ name: 'Advanced'})
     ],
     configs: configProperties.filterProperty('serviceName', 'MAPREDUCE')

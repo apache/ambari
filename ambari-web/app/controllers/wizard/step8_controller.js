@@ -223,6 +223,7 @@ App.WizardStep8Controller = Em.Controller.extend({
     }
   },
 
+
   /**
    * override site properties with the entered key-value pair in *-site.xml
    */
@@ -252,12 +253,12 @@ App.WizardStep8Controller = Em.Controller.extend({
    * Set property of the site variable
    */
   setSiteProperty: function (key, value, filename) {
-      this.get('configs').pushObject({
-        "id": "site property",
-        "name": key,
-        "value": value,
-        "filename": filename
-      });
+    this.get('configs').pushObject({
+      "id": "site property",
+      "name": key,
+      "value": value,
+      "filename": filename
+    });
   },
 
   loadSlaveConfiguration: function () {
@@ -607,7 +608,7 @@ App.WizardStep8Controller = Em.Controller.extend({
 
   loadMasterValue: function (hbaseMaster) {
     var hbaseHostName = this.get('content.masterComponentHosts').filterProperty('display_name', 'HBase Master');
-    if(hbaseHostName.length == 1){
+    if (hbaseHostName.length == 1) {
       hbaseMaster.set('component_value', hbaseHostName[0].hostName);
     } else {
       hbaseMaster.set('component_value', hbaseHostName[0].hostName + Em.I18n.t('installer.step8.other').format(hbaseHostName.length - 1));
@@ -810,7 +811,7 @@ App.WizardStep8Controller = Em.Controller.extend({
   /**
    * Used in progress bar
    */
-  ajaxQueueLength: function() {
+  ajaxQueueLength: function () {
     return this.get('ajaxQueue').length;
   }.property('ajaxQueue.length'),
 
@@ -856,7 +857,7 @@ App.WizardStep8Controller = Em.Controller.extend({
       type: 'GET',
       url: url,
       async: false,
-      success: function(data) {
+      success: function (data) {
         var jsonData = jQuery.parseJSON(data);
         clusterNames = jsonData.items.mapProperty('Clusters.cluster_name');
         console.log("Got existing cluster names: " + clusterNames);
@@ -870,7 +871,7 @@ App.WizardStep8Controller = Em.Controller.extend({
   },
 
   deleteClusters: function (clusterNames) {
-    clusterNames.forEach(function(clusterName) {
+    clusterNames.forEach(function (clusterName) {
 
       var url = App.apiPrefix + '/clusters/' + clusterName;
 
@@ -1023,75 +1024,75 @@ App.WizardStep8Controller = Em.Controller.extend({
       } else {
         clients.forEach(function (_client) {
 
-            var hostNames = _slave.hosts.mapProperty('hostName');
-            switch (_client.component_name) {
-              case 'HDFS_CLIENT':
-                // install HDFS_CLIENT on HBASE_MASTER, HBASE_REGIONSERVER, and WEBHCAT_SERVER hosts
-                masterHosts.filterProperty('component', 'HBASE_MASTER').filterProperty('isInstalled', false).forEach(function (_masterHost) {
-                  hostNames.pushObject(_masterHost.hostName);
-                }, this);
-                masterHosts.filterProperty('component', 'HBASE_REGIONSERVER').filterProperty('isInstalled', false).forEach(function (_masterHost) {
-                  hostNames.pushObject(_masterHost.hostName);
-                }, this);
-                masterHosts.filterProperty('component', 'WEBHCAT_SERVER').filterProperty('isInstalled', false).forEach(function (_masterHost) {
-                  hostNames.pushObject(_masterHost.hostName);
-                }, this);
-                break;
-              case 'MAPREDUCE_CLIENT':
-                // install MAPREDUCE_CLIENT on HIVE_SERVER, OOZIE_SERVER, NAGIOS_SERVER, and WEBHCAT_SERVER hosts
-                masterHosts.filterProperty('component', 'HIVE_SERVER').filterProperty('isInstalled', false).forEach(function (_masterHost) {
-                  hostNames.pushObject(_masterHost.hostName);
-                }, this);
-                masterHosts.filterProperty('component', 'OOZIE_SERVER').filterProperty('isInstalled', false).forEach(function (_masterHost) {
-                  hostNames.pushObject(_masterHost.hostName);
-                }, this);
-                masterHosts.filterProperty('component', 'NAGIOS_SERVER').filterProperty('isInstalled', false).forEach(function (_masterHost) {
-                  hostNames.pushObject(_masterHost.hostName);
-                }, this);
-                masterHosts.filterProperty('component', 'WEBHCAT_SERVER').filterProperty('isInstalled', false).forEach(function (_masterHost) {
-                  hostNames.pushObject(_masterHost.hostName);
-                }, this);
-                break;
-              case 'OOZIE_CLIENT':
-                // install OOZIE_CLIENT on NAGIOS_SERVER host
-                masterHosts.filterProperty('component', 'NAGIOS_SERVER').filterProperty('isInstalled', false).forEach(function (_masterHost) {
-                  hostNames.pushObject(_masterHost.hostName);
-                }, this);
-                break;
-              case 'ZOOKEEPER_CLIENT':
-                // install ZOOKEEPER_CLIENT on WEBHCAT_SERVER host
-                masterHosts.filterProperty('component', 'WEBHCAT_SERVER').filterProperty('isInstalled', false).forEach(function (_masterHost) {
-                  hostNames.pushObject(_masterHost.hostName);
-                }, this);
-                break;
-
-              case 'HIVE_CLIENT':
-                //install HIVE client on NAGIOS_SERVER host
-                masterHosts.filterProperty('component', 'NAGIOS_SERVER').filterProperty('isInstalled', false).forEach(function (_masterHost) {
-                  hostNames.pushObject(_masterHost.hostName);
-                }, this);
-                break;
-
-              case 'HCAT':
-                // install HCAT (client) on NAGIOS_SERVER host
-                masterHosts.filterProperty('component', 'NAGIOS_SERVER').filterProperty('isInstalled', false).forEach(function (_masterHost) {
-                  hostNames.pushObject(_masterHost.hostName);
-                }, this);
-                break;
-            }
-            hostNames = hostNames.uniq();
-
-            if(_client.isInstalled){
-              //check whether clients are already installed on selected master hosts!!!
-              var installedHosts = _slave.hosts.filterProperty('isInstalled', true).mapProperty('hostName');
-              installedHosts.forEach(function(host){
-                if(hostNames.contains(host)){
-                  hostNames.splice(hostNames.indexOf(host), 1);
-                }
+          var hostNames = _slave.hosts.mapProperty('hostName');
+          switch (_client.component_name) {
+            case 'HDFS_CLIENT':
+              // install HDFS_CLIENT on HBASE_MASTER, HBASE_REGIONSERVER, and WEBHCAT_SERVER hosts
+              masterHosts.filterProperty('component', 'HBASE_MASTER').filterProperty('isInstalled', false).forEach(function (_masterHost) {
+                hostNames.pushObject(_masterHost.hostName);
               }, this);
-            }
+              masterHosts.filterProperty('component', 'HBASE_REGIONSERVER').filterProperty('isInstalled', false).forEach(function (_masterHost) {
+                hostNames.pushObject(_masterHost.hostName);
+              }, this);
+              masterHosts.filterProperty('component', 'WEBHCAT_SERVER').filterProperty('isInstalled', false).forEach(function (_masterHost) {
+                hostNames.pushObject(_masterHost.hostName);
+              }, this);
+              break;
+            case 'MAPREDUCE_CLIENT':
+              // install MAPREDUCE_CLIENT on HIVE_SERVER, OOZIE_SERVER, NAGIOS_SERVER, and WEBHCAT_SERVER hosts
+              masterHosts.filterProperty('component', 'HIVE_SERVER').filterProperty('isInstalled', false).forEach(function (_masterHost) {
+                hostNames.pushObject(_masterHost.hostName);
+              }, this);
+              masterHosts.filterProperty('component', 'OOZIE_SERVER').filterProperty('isInstalled', false).forEach(function (_masterHost) {
+                hostNames.pushObject(_masterHost.hostName);
+              }, this);
+              masterHosts.filterProperty('component', 'NAGIOS_SERVER').filterProperty('isInstalled', false).forEach(function (_masterHost) {
+                hostNames.pushObject(_masterHost.hostName);
+              }, this);
+              masterHosts.filterProperty('component', 'WEBHCAT_SERVER').filterProperty('isInstalled', false).forEach(function (_masterHost) {
+                hostNames.pushObject(_masterHost.hostName);
+              }, this);
+              break;
+            case 'OOZIE_CLIENT':
+              // install OOZIE_CLIENT on NAGIOS_SERVER host
+              masterHosts.filterProperty('component', 'NAGIOS_SERVER').filterProperty('isInstalled', false).forEach(function (_masterHost) {
+                hostNames.pushObject(_masterHost.hostName);
+              }, this);
+              break;
+            case 'ZOOKEEPER_CLIENT':
+              // install ZOOKEEPER_CLIENT on WEBHCAT_SERVER host
+              masterHosts.filterProperty('component', 'WEBHCAT_SERVER').filterProperty('isInstalled', false).forEach(function (_masterHost) {
+                hostNames.pushObject(_masterHost.hostName);
+              }, this);
+              break;
 
-            this.registerHostsToComponent(hostNames, _client.component_name);
+            case 'HIVE_CLIENT':
+              //install HIVE client on NAGIOS_SERVER host
+              masterHosts.filterProperty('component', 'NAGIOS_SERVER').filterProperty('isInstalled', false).forEach(function (_masterHost) {
+                hostNames.pushObject(_masterHost.hostName);
+              }, this);
+              break;
+
+            case 'HCAT':
+              // install HCAT (client) on NAGIOS_SERVER host
+              masterHosts.filterProperty('component', 'NAGIOS_SERVER').filterProperty('isInstalled', false).forEach(function (_masterHost) {
+                hostNames.pushObject(_masterHost.hostName);
+              }, this);
+              break;
+          }
+          hostNames = hostNames.uniq();
+
+          if (_client.isInstalled) {
+            //check whether clients are already installed on selected master hosts!!!
+            var installedHosts = _slave.hosts.filterProperty('isInstalled', true).mapProperty('hostName');
+            installedHosts.forEach(function (host) {
+              if (hostNames.contains(host)) {
+                hostNames.splice(hostNames.indexOf(host), 1);
+              }
+            }, this);
+          }
+
+          this.registerHostsToComponent(hostNames, _client.component_name);
 
         }, this);
       }
@@ -1178,6 +1179,8 @@ App.WizardStep8Controller = Em.Controller.extend({
     }
     if (selectedServices.someProperty('serviceName', 'MAPREDUCE')) {
       this.createConfigSiteForService(this.createMrSiteObj());
+      this.createConfigSiteForService(this.createCapacityScheduler());
+      this.createConfigSiteForService(this.createMapredQueue());
       //this.createMrSitePerSlaveGroup('MAPREDUCE');
     }
     if (selectedServices.someProperty('serviceName', 'HBASE')) {
@@ -1218,7 +1221,7 @@ App.WizardStep8Controller = Em.Controller.extend({
       if (!/_hosts?$/.test(_globalSiteObj.name)) {
         // append "m" to JVM memory options except for hadoop_heapsize
         if (/_heapsize|_newsize|_maxnewsize$/.test(_globalSiteObj.name) && _globalSiteObj.name !== 'hadoop_heapsize') {
-          globalSiteProperties[_globalSiteObj.name] =  _globalSiteObj.value + "m";
+          globalSiteProperties[_globalSiteObj.name] = _globalSiteObj.value + "m";
         } else {
           globalSiteProperties[_globalSiteObj.name] = _globalSiteObj.value;
         }
@@ -1265,13 +1268,13 @@ App.WizardStep8Controller = Em.Controller.extend({
     var coreSiteProperties = {};
     // hadoop.proxyuser.oozie.hosts needs to be skipped if oozie is not selected
     var isOozieSelected = this.get('selectedServices').someProperty('serviceName', 'OOZIE');
-    var oozieUser = this.get('globals').someProperty('name','oozie_user')  ? this.get('globals').findProperty('name','oozie_user').value : null;
+    var oozieUser = this.get('globals').someProperty('name', 'oozie_user') ? this.get('globals').findProperty('name', 'oozie_user').value : null;
     var isHiveSelected = this.get('selectedServices').someProperty('serviceName', 'HIVE');
-    var hiveUser = this.get('globals').someProperty('name','hive_user') ? this.get('globals').findProperty('name','hive_user').value : null;
+    var hiveUser = this.get('globals').someProperty('name', 'hive_user') ? this.get('globals').findProperty('name', 'hive_user').value : null;
     var isHcatSelected = this.get('selectedServices').someProperty('serviceName', 'WEBHCAT');
-    var hcatUser = this.get('globals').someProperty('name','hcat_user') ? this.get('globals').findProperty('name','hcat_user').value : null;
+    var hcatUser = this.get('globals').someProperty('name', 'hcat_user') ? this.get('globals').findProperty('name', 'hcat_user').value : null;
     coreSiteObj.forEach(function (_coreSiteObj) {
-      if ((isOozieSelected || (_coreSiteObj.name != 'hadoop.proxyuser.' + oozieUser +'.hosts' && _coreSiteObj.name != 'hadoop.proxyuser.' + oozieUser +'.groups')) && (isHiveSelected || (_coreSiteObj.name != 'hadoop.proxyuser.' + hiveUser +'.hosts' && _coreSiteObj.name != 'hadoop.proxyuser.' + hiveUser + '.groups')) && (isHcatSelected || (_coreSiteObj.name != 'hadoop.proxyuser.' + hcatUser +'.hosts' && _coreSiteObj.name != 'hadoop.proxyuser.' + hcatUser + '.groups'))) {
+      if ((isOozieSelected || (_coreSiteObj.name != 'hadoop.proxyuser.' + oozieUser + '.hosts' && _coreSiteObj.name != 'hadoop.proxyuser.' + oozieUser + '.groups')) && (isHiveSelected || (_coreSiteObj.name != 'hadoop.proxyuser.' + hiveUser + '.hosts' && _coreSiteObj.name != 'hadoop.proxyuser.' + hiveUser + '.groups')) && (isHcatSelected || (_coreSiteObj.name != 'hadoop.proxyuser.' + hcatUser + '.hosts' && _coreSiteObj.name != 'hadoop.proxyuser.' + hcatUser + '.groups'))) {
         coreSiteProperties[_coreSiteObj.name] = _coreSiteObj.value;
       }
       console.log("STEP*: name of the property is: " + _coreSiteObj.name);
@@ -1322,6 +1325,28 @@ App.WizardStep8Controller = Em.Controller.extend({
       console.log("STEP8: value of the property is: " + _configProperty.value);
     }, this);
     return {type: 'mapred-site', tag: 'version1', properties: mrProperties};
+  },
+
+  createCapacityScheduler: function () {
+    var configs = this.get('configs').filterProperty('filename', 'capacity-scheduler.xml');
+    var csProperties = {};
+    configs.forEach(function (_configProperty) {
+      csProperties[_configProperty.name] = _configProperty.value;
+      console.log("STEP*: name of the property is: " + _configProperty.name);
+      console.log("STEP8: value of the property is: " + _configProperty.value);
+    }, this);
+    return {type: 'capacity-scheduler', tag: 'version1', properties: csProperties};
+  },
+
+  createMapredQueue: function () {
+    var configs = this.get('configs').filterProperty('filename', 'mapred-queue-acls.xml');
+    var mqProperties = {};
+    configs.forEach(function (_configProperty) {
+     mqProperties[_configProperty.name] = _configProperty.value;
+      console.log("STEP*: name of the property is: " + _configProperty.name);
+      console.log("STEP8: value of the property is: " + _configProperty.value);
+    }, this);
+    return {type: 'mapred-queue-acls', tag: 'version1', properties: mqProperties};
   },
 
   createMrSitePerSlaveGroup: function (serviceName) {
@@ -1460,7 +1485,7 @@ App.WizardStep8Controller = Em.Controller.extend({
       case 'HDFS':
         return {config: {'global': 'version1', 'core-site': 'version1', 'hdfs-site': 'version1'}};
       case 'MAPREDUCE':
-        return {config: {'global': 'version1', 'core-site': 'version1', 'mapred-site': 'version1'}};
+        return {config: {'global': 'version1', 'core-site': 'version1', 'mapred-site': 'version1', 'capacity-scheduler': 'version1', 'mapred-queue-acls': 'version1'}};
       case 'HBASE':
         return {config: {'global': 'version1', 'hbase-site': 'version1'}};
       case 'OOZIE':
@@ -1473,7 +1498,6 @@ App.WizardStep8Controller = Em.Controller.extend({
         return {config: {'global': 'version1'}};
     }
   },
-
 
 
   ajaxQueueFinished: function () {

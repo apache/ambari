@@ -238,7 +238,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
         var customValue = '';
         var length = this.get('customConfig').length;
         this.get('customConfig').forEach(function (_config, index) {
-          if ((_config.filename !== 'core-site.xml' && _customConfig.name !== 'core-site') || (_config.filename === 'core-site.xml' && _customConfig.name === 'core-site')) {
+          if (_config.filename === (_customConfig.name + '.xml')) {
             customValue += _config.name + '=' + _config.value;
             if (index !== length - 1) {
               customValue += '\n';
@@ -546,7 +546,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
      return result;
      }
      */
-    result.flag =  this.createConfigurations();
+    result.flag = this.createConfigurations();
     if (result.flag === true) {
       if (this.get('content.serviceName') !== 'HDFS') {
         result.flag = this.applyCreatedConfToService(this.get('content.serviceName'));
@@ -1074,8 +1074,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
     }
   }
 
-})
-;
+});
 
 
 App.MainServiceSlaveComponentGroupsController = App.SlaveComponentGroupsController.extend({

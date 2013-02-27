@@ -12,6 +12,10 @@ Trunk (unreleased changes):
 
  NEW FEATURES
 
+ AMBARI-1508. Introduce a new section "Capacity scheduler" under MapReduce
+ Service in step7 (Configure services) of Installer and Service 
+ Reconfig. (jaimin)
+
  AMBARI-1490. Implement initial layout for "Add security" wizard. (jaimin)
 
  AMBARI-1483. Reassign Master Wizard - Step 2. (yusaku)

@@ -144,10 +144,25 @@ App.WizardStep7Controller = Em.Controller.extend({
       var service = serviceConfigs.findProperty('serviceName', _config.serviceName);
       if (service) {
         if (!(service.configs.someProperty('name', _config.name))) {
+          if( Object.prototype.toString.call( _config.defaultValue ) === '[object Array]' ) {
+            this.loadDefaultCustomConfig(_config);
+          }
           service.configs.pushObject(_config);
         }
       }
     }, this);
+  },
+
+  loadDefaultCustomConfig: function (customConfig) {
+    var customValue = '';
+    var length = customConfig.defaultValue.length;
+    customConfig.defaultValue.forEach(function (_config, index) {
+      customValue += _config.name + '=' + _config.value;
+      if (index !== length - 1) {
+        customValue += '\n';
+      }
+    }, this);
+    customConfig.value = customValue;
   },
 
   /**
@@ -268,19 +283,19 @@ App.WizardStep7Controller = Em.Controller.extend({
     var displayMsg = null;
     if (displayNames && displayNames.length) {
       if (displayNames.length === 1) {
-        displayMsg = siteProperty + ' '+Em.I18n.t('as')+' ' + displayNames[0];
+        displayMsg = siteProperty + ' ' + Em.I18n.t('as') + ' ' + displayNames[0];
       } else {
         var name = null;
         displayNames.forEach(function (_name, index) {
           if (index === 0) {
             name = _name;
           } else if (index === displayNames.length - 1) {
-            name = name + ' '+Em.I18n.t('and')+' ' + _name;
+            name = name + ' ' + Em.I18n.t('and') + ' ' + _name;
           } else {
             name = name + ', ' + _name;
           }
         }, this);
-        displayMsg = siteProperty + ' '+Em.I18n.t('as')+' ' + name;
+        displayMsg = siteProperty + ' ' + Em.I18n.t('as') + ' ' + name;
       }
     } else {
       displayMsg = siteProperty;
@@ -352,14 +367,14 @@ App.WizardStep7Controller = Em.Controller.extend({
     if (!this.get('isSubmitDisabled')) {
       App.router.send('next');
       /*
-      var result = {};
-      result = this.validateCustomConfig();
-      if (result.flag === true) {
-        App.router.send('next');
-      } else {
-        this.showCustomConfigErrMsg(result.value);
-      }
-      */
+       var result = {};
+       result = this.validateCustomConfig();
+       if (result.flag === true) {
+       App.router.send('next');
+       } else {
+       this.showCustomConfigErrMsg(result.value);
+       }
+       */
     }
   }
 
