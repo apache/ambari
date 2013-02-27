@@ -23,10 +23,20 @@ class hdp-hive::hive::service_check() inherits hdp-hive::params
   $smoke_test_user = $hdp::params::smokeuser
   $smoke_test_sql = "/tmp/$smoke_test_sql_file"
   $smoke_test_path = "/tmp/$smoke_test_script"
+  $security_enabled = $hdp::params::security_enabled
+  $smoke_user_keytab = "${hdp-hive::params::keytab_path}/${smoke_test_user}.headless.keytab"
 
+  if ($security_enabled == true) {
+    $kinit_cmd = "${hdp::params::kinit_path_local} -kt ${smoke_user_keytab} ${smoke_test_user};"
+    $hive_principal_ext = "principal=${hive_user}/_HOST@${hdp::params::kerberos_domain}"
+    $hive_url_ext = "${hive_url}\;${hive_principal_ext}"
+  } else {
+    $kinit_cmd = ""
+    $hive_principal_ext = ""
+    $hive_url_ext = $hive_url
+  }
 
-  $smoke_cmd = "env JAVA_HOME=$hdp::params::java64_home $smoke_test_path $hive_url $smoke_test_sql"
-
+  $smoke_cmd = "${kinit_cmd} env JAVA_HOME=${hdp::params::java64_home} ${smoke_test_path} ${hive_url_ext} ${smoke_test_sql}"
 
   file { $smoke_test_path:
     ensure => present,

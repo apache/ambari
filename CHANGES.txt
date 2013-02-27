@@ -666,6 +666,9 @@ Trunk (unreleased changes):
  AMBARI-1497. Fix start up option for ambari-server where there is a missing
  space. (mahadev)
 
+ AMBARI-1498. Hive service check fails on secure HDP cluster. (Siddharth Wagle
+ via mahadev)
+
 AMBARI-1.2.0 branch:
 
  INCOMPATIBLE CHANGES
