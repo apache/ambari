@@ -33,60 +33,21 @@ App.UpdateController = Em.Controller.extend({
   },
 
   /**
-   * Wrapper for all updates
+   * Start polling, when <code>isWorking</code> become true
    */
   updateAll:function(){
     if(this.get('isWorking')) {
-      this.update('updateHost');
-      this.update('updateServiceMetric');
-      this.update('graphsUpdate');
+      App.updater.run(this, 'updateHost', 'isWorking');
+      App.updater.run(this, 'updateServiceMetric', 'isWorking');
+      App.updater.run(this, 'graphsUpdate', 'isWorking');
     }
   }.observes('isWorking'),
-
-  /**
-   * States for each update method (each field - method name)
-   */
-  states: {
-    'updateHost': null,
-    'updateServiceMetric': null,
-    'graphsUpdate': null
-  },
-
-  /**
-   * Callback for each update method
-   * @param {String} name - state name
-   * @return {Function}
-   */
-  updateCallback: function(name) {
-    var self = this;
-    return function() {
-      self.update(name);
-    }
-  },
-
-  /**
-   * Common method that executes provided by name update method (name from states object)
-   * @param {String} name - key in the states object
-   * @return {Boolean}
-   */
-  update: function(name) {
-    if(!this.get('isWorking')) {
-      return false;
-    }
-    clearTimeout(this.states[name]);
-    var self = this;
-    this.states[name] = setTimeout(function() {
-      self[name](self.updateCallback(name));
-    }, App.contentUpdateInterval);
-  },
 
   updateHost:function(callback) {
     var self = this;
       var hostsUrl = this.getUrl('/data/hosts/hosts.json', '/hosts?fields=Hosts/host_name,Hosts/public_host_name,Hosts/disk_info,Hosts/cpu_count,Hosts/total_mem,Hosts/host_status,Hosts/last_heartbeat_time,Hosts/os_arch,Hosts/os_type,Hosts/ip,host_components,metrics/disk,metrics/load/load_one');
       App.HttpClient.get(hostsUrl, App.hostsMapper, {
-        complete:function (jqXHR, textStatus) {
-          callback();
-        }
+        complete: callback
       });
   },
   graphs: [],
@@ -124,9 +85,7 @@ App.UpdateController = Em.Controller.extend({
       self.set('isUpdated', true);
     };
       App.HttpClient.get(servicesUrl, App.servicesMapper, {
-        complete: function() {
-          callback();
-        }
+        complete: callback
       });
   }
 

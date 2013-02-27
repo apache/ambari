@@ -888,8 +888,6 @@ Em.I18n.translations = {
   'apps.isRunning.popup.title':'Is running',
   'apps.isRunning.popup.content':'Job is running now',
 
-  'nagios.alerts.unavailable':'Alerts Unavailable',
-
   'menu.item.dashboard':'Dashboard',
   'menu.item.heatmaps':'Heatmaps',
   'menu.item.services':'Services',

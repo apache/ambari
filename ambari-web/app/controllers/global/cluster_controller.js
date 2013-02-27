@@ -156,7 +156,7 @@ App.ClusterController = Em.Controller.extend({
       var nagiosSvc = svcs.findProperty("serviceName", "NAGIOS");
       return nagiosSvc != null;
     }
-  }.property('App.router.updateController.isUpdated'),
+  }.property('App.router.updateController.isUpdated', 'dataLoadList.services'),
 
   /**
    * Sorted list of alerts.
@@ -181,109 +181,64 @@ App.ClusterController = Em.Controller.extend({
   },
 
   /**
-   * This method automatically loads alerts when Nagios URL
-   * changes. Once done it will trigger dataLoadList.alerts
-   * property, which will trigger the alerts property.
+   * Load alerts from server
+   * @param callback Slave function, should be called to fire delayed update.
+   * Look at <code>App.updater.run</code> for more information.
+   * Also used to set <code>dataLoadList.alerts</code> status during app loading
    */
-  loadAlerts:function () {
-    if(App.Alert.find().content.length > 0){
-      return false;
-    }
-    var self=this;
-    if(App.router.get('updateController.isUpdated')){
-      return false;
-    }
-    var nagiosUrl = this.get('nagiosUrl');
-    if (nagiosUrl) {
-      var lastSlash = nagiosUrl.lastIndexOf('/');
-      if (lastSlash > -1) {
-        nagiosUrl = nagiosUrl.substring(0, lastSlash);
-      }
+  loadAlerts:function (callback) {
+    if (this.get('isNagiosInstalled')) {
       var dataUrl = this.getUrl('/data/alerts/alerts.json', '/host_components?fields=HostRoles/nagios_alerts&HostRoles/component_name=NAGIOS_SERVER');
+      var self = this;
       var ajaxOptions = {
         dataType:"json",
-        context:this,
-        complete:function (jqXHR, textStatus) {
-          self.updateLoadStatus('alerts');
+        complete:function () {
           self.updateAlerts();
+          callback();
         },
         error: function(jqXHR, testStatus, error) {
-          // this.showMessage(Em.I18n.t('nagios.alerts.unavailable'));
           console.log('Nagios $.ajax() response:', error);
         }
       };
       App.HttpClient.get(dataUrl, App.alertsMapper, ajaxOptions);
     } else {
-      this.updateLoadStatus('alerts');
       console.log("No Nagios URL provided.")
+      callback();
     }
-    return true;
-  }.observes('nagiosUrl'),
+  },
 
   /**
-   * Show message in UI
+   * Send request to server to load components updated statuses
+   * @param callback Slave function, should be called to fire delayed update.
+   * Look at <code>App.updater.run</code> for more information
+   * @return {Boolean} Whether we have errors
    */
-  showMessage: function(message){
-    App.ModalPopup.show({
-      header: 'Message',
-      body: message,
-      onPrimary: function() {
-        this.hide();
-      },
-      secondary : null
-    });
-  },
-
-  statusTimeoutId: null,
-
-  loadUpdatedStatusDelayed: function(delay){
-    delay = delay || App.componentsUpdateInterval;
-    var self = this;
-
-    this.set('statusTimeoutId',
-      setTimeout(function(){
-        self.loadUpdatedStatus();
-      }, delay)
-    );
-  },
-
-  loadUpdatedStatus: function(){
-
-    var timeoutId = this.get('statusTimeoutId');
-    if(timeoutId){
-      clearTimeout(timeoutId);
-      this.set('statusTimeoutId', null);
-    }
-
-    if(!this.get('isWorking')){
-      return false;
-    }
+  loadUpdatedStatus: function(callback){
 
     if(!this.get('clusterName')){
-      this.loadUpdatedStatusDelayed(this.get('componentsUpdateInterval')/2, 'error:clusterName');
-      return;
+      callback();
+      return false;
     }
     
     var servicesUrl = this.getUrl('/data/dashboard/services.json', '/services?fields=ServiceInfo,components/host_components/HostRoles/desired_state,components/host_components/HostRoles/state');
 
-    var self = this;
     App.HttpClient.get(servicesUrl, App.statusMapper, {
-      complete:function (jqXHR, textStatus) {
-        //console.log('Cluster Controller: Updated components statuses successfully!!!')
-        self.loadUpdatedStatusDelayed();
-      }
-    }, function(){
-      self.loadUpdatedStatusDelayed(null, 'error:response error');
+      complete: callback
     });
+    return true;
+  },
 
-  },
-  startLoadUpdatedStatus: function(){
-    var self = this;
-    this.set('isWorking', true);
-    setTimeout(function(){
-      self.loadUpdatedStatus();
-    }, App.componentsUpdateInterval*2);
-  },
+  /**
+   * Start polling, when <code>isWorking</code> become true
+   */
+  startPolling: function(){
+    if(!this.get('isWorking')){
+      return false;
+    }
+    App.updater.run(this, 'loadUpdatedStatus', 'isWorking'); //update will not run it immediately
+    App.updater.run(this, 'loadAlerts', 'isWorking'); //update will not run it immediately
+    return true;
+  }.observes('isWorking'),
   /**
    *
    *  load all data and update load status
@@ -338,6 +293,10 @@ App.ClusterController = Em.Controller.extend({
     App.router.get('updateController').updateServiceMetric(function(){
       self.updateLoadStatus('services');
     }, true);
+
+    this.loadAlerts(function(){
+      self.updateLoadStatus('alerts');
+    });
 
   },
 
