@@ -549,6 +549,10 @@ public class QueryImplTest {
     ResourceInstance subResource = createNiceMock(ResourceInstance.class);
     Schema schema = createNiceMock(Schema.class);
 
+    Map<Resource.Type, String> mapResourceIds = new HashMap<Resource.Type, String>();
+    mapResourceIds.put(Resource.Type.Service, "serviceName");
+    mapResourceIds.put(Resource.Type.Component, "componentName");
+
     //expectations
     expect(resource.getResourceDefinition()).andReturn(resourceDefinition).anyTimes();
 
@@ -556,7 +560,11 @@ public class QueryImplTest {
 
     expect(m_controller.getSchema(Resource.Type.Service)).andReturn(schema).anyTimes();
 
+    expect(schema.getKeyPropertyId(Resource.Type.Service)).andReturn("serviceName").anyTimes();
+    expect(schema.getKeyPropertyId(Resource.Type.Component)).andReturn("componentName").anyTimes();
+
     expect(resource.getSubResources()).andReturn(Collections.singletonMap("components", subResource)).anyTimes();
+    expect(resource.getIds()).andReturn(mapResourceIds).anyTimes();
 
     //todo: ensure that sub-resource was added.
 
@@ -564,6 +572,12 @@ public class QueryImplTest {
 
     Query query = new TestQuery(resource, null);
     query.addProperty(null, "components", null);
+
+    // verify that only the key properties of the parent resource have been added to the query
+    Set<String> properties = query.getProperties();
+    assertEquals(2, properties.size());
+    assertTrue(properties.contains("serviceName"));
+    assertTrue(properties.contains("componentName"));
 
     verify(m_controller, resource, resourceDefinition, subResource, schema);
   }

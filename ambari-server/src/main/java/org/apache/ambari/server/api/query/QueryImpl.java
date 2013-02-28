@@ -94,7 +94,15 @@ public class QueryImpl implements Query {
       // wildcard
       addAllProperties(temporalInfo);
     } else{
-      if (!addPropertyToSubResource(category, name, temporalInfo)){
+      if (addPropertyToSubResource(category, name, temporalInfo)){
+        // add pk/fk properties of the resource to this query
+        Resource.Type resourceType = m_resource.getResourceDefinition().getType();
+        Schema        schema       = getClusterController().getSchema(resourceType);
+
+        for (Resource.Type type : m_resource.getIds().keySet()) {
+          addLocalProperty(schema.getKeyPropertyId(type));
+        }
+      } else {
         String propertyId = PropertyHelper.getPropertyId(category, name.equals("*") ? null : name);
         addLocalProperty(propertyId);
         if (temporalInfo != null) {

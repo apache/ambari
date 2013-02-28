@@ -387,6 +387,8 @@ Trunk (unreleased changes):
 
  BUG FIXES
 
+ AMBARI-1523. Ambari API: Resources doesn't always honor partial response fields restrictions. (tbeerbower)
+
  AMBARI-1519. Ambari Web goes back and forth between frozen and usable state
  peridocially on a large cluster. (yusaku)
 
