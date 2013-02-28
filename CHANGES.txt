@@ -387,6 +387,9 @@ Trunk (unreleased changes):
 
  BUG FIXES
 
+ AMBARI-1525. ambari.properties file has an invalid character causing
+ ambari-server setup to fail. (jaimin)
+
  AMBARI-1524. Service summary for Hive does not display clients properly.
  (yusaku)
 
