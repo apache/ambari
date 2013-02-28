@@ -387,6 +387,9 @@ Trunk (unreleased changes):
 
  BUG FIXES
 
+ AMBARI-1520. Alerts take around 20-30 seconds to show up everytime you
+ refresh the dashboad. (srimanth via yusaku)
+
  AMBARI-1523. Ambari API: Resources doesn't always honor partial response fields restrictions. (tbeerbower)
 
  AMBARI-1519. Ambari Web goes back and forth between frozen and usable state

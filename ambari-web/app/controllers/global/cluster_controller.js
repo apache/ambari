@@ -208,6 +208,19 @@ App.ClusterController = Em.Controller.extend({
   },
 
   /**
+   * Determination of Nagios presence is known only after App.Service is
+   * loaded from server. When that is done, no one tells alerts to load,
+   * due to which alerts are not loaded & shown till the next polling cycle.
+   * This method immediately loads alerts once Nagios presence is known.
+   */
+  isNagiosInstalledListener: function () {
+    var self = this;
+    self.loadAlerts(function () {
+      self.updateLoadStatus('alerts');
+    });
+  }.observes('isNagiosInstalled'),
+
+  /**
    * Send request to server to load components updated statuses
    * @param callback Slave function, should be called to fire delayed update.
    * Look at <code>App.updater.run</code> for more information
