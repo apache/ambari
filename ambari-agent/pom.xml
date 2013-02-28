@@ -172,6 +172,9 @@
             </mapping>
             <mapping>
               <directory>${lib.dir}</directory>
+              <filemode>755</filemode>
+              <username>root</username>
+              <groupname>root</groupname>
               <sources>
                 <source>
                   <location>${project.build.directory}/lib</location>
