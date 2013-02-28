@@ -90,16 +90,7 @@
         {{template "templates/main/service/info/summary/ganglia"}}
       {{/if}}
       {{#if view.serviceStatus.hive}}
-		    {{#each component in view.hiveComponentsInfo}}
-		    <tr>
-		      <td>
-		        {{component.label}}
-		      </td>
-		      <td>
-	          <a href="#" {{action selectHost component.host}}>{{component.host.publicHostName}}</a>
-		      </td>
-		    </tr>
-		    {{/each}}
+        {{template "templates/main/service/info/summary/hive"}}
       {{/if}}
       </tbody>
     </table>

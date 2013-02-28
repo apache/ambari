@@ -46,9 +46,8 @@ App.MainServiceInfoSummaryView = Em.View.extend({
   },
 
   clients: function () {
-    var result = [];
     var service = this.get('controller.content');
-    if (service.get("id") == "OOZIE" || service.get("id") == "ZOOKEEPER") {
+    if (["OOZIE", "ZOOKEEPER", "HIVE"].contains(service.get("id"))) {
       return service.get('hostComponents').filterProperty('isClient');
     }
     return [];
@@ -144,12 +143,13 @@ App.MainServiceInfoSummaryView = Em.View.extend({
 
   /**
    * Property related to OOZIE and ZOOKEEPER services, is unused for other services
+   * HIVE is supported too
    * @return {Object}
    */
   clientObj: function() {
     var service = this.get('controller.content');
-    if (service.get("id") == "OOZIE" || service.get("id") == "ZOOKEEPER") {
-      var clients = service.get('hostComponents').filterProperty('isMaster', false);
+    if (["OOZIE", "ZOOKEEPER", "HIVE"].contains(service.get("id"))) {
+      var clients = service.get('hostComponents').filterProperty('isClient', true);
       if (clients.length > 0) {
         return clients[0];
       }
@@ -188,35 +188,21 @@ App.MainServiceInfoSummaryView = Em.View.extend({
       return "";
     }
   }.property('controller.content'),
+
   /**
-   * Returns hive components information in 
-   * the following format:
-   * {
-   *  label: "Component Name",
-   *  host: Host,
-   *  
+   * Wrapper for displayName. used to render correct display name for mysql_server
    */
-  hiveComponentsInfo: function(){
-    var componentInfos = [];
-    var service=this.get('controller.content');
-    if(service.get("id") == "HIVE"){
-      var self = this;
-      var components = service.get("hostComponents");
-      if(components){
-        components.forEach(function(component){
-          var ci = {
-              label: component.get('displayName'),
-              host: component.get('host')
-          };
-          if(component.get('id')=='MYSQL_SERVER'){
-            ci.label = self.t('services.hive.databaseComponent');
-          }
-          componentInfos.push(ci);
-        });
+  componentNameView: Ember.View.extend({
+    template: Ember.Handlebars.compile('{{view.displayName}}'),
+    comp : null,
+    displayName: function(){
+      if(this.get('comp.componentName') == 'MYSQL_SERVER'){
+        return this.t('services.hive.databaseComponent');
       }
-    }
-    return componentInfos;
-  }.property('controller.content'),
+      return this.get('comp.displayName');
+    }.property('comp')
+  }),
+
   service:function () {
     var svc = this.get('controller.content');
     var svcName = svc.get('serviceName');

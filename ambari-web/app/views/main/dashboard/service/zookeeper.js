@@ -32,8 +32,8 @@ App.MainDashboardServiceZookeperView = App.MainDashboardServiceView.extend({
     });
 
     return {
-      pre: this.t('dashboard.services.zookeeper.prefix').format(running),
-      title: this.t('dashboard.services.zookeeper.title').format(components.length),
+      pre: this.t('services.zookeeper.prefix').format(running),
+      title: this.t('services.zookeeper.title').format(components.length),
       component: components.objectAt(0)
     };
   }.property('service')

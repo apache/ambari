@@ -650,6 +650,20 @@ Em.I18n.translations = {
   'services.reassign.header':'Reassign Master Wizard',
   'services.service.add':'Add Service',
 
+  /** services page constants **/
+  'services.hive.client': 'Hive Client',
+  'services.hive.clients': 'Hive Clients',
+
+  'services.oozie.client': 'Oozie Client',
+  'services.oozie.clients': 'Oozie Clients',
+  'services.oozie.webUi': 'Oozie Web UI',
+
+  'services.ganglia.webUi': 'Ganglia Web UI',
+  'services.ganglia.monitors': 'Ganglia Monitors',
+
+  'services.zookeeper.prefix': '{0} of',
+  'services.zookeeper.title': '{0} ZooKeepers',
+  'services.zookeeper.postfix': 'running',
 
   'hosts.host.add':'Add New Hosts',
   'hosts.host.back':'Back to Hosts',
@@ -827,20 +841,6 @@ Em.I18n.translations = {
   'dashboard.services.hbase.regions.transition':'Regions In Transition',
   'dashboard.services.hbase.masterStarted':'Master Started',
   'dashboard.services.hbase.masterActivated':'Master Activated',
-
-  'dashboard.services.hive.client': '{0} Hive Client',
-  'dashboard.services.hive.clients': '{0} Hive Clients',
-
-  'dashboard.services.oozie.client': '{0} Oozie Client',
-  'dashboard.services.oozie.clients': '{0} Oozie Clients',
-  'dashboard.services.oozie.webUi': 'Oozie Web UI',
-
-  'dashboard.services.ganglia.webUi': 'Ganglia Web UI',
-  'dashboard.services.ganglia.monitors': 'Ganglia Monitors',
-
-  'dashboard.services.zookeeper.prefix': '{0} of',
-  'dashboard.services.zookeeper.title': '{0} ZooKeepers',
-  'dashboard.services.zookeeper.postfix': 'running',
 
   'dashboard.services.configs.popup.stopService.header':'Stop service',
   'dashboard.services.configs.popup.stopService.body' : 'Service needs to be stopped for reconfiguration',

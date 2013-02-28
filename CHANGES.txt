@@ -387,6 +387,9 @@ Trunk (unreleased changes):
 
  BUG FIXES
 
+ AMBARI-1524. Service summary for Hive does not display clients properly.
+ (yusaku)
+
  AMBARI-1520. Alerts take around 20-30 seconds to show up everytime you
  refresh the dashboad. (srimanth via yusaku)
 
