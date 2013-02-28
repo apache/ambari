@@ -229,6 +229,16 @@ App.ClusterController = Em.Controller.extend({
   },
 
   /**
+   * Run <code>loadUpdatedStatus</code> with delay
+   * @param delay
+   */
+  loadUpdatedStatusDelayed: function(delay){
+    setTimeout(function(){
+      App.updater.immediateRun('loadUpdatedStatus');
+    }, delay);
+  },
+
+  /**
    * Start polling, when <code>isWorking</code> become true
    */
   startPolling: function(){

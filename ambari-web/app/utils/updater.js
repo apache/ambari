@@ -45,6 +45,14 @@ function update(obj, name, isWorking){
   return true;
 };
 
+function rerun(name){
+  var state = states[name];
+  if(state){
+    clearTimeout(state.timeout);
+    state.func();
+  }
+};
+
 App.updater = {
 
   /**
@@ -95,6 +103,21 @@ App.updater = {
    */
   run: function(obj, name, isWorking){
     return update(obj, name, isWorking);
+  },
+
+  /**
+   * Immediate run function, which is periodically running using <code>run</code> method
+   * Example:
+   *    App.updater.run(obj, 'clickIt');
+   *    App.updater.immediateRun('clickIt');
+   *
+   * <code>clickIt</code> will be executed immediately and proceed executing periodically
+   *
+   * @param name Method name, which was used as a parameter in <code>run</code> method
+   * @return {*}
+   */
+  immediateRun: function(name){
+    return rerun(name);
   }
 
 }
