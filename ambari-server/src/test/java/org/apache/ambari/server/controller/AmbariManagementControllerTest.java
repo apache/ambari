@@ -31,6 +31,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import com.sun.source.tree.AssertTree;
 import junit.framework.Assert;
 
 import org.apache.ambari.server.AmbariException;
@@ -4158,4 +4159,154 @@ public class AmbariManagementControllerTest {
       this.roleToIndex.put(Role.NAGIOS_SERVER, 23);
     }
   }
+
+  @Test
+  public void testServiceStopWhileStopping() throws AmbariException {
+    String clusterName = "foo1";
+    createCluster(clusterName);
+    clusters.getCluster(clusterName)
+      .setDesiredStackVersion(new StackId("HDP-0.1"));
+    String serviceName = "HDFS";
+    createService(clusterName, serviceName, null);
+    String componentName1 = "NAMENODE";
+    String componentName2 = "DATANODE";
+    String componentName3 = "HDFS_CLIENT";
+    createServiceComponent(clusterName, serviceName, componentName1,
+      State.INIT);
+    createServiceComponent(clusterName, serviceName, componentName2,
+      State.INIT);
+    createServiceComponent(clusterName, serviceName, componentName3,
+      State.INIT);
+
+    String host1 = "h1";
+    clusters.addHost(host1);
+    clusters.getHost("h1").setOsType("centos5");
+    clusters.getHost("h1").persist();
+    String host2 = "h2";
+    clusters.addHost(host2);
+    clusters.getHost("h2").setOsType("centos6");
+    clusters.getHost("h2").persist();
+
+    clusters.mapHostToCluster(host1, clusterName);
+    clusters.mapHostToCluster(host2, clusterName);
+
+
+    // null service should work
+    createServiceComponentHost(clusterName, null, componentName1,
+      host1, null);
+    createServiceComponentHost(clusterName, serviceName, componentName2,
+      host1, null);
+    createServiceComponentHost(clusterName, serviceName, componentName2,
+      host2, null);
+    createServiceComponentHost(clusterName, serviceName, componentName3,
+      host1, null);
+    createServiceComponentHost(clusterName, serviceName, componentName3,
+      host2, null);
+
+    Assert.assertNotNull(clusters.getCluster(clusterName)
+      .getService(serviceName)
+      .getServiceComponent(componentName1)
+      .getServiceComponentHost(host1));
+    Assert.assertNotNull(clusters.getCluster(clusterName)
+      .getService(serviceName)
+      .getServiceComponent(componentName2)
+      .getServiceComponentHost(host1));
+    Assert.assertNotNull(clusters.getCluster(clusterName)
+      .getService(serviceName)
+      .getServiceComponent(componentName2)
+      .getServiceComponentHost(host2));
+    Assert.assertNotNull(clusters.getCluster(clusterName)
+      .getService(serviceName)
+      .getServiceComponent(componentName3)
+      .getServiceComponentHost(host1));
+    Assert.assertNotNull(clusters.getCluster(clusterName)
+      .getService(serviceName)
+      .getServiceComponent(componentName3)
+      .getServiceComponentHost(host2));
+
+    // Install
+    ServiceRequest r = new ServiceRequest(clusterName, serviceName, null,
+      State.INSTALLED.toString());
+    Set<ServiceRequest> requests = new HashSet<ServiceRequest>();
+    requests.add(r);
+
+    RequestStatusResponse trackAction =
+      controller.updateServices(requests);
+    Assert.assertEquals(State.INSTALLED,
+      clusters.getCluster(clusterName).getService(serviceName)
+        .getDesiredState());
+
+    // manually change live state to installed as no running action manager
+    for (ServiceComponent sc :
+      clusters.getCluster(clusterName).getService(serviceName)
+        .getServiceComponents().values()) {
+      for (ServiceComponentHost sch : sc.getServiceComponentHosts().values()) {
+        sch.setState(State.INSTALLED);
+      }
+    }
+
+    // Start
+    r = new ServiceRequest(clusterName, serviceName, null,
+      State.STARTED.toString());
+    requests.clear();
+    requests.add(r);
+    trackAction = controller.updateServices(requests);
+
+    // manually change live state to started as no running action manager
+    for (ServiceComponent sc :
+      clusters.getCluster(clusterName).getService(serviceName)
+        .getServiceComponents().values()) {
+      for (ServiceComponentHost sch : sc.getServiceComponentHosts().values()) {
+        if (!sch.getServiceComponentName().equals("HDFS_CLIENT"))
+          sch.setState(State.STARTED);
+      }
+    }
+
+    Assert.assertEquals(State.STARTED,
+      clusters.getCluster(clusterName).getService(serviceName)
+        .getDesiredState());
+
+    // Set Current state to stopping
+    clusters.getCluster(clusterName).getService(serviceName).setDesiredState
+      (State.STOPPING);
+    for (ServiceComponent sc :
+      clusters.getCluster(clusterName).getService(serviceName)
+        .getServiceComponents().values()) {
+
+      for (ServiceComponentHost sch : sc.getServiceComponentHosts().values()) {
+        if (!sch.getServiceComponentName().equals("HDFS_CLIENT")) {
+          Assert.assertEquals(State.STARTED, sch.getDesiredState());
+          sch.setState(State.STOPPING);
+        } else if (sch.getServiceComponentName().equals("DATANODE")) {
+          ServiceComponentHostRequest r1 = new ServiceComponentHostRequest
+            (clusterName, serviceName, sch.getServiceComponentName(),
+              sch.getHostName(), null, State.INSTALLED.name());
+          Set<ServiceComponentHostRequest> reqs1 = new
+            HashSet<ServiceComponentHostRequest>();
+          reqs1.add(r1);
+          controller.updateHostComponents(reqs1);
+          Assert.assertEquals(State.INSTALLED, sch.getDesiredState());
+        }
+      }
+    }
+
+    // Stop all services
+    r = new ServiceRequest(clusterName, serviceName, null,
+      State.INSTALLED.toString());
+    requests.clear();
+    requests.add(r);
+    controller.updateServices(requests);
+
+    for (ServiceComponent sc :
+      clusters.getCluster(clusterName).getService(serviceName)
+        .getServiceComponents().values()) {
+
+      for (ServiceComponentHost sch : sc.getServiceComponentHosts().values()) {
+        if (!sch.getServiceComponentName().equals("HDFS_CLIENT")) {
+          Assert.assertEquals(State.INSTALLED, sch.getDesiredState());
+        }
+      }
+    }
+  }
+
 }

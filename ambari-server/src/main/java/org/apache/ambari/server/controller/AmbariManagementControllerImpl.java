@@ -1789,7 +1789,8 @@ public class AmbariManagementControllerImpl implements
                 } else if (oldSchState == State.STARTED
                     || oldSchState == State.START_FAILED
                     || oldSchState == State.INSTALLED
-                    || oldSchState == State.STOP_FAILED) {
+                    || oldSchState == State.STOP_FAILED
+                    || oldSchState == State.STOPPING) {
                   roleCommand = RoleCommand.STOP;
                   event = new ServiceComponentHostStopEvent(
                       scHost.getServiceComponentName(), scHost.getHostName(),
@@ -2025,7 +2026,8 @@ public class AmbariManagementControllerImpl implements
             || oldState == State.INSTALL_FAILED
             || oldState == State.STOP_FAILED
             || oldState == State.UPGRADE_FAILED
-            || oldState == State.UPGRADING) {
+            || oldState == State.UPGRADING
+            || oldState == State.STOPPING) {
           return true;
         }
         break;
@@ -2061,7 +2063,8 @@ public class AmbariManagementControllerImpl implements
         if (oldState == State.INIT
             || oldState == State.UNINSTALLED
             || oldState == State.INSTALLED
-            || oldState == State.STARTED) {
+            || oldState == State.STARTED
+            || oldState == State.STOPPING) {
           return true;
         }
         break;
