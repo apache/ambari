@@ -75,6 +75,8 @@ Trunk (unreleased changes):
 
  IMPROVEMENTS
 
+ AMBARI-1537. Constrain the width of all wizard popups. (Xi Wang via yusaku)
+
  AMBARI-1536. Hosts page layout fixes. (Xi Wang via yusaku)
 
  AMBARI-1502. Add the ability to assign configuration to a cluster. (Nate Cole via tbeerbower)
