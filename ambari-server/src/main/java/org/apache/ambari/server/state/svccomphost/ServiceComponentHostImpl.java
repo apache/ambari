@@ -247,6 +247,27 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
          ServiceComponentHostEventType.HOST_SVCCOMP_OP_FAILED,
          new ServiceComponentHostOpCompletedTransition())
 
+     .addTransition(State.UPGRADING,
+         State.UPGRADING,
+         ServiceComponentHostEventType.HOST_SVCCOMP_OP_IN_PROGRESS,
+         new ServiceComponentHostOpInProgressTransition())
+     .addTransition(State.UPGRADING,
+         State.INSTALLED,
+         ServiceComponentHostEventType.HOST_SVCCOMP_OP_SUCCEEDED,
+         new ServiceComponentHostOpCompletedTransition())
+     .addTransition(State.UPGRADING,
+         State.UPGRADE_FAILED,
+         ServiceComponentHostEventType.HOST_SVCCOMP_OP_FAILED,
+         new ServiceComponentHostOpCompletedTransition())
+     .addTransition(State.UPGRADE_FAILED,
+         State.UPGRADING,
+         ServiceComponentHostEventType.HOST_SVCCOMP_UPGRADE,
+         new ServiceComponentHostOpStartedTransition())
+     .addTransition(State.UPGRADING,
+         State.UPGRADING,
+         ServiceComponentHostEventType.HOST_SVCCOMP_UPGRADE,
+         new ServiceComponentHostOpInProgressTransition())
+
      .addTransition(State.UNINSTALL_FAILED,
          State.UNINSTALLING,
          ServiceComponentHostEventType.HOST_SVCCOMP_OP_RESTART,
@@ -348,6 +369,27 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
          State.INSTALLING,
          ServiceComponentHostEventType.HOST_SVCCOMP_INSTALL,
          new ServiceComponentHostOpStartedTransition())
+
+     .addTransition(State.UPGRADING,
+         State.UPGRADING,
+         ServiceComponentHostEventType.HOST_SVCCOMP_OP_IN_PROGRESS,
+         new ServiceComponentHostOpInProgressTransition())
+     .addTransition(State.UPGRADING,
+         State.INSTALLED,
+         ServiceComponentHostEventType.HOST_SVCCOMP_OP_SUCCEEDED,
+         new ServiceComponentHostOpCompletedTransition())
+     .addTransition(State.UPGRADING,
+         State.UPGRADE_FAILED,
+         ServiceComponentHostEventType.HOST_SVCCOMP_OP_FAILED,
+         new ServiceComponentHostOpCompletedTransition())
+     .addTransition(State.UPGRADE_FAILED,
+         State.UPGRADING,
+         ServiceComponentHostEventType.HOST_SVCCOMP_UPGRADE,
+         new ServiceComponentHostOpStartedTransition())
+     .addTransition(State.UPGRADING,
+         State.UPGRADING,
+         ServiceComponentHostEventType.HOST_SVCCOMP_UPGRADE,
+         new ServiceComponentHostOpInProgressTransition())
 
      .addTransition(State.UNINSTALLING,
          State.UNINSTALLING,

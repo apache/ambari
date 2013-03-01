@@ -15,14 +15,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.ambari.server;
 
-public enum RoleCommand {
-  INSTALL,
-  UNINSTALL,
-  START,
-  STOP,
-  EXECUTE,
-  ABORT,
-  UPGRADE
+package org.apache.ambari.server.state.svccomphost;
+
+import org.apache.ambari.server.state.ServiceComponentHostEvent;
+import org.apache.ambari.server.state.ServiceComponentHostEventType;
+
+public class ServiceComponentHostUpgradeEvent extends
+    ServiceComponentHostEvent {
+
+
+  public ServiceComponentHostUpgradeEvent(String serviceComponentName,
+      String hostName, long opTimestamp, String stackId) {
+    super(ServiceComponentHostEventType.HOST_SVCCOMP_UPGRADE,
+        serviceComponentName, hostName, opTimestamp, stackId);
+  }
 }

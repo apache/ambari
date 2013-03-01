@@ -601,6 +601,96 @@ public class TestHeartbeatHandler {
   }
 
   @Test
+  public void testUpgradeSpecificHandling() throws AmbariException, InvalidStateTransitionException {
+    ActionManager am = new ActionManager(0, 0, null, null,
+        new ActionDBInMemoryImpl(), new HostsMap((String) null));
+    Cluster cluster = getDummyCluster();
+
+    @SuppressWarnings("serial")
+    Set<String> hostNames = new HashSet<String>() {{
+      add(DummyHostname1);
+    }};
+    clusters.mapHostsToCluster(hostNames, DummyCluster);
+    Service hdfs = cluster.addService(HDFS);
+    hdfs.persist();
+    hdfs.addServiceComponent(DATANODE).persist();
+    hdfs.getServiceComponent(DATANODE).addServiceComponentHost(DummyHostname1).persist();
+
+    ActionQueue aq = new ActionQueue();
+    HeartBeatHandler handler = getHeartBeatHandler(am, aq);
+
+    ServiceComponentHost serviceComponentHost1 = clusters.getCluster(DummyCluster).getService(HDFS).
+        getServiceComponent(DATANODE).getServiceComponentHost(DummyHostname1);
+    serviceComponentHost1.setState(State.UPGRADING);
+
+    HeartBeat hb = new HeartBeat();
+    hb.setTimestamp(System.currentTimeMillis());
+    hb.setResponseId(0);
+    hb.setHostname(DummyHostname1);
+    hb.setNodeStatus(new HostStatus(Status.HEALTHY, DummyHostStatus));
+
+    List<CommandReport> reports = new ArrayList<CommandReport>();
+    CommandReport cr = new CommandReport();
+    cr.setActionId(StageUtils.getActionId(requestId, stageId));
+    cr.setTaskId(1);
+    cr.setClusterName(DummyCluster);
+    cr.setServiceName(HDFS);
+    cr.setRole(DATANODE);
+    cr.setStatus(HostRoleStatus.IN_PROGRESS.toString());
+    cr.setStdErr("none");
+    cr.setStdOut("dummy output");
+    cr.setExitCode(777);
+    reports.add(cr);
+    hb.setReports(reports);
+    hb.setComponentStatus(new ArrayList<ComponentStatus>());
+
+    handler.handleHeartBeat(hb);
+    assertEquals("Host state should  be " + State.UPGRADING,
+        State.UPGRADING, serviceComponentHost1.getState());
+
+    hb.setTimestamp(System.currentTimeMillis());
+    hb.setResponseId(1);
+    cr.setStatus(HostRoleStatus.COMPLETED.toString());
+    cr.setExitCode(0);
+
+    handler.handleHeartBeat(hb);
+    assertEquals("Host state should be " + State.INSTALLED,
+        State.INSTALLED, serviceComponentHost1.getState());
+
+    serviceComponentHost1.setState(State.UPGRADING);
+    hb.setTimestamp(System.currentTimeMillis());
+    hb.setResponseId(2);
+    cr.setStatus(HostRoleStatus.FAILED.toString());
+    cr.setExitCode(3);
+
+    handler.handleHeartBeat(hb);
+    assertEquals("Host state should be " + State.UPGRADE_FAILED,
+        State.UPGRADE_FAILED, serviceComponentHost1.getState());
+
+    // TODO What happens when there is a TIMEDOUT
+
+    serviceComponentHost1.setState(State.UPGRADING);
+    hb.setTimestamp(System.currentTimeMillis());
+    hb.setResponseId(3);
+    cr.setStatus(HostRoleStatus.PENDING.toString());
+    cr.setExitCode(55);
+
+    handler.handleHeartBeat(hb);
+    assertEquals("Host state should be " + State.UPGRADING,
+        State.UPGRADING, serviceComponentHost1.getState());
+
+    serviceComponentHost1.setState(State.UPGRADING);
+    hb.setTimestamp(System.currentTimeMillis());
+    hb.setResponseId(4);
+    cr.setStatus(HostRoleStatus.QUEUED.toString());
+    cr.setExitCode(55);
+
+    handler.handleHeartBeat(hb);
+    assertEquals("Host state should be " + State.UPGRADING,
+        State.UPGRADING, serviceComponentHost1.getState());
+  }
+
+  @Test
   public void testStatusHeartbeatWithVersion() throws Exception {
     ActionManager am = new ActionManager(0, 0, null, null,
         new ActionDBInMemoryImpl(), new HostsMap((String) null));

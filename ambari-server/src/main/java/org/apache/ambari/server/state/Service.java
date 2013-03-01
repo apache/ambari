@@ -95,6 +95,8 @@ public interface Service {
     SQOOP,
     NAGIOS,
     GANGLIA,
-    ZOOKEEPER
+    ZOOKEEPER,
+    PIG,
+    HCATALOG
   }
 }

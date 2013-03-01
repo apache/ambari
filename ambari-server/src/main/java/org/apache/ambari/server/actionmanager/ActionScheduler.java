@@ -143,7 +143,7 @@ class ActionScheduler implements Runnable {
         }
       }
       if (failed) {
-        LOG.warn("Operation completely failed, borting request id:"
+        LOG.warn("Operation completely failed, aborting request id:"
             + s.getRequestId());
         db.abortOperation(s.getRequestId());
         return;

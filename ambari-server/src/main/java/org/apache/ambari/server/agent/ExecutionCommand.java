@@ -51,6 +51,7 @@ public class ExecutionCommand extends AgentCommand {
   private Map<String, List<String>> clusterHostInfo = 
       new HashMap<String, List<String>>();
   private Map<String, Map<String, String>> configurations;
+  private Map<String, String> commandParams;
   private String serviceName;
   
   @JsonProperty("commandId")
@@ -178,6 +179,16 @@ public class ExecutionCommand extends AgentCommand {
   @JsonProperty("configurations")
   public void setConfigurations(Map<String, Map<String, String>> configurations) {
     this.configurations = configurations;
+  }
+
+  @JsonProperty("commandParams")
+  public Map<String, String> getCommandParams() {
+    return commandParams;
+  }
+
+  @JsonProperty("commandParams")
+  public void setCommandParams(Map<String, String> commandParams) {
+    this.commandParams = commandParams;
   }
 
   @JsonProperty("serviceName")

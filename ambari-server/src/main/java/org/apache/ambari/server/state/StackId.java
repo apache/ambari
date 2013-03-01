@@ -18,7 +18,7 @@
 
 package org.apache.ambari.server.state;
 
-public class StackId {
+public class StackId implements Comparable<StackId> {
   private String stackName;
   private String stackVersion;
 
@@ -86,6 +86,39 @@ public class StackId {
   public int hashCode() {
     int result = stackVersion != null ? stackVersion.hashCode() : 0;
     return result;
+  }
+
+  @Override
+  public int compareTo(StackId other) {
+    if (this == other) {
+      return 0;
+    }
+
+    if (other == null) {
+      throw new RuntimeException("Cannot compare with a null value.");
+    }
+
+    int returnValue = getStackName().compareTo(other.getStackName());
+    if (returnValue == 0) {
+      String[] thisVersionParts = getStackVersion().split("\\.");
+      String[] thatVersionParts = other.getStackVersion().split("\\.");
+      int length = Math.max(thisVersionParts.length, thatVersionParts.length);
+      for (int i = 0; i < length; i++) {
+        int stack1Part = i < thisVersionParts.length ?
+            Integer.parseInt(thisVersionParts[i]) : 0;
+        int stack2Part = i < thatVersionParts.length ?
+            Integer.parseInt(thatVersionParts[i]) : 0;
+        if (stack1Part < stack2Part) {
+          return -1;
+        }
+        if (stack1Part > stack2Part) {
+          return 1;
+        }
+      }
+    } else {
+      throw new RuntimeException("StackId with different names cannot be compared.");
+    }
+    return returnValue;
   }
 
   public String toString() {

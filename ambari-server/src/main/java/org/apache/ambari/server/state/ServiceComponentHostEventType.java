@@ -54,5 +54,9 @@ public enum ServiceComponentHostEventType {
   /**
    * Triggering a wipe-out ( restore to clean state ).
    */
-  HOST_SVCCOMP_WIPEOUT
+  HOST_SVCCOMP_WIPEOUT,
+  /**
+   * Triggering a host component upgrade.
+   */
+  HOST_SVCCOMP_UPGRADE
 }

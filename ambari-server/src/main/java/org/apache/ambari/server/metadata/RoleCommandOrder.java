@@ -65,8 +65,16 @@ public class RoleCommandOrder {
    */
   private static Map<RoleCommandPair, Set<RoleCommandPair>> dependencies = new HashMap<RoleCommandPair, Set<RoleCommandPair>>();
 
+  /**
+   * Add a pair of tuples where the tuple defined by the first two parameters are blocked on
+   * the tuple defined by the last two pair.
+   * @param blockedRole Role that is blocked
+   * @param blockedCommand The command on the role that is blocked
+   * @param blockerRole The role that is blocking
+   * @param blockerCommand The command on the blocking role
+   */
   private static void addDependency(Role blockedRole,
-      RoleCommand blockedCommand, Role blockerRole, RoleCommand blockerCommand) {
+       RoleCommand blockedCommand, Role blockerRole, RoleCommand blockerCommand) {
     RoleCommandPair rcp1 = new RoleCommandPair(blockedRole, blockedCommand);
     RoleCommandPair rcp2 = new RoleCommandPair(blockerRole, blockerCommand);
     if (dependencies.get(rcp1) == null) {
@@ -167,7 +175,60 @@ public class RoleCommandOrder {
         Role.JOBTRACKER, RoleCommand.STOP);
     addDependency(Role.DATANODE, RoleCommand.STOP,
         Role.TASKTRACKER, RoleCommand.STOP);
-  }
+
+    addDependency(Role.SECONDARY_NAMENODE, RoleCommand.UPGRADE,
+        Role.NAMENODE, RoleCommand.UPGRADE);
+    addDependency(Role.DATANODE, RoleCommand.UPGRADE,
+        Role.SECONDARY_NAMENODE, RoleCommand.UPGRADE);
+    addDependency(Role.HDFS_CLIENT, RoleCommand.UPGRADE,
+        Role.DATANODE, RoleCommand.UPGRADE);
+    addDependency(Role.JOBTRACKER, RoleCommand.UPGRADE,
+        Role.HDFS_CLIENT, RoleCommand.UPGRADE);
+    addDependency(Role.TASKTRACKER, RoleCommand.UPGRADE,
+        Role.JOBTRACKER, RoleCommand.UPGRADE);
+    addDependency(Role.MAPREDUCE_CLIENT, RoleCommand.UPGRADE,
+        Role.TASKTRACKER, RoleCommand.UPGRADE);
+    addDependency(Role.MAPREDUCE_CLIENT, RoleCommand.UPGRADE,
+        Role.TASKTRACKER, RoleCommand.UPGRADE);
+    addDependency(Role.ZOOKEEPER_SERVER, RoleCommand.UPGRADE,
+        Role.MAPREDUCE_CLIENT, RoleCommand.UPGRADE);
+    addDependency(Role.ZOOKEEPER_CLIENT, RoleCommand.UPGRADE,
+        Role.ZOOKEEPER_SERVER, RoleCommand.UPGRADE);
+    addDependency(Role.HBASE_MASTER, RoleCommand.UPGRADE,
+        Role.ZOOKEEPER_CLIENT, RoleCommand.UPGRADE);
+    addDependency(Role.HBASE_REGIONSERVER, RoleCommand.UPGRADE,
+        Role.HBASE_MASTER, RoleCommand.UPGRADE);
+    addDependency(Role.HBASE_CLIENT, RoleCommand.UPGRADE,
+        Role.HBASE_REGIONSERVER, RoleCommand.UPGRADE);
+    addDependency(Role.HIVE_SERVER, RoleCommand.UPGRADE,
+        Role.HBASE_CLIENT, RoleCommand.UPGRADE);
+    addDependency(Role.HIVE_METASTORE, RoleCommand.UPGRADE,
+        Role.HIVE_SERVER, RoleCommand.UPGRADE);
+    addDependency(Role.MYSQL_SERVER, RoleCommand.UPGRADE,
+        Role.HIVE_METASTORE, RoleCommand.UPGRADE);
+    addDependency(Role.HIVE_CLIENT, RoleCommand.UPGRADE,
+        Role.MYSQL_SERVER, RoleCommand.UPGRADE);
+    addDependency(Role.HCAT, RoleCommand.UPGRADE,
+        Role.HIVE_CLIENT, RoleCommand.UPGRADE);
+    addDependency(Role.OOZIE_SERVER, RoleCommand.UPGRADE,
+        Role.HCAT, RoleCommand.UPGRADE);
+    addDependency(Role.OOZIE_CLIENT, RoleCommand.UPGRADE,
+        Role.OOZIE_SERVER, RoleCommand.UPGRADE);
+    addDependency(Role.WEBHCAT_SERVER, RoleCommand.UPGRADE,
+        Role.OOZIE_CLIENT, RoleCommand.UPGRADE);
+    addDependency(Role.PIG, RoleCommand.UPGRADE,
+        Role.WEBHCAT_SERVER, RoleCommand.UPGRADE);
+    addDependency(Role.SQOOP, RoleCommand.UPGRADE,
+        Role.PIG, RoleCommand.UPGRADE);
+    addDependency(Role.NAGIOS_SERVER, RoleCommand.UPGRADE,
+        Role.SQOOP, RoleCommand.UPGRADE);
+    addDependency(Role.GANGLIA_SERVER, RoleCommand.UPGRADE,
+        Role.NAGIOS_SERVER, RoleCommand.UPGRADE);
+    addDependency(Role.GANGLIA_MONITOR, RoleCommand.UPGRADE,
+        Role.GANGLIA_SERVER, RoleCommand.UPGRADE);
+
+    extendTransitiveDependency();
+    }
 
   /**
    * Returns the dependency order. -1 => rgn1 before rgn2, 0 => they can be
@@ -191,6 +252,37 @@ public class RoleCommandOrder {
       return compareCommands(rgn1, rgn2);
     }
     return 0;
+  }
+
+  /**
+   * Adds transitive dependencies to each node.
+   * A => B and B => C implies A => B,C and B => C
+   */
+  private static void extendTransitiveDependency() {
+    for (RoleCommandPair rcp : dependencies.keySet()) {
+      HashSet<RoleCommandPair> visited = new HashSet<RoleCommandPair>();
+      HashSet<RoleCommandPair> transitiveDependencies = new HashSet<RoleCommandPair>();
+      for (RoleCommandPair directlyBlockedOn : dependencies.get(rcp)) {
+        visited.add(directlyBlockedOn);
+        identifyTransitiveDependencies(directlyBlockedOn, visited, transitiveDependencies);
+      }
+      if (transitiveDependencies.size() > 0) {
+        dependencies.get(rcp).addAll(transitiveDependencies);
+      }
+    }
+  }
+
+  private static void identifyTransitiveDependencies(RoleCommandPair rcp, HashSet<RoleCommandPair> visited,
+                                                     HashSet<RoleCommandPair> transitiveDependencies) {
+    if (dependencies.get(rcp) != null) {
+      for (RoleCommandPair blockedOn : dependencies.get(rcp)) {
+        if (!visited.contains(blockedOn)) {
+          visited.add(blockedOn);
+          transitiveDependencies.add(blockedOn);
+          identifyTransitiveDependencies(blockedOn, visited, transitiveDependencies);
+        }
+      }
+    }
   }
 
   private int compareCommands(RoleGraphNode rgn1, RoleGraphNode rgn2) {

@@ -18,6 +18,7 @@
 
 package org.apache.ambari.server.controller;
 
+import java.io.File;
 import java.net.InetAddress;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -76,6 +77,7 @@ import org.apache.ambari.server.state.svccomphost.ServiceComponentHostInstallEve
 import org.apache.ambari.server.state.svccomphost.ServiceComponentHostOpInProgressEvent;
 import org.apache.ambari.server.state.svccomphost.ServiceComponentHostStartEvent;
 import org.apache.ambari.server.state.svccomphost.ServiceComponentHostStopEvent;
+import org.apache.ambari.server.state.svccomphost.ServiceComponentHostUpgradeEvent;
 import org.apache.ambari.server.utils.StageUtils;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
@@ -95,7 +97,7 @@ public class AmbariManagementControllerImpl implements
 
   private final Clusters clusters;
 
-  private String baseLogDir = "/tmp/ambari/";
+  private String baseLogDir = "/tmp/ambari";
 
   private final ActionManager actionManager;
 
@@ -130,7 +132,6 @@ public class AmbariManagementControllerImpl implements
   private HostsMap hostsMap;
   @Inject
   private Configuration configs;
-
 
   
   final private String masterHostname;
@@ -909,11 +910,10 @@ public class AmbariManagementControllerImpl implements
         }
       }
     }
-
   }
 
   private Stage createNewStage(Cluster cluster, long requestId) {
-    String logDir = baseLogDir + "/" + requestId;
+    String logDir = baseLogDir + File.pathSeparator + requestId;
     Stage stage = new Stage(requestId, logDir, cluster.getClusterName());
     return stage;
   }
@@ -922,7 +922,7 @@ public class AmbariManagementControllerImpl implements
       Stage stage, ServiceComponentHost scHost,
       Map<String, Map<String, String>> configurations,
       RoleCommand command,
-      long nowTimestamp,
+      Map<String, String> commandParams,
       ServiceComponentHostEvent event) throws AmbariException {
 
     stage.addHostRoleExecutionCommand(scHost.getHostName(), Role.valueOf(scHost
@@ -939,6 +939,8 @@ public class AmbariManagementControllerImpl implements
     Host host = clusters.getHost(scHost.getHostName());
 
     execCmd.setConfigurations(configurations);
+
+    execCmd.setCommandParams(commandParams);
 
     // send stack info to agent
     StackId stackId = scHost.getDesiredStackVersion();
@@ -1386,11 +1388,9 @@ public class AmbariManagementControllerImpl implements
 
   }
 
-
   @Override
   public synchronized RequestStatusResponse updateCluster(ClusterRequest request)
       throws AmbariException {
-    // for now only update host list supported
     if (request.getClusterName() == null
         || request.getClusterName().isEmpty()) {
       throw new IllegalArgumentException("Invalid arguments, cluster name"
@@ -1403,35 +1403,237 @@ public class AmbariManagementControllerImpl implements
           + ", request=" + request);
     }
 
-    final Cluster c = clusters.getCluster(request.getClusterName());
-    if (null != request.getHostNames()) {
-      clusters.mapHostsToCluster(request.getHostNames(),
-          request.getClusterName());
-    }
+    final Cluster cluster = clusters.getCluster(request.getClusterName());
 
-    if (!request.getStackVersion().equals(
-        c.getDesiredStackVersion().getStackId())) {
-      throw new IllegalArgumentException("Update of desired stack version"
-          + " not supported");
-    }
-    
     // set or create configuration mapping (and optionally create the map of properties)
     if (null != request.getDesiredConfig()) {
       ConfigurationRequest cr = request.getDesiredConfig();
-      
+
       if (null != cr.getProperties() && cr.getProperties().size() > 0) {
-        cr.setClusterName(c.getClusterName());
+        cr.setClusterName(cluster.getClusterName());
         createConfiguration(cr);
       }
-      
-      Config baseConfig = c.getConfig(cr.getType(), cr.getVersionTag());
-      if (null != baseConfig)
-        c.addDesiredConfig(baseConfig);
-      
+
+      Config baseConfig = cluster.getConfig(cr.getType(), cr.getVersionTag());
+      if (null != baseConfig) {
+        cluster.addDesiredConfig(baseConfig);
+      }
     }
-    
+
+    StackId currentVersion = cluster.getCurrentStackVersion();
+    StackId desiredVersion = cluster.getDesiredStackVersion();
+    String requestedVersionString = request.getStackVersion();
+    StackId requestedVersion = null;
+
+    // Set the current version value if its not already set
+    if (currentVersion == null) {
+      cluster.setCurrentStackVersion(desiredVersion);
+      currentVersion = cluster.getCurrentStackVersion();
+    }
+
+    boolean requiresHostListUpdate =
+        request.getHostNames() != null && !request.getHostNames().isEmpty();
+    // TODO Should upgrade be allowed to upgrade all un-upgraded hosts
+    // even if the cluster says its upgraded
+    boolean requiresVersionUpdate = requestedVersionString != null
+        && !requestedVersionString.isEmpty();
+    if (requiresVersionUpdate) {
+      requestedVersion = new StackId(requestedVersionString);
+      if (!requestedVersion.getStackName().equals(currentVersion.getStackName())) {
+        throw new AmbariException("Upgrade not possible between different stacks.");
+      }
+      requiresVersionUpdate = !currentVersion.equals(requestedVersion);
+    }
+
+    if (requiresVersionUpdate && requiresHostListUpdate) {
+      throw new IllegalArgumentException("Invalid arguments, "
+          + "cluster version cannot be upgraded"
+          + " along with host list modifications");
+    }
+
+    if (requiresHostListUpdate) {
+      clusters.mapHostsToCluster(
+          request.getHostNames(), request.getClusterName());
+    }
+
+    if (requiresVersionUpdate) {
+      boolean retry = false;
+      if (0 == currentVersion.compareTo(desiredVersion)) {
+        if (1 != requestedVersion.compareTo(currentVersion)) {
+          throw new AmbariException("Target version : " + requestedVersion
+              + " must be greater than current version : " + currentVersion);
+        } else {
+          StackInfo stackInfo =
+              ambariMetaInfo.getStackInfo(requestedVersion.getStackName(), requestedVersion.getStackVersion());
+          if (stackInfo == null) {
+            throw new AmbariException("Target version : " + requestedVersion
+                + " is not a recognized version");
+          }
+          // TODO Ensure its an allowed upgrade using AmbariMetaInfo
+          //if(!upgradeAllowed(stackInfo, requestedVersion))
+          //{
+          //  throw new AmbariException("Upgrade is not allowed from " + currentVersion
+          //      + " to the target version " + requestedVersion);
+          //}
+        }
+      } else {
+        retry = true;
+        if (0 != requestedVersion.compareTo(desiredVersion)) {
+          throw new AmbariException("Upgrade in progress to target version : "
+              + desiredVersion
+              + ". Illegal request to upgrade to : " + requestedVersion);
+        }
+      }
+
+      boolean activeComponentExists = checkIfActiveComponentsExist(cluster);
+      if (activeComponentExists) {
+        throw new AmbariException("Upgrade needs all services to be stopped.");
+      }
+
+      // TODO Ensure no other upgrade is active
+      /**
+       * There exists no active upgrade. Perform a final check of current stack version
+       * and proceed if upgrade is still required. Upgrade is idempotent so this check
+       * is only to avoid potentially expensive stage creation.
+       */
+      cluster.refresh();
+      if (requestedVersion.equals(cluster.getCurrentStackVersion())) {
+        return null;
+      }
+
+      if (!retry) {
+        cluster.setDesiredStackVersion(requestedVersion);
+        for (Service service : cluster.getServices().values()) {
+          service.setDesiredStackVersion(requestedVersion);
+          for (ServiceComponent component : service.getServiceComponents().values()) {
+            component.setDesiredStackVersion(requestedVersion);
+            for (ServiceComponentHost componentHost : component.getServiceComponentHosts().values()) {
+              componentHost.setDesiredStackVersion(requestedVersion);
+            }
+          }
+        }
+      }
+
+      Map<State, List<Service>> changedServices
+          = new HashMap<State, List<Service>>();
+      Map<State, List<ServiceComponent>> changedComps =
+          new HashMap<State, List<ServiceComponent>>();
+      Map<String, Map<State, List<ServiceComponentHost>>> changedScHosts =
+          new HashMap<String, Map<State, List<ServiceComponentHost>>>();
+
+      fillComponentsToUpgrade(request, cluster, changedServices, changedComps, changedScHosts);
+      Map<String, String> requestParameters = new HashMap<String, String>();
+      requestParameters.put(Configuration.UPGRADE_TO_STACK, gson.toJson(requestedVersion));
+      requestParameters.put(Configuration.UPGRADE_FROM_STACK, gson.toJson(currentVersion));
+
+      return doStageCreation(cluster, changedServices, changedComps, changedScHosts, requestParameters);
+    }
 
     return null;
+  }
+
+  private void fillComponentsToUpgrade(ClusterRequest request, Cluster cluster,
+           Map<State, List<Service>> changedServices, Map<State, List<ServiceComponent>> changedComps,
+           Map<String, Map<State, List<ServiceComponentHost>>> changedScHosts) throws AmbariException {
+    for (Service service : cluster.getServices().values()) {
+      State oldState = service.getDesiredState();
+      State newState = State.INSTALLED;
+
+      if (!isValidDesiredStateTransition(oldState, newState)) {
+        throw new AmbariException("Invalid transition for"
+            + " service"
+            + ", clusterName=" + cluster.getClusterName()
+            + ", clusterId=" + cluster.getClusterId()
+            + ", serviceName=" + service.getName()
+            + ", currentDesiredState=" + oldState
+            + ", newDesiredState=" + newState);
+      }
+      changedServices.put(newState, new ArrayList<Service>());
+      changedServices.get(newState).add(service);
+
+      for (ServiceComponent sc : service.getServiceComponents().values()) {
+        State oldScState = sc.getDesiredState();
+        if (newState != oldScState) {
+          if (!isValidDesiredStateTransition(oldScState, newState)) {
+            throw new AmbariException("Invalid transition for"
+                + " servicecomponent"
+                + ", clusterName=" + cluster.getClusterName()
+                + ", clusterId=" + cluster.getClusterId()
+                + ", serviceName=" + sc.getServiceName()
+                + ", componentName=" + sc.getName()
+                + ", currentDesiredState=" + oldScState
+                + ", newDesiredState=" + newState);
+          }
+          changedComps.put(newState, new ArrayList<ServiceComponent>());
+          changedComps.get(newState).add(sc);
+        }
+        LOG.info("Handling upgrade to ServiceComponent"
+            + ", clusterName=" + request.getClusterName()
+            + ", serviceName=" + service.getName()
+            + ", componentName=" + sc.getName()
+            + ", currentDesiredState=" + oldScState
+            + ", newDesiredState=" + newState);
+
+        for (ServiceComponentHost sch : sc.getServiceComponentHosts().values()) {
+          State currSchState = sch.getState();
+          if (sch.getStackVersion().equals(sch.getDesiredStackVersion())
+              && newState == currSchState) {
+            LOG.info("Ignoring ServiceComponentHost"
+                + ", clusterName=" + request.getClusterName()
+                + ", serviceName=" + service.getName()
+                + ", componentName=" + sc.getName()
+                + ", hostname=" + sch.getHostName()
+                + ", currentState=" + currSchState
+                + ", newDesiredState=" + newState
+                + ", currentDesiredState=" + sch.getStackVersion()
+                + ", newDesiredVersion=" + sch.getDesiredStackVersion());
+            //TODO Create NOP tasks for progress tracking
+            continue;
+          }
+
+          sch.setState(State.UPGRADING);
+          sch.setDesiredState(newState);
+          if (!changedScHosts.containsKey(sc.getName())) {
+            changedScHosts.put(sc.getName(),
+                new HashMap<State, List<ServiceComponentHost>>());
+          }
+          changedScHosts.get(sc.getName()).put(newState,
+              new ArrayList<ServiceComponentHost>());
+          changedScHosts.get(sc.getName()).get(newState).add(sch);
+
+          LOG.info("Handling update to ServiceComponentHost"
+              + ", clusterName=" + request.getClusterName()
+              + ", serviceName=" + service.getName()
+              + ", componentName=" + sc.getName()
+              + ", hostname=" + sch.getHostName()
+              + ", currentState=" + currSchState
+              + ", newDesiredState=" + newState);
+        }
+      }
+    }
+  }
+
+  private boolean checkIfActiveComponentsExist(Cluster c) {
+    boolean activeComponentExists = false;
+    for (Service service : c.getServices().values()) {
+      if (activeComponentExists || service.getDesiredState() != State.INSTALLED) {
+        activeComponentExists = true;
+        break;
+      }
+      for (ServiceComponent component : service.getServiceComponents().values()) {
+        if (activeComponentExists || component.getDesiredState() != State.INSTALLED) {
+          activeComponentExists = true;
+          break;
+        }
+        for (ServiceComponentHost componentHost : component.getServiceComponentHosts().values()) {
+          if (activeComponentExists || componentHost.getDesiredState() != State.INSTALLED) {
+            activeComponentExists = true;
+            break;
+          }
+        }
+      }
+    }
+    return activeComponentExists;
   }
 
   // FIXME refactor code out of all update functions
@@ -1459,7 +1661,8 @@ public class AmbariManagementControllerImpl implements
   private RequestStatusResponse doStageCreation(Cluster cluster,
       Map<State, List<Service>> changedServices,
       Map<State, List<ServiceComponent>> changedComps,
-      Map<String, Map<State, List<ServiceComponentHost>>> changedScHosts)
+      Map<String, Map<State, List<ServiceComponentHost>>> changedScHosts,
+      Map<String, String> requestParameters)
           throws AmbariException {
 
     // TODO handle different transitions?
@@ -1591,6 +1794,12 @@ public class AmbariManagementControllerImpl implements
                   event = new ServiceComponentHostStopEvent(
                       scHost.getServiceComponentName(), scHost.getHostName(),
                       nowTimestamp);
+                } else if (oldSchState == State.UPGRADE_FAILED
+                    || oldSchState == State.UPGRADING) {
+                  roleCommand = RoleCommand.UPGRADE;
+                  event = new ServiceComponentHostUpgradeEvent(
+                      scHost.getServiceComponentName(), scHost.getHostName(),
+                      nowTimestamp, scHost.getDesiredStackVersion().getStackId());
                 } else {
                   throw new AmbariException("Invalid transition for"
                       + " servicecomponenthost"
@@ -1701,7 +1910,7 @@ public class AmbariManagementControllerImpl implements
               configurations.get("global").put("rca_enabled", "false");
             }
             createHostAction(cluster, stage, scHost, configurations,
-                roleCommand, nowTimestamp, event);
+                roleCommand, requestParameters, event);
           }
         }
       }
@@ -1814,7 +2023,9 @@ public class AmbariManagementControllerImpl implements
             || oldState == State.STARTED
             || oldState == State.START_FAILED
             || oldState == State.INSTALL_FAILED
-            || oldState == State.STOP_FAILED) {
+            || oldState == State.STOP_FAILED
+            || oldState == State.UPGRADE_FAILED
+            || oldState == State.UPGRADING) {
           return true;
         }
         break;
@@ -2082,7 +2293,7 @@ public class AmbariManagementControllerImpl implements
             continue;
           }
           /** 
-           * This is hack for now wherein we dont fail if the 
+           * This is hack for now wherein we don't fail if the
            * sch is in INSTALL_FAILED 
            */
           if (!isValidStateTransition(oldSchState, newState)) {
@@ -2171,7 +2382,7 @@ public class AmbariManagementControllerImpl implements
     Cluster cluster = clusters.getCluster(clusterNames.iterator().next());
 
     return doStageCreation(cluster, changedServices,
-        changedComps, changedScHosts);
+        changedComps, changedScHosts, null);
   }
 
   @Override
@@ -2430,7 +2641,7 @@ public class AmbariManagementControllerImpl implements
     Cluster cluster = clusters.getCluster(clusterNames.iterator().next());
 
     return doStageCreation(cluster, null,
-        changedComps, changedScHosts);
+        changedComps, changedScHosts, null);
   }
 
   @Override
@@ -2715,7 +2926,7 @@ public class AmbariManagementControllerImpl implements
     Cluster cluster = clusters.getCluster(clusterNames.iterator().next());
 
     return doStageCreation(cluster, null,
-        null, changedScHosts);
+        null, changedScHosts, null);
   }
 
   @Override

@@ -109,6 +109,10 @@ public class Configuration {
   public static final String SRVR_HOSTS_MAPPING = 
       "server.hosts.mapping";
 
+  // Command parameter names
+  public static final String UPGRADE_FROM_STACK = "source_stack_version";
+  public static final String UPGRADE_TO_STACK = "target_stack_version";
+
   public static final String SSL_TRUSTSTORE_PATH_KEY = "ssl.trustStore.path";
   public static final String SSL_TRUSTSTORE_PASSWORD_KEY = "ssl.trustStore.password";
   public static final String SSL_TRUSTSTORE_TYPE_KEY = "ssl.trustStore.type";

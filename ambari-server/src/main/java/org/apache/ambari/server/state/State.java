@@ -20,7 +20,7 @@ package org.apache.ambari.server.state;
 
 public enum State {
   /**
-   * Initial/Clean state
+   * Initial/Clean state.
    */
   INIT(0),
   /**
@@ -28,11 +28,11 @@ public enum State {
    */
   INSTALLING(1),
   /**
-   * Install failed
+   * Install failed.
    */
   INSTALL_FAILED(2),
   /**
-   * State when install completed successfully
+   * State when install completed successfully.
    */
   INSTALLED(3),
   /**
@@ -52,10 +52,9 @@ public enum State {
    */
   STOPPING(7),
   /**
-   * Stop failed
+   * Stop failed.
    */
   STOP_FAILED(8),
-
   /**
    * In the process of uninstalling.
    */
@@ -69,13 +68,21 @@ public enum State {
    */
   UNINSTALLED(11),
   /**
-   * In the process of wiping out the install
+   * In the process of wiping out the install.
    */
   WIPING_OUT(12),
   /**
-   * State when wipeout fails
+   * State when wipeout fails.
    */
-  WIPEOUT_FAILED(13);
+  WIPEOUT_FAILED(13),
+  /**
+   * In the process of upgrading the deployed bits.
+   */
+  UPGRADING(14),
+  /**
+   * Upgrade has failed.
+   */
+  UPGRADE_FAILED(15);
 
   private final int state;
 
@@ -83,6 +90,11 @@ public enum State {
     this.state = state;
   }
 
+  /**
+   * Indicates whether or not it is a valid desired state.
+   *
+   * @return true if this is a valid desired state.
+   */
   public boolean isValidDesiredState() {
     switch (State.values()[this.state]) {
       case INIT:
@@ -95,6 +107,11 @@ public enum State {
     }
   }
 
+  /**
+   * Indicates whether or not its a state indicating a task in progress.
+   *
+   * @return true if this is a state indicating progress.
+   */
   public boolean isInProgressState() {
     switch (State.values()[this.state]) {
       case INSTALLING:
@@ -102,12 +119,18 @@ public enum State {
       case STOPPING:
       case UNINSTALLING:
       case WIPING_OUT:
+      case UPGRADING:
         return true;
       default:
         return false;
     }
   }
 
+  /**
+   * Indicates whether or not it is a valid state for the client component.
+   *
+   * @return true if this is a valid state for a client component.
+   */
   public boolean isValidClientComponentState() {
     switch (State.values()[this.state]) {
       case STARTING:
@@ -122,8 +145,7 @@ public enum State {
   }
 
   /**
-   * Indicates whether or not the resource with this state
-   * can be removed.
+   * Indicates whether or not the resource with this state can be removed.
    *
    * @return true if this is a removable state
    */
@@ -133,6 +155,7 @@ public enum State {
       case INSTALLING:
       case INSTALLED:
       case INSTALL_FAILED:
+      case UPGRADE_FAILED:
       case UNINSTALLED:
         return true;
       default:

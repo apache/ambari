@@ -44,6 +44,7 @@ import org.apache.ambari.server.actionmanager.ExecutionCommandWrapper;
 import org.apache.ambari.server.actionmanager.HostRoleCommand;
 import org.apache.ambari.server.actionmanager.HostRoleStatus;
 import org.apache.ambari.server.actionmanager.Stage;
+import org.apache.ambari.server.agent.ExecutionCommand;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
@@ -68,6 +69,7 @@ import org.apache.ambari.server.utils.StageUtils;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -1656,7 +1658,7 @@ public class AmbariManagementControllerTest {
 
     try {
       r = new ServiceRequest(c2.getClusterName(), s1.getName(), null, null);
-      resp = controller.getServices(Collections.singleton(r));
+      controller.getServices(Collections.singleton(r));
       fail("Expected failure for invalid service");
     } catch (Exception e) {
       // Expected
@@ -3235,8 +3237,7 @@ public class AmbariManagementControllerTest {
       Set<ServiceRequest> requests = new HashSet<ServiceRequest>();
       requests.add(r);
 
-      RequestStatusResponse trackAction =
-              controller.updateServices(requests);
+      controller.updateServices(requests);
       Assert.assertEquals(State.INSTALLED,
               clusters.getCluster(clusterName).getService(serviceName)
                       .getDesiredState());
@@ -3255,7 +3256,7 @@ public class AmbariManagementControllerTest {
               State.STARTED.toString());
       requests.clear();
       requests.add(r);
-      trackAction = controller.updateServices(requests);
+      controller.updateServices(requests);
 
       // manually change live state to started as no running action manager
       for (ServiceComponent sc :
@@ -3780,5 +3781,381 @@ public class AmbariManagementControllerTest {
     Assert.assertEquals(1, taskStatuses.size());
     Assert.assertEquals(Role.PIG_SERVICE_CHECK.toString(),
         taskStatuses.get(0).getRole());
+  }
+
+  @Test
+  public void testUpdateClusterVersionBasic() throws AmbariException {
+    String clusterName = "foo1";
+    String serviceName = "PIG";
+    String host1 = "h1";
+    String host2 = "h2";
+    String componentName = "PIG";
+    StackId currentStackId = new StackId("HDP-0.1");
+
+    createCluster(clusterName);
+    Cluster c = clusters.getCluster(clusterName);
+    c.setDesiredStackVersion(currentStackId);
+    createService(clusterName, serviceName, State.INIT);
+    createServiceComponent(clusterName, serviceName, componentName, null);
+
+    clusters.addHost(host1);
+    clusters.getHost(host1).persist();
+    clusters.addHost(host2);
+    clusters.getHost(host2).persist();
+
+    clusters.getHost(host1).setOsType("centos5");
+    clusters.getHost(host2).setOsType("centos6");
+    clusters.mapHostToCluster(host1, clusterName);
+    clusters.mapHostToCluster(host2, clusterName);
+
+    createServiceComponentHost(clusterName, null, componentName,
+        host1, null);
+    createServiceComponentHost(clusterName, null, componentName,
+        host2, null);
+
+    c.getService(serviceName).setDesiredState(State.INSTALLED);
+    c.getService(serviceName).getServiceComponent(componentName).setDesiredState(State.INSTALLED);
+    c.getService(serviceName).getServiceComponent(componentName).getServiceComponentHost(host1)
+        .setDesiredState(State.INSTALLED);
+    c.getService(serviceName).getServiceComponent(componentName).getServiceComponentHost(host2)
+        .setDesiredState(State.STARTED);
+    c.getService(serviceName).getServiceComponent(componentName).getServiceComponentHost(host1)
+        .setStackVersion(currentStackId);
+    c.getService(serviceName).getServiceComponent(componentName).getServiceComponentHost(host2)
+        .setStackVersion(currentStackId);
+
+    ClusterRequest r = new ClusterRequest(c.getClusterId(), clusterName, "HDP-0.0.1", null);
+    try {
+      controller.updateCluster(r);
+      fail("Update cluster creation should fail");
+    } catch (AmbariException e) {
+      Assert.assertTrue(e.getMessage().contains("must be greater than current version"));
+    }
+
+    r = new ClusterRequest(c.getClusterId(), clusterName, "HDPLocal-1.2.2", null);
+    try {
+      controller.updateCluster(r);
+      fail("Update cluster creation should fail");
+    } catch (AmbariException e) {
+      Assert.assertTrue(e.getMessage().contains("Upgrade not possible between different stacks"));
+    }
+
+    r = new ClusterRequest(c.getClusterId(), clusterName, "HDP-0.2", null);
+    try {
+      controller.updateCluster(r);
+      fail("Update cluster creation should fail");
+    } catch (AmbariException e) {
+      Assert.assertTrue(e.getMessage().contains("Upgrade needs all services to be stopped"));
+    }
+
+    c.getService(serviceName).getServiceComponent(componentName).getServiceComponentHost(host2)
+        .setDesiredState(State.INSTALLED);
+    controller.updateCluster(r);
+    StackId expectedStackId = new StackId("HDP-0.2");
+    Assert.assertTrue(expectedStackId.equals(c.getDesiredStackVersion()));
+    Assert.assertTrue(expectedStackId.equals(c.getService(serviceName).getDesiredStackVersion()));
+    Assert.assertTrue(expectedStackId.equals(c.getService(serviceName)
+        .getServiceComponent(componentName).getDesiredStackVersion()));
+    Assert.assertTrue(expectedStackId.equals(c.getService(serviceName)
+        .getServiceComponent(componentName).getServiceComponentHost(host1).getDesiredStackVersion()));
+    Assert.assertTrue(expectedStackId.equals(c.getService(serviceName)
+        .getServiceComponent(componentName).getServiceComponentHost(host2).getDesiredStackVersion()));
+    Assert.assertTrue(currentStackId.equals(c.getService(serviceName)
+        .getServiceComponent(componentName).getServiceComponentHost(host1).getStackVersion()));
+    Assert.assertTrue(currentStackId.equals(c.getService(serviceName)
+        .getServiceComponent(componentName).getServiceComponentHost(host2).getStackVersion()));
+    ServiceComponent sc = c.getService(serviceName).getServiceComponent(componentName);
+    Assert.assertEquals(State.UPGRADING, sc.getServiceComponentHost(host1).getState());
+    Assert.assertEquals(State.UPGRADING, sc.getServiceComponentHost(host2).getState());
+
+    // cases where there is no update required
+    c.getService(serviceName).getServiceComponent(componentName).getServiceComponentHost(host1)
+        .setDesiredState(State.INSTALLED);
+    c.getService(serviceName).getServiceComponent(componentName).getServiceComponentHost(host2)
+        .setDesiredState(State.INSTALLED);
+    c.getService(serviceName).getServiceComponent(componentName).getServiceComponentHost(host1)
+        .setState(State.INSTALLED);
+    c.getService(serviceName).getServiceComponent(componentName).getServiceComponentHost(host2)
+        .setState(State.INSTALLED);
+    c.setCurrentStackVersion(expectedStackId);
+    r = new ClusterRequest(c.getClusterId(), clusterName, "", null);
+    controller.updateCluster(r);
+    Assert.assertEquals(State.INSTALLED, sc.getServiceComponentHost(host1).getState());
+    Assert.assertEquals(State.INSTALLED, sc.getServiceComponentHost(host2).getState());
+
+    r = new ClusterRequest(c.getClusterId(), clusterName, null, null);
+    controller.updateCluster(r);
+    Assert.assertEquals(State.INSTALLED, sc.getServiceComponentHost(host1).getState());
+    Assert.assertEquals(State.INSTALLED, sc.getServiceComponentHost(host2).getState());
+
+    r = new ClusterRequest(c.getClusterId(), clusterName, "HDP-0.2", null);
+    controller.updateCluster(r);
+    Assert.assertEquals(State.INSTALLED, sc.getServiceComponentHost(host1).getState());
+    Assert.assertEquals(State.INSTALLED, sc.getServiceComponentHost(host2).getState());
+  }
+
+  @Test
+  public void testUpdateClusterVersionCombinations() throws AmbariException {
+    String clusterName = "foo1";
+    String pigServiceName = "PIG";
+    String mrServiceName = "MAPREDUCE";
+    String host1 = "h1";
+    String host2 = "h2";
+    String pigComponentName = "PIG";
+    String mrJobTrackerComp = "JOBTRACKER";
+    String mrTaskTrackerComp = "TASKTRACKER";
+    String mrClientComp = "MAPREDUCE_CLIENT";
+    String hdfsService = "HDFS";
+    String hdfsNameNode = "NAMENODE";
+    String hdfsDataNode = "DATANODE";
+    String hdfsClient = "HDFS_CLIENT";
+    StackId currentStackId = new StackId("HDP-0.1");
+    StackId desiredStackId = new StackId("HDP-0.2");
+    List<String> hosts = new ArrayList<String>();
+    hosts.add(host1);
+    hosts.add(host2);
+
+    createCluster(clusterName);
+    Cluster c = clusters.getCluster(clusterName);
+    c.setDesiredStackVersion(currentStackId);
+    createService(clusterName, pigServiceName, State.INIT);
+    createServiceComponent(clusterName, pigServiceName, pigComponentName, null);
+
+    clusters.addHost(host1);
+    clusters.getHost(host1).persist();
+    clusters.addHost(host2);
+    clusters.getHost(host2).persist();
+
+    clusters.getHost(host1).setOsType("centos5");
+    clusters.getHost(host2).setOsType("centos6");
+    clusters.mapHostToCluster(host1, clusterName);
+    clusters.mapHostToCluster(host2, clusterName);
+
+    createServiceComponentHost(clusterName, null, pigComponentName,
+        host1, null);
+    createServiceComponentHost(clusterName, null, pigComponentName,
+        host2, null);
+
+    resetServiceState(pigServiceName, currentStackId, c);
+
+    ClusterRequest r = new ClusterRequest(c.getClusterId(), clusterName, "HDP-0.2", null);
+    RequestStatusResponse trackAction = controller.updateCluster(r);
+    List<Stage> stages = actionDB.getAllStages(trackAction.getRequestId());
+
+    // Upgrade a cluster with one service
+    ExpectedUpgradeTasks expectedTasks = new ExpectedUpgradeTasks(hosts);
+    expectedTasks.expectTask(Role.PIG, host1);
+    expectedTasks.expectTask(Role.PIG, host2);
+    validateGeneratedStages(stages, 1, expectedTasks);
+
+    resetCluster(c, currentStackId);
+
+    createService(clusterName, mrServiceName, State.INIT);
+    createServiceComponent(clusterName, mrServiceName, mrJobTrackerComp, null);
+    createServiceComponent(clusterName, mrServiceName, mrTaskTrackerComp, null);
+    createServiceComponent(clusterName, mrServiceName, mrClientComp, null);
+
+    createServiceComponentHost(clusterName, null, mrJobTrackerComp, host1, null);
+    createServiceComponentHost(clusterName, null, mrTaskTrackerComp, host2, null);
+    createServiceComponentHost(clusterName, null, mrClientComp, host2, null);
+
+    resetServiceState(mrServiceName, currentStackId, c);
+
+    // Upgrade a cluster with two service
+    r = new ClusterRequest(c.getClusterId(), clusterName, "HDP-0.2", null);
+    trackAction = controller.updateCluster(r);
+    stages = actionDB.getAllStages(trackAction.getRequestId());
+
+    expectedTasks.expectTask(Role.JOBTRACKER, host1);
+    expectedTasks.expectTask(Role.TASKTRACKER, host2);
+    expectedTasks.expectTask(Role.MAPREDUCE_CLIENT, host2);
+    validateGeneratedStages(stages, 4, expectedTasks);
+
+    // Upgrade again
+    trackAction = controller.updateCluster(r);
+    stages = actionDB.getAllStages(trackAction.getRequestId());
+    validateGeneratedStages(stages, 4, expectedTasks);
+
+    // some host components are upgraded
+    c.getService(pigServiceName).getServiceComponent(pigComponentName).getServiceComponentHost(host1)
+        .setState(State.INSTALLED);
+    c.getService(pigServiceName).getServiceComponent(pigComponentName).getServiceComponentHost(host2)
+        .setState(State.INSTALLED);
+    c.getService(pigServiceName).getServiceComponent(pigComponentName).getServiceComponentHost(host1)
+        .setStackVersion(desiredStackId);
+    c.getService(pigServiceName).getServiceComponent(pigComponentName).getServiceComponentHost(host2)
+        .setStackVersion(desiredStackId);
+
+    trackAction = controller.updateCluster(r);
+    stages = actionDB.getAllStages(trackAction.getRequestId());
+    expectedTasks.resetAll();
+    expectedTasks.expectTask(Role.JOBTRACKER, host1);
+    expectedTasks.expectTask(Role.TASKTRACKER, host2);
+    expectedTasks.expectTask(Role.MAPREDUCE_CLIENT, host2);
+    validateGeneratedStages(stages, 3, expectedTasks);
+
+    c.getService(mrServiceName).getServiceComponent(mrJobTrackerComp).getServiceComponentHost(host1)
+        .setState(State.UPGRADE_FAILED);
+    c.getService(mrServiceName).getServiceComponent(mrTaskTrackerComp).getServiceComponentHost(host2)
+        .setState(State.UPGRADE_FAILED);
+    trackAction = controller.updateCluster(r);
+    stages = actionDB.getAllStages(trackAction.getRequestId());
+    validateGeneratedStages(stages, 3, expectedTasks);
+
+    // Add HDFS and upgrade
+    createService(clusterName, hdfsService, State.INIT);
+    createServiceComponent(clusterName, hdfsService, hdfsNameNode, null);
+    createServiceComponent(clusterName, hdfsService, hdfsDataNode, null);
+    createServiceComponent(clusterName, hdfsService, hdfsClient, null);
+
+    createServiceComponentHost(clusterName, null, hdfsNameNode, host1, null);
+    createServiceComponentHost(clusterName, null, hdfsDataNode, host1, null);
+    createServiceComponentHost(clusterName, null, hdfsDataNode, host2, null);
+    createServiceComponentHost(clusterName, null, hdfsClient, host2, null);
+
+    resetServiceState(hdfsService, currentStackId, c);
+    resetServiceState(mrServiceName, currentStackId, c);
+    resetServiceState(pigServiceName, currentStackId, c);
+
+    trackAction = controller.updateCluster(r);
+    stages = actionDB.getAllStages(trackAction.getRequestId());
+
+    expectedTasks.resetAll();
+    expectedTasks.expectTask(Role.PIG, host1);
+    expectedTasks.expectTask(Role.PIG, host2);
+    expectedTasks.expectTask(Role.JOBTRACKER, host1);
+    expectedTasks.expectTask(Role.TASKTRACKER, host2);
+    expectedTasks.expectTask(Role.MAPREDUCE_CLIENT, host2);
+    expectedTasks.expectTask(Role.DATANODE, host1);
+    expectedTasks.expectTask(Role.DATANODE, host2);
+    expectedTasks.expectTask(Role.NAMENODE, host1);
+    expectedTasks.expectTask(Role.HDFS_CLIENT, host2);
+    validateGeneratedStages(stages, 7, expectedTasks);
+  }
+
+  private void resetServiceState(String hdfsService, StackId currentStackId, Cluster c) throws AmbariException {
+    c.getService(hdfsService).setDesiredState(State.INSTALLED);
+    for (ServiceComponent sc : c.getService(hdfsService).getServiceComponents().values()) {
+      sc.setDesiredState(State.INSTALLED);
+      for (ServiceComponentHost sch : sc.getServiceComponentHosts().values()) {
+        sch.setDesiredState(State.INSTALLED);
+        sch.setState(State.INSTALLED);
+        sch.setStackVersion(currentStackId);
+      }
+    }
+  }
+
+  private void validateGeneratedStages(List<Stage> stages, int expectedStageCount, ExpectedUpgradeTasks expectedTasks) {
+    Assert.assertEquals(expectedStageCount, stages.size());
+    int prevRoleOrder = -1;
+    for (Stage stage : stages) {
+      int currRoleOrder = -1;
+      for (HostRoleCommand command : stage.getOrderedHostRoleCommands()) {
+        Assert.assertTrue(command.toString(), expectedTasks.isTaskExpected(command.getRole(), command.getHostName()));
+        currRoleOrder = expectedTasks.getRoleOrder(command.getRole());
+        ExecutionCommand execCommand = command.getExecutionCommandWrapper().getExecutionCommand();
+        Assert.assertTrue(execCommand.getCommandParams().containsKey("source_stack_version"));
+        Assert.assertTrue(execCommand.getCommandParams().containsKey("target_stack_version"));
+        Assert.assertEquals(RoleCommand.UPGRADE, execCommand.getRoleCommand());
+      }
+
+      List<HostRoleCommand> commands = stage.getOrderedHostRoleCommands();
+      Assert.assertTrue(commands.size() > 0);
+      Role role = commands.get(0).getRole();
+      for (HostRoleCommand command : commands) {
+        Assert.assertTrue("All commands must be for the same role", role.equals(command.getRole()));
+      }
+
+      Assert.assertTrue("Roles must be in order", currRoleOrder > prevRoleOrder);
+      prevRoleOrder = currRoleOrder;
+    }
+  }
+
+  private void resetCluster(Cluster cluster, StackId currentStackId) {
+    cluster.setDesiredStackVersion(currentStackId);
+    for (Service service : cluster.getServices().values()) {
+      service.setDesiredStackVersion(currentStackId);
+      for (ServiceComponent component : service.getServiceComponents().values()) {
+        component.setDesiredStackVersion(currentStackId);
+        for (ServiceComponentHost componentHost : component.getServiceComponentHosts().values()) {
+          componentHost.setDesiredStackVersion(currentStackId);
+          componentHost.setState(State.INSTALLED);
+        }
+      }
+    }
+  }
+
+  class ExpectedUpgradeTasks {
+    private static final int ROLE_COUNT = 24;
+    private ArrayList<Map<String, Boolean>> expectedList;
+    private Map<Role, Integer> roleToIndex;
+
+    public ExpectedUpgradeTasks(List<String> hosts) {
+      roleToIndex = new HashMap<Role, Integer>();
+      expectedList = new ArrayList<Map<String, Boolean>>(ROLE_COUNT);
+
+      fillRoleToIndex();
+      fillExpectedHosts(hosts);
+    }
+
+    public void expectTask(Role role, String host) {
+      expectedList.get(roleToIndex.get(role)).put(host, true);
+    }
+
+    public boolean isTaskExpected(Role role, String host) {
+      return expectedList.get(roleToIndex.get(role)).get(host);
+    }
+
+    public int getRoleOrder(Role role) {
+      return roleToIndex.get(role);
+    }
+
+    public void resetAll() {
+      for (Role role : roleToIndex.keySet()) {
+        Map<String, Boolean> hostState = expectedList.get(roleToIndex.get(role));
+        for (String host : hostState.keySet()) {
+          hostState.put(host, false);
+        }
+      }
+    }
+
+    private void fillExpectedHosts(List<String> hosts) {
+      for (int index = 0; index < ROLE_COUNT; index++) {
+        Map<String, Boolean> hostState = new HashMap<String, Boolean>();
+        for (String host : hosts) {
+          hostState.put(host, false);
+        }
+        expectedList.add(hostState);
+      }
+    }
+
+    private void fillRoleToIndex() {
+      this.roleToIndex.put(Role.NAMENODE, 0);
+      this.roleToIndex.put(Role.SECONDARY_NAMENODE, 1);
+      this.roleToIndex.put(Role.DATANODE, 2);
+      this.roleToIndex.put(Role.HDFS_CLIENT, 3);
+      this.roleToIndex.put(Role.JOBTRACKER, 4);
+      this.roleToIndex.put(Role.TASKTRACKER, 5);
+      this.roleToIndex.put(Role.MAPREDUCE_CLIENT, 6);
+      this.roleToIndex.put(Role.ZOOKEEPER_SERVER, 7);
+      this.roleToIndex.put(Role.ZOOKEEPER_CLIENT, 8);
+      this.roleToIndex.put(Role.HBASE_MASTER, 9);
+
+      this.roleToIndex.put(Role.HBASE_REGIONSERVER, 10);
+      this.roleToIndex.put(Role.HBASE_CLIENT, 11);
+      this.roleToIndex.put(Role.HIVE_SERVER, 12);
+      this.roleToIndex.put(Role.HIVE_METASTORE, 13);
+      this.roleToIndex.put(Role.HIVE_CLIENT, 14);
+      this.roleToIndex.put(Role.HCAT, 15);
+      this.roleToIndex.put(Role.OOZIE_SERVER, 16);
+      this.roleToIndex.put(Role.OOZIE_CLIENT, 17);
+      this.roleToIndex.put(Role.WEBHCAT_SERVER, 18);
+      this.roleToIndex.put(Role.PIG, 19);
+
+      this.roleToIndex.put(Role.SQOOP, 20);
+      this.roleToIndex.put(Role.GANGLIA_SERVER, 21);
+      this.roleToIndex.put(Role.GANGLIA_MONITOR, 22);
+      this.roleToIndex.put(Role.NAGIOS_SERVER, 23);
+    }
   }
 }
