@@ -387,6 +387,9 @@ Trunk (unreleased changes):
 
  BUG FIXES
 
+ AMBARI-1527. Allow loading of custom configurations in 
+ step7 : "Customize Services" (regression). (jaimin)
+
  AMBARI-1525. ambari.properties file has an invalid character causing
  ambari-server setup to fail. (jaimin)
 

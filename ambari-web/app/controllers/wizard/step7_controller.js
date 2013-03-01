@@ -76,7 +76,7 @@ App.WizardStep7Controller = Em.Controller.extend({
     var serviceConfigs = this.get('serviceConfigs');
     var advancedConfig = this.get('content.advancedServiceConfig') || [];
     this.loadAdvancedConfig(serviceConfigs, advancedConfig);
-    //////this.loadCustomConfig();
+    this.loadCustomConfig();
     this.renderServiceConfigs(serviceConfigs);
     var storedServices = this.get('content.serviceConfigProperties');
     if (storedServices) {
