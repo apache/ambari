@@ -58,8 +58,8 @@ public class GSInstallerHostComponentProvider extends GSInstallerResourceProvide
   @Override
   public void updateProperties(Resource resource, Request request, Predicate predicate) {
     Set<String> propertyIds = getRequestPropertyIds(request, predicate);
-    if (propertyIds.contains(HOST_COMPONENT_STATE_PROPERTY_ID) ||
-        propertyIds.contains(HOST_COMPONENT_DESIRED_STATE_PROPERTY_ID)) {
+    if (contains(propertyIds, HOST_COMPONENT_STATE_PROPERTY_ID) ||
+        contains(propertyIds, HOST_COMPONENT_DESIRED_STATE_PROPERTY_ID)) {
       String serviceName   = (String) resource.getPropertyValue(HOST_COMPONENT_SERVICE_NAME_PROPERTY_ID);
       String componentName = (String) resource.getPropertyValue(HOST_COMPONENT_COMPONENT_NAME_PROPERTY_ID);
       String hostName      = (String) resource.getPropertyValue(HOST_COMPONENT_HOST_NAME_PROPERTY_ID);

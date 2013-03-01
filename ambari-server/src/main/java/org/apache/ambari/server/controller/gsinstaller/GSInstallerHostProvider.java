@@ -58,7 +58,7 @@ public class GSInstallerHostProvider extends GSInstallerResourceProvider{
   @Override
   public void updateProperties(Resource resource, Request request, Predicate predicate) {
     Set<String> propertyIds = getRequestPropertyIds(request, predicate);
-    if (propertyIds.contains(HOST_STATE_PROPERTY_ID)) {
+    if (contains(propertyIds, HOST_STATE_PROPERTY_ID)) {
       String hostName = (String) resource.getPropertyValue(HOST_NAME_PROPERTY_ID);
       resource.setProperty(HOST_STATE_PROPERTY_ID, getClusterDefinition().getHostState(hostName));
     }

@@ -55,7 +55,7 @@ public class GSInstallerServiceProvider extends GSInstallerResourceProvider{
   @Override
   public void updateProperties(Resource resource, Request request, Predicate predicate) {
     Set<String> propertyIds = getRequestPropertyIds(request, predicate);
-    if (propertyIds.contains(SERVICE_SERVICE_STATE_PROPERTY_ID)) {
+    if (contains(propertyIds, SERVICE_SERVICE_STATE_PROPERTY_ID)) {
       String serviceName = (String) resource.getPropertyValue(SERVICE_SERVICE_NAME_PROPERTY_ID);
       resource.setProperty(SERVICE_SERVICE_STATE_PROPERTY_ID, getClusterDefinition().getServiceState(serviceName));
     }

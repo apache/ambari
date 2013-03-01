@@ -81,6 +81,32 @@ public class GSInstallerHostComponentProviderTest {
   }
 
   @Test
+  public void testGetResourcesCheckStateFromCategory() throws Exception {
+    TestGSInstallerStateProvider stateProvider = new TestGSInstallerStateProvider();
+    ClusterDefinition clusterDefinition = new ClusterDefinition(stateProvider, 500);
+    GSInstallerResourceProvider provider = new GSInstallerHostComponentProvider(clusterDefinition);
+    Predicate predicate = new PredicateBuilder().property(GSInstallerHostComponentProvider.HOST_COMPONENT_COMPONENT_NAME_PROPERTY_ID).equals("HBASE_REGIONSERVER").toPredicate();
+    Set<Resource> resources = provider.getResources(PropertyHelper.getReadRequest("HostRoles"), predicate);
+    Assert.assertEquals(3, resources.size());
+
+    for (Resource resource : resources) {
+      Assert.assertEquals("STARTED", resource.getPropertyValue(GSInstallerHostComponentProvider.HOST_COMPONENT_STATE_PROPERTY_ID));
+    }
+
+    stateProvider.setHealthy(false);
+
+    // need to wait for old state value to expire
+    Thread.sleep(501);
+
+    resources = provider.getResources(PropertyHelper.getReadRequest(), predicate);
+    Assert.assertEquals(3, resources.size());
+
+    for (Resource resource : resources) {
+      Assert.assertEquals("INIT", resource.getPropertyValue(GSInstallerHostComponentProvider.HOST_COMPONENT_STATE_PROPERTY_ID));
+    }
+  }
+
+  @Test
   public void testCreateResources() throws Exception {
     ClusterDefinition clusterDefinition = new ClusterDefinition(new TestGSInstallerStateProvider());
     GSInstallerResourceProvider provider = new GSInstallerHostComponentProvider(clusterDefinition);

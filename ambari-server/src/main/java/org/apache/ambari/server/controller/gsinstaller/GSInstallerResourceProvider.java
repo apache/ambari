@@ -168,6 +168,27 @@ public abstract class GSInstallerResourceProvider implements ResourceProvider {
   }
 
   /**
+   * Check to see if the given set contains a property or category id that matches the given property id.
+   *
+   * @param ids         the set of property/category ids
+   * @param propertyId  the property id
+   *
+   * @return true if the given set contains a property id or category that matches the given property id
+   */
+  protected static boolean contains(Set<String> ids, String propertyId) {
+    boolean contains = ids.contains(propertyId);
+
+    if (!contains) {
+      String category = PropertyHelper.getPropertyCategory(propertyId);
+      while (category != null && !contains) {
+        contains = ids.contains(category);
+        category = PropertyHelper.getPropertyCategory(category);
+      }
+    }
+    return contains;
+  }
+
+  /**
   * Add a resource to the set of resources provided by this provider.
   *
   * @param resource  the resource to add

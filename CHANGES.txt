@@ -387,7 +387,10 @@ Trunk (unreleased changes):
 
  BUG FIXES
 
- AMBARI-1527. Allow loading of custom configurations in 
+ AMBARI-1526. State fields are not returned by default for services.
+ (tbeerbower)
+
+ AMBARI-1527. Allow loading of custom configurations in
  step7 : "Customize Services" (regression). (jaimin)
 
  AMBARI-1525. ambari.properties file has an invalid character causing
@@ -399,7 +402,8 @@ Trunk (unreleased changes):
  AMBARI-1520. Alerts take around 20-30 seconds to show up everytime you
  refresh the dashboad. (srimanth via yusaku)
 
- AMBARI-1523. Ambari API: Resources doesn't always honor partial response fields restrictions. (tbeerbower)
+ AMBARI-1523. Ambari API: Resources doesn't always honor partial response
+ fields restrictions. (tbeerbower)
 
  AMBARI-1519. Ambari Web goes back and forth between frozen and usable state
  peridocially on a large cluster. (yusaku)
@@ -411,7 +415,8 @@ Trunk (unreleased changes):
  AMBARI-1503. Ajax call sometimes adds multiple question marks in the query
  causing bad requests. (yusaku)
 
- AMBARI-1463. State of HBase region server not updated when instance is shut down on a cluster not installed via Ambari. (tbeerbower)
+ AMBARI-1463. State of HBase region server not updated when instance is shut
+ down on a cluster not installed via Ambari. (tbeerbower)
  
  AMBARI-1494. Browser memory consumption issues. (jaimin)
 
