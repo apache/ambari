@@ -18,9 +18,8 @@
 
 <div id="hosts">
 
-  <div class="box-header">
-
-    <div class="health-status-bar" >
+  <div class="box-header row">
+    <div class="health-status-bar span8" >
       {{#each category in view.categories}}
         <span {{bindAttr class="category.itemClass"}}>
           <span {{bindAttr class="category.healthStatusValue"}}> &nbsp;&nbsp;&nbsp; </span>
@@ -35,16 +34,14 @@
     </div>
 
     {{#if App.isAdmin}}
-    <div class="button-section pull-right ">
+    <div class="button-section pull-right span4">
       <button class="btn btn-inverse add-host-button" {{action addHost}}>
         <i class="icon-plus icon-white"></i>
         {{t hosts.host.add}}
       </button>
     </div>
     {{/if}}
-
   </div>
-
 
   <table class="datatable table table-bordered table-striped" id="hosts-table">
     <thead>
@@ -75,9 +72,16 @@
     {{#if view.pageContent}}
     {{#each host in view.pageContent}}
     {{#view view.HostView contentBinding="host"}}
+
       <td class="first">
-        <span {{bindAttr class="host.healthClass"}} {{bindAttr title="host.healthToolTip" }}></span>
+        <script type="text/javascript">
+          $(function () {
+            $("[rel='HealthTooltip']").tooltip();
+          });
+        </script>
+        <span rel="HealthTooltip" {{bindAttr class="host.healthClass"}} {{bindAttr title="host.healthToolTip" }}></span>
       </td>
+
       <td class="name">
         <a title="{{unbound host.publicHostName}}" href="#" {{action "showDetails" host}}>{{unbound host.publicHostNameFormatted}}</a>
         {{#if host.criticalAlertsCount}}
@@ -87,11 +91,18 @@
       <td>{{host.ip}}</td>
       <td>{{host.cpu}}</td>
       <td>{{host.memoryFormatted}}</td>
+
       <td>
-        <div class="progress progress-info" title="{{unbound host.diskInfoBar}}">
+        <script type="text/javascript">
+          $(function () {
+            $("[rel='UsageTooltip']").tooltip();
+          });
+        </script>
+        <div class="progress progress-info" title="{{unbound host.diskInfoBar}}" rel="UsageTooltip">
           <div class="bar" {{bindAttr style="view.usageStyle"}}></div>
         </div>
       </td>
+
       <td>{{host.loadAvg}}</td>
       <td>
         <span title="{{unbound view.labels}}">{{view.shortLabels}}</span>
@@ -120,3 +131,4 @@
     </div>
   </div>
 </div>
+
