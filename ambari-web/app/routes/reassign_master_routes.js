@@ -64,6 +64,7 @@ module.exports = Em.Route.extend({
       })
     },
     next: function (router) {
+      App.db.setMasterComponentHosts(undefined);
       router.transitionTo('step2');
     }
   }),
@@ -81,9 +82,52 @@ module.exports = Em.Route.extend({
 
     },
     back: Em.Router.transitionTo('step1'),
-    next: function () {
+    next: function (router) {
+      var controller = router.get('reassignMasterController');
+      var wizardStep5Controller = router.get('wizardStep5Controller');
+      controller.saveMasterComponentHosts(wizardStep5Controller);
+      router.transitionTo('step3');
     }
   }),
+
+  step3: Em.Route.extend({
+    route: '/step3',
+    connectOutlets: function (router) {
+      console.log('in reassignMaster.step3:connectOutlets');
+      var controller = router.get('reassignMasterController');
+      controller.setCurrentStep('3');
+      controller.dataLoading().done(function () {
+        controller.loadAllPriorSteps();
+        controller.set('content.serviceName', controller.get('content.reassign.service_id'));
+        controller.connectOutlet('wizardStep12', controller.get('content'));
+      })
+    },
+    back: Em.Router.transitionTo('step2'),
+    next: function (router) {
+      var controller = router.get('reassignMasterController');
+      var wizardStep12Controller = router.get('wizardStep12Controller');
+      controller.set('content.modifiedConfigs', wizardStep12Controller.get('modifiedConfigs'));
+      controller.saveServiceConfigProperties(wizardStep12Controller);
+      router.transitionTo('step4');
+    }
+  }),
+
+  step4: Em.Route.extend({
+    route: '/step3',
+    connectOutlets: function (router) {
+      console.log('in reassignMaster.step4:connectOutlets');
+      var controller = router.get('reassignMasterController');
+      controller.setCurrentStep('4');
+      controller.dataLoading().done(function () {
+        controller.loadAllPriorSteps();
+        controller.connectOutlet('wizardStep13', controller.get('content'));
+      })
+    },
+    back: Em.Router.transitionTo('step3'),
+    next: function (router) {
+    }
+  }),
+
 
   gotoStep1: Em.Router.transitionTo('step1'),
 

@@ -397,6 +397,13 @@ Em.I18n.translations = {
   'installer.step10.installTime.seconds':'Install and start completed in {0} seconds',
   'installer.step10.installTime.minutes':'Install and start completed in {0} minutes and {1} seconds',
   'installer.step11.header':'Prerequisites',
+  'installer.step12.header':'Reconfigure',
+  'installer.step13.header':'Review',
+  'installer.step13.body':'Please review the changes you made',
+  'installer.step13.targetHost':'Target Host:',
+  'installer.step13.sourceHost':'Source Host:',
+  'installer.step13.changes':'Configs to change:',
+  'installer.step13.component':'Component name:',
 
   'installer.stackUpgrade.header':'Stack Upgrade Wizard',
   'installer.stackUpgrade.step1.newVersion':'New Version',

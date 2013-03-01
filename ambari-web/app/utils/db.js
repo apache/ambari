@@ -230,12 +230,6 @@ App.db.setMasterToReassign = function (masterComponent) {
   localStorage.setObject('ambari', App.db.data);
 };
 
-App.db.setMasterToReassign = function (masterComponent) {
-  App.db.data = localStorage.getObject('ambari');
-  App.db.data.ReassignMaster.masterComponent = masterComponent;
-  localStorage.setObject('ambari', App.db.data);
-};
-
 /**
  * Set current step value for specified Wizard Type
  * @param wizardType

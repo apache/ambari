@@ -143,8 +143,27 @@ App.ReassignMasterController = App.WizardController.extend({
     }
     this.set("content.masterComponentHosts", masterComponentHosts);
     console.log("ReassignMasterController.loadMasterComponentHosts: loaded hosts ", masterComponentHosts);
+  },
 
-    this.set('content.missMasterStep', this.get('content.masterComponentHosts').everyProperty('isInstalled', true));
+  /**
+   * Save Master Component Hosts data to Main Controller
+   * @param stepController App.WizardStep5Controller
+   */
+  saveMasterComponentHosts: function (stepController) {
+    var obj = stepController.get('selectedServicesMasters');
+
+    var masterComponentHosts = [];
+    obj.forEach(function (_component) {
+      masterComponentHosts.push({
+        display_name: _component.get('display_name'),
+        component: _component.get('component_name'),
+        hostName: _component.get('selectedHost'),
+        serviceId: _component.get('serviceId'),
+        isInstalled: true
+      });
+    });
+    App.db.setMasterComponentHosts(masterComponentHosts);
+    this.set('content.masterComponentHosts', masterComponentHosts);
   },
 
   loadComponentToReassign: function () {
@@ -155,7 +174,44 @@ App.ReassignMasterController = App.WizardController.extend({
   },
 
   saveComponentToReassign: function (masterComponent) {
-      App.db.setMasterToReassign(masterComponent);
+    var component = {
+      component_name: masterComponent.get('componentName'),
+      display_name: masterComponent.get('displayName'),
+      service_id: masterComponent.get('service.serviceName'),
+      host_id: masterComponent.get('host.hostName')
+    };
+    App.db.setMasterToReassign(component);
+  },
+
+  /**
+   * Save config properties
+   * @param stepController Step7WizardController
+   */
+  saveServiceConfigProperties: function (stepController) {
+    var serviceConfigProperties = [];
+    stepController.get('stepConfigs').forEach(function (_content) {
+      _content.get('configs').forEach(function (_configProperties) {
+        var displayType = _configProperties.get('displayType');
+        if (displayType === 'directories' || displayType === 'directory') {
+          var value = _configProperties.get('value').trim().split(/\s+/g).join(',');
+          _configProperties.set('value', value);
+        }
+        var configProperty = {
+          id: _configProperties.get('id'),
+          name: _configProperties.get('name'),
+          value: _configProperties.get('value'),
+          defaultValue: _configProperties.get('defaultValue'),
+          service: _configProperties.get('serviceName'),
+          domain:  _configProperties.get('domain'),
+          filename: _configProperties.get('filename')
+        };
+        serviceConfigProperties.push(configProperty);
+      }, this);
+
+    }, this);
+
+    App.db.setServiceConfigProperties(serviceConfigProperties);
+    this.set('content.serviceConfigProperties', serviceConfigProperties);
   },
 
   /**

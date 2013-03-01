@@ -12,6 +12,9 @@ Trunk (unreleased changes):
 
  NEW FEATURES
 
+ AMBARI-1540. Reassign Master Wizard - Steps 3 and 4 (reconfigure
+ component and review). (yusaku)
+
  AMBARI-1538. Stack Upgrade Wizard - Step 3 (Progress and Retry). (yusaku) 
 
  AMBARI-1509. Frontend: For service configurations provide ability to 
