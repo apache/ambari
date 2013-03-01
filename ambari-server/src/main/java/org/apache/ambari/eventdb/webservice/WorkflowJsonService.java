@@ -273,16 +273,21 @@ public class WorkflowJsonService {
   @Produces(MediaType.APPLICATION_JSON)
   @Path("/tasklocality")
   public TaskLocalityData getTaskLocalitySummary(@QueryParam("jobId") String jobId, @DefaultValue("4") @QueryParam("minr") int minr,
-      @DefaultValue("24") @QueryParam("maxr") int maxr) {
+      @DefaultValue("24") @QueryParam("maxr") int maxr, @QueryParam("workflowId") String workflowId,
+      @DefaultValue("-1") @QueryParam("startTime") long startTime, @DefaultValue("-1") @QueryParam("endTime") long endTime) {
     if (maxr < minr)
       maxr = minr;
     TaskLocalityData data = new TaskLocalityData();
     PostgresConnector conn = null;
     try {
       conn = getConnector();
-      long[] times = conn.fetchJobStartStopTimes(jobId);
-      if (times != null) {
-        getTaskAttemptsByLocality(conn, jobId, times[0], times[1], data, minr, maxr);
+      if (jobId != null) {
+        long[] times = conn.fetchJobStartStopTimes(jobId);
+        if (times != null) {
+          getTaskAttemptsByLocality(conn.fetchJobTaskAttempts(jobId), times[0], times[1], data, minr, maxr);
+        }
+      } else if (workflowId != null) {
+        getTaskAttemptsByLocality(conn.fetchWorkflowTaskAttempts(workflowId), startTime, endTime, data, minr, maxr);
       }
     } catch (IOException e) {
       e.printStackTrace();
@@ -324,11 +329,10 @@ public class WorkflowJsonService {
     points.setReduceData(reducePoints);
   }
   
-  private static void getTaskAttemptsByLocality(PostgresConnector conn, String jobId, long submitTime, long finishTime, TaskLocalityData data, int minr,
+  private static void getTaskAttemptsByLocality(List<TaskAttempt> taskAttempts, long submitTime, long finishTime, TaskLocalityData data, int minr,
       int maxr) throws IOException {
     long submitTimeX = transformX(submitTime);
     long finishTimeX = transformX(finishTime);
-    List<TaskAttempt> taskAttempts = conn.fetchJobTaskAttempts(jobId);
     Set<Long> xPoints = getXPoints(taskAttempts, submitTimeX, finishTimeX);
     Long[] xList = xPoints.toArray(new Long[xPoints.size()]);
     MinMax io = new MinMax();

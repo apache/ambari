@@ -30,6 +30,7 @@ import traceback
 from pprint import pformat
 
 AMBARI_PASSPHRASE_VAR_NAME = "AMBARI_PASSPHRASE"
+HOST_BOOTSTRAP_TIMEOUT = 300
 
 class SCP(threading.Thread):
   """ SCP implementation that is thread based. The status can be returned using
@@ -42,6 +43,7 @@ class SCP(threading.Thread):
     self.bootdir = bootdir
     self.ret = {"exitstatus" : -1, "log" : "FAILED"}
     threading.Thread.__init__(self)
+    self.daemon = True
     pass
   
   def getStatus(self):
@@ -80,6 +82,7 @@ class SSH(threading.Thread):
     self.bootdir = bootdir
     self.ret = {"exitstatus" : -1, "log": "FAILED"}
     threading.Thread.__init__(self)
+    self.daemon = True
     pass
   
   def getHost(self):
@@ -173,8 +176,14 @@ class PSSH:
         chunkstats.append(ssh)
         pass
       # wait for the ssh's to complete
+      starttime = time.time()
       for chunkstat in chunkstats:
-        chunkstat.join()
+        elapsedtime = time.time() - starttime
+        if elapsedtime < HOST_BOOTSTRAP_TIMEOUT:
+          timeout = HOST_BOOTSTRAP_TIMEOUT - elapsedtime
+        else:
+          timeout = 0.0
+        chunkstat.join(timeout)
         self.ret[chunkstat.getHost()] = chunkstat.getStatus()
       pass
     pass
@@ -205,8 +214,14 @@ class PSCP:
         chunkstats.append(scp)
         pass
       # wait for the scp's to complete
+      starttime = time.time()
       for chunkstat in chunkstats:
-        chunkstat.join()
+        elapsedtime = time.time() - starttime
+        if elapsedtime < HOST_BOOTSTRAP_TIMEOUT:
+          timeout = HOST_BOOTSTRAP_TIMEOUT - elapsedtime
+        else:
+          timeout = 0.0
+        chunkstat.join(timeout)
         self.ret[chunkstat.getHost()] = chunkstat.getStatus()
       pass
     

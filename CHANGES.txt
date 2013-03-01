@@ -688,6 +688,8 @@ Trunk (unreleased changes):
  AMBARI-1498. Hive service check fails on secure HDP cluster. (Siddharth Wagle
  via mahadev)
 
+ AMBARI-1299. Bootstrap can hang indefinitely. (mahadev)
+
 AMBARI-1.2.0 branch:
 
  INCOMPATIBLE CHANGES
