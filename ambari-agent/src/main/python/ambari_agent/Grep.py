@@ -17,13 +17,6 @@ import re
 
 class Grep:
 
-  # How many lines from command output send to server
-  OUTPUT_LAST_LINES = 10
-  # How many lines from command error output send to server (before Err phrase)
-  ERROR_LAST_LINES_BEFORE = 30
-  # How many lines from command error output send to server (after Err phrase)
-  ERROR_LAST_LINES_AFTER = 30
-
   def __init__(self):
     pass
 

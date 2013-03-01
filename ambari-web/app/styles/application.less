@@ -645,7 +645,8 @@ a:focus {
 /*90% width modal window start*/
 .full-width-modal {
   .modal {
-
+    width: 90%;
+    margin: -350px 0 0 -45%;
   }
 
   .clear {
@@ -675,7 +676,6 @@ a:focus {
 
 /*60% width modal window start*/
 .sixty-percent-width-modal {
-
   .modal {
     width: 60%;
     margin: 0 0 0 -30%;
@@ -2603,14 +2603,6 @@ ul.inline li {
       width: 120px;
     }
   }
-
-  // when the scree is narrow, the popup modal width is adjustable
-  .full-width-modal {
-    .modal{
-      width: 90%;
-      margin: 350px 0 0 -45%;
-    }
-  }
 }
 
 //
@@ -2680,15 +2672,6 @@ i.icon-asterisks {
 
 //styles for screen width more than 1200px
 @media (min-width: 1200px) {
-
-  //when screen is wide, the modal width is fixed
-  .full-width-modal {
-    .modal{
-      width: 1170px;
-      margin: -350px 0 0 -583px;
-    }
-  }
-
   .row {
     margin-left: -30px;
     *zoom: 1;

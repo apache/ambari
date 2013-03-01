@@ -38,7 +38,6 @@ prefix=/tmp/ambari-agent
 
 [stack]
 installprefix=/tmp
-upgradeScriptsDir=/var/lib/ambari-agent/upgrade_stack
 
 [puppet]
 puppetmodules=/var/lib/ambari-agent/puppet/

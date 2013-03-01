@@ -204,17 +204,6 @@
               </sources>
             </mapping>
             <mapping>
-              <directory>/var/lib/${project.artifactId}/upgrade_scripts</directory>
-              <filemode>755</filemode>
-              <username>root</username>
-              <groupname>root</groupname>
-              <sources>
-                <source>
-                  <location>src/main/upgrade_scripts</location>
-                </source>
-              </sources>
-            </mapping>
-            <mapping>
               <directory>${package.conf.dir}</directory>
               <configuration>true</configuration>
               <filemode>755</filemode>
