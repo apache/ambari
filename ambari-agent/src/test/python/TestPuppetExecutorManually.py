@@ -19,7 +19,7 @@ limitations under the License.
 '''
 
 from unittest import TestCase
-from puppetExecutor import puppetExecutor
+from PuppetExecutor import PuppetExecutor
 from pprint import pformat
 import socket
 import os
@@ -43,7 +43,7 @@ class TestPuppetExecutor(TestCase):
 
     logger.info("***** RUNNING " + FILEPATH + " *****")
     cwd = os.getcwd()
-    puppetexecutor = puppetExecutor(cwd, "/x", "/y", "/tmp", AmbariConfig().getConfig())
+    puppetexecutor = PuppetExecutor(cwd, "/x", "/y", "/tmp", AmbariConfig().getConfig())
     result = {}
     puppetEnv = os.environ
     _, tmpoutfile = tempfile.mkstemp()

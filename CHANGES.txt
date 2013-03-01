@@ -12,6 +12,8 @@ Trunk (unreleased changes):
 
  NEW FEATURES
 
+ AMBARI-1541. Upgrade task support in agent. (Sumit Mohanty via swagle)
+
  AMBARI-1540. Reassign Master Wizard - Steps 3 and 4 (reconfigure
  component and review). (yusaku)
 

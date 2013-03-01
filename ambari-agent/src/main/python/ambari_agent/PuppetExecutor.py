@@ -31,21 +31,14 @@ import traceback
 
 logger = logging.getLogger()
 
-class puppetExecutor:
+class PuppetExecutor:
 
   """ Class that executes the commands that come from the server using puppet.
   This is the class that provides the pluggable point for executing the puppet"""
 
-  # How many lines from command output send to server
-  OUTPUT_LAST_LINES = 10
-  # How many lines from command error output send to server (before Err phrase)
-  ERROR_LAST_LINES_BEFORE = 30
-  # How many lines from command error output send to server (after Err phrase)
-  ERROR_LAST_LINES_AFTER = 30
-
   # How many seconds will pass before running puppet is terminated on timeout
   PUPPET_TIMEOUT_SECONDS = 600
-
+  grep = Grep()
   event = threading.Event()
   last_puppet_has_been_killed = False
 
@@ -58,6 +51,7 @@ class puppetExecutor:
     self.tmpDir = tmpDir
     self.reposInstalled = False
     self.config = config
+    self.modulesdir = self.puppetModule + "/modules"
 
   def configureEnviron(self, environ):
     if not self.config.has_option("puppet", "ruby_home"):
@@ -73,7 +67,7 @@ class puppetExecutor:
     
   def getPuppetBinary(self):
     puppetbin = os.path.join(self.puppetInstall, "bin", "puppet") 
-    if (os.path.exists(puppetbin)):
+    if os.path.exists(puppetbin):
       return puppetbin
     else:
       logger.info("Using default puppet on the host : " + puppetbin 
@@ -81,9 +75,9 @@ class puppetExecutor:
       return "puppet"
      
   def deployRepos(self, command, tmpDir, modulesdir, taskId):
-    """ Hack to only create the repo files once """
+    # Hack to only create the repo files once
     result = []
-    if (not self.reposInstalled):
+    if not self.reposInstalled:
       repoInstaller = RepoInstaller(command, tmpDir, modulesdir, taskId, self.config)
       result = repoInstaller.installRepos()
     return result
@@ -102,32 +96,44 @@ class puppetExecutor:
     pass
 
   def condenseOutput(self, stdout, stderr, retcode):
-    grep = Grep()
+    grep = self.grep
     if stderr == self.NO_ERROR:
-      result = grep.tail(stdout, self.OUTPUT_LAST_LINES)
+      result = grep.tail(stdout, grep.OUTPUT_LAST_LINES)
     else:
-      result = grep.grep(stdout, "fail", self.ERROR_LAST_LINES_BEFORE, self.ERROR_LAST_LINES_AFTER)
+      result = grep.grep(stdout, "fail", grep.ERROR_LAST_LINES_BEFORE, grep.ERROR_LAST_LINES_AFTER)
       if result is None: # Second try
-       result = grep.grep(stdout, "err", self.ERROR_LAST_LINES_BEFORE, self.ERROR_LAST_LINES_AFTER)
+       result = grep.grep(stdout, "err", grep.ERROR_LAST_LINES_BEFORE, grep.ERROR_LAST_LINES_AFTER)
     filteredresult = grep.filterMarkup(result)
     return filteredresult
 
   def isSuccessfull(self, returncode):
     return not self.last_puppet_has_been_killed and (returncode == 0 or returncode == 2)
 
+  def just_run_one_file(self, command, file, tmpout, tmperr):
+    result = {}
+    taskId = 0
+    if command.has_key("taskId"):
+      taskId = command['taskId']
+    #Install repos
+    self.deployRepos(command, self.tmpDir, self.modulesdir, command.taskId)
+    puppetEnv = os.environ
+    self.runPuppetFile(file, result, puppetEnv, tmpout, tmperr)
+    if self.isSuccessfull(result["exitcode"]):
+      # Check if all the repos were installed or not and reset the flag
+      self.reposInstalled = True
+    return result
+
   def runCommand(self, command, tmpoutfile, tmperrfile):
     result = {}
     taskId = 0
     if command.has_key("taskId"):
       taskId = command['taskId']
-      
     puppetEnv = os.environ
     #Install repos
-    modulesdir = self.puppetModule + "/modules"
-    puppetFiles = self.deployRepos(command, self.tmpDir, modulesdir, taskId)
+    puppetFiles = self.deployRepos(command, self.tmpDir, self.modulesdir, taskId)
     siteppFileName = os.path.join(self.tmpDir, "site-" + str(taskId) + ".pp") 
     puppetFiles.append(siteppFileName)
-    generateManifest(command, siteppFileName, modulesdir, self.config)
+    generateManifest(command, siteppFileName, self.modulesdir, self.config)
     #Run all puppet commands, from manifest generator and for repos installation
     #Appending outputs and errors, exitcode - maximal from all
     for puppetFile in puppetFiles:
@@ -227,7 +233,7 @@ def main():
   jsonStr = jsonFile.read() 
   # Below is for testing only.
   
-  puppetInstance = puppetExecutor("/home/centos/ambari_repo_info/ambari-agent/src/main/puppet/",
+  puppetInstance = PuppetExecutor("/home/centos/ambari_repo_info/ambari-agent/src/main/puppet/",
                                   "/usr/",
                                   "/root/workspace/puppet-install/facter-1.6.10/",
                                   "/tmp")

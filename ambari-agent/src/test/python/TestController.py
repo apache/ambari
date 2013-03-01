@@ -22,6 +22,7 @@ limitations under the License.
 import StringIO
 import unittest
 from ambari_agent import Controller
+from ambari_agent import hostname
 import sys
 from mock.mock import patch, MagicMock, call
 
@@ -30,19 +31,22 @@ class TestController(unittest.TestCase):
 
   @patch("threading.Thread")
   @patch("threading.Lock")
-  @patch("socket.gethostname")
   @patch.object(Controller, "NetUtil")
-  def setUp(self, NetUtil_mock, hostnameMock, lockMock, threadMock):
+  @patch.object(hostname, "hostname")
+  def setUp(self, hostname_method, NetUtil_mock, lockMock, threadMock):
 
     Controller.logger = MagicMock()
-    hostnameMock.return_value = "test_hostname"
     lockMock.return_value = MagicMock()
     NetUtil_mock.return_value = MagicMock()
+    hostname_method.return_value = "test_hostname"
+
 
     config = MagicMock()
     config.get.return_value = "something"
 
     self.controller = Controller.Controller(config)
+    self.controller.netutil.HEARTBEAT_IDDLE_INTERVAL_SEC = 0.1
+    self.controller.netutil.HEARTBEAT_NOT_IDDLE_INTERVAL_SEC = 0.1
 
 
   @patch.object(Controller, "Heartbeat")
@@ -324,9 +328,7 @@ class TestController(unittest.TestCase):
     self.controller.sendRequest = Controller.Controller.sendRequest
     self.controller.sendRequest = Controller.Controller.addToQueue
 
-
 if __name__ == "__main__":
-
   unittest.main(verbosity=2)
 
 

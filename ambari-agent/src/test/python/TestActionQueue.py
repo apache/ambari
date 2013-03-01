@@ -22,9 +22,9 @@ from unittest import TestCase
 from ambari_agent.ActionQueue import ActionQueue
 from ambari_agent.AmbariConfig import AmbariConfig
 from ambari_agent.FileUtil import getFilePath
+from ambari_agent.UpgradeExecutor import UpgradeExecutor
 import os, errno, time, pprint, tempfile, threading
-
-event = threading.Event()
+from mock.mock import patch, MagicMock, call
 
 class TestActionQueue(TestCase):
   def test_ActionQueueStartStop(self):
@@ -48,7 +48,7 @@ class TestActionQueue(TestCase):
     actionQueue.IDLE_SLEEP_TIME = 0.01
     executor_started_event = threading.Event()
     end_executor_event = threading.Event()
-    actionQueue.executor = FakeExecutor(executor_started_event, end_executor_event)
+    actionQueue.puppetExecutor = FakeExecutor(executor_started_event, end_executor_event)
     before_start_result = actionQueue.result()
 
     command = {
@@ -98,6 +98,85 @@ class TestActionQueue(TestCase):
     #print("before: " + pprint.pformat(before_start_result))
     #print("in_progress: " + pprint.pformat(in_progress_result))
     #print("after: " + pprint.pformat(after_start_result))
+
+  @patch.object(ActionQueue, "executeCommand")
+  @patch.object(ActionQueue, "stopped")
+  def test_upgradeCommand_dispatching(self, stopped_method, executeCommand_method):
+    queue = ActionQueue(config = MagicMock())
+    command = {
+      'commandId': 17,
+      'role' : "role",
+      'taskId' : "taskId",
+      'clusterName' : "clusterName",
+      'serviceName' : "serviceName",
+      'roleCommand' : 'UPGRADE',
+      'hostname' : "localhost.localdomain",
+      'hostLevelParams': "hostLevelParams",
+      'clusterHostInfo': "clusterHostInfo",
+      'configurations': "configurations",
+      'commandType': "EXECUTION_COMMAND",
+      'configurations':{'global' : {}},
+      'roleParams': {},
+      'commandParams' :	{
+        'source_stack_version' : 'HDP-1.2.1',
+        'target_stack_version' : 'HDP-1.3.0'
+      }
+    }
+    result = [{
+      'exitcode' : 0,
+      'stdout'   : 'abc',
+      'stderr'   : 'def'
+    }]
+    executeCommand_method.return_value = result
+    stopped_method.side_effect = [False, False, True, True, True]
+    queue.stopped = stopped_method
+    queue.IDLE_SLEEP_TIME = 0.001
+    queue.put(command)
+    queue.run()
+    self.assertTrue(executeCommand_method.called)
+    self.assertEquals(queue.resultQueue.qsize(), 1)
+    returned_result = queue.resultQueue.get()
+    self.assertIs(returned_result[1], result[0])
+
+
+  @patch.object(UpgradeExecutor, "perform_stack_upgrade")
+  def test_upgradeCommand_executeCommand(self, perform_stack_upgrade_method):
+    queue = ActionQueue(config = MagicMock())
+    command = {
+      'commandId': 17,
+      'role' : "role",
+      'taskId' : "taskId",
+      'clusterName' : "clusterName",
+      'serviceName' : "serviceName",
+      'roleCommand' : 'UPGRADE',
+      'hostname' : "localhost.localdomain",
+      'hostLevelParams': "hostLevelParams",
+      'clusterHostInfo': "clusterHostInfo",
+      'configurations': "configurations",
+      'commandType': "EXECUTION_COMMAND",
+      'configurations':{'global' : {}},
+      'roleParams': {},
+      'commandParams' :	{
+        'source_stack_version' : 'HDP-1.2.1',
+        'target_stack_version' : 'HDP-1.3.0'
+      }
+    }
+    perform_stack_upgrade_method.return_value = {
+      'exitcode' : 0,
+      'stdout'   : 'abc',
+      'stderr'   : 'def'
+    }
+    result = queue.executeCommand(command)
+    expected_result = [{'actionId': 17,
+                        'clusterName': 'clusterName',
+                        'exitCode': 0,
+                        'role': 'role',
+                        'serviceName': 'serviceName',
+                        'status': 'COMPLETED',
+                        'stderr': 'def',
+                        'stdout': 'abc',
+                        'taskId': 'taskId'}]
+    self.assertEquals(result, expected_result)
 
 
 class FakeExecutor():

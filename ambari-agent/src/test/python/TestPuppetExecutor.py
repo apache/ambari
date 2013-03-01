@@ -19,7 +19,7 @@ limitations under the License.
 '''
 
 from unittest import TestCase
-from puppetExecutor import puppetExecutor
+from PuppetExecutor import PuppetExecutor
 from Grep import Grep
 from pprint import pformat
 import socket, threading, tempfile
@@ -28,13 +28,11 @@ import sys
 from AmbariConfig import AmbariConfig
 from threading import Thread
 
-grep = Grep()
-
 class TestPuppetExecutor(TestCase):
 
 
   def test_build(self):
-    puppetexecutor = puppetExecutor("/tmp", "/x", "/y", "/z", AmbariConfig().getConfig())
+    puppetexecutor = PuppetExecutor("/tmp", "/x", "/y", "/z", AmbariConfig().getConfig())
     command = puppetexecutor.puppetCommand("site.pp")
     self.assertEquals("puppet", command[0], "puppet binary wrong")
     self.assertEquals("apply", command[1], "local apply called")
@@ -43,9 +41,11 @@ class TestPuppetExecutor(TestCase):
     correct")
 
   def test_condense_bad2(self):
-    puppetexecutor = puppetExecutor("/tmp", "/x", "/y", "/z", AmbariConfig().getConfig())
-    puppetexecutor.ERROR_LAST_LINES_BEFORE = 2
-    puppetexecutor.ERROR_LAST_LINES_AFTER = 3
+    puppetexecutor = PuppetExecutor("/tmp", "/x", "/y", "/z", AmbariConfig().getConfig())
+    grep = Grep()
+    puppetexecutor.grep = grep
+    grep.ERROR_LAST_LINES_BEFORE = 2
+    grep.ERROR_LAST_LINES_AFTER = 3
     string_err = open('dummy_puppet_output_error2.txt', 'r').read().replace("\n", os.linesep)
     result = puppetexecutor.condenseOutput(string_err, '', 1)
     stripped_string = string_err.strip()
@@ -58,7 +58,9 @@ class TestPuppetExecutor(TestCase):
     self.assertEquals(len(result.splitlines(True)), 6, "Failed to condence fail log")
 
   def test_condense_bad3(self):
-    puppetexecutor = puppetExecutor("/tmp", "/x", "/y", "/z", AmbariConfig().getConfig())
+    puppetexecutor = PuppetExecutor("/tmp", "/x", "/y", "/z", AmbariConfig().getConfig())
+    grep = Grep()
+    puppetexecutor.grep = grep
     string_err = open('dummy_puppet_output_error3.txt', 'r').read().replace("\n", os.linesep)
     result = puppetexecutor.condenseOutput(string_err, '', 1)
     stripped_string = string_err.strip()
@@ -72,10 +74,12 @@ class TestPuppetExecutor(TestCase):
     self.assertEquals(len(result.splitlines(True)), 33, "Failed to condence fail log")
 
   def test_condense_good(self):
-    puppetexecutor = puppetExecutor("/tmp", "/x", "/y", "/z", AmbariConfig().getConfig())
-    puppetexecutor.OUTPUT_LAST_LINES = 2
+    puppetexecutor = PuppetExecutor("/tmp", "/x", "/y", "/z", AmbariConfig().getConfig())
+    grep = Grep()
+    puppetexecutor.grep = grep
+    grep.OUTPUT_LAST_LINES = 2
     string_good = open('dummy_puppet_output_good.txt', 'r').read().replace("\n", os.linesep)
-    result = puppetexecutor.condenseOutput(string_good, puppetExecutor.NO_ERROR, 0)
+    result = puppetexecutor.condenseOutput(string_good, PuppetExecutor.NO_ERROR, 0)
     stripped_string = string_good.strip()
     lines = stripped_string.splitlines(True)
     result_check = lines[45].strip() in result and lines[46].strip() in result
@@ -129,13 +133,13 @@ class TestPuppetExecutor(TestCase):
     self.assertEquals(subproc_mock.returncode, 0, "Subprocess should not be terminated before timeout")
 
 
-  class  PuppetExecutor_mock(puppetExecutor):
+  class  PuppetExecutor_mock(PuppetExecutor):
 
 
 
     def __init__(self, puppetModule, puppetInstall, facterInstall, tmpDir, config, subprocess_mockup):
       self.subprocess_mockup = subprocess_mockup
-      puppetExecutor.__init__(self, puppetModule, puppetInstall, facterInstall, tmpDir, config)
+      PuppetExecutor.__init__(self, puppetModule, puppetInstall, facterInstall, tmpDir, config)
       pass
 
     def lauch_puppet_subprocess(self, puppetcommand, tmpout, tmperr, puppetEnv):
