@@ -133,4 +133,5 @@ require('views/wizard/step10_view');
 require('views/wizard/step11_view');
 require('views/wizard/stack_upgrade/step1_view');
 require('views/wizard/stack_upgrade/step2_view');
+require('views/wizard/stack_upgrade/step3_view');
 require('views/loading');

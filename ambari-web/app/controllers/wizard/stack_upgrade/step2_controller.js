@@ -24,7 +24,7 @@ App.StackUpgradeStep2Controller = Em.Controller.extend({
    * check whether all services are running
    * @return {Array}
    */
-  isAllServicesRunning:function(){
+  isAllServicesRunning: function(){
     var masterComponents = App.HostComponent.find().filterProperty('isMaster', true);
     return masterComponents.everyProperty('workStatus', 'STARTED');
   },
@@ -33,7 +33,7 @@ App.StackUpgradeStep2Controller = Em.Controller.extend({
    * @param event
    */
   upgradeAction: function(event){
-    if(this.get('isAllServicesRunning')){
+    if(this.isAllServicesRunning()){
       App.db.setUpgradeOptions(this.get('content.upgradeOptions'));
       App.router.send('next');
     } else {

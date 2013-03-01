@@ -12,6 +12,8 @@ Trunk (unreleased changes):
 
  NEW FEATURES
 
+ AMBARI-1538. Stack Upgrade Wizard - Step 3 (Progress and Retry). (yusaku) 
+
  AMBARI-1509. Frontend: For service configurations provide ability to 
  enter host level exceptions (srimanth)
 

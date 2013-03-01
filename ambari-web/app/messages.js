@@ -106,6 +106,7 @@ Em.I18n.translations = {
   'common.search': 'Search',
   'common.confirm': 'Confirm',
   'common.upgrade': 'Upgrade',
+  'common.done': 'Done',
 
   'question.sure':'Are you sure {0}?',
 
@@ -362,6 +363,11 @@ Em.I18n.translations = {
   'installer.step9.serviceStatus.abort.inProgress':'Aborting ',
   'installer.step9.serviceStatus.abort.completed':' aborted successfully',
   'installer.step9.serviceStatus.abort.failed':' failed to abort',
+  'installer.step9.serviceStatus.upgrade.pending':'Preparing to upgrade ',
+  'installer.step9.serviceStatus.upgrade.queued':'Waiting to upgarde ',
+  'installer.step9.serviceStatus.upgrade.inProgress':'Upgrading ',
+  'installer.step9.serviceStatus.upgrade.completed':' upgraded successfully',
+  'installer.step9.serviceStatus.upgrade.failed':' failed to upgrade',
 
   'installer.step10.header':'Summary',
   'installer.step10.body':'Here is the summary of the install process.',
@@ -407,6 +413,19 @@ Em.I18n.translations = {
   'installer.stackUpgrade.step2.advancedOption':'Advanced Option',
   'installer.stackUpgrade.step2.localRepository':'Use a local repository',
   'installer.stackUpgrade.step2.popup.body':'We cannot proceed since some of the master components are not currently running. Please ensure that all services are running before continuing.',
+  'installer.stackUpgrade.step3.ProceedWithWarning':'Proceed with Warning',
+  'installer.stackUpgrade.step3.status.success':'Successfully upgraded the cluster to {0}',
+  'installer.stackUpgrade.step3.status.info':"Upgrading the cluster. \nPlease wait while we perform cluster upgrade.",
+  'installer.stackUpgrade.step3.status.warning':"Upgraded the cluster to {0} with some warnings.\nYou can start using the cluster but the components that failed to upgrade will not be functional."+
+  "You can click on the Retry button to retry upgrading the failed components. Alternatively you can proceed and retry upgrade on individual components in the Host Detail page.",
+  'installer.stackUpgrade.step3.status.failed':"Failed to upgrade hosts. Click on each host to see what might have gone wrong.\n After fixing the problem, click the Retry button",
+  'installer.stackUpgrade.step3.host.nothingToUpgrade':'Waiting (Nothing to upgrade)',
+  'installer.stackUpgrade.step3.service.upgraded':'{0} upgraded',
+  'installer.stackUpgrade.step3.service.upgrading':'{0} upgrade in progress',
+  'installer.stackUpgrade.step3.service.pending':'{0} upgrade pending',
+  'installer.stackUpgrade.step3.service.failedUpgrade':'{0} failed to upgrade',
+  'installer.stackUpgrade.step3.service.stopped':'All Services stopped',
+  'installer.stackUpgrade.step3.service.stopping':'All Services stopping',
 
   'form.create':'Create',
   'form.save':'Save',

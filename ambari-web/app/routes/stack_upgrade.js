@@ -48,7 +48,7 @@ module.exports = Em.Route.extend({
 
        if (currentClusterStatus) {
        switch (currentClusterStatus.clusterState) {
-       case 'STACK_UPGRADING' :
+       case 'UPGRADING_STACK' :
        case 'STACK_UPGRADED' :
        stackUpgradeController.setCurrentStep('3');
        App.db.data = currentClusterStatus.localdb;
@@ -85,13 +85,14 @@ module.exports = Em.Route.extend({
     },
     back: Em.Router.transitionTo('step1'),
     next: function(router){
-      /*router.transitionTo('step3');
-       App.clusterStatus.setClusterStatus({
-       clusterName: this.get('clusterName'),
-       clusterState: 'UPGRADING_STACK',
-       wizardControllerName: 'stackUpgradeController',
-       localdb: App.db.data
-       });*/
+      var controller = router.get('stackUpgradeController');
+      var stepController = router.get('stackUpgradeStep3Controller');
+      router.transitionTo('step3');
+      if(App.testMode){
+        stepController.simulateStopService();
+      } else {
+        controller.stopServices();
+      }
     }
   }),
 
@@ -105,11 +106,14 @@ module.exports = Em.Route.extend({
       controller.loadAllPriorSteps();
       controller.connectOutlet('stackUpgradeStep3', controller.get('content'));
     },
-    retry: function(router){
-    },
-    done: function (router, context) {
+    finish: function (router, context) {
+      var controller = router.get('stackUpgradeController');
+      var stepController = router.get('stackUpgradeStep3Controller');
+      stepController.clearStep();
+      controller.finish();
       App.router.get('updateController').set('isWorking', true);
       $(context.currentTarget).parents("#modal").find(".close").trigger('click');
+      //App.set('currentStackVersion', controller.get('content.upgradeVersion'));
 
       // We need to do recovery based on whether we are in Add Host or Installer wizard
      /* App.clusterStatus.setClusterStatus({

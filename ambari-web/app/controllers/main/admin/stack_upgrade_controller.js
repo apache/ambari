@@ -67,6 +67,28 @@ App.StackUpgradeController = App.WizardController.extend({
   upgradeOptionsTemplate:{
     localRepo: false
   },
+  stopServices: function(){
+    var method = App.testMode ? "GET" : "PUT";
+    var url = '';
+    var data = '';
+    $.ajax({
+      type: method,
+      url: url,
+      data: data,
+      async: false,
+      dataType: 'text',
+      timeout: App.timeout,
+      success: function (data) {
+
+      },
+
+      error: function (request, ajaxOptions, error) {
+
+      },
+
+      statusCode: require('data/statusCodes')
+    });
+  },
   clear: function () {
     this.set('content', Ember.Object.create({
       servicesInfo: function(){
@@ -81,10 +103,15 @@ App.StackUpgradeController = App.WizardController.extend({
     this.set('currentStep', 0);
     this.clearStorageData();
   },
+  clearStorageData: function(){
+    App.db.setCluster(undefined);
+    App.db.setUpgradeOptions(undefined);
+  },
   /**
    * Finish upgrade
    */
   finish: function () {
+    this.clear();
     this.setCurrentStep('1');
     App.router.get('updateController').updateAll();
   }
