@@ -32,6 +32,7 @@ import java.util.TreeMap;
 
 import javax.xml.bind.JAXBException;
 
+import com.google.gson.Gson;
 import org.apache.ambari.server.Role;
 import org.apache.ambari.server.RoleCommand;
 import org.apache.ambari.server.actionmanager.Stage;
@@ -49,11 +50,33 @@ import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.map.SerializationConfig;
 
 public class StageUtils {
-  private static Log LOG = LogFactory.getLog(StageUtils.class);
-  
-  private static Map<String, String> componentToClusterInfoKeyMap = 
+  private static final Log LOG = LogFactory.getLog(StageUtils.class);
+
+  private static Map<String, String> componentToClusterInfoKeyMap =
       new HashMap<String, String>();
-  
+
+  private volatile static Gson gson;
+
+  public static void setGson(Gson gson) {
+    if (gson==null) {
+      StageUtils.gson = gson;
+    }
+  }
+
+  public static Gson getGson() {
+    if (gson != null) {
+      return gson;
+    } else {
+      synchronized (LOG) {
+        if (gson==null) {
+          gson = new Gson();
+        }
+        return gson;
+      }
+    }
+  }
+
+
   static {
     componentToClusterInfoKeyMap.put("NAMENODE", "namenode_host");
     componentToClusterInfoKeyMap.put("JOBTRACKER", "jtnode_host");
@@ -78,13 +101,13 @@ public class StageUtils {
     componentToClusterInfoKeyMap.put("KERBEROS_ADMIN_CLIENT",
         "kerberos_adminclient_host");
   }
-  
+
   public static String getActionId(long requestId, long stageId) {
     return requestId + "-" + stageId;
   }
 
   public static long[] getRequestStage(String actionId) {
-    String [] fields = actionId.split("-");
+    String[] fields = actionId.split("-");
     long[] requestStageIds = new long[2];
     requestStageIds[0] = Long.parseLong(fields[0]);
     requestStageIds[1] = Long.parseLong(fields[1]);
@@ -100,7 +123,7 @@ public class StageUtils {
     }
     return getATestStage(requestId, stageId, hostname);
   }
-  
+
   //For testing only
   public static Stage getATestStage(long requestId, long stageId, String hostname) {
     Stage s = new Stage(requestId, "/tmp", "cluster1");
@@ -132,15 +155,12 @@ public class StageUtils {
     execCmd.setRoleParams(roleParams);
     return s;
   }
-  
+
   public static String jaxbToString(Object jaxbObj) throws JAXBException,
   JsonGenerationException, JsonMappingException, IOException {
-    ObjectMapper mapper = new ObjectMapper();
-    mapper.configure(SerializationConfig.Feature.INDENT_OUTPUT, true);
-    mapper.configure(SerializationConfig.Feature.USE_ANNOTATIONS, true);
-    return mapper.writeValueAsString(jaxbObj);
+    return getGson().toJson(jaxbObj);
   }
-  
+
   public static ExecutionCommand stringToExecutionCommand(String json)
       throws JsonParseException, JsonMappingException, IOException {
     ObjectMapper mapper = new ObjectMapper();
@@ -157,8 +177,8 @@ public class StageUtils {
     InputStream is = new ByteArrayInputStream(json.getBytes(Charset.forName("UTF8")));
     return mapper.readValue(is, clazz);
   }
-  
-  
+
+
   public static Map<String, List<String>> getClusterHostInfo(Cluster cluster, HostsMap hostsMap) {
     Map<String, List<String>> info = new HashMap<String, List<String>>();
     if (cluster.getServices() != null) {
@@ -199,7 +219,7 @@ public class StageUtils {
       return "localhost";
     }
   }
-  
+
   public static String getHostsToDecommission(List<String> hosts) {
     StringBuilder builder = new StringBuilder();
     builder.append("[");

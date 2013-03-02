@@ -42,12 +42,12 @@ public class ExecutionCommandWrapper {
     if (executionCommand != null) {
       return executionCommand;
     } else if (jsonExecutionCommand != null) {
-      try {
-        executionCommand = StageUtils.stringToExecutionCommand(jsonExecutionCommand);
+//      try {
+        executionCommand = StageUtils.getGson().fromJson(jsonExecutionCommand, ExecutionCommand.class);
         return executionCommand;
-      } catch (IOException e) {
-        throw new RuntimeException(e);
-      }
+//      } catch (IOException e) {
+//        throw new RuntimeException(e);
+//      }
     } else {
       throw new RuntimeException(
           "Invalid ExecutionCommandWrapper, both object and string"
@@ -59,14 +59,14 @@ public class ExecutionCommandWrapper {
     if (jsonExecutionCommand != null) {
       return jsonExecutionCommand;
     } else if (executionCommand != null) {
-      try {
-        jsonExecutionCommand = StageUtils.jaxbToString(executionCommand);
+//      try {
+        jsonExecutionCommand = StageUtils.getGson().toJson(executionCommand);
         return jsonExecutionCommand;
-      } catch (JAXBException e) {
-        throw new RuntimeException(e);
-      } catch (IOException e) {
-        throw new RuntimeException(e);
-      }
+//      } catch (JAXBException e) {
+//        throw new RuntimeException(e);
+//      } catch (IOException e) {
+//        throw new RuntimeException(e);
+//      }
     } else {
       throw new RuntimeException(
           "Invalid ExecutionCommandWrapper, both object and string"

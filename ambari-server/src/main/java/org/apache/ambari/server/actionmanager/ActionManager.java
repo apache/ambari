@@ -71,7 +71,9 @@ public class ActionManager {
   public void sendActions(List<Stage> stages) {
     
     for (Stage s: stages) {
-      LOG.info("Persisting stage into db: " + s.toString());
+      if (LOG.isDebugEnabled()) {
+        LOG.debug("Persisting stage into db: " + s.toString());
+      }
     }
     db.persistActions(stages);
 

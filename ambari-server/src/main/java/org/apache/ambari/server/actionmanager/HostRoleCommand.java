@@ -100,10 +100,10 @@ public class HostRoleCommand {
     hostRoleCommandEntity.setRoleCommand(roleCommand);
 
     hostRoleCommandEntity.setEvent(event.getEventJson());
-    ExecutionCommandEntity executionCommandEntity = new ExecutionCommandEntity();
-    executionCommandEntity.setCommand(executionCommandWrapper.getJson().getBytes());
-    executionCommandEntity.setHostRoleCommand(hostRoleCommandEntity);
-    hostRoleCommandEntity.setExecutionCommand(executionCommandEntity);
+//    ExecutionCommandEntity executionCommandEntity = new ExecutionCommandEntity();
+//    executionCommandEntity.setCommand(executionCommandWrapper.getJson().getBytes());
+//    executionCommandEntity.setHostRoleCommand(hostRoleCommandEntity);
+//    hostRoleCommandEntity.setExecutionCommand(executionCommandEntity);
 
     return hostRoleCommandEntity;
   }

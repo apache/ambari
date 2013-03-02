@@ -400,8 +400,11 @@ Trunk (unreleased changes):
 
  BUG FIXES
 
+ AMBARI-1539. Stage creation takes on an average 1.5 minutes on large 
+ cluster. (Siddharth Wagle) 
+
  AMBARI-1485. Server throws exception when trying to stop a service which is 
- in stopping state (Siddharth Wagle) 
+ in stopping state. (Siddharth Wagle) 
 
  AMBARI-1526. State fields are not returned by default for services.
  (tbeerbower)

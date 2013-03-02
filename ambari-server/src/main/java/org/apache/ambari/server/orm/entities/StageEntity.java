@@ -99,7 +99,7 @@ public class StageEntity {
 
   private ClusterEntity cluster;
 
-  @ManyToOne
+  @ManyToOne(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
   @JoinColumn(name = "cluster_id", referencedColumnName = "cluster_id")
   public ClusterEntity getCluster() {
     return cluster;

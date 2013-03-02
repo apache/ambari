@@ -28,7 +28,7 @@ import java.util.Arrays;
 @Table(name = "host_role_command", schema = "ambari", catalog = "")
 @Entity
 @Cacheable(false)
-@SequenceGenerator(name = "ambari.host_role_command_task_id_seq", allocationSize = 1)
+@SequenceGenerator(name = "ambari.host_role_command_task_id_seq", allocationSize = 50)
 public class HostRoleCommandEntity {
   private Long taskId;
 
@@ -257,7 +257,7 @@ public class HostRoleCommandEntity {
 
   private StageEntity stage;
 
-  @ManyToOne
+  @ManyToOne(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
   @JoinColumns({@JoinColumn(name = "request_id", referencedColumnName = "request_id", nullable = false), @JoinColumn(name = "stage_id", referencedColumnName = "stage_id", nullable = false)})
   public StageEntity getStage() {
     return stage;
@@ -269,7 +269,7 @@ public class HostRoleCommandEntity {
 
   private HostEntity host;
 
-  @ManyToOne
+  @ManyToOne(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
   @JoinColumn(name = "host_name", referencedColumnName = "host_name", nullable = false)
   public HostEntity getHost() {
     return host;

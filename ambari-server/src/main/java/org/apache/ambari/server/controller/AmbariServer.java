@@ -23,10 +23,13 @@ import java.io.File;
 import java.net.BindException;
 import java.util.Map;
 
+import com.google.inject.persist.PersistFilter;
+import com.google.gson.Gson;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.actionmanager.ActionManager;
 import org.apache.ambari.server.agent.HeartBeatHandler;
 import org.apache.ambari.server.agent.rest.AgentResource;
+import org.apache.ambari.server.api.AmbariPersistFilter;
 import org.apache.ambari.server.api.rest.BootStrapResource;
 import org.apache.ambari.server.api.services.*;
 import org.apache.ambari.server.bootstrap.BootStrapImpl;
@@ -42,6 +45,7 @@ import org.apache.ambari.server.security.authorization.Users;
 import org.apache.ambari.server.security.unsecured.rest.CertificateDownload;
 import org.apache.ambari.server.security.unsecured.rest.CertificateSign;
 import org.apache.ambari.server.state.Clusters;
+import org.apache.ambari.server.utils.StageUtils;
 import org.eclipse.jetty.server.Connector;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.nio.SelectChannelConnector;
@@ -163,6 +167,9 @@ public class AmbariServer {
       DelegatingFilterProxy springSecurityFilter = new DelegatingFilterProxy();
       springSecurityFilter.setTargetBeanName("springSecurityFilterChain");
 
+      //session-per-request strategy for api
+      root.addFilter(new FilterHolder(injector.getInstance(AmbariPersistFilter.class)), "/api/*", 1);
+
       if (configs.getApiAuthentication()) {
         root.addFilter(new FilterHolder(springSecurityFilter), "/api/*", 1);
       }
@@ -224,7 +231,10 @@ public class AmbariServer {
       sh.setInitParameter("com.sun.jersey.config.property.packages",
           "org.apache.ambari.server.api.rest;" +
               "org.apache.ambari.server.api.services;" +
-          "org.apache.ambari.eventdb.webservice");
+              "org.apache.ambari.eventdb.webservice;" +
+              "org.apache.ambari.server.api");
+      sh.setInitParameter("com.sun.jersey.api.json.POJOMappingFeature",
+          "true");
       root.addServlet(sh, "/api/v1/*");
       sh.setInitOrder(2);
 
@@ -232,7 +242,7 @@ public class AmbariServer {
       agent.setInitParameter("com.sun.jersey.config.property.resourceConfigClass",
           "com.sun.jersey.api.core.PackagesResourceConfig");
       agent.setInitParameter("com.sun.jersey.config.property.packages",
-          "org.apache.ambari.server.agent.rest");
+          "org.apache.ambari.server.agent.rest;" + "org.apache.ambari.server.api");
       agent.setInitParameter("com.sun.jersey.api.json.POJOMappingFeature",
           "true");
       agentroot.addServlet(agent, "/agent/v1/*");
@@ -242,7 +252,9 @@ public class AmbariServer {
       cert.setInitParameter("com.sun.jersey.config.property.resourceConfigClass",
           "com.sun.jersey.api.core.PackagesResourceConfig");
       cert.setInitParameter("com.sun.jersey.config.property.packages",
-          "org.apache.ambari.server.security.unsecured.rest");
+          "org.apache.ambari.server.security.unsecured.rest;" + "org.apache.ambari.server.api");
+      cert.setInitParameter("com.sun.jersey.api.json.POJOMappingFeature",
+          "true");
       agentroot.addServlet(cert, "/*");
       cert.setInitOrder(4);
 
@@ -250,7 +262,9 @@ public class AmbariServer {
       resources.setInitParameter("com.sun.jersey.config.property.resourceConfigClass",
           "com.sun.jersey.api.core.PackagesResourceConfig");
       resources.setInitParameter("com.sun.jersey.config.property.packages",
-          "org.apache.ambari.server.resources.api.rest");
+          "org.apache.ambari.server.resources.api.rest;" + "org.apache.ambari.server.api");
+      resources.setInitParameter("com.sun.jersey.api.json.POJOMappingFeature",
+          "true");
       root.addServlet(resources, "/resources/*");
       resources.setInitOrder(6);
 
@@ -377,6 +391,7 @@ public class AmbariServer {
     KeyService.init(injector.getInstance(PersistKeyValueImpl.class));
     AmbariMetaService.init(injector.getInstance(AmbariMetaInfo.class));
     BootStrapResource.init(injector.getInstance(BootStrapImpl.class));
+    StageUtils.setGson(injector.getInstance(Gson.class));
   }
 
   public static void main(String[] args) throws Exception {

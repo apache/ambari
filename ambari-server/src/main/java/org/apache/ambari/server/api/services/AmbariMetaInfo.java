@@ -108,6 +108,7 @@ public class AmbariMetaInfo {
      *
      * @throws Exception throws exception if not able to parse the Meta data.
      */
+    @Inject
     public void init() throws Exception {
         getConfigurationInformation(stackRoot);
     }

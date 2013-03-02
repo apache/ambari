@@ -1,4 +1,4 @@
-/**
+ /**
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -197,7 +197,8 @@ public class ClusterImpl implements Cluster {
   }
 
   private void loadServices() {
-    LOG.info("clusterEntity " + clusterEntity.getClusterServiceEntities());
+    //logging here takes too much time
+//    LOG.info("clusterEntity " + clusterEntity.getClusterServiceEntities() );
     if (services == null) {
       writeLock.lock();
       try {
@@ -682,6 +683,7 @@ public class ClusterImpl implements Cluster {
     } finally {
       readWriteLock.readLock().unlock();
     }
+
   }
 
   @Override

@@ -160,11 +160,11 @@ public class ActionDBAccessorImpl implements ActionDBAccessor {
       ClusterEntity clusterEntity = clusterDAO.findById(cluster.getClusterId());
 
       stageEntity.setCluster(clusterEntity);
-      clusterEntity.getStages().add(stageEntity);
+      stageDAO.create(stageEntity);
 
       for (HostRoleCommand hostRoleCommand : stage.getOrderedHostRoleCommands()) {
         HostRoleCommandEntity hostRoleCommandEntity = hostRoleCommand.constructNewPersistenceEntity();
-        stageEntity.getHostRoleCommands().add(hostRoleCommandEntity);
+
         hostRoleCommandEntity.setStage(stageEntity);
 
         HostEntity hostEntity = hostDAO.findByName(hostRoleCommandEntity.getHostName());
@@ -172,7 +172,6 @@ public class ActionDBAccessorImpl implements ActionDBAccessor {
           LOG.error("Host {} doesn't exists in database" + hostRoleCommandEntity.getHostName());
           throw new RuntimeException("Host '"+hostRoleCommandEntity.getHostName()+"' doesn't exists in database");
         }
-        hostEntity.getHostRoleCommandEntities().add(hostRoleCommandEntity);
         hostRoleCommandEntity.setHost(hostEntity);
         hostRoleCommandDAO.create(hostRoleCommandEntity);
 
@@ -194,8 +193,6 @@ public class ActionDBAccessorImpl implements ActionDBAccessor {
         roleSuccessCriteriaDAO.create(roleSuccessCriteriaEntity);
       }
 
-      stageDAO.create(stageEntity);
-      clusterDAO.merge(clusterEntity);
     }
   }
 
