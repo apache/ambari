@@ -31,7 +31,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import com.sun.source.tree.AssertTree;
 import junit.framework.Assert;
 
 import org.apache.ambari.server.AmbariException;
