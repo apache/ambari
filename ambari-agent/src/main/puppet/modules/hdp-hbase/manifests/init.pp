@@ -86,25 +86,26 @@ class hdp-hbase(
 ### config files
 define hdp-hbase::configfile(
   $mode = undef,
-  $hbase_master_host = undef,
+  $hbase_master_hosts = undef,
   $template_tag = undef,
   $type = undef
 ) 
 {
   if ($name == 'hadoop-metrics.properties') {
     if ($type == 'master') {
-    $tag = GANGLIA-MASTER
+      $tag = GANGLIA-MASTER
+    } else {
+      $tag = GANGLIA-RS
+    }
   } else {
-     $tag = GANGLIA-RS
-  }
-   } else {
     $tag = $template_tag
-}
+  }
+
   hdp::configfile { "${hdp-hbase::params::conf_dir}/${name}":
     component         => 'hbase',
     owner             => $hdp-hbase::params::hbase_user,
     mode              => $mode,
-    hbase_master_host => $hbase_master_host,
+    hbase_master_hosts => $hbase_master_hosts,
     template_tag      => $tag
   }
 }

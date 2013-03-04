@@ -12,6 +12,9 @@ Trunk (unreleased changes):
 
  NEW FEATURES
 
+ AMBARI-1550. Modify existing puppet manifests to allow installing/configuring 
+ multiple masters. (swagle)
+
  AMBARI-1545. Integrate Frontend Security work to enable security on HDFS
  and MapReduce installed cluster. (jaimin)
 

@@ -45,7 +45,7 @@ class hdp-hbase::master(
       service_state => $service_state
     }
 
-    Hdp-hbase::Configfile<||>{hbase_master_host => $hdp::params::host_address}
+    Hdp-hbase::Configfile<||>{hbase_master_hosts => $hdp::params::host_address}
   
     hdp-hbase::service{ 'master':
       ensure => $service_state

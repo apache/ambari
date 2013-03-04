@@ -55,14 +55,14 @@
       ],
       "HBASE" : [
         {
-          "installed": <%=not scope.function_hdp_no_hosts("public_hbase_master_host")%>,
+          "installed": <%=not scope.function_hdp_no_hosts("public_hbase_master_hosts")%>,
           "name": "HBASE",
-          "hbasemaster_host": "<%=scope.function_hdp_host("public_hbase_master_host")%>",
-          "hbasemaster_port": 60010,
+          "hbasemasters_hosts": "<%=scope.function_hdp_host("public_hbase_master_hosts")%>",
+          "hbasemasters_port": 60010,
           "total_regionservers": "<%=h=scope.function_hdp_template_var("slave_hosts");h.kind_of?(Array) ? h.size : ''%>",
           "ganglia_clusters": {
             "slaves": "HDPSlaves",
-            "hbasemaster": "HDPHBaseMaster"
+            "hbasemasters": "HDPHBaseMaster"
           }
         }
       ],

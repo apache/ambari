@@ -18,7 +18,16 @@
 # under the License.
 #
 #
+
+
 module Puppet::Parser::Functions
+
+=begin
+  This function returns value of an attribute for a given host
+  or an array of attributes for a given array of hosts (one-to-one mapping).
+  The attribute type is specified by a string identifier (like "publicfqdn").
+=end
+
   newfunction(:hdp_host_attribute, :type => :rvalue) do |args|
     args = function_hdp_args_as_array(args)
     hash,attr,source = args

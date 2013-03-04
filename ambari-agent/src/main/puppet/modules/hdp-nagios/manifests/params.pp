@@ -57,7 +57,7 @@ class hdp-nagios::params() inherits hdp::params
     jobtracker  => {host_member_info => 'jtnode_host'},
     ganglia-server => {host_member_info => 'ganglia_server_host'},
     zookeeper-servers => {host_member_info => 'zookeeper_hosts'},
-    hbasemaster => {host_member_info => 'hbase_master_host'},
+    hbasemasters => {host_member_info => 'hbase_master_hosts'},
     hiveserver => {host_member_info => 'hive_server_host'},
     region-servers => {host_member_info => 'hbase_rs_hosts'},
     oozie-server => {host_member_info => 'oozie_server'},

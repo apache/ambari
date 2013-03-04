@@ -18,7 +18,7 @@
 # under the License.
 #
 #
-class hdp-hbase::master-conn($hbase_master_host)
+class hdp-hbase::master-conn($hbase_master_hosts)
 {
-  Hdp-Hbase::Configfile<||>{hbase_master_host => $hbase_master_host}
+  Hdp-Hbase::Configfile<||>{hbase_master_hosts => $hbase_master_hosts}
 }

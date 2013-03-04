@@ -91,7 +91,7 @@ define service {
 <%end-%>
 
 # NAGIOS SERVER HBASE Checks
-<%if scope.function_hdp_nagios_members_exist('hbasemaster')-%>
+<%if scope.function_hdp_nagios_members_exist('hbasemasters')-%>
 define service {
         hostgroup_name          nagios-server
         use                     hadoop-service
@@ -151,7 +151,7 @@ define service {
         max_check_attempts      4
 }
 
-<%if scope.function_hdp_nagios_members_exist('hbasemaster')-%>
+<%if scope.function_hdp_nagios_members_exist('hbasemasters')-%>
 define service {
         hostgroup_name          ganglia-server
         use                     hadoop-service
@@ -371,7 +371,7 @@ define service {
 }
 <%end-%>
 
-<%if scope.function_hdp_nagios_members_exist('hbasemaster')-%>
+<%if scope.function_hdp_nagios_members_exist('hbasemasters')-%>
 # HBASE::REGIONSERVER Checks
 define service {
         hostgroup_name          region-servers
@@ -386,7 +386,7 @@ define service {
 
 # HBASE:: MASTER Checks
 define service {
-        hostgroup_name          hbasemaster
+        hostgroup_name          hbasemasters
         use                     hadoop-service
         service_description     HBASEMASTER::HBase Master Web UI down
         servicegroups           HBASE
@@ -397,7 +397,7 @@ define service {
 }
 <% if scope.function_hdp_template_var("hdp_os_type") != "suse"%>
 define service {
-        hostgroup_name          hbasemaster
+        hostgroup_name          hbasemasters
         use                     hadoop-service
         service_description     HBASEMASTER::HBase Master CPU utilization
         servicegroups           HBASE
@@ -408,7 +408,7 @@ define service {
 }
 <% end %>
 define service {
-        hostgroup_name          hbasemaster
+        hostgroup_name          hbasemasters
         use                     hadoop-service
         service_description     HBASEMASTER::HBase Master process down
         servicegroups           HBASE

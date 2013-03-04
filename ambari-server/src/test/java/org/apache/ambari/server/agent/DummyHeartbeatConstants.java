@@ -23,6 +23,10 @@ public interface DummyHeartbeatConstants {
 
   String DummyCluster = "cluster1";
   String DummyHostname1 = "host1";
+  String DummyHostname2 = "host2";
+  String DummyHostname3 = "host3";
+  String DummyHostname4 = "host4";
+  String DummyHostname5 = "host5";
   String DummyOs = "CentOS";
   String DummyOsType = "centos5";
   String DummyOSRelease = "5.8";
