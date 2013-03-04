@@ -1579,7 +1579,7 @@ App.WizardStep8Controller = Em.Controller.extend({
     this.get('ajaxQueue').pushObject(params);
   }
 
-})
+});
 
 
 

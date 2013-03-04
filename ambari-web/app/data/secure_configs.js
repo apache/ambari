@@ -29,7 +29,7 @@ module.exports = [
     displayName: 'CLUSTER',
     filename: 'hdfs-site',
     configCategories: [
-      App.ServiceConfigCategory.create({ name: 'KERBEROS'})
+      App.ServiceConfigCategory.create({ name: 'KERBEROS', displayName: 'KERBEROS'})
     ],
     configs: configProperties.filterProperty('serviceName', 'GENERAL')
   },
@@ -38,10 +38,10 @@ module.exports = [
     displayName: 'HDFS',
     filename: 'hdfs-site',
     configCategories: [
-      App.ServiceConfigCategory.create({ name: 'General'}),
-      App.ServiceConfigCategory.create({ name: 'NameNode'}),
-      App.ServiceConfigCategory.create({ name: 'SNameNode'}),
-      App.ServiceConfigCategory.create({ name: 'DataNode'})
+      App.ServiceConfigCategory.create({ name: 'General', displayName: 'General'}),
+      App.ServiceConfigCategory.create({ name: 'NameNode', displayName: 'NameNode'}),
+     // App.ServiceConfigCategory.create({ name: 'SNameNode'}),
+      App.ServiceConfigCategory.create({ name: 'DataNode', displayName: 'DataNode'})
     ],
     configs: configProperties.filterProperty('serviceName', 'HDFS')
   },
@@ -51,8 +51,8 @@ module.exports = [
     displayName: 'MapReduce',
     filename: 'mapred-site',
     configCategories: [
-      App.ServiceConfigCategory.create({ name: 'JobTracker'}),
-      App.ServiceConfigCategory.create({ name: 'TaskTracker'})
+      App.ServiceConfigCategory.create({ name: 'JobTracker', displayName: 'JobTracker'}),
+      App.ServiceConfigCategory.create({ name: 'TaskTracker', displayName: 'TaskTracker'})
     ],
     configs: configProperties.filterProperty('serviceName', 'MAPREDUCE')
   },
@@ -62,7 +62,7 @@ module.exports = [
     displayName: 'Hive/HCat',
     filename: 'hive-site',
     configCategories: [
-      App.ServiceConfigCategory.create({ name: 'Hive Metastore'})
+      App.ServiceConfigCategory.create({ name: 'Hive Metastore', displayName: 'Hive Metastore'})
     ],
     configs: configProperties.filterProperty('serviceName', 'HIVE')
   },
@@ -72,7 +72,7 @@ module.exports = [
     displayName: 'WebHCat',
     filename: 'webhcat-site',
     configCategories: [
-      App.ServiceConfigCategory.create({ name: 'WebHCat'})
+      App.ServiceConfigCategory.create({ name: 'WebHCat', displayName: 'WebHCat'})
     ],
     configs: configProperties.filterProperty('serviceName', 'WEBHCAT')
   },
@@ -82,11 +82,11 @@ module.exports = [
     displayName: 'HBase',
     filename: 'hbase-site',
     configCategories: [
-      App.ServiceConfigCategory.create({ name: 'HBase Master'}),
-      App.ServiceConfigCategory.create({ name: 'RegionServer'})
+      App.ServiceConfigCategory.create({ name: 'HBase Master', displayName: 'HBase Master'}),
+      App.ServiceConfigCategory.create({ name: 'RegionServer', displayName: 'RegionServer'})
     ],
     configs: configProperties.filterProperty('serviceName', 'HBASE')
-  },
+  }
   /*
   {
     serviceName: 'ZOOKEEPER',
@@ -109,12 +109,4 @@ module.exports = [
     configs: configProperties.filterProperty('serviceName', 'OOZIE')
   },
   */
-  {
-    serviceName: 'NAGIOS',
-    displayName: 'Nagios',
-    configCategories: [
-      App.ServiceConfigCategory.create({ name: 'General'})
-    ],
-    configs: configProperties.filterProperty('serviceName', 'NAGIOS')
-  }
 ];

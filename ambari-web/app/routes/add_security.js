@@ -20,44 +20,47 @@ module.exports = Em.Route.extend({
   route: '/addSecurity',
   App: require('app'),
   enter: function (router) {
-    console.log('in /hosts/add:enter');
-    router.get('mainAdminSecurityController').setAddSecurityWizardStatus('RUNNING');
+    console.log('in /security/add:enter');
 
     Ember.run.next(function () {
-      var mainAdminSecurityController = router.get('mainAdminSecurityController');
-      var addSecurityController = router.get('addSecurityController');
-      var currentStep = router.get('addSecurityController').get('currentStep');
-      App.router.get('updateController').set('isWorking', false);
-      App.ModalPopup.show({
-        classNames: ['full-width-modal'],
-        header: Em.I18n.t('admin.addSecurity.header'),
-        bodyClass: App.MainAdminSecurityAddMenuView.extend({
-          controllerBinding: 'App.router.addSecurityController'
-        }),
-        primary: Em.I18n.t('form.cancel'),
-        secondary: null,
-        showFooter: false,
+      if (!router.get('mainAdminController.securityEnabled')) {
+        router.get('mainAdminSecurityController').setAddSecurityWizardStatus('RUNNING');
+        var mainAdminSecurityController = router.get('mainAdminSecurityController');
+        var addSecurityController = router.get('addSecurityController');
+        var currentStep = router.get('addSecurityController').get('currentStep');
+        App.router.get('updateController').set('isWorking', false);
+        App.ModalPopup.show({
+          classNames: ['full-width-modal'],
+          header: Em.I18n.t('admin.addSecurity.header'),
+          bodyClass: App.MainAdminSecurityAddMenuView.extend({
+            controllerBinding: 'App.router.addSecurityController'
+          }),
+          primary: Em.I18n.t('form.cancel'),
+          secondary: null,
+          showFooter: false,
 
-        onPrimary: function () {
-          this.hide();
-          App.router.get('updateController').set('isWorking', true);
-          router.transitionTo('adminSecurity.index');
-        },
-        onClose: function () {
-          this.hide();
-          App.router.get('updateController').set('isWorking', true);
-          mainAdminSecurityController.setAddSecurityWizardStatus(null);
-          router.get('addSecurityController').setCurrentStep(1);
-          router.get('addSecurityController.content').saveCurrentStage(2);
-          router.transitionTo('adminSecurity.index');
-        },
-        didInsertElement: function () {
-          this.fitHeight();
-        }
-      });
-      App.router.transitionTo('step' + currentStep);
+          onPrimary: function () {
+            this.hide();
+            App.router.get('updateController').set('isWorking', true);
+            router.transitionTo('adminSecurity.index');
+          },
+          onClose: function () {
+            this.hide();
+            App.router.get('updateController').set('isWorking', true);
+            mainAdminSecurityController.setAddSecurityWizardStatus(null);
+            router.get('addSecurityController').setCurrentStep(1);
+            router.get('addSecurityController.content').saveCurrentStage(2);
+            router.transitionTo('adminSecurity.index');
+          },
+          didInsertElement: function () {
+            this.fitHeight();
+          }
+        });
+        App.router.transitionTo('step' + currentStep);
+      } else {
+        router.transitionTo('adminSecurity.index');
+      }
     });
-
   },
 
   step1: Em.Route.extend({
@@ -115,7 +118,8 @@ module.exports = Em.Route.extend({
     done: function (router, context) {
       //Logic on completion of the wizard
       //set stage to stage2 of step3
-      router.setAddSecurityWizardStatus(null);
+      router.get('mainAdminSecurityController').setAddSecurityWizardStatus(null);
+      router.transitionTo('adminSecurity.index');
     }
   }),
 

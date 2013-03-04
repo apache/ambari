@@ -26,7 +26,7 @@ App.MainAdminSecurityAddStep2Controller = Em.Controller.extend({
   selectedService: null,
 
   isSubmitDisabled: function () {
-    return !this.stepConfigs.everyProperty('errorCount', 0);
+    return !this.stepConfigs.filterProperty('showConfig', true).everyProperty('errorCount', 0);
   }.property('stepConfigs.@each.errorCount'),
 
   clearStep: function () {
@@ -74,26 +74,26 @@ App.MainAdminSecurityAddStep2Controller = Em.Controller.extend({
    * @param serviceConfigs
    */
   renderServiceConfigs: function (serviceConfigs) {
-    serviceConfigs.forEach(function (_serviceConfig) {
+    this.get('serviceConfigs').forEach(function (_serviceConfig) {
 
       var serviceConfig = App.ServiceConfig.create({
         filename: _serviceConfig.filename,
         serviceName: _serviceConfig.serviceName,
         displayName: _serviceConfig.displayName,
         configCategories: _serviceConfig.configCategories,
-        showConfig: true,
+        showConfig: false,
         configs: []
       });
+      if (this.get('content.services').mapProperty('serviceName').contains(_serviceConfig.serviceName)) {
+        serviceConfig.set('showConfig', true);
+      }
 
       this.loadComponentConfigs(_serviceConfig, serviceConfig);
 
       console.log('pushing ' + serviceConfig.serviceName, serviceConfig);
 
       this.get('stepConfigs').pushObject(serviceConfig);
-
-
     }, this);
-
     this.set('selectedService', this.get('stepConfigs').filterProperty('showConfig', true).objectAt(0));
   },
 
@@ -112,6 +112,7 @@ App.MainAdminSecurityAddStep2Controller = Em.Controller.extend({
       serviceConfigProperty.validate();
     }, this);
   },
+
 
   /**
    *  submit and move to step3

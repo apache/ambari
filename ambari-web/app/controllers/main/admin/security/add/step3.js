@@ -27,17 +27,17 @@ App.MainAdminSecurityAddStep3Controller = Em.Controller.extend({
   secureServices: [],
   serviceConfigTags: [],
   globalProperties: [],
+  serviceUsersBinding: 'App.router.mainAdminController.serviceUsers',
 
   clearStep: function () {
     this.get('stages').clear();
   },
 
-  loadStep: function () {
+  loadStep1: function () {
     this.clearStep();
     this.loadStages();
     this.addInfoToStages();
     this.prepareSecureConfigs();
-    // this.populateSuccededStages();
     this.moveToNextStage();
   },
 
@@ -48,15 +48,6 @@ App.MainAdminSecurityAddStep3Controller = Em.Controller.extend({
       App.Poll.create({stage: 'stage3', label: Em.I18n.translations['admin.addSecurity.apply.stage3'], isPolling: false}),
       App.Poll.create({stage: 'stage4', label: Em.I18n.translations['admin.addSecurity.apply.stage4'], isPolling: true})
     ]);
-  },
-
-  populateSuccededStages: function () {
-    var currentStage = 'stage' + this.get('content').loadCurrentStage();
-    var inc = 1;
-    while (inc < currentStage) {
-      var stage = 'stage' + inc;
-      this.get('stages').findProperty('stage', stage).setProperties({ isStarted: true, isCompleted: true });
-    }
   },
 
   startStage: function () {
@@ -78,14 +69,19 @@ App.MainAdminSecurityAddStep3Controller = Em.Controller.extend({
   }.observes('stages.@each.isStarted'),
 
   onCompleteStage: function () {
-    var index = this.get('stages').filterProperty('isSuccess', true).length;
+    var index = this.get('stages').filterProperty('isCompleted', true).length;
     if (index > 0) {
-      this.moveToNextStage();
+      var self = this;
+      var lastCompletedStageResult = this.get('stages').objectAt(index - 1).get('isSuccess');
+      if (lastCompletedStageResult) {
+        window.setTimeout(function () {
+          self.moveToNextStage();
+        }, 50);
+      }
     }
-  }.observes('stages.@each.isSuccess'),
+  }.observes('stages.@each.isCompleted'),
 
   addInfoToStages: function () {
-    // this.addInfoToStage1();
     this.addInfoToStage2();
     this.addInfoToStage3();
     this.addInfoToStage4();
@@ -94,7 +90,7 @@ App.MainAdminSecurityAddStep3Controller = Em.Controller.extend({
   addInfoToStage1: function () {
     var stage1 = this.get('stages').findProperty('stage', 'stage1');
     if (App.testMode) {
-      stage1.set('isSucces', true);
+      stage1.set('isSuccess', true);
       stage1.set('isStarted', true);
       stage1.set('isCompleted', true);
     }
@@ -145,6 +141,25 @@ App.MainAdminSecurityAddStep3Controller = Em.Controller.extend({
     return uiConfig;
   },
 
+  appendInstanceName: function (name, property) {
+    var newValue;
+    if (this.get('globalProperties').someProperty('name', name)) {
+      var globalProperty = this.get('globalProperties').findProperty('name', name);
+      newValue = globalProperty.value;
+      var isInstanceName = this.get('globalProperties').findProperty('name', 'instance_name');
+      if (isInstanceName) {
+        if (/primary_name?$/.test(globalProperty.name) && property !== 'hadoop.security.auth_to_local') {
+          if (!/_HOST?$/.test(newValue)) {
+            newValue = newValue + '/_HOST';
+          }
+        }
+      }
+    } else {
+      console.log("The template name does not exist in secure_properties file");
+      newValue = null;
+    }
+    return newValue;
+  },
 
   /**
    * Set all site property that are derived from other puppet-variable
@@ -157,13 +172,12 @@ App.MainAdminSecurityAddStep3Controller = Em.Controller.extend({
       return expression;
     }
     express.forEach(function (_express) {
-      console.log("The value of template is: " + _express);
-      if (_express.match(/\[([\d]*)(?=\])/ === null)) {
-      }
+      //console.log("The value of template is: " + _express);
       var index = parseInt(_express.match(/\[([\d]*)(?=\])/)[1]);
       if (this.get('globalProperties').someProperty('name', templateName[index])) {
         //console.log("The name of the variable is: " + this.get('content.serviceConfigProperties').findProperty('name', templateName[index]).name);
-        var globValue = this.get('globalProperties').findProperty('name', templateName[index]).value;
+        var globValue = this.appendInstanceName(templateName[index], name);
+        console.log('The template value of templateName ' + '[' + index + ']' + ': ' + templateName[index] + ' is: ' + globValue);
         if (value !== null) {   // if the property depends on more than one template name like <templateName[0]>/<templateName[1]> then don't proceed to the next if the prior is null or not found in the global configs
           value = value.replace(_express, globValue);
         }
@@ -228,8 +242,8 @@ App.MainAdminSecurityAddStep3Controller = Em.Controller.extend({
       templateValue.forEach(function (_value) {
         var index = parseInt(_value.match(/\[([\d]*)(?=\])/)[1]);
         if (this.get('globalProperties').someProperty('name', config.templateName[index])) {
-          var globalValue = this.get('globalProperties').findProperty('name', config.templateName[index]).value;
-          config.value = config.value.replace(_value, globalValue);
+          var globValue = this.appendInstanceName(config.templateName[index]);
+          config.value = config.value.replace(_value, globValue);
         } else {
           config.value = null;
         }
@@ -237,10 +251,8 @@ App.MainAdminSecurityAddStep3Controller = Em.Controller.extend({
     }
   },
 
-
   prepareSecureConfigs: function () {
     this.loadGlobals();
-    this.loadInstanceName();
     var storedConfigs = this.get('content.serviceConfigProperties').filterProperty('id', 'site property');
     var uiConfigs = this.loadUiSideConfigs();
     this.set('configs', storedConfigs.concat(uiConfigs));
@@ -249,25 +261,34 @@ App.MainAdminSecurityAddStep3Controller = Em.Controller.extend({
   loadGlobals: function () {
     var globals = this.get('content.serviceConfigProperties').filterProperty('id', 'puppet var');
     this.set('globalProperties', globals);
+    this.loadUsersToGlobal();
   },
 
-  loadInstanceName: function () {
-    var isInstanceName = this.get('globalProperties').findProperty('name', 'instance_name');
-    if (isInstanceName) {
-      this.get('globalProperties').forEach(function (_globalProperty) {
-        if (/primary_name?$/.test(_globalProperty.name)) {
-          if (!/_HOST?$/.test(_globalProperty.value)) {
-            _globalProperty.value = _globalProperty.value + "/_HOST";
-          }
-        }
-      }, this);
+  loadUsersToGlobal: function () {
+    if (!this.get('serviceUsers').length) {
+      this.loadUsersFromServer();
+    }
+    App.router.get('mainAdminController.serviceUsers').forEach(function (_user) {
+      this.get('globalProperties').pushObject(_user);
+    }, this);
+  },
+
+  loadUsersFromServer: function () {
+    var self = this;
+    if (App.testMode) {
+      var serviceUsers = this.get('serviceUsers');
+      serviceUsers.pushObject({id: 'puppet var', name: 'hdfs_user', value: 'hdfs'});
+      serviceUsers.pushObject({id: 'puppet var', name: 'mapred_user', value: 'mapred'});
+      serviceUsers.pushObject({id: 'puppet var', name: 'hbase_user', value: 'hbase'});
+    } else {
+      App.router.get('mainAdminController').getHDFSDetailsFromServer();
     }
   },
 
   loadConfigsForAllServices: function () {
-    this.set('noOfWaitingAjaxCalls', this.get('content.services').length - 2);
+    this.set('noOfWaitingAjaxCalls', this.get('content.services').length - 1);
     this.get('content.services').forEach(function (_secureService, index) {
-      if (_secureService.serviceName !== 'GENERAL' && _secureService.serviceName !== 'NAGIOS') {
+      if (_secureService.serviceName !== 'GENERAL') {
         this.getConfigDetailsFromServer(_secureService, index);
       }
     }, this);
@@ -383,9 +404,10 @@ App.MainAdminSecurityAddStep3Controller = Em.Controller.extend({
 
   applyConfigurationToServices: function () {
     this.applyHdfsCoretoMaprCore();
-    this.set('noOfWaitingAjaxCalls', this.get('content.services').length-2);
+    this.set('noOfWaitingAjaxCalls', this.get('content.services').length - 1);
+    this.set('noOfWaitingAjaxCalls', this.get('content.services').length - 1);
     this.get('content.services').forEach(function (_service) {
-      if (_service.serviceName !== 'GENERAL' && _service.serviceName !== 'NAGIOS') {
+      if (_service.serviceName !== 'GENERAL') {
         var data = {config: {}};
         this.get('serviceConfigTags').filterProperty('serviceName', _service.serviceName).forEach(function (_serviceConfig) {
           data.config[_serviceConfig.siteName] = _serviceConfig.newTagName;

@@ -121,10 +121,10 @@ module.exports = [
     serviceName: 'MISC',
     displayName: 'Misc',
     configCategories: [
-      App.ServiceConfigCategory.create({ name: 'General'}),
+      App.ServiceConfigCategory.create({ name: 'General', displayName : 'General'}),
       App.ServiceConfigCategory.create({ name: 'Users and Groups', displayName : 'Users and Groups'})
     ],
     configs: configProperties.filterProperty('serviceName', 'MISC')
   }
 
-]
+];

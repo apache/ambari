@@ -34,11 +34,11 @@ App.StageStatusView = Em.View.extend({
 });
 
 App.StageSuccessView = Em.View.extend({
-  layout: Ember.Handlebars.compile('<i class="icon-ok icon-large"></i> Done')
+  template: Ember.Handlebars.compile('<i class="icon-ok icon-large"></i> Done')
 });
 
 App.StageFailureView = Em.View.extend({
-  layout: Ember.Handlebars.compile('<i class="icon-remove icon-large"></i> Failed')
+  template: Ember.Handlebars.compile('<i class="icon-remove icon-large"></i> Failed')
 });
 
 App.StageInProgressView = Em.View.extend({

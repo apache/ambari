@@ -18,7 +18,6 @@
 module.exports =
 {
   "configProperties": [
-    //GENERAL
     {
       "id": "puppet var",
       "name": "security_enabled",
@@ -26,6 +25,17 @@ module.exports =
       "value": "",
       "defaultValue": "true",
       "description": "Enable kerberos security for the cluster",
+      "isVisible": false,
+      "serviceName": "GENERAL",
+      "category": "KERBEROS"
+    },
+    {
+      "id": "puppet var",
+      "name": "kinit_path_local",
+      "displayName": "Path to kinit",
+      "value": "",
+      "defaultValue": "/usr/bin/kinit",
+      "description": "Path to installed kinit command",
       "displayType": "principal",
       "isVisible": false,
       "serviceName": "GENERAL",
@@ -33,10 +43,33 @@ module.exports =
     },
     {
       "id": "puppet var",
-      "name": "realm_name",
+      "name": "kerberos_install_type",
+      "displayName": "Type of security",
+      "value": "",
+      "defaultValue": "MANUALLY_SET_KERBEROS",
+      "description": "Type of kerberos security for the cluster",
+      "isVisible": false,
+      "serviceName": "GENERAL",
+      "category": "KERBEROS"
+    },
+    {
+      "id": "puppet var",
+      "name": "keytab_path",
+      "displayName": "Path to keytab file",
+      "value": "",
+      "defaultValue": "/etc/security/keytabs",
+      "description": "Type of kerberos security for the cluster",
+      "displayType": "principal",
+      "isVisible": false,
+      "serviceName": "GENERAL",
+      "category": "KERBEROS"
+    },
+    {
+      "id": "puppet var",
+      "name": "kerberos_domain",
       "displayName": "Realm name",
       "value": "",
-      "defaultValue": "EXAMPLE",
+      "defaultValue": "EXAMPLE.COM",
       "description": "Realm name to be used for all principal names",
       "displayType": "principal",
       "isVisible": true,
@@ -46,15 +79,16 @@ module.exports =
     {
       "id": "puppet var",
       "name": "instance_name",
-      "displayName": "Instance name",
+      "displayName": "Use Instance name",
       "value": "",
-      "defaultValue": "EXAMPLE",
+      "defaultValue": true,
       "description": "Whether to use instance name for creating principals across cluster",
       "displayType": "checkbox",
       "isVisible": true,
       "serviceName": "GENERAL",
       "category": "KERBEROS"
     },
+
     //HDFS
     {
       "id": "puppet var",
@@ -71,9 +105,9 @@ module.exports =
     {
       "id": "puppet var",
       "name": "namenode_keytab",
-      "displayName": "Keytab Path",
+      "displayName": "Path to Keytab File",
       "value": "",
-      "defaultValue": "",
+      "defaultValue": "/etc/security/keytabs/nn.service.keytab",
       "description": "Keytab for NameNode",
       "displayType": "directory",
       "isVisible": true,
@@ -96,9 +130,9 @@ module.exports =
     {
       "id": "puppet var",
       "name": "hadoop_http_keytab",
-      "displayName": "HTTP Keytab Path",
+      "displayName": "Path to HTTP keytab file",
       "value": "",
-      "defaultValue": "",
+      "defaultValue": "/etc/security/keytabs/spnego.service.keytab",
       "description": "Keytab for http NameNode and SNameNode",
       "displayType": "directory",
       "isVisible": true,
@@ -120,10 +154,10 @@ module.exports =
     {
       "id": "puppet var",
       "name": "snamenode_keytab",
-      "displayName": "Keytab Path",
+      "displayName": "Path to keytab file",
       "value": "",
-      "defaultValue": "",
-      "description": "Keytab for SecondaryNameNode",
+      "defaultValue": "/etc/security/keytabs/nn.service.keytab",
+      "description": "path to SecondaryNameNode keytab file",
       "displayType": "directory",
       "isVisible": true,
       "serviceName": "HDFS",
@@ -144,10 +178,10 @@ module.exports =
     {
       "id": "puppet var",
       "name": "datanode_keytab",
-      "displayName": "Keytab Path",
+      "displayName": "Path to Keytab file",
       "value": "",
-      "defaultValue": "",
-      "description": "Keytab for DataNode",
+      "defaultValue": "/etc/security/keytabs/dn.service.keytab",
+      "description": "Path to DataNode keytab file",
       "displayType": "directory",
       "isVisible": true,
       "serviceName": "HDFS",
@@ -169,10 +203,10 @@ module.exports =
     {
       "id": "puppet var",
       "name": "jobtracker_keytab",
-      "displayName": "Keytab Path",
+      "displayName": "Path to keytab file",
       "value": "",
-      "defaultValue": "",
-      "description": "keytab for JobTracker",
+      "defaultValue": "/etc/security/keytabs/jt.service.keytab",
+      "description": "Path to JobTracker keytab file",
       "displayType": "directory",
       "isVisible": true,
       "serviceName": "MAPREDUCE",
@@ -193,9 +227,9 @@ module.exports =
     {
       "id": "puppet var",
       "name": "tasktracker_keytab",
-      "displayName": "Keytab Path",
+      "displayName": "Path to keytab file",
       "value": "",
-      "defaultValue": "",
+      "defaultValue": "/etc/security/keytabs/tt.service.keytab",
       "description": "keytab for TaskTracker",
       "displayType": "directory",
       "isVisible": true,
@@ -219,9 +253,9 @@ module.exports =
     {
       "id": "puppet var",
       "name": "hbase_master_keytab",
-      "displayName": "Keytab Path",
+      "displayName": "Path to Keytab file",
       "value": "",
-      "defaultValue": "",
+      "defaultValue": "/etc/security/keytabs",
       "description": "keytab for HBase master",
       "displayType": "directory",
       "isVisible": true,
@@ -243,9 +277,9 @@ module.exports =
     {
       "id": "puppet var",
       "name": "regionserver_keytab",
-      "displayName": "Keytab Path",
+      "displayName": "Path to Keytab file",
       "value": "",
-      "defaultValue": "",
+      "defaultValue": "/etc/security/keytabs",
       "description": "keytab for RegionServer",
       "displayType": "directory",
       "isVisible": true,
@@ -269,9 +303,9 @@ module.exports =
     {
       "id": "puppet var",
       "name": "hive_metastore__keytab",
-      "displayName": "Keytab Path",
+      "displayName": "Path to Keytab file",
       "value": "",
-      "defaultValue": "",
+      "defaultValue": "/etc/security/keytabs",
       "description": "keytab for Hive Metastore",
       "displayType": "directory",
       "isVisible": true,
@@ -296,9 +330,9 @@ module.exports =
     {
       "id": "puppet var",
       "name": "oozie_keytab",
-      "displayName": "Keytab Path",
+      "displayName": "Path to keytab file",
       "value": "",
-      "defaultValue": "",
+      "defaultValue": "/etc/security/keytabs",
       "description": "Keytab for Oozie server",
       "displayType": "directory",
       "isVisible": true,
@@ -321,9 +355,9 @@ module.exports =
     {
       "id": "puppet var",
       "name": "oozie_http_keytab",
-      "displayName": "HTTP Keytab Path",
+      "displayName": "Path to HTTP Keytab file",
       "value": "",
-      "defaultValue": "",
+      "defaultValue": "/etc/security/keytabs",
       "description": "Keytab for http Oozie server",
       "displayType": "directory",
       "isVisible": true,
@@ -349,9 +383,9 @@ module.exports =
     {
       "id": "puppet var",
       "name": "webhcat_http_keytab",
-      "displayName": "HTTP Keytab Path",
+      "displayName": "Path to HTTP Keytab file",
       "value": "",
-      "defaultValue": "",
+      "defaultValue": "/etc/security/keytabs",
       "description": "Keytab for http webHCat",
       "displayType": "directory",
       "isVisible": true,
@@ -361,6 +395,18 @@ module.exports =
     //HUE
 
     //NAGIOS
+    {
+      "id": "puppet var",
+      "name": "nagios_server_name",
+      "displayName": "Nagios server host",
+      "value": "",
+      "defaultValue": "",
+      "description": "Nagios server host",
+      "displayType": "masterHosts",
+      "isVisible": true,
+      "serviceName": "NAGIOS",
+      "category": "General"
+    },
     {
       "id": "puppet var",
       "name": "nagios_primary_name",
@@ -376,9 +422,9 @@ module.exports =
     {
       "id": "puppet var",
       "name": "nagios_keytab",
-      "displayName": "Keytab Path",
+      "displayName": " Path to keytab file",
       "value": "",
-      "defaultValue": "",
+      "defaultValue": "/etc/security/keytabs",
       "description": "Keytab for nagios",
       "displayType": "directory",
       "isVisible": true,

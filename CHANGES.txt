@@ -12,6 +12,9 @@ Trunk (unreleased changes):
 
  NEW FEATURES
 
+ AMBARI-1545. Integrate Frontend Security work to enable security on HDFS
+ and MapReduce installed cluster. (jaimin)
+
  AMBARI-1528. Upgrade request support at Ambari. (Sumit Mohanty via swagle)
 
  AMBARI-1541. Upgrade task support in agent. (Sumit Mohanty via swagle)

@@ -22,6 +22,7 @@ App.MainAdminController = Em.Controller.extend({
   name: 'mainAdminController',
   category: 'user',
   securityEnabled: false,
+  serviceUsers: [],
 
   /**
    * return true if security status is loaded and false otherwise
@@ -48,6 +49,7 @@ App.MainAdminController = Em.Controller.extend({
     $.ajax({
       type: 'GET',
       url: url,
+      async: false,    // we are retrieving user information that is used ahead in addSecurity/apply stage
       timeout: 10000,
       dataType: 'text',
       success: function (data) {
@@ -57,12 +59,16 @@ App.MainAdminController = Em.Controller.extend({
         if ('global' in configs) {
           self.getServiceConfigsFromServer(dfd, 'global', configs['global']);
         } else {
-          dfd.reject();
+          if (dfd) {
+            dfd.reject();
+          }
         }
       },
 
       error: function (request, ajaxOptions, error) {
-        dfd.reject();
+        if (dfd) {
+          dfd.reject();
+        }
       },
 
       statusCode: require('data/statusCodes')
@@ -75,7 +81,7 @@ App.MainAdminController = Em.Controller.extend({
     $.ajax({
       type: 'GET',
       url: url,
-      async: true,
+      async: false, // we are retrieving user information that is used ahead in addSecurity/apply stage
       timeout: 10000,
       dataType: 'json',
       success: function (data) {
@@ -85,17 +91,41 @@ App.MainAdminController = Em.Controller.extend({
         if (configs && configs['security_enabled'] === 'true') {
           self.set('securityEnabled', true);
         } else {
+          self.loadUsers(configs);
           self.set('securityEnabled', false);
         }
-        dfd.resolve();
+        if (dfd) {
+          dfd.resolve();
+        }
       },
 
       error: function (request, ajaxOptions, error) {
-        dfd.reject();
+        if (dfd) {
+          dfd.reject();
+        }
       },
 
       statusCode: require('data/statusCodes')
     });
+  },
+
+  loadUsers: function (configs) {
+    var serviceUsers = this.get('serviceUsers');
+    if (configs['hdfs_user']) {
+      serviceUsers.pushObject({id: 'puppet var', name: 'hdfs_user', value: configs['hdfs_user']});
+    } else {
+      serviceUsers.pushObject({id: 'puppet var', name: 'hdfs_user', value: 'hdfs'});
+    }
+    if (configs['mapred_user']) {
+      serviceUsers.pushObject({id: 'puppet var', name: 'mapred_user', value: configs['mapred_user']});
+    } else {
+      serviceUsers.pushObject({id: 'puppet var', name: 'hdfs_user', value: 'mapred'});
+    }
+    if (configs['hbase_user']) {
+      serviceUsers.pushObject({id: 'puppet var', name: 'hbase_user', value: configs['hbase_user']});
+    } else {
+      serviceUsers.pushObject({id: 'puppet var', name: 'hdfs_user', value: 'hbase'});
+    }
   }
 
 });

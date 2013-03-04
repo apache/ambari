@@ -31,17 +31,19 @@ module.exports = [
     "value": "true",
     "filename": "core-site.xml"
   },
- // {
-   // "name": "hadoop.security.auth_to_local",
-   // "templateName": [""],
-   //"foreignKey": null,
-   // "value": "RULE:[2:$1@$0]([<templateName[0]>]t@.*<templateName[1]>)s/.*/$MAPRED_USER/ RULE:[2:$1@$0]([<templateName[2]>]n@.*<templateName[1]>)s/.*/$HDFS_USER/ RULE:[2:$1@$0](<templateName[3]>@.*<templateName[1]>)s/.*/$HBASE_USER/ RULE:[2:$1@$0](<templateName[4]>@.*<templateName[1]>)s/.*/$HABSE_USER/ DEFAULT",
-   // "filename": "core-site.xml"
- // },
+
+  {
+    "name": "hadoop.security.auth_to_local",
+    "templateName": ["jobtracker_primary_name", "kerberos_domain", "mapred_user", "tasktracker_primary_name","namenode_primary_name", "hdfs_user", "datanode_primary_name", "hbase_master_primary_name", "hbase_user", "regionserver_primary_name"],
+    "foreignKey": null,
+    "value": "RULE:[2:$1@$0](<templateName[0]>@.*<templateName[1]>)s/.*/<templateName[2]>/ RULE:[2:$1@$0](<templateName[3]>@.*<templateName[1]>)s/.*/<templateName[2]>/ RULE:[2:$1@$0](<templateName[4]>@.*<templateName[1]>)s/.*/<templateName[5]>/ RULE:[2:$1@$0](<templateName[6]>@.*<templateName[1]>)s/.*/<templateName[5]>/ RULE:[2:$1@$0](<templateName[7]>@.*<templateName[1]>)s/.*/<templateName[8]>/ RULE:[2:$1@$0](<templateName[9]>@.*<templateName[1]>)s/.*/<templateName[8]>/ DEFAULT",
+    "filename": "core-site.xml"
+  },
+
 
   {
     "name": "dfs.namenode.kerberos.principal",
-    "templateName": ["namenode_primary_name","realm_name"],
+    "templateName": ["namenode_primary_name", "kerberos_domain"],
     "foreignKey": null,
     "value": "<templateName[0]>@<templateName[1]>",
     "filename": "hdfs-site.xml"
@@ -55,21 +57,21 @@ module.exports = [
   },
   {
     "name": "dfs.secondary.namenode.kerberos.principal",
-    "templateName": ["snamenode_primary_name","realm_name"],
+    "templateName": ["namenode_primary_name", "kerberos_domain"],
     "foreignKey": null,
     "value": "<templateName[0]>@<templateName[1]>",
     "filename": "hdfs-site.xml"
   },
   {
     "name": "dfs.secondary.namenode.keytab.file",
-    "templateName": ["snamenode_keytab"],
+    "templateName": ["namenode_keytab"],
     "foreignKey": null,
     "value": "<templateName[0]>",
     "filename": "hdfs-site.xml"
   },
   {
     "name": "dfs.web.authentication.kerberos.principal",
-    "templateName": ["hadoop_http_primary_name","realm_name"],
+    "templateName": ["hadoop_http_primary_name", "kerberos_domain"],
     "foreignKey": null,
     "value": "<templateName[0]>@<templateName[1]>",
     "filename": "hdfs-site.xml"
@@ -83,7 +85,7 @@ module.exports = [
   },
   {
     "name": "dfs.datanode.kerberos.principal",
-    "templateName": ["datanode_primary_name","realm_name"],
+    "templateName": ["datanode_primary_name", "kerberos_domain"],
     "foreignKey": null,
     "value": "<templateName[0]>@<templateName[1]>",
     "filename": "hdfs-site.xml"
@@ -110,8 +112,22 @@ module.exports = [
     "filename": "hdfs-site.xml"
   },
   {
+    "name": "dfs.datanode.address",
+    "templateName": [],
+    "foreignKey": null,
+    "value": "0.0.0.0:1019",
+    "filename": "hdfs-site.xml"
+  },
+  {
+    "name": "dfs.datanode.http.address",
+    "templateName": [],
+    "foreignKey": null,
+    "value": "0.0.0.0:1022",
+    "filename": "hdfs-site.xml"
+  },
+  {
     "name": "mapreduce.jobtracker.kerberos.principal",
-    "templateName": ["jobtracker_primary_name","realm_name"],
+    "templateName": ["jobtracker_primary_name", "kerberos_domain"],
     "foreignKey": null,
     "value": "<templateName[0]>@<templateName[1]>",
     "filename": "mapred-site.xml"
@@ -125,7 +141,7 @@ module.exports = [
   },
   {
     "name": "mapreduce.tasktracker.kerberos.principal",
-    "templateName": ["tasktracker_primary_name","realm_name"],
+    "templateName": ["tasktracker_primary_name", "kerberos_domain"],
     "foreignKey": null,
     "value": "<templateName[0]>@<templateName[1]>",
     "filename": "mapred-site.xml"
@@ -139,7 +155,7 @@ module.exports = [
   },
   {
     "name": "hbase.master.kerberos.principal",
-    "templateName": ["hbase_master_primary_name","realm_name"],
+    "templateName": ["hbase_master_primary_name", "kerberos_domain"],
     "foreignKey": null,
     "value": "<templateName[0]>@<templateName[1]>",
     "filename": "hbase-site.xml"
@@ -153,7 +169,7 @@ module.exports = [
   },
   {
     "name": "hbase.regionserver.kerberos.principal",
-    "templateName": ["regionserver_primary_name","realm_name"],
+    "templateName": ["regionserver_primary_name", "kerberos_domain"],
     "foreignKey": null,
     "value": "<templateName[0]>@<templateName[1]>",
     "filename": "hbase-site.xml"
@@ -181,7 +197,7 @@ module.exports = [
   },
   {
     "name": "hive.metastore.kerberos.principal",
-    "templateName": ["hive_metastore_primary_name","realm_name"],
+    "templateName": ["hive_metastore_primary_name", "kerberos_domain"],
     "foreignKey": null,
     "value": "<templateName[0]>@<templateName[1]>",
     "filename": "hive-site.xml"
@@ -195,7 +211,7 @@ module.exports = [
   },
   {
     "name": "hive.server2.authentication.kerberos.principal",
-    "templateName": ["hive_metastore_primary_name","realm_name"],
+    "templateName": ["hive_metastore_primary_name", "kerberos_domain"],
     "foreignKey": null,
     "value": "<templateName[0]>@<templateName[1]>",
     "filename": "hive-site.xml"
@@ -209,7 +225,7 @@ module.exports = [
   },
   {
     "name": "templeton.kerberos.principal",
-    "templateName": ["webhcat_http_primary_name","realm_name"],
+    "templateName": ["webhcat_http_primary_name", "kerberos_domain"],
     "foreignKey": null,
     "value": "<templateName[0]>@<templateName[1]>",
     "filename": "hive-site.xml"

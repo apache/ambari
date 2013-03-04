@@ -736,20 +736,6 @@ module.exports =
     },
     {
       "id": "puppet var",
-      "name": "dfs_datanode_http_address",
-      "displayName": "dfs_datanode_http_address",
-      "description": "",
-      "defaultValue": "50075",
-      "isReconfigurable": true,
-      "displayType": "int",
-      "isVisible": true,
-      "filename": "hdfs-site.xml",
-      "domain": "global",
-      "serviceName": "MISC",
-      "category": "Advanced"
-    },
-    {
-      "id": "puppet var",
       "name": "dfs_datanode_data_dir_perm",
       "displayName": "dfs_datanode_data_dir_perm",
       "description": "",

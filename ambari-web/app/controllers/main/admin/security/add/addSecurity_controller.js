@@ -29,11 +29,11 @@ App.AddSecurityController = App.WizardController.extend({
     serviceConfigProperties: null,
     controllerName: 'addSecurityController',
 
-    saveCurrentStage: function(stage) {
+    saveCurrentStage: function (stage) {
       App.db.setSecurityStage(stage);
     },
 
-    loadCurrentStage: function() {
+    loadCurrentStage: function () {
       return App.db.getSecurityStage();
     }
   }),
@@ -63,7 +63,7 @@ App.AddSecurityController = App.WizardController.extend({
    * loads the status of stages of step3 from localDb
    */
 
-  loadStages: function() {
+  loadStages: function () {
 
   },
 
@@ -81,8 +81,6 @@ App.AddSecurityController = App.WizardController.extend({
     }, 50);
     return dfd.promise();
   },
-
-
 
 
   /**
@@ -125,15 +123,17 @@ App.AddSecurityController = App.WizardController.extend({
           var value = _configProperties.get('value').trim().split(/\s+/g).join(',');
           _configProperties.set('value', value);
         }
-        var configProperty = {
-          id: _configProperties.get('id'),
-          name: _configProperties.get('name'),
-          value: _configProperties.get('value'),
-          defaultValue: _configProperties.get('defaultValue'),
-          service: _configProperties.get('serviceName'),
-          filename: _configProperties.get('filename')
-        };
-        serviceConfigProperties.push(configProperty);
+        if (_configProperties.get('value')) {
+          var configProperty = {
+            id: _configProperties.get('id'),
+            name: _configProperties.get('name'),
+            value: _configProperties.get('value'),
+            defaultValue: _configProperties.get('defaultValue'),
+            service: _configProperties.get('serviceName'),
+            filename: _configProperties.get('filename')
+          };
+          serviceConfigProperties.push(configProperty);
+        }
       }, this);
 
     }, this);

@@ -21,6 +21,7 @@ App.MainAdminSecurityDisableController = Em.Controller.extend({
 
   name: 'mainAdminSecurityDisableController',
   configMapping: require('data/secure_mapping').slice(0),
+  secureProperties: require('data/secure_properties').configProperties.slice(0),
   stages: [],
   configs: [],
   noOfWaitingAjaxCalls: 0,
@@ -69,11 +70,16 @@ App.MainAdminSecurityDisableController = Em.Controller.extend({
   }.observes('stages.@each.isStarted'),
 
   onCompleteStage: function () {
-    var index = this.get('stages').filterProperty('isSuccess', true).length;
+    var index = this.get('stages').filterProperty('isCompleted', true).length;
     if (index > 0) {
-      this.moveToNextStage();
+      var self = this;
+      var lastCompletedStageResult = this.get('stages').objectAt(index - 1).get('isSuccess');
+      if (lastCompletedStageResult) {
+        self.moveToNextStage();
+      }
     }
-  }.observes('stages.@each.isSuccess'),
+  }.observes('stages.@each.isCompleted'),
+
 
   addInfoToStages: function () {
     this.addInfoToStage2();
@@ -110,7 +116,7 @@ App.MainAdminSecurityDisableController = Em.Controller.extend({
     stage4.set('data', data);
   },
 
-  loadSecureServices: function() {
+  loadSecureServices: function () {
     var secureServices = require('data/secure_configs');
     var installedServices = App.Service.find().mapProperty('serviceName');
     //General (only non service tab) tab is always displayed
@@ -157,11 +163,9 @@ App.MainAdminSecurityDisableController = Em.Controller.extend({
     });
   },
   loadConfigsForAllServices: function () {
-    this.set('noOfWaitingAjaxCalls', this.get('secureServices').length - 1);
+    this.set('noOfWaitingAjaxCalls', this.get('secureServices').length);
     this.get('secureServices').forEach(function (_secureService, index) {
-      if (_secureService.serviceName !== 'GENERAL' && _secureService.serviceName !== 'NAGIOS') {
-        this.getConfigDetailsFromServer(_secureService, index);
-      }
+      this.getConfigDetailsFromServer(_secureService, index);
     }, this);
   },
 
@@ -275,15 +279,14 @@ App.MainAdminSecurityDisableController = Em.Controller.extend({
 
   applyConfigurationToServices: function () {
     this.applyHdfsCoretoMaprCore();
-    this.set('noOfWaitingAjaxCalls', this.get('secureServices').length-1);
+    this.set('noOfWaitingAjaxCalls', this.get('secureServices').length);
     this.get('secureServices').forEach(function (_service) {
-      if (_service.serviceName !== 'GENERAL' && _service.serviceName !== 'NAGIOS') {
-        var data = {config: {}};
-        this.get('serviceConfigTags').filterProperty('serviceName', _service.serviceName).forEach(function (_serviceConfig) {
-          data.config[_serviceConfig.siteName] = _serviceConfig.newTagName;
-        }, this);
-        this.applyConfToService(_service.serviceName, data);
-      }
+      var data = {config: {}};
+      this.get('serviceConfigTags').filterProperty('serviceName', _service.serviceName).forEach(function (_serviceConfig) {
+        data.config[_serviceConfig.siteName] = _serviceConfig.newTagName;
+      }, this);
+      this.applyConfToService(_service.serviceName, data);
+
     }, this);
   },
 
@@ -334,16 +337,25 @@ App.MainAdminSecurityDisableController = Em.Controller.extend({
     this.get('serviceConfigTags').forEach(function (_serviceConfigTags, index) {
       if (_serviceConfigTags.siteName === 'global') {
         _serviceConfigTags.newTagName = 'version' + (new Date).getTime() + index;
-        if ('security_enabled' in _serviceConfigTags.configs) {
-          _serviceConfigTags.configs.security_enabled = false;
-        }
+        this.get('secureProperties').forEach(function (_config) {
+          if (_config.name in _serviceConfigTags.configs) {
+            delete _serviceConfigTags.configs[_config.name];
+          }
+        }, this);
+        _serviceConfigTags.configs.security_enabled = false;
       } else {
         _serviceConfigTags.newTagName = 'version' + (new Date).getTime();
         this.get('configMapping').filterProperty('filename', _serviceConfigTags.siteName + '.xml').forEach(function (_config) {
           if (_config.name in _serviceConfigTags.configs) {
-            delete _serviceConfigTags.configs[_config.name];
+            if (_config.name === 'dfs.datanode.address') {
+              _serviceConfigTags.configs[_config.name] = '0.0.0.0:50010';
+            } else if (_config.name === 'dfs.datanode.http.address') {
+              _serviceConfigTags.configs[_config.name] = '0.0.0.0:50075';
+            } else {
+              delete _serviceConfigTags.configs[_config.name];
+            }
           }
-          console.log("*******Not Deleted" +  _config.name);
+          console.log("Not Deleted" + _config.name);
         }, this);
       }
     }, this);
