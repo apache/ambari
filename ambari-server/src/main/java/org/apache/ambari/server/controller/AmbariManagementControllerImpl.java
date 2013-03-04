@@ -30,19 +30,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.TreeMap;
-
-import org.apache.ambari.server.AmbariException;
-import org.apache.ambari.server.ClusterNotFoundException;
-import org.apache.ambari.server.DuplicateResourceException;
-import org.apache.ambari.server.HostNotFoundException;
-import org.apache.ambari.server.ObjectNotFoundException;
-import org.apache.ambari.server.ParentObjectNotFoundException;
-import org.apache.ambari.server.Role;
-import org.apache.ambari.server.RoleCommand;
-import org.apache.ambari.server.ServiceComponentHostNotFoundException;
-import org.apache.ambari.server.ServiceComponentNotFoundException;
-import org.apache.ambari.server.ServiceNotFoundException;
-import org.apache.ambari.server.StackNotFoundException;
+import org.apache.ambari.server.*;
 import org.apache.ambari.server.actionmanager.ActionManager;
 import org.apache.ambari.server.actionmanager.HostRoleCommand;
 import org.apache.ambari.server.actionmanager.RequestStatus;
@@ -62,6 +50,8 @@ import org.apache.ambari.server.state.ComponentInfo;
 import org.apache.ambari.server.state.Config;
 import org.apache.ambari.server.state.ConfigFactory;
 import org.apache.ambari.server.state.Host;
+import org.apache.ambari.server.state.OperatingSystemInfo;
+import org.apache.ambari.server.state.PropertyInfo;
 import org.apache.ambari.server.state.RepositoryInfo;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceComponent;
@@ -70,6 +60,7 @@ import org.apache.ambari.server.state.ServiceComponentHost;
 import org.apache.ambari.server.state.ServiceComponentHostEvent;
 import org.apache.ambari.server.state.ServiceComponentHostFactory;
 import org.apache.ambari.server.state.ServiceFactory;
+import org.apache.ambari.server.state.ServiceInfo;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.StackInfo;
 import org.apache.ambari.server.state.State;
@@ -186,8 +177,7 @@ public class AmbariManagementControllerImpl implements
     StackInfo stackInfo = ambariMetaInfo.getStackInfo(stackId.getStackName(),
         stackId.getStackVersion());
     if (stackInfo == null) {
-      throw new StackNotFoundException(stackId.getStackName(),
-          stackId.getStackVersion());
+      throw new StackAccessException("stackName=" + stackId.getStackName() + ", stackVersion=" + stackId.getStackVersion());
     }
 
     // FIXME add support for desired configs at cluster level
@@ -3533,5 +3523,289 @@ public class AmbariManagementControllerImpl implements
     } else {
       throw new AmbariException("Stage was not created");
     }
+  }
+  
+  
+  @Override
+  public Set<StackResponse> getStacks(Set<StackRequest> requests)
+      throws AmbariException {
+    Set<StackResponse> response = new HashSet<StackResponse>();
+    for (StackRequest request : requests) {
+      try {
+        response.addAll(getStacks(request));
+      } catch (StackAccessException e) {
+        if (requests.size() == 1) {
+          // only throw exception if 1 request.
+          // there will be > 1 request in case of OR predicate
+          throw e;
+        }
+      }
+    }
+    return response;
+
+  }
+
+  private Set<StackResponse> getStacks(StackRequest request)
+      throws AmbariException {
+    Set<StackResponse> response;
+    
+    String stackName = request.getStackName();
+
+    if (stackName != null) {
+      org.apache.ambari.server.state.Stack stack = this.ambariMetaInfo.getStack(stackName);
+      response = Collections.singleton(stack.convertToResponse());
+    } else {
+      Set<org.apache.ambari.server.state.Stack> supportedStackNames = this.ambariMetaInfo.getStackNames();
+      response = new HashSet<StackResponse>();
+      for (org.apache.ambari.server.state.Stack stack: supportedStackNames) {
+        response.add(stack.convertToResponse());
+      }
+    }
+    return response;
+  }
+
+  @Override
+  public Set<RepositoryResponse> getRepositories(Set<RepositoryRequest> requests)
+      throws AmbariException {
+    Set<RepositoryResponse> response = new HashSet<RepositoryResponse>();
+    for (RepositoryRequest request : requests) {
+      try {
+        response.addAll(getRepositories(request));
+      } catch (StackAccessException e) {
+        if (requests.size() == 1) {
+          // only throw exception if 1 request.
+          // there will be > 1 request in case of OR predicate
+          throw e;
+        }
+      }
+    }
+    return response;
+  }
+
+  private Set<RepositoryResponse> getRepositories(RepositoryRequest request) throws AmbariException {
+    
+    String stackName = request.getStackName();
+    String stackVersion = request.getStackVersion();
+    String osType = request.getOsType();
+    String repoId = request.getRepoId();
+    
+    Set<RepositoryResponse> response;
+    
+    if (repoId == null) {
+      List<RepositoryInfo> repositories = this.ambariMetaInfo.getRepositories(stackName, stackVersion, osType);
+      response = new HashSet<RepositoryResponse>();
+      
+      for (RepositoryInfo repository: repositories) {
+        response.add(repository.convertToResponse());
+      }
+      
+    } else {
+      RepositoryInfo repository = this.ambariMetaInfo.getRepository(stackName, stackVersion, osType, repoId);
+      response = Collections.singleton(repository.convertToResponse());
+    }
+
+    return response;
+  }
+
+  @Override
+  public Set<StackVersionResponse> getStackVersions(
+      Set<StackVersionRequest> requests) throws AmbariException {
+    Set<StackVersionResponse> response = new HashSet<StackVersionResponse>();
+    for (StackVersionRequest request : requests) {
+      try {
+        response.addAll(getStackVersions(request));
+      } catch (StackAccessException e) {
+        if (requests.size() == 1) {
+          // only throw exception if 1 request.
+          // there will be > 1 request in case of OR predicate
+          throw e;
+        }
+      }
+    }
+
+    return response;
+
+  }
+
+  private Set<StackVersionResponse> getStackVersions(StackVersionRequest request) throws AmbariException {
+    Set<StackVersionResponse> response = null;
+
+    String stackName = request.getStackName();
+    String stackVersion = request.getStackVersion();
+    
+    if (stackVersion != null) {
+      StackInfo stackInfo = this.ambariMetaInfo.getStackInfo(stackName, stackVersion);
+      response = Collections.singleton(stackInfo.convertToResponse());
+    } else {
+      Set<StackInfo> stackInfos = this.ambariMetaInfo.getStackInfos(stackName);
+      response = new HashSet<StackVersionResponse>();
+      for (StackInfo stackInfo: stackInfos) {
+        response.add(stackInfo.convertToResponse()); 
+      }
+    }
+
+    return response;
+  }
+
+  @Override
+  public Set<StackServiceResponse> getStackServices(
+      Set<StackServiceRequest> requests) throws AmbariException {
+
+    Set<StackServiceResponse> response = new HashSet<StackServiceResponse>();
+    
+    for (StackServiceRequest request : requests) {
+      try {
+        response.addAll(getStackServices(request));
+      } catch (StackAccessException e) {
+        if (requests.size() == 1) {
+          // only throw exception if 1 request.
+          // there will be > 1 request in case of OR predicate
+          throw e;
+        }
+      }
+    }
+
+    return response;
+  }
+
+  private Set<StackServiceResponse> getStackServices(StackServiceRequest request) throws AmbariException {
+    Set<StackServiceResponse> response = null;
+
+    String stackName = request.getStackName();
+    String stackVersion = request.getStackVersion();
+    String serviceName = request.getServiceName();
+
+    if (serviceName != null) {
+      ServiceInfo service = this.ambariMetaInfo.getService(stackName, stackVersion, serviceName);
+      response = Collections.singleton(service.convertToResponse());
+    } else {
+      Map<String, ServiceInfo> services = this.ambariMetaInfo.getServices(stackName, stackVersion);
+      response = new HashSet<StackServiceResponse>();
+      for (ServiceInfo service : services.values()) {
+        response.add(service.convertToResponse());
+      }
+    }
+    return response;
+  }
+
+  @Override
+  public Set<StackConfigurationResponse> getStackConfigurations(
+      Set<StackConfigurationRequest> requests) throws AmbariException {
+    Set<StackConfigurationResponse> response = new HashSet<StackConfigurationResponse>();
+    for (StackConfigurationRequest request : requests) {
+      response.addAll(getStackConfigurations(request));
+    }
+
+    return response;
+  }
+
+  private Set<StackConfigurationResponse> getStackConfigurations(
+      StackConfigurationRequest request) throws AmbariException {
+    
+    Set<StackConfigurationResponse> response = null;
+    
+    String stackName = request.getStackName();
+    String stackVersion = request.getStackVersion();
+    String serviceName = request.getServiceName();
+    String propertyName = request.getPropertyName();
+    
+    if (propertyName != null) {
+      PropertyInfo property = this.ambariMetaInfo.getProperty(stackName, stackVersion, serviceName, propertyName);
+      response = Collections.singleton(property.convertToResponse());
+    } else {
+      
+      Set<PropertyInfo> properties = this.ambariMetaInfo.getProperties(stackName, stackVersion, serviceName);
+      response = new HashSet<StackConfigurationResponse>();
+ 
+      for (PropertyInfo property: properties) {
+        response.add(property.convertToResponse());  
+      }
+    }
+
+    return response;
+  }
+
+  @Override
+  public Set<StackServiceComponentResponse> getStackComponents(
+      Set<StackServiceComponentRequest> requests) throws AmbariException {
+    Set<StackServiceComponentResponse> response = new HashSet<StackServiceComponentResponse>();
+    for (StackServiceComponentRequest request : requests) {
+      try {
+        response.addAll(getStackComponents(request));
+      } catch (StackAccessException e) {
+        if (requests.size() == 1) {
+          // only throw exception if 1 request.
+          // there will be > 1 request in case of OR predicate
+          throw e;
+        }
+      }
+    }
+
+    return response;
+  }
+
+  private Set<StackServiceComponentResponse> getStackComponents(
+      StackServiceComponentRequest request) throws AmbariException {
+    Set<StackServiceComponentResponse> response = null;
+
+    String stackName = request.getStackName();
+    String stackVersion = request.getStackVersion();
+    String serviceName = request.getServiceName();
+    String componentName = request.getComponentName();
+    
+    
+    if (componentName != null) {
+      ComponentInfo component = this.ambariMetaInfo.getComponent(stackName, stackVersion, serviceName, componentName);
+      response = Collections.singleton(component.convertToResponse());
+      
+    } else {
+      List<ComponentInfo> components = this.ambariMetaInfo.getComponentsByService(stackName, stackVersion, serviceName);
+      response = new HashSet<StackServiceComponentResponse>();
+      
+      for (ComponentInfo component: components) {
+        response.add(component.convertToResponse());
+      }
+    }
+    return response;
+  }
+
+  @Override
+  public Set<OperatingSystemResponse> getStackOperatingSystems(
+      Set<OperatingSystemRequest> requests) throws AmbariException {
+    Set<OperatingSystemResponse> response = new HashSet<OperatingSystemResponse>();
+    for (OperatingSystemRequest request : requests) {
+      try {
+        response.addAll(getStackOperatingSystems(request));
+      } catch (StackAccessException e) {
+        if (requests.size() == 1) {
+          // only throw exception if 1 request.
+          // there will be > 1 request in case of OR predicate
+          throw e;
+        }
+      }
+    }
+    return response;
+  }
+
+  private Set<OperatingSystemResponse> getStackOperatingSystems(
+      OperatingSystemRequest request) throws AmbariException {
+    
+    Set<OperatingSystemResponse> response = null;
+
+    String stackName = request.getStackName();
+    String stackVersion = request.getStackVersion();
+    String osType = request.getOsType();
+    
+    if (osType != null) {
+      OperatingSystemInfo operatingSystem = this.ambariMetaInfo.getOperatingSystem(stackName, stackVersion, osType);
+      response = Collections.singleton(operatingSystem.convertToResponse());
+    } else {
+      Set<OperatingSystemInfo> operatingSystems = this.ambariMetaInfo.getOperatingSystems(stackName, stackVersion);
+      response = new HashSet<OperatingSystemResponse>();
+      for (OperatingSystemInfo operatingSystem : operatingSystems)
+        response.add(operatingSystem.convertToResponse());
+    }
+
+    return response;
   }
 }

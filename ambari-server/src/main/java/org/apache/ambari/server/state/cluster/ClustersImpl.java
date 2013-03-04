@@ -293,7 +293,7 @@ public class ClustersImpl implements Clusters {
     }
   }
 
-  private boolean isOsSupportedByClusterStack(Cluster c, Host h) {
+  private boolean isOsSupportedByClusterStack(Cluster c, Host h) throws AmbariException {
     Map<String, List<RepositoryInfo>> repos =
         ambariMetaInfo.getRepository(c.getDesiredStackVersion().getStackName(),
             c.getDesiredStackVersion().getStackVersion());

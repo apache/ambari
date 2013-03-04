@@ -30,15 +30,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-
 import junit.framework.Assert;
-
-import org.apache.ambari.server.AmbariException;
-import org.apache.ambari.server.ClusterNotFoundException;
-import org.apache.ambari.server.DuplicateResourceException;
-import org.apache.ambari.server.ParentObjectNotFoundException;
-import org.apache.ambari.server.Role;
-import org.apache.ambari.server.RoleCommand;
+import org.apache.ambari.server.*;
 import org.apache.ambari.server.actionmanager.ActionDBAccessor;
 import org.apache.ambari.server.actionmanager.ExecutionCommandWrapper;
 import org.apache.ambari.server.actionmanager.HostRoleCommand;
@@ -81,6 +74,25 @@ public class AmbariManagementControllerTest {
 
   private static final Logger LOG =
       LoggerFactory.getLogger(AmbariManagementControllerTest.class);
+
+  private static final String STACK_NAME = "HDP";
+
+  private static final String STACK_VERSION = "0.2";
+  private static final String OS_TYPE = "centos5";
+  private static final String REPO_ID = "HDP-1.1.1.16";
+  private static final String PROPERTY_NAME = "hbase.regionserver.msginterval";
+  private static final String SERVICE_NAME = "HDFS";
+  private static final int STACK_VERSIONS_CNT = 2;
+  private static final int REPOS_CNT = 3;
+  private static final int STACKS_CNT = 1;
+  private static final int STACK_SERVICES_CNT = 5 ;
+  private static final int STACK_PROPERTIES_CNT = 63;
+  private static final int STACK_COMPONENTS_CNT = 3;
+  private static final int OS_CNT = 2;
+
+  private static final String NON_EXT_VALUE = "XXX";
+
+  private static final String COMPONENT_NAME = "NAMENODE";
 
   private AmbariManagementController controller;
   private Clusters clusters;
@@ -447,7 +459,7 @@ public class AmbariManagementControllerTest {
       set1.add(valid2);
       controller.createServices(set1);
       fail("Expected failure for invalid services");
-    } catch (IllegalArgumentException e) {
+    } catch (DuplicateResourceException e) {
       // Expected
     }
 
@@ -3782,6 +3794,190 @@ public class AmbariManagementControllerTest {
     Assert.assertEquals(Role.PIG_SERVICE_CHECK.toString(),
         taskStatuses.get(0).getRole());
   }
+  
+  
+  @Test
+  public void testGetStacks() throws Exception {
+    
+
+    StackRequest request = new StackRequest(null);
+    Set<StackResponse> responses = controller.getStacks(Collections.singleton(request));
+    Assert.assertEquals(STACKS_CNT, responses.size());
+    
+    StackRequest requestWithParams = new StackRequest(STACK_NAME);
+    Set<StackResponse> responsesWithParams = controller.getStacks(Collections.singleton(requestWithParams));
+    Assert.assertEquals(1, responsesWithParams.size());
+    for (StackResponse responseWithParams: responsesWithParams) {
+      Assert.assertEquals(responseWithParams.getStackName(), STACK_NAME);
+      
+    }
+    
+    StackRequest invalidRequest = new StackRequest(NON_EXT_VALUE);
+    try {
+      controller.getStacks(Collections.singleton(invalidRequest));
+    } catch (StackAccessException e) {
+      Assert.assertTrue(e instanceof StackAccessException);
+    }
+  }
+  
+  @Test
+  public void testGetStackVersions() throws Exception {
+    
+
+    StackVersionRequest request = new StackVersionRequest(STACK_NAME, null);
+    Set<StackVersionResponse> responses = controller.getStackVersions(Collections.singleton(request));
+    Assert.assertEquals(STACK_VERSIONS_CNT, responses.size());
+    
+    StackVersionRequest requestWithParams = new StackVersionRequest(STACK_NAME, STACK_VERSION);
+    Set<StackVersionResponse> responsesWithParams = controller.getStackVersions(Collections.singleton(requestWithParams));
+    Assert.assertEquals(1, responsesWithParams.size());
+    for (StackVersionResponse responseWithParams: responsesWithParams) {
+      Assert.assertEquals(responseWithParams.getStackVersion(), STACK_VERSION);
+      
+    }
+    
+    StackVersionRequest invalidRequest = new StackVersionRequest(STACK_NAME, NON_EXT_VALUE);
+    try {
+      controller.getStackVersions(Collections.singleton(invalidRequest));
+    } catch (StackAccessException e) {
+      Assert.assertTrue(e instanceof StackAccessException);
+    } 
+  }
+  
+
+  @Test
+  public void testGetRepositories() throws Exception {
+    
+    RepositoryRequest request = new RepositoryRequest(STACK_NAME, STACK_VERSION, OS_TYPE, null);
+    Set<RepositoryResponse> responses = controller.getRepositories(Collections.singleton(request));
+    Assert.assertEquals(REPOS_CNT, responses.size());
+    
+    RepositoryRequest requestWithParams = new RepositoryRequest(STACK_NAME, STACK_VERSION, OS_TYPE, REPO_ID);
+    Set<RepositoryResponse> responsesWithParams = controller.getRepositories(Collections.singleton(requestWithParams));
+    Assert.assertEquals(1, responsesWithParams.size());
+    for (RepositoryResponse responseWithParams: responsesWithParams) {
+      Assert.assertEquals(responseWithParams.getRepoId(), REPO_ID);
+      
+    }
+    
+    RepositoryRequest invalidRequest = new RepositoryRequest(STACK_NAME, STACK_VERSION, OS_TYPE, NON_EXT_VALUE);
+    try {
+      controller.getRepositories(Collections.singleton(invalidRequest));
+    } catch (StackAccessException e) {
+      Assert.assertTrue(e instanceof StackAccessException);
+    }
+  }
+  
+  
+  @Test
+  public void testGetStackServices() throws Exception {
+    
+
+    StackServiceRequest request = new StackServiceRequest(STACK_NAME, STACK_VERSION, null);
+    Set<StackServiceResponse> responses = controller.getStackServices(Collections.singleton(request));
+    Assert.assertEquals(STACK_SERVICES_CNT, responses.size());
+    
+    
+    StackServiceRequest requestWithParams = new StackServiceRequest(STACK_NAME, STACK_VERSION, SERVICE_NAME);
+    Set<StackServiceResponse> responsesWithParams = controller.getStackServices(Collections.singleton(requestWithParams));
+    Assert.assertEquals(1, responsesWithParams.size());
+    for (StackServiceResponse responseWithParams: responsesWithParams) {
+      Assert.assertEquals(responseWithParams.getServiceName(), SERVICE_NAME);
+      
+    }
+    
+    StackServiceRequest invalidRequest = new StackServiceRequest(STACK_NAME, STACK_VERSION, NON_EXT_VALUE);
+    try {
+      controller.getStackServices(Collections.singleton(invalidRequest));
+    } catch (StackAccessException e) {
+      Assert.assertTrue(e instanceof StackAccessException);
+    }
+    
+    
+  }
+  
+  @Test
+  public void testGetStackConfigurations() throws Exception {
+    
+
+    StackConfigurationRequest request = new StackConfigurationRequest(STACK_NAME, STACK_VERSION, SERVICE_NAME, null);
+    Set<StackConfigurationResponse> responses = controller.getStackConfigurations(Collections.singleton(request));
+    Assert.assertEquals(STACK_PROPERTIES_CNT, responses.size());
+    
+    
+    StackConfigurationRequest requestWithParams = new StackConfigurationRequest(STACK_NAME, STACK_VERSION, SERVICE_NAME, PROPERTY_NAME);
+    Set<StackConfigurationResponse> responsesWithParams = controller.getStackConfigurations(Collections.singleton(requestWithParams));
+    Assert.assertEquals(1, responsesWithParams.size());
+    for (StackConfigurationResponse responseWithParams: responsesWithParams) {
+      Assert.assertEquals(responseWithParams.getPropertyName(), PROPERTY_NAME);
+      
+    }
+    
+    StackConfigurationRequest invalidRequest = new StackConfigurationRequest(STACK_NAME, STACK_VERSION, SERVICE_NAME, NON_EXT_VALUE);
+    try {
+      controller.getStackConfigurations(Collections.singleton(invalidRequest));
+    } catch (StackAccessException e) {
+      Assert.assertTrue(e instanceof StackAccessException);
+    }
+  }
+  
+  
+  @Test
+  public void testGetStackComponents() throws Exception {
+    
+
+    StackServiceComponentRequest request = new StackServiceComponentRequest(STACK_NAME, STACK_VERSION, SERVICE_NAME, null);
+    Set<StackServiceComponentResponse> responses = controller.getStackComponents(Collections.singleton(request));
+    Assert.assertEquals(STACK_COMPONENTS_CNT, responses.size());
+    
+    
+    StackServiceComponentRequest requestWithParams = new StackServiceComponentRequest(STACK_NAME, STACK_VERSION, SERVICE_NAME, COMPONENT_NAME);
+    Set<StackServiceComponentResponse> responsesWithParams = controller.getStackComponents(Collections.singleton(requestWithParams));
+    Assert.assertEquals(1, responsesWithParams.size());
+    for (StackServiceComponentResponse responseWithParams: responsesWithParams) {
+      Assert.assertEquals(responseWithParams.getComponentName(), COMPONENT_NAME);
+      
+    }
+    
+    StackServiceComponentRequest invalidRequest = new StackServiceComponentRequest(STACK_NAME, STACK_VERSION, SERVICE_NAME, NON_EXT_VALUE);
+    try {
+      controller.getStackComponents(Collections.singleton(invalidRequest));
+    } catch (StackAccessException e) {
+      Assert.assertTrue(e instanceof StackAccessException);
+    }
+    
+    
+  }
+  
+  @Test
+  public void testGetStackOperatingSystems() throws Exception {
+    
+
+    OperatingSystemRequest request = new OperatingSystemRequest(STACK_NAME, STACK_VERSION, null);
+    Set<OperatingSystemResponse> responses = controller.getStackOperatingSystems(Collections.singleton(request));
+    Assert.assertEquals(OS_CNT, responses.size());
+    
+    
+    OperatingSystemRequest requestWithParams = new OperatingSystemRequest(STACK_NAME, STACK_VERSION, OS_TYPE);
+    Set<OperatingSystemResponse> responsesWithParams = controller.getStackOperatingSystems(Collections.singleton(requestWithParams));
+    Assert.assertEquals(1, responsesWithParams.size());
+    for (OperatingSystemResponse responseWithParams: responsesWithParams) {
+      Assert.assertEquals(responseWithParams.getOsType(), OS_TYPE);
+      
+    }
+    
+    OperatingSystemRequest invalidRequest = new OperatingSystemRequest(STACK_NAME, STACK_VERSION, NON_EXT_VALUE);
+    try {
+      controller.getStackOperatingSystems(Collections.singleton(invalidRequest));
+    } catch (StackAccessException e) {
+      Assert.assertTrue(e instanceof StackAccessException);
+    }
+    
+    
+  }
+  
+  
+  
 
   @Test
   public void testUpdateClusterVersionBasic() throws AmbariException {

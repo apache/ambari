@@ -80,7 +80,7 @@ public class ServiceComponentImpl implements ServiceComponent {
 
   @AssistedInject
   public ServiceComponentImpl(@Assisted Service service,
-      @Assisted String componentName, Injector injector) {
+      @Assisted String componentName, Injector injector) throws AmbariException {
     injector.injectMembers(this);
     this.service = service;
     this.desiredStateEntity = new ServiceComponentDesiredStateEntity();
@@ -112,7 +112,7 @@ public class ServiceComponentImpl implements ServiceComponent {
   @AssistedInject
   public ServiceComponentImpl(@Assisted Service service,
                               @Assisted ServiceComponentDesiredStateEntity serviceComponentDesiredStateEntity,
-                              Injector injector) {
+                              Injector injector) throws AmbariException {
     injector.injectMembers(this);
     this.service = service;
     this.desiredStateEntity = serviceComponentDesiredStateEntity;

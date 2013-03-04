@@ -89,6 +89,13 @@ public interface Resource {
     Action,
     Request,
     Task,
-    User
+    User,
+    Stack,
+    StackVersion,
+    OperatingSystem,
+    Repository,
+    StackService,
+    StackConfiguration,
+    StackServiceComponent
   }
 }

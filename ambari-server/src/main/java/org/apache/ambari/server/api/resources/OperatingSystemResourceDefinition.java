@@ -16,40 +16,37 @@
  * limitations under the License.
  */
 
-package org.apache.ambari.server.state;
+package org.apache.ambari.server.api.resources;
 
-import org.apache.ambari.server.controller.StackServiceComponentResponse;
+import java.util.Collections;
+import java.util.Set;
 
-public class ComponentInfo {
-  private String name;
-  private String category;
+import org.apache.ambari.server.controller.spi.Resource;
+import org.apache.ambari.server.controller.spi.Resource.Type;
 
-  public String getName() {
-    return name;
+public class OperatingSystemResourceDefinition extends BaseResourceDefinition {
+
+  public OperatingSystemResourceDefinition(Type resourceType) {
+    super(resourceType);
   }
 
-  public void setName(String name) {
-    this.name = name;
+  public OperatingSystemResourceDefinition() {
+    super(Resource.Type.OperatingSystem);
   }
 
-  public String getCategory() {
-    return category;
+  @Override
+  public String getPluralName() {
+    return "operatingSystems";
   }
 
-  public void setCategory(String category) {
-    this.category = category;
+  @Override
+  public String getSingularName() {
+    return "operatingSystem";
   }
-
-  public boolean isClient() {
-    return "CLIENT".equals(category);
-  }
-
-  public boolean isMaster() {
-    return "MASTER".equals(category);
-  }
-
-  public StackServiceComponentResponse convertToResponse() {
-    return new StackServiceComponentResponse(getName(), getCategory(), isClient(), isMaster());
+  
+  @Override
+  public Set<SubResourceDefinition> getSubResourceDefinitions() {
+    return Collections.singleton(new SubResourceDefinition(Resource.Type.Repository));
   }
 
 }

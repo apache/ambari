@@ -16,40 +16,25 @@
  * limitations under the License.
  */
 
-package org.apache.ambari.server.state;
 
-import org.apache.ambari.server.controller.StackServiceComponentResponse;
+package org.apache.ambari.server.controller;
 
-public class ComponentInfo {
-  private String name;
-  private String category;
+public class OperatingSystemRequest extends StackVersionRequest {
 
-  public String getName() {
-    return name;
+  private String osType;
+
+  public OperatingSystemRequest(String stackName, String stackVersion,
+      String osType) {
+    super(stackName, stackVersion);
+    setOsType(osType);
   }
 
-  public void setName(String name) {
-    this.name = name;
+  public String getOsType() {
+    return osType;
   }
 
-  public String getCategory() {
-    return category;
-  }
-
-  public void setCategory(String category) {
-    this.category = category;
-  }
-
-  public boolean isClient() {
-    return "CLIENT".equals(category);
-  }
-
-  public boolean isMaster() {
-    return "MASTER".equals(category);
-  }
-
-  public StackServiceComponentResponse convertToResponse() {
-    return new StackServiceComponentResponse(getName(), getCategory(), isClient(), isMaster());
+  public void setOsType(String osType) {
+    this.osType = osType;
   }
 
 }

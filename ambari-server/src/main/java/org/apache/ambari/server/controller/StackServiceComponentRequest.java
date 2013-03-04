@@ -16,40 +16,25 @@
  * limitations under the License.
  */
 
-package org.apache.ambari.server.state;
 
-import org.apache.ambari.server.controller.StackServiceComponentResponse;
+package org.apache.ambari.server.controller;
 
-public class ComponentInfo {
-  private String name;
-  private String category;
+public class StackServiceComponentRequest extends StackServiceRequest {
 
-  public String getName() {
-    return name;
+  private String componentName;
+
+  public StackServiceComponentRequest(String stackName, String stackVersion,
+      String serviceName, String componentName) {
+    super(stackName, stackVersion, serviceName);
+    setComponentName(componentName);
   }
 
-  public void setName(String name) {
-    this.name = name;
+  public String getComponentName() {
+    return componentName;
   }
 
-  public String getCategory() {
-    return category;
-  }
-
-  public void setCategory(String category) {
-    this.category = category;
-  }
-
-  public boolean isClient() {
-    return "CLIENT".equals(category);
-  }
-
-  public boolean isMaster() {
-    return "MASTER".equals(category);
-  }
-
-  public StackServiceComponentResponse convertToResponse() {
-    return new StackServiceComponentResponse(getName(), getCategory(), isClient(), isMaster());
+  public void setComponentName(String componentName) {
+    this.componentName = componentName;
   }
 
 }

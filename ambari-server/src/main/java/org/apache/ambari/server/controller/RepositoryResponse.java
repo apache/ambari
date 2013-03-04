@@ -16,101 +16,75 @@
  * limitations under the License.
  */
 
-package org.apache.ambari.server.state;
+package org.apache.ambari.server.controller;
 
-import org.apache.ambari.server.controller.RepositoryResponse;
-
-public class RepositoryInfo {
+public class RepositoryResponse {
+  
   private String baseUrl;
   private String osType;
   private String repoId;
   private String repoName;
   private String mirrorsList;
+  
+  
+  public RepositoryResponse(String baseUrl, String osType, String repoId, String repoName, String mirrorsList) {
+    setBaseUrl(baseUrl);
+    setOsType(osType);
+    setRepoId(repoId);
+    setRepoName(repoName);
+    setMirrorsList(mirrorsList);
+  }
 
-  /**
-   * @return the baseUrl
-   */
+
   public String getBaseUrl() {
     return baseUrl;
   }
 
-  /**
-   * @param baseUrl the baseUrl to set
-   */
+
   public void setBaseUrl(String baseUrl) {
     this.baseUrl = baseUrl;
   }
 
-  /**
-   * @return the osType
-   */
+
   public String getOsType() {
     return osType;
   }
 
-  /**
-   * @param osType the osType to set
-   */
+
   public void setOsType(String osType) {
     this.osType = osType;
   }
 
-  /**
-   * @return the repoId
-   */
+
   public String getRepoId() {
     return repoId;
   }
 
-  /**
-   * @param repoId the repoId to set
-   */
+
   public void setRepoId(String repoId) {
     this.repoId = repoId;
   }
 
-  /**
-   * @return the repoName
-   */
+
   public String getRepoName() {
     return repoName;
   }
 
-  /**
-   * @param repoName the repoName to set
-   */
+
   public void setRepoName(String repoName) {
     this.repoName = repoName;
   }
 
-  /**
-   * @return the mirrorsList
-   */
+
   public String getMirrorsList() {
     return mirrorsList;
   }
 
-  /**
-   * @param mirrorsList the mirrorsList to set
-   */
+
   public void setMirrorsList(String mirrorsList) {
     this.mirrorsList = mirrorsList;
   }
 
-  @Override
-  public String toString() {
-    return "[ repoInfo: "
-        + ", osType=" + osType
-        + ", repoId=" + repoId
-        + ", baseUrl=" + baseUrl
-        + ", repoName=" + repoName
-        + ", mirrorsList=" + mirrorsList
-        + " ]";
-  }
-  
-  
-  public RepositoryResponse convertToResponse()
-  {
-    return new RepositoryResponse(getBaseUrl(), getOsType(), getRepoId(), getRepoName(), getMirrorsList());
-  }
+
+
 }

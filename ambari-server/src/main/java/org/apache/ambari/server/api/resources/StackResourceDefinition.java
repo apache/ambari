@@ -16,40 +16,39 @@
  * limitations under the License.
  */
 
-package org.apache.ambari.server.state;
+package org.apache.ambari.server.api.resources;
 
-import org.apache.ambari.server.controller.StackServiceComponentResponse;
+import java.util.HashSet;
+import java.util.Set;
 
-public class ComponentInfo {
-  private String name;
-  private String category;
+import org.apache.ambari.server.controller.spi.Resource;
+import org.apache.ambari.server.controller.spi.Resource.Type;
 
-  public String getName() {
-    return name;
+public class StackResourceDefinition extends BaseResourceDefinition {
+
+  public StackResourceDefinition(Type resourceType) {
+    super(Resource.Type.Stack);
   }
 
-  public void setName(String name) {
-    this.name = name;
+  public StackResourceDefinition() {
+    super(Resource.Type.Stack);
   }
 
-  public String getCategory() {
-    return category;
+  @Override
+  public String getPluralName() {
+    return "stacks";
   }
 
-  public void setCategory(String category) {
-    this.category = category;
+  @Override
+  public String getSingularName() {
+    return "stack";
   }
 
-  public boolean isClient() {
-    return "CLIENT".equals(category);
-  }
-
-  public boolean isMaster() {
-    return "MASTER".equals(category);
-  }
-
-  public StackServiceComponentResponse convertToResponse() {
-    return new StackServiceComponentResponse(getName(), getCategory(), isClient(), isMaster());
+  @Override
+  public Set<SubResourceDefinition> getSubResourceDefinitions() {
+    Set<SubResourceDefinition> setChildren = new HashSet<SubResourceDefinition>();
+    setChildren.add(new SubResourceDefinition(Resource.Type.StackVersion));
+    return setChildren;
   }
 
 }

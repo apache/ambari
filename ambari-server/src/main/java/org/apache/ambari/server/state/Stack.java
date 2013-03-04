@@ -16,40 +16,51 @@
  * limitations under the License.
  */
 
+
 package org.apache.ambari.server.state;
 
-import org.apache.ambari.server.controller.StackServiceComponentResponse;
+import org.apache.ambari.server.controller.StackResponse;
 
-public class ComponentInfo {
-  private String name;
-  private String category;
+public class Stack {
 
-  public String getName() {
-    return name;
+  private String stackName;
+
+  public Stack(String stackName) {
+    setStackName(stackName);
   }
 
-  public void setName(String name) {
-    this.name = name;
+  public String getStackName() {
+    return stackName;
   }
 
-  public String getCategory() {
-    return category;
+  public void setStackName(String stackName) {
+    this.stackName = stackName;
   }
 
-  public void setCategory(String category) {
-    this.category = category;
+  @Override
+  public int hashCode() {
+    return stackName.hashCode();
   }
 
-  public boolean isClient() {
-    return "CLIENT".equals(category);
-  }
+  @Override
+  public boolean equals(Object obj) {
 
-  public boolean isMaster() {
-    return "MASTER".equals(category);
-  }
+    if (obj == null)
+      return false;
 
-  public StackServiceComponentResponse convertToResponse() {
-    return new StackServiceComponentResponse(getName(), getCategory(), isClient(), isMaster());
+    if (!(obj instanceof Stack)) {
+      return false;
+    }
+    if (this == obj) {
+      return true;
+    }
+    Stack stack = (Stack) obj;
+    return getStackName().equals(stack.getStackName());
   }
-
+  
+  
+  public StackResponse convertToResponse()
+  {
+    return new StackResponse(getStackName());
+  }
 }

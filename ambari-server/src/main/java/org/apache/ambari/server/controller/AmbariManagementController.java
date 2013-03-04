@@ -19,7 +19,6 @@
 package org.apache.ambari.server.controller;
 
 import org.apache.ambari.server.AmbariException;
-import org.apache.ambari.server.ObjectNotFoundException;
 import org.apache.ambari.server.ParentObjectNotFoundException;
 
 import java.util.Map;
@@ -371,11 +370,111 @@ public interface AmbariManagementController {
    * 
    * @throws  AmbariException if the resources cannot be deleted
    */
-  public void deleteUsers(Set<UserRequest> requests) throws AmbariException;  
-
+  public void deleteUsers(Set<UserRequest> requests) throws AmbariException;
+  
+  /**
+   * Create the action defined by the attributes in the given request object.
+   *
+   * @param request the request object which defines the action to be created
+   *
+   * @throws AmbariException thrown if the action cannot be created
+   */
   public RequestStatusResponse createActions(Set<ActionRequest> request)
       throws AmbariException;
-
+  
+  /**
+   * Get the actions identified by the given request objects.
+   *
+   * @param requests  the request objects which identify the actions to be returned
+   *
+   * @return a set of actions responses
+   *
+   * @throws AmbariException thrown if the resource cannot be read
+   */
   public Set<ActionResponse> getActions(Set<ActionRequest> request)
       throws AmbariException;
+
+
+  /**
+   * Get supported stacks.
+   * 
+   * @param requests the stacks
+   * 
+   * @return a set of stacks responses
+   * 
+   * @throws  AmbariException if the resources cannot be read
+   */
+  public Set<StackResponse> getStacks(Set<StackRequest> requests) throws AmbariException;
+  
+  
+  /**
+   * Get supported stacks versions.
+   * 
+   * @param requests the stacks versions
+   * 
+   * @return a set of stacks versions responses
+   * 
+   * @throws  AmbariException if the resources cannot be read
+   */
+  public Set<StackVersionResponse> getStackVersions(Set<StackVersionRequest> requests) throws AmbariException;
+
+  
+  /**
+   * Get repositories by stack name, version and operating system.
+   * 
+   * @param requests the repositories 
+   * 
+   * @return a set of repositories
+   * 
+   * @throws  AmbariException if the resources cannot be read
+   */
+  public Set<RepositoryResponse> getRepositories(Set<RepositoryRequest> requests) throws AmbariException;
+
+  
+  /**
+   * Get repositories by stack name, version.
+   * 
+   * @param requests the services 
+   * 
+   * @return a set of services
+   * 
+   * @throws  AmbariException if the resources cannot be read
+   */
+  public Set<StackServiceResponse> getStackServices(Set<StackServiceRequest> requests) throws AmbariException;
+
+  
+  /**
+   * Get configurations by stack name, version and service.
+   * 
+   * @param requests the configurations 
+   * 
+   * @return a set of configurations
+   * 
+   * @throws  AmbariException if the resources cannot be read
+   */
+  public Set<StackConfigurationResponse> getStackConfigurations(Set<StackConfigurationRequest> requests) throws AmbariException;
+  
+  
+  /**
+   * Get components by stack name, version and service.
+   * 
+   * @param requests the components 
+   * 
+   * @return a set of components
+   * 
+   * @throws  AmbariException if the resources cannot be read
+   */
+  public Set<StackServiceComponentResponse> getStackComponents(Set<StackServiceComponentRequest> requests) throws AmbariException;
+  
+  
+  /**
+   * Get operating systems by stack name, version.
+   * 
+   * @param requests the operating systems 
+   * 
+   * @return a set of operating systems 
+   * 
+   * @throws  AmbariException if the resources cannot be read
+   */
+  public Set<OperatingSystemResponse> getStackOperatingSystems(Set<OperatingSystemRequest> requests) throws AmbariException;
 }

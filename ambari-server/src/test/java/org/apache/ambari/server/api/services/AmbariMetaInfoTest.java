@@ -34,9 +34,15 @@ import java.util.Set;
 
 import junit.framework.Assert;
 
+import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.StackAccessException;
 import org.apache.ambari.server.state.ComponentInfo;
+import org.apache.ambari.server.state.OperatingSystemInfo;
+import org.apache.ambari.server.state.PropertyInfo;
 import org.apache.ambari.server.state.RepositoryInfo;
 import org.apache.ambari.server.state.ServiceInfo;
+import org.apache.ambari.server.state.Stack;
+import org.apache.ambari.server.state.StackInfo;
 import org.apache.commons.io.FileUtils;
 import org.junit.Before;
 import org.junit.Rule;
@@ -51,10 +57,21 @@ public class AmbariMetaInfoTest {
   private static String STACK_VERSION_HDP = "0.1";
   private static String SERVICE_NAME_HDFS = "HDFS";
   private static String SERVICE_COMPONENT_NAME = "NAMENODE";
+  private static final String OS_TYPE = "centos5";
+  private static final String REPO_ID = "HDP-UTILS-1.1.0.15";
+  private static final String PROPERTY_NAME = "hbase.regionserver.msginterval";
+  
+  private static final String NON_EXT_VALUE = "XXX";
+  
+  private static final int REPOS_CNT = 3;
+  private static final int STACKS_NAMES_CNT = 1;
+  private static final int PROPERTIES_CNT = 63;
+  private static final int OS_CNT = 3;
 
   private AmbariMetaInfo metaInfo = null;
   private final static Logger LOG =
       LoggerFactory.getLogger(AmbariMetaInfoTest.class);
+  
 
   @Rule
   public TemporaryFolder tmpFolder = new TemporaryFolder();
@@ -72,7 +89,7 @@ public class AmbariMetaInfoTest {
   }
 
   @Test
-  public void getComponentCategory() {
+  public void getComponentCategory() throws AmbariException {
     ComponentInfo componentInfo = metaInfo.getComponentCategory(STACK_NAME_HDP,
         STACK_VERSION_HDP, SERVICE_NAME_HDFS, SERVICE_COMPONENT_NAME);
     assertNotNull(componentInfo);
@@ -83,14 +100,14 @@ public class AmbariMetaInfoTest {
   }
 
   @Test
-  public void getComponentsByService() {
+  public void getComponentsByService() throws AmbariException {
     List<ComponentInfo> components = metaInfo.getComponentsByService(
         STACK_NAME_HDP, STACK_VERSION_HDP, SERVICE_NAME_HDFS);
     assertNotNull(components);
   }
 
   @Test
-  public void getRepository() {
+  public void getRepository() throws AmbariException {
     Map<String, List<RepositoryInfo>> repository = metaInfo.getRepository(
         STACK_NAME_HDP, STACK_VERSION_HDP);
     assertNotNull(repository);
@@ -99,17 +116,24 @@ public class AmbariMetaInfoTest {
   }
 
   @Test
-  public void isSupportedStack() {
-    boolean supportedStack = metaInfo.isSupportedStack(STACK_VERSION_HDP,
+  public void isSupportedStack() throws AmbariException {
+    boolean supportedStack = metaInfo.isSupportedStack(STACK_NAME_HDP,
         STACK_VERSION_HDP);
     assertTrue(supportedStack);
+    
+    boolean notSupportedStack = metaInfo.isSupportedStack(NON_EXT_VALUE,
+        NON_EXT_VALUE);
+    assertFalse(notSupportedStack);
   }
 
   @Test
-  public void isValidService() {
+  public void isValidService() throws AmbariException {
     boolean valid = metaInfo.isValidService(STACK_NAME_HDP, STACK_VERSION_HDP,
         SERVICE_NAME_HDFS);
     assertTrue(valid);
+
+    boolean invalid = metaInfo.isValidService(STACK_NAME_HDP, NON_EXT_VALUE, NON_EXT_VALUE);
+    assertFalse(invalid);
   }
 
   /**
@@ -131,7 +155,7 @@ public class AmbariMetaInfoTest {
   }
 
   @Test
-  public void testServiceNameUsingComponentName() {
+  public void testServiceNameUsingComponentName() throws AmbariException {
     String serviceName = metaInfo.getComponentToService(STACK_NAME_HDP,
         STACK_VERSION_HDP, "NAMENODE");
     assertTrue("HDFS".equals(serviceName));
@@ -140,9 +164,10 @@ public class AmbariMetaInfoTest {
   /**
    * Method: Map<String, ServiceInfo> getServices(String stackName, String
    * version, String serviceName)
+   * @throws AmbariException 
    */
   @Test
-  public void getServices() {
+  public void getServices() throws AmbariException {
     Map<String, ServiceInfo> services = metaInfo.getServices(STACK_NAME_HDP,
         STACK_VERSION_HDP);
     LOG.info("Getting all the services ");
@@ -236,8 +261,127 @@ public class AmbariMetaInfoTest {
     getSupportedConfigs();
     // Check .svn is not part of the stack but abcd.svn is
     Assert.assertNotNull(ambariMetaInfo.getStackInfo("abcd.svn", "001.svn"));
-    Assert.assertNull(ambariMetaInfo.getStackInfo(".svn", ""));
-    Assert.assertNull(ambariMetaInfo.getServices(".svn", ""));
+    
+    Assert.assertFalse(ambariMetaInfo.isSupportedStack(".svn", ""));
+    Assert.assertFalse(ambariMetaInfo.isSupportedStack(".svn", ""));
+  }
+  
+  
+  @Test
+  public void testGetComponent() throws Exception {
+    ComponentInfo component = metaInfo.getComponent(STACK_NAME_HDP,
+        STACK_VERSION_HDP, SERVICE_NAME_HDFS, SERVICE_COMPONENT_NAME);
+    Assert.assertEquals(component.getName(), SERVICE_COMPONENT_NAME);
+
+    try {
+      metaInfo.getComponent(STACK_NAME_HDP,
+          STACK_VERSION_HDP, SERVICE_NAME_HDFS, NON_EXT_VALUE);
+    } catch (StackAccessException e) {
+      Assert.assertTrue(e instanceof StackAccessException);
+    }
+    
+  }
+  
+  @Test
+  public void testGetRepositories() throws Exception {
+    List<RepositoryInfo> repositories = metaInfo.getRepositories(STACK_NAME_HDP, STACK_VERSION_HDP, OS_TYPE);
+    Assert.assertEquals(repositories.size(), REPOS_CNT);
   }
 
+  @Test
+  public void testGetRepository() throws Exception {
+    RepositoryInfo repository = metaInfo.getRepository(STACK_NAME_HDP, STACK_VERSION_HDP, OS_TYPE, REPO_ID);
+    Assert.assertEquals(repository.getRepoId(), REPO_ID);
+
+    try {
+      metaInfo.getRepository(STACK_NAME_HDP, STACK_VERSION_HDP, OS_TYPE, NON_EXT_VALUE);
+    } catch (StackAccessException e) {
+      Assert.assertTrue(e instanceof StackAccessException);
+    }
+  }
+  
+  @Test
+  public void testGetService() throws Exception {
+    ServiceInfo service = metaInfo.getService(STACK_NAME_HDP, STACK_VERSION_HDP, SERVICE_NAME_HDFS);
+    Assert.assertEquals(service.getName(), SERVICE_NAME_HDFS);
+    try {
+      metaInfo.getService(STACK_NAME_HDP, STACK_VERSION_HDP, NON_EXT_VALUE);
+    } catch (StackAccessException e) {
+      Assert.assertTrue(e instanceof StackAccessException);
+    }
+    
+  }
+  
+  @Test
+  public void testGetStacksNames() throws Exception {
+    Set<Stack> stackNames = metaInfo.getStackNames();
+    assertEquals(stackNames.size(), STACKS_NAMES_CNT);
+    assertTrue(stackNames.contains(new Stack(STACK_NAME_HDP)));
+  }
+  
+  @Test
+  public void testGetStack() throws Exception {
+    Stack stack = metaInfo.getStack(STACK_NAME_HDP);
+    Assert.assertEquals(stack.getStackName(), STACK_NAME_HDP);
+    try {
+      metaInfo.getStack(NON_EXT_VALUE);
+    } catch (StackAccessException e) {
+      Assert.assertTrue(e instanceof StackAccessException);
+    }
+  }
+  
+  
+  @Test
+  public void testGetStackInfo() throws Exception {
+    StackInfo stackInfo = metaInfo.getStackInfo(STACK_NAME_HDP, STACK_VERSION_HDP);
+    Assert.assertEquals(stackInfo.getName(), STACK_NAME_HDP);
+    Assert.assertEquals(stackInfo.getVersion(), STACK_VERSION_HDP);
+    try {
+      metaInfo.getStackInfo(STACK_NAME_HDP, NON_EXT_VALUE);
+    } catch (StackAccessException e) {
+      Assert.assertTrue(e instanceof StackAccessException);
+    }
+  }
+  
+  
+  @Test
+  public void testGetProperties() throws Exception {
+    Set<PropertyInfo> properties = metaInfo.getProperties(STACK_NAME_HDP, STACK_VERSION_HDP, SERVICE_NAME_HDFS);
+    Assert.assertEquals(properties.size(), PROPERTIES_CNT);
+  }
+  
+  @Test
+  public void testGetProperty() throws Exception {
+    PropertyInfo property = metaInfo.getProperty(STACK_NAME_HDP, STACK_VERSION_HDP, SERVICE_NAME_HDFS, PROPERTY_NAME);
+    Assert.assertEquals(property.getName(), PROPERTY_NAME);
+
+    try {
+      metaInfo.getProperty(STACK_NAME_HDP, STACK_VERSION_HDP, SERVICE_NAME_HDFS, NON_EXT_VALUE);
+    } catch (StackAccessException e) {
+      Assert.assertTrue(e instanceof StackAccessException);
+    }
+    
+  }
+  
+  @Test
+  public void testGetOperatingSystems() throws Exception {
+    Set<OperatingSystemInfo> operatingSystems = metaInfo.getOperatingSystems(STACK_NAME_HDP, STACK_VERSION_HDP);
+    Assert.assertEquals(operatingSystems.size(), OS_CNT);
+  }
+  
+  @Test
+  public void testGetOperatingSystem() throws Exception {
+    OperatingSystemInfo operatingSystem = metaInfo.getOperatingSystem(STACK_NAME_HDP, STACK_VERSION_HDP, OS_TYPE);
+    Assert.assertEquals(operatingSystem.getOsType(), OS_TYPE);
+    
+    
+    Throwable ex = null;
+    try {
+      metaInfo.getOperatingSystem(STACK_NAME_HDP, STACK_VERSION_HDP, NON_EXT_VALUE);
+    } catch (StackAccessException e) {
+      ex = e;
+    }
+    Assert.assertTrue(ex instanceof StackAccessException);
+  }
+  
 }

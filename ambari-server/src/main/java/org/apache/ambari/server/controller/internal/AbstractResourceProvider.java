@@ -352,6 +352,20 @@ public abstract class AbstractResourceProvider extends BaseProvider implements R
         return new TaskResourceProvider(propertyIds, keyPropertyIds, managementController);
       case User:
         return new UserResourceProvider(propertyIds, keyPropertyIds, managementController);
+      case Stack:
+        return new StackResourceProvider(propertyIds, keyPropertyIds, managementController);
+      case StackVersion:
+        return new StackVersionResourceProvider(propertyIds, keyPropertyIds, managementController);
+      case StackService:
+        return new StackServiceResourceProvider(propertyIds, keyPropertyIds, managementController);
+      case StackServiceComponent:
+        return new StackServiceComponentResourceProvider(propertyIds, keyPropertyIds, managementController);
+      case StackConfiguration:
+        return new StackConfigurationResourceProvider(propertyIds, keyPropertyIds, managementController);
+      case OperatingSystem:
+        return new OperatingSystemResourceProvider(propertyIds, keyPropertyIds, managementController);
+      case Repository:
+        return new RepositoryResourceProvider(propertyIds, keyPropertyIds, managementController);
       default:
         throw new IllegalArgumentException("Unknown type " + type);
     }

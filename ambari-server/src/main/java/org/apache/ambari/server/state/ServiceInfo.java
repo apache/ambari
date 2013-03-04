@@ -21,6 +21,8 @@ package org.apache.ambari.server.state;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.ambari.server.controller.StackConfigurationResponse;
+import org.apache.ambari.server.controller.StackServiceResponse;
 import org.codehaus.jackson.annotate.JsonIgnore;
 import org.codehaus.jackson.map.annotate.JsonFilter;
 
@@ -115,5 +117,10 @@ public class ServiceInfo {
     }
 
     return sb.toString();
+  }
+  
+  public StackServiceResponse convertToResponse()
+  {
+    return new StackServiceResponse(getName(), getUser(), getComment(), getVersion());
   }
 }

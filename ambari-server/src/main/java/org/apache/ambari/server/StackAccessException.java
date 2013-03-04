@@ -16,40 +16,12 @@
  * limitations under the License.
  */
 
-package org.apache.ambari.server.state;
+package org.apache.ambari.server;
 
-import org.apache.ambari.server.controller.StackServiceComponentResponse;
+@SuppressWarnings("serial")
+public class StackAccessException extends ObjectNotFoundException {
 
-public class ComponentInfo {
-  private String name;
-  private String category;
-
-  public String getName() {
-    return name;
+  public StackAccessException(String message) {
+    super("Stack data, " + message);
   }
-
-  public void setName(String name) {
-    this.name = name;
-  }
-
-  public String getCategory() {
-    return category;
-  }
-
-  public void setCategory(String category) {
-    this.category = category;
-  }
-
-  public boolean isClient() {
-    return "CLIENT".equals(category);
-  }
-
-  public boolean isMaster() {
-    return "MASTER".equals(category);
-  }
-
-  public StackServiceComponentResponse convertToResponse() {
-    return new StackServiceComponentResponse(getName(), getCategory(), isClient(), isMaster());
-  }
-
 }

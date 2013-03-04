@@ -79,6 +79,34 @@ public class ResourceInstanceFactoryImpl implements ResourceInstanceFactory {
         resourceDefinition = new RequestResourceDefinition();
         break;
 
+      case Stack:
+        resourceDefinition = new StackResourceDefinition();
+        break;
+        
+      case StackVersion:
+        resourceDefinition = new StackVersionResourceDefinition();
+        break;
+        
+      case StackService:
+        resourceDefinition = new StackServiceResourceDefinition();
+        break;
+        
+      case StackServiceComponent:
+        resourceDefinition = new StackServiceComponentResourceDefinition();
+        break;
+        
+      case StackConfiguration:
+        resourceDefinition = new StackConfigurationResourceDefinition();
+        break;
+        
+      case OperatingSystem:
+        resourceDefinition = new OperatingSystemResourceDefinition();
+        break;
+        
+      case Repository:
+        resourceDefinition = new RepositoryResourceDefinition();
+        break;
+
       default:
         throw new IllegalArgumentException("Unsupported resource type: " + type);
     }

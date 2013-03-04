@@ -15,41 +15,29 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.apache.ambari.server.api.resources;
 
-package org.apache.ambari.server.state;
+import org.apache.ambari.server.controller.spi.Resource;
+import org.apache.ambari.server.controller.spi.Resource.Type;
 
-import org.apache.ambari.server.controller.StackServiceComponentResponse;
+public class RepositoryResourceDefinition extends BaseResourceDefinition {
 
-public class ComponentInfo {
-  private String name;
-  private String category;
-
-  public String getName() {
-    return name;
+  public RepositoryResourceDefinition(Type resourceType) {
+    super(Resource.Type.Repository);
   }
 
-  public void setName(String name) {
-    this.name = name;
+  public RepositoryResourceDefinition() {
+    super(Resource.Type.Repository);
   }
 
-  public String getCategory() {
-    return category;
+  @Override
+  public String getPluralName() {
+    return "repositories";
   }
 
-  public void setCategory(String category) {
-    this.category = category;
-  }
-
-  public boolean isClient() {
-    return "CLIENT".equals(category);
-  }
-
-  public boolean isMaster() {
-    return "MASTER".equals(category);
-  }
-
-  public StackServiceComponentResponse convertToResponse() {
-    return new StackServiceComponentResponse(getName(), getCategory(), isClient(), isMaster());
+  @Override
+  public String getSingularName() {
+    return "repository";
   }
 
 }

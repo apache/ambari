@@ -21,6 +21,8 @@ package org.apache.ambari.server.state;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.ambari.server.controller.StackVersionResponse;
+
 public class StackInfo {
   private String name;
   private String version;
@@ -79,5 +81,30 @@ public class StackInfo {
     }
 
     return sb.toString();
+  }
+  
+  
+  @Override
+  public int hashCode() {
+    int result = 1;
+    result = 31  + name.hashCode() + version.hashCode();
+    return result;
+  }
+  
+  @Override
+  public boolean equals(Object obj) {
+    if (!(obj instanceof StackInfo)) {
+      return false;
+    }
+    if (this == obj) {
+      return true;
+    }
+    StackInfo stackInfo = (StackInfo) obj;
+    return getName().equals(stackInfo.getName()) && getVersion().equals(stackInfo.getVersion());
+  }
+
+  public StackVersionResponse convertToResponse() {
+
+    return new StackVersionResponse(getVersion());
   }
 }

@@ -18,7 +18,11 @@
 
 package org.apache.ambari.server.state;
 
+import org.apache.ambari.server.controller.StackConfigurationResponse;
+
 public class PropertyInfo {
+  
+
   private String name;
   private String value;
   private String description;
@@ -54,5 +58,54 @@ public class PropertyInfo {
 
   public void setFilename(String filename) {
     this.filename = filename;
+  }
+  
+  public StackConfigurationResponse convertToResponse()
+  {
+    return new StackConfigurationResponse(getName(), getValue(), getDescription() , getFilename());
+  }
+  
+  @Override
+  public int hashCode() {
+    final int prime = 31;
+    int result = 1;
+    result = prime * result
+        + ((description == null) ? 0 : description.hashCode());
+    result = prime * result + ((filename == null) ? 0 : filename.hashCode());
+    result = prime * result + ((name == null) ? 0 : name.hashCode());
+    result = prime * result + ((value == null) ? 0 : value.hashCode());
+    return result;
+  }
+
+  @Override
+  public boolean equals(Object obj) {
+    if (this == obj)
+      return true;
+    if (obj == null)
+      return false;
+    if (getClass() != obj.getClass())
+      return false;
+    PropertyInfo other = (PropertyInfo) obj;
+    if (description == null) {
+      if (other.description != null)
+        return false;
+    } else if (!description.equals(other.description))
+      return false;
+    if (filename == null) {
+      if (other.filename != null)
+        return false;
+    } else if (!filename.equals(other.filename))
+      return false;
+    if (name == null) {
+      if (other.name != null)
+        return false;
+    } else if (!name.equals(other.name))
+      return false;
+    if (value == null) {
+      if (other.value != null)
+        return false;
+    } else if (!value.equals(other.value))
+      return false;
+    return true;
   }
 }

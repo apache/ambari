@@ -16,16 +16,42 @@
  * limitations under the License.
  */
 
-package org.apache.ambari.server;
+package org.apache.ambari.server.controller;
 
-@SuppressWarnings("serial")
-public class StackNotFoundException extends ObjectNotFoundException {
 
-  public StackNotFoundException (String stackName,
-      String stackVersion) {
-    super("Stack Information not found"
-        + ", stackName=" + stackName
-        + ", stackVersion=" + stackVersion);
+public class StackResponse {
+
+  private String stackName;
+
+  public StackResponse(String stackName) {
+    setStackName(stackName);
+  }
+
+  public String getStackName() {
+    return stackName;
+  }
+
+  public void setStackName(String stackName) {
+    this.stackName = stackName;
+  }
+
+  @Override
+  public int hashCode() {
+    int result = 1;
+    result = 31 + getStackName().hashCode();
+    return result;
+  }
+
+  @Override
+  public boolean equals(Object obj) {
+    if (!(obj instanceof StackResponse)) {
+      return false;
+    }
+    if (this == obj) {
+      return true;
+    }
+    StackResponse stackResponse = (StackResponse) obj;
+    return getStackName().equals(stackResponse.getStackName());
   }
 
 }

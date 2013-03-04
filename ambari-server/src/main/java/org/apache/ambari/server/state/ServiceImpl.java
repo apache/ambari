@@ -78,7 +78,7 @@ public class ServiceImpl implements Service {
 
   @AssistedInject
   public ServiceImpl(@Assisted Cluster cluster, @Assisted String serviceName,
-      Injector injector) {
+      Injector injector) throws AmbariException {
     injector.injectMembers(this);
     serviceEntity = new ClusterServiceEntity();
     serviceEntity.setServiceName(serviceName);
@@ -104,7 +104,7 @@ public class ServiceImpl implements Service {
 
   @AssistedInject
   public ServiceImpl(@Assisted Cluster cluster, @Assisted ClusterServiceEntity
-      serviceEntity, Injector injector) {
+      serviceEntity, Injector injector) throws AmbariException {
     injector.injectMembers(this);
     this.serviceEntity = serviceEntity;
     this.cluster = cluster;

@@ -403,6 +403,9 @@ Trunk (unreleased changes):
 
  BUG FIXES
 
+ AMBARI-1548. Implement Stacks API using the consistent API framework in 
+ Ambari Server with all the get/predicates working. (swagle)
+
  AMBARI-1544. AmbariManagementControllerTest has extra import that cannot 
  be resolved. (swagle)
 

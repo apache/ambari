@@ -98,5 +98,63 @@
         "Users/old_password",
         "Users/ldap_user",
         "_"
+    ],
+     "Stack":[
+        "Stacks/stack_name",
+        "_"
+    ],
+     "StackVersion":[
+        "Versions/stack_name",
+        "Versions/stack_version",
+        "_"
+    ],
+    
+    
+   "OperatingSystem":[
+        "OperatingSystems/stack_name",
+        "OperatingSystems/stack_version",
+        "OperatingSystems/os_type",
+        "_"
+    ],
+    
+    "Repository":[
+        "Repositories/stack_name",
+        "Repositories/stack_version",
+        "Repositories/os_type",
+        "Repositories/base_url",
+        "Repositories/repo_id",
+        "Repositories/repo_name",
+        "Repositories/mirrors_list",
+        "_"
+    ],
+    "StackService":[
+        "StackServices/stack_name",
+        "StackServices/stack_version",
+        "StackServices/service_name",
+        "StackServices/user_name",
+        "StackServices/comments",
+        "StackServices/service_version",
+        "_"
+    ],
+    "StackConfiguration":[
+        "StackConfigurations/stack_name",
+        "StackConfigurations/stack_version",
+        "StackConfigurations/service_name",
+        "StackConfigurations/property_name",
+        "StackConfigurations/property_value",
+        "StackConfigurations/property_description",
+        "StackConfigurations/filename",
+        "_"
+    ],
+    "StackServiceComponent":[
+        "StackServiceComponents/stack_name",
+        "StackServiceComponents/stack_version",
+        "StackServiceComponents/service_name",
+        "StackServiceComponents/component_name",
+        "StackServiceComponents/component_category",
+        "StackServiceComponents/is_client",
+        "StackServiceComponents/is_master",
+        "_"
     ]
+  }
 }
