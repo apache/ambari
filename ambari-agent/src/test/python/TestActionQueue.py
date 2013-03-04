@@ -136,7 +136,7 @@ class TestActionQueue(TestCase):
     self.assertTrue(executeCommand_method.called)
     self.assertEquals(queue.resultQueue.qsize(), 1)
     returned_result = queue.resultQueue.get()
-    self.assertIs(returned_result[1], result[0])
+    self.assertTrue(returned_result[1] is result[0])
 
 
   @patch.object(UpgradeExecutor, "perform_stack_upgrade")

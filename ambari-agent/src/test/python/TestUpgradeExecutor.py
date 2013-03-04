@@ -51,7 +51,7 @@ class TestUpgradeExecutor(TestCase):
       'component' : 'HDFS'
     }
     result = executor.perform_stack_upgrade(command, 'tmpout', 'tmperr')
-    self.assertIn('matches current stack version', result['stdout'])
+    self.assertTrue('matches current stack version' in result['stdout'])
     self.assertFalse(write_stack_version_method.called)
     # Checking unsupported update
     write_stack_version_method.reset()
@@ -64,7 +64,7 @@ class TestUpgradeExecutor(TestCase):
     }
     isdir_method.return_value = False
     result = executor.perform_stack_upgrade(command, 'tmpout', 'tmperr')
-    self.assertIn('not supported', result['stderr'])
+    self.assertTrue('not supported' in result['stderr'])
     self.assertFalse(write_stack_version_method.called)
     # Checking successful result
     write_stack_version_method.reset()
