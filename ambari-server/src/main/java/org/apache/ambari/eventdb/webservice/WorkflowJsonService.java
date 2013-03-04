@@ -273,8 +273,7 @@ public class WorkflowJsonService {
   @Produces(MediaType.APPLICATION_JSON)
   @Path("/tasklocality")
   public TaskLocalityData getTaskLocalitySummary(@QueryParam("jobId") String jobId, @DefaultValue("4") @QueryParam("minr") int minr,
-      @DefaultValue("24") @QueryParam("maxr") int maxr, @QueryParam("workflowId") String workflowId,
-      @DefaultValue("-1") @QueryParam("startTime") long startTime, @DefaultValue("-1") @QueryParam("endTime") long endTime) {
+      @DefaultValue("24") @QueryParam("maxr") int maxr, @QueryParam("workflowId") String workflowId) {
     if (maxr < minr)
       maxr = minr;
     TaskLocalityData data = new TaskLocalityData();
@@ -284,10 +283,10 @@ public class WorkflowJsonService {
       if (jobId != null) {
         long[] times = conn.fetchJobStartStopTimes(jobId);
         if (times != null) {
-          getTaskAttemptsByLocality(conn.fetchJobTaskAttempts(jobId), times[0], times[1], data, minr, maxr);
+          getApproxTaskAttemptsByLocality(conn.fetchJobTaskAttempts(jobId), times[0], times[1], data, minr, maxr);
         }
       } else if (workflowId != null) {
-        getTaskAttemptsByLocality(conn.fetchWorkflowTaskAttempts(workflowId), startTime, endTime, data, minr, maxr);
+        getExactTaskAttemptsByLocality(conn.fetchWorkflowTaskAttempts(workflowId), data, minr, maxr);
       }
     } catch (IOException e) {
       e.printStackTrace();
@@ -329,7 +328,19 @@ public class WorkflowJsonService {
     points.setReduceData(reducePoints);
   }
   
-  private static void getTaskAttemptsByLocality(List<TaskAttempt> taskAttempts, long submitTime, long finishTime, TaskLocalityData data, int minr,
+  private static void getExactTaskAttemptsByLocality(List<TaskAttempt> taskAttempts, TaskLocalityData data, int minr, int maxr) throws IOException {
+    MinMax io = new MinMax();
+    data.setMapNodeLocal(processExactLocalityData(taskAttempts, "MAP", "NODE_LOCAL", io));
+    data.setMapRackLocal(processExactLocalityData(taskAttempts, "MAP", "RACK_LOCAL", io));
+    data.setMapOffSwitch(processExactLocalityData(taskAttempts, "MAP", "OFF_SWITCH", io));
+    data.setReduceOffSwitch(processExactLocalityData(taskAttempts, "REDUCE", "OFF_SWITCH", io));
+    setRValues(data.getMapNodeLocal(), minr, maxr, io.max);
+    setRValues(data.getMapRackLocal(), minr, maxr, io.max);
+    setRValues(data.getMapOffSwitch(), minr, maxr, io.max);
+    setRValues(data.getReduceOffSwitch(), minr, maxr, io.max);
+  }
+
+  private static void getApproxTaskAttemptsByLocality(List<TaskAttempt> taskAttempts, long submitTime, long finishTime, TaskLocalityData data, int minr,
       int maxr) throws IOException {
     long submitTimeX = transformX(submitTime);
     long finishTimeX = transformX(finishTime);
@@ -407,6 +418,24 @@ public class WorkflowJsonService {
     return index;
   }
   
+  private static List<DataPoint> processExactLocalityData(List<TaskAttempt> taskAttempts, String taskType, String locality, MinMax io) {
+    List<DataPoint> data = new ArrayList<DataPoint>();
+    for (TaskAttempt taskAttempt : taskAttempts) {
+      if (taskType.equals(taskAttempt.getTaskType()) && locality.equals(taskAttempt.getLocality())) {
+        DataPoint point = new DataPoint();
+        point.setX(taskAttempt.getStartTime());
+        point.setY(taskAttempt.getFinishTime() - taskAttempt.getStartTime());
+        point.setIO(taskAttempt.getInputBytes() + taskAttempt.getOutputBytes());
+        point.setLabel(taskAttempt.getTaskAttemptId());
+        point.setStatus(taskAttempt.getStatus());
+        data.add(point);
+        io.max = Math.max(io.max, point.getIO());
+        io.min = Math.min(io.min, point.getIO());
+      }
+    }
+    return data;
+  }
+
   private static List<DataPoint> processLocalityData(List<TaskAttempt> taskAttempts, String taskType, String locality, Long[] xPoints, MinMax io) {
     List<DataPoint> data = new ArrayList<DataPoint>();
     int i = 0;
