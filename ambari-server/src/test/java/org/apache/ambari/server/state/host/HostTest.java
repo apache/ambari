@@ -24,7 +24,9 @@ import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.mock;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.actionmanager.ActionManager;
@@ -33,16 +35,22 @@ import org.apache.ambari.server.agent.AgentEnv;
 import org.apache.ambari.server.agent.DiskInfo;
 import org.apache.ambari.server.agent.HeartBeatHandler;
 import org.apache.ambari.server.agent.HostInfo;
+import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
 import org.apache.ambari.server.orm.dao.HostDAO;
 import org.apache.ambari.server.orm.entities.HostEntity;
 import org.apache.ambari.server.state.AgentVersion;
+import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
+import org.apache.ambari.server.state.Config;
+import org.apache.ambari.server.state.ConfigFactory;
+import org.apache.ambari.server.state.DesiredConfig;
 import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.HostHealthStatus;
 import org.apache.ambari.server.state.HostHealthStatus.HealthStatus;
 import org.apache.ambari.server.state.HostState;
+import org.apache.ambari.server.state.StackId;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.junit.After;
@@ -337,5 +345,53 @@ public class HostTest {
     host.setState(HostState.INIT);
     registerHost(host, false);
 
+  }
+  
+  @Test
+  public void testHostDesiredConfig() throws Exception {
+    AmbariMetaInfo metaInfo = injector.getInstance(AmbariMetaInfo.class);
+    metaInfo.init();
+    
+    clusters.addCluster("c1");
+    Cluster c1 = clusters.getCluster("c1");
+    Assert.assertEquals("c1", c1.getClusterName());
+    Assert.assertEquals(1, c1.getClusterId());
+    clusters.addHost("h1");
+    Host host = clusters.getHost("h1");
+    host.setIPv4("ipv4");
+    host.setIPv6("ipv6");
+    host.setOsType("centos5");
+    host.persist();
+    c1.setDesiredStackVersion(new StackId("HDP-0.1"));
+    clusters.mapHostToCluster("h1", "c1");
+    
+    ConfigFactory configFactory = injector.getInstance(ConfigFactory.class);
+    Config config = configFactory.createNew(c1, "global",
+        new HashMap<String,String>() {{ put("a", "b"); put("x", "y"); }});
+    
+    try {
+      host.addDesiredConfig(c1.getClusterId(), null, config);
+      Assert.fail("Expect failure when version is not specified.");
+    }
+    catch (Exception e) {
+      // testing exception
+    }
+    
+    config.setVersionTag("v1");
+    host.addDesiredConfig(c1.getClusterId(), null, config);
+    
+    Map<String, DesiredConfig> map = host.getDesiredConfigs(c1.getClusterId());
+    Assert.assertTrue("Expect desired config to contain global", map.containsKey("global"));
+    
+    config = configFactory.createNew(c1, "global",
+        new HashMap<String,String>() {{ put("c", "d"); }});
+    config.setVersionTag("v2");
+    host.addDesiredConfig(c1.getClusterId(), null, config);
+    
+    map = host.getDesiredConfigs(c1.getClusterId());
+    Assert.assertTrue("Expect desired config to contain global", map.containsKey("global"));
+    Assert.assertEquals("Expect version to be 'v2'",
+        "v2", map.get("global").getVersion());
+    
   }
 }

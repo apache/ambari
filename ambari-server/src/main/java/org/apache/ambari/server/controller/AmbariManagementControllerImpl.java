@@ -1179,6 +1179,8 @@ public class AmbariManagementControllerImpl implements
         if (clusters.getClustersForHost(h.getHostName()).contains(cluster)) {
           HostResponse r = h.convertToResponse();
           r.setClusterName(clusterName);
+          r.setDesiredConfigs(h.getDesiredConfigs(cluster.getClusterId()));
+          
           response.add(r);
         } else if (hostName != null) {
           throw new HostNotFoundException(clusterName, hostName);
@@ -2680,6 +2682,29 @@ public class AmbariManagementControllerImpl implements
       
       if (null != request.getPublicHostName()) {
         h.setPublicHostName(request.getPublicHostName());
+      }
+      
+      if (null != request.getClusterName() && null != request.getDesiredConfig()) {
+        Cluster c = clusters.getCluster(request.getClusterName());
+        
+        if (clusters.getHostsForCluster(request.getClusterName()).containsKey(h.getHostName())) {
+          
+          ConfigurationRequest cr = request.getDesiredConfig();
+          
+          if (null != cr.getProperties() && cr.getProperties().size() > 0) {
+            cr.setClusterName(c.getClusterName());
+            createConfiguration(cr);
+          }
+          
+          Config baseConfig = c.getConfig(cr.getType(), cr.getVersionTag());
+          if (null != baseConfig)
+            h.addDesiredConfig(c.getClusterId(), cr.getServiceName(), baseConfig);
+          
+        }
+        
+        
+
+        
       }
 
       //todo: if attempt was made to update a property other than those

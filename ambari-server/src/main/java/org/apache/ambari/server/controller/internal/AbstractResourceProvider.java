@@ -23,12 +23,14 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.Map.Entry;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.DuplicateResourceException;
 import org.apache.ambari.server.ObjectNotFoundException;
 import org.apache.ambari.server.ParentObjectNotFoundException;
 import org.apache.ambari.server.controller.AmbariManagementController;
+import org.apache.ambari.server.controller.ConfigurationRequest;
 import org.apache.ambari.server.controller.RequestStatusResponse;
 import org.apache.ambari.server.controller.predicate.BasePredicate;
 import org.apache.ambari.server.controller.spi.*;
@@ -369,6 +371,40 @@ public abstract class AbstractResourceProvider extends BaseProvider implements R
       default:
         throw new IllegalArgumentException("Unknown type " + type);
     }
+  }
+  
+  /**
+   * Helper method to get a configuration request, if one exists.
+   * @param parentCategory  the parent category name.  Checks for a property
+   *    whose category is the parent and marked as a desired config.
+   * @param properties  the properties on the request.
+   */
+  protected ConfigurationRequest getConfigurationRequest(String parentCategory, Map<String, Object> properties) {
+    
+    ConfigurationRequest config = null;
+    
+    // as a convenience, allow consumers to specify name/value overrides in this
+    // call instead of forcing a cluster call to do that work
+    for (Entry<String, Object> entry : properties.entrySet()) {
+      String absCategory = PropertyHelper.getPropertyCategory(entry.getKey());
+      String propName = PropertyHelper.getPropertyName(entry.getKey());
+      
+      if (absCategory.startsWith(parentCategory + ".desired_config")) {
+        config = (null == config) ? new ConfigurationRequest() : config;
+        
+        if (propName.equals("type"))
+          config.setType(entry.getValue().toString());
+        else if (propName.equals("tag"))
+          config.setVersionTag(entry.getValue().toString());
+        else if (propName.equals("service_name"))
+          config.setServiceName(entry.getValue().toString());
+        else if (absCategory.endsWith(".properties")) {
+          config.getProperties().put(propName, entry.getValue().toString());
+        }
+      }
+    }
+
+    return config;
   }
 
 

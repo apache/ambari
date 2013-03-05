@@ -148,6 +148,63 @@ public class HostResourceProviderTest {
     // verify
     verify(managementController);
   }
+  
+  @Test
+  public void testUpdateDesiredConfig() throws Exception {
+    Resource.Type type = Resource.Type.Host;
+
+    AmbariManagementController managementController = createMock(AmbariManagementController.class);
+    RequestStatusResponse response = createNiceMock(RequestStatusResponse.class);
+
+    HostResponse hr = new HostResponse("Host100", "Cluster100",
+        "", "", 2, "", "", "", 100000L, 200000L, null, 10L,
+        0L, "rack info", null, null,
+        new HostHealthStatus(HostHealthStatus.HealthStatus.HEALTHY, "HEALTHY"), "HEALTHY");
+    
+    Set<HostResponse> hostResponseSet = new HashSet<HostResponse>();
+    hostResponseSet.add(hr);
+
+    // set expectations
+    expect(managementController.getHosts(
+        AbstractResourceProviderTest.Matcher.getHostRequestSet("Host100", "Cluster100", null))).
+        andReturn(hostResponseSet);
+    managementController.updateHosts(EasyMock.<Set<HostRequest>>anyObject());
+
+    // replay
+    replay(managementController, response);
+    
+    Set<Map<String, Object>> propertySet = new LinkedHashSet<Map<String, Object>>();
+
+    Map<String, Object> properties = new LinkedHashMap<String, Object>();
+
+    properties.put(HostResourceProvider.HOST_CLUSTER_NAME_PROPERTY_ID, "Cluster100");
+    properties.put(HostResourceProvider.HOST_NAME_PROPERTY_ID, "Host100");
+    
+    properties.put(PropertyHelper.getPropertyId("Hosts.desired_config", "type"), "global");
+    properties.put(PropertyHelper.getPropertyId("Hosts.desired_config", "tag"), "version1");
+    properties.put(PropertyHelper.getPropertyId("Hosts.desired_config.properties", "a"), "b");
+    properties.put(PropertyHelper.getPropertyId("Hosts.desired_config.properties", "x"), "y");
+
+    propertySet.add(properties);
+
+    // create the request
+    Request request = PropertyHelper.getUpdateRequest(properties);
+    
+    Predicate  predicate = new PredicateBuilder().property(HostResourceProvider.HOST_CLUSTER_NAME_PROPERTY_ID).
+        equals("Cluster100").
+        and().property(HostResourceProvider.HOST_NAME_PROPERTY_ID).equals("Host100").toPredicate();
+    
+    ResourceProvider provider = AbstractResourceProvider.getResourceProvider(
+        Resource.Type.Host,
+        PropertyHelper.getPropertyIds(Resource.Type.Host),
+        PropertyHelper.getKeyPropertyIds(Resource.Type.Host),
+        managementController);
+    
+    provider.updateResources(request, predicate);
+    
+    // verify
+    verify(managementController, response);    
+  }
 
   @Test
   public void testUpdateResources() throws Exception {

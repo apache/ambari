@@ -271,4 +271,19 @@ public interface Host {
   void refresh();
 
   void importHostInfo(HostInfo hostInfo);
+
+  /**
+   * Adds a desired configuration to the host instance.
+   * @param clusterId the cluster id that the config applies to
+   * @param serviceName the name of the service that is the parent.  Supply
+   *        <code>null</code> if the override applies to the cluster definition.
+   * @param config the configuration object
+   */
+  public void addDesiredConfig(long clusterId, String serviceName, Config config);
+  
+  /**
+   * Gets all the selected configurations for the host.
+   * return a map of type-to-{@link DesiredConfig} instances.
+   */
+  public Map<String, DesiredConfig> getDesiredConfigs(long clusterId);
 }

@@ -28,12 +28,10 @@ import java.util.Map;
 public class ConfigurationRequest {
 
   private String clusterName;
-
   private String type;
-
   private String tag;
-
   private Map<String, String> configs;
+  private String serviceName;
 
   public ConfigurationRequest() {
     configs = new HashMap<String, String>();
@@ -106,5 +104,21 @@ public class ConfigurationRequest {
    */
   public void setClusterName(String clusterName) {
     this.clusterName = clusterName;
+  }
+
+  /**
+   * Sets the service name (for host-level overrides)
+   * @param name the service name
+   */
+  public void setServiceName(String name) {
+    serviceName = name;
+  }
+  
+  /**
+   * Gets the service name.
+   * @return the service name
+   */
+  public String getServiceName() {
+    return serviceName;
   }
 }

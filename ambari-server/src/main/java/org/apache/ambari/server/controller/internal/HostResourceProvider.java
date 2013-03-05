@@ -24,9 +24,18 @@ import java.util.Set;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.controller.AmbariManagementController;
+import org.apache.ambari.server.controller.ConfigurationRequest;
 import org.apache.ambari.server.controller.HostRequest;
 import org.apache.ambari.server.controller.HostResponse;
-import org.apache.ambari.server.controller.spi.*;
+import org.apache.ambari.server.controller.spi.NoSuchParentResourceException;
+import org.apache.ambari.server.controller.spi.NoSuchResourceException;
+import org.apache.ambari.server.controller.spi.Predicate;
+import org.apache.ambari.server.controller.spi.Request;
+import org.apache.ambari.server.controller.spi.RequestStatus;
+import org.apache.ambari.server.controller.spi.Resource;
+import org.apache.ambari.server.controller.spi.ResourceAlreadyExistsException;
+import org.apache.ambari.server.controller.spi.SystemException;
+import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
 
 
@@ -70,6 +79,8 @@ class HostResourceProvider extends AbstractResourceProvider {
       PropertyHelper.getPropertyId("Hosts", "host_state");
   protected static final String HOST_LAST_AGENT_ENV_PROPERTY_ID =
       PropertyHelper.getPropertyId("Hosts", "last_agent_env");
+  protected static final String HOST_DESIRED_CONFIGS_PROPERTY_ID = 
+      PropertyHelper.getPropertyId("Hosts", "desired_configs");
 
   private static Set<String> pkPropertyIds =
       new HashSet<String>(Arrays.asList(new String[]{
@@ -181,6 +192,8 @@ class HostResourceProvider extends AbstractResourceProvider {
           response.getDisksInfo(), requestedIds);
       setResourceProperty(resource, HOST_STATE_PROPERTY_ID,
           response.getHostState(), requestedIds);
+      setResourceProperty(resource, HOST_DESIRED_CONFIGS_PROPERTY_ID,
+          response.getDesiredConfigs(), requestedIds);
       resources.add(resource);
     }
     return resources;
@@ -266,6 +279,10 @@ class HostResourceProvider extends AbstractResourceProvider {
         null);
     hostRequest.setPublicHostName((String) properties.get(HOST_PUBLIC_NAME_PROPERTY_ID));
     hostRequest.setRackInfo((String) properties.get(HOST_RACK_INFO_PROPERTY_ID));
+    
+    ConfigurationRequest cr = getConfigurationRequest("Hosts", properties);
+    
+    hostRequest.setDesiredConfig(cr);
 
     return hostRequest;
   }

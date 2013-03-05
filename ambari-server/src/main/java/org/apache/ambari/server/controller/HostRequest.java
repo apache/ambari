@@ -29,6 +29,7 @@ public class HostRequest {
   private String clusterName; // CREATE/UPDATE
   private Map<String, String> hostAttributes; // CREATE/UPDATE
   private String rackInfo;
+  private ConfigurationRequest desiredConfig; // UPDATE
 
   public HostRequest(String hostname, String clusterName, Map<String, String> hostAttributes) {
     this.hostname = hostname;
@@ -74,6 +75,14 @@ public class HostRequest {
   
   public void setPublicHostName(String name) {
     publicHostname = name;
+  }
+  
+  public void setDesiredConfig(ConfigurationRequest request) {
+    desiredConfig = request;
+  }
+  
+  public ConfigurationRequest getDesiredConfig() {
+    return desiredConfig;
   }
 
   public String toString() {

@@ -12,6 +12,8 @@ Trunk (unreleased changes):
 
  NEW FEATURES
 
+ AMBARI-1511. Add ability to override configurations at the host level (ncole)
+
  AMBARI-1550. Modify existing puppet manifests to allow installing/configuring 
  multiple masters. (swagle)
 

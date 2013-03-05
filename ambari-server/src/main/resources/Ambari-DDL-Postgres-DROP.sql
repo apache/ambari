@@ -29,6 +29,8 @@ ALTER TABLE ambari.hostcomponentdesiredstate DROP CONSTRAINT FK_hostcomponentdes
 ALTER TABLE ambari.hostcomponentstate DROP CONSTRAINT FK_hostcomponentstate_component_name;
 ALTER TABLE ambari.hostcomponentstate DROP CONSTRAINT FK_hostcomponentstate_host_name;
 ALTER TABLE ambari.hoststate DROP CONSTRAINT FK_hoststate_host_name;
+ALTER TABLE ambari.hostconfigmapping DROP CONSTRAINT FK_hostconfigmapping_cluster_id;
+ALTER TABLE ambari.hostconfigmapping DROP CONSTRAINT FK_hostconfigmapping_host_name;
 ALTER TABLE ambari.servicecomponentdesiredstate DROP CONSTRAINT FK_servicecomponentdesiredstate_service_name;
 ALTER TABLE ambari.serviceconfigmapping DROP CONSTRAINT FK_serviceconfigmapping_service_name;
 ALTER TABLE ambari.servicedesiredstate DROP CONSTRAINT FK_servicedesiredstate_service_name;
@@ -49,6 +51,7 @@ DROP TABLE ambari.hostcomponentdesiredstate CASCADE;
 DROP TABLE ambari.hostcomponentstate CASCADE;
 DROP TABLE ambari.hosts CASCADE;
 DROP TABLE ambari.hoststate CASCADE;
+DROP TABLE ambari.hostconfigmapping CASCADE;
 DROP TABLE ambari.servicecomponentdesiredstate CASCADE;
 DROP TABLE ambari.serviceconfigmapping CASCADE;
 DROP TABLE ambari.servicedesiredstate CASCADE;

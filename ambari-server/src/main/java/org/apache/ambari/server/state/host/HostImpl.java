@@ -20,10 +20,43 @@
 package org.apache.ambari.server.state.host;
 
 import java.lang.reflect.Type;
-import java.util.*;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
+
+import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.agent.AgentEnv;
+import org.apache.ambari.server.agent.DiskInfo;
+import org.apache.ambari.server.agent.HostInfo;
+import org.apache.ambari.server.controller.HostResponse;
+import org.apache.ambari.server.orm.dao.ClusterDAO;
+import org.apache.ambari.server.orm.dao.HostConfigMappingDAO;
+import org.apache.ambari.server.orm.dao.HostDAO;
+import org.apache.ambari.server.orm.dao.HostStateDAO;
+import org.apache.ambari.server.orm.entities.ClusterEntity;
+import org.apache.ambari.server.orm.entities.HostConfigMappingEntity;
+import org.apache.ambari.server.orm.entities.HostEntity;
+import org.apache.ambari.server.orm.entities.HostStateEntity;
+import org.apache.ambari.server.state.AgentVersion;
+import org.apache.ambari.server.state.Clusters;
+import org.apache.ambari.server.state.Config;
+import org.apache.ambari.server.state.Host;
+import org.apache.ambari.server.state.DesiredConfig;
+import org.apache.ambari.server.state.HostEvent;
+import org.apache.ambari.server.state.HostEventType;
+import org.apache.ambari.server.state.HostHealthStatus;
+import org.apache.ambari.server.state.HostHealthStatus.HealthStatus;
+import org.apache.ambari.server.state.HostState;
+import org.apache.ambari.server.state.fsm.InvalidStateTransitionException;
+import org.apache.ambari.server.state.fsm.SingleArcTransition;
+import org.apache.ambari.server.state.fsm.StateMachine;
+import org.apache.ambari.server.state.fsm.StateMachineFactory;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
@@ -31,25 +64,6 @@ import com.google.inject.Inject;
 import com.google.inject.Injector;
 import com.google.inject.assistedinject.Assisted;
 import com.google.inject.persist.Transactional;
-import org.apache.ambari.server.AmbariException;
-import org.apache.ambari.server.agent.DiskInfo;
-import org.apache.ambari.server.agent.AgentEnv;
-import org.apache.ambari.server.agent.HostInfo;
-import org.apache.ambari.server.controller.HostResponse;
-import org.apache.ambari.server.orm.dao.ClusterDAO;
-import org.apache.ambari.server.orm.dao.HostStateDAO;
-import org.apache.ambari.server.orm.entities.ClusterEntity;
-import org.apache.ambari.server.orm.entities.HostStateEntity;
-import org.apache.ambari.server.state.*;
-import org.apache.ambari.server.state.HostHealthStatus.HealthStatus;
-import org.apache.ambari.server.state.fsm.InvalidStateTransitionException;
-import org.apache.ambari.server.state.fsm.SingleArcTransition;
-import org.apache.ambari.server.state.fsm.StateMachine;
-import org.apache.ambari.server.state.fsm.StateMachineFactory;
-import org.apache.ambari.server.orm.dao.HostDAO;
-import org.apache.ambari.server.orm.entities.HostEntity;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 
 public class HostImpl implements Host {
 
@@ -72,6 +86,7 @@ public class HostImpl implements Host {
   private HostStateDAO hostStateDAO;
   private ClusterDAO clusterDAO;
   private Clusters clusters;
+  private HostConfigMappingDAO hostConfigMappingDAO;
 
   private long lastHeartbeatTime = 0L;
   private AgentEnv lastAgentEnv = null;
@@ -198,6 +213,7 @@ public class HostImpl implements Host {
     this.gson = injector.getInstance(Gson.class);
     this.clusterDAO = injector.getInstance(ClusterDAO.class);
     this.clusters = injector.getInstance(Clusters.class);
+    this.hostConfigMappingDAO = injector.getInstance(HostConfigMappingDAO.class);
 
     hostStateEntity = hostEntity.getHostStateEntity();
     if (hostStateEntity == null) {
@@ -1019,4 +1035,64 @@ public class HostImpl implements Host {
       hostStateDAO.merge(hostStateEntity);
     }
   }
+  
+  @Override
+  @Transactional
+  public void addDesiredConfig(long clusterId, String serviceName, Config config) {
+    
+    HostConfigMappingEntity exist = getDesiredConfigEntity(clusterId, config.getType());
+    if (null != exist && exist.getVersion().equals(config.getVersionTag())) {
+      return;
+    }
+    
+    writeLock.lock();      
+    
+    try {
+      // set all old mappings for this type to empty
+      for (HostConfigMappingEntity e : hostConfigMappingDAO.findByType(clusterId,
+          hostEntity.getHostName(), config.getType())) {
+        e.setSelected(0);
+        hostConfigMappingDAO.merge(e);
+      }
+      
+      HostConfigMappingEntity entity = new HostConfigMappingEntity();
+      entity.setClusterId(Long.valueOf(clusterId));
+      entity.setCreateTimestamp(Long.valueOf(new Date().getTime()));
+      entity.setHostName(hostEntity.getHostName());
+      entity.setSelected(1);
+      entity.setServiceName(serviceName);
+      entity.setType(config.getType());
+      entity.setVersion(config.getVersionTag());
+      
+      hostConfigMappingDAO.create(entity);
+    }
+    finally {
+      writeLock.unlock();
+    }
+    
+    hostDAO.merge(hostEntity);
+  }
+  
+  @Override
+  public Map<String, DesiredConfig> getDesiredConfigs(long clusterId) {
+    Map<String, DesiredConfig> map = new HashMap<String, DesiredConfig>();
+    
+    for (HostConfigMappingEntity e : hostConfigMappingDAO.findSelected(
+        clusterId, hostEntity.getHostName())) {
+      
+      DesiredConfig dc = new DesiredConfig();
+      dc.setVersion(e.getVersion());
+      dc.setServiceName(e.getServiceName());
+      
+      map.put(e.getType(), dc);
+      
+    }
+    return map;
+  }
+  
+  private HostConfigMappingEntity getDesiredConfigEntity(long clusterId, String type) {
+    return hostConfigMappingDAO.findSelectedByType(clusterId,
+        hostEntity.getHostName(), type);
+  }
+      
 }

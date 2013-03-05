@@ -192,27 +192,12 @@ class ClusterResourceProvider extends AbstractResourceProvider {
         (String) properties.get(CLUSTER_NAME_PROPERTY_ID),
         (String) properties.get(CLUSTER_VERSION_PROPERTY_ID),
         null);
+
     
-    // as a convenience, allow consumers to specify name/value overrides in this
-    // call instead of forcing a cluster call to do that work
-    for (Entry<String, Object> entry : properties.entrySet()) {
-      String absCategory = PropertyHelper.getPropertyCategory(entry.getKey());
-      String propName = PropertyHelper.getPropertyName(entry.getKey());
-      
-      if (absCategory.startsWith("Clusters.desired_config")) {
-        ConfigurationRequest config = (null == cr.getDesiredConfig()) ? new ConfigurationRequest() : cr.getDesiredConfig();
-        cr.setDesiredConfig(config);
-        
-        if (propName.equals ("type"))
-          config.setType(entry.getValue().toString());
-        else if (propName.equals ("tag"))
-          config.setVersionTag(entry.getValue().toString());
-        else if (absCategory.endsWith(".properties")) {
-          config.getProperties().put(propName, entry.getValue().toString());
-        }
-        
-      }
-    }
+    ConfigurationRequest configRequest = getConfigurationRequest("Clusters", properties);
+    
+    if (null != configRequest)
+      cr.setDesiredConfig(configRequest);
     
     return cr;
   }

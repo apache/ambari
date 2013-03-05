@@ -26,6 +26,7 @@ import java.util.Map;
 import org.apache.ambari.server.agent.AgentEnv;
 import org.apache.ambari.server.agent.DiskInfo;
 import org.apache.ambari.server.state.AgentVersion;
+import org.apache.ambari.server.state.DesiredConfig;
 import org.apache.ambari.server.state.HostHealthStatus;
 
 public class HostResponse {
@@ -123,6 +124,8 @@ public class HostResponse {
    * Host State
    */
   private String hostState;
+
+  private Map<String, DesiredConfig> desiredConfigs;
 
   public HostResponse(String hostname, String clusterName,
                       String ipv4, String ipv6, int cpuCount, String osArch, String osType,
@@ -455,5 +458,15 @@ public class HostResponse {
     lastAgentEnv = agentEnv;
   }
   
+  /**
+   * @param desired
+   */
+  public void setDesiredConfigs(Map<String, DesiredConfig> desired) {
+    desiredConfigs = desired;
+  }
+  
+  public Map<String, DesiredConfig> getDesiredConfigs() {
+    return desiredConfigs;
+  }
 
 }

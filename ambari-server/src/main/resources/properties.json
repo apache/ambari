@@ -35,6 +35,7 @@
         "Hosts/host_health_report",
         "Hosts/public_host_name",
         "Hosts/host_state",
+        "Hosts/desired_configs",
         "_"
     ],
     "Component":[
