@@ -147,7 +147,7 @@ ALTER TABLE ambari.user_roles ADD CONSTRAINT FK_user_roles_role_name FOREIGN KEY
 ALTER TABLE ambari.hostconfigmapping ADD CONSTRAINT FK_hostconfigmapping_cluster_id FOREIGN KEY (cluster_id) REFERENCES ambari.clusters (cluster_id);
 ALTER TABLE ambari.hostconfigmapping ADD CONSTRAINT FK_hostconfigmapping_host_name FOREIGN KEY (host_name) REFERENCES ambari.hosts (host_name);
 
-CREATE SEQUENCE ambari.host_role_command_task_id_seq START WITH 1;
+CREATE SEQUENCE ambari.host_role_command_task_id_seq INCREMENT BY 50 START WITH 51;
 
 GRANT ALL PRIVILEGES ON TABLE ambari.host_role_command_task_id_seq TO :username;
 

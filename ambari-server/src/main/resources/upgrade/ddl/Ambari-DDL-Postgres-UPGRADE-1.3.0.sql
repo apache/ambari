@@ -28,3 +28,6 @@ CREATE TABLE ambari.hostconfigmapping (cluster_id bigint NOT NULL, host_name VAR
 GRANT ALL PRIVILEGES ON TABLE ambari.hostconfigmapping TO :username;
 ALTER TABLE ambari.hostconfigmapping ADD CONSTRAINT FK_hostconfigmapping_cluster_id FOREIGN KEY (cluster_id) REFERENCES ambari.clusters (cluster_id);
 ALTER TABLE ambari.hostconfigmapping ADD CONSTRAINT FK_hostconfigmapping_host_name FOREIGN KEY (host_name) REFERENCES ambari.hosts (host_name);
+
+ALTER SEQUENCE ambari.host_role_command_task_id_seq INCREMENT BY 50;
+SELECT nextval('ambari.host_role_command_task_id_seq');
