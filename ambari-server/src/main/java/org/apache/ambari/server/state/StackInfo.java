@@ -26,6 +26,7 @@ import org.apache.ambari.server.controller.StackVersionResponse;
 public class StackInfo {
   private String name;
   private String version;
+  private String minUpgradeVersion;
   private List<RepositoryInfo> repositories;
   private List<ServiceInfo> services;
 
@@ -105,6 +106,14 @@ public class StackInfo {
 
   public StackVersionResponse convertToResponse() {
 
-    return new StackVersionResponse(getVersion());
+    return new StackVersionResponse(getVersion(), getMinUpgradeVersion());
+  }
+
+  public String getMinUpgradeVersion() {
+    return minUpgradeVersion;
+  }
+
+  public void setMinUpgradeVersion(String minUpgradeVersion) {
+    this.minUpgradeVersion = minUpgradeVersion;
   }
 }

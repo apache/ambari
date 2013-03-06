@@ -107,6 +107,7 @@
      "StackVersion":[
         "Versions/stack_name",
         "Versions/stack_version",
+        "Versions/min_upgrade_version",
         "_"
     ],
     

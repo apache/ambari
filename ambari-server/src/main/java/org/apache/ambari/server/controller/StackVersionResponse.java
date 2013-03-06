@@ -25,10 +25,12 @@ import org.apache.ambari.server.state.RepositoryInfo;
 public class StackVersionResponse {
 
   private String stackVersion;
+  private String minUpgradeVersion;
   private List<RepositoryInfo> repositories;
 
-  public StackVersionResponse(String stackVersion) {
+  public StackVersionResponse(String stackVersion, String minUpgradeVersion) {
     setStackVersion(stackVersion);
+    setMinUpgradeVersion(minUpgradeVersion);
   }
 
   public String getStackVersion() {
@@ -45,5 +47,13 @@ public class StackVersionResponse {
 
   public void setRepositories(List<RepositoryInfo> repositories) {
     this.repositories = repositories;
+  }
+
+  public String getMinUpgradeVersion() {
+    return minUpgradeVersion;
+  }
+
+  public void setMinUpgradeVersion(String minUpgradeVersion) {
+    this.minUpgradeVersion = minUpgradeVersion;
   }
 }

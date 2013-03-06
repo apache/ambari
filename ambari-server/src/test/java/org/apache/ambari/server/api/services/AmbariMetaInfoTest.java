@@ -55,6 +55,7 @@ public class AmbariMetaInfoTest {
 
   private static String STACK_NAME_HDP = "HDP";
   private static String STACK_VERSION_HDP = "0.1";
+  private static final String STACK_MINIMAL_VERSION_HDP = "0.0";
   private static String SERVICE_NAME_HDFS = "HDFS";
   private static String SERVICE_COMPONENT_NAME = "NAMENODE";
   private static final String OS_TYPE = "centos5";
@@ -71,6 +72,7 @@ public class AmbariMetaInfoTest {
   private AmbariMetaInfo metaInfo = null;
   private final static Logger LOG =
       LoggerFactory.getLogger(AmbariMetaInfoTest.class);
+
   
 
   @Rule
@@ -336,6 +338,7 @@ public class AmbariMetaInfoTest {
     StackInfo stackInfo = metaInfo.getStackInfo(STACK_NAME_HDP, STACK_VERSION_HDP);
     Assert.assertEquals(stackInfo.getName(), STACK_NAME_HDP);
     Assert.assertEquals(stackInfo.getVersion(), STACK_VERSION_HDP);
+    Assert.assertEquals(stackInfo.getMinUpgradeVersion(), STACK_MINIMAL_VERSION_HDP);
     try {
       metaInfo.getStackInfo(STACK_NAME_HDP, NON_EXT_VALUE);
     } catch (StackAccessException e) {
@@ -375,13 +378,12 @@ public class AmbariMetaInfoTest {
     Assert.assertEquals(operatingSystem.getOsType(), OS_TYPE);
     
     
-    Throwable ex = null;
     try {
       metaInfo.getOperatingSystem(STACK_NAME_HDP, STACK_VERSION_HDP, NON_EXT_VALUE);
     } catch (StackAccessException e) {
-      ex = e;
+      Assert.assertTrue(e instanceof StackAccessException);
     }
-    Assert.assertTrue(ex instanceof StackAccessException);
+    
   }
   
 }

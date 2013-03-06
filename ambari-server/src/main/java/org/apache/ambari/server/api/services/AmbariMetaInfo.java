@@ -54,6 +54,10 @@ public class AmbariMetaInfo {
     private File stackRoot;
     private final static Logger LOG = LoggerFactory
             .getLogger(AmbariMetaInfo.class);
+    
+    private static final String STACK_METAINFO_FILE_NAME = "metainfo.xml";
+    private static final String STACK_XML_MAIN_BLOCK_NAME = "metainfo";
+    private static final String STACK_XML_PROPERTY_UPGRADE = "upgrade";
 
     private static final String SERVICES_FOLDER_NAME = "services";
     private static final String SERVICE_METAINFO_FILE_NAME = "metainfo.xml";
@@ -90,6 +94,7 @@ public class AmbariMetaInfo {
         return true;
       }
     };
+    
 
     /**
      * Ambari Meta Info Object
@@ -603,10 +608,8 @@ public class AmbariMetaInfo {
             for (File stack : concretStacks) {
                 if (stack.isFile())
                     continue;
-                StackInfo stackInfo = new StackInfo();
-                stackInfo.setName(stackFolder.getName());
-                stackInfo.setVersion(stack.getName());
 
+                StackInfo stackInfo = getStackInfo(stack);
                 if (LOG.isDebugEnabled()) {
                     LOG.debug("Adding new stack to known stacks"
                             + ", stackName=" + stackFolder.getName()
@@ -672,6 +675,54 @@ public class AmbariMetaInfo {
             }
         }
     }
+
+  private StackInfo getStackInfo(File stackVersionFolder) {
+
+    StackInfo stackInfo = new StackInfo();
+
+    stackInfo.setName(stackVersionFolder.getParentFile().getName());
+    stackInfo.setVersion(stackVersionFolder.getName());
+
+    // Get metainfo from file
+    File stackMetainfoFile = new File(stackVersionFolder.getAbsolutePath()
+        + File.separator + STACK_METAINFO_FILE_NAME);
+
+    if (stackMetainfoFile.exists()) {
+      if (LOG.isDebugEnabled()) {
+        LOG.debug("Reading stack version metainfo from file "
+            + stackMetainfoFile.getAbsolutePath());
+      }
+
+      try {
+        DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
+        DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
+        Document doc = dBuilder.parse(stackMetainfoFile);
+        doc.getDocumentElement().normalize();
+
+        NodeList stackNodes = doc
+            .getElementsByTagName(STACK_XML_MAIN_BLOCK_NAME);
+
+        for (int index = 0; index < stackNodes.getLength(); index++) {
+
+          Node node = stackNodes.item(index);
+          
+          if (node.getNodeType() == Node.ELEMENT_NODE) {
+            Element property = (Element) node;
+
+            stackInfo.setMinUpgradeVersion(getTagValue(
+                STACK_XML_PROPERTY_UPGRADE, property));
+          }
+        }
+      } catch (Exception e) {
+        e.printStackTrace();
+        return null;
+      }
+
+    }
+
+    return stackInfo;
+
+  }
 
     private List<RepositoryInfo> getRepository(File repositoryFile) throws ParserConfigurationException, IOException, SAXException {
 
