@@ -12,6 +12,9 @@ Trunk (unreleased changes):
 
  NEW FEATURES
 
+ AMBARI-1563. API Support:  Host-component resource should include its current 
+ HA active/passive status. (Sumit Mohanty via swagle)
+
  AMBARI-1560. Upgrade action/task support in server. (Sumit Mohanty via swagle)
 
  AMBARI-1553. List cluster-level configurations with host-level, if any (ncole)

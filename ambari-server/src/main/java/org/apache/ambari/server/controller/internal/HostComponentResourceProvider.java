@@ -30,7 +30,6 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
-import org.apache.ambari.server.Role;
 
 /**
  * Resource provider for host component resources.
@@ -48,7 +47,6 @@ class HostComponentResourceProvider extends AbstractResourceProvider {
   protected static final String HOST_COMPONENT_DESIRED_STATE_PROPERTY_ID  = PropertyHelper.getPropertyId("HostRoles", "desired_state");
   protected static final String HOST_COMPONENT_CONFIGS_PROPERTY_ID          = PropertyHelper.getPropertyId("HostRoles", "configs");
   protected static final String HOST_COMPONENT_DESIRED_CONFIGS_PROPERTY_ID  = PropertyHelper.getPropertyId("HostRoles", "desired_configs");
-  protected static final String HOST_COMPONENT_HIGH_AVAILABILITY_PROPERTY_ID  = PropertyHelper.getPropertyId("HostRoles", "ha_status");
 
   private static Set<String> pkPropertyIds =
       new HashSet<String>(Arrays.asList(new String[]{
@@ -118,21 +116,15 @@ class HostComponentResourceProvider extends AbstractResourceProvider {
         return getManagementController().getHostComponents(requests);
       }
     });
-    
+
     for (ServiceComponentHostResponse response : responses) {
       Resource resource = new ResourceImpl(Resource.Type.HostComponent);
-      if((response.getComponentName()).equals(Role.HBASE_MASTER.toString())) {
-          requestedIds.add(HOST_COMPONENT_HIGH_AVAILABILITY_PROPERTY_ID);
-      }else{
-          requestedIds.remove(HOST_COMPONENT_HIGH_AVAILABILITY_PROPERTY_ID);
-      }
       setResourceProperty(resource, HOST_COMPONENT_CLUSTER_NAME_PROPERTY_ID, response.getClusterName(), requestedIds);
       setResourceProperty(resource, HOST_COMPONENT_SERVICE_NAME_PROPERTY_ID, response.getServiceName(), requestedIds);
       setResourceProperty(resource, HOST_COMPONENT_COMPONENT_NAME_PROPERTY_ID, response.getComponentName(), requestedIds);
       setResourceProperty(resource, HOST_COMPONENT_HOST_NAME_PROPERTY_ID, response.getHostname(), requestedIds);
       setResourceProperty(resource, HOST_COMPONENT_STATE_PROPERTY_ID, response.getLiveState(), requestedIds);
       setResourceProperty(resource, HOST_COMPONENT_DESIRED_STATE_PROPERTY_ID, response.getDesiredState(), requestedIds);
-      setResourceProperty(resource, HOST_COMPONENT_HIGH_AVAILABILITY_PROPERTY_ID, "NA", requestedIds);
       setResourceProperty(resource, HOST_COMPONENT_CONFIGS_PROPERTY_ID,
           response.getConfigs(), requestedIds);
       setResourceProperty(resource, HOST_COMPONENT_DESIRED_CONFIGS_PROPERTY_ID,

@@ -39,6 +39,7 @@ import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
+import org.apache.ambari.server.Role;
 
 import static org.easymock.EasyMock.createMock;
 import static org.easymock.EasyMock.createNiceMock;
@@ -149,6 +150,62 @@ public class HostComponentResourceProviderTest {
     verify(managementController);
   }
 
+  
+  @Test
+  public void testGetResources_return_ha_status_property() throws Exception {
+    Resource.Type type = Resource.Type.HostComponent;
+    AmbariManagementController managementController = createMock(AmbariManagementController.class);
+    Set<ServiceComponentHostResponse> allResponse = new HashSet<ServiceComponentHostResponse>();
+     for (Role role : Role.values()) {
+        allResponse.add(new ServiceComponentHostResponse(
+        "Cluster100", "Service100", role.toString(), "Host100", null, null, "", "", "" ));
+     }
+    
+
+
+    // set expectations
+    expect(managementController.getHostComponents(
+        AbstractResourceProviderTest.Matcher.getHostComponentRequestSet(
+            "Cluster100", null, null, null, null, null))).andReturn(allResponse).once();
+
+    // replay
+    replay(managementController);
+
+    ResourceProvider provider = AbstractResourceProvider.getResourceProvider(
+        type,
+        PropertyHelper.getPropertyIds(type),
+        PropertyHelper.getKeyPropertyIds(type),
+        managementController);
+
+    Set<String> propertyIds = new HashSet<String>();
+
+    propertyIds.add(HostComponentResourceProvider.HOST_COMPONENT_CLUSTER_NAME_PROPERTY_ID);
+    propertyIds.add(HostComponentResourceProvider.HOST_COMPONENT_COMPONENT_NAME_PROPERTY_ID);
+
+    Predicate predicate = new PredicateBuilder().property(
+        HostComponentResourceProvider.HOST_COMPONENT_CLUSTER_NAME_PROPERTY_ID).equals("Cluster100").toPredicate();
+    Request request = PropertyHelper.getReadRequest(propertyIds);
+    Set<Resource> resources = provider.getResources(request, predicate);
+    
+    for (Resource resource : resources) {
+       Object ha_status = resource.getPropertyValue(
+          HostComponentResourceProvider.HOST_COMPONENT_HIGH_AVAILABILITY_PROPERTY_ID);
+       //ha_status must have only HBASE_MASTER component
+       if(ha_status != null) 
+       {
+          Assert.assertEquals(Role.HBASE_MASTER.toString(), resource.getPropertyValue(
+          HostComponentResourceProvider.HOST_COMPONENT_COMPONENT_NAME_PROPERTY_ID).toString());
+       }else{
+          Assert.assertNotSame(Role.HBASE_MASTER.toString(), resource.getPropertyValue(
+          HostComponentResourceProvider.HOST_COMPONENT_COMPONENT_NAME_PROPERTY_ID).toString());
+       }
+    }
+    
+    verify(managementController);
+  }
+ 
+  
+  
   @Test
   public void testUpdateResources() throws Exception {
     Resource.Type type = Resource.Type.HostComponent;
