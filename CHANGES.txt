@@ -416,6 +416,8 @@ Trunk (unreleased changes):
 
  BUG FIXES
 
+ AMBARI-1492. Add init.d scripts for Ambari server + agent. (swagle)
+
  AMBARI-1548. Implement Stacks API using the consistent API framework in 
  Ambari Server with all the get/predicates working. (swagle)
 

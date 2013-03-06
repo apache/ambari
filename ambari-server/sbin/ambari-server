@@ -77,6 +77,10 @@ case "$1" in
         echo -e "Upgrading ambari-server"
         $PYTHON /usr/sbin/ambari-server.py $@
         ;;
+  status)
+        echo -e "Ambari-server status"
+        $PYTHON /usr/sbin/ambari-server.py $@
+        ;;
   upgradestack)
         echo -e "Upgrading stack of ambari-server"
         $PYTHON /usr/sbin/ambari-server.py $@
@@ -93,7 +97,7 @@ case "$1" in
         $PYTHON /usr/sbin/ambari-server.py $@
         ;;
   *)
-        echo "Usage: /usr/sbin/ambari-server {start|stop|restart|setup|upgrade|upgradestack} [options]"
+        echo "Usage: /usr/sbin/ambari-server {start|stop|restart|setup|upgrade|status|upgradestack} [options]"
         exit 1
 esac
 

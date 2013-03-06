@@ -46,6 +46,7 @@ STOP_ACTION = "stop"
 RESET_ACTION = "reset"
 UPGRADE_ACTION = "upgrade"
 UPGRADE_STACK_ACTION = "upgradestack"
+STATUS_ACTION = "status"
 
 # selinux commands
 GET_SE_LINUX_ST_CMD = "/usr/sbin/sestatus"
@@ -893,6 +894,27 @@ def upgrade(args):
 
   print "Ambari Server 'upgrade' finished successfully"
 
+
+#
+# The Ambari Server status.
+#
+def status(args):
+  if os.path.exists(PID_DIR + os.sep + PID_NAME):
+    f = open(PID_DIR + os.sep + PID_NAME, "r")
+    pid = int(f.readline())
+    print "Found Ambari Server PID: '" + str(pid) + "'"
+    f.close()
+    retcode, out, err = run_os_command("ps -p " + str(pid))
+    if retcode == 0:
+      print "Ambari Server running"
+      print "Ambari Server PID at: " + PID_DIR + os.sep + PID_NAME
+    else:
+      print "Ambari Server not running. Stale PID File at: " + PID_DIR + os.sep + PID_NAME
+  else:
+    print "Ambari Server not running"
+
+
+
 #
 # Prints an "info" messsage.
 #
@@ -1116,6 +1138,8 @@ def main():
     stop(options)
   elif action == RESET_ACTION:
     reset(options)
+  elif action == STATUS_ACTION:
+    status(options)
   elif action == UPGRADE_ACTION:
     upgrade(options)
   elif action == UPGRADE_STACK_ACTION:

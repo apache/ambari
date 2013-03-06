@@ -278,6 +278,17 @@
               <username>root</username>
               <groupname>root</groupname>
             </mapping>
+            <mapping>
+              <directory>/etc/rc.d/init.d</directory>
+              <filemode>755</filemode>
+              <username>root</username>
+              <groupname>root</groupname>
+              <sources>
+                <source>
+                  <location>etc/init.d/ambari-agent</location>
+                </source>
+              </sources>
+            </mapping>
             <!-- -->
           </mappings>
         </configuration>
