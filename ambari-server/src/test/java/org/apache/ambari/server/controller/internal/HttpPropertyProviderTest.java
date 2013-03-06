@@ -23,6 +23,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 
 import org.apache.ambari.server.controller.spi.Request;
@@ -73,8 +74,25 @@ public class HttpPropertyProviderTest {
    Assert.assertNotNull("Expected non-null for 'nagios_alerts'",
      resource.getPropertyValue(PROPERTY_ID_NAGIOS_ALERTS));        
   }
-  
-  
+
+  @Test
+  public void testReadWithRequestedJson() throws Exception {
+
+  Set<String> propertyIds = new HashSet<String>();
+  propertyIds.add(PropertyHelper.getPropertyId("HostRoles", "nagios_alerts"));
+  propertyIds.add(PROPERTY_ID_COMPONENT_NAME);
+  Resource resource = doPopulate("NAGIOS_SERVER", propertyIds);
+  Object propertyValue = resource.getPropertyValue(PROPERTY_ID_NAGIOS_ALERTS);
+
+  Assert.assertNotNull("Expected non-null for 'nagios_alerts'", propertyValue);
+  Assert.assertTrue("Expected Set for parsed JSON", propertyValue instanceof Set);
+
+  Object propertyEntry = ((Set) propertyValue).iterator().next();
+
+  Assert.assertTrue(propertyEntry instanceof Map);
+  Assert.assertEquals("Alert Body", ((Map) propertyEntry).get("nagios_alert"));
+  }
+
   @Test
   public void testReadGangliaServer() throws Exception {
     
@@ -112,9 +130,8 @@ public class HttpPropertyProviderTest {
 
     @Override
     public InputStream readFrom(String spec) throws IOException {
-      return new ByteArrayInputStream("PROPERTY_TEST".getBytes());
+        String responseStr = "[{\"nagios_alert\": \"Alert Body\"}]";
+        return new ByteArrayInputStream(responseStr.getBytes("UTF-8"));
     }
   }
-  
-  
 }

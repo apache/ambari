@@ -416,6 +416,9 @@ Trunk (unreleased changes):
 
  BUG FIXES
 
+ AMBARI-1561. API should return nagios_alerts as a JSON, not a 
+ stringified JSON. (swagle)
+
  AMBARI-1492. Add init.d scripts for Ambari server + agent. (swagle)
 
  AMBARI-1548. Implement Stacks API using the consistent API framework in 

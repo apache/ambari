@@ -24,6 +24,7 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
+import org.apache.ambari.server.api.services.parsers.JsonPropertyParser;
 import org.apache.ambari.server.controller.spi.Predicate;
 import org.apache.ambari.server.controller.spi.PropertyProvider;
 import org.apache.ambari.server.controller.spi.Request;
@@ -109,10 +110,7 @@ public class HttpProxyPropertyProvider extends BaseProvider implements PropertyP
     InputStream in = null;
     try {
       in = streamProvider.readFrom(url);
-      
-      String str = IOUtils.toString(in, "UTF-8");
-      
-      r.setProperty(propertyIdToSet, str);
+      r.setProperty(propertyIdToSet, new JsonPropertyParser().parse(IOUtils.toString(in, "UTF-8")));
     }
     catch (IOException ioe) {
       LOG.error("Error reading HTTP response from " + url);
