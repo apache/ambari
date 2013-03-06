@@ -421,6 +421,8 @@ Trunk (unreleased changes):
 
  BUG FIXES
 
+ AMBARI-1564. TestActionManager is failing on master branch. (swagle)
+
  AMBARI-1561. API should return nagios_alerts as a JSON, not a 
  stringified JSON. (swagle)
 

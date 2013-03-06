@@ -257,7 +257,7 @@ public class HostRoleCommandEntity {
 
   private StageEntity stage;
 
-  @ManyToOne(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
+  @ManyToOne(cascade = {CascadeType.MERGE})
   @JoinColumns({@JoinColumn(name = "request_id", referencedColumnName = "request_id", nullable = false), @JoinColumn(name = "stage_id", referencedColumnName = "stage_id", nullable = false)})
   public StageEntity getStage() {
     return stage;

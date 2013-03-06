@@ -153,7 +153,6 @@ public class ClusterImpl implements Cluster {
     if (svcHostsLoaded) return;
     writeLock.lock();
     try {
-      if (svcHostsLoaded) return;
       LOG.info("Loading Service Host Components");
       if (svcHostsLoaded) return;
       if (services != null) {
@@ -695,6 +694,7 @@ public class ClusterImpl implements Cluster {
   public void delete() throws AmbariException {
     readWriteLock.writeLock().lock();
     try {
+      refresh();
       deleteAllServices();
       removeEntities();
       allConfigs.clear();
