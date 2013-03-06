@@ -120,6 +120,12 @@ public class RoleCommandOrder {
         RoleCommand.START);
     addDependency(Role.HIVE_SERVER, RoleCommand.START, Role.MYSQL_SERVER,
         RoleCommand.START);
+    addDependency(Role.HUE_SERVER, RoleCommand.START, Role.HIVE_SERVER,
+      RoleCommand.START);
+    addDependency(Role.HUE_SERVER, RoleCommand.START, Role.HIVE_METASTORE,
+      RoleCommand.START);
+    addDependency(Role.HUE_SERVER, RoleCommand.START, Role.OOZIE_SERVER,
+      RoleCommand.START);
 
     // Service checks
     addDependency(Role.HDFS_SERVICE_CHECK, RoleCommand.EXECUTE, Role.NAMENODE,
@@ -234,8 +240,8 @@ public class RoleCommandOrder {
    * Returns the dependency order. -1 => rgn1 before rgn2, 0 => they can be
    * parallel 1 => rgn2 before rgn1
    * 
-   * @param roleGraphNode
-   * @param roleGraphNode2
+   * @param rgn1 roleGraphNode1
+   * @param rgn2 roleGraphNode2
    */
   public int order(RoleGraphNode rgn1, RoleGraphNode rgn2) {
     RoleCommandPair rcp1 = new RoleCommandPair(rgn1.getRole(),

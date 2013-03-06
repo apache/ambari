@@ -12,6 +12,9 @@ Trunk (unreleased changes):
 
  NEW FEATURES
 
+ AMBARI-1557. Adding Hue service to the HDP stack definition along with the 
+ necessary configuration properties. (swagle)
+
  AMBARI-1554. API support for current version of Stack and available versions 
  to upgrade (Sumit Mohanty via swagle) 
 
