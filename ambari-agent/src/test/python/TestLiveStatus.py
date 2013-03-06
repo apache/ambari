@@ -20,15 +20,21 @@ limitations under the License.
 
 from unittest import TestCase
 from ambari_agent.LiveStatus import LiveStatus
-from ambari_agent import AmbariConfig
+from ambari_agent.AmbariConfig import AmbariConfig
 import socket
 import os
 
 class TestLiveStatus(TestCase):
   def test_build(self):
     for component in LiveStatus.COMPONENTS:
-      livestatus = LiveStatus('', component['serviceName'], component['componentName'], {})
+      config = AmbariConfig().getConfig()
+      config.set('agent', 'prefix', "dummy_files")
+      livestatus = LiveStatus('', component['serviceName'], component['componentName'], {}, config)
+      livestatus.versionsHandler.versionsFilePath = os.path.join("dummy_files","dummy_current_stack")
       result = livestatus.build()
       print "LiveStatus of {0}: {1}".format(component['serviceName'], str(result))
       self.assertEquals(len(result) > 0, True, 'Livestatus should not be empty')
+      if component['componentName'] == 'GANGLIA_SERVER':
+        self.assertEquals(result['stackVersion'],'HDP-1.2.2',
+                      'Livestatus should contain component stack version')
   

@@ -760,6 +760,248 @@ public class TestHeartbeatHandler {
         stack130, serviceComponentHost3.getStackVersion());
   }
 
+  @Test
+  public void testComponentUpgradeCompleteReport() throws AmbariException, InvalidStateTransitionException {
+    ActionManager am = new ActionManager(0, 0, null, null,
+            new ActionDBInMemoryImpl(), new HostsMap((String) null));
+    Cluster cluster = getDummyCluster();
+
+    @SuppressWarnings("serial")
+    Set<String> hostNames = new HashSet<String>(){{
+      add(DummyHostname1);
+    }};
+
+    clusters.mapHostsToCluster(hostNames, DummyCluster);
+
+    Service hdfs = cluster.addService(HDFS);
+    hdfs.persist();
+    hdfs.addServiceComponent(DATANODE).persist();
+    hdfs.getServiceComponent(DATANODE).addServiceComponentHost(DummyHostname1).persist();
+    hdfs.addServiceComponent(NAMENODE).persist();
+    hdfs.getServiceComponent(NAMENODE).addServiceComponentHost(DummyHostname1).persist();
+    hdfs.addServiceComponent(HDFS_CLIENT).persist();
+    hdfs.getServiceComponent(HDFS_CLIENT).addServiceComponentHost(DummyHostname1).persist();
+
+    ServiceComponentHost serviceComponentHost1 = clusters.getCluster(DummyCluster).getService(HDFS).
+            getServiceComponent(DATANODE).getServiceComponentHost(DummyHostname1);
+    ServiceComponentHost serviceComponentHost2 = clusters.getCluster(DummyCluster).getService(HDFS).
+            getServiceComponent(NAMENODE).getServiceComponentHost(DummyHostname1);
+
+    StackId stack130 = new StackId("HDP-1.3.0");
+    StackId stack122 = new StackId("HDP-1.2.2");
+
+    serviceComponentHost1.setState(State.UPGRADING);
+    serviceComponentHost2.setState(State.INSTALLING);
+
+    serviceComponentHost1.setStackVersion(stack122);
+    serviceComponentHost1.setDesiredStackVersion(stack130);
+    serviceComponentHost2.setStackVersion(stack122);
+
+    HeartBeat hb = new HeartBeat();
+    hb.setTimestamp(System.currentTimeMillis());
+    hb.setResponseId(0);
+    hb.setHostname(DummyHostname1);
+    hb.setNodeStatus(new HostStatus(Status.HEALTHY, DummyHostStatus));
+    CommandReport cr1 = new CommandReport();
+    cr1.setActionId(StageUtils.getActionId(requestId, stageId));
+    cr1.setTaskId(1);
+    cr1.setClusterName(DummyCluster);
+    cr1.setServiceName(HDFS);
+    cr1.setRole(DATANODE);
+    cr1.setStatus(HostRoleStatus.COMPLETED.toString());
+    cr1.setStdErr("none");
+    cr1.setStdOut("dummy output");
+    cr1.setExitCode(0);
+
+    CommandReport cr2 = new CommandReport();
+    cr2.setActionId(StageUtils.getActionId(requestId, stageId));
+    cr2.setTaskId(2);
+    cr2.setClusterName(DummyCluster);
+    cr2.setServiceName(HDFS);
+    cr2.setRole(NAMENODE);
+    cr2.setStatus(HostRoleStatus.COMPLETED.toString());
+    cr2.setStdErr("none");
+    cr2.setStdOut("dummy output");
+    cr2.setExitCode(0);
+    ArrayList<CommandReport> reports = new ArrayList<CommandReport>();
+    reports.add(cr1);
+    reports.add(cr2);
+    hb.setReports(reports);
+
+    ActionQueue aq = new ActionQueue();
+    HeartBeatHandler handler = getHeartBeatHandler(am, aq);
+    handler.handleHeartBeat(hb);
+    assertEquals("Stack version for SCH should be updated to " +
+            serviceComponentHost1.getDesiredStackVersion(),
+            stack130, serviceComponentHost1.getStackVersion());
+    assertEquals("Stack version for SCH should not change ",
+            stack122, serviceComponentHost2.getStackVersion());
+  }
+
+  @Test
+  public void testComponentUpgradeInProgressReport() throws AmbariException, InvalidStateTransitionException {
+    ActionManager am = new ActionManager(0, 0, null, null,
+            new ActionDBInMemoryImpl(), new HostsMap((String) null));
+    Cluster cluster = getDummyCluster();
+
+    @SuppressWarnings("serial")
+    Set<String> hostNames = new HashSet<String>(){{
+      add(DummyHostname1);
+    }};
+
+    clusters.mapHostsToCluster(hostNames, DummyCluster);
+
+    Service hdfs = cluster.addService(HDFS);
+    hdfs.persist();
+    hdfs.addServiceComponent(DATANODE).persist();
+    hdfs.getServiceComponent(DATANODE).addServiceComponentHost(DummyHostname1).persist();
+    hdfs.addServiceComponent(NAMENODE).persist();
+    hdfs.getServiceComponent(NAMENODE).addServiceComponentHost(DummyHostname1).persist();
+    hdfs.addServiceComponent(HDFS_CLIENT).persist();
+    hdfs.getServiceComponent(HDFS_CLIENT).addServiceComponentHost(DummyHostname1).persist();
+
+    ServiceComponentHost serviceComponentHost1 = clusters.getCluster(DummyCluster).getService(HDFS).
+            getServiceComponent(DATANODE).getServiceComponentHost(DummyHostname1);
+    ServiceComponentHost serviceComponentHost2 = clusters.getCluster(DummyCluster).getService(HDFS).
+            getServiceComponent(NAMENODE).getServiceComponentHost(DummyHostname1);
+
+    StackId stack130 = new StackId("HDP-1.3.0");
+    StackId stack122 = new StackId("HDP-1.2.2");
+
+    serviceComponentHost1.setState(State.UPGRADING);
+    serviceComponentHost2.setState(State.INSTALLING);
+
+    serviceComponentHost1.setStackVersion(stack122);
+    serviceComponentHost1.setDesiredStackVersion(stack130);
+    serviceComponentHost2.setStackVersion(stack122);
+
+    HeartBeat hb = new HeartBeat();
+    hb.setTimestamp(System.currentTimeMillis());
+    hb.setResponseId(0);
+    hb.setHostname(DummyHostname1);
+    hb.setNodeStatus(new HostStatus(Status.HEALTHY, DummyHostStatus));
+    CommandReport cr1 = new CommandReport();
+    cr1.setActionId(StageUtils.getActionId(requestId, stageId));
+    cr1.setTaskId(1);
+    cr1.setClusterName(DummyCluster);
+    cr1.setServiceName(HDFS);
+    cr1.setRole(DATANODE);
+    cr1.setStatus(HostRoleStatus.IN_PROGRESS.toString());
+    cr1.setStdErr("none");
+    cr1.setStdOut("dummy output");
+    cr1.setExitCode(777);
+
+    CommandReport cr2 = new CommandReport();
+    cr2.setActionId(StageUtils.getActionId(requestId, stageId));
+    cr2.setTaskId(2);
+    cr2.setClusterName(DummyCluster);
+    cr2.setServiceName(HDFS);
+    cr2.setRole(NAMENODE);
+    cr2.setStatus(HostRoleStatus.IN_PROGRESS.toString());
+    cr2.setStdErr("none");
+    cr2.setStdOut("dummy output");
+    cr2.setExitCode(777);
+    ArrayList<CommandReport> reports = new ArrayList<CommandReport>();
+    reports.add(cr1);
+    reports.add(cr2);
+    hb.setReports(reports);
+
+    ActionQueue aq = new ActionQueue();
+    HeartBeatHandler handler = getHeartBeatHandler(am, aq);
+    handler.handleHeartBeat(hb);
+    assertEquals("State of SCH not change while operation is in progress",
+            State.UPGRADING, serviceComponentHost1.getState());
+    assertEquals("Stack version of SCH should not change after in progress report",
+            stack130, serviceComponentHost1.getDesiredStackVersion());
+    assertEquals("State of SCH not change while operation is  in progress",
+            State.INSTALLING, serviceComponentHost2.getState());
+  }
+
+
+  @Test
+  public void testComponentUpgradeFailReport() throws AmbariException, InvalidStateTransitionException {
+    ActionManager am = new ActionManager(0, 0, null, null,
+            new ActionDBInMemoryImpl(), new HostsMap((String) null));
+    Cluster cluster = getDummyCluster();
+
+    @SuppressWarnings("serial")
+    Set<String> hostNames = new HashSet<String>(){{
+      add(DummyHostname1);
+    }};
+
+    clusters.mapHostsToCluster(hostNames, DummyCluster);
+
+    Service hdfs = cluster.addService(HDFS);
+    hdfs.persist();
+    hdfs.addServiceComponent(DATANODE).persist();
+    hdfs.getServiceComponent(DATANODE).addServiceComponentHost(DummyHostname1).persist();
+    hdfs.addServiceComponent(NAMENODE).persist();
+    hdfs.getServiceComponent(NAMENODE).addServiceComponentHost(DummyHostname1).persist();
+    hdfs.addServiceComponent(HDFS_CLIENT).persist();
+    hdfs.getServiceComponent(HDFS_CLIENT).addServiceComponentHost(DummyHostname1).persist();
+
+    ServiceComponentHost serviceComponentHost1 = clusters.getCluster(DummyCluster).getService(HDFS).
+            getServiceComponent(DATANODE).getServiceComponentHost(DummyHostname1);
+    ServiceComponentHost serviceComponentHost2 = clusters.getCluster(DummyCluster).getService(HDFS).
+            getServiceComponent(NAMENODE).getServiceComponentHost(DummyHostname1);
+
+    StackId stack130 = new StackId("HDP-1.3.0");
+    StackId stack122 = new StackId("HDP-1.2.2");
+
+    serviceComponentHost1.setState(State.UPGRADING);
+    serviceComponentHost2.setState(State.INSTALLING);
+
+    serviceComponentHost1.setStackVersion(stack122);
+    serviceComponentHost1.setDesiredStackVersion(stack130);
+    serviceComponentHost2.setStackVersion(stack122);
+
+    HeartBeat hb = new HeartBeat();
+    hb.setTimestamp(System.currentTimeMillis());
+    hb.setResponseId(0);
+    hb.setHostname(DummyHostname1);
+    hb.setNodeStatus(new HostStatus(Status.HEALTHY, DummyHostStatus));
+    CommandReport cr1 = new CommandReport();
+    cr1.setActionId(StageUtils.getActionId(requestId, stageId));
+    cr1.setTaskId(1);
+    cr1.setClusterName(DummyCluster);
+    cr1.setServiceName(HDFS);
+    cr1.setRole(DATANODE);
+    cr1.setStatus(HostRoleStatus.FAILED.toString());
+    cr1.setStdErr("none");
+    cr1.setStdOut("dummy output");
+    cr1.setExitCode(0);
+
+    CommandReport cr2 = new CommandReport();
+    cr2.setActionId(StageUtils.getActionId(requestId, stageId));
+    cr2.setTaskId(2);
+    cr2.setClusterName(DummyCluster);
+    cr2.setServiceName(HDFS);
+    cr2.setRole(NAMENODE);
+    cr2.setStatus(HostRoleStatus.FAILED.toString());
+    cr2.setStdErr("none");
+    cr2.setStdOut("dummy output");
+    cr2.setExitCode(0);
+    ArrayList<CommandReport> reports = new ArrayList<CommandReport>();
+    reports.add(cr1);
+    reports.add(cr2);
+    hb.setReports(reports);
+
+    ActionQueue aq = new ActionQueue();
+    HeartBeatHandler handler = getHeartBeatHandler(am, aq);
+    handler.handleHeartBeat(hb);
+    assertEquals("State of SCH should change after fail report",
+            State.UPGRADE_FAILED, serviceComponentHost1.getState());
+    assertEquals("State of SCH should change after fail report",
+            State.INSTALL_FAILED, serviceComponentHost2.getState());
+    assertEquals("Stack version of SCH should not change after fail report",
+            stack122, serviceComponentHost1.getStackVersion());
+    assertEquals("Stack version of SCH should not change after fail report",
+            stack130, serviceComponentHost1.getDesiredStackVersion());
+    assertEquals("Stack version of SCH should not change after fail report",
+            State.INSTALL_FAILED, serviceComponentHost2.getState());
+  }
+
+
   private ComponentStatus createComponentStatus(String clusterName, String serviceName, String message,
                                                 State state, String componentName, String stackVersion) {
     ComponentStatus componentStatus1 = new ComponentStatus();

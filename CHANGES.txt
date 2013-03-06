@@ -12,6 +12,8 @@ Trunk (unreleased changes):
 
  NEW FEATURES
 
+ AMBARI-1560. Upgrade action/task support in server. (Sumit Mohanty via swagle)
+
  AMBARI-1553. List cluster-level configurations with host-level, if any (ncole)
 
  AMBARI-1557. Adding Hue service to the HDP stack definition along with the 

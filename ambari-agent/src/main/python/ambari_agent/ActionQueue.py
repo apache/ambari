@@ -110,7 +110,8 @@ class ActionQueue(threading.Thread):
           component = command['componentName']
           globalConfig = command['configurations']['global']
           try:
-            livestatus = LiveStatus(cluster, service, component, globalConfig)
+            livestatus = LiveStatus(cluster, service, component,
+              globalConfig, self.config)
             result = livestatus.build()
             logger.info("Got live status for component " + component + " of service " + str(service) +\
                         " of cluster " + str(cluster) + "\n" + pprint.pformat(result))

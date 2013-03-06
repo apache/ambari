@@ -41,9 +41,9 @@ class TestStackVersionsFileHandler(TestCase):
   @patch.object(stackVersionsFileHandler, 'touch_file')
   def test_read_stack_version(self, touch_method):
     stackVersionsFileHandler.versionsFilePath = dummyVersionsFile
-    result = stackVersionsFileHandler.read_stack_version("NAGIOS")
+    result = stackVersionsFileHandler.read_stack_version("NAGIOS_SERVER")
     self.assertEquals(result, "HDP-1.2.1")
-    result = stackVersionsFileHandler.read_stack_version("GANGLIA")
+    result = stackVersionsFileHandler.read_stack_version("GANGLIA_SERVER")
     self.assertEquals(result, "HDP-1.2.2")
     result = stackVersionsFileHandler.read_stack_version("NOTEXISTING")
     self.assertEquals(result, stackVersionsFileHandler.DEFAULT_VER)
@@ -55,18 +55,18 @@ class TestStackVersionsFileHandler(TestCase):
     stackVersionsFileHandler.versionsFilePath = dummyVersionsFile
     result = stackVersionsFileHandler.read_all_stack_versions()
     self.assertEquals(len(result.keys()), 4)
-    self.assertEquals(result["NAGIOS"], "HDP-1.2.1")
-    self.assertEquals(result["HBASE"], "HDP-1.3.0")
+    self.assertEquals(result["NAGIOS_SERVER"], "HDP-1.2.1")
+    self.assertEquals(result["HCATALOG"], "HDP-1.3.0")
     self.assertTrue(touch_method.called)
 
 
   def test_extract(self):
-    s = "   NAGIOS	\t  HDP-1.3.0  "
+    s = "   NAGIOS_SERVER	\t  HDP-1.3.0  "
     comp, ver = stackVersionsFileHandler.extract(s)
-    self.assertEqual(comp, "NAGIOS")
+    self.assertEqual(comp, "NAGIOS_SERVER")
     self.assertEqual(ver, "HDP-1.3.0")
     # testing wrong value
-    s = "   NAGIOS	"
+    s = "   NAGIOS_SERVER	"
     comp, ver = stackVersionsFileHandler.extract(s)
     self.assertEqual(comp, stackVersionsFileHandler.DEFAULT_VER)
     self.assertEqual(ver, stackVersionsFileHandler.DEFAULT_VER)

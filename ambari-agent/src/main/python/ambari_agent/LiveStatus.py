@@ -26,6 +26,7 @@ import socket
 import time
 import traceback
 from pprint import pprint, pformat
+from StackVersionsFileHandler import StackVersionsFileHandler
 
 logger = logging.getLogger()
 
@@ -91,11 +92,13 @@ class LiveStatus:
   LIVE_STATUS = "STARTED"
   DEAD_STATUS = "INSTALLED"
 
-  def __init__(self, cluster, service, component, globalConfig):
+  def __init__(self, cluster, service, component, globalConfig, config):
     self.cluster = cluster
     self.service = service
     self.component = component
     self.globalConfig = globalConfig
+    versionsFileDir = config.get('agent', 'prefix')
+    self.versionsHandler = StackVersionsFileHandler(versionsFileDir)
 
 
   def belongsToService(self, component):
@@ -117,7 +120,9 @@ class LiveStatus:
                        "msg" : "",
                        "status" : status,
                        "clusterName" : self.cluster,
-                       "serviceName" : self.service
+                       "serviceName" : self.service,
+                       "stackVersion": self.versionsHandler.
+                                    read_stack_version(component["componentName"])
         }
         break
     logger.info("The live status for component " + str(self.component) + " of service " + \

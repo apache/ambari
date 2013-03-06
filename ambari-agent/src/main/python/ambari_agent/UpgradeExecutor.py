@@ -66,7 +66,7 @@ class UpgradeExecutor:
     srcStackTuple = self.split_stack_version(srcStack)
     tgtStackTuple = self.split_stack_version(srcStack)
 
-    if srcStackTuple == None or tgtStackTuple == None:
+    if srcStackTuple is None or tgtStackTuple is None:
       errorstr = "Source (%s) or target (%s) version does not match pattern \
       <Name>-<Version>" % (srcStack, tgtStack)
       logger.info(errorstr)

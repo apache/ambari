@@ -89,6 +89,9 @@ public class ActionManager {
     return db.getAction(StageUtils.getActionId(requestId, stageId));
   }
 
+  /**
+   * Persists command reports into the db
+   */
   public void processTaskResponse(String hostname, List<CommandReport> reports) {
     if (reports == null) {
       return;
