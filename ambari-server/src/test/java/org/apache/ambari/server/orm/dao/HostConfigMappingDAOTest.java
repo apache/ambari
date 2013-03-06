@@ -25,10 +25,7 @@ import junit.framework.Assert;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
-import org.apache.ambari.server.orm.dao.HostConfigMappingDAO;
 import org.apache.ambari.server.orm.entities.HostConfigMappingEntity;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -150,6 +147,31 @@ public class HostConfigMappingDAOTest {
     Assert.assertEquals("Expected version to be '" + entity2.getVersion() + "'", entity2.getVersion(), target.getVersion());    
     
     Assert.assertEquals("Expected instance equality", entity2, target);
+  }
+  
+  @Test
+  public void testFindSelectedHostsByType() throws Exception {
+    HostConfigMappingEntity entity1 = createEntity(1L, "h1", "global", "v1");
+    HostConfigMappingEntity entity2 = createEntity(1L, "h2", "global", "v1");
+    
+    List<HostConfigMappingEntity> list = hostConfigMappingDAO.findSelectedHostsByType(1L, "global");
+    Assert.assertEquals("Expected two hosts", 2, list.size());
+    
+    entity2.setSelected(0);
+    hostConfigMappingDAO.merge(entity2);
+    
+    list = hostConfigMappingDAO.findSelectedHostsByType(1L, "global");
+    Assert.assertEquals("Expected one host", 1, list.size());
+    
+    
+    list = hostConfigMappingDAO.findSelectedHostsByType(1L, "core-site");
+    Assert.assertEquals("Expected no matching hosts", 0, list.size());
+    
+    entity1.setSelected(0);
+    hostConfigMappingDAO.merge(entity1);
+    
+    list = hostConfigMappingDAO.findSelectedHostsByType(1L, "global");
+    Assert.assertEquals("Expected no selected hosts", 0, list.size());
   }
   
 

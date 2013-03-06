@@ -51,8 +51,8 @@ public class HostConfigMappingDAO {
     TypedQuery<HostConfigMappingEntity> query = entityManagerProvider.get().createQuery(
       "SELECT entity FROM HostConfigMappingEntity entity " +
       "WHERE entity.clusterId = ?1 AND entity.hostName = ?2 AND entity.type = ?3",
-      HostConfigMappingEntity.class);        
-    
+      HostConfigMappingEntity.class);
+
     return daoUtils.selectList(query, Long.valueOf(clusterId), hostName, type);
   }
 
@@ -65,7 +65,7 @@ public class HostConfigMappingDAO {
             "AND entity.type = ?3 " +
             "AND entity.selected > 0",
         HostConfigMappingEntity.class);
-    
+
     return daoUtils.selectSingle(query, Long.valueOf(clusterId), hostName, type);
   }
 
@@ -75,8 +75,17 @@ public class HostConfigMappingDAO {
         "WHERE entity.clusterId = ?1 AND entity.hostName = ?2 " +
             "AND entity.selected > 0",
         HostConfigMappingEntity.class);
-    
+
     return daoUtils.selectList(query, Long.valueOf(clusterId), hostName);
   }
-  
+
+  public List<HostConfigMappingEntity> findSelectedHostsByType(long clusterId,
+      String type) {
+    TypedQuery<HostConfigMappingEntity> query = entityManagerProvider.get().createQuery(
+        "SELECT entity FROM HostConfigMappingEntity entity " +
+        "WHERE entity.clusterId = ?1 AND entity.type = ?2 AND entity.selected > 0",
+    HostConfigMappingEntity.class);
+    return daoUtils.selectList(query, Long.valueOf(clusterId), type);
+  }
+
 }

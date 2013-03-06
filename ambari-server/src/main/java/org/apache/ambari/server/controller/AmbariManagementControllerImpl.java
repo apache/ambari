@@ -980,11 +980,15 @@ public class AmbariManagementControllerImpl implements
 
     if (request.getClusterName() != null) {
       Cluster c = clusters.getCluster(request.getClusterName());
-      response.add(c.convertToResponse());
+      ClusterResponse cr = c.convertToResponse();
+      cr.setDesiredConfigs(c.getDesiredConfigs());
+      response.add(cr);
       return response;
     } else if (request.getClusterId() != null) {
       Cluster c = clusters.getClusterById(request.getClusterId());
-      response.add(c.convertToResponse());
+      ClusterResponse cr = c.convertToResponse();
+      cr.setDesiredConfigs(c.getDesiredConfigs());
+      response.add(cr);
       return response;
     }
 

@@ -53,6 +53,7 @@ import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Config;
 import org.apache.ambari.server.state.ConfigFactory;
+import org.apache.ambari.server.state.DesiredConfig;
 import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.HostState;
 import org.apache.ambari.server.state.Service;
@@ -319,6 +320,48 @@ public class ClusterTest {
     res = c1.getDesiredConfigByType("global");
     Assert.assertEquals("Expected version tag to be 'version2'", "version2", res.getVersionTag());
     
+  }
+  
+  @Test
+  public void testDesiredConfigs() throws Exception {
+    Config config1 = configFactory.createNew(c1, "global",
+        new HashMap<String, String>() {{ put("a", "b"); }});
+    config1.setVersionTag("version1");
+    
+    Config config2 = configFactory.createNew(c1, "global",
+        new HashMap<String, String>() {{ put("x", "y"); }});
+    config2.setVersionTag("version2");
+    
+    Config config3 = configFactory.createNew(c1, "core-site",
+        new HashMap<String, String>() {{ put("x", "y"); }});
+    config3.setVersionTag("version2");    
+    
+    c1.addConfig(config1);
+    c1.addConfig(config2);
+    c1.addConfig(config3);
+    
+    c1.addDesiredConfig(config1);
+    c1.addDesiredConfig(config3);
+    
+    Map<String, DesiredConfig> desiredConfigs = c1.getDesiredConfigs();
+    Assert.assertFalse("Expect desired config not contain 'mapred-site'", desiredConfigs.containsKey("mapred-site"));
+    Assert.assertTrue("Expect desired config contain " + config1.getType(), desiredConfigs.containsKey("global"));
+    Assert.assertTrue("Expect desired config contain " + config3.getType(), desiredConfigs.containsKey("core-site"));
+    Assert.assertEquals("Expect desired config for global should be " + config1.getVersionTag(),
+        config1.getVersionTag(), desiredConfigs.get(config1.getType()).getVersion());
+    DesiredConfig dc = desiredConfigs.get(config1.getType());
+    Assert.assertTrue("Expect no host-level overrides",
+        (null == dc.getHostOverrides() || dc.getHostOverrides().size() == 0));
+
+    // setup a host that also has a config override
+    Host host = clusters.getHost("h1");
+    host.addDesiredConfig(c1.getClusterId(), null, config2);
+
+    desiredConfigs = c1.getDesiredConfigs();
+    dc = desiredConfigs.get(config1.getType());
+    
+    Assert.assertNotNull("Expect host-level overrides", dc.getHostOverrides());
+    Assert.assertEquals("Expect one host-level override", 1, dc.getHostOverrides().size());
   }
   
   public ClusterEntity createDummyData() {

@@ -17,6 +17,9 @@
  */
 package org.apache.ambari.server.state;
 
+import java.util.Arrays;
+import java.util.List;
+
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -33,7 +36,13 @@ public class DesiredConfigTest {
     
     Assert.assertEquals("Expected service 'service'", "service", dc.getServiceName());
     Assert.assertEquals("Expected version 'global'", "global", dc.getVersion());
+    Assert.assertNull("Expected null host overrides", dc.getHostOverrides());
     
+    List<String> hosts = Arrays.asList("h1", "h2", "h3");
+    dc.setHostOverrides(hosts);
+    
+    Assert.assertNotNull("Expected host overrides to be set", dc.getHostOverrides());
+    Assert.assertEquals("Expected host override equality", hosts, dc.getHostOverrides());
   }
   
 }

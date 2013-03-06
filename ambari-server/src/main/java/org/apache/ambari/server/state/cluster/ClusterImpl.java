@@ -32,21 +32,26 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
+import javax.persistence.RollbackException;
+
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.ServiceComponentHostNotFoundException;
 import org.apache.ambari.server.ServiceNotFoundException;
 import org.apache.ambari.server.controller.ClusterResponse;
 import org.apache.ambari.server.orm.dao.ClusterDAO;
 import org.apache.ambari.server.orm.dao.ClusterStateDAO;
+import org.apache.ambari.server.orm.dao.HostConfigMappingDAO;
 import org.apache.ambari.server.orm.entities.ClusterConfigEntity;
 import org.apache.ambari.server.orm.entities.ClusterConfigMappingEntity;
 import org.apache.ambari.server.orm.entities.ClusterEntity;
 import org.apache.ambari.server.orm.entities.ClusterServiceEntity;
 import org.apache.ambari.server.orm.entities.ClusterStateEntity;
+import org.apache.ambari.server.orm.entities.HostConfigMappingEntity;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Config;
 import org.apache.ambari.server.state.ConfigFactory;
+import org.apache.ambari.server.state.DesiredConfig;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceComponent;
 import org.apache.ambari.server.state.ServiceComponentHost;
@@ -60,8 +65,6 @@ import com.google.inject.Inject;
 import com.google.inject.Injector;
 import com.google.inject.assistedinject.Assisted;
 import com.google.inject.persist.Transactional;
-
-import javax.persistence.RollbackException;
 
 public class ClusterImpl implements Cluster {
 
@@ -102,15 +105,15 @@ public class ClusterImpl implements Cluster {
   private ClusterDAO clusterDAO;
   @Inject
   private ClusterStateDAO clusterStateDAO;
-//  @Inject
-//  private ClusterServiceDAO clusterServiceDAO;
   @Inject
   private ServiceFactory serviceFactory;
   @Inject
   private ConfigFactory configFactory;
   @Inject
   private Gson gson;
-  
+  @Inject
+  private HostConfigMappingDAO hostConfigMappingDAO;
+
   private volatile boolean svcHostsLoaded = false;
 
   @Inject
@@ -139,8 +142,8 @@ public class ClusterImpl implements Cluster {
       }
     }
   }
-  
-  
+
+
   /**
    * Make sure we load all the service host components.
    * We need this for live status checks.
@@ -549,7 +552,7 @@ public class ClusterImpl implements Cluster {
       readWriteLock.writeLock().unlock();
     }
   }
-  
+
   public Collection<Config> getAllConfigs() {
     readWriteLock.readLock().lock();
     try {
@@ -573,6 +576,7 @@ public class ClusterImpl implements Cluster {
       ClusterResponse r = new ClusterResponse(getClusterId(), getClusterName(),
           clusters.getHostsForCluster(getClusterName()).keySet(),
           getDesiredStackVersion().getStackId());
+
       return r;
     } finally {
       readWriteLock.readLock().unlock();
@@ -703,22 +707,25 @@ public class ClusterImpl implements Cluster {
   protected void removeEntities() throws AmbariException {
     clusterDAO.removeByPK(getClusterId());
   }
-  
+
   @Override
   public void addDesiredConfig(Config config) {
-    
+
     Config currentDesired = getDesiredConfigByType(config.getType());
-    
+
     // do not set if it is already the current
     if (null != currentDesired && currentDesired.getVersionTag().equals(config.getVersionTag())) {
       return;
     }
 
-    for (ClusterConfigMappingEntity e : clusterEntity.getConfigMappingEntities()) {
-      if (e.isSelected() > 0 && e.getType().equals(config.getType()))
-        e.setSelected(0);
-    }
+    Collection<ClusterConfigMappingEntity> entities = clusterEntity.getConfigMappingEntities();
     
+    for (ClusterConfigMappingEntity e : entities) {
+      if (e.isSelected() > 0 && e.getType().equals(config.getType())) {
+        e.setSelected(0);
+      }
+    }
+
     ClusterConfigMappingEntity entity = new ClusterConfigMappingEntity();
     entity.setClusterEntity(clusterEntity);
     entity.setClusterId(clusterEntity.getClusterId());
@@ -726,22 +733,54 @@ public class ClusterImpl implements Cluster {
     entity.setSelected(1);
     entity.setType(config.getType());
     entity.setVersion(config.getVersionTag());
-    clusterEntity.getConfigMappingEntities().add(entity);
+    entities.add(entity);
     
+    clusterEntity.setConfigMappingEntities(entities);
+
     clusterDAO.merge(clusterEntity);
-    
+
   }
-  
+
+  @Override
+  public Map<String, DesiredConfig> getDesiredConfigs() {
+    Map<String, DesiredConfig> map = new HashMap<String, DesiredConfig>();
+
+    for (ClusterConfigMappingEntity e : clusterEntity.getConfigMappingEntities()) {
+      if (e.isSelected() > 0) {
+        DesiredConfig c = new DesiredConfig();
+        c.setServiceName(null);
+        c.setVersion(e.getVersion());
+
+        List<HostConfigMappingEntity> hostMappings =
+            hostConfigMappingDAO.findSelectedHostsByType(clusterEntity.getClusterId().longValue(),
+                e.getType());
+
+        List<String> hosts = new ArrayList<String>();
+        for (HostConfigMappingEntity mappingEntity : hostMappings) {
+          hosts.add (mappingEntity.getHostName());
+        }
+
+        c.setHostOverrides(hosts);
+
+        map.put(e.getType(), c);
+
+      }
+    }
+
+    return map;
+  }
+
+
   @Override
   public Config getDesiredConfigByType(String configType) {
-    
+
     for (ClusterConfigMappingEntity e : clusterEntity.getConfigMappingEntities()) {
       if (e.isSelected() > 0 && e.getType().equals(configType)) {
         return getConfig(e.getType(), e.getVersion());
       }
-    }    
-    
+    }
+
     return null;
   }
-  
+
 }

@@ -79,8 +79,7 @@ public interface Cluster {
    * @param stackVersion
    */
   public void setDesiredStackVersion(StackId stackVersion);
-  
-  
+
   /**
    * Get current stack version
    * @return
@@ -97,7 +96,7 @@ public interface Cluster {
    * Gets all configs that match the specified type.  Result is not the
    * DESIRED configuration for a cluster.
    * @param configType  the config type to return
-   * @return  a map of configuration objects that have been set for the given type 
+   * @return  a map of configuration objects that have been set for the given type
    */
   public Map<String, Config> getConfigsByType(String configType);
 
@@ -123,14 +122,14 @@ public interface Cluster {
    * @return  the collection of all configs that have been defined.
    */
   public Collection<Config> getAllConfigs();
-  
+
   /**
    * Adds and sets a DESIRED configuration to be applied to a cluster.  There
    * can be only one selected config per type.
    * @param config  the {@link Config} object to set as desired
    */
   public void addDesiredConfig(Config config);
-  
+
   /**
    * Gets the desired (and selected) config by type.
    * @param configType  the type of configuration
@@ -138,7 +137,13 @@ public interface Cluster {
    * not been set.
    */
   public Config getDesiredConfigByType(String configType);
-  
+
+  /**
+   * Gets the desired configurations for the cluster.
+   * @return a map of type-to-configuration information.
+   */
+  public Map<String, DesiredConfig> getDesiredConfigs();
+
 
   /**
    * Creates a cluster response based on the current cluster definition
@@ -190,4 +195,5 @@ public interface Cluster {
    * @throws AmbariException
    */
   Service addService(String serviceName) throws AmbariException;
+
 }

@@ -18,7 +18,10 @@
 
 package org.apache.ambari.server.controller;
 
+import java.util.Map;
 import java.util.Set;
+
+import org.apache.ambari.server.state.DesiredConfig;
 
 public class ClusterResponse {
 
@@ -29,6 +32,8 @@ public class ClusterResponse {
   private final Set<String> hostNames;
 
   private final String desiredStackVersion;
+
+  private Map<String, DesiredConfig> desiredConfigs;
 
   public ClusterResponse(Long clusterId, String clusterName,
       Set<String> hostNames, String desiredStackVersion) {
@@ -113,6 +118,20 @@ public class ClusterResponse {
    */
   public String getDesiredStackVersion() {
     return desiredStackVersion;
+  }
+
+  /**
+   * @param desiredConfigs
+   */
+  public void setDesiredConfigs(Map<String, DesiredConfig> configs) {
+    desiredConfigs = configs;
+  }
+
+  /**
+   * @return the desired configs
+   */
+  public Map<String, DesiredConfig> getDesiredConfigs() {
+    return desiredConfigs;
   }
 
 }
