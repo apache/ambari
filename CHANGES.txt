@@ -12,6 +12,8 @@ Trunk (unreleased changes):
 
  NEW FEATURES
 
+ AMBARI-1568. Update the version of ambari artifacts to 1.3.0 snapshot (ncole)
+
  AMBARI-1563. API Support:  Host-component resource should include its current 
  HA active/passive status. (Sumit Mohanty via swagle)
 
