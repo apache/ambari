@@ -428,6 +428,8 @@ Trunk (unreleased changes):
 
  BUG FIXES
 
+ AMBARI-1552. Missing translations on Dashboard. (Xi Wang via yusaku)
+
  AMBARI-1549. Cluster name displayed incorrectly in the top nav. (Xi Wang
  via yusaku) 
 
