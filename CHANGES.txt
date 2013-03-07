@@ -426,6 +426,9 @@ Trunk (unreleased changes):
 
  BUG FIXES
 
+ AMBARI-1575. Service should be shown red when any of its master component 
+ is in START_FAILED status. (jaimin)
+
  AMBARI-1565. Ambari server throws EntityExistsException on transitioning 
  from INIT to INSTALLED state. (Sumit Mohanty via swagle)
 
