@@ -235,6 +235,7 @@ h1 {
 }
 
 .arrow-right {
+  cursor: pointer;
   display: inline-block;
   margin: 0 0 20px 70px;
   border-top: 70px solid transparent;
@@ -243,6 +244,7 @@ h1 {
 }
 
 .arrow-left {
+  cursor: pointer;
   display: inline-block;
   margin: 0 -10px 20px 3px;
   border-top: 70px solid transparent;
@@ -357,9 +359,11 @@ h1 {
       margin-bottom: 0;
     }
   }
-  #step4, #step6 {
+  #step4, #step5, #step6 {
     a.selected {
       color: #333;
+      cursor: default;
+      text-decoration: none !important;
     }
     a.deselected {
     }
@@ -410,17 +414,6 @@ h1 {
   }
   .btn-area {
     margin-top: 30px;
-  }
-  .service {
-    .item {
-      line-height: 30px;
-      i {
-        font-size: 20px;
-      }
-    }
-    .row {
-      margin-left: 0;
-    }
   }
 }
 
@@ -645,7 +638,8 @@ a:focus {
 /*90% width modal window start*/
 .full-width-modal {
   .modal {
-
+    width: 90%;
+    margin: -350px 0 0 -45%;
   }
 
   .clear {
@@ -675,7 +669,6 @@ a:focus {
 
 /*60% width modal window start*/
 .sixty-percent-width-modal {
-
   .modal {
     width: 60%;
     margin: 0 0 0 -30%;
@@ -1461,23 +1454,28 @@ table.graphs {
 
   .health-status-HEALTHY{
     background-image: @status-live-marker;
-    .status-dot-position;
+    background-repeat:no-repeat;
+    background-position:center;
   }
   .health-status-LIVE {
     background-image: @status-live-marker;
-    .status-dot-position;
+    background-repeat:no-repeat;
+    background-position:center;
   }
   .health-status-DEAD-RED {
     background-image: @status-dead-red-marker;
-    .status-dot-position;
+    background-repeat:no-repeat;
+    background-position:center;
   }
   .health-status-DEAD-ORANGE {
     background-image: @status-dead-orange-marker;
-    .status-dot-position;
+    background-repeat:no-repeat;
+    background-position:center;
   }
   .health-status-DEAD-YELLOW {
     background-image: @status-dead-yellow-marker;
-    .status-dot-position;
+    background-repeat:no-repeat;
+    background-position:center;
   }
   .host-name-search {
     position: relative;
@@ -1500,14 +1498,16 @@ table.graphs {
       float: right;
     }
     .health-status-bar {
-      font-size: 14px;
-      margin-left: 0;
-      width: 650px;
-      .active a {
+      float: left;
+      font-size: 13px;
+      height: 45px;
+      position: relative;
+      top: 10px;
+      left: 10px;
+      .active a{
         text-decoration: none;
         color: #000000;
       }
-
     }
   }
   .progress {
@@ -1532,9 +1532,9 @@ table.graphs {
     }
     td.first span {
       display: block;
-      float: right;
+      float: left;
       height: 13px;
-      margin: 5px 0 0 0;
+      margin: 4px 5px 0 0;
       width: 13px;
     }
     ul.filter-components {
@@ -2010,10 +2010,21 @@ ul.filter {
 
 #main-admin-menu {
   padding: 8px 0;
-  ul {
-    margin-bottom: 0;
+  .nav-list {
+    .tab-marker-position {
+      background-position: 6px 5px;
+      background-repeat: no-repeat;
+      list-style: none;
+      float: left;
+      height: 20px;
+      width: 20px;
+      margin-left: 0;
+    }
     li {
       line-height: 24px;
+      a {
+        padding: 3px 20px;
+      }
     }
   }
 }
@@ -2680,15 +2691,6 @@ i.icon-asterisks {
 
 //styles for screen width more than 1200px
 @media (min-width: 1200px) {
-
-  //when screen is wide, the modal width is fixed
-  .full-width-modal {
-    .modal{
-      width: 1170px;
-      margin: -350px 0 0 -583px;
-    }
-  }
-
   .row {
     margin-left: -30px;
     *zoom: 1;

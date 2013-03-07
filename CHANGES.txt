@@ -431,6 +431,9 @@ Trunk (unreleased changes):
 
  BUG FIXES
 
+ AMBARI-1579. Admin page side nav does not use the correct style and does
+ not highlight selection. (yusaku)
+
  AMBARI-1552. Missing translations on Dashboard. (Xi Wang via yusaku)
 
  AMBARI-1549. Cluster name displayed incorrectly in the top nav. (Xi Wang

@@ -88,6 +88,7 @@ Em.I18n.translations = {
   'common.servers':'Servers',
   'common.clients':'Clients',
   'common.user': 'User',
+  'common.users': 'Users',
   'common.os':'OS',
   'common.memory':'Memory',
   'common.maximum':'Maximum',
@@ -108,7 +109,8 @@ Em.I18n.translations = {
   'common.search': 'Search',
   'common.confirm': 'Confirm',
   'common.upgrade': 'Upgrade',
-  'common.done': 'Done',
+  'common.security':'Security',
+  'common.cluster':'Cluster',
 
   'question.sure':'Are you sure {0}?',
 

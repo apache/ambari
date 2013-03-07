@@ -20,13 +20,30 @@ var App = require('app');
 
 App.MainAdminView = Em.View.extend({
   templateName: require('templates/main/admin'),
-  selectedBinding: 'controller.selected',
+  selectedBinding: 'controller.category',
+  categories: [
+    {
+      name: 'user',
+      url: 'adminUser',
+      label: Em.I18n.t('common.users')
+    },
+    {
+      name: 'security',
+      url: 'adminSecurity.index',
+      label: Em.I18n.t('common.security')
+    },
+    {
+      name: 'cluster',
+      url: 'adminCluster',
+      label: Em.I18n.t('common.cluster')
+    }
+  ],
   NavItemView: Ember.View.extend({
     tagName: 'li',
     classNameBindings: 'isActive:active'.w(),
     isActive: function () {
       return this.get('item') === this.get('parentView.selected');
-    }.property('item', 'parentView.selected').cacheable()
+    }.property('item', 'parentView.selected')
   })
 });
 

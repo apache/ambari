@@ -366,9 +366,9 @@ module.exports = Em.Route.extend({
     },
 
     //events
-    goToAdminUser: Em.Router.transitionTo('adminUser'),
-    goToAdminSecurity: Em.Router.transitionTo('adminSecurity.index'),
-    goToAdminCluster: Em.Router.transitionTo('adminCluster')
+    goToAdmin: function(router, event) {
+      router.transitionTo(event.context);
+    }
 
   }),
   stackUpgrade: require('routes/stack_upgrade'),
