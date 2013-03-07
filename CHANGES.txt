@@ -428,6 +428,9 @@ Trunk (unreleased changes):
 
  BUG FIXES
 
+ AMBARI-1549. Cluster name displayed incorrectly in the top nav. (Xi Wang
+ via yusaku) 
+
  AMBARI-1559. Jobs failed count always returns 0 in the jobtracker API metrics.
  (tbeerbower)
 

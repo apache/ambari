@@ -24,13 +24,13 @@ App.ApplicationController = Em.Controller.extend({
   name: 'applicationController',
 
   clusterName: function () {
-    return (App.router.get('clusterController.clusterName') || 'My Cluster').capitalize();
+    return (App.router.get('clusterController.clusterName') || 'My Cluster');
   }.property('App.router.clusterController.clusterName'),
 
   clusterDisplayName: function () {
     var name = this.get('clusterName');
     var displayName = name.length > 13 ? name.substr(0, 10) + "..." : name;
-    return displayName.capitalize();
+    return displayName;
   }.property('clusterName'),
 
   isClusterDataLoaded: function() {
