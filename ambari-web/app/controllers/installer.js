@@ -177,74 +177,41 @@ App.InstallerController = App.WizardController.extend({
   saveSlaveComponentHosts: function (stepController) {
 
     var hosts = stepController.get('hosts');
-    var isMrSelected = stepController.get('isMrSelected');
-    var isHbSelected = stepController.get('isHbSelected');
+    var headers = stepController.get('headers');
 
-    var dataNodeHosts = [];
-    var taskTrackerHosts = [];
-    var regionServerHosts = [];
-    var clientHosts = [];
+    var formattedHosts = Ember.Object.create();
+    headers.forEach(function(header) {
+      formattedHosts.set(header.get('name'), []);
+    });
 
     hosts.forEach(function (host) {
-      if (host.get('isDataNode')) {
-        dataNodeHosts.push({
-          hostName: host.hostName,
-          group: 'Default',
-          isInstalled: false
-        });
-      }
-      if (isMrSelected && host.get('isTaskTracker')) {
-        taskTrackerHosts.push({
-          hostName: host.hostName,
-          group: 'Default',
-          isInstalled: false
-        });
-      }
-      if (isHbSelected && host.get('isRegionServer')) {
-        regionServerHosts.push({
-          hostName: host.hostName,
-          group: 'Default',
-          isInstalled: false
-        });
-      }
-      if (host.get('isClient')) {
-        clientHosts.pushObject({
-          hostName: host.hostName,
-          group: 'Default',
-          isInstalled: false
-        });
-      }
-    }, this);
+
+      var checkboxes = host.get('checkboxes');
+      headers.forEach(function(header) {
+        var cb = checkboxes.findProperty('title', header.get('label'));
+        if (cb.get('checked')) {
+          formattedHosts.get(header.get('name')).push({
+            hostName: host.hostName,
+            group: 'Default',
+            isInstalled: cb.get('installed')
+          });
+        }
+      });
+    });
 
     var slaveComponentHosts = [];
-    slaveComponentHosts.push({
-      componentName: 'DATANODE',
-      displayName: 'DataNode',
-      hosts: dataNodeHosts
-    });
-    if (isMrSelected) {
+
+    headers.forEach(function(header) {
       slaveComponentHosts.push({
-        componentName: 'TASKTRACKER',
-        displayName: 'TaskTracker',
-        hosts: taskTrackerHosts
+        componentName: header.get('name'),
+        displayName: header.get('label').replace(/\s/g, ''),
+        hosts: formattedHosts.get(header.get('name'))
       });
-    }
-    if (isHbSelected) {
-      slaveComponentHosts.push({
-        componentName: 'HBASE_REGIONSERVER',
-        displayName: 'RegionServer',
-        hosts: regionServerHosts
-      });
-    }
-    slaveComponentHosts.pushObject({
-      componentName: 'CLIENT',
-      displayName: 'client',
-      hosts: clientHosts
     });
 
     App.db.setSlaveComponentHosts(slaveComponentHosts);
+    console.log('InstallerController.saveSlaveComponentHosts: saved hosts ', slaveComponentHosts);
     this.set('content.slaveComponentHosts', slaveComponentHosts);
-    console.log("InstallerController.saveSlaveComponentHosts: saved hosts ", slaveComponentHosts);
   },
 
   /**

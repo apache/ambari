@@ -23,7 +23,7 @@ App.AddHostController = App.WizardController.extend({
 
   name: 'addHostController',
 
-  totalSteps: 6,
+  totalSteps: 7,
 
   /**
    * Used for hiding back button in wizard
@@ -53,6 +53,8 @@ App.AddHostController = App.WizardController.extend({
     controllerName: 'addHostController',
     isWizard: true
   }),
+
+  components:require('data/service_components'),
 
   /**
    * return new object extended from clusterStatusTemplate
@@ -162,7 +164,9 @@ App.AddHostController = App.WizardController.extend({
     });
     this.set('content.services', servicesInfo);
     console.log('AddHostController.loadServices: loaded data ', servicesInfo);
-    console.log('selected services ', servicesInfo.filterProperty('isSelected', true).filterProperty('isDisabled', false).mapProperty('serviceName'));
+    var serviceNames = servicesInfo.filterProperty('isSelected', true).mapProperty('serviceName');
+    console.log('selected services ', serviceNames);
+    this.set('content.missMasterStep', !serviceNames.contains('HBASE') && !serviceNames.contains('ZOOKEEPER'));
   },
 
   /**
@@ -188,76 +192,79 @@ App.AddHostController = App.WizardController.extend({
   },
 
   /**
+   * Save HBase and ZooKeeper to main controller
+   * @param stepController
+   */
+  saveHbZk: function(stepController) {
+    var self = this;
+    var hosts = stepController.get('hosts');
+    var headers = stepController.get('headers');
+    var masterComponentHosts = App.db.getMasterComponentHosts();
+
+    headers.forEach(function(header) {
+      var rm = masterComponentHosts.filterProperty('component', header.get('name'));
+      if(rm) {
+        masterComponentHosts.removeObjects(rm);
+      }
+    });
+
+    headers.forEach(function(header) {
+      var component = self.get('components').findProperty('component_name', header.get('name'));
+      hosts.forEach(function(host) {
+        if (host.get('checkboxes').findProperty('title', component.display_name).checked) {
+          masterComponentHosts .push({
+            display_name: component.display_name,
+            component: component.component_name,
+            hostName: host.get('hostName'),
+            serviceId: component.service_name,
+            isInstalled: false
+          });
+        }
+      });
+    });
+
+    console.log("installerController.saveMasterComponentHosts: saved hosts ", masterComponentHosts);
+    App.db.setMasterComponentHosts(masterComponentHosts);
+    this.set('content.masterComponentHosts', masterComponentHosts);
+  },
+
+  /**
    * Save slaveHostComponents to main controller
    * @param stepController
    */
   saveSlaveComponentHosts: function (stepController) {
 
     var hosts = stepController.get('hosts');
-    var isMrSelected = stepController.get('isMrSelected');
-    var isHbSelected = stepController.get('isHbSelected');
+    var headers = stepController.get('headers');
 
-    var dataNodeHosts = [];
-    var taskTrackerHosts = [];
-    var regionServerHosts = [];
-    var clientHosts = [];
+    var formattedHosts = Ember.Object.create();
+    headers.forEach(function(header) {
+      formattedHosts.set(header.get('name'), []);
+    });
 
     hosts.forEach(function (host) {
 
-      if (host.get('isDataNode')) {
-        dataNodeHosts.push({
-          hostName: host.hostName,
-          group: 'Default',
-          isInstalled: host.get('isDataNodeInstalled')
-        });
-      }
-      if (isMrSelected && host.get('isTaskTracker')) {
-        taskTrackerHosts.push({
-          hostName: host.hostName,
-          group: 'Default',
-          isInstalled: host.get('isTaskTrackerInstalled')
-        });
-      }
-      if (isHbSelected && host.get('isRegionServer')) {
-        regionServerHosts.push({
-          hostName: host.hostName,
-          group: 'Default',
-          isInstalled: host.get('isRegionServerInstalled')
-        });
-      }
-      if (host.get('isClient')) {
-        clientHosts.pushObject({
-          hostName: host.hostName,
-          group: 'Default',
-          isInstalled: host.get('isClientInstalled')
-        });
-      }
-    }, this);
+      var checkboxes = host.get('checkboxes');
+      headers.forEach(function(header) {
+        var cb = checkboxes.findProperty('title', header.get('label'));
+        if (cb.get('checked')) {
+          formattedHosts.get(header.get('name')).push({
+            hostName: host.hostName,
+            group: 'Default',
+            isInstalled: cb.get('installed')
+          });
+        }
+      });
+    });
 
     var slaveComponentHosts = [];
-    slaveComponentHosts.push({
-      componentName: 'DATANODE',
-      displayName: 'DataNode',
-      hosts: dataNodeHosts
-    });
-    if (isMrSelected) {
+
+    headers.forEach(function(header) {
       slaveComponentHosts.push({
-        componentName: 'TASKTRACKER',
-        displayName: 'TaskTracker',
-        hosts: taskTrackerHosts
+        componentName: header.get('name'),
+        displayName: header.get('label').replace(/\s/g, ''),
+        hosts: formattedHosts.get(header.get('name'))
       });
-    }
-    if (isHbSelected) {
-      slaveComponentHosts.push({
-        componentName: 'HBASE_REGIONSERVER',
-        displayName: 'RegionServer',
-        hosts: regionServerHosts
-      });
-    }
-    slaveComponentHosts.pushObject({
-      componentName: 'CLIENT',
-      displayName: 'client',
-      hosts: clientHosts
     });
 
     App.db.setSlaveComponentHosts(slaveComponentHosts);
@@ -464,12 +471,13 @@ App.AddHostController = App.WizardController.extend({
   loadAllPriorSteps: function () {
     var step = this.get('currentStep');
     switch (step) {
+      case '9':
       case '8':
       case '7':
       case '6':
       case '5':
-      case '4':
         this.loadServiceConfigProperties();
+      case '4':
       case '3':
         this.loadClients();
         this.loadServices();

@@ -249,5 +249,13 @@ module.exports = new Ember.Set([
     isMaster: false,
     isClient: true,
     description: ''
+  },
+  {
+    service_name: 'CLIENT',
+    component_name: 'CLIENT',
+    display_name: 'Client',
+    isMaster: false,
+    isClient: true,
+    description: ''
   }
 ]);

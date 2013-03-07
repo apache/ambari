@@ -105,6 +105,9 @@ Trunk (unreleased changes):
 
  IMPROVEMENTS
 
+ AMBARI-1578. Add host wizard - support assignment of "ZooKeeper Server"
+ and "HBase Master". (yusaku)
+
  AMBARI-1546. Improve Cluster Management loading screen. (Xi Wang via yusaku)
 
  AMBARI-1537. Constrain the width of all wizard popups. (Xi Wang via yusaku)

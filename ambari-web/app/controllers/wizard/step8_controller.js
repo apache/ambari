@@ -494,7 +494,7 @@ App.WizardStep8Controller = Em.Controller.extend({
   },
 
   loadDnValue: function (dnComponent) {
-    var dnHosts = this.get('content.slaveComponentHosts').findProperty('displayName', 'DataNode');
+    var dnHosts = this.get('content.slaveComponentHosts').findProperty('displayName', 'Datanode');
     var totalDnHosts = dnHosts.hosts.length;
     /* var totalGroups = this.get('slaveComponentConfig.components').findProperty('componentName', 'DATANODE').groups.length;
      var groupLabel;
@@ -616,7 +616,7 @@ App.WizardStep8Controller = Em.Controller.extend({
   },
 
   loadRegionServerValue: function (rsComponent) {
-    var rsHosts = this.get('content.slaveComponentHosts').findProperty('displayName', 'RegionServer');
+    var rsHosts = this.get('content.slaveComponentHosts').findProperty('displayName', 'HBaseRegionServer');
     var totalRsHosts = rsHosts.hosts.length;
     /* var totalGroups = this.get('slaveComponentConfig.components').findProperty('componentName', 'HBASE_REGIONSERVER').groups.length;
      var groupLabel;

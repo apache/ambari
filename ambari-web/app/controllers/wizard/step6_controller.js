@@ -35,82 +35,60 @@ App.WizardStep6Controller = Em.Controller.extend({
 
   hosts: [],
 
+  headers: [],
+
+  /**
+   * true - assign ZK, HB
+   * false - slaves and clients
+   */
+  isMasters: false,
+
+  components:require('data/service_components'),
+
   isAddHostWizard: function(){
     return this.get('content.controllerName') === 'addHostController';
   }.property('content.controllerName'),
 
-  isAllDataNodes: function () {
-    return this.get('hosts').everyProperty('isDataNode', true);
-  }.property('hosts.@each.isDataNode'),
-
-  isAllTaskTrackers: function () {
-    return this.get('hosts').everyProperty('isTaskTracker', true);
-  }.property('hosts.@each.isTaskTracker'),
-
-  isAllRegionServers: function () {
-    return this.get('hosts').everyProperty('isRegionServer', true);
-  }.property('hosts.@each.isRegionServer'),
-
-  isAllClients: function () {
-    return this.get('hosts').everyProperty('isClient', true);
-  }.property('hosts.@each.isClient'),
-
-  isNoDataNodes: function () {
-    return this.get('hosts').everyProperty('isDataNode', false);
-  }.property('hosts.@each.isDataNode'),
-
-  isNoTaskTrackers: function () {
-    return this.get('hosts').everyProperty('isTaskTracker', false);
-  }.property('hosts.@each.isTaskTracker'),
-
-  isNoRegionServers: function () {
-    return this.get('hosts').everyProperty('isRegionServer', false);
-  }.property('hosts.@each.isRegionServer'),
-
-  isNoClients: function () {
-    return this.get('hosts').everyProperty('isClient', false);
-  }.property('hosts.@each.isClient'),
-
-  /**
-   * Return whether Hbase service was selected or not.
-   * Calculate this information on <code>content.services</code> variable
-   * @return Boolean
-   */
-  isHbSelected: function () {
-    return this.get('content.services').findProperty('serviceName', 'HBASE').get('isSelected');
-  }.property('content.services'),
-
-  /**
-   * Return whether MapReduce service was selected or not.
-   * Calculate this information on <code>content.services</code> variable
-   * @return Boolean
-   */
-  isMrSelected: function () {
-    return this.get('content.services').findProperty('serviceName', 'MAPREDUCE').get('isSelected');
-  }.property('content.services'),
-
   clearError: function () {
+    var self = this;
     var isError = false;
+    var err = true;
     var hosts = this.get('hosts');
-    if (this.get('isNoDataNodes') === false &&
-      (this.get('isNoTaskTrackers') === false || this.get('isMrSelected') === false) &&
-      (this.get('isNoRegionServers') === false || this.get('isHbSelected') === false) &&
-      this.get('isNoClients') === false) {
+    var headers = this.get('headers');
+    headers.forEach(function(header) {
+      var all_false = true;
+      hosts.forEach(function(host) {
+        var checkboxes = host.get('checkboxes');
+        all_false &= !checkboxes.findProperty('title', header.get('label')).checked;
+      });
+      err &= all_false;
+    });
+
+    if (!err) {
       this.set('errorMessage', '');
     }
-    if(this.get('isAddHostWizard')){
-      for(var i = 0; i < hosts.length; i++){
-        isError = !(hosts[i].get('isDataNode') || hosts[i].get('isClient')
-          || ( this.get('isMrSelected') && hosts[i].get('isTaskTracker'))
-          || ( this.get('isHbSelected') && hosts[i].get('isRegionServer')));
-        if (isError) {
-          break;
-        } else {
-          this.set('errorMessage', '');
-        }
+
+    if(this.get('isAddHostWizard')) {
+      if (this.get('isMasters')) {
+        this.set('errorMessage', '');
+      }
+      else {
+        hosts.forEach(function(host) {
+          isError = false;
+          headers.forEach(function(header) {
+            isError |= host.get('checkboxes').findProperty('title', header.get('label')).checked;
+          });
+          isError = !isError;
+          if (isError) {
+            return;
+          }
+          else {
+            self.set('errorMessage', '');
+          }
+        });
       }
     }
-  }.observes('isNoDataNodes', 'isNoTaskTrackers', 'isNoRegionServers', 'isNoClients'),
+  },
 
   /**
    * Check whether current host is currently selected as master
@@ -121,58 +99,141 @@ App.WizardStep6Controller = Em.Controller.extend({
     return this.get('content.masterComponentHosts').someProperty('hostName', hostName);
   },
 
-  selectAllDataNodes: function () {
-    var forFilter = this.get('hosts').filterProperty('isDataNodeInstalled', false);
-    forFilter.setEach('isDataNode', true);
-  },
-
-  selectAllTaskTrackers: function () {
-    var forFilter = this.get('hosts').filterProperty('isTaskTrackerInstalled', false);
-    forFilter.setEach('isTaskTracker', true);
-  },
-
-  selectAllRegionServers: function () {
-    var forFilter = this.get('hosts').filterProperty('isRegionServerInstalled', false);
-    forFilter.setEach('isRegionServer', true);
-  },
-
-  selectAllClients: function () {
-    var forFilter = this.get('hosts').filterProperty('isClientInstalled', false);
-    forFilter.setEach('isClient', true);
-  },
-
-  deselectAllDataNodes: function () {
-    var forFilter = this.get('hosts').filterProperty('isDataNodeInstalled', false);
-    forFilter.setEach('isDataNode', false);
-  },
-
-  deselectAllTaskTrackers: function () {
-    var forFilter = this.get('hosts').filterProperty('isTaskTrackerInstalled', false);
-    forFilter.setEach('isTaskTracker', false);
-  },
-
-  deselectAllRegionServers: function () {
-    var forFilter = this.get('hosts').filterProperty('isRegionServerInstalled', false);
-    forFilter.setEach('isRegionServer', false);
-  },
-
-  deselectAllClients: function () {
-    var forFilter = this.get('hosts').filterProperty('isClientInstalled', false);
-    forFilter.setEach('isClient', false);
-  },
-
   clearStep: function () {
     this.set('hosts', []);
+    this.set('headers', []);
     this.clearError();
   },
 
+  /**
+   * Enable some service for all hosts
+   * @param event
+   */
+  selectAllNodes: function(event) {
+    this.setAllNodes(event.context.label, true);
+  },
+
+  /**
+   * Disable some services for all hosts
+   * @param event
+   */
+  deselectAllNodes: function(event) {
+    this.setAllNodes(event.context.label, false);
+  },
+
+  /**
+   * Enable/disable some service for all hosts
+   * @param {String} label - service name
+   * @param {Boolean} checked - true - enable, false - disable
+   */
+  setAllNodes: function(label, checked) {
+    this.get('hosts').forEach(function(host) {
+      host.get('checkboxes').forEach(function(checkbox) {
+        if (checkbox.get('title') === label) {
+          checkbox.set('checked', checked);
+        }
+      });
+    });
+  },
+
+  /**
+   * Return whether service was selected or not
+   * @param name serviceName
+   * @return {*}
+   */
+  isServiceSelected: function(name) {
+    return this.get('content.services').findProperty('serviceName', name).get('isSelected');
+  },
+
+  /**
+   * Checkbox check callback
+   * @param {String} title
+   */
+  checkCallback: function(title) {
+
+    var header = this.get('headers').findProperty('label', title);
+    var hosts = this.get('hosts');
+    var allTrue = true;
+    var allFalse = true;
+    hosts.forEach(function(host) {
+      host.get('checkboxes').forEach(function(cb) {
+        if (cb.get('title') === title) {
+          allTrue &= cb.get('checked');
+          allFalse &= !cb.get('checked');
+        }
+      });
+    });
+    header.set('allChecked', allTrue);
+    header.set('noChecked', allFalse);
+    this.clearError();
+  },
+
+  getComponentDisplayName: function(componentName) {
+    return this.get('components').findProperty('component_name', componentName).display_name
+  },
+
   loadStep: function () {
+
+    var self = this;
+
     console.log("WizardStep6Controller: Loading step6: Assign Slaves");
     this.clearStep();
-    this.renderSlaveHosts();
 
-    if(this.get('content.missSlavesStep')){
-      App.router.send('next');
+    var headers = [];
+
+    if (this.get('isMasters')) {
+      if (this.isServiceSelected('HBASE')) {
+        headers.pushObject(Em.Object.create({
+          name: 'HBASE_MASTER',
+          label: self.getComponentDisplayName('HBASE_MASTER')
+        }));
+      }
+      if (this.isServiceSelected('ZOOKEEPER')) {
+        headers.pushObject(Em.Object.create({
+         name:'ZOOKEEPER_SERVER',
+         label: self.getComponentDisplayName('ZOOKEEPER_SERVER')
+       }));
+      }
+    }
+    else {
+      headers.pushObject(Ember.Object.create({
+        name: 'DATANODE',
+        label: self.getComponentDisplayName('DATANODE')
+      }));
+      if (this.isServiceSelected('MAPREDUCE')) {
+        headers.pushObject(Em.Object.create({
+          name:'TASKTRACKER',
+          label: self.getComponentDisplayName('TASKTRACKER')
+        }));
+      }
+      if (this.isServiceSelected('HBASE')) {
+        headers.pushObject(Em.Object.create({
+          name:'HBASE_REGIONSERVER',
+          label: self.getComponentDisplayName('HBASE_REGIONSERVER')
+        }));
+      }
+      headers.pushObject(Ember.Object.create({
+        name: 'CLIENT',
+        label: self.getComponentDisplayName('CLIENT')
+      }));
+    }
+
+    headers.forEach(function(header) {
+      header.setProperties({ allChecked: false, noChecked: true });
+    });
+
+    this.get('headers').pushObjects(headers);
+
+    this.render();
+    if (this.get('isMasters')) {
+      if(this.get('content.missMasterStep')) {
+        App.router.send('next');
+      }
+    }
+    else {
+      if(this.get('content.missSlavesStep')) {
+        App.router.send('next');
+      }
     }
   },
 
@@ -195,113 +256,101 @@ App.WizardStep6Controller = Em.Controller.extend({
    * Load all data needed for this module. Then it automatically renders in template
    * @return {Ember.Set}
    */
-  renderSlaveHosts: function () {
+  render: function () {
     var hostsObj = Em.Set.create();
     var allHosts = this.getHostNames();
-    // TODO - Hard coding should be removed.
-    var maxNoofHostComponents = 11;
-    var slaveComponents = this.get('content.slaveComponentHosts');
 
+    var self = this;
     allHosts.forEach(function (_hostName) {
-      hostsObj.push(Em.Object.create({
+
+      var obj = Em.Object.create({
         hostName: _hostName,
         isMaster: false,
-        isDataNode: false,
-        isTaskTracker: false,
-        isRegionServer: false,
-        isClient: false,
-        isDataNodeInstalled: false,
-        isTaskTrackerInstalled: false,
-        isRegionServerInstalled: false,
-        isClientInstalled: false
-      }));
-    });
-
-    if (!slaveComponents) { // we are at this page for the first time
-      if (allHosts.length > 3) {             //multiple nodes scenario
-        hostsObj.forEach(function (host) {
-          host.isMaster = this.hasMasterComponents(host.hostName);
-          host.isDataNode = host.isTaskTracker
-            = host.isRegionServer = !host.isMaster;
-        }, this);
-
-        if (hostsObj.someProperty('isDataNode', true)) {
-          hostsObj.findProperty('isDataNode', true).set('isClient', true);
-        }
-      } else {
-        var masterObj = {
-          host: null,
-          masterComponents: maxNoofHostComponents
-        };
-        hostsObj.forEach(function (host) {
-          host.isMaster = this.hasMasterComponents(host.hostName);
-          var countMasterComp = this.getMasterComponentsForHost(host.hostName).length;
-          if (countMasterComp <= masterObj.masterComponents) {
-            masterObj.masterComponents = countMasterComp;
-            masterObj.host = host;
-          }
-        }, this);
-        masterObj.host.set('isClient', true);
-        masterObj.host.set('isDataNode', true);
-        masterObj.host.set('isTaskTracker', true);
-        masterObj.host.set('isRegionServer', true);
-
-      }
-
-    } else {
-
-      var dataNodes = slaveComponents.findProperty('componentName', 'DATANODE');
-      dataNodes.hosts.forEach(function (_dataNode) {
-        var dataNode = hostsObj.findProperty('hostName', _dataNode.hostName);
-        if (dataNode) {
-          dataNode.set('isDataNode', true);
-          dataNode.set('isDataNodeInstalled', _dataNode.isInstalled);
-        }
+        checkboxes: []
       });
 
-      if (this.get('isMrSelected')) {
-        var taskTrackers = slaveComponents.findProperty('componentName', 'TASKTRACKER');
-        taskTrackers.hosts.forEach(function (_taskTracker) {
-          var taskTracker = hostsObj.findProperty('hostName', _taskTracker.hostName);
-          if (taskTracker) {
-            taskTracker.set('isTaskTracker', true);
-            taskTracker.set('isTaskTrackerInstalled', _taskTracker.isInstalled);
-          }
-        });
-      }
+      self.get('headers').forEach(function(header) {
+        obj.checkboxes.pushObject(Em.Object.create({
+          title: header.label,
+          checked: false,
+          installed: false
+        }));
+      });
 
-      if (this.get('isHbSelected')) {
-        var regionServers = slaveComponents.findProperty('componentName', 'HBASE_REGIONSERVER');
-        regionServers.hosts.forEach(function (_regionServer) {
-          var regionServer = hostsObj.findProperty('hostName', _regionServer.hostName);
-          if (regionServer) {
-            regionServer.set('isRegionServer', true);
-            regionServer.set('isRegionServerInstalled', _regionServer.isInstalled);
-          }
-        });
-      }
+      hostsObj.push(obj);
+    });
 
-      var clients = slaveComponents.findProperty('componentName', 'CLIENT');
-      clients.hosts.forEach(function (_client) {
-        var client = hostsObj.findProperty('hostName', _client.hostName);
-        if (client) {
-          client.set('isClient', true);
-          client.set('isClientInstalled', _client.isInstalled);
-        }
+    if (this.get('isMasters')) {
+      hostsObj = this.renderMasters(hostsObj);
+    }
+    else {
+      hostsObj = this.renderSlaves(hostsObj);
+    }
+
+    hostsObj.forEach(function (host) {
+      this.get('hosts').pushObject(host);
+    }, this);
+    this.get('headers').forEach(function(header) {
+      self.checkCallback(header.get('label'));
+    });
+  },
+
+  /**
+   *
+   * @param hostsObj
+   * @return {*}
+   */
+  renderSlaves: function(hostsObj) {
+    var allHosts = this.getHostNames();
+    var slaveComponents = this.get('content.slaveComponentHosts');
+    if (!slaveComponents) { // we are at this page for the first time
+      hostsObj.forEach(function(host) {
+        host.isMaster = this.hasMasterComponents(host.hostName);
       }, this);
-
+    }
+    else {
+      this.get('headers').forEach(function(header) {
+        var nodes = slaveComponents.findProperty('componentName', header.get('name'));
+        if (nodes) {
+          nodes.hosts.forEach(function (_node) {
+            var node = hostsObj.findProperty('hostName', _node.hostName);
+            if (node) {
+              node.get('checkboxes').findProperty('title', header.get('label')).set('checked', true);
+              node.get('checkboxes').findProperty('title', header.get('label')).set('installed', _node.isInstalled);
+            }
+          });
+        }
+      });
       allHosts.forEach(function (_hostname) {
         var host = hostsObj.findProperty('hostName', _hostname);
         if (host) {
           host.set('isMaster', this.hasMasterComponents(_hostname));
         }
       }, this);
+    }
+    return hostsObj;
+  },
 
+  /**
+   *
+   * @param hostsObj
+   * @return {*}
+   */
+  renderMasters: function(hostsObj) {
+    var self = this;
+    var masterComponentHosts = this.get('content.masterComponentHosts');
+    console.warn('masterComponentHosts', masterComponentHosts);
+
+    if (masterComponentHosts) {
+      masterComponentHosts.forEach(function(item) {
+        var host = hostsObj.findProperty('hostName', item.hostName);
+        if (host) {
+          host.get('checkboxes').findProperty('title', item.display_name).set('checked', true);
+        }
+      });
     }
 
-    hostsObj.forEach(function (host) {
-      this.get('hosts').pushObject(host);
-    }, this);
+    return hostsObj;
   },
 
   /**
@@ -321,22 +370,33 @@ App.WizardStep6Controller = Em.Controller.extend({
   validate: function () {
     var isError = false;
     var hosts = this.get('hosts');
-    if(this.get('isAddHostWizard')){
-      for(var i = 0; i < hosts.length; i++){
-        isError = !(hosts[i].get('isDataNode') || hosts[i].get('isClient')
-          || ( this.get('isMrSelected') && hosts[i].get('isTaskTracker'))
-          || ( this.get('isHbSelected') && hosts[i].get('isRegionServer')));
+    var headers = this.get('headers');
+    if(this.get('isAddHostWizard')) {
+      for(var i = 0; i < hosts.length; i++) {
+        var checkboxes = hosts[i].get('checkboxes');
+        isError = false;
+        headers.forEach(function(header) {
+          isError |= checkboxes.findProperty('title', header.get('label')).checked;
+        });
+        isError = !isError;
         if (isError) {
-          this.set('errorMessage', Ember.I18n.t('installer.step6.error.mustSelectOneForHost'));
+          this.set('errorMessage', Em.I18n.t('installer.step6.error.mustSelectOneForHost'));
           break;
         }
       }
-    } else {
-      isError = this.get('isNoDataNodes') || this.get('isNoClients')
-        || ( this.get('isMrSelected') && this.get('isNoTaskTrackers'))
-        || ( this.get('isHbSelected') && this.get('isNoRegionServers'));
+    }
+    else {
+
+      headers.forEach(function(header) {
+        var all_false = true;
+        hosts.forEach(function(host) {
+          var checkboxes = host.get('checkboxes');
+          all_false = all_false && !checkboxes.findProperty('title', header.get('label')).checked;
+        });
+        isError = isError || all_false;
+      });
       if (isError) {
-        this.set('errorMessage', Ember.I18n.t('installer.step6.error.mustSelectOne'));
+        this.set('errorMessage', Em.I18n.t('installer.step6.error.mustSelectOne'));
       }
     }
 
