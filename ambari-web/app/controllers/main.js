@@ -34,8 +34,12 @@ App.MainController = Em.Controller.extend({
   }.observes('App.router.clusterController.clusterName'),
 
   isClusterDataLoaded: function(){
-      return App.router.get('clusterController.isLoaded');
+    return App.router.get('clusterController.isLoaded');
   }.property('App.router.clusterController.isLoaded'),
+
+  clusterDataLoadedPercent: function(){
+    return App.router.get('clusterController.clusterDataLoadedPercent');
+  }.property('App.router.clusterController.clusterDataLoadedPercent'),
   /**
    * run all processes and cluster's data loading
    */

@@ -17,14 +17,18 @@
 }}
 
 {{#if isClusterDataLoaded}}
-<div id="main-nav">
-  <div class="navbar">
-    <div class="navbar-inner">
-      {{view App.MainMenuView}}
+  <div id="main-nav">
+    <div class="navbar">
+      <div class="navbar-inner">
+        {{view App.MainMenuView}}
+      </div>
     </div>
   </div>
-</div>
-{{outlet}}
-{{else}}
-<h2>{{t app.loadingPlaceholder}}</h2>
+  {{outlet}}
 {{/if}}
+{{#unless isClusterDataLoaded}}
+  <h2>{{t app.loadingPlaceholder}} </h2>
+  <div class="progress progress-striped active">
+    <div class="bar" {{bindAttr style="controller.clusterDataLoadedPercent"}}></div>
+  </div>
+{{/unless}}

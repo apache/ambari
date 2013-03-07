@@ -22,6 +22,7 @@ App.ClusterController = Em.Controller.extend({
   name:'clusterController',
   cluster:null,
   isLoaded:false,
+  clusterDataLoadedPercent: 'width:0', // 0 to 1
   /**
    * Whether we need to update statuses automatically or not
    */
@@ -29,13 +30,19 @@ App.ClusterController = Em.Controller.extend({
   updateLoadStatus:function (item) {
     var loadList = this.get('dataLoadList');
     var loaded = true;
+    var numLoaded= 0;
     loadList.set(item, true);
     for (var i in loadList) {
       if (loadList.hasOwnProperty(i) && !loadList[i] && loaded) {
         loaded = false;
       }
+      // calculate the number of true
+      if (loadList.hasOwnProperty(i) && loadList[i]){
+        numLoaded++;
+      }
     }
     this.set('isLoaded', loaded);
+    this.set('clusterDataLoadedPercent', 'width:' + (Math.floor(numLoaded/6*100)).toString() + '%');
   },
 
   dataLoadList:Em.Object.create({
@@ -294,7 +301,7 @@ App.ClusterController = Em.Controller.extend({
         self.updateLoadStatus('cluster');
       }
     }, function (jqXHR, textStatus) {
-      self.updateLoadStatus('cluster');
+        self.updateLoadStatus('cluster');
     });
 
     App.HttpClient.get(hostsUrl, App.hostsMapper, {
@@ -302,7 +309,7 @@ App.ClusterController = Em.Controller.extend({
         self.updateLoadStatus('hosts');
       }
     }, function (jqXHR, textStatus) {
-      self.updateLoadStatus('hosts');
+        self.updateLoadStatus('hosts');
     });
 
     App.HttpClient.get(usersUrl, App.usersMapper, {
@@ -310,15 +317,15 @@ App.ClusterController = Em.Controller.extend({
         self.updateLoadStatus('users');
       }
     }, function (jqXHR, textStatus) {
-      self.updateLoadStatus('users');
+        self.updateLoadStatus('users');
     });
 
     App.router.get('updateController').updateServiceMetric(function(){
-      self.updateLoadStatus('services');
+        self.updateLoadStatus('services');
     }, true);
 
     this.loadAlerts(function(){
-      self.updateLoadStatus('alerts');
+        self.updateLoadStatus('alerts');
     });
 
   },
