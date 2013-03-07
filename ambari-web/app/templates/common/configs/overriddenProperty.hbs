@@ -21,6 +21,9 @@
     <div {{bindAttr class="overriddenSCP.errorMessage:error: :control-group :overrideField"}}>
       {{view overriddenSCP.viewClass serviceConfigBinding="overriddenSCP" categoryConfigsBinding="view.categoryConfigs"}}
       <a class="action" href="#" {{action showOverrideWindow overriddenSCP controller target="view" }} >{{overriddenSCP.selectedHostOptions.length}} hosts </a>
+      {{#if isNotDefaultValue}}
+        <a class="action" {{action "doRestoreDefaultValue" this target="view" }} ><i class="icon-undo"></i>Undo</a>
+      {{/if}}
       <a class="action" {{action "removeOverride" overriddenSCP target="view" }} ><i class="icon-minus-sign"></i>Remove</a>
       <span class="help-inline">{{overriddenSCP.errorMessage}}</span>
     </div>

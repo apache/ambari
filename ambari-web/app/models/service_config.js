@@ -45,6 +45,16 @@ App.ServiceConfigCategory = Ember.Object.extend({
    */
   displayName: null,
   slaveConfigs: null,
+  /**
+   * Each category might have a site-name associated (hdfs-site, core-site, etc.)
+   * and this will be used when determining which category a particular property 
+   * ends up in, based on its site.
+   */
+  siteFileName: null,
+  /**
+   * Can this category add new properties. Used for custom configurations.
+   */
+  canAddProperty: false,
   primaryName: function () {
     switch (this.get('name')) {
       case 'DataNode':
@@ -130,6 +140,7 @@ App.ServiceConfigProperty = Ember.Object.extend({
   parentSCP: null, // This is the main SCP which is overridden by this. Set only when isOriginalSCP is false. 
   selectedHostOptions : null, // contain array of hosts configured with overridden value
   overrides : null,
+  isUserProperty: null, // This property was added by user. Hence they get removal actions etc.
   /**
    * No override capabilities for fields which are not edtiable
    * and fields which represent master hosts.
@@ -143,13 +154,30 @@ App.ServiceConfigProperty = Ember.Object.extend({
     var overrides = this.get('overrides');
     return overrides != null;
   }.property('overrides'),
+  isRemovable: function() {
+    var isOriginalSCP = this.get('isOriginalSCP');
+    var isUserProperty = this.get('isUserProperty');
+    // Removable when this is a user property, or it is not an original property
+    return isUserProperty || !isOriginalSCP;
+  }.property('isUserProperty', 'isOriginalSCP'),
   init: function () {
     if (this.get('id') === 'puppet var') {
       this.set('value', this.get('defaultValue'));
     }
     // TODO: remove mock data
   },
-
+  
+  /**
+   * Indicates when value is not the default value.
+   * Returns false when there is no default value.
+   */
+  isNotDefaultValue: function () {
+    var value = this.get('value');
+    var dValue = this.get('defaultValue');
+    var isEditable = this.get('isEditable');
+    return isEditable && dValue != null && value !== dValue;
+  }.property('value', 'defaultValue', 'isEditable'),
+  
   initialValue: function () {
     var masterComponentHostsInDB = App.db.getMasterComponentHosts();
     //console.log("value in initialvalue: " + JSON.stringify(masterComponentHostsInDB));

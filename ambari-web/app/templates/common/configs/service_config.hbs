@@ -31,7 +31,7 @@
       </div>
 
 
-      {{#view App.ServiceConfigsByCategoryView categoryBinding="category" serviceConfigsBinding="selectedService.configs"}}
+      {{#view App.ServiceConfigsByCategoryView categoryBinding="category" serviceBinding="selectedService" serviceConfigsBinding="selectedService.configs"}}
         <form class="form-horizontal">
 
           {{#each view.categoryConfigs}}
@@ -47,6 +47,12 @@
                     {{#if isOverridable}}
                       <a class="action" {{action "createOverrideProperty" this target="view" }} ><i class="icon-plus-sign"></i>Exception</a>
                     {{/if}}
+                    {{#if isNotDefaultValue}}
+                      <a class="action" {{action "doRestoreDefaultValue" this target="view" }} ><i class="icon-undo"></i>Undo</a>
+                    {{/if}}
+                    {{#if isRemovable}}
+                      <a class="action" {{action "removeProperty" this target="view" }} ><i class="icon-minus-sign"></i>Remove</a>
+                    {{/if}}
                     <span class="help-inline">{{errorMessage}}</span>
                   </div>
                   {{#if this.isOverridden}}
@@ -58,7 +64,7 @@
           {{/each}}
 
           {{! For Advanced, Advanced Core Site, Advanced HDFS Site sections, show the 'Add Property' link.}}
-          {{# if category.isAdvanced }}
+          {{# if category.canAddProperty }}
             <div>
               <a href="#" {{action "showAddPropertyWindow" this target="view" }} >Add Property...</a>
             </div>

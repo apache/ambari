@@ -85,18 +85,77 @@ App.WizardStep7Controller = Em.Controller.extend({
       // for all services`
       this.get('stepConfigs').forEach(function (_content) {
         //for all components
+        
+        // Update existing values
+        var seenStoredConfigs = {};
         _content.get('configs').forEach(function (_config) {
-
           var componentVal = storedServices.findProperty('name', _config.get('name'));
           //if we have config for specified component
           if (componentVal) {
             //set it
+            seenStoredConfigs[componentVal.name] = 'true';
             _config.set('value', componentVal.value)
+            this.updateHostOverrides(_config, componentVal);
           }
-
+        }, this);
+        
+        // Create new values
+        var currentServiceStoredConfigs = storedServices.filterProperty('service', _content.serviceName);
+        currentServiceStoredConfigs.forEach(function (storedConfig) {
+          if(!(storedConfig.name in seenStoredConfigs)){
+            console.log("loadStep7(): New property from local storage: ", storedConfig);
+            // Determine category
+            var configCategory = 'Advanced';
+            var serviceConfigMetaData = serviceConfigs.findProperty('serviceName', _content.serviceName);
+            var categoryMetaData = serviceConfigMetaData == null ? null : serviceConfigMetaData.configCategories.findProperty('siteFileName', storedConfig.filename);
+            if (categoryMetaData != null) {
+              configCategory = categoryMetaData.get('name');
+            }
+            // Configuration data
+            var configData = {
+                id: storedConfig.id,
+                name: storedConfig.name,
+                displayName: storedConfig.name,
+                serviceName: _content.serviceName,
+                value: storedConfig.value,
+                defaultValue: storedConfig.defaultValue,
+                displayType: "advanced",
+                filename: storedConfig.filename,
+                category: configCategory,
+                isUserProperty: true
+            }
+            var serviceConfigProperty = App.ServiceConfigProperty.create(configData);
+            serviceConfigProperty.serviceConfig = _content;
+            serviceConfigProperty.initialValue();
+            this.updateHostOverrides(serviceConfigProperty, storedConfig);
+            _content.configs.pushObject(serviceConfigProperty);
+            serviceConfigProperty.validate();
+          }
         }, this);
       }, this);
-
+    }
+  },
+  
+  updateHostOverrides: function (configProperty, storedConfigProperty) {
+    if(storedConfigProperty.overrides!=null && storedConfigProperty.overrides.length>0){
+      var overrides = configProperty.get('overrides');
+      if (!overrides) {
+        overrides = []; 
+        configProperty.set('overrides', overrides);
+      }
+      storedConfigProperty.overrides.forEach(function(overrideEntry){
+        // create new override with new value
+        var newSCP = App.ServiceConfigProperty.create(configProperty);
+        newSCP.set('value', overrideEntry.value);
+        newSCP.set('isOriginalSCP', false); // indicated this is overridden value,
+        newSCP.set('parentSCP', configProperty);
+        var hostsArray = Ember.A([]);
+        overrideEntry.hosts.forEach(function(host){
+          hostsArray.push(host);
+        });
+        newSCP.set('selectedHostOptions', hostsArray);
+        overrides.pushObject(newSCP);
+      });
     }
   },
 
@@ -112,13 +171,12 @@ App.WizardStep7Controller = Em.Controller.extend({
           if (this.get('configMapping').someProperty('name', _config.name)) {
           } else if (!(service.configs.someProperty('name', _config.name))) {
             _config.id = "site property";
-            // ////_config.category = 'Advanced';
-            if (_config.filename === "core-site.xml")
-              _config.category = 'AdvancedCoreSite';
-            else if (_config.filename === "hdfs-site.xml")
-              _config.category = 'AdvancedHDFSSite';
-            else if (_config.filename === "mapred-site.xml")
-              _config.category = 'AdvancedMapredSite';
+            _config.category = 'Advanced';
+            var serviceConfigMetaData = this.get('serviceConfigs').findProperty('serviceName', this.get('content.serviceName'));
+            var categoryMetaData = serviceConfigMetaData == null ? null : serviceConfigMetaData.configCategories.findProperty('siteFileName', serviceConfigObj.filename);
+            if (categoryMetaData != null) {
+              _config.category = categoryMetaData.get('name');
+            }
             _config.displayName = _config.name;
             _config.defaultValue = _config.value;
             // make all advanced configs optional and populated by default
@@ -235,51 +293,6 @@ App.WizardStep7Controller = Em.Controller.extend({
     }, this);
   },
 
-  validateCustomConfig: function () {
-    var flag = true;
-    var serviceProperties = [];
-    this.get('stepConfigs').forEach(function (_serviceContent) {
-      var configProperties = _serviceContent.get('configs');
-      if (configProperties.someProperty('id', 'conf-site')) {
-        var serviceProperty = {};
-        serviceProperty.serviceName = _serviceContent.get("serviceName");
-        serviceProperty.siteProperties = [];
-        var customSite = configProperties.findProperty('id', 'conf-site');
-        var keyValue = customSite.value.split(/\n+/);
-        if (keyValue) {
-          keyValue.forEach(function (_keyValue) {
-            console.log("The value of the keyValue is: " + _keyValue.trim());
-            _keyValue = _keyValue.trim();
-            var key = _keyValue.match(/(.+)=/);
-            var value = _keyValue.match(/=(.*)/);
-            if (key) {
-              // Check that entered config is allowed to reconfigure
-              if (configProperties.someProperty('name', key[1]) || this.get('configMapping').someProperty('name', key[1])) {
-                var property = {
-                  siteProperty: key[1],
-                  displayNames: [],
-                  displayMsg: null
-                };
-                if (this.get('configMapping').someProperty('name', key[1])) {
-                  this.setPropertyDisplayNames(property.displayNames, this.get('configMapping').findProperty('name', key[1]).templateName, configProperties);
-                }
-                property.displayMsg = this.setDisplayMessage(property.siteProperty, property.displayNames);
-                serviceProperty.siteProperties.push(property);
-                flag = false;
-              }
-            }
-          }, this);
-        }
-        serviceProperties.push(serviceProperty);
-      }
-    }, this);
-    var result = {
-      flag: flag,
-      value: serviceProperties
-    };
-    return result;
-  },
-
   /**
    * @param: An array of display names
    */
@@ -370,15 +383,6 @@ App.WizardStep7Controller = Em.Controller.extend({
   submit: function () {
     if (!this.get('isSubmitDisabled')) {
       App.router.send('next');
-      /*
-       var result = {};
-       result = this.validateCustomConfig();
-       if (result.flag === true) {
-       App.router.send('next');
-       } else {
-       this.showCustomConfigErrMsg(result.value);
-       }
-       */
     }
   }, 
   
@@ -431,6 +435,7 @@ App.WizardStep7Controller = Em.Controller.extend({
     for ( var hostName in hosts) {
       var host = hosts[hostName];
       hostNameToHostMap[hostName] = App.Host.createRecord({
+        id: host.name,
         hostName: host.name,
         publicHostName: host.name,
         cpu: host.cpu,

@@ -105,6 +105,9 @@ Trunk (unreleased changes):
 
  IMPROVEMENTS
 
+ AMBARI-1542. Provide remove, restore default, and cancel actions for
+ service config properties. (srimanth via yusaku)
+
  AMBARI-1580. Stack Upgrade Wizard - resume upon page refresh / login.
  (yusaku)
 

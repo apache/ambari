@@ -22,6 +22,7 @@
     {{#if App.isAdmin}}
       <p class="pull-right">
         <!--<input class="btn btn-primary" type="button" value="Save" {{!bindAttr disabled="isSubmitDisabled"}} />-->
+        <a class="btn" {{action doCancel target="controller"}}>{{t common.cancel}}</a>
         <a class="btn btn-primary" {{bindAttr disabled="isSubmitDisabled"}}
           {{action restartServicePopup target="controller"}}>{{t common.save}}</a>
       </p>

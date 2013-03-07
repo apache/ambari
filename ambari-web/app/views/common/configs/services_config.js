@@ -40,6 +40,7 @@ App.ServiceConfigsByCategoryView = Ember.View.extend({
   content: null,
 
   category: null,
+  service: null,
   serviceConfigs: null, // General, Advanced, NameNode, SNameNode, DataNode, etc.
   // total number of
   // hosts (by
@@ -73,8 +74,9 @@ App.ServiceConfigsByCategoryView = Ember.View.extend({
     var serviceConfigObj = {
       name: '',
       value: '',
-      defaultValue: '',
-      filename: ''
+      defaultValue: null,
+      filename: '',
+      isUserProperty: true
     };
 
     var category = this.get('category');
@@ -83,23 +85,25 @@ App.ServiceConfigsByCategoryView = Ember.View.extend({
 
     var fileName = null;
 
-    if (category.get('name') === 'AdvancedCoreSite') {
-      serviceConfigObj.filename = "core-site.xml";
-    } else if (category.get('name') === 'AdvancedHDFSSite') {
-      serviceConfigObj.filename = "hdfs-site.xml";
-    } else if (category.get('name') === 'AdvancedMapredSite') {
-      serviceConfigObj.filename = "mapred-site.xml";
+    var serviceName = this.get('service.serviceName');
+    var serviceConfigsMetaData = require('data/service_configs');
+    var serviceConfigMetaData = serviceConfigsMetaData.findProperty('serviceName', serviceName);
+    var categoryMetaData = serviceConfigMetaData == null ? null : serviceConfigMetaData.configCategories.findProperty('name', category.get('name'));
+    if (categoryMetaData != null) {
+      serviceConfigObj.filename = categoryMetaData.siteFileName;
     }
-
+    
     var self = this;
     App.ModalPopup.show({
       // classNames: ['big-modal'],
-      classNames: [ 'sixty-percent-width-modal', 'arun' ],
+      classNames: [ 'sixty-percent-width-modal'],
       header: "Add Property",
-      primary: 'Save',
+      primary: 'Add',
       secondary: 'Cancel',
       onPrimary: function () {
         serviceConfigObj.displayName = serviceConfigObj.name;
+        serviceConfigObj.id = 'site property';
+        serviceConfigObj.serviceName = serviceName;
         var serviceConfigProperty = App.ServiceConfigProperty.create(serviceConfigObj);
         self.get('serviceConfigs').pushObject(serviceConfigProperty);
         this.hide();
@@ -116,10 +120,31 @@ App.ServiceConfigsByCategoryView = Ember.View.extend({
 
   },
   
+  /**
+   * Removes the top-level property from list of properties.
+   * Should be only called on user properties.
+   */
+  removeProperty: function (event) {
+    var serviceConfigProperty = event.contexts[0];
+    this.get('serviceConfigs').removeObject(serviceConfigProperty);
+  },
+  
+  /**
+   * Restores given property's value to be its default value.
+   * Does not update if there is no default value.
+   */
+  doRestoreDefaultValue: function (event) {
+    var serviceConfigProperty = event.contexts[0];
+    var value = serviceConfigProperty.get('value');
+    var dValue = serviceConfigProperty.get('defaultValue');
+    if (dValue != null) {
+      serviceConfigProperty.set('value', dValue);
+    }
+  },
+  
   createOverrideProperty: function (event) {
     var serviceConfigProperty = event.contexts[0];
     var self = this;
-    var arrayOfSelectedHosts = [];
     var newValue = '';
     var overrides = serviceConfigProperty.get('overrides');
     if (!overrides) {

@@ -269,7 +269,8 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
           name: index,
           value: properties[index],
           defaultValue: properties[index],
-          filename: _tag.siteName + ".xml"
+          filename: _tag.siteName + ".xml",
+          isUserProperty: false
         };
         if (this.get('configs').someProperty('name', index)) {
           var configProperty = this.get('configs').findProperty('name', index);
@@ -317,22 +318,33 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
           serviceConfigObj.options = this.get('configs').someProperty('name', index) ? this.get('configs').findProperty('name', index).options : null;
           globalConfigs.pushObject(serviceConfigObj);
         } else if (!this.get('configMapping').someProperty('name', index)) {
-          serviceConfigObj.id = 'site property';
-          serviceConfigObj.displayType = 'advanced';
-          serviceConfigObj.displayName = index;
-          serviceConfigObj.serviceName = this.get('content.serviceName');
-          if (advancedConfig.someProperty('name', index)) {
+        	if (advancedConfig.someProperty('name', index)) {
+            serviceConfigObj.id = 'site property';
+            serviceConfigObj.displayType = 'advanced';
+            serviceConfigObj.displayName = index;
+            serviceConfigObj.serviceName = this.get('content.serviceName');
+            serviceConfigObj.category = 'Advanced';
             if (advancedConfig.findProperty('name', index).filename) {
               serviceConfigObj.filename = advancedConfig.findProperty('name', index).filename;
             }
+            serviceConfigs.pushObject(serviceConfigObj);
+          } else {
+            var serviceConfigMetaData = this.get('serviceConfigs').findProperty('serviceName', this.get('content.serviceName'));
+          	var categoryMetaData = serviceConfigMetaData == null ? null : serviceConfigMetaData.configCategories.findProperty('siteFileName', serviceConfigObj.filename);
+          	if (categoryMetaData != null) {
+          	  serviceConfigObj.id = 'site property';
+          	  serviceConfigObj.category = categoryMetaData.get('name');
+          	  serviceConfigObj.serviceName = this.get('content.serviceName');
+          	  serviceConfigObj.displayName = index;
+          	  serviceConfigObj.displayType = 'advanced';
+          	  serviceConfigObj.isUserProperty = true;
+          	  serviceConfigs.pushObject(serviceConfigObj);
+          	} else {
+          	  serviceConfigObj.id = 'conf-site';
+            	serviceConfigObj.serviceName = this.get('content.serviceName');
+            	this.get('customConfig').pushObject(serviceConfigObj);
+          	}
           }
-          if (serviceConfigObj.filename === "core-site.xml")
-            serviceConfigObj.category = 'AdvancedCoreSite';
-          else if (serviceConfigObj.filename === "hdfs-site.xml")
-            serviceConfigObj.category = 'AdvancedHDFSSite';
-          else if (serviceConfigObj.filename === "mapred-site.xml")
-            serviceConfigObj.category = 'AdvancedMapredSite';
-          serviceConfigs.pushObject(serviceConfigObj);
         }
       }
     }, this);
@@ -1098,15 +1110,9 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
   
   getAllHosts: function () {
     return App.router.get('mainHostController.content');
-  }.property('App.router.mainHostController.content')
-
-});
-
-
-App.MainServiceSlaveComponentGroupsController = App.SlaveComponentGroupsController.extend({
-  name: 'mainServiceSlaveComponentGroupsController',
-  contentBinding: 'App.router.mainServiceInfoConfigsController.slaveComponentGroups',
-  stepConfigsBinding: 'App.router.mainServiceInfoConfigsController.stepConfigs',
-  serviceBinding: 'App.router.mainServiceInfoConfigsController.selectedService'
-
+  }.property('App.router.mainHostController.content'),
+  
+  doCancel: function () {
+    location.reload();
+  }
 });

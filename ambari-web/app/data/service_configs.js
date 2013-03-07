@@ -32,8 +32,8 @@ module.exports = [
       App.ServiceConfigCategory.create({ name: 'DataNode', displayName : 'DataNode'}),
       App.ServiceConfigCategory.create({ name: 'General', displayName : 'General'}),
       App.ServiceConfigCategory.create({ name: 'Advanced', displayName : 'Advanced'}),
-      App.ServiceConfigCategory.create({ name: 'AdvancedCoreSite', displayName : 'Advanced Core Site'}),
-      App.ServiceConfigCategory.create({ name: 'AdvancedHDFSSite', displayName : 'Advanced HDFS Site'})
+      App.ServiceConfigCategory.create({ name: 'AdvancedCoreSite', displayName : 'Custom core-site.xml', siteFileName: 'core-site.xml', canAddProperty: true}),
+      App.ServiceConfigCategory.create({ name: 'AdvancedHDFSSite', displayName : 'Custom hdfs-site.xml', siteFileName: 'hdfs-site.xml', canAddProperty: true})
     ],
     configs: configProperties.filterProperty('serviceName', 'HDFS')
   },
@@ -48,7 +48,7 @@ module.exports = [
       App.ServiceConfigCategory.create({ name: 'General', displayName : 'General'}),
       App.ServiceConfigCategory.create({ name: 'Advanced', displayName : 'Advanced'}),
       App.ServiceConfigCategory.create({ name: 'Capacity Scheduler', displayName : 'Capacity Scheduler'}),
-      App.ServiceConfigCategory.create({ name: 'AdvancedMapredSite', displayName : 'Advanced MapReduce Site'})
+      App.ServiceConfigCategory.create({ name: 'AdvancedMapredSite', displayName : 'Custom mapred-site.xml', siteFileName: 'mapred-site.xml', canAddProperty: true})
     ],
     configs: configProperties.filterProperty('serviceName', 'MAPREDUCE')
   },
@@ -59,7 +59,8 @@ module.exports = [
     filename: 'hive-site',
     configCategories: [
       App.ServiceConfigCategory.create({ name: 'Hive Metastore', displayName : 'Hive Metastore'}),
-      App.ServiceConfigCategory.create({ name: 'Advanced', displayName : 'Advanced'})
+      App.ServiceConfigCategory.create({ name: 'Advanced', displayName : 'Advanced'}),
+      App.ServiceConfigCategory.create({ name: 'AdvancedHiveSite', displayName : 'Custom hive-site.xml', siteFileName: 'hive-site.xml', canAddProperty: true})
     ],
     configs: configProperties.filterProperty('serviceName', 'HIVE')
   },
@@ -69,7 +70,8 @@ module.exports = [
     displayName: 'WebHCat',
     filename: 'webhcat-site',
     configCategories: [
-      App.ServiceConfigCategory.create({ name: 'Advanced', displayName : 'Advanced'})
+      App.ServiceConfigCategory.create({ name: 'Advanced', displayName : 'Advanced'}),
+      App.ServiceConfigCategory.create({ name: 'AdvancedWebHCatSite', displayName : 'Custom webhcat-site.xml', siteFileName: 'webhcat-site.xml', canAddProperty: true})
     ],
     configs: configProperties.filterProperty('serviceName', 'WEBHCAT')
   },
@@ -82,7 +84,8 @@ module.exports = [
       App.ServiceConfigCategory.create({ name: 'HBase Master', displayName : 'HBase Master'}),
       App.ServiceConfigCategory.create({ name: 'RegionServer', displayName : 'RegionServer'}),
       App.ServiceConfigCategory.create({ name: 'General', displayName : 'General'}),
-      App.ServiceConfigCategory.create({ name: 'Advanced', displayName : 'Advanced'})
+      App.ServiceConfigCategory.create({ name: 'Advanced', displayName : 'Advanced'}),
+      App.ServiceConfigCategory.create({ name: 'AdvancedHbaseSite', displayName : 'Custom hbase-site.xml', siteFileName: 'hbase-site.xml', canAddProperty: true})
     ],
     configs: configProperties.filterProperty('serviceName', 'HBASE')
   },
@@ -103,7 +106,8 @@ module.exports = [
     filename: 'oozie-site',
     configCategories: [
       App.ServiceConfigCategory.create({ name: 'Oozie Server', displayName : 'Oozie Server'}),
-      App.ServiceConfigCategory.create({ name: 'Advanced', displayName : 'Advanced'})
+      App.ServiceConfigCategory.create({ name: 'Advanced', displayName : 'Advanced'}),
+      App.ServiceConfigCategory.create({ name: 'AdvancedOozieSite', displayName : 'Custom oozie-site.xml', siteFileName: 'oozie-site.xml', canAddProperty: true})
     ],
     configs: configProperties.filterProperty('serviceName', 'OOZIE')
   },

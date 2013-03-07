@@ -236,6 +236,20 @@ App.InstallerController = App.WizardController.extend({
           var value = _configProperties.get('value').trim().split(/\s+/g).join(',');
           _configProperties.set('value', value);
         }
+        var overrides = _configProperties.get('overrides');
+        var overridesArray = [];
+        if(overrides!=null){
+          overrides.forEach(function(override){
+            var overrideEntry = {
+                value: override.get('value'),
+                hosts: []
+            };
+            override.get('selectedHostOptions').forEach(function(host){
+              overrideEntry.hosts.push(host);
+            });
+            overridesArray.push(overrideEntry);
+          });
+        }
         var configProperty = {
           id: _configProperties.get('id'),
           name: _configProperties.get('name'),
@@ -243,7 +257,8 @@ App.InstallerController = App.WizardController.extend({
           defaultValue: _configProperties.get('defaultValue'),
           service: _configProperties.get('serviceName'),
           domain:  _configProperties.get('domain'),
-          filename: _configProperties.get('filename')
+          filename: _configProperties.get('filename'),
+          overrides: overridesArray
         };
         serviceConfigProperties.push(configProperty);
       }, this);
