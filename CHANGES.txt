@@ -426,6 +426,9 @@ Trunk (unreleased changes):
 
  BUG FIXES
 
+ AMBARI-1577. Apply stage of security wizard throws javascript error 
+ for loadStep function. (jaimin)
+
  AMBARI-1575. Service should be shown red when any of its master component 
  is in START_FAILED status. (jaimin)
 

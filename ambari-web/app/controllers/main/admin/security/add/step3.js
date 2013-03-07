@@ -33,7 +33,7 @@ App.MainAdminSecurityAddStep3Controller = Em.Controller.extend({
     this.get('stages').clear();
   },
 
-  loadStep1: function () {
+  loadStep: function () {
     this.clearStep();
     this.loadStages();
     this.addInfoToStages();

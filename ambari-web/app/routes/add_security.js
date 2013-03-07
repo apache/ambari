@@ -116,10 +116,8 @@ module.exports = Em.Route.extend({
     },
     back: Em.Router.transitionTo('step2'),
     done: function (router, context) {
-      //Logic on completion of the wizard
-      //set stage to stage2 of step3
       router.get('mainAdminSecurityController').setAddSecurityWizardStatus(null);
-      router.transitionTo('adminSecurity.index');
+      $(context.currentTarget).parents("#modal").find(".close").trigger('click');
     }
   }),
 
