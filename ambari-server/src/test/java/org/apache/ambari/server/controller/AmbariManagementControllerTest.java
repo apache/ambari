@@ -3975,9 +3975,6 @@ public class AmbariManagementControllerTest {
     
     
   }
-  
-  
-  
 
   @Test
   public void testUpdateClusterVersionBasic() throws AmbariException {
@@ -4091,6 +4088,33 @@ public class AmbariManagementControllerTest {
   }
 
   @Test
+  public void testUpdateClusterUpgradabilityCheck() throws AmbariException {
+    String clusterName = "foo1";
+    StackId currentStackId = new StackId("HDP-0.2");
+
+    createCluster(clusterName);
+    Cluster c = clusters.getCluster(clusterName);
+    c.setDesiredStackVersion(currentStackId);
+    ClusterRequest r = new ClusterRequest(c.getClusterId(), clusterName, "HDP-0.3", null);
+    try {
+      controller.updateCluster(r);
+    } catch (AmbariException e) {
+      Assert.assertTrue(e.getMessage().contains("Illegal request to upgrade to"));
+    }
+
+    StackId unsupportedStackId = new StackId("HDP-0.0.1");
+    c.setDesiredStackVersion(unsupportedStackId);
+    c.setCurrentStackVersion(unsupportedStackId);
+    c.refresh();
+    r = new ClusterRequest(c.getClusterId(), clusterName, "HDP-0.2", null);
+    try {
+      controller.updateCluster(r);
+    } catch (AmbariException e) {
+      Assert.assertTrue(e.getMessage().contains("Upgrade is not allowed from"));
+    }
+  }
+
+  @Test
   public void testUpdateClusterVersionCombinations() throws AmbariException {
     String clusterName = "foo1";
     String pigServiceName = "PIG";
@@ -4184,11 +4208,7 @@ public class AmbariManagementControllerTest {
 
     trackAction = controller.updateCluster(r);
     stages = actionDB.getAllStages(trackAction.getRequestId());
-    expectedTasks.resetAll();
-    expectedTasks.expectTask(Role.JOBTRACKER, host1);
-    expectedTasks.expectTask(Role.TASKTRACKER, host2);
-    expectedTasks.expectTask(Role.MAPREDUCE_CLIENT, host2);
-    validateGeneratedStages(stages, 3, expectedTasks);
+    validateGeneratedStages(stages, 4, expectedTasks);
 
     c.getService(mrServiceName).getServiceComponent(mrJobTrackerComp).getServiceComponentHost(host1)
         .setState(State.UPGRADE_FAILED);
@@ -4196,7 +4216,7 @@ public class AmbariManagementControllerTest {
         .setState(State.UPGRADE_FAILED);
     trackAction = controller.updateCluster(r);
     stages = actionDB.getAllStages(trackAction.getRequestId());
-    validateGeneratedStages(stages, 3, expectedTasks);
+    validateGeneratedStages(stages, 4, expectedTasks);
 
     // Add HDFS and upgrade
     createService(clusterName, hdfsService, State.INIT);

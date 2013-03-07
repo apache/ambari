@@ -19,23 +19,28 @@
 package org.apache.ambari.server.state;
 
 public class StackId implements Comparable<StackId> {
+
+  private static final String NAME_SEPARATOR = "-";
+
   private String stackName;
   private String stackVersion;
 
   public StackId() {
-    super();
     this.stackName = "";
     this.stackVersion = "";
   }
 
   public StackId(String stackId) {
-    super();
     parseStackIdHelper(this, stackId);
   }
 
   public StackId(StackInfo stackInfo) {
     this.stackName = stackInfo.getName();
     this.stackVersion = stackInfo.getVersion();
+  }
+
+  public StackId(String stackName, String stackVersion) {
+    this(stackName + NAME_SEPARATOR + stackVersion);
   }
 
   /**
@@ -60,7 +65,7 @@ public class StackId implements Comparable<StackId> {
         && stackVersion.isEmpty()) {
       return "";
     }
-    return stackName + "-" + stackVersion;
+    return stackName + NAME_SEPARATOR + stackVersion;
   }
 
   /**

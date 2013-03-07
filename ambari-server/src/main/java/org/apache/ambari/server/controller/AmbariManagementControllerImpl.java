@@ -1424,6 +1424,7 @@ public class AmbariManagementControllerImpl implements
     // Set the current version value if its not already set
     if (currentVersion == null) {
       cluster.setCurrentStackVersion(desiredVersion);
+      cluster.refresh();
       currentVersion = cluster.getCurrentStackVersion();
     }
 
@@ -1465,12 +1466,11 @@ public class AmbariManagementControllerImpl implements
             throw new AmbariException("Target version : " + requestedVersion
                 + " is not a recognized version");
           }
-          // TODO Ensure its an allowed upgrade using AmbariMetaInfo
-          //if(!upgradeAllowed(stackInfo, requestedVersion))
-          //{
-          //  throw new AmbariException("Upgrade is not allowed from " + currentVersion
-          //      + " to the target version " + requestedVersion);
-          //}
+          if(!isUpgradeAllowed(stackInfo, currentVersion))
+          {
+            throw new AmbariException("Upgrade is not allowed from " + currentVersion
+                + " to the target version " + requestedVersion);
+          }
         }
       } else {
         retry = true;
@@ -1528,6 +1528,19 @@ public class AmbariManagementControllerImpl implements
     return null;
   }
 
+  private boolean isUpgradeAllowed(StackInfo requestedStackInfo, StackId currentStackId) {
+    String minUpgradeVersion = requestedStackInfo.getMinUpgradeVersion();
+    if (minUpgradeVersion != null && !minUpgradeVersion.isEmpty()) {
+      StackId minUpgradeStackId =
+          new StackId(currentStackId.getStackName(), minUpgradeVersion);
+      if (currentStackId.compareTo(minUpgradeStackId) >= 0) {
+        return true;
+      }
+    }
+
+    return false;
+  }
+
   private void fillComponentsToUpgrade(ClusterRequest request, Cluster cluster,
            Map<State, List<Service>> changedServices, Map<State, List<ServiceComponent>> changedComps,
            Map<String, Map<State, List<ServiceComponentHost>>> changedScHosts) throws AmbariException {
@@ -1574,7 +1587,7 @@ public class AmbariManagementControllerImpl implements
           State currSchState = sch.getState();
           if (sch.getStackVersion().equals(sch.getDesiredStackVersion())
               && newState == currSchState) {
-            LOG.info("Ignoring ServiceComponentHost"
+            LOG.info("Requesting upgrade for already upgraded ServiceComponentHost"
                 + ", clusterName=" + request.getClusterName()
                 + ", serviceName=" + service.getName()
                 + ", componentName=" + sc.getName()
@@ -1583,8 +1596,6 @@ public class AmbariManagementControllerImpl implements
                 + ", newDesiredState=" + newState
                 + ", currentDesiredState=" + sch.getStackVersion()
                 + ", newDesiredVersion=" + sch.getDesiredStackVersion());
-            //TODO Create NOP tasks for progress tracking
-            continue;
           }
 
           sch.setState(State.UPGRADING);
