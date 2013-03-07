@@ -972,6 +972,106 @@
         "pointInTime" : true,
         "temporal" : false
       },
+      "metrics/mapred/jobtracker/map_slots":{
+        "metric" : "Hadoop:service=JobTracker,name=JobTrackerMetrics.map_slots",
+        "pointInTime" : true,
+        "temporal" : false
+      },
+      "metrics/mapred/jobtracker/reduce_slots":{
+        "metric" : "Hadoop:service=JobTracker,name=JobTrackerMetrics.reduce_slots",
+        "pointInTime" : true,
+        "temporal" : false
+      },
+      "metrics/mapred/jobtracker/blacklisted_maps":{
+        "metric" : "Hadoop:service=JobTracker,name=JobTrackerMetrics.blacklisted_maps",
+        "pointInTime" : true,
+        "temporal" : false
+      },
+      "metrics/mapred/jobtracker/blacklisted_reduces":{
+        "metric" : "Hadoop:service=JobTracker,name=JobTrackerMetrics.blacklisted_reduces",
+        "pointInTime" : true,
+        "temporal" : false
+      },
+      "metrics/mapred/jobtracker/maps_launched":{
+        "metric" : "Hadoop:service=JobTracker,name=JobTrackerMetrics.maps_launched",
+        "pointInTime" : true,
+        "temporal" : false
+      },
+      "metrics/mapred/jobtracker/maps_completed":{
+        "metric" : "Hadoop:service=JobTracker,name=JobTrackerMetrics.maps_launched",
+        "pointInTime" : true,
+        "temporal" : false
+      },
+      "metrics/mapred/jobtracker/maps_failed":{
+        "metric" : "Hadoop:service=JobTracker,name=JobTrackerMetrics.maps_failed",
+        "pointInTime" : true,
+        "temporal" : false
+      },
+      "metrics/mapred/jobtracker/reduces_launched":{
+        "metric" : "Hadoop:service=JobTracker,name=JobTrackerMetrics.reduces_launched",
+        "pointInTime" : true,
+        "temporal" : false
+      },
+      "metrics/mapred/jobtracker/reduces_completed":{
+        "metric" : "Hadoop:service=JobTracker,name=JobTrackerMetrics.reduces_completed",
+        "pointInTime" : true,
+        "temporal" : false
+      },
+      "metrics/mapred/jobtracker/reduces_failed":{
+        "metric" : "Hadoop:service=JobTracker,name=JobTrackerMetrics.reduces_failed",
+        "pointInTime" : true,
+        "temporal" : false
+      },
+      "metrics/mapred/jobtracker/jobs_failed":{
+        "metric" : "Hadoop:service=JobTracker,name=JobTrackerMetrics.jobs_failed",
+        "pointInTime" : true,
+        "temporal" : false
+      },
+      "metrics/mapred/jobtracker/jobs_killed":{
+        "metric" : "Hadoop:service=JobTracker,name=JobTrackerMetrics.jobs_killed",
+        "pointInTime" : true,
+        "temporal" : false
+      },
+      "metrics/mapred/jobtracker/jobs_preparing":{
+        "metric" : "Hadoop:service=JobTracker,name=JobTrackerMetrics.jobs_preparing",
+        "pointInTime" : true,
+        "temporal" : false
+      },
+      "metrics/mapred/jobtracker/maps_killed":{
+        "metric" : "Hadoop:service=JobTracker,name=JobTrackerMetrics.maps_killed",
+        "pointInTime" : true,
+        "temporal" : false
+      },
+      "metrics/mapred/jobtracker/reduces_killed":{
+        "metric" : "Hadoop:service=JobTracker,name=JobTrackerMetrics.reduces_killed",
+        "pointInTime" : true,
+        "temporal" : false
+      },
+      "metrics/mapred/jobtracker/trackers":{
+        "metric" : "Hadoop:service=JobTracker,name=JobTrackerMetrics.trackers",
+        "pointInTime" : true,
+        "temporal" : false
+      },
+      "metrics/mapred/jobtracker/trackers_blacklisted":{
+        "metric" : "Hadoop:service=JobTracker,name=JobTrackerMetrics.trackers_blacklisted",
+        "pointInTime" : true,
+        "temporal" : false
+      },
+      "metrics/mapred/jobtracker/trackers_graylisted":{
+        "metric" : "Hadoop:service=JobTracker,name=JobTrackerMetrics.trackers_graylisted",
+        "pointInTime" : true,
+        "temporal" : false
+      },
+      "metrics/mapred/jobtracker/trackers_decommissioned":{
+        "metric" : "Hadoop:service=JobTracker,name=JobTrackerMetrics.trackers_decommissioned",
+        "pointInTime" : true,
+        "temporal" : false
+      },
+      "metrics/mapred/jobtracker/heartbeats":{
+        "metric" : "Hadoop:service=JobTracker,name=JobTrackerMetrics.heartbeats",
+        "pointInTime" : true,
+        "temporal" : false
+      },
       "metrics/mapred/jobtracker/occupied_map_slots":{
         "metric" : "Hadoop:service=JobTracker,name=JobTrackerMetrics.occupied_map_slots",
         "pointInTime" : true,
@@ -4448,7 +4548,6 @@
         "pointInTime" : true,
         "temporal" : false
       },
-
       "metrics/mapred/Queue/jobs_completed":{
         "metric" : "Hadoop:service=JobTracker,name=QueueMetrics,q=default.jobs_completed",
         "pointInTime" : true,
@@ -4516,6 +4615,106 @@
       },
       "metrics/mapred/jobtracker/jobs_submitted":{
         "metric" : "Hadoop:service=JobTracker,name=JobTrackerMetrics.jobs_submitted",
+        "pointInTime" : true,
+        "temporal" : false
+      },
+      "metrics/mapred/jobtracker/map_slots":{
+        "metric" : "Hadoop:service=JobTracker,name=JobTrackerMetrics.map_slots",
+        "pointInTime" : true,
+        "temporal" : false
+      },
+      "metrics/mapred/jobtracker/reduce_slots":{
+        "metric" : "Hadoop:service=JobTracker,name=JobTrackerMetrics.reduce_slots",
+        "pointInTime" : true,
+        "temporal" : false
+      },
+      "metrics/mapred/jobtracker/blacklisted_maps":{
+        "metric" : "Hadoop:service=JobTracker,name=JobTrackerMetrics.blacklisted_maps",
+        "pointInTime" : true,
+        "temporal" : false
+      },
+      "metrics/mapred/jobtracker/blacklisted_reduces":{
+        "metric" : "Hadoop:service=JobTracker,name=JobTrackerMetrics.blacklisted_reduces",
+        "pointInTime" : true,
+        "temporal" : false
+      },
+      "metrics/mapred/jobtracker/maps_launched":{
+        "metric" : "Hadoop:service=JobTracker,name=JobTrackerMetrics.maps_launched",
+        "pointInTime" : true,
+        "temporal" : false
+      },
+      "metrics/mapred/jobtracker/maps_completed":{
+        "metric" : "Hadoop:service=JobTracker,name=JobTrackerMetrics.maps_launched",
+        "pointInTime" : true,
+        "temporal" : false
+      },
+      "metrics/mapred/jobtracker/maps_failed":{
+        "metric" : "Hadoop:service=JobTracker,name=JobTrackerMetrics.maps_failed",
+        "pointInTime" : true,
+        "temporal" : false
+      },
+      "metrics/mapred/jobtracker/reduces_launched":{
+        "metric" : "Hadoop:service=JobTracker,name=JobTrackerMetrics.reduces_launched",
+        "pointInTime" : true,
+        "temporal" : false
+      },
+      "metrics/mapred/jobtracker/reduces_completed":{
+        "metric" : "Hadoop:service=JobTracker,name=JobTrackerMetrics.reduces_completed",
+        "pointInTime" : true,
+        "temporal" : false
+      },
+      "metrics/mapred/jobtracker/reduces_failed":{
+        "metric" : "Hadoop:service=JobTracker,name=JobTrackerMetrics.reduces_failed",
+        "pointInTime" : true,
+        "temporal" : false
+      },
+      "metrics/mapred/jobtracker/jobs_failed":{
+        "metric" : "Hadoop:service=JobTracker,name=JobTrackerMetrics.jobs_failed",
+        "pointInTime" : true,
+        "temporal" : false
+      },
+      "metrics/mapred/jobtracker/jobs_killed":{
+        "metric" : "Hadoop:service=JobTracker,name=JobTrackerMetrics.jobs_killed",
+        "pointInTime" : true,
+        "temporal" : false
+      },
+      "metrics/mapred/jobtracker/jobs_preparing":{
+        "metric" : "Hadoop:service=JobTracker,name=JobTrackerMetrics.jobs_preparing",
+        "pointInTime" : true,
+        "temporal" : false
+      },
+      "metrics/mapred/jobtracker/maps_killed":{
+        "metric" : "Hadoop:service=JobTracker,name=JobTrackerMetrics.maps_killed",
+        "pointInTime" : true,
+        "temporal" : false
+      },
+      "metrics/mapred/jobtracker/reduces_killed":{
+        "metric" : "Hadoop:service=JobTracker,name=JobTrackerMetrics.reduces_killed",
+        "pointInTime" : true,
+        "temporal" : false
+      },
+      "metrics/mapred/jobtracker/trackers":{
+        "metric" : "Hadoop:service=JobTracker,name=JobTrackerMetrics.trackers",
+        "pointInTime" : true,
+        "temporal" : false
+      },
+      "metrics/mapred/jobtracker/trackers_blacklisted":{
+        "metric" : "Hadoop:service=JobTracker,name=JobTrackerMetrics.trackers_blacklisted",
+        "pointInTime" : true,
+        "temporal" : false
+      },
+      "metrics/mapred/jobtracker/trackers_graylisted":{
+        "metric" : "Hadoop:service=JobTracker,name=JobTrackerMetrics.trackers_graylisted",
+        "pointInTime" : true,
+        "temporal" : false
+      },
+      "metrics/mapred/jobtracker/trackers_decommissioned":{
+        "metric" : "Hadoop:service=JobTracker,name=JobTrackerMetrics.trackers_decommissioned",
+        "pointInTime" : true,
+        "temporal" : false
+      },
+      "metrics/mapred/jobtracker/heartbeats":{
+        "metric" : "Hadoop:service=JobTracker,name=JobTrackerMetrics.heartbeats",
         "pointInTime" : true,
         "temporal" : false
       },

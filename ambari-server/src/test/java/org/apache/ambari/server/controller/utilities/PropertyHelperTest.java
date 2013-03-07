@@ -17,12 +17,9 @@
  */
 package org.apache.ambari.server.controller.utilities;
 
-import org.apache.ambari.server.controller.spi.Request;
 import org.junit.Assert;
 import org.junit.Test;
 
-import java.util.HashSet;
-import java.util.Set;
 
 /**
  * Property helper tests.

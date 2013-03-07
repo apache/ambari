@@ -4204,17 +4204,17 @@
       },
       "metrics/mapred/jobtracker/blacklisted_maps":{
         "metric":"mapred.jobtracker.blacklisted_maps",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       },
       "metrics/mapred/jobtracker/blacklisted_reduces":{
         "metric":"mapred.jobtracker.blacklisted_reduces",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       },
       "metrics/mapred/jobtracker/heartbeats":{
         "metric":"mapred.jobtracker.heartbeats",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       },
       "metrics/mapred/jobtracker/jobs_completed":{
@@ -4224,17 +4224,17 @@
       },
       "metrics/mapred/jobtracker/jobs_failed":{
         "metric":"mapred.jobtracker.jobs_failed",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       },
       "metrics/mapred/jobtracker/jobs_killed":{
         "metric":"mapred.jobtracker.jobs_killed",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       },
       "metrics/mapred/jobtracker/jobs_preparing":{
         "metric":"mapred.jobtracker.jobs_preparing",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       },
       "metrics/mapred/jobtracker/jobs_running":{
@@ -4249,27 +4249,27 @@
       },
       "metrics/mapred/jobtracker/map_slots":{
         "metric":"mapred.jobtracker.map_slots",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       },
       "metrics/mapred/jobtracker/maps_completed":{
         "metric":"mapred.jobtracker.maps_completed",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       },
       "metrics/mapred/jobtracker/maps_failed":{
         "metric":"mapred.jobtracker.maps_failed",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       },
       "metrics/mapred/jobtracker/maps_killed":{
         "metric":"mapred.jobtracker.maps_killed",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       },
       "metrics/mapred/jobtracker/maps_launched":{
         "metric":"mapred.jobtracker.maps_launched",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       },
       "metrics/mapred/jobtracker/occupied_map_slots":{
@@ -4284,27 +4284,27 @@
       },
       "metrics/mapred/jobtracker/reduce_slots":{
         "metric":"mapred.jobtracker.reduce_slots",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       },
       "metrics/mapred/jobtracker/reduces_completed":{
         "metric":"mapred.jobtracker.reduces_completed",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       },
       "metrics/mapred/jobtracker/reduces_failed":{
         "metric":"mapred.jobtracker.reduces_failed",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       },
       "metrics/mapred/jobtracker/reduces_killed":{
         "metric":"mapred.jobtracker.reduces_killed",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       },
       "metrics/mapred/jobtracker/reduces_launched":{
         "metric":"mapred.jobtracker.reduces_launched",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       },
       "metrics/mapred/jobtracker/reserved_map_slots":{
@@ -4329,22 +4329,22 @@
       },
       "metrics/mapred/jobtracker/trackers":{
         "metric":"mapred.jobtracker.trackers",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       },
       "metrics/mapred/jobtracker/trackers_blacklisted":{
         "metric":"mapred.jobtracker.trackers_blacklisted",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       },
       "metrics/mapred/jobtracker/trackers_decommissioned":{
         "metric":"mapred.jobtracker.trackers_decommissioned",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       },
       "metrics/mapred/jobtracker/trackers_graylisted":{
         "metric":"mapred.jobtracker.trackers_graylisted",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       },
       "metrics/mapred/jobtracker/waiting_maps":{
@@ -6287,7 +6287,7 @@
       },
       "metrics/hbase/master/cluster_requests":{
         "metric":"hbase.master.cluster_requests",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       },
       "metrics/hbase/master/splitSize_avg_time":{
@@ -13296,17 +13296,17 @@
       },
       "metrics/mapred/jobtracker/blacklisted_maps":{
         "metric":"mapred.jobtracker.blacklisted_maps",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       },
       "metrics/mapred/jobtracker/blacklisted_reduces":{
         "metric":"mapred.jobtracker.blacklisted_reduces",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       },
       "metrics/mapred/jobtracker/heartbeats":{
         "metric":"mapred.jobtracker.heartbeats",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       },
       "metrics/mapred/jobtracker/jobs_completed":{
@@ -13316,17 +13316,17 @@
       },
       "metrics/mapred/jobtracker/jobs_failed":{
         "metric":"mapred.jobtracker.jobs_failed",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       },
       "metrics/mapred/jobtracker/jobs_killed":{
         "metric":"mapred.jobtracker.jobs_killed",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       },
       "metrics/mapred/jobtracker/jobs_preparing":{
         "metric":"mapred.jobtracker.jobs_preparing",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       },
       "metrics/mapred/jobtracker/jobs_running":{
@@ -13341,27 +13341,27 @@
       },
       "metrics/mapred/jobtracker/map_slots":{
         "metric":"mapred.jobtracker.map_slots",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       },
       "metrics/mapred/jobtracker/maps_completed":{
         "metric":"mapred.jobtracker.maps_completed",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       },
       "metrics/mapred/jobtracker/maps_failed":{
         "metric":"mapred.jobtracker.maps_failed",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       },
       "metrics/mapred/jobtracker/maps_killed":{
         "metric":"mapred.jobtracker.maps_killed",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       },
       "metrics/mapred/jobtracker/maps_launched":{
         "metric":"mapred.jobtracker.maps_launched",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       },
       "metrics/mapred/jobtracker/occupied_map_slots":{
@@ -13376,27 +13376,27 @@
       },
       "metrics/mapred/jobtracker/reduce_slots":{
         "metric":"mapred.jobtracker.reduce_slots",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       },
       "metrics/mapred/jobtracker/reduces_completed":{
         "metric":"mapred.jobtracker.reduces_completed",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       },
       "metrics/mapred/jobtracker/reduces_failed":{
         "metric":"mapred.jobtracker.reduces_failed",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       },
       "metrics/mapred/jobtracker/reduces_killed":{
         "metric":"mapred.jobtracker.reduces_killed",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       },
       "metrics/mapred/jobtracker/reduces_launched":{
         "metric":"mapred.jobtracker.reduces_launched",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       },
       "metrics/mapred/jobtracker/reserved_map_slots":{
@@ -13421,22 +13421,22 @@
       },
       "metrics/mapred/jobtracker/trackers":{
         "metric":"mapred.jobtracker.trackers",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       },
       "metrics/mapred/jobtracker/trackers_blacklisted":{
         "metric":"mapred.jobtracker.trackers_blacklisted",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       },
       "metrics/mapred/jobtracker/trackers_decommissioned":{
         "metric":"mapred.jobtracker.trackers_decommissioned",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       },
       "metrics/mapred/jobtracker/trackers_graylisted":{
         "metric":"mapred.jobtracker.trackers_graylisted",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       },
       "metrics/mapred/jobtracker/waiting_maps":{
@@ -15274,7 +15274,7 @@
       },
       "metrics/hbase/master/cluster_requests":{
         "metric":"hbase.master.cluster_requests",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       },
       "metrics/hbase/master/splitSize_avg_time":{

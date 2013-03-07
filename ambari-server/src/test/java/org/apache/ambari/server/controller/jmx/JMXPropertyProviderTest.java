@@ -110,6 +110,7 @@ public class JMXPropertyProviderTest {
     properties.add(PropertyHelper.getPropertyId("metrics/jvm", "NonHeapMemoryUsed"));
     properties.add(PropertyHelper.getPropertyId("metrics/mapred/jobtracker", "jobs_submitted"));
     properties.add(PropertyHelper.getPropertyId("metrics/mapred/jobtracker", "jobs_completed"));
+    properties.add(PropertyHelper.getPropertyId("metrics/mapred/jobtracker", "jobs_failed"));
 
     request = PropertyHelper.getReadRequest(properties);
 
@@ -118,14 +119,15 @@ public class JMXPropertyProviderTest {
     Assert.assertEquals(propertyProvider.getSpec("domu-12-31-39-14-ee-b3.compute-1.internal", "50030"), streamProvider.getLastSpec());
 
     // see test/resources/mapreduce_jobtracker_jmx.json for values
-    Assert.assertEquals(9, PropertyHelper.getProperties(resource).size());
+    Assert.assertEquals(10, PropertyHelper.getProperties(resource).size());
     Assert.assertEquals(59, resource.getPropertyValue(PropertyHelper.getPropertyId("metrics/jvm", "threadsWaiting")));
     Assert.assertEquals(1052770304, resource.getPropertyValue(PropertyHelper.getPropertyId("metrics/jvm", "HeapMemoryMax")));
     Assert.assertEquals(43580400, resource.getPropertyValue(PropertyHelper.getPropertyId("metrics/jvm", "HeapMemoryUsed")));
     Assert.assertEquals(136314880, resource.getPropertyValue(PropertyHelper.getPropertyId("metrics/jvm", "NonHeapMemoryMax")));
     Assert.assertEquals(29602888, resource.getPropertyValue(PropertyHelper.getPropertyId("metrics/jvm", "NonHeapMemoryUsed")));
-    Assert.assertEquals(1, resource.getPropertyValue(PropertyHelper.getPropertyId("metrics/mapred/jobtracker", "jobs_submitted")));
+    Assert.assertEquals(2, resource.getPropertyValue(PropertyHelper.getPropertyId("metrics/mapred/jobtracker", "jobs_submitted")));
     Assert.assertEquals(1, resource.getPropertyValue(PropertyHelper.getPropertyId("metrics/mapred/jobtracker", "jobs_completed")));
+    Assert.assertEquals(1, resource.getPropertyValue(PropertyHelper.getPropertyId("metrics/mapred/jobtracker", "jobs_failed")));
 
     Assert.assertNull(resource.getPropertyValue(PropertyHelper.getPropertyId("metrics/jvm", "gcCount")));
 
