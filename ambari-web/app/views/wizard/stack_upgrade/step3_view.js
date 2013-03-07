@@ -97,7 +97,6 @@ App.StackUpgradeStep3View = Em.View.extend({
     inProgress: function(){
       return this.get('content.status') === "IN_PROGRESS";
     }.property('content.status'),
-    bindingProperty: 'App.router.stackUpgradeStep3Controller.services',
     /**
      * open popup with list of hosts, that associated to service
      * @param event
@@ -105,7 +104,6 @@ App.StackUpgradeStep3View = Em.View.extend({
     hostsLogPopup: function(event){
       //TODO show popup with hosts
       var serviceName = event.contexts[0];
-      var bindingProperty = event.contexts[1];
     }
   })
 });

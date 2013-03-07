@@ -105,6 +105,9 @@ Trunk (unreleased changes):
 
  IMPROVEMENTS
 
+ AMBARI-1580. Stack Upgrade Wizard - resume upon page refresh / login.
+ (yusaku)
+
  AMBARI-1578. Add host wizard - support assignment of "ZooKeeper Server"
  and "HBase Master". (yusaku)
 

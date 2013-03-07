@@ -48,7 +48,7 @@ App.StackUpgradeController = App.WizardController.extend({
    * @return Object
    */
   getCluster: function(){
-    return jQuery.extend({}, this.get('clusterStatusTemplate'), {name: App.get('ClusterName')});
+    return jQuery.extend({}, this.get('clusterStatusTemplate'), {name: App.router.getClusterName()});
   },
   /**
    * return new object extended from upgradeOptionsTemplate
@@ -67,25 +67,30 @@ App.StackUpgradeController = App.WizardController.extend({
   upgradeOptionsTemplate:{
     localRepo: false
   },
-  stopServices: function(){
-    var method = App.testMode ? "GET" : "PUT";
-    var url = '';
-    var data = '';
+  /**
+   * run stop services before upgrade phase
+   */
+  stopServices: function () {
+    var clusterName = this.get('content.cluster.name');
+    var url = App.apiPrefix + '/clusters/' + clusterName + '/services?ServiceInfo/state=STARTED';
+    var data = '{"ServiceInfo": {"state": "INSTALLED"}}';
+    var method = (App.testMode) ? 'GET' : 'PUT';
     $.ajax({
       type: method,
       url: url,
-      data: data,
       async: false,
+      data: data,
       dataType: 'text',
       timeout: App.timeout,
       success: function (data) {
-
+        var jsonData = jQuery.parseJSON(data);
+        console.log("TRACE: Step3 -> In success function for the stopService call");
+        console.log("TRACE: Step3 -> value of the url is: " + url);
+        console.log("TRACE: Step3 -> value of the received data is: " + jsonData);
       },
-
-      error: function (request, ajaxOptions, error) {
-
+      error: function () {
+        console.log("Call to stop services failed");
       },
-
       statusCode: require('data/statusCodes')
     });
   },
@@ -113,6 +118,5 @@ App.StackUpgradeController = App.WizardController.extend({
   finish: function () {
     this.clear();
     this.setCurrentStep('1');
-    App.router.get('updateController').updateAll();
   }
 });

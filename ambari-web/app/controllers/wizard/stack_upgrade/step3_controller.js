@@ -41,15 +41,18 @@ App.StackUpgradeStep3Controller = Em.Controller.extend({
    * overall status of Upgrade
    * FAILED - some service is FAILED
    * SUCCESS - every services are SUCCESS
-   * WARNING - some service is WARNING
+   * WARNING - some service is WARNING and all the rest are SUCCESS
+   * IN_PROGRESS - when all services is stopped
    */
-  status: function () {
-    //TODO set saveClusterStatus()
+  status: 'PENDING',
+  onStatus: function () {
     var services = this.get('services');
+    var status = this.get('isServicesStopped') ? 'IN_PROGRESS' : 'PENDING';
     var withoutWarning = [];
     if (services.someProperty('status', 'FAILED')) {
       this.set('isPolling', false);
-      return 'FAILED';
+      status =  'FAILED';
+      this.setClusterStatus('STACK_UPGRADE_FAILED');
     }
     if (services.someProperty('status', 'WARNING')) {
       withoutWarning = services.filter(function(service){
@@ -59,15 +62,31 @@ App.StackUpgradeStep3Controller = Em.Controller.extend({
       });
       if(withoutWarning.everyProperty('status', 'SUCCESS')){
         this.set('isPolling', false);
-        return "WARNING";
+        status = "WARNING";
+        this.setClusterStatus('STACK_UPGRADED');
       }
     }
     if (services.everyProperty('status', 'SUCCESS')) {
       this.set('isPolling', false);
-      return 'SUCCESS';
+      status = 'SUCCESS';
+      this.set('content.cluster.isCompleted', true);
+      App.router.get(this.get('content.controllerName')).save('cluster');
+      this.setClusterStatus('STACK_UPGRADED');
     }
-    return 'IN_PROGRESS';
-  }.property('services.@each.status'),
+    this.set('status', status);
+  }.observes('services.@each.status'),
+  setClusterStatus: function(state){
+    if(!App.testMode){
+      App.clusterStatus.setClusterStatus({
+        clusterName: this.get('content.cluster.name'),
+        clusterState: state,
+        wizardControllerName: 'stackUpgradeController',
+        localdb: App.db.data
+      });
+    }
+  },
+  // provide binding for Host Popup data
+  serviceTimestamp: null,
   /**
    * The dependence of the status of service to status of the tasks
    * FAILED - any task is TIMEDOUT, ABORTED, FAILED (depends on component is master)
@@ -78,7 +97,7 @@ App.StackUpgradeStep3Controller = Em.Controller.extend({
    */
   services: [],
   /**
-   * load installed services on cluster
+   * load services, which installed on cluster
    */
   loadServices: function(){
     var installedServices = App.testMode ? this.get('mockServices') : this.get('content.servicesInfo');
@@ -126,16 +145,17 @@ App.StackUpgradeStep3Controller = Em.Controller.extend({
    */
   loadHosts: function(service){
     var hostComponents = App.HostComponent.find().filterProperty('service.serviceName', service.get('serviceName'));
-    var hostNames = hostComponents.mapProperty('host.hostName').uniq();
-    var hosts = [];
-    hostNames.forEach(function(hostName){
-      hosts.push(Em.Object.create({
-        name: hostName,
+    var hosts = hostComponents.mapProperty('host').uniq();
+    var result = [];
+    hosts.forEach(function(host){
+      result.push(Em.Object.create({
+        name: host.get('hostName'),
+        publicName: host.get('publicHostName'),
         logTasks: [],
-        components: hostComponents.filterProperty('host.hostName', hostName).mapProperty('componentName')
+        components: hostComponents.filterProperty('host.hostName', host.get('hostName')).mapProperty('componentName')
       }));
     });
-    return hosts;
+    return result;
   },
   /**
    * upgrade status SUCCESS - submit button enabled with label "Done"
@@ -157,15 +177,33 @@ App.StackUpgradeStep3Controller = Em.Controller.extend({
   isServicesStopped: function(){
     return this.get('servicesStopProgress') === 100;
   }.property('servicesStopProgress'),
+  isServicesStopFailed: function(){
+    return this.get('servicesStopProgress') === false;
+  }.property('servicesStopProgress'),
   installedServices: App.Service.find(),
   /**
    * progress of stopping services process
+   * check whether service stop fails
    */
   servicesStopProgress: function(){
     var services = App.testMode ? this.get('mockServices') : this.get('installedServices').toArray();
-    var progress = (services.filterProperty('workStatus', 'STOPPING').length / services.length) * 0.2;
-    return Math.round((progress + services.filterProperty('workStatus', 'INSTALLED').length / services.length) * 100);
+    var progress = 0;
+    var stopFailed = false;
+    services.forEach(function(service){
+      if(!stopFailed){
+        stopFailed = service.get('hostComponents').filterProperty('isMaster').someProperty('workStatus', 'STOP_FAILED');
+      }
+    });
+    if(stopFailed){
+      return false;
+    } else {
+      progress = (services.filterProperty('workStatus', 'STOPPING').length / services.length) * 0.2;
+      return Math.round((progress + services.filterProperty('workStatus', 'INSTALLED').length / services.length) * 100);
+    }
   }.property('installedServices.@each.workStatus', 'mockServices.@each.workStatus'),
+  retryStopService: function(){
+    App.router.get(this.get('content.controllerName')).stopServices();
+  },
   /**
    * restart upgrade if fail or warning occurred
    * @param event
@@ -235,12 +273,14 @@ App.StackUpgradeStep3Controller = Em.Controller.extend({
     Em.Object.create({
       serviceName: 'GANGLIA',
       displayName: 'Ganglia',
-      workStatus: 'STARTED'
+      workStatus: 'STARTED',
+      hostComponents: []
     }),
     Em.Object.create({
       serviceName: 'HDFS',
       displayName: 'HDFS',
-      workStatus: 'STARTED'
+      workStatus: 'STARTED',
+      hostComponents: []
     })
   ],
   simulateAttempt:0,
@@ -301,10 +341,10 @@ App.StackUpgradeStep3Controller = Em.Controller.extend({
           dataType: 'json',
           success: function (data) {
             var result = self.parseTasks(data);
-            if (!App.testMode) {
-              self.doPoll();
-            } else {
+            if (App.testMode) {
               self.simulatePolling();
+            } else {
+              self.doPoll(url);
             }
           },
           error: function () {
@@ -351,6 +391,7 @@ App.StackUpgradeStep3Controller = Em.Controller.extend({
         console.log('None tasks matched to service ' + service);
       }
     }, this);
+    this.set('serviceTimestamp', new Date().getTime());
     return true;
   },
   /**
@@ -472,25 +513,40 @@ App.StackUpgradeStep3Controller = Em.Controller.extend({
     this.set('simulateAttempt', 0);
   },
   /**
-   * run necessary operations depending on cluster status
+   * navigate to show current process depending on cluster status
    */
   navigateStep: function(){
-    if (App.testMode) {
-      this.set('content.cluster.status', 'PENDING');
-      this.set('content.cluster.isCompleted', false);
-    }
     var clusterStatus = this.get('content.cluster.status');
+    var status = 'PENDING';
     if (this.get('content.cluster.isCompleted') === false) {
-      if (this.get('isServicesStopped') === false) {
-        //services stopping yet
-
-      } else if (clusterStatus === 'UPGRADE_FAILED') {
-
-      } else {
+      if (this.get('isServicesStopped')){
         this.startPolling();
+        if (clusterStatus === 'STACK_UPGRADING'){
+          // IN_PROGRESS
+          status = 'IN_PROGRESS';
+        } else if (clusterStatus === 'STACK_UPGRADE_FAILED'){
+          // FAILED
+          status = 'FAILED';
+          // poll only one time
+          this.set('isPolling', false);
+        } else {
+          // WARNING
+          status = 'WARNING';
+          // poll only one time
+          this.set('isPolling', false);
+        }
+      } else {
+        // services are stopping yet
       }
     } else {
-
+      status = 'SUCCESS';
+    }
+    if (App.testMode) {
+      if(!this.get('isServicesStopped')){
+        this.simulateStopService();
+      }
+    } else {
+      this.set('status', status);
     }
   }
 });

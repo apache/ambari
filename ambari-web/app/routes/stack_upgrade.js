@@ -42,22 +42,6 @@ module.exports = Em.Route.extend({
         }
       });
 
-
-     /* App.clusterStatus.updateFromServer();
-       var currentClusterStatus = App.clusterStatus.get('value');
-
-       if (currentClusterStatus) {
-       switch (currentClusterStatus.clusterState) {
-       case 'UPGRADING_STACK' :
-       case 'STACK_UPGRADED' :
-       stackUpgradeController.setCurrentStep('3');
-       App.db.data = currentClusterStatus.localdb;
-       break;
-       default:
-       break;
-       }
-       }*/
-
       router.transitionTo('step' + stackUpgradeController.get('currentStep'));
     });
   },
@@ -87,12 +71,19 @@ module.exports = Em.Route.extend({
     next: function(router){
       var controller = router.get('stackUpgradeController');
       var stepController = router.get('stackUpgradeStep3Controller');
+      controller.save('upgradeOptions');
       router.transitionTo('step3');
       if(App.testMode){
         stepController.simulateStopService();
       } else {
         controller.stopServices();
       }
+      App.clusterStatus.setClusterStatus({
+        clusterName: controller.get('content.cluster.name'),
+        clusterState: 'PENDING',
+        wizardControllerName: 'stackUpgradeController',
+        localdb: App.db.data
+      });
     }
   }),
 
@@ -111,21 +102,20 @@ module.exports = Em.Route.extend({
       var stepController = router.get('stackUpgradeStep3Controller');
       stepController.clearStep();
       controller.finish();
-      App.router.get('updateController').set('isWorking', true);
       $(context.currentTarget).parents("#modal").find(".close").trigger('click');
-      //App.set('currentStackVersion', controller.get('content.upgradeVersion'));
-
-      // We need to do recovery based on whether we are in Add Host or Installer wizard
-     /* App.clusterStatus.setClusterStatus({
-        clusterName: this.get('clusterName'),
-        clusterState: 'STACK_UPGRADED',
-        wizardControllerName: App.router.get('stackUpgradeController.name'),
+      App.clusterStatus.setClusterStatus({
+        clusterName: controller.get('content.cluster.name'),
+        clusterState: 'STACK_UPGRADE_COMPLETED',
+        wizardControllerName: 'stackUpgradeController',
         localdb: App.db.data
-      });*/
-
+      });
+      App.router.get('updateController').updateAll();
+      //App.set('currentStackVersion', controller.get('content.upgradeVersion'));
     }
   }),
   backToCluster: function(router, context){
+    var controller = router.get('stackUpgradeController');
+    controller.finish();
     $(context.currentTarget).parents("#modal").find(".close").trigger('click');
   },
 

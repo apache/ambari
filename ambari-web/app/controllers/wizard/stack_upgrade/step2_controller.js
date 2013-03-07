@@ -34,7 +34,6 @@ App.StackUpgradeStep2Controller = Em.Controller.extend({
    */
   upgradeAction: function(event){
     if(this.isAllServicesRunning()){
-      App.db.setUpgradeOptions(this.get('content.upgradeOptions'));
       App.router.send('next');
     } else {
       this.showWarningPopup();

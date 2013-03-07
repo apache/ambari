@@ -17,56 +17,66 @@
 }}
 <div id="deploy">
     <div {{bindAttr class="view.statusClass :alert"}}>{{view.statusMessage}}</div>
-  {{#if showRetry}}
-    <div class="box">
-        <a class="btn btn-primary"
-           href="#" {{action retry target="controller"}}><i class="icon-repeat icon-white"></i>
-          {{t common.retry}}
-        </a>
-    </div>
-  {{/if}}
     <div class="service">
-        {{#if isServicesStopped}}
-            <div class="item">
-                <i class="text-success icon-ok"></i>
-                <a href="javascript:void(0)">{{t installer.stackUpgrade.step3.service.stopped}}</a>
-            </div>
-        {{else}}
-            <div class="item">
+      <div>
+      {{#if isServicesStopFailed}}
+          <div class="box">
+              <a class="btn btn-primary"
+                {{action retryStopService target="controller" href="true"}}><i class="icon-repeat icon-white"></i>
+                {{t installer.stackUpgrade.step3.retry.services}}
+              </a>
+          </div>
+          <div class="item">
+              <i class="text-error icon-exclamation-sign"></i>
+              <a href="javascript:void(0)">{{t installer.stackUpgrade.step3.service.stopFail}}</a>
+          </div>
+      {{else}}
+          <div class="item">
+            {{#if isServicesStopped}}
+              <i class="text-success icon-ok"></i>
+              <a href="javascript:void(0)">{{t installer.stackUpgrade.step3.service.stopped}}</a>
+            {{else}}
                 <i class="text-info icon-cog"></i>
-                <a href="true">{{t installer.stackUpgrade.step3.service.stopping}}</a>
+                <a href="javascript:void(0)">{{t installer.stackUpgrade.step3.service.stopping}}</a>
+            {{/if}}
+          </div>
+          <div {{bindAttr class="isServicesStopped:hide :row :span12" }}>
+              <div class="progress-bar span4">
+                  <div {{bindAttr class="isServicesStopped::progress-striped isServicesStopped::active :progress-info :progress"}}>
+                      <div class="bar" {{bindAttr style="view.servicesStopWidth"}}></div>
+                  </div>
+              </div>
+              <div class="span1">{{servicesStopProgress}}&#37;</div>
+              <div class="span7"></div>
+          </div>
+      {{/if}}
+      {{#if showRetry}}
+          <div class="box">
+              <a class="btn btn-primary" {{action retry target="controller" href="true"}}>
+                <i class="icon-repeat icon-white"></i>
+                {{t installer.stackUpgrade.step3.retry.upgrade}}
+              </a>
+          </div>
+      {{/if}}
+      </div>
+      {{#each service in services}}
+        {{#view view.serviceView contentBinding="service"}}
+            <div class="item">
+                <i {{bindAttr class="view.icon view.iconColor"}}></i>
+                <a href="javascript:void(0)" {{action "hostsLogPopup" service.name target="view"}}>{{service.message}}</a>
             </div>
-            <div class="row span12">
+            <div {{bindAttr class="view.inProgress::hide :row :span12" }}>
                 <div class="progress-bar span4">
-                    <div {{bindAttr class="isServicesStopped::progress-striped isServicesStopped::active :progress-info :progress"}}>
-                        <div class="bar" {{bindAttr style="view.servicesStopWidth"}}></div>
+                    <div {{bindAttr class="view.isServiceCompleted::progress-striped view.isServiceCompleted::active view.barColor :progress"}}>
+                        <div class="bar" {{bindAttr style="view.barWidth"}}></div>
                     </div>
                 </div>
-                <div class="span1">{{servicesStopProgress}}&#37;</div>
-                <div class="span7"></div>
+                <div class="span1">{{service.progress}}&#37;</div>
+                <div class="span7">{{service.detailMessage}}</div>
             </div>
-        {{/if}}
-    {{#each service in services}}
-      {{#view view.serviceView contentBinding="service"}}
-      <div class="item">
-          <i {{bindAttr class="view.icon view.iconColor"}}></i>
-          <a href="true" {{action "hostsLogPopup" service.name view.bindingProperty target="view"}}>{{service.message}}</a>
-      </div>
-      {{#if view.inProgress}}
-      <div class="row span12">
-          <div class="progress-bar span4">
-              <div {{bindAttr class="view.isServiceCompleted::progress-striped view.isServiceCompleted::active view.barColor :progress"}}>
-                  <div class="bar" {{bindAttr style="view.barWidth"}}></div>
-              </div>
-          </div>
-          <div class="span1">{{service.progress}}&#37;</div>
-          <div class="span7">{{service.detailMessage}}</div>
-      </div>
-      {{/if}}
-      {{/view}}
-    {{/each}}
+        {{/view}}
+      {{/each}}
     </div>
-</div>
     <div class="btn-area">
       {{#if submitButton}}
           <a class="btn btn-success pull-right" {{action finish}}>{{submitButton}}</a>
