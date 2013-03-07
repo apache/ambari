@@ -46,6 +46,7 @@ require('mappers/users_mapper');
 require('mappers/service_mapper');
 
 require('utils/http_client');
+require('utils/host_progress_popup');
 
 App.initialize();
 

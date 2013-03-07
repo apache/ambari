@@ -105,6 +105,9 @@ Trunk (unreleased changes):
 
  IMPROVEMENTS
 
+ AMBARI-1581. Host progress popup - generic component for showing progress
+ on async operations. (yusaku)
+
  AMBARI-1542. Provide remove, restore default, and cancel actions for
  service config properties. (srimanth via yusaku)
 

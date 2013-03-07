@@ -103,7 +103,6 @@ App.Poll = Em.Object.extend({
       this.set('POLL_INTERVAL', 1);
       this.numPolls++;
       url = this.get('mockDataPrefix') + '/poll_' + this.get('numPolls') + '.json';
-      debugger;
     }
 
     $.ajax({

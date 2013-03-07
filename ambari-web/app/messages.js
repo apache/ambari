@@ -46,6 +46,7 @@ Em.I18n.translations = {
   'common.prev':'Prev',
   'common.next':'Next',
   'common.host':'Host',
+  'common.hosts':'Hosts',
   'common.group':'Group',
   'common.progress':'Progress',
   'common.status':'Status',
@@ -111,6 +112,9 @@ Em.I18n.translations = {
   'common.upgrade': 'Upgrade',
   'common.security':'Security',
   'common.cluster':'Cluster',
+
+  'hostPopup.noHostsToShow':'No hosts to show',
+  'hostPopup.noTasksToShow':'No tasks to show',
 
   'question.sure':'Are you sure {0}?',
 

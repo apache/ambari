@@ -415,6 +415,14 @@ h1 {
   .btn-area {
     margin-top: 30px;
   }
+  .service {
+    .info {
+      line-height: 30px;
+    }
+  .row {
+    margin-left: 0;
+  }
+  }
 }
 
 #host-log {
@@ -718,6 +726,51 @@ a:focus {
 
 /*60% width modal window end*/
 
+/*****start styles for host component popup*****/
+.host-component-popup-wrap
+{
+
+
+
+  #host-info{
+    .task-list-line-cursor{
+      width: 100%;
+      height: 20px;
+    }
+    .span2{
+      width:20%;
+      float: left;
+    }
+    .host-progress-num{
+      float: left;
+      padding-left: 8px;
+    }
+    .host-name-icon-wrap{
+      float: left;
+      width: 50%;
+    }
+    .log-list-wrap {
+      padding: 10px 10px 10px 20px;
+      border-top: 1px solid #CCC;
+      border-bottom: 1px solid #CCC;
+
+      .show-details {
+        float: right;
+        cursor: pointer;
+        font-size: 16px;
+
+        i {
+          color: #333;
+        }
+      }
+    }
+  }
+
+}
+/*****end styles for host component popup*****/
+
+
+
 /*****start styles for install tasks logs*****/
 .task-list-main-warp, .task-detail-info {
   i {
@@ -758,12 +811,20 @@ a:focus {
     font-size: 15px;
     padding: 0 0 10px 0;
 
+    .task-detail-back-to-hosts {
+      float: left;
+    }
+
     .select-wrap {
       float: right;
       margin-top: -8px;
       select {
         width: 140px;
       }
+    }
+
+    .tasks-list-select{
+      margin-top: -28px;
     }
   }
 
@@ -782,7 +843,6 @@ a:focus {
           color: #333;
         }
       }
-
     }
   }
 }
