@@ -881,9 +881,11 @@ Em.I18n.translations = {
   'dashboard.services.hbase.masterActivated':'Master Activated',
 
   'dashboard.services.hive.clients':'Hive Clients',
+  'dashboard.services.hive.client':'Hive Client',
 
   'dashboard.services.oozie.webUi':'Oozie Web UI',
   'dashboard.services.oozie.clients':'Oozie Clients',
+  'dashboard.services.oozie.client':'Oozie Client',
 
   'dashboard.services.configs.popup.stopService.header':'Stop service',
   'dashboard.services.configs.popup.stopService.body' : 'Service needs to be stopped for reconfiguration',
