@@ -254,7 +254,6 @@ App.WizardStep6Controller = Em.Controller.extend({
 
   /**
    * Load all data needed for this module. Then it automatically renders in template
-   * @return {Ember.Set}
    */
   render: function () {
     var hostsObj = Em.Set.create();
@@ -301,12 +300,26 @@ App.WizardStep6Controller = Em.Controller.extend({
    * @return {*}
    */
   renderSlaves: function(hostsObj) {
+    var self = this;
     var allHosts = this.getHostNames();
+    var headers = this.get('headers');
     var slaveComponents = this.get('content.slaveComponentHosts');
     if (!slaveComponents) { // we are at this page for the first time
+      var client_is_set = false;
       hostsObj.forEach(function(host) {
-        host.isMaster = this.hasMasterComponents(host.hostName);
-      }, this);
+        host.isMaster = self.hasMasterComponents(host.hostName);
+        var checkboxes = host.get('checkboxes');
+        checkboxes.setEach('checked', !host.isMaster);
+        checkboxes.findProperty('title', headers.findProperty('name', 'CLIENT').get('label')).set('checked', false);
+        // First not Master should have Client (only first!)
+        if (!client_is_set) {
+          var checkboxDatanode = checkboxes.findProperty('title', headers.findProperty('name', 'DATANODE').get('label'));
+          if (checkboxDatanode && checkboxDatanode.get('checked')) {
+            checkboxes.findProperty('title', headers.findProperty('name', 'CLIENT').get('label')).set('checked', true);
+            client_is_set = true;
+          }
+        }
+      });
     }
     else {
       this.get('headers').forEach(function(header) {
