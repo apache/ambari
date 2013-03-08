@@ -440,6 +440,9 @@ Trunk (unreleased changes):
 
  BUG FIXES
 
+ AMBARI-1582. Cannot start hadoop services after hdfs re-configuration 
+ and amabri server restart. (swagle)
+
  AMBARI-1570. Dashboard - missing translations. (Xi Wang via yusaku)
 
  AMBARI-1569. Add AMBARI-1536 and 1537 back. (Xi Wang via yusaku)

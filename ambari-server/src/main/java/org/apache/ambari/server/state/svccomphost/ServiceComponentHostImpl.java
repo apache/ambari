@@ -1038,13 +1038,6 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
     try {
       writeLock.lock();
 
-      Set<String> deletedTypes = new HashSet<String>();
-      for (String type : this.desiredConfigs.keySet()) {
-        if (!configs.containsKey(type)) {
-          deletedTypes.add(type);
-        }
-      }
-
       for (Entry<String,Config> entry : configs.entrySet()) {
 
         boolean contains = false;
@@ -1071,34 +1064,6 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
         }
 
         this.desiredConfigs.put(entry.getKey(), entry.getValue().getVersionTag());
-      }
-
-      if (!deletedTypes.isEmpty()) {
-        if (persisted) {
-          List<HostComponentDesiredConfigMappingEntity> deleteEntities =
-              hostComponentDesiredConfigMappingDAO.findByHostComponentAndType(
-                  stateEntity.getClusterId(), stateEntity.getServiceName(),
-                  stateEntity.getComponentName(),
-                  stateEntity.getHostName(), deletedTypes);
-          for (HostComponentDesiredConfigMappingEntity deleteEntity : deleteEntities) {
-            if (LOG.isDebugEnabled()) {
-              LOG.debug("Deleting desired config to ServiceComponentHost"
-                  + ", clusterId=" + stateEntity.getClusterId()
-                  + ", serviceName=" + stateEntity.getServiceName()
-                  + ", componentName=" + stateEntity.getComponentName()
-                  + ", hostname=" + stateEntity.getHostName()
-                  + ", configType=" + deleteEntity.getConfigType()
-                  + ", configVersionTag=" + deleteEntity.getVersionTag());
-            }
-            desiredStateEntity.getHostComponentDesiredConfigMappingEntities().remove(
-                deleteEntity);
-            hostComponentDesiredConfigMappingDAO.remove(deleteEntity);
-          }
-        } else {
-          for (String deletedType : deletedTypes) {
-            desiredConfigs.remove(deletedType);
-          }
-        }
       }
 
       saveIfPersisted();

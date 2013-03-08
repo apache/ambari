@@ -42,6 +42,7 @@ import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
 import org.apache.ambari.server.orm.dao.RoleDAO;
+import org.apache.ambari.server.orm.entities.ClusterServiceEntity;
 import org.apache.ambari.server.orm.entities.RoleEntity;
 import org.apache.ambari.server.security.authorization.Users;
 import org.apache.ambari.server.state.Cluster;
@@ -59,16 +60,17 @@ import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.State;
 import org.apache.ambari.server.state.svccomphost.ServiceComponentHostStartEvent;
 import org.apache.ambari.server.utils.StageUtils;
+import org.eclipse.persistence.jpa.JpaEntityManager;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.google.inject.persist.PersistService;
+import javax.persistence.EntityManager;
+
 
 public class AmbariManagementControllerTest {
 
@@ -103,11 +105,13 @@ public class AmbariManagementControllerTest {
   private ServiceComponentHostFactory serviceComponentHostFactory;
   private AmbariMetaInfo ambariMetaInfo;
   private Users users;
+  private EntityManager entityManager;
 
   @Before
   public void setup() throws Exception {
     injector = Guice.createInjector(new InMemoryDefaultTestModule());
     injector.getInstance(GuiceJpaInitializer.class);
+    entityManager = injector.getInstance(EntityManager.class);
     clusters = injector.getInstance(Clusters.class);
     actionDB = injector.getInstance(ActionDBAccessor.class);
     controller = injector.getInstance(AmbariManagementController.class);
@@ -3696,6 +3700,185 @@ public class AmbariManagementControllerTest {
     Assert.assertEquals("v1",
         sch1.getDesiredConfigs().get("typeB").getVersionTag());
 
+  }
+
+  @Test
+  public void testReConfigureService() throws Exception {
+    String clusterName = "foo1";
+    createCluster(clusterName);
+    clusters.getCluster(clusterName)
+      .setDesiredStackVersion(new StackId("HDP-0.1"));
+    String serviceName = "HDFS";
+    createService(clusterName, serviceName, null);
+    String componentName1 = "NAMENODE";
+    String componentName2 = "DATANODE";
+    String componentName3 = "HDFS_CLIENT";
+    createServiceComponent(clusterName, serviceName, componentName1,
+      State.INIT);
+    createServiceComponent(clusterName, serviceName, componentName2,
+      State.INIT);
+    createServiceComponent(clusterName, serviceName, componentName3,
+      State.INIT);
+
+    String host1 = "h1";
+    clusters.addHost(host1);
+    clusters.getHost("h1").setOsType("centos5");
+    clusters.getHost("h1").persist();
+    String host2 = "h2";
+    clusters.addHost(host2);
+    clusters.getHost("h2").setOsType("centos6");
+    clusters.getHost("h2").persist();
+
+    clusters.mapHostToCluster(host1, clusterName);
+    clusters.mapHostToCluster(host2, clusterName);
+
+
+    // null service should work
+    createServiceComponentHost(clusterName, null, componentName1,
+      host1, null);
+    createServiceComponentHost(clusterName, serviceName, componentName2,
+      host1, null);
+    createServiceComponentHost(clusterName, serviceName, componentName2,
+      host2, null);
+    createServiceComponentHost(clusterName, serviceName, componentName3,
+      host1, null);
+    createServiceComponentHost(clusterName, serviceName, componentName3,
+      host2, null);
+
+    // Install
+    ServiceRequest r = new ServiceRequest(clusterName, serviceName, null,
+      State.INSTALLED.toString());
+    Set<ServiceRequest> requests = new HashSet<ServiceRequest>();
+    requests.add(r);
+
+    controller.updateServices(requests);
+    Assert.assertEquals(State.INSTALLED,
+      clusters.getCluster(clusterName).getService(serviceName)
+        .getDesiredState());
+
+    // manually change live state to installed as no running action manager
+    for (ServiceComponent sc :
+      clusters.getCluster(clusterName).getService(serviceName)
+        .getServiceComponents().values()) {
+      for (ServiceComponentHost sch : sc.getServiceComponentHosts().values()) {
+        sch.setState(State.INSTALLED);
+      }
+    }
+
+    // Create and attach config
+    Map<String, String> configs = new HashMap<String, String>();
+    configs.put("a", "b");
+
+    ConfigurationRequest cr1,cr2,cr3;
+    cr1 = new ConfigurationRequest(clusterName, "core-site","version1",
+      configs);
+    cr2 = new ConfigurationRequest(clusterName, "hdfs-site","version1",
+      configs);
+    cr3 = new ConfigurationRequest(clusterName, "core-site","version122",
+      configs);
+    controller.createConfiguration(cr1);
+    controller.createConfiguration(cr2);
+    controller.createConfiguration(cr3);
+
+    Cluster cluster = clusters.getCluster(clusterName);
+    Service s = cluster.getService(serviceName);
+    ServiceComponent sc1 = s.getServiceComponent(componentName1);
+    ServiceComponent sc2 = s.getServiceComponent(componentName2);
+    ServiceComponentHost sch1 = sc1.getServiceComponentHost(host1);
+
+    Set<ServiceComponentHostRequest> schReqs =
+      new HashSet<ServiceComponentHostRequest>();
+    Set<ServiceComponentRequest> scReqs =
+      new HashSet<ServiceComponentRequest>();
+    Set<ServiceRequest> sReqs = new HashSet<ServiceRequest>();
+    Map<String, String> configVersions = new HashMap<String, String>();
+
+    // SCH level
+    configVersions.clear();
+    configVersions.put("core-site", "version1");
+    configVersions.put("hdfs-site", "version1");
+    schReqs.clear();
+    schReqs.add(new ServiceComponentHostRequest(clusterName, serviceName,
+      componentName1, host1, configVersions, null));
+    Assert.assertNull(controller.updateHostComponents(schReqs));
+    Assert.assertEquals(2, sch1.getDesiredConfigs().size());
+
+    // Reconfigure SCH level
+    configVersions.clear();
+    configVersions.put("core-site", "version122");
+    schReqs.clear();
+    schReqs.add(new ServiceComponentHostRequest(clusterName, serviceName,
+      componentName1, host1, configVersions, null));
+    Assert.assertNull(controller.updateHostComponents(schReqs));
+
+    // Clear Entity Manager
+    entityManager.clear();
+
+    Assert.assertEquals(2, sch1.getDesiredConfigs().size());
+    Assert.assertEquals("version122", sch1.getDesiredConfigs().get
+      ("core-site").getVersionTag());
+
+    //SC Level
+    configVersions.clear();
+    configVersions.put("core-site", "version1");
+    configVersions.put("hdfs-site", "version1");
+    scReqs.add(new ServiceComponentRequest(clusterName, serviceName,
+      componentName2, configVersions, null));
+    Assert.assertNull(controller.updateComponents(scReqs));
+
+    scReqs.add(new ServiceComponentRequest(clusterName, serviceName,
+      componentName1, configVersions, null));
+    Assert.assertNull(controller.updateComponents(scReqs));
+    Assert.assertEquals(2, sc1.getDesiredConfigs().size());
+    Assert.assertEquals(2, sc2.getDesiredConfigs().size());
+
+    // Reconfigure SC level
+    configVersions.clear();
+    configVersions.put("core-site", "version122");
+
+    scReqs.clear();
+    scReqs.add(new ServiceComponentRequest(clusterName, serviceName,
+      componentName2, configVersions, null));
+    Assert.assertNull(controller.updateComponents(scReqs));
+
+    Assert.assertEquals(2, sc2.getDesiredConfigs().size());
+    Assert.assertEquals("version122", sc2.getDesiredConfigs().get
+      ("core-site").getVersionTag());
+    scReqs.clear();
+    scReqs.add(new ServiceComponentRequest(clusterName, serviceName,
+      componentName1, configVersions, null));
+    Assert.assertNull(controller.updateComponents(scReqs));
+
+    entityManager.clear();
+
+    Assert.assertEquals(2, sc1.getDesiredConfigs().size());
+    Assert.assertEquals("version122", sc1.getDesiredConfigs().get
+      ("core-site").getVersionTag());
+
+    // S level
+    configVersions.clear();
+    configVersions.put("core-site", "version1");
+    configVersions.put("hdfs-site", "version1");
+    sReqs.clear();
+    sReqs.add(new ServiceRequest(clusterName, serviceName, configVersions,
+      null));
+    Assert.assertNull(controller.updateServices(sReqs));
+    Assert.assertEquals(2, s.getDesiredConfigs().size());
+
+    // Reconfigure S Level
+    configVersions.clear();
+    configVersions.put("core-site", "version122");
+
+    sReqs.clear();
+    sReqs.add(new ServiceRequest(clusterName, serviceName, configVersions,
+      null));
+    Assert.assertNull(controller.updateServices(sReqs));
+
+    entityManager.clear();
+
+    Assert.assertEquals(2, s.getDesiredConfigs().size());
+    Assert.assertEquals("version122", s.getDesiredConfigs().get
+      ("core-site").getVersionTag());
   }
 
   @Test
