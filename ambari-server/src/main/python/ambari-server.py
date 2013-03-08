@@ -241,8 +241,6 @@ def write_property(key, value):
   return 0
 
 
-
-
 def setup_db(args):
   #password access to ambari-server and mapred
   configure_postgres_username_password(args)
@@ -258,12 +256,10 @@ def setup_db(args):
   return retcode
 
 
-
-def upgrade_db(args):
+def execute_db_script(args, file):
   #password access to ambari-server and mapred
   configure_postgres_username_password(args)
   dbname = args.postgredbname
-  file = args.upgrade_script_file
   username = args.postgres_username
   password = args.postgres_password
   command = SETUP_DB_CMD[:]
@@ -272,6 +268,28 @@ def upgrade_db(args):
   if not retcode == 0:
     print errdata
   return retcode
+
+
+def check_db_consistency(args, file):
+  #password access to ambari-server and mapred
+  configure_postgres_username_password(args)
+  dbname = args.postgredbname
+  username = args.postgres_username
+  password = args.postgres_password
+  command = SETUP_DB_CMD[:]
+  command[-1] = command[-1].format(file, username, password)
+  retcode, outdata, errdata = run_os_command(command)
+  if not retcode == 0:
+    print errdata
+    return retcode
+  else:
+    # Assumes that the output is of the form ...\n<count>
+    print_info_msg("Parsing output: " + outdata)
+    lines = outdata.splitlines()
+    if (lines[-1] == '3'):
+      return 0
+  return -1
+
 
 def upgrade_stack(args, stack_id):
   #password access to ambari-server and mapred
@@ -879,19 +897,33 @@ def stop(args):
 # Upgrades the Ambari Server.
 #
 def upgrade(args):
-
   print 'Checking PostgreSQL...'
   retcode = check_postgre_up()
   if not retcode == 0:
-    printErrorMsg ('PostgreSQL server not running. Exiting')
+    printErrorMsg('PostgreSQL server not running. Exiting')
     sys.exit(retcode)
 
+  file = args.upgrade_script_file
   print 'Upgrading database...'
-  retcode = upgrade_db(args)
+  retcode = execute_db_script(args, file)
   if not retcode == 0:
-    printErrorMsg  ('Database upgrade script has failed. Exiting.')
+    printErrorMsg('Database upgrade script has failed. Exiting.')
     sys.exit(retcode)
 
+  print 'Checking database integrity...'
+  check_file = file[:-3] + "Check" + file[-4:]
+  retcode = check_db_consistency(args, check_file)
+
+  if not retcode == 0:
+    print 'Found inconsistency. Trying to fix...'
+    fix_file = file[:-3] + "Fix" + file[-4:]
+    retcode = execute_db_script(args, fix_file)
+
+    if not retcode == 0:
+      printErrorMsg('Database cannot be fixed. Exiting.')
+      sys.exit(retcode)
+  else:
+    print 'Database is consistent.'
   print "Ambari Server 'upgrade' finished successfully"
 
 
@@ -1088,7 +1120,7 @@ def main():
                       help="File with drop script")
   parser.add_option('-u', '--upgrade-script-file', default="/var/lib/"
                               "ambari-server/resources/upgrade/ddl/"
-                              "Ambari-DDL-Postgres-UPGRADE-1.2.1.sql",
+                              "Ambari-DDL-Postgres-UPGRADE-1.2.2.sql",
                       help="File with upgrade script")
   parser.add_option('-t', '--upgrade-stack-script-file', default="/var/lib/"
                               "ambari-server/resources/upgrade/dml/"
