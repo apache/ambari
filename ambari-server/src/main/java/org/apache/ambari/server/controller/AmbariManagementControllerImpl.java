@@ -30,7 +30,19 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.TreeMap;
-import org.apache.ambari.server.*;
+
+import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.ClusterNotFoundException;
+import org.apache.ambari.server.DuplicateResourceException;
+import org.apache.ambari.server.HostNotFoundException;
+import org.apache.ambari.server.ObjectNotFoundException;
+import org.apache.ambari.server.ParentObjectNotFoundException;
+import org.apache.ambari.server.Role;
+import org.apache.ambari.server.RoleCommand;
+import org.apache.ambari.server.ServiceComponentHostNotFoundException;
+import org.apache.ambari.server.ServiceComponentNotFoundException;
+import org.apache.ambari.server.ServiceNotFoundException;
+import org.apache.ambari.server.StackAccessException;
 import org.apache.ambari.server.actionmanager.ActionManager;
 import org.apache.ambari.server.actionmanager.HostRoleCommand;
 import org.apache.ambari.server.actionmanager.RequestStatus;
@@ -49,6 +61,7 @@ import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.ComponentInfo;
 import org.apache.ambari.server.state.Config;
 import org.apache.ambari.server.state.ConfigFactory;
+import org.apache.ambari.server.state.DesiredConfig;
 import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.OperatingSystemInfo;
 import org.apache.ambari.server.state.PropertyInfo;
@@ -124,12 +137,12 @@ public class AmbariManagementControllerImpl implements
   @Inject
   private Configuration configs;
 
-  
+
   final private String masterHostname;
 
   final private static String JDK_RESOURCE_LOCATION =
       "/resources/";
- 
+
   final private String jdkResourceUrl;
 
   @Inject
@@ -142,11 +155,11 @@ public class AmbariManagementControllerImpl implements
     this.gson = injector.getInstance(Gson.class);
     LOG.info("Initializing the AmbariManagementControllerImpl");
     this.masterHostname =  InetAddress.getLocalHost().getCanonicalHostName();
-    
+
     if (configs != null) {
       this.jdkResourceUrl = "http://" + masterHostname + ":"
           + configs.getClientApiPort()
-          + JDK_RESOURCE_LOCATION; 
+          + JDK_RESOURCE_LOCATION;
     } else {
     		this.jdkResourceUrl = null;
     }
@@ -824,7 +837,7 @@ public class AmbariManagementControllerImpl implements
           && !request.getDesiredState().isEmpty()) {
         State state = State.valueOf(request.getDesiredState());
         sch.setDesiredState(state);
-      } 
+      }
 
       sch.setDesiredStackVersion(sc.getDesiredStackVersion());
 
@@ -840,6 +853,7 @@ public class AmbariManagementControllerImpl implements
 
   }
 
+  @Override
   public synchronized void createConfiguration(
       ConfigurationRequest request) throws AmbariException {
     if (null == request.getClusterName() || request.getClusterName().isEmpty()
@@ -1184,7 +1198,7 @@ public class AmbariManagementControllerImpl implements
           HostResponse r = h.convertToResponse();
           r.setClusterName(clusterName);
           r.setDesiredConfigs(h.getDesiredConfigs(cluster.getClusterId()));
-          
+
           response.add(r);
         } else if (hostName != null) {
           throw new HostNotFoundException(clusterName, hostName);
@@ -1650,7 +1664,7 @@ public class AmbariManagementControllerImpl implements
     return null;
   }
   */
-  
+
   private String getJobTrackerHost(Cluster cluster) {
     try {
       Service svc = cluster.getService("MAPREDUCE");
@@ -1891,23 +1905,41 @@ public class AmbariManagementControllerImpl implements
                   + ", roleCommand=" + roleCommand.name());
             }
 
-            Map<String, Config> configs = scHost.getDesiredConfigs();
-            // Clone configurations for the command
-            Map<String, Map<String, String>> configurations =
-                new TreeMap<String, Map<String, String>>();
-            for (Config config : configs.values()) {
-              if (LOG.isDebugEnabled()) {
-                LOG.debug("Cloning configs for execution command"
-                    + ", configType=" + config.getType()
-                    + ", configVersionTag=" + config.getVersionTag()
-                    + ", clusterName=" + scHost.getClusterName()
-                    + ", serviceName=" + scHost.getServiceName()
-                    + ", componentName=" + scHost.getServiceComponentName()
-                    + ", hostname=" + scHost.getHostName());
+            Map<String, Map<String, String>> configurations = new TreeMap<String, Map<String,String>>();
+
+            // Do not use host component config mappings.  Instead, the rules are:
+            // 1) Use the cluster desired config
+            // 2) override (1) with service-specific overrides
+            // 3) override (2) with host-specific overrides
+
+            // since we are dealing with host components in this loop, get the
+            // config mappings for the service this host component applies to
+            Service service = cluster.getService(scHost.getServiceName());
+            Map<String, Config> configs = service.getDesiredConfigs();
+
+            for (Config svcConfig : configs.values()) {
+              // 1) use the cluster desired config
+              Config clusterConfig = cluster.getDesiredConfigByType(svcConfig.getType());
+
+              if (null == clusterConfig)
+                clusterConfig = cluster.getConfig(svcConfig.getType(), svcConfig.getVersionTag());
+
+              Map<String, String> props = new HashMap<String,String>(clusterConfig.getProperties());
+
+              // 2) apply the service overrides, if any
+              props.putAll(svcConfig.getProperties());
+
+              // 3) apply the host overrides, if any
+              Host host = clusters.getHost(scHost.getHostName());
+              DesiredConfig dc = host.getDesiredConfigs(scHost.getClusterId()).get(svcConfig.getType());
+              if (null != dc) {
+                Config hostConfig = cluster.getConfig(svcConfig.getType(), dc.getVersion());
+                props.putAll(hostConfig.getProperties());
               }
-              configurations.put(config.getType(),
-                  config.getProperties());
+
+              configurations.put(svcConfig.getType(), props);
             }
+
             // HACK HACK HACK
             if ((!scHost.getHostName().equals(jobtrackerHost))
                 && configurations.get("global") != null) {
@@ -1955,7 +1987,7 @@ public class AmbariManagementControllerImpl implements
             configurations.put(entry.getValue().getType(), entry.getValue().getProperties());
           }
         }
-        
+
         stage.getExecutionCommandWrapper(clientHost,
             smokeTestRole).getExecutionCommand()
             .setConfigurations(configurations);
@@ -2302,9 +2334,9 @@ public class AmbariManagementControllerImpl implements
               !newState.isValidClientComponentState()) {
             continue;
           }
-          /** 
+          /**
            * This is hack for now wherein we don't fail if the
-           * sch is in INSTALL_FAILED 
+           * sch is in INSTALL_FAILED
            */
           if (!isValidStateTransition(oldSchState, newState)) {
             String error = "Invalid transition for"
@@ -2317,7 +2349,7 @@ public class AmbariManagementControllerImpl implements
                 + ", currentState=" + oldSchState
                 + ", newDesiredState=" + newState;
             StackId sid = cluster.getDesiredStackVersion();
-            
+
             if ( ambariMetaInfo.getComponentCategory(
                 sid.getStackName(), sid.getStackVersion(), sc.getServiceName(),
                 sch.getServiceComponentName()).isMaster()) {
@@ -2694,32 +2726,32 @@ public class AmbariManagementControllerImpl implements
       if (null != request.getRackInfo()) {
         h.setRackInfo(request.getRackInfo());
       }
-      
+
       if (null != request.getPublicHostName()) {
         h.setPublicHostName(request.getPublicHostName());
       }
-      
+
       if (null != request.getClusterName() && null != request.getDesiredConfig()) {
         Cluster c = clusters.getCluster(request.getClusterName());
-        
+
         if (clusters.getHostsForCluster(request.getClusterName()).containsKey(h.getHostName())) {
-          
+
           ConfigurationRequest cr = request.getDesiredConfig();
-          
+
           if (null != cr.getProperties() && cr.getProperties().size() > 0) {
             cr.setClusterName(c.getClusterName());
             createConfiguration(cr);
           }
-          
+
           Config baseConfig = c.getConfig(cr.getType(), cr.getVersionTag());
           if (null != baseConfig)
             h.addDesiredConfig(c.getClusterId(), cr.getServiceName(), baseConfig);
-          
-        }
-        
-        
 
-        
+        }
+
+
+
+
       }
 
       //todo: if attempt was made to update a property other than those
@@ -2892,8 +2924,8 @@ public class AmbariManagementControllerImpl implements
               + ", newDesiredState=" + newState);
         }
         continue;
-      } 
-      
+      }
+
       if (!isValidStateTransition(oldSchState, newState)) {
         throw new AmbariException("Invalid transition for"
             + " servicecomponenthost"
@@ -3497,7 +3529,7 @@ public class AmbariManagementControllerImpl implements
           .put(entry.getValue().getType(), entry.getValue().getProperties());
       }
     }
-    
+
     stage.addHostRoleExecutionCommand(
         namenodeHost,
         Role.DECOMMISSION_DATANODE,
@@ -3564,8 +3596,8 @@ public class AmbariManagementControllerImpl implements
       throw new AmbariException("Stage was not created");
     }
   }
-  
-  
+
+
   @Override
   public Set<StackResponse> getStacks(Set<StackRequest> requests)
       throws AmbariException {
@@ -3588,7 +3620,7 @@ public class AmbariManagementControllerImpl implements
   private Set<StackResponse> getStacks(StackRequest request)
       throws AmbariException {
     Set<StackResponse> response;
-    
+
     String stackName = request.getStackName();
 
     if (stackName != null) {
@@ -3623,22 +3655,22 @@ public class AmbariManagementControllerImpl implements
   }
 
   private Set<RepositoryResponse> getRepositories(RepositoryRequest request) throws AmbariException {
-    
+
     String stackName = request.getStackName();
     String stackVersion = request.getStackVersion();
     String osType = request.getOsType();
     String repoId = request.getRepoId();
-    
+
     Set<RepositoryResponse> response;
-    
+
     if (repoId == null) {
       List<RepositoryInfo> repositories = this.ambariMetaInfo.getRepositories(stackName, stackVersion, osType);
       response = new HashSet<RepositoryResponse>();
-      
+
       for (RepositoryInfo repository: repositories) {
         response.add(repository.convertToResponse());
       }
-      
+
     } else {
       RepositoryInfo repository = this.ambariMetaInfo.getRepository(stackName, stackVersion, osType, repoId);
       response = Collections.singleton(repository.convertToResponse());
@@ -3672,7 +3704,7 @@ public class AmbariManagementControllerImpl implements
 
     String stackName = request.getStackName();
     String stackVersion = request.getStackVersion();
-    
+
     if (stackVersion != null) {
       StackInfo stackInfo = this.ambariMetaInfo.getStackInfo(stackName, stackVersion);
       response = Collections.singleton(stackInfo.convertToResponse());
@@ -3680,7 +3712,7 @@ public class AmbariManagementControllerImpl implements
       Set<StackInfo> stackInfos = this.ambariMetaInfo.getStackInfos(stackName);
       response = new HashSet<StackVersionResponse>();
       for (StackInfo stackInfo: stackInfos) {
-        response.add(stackInfo.convertToResponse()); 
+        response.add(stackInfo.convertToResponse());
       }
     }
 
@@ -3692,7 +3724,7 @@ public class AmbariManagementControllerImpl implements
       Set<StackServiceRequest> requests) throws AmbariException {
 
     Set<StackServiceResponse> response = new HashSet<StackServiceResponse>();
-    
+
     for (StackServiceRequest request : requests) {
       try {
         response.addAll(getStackServices(request));
@@ -3741,24 +3773,24 @@ public class AmbariManagementControllerImpl implements
 
   private Set<StackConfigurationResponse> getStackConfigurations(
       StackConfigurationRequest request) throws AmbariException {
-    
+
     Set<StackConfigurationResponse> response = null;
-    
+
     String stackName = request.getStackName();
     String stackVersion = request.getStackVersion();
     String serviceName = request.getServiceName();
     String propertyName = request.getPropertyName();
-    
+
     if (propertyName != null) {
       PropertyInfo property = this.ambariMetaInfo.getProperty(stackName, stackVersion, serviceName, propertyName);
       response = Collections.singleton(property.convertToResponse());
     } else {
-      
+
       Set<PropertyInfo> properties = this.ambariMetaInfo.getProperties(stackName, stackVersion, serviceName);
       response = new HashSet<StackConfigurationResponse>();
- 
+
       for (PropertyInfo property: properties) {
-        response.add(property.convertToResponse());  
+        response.add(property.convertToResponse());
       }
     }
 
@@ -3792,16 +3824,16 @@ public class AmbariManagementControllerImpl implements
     String stackVersion = request.getStackVersion();
     String serviceName = request.getServiceName();
     String componentName = request.getComponentName();
-    
-    
+
+
     if (componentName != null) {
       ComponentInfo component = this.ambariMetaInfo.getComponent(stackName, stackVersion, serviceName, componentName);
       response = Collections.singleton(component.convertToResponse());
-      
+
     } else {
       List<ComponentInfo> components = this.ambariMetaInfo.getComponentsByService(stackName, stackVersion, serviceName);
       response = new HashSet<StackServiceComponentResponse>();
-      
+
       for (ComponentInfo component: components) {
         response.add(component.convertToResponse());
       }
@@ -3829,13 +3861,13 @@ public class AmbariManagementControllerImpl implements
 
   private Set<OperatingSystemResponse> getStackOperatingSystems(
       OperatingSystemRequest request) throws AmbariException {
-    
+
     Set<OperatingSystemResponse> response = null;
 
     String stackName = request.getStackName();
     String stackVersion = request.getStackVersion();
     String osType = request.getOsType();
-    
+
     if (osType != null) {
       OperatingSystemInfo operatingSystem = this.ambariMetaInfo.getOperatingSystem(stackName, stackVersion, osType);
       response = Collections.singleton(operatingSystem.convertToResponse());
