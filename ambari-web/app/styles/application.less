@@ -611,8 +611,7 @@ a:focus {
 /*90% width modal window start*/
 .full-width-modal {
   .modal {
-    width: 90%;
-    margin: -350px 0 0 -45%;
+
   }
 
   .clear {
@@ -642,6 +641,7 @@ a:focus {
 
 /*60% width modal window start*/
 .sixty-percent-width-modal {
+
   .modal {
     width: 60%;
     margin: 0 0 0 -30%;
@@ -1479,28 +1479,23 @@ table.graphs {
 
   .health-status-HEALTHY{
     background-image: @status-live-marker;
-    background-repeat:no-repeat;
-    background-position:center;
+    .status-dot-position;
   }
   .health-status-LIVE {
     background-image: @status-live-marker;
-    background-repeat:no-repeat;
-    background-position:center;
+    .status-dot-position;
   }
   .health-status-DEAD-RED {
     background-image: @status-dead-red-marker;
-    background-repeat:no-repeat;
-    background-position:center;
+    .status-dot-position;
   }
   .health-status-DEAD-ORANGE {
     background-image: @status-dead-orange-marker;
-    background-repeat:no-repeat;
-    background-position:center;
+    .status-dot-position;
   }
   .health-status-DEAD-YELLOW {
     background-image: @status-dead-yellow-marker;
-    background-repeat:no-repeat;
-    background-position:center;
+    .status-dot-position;
   }
   .host-name-search {
     position: relative;
@@ -1523,16 +1518,14 @@ table.graphs {
       float: right;
     }
     .health-status-bar {
-      float: left;
-      font-size: 13px;
-      height: 45px;
-      position: relative;
-      top: 10px;
-      left: 10px;
-      .active a{
+      font-size: 14px;
+      margin-left: 0;
+      width: 650px;
+      .active a {
         text-decoration: none;
         color: #000000;
       }
+
     }
   }
   .progress {
@@ -1557,9 +1550,9 @@ table.graphs {
     }
     td.first span {
       display: block;
-      float: left;
+      float: right;
       height: 13px;
-      margin: 4px 5px 0 0;
+      margin: 5px 0 0 0;
       width: 13px;
     }
     ul.filter-components {
@@ -2716,6 +2709,15 @@ i.icon-asterisks {
 
 //styles for screen width more than 1200px
 @media (min-width: 1200px) {
+
+  //when screen is wide, the modal width is fixed
+  .full-width-modal {
+    .modal{
+      width: 1170px;
+      margin: -350px 0 0 -583px;
+    }
+  }
+
   .row {
     margin-left: -30px;
     *zoom: 1;
