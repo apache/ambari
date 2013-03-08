@@ -31,7 +31,7 @@ public class DesiredConfig {
 
   private String versionTag;
   private String serviceName;
-  private List<String> hostOverrides = null;
+  private List<HostOverride> hostOverrides = null;
 
   /**
    * Sets the version tag
@@ -72,7 +72,7 @@ public class DesiredConfig {
    * Sets the host overrides for the desired config.  Cluster-based desired configs only.
    * @param overrides the host names
    */
-  public void setHostOverrides(List<String> overrides) {
+  public void setHostOverrides(List<HostOverride> overrides) {
     hostOverrides = overrides;
   }
 
@@ -82,8 +82,42 @@ public class DesiredConfig {
    */
   @JsonSerialize(include = Inclusion.NON_EMPTY)
   @JsonProperty("host_overrides")
-  public List<String> getHostOverrides() {
+  public List<HostOverride> getHostOverrides() {
     return hostOverrides;
+  }
+
+  /**
+   * Used to represent an override on a host.
+   */
+  public static class HostOverride {
+    private String hostName;
+    private String versionOverrideTag;
+
+    /**
+     * @param name the host name
+     * @param tag the config tag
+     */
+    public HostOverride(String name, String tag) {
+      hostName = name;
+      versionOverrideTag = tag;
+    }
+
+    /**
+     * @return the override host name
+     */
+    @JsonProperty("host_name")
+    public String getName() {
+      return hostName;
+    }
+
+    /**
+     * @return the override version tag
+     */
+    @JsonProperty("tag")
+    public String getVersionTag() {
+      return versionOverrideTag;
+    }
+
   }
 
   @Override
@@ -96,11 +130,11 @@ public class DesiredConfig {
     if (null != hostOverrides && hostOverrides.size() > 0) {
       sb.append(", hosts=[");
       int i = 0;
-      for (String h : hostOverrides)
+      for (DesiredConfig.HostOverride h : hostOverrides)
       {
         if (i++ != 0)
           sb.append(",");
-        sb.append(h);
+        sb.append(h.getName());
       }
 
       sb.append(']');

@@ -33,16 +33,28 @@ public class DesiredConfigTest {
     DesiredConfig dc = new DesiredConfig();
     dc.setServiceName("service");
     dc.setVersion("global");
-    
+
     Assert.assertEquals("Expected service 'service'", "service", dc.getServiceName());
     Assert.assertEquals("Expected version 'global'", "global", dc.getVersion());
     Assert.assertNull("Expected null host overrides", dc.getHostOverrides());
-    
-    List<String> hosts = Arrays.asList("h1", "h2", "h3");
+
+    List<DesiredConfig.HostOverride> hosts = Arrays.asList(
+        new DesiredConfig.HostOverride("h1", "v2"),
+        new DesiredConfig.HostOverride("h2", "v3"));
     dc.setHostOverrides(hosts);
-    
+
     Assert.assertNotNull("Expected host overrides to be set", dc.getHostOverrides());
     Assert.assertEquals("Expected host override equality", hosts, dc.getHostOverrides());
   }
-  
+
+  @Test
+  public void testHostOverride() throws Exception {
+    DesiredConfig.HostOverride override = new DesiredConfig.HostOverride("h1", "v1");
+
+    Assert.assertNotNull(override.getName());
+    Assert.assertNotNull(override.getVersionTag());
+    Assert.assertEquals("Expected override host 'h1'", "h1", override.getName());
+    Assert.assertEquals("Expected override version 'v1'", "v1", override.getVersionTag());
+  }
+
 }

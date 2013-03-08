@@ -552,6 +552,7 @@ public class ClusterImpl implements Cluster {
     }
   }
 
+  @Override
   public Collection<Config> getAllConfigs() {
     readWriteLock.readLock().lock();
     try {
@@ -582,6 +583,7 @@ public class ClusterImpl implements Cluster {
     }
   }
 
+  @Override
   public void debugDump(StringBuilder sb) {
     loadServices();
     readWriteLock.readLock().lock();
@@ -719,7 +721,7 @@ public class ClusterImpl implements Cluster {
     }
 
     Collection<ClusterConfigMappingEntity> entities = clusterEntity.getConfigMappingEntities();
-    
+
     for (ClusterConfigMappingEntity e : entities) {
       if (e.isSelected() > 0 && e.getType().equals(config.getType())) {
         e.setSelected(0);
@@ -734,7 +736,7 @@ public class ClusterImpl implements Cluster {
     entity.setType(config.getType());
     entity.setVersion(config.getVersionTag());
     entities.add(entity);
-    
+
     clusterEntity.setConfigMappingEntities(entities);
 
     clusterDAO.merge(clusterEntity);
@@ -755,9 +757,10 @@ public class ClusterImpl implements Cluster {
             hostConfigMappingDAO.findSelectedHostsByType(clusterEntity.getClusterId().longValue(),
                 e.getType());
 
-        List<String> hosts = new ArrayList<String>();
+        List<DesiredConfig.HostOverride> hosts = new ArrayList<DesiredConfig.HostOverride>();
         for (HostConfigMappingEntity mappingEntity : hostMappings) {
-          hosts.add (mappingEntity.getHostName());
+          hosts.add (new DesiredConfig.HostOverride(mappingEntity.getHostName(),
+              mappingEntity.getVersion()));
         }
 
         c.setHostOverrides(hosts);

@@ -12,6 +12,10 @@ Trunk (unreleased changes):
 
  NEW FEATURES
 
+ AMBARI-1593. Change host override JSON to include version tag (ncole)
+
+ AMBARI-1545. Integrate Frontend Security work to enable security on HDFS
+
  AMBARI-1555. Upgrade should validate that the from->to version is an allowed 
  combination. (Sumit Mohanty via swagle)
 
