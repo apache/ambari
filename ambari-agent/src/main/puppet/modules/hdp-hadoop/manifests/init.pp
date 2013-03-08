@@ -173,7 +173,7 @@ class hdp-hadoop(
     hdp::directory_recursive_create { $logdirprefix: 
         owner => 'root'
     }
-    $piddirprefix = $hdp-hadoop::params::hadoop_piddirprefix
+    $piddirprefix = $hdp-hadoop::params::hadoop_pid_dir_prefix
     hdp::directory_recursive_create { $piddirprefix: 
         owner => 'root'
     }

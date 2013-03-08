@@ -58,8 +58,8 @@ class hdp-hadoop::params(
 
   $hdfs_log_dir_prefix = hdp_default("hadoop/hadoop-env/hdfs_log_dir_prefix","/var/log/hadoop")
 
-  $hadoop_piddirprefix = hdp_default("hadoop/hadoop-env/hadoop_piddirprefix","/var/run/hadoop")
-  $run_dir = $hadoop_piddirprefix
+  $hadoop_pid_dir_prefix = hdp_default("hadoop/hadoop-env/hadoop_pid_dir_prefix","/var/run/hadoop")
+  $run_dir = $hadoop_pid_dir_prefix
 
   $namenode_formatted_mark_dir = "${run_dir}/hdfs/namenode/formatted/"
 

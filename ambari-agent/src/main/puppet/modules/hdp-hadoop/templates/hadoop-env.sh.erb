@@ -78,8 +78,8 @@ export HADOOP_SECURE_DN_LOG_DIR=<%=scope.function_hdp_template_var("hdfs_log_dir
 # export HADOOP_SLAVE_SLEEP=0.1
 
 # The directory where pid files are stored. /tmp by default.
-export HADOOP_PID_DIR=<%=scope.function_hdp_template_var("hadoop_piddirprefix")%>/$USER
-export HADOOP_SECURE_DN_PID_DIR=<%=scope.function_hdp_template_var("hadoop_piddirprefix")%>/$HADOOP_SECURE_DN_USER
+export HADOOP_PID_DIR=<%=scope.function_hdp_template_var("hadoop_pid_dir_prefix")%>/$USER
+export HADOOP_SECURE_DN_PID_DIR=<%=scope.function_hdp_template_var("hadoop_pid_dir_prefix")%>/$HADOOP_SECURE_DN_USER
 
 # A string representing this instance of hadoop. $USER by default.
 export HADOOP_IDENT_STRING=$USER

@@ -141,7 +141,7 @@ servicesToPidNames = {
   'GANGLIA_MONITOR': 'gmond.pid',
   'HBASE_MASTER': 'hbase-[A-Za-z0-9_]+-master.pid',
   'HBASE_REGIONSERVER': 'hbase-[A-Za-z0-9_]+-regionserver.pid',
-  'HCATALOG_SERVER': 'hcat.pid',
+  'HCATALOG_SERVER': 'webhcat.pid',
   'KERBEROS_SERVER': 'kadmind.pid',
   'HIVE_SERVER': 'hive-server.pid',
   'HIVE_METASTORE': 'hive.pid',

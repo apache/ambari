@@ -445,6 +445,9 @@ Trunk (unreleased changes):
 
  BUG FIXES
 
+ AMBARI-1594. Ambari UI shows failed services while processes are running 
+ on the server. (swagle) 
+
  AMBARI-1582. Cannot start hadoop services after hdfs re-configuration 
  and amabri server restart. (swagle)
 
