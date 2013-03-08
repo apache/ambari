@@ -23,12 +23,7 @@ App.MainAppsItemDagView = Em.View.extend({
   templateName: require('templates/main/apps/item/dag'),
   elementId : 'jobs',
   content:function(){
-    //if(this.get("controller.jobsLoaded") == true)
-   // {
-      return this.get('controller.content.jobs');
-  //  }
-      return this.get('controller.content.jobs');
-  //  }
+    return this.get('controller.content.jobs');
   }.property('controller.content.jobs'),
 
   classNames:['table','dataTable'],
@@ -42,8 +37,7 @@ App.MainAppsItemDagView = Em.View.extend({
       result[index] = new Object({
         'name' : item.get('id'),
         'entityName' : item.get('workflow_entity_name'),
-        'status' : item.get('status') == 'SUCCESS',
-        'info' : [],
+        'status' : item.get('status'),
         'input' : item.get('input'),
         'output' : item.get('output'),
         'submitTime' : item.get('submit_time'),
@@ -70,6 +64,7 @@ App.MainAppsItemDagView = Em.View.extend({
 
     Ember.run.next(function(){
       self.draw();
+      self.updateTimeline();
     });
 
   }.observes('controller.content.loadAllJobs'),
@@ -101,11 +96,55 @@ App.MainAppsItemDagView = Em.View.extend({
     this.onLoad();
   },
 
+  loadTaskTimeline:false,
+  loadJobTimeline:false,
+  map:false,
+  shuffle:false,
+  reduce:false,
+  allmap:false,
+  allshuffle:false,
+  allreduce:false,
+
+  updateTimeline:function () {
+    var url = App.testMode ? '/data/apps/jobs/timeline.json' : App.apiPrefix + "/jobhistory/task?workflowId=" + this.get('controller.content.id') + "&width=" + this.$().width() + "&startTime=" + this.get('controller.content.startTime') + "&endTime=" + (this.get('controller.content.startTime')+this.get('controller.content.elapsedTime'));
+    var mapper = App.jobTimeLineMapper;
+    mapper.set('model', this);
+    var self = this;
+    App.HttpClient.get(url, mapper,{
+      complete:function(jqXHR, textStatus) {
+        self.set('loadJobTimeline', true);
+      }
+    });
+    url = App.testMode ? '/data/apps/jobs/timeline.json' : App.apiPrefix + "/jobhistory/task?width=" + this.$().width() + "&startTime=" + this.get('controller.content.startTime') + "&endTime=" + (this.get('controller.content.startTime')+this.get('controller.content.elapsedTime'));
+    var mapper = App.taskTimeLineMapper;
+    mapper.set('model', this);
+    var self = this;
+    App.HttpClient.get(url, mapper,{
+      complete:function(jqXHR, textStatus) {
+        self.set('loadTaskTimeline', true);
+      }
+    });
+  },
+
+  drawJobTimeline:function () {
+    if (this.get('loadJobTimeline') && this.get('loadTaskTimeline')) {
+      this.daggraph.addTimeSeries([{"name":"allmap","color":"green","values":this.get('allmap')},
+        {"name":"map","color":"green","values":this.get('map')}], 0, "Maps");
+      this.daggraph.addTimeSeries([
+        {"name":"allshuffle","color":"lightblue","values":this.get('allshuffle')},
+        {"name":"allreduce","color":"steelblue","values":this.get("allreduce")},
+        {"name":"shuffle","color":"lightblue","values":this.get('shuffle')},
+        {"name":"reduce","color":"steelblue","values":this.get("reduce")}], 1, "Reduces");
+    }
+  }.observes('loadJobTimeline', 'loadTaskTimeline'),
+
+  daggraph:false,
+
   draw: function(){
     var dagSchema = this.get('controller.content.workflowContext');
     var jobs = this.get('jobs');
     this.resizeModal();
-    var graph = new DagViewer('dag_viewer')
+    this.daggraph = new DagViewer('dag_viewer')
         .setData(dagSchema, jobs)
         .drawDag(this.$().width(), 300, 20);
   },

@@ -22,59 +22,24 @@ var graph = require('utils/graph');
 App.MainAppsItemBarView = Em.View.extend({
   elementId:'bars',
   templateName:require('templates/main/apps/item/bar'),
-  width:300,
-  height:210,
-  /**
-   * Jobs list. Sorted by job id
-   */
   content:function () {
-    return this.get('controller.content.jobs').sort(function(a, b) {
-      var jobIdA = a.get('id').toLowerCase(), jobIdB = b.get('id').toLowerCase();
-      if (jobIdA < jobIdB)
-        return -1;
-      if (jobIdA > jobIdB)
-        return 1;
-      return 0;
-    });
+    return this.get('controller.content.jobs');
   }.property('controller.content.jobs'),
-  firstJob:function () {
-    return this.get('content').get('firstObject');
-  }.property('content'),
-  activeJob:null,
-  selectJob:function (event) {
-    this.set('activeJob', event.context);
-
-  },
   onLoad:function () {
     if (!this.get('controller.content.loadAllJobs') || this.get('activeJob')) {
       return;
     }
 
-    this.set('activeJob', this.get('firstJob'));
+    var self = this;
+    Ember.run.next(function(){
+      self.updateTasksView();
+    });
   }.observes('controller.content.loadAllJobs'),
   didInsertElement:function () {
     this.onLoad();
   },
   draw:function () {
-    var self = this;
-    if (!this.get('activeJob')) {
-      return;//when job is not defined
-    }
-
-    var desc1 = $('#graph1_desc');
-    var desc2 = $('#graph2_desc');
-    $('.rickshaw_graph, .rickshaw_legend, .rickshaw_annotation_timeline').html('');
-    if (null == desc1.html() || null == desc2.html()) return;
-    desc1.css('display', 'block');
-    desc2.css('display', 'block');
-
-    this.propertyDidChange('getChartData');
-
-  }.observes('activeJob'),
-
-  map:false,
-  shuffle:false,
-  reduce:false,
+  },
 
   mapNodeLocal:false,
   mapRackLocal:false,
@@ -83,46 +48,21 @@ App.MainAppsItemBarView = Em.View.extend({
   submit:false,
   finish:false,
 
-  updateTimeLine:function () {
-    var url = App.testMode ? '/data/apps/jobs/timeline.json' : App.apiPrefix + "/jobhistory/task?jobId=" + this.get('activeJob').get('id') + 
-      "&width=" + this.get('width');
-    var mapper = App.jobTimeLineMapper;
-    mapper.set('model', this);
-    App.HttpClient.get(url, mapper,{
-      complete:function(jqXHR, textStatus) {
-        console.log("updateTimeLine");
-      }
-    });
-  }.observes('getChartData'),
-
   updateTasksView:function () {
-    var url = App.testMode ? '/data/apps/jobs/taskview.json' : App.apiPrefix + "/jobhistory/tasklocality?jobId=" + this.get('activeJob').get('id');
+    var url = App.testMode ? '/data/apps/jobs/taskview.json' : App.apiPrefix + "/jobhistory/tasklocality?workflowId=" + this.get('controller.content.id');
     var mapper = App.jobTasksMapper;
     mapper.set('model', this);
+    var self = this;
     App.HttpClient.get(url, mapper,{
       complete:function(jqXHR, textStatus) {
-        console.log("updateTasksView");
+        self.set('loadJobTasks', true);
       }
     });
-  }.observes('getChartData'),
-
-  drawJobTimeline:function () {
-    var map = JSON.stringify(this.get('map'));
-    var shuffle = JSON.stringify(this.get('shuffle'));
-    var reduce = JSON.stringify(this.get('reduce'));
-    if (!this.get('map') || !this.get('shuffle') || !this.get('reduce')) {return;}
-    $('#chart, #legend, #timeline1, #y-axis').html('');
-    graph.drawJobTimeLine(map, shuffle, reduce, this.get('width'), this.get('height'), '#chart', 'legend', 'timeline1');
-  }.observes('map', 'shuffle', 'reduce'),
+  },
 
   drawJobTasks:function () {
-    var mapNodeLocal = JSON.stringify(this.get('mapNodeLocal'));
-    var mapRackLocal = JSON.stringify(this.get('mapRackLocal'));
-    var mapOffSwitch = JSON.stringify(this.get('mapOffSwitch'));
-    var reduceOffSwitch = JSON.stringify(this.get('reduceOffSwitch'));
     if (!this.get('mapNodeLocal') || !this.get('mapRackLocal') || !this.get('mapOffSwitch') || !this.get('reduceOffSwitch')) {return;}
-    $('#job_tasks, #tasks_legend, #timeline2, #y-axis2').html('');
-    graph.drawJobTasks(mapNodeLocal, mapRackLocal, mapOffSwitch, reduceOffSwitch, this.get('submit'), this.get('width'), this.get('height'), '#job_tasks', 'tasks_legend', 'timeline2');
-  }.observes('mapNodeLocal', 'mapRackLocal', 'mapOffSwitch', 'reduceOffSwitch', 'submit')
+    graph.drawJobTasks(this.get('mapNodeLocal'), this.get('mapRackLocal'), this.get('mapOffSwitch'), this.get('reduceOffSwitch'), this.get('controller.content.startTime'), this.get('controller.content.startTime')+this.get('controller.content.elapsedTime'), this.$().width(), 300, 'job_tasks');
+  }.observes('loadJobTasks')
 
 });

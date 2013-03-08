@@ -71,6 +71,23 @@ App.jobTimeLineMapper = App.QuickDataMapper.create({
   }
 });
 
+App.taskTimeLineMapper = App.QuickDataMapper.create({
+  model: null, //model will be set outside of mapper
+  config:{
+    allmap:'map',
+    allshuffle:'shuffle',
+    allreduce:'reduce'
+  },
+  map:function (json) {
+    var job = this.get('model'); // @model App.MainAppsItemBarView
+    var parseResult = this.parseIt(json, this.config);
+
+    $.each(parseResult, function (field, value) {
+      job.set(field, value);
+    });
+  }
+});
+
 App.jobTasksMapper = App.QuickDataMapper.create({
   model: null, //model will be set outside of mapper
   config:{

@@ -105,6 +105,8 @@ Trunk (unreleased changes):
 
  IMPROVEMENTS
 
+ AMBARI-1491. Add task plots to job swimlane diagram. (billie via yusaku)
+
  AMBARI-1584. Stack Upgrade Wizard - integrate host progress popup.
  (yusaku)
 

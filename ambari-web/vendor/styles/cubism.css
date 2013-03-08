@@ -47,10 +47,16 @@
 }
 
 #dag_viewer rect.finished {
-  fill: #69BE28;
+  fill: green;
+  fill-opacity: 0.8;
 }
 
 #dag_viewer text.joblabel {
+  pointer-events: none;
+  text-anchor: middle;
+}
+
+#dag_viewer text.axislabel {
   pointer-events: none;
   text-anchor: middle;
 }
@@ -59,4 +65,18 @@
   stroke: #fff;
   stroke-width: 3px;
   stroke-opacity: .8;
+}
+
+.map, .shuffle, .reduce {
+  fill-opacity: 0.8;
+  stroke-width: 2px;
+}
+
+.allmap, .allshuffle, .allreduce {
+  fill: none;
+  stroke-width: 2px;
+}
+
+.y.axis {
+  font-size: 10px;
 }

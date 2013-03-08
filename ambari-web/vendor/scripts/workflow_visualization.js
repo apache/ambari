@@ -11,6 +11,7 @@ function DagViewer(domId) {
   this._links = new Array();
   this._numNodes = 0;
   this._id = domId;
+  this._SUCCESS = "SUCCESS";
 }
 
 // set workflow schema and job data
@@ -24,6 +25,13 @@ DagViewer.prototype.setData = function (wfData, jobData) {
   var maxFinishTime = 0;
   // iterate through job data
   for (var i = 0; i < jobData.length; i++) {
+    jobData[i].info = "jobId:"+jobData[i].name+"  \n"+
+      "nodeName:"+jobData[i].entityName+"  \n"+
+      "status:"+jobData[i].status+"  \n"+
+      "input:"+jobData[i].input+"  \n"+
+      "output:"+jobData[i].output+"  \n"+
+      "startTime:"+(new Date(jobData[i].submitTime).toString())+"  \n"+
+      "duration:"+DagViewer.formatDuration(jobData[i].elapsedTime);
     minStartTime = Math.min(minStartTime, jobData[i].submitTime);
     maxFinishTime = Math.max(maxFinishTime, jobData[i].submitTime + jobData[i].elapsedTime);
     this._addNode(existingNodes, jobData[i].entityName, jobData[i]);
@@ -71,7 +79,7 @@ DagViewer.prototype._addLink = function (sourceNode, targetNode) {
   }
   // add link between nodes
   var status = false;
-  if (sourceNode.status && targetNode.status)
+  if (sourceNode.status==this._SUCCESS && targetNode.status==this._SUCCESS)
     status = true;
   this._links.push({"source":sourceNode, "target":targetNode, "status":status, "value":sourceNode.output});
   // add source to map of targets to sources
@@ -85,21 +93,27 @@ DagViewer.prototype._addLink = function (sourceNode, targetNode) {
 //                 nodeHeight = 15, labelFontSize = 10, maxLabelWidth = 120
 //                 nodeHeight = 40, labelFontSize = 20, maxLabelWidth = 260
 //                 nodeHeight = 30, labelFontSize = 16
-DagViewer.prototype.drawDag = function (svgw, svgh, nodeHeight, labelFontSize, maxLabelWidth, axisPadding) {
-  this._addTimelineGraph(svgw, svgh, nodeHeight || 20, labelFontSize || 14, maxLabelWidth || 180, axisPadding || 30);
+DagViewer.prototype.drawDag = function (svgw, svgh, nodeHeight, labelFontSize, maxLabelWidth, axisPadding, numExtraSeries, extraSeriesSize) {
+  this._addTimelineGraph(svgw, svgh, nodeHeight || 20, labelFontSize || 14, maxLabelWidth || 180, axisPadding || 30, numExtraSeries || 2, extraSeriesSize || 50);
   return this;
 }
 
 // draw timeline graph
-DagViewer.prototype._addTimelineGraph = function (svgw, svgh, nodeHeight, labelFontSize, maxLabelWidth, axisPadding) {
+DagViewer.prototype._addTimelineGraph = function (svgw, svgh, nodeHeight, labelFontSize, maxLabelWidth, axisPadding, numExtraSeries, extraSeriesSize) {
   svgw = svgw;
-
-  var margin = {"top":10, "bottom":10, "left":30, "right":30};
-  var w = svgw - margin.left - margin.right;
+  this._extraSeriesSize = extraSeriesSize;
+  
+  var margin = {"vertical":10, "horizontal":50};
+  this._margin = margin;
+  var w = svgw - 2*margin.horizontal;
 
   var startTime = this._minStartTime;
   var elapsedTime = this._maxFinishTime - this._minStartTime;
-  var x = d3.time.scale()
+  var x = d3.time.scale.utc()
+    .domain([startTime, startTime+elapsedTime])
+    .range([0, w]);
+  this._x = x;
+  var xrel = d3.time.scale()
     .domain([0, elapsedTime])
     .range([0, w]);
 
@@ -110,8 +124,8 @@ DagViewer.prototype._addTimelineGraph = function (svgw, svgh, nodeHeight, labelF
   this._nodes = this._nodes.sort(function(a,b){return a.name.localeCompare(b.name);});
   for (var i = 0; i < this._numNodes; i++) {
     var d = this._nodes[i];
-    d.x = x(d.submitTime-startTime);
-    d.w = x(d.elapsedTime+d.submitTime-startTime) - x(d.submitTime-startTime);
+    d.x = x(d.submitTime);
+    d.w = x(d.elapsedTime+d.submitTime) - x(d.submitTime);
     if (d.w < nodeHeight/2) {
       d.w = nodeHeight/2;
       if (d.x + d.w > w)
@@ -156,17 +170,19 @@ DagViewer.prototype._addTimelineGraph = function (svgw, svgh, nodeHeight, labelF
   }
 
   var h = 2*axisPadding + 2*nodeHeight*(maxIndex+1);
-  var realh = svgh - margin.top - margin.bottom;
+  var realh = svgh - 2*margin.vertical - numExtraSeries*extraSeriesSize;
   var scale = 1;
   if (h > realh)
     scale = realh / h;
-  svgh = Math.min(svgh, h + margin.top + margin.bottom);
+  svgh = Math.min(svgh, h + 2*margin.vertical + numExtraSeries*extraSeriesSize);
+  this._extraSeriesOffset = h + margin.vertical;
   var svg = d3.select("div#" + this._id).append("svg:svg")
     .attr("width", svgw+"px")
     .attr("height", svgh+"px");
     
   var svgg = svg.append("g")
-    .attr("transform", "translate("+margin.left+","+margin.top+") scale("+scale+")");
+    .attr("transform", "translate("+margin.horizontal+","+margin.vertical+") scale("+scale+")");
+  this._svgg = svgg;
   // add an untranslated white rectangle below everything
   // so mouse doesn't have to be over nodes for panning/zooming
   svgg.append("svg:rect")
@@ -177,41 +193,13 @@ DagViewer.prototype._addTimelineGraph = function (svgw, svgh, nodeHeight, labelF
     .attr("style", "fill:white;stroke:none");
  
   // create axes
-  var x = d3.time.scale()
-    .domain([0, elapsedTime])
-    .range([0, w]);
-  var tickFormatter = function(x) {
-    d = x.getTime();
-    if (d==0) { return "0" }
-    var seconds = Math.floor(parseInt(d) / 1000);
-    if ( seconds < 60 )
-      return seconds + "s";
-    var minutes = Math.floor(seconds / 60);
-    if ( minutes < 60 ) {
-      var x = seconds - 60*minutes;
-      return minutes + "m" + (x==0 ? "" : " " + x + "s");
-    }
-    var hours = Math.floor(minutes / 60);
-    if ( hours < 24 ) {
-      var x = minutes - 60*hours;
-      return hours + "h" + (x==0 ? "" : " " + x + "m");
-    }
-    var days = Math.floor(hours / 24);
-    if ( days < 7 ) {
-      var x = hours - 24*days;
-      return days + "d " + (x==0 ? "" : " " + x + "h");
-    }
-    var weeks = Math.floor(days / 7);
-    var x = days - 7*weeks;
-    return weeks + "w " + (x==0 ? "" : " " + x + "d");
-  };
   var topAxis = d3.svg.axis()
-    .scale(d3.time.scale().domain([startTime, startTime+elapsedTime]).range([0, w]))
+    .scale(x)
     .orient("bottom");
   var bottomAxis = d3.svg.axis()
-    .scale(x)
+    .scale(xrel)
     .orient("top")
-    .tickFormat(tickFormatter);
+    .tickFormat(function(x) { return DagViewer.formatDuration(x.getTime()); });
   svgg.append("g")
     .attr("class", "x axis top")
     .call(topAxis);
@@ -221,6 +209,7 @@ DagViewer.prototype._addTimelineGraph = function (svgw, svgh, nodeHeight, labelF
     .attr("transform", "translate(0,"+h+")");
   
   // create a rectangle for each node
+  var success = this._SUCCESS;
   var boxes = svgg.append("svg:g").selectAll("rect")
     .data(this._nodes)
     .enter().append("svg:rect")
@@ -229,11 +218,13 @@ DagViewer.prototype._addTimelineGraph = function (svgw, svgh, nodeHeight, labelF
     .attr("width", function(d) { return d.w; } )
     .attr("height", function(d) { return d.h; } )
     .attr("class", function (d) {
-      return "node " + (d.status ? " finished" : "");
+      return "node " + (d.status==success ? " finished" : "");
     })
     .attr("id", function (d) {
       return d.name;
-    });
+    })
+    .append("title")
+    .text(function(d) { return d.info; });
   
   // defs for arrowheads marked as to whether they link finished jobs or not
   svgg.append("svg:defs").selectAll("arrowmarker")
@@ -350,8 +341,76 @@ DagViewer.prototype._addTimelineGraph = function (svgw, svgh, nodeHeight, labelF
     });
 
   svg.call(d3.behavior.zoom().on("zoom", function() {
-    var left = Math.min(Math.max(d3.event.translate[0]+margin.left, margin.left-w*d3.event.scale*scale), margin.left+w);
-    var top = Math.min(Math.max(d3.event.translate[1]+margin.top, margin.top-h*d3.event.scale*scale), margin.top+h);
+    var left = Math.min(Math.max(d3.event.translate[0]+margin.horizontal, margin.horizontal-w*d3.event.scale*scale), margin.horizontal+w);
+    var top = Math.min(Math.max(d3.event.translate[1]+margin.vertical, margin.vertical-h*d3.event.scale*scale), margin.vertical+h);
     svgg.attr("transform", "translate("+left+","+top+") scale("+(d3.event.scale*scale)+")");
   }));
 }
+
+DagViewer.prototype.addTimeSeries = function (series, position, name) {
+  var offset = this._extraSeriesOffset + this._extraSeriesSize*position;
+  var x = this._x;
+  var ymax = d3.max(series, function(d) {return d3.max(d.values, function(d) { return d.y;} ) } );
+  var y = d3.scale.linear()
+    .domain([0, ymax])
+    .range([this._extraSeriesSize - this._margin.vertical, 0]);
+
+  var yAxis = d3.svg.axis()
+    .scale(y)
+    .ticks(ymax < 4 ? ymax : 4)
+    .orient("left");
+  
+  var line = d3.svg.line()
+     .interpolate("linear")
+     .x(function(d) { return x(d.x*1000); } )
+     .y(function(d) { return y(d.y); } );
+  
+  this._svgg.append("svg:g")
+    .attr("class", "y axis")
+    .call(yAxis)
+    .attr("transform", "translate(0,"+offset+")")
+    .append("text")
+    .attr("transform", "rotate(-90)")
+    .attr("x", -(this._extraSeriesSize - this._margin.vertical)/2)
+    .attr("y", -this._margin.horizontal + 11)
+    .attr("class", "axislabel")
+    .text(name);
+
+  var lines = this._svgg.append("svg:g").selectAll("path")
+    .data(series)
+    .enter().append("svg:path")
+    .attr("d", function(d) { return line(d.values);})
+    .attr("class", function(d) { return d.name;})
+    .attr("style", function(d) {
+      if (d.name.substring(0,3)=="all")
+        return "stroke:"+d3.interpolateRgb(d.color, 'black')(0.125)+";fill:white"; 
+      else
+        return "stroke:"+d3.interpolateRgb(d.color, 'black')(0.125)+";fill:"+d.color; 
+    })
+    .attr("transform", "translate(0,"+offset+")");
+}
+
+DagViewer.formatDuration = function(d) {
+  if (d==0) { return "0" }
+  var seconds = Math.floor(parseInt(d) / 1000);
+  if ( seconds < 60 )
+    return seconds + "s";
+  var minutes = Math.floor(seconds / 60);
+  if ( minutes < 60 ) {
+    var x = seconds - 60*minutes;
+    return minutes + "m" + (x==0 ? "" : " " + x + "s");
+  }
+  var hours = Math.floor(minutes / 60);
+  if ( hours < 24 ) {
+    var x = minutes - 60*hours;
+    return hours + "h" + (x==0 ? "" : " " + x + "m");
+  }
+  var days = Math.floor(hours / 24);
+  if ( days < 7 ) {
+    var x = hours - 24*days;
+    return days + "d " + (x==0 ? "" : " " + x + "h");
+  }
+  var weeks = Math.floor(days / 7);
+  var x = days - 7*weeks;
+  return weeks + "w " + (x==0 ? "" : " " + x + "d");
+};

@@ -926,10 +926,8 @@ Em.I18n.translations = {
   'apps.filters.nothingToShow': 'No jobs to display',
   'apps.dagCharts.popup':'Job Charts',
   'apps.dagCharts.popup.job': 'Job',
-  'apps.dagCharts.popup.dag':'DAG',
-  'apps.dagCharts.popup.tasks':'Timeline & Tasks',
-  'apps.dagCharts.popup.tasks.timeline':'Job Timeline',
-  'apps.dagCharts.popup.tasks.tasks':'Job Tasks',
+  'apps.dagCharts.popup.dag':'Job Timeline',
+  'apps.dagCharts.popup.tasks':'Job Tasks',
   'apps.isRunning.popup.title':'Is running',
   'apps.isRunning.popup.content':'Job is running now',
 
