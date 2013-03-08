@@ -102,8 +102,9 @@ App.StackUpgradeStep3View = Em.View.extend({
      * @param event
      */
     hostsLogPopup: function(event){
-      //TODO show popup with hosts
       var serviceName = event.contexts[0];
+      var controller = this.get("controller");
+      App.HostPopup.initPopup(serviceName, controller);
     }
   })
 });

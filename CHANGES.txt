@@ -105,6 +105,9 @@ Trunk (unreleased changes):
 
  IMPROVEMENTS
 
+ AMBARI-1584. Stack Upgrade Wizard - integrate host progress popup.
+ (yusaku)
+
  AMBARI-1581. Host progress popup - generic component for showing progress
  on async operations. (yusaku)
 
