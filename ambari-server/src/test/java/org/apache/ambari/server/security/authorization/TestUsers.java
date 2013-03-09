@@ -22,9 +22,6 @@ import com.google.inject.Inject;
 import com.google.inject.Injector;
 import com.google.inject.persist.PersistService;
 import org.apache.ambari.server.AmbariException;
-import org.apache.ambari.server.actionmanager.ActionDBAccessorImpl;
-import org.apache.ambari.server.actionmanager.ActionManager;
-import org.apache.ambari.server.agent.ActionQueue;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
 import org.apache.ambari.server.orm.dao.RoleDAO;
@@ -33,6 +30,9 @@ import org.apache.ambari.server.orm.entities.UserEntity;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.util.List;
@@ -57,6 +57,8 @@ public class TestUsers {
     injector.getInstance(GuiceJpaInitializer.class);
     injector.injectMembers(this);
     users.createDefaultRoles();
+    Authentication auth = new UsernamePasswordAuthenticationToken("admin",null);
+    SecurityContextHolder.getContext().setAuthentication(auth);
   }
 
   @After
@@ -82,7 +84,7 @@ public class TestUsers {
     UserEntity userEntity = userDAO.findLocalUserByName("user");
     assertNotNull("user", userEntity.getUserPassword());
 
-    users.modifyPassword("user", "user", "resu");
+    users.modifyPassword("user", "admin", "resu");
 
     assertNotSame(userEntity.getUserPassword(), userDAO.findLocalUserByName("user").getUserPassword());
   }
@@ -96,9 +98,9 @@ public class TestUsers {
     assertNotSame("user", userEntity.getUserPassword());
     assertTrue(passwordEncoder.matches("user", userEntity.getUserPassword()));
 
-    users.modifyPassword("user", "user", "resu");
+    users.modifyPassword("user", "admin", "user_new_password");
 
-    assertNotSame(userEntity.getUserPassword(), userDAO.findLocalUserByName("user").getUserPassword());
+    assertTrue("user_new_password".equals(userDAO.findLocalUserByName("user").getUserPassword()));
 
     users.modifyPassword("user", "error", "new");
 

@@ -29,6 +29,8 @@ import org.apache.ambari.server.orm.entities.RoleEntity;
 import org.apache.ambari.server.orm.entities.UserEntity;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import com.google.inject.Inject;
@@ -102,10 +104,19 @@ public class Users {
    * Modifies password of local user
    * @throws AmbariException
    */
-  public synchronized void modifyPassword(String userName, String oldPassword, String newPassword) throws AmbariException {
+  public synchronized void modifyPassword(String userName, String currentUserPassword, String newPassword) throws AmbariException {
+
+    SecurityContext securityContext = SecurityContextHolder.getContext();
+    String currentUserName = securityContext.getAuthentication().getName();
+    if (currentUserName == null) {
+      throw new AmbariException("Authentication required. Please sign in.");
+    }
+
+    UserEntity currentUserEntity = userDAO.findLocalUserByName(currentUserName);
     UserEntity userEntity = userDAO.findLocalUserByName(userName);
-    if (userEntity != null) {
-      if (passwordEncoder.matches(oldPassword, userEntity.getUserPassword())) {
+
+    if ((userEntity != null) && (currentUserEntity != null)) {
+      if (passwordEncoder.matches(currentUserPassword, currentUserEntity.getUserPassword())) {
         userEntity.setUserPassword(passwordEncoder.encode(newPassword));
         userDAO.merge(userEntity);
       } else {

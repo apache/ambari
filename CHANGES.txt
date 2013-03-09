@@ -12,6 +12,9 @@ Trunk (unreleased changes):
 
  NEW FEATURES
 
+ AMBARI-1602. Edit User - drop the requirement to specify the old 
+ password. (swagle)
+
  AMBARI-1592. Change how configurations are propagated (ncole)
 
  AMBARI-1593. Change host override JSON to include version tag (ncole)
