@@ -20,6 +20,9 @@
 var App = require('app');
 
 App.SshKeyFileUploader = Ember.View.extend({
+  //TODO: rewrite it using tagName and attribute binding
+  //TODO: rewrite it as independent component and place it somewhere in utils
+  // alternative is to move it to App.WizardStep2View
   template:Ember.Handlebars.compile('<input type="file" {{bindAttr disabled="view.disabled"}} />'),
   classNames: ['ssh-key-input-indentation'],
 
@@ -40,6 +43,7 @@ App.SshKeyFileUploader = Ember.View.extend({
   }
 });
 
+//TODO: move it to App.WizardStep2View
 App.WizardTextField = Ember.TextField.extend({
   disabled: function(){
     return !this.get('controller.content.installOptions.isJavaHome');
@@ -52,34 +56,21 @@ App.WizardTextField = Ember.TextField.extend({
 App.WizardStep2View = Em.View.extend({
 
   templateName: require('templates/wizard/step2'),
-  hostNameErr: false,
-  hostsInfo: null,
 
   didInsertElement: function () {
+    //TODO: move it to separate function in Ember.View using reopenClass
     $("[rel=popover]").popover({'placement': 'right', 'trigger': 'hover'});
-    this.set('hostNameErr', false);
+
+    //todo: move them to conroller
     this.set('controller.hostsError',null);
     this.set('controller.sshKeyError',null);
-    this.loadHostsInfo();
   },
-
-  loadHostsInfo: function(){
-    var hostsInfo = Em.Object.create();
-    this.set('hostsInfo', hostsInfo);
-  },
-
-  onHostNameErr: function () {
-    if (this.get('controller.hostNameEmptyError') === false && this.get('controller.hostNameNotRequiredErr') === false && this.get('controller.hostNameErr') === false) {
-      this.set('hostNameErr', false);
-    } else {
-      this.set('hostNameErr', true);
-    }
-  }.observes('controller.hostNameEmptyError', 'controller.hostNameNotRequiredErr', 'controller.hostNameErr'),
 
   sshKeyState: function(){
     return this.get("controller.content.installOptions.manualInstall");
   }.property("controller.content.installOptions.manualInstall"),
 
+  //TODO: incupsulate it inside of App.SshKeyFileUploader
   isFileApi: function () {
     return (window.File && window.FileReader && window.FileList) ? true : false ;
   }.property(),
@@ -99,6 +90,7 @@ App.WizardStep2View = Em.View.extend({
     this.set('controller.content.installOptions.manualInstall', !this.get('controller.content.installOptions.useSsh'));
   }.observes('controller.content.installOptions.useSsh'),
 
+  //TODO: replace next 2 properties with new one used in both places
   providingSSHKeyRadioButton: Ember.Checkbox.extend({
     tagName: 'input',
     attributeBindings: ['type', 'checked'],

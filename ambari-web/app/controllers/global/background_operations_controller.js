@@ -30,89 +30,57 @@ App.BackgroundOperationsController = Em.Controller.extend({
   allOperationsCount : 0,
   executeTasks: [],
 
-  getTasksByRole: function (role) {
-    return this.get('allOperations').filterProperty('role', role);
-  },
+  /**
+   * Task life time after finishing
+   */
+  taskLifeTime: 5*60*1000,
 
   getOperationsForRequestId: function(requestId){
     return this.get('allOperations').filterProperty('request_id', requestId);
   },
 
-  updateInterval: App.bgOperationsUpdateInterval,
-  url : '',
-
-  timeoutId : null,
-
   /**
-   * Background operations will not be working if receive <code>attemptsCount</code> response with errors
+   * Start polling, when <code>isWorking</code> become true
    */
-  attemptsCount: 20,
-
-  errorsCount: 0,
-
-  /**
-   * Call this.loadOperations with delay
-   * @param delay time in milliseconds (updateInterval by default)
-   * @param reason reason why we call it(used to calculate count of errors)
-   */
-  loadOperationsDelayed: function(delay, reason){
-    delay = delay || this.get('updateInterval');
-    var self = this;
-
-    if(reason && reason.indexOf('error:clusterName:') === 0){
-      var errors = this.get('errorsCount') + 1;
-      this.set('errorsCount', errors);
-      if(errors > this.get('attemptsCount')){
-        console.log('Stop loading background operations: clusterName is undefined');
-        return;
-      }
+  startPolling: function(){
+    if(this.get('isWorking')){
+      App.updater.run(this, 'loadOperations', 'isWorking', App.bgOperationsUpdateInterval);
     }
-
-    this.set('timeoutId',
-      setTimeout(function(){
-        self.loadOperations();
-      }, delay)
-    );
-  },
+  }.observes('isWorking'),
 
   /**
    * Reload operations
-   * We can call it manually <code>controller.loadOperations();</code>
-   * or it fires automatically, when <code>isWorking</code> becomes <code>true</code>
+   * @param callback on done Callback. Look art <code>App.updater.run</code> for more information
+   * @return jquery ajax object
    */
-  loadOperations : function(){
+  loadOperations : function(callback){
 
-    var timeoutId = this.get('timeoutId');
-    if(timeoutId){
-      clearTimeout(timeoutId);
-      this.set('timeoutId', null);
+    if(!App.get('clusterName')){
+      callback();
+      return null;
     }
 
-    if(!this.get('isWorking')){
-      return;
-    }
-
-    if(!App.router.getClusterName()){
-      this.loadOperationsDelayed(this.get('updateInterval')/2, 'error:clusterName');
-      return;
-    }
-
-    App.ajax.send({
+    return App.ajax.send({
       'name': 'background_operations',
       'sender': this,
-      'success': 'ajaxSuccess', //todo provide interfaces for strings and functions
-      'error': 'ajaxError'
-    })
-
-
-  }.observes('isWorking'),
-
-  ajaxSuccess: function(data) {
-    this.updateBackgroundOperations(data);
-    this.loadOperationsDelayed();
+      'success': 'updateBackgroundOperations', //todo provide interfaces for strings and functions
+      'callback': callback
+    });
   },
-  ajaxError: function(request, ajaxOptions, error) {
-    this.loadOperationsDelayed(null, 'error:response error');
+
+  /**
+   * Callback for update finished task request.
+   * @param data Json answer
+   */
+  updateFinishedTask: function(data){
+    var executeTasks = this.get('executeTasks');
+    if (data) {
+      var _oldTask = executeTasks.findProperty('id', data.Tasks.id);
+      if(_oldTask){
+        data.Tasks.finishedTime = new Date().getTime();
+        $.extend(_oldTask, data.Tasks);
+      }
+    }
   },
 
   /**
@@ -126,62 +94,59 @@ App.BackgroundOperationsController = Em.Controller.extend({
     var executeTasks = this.get('executeTasks');
     data.items.forEach(function (item) {
       item.tasks.forEach(function (task) {
+        task.Tasks.display_exit_code = (task.Tasks.exit_code !== 999);
+
         if (task.Tasks.command == 'EXECUTE') {
-          if (!executeTasks.someProperty('id', task.Tasks.id)) {
+
+          var _oldTask = executeTasks.findProperty('id', task.Tasks.id);
+          if (!_oldTask) {
             executeTasks.push(task.Tasks);
+          } else {
+            $.extend(_oldTask, task.Tasks);
           }
-        } else {
-          if (task.Tasks.status == 'QUEUED' || task.Tasks.status == 'PENDING' || task.Tasks.status == 'IN_PROGRESS') {
-            runningTasks.push(task.Tasks);
-          }
+
+        } else if(['QUEUED', 'PENDING', 'IN_PROGRESS'].contains(task.Tasks.status)){
+          runningTasks.push(task.Tasks);
         }
       });
     });
 
-    for (var i = 0; i < executeTasks.length; i++) {
-      if (executeTasks[i].status == 'QUEUED' || executeTasks[i].status == 'PENDING' || executeTasks[i].status == 'IN_PROGRESS') {
-        var url = App.testMode ? '/data/background_operations/list_on_start.json' :
-            App.apiPrefix + '/clusters/' + App.router.getClusterName() + '/requests/' + executeTasks[i].request_id + '/tasks/' + executeTasks[i].id;
-        $.ajax({
-          type: "GET",
-          url: url,
-          dataType: 'json',
-          timeout: App.timeout,
-          success: function (data) {
-            if (data) {
-              for(var i = 0;i < executeTasks.length; i++){
-                if(data.Tasks.id == executeTasks[i].id){
-                  executeTasks[i] = data.Tasks;
-                }
-              }
-            }
-          },
-          error: function () {
-            console.log('ERROR: error during executeTask update');
-          },
+    var time = new Date().getTime() - this.get('taskLifeTime');
+    var tasksToRemove = [];
+    executeTasks.forEach(function(_task, index){
+      if(['FAILED', 'COMPLETED', 'TIMEDOUT', 'ABORTED'].contains(_task.status) && _task.finishedTime && _task.finishedTime < time){
+        tasksToRemove.push(index);
+      }
 
-          statusCode: require('data/statusCodes')
+      if(['QUEUED', 'PENDING', 'IN_PROGRESS'].contains(_task.status)){
+        App.ajax.send({
+          name: 'background_operations.update_task',
+          data: {
+            requestId: _task.request_id,
+            taskId: _task.id
+          },
+          'sender': this,
+          'success': 'updateFinishedTask'
         });
       }
-    }
+    }, this);
+
+
+    tasksToRemove.reverse().forEach(function(index){
+      executeTasks.removeAt(index);
+    });
+
+
     var currentTasks;
     currentTasks = runningTasks.concat(executeTasks);
     currentTasks = currentTasks.sort(function (a, b) {
       return a.id - b.id;
     });
 
-    // If the server is returning 999 as the return code, display blank and not 999
-    currentTasks.forEach( function (task) {
-      if (task.exit_code == 999) {
-        task.display_exit_code = false;
-      } else {
-        task.display_exit_code = true;
-      }
-    });
-
-    this.get('allOperations').filterProperty('isOpen').mapProperty('id').forEach(function(id){
-      if (currentTasks.someProperty('id', id)) {
-        currentTasks.findProperty('id', id).isOpen = true;
+    this.get('allOperations').filterProperty('isOpen').forEach(function(task){
+      var _task = currentTasks.findProperty('id', task.id);
+      if (_task) {
+        _task.isOpen = true;
       }
     });
 
@@ -210,17 +175,18 @@ App.BackgroundOperationsController = Em.Controller.extend({
 
   /**
    * Onclick handler for background operations number located right to logo
+   * @return PopupObject For testing purposes
    */
   showPopup: function(){
     this.set('executeTasks', []);
-    this.loadOperations();
-    App.ModalPopup.show({
+    App.updater.immediateRun('loadOperations');
+    return App.ModalPopup.show({
       headerClass: Ember.View.extend({
-        controllerBinding: 'App.router.backgroundOperationsController',
+        controller: this,
         template:Ember.Handlebars.compile('{{allOperationsCount}} Background Operations Running')
       }),
       bodyClass: Ember.View.extend({
-        controllerBinding: 'App.router.backgroundOperationsController',
+        controller: this,
         templateName: require('templates/main/background_operations_popup')
       }),
       onPrimary: function() {
@@ -231,7 +197,7 @@ App.BackgroundOperationsController = Em.Controller.extend({
   },
 
   /**
-   * Exaple of data inside:
+   * Example of data inside:
    * {
    *   when : function(backgroundOperationsController){
    *     return backgroundOperationsController.getOperationsForRequestId(requestId).length == 0;

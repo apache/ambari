@@ -41,7 +41,6 @@ exports.config =
           'vendor/scripts/bootstrap.js',
           'vendor/scripts/bootstrap-combobox.js'
           'vendor/scripts/d3.v2.js',
-          'vendor/scripts/sinon-1.4.2.js',
           'vendor/scripts/cubism.v1.js',
           'vendor/scripts/jquery.ui.core.js',
           'vendor/scripts/jquery.ui.widget.js',
@@ -56,7 +55,8 @@ exports.config =
           'vendor/scripts/workflow_visualization.js',
           'vendor/scripts/rickshaw.js',
           'vendor/scripts/spin.js',
-          'vendor/scripts/jquery.flexibleArea.js'
+          'vendor/scripts/jquery.flexibleArea.js',
+          'test/utils/ajax_test.js'
           ]
 
     stylesheets:

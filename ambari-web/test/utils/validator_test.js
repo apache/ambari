@@ -197,6 +197,24 @@ describe('validator', function () {
     it('"55454" - invalid Domain Name', function () {
       expect(validator.isDomainName('55454')).to.equal(false);
     })
+  }),
+  describe('#isValidUserName(value)', function() {
+    var tests = [
+      {m:'"" - invalid',i:'',e:false},
+      {m:'"abc123" - valid',i:'abc123',e:true},
+      {m:'"1abc123" - invalid',i:'1abc123',e:false},
+      {m:'"abc123$" - valid',i:'abc123$',e:true},
+      {m:'"~1abc123" - invalid',i: '~1abc123',e:false},
+      {m:'"abc12345679abc1234567890abc1234567890$" - invalid',i:'abc12345679abc1234567890abc1234567890$',e:false},
+      {m:'"1abc123$$" - invalid',i:'1abc123$$',e:false},
+      {m:'"a" - valid',i:'a',e:true},
+      {m:'"!" - invalid',i:'!',e:false}
+    ];
+    tests.forEach(function(test) {
+      it(test.m + ' ', function () {
+        expect(validator.isValidUserName(test.i)).to.equal(test.e);
+      })
+    });
   })
 
 })

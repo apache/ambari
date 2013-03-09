@@ -16,43 +16,29 @@
  * limitations under the License.
  */
 
+var misc = require('utils/misc');
 
-var App = require('app');
+describe('misc', function () {
 
-App.WizardStep3View = Em.View.extend({
-
-  templateName: require('templates/wizard/step3'),
-  category: '',
-
-  didInsertElement: function () {
-    this.get('controller').navigateStep();
-  }
-});
-
-//todo: move it inside WizardStep3View
-App.WizardHostView = Em.View.extend({
-
-  tagName: 'tr',
-  classNameBindings: ['hostInfo.bootStatus'],
-  hostInfo: null,
-
-  remove: function () {
-    this.get('controller').removeHost(this.get('hostInfo'));
-  },
-
-  retry: function() {
-    this.get('controller').retryHost(this.get('hostInfo'));
-  },
-
-  isRemovable: function () {
-    return true;
-  }.property(),
-
-  isRetryable: function() {
-    // return ['FAILED'].contains(this.get('hostInfo.bootStatus'));
-    return false;
-  }.property('hostInfo.bootStatus')
+  describe('#formatBandwidth', function () {
+    var tests = [
+      {m:'undefined to undefined',i:undefined,e:undefined},
+      {m:'0 to <1KB',i:'0',e:'<1KB'},
+      {m:'1000 to <1KB',i:'1000',e:'<1KB'},
+      {m:'1024 to 1.0KB',i:'1024',e:'1.0KB'},
+      {m:'2048 to 2.0KB',i:'2048',e:'2.0KB'},
+      {m:'1048576 to 1.0MB',i:'1048576',e:'1.0MB'},
+      {m:'1782579 to 1.7MB',i:'1782579',e:'1.7MB'},
+      {m:'1546188226 to 1.44GB',i:'1546188226',e:'1.44GB'}
+    ];
+    tests.forEach(function(test) {
+      it(test.m + ' ', function () {
+        expect(misc.formatBandwidth(test.i)).to.equal(test.e);
+      });
+    });
+    it('NaN to NaN' + ' ', function () {
+      expect(isNaN(misc.formatBandwidth(NaN))).to.equal(true);
+    });
+  });
 
 });
-
-

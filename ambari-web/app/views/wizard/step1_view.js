@@ -21,22 +21,19 @@ var App = require('app');
 
 App.WizardStep1View = Em.View.extend({
 
-  tagName: "form",
+  tagName: "form", //todo: why form?
   templateName: require('templates/wizard/step1'),
+
+  //todo: create property for placeholder(go to template)
 
   didInsertElement: function () {
     $("[rel=popover]").popover({'placement': 'right', 'trigger': 'hover'});
-    console.log("The value of cluster controller is: "+ this.get('controller.name'));
     this.get('controller').loadStep();
   },
 
+  //todo: rename it to class or write comments
   onError: function () {
     return this.get('controller.clusterNameError') !== '';
-  }.property('controller.clusterNameError'),
-
-  submit: function(event) {
-    this.get('controller').submit();
-    return false;
-  }
+  }.property('controller.clusterNameError')
 
 });

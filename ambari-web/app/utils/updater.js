@@ -19,7 +19,7 @@ var App = require('app');
 
 var states = {};
 
-function update(obj, name, isWorking){
+function update(obj, name, isWorking, interval){
   if(typeof isWorking == 'string' && !obj.get(isWorking)){
     return false;
   }
@@ -28,12 +28,16 @@ function update(obj, name, isWorking){
 
   if(!state){
     var callback = function(){
-      update(obj, name, isWorking);
+      update(obj, name, isWorking, interval);
     };
     states[name] = state = {
       timeout: null,
       func: function(){
+        if(typeof isWorking == 'string' && !obj.get(isWorking)){
+          return false;
+        }
         obj[name](callback);
+        return true;
       },
       callback: callback
     };
@@ -41,7 +45,7 @@ function update(obj, name, isWorking){
 
   clearTimeout(state.timeout);
 
-  state.timeout = setTimeout(state.func, App.contentUpdateInterval);
+  state.timeout = setTimeout(state.func, interval);
   return true;
 };
 
@@ -99,10 +103,12 @@ App.updater = {
    * @param obj Object
    * @param name Method name
    * @param isWorking Property, which will be checked as a rule for working
+   * @param interval Interval between calls
    * @return {*}
    */
-  run: function(obj, name, isWorking){
-    return update(obj, name, isWorking);
+  run: function(obj, name, isWorking, interval){
+    interval = interval || App.contentUpdateInterval;
+    return update(obj, name, isWorking, interval);
   },
 
   /**

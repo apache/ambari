@@ -19,8 +19,7 @@
 var App = require('app');
 require('controllers/wizard/step1_controller');
 
-/*
-describe('App.InstallerStep1Controller', function () {
+/*describe('App.InstallerStep1Controller', function () {
 
   describe('#validateStep1()', function () {
     it('should return false and sets invalidClusterName to true if cluster name is empty', function () {
@@ -51,3 +50,26 @@ describe('App.InstallerStep1Controller', function () {
   })
 
 })*/
+
+describe('App.WizardStep1Controller', function () {
+
+  var wizardStep1Controller = App.WizardStep1Controller.create();
+
+  describe('#invalidClusterName', function () {
+    it('should return true if no cluster name is present', function () {
+      wizardStep1Controller.set('hasSubmitted', true);
+      wizardStep1Controller.set('content', {'cluster':{'name':''}});
+      expect(wizardStep1Controller.get('invalidClusterName')).to.equal(true);
+    })
+    it('should return true if cluster name contains white spaces', function () {
+      wizardStep1Controller.set('hasSubmitted', true);
+      wizardStep1Controller.set('content', {'cluster':{'name':'the cluster'}});
+      expect(wizardStep1Controller.get('invalidClusterName')).to.equal(true);
+    })
+    it('should return true if cluster name contains special chars', function () {
+      wizardStep1Controller.set('hasSubmitted', true);
+      wizardStep1Controller.set('content', {'cluster':{'name':'$cluster'}});
+      expect(wizardStep1Controller.get('invalidClusterName')).to.equal(true);
+    })
+  })
+})

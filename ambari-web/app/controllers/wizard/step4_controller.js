@@ -101,17 +101,7 @@ App.WizardStep4Controller = Em.ArrayController.extend({
    */
   validateMonitoring: function () {
     if (this.gangliaOrNagiosNotSelected()) {
-      App.ModalPopup.show({
-        header: Em.I18n.t('installer.step4.monitoringCheck.popup.header'),
-        body: Em.I18n.t('installer.step4.monitoringCheck.popup.body'),
-        onPrimary: function () {
-          this.hide();
-          App.router.send('next');
-        },
-        onSecondary: function () {
-          this.hide();
-        }
-      });
+      this.monitoringCheckPopup();
     } else {
       App.router.send('next');
     }
@@ -122,23 +112,41 @@ App.WizardStep4Controller = Em.ArrayController.extend({
    */
   submit: function () {
     if(!this.get("isSubmitDisabled")){
-      var self = this;
       if (this.needToAddMapReduce()) {
-        App.ModalPopup.show({
-          header: Em.I18n.t('installer.step4.mapreduceCheck.popup.header'),
-          body: Em.I18n.t('installer.step4.mapreduceCheck.popup.body'),
-          onPrimary: function () {
-            self.findProperty('serviceName', 'MAPREDUCE').set('isSelected', true);
-            this.hide();
-            self.validateMonitoring();
-          },
-          onSecondary: function () {
-            this.hide();
-          }
-        });
+        this.mapReduceCheckPopup();
       } else {
-        self.validateMonitoring();
+        this.validateMonitoring();
       }
     }
+  },
+
+  mapReduceCheckPopup: function () {
+    var self = this;
+    App.ModalPopup.show({
+      header: Em.I18n.t('installer.step4.mapreduceCheck.popup.header'),
+      body: Em.I18n.t('installer.step4.mapreduceCheck.popup.body'),
+      onPrimary: function () {
+        self.findProperty('serviceName', 'MAPREDUCE').set('isSelected', true);
+        this.hide();
+        self.validateMonitoring();
+      },
+      onSecondary: function () {
+        this.hide();
+      }
+    });
+  },
+
+  monitoringCheckPopup: function () {
+    App.ModalPopup.show({
+      header: Em.I18n.t('installer.step4.monitoringCheck.popup.header'),
+      body: Em.I18n.t('installer.step4.monitoringCheck.popup.body'),
+      onPrimary: function () {
+        this.hide();
+        App.router.send('next');
+      },
+      onSecondary: function () {
+        this.hide();
+      }
+    });
   }
 })

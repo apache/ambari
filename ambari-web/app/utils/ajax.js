@@ -35,6 +35,11 @@ var urls = {
     'real': '/clusters/{clusterName}/requests/?fields=tasks/*',
     'testInProduction': true
   },
+  'background_operations.update_task': {
+    'mock': '/data/background_operations/one_task.json',
+    'real': '/clusters/{clusterName}/requests/{requestId}/tasks/{taskId}',
+    'testInProduction': true
+  },
   'service.item.start_stop': {
     'mock': '/data/wizard/deploy/poll_1.json',
     'real': '/clusters/{clusterName}/services/{serviceName}',
@@ -112,7 +117,7 @@ App.ajax = {
    * Send ajax request
    *
    * @param {Object} config
-   * @return {Boolean}
+   * @return Object jquery ajax object
    *
    * config fields:
    *  name - url-key in the urls-object *required*
@@ -120,16 +125,17 @@ App.ajax = {
    *  data - object with data for url-format
    *  success - method-name for ajax success response callback
    *  error - method-name for ajax error response callback
+   *  callback - callback from <code>App.updater.run</code> library
    */
   send: function(config) {
     if (!config.sender) {
       console.warn('Ajax sender should be defined!');
-      return false;
+      return null;
     }
 
     // default parameters
     var params = {
-      clusterName: App.router.get('clusterController.clusterName')
+      clusterName: App.get('clusterName')
     };
 
     // extend default parameters with provided
@@ -151,6 +157,15 @@ App.ajax = {
         config.sender[config.error](request, ajaxOptions, error, opt);
       }
     };
-    $.ajax(opt);
+    opt.complete = function(){
+      if(config.callback){
+        config.callback();
+      }
+    };
+    if($.mocho){
+      opt.url = 'http://' + $.hostName + opt.url;
+    }
+
+    return $.ajax(opt);
   }
 }

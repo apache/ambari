@@ -20,148 +20,132 @@ var Ember = require('ember');
 var App = require('app');
 require('controllers/wizard/step4_controller');
 
-/*
-describe('App.InstallerStep4Controller', function () {
+describe('App.WizardStep4Controller', function () {
 
-  var DEFAULT_SERVICES = ['HDFS'];
-  var OPTIONAL_SERVICES = ['MAPREDUCE', 'NAGIOS', 'GANGLIA', 'OOZIE', 'HIVE', 'HBASE', 'PIG', 'SQOOP', 'ZOOKEEPER', 'HCATALOG'];
+  var services = [
+    'HDFS', 'MAPREDUCE', 'NAGIOS', 'GANGLIA', 'OOZIE', 'HIVE', 'HBASE', 'PIG', 'SCOOP', 'ZOOKEEPER', 'HCATALOG', 'WEBHCAT'
+  ]
 
-  var controller = App.InstallerStep4Controller.create();
-  controller.rawContent.forEach(function(item){
-    item.isSelected = true;
-    controller.pushObject(Ember.Object.create(item));
-    });
+  var controller = App.WizardStep4Controller.create();
+  services.forEach(function(serviceName, index){
+    controller.pushObject(Ember.Object.create({
+      'serviceName':serviceName, 'isSelected': true, 'isInstalled': false, 'isDisabled': index == 0
+    }));
+  });
 
-  describe('#selectMinimum()', function () {
-    it('should set isSelected is false on all non-default services and isSelected is true on all default services', function() {
-      controller.selectMinimum();
-      DEFAULT_SERVICES.forEach(function (serviceName) {
-        expect(controller.findProperty('serviceName', serviceName).get('isSelected')).to.equal(true);
-      });
-      OPTIONAL_SERVICES.forEach(function (serviceName) {
-        expect(controller.findProperty('serviceName', serviceName).get('isSelected')).to.equal(false);
-      });
+  describe('#isSubmitDisabled', function () {
+    it('should return false if at least one selected service is not installed', function () {
+      expect(controller.get('isSubmitDisabled')).to.equal(false);
+    })
+    it('should return true if all selected services are already installed', function () {
+      controller.setEach('isInstalled', true);
+      controller.findProperty('serviceName', 'HDFS').set('isSelected', false);
+      expect(controller.get('isSubmitDisabled')).to.equal(true);
     })
   })
 
-  describe('#selectAll()', function () {
-    it('should set isSelected is true on all non-default services and isSelected is true on all default services', function() {
-      controller.selectAll();
-      DEFAULT_SERVICES.forEach(function (serviceName) {
-        expect(controller.findProperty('serviceName', serviceName).get('isSelected')).to.equal(true);
-      });
-      OPTIONAL_SERVICES.forEach(function (serviceName) {
-        expect(controller.findProperty('serviceName', serviceName).get('isSelected')).to.equal(true);
-      });
-    })
-  })
-
-  describe('#isAll()', function () {
-
-    beforeEach(function() {
-      DEFAULT_SERVICES.forEach(function(serviceName) {
-        controller.findProperty('serviceName', serviceName).set('isSelected', true);
-      });
-      OPTIONAL_SERVICES.forEach(function(serviceName) {
-        controller.findProperty('serviceName', serviceName).set('isSelected', true);
-      });
-    });
-
-    it('should return true if isSelected is true for all services', function() {
+  describe('#isAll', function () {
+    it('should return true if all services are selected', function () {
+      controller.findProperty('serviceName', 'HDFS').set('isSelected', true);
       expect(controller.get('isAll')).to.equal(true);
     })
 
-    it('should return false if isSelected is false for one of the services', function() {
-      controller.findProperty('serviceName', 'HBASE').set('isSelected', false);
+    it('should return false if at least one service is not selected', function () {
+      controller.findProperty('serviceName', 'HDFS').set('isSelected', false);
       expect(controller.get('isAll')).to.equal(false);
     })
   })
 
-  describe('#isMinimum()', function () {
-
-    beforeEach(function() {
-      DEFAULT_SERVICES.forEach(function(serviceName) {
-        controller.findProperty('serviceName', serviceName).set('isSelected', true);
-      });
-      OPTIONAL_SERVICES.forEach(function(serviceName) {
-        controller.findProperty('serviceName', serviceName).set('isSelected', false);
-      });
-    });
-
-    it('should return true if isSelected is true for all default services and isSelected is false for all optional services', function() {
+  describe('#isMinimum', function () {
+    it('should return true if there are no services selected, except disabled', function () {
+      controller.setEach('isSelected', false);
       expect(controller.get('isMinimum')).to.equal(true);
     })
 
-    it('should return false if isSelected is true for all default serices and isSelected is true for one of optional services', function() {
-      controller.findProperty('serviceName', 'HBASE').set('isSelected', true);
+    it('should return false if at least one service is selected, except disabled', function () {
+      controller.findProperty('serviceName', 'MAPREDUCE').set('isSelected', true);
       expect(controller.get('isMinimum')).to.equal(false);
     })
-
   })
 
-  describe('#needToAddMapReduce', function() {
-
-    describe('mapreduce not selected', function() {
-      beforeEach(function() {
-        controller.findProperty('serviceName', 'MAPREDUCE').set('isSelected', false);
-      })
-
-      it('should return true if Hive is selected and MapReduce is not selected', function() {
-        controller.findProperty('serviceName', 'HIVE').set('isSelected', true);
-        expect(controller.needToAddMapReduce()).to.equal(true);
-      })
-      it('should return true if Pig is selected and MapReduce is not selected', function() {
-        controller.findProperty('serviceName', 'PIG').set('isSelected', true);
-        expect(controller.needToAddMapReduce()).to.equal(true);
-      })
-      it('should return true if Oozie is selected and MapReduce is not selected', function() {
-        controller.findProperty('serviceName', 'OOZIE').set('isSelected', true);
-        expect(controller.needToAddMapReduce()).to.equal(true);
-      })
+  describe('#checkDependencies()', function () {
+    it('should set ZooKeeper isSelected property like in HBase', function () {
+      controller.setEach('isSelected', false);
+      controller.findProperty('serviceName', 'HBASE').set('isSelected', true);
+      controller.checkDependencies();
+      expect(controller.findProperty('serviceName', 'ZOOKEEPER').get('isSelected')).to.equal(true);
     })
-
-    describe('mapreduce not selected', function() {
-      beforeEach(function() {
-        controller.findProperty('serviceName', 'MAPREDUCE').set('isSelected', true);
-      })
-
-      it('should return false if Hive is selected and MapReduce is selected', function() {
-        controller.findProperty('serviceName', 'HIVE').set('isSelected', true);
-        expect(controller.needToAddMapReduce()).to.equal(false);
-      })
-      it('should return false if Pig is selected and MapReduce is not selected', function() {
-        controller.findProperty('serviceName', 'PIG').set('isSelected', true);
-        expect(controller.needToAddMapReduce()).to.equal(false);
-      })
-      it('should return false if Oozie is selected and MapReduce is not selected', function() {
-        controller.findProperty('serviceName', 'OOZIE').set('isSelected', true);
-        expect(controller.needToAddMapReduce()).to.equal(false);
-      })
+    it('should set ZooKeeper, HCatalog, WebHCatalog isSelected property like in Hive', function () {
+      controller.setEach('isSelected', false);
+      controller.findProperty('serviceName', 'HIVE').set('isSelected', true);
+      controller.checkDependencies();
+      expect(controller.findProperty('serviceName', 'ZOOKEEPER').get('isSelected')).to.equal(true);
+      expect(controller.findProperty('serviceName', 'HCATALOG').get('isSelected')).to.equal(true);
+      expect(controller.findProperty('serviceName', 'WEBHCAT').get('isSelected')).to.equal(true);
     })
-
   })
 
-  describe('#saveSelectedServiceNamesToDB', function() {
-
-    beforeEach(function() {
-      DEFAULT_SERVICES.forEach(function(serviceName) {
-        controller.findProperty('serviceName', serviceName).set('isSelected', true);
-      });
-      OPTIONAL_SERVICES.forEach(function(serviceName) {
-        controller.findProperty('serviceName', serviceName).set('isSelected', true);
-      });
-    });
-
-    it('should store the selected service names in App.db.selectedServiceNames', function() {
-      App.db.setLoginName('tester');
-      App.db.setClusterName('test');
-      controller.saveSelectedServiceNamesToDB();
-      // console.log('controller length=' + controller.get('length'));
-      var selectedServiceNames = App.db.getSelectedServiceNames();
-      // console.log('service length=' + selectedServiceNames.get('length'));
-      expect(selectedServiceNames.length === DEFAULT_SERVICES.length + OPTIONAL_SERVICES.length).to.equal(true);
+  describe('#selectAll()', function () {
+    it('should select all services', function () {
+      controller.setEach('isSelected', false);
+      controller.selectAll();
+      expect(controller.everyProperty('isSelected', true)).to.equal(true);
     })
-
   })
 
-})*/
+  describe('#selectMinimum()', function () {
+    it('should set isSelected false for all not disabled services', function () {
+      controller.setEach('isSelected', true);
+      controller.selectMinimum();
+      expect(controller.findProperty('serviceName', 'HDFS').get('isSelected')).to.equal(true);
+      expect(controller.filterProperty('isDisabled', false).everyProperty('isSelected', false)).to.equal(true);
+    })
+  })
+
+  describe('#needToAddMapReduce()', function () {
+    it('should return true if Pig is selected and MapReduce is not selected', function () {
+      controller.setEach('isSelected', false);
+      controller.findProperty('serviceName', 'PIG').set('isSelected', true);
+      expect(controller.needToAddMapReduce()).to.equal(true);
+    })
+
+    it('should return true if Oozie is selected and MapReduce is not selected', function () {
+      controller.setEach('isSelected', false);
+      controller.findProperty('serviceName', 'OOZIE').set('isSelected', true);
+      expect(controller.needToAddMapReduce()).to.equal(true);
+    })
+
+    it('should return true if Hive is selected and MapReduce is not selected', function () {
+      controller.setEach('isSelected', false);
+      controller.findProperty('serviceName', 'HIVE').set('isSelected', true);
+      expect(controller.needToAddMapReduce()).to.equal(true);
+    })
+
+    it('should return false if MapReduce is selected or Pig, Oozie and Hive are not selected', function () {
+      controller.findProperty('serviceName', 'MAPREDUCE').set('isSelected', true);
+      expect(controller.needToAddMapReduce()).to.equal(false);
+      controller.setEach('isSelected', false);
+      expect(controller.needToAddMapReduce()).to.equal(false);
+    })
+  })
+
+  describe('#gangliaOrNagiosNotSelected()', function () {
+    it('should return true if Nagios or Ganglia is not selected', function () {
+      controller.setEach('isSelected', true);
+      controller.findProperty('serviceName', 'NAGIOS').set('isSelected', false);
+      expect(controller.gangliaOrNagiosNotSelected()).to.equal(true);
+      controller.setEach('isSelected', true);
+      controller.findProperty('serviceName', 'GANGLIA').set('isSelected', false);
+      expect(controller.gangliaOrNagiosNotSelected()).to.equal(true);
+    })
+
+    it('should return false if Nagios and Ganglia is selected', function () {
+      controller.setEach('isSelected', false);
+      controller.findProperty('serviceName', 'GANGLIA').set('isSelected', true);
+      controller.findProperty('serviceName', 'NAGIOS').set('isSelected', true);
+      expect(controller.gangliaOrNagiosNotSelected()).to.equal(false);
+    })
+  })
+
+})
+

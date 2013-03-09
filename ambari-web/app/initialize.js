@@ -50,11 +50,6 @@ require('utils/host_progress_popup');
 
 App.initialize();
 
-/**
- * Test Mode values
- */
-App.test_hostname = 'hostname';
-
 console.log('after initialize');
 console.log('TRACE: app.js-> localStorage:Ambari.authenticated=' + localStorage.getItem('Ambari' + 'authenticated'));
 console.log('TRACE: app.js-> localStorage:currentStep=' + localStorage.getItem(App.get('router').getLoginName() + 'Installer' + 'currentStep'));

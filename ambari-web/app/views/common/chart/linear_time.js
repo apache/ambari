@@ -251,6 +251,9 @@ App.ChartLinearTimeView = Ember.View.extend({
    * @type Function
    */
   yAxisFormatter: function(y) {
+    if(isNaN(y)){
+      return 0;
+    }
     var value = Rickshaw.Fixtures.Number.formatKMBT(y);
     if (value == '') return '0';
     value = String(value);
@@ -292,7 +295,7 @@ App.ChartLinearTimeView = Ember.View.extend({
     }
     var result = true;
     seriesData.forEach(function(item){
-      if(!item.data.length || !item.data[0] || typeof item.data[0].x === 'undefined'){
+      if(!item.data || !item.data.length || !item.data[0] || typeof item.data[0].x === 'undefined'){
         result = false;
       }
     });

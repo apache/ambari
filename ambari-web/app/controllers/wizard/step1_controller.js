@@ -55,6 +55,7 @@ App.WizardStep1Controller = Em.Controller.extend({
   /**
    * calculates by <code>invalidClusterName</code> property
    */
+  //todo: mix this and previous variables in one
   clusterNameError: '',
 
   /**

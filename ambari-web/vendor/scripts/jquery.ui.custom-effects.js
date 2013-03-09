@@ -148,7 +148,7 @@ $.effects = {
 
 // determine rgba support immediately
 supportElem.style.cssText = "background-color:rgba(1,1,1,.5)";
-support.rgba = supportElem.style.backgroundColor.indexOf( "rgba" ) > -1;
+support.rgba = (supportElem.style.backgroundColor || supportElem.style['background-color']).indexOf( "rgba" ) > -1;
 
 // define cache name and alpha properties
 // for rgba and hsla spaces
@@ -1726,7 +1726,7 @@ $.effects.effect.highlight = function( o, done ) {
 	}
 
 	$.effects.save( elem, props );
-	
+
 	elem
 		.show()
 		.css({

@@ -16,43 +16,27 @@
  * limitations under the License.
  */
 
+/**
+ * Here is fix for ajax support
+ * @type {*}
+ */
+var XMLHttpRequest = xmlhttprequest.XMLHttpRequest;
+var $ = window.$;
 
-var App = require('app');
+$.support.cors = true;
+$.ajaxSettings.xhr = function () {
+  return new XMLHttpRequest();
+}
 
-App.WizardStep3View = Em.View.extend({
+$.mocho = true;
+$.hostName = testHost;
 
-  templateName: require('templates/wizard/step3'),
-  category: '',
-
-  didInsertElement: function () {
-    this.get('controller').navigateStep();
+/*sinon.stub2 = function(object, property, value){
+  var origin = object[property];
+  var count = 0;
+  var newValue = function(){
+    count++;
+    return value.call(this, arguments, origin, count);
   }
-});
-
-//todo: move it inside WizardStep3View
-App.WizardHostView = Em.View.extend({
-
-  tagName: 'tr',
-  classNameBindings: ['hostInfo.bootStatus'],
-  hostInfo: null,
-
-  remove: function () {
-    this.get('controller').removeHost(this.get('hostInfo'));
-  },
-
-  retry: function() {
-    this.get('controller').retryHost(this.get('hostInfo'));
-  },
-
-  isRemovable: function () {
-    return true;
-  }.property(),
-
-  isRetryable: function() {
-    // return ['FAILED'].contains(this.get('hostInfo.bootStatus'));
-    return false;
-  }.property('hostInfo.bootStatus')
-
-});
-
-
+  sinon.stub(object, property, newValue);
+}*/
