@@ -132,7 +132,7 @@ class HostComponentResourceProvider extends AbstractResourceProvider {
       setResourceProperty(resource, HOST_COMPONENT_HOST_NAME_PROPERTY_ID, response.getHostname(), requestedIds);
       setResourceProperty(resource, HOST_COMPONENT_STATE_PROPERTY_ID, response.getLiveState(), requestedIds);
       setResourceProperty(resource, HOST_COMPONENT_DESIRED_STATE_PROPERTY_ID, response.getDesiredState(), requestedIds);
-      setResourceProperty(resource, HOST_COMPONENT_HIGH_AVAILABILITY_PROPERTY_ID, "NA", requestedIds);
+      setResourceProperty(resource, HOST_COMPONENT_HIGH_AVAILABILITY_PROPERTY_ID, response.getHa_status(), requestedIds);
       setResourceProperty(resource, HOST_COMPONENT_CONFIGS_PROPERTY_ID,
           response.getConfigs(), requestedIds);
       setResourceProperty(resource, HOST_COMPONENT_DESIRED_CONFIGS_PROPERTY_ID,

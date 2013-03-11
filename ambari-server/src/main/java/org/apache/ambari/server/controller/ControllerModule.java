@@ -18,6 +18,7 @@
 
 package org.apache.ambari.server.controller;
 
+import org.apache.ambari.server.state.svccomphost.HBaseMasterPortScanner;
 import com.google.gson.Gson;
 import com.google.inject.Scopes;
 import com.google.inject.assistedinject.FactoryModuleBuilder;
@@ -34,6 +35,7 @@ import org.apache.ambari.server.state.host.HostFactory;
 import org.apache.ambari.server.state.host.HostImpl;
 
 import com.google.inject.AbstractModule;
+import com.google.inject.Singleton;
 import com.google.inject.name.Names;
 import org.apache.ambari.server.state.svccomphost.ServiceComponentHostImpl;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -89,6 +91,8 @@ public class ControllerModule extends AbstractModule {
     bindConstant().annotatedWith(Names.named("actionTimeout")).to(300000L);
     bind(AmbariManagementController.class)
         .to(AmbariManagementControllerImpl.class);
+    bind(HBaseMasterPortScanner.class).in(Singleton.class);;
+
   }
 
   private void installFactories() {

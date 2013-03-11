@@ -28,18 +28,21 @@ class hdp-oozie(
 
 # Configs generation  
 
+  $oozie_user = $hdp-oozie::params::oozie_user
+  $oozie_config_dir = $hdp-oozie::params::conf_dir
+
   if has_key($configuration, 'oozie-site') {
     configgenerator::configfile{'oozie-site':
       modulespath => $hdp-oozie::params::conf_dir, 
       filename => 'oozie-site.xml',
       module => 'hdp-oozie',
-      configuration => $configuration['oozie-site']
+      configuration => $configuration['oozie-site'],
+      owner => $oozie_user,
+      group => $hdp::params::user_group,
+      mode => '0660'
     }
   }
 
-  $oozie_user = $hdp-oozie::params::oozie_user
-  $oozie_config_dir = $hdp-oozie::params::conf_dir
-  
   if ($service_state == 'uninstalled') {
     hdp::package { 'oozie-client' : 
       ensure => 'uninstalled'

@@ -42,6 +42,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import org.apache.ambari.server.state.svccomphost.HBaseMasterPortScanner;
 
 
 /**
@@ -64,6 +65,8 @@ public class HeartBeatHandler {
   AmbariMetaInfo ambariMetaInfo;
   @Inject
   ActionMetadata actionMetadata;
+  @Inject
+  HBaseMasterPortScanner scaner;
 
   private Map<String, Long> hostResponseIds = new HashMap<String, Long>();
   private Map<String, HeartBeatResponse> hostResponses = new HashMap<String, HeartBeatResponse>();
@@ -75,10 +78,11 @@ public class HeartBeatHandler {
     this.actionQueue = aq;
     this.actionManager = am;
     this.heartbeatMonitor = new HeartbeatMonitor(fsm, aq, am, 60000);
+    this.heartbeatMonitor.setScaner(scaner);
     injector.injectMembers(this);
   }
 
-  public void start() {
+  public void start() {     
     heartbeatMonitor.start();
   }
 
@@ -127,13 +131,13 @@ public class HeartBeatHandler {
     hostResponses.put(hostname, response);
 
     long now = System.currentTimeMillis();
-
+    HostState hostState = hostObject.getState();
     // If the host is waiting for component status updates, notify it
     if (heartbeat.componentStatus.size() > 0
             && hostObject.getState().equals(HostState.WAITING_FOR_HOST_STATUS_UPDATES)) {
       try {
         LOG.debug("Got component status updates");
-        hostObject.handleEvent(new HostStatusUpdatesReceivedEvent(hostname, now));
+        hostObject.handleEvent(new HostStatusUpdatesReceivedEvent(hostname, now));   
       } catch (InvalidStateTransitionException e) {
         LOG.warn("Failed to notify the host about component status updates", e);
       }
@@ -145,8 +149,9 @@ public class HeartBeatHandler {
             heartbeat.getAgentEnv()));
       } else {
         hostObject.handleEvent(new HostUnhealthyHeartbeatEvent(hostname, now,
-            null));
+            null));       
       }
+      if(hostState != hostObject.getState()) scaner.updateHBaseMaster(hostObject);
     } catch (InvalidStateTransitionException ex) {
       LOG.warn("Asking agent to reregister due to " + ex.getMessage(),  ex);
       hostObject.setState(HostState.INIT);
@@ -185,6 +190,7 @@ public class HeartBeatHandler {
           ServiceComponent svcComp = svc.getServiceComponent(report.getRole());
           ServiceComponentHost scHost = svcComp.getServiceComponentHost(hostname);
           String schName = scHost.getServiceComponentName();
+          State state = scHost.getState();
           if (report.getStatus().equals("COMPLETED")) {
             // Updating stack version, if needed
             if (scHost.getState().equals(State.UPGRADING)) {
@@ -199,6 +205,7 @@ public class HeartBeatHandler {
             scHost.handleEvent(new ServiceComponentHostOpInProgressEvent(schName,
                     hostname, now));
           }
+          if(state != scHost.getState() && schName.equals(Role.HBASE_MASTER.toString())) scaner.updateHBaseMaster(cl);
         } catch (ServiceComponentNotFoundException scnex) {
           LOG.warn("Service component not found ", scnex);
         } catch (InvalidStateTransitionException ex) {
@@ -233,7 +240,8 @@ public class HeartBeatHandler {
                       || prevState.equals(State.STARTED)
                       || prevState.equals(State.STOP_FAILED)) {
                 scHost.setState(liveState);
-                if (!prevState.equals(liveState)) {
+                if (!prevState.equals(liveState) && scHost.getServiceComponentName().equals(Role.HBASE_MASTER.toString())) {
+                    scaner.updateHBaseMaster(scHost);
                   LOG.info("State of service component " + componentName
                           + " of service " + status.getServiceName()
                           + " of cluster " + status.getClusterName()

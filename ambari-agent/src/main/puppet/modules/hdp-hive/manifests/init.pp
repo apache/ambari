@@ -35,7 +35,10 @@ class hdp-hive(
       modulespath => $hdp-hive::params::hive_conf_dir, 
       filename => 'hive-site.xml',
       module => 'hdp-hive',
-      configuration => $configuration['hive-site']
+      configuration => $configuration['hive-site'],
+      owner => $hive_user,
+      group => $hdp::params::user_group,
+      mode => '0660'
     }
   }
 

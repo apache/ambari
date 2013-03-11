@@ -85,6 +85,8 @@ public interface ServiceComponentHost {
   public State getState();
 
   public void setState(State state);
+  
+  public void setHAState(String status);
 
   public Map<String, Config> getConfigs() throws AmbariException;
 

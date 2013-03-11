@@ -32,6 +32,7 @@ import org.apache.ambari.server.state.HostState;
 import org.apache.ambari.server.state.ServiceComponentHost;
 import org.apache.ambari.server.state.fsm.InvalidStateTransitionException;
 import org.apache.ambari.server.state.host.HostHeartbeatLostEvent;
+import org.apache.ambari.server.state.svccomphost.HBaseMasterPortScanner;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -46,6 +47,11 @@ public class HeartbeatMonitor implements Runnable {
   private final int threadWakeupInterval; //1 minute
   private volatile boolean shouldRun = true;
   private Thread monitorThread = null;
+  private HBaseMasterPortScanner scaner;
+
+  public void setScaner(HBaseMasterPortScanner scaner) {
+        this.scaner = scaner;
+  }
 
   public HeartbeatMonitor(Clusters fsm, ActionQueue aq, ActionManager am,
       int threadWakeupInterval) {
@@ -110,6 +116,7 @@ public class HeartbeatMonitor implements Runnable {
         LOG.warn("Hearbeat lost from host "+host);
         //Heartbeat is expired
         hostObj.handleEvent(new HostHeartbeatLostEvent(host));
+        if(hostState != hostObj.getState() && scaner != null) scaner.updateHBaseMaster(hostObj);
         //Purge action queue
         actionQueue.dequeueAll(host);
         //notify action manager
