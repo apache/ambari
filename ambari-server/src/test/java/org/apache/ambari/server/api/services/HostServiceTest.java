@@ -19,12 +19,16 @@
 
 package org.apache.ambari.server.api.services;
 
-
-import org.apache.ambari.server.api.handlers.RequestHandler;
 import org.apache.ambari.server.api.resources.ResourceInstance;
-import org.junit.Test;
-import javax.ws.rs.core.Response;
+import org.apache.ambari.server.api.services.parsers.RequestBodyParser;
+import org.apache.ambari.server.api.services.serializers.ResultSerializer;
+
+import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.UriInfo;
+
+import java.lang.reflect.Method;
+import java.util.ArrayList;
+import java.util.List;
 
 import static org.junit.Assert.assertEquals;
 
@@ -33,266 +37,84 @@ import static org.junit.Assert.assertEquals;
  */
 public class HostServiceTest extends BaseServiceTest {
 
-  @Test
-  public void testGetHost() {
-    String clusterName = "clusterName";
-    String hostName = "hostName";
+  public List<ServiceTestInvocation> getTestInvocations() throws Exception {
+    List<ServiceTestInvocation> listInvocations = new ArrayList<ServiceTestInvocation>();
 
-    registerExpectations(Request.Type.GET, null, 200, false);
-    replayMocks();
+    //getHost
+    HostService service = new TestHostService("clusterName", "hostName");
+    Method m = service.getClass().getMethod("getHost", HttpHeaders.class, UriInfo.class, String.class);
+    Object[] args = new Object[] {getHttpHeaders(), getUriInfo(), "hostName"};
+    listInvocations.add(new ServiceTestInvocation(Request.Type.GET, service, m, args, null));
 
-    //test
-    HostService hostService = new TestHostService(getResource(), clusterName, hostName, getRequestFactory(), getRequestHandler());
-    Response response = hostService.getHost(getHttpHeaders(), getUriInfo(), hostName);
+    //getHosts
+    service = new TestHostService("clusterName", null);
+    m = service.getClass().getMethod("getHosts", HttpHeaders.class, UriInfo.class);
+    args = new Object[] {getHttpHeaders(), getUriInfo()};
+    listInvocations.add(new ServiceTestInvocation(Request.Type.GET, service, m, args, null));
 
-    verifyResults(response, 200);
+    //createHost
+    service = new TestHostService("clusterName", "hostName");
+    m = service.getClass().getMethod("createHost", String.class, HttpHeaders.class, UriInfo.class, String.class);
+    args = new Object[] {"body", getHttpHeaders(), getUriInfo(), "hostName"};
+    listInvocations.add(new ServiceTestInvocation(Request.Type.POST, service, m, args, "body"));
+
+    //createHosts
+    service = new TestHostService("clusterName", null);
+    m = service.getClass().getMethod("createHosts", String.class, HttpHeaders.class, UriInfo.class);
+    args = new Object[] {"body", getHttpHeaders(), getUriInfo()};
+    listInvocations.add(new ServiceTestInvocation(Request.Type.POST, service, m, args, "body"));
+
+    //updateHost
+    service = new TestHostService("clusterName", "hostName");
+    m = service.getClass().getMethod("updateHost", String.class, HttpHeaders.class, UriInfo.class, String.class);
+    args = new Object[] {"body", getHttpHeaders(), getUriInfo(), "hostName"};
+    listInvocations.add(new ServiceTestInvocation(Request.Type.PUT, service, m, args, "body"));
+
+    //updateHosts
+    service = new TestHostService("clusterName", null);
+    m = service.getClass().getMethod("updateHosts", String.class, HttpHeaders.class, UriInfo.class);
+    args = new Object[] {"body", getHttpHeaders(), getUriInfo()};
+    listInvocations.add(new ServiceTestInvocation(Request.Type.PUT, service, m, args, "body"));
+
+    //deleteHost
+    service = new TestHostService("clusterName", "hostName");
+    m = service.getClass().getMethod("deleteHost", HttpHeaders.class, UriInfo.class, String.class);
+    args = new Object[] {getHttpHeaders(), getUriInfo(), "hostName"};
+    listInvocations.add(new ServiceTestInvocation(Request.Type.DELETE, service, m, args, null));
+
+    return listInvocations;
   }
-
-  @Test
-  public void testGetHost__ErrorState() {
-    String clusterName = "clusterName";
-    String hostName = "hostName";
-
-    registerExpectations(Request.Type.GET, null, 500, true);
-    replayMocks();
-
-    //test
-    HostService hostService = new TestHostService(getResource(), clusterName, hostName, getRequestFactory(), getRequestHandler());
-    Response response = hostService.getHost(getHttpHeaders(), getUriInfo(), hostName);
-
-    verifyResults(response, 500);
-  }
-
-  @Test
-  public void testGetHosts() {
-    String clusterName = "clusterName";
-
-    registerExpectations(Request.Type.GET, null, 200, false);
-    replayMocks();
-
-    //test
-    HostService hostService = new TestHostService(getResource(), clusterName, null, getRequestFactory(), getRequestHandler());
-    Response response = hostService.getHosts(getHttpHeaders(), getUriInfo());
-
-    verifyResults(response, 200);
-  }
-
-  @Test
-  public void testGetHosts__ErrorState() {
-    String clusterName = "clusterName";
-
-    registerExpectations(Request.Type.GET, null, 500, true);
-    replayMocks();
-
-    //test
-    HostService hostService = new TestHostService(getResource(), clusterName, null, getRequestFactory(), getRequestHandler());
-    Response response = hostService.getHosts(getHttpHeaders(), getUriInfo());
-
-    verifyResults(response, 500);
-  }
-
-  @Test
-  public void testCreateHost() {
-    String clusterName = "clusterName";
-    String hostName = "hostName";
-    String body = "body";
-
-    registerExpectations(Request.Type.POST, body, 201, false);
-    replayMocks();
-
-    //test
-    HostService hostService = new TestHostService(getResource(), clusterName, hostName, getRequestFactory(), getRequestHandler());
-    Response response = hostService.createHost(body, getHttpHeaders(), getUriInfo(), hostName);
-
-    verifyResults(response, 201);
-  }
-
-  @Test
-  public void testCreateHost__ErrorState() {
-    String clusterName = "clusterName";
-    String hostName = "hostName";
-    String body = "body";
-
-    registerExpectations(Request.Type.POST, body, 500, true);
-    replayMocks();
-
-    //test
-    HostService hostService = new TestHostService(getResource(), clusterName, hostName, getRequestFactory(), getRequestHandler());
-    Response response = hostService.createHost(body, getHttpHeaders(), getUriInfo(), hostName);
-
-    verifyResults(response, 500);
-  }
-
-  @Test
-  public void testCreateHosts()  {
-    String clusterName = "clusterName";
-    String body = "[ " +
-        "{\"Hosts\" : {" +
-        "            \"cluster_name\" : \"mycluster\"," +
-        "            \"host_name\" : \"host1\"" +
-        "          }" +
-        "}," +
-        "{\"Hosts\" : {" +
-        "            \"cluster_name\" : \"mycluster\"," +
-        "            \"host_name\" : \"host2\"" +
-        "          }" +
-        "}," +
-        "{\"Hosts\" : {" +
-        "            \"cluster_name\" : \"mycluster\"," +
-        "            \"host_name\" : \"host3\"" +
-        "          }" +
-        "}]";
-
-    registerExpectations(Request.Type.POST, body, 201, false);
-    replayMocks();
-
-    //test
-    HostService hostService = new TestHostService(getResource(), clusterName, null, getRequestFactory(), getRequestHandler());
-    Response response = hostService.createHosts(body, getHttpHeaders(), getUriInfo());
-
-    verifyResults(response, 201);
-  }
-
-  @Test
-  public void testCreateHosts__ErrorState()  {
-    String clusterName = "clusterName";
-    String body = "body";
-
-    registerExpectations(Request.Type.POST, body, 500, true);
-    replayMocks();
-
-    //test
-    HostService hostService = new TestHostService(getResource(), clusterName, null, getRequestFactory(), getRequestHandler());
-    Response response = hostService.createHosts(body, getHttpHeaders(), getUriInfo());
-
-    verifyResults(response, 500);
-  }
-
-  @Test
-  public void testUpdateHost() {
-    String clusterName = "clusterName";
-    String hostName = "hostName";
-    String body = "body";
-
-    registerExpectations(Request.Type.PUT, body, 200, false);
-    replayMocks();
-
-    //test
-    HostService hostService = new TestHostService(getResource(), clusterName, hostName, getRequestFactory(), getRequestHandler());
-    Response response = hostService.updateHost(body, getHttpHeaders(), getUriInfo(), hostName);
-
-    verifyResults(response, 200);
-  }
-
-  @Test
-  public void testUpdateHost__ErrorState() {
-    String clusterName = "clusterName";
-    String hostName = "hostName";
-    String body = "body";
-
-    registerExpectations(Request.Type.PUT, body, 500, true);
-    replayMocks();
-
-    //test
-    HostService hostService = new TestHostService(getResource(), clusterName, hostName, getRequestFactory(), getRequestHandler());
-    Response response = hostService.updateHost(body, getHttpHeaders(), getUriInfo(), hostName);
-
-    verifyResults(response, 500);
-  }
-
-  @Test
-  public void testUpdateHosts() {
-    String clusterName = "clusterName";
-    String body = "body";
-
-    registerExpectations(Request.Type.PUT, body, 200, false);
-    replayMocks();
-
-    //test
-    HostService hostService = new TestHostService(getResource(), clusterName, null, getRequestFactory(), getRequestHandler());
-    Response response = hostService.updateHosts(body, getHttpHeaders(), getUriInfo());
-
-    verifyResults(response, 200);
-  }
-
-  @Test
-  public void testUpdateHosts__ErrorState() {
-    String clusterName = "clusterName";
-    String body = "body";
-
-    registerExpectations(Request.Type.PUT, body, 500, true);
-    replayMocks();
-
-    //test
-    HostService hostService = new TestHostService(getResource(), clusterName, null, getRequestFactory(), getRequestHandler());
-    Response response = hostService.updateHosts(body, getHttpHeaders(), getUriInfo());
-
-    verifyResults(response, 500);
-  }
-
-  @Test
-  public void testDeleteHost() {
-    String clusterName = "clusterName";
-    String hostName = "hostName";
-
-    registerExpectations(Request.Type.DELETE, null, 200, false);
-    replayMocks();
-
-    //test
-    HostService hostService = new TestHostService(getResource(), clusterName, hostName, getRequestFactory(), getRequestHandler());
-    Response response = hostService.deleteHost(getHttpHeaders(), getUriInfo(), hostName);
-
-    verifyResults(response, 200);
-  }
-
-  @Test
-  public void testDeleteHost__ErrorState() {
-    String clusterName = "clusterName";
-    String hostName = "hostName";
-
-    registerExpectations(Request.Type.DELETE, null, 500, true);
-    replayMocks();
-
-    //test
-    HostService hostService = new TestHostService(getResource(), clusterName, hostName, getRequestFactory(), getRequestHandler());
-    Response response = hostService.deleteHost(getHttpHeaders(), getUriInfo(), hostName);
-
-    verifyResults(response, 500);
-  }
-
 
   private class TestHostService extends HostService {
-    private RequestFactory m_requestFactory;
-    private RequestHandler m_requestHandler;
-    private ResourceInstance m_resourceDef;
     private String m_clusterId;
     private String m_hostId;
 
-    private TestHostService(ResourceInstance resourceDef, String clusterId, String hostId, RequestFactory requestFactory,
-                            RequestHandler handler) {
+    private TestHostService(String clusterId, String hostId) {
       super(clusterId);
-      m_resourceDef = resourceDef;
       m_clusterId = clusterId;
       m_hostId = hostId;
-      m_requestFactory = requestFactory;
-      m_requestHandler = handler;
     }
 
     @Override
     ResourceInstance createHostResource(String clusterName, String hostName, UriInfo ui) {
       assertEquals(m_clusterId, clusterName);
       assertEquals(m_hostId, hostName);
-      return m_resourceDef;
+      return getTestResource();
     }
 
     @Override
     RequestFactory getRequestFactory() {
-      return m_requestFactory;
+      return getTestRequestFactory();
     }
 
     @Override
-    RequestHandler getRequestHandler(Request.Type requestType) {
-      return m_requestHandler;
+    protected RequestBodyParser getBodyParser() {
+      return getTestBodyParser();
+    }
+
+    @Override
+    protected ResultSerializer getResultSerializer() {
+      return getTestResultSerializer();
     }
   }
 }

@@ -18,487 +18,122 @@
 
 package org.apache.ambari.server.api.services;
 
-import org.apache.ambari.server.api.handlers.RequestHandler;
 import org.apache.ambari.server.api.resources.ResourceInstance;
-import org.junit.Test;
+import org.apache.ambari.server.api.services.parsers.RequestBodyParser;
+import org.apache.ambari.server.api.services.serializers.ResultSerializer;
 
-import javax.ws.rs.core.Response;
+import javax.ws.rs.core.HttpHeaders;
+import javax.ws.rs.core.UriInfo;
+import java.lang.reflect.Method;
+import java.util.ArrayList;
+import java.util.List;
+
+
+import static org.junit.Assert.assertEquals;
 
 /**
- * Unit tests for StacksService.
- */
+* Unit tests for StacksService.
+*/
 public class StacksServiceTest extends BaseServiceTest {
 
-  private static final String STACK_NAME = "stackName";
-  private static final String STACK_VERSION = "stackVersion";
-  private static final String OS_TYPE = "osType";
-  private static final String REPO_ID = "repoId";
-  private static final String SERVICE_NAME = "serviceName";
-  private static final String PROPERTY_NAME = "propertyName";
-  private static final String COMPONENT_NAME = "componentName";
-
-  @Test
-  public void testGetStacks() {
-
-    registerExpectations(Request.Type.GET, null, 200, false);
-    replayMocks();
-
-    // test
-    StacksService stacksService = new TestStacksService(getResource(),
-        getRequestFactory(), getRequestHandler());
-    Response response = stacksService.getStacks(getHttpHeaders(), getUriInfo());
-    verifyResults(response, 200);
-  }
-
-  @Test
-  public void testGetStacks__ErrorState() {
-
-    registerExpectations(Request.Type.GET, null, 500, true);
-    replayMocks();
-
-    // test
-    StacksService stacksService = new TestStacksService(getResource(),
-        getRequestFactory(), getRequestHandler());
-    Response response = stacksService.getStacks(getHttpHeaders(), getUriInfo());
-    verifyResults(response, 500);
-  }
-
-  @Test
-  public void testGetStack() {
-
-    registerExpectations(Request.Type.GET, null, 200, false);
-    replayMocks();
-
-    // test
-    StacksService stacksService = new TestStacksService(getResource(),
-        getRequestFactory(), getRequestHandler());
-    Response response = stacksService.getStack(getHttpHeaders(), getUriInfo(),
-        STACK_NAME);
-    verifyResults(response, 200);
-  }
-
-  @Test
-  public void testGetStack__ErrorState() {
-
-    registerExpectations(Request.Type.GET, null, 500, true);
-    replayMocks();
-
-    // test
-    StacksService stacksService = new TestStacksService(getResource(),
-        getRequestFactory(), getRequestHandler());
-    Response response = stacksService.getStack(getHttpHeaders(), getUriInfo(),
-        STACK_NAME);
-    verifyResults(response, 500);
-  }
-
-  @Test
-  public void testGetStackVersion() {
-
-    registerExpectations(Request.Type.GET, null, 200, false);
-    replayMocks();
-
-    // test
-    StacksService stacksService = new TestStacksService(getResource(),
-        getRequestFactory(), getRequestHandler());
-
-    Response response = stacksService.getStackVersion(getHttpHeaders(),
-        getUriInfo(), STACK_NAME, STACK_VERSION);
-    verifyResults(response, 200);
-  }
-
-  @Test
-  public void testGetStackVersion__ErrorState() {
-
-    registerExpectations(Request.Type.GET, null, 500, true);
-    replayMocks();
-
-    // test
-    StacksService stacksService = new TestStacksService(getResource(),
-        getRequestFactory(), getRequestHandler());
-    Response response = stacksService.getStackVersion(getHttpHeaders(),
-        getUriInfo(), STACK_NAME, STACK_VERSION);
-    verifyResults(response, 500);
-  }
-
-  @Test
-  public void testGetStackVersions() {
-
-    registerExpectations(Request.Type.GET, null, 200, false);
-    replayMocks();
-
-    // test
-    StacksService stacksService = new TestStacksService(getResource(),
-        getRequestFactory(), getRequestHandler());
-
-    Response response = stacksService.getStackVersions(getHttpHeaders(),
-        getUriInfo(), STACK_NAME);
-    verifyResults(response, 200);
-  }
-
-  @Test
-  public void testGetStackVersions__ErrorState() {
-
-    registerExpectations(Request.Type.GET, null, 500, true);
-    replayMocks();
-
-    // test
-    StacksService stacksService = new TestStacksService(getResource(),
-        getRequestFactory(), getRequestHandler());
-    Response response = stacksService.getStackVersions(getHttpHeaders(),
-        getUriInfo(), STACK_NAME);
-    verifyResults(response, 500);
-  }
-
-  @Test
-  public void testGetRepositories() {
-
-    registerExpectations(Request.Type.GET, null, 200, false);
-    replayMocks();
-
-    // test
-    StacksService stacksService = new TestStacksService(getResource(),
-        getRequestFactory(), getRequestHandler());
-
-    Response response = stacksService.getRepositories(getHttpHeaders(),
-        getUriInfo(), STACK_NAME, STACK_NAME, OS_TYPE);
-    verifyResults(response, 200);
-  }
-
-  @Test
-  public void testGetRepositories__ErrorState() {
-
-    registerExpectations(Request.Type.GET, null, 500, true);
-    replayMocks();
-
-    // test
-    StacksService stacksService = new TestStacksService(getResource(),
-        getRequestFactory(), getRequestHandler());
-    Response response = stacksService.getRepositories(getHttpHeaders(),
-        getUriInfo(), STACK_NAME, STACK_VERSION, OS_TYPE);
-    verifyResults(response, 500);
-  }
-
-  @Test
-  public void testGetRepository() {
-
-    registerExpectations(Request.Type.GET, null, 200, false);
-    replayMocks();
-
-    // test
-    StacksService stacksService = new TestStacksService(getResource(),
-        getRequestFactory(), getRequestHandler());
-
-    Response response = stacksService.getRepository(getHttpHeaders(),
-        getUriInfo(), STACK_NAME, STACK_NAME, OS_TYPE, REPO_ID);
-    verifyResults(response, 200);
-  }
-
-  @Test
-  public void testGetRepository__ErrorState() {
-
-    registerExpectations(Request.Type.GET, null, 500, true);
-    replayMocks();
-
-    // test
-    StacksService stacksService = new TestStacksService(getResource(),
-        getRequestFactory(), getRequestHandler());
-    Response response = stacksService.getRepository(getHttpHeaders(),
-        getUriInfo(), STACK_NAME, STACK_VERSION, OS_TYPE, REPO_ID);
-    verifyResults(response, 500);
-  }
-
-  @Test
-  public void testGetStackServices() {
-
-    registerExpectations(Request.Type.GET, null, 200, false);
-    replayMocks();
-
-    // test
-    StacksService stacksService = new TestStacksService(getResource(),
-        getRequestFactory(), getRequestHandler());
-
-    Response response = stacksService.getStackServices(getHttpHeaders(),
-        getUriInfo(), STACK_NAME, STACK_VERSION);
-    verifyResults(response, 200);
-  }
-
-  @Test
-  public void testGetStackServices__ErrorState() {
-
-    registerExpectations(Request.Type.GET, null, 500, true);
-    replayMocks();
-
-    // test
-    StacksService stacksService = new TestStacksService(getResource(),
-        getRequestFactory(), getRequestHandler());
-    Response response = stacksService.getStackServices(getHttpHeaders(),
-        getUriInfo(), STACK_NAME, STACK_VERSION);
-    verifyResults(response, 500);
-  }
-
-  @Test
-  public void testGetStackService() {
-
-    registerExpectations(Request.Type.GET, null, 200, false);
-    replayMocks();
-
-    // test
-    StacksService stacksService = new TestStacksService(getResource(),
-        getRequestFactory(), getRequestHandler());
-
-    Response response = stacksService.getStackService(getHttpHeaders(),
-        getUriInfo(), STACK_NAME, STACK_VERSION, SERVICE_NAME);
-    verifyResults(response, 200);
-  }
-
-  @Test
-  public void testGetStackService__ErrorState() {
-
-    registerExpectations(Request.Type.GET, null, 500, true);
-    replayMocks();
-
-    // test
-    StacksService stacksService = new TestStacksService(getResource(),
-        getRequestFactory(), getRequestHandler());
-    Response response = stacksService.getStackService(getHttpHeaders(),
-        getUriInfo(), STACK_NAME, STACK_VERSION, SERVICE_NAME);
-    verifyResults(response, 500);
-  }
-
-  @Test
-  public void testGetStackConfigurations() {
-
-    registerExpectations(Request.Type.GET, null, 200, false);
-    replayMocks();
-
-    // test
-    StacksService stacksService = new TestStacksService(getResource(),
-        getRequestFactory(), getRequestHandler());
-
-    Response response = stacksService.getStackConfigurations(getHttpHeaders(),
-        getUriInfo(), STACK_NAME, STACK_VERSION, SERVICE_NAME);
-    verifyResults(response, 200);
-  }
-
-  @Test
-  public void testGetStackConfigurations__ErrorState() {
-
-    registerExpectations(Request.Type.GET, null, 500, true);
-    replayMocks();
-
-    // test
-    StacksService stacksService = new TestStacksService(getResource(),
-        getRequestFactory(), getRequestHandler());
-    Response response = stacksService.getStackConfigurations(getHttpHeaders(),
-        getUriInfo(), STACK_NAME, STACK_VERSION, SERVICE_NAME);
-    verifyResults(response, 500);
-  }
-
-  @Test
-  public void testGetStackConfiguration() {
-
-    registerExpectations(Request.Type.GET, null, 200, false);
-    replayMocks();
-
-    // test
-    StacksService stacksService = new TestStacksService(getResource(),
-        getRequestFactory(), getRequestHandler());
-
-    Response response = stacksService.getStackConfiguration(getHttpHeaders(),
-        getUriInfo(), STACK_NAME, STACK_VERSION, SERVICE_NAME, PROPERTY_NAME);
-    verifyResults(response, 200);
-  }
-
-  @Test
-  public void testGetStackConfiguration__ErrorState() {
-
-    registerExpectations(Request.Type.GET, null, 500, true);
-    replayMocks();
-
-    // test
-    StacksService stacksService = new TestStacksService(getResource(),
-        getRequestFactory(), getRequestHandler());
-    Response response = stacksService.getStackConfiguration(getHttpHeaders(),
-        getUriInfo(), STACK_NAME, STACK_VERSION, SERVICE_NAME, PROPERTY_NAME);
-    verifyResults(response, 500);
-  }
-
-  @Test
-  public void testGetServiceComponent() {
-
-    registerExpectations(Request.Type.GET, null, 200, false);
-    replayMocks();
-
-    // test
-    StacksService stacksService = new TestStacksService(getResource(),
-        getRequestFactory(), getRequestHandler());
-
-    Response response = stacksService.getServiceComponent(getHttpHeaders(),
-        getUriInfo(), STACK_NAME, STACK_VERSION, SERVICE_NAME, COMPONENT_NAME);
-    verifyResults(response, 200);
-  }
-
-  @Test
-  public void testGetServiceComponent__ErrorState() {
-
-    registerExpectations(Request.Type.GET, null, 500, true);
-    replayMocks();
-
-    // test
-    StacksService stacksService = new TestStacksService(getResource(),
-        getRequestFactory(), getRequestHandler());
-    Response response = stacksService.getServiceComponent(getHttpHeaders(),
-        getUriInfo(), STACK_NAME, STACK_VERSION, SERVICE_NAME, COMPONENT_NAME);
-    verifyResults(response, 500);
-  }
-
-  @Test
-  public void testGetServiceComponents() {
-
-    registerExpectations(Request.Type.GET, null, 200, false);
-    replayMocks();
-
-    // test
-    StacksService stacksService = new TestStacksService(getResource(),
-        getRequestFactory(), getRequestHandler());
-
-    Response response = stacksService.getStackConfiguration(getHttpHeaders(),
-        getUriInfo(), STACK_NAME, STACK_VERSION, SERVICE_NAME, PROPERTY_NAME);
-    verifyResults(response, 200);
-  }
-
-  @Test
-  public void testGetServiceComponents__ErrorState() {
-
-    registerExpectations(Request.Type.GET, null, 500, true);
-    replayMocks();
-
-    // test
-    StacksService stacksService = new TestStacksService(getResource(),
-        getRequestFactory(), getRequestHandler());
-    Response response = stacksService.getStackConfiguration(getHttpHeaders(),
-        getUriInfo(), STACK_NAME, STACK_VERSION, SERVICE_NAME, PROPERTY_NAME);
-    verifyResults(response, 500);
-  }
-
-  @Test
-  public void testGetOperatingSystems() {
-
-    registerExpectations(Request.Type.GET, null, 200, false);
-    replayMocks();
-
-    // test
-    StacksService stacksService = new TestStacksService(getResource(),
-        getRequestFactory(), getRequestHandler());
-
-    Response response = stacksService.getOperatingSystems(getHttpHeaders(),
-        getUriInfo(), STACK_NAME, STACK_VERSION);
-    verifyResults(response, 200);
-  }
-
-  @Test
-  public void testGetOperatingSystems__ErrorState() {
-
-    registerExpectations(Request.Type.GET, null, 500, true);
-    replayMocks();
-
-    // test
-    StacksService stacksService = new TestStacksService(getResource(),
-        getRequestFactory(), getRequestHandler());
-    Response response = stacksService.getOperatingSystems(getHttpHeaders(),
-        getUriInfo(), STACK_NAME, STACK_VERSION);
-    verifyResults(response, 500);
-  }
-
-  @Test
-  public void testGetOperatingSystem() {
-
-    registerExpectations(Request.Type.GET, null, 200, false);
-    replayMocks();
-
-    // test
-    StacksService stacksService = new TestStacksService(getResource(),
-        getRequestFactory(), getRequestHandler());
-
-    Response response = stacksService.getOperatingSystem(getHttpHeaders(),
-        getUriInfo(), STACK_NAME, STACK_VERSION, OS_TYPE);
-    verifyResults(response, 200);
-  }
-
-  @Test
-  public void testGetOperatingSystem__ErrorState() {
-
-    registerExpectations(Request.Type.GET, null, 500, true);
-    replayMocks();
-
-    // test
-    StacksService stacksService = new TestStacksService(getResource(),
-        getRequestFactory(), getRequestHandler());
-    Response response = stacksService.getOperatingSystem(getHttpHeaders(),
-        getUriInfo(), STACK_NAME, STACK_VERSION, OS_TYPE);
-    verifyResults(response, 500);
+  @Override
+  public List<ServiceTestInvocation> getTestInvocations() throws Exception {
+    List<ServiceTestInvocation> listInvocations = new ArrayList<ServiceTestInvocation>();
+
+    //getStack
+    StacksService service = new TestStacksService("stackName", null);
+    Method m = service.getClass().getMethod("getStack", HttpHeaders.class, UriInfo.class, String.class);
+    Object[] args = new Object[] {getHttpHeaders(), getUriInfo(), "stackName"};
+    listInvocations.add(new ServiceTestInvocation(Request.Type.GET, service, m, args, null));
+
+    //getStacks
+    service = new TestStacksService(null, null);
+    m = service.getClass().getMethod("getStacks", HttpHeaders.class, UriInfo.class);
+    args = new Object[] {getHttpHeaders(), getUriInfo()};
+    listInvocations.add(new ServiceTestInvocation(Request.Type.GET, service, m, args, null));
+
+    //getStackVersion
+    service = new TestStacksService("stackName", "stackVersion");
+    m = service.getClass().getMethod("getStackVersion", HttpHeaders.class, UriInfo.class, String.class, String.class);
+    args = new Object[] {getHttpHeaders(), getUriInfo(), "stackName", "stackVersion"};
+    listInvocations.add(new ServiceTestInvocation(Request.Type.GET, service, m, args, null));
+
+    //getStackVersions
+    service = new TestStacksService("stackName", null);
+    m = service.getClass().getMethod("getStackVersions", HttpHeaders.class, UriInfo.class, String.class);
+    args = new Object[] {getHttpHeaders(), getUriInfo(), "stackName"};
+    listInvocations.add(new ServiceTestInvocation(Request.Type.GET, service, m, args, null));
+
+    //todo: other methods
+
+    return listInvocations;
   }
 
   private class TestStacksService extends StacksService {
-    private RequestFactory m_requestFactory;
-    private RequestHandler m_requestHandler;
-    private ResourceInstance m_resourceDef;
 
-    private TestStacksService(ResourceInstance resourceDef,
-        RequestFactory requestFactory, RequestHandler handler) {
-      m_resourceDef = resourceDef;
-      m_requestFactory = requestFactory;
-      m_requestHandler = handler;
+    private String m_stackId;
+    private String m_stackVersion;
+
+    private TestStacksService(String stackName, String stackVersion) {
+      m_stackId = stackName;
+      m_stackVersion = stackVersion;
     }
 
     @Override
     ResourceInstance createStackResource(String stackName) {
-      return m_resourceDef;
+      assertEquals(m_stackId, stackName);
+      return getTestResource();
     }
 
     @Override
-    ResourceInstance createStackVersionResource(String stackName,
-        String stackVersion) {
-      return m_resourceDef;
+    ResourceInstance createStackVersionResource(String stackName, String stackVersion) {
+      assertEquals(m_stackId, stackName);
+      assertEquals(m_stackVersion, stackVersion);
+      return getTestResource();
     }
 
     @Override
     ResourceInstance createRepositoryResource(String stackName,
         String stackVersion, String osType, String repoId) {
-      return m_resourceDef;
+      return getTestResource();
     }
 
     @Override
     ResourceInstance createStackServiceResource(String stackName,
         String stackVersion, String serviceName) {
-      return m_resourceDef;
+      return getTestResource();
     }
 
     ResourceInstance createStackConfigurationResource(String stackName,
         String stackVersion, String serviceName, String propertyName) {
-      return m_resourceDef;
+      return getTestResource();
     }
 
     ResourceInstance createStackServiceComponentResource(String stackName,
         String stackVersion, String serviceName, String componentName) {
-      return m_resourceDef;
+      return getTestResource();
     }
 
     ResourceInstance createOperatingSystemResource(String stackName,
         String stackVersion, String osType) {
-      return m_resourceDef;
+      return getTestResource();
     }
+
 
     @Override
     RequestFactory getRequestFactory() {
-      return m_requestFactory;
+      return getTestRequestFactory();
     }
 
     @Override
-    RequestHandler getRequestHandler(Request.Type requestType) {
-      return m_requestHandler;
+    protected RequestBodyParser getBodyParser() {
+      return getTestBodyParser();
+    }
+
+    @Override
+    protected ResultSerializer getResultSerializer() {
+      return getTestResultSerializer();
     }
   }
 
-  // todo: test getHostHandler, getServiceHandler, getHostComponentHandler
 }

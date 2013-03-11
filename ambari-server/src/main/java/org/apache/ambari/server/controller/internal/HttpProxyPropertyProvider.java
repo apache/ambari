@@ -24,7 +24,10 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-import org.apache.ambari.server.api.services.parsers.JsonPropertyParser;
+import org.apache.ambari.server.api.services.NamedPropertySet;
+import org.apache.ambari.server.api.services.RequestBody;
+import org.apache.ambari.server.api.services.parsers.BodyParseException;
+import org.apache.ambari.server.api.services.parsers.JsonRequestBodyParser;
 import org.apache.ambari.server.controller.spi.Predicate;
 import org.apache.ambari.server.controller.spi.PropertyProvider;
 import org.apache.ambari.server.controller.spi.Request;
@@ -110,12 +113,21 @@ public class HttpProxyPropertyProvider extends BaseProvider implements PropertyP
     InputStream in = null;
     try {
       in = streamProvider.readFrom(url);
-      r.setProperty(propertyIdToSet, new JsonPropertyParser().parse(IOUtils.toString(in, "UTF-8")));
+      //todo: should not use JsonRequestBodyParser as this is intended only for parsing http bodies.
+      RequestBody body = (new JsonRequestBodyParser().parse(IOUtils.toString(in, "UTF-8")));
+      Set<NamedPropertySet> setNamedProps = body.getPropertySets();
+      Set<Map<String,Object>> setProps = new HashSet<Map<String, Object>>(setNamedProps.size());
+      for (NamedPropertySet ps : setNamedProps) {
+        setProps.add(ps.getProperties());
+      }
+      r.setProperty(propertyIdToSet, setProps);
     }
     catch (IOException ioe) {
+      //todo: should not eat exception
       LOG.error("Error reading HTTP response from " + url);
-    }
-    finally {
+    } catch (BodyParseException e) {
+      LOG.error("Error Parsing Json.", e);
+    } finally {
       if (null != in) {
         try {
           in.close();

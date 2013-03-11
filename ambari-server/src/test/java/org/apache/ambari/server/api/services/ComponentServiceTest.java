@@ -20,11 +20,16 @@
 package org.apache.ambari.server.api.services;
 
 
-import org.apache.ambari.server.api.handlers.RequestHandler;
 import org.apache.ambari.server.api.resources.ResourceInstance;
-import org.junit.Test;
+import org.apache.ambari.server.api.services.parsers.RequestBodyParser;
+import org.apache.ambari.server.api.services.serializers.ResultSerializer;
 
-import javax.ws.rs.core.Response;
+import javax.ws.rs.core.HttpHeaders;
+import javax.ws.rs.core.UriInfo;
+
+import java.lang.reflect.Method;
+import java.util.ArrayList;
+import java.util.List;
 
 import static org.junit.Assert.assertEquals;
 
@@ -33,224 +38,61 @@ import static org.junit.Assert.assertEquals;
  */
 public class ComponentServiceTest extends BaseServiceTest {
 
-  @Test
-  public void testGetComponent()  {
-    String clusterName = "clusterName";
-    String serviceName = "serviceName";
-    String componentName = "componentName";
+  public List<ServiceTestInvocation> getTestInvocations() throws Exception {
+    List<ServiceTestInvocation> listInvocations = new ArrayList<ServiceTestInvocation>();
 
-    registerExpectations(Request.Type.GET, null, 200, false);
-    replayMocks();
+    //getComponent
+    ComponentService service = new TestComponentService("clusterName", "serviceName", "componentName");
+    Method m = service.getClass().getMethod("getComponent", HttpHeaders.class, UriInfo.class, String.class);
+    Object[] args = new Object[] {getHttpHeaders(), getUriInfo(), "componentName"};
+    listInvocations.add(new ServiceTestInvocation(Request.Type.GET, service, m, args, null));
 
-    //test
-    ComponentService componentService = new TestComponentService(getResource(), clusterName, serviceName, componentName,
-        getRequestFactory(), getRequestHandler());
+    //getComponents
+    service = new TestComponentService("clusterName", "serviceName", null);
+    m = service.getClass().getMethod("getComponents", HttpHeaders.class, UriInfo.class);
+    args = new Object[] {getHttpHeaders(), getUriInfo()};
+    listInvocations.add(new ServiceTestInvocation(Request.Type.GET, service, m, args, null));
 
-    Response response = componentService.getComponent(getHttpHeaders(), getUriInfo(), componentName);
-    verifyResults(response, 200);
-  }
+    //createComponent
+    service = new TestComponentService("clusterName", "serviceName", "componentName");
+    m = service.getClass().getMethod("createComponent", String.class, HttpHeaders.class, UriInfo.class, String.class);
+    args = new Object[] {"body", getHttpHeaders(), getUriInfo(), "componentName"};
+    listInvocations.add(new ServiceTestInvocation(Request.Type.POST, service, m, args, "body"));
 
-  @Test
-  public void testGetComponent__ErrorState()  {
-    String clusterName = "clusterName";
-    String serviceName = "serviceName";
-    String componentName = "componentName";
+    //createComponents
+    service = new TestComponentService("clusterName", "serviceName", null);
+    m = service.getClass().getMethod("createComponents", String.class, HttpHeaders.class, UriInfo.class);
+    args = new Object[] {"body", getHttpHeaders(), getUriInfo()};
+    listInvocations.add(new ServiceTestInvocation(Request.Type.POST, service, m, args, "body"));
 
-    registerExpectations(Request.Type.GET, null, 404, true);
-    replayMocks();
+    //updateComponent
+    service = new TestComponentService("clusterName", "serviceName", "componentName");
+    m = service.getClass().getMethod("updateComponent", String.class, HttpHeaders.class, UriInfo.class, String.class);
+    args = new Object[] {"body", getHttpHeaders(), getUriInfo(), "componentName"};
+    listInvocations.add(new ServiceTestInvocation(Request.Type.PUT, service, m, args, "body"));
 
-    //test
-    ComponentService componentService = new TestComponentService(getResource(), clusterName, serviceName, componentName,
-        getRequestFactory(), getRequestHandler());
+    //updateComponents
+    service = new TestComponentService("clusterName", "serviceName", null);
+    m = service.getClass().getMethod("updateComponents", String.class, HttpHeaders.class, UriInfo.class);
+    args = new Object[] {"body", getHttpHeaders(), getUriInfo()};
+    listInvocations.add(new ServiceTestInvocation(Request.Type.PUT, service, m, args, "body"));
 
-    Response response = componentService.getComponent(getHttpHeaders(), getUriInfo(), componentName);
-    verifyResults(response, 404);
-  }
+    //deleteComponent
+    service = new TestComponentService("clusterName", "serviceName", "componentName");
+    m = service.getClass().getMethod("deleteComponent", HttpHeaders.class, UriInfo.class, String.class);
+    args = new Object[] {getHttpHeaders(), getUriInfo(), "componentName"};
+    listInvocations.add(new ServiceTestInvocation(Request.Type.DELETE, service, m, args, null));
 
-  @Test
-  public void testGetComponents() {
-    String clusterName = "clusterName";
-    String serviceName = "serviceName";
-
-    registerExpectations(Request.Type.GET, null, 200, false);
-    replayMocks();
-
-    //test
-    ComponentService componentService = new TestComponentService(getResource(), clusterName, serviceName, null,
-        getRequestFactory(), getRequestHandler());
-
-    Response response = componentService.getComponents(getHttpHeaders(), getUriInfo());
-    verifyResults(response, 200);
-  }
-
-  @Test
-  public void testGetComponents__ErrorState() {
-    String clusterName = "clusterName";
-    String serviceName = "serviceName";
-
-    registerExpectations(Request.Type.GET, null, 500, true);
-    replayMocks();
-
-    //test
-    ComponentService componentService = new TestComponentService(getResource(), clusterName, serviceName, null,
-        getRequestFactory(), getRequestHandler());
-
-    Response response = componentService.getComponents(getHttpHeaders(), getUriInfo());
-    verifyResults(response, 500);
-  }
-
-  @Test
-  public void testCreateComponent() {
-    String clusterName = "clusterName";
-    String serviceName = "serviceName";
-    String componentName = "componentName";
-    String body = "{body}";
-
-    registerExpectations(Request.Type.POST, body, 201, false);
-    replayMocks();
-
-    //test
-    ComponentService componentService = new TestComponentService(getResource(), clusterName, serviceName, componentName,
-        getRequestFactory(), getRequestHandler());
-
-    Response response = componentService.createComponent(body, getHttpHeaders(), getUriInfo(), componentName);
-    verifyResults(response, 201);
-  }
-
-  @Test
-  public void testCreateComponent__ErrorState() {
-    String clusterName = "clusterName";
-    String serviceName = "serviceName";
-    String componentName = "componentName";
-    String body = "{body}";
-
-    registerExpectations(Request.Type.POST, body, 500, true);
-    replayMocks();
-
-    //test
-    ComponentService componentService = new TestComponentService(getResource(), clusterName, serviceName, componentName,
-        getRequestFactory(), getRequestHandler());
-
-    Response response = componentService.createComponent(body, getHttpHeaders(), getUriInfo(), componentName);
-    verifyResults(response, 500);
-  }
-
-  @Test
-  public void testUpdateComponent() {
-    String clusterName = "clusterName";
-    String serviceName = "serviceName";
-    String componentName = "componentName";
-    String body = "{body}";
-
-    registerExpectations(Request.Type.PUT, body, 200, false);
-    replayMocks();
-
-    //test
-    ComponentService componentService = new TestComponentService(getResource(), clusterName, serviceName, componentName,
-        getRequestFactory(), getRequestHandler());
-
-    Response response = componentService.updateComponent(body, getHttpHeaders(), getUriInfo(), componentName);
-    verifyResults(response, 200);
-  }
-
-  @Test
-  public void testUpdateComponent__ErrorState() {
-    String clusterName = "clusterName";
-    String serviceName = "serviceName";
-    String componentName = "componentName";
-    String body = "{body}";
-
-    registerExpectations(Request.Type.PUT, body, 500, true);
-    replayMocks();
-
-    //test
-    ComponentService componentService = new TestComponentService(getResource(), clusterName, serviceName, componentName,
-        getRequestFactory(), getRequestHandler());
-
-    Response response = componentService.updateComponent(body, getHttpHeaders(), getUriInfo(), componentName);
-    verifyResults(response, 500);
-  }
-
-  @Test
-  public void testUpdateComponents() {
-    String clusterName = "clusterName";
-    String serviceName = "serviceName";
-    String body = "{body}";
-
-    registerExpectations(Request.Type.PUT, body, 200, false);
-    replayMocks();
-
-    //test
-    ComponentService componentService = new TestComponentService(getResource(), clusterName, serviceName, null,
-        getRequestFactory(), getRequestHandler());
-
-    Response response = componentService.updateComponents(body, getHttpHeaders(), getUriInfo());
-    verifyResults(response, 200);
-  }
-
-  @Test
-  public void testUpdateComponents__ErrorState() {
-    String clusterName = "clusterName";
-    String serviceName = "serviceName";
-    String body = "{body}";
-
-    registerExpectations(Request.Type.PUT, body, 500, true);
-    replayMocks();
-
-    //test
-    ComponentService componentService = new TestComponentService(getResource(), clusterName, serviceName, null,
-        getRequestFactory(), getRequestHandler());
-
-    Response response = componentService.updateComponents(body, getHttpHeaders(), getUriInfo());
-    verifyResults(response, 500);
-  }
-
-  @Test
-  public void testDeleteComponent() {
-    String clusterName = "clusterName";
-    String serviceName = "serviceName";
-
-    registerExpectations(Request.Type.DELETE, null, 200, false);
-    replayMocks();
-
-    //test
-    ComponentService componentService = new TestComponentService(getResource(), clusterName, serviceName, null,
-        getRequestFactory(), getRequestHandler());
-
-    Response response = componentService.deleteComponent(getHttpHeaders(), getUriInfo(), null);
-    verifyResults(response, 200);
-  }
-
-  @Test
-  public void testDeleteComponent__ErrorState() {
-    String clusterName = "clusterName";
-    String serviceName = "serviceName";
-
-    registerExpectations(Request.Type.DELETE, null, 500, true);
-    replayMocks();
-
-    //test
-    ComponentService componentService = new TestComponentService(getResource(), clusterName, serviceName, null,
-        getRequestFactory(), getRequestHandler());
-
-    Response response = componentService.deleteComponent(getHttpHeaders(), getUriInfo(), null);
-    verifyResults(response, 500);
+    return listInvocations;
   }
 
   private class TestComponentService extends ComponentService {
-    private RequestFactory m_requestFactory;
-    private RequestHandler m_requestHandler;
-    private ResourceInstance m_resource;
     private String m_clusterId;
     private String m_serviceId;
     private String m_componentId;
 
-    private TestComponentService(ResourceInstance resourceDef, String clusterId, String serviceId, String componentId,
-                                 RequestFactory requestFactory, RequestHandler handler) {
+    private TestComponentService(String clusterId, String serviceId, String componentId) {
       super(clusterId, serviceId);
-      m_requestFactory = requestFactory;
-      m_requestHandler = handler;
-      m_resource = resourceDef;
       m_clusterId = clusterId;
       m_serviceId = serviceId;
       m_componentId = componentId;
@@ -261,17 +103,22 @@ public class ComponentServiceTest extends BaseServiceTest {
       assertEquals(m_clusterId, clusterName);
       assertEquals(m_serviceId, serviceName);
       assertEquals(m_componentId, componentName);
-      return m_resource;
+      return getTestResource();
     }
 
     @Override
     RequestFactory getRequestFactory() {
-      return m_requestFactory;
+      return getTestRequestFactory();
     }
 
     @Override
-    RequestHandler getRequestHandler(Request.Type requestType) {
-      return m_requestHandler;
+    protected RequestBodyParser getBodyParser() {
+      return getTestBodyParser();
+    }
+
+    @Override
+    protected ResultSerializer getResultSerializer() {
+      return getTestResultSerializer();
     }
   }
 }

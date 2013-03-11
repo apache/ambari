@@ -18,6 +18,8 @@
 
 package org.apache.ambari.server.api.services;
 
+import org.apache.ambari.server.api.handlers.CreateHandler;
+import org.apache.ambari.server.api.handlers.RequestHandler;
 import org.apache.ambari.server.api.resources.ResourceInstance;
 
 import javax.ws.rs.core.HttpHeaders;
@@ -35,7 +37,7 @@ public class PostRequest extends BaseRequest {
    * @param uriInfo     uri information
    * @param resource    associated resource definition
    */
-  public PostRequest(HttpHeaders headers, String body, UriInfo uriInfo, ResourceInstance resource) {
+  public PostRequest(HttpHeaders headers, RequestBody body, UriInfo uriInfo, ResourceInstance resource) {
     super(headers, body, uriInfo, resource);
   }
 
@@ -44,4 +46,8 @@ public class PostRequest extends BaseRequest {
     return Type.POST;
   }
 
+  @Override
+  protected RequestHandler getRequestHandler() {
+    return new CreateHandler();
+  }
 }

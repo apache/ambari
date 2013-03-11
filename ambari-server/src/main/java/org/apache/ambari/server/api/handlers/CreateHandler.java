@@ -33,10 +33,10 @@ import java.util.Set;
 public class CreateHandler extends BaseManagementHandler {
 
   @Override
-  protected Result persist(ResourceInstance r, Set<Map<String, Object>> properties) {
+  protected Result persist(ResourceInstance request, Set<Map<String, Object>> setProperties) {
     Result result;
     try {
-      RequestStatus status = getPersistenceManager().create(r, properties);
+      RequestStatus status = getPersistenceManager().create(request, setProperties);
 
       result = createResult(status);
 

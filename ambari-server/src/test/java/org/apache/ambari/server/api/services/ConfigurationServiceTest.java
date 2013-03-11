@@ -21,60 +21,64 @@ import static org.junit.Assert.assertEquals;
 
 import javax.ws.rs.core.*;
 
-import org.apache.ambari.server.api.handlers.RequestHandler;
 import org.apache.ambari.server.api.resources.ResourceInstance;
-import org.junit.Test;
+import org.apache.ambari.server.api.services.parsers.RequestBodyParser;
+import org.apache.ambari.server.api.services.serializers.ResultSerializer;
+
+import java.lang.reflect.Method;
+import java.util.ArrayList;
+import java.util.List;
 
 
 public class ConfigurationServiceTest extends BaseServiceTest {
-  
-  @Test
-  public void testCreateConfiguration() throws Exception{
-    String clusterName = "clusterName";
 
-    String body = "{ \"type\":\"hdfs-site\", \"tag\":\"my-new-tag\"," +
-        "\"properties\":{ \"key1\":\"value1\", \"key2\":\"value2\" } }";
+  public List<ServiceTestInvocation> getTestInvocations() throws Exception {
+    List<ServiceTestInvocation> listInvocations = new ArrayList<ServiceTestInvocation>();
 
-    registerExpectations(Request.Type.POST, body, 200, false);
-    replayMocks();
+    //getConfigurations
+    ConfigurationService service = new TestConfigurationService("clusterName");
+    Method m = service.getClass().getMethod("getConfigurations", HttpHeaders.class, UriInfo.class);
+    Object[] args = new Object[] {getHttpHeaders(), getUriInfo()};
+    listInvocations.add(new ServiceTestInvocation(Request.Type.GET, service, m, args, null));
 
-    //test
-    ConfigurationService configService = new TestConfigurationService(getResource(), clusterName, getRequestFactory(), getRequestHandler());
-    Response response = configService.createConfigurations(body, getHttpHeaders(), getUriInfo());
+    //createConfigurations
+    service = new TestConfigurationService("clusterName");
+    m = service.getClass().getMethod("createConfigurations", String.class, HttpHeaders.class, UriInfo.class);
+    args = new Object[] {"body", getHttpHeaders(), getUriInfo()};
+    listInvocations.add(new ServiceTestInvocation(Request.Type.POST, service, m, args, "body"));
 
-    verifyResults(response, 200);
+    return listInvocations;
   }
-  
+
+
   private class TestConfigurationService extends ConfigurationService {
-    private RequestFactory m_requestFactory;
-    private RequestHandler m_requestHandler;
-    private ResourceInstance m_resourceInstance;
     private String m_clusterId;
 
-    private TestConfigurationService(ResourceInstance resourceInstance, String clusterId, RequestFactory requestFactory,
-                                     RequestHandler handler) {
+    private TestConfigurationService(String clusterId) {
       super(clusterId);
-      m_resourceInstance = resourceInstance;
       m_clusterId = clusterId;
-      m_requestFactory = requestFactory;
-      m_requestHandler = handler;
     }
 
     @Override
     ResourceInstance createConfigurationResource(String clusterName) {
       assertEquals(m_clusterId, clusterName);
-      return m_resourceInstance;
+      return getTestResource();
     }
 
     @Override
     RequestFactory getRequestFactory() {
-      return m_requestFactory;
+      return getTestRequestFactory();
     }
 
     @Override
-    RequestHandler getRequestHandler(Request.Type requestType) {
-      return m_requestHandler;
-    }    
+    protected RequestBodyParser getBodyParser() {
+      return getTestBodyParser();
+    }
+
+    @Override
+    protected ResultSerializer getResultSerializer() {
+      return getTestResultSerializer();
+    }
   }
 
 }

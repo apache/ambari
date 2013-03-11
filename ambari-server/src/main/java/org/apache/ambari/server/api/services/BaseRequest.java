@@ -18,16 +18,15 @@
 
 package org.apache.ambari.server.api.services;
 
+import org.apache.ambari.server.api.handlers.RequestHandler;
 import org.apache.ambari.server.api.predicate.InvalidQueryException;
 import org.apache.ambari.server.api.predicate.PredicateCompiler;
 import org.apache.ambari.server.api.resources.*;
-import org.apache.ambari.server.api.services.parsers.JsonPropertyParser;
-import org.apache.ambari.server.api.services.parsers.RequestBodyParser;
-import org.apache.ambari.server.api.services.serializers.JsonSerializer;
-import org.apache.ambari.server.api.services.serializers.ResultSerializer;
 import org.apache.ambari.server.controller.internal.TemporalInfoImpl;
 import org.apache.ambari.server.controller.spi.Predicate;
 import org.apache.ambari.server.controller.spi.TemporalInfo;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.UriInfo;
@@ -55,29 +54,58 @@ public abstract class BaseRequest implements Request {
   /**
    * Http Body
    */
-  private String m_body;
+  private RequestBody m_body;
 
+  /**
+   * Query Predicate
+   */
+  private Predicate m_predicate;
 
   /**
    * Associated resource definition
    */
   private ResourceInstance m_resource;
 
+  /**
+   *  Logger instance.
+   */
+  private final static Logger LOG = LoggerFactory.getLogger(Request.class);
+
 
   /**
    * Constructor.
    *
-   * @param headers      http headers
-   * @param body         http body
-   * @param uriInfo      uri information
-   * @param resource     associated resource definition
+   * @param headers           http headers
+   * @param body              http body
+   * @param uriInfo           uri information
+   * @param resource          associated resource definition
+   *
    */
-  public BaseRequest(HttpHeaders headers, String body, UriInfo uriInfo, ResourceInstance resource) {
+  public BaseRequest(HttpHeaders headers, RequestBody body, UriInfo uriInfo, ResourceInstance resource) {
+    m_headers     = headers;
+    m_uriInfo     = uriInfo;
+    m_resource    = resource;
+    m_body        = body;
+  }
 
-    m_headers  = headers;
-    m_body     = body;
-    m_uriInfo  = uriInfo;
-    m_resource = resource;
+  @Override
+  public Result process() {
+    LOG.info("Handling API Request: '" + getURI() + "'");
+
+    Result result;
+    try {
+      parseQueryPredicate();
+      result = getRequestHandler().handleRequest(this);
+    } catch (InvalidQueryException e) {
+      result =  new ResultImpl(new ResultStatus(ResultStatus.STATUS.BAD_REQUEST,
+          "Unable to compile query predicate: " + e.getMessage()));
+    }
+
+    if (! result.getStatus().isErrorState()) {
+      getResultPostProcessor().process(result);
+    }
+
+    return result;
   }
 
   @Override
@@ -96,16 +124,12 @@ public abstract class BaseRequest implements Request {
 
   @Override
   public int getAPIVersion() {
-    return 0;
+    return 1;
   }
 
   @Override
-  public Predicate getQueryPredicate() throws InvalidQueryException {
-    String uri     = getURI();
-    int    qsBegin = uri.indexOf("?");
-
-    return (qsBegin == -1) ? null :
-        getPredicateCompiler().compile(uri.substring(qsBegin + 1));
+  public Predicate getQueryPredicate() {
+    return m_predicate;
   }
 
   @Override
@@ -158,29 +182,60 @@ public abstract class BaseRequest implements Request {
 
   @Override
   public String getHttpBody() {
-    return m_body;
+    return m_body.getBody();
   }
 
   @Override
-  public Set<Map<String, Object>> getHttpBodyProperties() {
-    return getHttpBodyParser().parse(getHttpBody());
+  public Set<NamedPropertySet> getHttpBodyProperties() {
+    return m_body.getPropertySets();
   }
 
-  @Override
-  public ResultSerializer getResultSerializer() {
-    return new JsonSerializer();
-  }
-
-  @Override
-  public ResultPostProcessor getResultPostProcessor() {
+  /**
+   * Obtain the result post processor for the request.
+   *
+   * @return the result post processor
+   */
+  protected ResultPostProcessor getResultPostProcessor() {
+    //todo: inject
     return new ResultPostProcessorImpl(this);
   }
 
-  protected RequestBodyParser getHttpBodyParser() {
-    return new JsonPropertyParser();
-  }
-
+  /**
+   * Obtain the predicate compiler which is used to compile the query string into
+   * a predicate.
+   *
+   * @return the predicate compiler
+   */
   protected PredicateCompiler getPredicateCompiler() {
     return new PredicateCompiler();
   }
+
+
+  /**
+   * Parse the query string and compile it into a predicate.
+   * The query string may have already been extracted from the http body.
+   * If the query string didn't exist in the body use the query string in the URL.
+   *
+   * @throws InvalidQueryException  if unable to parse a non-null query string into a predicate
+   */
+  private void parseQueryPredicate() throws InvalidQueryException {
+    String queryString = m_body.getQueryString();
+    if (queryString == null) {
+      String uri     = getURI();
+      int    qsBegin = uri.indexOf("?");
+
+      queryString = (qsBegin == -1) ? null : uri.substring(qsBegin + 1);
+    }
+
+    if (queryString != null) {
+      m_predicate = getPredicateCompiler().compile(queryString);
+    }
+  }
+
+  /**
+   * Obtain the underlying request handler for the request.
+   *
+   * @return  the request handler
+   */
+  protected abstract RequestHandler getRequestHandler();
 }

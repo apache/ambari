@@ -22,10 +22,8 @@ package org.apache.ambari.server.api.handlers;
 import org.apache.ambari.server.api.resources.ResourceInstance;
 import org.apache.ambari.server.api.resources.ResourceInstanceFactory;
 import org.apache.ambari.server.api.resources.ResourceInstanceFactoryImpl;
+import org.apache.ambari.server.api.services.*;
 import org.apache.ambari.server.api.services.Request;
-import org.apache.ambari.server.api.services.ResultStatus;
-import org.apache.ambari.server.api.services.Result;
-import org.apache.ambari.server.api.services.ResultImpl;
 import org.apache.ambari.server.api.util.TreeNode;
 import org.apache.ambari.server.controller.spi.*;
 
@@ -44,30 +42,55 @@ public class QueryCreateHandler extends BaseManagementHandler {
     if (queryResult.getStatus().isErrorState() ||
         queryResult.getResultTree().getChildren().isEmpty()) {
 
-      //return the query result if result has error state or contains no resources
-      //todo: For case where no resources are returned, will return 200 ok.
-      //todo: What is the appropriate status code?
+      //if query result has error state or contains no resources return it
+      // currently returns 200 for case where query returns no rows
       return queryResult;
     }
 
-    ResourceInstance resource = request.getResource();
-    Resource.Type createType = getCreateType(request.getHttpBody(), resource);
-    Set<Map<String, Object>> setProperties = buildCreateSet(request, queryResult, createType);
-    ResourceInstance createResource = getResourceFactory().createResource(
-        createType, request.getResource().getIds());
+    Map<Resource.Type, Set<Map<String, Object>>> mapProperties;
+    try {
+      mapProperties = buildCreateSet(request, queryResult);
+    } catch (IllegalArgumentException e) {
+      return createInvalidRequestResult(e.getMessage());
+    }
 
-    return super.handleRequest(createResource, setProperties);
+    if (mapProperties.size() != 1) {
+      return createInvalidRequestResult(mapProperties.size() == 0 ?
+          "A minimum of one sub-resource must be specified for creation." :
+          "Multiple sub-resource types may not be created in the same request.");
+    }
+
+    Map.Entry<Resource.Type, Set<Map<String, Object>>> entry = mapProperties.entrySet().iterator().next();
+    ResourceInstance createResource = getResourceFactory().createResource(
+        entry.getKey(), request.getResource().getIds());
+
+    return persist(createResource, entry.getValue());
   }
 
-  private Set<Map<String, Object>> buildCreateSet(Request request, Result queryResult, Resource.Type createType) {
-    Set<Map<String, Object>> setRequestProps = request.getHttpBodyProperties();
-    Set<Map<String, Object>> setCreateProps = new HashSet<Map<String, Object>>(setRequestProps.size());
+  /**
+   * Build the property set for all sub-resource to be created.
+   * This includes determining the sub-resource type and creating a property set for each matching parent.
+   *
+   * @param request      the current request
+   * @param queryResult  the result of the query for matching parents
+   *
+   * @return a map of sub-resource types to be created and their associated properties
+   *
+   * @throws IllegalArgumentException  if no sub-resource type was specified or it is not a valid
+   *                                   sub-resource of the parent.
+   */
+  private Map<Resource.Type, Set<Map<String, Object>>> buildCreateSet(Request request, Result queryResult)
+    throws IllegalArgumentException {
+
+    Set<NamedPropertySet> setRequestProps = request.getHttpBodyProperties();
+
+    HashMap<Resource.Type, Set<Map<String, Object>>> mapProps =
+        new HashMap<Resource.Type, Set<Map<String, Object>>>();
 
     ResourceInstance  resource            = request.getResource();
     Resource.Type     type                = resource.getResourceDefinition().getType();
     ClusterController controller          = getClusterController();
     String            resourceKeyProperty = controller.getSchema(type).getKeyPropertyId(type);
-    String            createKeyProperty   = controller.getSchema(createType).getKeyPropertyId(type);
 
     TreeNode<Resource> tree = queryResult.getResultTree();
     Collection<TreeNode<Resource>> treeChildren = tree.getChildren();
@@ -75,29 +98,61 @@ public class QueryCreateHandler extends BaseManagementHandler {
       Resource r = node.getObject();
       Object keyVal = r.getPropertyValue(resourceKeyProperty);
 
-      for (Map<String, Object> mapProps : setRequestProps) {
-        Map<String, Object> mapResourceProps = new HashMap<String, Object>(mapProps);
-        mapResourceProps.put(createKeyProperty, keyVal);
+      for (NamedPropertySet namedProps : setRequestProps) {
+        Map<String, Object> mapResourceProps = new HashMap<String, Object>(namedProps.getProperties());
+        Resource.Type createType = getCreateType(resource, namedProps.getName());
+        mapResourceProps.put(controller.getSchema(createType).
+            getKeyPropertyId(resource.getResourceDefinition().getType()), keyVal);
+        Set<Map<String, Object>> setCreateProps = mapProps.get(createType);
+        if (setCreateProps == null) {
+          setCreateProps = new HashSet<Map<String, Object>>();
+          mapProps.put(createType, setCreateProps);
+        }
         setCreateProps.add(mapResourceProps);
       }
     }
-    return setCreateProps;
+    return mapProps;
   }
 
-  private Resource.Type getCreateType(String requestBody, ResourceInstance resource) {
-    int startIdx = requestBody.indexOf("\"") + 1;
-    int endIdx = requestBody.indexOf("\"", startIdx + 1);
+  /**
+   * Determine the sub-resurce type(s) to be created.
+   *
+   * @param resource         the requests resource instance
+   * @param subResourceName  the name of the sub-resource to be created
+   * @return  the resource type
+   *
+   * @throws IllegalArgumentException  if the specified sub-resource name is empty or it is not a valid
+   *                                   sub-resource of the parent.
+   */
+  private Resource.Type getCreateType(ResourceInstance resource, String subResourceName) throws IllegalArgumentException{
+    if (subResourceName == null || subResourceName.equals("")) {
+      throw new IllegalArgumentException("A sub-resource name must be supplied.");
+    }
+    ResourceInstance res = resource.getSubResources().get(subResourceName);
 
-    ResourceInstance res =  resource.getSubResources().get(requestBody.substring(startIdx, endIdx));
-    return res == null ? null : res.getResourceDefinition().getType();
+    if (res == null) {
+      throw new IllegalArgumentException("The specified sub-resource name is not valid: '" + subResourceName + "'.");
+    }
+
+    return res.getResourceDefinition().getType();
+  }
+
+  /**
+   * Convenience method to create a result for invalid requests.
+   *
+   * @param msg  message indicating why the request is invalid
+   *
+   * @return  a request with a 400 status and msg set
+   */
+  private Result createInvalidRequestResult(String msg) {
+    return new ResultImpl(new ResultStatus(ResultStatus.STATUS.BAD_REQUEST, "Invalid Request: " + msg));
   }
 
   @Override
-  protected Result persist(ResourceInstance r, Set<Map<String, Object>> properties) {
+  protected Result persist(ResourceInstance request, Set<Map<String, Object>> setProperties) {
     Result result;
     try {
-      RequestStatus status = getPersistenceManager().create(r, properties);
-
+      RequestStatus status = getPersistenceManager().create(request, setProperties);
       result = createResult(status);
 
       if (result.isSynchronous()) {
@@ -105,7 +160,6 @@ public class QueryCreateHandler extends BaseManagementHandler {
       } else {
         result.setResultStatus(new ResultStatus(ResultStatus.STATUS.ACCEPTED));
       }
-
     } catch (UnsupportedPropertyException e) {
       result = new ResultImpl(new ResultStatus(ResultStatus.STATUS.BAD_REQUEST, e));
     } catch (ResourceAlreadyExistsException e) {
@@ -119,10 +173,20 @@ public class QueryCreateHandler extends BaseManagementHandler {
     return result;
   }
 
+  /**
+   * Get the resource factory instance.
+   * @return  a factory for creating resource instances
+   */
   protected ResourceInstanceFactory getResourceFactory() {
+    //todo: inject
     return new ResourceInstanceFactoryImpl();
   }
 
+  /**
+   * Read handler instance.  Used for obtaining matching parents which match the query.
+   *
+   * @return  read handler instance
+   */
   protected RequestHandler getReadHandler() {
     return m_readHandler;
   }

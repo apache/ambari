@@ -21,26 +21,31 @@ package org.apache.ambari.server.api.services;
 import org.apache.ambari.server.api.handlers.RequestHandler;
 import org.apache.ambari.server.api.predicate.PredicateCompiler;
 import org.apache.ambari.server.api.resources.ResourceInstance;
+import org.apache.ambari.server.api.services.serializers.ResultSerializer;
 import org.junit.Test;
-
-import static org.junit.Assert.*;
 
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.UriInfo;
 
+import java.util.Map;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertSame;
+import static org.junit.Assert.assertTrue;
+
 /**
- * PutRequest unit tests
+ * QueryPostRequest unit tests.
  */
-public class PutRequestTest extends BaseRequestTest {
+public class QueryPostRequestTest extends BaseRequestTest {
   @Test
   public void testRequestType() throws Exception {
-    Request r = new PutRequest(null, new RequestBody(), null, null);
-    assertSame(Request.Type.PUT, r.getRequestType());
+    Request r = new QueryPostRequest(null, new RequestBody(), null, null);
+    assertSame(Request.Type.QUERY_POST, r.getRequestType());
   }
 
   protected Request getTestRequest(HttpHeaders headers, RequestBody body, UriInfo uriInfo, final PredicateCompiler compiler,
                                    final RequestHandler handler, final ResultPostProcessor processor, ResourceInstance resource) {
-    return new PutRequest(headers, body, uriInfo, resource) {
+    return new QueryPostRequest(headers, body, uriInfo, resource) {
       @Override
       protected PredicateCompiler getPredicateCompiler() {
         return compiler;

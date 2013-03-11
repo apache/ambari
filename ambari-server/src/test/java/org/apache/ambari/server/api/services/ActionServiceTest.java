@@ -19,82 +19,77 @@ package org.apache.ambari.server.api.services;
 
 import static org.junit.Assert.assertEquals;
 
-import javax.ws.rs.core.Response;
+import javax.ws.rs.core.HttpHeaders;
+import javax.ws.rs.core.UriInfo;
 
-import org.apache.ambari.server.AmbariException;
-import org.apache.ambari.server.api.handlers.RequestHandler;
 import org.apache.ambari.server.api.resources.ResourceInstance;
-import org.junit.Test;
+import org.apache.ambari.server.api.services.parsers.RequestBodyParser;
+import org.apache.ambari.server.api.services.serializers.ResultSerializer;
+
+import java.lang.reflect.Method;
+import java.util.ArrayList;
+import java.util.List;
 
 public class ActionServiceTest extends BaseServiceTest {
 
-  @Test
-  public void testGetActions() {
-    String clusterName = "c1";
-    String serviceName = "HDFS";
+  public List<ServiceTestInvocation> getTestInvocations() throws Exception {
+    List<ServiceTestInvocation> listInvocations = new ArrayList<ServiceTestInvocation>();
 
-    registerExpectations(Request.Type.GET, null, 200, false);
-    replayMocks();
+    //getActions
+    ActionService componentService = new TestActionService("clusterName", "serviceName", null);
+    Method m = componentService.getClass().getMethod("getActions", HttpHeaders.class, UriInfo.class);
+    Object[] args = new Object[] {getHttpHeaders(), getUriInfo()};
+    listInvocations.add(new ServiceTestInvocation(Request.Type.GET, componentService, m, args, null));
 
-    //test
-    ActionService actionService = new TestActionService(getResource(), clusterName, getRequestFactory(),
-        getRequestHandler(), serviceName);
-    Response response = actionService.getActions(getHttpHeaders(), getUriInfo());
-    verifyResults(response, 200);
-  }
+    //createAction
+    componentService = new TestActionService("clusterName", "serviceName", "actionName");
+    m = componentService.getClass().getMethod("createAction", String.class, HttpHeaders.class, UriInfo.class, String.class);
+    args = new Object[] {"body", getHttpHeaders(), getUriInfo(), "actionName"};
+    listInvocations.add(new ServiceTestInvocation(Request.Type.POST, componentService, m, args, "body"));
 
-  @Test
-  public void testCreateActions() throws AmbariException {
-    String clusterName = "c1";
-    String serviceName = "HDFS";
-    String body = "body";
+    //createActions
+    componentService = new TestActionService("clusterName", "serviceName", null);
+    m = componentService.getClass().getMethod("createActions", String.class, HttpHeaders.class, UriInfo.class);
+    args = new Object[] {"body", getHttpHeaders(), getUriInfo()};
+    listInvocations.add(new ServiceTestInvocation(Request.Type.POST, componentService, m, args, "body"));
 
-    registerExpectations(Request.Type.POST, body, 201, false);
-    replayMocks();
-
-    //test
-    ActionService actionService = new TestActionService(getResource(), clusterName, getRequestFactory(),
-        getRequestHandler(), serviceName);
-    Response response = actionService.createActions(body, getHttpHeaders(), getUriInfo());
-    verifyResults(response, 201);
+    return listInvocations;
   }
 
   private class TestActionService extends ActionService {
-    private ResourceInstance m_resourceDef;
     private String m_clusterId;
     private String m_serviceId;
-    private RequestFactory m_requestFactory;
-    private RequestHandler m_requestHandler;
+    private String m_actionId;
 
-    public TestActionService(ResourceInstance resourceDef,
-                             String clusterName, RequestFactory requestFactory,
-                             RequestHandler handler,
-                             String serviceName) {
+    public TestActionService(String clusterName, String serviceName, String actionName) {
 
       super(clusterName, serviceName);
-      m_resourceDef = resourceDef;
       m_clusterId = clusterName;
       m_serviceId = serviceName;
-      m_requestFactory = requestFactory;
-      m_requestHandler = handler;
+      m_actionId  = actionName;
     }
 
     @Override
     ResourceInstance createActionResource(String clusterName, String serviceName, String actionName) {
       assertEquals(m_clusterId, clusterName);
       assertEquals(m_serviceId, serviceName);
-      return m_resourceDef;
+      assertEquals(m_actionId, actionName);
+      return getTestResource();
     }
 
     @Override
     RequestFactory getRequestFactory() {
-      return m_requestFactory;
+      return getTestRequestFactory();
     }
 
+    @Override
+    protected RequestBodyParser getBodyParser() {
+      return getTestBodyParser();
+    }
 
     @Override
-    RequestHandler getRequestHandler(Request.Type requestType) {
-      return m_requestHandler;
+    protected ResultSerializer getResultSerializer() {
+      return getTestResultSerializer();
     }
   }
 }

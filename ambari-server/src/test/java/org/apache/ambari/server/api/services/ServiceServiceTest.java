@@ -18,11 +18,16 @@
 
 package org.apache.ambari.server.api.services;
 
-import org.apache.ambari.server.api.handlers.RequestHandler;
 import org.apache.ambari.server.api.resources.ResourceInstance;
-import org.junit.Test;
+import org.apache.ambari.server.api.services.parsers.RequestBodyParser;
+import org.apache.ambari.server.api.services.serializers.ResultSerializer;
 
-import javax.ws.rs.core.Response;
+import javax.ws.rs.core.HttpHeaders;
+import javax.ws.rs.core.UriInfo;
+
+import java.lang.reflect.Method;
+import java.util.ArrayList;
+import java.util.List;
 
 import static org.junit.Assert.assertEquals;
 
@@ -31,220 +36,84 @@ import static org.junit.Assert.assertEquals;
  */
 public class ServiceServiceTest extends BaseServiceTest {
 
-  @Test
-  public void testGetService() {
-    String clusterName = "clusterName";
-    String serviceName = "serviceName";
+  public List<ServiceTestInvocation> getTestInvocations() throws Exception {
+    List<ServiceTestInvocation> listInvocations = new ArrayList<ServiceTestInvocation>();
 
-    registerExpectations(Request.Type.GET, null, 200, false);
-    replayMocks();
+    //getService
+    ServiceService service = new TestServiceService("clusterName", "serviceName");
+    Method m = service.getClass().getMethod("getService", HttpHeaders.class, UriInfo.class, String.class);
+    Object[] args = new Object[] {getHttpHeaders(), getUriInfo(), "serviceName"};
+    listInvocations.add(new ServiceTestInvocation(Request.Type.GET, service, m, args, null));
 
-    //test
-    ServiceService hostService = new TestServiceService(getResource(), clusterName, serviceName, getRequestFactory(), getRequestHandler());
-    Response response = hostService.getService(getHttpHeaders(), getUriInfo(), serviceName);
+    //getService
+    service = new TestServiceService("clusterName", null);
+    m = service.getClass().getMethod("getServices", HttpHeaders.class, UriInfo.class);
+    args = new Object[] {getHttpHeaders(), getUriInfo()};
+    listInvocations.add(new ServiceTestInvocation(Request.Type.GET, service, m, args, null));
 
-    verifyResults(response, 200);
-  }
+    //createService
+    service = new TestServiceService("clusterName", "serviceName");
+    m = service.getClass().getMethod("createService", String.class, HttpHeaders.class, UriInfo.class, String.class);
+    args = new Object[] {"body", getHttpHeaders(), getUriInfo(), "serviceName"};
+    listInvocations.add(new ServiceTestInvocation(Request.Type.POST, service, m, args, "body"));
 
-  @Test
-  public void testGetService__ErrorState() {
-    String clusterName = "clusterName";
-    String serviceName = "serviceName";
+    //createServices
+    service = new TestServiceService("clusterName", null);
+    m = service.getClass().getMethod("createServices", String.class, HttpHeaders.class, UriInfo.class);
+    args = new Object[] {"body", getHttpHeaders(), getUriInfo()};
+    listInvocations.add(new ServiceTestInvocation(Request.Type.POST, service, m, args, "body"));
 
-    registerExpectations(Request.Type.GET, null, 500, true);
-    replayMocks();
+    //updateServices
+    service = new TestServiceService("clusterName", "serviceName");
+    m = service.getClass().getMethod("updateService", String.class, HttpHeaders.class, UriInfo.class, String.class);
+    args = new Object[] {"body", getHttpHeaders(), getUriInfo(), "serviceName"};
+    listInvocations.add(new ServiceTestInvocation(Request.Type.PUT, service, m, args, "body"));
 
-    //test
-    ServiceService hostService = new TestServiceService(getResource(), clusterName, serviceName, getRequestFactory(), getRequestHandler());
-    Response response = hostService.getService(getHttpHeaders(), getUriInfo(), serviceName);
+    //updateServices
+    service = new TestServiceService("clusterName", null);
+    m = service.getClass().getMethod("updateServices", String.class, HttpHeaders.class, UriInfo.class);
+    args = new Object[] {"body", getHttpHeaders(), getUriInfo()};
+    listInvocations.add(new ServiceTestInvocation(Request.Type.PUT, service, m, args, "body"));
 
-    verifyResults(response, 500);
-  }
+    //deleteServices
+    service = new TestServiceService("clusterName", "serviceName");
+    m = service.getClass().getMethod("deleteService", HttpHeaders.class, UriInfo.class, String.class);
+    args = new Object[] {getHttpHeaders(), getUriInfo(), "serviceName"};
+    listInvocations.add(new ServiceTestInvocation(Request.Type.DELETE, service, m, args, null));
 
-  @Test
-  public void testGetServices()  {
-    String clusterName = "clusterName";
-
-    registerExpectations(Request.Type.GET, null, 200, false);
-    replayMocks();
-
-    //test
-    ServiceService hostService = new TestServiceService(getResource(), clusterName, null, getRequestFactory(), getRequestHandler());
-    Response response = hostService.getServices(getHttpHeaders(), getUriInfo());
-
-    verifyResults(response, 200);
-  }
-
-  @Test
-  public void testGetServices__ErrorState(){
-    String clusterName = "clusterName";
-
-    registerExpectations(Request.Type.GET, null, 400, false);
-    replayMocks();
-
-    //test
-    ServiceService hostService = new TestServiceService(getResource(), clusterName, null, getRequestFactory(), getRequestHandler());
-    Response response = hostService.getServices(getHttpHeaders(), getUriInfo());
-
-    verifyResults(response, 400);
-  }
-
-  @Test
-  public void testCreateService() {
-    String clusterName = "clusterName";
-    String serviceName = "serviceName";
-    String body = "{body}";
-
-    registerExpectations(Request.Type.POST, body, 201, false);
-    replayMocks();
-
-    //test
-    ServiceService hostService = new TestServiceService(getResource(), clusterName, serviceName, getRequestFactory(), getRequestHandler());
-    Response response = hostService.createService(body, getHttpHeaders(), getUriInfo(), serviceName);
-
-    verifyResults(response, 201);
-  }
-
-  @Test
-  public void testCreateService__ErrorState() {
-    String clusterName = "clusterName";
-    String serviceName = "serviceName";
-    String body = "{body}";
-
-    registerExpectations(Request.Type.POST, body, 500, true);
-    replayMocks();
-
-    //test
-    ServiceService hostService = new TestServiceService(getResource(), clusterName, serviceName, getRequestFactory(), getRequestHandler());
-    Response response = hostService.createService(body, getHttpHeaders(), getUriInfo(), serviceName);
-
-    verifyResults(response, 500);
-  }
-
-  @Test
-  public void testUpdateServices() {
-    String clusterName = "clusterName";
-    String body = "{body}";
-
-    registerExpectations(Request.Type.PUT, body, 200, false);
-    replayMocks();
-
-    //test
-    ServiceService hostService = new TestServiceService(getResource(), clusterName, null, getRequestFactory(), getRequestHandler());
-    Response response = hostService.updateServices(body, getHttpHeaders(), getUriInfo());
-
-    verifyResults(response, 200);
-  }
-
-  @Test
-  public void testUpdateServices__ErrorState() {
-    String clusterName = "clusterName";
-    String body = "{body}";
-
-    registerExpectations(Request.Type.PUT, body, 500, true);
-    replayMocks();
-
-    //test
-    ServiceService hostService = new TestServiceService(getResource(), clusterName, null, getRequestFactory(), getRequestHandler());
-    Response response = hostService.updateServices(body, getHttpHeaders(), getUriInfo());
-
-    verifyResults(response, 500);
-  }
-
-  @Test
-  public void testUpdateService() {
-    String clusterName = "clusterName";
-    String serviceName = "serviceName";
-    String body = "{body}";
-
-    registerExpectations(Request.Type.PUT, body, 200, false);
-    replayMocks();
-
-    //test
-    ServiceService hostService = new TestServiceService(getResource(), clusterName, serviceName, getRequestFactory(), getRequestHandler());
-    Response response = hostService.updateService(body, getHttpHeaders(), getUriInfo(), serviceName);
-
-    verifyResults(response, 200);
-  }
-
-  @Test
-  public void testUpdateService__ErrorState() {
-    String clusterName = "clusterName";
-    String serviceName = "serviceName";
-    String body = "{body}";
-
-    registerExpectations(Request.Type.PUT, body, 500, true);
-    replayMocks();
-
-    //test
-    ServiceService hostService = new TestServiceService(getResource(), clusterName, serviceName, getRequestFactory(), getRequestHandler());
-    Response response = hostService.updateService(body, getHttpHeaders(), getUriInfo(), serviceName);
-
-    verifyResults(response, 500);
-  }
-
-  @Test
-  public void testDeleteService() {
-    String clusterName = "clusterName";
-    String serviceName = "serviceName";
-
-    registerExpectations(Request.Type.DELETE, null, 200, false);
-    replayMocks();
-
-    //test
-    ServiceService hostService = new TestServiceService(getResource(), clusterName, serviceName, getRequestFactory(), getRequestHandler());
-    Response response = hostService.deleteService(getHttpHeaders(), getUriInfo(), serviceName);
-
-    verifyResults(response, 200);
-  }
-
-  @Test
-  public void testDeleteService__ErrorState(){
-    String clusterName = "clusterName";
-    String serviceName = "serviceName";
-
-    registerExpectations(Request.Type.DELETE, null, 500, true);
-    replayMocks();
-
-    //test
-    ServiceService hostService = new TestServiceService(getResource(), clusterName, serviceName, getRequestFactory(), getRequestHandler());
-    Response response = hostService.deleteService(getHttpHeaders(), getUriInfo(), serviceName);
-
-    verifyResults(response, 500);
+    return listInvocations;
   }
 
   private class TestServiceService extends ServiceService {
-    private RequestFactory m_requestFactory;
-    private RequestHandler m_requestHandler;
-    private ResourceInstance m_resourceDef;
     private String m_clusterId;
     private String m_serviceId;
 
-    private TestServiceService(ResourceInstance resourceDef, String clusterId, String serviceId, RequestFactory requestFactory,
-                               RequestHandler handler) {
+    private TestServiceService(String clusterId, String serviceId) {
       super(clusterId);
-      m_resourceDef = resourceDef;
       m_clusterId = clusterId;
       m_serviceId = serviceId;
-      m_requestFactory = requestFactory;
-      m_requestHandler = handler;
     }
 
     @Override
     ResourceInstance createServiceResource(String clusterName, String serviceName) {
       assertEquals(m_clusterId, clusterName);
       assertEquals(m_serviceId, serviceName);
-      return m_resourceDef;
+      return getTestResource();
     }
 
     @Override
     RequestFactory getRequestFactory() {
-      return m_requestFactory;
+      return getTestRequestFactory();
     }
 
     @Override
-    RequestHandler getRequestHandler(Request.Type requestType) {
-      return m_requestHandler;
+    protected RequestBodyParser getBodyParser() {
+      return getTestBodyParser();
+    }
+
+    @Override
+    protected ResultSerializer getResultSerializer() {
+      return getTestResultSerializer();
     }
   }
 }

@@ -18,10 +18,8 @@
 
 package org.apache.ambari.server.api.services;
 
-import org.apache.ambari.server.api.predicate.InvalidQueryException;
 import org.apache.ambari.server.api.resources.ResourceDefinition;
 import org.apache.ambari.server.api.resources.ResourceInstance;
-import org.apache.ambari.server.api.services.serializers.ResultSerializer;
 import org.apache.ambari.server.controller.spi.Predicate;
 import org.apache.ambari.server.controller.spi.TemporalInfo;
 
@@ -44,6 +42,13 @@ public interface Request {
     DELETE,
     QUERY_POST
   }
+
+  /**
+   * Process the request.
+   *
+   * @return the result
+   */
+  public Result process();
 
   /**
    * Obtain the resource definition which corresponds to the resource being operated on by the request.
@@ -76,13 +81,12 @@ public interface Request {
 
   /**
    * Obtain the query predicate that was built from the user provided predicate fields in the query string.
-   * If multiple predicates are supplied, then they will be combined using the appropriate grouping predicate
-   * such as 'AND'.
+   * If multiple predicates are supplied, then they will be combined using the appropriate logical grouping
+   * predicate such as 'AND'.
    *
    * @return the user defined predicate
-   * @throws InvalidQueryException if the query syntax is invalid
    */
-  public Predicate getQueryPredicate() throws InvalidQueryException;
+  public Predicate getQueryPredicate();
 
   /**
    * Obtain the partial response fields and associated temporal information which were provided
@@ -93,21 +97,6 @@ public interface Request {
   public Map<String, TemporalInfo> getFields();
 
   /**
-   * Obtain the result serializer for the request. The default serializer is of type JSON.
-   *
-   * @return the result serializer for the request
-   */
-  public ResultSerializer getResultSerializer();
-
-  /**
-   * Obtain the processor which processes the result returned from the request handler.
-   * The post processor adds additional information such as href fields to the result.
-   *
-   * @return the result processor associated with the request
-   */
-  public ResultPostProcessor getResultPostProcessor();
-
-  /**
    * Obtain the http headers associated with the request.
    *
    * @return the http headers
@@ -116,6 +105,9 @@ public interface Request {
 
   /**
    * Obtain the http body associated with the request.
+   * If query or partial response fields exist in the original body,
+   * they are not included in the returned body.  Query and partial
+   * response data are available via the corresponding getters.
    *
    * @return the http body
    */
@@ -126,5 +118,5 @@ public interface Request {
    *
    * @return a set of maps containing the properties contained in the http body
    */
-  public Set<Map<String, Object>> getHttpBodyProperties();
+  public Set<NamedPropertySet> getHttpBodyProperties();
 }

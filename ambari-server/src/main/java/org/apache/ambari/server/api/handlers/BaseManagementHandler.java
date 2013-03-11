@@ -18,12 +18,11 @@
 
 package org.apache.ambari.server.api.handlers;
 
-import org.apache.ambari.server.api.predicate.InvalidQueryException;
 import org.apache.ambari.server.api.resources.ResourceInstance;
+import org.apache.ambari.server.api.services.NamedPropertySet;
 import org.apache.ambari.server.api.services.Request;
 import org.apache.ambari.server.api.services.Result;
 import org.apache.ambari.server.api.services.ResultImpl;
-import org.apache.ambari.server.api.services.ResultStatus;
 import org.apache.ambari.server.api.services.persistence.PersistenceManager;
 import org.apache.ambari.server.api.services.persistence.PersistenceManagerImpl;
 import org.apache.ambari.server.api.util.TreeNode;
@@ -35,6 +34,7 @@ import org.apache.ambari.server.controller.utilities.ClusterControllerHelper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
@@ -54,29 +54,32 @@ public abstract class BaseManagementHandler implements RequestHandler {
    */
   PersistenceManager m_pm = new PersistenceManagerImpl(getClusterController());
 
+  /**
+   * Constructor.
+   */
   protected BaseManagementHandler() {
   }
 
+
+  @Override
   public Result handleRequest(Request request) {
-    ResourceInstance resource = request.getResource();
-    Predicate queryPredicate;
-    try {
-      queryPredicate = request.getQueryPredicate();
-    } catch (InvalidQueryException e) {
-      return new ResultImpl(new ResultStatus(ResultStatus.STATUS.BAD_REQUEST,
-          "Invalid Request: " + e.getMessage()));
-    }
+    ResourceInstance resource       = request.getResource();
+    Predicate        queryPredicate = request.getQueryPredicate();
+
     if (queryPredicate != null) {
       resource.getQuery().setUserPredicate(queryPredicate);
     }
 
-    return handleRequest(resource, request.getHttpBodyProperties());
+    return persist(resource, getHttpBodyProperties(request));
   }
 
-  protected Result handleRequest(ResourceInstance resource, Set<Map<String, Object>> setProperties) {
-    return persist(resource, setProperties);
-  }
-
+  /**
+   * Create a result from a request status.
+   *
+   * @param requestStatus  the request stats to build the result from.
+   *
+   * @return  a Result instance for the provided request status
+   */
   protected Result createResult(RequestStatus requestStatus) {
 
     boolean            isSynchronous = requestStatus.getStatus() == RequestStatus.Status.Complete;
@@ -98,18 +101,55 @@ public abstract class BaseManagementHandler implements RequestHandler {
         resourcesNode.addChild(resource, resource.getType() + ":" + count++);
       }
     }
-
     return result;
   }
 
-  //todo: controller should be injected
+  /**
+   * Obtain a set of property maps from the request.
+   * Convenience method that converts a Set<NamedPropertySet> from the request to a Set<Map<String, Object>>.
+   *
+   * @param request  the current request
+   *
+   * @return  a set of property maps for the request
+   */
+  protected Set<Map<String, Object>> getHttpBodyProperties(Request request) {
+    Set<NamedPropertySet> setNamedProps = request.getHttpBodyProperties();
+    Set<Map<String, Object>> setProps = new HashSet<Map<String, Object>>(setNamedProps.size());
+
+    for (NamedPropertySet namedProps : setNamedProps) {
+      setProps.add(namedProps.getProperties());
+    }
+
+    return setProps;
+  }
+
+  //todo: inject ClusterController, PersistenceManager
+
+  /**
+   * Get the cluster controller instance.
+   *
+   * @return cluster controller
+   */
   protected ClusterController getClusterController() {
     return ClusterControllerHelper.getClusterController();
   }
 
+  /**
+   * Get the persistence manager instance.
+   *
+   * @return persistence manager
+   */
   protected PersistenceManager getPersistenceManager() {
     return m_pm;
   }
 
-  protected abstract Result persist(ResourceInstance r, Set<Map<String, Object>> properties);
+  /**
+   * Persist the operation to the back end.
+   *
+   * @param request           the requests resource instance
+   * @param setProperties  request properties
+   *
+   * @return the result of the persist operation
+   */
+  protected abstract Result persist(ResourceInstance request, Set<Map<String, Object>> setProperties);
 }

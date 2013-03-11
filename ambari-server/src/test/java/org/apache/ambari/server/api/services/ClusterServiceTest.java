@@ -18,11 +18,16 @@
 
 package org.apache.ambari.server.api.services;
 
-import org.apache.ambari.server.api.handlers.RequestHandler;
 import org.apache.ambari.server.api.resources.ResourceInstance;
-import org.junit.Test;
+import org.apache.ambari.server.api.services.parsers.RequestBodyParser;
+import org.apache.ambari.server.api.services.serializers.ResultSerializer;
 
-import javax.ws.rs.core.Response;
+import javax.ws.rs.core.HttpHeaders;
+import javax.ws.rs.core.UriInfo;
+
+import java.lang.reflect.Method;
+import java.util.ArrayList;
+import java.util.List;
 
 import static org.junit.Assert.assertEquals;
 
@@ -32,173 +37,70 @@ import static org.junit.Assert.assertEquals;
  */
 public class ClusterServiceTest extends BaseServiceTest {
 
-  @Test
-   public void testGetCluster() {
-    String clusterName = "clusterName";
 
-    registerExpectations(Request.Type.GET, null, 200, false);
-    replayMocks();
+  public List<ServiceTestInvocation> getTestInvocations() throws Exception {
+    List<ServiceTestInvocation> listInvocations = new ArrayList<ServiceTestInvocation>();
 
-    //test
-    ClusterService clusterService = new TestClusterService(getResource(), clusterName, getRequestFactory(), getRequestHandler());
-    Response response = clusterService.getCluster(getHttpHeaders(), getUriInfo(), clusterName);
-    verifyResults(response, 200);
+    //getCluster
+    ClusterService clusterService = new TestClusterService("clusterName");
+    Method m = clusterService.getClass().getMethod("getCluster", HttpHeaders.class, UriInfo.class, String.class);
+    Object[] args = new Object[] {getHttpHeaders(), getUriInfo(), "clusterName"};
+    listInvocations.add(new ServiceTestInvocation(Request.Type.GET, clusterService, m, args, null));
+
+    //getClusters
+    clusterService = new TestClusterService(null);
+    m = clusterService.getClass().getMethod("getClusters", HttpHeaders.class, UriInfo.class);
+    args = new Object[] {getHttpHeaders(), getUriInfo()};
+    listInvocations.add(new ServiceTestInvocation(Request.Type.GET, clusterService, m, args, null));
+
+    //createCluster
+    clusterService = new TestClusterService("clusterName");
+    m = clusterService.getClass().getMethod("createCluster", String.class, HttpHeaders.class, UriInfo.class, String.class);
+    args = new Object[] {"body", getHttpHeaders(), getUriInfo(), "clusterName"};
+    listInvocations.add(new ServiceTestInvocation(Request.Type.POST, clusterService, m, args, "body"));
+
+    //createCluster
+    clusterService = new TestClusterService("clusterName");
+    m = clusterService.getClass().getMethod("updateCluster", String.class, HttpHeaders.class, UriInfo.class, String.class);
+    args = new Object[] {"body", getHttpHeaders(), getUriInfo(), "clusterName"};
+    listInvocations.add(new ServiceTestInvocation(Request.Type.PUT, clusterService, m, args, "body"));
+
+    //deleteCluster
+    clusterService = new TestClusterService("clusterName");
+    m = clusterService.getClass().getMethod("deleteCluster", HttpHeaders.class, UriInfo.class, String.class);
+    args = new Object[] {getHttpHeaders(), getUriInfo(), "clusterName"};
+    listInvocations.add(new ServiceTestInvocation(Request.Type.DELETE, clusterService, m, args, null));
+
+    return listInvocations;
   }
 
-  @Test
-  public void testGetCluster__ErrorState() {
-    String clusterName = "clusterName";
-
-    registerExpectations(Request.Type.GET, null, 500, true);
-    replayMocks();
-
-    //test
-    ClusterService clusterService = new TestClusterService(getResource(), clusterName, getRequestFactory(), getRequestHandler());
-    Response response = clusterService.getCluster(getHttpHeaders(), getUriInfo(), clusterName);
-    verifyResults(response, 500);
-  }
-
-  @Test
-  public void testGetClusters() {
-
-    registerExpectations(Request.Type.GET, null, 200, false);
-    replayMocks();
-
-    //test
-    ClusterService clusterService = new TestClusterService(getResource(), null, getRequestFactory(), getRequestHandler());
-    Response response = clusterService.getClusters(getHttpHeaders(), getUriInfo());
-
-    verifyResults(response, 200);
-  }
-
-  @Test
-  public void testGetClusters__ErrorState() {
-    registerExpectations(Request.Type.GET, null, 500, true);
-    replayMocks();
-
-    //test
-    ClusterService clusterService = new TestClusterService(getResource(), null, getRequestFactory(), getRequestHandler());
-    Response response = clusterService.getClusters(getHttpHeaders(), getUriInfo());
-
-    verifyResults(response, 500);
-  }
-
-  @Test
-  public void testCreateCluster() {
-    String clusterName = "clusterName";
-    String body = "body";
-
-    registerExpectations(Request.Type.POST, body, 201, false);
-    replayMocks();
-
-    //test
-    ClusterService clusterService = new TestClusterService(getResource(), clusterName, getRequestFactory(), getRequestHandler());
-    Response response = clusterService.createCluster(body, getHttpHeaders(), getUriInfo(), clusterName);
-
-    verifyResults(response, 201);
-  }
-
-  @Test
-  public void testCreateCluster__ErrorState() {
-    String clusterName = "clusterName";
-    String body = "body";
-
-    registerExpectations(Request.Type.POST, body, 500, true);
-    replayMocks();
-
-    //test
-    ClusterService clusterService = new TestClusterService(getResource(), clusterName, getRequestFactory(), getRequestHandler());
-    Response response = clusterService.createCluster(body, getHttpHeaders(), getUriInfo(), clusterName);
-
-    verifyResults(response, 500);
-  }
-
-  @Test
-  public void testUpdateCluster() {
-    String clusterName = "clusterName";
-    String body = "body";
-
-    registerExpectations(Request.Type.PUT, body, 200, false);
-    replayMocks();
-
-    //test
-    ClusterService clusterService = new TestClusterService(getResource(), clusterName, getRequestFactory(), getRequestHandler());
-    Response response = clusterService.updateCluster(body, getHttpHeaders(), getUriInfo(), clusterName);
-
-    verifyResults(response, 200);
-  }
-
-  @Test
-  public void testUpdateCluster__ErrorState() {
-    String clusterName = "clusterName";
-    String body = "body";
-
-    registerExpectations(Request.Type.PUT, body, 500, true);
-    replayMocks();
-
-    //test
-    ClusterService clusterService = new TestClusterService(getResource(), clusterName, getRequestFactory(), getRequestHandler());
-    Response response = clusterService.updateCluster(body, getHttpHeaders(), getUriInfo(), clusterName);
-
-    verifyResults(response, 500);
-  }
-
-  @Test
-  public void testDeleteCluster() {
-    String clusterName = "clusterName";
-
-    registerExpectations(Request.Type.DELETE, null, 200, false);
-    replayMocks();
-
-    //test
-    ClusterService clusterService = new TestClusterService(getResource(), clusterName, getRequestFactory(), getRequestHandler());
-    Response response = clusterService.deleteCluster(getHttpHeaders(), getUriInfo(), clusterName);
-
-    verifyResults(response, 200);
-  }
-
-  @Test
-  public void testDeleteCluster__ErrorState() {
-    String clusterName = "clusterName";
-
-    registerExpectations(Request.Type.DELETE, null, 500, true);
-    replayMocks();
-
-    //test
-    ClusterService clusterService = new TestClusterService(getResource(), clusterName, getRequestFactory(), getRequestHandler());
-    Response response = clusterService.deleteCluster(getHttpHeaders(), getUriInfo(), clusterName);
-
-    verifyResults(response, 500);
-  }
 
   private class TestClusterService extends ClusterService {
-    private RequestFactory m_requestFactory;
-    private RequestHandler m_requestHandler;
-    private ResourceInstance m_resourceDef;
     private String m_clusterId;
 
-    private TestClusterService(ResourceInstance resourceDef, String clusterId, RequestFactory requestFactory,
-                               RequestHandler handler) {
-      m_resourceDef = resourceDef;
-      m_requestFactory = requestFactory;
-      m_requestHandler = handler;
+    private TestClusterService(String clusterId) {
       m_clusterId = clusterId;
     }
 
     @Override
     ResourceInstance createClusterResource(String clusterName) {
       assertEquals(m_clusterId, clusterName);
-      return m_resourceDef;
+      return getTestResource();
     }
 
     @Override
     RequestFactory getRequestFactory() {
-      return m_requestFactory;
+      return getTestRequestFactory();
     }
 
     @Override
-    RequestHandler getRequestHandler(Request.Type requestType) {
-      return m_requestHandler;
+    protected RequestBodyParser getBodyParser() {
+      return getTestBodyParser();
+    }
+
+    @Override
+    protected ResultSerializer getResultSerializer() {
+      return getTestResultSerializer();
     }
   }
 

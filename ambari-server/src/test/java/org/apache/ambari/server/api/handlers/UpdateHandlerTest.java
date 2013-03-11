@@ -18,9 +18,9 @@
 
 package org.apache.ambari.server.api.handlers;
 
-import org.apache.ambari.server.api.predicate.InvalidQueryException;
 import org.apache.ambari.server.api.query.Query;
 import org.apache.ambari.server.api.resources.ResourceInstance;
+import org.apache.ambari.server.api.services.NamedPropertySet;
 import org.apache.ambari.server.api.services.ResultStatus;
 import org.apache.ambari.server.api.services.persistence.PersistenceManager;
 import org.apache.ambari.server.api.services.Request;
@@ -42,6 +42,61 @@ import static org.junit.Assert.*;
 public class UpdateHandlerTest {
 
   @Test
+  public void testHandleRequest__Synchronous_NoPropsInBody() throws Exception {
+    Request request = createMock(Request.class);
+    ResourceInstance resource = createMock(ResourceInstance.class);
+    PersistenceManager pm = createStrictMock(PersistenceManager.class);
+    RequestStatus status = createMock(RequestStatus.class);
+    Resource resource1 = createMock(Resource.class);
+    Resource resource2 = createMock(Resource.class);
+    Predicate userPredicate = createNiceMock(Predicate.class);
+    Query query = createNiceMock(Query.class);
+
+    Set<Resource> setResources = new HashSet<Resource>();
+    setResources.add(resource1);
+    setResources.add(resource2);
+
+    // expectations
+    expect(request.getResource()).andReturn(resource).anyTimes();
+    expect(request.getHttpBodyProperties()).andReturn(new HashSet<NamedPropertySet>()).anyTimes();
+    expect(request.getQueryPredicate()).andReturn(userPredicate).atLeastOnce();
+
+    expect(resource.getQuery()).andReturn(query).atLeastOnce();
+    query.setUserPredicate(userPredicate);
+
+    expect(pm.update(eq(resource), eq(new HashSet<Map<String, Object>>()))).andReturn(status);
+    expect(status.getStatus()).andReturn(RequestStatus.Status.Complete);
+    expect(status.getAssociatedResources()).andReturn(setResources);
+    expect(resource1.getType()).andReturn(Resource.Type.Cluster).anyTimes();
+    expect(resource2.getType()).andReturn(Resource.Type.Cluster).anyTimes();
+
+    replay(request, resource, pm, status, resource1, resource2, userPredicate, query);
+
+    Result result = new TestUpdateHandler(pm).handleRequest(request);
+
+    assertNotNull(result);
+    TreeNode<Resource> tree = result.getResultTree();
+    assertEquals(1, tree.getChildren().size());
+    TreeNode<Resource> resourcesNode = tree.getChild("resources");
+    assertEquals(2, resourcesNode.getChildren().size());
+    boolean foundResource1 = false;
+    boolean foundResource2 = false;
+    for(TreeNode<Resource> child : resourcesNode.getChildren()) {
+      Resource r = child.getObject();
+      if (r == resource1 && ! foundResource1) {
+        foundResource1 = true;
+      } else if (r == resource2 && ! foundResource2) {
+        foundResource2 = true;
+      } else {
+        fail();
+      }
+    }
+
+    assertEquals(ResultStatus.STATUS.OK, result.getStatus().getStatus());
+    verify(request, resource, pm, status, resource1, resource2, userPredicate, query);
+  }
+
+  @Test
   public void testHandleRequest__Synchronous() throws Exception {
     Request request = createMock(Request.class);
     ResourceInstance resource = createMock(ResourceInstance.class);
@@ -52,11 +107,18 @@ public class UpdateHandlerTest {
     Predicate userPredicate = createNiceMock(Predicate.class);
     Query query = createNiceMock(Query.class);
 
-    Set<Map<String, Object>> setResourceProperties = new HashSet<Map<String, Object>>();
-
     Set<Resource> setResources = new HashSet<Resource>();
     setResources.add(resource1);
     setResources.add(resource2);
+
+    Set<NamedPropertySet> setResourceProperties = new HashSet<NamedPropertySet>();
+    Map<String, Object> mapProps = new HashMap<String, Object>();
+    mapProps.put("foo", "bar");
+    NamedPropertySet namedPropSet = new NamedPropertySet("name", mapProps);
+    setResourceProperties.add(namedPropSet);
+
+    Set<Map<String, Object>> setProps = new HashSet<Map<String, Object>>();
+    setProps.add(mapProps);
 
     // expectations
     expect(request.getResource()).andReturn(resource).anyTimes();
@@ -66,7 +128,7 @@ public class UpdateHandlerTest {
     expect(resource.getQuery()).andReturn(query).atLeastOnce();
     query.setUserPredicate(userPredicate);
 
-    expect(pm.update(resource, setResourceProperties)).andReturn(status);
+    expect(pm.update(eq(resource), eq(setProps))).andReturn(status);
     expect(status.getStatus()).andReturn(RequestStatus.Status.Complete);
     expect(status.getAssociatedResources()).andReturn(setResources);
     expect(resource1.getType()).andReturn(Resource.Type.Cluster).anyTimes();
@@ -110,7 +172,6 @@ public class UpdateHandlerTest {
     Predicate userPredicate = createNiceMock(Predicate.class);
     Query query = createNiceMock(Query.class);
 
-    Set<Map<String, Object>> setResourceProperties = new HashSet<Map<String, Object>>();
 
     Set<Resource> setResources = new HashSet<Resource>();
     setResources.add(resource1);
@@ -118,13 +179,13 @@ public class UpdateHandlerTest {
 
     // expectations
     expect(request.getResource()).andReturn(resource);
-    expect(request.getHttpBodyProperties()).andReturn(setResourceProperties);
+    expect(request.getHttpBodyProperties()).andReturn(new HashSet<NamedPropertySet>()).anyTimes();
     expect(request.getQueryPredicate()).andReturn(userPredicate).atLeastOnce();
 
     expect(resource.getQuery()).andReturn(query).atLeastOnce();
     query.setUserPredicate(userPredicate);
 
-    expect(pm.update(resource, setResourceProperties)).andReturn(status);
+    expect(pm.update(eq(resource), eq(new HashSet<Map<String, Object>>()))).andReturn(status);
     expect(status.getStatus()).andReturn(RequestStatus.Status.Accepted);
     expect(status.getAssociatedResources()).andReturn(setResources);
     expect(resource1.getType()).andReturn(Resource.Type.Cluster).anyTimes();
@@ -173,22 +234,5 @@ public class UpdateHandlerTest {
     protected PersistenceManager getPersistenceManager() {
       return m_testPm;
     }
-  }
-
-  @Test
-  public void testHandleRequest__InvalidQuery() throws Exception {
-    Request request = createNiceMock(Request.class);
-    ResourceInstance resource = createNiceMock(ResourceInstance.class);
-    Exception e = new InvalidQueryException("test exception");
-
-    expect(request.getResource()).andReturn(resource);
-    expect(request.getQueryPredicate()).andThrow(e);
-    replay(request, resource);
-
-    Result result = new UpdateHandler().handleRequest(request);
-    assertEquals(ResultStatus.STATUS.BAD_REQUEST, result.getStatus().getStatus());
-    assertTrue(result.getStatus().getMessage().contains(e.getMessage()));
-
-    verify(request, resource);
   }
 }

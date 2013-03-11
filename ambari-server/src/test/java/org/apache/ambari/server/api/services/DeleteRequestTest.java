@@ -18,7 +18,9 @@
 
 package org.apache.ambari.server.api.services;
 
+import org.apache.ambari.server.api.handlers.RequestHandler;
 import org.apache.ambari.server.api.predicate.PredicateCompiler;
+import org.apache.ambari.server.api.resources.ResourceInstance;
 import org.junit.Test;
 
 import static org.junit.Assert.*;
@@ -31,27 +33,27 @@ import javax.ws.rs.core.UriInfo;
  */
 public class DeleteRequestTest extends BaseRequestTest {
   @Test
-  public void testRequestType() {
-    assertSame(Request.Type.DELETE, new DeleteRequest(null, null, null, null).getRequestType());
+  public void testRequestType() throws Exception {
+    Request r = new DeleteRequest(null, new RequestBody(), null, null);
+    assertSame(Request.Type.DELETE, r.getRequestType());
   }
 
-  @Test
-  public void testGetQueryPredicate() throws Exception {
-    String uri = "http://foo.bar.com/api/v1/clusters?foo=bar&orProp1=5|orProp2!=6|orProp3<100&prop!=5&prop2>10&prop3>=20&prop4<500&prop5<=1&fields=field1,category/field2";
-    super.testGetQueryPredicate(uri);
-  }
-
-  @Test
-  public void testGetFields() {
-    String fields = "prop,category/prop1,category2/category3/prop2[1,2,3],prop3[4,5,6],category4[7,8,9],sub-resource/*[10,11,12],finalProp";
-    super.testGetFields(fields);
-  }
-
-  protected Request getTestRequest(HttpHeaders headers, String body, UriInfo uriInfo, final PredicateCompiler compiler) {
-    return new DeleteRequest(headers, body, uriInfo, null) {
+  protected Request getTestRequest(HttpHeaders headers, RequestBody body, UriInfo uriInfo, final PredicateCompiler compiler,
+                                   final RequestHandler handler, final ResultPostProcessor processor, ResourceInstance resource) {
+    return new DeleteRequest(headers, body, uriInfo, resource) {
       @Override
       protected PredicateCompiler getPredicateCompiler() {
         return compiler;
+      }
+
+      @Override
+      protected RequestHandler getRequestHandler() {
+        return handler;
+      }
+
+      @Override
+      public ResultPostProcessor getResultPostProcessor() {
+        return processor;
       }
     };
   }

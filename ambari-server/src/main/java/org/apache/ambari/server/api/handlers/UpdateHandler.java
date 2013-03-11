@@ -32,10 +32,10 @@ import java.util.Set;
 public class UpdateHandler extends BaseManagementHandler {
 
   @Override
-  protected Result persist(ResourceInstance r, Set<Map<String, Object>> properties) {
+  protected Result persist(ResourceInstance request, Set<Map<String, Object>> setProperties) {
     Result result;
     try {
-      RequestStatus status = getPersistenceManager().update(r, properties);
+      RequestStatus status = getPersistenceManager().update(request, setProperties);
 
       result = createResult(status);
       if (result.isSynchronous()) {
@@ -49,7 +49,7 @@ public class UpdateHandler extends BaseManagementHandler {
     } catch (NoSuchParentResourceException e) {
       result = new ResultImpl(new ResultStatus(ResultStatus.STATUS.NOT_FOUND, e));
     } catch (NoSuchResourceException e) {
-      if (r.isCollectionResource()) {
+      if (request.isCollectionResource()) {
         //todo: what is the correct status code here.  The query didn't match any resource
         //todo: so no resource were updated.  200 may be ok but we would need to return a collection
         //todo: of resources that were updated.

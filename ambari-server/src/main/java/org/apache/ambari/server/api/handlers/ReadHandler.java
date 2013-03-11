@@ -18,7 +18,6 @@
 
 package org.apache.ambari.server.api.handlers;
 
-import org.apache.ambari.server.api.predicate.InvalidQueryException;
 import org.apache.ambari.server.api.services.Request;
 import org.apache.ambari.server.api.services.ResultImpl;
 import org.apache.ambari.server.api.services.ResultStatus;
@@ -78,10 +77,7 @@ public class ReadHandler implements RequestHandler {
     } catch (IllegalArgumentException e) {
       result = new ResultImpl(new ResultStatus(ResultStatus.STATUS.BAD_REQUEST,
           "Invalid Request: " + e.getMessage()));
-    } catch (InvalidQueryException e) {
-      result = new ResultImpl(new ResultStatus(ResultStatus.STATUS.BAD_REQUEST,
-          "Invalid Request: " + e.getMessage()));
-    } catch (RuntimeException e) {
+    }  catch (RuntimeException e) {
       if (LOG.isErrorEnabled()) {
         LOG.error("Caught a runtime exception executing a query", e);
       }
@@ -91,7 +87,13 @@ public class ReadHandler implements RequestHandler {
     return result;
   }
 
-  private void addFieldsToQuery(Request request, Query query) throws IllegalArgumentException {
+  /**
+   * Add partial response fields to the provided query.
+   *
+   * @param request  the current request
+   * @param query    the associated query   *
+   */
+  private void addFieldsToQuery(Request request, Query query) {
     //Partial response
     for (Map.Entry<String, TemporalInfo> entry : request.getFields().entrySet()) {
       // Iterate over map and add props/temporalInfo

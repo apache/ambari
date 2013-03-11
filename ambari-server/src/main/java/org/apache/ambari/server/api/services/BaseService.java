@@ -18,15 +18,15 @@
 
 package org.apache.ambari.server.api.services;
 
-import org.apache.ambari.server.api.handlers.RequestHandler;
-import org.apache.ambari.server.api.handlers.RequestHandlerFactory;
 import org.apache.ambari.server.api.resources.ResourceInstance;
 import org.apache.ambari.server.api.resources.ResourceInstanceFactory;
 import org.apache.ambari.server.api.resources.ResourceInstanceFactoryImpl;
+import org.apache.ambari.server.api.services.parsers.BodyParseException;
+import org.apache.ambari.server.api.services.parsers.JsonRequestBodyParser;
+import org.apache.ambari.server.api.services.parsers.RequestBodyParser;
+import org.apache.ambari.server.api.services.serializers.JsonSerializer;
 import org.apache.ambari.server.api.services.serializers.ResultSerializer;
 import org.apache.ambari.server.controller.spi.Resource;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.Response;
@@ -44,19 +44,14 @@ public abstract class BaseService {
   private ResourceInstanceFactory m_resourceFactory = new ResourceInstanceFactoryImpl();
 
   /**
-   * Factory for creating request handlers.
+   * Result serializer.
    */
-  private RequestHandlerFactory m_handlerFactory = new RequestHandlerFactory();
+  private ResultSerializer m_serializer = new JsonSerializer();
 
-  /**
-   *  Logger instance.
-   */
-  private final static Logger LOG = LoggerFactory.getLogger(BaseService.class);
 
   /**
    * All requests are funneled through this method so that common logic can be executed.
-   * This consists of creating a {@link Request} instance, invoking the correct {@link RequestHandler} and
-   * applying the proper {@link ResultSerializer} to the result.
+   * Creates a request instance and invokes it's process method.
    *
    * @param headers      http headers
    * @param body         http body
@@ -66,21 +61,22 @@ public abstract class BaseService {
    *
    * @return the response of the operation in serialized form
    */
-  protected Response handleRequest(HttpHeaders headers, String body, UriInfo uriInfo, Request.Type requestType,
-                                   ResourceInstance resource) {
+  protected Response handleRequest(HttpHeaders headers, String body, UriInfo uriInfo,
+                                   Request.Type requestType, ResourceInstance resource) {
 
-    Request request = getRequestFactory().createRequest(
-        headers, body, uriInfo, requestType, resource);
+    Result result;
+    try {
+      RequestBody requestBody = getBodyParser().parse(body);
+      Request request = getRequestFactory().createRequest(
+          headers, requestBody, uriInfo, requestType, resource);
 
-    LOG.info("Handling API Request: '" + request.getURI() + "'");
-
-    Result result = getRequestHandler(request.getRequestType()).handleRequest(request);
-    if (! result.getStatus().isErrorState()) {
-      request.getResultPostProcessor().process(result);
+      result = request.process();
+    } catch (BodyParseException e) {
+      result =  new ResultImpl(new ResultStatus(ResultStatus.STATUS.BAD_REQUEST, e.getMessage()));
     }
 
     return Response.status(result.getStatus().getStatusCode()).entity(
-        request.getResultSerializer().serialize(result)).build();
+        getResultSerializer().serialize(result)).build();
   }
 
   /**
@@ -93,17 +89,6 @@ public abstract class BaseService {
   }
 
   /**
-   * Obtain the appropriate RequestHandler for the request.
-   *
-   * @param requestType  the request type
-   *
-   * @return the request handler to invoke
-   */
-  RequestHandler getRequestHandler(Request.Type requestType) {
-    return m_handlerFactory.getRequestHandler(requestType);
-  }
-
-  /**
    * Create a resource instance.
    *
    * @param type    the resource type
@@ -113,5 +98,13 @@ public abstract class BaseService {
    */
   ResourceInstance createResource(Resource.Type type, Map<Resource.Type, String> mapIds) {
     return m_resourceFactory.createResource(type, mapIds);
+  }
+
+  protected ResultSerializer getResultSerializer() {
+    return m_serializer;
+  }
+
+  protected RequestBodyParser getBodyParser() {
+    return new JsonRequestBodyParser();
   }
 }

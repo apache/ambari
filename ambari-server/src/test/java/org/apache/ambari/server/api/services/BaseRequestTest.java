@@ -18,8 +18,11 @@
 
 package org.apache.ambari.server.api.services;
 
+import com.sun.jersey.core.util.MultivaluedMapImpl;
+import org.apache.ambari.server.api.handlers.RequestHandler;
 import org.apache.ambari.server.api.predicate.InvalidQueryException;
 import org.apache.ambari.server.api.predicate.PredicateCompiler;
+import org.apache.ambari.server.api.resources.ResourceInstance;
 import org.apache.ambari.server.controller.internal.TemporalInfoImpl;
 import org.apache.ambari.server.controller.spi.Predicate;
 import org.apache.ambari.server.controller.spi.TemporalInfo;
@@ -29,11 +32,9 @@ import org.junit.Test;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.UriInfo;
-import java.io.UnsupportedEncodingException;
 import java.net.URI;
-import java.net.URISyntaxException;
 import java.net.URLEncoder;
-import java.util.Map;
+import java.util.*;
 
 import static org.easymock.EasyMock.*;
 import static org.junit.Assert.*;
@@ -43,76 +44,296 @@ import static org.junit.Assert.*;
  */
 public abstract class BaseRequestTest {
 
-  public void testGetQueryPredicate(String uriString) throws Exception {
-    PredicateCompiler compiler = createStrictMock(PredicateCompiler.class);
-    Predicate p = createMock(Predicate.class);
-    UriInfo uriInfo = createMock(UriInfo.class);
-    URI uri = new URI(URLEncoder.encode(uriString, "UTF-8"));
+  @Test
+  public void testGetHttpBody() {
+    RequestBody body = createNiceMock(RequestBody.class);
+    Request request = getTestRequest(null, body, null, null, null, null, null);
 
-    expect(uriInfo.getRequestUri()).andReturn(uri);
-    expect(compiler.compile(uriString.substring(uriString.indexOf("?") + 1))).andReturn(p);
+    expect(body.getBody()) .andReturn("{\foo\" : \"bar\"}");
+    replay(body);
 
-    replay(uriInfo, compiler, p);
+    assertEquals("{\foo\" : \"bar\"}", request.getHttpBody());
 
-    Request request = getTestRequest(null, null, uriInfo, compiler);
-
-    assertEquals(p, request.getQueryPredicate());
-
-    verify(uriInfo, compiler, p);
+    verify(body);
   }
 
   @Test
-  public void testGetQueryPredicate_noQueryString() throws Exception {
-    String uriString = "http://localhost.com:8080/api/v1/clusters";
-    PredicateCompiler compiler = createStrictMock(PredicateCompiler.class);
-    UriInfo uriInfo = createMock(UriInfo.class);
-    URI uri = new URI(URLEncoder.encode(uriString, "UTF-8"));
+  public void testGetHttpBodyProperties() {
+    Set<NamedPropertySet> setProps = new HashSet<NamedPropertySet>();
+    RequestBody body = createNiceMock(RequestBody.class);
+    Request request = getTestRequest(null, body, null, null, null, null, null);
 
-    expect(uriInfo.getRequestUri()).andReturn(uri);
+    expect(body.getPropertySets()).andReturn(setProps);
+    replay(body);
 
-    replay(uriInfo, compiler);
-
-    Request request = getTestRequest(null, null, uriInfo, compiler);
-
-    assertEquals(null, request.getQueryPredicate());
-
-    verify(uriInfo, compiler);
+    assertSame(setProps, request.getHttpBodyProperties());
+    verify(body);
   }
 
   @Test
-  public void testGetQueryPredicate_invalidQuery() throws Exception {
-    String uriString = "http://localhost.com:8080/api/v1/clusters?&foo|";
-    PredicateCompiler compiler = createStrictMock(PredicateCompiler.class);
-    UriInfo uriInfo = createMock(UriInfo.class);
-    URI uri = new URI(URLEncoder.encode(uriString, "UTF-8"));
+  public void testGetResource() {
+    ResourceInstance resource = createNiceMock(ResourceInstance.class);
+    Request request = getTestRequest(null, null, null, null, null, null, resource);
 
-    expect(uriInfo.getRequestUri()).andReturn(uri);
-    expect(compiler.compile(uriString.substring(uriString.indexOf("?") + 1))).
-        andThrow(new InvalidQueryException("test"));
-    replay(uriInfo, compiler);
-
-    Request request = getTestRequest(null, null, uriInfo, compiler);
-
-    try {
-      request.getQueryPredicate();
-      fail("Expected InvalidQueryException due to invalid query");
-    } catch (InvalidQueryException e) {
-      //expected
-    }
-
-    verify(uriInfo, compiler);
+    assertSame(resource, request.getResource());
   }
 
-  public void testGetFields(String fields) {
+  @Test
+  public void testGetApiVersion() {
+    Request request = getTestRequest(null, null, null, null, null, null, null);
+    assertEquals(1, request.getAPIVersion());
+  }
+
+  @Test
+  public void testGetHttpHeaders() {
+    HttpHeaders headers = createNiceMock(HttpHeaders.class);
+    MultivaluedMap<String, String> mapHeaders = new MultivaluedMapImpl();
+    Request request = getTestRequest(headers, null, null, null, null, null, null);
+
+    expect(headers.getRequestHeaders()).andReturn(mapHeaders);
+    replay(headers);
+
+    assertSame(mapHeaders, request.getHttpHeaders());
+    verify(headers);
+  }
+
+  @Test
+  public void testProcess_noBody() throws Exception {
+    String uriString = "http://localhost.com:8080/api/v1/clusters/c1";
+    URI uri = new URI(URLEncoder.encode(uriString, "UTF-8"));
+    PredicateCompiler compiler = createStrictMock(PredicateCompiler.class);
     UriInfo uriInfo = createMock(UriInfo.class);
+    RequestHandler handler = createStrictMock(RequestHandler.class);
+    Result result = createMock(Result.class);
+    ResultStatus resultStatus = createMock(ResultStatus.class);
+    ResultPostProcessor processor = createStrictMock(ResultPostProcessor.class);
+    RequestBody body = createNiceMock(RequestBody.class);
+
+    Request request = getTestRequest(null, body, uriInfo, compiler, handler, processor, null);
+
+    //expectations
+    expect(uriInfo.getRequestUri()).andReturn(uri).anyTimes();
+    expect(handler.handleRequest(request)).andReturn(result);
+    expect(result.getStatus()).andReturn(resultStatus).anyTimes();
+    expect(resultStatus.isErrorState()).andReturn(false).anyTimes();
+    processor.process(result);
+
+    replay(compiler, uriInfo, handler, result, resultStatus, processor, body);
+
+    Result processResult = request.process();
+
+    verify(compiler, uriInfo, handler, result, resultStatus, processor, body);
+    assertSame(result, processResult);
+    assertNull(request.getQueryPredicate());
+  }
+
+  @Test
+  public void testProcess_WithBody() throws Exception {
+    String uriString = "http://localhost.com:8080/api/v1/clusters/c1";
+    URI uri = new URI(URLEncoder.encode(uriString, "UTF-8"));
+    PredicateCompiler compiler = createStrictMock(PredicateCompiler.class);
+    UriInfo uriInfo = createMock(UriInfo.class);
+    RequestHandler handler = createStrictMock(RequestHandler.class);
+    Result result = createMock(Result.class);
+    ResultStatus resultStatus = createMock(ResultStatus.class);
+    ResultPostProcessor processor = createStrictMock(ResultPostProcessor.class);
+    RequestBody body = createNiceMock(RequestBody.class);
+
+    Request request = getTestRequest(null, body, uriInfo, compiler, handler, processor, null);
+
+    //expectations
+    expect(uriInfo.getRequestUri()).andReturn(uri).anyTimes();
+    expect(handler.handleRequest(request)).andReturn(result);
+    expect(result.getStatus()).andReturn(resultStatus).anyTimes();
+    expect(resultStatus.isErrorState()).andReturn(false).anyTimes();
+    processor.process(result);
+    expect(body.getQueryString()).andReturn(null);
+
+    replay(compiler, uriInfo, handler, result, resultStatus, processor, body);
+
+    Result processResult = request.process();
+
+    verify(compiler, uriInfo, handler, result, resultStatus, processor, body);
+    assertSame(result, processResult);
+    assertNull(request.getQueryPredicate());
+  }
+
+
+  @Test
+  public void testProcess_QueryInURI() throws Exception {
+    HttpHeaders headers = createNiceMock(HttpHeaders.class);
+    String uriString = "http://localhost.com:8080/api/v1/clusters/c1?foo=foo-value&bar=bar-value";
+    URI uri = new URI(URLEncoder.encode(uriString, "UTF-8"));
+    PredicateCompiler compiler = createStrictMock(PredicateCompiler.class);
+    Predicate predicate = createNiceMock(Predicate.class);
+    UriInfo uriInfo = createMock(UriInfo.class);
+    RequestHandler handler = createStrictMock(RequestHandler.class);
+    Result result = createMock(Result.class);
+    ResultStatus resultStatus = createMock(ResultStatus.class);
+    ResultPostProcessor processor = createStrictMock(ResultPostProcessor.class);
+    RequestBody body = createNiceMock(RequestBody.class);
+
+    Request request = getTestRequest(headers, body, uriInfo, compiler, handler, processor, null);
+
+    //expectations
+    expect(uriInfo.getRequestUri()).andReturn(uri).anyTimes();
+    expect(body.getQueryString()).andReturn(null);
+    expect(compiler.compile("foo=foo-value&bar=bar-value")).andReturn(predicate);
+    expect(handler.handleRequest(request)).andReturn(result);
+    expect(result.getStatus()).andReturn(resultStatus).anyTimes();
+    expect(resultStatus.isErrorState()).andReturn(false).anyTimes();
+    processor.process(result);
+
+    replay(headers, compiler, uriInfo, handler, result, resultStatus, processor, predicate, body);
+
+    Result processResult = request.process();
+
+    verify(headers, compiler, uriInfo, handler, result, resultStatus, processor, predicate, body);
+
+    assertSame(processResult, result);
+    assertSame(predicate, request.getQueryPredicate());
+  }
+
+  @Test
+  public void testProcess_QueryInBody() throws Exception {
+    HttpHeaders headers = createNiceMock(HttpHeaders.class);
+    String uriString = "http://localhost.com:8080/api/v1/clusters/c1";
+    URI uri = new URI(URLEncoder.encode(uriString, "UTF-8"));
+    PredicateCompiler compiler = createStrictMock(PredicateCompiler.class);
+    Predicate predicate = createNiceMock(Predicate.class);
+    UriInfo uriInfo = createMock(UriInfo.class);
+    RequestHandler handler = createStrictMock(RequestHandler.class);
+    Result result = createMock(Result.class);
+    ResultStatus resultStatus = createMock(ResultStatus.class);
+    ResultPostProcessor processor = createStrictMock(ResultPostProcessor.class);
+    RequestBody body = createNiceMock(RequestBody.class);
+
+    Request request = getTestRequest(headers, body, uriInfo, compiler, handler, processor, null);
+
+    //expectations
+    expect(uriInfo.getRequestUri()).andReturn(uri).anyTimes();
+    expect(body.getQueryString()).andReturn("foo=bar");
+    expect(compiler.compile("foo=bar")).andReturn(predicate);
+    expect(handler.handleRequest(request)).andReturn(result);
+    expect(result.getStatus()).andReturn(resultStatus).anyTimes();
+    expect(resultStatus.isErrorState()).andReturn(false).anyTimes();
+    processor.process(result);
+
+    replay(headers, compiler, uriInfo, handler, result, resultStatus, processor, predicate, body);
+
+    Result processResult = request.process();
+
+    verify(headers, compiler, uriInfo, handler, result, resultStatus, processor, predicate, body);
+
+    assertSame(processResult, result);
+    assertSame(predicate, request.getQueryPredicate());
+  }
+
+  @Test
+  public void testProcess_QueryInBodyAndURI() throws Exception {
+    HttpHeaders headers = createNiceMock(HttpHeaders.class);
+    String uriString = "http://localhost.com:8080/api/v1/clusters/c1?bar=value";
+    URI uri = new URI(URLEncoder.encode(uriString, "UTF-8"));
+    PredicateCompiler compiler = createStrictMock(PredicateCompiler.class);
+    Predicate predicate = createNiceMock(Predicate.class);
+    UriInfo uriInfo = createMock(UriInfo.class);
+    RequestHandler handler = createStrictMock(RequestHandler.class);
+    Result result = createMock(Result.class);
+    ResultStatus resultStatus = createMock(ResultStatus.class);
+    ResultPostProcessor processor = createStrictMock(ResultPostProcessor.class);
+    RequestBody body = createNiceMock(RequestBody.class);
+
+    Request request = getTestRequest(headers, body, uriInfo, compiler, handler, processor, null);
+
+    //expectations
+    expect(uriInfo.getRequestUri()).andReturn(uri).anyTimes();
+    expect(body.getQueryString()).andReturn("foo=bar");
+    expect(compiler.compile("foo=bar")).andReturn(predicate);
+    expect(handler.handleRequest(request)).andReturn(result);
+    expect(result.getStatus()).andReturn(resultStatus).anyTimes();
+    expect(resultStatus.isErrorState()).andReturn(false).anyTimes();
+    processor.process(result);
+
+    replay(headers, compiler, uriInfo, handler, result, resultStatus, processor, predicate, body);
+
+    Result processResult = request.process();
+
+    verify(headers, compiler, uriInfo, handler, result, resultStatus, processor, predicate, body);
+
+    assertSame(processResult, result);
+    assertSame(predicate, request.getQueryPredicate());
+  }
+
+  @Test
+  public void testProcess_WithBody_InvalidQuery() throws Exception {
+    UriInfo uriInfo = createMock(UriInfo.class);
+    String uriString = "http://localhost.com:8080/api/v1/clusters/c1";
+    URI uri = new URI(URLEncoder.encode(uriString, "UTF-8"));
+    PredicateCompiler compiler = createStrictMock(PredicateCompiler.class);
+    RequestBody body = createNiceMock(RequestBody.class);
+    Exception exception = new InvalidQueryException("test");
+
+    Request request = getTestRequest(null, body, uriInfo, compiler, null, null, null);
+
+    //expectations
+    expect(uriInfo.getRequestUri()).andReturn(uri).anyTimes();
+    expect(body.getQueryString()).andReturn("blahblahblah");
+    expect(compiler.compile("blahblahblah")).andThrow(exception);
+
+    replay(compiler, uriInfo, body);
+
+    Result processResult = request.process();
+
+    verify(compiler, uriInfo, body);
+
+    assertEquals(400, processResult.getStatus().getStatusCode());
+    assertTrue(processResult.getStatus().isErrorState());
+    assertEquals("Unable to compile query predicate: test", processResult.getStatus().getMessage());
+  }
+
+  @Test
+  public void testProcess_noBody_ErrorStateResult() throws Exception {
+    String uriString = "http://localhost.com:8080/api/v1/clusters/c1";
+    URI uri = new URI(URLEncoder.encode(uriString, "UTF-8"));
+    PredicateCompiler compiler = createStrictMock(PredicateCompiler.class);
+    UriInfo uriInfo = createMock(UriInfo.class);
+    RequestHandler handler = createStrictMock(RequestHandler.class);
+    Result result = createMock(Result.class);
+    ResultStatus resultStatus = createMock(ResultStatus.class);
+    ResultPostProcessor processor = createStrictMock(ResultPostProcessor.class);
+    RequestBody body = createNiceMock(RequestBody.class);
+
+    Request request = getTestRequest(null, body, uriInfo, compiler, handler, processor, null);
+
+    //expectations
+    expect(uriInfo.getRequestUri()).andReturn(uri).anyTimes();
+    expect(handler.handleRequest(request)).andReturn(result);
+    expect(result.getStatus()).andReturn(resultStatus).anyTimes();
+    expect(resultStatus.isErrorState()).andReturn(true).anyTimes();
+
+    replay(compiler, uriInfo, handler, result, resultStatus, processor, body);
+
+    Result processResult = request.process();
+
+    verify(compiler, uriInfo, handler, result, resultStatus, processor, body);
+    assertSame(result, processResult);
+    assertNull(request.getQueryPredicate());
+  }
+
+  @Test
+  public void testGetFields() throws Exception {
+    String fields = "prop,category/prop1,category2/category3/prop2[1,2,3],prop3[4,5,6],category4[7,8,9],sub-resource/*[10,11,12],finalProp";
+    UriInfo uriInfo = createMock(UriInfo.class);
+
+    @SuppressWarnings("unchecked")
     MultivaluedMap<String, String> mapQueryParams = createMock(MultivaluedMap.class);
-    Request request = getTestRequest(null, null, uriInfo, null);
 
     expect(uriInfo.getQueryParameters()).andReturn(mapQueryParams);
     expect(mapQueryParams.getFirst("fields")).andReturn(fields);
 
     replay(uriInfo, mapQueryParams);
 
+    Request request = getTestRequest(null, null, uriInfo, null, null, null, null);
     Map<String, TemporalInfo> mapFields = request.getFields();
 
     assertEquals(7, mapFields.size());
@@ -148,6 +369,7 @@ public abstract class BaseRequestTest {
     verify(uriInfo, mapQueryParams);
   }
 
-   protected abstract Request getTestRequest(HttpHeaders headers, String body,
-                                             UriInfo uriInfo, PredicateCompiler compiler);
+   protected abstract Request getTestRequest(HttpHeaders headers, RequestBody body, UriInfo uriInfo, PredicateCompiler compiler,
+                                             RequestHandler handler, ResultPostProcessor processor, ResourceInstance resource);
+
 }

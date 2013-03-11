@@ -18,6 +18,8 @@
 
 package org.apache.ambari.server.api.services;
 
+import org.apache.ambari.server.api.handlers.RequestHandler;
+import org.apache.ambari.server.api.handlers.UpdateHandler;
 import org.apache.ambari.server.api.resources.ResourceInstance;
 
 import javax.ws.rs.core.HttpHeaders;
@@ -35,7 +37,7 @@ public class PutRequest extends BaseRequest {
    * @param uriInfo     uri information
    * @param resource    associated resource definition
    */
-  public PutRequest(HttpHeaders headers, String body, UriInfo uriInfo, ResourceInstance resource) {
+  public PutRequest(HttpHeaders headers, RequestBody body, UriInfo uriInfo, ResourceInstance resource) {
     super(headers, body, uriInfo, resource);
   }
 
@@ -44,4 +46,8 @@ public class PutRequest extends BaseRequest {
     return Type.PUT;
   }
 
+  @Override
+  protected RequestHandler getRequestHandler() {
+    return new UpdateHandler();
+  }
 }

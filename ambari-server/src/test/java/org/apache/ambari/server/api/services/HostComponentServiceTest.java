@@ -19,11 +19,16 @@
 
 package org.apache.ambari.server.api.services;
 
-import org.apache.ambari.server.api.handlers.RequestHandler;
 import org.apache.ambari.server.api.resources.ResourceInstance;
-import org.junit.Test;
+import org.apache.ambari.server.api.services.parsers.RequestBodyParser;
+import org.apache.ambari.server.api.services.serializers.ResultSerializer;
 
-import javax.ws.rs.core.Response;
+import javax.ws.rs.core.HttpHeaders;
+import javax.ws.rs.core.UriInfo;
+
+import java.lang.reflect.Method;
+import java.util.ArrayList;
+import java.util.List;
 
 import static org.junit.Assert.assertEquals;
 
@@ -31,248 +36,88 @@ import static org.junit.Assert.assertEquals;
  * Unit tests for HostComponentService.
  */
 public class HostComponentServiceTest extends BaseServiceTest {
-  @Test
-  public void testGetHostComponent() {
-    String clusterName = "clusterName";
-    String hostName = "hostName";
-    String hostComponentName = "hostComponentName";
 
-    registerExpectations(Request.Type.GET, null, 200, false);
-    replayMocks();
+  public List<ServiceTestInvocation> getTestInvocations() throws Exception {
+    List<ServiceTestInvocation> listInvocations = new ArrayList<ServiceTestInvocation>();
 
-    //test
-    HostComponentService hostComponentService = new TestHostComponentService(getResource(), clusterName,
-        hostName, hostComponentName, getRequestFactory(), getRequestHandler());
+    //getHostComponent
+    HostComponentService componentService = new TestHostComponentService("clusterName", "serviceName", "componentName");
+    Method m = componentService.getClass().getMethod("getHostComponent", HttpHeaders.class, UriInfo.class, String.class);
+    Object[] args = new Object[] {getHttpHeaders(), getUriInfo(), "componentName"};
+    listInvocations.add(new ServiceTestInvocation(Request.Type.GET, componentService, m, args, null));
 
-    Response response = hostComponentService.getHostComponent(getHttpHeaders(), getUriInfo(), hostComponentName);
-    verifyResults(response, 200);
-  }
+    //getHostComponents
+    componentService = new TestHostComponentService("clusterName", "serviceName", null);
+    m = componentService.getClass().getMethod("getHostComponents", HttpHeaders.class, UriInfo.class);
+    args = new Object[] {getHttpHeaders(), getUriInfo()};
+    listInvocations.add(new ServiceTestInvocation(Request.Type.GET, componentService, m, args, null));
 
-  @Test
-  public void testGetHostComponent__ErrorState() {
-    String clusterName = "clusterName";
-    String hostName = "hostName";
-    String hostComponentName = "hostComponentName";
+    //createHostComponent
+    componentService = new TestHostComponentService("clusterName", "serviceName", "componentName");
+    m = componentService.getClass().getMethod("createHostComponent", String.class, HttpHeaders.class, UriInfo.class, String.class);
+    args = new Object[] {"body", getHttpHeaders(), getUriInfo(), "componentName"};
+    listInvocations.add(new ServiceTestInvocation(Request.Type.POST, componentService, m, args, "body"));
 
-    registerExpectations(Request.Type.GET, null, 404, true);
-    replayMocks();
+    //createHostComponents
+    componentService = new TestHostComponentService("clusterName", "serviceName", null);
+    m = componentService.getClass().getMethod("createHostComponents", String.class, HttpHeaders.class, UriInfo.class);
+    args = new Object[] {"body", getHttpHeaders(), getUriInfo()};
+    listInvocations.add(new ServiceTestInvocation(Request.Type.POST, componentService, m, args, "body"));
 
-    //test
-    HostComponentService hostComponentService = new TestHostComponentService(getResource(), clusterName,
-        hostName, hostComponentName, getRequestFactory(), getRequestHandler());
+    //updateHostComponent
+    componentService = new TestHostComponentService("clusterName", "serviceName", "componentName");
+    m = componentService.getClass().getMethod("updateHostComponent", String.class, HttpHeaders.class, UriInfo.class, String.class);
+    args = new Object[] {"body", getHttpHeaders(), getUriInfo(), "componentName"};
+    listInvocations.add(new ServiceTestInvocation(Request.Type.PUT, componentService, m, args, "body"));
 
-    Response response = hostComponentService.getHostComponent(getHttpHeaders(), getUriInfo(), hostComponentName);
-    verifyResults(response, 404);
-  }
+    //updateHostComponents
+    componentService = new TestHostComponentService("clusterName", "serviceName", null);
+    m = componentService.getClass().getMethod("updateHostComponents", String.class, HttpHeaders.class, UriInfo.class);
+    args = new Object[] {"body", getHttpHeaders(), getUriInfo()};
+    listInvocations.add(new ServiceTestInvocation(Request.Type.PUT, componentService, m, args, "body"));
 
-  @Test
-  public void testGetHostComponents() {
-    String clusterName = "clusterName";
-    String hostName = "hostName";
+    //deleteHostComponent
+    componentService = new TestHostComponentService("clusterName", "serviceName", "componentName");
+    m = componentService.getClass().getMethod("deleteHostComponent", HttpHeaders.class, UriInfo.class, String.class);
+    args = new Object[] {getHttpHeaders(), getUriInfo(), "componentName"};
+    listInvocations.add(new ServiceTestInvocation(Request.Type.DELETE, componentService, m, args, null));
 
-    registerExpectations(Request.Type.GET, null, 200, false);
-    replayMocks();
-
-    //test
-    HostComponentService hostComponentService = new TestHostComponentService(getResource(), clusterName,
-        hostName, null, getRequestFactory(), getRequestHandler());
-
-    Response response = hostComponentService.getHostComponents(getHttpHeaders(), getUriInfo());
-    verifyResults(response, 200);
-  }
-
-  @Test
-  public void testGetHostComponents__ErrorState() {
-    String clusterName = "clusterName";
-    String hostName = "hostName";
-
-    registerExpectations(Request.Type.GET, null, 500, true);
-    replayMocks();
-
-    //test
-    HostComponentService hostComponentService = new TestHostComponentService(getResource(), clusterName,
-        hostName, null, getRequestFactory(), getRequestHandler());
-
-    Response response = hostComponentService.getHostComponents(getHttpHeaders(), getUriInfo());
-    verifyResults(response, 500);
-  }
-
-  @Test
-  public void testCreateHostComponent() {
-    String clusterName = "clusterName";
-    String hostName = "hostName";
-    String hostComponentName = "hostComponentName";
-    String body = "body";
-
-    registerExpectations(Request.Type.POST, body, 201, false);
-    replayMocks();
-
-    //test
-    HostComponentService hostComponentService = new TestHostComponentService(getResource(), clusterName,
-        hostName, hostComponentName, getRequestFactory(), getRequestHandler());
-
-    Response response = hostComponentService.createHostComponent(body, getHttpHeaders(), getUriInfo(), hostComponentName);
-    verifyResults(response, 201);
-  }
-
-  @Test
-  public void testCreateHostComponent__ErrorState() {
-    String clusterName = "clusterName";
-    String hostName = "hostName";
-    String hostComponentName = "hostComponentName";
-    String body = "body";
-
-    registerExpectations(Request.Type.POST, body, 500, true);
-    replayMocks();
-
-    //test
-    HostComponentService hostComponentService = new TestHostComponentService(getResource(), clusterName,
-        hostName, hostComponentName, getRequestFactory(), getRequestHandler());
-
-    Response response = hostComponentService.createHostComponent(body, getHttpHeaders(), getUriInfo(), hostComponentName);
-    verifyResults(response, 500);
-  }
-
-  @Test
-  public void testUpdateHostComponent() {
-    String clusterName = "clusterName";
-    String hostName = "hostName";
-    String hostComponentName = "hostComponentName";
-    String body = "body";
-
-    registerExpectations(Request.Type.PUT, body, 200, false);
-    replayMocks();
-
-    //test
-    HostComponentService hostComponentService = new TestHostComponentService(getResource(), clusterName,
-        hostName, hostComponentName, getRequestFactory(), getRequestHandler());
-
-    Response response = hostComponentService.updateHostComponent(body, getHttpHeaders(), getUriInfo(), hostComponentName);
-    verifyResults(response, 200);
-  }
-
-  @Test
-  public void testUpdateHostComponent__ErrorState() {
-    String clusterName = "clusterName";
-    String hostName = "hostName";
-    String hostComponentName = "hostComponentName";
-    String body = "body";
-
-    registerExpectations(Request.Type.PUT, body, 500, true);
-    replayMocks();
-
-    //test
-    HostComponentService hostComponentService = new TestHostComponentService(getResource(), clusterName,
-        hostName, hostComponentName, getRequestFactory(), getRequestHandler());
-
-    Response response = hostComponentService.updateHostComponent(body, getHttpHeaders(), getUriInfo(), hostComponentName);
-    verifyResults(response, 500);
-  }
-
-  @Test
-  public void testUpdateHostComponents() {
-    String clusterName = "clusterName";
-    String hostName = "hostName";
-    String body = "body";
-
-    registerExpectations(Request.Type.PUT, body, 200, false);
-    replayMocks();
-
-    //test
-    HostComponentService hostComponentService = new TestHostComponentService(getResource(), clusterName,
-        hostName, null, getRequestFactory(), getRequestHandler());
-
-    Response response = hostComponentService.updateHostComponents(body, getHttpHeaders(), getUriInfo());
-    verifyResults(response, 200);
-  }
-
-  @Test
-  public void testUpdateHostComponents__ErrorState() {
-    String clusterName = "clusterName";
-    String hostName = "hostName";
-    String body = "body";
-
-    registerExpectations(Request.Type.PUT, body, 500, true);
-    replayMocks();
-
-    //test
-    HostComponentService hostComponentService = new TestHostComponentService(getResource(), clusterName,
-        hostName, null, getRequestFactory(), getRequestHandler());
-
-    Response response = hostComponentService.updateHostComponents(body, getHttpHeaders(), getUriInfo());
-    verifyResults(response, 500);
-  }
-
-  @Test
-  public void testDeleteHostComponent() {
-    String clusterName = "clusterName";
-    String hostName = "hostName";
-    String hostComponentName = "hostComponentName";
-
-    registerExpectations(Request.Type.DELETE, null, 200, false);
-    replayMocks();
-
-    //test
-    HostComponentService hostComponentService = new TestHostComponentService(getResource(), clusterName,
-        hostName, hostComponentName, getRequestFactory(), getRequestHandler());
-
-    Response response = hostComponentService.deleteHostComponent(getHttpHeaders(), getUriInfo(), hostComponentName);
-    verifyResults(response, 200);
-  }
-
-  @Test
-  public void testDeleteHostComponent__ErrorState() {
-    String clusterName = "clusterName";
-    String hostName = "hostName";
-    String hostComponentName = "hostComponentName";
-
-    registerExpectations(Request.Type.DELETE, null, 500, true);
-    replayMocks();
-
-    //test
-    HostComponentService hostComponentService = new TestHostComponentService(getResource(), clusterName,
-        hostName, hostComponentName, getRequestFactory(), getRequestHandler());
-
-    Response response = hostComponentService.deleteHostComponent(getHttpHeaders(), getUriInfo(), hostComponentName);
-    verifyResults(response, 500);
+    return listInvocations;
   }
 
   private class TestHostComponentService extends HostComponentService {
-    private RequestFactory m_requestFactory;
-    private RequestHandler m_requestHandler;
-    private ResourceInstance m_resourceDef;
     private String m_clusterId;
     private String m_hostId;
     private String m_hostComponentId;
 
-    private TestHostComponentService(ResourceInstance resourceDef, String clusterId, String hostId, String hostComponentId,
-                                     RequestFactory requestFactory, RequestHandler handler) {
+    private TestHostComponentService(String clusterId, String hostId, String hostComponentId) {
       super(clusterId, hostId);
-      m_resourceDef = resourceDef;
       m_clusterId = clusterId;
       m_hostId = hostId;
       m_hostComponentId = hostComponentId;
-      m_requestFactory = requestFactory;
-      m_requestHandler = handler;
     }
-
 
     @Override
     ResourceInstance createHostComponentResource(String clusterName, String hostName, String hostComponentName) {
       assertEquals(m_clusterId, clusterName);
       assertEquals(m_hostId, hostName);
       assertEquals(m_hostComponentId, hostComponentName);
-      return m_resourceDef;
+      return getTestResource();
     }
 
     @Override
     RequestFactory getRequestFactory() {
-      return m_requestFactory;
+      return getTestRequestFactory();
     }
 
     @Override
-    RequestHandler getRequestHandler(Request.Type requestType) {
-      return m_requestHandler;
+    protected RequestBodyParser getBodyParser() {
+      return getTestBodyParser();
+    }
+
+    @Override
+    protected ResultSerializer getResultSerializer() {
+      return getTestResultSerializer();
     }
   }
 

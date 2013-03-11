@@ -18,6 +18,8 @@
 
 package org.apache.ambari.server.api.services;
 
+import org.apache.ambari.server.api.handlers.DeleteHandler;
+import org.apache.ambari.server.api.handlers.RequestHandler;
 import org.apache.ambari.server.api.resources.ResourceInstance;
 
 import javax.ws.rs.core.HttpHeaders;
@@ -35,7 +37,7 @@ public class DeleteRequest extends BaseRequest {
    * @param uriInfo     uri information
    * @param resource    associated resource definition
    */
-  public DeleteRequest(HttpHeaders headers, String body, UriInfo uriInfo, ResourceInstance resource) {
+  public DeleteRequest(HttpHeaders headers, RequestBody body, UriInfo uriInfo, ResourceInstance resource) {
     super(headers, body, uriInfo, resource);
   }
 
@@ -44,4 +46,8 @@ public class DeleteRequest extends BaseRequest {
     return Type.DELETE;
   }
 
+  @Override
+  protected RequestHandler getRequestHandler() {
+    return new DeleteHandler();
+  }
 }

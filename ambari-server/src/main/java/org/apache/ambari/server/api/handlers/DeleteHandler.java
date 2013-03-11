@@ -33,10 +33,10 @@ import java.util.Set;
 public class DeleteHandler extends BaseManagementHandler implements RequestHandler {
 
   @Override
-  protected Result persist(ResourceInstance r, Set<Map<String, Object>> properties) {
+  protected Result persist(ResourceInstance request, Set<Map<String, Object>> setProperties) {
     Result result;
       try {
-        RequestStatus status = getPersistenceManager().delete(r, properties);
+        RequestStatus status = getPersistenceManager().delete(request, setProperties);
         result = createResult(status);
 
         if (result.isSynchronous()) {
@@ -49,7 +49,7 @@ public class DeleteHandler extends BaseManagementHandler implements RequestHandl
       } catch (NoSuchParentResourceException e) {
         result = new ResultImpl(new ResultStatus(ResultStatus.STATUS.NOT_FOUND, e));
       } catch (NoSuchResourceException e) {
-        if (r.isCollectionResource()) {
+        if (request.isCollectionResource()) {
           //todo: The query didn't match any resource so no resources were updated.
           //todo: 200 may be ok but we need to return a collection
           //todo: of resources that were updated.

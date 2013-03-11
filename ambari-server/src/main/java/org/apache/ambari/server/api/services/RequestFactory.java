@@ -37,7 +37,7 @@ public class RequestFactory {
    *
    * @return a new Request instance
    */
-  public Request createRequest(HttpHeaders headers, String body, UriInfo uriInfo, Request.Type requestType,
+  public Request createRequest(HttpHeaders headers, RequestBody body, UriInfo uriInfo, Request.Type requestType,
                                ResourceInstance resource) {
     switch (requestType) {
       case GET:
@@ -47,7 +47,7 @@ public class RequestFactory {
       case DELETE:
         return new DeleteRequest(headers, body, uriInfo, resource);
       case POST:
-        return (uriInfo.getQueryParameters().isEmpty() || body == null) ?
+        return ((uriInfo.getQueryParameters().isEmpty() && body.getQueryString() == null) || body == null) ?
             new PostRequest(headers, body, uriInfo, resource) :
             new QueryPostRequest(headers, body, uriInfo, resource);
       default:

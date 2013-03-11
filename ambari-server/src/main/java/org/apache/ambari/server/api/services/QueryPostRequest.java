@@ -19,12 +19,12 @@
 
 package org.apache.ambari.server.api.services;
 
+import org.apache.ambari.server.api.handlers.QueryCreateHandler;
+import org.apache.ambari.server.api.handlers.RequestHandler;
 import org.apache.ambari.server.api.resources.ResourceInstance;
 
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.UriInfo;
-import java.util.Map;
-import java.util.Set;
 
 /**
  * Request for creating sub-resources of instances based on a query.
@@ -38,22 +38,17 @@ public class QueryPostRequest extends PostRequest {
    * @param uriInfo      uri information
    * @param resource     associated resource instance
    */
-  public QueryPostRequest(HttpHeaders headers, String body, UriInfo uriInfo, ResourceInstance resource) {
+  public QueryPostRequest(HttpHeaders headers, RequestBody body, UriInfo uriInfo, ResourceInstance resource) {
     super(headers, body, uriInfo, resource);
-  }
-
-  @Override
-  public Set<Map<String, Object>> getHttpBodyProperties() {
-    String httpBody = getHttpBody();
-    //strip array name
-    int startIdx = httpBody.indexOf("[");
-    int endIdx = httpBody.lastIndexOf("]");
-
-    return getHttpBodyParser().parse(httpBody.substring(startIdx, endIdx + 1));
   }
 
   @Override
   public Type getRequestType() {
     return Type.QUERY_POST;
+  }
+
+  @Override
+  protected RequestHandler getRequestHandler() {
+    return new QueryCreateHandler();
   }
 }

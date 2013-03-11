@@ -29,7 +29,8 @@ import org.apache.ambari.server.api.predicate.operators.*;
 import org.apache.ambari.server.api.query.QueryImplTest;
 import org.apache.ambari.server.api.resources.ResourceInstanceImplTest;
 import org.apache.ambari.server.api.services.*;
-import org.apache.ambari.server.api.services.parsers.JsonPropertyParserTest;
+import org.apache.ambari.server.api.services.parsers.BodyParseExceptionTest;
+import org.apache.ambari.server.api.services.parsers.JsonRequestBodyParserTest;
 import org.apache.ambari.server.api.services.serializers.JsonSerializerTest;
 import org.junit.runner.RunWith;
 import org.junit.runners.Suite;
@@ -37,12 +38,13 @@ import org.junit.runners.Suite;
 @RunWith(Suite.class)
 @Suite.SuiteClasses({ClusterServiceTest.class, HostServiceTest.class, ServiceServiceTest.class,
     ComponentServiceTest.class, HostComponentServiceTest.class, ReadHandlerTest.class, QueryImplTest.class,
-    JsonPropertyParserTest.class, CreateHandlerTest.class, UpdateHandlerTest.class, DeleteHandlerTest.class,
+    JsonRequestBodyParserTest.class, CreateHandlerTest.class, UpdateHandlerTest.class, DeleteHandlerTest.class,
     PersistenceManagerImplTest.class, GetRequestTest.class, PutRequestTest.class, PostRequestTest.class,
-    DeleteRequestTest.class, JsonSerializerTest.class, QueryCreateHandlerTest.class, ResourceInstanceImplTest.class,
-    QueryLexerTest.class, QueryParserTest.class, IsEmptyOperatorTest.class, InOperatorTest.class,
-    AndOperatorTest.class, OrOperatorTest.class, EqualsOperatorTest.class, GreaterEqualsOperatorTest.class,
-    GreaterOperatorTest.class, LessEqualsOperatorTest.class, LessEqualsOperatorTest.class, NotEqualsOperatorTest.class,
-    NotOperatorTest.class})
+    DeleteRequestTest.class, QueryPostRequestTest.class, JsonSerializerTest.class, QueryCreateHandlerTest.class,
+    ResourceInstanceImplTest.class, QueryLexerTest.class, QueryParserTest.class, IsEmptyOperatorTest.class,
+    InOperatorTest.class,AndOperatorTest.class, OrOperatorTest.class, EqualsOperatorTest.class,
+    GreaterEqualsOperatorTest.class, GreaterOperatorTest.class, LessEqualsOperatorTest.class,
+    LessEqualsOperatorTest.class, NotEqualsOperatorTest.class, NotOperatorTest.class, RequestBodyTest.class,
+    NamedPropertySetTest.class, BodyParseExceptionTest.class})
 public class TestSuite {
 }

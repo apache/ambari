@@ -18,29 +18,26 @@
 
 package org.apache.ambari.server.api.services.parsers;
 
-import org.apache.ambari.server.api.services.RequestBody;
-
 /**
- * Parse the provided String into a map of properties and associated values.
+ * Exception indicating that a failure occurred while parsing the request body.
  */
-public interface RequestBodyParser {
+public class BodyParseException extends Exception {
   /**
-   * Path to the query property.
+   * Create exception by specifying the entire message.
+   *
+   * @param msg  the message to set
    */
-  public static final String QUERY_FIELD_PATH = "RequestInfo/query";
+  public BodyParseException(String msg) {
+    super(msg);
+  }
 
   /**
-   * Path to the body object.
+   * Create exception with messaged based on an exception.
+   *
+   * @param e  the exception to base the msg on
    */
-  public static final String BODY_TITLE = "Body";
-
-  /**
-   * Parse the provided string into a request body which contains all properties in the string.
-   *
-   *
-   * @param s  the string body to be parsed
-   *
-   * @return RequestBody instance containing all properties in the string
-   */
-  public RequestBody parse(String s) throws BodyParseException;
+  public BodyParseException(Exception e) {
+    super("Invalid Request: Malformed Request Body.  An exception occurred parsing the request body: "
+        + e.getMessage());
+  }
 }

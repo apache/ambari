@@ -18,29 +18,28 @@
 
 package org.apache.ambari.server.api.services.parsers;
 
-import org.apache.ambari.server.api.services.RequestBody;
+import org.junit.Test;
+import static org.junit.Assert.*;
 
 /**
- * Parse the provided String into a map of properties and associated values.
+ * BodyParseException unit tests.
  */
-public interface RequestBodyParser {
-  /**
-   * Path to the query property.
-   */
-  public static final String QUERY_FIELD_PATH = "RequestInfo/query";
+public class BodyParseExceptionTest {
 
-  /**
-   * Path to the body object.
-   */
-  public static final String BODY_TITLE = "Body";
+  @Test
+  public void testCreateFromString() {
+    String msg = "some msg";
+    BodyParseException e = new BodyParseException(msg);
 
-  /**
-   * Parse the provided string into a request body which contains all properties in the string.
-   *
-   *
-   * @param s  the string body to be parsed
-   *
-   * @return RequestBody instance containing all properties in the string
-   */
-  public RequestBody parse(String s) throws BodyParseException;
+    assertEquals(msg, e.getMessage());
+  }
+
+  @Test
+  public void testCreateFromException() {
+    Exception e = new Exception("test error msg");
+    BodyParseException bpe = new BodyParseException(e);
+
+    assertEquals("Invalid Request: Malformed Request Body.  An exception occurred parsing the request body: " +
+        e.getMessage(), bpe.getMessage());
+  }
 }

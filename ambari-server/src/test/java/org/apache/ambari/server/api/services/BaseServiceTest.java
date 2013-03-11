@@ -18,17 +18,27 @@
 
 package org.apache.ambari.server.api.services;
 
-import org.apache.ambari.server.api.handlers.RequestHandler;
 import org.apache.ambari.server.api.resources.ResourceInstance;
+import org.apache.ambari.server.api.services.parsers.BodyParseException;
+import org.apache.ambari.server.api.services.parsers.RequestBodyParser;
 import org.apache.ambari.server.api.services.serializers.ResultSerializer;
+import org.easymock.Capture;
+import org.junit.Test;
 
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 import static org.easymock.EasyMock.*;
 import static org.easymock.EasyMock.createNiceMock;
 import static org.easymock.EasyMock.createStrictMock;
+
 import static org.junit.Assert.assertEquals;
 
 /**
@@ -38,43 +48,28 @@ public abstract class BaseServiceTest {
 
   private ResourceInstance resourceInstance = createNiceMock(ResourceInstance.class);
   private RequestFactory requestFactory = createStrictMock(RequestFactory.class);
-  private ResultPostProcessor resultProcessor = createStrictMock(ResultPostProcessor.class);
   private Request request = createNiceMock(Request.class);
-  private RequestHandler requestHandler = createStrictMock(RequestHandler.class);
-  private Result result = createNiceMock(Result.class);
-  private ResultStatus status = createNiceMock(ResultStatus.class);
   private HttpHeaders httpHeaders = createNiceMock(HttpHeaders.class);
   private UriInfo uriInfo = createNiceMock(UriInfo.class);
+  private Result result = createMock(Result.class);
+  private RequestBody requestBody = createNiceMock(RequestBody.class);
+  private RequestBodyParser bodyParser = createStrictMock(RequestBodyParser.class);
+  private ResultStatus status = createNiceMock(ResultStatus.class);
   private ResultSerializer serializer = createStrictMock(ResultSerializer.class);
   private Object serializedResult = new Object();
 
-  public ResourceInstance getResource() {
+  public ResourceInstance getTestResource() {
     return resourceInstance;
   }
 
-  public RequestFactory getRequestFactory() {
+  public RequestFactory getTestRequestFactory() {
     return requestFactory;
-  }
-
-  public ResultPostProcessor getResultProcessor() {
-    return resultProcessor;
   }
 
   public Request getRequest() {
     return request;
   }
 
-  public RequestHandler getRequestHandler() {
-    return requestHandler;
-  }
-
-  public Result getResult() {
-    return result;
-  }
-
-  public ResultStatus getStatus() {
-    return status;
-  }
 
   public HttpHeaders getHttpHeaders() {
     return httpHeaders;
@@ -84,45 +79,133 @@ public abstract class BaseServiceTest {
     return uriInfo;
   }
 
-  public ResultSerializer getSerializer() {
+  public RequestBodyParser getTestBodyParser() {
+    return bodyParser;
+  }
+
+  public ResultSerializer getTestResultSerializer() {
     return serializer;
   }
 
-  public Object getSerializedResult() {
-    return serializedResult;
+  @Test
+  public void testService() throws Exception {
+    List<ServiceTestInvocation> listTestInvocations = getTestInvocations();
+    for (ServiceTestInvocation testInvocation : listTestInvocations) {
+      testMethod(testInvocation);
+      testMethod_bodyParseException(testInvocation);
+      testMethod_resultInErrorState(testInvocation);
+    }
   }
 
-  protected void registerExpectations(Request.Type type, String body, int statusCode, boolean isErrorState) {
-    expect(requestFactory.createRequest(eq(httpHeaders), body == null ? isNull(String.class) : eq(body), eq(uriInfo), eq(type),
-        eq(resourceInstance))).andReturn(request);
-
-    expect(request.getRequestType()).andReturn(type).anyTimes();
-    expect(request.getResultSerializer()).andReturn(serializer).anyTimes();
-    expect(requestHandler.handleRequest(request)).andReturn(result);
-    expect(result.getStatus()).andReturn(status).anyTimes();
-    expect(status.isErrorState()).andReturn(isErrorState).anyTimes();
-    expect(status.getStatusCode()).andReturn(statusCode);
-    if (! isErrorState) {
-      expect(request.getResultPostProcessor()).andReturn(resultProcessor);
-      resultProcessor.process(result);
+  private void testMethod(ServiceTestInvocation testMethod) throws InvocationTargetException, IllegalAccessException {
+    try {
+      expect(bodyParser.parse(testMethod.getBody())).andReturn(requestBody);
+    } catch (BodyParseException e) {
+      // needed for compiler
     }
 
+    expect(requestFactory.createRequest(httpHeaders, requestBody, uriInfo, testMethod.getRequestType(), resourceInstance)).andReturn(request);
+    expect(request.process()).andReturn(result);
+    expect(result.getStatus()).andReturn(status).atLeastOnce();
+    expect(status.getStatusCode()).andReturn(testMethod.getStatusCode()).atLeastOnce();
     expect(serializer.serialize(result)).andReturn(serializedResult);
 
+    replayMocks();
+
+    Response r = testMethod.invoke();
+
+    assertEquals(serializedResult, r.getEntity());
+    assertEquals(testMethod.getStatusCode(), r.getStatus());
+    verifyAndResetMocks();
   }
 
-  protected void replayMocks() {
-    replay(resourceInstance, requestFactory, resultProcessor, request, status, requestHandler,
-        result, httpHeaders, uriInfo, serializer);
+  private void testMethod_bodyParseException(ServiceTestInvocation testMethod) throws Exception {
+    Capture<Result> resultCapture = new Capture<Result>();
+    BodyParseException e = new BodyParseException("TEST MSG");
+    expect(bodyParser.parse(testMethod.getBody())).andThrow(e);
+    expect(serializer.serialize(capture(resultCapture))).andReturn(serializedResult);
+
+    replayMocks();
+
+    Response r = testMethod.invoke();
+
+    assertEquals(serializedResult, r.getEntity());
+    assertEquals(400, r.getStatus());
+    //todo: assert resource state
+    verifyAndResetMocks();
   }
 
+  private void testMethod_resultInErrorState(ServiceTestInvocation testMethod) throws Exception {
+    try {
+      expect(bodyParser.parse(testMethod.getBody())).andReturn(requestBody);
+    } catch (BodyParseException e) {
+      // needed for compiler
+    }
+    expect(requestFactory.createRequest(httpHeaders, requestBody, uriInfo, testMethod.getRequestType(), resourceInstance)).andReturn(request);
+    expect(request.process()).andReturn(result);
+    expect(result.getStatus()).andReturn(status).atLeastOnce();
+    expect(status.getStatusCode()).andReturn(400).atLeastOnce();
+    expect(serializer.serialize(result)).andReturn(serializedResult);
 
-  protected void verifyResults(Response response, int statusCode) {
-    assertEquals(getSerializedResult(), response.getEntity());
-    assertEquals(statusCode, response.getStatus());
+    replayMocks();
 
-    verify(resourceInstance, requestFactory, resultProcessor, request, status, requestHandler,
-        result, httpHeaders, uriInfo, serializer);
+    Response r = testMethod.invoke();
+
+    assertEquals(serializedResult, r.getEntity());
+    assertEquals(400, r.getStatus());
+    verifyAndResetMocks();
   }
 
+  private void replayMocks() {
+    replay(resourceInstance, requestFactory, request, result, requestBody, bodyParser, status, serializer);
+  }
+
+  private void verifyAndResetMocks() {
+    verify(resourceInstance, requestFactory, request, result, requestBody, bodyParser, status, serializer);
+    reset(resourceInstance, requestFactory, request, result, requestBody, bodyParser, status, serializer);
+  }
+
+  public static class ServiceTestInvocation {
+    private Request.Type m_type;
+    private BaseService m_instance;
+    private Method m_method;
+    private Object[] m_args;
+    private String m_body;
+
+    private static final Map<Request.Type, Integer> mapStatusCodes = new HashMap<Request.Type, Integer>();
+
+    static {
+      mapStatusCodes.put(Request.Type.GET, 200);
+      mapStatusCodes.put(Request.Type.POST, 201);
+      mapStatusCodes.put(Request.Type.PUT, 200);
+      mapStatusCodes.put(Request.Type.DELETE, 200);
+      mapStatusCodes.put(Request.Type.QUERY_POST, 201);
+    }
+
+    public ServiceTestInvocation(Request.Type requestType, BaseService instance, Method method, Object[] args, String body) {
+      m_type = requestType;
+      m_instance = instance;
+      m_method = method;
+      m_args = args;
+      m_body = body;
+    }
+
+    public int getStatusCode() {
+      return mapStatusCodes.get(m_type);
+    }
+
+    public Request.Type getRequestType() {
+      return m_type;
+    }
+
+    public String getBody() {
+      return m_body;
+    }
+
+    public Response invoke() throws InvocationTargetException, IllegalAccessException {
+      return (Response) m_method.invoke(m_instance, m_args);
+    }
+  }
+
+  public abstract List<ServiceTestInvocation> getTestInvocations() throws Exception;
 }
