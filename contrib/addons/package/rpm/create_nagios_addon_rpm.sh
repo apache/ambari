@@ -27,11 +27,11 @@ if [[ -z "${BUILD_DIR}" ]]; then
 fi
 
 if [[ -z "${VERSION}" ]]; then
-  VERSION="1.2.1.2"
+  VERSION=${VERSION:-1.2.2}
 fi
 
 if [[ -z "${RELEASE}" ]]; then
-  RELEASE="1"
+  RELEASE=${RELEASE:-1}
 fi
 
 #rm -rf ${BUILD_DIR}/*
@@ -59,6 +59,9 @@ mkdir -p ${RPM_BUILDDIR}/SRPMS/
 
 cp -f ${BASEDIR}/${PKG_NAME}.spec ${RPM_BUILDDIR}/SPECS/
 cp -f ${TAR_DEST} ${RPM_BUILDDIR}/SOURCES/
+
+echo "${VERSION}" > ${RPM_BUILDDIR}/SOURCES/version.txt
+echo "${RELEASE}" > ${RPM_BUILDDIR}/SOURCES/release.txt
 
 cd ${RPM_BUILDDIR}
 

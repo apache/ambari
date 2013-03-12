@@ -22,17 +22,22 @@
 # RPM Spec file for Nagios Add-ons for HDP Monitoring Dashboard
 #
 
+%define name hdp_mon_nagios_addons
+%define release %(cat %{_sourcedir}/release.txt)
+%define version %(cat %{_sourcedir}/version.txt)
+%define buildroot %{_tmppath}/%{name}-%{version}-buildroot
+
 Summary: Nagios Add-ons for HDP Monitoring Dashboard
-Name: hdp_mon_nagios_addons
-Version: 1.2.1.2
-URL: http://hortonworks.com
-Release: 1
+Name: %{name}
+Version: %{version}
+URL: http://incubator.apache.org/ambari
+Release: %{release}%{?dist}
 License: Apache License, Version 2.0
-Vendor: Hortonworks <ambari-group@hortonworks.com>
 Group: System Environment/Base
 Source: %{name}-%{version}.tar.gz
-Buildroot: %{_tmppath}/%{name}-%{version}-buildroot
+Buildroot: %{buildroot}
 Requires: nagios, nagios-plugins, php >= 5
+
 %define nagioshdpscripts_dir %{_prefix}/share/hdp/nagios
 %define nagiosplugin_dir %{_libdir}/nagios/plugins
 %if 0%{?suse_version}

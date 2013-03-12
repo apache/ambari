@@ -458,6 +458,9 @@ Trunk (unreleased changes):
 
  BUG FIXES
 
+ AMBARI-1612. Parameterizing nagios and ganglia monitoring rpm version.
+ (Ashish Singh via yusaku)
+
  AMBARI-1586. Upgrade of Ambari DB on upgrade to 1.2.2 should restore/keep 
  the configuration data for MAPREDUCE. (Sumit Mohanty via swagle)
 
