@@ -458,6 +458,9 @@ Trunk (unreleased changes):
 
  BUG FIXES
 
+ AMBARI-1616. Error during upgrading Ambari Server from 1.2.0/1.2.1 to 
+ 1.2.2. (Sumit Mohanty via swagle)
+
  AMBARI-1603. JCE install on ambari-server fails if /tmp/HDP-artifacts does 
  not exists. (swagle)
 
