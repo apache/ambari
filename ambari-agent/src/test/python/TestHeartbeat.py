@@ -26,6 +26,8 @@ from ambari_agent import AmbariConfig
 import socket
 import os
 import time
+from mock.mock import patch, MagicMock, call
+from ambari_agent.StackVersionsFileHandler import StackVersionsFileHandler
 
 class TestHeartbeat(TestCase):
 
@@ -47,8 +49,10 @@ class TestHeartbeat(TestCase):
     self.assertEquals(not heartbeat.reports, True, "Heartbeat should not contain task in progress")
 
 
-  def test_heartbeat_with_status(self):
+  @patch.object(StackVersionsFileHandler, "read_stack_version")
+  def test_heartbeat_with_status(self, read_stack_version_method):
     actionQueue = ActionQueue(AmbariConfig.AmbariConfig().getConfig())
+    read_stack_version_method.return_value="1.3.0"
     heartbeat = Heartbeat(actionQueue)
     statusCommand = {
       "serviceName" : 'HDFS',
@@ -65,9 +69,11 @@ class TestHeartbeat(TestCase):
     result = heartbeat.build(101)
     self.assertEquals(len(result['componentStatus']) > 0, True, 'Heartbeat should contain status of HDFS components')
 
-  def test_heartbeat_with_status_multiple(self):
+  @patch.object(StackVersionsFileHandler, "read_stack_version")
+  def test_heartbeat_with_status_multiple(self, read_stack_version_method):
     actionQueue = ActionQueue(AmbariConfig.AmbariConfig().getConfig())
     actionQueue.IDLE_SLEEP_TIME = 0.01
+    read_stack_version_method.return_value="1.3.0"
     heartbeat = Heartbeat(actionQueue)
     actionQueue.start()
     max_number_of_status_entries = 0

@@ -17,6 +17,7 @@
  */
 package org.apache.ambari.server.agent;
 
+import com.google.gson.annotations.SerializedName;
 import org.codehaus.jackson.map.annotate.JsonSerialize;
 import org.codehaus.jackson.map.annotate.JsonSerialize.Inclusion;
 
@@ -122,8 +123,11 @@ public class AgentEnv {
    * Represents information about rpm-installed packages
    */
   public static class Rpm {
+    @SerializedName("name")
     private String rpmName;
+    @SerializedName("installed")
     private boolean rpmInstalled = false;
+    @SerializedName("version")
     private String rpmVersion;
     
     public void setName(String name) {
@@ -156,7 +160,9 @@ public class AgentEnv {
    * Represents information about a directory of interest.
    */
   public static class Directory {
+    @SerializedName("name")
     private String dirName;
+    @SerializedName("type")
     private String dirType;
     
     public void setName(String name) {
@@ -180,9 +186,13 @@ public class AgentEnv {
    * Represents information about running java processes.
    */
   public static class JavaProc {
+    @SerializedName("user")        
     private String user;
+    @SerializedName("pid") 
     private int pid = 0;
+    @SerializedName("hadoop") 
     private boolean is_hadoop = false;
+    @SerializedName("command") 
     private String command;
     
     public void setUser(String user) {
@@ -219,7 +229,9 @@ public class AgentEnv {
   }
   
   public static class Alternative {
+    @SerializedName("name")
     private String altName;
+    @SerializedName("target")
     private String altTarget;
     
     public void setName(String name) {

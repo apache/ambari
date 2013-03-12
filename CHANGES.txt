@@ -822,6 +822,9 @@ Trunk (unreleased changes):
  AMBARI-1547. Fix ambari agent test cases that are failing due to missing
  directory. (mahadev)
 
+ AMBARI-1617. Host check is broken because of changing the serialization from
+ jackson to gson. (mahadev)
+
 AMBARI-1.2.0 branch:
 
  INCOMPATIBLE CHANGES

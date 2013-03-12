@@ -23,7 +23,10 @@ from ambari_agent.ActionQueue import ActionQueue
 from ambari_agent.AmbariConfig import AmbariConfig
 from ambari_agent.FileUtil import getFilePath
 from ambari_agent.UpgradeExecutor import UpgradeExecutor
+from ambari_agent.StackVersionsFileHandler import StackVersionsFileHandler
 import os, errno, time, pprint, tempfile, threading
+import TestStackVersionsFileHandler
+
 from mock.mock import patch, MagicMock, call
 
 class TestActionQueue(TestCase):
@@ -177,6 +180,36 @@ class TestActionQueue(TestCase):
                         'stdout': 'abc',
                         'taskId': 'taskId'}]
     self.assertEquals(result, expected_result)
+
+
+  @patch.object(StackVersionsFileHandler, "read_stack_version")
+  @patch.object(ActionQueue, "stopped")
+  def test_status_command_without_globals_section(self, stopped_method,
+                                                  read_stack_version_method):
+    config = AmbariConfig().getConfig()
+    config.set('agent', 'prefix', TestStackVersionsFileHandler.dummyVersionsFile)
+    queue = ActionQueue(config)
+    statusCommand = {
+      "serviceName" : 'HDFS',
+      "commandType" : "STATUS_COMMAND",
+      "clusterName" : "",
+      "componentName" : "DATANODE",
+      'configurations':{}
+    }
+    queue.stopped = stopped_method
+    stopped_method.side_effect = [False, False, True, True, True]
+    read_stack_version_method.return_value="1.3.0"
+    queue.IDLE_SLEEP_TIME = 0.001
+    queue.put(statusCommand)
+    queue.run()
+    returned_result = queue.resultQueue.get()
+    self.assertEquals(returned_result, ('STATUS_COMMAND',
+                                        {'clusterName': '',
+                                         'componentName': 'DATANODE',
+                                         'msg': '',
+                                         'serviceName': 'HDFS',
+                                         'stackVersion': '1.3.0',
+                                         'status': 'INSTALLED'}))
 
 
 class FakeExecutor():

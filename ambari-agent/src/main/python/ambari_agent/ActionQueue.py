@@ -105,11 +105,15 @@ class ActionQueue(threading.Thread):
             self.resultQueue.put((command['commandType'], entry))
 
         elif command['commandType'] == self.STATUS_COMMAND:
-          cluster = command['clusterName']
-          service = command['serviceName']
-          component = command['componentName']
-          globalConfig = command['configurations']['global']
           try:
+            cluster = command['clusterName']
+            service = command['serviceName']
+            component = command['componentName']
+            configurations = command['configurations']
+            if configurations.has_key('global'):
+              globalConfig = configurations['global']
+            else:
+              globalConfig = {}
             livestatus = LiveStatus(cluster, service, component,
               globalConfig, self.config)
             result = livestatus.build()
