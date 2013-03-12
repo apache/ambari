@@ -19,6 +19,7 @@
 package org.apache.ambari.server.controller.internal;
 
 import org.apache.ambari.server.controller.AmbariManagementController;
+import org.apache.ambari.server.controller.ConfigurationRequest;
 import org.apache.ambari.server.controller.ConfigurationResponse;
 import org.apache.ambari.server.controller.RequestStatusResponse;
 import org.apache.ambari.server.controller.spi.Predicate;
@@ -27,22 +28,16 @@ import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.spi.ResourceProvider;
 import org.apache.ambari.server.controller.utilities.PredicateBuilder;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
+import org.easymock.Capture;
 import org.junit.Assert;
 import org.junit.Test;
 
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
-import static org.easymock.EasyMock.createMock;
-import static org.easymock.EasyMock.createNiceMock;
-import static org.easymock.EasyMock.expect;
-import static org.easymock.EasyMock.replay;
-import static org.easymock.EasyMock.verify;
+import static junit.framework.Assert.assertEquals;
+import static junit.framework.Assert.assertNull;
+import static junit.framework.Assert.assertTrue;
+import static org.easymock.EasyMock.*;
 
 /**
  * Tests for the configuration resource provider.
@@ -95,10 +90,21 @@ public class ConfigurationResourceProviderTest {
     allResponse.add(new ConfigurationResponse("Cluster100", "type", "tag2", null));
     allResponse.add(new ConfigurationResponse("Cluster100", "type", "tag3", null));
 
+    Set<ConfigurationResponse> orResponse = new HashSet<ConfigurationResponse>();
+    orResponse.add(new ConfigurationResponse("Cluster100", "type", "tag1", null));
+    orResponse.add(new ConfigurationResponse("Cluster100", "type", "tag2", null));
+
+    Capture<Set<ConfigurationRequest>> configRequestCapture1 = new Capture<Set<ConfigurationRequest>>();
+    Capture<Set<ConfigurationRequest>> configRequestCapture2 = new Capture<Set<ConfigurationRequest>>();
+
     // set expectations
+    //equals predicate
     expect(managementController.getConfigurations(
-        AbstractResourceProviderTest.Matcher.getConfigurationRequestSet(
-            "Cluster100", null, null, Collections.<String, String>emptyMap()))).andReturn(allResponse).once();
+        capture(configRequestCapture1))).andReturn(allResponse).once();
+
+    // OR predicate
+    expect(managementController.getConfigurations(
+        capture(configRequestCapture2))).andReturn(orResponse).once();
 
     // replay
     replay(managementController);
@@ -114,28 +120,89 @@ public class ConfigurationResourceProviderTest {
     propertyIds.add(ConfigurationResourceProvider.CONFIGURATION_CLUSTER_NAME_PROPERTY_ID);
     propertyIds.add(ConfigurationResourceProvider.CONFIGURATION_CONFIG_TAG_PROPERTY_ID);
 
+    // equals predicate
     Predicate predicate = new PredicateBuilder().property(
         ConfigurationResourceProvider.CONFIGURATION_CLUSTER_NAME_PROPERTY_ID).equals("Cluster100").toPredicate();
     Request request = PropertyHelper.getReadRequest(propertyIds);
     Set<Resource> resources = provider.getResources(request, predicate);
 
+    Set<ConfigurationRequest> setRequest = configRequestCapture1.getValue();
+    assertEquals(1, setRequest.size());
+    ConfigurationRequest configRequest = setRequest.iterator().next();
+    assertEquals("Cluster100", configRequest.getClusterName());
+    assertNull(configRequest.getType());
+    assertNull(configRequest.getVersionTag());
+
     Assert.assertEquals(3, resources.size());
-    Set<String> tags = new HashSet<String>();
+    boolean containsResource1 = false;
+    boolean containsResource2 = false;
+    boolean containsResource3 = false;
+
     for (Resource resource : resources) {
       String clusterName = (String) resource.getPropertyValue(
           ConfigurationResourceProvider.CONFIGURATION_CLUSTER_NAME_PROPERTY_ID);
       Assert.assertEquals("Cluster100", clusterName);
-      tags.add((String) resource.getPropertyValue(
-          ConfigurationResourceProvider.CONFIGURATION_CONFIG_TAG_PROPERTY_ID));
+      String tag = (String) resource.getPropertyValue(
+          ConfigurationResourceProvider.CONFIGURATION_CONFIG_TAG_PROPERTY_ID);
+
+      if (tag.equals("tag1")) {
+        containsResource1 = true;
+      } else if (tag.equals("tag2")) {
+        containsResource2 = true;
+      } else if (tag.equals("tag3")) {
+        containsResource3 = true;
+      }
     }
-    // Make sure that all of the response objects got moved into resources
-    for (ConfigurationResponse response : allResponse ) {
-      Assert.assertTrue(tags.contains(response.getVersionTag()));
+    assertTrue(containsResource1);
+    assertTrue(containsResource2);
+    assertTrue(containsResource3);
+
+    // OR predicate
+    predicate = new PredicateBuilder().property(
+        ConfigurationResourceProvider.CONFIGURATION_CONFIG_TAG_PROPERTY_ID).equals("tag1").or().
+        property(ConfigurationResourceProvider.CONFIGURATION_CONFIG_TAG_PROPERTY_ID).equals("tag2").toPredicate();
+
+    request = PropertyHelper.getReadRequest(propertyIds);
+    resources = provider.getResources(request, predicate);
+
+    setRequest = configRequestCapture2.getValue();
+    assertEquals(2, setRequest.size());
+    boolean containsTag1 = false;
+    boolean containsTag2 = false;
+    for (Iterator<ConfigurationRequest> iter = setRequest.iterator(); iter.hasNext(); ) {
+      ConfigurationRequest cr = iter.next();
+      assertNull(cr.getClusterName());
+      if (cr.getVersionTag().equals("tag1")) {
+        containsTag1 = true;
+      } else if (cr.getVersionTag().equals("tag2")) {
+        containsTag2 = true;
+      }
     }
+    assertTrue(containsTag1);
+    assertTrue(containsTag2);
+
+    Assert.assertEquals(2, resources.size());
+    containsResource1 = false;
+    containsResource2 = false;
+
+    for (Resource resource : resources) {
+      String clusterName = (String) resource.getPropertyValue(
+          ConfigurationResourceProvider.CONFIGURATION_CLUSTER_NAME_PROPERTY_ID);
+      Assert.assertEquals("Cluster100", clusterName);
+      String tag = (String) resource.getPropertyValue(
+          ConfigurationResourceProvider.CONFIGURATION_CONFIG_TAG_PROPERTY_ID);
+
+      if (tag.equals("tag1")) {
+        containsResource1 = true;
+      } else if (tag.equals("tag2")) {
+        containsResource2 = true;
+      }
+    }
+    assertTrue(containsResource1);
+    assertTrue(containsResource2);
 
     // verify
     verify(managementController);
-
   }
 
   @Test

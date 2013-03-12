@@ -169,7 +169,7 @@ public abstract class AbstractResourceProvider extends BaseProvider implements R
   protected Set<Map<String, Object>> getPropertyMaps(Predicate givenPredicate)
     throws UnsupportedPropertyException, SystemException, NoSuchResourceException, NoSuchParentResourceException {
 
-    SimplifyingPredicateVisitor visitor = new SimplifyingPredicateVisitor(getPropertyIds());
+    SimplifyingPredicateVisitor visitor = new SimplifyingPredicateVisitor(this);
     PredicateHelper.visit(givenPredicate, visitor);
     List<BasePredicate> predicates = visitor.getSimplifiedPredicates();
 
@@ -188,12 +188,11 @@ public abstract class AbstractResourceProvider extends BaseProvider implements R
    * the single property map & predicate can result in multiple backend requests.
    *
    * @param requestPropertyMap  the request properties (for update)
-   * @param givenPredicate           the predicate
+   * @param givenPredicate      the predicate
    *
    * @return the set of properties used to build request objects
    */
-  protected Set<Map<String, Object>> getPropertyMaps(Map<String, Object> requestPropertyMap,
-                                                         Predicate givenPredicate)
+  protected Set<Map<String, Object>> getPropertyMaps(Map<String, Object> requestPropertyMap, Predicate givenPredicate)
       throws UnsupportedPropertyException, SystemException, NoSuchResourceException, NoSuchParentResourceException {
 
     Set<Map<String, Object>> propertyMaps = new HashSet<Map<String, Object>>();

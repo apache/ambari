@@ -841,6 +841,9 @@ AMBARI-1.2.0 branch:
 
  BUG FIXES
 
+ AMBARI-1613.  ConfigurationResourceProvider doesn't properly handle OR
+               predicate. (jspeidel) 
+
  AMBARI-1179. ambari-web does not compile due to less-brunch package update.
  (yusaku)
 

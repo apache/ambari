@@ -28,12 +28,12 @@ import org.apache.ambari.server.controller.predicate.EqualsPredicate;
 import org.apache.ambari.server.controller.predicate.OrPredicate;
 import org.apache.ambari.server.controller.predicate.PredicateVisitor;
 import org.apache.ambari.server.controller.predicate.UnaryPredicate;
+import org.apache.ambari.server.controller.spi.ResourceProvider;
 
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Set;
 
 /**
  * A predicate visitor used to simplify by doing the following ...
@@ -58,14 +58,31 @@ import java.util.Set;
  * down the line if required.
  */
 public class SimplifyingPredicateVisitor implements PredicateVisitor {
+  /**
+   * Associated resource provider.
+   */
+  private ResourceProvider resourceProvider;
 
-  private final Set<String> supportedProperties;
+  /**
+   * The last visited predicate.
+   */
   private BasePredicate lastVisited = null;
 
-  public SimplifyingPredicateVisitor(Set<String> supportedProperties) {
-    this.supportedProperties = supportedProperties;
+
+  /**
+   * Constructor.
+   *
+   * @param provider  associated resource provider
+   */
+  public SimplifyingPredicateVisitor(ResourceProvider provider) {
+    resourceProvider = provider;
   }
 
+  /**
+   * Obtain a list of simplified predicates based on the rules described in the class documentation.
+   *
+   * @return a list of simplified predicates
+   */
   public List<BasePredicate> getSimplifiedPredicates() {
     if (lastVisited == null) {
       return Collections.emptyList();
@@ -79,7 +96,7 @@ public class SimplifyingPredicateVisitor implements PredicateVisitor {
   @Override
   public void acceptComparisonPredicate(ComparisonPredicate predicate) {
     if (predicate instanceof EqualsPredicate &&
-        supportedProperties.contains(predicate.getPropertyId())) {
+        resourceProvider.checkPropertyIds(Collections.singleton(predicate.getPropertyId())).isEmpty()) {
       lastVisited = predicate;
     }
     else {

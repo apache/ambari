@@ -22,7 +22,6 @@ import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.ConfigurationRequest;
 import org.apache.ambari.server.controller.ConfigurationResponse;
-import org.apache.ambari.server.controller.ServiceComponentHostRequest;
 import org.apache.ambari.server.controller.spi.NoSuchParentResourceException;
 import org.apache.ambari.server.controller.spi.NoSuchResourceException;
 import org.apache.ambari.server.controller.spi.Predicate;
@@ -32,11 +31,9 @@ import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.spi.ResourceAlreadyExistsException;
 import org.apache.ambari.server.controller.spi.SystemException;
 import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
-import org.apache.ambari.server.controller.utilities.PredicateHelper;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
 
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -56,8 +53,6 @@ class ConfigurationResourceProvider extends AbstractResourceProvider {
   protected static final String CONFIGURATION_CONFIG_TYPE_PROPERTY_ID  = PropertyHelper.getPropertyId(null, "type");
   protected static final String CONFIGURATION_CONFIG_TAG_PROPERTY_ID   = PropertyHelper.getPropertyId(null, "tag");
 
-  private static final String CONFIG_HOST_NAME      = PropertyHelper.getPropertyId("Config", "host_name");
-  private static final String CONFIG_COMPONENT_NAME = PropertyHelper.getPropertyId("Config", "component_name");
 
   /**
    * The primary key property ids for the configuration resource type.
@@ -95,7 +90,6 @@ class ConfigurationResourceProvider extends AbstractResourceProvider {
              NoSuchParentResourceException {
 
     for (Map<String, Object> map : request.getProperties()) {
-
       String cluster = (String) map.get(CONFIGURATION_CLUSTER_NAME_PROPERTY_ID);
       String type = (String) map.get(CONFIGURATION_CONFIG_TYPE_PROPERTY_ID);
       String tag  = (String) map.get(CONFIGURATION_CONFIG_TAG_PROPERTY_ID);
@@ -126,70 +120,38 @@ class ConfigurationResourceProvider extends AbstractResourceProvider {
   @Override
   public Set<Resource> getResources(Request request, Predicate predicate)
     throws SystemException, UnsupportedPropertyException, NoSuchResourceException, NoSuchParentResourceException {
-    Map<String, Object> map = PredicateHelper.getProperties(predicate);
-    
-    if (map.containsKey(CONFIG_HOST_NAME) && map.containsKey(CONFIG_COMPONENT_NAME)) {
-      final ServiceComponentHostRequest hostComponentRequest = new ServiceComponentHostRequest(
-          (String) map.get(CONFIGURATION_CLUSTER_NAME_PROPERTY_ID),
-          null,
-          (String) map.get(CONFIG_COMPONENT_NAME),
-          (String) map.get(CONFIG_HOST_NAME),
-          null, null);
-      
-      Map<String, String> mappints = getResources(new Command<Map<String, String>>() {
-        @Override
-        public Map<String, String> invoke() throws AmbariException {
-          return getManagementController().getHostComponentDesiredConfigMapping(hostComponentRequest);
-        }
-      });
 
-      Set<Resource> resources = new HashSet<Resource>();
-      
-      for (Entry<String, String> entry : mappints.entrySet()) {
-      
-        Resource resource = new ResourceImpl(Resource.Type.Configuration);
-        
-        resource.setProperty(CONFIGURATION_CLUSTER_NAME_PROPERTY_ID, map.get(CONFIGURATION_CLUSTER_NAME_PROPERTY_ID));
-        resource.setProperty(CONFIG_COMPONENT_NAME, map.get(CONFIG_COMPONENT_NAME));
-        resource.setProperty(CONFIG_HOST_NAME, map.get(CONFIG_HOST_NAME));
+    final Set<ConfigurationRequest> requests = new HashSet<ConfigurationRequest>();
 
-        resource.setProperty(CONFIGURATION_CONFIG_TYPE_PROPERTY_ID, entry.getKey());
-        resource.setProperty(CONFIGURATION_CONFIG_TAG_PROPERTY_ID, entry.getValue());
-        
-        resources.add(resource);
-      }
-      return resources;
-      
-    } else {
-      // TODO : handle multiple requests
-      final ConfigurationRequest configRequest = getRequest(map);
-      
-      Set<ConfigurationResponse> responses = getResources(new Command<Set<ConfigurationResponse>>() {
-        @Override
-        public Set<ConfigurationResponse> invoke() throws AmbariException {
-          return getManagementController().getConfigurations(Collections.singleton(configRequest));
-        }
-      });
-
-      Set<Resource> resources = new HashSet<Resource>();
-      for (ConfigurationResponse response : responses) {
-        Resource resource = new ResourceImpl(Resource.Type.Configuration);
-        resource.setProperty(CONFIGURATION_CLUSTER_NAME_PROPERTY_ID, response.getClusterName());
-        resource.setProperty(CONFIGURATION_CONFIG_TYPE_PROPERTY_ID, response.getType());
-        resource.setProperty(CONFIGURATION_CONFIG_TAG_PROPERTY_ID, response.getVersionTag());
-        
-        if (null != response.getConfigs() && response.getConfigs().size() > 0) {
-          Map<String, String> configs = response.getConfigs();
-
-          for (Entry<String, String> entry : configs.entrySet()) {
-            String id = PropertyHelper.getPropertyId("properties", entry.getKey());
-            resource.setProperty(id, entry.getValue());
-          }
-        }
-        resources.add(resource);
-      }
-      return resources;
+    for (Map<String, Object> propertyMap : getPropertyMaps(predicate)) {
+      requests.add(getRequest(propertyMap));
     }
+
+    Set<ConfigurationResponse> responses = getResources(new Command<Set<ConfigurationResponse>>() {
+      @Override
+      public Set<ConfigurationResponse> invoke() throws AmbariException {
+        return getManagementController().getConfigurations(requests);
+      }
+    });
+
+    Set<Resource> resources = new HashSet<Resource>();
+    for (ConfigurationResponse response : responses) {
+      Resource resource = new ResourceImpl(Resource.Type.Configuration);
+      resource.setProperty(CONFIGURATION_CLUSTER_NAME_PROPERTY_ID, response.getClusterName());
+      resource.setProperty(CONFIGURATION_CONFIG_TYPE_PROPERTY_ID, response.getType());
+      resource.setProperty(CONFIGURATION_CONFIG_TAG_PROPERTY_ID, response.getVersionTag());
+
+      if (null != response.getConfigs() && response.getConfigs().size() > 0) {
+        Map<String, String> configs = response.getConfigs();
+
+        for (Entry<String, String> entry : configs.entrySet()) {
+          String id = PropertyHelper.getPropertyId("properties", entry.getKey());
+          resource.setProperty(id, entry.getValue());
+        }
+      }
+      resources.add(resource);
+    }
+    return resources;
   }
 
   /**

@@ -22,13 +22,23 @@ import org.apache.ambari.server.controller.predicate.AndPredicate;
 import org.apache.ambari.server.controller.predicate.BasePredicate;
 import org.apache.ambari.server.controller.predicate.CategoryIsEmptyPredicate;
 import org.apache.ambari.server.controller.predicate.OrPredicate;
+import org.apache.ambari.server.controller.spi.ResourceProvider;
 import org.apache.ambari.server.controller.utilities.PredicateBuilder;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
+import org.easymock.Capture;
 import org.junit.Test;
 
-import java.util.HashSet;
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
+
+import static junit.framework.Assert.assertEquals;
+import static org.easymock.EasyMock.capture;
+import static org.easymock.EasyMock.createStrictMock;
+import static org.easymock.EasyMock.expect;
+import static org.easymock.EasyMock.replay;
+import static org.easymock.EasyMock.reset;
+import static org.easymock.EasyMock.verify;
 
 /**
  * Tests for SimplifyingPredicateVisitor
@@ -59,12 +69,17 @@ public class SimplifyingPredicateVisitorTest {
 
   @Test
   public void testVisit() {
-    Set<String> supportedProperties = new HashSet<String>();
-    supportedProperties.add(PROPERTY_A);
-    supportedProperties.add(PROPERTY_B);
-    supportedProperties.add(PROPERTY_C);
 
-    SimplifyingPredicateVisitor visitor = new SimplifyingPredicateVisitor(supportedProperties);
+    ResourceProvider provider = createStrictMock(ResourceProvider.class);
+    Capture<Set<String>> propertiesCapture = new Capture<Set<String>>();
+
+    SimplifyingPredicateVisitor visitor = new SimplifyingPredicateVisitor(provider);
+
+    //expectations
+
+    expect(provider.checkPropertyIds(capture(propertiesCapture))).andReturn(Collections.<String>emptySet()).anyTimes();
+
+    replay(provider);
 
     PREDICATE_1.accept(visitor);
 
@@ -72,7 +87,10 @@ public class SimplifyingPredicateVisitorTest {
 
     Assert.assertEquals(1, simplifiedPredicates.size());
     Assert.assertEquals(PREDICATE_1, simplifiedPredicates.get(0));
-
+    Set<String> setProps = propertiesCapture.getValue();
+    assertEquals(1, setProps.size());
+    assertEquals(PROPERTY_A, setProps.iterator().next());
+    // ---
     PREDICATE_3.accept(visitor);
 
     simplifiedPredicates = visitor.getSimplifiedPredicates();
@@ -80,7 +98,7 @@ public class SimplifyingPredicateVisitorTest {
     Assert.assertEquals(1, simplifiedPredicates.size());
     Assert.assertEquals(PREDICATE_3, simplifiedPredicates.get(0));
 
-
+    // ---
     PREDICATE_4.accept(visitor);
 
     simplifiedPredicates = visitor.getSimplifiedPredicates();
@@ -89,6 +107,7 @@ public class SimplifyingPredicateVisitorTest {
     Assert.assertEquals(PREDICATE_1, simplifiedPredicates.get(0));
     Assert.assertEquals(PREDICATE_2, simplifiedPredicates.get(1));
 
+    // ---
     PREDICATE_6.accept(visitor);
 
     simplifiedPredicates = visitor.getSimplifiedPredicates();
@@ -98,6 +117,7 @@ public class SimplifyingPredicateVisitorTest {
     Assert.assertEquals(PREDICATE_1, simplifiedPredicates.get(1));
     Assert.assertEquals(PREDICATE_2, simplifiedPredicates.get(2));
 
+    // ---
     PREDICATE_8.accept(visitor);
 
     simplifiedPredicates = visitor.getSimplifiedPredicates();
@@ -108,6 +128,7 @@ public class SimplifyingPredicateVisitorTest {
     Assert.assertEquals(PREDICATE_2, simplifiedPredicates.get(2));
     Assert.assertEquals(PREDICATE_7, simplifiedPredicates.get(3));
 
+    // ---
     PREDICATE_9.accept(visitor);
 
     simplifiedPredicates = visitor.getSimplifiedPredicates();
@@ -115,6 +136,7 @@ public class SimplifyingPredicateVisitorTest {
     Assert.assertEquals(4, simplifiedPredicates.size());
 //    Assert.assertEquals(???, simplifiedPredicates.get(0));
 
+    // ---
     PREDICATE_11.accept(visitor);
 
     simplifiedPredicates = visitor.getSimplifiedPredicates();
@@ -122,6 +144,22 @@ public class SimplifyingPredicateVisitorTest {
     Assert.assertEquals(4, simplifiedPredicates.size());
 //    Assert.assertEquals(???, simplifiedPredicates.get(0));
 
+    // ---
+    PREDICATE_16.accept(visitor);
+
+    simplifiedPredicates = visitor.getSimplifiedPredicates();
+
+    Assert.assertEquals(1, simplifiedPredicates.size());
+    Assert.assertEquals(PREDICATE_16, simplifiedPredicates.get(0));
+
+    //reset assertions.  For property D, indicate that it is not supported.
+    verify(provider);
+    reset(provider);
+    expect(provider.checkPropertyIds(capture(propertiesCapture))).andReturn(Collections.<String>emptySet());
+    expect(provider.checkPropertyIds(capture(propertiesCapture))).andReturn(Collections.<String>singleton(PROPERTY_D));
+    replay(provider);
+
+    // ---
     PREDICATE_13.accept(visitor);
 
     simplifiedPredicates = visitor.getSimplifiedPredicates();
@@ -129,6 +167,12 @@ public class SimplifyingPredicateVisitorTest {
     Assert.assertEquals(1, simplifiedPredicates.size());
     Assert.assertEquals(PREDICATE_1, simplifiedPredicates.get(0));
 
+    verify(provider);
+    reset(provider);
+    expect(provider.checkPropertyIds(capture(propertiesCapture))).andReturn(Collections.<String>emptySet()).anyTimes();
+    replay(provider);
+
+    // ---
     PREDICATE_15.accept(visitor);
 
     simplifiedPredicates = visitor.getSimplifiedPredicates();
@@ -136,11 +180,6 @@ public class SimplifyingPredicateVisitorTest {
     Assert.assertEquals(1, simplifiedPredicates.size());
     Assert.assertEquals(PREDICATE_1, simplifiedPredicates.get(0));
 
-    PREDICATE_16.accept(visitor);
-
-    simplifiedPredicates = visitor.getSimplifiedPredicates();
-
-    Assert.assertEquals(1, simplifiedPredicates.size());
-    Assert.assertEquals(PREDICATE_16, simplifiedPredicates.get(0));
+    verify(provider);
   }
 }
