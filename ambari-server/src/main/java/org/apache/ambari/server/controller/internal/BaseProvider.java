@@ -75,25 +75,25 @@ public abstract class BaseProvider {
 
   // ----- BaseProvider --------------------------------------------------
   /**
-   * Checks for properties ids that are not recognized to the provider.
+   * Checks for property ids that are not recognized by the provider.
    * @param base  the base set of properties
    * @param configCategory  the config category that would have a <code>desired_config</code> element.
    * @return the set of properties that are NOT known to the provider
    */
   protected Set<String> checkConfigPropertyIds(Set<String> base, String configCategory) {
-    
+
     if (0 == base.size())
       return base;
-    
+
     Set<String> unsupported = new HashSet<String>();
-    
+
     for (String propertyId : base)
     {
-      if (!propertyId.startsWith (configCategory + ".desired_config"))
+      if (!propertyId.startsWith(configCategory + "/desired_config"))
         unsupported.add(propertyId);
     }
-    
-    return unsupported;    
+
+    return unsupported;
   }
 
   public Set<String> checkPropertyIds(Set<String> propertyIds) {

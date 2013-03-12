@@ -371,7 +371,7 @@ public abstract class AbstractResourceProvider extends BaseProvider implements R
         throw new IllegalArgumentException("Unknown type " + type);
     }
   }
-  
+
   /**
    * Helper method to get a configuration request, if one exists.
    * @param parentCategory  the parent category name.  Checks for a property
@@ -379,25 +379,25 @@ public abstract class AbstractResourceProvider extends BaseProvider implements R
    * @param properties  the properties on the request.
    */
   protected ConfigurationRequest getConfigurationRequest(String parentCategory, Map<String, Object> properties) {
-    
+
     ConfigurationRequest config = null;
-    
+
     // as a convenience, allow consumers to specify name/value overrides in this
     // call instead of forcing a cluster call to do that work
     for (Entry<String, Object> entry : properties.entrySet()) {
       String absCategory = PropertyHelper.getPropertyCategory(entry.getKey());
       String propName = PropertyHelper.getPropertyName(entry.getKey());
-      
-      if (absCategory.startsWith(parentCategory + ".desired_config")) {
+
+      if (absCategory.startsWith(parentCategory + "/desired_config")) {
         config = (null == config) ? new ConfigurationRequest() : config;
-        
+
         if (propName.equals("type"))
           config.setType(entry.getValue().toString());
         else if (propName.equals("tag"))
           config.setVersionTag(entry.getValue().toString());
         else if (propName.equals("service_name"))
           config.setServiceName(entry.getValue().toString());
-        else if (absCategory.endsWith(".properties")) {
+        else if (absCategory.endsWith("/properties")) {
           config.getProperties().put(propName, entry.getValue().toString());
         }
       }
