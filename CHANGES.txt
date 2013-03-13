@@ -12,6 +12,9 @@ Trunk (unreleased changes):
 
  NEW FEATURES
 
+ AMBARI-1618. HDFS Mirroring: Create Mapper, Model, Mock Data for Cluster.
+ (Arun Kandregula via yusaku)
+
  AMBARI-1607. HDFS Mirroring: Create Mapper, Model and Mock Data.
  (Arun Kandregula via yusaku)
 

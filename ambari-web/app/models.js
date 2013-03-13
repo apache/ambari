@@ -41,6 +41,7 @@ require('models/run');
 require('models/app');
 require('models/background_operation');
 require('models/host_component');
+require('models/target_cluster');
 require('models/dataset');
 require('models/dataset_job');
 require('classes/run_class');

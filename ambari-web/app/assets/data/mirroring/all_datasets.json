@@ -80,9 +80,9 @@
             "id":"99",
             "cluster":"drtarget1",
             "sourceCluster":"drsource",
-            "status":"RUNNING",
-            "start":"2013-03-06T03:17Z",
-            "end":"2013-03-06T03:19Z",
+            "status":"FAILED",
+            "start":"2013-01-01T03:17Z",
+            "end":"2013-01-01T03:19Z",
             "details":"",
             "log":""
           }
@@ -93,9 +93,35 @@
             "id":"95",
             "cluster":"drtarget1",
             "sourceCluster":"drsource",
-            "status":"RUNNING",
-            "start":"2013-03-06T03:17Z",
-            "end":"2013-03-06T03:19Z",
+            "status":"FAILED",
+            "start":"2012-03-06T03:17Z",
+            "end":"2012-03-06T03:19Z",
+            "details":"",
+            "log":""
+          }
+        },
+        {
+          "href":"http://ec2...com:8080/api/v1/feeds/feed1/instances/95",
+          "Instances":{
+            "id":"90",
+            "cluster":"drtarget1",
+            "sourceCluster":"drsource",
+            "status":"SUCCESSFUL",
+            "start":"2012-03-06T03:17Z",
+            "end":"2012-03-06T03:19Z",
+            "details":"",
+            "log":""
+          }
+        },
+        {
+          "href":"http://ec2...com:8080/api/v1/feeds/feed1/instances/95",
+          "Instances":{
+            "id":"91",
+            "cluster":"drtarget1",
+            "sourceCluster":"drsource",
+            "status":"SUCCESSFUL",
+            "start":"2013-03-11T03:17Z",
+            "end":"2013-03-11T03:19Z",
             "details":"",
             "log":""
           }

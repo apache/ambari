@@ -20,22 +20,21 @@
 var App = require('app');
 
 App.DataSetJob = DS.Model.extend({
- // dataSet: DS.belongsTo('App.DataSet'),
+  dataset: DS.belongsTo('App.DataSet'),
   startDate: DS.attr('string'),
   endDate: DS.attr('string'),
-  duration : DS.attr('string')
+  duration: DS.attr('string')
   //data : DS.attr('string')
 });
 
 
-
 App.DataSetJob.FIXTURES = [/*
-  {
-    id: 1,
-    cluster_name: 'cluster1',
-    stack_name: 'HDP',
-    hosts: [1, 2, 3, 4],
-    racks: [1, 2, 3, 4, 5, 6],
-    max_hosts_per_rack: 10
-  }*/
+ {
+ id: 1,
+ cluster_name: 'cluster1',
+ stack_name: 'HDP',
+ hosts: [1, 2, 3, 4],
+ racks: [1, 2, 3, 4, 5, 6],
+ max_hosts_per_rack: 10
+ }*/
 ];

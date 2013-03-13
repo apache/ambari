@@ -19,25 +19,15 @@
 
 var App = require('app');
 
-App.DataSet = DS.Model.extend({
+App.TargetCluster = DS.Model.extend({
   id: DS.attr('string'),
-  name: DS.attr('string'),
-  sourceClusterName: DS.attr('string'),
-  targetClusterName: DS.attr('string'),
-  sourceDir: DS.attr('string'),
-  targetDir: DS.attr('string'),
-  schedule: DS.attr('string'),
-  lastSucceededDate: DS.attr('string'),
-  lastFailedDate: DS.attr('date'),
-  lastDuration: DS.attr('string'),
-  avgData: DS.attr('string'),
-  createdDate: DS.attr('string'),
-  datasetJobs: DS.hasMany('App.DataSetJob')
-
+  clusterName: DS.attr('string'),
+  nameNodeWebUrl: DS.attr('string'),
+  nameNodeRpcUrl: DS.attr('string'),
+  oozieServerUrl: DS.hasMany('string')
 });
 
-
-App.DataSet.FIXTURES = [/*
+App.TargetCluster.FIXTURES = [/*
  {
  id: 1,
  cluster_name: 'cluster1',
