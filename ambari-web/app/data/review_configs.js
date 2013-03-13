@@ -97,7 +97,7 @@ module.exports = [
             component_value: ''
           }),
           Ember.Object.create({
-            display_name: 'Region Servers',
+            display_name: 'RegionServers',
             component_value: ''
           })
         ]

@@ -120,8 +120,8 @@ module.exports =
     {
       "id": "puppet var",
       "name": "hbase_regionserver_heapsize",
-      "displayName": "HBase Region Servers maximum Java heap size",
-      "description": "Maximum Java heap size for HBase Region Servers (Java option -Xmx)",
+      "displayName": "HBase RegionServers maximum Java heap size",
+      "description": "Maximum Java heap size for HBase RegionServers (Java option -Xmx)",
       "defaultValue": "1024",
       "displayType": "int",
       "unit": "MB",
@@ -180,7 +180,7 @@ module.exports =
     {
       "id": "puppet var",
       "name": "regionserver_handlers",
-      "displayName": "HBase Region Server Handler",
+      "displayName": "HBase RegionServer Handler",
       "description": "Count of RPC Listener instances spun up on RegionServers",
       "defaultValue": "30",
       "displayType": "int",

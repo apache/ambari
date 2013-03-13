@@ -37,7 +37,7 @@ module.exports = new Ember.Set([
   {
     service_name: 'HDFS',
     component_name: 'DATANODE',
-    display_name: 'Datanode',
+    display_name: 'DataNode',
     isMaster: false,
     isClient: false,
     description: 'The slave for HDFS'
@@ -101,7 +101,7 @@ module.exports = new Ember.Set([
   {
     service_name: 'HBASE',
     component_name: 'HBASE_REGIONSERVER',
-    display_name: 'HBase Region Server',
+    display_name: 'RegionServer',
     isMaster: false,
     isClient: false,
     description: 'The slave for HBase'
