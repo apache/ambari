@@ -1,0 +1,13 @@
+{
+  "href":"http://ec2...com:8080/api/v1/feeds/feed1/instances/99",
+  "Instances":{
+    "id":"99",
+    "cluster":"drtarget1",
+    "sourceCluster":"drsource",
+    "status":"RUNNING",
+    "start":"2013-03-06T03:17Z",
+    "end":"2013-03-06T03:19Z",
+    "details":"",
+    "log":""
+  }
+}

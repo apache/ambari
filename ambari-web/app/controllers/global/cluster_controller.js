@@ -42,7 +42,7 @@ App.ClusterController = Em.Controller.extend({
       }
     }
     this.set('isLoaded', loaded);
-    this.set('clusterDataLoadedPercent', 'width:' + (Math.floor(numLoaded/6*100)).toString() + '%');
+    this.set('clusterDataLoadedPercent', 'width:' + (Math.floor(numLoaded/7*100)).toString() + '%');
   },
 
   dataLoadList:Em.Object.create({
@@ -51,7 +51,8 @@ App.ClusterController = Em.Controller.extend({
     'cluster':false,
     'racks':false,
     'alerts':false,
-    'users':false
+    'users':false,
+    'datasets':false
   }),
 
   /**
@@ -287,6 +288,17 @@ App.ClusterController = Em.Controller.extend({
     var hostsUrl = this.getUrl('/data/hosts/hosts.json', '/hosts?fields=Hosts/host_name,Hosts/public_host_name,Hosts/disk_info,Hosts/cpu_count,Hosts/total_mem,Hosts/host_status,Hosts/last_heartbeat_time,Hosts/os_arch,Hosts/os_type,Hosts/ip,host_components,metrics/disk,metrics/load/load_one');
     var usersUrl = App.testMode ? '/data/users/users.json' : App.apiPrefix + '/users/?fields=*';
     var racksUrl = "/data/racks/racks.json";
+    var dataSetUrl = "/data/mirroring/all_datasets.json";
+
+    debugger;
+
+    App.HttpClient.get(dataSetUrl, App.dataSetMapper, {
+      complete:function (jqXHR, textStatus) {
+        self.updateLoadStatus('datasets');
+      }
+    }, function (jqXHR, textStatus) {
+      self.updateLoadStatus('datasets');
+    });
 
     App.HttpClient.get(racksUrl, App.racksMapper, {
       complete:function (jqXHR, textStatus) {

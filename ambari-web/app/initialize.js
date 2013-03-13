@@ -44,7 +44,7 @@ require('mappers/racks_mapper');
 require('mappers/alerts_mapper');
 require('mappers/users_mapper');
 require('mappers/service_mapper');
-
+require('mappers/dataset_mapper');
 require('utils/http_client');
 require('utils/host_progress_popup');
 
