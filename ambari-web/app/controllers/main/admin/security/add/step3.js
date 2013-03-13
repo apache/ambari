@@ -28,6 +28,9 @@ App.MainAdminSecurityAddStep3Controller = Em.Controller.extend({
   serviceConfigTags: [],
   globalProperties: [],
   serviceUsersBinding: 'App.router.mainAdminController.serviceUsers',
+  hasHostPopup:true,
+  services:[],
+  serviceTimestamp: null,
 
   clearStep: function () {
     this.get('stages').clear();
@@ -41,6 +44,26 @@ App.MainAdminSecurityAddStep3Controller = Em.Controller.extend({
     this.moveToNextStage();
   },
 
+  updateServices: function () {
+    this.services.clear();
+    var services = this.get("services");
+    this.get("stages").forEach(function(stages){
+      var newService = Ember.Object.create({
+        name:stages.label,
+        hosts:[]
+      });
+      var hostNames = stages.get("polledData").mapProperty('Tasks.host_name').uniq();
+      hostNames.forEach(function(name){
+        newService.hosts.push({
+          name:name,
+          publicName:name,
+          logTasks:stages.polledData
+        });
+      });
+      services.push(newService);
+    });
+    this.set('serviceTimestamp', new Date().getTime());
+  }.observes("stages.@each.polledData"),
 
   loadStages: function () {
     this.get('stages').pushObjects([

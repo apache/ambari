@@ -119,6 +119,8 @@ Trunk (unreleased changes):
 
  IMPROVEMENTS
 
+ AMBARI-1631. Security Wizard - integrate host progress popup. (yusaku)
+
  AMBARI-1604. Refactor wizard classes. (yusaku)
 
  AMBARI-1583. Add unit tests for various Ambari Web components. (yusaku)

@@ -26,7 +26,12 @@ App.MainServiceReconfigureView = Em.View.extend({
 App.StageStatusView = Em.View.extend({
   tagName: 'tr',
   hasStarted: null,
-  classNameBindings: ['faintText']
+  classNameBindings: ['faintText'],
+  showHostPopup:function(event){
+    var serviceName = event.contexts[0];
+    var controller = this.get("controller");
+    App.HostPopup.initPopup(serviceName, controller);
+  }
 });
 
 App.StageSuccessView = Em.View.extend({

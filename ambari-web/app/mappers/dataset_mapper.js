@@ -43,7 +43,6 @@ App.dataSetMapper = App.QuickDataMapper.create({
   },
 
   map:function(json){
-    debugger;
     if(!this.get('model')) {return;}
     if(json && json.items && json.items.length > 0){
       var dataset_results = [];
@@ -65,7 +64,6 @@ App.dataSetMapper = App.QuickDataMapper.create({
           item.data_creation_date ='';
           item.target_dir ='';
 
-          debugger;
           var newitem = this.parseIt(item, this.config);
           dataset_results.push(newitem);
         }catch(ex){

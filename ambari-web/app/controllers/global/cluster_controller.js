@@ -290,7 +290,6 @@ App.ClusterController = Em.Controller.extend({
     var racksUrl = "/data/racks/racks.json";
     var dataSetUrl = "/data/mirroring/all_datasets.json";
 
-    debugger;
 
     App.HttpClient.get(dataSetUrl, App.dataSetMapper, {
       complete:function (jqXHR, textStatus) {
