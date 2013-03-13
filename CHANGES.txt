@@ -119,6 +119,9 @@ Trunk (unreleased changes):
 
  IMPROVEMENTS
 
+ AMBARI-1632. Provide property filtering capability on service config
+ sections. (yusaku)
+
  AMBARI-1631. Security Wizard - integrate host progress popup. (yusaku)
 
  AMBARI-1604. Refactor wizard classes. (yusaku)

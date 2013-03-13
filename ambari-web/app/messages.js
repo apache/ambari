@@ -936,6 +936,10 @@ Em.I18n.translations = {
   'menu.item.services':'Services',
   'menu.item.hosts':'Hosts',
   'menu.item.jobs':'Jobs',
-  'menu.item.admin':'Admin'
+  'menu.item.admin':'Admin',
+
+  'common.combobox.placeholder': 'Filter...',
+  'common.combobox.dropdown.1': 'Modified properties',
+  'common.combobox.dropdown.2': 'Properties needing restart',
 
 };

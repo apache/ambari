@@ -41,10 +41,31 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
   slaveComponentGroups: null,
 
   /**
+   * Filter text will be located here
+   */
+  filter: '',
+
+  /**
+   * Dropdown menu items in filter compbobox
+   */
+  filterColumns: function(){
+    var result = [];
+    for(var i = 1; i<3; i++){
+      result.push(Ember.Object.create({
+        name: this.t('common.combobox.dropdown.' + i),
+        selected: false
+      }));
+    }
+    return result;
+  }.property(),
+
+  /**
    * clear and set properties to default value
    */
   clearStep: function () {
     this.set('dataIsLoaded', false);
+    this.set('filter', '');
+    this.get('filterColumns').setEach('selected', false);
     this.get('stepConfigs').clear();
     this.get('globalConfigs').clear();
     this.get('uiConfigs').clear();
@@ -171,6 +192,9 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
   setServciceConfigs: function () {
     var self = this;
     var url = App.apiPrefix + '/clusters/' + App.router.getClusterName() + '/services/' + this.get('content.serviceName');
+    if(App.testMode){
+      url = '/data/services/hdfs.json';
+    }
     $.ajax({
       type: 'GET',
       url: url,
@@ -362,6 +386,9 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
     var self = this;
     var properties = {};
     var url = App.apiPrefix + '/clusters/' + App.router.getClusterName() + '/configurations/?type=' + sitename + '&tag=' + tagname;
+    if(App.testMode){
+      url = '/data/configuration/' + sitename + '.json';
+    }
     $.ajax({
       type: 'GET',
       url: url,

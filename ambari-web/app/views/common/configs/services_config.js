@@ -28,14 +28,15 @@ App.ServicesConfigView = Em.View.extend({
 
 App.ServiceConfigView = Em.View.extend({
   templateName: require('templates/common/configs/service_config'),
-  onToggleBlock: function (event) {
-    $(document.getElementById(event.context.name)).toggle('blind', 500);
-    event.context.set('isCollapsed', !event.context.get('isCollapsed'));
-  }
+  filter: '', //from template
+  columns: [] //from template
 });
 
 
 App.ServiceConfigsByCategoryView = Ember.View.extend({
+
+  classNames: ['accordion-group', 'common-config-category'],
+  classNameBindings: ['category.name', 'isShowBlock::hidden'],
 
   content: null,
 
@@ -47,15 +48,48 @@ App.ServiceConfigsByCategoryView = Ember.View.extend({
   // default,
   // cacheable )
   categoryConfigs: function () {
-    return this.get('serviceConfigs').filterProperty('category', this.get('category.name'))
-  }.property('serviceConfigs.@each'),
+    return this.get('serviceConfigs').filterProperty('category', this.get('category.name')).filterProperty('isVisible', true);
+  }.property('serviceConfigs.@each').cacheable(),
+
+  /**
+   * Filtered <code>categoryConfigs</code> array. Used to show filtered result
+   */
+  filteredCategoryConfigs: function(){
+    var filter = this.get('parentView.filter').toLowerCase();
+    var isOnlyModified = this.get('parentView.columns').length && this.get('parentView.columns')[0].get('selected');
+    return this.get('categoryConfigs').filter(function(config){
+
+      if(isOnlyModified && !config.get('isNotDefaultValue')){
+        return false;
+      }
+
+      var searchString = config.get('defaultValue') + config.get('description') +
+        config.get('displayName') + config.get('name');
+
+      return searchString.toLowerCase().indexOf(filter) > -1;
+    });
+  }.property('categoryConfigs', 'parentView.filter', 'parentView.columns.@each.selected'),
+
+  /**
+   * Onclick handler for Config Group Header. Used to show/hide block
+   */
+  onToggleBlock: function () {
+    this.$('.accordion-body').toggle('blind', 500);
+    this.set('category.isCollapsed', !this.get('category.isCollapsed'));
+  },
+
+  /**
+   * Should we show config group or not
+   */
+  isShowBlock: function(){
+    return this.get('category.canAddProperty') || this.get('filteredCategoryConfigs').length > 0;
+  }.property('category.canAddProperty', 'filteredCategoryConfigs.length'),
+
   didInsertElement: function () {
-    var elementId = "#" + this.get('category.name');
-    if (this.get('category.name').indexOf('Advanced') != -1) {
-      this.set('category.isCollapsed', true);
-      $(elementId).hide();
-    } else {
-      this.set('category.isCollapsed', false);
+    var isCollapsed = (this.get('category.name').indexOf('Advanced') != -1);
+    this.set('category.isCollapsed', isCollapsed);
+    if(isCollapsed){
+      this.$('.accordion-body').hide();
     }
   },
   childView: App.ServiceConfigsOverridesView,
@@ -351,8 +385,7 @@ App.ServiceConfigsByCategoryView = Ember.View.extend({
         }
       })
     });
-  },
-  layout: Ember.Handlebars.compile('<div {{bindAttr id="view.category.name"}} class="accordion-body collapse in"><div class="accordion-inner">{{yield}}</div></div>')
+  }
 });
 
 App.ServiceConfigTab = Ember.View.extend({

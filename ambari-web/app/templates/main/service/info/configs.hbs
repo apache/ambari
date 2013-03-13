@@ -18,7 +18,11 @@
 
 <div id="serviceConfig">
   {{#if dataIsLoaded}}
-    {{view App.ServiceConfigView}}
+    <div class="pull-right">
+      {{view App.FilterComboboxView filterBinding="controller.filter" columnsBinding="controller.filterColumns" }}
+    </div>
+    <div class="clearfix"></div>
+    {{view App.ServiceConfigView filterBinding="controller.filter" columnsBinding="controller.filterColumns"}}
     {{#if App.isAdmin}}
       <p class="pull-right">
         <!--<input class="btn btn-primary" type="button" value="Save" {{!bindAttr disabled="isSubmitDisabled"}} />-->
