@@ -458,6 +458,8 @@ Trunk (unreleased changes):
 
  BUG FIXES
 
+ AMBARI-1625. Oozie start fails on secure cluster. (swagle)
+
  AMBARI-1592. Fix configuration propagation.
 
  AMBARI-1619. Fix for category path separators.

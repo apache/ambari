@@ -34,6 +34,16 @@ class hdp-oozie::service(
   $pid_file = "${hdp-oozie::params::oozie_pid_dir}/oozie.pid" 
   $jar_location = $hdp::params::hadoop_jar_location
   $ext_js_path = "/usr/share/HDP-oozie/ext.zip"
+
+  $security = $hdp::params::security_enabled
+  $oozie_keytab = $hdp-oozie::params::oozie_service_keytab
+  $oozie_principal = $hdp-oozie::params::oozie_principal
+
+  if ($security == true) {
+    $kinit_if_needed = "${hdp::params::kinit_path_local} -kt ${oozie_keytab} ${oozie_principal}"
+  } else {
+    $kinit_if_needed = "echo 0"
+  }
   
   if ($lzo_enabled == true) {
     $lzo_jar_suffix = "-jars /usr/lib/hadoop/lib/hadoop-lzo-0.5.0.jar"
@@ -46,7 +56,7 @@ class hdp-oozie::service(
   $cmd3 =  "cd /usr/lib/oozie && chown ${user}:${hdp::params::user_group} ${oozie_tmp}"    
   $cmd4 =  "cd ${oozie_tmp} && /usr/lib/oozie/bin/oozie-setup.sh -hadoop 0.20.200 $jar_location -extjs $ext_js_path $lzo_jar_suffix"
   $cmd5 =  "cd ${oozie_tmp} && /usr/lib/oozie/bin/ooziedb.sh create -sqlfile oozie.sql -run ; echo 0"
-  $cmd6 =  "su - ${user} -c 'hadoop dfs -put /usr/lib/oozie/share ${oozie_hdfs_user_dir} ; hadoop dfs -chmod -R 755 ${oozie_hdfs_user_dir}/share'"
+  $cmd6 =  "su - ${user} -c '${kinit_if_needed}; hadoop dfs -put /usr/lib/oozie/share ${oozie_hdfs_user_dir} ; hadoop dfs -chmod -R 755 ${oozie_hdfs_user_dir}/share'"
   #$cmd7 = "/usr/lib/oozie/bin/oozie-start.sh"
 
   if ($ensure == 'installed_and_configured') {
@@ -78,7 +88,7 @@ class hdp-oozie::service(
   } elsif ($ensure == 'running') {
     hdp::exec { "exec $cmd6" :
       command => $cmd6,
-      unless => "hadoop dfs -ls /user/oozie/share | awk 'BEGIN {count=0;} /share/ {count++} END {if (count > 0) {exit 0} else {exit 1}}'"
+      unless => "${kinit_if_needed}; hadoop dfs -ls /user/oozie/share | awk 'BEGIN {count=0;} /share/ {count++} END {if (count > 0) {exit 0} else {exit 1}}'"
     }
     hdp::exec { "exec $start_cmd":
       command => $start_cmd,
