@@ -474,6 +474,9 @@ Trunk (unreleased changes):
 
  BUG FIXES
 
+ AMBARI-1621. Config/Reconfig UI should not allow certain configs to have
+ host-level overrides. (yusaku)
+
  AMBARI-1597. Templeton smoke test fails for secure cluster. (swagle)
 
  AMBARI-1600. Make component naming consistent. (yusaku)
