@@ -1905,6 +1905,7 @@ public class AmbariManagementControllerImpl implements
                   + ", roleCommand=" + roleCommand.name());
             }
 
+            // [ type -> [ key, value ] ]
             Map<String, Map<String, String>> configurations = new TreeMap<String, Map<String,String>>();
 
             // Do not use host component config mappings.  Instead, the rules are:
@@ -1914,30 +1915,34 @@ public class AmbariManagementControllerImpl implements
 
             // since we are dealing with host components in this loop, get the
             // config mappings for the service this host component applies to
-            Service service = cluster.getService(scHost.getServiceName());
-            Map<String, Config> configs = service.getDesiredConfigs();
 
-            for (Config svcConfig : configs.values()) {
-              // 1) use the cluster desired config
-              Config clusterConfig = cluster.getDesiredConfigByType(svcConfig.getType());
+            for (Entry<String, DesiredConfig> entry : cluster.getDesiredConfigs().entrySet()) {
+              String type = entry.getKey();
+              String tag = entry.getValue().getVersion();
+              // 1) start with cluster config
+              Config config = cluster.getConfig(type, tag);
 
-              if (null == clusterConfig)
-                clusterConfig = cluster.getConfig(svcConfig.getType(), svcConfig.getVersionTag());
+              if (null == config)
+                continue;
 
-              Map<String, String> props = new HashMap<String,String>(clusterConfig.getProperties());
+              Map<String, String> props = new HashMap<String, String>(config.getProperties());
 
-              // 2) apply the service overrides, if any
-              props.putAll(svcConfig.getProperties());
+              // 2) apply the service overrides, if any are defined with different tags
+              Service service = cluster.getService(scHost.getServiceName());
+              Config svcConfig = service.getDesiredConfigs().get(type);
+              if (null != svcConfig && !svcConfig.getVersionTag().equals(tag)) {
+                props.putAll(svcConfig.getProperties());
+              }
 
               // 3) apply the host overrides, if any
               Host host = clusters.getHost(scHost.getHostName());
-              DesiredConfig dc = host.getDesiredConfigs(scHost.getClusterId()).get(svcConfig.getType());
+              DesiredConfig dc = host.getDesiredConfigs(scHost.getClusterId()).get(type);
               if (null != dc) {
                 Config hostConfig = cluster.getConfig(svcConfig.getType(), dc.getVersion());
                 props.putAll(hostConfig.getProperties());
               }
 
-              configurations.put(svcConfig.getType(), props);
+              configurations.put(type, props);
             }
 
             // HACK HACK HACK
@@ -1949,6 +1954,7 @@ public class AmbariManagementControllerImpl implements
               }
               configurations.get("global").put("rca_enabled", "false");
             }
+
             createHostAction(cluster, stage, scHost, configurations,
                 roleCommand, requestParameters, event);
           }
