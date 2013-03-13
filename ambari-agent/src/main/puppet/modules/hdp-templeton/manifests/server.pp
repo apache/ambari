@@ -24,6 +24,8 @@ class hdp-templeton::server(
 ) inherits  hdp-templeton::params
 {  
 
+  $templeton_user = $hdp-templeton::params::templeton_user
+
   if ($service_state == 'no_op') { 
   } elsif ($service_state in ['running','stopped','installed_and_configured','uninstalled']) {
   $hdp::params::service_exists['hdp-templeton::server'] = true
@@ -51,6 +53,12 @@ class hdp-templeton::server(
          mode => '0440'
        }
      }
+  }
+
+  if ($security_enabled == true) {
+    $kinit_if_needed = "${hdp::params::kinit_path_local} -kt ${hdp::params::keytab_path}/${templeton_user}.headless.keytab ${templeton_user};"
+  } else {
+    $kinit_if_needed = "echo 0;"
   }
 
   class{ 'hdp-templeton' :
@@ -86,22 +94,25 @@ class hdp-templeton::copy-hdfs-directories($service_state)
 #  }
   hdp-hadoop::hdfs::copyfromlocal { '/usr/lib/hadoop/contrib/streaming/hadoop-streaming*.jar':
    service_state => $service_state,
-   owner => $hdp-templeton::params::templeton_user,
+   owner => $templeton_user,
    mode  => '755',
-   dest_dir => '/apps/webhcat/hadoop-streaming.jar'
+   dest_dir => '/apps/webhcat/hadoop-streaming.jar',
+   kinit_if_needed => $kinit_if_needed
   }
   #TODO: Use ${hdp::params::artifact_dir}/${hdp-templeton::params::pig_tar_name} instead
   hdp-hadoop::hdfs::copyfromlocal { '/usr/share/HDP-webhcat/pig.tar.gz' :
     service_state => $service_state,
-    owner => $hdp-templeton::params::templeton_user,
+    owner => $templeton_user,
     mode  => '755',
-    dest_dir => '/apps/webhcat/pig.tar.gz'
+    dest_dir => '/apps/webhcat/pig.tar.gz',
+    kinit_if_needed => $kinit_if_needed
   }
   #TODO: Use ${hdp::params::artifact_dir}/${hdp-templeton::params::hive_tar_name} instead
   hdp-hadoop::hdfs::copyfromlocal { '/usr/share/HDP-webhcat/hive.tar.gz' :
     service_state => $service_state,
-    owner => $hdp-templeton::params::templeton_user,
+    owner => $templeton_user,
     mode  => '755',
-    dest_dir => '/apps/webhcat/hive.tar.gz'
+    dest_dir => '/apps/webhcat/hive.tar.gz',
+    kinit_if_needed => $kinit_if_needed
   }
 }

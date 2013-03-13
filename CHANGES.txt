@@ -458,6 +458,8 @@ Trunk (unreleased changes):
 
  BUG FIXES
 
+ AMBARI-1597. Templeton smoke test fails for secure cluster. (swagle)
+
  AMBARI-1600. Make component naming consistent. (yusaku)
 
  AMBARI-1625. Oozie start fails on secure cluster. (swagle)

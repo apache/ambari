@@ -56,6 +56,6 @@ class hdp-templeton::params() inherits hdp::params
 
   $templeton_metastore_principal = hdp_default("hadoop/templeton-site/templeton_metastore_principal")
 
-  $keytab_path = hdp_default("hadoop/templeton-site/keytab_path")
+  $keytab_path = $hdp::params::keytab_path
   
 }

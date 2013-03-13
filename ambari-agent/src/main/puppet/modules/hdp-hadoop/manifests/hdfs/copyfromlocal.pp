@@ -25,15 +25,17 @@ define hdp-hadoop::hdfs::copyfromlocal(
   $recursive_chown = false,
   $mode = undef,
   $recursive_chmod = false,
-  $dest_dir = undef 
+  $dest_dir = undef,
+  $kinit_if_needed = undef
 ) 
 {
  
   if ($service_state == 'running') {
     $copy_cmd = "fs -copyFromLocal ${name} ${dest_dir}"
+    ## exec-hadoop does a kinit based on user, but unless does not
     hdp-hadoop::exec-hadoop { $copy_cmd:
       command => $copy_cmd,
-      unless => "hadoop fs -ls ${dest_dir} >/dev/null 2>&1",
+      unless => "${kinit_if_needed} hadoop fs -ls ${dest_dir} >/dev/null 2>&1",
       user => $owner
     }
     if ($owner == unset) {

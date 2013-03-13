@@ -24,6 +24,7 @@ export ttonhost=$1
 export smoke_test_user=$2
 export smoke_user_keytab=$3
 export security_enabled=$4
+export kinit_path_local=$5
 export ttonurl="http://${ttonhost}:50111/templeton/v1"
 
 if [[ $security_enabled == "true" ]]; then
