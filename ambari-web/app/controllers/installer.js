@@ -60,52 +60,11 @@ App.InstallerController = App.WizardController.extend({
   },
 
   /**
-   * Save data, which user filled, to main controller
-   * @param stepController App.WizardStep3Controller
-   */
-  saveConfirmedHosts: function (stepController) {
-    var hostInfo = {};
-    stepController.get('content.hosts').forEach(function (_host) {
-      hostInfo[_host.name] = {
-        name: _host.name,
-        cpu: _host.cpu,
-        memory: _host.memory,
-        disk_info: _host.disk_info,
-        bootStatus: _host.bootStatus,
-        isInstalled: false
-      };
-    });
-    this.set('content.hosts', hostInfo);
-    this.save('hosts');
-  },
-  /**
    * Load confirmed hosts.
    * Will be used at <code>Assign Masters(step5)</code> step
    */
   loadConfirmedHosts: function () {
     this.set('content.hosts', App.db.getHosts() || []);
-  },
-
-  /**
-   * Save data after installation to main controller
-   * @param stepController App.WizardStep9Controller
-   */
-  saveInstalledHosts: function (stepController) {
-    var hosts = stepController.get('hosts');
-    var hostInfo = App.db.getHosts();
-
-    for (var index in hostInfo) {
-      var host = hosts.findProperty('name', hostInfo[index].name);
-      if (host) {
-        hostInfo[index].status = host.status;
-        //tasks should be empty because they loads from the server
-        //hostInfo[index].tasks = host.tasks;
-        hostInfo[index].message = host.message;
-        hostInfo[index].progress = host.progress;
-      }
-    }
-    this.set('content.hosts', hostInfo);
-    this.save('hosts');
   },
 
   /**
@@ -171,50 +130,6 @@ App.InstallerController = App.WizardController.extend({
   },
 
   /**
-   * Save slaveHostComponents to main controller
-   * @param stepController called at the submission of step6
-   */
-  saveSlaveComponentHosts: function (stepController) {
-
-    var hosts = stepController.get('hosts');
-    var headers = stepController.get('headers');
-
-    var formattedHosts = Ember.Object.create();
-    headers.forEach(function(header) {
-      formattedHosts.set(header.get('name'), []);
-    });
-
-    hosts.forEach(function (host) {
-
-      var checkboxes = host.get('checkboxes');
-      headers.forEach(function(header) {
-        var cb = checkboxes.findProperty('title', header.get('label'));
-        if (cb.get('checked')) {
-          formattedHosts.get(header.get('name')).push({
-            hostName: host.hostName,
-            group: 'Default',
-            isInstalled: cb.get('installed')
-          });
-        }
-      });
-    });
-
-    var slaveComponentHosts = [];
-
-    headers.forEach(function(header) {
-      slaveComponentHosts.push({
-        componentName: header.get('name'),
-        displayName: header.get('label').replace(/\s/g, ''),
-        hosts: formattedHosts.get(header.get('name'))
-      });
-    });
-
-    App.db.setSlaveComponentHosts(slaveComponentHosts);
-    console.log('InstallerController.saveSlaveComponentHosts: saved hosts ', slaveComponentHosts);
-    this.set('content.slaveComponentHosts', slaveComponentHosts);
-  },
-
-  /**
    * Load master component hosts data for using in required step controllers
    */
   loadSlaveComponentHosts: function () {
@@ -267,29 +182,6 @@ App.InstallerController = App.WizardController.extend({
 
     App.db.setServiceConfigProperties(serviceConfigProperties);
     this.set('content.serviceConfigProperties', serviceConfigProperties);
-
-    //TODO: Uncomment below code to enable slave Configuration
- /*
-    var slaveConfigProperties = [];
-    stepController.get('stepConfigs').forEach(function (_content) {
-      if (_content.get('configCategories').someProperty('isForSlaveComponent', true)) {
-        var slaveCategory = _content.get('configCategories').findProperty('isForSlaveComponent', true);
-        slaveCategory.get('slaveConfigs.groups').forEach(function (_group) {
-          _group.get('properties').forEach(function (_property) {
-            var displayType = _property.get('displayType');
-            if (displayType === 'directories' || displayType === 'directory') {
-              var value = _property.get('value').trim().split(/\s+/g).join(',');
-              _property.set('value', value);
-            }
-            _property.set('storeValue', _property.get('value'));
-          }, this);
-        }, this);
-        slaveConfigProperties.pushObject(slaveCategory.get('slaveConfigs'));
-      }
-    }, this);
-    App.db.setSlaveProperties(slaveConfigProperties);
-    this.set('content.slaveGroupProperties', slaveConfigProperties);
-    */
   },
 
   /**
@@ -347,9 +239,6 @@ App.InstallerController = App.WizardController.extend({
       case '8':
       case '7':
         this.loadServiceConfigProperties();
-        // loadSlaveGroupProperties depends on loadSlaveComponentHosts; call loadSlaveComponentHosts first
-       // this.loadSlaveComponentHosts();
-       // this.loadSlaveGroupProperties();
       case '6':
         this.loadSlaveComponentHosts();
         this.loadClients();
@@ -367,8 +256,6 @@ App.InstallerController = App.WizardController.extend({
     }
   },
 
-
-
   loadAdvancedConfigs: function () {
     var configs = [];
     App.db.getSelectedServiceNames().forEach(function (_serviceName) {
@@ -383,7 +270,6 @@ App.InstallerController = App.WizardController.extend({
    * Generate serviceProperties save it to localdata
    * called form stepController step6WizardController
    */
-
   loadAdvancedConfig: function (serviceName) {
     var self = this;
     var url = (App.testMode) ? '/data/wizard/stack/hdp/version01/' + serviceName + '.json' : App.apiPrefix + App.get('stackVersionURL') + '/services/' + serviceName; // TODO: get this url from the stack selected by the user in Install Options page

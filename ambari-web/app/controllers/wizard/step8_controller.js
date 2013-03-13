@@ -895,7 +895,7 @@ App.WizardStep8Controller = Em.Controller.extend({
 
   createCluster: function () {
 
-    if (this.get('content.isWizard')) {
+    if (this.get('content.controllerName') !== 'installerController') {
       return false;
     }
 
@@ -1170,22 +1170,19 @@ App.WizardStep8Controller = Em.Controller.extend({
 
   createConfigurations: function () {
     var selectedServices = this.get('selectedServices');
-    if (!this.get('content.isWizard')) {
+    if (this.get('content.controllerName') == 'installerController') {
       this.createConfigSiteForService(this.createGlobalSiteObj());
       // this.createGlobalSitePerSlaveGroup();
       this.createConfigSiteForService(this.createCoreSiteObj());
       this.createConfigSiteForService(this.createHdfsSiteObj());
-      //this.createHdfsSitePerSlaveGroup('HDFS');
     }
     if (selectedServices.someProperty('serviceName', 'MAPREDUCE')) {
       this.createConfigSiteForService(this.createMrSiteObj());
       this.createConfigSiteForService(this.createCapacityScheduler());
-      this.createConfigSiteForService(this.createMapredQueue());
-      //this.createMrSitePerSlaveGroup('MAPREDUCE');
+      this.createConfigSiteForService(this.createMapredQueueAcls());
     }
     if (selectedServices.someProperty('serviceName', 'HBASE')) {
       this.createConfigSiteForService(this.createHbaseSiteObj());
-      //this.createHbaseSitePerSlaveGroup('HBASE');
     }
     if (selectedServices.someProperty('serviceName', 'OOZIE')) {
       this.createConfigSiteForService(this.createOozieSiteObj('OOZIE'));
@@ -1235,34 +1232,6 @@ App.WizardStep8Controller = Em.Controller.extend({
     return {"type": "global", "tag": "version1", "properties": globalSiteProperties};
   },
 
-  createGlobalSitePerSlaveGroup: function () {
-    this.get('slaveComponentConfig.components').forEach(function (_component) {
-      _component.groups.forEach(function (_group) {
-        var globalSiteProperties = {};
-        var properties = _group.properties;
-        properties.forEach(function (_property) {
-          if (!/_hosts?$/.test(_property.name)) {
-            // append "m" to JVM memory options except for hadoop_heapsize
-            if (/_heapsize|_newsize|_maxnewsize$/.test(_property.name) && _property.name !== 'hadoop_heapsize') {
-              globalSiteProperties[_property.name] = _property.value + "m";
-            } else {
-              globalSiteProperties[_property.name] = _property.storeValue;
-            }
-            console.log("STEP8: name of the global property is: " + _property.name);
-            console.log("STEP8: value of the global property is: " + _property.storeValue);
-          }
-        }, this);
-        var config = _group.configVersion.config;
-        for (var index in config) {
-          if (index === 'datanode-global' || index === 'tasktracker-global' || index === 'regionserver-global') {
-            var data = {"type": index, "tag": config[index], "properties": globalSiteProperties};
-            this.createConfigSiteForService(data);
-          }
-        }
-      }, this);
-    }, this);
-  },
-
   createCoreSiteObj: function () {
     var coreSiteObj = this.get('configs').filterProperty('filename', 'core-site.xml');
     var coreSiteProperties = {};
@@ -1294,28 +1263,6 @@ App.WizardStep8Controller = Em.Controller.extend({
     return {"type": "hdfs-site", "tag": "version1", "properties": hdfsProperties };
   },
 
-  createHdfsSitePerSlaveGroup: function (serviceName) {
-    var hdfsSite = this.createHdfsSiteObj();
-    var component = this.get('slaveComponentConfig.components').findProperty('serviceName', serviceName);
-    component.groups.forEach(function (_group) {
-      var siteProperties = hdfsSite.properties;
-      _group.properties.forEach(function (_property) {
-        this.get('configMapping').forEach(function (_config) {
-          if (_config.templateName.contains(_property.name)) {
-            this.get('globals').findProperty('name', _property.name).value = _property.storeValue;
-            var value = this.getGlobConfigValue(_config.templateName, _config.value);
-            if (siteProperties[_config.name]) {
-              siteProperties[_config.name] = value;
-            }
-          }
-        }, this);
-      }, this);
-      var data = {"type": hdfsSite.type, "tag": _group.siteVersion, "properties": siteProperties};
-      console.log("The value of globalConfig is: " + JSON.stringify(siteProperties));
-      this.createConfigSiteForService(data);
-    }, this);
-  },
-
   createMrSiteObj: function () {
     var configs = this.get('configs').filterProperty('filename', 'mapred-site.xml');
     var mrProperties = {};
@@ -1338,7 +1285,7 @@ App.WizardStep8Controller = Em.Controller.extend({
     return {type: 'capacity-scheduler', tag: 'version1', properties: csProperties};
   },
 
-  createMapredQueue: function () {
+  createMapredQueueAcls: function () {
     var configs = this.get('configs').filterProperty('filename', 'mapred-queue-acls.xml');
     var mqProperties = {};
     configs.forEach(function (_configProperty) {
@@ -1349,27 +1296,6 @@ App.WizardStep8Controller = Em.Controller.extend({
     return {type: 'mapred-queue-acls', tag: 'version1', properties: mqProperties};
   },
 
-  createMrSitePerSlaveGroup: function (serviceName) {
-    var mrSite = this.createMrSiteObj();
-    var component = this.get('slaveComponentConfig.components').findProperty('serviceName', serviceName);
-    component.groups.forEach(function (_group) {
-      var siteProperties = mrSite.properties;
-      _group.properties.forEach(function (_property) {
-        this.get('configMapping').forEach(function (_config) {
-          if (_config.templateName.contains(_property.name)) {
-            this.get('globals').findProperty('name', _property.name).value = _property.storeValue;
-            var value = this.getGlobConfigValue(_config.templateName, _config.value);
-            if (siteProperties[_config.name]) {
-              siteProperties[_config.name] = value;
-            }
-          }
-        }, this);
-      }, this);
-      var data = {"type": mrSite.type, "tag": _group.siteVersion, "properties": siteProperties};
-      this.createConfigSiteForService(data);
-    }, this);
-  },
-
   createHbaseSiteObj: function () {
     var configs = this.get('configs').filterProperty('filename', 'hbase-site.xml');
     var hbaseProperties = {};
@@ -1377,27 +1303,6 @@ App.WizardStep8Controller = Em.Controller.extend({
       hbaseProperties[_configProperty.name] = _configProperty.value;
     }, this);
     return {type: 'hbase-site', tag: 'version1', properties: hbaseProperties};
-  },
-
-  createHbaseSitePerSlaveGroup: function (serviceName) {
-    var hbaseSite = this.createHbaseSiteObj();
-    var component = this.get('slaveComponentConfig.components').findProperty('serviceName', serviceName);
-    component.groups.forEach(function (_group) {
-      var siteProperties = hbaseSite.properties;
-      _group.properties.forEach(function (_property) {
-        this.get('configMapping').forEach(function (_config) {
-          if (_config.templateName.contains(_property.name)) {
-            this.get('globals').findProperty('name', _property.name).value = _property.storeValue;
-            var value = this.getGlobConfigValue(_config.templateName, _config.value);
-            if (siteProperties[_config.name]) {
-              siteProperties[_config.name] = value;
-            }
-          }
-        }, this);
-      }, this);
-      var data = {"type": hbaseSite.type, "tag": _group.siteVersion, "properties": siteProperties};
-      this.createConfigSiteForService(data);
-    }, this);
   },
 
   createOozieSiteObj: function (serviceName) {
@@ -1446,36 +1351,6 @@ App.WizardStep8Controller = Em.Controller.extend({
       data: JSON.stringify(data),
       beforeSend: function () {
         console.log("BeforeSend: applyCreatedConfToService for " + service);
-      }
-    });
-  },
-
-  applyCreatedConfToSlaveGroups: function () {
-    this.get('slaveComponentConfig.components').forEach(function (_component) {
-      _component.groups.forEach(function (_group) {
-        var aggregatedHostNames = '';
-        _group.hostNames.forEach(function (_hostName, index) {
-          aggregatedHostNames += 'HostRoles/host_name=' + _hostName;
-          if (index !== _group.hostNames.length - 1) {
-            aggregatedHostNames += '|';
-          }
-        }, this);
-        console.log("The aggregated hostNames value is: " + aggregatedHostNames);
-        this.applyCreatedConfToSlaveGroup(aggregatedHostNames, 'PUT', _group.configVersion, _group.groupName);
-      }, this);
-    }, this);
-  },
-
-  applyCreatedConfToSlaveGroup: function (aggregatedHostNames, httpMethod, data, groupName) {
-    console.log("Inside applyCreatedConfToHost");
-    var url = App.apiPrefix + '/clusters/' + this.get('clusterName') + '/host_components?' + aggregatedHostNames;
-
-    this.ajax({
-      type: httpMethod,
-      url: url,
-      data: JSON.stringify(data),
-      beforeSend: function () {
-        console.log("BeforeSend: applyCreatedConfToSlaveGroup for group: " + groupName);
       }
     });
   },

@@ -50,8 +50,7 @@ App.AddServiceController = App.WizardController.extend({
     masterComponentHosts: null,
     serviceConfigProperties: null,
     advancedServiceConfig: null,
-    controllerName: 'addServiceController',
-    isWizard: true
+    controllerName: 'addServiceController'
   }),
 
   /**
@@ -89,28 +88,6 @@ App.AddServiceController = App.WizardController.extend({
   },
 
   /**
-   * Save data after installation to main controller
-   * @param stepController App.WizardStep9Controller
-   */
-  saveInstalledHosts: function (stepController) {
-    var hosts = stepController.get('hosts');
-    var hostInfo = App.db.getHosts();
-
-    for (var index in hostInfo) {
-      hostInfo[index].status = "pending";
-      var host = hosts.findProperty('name', hostInfo[index].name);
-      if (host) {
-        hostInfo[index].status = host.status;
-        hostInfo[index].message = host.message;
-        hostInfo[index].progress = host.progress;
-      }
-    }
-    this.set('content.hosts', hostInfo);
-    this.save('hosts');
-    console.log('AddServiceController:saveInstalledHosts: save hosts ', hostInfo);
-  },
-
-  /**
    * Load services data from server.
    */
   loadServicesFromServer: function() {
@@ -141,7 +118,7 @@ App.AddServiceController = App.WizardController.extend({
     var serviceNames = servicesInfo.filterProperty('isSelected', true).filterProperty('isDisabled', false).mapProperty('serviceName');
     console.log('selected services ', serviceNames);
 
-    this.set('content.missSlavesStep', !serviceNames.contains('MAPREDUCE') && !serviceNames.contains('HBASE'));
+    this.set('content.skipSlavesStep', !serviceNames.contains('MAPREDUCE') && !serviceNames.contains('HBASE'));
   },
 
   /**
@@ -158,7 +135,7 @@ App.AddServiceController = App.WizardController.extend({
     App.db.setSelectedServiceNames(serviceNames);
     console.log('AddServiceController.selectedServiceNames:', serviceNames);
 
-    this.set('content.missSlavesStep', !serviceNames.contains('MAPREDUCE') && !serviceNames.contains('HBASE'));
+    this.set('content.skipSlavesStep', !serviceNames.contains('MAPREDUCE') && !serviceNames.contains('HBASE'));
   },
 
   /**
@@ -184,7 +161,7 @@ App.AddServiceController = App.WizardController.extend({
     App.db.setMasterComponentHosts(masterComponentHosts);
     this.set('content.masterComponentHosts', masterComponentHosts);
 
-    this.set('content.missMasterStep', this.get('content.masterComponentHosts').everyProperty('isInstalled', true));
+    this.set('content.skipMasterStep', this.get('content.masterComponentHosts').everyProperty('isInstalled', true));
   },
 
   /**
@@ -206,85 +183,7 @@ App.AddServiceController = App.WizardController.extend({
     this.set("content.masterComponentHosts", masterComponentHosts);
     console.log("AddServiceController.loadMasterComponentHosts: loaded hosts ", masterComponentHosts);
 
-    this.set('content.missMasterStep', this.get('content.masterComponentHosts').everyProperty('isInstalled', true));
-  },
-
-  /**
-   * Save slaveHostComponents to main controller
-   * @param stepController
-   */
-  saveSlaveComponentHosts: function (stepController) {
-
-    var hosts = stepController.get('hosts');
-    var isMrSelected = stepController.get('isMrSelected');
-    var isHbSelected = stepController.get('isHbSelected');
-
-    var dataNodeHosts = [];
-    var taskTrackerHosts = [];
-    var regionServerHosts = [];
-    var clientHosts = [];
-
-    hosts.forEach(function (host) {
-
-      if (host.get('isDataNode')) {
-        dataNodeHosts.push({
-          hostName: host.hostName,
-          group: 'Default',
-          isInstalled: host.get('isDataNodeInstalled')
-        });
-      }
-      if (isMrSelected && host.get('isTaskTracker')) {
-        taskTrackerHosts.push({
-          hostName: host.hostName,
-          group: 'Default',
-          isInstalled: host.get('isTaskTrackerInstalled')
-        });
-      }
-      if (isHbSelected && host.get('isRegionServer')) {
-        regionServerHosts.push({
-          hostName: host.hostName,
-          group: 'Default',
-          isInstalled: host.get('isRegionServerInstalled')
-        });
-      }
-      if (host.get('isClient')) {
-        clientHosts.pushObject({
-          hostName: host.hostName,
-          group: 'Default',
-          isInstalled: host.get('isClientInstalled')
-        });
-      }
-    }, this);
-
-    var slaveComponentHosts = [];
-    slaveComponentHosts.push({
-      componentName: 'DATANODE',
-      displayName: 'DataNode',
-      hosts: dataNodeHosts
-    });
-    if (isMrSelected) {
-      slaveComponentHosts.push({
-        componentName: 'TASKTRACKER',
-        displayName: 'TaskTracker',
-        hosts: taskTrackerHosts
-      });
-    }
-    if (isHbSelected) {
-      slaveComponentHosts.push({
-        componentName: 'HBASE_REGIONSERVER',
-        displayName: 'RegionServer',
-        hosts: regionServerHosts
-      });
-    }
-    slaveComponentHosts.pushObject({
-      componentName: 'CLIENT',
-      displayName: 'client',
-      hosts: clientHosts
-    });
-
-    App.db.setSlaveComponentHosts(slaveComponentHosts);
-    console.log('addServiceController.slaveComponentHosts: saved hosts', slaveComponentHosts);
-    this.set('content.slaveComponentHosts', slaveComponentHosts);
+    this.set('content.skipMasterStep', this.get('content.masterComponentHosts').everyProperty('isInstalled', true));
   },
 
   /**
@@ -404,28 +303,6 @@ App.AddServiceController = App.WizardController.extend({
 
     App.db.setServiceConfigProperties(serviceConfigProperties);
     this.set('content.serviceConfigProperties', serviceConfigProperties);
-
-    //TODO: Uncomment below code to enable slave Configuration
-
-    /*var slaveConfigProperties = [];
-    stepController.get('stepConfigs').forEach(function (_content) {
-      if (_content.get('configCategories').someProperty('isForSlaveComponent', true)) {
-        var slaveCategory = _content.get('configCategories').findProperty('isForSlaveComponent', true);
-        slaveCategory.get('slaveConfigs.groups').forEach(function (_group) {
-          _group.get('properties').forEach(function (_property) {
-            var displayType = _property.get('displayType');
-            if (displayType === 'directories' || displayType === 'directory') {
-              var value = _property.get('value').trim().split(/\s+/g).join(',');
-              _property.set('value', value);
-            }
-            _property.set('storeValue', _property.get('value'));
-          }, this);
-        }, this);
-        slaveConfigProperties.pushObject(slaveCategory.get('slaveConfigs'));
-      }
-    }, this);
-    App.db.setSlaveProperties(slaveConfigProperties);
-    this.set('content.slaveGroupProperties', slaveConfigProperties);*/
   },
 
   /**
@@ -444,25 +321,6 @@ App.AddServiceController = App.WizardController.extend({
     var clients = App.db.getClientsForSelectedServices();
     this.set('content.clients', clients);
     console.log("AddServiceController.loadClients: loaded list ", clients);
-  },
-
-  /**
-   * return true if cluster data is loaded and false otherwise
-   */
-  dataLoading: function(){
-    var dfd = $.Deferred();
-    this.connectOutlet('loading');
-    if (App.router.get('clusterController.isLoaded')){
-      dfd.resolve();
-    } else{
-      var interval = setInterval(function(){
-        if (App.router.get('clusterController.isLoaded')){
-          dfd.resolve();
-          clearInterval(interval);
-        }
-      },50);
-    }
-    return dfd.promise();
   },
 
   /**
@@ -529,7 +387,7 @@ App.AddServiceController = App.WizardController.extend({
    */
   loadAdvancedConfig: function (serviceName) {
     var self = this;
-    var url = (App.testMode) ? '/data/wizard/stack/hdp/version01/' + serviceName + '.json' : App.apiPrefix + App.get('stackVersionURL') +'/services/' + serviceName; // TODO: get this url from the stack selected by the user in Install Options page
+    var url = (App.testMode) ? '/data/wizard/stack/hdp/version01/' + serviceName + '.json' : App.apiPrefix + App.get('stackVersionURL') + '/services/' + serviceName; // TODO: get this url from the stack selected by the user in Install Options page
     var method = 'GET';
     $.ajax({
       type: method,

@@ -174,7 +174,7 @@ module.exports = Em.Route.extend({
     },
     back: function(router) {
       var controller = router.get('addHostController');
-      if(!controller.get('content.missMasterStep')) {
+      if(!controller.get('content.skipMasterStep')) {
         router.transitionTo('step2');
       }
       else {
@@ -206,7 +206,7 @@ module.exports = Em.Route.extend({
     },
     back: function(router) {
       var controller = router.get('addHostController');
-      if(!controller.get('content.missMasterStep')) {
+      if(!controller.get('content.skipMasterStep')) {
         router.transitionTo('step2');
       }
       else {

@@ -16,8 +16,6 @@
  * limitations under the License.
  */
 
-
-
 module.exports = new Ember.Set([
   {
     name: '192.168.1.2',

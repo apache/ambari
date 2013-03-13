@@ -51,7 +51,6 @@ App.ReassignMasterController = App.WizardController.extend({
     serviceConfigProperties: null,
     advancedServiceConfig: null,
     controllerName: 'reassignMasterController',
-    isWizard: true,
     reassign: null
   }),
 
@@ -61,25 +60,6 @@ App.ReassignMasterController = App.WizardController.extend({
    */
   getCluster: function(){
     return jQuery.extend({}, this.get('clusterStatusTemplate'), {name: App.router.getClusterName()});
-  },
-
-  /**
-   * return true if cluster data is loaded and false otherwise
-   */
-  dataLoading: function(){
-    var dfd = $.Deferred();
-    this.connectOutlet('loading');
-    if (App.router.get('clusterController.isLoaded')){
-      dfd.resolve();
-    } else{
-      var interval = setInterval(function(){
-        if (App.router.get('clusterController.isLoaded')){
-          dfd.resolve();
-          clearInterval(interval);
-        }
-      },50);
-    }
-    return dfd.promise();
   },
 
   /**

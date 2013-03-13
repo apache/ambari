@@ -16,6 +16,8 @@
  * limitations under the License.
  */
 
+var App = require('app');
+
 module.exports = Em.Route.extend({
   route: '/services/add',
 
@@ -123,7 +125,7 @@ module.exports = Em.Route.extend({
     },
     back: function(router){
       var controller = router.get('addServiceController');
-      if(!controller.get('content.missMasterStep')){
+      if(!controller.get('content.skipMasterStep')){
         router.transitionTo('step2');
       } else {
         router.transitionTo('step1');
@@ -138,7 +140,6 @@ module.exports = Em.Route.extend({
         addServiceController.get('content').set('serviceConfigProperties', null);
         App.db.setServiceConfigProperties(null);
         App.db.setSlaveProperties(null);
-        //addServiceController.loadSlaveGroupProperties();
         addServiceController.loadAdvancedConfigs();
         router.transitionTo('step4');
       }
@@ -158,9 +159,9 @@ module.exports = Em.Route.extend({
     },
     back: function(router){
       var controller = router.get('addServiceController');
-      if(!controller.get('content.missSlavesStep')){
+      if(!controller.get('content.skipSlavesStep')){
         router.transitionTo('step3');
-      } else if(!controller.get('content.missMasterStep')) {
+      } else if(!controller.get('content.skipMasterStep')) {
         router.transitionTo('step2');
       } else {
         router.transitionTo('step1');

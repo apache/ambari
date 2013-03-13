@@ -243,7 +243,6 @@ module.exports = Em.Route.extend({
         controller.get('content').set('serviceConfigProperties', null);
         App.db.setServiceConfigProperties(null);
         App.db.setSlaveProperties(null);
-        controller.loadSlaveGroupProperties();
         controller.loadAdvancedConfigs();
         router.transitionTo('step7');
       }

@@ -59,14 +59,6 @@ App.WizardController = Em.Controller.extend({
     }
   },
 
-  prevInstallStatus: function () {
-    console.log('Inside the prevInstallStep function: The name is ' + App.router.get('loginController.loginName'));
-    var result = App.db.isCompleted()
-    if (result == '1') {
-      return true;
-    }
-  }.property('App.router.loginController.loginName'),
-
   /**
    * Set current step to new value.
    * Method moved from App.router.setInstallerCurrentStep
@@ -199,7 +191,7 @@ App.WizardController = Em.Controller.extend({
   },
 
   /**
-   * Temporary function for wizardStep9, before back-end integration
+   * Initialize host status info for step9
    */
   setInfoForStep9: function () {
 
@@ -392,8 +384,7 @@ App.WizardController = Em.Controller.extend({
 
   clear: function () {
     this.set('content', Ember.Object.create({
-      'controllerName': this.get('content.controllerName'),
-      'isWizard': !(this.get('content.controllerName') === 'installerController')
+      'controllerName': this.get('content.controllerName')
     }));
     this.set('currentStep', 0);
     this.clearStorageData();
@@ -513,32 +504,6 @@ App.WizardController = Em.Controller.extend({
     App.db.setService(apiService);
   },
 
-  /**
-   * Load properties for group of slaves to model
-   */
-  loadSlaveGroupProperties: function () {
-    var groupConfigProperties = App.db.getSlaveProperties() ? App.db.getSlaveProperties() : this.get('content.slaveComponentHosts');
-    if (groupConfigProperties) {
-      groupConfigProperties.forEach(function (_slaveComponentObj) {
-        if (_slaveComponentObj.groups) {
-          var groups = [];
-          _slaveComponentObj.groups.forEach(function (_group) {
-            var properties = [];
-            _group.properties.forEach(function (_property) {
-              var property = App.ServiceConfigProperty.create(_property);
-              property.set('value', _property.storeValue);
-              properties.pushObject(property);
-            }, this);
-            _group.properties = properties;
-            groups.pushObject(App.Group.create(_group));
-          }, this);
-          _slaveComponentObj.groups = groups;
-        }
-      }, this);
-    }
-    this.set('content.slaveGroupProperties', groupConfigProperties);
-  },
-
   registerErrPopup: function (header, message) {
     App.ModalPopup.show({
       header: header,
@@ -551,6 +516,114 @@ App.WizardController = Em.Controller.extend({
         message: message
       })
     });
+  },
+
+  /**
+   * Save hosts that the user confirmed to proceed with from step 3
+   * @param stepController App.WizardStep3Controller
+   */
+  saveConfirmedHosts: function (stepController) {
+    var hostInfo = {};
+
+    stepController.get('content.hosts').forEach(function (_host) {
+      hostInfo[_host.name] = {
+        name: _host.name,
+        cpu: _host.cpu,
+        memory: _host.memory,
+        disk_info: _host.disk_info,
+        bootStatus: _host.bootStatus,
+        isInstalled: false
+      };
+    });
+    console.log('wizardController:saveConfirmedHosts: save hosts ', hostInfo);
+    App.db.setHosts(hostInfo);
+    this.set('content.hosts', hostInfo);
+  },
+
+  /**
+   * Save data after installation to main controller
+   * @param stepController App.WizardStep9Controller
+   */
+  saveInstalledHosts: function (stepController) {
+    var hosts = stepController.get('hosts');
+    var hostInfo = App.db.getHosts();
+
+    for (var index in hostInfo) {
+      hostInfo[index].status = "pending";
+      var host = hosts.findProperty('name', hostInfo[index].name);
+      if (host) {
+        hostInfo[index].status = host.status;
+        hostInfo[index].message = host.message;
+        hostInfo[index].progress = host.progress;
+      }
+    }
+    this.set('content.hosts', hostInfo);
+    this.save('hosts');
+    console.log('wizardController:saveInstalledHosts: save hosts ', hostInfo);
+  },
+
+  /**
+   * Save slaveHostComponents to main controller
+   * @param stepController
+   */
+  saveSlaveComponentHosts: function (stepController) {
+
+    var hosts = stepController.get('hosts');
+    var headers = stepController.get('headers');
+
+    var formattedHosts = Ember.Object.create();
+    headers.forEach(function(header) {
+      formattedHosts.set(header.get('name'), []);
+    });
+
+    hosts.forEach(function (host) {
+
+      var checkboxes = host.get('checkboxes');
+      headers.forEach(function(header) {
+        var cb = checkboxes.findProperty('title', header.get('label'));
+        if (cb.get('checked')) {
+          formattedHosts.get(header.get('name')).push({
+            hostName: host.hostName,
+            group: 'Default',
+            isInstalled: cb.get('installed')
+          });
+        }
+      });
+    });
+
+    var slaveComponentHosts = [];
+
+    headers.forEach(function(header) {
+      slaveComponentHosts.push({
+        componentName: header.get('name'),
+        displayName: header.get('label').replace(/\s/g, ''),
+        hosts: formattedHosts.get(header.get('name'))
+      });
+    });
+
+    App.db.setSlaveComponentHosts(slaveComponentHosts);
+    console.log('wizardController.slaveComponentHosts: saved hosts', slaveComponentHosts);
+    this.set('content.slaveComponentHosts', slaveComponentHosts);
+  },
+
+  /**
+   * Return true if cluster data is loaded and false otherwise.
+   * This is used for all wizard controllers except for installer wizard.
+   */
+  dataLoading: function(){
+    var dfd = $.Deferred();
+    this.connectOutlet('loading');
+    if (App.router.get('clusterController.isLoaded')){
+      dfd.resolve();
+    } else{
+      var interval = setInterval(function(){
+        if (App.router.get('clusterController.isLoaded')){
+          dfd.resolve();
+          clearInterval(interval);
+        }
+      },50);
+    }
+    return dfd.promise();
   }
 
 })

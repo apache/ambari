@@ -116,6 +116,8 @@ Trunk (unreleased changes):
 
  IMPROVEMENTS
 
+ AMBARI-1604. Refactor wizard classes. (yusaku)
+
  AMBARI-1583. Add unit tests for various Ambari Web components. (yusaku)
 
  AMBARI-1491. Add task plots to job swimlane diagram. (billie via yusaku)

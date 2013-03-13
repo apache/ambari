@@ -39,8 +39,7 @@ App.StackUpgradeController = App.WizardController.extend({
     upgradeVersion: function(){
       return App.router.get('mainAdminClusterController.upgradeVersion');
     }.property('App.router.mainAdminClusterController.upgradeVersion'),
-    controllerName: 'stackUpgradeController',
-    isWizard: true
+    controllerName: 'stackUpgradeController'
   }),
 
   /**
@@ -102,8 +101,7 @@ App.StackUpgradeController = App.WizardController.extend({
       upgradeVersion: function(){
         return App.router.get('mainAdminClusterController.upgradeVersion');
       }.property('App.router.mainAdminClusterController.upgradeVersion'),
-      'controllerName': this.get('content.controllerName'),
-      'isWizard': !(this.get('content.controllerName') === 'installerController')
+      'controllerName': 'stackUpgradeController'
     }));
     this.set('currentStep', 0);
     this.clearStorageData();

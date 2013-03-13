@@ -226,12 +226,12 @@ App.WizardStep6Controller = Em.Controller.extend({
 
     this.render();
     if (this.get('isMasters')) {
-      if(this.get('content.missMasterStep')) {
+      if(this.get('content.skipMasterStep')) {
         App.router.send('next');
       }
     }
     else {
-      if(this.get('content.missSlavesStep')) {
+      if(this.get('content.skipSlavesStep')) {
         App.router.send('next');
       }
     }

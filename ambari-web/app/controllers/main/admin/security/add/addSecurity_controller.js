@@ -68,22 +68,6 @@ App.AddSecurityController = App.WizardController.extend({
   },
 
   /**
-   * return true if cluster data is loaded and false otherwise
-   */
-  dataLoading: function () {
-    var dfd = $.Deferred();
-    this.connectOutlet('loading');
-    var interval = setInterval(function () {
-      if (App.router.get('clusterController.isLoaded')) {
-        dfd.resolve();
-        clearInterval(interval);
-      }
-    }, 50);
-    return dfd.promise();
-  },
-
-
-  /**
    * Loads all installed services
    */
   loadServices: function () {
