@@ -62,18 +62,35 @@ App.WizardStep8Controller = Em.Controller.extend({
     if (globals.someProperty('name', 'hive_database')) {
       //TODO: Hive host depends on the type of db selected. Change puppet variable name if postgres is not the default db
       var hiveDb = globals.findProperty('name', 'hive_database');
+      var hiveDbType = {name: 'hive_database_type'};
+
       if (hiveDb.value === 'New MySQL Database') {
         if (globals.someProperty('name', 'hive_ambari_host')) {
-          globals.findProperty('name', 'hive_ambari_host').name = 'hive_mysql_hostname';
+          globals.findProperty('name', 'hive_ambari_host').name = 'hive_hostname';
+          hiveDbType.value = 'mysql';
         }
-        globals = globals.without(globals.findProperty('name', 'hive_existing_host'));
-        globals = globals.without(globals.findProperty('name', 'hive_existing_database'));
-      } else {
-        globals.findProperty('name', 'hive_existing_host').name = 'hive_mysql_hostname';
+        globals = globals.without(globals.findProperty('name', 'hive_existing_mysql_host'));
+        globals = globals.without(globals.findProperty('name', 'hive_existing_mysql_database'));
+        globals = globals.without(globals.findProperty('name', 'hive_existing_oracle_host'));
+        globals = globals.without(globals.findProperty('name', 'hive_existing_oracle_database'));
+      } else if (hiveDb.value === 'Existing MySQL Database'){
+        globals.findProperty('name', 'hive_existing_mysql_host').name = 'hive_hostname';
+        hiveDbType.value = 'mysql';
         globals = globals.without(globals.findProperty('name', 'hive_ambari_host'));
         globals = globals.without(globals.findProperty('name', 'hive_ambari_database'));
+        globals = globals.without(globals.findProperty('name', 'hive_existing_oracle_host'));
+        globals = globals.without(globals.findProperty('name', 'hive_existing_oracle_database'));
+      } else{ //existing oracle database
+        globals.findProperty('name', 'hive_existing_oracle_host').name = 'hive_hostname';
+        hiveDbType.value = 'oracle';
+        globals = globals.without(globals.findProperty('name', 'hive_ambari_host'));
+        globals = globals.without(globals.findProperty('name', 'hive_ambari_database'));
+        globals = globals.without(globals.findProperty('name', 'hive_existing_mysql_host'));
+        globals = globals.without(globals.findProperty('name', 'hive_existing_mysql_database'));
       }
+      globals.push(hiveDbType);
     }
+
     this.set('globals', globals);
   },
 
@@ -578,9 +595,15 @@ App.WizardStep8Controller = Em.Controller.extend({
 
       dbComponent.set('component_value', 'MySQL (New Database)');
 
-    } else {
+    } else if(hiveDb.value === 'Existing MySQL Database'){
 
-      var db = App.db.getServiceConfigProperties().findProperty('name', 'hive_existing_database');
+      var db = App.db.getServiceConfigProperties().findProperty('name', 'hive_existing_mysql_database');
+
+      dbComponent.set('component_value', db.value + ' (' + hiveDb.value + ')');
+
+    } else { // existing oracle database
+
+      var db = App.db.getServiceConfigProperties().findProperty('name', 'hive_existing_oracle_database');
 
       dbComponent.set('component_value', db.value + ' (' + hiveDb.value + ')');
 

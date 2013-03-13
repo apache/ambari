@@ -342,9 +342,9 @@ module.exports = [
    */
   {
     "name": "javax.jdo.option.ConnectionURL",
-    "templateName": ["hive_mysql_hostname", "hive_database_name"],
+    "templateName": ["hive_database_type", "hive_hostname", "hive_database_name"],
     "foreignKey": null,
-    "value": "jdbc:mysql://<templateName[0]>/<templateName[1]>?createDatabaseIfNotExist=true",
+    "value": "jdbc:<templateName[0]>://<templateName[1]>/<templateName[2]>?createDatabaseIfNotExist=true",
     "filename": "hive-site.xml"
   },
   {

@@ -635,15 +635,26 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
       var hiveDb = globals.findProperty('name', 'hive_database');
       if (hiveDb.value === 'New MySQL Database') {
         if (globals.someProperty('name', 'hive_ambari_host')) {
-          globals.findProperty('name', 'hive_ambari_host').name = 'hive_mysql_hostname';
+          globals.findProperty('name', 'hive_ambari_host').name = 'hive_hostname';
         }
-        globals = globals.without(globals.findProperty('name', 'hive_existing_host'));
-        globals = globals.without(globals.findProperty('name', 'hive_existing_database'));
-      } else {
-        globals.findProperty('name', 'hive_existing_host').name = 'hive_mysql_hostname';
+        globals = globals.without(globals.findProperty('name', 'hive_existing_mysql_host'));
+        globals = globals.without(globals.findProperty('name', 'hive_existing_mysql_database'));
+        globals = globals.without(globals.findProperty('name', 'hive_existing_oracle_host'));
+        globals = globals.without(globals.findProperty('name', 'hive_existing_oracle_database'));
+      } else if (hiveDb.value === 'Existing MySQL Database'){
+        globals.findProperty('name', 'hive_existing_mysql_host').name = 'hive_hostname';
         globals = globals.without(globals.findProperty('name', 'hive_ambari_host'));
         globals = globals.without(globals.findProperty('name', 'hive_ambari_database'));
+        globals = globals.without(globals.findProperty('name', 'hive_existing_oracle_host'));
+        globals = globals.without(globals.findProperty('name', 'hive_existing_oracle_database'));
+      } else{ //existing oracle database
+        globals.findProperty('name', 'hive_existing_oracle_host').name = 'hive_hostname';
+        globals = globals.without(globals.findProperty('name', 'hive_ambari_host'));
+        globals = globals.without(globals.findProperty('name', 'hive_ambari_database'));
+        globals = globals.without(globals.findProperty('name', 'hive_existing_mysql_host'));
+        globals = globals.without(globals.findProperty('name', 'hive_existing_mysql_database'));
       }
+
     }
   },
 

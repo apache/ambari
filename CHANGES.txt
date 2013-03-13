@@ -122,6 +122,9 @@ Trunk (unreleased changes):
 
  IMPROVEMENTS
 
+ AMBARI-1595. Add Oracle option for Hive Metastore during Ambari
+ cluster install. (Xi Wang via yusaku)
+
  AMBARI-1632. Provide property filtering capability on service config
  sections. (yusaku)
 

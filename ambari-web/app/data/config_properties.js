@@ -850,7 +850,11 @@ module.exports =
         },
         {
           displayName: 'Existing MySQL Database',
-          foreignKeys: ['hive_existing_database', 'hive_existing_host']
+          foreignKeys: ['hive_existing_mysql_database', 'hive_existing_mysql_host']
+        },
+        {
+          displayName: 'Existing Oracle Database',
+          foreignKeys: ['hive_existing_oracle_database', 'hive_existing_oracle_host']
         }
       ],
       "description": "MySQL will be installed by Ambari",
@@ -862,13 +866,14 @@ module.exports =
       "serviceName": "HIVE",
       "category": "Hive Metastore"
     },
+    // for existing MySQL
     {
       "id": "puppet var",
-      "name": "hive_existing_database",
+      "name": "hive_existing_mysql_database",
       "displayName": "Database Type",
       "value": "",
       "defaultValue": "MySQL",
-      "description": "Using an existing database for Hive Metastore",
+      "description": "Using an existing MySQL database for Hive Metastore",
       "displayType": "masterHost",
       "isVisible": false,
       "isReconfigurable": false,
@@ -908,7 +913,7 @@ module.exports =
     */
     {
       "id": "puppet var",
-      "name": "hive_existing_host",
+      "name": "hive_existing_mysql_host",
       "displayName": "Database host",
       "description": "Specify the host on which the existing database is hosted",
       "defaultValue": "",
@@ -919,6 +924,35 @@ module.exports =
       "serviceName": "HIVE",
       "category": "Hive Metastore"
     },
+    // for existing Oracle
+    {
+      "id": "puppet var",
+      "name": "hive_existing_oracle_database",
+      "displayName": "Database Type",
+      "value": "",
+      "defaultValue": "Oracle",
+      "description": "Using an existing Oracle database for Hive Metastore",
+      "displayType": "masterHost",
+      "isVisible": false,
+      "isReconfigurable": false,
+      "domain": "global",
+      "serviceName": "HIVE",
+      "category": "Hive Metastore"
+    },
+    {
+      "id": "puppet var",
+      "name": "hive_existing_oracle_host",
+      "displayName": "Database host",
+      "description": "Specify the host on which the existing database is hosted",
+      "defaultValue": "",
+      "isReconfigurable": false,
+      "displayType": "host",
+      "isVisible": false,
+      "domain": "global",
+      "serviceName": "HIVE",
+      "category": "Hive Metastore"
+    },
+    // for new MySQL
     {
       "id": "puppet var",
       "name": "hive_ambari_database",
