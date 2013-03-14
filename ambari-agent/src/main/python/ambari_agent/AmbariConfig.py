@@ -106,6 +106,7 @@ rolesToClass = {
   'GANGLIA_SERVER': 'hdp-ganglia::server',
   'GANGLIA_MONITOR': 'hdp-ganglia::monitor',
   'HTTPD': 'hdp-monitor-webserver',
+  'HUE_SERVER': 'hdp-hue::server',
   'HDFS_SERVICE_CHECK': 'hdp-hadoop::hdfs::service_check',
   'MAPREDUCE_SERVICE_CHECK': 'hdp-hadoop::mapred::service_check',
   'ZOOKEEPER_SERVICE_CHECK': 'hdp-zookeeper::zookeeper::service_check',
@@ -118,7 +119,8 @@ rolesToClass = {
   'SQOOP_SERVICE_CHECK': 'hdp-sqoop::sqoop::service_check',
   'WEBHCAT_SERVICE_CHECK': 'hdp-templeton::templeton::service_check',
   'DASHBOARD_SERVICE_CHECK': 'hdp-dashboard::dashboard::service_check',
-  'DECOMMISSION_DATANODE': 'hdp-hadoop::hdfs::decommission'
+  'DECOMMISSION_DATANODE': 'hdp-hadoop::hdfs::decommission',
+  'HUE_SERVICE_CHECK': 'hdp-hue::service_check'
 }
 
 serviceStates = {

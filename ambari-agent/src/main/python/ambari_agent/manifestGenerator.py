@@ -34,7 +34,7 @@ non_global_configuration_types = ["hdfs-site", "core-site",
                              "hadoop-policy", "mapred-site", 
                              "capacity-scheduler", "hbase-site",
                              "hbase-policy", "hive-site", "oozie-site", 
-                             "webhcat-site", "hdfs-exclude-file"]
+                             "webhcat-site", "hdfs-exclude-file", "hue-site"]
 
 #read static imports from file and write them to manifest
 def writeImports(outputFile, modulesdir, importsList):

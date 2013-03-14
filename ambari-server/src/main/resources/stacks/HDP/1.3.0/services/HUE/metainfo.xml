@@ -23,8 +23,8 @@
 
     <components>
         <component>
-            <name>HUE</name>
-            <category>SERVER</category>
+            <name>HUE_SERVER</name>
+            <category>MASTER</category>
         </component>
     </components>
 

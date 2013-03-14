@@ -122,7 +122,7 @@ public class RoleCommandOrder {
         RoleCommand.START);
     addDependency(Role.HUE_SERVER, RoleCommand.START, Role.HIVE_SERVER,
       RoleCommand.START);
-    addDependency(Role.HUE_SERVER, RoleCommand.START, Role.HIVE_METASTORE,
+    addDependency(Role.HUE_SERVER, RoleCommand.START, Role.HCAT,
       RoleCommand.START);
     addDependency(Role.HUE_SERVER, RoleCommand.START, Role.OOZIE_SERVER,
       RoleCommand.START);
