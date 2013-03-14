@@ -28,7 +28,9 @@
   <custom>
     <fluidoSkin>
       <topBarEnabled>true</topBarEnabled>
-      <sideBarEnabled>false</sideBarEnabled>
+      <sideBarEnabled>true</sideBarEnabled>
+      <leftColumnClass>span2</leftColumnClass>
+      <bodyColumnClass>span10</bodyColumnClass>
     </fluidoSkin>
   </custom>
   <bannerLeft>
@@ -59,38 +61,57 @@
           })();
        </script>
        <!-- End of Google analytics -->
+       <style>
+           .well.sidebar-nav {
+             background-color: #fff;
+           }
+           a.externalLink[href^=http] {
+             background-image: none;
+             padding-right: 0;
+           }
+           body.topBarEnabled {
+             padding-top: 40px;
+           }
+           #leftColumn .nav-list .active a {
+             background-color: #a0a0a0;
+           }
+           .nav-list .active a:hover {
+             background-color: #a0a0a0;
+           }
+       </style>
     </head>
 
     <links>
       <item name="JIRA" href="https://issues.apache.org/jira/browse/AMBARI" />
       <item name="SVN" href="https://svn.apache.org/repos/asf/incubator/ambari/" />
-      <item name="WIKI" href="https://cwiki.apache.org/confluence/display/AMBARI/Ambari" />
+      <item name="Wiki" href="https://cwiki.apache.org/confluence/display/AMBARI/Ambari" />
     </links>
 
     <breadcrumbs>
-      <item name="Ambari" href="index.html"/>
+      <item name="Incubator" href="../"/>
+      <item name="Ambari" href="http://incubator.apache.org/ambari/"/>
     </breadcrumbs>
 
     <menu name="Ambari">
+      <item name="Overview" href="index.html"/>
       <item name="What's New?" href="whats-new.html"/>
-      <item name="About" href="index.html"/>
-      <item name="Wiki" href="https://cwiki.apache.org/confluence/display/AMBARI/Ambari"/>
       <item name="Project Team" href="team-list.html"/>
       <item name="Mailing Lists" href="mail-lists.html"/>
       <item name="Issue Tracking" href="issue-tracking.html"/>
-      <item name="Project License" href="license.html"/>
+      <item name="Project License" href="http://www.apache.org/licenses/"/>
     </menu>
 
     <menu name="Releases">
-        <item name="1.2.1 (coming soon)" href="whats-new.html"/>
         <item name="1.2.0" href="http://www.apache.org/dist/incubator/ambari/ambari-1.2.0/"/>
         <item name="0.9" href="http://www.apache.org/dist/incubator/ambari/ambari-0.9-incubating/"/>
     </menu>
 
     <menu name="Documentation">
-        <item name="Install Guide for 1.2.1" href="1.2.1/installing-hadoop-using-ambari/content/index.html"/>
+        <item name="Install Guide for 1.2.1 RC" href="1.2.1/installing-hadoop-using-ambari/content/index.html"/>
         <item name="Install Guide for 1.2.0" href="1.2.0/installing-hadoop-using-ambari/content/index.html"/>
         <item name="Install Guide for 0.9" href="install-0.9.html"/>
+        <item name="API Reference" href="https://github.com/apache/ambari/blob/trunk/ambari-server/docs/api/v1/index.md"/>
+        <item name="Wiki" href="https://cwiki.apache.org/confluence/display/AMBARI/Ambari"/>
     </menu>
 
     <footer>
