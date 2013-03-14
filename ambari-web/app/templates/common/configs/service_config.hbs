@@ -31,12 +31,12 @@
 
                   {{#each view.filteredCategoryConfigs}}
                       <div class="entry-row">
-                          <span class="control-group control-label-span" {{bindAttr class="errorMessage:error:"}}>
+                          <span {{bindAttr class="errorMessage:error: :control-group :control-label-span"}}>
                             <label class="control-label">{{displayName}}</label>
                           </span>
                           <div class="controls">
                             {{! Here serviceConfigBinding should ideally be serviceConfigPropertyBinding }}
-                              <div class="control-group" {{bindAttr class="errorMessage:error:"}}>
+                              <div {{bindAttr class="errorMessage:error: :control-group"}}>
                                 {{view viewClass serviceConfigBinding="this" categoryConfigsBinding="view.categoryConfigs" }}
                                 {{#if isOverridable}}
                                     <a class="action" {{action "createOverrideProperty" this target="view" }} ><i class="icon-plus-sign"></i>Exception</a>
