@@ -27,6 +27,17 @@ App.MainAdminSecurityAddStep3Controller = Em.Controller.extend({
   secureServices: [],
   serviceConfigTags: [],
   globalProperties: [],
+
+  isSubmitDisabled: true,
+
+  isOozieSelected: function () {
+    return this.get('content.services').someProperty('serviceName', 'OOZIE');
+  }.property('content.services'),
+
+  isWebHcatSelected: function () {
+    return this.get('content.services').someProperty('serviceName', 'WEBHCAT');
+  }.property('content.services'),
+
   serviceUsersBinding: 'App.router.mainAdminController.serviceUsers',
   hasHostPopup:true,
   services:[],
@@ -34,6 +45,7 @@ App.MainAdminSecurityAddStep3Controller = Em.Controller.extend({
 
   clearStep: function () {
     this.get('stages').clear();
+    this.set('isSubmitDisabled',true);
   },
 
   loadStep: function () {
@@ -171,9 +183,17 @@ App.MainAdminSecurityAddStep3Controller = Em.Controller.extend({
       newValue = globalProperty.value;
       var isInstanceName = this.get('globalProperties').findProperty('name', 'instance_name');
       if (isInstanceName) {
-        if (/primary_name?$/.test(globalProperty.name) && property !== 'hadoop.security.auth_to_local') {
-          if (!/_HOST?$/.test(newValue)) {
-            newValue = newValue + '/_HOST';
+        if (/primary_name?$/.test(globalProperty.name) && property !== 'hadoop.security.auth_to_local' && property !== 'oozie.authentication.kerberos.name.rules') {
+          if (this.get('isOozieSelected') && (property === 'oozie.service.HadoopAccessorService.kerberos.principal' || property === 'oozie.authentication.kerberos.principal')) {
+            var oozieServerName = App.Service.find('OOZIE').get('hostComponents').findProperty('componentName', 'OOZIE_SERVER').get('host.hostName');
+            newValue = newValue + '/' + oozieServerName;
+          } else if (this.get('isWebHcatSelected') && property === 'templeton.kerberos.principal') {
+            var webHcatName = App.Service.find('WEBHCAT').get('hostComponents').findProperty('componentName', 'WEBHCAT_SERVER').get('host.hostName');
+            newValue = newValue + '/' + webHcatName;
+          } else {
+            if (!/_HOST?$/.test(newValue)) {
+              newValue = newValue + '/_HOST';
+            }
           }
         }
       }
@@ -303,6 +323,7 @@ App.MainAdminSecurityAddStep3Controller = Em.Controller.extend({
       serviceUsers.pushObject({id: 'puppet var', name: 'hdfs_user', value: 'hdfs'});
       serviceUsers.pushObject({id: 'puppet var', name: 'mapred_user', value: 'mapred'});
       serviceUsers.pushObject({id: 'puppet var', name: 'hbase_user', value: 'hbase'});
+      serviceUsers.pushObject({id: 'puppet var', name: 'hive_user', value: 'hive'});
     } else {
       App.router.get('mainAdminController').getHDFSDetailsFromServer();
     }
@@ -482,8 +503,8 @@ App.MainAdminSecurityAddStep3Controller = Em.Controller.extend({
   moveToNextStage: function () {
     var nextStage = this.get('stages').findProperty('isStarted', false);
     if (nextStage) {
-      // this.get('content').saveCurrentStage(nextStage.get('stage').charAt(nextStage.get('stage').length - 1));
       nextStage.set('isStarted', true);
+      this.set('isSubmitDisabled', true);
     } else {
       this.set('isSubmitDisabled', false);
     }
@@ -521,7 +542,6 @@ App.MainAdminSecurityAddStep3Controller = Em.Controller.extend({
         console.log("TRACE: In error function for the getServiceConfigsFromServer call");
         console.log("TRACE: value of the url is: " + url);
         console.log("TRACE: error code status is: " + request.status);
-
       },
 
       statusCode: require('data/statusCodes')

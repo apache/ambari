@@ -11,6 +11,9 @@ Trunk (unreleased changes):
  INCOMPATIBLE CHANGES 
 
  NEW FEATURES
+ 
+ AMBARI-1634. Integrate Frontend Security work to enable security on
+ Oozie, Hive, and WebHCat Server. (jaimin)
 
  AMBARI-1633. Reassign Master Wizard - Step 5. (yusaku)
 

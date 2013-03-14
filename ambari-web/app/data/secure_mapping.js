@@ -34,13 +34,11 @@ module.exports = [
 
   {
     "name": "hadoop.security.auth_to_local",
-    "templateName": ["jobtracker_primary_name", "kerberos_domain", "mapred_user", "tasktracker_primary_name","namenode_primary_name", "hdfs_user", "datanode_primary_name", "hbase_master_primary_name", "hbase_user", "regionserver_primary_name"],
+    "templateName": ["jobtracker_primary_name", "kerberos_domain", "mapred_user", "tasktracker_primary_name", "namenode_primary_name", "hdfs_user", "datanode_primary_name", "hbase_master_primary_name", "hbase_user", "regionserver_primary_name"],
     "foreignKey": null,
     "value": "RULE:[2:$1@$0](<templateName[0]>@.*<templateName[1]>)s/.*/<templateName[2]>/ RULE:[2:$1@$0](<templateName[3]>@.*<templateName[1]>)s/.*/<templateName[2]>/ RULE:[2:$1@$0](<templateName[4]>@.*<templateName[1]>)s/.*/<templateName[5]>/ RULE:[2:$1@$0](<templateName[6]>@.*<templateName[1]>)s/.*/<templateName[5]>/ RULE:[2:$1@$0](<templateName[7]>@.*<templateName[1]>)s/.*/<templateName[8]>/ RULE:[2:$1@$0](<templateName[9]>@.*<templateName[1]>)s/.*/<templateName[8]>/ DEFAULT",
     "filename": "core-site.xml"
   },
-
-
   {
     "name": "dfs.namenode.kerberos.principal",
     "templateName": ["namenode_primary_name", "kerberos_domain"],
@@ -64,7 +62,7 @@ module.exports = [
   },
   {
     "name": "dfs.secondary.namenode.keytab.file",
-    "templateName": ["namenode_keytab"],
+    "templateName": ["snamenode_keytab"],
     "foreignKey": null,
     "value": "<templateName[0]>",
     "filename": "hdfs-site.xml"
@@ -224,18 +222,96 @@ module.exports = [
     "filename": "hive-site.xml"
   },
   {
+    "name": "oozie.service.AuthorizationService.security.enabled",
+    "templateName": [],
+    "foreignKey": null,
+    "value": "true",
+    "filename": "oozie-site.xml"
+  },
+  {
+    "name": "oozie.service.HadoopAccessorService.kerberos.enabled",
+    "templateName": [],
+    "foreignKey": null,
+    "value": "true",
+    "filename": "oozie-site.xml"
+  },
+  {
+    "name": "local.realm",
+    "templateName": ["kerberos_domain"],
+    "foreignKey": null,
+    "value": "<templateName[0]>",
+    "filename": "oozie-site.xml"
+  },
+  {
+    "name": "oozie.service.HadoopAccessorService.keytab.file",
+    "templateName": ["oozie_keytab"],
+    "foreignKey": null,
+    "value": "<templateName[0]>",
+    "filename": "oozie-site.xml"
+  },
+  {
+    "name": "oozie.service.HadoopAccessorService.kerberos.principal",
+    "templateName": ["oozie_primary_name", "kerberos_domain"],
+    "foreignKey": null,
+    "value": "<templateName[0]>@<templateName[1]>",
+    "filename": "oozie-site.xml"
+  },
+  {
+    "name": "oozie.authentication.type",
+    "templateName": [],
+    "foreignKey": null,
+    "value": "kerberos",
+    "filename": "oozie-site.xml"
+  },
+  {
+    "name": "oozie.authentication.kerberos.principal",
+    "templateName": ["oozie_http_primary_name", "kerberos_domain"],
+    "foreignKey": null,
+    "value": "<templateName[0]>@<templateName[1]>",
+    "filename": "oozie-site.xml"
+  },
+  {
+    "name": "oozie.authentication.kerberos.keytab",
+    "templateName": ["oozie_http_keytab"],
+    "foreignKey": null,
+    "value": "<templateName[0]>",
+    "filename": "oozie-site.xml"
+  },
+  {
+    "name": "oozie.authentication.kerberos.name.rules",
+    "templateName": ["jobtracker_primary_name", "kerberos_domain", "mapred_user", "tasktracker_primary_name", "namenode_primary_name", "hdfs_user", "datanode_primary_name", "hbase_master_primary_name", "hbase_user", "regionserver_primary_name"],
+    "foreignKey": null,
+    "value": "RULE:[2:$1@$0](<templateName[0]>@.*<templateName[1]>)s/.*/<templateName[2]>/ RULE:[2:$1@$0](<templateName[3]>@.*<templateName[1]>)s/.*/<templateName[2]>/ RULE:[2:$1@$0](<templateName[4]>@.*<templateName[1]>)s/.*/<templateName[5]>/ RULE:[2:$1@$0](<templateName[6]>@.*<templateName[1]>)s/.*/<templateName[5]>/ RULE:[2:$1@$0](<templateName[7]>@.*<templateName[1]>)s/.*/<templateName[8]>/ RULE:[2:$1@$0](<templateName[9]>@.*<templateName[1]>)s/.*/<templateName[8]>/ DEFAULT",
+    "filename": "oozie-site.xml"
+  },
+  {
     "name": "templeton.kerberos.principal",
     "templateName": ["webhcat_http_primary_name", "kerberos_domain"],
     "foreignKey": null,
     "value": "<templateName[0]>@<templateName[1]>",
-    "filename": "hive-site.xml"
+    "filename": "webhcat-site.xml"
   },
   {
     "name": "templeton.kerberos.keytab",
     "templateName": ["webhcat_http_keytab"],
     "foreignKey": null,
     "value": "<templateName[0]>",
-    "filename": "hive-site.xml"
+    "filename": "webhcat-site.xml"
+  },
+  {
+    "name": "templeton.kerberos.secret",
+    "templateName": [""],
+    "foreignKey": null,
+    "value": "secret",
+    "filename": "webhcat-site.xml"
+  },
+  {
+    "name": "templeton.kerberos.properties",
+    "templateName": ["hive_user"],
+    "foreignKey": null,
+    "value": "hive.metastore.local=false, hive.metastore.uris=thrift://MetastoreHost_FQDN:9083, hive.q" +
+      "metastore.sasl.enabled=true,hive.metastore.execute.setugi= true, hive.exec.mode.local.auto=false, hive.metastore.kerberos.principal=<templateName[0]>/_HOST@EXAMPLE.COM",
+    "filename": "webhcat-site.xml"
   }
 ];
 

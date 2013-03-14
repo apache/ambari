@@ -139,24 +139,26 @@ module.exports =
       "serviceName": "HDFS",
       "category": "General"
     },
-    {
-      "id": "puppet var",
-      "name": "snamenode_primary_name",
-      "displayName": "primary name",
-      "value": "",
-      "defaultValue": "sn",
-      "description": "Primary name for SecondaryNameNode",
-      "displayType": "principal",
-      "isVisible": true,
-      "serviceName": "HDFS",
-      "category": "SNameNode"
-    },
+    /*
+     {
+     "id": "puppet var",
+     "name": "snamenode_primary_name",
+     "displayName": "primary name",
+     "value": "",
+     "defaultValue": "sn",
+     "description": "Primary name for SecondaryNameNode",
+     "displayType": "principal",
+     "isVisible": true,
+     "serviceName": "HDFS",
+     "category": "SNameNode"
+     },
+     */
     {
       "id": "puppet var",
       "name": "snamenode_keytab",
       "displayName": "Path to keytab file",
       "value": "",
-      "defaultValue": "/etc/security/keytabs/nn.service.keytab",
+      "defaultValue": "/etc/security/keytabs/sn.service.keytab",
       "description": "path to SecondaryNameNode keytab file",
       "displayType": "directory",
       "isVisible": true,
@@ -305,7 +307,7 @@ module.exports =
       "name": "hive_metastore__keytab",
       "displayName": "Path to Keytab file",
       "value": "",
-      "defaultValue": "/etc/security/keytabs",
+      "defaultValue": "/etc/security/keytabs/hive.service.keytab",
       "description": "keytab for Hive Metastore",
       "displayType": "directory",
       "isVisible": true,
@@ -315,6 +317,18 @@ module.exports =
     },
 
     //OOZIE
+    {
+      "id": "puppet var",
+      "name": "oozie_server_name",
+      "displayName": "Oozie server host",
+      "value": "",
+      "defaultValue": "",
+      "description": "Oozie server host",
+      "displayType": "masterHosts",
+      "isVisible": false,
+      "serviceName": "OOZIE",
+      "category": "Oozie Server"
+    },
     {
       "id": "puppet var",
       "name": "oozie_primary_name",
@@ -332,7 +346,7 @@ module.exports =
       "name": "oozie_keytab",
       "displayName": "Path to keytab file",
       "value": "",
-      "defaultValue": "/etc/security/keytabs",
+      "defaultValue": "/etc/security/keytabs/oozie.service.keytab",
       "description": "Keytab for Oozie server",
       "displayType": "directory",
       "isVisible": true,
@@ -357,7 +371,7 @@ module.exports =
       "name": "oozie_http_keytab",
       "displayName": "Path to HTTP Keytab file",
       "value": "",
-      "defaultValue": "/etc/security/keytabs",
+      "defaultValue": "/etc/security/keytabs/spnego.service.keytab",
       "description": "Keytab for http Oozie server",
       "displayType": "directory",
       "isVisible": true,
@@ -385,7 +399,7 @@ module.exports =
       "name": "webhcat_http_keytab",
       "displayName": "Path to HTTP Keytab file",
       "value": "",
-      "defaultValue": "/etc/security/keytabs",
+      "defaultValue": "/etc/security/keytabs/spnego.service.keytab",
       "description": "Keytab for http webHCat",
       "displayType": "directory",
       "isVisible": true,
@@ -393,6 +407,7 @@ module.exports =
       "category": "WebHCat"
     },
     //HUE
+
 
     //NAGIOS
     {

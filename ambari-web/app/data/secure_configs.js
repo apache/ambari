@@ -40,7 +40,7 @@ module.exports = [
     configCategories: [
       App.ServiceConfigCategory.create({ name: 'General', displayName: 'General'}),
       App.ServiceConfigCategory.create({ name: 'NameNode', displayName: 'NameNode'}),
-     // App.ServiceConfigCategory.create({ name: 'SNameNode'}),
+      App.ServiceConfigCategory.create({ name: 'SNameNode',displayName: 'SNameNode'}),
       App.ServiceConfigCategory.create({ name: 'DataNode', displayName: 'DataNode'})
     ],
     configs: configProperties.filterProperty('serviceName', 'HDFS')
@@ -86,7 +86,7 @@ module.exports = [
       App.ServiceConfigCategory.create({ name: 'RegionServer', displayName: 'RegionServer'})
     ],
     configs: configProperties.filterProperty('serviceName', 'HBASE')
-  }
+  },
   /*
   {
     serviceName: 'ZOOKEEPER',
@@ -97,7 +97,7 @@ module.exports = [
     configs: configProperties.filterProperty('serviceName', 'ZOOKEEPER')
 
   },
-
+   */
 
   {
     serviceName: 'OOZIE',
@@ -107,6 +107,6 @@ module.exports = [
       App.ServiceConfigCategory.create({ name: 'Oozie Server'})
     ],
     configs: configProperties.filterProperty('serviceName', 'OOZIE')
-  },
-  */
+  }
+
 ];

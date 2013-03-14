@@ -119,12 +119,17 @@ App.MainAdminController = Em.Controller.extend({
     if (configs['mapred_user']) {
       serviceUsers.pushObject({id: 'puppet var', name: 'mapred_user', value: configs['mapred_user']});
     } else {
-      serviceUsers.pushObject({id: 'puppet var', name: 'hdfs_user', value: 'mapred'});
+      serviceUsers.pushObject({id: 'puppet var', name: 'mapred_user', value: 'mapred'});
     }
     if (configs['hbase_user']) {
       serviceUsers.pushObject({id: 'puppet var', name: 'hbase_user', value: configs['hbase_user']});
     } else {
-      serviceUsers.pushObject({id: 'puppet var', name: 'hdfs_user', value: 'hbase'});
+      serviceUsers.pushObject({id: 'puppet var', name: 'hbase_user', value: 'hbase'});
+    }
+    if (configs['hive_user']) {
+      serviceUsers.pushObject({id: 'puppet var', name: 'hive_user', value: configs['hive_user']});
+    } else {
+      serviceUsers.pushObject({id: 'puppet var', name: 'hive_user', value: 'hive'});
     }
   }
 
