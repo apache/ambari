@@ -79,7 +79,7 @@ public class TestActionDBAccessorImpl {
     db = injector.getInstance(ActionDBAccessorImpl.class);
     
     am = new ActionManager(5000, 1200000, new ActionQueue(), clusters, db,
-        new HostsMap((String) null));
+        new HostsMap((String) null), null);
   }
 
   @After

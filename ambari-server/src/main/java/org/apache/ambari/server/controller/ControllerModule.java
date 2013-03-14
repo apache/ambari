@@ -27,6 +27,8 @@ import org.apache.ambari.server.actionmanager.*;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.orm.PersistenceType;
+import org.apache.ambari.server.serveraction.ServerActionManager;
+import org.apache.ambari.server.serveraction.ServerActionManagerImpl;
 import org.apache.ambari.server.state.*;
 import org.apache.ambari.server.state.cluster.ClusterFactory;
 import org.apache.ambari.server.state.cluster.ClusterImpl;
@@ -83,7 +85,6 @@ public class ControllerModule extends AbstractModule {
 
     install(jpaPersistModule);
 
-
     bind(Gson.class).in(Scopes.SINGLETON);
     bind(Clusters.class).to(ClustersImpl.class);
     bind(ActionDBAccessor.class).to(ActionDBAccessorImpl.class);
@@ -92,7 +93,7 @@ public class ControllerModule extends AbstractModule {
     bind(AmbariManagementController.class)
         .to(AmbariManagementControllerImpl.class);
     bind(HBaseMasterPortScanner.class).in(Singleton.class);;
-
+    bind(ServerActionManager.class).to(ServerActionManagerImpl.class);
   }
 
   private void installFactories() {

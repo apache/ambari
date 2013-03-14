@@ -494,6 +494,7 @@ public class ClusterImpl implements Cluster {
         } else {
           clusterStateEntity.setCurrentStackVersion(gson.toJson(stackVersion));
           clusterStateDAO.merge(clusterStateEntity);
+          clusterEntity = clusterDAO.merge(clusterEntity);
         }
     } catch (RollbackException e) {
       LOG.warn("Unable to set version " + stackVersion + " for cluster " + getClusterName());

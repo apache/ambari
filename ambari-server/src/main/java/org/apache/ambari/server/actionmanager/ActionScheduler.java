@@ -21,8 +21,11 @@ import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.Role;
 import org.apache.ambari.server.ServiceComponentNotFoundException;
 import org.apache.ambari.server.agent.ActionQueue;
+import org.apache.ambari.server.agent.CommandReport;
 import org.apache.ambari.server.agent.ExecutionCommand;
 import org.apache.ambari.server.controller.HostsMap;
+import org.apache.ambari.server.serveraction.ServerAction;
+import org.apache.ambari.server.serveraction.ServerActionManager;
 import org.apache.ambari.server.state.*;
 import org.apache.ambari.server.state.fsm.InvalidStateTransitionException;
 import org.apache.ambari.server.state.svccomphost.ServiceComponentHostOpFailedEvent;
@@ -50,6 +53,7 @@ class ActionScheduler implements Runnable {
   private boolean taskTimeoutAdjustment = true;
   private final HostsMap hostsMap;
   private final Object wakeupSyncObject = new Object();
+  private final ServerActionManager serverActionManager;
 
   /**
    * true if scheduler should run ASAP.
@@ -60,7 +64,7 @@ class ActionScheduler implements Runnable {
 
   public ActionScheduler(long sleepTimeMilliSec, long actionTimeoutMilliSec,
       ActionDBAccessor db, ActionQueue actionQueue, Clusters fsmObject,
-      int maxAttempts, HostsMap hostsMap) {
+      int maxAttempts, HostsMap hostsMap, ServerActionManager serverActionManager) {
     this.sleepTime = sleepTimeMilliSec;
     this.hostsMap = hostsMap;
     this.actionTimeout = actionTimeoutMilliSec;
@@ -68,6 +72,7 @@ class ActionScheduler implements Runnable {
     this.actionQueue = actionQueue;
     this.fsmObject = fsmObject;
     this.maxAttempts = (short) maxAttempts;
+    this.serverActionManager = serverActionManager;
   }
 
   public void start() {
@@ -135,7 +140,7 @@ class ActionScheduler implements Runnable {
       for (String role : roleStats.keySet()) {
         RoleStats stats = roleStats.get(role);
         if (LOG.isDebugEnabled()) {
-          LOG.debug("Stats for role:"+role+", stats="+stats);
+          LOG.debug("Stats for role:" + role + ", stats=" + stats);
         }
         if (stats.isRoleFailed()) {
           failed = true;
@@ -151,18 +156,32 @@ class ActionScheduler implements Runnable {
 
       //Schedule what we have so far
       for (ExecutionCommand cmd : commandsToSchedule) {
-        try {
-          scheduleHostRole(s, cmd);
-        } catch (InvalidStateTransitionException e) {
-          LOG.warn("Could not schedule host role "+cmd.toString(), e);
-          db.abortHostRole(cmd.getHostname(), s.getRequestId(), s.getStageId(),
-              cmd.getRole());
+        if (cmd.getRole() == Role.AMBARI_SERVER_ACTION) {
+          try {
+            long now = System.currentTimeMillis();
+            s.setStartTime(cmd.getHostname(), cmd.getRole().toString(), now);
+            s.setLastAttemptTime(cmd.getHostname(), cmd.getRole().toString(), now);
+            String actionName = cmd.getRoleParams().get(ServerAction.ACTION_NAME);
+            this.serverActionManager.executeAction(actionName, cmd.getCommandParams());
+            reportServerActionSuccess(s, cmd);
+          } catch (AmbariException e) {
+            LOG.warn("Could not execute server action " + cmd.toString(), e);
+            reportServerActionFailure(s, cmd, e.getMessage());
+          }
+        } else {
+          try {
+            scheduleHostRole(s, cmd);
+          } catch (InvalidStateTransitionException e) {
+            LOG.warn("Could not schedule host role " + cmd.toString(), e);
+            db.abortHostRole(cmd.getHostname(), s.getRequestId(), s.getStageId(),
+                cmd.getRole());
+          }
         }
       }
 
       //Check if ready to go to next stage
       boolean goToNextStage = true;
-      for (String role: roleStats.keySet()) {
+      for (String role : roleStats.keySet()) {
         RoleStats stats = roleStats.get(role);
         if (!stats.isSuccessFactorMet()) {
           goToNextStage = false;
@@ -173,6 +192,26 @@ class ActionScheduler implements Runnable {
         return;
       }
     }
+  }
+
+  private void reportServerActionSuccess(Stage stage, ExecutionCommand cmd) {
+    CommandReport report = new CommandReport();
+    report.setStatus(HostRoleStatus.COMPLETED.toString());
+    report.setExitCode(0);
+    report.setStdOut("Server action succeeded");
+    report.setStdErr("");
+    db.updateHostRoleState(cmd.getHostname(), stage.getRequestId(), stage.getStageId(),
+                           cmd.getRole().toString(), report);
+  }
+
+  private void reportServerActionFailure(Stage stage, ExecutionCommand cmd, String message) {
+    CommandReport report = new CommandReport();
+    report.setStatus(HostRoleStatus.FAILED.toString());
+    report.setExitCode(1);
+    report.setStdOut("Server action failed");
+    report.setStdErr(message);
+    db.updateHostRoleState(cmd.getHostname(), stage.getRequestId(), stage.getStageId(),
+                           cmd.getRole().toString(), report);
   }
 
   /**

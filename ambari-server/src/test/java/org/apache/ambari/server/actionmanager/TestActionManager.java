@@ -76,7 +76,7 @@ public class TestActionManager {
   public void testActionResponse() {
     ActionDBAccessor db = injector.getInstance(ActionDBAccessorImpl.class);
     ActionManager am = new ActionManager(5000, 1200000, new ActionQueue(),
-        clusters, db, new HostsMap((String) null));
+        clusters, db, new HostsMap((String) null), null);
     populateActionDB(db, hostname);
     Stage stage = db.getAllStages(requestId).get(0);
     Assert.assertEquals(stageId, stage.getStageId());
@@ -112,7 +112,7 @@ public class TestActionManager {
   public void testLargeLogs() {
     ActionDBAccessor db = injector.getInstance(ActionDBAccessorImpl.class);
     ActionManager am = new ActionManager(5000, 1200000, new ActionQueue(),
-        clusters, db, new HostsMap((String) null));
+        clusters, db, new HostsMap((String) null), null);
     populateActionDB(db, hostname);
     Stage stage = db.getAllStages(requestId).get(0);
     Assert.assertEquals(stageId, stage.getStageId());

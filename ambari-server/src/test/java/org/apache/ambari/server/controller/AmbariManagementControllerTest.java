@@ -54,6 +54,9 @@ import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
 import org.apache.ambari.server.orm.dao.RoleDAO;
 import org.apache.ambari.server.orm.entities.RoleEntity;
 import org.apache.ambari.server.security.authorization.Users;
+import org.apache.ambari.server.serveraction.ServerAction;
+import org.apache.ambari.server.serveraction.ServerActionManager;
+import org.apache.ambari.server.serveraction.ServerActionManagerImpl;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Config;
@@ -4165,8 +4168,25 @@ public class AmbariManagementControllerTest {
     } catch (StackAccessException e) {
       Assert.assertTrue(e instanceof StackAccessException);
     }
+  }
 
+  @Test
+  public void testServerActionForUpgradeFinalization() throws AmbariException {
+    String clusterName = "foo1";
+    StackId currentStackId = new StackId("HDP-0.1");
+    StackId newStackId = new StackId("HDP-0.2");
 
+    createCluster(clusterName);
+    Cluster c = clusters.getCluster(clusterName);
+    c.setDesiredStackVersion(currentStackId);
+    Assert.assertTrue(c.getCurrentStackVersion().equals(currentStackId));
+
+    ServerActionManager serverActionManager = new ServerActionManagerImpl(clusters);
+    Map<String, String> payload = new HashMap<String, String>();
+    payload.put(ServerAction.PayloadName.CLUSTER_NAME, clusterName);
+    payload.put(ServerAction.PayloadName.CURRENT_STACK_VERSION, newStackId.getStackId());
+    serverActionManager.executeAction(ServerAction.Command.FINALIZE_UPGRADE, payload);
+    Assert.assertTrue(c.getCurrentStackVersion().equals(newStackId));
   }
 
   @Test
@@ -4359,7 +4379,8 @@ public class AmbariManagementControllerTest {
     ExpectedUpgradeTasks expectedTasks = new ExpectedUpgradeTasks(hosts);
     expectedTasks.expectTask(Role.PIG, host1);
     expectedTasks.expectTask(Role.PIG, host2);
-    validateGeneratedStages(stages, 1, expectedTasks);
+    expectedTasks.expectTask(Role.AMBARI_SERVER_ACTION);
+    validateGeneratedStages(stages, 2, expectedTasks);
 
     resetCluster(c, currentStackId);
 
@@ -4382,12 +4403,12 @@ public class AmbariManagementControllerTest {
     expectedTasks.expectTask(Role.JOBTRACKER, host1);
     expectedTasks.expectTask(Role.TASKTRACKER, host2);
     expectedTasks.expectTask(Role.MAPREDUCE_CLIENT, host2);
-    validateGeneratedStages(stages, 4, expectedTasks);
+    validateGeneratedStages(stages, 5, expectedTasks);
 
     // Upgrade again
     trackAction = controller.updateCluster(r);
     stages = actionDB.getAllStages(trackAction.getRequestId());
-    validateGeneratedStages(stages, 4, expectedTasks);
+    validateGeneratedStages(stages, 5, expectedTasks);
 
     // some host components are upgraded
     c.getService(pigServiceName).getServiceComponent(pigComponentName).getServiceComponentHost(host1)
@@ -4401,7 +4422,7 @@ public class AmbariManagementControllerTest {
 
     trackAction = controller.updateCluster(r);
     stages = actionDB.getAllStages(trackAction.getRequestId());
-    validateGeneratedStages(stages, 4, expectedTasks);
+    validateGeneratedStages(stages, 5, expectedTasks);
 
     c.getService(mrServiceName).getServiceComponent(mrJobTrackerComp).getServiceComponentHost(host1)
         .setState(State.UPGRADE_FAILED);
@@ -4409,7 +4430,7 @@ public class AmbariManagementControllerTest {
         .setState(State.UPGRADE_FAILED);
     trackAction = controller.updateCluster(r);
     stages = actionDB.getAllStages(trackAction.getRequestId());
-    validateGeneratedStages(stages, 4, expectedTasks);
+    validateGeneratedStages(stages, 5, expectedTasks);
 
     // Add HDFS and upgrade
     createService(clusterName, hdfsService, State.INIT);
@@ -4439,7 +4460,8 @@ public class AmbariManagementControllerTest {
     expectedTasks.expectTask(Role.DATANODE, host2);
     expectedTasks.expectTask(Role.NAMENODE, host1);
     expectedTasks.expectTask(Role.HDFS_CLIENT, host2);
-    validateGeneratedStages(stages, 7, expectedTasks);
+    expectedTasks.expectTask(Role.AMBARI_SERVER_ACTION);
+    validateGeneratedStages(stages, 8, expectedTasks);
   }
 
   private void resetServiceState(String hdfsService, StackId currentStackId, Cluster c) throws AmbariException {
@@ -4460,12 +4482,23 @@ public class AmbariManagementControllerTest {
     for (Stage stage : stages) {
       int currRoleOrder = -1;
       for (HostRoleCommand command : stage.getOrderedHostRoleCommands()) {
-        Assert.assertTrue(command.toString(), expectedTasks.isTaskExpected(command.getRole(), command.getHostName()));
-        currRoleOrder = expectedTasks.getRoleOrder(command.getRole());
-        ExecutionCommand execCommand = command.getExecutionCommandWrapper().getExecutionCommand();
-        Assert.assertTrue(execCommand.getCommandParams().containsKey("source_stack_version"));
-        Assert.assertTrue(execCommand.getCommandParams().containsKey("target_stack_version"));
-        Assert.assertEquals(RoleCommand.UPGRADE, execCommand.getRoleCommand());
+        if(command.getRole() == Role.AMBARI_SERVER_ACTION) {
+          Assert.assertTrue(command.toString(), expectedTasks.isTaskExpected(command.getRole()));
+          currRoleOrder = expectedTasks.getRoleOrder(command.getRole());
+          ExecutionCommand execCommand = command.getExecutionCommandWrapper().getExecutionCommand();
+          Assert.assertTrue(
+              execCommand.getCommandParams().containsKey(ServerAction.PayloadName.CURRENT_STACK_VERSION));
+          Assert.assertTrue(
+              execCommand.getCommandParams().containsKey(ServerAction.PayloadName.CLUSTER_NAME));
+          Assert.assertEquals(RoleCommand.EXECUTE, execCommand.getRoleCommand());
+        } else {
+          Assert.assertTrue(command.toString(), expectedTasks.isTaskExpected(command.getRole(), command.getHostName()));
+          currRoleOrder = expectedTasks.getRoleOrder(command.getRole());
+          ExecutionCommand execCommand = command.getExecutionCommandWrapper().getExecutionCommand();
+          Assert.assertTrue(execCommand.getCommandParams().containsKey("source_stack_version"));
+          Assert.assertTrue(execCommand.getCommandParams().containsKey("target_stack_version"));
+          Assert.assertEquals(RoleCommand.UPGRADE, execCommand.getRoleCommand());
+        }
       }
 
       List<HostRoleCommand> commands = stage.getOrderedHostRoleCommands();
@@ -4495,7 +4528,8 @@ public class AmbariManagementControllerTest {
   }
 
   class ExpectedUpgradeTasks {
-    private static final int ROLE_COUNT = 24;
+    private static final int ROLE_COUNT = 25;
+    private static final String DEFAULT_HOST = "default_host";
     private ArrayList<Map<String, Boolean>> expectedList;
     private Map<Role, Integer> roleToIndex;
 
@@ -4511,8 +4545,18 @@ public class AmbariManagementControllerTest {
       expectedList.get(roleToIndex.get(role)).put(host, true);
     }
 
+    public void expectTask(Role role) {
+      Assert.assertEquals(Role.AMBARI_SERVER_ACTION, role);
+      expectTask(role, DEFAULT_HOST);
+    }
+
     public boolean isTaskExpected(Role role, String host) {
       return expectedList.get(roleToIndex.get(role)).get(host);
+    }
+
+    public boolean isTaskExpected(Role role) {
+      Assert.assertEquals(Role.AMBARI_SERVER_ACTION, role);
+      return isTaskExpected(role, DEFAULT_HOST);
     }
 
     public int getRoleOrder(Role role) {
@@ -4565,6 +4609,7 @@ public class AmbariManagementControllerTest {
       this.roleToIndex.put(Role.GANGLIA_SERVER, 21);
       this.roleToIndex.put(Role.GANGLIA_MONITOR, 22);
       this.roleToIndex.put(Role.NAGIOS_SERVER, 23);
+      this.roleToIndex.put(Role.AMBARI_SERVER_ACTION, 24);
     }
   }
 

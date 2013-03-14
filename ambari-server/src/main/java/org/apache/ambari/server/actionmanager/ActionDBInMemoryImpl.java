@@ -107,6 +107,11 @@ public class ActionDBInMemoryImpl implements ActionDBAccessor {
   public synchronized void updateHostRoleState(String hostname, long requestId,
       long stageId, String role, CommandReport report) {
     LOG.info("DEBUG stages to iterate: "+stageList.size());
+    if(null == report.getStatus()
+        || null == report.getStdOut()
+        || null == report.getStdErr()) {
+      throw new RuntimeException("Badly formed command report.");
+    }
     for (Stage s : stageList) {
       if (s.getRequestId() == requestId && s.getStageId() == stageId) {
         s.setHostRoleStatus(hostname, role,

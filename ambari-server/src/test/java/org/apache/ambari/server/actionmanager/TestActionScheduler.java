@@ -25,23 +25,28 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import junit.framework.Assert;
 
 import org.apache.ambari.server.Role;
+import org.apache.ambari.server.RoleCommand;
 import org.apache.ambari.server.actionmanager.ActionScheduler.RoleStats;
 import org.apache.ambari.server.agent.ActionQueue;
 import org.apache.ambari.server.agent.AgentCommand;
 import org.apache.ambari.server.agent.ExecutionCommand;
 import org.apache.ambari.server.controller.HostsMap;
+import org.apache.ambari.server.serveraction.ServerAction;
+import org.apache.ambari.server.serveraction.ServerActionManagerImpl;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceComponent;
 import org.apache.ambari.server.state.ServiceComponentHost;
+import org.apache.ambari.server.state.svccomphost.ServiceComponentHostUpgradeEvent;
 import org.apache.ambari.server.utils.StageUtils;
-import org.apache.ambari.server.utils.TestStageUtils;
 import org.junit.Test;
 
 public class TestActionScheduler {
@@ -74,7 +79,7 @@ public class TestActionScheduler {
     //Keep large number of attempts so that the task is not expired finally
     //Small action timeout to test rescheduling
     ActionScheduler scheduler = new ActionScheduler(100, 100, db, aq, fsm,
-        10000, new HostsMap((String) null));
+        10000, new HostsMap((String) null), null);
     scheduler.setTaskTimeoutAdjustment(false);
     // Start the thread
     scheduler.start();
@@ -139,7 +144,7 @@ public class TestActionScheduler {
 
     //Small action timeout to test rescheduling
     ActionScheduler scheduler = new ActionScheduler(100, 50, db, aq, fsm, 3, 
-        new HostsMap((String) null));
+        new HostsMap((String) null), null);
     scheduler.setTaskTimeoutAdjustment(false);
     // Start the thread
     scheduler.start();
@@ -151,7 +156,82 @@ public class TestActionScheduler {
     assertEquals(stages.get(0).getHostRoleStatus(hostname, "NAMENODE"),
         HostRoleStatus.TIMEDOUT);
   }
-  
+
+  /**
+   * Test server action
+   */
+  @Test
+  public void testServerAction() throws Exception {
+    ActionQueue aq = new ActionQueue();
+    Clusters fsm = mock(Clusters.class);
+    Cluster oneClusterMock = mock(Cluster.class);
+    Service serviceObj = mock(Service.class);
+    ServiceComponent scomp = mock(ServiceComponent.class);
+    ServiceComponentHost sch = mock(ServiceComponentHost.class);
+    when(fsm.getCluster(anyString())).thenReturn(oneClusterMock);
+    when(oneClusterMock.getService(anyString())).thenReturn(serviceObj);
+    when(serviceObj.getServiceComponent(anyString())).thenReturn(scomp);
+    when(scomp.getServiceComponentHost(anyString())).thenReturn(sch);
+    when(serviceObj.getCluster()).thenReturn(oneClusterMock);
+
+    ActionDBAccessor db = new ActionDBInMemoryImpl();
+    String hostname = "ahost.ambari.apache.org";
+    List<Stage> stages = new ArrayList<Stage>();
+    Map<String, String> payload = new HashMap<String, String>();
+    payload.put(ServerAction.PayloadName.CLUSTER_NAME, "cluster1");
+    payload.put(ServerAction.PayloadName.CURRENT_STACK_VERSION, "HDP-0.2");
+    Stage s = getStageWithServerAction(1, 977, hostname, payload);
+    stages.add(s);
+    db.persistActions(stages);
+
+    ActionScheduler scheduler = new ActionScheduler(100, 50, db, aq, fsm, 3,
+        new HostsMap((String) null), new ServerActionManagerImpl(fsm));
+    scheduler.start();
+
+    while (!stages.get(0).getHostRoleStatus(hostname, "AMBARI_SERVER_ACTION")
+        .equals(HostRoleStatus.COMPLETED)) {
+      Thread.sleep(100);
+    }
+    scheduler.stop();
+    assertEquals(stages.get(0).getHostRoleStatus(hostname, "AMBARI_SERVER_ACTION"),
+        HostRoleStatus.COMPLETED);
+
+    stages = new ArrayList<Stage>();
+    payload.remove(ServerAction.PayloadName.CLUSTER_NAME);
+    s = getStageWithServerAction(1, 23, hostname, payload);
+    stages.add(s);
+    db.persistActions(stages);
+
+    scheduler = new ActionScheduler(100, 50, db, aq, fsm, 3,
+        new HostsMap((String) null), new ServerActionManagerImpl(fsm));
+    scheduler.start();
+
+    while (!stages.get(0).getHostRoleStatus(hostname, "AMBARI_SERVER_ACTION")
+        .equals(HostRoleStatus.FAILED)) {
+      Thread.sleep(100);
+    }
+    scheduler.stop();
+    assertEquals(stages.get(0).getHostRoleStatus(hostname, "AMBARI_SERVER_ACTION"),
+        HostRoleStatus.FAILED);
+  }
+
+  private static Stage getStageWithServerAction(long requestId, long stageId, String hostName,
+                                                Map<String, String> payload) {
+    Stage stage = new Stage(requestId, "/tmp", "cluster1");
+    stage.setStageId(stageId);
+    long now = System.currentTimeMillis();
+    stage.addServerActionCommand(ServerAction.Command.FINALIZE_UPGRADE, Role.AMBARI_SERVER_ACTION,
+        RoleCommand.EXECUTE, "cluster1",
+        new ServiceComponentHostUpgradeEvent("AMBARI_SERVER_ACTION", hostName, now, "HDP-0.2"),
+        hostName);
+    ExecutionCommand execCmd = stage.getExecutionCommandWrapper(hostName,
+        Role.AMBARI_SERVER_ACTION.toString()).getExecutionCommand();
+
+    execCmd.setCommandParams(payload);
+    return stage;
+  }
+
+
   @Test
   public void testSuccessFactors() {
     Stage s = StageUtils.getATestStage(1, 1);

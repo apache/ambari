@@ -135,8 +135,7 @@ public class TestHeartbeatHandler {
 
   @Test
   public void testHeartbeat() throws Exception {
-    ActionManager am = new ActionManager(0, 0, null, null,
-        new ActionDBInMemoryImpl(), new HostsMap((String) null));
+    ActionManager am = getMockActionManager();
     Clusters fsm = clusters;
     fsm.addHost(DummyHostname1);
     Host hostObject = clusters.getHost(DummyHostname1);
@@ -174,8 +173,7 @@ public class TestHeartbeatHandler {
 
   @Test
   public void testStatusHeartbeat() throws Exception {
-    ActionManager am = new ActionManager(0, 0, null, null,
-            new ActionDBInMemoryImpl(), new HostsMap((String) null));
+    ActionManager am = getMockActionManager();
 
     Cluster cluster = getDummyCluster();
 
@@ -229,8 +227,7 @@ public class TestHeartbeatHandler {
 
   @Test
   public void testLiveStatusUpdateAfterStopFailed() throws Exception {
-    ActionManager am = new ActionManager(0, 0, null, null,
-            new ActionDBInMemoryImpl(), new HostsMap((String) null));
+    ActionManager am = getMockActionManager();
     Cluster cluster = getDummyCluster();
 
     @SuppressWarnings("serial")
@@ -302,7 +299,7 @@ public class TestHeartbeatHandler {
     clusters.addCluster(DummyCluster);
     ActionDBAccessor db = injector.getInstance(ActionDBAccessorImpl.class);
     ActionManager am = new ActionManager(5000, 1200000, new ActionQueue(), clusters, db,
-        new HostsMap((String) null));
+        new HostsMap((String) null), null);
     populateActionDB(db, DummyHostname1);
     Stage stage = db.getAllStages(requestId).get(0);
     Assert.assertEquals(stageId, stage.getStageId());
@@ -347,8 +344,7 @@ public class TestHeartbeatHandler {
   @Test
   public void testRegistration() throws AmbariException,
       InvalidStateTransitionException {
-    ActionManager am = new ActionManager(0, 0, null, null,
-        new ActionDBInMemoryImpl(), new HostsMap((String) null));
+    ActionManager am = getMockActionManager();
     Clusters fsm = clusters;
     HeartBeatHandler handler = new HeartBeatHandler(fsm, new ActionQueue(), am,
         injector);
@@ -373,8 +369,7 @@ public class TestHeartbeatHandler {
   
   @Test
   public void testRegistrationPublicHostname() throws AmbariException, InvalidStateTransitionException {
-    ActionManager am = new ActionManager(0, 0, null, null,
-        new ActionDBInMemoryImpl(), new HostsMap((String) null));
+    ActionManager am = getMockActionManager();
     Clusters fsm = clusters;
     HeartBeatHandler handler = new HeartBeatHandler(fsm, new ActionQueue(), am,
         injector);
@@ -405,8 +400,7 @@ public class TestHeartbeatHandler {
   @Test
   public void testInvalidOSRegistration() throws AmbariException,
       InvalidStateTransitionException {
-    ActionManager am = new ActionManager(0, 0, null, null,
-        new ActionDBInMemoryImpl(), new HostsMap((String) null));
+    ActionManager am = getMockActionManager();
     Clusters fsm = clusters;
     HeartBeatHandler handler = new HeartBeatHandler(fsm, new ActionQueue(), am,
         injector);
@@ -433,8 +427,7 @@ public class TestHeartbeatHandler {
   @Test
   public void testRegisterNewNode()
       throws AmbariException, InvalidStateTransitionException {
-    ActionManager am = new ActionManager(0, 0, null, null,
-        new ActionDBInMemoryImpl(), new HostsMap((String) null));
+    ActionManager am = getMockActionManager();
     Clusters fsm = clusters;
     fsm.addHost(DummyHostname1);
     Host hostObject = clusters.getHost(DummyHostname1);
@@ -522,8 +515,7 @@ public class TestHeartbeatHandler {
     HeartbeatMonitor hm = mock(HeartbeatMonitor.class);
     when(hm.generateStatusCommands(anyString())).thenReturn(dummyCmds);
 
-    ActionManager am = new ActionManager(0, 0, null, null,
-            new ActionDBInMemoryImpl(), new HostsMap((String) null));
+    ActionManager am = getMockActionManager();
     Clusters fsm = clusters;
     ActionQueue actionQueue = new ActionQueue();
     HeartBeatHandler handler = new HeartBeatHandler(fsm, actionQueue, am,
@@ -548,8 +540,7 @@ public class TestHeartbeatHandler {
 
   @Test
   public void testTaskInProgressHandling() throws AmbariException, InvalidStateTransitionException {
-    ActionManager am = new ActionManager(0, 0, null, null,
-            new ActionDBInMemoryImpl(), new HostsMap((String) null));
+    ActionManager am = getMockActionManager();
     Cluster cluster = getDummyCluster();
 
     @SuppressWarnings("serial")
@@ -602,8 +593,7 @@ public class TestHeartbeatHandler {
 
   @Test
   public void testUpgradeSpecificHandling() throws AmbariException, InvalidStateTransitionException {
-    ActionManager am = new ActionManager(0, 0, null, null,
-        new ActionDBInMemoryImpl(), new HostsMap((String) null));
+    ActionManager am = getMockActionManager();
     Cluster cluster = getDummyCluster();
 
     @SuppressWarnings("serial")
@@ -692,8 +682,7 @@ public class TestHeartbeatHandler {
 
   @Test
   public void testStatusHeartbeatWithVersion() throws Exception {
-    ActionManager am = new ActionManager(0, 0, null, null,
-        new ActionDBInMemoryImpl(), new HostsMap((String) null));
+    ActionManager am = getMockActionManager();
     Cluster cluster = getDummyCluster();
 
     @SuppressWarnings("serial")
@@ -762,8 +751,7 @@ public class TestHeartbeatHandler {
 
   @Test
   public void testComponentUpgradeCompleteReport() throws AmbariException, InvalidStateTransitionException {
-    ActionManager am = new ActionManager(0, 0, null, null,
-            new ActionDBInMemoryImpl(), new HostsMap((String) null));
+    ActionManager am = getMockActionManager();
     Cluster cluster = getDummyCluster();
 
     @SuppressWarnings("serial")
@@ -840,8 +828,7 @@ public class TestHeartbeatHandler {
 
   @Test
   public void testComponentUpgradeInProgressReport() throws AmbariException, InvalidStateTransitionException {
-    ActionManager am = new ActionManager(0, 0, null, null,
-            new ActionDBInMemoryImpl(), new HostsMap((String) null));
+    ActionManager am = getMockActionManager();
     Cluster cluster = getDummyCluster();
 
     @SuppressWarnings("serial")
@@ -920,8 +907,7 @@ public class TestHeartbeatHandler {
 
   @Test
   public void testComponentUpgradeFailReport() throws AmbariException, InvalidStateTransitionException {
-    ActionManager am = new ActionManager(0, 0, null, null,
-            new ActionDBInMemoryImpl(), new HostsMap((String) null));
+    ActionManager am = getMockActionManager();
     Cluster cluster = getDummyCluster();
 
     @SuppressWarnings("serial")
@@ -999,6 +985,11 @@ public class TestHeartbeatHandler {
             stack130, serviceComponentHost1.getDesiredStackVersion());
     assertEquals("Stack version of SCH should not change after fail report",
             State.INSTALL_FAILED, serviceComponentHost2.getState());
+  }
+
+  private ActionManager getMockActionManager() {
+    return new ActionManager(0, 0, null, null,
+              new ActionDBInMemoryImpl(), new HostsMap((String) null), null);
   }
 
 

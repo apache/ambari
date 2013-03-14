@@ -55,6 +55,7 @@ import org.apache.ambari.server.metadata.ActionMetadata;
 import org.apache.ambari.server.metadata.RoleCommandOrder;
 import org.apache.ambari.server.security.authorization.User;
 import org.apache.ambari.server.security.authorization.Users;
+import org.apache.ambari.server.serveraction.ServerAction;
 import org.apache.ambari.server.stageplanner.RoleGraph;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
@@ -1508,6 +1509,8 @@ public class AmbariManagementControllerImpl implements
        */
       cluster.refresh();
       if (requestedVersion.equals(cluster.getCurrentStackVersion())) {
+        LOG.info("Update cluster request version matches the current"
+                  + ", version=" + request);
         return null;
       }
 
@@ -1536,10 +1539,45 @@ public class AmbariManagementControllerImpl implements
       requestParameters.put(Configuration.UPGRADE_TO_STACK, gson.toJson(requestedVersion));
       requestParameters.put(Configuration.UPGRADE_FROM_STACK, gson.toJson(currentVersion));
 
-      return doStageCreation(cluster, changedServices, changedComps, changedScHosts, requestParameters);
+      List<Stage> stages = doStageCreation(cluster, changedServices,
+          changedComps, changedScHosts, requestParameters);
+
+      if (stages == null || stages.isEmpty()) {
+        return null;
+      }
+
+      addFinalizeUpgradeAction(cluster, stages);
+      persistStages(stages);
+      updateServiceStates(changedServices, changedComps, changedScHosts);
+      return getRequestStatusResponse(stages.get(0).getRequestId());
     }
 
     return null;
+  }
+
+  private void addFinalizeUpgradeAction(Cluster cluster, List<Stage> stages) throws AmbariException {
+    // Add server side action as the last Stage
+    Stage lastStage = stages.get(stages.size() - 1);
+    Stage newStage = createNewStage(cluster, lastStage.getRequestId());
+    newStage.setStageId(lastStage.getStageId() + 1);
+
+    // Add an arbitrary host name as server actions are executed on the server
+    String hostName = lastStage.getOrderedHostRoleCommands().get(0).getHostName();
+
+    Map<String, String> payload = new HashMap<String, String>();
+    payload.put(ServerAction.PayloadName.CLUSTER_NAME, cluster.getClusterName());
+    payload.put(ServerAction.PayloadName.CURRENT_STACK_VERSION, cluster.getDesiredStackVersion().getStackId());
+
+    ServiceComponentHostUpgradeEvent event = new ServiceComponentHostUpgradeEvent(
+        Role.AMBARI_SERVER_ACTION.toString(), hostName,
+        System.currentTimeMillis(), cluster.getDesiredStackVersion().getStackId());
+    newStage.addServerActionCommand(ServerAction.Command.FINALIZE_UPGRADE, Role.AMBARI_SERVER_ACTION,
+        RoleCommand.EXECUTE, cluster.getClusterName(), event, hostName);
+    ExecutionCommand execCmd = newStage.getExecutionCommandWrapper(hostName,
+        Role.AMBARI_SERVER_ACTION.toString()).getExecutionCommand();
+
+    execCmd.setCommandParams(payload);
+    stages.add(newStage);
   }
 
   private boolean isUpgradeAllowed(StackInfo requestedStackInfo, StackId currentStackId) {
@@ -1679,7 +1717,7 @@ public class AmbariManagementControllerImpl implements
     return null;
   }
 
-  private RequestStatusResponse doStageCreation(Cluster cluster,
+  private List<Stage> doStageCreation(Cluster cluster,
       Map<State, List<Service>> changedServices,
       Map<State, List<ServiceComponent>> changedComps,
       Map<String, Map<State, List<ServiceComponentHost>>> changedScHosts,
@@ -2006,17 +2044,28 @@ public class AmbariManagementControllerImpl implements
 
       RoleGraph rg = new RoleGraph(rco);
       rg.build(stage);
-      stages = rg.getStages();
+      return rg.getStages();
+    }
 
+    return null;
+  }
+
+  private void persistStages(List<Stage> stages) {
+    if(stages != null && stages.size() > 0) {
       if (LOG.isDebugEnabled()) {
         LOG.debug("Triggering Action Manager"
-            + ", clusterName=" + cluster.getClusterName()
-            + ", requestId=" + requestId.longValue()
+            + ", clusterName=" + stages.get(0).getClusterName()
+            + ", requestId=" + stages.get(0).getRequestId()
             + ", stagesCount=" + stages.size());
       }
       actionManager.sendActions(stages);
     }
+  }
 
+  private void updateServiceStates(
+      Map<State, List<Service>> changedServices,
+      Map<State, List<ServiceComponent>> changedComps,
+      Map<String, Map<State, List<ServiceComponentHost>>> changedScHosts) {
     if (changedServices != null) {
       for (Entry<State, List<Service>> entry : changedServices.entrySet()) {
         State newState = entry.getKey();
@@ -2050,12 +2099,6 @@ public class AmbariManagementControllerImpl implements
         }
       }
     }
-
-    if (stages == null || stages.isEmpty()
-        || requestId == null) {
-      return null;
-    }
-    return getRequestStatusResponse(requestId.longValue());
   }
 
   private boolean isValidStateTransition(State oldState,
@@ -2429,8 +2472,15 @@ public class AmbariManagementControllerImpl implements
 
     Cluster cluster = clusters.getCluster(clusterNames.iterator().next());
 
-    return doStageCreation(cluster, changedServices,
+    List<Stage> stages = doStageCreation(cluster, changedServices,
         changedComps, changedScHosts, null);
+    persistStages(stages);
+    updateServiceStates(changedServices, changedComps, changedScHosts);
+    if (stages == null || stages.isEmpty()) {
+      return null;
+    }
+
+    return getRequestStatusResponse(stages.get(0).getRequestId());
   }
 
   @Override
@@ -2688,9 +2738,17 @@ public class AmbariManagementControllerImpl implements
 
     Cluster cluster = clusters.getCluster(clusterNames.iterator().next());
 
-    return doStageCreation(cluster, null,
+    List<Stage> stages = doStageCreation(cluster, null,
         changedComps, changedScHosts, null);
+    persistStages(stages);
+    updateServiceStates(null, changedComps, changedScHosts);
+    if (stages == null || stages.isEmpty()) {
+      return null;
+    }
+
+    return getRequestStatusResponse(stages.get(0).getRequestId());
   }
+
 
   @Override
   public synchronized void updateHosts(Set<HostRequest> requests)
@@ -2969,7 +3027,6 @@ public class AmbariManagementControllerImpl implements
           + " state changes for a set of service components at the same time");
     }
 
-
     // TODO additional validation?
     for (ServiceComponentHostRequest request : requests) {
       Cluster cluster = clusters.getCluster(request.getClusterName());
@@ -2996,8 +3053,15 @@ public class AmbariManagementControllerImpl implements
 
     Cluster cluster = clusters.getCluster(clusterNames.iterator().next());
 
-    return doStageCreation(cluster, null,
+    List<Stage> stages = doStageCreation(cluster, null,
         null, changedScHosts, null);
+    persistStages(stages);
+    updateServiceStates(null, null, changedScHosts);
+    if (stages == null || stages.isEmpty()) {
+      return null;
+    }
+
+    return getRequestStatusResponse(stages.get(0).getRequestId());
   }
 
   @Override

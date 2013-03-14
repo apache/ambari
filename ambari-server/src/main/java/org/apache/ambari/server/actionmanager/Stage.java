@@ -34,7 +34,9 @@ import org.apache.ambari.server.orm.entities.HostEntity;
 import org.apache.ambari.server.orm.entities.HostRoleCommandEntity;
 import org.apache.ambari.server.orm.entities.RoleSuccessCriteriaEntity;
 import org.apache.ambari.server.orm.entities.StageEntity;
+import org.apache.ambari.server.serveraction.ServerAction;
 import org.apache.ambari.server.state.ServiceComponentHostEvent;
+import org.apache.ambari.server.state.svccomphost.ServiceComponentHostUpgradeEvent;
 import org.apache.ambari.server.utils.StageUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -203,6 +205,49 @@ public class Stage {
       throw new RuntimeException(
           "Setting the execution command second time for same stage: stage="
               + this.getActionId() + ", host=" + host + ", role=" + role);
+    }
+    execCmdList.add(wrapper);
+  }
+
+  public synchronized void addServerActionCommand(
+      String actionName, Role role,  RoleCommand command, String clusterName,
+      ServiceComponentHostUpgradeEvent event, String hostName) {
+    HostRoleCommand hrc = new HostRoleCommand(hostName, role, event, command);
+    ExecutionCommand cmd = new ExecutionCommand();
+    ExecutionCommandWrapper wrapper = new ExecutionCommandWrapper(cmd);
+    hrc.setExecutionCommandWrapper(wrapper);
+    cmd.setHostname(hostName);
+    cmd.setClusterName(clusterName);
+    cmd.setServiceName("");
+    cmd.setCommandId(this.getActionId());
+    cmd.setRole(role);
+    cmd.setRoleCommand(command);
+
+    Map<String, String> roleParams = new HashMap<String, String>();
+    roleParams.put(ServerAction.ACTION_NAME, actionName);
+    cmd.setRoleParams(roleParams);
+    Map<String, HostRoleCommand> hrcMap = this.hostRoleCommands.get(hostName);
+    if (hrcMap == null) {
+      hrcMap = new TreeMap<String, HostRoleCommand>();
+      this.hostRoleCommands.put(hostName, hrcMap);
+    }
+    if (hrcMap.get(role.toString()) != null) {
+      throw new RuntimeException(
+          "Setting the server action the second time for same stage: stage="
+              + this.getActionId() + ", action=" + actionName);
+    }
+    hrcMap.put(role.toString(), hrc);
+    List<ExecutionCommandWrapper> execCmdList = this.commandsToSend.get(hostName);
+    if (execCmdList == null) {
+      execCmdList = new ArrayList<ExecutionCommandWrapper>();
+      this.commandsToSend.put(hostName, execCmdList);
+    }
+
+    if (execCmdList.contains(wrapper)) {
+      //todo: proper exception
+      throw new RuntimeException(
+          "Setting the execution command second time for same stage: stage="
+              + this.getActionId() + ", action=" + actionName);
     }
     execCmdList.add(wrapper);
   }

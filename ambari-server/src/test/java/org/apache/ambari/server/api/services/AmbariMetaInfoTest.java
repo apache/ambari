@@ -72,7 +72,6 @@ public class AmbariMetaInfoTest {
   private AmbariMetaInfo metaInfo = null;
   private final static Logger LOG =
       LoggerFactory.getLogger(AmbariMetaInfoTest.class);
-
   
 
   @Rule
@@ -267,8 +266,7 @@ public class AmbariMetaInfoTest {
     Assert.assertFalse(ambariMetaInfo.isSupportedStack(".svn", ""));
     Assert.assertFalse(ambariMetaInfo.isSupportedStack(".svn", ""));
   }
-  
-  
+
   @Test
   public void testGetComponent() throws Exception {
     ComponentInfo component = metaInfo.getComponent(STACK_NAME_HDP,
@@ -331,8 +329,7 @@ public class AmbariMetaInfoTest {
       Assert.assertTrue(e instanceof StackAccessException);
     }
   }
-  
-  
+
   @Test
   public void testGetStackInfo() throws Exception {
     StackInfo stackInfo = metaInfo.getStackInfo(STACK_NAME_HDP, STACK_VERSION_HDP);
@@ -345,8 +342,7 @@ public class AmbariMetaInfoTest {
       Assert.assertTrue(e instanceof StackAccessException);
     }
   }
-  
-  
+
   @Test
   public void testGetProperties() throws Exception {
     Set<PropertyInfo> properties = metaInfo.getProperties(STACK_NAME_HDP, STACK_VERSION_HDP, SERVICE_NAME_HDFS);
@@ -383,7 +379,5 @@ public class AmbariMetaInfoTest {
     } catch (StackAccessException e) {
       Assert.assertTrue(e instanceof StackAccessException);
     }
-    
   }
-  
 }
