@@ -43,7 +43,7 @@ define hdp::java::jce::package(
     command => $curl_cmd,
     creates => $jce_curl_target,
     path    => ["/bin","/usr/bin/"],
-    unless => $jce_curl_target
+    unless => "test -e ${jce_curl_target}"
   }
 
   $security_dir = "${java_home_dir}/jre/lib/security"

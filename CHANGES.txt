@@ -490,6 +490,8 @@ Trunk (unreleased changes):
 
  BUG FIXES
 
+ AMBARI-1637. JCE test for policy files fails during secure install. (swagle)
+
  AMBARI-1621. Config/Reconfig UI should not allow certain configs to have
  host-level overrides. (yusaku)
 
