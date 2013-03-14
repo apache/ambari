@@ -82,7 +82,11 @@ public enum State {
   /**
    * Upgrade has failed.
    */
-  UPGRADE_FAILED(15);
+  UPGRADE_FAILED(15),
+  /**
+   * Disabled master's backup state
+   */
+  MAINTENANCE(16);
 
   private final int state;
 
@@ -101,6 +105,7 @@ public enum State {
       case INSTALLED:
       case STARTED:
       case UNINSTALLED:
+      case MAINTENANCE:
         return true;
       default:
         return false;
@@ -157,6 +162,7 @@ public enum State {
       case INSTALL_FAILED:
       case UPGRADE_FAILED:
       case UNINSTALLED:
+      case MAINTENANCE:
         return true;
       default:
         return false;

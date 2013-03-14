@@ -115,6 +115,7 @@ class hdp-hue::params() inherits hdp::params {
     $hue_hadoop_jt_host = hdp_default("jtnode_host")
     $webhcat_server_host = hdp_default("webhcat_server_host")
     $hue_templeton_url = "http://${webhcat_server_host}:50111/templeton/v1"
+    $hue_hive_home_dir = "/usr/lib/hive"
     $hue_hadoop_yarn_host = ""
     $hue_hadoop_yarn_port = ""
 

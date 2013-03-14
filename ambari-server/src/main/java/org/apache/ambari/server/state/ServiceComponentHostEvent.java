@@ -135,6 +135,10 @@ public abstract class ServiceComponentHostEvent
         return new ServiceComponentHostWipeoutEvent(serviceComponentName, hostName, opTimestamp);
       case HOST_SVCCOMP_UPGRADE:
         return new ServiceComponentHostUpgradeEvent(serviceComponentName, hostName, opTimestamp, stackId);
+      case HOST_SVCCOMP_MAINTENANCE:
+        return new ServiceComponentHostMaintenanceEvent(serviceComponentName, hostName, opTimestamp);
+      case HOST_SVCCOMP_RESTORE:
+        return new ServiceComponentHostRestoreEvent(serviceComponentName, hostName, opTimestamp);
     }
     return null;
   }

@@ -19,14 +19,27 @@
 package org.apache.ambari.server.controller;
 
 import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
+import com.google.inject.AbstractModule;
+import com.google.inject.Guice;
 import com.google.inject.Injector;
 import org.apache.ambari.server.*;
+import org.apache.ambari.server.actionmanager.*;
+import org.apache.ambari.server.agent.CommandReport;
+import org.apache.ambari.server.agent.ExecutionCommand;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
+import org.apache.ambari.server.configuration.Configuration;
+import org.apache.ambari.server.orm.GuiceJpaInitializer;
+import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
 import org.apache.ambari.server.state.*;
+import org.apache.ambari.server.state.svccomphost.ServiceComponentHostInstallEvent;
+import org.apache.ambari.server.state.svccomphost.ServiceComponentHostOpSucceededEvent;
+import org.apache.ambari.server.utils.StageUtils;
 import org.easymock.Capture;
 import org.junit.Test;
 
 import java.lang.reflect.Field;
+import java.lang.reflect.Type;
 import java.util.*;
 
 import static org.junit.Assert.*;
@@ -1457,6 +1470,263 @@ public class AmbariManagementControllerImplTest {
 
     verify(injector, clusters, cluster, response1, response2, response3, stack, metaInfo, service1, service2,
         component1, component2, componentHost1, componentHost2, componentHost3);
+  }
+
+  @Test
+  public void testMaintenanceAndDeleteStates() throws Exception {
+    Injector injector = Guice.createInjector(new AbstractModule() {
+      @Override
+      protected void configure() {
+        Properties properties = new Properties();
+        properties.setProperty(Configuration.PERSISTENCE_IN_MEMORY_KEY, "true");
+        properties.setProperty(Configuration.METADETA_DIR_PATH,
+            "src/main/resources/stacks");
+        properties.setProperty(Configuration.OS_VERSION_KEY,
+            "centos5");
+        try {
+          install(new ControllerModule(properties));
+        } catch (Exception e) {
+          throw new RuntimeException(e);
+        }
+      }
+    });
+    injector.getInstance(GuiceJpaInitializer.class);
+    AmbariManagementController amc = injector.getInstance(AmbariManagementController.class);
+    Clusters clusters = injector.getInstance(Clusters.class);
+    Gson gson = new Gson();
+
+    clusters.addHost("host1");
+    clusters.addHost("host2");
+    clusters.addHost("host3");
+    Host host = clusters.getHost("host1");
+    host.setOsType("centos5");
+    host.persist();
+    host = clusters.getHost("host2");
+    host.setOsType("centos5");
+    host.persist();
+    host = clusters.getHost("host3");
+    host.setOsType("centos5");
+    host.persist();
+
+    ClusterRequest clusterRequest = new ClusterRequest(null, "c1", "HDP-1.2.0", null);
+    amc.createCluster(clusterRequest);
+
+    Set<ServiceRequest> serviceRequests = new HashSet<ServiceRequest>();
+    serviceRequests.add(new ServiceRequest("c1", "HDFS", null, null));
+//    serviceRequests.add(new ServiceRequest("c1", "MAPREDUCE", null, null));
+//    serviceRequests.add(new ServiceRequest("c1", "ZOOKEEPER", null, null));
+//    serviceRequests.add(new ServiceRequest("c1", "HBASE", null, null));
+//    serviceRequests.add(new ServiceRequest("c1", "GANGLIA", null, null));
+//    serviceRequests.add(new ServiceRequest("c1", "NAGIOS", null, null));
+
+    amc.createServices(serviceRequests);
+
+    Type confType = new TypeToken<Map<String, String>>() {
+    }.getType();
+
+    ConfigurationRequest configurationRequest = new ConfigurationRequest("c1", "core-site", "version1",
+        gson.<Map<String, String>>fromJson("{ \"fs.default.name\" : \"localhost:8020\"}", confType)
+    );
+    amc.createConfiguration(configurationRequest);
+
+    configurationRequest = new ConfigurationRequest("c1", "hdfs-site", "version1",
+        gson.<Map<String, String>>fromJson("{ \"dfs.datanode.data.dir.perm\" : \"750\"}", confType)
+    );
+    amc.createConfiguration(configurationRequest);
+
+    configurationRequest = new ConfigurationRequest("c1", "global", "version1",
+        gson.<Map<String, String>>fromJson("{ \"hbase_hdfs_root_dir\" : \"/apps/hbase/\"}", confType)
+    );
+    amc.createConfiguration(configurationRequest);
+
+//    configurationRequest = new ConfigurationRequest("c1", "mapred-site", "version1",
+//        gson.<Map<String, String>>fromJson("{ \"mapred.job.tracker\" : \"localhost:50300\", \"mapreduce.history.server.embedded\": \"false\", \"mapreduce.history.server.http.address\": \"localhost:51111\"}", confType)
+//    );
+//    amc.createConfiguration(configurationRequest);
+//
+//    configurationRequest = new ConfigurationRequest("c1", "hbase-site", "version1",
+//        gson.<Map<String, String>>fromJson("{ \"hbase.rootdir\" : \"hdfs://localhost:8020/apps/hbase/\", \"hbase.cluster.distributed\" : \"true\", \"hbase.zookeeper.quorum\": \"localhost\", \"zookeeper.session.timeout\": \"60000\" }", confType));
+//    amc.createConfiguration(configurationRequest);
+//
+//    configurationRequest = new ConfigurationRequest("c1", "hbase-env", "version1",
+//        gson.<Map<String, String>>fromJson("{ \"hbase_hdfs_root_dir\" : \"/apps/hbase/\"}", confType)
+//    );
+//    amc.createConfiguration(configurationRequest);
+//
+//    configurationRequest = new ConfigurationRequest("c1", "nagios-global", "version2",
+//        gson.<Map<String, String>>fromJson("{ \"nagios_web_login\" : \"nagiosadmin\", \"nagios_web_password\" : \"password\", \"nagios_contact\": \"a\\u0040b.c\" }", confType)
+//    );
+//    amc.createConfiguration(configurationRequest);
+//
+//    configurationRequest = new ConfigurationRequest("c1", "nagios-global", "version1",
+//        gson.<Map<String, String>>fromJson("{ \"nagios_web_login\" : \"nagiosadmin\", \"nagios_web_password\" : \"password\"  }", confType)
+//    );
+//    amc.createConfiguration(configurationRequest);
+
+
+    serviceRequests.clear();
+    serviceRequests.add(new ServiceRequest("c1", "HDFS",
+        gson.<Map<String, String>>fromJson("{\"core-site\": \"version1\", \"hdfs-site\": \"version1\", \"global\" : \"version1\" }", confType)
+        , null));
+//    serviceRequests.add(new ServiceRequest("c1", "MAPREDUCE",
+//        gson.<Map<String, String>>fromJson("{\"core-site\": \"version1\", \"mapred-site\": \"version1\"}", confType)
+//        , null));
+//    serviceRequests.add(new ServiceRequest("c1", "HBASE",
+//        gson.<Map<String, String>>fromJson("{\"hbase-site\": \"version1\", \"hbase-env\": \"version1\"}", confType)
+//        , null));
+//    serviceRequests.add(new ServiceRequest("c1", "NAGIOS",
+//        gson.<Map<String, String>>fromJson("{\"nagios-global\": \"version2\" }", confType)
+//        , null));
+
+    amc.updateServices(serviceRequests);
+
+
+    Set<ServiceComponentRequest> serviceComponentRequests = new HashSet<ServiceComponentRequest>();
+    serviceComponentRequests.add(new ServiceComponentRequest("c1", "HDFS", "NAMENODE", null, null));
+    serviceComponentRequests.add(new ServiceComponentRequest("c1", "HDFS", "SECONDARY_NAMENODE", null, null));
+    serviceComponentRequests.add(new ServiceComponentRequest("c1", "HDFS", "DATANODE", null, null));
+    serviceComponentRequests.add(new ServiceComponentRequest("c1", "HDFS", "HDFS_CLIENT", null, null));
+
+//    serviceComponentRequests.add(new ServiceComponentRequest("c1", "MAPREDUCE", "JOBTRACKER", null, null));
+//    serviceComponentRequests.add(new ServiceComponentRequest("c1", "MAPREDUCE", "TASKTRACKER", null, null));
+//
+//    serviceComponentRequests.add(new ServiceComponentRequest("c1", "ZOOKEEPER", "ZOOKEEPER_SERVER", null, null));
+//
+//    serviceComponentRequests.add(new ServiceComponentRequest("c1", "HBASE", "HBASE_MASTER", null, null));
+//    serviceComponentRequests.add(new ServiceComponentRequest("c1", "HBASE", "HBASE_REGIONSERVER", null, null));
+//    serviceComponentRequests.add(new ServiceComponentRequest("c1", "HBASE", "HBASE_CLIENT", null, null));
+//
+//    serviceComponentRequests.add(new ServiceComponentRequest("c1", "GANGLIA", "GANGLIA_SERVER", null, null));
+//    serviceComponentRequests.add(new ServiceComponentRequest("c1", "GANGLIA", "GANGLIA_MONITOR", null, null));
+//
+//    serviceComponentRequests.add(new ServiceComponentRequest("c1", "NAGIOS", "NAGIOS_SERVER", null, null));
+
+    amc.createComponents(serviceComponentRequests);
+
+    Set<HostRequest> hostRequests = new HashSet<HostRequest>();
+    hostRequests.add(new HostRequest("host1", "c1", null));
+    hostRequests.add(new HostRequest("host2", "c1", null));
+    hostRequests.add(new HostRequest("host3", "c1", null));
+
+    amc.createHosts(hostRequests);
+
+    Set<ServiceComponentHostRequest> componentHostRequests = new HashSet<ServiceComponentHostRequest>();
+    componentHostRequests.add(new ServiceComponentHostRequest("c1", null, "DATANODE", "host1", null, null));
+    componentHostRequests.add(new ServiceComponentHostRequest("c1", null, "NAMENODE", "host1", null, null));
+    componentHostRequests.add(new ServiceComponentHostRequest("c1", null, "SECONDARY_NAMENODE", "host1", null, null));
+    componentHostRequests.add(new ServiceComponentHostRequest("c1", null, "DATANODE", "host2", null, null));
+    componentHostRequests.add(new ServiceComponentHostRequest("c1", null, "DATANODE", "host3", null, null));
+
+
+//    componentHostRequests.add(new ServiceComponentHostRequest("c1", null, "JOBTRACKER", "host1", null, null));
+//    componentHostRequests.add(new ServiceComponentHostRequest("c1", null, "TASKTRACKER", "host1", null, null));
+//    componentHostRequests.add(new ServiceComponentHostRequest("c1", null, "TASKTRACKER", "host2", null, null));
+//    componentHostRequests.add(new ServiceComponentHostRequest("c1", null, "TASKTRACKER", "host3", null, null));
+//
+//    componentHostRequests.add(new ServiceComponentHostRequest("c1", null, "ZOOKEEPER_SERVER", "host1", null, null));
+//    componentHostRequests.add(new ServiceComponentHostRequest("c1", null, "GANGLIA_SERVER", "host1", null, null));
+//    componentHostRequests.add(new ServiceComponentHostRequest("c1", null, "GANGLIA_MONITOR", "host1", null, null));
+//
+//    componentHostRequests.add(new ServiceComponentHostRequest("c1", null, "HDFS_CLIENT", "host1", null, null));
+//    componentHostRequests.add(new ServiceComponentHostRequest("c1", null, "HBASE_MASTER", "host1", null, null));
+//    componentHostRequests.add(new ServiceComponentHostRequest("c1", null, "HBASE_REGIONSERVER", "host1", null, null));
+//    componentHostRequests.add(new ServiceComponentHostRequest("c1", null, "HBASE_CLIENT", "host1", null, null));
+//
+//    componentHostRequests.add(new ServiceComponentHostRequest("c1", null, "NAGIOS_SERVER", "host1", null, null));
+
+
+    amc.createHostComponents(componentHostRequests);
+
+    serviceRequests.clear();
+    serviceRequests.add(new ServiceRequest("c1", "HDFS", null, "INSTALLED"));
+//    serviceRequests.add(new ServiceRequest("c1", "MAPREDUCE", null, "INSTALLED"));
+//    serviceRequests.add(new ServiceRequest("c1", "ZOOKEEPER", null, "INSTALLED"));
+//    serviceRequests.add(new ServiceRequest("c1", "HBASE", null, "INSTALLED"));
+//    serviceRequests.add(new ServiceRequest("c1", "GANGLIA", null, "INSTALLED"));
+//    serviceRequests.add(new ServiceRequest("c1", "NAGIOS", null, "INSTALLED"));
+
+    amc.updateServices(serviceRequests);
+
+    Cluster cluster = clusters.getCluster("c1");
+    Map<String, ServiceComponentHost> namenodes = cluster.getService("HDFS").getServiceComponent("NAMENODE").getServiceComponentHosts();
+    assertEquals(1, namenodes.size());
+
+    ServiceComponentHost componentHost = namenodes.get("host1");
+
+    Map<String, ServiceComponentHost> hostComponents = cluster.getService("HDFS").getServiceComponent("DATANODE").getServiceComponentHosts();
+    for (Map.Entry<String, ServiceComponentHost> entry : hostComponents.entrySet()) {
+      ServiceComponentHost cHost = entry.getValue();
+      cHost.handleEvent(new ServiceComponentHostInstallEvent(cHost.getServiceComponentName(), cHost.getHostName(), System.currentTimeMillis(), "HDP-1.2.0"));
+      cHost.handleEvent(new ServiceComponentHostOpSucceededEvent(cHost.getServiceComponentName(), cHost.getHostName(), System.currentTimeMillis()));
+    }
+    hostComponents = cluster.getService("HDFS").getServiceComponent("NAMENODE").getServiceComponentHosts();
+    for (Map.Entry<String, ServiceComponentHost> entry : hostComponents.entrySet()) {
+      ServiceComponentHost cHost = entry.getValue();
+      cHost.handleEvent(new ServiceComponentHostInstallEvent(cHost.getServiceComponentName(), cHost.getHostName(), System.currentTimeMillis(), "HDP-1.2.0"));
+      cHost.handleEvent(new ServiceComponentHostOpSucceededEvent(cHost.getServiceComponentName(), cHost.getHostName(), System.currentTimeMillis()));
+    }
+    hostComponents = cluster.getService("HDFS").getServiceComponent("SECONDARY_NAMENODE").getServiceComponentHosts();
+    for (Map.Entry<String, ServiceComponentHost> entry : hostComponents.entrySet()) {
+      ServiceComponentHost cHost = entry.getValue();
+      cHost.handleEvent(new ServiceComponentHostInstallEvent(cHost.getServiceComponentName(), cHost.getHostName(), System.currentTimeMillis(), "HDP-1.2.0"));
+      cHost.handleEvent(new ServiceComponentHostOpSucceededEvent(cHost.getServiceComponentName(), cHost.getHostName(), System.currentTimeMillis()));
+    }
+
+    componentHostRequests.clear();
+    componentHostRequests.add(new ServiceComponentHostRequest("c1", null, "NAMENODE", "host1", null, "MAINTENANCE"));
+
+    amc.updateHostComponents(componentHostRequests);
+
+    assertEquals(State.MAINTENANCE, componentHost.getState());
+
+    componentHostRequests.clear();
+    componentHostRequests.add(new ServiceComponentHostRequest("c1", null, "NAMENODE", "host1", null, "INSTALLED"));
+
+    amc.updateHostComponents(componentHostRequests);
+
+    assertEquals(State.INSTALLED, componentHost.getState());
+
+    componentHostRequests.clear();
+    componentHostRequests.add(new ServiceComponentHostRequest("c1", null, "NAMENODE", "host1", null, "MAINTENANCE"));
+
+    amc.updateHostComponents(componentHostRequests);
+
+    assertEquals(State.MAINTENANCE, componentHost.getState());
+
+    componentHostRequests.clear();
+    componentHostRequests.add(new ServiceComponentHostRequest("c1", null, "NAMENODE", "host2", null, null));
+
+    amc.createHostComponents(componentHostRequests);
+
+    componentHostRequests.clear();
+    componentHostRequests.add(new ServiceComponentHostRequest("c1", null, "NAMENODE", "host2", null, "INSTALLED"));
+
+    amc.updateHostComponents(componentHostRequests);
+
+    namenodes = cluster.getService("HDFS").getServiceComponent("NAMENODE").getServiceComponentHosts();
+    assertEquals(2, namenodes.size());
+
+    componentHost = namenodes.get("host2");
+    componentHost.handleEvent(new ServiceComponentHostInstallEvent(componentHost.getServiceComponentName(), componentHost.getHostName(), System.currentTimeMillis(), "HDP-1.2.0"));
+    componentHost.handleEvent(new ServiceComponentHostOpSucceededEvent(componentHost.getServiceComponentName(), componentHost.getHostName(), System.currentTimeMillis()));
+
+    serviceRequests.clear();
+    serviceRequests.add(new ServiceRequest("c1", "HDFS", null, "STARTED"));
+
+    RequestStatusResponse response = amc.updateServices(serviceRequests);
+    for (ShortTaskStatus shortTaskStatus : response.getTasks()) {
+      assertFalse("host1".equals(shortTaskStatus.getHostName()) && "NAMENODE".equals(shortTaskStatus.getRole()));
+    }
+
+    componentHostRequests.clear();
+    componentHostRequests.add(new ServiceComponentHostRequest("c1", null, "NAMENODE", "host1", null, null));
+
+    amc.deleteHostComponents(componentHostRequests);
+
+    namenodes = cluster.getService("HDFS").getServiceComponent("NAMENODE").getServiceComponentHosts();
+
+    assertEquals(1, namenodes.size());
+
   }
 
   //todo other resources

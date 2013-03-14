@@ -488,6 +488,9 @@ Trunk (unreleased changes):
  AMBARI-1489. Add hadoop-lzo to be one of the rpms to check for before
  installation. (mahadev)
 
+ AMBARI-1642. Add ability for maintainence mode in Host Role Component in
+ Ambari. (mahadev)
+
  BUG FIXES
 
  AMBARI-1640. Erroneos property is not highlighted while landing on step7
