@@ -39,6 +39,8 @@ public class ServiceComponentHostResponse {
 
   private String stackVersion;
 
+  private String desiredStackVersion;
+
   private String desiredState;
   
   private String ha_status = "NA";
@@ -48,8 +50,8 @@ public class ServiceComponentHostResponse {
                                       String componentName, String hostname,
                                       Map<String, String> configVersions,
                                       Map<String, String> desiredConfigs,
-                                      String liveState,
-                                      String stackVersion, String desiredState) {
+                                      String liveState, String stackVersion,
+                                      String desiredState, String desiredStackVersion) {
     super();
     this.clusterName = clusterName;
     this.serviceName = serviceName;
@@ -60,6 +62,7 @@ public class ServiceComponentHostResponse {
     this.liveState = liveState;
     this.stackVersion = stackVersion;
     this.desiredState = desiredState;
+    this.desiredStackVersion = desiredStackVersion;
   }
 
   /**
@@ -158,6 +161,20 @@ public class ServiceComponentHostResponse {
    */
   public void setDesiredState(String desiredState) {
     this.desiredState = desiredState;
+  }
+
+  /**
+   * @return the desiredStackVersion
+   */
+  public String getDesiredStackVersion() {
+    return desiredStackVersion;
+  }
+
+  /**
+   * @param desiredStackVersion the desiredStackVersion to set
+   */
+  public void setDesiredStackVersion(String desiredStackVersion) {
+    this.desiredStackVersion = desiredStackVersion;
   }
 
   /**

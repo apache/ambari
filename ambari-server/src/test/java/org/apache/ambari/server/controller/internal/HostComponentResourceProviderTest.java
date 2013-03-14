@@ -28,6 +28,8 @@ import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.spi.ResourceProvider;
 import org.apache.ambari.server.controller.utilities.PredicateBuilder;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
+import org.apache.ambari.server.state.StackId;
+import org.apache.ambari.server.state.State;
 import org.easymock.EasyMock;
 import org.junit.Assert;
 import org.junit.Test;
@@ -101,12 +103,31 @@ public class HostComponentResourceProviderTest {
     AmbariManagementController managementController = createMock(AmbariManagementController.class);
 
     Set<ServiceComponentHostResponse> allResponse = new HashSet<ServiceComponentHostResponse>();
+    StackId stackId = new StackId("HDP-0.1");
+    StackId stackId2 = new StackId("HDP-0.2");
     allResponse.add(new ServiceComponentHostResponse(
-        "Cluster100", "Service100", "Component100", "Host100", null, null, "", "", "" ));
+        "Cluster100", "Service100", "Component100", "Host100", null, null, State.INSTALLED.toString(),
+        stackId.getStackId(), State.STARTED.toString(),
+        stackId2.getStackId()));
     allResponse.add(new ServiceComponentHostResponse(
-        "Cluster100", "Service100", "Component101", "Host100", null, null, "", "", "" ));
+        "Cluster100", "Service100", "Component101", "Host100", null, null, State.INSTALLED.toString(),
+        stackId.getStackId(), State.STARTED.toString(),
+        stackId2.getStackId()));
     allResponse.add(new ServiceComponentHostResponse(
-        "Cluster100", "Service100", "Component102", "Host100", null, null, "", "", "" ));
+        "Cluster100", "Service100", "Component102", "Host100", null, null, State.INSTALLED.toString(),
+        stackId.getStackId(), State.STARTED.toString(),
+        stackId2.getStackId()));
+    Map<String, String> expectedNameValues = new HashMap<String, String>();
+    expectedNameValues.put(
+        HostComponentResourceProvider.HOST_COMPONENT_CLUSTER_NAME_PROPERTY_ID, "Cluster100");
+    expectedNameValues.put(
+        HostComponentResourceProvider.HOST_COMPONENT_STATE_PROPERTY_ID, State.INSTALLED.toString());
+    expectedNameValues.put(
+        HostComponentResourceProvider.HOST_COMPONENT_STACK_ID_PROPERTY_ID, stackId.getStackId());
+    expectedNameValues.put(
+        HostComponentResourceProvider.HOST_COMPONENT_DESIRED_STATE_PROPERTY_ID, State.STARTED.toString());
+    expectedNameValues.put(
+        HostComponentResourceProvider.HOST_COMPONENT_DESIRED_STACK_ID_PROPERTY_ID, stackId2.getStackId());
 
     // set expectations
     expect(managementController.getHostComponents(
@@ -126,6 +147,10 @@ public class HostComponentResourceProviderTest {
 
     propertyIds.add(HostComponentResourceProvider.HOST_COMPONENT_CLUSTER_NAME_PROPERTY_ID);
     propertyIds.add(HostComponentResourceProvider.HOST_COMPONENT_COMPONENT_NAME_PROPERTY_ID);
+    propertyIds.add(HostComponentResourceProvider.HOST_COMPONENT_STATE_PROPERTY_ID);
+    propertyIds.add(HostComponentResourceProvider.HOST_COMPONENT_STACK_ID_PROPERTY_ID);
+    propertyIds.add(HostComponentResourceProvider.HOST_COMPONENT_DESIRED_STATE_PROPERTY_ID);
+    propertyIds.add(HostComponentResourceProvider.HOST_COMPONENT_DESIRED_STACK_ID_PROPERTY_ID);
 
     Predicate predicate = new PredicateBuilder().property(
         HostComponentResourceProvider.HOST_COMPONENT_CLUSTER_NAME_PROPERTY_ID).equals("Cluster100").toPredicate();
@@ -135,14 +160,14 @@ public class HostComponentResourceProviderTest {
     Assert.assertEquals(3, resources.size());
     Set<String> names = new HashSet<String>();
     for (Resource resource : resources) {
-      String clusterName = (String) resource.getPropertyValue(
-          HostComponentResourceProvider.HOST_COMPONENT_CLUSTER_NAME_PROPERTY_ID);
-      Assert.assertEquals("Cluster100", clusterName);
+      for (String key : expectedNameValues.keySet()) {
+        Assert.assertEquals(expectedNameValues.get(key), resource.getPropertyValue(key));
+      }
       names.add((String) resource.getPropertyValue(
           HostComponentResourceProvider.HOST_COMPONENT_COMPONENT_NAME_PROPERTY_ID));
     }
     // Make sure that all of the response objects got moved into resources
-    for (ServiceComponentHostResponse response : allResponse ) {
+    for (ServiceComponentHostResponse response : allResponse) {
       Assert.assertTrue(names.contains(response.getComponentName()));
     }
 
@@ -150,7 +175,7 @@ public class HostComponentResourceProviderTest {
     verify(managementController);
   }
 
-  
+
   @Test
   public void testGetResources_return_ha_status_property() throws Exception {
     Resource.Type type = Resource.Type.HostComponent;
@@ -158,7 +183,7 @@ public class HostComponentResourceProviderTest {
     Set<ServiceComponentHostResponse> allResponse = new HashSet<ServiceComponentHostResponse>();
      for (Role role : Role.values()) {
         allResponse.add(new ServiceComponentHostResponse(
-        "Cluster100", "Service100", role.toString(), "Host100", null, null, "", "", "" ));
+        "Cluster100", "Service100", role.toString(), "Host100", null, null, "", "", "", ""));
      }
     
 
@@ -203,9 +228,7 @@ public class HostComponentResourceProviderTest {
     
     verify(managementController);
   }
- 
-  
-  
+
   @Test
   public void testUpdateResources() throws Exception {
     Resource.Type type = Resource.Type.HostComponent;
@@ -215,7 +238,7 @@ public class HostComponentResourceProviderTest {
 
     Set<ServiceComponentHostResponse> nameResponse = new HashSet<ServiceComponentHostResponse>();
     nameResponse.add(new ServiceComponentHostResponse(
-        "Cluster102", "Service100", "Component100", "Host100", null, null, "STARTED", "", ""));
+        "Cluster102", "Service100", "Component100", "Host100", null, null, "STARTED", "", "", ""));
 
     // set expectations
     expect(managementController.getHostComponents(

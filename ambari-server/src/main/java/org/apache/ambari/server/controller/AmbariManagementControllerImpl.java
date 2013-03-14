@@ -2812,10 +2812,6 @@ public class AmbariManagementControllerImpl implements
             h.addDesiredConfig(c.getClusterId(), cr.getServiceName(), baseConfig);
 
         }
-
-
-
-
       }
 
       //todo: if attempt was made to update a property other than those
@@ -2894,7 +2890,7 @@ public class AmbariManagementControllerImpl implements
 
       if (!hostComponentNames.containsKey(request.getClusterName())) {
         hostComponentNames.put(request.getClusterName(),
-            new HashMap<String, Map<String,Set<String>>>());
+            new HashMap<String, Map<String, Set<String>>>());
       }
       if (!hostComponentNames.get(request.getClusterName())
           .containsKey(request.getServiceName())) {
@@ -2906,7 +2902,7 @@ public class AmbariManagementControllerImpl implements
           .containsKey(request.getComponentName())) {
         hostComponentNames.get(request.getClusterName())
             .get(request.getServiceName()).put(request.getComponentName(),
-                new HashSet<String>());
+            new HashSet<String>());
       }
       if (hostComponentNames.get(request.getClusterName())
           .get(request.getServiceName()).get(request.getComponentName())
@@ -2918,12 +2914,11 @@ public class AmbariManagementControllerImpl implements
           .get(request.getServiceName()).get(request.getComponentName())
           .add(request.getHostname());
 
-
       Service s = cluster.getService(request.getServiceName());
       ServiceComponent sc = s.getServiceComponent(
-        request.getComponentName());
+          request.getComponentName());
       ServiceComponentHost sch = sc.getServiceComponentHost(
-        request.getHostname());
+          request.getHostname());
       State oldState = sch.getState();
       State newState = null;
       if (request.getDesiredState() != null) {
@@ -2937,7 +2932,7 @@ public class AmbariManagementControllerImpl implements
       if (request.getConfigVersions() != null) {
         safeToUpdateConfigsForServiceComponentHost(sch, oldState, newState);
 
-        for (Entry<String,String> entry :
+        for (Entry<String, String> entry :
             request.getConfigVersions().entrySet()) {
           Config config = cluster.getConfig(
               entry.getKey(), entry.getValue());
@@ -2974,6 +2969,27 @@ public class AmbariManagementControllerImpl implements
       }
 
       seenNewStates.add(newState);
+
+      boolean upgradeRequest = checkIfUpgradeRequestAndValidate(request, cluster, s, sc, sch);
+
+      if (!processingUpgradeRequest && upgradeRequest) {
+        processingUpgradeRequest = true;
+        // this needs to be the first request
+        if (numberOfRequestsProcessed > 1) {
+          throw new AmbariException("An upgrade request cannot be combined with " +
+              "other non-upgrade requests.");
+        }
+        fromStackVersion = sch.getStackVersion();
+      }
+
+      if (processingUpgradeRequest) {
+        if (!upgradeRequest) {
+          throw new AmbariException("An upgrade request cannot be combined with " +
+              "other non-upgrade requests.");
+        }
+        sch.setState(State.UPGRADING);
+        sch.setDesiredStackVersion(cluster.getCurrentStackVersion());
+      }
 
       State oldSchState = sch.getState();
       if (newState == oldSchState) {
@@ -3038,7 +3054,7 @@ public class AmbariManagementControllerImpl implements
       if (request.getConfigVersions() != null) {
         Map<String, Config> updated = new HashMap<String, Config>();
 
-        for (Entry<String,String> entry : request.getConfigVersions().entrySet()) {
+        for (Entry<String, String> entry : request.getConfigVersions().entrySet()) {
           Config config = cluster.getConfig(
               entry.getKey(), entry.getValue());
           updated.put(config.getType(), config);
@@ -3053,8 +3069,13 @@ public class AmbariManagementControllerImpl implements
 
     Cluster cluster = clusters.getCluster(clusterNames.iterator().next());
 
-    List<Stage> stages = doStageCreation(cluster, null,
-        null, changedScHosts, null);
+    Map<String, String> requestParameters = null;
+    if (processingUpgradeRequest) {
+      requestParameters = new HashMap<String, String>();
+      requestParameters.put(Configuration.UPGRADE_TO_STACK, gson.toJson(cluster.getCurrentStackVersion()));
+      requestParameters.put(Configuration.UPGRADE_FROM_STACK, gson.toJson(fromStackVersion));
+    }
+    List<Stage> stages = doStageCreation(cluster, null, null, changedScHosts, requestParameters);
     persistStages(stages);
     updateServiceStates(null, null, changedScHosts);
     if (stages == null || stages.isEmpty()) {
@@ -3062,6 +3083,78 @@ public class AmbariManagementControllerImpl implements
     }
 
     return getRequestStatusResponse(stages.get(0).getRequestId());
+  }
+
+  private boolean checkIfUpgradeRequestAndValidate(ServiceComponentHostRequest request, Cluster cluster, Service s,
+                                                   ServiceComponent sc, ServiceComponentHost sch)
+      throws AmbariException {
+    boolean isUpgradeRequest = false;
+    String requestedStackIdString = request.getDesiredStackId();
+    StackId requestedStackId;
+
+    if (requestedStackIdString == null) {
+      return isUpgradeRequest;
+    }
+
+    try {
+      requestedStackId = new StackId(request.getDesiredStackId());
+    } catch (RuntimeException re) {
+      throw getHostComponentUpgradeException(request, cluster, s, sc, sch,
+          "Invalid desired stack id");
+    }
+
+    StackId clusterStackId = cluster.getCurrentStackVersion();
+    StackId currentSchStackId = sch.getStackVersion();
+    if (clusterStackId == null || clusterStackId.getStackName().equals("")) {
+      // cluster has not been upgraded yet
+      if (requestedStackId.compareTo(currentSchStackId) != 0) {
+        throw getHostComponentUpgradeException(request, cluster, s, sc, sch,
+            "Cluster has not been upgraded yet, component host cannot be upgraded");
+      }
+    } else {
+      // cluster is upgraded and sch can be independently upgraded
+      if (clusterStackId.getStackName().compareTo(requestedStackId.getStackName()) != 0) {
+        throw getHostComponentUpgradeException(request, cluster, s, sc, sch,
+            "Deployed stack name and requested stack names do not match");
+      }
+      if (clusterStackId.compareTo(requestedStackId) != 0) {
+        throw getHostComponentUpgradeException(request, cluster, s, sc, sch,
+            "Component host can only be upgraded to the same version as the cluster");
+      } else if (requestedStackId.compareTo(currentSchStackId) > 0) {
+        isUpgradeRequest = true;
+        if (sch.getState() != State.INSTALLED && sch.getState() != State.UPGRADING
+            && sch.getState() != State.UPGRADE_FAILED) {
+          throw getHostComponentUpgradeException(request, cluster, s, sc, sch,
+              "Component host is in an invalid state for upgrade");
+        }
+        // Ensure that the request only updates the stack id
+        if (request.getConfigVersions() != null) {
+          throw getHostComponentUpgradeException(request, cluster, s, sc, sch,
+              "Upgrade cannot be accompanied with config modification");
+        }
+        if (!request.getDesiredState().equals(State.INSTALLED.toString())) {
+          throw getHostComponentUpgradeException(request, cluster, s, sc, sch,
+              "The desired state for an upgrade request must be " + State.INSTALLED);
+        }
+      }
+    }
+
+    return isUpgradeRequest;
+  }
+
+  private AmbariException getHostComponentUpgradeException(ServiceComponentHostRequest request, Cluster cluster,
+                                                           Service s, ServiceComponent sc, ServiceComponentHost sch,
+                                                           String message) throws AmbariException {
+    return new AmbariException(message
+        + ", clusterName=" + cluster.getClusterName()
+        + ", clusterId=" + cluster.getClusterId()
+        + ", serviceName=" + s.getName()
+        + ", componentName=" + sc.getName()
+        + ", hostname=" + sch.getHostName()
+        + ", requestedStackId=" + request.getDesiredStackId()
+        + ", requestedState=" + request.getDesiredState()
+        + ", clusterStackId=" + cluster.getCurrentStackVersion()
+        + ", hostComponentCurrentStackId=" + sch.getStackVersion());
   }
 
   @Override

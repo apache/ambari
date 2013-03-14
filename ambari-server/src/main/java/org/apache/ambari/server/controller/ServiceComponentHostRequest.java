@@ -35,6 +35,8 @@ public class ServiceComponentHostRequest {
 
   private String desiredState; // CREATE/UPDATE
 
+  private String desiredStackId; // UPDATE
+
   public ServiceComponentHostRequest(String clusterName,
                                      String serviceName,
                                      String componentName, String hostname,
@@ -119,6 +121,20 @@ public class ServiceComponentHostRequest {
   }
 
   /**
+   * @return the desiredStackId
+   */
+  public String getDesiredStackId() {
+    return desiredStackId;
+  }
+
+  /**
+   * @param desiredStackId the desiredStackId to set
+   */
+  public void setDesiredStackId(String desiredStackId) {
+    this.desiredStackId = desiredStackId;
+  }
+
+  /**
    * @return the clusterName
    */
   public String getClusterName() {
@@ -132,7 +148,6 @@ public class ServiceComponentHostRequest {
     this.clusterName = clusterName;
   }
 
-
   public String toString() {
     StringBuilder sb = new StringBuilder();
     sb.append("{"
@@ -141,6 +156,7 @@ public class ServiceComponentHostRequest {
         + ", componentName=" + componentName
         + ", hostname=" + hostname
         + ", desiredState=" + desiredState
+        + ", desiredStackId=" + desiredStackId
         + "}");
     return sb.toString();
   }

@@ -2891,6 +2891,312 @@ public class AmbariManagementControllerTest {
   }
 
   @Test
+  public void testServiceComponentHostUpdateStackId() throws AmbariException {
+    String clusterName = "foo1";
+    createCluster(clusterName);
+    String serviceName1 = "HDFS";
+    createService(clusterName, serviceName1, null);
+    String componentName1 = "NAMENODE";
+    String componentName2 = "DATANODE";
+    createServiceComponent(clusterName, serviceName1, componentName1,
+        State.INIT);
+    createServiceComponent(clusterName, serviceName1, componentName2,
+        State.INIT);
+    String host1 = "h1";
+    clusters.addHost(host1);
+    clusters.getHost("h1").setOsType("centos5");
+    clusters.getHost("h1").persist();
+    String host2 = "h2";
+    clusters.addHost(host2);
+    clusters.getHost("h2").setOsType("centos5");
+    clusters.getHost("h2").persist();
+    clusters.mapHostToCluster(host1, clusterName);
+    clusters.mapHostToCluster(host2, clusterName);
+
+    Set<ServiceComponentHostRequest> set1 =
+        new HashSet<ServiceComponentHostRequest>();
+    ServiceComponentHostRequest r1 =
+        new ServiceComponentHostRequest(clusterName, serviceName1,
+            componentName1, host1, null, State.INIT.toString());
+    ServiceComponentHostRequest r2 =
+        new ServiceComponentHostRequest(clusterName, serviceName1,
+            componentName1, host2, null, State.INIT.toString());
+    ServiceComponentHostRequest r3 =
+        new ServiceComponentHostRequest(clusterName, serviceName1,
+            componentName2, host1, null, State.INIT.toString());
+
+    set1.add(r1);
+    set1.add(r2);
+    set1.add(r3);
+    controller.createHostComponents(set1);
+
+    Cluster c1 = clusters.getCluster(clusterName);
+    Service s1 = c1.getService(serviceName1);
+    ServiceComponent sc1 = s1.getServiceComponent(componentName1);
+    ServiceComponent sc2 = s1.getServiceComponent(componentName2);
+    ServiceComponentHost sch1 = sc1.getServiceComponentHost(host1);
+    ServiceComponentHost sch2 = sc1.getServiceComponentHost(host2);
+    ServiceComponentHost sch3 = sc2.getServiceComponentHost(host1);
+
+    s1.setDesiredState(State.INSTALLED);
+    sc1.setDesiredState(State.INSTALLED);
+    sc2.setDesiredState(State.INSTALLED);
+
+    ServiceComponentHostRequest req1;
+    ServiceComponentHostRequest req2;
+    ServiceComponentHostRequest req3;
+    Set<ServiceComponentHostRequest> reqs =
+        new HashSet<ServiceComponentHostRequest>();
+
+    StackId newStack = new StackId("HDP-0.2");
+    StackId oldStack = new StackId("HDP-0.1");
+    c1.setCurrentStackVersion(newStack);
+    c1.setDesiredStackVersion(newStack);
+    sch1.setState(State.INSTALLED);
+    sch2.setState(State.UPGRADE_FAILED);
+    sch1.setDesiredState(State.INSTALLED);
+    sch2.setDesiredState(State.INSTALLED);
+
+    sch1.setStackVersion(oldStack);
+    sch2.setStackVersion(oldStack);
+    sch1.setDesiredStackVersion(newStack);
+    sch2.setDesiredStackVersion(oldStack);
+
+    reqs.clear();
+    req1 = new ServiceComponentHostRequest(clusterName, serviceName1,
+        componentName1, host1,
+        null, State.INSTALLED.toString());
+    req1.setDesiredStackId("HDP-0.2");
+    reqs.add(req1);
+    req2 = new ServiceComponentHostRequest(clusterName, serviceName1,
+        componentName1, host2,
+        null, State.INSTALLED.toString());
+    req2.setDesiredStackId("HDP-0.2");
+    reqs.add(req2);
+
+    RequestStatusResponse resp = controller.updateHostComponents(reqs);
+    List<Stage> stages = actionDB.getAllStages(resp.getRequestId());
+    Assert.assertEquals(1, stages.size());
+    Assert.assertEquals(2, stages.get(0).getOrderedHostRoleCommands().size());
+    Assert.assertEquals(State.UPGRADING, sch1.getState());
+    Assert.assertEquals(State.UPGRADING, sch2.getState());
+    sch1.refresh();
+    Assert.assertTrue(sch1.getDesiredStackVersion().compareTo(newStack) == 0);
+    sch2.refresh();
+    Assert.assertTrue(sch2.getDesiredStackVersion().compareTo(newStack) == 0);
+    for (HostRoleCommand command : stages.get(0).getOrderedHostRoleCommands()) {
+      ExecutionCommand execCommand = command.getExecutionCommandWrapper().getExecutionCommand();
+      Assert.assertTrue(execCommand.getCommandParams().containsKey("source_stack_version"));
+      Assert.assertTrue(execCommand.getCommandParams().containsKey("target_stack_version"));
+      Assert.assertEquals(RoleCommand.UPGRADE, execCommand.getRoleCommand());
+    }
+
+    sch1.setState(State.INSTALLED);
+    sch1.setDesiredState(State.INSTALLED);
+    sch2.setState(State.UPGRADE_FAILED);
+    sch2.setDesiredState(State.INSTALLED);
+    sch3.setState(State.UPGRADE_FAILED);
+    sch3.setDesiredState(State.INSTALLED);
+
+    sch3.setStackVersion(oldStack);
+    sch3.setDesiredStackVersion(newStack);
+
+    reqs.clear();
+    req1 = new ServiceComponentHostRequest(clusterName, serviceName1,
+        componentName1, host1,
+        null, State.INSTALLED.toString());
+    req1.setDesiredStackId("HDP-0.2");
+    reqs.add(req1);
+    req2 = new ServiceComponentHostRequest(clusterName, serviceName1,
+        componentName1, host2,
+        null, State.INSTALLED.toString());
+    req2.setDesiredStackId("HDP-0.2");
+    reqs.add(req2);
+    req3 = new ServiceComponentHostRequest(clusterName, serviceName1,
+        componentName2, host1,
+        null, State.INSTALLED.toString());
+    req3.setDesiredStackId("HDP-0.2");
+    reqs.add(req3);
+
+    resp = controller.updateHostComponents(reqs);
+    stages = actionDB.getAllStages(resp.getRequestId());
+    Assert.assertEquals(2, stages.size());
+    Assert.assertEquals(2, stages.get(0).getOrderedHostRoleCommands().size());
+    Assert.assertEquals(State.UPGRADING, sch1.getState());
+    Assert.assertEquals(State.UPGRADING, sch2.getState());
+    Assert.assertEquals(State.UPGRADING, sch3.getState());
+    sch1.refresh();
+    Assert.assertTrue(sch1.getDesiredStackVersion().compareTo(newStack) == 0);
+    sch2.refresh();
+    Assert.assertTrue(sch2.getDesiredStackVersion().compareTo(newStack) == 0);
+    sch3.refresh();
+    Assert.assertTrue(sch3.getDesiredStackVersion().compareTo(newStack) == 0);
+    for (Stage stage : stages) {
+      for (HostRoleCommand command : stage.getOrderedHostRoleCommands()) {
+        ExecutionCommand execCommand = command.getExecutionCommandWrapper().getExecutionCommand();
+        Assert.assertTrue(execCommand.getCommandParams().containsKey("source_stack_version"));
+        Assert.assertTrue(execCommand.getCommandParams().containsKey("target_stack_version"));
+        Assert.assertEquals("{\"stackName\":\"HDP\",\"stackVersion\":\"0.2\"}",
+            execCommand.getCommandParams().get("target_stack_version"));
+        Assert.assertEquals(RoleCommand.UPGRADE, execCommand.getRoleCommand());
+      }
+    }
+  }
+
+  @Test
+  public void testServiceComponentHostUpdateStackIdError() throws AmbariException {
+    String clusterName = "foo1";
+    createCluster(clusterName);
+    String serviceName1 = "HDFS";
+    createService(clusterName, serviceName1, null);
+    String componentName1 = "NAMENODE";
+    createServiceComponent(clusterName, serviceName1, componentName1,
+        State.INIT);
+    String host1 = "h1";
+    clusters.addHost(host1);
+    clusters.getHost("h1").setOsType("centos5");
+    clusters.getHost("h1").persist();
+    String host2 = "h2";
+    clusters.addHost(host2);
+    clusters.getHost("h2").setOsType("centos5");
+    clusters.getHost("h2").persist();
+    clusters.mapHostToCluster(host1, clusterName);
+    clusters.mapHostToCluster(host2, clusterName);
+
+    Set<ServiceComponentHostRequest> set1 =
+        new HashSet<ServiceComponentHostRequest>();
+    ServiceComponentHostRequest r1 =
+        new ServiceComponentHostRequest(clusterName, serviceName1,
+            componentName1, host1, null, State.INIT.toString());
+    ServiceComponentHostRequest r2 =
+        new ServiceComponentHostRequest(clusterName, serviceName1,
+            componentName1, host2, null, State.INIT.toString());
+
+    set1.add(r1);
+    set1.add(r2);
+    controller.createHostComponents(set1);
+
+    Cluster c1 = clusters.getCluster(clusterName);
+    Service s1 = c1.getService(serviceName1);
+    ServiceComponent sc1 = s1.getServiceComponent(componentName1);
+    ServiceComponentHost sch1 = sc1.getServiceComponentHost(host1);
+    ServiceComponentHost sch2 = sc1.getServiceComponentHost(host2);
+
+    s1.setDesiredState(State.INIT);
+    sc1.setDesiredState(State.INIT);
+
+    ServiceComponentHostRequest req1;
+    ServiceComponentHostRequest req2;
+    Set<ServiceComponentHostRequest> reqs =
+        new HashSet<ServiceComponentHostRequest>();
+
+    reqs.clear();
+    req1 = new ServiceComponentHostRequest(clusterName, serviceName1,
+        componentName1, host1,
+        null, State.STARTED.toString());
+    req1.setDesiredStackId("invalid stack id");
+    reqs.add(req1);
+    updateHostAndCompareExpectedFailure(reqs, "Invalid desired stack id");
+
+    c1.setCurrentStackVersion(null);
+    sch1.setStackVersion(new StackId("HDP-0.1"));
+    reqs.clear();
+    req1 = new ServiceComponentHostRequest(clusterName, serviceName1,
+        componentName1, host1,
+        null, State.STARTED.toString());
+    req1.setDesiredStackId("HDP-0.2");
+    reqs.add(req1);
+    updateHostAndCompareExpectedFailure(reqs, "Cluster has not been upgraded yet");
+
+    c1.setCurrentStackVersion(new StackId("HDP2-0.1"));
+    reqs.clear();
+    req1 = new ServiceComponentHostRequest(clusterName, serviceName1,
+        componentName1, host1,
+        null, State.STARTED.toString());
+    req1.setDesiredStackId("HDP-0.2");
+    reqs.add(req1);
+    updateHostAndCompareExpectedFailure(reqs, "Deployed stack name and requested stack names");
+
+    c1.setCurrentStackVersion(new StackId("HDP-0.2"));
+    reqs.clear();
+    req1 = new ServiceComponentHostRequest(clusterName, serviceName1,
+        componentName1, host1,
+        null, State.STARTED.toString());
+    req1.setDesiredStackId("HDP-0.3");
+    reqs.add(req1);
+    updateHostAndCompareExpectedFailure(reqs, "Component host can only be upgraded to the same version");
+
+    c1.setCurrentStackVersion(new StackId("HDP-0.2"));
+    sch1.setState(State.STARTED);
+    reqs.clear();
+    req1 = new ServiceComponentHostRequest(clusterName, serviceName1,
+        componentName1, host1,
+        null, State.STARTED.toString());
+    req1.setDesiredStackId("HDP-0.2");
+    reqs.add(req1);
+    updateHostAndCompareExpectedFailure(reqs, "Component host is in an invalid state for upgrade");
+
+    c1.setCurrentStackVersion(new StackId("HDP-0.2"));
+    sch1.setState(State.UPGRADE_FAILED);
+    reqs.clear();
+    req1 = new ServiceComponentHostRequest(clusterName, serviceName1,
+        componentName1, host1,
+        new HashMap<String, String>(), State.STARTED.toString());
+    req1.setDesiredStackId("HDP-0.2");
+    reqs.add(req1);
+    updateHostAndCompareExpectedFailure(reqs, "Upgrade cannot be accompanied with config");
+
+    c1.setCurrentStackVersion(new StackId("HDP-0.2"));
+    sch1.setState(State.UPGRADING);
+    reqs.clear();
+    req1 = new ServiceComponentHostRequest(clusterName, serviceName1,
+        componentName1, host1,
+        null, State.STARTED.toString());
+    req1.setDesiredStackId("HDP-0.2");
+    reqs.add(req1);
+    updateHostAndCompareExpectedFailure(reqs, "The desired state for an upgrade request must be");
+
+    c1.setCurrentStackVersion(new StackId("HDP-0.2"));
+    sch1.setState(State.INSTALLED);
+    sch1.setDesiredState(State.INSTALLED);
+    sch2.setState(State.INSTALLED);
+    sch2.setDesiredState(State.INSTALLED);
+    reqs.clear();
+    req1 = new ServiceComponentHostRequest(clusterName, serviceName1,
+        componentName1, host1,
+        null, State.INSTALLED.toString());
+    req1.setDesiredStackId("HDP-0.2");
+    reqs.add(req1);
+    req2 = new ServiceComponentHostRequest(clusterName, serviceName1,
+        componentName1, host2,
+        null, State.STARTED.toString());
+    reqs.add(req2);
+    updateHostAndCompareExpectedFailure(reqs, "An upgrade request cannot be combined with other");
+
+    c1.setCurrentStackVersion(new StackId("HDP-0.2"));
+    sch1.setState(State.UPGRADING);
+    reqs.clear();
+    req1 = new ServiceComponentHostRequest(clusterName, serviceName1,
+        componentName1, host1,
+        null, null);
+    req1.setDesiredStackId("HDP-0.2");
+    reqs.add(req1);
+    RequestStatusResponse resp = controller.updateHostComponents(reqs);
+    Assert.assertNull(resp);
+  }
+
+  private void updateHostAndCompareExpectedFailure(Set<ServiceComponentHostRequest> reqs,
+                                                   String expectedMessage) {
+    try {
+      controller.updateHostComponents(reqs);
+      fail("Expected failure: " + expectedMessage);
+    } catch (Exception e) {
+      LOG.info("Actual exception message: " + e.getMessage());
+      Assert.assertTrue(e.getMessage().contains(expectedMessage));
+    }
+  }
+
+  @Test
   public void testStartClientComponent() {
     // FIXME write test after meta data integration
     // start should fail
@@ -3917,7 +4223,6 @@ public class AmbariManagementControllerTest {
     clusters.getHost("h2").setOsType("centos6");
     clusters.mapHostToCluster(host1, clusterName);
     clusters.mapHostToCluster(host2, clusterName);
-
 
     // null service should work
     createServiceComponentHost(clusterName, null, componentName1,

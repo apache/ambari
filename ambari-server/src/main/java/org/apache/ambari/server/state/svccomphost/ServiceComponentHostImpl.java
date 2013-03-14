@@ -1121,8 +1121,9 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
           desiredConfigs,
           getState().toString(),
           getStackVersion().getStackId(),
-          getDesiredState().toString());
-      r.setHa_status(ha_status);
+          getDesiredState().toString(),
+          getDesiredStackVersion().getStackId());
+          r.setHa_status(ha_status);
       return r;
     }
     finally {

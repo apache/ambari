@@ -40,15 +40,28 @@ class HostComponentResourceProvider extends AbstractResourceProvider {
   // ----- Property ID constants ---------------------------------------------
 
   // Host Components
-  protected static final String HOST_COMPONENT_CLUSTER_NAME_PROPERTY_ID   = PropertyHelper.getPropertyId("HostRoles", "cluster_name");
-  protected static final String HOST_COMPONENT_SERVICE_NAME_PROPERTY_ID   = PropertyHelper.getPropertyId("HostRoles", "service_name");
-  protected static final String HOST_COMPONENT_COMPONENT_NAME_PROPERTY_ID = PropertyHelper.getPropertyId("HostRoles", "component_name");
-  protected static final String HOST_COMPONENT_HOST_NAME_PROPERTY_ID      = PropertyHelper.getPropertyId("HostRoles", "host_name");
-  protected static final String HOST_COMPONENT_STATE_PROPERTY_ID          = PropertyHelper.getPropertyId("HostRoles", "state");
-  protected static final String HOST_COMPONENT_DESIRED_STATE_PROPERTY_ID  = PropertyHelper.getPropertyId("HostRoles", "desired_state");
-  protected static final String HOST_COMPONENT_CONFIGS_PROPERTY_ID          = PropertyHelper.getPropertyId("HostRoles", "configs");
-  protected static final String HOST_COMPONENT_DESIRED_CONFIGS_PROPERTY_ID  = PropertyHelper.getPropertyId("HostRoles", "desired_configs");
-  protected static final String HOST_COMPONENT_HIGH_AVAILABILITY_PROPERTY_ID  = PropertyHelper.getPropertyId("HostRoles", "ha_status");
+  protected static final String HOST_COMPONENT_CLUSTER_NAME_PROPERTY_ID
+      = PropertyHelper.getPropertyId("HostRoles", "cluster_name");
+  protected static final String HOST_COMPONENT_SERVICE_NAME_PROPERTY_ID
+      = PropertyHelper.getPropertyId("HostRoles", "service_name");
+  protected static final String HOST_COMPONENT_COMPONENT_NAME_PROPERTY_ID
+      = PropertyHelper.getPropertyId("HostRoles", "component_name");
+  protected static final String HOST_COMPONENT_HOST_NAME_PROPERTY_ID
+      = PropertyHelper.getPropertyId("HostRoles", "host_name");
+  protected static final String HOST_COMPONENT_STATE_PROPERTY_ID
+      = PropertyHelper.getPropertyId("HostRoles", "state");
+  protected static final String HOST_COMPONENT_DESIRED_STATE_PROPERTY_ID
+      = PropertyHelper.getPropertyId("HostRoles", "desired_state");
+  protected static final String HOST_COMPONENT_CONFIGS_PROPERTY_ID
+      = PropertyHelper.getPropertyId("HostRoles", "configs");
+  protected static final String HOST_COMPONENT_DESIRED_CONFIGS_PROPERTY_ID
+      = PropertyHelper.getPropertyId("HostRoles", "desired_configs");
+  protected static final String HOST_COMPONENT_HIGH_AVAILABILITY_PROPERTY_ID
+      = PropertyHelper.getPropertyId("HostRoles", "ha_status");
+  protected static final String HOST_COMPONENT_STACK_ID_PROPERTY_ID
+      = PropertyHelper.getPropertyId("HostRoles", "stack_id");
+  protected static final String HOST_COMPONENT_DESIRED_STACK_ID_PROPERTY_ID
+      = PropertyHelper.getPropertyId("HostRoles", "desired_stack_id");
 
   private static Set<String> pkPropertyIds =
       new HashSet<String>(Arrays.asList(new String[]{
@@ -132,6 +145,10 @@ class HostComponentResourceProvider extends AbstractResourceProvider {
       setResourceProperty(resource, HOST_COMPONENT_HOST_NAME_PROPERTY_ID, response.getHostname(), requestedIds);
       setResourceProperty(resource, HOST_COMPONENT_STATE_PROPERTY_ID, response.getLiveState(), requestedIds);
       setResourceProperty(resource, HOST_COMPONENT_DESIRED_STATE_PROPERTY_ID, response.getDesiredState(), requestedIds);
+      setResourceProperty(resource, HOST_COMPONENT_STACK_ID_PROPERTY_ID,
+          response.getStackVersion(), requestedIds);
+      setResourceProperty(resource, HOST_COMPONENT_DESIRED_STACK_ID_PROPERTY_ID,
+          response.getDesiredStackVersion(), requestedIds);
       setResourceProperty(resource, HOST_COMPONENT_HIGH_AVAILABILITY_PROPERTY_ID, response.getHa_status(), requestedIds);
       setResourceProperty(resource, HOST_COMPONENT_CONFIGS_PROPERTY_ID,
           response.getConfigs(), requestedIds);
@@ -227,6 +244,8 @@ class HostComponentResourceProvider extends AbstractResourceProvider {
         (String) properties.get(HOST_COMPONENT_HOST_NAME_PROPERTY_ID),
         null,
         (String) properties.get(HOST_COMPONENT_STATE_PROPERTY_ID));
+    serviceComponentHostRequest.setDesiredStackId(
+        (String) properties.get(HOST_COMPONENT_STACK_ID_PROPERTY_ID));
 
     Map<String, String> configMappings =
         ConfigurationResourceProvider.getConfigPropertyValues(properties);

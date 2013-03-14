@@ -12,6 +12,8 @@ Trunk (unreleased changes):
 
  NEW FEATURES
 
+ AMBARI-1626. API support to upgrade host component. (Sumit Mohanty via swagle)
+
  AMBARI-1601. Server level action support. (Sumit Mohanty via swagle)
 
  AMBARI-1620. Add heatmaps for Host and Hbase section. (jaimin)

@@ -57,6 +57,8 @@
         "HostRoles/desired_state",
         "HostRoles/configs",
         "HostRoles/desired_configs",
+        "HostRoles/stack_id",
+        "HostRoles/desired_stack_id",
         "_"
     ],
     "Configuration":[
