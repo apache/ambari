@@ -12,6 +12,8 @@ Trunk (unreleased changes):
 
  NEW FEATURES
 
+ AMBARI-1633. Reassign Master Wizard - Step 5. (yusaku)
+
  AMBARI-1585. Creating the agent scripts for Hue server installation and 
  configuration on the Hue host. (swagle)
 

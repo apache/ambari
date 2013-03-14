@@ -82,6 +82,7 @@ require('controllers/wizard/step10_controller');
 require('controllers/wizard/step11_controller');
 require('controllers/wizard/step12_controller');
 require('controllers/wizard/step13_controller');
+require('controllers/wizard/step14_controller');
 require('controllers/wizard/stack_upgrade/step1_controller');
 require('controllers/wizard/stack_upgrade/step2_controller');
 require('controllers/wizard/stack_upgrade/step3_controller');

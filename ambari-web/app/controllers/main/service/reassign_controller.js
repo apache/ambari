@@ -210,6 +210,7 @@ App.ReassignMasterController = App.WizardController.extend({
         this.loadConfirmedHosts();
       case '1':
         this.loadComponentToReassign();
+        this.load('cluster');
     }
   },
 

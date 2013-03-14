@@ -113,7 +113,7 @@ module.exports = Em.Route.extend({
   }),
 
   step4: Em.Route.extend({
-    route: '/step3',
+    route: '/step4',
     connectOutlets: function (router) {
       console.log('in reassignMaster.step4:connectOutlets');
       var controller = router.get('reassignMasterController');
@@ -125,6 +125,24 @@ module.exports = Em.Route.extend({
     },
     back: Em.Router.transitionTo('step3'),
     next: function (router) {
+      router.transitionTo('step5');
+    }
+  }),
+
+  step5: Em.Route.extend({
+    route: '/step5',
+    connectOutlets: function (router) {
+      console.log('in reassignMaster.step5:connectOutlets');
+      var controller = router.get('reassignMasterController');
+      controller.setCurrentStep('5');
+      controller.dataLoading().done(function () {
+        controller.loadAllPriorSteps();
+        controller.connectOutlet('wizardStep14', controller.get('content'));
+      })
+    },
+    back: Em.Router.transitionTo('step3'),
+    next: function (router) {
+      //router.transitionTo('step6');
     }
   }),
 
