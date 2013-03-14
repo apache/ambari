@@ -508,14 +508,14 @@
     "tag.context" : "mapred",
     "tag.sessionId" : "",
     "tag.hostName" : "ip-10-85-111-149.ec2.internal",
-    "maps_running" : 0,
-    "reduces_running" : 0,
+    "maps_running" : 1,
+    "reduces_running" : 1,
     "mapTaskSlots" : 4,
     "reduceTaskSlots" : 2,
-    "failedDirs" : 0,
+    "failedDirs" : 1,
     "tasks_completed" : 4,
-    "tasks_failed_timeout" : 0,
-    "tasks_failed_ping" : 0
+    "tasks_failed_timeout" : 1,
+    "tasks_failed_ping" : 1
   }, {
     "name" : "Hadoop:service=TaskTracker,name=MetricsSystem,sub=Stats",
     "modelerType" : "MetricsSystem,sub=Stats",

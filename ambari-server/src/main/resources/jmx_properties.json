@@ -5161,42 +5161,42 @@
         "temporal":false
       },
       "metrics/mapred/tasktracker/maps_running":{
-        "metric" : "Hadoop:service=TaskTracker,name=TaskTrackerInfo.maps_running",
+        "metric" : "Hadoop:service=TaskTracker,name=TaskTrackerMetrics.maps_running",
         "pointInTime" : true,
         "temporal" : false
       },
       "metrics/mapred/tasktracker/reduces_running":{
-        "metric" : "Hadoop:service=TaskTracker,name=TaskTrackerInfo.reduces_running",
+        "metric" : "Hadoop:service=TaskTracker,name=TaskTrackerMetrics.reduces_running",
         "pointInTime" : true,
         "temporal" : false
       },
       "metrics/mapred/tasktracker/mapTaskSlots":{
-        "metric" : "Hadoop:service=TaskTracker,name=TaskTrackerInfo.mapTaskSlots",
+        "metric" : "Hadoop:service=TaskTracker,name=TaskTrackerMetrics.mapTaskSlots",
         "pointInTime" : true,
         "temporal" : false
       },
       "metrics/mapred/tasktracker/reduceTaskSlots":{
-        "metric" : "Hadoop:service=TaskTracker,name=TaskTrackerInfo.reduceTaskSlots",
+        "metric" : "Hadoop:service=TaskTracker,name=TaskTrackerMetrics.reduceTaskSlots",
         "pointInTime" : true,
         "temporal" : false
       },
       "metrics/mapred/tasktracker/failedDirs":{
-        "metric" : "Hadoop:service=TaskTracker,name=TaskTrackerInfo.failedDirs",
+        "metric" : "Hadoop:service=TaskTracker,name=TaskTrackerMetrics.failedDirs",
         "pointInTime" : true,
         "temporal" : false
       },
       "metrics/mapred/tasktracker/tasks_completed":{
-        "metric" : "Hadoop:service=TaskTracker,name=TaskTrackerInfo.tasks_completed",
+        "metric" : "Hadoop:service=TaskTracker,name=TaskTrackerMetrics.tasks_completed",
         "pointInTime" : true,
         "temporal" : false
       },
       "metrics/mapred/tasktracker/tasks_failed_timeout":{
-        "metric" : "Hadoop:service=TaskTracker,name=TaskTrackerInfo.tasks_failed_timeout",
+        "metric" : "Hadoop:service=TaskTracker,name=TaskTrackerMetrics.tasks_failed_timeout",
         "pointInTime" : true,
         "temporal" : false
       },
       "metrics/mapred/tasktracker/tasks_failed_ping":{
-        "metric" : "Hadoop:service=TaskTracker,name=TaskTrackerInfo.tasks_failed_ping",
+        "metric" : "Hadoop:service=TaskTracker,name=TaskTrackerMetrics.tasks_failed_ping",
         "pointInTime" : true,
         "temporal" : false
       },
