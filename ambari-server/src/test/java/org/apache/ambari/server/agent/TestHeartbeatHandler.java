@@ -198,9 +198,11 @@ public class TestHeartbeatHandler {
             getServiceComponent(DATANODE).getServiceComponentHost(DummyHostname1);
     ServiceComponentHost serviceComponentHost2 = clusters.getCluster(DummyCluster).getService(HDFS).
             getServiceComponent(NAMENODE).getServiceComponentHost(DummyHostname1);
+    ServiceComponentHost serviceComponentHost3 = clusters.getCluster(DummyCluster).getService(HDFS).
+        getServiceComponent(SECONDARY_NAMENODE).getServiceComponentHost(DummyHostname1);
     serviceComponentHost1.setState(State.INSTALLED);
     serviceComponentHost2.setState(State.INSTALLED);
-
+    serviceComponentHost3.setState(State.STARTING);
 
     HeartBeat hb = new HeartBeat();
     hb.setTimestamp(System.currentTimeMillis());
@@ -216,13 +218,22 @@ public class TestHeartbeatHandler {
     componentStatus1.setStatus(State.STARTED.name());
     componentStatus1.setComponentName(DATANODE);
     componentStatuses.add(componentStatus1);
+    ComponentStatus componentStatus2 = new ComponentStatus();
+    componentStatus2.setClusterName(DummyCluster);
+    componentStatus2.setServiceName(HDFS);
+    componentStatus2.setMessage(DummyHostStatus);
+    componentStatus2.setStatus(State.STARTED.name());
+    componentStatus2.setComponentName(SECONDARY_NAMENODE);
+    componentStatuses.add(componentStatus2);
     hb.setComponentStatus(componentStatuses);
 
     handler.handleHeartBeat(hb);
     State componentState1 = serviceComponentHost1.getState();
     State componentState2 = serviceComponentHost2.getState();
+    State componentState3 = serviceComponentHost3.getState();
     assertEquals(State.STARTED, componentState1);
     assertEquals(State.INSTALLED, componentState2);
+    assertEquals(State.STARTED, componentState3);
   }
 
   @Test

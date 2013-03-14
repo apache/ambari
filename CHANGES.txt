@@ -1578,6 +1578,9 @@ AMBARI-666 branch:
 
   BUG FIXES
 
+  AMBARI-1628. Tasktracker remains in STARTING state preventing Ambari 
+  to display proper status. (Sumit Mohanty via swagle)
+
   AMBARI-1160. Cannot add a hostname that has a number next to . in it.
   (yusaku)
 

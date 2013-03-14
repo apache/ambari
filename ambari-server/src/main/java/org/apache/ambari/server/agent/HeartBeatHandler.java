@@ -236,17 +236,20 @@ public class HeartBeatHandler {
               State prevState = scHost.getState();
               State liveState = State.valueOf(State.class, status.getStatus());
               if (prevState.equals(State.INSTALLED)
-                      || prevState.equals(State.START_FAILED)
-                      || prevState.equals(State.STARTED)
-                      || prevState.equals(State.STOP_FAILED)) {
+                  || prevState.equals(State.START_FAILED)
+                  || prevState.equals(State.STARTED)
+                  || prevState.equals(State.STARTING)
+                  || prevState.equals(State.STOPPING)
+                  || prevState.equals(State.STOP_FAILED)) {
                 scHost.setState(liveState);
-                if (!prevState.equals(liveState) && scHost.getServiceComponentName().equals(Role.HBASE_MASTER.toString())) {
+                LOG.info("State of service component " + componentName
+                    + " of service " + status.getServiceName()
+                    + " of cluster " + status.getClusterName()
+                    + " has changed from " + prevState + " to " + liveState
+                    + " at host " + hostname);
+                if (!prevState.equals(liveState)
+                    && scHost.getServiceComponentName().equals(Role.HBASE_MASTER.toString())) {
                     scaner.updateHBaseMaster(scHost);
-                  LOG.info("State of service component " + componentName
-                          + " of service " + status.getServiceName()
-                          + " of cluster " + status.getClusterName()
-                          + " has changed from " + prevState + " to " + liveState
-                          + " at host " + hostname);
                 }
               }
 
