@@ -122,6 +122,8 @@ Trunk (unreleased changes):
 
  IMPROVEMENTS
 
+ AMBARI-1630. Expose HUE config parameters through Ambari Web. (yusaku)
+
  AMBARI-1595. Add Oracle option for Hive Metastore during Ambari
  cluster install. (Xi Wang via yusaku)
 

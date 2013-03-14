@@ -453,7 +453,6 @@ module.exports =
       "description": "Directory on the local filesystem where the Secondary NameNode should store the temporary images to merge",
       "defaultValue": "",
       "defaultDirectory": "/hadoop/hdfs/namesecondary",
-      "isReconfigurable": false,
       "displayType": "directory",
       "isOverridable": false,
       "isVisible": true,
@@ -2422,7 +2421,34 @@ module.exports =
       "domain": "global",
       "serviceName": "MISC",
       "category": "General"
+    },
+    {
+      "id": "puppet var",
+      "name": "hue_pid_dir",
+      "displayName": "HUE Log Dir",
+      "description": "Directory for HUE logs",
+      "defaultValue": "/var/log/hue",
+      "isReconfigurable": false,
+      "displayType": "directory",
+      "isOverridable": false,
+      "isVisible": true,
+      "domain": "global",
+      "serviceName": "HUE",
+      "category": "Advanced"
+    },
+    {
+      "id": "puppet var",
+      "name": "hue_log_dir",
+      "displayName": "HUE PID Dir",
+      "description": "Directory in which the pid files for HUE processes will be created",
+      "defaultValue": "/var/run/hue",
+      "isReconfigurable": false,
+      "displayType": "directory",
+      "isOverridable": false,
+      "isVisible": true,
+      "domain": "global",
+      "serviceName": "HUE",
+      "category": "Advanced"
     }
-
   ]
 };
