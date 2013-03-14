@@ -311,4 +311,4 @@ App.MainChartHeatmapMetric = Em.Object.extend({
     }
     return num;
   }
-})
+});

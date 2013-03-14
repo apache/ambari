@@ -11,6 +11,8 @@ Trunk (unreleased changes):
  INCOMPATIBLE CHANGES 
 
  NEW FEATURES
+
+ AMBARI-1620. Add heatmaps for Host and Hbase section. (jaimin)
  
  AMBARI-1634. Integrate Frontend Security work to enable security on
  Oozie, Hive, and WebHCat Server. (jaimin)

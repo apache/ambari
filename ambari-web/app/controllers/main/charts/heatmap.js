@@ -5,9 +5,9 @@
  * licenses this file to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
  * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
@@ -19,41 +19,63 @@ var App = require('app');
 
 App.MainChartsHeatmapController = Em.Controller.extend({
   name: 'mainChartsHeatmapController',
-  cluster: function() {
+  cluster: function () {
     return App.Cluster.find().objectAt(0);
   }.property(''),
-  allMetrics: function(){
+  allMetrics: function () {
     var metrics = [
       Em.Object.create({
         label: Em.I18n.t('charts.heatmap.category.host'),
         category: 'host',
-        items: [ App.MainChartHeatmapDiskSpaceUsedMetric.create(),
-          App.MainChartHeatmapMemoryUsedMetric.create()
-          /*, App.MainChartHeatmapProcessRunMetric.create()*/ ]
+        items: [
+          App.MainChartHeatmapDiskSpaceUsedMetric.create(),
+          App.MainChartHeatmapMemoryUsedMetric.create(),
+          App.MainChartHeatmapCpuWaitIOMetric.create()
+          /*, App.MainChartHeatmapProcessRunMetric.create()*/
+        ]
       }),
       Em.Object.create({
         label: Em.I18n.t('charts.heatmap.category.hdfs'),
         category: 'hdfs',
-        items: [ App.MainChartHeatmapDFSBytesReadMetric.create(),
+        items: [
+          App.MainChartHeatmapDFSBytesReadMetric.create(),
           App.MainChartHeatmapDFSBytesWrittenMetric.create(),
           App.MainChartHeatmapDFSGCTimeMillisMetric.create(),
-          App.MainChartHeatmapDFSMemHeapUsedMetric.create() ]
-      }),
+          App.MainChartHeatmapDFSMemHeapUsedMetric.create()
+        ]
+      })
     ];
 
-    if(App.MapReduceService.find().get('length')) {
+    if (App.MapReduceService.find().get('length')) {
       metrics.push(
         Em.Object.create({
           label: Em.I18n.t('charts.heatmap.category.mapreduce'),
           category: 'mapreduce',
-          items: [ App.MainChartHeatmapMapreduceMapsRunningMetric.create(),
+          items: [
+            App.MainChartHeatmapMapreduceMapsRunningMetric.create(),
             App.MainChartHeatmapMapreduceReducesRunningMetric.create(),
             App.MainChartHeatmapMapreduceGCTimeMillisMetric.create(),
-            App.MainChartHeatmapMapreduceMemHeapUsedMetric.create() ]
+            App.MainChartHeatmapMapreduceMemHeapUsedMetric.create()
+          ]
         })
       );
     }
 
+    if (App.HBaseService.find().get('length')) {
+      metrics.push(
+        Em.Object.create({
+          label: Em.I18n.t('charts.heatmap.category.hbase'),
+          category: 'hbase',
+          items: [
+            App.MainChartHeatmapHbaseReadReqCount.create(),
+            App.MainChartHeatmapHbaseWriteReqCount.create(),
+            App.MainChartHeatmapHbaseCompactionQueueSize.create(),
+            App.MainChartHeatmapHbaseRegions.create(),
+            App.MainChartHeatmapHbaseMemStoreSize.create()
+          ]
+        })
+      );
+    }
     return metrics;
   }.property(),
 
@@ -62,7 +84,7 @@ App.MainChartsHeatmapController = Em.Controller.extend({
    *  route on host detail page
    * @param event
    */
-  routeHostDetail: function(event){
+  routeHostDetail: function (event) {
     App.router.transitionTo('main.hosts.hostDetails.summary', event.context)
   },
   showHeatMapMetric: function (event) {
@@ -85,7 +107,7 @@ App.MainChartsHeatmapController = Em.Controller.extend({
 
   /**
    * return class name for to be used for containing each rack.
-   * 
+   *
    * @this App.MainChartsHeatmapController
    */
   rackClass: function () {
