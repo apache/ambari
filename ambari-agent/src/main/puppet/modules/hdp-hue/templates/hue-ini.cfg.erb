@@ -168,12 +168,14 @@
     #
     # Note that for sqlite3, 'name', below is a filename;
     # for other backends, it is the database name.
+  <% if scope.function_hdp_template_var("::hdp-hue::params::hue_db_engine") != "" %>
     engine=<%=scope.function_hdp_template_var("::hdp-hue::params::hue_db_engine")%>
     host=<%=scope.function_hdp_template_var("::hdp-hue::params::hue_db_port")%>
     port=<%=scope.function_hdp_template_var("::hdp-hue::params::hue_db_host")%>
     user=<%=scope.function_hdp_template_var("::hdp-hue::params::hue_db_user")%>
     password=<%=scope.function_hdp_template_var("::hdp-hue::params::hue_db_password")%>
     name=<%=scope.function_hdp_template_var("::hdp-hue::params::hue_db_name")%>
+  <% end %>
 
 
   # Configuration options for connecting to an external SMTP server

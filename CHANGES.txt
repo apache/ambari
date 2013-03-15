@@ -493,6 +493,8 @@ Trunk (unreleased changes):
 
  BUG FIXES
 
+ AMBARI-1648. Hue configuration - DB properties cannot be empty. (swagle)
+
  AMBARI-1641. Some map and reduce task metrics are missing for the
  tasktrackers in the API. (tbeerbower)
 
