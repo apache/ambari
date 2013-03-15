@@ -370,7 +370,7 @@ public class HostTest {
         new HashMap<String,String>() {{ put("a", "b"); put("x", "y"); }});
     
     try {
-      host.addDesiredConfig(c1.getClusterId(), null, config);
+      host.addDesiredConfig(c1.getClusterId(), true, config);
       Assert.fail("Expect failure when version is not specified.");
     }
     catch (Exception e) {
@@ -378,7 +378,7 @@ public class HostTest {
     }
     
     config.setVersionTag("v1");
-    host.addDesiredConfig(c1.getClusterId(), null, config);
+    host.addDesiredConfig(c1.getClusterId(), true, config);
     
     Map<String, DesiredConfig> map = host.getDesiredConfigs(c1.getClusterId());
     Assert.assertTrue("Expect desired config to contain global", map.containsKey("global"));
@@ -386,12 +386,16 @@ public class HostTest {
     config = configFactory.createNew(c1, "global",
         new HashMap<String,String>() {{ put("c", "d"); }});
     config.setVersionTag("v2");
-    host.addDesiredConfig(c1.getClusterId(), null, config);
+    host.addDesiredConfig(c1.getClusterId(), true, config);
     
     map = host.getDesiredConfigs(c1.getClusterId());
     Assert.assertTrue("Expect desired config to contain global", map.containsKey("global"));
     Assert.assertEquals("Expect version to be 'v2'",
         "v2", map.get("global").getVersion());
+    
+    host.addDesiredConfig(c1.getClusterId(), false, config);
+    map = host.getDesiredConfigs(c1.getClusterId());
+    Assert.assertEquals("Expect no mapping configs", 0, map.size());
     
   }
 }

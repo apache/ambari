@@ -355,7 +355,7 @@ public class ClusterTest {
 
     // setup a host that also has a config override
     Host host = clusters.getHost("h1");
-    host.addDesiredConfig(c1.getClusterId(), null, config2);
+    host.addDesiredConfig(c1.getClusterId(), true, config2);
 
     desiredConfigs = c1.getDesiredConfigs();
     dc = desiredConfigs.get(config1.getType());

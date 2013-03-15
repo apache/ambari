@@ -1038,10 +1038,14 @@ public class HostImpl implements Host {
   
   @Override
   @Transactional
-  public void addDesiredConfig(long clusterId, String serviceName, Config config) {
+  public void addDesiredConfig(long clusterId, boolean selected, Config config) {
     
     HostConfigMappingEntity exist = getDesiredConfigEntity(clusterId, config.getType());
     if (null != exist && exist.getVersion().equals(config.getVersionTag())) {
+      if (!selected) {
+        exist.setSelected(0);
+        hostConfigMappingDAO.merge(exist);
+      }
       return;
     }
     
@@ -1060,7 +1064,6 @@ public class HostImpl implements Host {
       entity.setCreateTimestamp(Long.valueOf(new Date().getTime()));
       entity.setHostName(hostEntity.getHostName());
       entity.setSelected(1);
-      entity.setServiceName(serviceName);
       entity.setType(config.getType());
       entity.setVersion(config.getVersionTag());
       

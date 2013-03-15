@@ -2777,7 +2777,7 @@ public class AmbariManagementControllerImpl implements
 
           Config baseConfig = c.getConfig(cr.getType(), cr.getVersionTag());
           if (null != baseConfig)
-            h.addDesiredConfig(c.getClusterId(), cr.getServiceName(), baseConfig);
+            h.addDesiredConfig(c.getClusterId(), cr.isSelected(), baseConfig);
 
         }
       }

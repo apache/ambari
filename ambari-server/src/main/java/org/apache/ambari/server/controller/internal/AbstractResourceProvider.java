@@ -395,8 +395,9 @@ public abstract class AbstractResourceProvider extends BaseProvider implements R
           config.setType(entry.getValue().toString());
         else if (propName.equals("tag"))
           config.setVersionTag(entry.getValue().toString());
-        else if (propName.equals("service_name"))
-          config.setServiceName(entry.getValue().toString());
+        else if (propName.equals("selected")) {
+          config.setSelected(Boolean.parseBoolean(entry.getValue().toString()));
+        }
         else if (absCategory.endsWith("/properties")) {
           config.getProperties().put(propName, entry.getValue().toString());
         }

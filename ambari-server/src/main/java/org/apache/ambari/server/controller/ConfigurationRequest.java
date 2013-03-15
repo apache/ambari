@@ -31,7 +31,7 @@ public class ConfigurationRequest {
   private String type;
   private String tag;
   private Map<String, String> configs;
-  private String serviceName;
+  private boolean selected = true;
 
   public ConfigurationRequest() {
     configs = new HashMap<String, String>();
@@ -107,18 +107,18 @@ public class ConfigurationRequest {
   }
 
   /**
-   * Sets the service name (for host-level overrides)
-   * @param name the service name
+   * Sets if the configuration is selected
+   * @param selected <code>true</code> if the configuration is selected.
    */
-  public void setServiceName(String name) {
-    serviceName = name;
+  public void setSelected(boolean selected) {
+    this.selected = selected;
   }
   
   /**
-   * Gets the service name.
-   * @return the service name
+   * Gets if the configuration is to be selected.
+   * @return <code>true</code> if the configuration is selected.
    */
-  public String getServiceName() {
-    return serviceName;
+  public boolean isSelected() {
+    return selected;
   }
 }

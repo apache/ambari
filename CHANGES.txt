@@ -512,6 +512,8 @@ Trunk (unreleased changes):
 
  AMBARI-1625. Oozie start fails on secure cluster. (swagle)
 
+ AMBARI-1627. Fix to remove host configuration overrides. (ncole)
+
  AMBARI-1592. Fix configuration propagation.
 
  AMBARI-1619. Fix for category path separators.
