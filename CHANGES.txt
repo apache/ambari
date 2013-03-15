@@ -493,6 +493,8 @@ Trunk (unreleased changes):
 
  BUG FIXES
 
+ AMBARI-1439. rrd file location should be read from global config. (swagle)
+
  AMBARI-1648. Hue configuration - DB properties cannot be empty. (swagle)
 
  AMBARI-1641. Some map and reduce task metrics are missing for the

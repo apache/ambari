@@ -126,8 +126,6 @@ class hdp-ganglia::server::files(
   $ensure = present 
 )
 {
-
-
   $rrd_py_path = $hdp::params::rrd_py_path [$hdp::params::hdp_os_type]
   hdp::directory_recursive_create{$rrd_py_path:
     ensure => "directory", 
@@ -142,6 +140,16 @@ class hdp-ganglia::server::files(
     mode   => '0755',
     require => Hdp::Directory_recursive_create[$rrd_py_path]
   }
+
+  $rrd_files_dir = $hdp-ganglia::params::rrdcached_base_dir
+  $rrd_file_owner = $hdp-ganglia::params::gmetad_user
+  hdp::directory_recursive_create{ $rrd_files_dir :
+    ensure => "directory",
+    owner => $rrd_file_owner,
+    group => $rrd_file_owner,
+    mode => 755
+  }
+
 }
 
 
