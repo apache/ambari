@@ -47,10 +47,10 @@ public class HeartbeatMonitor implements Runnable {
   private final int threadWakeupInterval; //1 minute
   private volatile boolean shouldRun = true;
   private Thread monitorThread = null;
-  private HBaseMasterPortScanner scaner;
+  private HBaseMasterPortScanner scanner;
 
-  public void setScaner(HBaseMasterPortScanner scaner) {
-        this.scaner = scaner;
+  public void setScanner(HBaseMasterPortScanner scanner) {
+        this.scanner = scanner;
   }
 
   public HeartbeatMonitor(Clusters fsm, ActionQueue aq, ActionManager am,
@@ -116,7 +116,7 @@ public class HeartbeatMonitor implements Runnable {
         LOG.warn("Hearbeat lost from host "+host);
         //Heartbeat is expired
         hostObj.handleEvent(new HostHeartbeatLostEvent(host));
-        if(hostState != hostObj.getState() && scaner != null) scaner.updateHBaseMaster(hostObj);
+        if(hostState != hostObj.getState() && scanner != null) scanner.updateHBaseMaster(hostObj);
         //Purge action queue
         actionQueue.dequeueAll(host);
         //notify action manager

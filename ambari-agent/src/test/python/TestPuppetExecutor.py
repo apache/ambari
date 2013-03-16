@@ -128,7 +128,6 @@ class TestPuppetExecutor(TestCase):
     time.sleep(0.1)
     subproc_mock.should_finish_event.set()
     subproc_mock.finished_event.wait()
-    print(subproc_mock.was_terminated)
     self.assertEquals(subproc_mock.was_terminated, False, "Subprocess should not be terminated before timeout")
     self.assertEquals(subproc_mock.returncode, 0, "Subprocess should not be terminated before timeout")
 

@@ -3157,6 +3157,15 @@ public class AmbariManagementControllerTest {
     updateHostAndCompareExpectedFailure(reqs, "The desired state for an upgrade request must be");
 
     c1.setCurrentStackVersion(new StackId("HDP-0.2"));
+    sch1.setState(State.UPGRADING);
+    reqs.clear();
+    req1 = new ServiceComponentHostRequest(clusterName, serviceName1,
+        componentName1, host1, null, null);
+    req1.setDesiredStackId("HDP-0.2");
+    reqs.add(req1);
+    updateHostAndCompareExpectedFailure(reqs, "The desired state for an upgrade request must be");
+
+    c1.setCurrentStackVersion(new StackId("HDP-0.2"));
     sch1.setState(State.INSTALLED);
     sch1.setDesiredState(State.INSTALLED);
     sch2.setState(State.INSTALLED);
@@ -3174,7 +3183,8 @@ public class AmbariManagementControllerTest {
     updateHostAndCompareExpectedFailure(reqs, "An upgrade request cannot be combined with other");
 
     c1.setCurrentStackVersion(new StackId("HDP-0.2"));
-    sch1.setState(State.UPGRADING);
+    sch1.setState(State.INSTALLED);
+    sch1.setStackVersion(new StackId("HDP-0.2"));
     reqs.clear();
     req1 = new ServiceComponentHostRequest(clusterName, serviceName1,
         componentName1, host1,
@@ -3182,6 +3192,18 @@ public class AmbariManagementControllerTest {
     req1.setDesiredStackId("HDP-0.2");
     reqs.add(req1);
     RequestStatusResponse resp = controller.updateHostComponents(reqs);
+    Assert.assertNull(resp);
+
+    c1.setCurrentStackVersion(new StackId("HDP-0.2"));
+    sch1.setState(State.INSTALLED);
+    sch1.setStackVersion(new StackId("HDP-0.2"));
+    reqs.clear();
+    req1 = new ServiceComponentHostRequest(clusterName, serviceName1,
+        componentName1, host1,
+        null, State.INSTALLED.toString());
+    req1.setDesiredStackId("HDP-0.2");
+    reqs.add(req1);
+    resp = controller.updateHostComponents(reqs);
     Assert.assertNull(resp);
   }
 

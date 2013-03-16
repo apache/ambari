@@ -203,6 +203,7 @@ class TestActionQueue(TestCase):
     queue.put(statusCommand)
     queue.run()
     returned_result = queue.resultQueue.get()
+    returned_result[1]['status'] = 'INSTALLED' # Patch live value
     self.assertEquals(returned_result, ('STATUS_COMMAND',
                                         {'clusterName': '',
                                          'componentName': 'DATANODE',

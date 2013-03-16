@@ -80,7 +80,7 @@ class StackVersionsFileHandler:
       logger.info("Writing new stack versions file")
       with open (self.versionsFilePath, 'w') as f:
         for key in values:
-          f.write ("%s\t%s\n" % (key, values))
+          f.write ("%s\t%s\n" % (key, values[key]))
 
     except Exception, err:
       logger.error("Can't write new stack version (%s %s) :%s " % (component,

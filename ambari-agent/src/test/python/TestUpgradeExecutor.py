@@ -22,7 +22,7 @@ from unittest import TestCase
 import unittest
 import StringIO
 import socket
-import os, sys, pprint
+import os, sys, pprint, json
 from mock.mock import patch
 from mock.mock import MagicMock
 from mock.mock import create_autospec
@@ -45,10 +45,10 @@ class TestUpgradeExecutor(TestCase):
     # Checking matching versions
     command = {
       'commandParams' :	{
-        'source_stack_version' : 'HDP-1.3.0',
-        'target_stack_version' : 'HDP-1.3.0',
+        'source_stack_version' : '{\"stackName\":\"HDP\",\"stackVersion\":\"1.3.0\"}',
+        'target_stack_version' : '{\"stackName\":\"HDP\",\"stackVersion\":\"1.3.0\"}',
        },
-      'component' : 'HDFS'
+      'role' : 'HDFS'
     }
     result = executor.perform_stack_upgrade(command, 'tmpout', 'tmperr')
     self.assertTrue('matches current stack version' in result['stdout'])
@@ -57,10 +57,10 @@ class TestUpgradeExecutor(TestCase):
     write_stack_version_method.reset()
     command = {
       'commandParams' :	{
-        'source_stack_version' : 'HDP-1.0.1',
-        'target_stack_version' : 'HDP-1.3.0',
+        'source_stack_version' : '{\"stackName\":\"HDP\",\"stackVersion\":\"1.0.1\"}',
+        'target_stack_version' : '{\"stackName\":\"HDP\",\"stackVersion\":\"1.3.0\"}',
       },
-      'component' : 'HDFS'
+      'role' : 'HDFS'
     }
     isdir_method.return_value = False
     result = executor.perform_stack_upgrade(command, 'tmpout', 'tmperr')
@@ -70,10 +70,10 @@ class TestUpgradeExecutor(TestCase):
     write_stack_version_method.reset()
     command = {
       'commandParams' :	{
-        'source_stack_version' : 'HDP-1.0.1',
-        'target_stack_version' : 'HDP-1.3.0',
+        'source_stack_version' : '{\"stackName\":\"HDP\",\"stackVersion\":\"1.0.1\"}',
+        'target_stack_version' : '{\"stackName\":\"HDP\",\"stackVersion\":\"1.3.0\"}',
       },
-      'component' : 'HDFS'
+      'role' : 'HDFS'
     }
     isdir_method.return_value = True
     executor.execute_dir = lambda command, basedir, dir, tmpout, tmperr : \
@@ -91,10 +91,10 @@ class TestUpgradeExecutor(TestCase):
     write_stack_version_method.reset()
     command = {
       'commandParams' :	{
-        'source_stack_version' : 'HDP-1.0.1',
-        'target_stack_version' : 'HDP-1.3.0',
+        'source_stack_version' : '{\"stackName\":\"HDP\",\"stackVersion\":\"1.0.1\"}',
+        'target_stack_version' : '{\"stackName\":\"HDP\",\"stackVersion\":\"1.3.0\"}',
       },
-      'component' : 'HDFS'
+      'role' : 'HDFS'
     }
     isdir_method.return_value = True
     executor.execute_dir = lambda command, basedir, dir, tmpout, tmperr :\
@@ -131,11 +131,11 @@ class TestUpgradeExecutor(TestCase):
   def test_split_stack_version(self):
     executor = UpgradeExecutor.UpgradeExecutor('pythonExecutor',
              'puppetExecutor', AmbariConfig.AmbariConfig().getConfig())
-    result = executor.split_stack_version("HDP-1.2.1")
+    result = executor.split_stack_version('{\"stackName\":\"HDP\",\"stackVersion\":\"1.2.1\"}')
     self.assertEquals(result, ('HDP', '1', '2'))
-    result = executor.split_stack_version("HDP-1.3")
+    result = executor.split_stack_version('{\"stackName\":\"HDP\",\"stackVersion\":\"1.3\"}')
     self.assertEquals(result, ('HDP', '1', '3'))
-    result = executor.split_stack_version("ComplexStackVersion-1.3.4.2.2")
+    result = executor.split_stack_version('{\"stackName\":\"ComplexStackVersion\",\"stackVersion\":\"1.3.4.2.2\"}')
     self.assertEquals(result, ('ComplexStackVersion', '1', '3'))
     pass
 

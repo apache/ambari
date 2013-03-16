@@ -737,12 +737,12 @@ public class TestHeartbeatHandler {
     hb.setReports(new ArrayList<CommandReport>());
 
     ArrayList<ComponentStatus> componentStatuses = new ArrayList<ComponentStatus>();
-    ComponentStatus componentStatus1 =
-        createComponentStatus(DummyCluster, HDFS, DummyHostStatus, State.STARTED, DATANODE, "HDP-1.3.0");
+    ComponentStatus componentStatus1 = createComponentStatus(DummyCluster, HDFS, DummyHostStatus, State.STARTED,
+        DATANODE, "{\"stackName\":\"HDP\",\"stackVersion\":\"1.3.0\"}");
     ComponentStatus componentStatus2 =
         createComponentStatus(DummyCluster, HDFS, DummyHostStatus, State.STARTED, NAMENODE, "");
-    ComponentStatus componentStatus3 =
-        createComponentStatus(DummyCluster, HDFS, DummyHostStatus, State.INSTALLED, HDFS_CLIENT, "HDP-1.3.0");
+    ComponentStatus componentStatus3 = createComponentStatus(DummyCluster, HDFS, DummyHostStatus, State.INSTALLED,
+        HDFS_CLIENT, "{\"stackName\":\"HDP\",\"stackVersion\":\"1.3.0\"}");
 
     componentStatuses.add(componentStatus1);
     componentStatuses.add(componentStatus2);

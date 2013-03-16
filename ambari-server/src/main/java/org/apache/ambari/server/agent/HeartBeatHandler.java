@@ -17,6 +17,7 @@
  */
 package org.apache.ambari.server.agent;
 
+import com.google.gson.Gson;
 import com.google.inject.Inject;
 import com.google.inject.Injector;
 import com.google.inject.Singleton;
@@ -66,7 +67,9 @@ public class HeartBeatHandler {
   @Inject
   ActionMetadata actionMetadata;
   @Inject
-  HBaseMasterPortScanner scaner;
+  HBaseMasterPortScanner scanner;
+  @Inject
+  private Gson gson;
 
   private Map<String, Long> hostResponseIds = new HashMap<String, Long>();
   private Map<String, HeartBeatResponse> hostResponses = new HashMap<String, HeartBeatResponse>();
@@ -78,7 +81,7 @@ public class HeartBeatHandler {
     this.actionQueue = aq;
     this.actionManager = am;
     this.heartbeatMonitor = new HeartbeatMonitor(fsm, aq, am, 60000);
-    this.heartbeatMonitor.setScaner(scaner);
+    this.heartbeatMonitor.setScanner(scanner);
     injector.injectMembers(this);
   }
 
@@ -151,7 +154,7 @@ public class HeartBeatHandler {
         hostObject.handleEvent(new HostUnhealthyHeartbeatEvent(hostname, now,
             null));       
       }
-      if(hostState != hostObject.getState()) scaner.updateHBaseMaster(hostObject);
+      if(hostState != hostObject.getState()) scanner.updateHBaseMaster(hostObject);
     } catch (InvalidStateTransitionException ex) {
       LOG.warn("Asking agent to reregister due to " + ex.getMessage(),  ex);
       hostObject.setState(HostState.INIT);
@@ -205,7 +208,9 @@ public class HeartBeatHandler {
             scHost.handleEvent(new ServiceComponentHostOpInProgressEvent(schName,
                     hostname, now));
           }
-          if(state != scHost.getState() && schName.equals(Role.HBASE_MASTER.toString())) scaner.updateHBaseMaster(cl);
+          if(state != scHost.getState() && schName.equals(Role.HBASE_MASTER.toString())) {
+            scanner.updateHBaseMaster(cl);
+          }
         } catch (ServiceComponentNotFoundException scnex) {
           LOG.warn("Service component not found ", scnex);
         } catch (InvalidStateTransitionException ex) {
@@ -220,7 +225,7 @@ public class HeartBeatHandler {
   protected void processStatusReports(HeartBeat heartbeat,
                                       String hostname,
                                       Clusters clusterFsm) throws
-                                                            AmbariException {
+      AmbariException {
     Set<Cluster> clusters = clusterFsm.getClustersForHost(hostname);
     for (Cluster cl : clusters) {
       for (ComponentStatus status : heartbeat.componentStatus) {
@@ -230,9 +235,9 @@ public class HeartBeatHandler {
             String componentName = status.getComponentName();
             if (svc.getServiceComponents().containsKey(componentName)) {
               ServiceComponent svcComp = svc.getServiceComponent(
-                      componentName);
+                  componentName);
               ServiceComponentHost scHost = svcComp.getServiceComponentHost(
-                      hostname);
+                  hostname);
               State prevState = scHost.getState();
               State liveState = State.valueOf(State.class, status.getStatus());
               if (prevState.equals(State.INSTALLED)
@@ -242,62 +247,58 @@ public class HeartBeatHandler {
                   || prevState.equals(State.STOPPING)
                   || prevState.equals(State.STOP_FAILED)) {
                 scHost.setState(liveState);
-                LOG.info("State of service component " + componentName
-                    + " of service " + status.getServiceName()
-                    + " of cluster " + status.getClusterName()
-                    + " has changed from " + prevState + " to " + liveState
-                    + " at host " + hostname);
-                if (!prevState.equals(liveState)
-                    && scHost.getServiceComponentName().equals(Role.HBASE_MASTER.toString())) {
-                    scaner.updateHBaseMaster(scHost);
+                if (!prevState.equals(liveState)) {
+                  LOG.info("State of service component " + componentName
+                      + " of service " + status.getServiceName()
+                      + " of cluster " + status.getClusterName()
+                      + " has changed from " + prevState + " to " + liveState
+                      + " at host " + hostname);
+                  if (scHost.getServiceComponentName().equals(Role.HBASE_MASTER.toString())) {
+                    scanner.updateHBaseMaster(scHost);
+                  }
                 }
               }
 
-              if(null != status.getStackVersion() && !status.getStackVersion().isEmpty())
-              {
-                scHost.setStackVersion(new StackId(status.getStackVersion()));
+              if (null != status.getStackVersion() && !status.getStackVersion().isEmpty()) {
+                scHost.setStackVersion(gson.fromJson(status.getStackVersion(), StackId.class));
               }
 
               // TODO need to get config version and stack version from live state
             } else {
               // TODO: What should be done otherwise?
             }
-          }
-          catch (ServiceNotFoundException e) {
+          } catch (ServiceNotFoundException e) {
             LOG.warn("Received a live status update for a non-initialized"
-                    + " service"
-                    + ", clusterName=" + status.getClusterName()
-                    + ", serviceName=" + status.getServiceName());
+                + " service"
+                + ", clusterName=" + status.getClusterName()
+                + ", serviceName=" + status.getServiceName());
             // FIXME ignore invalid live update and continue for now?
             continue;
-          }
-          catch (ServiceComponentNotFoundException e) {
+          } catch (ServiceComponentNotFoundException e) {
             LOG.warn("Received a live status update for a non-initialized"
-                    + " servicecomponent"
-                    + ", clusterName=" + status.getClusterName()
-                    + ", serviceName=" + status.getServiceName()
-                    + ", componentName=" + status.getComponentName());
+                + " servicecomponent"
+                + ", clusterName=" + status.getClusterName()
+                + ", serviceName=" + status.getServiceName()
+                + ", componentName=" + status.getComponentName());
             // FIXME ignore invalid live update and continue for now?
             continue;
-          }
-          catch (ServiceComponentHostNotFoundException e) {
+          } catch (ServiceComponentHostNotFoundException e) {
             LOG.warn("Received a live status update for a non-initialized"
-                    + " service"
-                    + ", clusterName=" + status.getClusterName()
-                    + ", serviceName=" + status.getServiceName()
-                    + ", componentName=" + status.getComponentName()
-                    + ", hostname=" + hostname);
+                + " service"
+                + ", clusterName=" + status.getClusterName()
+                + ", serviceName=" + status.getServiceName()
+                + ", componentName=" + status.getComponentName()
+                + ", hostname=" + hostname);
             // FIXME ignore invalid live update and continue for now?
             continue;
-          }
-          catch (RuntimeException e) {
+          } catch (RuntimeException e) {
             LOG.warn("Received a live status with invalid payload"
-                    + " service"
-                    + ", clusterName=" + status.getClusterName()
-                    + ", serviceName=" + status.getServiceName()
-                    + ", componentName=" + status.getComponentName()
-                    + ", hostname=" + hostname
-                    + ", error=" + e.getMessage());
+                + " service"
+                + ", clusterName=" + status.getClusterName()
+                + ", serviceName=" + status.getServiceName()
+                + ", componentName=" + status.getComponentName()
+                + ", hostname=" + hostname
+                + ", error=" + e.getMessage());
             continue;
           }
         }

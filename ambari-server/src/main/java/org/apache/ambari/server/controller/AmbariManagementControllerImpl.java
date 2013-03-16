@@ -30,7 +30,23 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.TreeMap;
-import org.apache.ambari.server.*;
+
+import com.google.gson.Gson;
+import com.google.inject.Inject;
+import com.google.inject.Injector;
+import com.google.inject.Singleton;
+import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.ClusterNotFoundException;
+import org.apache.ambari.server.DuplicateResourceException;
+import org.apache.ambari.server.HostNotFoundException;
+import org.apache.ambari.server.ObjectNotFoundException;
+import org.apache.ambari.server.ParentObjectNotFoundException;
+import org.apache.ambari.server.Role;
+import org.apache.ambari.server.RoleCommand;
+import org.apache.ambari.server.ServiceComponentHostNotFoundException;
+import org.apache.ambari.server.ServiceComponentNotFoundException;
+import org.apache.ambari.server.ServiceNotFoundException;
+import org.apache.ambari.server.StackAccessException;
 import org.apache.ambari.server.actionmanager.ActionManager;
 import org.apache.ambari.server.actionmanager.HostRoleCommand;
 import org.apache.ambari.server.actionmanager.RequestStatus;
@@ -45,18 +61,39 @@ import org.apache.ambari.server.security.authorization.User;
 import org.apache.ambari.server.security.authorization.Users;
 import org.apache.ambari.server.serveraction.ServerAction;
 import org.apache.ambari.server.stageplanner.RoleGraph;
-import org.apache.ambari.server.state.*;
+import org.apache.ambari.server.state.Cluster;
+import org.apache.ambari.server.state.Clusters;
+import org.apache.ambari.server.state.ComponentInfo;
+import org.apache.ambari.server.state.Config;
+import org.apache.ambari.server.state.ConfigFactory;
+import org.apache.ambari.server.state.DesiredConfig;
+import org.apache.ambari.server.state.Host;
+import org.apache.ambari.server.state.OperatingSystemInfo;
+import org.apache.ambari.server.state.PropertyInfo;
+import org.apache.ambari.server.state.RepositoryInfo;
+import org.apache.ambari.server.state.Service;
+import org.apache.ambari.server.state.ServiceComponent;
+import org.apache.ambari.server.state.ServiceComponentFactory;
+import org.apache.ambari.server.state.ServiceComponentHost;
+import org.apache.ambari.server.state.ServiceComponentHostEvent;
+import org.apache.ambari.server.state.ServiceComponentHostFactory;
+import org.apache.ambari.server.state.ServiceFactory;
+import org.apache.ambari.server.state.ServiceInfo;
+import org.apache.ambari.server.state.StackId;
+import org.apache.ambari.server.state.StackInfo;
+import org.apache.ambari.server.state.State;
 import org.apache.ambari.server.state.fsm.InvalidStateTransitionException;
-import org.apache.ambari.server.state.svccomphost.*;
+import org.apache.ambari.server.state.svccomphost.ServiceComponentHostInstallEvent;
+import org.apache.ambari.server.state.svccomphost.ServiceComponentHostMaintenanceEvent;
+import org.apache.ambari.server.state.svccomphost.ServiceComponentHostOpInProgressEvent;
+import org.apache.ambari.server.state.svccomphost.ServiceComponentHostRestoreEvent;
+import org.apache.ambari.server.state.svccomphost.ServiceComponentHostStartEvent;
+import org.apache.ambari.server.state.svccomphost.ServiceComponentHostStopEvent;
+import org.apache.ambari.server.state.svccomphost.ServiceComponentHostUpgradeEvent;
 import org.apache.ambari.server.utils.StageUtils;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import com.google.gson.Gson;
-import com.google.inject.Inject;
-import com.google.inject.Injector;
-import com.google.inject.Singleton;
 
 @Singleton
 public class AmbariManagementControllerImpl implements
@@ -102,7 +139,6 @@ public class AmbariManagementControllerImpl implements
   private HostsMap hostsMap;
   @Inject
   private Configuration configs;
-
 
   final private String masterHostname;
 
@@ -1388,11 +1424,17 @@ public class AmbariManagementControllerImpl implements
     boolean requiresVersionUpdate = requestedVersionString != null
         && !requestedVersionString.isEmpty();
     if (requiresVersionUpdate) {
+      LOG.info("Received a cluster update request"
+          + ", clusterName=" + request.getClusterName()
+          + ", request=" + request);
       requestedVersion = new StackId(requestedVersionString);
       if (!requestedVersion.getStackName().equals(currentVersion.getStackName())) {
         throw new AmbariException("Upgrade not possible between different stacks.");
       }
       requiresVersionUpdate = !currentVersion.equals(requestedVersion);
+      if(!requiresVersionUpdate) {
+        LOG.info("The cluster is already at " + currentVersion);
+      }
     }
 
     if (requiresVersionUpdate && requiresHostListUpdate) {
@@ -1407,6 +1449,7 @@ public class AmbariManagementControllerImpl implements
     }
 
     if (requiresVersionUpdate) {
+      LOG.info("Upgrade cluster request received for stack " + requestedVersion);
       boolean retry = false;
       if (0 == currentVersion.compareTo(desiredVersion)) {
         if (1 != requestedVersion.compareTo(currentVersion)) {
@@ -1427,6 +1470,7 @@ public class AmbariManagementControllerImpl implements
         }
       } else {
         retry = true;
+        LOG.info("Received upgrade request is a retry.");
         if (0 != requestedVersion.compareTo(desiredVersion)) {
           throw new AmbariException("Upgrade in progress to target version : "
               + desiredVersion
@@ -1472,11 +1516,13 @@ public class AmbariManagementControllerImpl implements
       Map<String, Map<State, List<ServiceComponentHost>>> changedScHosts =
           new HashMap<String, Map<State, List<ServiceComponentHost>>>();
 
+      LOG.info("Identifying components to upgrade.");
       fillComponentsToUpgrade(request, cluster, changedServices, changedComps, changedScHosts);
       Map<String, String> requestParameters = new HashMap<String, String>();
       requestParameters.put(Configuration.UPGRADE_TO_STACK, gson.toJson(requestedVersion));
       requestParameters.put(Configuration.UPGRADE_FROM_STACK, gson.toJson(currentVersion));
 
+      LOG.info("Creating stages for upgrade.");
       List<Stage> stages = doStageCreation(cluster, changedServices,
           changedComps, changedScHosts, requestParameters);
 
@@ -1487,7 +1533,9 @@ public class AmbariManagementControllerImpl implements
       addFinalizeUpgradeAction(cluster, stages);
       persistStages(stages);
       updateServiceStates(changedServices, changedComps, changedScHosts);
-      return getRequestStatusResponse(stages.get(0).getRequestId());
+      long requestId = stages.get(0).getRequestId();
+      LOG.info(stages.size() + " stages created for upgrade and the request id is " + requestId);
+      return getRequestStatusResponse(requestId);
     }
 
     return null;
@@ -2895,6 +2943,9 @@ public class AmbariManagementControllerImpl implements
         }
       }
 
+      // If upgrade request comes without state information then its an error
+      boolean upgradeRequest = checkIfUpgradeRequestAndValidate(request, cluster, s, sc, sch);
+
       if (newState == null) {
         if (LOG.isDebugEnabled()) {
           LOG.debug("Nothing to do for new updateServiceComponentHost request"
@@ -2914,8 +2965,6 @@ public class AmbariManagementControllerImpl implements
       }
 
       seenNewStates.add(newState);
-
-      boolean upgradeRequest = checkIfUpgradeRequestAndValidate(request, cluster, s, sc, sch);
 
       if (!processingUpgradeRequest && upgradeRequest) {
         processingUpgradeRequest = true;
@@ -3185,19 +3234,29 @@ public class AmbariManagementControllerImpl implements
           throw getHostComponentUpgradeException(request, cluster, s, sc, sch,
               "Upgrade cannot be accompanied with config modification");
         }
-        if (!request.getDesiredState().equals(State.INSTALLED.toString())) {
+        if (request.getDesiredState() == null
+            || !request.getDesiredState().equals(State.INSTALLED.toString())) {
           throw getHostComponentUpgradeException(request, cluster, s, sc, sch,
               "The desired state for an upgrade request must be " + State.INSTALLED);
         }
+        LOG.info("Received upgrade request to " + requestedStackId + " for "
+            + "component " + sch.getServiceComponentName()
+            + " on " + sch.getHostName());
+      } else {
+        LOG.info("Stack id " + requestedStackId + " provided in the request matches"
+            + " the current stack id of the "
+            + "component " + sch.getServiceComponentName()
+            + " on " + sch.getHostName() + ". It will not be upgraded.");
       }
     }
 
     return isUpgradeRequest;
   }
 
-  private AmbariException getHostComponentUpgradeException(ServiceComponentHostRequest request, Cluster cluster,
-                                                           Service s, ServiceComponent sc, ServiceComponentHost sch,
-                                                           String message) throws AmbariException {
+  private AmbariException getHostComponentUpgradeException(
+      ServiceComponentHostRequest request, Cluster cluster,
+      Service s, ServiceComponent sc, ServiceComponentHost sch,
+      String message) throws AmbariException {
     return new AmbariException(message
         + ", clusterName=" + cluster.getClusterName()
         + ", clusterId=" + cluster.getClusterId()

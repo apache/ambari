@@ -115,7 +115,7 @@ class PuppetExecutor:
     if command.has_key("taskId"):
       taskId = command['taskId']
     #Install repos
-    self.deployRepos(command, self.tmpDir, self.modulesdir, command.taskId)
+    self.deployRepos(command, self.tmpDir, self.modulesdir, taskId)
     puppetEnv = os.environ
     self.runPuppetFile(file, result, puppetEnv, tmpout, tmperr)
     if self.isSuccessfull(result["exitcode"]):

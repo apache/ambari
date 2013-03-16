@@ -12,6 +12,9 @@ Trunk (unreleased changes):
 
  NEW FEATURES
 
+ AMBARI-1647. Integrate server and agent changes for upgrade on cluster. 
+ (Sumit Mohanty via swagle)
+
  AMBARI-1626. API support to upgrade host component. (Sumit Mohanty via swagle)
 
  AMBARI-1601. Server level action support. (Sumit Mohanty via swagle)

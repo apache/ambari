@@ -204,13 +204,13 @@
               </sources>
             </mapping>
             <mapping>
-              <directory>/var/lib/${project.artifactId}/upgrade_scripts</directory>
+              <directory>/var/lib/${project.artifactId}/upgrade_stack</directory>
               <filemode>755</filemode>
               <username>root</username>
               <groupname>root</groupname>
               <sources>
                 <source>
-                  <location>src/main/upgrade_scripts</location>
+                  <location>src/main/upgrade_stack</location>
                 </source>
               </sources>
             </mapping>

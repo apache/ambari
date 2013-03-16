@@ -35,6 +35,6 @@ class TestLiveStatus(TestCase):
       print "LiveStatus of {0}: {1}".format(component['serviceName'], str(result))
       self.assertEquals(len(result) > 0, True, 'Livestatus should not be empty')
       if component['componentName'] == 'GANGLIA_SERVER':
-        self.assertEquals(result['stackVersion'],'HDP-1.2.2',
+        self.assertEquals(result['stackVersion'],'{"stackName":"HDP","stackVersion":"1.2.2"}',
                       'Livestatus should contain component stack version')
   

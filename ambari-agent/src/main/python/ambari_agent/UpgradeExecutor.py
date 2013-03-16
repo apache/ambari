@@ -30,7 +30,7 @@ import shell
 import traceback
 from Grep import Grep
 from StackVersionsFileHandler import StackVersionsFileHandler
-import re
+import re, json
 
 logger = logging.getLogger()
 grep = Grep()
@@ -61,10 +61,10 @@ class UpgradeExecutor:
     params = command['commandParams']
     srcStack = params['source_stack_version']
     tgtStack = params['target_stack_version']
-    component = command['component']
+    component = command['role']
 
     srcStackTuple = self.split_stack_version(srcStack)
-    tgtStackTuple = self.split_stack_version(srcStack)
+    tgtStackTuple = self.split_stack_version(tgtStack)
 
     if srcStackTuple is None or tgtStackTuple is None:
       errorstr = "Source (%s) or target (%s) version does not match pattern \
@@ -81,7 +81,8 @@ class UpgradeExecutor:
       # Check stack version (do we need upgrade?)
       basedir = os.path.join(self.stacksDir, upgradeId, component)
       if not os.path.isdir(basedir):
-        errorstr = "Upgrade %s is not supported" % upgradeId
+        errorstr = "Upgrade %s is not supported (dir %s does not exist)" \
+                   % (upgradeId, basedir)
         logger.error(errorstr)
         result = {
           'exitcode' : 1,
@@ -138,10 +139,12 @@ class UpgradeExecutor:
 
 
   def split_stack_version(self, verstr):
-    matchObj = re.match( r'^(.*)-(\d+).(\d+)', verstr.strip(), re.M|re.I)
-    stack_name = matchObj.group(1)
-    stack_major_ver = matchObj.group(2)
-    stack_minor_ver = matchObj.group(3)
+    verdict = json.loads(verstr)
+    stack_name = verdict["stackName"].strip()
+
+    matchObj = re.match( r'(\d+).(\d+)', verdict["stackVersion"].strip(), re.M|re.I)
+    stack_major_ver = matchObj.group(1)
+    stack_minor_ver = matchObj.group(2)
     if matchObj:
       return stack_name, stack_major_ver, stack_minor_ver
     else:
@@ -156,8 +159,14 @@ class UpgradeExecutor:
     dirpath = os.path.join(basedir, dir)
     logger.info("Executing %s" % dirpath)
     if not os.path.isdir(dirpath):
-      logger.warn("Script directory %s does not exist, skipping")
-      return
+      warnstr = "Script directory %s does not exist, skipping" % dirpath
+      logger.warn(warnstr)
+      result = {
+        'exitcode' : 0,
+        'stdout'   : warnstr,
+        'stderr'   : 'None'
+      }
+      return result
     fileList=os.listdir(dirpath)
     fileList.sort(key = self.get_key_func)
     formattedResult = {
@@ -172,11 +181,11 @@ class UpgradeExecutor:
       filepath = os.path.join(dirpath, filename)
       if filename.endswith(".pp"):
         logger.info("Running puppet file %s" % filepath)
-        result = self.puppetExecutor.just_run_one_file(command, filename,
+        result = self.puppetExecutor.just_run_one_file(command, filepath,
                                                                 tmpout, tmperr)
       elif filename.endswith(".py"):
         logger.info("Running python file %s" % filepath)
-        result = self.pythonExecutor.run_file(filepath, tmpout, tmperr)
+        result = self.pythonExecutor.run_file(command, filepath, tmpout, tmperr)
       elif filename.endswith(".pyc"):
         pass # skipping compiled files
       else:

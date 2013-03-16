@@ -1,4 +1,4 @@
-DATANODE    HDP-1.2.0
-NAGIOS_SERVER    HDP-1.2.1
-HCATALOG    HDP-1.3.0
-GANGLIA_SERVER  HDP-1.2.2
+DATANODE    {"stackName":"HDP","stackVersion":"1.2.0"}
+NAGIOS_SERVER   {"stackName":"HDP","stackVersion":"1.2.1"}
+HCATALOG    {"stackName":"HDP","stackVersion":"1.2.2"}
+GANGLIA_SERVER  {"stackName":"HDP","stackVersion":"1.2.2"}

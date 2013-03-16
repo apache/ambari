@@ -67,9 +67,10 @@ class ActionQueue(threading.Thread):
                                    config.get('puppet', 'puppet_home'),
                                    config.get('puppet', 'facter_home'),
                                    config.get('agent', 'prefix'), config)
-    self.pythonExecutor = PythonExecutor.PythonExecutor()
+    self.pythonExecutor = PythonExecutor.PythonExecutor(
+                                   config.get('agent', 'prefix'), config)
     self.upgradeExecutor = UpgradeExecutor.UpgradeExecutor(self.pythonExecutor,
-                                   PuppetExecutor, config)
+                                   self.puppetExecutor, config)
     self.tmpdir = config.get('agent', 'prefix')
     self.commandInProgress = None
 
