@@ -118,6 +118,18 @@
                 <role>PMC</role>
             </roles>
         </developer>
+        <developer>
+            <id>billie</id>
+            <name>Billie Rinaldi</name>
+            <email>billie@apache.org</email>
+            <timezone>-8</timezone>
+            <roles>
+                <role>Committer</role>
+            </roles>
+            <organization>
+                Hortonworks
+            </organization>
+        </developer>
         <developer>            
             <id>ddas</id>
             <name>Devaraj Das</name>
@@ -225,7 +237,19 @@
             <organization>
                 Hortonworks                
             </organization>            
-        </developer>              
+        </developer>
+        <developer>
+            <id>ncole</id>
+            <name>Nate Cole</name>
+            <email>ncole@apache.org</email>
+            <timezone>-8</timezone>
+            <roles>
+                <role>Committer</role>
+            </roles>
+            <organization>
+                Hortonworks
+            </organization>
+        </developer>
         <developer>
             <id>ramya</id>
             <name>Ramya Sunil</name>
@@ -249,6 +273,18 @@
             <organization>
                 Hortonworks
             </organization>            
+        </developer>
+        <developer>
+            <id>swagle</id>
+            <name>Siddharth Wagle</name>
+            <email>swagle@apache.org</email>
+            <timezone>-8</timezone>
+            <roles>
+                <role>Committer</role>
+            </roles>
+            <organization>
+                Hortonworks
+            </organization>
         </developer>
         <developer>
             <id>srimanth</id>
