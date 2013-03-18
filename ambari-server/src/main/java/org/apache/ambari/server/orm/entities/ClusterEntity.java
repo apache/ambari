@@ -137,7 +137,7 @@ public class ClusterEntity {
 
   private ClusterStateEntity clusterStateEntity;
 
-  @OneToOne(mappedBy = "clusterEntity")
+  @OneToOne(mappedBy = "clusterEntity", cascade = CascadeType.REMOVE)
   public ClusterStateEntity getClusterStateEntity() {
     return clusterStateEntity;
   }

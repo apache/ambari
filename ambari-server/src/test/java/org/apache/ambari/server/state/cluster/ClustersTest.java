@@ -18,33 +18,51 @@
 
 package org.apache.ambari.server.state.cluster;
 
-import java.util.*;
+import static org.junit.Assert.fail;
+
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+import javax.persistence.EntityManager;
+
+import junit.framework.Assert;
+
+import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.ClusterNotFoundException;
+import org.apache.ambari.server.DuplicateResourceException;
+import org.apache.ambari.server.HostNotFoundException;
+import org.apache.ambari.server.api.services.AmbariMetaInfo;
+import org.apache.ambari.server.orm.GuiceJpaInitializer;
+import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
+import org.apache.ambari.server.orm.dao.ClusterServiceDAO;
+import org.apache.ambari.server.orm.dao.ClusterStateDAO;
+import org.apache.ambari.server.orm.dao.HostComponentDesiredStateDAO;
+import org.apache.ambari.server.orm.dao.HostComponentStateDAO;
+import org.apache.ambari.server.orm.dao.HostDAO;
+import org.apache.ambari.server.orm.entities.ClusterStateEntity;
+import org.apache.ambari.server.orm.entities.HostComponentDesiredStateEntityPK;
+import org.apache.ambari.server.orm.entities.HostComponentStateEntityPK;
+import org.apache.ambari.server.state.Cluster;
+import org.apache.ambari.server.state.Clusters;
+import org.apache.ambari.server.state.Config;
+import org.apache.ambari.server.state.ConfigFactory;
+import org.apache.ambari.server.state.Host;
+import org.apache.ambari.server.state.Service;
+import org.apache.ambari.server.state.ServiceComponent;
+import org.apache.ambari.server.state.ServiceComponentHost;
+import org.apache.ambari.server.state.StackId;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
 
 import com.google.inject.Guice;
 import com.google.inject.Inject;
 import com.google.inject.Injector;
 import com.google.inject.persist.PersistService;
-import junit.framework.Assert;
-
-import org.apache.ambari.server.AmbariException;
-import org.apache.ambari.server.api.services.AmbariMetaInfo;
-import org.apache.ambari.server.ClusterNotFoundException;
-import org.apache.ambari.server.DuplicateResourceException;
-import org.apache.ambari.server.HostNotFoundException;
-import org.apache.ambari.server.orm.entities.ClusterStateEntity;
-import org.apache.ambari.server.orm.dao.*;
-import org.apache.ambari.server.orm.entities.HostComponentDesiredStateEntityPK;
-import org.apache.ambari.server.orm.entities.HostComponentStateEntityPK;
-import org.apache.ambari.server.orm.GuiceJpaInitializer;
-import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
-import org.apache.ambari.server.state.*;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-
-import javax.persistence.EntityManager;
-
-import static org.junit.Assert.*;
 
 public class ClustersTest {
 
@@ -286,12 +304,24 @@ public class ClustersTest {
 
     Cluster cluster = clusters.getCluster(c1);
     cluster.setDesiredStackVersion(new StackId("HDP-0.1"));
+    cluster.setCurrentStackVersion(new StackId("HDP-0.1"));
 
-    Config config = injector.getInstance(ConfigFactory.class).createNew(cluster, "t1", new HashMap<String, String>() {{
-      put("prop1", "val1");
-    }});
-    config.setVersionTag("1");
-    config.persist();
+    final Config config1 = injector.getInstance(ConfigFactory.class).createNew(cluster, "t1",
+        new HashMap<String, String>() {{
+          put("prop1", "val1");
+        }});
+    config1.setVersionTag("1");
+    config1.persist();
+    
+    Config config2 = injector.getInstance(ConfigFactory.class).createNew(cluster, "t1",
+        new HashMap<String, String>() {{
+          put("prop2", "val2");
+        }});
+    config2.setVersionTag("2");
+    config2.persist();
+    
+    // cluster desired config
+    cluster.addDesiredConfig(config1);
 
     clusters.addHost(h1);
     clusters.addHost(h2);
@@ -309,8 +339,15 @@ public class ClustersTest {
       }
     }, c1);
 
+    // host config override
+    host1.addDesiredConfig(cluster.getClusterId(), true, config2);
+    host1.persist();
 
     Service hdfs = cluster.addService("HDFS");
+    hdfs.persist();
+    
+    // service config
+    hdfs.updateDesiredConfigs(new HashMap<String,Config>() {{ put("t1", config1); }});
     hdfs.persist();
 
     Assert.assertNotNull(injector.getInstance(ClusterServiceDAO.class).findByClusterAndServiceNames(c1, "HDFS"));
@@ -341,16 +378,21 @@ public class ClustersTest {
 
     Assert.assertNotNull(injector.getInstance(HostComponentStateDAO.class).findByPK(hkspk));
     Assert.assertNotNull(injector.getInstance(HostComponentDesiredStateDAO.class).findByPK(hkdspk));
-    Assert.assertEquals(1, injector.getProvider(EntityManager.class).get().createQuery("SELECT config FROM ClusterConfigEntity config").getResultList().size());
-
+    Assert.assertEquals(2, injector.getProvider(EntityManager.class).get().createQuery("SELECT config FROM ClusterConfigEntity config").getResultList().size());
+    Assert.assertEquals(1, injector.getProvider(EntityManager.class).get().createQuery("SELECT state FROM ClusterStateEntity state").getResultList().size());
+    Assert.assertEquals(1, injector.getProvider(EntityManager.class).get().createQuery("SELECT config FROM ClusterConfigMappingEntity config").getResultList().size());
+    Assert.assertEquals(1, injector.getProvider(EntityManager.class).get().createQuery("SELECT config FROM ServiceConfigMappingEntity config").getResultList().size());
+    
     clusters.deleteCluster(c1);
 
     Assert.assertEquals(2, injector.getInstance(HostDAO.class).findAll().size());
     Assert.assertNull(injector.getInstance(HostComponentStateDAO.class).findByPK(hkspk));
     Assert.assertNull(injector.getInstance(HostComponentDesiredStateDAO.class).findByPK(hkdspk));
-    //configs are removed implicitly by cascade operation
     Assert.assertEquals(0, injector.getProvider(EntityManager.class).get().createQuery("SELECT config FROM ClusterConfigEntity config").getResultList().size());
-
+    Assert.assertEquals(0, injector.getProvider(EntityManager.class).get().createQuery("SELECT state FROM ClusterStateEntity state").getResultList().size());
+    Assert.assertEquals(0, injector.getProvider(EntityManager.class).get().createQuery("SELECT config FROM ClusterConfigMappingEntity config").getResultList().size());
+    Assert.assertEquals(0, injector.getProvider(EntityManager.class).get().createQuery("SELECT config FROM ServiceConfigMappingEntity config").getResultList().size());
+    
   }
   @Test
   public void testSetCurrentStackVersion() throws AmbariException {
