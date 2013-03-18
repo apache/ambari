@@ -31,7 +31,6 @@ import static org.apache.ambari.server.agent.DummyHeartbeatConstants.HDFS;
 import static org.apache.ambari.server.agent.DummyHeartbeatConstants.HDFS_CLIENT;
 import static org.apache.ambari.server.agent.DummyHeartbeatConstants.NAMENODE;
 import static org.apache.ambari.server.agent.DummyHeartbeatConstants.SECONDARY_NAMENODE;
-
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
@@ -47,6 +46,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import javax.xml.bind.JAXBException;
@@ -62,21 +62,7 @@ import org.apache.ambari.server.actionmanager.ActionDBInMemoryImpl;
 import org.apache.ambari.server.actionmanager.ActionManager;
 import org.apache.ambari.server.actionmanager.HostRoleStatus;
 import org.apache.ambari.server.actionmanager.Stage;
-import org.apache.ambari.server.agent.ActionQueue;
-import org.apache.ambari.server.agent.CommandReport;
-import org.apache.ambari.server.agent.ComponentStatus;
-import org.apache.ambari.server.agent.ExecutionCommand;
-import org.apache.ambari.server.agent.HeartBeat;
-import org.apache.ambari.server.agent.HeartBeatHandler;
-import org.apache.ambari.server.agent.HeartBeatResponse;
-import org.apache.ambari.server.agent.HeartbeatMonitor;
-import org.apache.ambari.server.agent.HostInfo;
-import org.apache.ambari.server.agent.HostStatus;
 import org.apache.ambari.server.agent.HostStatus.Status;
-import org.apache.ambari.server.agent.Register;
-import org.apache.ambari.server.agent.RegistrationResponse;
-import org.apache.ambari.server.agent.RegistrationStatus;
-import org.apache.ambari.server.agent.StatusCommand;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.HostsMap;
@@ -170,6 +156,68 @@ public class TestHeartbeatHandler {
     assertEquals(HostState.HEALTHY, hostObject.getState());
     assertEquals(0, aq.dequeueAll(DummyHostname1).size());
   }
+  
+  @Test
+  public void testHeartbeatWithConfigs() throws Exception {
+    ActionManager am = getMockActionManager();
+
+    Cluster cluster = getDummyCluster();
+    
+    @SuppressWarnings("serial")
+    Set<String> hostNames = new HashSet<String>(){{
+      add(DummyHostname1);
+    }};
+    clusters.mapHostsToCluster(hostNames, DummyCluster);
+    Service hdfs = cluster.addService(HDFS);
+    hdfs.persist();
+    hdfs.addServiceComponent(DATANODE).persist();
+    hdfs.getServiceComponent(DATANODE).addServiceComponentHost(DummyHostname1).persist();
+    hdfs.addServiceComponent(NAMENODE).persist();
+    hdfs.getServiceComponent(NAMENODE).addServiceComponentHost(DummyHostname1).persist();
+    hdfs.addServiceComponent(SECONDARY_NAMENODE).persist();
+    hdfs.getServiceComponent(SECONDARY_NAMENODE).addServiceComponentHost(DummyHostname1).persist();
+    
+    ActionQueue aq = new ActionQueue();
+    HeartBeatHandler handler = getHeartBeatHandler(am, aq);
+    
+    ServiceComponentHost serviceComponentHost1 = clusters.getCluster(DummyCluster).getService(HDFS).
+            getServiceComponent(DATANODE).getServiceComponentHost(DummyHostname1);
+    ServiceComponentHost serviceComponentHost2 = clusters.getCluster(DummyCluster).getService(HDFS).
+            getServiceComponent(NAMENODE).getServiceComponentHost(DummyHostname1);
+    serviceComponentHost1.setState(State.INSTALLED);
+    serviceComponentHost2.setState(State.INSTALLED);
+
+
+    HeartBeat hb = new HeartBeat();
+    hb.setResponseId(0);
+    hb.setNodeStatus(new HostStatus(Status.HEALTHY, DummyHostStatus));
+    hb.setHostname(DummyHostname1);
+    
+    List<CommandReport> reports = new ArrayList<CommandReport>();
+    CommandReport cr = new CommandReport();
+    cr.setActionId(StageUtils.getActionId(requestId, stageId));
+    cr.setServiceName(HDFS);
+    cr.setTaskId(1);
+    cr.setRole(HDFS);
+    cr.setStatus("COMPLETED");
+    cr.setStdErr("");
+    cr.setStdOut("");
+    cr.setExitCode(215);
+    cr.setClusterName(DummyCluster);
+    
+    cr.setConfigTags(new HashMap<String, Map<String,String>>() {{
+      put("global", new HashMap<String,String>() {{ put("tag", "version1"); }});
+    }});
+    
+    reports.add(cr);
+    hb.setReports(reports);
+    
+    handler.handleHeartBeat(hb);
+
+    // the heartbeat test passed if actual configs is populated
+    Assert.assertNotNull(cluster.getActualConfigs());
+    Assert.assertEquals(cluster.getActualConfigs().size(), 1);
+  }  
 
   @Test
   public void testStatusHeartbeat() throws Exception {
@@ -301,7 +349,7 @@ public class TestHeartbeatHandler {
     assertEquals(State.STARTED, componentState1);
     assertEquals(State.INSTALLED, componentState2);
   }
-
+  
   @Test
   public void testCommandReport() throws AmbariException {
     injector.injectMembers(this);

@@ -53,6 +53,7 @@ class ClusterResourceProvider extends AbstractResourceProvider {
   protected static final String CLUSTER_NAME_PROPERTY_ID    = PropertyHelper.getPropertyId("Clusters", "cluster_name");
   protected static final String CLUSTER_VERSION_PROPERTY_ID = PropertyHelper.getPropertyId("Clusters", "version");
   protected static final String CLUSTER_DESIRED_CONFIGS_PROPERTY_ID = PropertyHelper.getPropertyId("Clusters", "desired_configs");
+  protected static final String CLUSTER_ACTUAL_CONFIGS_PROPERTY_ID = PropertyHelper.getPropertyId("Clusters", "actual_configs");  
 
 
   private static Set<String> pkPropertyIds =
@@ -122,6 +123,7 @@ class ClusterResourceProvider extends AbstractResourceProvider {
       setResourceProperty(resource, CLUSTER_ID_PROPERTY_ID, response.getClusterId(), requestedIds);
       setResourceProperty(resource, CLUSTER_NAME_PROPERTY_ID, response.getClusterName(), requestedIds);
       setResourceProperty(resource, CLUSTER_DESIRED_CONFIGS_PROPERTY_ID, response.getDesiredConfigs(), requestedIds);
+      setResourceProperty(resource, CLUSTER_ACTUAL_CONFIGS_PROPERTY_ID, response.getActualConfigs(), requestedIds);
 
       resource.setProperty(CLUSTER_VERSION_PROPERTY_ID,
           response.getDesiredStackVersion());

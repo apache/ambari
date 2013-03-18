@@ -220,6 +220,11 @@ class ActionQueue(threading.Thread):
       roleResult['stdout'] = 'None'
     if roleResult['stderr'] == '':
       roleResult['stderr'] = 'None'
+
+    # let ambari know that configuration tags were applied
+    if status == "COMPLETED" and command.has_key('configurationTags'):
+      roleResult['configurationTags'] = command['configurationTags']
+
     result.append(roleResult)
     return result
 

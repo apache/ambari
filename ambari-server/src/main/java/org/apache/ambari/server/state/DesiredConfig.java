@@ -17,6 +17,7 @@
  */
 package org.apache.ambari.server.state;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.codehaus.jackson.annotate.JsonProperty;
@@ -31,7 +32,7 @@ public class DesiredConfig {
 
   private String versionTag;
   private String serviceName;
-  private List<HostOverride> hostOverrides = null;
+  private List<HostOverride> hostOverrides = new ArrayList<HostOverride>();
 
   /**
    * Sets the version tag
@@ -134,7 +135,7 @@ public class DesiredConfig {
       {
         if (i++ != 0)
           sb.append(",");
-        sb.append(h.getName());
+        sb.append(h.getName()).append(':').append(h.getVersionTag());
       }
 
       sb.append(']');

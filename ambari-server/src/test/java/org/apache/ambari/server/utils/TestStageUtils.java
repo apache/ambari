@@ -20,6 +20,7 @@ package org.apache.ambari.server.utils;
 import static org.junit.Assert.assertEquals;
 
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -34,9 +35,10 @@ import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.HostsMap;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
-import org.apache.ambari.server.state.*;
-import org.apache.ambari.server.state.cluster.ClustersImpl;
-import org.apache.ambari.server.state.svccomphost.ServiceComponentHostImpl;
+import org.apache.ambari.server.state.Cluster;
+import org.apache.ambari.server.state.Clusters;
+import org.apache.ambari.server.state.ServiceComponentHostFactory;
+import org.apache.ambari.server.state.StackId;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.codehaus.jackson.JsonGenerationException;
@@ -143,6 +145,11 @@ public class TestStageUtils {
       JsonMappingException, JAXBException, IOException {
     Stage s = StageUtils.getATestStage(1, 2, "host1");
     ExecutionCommand cmd = s.getExecutionCommands("host1").get(0).getExecutionCommand();
+    cmd.setConfigurationTags(new HashMap<String, Map<String,String>>() {{
+      put("global", new HashMap<String, String>() {{ put("tag", "version1"); }});
+    }});
+    
+    
     String json = StageUtils.jaxbToString(cmd);
     ExecutionCommand cmdDes = StageUtils.stringToExecutionCommand(json);
     assertEquals(cmd.toString(), cmdDes.toString());

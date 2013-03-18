@@ -34,6 +34,8 @@ public class ClusterResponse {
   private final String desiredStackVersion;
 
   private Map<String, DesiredConfig> desiredConfigs;
+  
+  private Map<String, DesiredConfig> actualConfigs;
 
   public ClusterResponse(Long clusterId, String clusterName,
       Set<String> hostNames, String desiredStackVersion) {
@@ -132,6 +134,20 @@ public class ClusterResponse {
    */
   public Map<String, DesiredConfig> getDesiredConfigs() {
     return desiredConfigs;
+  }
+
+  /**
+   * @param actualConfigs the actual configs
+   */
+  public void setActualConfigs(Map<String, DesiredConfig> configs) {
+    actualConfigs = configs;
+  }
+  
+  /**
+   * @return the actual configs
+   */
+  public Map<String, DesiredConfig> getActualConfigs() {
+    return actualConfigs;
   }
 
 }

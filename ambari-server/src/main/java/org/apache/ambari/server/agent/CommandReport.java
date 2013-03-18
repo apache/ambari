@@ -17,6 +17,8 @@
  */
 package org.apache.ambari.server.agent;
 
+import java.util.Map;
+
 import org.codehaus.jackson.annotate.JsonProperty;
 
 
@@ -31,6 +33,8 @@ public class CommandReport {
   private String clusterName;
   private String serviceName;
   private long taskId;
+  
+  private Map<String, Map<String, String>> configurationTags;
   
   @JsonProperty("taskId")
   public long getTaskId() {
@@ -120,6 +124,21 @@ public class CommandReport {
   @JsonProperty("serviceName")
   public void setServiceName(String serviceName) {
     this.serviceName = serviceName;
+  }
+
+  /**
+  * @param tags the config tags that match this command
+   */
+  public void setConfigTags(Map<String, Map<String,String>> tags) {
+    configurationTags = tags;
+  }
+  
+  /**
+   * @return the config tags that match this command, or <code>null</code>
+   * if none are present
+   */
+  public Map<String, Map<String,String>> getConfigTags() {
+    return configurationTags;
   }
 
   @Override

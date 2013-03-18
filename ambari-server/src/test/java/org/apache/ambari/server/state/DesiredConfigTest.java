@@ -36,7 +36,8 @@ public class DesiredConfigTest {
 
     Assert.assertEquals("Expected service 'service'", "service", dc.getServiceName());
     Assert.assertEquals("Expected version 'global'", "global", dc.getVersion());
-    Assert.assertNull("Expected null host overrides", dc.getHostOverrides());
+    Assert.assertEquals("Expected no host overrides", 0, dc.getHostOverrides().size());
+    
 
     List<DesiredConfig.HostOverride> hosts = Arrays.asList(
         new DesiredConfig.HostOverride("h1", "v2"),

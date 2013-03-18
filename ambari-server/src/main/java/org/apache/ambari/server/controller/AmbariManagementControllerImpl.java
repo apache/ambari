@@ -901,6 +901,7 @@ public class AmbariManagementControllerImpl implements
   private void createHostAction(Cluster cluster,
       Stage stage, ServiceComponentHost scHost,
       Map<String, Map<String, String>> configurations,
+      Map<String, Map<String, String>> configTags,
       RoleCommand command,
       Map<String, String> commandParams,
       ServiceComponentHostEvent event) throws AmbariException {
@@ -919,7 +920,7 @@ public class AmbariManagementControllerImpl implements
     Host host = clusters.getHost(scHost.getHostName());
 
     execCmd.setConfigurations(configurations);
-
+    execCmd.setConfigurationTags(configTags);
     execCmd.setCommandParams(commandParams);
 
     // send stack info to agent
@@ -972,12 +973,14 @@ public class AmbariManagementControllerImpl implements
       Cluster c = clusters.getCluster(request.getClusterName());
       ClusterResponse cr = c.convertToResponse();
       cr.setDesiredConfigs(c.getDesiredConfigs());
+      cr.setActualConfigs(c.getActualConfigs());
       response.add(cr);
       return response;
     } else if (request.getClusterId() != null) {
       Cluster c = clusters.getClusterById(request.getClusterId());
       ClusterResponse cr = c.convertToResponse();
       cr.setDesiredConfigs(c.getDesiredConfigs());
+      cr.setActualConfigs(c.getActualConfigs());
       response.add(cr);
       return response;
     }
@@ -1931,6 +1934,7 @@ public class AmbariManagementControllerImpl implements
 
             // [ type -> [ key, value ] ]
             Map<String, Map<String, String>> configurations = new TreeMap<String, Map<String,String>>();
+            Map<String, Map<String, String>> configTags = new HashMap<String, Map<String,String>>();
 
             // Do not use host component config mappings.  Instead, the rules are:
             // 1) Use the cluster desired config
@@ -1950,6 +1954,8 @@ public class AmbariManagementControllerImpl implements
                 continue;
 
               Map<String, String> props = new HashMap<String, String>(config.getProperties());
+              Map<String, String> tags = new HashMap<String, String>();
+              tags.put("tag", config.getVersionTag());
 
               // 2) apply the service overrides, if any are defined with different tags
               Service service = cluster.getService(scHost.getServiceName());
@@ -1964,9 +1970,11 @@ public class AmbariManagementControllerImpl implements
               if (null != dc) {
                 Config hostConfig = cluster.getConfig(svcConfig.getType(), dc.getVersion());
                 props.putAll(hostConfig.getProperties());
+                tags.put("host_override_tag", hostConfig.getVersionTag());
               }
 
               configurations.put(type, props);
+              configTags.put(type, tags);
             }
 
             // HACK HACK HACK
@@ -1979,7 +1987,7 @@ public class AmbariManagementControllerImpl implements
               configurations.get("global").put("rca_enabled", "false");
             }
 
-            createHostAction(cluster, stage, scHost, configurations,
+            createHostAction(cluster, stage, scHost, configurations, configTags,
                 roleCommand, requestParameters, event);
           }
         }

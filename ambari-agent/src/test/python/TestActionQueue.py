@@ -102,6 +102,52 @@ class TestActionQueue(TestCase):
     #print("in_progress: " + pprint.pformat(in_progress_result))
     #print("after: " + pprint.pformat(after_start_result))
 
+  def test_configtags(self):
+    config = AmbariConfig().getConfig()
+    tmpfile = tempfile.gettempdir()
+    config.set('agent', 'prefix', tmpfile)
+    actionQueue = ActionQueue(config)
+    actionQueue.IDLE_SLEEP_TIME = 0.01
+    executor_started_event = threading.Event()
+    end_executor_event = threading.Event()
+    actionQueue.puppetExecutor = FakeExecutor(executor_started_event, end_executor_event)
+    # before_start_result = actionQueue.result()
+
+    command = {
+      'commandId': 17,
+      'role' : "role",
+      'taskId' : "taskId",
+      'clusterName' : "clusterName",
+      'serviceName' : "serviceName",
+      'status' : 'IN_PROGRESS',
+      'hostname' : "localhost.localdomain",
+      'hostLevelParams': "hostLevelParams",
+      'clusterHostInfo': "clusterHostInfo",
+      'roleCommand': "roleCommand",
+      'configurations': "configurations",
+      'commandType': "EXECUTION_COMMAND",
+      'configurations':{'global' : {}},
+      'configurationTags':{'global' : { 'tag': 'v1' }}
+    }
+    actionQueue.put(command)
+
+    actionQueue.start()
+    executor_started_event.wait()
+
+
+    end_executor_event.set()
+    actionQueue.stop()
+    actionQueue.join()
+    after_start_result = actionQueue.result()
+
+    self.assertEquals(len(after_start_result['componentStatus']), 0)
+    self.assertEquals(len(after_start_result['reports']), 1)
+    self.assertEquals(after_start_result['reports'][0]['status'], "COMPLETED")
+    self.assertEquals(after_start_result['reports'][0]['stdout'], "returned stdout")
+    self.assertEquals(after_start_result['reports'][0]['exitCode'], 0)
+    self.assertEquals(after_start_result['reports'][0]['stderr'], 'returned stderr')
+    self.assertEquals(len(after_start_result['reports'][0]['configurationTags']), 1)
+
   @patch.object(ActionQueue, "executeCommand")
   @patch.object(ActionQueue, "stopped")
   def test_upgradeCommand_dispatching(self, stopped_method, executeCommand_method):

@@ -189,6 +189,10 @@ public class HeartBeatHandler {
         LOG.info(report.getRole() + " is an action - skip component lookup");
       } else {
         try {
+          if (null != report.getConfigTags() && !report.getConfigTags().isEmpty()) {
+            cl.updateActualConfigs(hostname, report.getConfigTags());
+          }
+          
           Service svc = cl.getService(service);
           ServiceComponent svcComp = svc.getServiceComponent(report.getRole());
           ServiceComponentHost scHost = svcComp.getServiceComponentHost(hostname);

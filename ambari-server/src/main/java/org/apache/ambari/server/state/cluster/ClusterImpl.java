@@ -19,6 +19,7 @@
 package org.apache.ambari.server.state.cluster;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -52,6 +53,7 @@ import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Config;
 import org.apache.ambari.server.state.ConfigFactory;
 import org.apache.ambari.server.state.DesiredConfig;
+import org.apache.ambari.server.state.DesiredConfig.HostOverride;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceComponent;
 import org.apache.ambari.server.state.ServiceComponentHost;
@@ -82,6 +84,11 @@ public class ClusterImpl implements Cluster {
    * [ Config Type -> [ Config Version Tag -> Config ] ]
    */
   private Map<String, Map<String, Config>> allConfigs;
+  
+  /**
+   * [ type -> DesiredConfig ]
+   */
+  private Map<String, DesiredConfig> actualConfig = new HashMap<String, DesiredConfig>();
 
   /**
    * [ ServiceName -> [ ServiceComponentName -> [ HostName -> [ ... ] ] ] ]
@@ -743,32 +750,93 @@ public class ClusterImpl implements Cluster {
     clusterDAO.merge(clusterEntity);
 
   }
+  
+  
+  @Override
+  public void updateActualConfigs(String hostName, Map<String, Map<String,String>> configTags) {
+    readWriteLock.writeLock().lock();
+    try {
+
+      for (Entry<String, Map<String,String>> entry : configTags.entrySet()) {
+        String type = entry.getKey();
+        Map<String, String> values = entry.getValue();
+        
+        String tag = values.get("tag");
+        String hostTag = values.get("host_override_tag");
+  
+        if (actualConfig.containsKey(type)) {
+          DesiredConfig dc = actualConfig.get(type);
+          dc.setVersion(tag);
+          
+          boolean needNew = false;
+          Iterator<HostOverride> it = dc.getHostOverrides().iterator();
+          while (it.hasNext()) {
+            HostOverride override = it.next();
+            if (null != hostName && override.getName().equals(hostName)) {
+              needNew = true;
+              it.remove();
+            }
+          }
+          
+          if (null != hostTag && null != hostName) {
+            dc.getHostOverrides().add(new HostOverride(hostName, hostTag));
+          }
+        }
+        else {
+          DesiredConfig dc = new DesiredConfig();
+          dc.setVersion(tag);
+          actualConfig.put(type, dc);
+          if (null != hostTag && null != hostName) {
+            List<HostOverride> list = new ArrayList<HostOverride>();
+            list.add (new HostOverride(hostName, hostTag));
+            dc.setHostOverrides(list);
+          }
+        }
+        
+        DesiredConfig dc = actualConfig.get(type);
+        if (null == dc) {
+          dc = new DesiredConfig();
+          dc.setVersion(tag);
+          actualConfig.put(type, dc);
+        }
+      }
+    }
+    finally {
+      readWriteLock.writeLock().unlock();
+    }
+  }
+  
+  @Override
+  public Map<String, DesiredConfig> getActualConfigs() {
+    return actualConfig;
+  }
 
   @Override
   public Map<String, DesiredConfig> getDesiredConfigs() {
-    Map<String, DesiredConfig> map = new HashMap<String, DesiredConfig>();
 
-    for (ClusterConfigMappingEntity e : clusterEntity.getConfigMappingEntities()) {
-      if (e.isSelected() > 0) {
-        DesiredConfig c = new DesiredConfig();
-        c.setServiceName(null);
-        c.setVersion(e.getVersion());
-
-        List<HostConfigMappingEntity> hostMappings =
-            hostConfigMappingDAO.findSelectedHostsByType(clusterEntity.getClusterId().longValue(),
-                e.getType());
-
-        List<DesiredConfig.HostOverride> hosts = new ArrayList<DesiredConfig.HostOverride>();
-        for (HostConfigMappingEntity mappingEntity : hostMappings) {
-          hosts.add (new DesiredConfig.HostOverride(mappingEntity.getHostName(),
-              mappingEntity.getVersion()));
+      Map<String, DesiredConfig> map = new HashMap<String, DesiredConfig>();
+  
+      for (ClusterConfigMappingEntity e : clusterEntity.getConfigMappingEntities()) {
+        if (e.isSelected() > 0) {
+          DesiredConfig c = new DesiredConfig();
+          c.setServiceName(null);
+          c.setVersion(e.getVersion());
+  
+          List<HostConfigMappingEntity> hostMappings =
+              hostConfigMappingDAO.findSelectedHostsByType(clusterEntity.getClusterId().longValue(),
+                  e.getType());
+  
+          List<DesiredConfig.HostOverride> hosts = new ArrayList<DesiredConfig.HostOverride>();
+          for (HostConfigMappingEntity mappingEntity : hostMappings) {
+            hosts.add (new DesiredConfig.HostOverride(mappingEntity.getHostName(),
+                mappingEntity.getVersion()));
+          }
+  
+          c.setHostOverrides(hosts);
+  
+          map.put(e.getType(), c);
+  
         }
-
-        c.setHostOverrides(hosts);
-
-        map.put(e.getType(), c);
-
-      }
     }
 
     return map;
