@@ -47,8 +47,8 @@ class hdp-oozie::params() inherits hdp::params
   
   ### oozie-site
   $keytab_path = hdp_default("keytab_path","/etc/security/keytabs")
-  $oozie_service_keytab = hdp_default("oozie.service.HadoopAccessorService.keytab.file", "${keytab_path}/oozie.service.keytab")
-  $oozie_principal = hdp_default("oozie.service.HadoopAccessorService.kerberos.principal", "oozie")
+  $oozie_service_keytab = hdp_default("hadoop/oozie-site/oozie.service.HadoopAccessorService.keytab.file", "${keytab_path}/oozie.service.keytab")
+  $oozie_principal = hdp_default("hadoop/oozie-site/oozie.service.HadoopAccessorService.kerberos.principal", "oozie")
 
   if ($security_enabled == true) {
     $oozie_sasl_enabled = "true"

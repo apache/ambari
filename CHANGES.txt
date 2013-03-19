@@ -502,6 +502,9 @@ Trunk (unreleased changes):
 
  BUG FIXES
 
+ AMBARI-1666. Oozie properties for principal and keytab not read from 
+ oozie-site. (swagle)
+
  AMBARI-1660. Server seems to ignore failures if the prior stage has failed 
  before the next iteration of the scheduler. (Sumit Mohanty via swagle)
 
