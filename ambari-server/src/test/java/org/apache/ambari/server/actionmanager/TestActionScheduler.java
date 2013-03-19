@@ -36,6 +36,7 @@ import org.apache.ambari.server.RoleCommand;
 import org.apache.ambari.server.actionmanager.ActionScheduler.RoleStats;
 import org.apache.ambari.server.agent.ActionQueue;
 import org.apache.ambari.server.agent.AgentCommand;
+import org.apache.ambari.server.agent.CommandReport;
 import org.apache.ambari.server.agent.ExecutionCommand;
 import org.apache.ambari.server.controller.HostsMap;
 import org.apache.ambari.server.serveraction.ServerAction;
@@ -231,6 +232,145 @@ public class TestActionScheduler {
     return stage;
   }
 
+  @Test
+  public void testRequestFailureOnStageFailure() throws Exception {
+    ActionQueue aq = new ActionQueue();
+    Clusters fsm = mock(Clusters.class);
+    Cluster oneClusterMock = mock(Cluster.class);
+    Service serviceObj = mock(Service.class);
+    ServiceComponent scomp = mock(ServiceComponent.class);
+    ServiceComponentHost sch = mock(ServiceComponentHost.class);
+    when(fsm.getCluster(anyString())).thenReturn(oneClusterMock);
+    when(oneClusterMock.getService(anyString())).thenReturn(serviceObj);
+    when(serviceObj.getServiceComponent(anyString())).thenReturn(scomp);
+    when(scomp.getServiceComponentHost(anyString())).thenReturn(sch);
+    when(serviceObj.getCluster()).thenReturn(oneClusterMock);
+
+    ActionDBAccessor db = new ActionDBInMemoryImpl();
+    String hostname = "ahost.ambari.apache.org";
+    List<Stage> stages = new ArrayList<Stage>();
+    stages.add(
+        getStageWithSingleTask(
+            hostname, "cluster1", Role.NAMENODE, RoleCommand.UPGRADE, Service.Type.HDFS, 1, 1, 1));
+    stages.add(
+        getStageWithSingleTask(
+            hostname, "cluster1", Role.DATANODE, RoleCommand.UPGRADE, Service.Type.HDFS, 2, 2, 1));
+    db.persistActions(stages);
+
+    ActionScheduler scheduler = new ActionScheduler(100, 50, db, aq, fsm, 3,
+        new HostsMap((String) null), new ServerActionManagerImpl(fsm));
+    ActionManager am = new ActionManager(
+        2, 2, aq, fsm, db, new HostsMap((String) null), new ServerActionManagerImpl(fsm));
+
+    scheduler.doWork();
+
+    List<CommandReport> reports = new ArrayList<CommandReport>();
+    reports.add(getCommandReport(HostRoleStatus.FAILED, Role.NAMENODE, Service.Type.HDFS, "1-1", 1));
+    am.processTaskResponse(hostname, reports);
+
+    scheduler.doWork();
+    Assert.assertEquals(HostRoleStatus.FAILED, stages.get(0).getHostRoleStatus(hostname, "NAMENODE"));
+    Assert.assertEquals(HostRoleStatus.ABORTED, stages.get(1).getHostRoleStatus(hostname, "DATANODE"));
+  }
+
+  @Test
+  public void testRequestFailureBasedOnSuccessFactor() throws Exception {
+    ActionQueue aq = new ActionQueue();
+    Clusters fsm = mock(Clusters.class);
+    Cluster oneClusterMock = mock(Cluster.class);
+    Service serviceObj = mock(Service.class);
+    ServiceComponent scomp = mock(ServiceComponent.class);
+    ServiceComponentHost sch = mock(ServiceComponentHost.class);
+    when(fsm.getCluster(anyString())).thenReturn(oneClusterMock);
+    when(oneClusterMock.getService(anyString())).thenReturn(serviceObj);
+    when(serviceObj.getServiceComponent(anyString())).thenReturn(scomp);
+    when(scomp.getServiceComponentHost(anyString())).thenReturn(sch);
+    when(serviceObj.getCluster()).thenReturn(oneClusterMock);
+
+    ActionDBAccessor db = new ActionDBInMemoryImpl();
+    List<Stage> stages = new ArrayList<Stage>();
+
+    long now = System.currentTimeMillis();
+    Stage stage = new Stage(1, "/tmp", "cluster1");
+    stage.setStageId(1);
+    stage.addHostRoleExecutionCommand("host1", Role.DATANODE, RoleCommand.UPGRADE,
+        new ServiceComponentHostUpgradeEvent(Role.DATANODE.toString(), "host1", now, "HDP-0.2"),
+        "cluster1", Service.Type.HDFS.toString());
+    stage.getExecutionCommandWrapper("host1",
+        Role.DATANODE.toString()).getExecutionCommand();
+
+    stage.addHostRoleExecutionCommand("host2", Role.DATANODE, RoleCommand.UPGRADE,
+        new ServiceComponentHostUpgradeEvent(Role.DATANODE.toString(), "host2", now, "HDP-0.2"),
+        "cluster1", Service.Type.HDFS.toString());
+    stage.getExecutionCommandWrapper("host2",
+        Role.DATANODE.toString()).getExecutionCommand();
+
+    stage.addHostRoleExecutionCommand("host3", Role.DATANODE, RoleCommand.UPGRADE,
+        new ServiceComponentHostUpgradeEvent(Role.DATANODE.toString(), "host3", now, "HDP-0.2"),
+        "cluster1", Service.Type.HDFS.toString());
+    stage.getExecutionCommandWrapper("host3",
+        Role.DATANODE.toString()).getExecutionCommand();
+    stages.add(stage);
+
+    stage.getOrderedHostRoleCommands().get(0).setTaskId(1);
+    stage.getOrderedHostRoleCommands().get(1).setTaskId(2);
+    stage.getOrderedHostRoleCommands().get(2).setTaskId(3);
+
+    stages.add(
+        getStageWithSingleTask(
+            "host1", "cluster1", Role.HDFS_CLIENT, RoleCommand.UPGRADE, Service.Type.HDFS, 4, 2, 1));
+    db.persistActions(stages);
+
+    ActionScheduler scheduler = new ActionScheduler(100, 50, db, aq, fsm, 3,
+        new HostsMap((String) null), new ServerActionManagerImpl(fsm));
+    ActionManager am = new ActionManager(
+        2, 2, aq, fsm, db, new HostsMap((String) null), new ServerActionManagerImpl(fsm));
+
+    scheduler.doWork();
+
+    List<CommandReport> reports = new ArrayList<CommandReport>();
+    reports.add(getCommandReport(HostRoleStatus.FAILED, Role.DATANODE, Service.Type.HDFS, "1-1", 1));
+    am.processTaskResponse("host1", reports);
+
+    reports.clear();
+    reports.add(getCommandReport(HostRoleStatus.FAILED, Role.DATANODE, Service.Type.HDFS, "1-1", 2));
+    am.processTaskResponse("host2", reports);
+
+    reports.clear();
+    reports.add(getCommandReport(HostRoleStatus.COMPLETED, Role.DATANODE, Service.Type.HDFS, "1-1", 3));
+    am.processTaskResponse("host3", reports);
+
+    scheduler.doWork();
+    Assert.assertEquals(HostRoleStatus.ABORTED, stages.get(1).getHostRoleStatus("host1", "HDFS_CLIENT"));
+  }
+
+  private CommandReport getCommandReport(HostRoleStatus status, Role role, Service.Type service, String actionId,
+                                         int taskId) {
+    CommandReport report = new CommandReport();
+    report.setExitCode(999);
+    report.setStdErr("");
+    report.setStdOut("");
+    report.setStatus(status.toString());
+    report.setRole(role.toString());
+    report.setServiceName(service.toString());
+    report.setActionId(actionId);
+    report.setTaskId(taskId);
+    return report;
+  }
+
+  private Stage getStageWithSingleTask(String hostname, String clusterName, Role role,
+                                       RoleCommand roleCommand, Service.Type service, int taskId,
+                                       int stageId, int requestId) {
+    Stage stage = new Stage(requestId, "/tmp", clusterName);
+    stage.setStageId(stageId);
+    stage.addHostRoleExecutionCommand(hostname, role, roleCommand,
+        new ServiceComponentHostUpgradeEvent(role.toString(), hostname, System.currentTimeMillis(), "HDP-0.2"),
+        clusterName, service.toString());
+    stage.getExecutionCommandWrapper(hostname,
+        role.toString()).getExecutionCommand();
+    stage.getOrderedHostRoleCommands().get(0).setTaskId(taskId);
+    return stage;
+  }
 
   @Test
   public void testSuccessFactors() {

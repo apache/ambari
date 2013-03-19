@@ -500,6 +500,9 @@ Trunk (unreleased changes):
 
  BUG FIXES
 
+ AMBARI-1660. Server seems to ignore failures if the prior stage has failed 
+ before the next iteration of the scheduler. (Sumit Mohanty via swagle)
+
  AMBARI-1657. User directories on HDFS do not get created with custom names 
  provided from Ambari UI. (swagle)
 

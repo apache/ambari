@@ -119,7 +119,7 @@ class ActionScheduler implements Runnable {
     }
   }
 
-  private void doWork() throws AmbariException {
+  public void doWork() throws AmbariException {
     List<Stage> stages = db.getStagesInProgress();
     if (LOG.isDebugEnabled()) {
       LOG.debug("Scheduler wakes up");
@@ -147,6 +147,12 @@ class ActionScheduler implements Runnable {
           break;
         }
       }
+
+      if(!failed) {
+        // Prior stage may have failed and it may need to fail the whole request
+        failed = hasPreviousStageFailed(s);
+      }
+
       if (failed) {
         LOG.warn("Operation completely failed, aborting request id:"
             + s.getRequestId());
@@ -192,6 +198,53 @@ class ActionScheduler implements Runnable {
         return;
       }
     }
+  }
+
+  private boolean hasPreviousStageFailed(Stage stage) {
+    boolean failed = false;
+    long prevStageId = stage.getStageId() - 1;
+    if (prevStageId > 0) {
+      List<Stage> allStages = db.getAllStages(stage.getRequestId());
+      Stage prevStage = null;
+      for (Stage s : allStages) {
+        if (s.getStageId() == prevStageId) {
+          prevStage = s;
+          break;
+        }
+      }
+
+      //It may be null for test scenarios
+      if(prevStage != null) {
+        Map<Role, Integer> hostCountsForRoles = new HashMap<Role, Integer>();
+        Map<Role, Integer> failedHostCountsForRoles = new HashMap<Role, Integer>();
+
+        for (String host : prevStage.getHostRoleCommands().keySet()) {
+          Map<String, HostRoleCommand> roleCommandMap = prevStage.getHostRoleCommands().get(host);
+          for (String role : roleCommandMap.keySet()) {
+            HostRoleCommand c = roleCommandMap.get(role);
+            if (hostCountsForRoles.get(c.getRole()) == null) {
+              hostCountsForRoles.put(c.getRole(), 0);
+              failedHostCountsForRoles.put(c.getRole(), 0);
+            }
+            int hostCount = hostCountsForRoles.get(c.getRole());
+            hostCountsForRoles.put(c.getRole(), hostCount + 1);
+            if (c.getStatus().isFailedState()) {
+              int failedHostCount = failedHostCountsForRoles.get(c.getRole());
+              failedHostCountsForRoles.put(c.getRole(), failedHostCount + 1);
+            }
+          }
+        }
+
+        for (Role role : hostCountsForRoles.keySet()) {
+          float failedHosts = failedHostCountsForRoles.get(role);
+          float totalHosts = hostCountsForRoles.get(role);
+          if (((totalHosts - failedHosts) / totalHosts) < prevStage.getSuccessFactor(role)) {
+            failed = true;
+          }
+        }
+      }
+    }
+    return failed;
   }
 
   private void reportServerActionSuccess(Stage stage, ExecutionCommand cmd) {
