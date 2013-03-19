@@ -222,7 +222,7 @@ public class ClusterControllerImplTest {
 
     properties.add(propertyMap);
 
-    Request request = PropertyHelper.getCreateRequest(properties);
+    Request request = PropertyHelper.getCreateRequest(properties, null);
 
     controller.createResources(Resource.Type.Host, request);
 
@@ -244,7 +244,7 @@ public class ClusterControllerImplTest {
 
     properties.add(propertyMap);
 
-    Request request = PropertyHelper.getCreateRequest(properties);
+    Request request = PropertyHelper.getCreateRequest(properties, null);
 
     try {
       controller.createResources(Resource.Type.Host, request);
@@ -265,7 +265,7 @@ public class ClusterControllerImplTest {
     propertyMap.put(PropertyHelper.getPropertyId("c1", "p1"), 99);
     propertyMap.put(PropertyHelper.getPropertyId("c1", "p2"), 2);
 
-    Request request = PropertyHelper.getUpdateRequest(propertyMap);
+    Request request = PropertyHelper.getUpdateRequest(propertyMap, null);
 
     Predicate predicate = new PredicateBuilder().property("c1/p2").equals(1).toPredicate();
 
@@ -286,7 +286,7 @@ public class ClusterControllerImplTest {
     propertyMap.put(PropertyHelper.getPropertyId("c1", "p1"), 99);
     propertyMap.put(UNSUPPORTED_PROPERTY, 2);
 
-    Request request = PropertyHelper.getUpdateRequest(propertyMap);
+    Request request = PropertyHelper.getUpdateRequest(propertyMap, null);
 
     Predicate predicate = new PredicateBuilder().property("c1/p2").equals(1).toPredicate();
 
@@ -308,7 +308,7 @@ public class ClusterControllerImplTest {
     propertyMap.put(PropertyHelper.getPropertyId("c1", "p1"), 99);
     propertyMap.put(PropertyHelper.getPropertyId("c1", "p2"), 2);
 
-    Request request = PropertyHelper.getUpdateRequest(propertyMap);
+    Request request = PropertyHelper.getUpdateRequest(propertyMap, null);
 
     Predicate predicate = new PredicateBuilder().property(UNSUPPORTED_PROPERTY).equals(1).toPredicate();
 
@@ -331,7 +331,7 @@ public class ClusterControllerImplTest {
     propertyMap.put(PropertyHelper.getPropertyId("c1", "p1"), 99);
     propertyMap.put(PropertyHelper.getPropertyId("c1", "p2"), 2);
 
-    Request request = PropertyHelper.getUpdateRequest(propertyMap);
+    Request request = PropertyHelper.getUpdateRequest(propertyMap, null);
 
     Predicate predicate = new PredicateBuilder().property("c3/p6").equals(1).toPredicate();
 

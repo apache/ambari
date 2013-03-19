@@ -18,7 +18,9 @@
 
 package org.apache.ambari.server.api.services;
 
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -45,6 +47,11 @@ public class RequestBody {
    * The request body.  Query and partial response data is stripped before setting.
    */
   private String m_body;
+
+  /**
+   * Request properties.
+   */
+  private Map<String, String> m_requestInfoProps = new HashMap<String, String>();
 
 
   /**
@@ -100,8 +107,39 @@ public class RequestBody {
    *
    * @return  all property sets or an empty set
    */
-  public Set<NamedPropertySet> getPropertySets() {
+  public Set<NamedPropertySet> getNamedPropertySets() {
     return m_propertySets;
+  }
+
+  /**
+   * Obtain all property sets as a set of maps.
+   * Convenience method that converts a Set<NamedPropertySet> to a Set<Map<String, Object>>.
+   *
+   * @return  a set of property maps for the request
+   */
+  public Set<Map<String, Object>> getPropertySets() {
+    Set<NamedPropertySet> setNamedProps = getNamedPropertySets();
+    Set<Map<String, Object>> setProps = new HashSet<Map<String, Object>>(setNamedProps.size());
+
+    for (NamedPropertySet namedProps : setNamedProps) {
+      setProps.add(namedProps.getProperties());
+    }
+
+    return setProps;
+  }
+
+  /**
+   * Return a map of request info properties.  These properties are meta-data for the request.
+   */
+  public Map<String, String> getRequestInfoProperties() {
+    return m_requestInfoProps;
+  }
+
+  /**
+   * Add a request info property.
+   */
+  public void addRequestInfoProperty(String key, String val) {
+    m_requestInfoProps.put(key, val);
   }
 
   /**
@@ -110,7 +148,9 @@ public class RequestBody {
    * @param body the request body
    */
   public void setBody(String body) {
-    m_body = body;
+    if (body != null && ! body.isEmpty()) {
+      m_body = body;
+    }
   }
 
   /**

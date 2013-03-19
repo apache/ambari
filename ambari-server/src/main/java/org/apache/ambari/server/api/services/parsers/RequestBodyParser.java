@@ -24,10 +24,15 @@ import org.apache.ambari.server.api.services.RequestBody;
  * Parse the provided String into a map of properties and associated values.
  */
 public interface RequestBodyParser {
+
   /**
-   * Path to the query property.
+   * RequestInfo category path.
    */
-  public static final String QUERY_FIELD_PATH = "RequestInfo/query";
+  public static final String REQUEST_INFO_PATH = "RequestInfo";
+  /**
+   * Name of the query property which may exist under REQUEST_INFO_PATH.
+   */
+  public static final String QUERY_FIELD_NAME = "query";
 
   /**
    * Path to the body object.

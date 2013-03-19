@@ -18,11 +18,8 @@
 
 package org.apache.ambari.server.api.handlers;
 
-import org.apache.ambari.server.api.resources.ResourceInstance;
-import org.apache.ambari.server.api.services.NamedPropertySet;
-import org.apache.ambari.server.api.services.Request;
-import org.apache.ambari.server.api.services.Result;
-import org.apache.ambari.server.api.services.ResultImpl;
+import org.apache.ambari.server.api.resources.*;
+import org.apache.ambari.server.api.services.*;
 import org.apache.ambari.server.api.services.persistence.PersistenceManager;
 import org.apache.ambari.server.api.services.persistence.PersistenceManagerImpl;
 import org.apache.ambari.server.api.util.TreeNode;
@@ -31,11 +28,10 @@ import org.apache.ambari.server.controller.spi.Predicate;
 import org.apache.ambari.server.controller.spi.RequestStatus;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.utilities.ClusterControllerHelper;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.HashSet;
-import java.util.Map;
 import java.util.Set;
 
 /**
@@ -63,20 +59,18 @@ public abstract class BaseManagementHandler implements RequestHandler {
 
   @Override
   public Result handleRequest(Request request) {
-    ResourceInstance resource       = request.getResource();
-    Predicate        queryPredicate = request.getQueryPredicate();
+    Predicate queryPredicate = request.getQueryPredicate();
 
     if (queryPredicate != null) {
-      resource.getQuery().setUserPredicate(queryPredicate);
+      request.getResource().getQuery().setUserPredicate(queryPredicate);
     }
-
-    return persist(resource, getHttpBodyProperties(request));
+    return persist(request.getResource(), request.getBody());
   }
 
   /**
    * Create a result from a request status.
    *
-   * @param requestStatus  the request stats to build the result from.
+   * @param requestStatus  the request status to build the result from.
    *
    * @return  a Result instance for the provided request status
    */
@@ -104,24 +98,6 @@ public abstract class BaseManagementHandler implements RequestHandler {
     return result;
   }
 
-  /**
-   * Obtain a set of property maps from the request.
-   * Convenience method that converts a Set<NamedPropertySet> from the request to a Set<Map<String, Object>>.
-   *
-   * @param request  the current request
-   *
-   * @return  a set of property maps for the request
-   */
-  protected Set<Map<String, Object>> getHttpBodyProperties(Request request) {
-    Set<NamedPropertySet> setNamedProps = request.getHttpBodyProperties();
-    Set<Map<String, Object>> setProps = new HashSet<Map<String, Object>>(setNamedProps.size());
-
-    for (NamedPropertySet namedProps : setNamedProps) {
-      setProps.add(namedProps.getProperties());
-    }
-
-    return setProps;
-  }
 
   //todo: inject ClusterController, PersistenceManager
 
@@ -146,10 +122,10 @@ public abstract class BaseManagementHandler implements RequestHandler {
   /**
    * Persist the operation to the back end.
    *
-   * @param request           the requests resource instance
-   * @param setProperties  request properties
+   * @param resource  associated resource
+   * @param body      associated request body
    *
    * @return the result of the persist operation
    */
-  protected abstract Result persist(ResourceInstance request, Set<Map<String, Object>> setProperties);
+  protected abstract Result persist(ResourceInstance resource, RequestBody body);
 }

@@ -19,11 +19,8 @@
 package org.apache.ambari.server.api.handlers;
 
 import org.apache.ambari.server.api.resources.ResourceInstance;
-import org.apache.ambari.server.api.services.NamedPropertySet;
-import org.apache.ambari.server.api.services.ResultStatus;
+import org.apache.ambari.server.api.services.*;
 import org.apache.ambari.server.api.services.persistence.PersistenceManager;
-import org.apache.ambari.server.api.services.Request;
-import org.apache.ambari.server.api.services.Result;
 import org.apache.ambari.server.api.util.TreeNode;
 import org.apache.ambari.server.controller.spi.RequestStatus;
 import org.apache.ambari.server.controller.spi.Resource;
@@ -42,6 +39,7 @@ public class CreateHandlerTest {
   @Test
   public void testHandleRequest__Synchronous_NoPropsInBody() throws Exception {
     Request request = createNiceMock(Request.class);
+    RequestBody body = createNiceMock(RequestBody.class);
     ResourceInstance resource = createNiceMock(ResourceInstance.class);
     PersistenceManager pm = createStrictMock(PersistenceManager.class);
     RequestStatus status = createNiceMock(RequestStatus.class);
@@ -56,15 +54,15 @@ public class CreateHandlerTest {
     // expectations
     expect(request.getResource()).andReturn(resource).atLeastOnce();
     expect(request.getQueryPredicate()).andReturn(null).atLeastOnce();
-    expect(request.getHttpBodyProperties()).andReturn(new HashSet<NamedPropertySet>()).atLeastOnce();
+    expect(request.getBody()).andReturn(body);
 
-    expect(pm.create(eq(resource), eq(new HashSet<Map<String, Object>>()))).andReturn(status);
+    expect(pm.create(resource, body)).andReturn(status);
     expect(status.getStatus()).andReturn(RequestStatus.Status.Complete);
     expect(status.getAssociatedResources()).andReturn(setResources);
     expect(resource1.getType()).andReturn(Resource.Type.Cluster).anyTimes();
     expect(resource2.getType()).andReturn(Resource.Type.Cluster).anyTimes();
 
-    replay(request, resource, pm, status, resource1, resource2);
+    replay(request, body, resource, pm, status, resource1, resource2);
 
     Result result = new TestCreateHandler(pm).handleRequest(request);
 
@@ -87,26 +85,18 @@ public class CreateHandlerTest {
     }
 
     assertEquals(ResultStatus.STATUS.CREATED, result.getStatus().getStatus());
-    verify(request, resource, pm, status, resource1, resource2);
+    verify(request, body, resource, pm, status, resource1, resource2);
   }
 
   @Test
   public void testHandleRequest__Synchronous() throws Exception {
     Request request = createNiceMock(Request.class);
+    RequestBody body = createNiceMock(RequestBody.class);
     ResourceInstance resource = createNiceMock(ResourceInstance.class);
     PersistenceManager pm = createStrictMock(PersistenceManager.class);
     RequestStatus status = createNiceMock(RequestStatus.class);
     Resource resource1 = createNiceMock(Resource.class);
     Resource resource2 = createNiceMock(Resource.class);
-
-    Set<NamedPropertySet> setResourceProperties = new HashSet<NamedPropertySet>();
-    Map<String, Object> mapProps = new HashMap<String, Object>();
-    mapProps.put("foo", "bar");
-    NamedPropertySet namedPropSet = new NamedPropertySet("name", mapProps);
-    setResourceProperties.add(namedPropSet);
-
-    Set<Map<String, Object>> setProps = new HashSet<Map<String, Object>>();
-    setProps.add(mapProps);
 
     Set<Resource> setResources = new HashSet<Resource>();
     setResources.add(resource1);
@@ -115,15 +105,15 @@ public class CreateHandlerTest {
     // expectations
     expect(request.getResource()).andReturn(resource).atLeastOnce();
     expect(request.getQueryPredicate()).andReturn(null).atLeastOnce();
-    expect(request.getHttpBodyProperties()).andReturn(setResourceProperties).atLeastOnce();
+    expect(request.getBody()).andReturn(body).atLeastOnce();
 
-    expect(pm.create(eq(resource), eq(setProps))).andReturn(status);
+    expect(pm.create(resource, body)).andReturn(status);
     expect(status.getStatus()).andReturn(RequestStatus.Status.Complete);
     expect(status.getAssociatedResources()).andReturn(setResources);
     expect(resource1.getType()).andReturn(Resource.Type.Cluster).anyTimes();
     expect(resource2.getType()).andReturn(Resource.Type.Cluster).anyTimes();
 
-    replay(request, resource, pm, status, resource1, resource2);
+    replay(request, body, resource, pm, status, resource1, resource2);
 
     Result result = new TestCreateHandler(pm).handleRequest(request);
 
@@ -144,14 +134,14 @@ public class CreateHandlerTest {
         fail();
       }
     }
-
     assertEquals(ResultStatus.STATUS.CREATED, result.getStatus().getStatus());
-    verify(request, resource, pm, status, resource1, resource2);
+    verify(request, body, resource, pm, status, resource1, resource2);
   }
 
   @Test
   public void testHandleRequest__Asynchronous() throws Exception {
     Request request = createNiceMock(Request.class);
+    RequestBody body = createNiceMock(RequestBody.class);
     ResourceInstance resource = createNiceMock(ResourceInstance.class);
     PersistenceManager pm = createStrictMock(PersistenceManager.class);
     RequestStatus status = createNiceMock(RequestStatus.class);
@@ -159,24 +149,23 @@ public class CreateHandlerTest {
     Resource resource2 = createNiceMock(Resource.class);
     Resource requestResource = createNiceMock(Resource.class);
 
-
     Set<Resource> setResources = new HashSet<Resource>();
     setResources.add(resource1);
     setResources.add(resource2);
 
     // expectations
     expect(request.getResource()).andReturn(resource);
-    expect(request.getHttpBodyProperties()).andReturn(new HashSet<NamedPropertySet>()).atLeastOnce();
+    expect(request.getBody()).andReturn(body).atLeastOnce();
     expect(request.getQueryPredicate()).andReturn(null).atLeastOnce();
 
-    expect(pm.create(eq(resource), eq(new HashSet<Map<String, Object>>()))).andReturn(status);
+    expect(pm.create(resource, body)).andReturn(status);
     expect(status.getStatus()).andReturn(RequestStatus.Status.Accepted);
     expect(status.getAssociatedResources()).andReturn(setResources);
     expect(resource1.getType()).andReturn(Resource.Type.Cluster).anyTimes();
     expect(resource2.getType()).andReturn(Resource.Type.Cluster).anyTimes();
     expect(status.getRequestResource()).andReturn(requestResource).anyTimes();
 
-    replay(request, resource, pm, status, resource1, resource2, requestResource);
+    replay(request, body, resource, pm, status, resource1, resource2, requestResource);
 
     Result result = new TestCreateHandler(pm).handleRequest(request);
 
@@ -204,7 +193,7 @@ public class CreateHandlerTest {
     assertSame(requestResource, statusNode.getObject());
 
     assertEquals(ResultStatus.STATUS.ACCEPTED, result.getStatus().getStatus());
-    verify(request, resource, pm, status, resource1, resource2, requestResource);
+    verify(request, body, resource, pm, status, resource1, resource2, requestResource);
   }
 
   private class TestCreateHandler extends CreateHandler {

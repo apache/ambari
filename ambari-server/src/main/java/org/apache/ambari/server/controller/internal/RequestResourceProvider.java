@@ -47,6 +47,7 @@ class RequestResourceProvider extends AbstractControllerResourceProvider {
   protected static final String REQUEST_CLUSTER_NAME_PROPERTY_ID = PropertyHelper.getPropertyId("Requests", "cluster_name");
   protected static final String REQUEST_ID_PROPERTY_ID           = PropertyHelper.getPropertyId("Requests", "id");
   protected static final String REQUEST_STATUS_PROPERTY_ID       = PropertyHelper.getPropertyId("Requests", "request_status");
+  protected static final String REQUEST_CONTEXT_ID               = PropertyHelper.getPropertyId("Requests", "request_context");
 
   private static Set<String> pkPropertyIds =
       new HashSet<String>(Arrays.asList(new String[]{
@@ -98,6 +99,7 @@ class RequestResourceProvider extends AbstractControllerResourceProvider {
       Resource resource = new ResourceImpl(Resource.Type.Request);
       setResourceProperty(resource, REQUEST_CLUSTER_NAME_PROPERTY_ID, clusterName, requestedIds);
       setResourceProperty(resource, REQUEST_ID_PROPERTY_ID, response.getRequestId(), requestedIds);
+      setResourceProperty(resource, REQUEST_CONTEXT_ID, response.getRequestContext(), requestedIds);
       resources.add(resource);
     }
     return resources;

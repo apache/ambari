@@ -23,18 +23,19 @@ import com.google.gson.reflect.TypeToken;
 import com.google.inject.AbstractModule;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
-import org.apache.ambari.server.*;
-import org.apache.ambari.server.actionmanager.*;
-import org.apache.ambari.server.agent.CommandReport;
-import org.apache.ambari.server.agent.ExecutionCommand;
+import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.ClusterNotFoundException;
+import org.apache.ambari.server.HostNotFoundException;
+import org.apache.ambari.server.ParentObjectNotFoundException;
+import org.apache.ambari.server.ServiceComponentHostNotFoundException;
+import org.apache.ambari.server.ServiceComponentNotFoundException;
+import org.apache.ambari.server.ServiceNotFoundException;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
-import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
 import org.apache.ambari.server.state.*;
 import org.apache.ambari.server.state.svccomphost.ServiceComponentHostInstallEvent;
 import org.apache.ambari.server.state.svccomphost.ServiceComponentHostOpSucceededEvent;
-import org.apache.ambari.server.utils.StageUtils;
 import org.easymock.Capture;
 import org.junit.Test;
 
@@ -1474,6 +1475,7 @@ public class AmbariManagementControllerImplTest {
 
   @Test
   public void testMaintenanceAndDeleteStates() throws Exception {
+    Map<String,String> mapRequestProps = new HashMap<String, String>();
     Injector injector = Guice.createInjector(new AbstractModule() {
       @Override
       protected void configure() {
@@ -1513,11 +1515,6 @@ public class AmbariManagementControllerImplTest {
 
     Set<ServiceRequest> serviceRequests = new HashSet<ServiceRequest>();
     serviceRequests.add(new ServiceRequest("c1", "HDFS", null, null));
-//    serviceRequests.add(new ServiceRequest("c1", "MAPREDUCE", null, null));
-//    serviceRequests.add(new ServiceRequest("c1", "ZOOKEEPER", null, null));
-//    serviceRequests.add(new ServiceRequest("c1", "HBASE", null, null));
-//    serviceRequests.add(new ServiceRequest("c1", "GANGLIA", null, null));
-//    serviceRequests.add(new ServiceRequest("c1", "NAGIOS", null, null));
 
     amc.createServices(serviceRequests);
 
@@ -1539,30 +1536,6 @@ public class AmbariManagementControllerImplTest {
     );
     amc.createConfiguration(configurationRequest);
 
-//    configurationRequest = new ConfigurationRequest("c1", "mapred-site", "version1",
-//        gson.<Map<String, String>>fromJson("{ \"mapred.job.tracker\" : \"localhost:50300\", \"mapreduce.history.server.embedded\": \"false\", \"mapreduce.history.server.http.address\": \"localhost:51111\"}", confType)
-//    );
-//    amc.createConfiguration(configurationRequest);
-//
-//    configurationRequest = new ConfigurationRequest("c1", "hbase-site", "version1",
-//        gson.<Map<String, String>>fromJson("{ \"hbase.rootdir\" : \"hdfs://localhost:8020/apps/hbase/\", \"hbase.cluster.distributed\" : \"true\", \"hbase.zookeeper.quorum\": \"localhost\", \"zookeeper.session.timeout\": \"60000\" }", confType));
-//    amc.createConfiguration(configurationRequest);
-//
-//    configurationRequest = new ConfigurationRequest("c1", "hbase-env", "version1",
-//        gson.<Map<String, String>>fromJson("{ \"hbase_hdfs_root_dir\" : \"/apps/hbase/\"}", confType)
-//    );
-//    amc.createConfiguration(configurationRequest);
-//
-//    configurationRequest = new ConfigurationRequest("c1", "nagios-global", "version2",
-//        gson.<Map<String, String>>fromJson("{ \"nagios_web_login\" : \"nagiosadmin\", \"nagios_web_password\" : \"password\", \"nagios_contact\": \"a\\u0040b.c\" }", confType)
-//    );
-//    amc.createConfiguration(configurationRequest);
-//
-//    configurationRequest = new ConfigurationRequest("c1", "nagios-global", "version1",
-//        gson.<Map<String, String>>fromJson("{ \"nagios_web_login\" : \"nagiosadmin\", \"nagios_web_password\" : \"password\"  }", confType)
-//    );
-//    amc.createConfiguration(configurationRequest);
-
 
     serviceRequests.clear();
     serviceRequests.add(new ServiceRequest("c1", "HDFS",
@@ -1578,7 +1551,7 @@ public class AmbariManagementControllerImplTest {
 //        gson.<Map<String, String>>fromJson("{\"nagios-global\": \"version2\" }", confType)
 //        , null));
 
-    amc.updateServices(serviceRequests);
+    amc.updateServices(serviceRequests, mapRequestProps);
 
 
     Set<ServiceComponentRequest> serviceComponentRequests = new HashSet<ServiceComponentRequest>();
@@ -1586,20 +1559,6 @@ public class AmbariManagementControllerImplTest {
     serviceComponentRequests.add(new ServiceComponentRequest("c1", "HDFS", "SECONDARY_NAMENODE", null, null));
     serviceComponentRequests.add(new ServiceComponentRequest("c1", "HDFS", "DATANODE", null, null));
     serviceComponentRequests.add(new ServiceComponentRequest("c1", "HDFS", "HDFS_CLIENT", null, null));
-
-//    serviceComponentRequests.add(new ServiceComponentRequest("c1", "MAPREDUCE", "JOBTRACKER", null, null));
-//    serviceComponentRequests.add(new ServiceComponentRequest("c1", "MAPREDUCE", "TASKTRACKER", null, null));
-//
-//    serviceComponentRequests.add(new ServiceComponentRequest("c1", "ZOOKEEPER", "ZOOKEEPER_SERVER", null, null));
-//
-//    serviceComponentRequests.add(new ServiceComponentRequest("c1", "HBASE", "HBASE_MASTER", null, null));
-//    serviceComponentRequests.add(new ServiceComponentRequest("c1", "HBASE", "HBASE_REGIONSERVER", null, null));
-//    serviceComponentRequests.add(new ServiceComponentRequest("c1", "HBASE", "HBASE_CLIENT", null, null));
-//
-//    serviceComponentRequests.add(new ServiceComponentRequest("c1", "GANGLIA", "GANGLIA_SERVER", null, null));
-//    serviceComponentRequests.add(new ServiceComponentRequest("c1", "GANGLIA", "GANGLIA_MONITOR", null, null));
-//
-//    serviceComponentRequests.add(new ServiceComponentRequest("c1", "NAGIOS", "NAGIOS_SERVER", null, null));
 
     amc.createComponents(serviceComponentRequests);
 
@@ -1618,34 +1577,11 @@ public class AmbariManagementControllerImplTest {
     componentHostRequests.add(new ServiceComponentHostRequest("c1", null, "DATANODE", "host3", null, null));
 
 
-//    componentHostRequests.add(new ServiceComponentHostRequest("c1", null, "JOBTRACKER", "host1", null, null));
-//    componentHostRequests.add(new ServiceComponentHostRequest("c1", null, "TASKTRACKER", "host1", null, null));
-//    componentHostRequests.add(new ServiceComponentHostRequest("c1", null, "TASKTRACKER", "host2", null, null));
-//    componentHostRequests.add(new ServiceComponentHostRequest("c1", null, "TASKTRACKER", "host3", null, null));
-//
-//    componentHostRequests.add(new ServiceComponentHostRequest("c1", null, "ZOOKEEPER_SERVER", "host1", null, null));
-//    componentHostRequests.add(new ServiceComponentHostRequest("c1", null, "GANGLIA_SERVER", "host1", null, null));
-//    componentHostRequests.add(new ServiceComponentHostRequest("c1", null, "GANGLIA_MONITOR", "host1", null, null));
-//
-//    componentHostRequests.add(new ServiceComponentHostRequest("c1", null, "HDFS_CLIENT", "host1", null, null));
-//    componentHostRequests.add(new ServiceComponentHostRequest("c1", null, "HBASE_MASTER", "host1", null, null));
-//    componentHostRequests.add(new ServiceComponentHostRequest("c1", null, "HBASE_REGIONSERVER", "host1", null, null));
-//    componentHostRequests.add(new ServiceComponentHostRequest("c1", null, "HBASE_CLIENT", "host1", null, null));
-//
-//    componentHostRequests.add(new ServiceComponentHostRequest("c1", null, "NAGIOS_SERVER", "host1", null, null));
-
-
     amc.createHostComponents(componentHostRequests);
 
     serviceRequests.clear();
     serviceRequests.add(new ServiceRequest("c1", "HDFS", null, "INSTALLED"));
-//    serviceRequests.add(new ServiceRequest("c1", "MAPREDUCE", null, "INSTALLED"));
-//    serviceRequests.add(new ServiceRequest("c1", "ZOOKEEPER", null, "INSTALLED"));
-//    serviceRequests.add(new ServiceRequest("c1", "HBASE", null, "INSTALLED"));
-//    serviceRequests.add(new ServiceRequest("c1", "GANGLIA", null, "INSTALLED"));
-//    serviceRequests.add(new ServiceRequest("c1", "NAGIOS", null, "INSTALLED"));
-
-    amc.updateServices(serviceRequests);
+    amc.updateServices(serviceRequests, mapRequestProps);
 
     Cluster cluster = clusters.getCluster("c1");
     Map<String, ServiceComponentHost> namenodes = cluster.getService("HDFS").getServiceComponent("NAMENODE").getServiceComponentHosts();
@@ -1675,21 +1611,21 @@ public class AmbariManagementControllerImplTest {
     componentHostRequests.clear();
     componentHostRequests.add(new ServiceComponentHostRequest("c1", null, "NAMENODE", "host1", null, "MAINTENANCE"));
 
-    amc.updateHostComponents(componentHostRequests);
+    amc.updateHostComponents(componentHostRequests, mapRequestProps);
 
     assertEquals(State.MAINTENANCE, componentHost.getState());
 
     componentHostRequests.clear();
     componentHostRequests.add(new ServiceComponentHostRequest("c1", null, "NAMENODE", "host1", null, "INSTALLED"));
 
-    amc.updateHostComponents(componentHostRequests);
+    amc.updateHostComponents(componentHostRequests, mapRequestProps);
 
     assertEquals(State.INSTALLED, componentHost.getState());
 
     componentHostRequests.clear();
     componentHostRequests.add(new ServiceComponentHostRequest("c1", null, "NAMENODE", "host1", null, "MAINTENANCE"));
 
-    amc.updateHostComponents(componentHostRequests);
+    amc.updateHostComponents(componentHostRequests, mapRequestProps);
 
     assertEquals(State.MAINTENANCE, componentHost.getState());
 
@@ -1701,7 +1637,7 @@ public class AmbariManagementControllerImplTest {
     componentHostRequests.clear();
     componentHostRequests.add(new ServiceComponentHostRequest("c1", null, "NAMENODE", "host2", null, "INSTALLED"));
 
-    amc.updateHostComponents(componentHostRequests);
+    amc.updateHostComponents(componentHostRequests, mapRequestProps);
 
     namenodes = cluster.getService("HDFS").getServiceComponent("NAMENODE").getServiceComponentHosts();
     assertEquals(2, namenodes.size());
@@ -1713,7 +1649,7 @@ public class AmbariManagementControllerImplTest {
     serviceRequests.clear();
     serviceRequests.add(new ServiceRequest("c1", "HDFS", null, "STARTED"));
 
-    RequestStatusResponse response = amc.updateServices(serviceRequests);
+    RequestStatusResponse response = amc.updateServices(serviceRequests, mapRequestProps);
     for (ShortTaskStatus shortTaskStatus : response.getTasks()) {
       assertFalse("host1".equals(shortTaskStatus.getHostName()) && "NAMENODE".equals(shortTaskStatus.getRole()));
     }

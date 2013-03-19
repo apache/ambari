@@ -69,9 +69,7 @@ public class RoleGraph {
     //Add edges
     for (String roleI : graph.keySet()) {
       for (String roleJ : graph.keySet()) {
-        if (roleI.equals(roleJ)) {
-          continue;
-        } else {
+        if (!roleI.equals(roleJ)) {
           RoleGraphNode rgnI = graph.get(roleI);
           RoleGraphNode rgnJ = graph.get(roleJ);
           int order = roleDependencies.order(rgnI, rgnJ);
@@ -132,8 +130,10 @@ public class RoleGraph {
 
   private Stage getStageFromGraphNodes(Stage origStage,
       List<RoleGraphNode> stageGraphNodes) {
+
     Stage newStage = new Stage(origStage.getRequestId(),
-        origStage.getLogDir(), origStage.getClusterName());
+        origStage.getLogDir(), origStage.getClusterName(),
+        origStage.getRequestContext());
     newStage.setSuccessFactors(origStage.getSuccessFactors());
     for (RoleGraphNode rgn : stageGraphNodes) {
       for (String host : rgn.getHosts()) {

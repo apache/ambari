@@ -160,7 +160,7 @@ class HostComponentResourceProvider extends AbstractControllerResourceProvider {
   }
 
   @Override
-  public RequestStatus updateResources(Request request, Predicate predicate)
+  public RequestStatus updateResources(final Request request, Predicate predicate)
         throws SystemException, UnsupportedPropertyException, NoSuchResourceException, NoSuchParentResourceException {
     final Set<ServiceComponentHostRequest> requests = new HashSet<ServiceComponentHostRequest>();
     RequestStatusResponse response = null;
@@ -173,7 +173,7 @@ class HostComponentResourceProvider extends AbstractControllerResourceProvider {
       response = modifyResources(new Command<RequestStatusResponse>() {
         @Override
         public RequestStatusResponse invoke() throws AmbariException {
-          return getManagementController().updateHostComponents(requests);
+          return getManagementController().updateHostComponents(requests, request.getRequestInfoProperties());
         }
       });
 

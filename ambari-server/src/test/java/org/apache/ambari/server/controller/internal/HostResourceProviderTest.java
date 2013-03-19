@@ -80,7 +80,7 @@ public class HostResourceProviderTest {
     propertySet.add(properties);
 
     // create the request
-    Request request = PropertyHelper.getCreateRequest(propertySet);
+    Request request = PropertyHelper.getCreateRequest(propertySet, null);
 
     provider.createResources(request);
 
@@ -184,7 +184,7 @@ public class HostResourceProviderTest {
     properties.put(PropertyHelper.getPropertyId("Hosts.desired_config.properties", "x"), "y");
 
     // create the request
-    Request request = PropertyHelper.getUpdateRequest(properties);
+    Request request = PropertyHelper.getUpdateRequest(properties, null);
     
     Predicate  predicate = new PredicateBuilder().property(HostResourceProvider.HOST_CLUSTER_NAME_PROPERTY_ID).
         equals("Cluster100").
@@ -236,7 +236,7 @@ public class HostResourceProviderTest {
     properties.put(HostResourceProvider.HOST_RACK_INFO_PROPERTY_ID, "rack info");
 
     // create the request
-    Request request = PropertyHelper.getUpdateRequest(properties);
+    Request request = PropertyHelper.getUpdateRequest(properties, null);
 
     Predicate  predicate = new PredicateBuilder().property(HostResourceProvider.HOST_CLUSTER_NAME_PROPERTY_ID).
         equals("Cluster100").

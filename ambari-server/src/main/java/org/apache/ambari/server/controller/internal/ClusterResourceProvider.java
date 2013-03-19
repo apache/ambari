@@ -139,7 +139,7 @@ class ClusterResourceProvider extends AbstractControllerResourceProvider {
   }
 
   @Override
-  public RequestStatus updateResources(Request request, Predicate predicate)
+  public RequestStatus updateResources(final Request request, Predicate predicate)
       throws SystemException, UnsupportedPropertyException, NoSuchResourceException, NoSuchParentResourceException {
 
     RequestStatusResponse response = null;
@@ -152,7 +152,7 @@ class ClusterResourceProvider extends AbstractControllerResourceProvider {
       response = modifyResources(new Command<RequestStatusResponse>() {
         @Override
         public RequestStatusResponse invoke() throws AmbariException {
-          return getManagementController().updateCluster(clusterRequest);
+          return getManagementController().updateCluster(clusterRequest, request.getRequestInfoProperties());
         }
       });
     }

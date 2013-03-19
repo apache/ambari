@@ -181,14 +181,10 @@ public abstract class BaseRequest implements Request {
   }
 
   @Override
-  public String getHttpBody() {
-    return m_body.getBody();
+  public RequestBody getBody() {
+    return m_body;
   }
 
-  @Override
-  public Set<NamedPropertySet> getHttpBodyProperties() {
-    return m_body.getPropertySets();
-  }
 
   /**
    * Obtain the result post processor for the request.

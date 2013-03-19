@@ -211,7 +211,7 @@ public class TestActionDBAccessorImpl {
 
   private void populateActionDB(ActionDBAccessor db, String hostname,
       long requestId, long stageId) {
-    Stage s = new Stage(requestId, "/a/b", "cluster1");
+    Stage s = new Stage(requestId, "/a/b", "cluster1", "action db accessor test");
     s.setStageId(stageId);
     s.addHostRoleExecutionCommand(hostname, Role.HBASE_MASTER,
         RoleCommand.START,

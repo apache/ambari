@@ -18,13 +18,10 @@
 
 package org.apache.ambari.server.api.handlers;
 
-import org.apache.ambari.server.api.resources.ResourceInstance;
+import org.apache.ambari.server.api.resources.*;
 import org.apache.ambari.server.api.services.*;
 import org.apache.ambari.server.api.services.ResultStatus;
 import org.apache.ambari.server.controller.spi.*;
-
-import java.util.Map;
-import java.util.Set;
 
 
 /**
@@ -33,10 +30,10 @@ import java.util.Set;
 public class CreateHandler extends BaseManagementHandler {
 
   @Override
-  protected Result persist(ResourceInstance request, Set<Map<String, Object>> setProperties) {
+  protected Result persist(ResourceInstance resource, RequestBody body) {
     Result result;
     try {
-      RequestStatus status = getPersistenceManager().create(request, setProperties);
+      RequestStatus status = getPersistenceManager().create(resource, body);
 
       result = createResult(status);
 
@@ -67,7 +64,6 @@ public class CreateHandler extends BaseManagementHandler {
       //result = new ResultImpl(new ResultStatus(ResultStatus.STATUS.SERVER_ERROR, e.getMessage()));
       throw e;
     }
-
     return result;
   }
 }

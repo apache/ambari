@@ -28,7 +28,7 @@ import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.spi.ResourceProvider;
 import org.apache.ambari.server.controller.utilities.PredicateBuilder;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
-import org.easymock.EasyMock;
+import org.easymock.*;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -40,10 +40,14 @@ import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
 
+import static junit.framework.Assert.assertEquals;
+import static junit.framework.Assert.assertNull;
+import static org.easymock.EasyMock.capture;
 import static org.easymock.EasyMock.createMock;
 import static org.easymock.EasyMock.createNiceMock;
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.replay;
+import static org.easymock.EasyMock.eq;
 import static org.easymock.EasyMock.verify;
 
 /**
@@ -83,7 +87,7 @@ public class ServiceResourceProviderTest {
     propertySet.add(properties);
 
     // create the request
-    Request request = PropertyHelper.getCreateRequest(propertySet);
+    Request request = PropertyHelper.getCreateRequest(propertySet, null);
 
     provider.createResources(request);
 
@@ -183,9 +187,14 @@ public class ServiceResourceProviderTest {
 
     AmbariManagementController managementController = createMock(AmbariManagementController.class);
     RequestStatusResponse response = createNiceMock(RequestStatusResponse.class);
+    Capture<Set<ServiceRequest>> requestsCapture = new Capture<Set<ServiceRequest>>();
+
+    Map<String, String> mapRequestProps = new HashMap<String, String>();
+    mapRequestProps.put("context", "Called from a test");
 
     // set expectations
-    expect(managementController.updateServices(EasyMock.<Set<ServiceRequest>>anyObject())).andReturn(response).once();
+    expect(managementController.updateServices(capture(requestsCapture),
+        eq(mapRequestProps))).andReturn(response).once();
 
     // replay
     replay(managementController, response);
@@ -202,7 +211,7 @@ public class ServiceResourceProviderTest {
     properties.put(ServiceResourceProvider.SERVICE_SERVICE_STATE_PROPERTY_ID, "DEPLOYED");
 
     // create the request
-    Request request = PropertyHelper.getUpdateRequest(properties);
+    Request request = PropertyHelper.getUpdateRequest(properties, mapRequestProps);
 
     // update the service named Service102
     Predicate  predicate = new PredicateBuilder().property(ServiceResourceProvider.SERVICE_CLUSTER_NAME_PROPERTY_ID).equals("Cluster100").
@@ -211,6 +220,14 @@ public class ServiceResourceProviderTest {
 
     // verify
     verify(managementController, response);
+
+    Set<ServiceRequest> setRequests = requestsCapture.getValue();
+    assertEquals(1, setRequests.size());
+    ServiceRequest sr = setRequests.iterator().next();
+    assertEquals("Cluster100", sr.getClusterName());
+    assertEquals("Service102", sr.getServiceName());
+    assertEquals("DEPLOYED", sr.getDesiredState());
+    assertNull(sr.getConfigVersions());
   }
 
   @Test

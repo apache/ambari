@@ -68,7 +68,7 @@ public class TargetClusterResourceProviderTest {
 
     propertySet.add(properties);
 
-    Request request = PropertyHelper.getCreateRequest(propertySet);
+    Request request = PropertyHelper.getCreateRequest(propertySet, Collections.<String,String>emptyMap());
 
     TargetClusterResourceProvider provider = new TargetClusterResourceProvider(service,
         PropertyHelper.getPropertyIds(Resource.Type.DRTargetCluster),
@@ -112,7 +112,7 @@ public class TargetClusterResourceProviderTest {
 
     propertySet.add(properties);
 
-    Request request = PropertyHelper.getCreateRequest(propertySet);
+    Request request = PropertyHelper.getCreateRequest(propertySet, Collections.<String,String>emptyMap());
 
     TargetClusterResourceProvider provider = new TargetClusterResourceProvider(service,
         PropertyHelper.getPropertyIds(Resource.Type.DRTargetCluster),
@@ -158,7 +158,7 @@ public class TargetClusterResourceProviderTest {
 
     propertySet.add(properties);
 
-    Request request = PropertyHelper.getCreateRequest(propertySet);
+    Request request = PropertyHelper.getCreateRequest(propertySet, Collections.<String,String>emptyMap());
 
     TargetClusterResourceProvider provider = new TargetClusterResourceProvider(service,
         PropertyHelper.getPropertyIds(Resource.Type.DRTargetCluster),

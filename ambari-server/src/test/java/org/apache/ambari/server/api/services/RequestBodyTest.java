@@ -46,11 +46,11 @@ public class RequestBodyTest {
   @Test
   public void testAddGetPropertySets() {
     RequestBody body = new RequestBody();
-    assertEquals(0, body.getPropertySets().size());
+    assertEquals(0, body.getNamedPropertySets().size());
     NamedPropertySet ps = new NamedPropertySet("foo", new HashMap<String, Object>());
     body.addPropertySet(ps);
-    assertEquals(1, body.getPropertySets().size());
-    assertSame(ps, body.getPropertySets().iterator().next());
+    assertEquals(1, body.getNamedPropertySets().size());
+    assertSame(ps, body.getNamedPropertySets().iterator().next());
   }
 
   @Test

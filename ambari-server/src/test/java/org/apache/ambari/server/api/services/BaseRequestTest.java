@@ -45,29 +45,11 @@ import static org.junit.Assert.*;
 public abstract class BaseRequestTest {
 
   @Test
-  public void testGetHttpBody() {
+  public void testGetBody() {
     RequestBody body = createNiceMock(RequestBody.class);
     Request request = getTestRequest(null, body, null, null, null, null, null);
 
-    expect(body.getBody()) .andReturn("{\foo\" : \"bar\"}");
-    replay(body);
-
-    assertEquals("{\foo\" : \"bar\"}", request.getHttpBody());
-
-    verify(body);
-  }
-
-  @Test
-  public void testGetHttpBodyProperties() {
-    Set<NamedPropertySet> setProps = new HashSet<NamedPropertySet>();
-    RequestBody body = createNiceMock(RequestBody.class);
-    Request request = getTestRequest(null, body, null, null, null, null, null);
-
-    expect(body.getPropertySets()).andReturn(setProps);
-    replay(body);
-
-    assertSame(setProps, request.getHttpBodyProperties());
-    verify(body);
+    assertSame(body, request.getBody());
   }
 
   @Test

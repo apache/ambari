@@ -73,6 +73,20 @@ public class StageEntity {
     this.logInfo = logInfo;
   }
 
+  private String requestContext = "";
+
+  @Column(name = "request_context", nullable = true)
+  @Basic
+  public String getRequestContext() {
+    return requestContext;
+  }
+
+  public void setRequestContext(String requestContext) {
+    if (requestContext != null) {
+      this.requestContext = requestContext;
+    }
+  }
+
   @Override
   public boolean equals(Object o) {
     if (this == o) return true;
@@ -84,8 +98,8 @@ public class StageEntity {
     if (logInfo != null ? !logInfo.equals(that.logInfo) : that.logInfo != null) return false;
     if (requestId != null ? !requestId.equals(that.requestId) : that.requestId != null) return false;
     if (stageId != null ? !stageId.equals(that.stageId) : that.stageId != null) return false;
+    return !(requestContext != null ? !requestContext.equals(that.requestContext) : that.requestContext != null);
 
-    return true;
   }
 
   @Override
@@ -94,6 +108,7 @@ public class StageEntity {
     result = 31 * result + (requestId != null ? requestId.hashCode() : 0);
     result = 31 * result + (stageId != null ? stageId.hashCode() : 0);
     result = 31 * result + (logInfo != null ? logInfo.hashCode() : 0);
+    result = 31 * result + (requestContext != null ? requestContext.hashCode() : 0);
     return result;
   }
 

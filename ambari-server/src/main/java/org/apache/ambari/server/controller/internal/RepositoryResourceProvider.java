@@ -64,7 +64,7 @@ public class RepositoryResourceProvider extends ReadOnlyResourceProvider {
       .getPropertyId("Repositories", "repo_id");
 
   private static final String REPOSITORY_MIRRORS_LIST_PROPERTY_ID = PropertyHelper
-      .getPropertyId("Repositories", "mirrors_list");;
+      .getPropertyId("Repositories", "mirrors_list");
 
   private static Set<String> pkPropertyIds = new HashSet<String>(
       Arrays.asList(new String[] { STACK_NAME_PROPERTY_ID,

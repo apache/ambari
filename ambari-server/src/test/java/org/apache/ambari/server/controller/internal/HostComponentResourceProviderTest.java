@@ -45,6 +45,7 @@ import org.apache.ambari.server.Role;
 
 import static org.easymock.EasyMock.createMock;
 import static org.easymock.EasyMock.createNiceMock;
+import static org.easymock.EasyMock.eq;
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.replay;
 import static org.easymock.EasyMock.verify;
@@ -88,7 +89,7 @@ public class HostComponentResourceProviderTest {
     propertySet.add(properties);
 
     // create the request
-    Request request = PropertyHelper.getCreateRequest(propertySet);
+    Request request = PropertyHelper.getCreateRequest(propertySet, null);
 
     provider.createResources(request);
 
@@ -236,6 +237,9 @@ public class HostComponentResourceProviderTest {
     AmbariManagementController managementController = createMock(AmbariManagementController.class);
     RequestStatusResponse response = createNiceMock(RequestStatusResponse.class);
 
+    Map<String, String> mapRequestProps = new HashMap<String, String>();
+    mapRequestProps.put("context", "Called from a test");
+
     Set<ServiceComponentHostResponse> nameResponse = new HashSet<ServiceComponentHostResponse>();
     nameResponse.add(new ServiceComponentHostResponse(
         "Cluster102", "Service100", "Component100", "Host100", null, null, "STARTED", "", "", ""));
@@ -245,7 +249,8 @@ public class HostComponentResourceProviderTest {
         EasyMock.<Set<ServiceComponentHostRequest>>anyObject())).andReturn(nameResponse).once();
     expect(managementController.updateHostComponents(
         AbstractResourceProviderTest.Matcher.getHostComponentRequestSet(
-            "Cluster102", null, "Component100", "Host100", null, "STARTED"))).andReturn(response).once();
+            "Cluster102", null, "Component100", "Host100", null, "STARTED"),
+            eq(mapRequestProps))).andReturn(response).once();
 
     // replay
     replay(managementController, response);
@@ -261,7 +266,7 @@ public class HostComponentResourceProviderTest {
     properties.put(HostComponentResourceProvider.HOST_COMPONENT_STATE_PROPERTY_ID, "STARTED");
 
     // create the request
-    Request request = PropertyHelper.getUpdateRequest(properties);
+    Request request = PropertyHelper.getUpdateRequest(properties, mapRequestProps);
 
     // update the cluster named Cluster102
     Predicate predicate = new PredicateBuilder().property(

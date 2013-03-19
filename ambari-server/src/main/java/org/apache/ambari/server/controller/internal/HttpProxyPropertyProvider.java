@@ -115,7 +115,7 @@ public class HttpProxyPropertyProvider extends BaseProvider implements PropertyP
       in = streamProvider.readFrom(url);
       //todo: should not use JsonRequestBodyParser as this is intended only for parsing http bodies.
       RequestBody body = (new JsonRequestBodyParser().parse(IOUtils.toString(in, "UTF-8")));
-      Set<NamedPropertySet> setNamedProps = body.getPropertySets();
+      Set<NamedPropertySet> setNamedProps = body.getNamedPropertySets();
       Set<Map<String,Object>> setProps = new HashSet<Map<String, Object>>(setNamedProps.size());
       for (NamedPropertySet ps : setNamedProps) {
         setProps.add(ps.getProperties());

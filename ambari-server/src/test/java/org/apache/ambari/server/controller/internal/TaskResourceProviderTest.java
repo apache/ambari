@@ -74,7 +74,7 @@ public class TaskResourceProviderTest {
     propertySet.add(properties);
 
     // create the request
-    Request request = PropertyHelper.getCreateRequest(propertySet);
+    Request request = PropertyHelper.getCreateRequest(propertySet, null);
 
     try {
       provider.createResources(request);
@@ -149,7 +149,7 @@ public class TaskResourceProviderTest {
     Map<String, Object> properties = new LinkedHashMap<String, Object>();
 
     // create the request
-    Request request = PropertyHelper.getUpdateRequest(properties);
+    Request request = PropertyHelper.getUpdateRequest(properties, null);
 
     Predicate predicate = new PredicateBuilder().property(TaskResourceProvider.TASK_ID_PROPERTY_ID).equals("Task100").
         toPredicate();

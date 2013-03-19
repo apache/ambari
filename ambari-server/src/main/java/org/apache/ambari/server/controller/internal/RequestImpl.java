@@ -21,8 +21,12 @@ package org.apache.ambari.server.controller.internal;
 import org.apache.ambari.server.controller.spi.Request;
 import org.apache.ambari.server.controller.spi.TemporalInfo;
 
-import java.util.*;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 
 /**
  * Default request implementation.
@@ -42,6 +46,12 @@ public class RequestImpl implements Request {
   private final Set<Map<String, Object>> properties;
 
   /**
+   * Request Info properties.  These are properties that are specific to the request
+   * but not to any resource.
+   */
+  private Map<String, String> requestInfoProperties;
+
+  /**
    * Map of property to temporal info.
    */
   private Map<String, TemporalInfo> m_mapTemporalInfo = new HashMap<String, TemporalInfo>();
@@ -52,12 +62,14 @@ public class RequestImpl implements Request {
   /**
    * Create a request.
    *
-   * @param propertyIds      the property ids associated with the request; may be null
-   * @param properties       the properties associated with the request; may be null
-   * @param mapTemporalInfo  the temporal info
+   * @param propertyIds            property ids associated with the request; may be null
+   * @param properties             resource properties associated with the request; may be null
+   * @param requestInfoProperties  request properties; may be null
+   * @param mapTemporalInfo        temporal info
    */
   public RequestImpl(Set<String> propertyIds, Set<Map<String, Object>> properties,
-                     Map<String, TemporalInfo> mapTemporalInfo) {
+                     Map<String, String> requestInfoProperties, Map<String,
+                     TemporalInfo> mapTemporalInfo) {
     this.propertyIds = propertyIds == null ?
         Collections.unmodifiableSet(new HashSet<String>()) :
         Collections.unmodifiableSet(propertyIds);
@@ -65,6 +77,10 @@ public class RequestImpl implements Request {
     this.properties = properties == null ?
         Collections.unmodifiableSet(new HashSet<Map<String, Object>>()) :
         Collections.unmodifiableSet(properties);
+
+    this.requestInfoProperties = requestInfoProperties == null ?
+        Collections.unmodifiableMap(new HashMap<String, String>()) :
+        Collections.unmodifiableMap(requestInfoProperties);
 
     setTemporalInfo(mapTemporalInfo);
   }
@@ -80,6 +96,11 @@ public class RequestImpl implements Request {
   @Override
   public Set<Map<String, Object>> getProperties() {
     return properties;
+  }
+
+  @Override
+  public Map<String, String> getRequestInfoProperties() {
+    return requestInfoProperties;
   }
 
   @Override

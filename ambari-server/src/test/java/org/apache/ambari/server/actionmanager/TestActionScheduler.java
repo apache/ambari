@@ -181,7 +181,7 @@ public class TestActionScheduler {
     Map<String, String> payload = new HashMap<String, String>();
     payload.put(ServerAction.PayloadName.CLUSTER_NAME, "cluster1");
     payload.put(ServerAction.PayloadName.CURRENT_STACK_VERSION, "HDP-0.2");
-    Stage s = getStageWithServerAction(1, 977, hostname, payload);
+    Stage s = getStageWithServerAction(1, 977, hostname, payload, "test");
     stages.add(s);
     db.persistActions(stages);
 
@@ -199,7 +199,7 @@ public class TestActionScheduler {
 
     stages = new ArrayList<Stage>();
     payload.remove(ServerAction.PayloadName.CLUSTER_NAME);
-    s = getStageWithServerAction(1, 23, hostname, payload);
+    s = getStageWithServerAction(1, 23, hostname, payload, "test");
     stages.add(s);
     db.persistActions(stages);
 
@@ -214,11 +214,12 @@ public class TestActionScheduler {
     scheduler.stop();
     assertEquals(stages.get(0).getHostRoleStatus(hostname, "AMBARI_SERVER_ACTION"),
         HostRoleStatus.FAILED);
+    assertEquals("test", stages.get(0).getRequestContext());
   }
 
   private static Stage getStageWithServerAction(long requestId, long stageId, String hostName,
-                                                Map<String, String> payload) {
-    Stage stage = new Stage(requestId, "/tmp", "cluster1");
+                                                Map<String, String> payload, String requestContext) {
+    Stage stage = new Stage(requestId, "/tmp", "cluster1", requestContext);
     stage.setStageId(stageId);
     long now = System.currentTimeMillis();
     stage.addServerActionCommand(ServerAction.Command.FINALIZE_UPGRADE, Role.AMBARI_SERVER_ACTION,
@@ -291,7 +292,7 @@ public class TestActionScheduler {
     List<Stage> stages = new ArrayList<Stage>();
 
     long now = System.currentTimeMillis();
-    Stage stage = new Stage(1, "/tmp", "cluster1");
+    Stage stage = new Stage(1, "/tmp", "cluster1", "testRequestFailureBasedOnSuccessFactor");
     stage.setStageId(1);
     stage.addHostRoleExecutionCommand("host1", Role.DATANODE, RoleCommand.UPGRADE,
         new ServiceComponentHostUpgradeEvent(Role.DATANODE.toString(), "host1", now, "HDP-0.2"),
@@ -361,7 +362,7 @@ public class TestActionScheduler {
   private Stage getStageWithSingleTask(String hostname, String clusterName, Role role,
                                        RoleCommand roleCommand, Service.Type service, int taskId,
                                        int stageId, int requestId) {
-    Stage stage = new Stage(requestId, "/tmp", clusterName);
+    Stage stage = new Stage(requestId, "/tmp", clusterName, "getStageWithSingleTask");
     stage.setStageId(stageId);
     stage.addHostRoleExecutionCommand(hostname, role, roleCommand,
         new ServiceComponentHostUpgradeEvent(role.toString(), hostname, System.currentTimeMillis(), "HDP-0.2"),

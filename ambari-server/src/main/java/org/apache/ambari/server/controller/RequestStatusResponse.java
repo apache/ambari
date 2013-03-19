@@ -30,10 +30,14 @@ public class RequestStatusResponse {
   // TODO how are logs to be sent back?
   private String logs;
 
+  /**
+   * Request context
+   */
+  private String requestContext;
+
   // TODO stage specific information
 
   public RequestStatusResponse(Long requestId) {
-    super();
     this.requestId = requestId;
   }
 
@@ -66,6 +70,12 @@ public class RequestStatusResponse {
     this.tasks = tasks;
   }
 
+  public String getRequestContext() {
+    return requestContext;
+  }
 
+  public void setRequestContext(String requestContext) {
+    this.requestContext = requestContext;
+  }
 
 }

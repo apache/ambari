@@ -80,7 +80,7 @@ public class GSInstallerClusterProviderTest {
     GSInstallerResourceProvider provider = new GSInstallerClusterProvider(clusterDefinition);
 
     try {
-      provider.updateResources(PropertyHelper.getUpdateRequest(new HashMap<String, Object>()), null);
+      provider.updateResources(PropertyHelper.getUpdateRequest(new HashMap<String, Object>(), null), null);
       Assert.fail("Expected UnsupportedOperationException.");
     } catch (UnsupportedOperationException e) {
       //expected

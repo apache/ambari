@@ -17,11 +17,14 @@
  */
 package org.apache.ambari.server.actionmanager;
 
+import static org.easymock.EasyMock.createNiceMock;
 import static org.junit.Assert.*;
 
+import com.google.inject.*;
 import org.apache.ambari.server.Role;
 import org.apache.ambari.server.RoleCommand;
 import org.apache.ambari.server.controller.HostsMap;
+import org.apache.ambari.server.orm.entities.*;
 import org.apache.ambari.server.utils.StageUtils;
 import org.junit.Test;
 
@@ -36,4 +39,13 @@ public class TestStage {
         null, "c1", "HBASE");
     assertEquals(3*60000, s.getTaskTimeout());
   }
+
+  @Test
+  public void testGetRequestContext() {
+
+    Stage stage = new Stage(1, "/logDir", "c1", "My Context");
+    assertEquals("My Context", stage.getRequestContext());
+  }
+
+
 }

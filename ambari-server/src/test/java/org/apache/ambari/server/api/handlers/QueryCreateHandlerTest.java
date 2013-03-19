@@ -23,15 +23,14 @@ import org.apache.ambari.server.api.query.Query;
 import org.apache.ambari.server.api.resources.ResourceDefinition;
 import org.apache.ambari.server.api.resources.ResourceInstance;
 import org.apache.ambari.server.api.resources.ResourceInstanceFactory;
-import org.apache.ambari.server.api.services.NamedPropertySet;
-import org.apache.ambari.server.api.services.ResultStatus;
-import org.apache.ambari.server.api.services.persistence.PersistenceManager;
+import org.apache.ambari.server.api.services.*;
 import org.apache.ambari.server.api.services.Request;
-import org.apache.ambari.server.api.services.Result;
+import org.apache.ambari.server.api.services.persistence.PersistenceManager;
 import org.apache.ambari.server.api.util.TreeNode;
 import org.apache.ambari.server.api.util.TreeNodeImpl;
 import org.apache.ambari.server.controller.spi.*;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
+import org.easymock.*;
 import org.junit.Test;
 
 import java.util.*;
@@ -48,6 +47,7 @@ public class QueryCreateHandlerTest {
   @Test
   public void testHandleRequest() throws Exception {
     Request request = createNiceMock(Request.class);
+    RequestBody body = createNiceMock(RequestBody.class);
     ResourceInstance resourceInstance = createNiceMock(ResourceInstance.class);
     ResourceDefinition resourceDefinition = createNiceMock(ResourceDefinition.class);
     ResourceInstanceFactory resourceInstanceFactory = createNiceMock(ResourceInstanceFactory.class);
@@ -70,6 +70,7 @@ public class QueryCreateHandlerTest {
     Resource statusResource2 = createNiceMock(Resource.class);
     RequestHandler readHandler = createStrictMock(RequestHandler.class);
     ResultStatus resultStatus = createNiceMock(ResultStatus.class);
+    Capture<RequestBody> bodyCapture = new Capture<RequestBody>();
 
     //  test request body
     //    {
@@ -129,7 +130,8 @@ public class QueryCreateHandlerTest {
     expect(result.getResultTree()).andReturn(resultTree);
 
     expect(request.getResource()).andReturn(resourceInstance).anyTimes();
-    expect(request.getHttpBodyProperties()).andReturn(setRequestProps).anyTimes();
+    expect(request.getBody()).andReturn(body).anyTimes();
+    expect(body.getNamedPropertySets()).andReturn(setRequestProps).anyTimes();
 
     expect(resourceInstance.getResourceDefinition()).andReturn(resourceDefinition).anyTimes();
     expect(resourceInstance.getIds()).andReturn(mapIds).anyTimes();
@@ -153,14 +155,14 @@ public class QueryCreateHandlerTest {
     expect(resourceInstanceFactory.createResource(Resource.Type.Component, mapIds)).
         andReturn(createResource).anyTimes();
 
-    expect(pm.create(createResource, setCreateProps)).andReturn(status);
+    expect(pm.create(same(createResource), capture(bodyCapture))).andReturn(status);
     expect(status.getStatus()).andReturn(RequestStatus.Status.Complete).anyTimes();
     expect(status.getAssociatedResources()).andReturn(setStatusResources).anyTimes();
 
     expect(statusResource1.getType()).andReturn(Resource.Type.Component).anyTimes();
     expect(statusResource2.getType()).andReturn(Resource.Type.Component).anyTimes();
 
-    replay(request, resourceInstance, resourceDefinition, query, predicate, result, subResource,
+    replay(request, body, resourceInstance, resourceDefinition, query, predicate, result, subResource,
         subResourceDefinition, controller, serviceSchema, componentSchema, resource1, resource2,
         pm, resourceInstanceFactory, createResource, status, statusResource1, statusResource2,
         readHandler, resultStatus);
@@ -185,7 +187,10 @@ public class QueryCreateHandlerTest {
     assertTrue(containsStatusResource2);
     assertEquals(ResultStatus.STATUS.CREATED, testResult.getStatus().getStatus());
 
-    verify(request, resourceInstance, resourceDefinition, query, predicate, result, subResource,
+    RequestBody createBody = bodyCapture.getValue();
+    assertEquals(4, createBody.getPropertySets().size());
+    assertEquals(setCreateProps, createBody.getPropertySets());
+    verify(request, body, resourceInstance, resourceDefinition, query, predicate, result, subResource,
         subResourceDefinition, controller, serviceSchema, componentSchema, resource1, resource2,
         pm, resourceInstanceFactory, createResource, status, statusResource1, statusResource2,
         readHandler, resultStatus);
@@ -194,6 +199,7 @@ public class QueryCreateHandlerTest {
   @Test
   public void tesHandleRequest_NoSubResourceNameSpecified() {
     Request request = createNiceMock(Request.class);
+    RequestBody body = createNiceMock(RequestBody.class);
     ResourceInstance resourceInstance = createNiceMock(ResourceInstance.class);
     ResourceDefinition resourceDefinition = createNiceMock(ResourceDefinition.class);
     Query query = createNiceMock(Query.class);
@@ -246,7 +252,8 @@ public class QueryCreateHandlerTest {
     expect(result.getResultTree()).andReturn(resultTree);
 
     expect(request.getResource()).andReturn(resourceInstance).anyTimes();
-    expect(request.getHttpBodyProperties()).andReturn(setRequestProps).anyTimes();
+    expect(request.getBody()).andReturn(body).anyTimes();
+    expect(body.getNamedPropertySets()).andReturn(setRequestProps).anyTimes();
 
     expect(resourceInstance.getResourceDefinition()).andReturn(resourceDefinition).anyTimes();
     expect(resourceInstance.getIds()).andReturn(mapIds).anyTimes();
@@ -257,7 +264,7 @@ public class QueryCreateHandlerTest {
     expect(resource1.getPropertyValue(resourceKeyProperty)).andReturn("id1").anyTimes();
     expect(resource2.getPropertyValue(resourceKeyProperty)).andReturn("id2").anyTimes();
 
-    replay(request, resourceInstance, resourceDefinition, query, predicate, result, subResource,
+    replay(request, body, resourceInstance, resourceDefinition, query, predicate, result, subResource,
         subResourceDefinition, controller, serviceSchema, componentSchema, resource1, resource2,
         pm, createResource, status, statusResource1, statusResource2,
         readHandler, queryResultStatus);
@@ -270,7 +277,7 @@ public class QueryCreateHandlerTest {
     assertEquals(ResultStatus.STATUS.BAD_REQUEST, resultStatus.getStatus());
     assertEquals("Invalid Request: A sub-resource name must be supplied.", resultStatus.getMessage());
 
-    verify(request, resourceInstance, resourceDefinition, query, predicate, result, subResource,
+    verify(request, body, resourceInstance, resourceDefinition, query, predicate, result, subResource,
         subResourceDefinition, controller, serviceSchema, componentSchema, resource1, resource2,
         pm, createResource, status, statusResource1, statusResource2,
         readHandler, queryResultStatus);
@@ -280,6 +287,7 @@ public class QueryCreateHandlerTest {
   @Test
   public void tesHandleRequest_InvalidSubResSpecified() {
     Request request = createNiceMock(Request.class);
+    RequestBody body = createNiceMock(RequestBody.class);
     ResourceInstance resourceInstance = createNiceMock(ResourceInstance.class);
     ResourceDefinition resourceDefinition = createNiceMock(ResourceDefinition.class);
     Query query = createNiceMock(Query.class);
@@ -337,7 +345,8 @@ public class QueryCreateHandlerTest {
     expect(result.getResultTree()).andReturn(resultTree);
 
     expect(request.getResource()).andReturn(resourceInstance).anyTimes();
-    expect(request.getHttpBodyProperties()).andReturn(setRequestProps).anyTimes();
+    expect(request.getBody()).andReturn(body).anyTimes();
+    expect(body.getNamedPropertySets()).andReturn(setRequestProps).anyTimes();
 
     expect(resourceInstance.getResourceDefinition()).andReturn(resourceDefinition).anyTimes();
     expect(resourceInstance.getIds()).andReturn(mapIds).anyTimes();
@@ -349,7 +358,7 @@ public class QueryCreateHandlerTest {
     expect(resource1.getPropertyValue(resourceKeyProperty)).andReturn("id1").anyTimes();
     expect(resource2.getPropertyValue(resourceKeyProperty)).andReturn("id2").anyTimes();
 
-    replay(request, resourceInstance, resourceDefinition, query, predicate, result, subResource,
+    replay(request, body, resourceInstance, resourceDefinition, query, predicate, result, subResource,
         subResourceDefinition, controller, serviceSchema, componentSchema, resource1, resource2,
         pm, createResource, status, statusResource1, statusResource2,
         readHandler, queryResultStatus);
@@ -362,7 +371,7 @@ public class QueryCreateHandlerTest {
     assertEquals(ResultStatus.STATUS.BAD_REQUEST, resultStatus.getStatus());
     assertEquals("Invalid Request: The specified sub-resource name is not valid: 'INVALID'.", resultStatus.getMessage());
 
-    verify(request, resourceInstance, resourceDefinition, query, predicate, result, subResource,
+    verify(request, body, resourceInstance, resourceDefinition, query, predicate, result, subResource,
         subResourceDefinition, controller, serviceSchema, componentSchema, resource1, resource2,
         pm, createResource, status, statusResource1, statusResource2,
         readHandler, queryResultStatus);
@@ -372,6 +381,7 @@ public class QueryCreateHandlerTest {
   @Test
   public void tesHandleRequest_NoSubResourcesSpecified() {
     Request request = createNiceMock(Request.class);
+    RequestBody body = createNiceMock(RequestBody.class);
     ResourceInstance resourceInstance = createNiceMock(ResourceInstance.class);
     ResourceDefinition resourceDefinition = createNiceMock(ResourceDefinition.class);
     Query query = createNiceMock(Query.class);
@@ -409,7 +419,8 @@ public class QueryCreateHandlerTest {
     expect(result.getResultTree()).andReturn(resultTree);
 
     expect(request.getResource()).andReturn(resourceInstance).anyTimes();
-    expect(request.getHttpBodyProperties()).andReturn(setRequestProps).anyTimes();
+    expect(request.getBody()).andReturn(body).anyTimes();
+    expect(body.getNamedPropertySets()).andReturn(setRequestProps).anyTimes();
 
     expect(resourceInstance.getResourceDefinition()).andReturn(resourceDefinition).anyTimes();
     expect(resourceInstance.getIds()).andReturn(mapIds).anyTimes();
@@ -420,7 +431,7 @@ public class QueryCreateHandlerTest {
     expect(resource1.getPropertyValue(resourceKeyProperty)).andReturn("id1").anyTimes();
     expect(resource2.getPropertyValue(resourceKeyProperty)).andReturn("id2").anyTimes();
 
-    replay(request, resourceInstance, resourceDefinition, query, predicate, result, subResource,
+    replay(request, body, resourceInstance, resourceDefinition, query, predicate, result, subResource,
         subResourceDefinition, controller, serviceSchema, componentSchema, resource1, resource2,
         pm, createResource, status, statusResource1, statusResource2,
         readHandler, queryResultStatus);
@@ -433,7 +444,7 @@ public class QueryCreateHandlerTest {
     assertEquals(ResultStatus.STATUS.BAD_REQUEST, resultStatus.getStatus());
     assertEquals("Invalid Request: A minimum of one sub-resource must be specified for creation.", resultStatus.getMessage());
 
-    verify(request, resourceInstance, resourceDefinition, query, predicate, result, subResource,
+    verify(request, body, resourceInstance, resourceDefinition, query, predicate, result, subResource,
         subResourceDefinition, controller, serviceSchema, componentSchema, resource1, resource2,
         pm, createResource, status, statusResource1, statusResource2,
         readHandler, queryResultStatus);
@@ -444,6 +455,7 @@ public class QueryCreateHandlerTest {
   @Test
   public void testHandleRequest_MultipleSubResources() throws Exception {
     Request request = createNiceMock(Request.class);
+    RequestBody body = createNiceMock(RequestBody.class);
     ResourceInstance resourceInstance = createNiceMock(ResourceInstance.class);
     ResourceDefinition resourceDefinition = createNiceMock(ResourceDefinition.class);
     ResourceInstanceFactory resourceInstanceFactory = createNiceMock(ResourceInstanceFactory.class);
@@ -503,7 +515,8 @@ public class QueryCreateHandlerTest {
     expect(result.getResultTree()).andReturn(resultTree);
 
     expect(request.getResource()).andReturn(resourceInstance).anyTimes();
-    expect(request.getHttpBodyProperties()).andReturn(setRequestProps).anyTimes();
+    expect(request.getBody()).andReturn(body).anyTimes();
+    expect(body.getNamedPropertySets()).andReturn(setRequestProps).anyTimes();
 
     expect(resourceInstance.getResourceDefinition()).andReturn(resourceDefinition).anyTimes();
     expect(resourceInstance.getIds()).andReturn(mapIds).anyTimes();
@@ -529,7 +542,7 @@ public class QueryCreateHandlerTest {
     expect(resource2.getPropertyValue(resourceKeyProperty)).andReturn("id2").anyTimes();
 
 
-    replay(request, resourceInstance, resourceDefinition, query, predicate, result, subResource1, subResource2,
+    replay(request, body, resourceInstance, resourceDefinition, query, predicate, result, subResource1, subResource2,
         subResourceDefinition1, subResourceDefinition2, controller, serviceSchema, subResSchema1, subResSchema2,
         resource1, resource2, pm, resourceInstanceFactory, createResource, status, statusResource1, statusResource2,
         readHandler, queryResultStatus);
@@ -544,7 +557,7 @@ public class QueryCreateHandlerTest {
         resultStatus.getMessage());
 
 
-    verify(request, resourceInstance, resourceDefinition, query, predicate, result, subResource1, subResource2,
+    verify(request, body, resourceInstance, resourceDefinition, query, predicate, result, subResource1, subResource2,
         subResourceDefinition1, subResourceDefinition2, controller, serviceSchema, subResSchema1, subResSchema2,
         resource1, resource2, pm, resourceInstanceFactory, createResource, status, statusResource1, statusResource2,
         readHandler, queryResultStatus);

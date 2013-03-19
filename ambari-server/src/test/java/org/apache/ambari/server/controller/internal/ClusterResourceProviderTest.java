@@ -20,15 +20,12 @@ package org.apache.ambari.server.controller.internal;
 
 import static org.easymock.EasyMock.createMock;
 import static org.easymock.EasyMock.createNiceMock;
+import static org.easymock.EasyMock.eq;
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.replay;
 import static org.easymock.EasyMock.verify;
 
-import java.util.HashSet;
-import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.ClusterRequest;
@@ -99,7 +96,7 @@ public class ClusterResourceProviderTest {
     propertySet.add(properties);
 
     // create the request
-    Request request = PropertyHelper.getCreateRequest(propertySet);
+    Request request = PropertyHelper.getCreateRequest(propertySet, null);
 
     provider.createResources(request);
 
@@ -202,13 +199,16 @@ public class ClusterResourceProviderTest {
     Set<ClusterResponse> nameResponse = new HashSet<ClusterResponse>();
     nameResponse.add(new ClusterResponse(102L, "Cluster102", null, null));
 
+    Map<String, String> mapRequestProps = new HashMap<String, String>();
+    mapRequestProps.put("context", "Called from a test");
+
     // set expectations
     expect(managementController.getClusters(EasyMock.<Set<ClusterRequest>>anyObject())).andReturn(nameResponse).once();
     expect(managementController.updateCluster(
-        AbstractResourceProviderTest.Matcher.getClusterRequest(102L, "Cluster102", "HDP-0.1", null))).
+        AbstractResourceProviderTest.Matcher.getClusterRequest(102L, "Cluster102", "HDP-0.1", null), eq(mapRequestProps))).
         andReturn(response).once();
     expect(managementController.updateCluster(
-        AbstractResourceProviderTest.Matcher.getClusterRequest(103L, null, "HDP-0.1", null))).
+        AbstractResourceProviderTest.Matcher.getClusterRequest(103L, null, "HDP-0.1", null), eq(mapRequestProps))).
         andReturn(response).once();
 
     // replay
@@ -229,7 +229,7 @@ public class ClusterResourceProviderTest {
     properties.put(ClusterResourceProvider.CLUSTER_VERSION_PROPERTY_ID, "HDP-0.1");
 
     // create the request
-    Request request = PropertyHelper.getUpdateRequest(properties);
+    Request request = PropertyHelper.getUpdateRequest(properties, mapRequestProps);
 
     // update the cluster named Cluster102
     Predicate  predicate = new PredicateBuilder().property(
@@ -254,16 +254,19 @@ public class ClusterResourceProviderTest {
   
   @Test
   public void testUpdateWithConfiguration() throws Exception {
-
     AmbariManagementController managementController = createMock(AmbariManagementController.class);
     RequestStatusResponse response = createNiceMock(RequestStatusResponse.class);
 
     Set<ClusterResponse> nameResponse = new HashSet<ClusterResponse>();
     nameResponse.add(new ClusterResponse(100L, "Cluster100", null, null));
 
+    Map<String, String> mapRequestProps = new HashMap<String, String>();
+    mapRequestProps.put("context", "Called from a test");
+
     // set expectations
     expect(managementController.getClusters(EasyMock.<Set<ClusterRequest>>anyObject())).andReturn(nameResponse).once();
-    expect(managementController.updateCluster(EasyMock.anyObject(ClusterRequest.class))).andReturn(response).once();
+    expect(managementController.updateCluster(EasyMock.anyObject(ClusterRequest.class),
+        eq(mapRequestProps))).andReturn(response).once();
 
     // replay
     replay(managementController, response);
@@ -277,7 +280,7 @@ public class ClusterResourceProviderTest {
     properties.put(PropertyHelper.getPropertyId("Clusters.desired_config.properties", "x"), "y");
 
     // create the request
-    Request request = PropertyHelper.getUpdateRequest(properties);
+    Request request = PropertyHelper.getUpdateRequest(properties, mapRequestProps);
     
     Predicate  predicate = new PredicateBuilder().property(
         ClusterResourceProvider.CLUSTER_NAME_PROPERTY_ID).equals("Cluster100").toPredicate();

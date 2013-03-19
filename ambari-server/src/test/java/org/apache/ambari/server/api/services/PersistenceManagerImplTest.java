@@ -52,17 +52,23 @@ public class PersistenceManagerImplTest {
     String clusterId = "clusterId";
     String serviceId = "serviceId";
     Request serverRequest = createStrictMock(Request.class);
+    RequestBody body = new RequestBody();
 
     Map<Resource.Type, String> mapResourceIds = new HashMap<Resource.Type, String>();
     mapResourceIds.put(Resource.Type.Cluster, "clusterId");
     mapResourceIds.put(Resource.Type.Service, "serviceId");
 
-    Set<Map<String, Object>> setProperties = new HashSet<Map<String, Object>>();
     Map<String, Object> mapProperties = new HashMap<String, Object>();
-    mapProperties.put(clusterId, "clusterId");
-    mapProperties.put(serviceId, "serviceId");
+    mapProperties.put("componentId", "id");
     mapProperties.put(PropertyHelper.getPropertyId("foo", "bar"), "value");
-    setProperties.add(mapProperties);
+    NamedPropertySet namedPropSet = new NamedPropertySet("", mapProperties);
+    body.addPropertySet(namedPropSet);
+
+    Set<Map<String, Object>> setExpected = new HashSet<Map<String, Object>>();
+    Map<String, Object> mapExpected = new HashMap<String, Object>(mapProperties);
+    mapExpected.put(clusterId, "clusterId");
+    mapExpected.put(serviceId, "serviceId");
+    setExpected.add(mapExpected);
 
     //expectations
     expect(resource.getIds()).andReturn(mapResourceIds);
@@ -76,7 +82,49 @@ public class PersistenceManagerImplTest {
 
     replay(resource, resourceDefinition, controller, schema, serverRequest);
 
-    new TestPersistenceManager(controller, setProperties, serverRequest).create(resource, setProperties);
+    new TestPersistenceManager(controller, setExpected, serverRequest).create(resource, body);
+
+    verify(resource, resourceDefinition, controller, schema, serverRequest);
+  }
+
+  @Test
+  public void testCreate___NoBodyProps() throws Exception {
+    ResourceInstance resource = createMock(ResourceInstance.class);
+    ResourceDefinition resourceDefinition = createMock(ResourceDefinition.class);
+    ClusterController controller = createMock(ClusterController.class);
+    Schema schema = createMock(Schema.class);
+    String clusterId = "clusterId";
+    String serviceId = "serviceId";
+    String componentId = "componentId";
+    Request serverRequest = createStrictMock(Request.class);
+    RequestBody body = new RequestBody();
+
+    Map<Resource.Type, String> mapResourceIds = new HashMap<Resource.Type, String>();
+    mapResourceIds.put(Resource.Type.Cluster, "clusterId");
+    mapResourceIds.put(Resource.Type.Service, "serviceId");
+    mapResourceIds.put(Resource.Type.Component, "componentId");
+
+    Set<Map<String, Object>> setExpected = new HashSet<Map<String, Object>>();
+    Map<String, Object> mapExpected = new HashMap<String, Object>();
+    mapExpected.put(clusterId, "clusterId");
+    mapExpected.put(serviceId, "serviceId");
+    mapExpected.put(componentId, "componentId");
+    setExpected.add(mapExpected);
+
+    //expectations
+    expect(resource.getIds()).andReturn(mapResourceIds);
+    expect(resource.getResourceDefinition()).andReturn(resourceDefinition).atLeastOnce();
+    expect(resourceDefinition.getType()).andReturn(Resource.Type.Component);
+    expect(controller.getSchema(Resource.Type.Component)).andReturn(schema);
+    expect(schema.getKeyPropertyId(Resource.Type.Cluster)).andReturn(clusterId);
+    expect(schema.getKeyPropertyId(Resource.Type.Service)).andReturn(serviceId);
+    expect(schema.getKeyPropertyId(Resource.Type.Component)).andReturn(componentId);
+
+    expect(controller.createResources(Resource.Type.Component, serverRequest)).andReturn(new RequestStatusImpl(null));
+
+    replay(resource, resourceDefinition, controller, schema, serverRequest);
+
+    new TestPersistenceManager(controller, setExpected, serverRequest).create(resource, body);
 
     verify(resource, resourceDefinition, controller, schema, serverRequest);
   }
@@ -88,29 +136,38 @@ public class PersistenceManagerImplTest {
     ClusterController controller = createMock(ClusterController.class);
     Schema schema = createMock(Schema.class);
     Request serverRequest = createStrictMock(Request.class);
+    RequestBody body = new RequestBody();
 
     String clusterId = "clusterId";
     String serviceId = "serviceId";
-
 
     Map<Resource.Type, String> mapResourceIds = new HashMap<Resource.Type, String>();
     mapResourceIds.put(Resource.Type.Cluster, "clusterId");
     mapResourceIds.put(Resource.Type.Service, "serviceId");
 
-    Set<Map<String, Object>> setProperties = new HashSet<Map<String, Object>>();
-
     Map<String, Object> mapResourceProps1 = new HashMap<String, Object>();
-    mapResourceProps1.put(clusterId, "clusterId");
-    mapResourceProps1.put(serviceId, "serviceId");
+    mapResourceProps1.put("componentId", "id1");
     mapResourceProps1.put(PropertyHelper.getPropertyId("foo", "bar"), "value");
 
     Map<String, Object> mapResourceProps2 = new HashMap<String, Object>();
-    mapResourceProps2.put(clusterId, "clusterId");
-    mapResourceProps2.put(serviceId, "serviceId2");
+    mapResourceProps1.put("componentId", "id2");
     mapResourceProps2.put(PropertyHelper.getPropertyId("foo", "bar2"), "value2");
 
-    setProperties.add(mapResourceProps1);
-    setProperties.add(mapResourceProps2);
+    NamedPropertySet namedPropSet1 = new NamedPropertySet("", mapResourceProps1);
+    NamedPropertySet namedPropSet2 = new NamedPropertySet("", mapResourceProps2);
+
+    body.addPropertySet(namedPropSet1);
+    body.addPropertySet(namedPropSet2);
+
+    Set<Map<String, Object>> setExpected = new HashSet<Map<String, Object>>();
+    Map<String, Object> mapExpected1 = new HashMap<String, Object>(mapResourceProps1);
+    mapExpected1.put(clusterId, "clusterId");
+    mapExpected1.put(serviceId, "serviceId");
+    setExpected.add(mapExpected1);
+    Map<String, Object> mapExpected2 = new HashMap<String, Object>(mapResourceProps2);
+    mapExpected2.put(clusterId, "clusterId");
+    mapExpected2.put(serviceId, "serviceId");
+    setExpected.add(mapExpected2);
 
     //expectations
     expect(resource.getIds()).andReturn(mapResourceIds);
@@ -124,7 +181,7 @@ public class PersistenceManagerImplTest {
 
     replay(resource, resourceDefinition, controller, schema, serverRequest);
 
-    new TestPersistenceManager(controller, setProperties, serverRequest).create(resource, setProperties);
+    new TestPersistenceManager(controller, setExpected, serverRequest).create(resource, body);
 
     verify(resource, resourceDefinition, controller, schema, serverRequest);
   }
@@ -138,11 +195,15 @@ public class PersistenceManagerImplTest {
     Request serverRequest = createStrictMock(Request.class);
     Query query = createMock(Query.class);
     Predicate predicate = createMock(Predicate.class);
+    RequestBody body = new RequestBody();
 
-    Set<Map<String, Object>> setProperties = new HashSet<Map<String, Object>>();
     Map<String, Object> mapProperties = new HashMap<String, Object>();
     mapProperties.put(PropertyHelper.getPropertyId("foo", "bar"), "value");
-    setProperties.add(mapProperties);
+    NamedPropertySet namedPropSet = new NamedPropertySet("", mapProperties);
+    body.addPropertySet(namedPropSet);
+
+    Set<Map<String, Object>> setExpected = new HashSet<Map<String, Object>>();
+    setExpected.add(mapProperties);
 
     //expectations
     expect(resource.getResourceDefinition()).andReturn(resourceDefinition);
@@ -154,7 +215,7 @@ public class PersistenceManagerImplTest {
 
     replay(resource, resourceDefinition, controller, schema, serverRequest, query, predicate);
 
-    new TestPersistenceManager(controller, setProperties, serverRequest).update(resource, setProperties);
+    new TestPersistenceManager(controller, setExpected, serverRequest).update(resource, body);
 
     verify(resource, resourceDefinition, controller, schema, serverRequest, query, predicate);
   }
@@ -166,6 +227,7 @@ public class PersistenceManagerImplTest {
     ClusterController controller = createMock(ClusterController.class);
     Query query = createMock(Query.class);
     Predicate predicate = createMock(Predicate.class);
+    RequestBody body = new RequestBody();
 
     //expectations
     expect(resource.getResourceDefinition()).andReturn(resourceDefinition).anyTimes();
@@ -177,7 +239,7 @@ public class PersistenceManagerImplTest {
 
     replay(resource, resourceDefinition, controller, query, predicate);
 
-    new TestPersistenceManager(controller, null, null).delete(resource, null);
+    new TestPersistenceManager(controller, null, null).delete(resource, body);
 
     verify(resource, resourceDefinition, controller, query, predicate);
   }
@@ -197,8 +259,9 @@ public class PersistenceManagerImplTest {
     }
 
     @Override
-    protected Request createControllerRequest(Set<Map<String, Object>> setProperties) {
-      assertEquals(m_setProperties, setProperties);
+    protected Request createControllerRequest(RequestBody body) {
+      assertEquals(m_setProperties, body.getPropertySets());
+      //todo: assert request props
       return m_request;
     }
   }

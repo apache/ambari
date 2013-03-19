@@ -17,7 +17,13 @@
  */
 package org.apache.ambari.server.actionmanager;
 
+import static org.easymock.EasyMock.createNiceMock;
+import static org.easymock.EasyMock.createStrictMock;
+import static org.easymock.EasyMock.expect;
+import static org.easymock.EasyMock.replay;
+import static org.easymock.EasyMock.verify;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertSame;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -147,7 +153,7 @@ public class TestActionManager {
   }
 
   private void populateActionDB(ActionDBAccessor db, String hostname) {
-    Stage s = new Stage(requestId, "/a/b", "cluster1");
+    Stage s = new Stage(requestId, "/a/b", "cluster1", "action manager test");
     s.setStageId(stageId);
     s.addHostRoleExecutionCommand(hostname, Role.HBASE_MASTER,
         RoleCommand.START,
@@ -175,5 +181,29 @@ public class TestActionManager {
     assertEquals(0, clusters.getClusters().size());
     assertEquals(0, am.getRequests().size());
 
+  }
+
+  @Test
+  public void testGetActions() throws Exception {
+    int requestId = 500;
+    ActionQueue queue = createNiceMock(ActionQueue.class);
+    ActionDBAccessor db = createStrictMock(ActionDBAccessor.class);
+    Clusters clusters = createNiceMock(Clusters.class);
+    Stage stage1 = createNiceMock(Stage.class);
+    Stage stage2 = createNiceMock(Stage.class);
+    List<Stage> listStages = new ArrayList<Stage>();
+    listStages.add(stage1);
+    listStages.add(stage2);
+
+    // mock expectations
+    expect(db.getLastPersistedRequestIdWhenInitialized()).andReturn(Long.valueOf(1000));
+    expect(db.getAllStages(requestId)).andReturn(listStages);
+
+    replay(queue, db, clusters);
+
+    ActionManager manager = new ActionManager(0, 0, queue, clusters, db, null, null);
+    assertSame(listStages, manager.getActions(requestId));
+
+    verify(queue, db, clusters);
   }
 }

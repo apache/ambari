@@ -126,7 +126,7 @@ public class StageUtils {
 
   //For testing only
   public static Stage getATestStage(long requestId, long stageId, String hostname) {
-    Stage s = new Stage(requestId, "/tmp", "cluster1");
+    Stage s = new Stage(requestId, "/tmp", "cluster1", "context");
     s.setStageId(stageId);
     long now = System.currentTimeMillis();
     String filename = null;

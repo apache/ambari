@@ -29,7 +29,6 @@ import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.State;
-import org.apache.ambari.server.state.cluster.ClusterImpl;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -110,6 +109,9 @@ public class JMXHostProviderTest {
     String componentName2 = "DATANODE";
     String componentName3 = "HDFS_CLIENT";
 
+    Map<String, String> mapRequestProps = new HashMap<String, String>();
+    mapRequestProps.put("context", "Called from a test");
+
     createServiceComponent(clusterName, serviceName, componentName1,
       State.INIT);
     createServiceComponent(clusterName, serviceName, componentName2,
@@ -152,7 +154,7 @@ public class JMXHostProviderTest {
     configVersions.put("hdfs-site", "version1");
     sReqs.add(new ServiceRequest(clusterName, serviceName, configVersions,
       null));
-    controller.updateServices(sReqs);
+    controller.updateServices(sReqs, mapRequestProps);
   }
 
 

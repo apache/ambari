@@ -80,7 +80,7 @@ public class ActionResourceProviderTest {
     propertySet.add(properties);
 
     // create the request
-    Request request = PropertyHelper.getCreateRequest(propertySet);
+    Request request = PropertyHelper.getCreateRequest(propertySet, null);
 
     provider.createResources(request);
 
@@ -145,7 +145,7 @@ public class ActionResourceProviderTest {
     Map<String, Object> properties = new LinkedHashMap<String, Object>();
 
     // create the request
-    Request request = PropertyHelper.getUpdateRequest(properties);
+    Request request = PropertyHelper.getUpdateRequest(properties, null);
 
     Predicate predicate =
         new PredicateBuilder().property(ActionResourceProvider.ACTION_CLUSTER_NAME_PROPERTY_ID).equals("Cluster100").

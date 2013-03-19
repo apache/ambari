@@ -31,3 +31,5 @@ ALTER TABLE ambari.hostconfigmapping ADD CONSTRAINT FK_hostconfigmapping_host_na
 
 ALTER SEQUENCE ambari.host_role_command_task_id_seq INCREMENT BY 50;
 SELECT nextval('ambari.host_role_command_task_id_seq');
+
+ALTER TABLE ambari.stage ADD COLUMN request_context VARCHAR(255);

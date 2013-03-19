@@ -77,7 +77,7 @@ public class UserResourceProviderTest {
     propertySet.add(properties);
 
     // create the request
-    Request request = PropertyHelper.getCreateRequest(propertySet);
+    Request request = PropertyHelper.getCreateRequest(propertySet, null);
 
     provider.createResources(request);
 
@@ -152,7 +152,7 @@ public class UserResourceProviderTest {
     properties.put(UserResourceProvider.USER_PASSWORD_PROPERTY_ID, "password");
 
     // create the request
-    Request request = PropertyHelper.getUpdateRequest(properties);
+    Request request = PropertyHelper.getUpdateRequest(properties, null);
 
     Predicate  predicate = new PredicateBuilder().property(UserResourceProvider.USER_USERNAME_PROPERTY_ID).
         equals("User100").toPredicate();

@@ -25,7 +25,6 @@ import org.apache.ambari.server.controller.spi.TemporalInfo;
 
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 /**
  * Provides information on the current request.
@@ -97,26 +96,14 @@ public interface Request {
   public Map<String, TemporalInfo> getFields();
 
   /**
+   * Obtain the request body data.
+   */
+  public RequestBody getBody();
+
+  /**
    * Obtain the http headers associated with the request.
    *
    * @return the http headers
    */
   public Map<String, List<String>> getHttpHeaders();
-
-  /**
-   * Obtain the http body associated with the request.
-   * If query or partial response fields exist in the original body,
-   * they are not included in the returned body.  Query and partial
-   * response data are available via the corresponding getters.
-   *
-   * @return the http body
-   */
-  public String getHttpBody();
-
-  /**
-   * Obtain the properties which have been parsed from the http body.
-   *
-   * @return a set of maps containing the properties contained in the http body
-   */
-  public Set<NamedPropertySet> getHttpBodyProperties();
 }

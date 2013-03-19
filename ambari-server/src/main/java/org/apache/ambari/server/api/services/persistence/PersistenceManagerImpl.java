@@ -19,7 +19,9 @@
 package org.apache.ambari.server.api.services.persistence;
 
 import org.apache.ambari.server.api.resources.ResourceInstance;
+import org.apache.ambari.server.api.services.*;
 import org.apache.ambari.server.controller.spi.*;
+import org.apache.ambari.server.controller.spi.Request;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
 
 import java.util.HashMap;
@@ -46,7 +48,7 @@ public class PersistenceManagerImpl implements PersistenceManager {
   }
 
   @Override
-  public RequestStatus create(ResourceInstance resource, Set<Map<String, Object>> setProperties)
+  public RequestStatus create(ResourceInstance resource, RequestBody requestBody)
       throws UnsupportedPropertyException,
              SystemException,
              ResourceAlreadyExistsException,
@@ -56,31 +58,33 @@ public class PersistenceManagerImpl implements PersistenceManager {
     Resource.Type type = resource.getResourceDefinition().getType();
     Schema schema = m_controller.getSchema(type);
 
+    Set<NamedPropertySet> setProperties = requestBody.getNamedPropertySets();
     if (setProperties.size() == 0) {
-      setProperties.add(new HashMap<String, Object>());
+      requestBody.addPropertySet(new NamedPropertySet("", new HashMap<String, Object>()));
     }
 
-    for (Map<String, Object> mapProperties : setProperties) {
+    for (NamedPropertySet propertySet : setProperties) {
       for (Map.Entry<Resource.Type, String> entry : mapResourceIds.entrySet()) {
+        Map<String, Object> mapProperties = propertySet.getProperties();
         String property = schema.getKeyPropertyId(entry.getKey());
         if (! mapProperties.containsKey(property)) {
           mapProperties.put(property, entry.getValue());
         }
       }
     }
-    return m_controller.createResources(type, createControllerRequest(setProperties));
+    return m_controller.createResources(type, createControllerRequest(requestBody));
   }
 
   @Override
-  public RequestStatus update(ResourceInstance resource, Set<Map<String, Object>> setProperties)
+  public RequestStatus update(ResourceInstance resource, RequestBody requestBody)
       throws UnsupportedPropertyException, SystemException, NoSuchParentResourceException, NoSuchResourceException {
 
     return m_controller.updateResources(resource.getResourceDefinition().getType(),
-        createControllerRequest(setProperties), resource.getQuery().getPredicate());
+        createControllerRequest(requestBody), resource.getQuery().getPredicate());
   }
 
   @Override
-  public RequestStatus delete(ResourceInstance resource, Set<Map<String, Object>> setProperties)
+  public RequestStatus delete(ResourceInstance resource, RequestBody requestBody)
       throws UnsupportedPropertyException, SystemException, NoSuchParentResourceException, NoSuchResourceException {
     //todo: need to account for multiple resources and user predicate
     return m_controller.deleteResources(resource.getResourceDefinition().getType(),
@@ -88,7 +92,7 @@ public class PersistenceManagerImpl implements PersistenceManager {
 
   }
 
-  protected Request createControllerRequest(Set<Map<String, Object>> setProperties) {
-    return PropertyHelper.getCreateRequest(setProperties);
+  protected Request createControllerRequest(RequestBody body) {
+    return PropertyHelper.getCreateRequest(body.getPropertySets(), body.getRequestInfoProperties());
   }
 }

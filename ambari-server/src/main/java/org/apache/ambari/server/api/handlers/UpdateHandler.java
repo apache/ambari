@@ -19,11 +19,15 @@
 package org.apache.ambari.server.api.handlers;
 
 import org.apache.ambari.server.api.resources.ResourceInstance;
-import org.apache.ambari.server.api.services.*;
-import org.apache.ambari.server.controller.spi.*;
-
-import java.util.Map;
-import java.util.Set;
+import org.apache.ambari.server.api.services.RequestBody;
+import org.apache.ambari.server.api.services.Result;
+import org.apache.ambari.server.api.services.ResultImpl;
+import org.apache.ambari.server.api.services.ResultStatus;
+import org.apache.ambari.server.controller.spi.NoSuchParentResourceException;
+import org.apache.ambari.server.controller.spi.NoSuchResourceException;
+import org.apache.ambari.server.controller.spi.RequestStatus;
+import org.apache.ambari.server.controller.spi.SystemException;
+import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
 
 
 /**
@@ -32,10 +36,10 @@ import java.util.Set;
 public class UpdateHandler extends BaseManagementHandler {
 
   @Override
-  protected Result persist(ResourceInstance request, Set<Map<String, Object>> setProperties) {
+  protected Result persist(ResourceInstance resource, RequestBody body) {
     Result result;
     try {
-      RequestStatus status = getPersistenceManager().update(request, setProperties);
+      RequestStatus status = getPersistenceManager().update(resource, body);
 
       result = createResult(status);
       if (result.isSynchronous()) {
@@ -49,7 +53,7 @@ public class UpdateHandler extends BaseManagementHandler {
     } catch (NoSuchParentResourceException e) {
       result = new ResultImpl(new ResultStatus(ResultStatus.STATUS.NOT_FOUND, e));
     } catch (NoSuchResourceException e) {
-      if (request.isCollectionResource()) {
+      if (resource.isCollectionResource()) {
         //todo: what is the correct status code here.  The query didn't match any resource
         //todo: so no resource were updated.  200 may be ok but we would need to return a collection
         //todo: of resources that were updated.

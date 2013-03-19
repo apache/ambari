@@ -19,10 +19,13 @@
 package org.apache.ambari.server.api.services.persistence;
 
 import org.apache.ambari.server.api.resources.ResourceInstance;
-import org.apache.ambari.server.controller.spi.*;
-
-import java.util.Map;
-import java.util.Set;
+import org.apache.ambari.server.api.services.RequestBody;
+import org.apache.ambari.server.controller.spi.NoSuchParentResourceException;
+import org.apache.ambari.server.controller.spi.NoSuchResourceException;
+import org.apache.ambari.server.controller.spi.RequestStatus;
+import org.apache.ambari.server.controller.spi.ResourceAlreadyExistsException;
+import org.apache.ambari.server.controller.spi.SystemException;
+import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
 
 /**
  * Persistence manager which is responsible for persisting a resource state to the back end.
@@ -30,16 +33,49 @@ import java.util.Set;
  */
 public interface PersistenceManager {
 
-  public RequestStatus create(ResourceInstance resource, Set<Map<String, Object>> setProperties)
+  /**
+   * Create resources.
+   *
+   * @param resource     associated resource representation
+   * @param requestBody  body of the current request
+   * @return a request status
+   *
+   * @throws UnsupportedPropertyException
+   * @throws ResourceAlreadyExistsException
+   * @throws NoSuchParentResourceException
+   * @throws SystemException
+   */
+  public RequestStatus create(ResourceInstance resource, RequestBody requestBody)
       throws UnsupportedPropertyException,
              ResourceAlreadyExistsException,
              NoSuchParentResourceException,
              SystemException;
 
-  public RequestStatus update(ResourceInstance resource, Set<Map<String, Object>> setProperties)
+  /**
+   *
+   * @param resource     associated resource representation
+   * @param requestBody  body of the current request
+   * @return a request status
+   *
+   * @throws UnsupportedPropertyException
+   * @throws SystemException
+   * @throws NoSuchParentResourceException
+   * @throws NoSuchResourceException
+   */
+  public RequestStatus update(ResourceInstance resource, RequestBody requestBody)
       throws UnsupportedPropertyException, SystemException, NoSuchParentResourceException, NoSuchResourceException;
 
-
-  public RequestStatus delete(ResourceInstance resource, Set<Map<String, Object>> setProperties)
+  /**
+   *
+   * @param resource     associated resource representation
+   * @param requestBody  body of the current request
+   * @return a request status
+   *
+   * @throws UnsupportedPropertyException
+   * @throws SystemException
+   * @throws NoSuchParentResourceException
+   * @throws NoSuchResourceException
+   */
+  public RequestStatus delete(ResourceInstance resource, RequestBody requestBody)
       throws UnsupportedPropertyException, SystemException, NoSuchParentResourceException, NoSuchResourceException;
 }

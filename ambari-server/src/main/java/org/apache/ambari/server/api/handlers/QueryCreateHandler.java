@@ -42,7 +42,7 @@ public class QueryCreateHandler extends BaseManagementHandler {
     if (queryResult.getStatus().isErrorState() ||
         queryResult.getResultTree().getChildren().isEmpty()) {
 
-      //if query result has error state or contains no resources return it
+      // if query result has error state or contains no resources just return it.
       // currently returns 200 for case where query returns no rows
       return queryResult;
     }
@@ -60,11 +60,19 @@ public class QueryCreateHandler extends BaseManagementHandler {
           "Multiple sub-resource types may not be created in the same request.");
     }
 
-    Map.Entry<Resource.Type, Set<Map<String, Object>>> entry = mapProperties.entrySet().iterator().next();
+    // only get first element because we currently only support creation of a single sub-resource type
+    final Map.Entry<Resource.Type, Set<Map<String, Object>>> entry = mapProperties.entrySet().iterator().next();
     ResourceInstance createResource = getResourceFactory().createResource(
         entry.getKey(), request.getResource().getIds());
 
-    return persist(createResource, entry.getValue());
+    return persist(createResource,
+        new RequestBody() {
+          @Override
+          public Set<Map<String, Object>> getPropertySets() {
+            return entry.getValue();
+          }
+        }
+      );
   }
 
   /**
@@ -82,7 +90,7 @@ public class QueryCreateHandler extends BaseManagementHandler {
   private Map<Resource.Type, Set<Map<String, Object>>> buildCreateSet(Request request, Result queryResult)
     throws IllegalArgumentException {
 
-    Set<NamedPropertySet> setRequestProps = request.getHttpBodyProperties();
+    Set<NamedPropertySet> setRequestProps = request.getBody().getNamedPropertySets();
 
     HashMap<Resource.Type, Set<Map<String, Object>>> mapProps =
         new HashMap<Resource.Type, Set<Map<String, Object>>>();
@@ -115,7 +123,7 @@ public class QueryCreateHandler extends BaseManagementHandler {
   }
 
   /**
-   * Determine the sub-resurce type(s) to be created.
+   * Determine the sub-resource type(s) to be created.
    *
    * @param resource         the requests resource instance
    * @param subResourceName  the name of the sub-resource to be created
@@ -149,10 +157,10 @@ public class QueryCreateHandler extends BaseManagementHandler {
   }
 
   @Override
-  protected Result persist(ResourceInstance request, Set<Map<String, Object>> setProperties) {
+  protected Result persist(ResourceInstance resource, RequestBody body) {
     Result result;
     try {
-      RequestStatus status = getPersistenceManager().create(request, setProperties);
+      RequestStatus status = getPersistenceManager().create(resource, body);
       result = createResult(status);
 
       if (result.isSynchronous()) {

@@ -38,12 +38,10 @@ public class JsonRequestBodyParser implements RequestBodyParser {
    */
   private final static Logger LOG = LoggerFactory.getLogger(JsonRequestBodyParser.class);
 
-  private String m_body;
-
   @Override
   public RequestBody parse(String s) throws BodyParseException {
-    m_body = s;
     RequestBody body = new RequestBody();
+    body.setBody(s);
 
     if (s != null && s.length() != 0) {
       s = ensureArrayFormat(s);
@@ -58,17 +56,13 @@ public class JsonRequestBodyParser implements RequestBodyParser {
           JsonNode node = iter.next();
           processNode(node, "", propertySet, body);
 
-          String query = (String) mapProperties.remove(QUERY_FIELD_PATH);
+          String query = body.getRequestInfoProperties().get(QUERY_FIELD_NAME);
           if (query != null) {
             body.setQueryString(query);
           }
           if (propertySet.getProperties().size() != 0) {
             body.addPropertySet(propertySet);
           }
-        }
-
-        if (body.getPropertySets().size() != 0) {
-          body.setBody(m_body);
         }
       } catch (IOException e) {
         if (LOG.isDebugEnabled()) {
@@ -99,13 +93,19 @@ public class JsonRequestBodyParser implements RequestBodyParser {
         // object
         if (name.equals(BODY_TITLE)) {
           name = "";
-          m_body = child.toString();
         }
         processNode(child, path.isEmpty() ? name : path + '/' + name, propertySet, body);
       } else {
         // field
-       propertySet.getProperties().put(PropertyHelper.getPropertyId(
-           path.equals(BODY_TITLE) ? "" : path, name), child.asText());
+        if (path.startsWith(REQUEST_INFO_PATH)) {
+          body.addRequestInfoProperty(PropertyHelper.getPropertyId(
+              path.substring(REQUEST_INFO_PATH.length()), name), child.asText());
+
+        }  else {
+          propertySet.getProperties().put(PropertyHelper.getPropertyId(
+              path.equals(BODY_TITLE) ? "" : path, name), child.asText());
+        }
+
       }
     }
   }

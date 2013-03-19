@@ -1,4 +1,4 @@
-/*
+/**
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -16,17 +16,22 @@
  * limitations under the License.
  */
 
-package org.apache.ambari.server.actionmanager;
+package org.apache.ambari.server.orm.entities;
 
-import com.google.inject.assistedinject.Assisted;
-import org.apache.ambari.server.orm.entities.StageEntity;
 
-public interface StageFactory {
+import org.junit.Test;
 
-  Stage createNew(long requestId, @Assisted("logDir") String logDir, @Assisted("clusterName") String clusterName,
-                  @Assisted("requestContext") String requestContext);
+import static org.junit.Assert.assertEquals;
 
-  Stage createExisting(String actionId);
 
-  Stage createExisting(StageEntity stageEntity);
+/**
+ * StageEntity unit tests
+ */
+public class StageEntityTest {
+  @Test
+  public void testSetGetRequestContext() {
+    StageEntity entity = new StageEntity();
+    entity.setRequestContext("testSetGetRequestContext");
+    assertEquals("testSetGetRequestContext", entity.getRequestContext());
+  }
 }

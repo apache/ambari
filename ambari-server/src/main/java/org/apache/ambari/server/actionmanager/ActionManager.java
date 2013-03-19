@@ -43,7 +43,6 @@ public class ActionManager {
   private final ActionScheduler scheduler;
   private final ActionDBAccessor db;
   private final ActionQueue actionQueue;
-  private final HostsMap hostsMap;
   private static Logger LOG = LoggerFactory.getLogger(ActionManager.class);
   private final AtomicLong requestCounter;
 
@@ -54,7 +53,6 @@ public class ActionManager {
       ServerActionManager serverActionManager) {
     this.actionQueue = aq;
     this.db = db;
-    this.hostsMap = hostsMap;
     scheduler = new ActionScheduler(schedulerSleepTime, actionTimeout, db,
         actionQueue, fsm, 2, hostsMap, serverActionManager);
     requestCounter = new AtomicLong(
@@ -89,6 +87,16 @@ public class ActionManager {
 
   public Stage getAction(long requestId, long stageId) {
     return db.getAction(StageUtils.getActionId(requestId, stageId));
+  }
+
+  /**
+   * Get all actions(stages) for a request.
+   *
+   * @param requestId  the request id
+   * @return  list of all stages associated with the given request id
+   */
+  public List<Stage> getActions(long requestId) {
+    return db.getAllStages(requestId);
   }
 
   /**

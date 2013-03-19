@@ -71,7 +71,7 @@ public class ConfigurationResourceProviderTest {
     propertySet.add(properties);
 
     // create the request
-    Request request = PropertyHelper.getCreateRequest(propertySet);
+    Request request = PropertyHelper.getCreateRequest(propertySet, null);
 
     provider.createResources(request);
 
@@ -224,7 +224,7 @@ public class ConfigurationResourceProviderTest {
     Map<String, Object> properties = new LinkedHashMap<String, Object>();
 
     // create the request
-    Request request = PropertyHelper.getUpdateRequest(properties);
+    Request request = PropertyHelper.getUpdateRequest(properties, null);
 
     Predicate predicate = new PredicateBuilder().property(
         ConfigurationResourceProvider.CONFIGURATION_CONFIG_TAG_PROPERTY_ID).equals("Configuration100").toPredicate();

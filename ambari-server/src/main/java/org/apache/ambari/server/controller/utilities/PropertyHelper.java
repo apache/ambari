@@ -19,7 +19,6 @@ package org.apache.ambari.server.controller.utilities;
 
 import org.apache.ambari.server.controller.internal.PropertyInfo;
 import org.apache.ambari.server.controller.internal.RequestImpl;
-import org.apache.ambari.server.controller.spi.Predicate;
 import org.apache.ambari.server.controller.spi.Request;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.spi.TemporalInfo;
@@ -35,7 +34,7 @@ import java.util.Map;
 import java.util.Set;
 
 /**
- *
+ * Utility class that provides Property helper methods.
  */
 public class PropertyHelper {
 
@@ -188,10 +187,12 @@ public class PropertyHelper {
    * Each map contains the properties to be used to create a resource.  Multiple maps in the
    * set should result in multiple creates.
    *
-   * @param properties   the properties associated with the request; may be null
+   * @param properties             resource properties associated with the request; may be null
+   * @param requestInfoProperties  request specific properties; may be null
    */
-  public static Request getCreateRequest(Set<Map<String, Object>> properties) {
-    return new RequestImpl(null,  properties, null);
+  public static Request getCreateRequest(Set<Map<String, Object>> properties,
+                                         Map<String, String> requestInfoProperties) {
+    return new RequestImpl(null, properties, requestInfoProperties, null);
   }
 
   /**
@@ -201,7 +202,7 @@ public class PropertyHelper {
    * @param propertyIds  the property ids associated with the request; may be null
    */
   public static Request getReadRequest(Set<String> propertyIds) {
-    return new RequestImpl(propertyIds,  null, null);
+    return new RequestImpl(propertyIds,  null, null, null);
   }
 
   /**
@@ -213,7 +214,7 @@ public class PropertyHelper {
    */
   public static Request getReadRequest(Set<String> propertyIds, Map<String,
       TemporalInfo> mapTemporalInfo) {
-    return new RequestImpl(propertyIds,  null, mapTemporalInfo);
+    return new RequestImpl(propertyIds,  null, null, mapTemporalInfo);
   }
 
   /**
@@ -223,17 +224,19 @@ public class PropertyHelper {
    * @param propertyIds  the property ids associated with the request; may be null
    */
   public static Request getReadRequest(String ... propertyIds) {
-    return new RequestImpl(new HashSet<String>(Arrays.asList(propertyIds)),  null, null);
+    return new RequestImpl(new HashSet<String>(Arrays.asList(propertyIds)),  null, null, null);
   }
 
   /**
    * Factory method to create an update request from the given map of properties.
    * The properties values in the given map are used to update the resource.
    *
-   * @param properties   the properties associated with the request; may be null
+   * @param properties             resource properties associated with the request; may be null
+   * @param requestInfoProperties  request specific properties; may be null
    */
-  public static Request getUpdateRequest(Map<String, Object> properties) {
-    return new RequestImpl(null,  Collections.singleton(properties), null);
+  public static Request getUpdateRequest(Map<String, Object> properties,
+                                         Map<String, String> requestInfoProperties) {
+    return new RequestImpl(null, Collections.singleton(properties), requestInfoProperties, null);
   }
 
   private static Map<Resource.Type, Map<String, Map<String, PropertyInfo>>> readPropertyProviderIds(String filename) {

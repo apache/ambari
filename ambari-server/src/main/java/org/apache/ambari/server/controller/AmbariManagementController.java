@@ -230,43 +230,50 @@ public interface AmbariManagementController {
    * Update the cluster identified by the given request object with the
    * values carried by the given request object.
    *
-   * @param request    the request object which defines which cluster to
-   *                   update and the values to set
+   *
+   * @param request           request object which defines which cluster to
+   *                          update and the values to set
+   * @param requestProperties request specific properties independent of resource
    *
    * @return a track action response
    *
    * @throws AmbariException thrown if the resource cannot be updated
    */
-  public RequestStatusResponse updateCluster(ClusterRequest request)
+  public RequestStatusResponse updateCluster(ClusterRequest request,
+                                             Map<String, String> requestProperties)
       throws AmbariException;
 
   /**
    * Update the service identified by the given request object with the
    * values carried by the given request object.
    *
+   *
    * @param requests    the request object which defines which service to
    *                   update and the values to set
    *
+   * @param requestProperties
    * @return a track action response
    *
    * @throws AmbariException thrown if the resource cannot be updated
    */
-  public RequestStatusResponse updateServices(Set<ServiceRequest> requests)
+  public RequestStatusResponse updateServices(Set<ServiceRequest> requests, Map<String, String> requestProperties)
       throws AmbariException;
 
   /**
    * Update the component identified by the given request object with the
    * values carried by the given request object.
    *
+   *
    * @param requests    the request object which defines which component to
    *                   update and the values to set
    *
+   * @param requestProperties
    * @return a track action response
    *
    * @throws AmbariException thrown if the resource cannot be updated
    */
   public RequestStatusResponse updateComponents(
-      Set<ServiceComponentRequest> requests) throws AmbariException;
+      Set<ServiceComponentRequest> requests, Map<String, String> requestProperties) throws AmbariException;
 
   /**
    * Update the host identified by the given request object with the
@@ -284,15 +291,17 @@ public interface AmbariManagementController {
    * Update the host component identified by the given request object with the
    * values carried by the given request object.
    *
+   *
    * @param requests    the request object which defines which host component to
    *                   update and the values to set
    *
+   * @param requestProperties
    * @return a track action response
    *
    * @throws AmbariException thrown if the resource cannot be updated
    */
   public RequestStatusResponse updateHostComponents(
-      Set<ServiceComponentHostRequest> requests) throws AmbariException;
+      Set<ServiceComponentHostRequest> requests, Map<String, String> requestProperties) throws AmbariException;
   
   /**
    * Updates the users specified.
@@ -385,7 +394,7 @@ public interface AmbariManagementController {
   /**
    * Get the actions identified by the given request objects.
    *
-   * @param requests  the request objects which identify the actions to be returned
+   * @param request  the request objects which identify the actions to be returned
    *
    * @return a set of actions responses
    *

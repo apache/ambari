@@ -48,6 +48,12 @@ public interface Request {
   public Set<Map<String, Object>> getProperties();
 
   /**
+   * Get any request info properties of the request.  These are optional properties
+   * that are specific to the request but not related to any resource.
+   */
+  public Map<String, String> getRequestInfoProperties();
+
+  /**
    * Get the {@link TemporalInfo temporal information} for the given property
    * id for this request, if any.
    *

@@ -29,12 +29,7 @@ import org.apache.ambari.server.controller.utilities.PropertyHelper;
 import org.junit.Assert;
 import org.junit.Test;
 
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 import static org.easymock.EasyMock.createMock;
 import static org.easymock.EasyMock.expect;
@@ -68,7 +63,7 @@ public class FeedResourceProviderTest {
 
     propertySet.add(properties);
 
-    Request request = PropertyHelper.getCreateRequest(propertySet);
+    Request request = PropertyHelper.getCreateRequest(propertySet, Collections.<String,String>emptyMap());
 
     FeedResourceProvider provider = new FeedResourceProvider(service,
         PropertyHelper.getPropertyIds(Resource.Type.DRFeed),
@@ -109,7 +104,7 @@ public class FeedResourceProviderTest {
 
     propertySet.add(properties);
 
-    Request request = PropertyHelper.getCreateRequest(propertySet);
+    Request request = PropertyHelper.getCreateRequest(propertySet, Collections.<String,String>emptyMap());
 
     FeedResourceProvider provider = new FeedResourceProvider(service,
         PropertyHelper.getPropertyIds(Resource.Type.DRFeed),
@@ -155,7 +150,7 @@ public class FeedResourceProviderTest {
 
     propertySet.add(properties);
 
-    Request request = PropertyHelper.getCreateRequest(propertySet);
+    Request request = PropertyHelper.getCreateRequest(propertySet, Collections.<String,String>emptyMap());
 
     FeedResourceProvider provider = new FeedResourceProvider(service,
         PropertyHelper.getPropertyIds(Resource.Type.DRFeed),

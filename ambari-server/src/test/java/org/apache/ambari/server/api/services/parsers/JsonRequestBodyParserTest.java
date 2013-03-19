@@ -46,6 +46,7 @@ public class JsonRequestBodyParserTest {
       "\"OuterCategory\" : { \"propName\" : 100, \"nested1\" : { \"nested2\" : { \"innerPropName\" : \"innerPropValue\" } } }," +
       "\"topLevelProp\" : \"value\" }";
 
+  String serviceJsonWithQuery = "{ \"RequestInfo\" : { \"query\" : \"foo=bar\" }, \"Body\":" + serviceJson + "}";
 
   String arrayJson = "[ {" +
       "\"Clusters\" : {\n" +
@@ -92,6 +93,8 @@ public class JsonRequestBodyParserTest {
       "    \"Category\" : { \"property2\" : \"prop2Value\"}" +
       "} } ] }";
 
+  String queryPostJsonWithQuery = "{ \"RequestInfo\" : { \"query\" : \"foo=bar\" }, \"Body\":" + queryPostJson + "}";
+
   String queryPostMultipleSubResourcesJson = "{ \"foo\" : [ {" +
       "\"ServiceInfo\" : {\n" +
       "    \"service_name\" : \"unitTestService1\"" +
@@ -104,8 +107,11 @@ public class JsonRequestBodyParserTest {
       "    \"Category\" : { \"property2\" : \"prop2Value\"}" +
       "} } ] }";
 
+  String bodyQueryOnly = "{ \"RequestInfo\" : { \"query\" : \"foo=bar\" }}";
 
   String malformedJson = "{ \"Category\" : { \"foo\" : \"bar\"}";
+
+  String bodyWithRequestInfoProperties = "{ \"RequestInfo\" : { \"query\" : \"foo=bar\", \"prop1\" : \"val1\", \"prop2\" : \"val2\" }, \"Body\":" + serviceJson + "}";
 
 
   @Test
@@ -113,7 +119,7 @@ public class JsonRequestBodyParserTest {
     RequestBodyParser parser = new JsonRequestBodyParser();
     RequestBody body = parser.parse(serviceJson);
 
-    Set<NamedPropertySet> setProps = body.getPropertySets();
+    Set<NamedPropertySet> setProps = body.getNamedPropertySets();
     assertEquals(1, setProps.size());
 
     Map<String, Object> mapExpected = new HashMap<String, Object>();
@@ -131,7 +137,7 @@ public class JsonRequestBodyParserTest {
     //assert body is correct by checking that properties match
     String b = body.getBody();
     body = parser.parse(b);
-    Set<NamedPropertySet> setProps2 = body.getPropertySets();
+    Set<NamedPropertySet> setProps2 = body.getNamedPropertySets();
     assertEquals(mapExpected, setProps2.iterator().next().getProperties());
   }
 
@@ -140,8 +146,8 @@ public class JsonRequestBodyParserTest {
     RequestBodyParser parser = new JsonRequestBodyParser();
     RequestBody body = parser.parse(null);
 
-    assertNotNull(body.getPropertySets());
-    assertEquals(0, body.getPropertySets().size());
+    assertNotNull(body.getNamedPropertySets());
+    assertEquals(0, body.getNamedPropertySets().size());
     assertNull(body.getQueryString());
     assertNull(body.getPartialResponseFields());
     assertNull(body.getBody());
@@ -152,8 +158,8 @@ public class JsonRequestBodyParserTest {
     RequestBodyParser parser = new JsonRequestBodyParser();
     RequestBody body = parser.parse("");
 
-    assertNotNull(body.getPropertySets());
-    assertEquals(0, body.getPropertySets().size());
+    assertNotNull(body.getNamedPropertySets());
+    assertEquals(0, body.getNamedPropertySets().size());
     assertNull(body.getQueryString());
     assertNull(body.getPartialResponseFields());
     assertNull(body.getBody());
@@ -164,7 +170,7 @@ public class JsonRequestBodyParserTest {
     RequestBodyParser parser = new JsonRequestBodyParser();
     RequestBody body = parser.parse(arrayJson);
 
-    Set<NamedPropertySet> setProps = body.getPropertySets();
+    Set<NamedPropertySet> setProps = body.getNamedPropertySets();
 
     assertEquals(3, setProps.size());
 
@@ -206,7 +212,7 @@ public class JsonRequestBodyParserTest {
 
     body = parser.parse(b);
 
-    Set<NamedPropertySet> setProps2 = body.getPropertySets();
+    Set<NamedPropertySet> setProps2 = body.getNamedPropertySets();
     assertEquals(3, setProps2.size());
     assertEquals(setProps, setProps2);
   }
@@ -216,7 +222,7 @@ public class JsonRequestBodyParserTest {
     RequestBodyParser parser = new JsonRequestBodyParser();
     RequestBody body = parser.parse(arrayJson2);
 
-    Set<NamedPropertySet> setProps = body.getPropertySets();
+    Set<NamedPropertySet> setProps = body.getNamedPropertySets();
 
     assertEquals(3, setProps.size());
 
@@ -256,7 +262,7 @@ public class JsonRequestBodyParserTest {
     String b = body.getBody();
     body = parser.parse(b);
 
-    Set<NamedPropertySet> setProps2 = body.getPropertySets();
+    Set<NamedPropertySet> setProps2 = body.getNamedPropertySets();
     assertEquals(3, setProps2.size());
     assertEquals(setProps, setProps2);
   }
@@ -264,11 +270,10 @@ public class JsonRequestBodyParserTest {
   @Test
   public void testParse_QueryInBody() throws BodyParseException {
     RequestBodyParser parser = new JsonRequestBodyParser();
-    String queryBody = "{ \"RequestInfo\" : { \"query\" : \"foo=bar\" }, \"Body\":" + serviceJson + "}";
-    RequestBody body = parser.parse(queryBody);
+    RequestBody body = parser.parse(serviceJsonWithQuery);
 
 
-    Set<NamedPropertySet> setProps = body.getPropertySets();
+    Set<NamedPropertySet> setProps = body.getNamedPropertySets();
     assertEquals(1, setProps.size());
 
     Map<String, Object> mapExpected = new HashMap<String, Object>();
@@ -288,7 +293,7 @@ public class JsonRequestBodyParserTest {
     String b = body.getBody();
     body = parser.parse(b);
 
-    Set<NamedPropertySet> setProps2 = body.getPropertySets();
+    Set<NamedPropertySet> setProps2 = body.getNamedPropertySets();
     assertEquals(mapExpected, setProps2.iterator().next().getProperties());
   }
 
@@ -298,7 +303,7 @@ public class JsonRequestBodyParserTest {
     RequestBody body = parser.parse(queryPostJson);
 
 
-    Set<NamedPropertySet> setProperties = body.getPropertySets();
+    Set<NamedPropertySet> setProperties = body.getNamedPropertySets();
 
     assertEquals(3, setProperties.size());
     boolean contains1 = false;
@@ -332,7 +337,7 @@ public class JsonRequestBodyParserTest {
     String b = body.getBody();
     body = parser.parse(b);
 
-    Set<NamedPropertySet> setProps2 = body.getPropertySets();
+    Set<NamedPropertySet> setProps2 = body.getNamedPropertySets();
     assertEquals(3, setProps2.size());
     assertEquals(setProperties, setProps2);
   }
@@ -343,7 +348,7 @@ public class JsonRequestBodyParserTest {
     RequestBody body = parser.parse(queryPostMultipleSubResourcesJson);
 
 
-    Set<NamedPropertySet> setProperties = body.getPropertySets();
+    Set<NamedPropertySet> setProperties = body.getNamedPropertySets();
 
     assertEquals(2, setProperties.size());
     boolean contains1 = false;
@@ -372,7 +377,7 @@ public class JsonRequestBodyParserTest {
     String b = body.getBody();
     body = parser.parse(b);
 
-    Set<NamedPropertySet> setProps2 = body.getPropertySets();
+    Set<NamedPropertySet> setProps2 = body.getNamedPropertySets();
     assertEquals(2, setProps2.size());
     assertEquals(setProperties, setProps2);
   }
@@ -380,11 +385,11 @@ public class JsonRequestBodyParserTest {
   @Test
   public void testParse___QueryPost_QueryInBody() throws BodyParseException {
     RequestBodyParser parser = new JsonRequestBodyParser();
-    String queryBody = "{ \"RequestInfo\" : { \"query\" : \"foo=bar\" }, \"Body\":" + queryPostJson + "}";
-    RequestBody body = parser.parse(queryBody);
+
+    RequestBody body = parser.parse(queryPostJsonWithQuery);
 
 
-    Set<NamedPropertySet> setProperties = body.getPropertySets();
+    Set<NamedPropertySet> setProperties = body.getNamedPropertySets();
 
     assertEquals("foo=bar", body.getQueryString());
     assertEquals(3, setProperties.size());
@@ -417,14 +422,11 @@ public class JsonRequestBodyParserTest {
 
     //assert body is correct by checking that properties match
     String b = body.getBody();
-    assertEquals("{\"services\":[{\"ServiceInfo\":{" +
-        "\"service_name\":\"unitTestService1\"}},{\"ServiceInfo\":{" +
-        "\"service_name\":\"unitTestService2\",\"property1\":\"prop1Value\"}},{\"ServiceInfo\":{" +
-        "\"service_name\":\"unitTestService3\",\"Category\":{\"property2\":\"prop2Value\"}}}]}", b);
+    assertEquals(queryPostJsonWithQuery , b);
 
     body = parser.parse(b);
 
-    Set<NamedPropertySet> setProps2 = body.getPropertySets();
+    Set<NamedPropertySet> setProps2 = body.getNamedPropertySets();
     assertEquals(3, setProps2.size());
     assertEquals(setProperties, setProps2);
   }
@@ -432,11 +434,11 @@ public class JsonRequestBodyParserTest {
   @Test
   public void testParse_QueryOnlyInBody() throws BodyParseException {
     RequestBodyParser parser = new JsonRequestBodyParser();
-    String queryBody = "{ \"RequestInfo\" : { \"query\" : \"foo=bar\" }}";
-    RequestBody body = parser.parse(queryBody);
+
+    RequestBody body = parser.parse(bodyQueryOnly);
 
     assertEquals("foo=bar", body.getQueryString());
-    assertNull(body.getBody());
+    assertEquals(bodyQueryOnly, body.getBody());
   }
 
   @Test
@@ -449,6 +451,43 @@ public class JsonRequestBodyParserTest {
     } catch (BodyParseException e) {
       // expected case
     }
+  }
+
+  @Test
+  public void testRequestInfoProps() throws Exception {
+    RequestBodyParser parser = new JsonRequestBodyParser();
+    RequestBody body = parser.parse(bodyWithRequestInfoProperties);
+
+    Set<NamedPropertySet> setProps = body.getNamedPropertySets();
+    assertEquals(1, setProps.size());
+
+    Map<String, Object> mapExpected = new HashMap<String, Object>();
+    mapExpected.put(PropertyHelper.getPropertyId("Services", "service_name"), "HDFS");
+    mapExpected.put(PropertyHelper.getPropertyId("Services", "display_name"), "HDFS");
+    mapExpected.put(PropertyHelper.getPropertyId("ServiceInfo", "cluster_name"), "tbmetrictest");
+    mapExpected.put(PropertyHelper.getPropertyId("Services", "description"), "Apache Hadoop Distributed File System");
+    mapExpected.put(PropertyHelper.getPropertyId("ServiceInfo", "state"), "STARTED");
+    mapExpected.put(PropertyHelper.getPropertyId("OuterCategory", "propName"), "100");
+    mapExpected.put(PropertyHelper.getPropertyId("OuterCategory/nested1/nested2", "innerPropName"), "innerPropValue");
+    mapExpected.put(PropertyHelper.getPropertyId(null, "topLevelProp"), "value");
+
+    assertEquals(mapExpected, setProps.iterator().next().getProperties());
+    assertEquals("foo=bar", body.getQueryString());
+
+    Map<String, String > mapRequestInfoProps = body.getRequestInfoProperties();
+    assertEquals(3, mapRequestInfoProps.size());
+    assertEquals("val1", mapRequestInfoProps.get("prop1"));
+    assertEquals("val2", mapRequestInfoProps.get("prop2"));
+    assertEquals("foo=bar", mapRequestInfoProps.get("query"));
+
+    //assert body is correct by checking that properties match
+    String b = body.getBody();
+    body = parser.parse(b);
+
+    Set<NamedPropertySet> setProps2 = body.getNamedPropertySets();
+    assertEquals(mapExpected, setProps2.iterator().next().getProperties());
+
+
   }
 }
 

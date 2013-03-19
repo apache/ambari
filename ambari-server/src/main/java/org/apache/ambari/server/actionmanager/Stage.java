@@ -52,6 +52,7 @@ public class Stage {
   private final String clusterName;
   private long stageId = -1;
   private final String logDir;
+  private final String requestContext;
   private int taskTimeout = -1;
   private int perTaskTimeFactor = 60000;
 
@@ -65,10 +66,12 @@ public class Stage {
       new TreeMap<String, List<ExecutionCommandWrapper>>();
 
   @AssistedInject
-  public Stage(@Assisted long requestId, @Assisted("logDir") String logDir, @Assisted("clusterName") String clusterName) {
+  public Stage(@Assisted long requestId, @Assisted("logDir") String logDir, @Assisted("clusterName") String clusterName,
+               @Assisted("requestContext") String requestContext) {
     this.requestId = requestId;
     this.logDir = logDir;
     this.clusterName = clusterName;
+    this.requestContext = requestContext == null ? "" : requestContext;
   }
 
   /**
@@ -90,6 +93,7 @@ public class Stage {
     stageId = stageEntity.getStageId();
     logDir = stageEntity.getLogInfo();
     clusterName = stageEntity.getCluster().getClusterName();
+    requestContext = stageEntity.getRequestContext();
 
     for (HostEntity hostEntity : hostDAO.findByStage(stageEntity)) {
       List<HostRoleCommandEntity> commands = hostRoleCommandDAO.findSortedCommandsByStageAndHost(stageEntity, hostEntity);
@@ -116,6 +120,7 @@ public class Stage {
     stageEntity.setRequestId(requestId);
     stageEntity.setStageId(getStageId());
     stageEntity.setLogInfo(logDir);
+    stageEntity.setRequestContext(requestContext);
     stageEntity.setHostRoleCommands(new ArrayList<HostRoleCommandEntity>());
     stageEntity.setRoleSuccessCriterias(new ArrayList<RoleSuccessCriteriaEntity>());
 
@@ -294,6 +299,10 @@ public class Stage {
     return clusterName;
   }
 
+  public String getRequestContext() {
+    return requestContext;
+  }
+
   public long getLastAttemptTime(String host, String role) {
     return this.hostRoleCommands.get(host).get(role).getLastAttemptTime();
   }
@@ -455,6 +464,7 @@ public class Stage {
     builder.append("stageId="+stageId+"\n");
     builder.append("clusterName="+clusterName+"\n");
     builder.append("logDir=" + logDir+"\n");
+    builder.append("requestContext="+requestContext+"\n");
     builder.append("Success Factors:\n");
     for (Role r : successFactors.keySet()) {
       builder.append("  role: "+r+", factor: "+successFactors.get(r)+"\n");
