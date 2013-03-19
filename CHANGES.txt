@@ -12,6 +12,8 @@ Trunk (unreleased changes):
 
  NEW FEATURES
 
+ AMBARI-1658. Implement API/Service Provider for HDFS mirroring. (tbeerbower)
+
  AMBARI-1599. Add ability to report actual configuration applied to a host. (ncole)
 
  AMBARI-1647. Integrate server and agent changes for upgrade on cluster. 

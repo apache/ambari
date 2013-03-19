@@ -33,7 +33,7 @@ import org.apache.ambari.server.controller.spi.ResourceAlreadyExistsException;
 import org.apache.ambari.server.controller.spi.SystemException;
 import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
 
-public abstract class ReadOnlyResourceProvider extends AbstractResourceProvider {
+public abstract class ReadOnlyResourceProvider extends AbstractControllerResourceProvider {
 
   private static final String READ_ONLY_MSG = "Read-only resource";
 

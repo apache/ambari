@@ -29,7 +29,6 @@ import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.DuplicateResourceException;
 import org.apache.ambari.server.ObjectNotFoundException;
 import org.apache.ambari.server.ParentObjectNotFoundException;
-import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.ConfigurationRequest;
 import org.apache.ambari.server.controller.RequestStatusResponse;
 import org.apache.ambari.server.controller.predicate.BasePredicate;
@@ -43,11 +42,6 @@ import org.slf4j.LoggerFactory;
  * Abstract resource provider implementation that maps to an Ambari management controller.
  */
 public abstract class AbstractResourceProvider extends BaseProvider implements ResourceProvider, ObservableResourceProvider {
-
-  /**
-   * The management controller to delegate to.
-   */
-  private final AmbariManagementController managementController;
 
   /**
    * Key property mapping by resource type.
@@ -69,14 +63,11 @@ public abstract class AbstractResourceProvider extends BaseProvider implements R
    *
    * @param propertyIds           the property ids
    * @param keyPropertyIds        the key property ids
-   * @param managementController  the management controller
    */
   protected AbstractResourceProvider(Set<String> propertyIds,
-                                     Map<Resource.Type, String> keyPropertyIds,
-                                     AmbariManagementController managementController) {
+                                     Map<Resource.Type, String> keyPropertyIds) {
     super(propertyIds);
-    this.keyPropertyIds       = keyPropertyIds;
-    this.managementController = managementController;
+    this.keyPropertyIds = keyPropertyIds;
   }
 
 
@@ -100,18 +91,6 @@ public abstract class AbstractResourceProvider extends BaseProvider implements R
   @Override
   public void addObserver(ResourceProviderObserver observer) {
     observers.add(observer);
-  }
-
-
-  // ----- accessors ---------------------------------------------------------
-
-  /**
-   * Get the associated management controller.
-   *
-   * @return the associated management controller
-   */
-  protected AmbariManagementController getManagementController() {
-    return managementController;
   }
 
 
@@ -315,60 +294,6 @@ public abstract class AbstractResourceProvider extends BaseProvider implements R
         LOG.error("Caught AmbariException when modifying a resource", e);
       }
       throw new SystemException("An internal system exception occurred: " + e.getMessage(), e);
-    }
-  }
-
-  /**
-   * Factory method for obtaining a resource provider based on a given type and management controller.
-   *
-   *
-   * @param type                  the resource type
-   * @param propertyIds           the property ids
-   * @param managementController  the management controller
-   *
-   * @return a new resource provider
-   */
-  public static ResourceProvider getResourceProvider(Resource.Type type,
-                                                     Set<String> propertyIds,
-                                                     Map<Resource.Type, String> keyPropertyIds,
-                                                     AmbariManagementController managementController) {
-    switch (type) {
-      case Cluster:
-        return new ClusterResourceProvider(propertyIds, keyPropertyIds, managementController);
-      case Service:
-        return new ServiceResourceProvider(propertyIds, keyPropertyIds, managementController);
-      case Component:
-        return new ComponentResourceProvider(propertyIds, keyPropertyIds, managementController);
-      case Host:
-        return new HostResourceProvider(propertyIds, keyPropertyIds, managementController);
-      case HostComponent:
-        return new HostComponentResourceProvider(propertyIds, keyPropertyIds, managementController);
-      case Configuration:
-        return new ConfigurationResourceProvider(propertyIds, keyPropertyIds, managementController);
-      case Action:
-        return new ActionResourceProvider(propertyIds, keyPropertyIds, managementController);
-      case Request:
-        return new RequestResourceProvider(propertyIds, keyPropertyIds, managementController);
-      case Task:
-        return new TaskResourceProvider(propertyIds, keyPropertyIds, managementController);
-      case User:
-        return new UserResourceProvider(propertyIds, keyPropertyIds, managementController);
-      case Stack:
-        return new StackResourceProvider(propertyIds, keyPropertyIds, managementController);
-      case StackVersion:
-        return new StackVersionResourceProvider(propertyIds, keyPropertyIds, managementController);
-      case StackService:
-        return new StackServiceResourceProvider(propertyIds, keyPropertyIds, managementController);
-      case StackServiceComponent:
-        return new StackServiceComponentResourceProvider(propertyIds, keyPropertyIds, managementController);
-      case StackConfiguration:
-        return new StackConfigurationResourceProvider(propertyIds, keyPropertyIds, managementController);
-      case OperatingSystem:
-        return new OperatingSystemResourceProvider(propertyIds, keyPropertyIds, managementController);
-      case Repository:
-        return new RepositoryResourceProvider(propertyIds, keyPropertyIds, managementController);
-      default:
-        throw new IllegalArgumentException("Unknown type " + type);
     }
   }
 

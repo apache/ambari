@@ -55,7 +55,7 @@ public class RequestResourceProviderTest {
     // replay
     replay(managementController, response);
 
-    ResourceProvider provider = AbstractResourceProvider.getResourceProvider(
+    ResourceProvider provider = AbstractControllerResourceProvider.getResourceProvider(
         type,
         PropertyHelper.getPropertyIds(type),
         PropertyHelper.getKeyPropertyIds(type),
@@ -101,7 +101,7 @@ public class RequestResourceProviderTest {
     // replay
     replay(managementController);
 
-    ResourceProvider provider = AbstractResourceProvider.getResourceProvider(
+    ResourceProvider provider = AbstractControllerResourceProvider.getResourceProvider(
         type,
         PropertyHelper.getPropertyIds(type),
         PropertyHelper.getKeyPropertyIds(type),
@@ -135,7 +135,7 @@ public class RequestResourceProviderTest {
     // replay
     replay(managementController, response);
 
-    ResourceProvider provider = AbstractResourceProvider.getResourceProvider(
+    ResourceProvider provider = AbstractControllerResourceProvider.getResourceProvider(
         type,
         PropertyHelper.getPropertyIds(type),
         PropertyHelper.getKeyPropertyIds(type),
@@ -170,7 +170,7 @@ public class RequestResourceProviderTest {
     // replay
     replay(managementController);
 
-    ResourceProvider provider = AbstractResourceProvider.getResourceProvider(
+    ResourceProvider provider = AbstractControllerResourceProvider.getResourceProvider(
         type,
         PropertyHelper.getPropertyIds(type),
         PropertyHelper.getKeyPropertyIds(type),

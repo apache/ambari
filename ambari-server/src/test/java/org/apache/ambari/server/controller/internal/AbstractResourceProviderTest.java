@@ -64,7 +64,7 @@ public class AbstractResourceProviderTest {
     AmbariManagementController managementController = createMock(AmbariManagementController.class);
 
     AbstractResourceProvider provider =
-        (AbstractResourceProvider) AbstractResourceProvider.getResourceProvider(
+        (AbstractResourceProvider) AbstractControllerResourceProvider.getResourceProvider(
             Resource.Type.Service,
             propertyIds,
             keyPropertyIds,
@@ -104,7 +104,7 @@ public class AbstractResourceProviderTest {
     AmbariManagementController managementController = createMock(AmbariManagementController.class);
 
     AbstractResourceProvider provider =
-        (AbstractResourceProvider) AbstractResourceProvider.getResourceProvider(
+        (AbstractResourceProvider) AbstractControllerResourceProvider.getResourceProvider(
             Resource.Type.Service,
             propertyIds,
             keyPropertyIds,
@@ -173,13 +173,6 @@ public class AbstractResourceProviderTest {
       return null;
     }
 
-    public static Set<ConfigurationRequest> getConfigurationRequestSet(String clusterName, String type,
-                                                                       String tag, Map<String, String> configs)
-    {
-      EasyMock.reportMatcher(new ConfigurationRequestSetMatcher(clusterName, type, tag, configs));
-      return null;
-    }
-
     public static Set<HostRequest> getHostRequestSet(String hostname, String clusterName,
                                                      Map<String, String> hostAttributes)
     {
@@ -236,7 +229,7 @@ public class AbstractResourceProviderTest {
 
     @Override
     public void appendTo(StringBuffer stringBuffer) {
-      stringBuffer.append("ClusterRequestMatcher(" + super.toString() + ")");
+      stringBuffer.append("ClusterRequestMatcher(").append(super.toString()).append(")");
     }
   }
 
@@ -261,7 +254,7 @@ public class AbstractResourceProviderTest {
 
     @Override
     public void appendTo(StringBuffer stringBuffer) {
-      stringBuffer.append("ConfigurationRequestMatcher(" + super.toString() + ")");
+      stringBuffer.append("ConfigurationRequestMatcher(").append(super.toString()).append(")");
     }
   }
 
@@ -283,7 +276,7 @@ public class AbstractResourceProviderTest {
 
     @Override
     public void appendTo(StringBuffer stringBuffer) {
-      stringBuffer.append("RequestRequestMatcher(" + super.toString() + ")");
+      stringBuffer.append("RequestRequestMatcher(").append(super.toString()).append(")");
     }
   }
 
@@ -321,7 +314,7 @@ public class AbstractResourceProviderTest {
 
     @Override
     public void appendTo(StringBuffer stringBuffer) {
-      stringBuffer.append("ActionRequestSetMatcher(" + actionRequest + ")");
+      stringBuffer.append("ActionRequestSetMatcher(").append(actionRequest).append(")");
     }
   }
 
@@ -364,47 +357,7 @@ public class AbstractResourceProviderTest {
 
     @Override
     public void appendTo(StringBuffer stringBuffer) {
-      stringBuffer.append("ComponentRequestSetMatcher(" + serviceComponentRequest + ")");
-    }
-  }
-
-  /**
-   * Matcher for a ConfigurationRequest set containing a single request.
-   */
-  public static class ConfigurationRequestSetMatcher extends HashSet<ConfigurationRequest> implements IArgumentMatcher {
-
-    private final ConfigurationRequest configurationRequest;
-
-    public ConfigurationRequestSetMatcher(String clusterName, String type, String tag, Map<String, String> configs) {
-      this.configurationRequest = new ConfigurationRequest(clusterName, type, tag, configs);
-      add(this.configurationRequest);
-    }
-
-    @Override
-    public boolean matches(Object o) {
-
-      if (!(o instanceof Set)) {
-        return false;
-      }
-
-      Set set = (Set) o;
-
-      if (set.size() != 1) {
-        return false;
-      }
-
-      Object request = set.iterator().next();
-
-      return request instanceof ConfigurationRequest &&
-          eq(((ConfigurationRequest) request).getClusterName(), configurationRequest.getClusterName()) &&
-          eq(((ConfigurationRequest) request).getType(), configurationRequest.getType()) &&
-          eq(((ConfigurationRequest) request).getVersionTag(), configurationRequest.getVersionTag()) &&
-          eq(((ConfigurationRequest) request).getProperties(), configurationRequest.getProperties());
-    }
-
-    @Override
-    public void appendTo(StringBuffer stringBuffer) {
-      stringBuffer.append("ConfigurationRequestSetMatcher(" + configurationRequest + ")");
+      stringBuffer.append("ComponentRequestSetMatcher(").append(serviceComponentRequest).append(")");
     }
   }
 
@@ -442,7 +395,7 @@ public class AbstractResourceProviderTest {
 
     @Override
     public void appendTo(StringBuffer stringBuffer) {
-      stringBuffer.append("HostRequestSetMatcher(" + hostRequest + ")");
+      stringBuffer.append("HostRequestSetMatcher(").append(hostRequest).append(")");
     }
   }
 
@@ -488,7 +441,7 @@ public class AbstractResourceProviderTest {
 
     @Override
     public void appendTo(StringBuffer stringBuffer) {
-      stringBuffer.append("HostComponentRequestSetMatcher(" + hostComponentRequest + ")");
+      stringBuffer.append("HostComponentRequestSetMatcher(").append(hostComponentRequest).append(")");
     }
   }
 
@@ -528,7 +481,7 @@ public class AbstractResourceProviderTest {
 
     @Override
     public void appendTo(StringBuffer stringBuffer) {
-      stringBuffer.append("ServiceRequestSetMatcher(" + serviceRequest + ")");
+      stringBuffer.append("ServiceRequestSetMatcher(").append(serviceRequest).append(")");
     }
   }
 
@@ -565,7 +518,7 @@ public class AbstractResourceProviderTest {
 
     @Override
     public void appendTo(StringBuffer stringBuffer) {
-      stringBuffer.append("TaskRequestSetMatcher(" + taskStatusRequest + ")");
+      stringBuffer.append("TaskRequestSetMatcher(").append(taskStatusRequest).append(")");
     }
   }
 
@@ -602,7 +555,7 @@ public class AbstractResourceProviderTest {
 
     @Override
     public void appendTo(StringBuffer stringBuffer) {
-      stringBuffer.append("UserRequestSetMatcher(" + userRequest + ")");
+      stringBuffer.append("UserRequestSetMatcher(").append(userRequest).append(")");
     }
   }
 

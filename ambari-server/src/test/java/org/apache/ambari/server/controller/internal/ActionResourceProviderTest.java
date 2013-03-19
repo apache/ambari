@@ -60,7 +60,7 @@ public class ActionResourceProviderTest {
     // replay
     replay(managementController, response);
 
-    ResourceProvider provider = AbstractResourceProvider.getResourceProvider(
+    ResourceProvider provider = AbstractControllerResourceProvider.getResourceProvider(
         type,
         PropertyHelper.getPropertyIds(type),
         PropertyHelper.getKeyPropertyIds(type),
@@ -97,7 +97,7 @@ public class ActionResourceProviderTest {
     // replay
     replay(managementController);
 
-    ResourceProvider provider = AbstractResourceProvider.getResourceProvider(
+    ResourceProvider provider = AbstractControllerResourceProvider.getResourceProvider(
         type,
         PropertyHelper.getPropertyIds(type),
         PropertyHelper.getKeyPropertyIds(type),
@@ -135,7 +135,7 @@ public class ActionResourceProviderTest {
     // replay
     replay(managementController, response);
 
-    ResourceProvider provider = AbstractResourceProvider.getResourceProvider(
+    ResourceProvider provider = AbstractControllerResourceProvider.getResourceProvider(
         type,
         PropertyHelper.getPropertyIds(type),
         PropertyHelper.getKeyPropertyIds(type),
@@ -172,7 +172,7 @@ public class ActionResourceProviderTest {
     // replay
     replay(managementController, response);
 
-    ResourceProvider provider = AbstractResourceProvider.getResourceProvider(
+    ResourceProvider provider = AbstractControllerResourceProvider.getResourceProvider(
         type,
         PropertyHelper.getPropertyIds(type),
         PropertyHelper.getKeyPropertyIds(type),
@@ -208,7 +208,7 @@ public class ActionResourceProviderTest {
     AmbariManagementController managementController = createMock(AmbariManagementController.class);
 
     AbstractResourceProvider provider =
-        (AbstractResourceProvider) AbstractResourceProvider.getResourceProvider(
+        (AbstractResourceProvider) AbstractControllerResourceProvider.getResourceProvider(
             Resource.Type.Action,
             propertyIds,
             keyPropertyIds,

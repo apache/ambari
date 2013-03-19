@@ -44,7 +44,7 @@ import org.apache.ambari.server.controller.utilities.PropertyHelper;
 /**
  * Resource provider for cluster resources.
  */
-class ClusterResourceProvider extends AbstractResourceProvider {
+class ClusterResourceProvider extends AbstractControllerResourceProvider {
 
   // ----- Property ID constants ---------------------------------------------
 

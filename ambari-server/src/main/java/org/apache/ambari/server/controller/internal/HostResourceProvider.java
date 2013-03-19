@@ -42,7 +42,7 @@ import org.apache.ambari.server.controller.utilities.PropertyHelper;
 /**
  * Resource provider for host resources.
  */
-class HostResourceProvider extends AbstractResourceProvider {
+class HostResourceProvider extends AbstractControllerResourceProvider {
 
   // ----- Property ID constants ---------------------------------------------
 

@@ -109,7 +109,7 @@ public class ConfigurationResourceProviderTest {
     // replay
     replay(managementController);
 
-    ResourceProvider provider = AbstractResourceProvider.getResourceProvider(
+    ResourceProvider provider = AbstractControllerResourceProvider.getResourceProvider(
         type,
         PropertyHelper.getPropertyIds(type),
         PropertyHelper.getKeyPropertyIds(type),
@@ -169,8 +169,7 @@ public class ConfigurationResourceProviderTest {
     assertEquals(2, setRequest.size());
     boolean containsTag1 = false;
     boolean containsTag2 = false;
-    for (Iterator<ConfigurationRequest> iter = setRequest.iterator(); iter.hasNext(); ) {
-      ConfigurationRequest cr = iter.next();
+    for (ConfigurationRequest cr : setRequest) {
       assertNull(cr.getClusterName());
       if (cr.getVersionTag().equals("tag1")) {
         containsTag1 = true;
@@ -215,7 +214,7 @@ public class ConfigurationResourceProviderTest {
     // replay
     replay(managementController, response);
 
-    ResourceProvider provider = AbstractResourceProvider.getResourceProvider(
+    ResourceProvider provider = AbstractControllerResourceProvider.getResourceProvider(
         type,
         PropertyHelper.getPropertyIds(type),
         PropertyHelper.getKeyPropertyIds(type),
@@ -250,7 +249,7 @@ public class ConfigurationResourceProviderTest {
     // replay
     replay(managementController);
 
-    ResourceProvider provider = AbstractResourceProvider.getResourceProvider(
+    ResourceProvider provider = AbstractControllerResourceProvider.getResourceProvider(
         type,
         PropertyHelper.getPropertyIds(type),
         PropertyHelper.getKeyPropertyIds(type),

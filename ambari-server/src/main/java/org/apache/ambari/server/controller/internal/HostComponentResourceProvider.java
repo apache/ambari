@@ -35,7 +35,7 @@ import org.apache.ambari.server.Role;
 /**
  * Resource provider for host component resources.
  */
-class HostComponentResourceProvider extends AbstractResourceProvider {
+class HostComponentResourceProvider extends AbstractControllerResourceProvider {
 
   // ----- Property ID constants ---------------------------------------------
 

@@ -40,7 +40,7 @@ import java.util.Set;
 /**
  * Resource provider for request resources.
  */
-class RequestResourceProvider extends AbstractResourceProvider {
+class RequestResourceProvider extends AbstractControllerResourceProvider {
 
   // ----- Property ID constants ---------------------------------------------
   // Requests

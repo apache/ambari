@@ -62,7 +62,7 @@ public class HostResourceProviderTest {
     // replay
     replay(managementController, response);
 
-    ResourceProvider provider = AbstractResourceProvider.getResourceProvider(
+    ResourceProvider provider = AbstractControllerResourceProvider.getResourceProvider(
         type,
         PropertyHelper.getPropertyIds(type),
         PropertyHelper.getKeyPropertyIds(type),
@@ -116,7 +116,7 @@ public class HostResourceProviderTest {
     // replay
     replay(managementController);
 
-    ResourceProvider provider = AbstractResourceProvider.getResourceProvider(
+    ResourceProvider provider = AbstractControllerResourceProvider.getResourceProvider(
         type,
         PropertyHelper.getPropertyIds(type),
         PropertyHelper.getKeyPropertyIds(type),
@@ -151,7 +151,6 @@ public class HostResourceProviderTest {
   
   @Test
   public void testUpdateDesiredConfig() throws Exception {
-    Resource.Type type = Resource.Type.Host;
 
     AmbariManagementController managementController = createMock(AmbariManagementController.class);
     RequestStatusResponse response = createNiceMock(RequestStatusResponse.class);
@@ -173,7 +172,6 @@ public class HostResourceProviderTest {
     // replay
     replay(managementController, response);
     
-    Set<Map<String, Object>> propertySet = new LinkedHashSet<Map<String, Object>>();
 
     Map<String, Object> properties = new LinkedHashMap<String, Object>();
 
@@ -185,8 +183,6 @@ public class HostResourceProviderTest {
     properties.put(PropertyHelper.getPropertyId("Hosts.desired_config.properties", "a"), "b");
     properties.put(PropertyHelper.getPropertyId("Hosts.desired_config.properties", "x"), "y");
 
-    propertySet.add(properties);
-
     // create the request
     Request request = PropertyHelper.getUpdateRequest(properties);
     
@@ -194,7 +190,7 @@ public class HostResourceProviderTest {
         equals("Cluster100").
         and().property(HostResourceProvider.HOST_NAME_PROPERTY_ID).equals("Host100").toPredicate();
     
-    ResourceProvider provider = AbstractResourceProvider.getResourceProvider(
+    ResourceProvider provider = AbstractControllerResourceProvider.getResourceProvider(
         Resource.Type.Host,
         PropertyHelper.getPropertyIds(Resource.Type.Host),
         PropertyHelper.getKeyPropertyIds(Resource.Type.Host),
@@ -228,7 +224,7 @@ public class HostResourceProviderTest {
     // replay
     replay(managementController, response);
 
-    ResourceProvider provider = AbstractResourceProvider.getResourceProvider(
+    ResourceProvider provider = AbstractControllerResourceProvider.getResourceProvider(
         type,
         PropertyHelper.getPropertyIds(type),
         PropertyHelper.getKeyPropertyIds(type),
@@ -263,7 +259,7 @@ public class HostResourceProviderTest {
     // replay
     replay(managementController);
 
-    ResourceProvider provider = AbstractResourceProvider.getResourceProvider(
+    ResourceProvider provider = AbstractControllerResourceProvider.getResourceProvider(
         type,
         PropertyHelper.getPropertyIds(type),
         PropertyHelper.getKeyPropertyIds(type),

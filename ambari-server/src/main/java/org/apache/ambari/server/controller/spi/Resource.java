@@ -96,6 +96,9 @@ public interface Resource {
     Repository,
     StackService,
     StackConfiguration,
-    StackServiceComponent
+    StackServiceComponent,
+    DRFeed,
+    DRTargetCluster,
+    DRInstance
   }
 }

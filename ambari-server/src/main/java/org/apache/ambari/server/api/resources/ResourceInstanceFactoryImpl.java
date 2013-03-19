@@ -107,6 +107,18 @@ public class ResourceInstanceFactoryImpl implements ResourceInstanceFactory {
         resourceDefinition = new RepositoryResourceDefinition();
         break;
 
+      case DRFeed:
+        resourceDefinition = new FeedResourceDefinition();
+        break;
+
+      case DRTargetCluster:
+        resourceDefinition = new TargetClusterResourceDefinition();
+        break;
+
+      case DRInstance:
+        resourceDefinition = new InstanceResourceDefinition();
+        break;
+
       default:
         throw new IllegalArgumentException("Unsupported resource type: " + type);
     }

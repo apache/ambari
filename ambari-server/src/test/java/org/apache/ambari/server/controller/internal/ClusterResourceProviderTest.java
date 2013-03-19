@@ -63,7 +63,7 @@ public class ClusterResourceProviderTest {
     // replay
     replay(managementController, response);
 
-    ResourceProvider provider = AbstractResourceProvider.getResourceProvider(
+    ResourceProvider provider = AbstractControllerResourceProvider.getResourceProvider(
         type,
         PropertyHelper.getPropertyIds(type),
         PropertyHelper.getKeyPropertyIds(type),
@@ -141,7 +141,7 @@ public class ClusterResourceProviderTest {
     // replay
     replay(managementController);
 
-    ResourceProvider provider = AbstractResourceProvider.getResourceProvider(
+    ResourceProvider provider = AbstractControllerResourceProvider.getResourceProvider(
         type,
         PropertyHelper.getPropertyIds(type),
         PropertyHelper.getKeyPropertyIds(type),
@@ -214,7 +214,7 @@ public class ClusterResourceProviderTest {
     // replay
     replay(managementController, response);
 
-    ResourceProvider provider = AbstractResourceProvider.getResourceProvider(
+    ResourceProvider provider = AbstractControllerResourceProvider.getResourceProvider(
         type,
         PropertyHelper.getPropertyIds(type),
         PropertyHelper.getKeyPropertyIds(type),
@@ -268,8 +268,6 @@ public class ClusterResourceProviderTest {
     // replay
     replay(managementController, response);
 
-    Set<Map<String, Object>> propertySet = new LinkedHashSet<Map<String, Object>>();
-
     Map<String, Object> properties = new LinkedHashMap<String, Object>();
 
     properties.put(ClusterResourceProvider.CLUSTER_NAME_PROPERTY_ID, "Cluster100");
@@ -278,15 +276,13 @@ public class ClusterResourceProviderTest {
     properties.put(PropertyHelper.getPropertyId("Clusters.desired_config.properties", "a"), "b");
     properties.put(PropertyHelper.getPropertyId("Clusters.desired_config.properties", "x"), "y");
 
-    propertySet.add(properties);
-
     // create the request
     Request request = PropertyHelper.getUpdateRequest(properties);
     
     Predicate  predicate = new PredicateBuilder().property(
         ClusterResourceProvider.CLUSTER_NAME_PROPERTY_ID).equals("Cluster100").toPredicate();
     
-    ResourceProvider provider = AbstractResourceProvider.getResourceProvider(
+    ResourceProvider provider = AbstractControllerResourceProvider.getResourceProvider(
         Resource.Type.Cluster,
         PropertyHelper.getPropertyIds(Resource.Type.Cluster),
         PropertyHelper.getKeyPropertyIds(Resource.Type.Cluster),
@@ -315,7 +311,7 @@ public class ClusterResourceProviderTest {
     // replay
     replay(managementController, response);
 
-    ResourceProvider provider = AbstractResourceProvider.getResourceProvider(
+    ResourceProvider provider = AbstractControllerResourceProvider.getResourceProvider(
         type,
         PropertyHelper.getPropertyIds(type),
         PropertyHelper.getKeyPropertyIds(type),

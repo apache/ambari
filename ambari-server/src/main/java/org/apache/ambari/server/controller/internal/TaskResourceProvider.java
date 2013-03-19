@@ -41,7 +41,7 @@ import java.util.Set;
 /**
  * Resource provider for task resources.
  */
-class TaskResourceProvider extends AbstractResourceProvider {
+class TaskResourceProvider extends AbstractControllerResourceProvider {
 
   // ----- Property ID constants ---------------------------------------------
 

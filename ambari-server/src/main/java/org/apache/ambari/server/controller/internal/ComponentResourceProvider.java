@@ -34,7 +34,7 @@ import java.util.Set;
 /**
  * Resource provider for component resources.
  */
-class ComponentResourceProvider extends AbstractResourceProvider {
+class ComponentResourceProvider extends AbstractControllerResourceProvider {
 
 
   // ----- Property ID constants ---------------------------------------------
