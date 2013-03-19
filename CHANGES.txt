@@ -498,6 +498,9 @@ Trunk (unreleased changes):
 
  BUG FIXES
 
+ AMBARI-1657. User directories on HDFS do not get created with custom names 
+ provided from Ambari UI. (swagle)
+
  AMBARI-1655. DELETE is not successful against ClusterStateEntity (ncole)
 
  AMBARI-1439. rrd file location should be read from global config. (swagle)
