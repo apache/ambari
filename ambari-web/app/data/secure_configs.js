@@ -26,10 +26,10 @@ var configProperties = App.SecureConfigProperties.create();
 module.exports = [
   {
     serviceName: 'GENERAL',
-    displayName: 'CLUSTER',
+    displayName: 'Kerberos',
     filename: 'hdfs-site',
     configCategories: [
-      App.ServiceConfigCategory.create({ name: 'KERBEROS', displayName: 'KERBEROS'})
+      App.ServiceConfigCategory.create({ name: 'KERBEROS', displayName: 'General'})
     ],
     configs: configProperties.filterProperty('serviceName', 'GENERAL')
   },

@@ -64,7 +64,6 @@ App.MainAdminSecurityAddStep2Controller = Em.Controller.extend({
     }
     //
     this.set('installedServices', App.Service.find().mapProperty('serviceName'));
-    this.set('selectedService', 'HDFS');
     console.log("The services are: " + this.get('installedServices'));
     //
   },
@@ -81,12 +80,9 @@ App.MainAdminSecurityAddStep2Controller = Em.Controller.extend({
         serviceName: _serviceConfig.serviceName,
         displayName: _serviceConfig.displayName,
         configCategories: _serviceConfig.configCategories,
-        showConfig: false,
+        showConfig: true,
         configs: []
       });
-      if (this.get('content.services').mapProperty('serviceName').contains(_serviceConfig.serviceName)) {
-        serviceConfig.set('showConfig', true);
-      }
 
       this.loadComponentConfigs(_serviceConfig, serviceConfig);
 

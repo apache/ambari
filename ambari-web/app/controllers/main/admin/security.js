@@ -47,23 +47,6 @@ App.MainAdminSecurityController = Em.Controller.extend({
         })
       });
     }
-  },
-
-  notifySecurityAddPopup: function () {
-    var self = this;
-
-    App.ModalPopup.show({
-      header: Em.I18n.t('admin.security.enable.popup.header'),
-      primary: 'OK',
-      secondary: null,
-      onPrimary: function () {
-        App.router.send('addSecurity');
-        this.hide();
-      },
-      bodyClass: Ember.View.extend({
-        template: Ember.Handlebars.compile('<h5>{{t admin.security.enable.popup.body}}</h5>')
-      })
-    });
   }
 
 });

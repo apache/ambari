@@ -26,6 +26,7 @@ module.exports =
       "defaultValue": "true",
       "description": "Enable kerberos security for the cluster",
       "isVisible": false,
+      "isOverrideable": false,
       "serviceName": "GENERAL",
       "category": "KERBEROS"
     },
@@ -38,6 +39,7 @@ module.exports =
       "description": "Path to installed kinit command",
       "displayType": "principal",
       "isVisible": false,
+      "isOverrideable": false,
       "serviceName": "GENERAL",
       "category": "KERBEROS"
     },
@@ -49,6 +51,7 @@ module.exports =
       "defaultValue": "MANUALLY_SET_KERBEROS",
       "description": "Type of kerberos security for the cluster",
       "isVisible": false,
+      "isOverrideable": false,
       "serviceName": "GENERAL",
       "category": "KERBEROS"
     },
@@ -61,6 +64,7 @@ module.exports =
       "description": "Type of kerberos security for the cluster",
       "displayType": "principal",
       "isVisible": false,
+      "isOverrideable": false,
       "serviceName": "GENERAL",
       "category": "KERBEROS"
     },
@@ -73,6 +77,7 @@ module.exports =
       "description": "Realm name to be used for all principal names",
       "displayType": "principal",
       "isVisible": true,
+      "isOverrideable": false,
       "serviceName": "GENERAL",
       "category": "KERBEROS"
     },
@@ -85,6 +90,7 @@ module.exports =
       "description": "Whether to use instance name for creating principals across cluster",
       "displayType": "checkbox",
       "isVisible": true,
+      "isOverrideable": false,
       "serviceName": "GENERAL",
       "category": "KERBEROS"
     },
@@ -93,12 +99,13 @@ module.exports =
     {
       "id": "puppet var",
       "name": "namenode_primary_name",
-      "displayName": "primary name",
+      "displayName": "Primary name",
       "value": "",
       "defaultValue": "nn",
       "description": "Primary name for NameNode",
       "displayType": "principal",
       "isVisible": true,
+      "isOverrideable": false,
       "serviceName": "HDFS",
       "category": "NameNode"
     },
@@ -111,19 +118,21 @@ module.exports =
       "description": "Keytab for NameNode",
       "displayType": "directory",
       "isVisible": true,
+      "isOverrideable": false,
       "serviceName": "HDFS",
       "category": "NameNode"
     },
     {
       "id": "puppet var",
       "name": "hadoop_http_primary_name",
-      "displayName": "HTTP primary name",
+      "displayName": "HTTP Primary name",
       "value": "",
       "defaultValue": "HTTP",
       "isReconfigurable": false,
       "description": "Primary name for spnego access for NameNode",
       "displayType": "principal",
       "isVisible": true,
+      "isOverrideable": false,
       "serviceName": "HDFS",
       "category": "General"
     },
@@ -136,6 +145,7 @@ module.exports =
       "description": "Keytab for http NameNode and SNameNode",
       "displayType": "directory",
       "isVisible": true,
+      "isOverrideable": false,
       "serviceName": "HDFS",
       "category": "General"
     },
@@ -143,7 +153,7 @@ module.exports =
      {
      "id": "puppet var",
      "name": "snamenode_primary_name",
-     "displayName": "primary name",
+     "displayName": "Primary name",
      "value": "",
      "defaultValue": "sn",
      "description": "Primary name for SecondaryNameNode",
@@ -162,18 +172,20 @@ module.exports =
       "description": "path to SecondaryNameNode keytab file",
       "displayType": "directory",
       "isVisible": true,
+      "isOverrideable": false,
       "serviceName": "HDFS",
       "category": "SNameNode"
     },
     {
       "id": "puppet var",
       "name": "datanode_primary_name",
-      "displayName": "primary name",
+      "displayName": "Primary name",
       "value": "",
       "defaultValue": "dn",
       "description": "Primary name for DataNode",
       "displayType": "principal",
       "isVisible": true,
+      "isOverrideable": false,
       "serviceName": "HDFS",
       "category": "DataNode"
     },
@@ -186,6 +198,7 @@ module.exports =
       "description": "Path to DataNode keytab file",
       "displayType": "directory",
       "isVisible": true,
+      "isOverrideable": false,
       "serviceName": "HDFS",
       "category": "DataNode"
     },
@@ -193,12 +206,13 @@ module.exports =
     {
       "id": "puppet var",
       "name": "jobtracker_primary_name",
-      "displayName": "primary name",
+      "displayName": "Primary name",
       "value": "",
       "defaultValue": "jt",
       "description": "Primary name for JobTracker",
       "displayType": "principal",
       "isVisible": true,
+      "isOverrideable": false,
       "serviceName": "MAPREDUCE",
       "category": "JobTracker"
     },
@@ -211,18 +225,20 @@ module.exports =
       "description": "Path to JobTracker keytab file",
       "displayType": "directory",
       "isVisible": true,
+      "isOverrideable": false,
       "serviceName": "MAPREDUCE",
       "category": "JobTracker"
     },
     {
       "id": "puppet var",
       "name": "tasktracker_primary_name",
-      "displayName": "primary name",
+      "displayName": "Primary name",
       "value": "",
       "defaultValue": "tt",
       "description": "Primary name for TaskTracker",
       "displayType": "principal",
       "isVisible": true,
+      "isOverrideable": false,
       "serviceName": "MAPREDUCE",
       "category": "TaskTracker"
     },
@@ -235,6 +251,7 @@ module.exports =
       "description": "keytab for TaskTracker",
       "displayType": "directory",
       "isVisible": true,
+      "isOverrideable": false,
       "serviceName": "MAPREDUCE",
       "category": "TaskTracker"
     },
@@ -243,12 +260,13 @@ module.exports =
     {
       "id": "puppet var",
       "name": "hbase_master_primary_name",
-      "displayName": "primary name",
+      "displayName": "Primary name",
       "value": "",
       "defaultValue": "hm",
       "description": "Primary name for HBase master",
       "displayType": "principal",
       "isVisible": true,
+      "isOverrideable": false,
       "serviceName": "HBASE",
       "category": "HBase Master"
     },
@@ -261,18 +279,20 @@ module.exports =
       "description": "keytab for HBase master",
       "displayType": "directory",
       "isVisible": true,
+      "isOverrideable": false,
       "serviceName": "HBASE",
       "category": "HBase Master"
     },
     {
       "id": "puppet var",
       "name": "regionserver_primary_name",
-      "displayName": "primary name",
+      "displayName": "Primary name",
       "value": "",
       "defaultValue": "rs",
       "description": "Primary name for regionServer",
       "displayType": "principal",
       "isVisible": true,
+      "isOverrideable": false,
       "serviceName": "HBASE",
       "category": "RegionServer"
     },
@@ -285,6 +305,7 @@ module.exports =
       "description": "keytab for RegionServer",
       "displayType": "directory",
       "isVisible": true,
+      "isOverrideable": false,
       "serviceName": "HBASE",
       "category": "RegionServer"
     },
@@ -293,12 +314,13 @@ module.exports =
     {
       "id": "puppet var",
       "name": "hive_metastore_primary_name",
-      "displayName": "primary name",
+      "displayName": "Primary name",
       "value": "",
       "defaultValue": "hive",
       "description": "Primary name for Hive Metastore",
       "displayType": "principal",
       "isVisible": true,
+      "isOverrideable": false,
       "serviceName": "HIVE",
       "category": "Hive Metastore"
     },
@@ -311,6 +333,7 @@ module.exports =
       "description": "keytab for Hive Metastore",
       "displayType": "directory",
       "isVisible": true,
+      "isOverrideable": false,
       "serviceName": "HIVE",
       "category": "Hive Metastore"
 
@@ -326,18 +349,20 @@ module.exports =
       "description": "Oozie server host",
       "displayType": "masterHosts",
       "isVisible": false,
+      "isOverrideable": false,
       "serviceName": "OOZIE",
       "category": "Oozie Server"
     },
     {
       "id": "puppet var",
       "name": "oozie_primary_name",
-      "displayName": "primary name",
+      "displayName": "Primary name",
       "value": "",
       "defaultValue": "oozie",
       "description": "Primary name for Oozie server",
       "displayType": "principal",
       "isVisible": true,
+      "isOverrideable": false,
       "serviceName": "OOZIE",
       "category": "Oozie Server"
     },
@@ -350,19 +375,21 @@ module.exports =
       "description": "Keytab for Oozie server",
       "displayType": "directory",
       "isVisible": true,
+      "isOverrideable": false,
       "serviceName": "OOZIE",
       "category": "Oozie Server"
     },
     {
       "id": "puppet var",
       "name": "oozie_http_primary_name",
-      "displayName": "HTTP primary name",
+      "displayName": "HTTP Primary name",
       "value": "",
       "defaultValue": "HTTP",
       "description": "Primary name for spnego access for Oozie server",
       "isReconfigurable": false,
       "displayType": "principal",
       "isVisible": true,
+      "isOverrideable": false,
       "serviceName": "OOZIE",
       "category": "Oozie Server"
     },
@@ -375,6 +402,7 @@ module.exports =
       "description": "Keytab for http Oozie server",
       "displayType": "directory",
       "isVisible": true,
+      "isOverrideable": false,
       "serviceName": "OOZIE",
       "category": "Oozie Server"
     },
@@ -384,13 +412,14 @@ module.exports =
     {
       "id": "puppet var",
       "name": "webhcat_http_primary_name",
-      "displayName": "HTTP primary name",
+      "displayName": "HTTP Primary name",
       "value": "",
       "defaultValue": "HTTP",
       "description": "Primary name for spnego access for webHCat",
       "displayType": "principal",
       "isReconfigurable": false,
       "isVisible": true,
+      "isOverrideable": false,
       "serviceName": "WEBHCAT",
       "category": "WebHCat"
     },
@@ -403,6 +432,7 @@ module.exports =
       "description": "Keytab for http webHCat",
       "displayType": "directory",
       "isVisible": true,
+      "isOverrideable": false,
       "serviceName": "WEBHCAT",
       "category": "WebHCat"
     },
@@ -419,18 +449,20 @@ module.exports =
       "description": "Nagios server host",
       "displayType": "masterHosts",
       "isVisible": true,
+      "isOverrideable": false,
       "serviceName": "NAGIOS",
       "category": "General"
     },
     {
       "id": "puppet var",
       "name": "nagios_primary_name",
-      "displayName": "primary name",
+      "displayName": "Primary name",
       "value": "",
       "defaultValue": "nagios",
       "description": "Primary name for Nagios server",
       "displayType": "principal",
       "isVisible": true,
+      "isOverrideable": false,
       "serviceName": "NAGIOS",
       "category": "General"
     },
@@ -443,6 +475,7 @@ module.exports =
       "description": "Keytab for nagios",
       "displayType": "directory",
       "isVisible": true,
+      "isOverrideable": false,
       "serviceName": "NAGIOS",
       "category": "General"
     }

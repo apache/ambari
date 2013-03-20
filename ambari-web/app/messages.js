@@ -511,7 +511,6 @@ Em.I18n.translations = {
   'admin.security.enable.popup.header': 'Add security',
   'admin.security.disable.popup.header': 'Remove security',
   'admin.security.disable.popup.body': 'Kerberos security will be disabled on the cluster',
-  'admin.security.recommend.enable': 'Enabling security is highly recommended',
   'admin.addSecurity.header': 'Add security wizard',
   'admin.security.step1.header': 'Start',
   'admin.security.step2.header': 'Configure',
