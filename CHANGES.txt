@@ -502,6 +502,9 @@ Trunk (unreleased changes):
 
  BUG FIXES
 
+ AMBARI-1667. Starting all services fails on secure cluster (excluding 
+ HBase and ZooKeeper). (swagle)
+
  AMBARI-1666. Oozie properties for principal and keytab not read from 
  oozie-site. (swagle)
 

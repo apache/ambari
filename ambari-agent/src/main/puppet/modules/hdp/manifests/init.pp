@@ -116,19 +116,18 @@ class hdp::create_smoke_user()
   }
   
   hdp::user { $smoke_user: 
-              gid    => $hdp::params::user_group,
-              groups => ["$proxyuser_group"]
+    gid    => $hdp::params::user_group,
+    groups => ["$proxyuser_group"]
   }
 
-  if ($security_enabled == true) {
-    $secure_uid = $hdp::params::smoketest_user_secure_uid
-    $cmd_set_uid = "usermod -u ${secure_uid} ${smoke_user}"
-    $cmd_set_uid_check = "id -u ${smoke_user} | grep ${secure_uid}"
-     hdp::exec{ $cmd_set_uid:
-       command => $cmd_set_uid,
-       unless => $cmd_set_uid_check,
-       require => Hdp::User[$smoke_user]
-     }
+  ## Set smoke user uid to > 1000 for enable security feature
+  $secure_uid = $hdp::params::smoketest_user_secure_uid
+  $cmd_set_uid = "usermod -u ${secure_uid} ${smoke_user}"
+  $cmd_set_uid_check = "id -u ${smoke_user} | grep ${secure_uid}"
+  hdp::exec{ $cmd_set_uid:
+   command => $cmd_set_uid,
+   unless => $cmd_set_uid_check,
+   require => Hdp::User[$smoke_user]
   }
 
   Group<||> -> Hdp::User[$smoke_user]
