@@ -98,6 +98,7 @@
       <item name="Project Team" href="team-list.html"/>
       <item name="Mailing Lists" href="mail-lists.html"/>
       <item name="Issue Tracking" href="issue-tracking.html"/>
+      <item name="User Group" href="http://www.meetup.com/Apache-Ambari-User-Group"/>
       <item name="Project License" href="http://www.apache.org/licenses/"/>
     </menu>
 
@@ -107,7 +108,7 @@
     </menu>
 
     <menu name="Documentation">
-        <item name="Install Guide for 1.2.1 RC" href="1.2.1/installing-hadoop-using-ambari/content/index.html"/>
+        <item name="Install Guide for 1.2.1" href="1.2.1/installing-hadoop-using-ambari/content/index.html"/>
         <item name="Install Guide for 1.2.0" href="1.2.0/installing-hadoop-using-ambari/content/index.html"/>
         <item name="Install Guide for 0.9" href="install-0.9.html"/>
         <item name="API Reference" href="https://github.com/apache/ambari/blob/trunk/ambari-server/docs/api/v1/index.md"/>

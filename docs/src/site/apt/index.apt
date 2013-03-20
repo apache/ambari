@@ -25,7 +25,7 @@ Introduction
   {{{http://hive.apache.org} Hive}},
   {{{http://incubator.apache.org/hcatalog} HCatalog}},
   {{{http://hbase.apache.org} HBase}},
-  {{{http://zookeeper.apache.org} Zookeeper}},
+  {{{http://zookeeper.apache.org} ZooKeeper}},
   {{{http://incubator.apache.org/oozie/} Oozie}},
   {{{http://pig.apache.org} Pig}},
   {{{http://sqoop.apache.org} Sqoop}}
@@ -64,17 +64,19 @@ Introduction
 
 Getting Started with Ambari
 
-  Follow the {{{./1.2.0/installing-hadoop-using-ambari/content/index.html} installation guide for 1.2.0}} or {{{./1.2.1/installing-hadoop-using-ambari/content/index.html} installation guide for the 1.2.1 release candidate}}.
+  Follow the {{{./1.2.1/installing-hadoop-using-ambari/content/index.html} installation guide for Ambari 1.2.1}}.
 
   Note: Ambari currently supports 64-bit RHEL/CentOS 5 + 6 and SLES 11.
 
-What's New?
-
-  Check out the work going on for the {{{./whats-new.html} upcoming 1.2.1 release}}.
-
-Wiki
+Get Involved
 
   Visit the {{{https://cwiki.apache.org/confluence/display/AMBARI/Ambari} Ambari Wiki}} for design documents, roadmap, development guidelines, etc.
+
+  The first {{{http://www.meetup.com/Apache-Ambari-User-Group} Ambari User Group Meetup}} is scheduled for April 2 in Palo Alto, California, USA.  Learn about Ambari and connect with other Ambari developers and users!
+
+What's New?
+
+  Check out the work going on for the {{{./whats-new.html} upcoming 1.2.2 release}}.
 
 Disclaimer
 

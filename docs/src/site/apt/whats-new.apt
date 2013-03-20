@@ -14,28 +14,23 @@
 ~~ limitations under the License.
 ~~
 
-What's New?
+What's New in Ambari 1.2.2?
 
   There’s a lot of activity occurring in trunk. We’ve had a great response from the
-  community and received a lot of input into the direction. To date, we have added
-  many new features. To highlight a few...
+  community and received a lot of input into the direction. Here are some highlights for 1.2.2:
 
-  * Added more options on provisioning so you can better target your cluster
-    setup for your needs
+  * Major performance enhancements for the REST APIs as well as Ambari Web UI
 
-  * More service controls, including the ability to run ad hoc smoke tests
+  * Stability and robustness for the server and agent
 
-  * Exposed a RESTful API for cluster metrics (with management and
-    provisioning to follow)
+  * More intuitive Job Analytics (swim-lane display for representing Pig/Hive DAGs)
 
-  * Moved to a JavaScript front-end for Ambari Web and refreshed the entire UI
-    experience
+  * Host-level alerts (in addition to Service-level alerts)
 
-  * Used that RESTful API and added more charts and heatmaps to the dashboard
+  * Support for Active Directory integration
 
-  * Reduced the number of dependencies on the Ambari Server + Ambari Agent
+  * Paging control for zoomed-in metric graphs
 
-  * Added support for SLES 11
 
 Getting Ambari Source
 
@@ -47,14 +42,14 @@ $ svn checkout http://svn.apache.org/repos/asf/incubator/ambari/trunk ambari
 
 JIRA
 
-  You can follow all the work going on by watching the Ambari JIRA project. The next release of Apache Ambari will be version 1.2.1. You can see the
-  JIRA details for this release here:
+  You can follow all the work going on by watching the Ambari JIRA project. You can see the
+  JIRA details for Ambari 1.2.2 here:
 
-  {{{https://issues.apache.org/jira/issues/?jql=fixVersion%20%3D%20%221.2.1%22%20AND%20project%20%3D%20AMBARI} https://issues.apache.org/jira/issues/?jql=fixVersion%20%3D%20%221.2.1%22%20AND%20project%20%3D%20AMBARI}}
+  {{{https://issues.apache.org/jira/issues/?jql=fixVersion%20%3D%20%221.2.2%22%20AND%20project%20%3D%20AMBARI} https://issues.apache.org/jira/issues/?jql=fixVersion%20%3D%20%221.2.2%22%20AND%20project%20%3D%20AMBARI}}
 
 User Guide
 
-  {{{http://incubator.apache.org/ambari/1.2.1/installing-hadoop-using-ambari/content/index.html} See how to install a Hadoop cluster using Ambari 1.2.1}}
+  Ambari 1.2.2 User Guide will be published soon.  In the meantime, you can take a look at {{{http://incubator.apache.org/ambari/1.2.1/installing-hadoop-using-ambari/content/index.html} how to install a Hadoop cluster using Ambari 1.2.1}}
 
 Stay Tuned
 
