@@ -137,19 +137,32 @@ class hdp-ganglia::server::files(
   file{$rrd_py_file_path :
     ensure => $ensure,
     source => "puppet:///modules/hdp-ganglia/rrd.py",
-    mode   => '0755',
-    require => Hdp::Directory_recursive_create[$rrd_py_path]
+    mode   => '0755'
   }
+
+  anchor{ 'hdp-ganglia::server::files::begin' : } -> Hdp::Directory_recursive_create[$rrd_py_path] -> File[$rrd_py_file_path] -> anchor{ 'hdp-ganglia::server::files::end' : }
 
   $rrd_files_dir = $hdp-ganglia::params::rrdcached_base_dir
   $rrd_file_owner = $hdp-ganglia::params::gmetad_user
-  hdp::directory_recursive_create{ $rrd_files_dir :
-    ensure => "directory",
-    owner => $rrd_file_owner,
-    group => $rrd_file_owner,
-    mode => 755
-  }
+  $rrdcached_default_file_dir = $hdp-ganglia::params::rrdcached_default_base_dir
 
+  ## If directory is different fr omdefault make sure it exists
+  if ($rrdcached_default_file_dir != $rrd_files_dir) {
+    hdp::directory_recursive_create{ $rrd_files_dir :
+      ensure => "directory",
+      owner => $rrd_file_owner,
+      group => $rrd_file_owner,
+      mode => '0755'
+    }
+
+    file { $rrdcached_default_file_dir :
+      ensure => link,
+      target => $rrd_files_dir,
+      force => true
+    }
+
+    File[$rrd_py_file_path] -> Hdp::Directory_recursive_create[$rrd_files_dir] -> File[$rrdcached_default_file_dir] -> Anchor['hdp-ganglia::server::files::end']
+  }
 }
 
 

@@ -502,6 +502,9 @@ Trunk (unreleased changes):
 
  BUG FIXES
 
+ AMBARI-1439. rrd file location should be read from global config. 
+ New patch for reopened bug. (swagle)
+
  AMBARI-1667. Starting all services fails on secure cluster (excluding 
  HBase and ZooKeeper). (swagle)
 
