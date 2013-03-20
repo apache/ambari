@@ -86,22 +86,32 @@ public class GangliaPropertyProviderTest {
     //http://ec2-174-129-152-147.compute-1.amazonaws.com/cgi-bin/rrd.py?c=HDPSlaves&m=jvm.metrics.gcCount,mapred.shuffleOutput.shuffle_exceptions_caught,mapred.shuffleOutput.shuffle_failed_outputs,mapred.shuffleOutput.shuffle_output_bytes,mapred.shuffleOutput.shuffle_success_outputs&s=10&e=20&r=1&h=ip-10-85-111-149.ec2.internal
 
     Set<String> properties = new HashSet<String>();
-    properties.add(PropertyHelper.getPropertyId("metrics/mapred/shuffleOutput", "shuffle_exceptions_caught"));
-    properties.add(PropertyHelper.getPropertyId("metrics/mapred/shuffleOutput", "shuffle_failed_outputs"));
-    properties.add(PropertyHelper.getPropertyId("metrics/mapred/shuffleOutput", "shuffle_output_bytes"));
-    properties.add(PropertyHelper.getPropertyId("metrics/mapred/shuffleOutput", "shuffle_success_outputs"));
+    String shuffle_exceptions_caught = PropertyHelper.getPropertyId("metrics/mapred/shuffleOutput", "shuffle_exceptions_caught");
+    String shuffle_failed_outputs    = PropertyHelper.getPropertyId("metrics/mapred/shuffleOutput", "shuffle_failed_outputs");
+    String shuffle_output_bytes      = PropertyHelper.getPropertyId("metrics/mapred/shuffleOutput", "shuffle_output_bytes");
+    String shuffle_success_outputs   = PropertyHelper.getPropertyId("metrics/mapred/shuffleOutput", "shuffle_success_outputs");
+
+    properties.add(shuffle_exceptions_caught);
+    properties.add(shuffle_failed_outputs);
+    properties.add(shuffle_output_bytes);
+    properties.add(shuffle_success_outputs);
     request = PropertyHelper.getReadRequest(properties, temporalInfoMap);
+
+    temporalInfoMap.put(shuffle_exceptions_caught, new TemporalInfoImpl(10L, 20L, 1L));
+    temporalInfoMap.put(shuffle_failed_outputs, new TemporalInfoImpl(10L, 20L, 1L));
+    temporalInfoMap.put(shuffle_output_bytes, new TemporalInfoImpl(10L, 20L, 1L));
+    temporalInfoMap.put(shuffle_success_outputs, new TemporalInfoImpl(10L, 20L, 1L));
 
     Assert.assertEquals(1, propertyProvider.populateResources(Collections.singleton(resource), request, null).size());
 
-    Assert.assertEquals("http://domU-12-31-39-0E-34-E1.compute-1.internal/cgi-bin/rrd.py?c=HDPSlaves&h=domU-12-31-39-0E-34-E1.compute-1.internal&m=mapred.shuffleOutput.shuffle_output_bytes,mapred.shuffleOutput.shuffle_success_outputs,mapred.shuffleOutput.shuffle_failed_outputs,mapred.shuffleOutput.shuffle_exceptions_caught&e=now&pt=true",
+    Assert.assertEquals("http://domU-12-31-39-0E-34-E1.compute-1.internal/cgi-bin/rrd.py?c=HDPSlaves&h=domU-12-31-39-0E-34-E1.compute-1.internal&m=mapred.shuffleOutput.shuffle_output_bytes,mapred.shuffleOutput.shuffle_success_outputs,mapred.shuffleOutput.shuffle_failed_outputs,mapred.shuffleOutput.shuffle_exceptions_caught&s=10&e=20&r=1",
         streamProvider.getLastSpec());
 
     Assert.assertEquals(6, PropertyHelper.getProperties(resource).size());
-    Assert.assertNotNull(resource.getPropertyValue(PropertyHelper.getPropertyId("metrics/mapred/shuffleOutput", "shuffle_exceptions_caught")));
-    Assert.assertNotNull(resource.getPropertyValue(PropertyHelper.getPropertyId("metrics/mapred/shuffleOutput", "shuffle_failed_outputs")));
-    Assert.assertNotNull(resource.getPropertyValue(PropertyHelper.getPropertyId("metrics/mapred/shuffleOutput", "shuffle_output_bytes")));
-    Assert.assertNotNull(resource.getPropertyValue(PropertyHelper.getPropertyId("metrics/mapred/shuffleOutput", "shuffle_success_outputs")));
+    Assert.assertNotNull(resource.getPropertyValue(shuffle_exceptions_caught));
+    Assert.assertNotNull(resource.getPropertyValue(shuffle_failed_outputs));
+    Assert.assertNotNull(resource.getPropertyValue(shuffle_output_bytes));
+    Assert.assertNotNull(resource.getPropertyValue(shuffle_success_outputs));
   }
 
 
@@ -139,7 +149,6 @@ public class GangliaPropertyProviderTest {
     Request  request = PropertyHelper.getReadRequest(Collections.singleton(PROPERTY_ID), temporalInfoMap);
 
     Assert.assertEquals(3, propertyProvider.populateResources(resources, request, null).size());
-
     Assert.assertEquals("http://domU-12-31-39-0E-34-E1.compute-1.internal/cgi-bin/rrd.py?c=HDPJobTracker,HDPHBaseMaster,HDPSlaves,HDPNameNode&h=domU-12-31-39-0E-34-E3.compute-1.internal,domU-12-31-39-0E-34-E1.compute-1.internal,domU-12-31-39-0E-34-E2.compute-1.internal&m=jvm.metrics.gcCount&s=10&e=20&r=1",
         streamProvider.getLastSpec());
 
@@ -147,6 +156,39 @@ public class GangliaPropertyProviderTest {
       Assert.assertEquals(2, PropertyHelper.getProperties(res).size());
       Assert.assertNotNull(res.getPropertyValue(PROPERTY_ID));
     }
+  }
+
+  @Test
+  public void testPopulateResources__LargeNumberOfHostResources() throws Exception {
+    TestStreamProvider streamProvider  = new TestStreamProvider();
+    TestGangliaHostProvider hostProvider = new TestGangliaHostProvider();
+
+    GangliaPropertyProvider propertyProvider = new GangliaHostPropertyProvider(
+        PropertyHelper.getGangliaPropertyIds(Resource.Type.Host),
+        streamProvider,
+        hostProvider,
+        CLUSTER_NAME_PROPERTY_ID,
+        HOST_NAME_PROPERTY_ID
+    );
+
+    Set<Resource> resources = new HashSet<Resource>();
+
+    for (int i = 0; i < 150; ++i) {
+      Resource resource = new ResourceImpl(Resource.Type.Host);
+      resource.setProperty(HOST_NAME_PROPERTY_ID, "host" + i);
+      resources.add(resource);
+    }
+
+    // only ask for one property
+    Map<String, TemporalInfo> temporalInfoMap = new HashMap<String, TemporalInfo>();
+    temporalInfoMap.put(PROPERTY_ID, new TemporalInfoImpl(10L, 20L, 1L));
+    Request  request = PropertyHelper.getReadRequest(Collections.singleton(PROPERTY_ID), temporalInfoMap);
+
+    Assert.assertEquals(150, propertyProvider.populateResources(resources, request, null).size());
+
+    Assert.assertEquals("http://domU-12-31-39-0E-34-E1.compute-1.internal/cgi-bin/rrd.py?c=HDPJobTracker,HDPHBaseMaster,HDPSlaves,HDPNameNode&m=jvm.metrics.gcCount&s=10&e=20&r=1",
+        streamProvider.getLastSpec());
+
   }
 
   private static class TestGangliaHostProvider implements GangliaHostProvider {

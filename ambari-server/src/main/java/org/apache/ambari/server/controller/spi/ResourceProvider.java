@@ -129,16 +129,13 @@ public interface ResourceProvider {
       NoSuchParentResourceException;
 
   /**
-   * Get the set of property ids for the properties that this provider can provide.
-   *
-   * @return the set of property ids for the properties that this provider can provide
-   */
-  // TODO : remove this
-  public Set<String> getPropertyIdsForSchema();
-
-  /**
    * Get the key property ids for the resource type associated with this resource
-   * providers.  The key properties are those that uniquely identify the resource.
+   * provider.  The key properties are those that uniquely identify the resource.
+   *</p>
+   * For example, the resource 'HostComponent' is uniquely identified by
+   * its associated 'Cluster', 'Host' and 'Component' resources.  The key property ids
+   * for a 'HostComponent' resource includes the property ids of the foreign key
+   * references from the 'HostComponent' to 'Cluster', 'Host' and 'Component' resources.
    *
    * @return a map of key property ids
    */

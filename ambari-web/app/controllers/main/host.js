@@ -25,6 +25,10 @@ App.MainHostController = Em.ArrayController.extend({
   content: App.Host.find(),
   comeWithFilter: false,
 
+  alerts: function () {
+    return App.router.get('clusterController.alerts').filterProperty('isOk', false).filterProperty('ignoredForHosts', false);
+  }.property('App.router.clusterController.alerts.length'),
+
   /**
    * Components which will be shown in component filter
    */
@@ -47,6 +51,28 @@ App.MainHostController = Em.ArrayController.extend({
   }.property('componentsForFilter'),
 
   /**
+   * Is true if alets filter is active
+   */
+  filteredByAlerts:false,
+
+  /**
+   * Is true if Hosts page was opened by clicking on alerts count badge
+   */
+  comeWithAlertsFilter: false,
+
+  /**
+   * Enable or disable filtering by alets
+   */
+  filterByAlerts: function () {
+    if (App.router.get('currentState.name') == 'index') {
+      this.set('filteredByAlerts', !this.get('filteredByAlerts'));
+    } else {
+      App.router.transitionTo('hosts.index');
+      this.set('comeWithAlertsFilter', true);
+    }
+  },
+
+  /**
    * Filter hosts by componentName of <code>component</code>
    * @param component App.HostComponent
    */
@@ -59,6 +85,10 @@ App.MainHostController = Em.ArrayController.extend({
     this.set('comeWithFilter', true);
   },
 
+  /**
+   * On click callback for decommission button
+   * @param event
+   */
   decommissionButtonPopup:function () {
     var self = this;
     App.ModalPopup.show({
@@ -75,6 +105,11 @@ App.MainHostController = Em.ArrayController.extend({
       }
     });
   },
+
+  /**
+   * On click callback for delete button
+   * @param event
+   */
   deleteButtonPopup:function () {
     var self = this;
     App.ModalPopup.show({
@@ -91,6 +126,42 @@ App.MainHostController = Em.ArrayController.extend({
       }
     });
   },
+
+  showAlertsPopup: function (event) {
+    var host = event.context;
+    App.ModalPopup.show({
+      header: this.t('services.alerts.headingOfList'),
+      bodyClass: Ember.View.extend({
+        hostAlerts: function () {
+          var allAlerts = App.router.get('clusterController.alerts').filterProperty('ignoredForHosts', false);
+          if (host) {
+            return allAlerts.filterProperty('hostName', host.get('hostName'));
+          }
+          return 0;
+        }.property('App.router.clusterController.alerts'),
+
+        closePopup: function () {
+          this.get('parentView').hide();
+        },
+
+        templateName: require('templates/main/host/alerts_popup')
+      }),
+      primary: 'Close',
+      onPrimary: function() {
+        this.hide();
+      },
+      secondary : null,
+      didInsertElement: function () {
+        this.$().find('.modal-footer').addClass('align-center');
+        this.$().children('.modal').css({'margin-top': '-350px'});
+      }
+    });
+    event.stopPropagation();
+  },
+
+  /**
+   * remove selected hosts
+   */
   removeHosts:function () {
     var hosts = this.get('content');
     var selectedHosts = hosts.filterProperty('isChecked', true);
@@ -100,6 +171,10 @@ App.MainHostController = Em.ArrayController.extend({
     this.get('fullContent').removeObjects(selectedHosts);
   },
 
+  /**
+   * remove hosts with id equal host_id
+   * @param host_id
+   */
   checkRemoved:function (host_id) {
     var hosts = this.get('content');
     var selectedHosts = hosts.filterProperty('id', host_id);

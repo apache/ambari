@@ -25,7 +25,7 @@
     <a href="javascript:void(null)"
        rel="popover"
       {{translateAttr title="installer.step1.clusterName.tooltip.title"
-       data-content="installer.step1.clusterName.tooltip.content"}}>Learn more</a>
+       data-content="installer.step1.clusterName.tooltip.content"}}>{{t common.learnMore}}</a>
   </label>
 
   <div class="controls">
@@ -35,7 +35,7 @@
 </div>
 
 <div class="btn-area">
-  <a class="btn btn-success pull-right" {{bindAttr disabled="invalidClusterName"}} {{action "submit" target="controller"}}>Next &rarr;</a>
+  <a class="btn btn-success pull-right" {{bindAttr disabled="invalidClusterName"}} {{action "submit" target="controller"}}>{{t common.next}} &rarr;</a>
 </div>
 
 

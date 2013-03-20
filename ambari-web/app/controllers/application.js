@@ -22,13 +22,17 @@ var App = require('app');
 App.ApplicationController = Em.Controller.extend({
 
   name: 'applicationController',
+
   clusterName: function () {
-    var name = App.router.get('clusterController.clusterName');
-    if (name) {
-      return name.capitalize();
-    }
-    return Em.I18n.t('installer.header');
+    return (App.router.get('clusterController.clusterName') || 'My Cluster').capitalize();
   }.property('App.router.clusterController.clusterName'),
+
+  clusterDisplayName: function () {
+    var name = this.get('clusterName');
+    var displayName = name.length > 13 ? name.substr(0, 10) + "..." : name;
+    return displayName.capitalize();
+  }.property('clusterName'),
+
   isClusterDataLoaded: function() {
     return App.router.get('clusterController.isLoaded');
   }.property('App.router.clusterController.isLoaded'),

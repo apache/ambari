@@ -34,7 +34,7 @@ import java.util.Set;
 /**
  * Resource provider for host component resources.
  */
-class HostComponentResourceProvider extends ResourceProviderImpl {
+class HostComponentResourceProvider extends AbstractResourceProvider {
 
   // ----- Property ID constants ---------------------------------------------
 
@@ -108,7 +108,7 @@ class HostComponentResourceProvider extends ResourceProviderImpl {
     }
 
     Set<Resource> resources    = new HashSet<Resource>();
-    Set<String>   requestedIds = PropertyHelper.getRequestPropertyIds(getPropertyIds(), request, predicate);
+    Set<String>   requestedIds = getRequestPropertyIds(request, predicate);
 
     Set<ServiceComponentHostResponse> responses = getResources(new Command<Set<ServiceComponentHostResponse>>() {
       @Override
@@ -186,9 +186,11 @@ class HostComponentResourceProvider extends ResourceProviderImpl {
     Set<String> unsupportedProperties = new HashSet<String>();
 
     for (String propertyId : propertyIds) {
-      String propertyCategory = PropertyHelper.getPropertyCategory(propertyId);
-      if (propertyCategory == null || !propertyCategory.equals("config")) {
-        unsupportedProperties.add(propertyId);
+      if (!propertyId.equals("config")) {
+        String propertyCategory = PropertyHelper.getPropertyCategory(propertyId);
+        if (propertyCategory == null || !propertyCategory.equals("config")) {
+          unsupportedProperties.add(propertyId);
+        }
       }
     }
     return unsupportedProperties;

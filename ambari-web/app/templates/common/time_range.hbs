@@ -17,14 +17,14 @@
 }}
 
 <div class="span title">
-  Time Range <i class="icon-question-sign"></i>
+  {{t common.timeRange}} <i class="icon-question-sign"></i>
 </div>
 <ul class="display-inline-block nav nav-pills">
   {{#each preset in view.presets}}
     {{view view.presetView presetBinding="preset" widgetBinding="view"}}
   {{/each}}
-  From {{view view.dateFromView}}
-  To {{view view.dateToView}}
+  {{t from}} {{view view.dateFromView}}
+  {{t to}} {{view view.dateToView}}
 </ul>
 <div id="slider">
   <sapn class="period-marker">{{view.rangeLabel}}</sapn>

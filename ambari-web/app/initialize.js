@@ -28,13 +28,14 @@ App.defaultLocalStackVersion = 'HDPLocal-1.2.0';
 App.defaultJavaHome = '/usr/jdk/jdk1.6.0_31';
 App.addServicesEnabled = false;
 // default AJAX timeout
-App.timeout = 20000;
+App.timeout = 180000;
 // max number of retries for certain AJAX calls
 App.maxRetries = 3;
 App.bgOperationsUpdateInterval = 6000;
 App.componentsUpdateInterval = 6000;
 App.contentUpdateInterval = 15000;
 App.maxRunsForAppBrowser = 500;
+App.pageReloadTime=3600000;
 
 // this is to make sure that IE does not cache data when making AJAX calls to the server
 $.ajaxSetup({
@@ -43,7 +44,6 @@ $.ajaxSetup({
 
 require('messages');
 require('utils/base64');
-require('utils/data_table');
 require('utils/db');
 require('utils/helper');
 require('models');
@@ -51,6 +51,8 @@ require('controllers');
 require('templates');
 require('views');
 require('router');
+
+require('utils/updater');
 
 require('mappers/server_data_mapper');
 require('mappers/status_mapper');

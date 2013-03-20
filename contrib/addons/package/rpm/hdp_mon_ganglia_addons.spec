@@ -22,16 +22,22 @@
 # RPM Spec file for Ganglia Add-ons for HDP Monitoring Dashboard
 #
 
+%define name  hdp_mon_ganglia_addons
+%define release %(cat %{_sourcedir}/release.txt)
+%define version %(cat %{_sourcedir}/version.txt)
+%define buildroot %{_tmppath}/%{name}-%{version}-buildroot
+
+
 Summary: Ganglia Add-ons for HDP Monitoring Dashboard
-Name: hdp_mon_ganglia_addons
-Version: 1.2.1.2
+Name: %{name}
+Version: %{version}
 URL: http://hortonworks.com
-Release: 1
+Release: %{release}%{?dist}
 License: Apache License, Version 2.0
 Vendor: Hortonworks <ambari-group@hortonworks.com>
 Group: System Environment/Base
 Source: %{name}-%{version}.tar.gz
-Buildroot: %{_tmppath}/%{name}-%{version}-buildroot
+Buildroot: %{buildroot}
 Requires: gweb >= 2.2
 
 %if 0%{?suse_version}

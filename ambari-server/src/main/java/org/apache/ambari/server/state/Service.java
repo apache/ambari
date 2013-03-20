@@ -84,4 +84,17 @@ public interface Service {
   public boolean isClientOnlyService();
 
   public void delete() throws AmbariException;
+
+  public enum Type {
+    HDFS,
+    MAPREDUCE,
+    HBASE,
+    HIVE,
+    OOZIE,
+    WEBHCAT,
+    SQOOP,
+    NAGIOS,
+    GANGLIA,
+    ZOOKEEPER
+  }
 }

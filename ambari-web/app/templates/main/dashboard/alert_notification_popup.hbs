@@ -16,7 +16,7 @@
 * limitations under the License.
 }}
 
-<p>You have {{view.warnAlertsCount}} critical alert notification(s).</p>
+<p>{{view.warnAlertsMessage}}</p>
 {{#if view.warnAlertsCount}}
   <ul id='summary-alerts-list' class="alerts">
     {{#each view.warnAlerts}}

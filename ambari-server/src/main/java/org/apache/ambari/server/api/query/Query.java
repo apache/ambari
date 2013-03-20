@@ -21,7 +21,6 @@ package org.apache.ambari.server.api.query;
 import org.apache.ambari.server.api.services.Result;
 import org.apache.ambari.server.controller.spi.*;
 
-import java.util.Map;
 import java.util.Set;
 
 
@@ -41,13 +40,13 @@ public interface Query {
   public void addProperty(String group, String property, TemporalInfo temporalInfo);
 
   /**
-   * Add a property to the query.
+   * Add a local (not sub-resource) property to the query.
    * This is the select portion of the query.
    *
    * @param property the property id which contains the group, property name
    *                 and whether the property is temporal
    */
-  public void addProperty(String property);
+  public void addLocalProperty(String property);
 
   /**
    * Obtain the properties of the query.
@@ -56,7 +55,7 @@ public interface Query {
    *
    * @return the query properties
    */
-  public Map<String, Set<String>> getProperties();
+  public Set<String> getProperties();
 
   /**
    * Execute the query.

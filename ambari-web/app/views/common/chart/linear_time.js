@@ -142,7 +142,7 @@ App.ChartLinearTimeView = Ember.View.extend({
   },
 
   loadData: function() {
-    var validUrl = this.get('url');
+    var validUrl = this.getFormattedUrl();
     if (validUrl) {
       var hash = {};
       hash.url = validUrl;
@@ -303,7 +303,6 @@ App.ChartLinearTimeView = Ember.View.extend({
     }
     var seriesData = this.transformToSeries(jsonData);
 
-    if (this.checkSeries(seriesData)) {
       //if graph opened as modal popup
       var popup_path = $("#" + this.id + "-container" + this.get('popupSuffix'));
       var graph_container = $("#" + this.id + "-container");
@@ -318,6 +317,7 @@ App.ChartLinearTimeView = Ember.View.extend({
           $(value).children().remove();
         });
       }
+    if (this.checkSeries(seriesData)) {
       // Check container exists (may be not, if we go to another page and wait while graphs loading)
       if (graph_container.length) {
         this.draw(seriesData);
@@ -326,26 +326,49 @@ App.ChartLinearTimeView = Ember.View.extend({
     }
     else {
       this.set('isReady', true);
-      this._showMessage('info', this.t('graphs.noData.title'), this.t('graphs.noData.message'));
+      //if Axis X time interval is default(60 minutes)
+      if(this.get('timeUnitSeconds') === 3600){
+        this._showMessage('info', this.t('graphs.noData.title'), this.t('graphs.noData.message'));
+        this.set('hasData', false);
+      } else {
+        this._showMessage('info', this.t('graphs.noData.title'), this.t('graphs.noDataAtTime.message'));
+      }
       this.set('isPopup', false);
-      this.set('hasData', false);
     }
   },
 
   /**
-   * Returns a custom time unit for the graph's X axis. This is needed
-   * as Rickshaw's default time X axis uses UTC time, which can be confusing
-   * for users expecting locale specific time. This value defaults to
-   * App.ChartLinearTimeView.FifteenMinuteTimeUnit.
+   * Returns a custom time unit, that depends on X axis interval length, for the graph's X axis.
+   * This is needed as Rickshaw's default time X axis uses UTC time, which can be confusing
+   * for users expecting locale specific time.
    *
    * If <code>null</code> is returned, Rickshaw's default time unit is used.
    *
    * @type Function
    * @return Rickshaw.Fixtures.Time
-   * @default App.ChartLinearTimeView.FifteenMinuteTimeUnit
    */
-  localeTimeUnit: function(){
-    return App.ChartLinearTimeView.FifteenMinuteTimeUnit;
+  localeTimeUnit: function(timeUnitSeconds){
+    var timeUnit = new Rickshaw.Fixtures.Time();
+    switch (timeUnitSeconds){
+      case 604800:
+        timeUnit = timeUnit.unit('day');
+        break;
+      case 2592000:
+        timeUnit = timeUnit.unit('week');
+        break;
+      case 31104000:
+        timeUnit = timeUnit.unit('month');
+        break;
+      default:
+        timeUnit = {
+          name: timeUnitSeconds / 240 + ' minute',
+          seconds: timeUnitSeconds / 4,
+          formatter: function (d) {
+            return d.toLocaleString().match(/(\d+:\d+):/)[1];
+          }
+        };
+    }
+    return timeUnit;
   },
 
   /**
@@ -369,6 +392,26 @@ App.ChartLinearTimeView = Ember.View.extend({
           + "px");
     }
   },
+  /**
+   * temporary fix for incoming data for graph
+   * to shift data time to correct time point
+   */
+  dataShiftFix: function(data){
+    var nowTime = Math.round(new Date().getTime() / 1000);
+    data.forEach(function(series){
+      var l = series.data.length;
+      var shiftDiff = nowTime - series.data[l - 1].x;
+      if(shiftDiff > 3600){
+        for(var i = 0;i < l;i++){
+          series.data[i].x = series.data[i].x + shiftDiff;
+        }
+        series.data.unshift({
+          x: nowTime - this.get('timeUnitSeconds'),
+          y: 0
+        });
+      }
+    }, this);
+  },
 
   draw: function(seriesData) {
     var isPopup = this.get('isPopup');
@@ -377,6 +420,8 @@ App.ChartLinearTimeView = Ember.View.extend({
       p = this.get('popupSuffix');
     }
     var palette = new Rickshaw.Color.Palette({ scheme: 'munin'});
+
+    this.dataShiftFix(seriesData);
 
     // var palette = new Rickshaw.Color.Palette({
     //   scheme: this._paletteScheme
@@ -467,7 +512,7 @@ App.ChartLinearTimeView = Ember.View.extend({
 
     xAxis = new Rickshaw.Graph.Axis.Time({
       graph: _graph,
-      timeUnit: this.localeTimeUnit()
+      timeUnit: this.localeTimeUnit(this.get('timeUnitSeconds'))
     });
 
     var orientation = 'right';
@@ -561,7 +606,6 @@ App.ChartLinearTimeView = Ember.View.extend({
     else {
       this.set('_graph', _graph);
     }
-    this.set('isPopup', false);
   },
 
 
@@ -586,13 +630,16 @@ App.ChartLinearTimeView = Ember.View.extend({
         '{{#if bodyClass}}{{view bodyClass}}',
         '{{else}}',
           '<div class="screensaver no-borders chart-container" {{bindAttr class="view.isReady:hide"}} ></div>',
+          '<div class="time-label" {{bindAttr class="view.isReady::hidden"}}>{{view.currentTimeState.name}}</div>',
+          '{{#if view.isTimePagingEnable}}<div class="arrow-left" {{bindAttr class="view.leftArrowVisible:visibleArrow"}} {{action "switchTimeBack" target="view"}}></div>{{/if}}',
           '<div id="'+this.get('id')+'-container'+this.get('popupSuffix')+'" class="chart-container chart-container'+this.get('popupSuffix')+' hide" {{bindAttr class="view.isReady:show"}} >',
             '<div id="'+this.get('id')+'-yaxis'+this.get('popupSuffix')+'" class="'+this.get('id')+'-yaxis chart-y-axis"></div>',
             '<div id="'+this.get('id')+'-xaxis'+this.get('popupSuffix')+'" class="'+this.get('id')+'-xaxis chart-x-axis"></div>',
             '<div id="'+this.get('id')+'-legend'+this.get('popupSuffix')+'" class="'+this.get('id')+'-legend chart-legend"></div>',
             '<div id="'+this.get('id')+'-chart'+this.get('popupSuffix')+'" class="'+this.get('id')+'-chart chart"></div>',
-            '<div id="'+this.get('id')+'-title'+this.get('popupSuffix')+'" class="'+this.get('id')+'-title chart-title">{{view.title}}</div>'+
+            '<div id="'+this.get('id')+'-title'+this.get('popupSuffix')+'" class="'+this.get('id')+'-title chart-title">{{view.title}}</div>',
           '</div>',
+        '{{#if view.isTimePagingEnable}}<div class="arrow-right" {{bindAttr class="view.rightArrowVisible:visibleArrow"}} {{action "switchTimeForward" "forward" target="view"}}></div>{{/if}}',
         '{{/if}}',
         '</div>',
         '<div class="modal-footer">',
@@ -610,13 +657,107 @@ App.ChartLinearTimeView = Ember.View.extend({
       onPrimary: function() {
         this.hide();
         self.set('isPopup', false);
-      }
+        self.set('timeUnitSeconds', 3600);
+      },
+      onClose: function(){
+        this.hide();
+        self.set('isPopup', false);
+        self.set('timeUnitSeconds', 3600);
+      },
+      /**
+       * check is time paging feature is enable for graph
+       */
+      isTimePagingEnable: function(){
+        return !self.get('isTimePagingDisable');
+      }.property(),
+      rightArrowVisible: function(){
+        return (this.get('isReady') && (this.get('currentTimeIndex') != 0))? true : false;
+      }.property('isReady', 'currentTimeIndex'),
+      leftArrowVisible: function(){
+        return (this.get('isReady') && (this.get('currentTimeIndex') != 7))? true : false;
+      }.property('isReady', 'currentTimeIndex'),
+      /**
+       * move graph back by time
+       * @param event
+       */
+      switchTimeBack: function(event){
+        var index = this.get('currentTimeIndex');
+        // 7 - number of last time state
+        if(index < 7){
+          this.reloadGraphByTime(++index);
+        }
+      },
+      /**
+       * move graph forward by time
+       * @param event
+       */
+      switchTimeForward: function(event){
+        var index = this.get('currentTimeIndex');
+        if(index > 0){
+          this.reloadGraphByTime(--index);
+        }
+      },
+      /**
+       * reload graph depending on the time
+       * @param index
+       */
+      reloadGraphByTime: function(index){
+        this.set('currentTimeIndex', index);
+        self.set('timeUnitSeconds', this.get('timeStates')[index].seconds);
+        self.loadData();
+      },
+      timeStates: [
+        {name: Em.I18n.t('graphs.timeRange.hour'), seconds: 3600},
+        {name: Em.I18n.t('graphs.timeRange.twoHours'), seconds: 7200},
+        {name: Em.I18n.t('graphs.timeRange.fourHours'), seconds: 14400},
+        {name: Em.I18n.t('graphs.timeRange.twelveHours'), seconds: 43200},
+        {name: Em.I18n.t('graphs.timeRange.day'), seconds: 86400},
+        {name: Em.I18n.t('graphs.timeRange.week'), seconds: 604800},
+        {name: Em.I18n.t('graphs.timeRange.month'), seconds: 2592000},
+        {name: Em.I18n.t('graphs.timeRange.year'), seconds: 31104000}
+      ],
+      currentTimeIndex: 0,
+      currentTimeState: function(){
+        return this.get('timeStates').objectAt(this.get('currentTimeIndex'));
+      }.property('currentTimeIndex')
     });
     Ember.run.next(function() {
       self.loadData();
       self.set('isPopupReady', false);
     });
-  }
+  },
+  /**
+   * return formatted URL that depends on timeUnit
+   * on host metrics depends on host name
+   * on MapReduce metrics depends on  jobTracker Node
+   * @return {String}
+   */
+  getFormattedUrl:function(){
+    var toSeconds = Math.round(new Date().getTime() / 1000);
+    var hostName = (this.get('content')) ? this.get('content.hostName') : "";
+    var nameNodeName = (App.HDFSService.find().objectAt(0)) ?
+      App.HDFSService.find().objectAt(0).get('nameNode').get('hostName') :
+      "";
+    var jobTrackerNode = (App.MapReduceService.find().objectAt(0))
+      ? App.MapReduceService.find().objectAt(0).get('jobTracker').get('hostName')
+      : "";
+    var timeUnit = this.get('timeUnitSeconds');
+
+    return App.formatUrl(
+      this.get('urlPrefix') + this.get('sourceUrl'),
+      {
+        toSeconds: toSeconds,
+        fromSeconds: toSeconds - timeUnit,
+        stepSeconds: 15,
+        hostName: hostName,
+        nameNodeName: nameNodeName,
+        jobTrackerNode: jobTrackerNode
+      },
+      this.get('mockUrl')
+    );
+  },
+  //60 minute interval on X axis.
+  timeUnitSeconds: 3600
 });
 
 /**
@@ -694,17 +835,4 @@ App.ChartLinearTimeView.TimeElapsedFormatter = function (millis) {
     }
   }
   return value;
-};
-
-/**
- * A time unit which can be used for showing 15 minute intervals on X axis.
- * 
- * @type Rickshaw.Fixtures.Time
- */
-App.ChartLinearTimeView.FifteenMinuteTimeUnit = {
-  name: '15 minute',
-  seconds: 60 * 15,
-  formatter: function (d) {
-    return d.toLocaleString().match(/(\d+:\d+):/)[1];
-  }
 };

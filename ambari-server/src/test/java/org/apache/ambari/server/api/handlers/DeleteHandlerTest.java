@@ -18,6 +18,7 @@ package org.apache.ambari.server.api.handlers;
  * limitations under the License.
  */
 
+import org.apache.ambari.server.api.predicate.InvalidQueryException;
 import org.apache.ambari.server.api.query.Query;
 import org.apache.ambari.server.api.resources.ResourceInstance;
 import org.apache.ambari.server.api.services.ResultStatus;
@@ -28,7 +29,6 @@ import org.apache.ambari.server.api.util.TreeNode;
 import org.apache.ambari.server.controller.spi.Predicate;
 import org.apache.ambari.server.controller.spi.RequestStatus;
 import org.apache.ambari.server.controller.spi.Resource;
-import org.apache.ambari.server.controller.utilities.PropertyHelper;
 import org.junit.Test;
 
 import java.util.*;
@@ -170,5 +170,22 @@ public class DeleteHandlerTest {
     protected PersistenceManager getPersistenceManager() {
       return m_testPm;
     }
+  }
+
+  @Test
+  public void testHandleRequest__InvalidQuery() throws Exception {
+    Request request = createNiceMock(Request.class);
+    ResourceInstance resource = createNiceMock(ResourceInstance.class);
+    Exception e = new InvalidQueryException("test exception");
+
+    expect(request.getResource()).andReturn(resource);
+    expect(request.getQueryPredicate()).andThrow(e);
+    replay(request, resource);
+
+    Result result = new DeleteHandler().handleRequest(request);
+    assertEquals(ResultStatus.STATUS.BAD_REQUEST, result.getStatus().getStatus());
+    assertTrue(result.getStatus().getMessage().contains(e.getMessage()));
+
+    verify(request, resource);
   }
 }

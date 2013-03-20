@@ -507,7 +507,7 @@ App.WizardController = Em.Controller.extend({
       return;
     }
     var displayOrderConfig = require('data/services');
-    var apiUrl = '/stacks/HDP/version/1.2.0';
+    var apiUrl = App.get('stackVersionURL');
     var apiService = this.loadServiceComponents(displayOrderConfig, apiUrl);
     this.set('content.services', apiService);
     App.db.setService(apiService);

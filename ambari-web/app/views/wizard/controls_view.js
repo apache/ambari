@@ -34,7 +34,7 @@ App.ServiceConfigPopoverSupport = Ember.Mixin.create({
   didInsertElement: function () {
     if (this.get('isPopoverEnabled') !== 'false') {
       this.$().popover({
-        title: this.get('serviceConfig.displayName') + '<br><small>' + this.get('serviceConfig.name') + '</small>',
+        title: Em.I18n.t('installer.controls.serviceConfigPopover.title').format(this.get('serviceConfig.displayName'), this.get('serviceConfig.name')),
         content: this.get('serviceConfig.description'),
         placement: 'right',
         trigger: 'hover'
@@ -279,9 +279,9 @@ App.ServiceConfigMultipleHostsDisplay = Ember.Mixin.create(App.ServiceConfigHost
   otherLength: function () {
     var len = this.get('value').length;
     if (len > 2) {
-      return (len - 1) + ' others';
+      return Em.I18n.t('installer.controls.serviceConfigMultipleHosts.others').format(len - 1);
     } else {
-      return '1 other';
+      return Em.I18n.t('installer.controls.serviceConfigMultipleHosts.other');
     }
   }.property('value')
 
@@ -307,7 +307,7 @@ App.ServiceConfigMasterHostsView = Ember.View.extend(App.ServiceConfigMultipleHo
   showHosts: function () {
     var serviceConfig = this.get('serviceConfig');
     App.ModalPopup.show({
-      header: serviceConfig.category + ' Hosts',
+      header: Em.I18n.t('installer.controls.serviceConfigMasterHosts.header').format(serviceConfig.category),
       bodyClass: Ember.View.extend({
         serviceConfig: serviceConfig,
         templateName: require('templates/wizard/master_hosts_popup')
@@ -360,9 +360,8 @@ App.AddSlaveComponentGroupButton = Ember.View.extend({
 
   didInsertElement: function () {
     this.$().popover({
-      title: 'Add a ' + this.get('slaveComponentName') + ' Group',
-      content: 'If you need different settings on certain ' + this.get('slaveComponentName') + 's, you can add a ' + this.get('slaveComponentName') + ' group.<br>' +
-        'All ' + this.get('slaveComponentName') + 's within the same group will have the same set of settings.  You can create multiple groups.',
+      title: Em.I18n.t('installer.controls.addSlaveComponentGroupButton.title').format(this.get('slaveComponentName')),
+      content: Em.I18n.t('installer.controls.addSlaveComponentGroupButton.content').format(this.get('slaveComponentName'), this.get('slaveComponentName'), this.get('slaveComponentName')),
       placement: 'right',
       trigger: 'hover'
     });
@@ -453,7 +452,7 @@ App.SlaveComponentChangeGroupNameView = Ember.View.extend({
     this.set('error', false);
   }.observes('controller.activeGroup'),
   errorMessage: function () {
-    return this.get('error') ? 'group with this name already exist' : '';
+    return this.get('error') ? Em.I18n.t('installer.controls.slaveComponentChangeGroupName.error') : '';
   }.property('error'),
 
   /**

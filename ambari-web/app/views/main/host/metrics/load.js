@@ -28,17 +28,10 @@ var App = require('app');
  */
 App.ChartHostMetricsLoad = App.ChartLinearTimeView.extend({
   id: "host-metrics-load",
-  title: "Load",
+  title: Em.I18n.t('hosts.host.metrics.load'),
   renderer: 'line',
-  url: function () {
-    return App.formatUrl(
-      this.get('urlPrefix') + "/hosts/{hostName}?fields=metrics/load/load_fifteen[{fromSeconds},{toSeconds},{stepSeconds}],metrics/load/load_one[{fromSeconds},{toSeconds},{stepSeconds}],metrics/load/load_five[{fromSeconds},{toSeconds},{stepSeconds}]",
-      {
-        hostName: this.get('content').get('hostName')
-      },
-      "/data/hosts/metrics/load.json"
-    );
-  }.property('clusterName').volatile(),
+  sourceUrl: "/hosts/{hostName}?fields=metrics/load/load_fifteen[{fromSeconds},{toSeconds},{stepSeconds}],metrics/load/load_one[{fromSeconds},{toSeconds},{stepSeconds}],metrics/load/load_five[{fromSeconds},{toSeconds},{stepSeconds}]",
+  mockUrl: "/data/hosts/metrics/load.json",
 
   transformToSeries: function (jsonData) {
     var seriesArray = [];

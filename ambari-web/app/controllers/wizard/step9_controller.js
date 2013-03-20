@@ -261,6 +261,9 @@ App.WizardStep9Controller = Em.Controller.extend({
     }
   },
 
+  /**
+   * run start/check services after installation phase
+   */
   launchStartServices: function () {
     var self = this;
     var clusterName = this.get('content.cluster.name');
@@ -269,7 +272,7 @@ App.WizardStep9Controller = Em.Controller.extend({
     var method = 'PUT';
 
     if (this.get('content.controllerName') === 'addHostController') {
-      url = App.apiPrefix + '/clusters/' + clusterName + '/host_components?HostRoles/component_name=GANGLIA_MONITOR|HostRoles/component_name=HBASE_REGIONSERVER|HostRoles/component_name=DATANODE|HostRoles/component_name=TASKTRACKER&HostRoles/state=INSTALLED';
+      url = App.apiPrefix + '/clusters/' + clusterName + '/host_components?(HostRoles/component_name=GANGLIA_MONITOR|HostRoles/component_name=HBASE_REGIONSERVER|HostRoles/component_name=DATANODE|HostRoles/component_name=TASKTRACKER)&(HostRoles/state=INSTALLED)';
       data = '{"HostRoles": {"state": "STARTED"}}';
     }
 
@@ -356,6 +359,12 @@ App.WizardStep9Controller = Em.Controller.extend({
     }
   },
 
+  /**
+   * calculate progress of tasks per host
+   * @param actions
+   * @param contentHost
+   * @return {Number}
+   */
   progressPerHost: function (actions, contentHost) {
     var progress = 0;
     var actionsPerHost = actions.length;
@@ -364,15 +373,20 @@ App.WizardStep9Controller = Em.Controller.extend({
       + actions.filterProperty('Tasks.status', 'FAILED').length
       + actions.filterProperty('Tasks.status', 'ABORTED').length
       + actions.filterProperty('Tasks.status', 'TIMEDOUT').length;
-
-    // for the install phase (PENDING), % completed per host goes up to 33%; floor(100 / 3)
-    // for the start phase (INSTALLED), % completed starts from 34%
+    var queuedActions = actions.filterProperty('Tasks.status', 'QUEUED').length;
+    var inProgressActions = actions.filterProperty('Tasks.status', 'IN_PROGRESS').length;
+    /** for the install phase (PENDING), % completed per host goes up to 33%; floor(100 / 3)
+     * for the start phase (INSTALLED), % completed starts from 34%
+     * when task in queued state means it's completed on 9%
+     * in progress - 35%
+     * completed - 100%
+     */
     switch (this.get('content.cluster.status')) {
       case 'PENDING':
-        progress = Math.floor(((completedActions / actionsPerHost) * 100) / 3);
+        progress = Math.ceil(((queuedActions * 0.09) + (inProgressActions * 0.35) + completedActions ) / actionsPerHost * 33);
         break;
       case 'INSTALLED':
-        progress = 34 + Math.floor(((completedActions / actionsPerHost) * 100 * 2) / 3);
+        progress = 34 + Math.ceil(((queuedActions * 0.09) + (inProgressActions * 0.35) + completedActions ) / actionsPerHost * 66);
         break;
       default:
         progress = 100;

@@ -28,16 +28,11 @@ var App = require('app');
  */
 App.ChartServiceMetricsHBASE_HlogSplitSize = App.ChartLinearTimeView.extend({
   id: "service-metrics-hbase-hlog-split-size",
-  title: "HLog Split Size",
+  title: Em.I18n.t('services.service.info.metrics.hbase.hlogSplitSize'),
   yAxisFormatter: App.ChartLinearTimeView.BytesFormatter,
 
-  url: function () {
-    return App.formatUrl(
-      this.get('urlPrefix') + "/services/HBASE/components/HBASE_MASTER?fields=metrics/hbase/master/splitSize_avg_time[{fromSeconds},{toSeconds},{stepSeconds}]",
-      {},
-      "/data/services/metrics/hbase/hlog_split_size.json"
-    );
-  }.property('clusterName').volatile(),
+  sourceUrl: "/services/HBASE/components/HBASE_MASTER?fields=metrics/hbase/master/splitSize_avg_time[{fromSeconds},{toSeconds},{stepSeconds}]",
+  mockUrl: "/data/services/metrics/hbase/hlog_split_size.json",
 
   transformToSeries: function (jsonData) {
     var seriesArray = [];

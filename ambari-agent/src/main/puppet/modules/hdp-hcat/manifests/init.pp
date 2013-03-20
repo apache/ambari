@@ -23,6 +23,7 @@ class hdp-hcat(
 ) inherits hdp-hcat::params
 {
   $hcat_config_dir = $hdp-hcat::params::hcat_conf_dir
+  $hcat_pid_dir = $hdp-hcat::params::hcat_pid_dir
 
   if ($hdp::params::use_32_bits_on_slaves == false) {
     $size = 64
@@ -42,7 +43,12 @@ class hdp-hcat(
       force => true
     }
 
-    Hdp::Package['hcat'] -> Hdp::Directory[$hcat_config_dir]
+    hdp::directory { $hcat_pid_dir:
+      service_state => $service_state,
+      force => true
+    }
+
+    Hdp::Package['hcat'] -> Hdp::Directory[$hcat_config_dir] -> Hdp::Directory[$hcat_pid_dir]
 
   } elsif ($service_state == 'installed_and_configured') {
     hdp::package { 'hcat' : 
@@ -54,9 +60,22 @@ class hdp-hcat(
       force => true
     }
 
+    hdp::directory_recursive_create { $hcat_pid_dir:
+      owner => $webhcat_user,
+      service_state => $service_state,
+      force => true
+    }
+
+    hdp::user{ $webhcat_user:}
+
+    if ($webhcat_user != $hcat_user) {
+      hdp::user { $hcat_user:}
+    }
+
     hdp-hcat::configfile { 'hcat-env.sh':}
   
-    Hdp::Package['hcat'] -> Hdp::Directory[$hcat_config_dir] -> Hdp-hcat::Configfile<||> 
+    Hdp::Package['hcat'] -> Hdp::User<|title == $webhcat_user or title == $hcat_user|>  -> Hdp::Directory[$hcat_config_dir] -> Hdp::Directory_recursive_create[$hcat_pid_dir] -> Hdp-hcat::Configfile<||> 
+
  } else {
     hdp_fail("TODO not implemented yet: service_state = ${service_state}")
   }

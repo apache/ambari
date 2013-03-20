@@ -152,7 +152,7 @@ App.ClusterController = Em.Controller.extend({
       var nagiosSvc = svcs.findProperty("serviceName", "NAGIOS");
       return nagiosSvc != null;
     }
-  }.property('App.router.updateController.isUpdated'),
+  }.property('App.router.updateController.isUpdated', 'dataLoadList.services'),
 
   /**
    * Sorted list of alerts.
@@ -175,106 +175,85 @@ App.ClusterController = Em.Controller.extend({
     });
     this.set('alerts', sortedArray);
   },
+  
+  /**
+   * Determination of Nagios presence is known only after App.Service is
+   * loaded from server. When that is done, no one tells alerts to load,
+   * due to which alerts are not loaded & shown till the next polling cycle.
+   * This method immediately loads alerts once Nagios presence is known.
+   */
+  isNagiosInstalledListener: function () {
+    var self = this;
+    self.loadAlerts(function () {
+      self.updateLoadStatus('alerts');
+    });
+  }.observes('isNagiosInstalled'),
 
   /**
-   * This method automatically loads alerts when Nagios URL
-   * changes. Once done it will trigger dataLoadList.alerts
-   * property, which will trigger the alerts property.
+   * Load alerts from server
+   * @param callback Slave function, should be called to fire delayed update.
+   * Look at <code>App.updater.run</code> for more information.
+   * Also used to set <code>dataLoadList.alerts</code> status during app loading
    */
-  loadAlerts:function () {
-    if(App.router.get('updateController.isUpdated')){
-      return;
-    }
-    var nagiosUrl = this.get('nagiosUrl');
-    if (nagiosUrl) {
-      var lastSlash = nagiosUrl.lastIndexOf('/');
-      if (lastSlash > -1) {
-        nagiosUrl = nagiosUrl.substring(0, lastSlash);
-      }
-      var dataUrl = this.getUrl('/data/alerts/alerts.json', '/host_components?HostRoles/component_name=NAGIOS_SERVER&fields=HostRoles/nagios_alerts');
+  loadAlerts:function (callback) {
+    if (this.get('isNagiosInstalled')) {
+      var dataUrl = this.getUrl('/data/alerts/alerts.json', '/host_components?fields=HostRoles/nagios_alerts&HostRoles/component_name=NAGIOS_SERVER');
+      var self = this;
       var ajaxOptions = {
         dataType:"json",
-        context:this,
-        complete:function (jqXHR, textStatus) {
-          this.updateLoadStatus('alerts');
-          this.updateAlerts();
+        complete:function () {
+          self.updateAlerts();
+          callback();
         },
         error: function(jqXHR, testStatus, error) {
-          // this.showMessage(Em.I18n.t('nagios.alerts.unavailable'));
           console.log('Nagios $.ajax() response:', error);
         }
       };
       App.HttpClient.get(dataUrl, App.alertsMapper, ajaxOptions);
     } else {
-      this.updateLoadStatus('alerts');
       console.log("No Nagios URL provided.")
+      callback();
     }
-  }.observes('nagiosUrl'),
+  },
 
   /**
-   * Show message in UI
+   * Send request to server to load components updated statuses
+   * @param callback Slave function, should be called to fire delayed update.
+   * Look at <code>App.updater.run</code> for more information
+   * @return {Boolean} Whether we have errors
    */
-  showMessage: function(message){
-    App.ModalPopup.show({
-      header: 'Message',
-      body: message,
-      onPrimary: function() {
-        this.hide();
-      },
-      secondary : null
-    });
-  },
+  loadUpdatedStatus: function(callback){
 
-  statusTimeoutId: null,
+    if(!this.get('clusterName')){
+      callback();
+      return false;
+    }
+    
+    var servicesUrl = this.getUrl('/data/dashboard/services.json', '/services?fields=ServiceInfo,components/host_components/HostRoles/desired_state,components/host_components/HostRoles/state');
+
+    App.HttpClient.get(servicesUrl, App.statusMapper, {
+      complete: callback
+    });
+    return true;
+  },
 
   loadUpdatedStatusDelayed: function(delay){
-    delay = delay || App.componentsUpdateInterval;
-    var self = this;
-
-    this.set('statusTimeoutId',
-      setTimeout(function(){
-        self.loadUpdatedStatus();
-      }, delay)
-    );
+    setTimeout(function(){
+      App.updater.immediateRun('loadUpdatedStatus');
+    }, delay);
   },
 
-  loadUpdatedStatus: function(){
-
-    var timeoutId = this.get('statusTimeoutId');
-    if(timeoutId){
-      clearTimeout(timeoutId);
-      this.set('statusTimeoutId', null);
-    }
-
+  /**
+   * Start polling, when <code>isWorking</code> become true
+   */
+  startPolling: function(){
     if(!this.get('isWorking')){
       return false;
     }
-
-    if(!this.get('clusterName')){
-      this.loadUpdatedStatusDelayed(this.get('componentsUpdateInterval')/2, 'error:clusterName');
-      return;
-    }
-    
-    var servicesUrl = this.getUrl('/data/dashboard/services.json', '/services?fields=components/ServiceComponentInfo,components/host_components,components/host_components/HostRoles');
-
-    var self = this;
-    App.HttpClient.get(servicesUrl, App.statusMapper, {
-      complete:function (jqXHR, textStatus) {
-        //console.log('Cluster Controller: Updated components statuses successfully!!!')
-        self.loadUpdatedStatusDelayed();
-      }
-    }, function(){
-      self.loadUpdatedStatusDelayed(null, 'error:response error');
-    });
-
-  },
-  startLoadUpdatedStatus: function(){
-    var self = this;
-    this.set('isWorking', true);
-    setTimeout(function(){
-      self.loadUpdatedStatus();
-    }, App.componentsUpdateInterval*2);
-  },
+    App.updater.run(this, 'loadUpdatedStatus', 'isWorking'); //update will not run it immediately
+    App.updater.run(this, 'loadAlerts', 'isWorking'); //update will not run it immediately
+    return true;
+  }.observes('isWorking'),
   /**
    *
    *  load all data and update load status
@@ -290,7 +269,7 @@ App.ClusterController = Em.Controller.extend({
     }
 
     var clusterUrl = this.getUrl('/data/clusters/cluster.json', '?fields=Clusters');
-    var hostsUrl = this.getUrl('/data/hosts/hosts.json', '/hosts?fields=Hosts,host_components,metrics/cpu,metrics/disk,metrics/load,metrics/memory');
+    var hostsUrl = this.getUrl('/data/hosts/hosts.json', '/hosts?fields=Hosts/host_name,Hosts/public_host_name,Hosts/disk_info,Hosts/cpu_count,Hosts/total_mem,Hosts/host_status,Hosts/last_heartbeat_time,Hosts/os_arch,Hosts/os_type,Hosts/ip,host_components,metrics/disk,metrics/load/load_one');
     var usersUrl = App.testMode ? '/data/users/users.json' : App.apiPrefix + '/users/?fields=*';
     var racksUrl = "/data/racks/racks.json";
 
@@ -329,6 +308,10 @@ App.ClusterController = Em.Controller.extend({
     App.router.get('updateController').updateServiceMetric(function(){
       self.updateLoadStatus('services');
     }, true);
+
+    this.loadAlerts(function(){
+      self.updateLoadStatus('alerts');
+    });
 
   },
 

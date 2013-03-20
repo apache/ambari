@@ -28,19 +28,11 @@ var App = require('app');
  */
 App.ChartHostMetricsMemory = App.ChartLinearTimeView.extend({
   id: "host-metrics-memory",
-  title: "Memory Usage",
+  title: Em.I18n.t('hosts.host.metrics.memory'),
   yAxisFormatter: App.ChartLinearTimeView.BytesFormatter,
   renderer: 'line',
-  url: function () {
-    return App.formatUrl(
-      this.get('urlPrefix') + "/hosts/{hostName}?fields=metrics/memory/swap_free[{fromSeconds},{toSeconds},{stepSeconds}],metrics/memory/mem_shared[{fromSeconds},{toSeconds},{stepSeconds}],metrics/memory/mem_free[{fromSeconds},{toSeconds},{stepSeconds}],metrics/memory/mem_cached[{fromSeconds},{toSeconds},{stepSeconds}],metrics/memory/mem_buffers[{fromSeconds},{toSeconds},{stepSeconds}]",
-      {
-        clusterName: this.get('clusterName'),
-        hostName: this.get('content').get('hostName')
-      },
-      "/data/hosts/metrics/memory.json"
-    );
-  }.property('clusterName').volatile(),
+  sourceUrl: "/hosts/{hostName}?fields=metrics/memory/swap_free[{fromSeconds},{toSeconds},{stepSeconds}],metrics/memory/mem_shared[{fromSeconds},{toSeconds},{stepSeconds}],metrics/memory/mem_free[{fromSeconds},{toSeconds},{stepSeconds}],metrics/memory/mem_cached[{fromSeconds},{toSeconds},{stepSeconds}],metrics/memory/mem_buffers[{fromSeconds},{toSeconds},{stepSeconds}]",
+  mockUrl: "/data/hosts/metrics/memory.json",
 
   transformToSeries: function (jsonData) {
     var seriesArray = [];

@@ -23,18 +23,30 @@
         <div class="container">
           <a {{translateAttr href="topnav.logo.href"}} class="logo" target="_blank"><img src="/img/logo-small.png" alt="Apache Ambari" title="Apache Ambari"></a>
           <a class="brand" {{translateAttr href="topnav.logo.href"}} target="_blank" alt="Apache Ambari" title="Apache Ambari">{{t app.name}}</a>
-            {{!#if App.router.loggedIn} }
-              <a class="brand cluster-name" href="#">
-                 - {{clusterName} }
+
+          {{#if isClusterDataLoaded}}
+              <a class="brand cluster-name" href="javascript:void(null);" {{bindAttr title="clusterName"}}>
+                {{clusterDisplayName}}
+
+                {{#with App.router.backgroundOperationsController}}
+                  {{#if allOperationsCount}}
+                      <span class="label operations-count" {{action "showPopup" target="App.router.backgroundOperationsController"}}>{{allOperationsCount}}</span>
+                  {{/if}}
+                {{/with}}
+
               </a>
-            {{/if}}
-          <ul class="nav">
-            <!-- <li class="right"><a class="help" {{!translateAttr href="topnav.help.href"}} target="_blank">Help</a></li> -->
-            {{#if App.router.loggedIn}}
-            <li class="right"><a class="help" href="" {{action logoff}}>Sign out</a></li>
-            {{/if}}
-            <li class="right">{{loginName}}</li>
-          </ul>
+          {{/if}}
+
+          {{#if App.router.loggedIn}}
+            <div class="btn-group pull-right usermenu-wrapper">
+              <button class="btn btn-group dropdown-toggle"  data-toggle="dropdown">
+                {{App.router.loginName}}&nbsp;<span class="caret"></span>
+              </button>
+              <ul class="dropdown-menu">
+                <li><a href="" {{action logoff}}>{{t app.sighout}}</a></li>
+              </ul>
+            </div>
+          {{/if}}
         </div>
       </div>
     </div>

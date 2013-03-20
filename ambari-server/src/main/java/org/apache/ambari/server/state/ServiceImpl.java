@@ -257,13 +257,6 @@ public class ServiceImpl implements Service {
   @Override
   public synchronized void updateDesiredConfigs(Map<String, Config> configs) {
 
-    Set<String> deletedTypes = new HashSet<String>();
-    for (String type : this.desiredConfigs.keySet()) {
-      if (!configs.containsKey(type)) {
-        deletedTypes.add(type);
-      }
-    }
-
     for (Entry<String,Config> entry : configs.entrySet()) {
       boolean contains = false;
 
@@ -289,31 +282,6 @@ public class ServiceImpl implements Service {
 
 
       this.desiredConfigs.put(entry.getKey(), entry.getValue().getVersionTag());
-    }
-
-    if (!deletedTypes.isEmpty()) {
-      if (persisted) {
-        List<ServiceConfigMappingEntity> deleteEntities =
-            serviceConfigMappingDAO.findByServiceAndType(
-                serviceEntity.getClusterId(), serviceEntity.getServiceName(),
-                deletedTypes);
-        for (ServiceConfigMappingEntity deleteEntity : deleteEntities) {
-          if (LOG.isDebugEnabled()) {
-            LOG.debug("Deleting desired config from ServiceComponent"
-                + ", clusterId=" + serviceEntity.getClusterId()
-                + ", serviceName=" + serviceEntity.getServiceName()
-                + ", configType=" + deleteEntity.getConfigType()
-                + ", configVersionTag=" + deleteEntity.getVersionTag());
-          }
-          serviceEntity.getServiceConfigMappings().remove(
-              deleteEntity);
-          serviceConfigMappingDAO.remove(deleteEntity);
-        }
-      } else {
-        for (String deletedType : deletedTypes) {
-          desiredConfigs.remove(deletedType);
-        }
-      }
     }
 
     saveIfPersisted();

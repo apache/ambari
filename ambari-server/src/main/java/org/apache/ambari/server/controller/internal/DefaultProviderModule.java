@@ -48,7 +48,7 @@ public class DefaultProviderModule extends AbstractProviderModule {
 
   @Override
   protected ResourceProvider createResourceProvider(Resource.Type type) {
-    return ResourceProviderImpl.getResourceProvider(type, PropertyHelper.getPropertyIds(type),
-            PropertyHelper.getKeyPropertyIds(type), managementController);
+    return AbstractResourceProvider.getResourceProvider(type, PropertyHelper.getPropertyIds(type),
+        PropertyHelper.getKeyPropertyIds(type), managementController);
   }
 }

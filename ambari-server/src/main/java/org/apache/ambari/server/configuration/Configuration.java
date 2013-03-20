@@ -109,6 +109,10 @@ public class Configuration {
   public static final String SRVR_HOSTS_MAPPING = 
       "server.hosts.mapping";
 
+  public static final String SSL_TRUSTSTORE_PATH_KEY = "ssl.trustStore.path";
+  public static final String SSL_TRUSTSTORE_PASSWORD_KEY = "ssl.trustStore.password";
+  public static final String SSL_TRUSTSTORE_TYPE_KEY = "ssl.trustStore.type";
+
   private static final String SRVR_KSTR_DIR_DEFAULT = ".";
   public static final String SRVR_CRT_NAME_DEFAULT = "ca.crt";
   public static final String SRVR_KEY_NAME_DEFAULT = "ca.key";
@@ -209,6 +213,23 @@ public class Configuration {
       }
     }
     configsMap.put(SRVR_CRT_PASS_KEY, randStr);
+
+    loadSSLParams();
+  }
+
+  /**
+   * Loads trusted certificates store properties
+   */
+  private void loadSSLParams(){
+    if (properties.getProperty(SSL_TRUSTSTORE_PATH_KEY) != null) {
+      System.setProperty("javax.net.ssl.trustStore", properties.getProperty(SSL_TRUSTSTORE_PATH_KEY));
+    }
+    if (properties.getProperty(SSL_TRUSTSTORE_PASSWORD_KEY) != null) {
+      System.setProperty("javax.net.ssl.trustStorePassword", properties.getProperty(SSL_TRUSTSTORE_PASSWORD_KEY));
+    }
+    if (properties.getProperty(SSL_TRUSTSTORE_TYPE_KEY) != null) {
+      System.setProperty("javax.net.ssl.trustStoreType", properties.getProperty(SSL_TRUSTSTORE_TYPE_KEY));
+    }
   }
 
 

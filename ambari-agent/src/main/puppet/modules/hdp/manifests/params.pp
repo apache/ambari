@@ -122,6 +122,7 @@ class hdp::params()
 
   $hive_user = hdp_default("hive_user","hive")
   $hcat_user = hdp_default("hcat_user","hcat")
+  $webhcat_user = hdp_default("webhcat_user","hcat")
 
   $oozie_user = hdp_default("oozie_user","oozie")
   $templeton_user = hdp_default("templeton_user","hcat")
@@ -132,12 +133,22 @@ class hdp::params()
   $smokeuser = hdp_default("smokeuser","ambari_qa")
   $smoke_user_group = hdp_default("smoke_user_group","users")
   
-  ############ Hdfs directories
-  $hbase_hdfs_root_dir = hdp_default("hadoop/hbase-site/hbase_hdfs_root_dir","/apps/hbase/data")
-  $oozie_hdfs_user_dir = hdp_default("oozie_hdfs_user_dir", "/user/oozie")
-  $hcat_hdfs_user_dir = hdp_default("hcat_hdfs_user_dir", "/user/hcat")
-  $hive_hdfs_user_dir = hdp_default("hive_hdfs_user_dir", "/user/hive")
+  ############ Hdfs users directories
+  $oozie_hdfs_user_dir = hdp_default("oozie_hdfs_user_dir", "/user/${oozie_user}")
+  $oozie_hdfs_user_mode = 775
+  $hcat_hdfs_user_dir = hdp_default("hcat_hdfs_user_dir", "/user/${hcat_user}")
+  $hcat_hdfs_user_mode = 755
+  $webhcat_hdfs_user_dir = hdp_default("hcat_hdfs_user_dir", "/user/${webhcat_user}")
+  $webhcat_hdfs_user_mode = 755
+  $hive_hdfs_user_dir = hdp_default("hive_hdfs_user_dir", "/user/${hive_user}")
+  $hive_hdfs_user_mode = 700
   $smoke_hdfs_user_dir = hdp_default("smoke_hdfs_user_dir", "/user/${smokeuser}")
+  $smoke_hdfs_user_mode = 770
+  
+  ############ Hdfs apps directories
+  $hive_apps_whs_dir = hdp_default("hive_apps_whs_dir", "/apps/hive/warehouse")
+  $webhcat_apps_dir = hdp_default("webhcat_apps_dir", "/apps/webhcat")
+  $hbase_hdfs_root_dir = hdp_default("hadoop/hbase-site/hbase_hdfs_root_dir","/apps/hbase/data")
 
   #because of Puppet user resource issue make sure that $hadoop_user is different from user_group
   if ($security_enabled == true) {

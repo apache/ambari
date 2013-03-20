@@ -20,20 +20,11 @@
 <div id="main-nav">
   <div class="navbar">
     <div class="navbar-inner">
-      <a class="brand" href="#" {{bindAttr title="clusterName"}}>
-        {{clusterDisplayName}}
-
-        {{#view Em.View tagName="" controllerBinding="App.router.backgroundOperationsController"}}
-          {{#if allOperationsCount}}
-            <span class="label operations-count" {{action "showPopup" target="controller"}}>{{allOperationsCount}}</span>
-          {{/if}}
-        {{/view}}
-      </a>
       {{view App.MainMenuView}}
     </div>
   </div>
 </div>
 {{outlet}}
 {{else}}
-<h2>loading...</h2>
+<h2>{{t app.loadingPlaceholder}}</h2>
 {{/if}}

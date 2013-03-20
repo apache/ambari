@@ -21,6 +21,7 @@ package org.apache.ambari.server.controller.internal;
 import org.apache.ambari.server.controller.predicate.AlwaysPredicate;
 import org.apache.ambari.server.controller.predicate.ArrayPredicate;
 import org.apache.ambari.server.controller.predicate.BasePredicate;
+import org.apache.ambari.server.controller.predicate.CategoryPredicate;
 import org.apache.ambari.server.controller.predicate.ComparisonPredicate;
 import org.apache.ambari.server.controller.predicate.PropertyPredicate;
 import org.apache.ambari.server.controller.predicate.PredicateVisitor;
@@ -56,6 +57,11 @@ public class PropertyPredicateVisitor implements PredicateVisitor {
   @Override
   public void acceptAlwaysPredicate(AlwaysPredicate predicate) {
     //Do nothing
+  }
+
+  @Override
+  public void acceptCategoryPredicate(CategoryPredicate predicate) {
+    // Do nothing
   }
 
 

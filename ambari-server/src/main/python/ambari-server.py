@@ -45,6 +45,7 @@ START_ACTION = "start"
 STOP_ACTION = "stop"
 RESET_ACTION = "reset"
 UPGRADE_ACTION = "upgrade"
+UPGRADE_STACK_ACTION = "upgradestack"
 
 # selinux commands
 GET_SE_LINUX_ST_CMD = "/usr/sbin/sestatus"
@@ -65,13 +66,17 @@ IP_TBLS_SRVC_NT_FND = "iptables: unrecognized service"
 ambari_provider_module_option = ""
 ambari_provider_module = os.environ.get('AMBARI_PROVIDER_MODULE')
 
+# constants
+STACK_NAME_VER_SEP = "-"
+
 if ambari_provider_module is not None:
   ambari_provider_module_option = "-Dprovider.module.class=" +\
                                   ambari_provider_module + " "
 
 SERVER_START_CMD="{0}" + os.sep + "bin" + os.sep +\
-                 "java -server -XX:NewRatio=2 "\
+                 "java -server -XX:NewRatio=3 "\
                  "-XX:+UseConcMarkSweepGC " +\
+                 "-XX:-UseGCOverheadLimit -XX:CMSInitiatingOccupancyFraction=60 " +\
                  ambari_provider_module_option +\
                  os.getenv('AMBARI_JVM_ARGS','-Xms512m -Xmx2048m') +\
                  " -cp {1}"+ os.pathsep + "{2}" +\
@@ -96,6 +101,8 @@ AMBARI_PROPERTIES_FILE="ambari.properties"
 
 SETUP_DB_CMD = ['su', 'postgres',
         '--command=psql -f {0} -v username=\'"{1}"\' -v password="\'{2}\'"']
+UPGRADE_STACK_CMD = ['su', 'postgres',
+        '--command=psql -f {0} -v stack_name="\'{1}\'"  -v stack_version="\'{2}\'"']
 PG_ST_CMD = "/sbin/service postgresql status"
 PG_START_CMD = "/sbin/service postgresql start"
 PG_RESTART_CMD = "/sbin/service postgresql restart"
@@ -230,8 +237,6 @@ def write_property(key, value):
   return 0
 
 
-
-
 def setup_db(args):
   #password access to ambari-server and mapred
   configure_postgres_username_password(args)
@@ -247,16 +252,49 @@ def setup_db(args):
   return retcode
 
 
-
-def upgrade_db(args):
+def execute_db_script(args, file):
   #password access to ambari-server and mapred
   configure_postgres_username_password(args)
   dbname = args.postgredbname
-  file = args.upgrade_script_file
   username = args.postgres_username
   password = args.postgres_password
   command = SETUP_DB_CMD[:]
   command[-1] = command[-1].format(file, username, password)
+  retcode, outdata, errdata = run_os_command(command)
+  if not retcode == 0:
+    print errdata
+  return retcode
+
+
+def check_db_consistency(args, file):
+  #password access to ambari-server and mapred
+  configure_postgres_username_password(args)
+  dbname = args.postgredbname
+  username = args.postgres_username
+  password = args.postgres_password
+  command = SETUP_DB_CMD[:]
+  command[-1] = command[-1].format(file, username, password)
+  retcode, outdata, errdata = run_os_command(command)
+  if not retcode == 0:
+    print errdata
+    return retcode
+  else:
+    # Assumes that the output is of the form ...\n<count>
+    print_info_msg("Parsing output: " + outdata)
+    lines = outdata.splitlines()
+    if (lines[-1] == '3'):
+      return 0
+  return -1
+
+
+def upgrade_stack(args, stack_id):
+  #password access to ambari-server and mapred
+  configure_postgres_username_password(args)
+  dbname = args.postgredbname
+  file = args.upgrade_stack_script_file
+  stack_name, stack_version = stack_id.split(STACK_NAME_VER_SEP)
+  command = UPGRADE_STACK_CMD[:]
+  command[-1] = command[-1].format(file, stack_name, stack_version)
   retcode, outdata, errdata = run_os_command(command)
   if not retcode == 0:
     print errdata
@@ -420,7 +458,7 @@ def download_jdk(args):
 
   try:
     jdk_url = properties['jdk.url']
-    resources_dir = properties['resources.dir']
+    resources_dir = properties['resources.dir']  
   except (KeyError), e:
     print 'Property ' + str(e) + ' is not defined at ' + conf_file
     return -1
@@ -432,7 +470,7 @@ def download_jdk(args):
       #Get Header from url,to get file size then
       retcode, out, err = run_os_command(size_command)
       if out.find("Content-Length") == -1:
-        print "Request headr doesn't contain Content-Length";
+        print "Request header doesn't contain Content-Length";
         return -1
       start_with = int(out.find("Content-Length") + len("Content-Length") + 2)
       end_with = out.find("\r\n", start_with)
@@ -458,7 +496,43 @@ def download_jdk(args):
       return -1
   else:
     print "JDK already exists using " + dest_file
+  
+  try:
+     out = install_jdk(dest_file)
+     jdk_version = re.search('Creating (jdk.*)/jre', out).group(1)
+  except Exception, e:
+     print "Installation of JDK was failed: %s\n" % e.message
+     file_exists = os.path.isfile(dest_file)
+     if file_exists:
+        ok = get_YN_input("JDK found at "+dest_file+". "
+                    "Would you like to re-download the JDK [y/n] (y)? ", True)
+        if (ok == False):
+           print "Unable to install JDK. Please remove JDK file found at "+ dest_file +" and re-run Ambari Server setup" 
+           return -1
+        else:
+           track_jdk(JDK_LOCAL_FILENAME, jdk_url, dest_file)
+           print 'Successfully re-downloaded JDK distribution to ' + dest_file 
+           try:
+               out = install_jdk(dest_file)
+               jdk_version = re.search('Creating (jdk.*)/jre', out).group(1)
+           except Exception, e:
+               print "Installation of JDK was failed: %s\n" % e.message
+               print "Unable to install JDK. Please remove JDK, file found at "+ dest_file +" and re-run Ambari Server setup" 
+               return -1              
+  
+     else:
+         print "Unable to install JDK. File "+ dest_file +"does not exist, please re-run Ambari Server setup"
+         return -1
+  
+  print "Successfully installed JDK to {0}/{1}".\
+      format(JDK_INSTALL_DIR, jdk_version)
+  write_property(JAVA_HOME_PROPERTY, "{0}/{1}".
+      format(JDK_INSTALL_DIR, jdk_version))
+  return 0
 
+class RetCodeException(Exception): pass
+
+def install_jdk(dest_file):
   ok = get_YN_input("To install the Oracle JDK you must accept the "
                     "license terms found at "
                     "http://www.oracle.com/technetwork/java/javase/"
@@ -475,14 +549,9 @@ def download_jdk(args):
   retcode, out, err = run_os_command(MAKE_FILE_EXECUTABLE_CMD.format(dest_file))
   retcode, out, err = run_os_command(dest_file + ' -noregister')
   os.chdir(savedPath)
-  jdk_version = re.search('Creating (jdk.*)/jre', out).group(1)
-  print "Successfully installed JDK to {0}/{1}".\
-      format(JDK_INSTALL_DIR, jdk_version)
-  write_property(JAVA_HOME_PROPERTY, "{0}/{1}".
-      format(JDK_INSTALL_DIR, jdk_version))
-  return 0
-
-
+  if (retcode != 0):
+       raise RetCodeException("Installation JDK returned code %s" % retcode) 
+  return out  
 
 def get_postgre_status():
   retcode, out, err = run_os_command(PG_ST_CMD)
@@ -753,19 +822,33 @@ def stop(args):
 # Upgrades the Ambari Server.
 #
 def upgrade(args):
-
   print 'Checking PostgreSQL...'
   retcode = check_postgre_up()
   if not retcode == 0:
-    printErrorMsg ('PostgreSQL server not running. Exiting')
+    printErrorMsg('PostgreSQL server not running. Exiting')
     sys.exit(retcode)
 
+  file = args.upgrade_script_file
   print 'Upgrading database...'
-  retcode = upgrade_db(args)
+  retcode = execute_db_script(args, file)
   if not retcode == 0:
-    printErrorMsg  ('Database upgrade script has failed. Exiting.')
+    printErrorMsg('Database upgrade script has failed. Exiting.')
     sys.exit(retcode)
 
+  print 'Checking database integrity...'
+  check_file = file[:-3] + "Check" + file[-4:]
+  retcode = check_db_consistency(args, check_file)
+
+  if not retcode == 0:
+    print 'Found inconsistency. Trying to fix...'
+    fix_file = file[:-3] + "Fix" + file[-4:]
+    retcode = execute_db_script(args, fix_file)
+
+    if not retcode == 0:
+      printErrorMsg('Database cannot be fixed. Exiting.')
+      sys.exit(retcode)
+  else:
+    print 'Database is consistent.'
   print "Ambari Server 'upgrade' finished successfully"
 
 #
@@ -877,7 +960,7 @@ def configure_postgres_username_password(args):
   try:
     properties.load(open(conf_file))
   except Exception, e:
-    print 'Could not read "%s": %s' % (conf_file, e)
+    print 'Could not read ambari config file "%s": %s' % (conf_file, e)
     return -1
 
   username = properties[JDBC_USER_NAME_PROPERTY]
@@ -928,7 +1011,7 @@ def configure_postgres_username_password(args):
 # Main.
 #
 def main():
-  parser = optparse.OptionParser(usage="usage: %prog [options] action",)
+  parser = optparse.OptionParser(usage="usage: %prog [options] action [stack_id]",)
   parser.add_option('-d', '--postgredbname', default='ambari',
                       help="Database name in postgresql")
   parser.add_option('-f', '--init-script-file',
@@ -941,8 +1024,12 @@ def main():
                       help="File with drop script")
   parser.add_option('-u', '--upgrade-script-file', default="/var/lib/"
                               "ambari-server/resources/upgrade/ddl/"
-                              "Ambari-DDL-Postgres-UPGRADE-1.2.1.sql",
+                              "Ambari-DDL-Postgres-UPGRADE-1.2.2.sql",
                       help="File with upgrade script")
+  parser.add_option('-t', '--upgrade-stack-script-file', default="/var/lib/"
+                              "ambari-server/resources/upgrade/dml/"
+                              "Ambari-DML-Postgres-UPGRADE_STACK.sql",
+                      help="File with stack upgrade script")
   parser.add_option('-j', '--java-home', default=None,
                   help="Use specified java_home.  Must be valid on all hosts")
   parser.add_option("-v", "--verbose",
@@ -962,12 +1049,23 @@ def main():
   global SILENT
   SILENT = options.silent
 
-  if not len(args) == 1:
+
+  
+  if len(args) == 0:
     print parser.print_help()
-    parser.error("Invalid number of arguments")
+    parser.error("No action entered")
 	
   action = args[0]
 
+  if action == UPGRADE_STACK_ACTION:
+    args_number_required = 2
+  else:
+    args_number_required = 1
+	
+  if len(args) < args_number_required:
+    print parser.print_help()
+    parser.error("Invalid number of arguments. Entered: " + str(len(args)) + ", required: " + str(args_number_required))
+ 
   if action == SETUP_ACTION:
     setup(options)
   elif action == START_ACTION:
@@ -978,6 +1076,9 @@ def main():
     reset(options)
   elif action == UPGRADE_ACTION:
     upgrade(options)
+  elif action == UPGRADE_STACK_ACTION:
+    stack_id = args[1]
+    upgrade_stack(options, stack_id)
   else:
     parser.error("Invalid action")
 

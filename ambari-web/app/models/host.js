@@ -52,8 +52,12 @@ App.Host = DS.Model.extend({
   loadFive:DS.attr('number'),
   loadFifteen:DS.attr('number'),
 
+  criticalAlertsCount: function () {
+    return App.router.get('clusterController.alerts').filterProperty('hostName', this.get('hostName')).filterProperty('isOk', false).filterProperty('ignoredForHosts', false).length;
+  }.property('App.router.clusterController.alerts.length'),
+
   publicHostNameFormatted: function() {
-    return this.get('publicHostName').substr(0, 25) + ' ...';
+    return this.get('publicHostName').substr(0, 20) + ' ...';
   }.property('publicHostName'),
   /**
    * API return diskTotal and diskFree. Need to save their different
@@ -118,7 +122,19 @@ App.Host = DS.Model.extend({
     if (this.get('loadFifteen') != null) return this.get('loadFifteen').toFixed(2);
   }.property('loadOne', 'loadFive', 'loadFifteen'),
 
-  healthClass: function(){
+  // Instead of making healthStatus a computed property that listens on hostComponents.@each.workStatus,
+  // we are creating a separate observer _updateHealthStatus.  This is so that healthStatus is updated
+  // only once after the run loop.  This is because Ember invokes the computed property every time
+  // a property that it depends on changes.  For example, App.statusMapper's map function would invoke
+  // the computed property too many times and freezes the UI without this hack.
+  // See http://stackoverflow.com/questions/12467345/ember-js-collapsing-deferring-expensive-observers-or-computed-properties
+  healthClass: '',
+
+  _updateHealthClass: function(){
+    Ember.run.once(this, 'updateHealthClass');
+  }.observes('healthStatus', 'hostComponents.@each.workStatus'),
+
+  updateHealthClass: function(){
     var healthStatus = this.get('healthStatus');
     /**
      * Do nothing until load
@@ -143,8 +159,37 @@ App.Host = DS.Model.extend({
         healthStatus = status;
       }
     }
-    return 'health-status-' + healthStatus;
-  }.property('healthStatus', 'hostComponents.@each.workStatus')
+    this.set('healthClass', 'health-status-' + healthStatus);
+  },
+
+  healthToolTip: function(){
+    var hostComponents = this.get('hostComponents').filter(function(item){
+      if(item.get('workStatus') !== App.HostComponentStatus.started){
+        return true;
+      }
+    });
+    var output = '';
+    switch (this.get('healthClass')){
+      case 'health-status-DEAD':
+        hostComponents = hostComponents.filterProperty('isMaster', true);
+        output = Em.I18n.t('hosts.host.healthStatus.mastersDown');
+        hostComponents.forEach(function(hc, index){
+          output += (index == (hostComponents.length-1)) ? hc.get('displayName') : (hc.get('displayName')+", ");
+        }, this);
+        break;
+      case 'health-status-DEAD-YELLOW':
+        output = Em.I18n.t('hosts.host.healthStatus.heartBeatNotReceived');
+        break;
+      case 'health-status-DEAD-ORANGE':
+        hostComponents = hostComponents.filterProperty('isSlave', true);
+        output = Em.I18n.t('hosts.host.healthStatus.slavesDown');
+        hostComponents.forEach(function(hc, index){
+          output += (index == (hostComponents.length-1)) ? hc.get('displayName') : (hc.get('displayName')+", ");
+        }, this);
+        break;
+    }
+    return output;
+  }.property('healthClass')
 });
 
 App.Host.FIXTURES = [];

@@ -647,7 +647,7 @@ module.exports =
       "description": "",
       "defaultValue": "users",
       "isReconfigurable": false,
-      "displayType": "advanced",
+      "displayType": "user",
       "isVisible": true,
       "filename": "core-site.xml",
       "domain": "global",
@@ -1178,9 +1178,10 @@ module.exports =
       "displayType": "advanced",
       "isVisible": false,
       "domain": "global",
-      "serviceName": "MISC",
+      "serviceName":"MISC",
       "category": "Users and Groups"
     },
+    /*
     {
       "id": "puppet var",
       "name": "ganglia_shell_cmds_dir",
@@ -1207,6 +1208,7 @@ module.exports =
       "serviceName": "MISC",
       "category": "General"
     },
+    */
     {
       "id": "puppet var",
       "name": "hcat_log_dir",
@@ -1589,7 +1591,7 @@ module.exports =
       "isVisible": true,
       "serviceName": "MISC"
     },
-    */
+
     {
       "id": "puppet var",
       "name": "java64_home",
@@ -1603,6 +1605,7 @@ module.exports =
       "domain": "global",
       "serviceName": "MISC"
     },
+     */
     {
       "id": "puppet var",
       "name": "run_dir",
@@ -1659,6 +1662,7 @@ module.exports =
       "serviceName": "HDFS",
       "category": "Advanced"
     },
+    /*
     {
       "id": "puppet var",
       "name": "hcat_metastore_port",
@@ -1685,6 +1689,7 @@ module.exports =
       "domain": "global",
       "serviceName": "MISC"
     },
+
     {
       "id": "puppet var",
       "name": "hcat_dbroot",
@@ -1711,7 +1716,7 @@ module.exports =
       "domain": "global",
       "serviceName": "MISC"
     },
-    /*
+
      {
      "id": "puppet var",
      "name": "hadoop_log_dir",
@@ -1850,6 +1855,7 @@ module.exports =
       "serviceName": "MISC",
       "category": "Users and Groups"
     },
+    /*
     {
       "id": "puppet var",
       "name": "oozie_conf_dir",
@@ -1863,6 +1869,7 @@ module.exports =
       "serviceName": "MISC",
       "category": "General"
     },
+
     {
       "id": "puppet var",
       "name": "pig_conf_dir",
@@ -1876,19 +1883,8 @@ module.exports =
       "serviceName": "MISC",
       "category": "General"
     },
-    {
-      "id": "puppet var",
-      "name": "pig_user",
-      "displayName": "Pig User",
-      "description": "User to run Pig as",
-      "defaultValue": "pig",
-      "isReconfigurable": false,
-      "displayType": "user",
-      "isVisible": true,
-      "domain": "global",
-      "serviceName": "MISC",
-      "category": "Users and Groups"
-    },
+    */
+    /*
     {
       "id": "puppet var",
       "name": "sqoop_conf_dir",
@@ -1915,19 +1911,7 @@ module.exports =
       "serviceName": "MISC",
       "category": "General"
     },
-    {
-      "id": "puppet var",
-      "name": "sqoop_user",
-      "displayName": "Sqoop User",
-      "description": "User to run Sqoop as",
-      "defaultValue": "sqoop",
-      "isReconfigurable": false,
-      "displayType": "user",
-      "isVisible": true,
-      "domain": "global",
-      "serviceName": "MISC",
-      "category": "Users and Groups"
-    },
+    */
     {
       "id": "puppet var",
       "name": "zk_user",
@@ -2292,7 +2276,8 @@ module.exports =
       "domain": "global",
       "serviceName": "ZOOKEEPER",
       "category": "ZooKeeper Server"
-    },
+    }
+    /*
     {
       "id": "puppet var",
       "name": "zk_conf_dir",
@@ -2304,7 +2289,18 @@ module.exports =
       "domain": "global",
       "serviceName": "MISC",
       "category": "General"
+    },
+    {
+      "id": "puppet var",
+      "name": "rrdcached_base_dir",
+      "displayName": "Ganglia rrd cached base directory",
+      "description": "Default directory for saving the rrd files on ganglia server",
+      "defaultValue": "/var/lib/ganglia/rrds",
+      "displayType": "directory",
+      "domain": "global",
+      "serviceName": "MISC",
+      "category": "General"
     }
-
+     */
   ]
 };

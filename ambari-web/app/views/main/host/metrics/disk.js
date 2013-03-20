@@ -28,18 +28,11 @@ var App = require('app');
  */
 App.ChartHostMetricsDisk = App.ChartLinearTimeView.extend({
   id: "host-metrics-disk",
-  title: "Disk Usage",
+  title: Em.I18n.t('hosts.host.metrics.disk'),
   yAxisFormatter: App.ChartLinearTimeView.BytesFormatter,
   renderer: 'line',
-  url: function () {
-    return App.formatUrl(
-      this.get('urlPrefix') + "/hosts/{hostName}?fields=metrics/disk/disk_total[{fromSeconds},{toSeconds},{stepSeconds}],metrics/disk/disk_free[{fromSeconds},{toSeconds},{stepSeconds}]",
-      {
-        hostName: this.get('content').get('hostName')
-      },
-      "/data/hosts/metrics/disk.json"
-    );
-  }.property('clusterName').volatile(),
+  sourceUrl: "/hosts/{hostName}?fields=metrics/disk/disk_total[{fromSeconds},{toSeconds},{stepSeconds}],metrics/disk/disk_free[{fromSeconds},{toSeconds},{stepSeconds}]",
+  mockUrl: "/data/hosts/metrics/disk.json",
 
   transformToSeries: function (jsonData) {
     var seriesArray = [];

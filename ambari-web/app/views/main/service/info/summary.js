@@ -91,7 +91,7 @@ App.MainServiceInfoSummaryView = Em.View.extend({
       if (servers.length > 2) {
         result[1].isAnd = true;
         result.push({
-          'host': servers.length - 2 + ' more',
+          'host': Em.I18n.t('services.service.info.summary.serversHostCount').format(servers.length - 2),
           'isComma': false,
           'isAnd': false
         });
@@ -106,7 +106,7 @@ App.MainServiceInfoSummaryView = Em.View.extend({
     if (service.get("id") == "GANGLIA") {
       var monitors = service.get('hostComponents').filterProperty('isMaster', false);
       if (monitors.length) {
-        result = monitors.length - 1 ? monitors.length + ' hosts running monitor' : '1 host running monitor';
+        result = monitors.length - 1 ? Em.I18n.t('services.service.info.summary.hostsRunningMonitor').format(monitors.length) : Em.I18n.t('services.service.info.summary.hostRunningMonitor');
       }
     }
     return result;
@@ -266,32 +266,32 @@ App.MainServiceInfoSummaryView = Em.View.extend({
     if (svcName) {
       switch (svcName.toLowerCase()) {
         case 'hdfs':
-          graphs = [ App.ChartServiceMetricsHDFS_SpaceUtilization.extend(),
+          graphs = [ [App.ChartServiceMetricsHDFS_SpaceUtilization.extend(),
             App.ChartServiceMetricsHDFS_FileOperations.extend(),
             App.ChartServiceMetricsHDFS_BlockStatus.extend(),
-            App.ChartServiceMetricsHDFS_IO.extend(),
-            App.ChartServiceMetricsHDFS_RPC.extend(),
+            App.ChartServiceMetricsHDFS_IO.extend()],
+            [App.ChartServiceMetricsHDFS_RPC.extend(),
             App.ChartServiceMetricsHDFS_GC.extend(),
             App.ChartServiceMetricsHDFS_JVMHeap.extend(),
-            App.ChartServiceMetricsHDFS_JVMThreads.extend()];
+            App.ChartServiceMetricsHDFS_JVMThreads.extend()]];
           break;
         case 'mapreduce':
-          graphs = [ App.ChartServiceMetricsMapReduce_JobsStatus.extend(),
+          graphs = [ [App.ChartServiceMetricsMapReduce_JobsStatus.extend(),
             App.ChartServiceMetricsMapReduce_TasksRunningWaiting.extend(),
             App.ChartServiceMetricsMapReduce_MapSlots.extend(),
-            App.ChartServiceMetricsMapReduce_ReduceSlots.extend(),
-            App.ChartServiceMetricsMapReduce_GC.extend(),
+            App.ChartServiceMetricsMapReduce_ReduceSlots.extend()],
+            [App.ChartServiceMetricsMapReduce_GC.extend(),
             App.ChartServiceMetricsMapReduce_RPC.extend(),
             App.ChartServiceMetricsMapReduce_JVMHeap.extend(),
-            App.ChartServiceMetricsMapReduce_JVMThreads.extend()];
+            App.ChartServiceMetricsMapReduce_JVMThreads.extend()]];
           break;
         case 'hbase':
-          graphs = [  App.ChartServiceMetricsHBASE_ClusterRequests.extend(),
+          graphs = [  [App.ChartServiceMetricsHBASE_ClusterRequests.extend(),
             App.ChartServiceMetricsHBASE_RegionServerReadWriteRequests.extend(),
             App.ChartServiceMetricsHBASE_RegionServerRegions.extend(),
-            App.ChartServiceMetricsHBASE_RegionServerQueueSize.extend(),
-            App.ChartServiceMetricsHBASE_HlogSplitTime.extend(),
-            App.ChartServiceMetricsHBASE_HlogSplitSize.extend()];
+            App.ChartServiceMetricsHBASE_RegionServerQueueSize.extend()],
+            [App.ChartServiceMetricsHBASE_HlogSplitTime.extend(),
+            App.ChartServiceMetricsHBASE_HlogSplitSize.extend()]];
           break;
         default:
           break;
@@ -394,11 +394,5 @@ App.MainServiceInfoSummaryView = Em.View.extend({
     });
 
     return names.length ? names.join(', ') : false;
-  }.property('clientComponents'),
-  hasAlertsBox: function(){
-    var services = [
-      'NAGIOS'
-    ];
-    return -1 === services.indexOf(this.get('controller.content.serviceName'));
-  }.property('controller.content.serviceName')
+  }.property('clientComponents')
 });

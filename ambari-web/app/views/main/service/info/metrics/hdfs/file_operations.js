@@ -28,19 +28,10 @@ var App = require('app');
  */
 App.ChartServiceMetricsHDFS_FileOperations = App.ChartLinearTimeView.extend({
   id: "service-metrics-hdfs-file-operations",
-  title: "File Operations",
+  title: Em.I18n.t('services.service.info.metrics.hdfs.fileOperations'),
   renderer: 'line',
-  url: function () {
-    var hdfsService = App.HDFSService.find().objectAt(0);
-    var nameNodeHostName = hdfsService.get('nameNode').get('hostName');
-    return App.formatUrl(
-      this.get('urlPrefix') + "/hosts/{hostName}/host_components/NAMENODE?fields=metrics/dfs/namenode/FileInfoOps[{fromSeconds},{toSeconds},{stepSeconds}],metrics/dfs/namenode/CreateFileOps[{fromSeconds},{toSeconds},{stepSeconds}]",
-      {
-        hostName: nameNodeHostName
-      },
-      "/data/services/metrics/hdfs/file_operations.json"
-    );
-  }.property('clusterName').volatile(),
+  sourceUrl: "/hosts/{nameNodeName}/host_components/NAMENODE?fields=metrics/dfs/namenode/FileInfoOps[{fromSeconds},{toSeconds},{stepSeconds}],metrics/dfs/namenode/CreateFileOps[{fromSeconds},{toSeconds},{stepSeconds}]",
+  mockUrl: "/data/services/metrics/hdfs/file_operations.json",
 
   transformToSeries: function (jsonData) {
     var seriesArray = [];

@@ -27,4 +27,74 @@ Returns information about a single host in a given cluster.
 **Response**
 
     200 OK
+    {
+    	"href" : "http://your.ambari.server/api/v1/clusters/c1/hosts/host1",
+    	"metrics" : {
+    		"process" : {
+    			...    
+    		},
+      		"rpc" : {
+        		...
+      		},
+      		"ugi" : {
+      			...
+      		}
+      		"disk" : {
+        		...
+      		},
+      		"cpu" : {
+        		...
+      		},
+      		"rpcdetailed" : {
+      			...
+      		},
+      		"jvm" : {
+        		...
+      		},
+      		"load" : {
+        		...
+      		},
+      		"memory" : {
+        		...
+      		},
+      		"network" : {
+        		...
+      		},
+    	},
+    	"Hosts" : {
+      		"cluster_name" : "c1",
+      		"host_name" : "host1",
+      		"host_state" : "HEALTHY",
+      		"public_host_name" : "host1.yourDomain.com",
+      		"cpu_count" : 1,
+      		"rack_info" : "rack-name",
+      		"os_arch" : "x86_64",
+      		disk_info : [
+      			{
+      				"available" : "41497444",
+        			"used" : "9584560",
+        			"percent" : "19%",
+        			"size" : "51606140",
+        			"type" : "ext4",
+       	 			"mountpoint" : "/"
+      			}
+      		],
+      		"ip" : "10.0.2.15",
+      		"os_type" : "rhel6",
+      		"total_mem" : 2055208,
+      		...        	      		
+    	},
+    	"host_components" : [
+      		{
+      			"href" : "http://your.ambari.server/api/v1/clusters/c1/hosts/host1/host_components/DATANODE",
+      			"HostRoles" : {
+        			"cluster_name" : "c1",
+        			"component_name" : "DATANODE",
+        			"host_name" : "host1"
+        		}
+      		},
+      		...
+       	]
+    }
+
 

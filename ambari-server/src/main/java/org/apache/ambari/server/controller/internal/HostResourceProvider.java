@@ -33,7 +33,7 @@ import org.apache.ambari.server.controller.utilities.PropertyHelper;
 /**
  * Resource provider for host resources.
  */
-class HostResourceProvider extends ResourceProviderImpl{
+class HostResourceProvider extends AbstractResourceProvider {
 
   // ----- Property ID constants ---------------------------------------------
 
@@ -138,7 +138,7 @@ class HostResourceProvider extends ResourceProviderImpl{
       }
     });
 
-    Set<String>   requestedIds = PropertyHelper.getRequestPropertyIds(getPropertyIds(), request, predicate);
+    Set<String>   requestedIds = getRequestPropertyIds(request, predicate);
     Set<Resource> resources    = new HashSet<Resource>();
 
     for (HostResponse response : responses) {

@@ -21,23 +21,6 @@ require('models/background_operation');
 
 App.MainController = Em.Controller.extend({
   name: 'mainController',
-  
-  clusterName: function () {
-    var name = App.router.get('clusterController.clusterName');
-    if (name) {
-      return name;
-    }
-    return 'My Cluster';
-  }.property('App.router.clusterController.clusterName'),
-  
-  clusterDisplayName: function () {
-    var name = App.router.get('clusterController.clusterName');
-    if (name) {
-      var displayName = name.length > 13 ? name.substr(0, 10) + "..." : name;
-      return displayName.capitalize();
-    }
-    return 'My Cluster';
-  }.property('App.router.clusterController.clusterName'),
 
   updateTitle: function(){
     var name = App.router.get('clusterController.clusterName');
@@ -63,11 +46,25 @@ App.MainController = Em.Controller.extend({
   startPolling: function(){
     App.router.get('updateController').set('isWorking', true);
     App.router.get('backgroundOperationsController').set('isWorking', true);
-    App.router.get('clusterController').startLoadUpdatedStatus();
+    App.router.get('clusterController').set('isWorking', true);
   },
   stopPolling: function(){
     App.router.get('updateController').set('isWorking', false);
     App.router.get('backgroundOperationsController').set('isWorking', false);
     App.router.get('clusterController').set('isWorking', false);
-  }
+  },
+
+  reloadTimeOut: null,
+
+  pageReload: function () {
+
+    clearTimeout(this.get("reloadTimeOut"));
+
+    this.set('reloadTimeOut',
+        setTimeout(function () {
+          location.reload()
+        }, App.pageReloadTime)
+    );
+  }.observes("App.router.location.lastSetURL")
+
 })

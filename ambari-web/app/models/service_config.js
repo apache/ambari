@@ -376,6 +376,12 @@ App.ServiceConfigProperty = Ember.Object.extend({
           break;
         case 'custom':
           break;
+        case 'user':
+          if (!validator.isValidUserName(value)) {
+            this.set('errorMessage', Em.I18n.t('users.userName.validationFail'));
+            isError = true;
+          }
+          break;
         case 'email':
           if (!validator.isValidEmail(value)) {
             this.set('errorMessage', 'Must be a valid email address');

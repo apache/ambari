@@ -17,7 +17,7 @@
 }}
 
 <div class="span title">
-  Metrics <i class="icon-question-sign"></i>
+  {{t common.metrics}} <i class="icon-question-sign"></i>
 </div>
 <ul class="display-inline-block nav nav-pills">
   {{#each metric in view.metrics}}
@@ -49,7 +49,7 @@
               {{/each}}
             </ul>
             {{else}}
-            no items found
+            {{t metric.notFound}}
             {{/if}}
           </div>
         </div>

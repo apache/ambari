@@ -28,20 +28,11 @@ var App = require('app');
  */
 App.ChartServiceMetricsMapReduce_JVMHeap = App.ChartLinearTimeView.extend({
   id: "service-metrics-mapreduce-jvm-heap",
-  title: "JVM Memory Status",
+  title: Em.I18n.t('services.service.info.metrics.mapreduce.jvmHeap'),
   yAxisFormatter: App.ChartLinearTimeView.BytesFormatter,
   renderer: 'line',
-  url: function () {
-    var mrService = App.MapReduceService.find().objectAt(0);
-    var jtHostName = mrService.get('jobTracker').get('hostName');
-    return App.formatUrl(
-      this.get('urlPrefix') + "/hosts/{hostName}/host_components/JOBTRACKER?fields=metrics/jvm/memNonHeapUsedM[{fromSeconds},{toSeconds},{stepSeconds}],metrics/jvm/memNonHeapCommittedM[{fromSeconds},{toSeconds},{stepSeconds}],metrics/jvm/memHeapUsedM[{fromSeconds},{toSeconds},{stepSeconds}],metrics/jvm/memHeapCommittedM[{fromSeconds},{toSeconds},{stepSeconds}]",
-      {
-        hostName: jtHostName
-      },
-      "/data/services/metrics/mapreduce/jvm_heap.json"
-    );
-  }.property('clusterName').volatile(),
+  sourceUrl: "/hosts/{jobTrackerNode}/host_components/JOBTRACKER?fields=metrics/jvm/memNonHeapUsedM[{fromSeconds},{toSeconds},{stepSeconds}],metrics/jvm/memNonHeapCommittedM[{fromSeconds},{toSeconds},{stepSeconds}],metrics/jvm/memHeapUsedM[{fromSeconds},{toSeconds},{stepSeconds}],metrics/jvm/memHeapCommittedM[{fromSeconds},{toSeconds},{stepSeconds}]",
+  mockUrl: "/data/services/metrics/mapreduce/jvm_heap.json",
 
   transformToSeries: function (jsonData) {
     var seriesArray = [];

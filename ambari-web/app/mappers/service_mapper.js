@@ -125,6 +125,9 @@ App.servicesMapper = App.QuickDataMapper.create({
       return;
     }
 
+    var start = new Date().getTime();
+    console.log('in service mapper');
+
     if (json.items) {
       var result = [];
       json.items.forEach(function (item) {
@@ -180,6 +183,8 @@ App.servicesMapper = App.QuickDataMapper.create({
 
       App.store.loadMany(this.get('model3'), result);
     }
+
+    console.log('out service mapper.  Took ' + (new Date().getTime() - start) + 'ms');
   },
 
   hdfsMapper: function (item) {

@@ -24,7 +24,6 @@ import org.apache.ambari.server.controller.spi.Request;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
 
-import java.util.Map;
 import java.util.Set;
 
 /**
@@ -49,21 +48,8 @@ public class GSInstallerHostComponentProvider extends GSInstallerResourceProvide
    * @param clusterDefinition  the cluster definition
    */
   public GSInstallerHostComponentProvider(ClusterDefinition clusterDefinition) {
-    super(clusterDefinition);
+    super(Resource.Type.HostComponent, clusterDefinition);
     initHostComponentResources();
-  }
-
-
-  // ----- ResourceProvider --------------------------------------------------
-
-  @Override
-  public Set<String> getPropertyIdsForSchema() {
-    return PropertyHelper.getPropertyIds(Resource.Type.HostComponent);
-  }
-
-  @Override
-  public Map<Resource.Type, String> getKeyPropertyIds() {
-    return PropertyHelper.getKeyPropertyIds(Resource.Type.HostComponent);
   }
 
 
@@ -72,8 +58,8 @@ public class GSInstallerHostComponentProvider extends GSInstallerResourceProvide
   @Override
   public void updateProperties(Resource resource, Request request, Predicate predicate) {
     Set<String> propertyIds = getRequestPropertyIds(request, predicate);
-    if (propertyIds.contains(HOST_COMPONENT_STATE_PROPERTY_ID) ||
-        propertyIds.contains(HOST_COMPONENT_DESIRED_STATE_PROPERTY_ID)) {
+    if (contains(propertyIds, HOST_COMPONENT_STATE_PROPERTY_ID) ||
+        contains(propertyIds, HOST_COMPONENT_DESIRED_STATE_PROPERTY_ID)) {
       String serviceName   = (String) resource.getPropertyValue(HOST_COMPONENT_SERVICE_NAME_PROPERTY_ID);
       String componentName = (String) resource.getPropertyValue(HOST_COMPONENT_COMPONENT_NAME_PROPERTY_ID);
       String hostName      = (String) resource.getPropertyValue(HOST_COMPONENT_HOST_NAME_PROPERTY_ID);

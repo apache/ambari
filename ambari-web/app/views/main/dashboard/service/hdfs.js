@@ -55,6 +55,10 @@ App.MainDashboardServiceHdfsView = App.MainDashboardServiceView.extend({
     return this.formatUnavailable(this.get('service.dfsUnderReplicatedBlocks'));
   }.property('service.dfsUnderReplicatedBlocks'),
 
+  blockErrorsMessage: function() {
+    return Em.I18n.t('dashboard.services.hdfs.blockErrors').format(this.get('dfsCorruptBlocks'), this.get('dfsMissingBlocks'), this.get('dfsUnderReplicatedBlocks'));
+  }.property('dfsCorruptBlocks','dfsMissingBlocks','dfsUnderReplicatedBlocks'),
+
   nodeUptime: function () {
     var uptime = this.get('service').get('nameNodeStartTime');
     if (uptime && uptime > 0){

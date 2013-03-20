@@ -21,7 +21,9 @@ var filters = require('views/common/filter_view');
 
 App.MainAppsView = Em.View.extend({
   templateName: require('templates/main/apps'),
-
+  paginationInfo: function() {
+    return this.t('apps.filters.paginationInfo').format(this.get('controller.paginationObject.startIndex'), this.get('controller.paginationObject.endIndex'), this.get('controller.paginationObject.iTotalDisplayRecords'));
+  }.property('controller.paginationObject.startIndex', 'controller.paginationObject.endIndex', 'controller.paginationObject.iTotalDisplayRecords'),
   //Pagination left/right buttons css class
   paginationLeft: Ember.View.extend({
     tagName: 'a',
@@ -120,8 +122,8 @@ App.MainAppsView = Em.View.extend({
         this.setControllerObj(this.content.index, "DESC");
         this.set("class", "sorting_desc");
       } else if (this.class == "sorting_desc") {
-        this.setControllerObj("", "");
-        this.set("class", "sorting");
+        this.setControllerObj(this.content.index, "ASC");
+        this.set("class", "sorting_asc");
       }
     },
     resetSortClass: function () {
@@ -284,23 +286,6 @@ App.MainAppsView = Em.View.extend({
   }.observes("controller.filterObject.viewType"),
 
   /**
-   * reset all filters in table
-   *
-   */
-  clearFilters: function (event) {
-    this.set("controller.filterObject.sSearch_0","");
-    this.set("controller.filterObject.sSearch_1","");
-    this.set("controller.filterObject.sSearch_2","");
-    this.set("controller.filterObject.sSearch_3","");
-    this.set("controller.filterObject.runType","Any");
-    this.set("controller.filterObject.jobs","");
-    this.set("controller.filterObject.input","");
-    this.set("controller.filterObject.output","");
-    this.set("controller.filterObject.duration","");
-    this.set("controller.filterObject.runDate","Any");
-  },
-
-  /**
    * This Container View is used to render static table row(appTableRow) and additional dynamic content
    */
   containerRow: Em.ContainerView.extend({
@@ -338,6 +323,17 @@ App.MainAppsView = Em.View.extend({
     templateName: require('templates/main/apps/list_row'),
     classNames: ['app-table-row'],
     tagName: "tr",
+    onLoad: function() {
+      var run = this.get('parentView.run');
+      if (run.index) {
+        var strip = (run.index % 2) ? 'odd' : 'even';
+        this.$().addClass(strip);
+      }
+    }.observes('parentView.run'),
+
+    didInsertElement: function() {
+      this.onLoad();
+    },
     mouseEnter: function (event, view) {
       $(event.currentTarget).addClass("hover")
     },

@@ -19,18 +19,18 @@
 {{#each component in controller.content.hostComponents}}
   {{#if component.isMaster}}
     <tr>
-        <td class="summary-label">Server</td>
+        <td class="summary-label">{{t common.servers}}</td>
         <td><a {{action selectHost component.host}} href="javascript:void(null)">{{component.host.publicHostName}}</a></td>
     </tr>
   {{/if}}
 {{/each}}
 <tr>
-  <td class="summary-label">Clients</td>
+  <td class="summary-label">{{t common.clients}}</td>
   <td>
     <a {{action filterHosts view.clientObj}} href="javascript:void(null)">{{view.clients.length}} Oozie Client{{#if view.hasManyClients}}s{{/if}}</a>
   </td>
 </tr>
 <tr>
-  <td class="summary-label">Oozie Web UI</td>
+  <td class="summary-label">{{t dashboard.services.oozie.webUi}}</td>
   <td><a target=_blank href="http://{{unbound view.oozieServer}}:11000/oozie">{{view.oozieServer}}/oozie</a></td>
 </tr>

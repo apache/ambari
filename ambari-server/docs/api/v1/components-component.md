@@ -28,47 +28,58 @@ Refers to a specific component identified by ":componentName" for a given servic
 
     200 OK
     {
-    "href" : "http://your.ambari.server/api/v1/clusters/MyCluster/services/HDFS/components/DATANODE",
-    "metrics" : {
-      "rpc" : {
-        ...
-      },
-      "dfs" : {
-        "datanode" : {
-          ...
-        }
-      },
-      "disk" : {
-        ...
-      },
-      "cpu" : {
-        ...
-      },
-      "jvm" : {
-        ...
-      },
-      "load" : {
-        ...
-      },
-      "memory" : {
-        ...
-      },
-      "network" : {
-        ...
-      },
-    },
-    "ServiceComponentInfo" : {
-      "cluster_name" : "MyCluster",
-      "component_name" : "DATANODE",
-      "service_name" : "HDFS"
-    },
-    "host_components" : [
-      {
-      "href" : "http://your.ambari.server/api/v1/clusters/MyCluster/hosts/some.cluster.host/host_components/DATANODE",
-      "HostRoles" : {
-        "cluster_name" : "MyCluster",
-        "component_name" : "DATANODE",
-        "host_name" : "some.cluster.host"
-        }
-      } ]
+    	"href" : "http://your.ambari.server/api/v1/clusters/c1/services/HDFS/components/DATANODE",
+    	"metrics" : {
+    		"process" : {
+    			...    
+    		},
+      		"rpc" : {
+        		...
+      		},
+      		"ugi" : {
+      			...
+      		},
+      		"dfs" : {
+        		"datanode" : {
+          		...
+        		}
+      		},
+      		"disk" : {
+        		...
+      		},
+      		"cpu" : {
+        		...
+      		},
+      		"rpcdetailed" : {
+      			...
+      		},
+      		"jvm" : {
+        		...
+      		},
+      		"load" : {
+        		...
+      		},
+      		"memory" : {
+        		...
+      		},
+      		"network" : {
+        		...
+      		},
+    	},
+    	"ServiceComponentInfo" : {
+      		"cluster_name" : "c1",
+      		"component_name" : "DATANODE",
+      		"service_name" : "HDFS"
+      		"state" : "STARTED"
+    	},
+    	"host_components" : [
+      		{
+      			"href" : "http://your.ambari.server/api/v1/clusters/c1/hosts/host1/host_components/DATANODE",
+      			"HostRoles" : {
+        			"cluster_name" : "c1",
+        			"component_name" : "DATANODE",
+        			"host_name" : "host1"
+        		}
+      		}
+       	]
     }

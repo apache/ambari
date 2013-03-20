@@ -61,6 +61,7 @@ public class HostImpl implements Host {
   private static final Type hostAttributesType =
       new TypeToken<Map<String, String>>() {}.getType();
 
+  ReadWriteLock rwLock;
   private final Lock readLock;
   private final Lock writeLock;
 
@@ -185,7 +186,7 @@ public class HostImpl implements Host {
   public HostImpl(@Assisted HostEntity hostEntity,
       @Assisted boolean persisted, Injector injector) {
     this.stateMachine = stateMachineFactory.make(this);
-    ReadWriteLock rwLock = new ReentrantReadWriteLock();
+    rwLock = new ReentrantReadWriteLock();
     this.readLock = rwLock.readLock();
     this.writeLock = rwLock.writeLock();
 
@@ -961,8 +962,8 @@ public class HostImpl implements Host {
    */
   @Override
   public void persist() {
+    writeLock.lock();
     try {
-      writeLock.lock();
       if (!persisted) {
         persistEntities();
         refresh();
@@ -984,7 +985,7 @@ public class HostImpl implements Host {
   }
 
   @Transactional
-  protected void persistEntities() {
+  void persistEntities() {
     hostDAO.create(hostEntity);
     hostStateDAO.create(hostStateEntity);
     if (!hostEntity.getClusterEntities().isEmpty()) {
@@ -998,8 +999,8 @@ public class HostImpl implements Host {
   @Override
   @Transactional
   public void refresh() {
+    writeLock.lock();
     try {
-      writeLock.lock();
       if (isPersisted()) {
         hostEntity = hostDAO.findByName(hostEntity.getHostName());
         hostStateEntity = hostEntity.getHostStateEntity();
@@ -1012,7 +1013,7 @@ public class HostImpl implements Host {
   }
 
   @Transactional
-  private void saveIfPersisted() {
+  void saveIfPersisted() {
     if (isPersisted()) {
       hostDAO.merge(hostEntity);
       hostStateDAO.merge(hostStateEntity);

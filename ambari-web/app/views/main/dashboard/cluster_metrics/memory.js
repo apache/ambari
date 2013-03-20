@@ -28,15 +28,10 @@ var App = require('app');
  */
 App.ChartClusterMetricsMemory = App.ChartLinearTimeView.extend({
   id: "cluster-metrics-memory",
-  url: function () {
-    return App.formatUrl(
-      this.get('urlPrefix') + "?fields=metrics/memory[{fromSeconds},{toSeconds},{stepSeconds}]",
-      {},
-      "/data/cluster_metrics/memory_1hr.json"
-    );
-  }.property('clusterName').volatile(),
-
-  title: "Memory Usage",
+  sourceUrl: "?fields=metrics/memory[{fromSeconds},{toSeconds},{stepSeconds}]",
+  mockUrl: "/data/cluster_metrics/memory_1hr.json",
+  isTimePagingDisable: true,
+  title: Em.I18n.t('dashboard.clusterMetrics.memory'),
   yAxisFormatter: App.ChartLinearTimeView.BytesFormatter,
   renderer: 'line',
   transformToSeries: function (jsonData) {

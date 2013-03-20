@@ -20,7 +20,6 @@ package org.apache.ambari.server.api.query;
 
 import org.apache.ambari.server.api.resources.ResourceInstance;
 import org.apache.ambari.server.api.services.ResultImpl;
-import org.apache.ambari.server.api.util.TreeNodeImpl;
 import org.apache.ambari.server.controller.utilities.ClusterControllerHelper;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
 import org.apache.ambari.server.controller.predicate.AndPredicate;
@@ -47,7 +46,12 @@ public class QueryImpl implements Query {
   /**
    * Properties of the query which make up the select portion of the query.
    */
-  private Map<String, Set<String>> m_mapQueryProperties = new HashMap<String, Set<String>>();
+  private Set<String> m_setQueryProperties = new HashSet<String>();
+
+  /**
+   * Indicates that the query should include all available properties.
+   */
+  private boolean allProperties = false;
 
   /**
    * Map that associates each property set on the query to temporal data.
@@ -58,16 +62,6 @@ public class QueryImpl implements Query {
    * Map that associates categories with temporal data.
    */
   private Map<String, TemporalInfo> m_mapCategoryTemporalInfo = new HashMap<String, TemporalInfo>();
-
-  /**
-   * All properties that are available for the resource.
-   */
-  private Map<String, Set<String>> m_mapAllProperties;
-
-  /**
-   * Tree index of m_mapAllProperties.  Used to match sub-categories.
-   */
-  TreeNode<Set<String>> m_treeAllProperties = new TreeNodeImpl<Set<String>>(null, new HashSet<String>(), null);
 
   /**
    * Sub-resources of the resource which is being operated on.
@@ -92,43 +86,27 @@ public class QueryImpl implements Query {
    */
   public QueryImpl(ResourceInstance resource) {
     m_resource = resource;
-    m_mapAllProperties = Collections.unmodifiableMap(getClusterController().
-        getSchema(resource.getResourceDefinition().getType()).getCategoryProperties());
-    buildAllPropertiesTree();
   }
 
   @Override
-  //todo: consider requiring a path and a property.  For categories the property name '*' could be used.
-  public void addProperty(String category, String property, TemporalInfo temporalInfo) {    
-    if (category == null && property.equals("*")) {
+  public void addProperty(String category, String name, TemporalInfo temporalInfo) {
+    if (category == null && name.equals("*")) {
       // wildcard
       addAllProperties(temporalInfo);
-    } else if (m_mapAllProperties.containsKey(category) && m_mapAllProperties.get(category).contains(property)) {
-      // local property
-      Set<String> setProps = m_mapQueryProperties.get(category);
-      if (setProps == null) {
-        setProps = new HashSet<String>();
-        m_mapQueryProperties.put(category, setProps);
-      }
-      setProps.add(property);
-      if (temporalInfo != null) {
-        m_mapPropertyTemporalInfo.put(PropertyHelper.getPropertyId(category, property), temporalInfo);
-      }
-    } else if (! addCategory(category, property, temporalInfo)){
-      // not a local category/property
-      boolean success = addPropertyToSubResource(category, property, temporalInfo);
-      if (!success) {
-        //TODO.  Remove when handled by back end
-        String propString = category == null ? property : property == null ? category : category + '/' + property;
-        throw new IllegalArgumentException("An invalid resource property was requested.  Resource: " +
-            m_resource.getResourceDefinition().getType() + ", Property: " + propString);
+    } else{
+      if (!addPropertyToSubResource(category, name, temporalInfo)){
+        String propertyId = PropertyHelper.getPropertyId(category, name.equals("*") ? null : name);
+        addLocalProperty(propertyId);
+        if (temporalInfo != null) {
+          m_mapCategoryTemporalInfo.put(propertyId, temporalInfo);
+        }
       }
     }
   }
 
   @Override
-  public void addProperty(String property) {
-    addProperty(PropertyHelper.getPropertyCategory(property), PropertyHelper.getPropertyName(property), null);
+  public void addLocalProperty(String property) {
+    m_setQueryProperties.add(property);
   }
 
   @Override
@@ -142,7 +120,7 @@ public class QueryImpl implements Query {
       result.getResultTree().setProperty("isCollection", "true");
     }
 
-    if (m_mapQueryProperties.isEmpty() && m_mapSubResources.isEmpty()) {
+    if (m_setQueryProperties.isEmpty() && m_mapSubResources.isEmpty()) {
       //Add sub resource properties for default case where no fields are specified.
       m_mapSubResources.putAll(m_resource.getSubResources());
     }
@@ -184,8 +162,8 @@ public class QueryImpl implements Query {
   }
 
   @Override
-  public Map<String, Set<String>> getProperties() {
-    return Collections.unmodifiableMap(m_mapQueryProperties);
+  public Set<String> getProperties() {
+    return Collections.unmodifiableSet(m_setQueryProperties);
   }
 
   @Override
@@ -200,7 +178,8 @@ public class QueryImpl implements Query {
   private void addCollectionProperties(Resource.Type resourceType) {
     Schema schema = getClusterController().getSchema(resourceType);
     // add pk
-    addProperty(schema.getKeyPropertyId(resourceType));
+    String property = schema.getKeyPropertyId(resourceType);
+    addProperty(PropertyHelper.getPropertyCategory(property), PropertyHelper.getPropertyName(property), null);
 
     for (Resource.Type type : m_resource.getIds().keySet()) {
       // add fk's
@@ -209,60 +188,21 @@ public class QueryImpl implements Query {
       //todo: component sub-resources.  Component will not have host fk.
       //todo: refactor so that null check is not required.
       if (keyPropertyId != null) {
-        addProperty(keyPropertyId);
+        addProperty(PropertyHelper.getPropertyCategory(keyPropertyId), PropertyHelper.getPropertyName(keyPropertyId), null);
       }
     }
   }
 
   private void addAllProperties(TemporalInfo temporalInfo) {
-    if (temporalInfo == null) {
-      m_mapQueryProperties.putAll(m_mapAllProperties);
-    } else {
-      for (Map.Entry<String, Set<String>> entry : m_mapAllProperties.entrySet()) {
-        String path = entry.getKey();
-        Set<String> setProps = entry.getValue();
-        m_mapQueryProperties.put(path, setProps);
-        m_mapCategoryTemporalInfo.put(path, temporalInfo);
-      }
+    allProperties = true;
+    if (temporalInfo != null) {
+      m_mapCategoryTemporalInfo.put(null, temporalInfo);
     }
 
     for (Map.Entry<String, ResourceInstance> entry : m_resource.getSubResources().entrySet()) {
       String name = entry.getKey();
       if (! m_mapSubResources.containsKey(name)) {
         m_mapSubResources.put(name, entry.getValue());
-      }
-    }
-  }
-
-  private boolean addCategory(String category, String name, TemporalInfo temporalInfo) {
-    if (category != null) {
-      if (name != null && ! name.isEmpty()) {
-        name = category + '/' + name;
-      } else  {
-        name = category;
-      }
-    }
-    TreeNode<Set<String>> node = m_treeAllProperties.getChild(name);
-    if (node == null) {
-      return false;
-    }
-
-    addCategory(node, name, temporalInfo);
-    return true;
-  }
-
-  private void addCategory(TreeNode<Set<String>> node, String category, TemporalInfo temporalInfo) {
-    if (node != null) {
-      Set<String> setProps = m_mapQueryProperties.get(category);
-      if (setProps == null) {
-        setProps = new HashSet<String>();
-        m_mapQueryProperties.put(category, setProps);
-      }
-      setProps.addAll(node.getObject());
-      m_mapCategoryTemporalInfo.put(category, temporalInfo);
-
-      for (TreeNode<Set<String>> child : node.getChildren()) {
-        addCategory(child, category + '/' + child.getName(), temporalInfo);
       }
     }
   }
@@ -336,51 +276,23 @@ public class QueryImpl implements Query {
     return predicate;
   }
 
-  private void buildAllPropertiesTree() {
-    // build index
-    for (String category : m_mapAllProperties.keySet()) {
-      TreeNode<Set<String>> node = m_treeAllProperties.getChild(category);
-      if (node == null) {
-        if (category == null) {
-          node = m_treeAllProperties.addChild(new HashSet<String>(), null);
-        } else {
-          String[] tokens = category.split("/");
-          node = m_treeAllProperties;
-          for (String t : tokens) {
-            TreeNode<Set<String>> child = node.getChild(t);
-            if (child == null) {
-              child = node.addChild(new HashSet<String>(), t);
-            }
-            node = child;
-          }
-        }
-      }
-      node.getObject().addAll(m_mapAllProperties.get(category));
-    }
-  }
-
   private Request createRequest() {
     Set<String> setProperties = new HashSet<String>();
 
-    Map<String, TemporalInfo> mapTemporalInfo = new HashMap<String, TemporalInfo>();
+    Map<String, TemporalInfo> mapTemporalInfo    = new HashMap<String, TemporalInfo>();
+    TemporalInfo              globalTemporalInfo = m_mapCategoryTemporalInfo.get(null);
 
-    for (Map.Entry<String, Set<String>> entry : m_mapQueryProperties.entrySet()) {
-      String group = entry.getKey();
-      for (String property : entry.getValue()) {
-        String propertyId = PropertyHelper.getPropertyId(group, property);
-
-        TemporalInfo temporalInfo = m_mapCategoryTemporalInfo.get(group);
-        if (temporalInfo == null) {
-          temporalInfo = m_mapPropertyTemporalInfo.get(propertyId);
-        }
-        if (temporalInfo != null) {
-          mapTemporalInfo.put(propertyId, temporalInfo);
-        }
-        setProperties.add(propertyId);
+    for (String group : m_setQueryProperties) {
+      TemporalInfo temporalInfo = m_mapCategoryTemporalInfo.get(group);
+      if (temporalInfo != null) {
+        mapTemporalInfo.put(group, temporalInfo);
+      } else if (globalTemporalInfo != null) {
+        mapTemporalInfo.put(group, globalTemporalInfo);
       }
+      setProperties.add(group);
     }
 
-    return PropertyHelper.getReadRequest(setProperties, mapTemporalInfo);
+    return PropertyHelper.getReadRequest(allProperties ? Collections.<String>emptySet() : setProperties, mapTemporalInfo);
   }
 
   private void setParentIdsOnSubResource(Resource resource, ResourceInstance r) {
@@ -416,10 +328,9 @@ public class QueryImpl implements Query {
 
     QueryImpl that = (QueryImpl) o;
 
-    return m_mapAllProperties.equals(that.m_mapAllProperties) &&
-           m_mapCategoryTemporalInfo.equals(that.m_mapCategoryTemporalInfo) &&
+    return m_mapCategoryTemporalInfo.equals(that.m_mapCategoryTemporalInfo) &&
            m_mapPropertyTemporalInfo.equals(that.m_mapPropertyTemporalInfo) &&
-           m_mapQueryProperties.equals(that.m_mapQueryProperties) &&
+           m_setQueryProperties.equals(that.m_setQueryProperties) &&
            m_mapSubResources.equals(that.m_mapSubResources) &&
            m_resource.equals(that.m_resource) &&
            m_userPredicate == null ? that.m_userPredicate == null : m_userPredicate.equals(that.m_userPredicate);
@@ -428,10 +339,9 @@ public class QueryImpl implements Query {
   @Override
   public int hashCode() {
     int result = m_resource.hashCode();
-    result = 31 * result + m_mapQueryProperties.hashCode();
+    result = 31 * result + m_setQueryProperties.hashCode();
     result = 31 * result + m_mapPropertyTemporalInfo.hashCode();
     result = 31 * result + m_mapCategoryTemporalInfo.hashCode();
-    result = 31 * result + m_mapAllProperties.hashCode();
     result = 31 * result + m_mapSubResources.hashCode();
     result = 31 * result + (m_userPredicate != null ? m_userPredicate.hashCode() : 0);
     return result;

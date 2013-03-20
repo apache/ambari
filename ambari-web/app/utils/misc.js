@@ -34,5 +34,23 @@ module.exports = {
       }
     }
     return value;
+  },
+  /**
+   * Convert ip address to integer
+   * @param ip
+   * @return integer
+   */
+  ipToInt: function(ip){
+    // *     example 1: ipToInt('192.0.34.166');
+    // *     returns 1: 3221234342
+    // *     example 2: ipToInt('255.255.255.256');
+    // *     returns 2: false
+    // Verify IP format.
+    if (!/^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/.test(ip)) {
+      return false; // Invalid format.
+    }
+    // Reuse ip variable for component counter.
+    var d = ip.split('.');
+    return ((((((+d[0])*256)+(+d[1]))*256)+(+d[2]))*256)+(+d[3]);
   }
 };

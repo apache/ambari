@@ -22,7 +22,7 @@
 {{#view App.QuickViewLinks contentBinding="view.service"}}
 <ul class="nav nav-pills move">
   <li class="dropdown">
-    <a class="dropdown-toggle" data-toggle="dropdown" href="#">Quick Links<b class="caret"></b></a>
+    <a class="dropdown-toggle" data-toggle="dropdown" href="#">{{t common.quickLinks}}<b class="caret"></b></a>
     <ul class="dropdown-menu">
      {{#each view.quickLinks}}
       <a {{bindAttr href="url"}} {{bindAttr target="view.linkTarget"}}>{{label}}</a>
@@ -35,7 +35,7 @@
 
 <div class="box">
   <div class="box-header">
-    <h4>{{controller.content.label}} Summary</h4>
+    <h4>{{controller.content.label}} {{t services.service.info.menu.summary}}</h4>
   </div>
   <div class="service-content">
     <table id="summary-info" class="table no-borders table-condensed">
@@ -60,7 +60,7 @@
       {{/each}}
       {{#if view.serviceStatus.nagios}}
         <tr>
-          <td class="summary-label">Nagios Web UI</td>
+          <td class="summary-label">{{t services.service.info.summary.nagiosWebUI}}</td>
           <td><a target=_blank href="http://{{unbound view.nagiosServer}}/nagios">{{view.nagiosServer}}/nagios</a></td>
         </tr>
       {{/if}}
@@ -112,7 +112,6 @@
 </div>
 </div>
 <div class="span6">
-  {{#if view.hasAlertsBox }}
 	<div class="box">
 		<div class="box-header">
 			<h4>{{t services.alerts.headingOfList}}</h4>
@@ -128,17 +127,16 @@
 			{{else}}
 		    {{#if controller.isNagiosInstalled}}
 			    <div class="alert alert-info">
-			      No alerts
+			      {{t services.service.info.summary.nagios.noAlerts}}
 			    </div>
 			  {{else}}
 			    <div class="alert">
-			      Nagios service required for viewing alerts
+			      {{t services.service.info.summary.nagios.alerts}}
 			    </div>
 			  {{/if}}
 			{{/if}}
 		</ul>
 	</div>
-  {{/if}}
 </div>
 </div>
 {{#if view.serviceMetricGraphs.length}}
@@ -146,18 +144,26 @@
   <div class="span12">
     <div class="box">
       <div class="box-header">
-        <h4>{{controller.content.label}} Metrics</h4>
+        <h4>{{controller.content.label}} {{t common.metrics}}</h4>
         <div class="btn-group">
           <a class="btn" target="_blank" rel="tooltip" title="Go to Ganglia" {{bindAttr href="view.gangliaUrl"}}><i class="icon-link"></i></a>
         </div>
       </div>
       
-      <div class="summary-metric-graphs row-fluid">
-        {{#each graph in view.serviceMetricGraphs}}
-          <div class="span3">
-            {{view graph}}
-          </div> 
-        {{/each}}
+      <div class="">
+        <table class="graphs">
+          {{#each graphs in view.serviceMetricGraphs}}
+            <tr>
+              {{#each graph in graphs}}
+                <td>
+                  <div class="">
+                    {{view graph}}
+                  </div>
+                </td>
+              {{/each}}
+            </tr>
+          {{/each}}
+        </table>
       </div>
       
     </div>

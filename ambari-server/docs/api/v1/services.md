@@ -28,28 +28,28 @@ Returns a collection of the services in a given cluster.
 
     200 OK
     {
-    "href" : "http://your.ambari.server/api/v1/clusters/MyCluster/services",
-    "items" : [
-        {
-        "href" : "http://your.ambari.server/api/v1/clusters/MyCluster/services/NAGIOS",
-        "ServiceInfo" : {
-          "cluster_name" : "MyCluster",
-          "service_name" : "NAGIOS"
-          }
-        },
-        {
-        "href" : "http://your.ambari.server/api/v1/clusters/MyCluster/services/HCATALOG",
-        "ServiceInfo" : {
-          "cluster_name" : "MyCluster",
-          "service_name" : "HCATALOG"
-          }
-        },
-        {
-        "href" : "http://your.ambari.server/api/v1/clusters/MyCluster/services/PIG",
-        "ServiceInfo" : {
-          "cluster_name" : "MyCluster",
-          "service_name" : "PIG"
-          }
-        }
-      ]
-    }
+    	"href" : "http://your.ambari.server/api/v1/clusters/c1/services",
+    	"items" : [
+    		{
+        		"href" : "http://your.ambari.server/api/v1/clusters/c1/services/NAGIOS",
+        		"ServiceInfo" : {
+          			"cluster_name" : "c1",
+          			"service_name" : "NAGIOS"
+          		}
+        	},
+        	{
+        		"href" : "http://your.ambari.server/api/v1/clusters/c1/services/HCATALOG",
+        		"ServiceInfo" : {
+        	  		"cluster_name" : "c1",
+        	  		"service_name" : "HCATALOG"
+        	  	}
+        	},
+        	{
+        		"href" : "http://your.ambari.server/api/v1/clusters/c1/services/PIG",
+        		"ServiceInfo" : {
+        	  		"cluster_name" : "c1",
+        	  		"service_name" : "PIG"
+        	  	}	
+        	}
+        ]
+    }    

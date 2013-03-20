@@ -20,6 +20,7 @@ package org.apache.ambari.server.controller.internal;
 import junit.framework.Assert;
 import org.apache.ambari.server.controller.predicate.AndPredicate;
 import org.apache.ambari.server.controller.predicate.BasePredicate;
+import org.apache.ambari.server.controller.predicate.CategoryIsEmptyPredicate;
 import org.apache.ambari.server.controller.predicate.OrPredicate;
 import org.apache.ambari.server.controller.utilities.PredicateBuilder;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
@@ -54,6 +55,7 @@ public class SimplifyingPredicateVisitorTest {
   private static final BasePredicate PREDICATE_13 = new AndPredicate(PREDICATE_1, PREDICATE_12);
   private static final BasePredicate PREDICATE_14 = new PredicateBuilder().property(PROPERTY_D).greaterThan(12).toPredicate();
   private static final BasePredicate PREDICATE_15 = new AndPredicate(PREDICATE_1, PREDICATE_14);
+  private static final BasePredicate PREDICATE_16 = new CategoryIsEmptyPredicate("cat1");
 
   @Test
   public void testVisit() {
@@ -133,5 +135,12 @@ public class SimplifyingPredicateVisitorTest {
 
     Assert.assertEquals(1, simplifiedPredicates.size());
     Assert.assertEquals(PREDICATE_1, simplifiedPredicates.get(0));
+
+    PREDICATE_16.accept(visitor);
+
+    simplifiedPredicates = visitor.getSimplifiedPredicates();
+
+    Assert.assertEquals(1, simplifiedPredicates.size());
+    Assert.assertEquals(PREDICATE_16, simplifiedPredicates.get(0));
   }
 }

@@ -75,7 +75,8 @@ class hdp-templeton::server(
 
 class hdp-templeton::copy-hdfs-directories($service_state)
 {
- $templeton_user = $hdp-templeton::params::templeton_user
+ $webhcat_apps_dir = $hdp::params::webhcat_apps_dir
+ $webhcat_user = $hdp::params::webhcat_user
 # $pig_src_tar = "$hdp::params::artifact_dir/pig.tar.gz"
 
 #  hdp-hadoop::hdfs::copyfromlocal { '/usr/share/templeton/templeton*jar':
@@ -86,22 +87,22 @@ class hdp-templeton::copy-hdfs-directories($service_state)
 #  }
   hdp-hadoop::hdfs::copyfromlocal { '/usr/lib/hadoop/contrib/streaming/hadoop-streaming*.jar':
    service_state => $service_state,
-   owner => $hdp-templeton::params::templeton_user,
+   owner => $webhcat_user,
    mode  => '755',
-   dest_dir => '/apps/webhcat/hadoop-streaming.jar'
+   dest_dir => "$webhcat_apps_dir/hadoop-streaming.jar"
   }
   #TODO: Use ${hdp::params::artifact_dir}/${hdp-templeton::params::pig_tar_name} instead
   hdp-hadoop::hdfs::copyfromlocal { '/usr/share/HDP-webhcat/pig.tar.gz' :
     service_state => $service_state,
-    owner => $hdp-templeton::params::templeton_user,
+    owner => $webhcat_user,
     mode  => '755',
-    dest_dir => '/apps/webhcat/pig.tar.gz'
+    dest_dir => "$webhcat_apps_dir/pig.tar.gz"
   }
   #TODO: Use ${hdp::params::artifact_dir}/${hdp-templeton::params::hive_tar_name} instead
   hdp-hadoop::hdfs::copyfromlocal { '/usr/share/HDP-webhcat/hive.tar.gz' :
     service_state => $service_state,
-    owner => $hdp-templeton::params::templeton_user,
+    owner => $webhcat_user,
     mode  => '755',
-    dest_dir => '/apps/webhcat/hive.tar.gz'
+    dest_dir => "$webhcat_apps_dir/hive.tar.gz"
   }
 }

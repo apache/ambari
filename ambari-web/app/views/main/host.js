@@ -17,89 +17,136 @@
  */
 
 var App = require('app');
-require('utils/data_table');
 var filters = require('views/common/filter_view');
+var sort = require('views/common/sort_view');
 var date = require('utils/date');
 
 App.MainHostView = Em.View.extend({
   templateName:require('templates/main/host'),
-  controller:function () {
-    return App.router.get('mainHostController');
-  }.property(),
   content:function () {
     return App.router.get('mainHostController.content');
   }.property('App.router.mainHostController.content'),
   oTable: null,
 
   didInsertElement:function () {
-    var oTable = $('#hosts-table').dataTable({
-      "sDom": '<"search-bar"f><"clear">rt<"page-bar"lip><"clear">',
-      "oLanguage": {
-        "sSearch": "Search:",
-        "sLengthMenu": "Show: _MENU_",
-        "sInfo": "_START_ - _END_ of _TOTAL_",
-        "sInfoEmpty": "0 - _END_ of _TOTAL_",
-        "sInfoFiltered": "",
-        "oPaginate":{
-          "sPrevious": "<i class='icon-arrow-left'></i>",
-          "sNext": "<i class='icon-arrow-right'></i>"
-        }
-      },
-      "bSortCellsTop": true,
-      "iDisplayLength": 10,
-      "aLengthMenu": [[10, 25, 50, 100, -1], [10, 25, 50, 100, "All"]],
-      "oSearch": {"bSmart":false},
-      "bAutoWidth": false,
-      "aoColumns":[
-        { "bSortable": false },
-        { "sType":"html" },
-        { "sType":"html" },
-        { "sType":"num-html" },
-        { "sType":"ambari-bandwidth" },
-        { "sType":"html" },
-        { "sType":"num-html" },
-        { "sType":"html", "bSortable": false  },
-        { "bVisible": false }, // hidden column for raw public host name value
-        { "bVisible": false } // hidden column for raw components list
-      ],
-      "aaSorting": [[ 1, "asc" ]]
-    });
-    this.set('oTable', oTable);
-    this.set('allComponentsChecked', true); // select all components (checkboxes) on start.
+    this.filter();
+    if (this.get('controller.comeWithAlertsFilter')) {
+      this.set('controller.comeWithAlertsFilter', false);
+      this.set('controller.filteredByAlerts', true);
+    } else {
+      this.set('controller.filteredByAlerts', false);
+    }
   },
 
+  /**
+   * return pagination information displayed on the hosts page
+   */
+  paginationInfo: function () {
+    return this.t('apps.filters.paginationInfo').format(this.get('startIndex'), this.get('endIndex'), this.get('filteredContent.length'));
+  }.property('displayLength', 'filteredContent.length', 'startIndex', 'endIndex'),
+
+  paginationLeft: Ember.View.extend({
+    tagName: 'a',
+    template: Ember.Handlebars.compile('<i class="icon-arrow-left"></i>'),
+    classNameBindings: ['class'],
+    class: function () {
+      if (this.get("parentView.startIndex") > 1) {
+       return "paginate_previous";
+      }
+      return "paginate_disabled_previous";
+    }.property("parentView.startIndex", 'filteredContent.length'),
+
+    click: function () {
+      this.get('parentView').previousPage();
+    }
+  }),
+
+  paginationRight: Ember.View.extend({
+    tagName: 'a',
+    template: Ember.Handlebars.compile('<i class="icon-arrow-right"></i>'),
+    classNameBindings: ['class'],
+    class: function () {
+      if ((this.get("parentView.endIndex")) < this.get("parentView.filteredContent.length")) {
+       return "paginate_next";
+      }
+      return "paginate_disabled_next";
+    }.property("parentView.endIndex", 'filteredContent.length'),
+
+    click: function () {
+      this.get('parentView').nextPage();
+    }
+  }),
+
+  hostPerPageSelectView: Em.Select.extend({
+    content: ['10', '25', '50']
+  }),
+
+  // start index for displayed content on the hosts page
+  startIndex: 1,
+
+  // calculate end index for displayed content on the hosts page
+  endIndex: function () {
+    return Math.min(this.get('filteredContent.length'), this.get('startIndex') + parseInt(this.get('displayLength')) - 1);
+  }.property('startIndex', 'displayLength', 'filteredContent.length'),
+
+  /**
+   * onclick handler for previous page button on the hosts page
+   */
+  previousPage: function () {
+    var result = this.get('startIndex') - parseInt(this.get('displayLength'));
+    if (result  < 2) {
+      result = 1;
+    }
+    this.set('startIndex', result);
+  },
+
+  /**
+   * onclick handler for next page button on the hosts page
+   */
+  nextPage: function () {
+    var result = this.get('startIndex') + parseInt(this.get('displayLength'));
+    if (result - 1 < this.get('filteredContent.length')) {
+      this.set('startIndex', result);
+    }
+  },
+
+  // the number of hosts to show on every page of the hosts page view
+  displayLength: null,
+
+  // calculates default value for startIndex property after applying filter or changing displayLength
+  updatePaging: function () {
+      this.set('startIndex', Math.min(1, this.get('filteredContent.length')));
+  }.observes('displayLength', 'filteredContent.length'),
+
+  sortView: sort.wrapperView,
+  nameSort: sort.fieldView.extend({
+    name:'publicHostName',
+    displayName: Em.I18n.t('common.name')
+  }),
+  ipSort: sort.fieldView.extend({
+    name:'ip',
+    displayName: Em.I18n.t('common.ipAddress'),
+    type: 'ip'
+  }),
+  cpuSort: sort.fieldView.extend({
+    name:'cpu',
+    displayName: Em.I18n.t('common.cpu')
+  }),
+  memorySort: sort.fieldView.extend({
+    name:'memory',
+    displayName: Em.I18n.t('common.ram')
+  }),
+  diskUsageSort: sort.fieldView.extend({
+    name:'diskUsage',
+    displayName: Em.I18n.t('common.diskUsage')
+  }),
+  loadAvgSort: sort.fieldView.extend({
+    name:'loadAvg',
+    displayName: Em.I18n.t('common.loadAvg')
+  }),
   HostView:Em.View.extend({
     content:null,
-
-    healthToolTip: function(){
-      var hostComponents = this.get('content.hostComponents').filter(function(item){
-        if(item.get('workStatus') !== App.HostComponentStatus.started){
-          return true;
-        }
-      });
-      var output = '';
-      switch (this.get('content.healthClass')){
-        case 'health-status-DEAD':
-          hostComponents = hostComponents.filterProperty('isMaster', true);
-          output = Em.I18n.t('hosts.host.healthStatus.mastersDown');
-          hostComponents.forEach(function(hc, index){
-            output += (index == (hostComponents.length-1)) ? hc.get('displayName') : (hc.get('displayName')+", ");
-          }, this);
-          break;
-        case 'health-status-DEAD-YELLOW':
-          output = Em.I18n.t('hosts.host.healthStatus.heartBeatNotReceived');
-          break;
-        case 'health-status-DEAD-ORANGE':
-          hostComponents = hostComponents.filterProperty('isSlave', true);
-          output = Em.I18n.t('hosts.host.healthStatus.slavesDown');
-          hostComponents.forEach(function(hc, index){
-            output += (index == (hostComponents.length-1)) ? hc.get('displayName') : (hc.get('displayName')+", ");
-          }, this);
-          break;
-      }
-      return output;
-    }.property('content.healthClass'),
-
+    tagName: 'tr',
     shortLabels: function() {
       var labels = this.get('content.hostComponents').getEach('displayName');
       var shortLabels = '';
@@ -136,7 +183,7 @@ App.MainHostView = Em.View.extend({
    */
   nameFilterView: filters.createTextView({
     onChangeValue: function(){
-      this.get('parentView').updateFilter(8, this.get('value'));
+      this.get('parentView').updateFilter(1, this.get('value'), 'string');
     }
   }),
 
@@ -146,7 +193,7 @@ App.MainHostView = Em.View.extend({
    */
   ipFilterView: filters.createTextView({
     onChangeValue: function(){
-      this.get('parentView').updateFilter(2, this.get('value'));
+      this.get('parentView').updateFilter(2, this.get('value'), 'string');
     }
   }),
 
@@ -158,7 +205,7 @@ App.MainHostView = Em.View.extend({
     fieldType: 'input-mini',
     fieldId: 'cpu_filter',
     onChangeValue: function(){
-      this.get('parentView').updateFilter(3);
+      this.get('parentView').updateFilter(3, this.get('value'), 'number');
     }
   }),
 
@@ -170,7 +217,7 @@ App.MainHostView = Em.View.extend({
     fieldType: 'input-mini',
     fieldId: 'load_avg_filter',
     onChangeValue: function(){
-      this.get('parentView').updateFilter(5);
+      this.get('parentView').updateFilter(5, this.get('value'), 'number');
     }
   }),
 
@@ -182,7 +229,7 @@ App.MainHostView = Em.View.extend({
     fieldType: 'input-mini',
     fieldId: 'ram_filter',
     onChangeValue: function(){
-      this.get('parentView').updateFilter(4);
+      this.get('parentView').updateFilter(4, this.get('value'), 'ambari-bandwidth');
     }
   }),
 
@@ -254,13 +301,13 @@ App.MainHostView = Em.View.extend({
         var chosenComponents = [];
 
         this.get('masterComponents').filterProperty('checkedForHostFilter', true).forEach(function(item){
-          chosenComponents.push(item.get('displayName'));
+          chosenComponents.push(item.get('id'));
         });
         this.get('slaveComponents').filterProperty('checkedForHostFilter', true).forEach(function(item){
-          chosenComponents.push(item.get('displayName'));
+          chosenComponents.push(item.get('id'));
         });
         this.get('clientComponents').filterProperty('checkedForHostFilter', true).forEach(function(item){
-          chosenComponents.push(item.get('displayName'));
+          chosenComponents.push(item.get('id'));
         });
         this.set('value', chosenComponents.toString());
       },
@@ -275,24 +322,119 @@ App.MainHostView = Em.View.extend({
       }
 
     }),
-    fieldId: 'components_filter',
     onChangeValue: function(){
-      this.get('parentView').updateFilter(9);
+      this.get('parentView').updateFilter(6, this.get('value'), 'multiple');
     }
   }),
 
-  startIndex : function(){
-    return Math.random();
-  }.property(),
+  /**
+   * Filter hosts by hosts with at least one alert
+   */
+  filterByAlerts:function() {
+    if (this.get('controller.filteredByAlerts')) {
+      this.updateFilter(7, '>0', 'number')
+    } else {
+      this.updateFilter(7, '', 'number')
+    }
+  }.observes('controller.filteredByAlerts'),
 
   /**
-   * Apply each filter to dataTable
+   * Apply each filter to host
    *
    * @param iColumn number of column by which filter
    * @param value
    */
-  updateFilter: function(iColumn, value){
-    this.get('oTable').fnFilter(value || '', iColumn);
-  }
+  updateFilter: function(iColumn, value, type){
+    var filterCondition = this.get('filterConditions').findProperty('iColumn', iColumn);
+    if(filterCondition) {
+      filterCondition.value = value;
+    } else {
+      filterCondition = {
+        iColumn: iColumn,
+        value: value,
+        type: type
+      }
+      this.get('filterConditions').push(filterCondition);
+    }
+    this.filter();
+  },
+  /**
+   * associations between host property and column index
+   */
+  colPropAssoc: function(){
+    var associations = [];
+    associations[1] = 'publicHostName';
+    associations[2] = 'ip';
+    associations[3] = 'cpu';
+    associations[4] = 'memoryFormatted';
+    associations[5] = 'loadAvg';
+    associations[6] = 'hostComponents';
+    associations[7] = 'criticalAlertsCount';
+    return associations;
+  }.property(),
+  globalSearchValue:null,
+  /**
+   * filter table by all fields
+   */
+  globalFilter: function(){
+    var content = this.get('content');
+    var searchValue = this.get('globalSearchValue');
+    var result;
+    if(searchValue){
+      result = content.filter(function(host){
+        var match = false;
+        this.get('colPropAssoc').forEach(function(item){
+          var filterFunc = filters.getFilterByType('string', false);
+          if(item === 'hostComponents'){
+            filterFunc = filters.getFilterByType('multiple', true);
+          }
+          if(!match){
+            match = filterFunc(host.get(item), searchValue);
+          }
+        });
+        return match;
+      }, this);
+      this.set('filteredContent', result);
+    } else {
+      this.filter();
+    }
+  }.observes('globalSearchValue', 'content'),
+  /**
+   * contain filter conditions for each column
+   */
+  filterConditions: [],
+  filteredContent: [],
 
+  // contain content to show on the current page of hosts page view
+  pageContent: function () {
+    return this.get('filteredContent').slice(this.get('startIndex') - 1, this.get('endIndex'));
+  }.property('filteredContent.length', 'startIndex', 'endIndex'),
+
+  /**
+   * filter table by filterConditions
+   */
+  filter: function(){
+    var content = this.get('content');
+    var filterConditions = this.get('filterConditions').filterProperty('value');
+    var result;
+    var self = this;
+    var assoc = this.get('colPropAssoc');
+    if(!this.get('globalSearchValue')){
+      if(filterConditions.length){
+        result = content.filter(function(host){
+          var match = true;
+          filterConditions.forEach(function(condition){
+            var filterFunc = filters.getFilterByType(condition.type, false);
+            if(match){
+              match = filterFunc(host.get(assoc[condition.iColumn]), condition.value);
+            }
+          });
+          return match;
+        });
+        this.set('filteredContent', result);
+      } else {
+        this.set('filteredContent', content.toArray());
+      }
+    }
+  }.observes('content')
 });

@@ -20,20 +20,22 @@
     <table class="table table-bordered table-striped" id="innerTable">
       <thead>
       <tr>
-        <th>Job &#35;</th>
-        <th>Job Id</th>
-        <th>Status</th>
-        <th>Maps</th>
-        <th>Reduces</th>
-        <th>Input</th>
-        <th>Output</th>
-        <th>Duration</th>
+        {{#view view.sortView contentBinding="controller.content.jobs"}}
+          {{#if view.parentView.hasManyJobs}}{{view view.parentView.nameSort}}{{/if}}
+          {{view view.parentView.idSort}}
+          {{view view.parentView.statusSort}}
+          {{view view.parentView.mapsSort}}
+          {{view view.parentView.reducesSort}}
+          {{view view.parentView.inputSort}}
+          {{view view.parentView.outputSort}}
+          {{view view.parentView.durationSort}}
+        {{/view}}
       </tr>
       </thead>
       <tbody>
       {{#each job in controller.content.jobs}}
       <tr>
-        <td>{{job.workflow_entity_name}}</td>
+        {{#if view.hasManyJobs}}<td>{{job.workflow_entity_name}}</td>{{/if}}
         <td>{{job.id}}</td>
         <td>{{job.status}}</td>
         <td>{{job.maps}}</td>

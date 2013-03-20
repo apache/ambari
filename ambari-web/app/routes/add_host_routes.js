@@ -291,7 +291,7 @@ module.exports = Em.Route.extend({
     complete: function (router, context) {
       if (true) {   // this function will be moved to installerController where it will validate
         var addHostController = router.get('addHostController');
-        App.router.get('updateController').updateAllWrapper();
+        App.router.get('updateController').updateAll();
         addHostController.finish();
         $(context.currentTarget).parents("#modal").find(".close").trigger('click');
 

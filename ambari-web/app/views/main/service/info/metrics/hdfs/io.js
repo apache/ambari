@@ -28,16 +28,11 @@ var App = require('app');
  */
 App.ChartServiceMetricsHDFS_IO = App.ChartLinearTimeView.extend({
   id: "service-metrics-hdfs-io",
-  title: "HDFS I/O",
+  title: Em.I18n.t('services.service.info.metrics.hdfs.io'),
   yAxisFormatter: App.ChartLinearTimeView.BytesFormatter,
   renderer: 'line',
-  url: function () {
-    return App.formatUrl(
-      this.get('urlPrefix') + "/services/HDFS/components/DATANODE?fields=metrics/dfs/datanode/bytes_written[{fromSeconds},{toSeconds},{stepSeconds}],metrics/dfs/datanode/bytes_read[{fromSeconds},{toSeconds},{stepSeconds}]",
-      {},
-      "/data/services/metrics/hdfs/io.json"
-    );
-  }.property('clusterName').volatile(),
+  sourceUrl: "/services/HDFS/components/DATANODE?fields=metrics/dfs/datanode/bytes_written[{fromSeconds},{toSeconds},{stepSeconds}],metrics/dfs/datanode/bytes_read[{fromSeconds},{toSeconds},{stepSeconds}]",
+  mockUrl: "/data/services/metrics/hdfs/io.json",
 
   transformToSeries: function (jsonData) {
     var seriesArray = [];

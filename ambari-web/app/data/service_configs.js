@@ -67,7 +67,7 @@ module.exports = [
     configCategories: [
       App.ServiceConfigCategory.create({ name: 'Advanced'})
     ],
-    configs: configProperties.filterProperty('serviceName', 'WEBCHAT')
+    configs: configProperties.filterProperty('serviceName', 'WEBHCAT')
   },
 
   {
@@ -117,7 +117,7 @@ module.exports = [
     serviceName: 'MISC',
     displayName: 'Misc',
     configCategories: [
-      /*App.ServiceConfigCategory.create({ name: 'General'}),*/
+     // App.ServiceConfigCategory.create({ name: 'General'}),
       App.ServiceConfigCategory.create({ name: 'Users and Groups'})
     ],
     configs: configProperties.filterProperty('serviceName', 'MISC')

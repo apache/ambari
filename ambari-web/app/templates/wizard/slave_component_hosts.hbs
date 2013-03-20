@@ -17,14 +17,14 @@
 }}
 
 {{#if view.hasNoHosts}}
-none -
+{{t none}} -
 <a href="#" {{action showEditSlaveComponentGroups view.serviceConfig.category target="controller"}}>
-  select hosts for this group
+  {{t installer.slaveComponentHosts.selectHosts}}
 </a>
 {{else}}
 <a href="#" {{action showEditSlaveComponentGroups view.serviceConfig.category target="controller"}}>
   {{#if view.hasMultipleHosts}}
-  {{view.hosts.firstObject.hostName}} and {{view.otherLength}}
+  {{view.hosts.firstObject.hostName}} {{t and}} {{view.otherLength}}
   {{else}}
   {{view.hosts.firstObject.hostName}}
   {{/if}}

@@ -62,6 +62,13 @@ public interface Resource {
   public void setProperty(String id, Object value);
 
   /**
+   * Add an empty category to this resource.
+   *
+   * @param id    the category id
+   */
+  public void addCategory(String id);
+
+  /**
    * Get a property value for the given property id from this resource.
    *
    * @param id the property id

@@ -28,36 +28,36 @@
   <table class="table table-striped">
     <thead>
       <tr>
-        <th>Host</th>
+        <th>{{t common.host}}</th>
         <th>
           <a href="#" {{bindAttr class="isAllDataNodes:selected:deselected"}}
-            {{action selectAllDataNodes target="controller"}}>all</a> |
+            {{action selectAllDataNodes target="controller"}}>{{t all}}</a> |
 
           <a href="#" {{bindAttr class="isNoDataNodes:selected:deselected"}}
-            {{action deselectAllDataNodes target="controller"}}>none</a>
+            {{action deselectAllDataNodes target="controller"}}>{{t none}}</a>
         </th>
       {{#if controller.isMrSelected}}
         <th>
           <a href="#" {{bindAttr class="isAllTaskTrackers:selected:deselected"}}
-            {{action selectAllTaskTrackers target="controller"}}>all</a> |
+            {{action selectAllTaskTrackers target="controller"}}>{{t all}}</a> |
 
           <a href="#" {{bindAttr class="isNoTaskTrackers:selected:deselected"}}
-            {{action deselectAllTaskTrackers target="controller"}}>none</a>
+            {{action deselectAllTaskTrackers target="controller"}}>{{t none}}</a>
         </th>
       {{/if}}
       {{#if controller.isHbSelected}}
         <th>
           <a href="#" {{bindAttr class="isAllRegionServers:selected:deselected"}}
-            {{action selectAllRegionServers target="controller"}}>all</a> |
+            {{action selectAllRegionServers target="controller"}}>{{t all}}</a> |
 
           <a href="#" {{bindAttr class="isNoRegionServers:selected:deselected"}}
-            {{action deselectAllRegionServers target="controller"}}>none</a>
+            {{action deselectAllRegionServers target="controller"}}>{{t none}}</a>
         </th>
       {{/if}}
         <th>
-          <a href="#" {{bindAttr class="isAllClients:selected:deselected"}} {{action selectAllClients target="controller"}}>all</a>
+          <a href="#" {{bindAttr class="isAllClients:selected:deselected"}} {{action selectAllClients target="controller"}}>{{t all}}</a>
           |
-          <a href="#" {{bindAttr class="isNoClients:selected:deselected"}} {{action deselectAllClients target="controller"}}>none</a>
+          <a href="#" {{bindAttr class="isNoClients:selected:deselected"}} {{action deselectAllClients target="controller"}}>{{t none}}</a>
         </th>
       </tr>
     </thead>
@@ -71,21 +71,21 @@
             <i class=icon-asterisks>&#10037</i>
           {{/if}}
         {{/view}}
-      <td><label class="checkbox">{{view Ember.Checkbox disabledBinding="isDataNodeInstalled" checkedBinding="isDataNode"}}DataNode</label></td>
+      <td><label class="checkbox">{{view Ember.Checkbox disabledBinding="isDataNodeInstalled" checkedBinding="isDataNode"}}{{t common.dataNode}}</label></td>
       {{#if controller.isMrSelected}}
-      <td><label class="checkbox">{{view Ember.Checkbox disabledBinding="isTaskTrackerInstalled" checkedBinding="isTaskTracker"}}TaskTracker</label></td>
+      <td><label class="checkbox">{{view Ember.Checkbox disabledBinding="isTaskTrackerInstalled" checkedBinding="isTaskTracker"}}{{t common.taskTracker}}</label></td>
       {{/if}}
       {{#if controller.isHbSelected}}
-      <td><label class="checkbox">{{view Ember.Checkbox disabledBinding="isRegionServerInstalled" checkedBinding="isRegionServer"}}RegionServer</label></td>
+      <td><label class="checkbox">{{view Ember.Checkbox disabledBinding="isRegionServerInstalled" checkedBinding="isRegionServer"}}{{t common.regionServer}}</label></td>
       {{/if}}
-      <td><label class="checkbox">{{view Ember.Checkbox disabledBinding="isClientInstalled" checkedBinding="isClient"}}Client</label></td>
+      <td><label class="checkbox">{{view Ember.Checkbox disabledBinding="isClientInstalled" checkedBinding="isClient"}}{{t common.client}}</label></td>
     </tr>
     {{/each}}
     </tbody>
   </table>
   </div>
   <div class="btn-area">
-    <a class="btn" {{action back}}>&larr; Back</a>
-    <a class="btn btn-success pull-right" {{action next}}>Next &rarr;</a>
+    <a class="btn" {{action back}}>&larr; {{t common.back}}</a>
+    <a class="btn btn-success pull-right" {{action next}}>{{t common.next}} &rarr;</a>
   </div>
 </div>

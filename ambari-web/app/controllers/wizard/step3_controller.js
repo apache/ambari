@@ -99,9 +99,6 @@ App.WizardStep3Controller = Em.Controller.extend({
 
   navigateStep: function () {
     this.loadStep();
-    if(App.testMode){
-      this.getHostInfo();
-    }
     if (this.get('content.installOptions.manualInstall') !== true) {
       if (!App.db.getBootStatus()) {
         this.startBootstrap();
@@ -109,9 +106,11 @@ App.WizardStep3Controller = Em.Controller.extend({
     } else {
       this.set('bootHosts', this.get('hosts'));
       if (App.testMode) {
+        this.getHostInfo();
         this.get('bootHosts').setEach('bootStatus', 'REGISTERED');
         this.get('bootHosts').setEach('cpu', '2');
         this.get('bootHosts').setEach('memory', '2000000');
+        this.set('isSubmitDisabled', false);
       } else {
         this.set('registrationStartedAt', null);
         this.get('bootHosts').setEach('bootStatus', 'DONE');
@@ -692,6 +691,12 @@ App.WizardStep3Controller = Em.Controller.extend({
       };
 
       //render all directories and files for each host
+      if (!host.Hosts.last_agent_env) {
+        // in some unusual circumstances when last_agent_env is not available from the host,
+        // skip the host and proceed to process the rest of the hosts.
+        console.log("last_agent_env is missing for " + host.Hosts.host_name + ".  Skipping host check.");
+        return;
+      }
       host.Hosts.last_agent_env.paths.forEach(function(path){
         var parsedPath = {
           name: path.name,

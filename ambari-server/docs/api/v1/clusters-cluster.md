@@ -1,4 +1,4 @@
-<!---
+	<!---
 Licensed to the Apache Software Foundation (ASF) under one or more
 contributor license agreements. See the NOTICE file distributed with
 this work for additional information regarding copyright ownership.
@@ -28,97 +28,98 @@ Returns information for the specified cluster identified by ":name"
 
     200 OK
     {
-      "href" : "http://your.ambari.server/api/v1/clusters/MyCluster",
-      "Clusters" : {
-        "cluster_name" : "MyCluster",
-        "cluster_id" : 1,
-        "version" : "HDP-1.2.0"
-      },
-      "services" : [
-        {
-        "href" : "http://your.ambari.server/api/v1/clusters/MyCluster/services/NAGIOS",
-        "ServiceInfo" : {
-          "cluster_name" : "MyCluster",
-          "service_name" : "NAGIOS"
-          }
-        },
-        {
-        "href" : "http://your.ambari.server/api/v1/clusters/MyCluster/services/HCATALOG",
-        "ServiceInfo" : {
-          "cluster_name" : "MyCluster",
-          "service_name" : "HCATALOG"
-          }
-        },
-        {
-        "href" : "http://your.ambari.server/api/v1/clusters/MyCluster/services/PIG",
-        "ServiceInfo" : {
-          "cluster_name" : "MyCluster",
-          "service_name" : "PIG"
-          }
-        },
-        {
-        "href" : "http://your.ambari.server/api/v1/clusters/MyCluster/services/MAPREDUCE",
-        "ServiceInfo" : {
-          "cluster_name" : "MyCluster",
-          "service_name" : "MAPREDUCE"
-          }
-        },
-        {
-        "href" : "http://your.ambari.server/api/v1/clusters/MyCluster/services/GANGLIA",
-        "ServiceInfo" : {
-          "cluster_name" : "MyCluster",
-          "service_name" : "GANGLIA"
-          }
-        },
-        {
-        "href" : "http://your.ambari.server/api/v1/clusters/MyCluster/services/HIVE",
-        "ServiceInfo" : {
-          "cluster_name" : "MyCluster",
-          "service_name" : "HIVE"
-          }
-        },
-        {
-        "href" : "http://your.ambari.server/api/v1/clusters/MyCluster/services/HDFS",
-        "ServiceInfo" : {
-          "cluster_name" : "MyIE9",
-          "service_name" : "HDFS"
-          }
-        },
-        {
-        "href" : "http://your.ambari.server/api/v1/clusters/MyCluster/services/ZOOKEEPER",
-        "ServiceInfo" : {
-          "cluster_name" : "MyCluster",
-          "service_name" : "ZOOKEEPER"
-          }
-        },
-        {
-        "href" : "http://your.ambari.server/api/v1/clusters/MyCluster/services/HBASE",
-        "ServiceInfo" : {
-          "cluster_name" : "MyCluster",
-          "service_name" : "HBASE"
-          }
-        },
-        {
-        "href" : "http://your.ambari.server/api/v1/clusters/MyCluster/services/OOZIE",
-        "ServiceInfo" : {
-          "cluster_name" : "MyCluster",
-          "service_name" : "OOZIE"
-          }
-        } ],
-    "hosts" : [
-      {
-      "href" : "http://your.ambari.server/api/v1/clusters/MyCluster/hosts/some.cluster.host",
-      "Hosts" : {
-        "cluster_name" : "MyCluster",
-        "host_name" : "some.cluster.host"
-        }
-      },
-      {
-      "href" : "http://your.ambari.server/api/v1/clusters/MyCluster/hosts/another.cluster.host",
-      "Hosts" : {
-        "cluster_name" : "MyCluster",
-        "host_name" : "another.cluster.host"
-        }
-      } ]
+    	"href" : "http://your.ambari.server/api/v1/clusters/c1",
+      	"Clusters" : {
+        	"cluster_name" : "c1",
+        	"cluster_id" : 1,
+        	"version" : "HDP-1.2.0"
+      	},
+      	"services" : [
+        	{
+        		"href" : "http://your.ambari.server/api/v1/clusters/c1/services/NAGIOS",
+        		"ServiceInfo" : {
+          			"cluster_name" : "c1",
+          			"service_name" : "NAGIOS"
+          		}
+        	},
+        	{
+        		"href" : "http://your.ambari.server/api/v1/clusters/c1/services/HCATALOG",
+        		"ServiceInfo" : {
+          			"cluster_name" : "c1",
+          			"service_name" : "HCATALOG"
+          		}
+        	},
+        	{
+        		"href" : "http://your.ambari.server/api/v1/clusters/c1/services/PIG",
+        		"ServiceInfo" : {
+          			"cluster_name" : "c1",
+         			"service_name" : "PIG"
+          		}
+        	},
+        	{
+        		"href" : "http://your.ambari.server/api/v1/clusters/c1/services/MAPREDUCE",
+        		"ServiceInfo" : {
+          			"cluster_name" : "c1",
+          			"service_name" : "MAPREDUCE"
+          		}
+        	},
+        	{
+        		"href" : "http://your.ambari.server/api/v1/clusters/c1/services/GANGLIA",
+        		"ServiceInfo" : {
+          			"cluster_name" : "c1",
+          			"service_name" : "GANGLIA"
+          		}
+        	},
+        	{
+        		"href" : "http://your.ambari.server/api/v1/clusters/c1/services/HIVE",
+        		"ServiceInfo" : {
+          			"cluster_name" : "c1",
+          			"service_name" : "HIVE"
+          		}
+        	},
+        	{
+        		"href" : "http://your.ambari.server/api/v1/clusters/c1/services/HDFS",
+        		"ServiceInfo" : {
+          			"cluster_name" : "MyIE9",
+          			"service_name" : "HDFS"
+          		}
+        	},
+        	{
+        		"href" : "http://your.ambari.server/api/v1/clusters/c1/services/ZOOKEEPER",
+        		"ServiceInfo" : {
+          			"cluster_name" : "c1",
+         	 		"service_name" : "ZOOKEEPER"
+          		}
+        	},
+        	{
+        		"href" : "http://your.ambari.server/api/v1/clusters/c1/services/HBASE",
+        		"ServiceInfo" : {
+          			"cluster_name" : "c1",
+          			"service_name" : "HBASE"
+          		}
+        	},
+        	{
+        		"href" : "http://your.ambari.server/api/v1/clusters/c1/services/OOZIE",
+        		"ServiceInfo" : {
+          			"cluster_name" : "c1",
+          			"service_name" : "OOZIE"
+          		}
+        	} 
+    	],
+    	"hosts" : [
+      		{
+      			"href" : "http://your.ambari.server/api/v1/clusters/c1/hosts/host1",
+      			"Hosts" : {
+        			"cluster_name" : "c1",
+        			"host_name" : "some.cluster.host"
+        		}
+      		},
+      		{
+      			"href" : "http://your.ambari.server/api/v1/clusters/c1/hosts/host2",
+      		"Hosts" : {
+        		"cluster_name" : "c1",
+        		"host_name" : "another.cluster.host"
+        	}
+        ]
     }
 

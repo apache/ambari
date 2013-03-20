@@ -28,11 +28,10 @@
       <div class="span10">
         <div {{bindAttr class="isStepCompleted::progress-striped isStepCompleted::active view.barColor :progress"}}>
           <div class="bar" {{bindAttr style="view.barWidth"}}>
-            <!--<strong style="color: #00008b;">Overall Progress</strong>-->
           </div>
         </div>
       </div>
-      <div class="span2">{{progress}}% overall</div>
+      <div class="span2">{{view.progressMessage}}</div>
     </div>
   </div>
 
@@ -42,16 +41,16 @@
         {{#if controller.showRetry}}
         <a class="btn btn-primary"
            href="#" {{action retry}}><i class="icon-repeat icon-white"></i>
-          Retry
+          {{t common.retry}}
         </a>
         {{/if}}
         {{#if App.testMode}}
         <a class="btn btn-info" href="#" {{action mockBtn target="controller"}}>
-          mockData
+          {{t installer.mockData}}
         </a>
         <a class="btn btn-primary"
            href="#" {{action pollBtn target="controller"}}><i class="icon-repeat icon-white"></i>
-          pollData
+          {{t installer.pollData}}
         </a>
         {{/if}}
       </div>
@@ -62,11 +61,11 @@
         <thead>
         <tr>
           <th class="host">
-            Host
+            {{t common.host}}
           </th>
-          <th class="status">Status</th>
+          <th class="status">{{t common.status}}</th>
           <!--  given by the parsing function that parses data from bootstrap call -->
-          <th class="message">Message</th>
+          <th class="message">{{t common.message}}</th>
           <!-- retrieved from local storage initially -->
         </tr>
         </thead>
@@ -110,7 +109,7 @@
     <p {{bindAttr class="view.resultMsgColor :alert"}}>{{view.resultMsg}}</p>
     {{/if}}
     <div class="btn-area">
-      <a class="btn btn-success pull-right" {{bindAttr disabled="isSubmitDisabled"}} {{action submit target="controller"}}>Next &rarr;</a>
+      <a class="btn btn-success pull-right" {{bindAttr disabled="isSubmitDisabled"}} {{action submit target="controller"}}>{{t common.next}} &rarr;</a>
     </div>
   </div>
 

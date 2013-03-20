@@ -28,15 +28,10 @@ var App = require('app');
  */
 App.ChartServiceMetricsMapReduce_ReduceSlots = App.ChartLinearTimeView.extend({
   id: "service-metrics-mapreduce-reduce-slots",
-  title: "Reduce Slots Utilization",
+  title: Em.I18n.t('services.service.info.metrics.mapreduce.reduceSlots'),
   renderer: 'line',
-  url: function () {
-    return App.formatUrl(
-      this.get('urlPrefix') + "/services/MAPREDUCE/components/JOBTRACKER?fields=metrics/mapred/jobtracker/occupied_reduce_slots[{fromSeconds},{toSeconds},{stepSeconds}],metrics/mapred/jobtracker/reserved_reduce_slots[{fromSeconds},{toSeconds},{stepSeconds}]",
-      {},
-      "/data/services/metrics/mapreduce/reduce_slots.json"
-    );
-  }.property('clusterName').volatile(),
+  sourceUrl: "/services/MAPREDUCE/components/JOBTRACKER?fields=metrics/mapred/jobtracker/occupied_reduce_slots[{fromSeconds},{toSeconds},{stepSeconds}],metrics/mapred/jobtracker/reserved_reduce_slots[{fromSeconds},{toSeconds},{stepSeconds}]",
+  mockUrl: "/data/services/metrics/mapreduce/reduce_slots.json",
 
   transformToSeries: function (jsonData) {
     var seriesArray = [];

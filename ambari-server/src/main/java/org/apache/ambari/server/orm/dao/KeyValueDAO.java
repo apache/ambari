@@ -39,6 +39,7 @@ public class KeyValueDAO {
     return entityManagerProvider.get().find(KeyValueEntity.class, key);
   }
 
+  @Transactional
   public Collection<KeyValueEntity> findAll() {
     TypedQuery<KeyValueEntity> query =
         entityManagerProvider.get().createQuery("SELECT keyValue FROM KeyValueEntity keyValue", KeyValueEntity.class);

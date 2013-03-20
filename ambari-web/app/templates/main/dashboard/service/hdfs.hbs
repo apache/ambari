@@ -103,9 +103,7 @@
       <tr>
         <td>{{t services.service.summary.blockErrors}}</td>
         <td>
-          {{view.dfsCorruptBlocks}} corrupt /
-          {{view.dfsMissingBlocks}} missing /
-          {{view.dfsUnderReplicatedBlocks}} under replicated
+          {{view.blockErrorsMessage}}
         </td>
       </tr>
       <!-- Total Files And Directories -->
@@ -149,7 +147,7 @@
     {{#view App.QuickViewLinks contentBinding="view.service"}}
       <div class="btn-group">
         <a class="btn btn-mini dropdown-toggle" data-toggle="dropdown" href="#">
-          Quick Links
+          {{t common.quickLinks}}
           <span class="caret"></span>
         </a>
         <ul class="dropdown-menu">

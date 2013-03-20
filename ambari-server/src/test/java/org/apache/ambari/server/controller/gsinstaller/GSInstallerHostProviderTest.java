@@ -62,7 +62,7 @@ public class GSInstallerHostProviderTest {
   @Test
   public void testGetResourcesCheckState() throws Exception {
     TestGSInstallerStateProvider stateProvider = new TestGSInstallerStateProvider();
-    ClusterDefinition clusterDefinition = new ClusterDefinition(stateProvider);
+    ClusterDefinition clusterDefinition = new ClusterDefinition(stateProvider, 500);
     GSInstallerResourceProvider provider = new GSInstallerHostProvider(clusterDefinition);
     Predicate predicate = new PredicateBuilder().property(GSInstallerHostProvider.HOST_NAME_PROPERTY_ID).equals("ip-10-190-97-104.ec2.internal").toPredicate();
     Set<Resource> resources = provider.getResources(PropertyHelper.getReadRequest(), predicate);
@@ -75,7 +75,32 @@ public class GSInstallerHostProviderTest {
     stateProvider.setHealthy(false);
 
     // need to wait for old state value to expire
-    Thread.sleep(15001);
+    Thread.sleep(501);
+
+    resources = provider.getResources(PropertyHelper.getReadRequest(), predicate);
+    Assert.assertEquals(1, resources.size());
+
+    resource = resources.iterator().next();
+    Assert.assertEquals("INIT", resource.getPropertyValue(GSInstallerHostProvider.HOST_STATE_PROPERTY_ID));
+  }
+
+  @Test
+  public void testGetResourcesCheckStateFromCategory() throws Exception {
+    TestGSInstallerStateProvider stateProvider = new TestGSInstallerStateProvider();
+    ClusterDefinition clusterDefinition = new ClusterDefinition(stateProvider, 500);
+    GSInstallerResourceProvider provider = new GSInstallerHostProvider(clusterDefinition);
+    Predicate predicate = new PredicateBuilder().property(GSInstallerHostProvider.HOST_NAME_PROPERTY_ID).equals("ip-10-190-97-104.ec2.internal").toPredicate();
+    Set<Resource> resources = provider.getResources(PropertyHelper.getReadRequest("Hosts"), predicate);
+    Assert.assertEquals(1, resources.size());
+
+    Resource resource = resources.iterator().next();
+
+    Assert.assertEquals("HEALTHY", resource.getPropertyValue(GSInstallerHostProvider.HOST_STATE_PROPERTY_ID));
+
+    stateProvider.setHealthy(false);
+
+    // need to wait for old state value to expire
+    Thread.sleep(501);
 
     resources = provider.getResources(PropertyHelper.getReadRequest(), predicate);
     Assert.assertEquals(1, resources.size());

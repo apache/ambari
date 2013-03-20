@@ -214,7 +214,8 @@ public class AmbariServer {
       // sslConnectorOneWay.setNeedClientAuth(false);
       SslSelectChannelConnector sslConnectorOneWay = new SslSelectChannelConnector(contextFactory);
       sslConnectorOneWay.setPort(AGENT_ONE_WAY_AUTH);
-
+      sslConnectorOneWay.setAcceptors(2);
+      sslConnectorTwoWay.setAcceptors(2);
       serverForAgent.setConnectors(new Connector[]{ sslConnectorOneWay, sslConnectorTwoWay});
 
       ServletHolder sh = new ServletHolder(ServletContainer.class);

@@ -18,6 +18,7 @@
 
 package org.apache.ambari.server.controller.jdbc;
 
+import org.apache.ambari.server.controller.internal.BaseProvider;
 import org.apache.ambari.server.controller.internal.RequestStatusImpl;
 import org.apache.ambari.server.controller.internal.ResourceImpl;
 import org.apache.ambari.server.controller.predicate.BasePredicate;
@@ -42,14 +43,13 @@ import java.util.Set;
 
 /**
  * Generic JDBC based resource provider.
+ * TODO : Not used. Move to Test for API integration testing.
  */
-public class JDBCResourceProvider implements ResourceProvider {
+public class JDBCResourceProvider extends BaseProvider implements ResourceProvider {
 
     private final Resource.Type type;
 
-    private final Set<String> propertyIds;
-
-    private final ConnectionFactory connectionFactory;
+  private final ConnectionFactory connectionFactory;
 
     /**
      * The schema for this provider's resource type.
@@ -68,10 +68,10 @@ public class JDBCResourceProvider implements ResourceProvider {
                                 Resource.Type type,
                                 Set<String> propertyIds,
                                 Map<Resource.Type, String> keyPropertyIds) {
-        this.connectionFactory = connectionFactory;
-        this.type = type;
-        this.propertyIds = propertyIds;
-        this.keyPropertyIds = keyPropertyIds;
+      super(propertyIds);
+      this.connectionFactory = connectionFactory;
+      this.type = type;
+      this.keyPropertyIds = keyPropertyIds;
     }
 
     @Override
@@ -79,7 +79,7 @@ public class JDBCResourceProvider implements ResourceProvider {
         throws SystemException, UnsupportedPropertyException, NoSuchResourceException, NoSuchParentResourceException {
 
         Set<Resource> resources = new HashSet<Resource>();
-        Set<String> propertyIds = PropertyHelper.getRequestPropertyIds(this.propertyIds, request, predicate);
+        Set<String> propertyIds = getRequestPropertyIds(request, predicate);
 
         // Can't allow these properties with the old schema...
         propertyIds.remove(PropertyHelper.getPropertyId("Clusters", "cluster_id"));
@@ -398,23 +398,8 @@ public class JDBCResourceProvider implements ResourceProvider {
     }
 
     @Override
-    public Set<String> getPropertyIdsForSchema() {
-        return propertyIds;
-    }
-
-    @Override
     public Map<Resource.Type, String> getKeyPropertyIds() {
         return keyPropertyIds;
-    }
-
-    @Override
-    public Set<String> checkPropertyIds(Set<String> propertyIds) {
-      if (!this.propertyIds.containsAll(propertyIds)) {
-        Set<String> unsupportedPropertyIds = new HashSet<String>(propertyIds);
-        unsupportedPropertyIds.removeAll(this.propertyIds);
-        return unsupportedPropertyIds;
-      }
-      return Collections.emptySet();
     }
 
     /**

@@ -51,12 +51,35 @@ public class PropertyHelper {
   private static final Map<Resource.Type, Map<Resource.Type, String>> KEY_PROPERTY_IDS = readKeyPropertyIds(KEY_PROPERTIES_FILE);
 
   public static String getPropertyId(String category, String name) {
-    return category == null ? name : category + EXTERNAL_PATH_SEP + name;
+    String propertyId =  (category == null || category.isEmpty())? name :
+           (name == null || name.isEmpty()) ? category : category + EXTERNAL_PATH_SEP + name;
+
+    if (propertyId.endsWith("/")) {
+      propertyId = propertyId.substring(0, propertyId.length() - 1);
+    }
+    return propertyId;
   }
+
 
   public static Set<String> getPropertyIds(Resource.Type resourceType) {
     Set<String> propertyIds = PROPERTY_IDS.get(resourceType);
     return propertyIds == null ? Collections.<String>emptySet() : propertyIds;
+  }
+
+  /**
+   * Extract the set of property ids from a component PropertyInfo map.
+   *
+   * @param componentPropertyInfoMap  the map
+   *
+   * @return the set of property ids
+   */
+  public static Set<String> getPropertyIds(Map<String, Map<String, PropertyInfo>> componentPropertyInfoMap ) {
+    Set<String> propertyIds = new HashSet<String>();
+
+    for (Map.Entry<String, Map<String, PropertyInfo>> entry : componentPropertyInfoMap.entrySet()) {
+      propertyIds.addAll(entry.getValue().keySet());
+    }
+    return propertyIds;
   }
 
   public static Map<String, Map<String, PropertyInfo>> getGangliaPropertyIds(Resource.Type resourceType) {
@@ -94,6 +117,25 @@ public class PropertyHelper {
   public static String getPropertyCategory(String absProperty) {
     int lastPathSep = absProperty.lastIndexOf(EXTERNAL_PATH_SEP);
     return lastPathSep == -1 ? null : absProperty.substring(0, lastPathSep);
+  }
+
+  /**
+   * Get the set of categories for the given property ids.
+   *
+   * @param propertyIds  the property ids
+   *
+   * @return the set of categories
+   */
+  public static Set<String> getCategories(Set<String> propertyIds) {
+    Set<String> categories = new HashSet<String>();
+    for (String property : propertyIds) {
+      String category = PropertyHelper.getPropertyCategory(property);
+      while (category != null) {
+        categories.add(category);
+        category = PropertyHelper.getPropertyCategory(category);
+      }
+    }
+    return categories;
   }
 
   /**
@@ -139,44 +181,6 @@ public class PropertyHelper {
       }
     }
     return properties;
-  }
-
-  /**
-   * Get the set of property ids required to satisfy the given request.
-   *
-   * @param providerPropertyIds  the provider property ids
-   * @param request              the request
-   * @param predicate            the predicate
-   *
-   * @return the set of property ids needed to satisfy the request
-   */
-  public static Set<String> getRequestPropertyIds(Set<String> providerPropertyIds,
-                                                      Request request,
-                                                      Predicate predicate) {
-    Set<String> propertyIds  = request.getPropertyIds();
-
-    // if no properties are specified, then return them all
-    if (propertyIds == null || propertyIds.isEmpty()) {
-      providerPropertyIds = new HashSet<String>(providerPropertyIds);
-
-//      // strip out the temporal properties, they must be asked for explicitly
-//      Iterator<String> iter = providerPropertyIds.iterator();
-//      while (iter.hasNext()) {
-//        String propertyId = iter.next();
-//        if (propertyId.isTemporal()) {
-//          iter.remove();
-//        }
-//      }
-      return providerPropertyIds;
-    }
-
-    propertyIds = new HashSet<String>(propertyIds);
-
-    if (predicate != null) {
-      propertyIds.addAll(PredicateHelper.getPropertyIds(predicate));
-    }
-    propertyIds.retainAll(providerPropertyIds);
-    return propertyIds;
   }
 
   /**

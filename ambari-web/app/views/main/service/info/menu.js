@@ -23,10 +23,10 @@ App.MainServiceInfoMenuView = Em.CollectionView.extend({
   classNames: ["nav", "nav-tabs"],
   content:function(){
     var menuItems = [
-      { label:'Summary', routing:'summary', active:"active"}
+      { label: Em.I18n.t('services.service.info.menu.summary'), routing:'summary', active:"active"}
       //{ label:'Audit', routing:'audit'}
     ];
-    if(this.get('configTab')) menuItems.push({ label:'Configs', routing:'configs'});
+    if(this.get('configTab')) menuItems.push({ label: Em.I18n.t('services.service.info.menu.configs'), routing:'configs'});
     return menuItems;
   }.property(),
 

@@ -2281,22 +2281,22 @@
       },
       "metrics/ugi/loginFailure_avg_time":{
         "metric":"ugi.ugi.loginFailure_avg_time",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       },
       "metrics/ugi/loginFailure_num_ops":{
         "metric":"ugi.ugi.loginFailure_num_ops",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       },
       "metrics/ugi/loginSuccess_avg_time":{
         "metric":"ugi.ugi.loginSuccess_avg_time",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       },
       "metrics/ugi/loginSuccess_num_ops":{
         "metric":"ugi.ugi.loginSuccess_num_ops",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       }
     },
@@ -4094,7 +4094,7 @@
       },
       "metrics/mapred/Queue/jobs_completed":{
         "metric":"mapred.Queue.jobs_completed",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       },
       "metrics/mapred/Queue/jobs_failed":{
@@ -4114,12 +4114,12 @@
       },
       "metrics/mapred/Queue/jobs_running":{
         "metric":"mapred.Queue.jobs_running",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       },
       "metrics/mapred/Queue/jobs_submitted":{
         "metric":"mapred.Queue.jobs_submitted",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       },
       "metrics/mapred/Queue/maps_completed":{
@@ -4164,197 +4164,197 @@
       },
       "metrics/mapred/Queue/reserved_map_slots":{
         "metric":"mapred.Queue.reserved_map_slots",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       },
       "metrics/mapred/Queue/reserved_reduce_slots":{
         "metric":"mapred.Queue.reserved_reduce_slots",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       },
       "metrics/mapred/Queue/running_0":{
         "metric":"mapred.Queue.running_0",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       },
       "metrics/mapred/Queue/running_1440":{
         "metric":"mapred.Queue.running_1440",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       },
       "metrics/mapred/Queue/running_300":{
         "metric":"mapred.Queue.running_300",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       },
       "metrics/mapred/Queue/running_60":{
         "metric":"mapred.Queue.running_60",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       },
       "metrics/mapred/Queue/waiting_maps":{
         "metric":"mapred.Queue.waiting_maps",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       },
       "metrics/mapred/Queue/waiting_reduces":{
         "metric":"mapred.Queue.waiting_reduces",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       },
       "metrics/mapred/jobtracker/blacklisted_maps":{
         "metric":"mapred.jobtracker.blacklisted_maps",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       },
       "metrics/mapred/jobtracker/blacklisted_reduces":{
         "metric":"mapred.jobtracker.blacklisted_reduces",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       },
       "metrics/mapred/jobtracker/heartbeats":{
         "metric":"mapred.jobtracker.heartbeats",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       },
       "metrics/mapred/jobtracker/jobs_completed":{
         "metric":"mapred.jobtracker.jobs_completed",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       },
       "metrics/mapred/jobtracker/jobs_failed":{
         "metric":"mapred.jobtracker.jobs_failed",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       },
       "metrics/mapred/jobtracker/jobs_killed":{
         "metric":"mapred.jobtracker.jobs_killed",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       },
       "metrics/mapred/jobtracker/jobs_preparing":{
         "metric":"mapred.jobtracker.jobs_preparing",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       },
       "metrics/mapred/jobtracker/jobs_running":{
         "metric":"mapred.jobtracker.jobs_running",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       },
       "metrics/mapred/jobtracker/jobs_submitted":{
         "metric":"mapred.jobtracker.jobs_submitted",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       },
       "metrics/mapred/jobtracker/map_slots":{
         "metric":"mapred.jobtracker.map_slots",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       },
       "metrics/mapred/jobtracker/maps_completed":{
         "metric":"mapred.jobtracker.maps_completed",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       },
       "metrics/mapred/jobtracker/maps_failed":{
         "metric":"mapred.jobtracker.maps_failed",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       },
       "metrics/mapred/jobtracker/maps_killed":{
         "metric":"mapred.jobtracker.maps_killed",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       },
       "metrics/mapred/jobtracker/maps_launched":{
         "metric":"mapred.jobtracker.maps_launched",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       },
       "metrics/mapred/jobtracker/occupied_map_slots":{
         "metric":"mapred.jobtracker.occupied_map_slots",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       },
       "metrics/mapred/jobtracker/occupied_reduce_slots":{
         "metric":"mapred.jobtracker.occupied_reduce_slots",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       },
       "metrics/mapred/jobtracker/reduce_slots":{
         "metric":"mapred.jobtracker.reduce_slots",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       },
       "metrics/mapred/jobtracker/reduces_completed":{
         "metric":"mapred.jobtracker.reduces_completed",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       },
       "metrics/mapred/jobtracker/reduces_failed":{
         "metric":"mapred.jobtracker.reduces_failed",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       },
       "metrics/mapred/jobtracker/reduces_killed":{
         "metric":"mapred.jobtracker.reduces_killed",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       },
       "metrics/mapred/jobtracker/reduces_launched":{
         "metric":"mapred.jobtracker.reduces_launched",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       },
       "metrics/mapred/jobtracker/reserved_map_slots":{
         "metric":"mapred.jobtracker.reserved_map_slots",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       },
       "metrics/mapred/jobtracker/reserved_reduce_slots":{
         "metric":"mapred.jobtracker.reserved_reduce_slots",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       },
       "metrics/mapred/jobtracker/running_maps":{
         "metric":"mapred.jobtracker.running_maps",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       },
       "metrics/mapred/jobtracker/running_reduces":{
         "metric":"mapred.jobtracker.running_reduces",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       },
       "metrics/mapred/jobtracker/trackers":{
         "metric":"mapred.jobtracker.trackers",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       },
       "metrics/mapred/jobtracker/trackers_blacklisted":{
         "metric":"mapred.jobtracker.trackers_blacklisted",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       },
       "metrics/mapred/jobtracker/trackers_decommissioned":{
         "metric":"mapred.jobtracker.trackers_decommissioned",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       },
       "metrics/mapred/jobtracker/trackers_graylisted":{
         "metric":"mapred.jobtracker.trackers_graylisted",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       },
       "metrics/mapred/jobtracker/waiting_maps":{
         "metric":"mapred.jobtracker.waiting_maps",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       },
       "metrics/mapred/jobtracker/waiting_reduces":{
         "metric":"mapred.jobtracker.waiting_reduces",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       },
       "metrics/memory/mem_buffers":{
@@ -4644,22 +4644,22 @@
       },
       "metrics/ugi/loginFailure_avg_time":{
         "metric":"ugi.ugi.loginFailure_avg_time",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       },
       "metrics/ugi/loginFailure_num_ops":{
         "metric":"ugi.ugi.loginFailure_num_ops",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       },
       "metrics/ugi/loginSuccess_avg_time":{
         "metric":"ugi.ugi.loginSuccess_avg_time",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       },
       "metrics/ugi/loginSuccess_num_ops":{
         "metric":"ugi.ugi.loginSuccess_num_ops",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       }
     },
@@ -6287,7 +6287,7 @@
       },
       "metrics/hbase/master/cluster_requests":{
         "metric":"hbase.master.cluster_requests",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       },
       "metrics/hbase/master/splitSize_avg_time":{
@@ -6477,12 +6477,12 @@
       },
       "metrics/rpc/NumOpenConnections":{
         "metric":"rpc.rpc.NumOpenConnections",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       },
       "metrics/rpc/ReceivedBytes":{
         "metric":"rpc.rpc.ReceivedBytes",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       },
       "metrics/rpc/RpcProcessingTime_avg_time":{
@@ -6517,7 +6517,7 @@
       },
       "metrics/rpc/SentBytes":{
         "metric":"rpc.rpc.SentBytes",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       },
       "metrics/rpc/addColumn/aboveOneSec/_avg_time":{
@@ -6612,7 +6612,7 @@
       },
       "metrics/rpc/callQueueLen":{
         "metric":"rpc.rpc.callQueueLen",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       },
       "metrics/rpc/checkAndDelete_avg_time":{
@@ -7237,22 +7237,22 @@
       },
       "metrics/rpc/rpcAuthenticationFailures":{
         "metric":"rpc.rpc.rpcAuthenticationFailures",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       },
       "metrics/rpc/rpcAuthenticationSuccesses":{
         "metric":"rpc.rpc.rpcAuthenticationSuccesses",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       },
       "metrics/rpc/rpcAuthorizationFailures":{
         "metric":"rpc.rpc.rpcAuthorizationFailures",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       },
       "metrics/rpc/rpcAuthorizationSuccesses":{
         "metric":"rpc.rpc.rpcAuthorizationSuccesses",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       },
       "metrics/rpc/shutdown/aboveOneSec/_avg_time":{
@@ -11463,22 +11463,22 @@
       },
       "metrics/ugi/loginFailure_avg_time":{
         "metric":"ugi.ugi.loginFailure_avg_time",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       },
       "metrics/ugi/loginFailure_num_ops":{
         "metric":"ugi.ugi.loginFailure_num_ops",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       },
       "metrics/ugi/loginSuccess_avg_time":{
         "metric":"ugi.ugi.loginSuccess_avg_time",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       },
       "metrics/ugi/loginSuccess_num_ops":{
         "metric":"ugi.ugi.loginSuccess_num_ops",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       }
     },
@@ -13007,22 +13007,22 @@
       },
       "metrics/ugi/loginFailure_avg_time":{
         "metric":"ugi.ugi.loginFailure_avg_time",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       },
       "metrics/ugi/loginFailure_num_ops":{
         "metric":"ugi.ugi.loginFailure_num_ops",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       },
       "metrics/ugi/loginSuccess_avg_time":{
         "metric":"ugi.ugi.loginSuccess_avg_time",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       },
       "metrics/ugi/loginSuccess_num_ops":{
         "metric":"ugi.ugi.loginSuccess_num_ops",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       }
     },
@@ -13186,7 +13186,7 @@
       },
       "metrics/mapred/Queue/jobs_completed":{
         "metric":"mapred.Queue.jobs_completed",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       },
       "metrics/mapred/Queue/jobs_failed":{
@@ -13206,12 +13206,12 @@
       },
       "metrics/mapred/Queue/jobs_running":{
         "metric":"mapred.Queue.jobs_running",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       },
       "metrics/mapred/Queue/jobs_submitted":{
         "metric":"mapred.Queue.jobs_submitted",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       },
       "metrics/mapred/Queue/maps_completed":{
@@ -13256,197 +13256,197 @@
       },
       "metrics/mapred/Queue/reserved_map_slots":{
         "metric":"mapred.Queue.reserved_map_slots",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       },
       "metrics/mapred/Queue/reserved_reduce_slots":{
         "metric":"mapred.Queue.reserved_reduce_slots",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       },
       "metrics/mapred/Queue/running_0":{
         "metric":"mapred.Queue.running_0",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       },
       "metrics/mapred/Queue/running_1440":{
         "metric":"mapred.Queue.running_1440",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       },
       "metrics/mapred/Queue/running_300":{
         "metric":"mapred.Queue.running_300",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       },
       "metrics/mapred/Queue/running_60":{
         "metric":"mapred.Queue.running_60",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       },
       "metrics/mapred/Queue/waiting_maps":{
         "metric":"mapred.Queue.waiting_maps",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       },
       "metrics/mapred/Queue/waiting_reduces":{
         "metric":"mapred.Queue.waiting_reduces",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       },
       "metrics/mapred/jobtracker/blacklisted_maps":{
         "metric":"mapred.jobtracker.blacklisted_maps",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       },
       "metrics/mapred/jobtracker/blacklisted_reduces":{
         "metric":"mapred.jobtracker.blacklisted_reduces",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       },
       "metrics/mapred/jobtracker/heartbeats":{
         "metric":"mapred.jobtracker.heartbeats",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       },
       "metrics/mapred/jobtracker/jobs_completed":{
         "metric":"mapred.jobtracker.jobs_completed",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       },
       "metrics/mapred/jobtracker/jobs_failed":{
         "metric":"mapred.jobtracker.jobs_failed",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       },
       "metrics/mapred/jobtracker/jobs_killed":{
         "metric":"mapred.jobtracker.jobs_killed",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       },
       "metrics/mapred/jobtracker/jobs_preparing":{
         "metric":"mapred.jobtracker.jobs_preparing",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       },
       "metrics/mapred/jobtracker/jobs_running":{
         "metric":"mapred.jobtracker.jobs_running",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       },
       "metrics/mapred/jobtracker/jobs_submitted":{
         "metric":"mapred.jobtracker.jobs_submitted",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       },
       "metrics/mapred/jobtracker/map_slots":{
         "metric":"mapred.jobtracker.map_slots",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       },
       "metrics/mapred/jobtracker/maps_completed":{
         "metric":"mapred.jobtracker.maps_completed",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       },
       "metrics/mapred/jobtracker/maps_failed":{
         "metric":"mapred.jobtracker.maps_failed",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       },
       "metrics/mapred/jobtracker/maps_killed":{
         "metric":"mapred.jobtracker.maps_killed",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       },
       "metrics/mapred/jobtracker/maps_launched":{
         "metric":"mapred.jobtracker.maps_launched",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       },
       "metrics/mapred/jobtracker/occupied_map_slots":{
         "metric":"mapred.jobtracker.occupied_map_slots",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       },
       "metrics/mapred/jobtracker/occupied_reduce_slots":{
         "metric":"mapred.jobtracker.occupied_reduce_slots",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       },
       "metrics/mapred/jobtracker/reduce_slots":{
         "metric":"mapred.jobtracker.reduce_slots",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       },
       "metrics/mapred/jobtracker/reduces_completed":{
         "metric":"mapred.jobtracker.reduces_completed",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       },
       "metrics/mapred/jobtracker/reduces_failed":{
         "metric":"mapred.jobtracker.reduces_failed",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       },
       "metrics/mapred/jobtracker/reduces_killed":{
         "metric":"mapred.jobtracker.reduces_killed",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       },
       "metrics/mapred/jobtracker/reduces_launched":{
         "metric":"mapred.jobtracker.reduces_launched",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       },
       "metrics/mapred/jobtracker/reserved_map_slots":{
         "metric":"mapred.jobtracker.reserved_map_slots",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       },
       "metrics/mapred/jobtracker/reserved_reduce_slots":{
         "metric":"mapred.jobtracker.reserved_reduce_slots",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       },
       "metrics/mapred/jobtracker/running_maps":{
         "metric":"mapred.jobtracker.running_maps",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       },
       "metrics/mapred/jobtracker/running_reduces":{
         "metric":"mapred.jobtracker.running_reduces",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       },
       "metrics/mapred/jobtracker/trackers":{
         "metric":"mapred.jobtracker.trackers",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       },
       "metrics/mapred/jobtracker/trackers_blacklisted":{
         "metric":"mapred.jobtracker.trackers_blacklisted",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       },
       "metrics/mapred/jobtracker/trackers_decommissioned":{
         "metric":"mapred.jobtracker.trackers_decommissioned",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       },
       "metrics/mapred/jobtracker/trackers_graylisted":{
         "metric":"mapred.jobtracker.trackers_graylisted",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       },
       "metrics/mapred/jobtracker/waiting_maps":{
         "metric":"mapred.jobtracker.waiting_maps",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       },
       "metrics/mapred/jobtracker/waiting_reduces":{
         "metric":"mapred.jobtracker.waiting_reduces",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       },
       "metrics/memory/mem_buffers":{
@@ -13736,22 +13736,22 @@
       },
       "metrics/ugi/loginFailure_avg_time":{
         "metric":"ugi.ugi.loginFailure_avg_time",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       },
       "metrics/ugi/loginFailure_num_ops":{
         "metric":"ugi.ugi.loginFailure_num_ops",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       },
       "metrics/ugi/loginSuccess_avg_time":{
         "metric":"ugi.ugi.loginSuccess_avg_time",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       },
       "metrics/ugi/loginSuccess_num_ops":{
         "metric":"ugi.ugi.loginSuccess_num_ops",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       }
     },
@@ -13920,47 +13920,47 @@
       },
       "metrics/mapred/shuffleOutput/shuffle_exceptions_caught":{
         "metric":"mapred.shuffleOutput.shuffle_exceptions_caught",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       },
       "metrics/mapred/shuffleOutput/shuffle_failed_outputs":{
         "metric":"mapred.shuffleOutput.shuffle_failed_outputs",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       },
       "metrics/mapred/shuffleOutput/shuffle_handler_busy_percent":{
         "metric":"mapred.shuffleOutput.shuffle_handler_busy_percent",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       },
       "metrics/mapred/shuffleOutput/shuffle_output_bytes":{
         "metric":"mapred.shuffleOutput.shuffle_output_bytes",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       },
       "metrics/mapred/shuffleOutput/shuffle_success_outputs":{
         "metric":"mapred.shuffleOutput.shuffle_success_outputs",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       },
       "metrics/mapred/tasktracker/mapTaskSlots":{
         "metric":"mapred.tasktracker.mapTaskSlots",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       },
       "metrics/mapred/tasktracker/maps_running":{
         "metric":"mapred.tasktracker.maps_running",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       },
       "metrics/mapred/tasktracker/reduceTaskSlots":{
         "metric":"mapred.tasktracker.reduceTaskSlots",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       },
       "metrics/mapred/tasktracker/reduces_running":{
         "metric":"mapred.tasktracker.reduces_running",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       },
       "metrics/memory/mem_buffers":{
@@ -15190,22 +15190,22 @@
       },
       "metrics/ugi/loginFailure_avg_time":{
         "metric":"ugi.ugi.loginFailure_avg_time",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       },
       "metrics/ugi/loginFailure_num_ops":{
         "metric":"ugi.ugi.loginFailure_num_ops",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       },
       "metrics/ugi/loginSuccess_avg_time":{
         "metric":"ugi.ugi.loginSuccess_avg_time",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       },
       "metrics/ugi/loginSuccess_num_ops":{
         "metric":"ugi.ugi.loginSuccess_num_ops",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       }
     },
@@ -15274,7 +15274,7 @@
       },
       "metrics/hbase/master/cluster_requests":{
         "metric":"hbase.master.cluster_requests",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       },
       "metrics/hbase/master/splitSize_avg_time":{
@@ -15464,12 +15464,12 @@
       },
       "metrics/rpc/NumOpenConnections":{
         "metric":"rpc.rpc.NumOpenConnections",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       },
       "metrics/rpc/ReceivedBytes":{
         "metric":"rpc.rpc.ReceivedBytes",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       },
       "metrics/rpc/RpcProcessingTime_avg_time":{
@@ -15504,7 +15504,7 @@
       },
       "metrics/rpc/SentBytes":{
         "metric":"rpc.rpc.SentBytes",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       },
       "metrics/rpc/addColumn/aboveOneSec/_avg_time":{
@@ -15599,7 +15599,7 @@
       },
       "metrics/rpc/callQueueLen":{
         "metric":"rpc.rpc.callQueueLen",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       },
       "metrics/rpc/checkAndDelete_avg_time":{
@@ -16224,22 +16224,22 @@
       },
       "metrics/rpc/rpcAuthenticationFailures":{
         "metric":"rpc.rpc.rpcAuthenticationFailures",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       },
       "metrics/rpc/rpcAuthenticationSuccesses":{
         "metric":"rpc.rpc.rpcAuthenticationSuccesses",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       },
       "metrics/rpc/rpcAuthorizationFailures":{
         "metric":"rpc.rpc.rpcAuthorizationFailures",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       },
       "metrics/rpc/rpcAuthorizationSuccesses":{
         "metric":"rpc.rpc.rpcAuthorizationSuccesses",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       },
       "metrics/rpc/shutdown/aboveOneSec/_avg_time":{
@@ -19432,12 +19432,12 @@
       },
       "metrics/rpc/rpcAuthenticationFailures":{
         "metric":"rpc.rpc.rpcAuthenticationFailures",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       },
       "metrics/rpc/rpcAuthenticationSuccesses":{
         "metric":"rpc.rpc.rpcAuthenticationSuccesses",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       },
       "metrics/rpc/rpcAuthorizationFailures":{

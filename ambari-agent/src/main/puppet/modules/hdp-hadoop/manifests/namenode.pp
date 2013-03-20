@@ -85,10 +85,14 @@ class hdp-hadoop::namenode(
        service_state => $service_state
     }
 
+    hdp-hadoop::namenode::create_user_directories { 'create_user_directories' :
+       service_state => $service_state
+    }
+
     #top level does not need anchors
     Class['hdp-hadoop'] ->  Hdp-hadoop::Service['namenode']
     Hdp-hadoop::Namenode::Create_name_dirs<||> -> Hdp-hadoop::Service['namenode'] 
-    Hdp-hadoop::Service['namenode'] -> Hdp-hadoop::Namenode::Create_app_directories<||>
+    Hdp-hadoop::Service['namenode'] -> Hdp-hadoop::Namenode::Create_app_directories<||> -> Hdp-hadoop::Namenode::Create_user_directories<||>
     if ($service_state == 'running' and $format == true) {
       Class['hdp-hadoop'] -> Class['hdp-hadoop::namenode::format'] -> Hdp-hadoop::Service['namenode']
       Hdp-hadoop::Namenode::Create_name_dirs<||> -> Class['hdp-hadoop::namenode::format']
@@ -111,15 +115,8 @@ define hdp-hadoop::namenode::create_name_dirs($service_state)
 
 define hdp-hadoop::namenode::create_app_directories($service_state)
 {
+
   if ($service_state == 'running') {
-    $smoke_test_user = $hdp::params::smokeuser
-    $smoke_hdfs_user_dir = $hdp::params::smoke_hdfs_user_dir
-    hdp-hadoop::hdfs::directory{ $smoke_hdfs_user_dir:
-      service_state => $service_state,
-      owner => $smoke_test_user,
-      mode  => '770',
-      recursive_chmod => true
-    }
    
     hdp-hadoop::hdfs::directory{ "/tmp" :
       service_state => $service_state,
@@ -147,46 +144,87 @@ define hdp-hadoop::namenode::create_app_directories($service_state)
 
     if ($hdp::params::hive_server_host != "") {
       $hive_user = $hdp::params::hive_user
+      $hive_apps_whs_dir = $hdp::params::hive_apps_whs_dir
 
-      hdp-hadoop::hdfs::directory{ '/apps/hive/warehouse':
+      hdp-hadoop::hdfs::directory{ $hive_apps_whs_dir:
         service_state   => $service_state,
         owner            => $hive_user,
         mode             => '777',
         recursive_chmod  => true
       }
-      hdp-hadoop::hdfs::directory{ $hive_hdfs_user_dir:
-        service_state => $service_state,
-        owner         => $hive_user
-      }
     }
 
-    if ($hdp::params::oozie_server != "") {
-      $oozie_user = $hdp::params::oozie_user
-      $oozie_hdfs_user_dir = $hdp::params::oozie_hdfs_user_dir
-      hdp-hadoop::hdfs::directory{ $oozie_hdfs_user_dir:
-        service_state => $service_state,
-        owner => $oozie_user,
-        mode  => '775',
-        recursive_chmod => true
-      }
-    }
-    
     if ($hdp::params::webhcat_server_host != "") {
-      $templeton_user = $hdp::params::templeton_user
-      $hcat_hdfs_user_dir = $hdp::params::hcat_hdfs_user_dir
-      hdp-hadoop::hdfs::directory{ $hcat_hdfs_user_dir:
-        service_state => $service_state,
-        owner => $templeton_user,
-        mode  => '755',
-        recursive_chmod => true
-      }
+      $webhcat_user = $hdp::params::webhcat_user
+      $webhcat_apps_dir = $hdp::params::webhcat_apps_dir
 
-      hdp-hadoop::hdfs::directory{ '/apps/webhcat':
+      hdp-hadoop::hdfs::directory{ $webhcat_apps_dir:
         service_state => $service_state,
-        owner => $templeton_user,
+        owner => $webhcat_user,
         mode  => '755',
         recursive_chmod => true
       }
     }
   }
 }
+
+
+define hdp-hadoop::namenode::create_user_directories($service_state)
+{
+  if ($service_state == 'running') {
+    $smoke_hdfs_user_dir = $hdp::params::smoke_hdfs_user_dir
+
+    $smoke_user_dir_item="$smoke_hdfs_user_dir,"
+
+    if ($hdp::params::hive_server_host != "") {
+      $hive_hdfs_user_dir = $hdp::params::hive_hdfs_user_dir
+      $hive_dir_item="$hive_hdfs_user_dir,"
+    } else {
+    $hive_dir_item=""
+    }
+
+    if ($hdp::params::oozie_server != "") {
+      $oozie_hdfs_user_dir = $hdp::params::oozie_hdfs_user_dir
+      $oozie_dir_item="$oozie_hdfs_user_dir,"
+    } else {
+      $oozie_dir_item=""
+    }
+    
+    if ($hdp::params::webhcat_server_host != "") {
+      $hcat_hdfs_user_dir = $hdp::params::hcat_hdfs_user_dir
+      $webhcat_hdfs_user_dir = $hdp::params::webhcat_hdfs_user_dir
+      $webhcat_dir_item="$webhcat_hdfs_user_dir,"
+      if ($hcat_hdfs_user_dir != webhcat_hdfs_user_dir) {
+        $hcat_dir_item="$hcat_hdfs_user_dir,"
+      } else {
+        $hcat_dir_item=""
+      }
+    } else {
+      $webhcat_dir_item=""
+    }
+
+    $users_dir_list_comm_sep = "$smoke_user_dir_item $hive_dir_item $oozie_dir_item $hcat_dir_item $webhcat_dir_item"
+
+    #Get unique users directories set
+    $users_dirs_set = hdp_set_from_comma_list($users_dir_list_comm_sep)
+
+    hdp-hadoop::namenode::create_user_directory{$users_dirs_set:
+      service_state => $service_state}
+  }
+  
+}
+
+define hdp-hadoop::namenode::create_user_directory($service_state)
+{
+  
+  $owner = hdp_hadoop_get_owner($name)
+  $mode = hdp_hadoop_get_mode($name)
+  debug("## Creating user directory: $name, owner: $owner, mode: $mode")
+  hdp-hadoop::hdfs::directory{ $name:
+   service_state   => $service_state,
+   mode            => $mode,
+   owner           => $owner,
+   recursive_chmod => true
+  }
+}
+

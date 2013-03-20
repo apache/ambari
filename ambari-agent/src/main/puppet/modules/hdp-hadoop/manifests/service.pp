@@ -30,7 +30,7 @@ define hdp-hadoop::service(
   $security_enabled = $hdp::params::security_enabled
 
   #NOTE does not work if namenode and datanode are on same host 
-  $pid_dir = "${hdp-hadoop::params::hadoop_piddirprefix}/${user}"
+  $pid_dir = "${hdp-hadoop::params::hadoop_pid_dir_prefix}/${user}"
   
   if (($security_enabled == true) and ($name == 'datanode')) {
     $run_as_root = true
@@ -40,7 +40,7 @@ define hdp-hadoop::service(
 
   if (($security_enabled == true) and ($name == 'datanode')) {
     $hdfs_user = $hdp::params::hdfs_user
-    $pid_file = "${hdp-hadoop::params::hadoop_piddirprefix}/${hdfs_user}/hadoop-${hdfs_user}-${name}.pid"
+    $pid_file = "${hdp-hadoop::params::hadoop_pid_dir_prefix}/${hdfs_user}/hadoop-${hdfs_user}-${name}.pid"
   } else {
     $pid_file = "${pid_dir}/hadoop-${user}-${name}.pid"
   } 

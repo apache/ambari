@@ -105,11 +105,11 @@ public class ServiceInfo {
     sb.append("Service name:" + name + "\nversion:" + version +
         "\nuser:" + user + "\ncomment:" + comment);
 //    if(properties != null)
-//    for (PropertyInfo property : properties) {
+//    for (PropertyInfo property : getProperties()) {
 //      sb.append("\tProperty name=" + property.getName() +
     //"\nproperty value=" + property.getValue() + "\ndescription=" + property.getDescription());
 //    }
-    for(ComponentInfo component : components){
+    for(ComponentInfo component : getComponents()){
       sb.append("\n\n\nComponent:\n");
       sb.append("name="+ component.getName());
       sb.append("\tcategory="+ component.getCategory() );

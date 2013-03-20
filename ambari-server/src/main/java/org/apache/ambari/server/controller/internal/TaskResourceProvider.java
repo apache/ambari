@@ -41,7 +41,7 @@ import java.util.Set;
 /**
  * Resource provider for task resources.
  */
-class TaskResourceProvider extends ResourceProviderImpl{
+class TaskResourceProvider extends AbstractResourceProvider {
 
   // ----- Property ID constants ---------------------------------------------
 
@@ -91,7 +91,7 @@ class TaskResourceProvider extends ResourceProviderImpl{
   public Set<Resource> getResources(Request request, Predicate predicate)
       throws SystemException, UnsupportedPropertyException, NoSuchResourceException, NoSuchParentResourceException {
 
-    Set<String> requestedIds = PropertyHelper.getRequestPropertyIds(getPropertyIds(), request, predicate);
+    Set<String> requestedIds = getRequestPropertyIds(request, predicate);
     final Map<String, Object> predicateProperties = PredicateHelper.getProperties(predicate);
 
     String clusterName = (String) predicateProperties.get(TASK_CLUSTER_NAME_PROPERTY_ID);

@@ -38,6 +38,10 @@ App.WizardStep9View = Em.View.extend({
     return barWidth;
   }.property('controller.progress'),
 
+  progressMessage: function() {
+    return Em.I18n.t('installer.step9.overallProgress').format(this.get('controller.progress'));
+  }.property('controller.progress'),
+
   onStatus:function () {
     if (this.get('controller.status') === 'info') {
       this.set('resultMsg', '');
@@ -218,13 +222,13 @@ App.HostStatusView = Em.View.extend({
         }.observes('category', 'tasks'),
 
         categories: [
-            Ember.Object.create({value: 'all', label: 'All' }),
-            Ember.Object.create({value: 'pending', label: 'Queued / Pending'}),
-            Ember.Object.create({value: 'in_progress', label: 'In Progress'}),
-            Ember.Object.create({value: 'failed', label: 'Failed' }),
-            Ember.Object.create({value: 'completed', label: 'Success' }),
-            Ember.Object.create({value: 'aborted', label: 'Cancelled' }),
-            Ember.Object.create({value: 'timedout', label: 'Timed Out' })
+            Ember.Object.create({value: 'all', label: Em.I18n.t('installer.step9.hostLog.popup.categories.all') }),
+            Ember.Object.create({value: 'pending', label: Em.I18n.t('installer.step9.hostLog.popup.categories.pending')}),
+            Ember.Object.create({value: 'in_progress', label: Em.I18n.t('installer.step9.hostLog.popup.categories.in_progress')}),
+            Ember.Object.create({value: 'failed', label: Em.I18n.t('installer.step9.hostLog.popup.categories.failed') }),
+            Ember.Object.create({value: 'completed', label: Em.I18n.t('installer.step9.hostLog.popup.categories.completed') }),
+            Ember.Object.create({value: 'aborted', label: Em.I18n.t('installer.step9.hostLog.popup.categories.aborted') }),
+            Ember.Object.create({value: 'timedout', label: Em.I18n.t('installer.step9.hostLog.popup.categories.timedout') })
         ],
 
         category: null,
@@ -254,7 +258,7 @@ App.HostStatusView = Em.View.extend({
               } else if (taskInfo.get('status') == 'failed') {
                 taskInfo.set('icon', 'icon-exclamation-sign');
               } else if (taskInfo.get('status') == 'aborted') {
-                taskInfo.set('icon', 'icon-remove');
+                taskInfo.set('icon', 'icon-minus');
               } else if (taskInfo.get('status') == 'timedout') {
                 taskInfo.set('icon', 'icon-time');
               }

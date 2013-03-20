@@ -1151,7 +1151,12 @@ public class AmbariManagementControllerImpl implements
       hosts = clusters.getHosts();
     } else {
       hosts = new ArrayList<Host>();
-      hosts.add(clusters.getHost(request.getHostname()));
+      try {
+        hosts.add(clusters.getHost(request.getHostname()));
+      } catch (HostNotFoundException e) {
+        // add cluster name
+        throw new HostNotFoundException(clusterName, hostName);
+      }
     }
 
     for (Host h : hosts) {
@@ -1161,7 +1166,7 @@ public class AmbariManagementControllerImpl implements
           r.setClusterName(clusterName);
           response.add(r);
         } else if (hostName != null) {
-          throw new HostNotFoundException(hostName);
+          throw new HostNotFoundException(clusterName, hostName);
         }
       } else {
         HostResponse r = h.convertToResponse();

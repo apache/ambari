@@ -29,4 +29,6 @@ public interface PredicateVisitor {
   public void acceptUnaryPredicate(UnaryPredicate predicate);
 
   public void acceptAlwaysPredicate(AlwaysPredicate predicate);
+
+  public void acceptCategoryPredicate(CategoryPredicate predicate);
 }

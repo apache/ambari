@@ -26,29 +26,29 @@
         <a class="btn btn-primary" {{bindAttr disabled="noHostsSelected"}}
            href="#" {{action removeSelectedHosts target="controller" }}><i
                 class="icon-trash icon-white"></i>
-          Remove Selected
+          {{t installer.step3.removeSelected}}
         </a>
         {{#unless isRetryDisabled}}
         <a class="btn btn-primary decommission"
            href="#" {{action retrySelectedHosts target="controller"}}><i
           class="icon-repeat icon-white"></i>
-          Retry Failed
+          {{t installer.step3.retryFailed}}
         </a>
         {{/unless}}
         {{#if App.testMode}}
             <a class="btn btn-info"
                href="#" {{action mockBtn target="controller"}}>
-                mockData
+              {{t installer.mockData}}
             </a>
             <a class="btn btn-info"
                href="#" {{action pollBtn target="controller"}}>
-                pollData
+                {{t installer.pollData}}
             </a>
         {{/if}}
 
         <div id="host-filter" class="pull-right">
           <ul class="clearfix">
-            <li class="first">Show:</li>
+            <li class="first">{{t common.show}}:</li>
             {{#each category in controller.categories}}
               <li {{bindAttr class="category.itemClass"}}>
                 <a {{action selectCategory category target="controller"}} href="#">
@@ -69,12 +69,12 @@
         <thead>
         <tr>
           <th class="span1">{{view Ember.Checkbox checkedBinding="allChecked"}}</th>
-          <th class="span3">Host</th>
+          <th class="span3">{{t common.host}}</th>
           <!-- retrieved from local storage initially -->
-          <th class="span3">Progress</th>
-          <th class="span2">Status</th>
+          <th class="span3">{{t common.progress}}</th>
+          <th class="span2">{{t common.status}}</th>
           <!-- given by the parsing function that parses data from bootstrap call, dynamically assign the color -->
-          <th class="span3">Action</th>
+          <th class="span3">{{t common.action}}</th>
           <!-- trash icon -->
           <!-- retry icon -->
         </tr>
@@ -102,9 +102,9 @@
         </td>
         <td>
           {{#if view.isRemovable}}<a class="btn btn-mini" {{action remove target="view"}}><i class="icon-trash"></i>
-          Remove</a>{{/if}}
+          {{t common.remove}}</a>{{/if}}
           {{#if view.isRetryable}}<a class="btn btn-mini" {{action retry target="view"}}><i class="icon-repeat"></i>
-          Retry</a>{{/if}}
+          {{t common.retry}}</a>{{/if}}
         </td>
         {{/view}}
         {{/each}}
@@ -138,7 +138,7 @@
       {{/if}}
     {{/if}}
   <div class="btn-area">
-    <a class="btn pull-left" {{bindAttr disabled="isInstallInProgress"}} {{action back}}>&larr; Back</a>
-    <a class="btn btn-success pull-right" {{bindAttr disabled="isSubmitDisabled"}} {{action submit target="controller"}}>Next &rarr;</a>
+    <a class="btn pull-left" {{bindAttr disabled="isInstallInProgress"}} {{action back}}>&larr; {{t common.back}}</a>
+    <a class="btn btn-success pull-right" {{bindAttr disabled="isSubmitDisabled"}} {{action submit target="controller"}}>{{t common.next}} &rarr;</a>
   </div>
 </div>

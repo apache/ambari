@@ -194,8 +194,6 @@ App.WizardStep7Controller = Em.Controller.extend({
     miscConfigs.findProperty('name', 'hcat_user').set('isVisible', this.get('selectedServiceNames').contains('HCATALOG'));
     miscConfigs.findProperty('name', 'webhcat_user').set('isVisible', this.get('selectedServiceNames').contains('WEBHCAT'));
     miscConfigs.findProperty('name', 'oozie_user').set('isVisible', this.get('selectedServiceNames').contains('OOZIE'));
-    miscConfigs.findProperty('name', 'pig_user').set('isVisible', this.get('selectedServiceNames').contains('PIG'));
-    miscConfigs.findProperty('name', 'sqoop_user').set('isVisible', this.get('selectedServiceNames').contains('SQOOP'));
     miscConfigs.findProperty('name', 'zk_user').set('isVisible', this.get('selectedServiceNames').contains('ZOOKEEPER'));
 
     this.set('selectedService', this.get('stepConfigs').filterProperty('showConfig', true).objectAt(0));
@@ -290,7 +288,7 @@ App.WizardStep7Controller = Em.Controller.extend({
 
   /**
    * Set display names of the property tfrom he puppet/global names
-   * @param: displayNames: a field to be set with displayNames
+   * @param displayNames: a field to be set with displayNames
    * @param names: array of property puppet/global names
    * @param configProperties: array of config properties of the respective service to the name param
    */
@@ -304,7 +302,7 @@ App.WizardStep7Controller = Em.Controller.extend({
 
   /**
    * Display Error Message with service name, its custom configuration name and displaynames on the page
-   * @param: customConfig: array with custom configuration, serviceName and displayNames relative to custom configuration
+   * @param customConfig: array with custom configuration, serviceName and displayNames relative to custom configuration
    */
   showCustomConfigErrMsg: function (customConfig) {
 

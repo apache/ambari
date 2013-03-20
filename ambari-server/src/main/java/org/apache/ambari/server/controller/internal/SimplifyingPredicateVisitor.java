@@ -22,6 +22,7 @@ import org.apache.ambari.server.controller.predicate.AlwaysPredicate;
 import org.apache.ambari.server.controller.predicate.AndPredicate;
 import org.apache.ambari.server.controller.predicate.ArrayPredicate;
 import org.apache.ambari.server.controller.predicate.BasePredicate;
+import org.apache.ambari.server.controller.predicate.CategoryPredicate;
 import org.apache.ambari.server.controller.predicate.ComparisonPredicate;
 import org.apache.ambari.server.controller.predicate.EqualsPredicate;
 import org.apache.ambari.server.controller.predicate.OrPredicate;
@@ -160,5 +161,10 @@ public class SimplifyingPredicateVisitor implements PredicateVisitor {
       }
     }
     return andPredicateList;
+  }
+
+  @Override
+  public void acceptCategoryPredicate(CategoryPredicate predicate) {
+    lastVisited = predicate;
   }
 }

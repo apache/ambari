@@ -96,7 +96,7 @@ App.MainDashboardView = Em.View.extend({
           var allAlerts = App.router.get('clusterController.alerts');
           var serviceId = this.get('service.serviceName');
           if (serviceId) {
-            return allAlerts.filterProperty('serviceType', serviceId).filterProperty('isOk', false);
+            return allAlerts.filterProperty('serviceType', serviceId).filterProperty('isOk', false).filterProperty('ignoredForServices', false);
           }
           return 0;
         }.property('App.router.clusterController.alerts'),
@@ -104,6 +104,10 @@ App.MainDashboardView = Em.View.extend({
         warnAlertsCount: function () {
           return this.get('warnAlerts').length;
         }.property('warnAlerts'),
+
+        warnAlertsMessage: function() {
+          return Em.I18n.t('services.alerts.head').format(this.get('warnAlertsCount'));
+        }.property('warnAlertsCount'),
 
         nagiosUrl: function () {
           return App.router.get('clusterController.nagiosUrl');

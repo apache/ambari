@@ -17,9 +17,9 @@
 }}
 
 <ul>
-    <li {{bindAttr class="view.prevPageDisabled"}}><a {{action activatePrevPage target="view"}} href="#">Prev</a></li>
+    <li {{bindAttr class="view.prevPageDisabled"}}><a {{action activatePrevPage target="view"}} href="#">{{t common.prev}}</a></li>
   {{#each page in view.pages}}
     <li {{bindAttr class="page.activeClass"}} ><a {{action activatePage page target="view" }} href="#">{{page.number}}</a></li>
   {{/each}}
-    <li {{bindAttr class="view.nextPageDisabled"}}><a {{action activateNextPage target="view"}} href="#">Next</a></li>
+    <li {{bindAttr class="view.nextPageDisabled"}}><a {{action activateNextPage target="view"}} href="#">{{t common.next}}</a></li>
 </ul>

@@ -29,15 +29,10 @@ var App = require('app');
  */
 App.ChartClusterMetricsNetwork = App.ChartLinearTimeView.extend({
   id: "cluster-metrics-network",
-  url: function () {
-    return App.formatUrl(
-      this.get('urlPrefix') + "?fields=metrics/network[{fromSeconds},{toSeconds},{stepSeconds}]",
-      {},
-      "/data/cluster_metrics/network_1hr.json"
-    );
-  }.property('clusterName').volatile(),
-
-  title: "Network Usage",
+  sourceUrl: "?fields=metrics/network[{fromSeconds},{toSeconds},{stepSeconds}]",
+  mockUrl: "/data/cluster_metrics/network_1hr.json",
+  isTimePagingDisable: true,
+  title: Em.I18n.t('dashboard.clusterMetrics.network'),
   yAxisFormatter: App.ChartLinearTimeView.BytesFormatter,
   renderer: 'line',
 

@@ -18,10 +18,10 @@
 
 package org.apache.ambari.server.controller.jmx;
 
+import org.apache.ambari.server.controller.internal.AbstractPropertyProvider;
 import org.apache.ambari.server.controller.internal.PropertyInfo;
 import org.apache.ambari.server.controller.spi.*;
 import org.apache.ambari.server.controller.utilities.StreamProvider;
-import org.apache.ambari.server.controller.utilities.PropertyHelper;
 import org.codehaus.jackson.map.DeserializationConfig;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.map.ObjectReader;
@@ -30,7 +30,6 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -41,23 +40,16 @@ import java.util.Set;
 /**
  * Property provider implementation for JMX sources.
  */
-public class JMXPropertyProvider implements PropertyProvider {
+public class JMXPropertyProvider extends AbstractPropertyProvider {
 
   private static final String NAME_KEY = "name";
   private static final String PORT_KEY = "tag.port";
-
-  /**
-   * Set of property ids supported by this provider.
-   */
-  private final Set<String> propertyIds;
-
-  private final Map<String, Map<String, PropertyInfo>> componentMetrics;
 
   private final StreamProvider streamProvider;
 
   private final JMXHostProvider jmxHostProvider;
 
-  private static final Map<String, String> JMX_PORTS = new HashMap<String, String>();
+  private static final Map<String, String> DEFAULT_JMX_PORTS = new HashMap<String, String>();
 
   private final String clusterNamePropertyId;
 
@@ -69,11 +61,12 @@ public class JMXPropertyProvider implements PropertyProvider {
 
 
   static {
-    JMX_PORTS.put("NAMENODE",     "50070");
-    JMX_PORTS.put("DATANODE",     "50075");
-    JMX_PORTS.put("JOBTRACKER",   "50030");
-    JMX_PORTS.put("TASKTRACKER",  "50060");
-    JMX_PORTS.put("HBASE_MASTER", "60010");
+    DEFAULT_JMX_PORTS.put("NAMENODE",           "50070");
+    DEFAULT_JMX_PORTS.put("DATANODE",           "50075");
+    DEFAULT_JMX_PORTS.put("JOBTRACKER",         "50030");
+    DEFAULT_JMX_PORTS.put("TASKTRACKER",        "50060");
+    DEFAULT_JMX_PORTS.put("HBASE_MASTER",       "60010");
+    DEFAULT_JMX_PORTS.put("HBASE_REGIONSERVER", "60030");
 
     ObjectMapper objectMapper = new ObjectMapper();
     objectMapper.configure(DeserializationConfig.Feature.USE_ANNOTATIONS, false);
@@ -102,17 +95,14 @@ public class JMXPropertyProvider implements PropertyProvider {
                              String clusterNamePropertyId,
                              String hostNamePropertyId,
                              String componentNamePropertyId) {
-    this.componentMetrics         = componentMetrics;
+
+    super(componentMetrics);
+
     this.streamProvider           = streamProvider;
     this.jmxHostProvider          = jmxHostProvider;
     this.clusterNamePropertyId    = clusterNamePropertyId;
     this.hostNamePropertyId       = hostNamePropertyId;
     this.componentNamePropertyId  = componentNamePropertyId;
-
-    propertyIds = new HashSet<String>();
-    for (Map.Entry<String, Map<String, PropertyInfo>> entry : componentMetrics.entrySet()) {
-      propertyIds.addAll(entry.getValue().keySet());
-    }
   }
 
 
@@ -132,23 +122,20 @@ public class JMXPropertyProvider implements PropertyProvider {
     return keepers;
   }
 
-  @Override
-  public Set<String> getPropertyIds() {
-    return propertyIds;
-  }
-
-  @Override
-  public Set<String> checkPropertyIds(Set<String> propertyIds) {
-    if (!this.propertyIds.containsAll(propertyIds)) {
-      Set<String> unsupportedPropertyIds = new HashSet<String>(propertyIds);
-      unsupportedPropertyIds.removeAll(this.propertyIds);
-      return unsupportedPropertyIds;
-    }
-    return Collections.emptySet();
-  }
-
 
   // ----- helper methods ----------------------------------------------------
+
+  /**
+   * Get the spec to locate the JMX stream from the given host and port
+   *
+   * @param hostName  the host name
+   * @param port      the port
+   *
+   * @return the spec
+   */
+  protected String getSpec(String hostName, String port) {
+    return "http://" + hostName + ":" + port + "/jmx";
+  }
 
   /**
    * Populate a resource by obtaining the requested JMX properties.
@@ -162,31 +149,36 @@ public class JMXPropertyProvider implements PropertyProvider {
   private boolean populateResource(Resource resource, Request request, Predicate predicate)
       throws SystemException {
 
-    Set<String> ids = PropertyHelper.getRequestPropertyIds(propertyIds, request, predicate);
+    Set<String> ids = getRequestPropertyIds(request, predicate);
     if (ids.isEmpty()) {
       return true;
     }
 
-    String clusterName   = (String) resource.getPropertyValue(clusterNamePropertyId);
     String componentName = (String) resource.getPropertyValue(componentNamePropertyId);
-    String port          = JMX_PORTS.get(componentName);
 
-    String hostName;
-    if (hostNamePropertyId == null) {
-      hostName = jmxHostProvider.getHostName(clusterName, componentName);
-    }
-    else {
-      hostName = (String) resource.getPropertyValue(hostNamePropertyId);
-    }
-
-    Map<String, PropertyInfo> metrics = componentMetrics.get(componentName);
-
-    if (metrics == null || hostName == null || port == null) {
+    if (getComponentMetrics().get(componentName) == null) {
+      // If there are no metrics defined for the given component then there is nothing to do.
       return true;
     }
 
-    String spec = getSpec(hostName + ":" + port);
-    InputStream in = null;
+    String clusterName = (String) resource.getPropertyValue(clusterNamePropertyId);
+
+    String port = getPort(clusterName, componentName);
+    if (port == null) {
+      String error = "Unable to get JMX metrics.  No port value for " + componentName;
+      logError(error, null);
+      throw new SystemException(error, null);
+    }
+
+    String hostName = getHost(resource, clusterName, componentName);
+    if (hostName == null) {
+      String error = "Unable to get JMX metrics.  No host name for " + componentName;
+      logError(error, null);
+      throw new SystemException(error, null);
+    }
+
+    String      spec = getSpec(hostName, port);
+    InputStream in   = null;
     try {
       in = streamProvider.readFrom(spec);
       JMXMetricHolder metricHolder = objectReader.readValue(in);
@@ -201,71 +193,82 @@ public class JMXPropertyProvider implements PropertyProvider {
       }
 
       for (String propertyId : ids) {
+        Map<String, PropertyInfo> propertyInfoMap = getPropertyInfoMap(componentName, propertyId);
 
-        PropertyInfo propertyInfo = metrics.get(propertyId);
+        for (Map.Entry<String, PropertyInfo> entry : propertyInfoMap.entrySet()) {
 
-        if (propertyInfo != null && propertyInfo.isPointInTime()) {
+          PropertyInfo propertyInfo = entry.getValue();
+          propertyId = entry.getKey();
 
-          String property = propertyInfo.getPropertyId();
-          String category = "";
+          if (propertyInfo.isPointInTime()) {
 
-          List<String> keyList = new LinkedList<String>();
-          int keyStartIndex = property.indexOf('[', 0);
-          int firstKeyIndex = keyStartIndex > -1 ? keyStartIndex : property.length();
-          while (keyStartIndex > -1) {
-            int keyEndIndex = property.indexOf(']', keyStartIndex);
-            if (keyEndIndex > -1 & keyEndIndex > keyStartIndex) {
-              keyList.add(property.substring(keyStartIndex + 1, keyEndIndex));
-              keyStartIndex = property.indexOf('[', keyEndIndex);
-            }
-            else {
-              keyStartIndex = -1;
-            }
-          }
+            String property = propertyInfo.getPropertyId();
+            String category = "";
 
-
-          int dotIndex = property.lastIndexOf('.', firstKeyIndex - 1);
-          if (dotIndex != -1){
-            category = property.substring(0, dotIndex);
-            property = property.substring(dotIndex + 1, firstKeyIndex);
-          }
-
-          Map<String, Object> properties = categories.get(category);
-          if (properties != null && properties.containsKey(property)) {
-            Object value = properties.get(property);
-            if (keyList.size() > 0 && value instanceof Map) {
-              Map map = (Map) value;
-              for (String key : keyList) {
-                value = map.get(key);
-                if (value instanceof Map) {
-                  map = (Map) value;
-                }
-                else {
-                  break;
-                }
+            List<String> keyList = new LinkedList<String>();
+            int keyStartIndex = property.indexOf('[', 0);
+            int firstKeyIndex = keyStartIndex > -1 ? keyStartIndex : property.length();
+            while (keyStartIndex > -1) {
+              int keyEndIndex = property.indexOf(']', keyStartIndex);
+              if (keyEndIndex > -1 & keyEndIndex > keyStartIndex) {
+                keyList.add(property.substring(keyStartIndex + 1, keyEndIndex));
+                keyStartIndex = property.indexOf('[', keyEndIndex);
+              }
+              else {
+                keyStartIndex = -1;
               }
             }
-            resource.setProperty(propertyId, value);
+
+            int dotIndex = property.lastIndexOf('.', firstKeyIndex - 1);
+            if (dotIndex != -1){
+              category = property.substring(0, dotIndex);
+              property = property.substring(dotIndex + 1, firstKeyIndex);
+            }
+
+            Map<String, Object> properties = categories.get(category);
+            if (properties != null && properties.containsKey(property)) {
+              Object value = properties.get(property);
+              if (keyList.size() > 0 && value instanceof Map) {
+                Map map = (Map) value;
+                for (String key : keyList) {
+                  value = map.get(key);
+                  if (value instanceof Map) {
+                    map = (Map) value;
+                  }
+                  else {
+                    break;
+                  }
+                }
+              }
+              resource.setProperty(propertyId, value);
+            }
           }
         }
       }
     } catch (IOException e) {
-      if (LOG.isErrorEnabled()) {
-        LOG.error("Caught exception getting JMX metrics : spec=" + spec, e);
-      }
+      logError(spec, e);
     } finally {
       if (in != null) {
         try {
           in.close();
         } catch (IOException e) {
-          if (LOG.isWarnEnabled()) {
-            LOG.warn("Unable to close http input steam : spec=" + spec, e);
-          }
+            logError("Unable to close http input steam : spec=" + spec, e);
         }
       }
     }
 
     return true;
+  }
+
+  private String getPort(String clusterName, String componentName) throws SystemException {
+    String port = jmxHostProvider.getPort(clusterName, componentName);
+    return port == null ? DEFAULT_JMX_PORTS.get(componentName) : port;
+  }
+
+  private String getHost(Resource resource, String clusterName, String componentName) throws SystemException {
+    return hostNamePropertyId == null ?
+        jmxHostProvider.getHostName(clusterName, componentName) :
+        (String) resource.getPropertyValue(hostNamePropertyId);
   }
 
   private String getCategory(Map<String, Object> bean) {
@@ -281,15 +284,13 @@ public class JMXPropertyProvider implements PropertyProvider {
     return null;
   }
 
-  /**
-   * Get the spec to locate the JMX stream from the given source
-   *
-   * @param jmxSource  the source (host and port)
-   *
-   * @return the spec
-   */
-  protected String getSpec(String jmxSource) {
-//    return "http://" + jmxSource + "/jmx?qry=Hadoop:*";
-    return "http://" + jmxSource + "/jmx";
+  private static void logError(String error, IOException e) {
+    if (LOG.isErrorEnabled()) {
+      if (e == null) {
+        LOG.error("Caught exception getting JMX metrics : spec=" + error);
+      } else {
+        LOG.error("Caught exception getting JMX metrics : spec=" + error, e);
+      }
+    }
   }
 }

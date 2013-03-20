@@ -28,17 +28,12 @@ var App = require('app');
  */
 App.ChartClusterMetricsCPU = App.ChartLinearTimeView.extend({
   id: "cluster-metrics-cpu",
-  url: function () {
-    return App.formatUrl(
-      this.get('urlPrefix') + "?fields=metrics/cpu[{fromSeconds},{toSeconds},{stepSeconds}]",
-      {},
-      "/data/cluster_metrics/cpu_1hr.json"
-    );
-  }.property('clusterName').volatile(),
+  sourceUrl: "?fields=metrics/cpu[{fromSeconds},{toSeconds},{stepSeconds}]",
+  mockUrl: "/data/cluster_metrics/cpu_1hr.json",
 
-  title: "CPU Usage",
+  title: Em.I18n.t('dashboard.clusterMetrics.cpu'),
   yAxisFormatter: App.ChartLinearTimeView.PercentageFormatter,
-  
+  isTimePagingDisable: true,
   transformToSeries: function (jsonData) {
     var seriesArray = [];
     if (jsonData && jsonData.metrics && jsonData.metrics.cpu) {

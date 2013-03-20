@@ -18,6 +18,7 @@
 
 package org.apache.ambari.server.api.services;
 
+import org.apache.ambari.server.api.predicate.InvalidQueryException;
 import org.apache.ambari.server.api.resources.ResourceDefinition;
 import org.apache.ambari.server.api.resources.ResourceInstance;
 import org.apache.ambari.server.api.services.serializers.ResultSerializer;
@@ -79,8 +80,9 @@ public interface Request {
    * such as 'AND'.
    *
    * @return the user defined predicate
+   * @throws InvalidQueryException if the query syntax is invalid
    */
-  public Predicate getQueryPredicate();
+  public Predicate getQueryPredicate() throws InvalidQueryException;
 
   /**
    * Obtain the partial response fields and associated temporal information which were provided

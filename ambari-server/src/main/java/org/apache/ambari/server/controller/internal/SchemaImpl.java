@@ -18,17 +18,12 @@
 
 package org.apache.ambari.server.controller.internal;
 
-import org.apache.ambari.server.controller.spi.PropertyProvider;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.spi.ResourceProvider;
 import org.apache.ambari.server.controller.spi.Schema;
-import org.apache.ambari.server.controller.utilities.PropertyHelper;
 
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.Collections;
+
 
 /**
  * Simple schema implementation.
@@ -39,16 +34,6 @@ public class SchemaImpl implements Schema {
    */
   private final ResourceProvider resourceProvider;
 
-  /**
-   * The list of associated property providers.
-   */
-  private final List<PropertyProvider> propertyProviders;
-
-  /**
-   * The map of categories and properties.
-   */
-  private final Map<String, Set<String>> categoryProperties;
-
 
   // ----- Constructors ------------------------------------------------------
 
@@ -56,13 +41,10 @@ public class SchemaImpl implements Schema {
    * Create a new schema for the given providers.
    *
    * @param resourceProvider   the resource provider
-   * @param propertyProviders  the property providers
+   *
    */
-  public SchemaImpl(ResourceProvider resourceProvider,
-                    List<PropertyProvider> propertyProviders) {
+  public SchemaImpl(ResourceProvider resourceProvider) {
     this.resourceProvider   = resourceProvider;
-    this.propertyProviders  = propertyProviders;
-    this.categoryProperties = initCategoryProperties();
   }
 
 
@@ -71,38 +53,5 @@ public class SchemaImpl implements Schema {
   @Override
   public String getKeyPropertyId(Resource.Type type) {
     return resourceProvider.getKeyPropertyIds().get(type);
-  }
-
-  @Override
-  public Map<String, Set<String>> getCategoryProperties() {
-    return categoryProperties;
-  }
-
-
-  // ----- helper methods ----------------------------------------------------
-
-  private Map<String, Set<String>> initCategoryProperties() {
-    Map<String, Set<String>> categories = new HashMap<String, Set<String>>();
-
-    for (String propertyId : getPropertyIds()) {
-      final String category = PropertyHelper.getPropertyCategory(propertyId);
-      Set<String> properties = categories.get(category);
-      if (properties == null) {
-        properties = new HashSet<String>();
-        categories.put(category, properties);
-      }
-      properties.add(PropertyHelper.getPropertyName(propertyId));
-    }
-    return categories;
-  }
-
-  private Set<String> getPropertyIds() {
-    Set<String> propertyIds = new HashSet<String>(resourceProvider.getPropertyIdsForSchema());
-    if (propertyProviders != null) {
-      for (PropertyProvider propertyProvider : propertyProviders) {
-        propertyIds.addAll(propertyProvider.getPropertyIds());
-      }
-    }
-    return propertyIds;
   }
 }

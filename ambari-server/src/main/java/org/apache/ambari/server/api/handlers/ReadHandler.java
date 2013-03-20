@@ -18,6 +18,7 @@
 
 package org.apache.ambari.server.api.handlers;
 
+import org.apache.ambari.server.api.predicate.InvalidQueryException;
 import org.apache.ambari.server.api.services.Request;
 import org.apache.ambari.server.api.services.ResultImpl;
 import org.apache.ambari.server.api.services.ResultStatus;
@@ -51,9 +52,12 @@ public class ReadHandler implements RequestHandler {
       return new ResultImpl(new ResultStatus(ResultStatus.STATUS.BAD_REQUEST, e.getMessage()));
     }
 
-    query.setUserPredicate(request.getQueryPredicate());
     Result result;
+    Predicate p = null;
     try {
+      p = request.getQueryPredicate();
+      query.setUserPredicate(p);
+
       result = query.execute();
       result.setResultStatus(new ResultStatus(ResultStatus.STATUS.OK));
     } catch (SystemException e) {
@@ -63,7 +67,7 @@ public class ReadHandler implements RequestHandler {
     } catch (UnsupportedPropertyException e) {
       result = new ResultImpl(new ResultStatus(ResultStatus.STATUS.BAD_REQUEST, e.getMessage()));
     } catch (NoSuchResourceException e) {
-      if (request.getQueryPredicate() == null) {
+      if (p == null) {
         // no predicate specified, resource requested by id
         result = new ResultImpl(new ResultStatus(ResultStatus.STATUS.NOT_FOUND, e.getMessage()));
       } else {
@@ -72,6 +76,9 @@ public class ReadHandler implements RequestHandler {
         result.getResultTree().setProperty("isCollection", "true");
       }
     } catch (IllegalArgumentException e) {
+      result = new ResultImpl(new ResultStatus(ResultStatus.STATUS.BAD_REQUEST,
+          "Invalid Request: " + e.getMessage()));
+    } catch (InvalidQueryException e) {
       result = new ResultImpl(new ResultStatus(ResultStatus.STATUS.BAD_REQUEST,
           "Invalid Request: " + e.getMessage()));
     } catch (RuntimeException e) {

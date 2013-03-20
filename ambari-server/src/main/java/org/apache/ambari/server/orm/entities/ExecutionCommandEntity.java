@@ -19,13 +19,14 @@
 package org.apache.ambari.server.orm.entities;
 
 import javax.persistence.*;
+import java.util.Arrays;
 
 @Table(name = "execution_command", schema = "ambari", catalog = "")
 @Entity
 public class ExecutionCommandEntity {
   private Long taskId;
 
-  @Column(name = "task_id", insertable = false, updatable = false, nullable = false)
+  @Column(name = "task_id")
   @Id
   public Long getTaskId() {
     return taskId;
@@ -55,7 +56,7 @@ public class ExecutionCommandEntity {
 
     ExecutionCommandEntity that = (ExecutionCommandEntity) o;
 
-    if (command != null ? !command.equals(that.command) : that.command != null) return false;
+    if (command != null ? !Arrays.equals(command, that.command) : that.command != null) return false;
     if (taskId != null ? !taskId.equals(that.taskId) : that.taskId != null) return false;
 
     return true;
@@ -64,14 +65,14 @@ public class ExecutionCommandEntity {
   @Override
   public int hashCode() {
     int result = taskId != null ? taskId.hashCode() : 0;
-    result = 31 * result + (command != null ? command.hashCode() : 0);
+    result = 31 * result + (command != null ? Arrays.hashCode(command) : 0);
     return result;
   }
 
   private HostRoleCommandEntity hostRoleCommand;
 
   @OneToOne
-  @JoinColumn(name = "task_id", referencedColumnName = "task_id", nullable = false)
+  @JoinColumn(name = "task_id", referencedColumnName = "task_id", nullable = false, insertable = false, updatable = false)
   public HostRoleCommandEntity getHostRoleCommand() {
     return hostRoleCommand;
   }

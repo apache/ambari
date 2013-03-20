@@ -91,13 +91,13 @@ function hdp_mon_generate_response( $response_data )
   define ("warn", "1");
   define ("critical", "2");
 
-  define ("HDFS_SERVICE_CHECK", "NAMENODE::Namenode Process down");
-  define ("MAPREDUCE_SERVICE_CHECK", "JOBTRACKER::Jobtracker Process down");
-  define ("HBASE_SERVICE_CHECK", "HBASEMASTER::HBaseMaster Process down");
-  define ("ZOOKEEPER_SERVICE_CHECK", "ZOOKEEPER::Percent zookeeper servers down");
-  define ("HIVE_METASTORE_SERVICE_CHECK", "HIVE-METASTORE::HIVE-METASTORE status check");
-  define ("OOZIE_SERVICE_CHECK", "OOZIE::Oozie status check");
-  define ("TEMPLETON_SERVICE_CHECK", "TEMPLETON::Templeton status check");
+  define ("HDFS_SERVICE_CHECK", "NAMENODE::NameNode process down");
+  define ("MAPREDUCE_SERVICE_CHECK", "JOBTRACKER::JobTracker process down");
+  define ("HBASE_SERVICE_CHECK", "HBASEMASTER::HBaseMaster process down");
+  define ("ZOOKEEPER_SERVICE_CHECK", "ZOOKEEPER::Percent ZooKeeper Servers down");
+  define ("HIVE_METASTORE_SERVICE_CHECK", "HIVE-METASTORE::Hive Metastore status check");
+  define ("OOZIE_SERVICE_CHECK", "OOZIE::Oozie Server status check");
+  define ("WEBHCAT_SERVICE_CHECK", "WEBHCAT::WebHCat Server status check");
   define ("PUPPET_SERVICE_CHECK", "PUPPET::Puppet agent down");
 
   /* If SUSE, status file is under /var/lib/nagios */
@@ -196,10 +196,10 @@ function hdp_mon_generate_response( $response_data )
         }
         continue;
       }
-      if (getParameter($object, "service_description") == TEMPLETON_SERVICE_CHECK) {
-        $services_object["TEMPLETON"] = getParameter($object, "last_hard_state");
-        if ($services_object["TEMPLETON"] >= 1) {
-          $services_object["TEMPLETON"] = 1;
+      if (getParameter($object, "service_description") == WEBHCAT_SERVICE_CHECK) {
+        $services_object["WEBHCAT"] = getParameter($object, "last_hard_state");
+        if ($services_object["WEBHCAT"] >= 1) {
+          $services_object["WEBHCAT"] = 1;
         }
         continue;
       }
@@ -301,6 +301,7 @@ function hdp_mon_generate_response( $response_data )
           }
           $servicestatus['service_type'] = get_service_type($servicestatus['service_description']);
           $srv_desc = explode ("::",$servicestatus['service_description'],2);
+
           $servicestatus['service_description'] = $srv_desc[1];
         }
         break;
@@ -362,18 +363,25 @@ function hdp_mon_generate_response( $response_data )
   {
     $pieces = explode("::", $service_description);
     switch ($pieces[0]) {
+	  case "DATANODE":
       case "NAMENODE":
         $pieces[0] = "HDFS";
         break;
       case "JOBTRACKER":
+	  case "TASKTRACKER":
         $pieces[0] = "MAPREDUCE";
         break;
       case "HBASEMASTER":
+      case "REGIONSERVER":
         $pieces[0] = "HBASE";
         break;
       case "HIVE-METASTORE":
         $pieces[0] = "HIVE";
         break;
+      case "ZKSERVERS":
+	    $pieces[0] = "ZOOKEEPER";
+        break;
+      case "NAGIOS":
       case "HDFS":
       case "MAPREDUCE":
       case "HBASE":

@@ -60,7 +60,7 @@ define hdp-hadoop::hdfs::directory(
   
     if ($mode != undef) {
       #TODO: see if there is a good 'unless test'
-      if ($recursive_mode == true) {
+      if ($recursive_chmod == true) {
         $chmod_cmd = "fs -chmod -R ${mode} ${name}"
       } else {
         $chmod_cmd = "fs -chmod ${mode} ${name}"

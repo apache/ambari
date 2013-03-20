@@ -34,7 +34,7 @@ import java.util.Set;
 /**
  * Resource provider for service resources.
  */
-class ServiceResourceProvider extends ResourceProviderImpl {
+class ServiceResourceProvider extends AbstractResourceProvider {
 
 
   // ----- Property ID constants ---------------------------------------------
@@ -101,14 +101,14 @@ class ServiceResourceProvider extends ResourceProviderImpl {
       requests.add(getRequest(propertyMap));
     }
 
-    Set<ServiceResponse> responses    =  getResources(new Command<Set<ServiceResponse>>() {
+    Set<ServiceResponse> responses = getResources(new Command<Set<ServiceResponse>>() {
       @Override
       public Set<ServiceResponse> invoke() throws AmbariException {
         return getManagementController().getServices(requests);
       }
     });
 
-    Set<String>   requestedIds = PropertyHelper.getRequestPropertyIds(getPropertyIds(), request, predicate);
+    Set<String>   requestedIds = getRequestPropertyIds(request, predicate);
     Set<Resource> resources    = new HashSet<Resource>();
 
     for (ServiceResponse response : responses) {
@@ -179,9 +179,11 @@ class ServiceResourceProvider extends ResourceProviderImpl {
     Set<String> unsupportedProperties = new HashSet<String>();
 
     for (String propertyId : propertyIds) {
-      String propertyCategory = PropertyHelper.getPropertyCategory(propertyId);
-      if (propertyCategory == null || !propertyCategory.equals("config")) {
-        unsupportedProperties.add(propertyId);
+      if (!propertyId.equals("config")) {
+        String propertyCategory = PropertyHelper.getPropertyCategory(propertyId);
+        if (propertyCategory == null || !propertyCategory.equals("config")) {
+          unsupportedProperties.add(propertyId);
+        }
       }
     }
     return unsupportedProperties;

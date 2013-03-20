@@ -17,10 +17,10 @@
 }}
 
 {{#if view.hasNoHosts}}
-    No host assigned
+  {{t installer.noHostsAssigned}}
 {{else}}
   {{#if view.hasMultipleHosts}}
-    {{view.value.[0]}} and {{view.otherLength}}
+    {{view.value.[0]}} {{and}} {{view.otherLength}}
   {{else}}
     {{view.value.[0]}}
   {{/if}}

@@ -17,11 +17,11 @@
 }}
 
 {{#if view.hasNoHosts}}
-  No host assigned
+  {{t installer.noHostsAssigned}}
 {{/if}}
 {{#if view.hasOneHost}}
   {{value}}
 {{/if}}
 {{#if view.hasMultipleHosts}}
-  <a href="#" {{action showHosts target="view"}}>{{value.firstObject}} and {{view.otherLength}}</a>
+  <a href="#" {{action showHosts target="view"}}>{{value.firstObject}} {{t and}} {{view.otherLength}}</a>
 {{/if}}

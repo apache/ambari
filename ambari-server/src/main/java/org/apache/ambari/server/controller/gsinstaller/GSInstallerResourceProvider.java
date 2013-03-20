@@ -30,8 +30,10 @@ import org.apache.ambari.server.controller.spi.ResourceProvider;
 import org.apache.ambari.server.controller.spi.SystemException;
 import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
 import org.apache.ambari.server.controller.utilities.PredicateHelper;
+import org.apache.ambari.server.controller.utilities.PropertyHelper;
 
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 
 
@@ -44,6 +46,10 @@ public abstract class GSInstallerResourceProvider implements ResourceProvider {
 
   private final Set<Resource> resources = new HashSet<Resource>();
 
+  private final Resource.Type type;
+
+  private final Set<String> propertyIds;
+
 
   // ----- Constructors ------------------------------------------------------
 
@@ -52,8 +58,13 @@ public abstract class GSInstallerResourceProvider implements ResourceProvider {
    *
    * @param clusterDefinition  the cluster definition
    */
-  public GSInstallerResourceProvider(ClusterDefinition clusterDefinition) {
+  public GSInstallerResourceProvider(Resource.Type type, ClusterDefinition clusterDefinition) {
+    this.type              = type;
     this.clusterDefinition = clusterDefinition;
+
+    Set<String> propertyIds = PropertyHelper.getPropertyIds(type);
+    this.propertyIds = new HashSet<String>(propertyIds);
+    this.propertyIds.addAll(PropertyHelper.getCategories(propertyIds));
   }
 
 
@@ -94,11 +105,28 @@ public abstract class GSInstallerResourceProvider implements ResourceProvider {
   }
 
   @Override
+  public Map<Resource.Type, String> getKeyPropertyIds() {
+    return PropertyHelper.getKeyPropertyIds(type);
+  }
+
+  @Override
   public Set<String> checkPropertyIds(Set<String> propertyIds) {
     propertyIds = new HashSet<String>(propertyIds);
-    propertyIds.removeAll(getPropertyIdsForSchema());
+    propertyIds.removeAll(this.propertyIds);
     return propertyIds;
   }
+
+
+  // ----- GSInstallerResourceProvider ---------------------------------------
+
+  /**
+   * Update the resource with any properties handled by the resource provider.
+   *
+   * @param resource   the resource to update
+   * @param request    the request
+   * @param predicate  the predicate
+   */
+  public abstract void updateProperties(Resource resource, Request request, Predicate predicate);
 
 
   // ----- accessors ---------------------------------------------------------
@@ -116,27 +144,6 @@ public abstract class GSInstallerResourceProvider implements ResourceProvider {
   // ----- helper methods ----------------------------------------------------
 
   /**
-   * Add a resource to the set of resources provided by this provider.
-   *
-   * @param resource  the resource to add
-   */
-  protected void addResource(Resource resource) {
-    resources.add(resource);
-  }
-
-
-  // ----- GSInstallerResourceProvider ---------------------------------------
-
-  /**
-   * Update the resource with any properties handled by the resource provider.
-   *
-   * @param resource   the resource to update
-   * @param request    the request
-   * @param predicate  the predicate
-   */
-  public abstract void updateProperties(Resource resource, Request request, Predicate predicate);
-
-  /**
    * Get the set of property ids required to satisfy the given request.
    *
    * @param request              the request
@@ -149,7 +156,7 @@ public abstract class GSInstallerResourceProvider implements ResourceProvider {
 
     // if no properties are specified, then return them all
     if (propertyIds == null || propertyIds.isEmpty()) {
-      return new HashSet<String>(getPropertyIdsForSchema());
+      return new HashSet<String>(this.propertyIds);
     }
 
     propertyIds = new HashSet<String>(propertyIds);
@@ -158,6 +165,36 @@ public abstract class GSInstallerResourceProvider implements ResourceProvider {
       propertyIds.addAll(PredicateHelper.getPropertyIds(predicate));
     }
     return propertyIds;
+  }
+
+  /**
+   * Check to see if the given set contains a property or category id that matches the given property id.
+   *
+   * @param ids         the set of property/category ids
+   * @param propertyId  the property id
+   *
+   * @return true if the given set contains a property id or category that matches the given property id
+   */
+  protected static boolean contains(Set<String> ids, String propertyId) {
+    boolean contains = ids.contains(propertyId);
+
+    if (!contains) {
+      String category = PropertyHelper.getPropertyCategory(propertyId);
+      while (category != null && !contains) {
+        contains = ids.contains(category);
+        category = PropertyHelper.getPropertyCategory(category);
+      }
+    }
+    return contains;
+  }
+
+  /**
+  * Add a resource to the set of resources provided by this provider.
+  *
+  * @param resource  the resource to add
+  */
+  protected void addResource(Resource resource) {
+    resources.add(resource);
   }
 
   /**

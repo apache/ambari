@@ -23,6 +23,7 @@ import org.apache.ambari.server.RoleCommand;
 import org.apache.ambari.server.actionmanager.HostRoleStatus;
 
 import javax.persistence.*;
+import java.util.Arrays;
 
 @Table(name = "host_role_command", schema = "ambari", catalog = "")
 @Entity
@@ -218,8 +219,8 @@ public class HostRoleCommandEntity {
     if (stageId != null ? !stageId.equals(that.stageId) : that.stageId != null) return false;
     if (startTime != null ? !startTime.equals(that.startTime) : that.startTime != null) return false;
     if (status != null ? !status.equals(that.status) : that.status != null) return false;
-    if (stdError != null ? !stdError.equals(that.stdError) : that.stdError != null) return false;
-    if (stdOut != null ? !stdOut.equals(that.stdOut) : that.stdOut != null) return false;
+    if (stdError != null ? !Arrays.equals(stdError, that.stdError) : that.stdError != null) return false;
+    if (stdOut != null ? !Arrays.equals(stdOut, that.stdOut) : that.stdOut != null) return false;
     if (taskId != null ? !taskId.equals(that.taskId) : that.taskId != null) return false;
 
     return true;
@@ -235,8 +236,8 @@ public class HostRoleCommandEntity {
     result = 31 * result + (event != null ? event.hashCode() : 0);
     result = 31 * result + (exitcode != null ? exitcode.hashCode() : 0);
     result = 31 * result + (status != null ? status.hashCode() : 0);
-    result = 31 * result + (stdError != null ? stdError.hashCode() : 0);
-    result = 31 * result + (stdOut != null ? stdOut.hashCode() : 0);
+    result = 31 * result + (stdError != null ? Arrays.hashCode(stdError) : 0);
+    result = 31 * result + (stdOut != null ? Arrays.hashCode(stdOut) : 0);
     result = 31 * result + (startTime != null ? startTime.hashCode() : 0);
     result = 31 * result + (lastAttemptTime != null ? lastAttemptTime.hashCode() : 0);
     result = 31 * result + (attemptCount != null ? attemptCount.hashCode() : 0);

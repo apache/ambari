@@ -27,3 +27,57 @@ Returns information for a specific role on the given host.
 **Response**
 
     200 OK
+    {
+    	"href" : "http://your.ambari.server/api/v1/clusters/c1/hosts/host1/host_components/DATANODE",
+    	"HostRoles" : {
+    		"cluster_name" : "c1",
+      		"component_name" : "DATANODE",
+      		"host_name" : "host1",
+      		"state" : "STARTED"
+    	},
+    	"host" : {
+    		"href" : "http://localhost:8080/api/v1/clusters/c1/hosts/dev.hortonworks.com"
+    	},
+    	"metrics" : {
+    		"process" : {
+    			...    
+    		},
+      		"ugi" : {
+      			...
+      		},
+      		"dfs" : {
+        		"datanode" : {
+          		...
+        		}
+      		},
+      		"disk" : {
+        		...
+      		},
+      		"cpu" : {
+        		...
+      		},
+      		"jvm" : {
+        		...
+      		},
+      		"load" : {
+        		...
+      		},
+      		"memory" : {
+        		...
+      		},
+      		"network" : {
+        		...
+      		},
+    	},
+    	"component" : [
+      		{
+    	      	"href" : "http://your.ambari.server/api/v1/clusters/c1/services/HDFS/components/DATANODE",
+      			"ServiceComponentInfo" : {
+        			"cluster_name" : "c1",
+        			"component_name" : "DATANODE",
+        			"service_name" : "HDFS"
+        		}
+      		}
+       	]
+    }
+

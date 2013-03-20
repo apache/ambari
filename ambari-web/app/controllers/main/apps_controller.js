@@ -72,7 +72,6 @@ App.MainAppsController = Em.ArrayController.extend({
    */
   iTotalDisplayRecordsObserver:function(){
     if(this.get("filterObject.allFilterActivated")){
-      //this.set("paginationObject.filteredDisplayRecords","-10");
       this.set("filterObject.allFilterActivated", false);
     }else{
       this.set("filterObject.filteredDisplayRecords",this.get("paginationObject.iTotalDisplayRecords"));
@@ -202,8 +201,8 @@ App.MainAppsController = Em.ArrayController.extend({
         tmp.max = Math.floor((parseFloat(compareValue)+0.01)*1000);
         break;
         default:
-          tmp.min = Math.max(1024,Math.ceil((compareValue-0.05)*1024));
-          tmp.max = Math.min(1048575,Math.floor((compareValue+0.05)*1024));
+          tmp.min = Math.ceil((parseFloat(compareValue)-0.01)*1000);
+          tmp.max = Math.floor((parseFloat(compareValue)+0.01)*1000);
       }
       switch (compareChar) {
         case '<':
@@ -310,66 +309,28 @@ App.MainAppsController = Em.ArrayController.extend({
       }
       return tmp;
     },
+
+    /**
+     * Create link for server request
+     * @return {String}
+     */
     createAppLink:function(){
       var link = "/jobhistory/datatable?";
 
-      if(this.sSearch_0){
-        link +=  "sSearch_0=" + this.sSearch_0 + "&";
-      }
-      if(this.sSearch_1){
-        link +=  "sSearch_1=" + this.sSearch_1 + "&";
-      }
-      if(this.sSearch_2 && this.sSearch_2 != "Any"){
-        link +=  "sSearch_2=" + this.sSearch_2 + "&";
-      }
-      if(this.sSearch_3){
-        link +=  "sSearch_3=" + this.sSearch_3 + "&";
-      }
-      if(this.minJobs){
-        link +=  "minJobs=" + this.minJobs + "&";
-      }
-      if(this.maxJobs){
-        link +=  "maxJobs=" + this.maxJobs + "&";
-      }
-      if(this.minInputBytes){
-        link +=  "minInputBytes=" + this.minInputBytes + "&";
-      }
-      if(this.maxInputBytes){
-        link +=  "maxInputBytes=" + this.maxInputBytes + "&";
-      }
-      if(this.minOutputBytes){
-        link +=  "minOutputBytes=" + this.minOutputBytes + "&";
-      }
-      if(this.maxOutputBytes){
-        link +=  "maxOutputBytes=" + this.maxOutputBytes + "&";
-      }
-      if(this.minDuration){
-        link +=  "minDuration=" + this.minDuration + "&";
-      }
-      if(this.maxDuration){
-        link +=  "maxDuration=" + this.maxDuration + "&";
-      }
-      if(this.minStartTime){
-        link +=  "minStartTime=" + this.minStartTime + "&";
-      }
-      if(this.maxStartTime){
-        link +=  "maxStartTime=" + this.maxStartTime + "&";
-      }
-      if(this.sSearch){
-        link +=  "sSearch=" + this.sSearch + "&";
-      }
-      if(this.iDisplayLength){
-        link +=  "iDisplayLength=" + this.iDisplayLength + "&";
-      }
-      if(this.iDisplayStart){
-        link +=  "iDisplayStart=" + this.iDisplayStart + "&";
-      }
-      if(this.iSortCol_0){
-        link +=  "iSortCol_0=" + this.iSortCol_0 + "&";
-      }
-      if(this.sSortDir_0){
-        link +=  "sSortDir_0=" + this.sSortDir_0 + "&";
-      }
+
+      var arr = [
+        "sSearch_0", "sSearch_1", "sSearch_2", "sSearch_3", "minJobs",
+        "maxJobs", "minInputBytes", "maxInputBytes", "minOutputBytes",
+        "maxOutputBytes", "minDuration", "maxDuration", "minStartTime",
+        "maxStartTime", "sSearch", "iDisplayLength", "iDisplayStart",
+        "iSortCol_0", "sSortDir_0"
+      ];
+
+      for (var n=0; n<arr.length;n++) {
+        if(this.get(arr[n])){
+          link += arr[n] + "=" + this.get(arr[n]) + "&";
+        }
+      };
 
       link = link.slice(0,link.length-1);
 
@@ -385,6 +346,25 @@ App.MainAppsController = Em.ArrayController.extend({
       return link;
     }
   }),
+
+  /**
+   * reset all filters in table
+   *
+   */
+  clearFilters: function () {
+    var obj=this.get("filterObject");
+    obj.set("sSearch_0","");
+    obj.set("sSearch_1","");
+    obj.set("sSearch_2","");
+    obj.set("sSearch_3","");
+    obj.set("runType","Any");
+    obj.set("jobs","");
+    obj.set("input","");
+    obj.set("output","");
+    obj.set("duration","");
+    obj.set("runDate","Any");
+  },
+
 
   runUrl : "/jobhistory/datatable",
   runTimeout : null,

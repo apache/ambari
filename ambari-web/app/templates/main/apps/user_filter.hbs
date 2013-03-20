@@ -16,7 +16,7 @@
 * limitations under the License.
 }}
 <button class="btn btn-info single-btn-group" {{action "clickFilterButton" target="view"}}>
-  User&nbsp;<span class="caret"></span>
+  {{t common.user}}&nbsp;<span class="caret"></span>
 </button>
 <ul class="dropdown-menu filter-components">
   {{#each user in view.users}}
@@ -25,7 +25,7 @@
     </li>
   {{/each}}
   <li>
-    <button class="btn" {{action "closeFilter" target="view"}}>Cancel</button>
-    <button class="btn btn-primary" {{action "applyFilter" target="view"}}>Apply</button>
+    <button class="btn" {{action "closeFilter" target="view"}}>{{t common.cancel}}</button>
+    <button class="btn btn-primary" {{action "applyFilter" target="view"}}>{{t common.apply}}</button>
   </li>
 </ul>

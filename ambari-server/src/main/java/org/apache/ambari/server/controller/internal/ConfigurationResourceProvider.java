@@ -1,5 +1,3 @@
-package org.apache.ambari.server.controller.internal;
-
 /**
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -17,6 +15,8 @@ package org.apache.ambari.server.controller.internal;
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
+package org.apache.ambari.server.controller.internal;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.controller.AmbariManagementController;
@@ -46,7 +46,7 @@ import java.util.Map.Entry;
 /**
  * Resource provider for configuration resources.
  */
-class ConfigurationResourceProvider extends ResourceProviderImpl {
+class ConfigurationResourceProvider extends AbstractResourceProvider {
 
   // ----- Property ID constants ---------------------------------------------
 
@@ -56,22 +56,36 @@ class ConfigurationResourceProvider extends ResourceProviderImpl {
   protected static final String CONFIGURATION_CONFIG_TYPE_PROPERTY_ID  = PropertyHelper.getPropertyId(null, "type");
   protected static final String CONFIGURATION_CONFIG_TAG_PROPERTY_ID   = PropertyHelper.getPropertyId(null, "tag");
 
-  private static final String CONFIG_HOST_NAME = PropertyHelper.getPropertyId("Config", "host_name");
+  private static final String CONFIG_HOST_NAME      = PropertyHelper.getPropertyId("Config", "host_name");
   private static final String CONFIG_COMPONENT_NAME = PropertyHelper.getPropertyId("Config", "component_name");
 
-
+  /**
+   * The primary key property ids for the configuration resource type.
+   */
   private static Set<String> pkPropertyIds =
       new HashSet<String>(Arrays.asList(new String[]{
           CONFIGURATION_CLUSTER_NAME_PROPERTY_ID,
           CONFIGURATION_CONFIG_TYPE_PROPERTY_ID}));
 
+
+  // ----- Constructors ------------------------------------------------------
+
+  /**
+   * Constructor
+   *
+   * @param propertyIds           the property ids supported by this provider
+   * @param keyPropertyIds        the key properties for this provider
+   * @param managementController  the associated management controller
+   */
   ConfigurationResourceProvider(Set<String> propertyIds,
                                 Map<Resource.Type, String> keyPropertyIds,
                                 AmbariManagementController managementController) {
 
     super(propertyIds, keyPropertyIds, managementController);
-
   }
+
+
+  // ----- ResourceProvider --------------------------------------------------
 
   @Override
   public RequestStatus createResources(Request request)
@@ -83,15 +97,14 @@ class ConfigurationResourceProvider extends ResourceProviderImpl {
     for (Map<String, Object> map : request.getProperties()) {
 
       String cluster = (String) map.get(CONFIGURATION_CLUSTER_NAME_PROPERTY_ID);
-      // TODO : why not CONFIGURATION_CONFIG_TYPE_PROPERTY_ID?
-      String type = (String) map.get(PropertyHelper.getPropertyId("", "type"));
-      // TODO : why not CONFIGURATION_CONFIG_TAG_PROPERTY_ID?
-      String tag = (String) map.get(PropertyHelper.getPropertyId("", "tag"));
+      String type = (String) map.get(CONFIGURATION_CONFIG_TYPE_PROPERTY_ID);
+      String tag  = (String) map.get(CONFIGURATION_CONFIG_TAG_PROPERTY_ID);
 
       Map<String, String> configMap = new HashMap<String, String>();
 
       for (Entry<String, Object> entry : map.entrySet()) {
-        if (PropertyHelper.getPropertyCategory(entry.getKey()).equals("properties") && null != entry.getValue()) {
+        String propertyCategory = PropertyHelper.getPropertyCategory(entry.getKey());
+        if (propertyCategory != null && propertyCategory.equals("properties") && null != entry.getValue()) {
           configMap.put(PropertyHelper.getPropertyName(entry.getKey()), entry.getValue().toString());
         }
       }
@@ -145,8 +158,6 @@ class ConfigurationResourceProvider extends ResourceProviderImpl {
         
         resources.add(resource);
       }
-
-
       return resources;
       
     } else {
@@ -175,10 +186,8 @@ class ConfigurationResourceProvider extends ResourceProviderImpl {
             resource.setProperty(id, entry.getValue());
           }
         }
-
         resources.add(resource);
       }
-      
       return resources;
     }
   }
@@ -196,7 +205,8 @@ class ConfigurationResourceProvider extends ResourceProviderImpl {
    * Throws an exception, as Configurations cannot be deleted.
    */
   @Override
-  public RequestStatus deleteResources(Predicate predicate) throws SystemException, UnsupportedPropertyException, NoSuchResourceException, NoSuchParentResourceException {
+  public RequestStatus deleteResources(Predicate predicate) throws SystemException,
+      UnsupportedPropertyException, NoSuchResourceException, NoSuchParentResourceException {
     throw new UnsupportedOperationException("Cannot delete a Configuration resource.");
   }
 
@@ -214,7 +224,8 @@ class ConfigurationResourceProvider extends ResourceProviderImpl {
       // TODO : hack to allow for inconsistent property names
       // for example, the tag property can come here as Config/tag, /tag or tag
       if (!propertyId.equals("tag") && !propertyId.equals("type") &&
-          !propertyId.equals("/tag") && !propertyId.equals("/type")) {
+          !propertyId.equals("/tag") && !propertyId.equals("/type") &&
+          !propertyId.equals("properties")) {
 
         String propertyCategory = PropertyHelper.getPropertyCategory(propertyId);
 
@@ -226,15 +237,28 @@ class ConfigurationResourceProvider extends ResourceProviderImpl {
     return unsupportedProperties;
   }
 
+  // ----- AbstractResourceProvider ------------------------------------------
+
   @Override
   protected Set<String> getPKPropertyIds() {
     return pkPropertyIds;
   }
 
-  public static Map<String, String> getConfigPropertyValues(Map<String, Object> propertyMap) {
+
+  // ----- utility methods ---------------------------------------------------
+
+  /**
+   * Get the config related property ids from the given map of property ids.
+   *
+   * @param propertyIdMap  the map of property ids
+   *
+   * @return  a subset of the given map containing olny the property ids that have a
+   *          category of "config"
+   */
+  public static Map<String, String> getConfigPropertyValues(Map<String, Object> propertyIdMap) {
     Map<String, String> configMap = new HashMap<String, String>();
 
-    for (Map.Entry<String,Object> entry : propertyMap.entrySet()) {
+    for (Map.Entry<String,Object> entry : propertyIdMap.entrySet()) {
       String propertyId = entry.getKey();
       if (PropertyHelper.getPropertyCategory(propertyId).equals("config")) {
         configMap.put(PropertyHelper.getPropertyName(propertyId), (String) entry.getValue());
@@ -243,10 +267,16 @@ class ConfigurationResourceProvider extends ResourceProviderImpl {
     return configMap;
   }
 
+  /**
+   * Get a configuration request object from the given map of properties.
+   *
+   * @param properties  the map of properties
+   *
+   * @return a configuration request
+   */
   private ConfigurationRequest getRequest(Map<String, Object> properties) {
     String type = (String) properties.get(CONFIGURATION_CONFIG_TYPE_PROPERTY_ID);
-
-    String tag = (String) properties.get(CONFIGURATION_CONFIG_TAG_PROPERTY_ID);
+    String tag  = (String) properties.get(CONFIGURATION_CONFIG_TAG_PROPERTY_ID);
 
     return new ConfigurationRequest(
         (String) properties.get(CONFIGURATION_CLUSTER_NAME_PROPERTY_ID),

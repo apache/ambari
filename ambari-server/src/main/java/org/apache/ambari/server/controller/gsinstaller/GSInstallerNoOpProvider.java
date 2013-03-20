@@ -20,17 +20,11 @@ package org.apache.ambari.server.controller.gsinstaller;
 import org.apache.ambari.server.controller.spi.Predicate;
 import org.apache.ambari.server.controller.spi.Request;
 import org.apache.ambari.server.controller.spi.Resource;
-import org.apache.ambari.server.controller.utilities.PropertyHelper;
-
-import java.util.Map;
-import java.util.Set;
 
 /**
  * A NO-OP resource provider for a gsInstaller defined cluster.
  */
 public class GSInstallerNoOpProvider extends GSInstallerResourceProvider{
-
-  private final Resource.Type type;
 
   // ----- GSInstallerResourceProvider ---------------------------------------
 
@@ -42,20 +36,6 @@ public class GSInstallerNoOpProvider extends GSInstallerResourceProvider{
   // ----- Constructors ------------------------------------------------------
 
   public GSInstallerNoOpProvider(Resource.Type type, ClusterDefinition clusterDefinition) {
-    super(clusterDefinition);
-    this.type = type;
-  }
-
-
-  // ----- ResourceProvider --------------------------------------------------
-
-  @Override
-  public Set<String> getPropertyIdsForSchema() {
-    return PropertyHelper.getPropertyIds(type);
-  }
-
-  @Override
-  public Map<Resource.Type, String> getKeyPropertyIds() {
-    return PropertyHelper.getKeyPropertyIds(type);
+    super(type, clusterDefinition);
   }
 }

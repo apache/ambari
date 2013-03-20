@@ -38,12 +38,12 @@
   <a href="javascript:void(null)" {{bindAttr class=":btn controller.content.isStartDisabled:disabled:btn-success" }}
      data-toggle="modal" {{action "startService" target="controller"}}>
     <i class="icon-play"></i>
-    Start
+    {{t services.service.start}}
   </a>
   <a href="javascript:void(null)" {{bindAttr class=":btn controller.content.isStopDisabled:disabled:btn-danger" }}
      data-toggle="modal" {{action "stopService" target="controller"}}>
     <i class="icon-stop icon-white"></i>
-    Stop
+    {{t services.service.stop}}
   </a>
 </div>
 {{/if}}
