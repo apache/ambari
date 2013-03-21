@@ -51,6 +51,16 @@ App.MainAdminSecurityDisableController = Em.Controller.extend({
     ]);
   },
 
+
+  moveToNextStage: function () {
+    var nextStage = this.get('stages').findProperty('isStarted', false);
+    if (nextStage) {
+      nextStage.set('isStarted', true);
+    } else {
+      this.set('isSubmitDisabled', false);
+    }
+  },
+
   startStage: function () {
     var startedStages = this.get('stages').filterProperty('isStarted', true);
     if (startedStages.length) {
@@ -63,7 +73,7 @@ App.MainAdminSecurityDisableController = Em.Controller.extend({
           currentStage.set('isCompleted', true);
           this.moveToNextStage();
         } else {
-          this.loadConfigsForAllServices();
+          this.loadClusterConfigs();
         }
       }
     }
@@ -116,6 +126,68 @@ App.MainAdminSecurityDisableController = Em.Controller.extend({
     stage4.set('data', data);
   },
 
+  loadClusterConfigs: function () {
+    var self = this;
+    var url = App.apiPrefix + '/clusters/' + App.router.getClusterName();
+    $.ajax({
+      type: 'GET',
+      url: url,
+      timeout: 10000,
+      dataType: 'text',
+      success: function (data) {
+        var jsonData = jQuery.parseJSON(data);
+        //prepare tags to fetch all configuration for a service
+        self.get('secureServices').forEach(function (_secureService) {
+          self.setServiceTagNames(_secureService, jsonData.Clusters.desired_configs);
+        });
+        self.getAllConfigurations();
+      },
+
+      error: function (request, ajaxOptions, error) {
+        self.get('stages').findProperty('stage', 'stage3').set('isError', true);
+        console.log("TRACE: error code status is: " + request.status);
+      },
+
+      statusCode: require('data/statusCodes')
+    });
+  },
+
+  getAllConfigurations: function () {
+    var self = this;
+    var urlParams = [];
+    this.get('serviceConfigTags').forEach(function (_tag) {
+      urlParams.push('(type=' + _tag.siteName + '&tag=' + _tag.tagName + ')');
+    }, this);
+    var url = App.apiPrefix + '/clusters/' + App.router.getClusterName() + '/configurations?' + urlParams.join('|');
+    if (urlParams.length > 0) {
+      $.ajax({
+        type: 'GET',
+        url: url,
+        async: true,
+        timeout: 10000,
+        dataType: 'json',
+        success: function (data) {
+          console.log("TRACE: In success function for the GET getServiceConfigsFromServer call");
+          console.log("TRACE: The url is: " + url);
+          self.get('serviceConfigTags').forEach(function (_tag) {
+            _tag.configs = data.items.findProperty('type', _tag.siteName).properties;
+          });
+          self.removeSecureConfigs();
+          self.applyConfigurationsToCluster();
+        },
+
+        error: function (request, ajaxOptions, error) {
+          self.get('stages').findProperty('stage', 'stage3').set('isError', true);
+          console.log("TRACE: In error function for the getServiceConfigsFromServer call");
+          console.log("TRACE: value of the url is: " + url);
+          console.log("TRACE: error code status is: " + request.status);
+        },
+
+        statusCode: require('data/statusCodes')
+      });
+    }
+  },
+
   loadSecureServices: function () {
     var secureServices = require('data/secure_configs');
     var installedServices = App.Service.find().mapProperty('serviceName');
@@ -128,76 +200,39 @@ App.MainAdminSecurityDisableController = Em.Controller.extend({
     }, this);
   },
 
-  /**
-   * gets site config properties from server and sets it for every configuration
-   * @param serviceConfigTags
-   */
-
-  getServiceConfigsFromServer: function (serviceConfigTags) {
-    var self = this;
-    var properties = {};
-    var url = App.apiPrefix + '/clusters/' + App.router.getClusterName() + '/configurations/?type=' + serviceConfigTags.siteName + '&tag=' + serviceConfigTags.tagName;
-    $.ajax({
-      type: 'GET',
-      url: url,
-      async: true,
-      timeout: 10000,
-      dataType: 'json',
-      success: function (data) {
-        console.log("TRACE: In success function for the GET getServiceConfigsFromServer call");
-        console.log("TRACE: The url is: " + url);
-        serviceConfigTags.configs = data.items.findProperty('tag', serviceConfigTags.tagName).properties;
-        self.set('noOfWaitingAjaxCalls', self.get('noOfWaitingAjaxCalls') - 1);
-
-        if (self.get('noOfWaitingAjaxCalls') == 0) {
-          self.removeSecureConfigs();
-          self.createConfigurations();
-        }
-      },
-
-      error: function (request, ajaxOptions, error) {
-        self.get('stages').findProperty('stage', 'stage3').set('isError', true);
-      },
-
-      statusCode: require('data/statusCodes')
-    });
-  },
-  loadConfigsForAllServices: function () {
-    this.set('noOfWaitingAjaxCalls', this.get('secureServices').length);
-    this.get('secureServices').forEach(function (_secureService, index) {
-      this.getConfigDetailsFromServer(_secureService, index);
+  applyConfigurationsToCluster: function () {
+    this.set('noOfWaitingAjaxCalls', this.get('serviceConfigTags').length);
+    this.get('serviceConfigTags').forEach(function (_serviceConfig) {
+      this.applyConfigurationToCluster({type: _serviceConfig.siteName, tag: _serviceConfig.newTagName, properties: _serviceConfig.configs});
     }, this);
   },
 
-  getConfigDetailsFromServer: function (secureService, id) {
+  applyConfigurationToCluster: function (data) {
     var self = this;
-    var url = App.apiPrefix + '/clusters/' + App.router.getClusterName() + '/services/' + secureService.serviceName;
+    var url = App.apiPrefix + '/clusters/' + App.router.getClusterName();
+    var clusterData = {
+      Clusters: {
+        desired_config: data
+      }
+    };
     $.ajax({
-      type: 'GET',
+      type: 'PUT',
       url: url,
-      timeout: 10000,
+      async: false,
       dataType: 'text',
+      data: JSON.stringify(clusterData),
+      timeout: 5000,
       success: function (data) {
-        console.log("TRACE: In success function for the GET getServciceConfigs call");
-        console.log("TRACE: The url is: " + url);
-        var jsonData = jQuery.parseJSON(data);
-
-        //prepare tags to fetch all configuration for a service
-        self.setServiceTagNames(secureService.serviceName, jsonData.ServiceInfo.desired_configs);
         self.set('noOfWaitingAjaxCalls', self.get('noOfWaitingAjaxCalls') - 1);
-
         if (self.get('noOfWaitingAjaxCalls') == 0) {
-          self.getAllConfigsFromServer();
+          var currentStage = self.get('stages').findProperty('stage', 'stage3');
+          currentStage.set('isSuccess', true);
+          currentStage.set('isCompleted', true);
         }
       },
-
       error: function (request, ajaxOptions, error) {
         self.get('stages').findProperty('stage', 'stage3').set('isError', true);
-        console.log("TRACE: In error function for the getServciceConfigs call");
-        console.log("TRACE: value of the url is: " + url);
-        console.log("TRACE: error code status is: " + request.status);
       },
-
       statusCode: require('data/statusCodes')
     });
   },
@@ -212,7 +247,7 @@ App.MainAdminSecurityDisableController = Em.Controller.extend({
       var serviceConfigObj = {
         serviceName: secureServiceName,
         siteName: index,
-        tagName: configs[index],
+        tagName: configs[index].tag,
         newTagName: null,
         configs: {}
       };
@@ -232,111 +267,10 @@ App.MainAdminSecurityDisableController = Em.Controller.extend({
     }, this);
   },
 
-
-  createConfigurations: function () {
-    this.set('noOfWaitingAjaxCalls', this.get('serviceConfigTags').length - 1);
-    this.get('serviceConfigTags').forEach(function (_serviceConfigTags) {
-      if (_serviceConfigTags.serviceName !== 'MAPREDUCE' || _serviceConfigTags.siteName !== 'core-site') {   //skip MapReduce core-site configuration
-        this.createConfiguration(_serviceConfigTags);
-      }
-    }, this);
-  },
-
-  createConfiguration: function (serviceConfigTags) {
-    var self = this;
-    var clusterName = App.router.getClusterName();
-    var url = App.apiPrefix + '/clusters/' + clusterName + '/configurations';
-    var data = this.createConfigurationData(serviceConfigTags);
-    $.ajax({
-      type: 'POST',
-      url: url,
-      data: JSON.stringify(data),
-      dataType: 'text',
-      timeout: 5000,
-      success: function (data) {
-        var jsonData = jQuery.parseJSON(data);
-        self.set('noOfWaitingAjaxCalls', self.get('noOfWaitingAjaxCalls') - 1);
-        if (self.get('noOfWaitingAjaxCalls') == 0) {
-          self.applyConfigurationToServices();
-        }
-      },
-
-      error: function (request, ajaxOptions, error) {
-        self.get('stages').findProperty('stage', 'stage3').set('isError', true);
-        console.log('TRACE: In Error ');
-        console.log('TRACE: Error message is: ' + request.responseText);
-        console.log("TRACE: value of the url is: " + url);
-      },
-
-      statusCode: require('data/statusCodes')
-    });
-
-  },
-
-  createConfigurationData: function (serviceConfigTags) {
-    return {"type": serviceConfigTags.siteName, "tag": serviceConfigTags.newTagName, "properties": serviceConfigTags.configs};
-  },
-
-  applyConfigurationToServices: function () {
-    this.applyHdfsCoretoMaprCore();
-    this.set('noOfWaitingAjaxCalls', this.get('secureServices').length);
-    this.get('secureServices').forEach(function (_service) {
-      var data = {config: {}};
-      this.get('serviceConfigTags').filterProperty('serviceName', _service.serviceName).forEach(function (_serviceConfig) {
-        data.config[_serviceConfig.siteName] = _serviceConfig.newTagName;
-      }, this);
-      this.applyConfToService(_service.serviceName, data);
-
-    }, this);
-  },
-
-  applyHdfsCoretoMaprCore: function () {
-    this.get('serviceConfigTags').filterProperty('serviceName', 'MAPREDUCE').findProperty('siteName', 'core-site').newTagName = this.get('serviceConfigTags').filterProperty('serviceName', 'HDFS').findProperty('siteName', 'core-site').newTagName;
-  },
-
-  applyConfToService: function (serviceName, data) {
-    var self = this;
-    var clusterName = App.router.getClusterName();
-    var url = App.apiPrefix + '/clusters/' + clusterName + '/services/' + serviceName;
-    $.ajax({
-      type: 'PUT',
-      url: url,
-      async: false,
-      dataType: 'text',
-      data: JSON.stringify(data),
-      timeout: 5000,
-      success: function (data) {
-        self.set('noOfWaitingAjaxCalls', self.get('noOfWaitingAjaxCalls') - 1);
-        if (self.get('noOfWaitingAjaxCalls') == 0) {
-          var currentStage = self.get('stages').findProperty('stage', 'stage3');
-          currentStage.set('isSuccess', true);
-          currentStage.set('isCompleted', true);
-        }
-      },
-
-      error: function (request, ajaxOptions, error) {
-        self.get('stages').findProperty('stage', 'stage3').set('isError', true);
-      },
-
-      statusCode: require('data/statusCodes')
-    });
-    console.log("Exiting applyCreatedConfToService");
-
-  },
-
-  moveToNextStage: function () {
-    var nextStage = this.get('stages').findProperty('isStarted', false);
-    if (nextStage) {
-      nextStage.set('isStarted', true);
-    } else {
-      this.set('isSubmitDisabled', false);
-    }
-  },
-
   removeSecureConfigs: function () {
     this.get('serviceConfigTags').forEach(function (_serviceConfigTags, index) {
+      _serviceConfigTags.newTagName = 'version' + (new Date).getTime();
       if (_serviceConfigTags.siteName === 'global') {
-        _serviceConfigTags.newTagName = 'version' + (new Date).getTime() + index;
         this.get('secureProperties').forEach(function (_config) {
           if (_config.name in _serviceConfigTags.configs) {
             delete _serviceConfigTags.configs[_config.name];
@@ -344,7 +278,6 @@ App.MainAdminSecurityDisableController = Em.Controller.extend({
         }, this);
         _serviceConfigTags.configs.security_enabled = false;
       } else {
-        _serviceConfigTags.newTagName = 'version' + (new Date).getTime();
         this.get('configMapping').filterProperty('filename', _serviceConfigTags.siteName + '.xml').forEach(function (_config) {
           if (_config.name in _serviceConfigTags.configs) {
             if (_config.name === 'dfs.datanode.address') {

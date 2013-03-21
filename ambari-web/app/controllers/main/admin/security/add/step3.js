@@ -39,13 +39,13 @@ App.MainAdminSecurityAddStep3Controller = Em.Controller.extend({
   }.property('content.services'),
 
   serviceUsersBinding: 'App.router.mainAdminController.serviceUsers',
-  hasHostPopup:true,
-  services:[],
+  hasHostPopup: true,
+  services: [],
   serviceTimestamp: null,
 
   clearStep: function () {
     this.get('stages').clear();
-    this.set('isSubmitDisabled',true);
+    this.set('isSubmitDisabled', true);
   },
 
   loadStep: function () {
@@ -59,17 +59,17 @@ App.MainAdminSecurityAddStep3Controller = Em.Controller.extend({
   updateServices: function () {
     this.services.clear();
     var services = this.get("services");
-    this.get("stages").forEach(function(stages){
+    this.get("stages").forEach(function (stages) {
       var newService = Ember.Object.create({
-        name:stages.label,
-        hosts:[]
+        name: stages.label,
+        hosts: []
       });
       var hostNames = stages.get("polledData").mapProperty('Tasks.host_name').uniq();
-      hostNames.forEach(function(name){
+      hostNames.forEach(function (name) {
         newService.hosts.push({
-          name:name,
-          publicName:name,
-          logTasks:stages.polledData
+          name: name,
+          publicName: name,
+          logTasks: stages.polledData
         });
       });
       services.push(newService);
@@ -97,7 +97,7 @@ App.MainAdminSecurityAddStep3Controller = Em.Controller.extend({
           currentStage.set('isCompleted', true);
           this.moveToNextStage();
         } else {
-          this.loadConfigsForAllServices();
+          this.loadClusterConfigs();
         }
       }
     }
@@ -115,6 +115,16 @@ App.MainAdminSecurityAddStep3Controller = Em.Controller.extend({
       }
     }
   }.observes('stages.@each.isCompleted'),
+
+  moveToNextStage: function () {
+    var nextStage = this.get('stages').findProperty('isStarted', false);
+    if (nextStage) {
+      nextStage.set('isStarted', true);
+      this.set('isSubmitDisabled', true);
+    } else {
+      this.set('isSubmitDisabled', false);
+    }
+  },
 
   addInfoToStages: function () {
     this.addInfoToStage2();
@@ -325,45 +335,32 @@ App.MainAdminSecurityAddStep3Controller = Em.Controller.extend({
       serviceUsers.pushObject({id: 'puppet var', name: 'hbase_user', value: 'hbase'});
       serviceUsers.pushObject({id: 'puppet var', name: 'hive_user', value: 'hive'});
     } else {
-      App.router.get('mainAdminController').getHDFSDetailsFromServer();
+      App.router.get('mainAdminController').getSecurityStatusFromServer();
     }
   },
 
-  loadConfigsForAllServices: function () {
-    this.set('noOfWaitingAjaxCalls', this.get('content.services').length - 1);
-    this.get('content.services').forEach(function (_secureService, index) {
-      if (_secureService.serviceName !== 'GENERAL') {
-        this.getConfigDetailsFromServer(_secureService, index);
-      }
-    }, this);
-  },
-
-  getConfigDetailsFromServer: function (secureService, id) {
+  loadClusterConfigs: function () {
     var self = this;
-    var url = App.apiPrefix + '/clusters/' + App.router.getClusterName() + '/services/' + secureService.serviceName;
+    var url = App.apiPrefix + '/clusters/' + App.router.getClusterName();
     $.ajax({
       type: 'GET',
       url: url,
       timeout: 10000,
       dataType: 'text',
       success: function (data) {
-        console.log("TRACE: In success function for the GET getServciceConfigs call");
-        console.log("TRACE: The url is: " + url);
         var jsonData = jQuery.parseJSON(data);
 
         //prepare tags to fetch all configuration for a service
-        self.setServiceTagNames(secureService.serviceName, jsonData.ServiceInfo.desired_configs);
-        self.set('noOfWaitingAjaxCalls', self.get('noOfWaitingAjaxCalls') - 1);
-
-        if (self.get('noOfWaitingAjaxCalls') == 0) {
-          self.getAllConfigsFromServer();
-        }
+        self.get('content.services').forEach(function (_secureService) {
+          if (_secureService.serviceName !== 'GENERAL') {
+            self.setServiceTagNames(_secureService, jsonData.Clusters.desired_configs);
+          }
+        });
+        self.getAllConfigurations();
       },
 
       error: function (request, ajaxOptions, error) {
         self.get('stages').findProperty('stage', 'stage3').set('isError', true);
-        console.log("TRACE: In error function for the getServciceConfigs call");
-        console.log("TRACE: value of the url is: " + url);
         console.log("TRACE: error code status is: " + request.status);
       },
 
@@ -371,115 +368,51 @@ App.MainAdminSecurityAddStep3Controller = Em.Controller.extend({
     });
   },
 
+
   /**
    * set tagnames for configuration of the *-site.xml
    */
-  setServiceTagNames: function (secureServiceName, configs) {
+  setServiceTagNames: function (secureService, configs) {
     console.log("TRACE: In setServiceTagNames function:");
     //var serviceConfigTags = this.get('serviceConfigTags');
     for (var index in configs) {
-      var serviceConfigObj = {
-        serviceName: secureServiceName,
-        siteName: index,
-        tagName: configs[index],
-        newTagName: null,
-        configs: {}
-      };
-      console.log("The value of serviceConfigTags[index]: " + configs[index]);
-      this.get('serviceConfigTags').pushObject(serviceConfigObj);
+      if (secureService.sites.contains(index)) {
+        var serviceConfigObj = {
+          siteName: index,
+          tagName: configs[index].tag,
+          newTagName: null,
+          configs: {}
+        };
+        console.log("The value of serviceConfigTags[index]: " + configs[index]);
+        this.get('serviceConfigTags').pushObject(serviceConfigObj);
+      }
     }
     return serviceConfigObj;
   },
 
-
-  getAllConfigsFromServer: function () {
-    this.set('noOfWaitingAjaxCalls', this.get('serviceConfigTags').length - 1);
-    this.get('serviceConfigTags').forEach(function (_serviceConfigTags) {
-      if (_serviceConfigTags.serviceName !== 'MAPREDUCE' || _serviceConfigTags.siteName !== 'core-site') {   //skip MapReduce core-site configuration
-        this.getServiceConfigsFromServer(_serviceConfigTags);
-      }
+  applyConfigurationsToCluster: function () {
+    this.set('noOfWaitingAjaxCalls', this.get('serviceConfigTags').length);
+    this.get('serviceConfigTags').forEach(function (_serviceConfig) {
+      this.applyConfigurationToCluster({type: _serviceConfig.siteName, tag: _serviceConfig.newTagName, properties: _serviceConfig.configs});
     }, this);
   },
 
-
-  createConfigurations: function () {
-    this.set('noOfWaitingAjaxCalls', this.get('serviceConfigTags').length - 1);
-    this.get('serviceConfigTags').forEach(function (_serviceConfigTags) {
-      if (_serviceConfigTags.serviceName !== 'MAPREDUCE' || _serviceConfigTags.siteName !== 'core-site') {   //skip MapReduce core-site configuration
-        this.createConfiguration(_serviceConfigTags);
-      }
-    }, this);
-  },
-
-  createConfiguration: function (serviceConfigTags) {
+  applyConfigurationToCluster: function (data) {
     var self = this;
-    var clusterName = App.router.getClusterName();
-    var url = App.apiPrefix + '/clusters/' + clusterName + '/configurations';
-    var data = this.createConfigurationData(serviceConfigTags);
-    $.ajax({
-      type: 'POST',
-      url: url,
-      data: JSON.stringify(data),
-      dataType: 'text',
-      timeout: 5000,
-      success: function (data) {
-        var jsonData = jQuery.parseJSON(data);
-        self.set('noOfWaitingAjaxCalls', self.get('noOfWaitingAjaxCalls') - 1);
-        if (self.get('noOfWaitingAjaxCalls') == 0) {
-          self.applyConfigurationToServices();
-        }
-      },
-
-      error: function (request, ajaxOptions, error) {
-        self.get('stages').findProperty('stage', 'stage3').set('isError', true);
-        console.log('TRACE: In Error ');
-        console.log('TRACE: Error message is: ' + request.responseText);
-        console.log("TRACE: value of the url is: " + url);
-      },
-
-      statusCode: require('data/statusCodes')
-    });
-
-  },
-
-  createConfigurationData: function (serviceConfigTags) {
-    return {"type": serviceConfigTags.siteName, "tag": serviceConfigTags.newTagName, "properties": serviceConfigTags.configs};
-  },
-
-  applyConfigurationToServices: function () {
-    this.applyHdfsCoretoMaprCore();
-    this.set('noOfWaitingAjaxCalls', this.get('content.services').length - 1);
-    this.set('noOfWaitingAjaxCalls', this.get('content.services').length - 1);
-    this.get('content.services').forEach(function (_service) {
-      if (_service.serviceName !== 'GENERAL') {
-        var data = {config: {}};
-        this.get('serviceConfigTags').filterProperty('serviceName', _service.serviceName).forEach(function (_serviceConfig) {
-          data.config[_serviceConfig.siteName] = _serviceConfig.newTagName;
-        }, this);
-        this.applyConfToService(_service.serviceName, data);
+    var url = App.apiPrefix + '/clusters/' + App.router.getClusterName();
+    var clusterData = {
+      Clusters: {
+        desired_config: data
       }
-    }, this);
-  },
-
-  applyHdfsCoretoMaprCore: function () {
-    this.get('serviceConfigTags').filterProperty('serviceName', 'MAPREDUCE').findProperty('siteName', 'core-site').newTagName = this.get('serviceConfigTags').filterProperty('serviceName', 'HDFS').findProperty('siteName', 'core-site').newTagName;
-  },
-
-  applyConfToService: function (serviceName, data) {
-    var self = this;
-    var clusterName = App.router.getClusterName();
-    var url = App.apiPrefix + '/clusters/' + clusterName + '/services/' + serviceName;
+    };
     $.ajax({
       type: 'PUT',
       url: url,
       async: false,
       dataType: 'text',
-      data: JSON.stringify(data),
+      data: JSON.stringify(clusterData),
       timeout: 5000,
       success: function (data) {
-        var jsonData = jQuery.parseJSON(data);
-        console.log("TRACE: In success function for the applyCreatedConfToService call");
-        console.log("TRACE: value of the url is: " + url);
         self.set('noOfWaitingAjaxCalls', self.get('noOfWaitingAjaxCalls') - 1);
         if (self.get('noOfWaitingAjaxCalls') == 0) {
           var currentStage = self.get('stages').findProperty('stage', 'stage3');
@@ -487,77 +420,64 @@ App.MainAdminSecurityAddStep3Controller = Em.Controller.extend({
           currentStage.set('isCompleted', true);
         }
       },
-
       error: function (request, ajaxOptions, error) {
         self.get('stages').findProperty('stage', 'stage3').set('isError', true);
-        console.log('Error: In Error of apply');
-        console.log('Error: Error message is: ' + request.responseText);
       },
-
       statusCode: require('data/statusCodes')
     });
-    console.log("Exiting applyCreatedConfToService");
 
   },
 
-  moveToNextStage: function () {
-    var nextStage = this.get('stages').findProperty('isStarted', false);
-    if (nextStage) {
-      nextStage.set('isStarted', true);
-      this.set('isSubmitDisabled', true);
-    } else {
-      this.set('isSubmitDisabled', false);
-    }
-  },
 
   /**
    * gets site config properties from server and sets it for every configuration
    * @param serviceConfigTags
    */
 
-  getServiceConfigsFromServer: function (serviceConfigTags) {
+  getAllConfigurations: function () {
     var self = this;
-    var properties = {};
-    var url = App.apiPrefix + '/clusters/' + App.router.getClusterName() + '/configurations/?type=' + serviceConfigTags.siteName + '&tag=' + serviceConfigTags.tagName;
-    $.ajax({
-      type: 'GET',
-      url: url,
-      async: true,
-      timeout: 10000,
-      dataType: 'json',
-      success: function (data) {
-        console.log("TRACE: In success function for the GET getServiceConfigsFromServer call");
-        console.log("TRACE: The url is: " + url);
-        serviceConfigTags.configs = data.items.findProperty('tag', serviceConfigTags.tagName).properties;
-        self.set('noOfWaitingAjaxCalls', self.get('noOfWaitingAjaxCalls') - 1);
-
-        if (self.get('noOfWaitingAjaxCalls') == 0) {
+    var urlParams = [];
+    this.get('serviceConfigTags').forEach(function (_tag) {
+      urlParams.push('(type=' + _tag.siteName + '&tag=' + _tag.tagName + ')');
+    }, this);
+    var url = App.apiPrefix + '/clusters/' + App.router.getClusterName() + '/configurations?' + urlParams.join('|');
+    if (urlParams.length > 0) {
+      $.ajax({
+        type: 'GET',
+        url: url,
+        async: true,
+        timeout: 10000,
+        dataType: 'json',
+        success: function (data) {
+          console.log("TRACE: In success function for the GET getServiceConfigsFromServer call");
+          console.log("TRACE: The url is: " + url);
+          self.get('serviceConfigTags').forEach(function (_tag) {
+            _tag.configs = data.items.findProperty('type', _tag.siteName).properties;
+          });
           self.addSecureConfigs();
-          self.createConfigurations();
-        }
-      },
+          self.applyConfigurationsToCluster();
+        },
 
-      error: function (request, ajaxOptions, error) {
-        self.get('stages').findProperty('stage', 'stage3').set('isError', true);
-        console.log("TRACE: In error function for the getServiceConfigsFromServer call");
-        console.log("TRACE: value of the url is: " + url);
-        console.log("TRACE: error code status is: " + request.status);
-      },
+        error: function (request, ajaxOptions, error) {
+          self.get('stages').findProperty('stage', 'stage3').set('isError', true);
+          console.log("TRACE: In error function for the getServiceConfigsFromServer call");
+          console.log("TRACE: value of the url is: " + url);
+          console.log("TRACE: error code status is: " + request.status);
+        },
 
-      statusCode: require('data/statusCodes')
-    });
+        statusCode: require('data/statusCodes')
+      });
+    }
   },
-
 
   addSecureConfigs: function () {
     this.get('serviceConfigTags').forEach(function (_serviceConfigTags, index) {
+      _serviceConfigTags.newTagName = 'version' + (new Date).getTime();
       if (_serviceConfigTags.siteName === 'global') {
-        _serviceConfigTags.newTagName = 'version' + (new Date).getTime() + index;
         this.get('globalProperties').forEach(function (_globalProperty) {
           _serviceConfigTags.configs[_globalProperty.name] = _globalProperty.value;
         }, this);
       } else {
-        _serviceConfigTags.newTagName = 'version' + (new Date).getTime();
         this.get('configs').filterProperty('id', 'site property').filterProperty('filename', _serviceConfigTags.siteName + '.xml').forEach(function (_config) {
           _serviceConfigTags.configs[_config.name] = _config.value;
         }, this);

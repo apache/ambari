@@ -311,7 +311,7 @@ module.exports = Em.Route.extend({
                 this.hide();
               },
               bodyClass: Ember.View.extend({
-                template: Ember.Handlebars.compile(['<p>{{t admin.security.status.error}}</p>'])
+                template: Ember.Handlebars.compile('<p>{{t admin.security.status.error}}</p>')
               })
             });
           });

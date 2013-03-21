@@ -43,6 +43,7 @@ module.exports = [
       App.ServiceConfigCategory.create({ name: 'SNameNode',displayName: 'SNameNode'}),
       App.ServiceConfigCategory.create({ name: 'DataNode', displayName: 'DataNode'})
     ],
+    sites: ['global', 'core-site', 'hdfs-site'],
     configs: configProperties.filterProperty('serviceName', 'HDFS')
   },
 
@@ -54,6 +55,7 @@ module.exports = [
       App.ServiceConfigCategory.create({ name: 'JobTracker', displayName: 'JobTracker'}),
       App.ServiceConfigCategory.create({ name: 'TaskTracker', displayName: 'TaskTracker'})
     ],
+    sites: ['mapred-site'],
     configs: configProperties.filterProperty('serviceName', 'MAPREDUCE')
   },
 
@@ -64,6 +66,7 @@ module.exports = [
     configCategories: [
       App.ServiceConfigCategory.create({ name: 'Hive Metastore', displayName: 'Hive Metastore'})
     ],
+    sites: ['hive-site'],
     configs: configProperties.filterProperty('serviceName', 'HIVE')
   },
 
@@ -74,6 +77,7 @@ module.exports = [
     configCategories: [
       App.ServiceConfigCategory.create({ name: 'WebHCat', displayName: 'WebHCat'})
     ],
+    sites: ['webhcat-site'],
     configs: configProperties.filterProperty('serviceName', 'WEBHCAT')
   },
 
@@ -85,6 +89,8 @@ module.exports = [
       App.ServiceConfigCategory.create({ name: 'HBase Master', displayName: 'HBase Master'}),
       App.ServiceConfigCategory.create({ name: 'RegionServer', displayName: 'RegionServer'})
     ],
+    sites: ['hbase-site'],
+
     configs: configProperties.filterProperty('serviceName', 'HBASE')
   },
   /*
@@ -106,6 +112,7 @@ module.exports = [
     configCategories: [
       App.ServiceConfigCategory.create({ name: 'Oozie Server'})
     ],
+    sites: ['oozie-site'],
     configs: configProperties.filterProperty('serviceName', 'OOZIE')
   }
 

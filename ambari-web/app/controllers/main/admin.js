@@ -35,7 +35,7 @@ App.MainAdminController = Em.Controller.extend({
         dfd.resolve();
       }, 50);
     } else {
-      this.getHDFSDetailsFromServer(dfd);
+      this.getSecurityStatusFromServer(dfd);
     }
     return dfd.promise();
   },
@@ -43,9 +43,9 @@ App.MainAdminController = Em.Controller.extend({
   /**
    * return true if security status is loaded and false otherwise
    */
-  getHDFSDetailsFromServer: function (dfd) { //TODO: this should be obtain from cluster level config rather than HDFS global config
+  getSecurityStatusFromServer: function (dfd) { //TODO: this should be obtain from cluster level config rather than HDFS global config
     var self = this;
-    var url = App.apiPrefix + '/clusters/' + App.router.getClusterName() + '/services/HDFS';
+    var url = App.apiPrefix + '/clusters/' + App.router.getClusterName();
     $.ajax({
       type: 'GET',
       url: url,
@@ -55,9 +55,9 @@ App.MainAdminController = Em.Controller.extend({
       success: function (data) {
         console.log("TRACE: The url is: " + url);
         var jsonData = jQuery.parseJSON(data);
-        var configs = jsonData.ServiceInfo.desired_configs;
+        var configs = jsonData.Clusters.desired_configs;
         if ('global' in configs) {
-          self.getServiceConfigsFromServer(dfd, 'global', configs['global']);
+          self.getServiceConfigsFromServer(dfd, 'global', configs['global'].tag);
         } else {
           if (dfd) {
             dfd.reject();
