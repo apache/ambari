@@ -1974,9 +1974,11 @@ public class AmbariManagementControllerImpl implements
               Host host = clusters.getHost(scHost.getHostName());
               DesiredConfig dc = host.getDesiredConfigs(scHost.getClusterId()).get(type);
               if (null != dc) {
-                Config hostConfig = cluster.getConfig(svcConfig.getType(), dc.getVersion());
-                props.putAll(hostConfig.getProperties());
-                tags.put("host_override_tag", hostConfig.getVersionTag());
+                Config hostConfig = cluster.getConfig(type, dc.getVersion());
+                if (null != hostConfig) {
+                  props.putAll(hostConfig.getProperties());
+                  tags.put("host_override_tag", hostConfig.getVersionTag());
+                }
               }
 
               configurations.put(type, props);
