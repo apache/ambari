@@ -65,13 +65,14 @@ public class QueryCreateHandler extends BaseManagementHandler {
     ResourceInstance createResource = getResourceFactory().createResource(
         entry.getKey(), request.getResource().getIds());
 
+    RequestBody requestBody = new RequestBody();
+    requestBody.setBody(request.getBody().getBody());
+    for (Map<String, Object> map : entry.getValue()) {
+      requestBody.addPropertySet(new NamedPropertySet("", map));
+    }
+
     return persist(createResource,
-        new RequestBody() {
-          @Override
-          public Set<Map<String, Object>> getPropertySets() {
-            return entry.getValue();
-          }
-        }
+        requestBody
       );
   }
 

@@ -509,6 +509,9 @@ Trunk (unreleased changes):
 
  BUG FIXES
 
+ AMBARI-1689. 500 Exception creating service component during install. (Sumit 
+ Mohanty via swagle)
+
  AMBARI-1504. Hosts show physical CPUs, instead of cores. (Sumit Mohanty 
  via swagle)
 
