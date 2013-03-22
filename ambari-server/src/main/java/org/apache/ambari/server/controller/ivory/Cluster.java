@@ -27,8 +27,8 @@ public class Cluster {
 
   private final String name;
   private final String colo;
-  private final Set<String> interfaces;
-  private final Set<String> locations;
+  private final Set<Interface> interfaces;
+  private final Set<Location> locations;
   private final Map<String, String> properties;
 
   /**
@@ -40,7 +40,7 @@ public class Cluster {
    * @param locations   the locations
    * @param properties  the properties
    */
-  public Cluster(String name, String colo, Set<String> interfaces, Set<String> locations, Map<String, String> properties) {
+  public Cluster(String name, String colo, Set<Interface> interfaces, Set<Location> locations, Map<String, String> properties) {
     this.name = name;
     this.colo = colo;
     this.interfaces = interfaces;
@@ -71,7 +71,7 @@ public class Cluster {
    *
    * @return the interfaces
    */
-  public Set<String> getInterfaces() {
+  public Set<Interface> getInterfaces() {
     return interfaces;
   }
 
@@ -80,7 +80,7 @@ public class Cluster {
    *
    * @return the locations
    */
-  public Set<String> getLocations() {
+  public Set<Location> getLocations() {
     return locations;
   }
 
@@ -115,5 +115,134 @@ public class Cluster {
     result = 31 * result + (locations != null ? locations.hashCode() : 0);
     result = 31 * result + (properties != null ? properties.hashCode() : 0);
     return result;
+  }
+
+  // ----- inner classes -----------------------------------------------------
+
+  /**
+   * Cluster interface.
+   */
+  public static class Interface {
+
+    private final String type;
+    private final String endpoint;
+    private final String version;
+
+    /**
+     * Construct an interface.
+     *
+     * @param type      the type
+     * @param endpoint  the endpoint
+     * @param version   the version
+     */
+    public Interface(String type, String endpoint, String version) {
+      this.type = type;
+      this.endpoint = endpoint;
+      this.version = version;
+    }
+
+    /**
+     * Get the type.
+     *
+     * @return the type
+     */
+    public String getType() {
+      return type;
+    }
+
+    /**
+     * Get the endpoint.
+     *
+     * @return the endpoint
+     */
+    public String getEndpoint() {
+      return endpoint;
+    }
+
+    /**
+     * Get the version.
+     *
+     * @return the version
+     */
+    public String getVersion() {
+      return version;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+      if (this == o) return true;
+      if (o == null || getClass() != o.getClass()) return false;
+
+      Interface that = (Interface) o;
+
+      return !(endpoint != null ? !endpoint.equals(that.endpoint) : that.endpoint != null) &&
+             !(type != null     ? !type.equals(that.type)         : that.type != null) &&
+             !(version != null  ? !version.equals(that.version)   : that.version != null);
+
+    }
+
+    @Override
+    public int hashCode() {
+      int result = type != null ? type.hashCode() : 0;
+      result = 31 * result + (endpoint != null ? endpoint.hashCode() : 0);
+      result = 31 * result + (version != null ? version.hashCode() : 0);
+      return result;
+    }
+  }
+
+  /**
+   * Cluster location
+   */
+  public static class Location {
+    private final String name;
+    private final String path;
+
+    /**
+     * Construct a location.
+     *
+     * @param name  the name
+     * @param path  the path
+     */
+    public Location(String name, String path) {
+      this.name = name;
+      this.path = path;
+    }
+
+    /**
+     * Get the name.
+     *
+     * @return the name
+     */
+    public String getName() {
+      return name;
+    }
+
+    /**
+     * Get the path.
+     *
+     * @return the path
+     */
+    public String getPath() {
+      return path;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+      if (this == o) return true;
+      if (o == null || getClass() != o.getClass()) return false;
+
+      Location location = (Location) o;
+
+      return !(name != null ? !name.equals(location.name) : location.name != null) &&
+             !(path != null ? !path.equals(location.path) : location.path != null);
+
+    }
+
+    @Override
+    public int hashCode() {
+      int result = name != null ? name.hashCode() : 0;
+      result = 31 * result + (path != null ? path.hashCode() : 0);
+      return result;
+    }
   }
 }

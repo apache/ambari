@@ -88,9 +88,11 @@ public class FeedResourceProviderTest {
     feedNames.add("Feed2");
     feedNames.add("Feed3");
 
-    Feed feed1 = new Feed("Feed1", "d", "s", "sch", "source", "target");
-    Feed feed2 = new Feed("Feed2", "d", "s", "sch", "source", "target");
-    Feed feed3 = new Feed("Feed3", "d", "s", "sch", "source", "target");
+    Map<String,String> props = new HashMap<String, String>();
+
+    Feed feed1 = new Feed("Feed1", "d", "s", "sch", "source", "st", "end", "l", "a", "target", "st", "end", "l", "a", props);
+    Feed feed2 = new Feed("Feed2", "d", "s", "sch", "source", "st", "end", "l", "a", "target", "st", "end", "l", "a", props);
+    Feed feed3 = new Feed("Feed3", "d", "s", "sch", "source", "st", "end", "l", "a", "target", "st", "end", "l", "a", props);
 
     // set expectations
     expect(service.getFeedNames()).andReturn(feedNames);
@@ -129,14 +131,16 @@ public class FeedResourceProviderTest {
     properties.put(FeedResourceProvider.FEED_NAME_PROPERTY_ID, "Feed1");
     properties.put(FeedResourceProvider.FEED_DESCRIPTION_PROPERTY_ID, "desc");
     properties.put(FeedResourceProvider.FEED_SCHEDULE_PROPERTY_ID, "sched");
-    properties.put(FeedResourceProvider.FEED_STATUS_PROPERTY_ID, "SUBMITTED");
+    properties.put(FeedResourceProvider.FEED_STATUS_PROPERTY_ID, "WAITING");
     properties.put(FeedResourceProvider.FEED_SOURCE_CLUSTER_NAME_PROPERTY_ID, "source");
     properties.put(FeedResourceProvider.FEED_TARGET_CLUSTER_NAME_PROPERTY_ID, "target");
 
     List<String> feedNames = new LinkedList<String>();
     feedNames.add("Feed1");
 
-    Feed feed1 = new Feed("Feed1", "desc", "SUBMITTED", "sched", "source", "target");
+    Map<String,String> props = new HashMap<String, String>();
+
+    Feed feed1 = new Feed("Feed1", "desc", "WAITING", "sched", "source", "st", "end", "l", "a", "target", "st", "end", "l", "a", props);
 
     // set expectations
     expect(service.getFeedNames()).andReturn(feedNames);
@@ -169,7 +173,9 @@ public class FeedResourceProviderTest {
     List<String> feedNames = new LinkedList<String>();
     feedNames.add("Feed1");
 
-    Feed feed1 = new Feed("Feed1", "desc", "SUBMITTED", "sched", "source", "target");
+    Map<String,String> props = new HashMap<String, String>();
+
+    Feed feed1 = new Feed("Feed1", "d", "s", "sch", "source", "st", "end", "l", "a", "target", "st", "end", "l", "a", props);
 
     // set expectations
     expect(service.getFeedNames()).andReturn(feedNames);

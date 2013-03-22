@@ -46,12 +46,21 @@ public class FeedResourceProvider extends AbstractDRResourceProvider {
 
   // ----- Property ID constants ---------------------------------------------
 
-  protected static final String FEED_NAME_PROPERTY_ID                = PropertyHelper.getPropertyId("Feed", "name");
-  protected static final String FEED_DESCRIPTION_PROPERTY_ID         = PropertyHelper.getPropertyId("Feed", "description");
-  protected static final String FEED_STATUS_PROPERTY_ID              = PropertyHelper.getPropertyId("Feed", "status");
-  protected static final String FEED_SCHEDULE_PROPERTY_ID            = PropertyHelper.getPropertyId("Feed", "schedule");
-  protected static final String FEED_SOURCE_CLUSTER_NAME_PROPERTY_ID = PropertyHelper.getPropertyId("Feed", "sourceClusterName");
-  protected static final String FEED_TARGET_CLUSTER_NAME_PROPERTY_ID = PropertyHelper.getPropertyId("Feed", "targetClusterName");
+  protected static final String FEED_NAME_PROPERTY_ID                  = PropertyHelper.getPropertyId("Feed", "name");
+  protected static final String FEED_DESCRIPTION_PROPERTY_ID           = PropertyHelper.getPropertyId("Feed", "description");
+  protected static final String FEED_STATUS_PROPERTY_ID                = PropertyHelper.getPropertyId("Feed", "status");
+  protected static final String FEED_SCHEDULE_PROPERTY_ID              = PropertyHelper.getPropertyId("Feed", "frequency");
+  protected static final String FEED_SOURCE_CLUSTER_NAME_PROPERTY_ID   = PropertyHelper.getPropertyId("Feed/sourceCluster", "name");
+  protected static final String FEED_SOURCE_CLUSTER_START_PROPERTY_ID  = PropertyHelper.getPropertyId("Feed/sourceCluster/validity", "start");
+  protected static final String FEED_SOURCE_CLUSTER_END_PROPERTY_ID    = PropertyHelper.getPropertyId("Feed/sourceCluster/validity", "end");
+  protected static final String FEED_SOURCE_CLUSTER_LIMIT_PROPERTY_ID  = PropertyHelper.getPropertyId("Feed/sourceCluster/retention", "limit");
+  protected static final String FEED_SOURCE_CLUSTER_ACTION_PROPERTY_ID = PropertyHelper.getPropertyId("Feed/sourceCluster/retention", "action");
+  protected static final String FEED_TARGET_CLUSTER_NAME_PROPERTY_ID   = PropertyHelper.getPropertyId("Feed/targetCluster", "name");
+  protected static final String FEED_TARGET_CLUSTER_START_PROPERTY_ID  = PropertyHelper.getPropertyId("Feed/targetCluster/validity", "start");
+  protected static final String FEED_TARGET_CLUSTER_END_PROPERTY_ID    = PropertyHelper.getPropertyId("Feed/targetCluster/validity", "end");
+  protected static final String FEED_TARGET_CLUSTER_LIMIT_PROPERTY_ID  = PropertyHelper.getPropertyId("Feed/targetCluster/retention", "limit");
+  protected static final String FEED_TARGET_CLUSTER_ACTION_PROPERTY_ID = PropertyHelper.getPropertyId("Feed/targetCluster/retention", "action");
+  protected static final String FEED_PROPERTIES_PROPERTY_ID = PropertyHelper.getPropertyId("Feed", "properties");
 
   private static Set<String> pkPropertyIds =
       new HashSet<String>(Arrays.asList(new String[]{
@@ -109,8 +118,26 @@ public class FeedResourceProvider extends AbstractDRResourceProvider {
           feed.getSchedule(), requestedIds);
       setResourceProperty(resource, FEED_SOURCE_CLUSTER_NAME_PROPERTY_ID,
           feed.getSourceClusterName(), requestedIds);
+      setResourceProperty(resource, FEED_SOURCE_CLUSTER_START_PROPERTY_ID,
+          feed.getSourceClusterStart(), requestedIds);
+      setResourceProperty(resource, FEED_SOURCE_CLUSTER_END_PROPERTY_ID,
+          feed.getSourceClusterEnd(), requestedIds);
+      setResourceProperty(resource, FEED_SOURCE_CLUSTER_LIMIT_PROPERTY_ID,
+          feed.getSourceClusterLimit(), requestedIds);
+      setResourceProperty(resource, FEED_SOURCE_CLUSTER_ACTION_PROPERTY_ID,
+          feed.getSourceClusterAction(), requestedIds);
       setResourceProperty(resource, FEED_TARGET_CLUSTER_NAME_PROPERTY_ID,
           feed.getTargetClusterName(), requestedIds);
+      setResourceProperty(resource, FEED_TARGET_CLUSTER_START_PROPERTY_ID,
+          feed.getTargetClusterStart(), requestedIds);
+      setResourceProperty(resource, FEED_TARGET_CLUSTER_END_PROPERTY_ID,
+          feed.getTargetClusterEnd(), requestedIds);
+      setResourceProperty(resource, FEED_TARGET_CLUSTER_LIMIT_PROPERTY_ID,
+          feed.getTargetClusterLimit(), requestedIds);
+      setResourceProperty(resource, FEED_TARGET_CLUSTER_ACTION_PROPERTY_ID,
+          feed.getTargetClusterAction(), requestedIds);
+      setResourceProperty(resource, FEED_PROPERTIES_PROPERTY_ID,
+          feed.getProperties(), requestedIds);
 
       if (predicate == null || predicate.evaluate(resource)) {
         resources.add(resource);
@@ -189,13 +216,31 @@ public class FeedResourceProvider extends AbstractDRResourceProvider {
    * @return a new feed
    */
   protected static Feed getFeed(String feedName, Map<String, Object> propertyMap) {
+    Map<String, String> properties = new HashMap<String, String>();
+    for ( Map.Entry<String, Object> entry : propertyMap.entrySet()) {
+      String property = entry.getKey();
+      String category = PropertyHelper.getPropertyCategory(property);
+      if (category.equals(FEED_PROPERTIES_PROPERTY_ID)) {
+        properties.put(PropertyHelper.getPropertyName(property), (String) entry.getValue());
+      }
+    }
+
     return new Feed(
         feedName,
         (String) propertyMap.get(FEED_DESCRIPTION_PROPERTY_ID),
         (String) propertyMap.get(FEED_STATUS_PROPERTY_ID),
         (String) propertyMap.get(FEED_SCHEDULE_PROPERTY_ID),
         (String) propertyMap.get(FEED_SOURCE_CLUSTER_NAME_PROPERTY_ID),
-        (String) propertyMap.get(FEED_TARGET_CLUSTER_NAME_PROPERTY_ID));
+        (String) propertyMap.get(FEED_SOURCE_CLUSTER_START_PROPERTY_ID),
+        (String) propertyMap.get(FEED_SOURCE_CLUSTER_END_PROPERTY_ID),
+        (String) propertyMap.get(FEED_SOURCE_CLUSTER_LIMIT_PROPERTY_ID),
+        (String) propertyMap.get(FEED_SOURCE_CLUSTER_ACTION_PROPERTY_ID),
+        (String) propertyMap.get(FEED_TARGET_CLUSTER_NAME_PROPERTY_ID),
+        (String) propertyMap.get(FEED_TARGET_CLUSTER_START_PROPERTY_ID),
+        (String) propertyMap.get(FEED_TARGET_CLUSTER_END_PROPERTY_ID),
+        (String) propertyMap.get(FEED_TARGET_CLUSTER_LIMIT_PROPERTY_ID),
+        (String) propertyMap.get(FEED_TARGET_CLUSTER_ACTION_PROPERTY_ID),
+        properties);
   }
 
   /**
@@ -215,7 +260,16 @@ public class FeedResourceProvider extends AbstractDRResourceProvider {
     updateMap.put(FEED_SCHEDULE_PROPERTY_ID, resource.getPropertyValue(FEED_SCHEDULE_PROPERTY_ID));
     updateMap.put(FEED_STATUS_PROPERTY_ID, resource.getPropertyValue(FEED_STATUS_PROPERTY_ID));
     updateMap.put(FEED_SOURCE_CLUSTER_NAME_PROPERTY_ID, resource.getPropertyValue(FEED_SOURCE_CLUSTER_NAME_PROPERTY_ID));
+    updateMap.put(FEED_SOURCE_CLUSTER_START_PROPERTY_ID, resource.getPropertyValue(FEED_SOURCE_CLUSTER_START_PROPERTY_ID));
+    updateMap.put(FEED_SOURCE_CLUSTER_END_PROPERTY_ID, resource.getPropertyValue(FEED_SOURCE_CLUSTER_END_PROPERTY_ID));
+    updateMap.put(FEED_SOURCE_CLUSTER_LIMIT_PROPERTY_ID, resource.getPropertyValue(FEED_SOURCE_CLUSTER_LIMIT_PROPERTY_ID));
+    updateMap.put(FEED_SOURCE_CLUSTER_ACTION_PROPERTY_ID, resource.getPropertyValue(FEED_SOURCE_CLUSTER_ACTION_PROPERTY_ID));
     updateMap.put(FEED_TARGET_CLUSTER_NAME_PROPERTY_ID, resource.getPropertyValue(FEED_TARGET_CLUSTER_NAME_PROPERTY_ID));
+    updateMap.put(FEED_TARGET_CLUSTER_START_PROPERTY_ID, resource.getPropertyValue(FEED_TARGET_CLUSTER_START_PROPERTY_ID));
+    updateMap.put(FEED_TARGET_CLUSTER_END_PROPERTY_ID, resource.getPropertyValue(FEED_TARGET_CLUSTER_END_PROPERTY_ID));
+    updateMap.put(FEED_TARGET_CLUSTER_LIMIT_PROPERTY_ID, resource.getPropertyValue(FEED_TARGET_CLUSTER_LIMIT_PROPERTY_ID));
+    updateMap.put(FEED_TARGET_CLUSTER_ACTION_PROPERTY_ID, resource.getPropertyValue(FEED_TARGET_CLUSTER_ACTION_PROPERTY_ID));
+    updateMap.put(FEED_PROPERTIES_PROPERTY_ID, resource.getPropertyValue(FEED_PROPERTIES_PROPERTY_ID));
     updateMap.putAll(propertyMap);
 
     return updateMap;

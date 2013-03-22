@@ -32,6 +32,7 @@ import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
 
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
@@ -69,7 +70,8 @@ public class TargetClusterResourceProvider extends AbstractDRResourceProvider {
   }
 
   @Override
-  public RequestStatus createResources(Request request) throws SystemException, UnsupportedPropertyException, ResourceAlreadyExistsException, NoSuchParentResourceException {
+  public RequestStatus createResources(Request request) throws SystemException, UnsupportedPropertyException,
+      ResourceAlreadyExistsException, NoSuchParentResourceException {
     IvoryService service = getService();
 
     Set<Map<String, Object>> propertiesSet = request.getProperties();
@@ -81,7 +83,8 @@ public class TargetClusterResourceProvider extends AbstractDRResourceProvider {
   }
 
   @Override
-  public Set<Resource> getResources(Request request, Predicate predicate) throws SystemException, UnsupportedPropertyException, NoSuchResourceException, NoSuchParentResourceException {
+  public Set<Resource> getResources(Request request, Predicate predicate) throws SystemException,
+      UnsupportedPropertyException, NoSuchResourceException, NoSuchParentResourceException {
     IvoryService  service         = getService();
     List<String>  clusterNames    = service.getClusterNames();
     Set<String>   requestedIds = getRequestPropertyIds(request, predicate);
@@ -111,7 +114,8 @@ public class TargetClusterResourceProvider extends AbstractDRResourceProvider {
   }
 
   @Override
-  public RequestStatus updateResources(Request request, Predicate predicate) throws SystemException, UnsupportedPropertyException, NoSuchResourceException, NoSuchParentResourceException {
+  public RequestStatus updateResources(Request request, Predicate predicate) throws SystemException,
+      UnsupportedPropertyException, NoSuchResourceException, NoSuchParentResourceException {
     IvoryService service = getService();
 
     Iterator<Map<String,Object>> iterator = request.getProperties().iterator();
@@ -131,7 +135,8 @@ public class TargetClusterResourceProvider extends AbstractDRResourceProvider {
   }
 
   @Override
-  public RequestStatus deleteResources(Predicate predicate) throws SystemException, UnsupportedPropertyException, NoSuchResourceException, NoSuchParentResourceException {
+  public RequestStatus deleteResources(Predicate predicate) throws SystemException, UnsupportedPropertyException,
+      NoSuchResourceException, NoSuchParentResourceException {
     IvoryService service = getService();
 
     // get all the clusters that pass the predicate check
@@ -149,14 +154,42 @@ public class TargetClusterResourceProvider extends AbstractDRResourceProvider {
     return pkPropertyIds;
   }
 
+
   // ----- helper methods -----------------------------------------------------
 
   protected static Cluster getCluster(String clusterName, Map<String, Object> propertyMap) {
+
+    Map<String, String> properties = new HashMap<String, String>();
+    for ( Map.Entry<String, Object> entry : propertyMap.entrySet()) {
+      String property = entry.getKey();
+      String category = PropertyHelper.getPropertyCategory(property);
+      if (category.equals(CLUSTER_PROPERTIES_PROPERTY_ID)) {
+        properties.put(PropertyHelper.getPropertyName(property), (String) entry.getValue());
+      }
+    }
+
     return new Cluster(
         clusterName,
         (String) propertyMap.get(CLUSTER_COLO_PROPERTY_ID),
-        (Set<String>) propertyMap.get(CLUSTER_INTERFACES_PROPERTY_ID),
-        (Set<String>) propertyMap.get(CLUSTER_LOCATIONS_PROPERTY_ID),
-        (Map<String, String>) propertyMap.get(CLUSTER_PROPERTIES_PROPERTY_ID));
+        getInterfaces((Set<Map<String, Object>>) propertyMap.get(CLUSTER_INTERFACES_PROPERTY_ID)),
+        getLocations((Set<Map<String, Object>>) propertyMap.get(CLUSTER_LOCATIONS_PROPERTY_ID)),
+        properties);
   }
+
+  protected static Set<Cluster.Interface> getInterfaces(Set<Map<String, Object>> maps) {
+    Set<Cluster.Interface> interfaces = new HashSet<Cluster.Interface>();
+    for (Map<String, Object> map : maps) {
+      interfaces.add(new Cluster.Interface((String) map.get("type"), (String) map.get("endpoint"), (String) map.get("version")));
+    }
+    return interfaces;
+  }
+
+  protected static Set<Cluster.Location> getLocations(Set<Map<String, Object>> maps) {
+    Set<Cluster.Location> locations = new HashSet<Cluster.Location>();
+    for (Map<String, Object> map : maps) {
+      locations.add(new Cluster.Location((String) map.get("name"), (String) map.get("path")));
+    }
+    return locations;
+  }
+
 }

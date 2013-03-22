@@ -46,6 +46,25 @@ import static org.easymock.EasyMock.verify;
  * Tests for TargetClusterResourceProvider.
  */
 public class TargetClusterResourceProviderTest {
+
+
+  private static Cluster.Interface interface1 = new Cluster.Interface("write", "hdfs://ec2.a.b.com:8020", "1.1.2.22");
+
+  private static Map<String, String> interfaces = new HashMap<String, String>();
+  static {
+    interfaces.put("type", interface1.getType());
+    interfaces.put("endpoint", interface1.getEndpoint());
+    interfaces.put("version", interface1.getVersion());
+  }
+
+  private static Cluster.Location location1 = new Cluster.Location("location1", "/mirrorthis");
+
+  private static Map<String, String> locations  = new HashMap<String, String>();
+  static {
+    locations.put("name", location1.getName());
+    locations.put("path", location1.getPath());
+  }
+
   @Test
   public void testCreateResources() throws Exception {
     IvoryService service = createMock(IvoryService.class);
@@ -56,8 +75,8 @@ public class TargetClusterResourceProviderTest {
 
     properties.put(TargetClusterResourceProvider.CLUSTER_NAME_PROPERTY_ID, "Cluster1");
     properties.put(TargetClusterResourceProvider.CLUSTER_COLO_PROPERTY_ID, "Colo");
-    properties.put(TargetClusterResourceProvider.CLUSTER_INTERFACES_PROPERTY_ID, Collections.singleton("Interface1"));
-    properties.put(TargetClusterResourceProvider.CLUSTER_LOCATIONS_PROPERTY_ID, Collections.singleton("Location1"));
+    properties.put(TargetClusterResourceProvider.CLUSTER_INTERFACES_PROPERTY_ID, Collections.singleton(interfaces));
+    properties.put(TargetClusterResourceProvider.CLUSTER_LOCATIONS_PROPERTY_ID, Collections.singleton(locations));
     properties.put(TargetClusterResourceProvider.CLUSTER_PROPERTIES_PROPERTY_ID, Collections.singletonMap("P1", "V1"));
 
     // set expectations
@@ -93,12 +112,15 @@ public class TargetClusterResourceProviderTest {
     targetClusterNames.add("Cluster2");
     targetClusterNames.add("Cluster3");
 
-    Cluster targetCluster1 = new Cluster("Cluster1", "Colo", Collections.singleton("Interface1"),
-        Collections.singleton("Location1"), Collections.singletonMap("P1", "V1"));
-    Cluster targetCluster2 = new Cluster("Cluster2", "Colo", Collections.singleton("Interface1"),
-        Collections.singleton("Location1"), Collections.singletonMap("P1", "V1"));
-    Cluster targetCluster3 = new Cluster("Cluster3", "Colo", Collections.singleton("Interface1"),
-        Collections.singleton("Location1"), Collections.singletonMap("P1", "V1"));
+    Cluster.Interface interface1 = new Cluster.Interface("type", "endpoint", "version");
+    Cluster.Location  location1  = new Cluster.Location("name", "path");
+
+    Cluster targetCluster1 = new Cluster("Cluster1", "Colo", Collections.singleton(interface1),
+        Collections.singleton(location1), Collections.singletonMap("P1", "V1"));
+    Cluster targetCluster2 = new Cluster("Cluster2", "Colo", Collections.singleton(interface1),
+        Collections.singleton(location1), Collections.singletonMap("P1", "V1"));
+    Cluster targetCluster3 = new Cluster("Cluster3", "Colo", Collections.singleton(interface1),
+        Collections.singleton(location1), Collections.singletonMap("P1", "V1"));
 
     // set expectations
     expect(service.getClusterNames()).andReturn(targetClusterNames);
@@ -136,15 +158,18 @@ public class TargetClusterResourceProviderTest {
 
     properties.put(TargetClusterResourceProvider.CLUSTER_NAME_PROPERTY_ID, "Cluster1");
     properties.put(TargetClusterResourceProvider.CLUSTER_COLO_PROPERTY_ID, "Colo");
-    properties.put(TargetClusterResourceProvider.CLUSTER_INTERFACES_PROPERTY_ID, Collections.singleton("Interface1"));
-    properties.put(TargetClusterResourceProvider.CLUSTER_LOCATIONS_PROPERTY_ID, Collections.singleton("Location1"));
-    properties.put(TargetClusterResourceProvider.CLUSTER_PROPERTIES_PROPERTY_ID, Collections.singletonMap("P1", "V1"));
+    properties.put(TargetClusterResourceProvider.CLUSTER_INTERFACES_PROPERTY_ID, Collections.singleton(interfaces));
+    properties.put(TargetClusterResourceProvider.CLUSTER_LOCATIONS_PROPERTY_ID, Collections.singleton(locations));
+    properties.put(TargetClusterResourceProvider.CLUSTER_PROPERTIES_PROPERTY_ID + "/P1", "V1");
 
     List<String> targetClusterNames = new LinkedList<String>();
     targetClusterNames.add("Cluster1");
 
-    Cluster targetCluster1 = new Cluster("Cluster1", "Colo", Collections.singleton("Interface1"),
-        Collections.singleton("Location1"), Collections.singletonMap("P1", "V1"));
+    Set<Cluster.Interface> interfaceSet = Collections.singleton(interface1);
+    Set<Cluster.Location>  locationSet  = Collections.singleton(location1);
+
+    Cluster targetCluster1 = new Cluster("Cluster1", "Colo", interfaceSet,
+        locationSet, Collections.singletonMap("P1", "V1"));
 
     // set expectations
     expect(service.getClusterNames()).andReturn(targetClusterNames);
@@ -177,8 +202,11 @@ public class TargetClusterResourceProviderTest {
     List<String> targetClusterNames = new LinkedList<String>();
     targetClusterNames.add("Cluster1");
 
-    Cluster targetCluster1 = new Cluster("Cluster1", "Colo", Collections.singleton("Interface1"),
-        Collections.singleton("Location1"), Collections.singletonMap("P1", "V1"));
+    Cluster.Interface interface1 = new Cluster.Interface("type", "endpoint", "version");
+    Cluster.Location  location1  = new Cluster.Location("name", "path");
+
+    Cluster targetCluster1 = new Cluster("Cluster1", "Colo", Collections.singleton(interface1),
+        Collections.singleton(location1), Collections.singletonMap("P1", "V1"));
 
     // set expectations
     expect(service.getClusterNames()).andReturn(targetClusterNames);

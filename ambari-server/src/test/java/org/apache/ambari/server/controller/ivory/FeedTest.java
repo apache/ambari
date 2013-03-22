@@ -21,43 +21,131 @@ package org.apache.ambari.server.controller.ivory;
 import org.junit.Assert;
 import org.junit.Test;
 
+import java.util.HashMap;
+import java.util.Map;
+
 /**
  * Feed tests.
  */
 public class FeedTest {
   @Test
   public void testGetName() throws Exception {
-    Feed feed = new Feed("Feed1", "desc", "SUBMITTED", "sched", "source", "target");
+    Map<String,String> props = new HashMap<String, String>();
+
+    Feed feed = new Feed("Feed1", "d", "s", "sch", "source", "st", "end", "l", "a", "target", "st", "end", "l", "a", props);
     Assert.assertEquals("Feed1", feed.getName());
   }
 
   @Test
   public void testGetDescription() throws Exception {
-    Feed feed = new Feed("Feed1", "desc", "SUBMITTED", "sched", "source", "target");
+    Map<String,String> props = new HashMap<String, String>();
+
+    Feed feed = new Feed("Feed1", "desc", "s", "sch", "source", "st", "end", "l", "a", "target", "st", "end", "l", "a", props);
     Assert.assertEquals("desc", feed.getDescription());
   }
 
   @Test
   public void testGetStatus() throws Exception {
-    Feed feed = new Feed("Feed1", "desc", "SUBMITTED", "sched", "source", "target");
-    Assert.assertEquals("SUBMITTED", feed.getStatus());
+    Map<String,String> props = new HashMap<String, String>();
+
+    Feed feed = new Feed("Feed1", "d", "WAITING", "sch", "source", "st", "end", "l", "a", "target", "st", "end", "l", "a", props);
+    Assert.assertEquals("WAITING", feed.getStatus());
   }
 
   @Test
   public void testGetSchedule() throws Exception {
-    Feed feed = new Feed("Feed1", "desc", "SUBMITTED", "sched", "source", "target");
-    Assert.assertEquals("sched", feed.getSchedule());
+    Map<String,String> props = new HashMap<String, String>();
+
+    Feed feed = new Feed("Feed1", "d", "WAITING", "frequency", "source", "st", "end", "l", "a", "target", "st", "end", "l", "a", props);
+    Assert.assertEquals("frequency", feed.getSchedule());
   }
 
   @Test
   public void testGetSourceClusterName() throws Exception {
-    Feed feed = new Feed("Feed1", "desc", "SUBMITTED", "sched", "source", "target");
+    Map<String,String> props = new HashMap<String, String>();
+
+    Feed feed = new Feed("Feed1", "d", "s", "sch", "source", "st", "end", "l", "a", "target", "st", "end", "l", "a", props);
     Assert.assertEquals("source", feed.getSourceClusterName());
   }
 
   @Test
+  public void testGetSourceClusterStart() throws Exception {
+    Map<String,String> props = new HashMap<String, String>();
+
+    Feed feed = new Feed("Feed1", "d", "s", "sch", "source", "sst", "end", "l", "a", "target", "st", "end", "l", "a", props);
+    Assert.assertEquals("sst", feed.getSourceClusterStart());
+  }
+
+  @Test
+  public void testGetSourceClusterEnd() throws Exception {
+    Map<String,String> props = new HashMap<String, String>();
+
+    Feed feed = new Feed("Feed1", "d", "s", "sch", "source", "st", "send", "l", "a", "target", "st", "end", "l", "a", props);
+    Assert.assertEquals("send", feed.getSourceClusterEnd());
+  }
+
+  @Test
+  public void testGetSourceClusterLimit() throws Exception {
+    Map<String,String> props = new HashMap<String, String>();
+
+    Feed feed = new Feed("Feed1", "d", "s", "sch", "source", "st", "end", "sl", "a", "target", "st", "end", "l", "a", props);
+    Assert.assertEquals("sl", feed.getSourceClusterLimit());
+  }
+
+  @Test
+  public void testGetSourceClusterAction() throws Exception {
+    Map<String,String> props = new HashMap<String, String>();
+
+    Feed feed = new Feed("Feed1", "d", "s", "sch", "source", "st", "end", "l", "sa", "target", "st", "end", "l", "a", props);
+    Assert.assertEquals("sa", feed.getSourceClusterAction());
+  }
+
+  @Test
   public void testGetTargetClusterName() throws Exception {
-    Feed feed = new Feed("Feed1", "desc", "SUBMITTED", "sched", "source", "target");
+    Map<String,String> props = new HashMap<String, String>();
+
+    Feed feed = new Feed("Feed1", "d", "s", "sch", "source", "st", "end", "l", "a", "target", "st", "end", "l", "a", props);
     Assert.assertEquals("target", feed.getTargetClusterName());
+  }
+
+  @Test
+  public void testGetTargetClusterStart() throws Exception {
+    Map<String,String> props = new HashMap<String, String>();
+
+    Feed feed = new Feed("Feed1", "d", "s", "sch", "source", "sst", "end", "l", "a", "target", "tst", "end", "l", "a", props);
+    Assert.assertEquals("tst", feed.getTargetClusterStart());
+  }
+
+  @Test
+  public void testGetTargetClusterEnd() throws Exception {
+    Map<String,String> props = new HashMap<String, String>();
+
+    Feed feed = new Feed("Feed1", "d", "s", "sch", "source", "st", "send", "l", "a", "target", "st", "tend", "l", "a", props);
+    Assert.assertEquals("tend", feed.getTargetClusterEnd());
+  }
+
+  @Test
+  public void testGetTargetClusterLimit() throws Exception {
+    Map<String,String> props = new HashMap<String, String>();
+
+    Feed feed = new Feed("Feed1", "d", "s", "sch", "source", "st", "end", "sl", "a", "target", "st", "end", "tl", "a", props);
+    Assert.assertEquals("tl", feed.getTargetClusterLimit());
+  }
+
+  @Test
+  public void testGetTargetClusterAction() throws Exception {
+    Map<String,String> props = new HashMap<String, String>();
+
+    Feed feed = new Feed("Feed1", "d", "s", "sch", "source", "st", "end", "l", "sa", "target", "st", "end", "l", "ta", props);
+    Assert.assertEquals("ta", feed.getTargetClusterAction());
+  }
+
+  @Test
+  public void testGetProperties() throws Exception {
+    Map<String,String> props = new HashMap<String, String>();
+    props.put("p1", "v1");
+
+    Feed feed = new Feed("Feed1", "d", "s", "sch", "source", "st", "end", "l", "sa", "target", "st", "end", "l", "ta", props);
+    Assert.assertEquals(props, feed.getProperties());
   }
 }

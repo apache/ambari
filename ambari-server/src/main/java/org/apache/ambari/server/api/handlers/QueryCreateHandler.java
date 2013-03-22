@@ -107,16 +107,21 @@ public class QueryCreateHandler extends BaseManagementHandler {
       Object keyVal = r.getPropertyValue(resourceKeyProperty);
 
       for (NamedPropertySet namedProps : setRequestProps) {
-        Map<String, Object> mapResourceProps = new HashMap<String, Object>(namedProps.getProperties());
-        Resource.Type createType = getCreateType(resource, namedProps.getName());
-        mapResourceProps.put(controller.getSchema(createType).
-            getKeyPropertyId(resource.getResourceDefinition().getType()), keyVal);
-        Set<Map<String, Object>> setCreateProps = mapProps.get(createType);
-        if (setCreateProps == null) {
-          setCreateProps = new HashSet<Map<String, Object>>();
-          mapProps.put(createType, setCreateProps);
+        for (Map.Entry<String, Object> entry : namedProps.getProperties().entrySet()) {
+          Set<Map<String, Object>> set = (Set<Map<String, Object>>) entry.getValue();
+          for (Map<String, Object> map : set) {
+            Map<String, Object> mapResourceProps = new HashMap<String, Object>(map);
+            Resource.Type       createType       = getCreateType(resource, entry.getKey());
+            mapResourceProps.put(controller.getSchema(createType).
+                getKeyPropertyId(resource.getResourceDefinition().getType()), keyVal);
+            Set<Map<String, Object>> setCreateProps = mapProps.get(createType);
+            if (setCreateProps == null) {
+              setCreateProps = new HashSet<Map<String, Object>>();
+              mapProps.put(createType, setCreateProps);
+            }
+            setCreateProps.add(mapResourceProps);
+          }
         }
-        setCreateProps.add(mapResourceProps);
       }
     }
     return mapProps;

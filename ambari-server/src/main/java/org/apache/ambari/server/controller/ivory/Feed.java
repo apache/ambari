@@ -17,6 +17,8 @@
  */
 package org.apache.ambari.server.controller.ivory;
 
+import java.util.Map;
+
 /**
  * Ivory feed.
  */
@@ -27,25 +29,58 @@ public class Feed {
   private final String status;
   private final String schedule;
   private final String sourceClusterName;
+  private final String sourceClusterStart;
+  private final String sourceClusterEnd;
+  private final String sourceClusterLimit;
+  private final String sourceClusterAction;
   private final String targetClusterName;
+  private final String targetClusterStart;
+  private final String targetClusterEnd;
+  private final String targetClusterLimit;
+  private final String targetClusterAction;
+  private final Map<String, String> properties;
 
   /**
    * Construct a feed.
    *
-   * @param name               the feed name
-   * @param description        the description
-   * @param status             the status
-   * @param schedule           the schedule
-   * @param sourceClusterName  the source cluster name
-   * @param targetClusterName  the target cluster name
+   * @param name                 the feed name
+   * @param description          the description
+   * @param status               the status
+   * @param schedule             the schedule
+   * @param sourceClusterName    the source cluster name
+   * @param sourceClusterStart   the source cluster validity start time
+   * @param sourceClusterEnd     the source cluster validity end time
+   * @param sourceClusterLimit   the source cluster retention limit
+   * @param sourceClusterAction  the source cluster retention action
+   * @param targetClusterName    the target cluster name
+   * @param targetClusterStart   the target cluster validity start time
+   * @param targetClusterEnd     the target cluster validity end time
+   * @param targetClusterLimit   the target cluster retention limit
+   * @param targetClusterAction  the target cluster retention action
+   * @param properties           the properties
+
    */
-  public Feed(String name, String description, String status, String schedule, String sourceClusterName, String targetClusterName) {
+  public Feed(String name, String description, String status, String schedule,
+              String sourceClusterName, String sourceClusterStart, String sourceClusterEnd,
+              String sourceClusterLimit, String sourceClusterAction,
+              String targetClusterName, String targetClusterStart, String targetClusterEnd,
+              String targetClusterLimit, String targetClusterAction,
+              Map<String, String> properties) {
     this.name = name;
     this.description = description;
     this.status = status;
     this.schedule = schedule;
     this.sourceClusterName = sourceClusterName;
+    this.sourceClusterStart = sourceClusterStart;
+    this.sourceClusterEnd = sourceClusterEnd;
+    this.sourceClusterLimit = sourceClusterLimit;
+    this.sourceClusterAction = sourceClusterAction;
     this.targetClusterName = targetClusterName;
+    this.targetClusterStart = targetClusterStart;
+    this.targetClusterEnd = targetClusterEnd;
+    this.targetClusterLimit = targetClusterLimit;
+    this.targetClusterAction = targetClusterAction;
+    this.properties = properties;
   }
 
   /**
@@ -94,12 +129,93 @@ public class Feed {
   }
 
   /**
+   * Get the source cluster validity start time.
+   *
+   * @return  the source cluster validity start time
+   */
+  public String getSourceClusterStart() {
+    return sourceClusterStart;
+  }
+
+  /**
+   * Get the source cluster validity end time.
+   *
+   * @return  the source cluster validity end time
+   */
+  public String getSourceClusterEnd() {
+    return sourceClusterEnd;
+  }
+
+  /**
+   * Get the source cluster retention limit.
+   *
+   * @return the source cluster retention limit
+   */
+  public String getSourceClusterLimit() {
+    return sourceClusterLimit;
+  }
+
+  /**
+   * Get the source cluster retention action.
+   *
+   * @return the source cluster retention action
+   */
+  public String getSourceClusterAction() {
+    return sourceClusterAction;
+  }
+
+  /**
    * Get the target cluster name.
    *
    * @return the target cluster name
    */
   public String getTargetClusterName() {
     return targetClusterName;
+  }
+
+  /**
+   * Get the target cluster validity start time.
+   *
+   * @return  the target cluster validity start time
+   */
+  public String getTargetClusterStart() {
+    return targetClusterStart;
+  }
+
+  /**
+   * Get the target cluster validity end time.
+   *
+   * @return  the target cluster validity end time
+   */
+  public String getTargetClusterEnd() {
+    return targetClusterEnd;
+  }
+
+  /**
+   * Get the target cluster retention limit.
+   *
+   * @return the target cluster retention limit
+   */
+  public String getTargetClusterLimit() {
+    return targetClusterLimit;
+  }
+
+  /**
+   * Get the target cluster retention action.
+   *
+   * @return the target cluster retention action
+   */
+  public String getTargetClusterAction() {
+    return targetClusterAction;
+  }
+
+  /**
+   * Get the properties.
+   *
+   * @return the properties
+   */
+  public Map<String, String> getProperties() {
+    return properties;
   }
 
   @Override

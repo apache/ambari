@@ -89,10 +89,22 @@ public class QueryCreateHandlerTest {
     Map<Resource.Type, String> mapIds = new HashMap<Resource.Type, String>();
 
     Set<NamedPropertySet> setRequestProps = new HashSet<NamedPropertySet>();
-    setRequestProps.add(new NamedPropertySet("components", Collections.<String, Object>singletonMap(
-        PropertyHelper.getPropertyId("ServiceComponentInfo", "component_name"), "SECONDARY_NAMENODE")));
-    setRequestProps.add(new NamedPropertySet("components", Collections.<String, Object>singletonMap(
-        PropertyHelper.getPropertyId("ServiceComponentInfo", "component_name"), "HDFS_CLIENT")));
+
+    Map<String, Object> mapProperties = new HashMap<String, Object>();
+    Set<Map<String, Object>> arraySet  = new HashSet<Map<String, Object>>();
+
+    mapProperties.put("components", arraySet);
+
+    Map<String, Object> map = new HashMap<String, Object>();
+    map.put(PropertyHelper.getPropertyId("ServiceComponentInfo", "component_name"), "SECONDARY_NAMENODE");
+    arraySet.add(map);
+
+    map = new HashMap<String, Object>();
+    map.put(PropertyHelper.getPropertyId("ServiceComponentInfo", "component_name"), "HDFS_CLIENT");
+    arraySet.add(map);
+
+    setRequestProps.add(new NamedPropertySet("", mapProperties));
+
 
     Set<Map<String, Object>> setCreateProps = new HashSet<Map<String, Object>>();
     Map<String, Object> map1 = new HashMap<String, Object>();
@@ -236,10 +248,20 @@ public class QueryCreateHandlerTest {
     Map<Resource.Type, String> mapIds = new HashMap<Resource.Type, String>();
 
     Set<NamedPropertySet> setRequestProps = new HashSet<NamedPropertySet>();
-    setRequestProps.add(new NamedPropertySet("", Collections.<String, Object>singletonMap(
-        PropertyHelper.getPropertyId("ServiceComponentInfo", "component_name"), "SECONDARY_NAMENODE")));
-    setRequestProps.add(new NamedPropertySet("", Collections.<String, Object>singletonMap(
-        PropertyHelper.getPropertyId("ServiceComponentInfo", "component_name"), "HDFS_CLIENT")));
+    Map<String, Object> mapProperties = new HashMap<String, Object>();
+    Set<Map<String, Object>> arraySet  = new HashSet<Map<String, Object>>();
+
+    mapProperties.put("", arraySet);
+
+    Map<String, Object> map = new HashMap<String, Object>();
+    map.put(PropertyHelper.getPropertyId("ServiceComponentInfo", "component_name"), "SECONDARY_NAMENODE");
+    arraySet.add(map);
+
+    map = new HashMap<String, Object>();
+    map.put(PropertyHelper.getPropertyId("ServiceComponentInfo", "component_name"), "HDFS_CLIENT");
+    arraySet.add(map);
+
+    setRequestProps.add(new NamedPropertySet("", mapProperties));
 
     TreeNode<Resource> resultTree = new TreeNodeImpl<Resource>(null, null, "result");
     resultTree.addChild(resource1, "resource1");
@@ -326,10 +348,20 @@ public class QueryCreateHandlerTest {
     Map<Resource.Type, String> mapIds = new HashMap<Resource.Type, String>();
 
     Set<NamedPropertySet> setRequestProps = new HashSet<NamedPropertySet>();
-    setRequestProps.add(new NamedPropertySet("INVALID", Collections.<String, Object>singletonMap(
-        PropertyHelper.getPropertyId("ServiceComponentInfo", "component_name"), "SECONDARY_NAMENODE")));
-    setRequestProps.add(new NamedPropertySet("INVALID", Collections.<String, Object>singletonMap(
-        PropertyHelper.getPropertyId("ServiceComponentInfo", "component_name"), "HDFS_CLIENT")));
+    Map<String, Object> mapProperties = new HashMap<String, Object>();
+    Set<Map<String, Object>> arraySet  = new HashSet<Map<String, Object>>();
+
+    mapProperties.put("INVALID", arraySet);
+
+    Map<String, Object> map = new HashMap<String, Object>();
+    map.put(PropertyHelper.getPropertyId("ServiceComponentInfo", "component_name"), "SECONDARY_NAMENODE");
+    arraySet.add(map);
+
+    map = new HashMap<String, Object>();
+    map.put(PropertyHelper.getPropertyId("ServiceComponentInfo", "component_name"), "HDFS_CLIENT");
+    arraySet.add(map);
+
+    setRequestProps.add(new NamedPropertySet("", mapProperties));
 
     Map<String, ResourceInstance> mapSubResources = new HashMap<String, ResourceInstance>();
     mapSubResources.put("components", subResource);
@@ -495,10 +527,23 @@ public class QueryCreateHandlerTest {
     Map<Resource.Type, String> mapIds = new HashMap<Resource.Type, String>();
 
     Set<NamedPropertySet> setRequestProps = new HashSet<NamedPropertySet>();
-    setRequestProps.add(new NamedPropertySet("foo", Collections.<String, Object>singletonMap(
-        PropertyHelper.getPropertyId("ServiceComponentInfo", "component_name"), "SECONDARY_NAMENODE")));
-    setRequestProps.add(new NamedPropertySet("bar", Collections.<String, Object>singletonMap(
-        PropertyHelper.getPropertyId("ServiceComponentInfo", "component_name"), "HDFS_CLIENT")));
+    Map<String, Object>   mapProperties   = new HashMap<String, Object>();
+
+    Set<Map<String, Object>> arraySet = new HashSet<Map<String, Object>>();
+    mapProperties.put("foo", arraySet);
+
+    Map<String, Object> map = new HashMap<String, Object>();
+    map.put("prop", "val");
+    arraySet.add(map);
+
+    arraySet = new HashSet<Map<String, Object>>();
+    mapProperties.put("bar", arraySet);
+
+    map = new HashMap<String, Object>();
+    map.put("prop", "val");
+    arraySet.add(map);
+
+    setRequestProps.add(new NamedPropertySet("", mapProperties));
 
     Map<String, ResourceInstance> mapSubResources = new HashMap<String, ResourceInstance>();
     mapSubResources.put("foo", subResource1);

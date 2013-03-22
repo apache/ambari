@@ -5,6 +5,7 @@ import org.apache.ambari.server.controller.ivory.Feed;
 import org.apache.ambari.server.controller.ivory.Instance;
 import org.apache.ambari.server.controller.ivory.IvoryService;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -14,6 +15,8 @@ import java.util.Map;
  * An IvoryService implementation used for testing the DR related resource providers.
  */
 public class TestIvoryService implements IvoryService{
+
+  private int instanceCounter = 0;
 
   private final Map<String, Feed> feeds = new HashMap<String, Feed>();
   private final Map<String, Cluster> clusters = new HashMap<String, Cluster>();
@@ -74,6 +77,7 @@ public class TestIvoryService implements IvoryService{
   @Override
   public void scheduleFeed(String feedName) {
     setFeedStatus(feedName, "SCHEDULED");
+    addDummyInstance(feedName);
   }
 
   @Override
@@ -108,14 +112,18 @@ public class TestIvoryService implements IvoryService{
 
   @Override
   public List<Instance> getInstances(String feedName) {
-    return new LinkedList<Instance>(instanceMap.get(feedName).values());
+    Map<String, Instance> instances = instanceMap.get(feedName);
+    if (instances != null) {
+      return new LinkedList<Instance>(instances.values());
+    }
+    return Collections.emptyList();
   }
 
   @Override
   public void suspendInstance(String feedName, String instanceId) {
     String instanceKey = feedName + "/" + instanceId;
 
-    suspendedFeedStatusMap.put(instanceKey, setInstanceStatus(feedName, instanceId, "SUSPENDED"));
+    suspendedInstanceStatusMap.put(instanceKey, setInstanceStatus(feedName, instanceId, "SUSPENDED"));
   }
 
   @Override
@@ -152,7 +160,17 @@ public class TestIvoryService implements IvoryService{
             status,
             feed.getSchedule(),
             feed.getSourceClusterName(),
-            feed.getTargetClusterName());
+            feed.getSourceClusterStart(),
+            feed.getSourceClusterEnd(),
+            feed.getSourceClusterLimit(),
+            feed.getSourceClusterAction(),
+            feed.getTargetClusterName(),
+            feed.getTargetClusterStart(),
+            feed.getTargetClusterEnd(),
+            feed.getTargetClusterLimit(),
+            feed.getTargetClusterAction(),
+            feed.getProperties());
+
         feeds.put(feed.getName(), feed);
       }
     }
@@ -181,4 +199,19 @@ public class TestIvoryService implements IvoryService{
     }
     return currentStatus;
   }
+
+  private void addDummyInstance(String feedName) {
+    Map<String, Instance> instances = instanceMap.get(feedName);
+    if (instances == null) {
+      instances = new HashMap<String, Instance>();
+      instanceMap.put(feedName, instances);
+    }
+
+    String id = "Instance" + instanceCounter++;
+    Instance instance = new Instance(feedName, id, "RUNNING",
+        "2011-01-01T00:00Z", "2011-01-01T00:10Z", "details", "stdout" );
+    instances.put(id, instance);
+  }
+
+
 }

@@ -83,12 +83,15 @@ public class JsonRequestBodyParser implements RequestBodyParser {
       JsonNode child = node.get(name);
       if (child.isArray()) {
         //array
-        Iterator<JsonNode> arrayIter = child.getElements();
+        Iterator<JsonNode>       arrayIter = child.getElements();
+        Set<Map<String, Object>> arraySet  = new HashSet<Map<String, Object>>();
+
         while (arrayIter.hasNext()) {
           NamedPropertySet arrayPropertySet = new NamedPropertySet(name, new HashMap<String, Object>());
           processNode(arrayIter.next(), "", arrayPropertySet, body);
-          body.addPropertySet(arrayPropertySet);
+          arraySet.add(arrayPropertySet.getProperties());
         }
+        propertySet.getProperties().put(PropertyHelper.getPropertyId(path, name), arraySet);
       } else if (child.isContainerNode()) {
         // object
         if (name.equals(BODY_TITLE)) {

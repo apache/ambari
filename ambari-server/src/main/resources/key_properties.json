@@ -85,7 +85,7 @@
     "DRTargetCluster":"Cluster/name"
   },
   "DRInstance":{
-    "DRFeed":"Feed/name",
+    "DRFeed":"Instance/feedName",
     "DRInstance":"Instance/id"
   }
 }

@@ -163,9 +163,10 @@
         "Feed/name",
         "Feed/description",
         "Feed/status",
-        "Feed/schedule",
-        "Feed/sourceClusterName",
-        "Feed/targetClusterName"
+        "Feed/frequency",
+        "Feed/sourceCluster",
+        "Feed/targetCluster",
+        "Feed/properties"
     ],
     "DRTargetCluster":[
         "Cluster/name",

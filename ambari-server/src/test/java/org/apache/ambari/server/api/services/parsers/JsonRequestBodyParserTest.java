@@ -305,28 +305,32 @@ public class JsonRequestBodyParserTest {
 
     Set<NamedPropertySet> setProperties = body.getNamedPropertySets();
 
-    assertEquals(3, setProperties.size());
+    assertEquals(1, setProperties.size());
     boolean contains1 = false;
     boolean contains2 = false;
     boolean contains3 = false;
 
     for (NamedPropertySet ps : setProperties) {
-      assertEquals("services", ps.getName());
       Map<String, Object> mapProps = ps.getProperties();
-      String serviceName = (String) mapProps.get("ServiceInfo/service_name");
-      if (serviceName.equals("unitTestService1")) {
-        assertEquals(1, mapProps.size());
-        contains1 = true;
-      } else if (serviceName.equals("unitTestService2")) {
-        assertEquals("prop1Value", mapProps.get("ServiceInfo/property1"));
-        assertEquals(2, mapProps.size());
-        contains2 = true;
-      } else if (serviceName.equals("unitTestService3")) {
-        assertEquals("prop2Value", mapProps.get("ServiceInfo/Category/property2"));
-        assertEquals(2, mapProps.size());
-        contains3 = true;
-      } else {
-        fail("Unexpected service name");
+      assertEquals(1, mapProps.size());
+      Set<Map<String, Object>> set = (Set<Map<String, Object>>) mapProps.get("services");
+
+      for (Map<String, Object> map : set) {
+        String serviceName = (String) map.get("ServiceInfo/service_name");
+        if (serviceName.equals("unitTestService1")) {
+          assertEquals(1, map.size());
+          contains1 = true;
+        } else if (serviceName.equals("unitTestService2")) {
+          assertEquals("prop1Value", map.get("ServiceInfo/property1"));
+          assertEquals(2, map.size());
+          contains2 = true;
+        } else if (serviceName.equals("unitTestService3")) {
+          assertEquals("prop2Value", map.get("ServiceInfo/Category/property2"));
+          assertEquals(2, map.size());
+          contains3 = true;
+        } else {
+          fail("Unexpected service name");
+        }
       }
     }
     assertTrue(contains1);
@@ -338,7 +342,7 @@ public class JsonRequestBodyParserTest {
     body = parser.parse(b);
 
     Set<NamedPropertySet> setProps2 = body.getNamedPropertySets();
-    assertEquals(3, setProps2.size());
+    assertEquals(1, setProps2.size());
     assertEquals(setProperties, setProps2);
   }
 
@@ -350,24 +354,34 @@ public class JsonRequestBodyParserTest {
 
     Set<NamedPropertySet> setProperties = body.getNamedPropertySets();
 
-    assertEquals(2, setProperties.size());
+    assertEquals(1, setProperties.size());
     boolean contains1 = false;
     boolean contains2 = false;
 
     for (NamedPropertySet ps : setProperties) {
+
       Map<String, Object> mapProps = ps.getProperties();
-      String serviceName = (String) mapProps.get("ServiceInfo/service_name");
-      if (serviceName.equals("unitTestService1")) {
-        assertEquals("foo", ps.getName());
-        assertEquals(1, mapProps.size());
-        contains1 = true;
-      } else if (serviceName.equals("unitTestService2")) {
-        assertEquals("bar", ps.getName());
-        assertEquals("prop2Value", mapProps.get("ServiceInfo/Category/property2"));
-        assertEquals(2, mapProps.size());
-        contains2 = true;
-      } else {
-        fail("Unexpected service name");
+
+      for (Map.Entry<String, Object> entry : mapProps.entrySet()) {
+        Set<Map<String, Object>> set = (Set<Map<String, Object>>) entry.getValue();
+
+        for (Map<String, Object> map : set) {
+
+          String serviceName = (String) map.get("ServiceInfo/service_name");
+          if (serviceName.equals("unitTestService1")) {
+            assertEquals("foo", entry.getKey());
+            assertEquals(1, map.size());
+            contains1 = true;
+          } else if (serviceName.equals("unitTestService2")) {
+            assertEquals("bar", entry.getKey());
+            assertEquals("prop2Value", map.get("ServiceInfo/Category/property2"));
+            assertEquals(2, map.size());
+            contains2 = true;
+          } else {
+            fail("Unexpected service name");
+          }
+
+        }
       }
     }
     assertTrue(contains1);
@@ -378,7 +392,7 @@ public class JsonRequestBodyParserTest {
     body = parser.parse(b);
 
     Set<NamedPropertySet> setProps2 = body.getNamedPropertySets();
-    assertEquals(2, setProps2.size());
+    assertEquals(1, setProps2.size());
     assertEquals(setProperties, setProps2);
   }
 
@@ -392,28 +406,36 @@ public class JsonRequestBodyParserTest {
     Set<NamedPropertySet> setProperties = body.getNamedPropertySets();
 
     assertEquals("foo=bar", body.getQueryString());
-    assertEquals(3, setProperties.size());
+    assertEquals(1, setProperties.size());
     boolean contains1 = false;
     boolean contains2 = false;
     boolean contains3 = false;
 
     for (NamedPropertySet ps : setProperties) {
-      assertEquals("services", ps.getName());
+      assertEquals("", ps.getName());
       Map<String, Object> mapProps = ps.getProperties();
-      String serviceName = (String) mapProps.get("ServiceInfo/service_name");
-      if (serviceName.equals("unitTestService1")) {
-        assertEquals(1, mapProps.size());
-        contains1 = true;
-      } else if (serviceName.equals("unitTestService2")) {
-        assertEquals("prop1Value", mapProps.get("ServiceInfo/property1"));
-        assertEquals(2, mapProps.size());
-        contains2 = true;
-      } else if (serviceName.equals("unitTestService3")) {
-        assertEquals("prop2Value", mapProps.get("ServiceInfo/Category/property2"));
-        assertEquals(2, mapProps.size());
-        contains3 = true;
-      } else {
-        fail("Unexpected service name");
+
+      for (Map.Entry<String, Object> entry : mapProps.entrySet()) {
+        Set<Map<String, Object>> set = (Set<Map<String, Object>>) entry.getValue();
+
+        for (Map<String, Object> map : set) {
+
+          String serviceName = (String) map.get("ServiceInfo/service_name");
+          if (serviceName.equals("unitTestService1")) {
+            assertEquals(1, map.size());
+            contains1 = true;
+          } else if (serviceName.equals("unitTestService2")) {
+            assertEquals("prop1Value", map.get("ServiceInfo/property1"));
+            assertEquals(2, map.size());
+            contains2 = true;
+          } else if (serviceName.equals("unitTestService3")) {
+            assertEquals("prop2Value", map.get("ServiceInfo/Category/property2"));
+            assertEquals(2, map.size());
+            contains3 = true;
+          } else {
+            fail("Unexpected service name");
+          }
+        }
       }
     }
     assertTrue(contains1);
@@ -427,7 +449,7 @@ public class JsonRequestBodyParserTest {
     body = parser.parse(b);
 
     Set<NamedPropertySet> setProps2 = body.getNamedPropertySets();
-    assertEquals(3, setProps2.size());
+    assertEquals(1, setProps2.size());
     assertEquals(setProperties, setProps2);
   }
 

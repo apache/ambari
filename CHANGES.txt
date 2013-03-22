@@ -145,6 +145,9 @@ Trunk (unreleased changes):
 
  IMPROVEMENTS
 
+ AMBARI-1686. Implement Test IvoryService to functional test mirroring API.
+ (tbeerbower)
+
  AMBARI-1672. Security Wizard - integrate with cluster-level config API. (jaimin)
 
  AMBARI-1669. Security Wizard UI tweaks. (jaimin)

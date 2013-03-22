@@ -29,36 +29,38 @@ import java.util.Collections;
 public class ClusterTest {
   @Test
   public void testGetName() throws Exception {
-    Cluster cluster = new Cluster("Cluster1", "Colo", Collections.singleton("Interface1"),
-        Collections.singleton("Location1"), Collections.singletonMap("P1", "V1"));
+    Cluster cluster = new Cluster("Cluster1", "Colo", Collections.singleton(new Cluster.Interface("type", "endpoint", "version")),
+        Collections.singleton(new Cluster.Location("name", "path")), Collections.singletonMap("P1", "V1"));
     Assert.assertEquals("Cluster1", cluster.getName());
   }
 
   @Test
   public void testGetColo() throws Exception {
-    Cluster cluster = new Cluster("Cluster1", "Colo", Collections.singleton("Interface1"),
-        Collections.singleton("Location1"), Collections.singletonMap("P1", "V1"));
+    Cluster cluster = new Cluster("Cluster1", "Colo", Collections.singleton(new Cluster.Interface("type", "endpoint", "version")),
+        Collections.singleton(new Cluster.Location("name", "path")), Collections.singletonMap("P1", "V1"));
     Assert.assertEquals("Colo", cluster.getColo());
   }
 
   @Test
   public void testGetInterfaces() throws Exception {
-    Cluster cluster = new Cluster("Cluster1", "Colo", Collections.singleton("Interface1"),
-        Collections.singleton("Location1"), Collections.singletonMap("P1", "V1"));
-    Assert.assertEquals(Collections.singleton("Interface1"), cluster.getInterfaces());
+    Cluster.Interface interface1 = new Cluster.Interface("type", "endpoint", "version");
+    Cluster cluster = new Cluster("Cluster1", "Colo", Collections.singleton(interface1),
+        Collections.singleton(new Cluster.Location("name", "path")), Collections.singletonMap("P1", "V1"));
+    Assert.assertEquals(Collections.singleton(interface1), cluster.getInterfaces());
   }
 
   @Test
   public void testGetLocations() throws Exception {
-    Cluster cluster = new Cluster("Cluster1", "Colo", Collections.singleton("Interface1"),
-        Collections.singleton("Location1"), Collections.singletonMap("P1", "V1"));
-    Assert.assertEquals(Collections.singleton("Location1"), cluster.getLocations());
+    Cluster.Location location = new Cluster.Location("name", "path");
+    Cluster cluster = new Cluster("Cluster1", "Colo", Collections.singleton(new Cluster.Interface("type", "endpoint", "version")),
+        Collections.singleton(location), Collections.singletonMap("P1", "V1"));
+    Assert.assertEquals(Collections.singleton(location), cluster.getLocations());
   }
 
   @Test
   public void testGetProperties() throws Exception {
-    Cluster cluster = new Cluster("Cluster1", "Colo", Collections.singleton("Interface1"),
-        Collections.singleton("Location1"), Collections.singletonMap("P1", "V1"));
+    Cluster cluster = new Cluster("Cluster1", "Colo", Collections.singleton(new Cluster.Interface("type", "endpoint", "version")),
+        Collections.singleton(new Cluster.Location("name", "path")), Collections.singletonMap("P1", "V1"));
     Assert.assertEquals(Collections.singletonMap("P1", "V1"), cluster.getProperties());
   }
 }
