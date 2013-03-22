@@ -86,7 +86,8 @@ public class HostTest {
   public void testHostInfoImport() throws AmbariException{
     HostInfo info = new HostInfo();
     info.setMemorySize(100);
-    info.setPhysicalProcessorCount(10);
+    info.setProcessorCount(10);
+    info.setPhysicalProcessorCount(2);
     List<DiskInfo> mounts = new ArrayList<DiskInfo>();
     mounts.add(new DiskInfo("/dev/sda", "/mnt/disk1",
         "5000000", "4000000", "10%", "size", "fstype"));
@@ -106,7 +107,8 @@ public class HostTest {
     Assert.assertEquals(info.getHostName(), host.getHostName());
     Assert.assertEquals(info.getFreeMemory(), host.getAvailableMemBytes());
     Assert.assertEquals(info.getMemoryTotal(), host.getTotalMemBytes());
-    Assert.assertEquals(info.getPhysicalProcessorCount(), host.getCpuCount());
+    Assert.assertEquals(info.getProcessorCount(), host.getCpuCount());
+    Assert.assertEquals(info.getPhysicalProcessorCount(), host.getPhCpuCount());
     Assert.assertEquals(info.getMounts().size(), host.getDisksInfo().size());
     Assert.assertEquals(info.getArchitecture(), host.getOsArch());
     Assert.assertEquals(info.getOS(), host.getOsType());

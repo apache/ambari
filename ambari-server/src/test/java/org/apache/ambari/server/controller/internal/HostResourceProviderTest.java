@@ -96,15 +96,15 @@ public class HostResourceProviderTest {
 
     Set<HostResponse> allResponse = new HashSet<HostResponse>();
     allResponse.add(new HostResponse("Host100", "Cluster100",
-        "", "", 2, "", "", "", 100000L, 200000L, null, 10L,
+        "", "", 2, 1, "", "", "", 100000L, 200000L, null, 10L,
         0L, "rack info", null, null,
         new HostHealthStatus(HostHealthStatus.HealthStatus.HEALTHY, "HEALTHY"), "HEALTHY"));
     allResponse.add(new HostResponse("Host101", "Cluster100",
-        "", "", 2, "", "", "", 100000L, 200000L, null, 10L,
+        "", "", 2, 1, "", "", "", 100000L, 200000L, null, 10L,
         0L, "rack info", null, null,
         new HostHealthStatus(HostHealthStatus.HealthStatus.HEALTHY, "HEALTHY"), "HEALTHY"));
     allResponse.add(new HostResponse("Host102", "Cluster100",
-        "", "", 2, "", "", "", 100000L, 200000L, null, 10L,
+        "", "", 2, 1, "", "", "", 100000L, 200000L, null, 10L,
         0L, "rack info", null, null,
         new HostHealthStatus(HostHealthStatus.HealthStatus.HEALTHY, "HEALTHY"), "HEALTHY"));
 
@@ -156,7 +156,7 @@ public class HostResourceProviderTest {
     RequestStatusResponse response = createNiceMock(RequestStatusResponse.class);
 
     HostResponse hr = new HostResponse("Host100", "Cluster100",
-        "", "", 2, "", "", "", 100000L, 200000L, null, 10L,
+        "", "", 2, 1, "", "", "", 100000L, 200000L, null, 10L,
         0L, "rack info", null, null,
         new HostHealthStatus(HostHealthStatus.HealthStatus.HEALTHY, "HEALTHY"), "HEALTHY");
     
@@ -211,7 +211,7 @@ public class HostResourceProviderTest {
 
     Set<HostResponse> hostResponseSet = new HashSet<HostResponse>();
     hostResponseSet.add(new HostResponse("Host100", "Cluster100",
-        "", "", 2, "", "", "", 100000L, 200000L, null, 10L,
+        "", "", 2, 1, "", "", "", 100000L, 200000L, null, 10L,
         0L, "rack info", null, null,
         new HostHealthStatus(HostHealthStatus.HealthStatus.HEALTHY, "HEALTHY"), "HEALTHY"));
 

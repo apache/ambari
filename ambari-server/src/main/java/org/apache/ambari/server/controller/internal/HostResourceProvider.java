@@ -59,6 +59,8 @@ class HostResourceProvider extends AbstractControllerResourceProvider {
       PropertyHelper.getPropertyId("Hosts", "total_mem");
   protected static final String HOST_CPU_COUNT_PROPERTY_ID =
       PropertyHelper.getPropertyId("Hosts", "cpu_count");
+  protected static final String HOST_PHYSICAL_CPU_COUNT_PROPERTY_ID =
+      PropertyHelper.getPropertyId("Hosts", "ph_cpu_count");  
   protected static final String HOST_OS_ARCH_PROPERTY_ID =
       PropertyHelper.getPropertyId("Hosts", "os_arch");
   protected static final String HOST_OS_TYPE_PROPERTY_ID =
@@ -172,6 +174,8 @@ class HostResourceProvider extends AbstractControllerResourceProvider {
           response.getTotalMemBytes(), requestedIds);
       setResourceProperty(resource, HOST_CPU_COUNT_PROPERTY_ID,
           (long) response.getCpuCount(), requestedIds);
+      setResourceProperty(resource, HOST_PHYSICAL_CPU_COUNT_PROPERTY_ID,
+          (long) response.getPhCpuCount(), requestedIds);      
       setResourceProperty(resource, HOST_OS_ARCH_PROPERTY_ID,
           response.getOsArch(), requestedIds);
       setResourceProperty(resource, HOST_OS_TYPE_PROPERTY_ID,

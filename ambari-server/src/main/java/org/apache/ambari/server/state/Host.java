@@ -82,6 +82,16 @@ public interface Host {
   public void setCpuCount(int cpuCount);
 
   /**
+   * @return the physical cpu cores
+   */  
+  public int getPhCpuCount();
+
+  /**
+   * @param phCpuCount the physical cpu cores to set
+   */  
+  public void setPhCpuCount(int phCpuCount);
+  
+  /**
    * Get the Amount of physical memory for the Host.
    * @return the totalMemBytes
    */

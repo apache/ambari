@@ -49,7 +49,13 @@ public class HostResponse {
    * Count of cores on Host
    */
   private int cpuCount;
-
+  
+  /**
+   * Count of physical cores on Host
+   */
+  private int phCpuCount;
+  
+  
   /**
    * Os Architecture
    */
@@ -128,7 +134,7 @@ public class HostResponse {
   private Map<String, DesiredConfig> desiredConfigs;
 
   public HostResponse(String hostname, String clusterName,
-                      String ipv4, String ipv6, int cpuCount, String osArch, String osType,
+                      String ipv4, String ipv6, int cpuCount, int phCpuCount, String osArch, String osType,
                       String osInfo, long availableMemBytes, long totalMemBytes,
                       List<DiskInfo> disksInfo, long lastHeartbeatTime,
                       long lastRegistrationTime, String rackInfo,
@@ -140,6 +146,7 @@ public class HostResponse {
     this.ipv4 = ipv4;
     this.ipv6 = ipv6;
     this.cpuCount = cpuCount;
+    this.phCpuCount = phCpuCount;
     this.osArch = osArch;
     this.osType = osType;
     this.osInfo = osInfo;
@@ -158,7 +165,7 @@ public class HostResponse {
   //todo: why are we passing in empty strings for host/cluster name instead of null?
   public HostResponse(String hostname) {
     this(hostname, "", "", "",
-        0, "", "",
+        0, 0, "", "",
         "", 0, 0, new ArrayList<DiskInfo>(),
         0, 0, "",
         new HashMap<String, String>(),
@@ -235,6 +242,22 @@ public class HostResponse {
     this.cpuCount = cpuCount;
   }
 
+  /**
+  * @return the phCpuCount
+  */
+  public int getPhCpuCount() {
+    return phCpuCount;
+  }
+
+  /**
+  * @param phCpuCount the physical cpu count to set
+  */
+  public void setPhCpuCount(int phCpuCount) {
+    this.phCpuCount = phCpuCount;
+  }
+
+  
+  
   /**
    * @return the osArch
    */

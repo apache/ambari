@@ -95,6 +95,20 @@ public class HostEntity {
     this.cpuCount = cpuCount;
   }
 
+  private Integer phCpuCount = 0;
+
+  @javax.persistence.Column(name = "ph_cpu_count", nullable = false, insertable = true, updatable = true, length = 10)
+  @Basic
+  public Integer getPhCpuCount() {
+    return phCpuCount;
+  }
+
+  public void setPhCpuCount(Integer phCpuCount) {
+    this.phCpuCount = phCpuCount;
+  }
+  
+  
+  
   private String cpuInfo = "";
 
   @javax.persistence.Column(name = "cpu_info", nullable = false, insertable = true, updatable = true)

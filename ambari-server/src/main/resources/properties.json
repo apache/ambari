@@ -26,6 +26,7 @@
         "Hosts/attributes",
         "Hosts/total_mem",
         "Hosts/cpu_count",
+        "Hosts/ph_cpu_count",
         "Hosts/os_arch",
         "Hosts/os_type",
         "Hosts/rack_info",

@@ -367,7 +367,8 @@ public class HostImpl implements Host {
         setIPv6(hostInfo.getIPAddress());
       }
 
-      setCpuCount(hostInfo.getPhysicalProcessorCount());
+      setCpuCount(hostInfo.getProcessorCount());
+      setPhCpuCount(hostInfo.getPhysicalProcessorCount());
       setTotalMemBytes(hostInfo.getMemoryTotal());
       setAvailableMemBytes(hostInfo.getFreeMemory());
 
@@ -641,6 +642,28 @@ public class HostImpl implements Host {
     }
   }
 
+  @Override
+  public int getPhCpuCount() {
+    try {
+      readLock.lock();
+      return hostEntity.getPhCpuCount();
+    } finally {
+      readLock.unlock();
+    }
+  }
+
+  @Override
+  public void setPhCpuCount(int phCpuCount) {
+    try {
+      writeLock.lock();
+      hostEntity.setPhCpuCount(phCpuCount);
+      saveIfPersisted();
+    } finally {
+      writeLock.unlock();
+    }
+  }
+  
+  
   @Override
   public long getTotalMemBytes() {
     try {
@@ -934,6 +957,7 @@ public class HostImpl implements Host {
 
       r.setAgentVersion(getAgentVersion());
       r.setAvailableMemBytes(getAvailableMemBytes());
+      r.setPhCpuCount(getPhCpuCount());
       r.setCpuCount(getCpuCount());
       r.setDisksInfo(getDisksInfo());
       r.setHealthStatus(getHealthStatus());
