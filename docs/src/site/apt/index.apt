@@ -64,7 +64,7 @@ Introduction
 
 Getting Started with Ambari
 
-  Follow the {{{./1.2.1/installing-hadoop-using-ambari/content/index.html} installation guide for Ambari 1.2.1}}.
+  Follow the {{{./1.2.1/installing-hadoop-using-ambari/content/index.html} installation guide for Ambari 1.2.1}} or {{{./1.2.2/installing-hadoop-using-ambari/content/index.html} installation guide for Ambari 1.2.2 RC}}.
 
   Note: Ambari currently supports 64-bit RHEL/CentOS 5 + 6 and SLES 11.
 

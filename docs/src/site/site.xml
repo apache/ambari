@@ -108,6 +108,7 @@
     </menu>
 
     <menu name="Documentation">
+        <item name="Install Guide for 1.2.2 RC" href="1.2.2/installing-hadoop-using-ambari/content/index.html"/>
         <item name="Install Guide for 1.2.1" href="1.2.1/installing-hadoop-using-ambari/content/index.html"/>
         <item name="Install Guide for 1.2.0" href="1.2.0/installing-hadoop-using-ambari/content/index.html"/>
         <item name="Install Guide for 0.9" href="install-0.9.html"/>
