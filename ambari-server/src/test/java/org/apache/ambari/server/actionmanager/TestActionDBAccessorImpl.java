@@ -209,6 +209,21 @@ public class TestActionDBAccessorImpl {
 
   }
 
+  @Test
+  public void testGetRequestsByStatus() throws AmbariException {
+    List<Long> requestIds = new ArrayList<Long>();
+    requestIds.add(requestId + 1);
+    requestIds.add(requestId);
+    populateActionDB(db, hostName, requestId, stageId);
+    clusters.addHost("host2");
+    clusters.getHost("host2").persist();
+    populateActionDB(db, hostName, requestId + 1, stageId);
+    List<Long> requestIdsResult = db.getRequestsByStatus(null);
+    
+    assertNotNull("List of request IDs is null", requestIdsResult);
+    assertEquals("Request IDs not matches", requestIds, requestIdsResult);
+  }
+
   private void populateActionDB(ActionDBAccessor db, String hostname,
       long requestId, long stageId) {
     Stage s = new Stage(requestId, "/a/b", "cluster1", "action db accessor test");

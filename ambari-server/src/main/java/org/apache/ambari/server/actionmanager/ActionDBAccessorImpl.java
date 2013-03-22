@@ -323,21 +323,22 @@ public class ActionDBAccessorImpl implements ActionDBAccessor {
   @Override
   public List<Long> getRequestsByStatus(RequestStatus status) {
     boolean match = true;
+    boolean checkAllTasks = false;
     Set<HostRoleStatus> statuses = new HashSet<HostRoleStatus>();
     if (status == RequestStatus.IN_PROGRESS) {
       statuses.addAll( Arrays.asList(HostRoleStatus.PENDING,
           HostRoleStatus.IN_PROGRESS, HostRoleStatus.QUEUED));
     } else if (status == RequestStatus.COMPLETED) {
       match = false;
+      checkAllTasks = true;
       statuses.addAll( Arrays.asList(HostRoleStatus.PENDING,
           HostRoleStatus.IN_PROGRESS, HostRoleStatus.QUEUED,
           HostRoleStatus.ABORTED, HostRoleStatus.FAILED,
-          HostRoleStatus.FAILED, HostRoleStatus.TIMEDOUT));
+          HostRoleStatus.TIMEDOUT));
     } else if (status == RequestStatus.FAILED) {
       statuses.addAll( Arrays.asList(HostRoleStatus.ABORTED,
-          HostRoleStatus.FAILED, HostRoleStatus.FAILED,
-          HostRoleStatus.TIMEDOUT));
+          HostRoleStatus.FAILED, HostRoleStatus.TIMEDOUT));
     }
-    return hostRoleCommandDAO.getRequestsByTaskStatus(statuses, match);
+    return hostRoleCommandDAO.getRequestsByTaskStatus(statuses, match, checkAllTasks);
   }
 }

@@ -148,18 +148,45 @@ public class HostRoleCommandDAO {
 
   @Transactional
   public List<Long> getRequestsByTaskStatus(
-      Collection<HostRoleStatus> statuses, boolean match) {
-    String queryStr = "SELECT DISTINCT command.requestId "
-        + " FROM HostRoleCommandEntity command WHERE "
-        + " command.status";
-    if (!match) {
-      queryStr += " NOT";
+      Collection<HostRoleStatus> statuses, boolean match, boolean checkAllTasks) {
+    List<Long> results = null;
+    StringBuilder queryStr = new StringBuilder();
+    Integer resultsLimit = null;
+    queryStr.append("SELECT DISTINCT command.requestId ").append(
+        "FROM HostRoleCommandEntity command ");
+    if (statuses != null && !statuses.isEmpty()) {
+      queryStr.append("WHERE ");
+
+      if (checkAllTasks) {
+        queryStr.append("command.requestId ");
+        if (!match) {
+          queryStr.append("NOT ");
+        }
+        queryStr.append("IN (").append("SELECT c.requestId ")
+            .append("FROM HostRoleCommandEntity c ")
+            .append("WHERE c.requestId = command.requestId ")
+            .append("AND c.status IN ?1) ");
+      } else {
+        queryStr.append("command.status ");
+        if (!match) {
+          queryStr.append("NOT ");
+        }
+        queryStr.append("IN ?1 ");
+      }
+      resultsLimit = 20;
     }
-    queryStr += " IN ?1"
-        + " ORDER BY command.requestId DESC";
-    TypedQuery<Long> query = entityManagerProvider.get().createQuery(queryStr,
+    queryStr.append("ORDER BY command.requestId DESC");
+    TypedQuery<Long> query = entityManagerProvider.get().createQuery(queryStr.toString(),
         Long.class);
-    return daoUtils.selectList(query, statuses);
+    if (resultsLimit != null) {
+      query.setMaxResults(resultsLimit);
+    }
+    if (statuses != null && !statuses.isEmpty()) {
+      results = daoUtils.selectList(query, statuses);
+    } else {
+      results = daoUtils.selectList(query);
+    }
+    return results;
   }
 
 }

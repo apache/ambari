@@ -3497,7 +3497,7 @@ public class AmbariManagementControllerImpl implements
       RequestStatusRequest request) throws AmbariException{
     Set<RequestStatusResponse> response = new HashSet<RequestStatusResponse>();
     if (request.getRequestId() == null) {
-      RequestStatus requestStatus = RequestStatus.IN_PROGRESS;
+      RequestStatus requestStatus = null;
       if (request.getRequestStatus() != null) {
         requestStatus = RequestStatus.valueOf(request.getRequestStatus());
       }

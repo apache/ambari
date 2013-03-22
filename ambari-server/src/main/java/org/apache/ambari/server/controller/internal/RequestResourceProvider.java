@@ -100,6 +100,9 @@ class RequestResourceProvider extends AbstractControllerResourceProvider {
       setResourceProperty(resource, REQUEST_CLUSTER_NAME_PROPERTY_ID, clusterName, requestedIds);
       setResourceProperty(resource, REQUEST_ID_PROPERTY_ID, response.getRequestId(), requestedIds);
       setResourceProperty(resource, REQUEST_CONTEXT_ID, response.getRequestContext(), requestedIds);
+      if (requestStatusRequest.getRequestStatus() != null) {
+        setResourceProperty(resource, REQUEST_STATUS_PROPERTY_ID, requestStatusRequest.getRequestStatus(), requestedIds);
+      }
       resources.add(resource);
     }
     return resources;
