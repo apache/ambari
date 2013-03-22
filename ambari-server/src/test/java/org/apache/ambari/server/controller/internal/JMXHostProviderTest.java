@@ -154,7 +154,7 @@ public class JMXHostProviderTest {
     configVersions.put("hdfs-site", "version1");
     sReqs.add(new ServiceRequest(clusterName, serviceName, configVersions,
       null));
-    controller.updateServices(sReqs, mapRequestProps);
+    controller.updateServices(sReqs, mapRequestProps, true);
   }
 
 

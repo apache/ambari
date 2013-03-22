@@ -509,6 +509,9 @@ Trunk (unreleased changes):
 
  BUG FIXES
 
+ AMBARI-1685. Remove running of smoke tests by default when services or 
+ master components are started. (Sumit Mohanty via swagle)
+
  AMBARI-1688. API support to return 10 most recent requests. (swagle)
 
  AMBARI-1439. rrd file location should be read from global config. 

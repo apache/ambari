@@ -250,7 +250,7 @@ public class HostComponentResourceProviderTest {
     expect(managementController.updateHostComponents(
         AbstractResourceProviderTest.Matcher.getHostComponentRequestSet(
             "Cluster102", null, "Component100", "Host100", null, "STARTED"),
-            eq(mapRequestProps))).andReturn(response).once();
+            eq(mapRequestProps), eq(false))).andReturn(response).once();
 
     // replay
     replay(managementController, response);

@@ -23,13 +23,7 @@ import com.google.gson.reflect.TypeToken;
 import com.google.inject.AbstractModule;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
-import org.apache.ambari.server.AmbariException;
-import org.apache.ambari.server.ClusterNotFoundException;
-import org.apache.ambari.server.HostNotFoundException;
-import org.apache.ambari.server.ParentObjectNotFoundException;
-import org.apache.ambari.server.ServiceComponentHostNotFoundException;
-import org.apache.ambari.server.ServiceComponentNotFoundException;
-import org.apache.ambari.server.ServiceNotFoundException;
+import org.apache.ambari.server.*;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
@@ -1551,7 +1545,7 @@ public class AmbariManagementControllerImplTest {
 //        gson.<Map<String, String>>fromJson("{\"nagios-global\": \"version2\" }", confType)
 //        , null));
 
-    amc.updateServices(serviceRequests, mapRequestProps);
+    amc.updateServices(serviceRequests, mapRequestProps, true);
 
 
     Set<ServiceComponentRequest> serviceComponentRequests = new HashSet<ServiceComponentRequest>();
@@ -1581,7 +1575,7 @@ public class AmbariManagementControllerImplTest {
 
     serviceRequests.clear();
     serviceRequests.add(new ServiceRequest("c1", "HDFS", null, "INSTALLED"));
-    amc.updateServices(serviceRequests, mapRequestProps);
+    amc.updateServices(serviceRequests, mapRequestProps, true);
 
     Cluster cluster = clusters.getCluster("c1");
     Map<String, ServiceComponentHost> namenodes = cluster.getService("HDFS").getServiceComponent("NAMENODE").getServiceComponentHosts();
@@ -1611,21 +1605,21 @@ public class AmbariManagementControllerImplTest {
     componentHostRequests.clear();
     componentHostRequests.add(new ServiceComponentHostRequest("c1", null, "NAMENODE", "host1", null, "MAINTENANCE"));
 
-    amc.updateHostComponents(componentHostRequests, mapRequestProps);
+    amc.updateHostComponents(componentHostRequests, mapRequestProps, true);
 
     assertEquals(State.MAINTENANCE, componentHost.getState());
 
     componentHostRequests.clear();
     componentHostRequests.add(new ServiceComponentHostRequest("c1", null, "NAMENODE", "host1", null, "INSTALLED"));
 
-    amc.updateHostComponents(componentHostRequests, mapRequestProps);
+    amc.updateHostComponents(componentHostRequests, mapRequestProps, true);
 
     assertEquals(State.INSTALLED, componentHost.getState());
 
     componentHostRequests.clear();
     componentHostRequests.add(new ServiceComponentHostRequest("c1", null, "NAMENODE", "host1", null, "MAINTENANCE"));
 
-    amc.updateHostComponents(componentHostRequests, mapRequestProps);
+    amc.updateHostComponents(componentHostRequests, mapRequestProps, true);
 
     assertEquals(State.MAINTENANCE, componentHost.getState());
 
@@ -1637,7 +1631,7 @@ public class AmbariManagementControllerImplTest {
     componentHostRequests.clear();
     componentHostRequests.add(new ServiceComponentHostRequest("c1", null, "NAMENODE", "host2", null, "INSTALLED"));
 
-    amc.updateHostComponents(componentHostRequests, mapRequestProps);
+    amc.updateHostComponents(componentHostRequests, mapRequestProps, true);
 
     namenodes = cluster.getService("HDFS").getServiceComponent("NAMENODE").getServiceComponentHosts();
     assertEquals(2, namenodes.size());
@@ -1649,7 +1643,7 @@ public class AmbariManagementControllerImplTest {
     serviceRequests.clear();
     serviceRequests.add(new ServiceRequest("c1", "HDFS", null, "STARTED"));
 
-    RequestStatusResponse response = amc.updateServices(serviceRequests, mapRequestProps);
+    RequestStatusResponse response = amc.updateServices(serviceRequests, mapRequestProps, true);
     for (ShortTaskStatus shortTaskStatus : response.getTasks()) {
       assertFalse("host1".equals(shortTaskStatus.getHostName()) && "NAMENODE".equals(shortTaskStatus.getRole()));
     }
@@ -1663,6 +1657,48 @@ public class AmbariManagementControllerImplTest {
 
     assertEquals(1, namenodes.size());
 
+
+    //Stopping HDFS service
+    serviceRequests.clear();
+    serviceRequests.add(new ServiceRequest("c1", "HDFS", null, "INSTALLED"));
+    response = amc.updateServices(serviceRequests, mapRequestProps, false);
+
+    //Starting HDFS service. No run_smoke_test flag is set, smoke
+    // test(HDFS_SERVICE_CHECK) won't run
+    boolean runSmokeTest = false;
+    serviceRequests.clear();
+    serviceRequests.add(new ServiceRequest("c1", "HDFS", null, "STARTED"));
+    response = amc.updateServices(serviceRequests, mapRequestProps, runSmokeTest);
+
+    List<ShortTaskStatus> taskStatuses = response.getTasks();
+    boolean smokeTestRequired = false;
+    for (ShortTaskStatus shortTaskStatus : taskStatuses) {
+      if (shortTaskStatus.getRole().equals(Role.HDFS_SERVICE_CHECK.toString())) {
+         smokeTestRequired= true;
+      }
+    }
+    assertFalse(smokeTestRequired);
+
+    //Stopping HDFS service
+    serviceRequests.clear();
+    serviceRequests.add(new ServiceRequest("c1", "HDFS", null, "INSTALLED"));
+    response = amc.updateServices(serviceRequests, mapRequestProps, false);
+
+    //Starting HDFS service again.
+    //run_smoke_test flag is set, smoke test will be run
+    runSmokeTest = true;
+    serviceRequests.clear();
+    serviceRequests.add(new ServiceRequest("c1", "HDFS", null, "STARTED"));
+    response = amc.updateServices(serviceRequests, mapRequestProps, runSmokeTest);
+
+    taskStatuses = response.getTasks();
+    smokeTestRequired = false;
+    for (ShortTaskStatus shortTaskStatus : taskStatuses) {
+      if (shortTaskStatus.getRole().equals(Role.HDFS_SERVICE_CHECK.toString())) {
+        smokeTestRequired= true;
+      }
+    }
+    assertTrue(smokeTestRequired);
   }
 
   //todo other resources

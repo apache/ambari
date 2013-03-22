@@ -20,7 +20,10 @@ package org.apache.ambari.server.controller.internal;
 
 import junit.framework.Assert;
 import org.apache.ambari.server.controller.AmbariManagementController;
+import org.apache.ambari.server.controller.spi.Predicate;
 import org.apache.ambari.server.controller.spi.Resource;
+import org.apache.ambari.server.controller.utilities.PredicateBuilder;
+import org.codehaus.jackson.map.ser.PropertyBuilder;
 import org.junit.Test;
 
 import java.util.HashMap;
@@ -28,6 +31,7 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
+import static org.easymock.EasyMock.and;
 import static org.easymock.EasyMock.createMock;
 
 /**
@@ -58,4 +62,21 @@ public class AbstractControllerResourceProviderTest {
 
     Assert.assertTrue(provider instanceof ServiceResourceProvider);
   }
-}
+
+  @Test
+  public void testGetQueryParameterValue() {
+
+    String queryParameterId1 = "qp/variable1";
+    String queryParameterValue1 = "value1";
+    String queryParameterId2 = "qp/variable2";
+    String queryParameterValue2 = "value2";
+
+    Predicate  predicate = new PredicateBuilder().property(queryParameterId1).equals(queryParameterValue1).
+        and().property(queryParameterId2).equals(queryParameterValue2).toPredicate();
+
+    Assert.assertEquals(queryParameterValue1, AbstractControllerResourceProvider.getQueryParameterValue(queryParameterId1, predicate));
+    Assert.assertFalse(queryParameterValue2.equals(AbstractControllerResourceProvider.getQueryParameterValue(queryParameterId1, predicate)));
+    Assert.assertNull(AbstractControllerResourceProvider.getQueryParameterValue("queryParameterIdNotFound", predicate));
+  }
+
+  }

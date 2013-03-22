@@ -1327,7 +1327,7 @@ public class AmbariManagementControllerTest {
     requests.add(r);
 
     RequestStatusResponse trackAction =
-        controller.updateServices(requests, mapRequestProps);
+        controller.updateServices(requests, mapRequestProps, true);
     Assert.assertEquals(State.INSTALLED,
         clusters.getCluster(clusterName).getService(serviceName)
         .getDesiredState());
@@ -1450,7 +1450,7 @@ public class AmbariManagementControllerTest {
         State.STARTED.toString());
     requests.clear();
     requests.add(r);
-    trackAction = controller.updateServices(requests, mapRequestProps);
+    trackAction = controller.updateServices(requests, mapRequestProps, true);
 
     Assert.assertEquals(State.STARTED,
         clusters.getCluster(clusterName).getService(serviceName)
@@ -1526,7 +1526,7 @@ public class AmbariManagementControllerTest {
         State.INSTALLED.toString());
     requests.clear();
     requests.add(r);
-    trackAction = controller.updateServices(requests, mapRequestProps);
+    trackAction = controller.updateServices(requests, mapRequestProps, true);
 
     Assert.assertEquals(State.INSTALLED,
         clusters.getCluster(clusterName).getService(serviceName)
@@ -2200,7 +2200,7 @@ public class AmbariManagementControllerTest {
           null, State.INSTALLING.toString());
       reqs.clear();
       reqs.add(r);
-      controller.updateServices(reqs, mapRequestProps);
+      controller.updateServices(reqs, mapRequestProps, true);
       fail("Expected fail for invalid state transition");
     } catch (Exception e) {
       // Expected
@@ -2210,7 +2210,8 @@ public class AmbariManagementControllerTest {
         null, State.INSTALLED.toString());
     reqs.clear();
     reqs.add(r);
-    RequestStatusResponse trackAction = controller.updateServices(reqs, mapRequestProps);
+    RequestStatusResponse trackAction = controller.updateServices(reqs,
+        mapRequestProps, true);
     Assert.assertNull(trackAction);
   }
 
@@ -2256,7 +2257,7 @@ public class AmbariManagementControllerTest {
           State.INSTALLED.toString());
       reqs.add(req1);
       reqs.add(req2);
-      controller.updateServices(reqs, mapRequestProps);
+      controller.updateServices(reqs, mapRequestProps, true);
       fail("Expected failure for multi cluster update");
     } catch (Exception e) {
       // Expected
@@ -2270,7 +2271,7 @@ public class AmbariManagementControllerTest {
           State.INSTALLED.toString());
       reqs.add(req1);
       reqs.add(req2);
-      controller.updateServices(reqs, mapRequestProps);
+      controller.updateServices(reqs, mapRequestProps, true);
       fail("Expected failure for dups services");
     } catch (Exception e) {
       // Expected
@@ -2287,7 +2288,7 @@ public class AmbariManagementControllerTest {
           State.STARTED.toString());
       reqs.add(req1);
       reqs.add(req2);
-      controller.updateServices(reqs, mapRequestProps);
+      controller.updateServices(reqs, mapRequestProps, true);
       fail("Expected failure for different states");
     } catch (Exception e) {
       // Expected
@@ -2406,7 +2407,7 @@ public class AmbariManagementControllerTest {
       req1 = new ServiceRequest(clusterName, serviceName1, null,
           State.STARTED.toString());
       reqs.add(req1);
-      controller.updateServices(reqs, mapRequestProps);
+      controller.updateServices(reqs, mapRequestProps, true);
       fail("Expected failure for invalid state update");
     } catch (Exception e) {
       // Expected
@@ -2433,7 +2434,7 @@ public class AmbariManagementControllerTest {
       req1 = new ServiceRequest(clusterName, serviceName1, null,
           State.STARTED.toString());
       reqs.add(req1);
-      controller.updateServices(reqs, mapRequestProps);
+      controller.updateServices(reqs, mapRequestProps, true);
       fail("Expected failure for invalid state update");
     } catch (Exception e) {
       // Expected
@@ -2462,7 +2463,7 @@ public class AmbariManagementControllerTest {
         State.STARTED.toString());
     reqs.add(req1);
     reqs.add(req2);
-    RequestStatusResponse trackAction = controller.updateServices(reqs, mapRequestProps);
+    RequestStatusResponse trackAction = controller.updateServices(reqs, mapRequestProps, true);
 
     Assert.assertEquals(State.STARTED, s1.getDesiredState());
     Assert.assertEquals(State.STARTED, s2.getDesiredState());
@@ -2532,7 +2533,7 @@ public class AmbariManagementControllerTest {
         State.STARTED.toString());
     reqs.add(req1);
     reqs.add(req2);
-    trackAction = controller.updateServices(reqs, mapRequestProps);
+    trackAction = controller.updateServices(reqs, mapRequestProps, true);
     Assert.assertNull(trackAction);
 
   }
@@ -2622,7 +2623,7 @@ public class AmbariManagementControllerTest {
       req1 = new ServiceComponentRequest(clusterName, serviceName1,
           sc1.getName(), null, State.INIT.toString());
       reqs.add(req1);
-      controller.updateComponents(reqs, Collections.<String, String>emptyMap());
+      controller.updateComponents(reqs, Collections.<String, String>emptyMap(), true);
       fail("Expected failure for invalid state update");
     } catch (Exception e) {
       // Expected
@@ -2648,7 +2649,7 @@ public class AmbariManagementControllerTest {
       req1 = new ServiceComponentRequest(clusterName, serviceName1,
           sc1.getName(), null, State.STARTED.toString());
       reqs.add(req1);
-      controller.updateComponents(reqs, Collections.<String, String>emptyMap());
+      controller.updateComponents(reqs, Collections.<String, String>emptyMap(), true);
       fail("Expected failure for invalid state update");
     } catch (Exception e) {
       // Expected
@@ -2679,7 +2680,7 @@ public class AmbariManagementControllerTest {
     reqs.add(req1);
     reqs.add(req2);
     reqs.add(req3);
-    RequestStatusResponse trackAction = controller.updateComponents(reqs, Collections.<String, String>emptyMap());
+    RequestStatusResponse trackAction = controller.updateComponents(reqs, Collections.<String, String>emptyMap(), true);
 
     Assert.assertEquals(State.INSTALLED, s1.getDesiredState());
     Assert.assertEquals(State.INSTALLED, sc1.getDesiredState());
@@ -2723,7 +2724,7 @@ public class AmbariManagementControllerTest {
         sc2.getName(), null, State.INSTALLED.toString());
     reqs.add(req1);
     reqs.add(req2);
-    trackAction = controller.updateComponents(reqs, Collections.<String, String>emptyMap());
+    trackAction = controller.updateComponents(reqs, Collections.<String, String>emptyMap(), true);
     Assert.assertNull(trackAction);
   }
 
@@ -2814,7 +2815,7 @@ public class AmbariManagementControllerTest {
           componentName1, host1,
           null, State.STARTED.toString());
       reqs.add(req1);
-      controller.updateHostComponents(reqs, Collections.<String, String>emptyMap());
+      controller.updateHostComponents(reqs, Collections.<String, String>emptyMap(), true);
       fail("Expected failure for invalid transition");
     } catch (Exception e) {
       // Expected
@@ -2842,7 +2843,7 @@ public class AmbariManagementControllerTest {
       reqs.add(req3);
       reqs.add(req4);
       reqs.add(req5);
-      controller.updateHostComponents(reqs, Collections.<String, String>emptyMap());
+      controller.updateHostComponents(reqs, Collections.<String, String>emptyMap(), true);
       fail("Expected failure for invalid states");
     } catch (Exception e) {
       // Expected
@@ -2869,7 +2870,8 @@ public class AmbariManagementControllerTest {
     reqs.add(req3);
     reqs.add(req4);
     reqs.add(req5);
-    RequestStatusResponse trackAction = controller.updateHostComponents(reqs, Collections.<String, String>emptyMap());
+    RequestStatusResponse trackAction = controller.updateHostComponents(reqs,
+        Collections.<String, String>emptyMap(), true);
     Assert.assertNotNull(trackAction);
 
     long requestId = trackAction.getRequestId();
@@ -2901,7 +2903,8 @@ public class AmbariManagementControllerTest {
         null, State.INSTALLED.toString());
     reqs.add(req1);
     reqs.add(req2);
-    trackAction = controller.updateHostComponents(reqs, Collections.<String, String>emptyMap());
+    trackAction = controller.updateHostComponents(reqs, Collections.<String,
+        String>emptyMap(), true);
     Assert.assertNull(trackAction);
   }
 
@@ -2991,7 +2994,7 @@ public class AmbariManagementControllerTest {
 
     Map<String,String> mapRequestProps = new HashMap<String, String>();
     mapRequestProps.put("context", "testServiceComponentHostUpdateStackId");
-    RequestStatusResponse resp = controller.updateHostComponents(reqs, mapRequestProps);
+    RequestStatusResponse resp = controller.updateHostComponents(reqs, mapRequestProps, true);
     List<Stage> stages = actionDB.getAllStages(resp.getRequestId());
     Assert.assertEquals(1, stages.size());
     Assert.assertEquals(2, stages.get(0).getOrderedHostRoleCommands().size());
@@ -3036,7 +3039,7 @@ public class AmbariManagementControllerTest {
     req3.setDesiredStackId("HDP-0.2");
     reqs.add(req3);
 
-    resp = controller.updateHostComponents(reqs, Collections.<String, String>emptyMap());
+    resp = controller.updateHostComponents(reqs, Collections.<String, String>emptyMap(), true);
     stages = actionDB.getAllStages(resp.getRequestId());
     Assert.assertEquals(2, stages.size());
     Assert.assertEquals(2, stages.get(0).getOrderedHostRoleCommands().size());
@@ -3211,7 +3214,8 @@ public class AmbariManagementControllerTest {
     req1.setDesiredStackId("HDP-0.2");
     reqs.add(req1);
 
-    RequestStatusResponse resp = controller.updateHostComponents(reqs, Collections.<String,String>emptyMap());
+    RequestStatusResponse resp = controller.updateHostComponents(reqs,
+        Collections.<String,String>emptyMap(), true);
     Assert.assertNull(resp);
 
     c1.setCurrentStackVersion(new StackId("HDP-0.2"));
@@ -3223,14 +3227,14 @@ public class AmbariManagementControllerTest {
         null, State.INSTALLED.toString());
     req1.setDesiredStackId("HDP-0.2");
     reqs.add(req1);
-    resp = controller.updateHostComponents(reqs, Collections.<String,String>emptyMap());
+    resp = controller.updateHostComponents(reqs, Collections.<String,String>emptyMap(), true);
     Assert.assertNull(resp);
   }
 
   private void updateHostAndCompareExpectedFailure(Set<ServiceComponentHostRequest> reqs,
                                                    String expectedMessage) {
     try {
-      controller.updateHostComponents(reqs, Collections.<String,String>emptyMap());
+      controller.updateHostComponents(reqs, Collections.<String,String>emptyMap(), true);
       fail("Expected failure: " + expectedMessage);
     } catch (Exception e) {
       LOG.info("Actual exception message: " + e.getMessage());
@@ -3534,7 +3538,7 @@ public class AmbariManagementControllerTest {
     sReqs.clear();
     sReqs.add(new ServiceRequest(clusterName, serviceName, configVersions,
         "INSTALLED"));
-    RequestStatusResponse trackAction = controller.updateServices(sReqs, mapRequestProps);
+    RequestStatusResponse trackAction = controller.updateServices(sReqs, mapRequestProps, true);
     List<Stage> stages = actionDB.getAllStages(trackAction.getRequestId());
     for (ExecutionCommandWrapper cmd : stages.get(0)
         .getExecutionCommands(host1)) {
@@ -3626,7 +3630,7 @@ public class AmbariManagementControllerTest {
     Set<ServiceRequest> requests = new HashSet<ServiceRequest>();
     requests.add(r);
 
-    controller.updateServices(requests, mapRequestProps);
+    controller.updateServices(requests, mapRequestProps, true);
     Assert.assertEquals(State.INSTALLED,
             clusters.getCluster(clusterName).getService(serviceName)
                     .getDesiredState());
@@ -3645,7 +3649,7 @@ public class AmbariManagementControllerTest {
             State.STARTED.toString());
     requests.clear();
     requests.add(r);
-    controller.updateServices(requests, mapRequestProps);
+    controller.updateServices(requests, mapRequestProps, true);
 
     // manually change live state to started as no running action manager
     for (ServiceComponent sc :
@@ -3718,7 +3722,7 @@ public class AmbariManagementControllerTest {
     schReqs.clear();
     schReqs.add(new ServiceComponentHostRequest(clusterName, serviceName,
             componentName1, host1, configVersions, null));
-    Assert.assertNull(controller.updateHostComponents(schReqs, Collections.<String, String>emptyMap()));
+    Assert.assertNull(controller.updateHostComponents(schReqs, Collections.<String, String>emptyMap(), true));
 
     Assert.assertEquals(0, s.getDesiredConfigs().size());
     Assert.assertEquals(0, sc1.getDesiredConfigs().size());
@@ -3730,7 +3734,7 @@ public class AmbariManagementControllerTest {
     scReqs.clear();
     scReqs.add(new ServiceComponentRequest(clusterName, serviceName,
             componentName2, configVersions, null));
-    Assert.assertNull(controller.updateComponents(scReqs, Collections.<String, String>emptyMap()));
+    Assert.assertNull(controller.updateComponents(scReqs, Collections.<String, String>emptyMap(), true));
 
     Assert.assertEquals(0, s.getDesiredConfigs().size());
     Assert.assertEquals(0, sc1.getDesiredConfigs().size());
@@ -3745,7 +3749,7 @@ public class AmbariManagementControllerTest {
     sReqs.clear();
     sReqs.add(new ServiceRequest(clusterName, serviceName, configVersions,
             null));
-    Assert.assertNull(controller.updateServices(sReqs, mapRequestProps));
+    Assert.assertNull(controller.updateServices(sReqs, mapRequestProps, true));
 
     Assert.assertEquals(3, s.getDesiredConfigs().size());
     Assert.assertEquals(3, sc1.getDesiredConfigs().size());
@@ -3792,7 +3796,7 @@ public class AmbariManagementControllerTest {
     schReqs.clear();
     schReqs.add(new ServiceComponentHostRequest(clusterName, serviceName,
             componentName1, host1, configVersions, null));
-    Assert.assertNull(controller.updateHostComponents(schReqs, Collections.<String, String>emptyMap()));
+    Assert.assertNull(controller.updateHostComponents(schReqs, Collections.<String, String>emptyMap(), true));
 
     Assert.assertEquals(3, s.getDesiredConfigs().size());
     Assert.assertEquals(3, sc1.getDesiredConfigs().size());
@@ -3815,7 +3819,7 @@ public class AmbariManagementControllerTest {
     scReqs.clear();
     scReqs.add(new ServiceComponentRequest(clusterName, serviceName,
             componentName1, configVersions, null));
-    Assert.assertNull(controller.updateComponents(scReqs, Collections.<String, String>emptyMap()));
+    Assert.assertNull(controller.updateComponents(scReqs, Collections.<String, String>emptyMap(), true));
 
     Assert.assertEquals(3, s.getDesiredConfigs().size());
     Assert.assertEquals(4, sc1.getDesiredConfigs().size());
@@ -3953,7 +3957,7 @@ public class AmbariManagementControllerTest {
     schReqs.clear();
     schReqs.add(new ServiceComponentHostRequest(clusterName, serviceName,
         componentName1, host1, configVersions, null));
-    Assert.assertNull(controller.updateHostComponents(schReqs, Collections.<String, String>emptyMap()));
+    Assert.assertNull(controller.updateHostComponents(schReqs, Collections.<String, String>emptyMap(), true));
 
     Assert.assertEquals(0, s.getDesiredConfigs().size());
     Assert.assertEquals(0, sc1.getDesiredConfigs().size());
@@ -3965,7 +3969,7 @@ public class AmbariManagementControllerTest {
     scReqs.clear();
     scReqs.add(new ServiceComponentRequest(clusterName, serviceName,
         componentName2, configVersions, null));
-    Assert.assertNull(controller.updateComponents(scReqs, Collections.<String, String>emptyMap()));
+    Assert.assertNull(controller.updateComponents(scReqs, Collections.<String, String>emptyMap(), true));
 
     Assert.assertEquals(0, s.getDesiredConfigs().size());
     Assert.assertEquals(0, sc1.getDesiredConfigs().size());
@@ -3980,7 +3984,7 @@ public class AmbariManagementControllerTest {
     sReqs.clear();
     sReqs.add(new ServiceRequest(clusterName, serviceName, configVersions,
         null));
-    Assert.assertNull(controller.updateServices(sReqs, mapRequestProps));
+    Assert.assertNull(controller.updateServices(sReqs, mapRequestProps, true));
 
     Assert.assertEquals(3, s.getDesiredConfigs().size());
     Assert.assertEquals(3, sc1.getDesiredConfigs().size());
@@ -4027,7 +4031,7 @@ public class AmbariManagementControllerTest {
     schReqs.clear();
     schReqs.add(new ServiceComponentHostRequest(clusterName, serviceName,
         componentName1, host1, configVersions, null));
-    Assert.assertNull(controller.updateHostComponents(schReqs, Collections.<String, String>emptyMap()));
+    Assert.assertNull(controller.updateHostComponents(schReqs, Collections.<String, String>emptyMap(), true));
 
     Assert.assertEquals(3, s.getDesiredConfigs().size());
     Assert.assertEquals(3, sc1.getDesiredConfigs().size());
@@ -4050,7 +4054,7 @@ public class AmbariManagementControllerTest {
     scReqs.clear();
     scReqs.add(new ServiceComponentRequest(clusterName, serviceName,
         componentName1, configVersions, null));
-    Assert.assertNull(controller.updateComponents(scReqs, Collections.<String, String>emptyMap()));
+    Assert.assertNull(controller.updateComponents(scReqs, Collections.<String, String>emptyMap(), true));
 
     Assert.assertEquals(3, s.getDesiredConfigs().size());
     Assert.assertEquals(4, sc1.getDesiredConfigs().size());
@@ -4132,7 +4136,7 @@ public class AmbariManagementControllerTest {
     Set<ServiceRequest> requests = new HashSet<ServiceRequest>();
     requests.add(r);
 
-    controller.updateServices(requests, mapRequestProps);
+    controller.updateServices(requests, mapRequestProps, true);
     Assert.assertEquals(State.INSTALLED,
       clusters.getCluster(clusterName).getService(serviceName)
         .getDesiredState());
@@ -4181,7 +4185,7 @@ public class AmbariManagementControllerTest {
     schReqs.clear();
     schReqs.add(new ServiceComponentHostRequest(clusterName, serviceName,
       componentName1, host1, configVersions, null));
-    Assert.assertNull(controller.updateHostComponents(schReqs, Collections.<String, String>emptyMap()));
+    Assert.assertNull(controller.updateHostComponents(schReqs, Collections.<String, String>emptyMap(), true));
     Assert.assertEquals(2, sch1.getDesiredConfigs().size());
 
     // Reconfigure SCH level
@@ -4190,7 +4194,7 @@ public class AmbariManagementControllerTest {
     schReqs.clear();
     schReqs.add(new ServiceComponentHostRequest(clusterName, serviceName,
       componentName1, host1, configVersions, null));
-    Assert.assertNull(controller.updateHostComponents(schReqs, Collections.<String, String>emptyMap()));
+    Assert.assertNull(controller.updateHostComponents(schReqs, Collections.<String, String>emptyMap(), true));
 
     // Clear Entity Manager
     entityManager.clear();
@@ -4205,11 +4209,11 @@ public class AmbariManagementControllerTest {
     configVersions.put("hdfs-site", "version1");
     scReqs.add(new ServiceComponentRequest(clusterName, serviceName,
       componentName2, configVersions, null));
-    Assert.assertNull(controller.updateComponents(scReqs, Collections.<String, String>emptyMap()));
+    Assert.assertNull(controller.updateComponents(scReqs, Collections.<String, String>emptyMap(), true));
 
     scReqs.add(new ServiceComponentRequest(clusterName, serviceName,
       componentName1, configVersions, null));
-    Assert.assertNull(controller.updateComponents(scReqs, Collections.<String, String>emptyMap()));
+    Assert.assertNull(controller.updateComponents(scReqs, Collections.<String, String>emptyMap(), true));
     Assert.assertEquals(2, sc1.getDesiredConfigs().size());
     Assert.assertEquals(2, sc2.getDesiredConfigs().size());
 
@@ -4220,7 +4224,7 @@ public class AmbariManagementControllerTest {
     scReqs.clear();
     scReqs.add(new ServiceComponentRequest(clusterName, serviceName,
       componentName2, configVersions, null));
-    Assert.assertNull(controller.updateComponents(scReqs, Collections.<String, String>emptyMap()));
+    Assert.assertNull(controller.updateComponents(scReqs, Collections.<String, String>emptyMap(), true));
 
     Assert.assertEquals(2, sc2.getDesiredConfigs().size());
     Assert.assertEquals("version122", sc2.getDesiredConfigs().get
@@ -4228,7 +4232,7 @@ public class AmbariManagementControllerTest {
     scReqs.clear();
     scReqs.add(new ServiceComponentRequest(clusterName, serviceName,
       componentName1, configVersions, null));
-    Assert.assertNull(controller.updateComponents(scReqs, Collections.<String, String>emptyMap()));
+    Assert.assertNull(controller.updateComponents(scReqs, Collections.<String, String>emptyMap(), true));
 
     entityManager.clear();
 
@@ -4243,7 +4247,7 @@ public class AmbariManagementControllerTest {
     sReqs.clear();
     sReqs.add(new ServiceRequest(clusterName, serviceName, configVersions,
       null));
-    Assert.assertNull(controller.updateServices(sReqs, mapRequestProps));
+    Assert.assertNull(controller.updateServices(sReqs, mapRequestProps, true));
     Assert.assertEquals(2, s.getDesiredConfigs().size());
 
     // Reconfigure S Level
@@ -4253,7 +4257,7 @@ public class AmbariManagementControllerTest {
     sReqs.clear();
     sReqs.add(new ServiceRequest(clusterName, serviceName, configVersions,
       null));
-    Assert.assertNull(controller.updateServices(sReqs, mapRequestProps));
+    Assert.assertNull(controller.updateServices(sReqs, mapRequestProps, true));
 
     entityManager.clear();
 
@@ -4301,7 +4305,7 @@ public class AmbariManagementControllerTest {
     requests.add(r);
 
     RequestStatusResponse trackAction =
-        controller.updateServices(requests, mapRequestProps);
+        controller.updateServices(requests, mapRequestProps, true);
     Assert.assertEquals(State.INSTALLED,
         clusters.getCluster(clusterName).getService(serviceName)
         .getDesiredState());
@@ -4335,7 +4339,7 @@ public class AmbariManagementControllerTest {
     requests.clear();
     requests.add(r);
 
-    trackAction = controller.updateServices(requests, mapRequestProps);
+    trackAction = controller.updateServices(requests, mapRequestProps, true);
     Assert.assertNotNull(trackAction);
     Assert.assertEquals(State.INSTALLED,
         clusters.getCluster(clusterName).getService(serviceName)
@@ -5067,7 +5071,7 @@ public class AmbariManagementControllerTest {
     requests.add(r);
 
     RequestStatusResponse trackAction =
-      controller.updateServices(requests, mapRequestProps);
+      controller.updateServices(requests, mapRequestProps, true);
     Assert.assertEquals(State.INSTALLED,
       clusters.getCluster(clusterName).getService(serviceName)
         .getDesiredState());
@@ -5086,7 +5090,7 @@ public class AmbariManagementControllerTest {
       State.STARTED.toString());
     requests.clear();
     requests.add(r);
-    trackAction = controller.updateServices(requests, mapRequestProps);
+    trackAction = controller.updateServices(requests, mapRequestProps, true);
 
     // manually change live state to started as no running action manager
     for (ServiceComponent sc :
@@ -5120,7 +5124,7 @@ public class AmbariManagementControllerTest {
           Set<ServiceComponentHostRequest> reqs1 = new
             HashSet<ServiceComponentHostRequest>();
           reqs1.add(r1);
-          controller.updateHostComponents(reqs1, Collections.<String, String>emptyMap());
+          controller.updateHostComponents(reqs1, Collections.<String, String>emptyMap(), true);
           Assert.assertEquals(State.INSTALLED, sch.getDesiredState());
         }
       }
@@ -5131,7 +5135,7 @@ public class AmbariManagementControllerTest {
       State.INSTALLED.toString());
     requests.clear();
     requests.add(r);
-    controller.updateServices(requests, mapRequestProps);
+    controller.updateServices(requests, mapRequestProps, true);
 
     for (ServiceComponent sc :
       clusters.getCluster(clusterName).getService(serviceName)

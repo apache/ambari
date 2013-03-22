@@ -157,7 +157,7 @@ public class ComponentResourceProviderTest {
         andReturn(nameResponse).once();
     expect(managementController.updateComponents(
         AbstractResourceProviderTest.Matcher.getComponentRequestSet(
-            "Cluster102", "Service", "Component", null, "STARTED"), eq(mapRequestProps))).andReturn(response).once();
+            "Cluster102", "Service", "Component", null, "STARTED"), eq(mapRequestProps), eq(false))).andReturn(response).once();
 
     // replay
     replay(managementController, response);

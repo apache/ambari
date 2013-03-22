@@ -194,7 +194,7 @@ public class ServiceResourceProviderTest {
 
     // set expectations
     expect(managementController.updateServices(capture(requestsCapture),
-        eq(mapRequestProps))).andReturn(response).once();
+        eq(mapRequestProps), eq(false))).andReturn(response).once();
 
     // replay
     replay(managementController, response);

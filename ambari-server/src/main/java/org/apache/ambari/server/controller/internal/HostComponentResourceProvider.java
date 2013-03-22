@@ -63,6 +63,10 @@ class HostComponentResourceProvider extends AbstractControllerResourceProvider {
   protected static final String HOST_COMPONENT_DESIRED_STACK_ID_PROPERTY_ID
       = PropertyHelper.getPropertyId("HostRoles", "desired_stack_id");
 
+  //Parameters from the predicate
+  private static final String QUERY_PARAMETERS_RUN_SMOKE_TEST_ID =
+      "params/run_smoke_test";
+
   private static Set<String> pkPropertyIds =
       new HashSet<String>(Arrays.asList(new String[]{
           HOST_COMPONENT_CLUSTER_NAME_PROPERTY_ID,
@@ -165,6 +169,9 @@ class HostComponentResourceProvider extends AbstractControllerResourceProvider {
     final Set<ServiceComponentHostRequest> requests = new HashSet<ServiceComponentHostRequest>();
     RequestStatusResponse response = null;
 
+    final boolean runSmokeTest = "true".equals(getQueryParameterValue(
+        QUERY_PARAMETERS_RUN_SMOKE_TEST_ID, predicate)) ? true : false;
+
     Iterator<Map<String,Object>> iterator = request.getProperties().iterator();
     if (iterator.hasNext()) {
       for (Map<String, Object> propertyMap : getPropertyMaps(request.getProperties().iterator().next(), predicate)) {
@@ -173,7 +180,7 @@ class HostComponentResourceProvider extends AbstractControllerResourceProvider {
       response = modifyResources(new Command<RequestStatusResponse>() {
         @Override
         public RequestStatusResponse invoke() throws AmbariException {
-          return getManagementController().updateHostComponents(requests, request.getRequestInfoProperties());
+          return getManagementController().updateHostComponents(requests, request.getRequestInfoProperties(), runSmokeTest);
         }
       });
 

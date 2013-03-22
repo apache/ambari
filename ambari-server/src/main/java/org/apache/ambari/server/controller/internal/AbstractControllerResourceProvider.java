@@ -19,6 +19,10 @@
 package org.apache.ambari.server.controller.internal;
 
 import org.apache.ambari.server.controller.AmbariManagementController;
+import org.apache.ambari.server.controller.predicate.ArrayPredicate;
+import org.apache.ambari.server.controller.predicate.ComparisonPredicate;
+import org.apache.ambari.server.controller.predicate.EqualsPredicate;
+import org.apache.ambari.server.controller.spi.Predicate;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.spi.ResourceProvider;
 
@@ -118,5 +122,29 @@ public abstract class AbstractControllerResourceProvider extends AbstractResourc
       default:
         throw new IllegalArgumentException("Unknown type " + type);
     }
+  }
+
+  /**
+   * Extracting given query_paramater value from the predicate(parsed http body)
+   * @param queryParameterId
+   * @param predicate
+   * @return
+   */
+  protected static Object getQueryParameterValue(String queryParameterId, Predicate predicate) {
+
+    if (predicate instanceof ArrayPredicate) {
+      ArrayPredicate arrayPredicate  = (ArrayPredicate) predicate;
+      for (Predicate predicateItem : arrayPredicate.getPredicates()) {
+        if (predicateItem instanceof ComparisonPredicate) {
+          EqualsPredicate equalsPredicate =
+              (EqualsPredicate) predicateItem;
+          if (queryParameterId.equals(equalsPredicate.getPropertyId())) {
+            return equalsPredicate.getValue();
+          }
+        }
+      }
+
+    }
+    return null;
   }
 }
