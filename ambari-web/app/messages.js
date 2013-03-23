@@ -112,6 +112,8 @@ Em.I18n.translations = {
   'common.upgrade': 'Upgrade',
   'common.security':'Security',
   'common.cluster':'Cluster',
+  'common.exception':'Exception',
+  'common.undo':'Undo',
 
   'hostPopup.noHostsToShow':'No hosts to show',
   'hostPopup.noTasksToShow':'No tasks to show',
@@ -313,6 +315,7 @@ Em.I18n.translations = {
   'installer.step7.header':'Customize Services',
   'installer.step7.body':'We have come up with recommended configurations for the services you selected. Customize them as you see fit.',
   'installer.step7.attentionNeeded':'<b>Attention:</b> Some configurations need your attention before you can proceed.',
+  'installer.step7.config.addProperty':'Add Property',
   'installer.step7.ConfigErrMsg.header':'Custom configuration error: ',
   'installer.step7.ConfigErrMsg.message':'Error in custom configuration. Some properties entered in the box are already exposed on this page',
 

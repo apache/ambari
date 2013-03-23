@@ -177,6 +177,22 @@ App.ServiceConfigProperty = Ember.Object.extend({
     var isEditable = this.get('isEditable');
     return isEditable && dValue != null && value !== dValue;
   }.property('value', 'defaultValue', 'isEditable'),
+
+  /**
+   * Don't show "Undo" for hosts on Installer Step7
+   */
+  cantBeUndone: function() {
+    var types = ["masterHost", "slaveHosts", "masterHosts", "slaveHost"];
+    var displayType = this.get('displayType');
+    var result = false;
+    types.forEach(function(type) {
+      if (type === displayType) {
+        result = true;
+        return;
+      }
+    });
+    return result;
+  }.property('displayType'),
   
   initialValue: function () {
     var masterComponentHostsInDB = App.db.getMasterComponentHosts();

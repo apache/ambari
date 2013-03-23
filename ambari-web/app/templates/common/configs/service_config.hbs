@@ -39,13 +39,16 @@
                               <div {{bindAttr class="errorMessage:error: :control-group"}}>
                                 {{view viewClass serviceConfigBinding="this" categoryConfigsBinding="view.categoryConfigs" }}
                                 {{#if isOverridable}}
-                                    <a class="action" {{action "createOverrideProperty" this target="view" }} ><i class="icon-plus-sign"></i>Exception</a>
+                                  <a class="action" {{action "createOverrideProperty" this target="view" }} ><i class="icon-plus-sign"></i>{{t common.exception}}</a>
                                 {{/if}}
-                                {{#if isNotDefaultValue}}
-                                    <a class="action" {{action "doRestoreDefaultValue" this target="view" }} ><i class="icon-undo"></i>Undo</a>
+                                {{#if cantBeUndone}}
+                                {{else}}
+                                  {{#if isNotDefaultValue}}
+                                    <a class="action" {{action "doRestoreDefaultValue" this target="view" }} ><i class="icon-undo"></i>{{t common.undo}}</a>
+                                  {{/if}}
                                 {{/if}}
                                 {{#if isRemovable}}
-                                    <a class="action" {{action "removeProperty" this target="view" }} ><i class="icon-minus-sign"></i>Remove</a>
+                                  <a class="action" {{action "removeProperty" this target="view" }} ><i class="icon-minus-sign"></i>{{t common.remove}}</a>
                                 {{/if}}
                                   <span class="help-inline">{{errorMessage}}</span>
                               </div>
@@ -59,7 +62,7 @@
                   {{! For Advanced, Advanced Core Site, Advanced HDFS Site sections, show the 'Add Property' link.}}
                   {{#if category.canAddProperty }}
                       <div>
-                          <a href="#" {{action "showAddPropertyWindow" this target="view" }} >Add Property...</a>
+                          <a href="#" {{action "showAddPropertyWindow" this target="view" }} >{{t installer.step7.config.addProperty}}...</a>
                       </div>
                   {{/if}}
                 </form>

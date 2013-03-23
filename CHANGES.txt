@@ -509,6 +509,10 @@ Trunk (unreleased changes):
 
  BUG FIXES
 
+ AMBARI-1645. Undo should not be allowed on component hosts. (yusaku)
+
+ AMBARI-1644. Service summary page flickers. (yusaku)
+
  AMBARI-1689. 500 Exception creating service component during install. (Sumit 
  Mohanty via swagle)
 
