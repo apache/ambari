@@ -41,35 +41,35 @@
     <table id="summary-info" class="table no-borders table-condensed">
       <tbody>
       {{#unless view.serviceStatus.oozie}}
-      {{#unless view.serviceStatus.hive}}
-      {{#unless view.serviceStatus.zookeeper}}
-      {{#unless view.serviceStatus.hdfs}}
-      {{#unless view.serviceStatus.mapreduce}}
-      {{#unless view.serviceStatus.hbase}}
-      {{#unless view.serviceStatus.ganglia}}
-      {{#each component in controller.content.hostComponents}}
-        <tr>
-          {{#if component.isMaster}}
-            <td class="summary-label">{{component.displayName}}</td>
-            <td><a {{action selectHost component.host}} href="javascript:void(null)">{{component.host.publicHostName}}</a></td>
-          {{else}}
-            <td class="summary-label">{{component.displayName}}s</td>
-            <td><a {{action filterHosts component}} href="javascript:void(null)">{{component.displayName}}s</a></td>
-          {{/if}}
-        </tr>
-      {{/each}}
-      {{#if view.serviceStatus.nagios}}
-        <tr>
-          <td class="summary-label">{{t services.service.info.summary.nagiosWebUI}}</td>
-          <td><a target=_blank href="http://{{unbound view.nagiosServer}}/nagios">{{view.nagiosServer}}/nagios</a></td>
-        </tr>
-      {{/if}}
-      {{/unless}}
-      {{/unless}}
-      {{/unless}}
-      {{/unless}}
-      {{/unless}}
-      {{/unless}}
+        {{#unless view.serviceStatus.hive}}
+          {{#unless view.serviceStatus.zookeeper}}
+            {{#unless view.serviceStatus.hdfs}}
+              {{#unless view.serviceStatus.mapreduce}}
+                {{#unless view.serviceStatus.hbase}}
+                  {{#unless view.serviceStatus.ganglia}}
+                    {{#each component in view.components}}
+                      <tr>
+                        {{#if component.isMaster}}
+                          <td class="summary-label">{{component.displayName}}</td>
+                          <td><a {{action selectHost component.host}} href="javascript:void(null)">{{component.host.publicHostName}}</a></td>
+                        {{else}}
+                          <td class="summary-label">{{component.displayName}}s</td>
+                          <td><a {{action filterHosts component}} href="javascript:void(null)">{{component.displayName}}s</a></td>
+                        {{/if}}
+                      </tr>
+                    {{/each}}
+                    {{#if view.serviceStatus.nagios}}
+                      <tr>
+                        <td class="summary-label">{{t services.service.info.summary.nagiosWebUI}}</td>
+                        <td><a target=_blank href="http://{{unbound view.nagiosServer}}/nagios">{{view.nagiosServer}}/nagios</a></td>
+                      </tr>
+                    {{/if}}
+                  {{/unless}}
+                {{/unless}}
+              {{/unless}}
+            {{/unless}}
+          {{/unless}}
+        {{/unless}}
       {{/unless}}
       {{#if view.serviceStatus.hdfs}}
         {{view App.MainDashboardServiceHdfsView showOnlyRows=true serviceBinding="view.service"}}

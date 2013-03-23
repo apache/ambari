@@ -16,11 +16,11 @@
 * limitations under the License.
 }}
 
-{{#each component in controller.content.hostComponents}}
+{{#each component in view.components}}
   {{#if component.isMaster}}
     <tr>
-        <td class="summary-label">{{t common.servers}}</td>
-        <td><a {{action selectHost component.host}} href="javascript:void(null)">{{component.host.publicHostName}}</a></td>
+      <td class="summary-label">{{t common.servers}}</td>
+      <td><a {{action selectHost component.hostRaw}} href="javascript:void(null)">{{component.host.publicHostName}}</a></td>
     </tr>
   {{/if}}
 {{/each}}

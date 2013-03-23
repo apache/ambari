@@ -48,6 +48,7 @@ App.servicesMapper = App.QuickDataMapper.create({
     id: 'ServiceInfo.service_name',
     service_name: 'ServiceInfo.service_name',
     work_status: 'ServiceInfo.state',
+    $rand: Math.random(),
     $alerts: [ 1, 2, 3 ],
     host_components: 'host_components'
   },
@@ -143,21 +144,30 @@ App.servicesMapper = App.QuickDataMapper.create({
         item.host_components.sort();
 
         if (item && item.ServiceInfo && item.ServiceInfo.service_name == "HDFS") {
-          // Change the JSON so that it is easy to map
           finalJson = this.hdfsMapper(item);
+          finalJson.rand = Math.random();
           result.push(finalJson);
           App.store.load(App.HDFSService, finalJson);
-        } else if (item && item.ServiceInfo && item.ServiceInfo.service_name == "MAPREDUCE") {
-          finalJson = this.mapreduceMapper(item);
-          result.push(finalJson);
-          App.store.load(App.MapReduceService, finalJson);
-        } else if (item && item.ServiceInfo && item.ServiceInfo.service_name == "HBASE") {
-          finalJson = this.hbaseMapper(item);
-          result.push(finalJson);
-          App.store.load(App.HBaseService, finalJson);
-        } else {
-          result.push(this.parseIt(item, this.config));
         }
+        else
+          if (item && item.ServiceInfo && item.ServiceInfo.service_name == "MAPREDUCE") {
+            finalJson = this.mapreduceMapper(item);
+            finalJson.rand = Math.random();
+            result.push(finalJson);
+            App.store.load(App.MapReduceService, finalJson);
+          }
+          else
+            if (item && item.ServiceInfo && item.ServiceInfo.service_name == "HBASE") {
+              finalJson = this.hbaseMapper(item);
+              finalJson.rand = Math.random();
+              result.push(finalJson);
+              App.store.load(App.HBaseService, finalJson);
+            }
+            else {
+              finalJson = this.parseIt(item, this.config);
+              finalJson.rand = Math.random();
+              result.push(finalJson);
+            }
       }, this);
 
 

@@ -164,31 +164,57 @@ App.MainServiceInfoSummaryView = Em.View.extend({
       "user":"hive"
     }
   },
-  gangliaServer:function(){
+  /**
+   * Get public host name (should be Master) for service
+   * @param {String} serviceName - GANGLIA, NAGIOS etc
+   * @return {*}
+   */
+  getServer: function(serviceName) {
     var service=this.get('controller.content');
-    if(service.get("id") == "GANGLIA"){
+    if(service.get("id") == serviceName) {
       return service.get("hostComponents").findProperty('isMaster', true).get("host").get("publicHostName");
-    }else{
-      return "";
     }
+    else {
+      return '';
+    }
+  },
+  gangliaServer:function() {
+    return this.getServer("GANGLIA");
   }.property('controller.content'),
   nagiosServer:function(){
-    var service=this.get('controller.content');
-    if(service.get("id") == "NAGIOS"){
-      return service.get("hostComponents").findProperty('isMaster', true).get("host").get("publicHostName");
-    }else{
-      return "";
-    }
+    return this.getServer("NAGIOS");
   }.property('controller.content'),
   oozieServer:function(){
-    var service=this.get('controller.content');
-    if(service.get("id") == "OOZIE"){
-      return service.get("hostComponents").findProperty('isMaster', true).get("host").get("publicHostName");
-    }else{
-      return "";
-    }
+    return this.getServer("OOZIE");
   }.property('controller.content'),
 
+  /**
+   * Array of the hostComponents for service
+   */
+  components: [],
+
+  /**
+   * Copy hostComponents from controller to view to avoid flickering Summary block while data is updating in the controller
+   * rand - just marker in the Service model for determining that Service was updated (value changes in the service_mapper)
+   */
+  hostComponentsUpd: function() {
+      var components = [];
+      this.get('controller.content.hostComponents').forEach(function(component) {
+        var obj = {};
+        for(var prop in component){
+          if( component.hasOwnProperty(prop)
+            && prop.indexOf('__ember') < 0
+            && prop.indexOf('_super') < 0
+            && Ember.typeOf(component.get(prop)) !== 'function'
+            ) {
+            obj[prop] = component.get(prop);
+          }
+        }
+        obj.displayName = component.get('displayName'); // this is computed property and wasn't copied in the top block of code
+        components.push(obj);
+      });
+      this.set('components', components);
+  }.observes('controller.content.rand', 'controller.content.hostComponents.@each.isMaster', 'controller.content.hostComponents.@each.host'),
   /**
    * Wrapper for displayName. used to render correct display name for mysql_server
    */

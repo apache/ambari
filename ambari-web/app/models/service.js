@@ -24,6 +24,7 @@ App.Service = DS.Model.extend({
   serviceName: DS.attr('string'),
 
   workStatus: DS.attr('string'),
+  rand: DS.attr('string'),
   alerts: DS.hasMany('App.Alert'),
   quickLinks: DS.hasMany('App.QuickLinks'),
   hostComponents: DS.hasMany('App.HostComponent'),
