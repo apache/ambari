@@ -23,23 +23,54 @@ var App = require('app');
  */
 App.HostPopup = Em.Object.create({
 
+  servicesInfo: null,
   hosts: null,
   inputData: null,
   serviceName: "",
   popupHeaderName: "",
   serviceController: null,
-  updateTimeOut: 100,
+  showServices: false,
 
-  initPopup: function (serviceName, controller) {
+  /**
+   * Sort object array
+   * @param array
+   * @param p
+   * @return {*}
+   */
+  sortArray: function (array, p) {
+    return array.sort(function (a, b) {
+      return (a[p] > b[p]) ? 1 : (a[p] < b[p]) ? -1 : 0;
+    });
+  },
+
+  /**
+   * Entering point of this component
+   * @param serviceName
+   * @param controller
+   * @param showServices
+   */
+  initPopup: function (serviceName, controller, showServices) {
     this.set("serviceName", serviceName);
     this.set("serviceController", controller);
+    if (showServices) {
+      this.set("showServices", true);
+    } else {
+      this.set("showServices", false);
+      this.set("popupHeaderName", serviceName);
+    }
+    this.set("hosts", null);
+    this.set("servicesInfo", null);
     this.set("inputData", null);
     this.set("inputData", this.get("serviceController.services"));
-    this.set("popupHeaderName", serviceName);
     this.createPopup();
   },
 
-  getHostStatus: function (tasks) {
+  /**
+   * Depending on tasks status
+   * @param tasks
+   * @return {Array} [Status, Icon type, Progressbar color]
+   */
+  getStatus: function (tasks) {
     if (tasks.everyProperty('Tasks.status', 'COMPLETED')) {
       return ['SUCCESS', 'icon-ok', 'progress-info'];
     }
@@ -58,8 +89,12 @@ App.HostPopup = Em.Object.create({
     return ['PENDING', 'icon-cog', 'progress-info'];
   },
 
-  getHostProgress: function (tasks) {
-
+  /**
+   * Progress of host or service depending on tasks status
+   * @param tasks
+   * @return {Number} percent of completion
+   */
+  getProgress: function (tasks) {
     var progress = 0;
     var actionsNumber = tasks.length;
     var completedActions = tasks.filterProperty('Tasks.status', 'COMPLETED').length
@@ -73,14 +108,89 @@ App.HostPopup = Em.Object.create({
     return progress;
   },
 
+  /**
+   * For Background operation popup calculate number of running Operations, and set popup header
+   */
+  setBackgroundOperationHeader: function () {
+    var allServices = this.get("servicesInfo");
+    var numRunning = allServices.filterProperty("status", App.format.taskStatus("IN_PROGRESS")).length;
+    this.set("popupHeaderName", numRunning + " Background operations Running");
+  },
+
+  /**
+   * Create services obj data structure for popup
+   * Set data for services
+   */
+  onServiceUpdate: function () {
+    if (this.showServices && this.get("inputData")) {
+      var self = this;
+      var allNewServices = [];
+      this.set("servicesInfo", null);
+      this.get("inputData").forEach(function (service) {
+        var newService = Ember.Object.create({
+          displayName: service.displayName,
+          detailMessage: service.detailMessage,
+          message: service.message,
+          progress: 0,
+          status: App.format.taskStatus("PENDING"),
+          name: service.name,
+          isVisible: true,
+          icon: 'icon-cog',
+          barColor: 'progress-info',
+          barWidth: 'width:0%;'
+        });
+        var allTasks = []
+        service.hosts.forEach(function (tasks) {
+          tasks.logTasks.forEach(function (task) {
+            allTasks.push(task);
+          });
+        });
+        if (allTasks.length > 0) {
+          var status = self.getStatus(allTasks);
+          var progress = self.getProgress(allTasks);
+          newService.set('status', App.format.taskStatus(status[0]));
+          newService.set('icon', status[1]);
+          newService.set('barColor', status[2]);
+          newService.set('progress', progress);
+          newService.set('barWidth', "width:" + progress + "%;");
+        }
+        allNewServices.push(newService);
+      })
+      self.set('servicesInfo', allNewServices);
+      if (this.get("serviceName") == "")
+        this.setBackgroundOperationHeader();
+    }
+  }.observes("this.inputData"),
+
+  /**
+   * Create hosts and tasks data structure for popup
+   * Set data for hosts and tasks
+   */
   onHostUpdate: function () {
     var self = this;
     if (this.get("inputData")) {
       var hostsArr = [];
-      var hostsData = this.get("inputData").filterProperty("name", this.get("serviceName")).objectAt(0);
-      var hosts = hostsData.hosts;
+      var hostsData = this.get("inputData")
+      var hosts = [];
+      if (this.get("showServices") && this.get("serviceName") == "") {
+        hostsData.forEach(function (service) {
+          var host = service.hosts;
+          host.setEach("serviceName", service.name);
+          hosts.push.apply(hosts, host);
+        });
+      } else {
+        hostsData = hostsData.filterProperty("name", this.get("serviceName")).objectAt(0);
+        hosts = hostsData.hosts;
+        hosts.setEach("serviceName", this.get("serviceName"));
+      }
     }
+
     if (hosts) {
+      /**
+       * sort host names by name value
+       */
+      this.sortArray(hosts, "name");
+
       hosts.forEach(function (_host) {
         var tasks = _host.logTasks;
         var hostInfo = Ember.Object.create({});
@@ -88,20 +198,19 @@ App.HostPopup = Em.Object.create({
         hostInfo.set('publicName', _host.publicName);
         hostInfo.set('progress', 0);
         hostInfo.set('status', App.format.taskStatus("PENDING"));
-        hostInfo.set('serviceName', hostsData.name);
+        hostInfo.set('serviceName', _host.serviceName);
         hostInfo.set('isVisible', true);
         hostInfo.set('icon', "icon-cog");
         hostInfo.set('barColor', "progress-info");
         hostInfo.set('barWidth', "width:0%;");
 
         tasks = self.sortTasksById(tasks);
-        tasks = self.groupTasksByRole(tasks);
         var tasksArr = [];
 
         if (tasks.length) {
 
-          var hostStatus = self.getHostStatus(tasks);
-          var hostProgress = self.getHostProgress(tasks);
+          var hostStatus = self.getStatus(tasks);
+          var hostProgress = self.getProgress(tasks);
           hostInfo.set('status', App.format.taskStatus(hostStatus[0]));
           hostInfo.set('icon', hostStatus[1]);
           hostInfo.set('barColor', hostStatus[2]);
@@ -111,7 +220,7 @@ App.HostPopup = Em.Object.create({
           tasks.forEach(function (_task) {
             var taskInfo = Ember.Object.create({});
             taskInfo.set('id', _task.Tasks.id);
-            taskInfo.set('hostName', _host.name);
+            taskInfo.set('hostName', _host.publicName);
             taskInfo.set('command', _task.Tasks.command.toLowerCase());
             taskInfo.set('status', App.format.taskStatus(_task.Tasks.status));
             taskInfo.set('role', App.format.role(_task.Tasks.role));
@@ -144,6 +253,11 @@ App.HostPopup = Em.Object.create({
     self.set("hosts", hostsArr);
   }.observes("this.inputData"),
 
+  /**
+   * Sort tasks by it`s id
+   * @param tasks
+   * @return {Array}
+   */
   sortTasksById: function (tasks) {
     var result = [];
     var id = 1;
@@ -162,19 +276,14 @@ App.HostPopup = Em.Object.create({
     return result;
   },
 
-  groupTasksByRole: function (tasks) {
-    var sortedTasks = [];
-    var taskRoles = tasks.mapProperty('Tasks.role').uniq();
-    for (var i = 0; i < taskRoles.length; i++) {
-      sortedTasks = sortedTasks.concat(tasks.filterProperty('Tasks.role', taskRoles[i]))
-    }
-    return sortedTasks;
-  },
-
-
+  /**
+   * Show popup
+   * @return PopupObject For testing purposes
+   */
   createPopup: function () {
     var self = this;
     var hostsInfo = this.get("hosts");
+    var servicesInfo = this.get("servicesInfo");
     return App.ModalPopup.show({
       headerClass: Ember.View.extend({
         controller: this,
@@ -191,38 +300,82 @@ App.HostPopup = Em.Object.create({
         templateName: require('templates/common/host_progress_popup'),
         isLogWrapHidden: true,
         isTaskListHidden: true,
-        isHostListHidden: false,
+        isHostListHidden: true,
+        isServiceListHidden: false,
         showTextArea: false,
+        isServiceEmptyList: true,
         isHostEmptyList: true,
         isTasksEmptyList: true,
         controller: this,
         hosts: hostsInfo,
+        services: servicesInfo,
 
         tasks: null,
 
         didInsertElement: function () {
-          this.setSelectCount(this.get("hosts"));
+          this.setOnStart();
         },
 
+        /**
+         * Preset values on init
+         */
+        setOnStart: function () {
+          if (this.get("controller.showServices")) {
+            this.setSelectCount(this.get("services"));
+          } else {
+            this.set("isHostListHidden", false);
+            this.set("isServiceListHidden", true);
+          }
+        },
+
+        /**
+         * When popup is opened, and data after polling has changed, update this data in component
+         */
         updateHostInfo: function () {
           this.get("controller").set("inputData", null);
           this.get("controller").set("inputData", this.get("controller.serviceController.services"));
           this.set("hosts", this.get("controller.hosts"));
+          this.set("services", this.get("controller.servicesInfo"));
         }.observes("this.controller.serviceController.serviceTimestamp"),
 
+        /**
+         * Depending on service filter, set which services should be shown
+         */
+        visibleServices: function () {
+          if (this.get("services")) {
+            this.set("isServiceEmptyList", true);
+            if (this.get('serviceCategory.value')) {
+              var filter = this.get('serviceCategory.value');
+              var services = this.get('services');
+              services.setEach("isVisible", false);
+              this.setVisability(filter, services);
+              if (services.filterProperty("isVisible", true).length > 0) {
+                this.set("isServiceEmptyList", false);
+              }
+            }
+          }
+        }.observes('serviceCategory', 'services'),
+
+        /**
+         * Depending on hosts filter, set which hosts should be shown
+         */
         visibleHosts: function () {
           this.set("isHostEmptyList", true);
-          if (this.get('hostCategory.value')) {
+          if (this.get('hostCategory.value') && this.get('hosts')) {
             var filter = this.get('hostCategory.value');
             var hosts = this.get('hosts');
             hosts.setEach("isVisible", false);
             this.setVisability(filter, hosts);
+
             if (hosts.filterProperty("isVisible", true).length > 0) {
               this.set("isHostEmptyList", false);
             }
           }
         }.observes('hostCategory', 'hosts'),
 
+        /**
+         * Depending on tasks filter, set which tasks should be shown
+         */
         visibleTasks: function () {
           this.set("isTasksEmptyList", true);
           if (this.get('taskCategory.value') && this.get('tasks')) {
@@ -235,6 +388,11 @@ App.HostPopup = Em.Object.create({
           }
         }.observes('taskCategory', 'tasks'),
 
+        /**
+         * Depending on selected filter type, set object visibility value
+         * @param filter
+         * @param obj
+         */
         setVisability: function (filter, obj) {
           obj.setEach("isVisible", false);
           if (filter == "all") {
@@ -263,6 +421,9 @@ App.HostPopup = Em.Object.create({
           }
         },
 
+        /**
+         * Select box, display names and values
+         */
         categories: [
           Ember.Object.create({value: 'all', label: Em.I18n.t('installer.step9.hostLog.popup.categories.all') }),
           Ember.Object.create({value: 'pending', label: Em.I18n.t('installer.step9.hostLog.popup.categories.pending')}),
@@ -273,9 +434,17 @@ App.HostPopup = Em.Object.create({
           Ember.Object.create({value: 'timedout', label: Em.I18n.t('installer.step9.hostLog.popup.categories.timedout') })
         ],
 
+        /**
+         * Selected option is binded to this values
+         */
+        serviceCategory: null,
         hostCategory: null,
         taskCategory: null,
 
+        /**
+         * Count number of operations for select box options
+         * @param obj
+         */
         setSelectCount: function (obj) {
           if (!obj) return;
           var countAll = obj.length;
@@ -295,14 +464,24 @@ App.HostPopup = Em.Object.create({
           this.categories.filterProperty("value", 'timedout').objectAt(0).set("label", "Timedout (" + countTimedout + ")");
         },
 
+        /**
+         * Depending on currently viewed tab, call setSelectCount function
+         */
         updateSelectView: function () {
           if (!this.get('isHostListHidden')) {
             this.setSelectCount(this.get("hosts"))
           } else if (!this.get('isTaskListHidden')) {
             this.setSelectCount(this.get("tasks"))
+          } else if (!this.get('isServiceListHidden')) {
+            this.setSelectCount(this.get("services"))
           }
         }.observes('hosts', 'isTaskListHidden', 'isHostListHidden'),
 
+        /**
+         * Onclick handler for button <-Tasks
+         * @param event
+         * @param context
+         */
         backToTaskList: function (event, context) {
           this.destroyClipBoard();
           this.set("openedTaskId", 0);
@@ -310,6 +489,11 @@ App.HostPopup = Em.Object.create({
           this.set("isTaskListHidden", false);
         },
 
+        /**
+         * Onclick handler for button <-Hosts
+         * @param event
+         * @param context
+         */
         backToHostList: function (event, context) {
           this.set("isHostListHidden", false);
           this.set("isTaskListHidden", true);
@@ -317,6 +501,45 @@ App.HostPopup = Em.Object.create({
           this.get("controller").set("popupHeaderName", this.get("controller.serviceName"));
         },
 
+        /**
+         * Onclick handler for button <-Services
+         * @param event
+         * @param context
+         */
+        backToServiceList: function (event, context) {
+          this.get("controller").set("serviceName", "");
+          this.set("isHostListHidden", true);
+          this.set("isServiceListHidden", false);
+          this.set("isTaskListHidden", true);
+          this.set("tasks", null);
+          this.set("hosts", null);
+          this.get("controller").setBackgroundOperationHeader();
+        },
+
+        /**
+         * Onclick handler for selected Service
+         * @param event
+         * @param context
+         */
+        gotoHosts: function (event, context) {
+          this.get("controller").set("serviceName", event.context.get("name"));
+          this.get("controller").onHostUpdate();
+          var servicesInfo = this.get("controller.hosts");
+          if (servicesInfo.length) {
+            this.get("controller").set("popupHeaderName", event.context.get("name"));
+          }
+          this.set('hosts', servicesInfo);
+          this.set("isServiceListHidden", true);
+          this.set("isHostListHidden", false);
+          $(".modal").scrollTop(0);
+          $(".modal-body").scrollTop(0);
+        },
+
+        /**
+         * Onclick handler for selected Host
+         * @param event
+         * @param context
+         */
         gotoTasks: function (event, context) {
           var taskInfo = event.context.tasks;
           if (taskInfo.length) {
@@ -329,6 +552,9 @@ App.HostPopup = Em.Object.create({
           $(".modal-body").scrollTop(0);
         },
 
+        /**
+         * Onclick handler for selected Task
+         */
         openTaskLogInDialog: function () {
           newwindow = window.open();
           newdocument = newwindow.document;
@@ -338,6 +564,9 @@ App.HostPopup = Em.Object.create({
 
         openedTaskId: 0,
 
+        /**
+         * Return task detail info of opened task
+         */
         openedTask: function () {
           if (!this.get('openedTaskId')) {
             return Ember.Object.create();
@@ -345,6 +574,11 @@ App.HostPopup = Em.Object.create({
           return this.get('tasks').findProperty('id', this.get('openedTaskId'));
         }.property('tasks', 'openedTaskId'),
 
+        /**
+         * Onclick event for show task detail info
+         * @param event
+         * @param context
+         */
         toggleTaskLog: function (event, context) {
           var taskInfo = event.context;
           this.set("isLogWrapHidden", false);
@@ -355,6 +589,10 @@ App.HostPopup = Em.Object.create({
           $(".modal-body").scrollTop(0);
         },
 
+        /**
+         * Onclick event for copy to clipboard button
+         * @param event
+         */
         textTrigger: function (event) {
           if ($(".task-detail-log-clipboard").length > 0) {
             this.destroyClipBoard();
@@ -362,6 +600,10 @@ App.HostPopup = Em.Object.create({
             this.createClipBoard();
           }
         },
+
+        /**
+         * Create Clip Board
+         */
         createClipBoard: function () {
           $(".task-detail-log-clipboard-wrap").html('<textarea class="task-detail-log-clipboard"></textarea>');
           $(".task-detail-log-clipboard")
@@ -372,6 +614,10 @@ App.HostPopup = Em.Object.create({
               .select();
           $(".task-detail-log-maintext").css("display", "none")
         },
+
+        /**
+         * Destroy Clip Board
+         */
         destroyClipBoard: function () {
           $(".task-detail-log-clipboard").remove();
           $(".task-detail-log-maintext").css("display", "block");

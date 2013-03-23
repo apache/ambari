@@ -47,6 +47,7 @@ Em.I18n.translations = {
   'common.next':'Next',
   'common.host':'Host',
   'common.hosts':'Hosts',
+  'common.services':'Services',
   'common.group':'Group',
   'common.progress':'Progress',
   'common.status':'Status',
@@ -115,6 +116,7 @@ Em.I18n.translations = {
   'common.exception':'Exception',
   'common.undo':'Undo',
 
+  'hostPopup.noServicesToShow':'No services to show',
   'hostPopup.noHostsToShow':'No hosts to show',
   'hostPopup.noTasksToShow':'No tasks to show',
 

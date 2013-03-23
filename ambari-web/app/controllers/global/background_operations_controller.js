@@ -31,6 +31,12 @@ App.BackgroundOperationsController = Em.Controller.extend({
   executeTasks: [],
 
   /**
+   * For host component popup
+   */
+  services:[],
+  serviceTimestamp: null,
+
+  /**
    * Task life time after finishing
    */
   taskLifeTime: 5*60*1000,
@@ -174,26 +180,196 @@ App.BackgroundOperationsController = Em.Controller.extend({
   },
 
   /**
+   * Start code for hostcomponent popup in test mode for now
+   */
+  POLL_INTERVAL: 10,
+  isPolling: false,
+  installedServices: App.Service.find(),
+  simulateAttempt:0,
+
+  startPolling1: function(){
+    var url = '';
+    if(!this.get('isPolling')){
+      this.set('isPolling', true);
+      if (App.testMode) {
+        this.simulatePolling();
+      } else {
+        //pass an interval "1" to start poll immediately first time
+        this.doPoll(url, 1);
+      }
+    }
+  },
+
+  simulatePolling: function(){
+    var simulateAttempt = this.get('simulateAttempt');
+    var URLs = [
+      '/data/wizard/upgrade/poll_1.json',
+      '/data/wizard/upgrade/poll_2.json',
+      '/data/wizard/upgrade/poll_3.json',
+      '/data/wizard/upgrade/poll_4.json',
+      '/data/wizard/upgrade/poll_5.json',
+    ];
+    if(simulateAttempt < 5){
+      if(this.get("simulateAttempt")==4){
+        this.set("POLL_INTERVAL",4000);
+      }
+      this.doPoll(URLs[simulateAttempt]);
+      this.set('simulateAttempt', ++simulateAttempt);
+    }
+  },
+
+  doPoll: function(url, interval){
+    var self = this;
+    var pollInterval = interval || self.POLL_INTERVAL;
+    if (self.get('isPolling')) {
+      setTimeout(function () {
+        $.ajax({
+          utype: 'GET',
+          url: url,
+          async: true,
+          timeout: App.timeout,
+          dataType: 'json',
+          success: function (data) {
+            var result = self.parseTasks(data);
+            if (App.testMode) {
+              self.simulatePolling();
+            } else {
+              self.doPoll(url);
+            }
+          },
+          error: function () {
+
+          },
+          statusCode: require('data/statusCodes')
+        }).retry({times: App.maxRetries, timeout: App.timeout}).then(null,
+            function () {
+              App.showReloadPopup();
+              console.log('Install services all retries failed');
+            }
+        );
+      }, pollInterval);
+    }
+  },
+
+  parseTasks: function(data){
+    var tasks = data.tasks || [];
+    this.get('services').forEach(function (service) {
+      var hosts = service.get('hosts');
+      var tasksPerService = [];
+      if(hosts.length){
+        hosts.forEach(function (host) {
+          var tasksPerHost = tasks.filter(function(task){
+            if(task.Tasks.host_name == host.name && host.get('components').contains(task.Tasks.role)){
+              return true;
+            }
+          });
+          if (tasksPerHost.length) {
+            this.setLogTasksStatePerHost(tasksPerHost, host);
+            tasksPerService = tasksPerService.concat(tasksPerHost);
+          }
+        }, this);
+      } else {
+        service.set('status', 'PENDING');
+        service.set('detailedMessage', Em.I18n.t('installer.stackUpgrade.step3.host.nothingToUpgrade'));
+      }
+    }, this);
+    this.set('serviceTimestamp', new Date().getTime());
+    return true;
+  },
+
+  setLogTasksStatePerHost: function (tasksPerHost, host) {
+    tasksPerHost.forEach(function (_task) {
+      var task = host.get('logTasks').findProperty('Tasks.id', _task.Tasks.id);
+      if (task) {
+        host.get('logTasks').removeObject(task);
+      }
+      host.get('logTasks').pushObject(_task);
+    }, this);
+  },
+
+  mockServices: [
+    Em.Object.create({
+      serviceName: 'GANGLIA',
+      displayName: 'Ganglia Update',
+      workStatus: 'STARTED',
+      hostComponents: []
+    }),
+    Em.Object.create({
+      serviceName: 'HDFS',
+      displayName: 'HDFS Update',
+      workStatus: 'STARTED',
+      hostComponents: []
+    })
+  ],
+
+  loadServices: function(){
+    var installedServices = App.testMode ? this.get('mockServices') : this.get('content.servicesInfo');
+    var services = [];
+    installedServices.forEach(function(_service){
+      services.push(Em.Object.create({
+        name: _service.get('serviceName'),
+        displayName: _service.get('displayName'),
+        hosts: this.loadHosts(_service),
+        progress: 0,
+        status: "PENDING",
+        detailMessage:''
+      }));
+    }, this);
+    this.set('services', services);
+  }.observes('content.servicesInfo'),
+
+  loadHosts: function(service){
+    var hostComponents = App.HostComponent.find().filterProperty('service.serviceName', service.get('serviceName'));
+    var hosts = hostComponents.mapProperty('host').uniq();
+    var result = [];
+    hosts.forEach(function(host){
+      result.push(Em.Object.create({
+        name: host.get('hostName'),
+        publicName: host.get('publicHostName'),
+        logTasks: [],
+        components: hostComponents.filterProperty('host.hostName', host.get('hostName')).mapProperty('componentName')
+      }));
+    });
+    return result;
+  },
+
+  /**
+   * End code for hostcomponent popup
+   */
+
+
+  /**
+
+  /**
    * Onclick handler for background operations number located right to logo
    * @return PopupObject For testing purposes
    */
   showPopup: function(){
-    this.set('executeTasks', []);
-    App.updater.immediateRun('loadOperations');
-    return App.ModalPopup.show({
-      headerClass: Ember.View.extend({
-        controller: this,
-        template:Ember.Handlebars.compile('{{allOperationsCount}} Background Operations Running')
-      }),
-      bodyClass: Ember.View.extend({
-        controller: this,
-        templateName: require('templates/main/background_operations_popup')
-      }),
-      onPrimary: function() {
-        this.hide();
-      },
-      secondary : null
-    });
+    if(App.testMode){
+      this.set("POLL_INTERVAL",10);
+      this.set("isPolling",false);
+      this.set("simulateAttempt",0);
+      this.loadServices();
+      this.startPolling1();
+      App.HostPopup.initPopup("", this, true);
+    }else{
+      this.set('executeTasks', []);
+      App.updater.immediateRun('loadOperations');
+      return App.ModalPopup.show({
+        headerClass: Ember.View.extend({
+          controller: this,
+          template:Ember.Handlebars.compile('{{allOperationsCount}} Background Operations Running')
+        }),
+        bodyClass: Ember.View.extend({
+          controller: this,
+          templateName: require('templates/main/background_operations_popup')
+        }),
+        onPrimary: function() {
+          this.hide();
+        },
+        secondary : null
+      });
+    }
   },
 
   /**

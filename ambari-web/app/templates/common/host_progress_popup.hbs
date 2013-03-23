@@ -18,12 +18,61 @@
 
 <div class="host-component-popup-wrap">
 
+    <!-- SERVICES --->
+
+    <div {{bindAttr class="view.isServiceListHidden:hidden :task-list-main-warp"}}>
+      <div class="task-top-wrap">
+        {{t common.services}}
+        <div class="select-wrap">
+          {{t common.show}}:
+          {{view Ember.Select
+            contentBinding="view.categories"
+            optionValuePath="content.value"
+            optionLabelPath="content.label"
+            selectionBinding="view.serviceCategory"
+          }}
+        </div>
+      </div>
+      <div id="service-info">
+        {{#each servicesInfo in view.services}}
+        <div {{bindAttr class="servicesInfo.isVisible::hidden :log-list-wrap"}}>
+          <div {{action gotoHosts servicesInfo}} class="task-list-line-cursor">
+            <div class="host-name-icon-wrap">
+              <i {{bindAttr class="servicesInfo.status servicesInfo.icon"}}></i>
+              <a href="#">
+                {{servicesInfo.name}}
+              </a>
+            </div>
+            <div class="progress-bar span2">
+                <div {{bindAttr class="progress-striped active servicesInfo.barColor :progress"}}>
+                    <div class="bar" {{bindAttr style="servicesInfo.barWidth"}}></div>
+                </div>
+            </div>
+            <div class="host-progress-num">{{servicesInfo.progress}}%</div>
+            <div class="show-details"><i class="icon-caret-right"></i></div>
+          </div>
+        </div>
+        {{/each}}
+        {{#if view.isServiceEmptyList}}
+          <div class="log-list-wrap">{{t hostPopup.noServicesToShow}}</div>
+        {{/if}}
+      </div>
+    </div>
+
+
   <!-- HOSTS --->
 
   <div {{bindAttr class="view.isHostListHidden:hidden :task-list-main-warp"}}>
     <div class="task-top-wrap">
-       {{t common.hosts}}
-      <div class="select-wrap">
+      {{#if controller.showServices}}
+        <a class="task-detail-back-to-hosts" href="javascript:void(null)" {{action backToServiceList}} ><i class="icon-arrow-left"></i>&nbsp;{{t common.services}}</a>
+        <div>
+          <span class="task-detail-log-rolename" >{{t common.services}}</span>
+        </div>
+      {{else}}
+         {{t common.hosts}}
+      {{/if}}
+      <div {{bindAttr class="controller.showServices:tasks-list-select :select-wrap"}}>
         {{t common.show}}:
         {{view Ember.Select
           contentBinding="view.categories"
