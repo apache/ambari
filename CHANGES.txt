@@ -513,6 +513,8 @@ Trunk (unreleased changes):
 
  BUG FIXES
 
+ AMBARI-1659. Arrows often do not show up on config category expander. (yusaku)
+
  AMBARI-1645. Undo should not be allowed on component hosts. (yusaku)
 
  AMBARI-1644. Service summary page flickers. (yusaku)

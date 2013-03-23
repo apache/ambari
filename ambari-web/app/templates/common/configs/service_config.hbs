@@ -21,7 +21,7 @@
     {{#view App.ServiceConfigsByCategoryView categoryBinding="category" serviceBinding="selectedService" serviceConfigsBinding="selectedService.configs"}}
 
             <div class="accordion-heading" {{action "onToggleBlock" category target="view"}}>
-                <i class="pull-left accordion-toggle" {{bindAttr class="category.isCollapsed:icon-caret-right:icon-caret-down "}}></i>
+                <i {{bindAttr class=":pull-left :accordion-toggle category.isCollapsed:icon-caret-right:icon-caret-down"}}></i>
                 <a class="accordion-toggle">{{category.displayName}}</a>
             </div>
 
