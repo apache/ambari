@@ -107,7 +107,7 @@ App.Host = DS.Model.extend({
    * formatted bytes to appropriate value
    */
   memoryFormatted: function () {
-    return misc.formatBandwidth(this.get('memory') * 1000);
+    return misc.formatBandwidth(this.get('memory') * 1024);
   }.property('memory'),
   /**
    * Return true if host not heartbeating last 180 seconds

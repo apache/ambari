@@ -75,6 +75,7 @@ require('controllers/main/charts/heatmap_metrics/heatmap_metric_hbase_memstoresi
 require('controllers/main/charts/heatmap');
 require('controllers/main/apps_controller');
 require('controllers/main/apps/item_controller');
+require('controllers/main/mirroring_controller');
 require('controllers/wizard/slave_component_groups_controller');
 require('controllers/wizard/step1_controller');
 require('controllers/wizard/step2_controller');

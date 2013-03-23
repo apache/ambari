@@ -281,23 +281,7 @@ module.exports = {
           }
           rowValue = (jQuery(rowValue).text()) ? jQuery(rowValue).text() : rowValue;
 
-          var convertedRowValue;
-          if (rowValue === '<1KB') {
-            convertedRowValue = 1;
-          } else {
-            var rowValueScale = rowValue.substr(rowValue.length - 2, 2);
-            switch (rowValueScale) {
-              case 'KB':
-                convertedRowValue = parseFloat(rowValue)*1024;
-                break;
-              case 'MB':
-                convertedRowValue = parseFloat(rowValue)*1048576;
-                break;
-              case 'GB':
-                convertedRowValue = parseFloat(rowValue)*1073741824;
-                break;
-            }
-          }
+          var convertedRowValue = rowValue*1024;
 
           switch (compareChar) {
             case '<':
@@ -309,6 +293,74 @@ module.exports = {
             case false:
             case '=':
               if (compareValue == convertedRowValue) match = true;
+              break;
+          }
+          return match;
+        }
+        break;
+      case 'duration':
+        return function (rowValue, rangeExp) {
+          var compareChar = isNaN(rangeExp.charAt(0)) ? rangeExp.charAt(0) : false;
+          var compareScale = rangeExp.charAt(rangeExp.length - 1);
+          var compareValue = compareChar ? parseFloat(rangeExp.substr(1, rangeExp.length)) : parseFloat(rangeExp.substr(0, rangeExp.length));
+          var match = false;
+          if (rangeExp.length == 1 && compareChar !== false) {
+            // User types only '=' or '>' or '<', so don't filter column values
+            match = true;
+            return match;
+          }
+          switch (compareScale) {
+            case 's':
+              compareValue *= 1000;
+              break;
+            case 'm':
+              compareValue *= 60000;
+              break;
+            case 'h':
+              compareValue *= 3600000;
+              break;
+            default:
+              compareValue *= 1000;
+          }
+          rowValue = (jQuery(rowValue).text()) ? jQuery(rowValue).text() : rowValue;
+
+          switch (compareChar) {
+            case '<':
+              if (compareValue > rowValue) match = true;
+              break;
+            case '>':
+              if (compareValue < rowValue) match = true;
+              break;
+            case false:
+            case '=':
+              if (compareValue == rowValue) match = true;
+              break;
+          }
+          return match;
+        }
+        break;
+      case 'date':
+        return function (rowValue, rangeExp) {
+          var match = false;
+          var timePassed = new Date().getTime() - rowValue;
+          switch (rangeExp) {
+            case 'Past 1 Day':
+              match = timePassed <= 86400000;
+              break;
+            case 'Past 2 Days':
+              match = timePassed <= 172800000;
+              break;
+            case 'Past 7 Days':
+              match = timePassed <= 604800000;
+              break;
+            case 'Past 14 Days':
+              match = timePassed <= 1209600000;
+              break;
+            case 'Past 30 Days':
+              match = timePassed <= 2592000000;
+              break;
+            case 'Any':
+              match = true;
               break;
           }
           return match;

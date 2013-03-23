@@ -12,6 +12,8 @@ Trunk (unreleased changes):
 
  NEW FEATURES
 
+ AMBARI-1653. HDFS Mirroring: Display DataSets table. (yusaku)
+
  AMBARI-1658. Implement API/Service Provider for HDFS mirroring. (tbeerbower)
 
  AMBARI-1422. Allow client to specify a "context" value for asynchronous requests (jspeidel)

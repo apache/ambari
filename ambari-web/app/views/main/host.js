@@ -130,11 +130,13 @@ App.MainHostView = Em.View.extend({
   }),
   cpuSort: sort.fieldView.extend({
     name:'cpu',
-    displayName: Em.I18n.t('common.cpu')
+    displayName: Em.I18n.t('common.cpu'),
+    type: 'number'
   }),
   memorySort: sort.fieldView.extend({
     name:'memory',
-    displayName: Em.I18n.t('common.ram')
+    displayName: Em.I18n.t('common.ram'),
+    type: 'number'
   }),
   diskUsageSort: sort.fieldView.extend({
     name:'diskUsage',
@@ -142,7 +144,8 @@ App.MainHostView = Em.View.extend({
   }),
   loadAvgSort: sort.fieldView.extend({
     name:'loadAvg',
-    displayName: Em.I18n.t('common.loadAvg')
+    displayName: Em.I18n.t('common.loadAvg'),
+    type: 'number'
   }),
   HostView:Em.View.extend({
     content:null,
@@ -426,7 +429,7 @@ App.MainHostView = Em.View.extend({
     associations[1] = 'publicHostName';
     associations[2] = 'ip';
     associations[3] = 'cpu';
-    associations[4] = 'memoryFormatted';
+    associations[4] = 'memory';
     associations[5] = 'loadAvg';
     associations[6] = 'hostComponents';
     associations[7] = 'criticalAlertsCount';

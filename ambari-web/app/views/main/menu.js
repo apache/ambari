@@ -31,7 +31,8 @@ App.MainMenuView = Em.CollectionView.extend({
       { label:Em.I18n.t('menu.item.heatmaps'), routing:'charts'},
       { label:Em.I18n.t('menu.item.services'), routing:'services'},
       { label:Em.I18n.t('menu.item.hosts'), routing:'hosts'},
-      { label:Em.I18n.t('menu.item.jobs'), routing:'apps'}
+      { label:Em.I18n.t('menu.item.jobs'), routing:'apps'},
+      { label:Em.I18n.t('menu.item.mirroring'), routing:'mirroring'}
 
     ];
       if(App.db.getUser().admin) result.push({ label:Em.I18n.t('menu.item.admin'), routing:'admin'});

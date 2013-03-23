@@ -46,16 +46,6 @@ App.dataSetMapper = App.QuickDataMapper.create({
     //data: 'Instances.details'
   },
 
-  getDuration: function (startDate, endDate) {
-
-    var milliseconds = endDate - startDate;
-    var date = new Date(milliseconds);
-    var h = Math.floor(milliseconds / 3600000);
-    var m = Math.floor((milliseconds % 3600000) / 60000);
-    var s = Math.floor(((milliseconds % 360000) % 60000) / 1000);
-    return (h == 0 ? '' : h + 'hr ') + (m == 0 ? '' : m + 'mins ') + (s == 0 ? '' : s + 'secs ');
-
-  },
   map: function (json) {
     if (!this.get('model')) {
       return;
@@ -91,13 +81,13 @@ App.dataSetMapper = App.QuickDataMapper.create({
             }
             if (job.Instances.status === 'FAILED') {
               if (last_failed_date == null || last_failed_date < end_date) {
-                item.last_failed_date = end_date;
+                item.last_failed_date = end_date.getTime();
                 last_failed_date = end_date;
               }
             }
             else if (job.Instances.status === 'SUCCESSFUL') {
               if (last_succeeded_date == null || last_succeeded_date < end_date) {
-                item.last_succeeded_date = end_date;
+                item.last_succeeded_date = end_date.getTime();
                 last_succeeded_date = end_date;
               }
             }
@@ -109,7 +99,7 @@ App.dataSetMapper = App.QuickDataMapper.create({
 
           var last_end_date = new Date(item.last_job.Instances.end);
           var last_start_date = new Date(item.last_job.Instances.start);
-          item.last_duration = this.getDuration(last_start_date, last_end_date);
+          item.last_duration = last_end_date - last_start_date;
 
 
           item.avg_data = '';
@@ -135,7 +125,7 @@ App.dataSetMapper = App.QuickDataMapper.create({
             instance.Instances.end = new Date(instance.Instances.end); // neeed to be calulated end -start
 
 
-            instance.duration = this.getDuration(instance.Instances.start, instance.Instances.end);
+            instance.duration = instance.Instances.end - instance.Instances.start;
 
             instance.start_date_str = instance.Instances.start.toString();
             instance.end_date_str = instance.Instances.end.toString();

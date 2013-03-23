@@ -950,11 +950,19 @@ Em.I18n.translations = {
   'apps.isRunning.popup.title':'Is running',
   'apps.isRunning.popup.content':'Job is running now',
 
+  'mirroring.table.noDatasets':'No datasets to display',
+  'mirroring.table.datasetSource':'Dataset Source',
+  'mirroring.table.lastSuccess':'Last Success',
+  'mirroring.table.lastFail':'Last Fail',
+  'mirroring.table.lastDuration':'Last Duration',
+  'mirroring.table.avgData':'Avg Data',
+
   'menu.item.dashboard':'Dashboard',
   'menu.item.heatmaps':'Heatmaps',
   'menu.item.services':'Services',
   'menu.item.hosts':'Hosts',
   'menu.item.jobs':'Jobs',
+  'menu.item.mirroring':'Mirroring',
   'menu.item.admin':'Admin',
 
   'common.combobox.placeholder': 'Filter...',

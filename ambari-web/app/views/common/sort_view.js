@@ -65,6 +65,17 @@ var wrapperView = Em.View.extend({
           }
         };
         break;
+      case 'number':
+        func = function (a, b) {
+          var a = parseFloat(a.get(property.get('name')));
+          var b = parseFloat(b.get(property.get('name')));
+          if(order){
+            return b - a;
+          } else {
+            return a - b;
+          }
+        }
+        break;
       default:
         func = function(a,b){
           if(order){

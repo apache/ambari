@@ -100,6 +100,13 @@ module.exports = Em.Route.extend({
     }
   }),
 
+  mirroring: Em.Route.extend({
+    route: '/mirroring',
+    connectOutlets: function (router) {
+      router.get('mainController').connectOutlet('mainMirroring');
+    }
+  }),
+
   hosts: Em.Route.extend({
     route: '/hosts',
     index: Ember.Route.extend({

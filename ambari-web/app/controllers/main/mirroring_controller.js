@@ -16,34 +16,9 @@
  * limitations under the License.
  */
 
-
 var App = require('app');
 
-App.DataSet = DS.Model.extend({
-  id: DS.attr('string'),
-  name: DS.attr('string'),
-  sourceClusterName: DS.attr('string'),
-  targetClusterName: DS.attr('string'),
-  sourceDir: DS.attr('string'),
-  targetDir: DS.attr('string'),
-  schedule: DS.attr('string'),
-  lastSucceededDate: DS.attr('number'),
-  lastFailedDate: DS.attr('number'),
-  lastDuration: DS.attr('number'),
-  avgData: DS.attr('string'),
-  createdDate: DS.attr('string'),
-  datasetJobs: DS.hasMany('App.DataSetJob')
-
+App.MainMirroringController = Em.ArrayController.extend({
+  name:'mainMirroringController',
+  content: App.DataSet.find()
 });
-
-
-App.DataSet.FIXTURES = [/*
- {
- id: 1,
- cluster_name: 'cluster1',
- stack_name: 'HDP',
- hosts: [1, 2, 3, 4],
- racks: [1, 2, 3, 4, 5, 6],
- max_hosts_per_rack: 10
- }*/
-];
