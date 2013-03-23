@@ -97,6 +97,7 @@ App.HostComponentStatus = {
   stop_failed: "STOP_FAILED",
   start_failed: "START_FAILED",
   install_failed: "INSTALL_FAILED",
+  installing: "INSTALLING",
 
   getKeyName:function(value){
     switch(value){
@@ -114,6 +115,8 @@ App.HostComponentStatus = {
         return 'start_failed';
       case this.install_failed:
         return 'install_failed';
+      case this.installing:
+        return 'installing';
     }
     return 'none';
   }

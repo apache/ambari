@@ -90,23 +90,42 @@
           {{/view}}
           </div>
           {{/each}}
-          {{#if view.clients.length}}
+          {{!clients and add component button}}
           <div class="clients row-fluid">
-            <div class="span8 row">
-              <div class="span2">{{t common.clients}}&nbsp;/&nbsp;</div>
-              <div class="span8">
-                {{#each component in view.clients}}
-                {{#if component.isLast}}
-                {{component.displayName}}
-                {{else}}
-                {{component.displayName}},
-                {{/if}}
-                {{/each}}
-              </div>
+            <div class="span7 row">
+              {{#if view.clients.length}}
+                <div class="span2">{{t common.clients}}&nbsp;/&nbsp;</div>
+                  <div class="span8">
+                    {{#each component in view.clients}}
+                      {{#if component.isLast}}
+                        {{component.displayName}}
+                        {{else}}
+                        {{component.displayName}},
+                      {{/if}}
+                    {{/each}}
+                </div>
+              {{/if}}
+            </div>
+            <div class="span5 row">
+              {{#if view.addableComponents.length}}
+                <div class="btn-group">
+                  <button id="add_component" class="btn btn-info dropdown-toggle" data-toggle="dropdown">
+                    {{t common.addComponent}}
+                    <span class="caret pull-right"></span>
+                  </button>
+                  <ul class="dropdown-menu">
+                    {{#each component in view.addableComponents}}
+                      <li>
+                      <a href="javascript:void(null)" data-toggle="modal" {{action addComponent component target="controller"}}>
+                        {{component.displayName}}
+                      </a>
+                      </li>
+                    {{/each}}
+                  </ul>
+                </div>
+              {{/if}}
             </div>
           </div>
-          {{/if}}
-
         </div>
         {{/if}}
       </div>

@@ -52,6 +52,7 @@ Em.I18n.translations = {
   'common.progress':'Progress',
   'common.status':'Status',
   'common.action':'Action',
+  'common.addComponent':'Add Component',
   'common.remove':'Remove',
   'common.retry':'Retry',
   'common.show':'Show',

@@ -94,14 +94,17 @@ App.MainHostSummaryView = Em.View.extend({
     var slaveComponents = [];
     var masterComponents = [];
     this.get('content.hostComponents').forEach(function(component){
-      if(component.get('isMaster')){
-        masterComponents.push(component);
-      } else if(component.get('isSlave')) {
-        slaveComponents.push(component);
+      if(component.get('workStatus') != 'INSTALLING'){
+        if(component.get('isMaster')){
+          masterComponents.push(component);
+        } else if(component.get('isSlave')) {
+          slaveComponents.push(component);
+        }
       }
+
     }, this);
     return masterComponents.concat(slaveComponents);
-  }.property('content'),
+  }.property('content', 'content.hostComponents.length'),
   clients: function(){
     var clients = [];
     this.get('content.hostComponents').forEach(function(component){
@@ -118,6 +121,46 @@ App.MainHostSummaryView = Em.View.extend({
       }
     }, this);
     return clients;
+  }.property('content'),
+
+  addableComponentObject: Em.Object.extend({
+    componentName: '',
+    displayName: function(){
+      return App.format.role(this.get('componentName'));
+    }.property('componentName')
+  }),
+
+  addableComponents:function(){
+    var components = [];
+    var services = App.Service.find();
+    var dataNodeExists = false;
+    var taskTrackerExists = false;
+    var regionServerExists = false;
+
+    this.get('content.hostComponents').forEach(function(component) {
+      switch (component.get('componentName')) {
+        case 'DATANODE':
+          dataNodeExists = true;
+          break;
+        case 'TASKTRACKER':
+          taskTrackerExists = true;
+          break;
+        case 'HBASE_REGIONSERVER':
+          regionServerExists = true;
+          break;
+      }
+    }, this);
+
+    if (!dataNodeExists) {
+      components.pushObject(this.addableComponentObject.create({ 'componentName': 'DATANODE' }));
+    }
+    if (!taskTrackerExists && services.findProperty('serviceName', 'MAPREDUCE')) {
+      components.pushObject(this.addableComponentObject.create({ 'componentName': 'TASKTRACKER' }));
+    }
+    if (!regionServerExists && services.findProperty('serviceName', 'HBASE')) {
+      components.pushObject(this.addableComponentObject.create({ 'componentName': 'HBASE_REGIONSERVER' }));
+    }
+    return components;
   }.property('content'),
 
   ComponentView: Em.View.extend({

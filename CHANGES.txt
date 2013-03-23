@@ -12,6 +12,9 @@ Trunk (unreleased changes):
 
  NEW FEATURES
 
+ AMBARI-1663. Allow adding host components to existing hosts. (Xi Wang via
+ yusaku)
+
  AMBARI-1653. HDFS Mirroring: Display DataSets table. (yusaku)
 
  AMBARI-1658. Implement API/Service Provider for HDFS mirroring. (tbeerbower)

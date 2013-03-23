@@ -52,12 +52,12 @@ App.MainHostDetailsController = Em.Controller.extend({
    * @param url
    * @param data Object to send
    */
-  sendCommandToServer : function(url, postData, callback){
+  sendCommandToServer : function(url, postData, _method, callback){
     var url =  (App.testMode) ?
       '/data/wizard/deploy/poll_1.json' : //content is the same as ours
       App.apiPrefix + '/clusters/' + App.router.getClusterName() + url;
 
-    var method = App.testMode ? 'GET' : 'PUT';
+    var method = App.testMode ? 'GET' : _method;
 
     $.ajax({
       type: method,
@@ -97,7 +97,8 @@ App.MainHostDetailsController = Em.Controller.extend({
         HostRoles:{
           state: 'STARTED'
         }
-      }, function(requestId){
+      }, 'PUT',
+        function(requestId){
 
         if(!requestId){
           return;
@@ -138,14 +139,14 @@ App.MainHostDetailsController = Em.Controller.extend({
     var self = this;
     App.showConfirmationPopup(function() {
       var component = event.context;
-
       self.sendCommandToServer('/hosts/' + self.get('content.hostName') + '/host_components/' + component.get('componentName').toUpperCase(),{
         HostRoles:{
           state: 'INSTALLED'
         }
-      }, function(requestId){
+      }, 'PUT',
+        function(requestId){
         if(!requestId){
-          return
+          return;
         }
 
         console.log('Send request for STOPPING successfully');
@@ -176,6 +177,69 @@ App.MainHostDetailsController = Em.Controller.extend({
     });
   },
 
+  /**
+   * send command to server to install selected host component
+   * @param event
+   */
+  addComponent: function (event, context) {
+    var self = this;
+    var component = event.context;
+    var componentName = component.get('componentName').toUpperCase().toString();
+
+    App.showConfirmationPopup(function() {
+
+      self.sendCommandToServer('/hosts?Hosts/host_name=' + self.get('content.hostName'),{
+        host_components: [{
+          HostRoles:{
+            component_name: componentName
+          }
+        }]
+
+      },
+        'POST',
+        function(requestId){
+
+          console.log('Send request for ADDING NEW COMPONENT successfully');
+
+          self.sendCommandToServer('/host_components?HostRoles/host_name=' + self.get('content.hostName') + '\&HostRoles/component_name=' + componentName + '\&HostRoles/state=INIT',{
+              HostRoles:{
+                state: 'INSTALLED'
+              }
+            },
+            'PUT',
+            function(requestId){
+              if(!requestId){
+                return;
+              }
+
+              console.log('Send request for INSTALLING NEW COMPONENT successfully');
+
+              if (App.testMode) {
+                component.set('workStatus', App.HostComponentStatus.installing);
+                setTimeout(function(){
+                  component.set('workStatus', App.HostComponentStatus.stopped);
+                },App.testModeDelayForActions);
+              } else {
+                App.router.get('clusterController').loadUpdatedStatus();
+                App.router.get('backgroundOperationsController.eventsArray').push({
+                  "when" : function(controller){
+                    var result = (controller.getOperationsForRequestId(requestId).length == 0);
+                    console.log('installComponent.when = ', result)
+                    return result;
+                  },
+                  "do" : function(){
+                    App.router.get('clusterController').loadUpdatedStatus();
+                  }
+                });
+              }
+
+              App.router.get('backgroundOperationsController').showPopup();
+
+            });
+          return;
+        });
+    });
+  },
   /**
    * send command to server to run decommission on DATANODE
    * @param event
