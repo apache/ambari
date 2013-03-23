@@ -105,13 +105,24 @@ App.ServiceConfigsByCategoryView = Ember.View.extend({
   },
   showAddPropertyWindow: function (event) {
 
-    var serviceConfigObj = {
+    var serviceConfigObj = Ember.Object.create({
       name: '',
       value: '',
       defaultValue: null,
       filename: '',
-      isUserProperty: true
-    };
+      isUserProperty: true,
+      isKeyEmpty:false,
+      errorMessage:"",
+      observeAddPropertyValue:function(){
+        if(this.get("name").trim() != ""){
+          this.set("isKeyEmpty", false);
+          this.set("errorMessage", "");
+        }else{
+          this.set("isKeyEmpty", true);
+          this.set("errorMessage", Em.I18n.t('services.service.config.addPropertyWindow.errorMessage'));
+        }
+      }.observes("name")
+    });
 
     var category = this.get('category');
     serviceConfigObj.displayType = "advanced";
@@ -135,12 +146,20 @@ App.ServiceConfigsByCategoryView = Ember.View.extend({
       primary: 'Add',
       secondary: 'Cancel',
       onPrimary: function () {
-        serviceConfigObj.displayName = serviceConfigObj.name;
-        serviceConfigObj.id = 'site property';
-        serviceConfigObj.serviceName = serviceName;
-        var serviceConfigProperty = App.ServiceConfigProperty.create(serviceConfigObj);
-        self.get('serviceConfigs').pushObject(serviceConfigProperty);
-        this.hide();
+        /**
+         * For the first entrance use this if (serviceConfigObj.name.trim() != "")
+         */
+        if(!serviceConfigObj.isKeyEmpty && serviceConfigObj.name.trim() != ""){
+          serviceConfigObj.displayName = serviceConfigObj.name;
+          serviceConfigObj.id = 'site property';
+          serviceConfigObj.serviceName = serviceName;
+          var serviceConfigProperty = App.ServiceConfigProperty.create(serviceConfigObj);
+          self.get('serviceConfigs').pushObject(serviceConfigProperty);
+          this.hide();
+        }else{
+          serviceConfigObj.set("isKeyEmpty", true);
+          serviceConfigObj.set("errorMessage", Em.I18n.t('services.service.config.addPropertyWindow.errorMessage'));
+        }
       },
       onSecondary: function () {
         this.hide();
