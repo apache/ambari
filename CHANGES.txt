@@ -519,6 +519,9 @@ Trunk (unreleased changes):
 
  BUG FIXES
 
+ AMBARI-1706. Security wizard: "Done" and "back" buttons on Apply step 
+ should be disabled while step is in progress. (jaimin)
+
  AMBARI-1705. Remove redundant API calls to update service configuration
  while disabling security. (jaimin)
 

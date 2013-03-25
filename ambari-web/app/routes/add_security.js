@@ -114,10 +114,18 @@ module.exports = Em.Route.extend({
         controller.connectOutlet('mainAdminSecurityAddStep3', controller.get('content'));
       })
     },
-    back: Em.Router.transitionTo('step2'),
+    back: function (router, context) {
+      var controller = router.get('mainAdminSecurityAddStep3Controller');
+      if (!controller.get('isSubmitDisabled')) {
+        router.transitionTo('step2');
+      }
+    },
     done: function (router, context) {
       router.get('mainAdminSecurityController').setAddSecurityWizardStatus(null);
-      $(context.currentTarget).parents("#modal").find(".close").trigger('click');
+      var controller = router.get('mainAdminSecurityAddStep3Controller');
+      if (!controller.get('isSubmitDisabled')) {
+        $(context.currentTarget).parents("#modal").find(".close").trigger('click');
+      }
     }
   }),
 

@@ -46,6 +46,7 @@ App.MainAdminSecurityAddStep3Controller = Em.Controller.extend({
   clearStep: function () {
     this.get('stages').clear();
     this.set('isSubmitDisabled', true);
+    this.get('serviceConfigTags').clear();
   },
 
   loadStep: function () {
@@ -55,6 +56,12 @@ App.MainAdminSecurityAddStep3Controller = Em.Controller.extend({
     this.prepareSecureConfigs();
     this.moveToNextStage();
   },
+
+  enableSubmit: function () {
+    if (this.get('stages').someProperty('isError', true) || this.get('stages').everyProperty('isSuccess', true)) {
+      this.set('isSubmitDisabled', false);
+    }
+  }.observes('stages.@each.isCompleted'),
 
   updateServices: function () {
     this.services.clear();
@@ -120,9 +127,6 @@ App.MainAdminSecurityAddStep3Controller = Em.Controller.extend({
     var nextStage = this.get('stages').findProperty('isStarted', false);
     if (nextStage) {
       nextStage.set('isStarted', true);
-      this.set('isSubmitDisabled', true);
-    } else {
-      this.set('isSubmitDisabled', false);
     }
   },
 
@@ -484,4 +488,5 @@ App.MainAdminSecurityAddStep3Controller = Em.Controller.extend({
       }
     }, this);
   }
+
 });

@@ -24,7 +24,8 @@
 {{view App.MainServiceReconfigureView}}
 
 <div class="btn-area">
-  <a class="btn" {{action back}}>&larr; {{t common.back}}</a>
+  <a class="btn" {{bindAttr disabled="isSubmitDisabled"}}
+    {{action back}}>&larr; {{t common.back}}</a>
   <a class="btn btn-success pull-right" {{bindAttr disabled="isSubmitDisabled"}}
     {{action done}}>{{t common.done}} </a>
 </div>
