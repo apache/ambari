@@ -12,6 +12,9 @@ Trunk (unreleased changes):
 
  NEW FEATURES
 
+ AMBARI-1673. Configuring Hue to work with a secure HDP cluster and making changes 
+ to the Enable Security feature. (swagle)
+
  AMBARI-1663. Allow adding host components to existing hosts. (Xi Wang via
  yusaku)
 

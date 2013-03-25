@@ -199,13 +199,14 @@
   # ------------------------------------------------------------------------
   [[kerberos]]
 
+  <% if scope.function_hdp_template_var("::hdp::params::security_enabled") == true %>
     # Path to Hue's Kerberos keytab file
-    ## hue_keytab=
+    hue_keytab=<%=scope.function_hdp_template_var("::hdp-hue::params::hue_keytab_path")%>
     # Kerberos principal name for Hue
-    ## hue_principal=hue/hostname.foo.com
+    hue_principal=<%=scope.function_hdp_template_var("::hdp-hue::params::hue_principal")%>
     # Path to kinit
-    ## kinit_path=/path/to/kinit
-
+    kinit_path=<%=scope.function_hdp_template_var("::hdp::params::kinit_path_local")%>
+  <% end %>
 
 ###########################################################################
 # Settings to configure your Hadoop cluster.

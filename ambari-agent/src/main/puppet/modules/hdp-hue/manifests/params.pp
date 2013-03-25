@@ -95,6 +95,11 @@ class hdp-hue::params() inherits hdp::params {
 
     $hue_whitelist = $hue-site["whitelist"]
 
+    # Security Configuration properties
+
+    $hue_keytab_path = $hue-site["hue_keytab"]
+    $hue_principal = $hue-site["hue_principal"]
+
   } else {
     ##TODO: Temporary intialization
     # Hue Configuration properties
