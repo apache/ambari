@@ -32,6 +32,7 @@ App.MainAdminSecurityDisableController = Em.Controller.extend({
   clearStep: function () {
     this.get('stages').clear();
     this.get('secureServices').clear();
+    this.get('serviceConfigTags').clear();
   },
 
   loadStep: function () {
@@ -124,6 +125,25 @@ App.MainAdminSecurityDisableController = Em.Controller.extend({
     var data = '{"ServiceInfo": {"state": "STARTED"}}';
     stage4.set('url', url);
     stage4.set('data', data);
+  },
+
+  /**
+   * set tagnames for configuration of the *-site.xml
+   */
+  setServiceTagNames: function (secureService, configs) {
+    for (var index in configs) {
+      if (secureService.sites.contains(index)) {
+        var serviceConfigObj = {
+          siteName: index,
+          tagName: configs[index].tag,
+          newTagName: null,
+          configs: {}
+        };
+        console.log("The value of serviceConfigTags[index]: " + configs[index]);
+        this.get('serviceConfigTags').pushObject(serviceConfigObj);
+      }
+    }
+    return serviceConfigObj;
   },
 
   loadClusterConfigs: function () {
@@ -236,27 +256,6 @@ App.MainAdminSecurityDisableController = Em.Controller.extend({
       statusCode: require('data/statusCodes')
     });
   },
-
-  /**
-   * set tagnames for configuration of the *-site.xml
-   */
-  setServiceTagNames: function (secureServiceName, configs) {
-    console.log("TRACE: In setServiceTagNames function:");
-    //var serviceConfigTags = this.get('serviceConfigTags');
-    for (var index in configs) {
-      var serviceConfigObj = {
-        serviceName: secureServiceName,
-        siteName: index,
-        tagName: configs[index].tag,
-        newTagName: null,
-        configs: {}
-      };
-      console.log("The value of serviceConfigTags[index]: " + configs[index]);
-      this.get('serviceConfigTags').pushObject(serviceConfigObj);
-    }
-    return serviceConfigObj;
-  },
-
 
   getAllConfigsFromServer: function () {
     this.set('noOfWaitingAjaxCalls', this.get('serviceConfigTags').length - 1);

@@ -519,6 +519,9 @@ Trunk (unreleased changes):
 
  BUG FIXES
 
+ AMBARI-1705. Remove redundant API calls to update service configuration
+ while disabling security. (jaimin)
+
  AMBARI-1661. For custom advanced properties, a new config with an empty key
  can be added. (yusaku)
 
