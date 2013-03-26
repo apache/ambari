@@ -58,6 +58,16 @@
     </description>
   </property>
   <property>
+    <name>hbase.master.info.port</name>
+    <value></value>
+    <description>The port for the HBase Master web UI.</description>
+  </property>
+  <property>
+    <name>hbase.regionserver.info.port</name>
+    <value></value>
+    <description>The port for the HBase RegionServer web UI.</description>
+  </property>
+  <property>
     <name>hbase.regionserver.global.memstore.upperLimit</name>
     <value></value>
     <description>Maximum size of all memstores in a region server before new

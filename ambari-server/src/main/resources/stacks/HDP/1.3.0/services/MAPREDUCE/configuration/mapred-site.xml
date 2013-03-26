@@ -454,6 +454,12 @@
  </property>
 
  <property>
+   <name>mapred.task.tracker.http.address</name>
+   <value></value>
+   <description>Http address for task tracker.</description>
+ </property>
+
+ <property>
    <name>mapreduce.jobtracker.staging.root.dir</name>
    <value>/user</value>
  <description>The Path prefix for where the staging directories should be placed. The next level is always the user's

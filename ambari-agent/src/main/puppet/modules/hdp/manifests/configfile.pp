@@ -32,7 +32,7 @@ define hdp::configfile(
   $slave_hosts = $hdp::params::slave_hosts,
   $hbase_rs_hosts = $hdp::params::hbase_rs_hosts,
   $zookeeper_hosts = $hdp::params::zookeeper_hosts,
-  $hbase_master_hosts = $hdp::params::hbase_master_hostss,
+  $hbase_master_hosts = $hdp::params::hbase_master_hosts,
   $hcat_server_host = $hdp::params::hcat_server_host,
   $hive_server_host = $hdp::params::hive_server_host,
   $oozie_server = $hdp::params::oozie_server,

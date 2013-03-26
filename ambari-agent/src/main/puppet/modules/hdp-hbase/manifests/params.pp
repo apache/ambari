@@ -87,8 +87,8 @@ class hdp-hbase::params() inherits hdp::params
   $hbase_master_jaas_config_file = hdp_default("hadoop/hbase-site/hbase_master_jaas_config_file", ${conf_dir}/hbase_master_jaas.conf)
   $hbase_regionserver_jaas_config_file = hdp_default("hadoop/hbase-site/hbase_regionserver_jaas_config_file", ${conf_dir}/hbase_regionserver_jaas.conf)
 
-  $hbase_master_keytab_path = hdp_default("hadoop/hbase-site/hbase.master.keytab.file", "${keytab_path}/hbase.service.keytab")
-  $hbase_master_principal = hdp_default("hadoop/hbase-site/hbase.master.kerberos.principal", "hbase/_HOST@${kerberos_domain}")
-  $hbase_regionserver_keytab_path = hdp_default("hadoop/hbase-site/hbase.regionserver.keytab.file", "${keytab_path}/hbase.service.keytab")
-  $hbase_regionserver_principal = hdp_default("hadoop/hbase-site/hbase.regionserver.kerberos.principal", "hbase/_HOST@${kerberos_domain}")
+  $hbase_master_keytab_path = hdp_default("hadoop/hbase-site/hbase_master_keytab_file", "${keytab_path}/hbase_service_keytab")
+  $hbase_master_principal = hdp_default("hadoop/hbase-site/hbase_master_kerberos_principal", "hbase/_HOST@${kerberos_domain}")
+  $hbase_regionserver_keytab_path = hdp_default("hadoop/hbase-site/hbase_regionserver_keytab_file", "${keytab_path}/hbase.service.keytab")
+  $hbase_regionserver_principal = hdp_default("hadoop/hbase-site/hbase_regionserver_kerberos_principal", "hbase/_HOST@${kerberos_domain}")
 }

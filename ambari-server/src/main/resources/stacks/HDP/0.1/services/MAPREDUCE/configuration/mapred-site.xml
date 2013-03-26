@@ -1229,6 +1229,12 @@
   </description>
 </property>
 
+<property>
+  <name>mapred.task.tracker.http.address</name>
+  <value></value>
+  <description>Http address for task tracker.</description>
+</property>
+
 <!--  Node health script variables -->
 
 <property>

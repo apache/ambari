@@ -53,7 +53,7 @@ function check_taskcontroller {
 
 function check_jetty {
   hname=`hostname`
-  jmx=`curl -s -S -m 5 "http://$hname:50060/jmx?qry=Hadoop:service=TaskTracker,name=ShuffleServerMetrics" 2>/dev/null` ;
+  jmx=`curl -s -S -m 5 "http://$hname:<%=scope.function_hdp_template_var("tasktracker_port")%>/jmx?qry=Hadoop:service=TaskTracker,name=ShuffleServerMetrics" 2>/dev/null` ;
   if [ $? -eq 0 ] ; then
     e=`echo $jmx | awk '/shuffle_exceptions_caught/ {printf"%d",$2}'` ;
     e=${e:-0} # no jmx servlet ?

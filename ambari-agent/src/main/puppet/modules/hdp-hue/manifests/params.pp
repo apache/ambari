@@ -132,7 +132,7 @@ class hdp-hue::params() inherits hdp::params {
     $hue_bash_nice_name = "Bash (Test only!!!)"
     $hue_bash_shell_command = "/bin/bash"
 
-    $hue_whitelist = "(localhost|127\\.0\\.0\\.1):(50030|50070|50060|50075|50111)"
+    $hue_whitelist = "(localhost|127\\.0\\.0\\.1):(${jtnode_port}|${namenode_port}|${tasktracker_port}|${datanode_port}|${jobhistory_port})"
   }
 
 }

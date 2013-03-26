@@ -12,6 +12,9 @@ Trunk (unreleased changes):
 
  NEW FEATURES
 
+ AMBARI-1708. Remove all hardcoded ports from agent scripts to read from 
+ configs. (swagle)
+
  AMBARI-1692. Make changes to agent scripts to support secure HBase and Zk. (swagle)
 
  AMBARI-1707. Upgrade should check if another upgrade request is active as well as 
