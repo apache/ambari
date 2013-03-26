@@ -77,7 +77,19 @@ class hdp-hbase(
    hdp-hbase::configfile { ['hbase-env.sh','log4j.properties','hadoop-metrics.properties']: 
       type => $type
     }
+
     hdp-hbase::configfile { 'regionservers':}
+
+    if ($security_enabled == true) {
+      if ($type == 'master') {
+        hdp-hbase::configfile { 'hbase_master_jaas.conf' : }
+      } elsif ($type == 'regionserver') {
+        hdp-hbase::configfile { 'hbase_region_server_jaas.conf' : }
+      } else {
+        hdp-hbase::configfile { 'hbase_client_jaas.conf' : }
+      }
+    }
+
     Anchor['hdp-hbase::begin'] -> Hdp::Package['hbase'] -> Hdp::User[$hbase_user] -> Hdp::Directory[$config_dir] -> 
     Hdp-hbase::Configfile<||> ->  Anchor['hdp-hbase::end']
   }
@@ -88,7 +100,8 @@ define hdp-hbase::configfile(
   $mode = undef,
   $hbase_master_hosts = undef,
   $template_tag = undef,
-  $type = undef
+  $type = undef,
+  $conf_dir = $hdp-hbase::params::conf_dir
 ) 
 {
   if ($name == 'hadoop-metrics.properties') {
@@ -101,7 +114,7 @@ define hdp-hbase::configfile(
     $tag = $template_tag
   }
 
-  hdp::configfile { "${hdp-hbase::params::conf_dir}/${name}":
+  hdp::configfile { "${conf_dir}/${name}":
     component         => 'hbase',
     owner             => $hdp-hbase::params::hbase_user,
     mode              => $mode,

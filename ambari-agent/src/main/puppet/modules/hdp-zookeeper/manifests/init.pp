@@ -85,6 +85,14 @@ class hdp-zookeeper(
        }
       }
 
+      if ($security_enabled == true) {
+        if ($type == 'server') {
+          hdp-zookeeper::configfile { 'zookeeper_jaas.conf' : }
+        } else {
+          hdp-zookeeper::configfile { 'zookeeper_client_jaas.conf' : }
+        }
+      }
+
       Anchor['hdp-zookeeper::begin'] -> Hdp::Package['zookeeper'] -> Hdp::User[$zk_user] -> 
         Hdp::Directory_recursive_create[$zk_config_dir] -> Hdp-zookeeper::Configfile<||> -> Anchor['hdp-zookeeper::end']
       if ($type == 'server') {

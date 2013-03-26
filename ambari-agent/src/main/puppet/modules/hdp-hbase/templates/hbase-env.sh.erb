@@ -74,3 +74,10 @@ export HBASE_PID_DIR=<%=scope.function_hdp_template_var("hbase_pid_dir")%>
 
 # Tell HBase whether it should manage it's own instance of Zookeeper or not.
 export HBASE_MANAGES_ZK=false
+
+
+<% if scope.function_hdp_template_var("security_enabled") == true %>
+export HBASE_OPTS ="$HBASE_OPTS -Djava.security.auth.login.config=<%=scope.function_hdp_template_var("::hdp-hbase::params::hbase_client_jaas_config_file")%>"
+export HBASE_MASTER_OPTS ="$HBASE_MASTER_OPTS -Djava.security.auth.login.config=<%=scope.function_hdp_template_var("::hdp-hbase::params::hbase_master_jaas_config_file")%>"
+HBASE_REGIONSERVER_OPTS="$HBASE_REGIONSERVER_OPTS -Djava.security.auth.login.config=<%=scope.function_hdp_template_var("::hdp-hbase::params::hbase_regionserver_jaas_config_file")%>"
+<% end %>
