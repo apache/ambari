@@ -33,6 +33,40 @@ class hdp(
     ensure => present
   }
 
+
+ ## Port settings
+  if has_key($configuration, 'hdfs-site') {
+    $hdfs-site = $configuration['hdfs-site']
+    $namenode_port = hdp_get_port_from_url($hdfs-site["dfs.http.address"])
+    $snamenode_port = hdp_get_port_from_url($hdfs-site["dfs.secondary.http.address"])
+    $datanode_port = hdp_get_port_from_url($hdfs-site["dfs.datanode.http.address"])
+  } else {
+    $namenode_port = "50070"
+    $snamenode_port = "50090"
+    $datanode_port = "50075"
+  }
+
+  if has_key($configuration, 'mapred-site') {
+    $mapred-site = $configuration['mapred-site']
+    $jtnode_port = hdp_get_port_from_url($mapred-site["mapred.job.tracker.http.address"])
+    $tasktracker_port = hdp_get_port_from_url($mapred-site["mapred.task.tracker.http.address"])
+    $jobhistory_port = hdp_get_port_from_url($mapred-site["mapreduce.history.server.http.address"])
+  } else {
+    $jtnode_port = "50030"
+    $tasktracker_port = "50060"
+    $jobhistory_port = "51111"
+  }
+
+  if has_key($configuration, 'hbase-site') {
+    $hbase-site = $configuration['hbase-site']
+    $hbase_master_port = $hbase-site["hbase.master.info.port"]
+    $hbase_rs_port = $hbase-site["hbase.regionserver.info.port"]
+  } else {
+    $hbase_master_port = "60010"
+    $hbase_rs_port = "60030"
+  }
+
+
   #TODO: think not needed and also there seems to be a puppet bug around this and ldap
   hdp::user { $hdp::params::hadoop_user:
     gid => $hdp::params::user_group

@@ -83,9 +83,9 @@ class hdp-hbase::params() inherits hdp::params
 
   $regionserver_memstore_upperlimit = hdp_default("hadoop/hbase-site/regionserver_memstore_upperlimit","0.4")
 
-  $hbase_client_jaas_config_file = hdp_default("hadoop/hbase-site/hbase_client_jaas_config_file", ${conf_dir}/hbase_client_jaas.conf)
-  $hbase_master_jaas_config_file = hdp_default("hadoop/hbase-site/hbase_master_jaas_config_file", ${conf_dir}/hbase_master_jaas.conf)
-  $hbase_regionserver_jaas_config_file = hdp_default("hadoop/hbase-site/hbase_regionserver_jaas_config_file", ${conf_dir}/hbase_regionserver_jaas.conf)
+  $hbase_client_jaas_config_file = hdp_default("hadoop/hbase-site/hbase_client_jaas_config_file", "${conf_dir}/hbase_client_jaas.conf")
+  $hbase_master_jaas_config_file = hdp_default("hadoop/hbase-site/hbase_master_jaas_config_file", "${conf_dir}/hbase_master_jaas.conf")
+  $hbase_regionserver_jaas_config_file = hdp_default("hadoop/hbase-site/hbase_regionserver_jaas_config_file", "${conf_dir}/hbase_regionserver_jaas.conf")
 
   $hbase_master_keytab_path = hdp_default("hadoop/hbase-site/hbase_master_keytab_file", "${keytab_path}/hbase_service_keytab")
   $hbase_master_principal = hdp_default("hadoop/hbase-site/hbase_master_kerberos_principal", "hbase/_HOST@${kerberos_domain}")
