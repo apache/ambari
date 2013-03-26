@@ -3865,13 +3865,47 @@ public class AmbariManagementControllerImpl implements
     stage.getExecutionCommandWrapper(hostName, actionRequest.getActionName()).getExecutionCommand()
         .setRoleParams(actionRequest.getParameters());
 
-    Map<String, Map<String, String>> configurations = new TreeMap<String, Map<String, String>>();
-    Map<String, Config> allConfigs = clusters.getCluster(clusterName)
-        .getService(actionRequest.getServiceName()).getDesiredConfigs();
-    if (allConfigs != null) {
-      for (Map.Entry<String, Config> entry: allConfigs.entrySet()) {
-        configurations.put(entry.getValue().getType(), entry.getValue().getProperties());
+    Cluster cluster = clusters.getCluster(clusterName);
+    
+    // [ type -> [ key, value ] ]
+    Map<String, Map<String, String>> configurations = new TreeMap<String, Map<String,String>>();
+
+    // Do not use service config mappings.  Instead, the rules are:
+    // 1) Use the cluster desired config
+    // 2) override (1) with service-specific overrides
+    // 3) override (2) with host-specific overrides
+    // Yes, we may be sending more configs than are actually used, but that is
+    // because of the new design
+
+    for (Entry<String, DesiredConfig> entry : cluster.getDesiredConfigs().entrySet()) {
+      String type = entry.getKey();
+      String tag = entry.getValue().getVersion();
+      // 1) start with cluster config
+      Config config = cluster.getConfig(type, tag);
+
+      if (null == config)
+        continue;
+
+      Map<String, String> props = new HashMap<String, String>(config.getProperties());
+
+      // 2) apply the service overrides, if any are defined with different tags
+      Service service = cluster.getService(actionRequest.getServiceName());
+      Config svcConfig = service.getDesiredConfigs().get(type);
+      if (null != svcConfig && !svcConfig.getVersionTag().equals(tag)) {
+        props.putAll(svcConfig.getProperties());
       }
+
+      // 3) apply the host overrides, if any
+      Host host = clusters.getHost(hostName);
+      DesiredConfig dc = host.getDesiredConfigs(cluster.getClusterId()).get(type);
+      if (null != dc) {
+        Config hostConfig = cluster.getConfig(type, dc.getVersion());
+        if (null != hostConfig) {
+          props.putAll(hostConfig.getProperties());
+        }
+      }
+
+      configurations.put(type, props);
     }
 
     ExecutionCommand execCmd = stage.getExecutionCommandWrapper(hostName,

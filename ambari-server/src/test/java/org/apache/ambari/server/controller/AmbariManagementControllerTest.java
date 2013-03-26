@@ -20,6 +20,7 @@ package org.apache.ambari.server.controller;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.fail;
 
 import java.util.ArrayList;
@@ -60,6 +61,7 @@ import org.apache.ambari.server.serveraction.ServerActionManagerImpl;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Config;
+import org.apache.ambari.server.state.ConfigFactory;
 import org.apache.ambari.server.state.ConfigImpl;
 import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.Service;
@@ -3356,6 +3358,21 @@ public class AmbariManagementControllerTest {
 
     Cluster cluster = clusters.getCluster("c1");
     cluster.setDesiredStackVersion(new StackId("HDP-0.1"));
+    
+    ConfigFactory cf = injector.getInstance(ConfigFactory.class);
+    Config config1 = cf.createNew(cluster, "global",
+        new HashMap<String, String>(){{ put("key1", "value1"); }});
+    config1.setVersionTag("version1");
+
+    Config config2 = cf.createNew(cluster, "core-site",
+        new HashMap<String, String>(){{ put("key1", "value1"); }});
+    config2.setVersionTag("version1");
+    
+    cluster.addConfig(config1);
+    cluster.addConfig(config2);
+    cluster.addDesiredConfig(config1);
+    cluster.addDesiredConfig(config2);
+    
     Service hdfs = cluster.addService("HDFS");
     Service mapReduce = cluster.addService("MAPREDUCE");
     hdfs.persist();
@@ -3375,6 +3392,7 @@ public class AmbariManagementControllerTest {
     actionRequests.add(actionRequest);
 
     RequestStatusResponse response = controller.createActions(actionRequests);
+    
     assertEquals(1, response.getTasks().size());
     ShortTaskStatus task = response.getTasks().get(0);
 
@@ -3388,7 +3406,9 @@ public class AmbariManagementControllerTest {
     assertEquals(actionRequest.getActionName(), hostRoleCommand.getExecutionCommandWrapper().getExecutionCommand().getRole().name());
     assertEquals(Role.HDFS_CLIENT.name(), hostRoleCommand.getEvent().getEvent().getServiceComponentName());
     assertEquals(actionRequest.getParameters(), hostRoleCommand.getExecutionCommandWrapper().getExecutionCommand().getRoleParams());
-
+    assertNotNull(hostRoleCommand.getExecutionCommandWrapper().getExecutionCommand().getConfigurations());
+    assertEquals(2, hostRoleCommand.getExecutionCommandWrapper().getExecutionCommand().getConfigurations().size());
+    
     actionRequests.add(new ActionRequest("c1", "MAPREDUCE", Role.MAPREDUCE_SERVICE_CHECK.name(), null));
 
     response = controller.createActions(actionRequests);
