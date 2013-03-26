@@ -4567,10 +4567,10 @@ public class AmbariManagementControllerTest {
   @Test
   public void testUpdateClusterVersionBasic() throws AmbariException {
     String clusterName = "foo1";
-    String serviceName = "PIG";
+    String serviceName = "MAPREDUCE";
     String host1 = "h1";
     String host2 = "h2";
-    String componentName = "PIG";
+    String componentName = "JOBTRACKER";
     StackId currentStackId = new StackId("HDP-0.1");
 
     Map<String, String> mapRequestProps = new HashMap<String, String>();
@@ -4604,6 +4604,10 @@ public class AmbariManagementControllerTest {
     c.getService(serviceName).getServiceComponent(componentName).getServiceComponentHost(host2)
         .setDesiredState(State.STARTED);
     c.getService(serviceName).getServiceComponent(componentName).getServiceComponentHost(host1)
+        .setState(State.INSTALLED);
+    c.getService(serviceName).getServiceComponent(componentName).getServiceComponentHost(host2)
+        .setState(State.STARTED);
+    c.getService(serviceName).getServiceComponent(componentName).getServiceComponentHost(host1)
         .setStackVersion(currentStackId);
     c.getService(serviceName).getServiceComponent(componentName).getServiceComponentHost(host2)
         .setStackVersion(currentStackId);
@@ -4611,7 +4615,7 @@ public class AmbariManagementControllerTest {
     ClusterRequest r = new ClusterRequest(c.getClusterId(), clusterName, "HDP-0.0.1", null);
     try {
       controller.updateCluster(r, mapRequestProps);
-      fail("Update cluster creation should fail");
+      fail("Update cluster should fail");
     } catch (AmbariException e) {
       Assert.assertTrue(e.getMessage().contains("must be greater than current version"));
     }
@@ -4619,7 +4623,7 @@ public class AmbariManagementControllerTest {
     r = new ClusterRequest(c.getClusterId(), clusterName, "HDPLocal-1.2.2", null);
     try {
       controller.updateCluster(r, mapRequestProps);
-      fail("Update cluster creation should fail");
+      fail("Update cluster should fail");
     } catch (AmbariException e) {
       Assert.assertTrue(e.getMessage().contains("Upgrade not possible between different stacks"));
     }
@@ -4627,13 +4631,26 @@ public class AmbariManagementControllerTest {
     r = new ClusterRequest(c.getClusterId(), clusterName, "HDP-0.2", null);
     try {
       controller.updateCluster(r, mapRequestProps);
-      fail("Update cluster creation should fail");
+      fail("Update cluster should fail");
     } catch (AmbariException e) {
       Assert.assertTrue(e.getMessage().contains("Upgrade needs all services to be stopped"));
+      Assert.assertTrue(e.getMessage().contains(serviceName));
     }
 
     c.getService(serviceName).getServiceComponent(componentName).getServiceComponentHost(host2)
         .setDesiredState(State.INSTALLED);
+
+    r = new ClusterRequest(c.getClusterId(), clusterName, "HDP-0.2", null);
+    try {
+      controller.updateCluster(r, mapRequestProps);
+      fail("Update cluster should fail");
+    } catch (AmbariException e) {
+      Assert.assertTrue(e.getMessage().contains("Upgrade needs all services to be stopped"));
+      Assert.assertTrue(e.getMessage().contains(componentName));
+    }
+
+    c.getService(serviceName).getServiceComponent(componentName).getServiceComponentHost(host2)
+        .setState(State.INSTALLED);
     controller.updateCluster(r, mapRequestProps);
     StackId expectedStackId = new StackId("HDP-0.2");
     Assert.assertTrue(expectedStackId.equals(c.getDesiredStackVersion()));
@@ -4651,6 +4668,14 @@ public class AmbariManagementControllerTest {
     ServiceComponent sc = c.getService(serviceName).getServiceComponent(componentName);
     Assert.assertEquals(State.UPGRADING, sc.getServiceComponentHost(host1).getState());
     Assert.assertEquals(State.UPGRADING, sc.getServiceComponentHost(host2).getState());
+
+    // Fail as another request is active
+    try {
+      controller.updateCluster(r, mapRequestProps);
+      fail("Update cluster should fail");
+    } catch (AmbariException e) {
+      Assert.assertTrue(e.getMessage().contains("A prior upgrade request with id"));
+    }
 
     // cases where there is no update required
     c.getService(serviceName).getServiceComponent(componentName).getServiceComponentHost(host1)
@@ -4781,6 +4806,7 @@ public class AmbariManagementControllerTest {
     resetServiceState(mrServiceName, currentStackId, c);
 
     // Upgrade a cluster with two service
+    actionDB.abortOperation(trackAction.getRequestId());
     r = new ClusterRequest(c.getClusterId(), clusterName, "HDP-0.2", null);
     trackAction = controller.updateCluster(r, mapRequestProps);
     stages = actionDB.getAllStages(trackAction.getRequestId());
@@ -4791,6 +4817,7 @@ public class AmbariManagementControllerTest {
     validateGeneratedStages(stages, 5, expectedTasks);
 
     // Upgrade again
+    actionDB.abortOperation(trackAction.getRequestId());
     trackAction = controller.updateCluster(r, mapRequestProps);
     stages = actionDB.getAllStages(trackAction.getRequestId());
     validateGeneratedStages(stages, 5, expectedTasks);
@@ -4805,6 +4832,7 @@ public class AmbariManagementControllerTest {
     c.getService(pigServiceName).getServiceComponent(pigComponentName).getServiceComponentHost(host2)
         .setStackVersion(desiredStackId);
 
+    actionDB.abortOperation(trackAction.getRequestId());
     trackAction = controller.updateCluster(r, mapRequestProps);
     stages = actionDB.getAllStages(trackAction.getRequestId());
     validateGeneratedStages(stages, 5, expectedTasks);
@@ -4813,6 +4841,7 @@ public class AmbariManagementControllerTest {
         .setState(State.UPGRADE_FAILED);
     c.getService(mrServiceName).getServiceComponent(mrTaskTrackerComp).getServiceComponentHost(host2)
         .setState(State.UPGRADE_FAILED);
+    actionDB.abortOperation(trackAction.getRequestId());
     trackAction = controller.updateCluster(r, mapRequestProps);
     stages = actionDB.getAllStages(trackAction.getRequestId());
     validateGeneratedStages(stages, 5, expectedTasks);
@@ -4832,6 +4861,7 @@ public class AmbariManagementControllerTest {
     resetServiceState(mrServiceName, currentStackId, c);
     resetServiceState(pigServiceName, currentStackId, c);
 
+    actionDB.abortOperation(trackAction.getRequestId());
     trackAction = controller.updateCluster(r, mapRequestProps);
     stages = actionDB.getAllStages(trackAction.getRequestId());
 
@@ -4849,9 +4879,9 @@ public class AmbariManagementControllerTest {
     validateGeneratedStages(stages, 8, expectedTasks);
   }
 
-  private void resetServiceState(String hdfsService, StackId currentStackId, Cluster c) throws AmbariException {
-    c.getService(hdfsService).setDesiredState(State.INSTALLED);
-    for (ServiceComponent sc : c.getService(hdfsService).getServiceComponents().values()) {
+  private void resetServiceState(String service, StackId currentStackId, Cluster c) throws AmbariException {
+    c.getService(service).setDesiredState(State.INSTALLED);
+    for (ServiceComponent sc : c.getService(service).getServiceComponents().values()) {
       sc.setDesiredState(State.INSTALLED);
       for (ServiceComponentHost sch : sc.getServiceComponentHosts().values()) {
         sch.setDesiredState(State.INSTALLED);

@@ -49,6 +49,7 @@ import org.apache.ambari.server.ServiceNotFoundException;
 import org.apache.ambari.server.StackAccessException;
 import org.apache.ambari.server.actionmanager.ActionManager;
 import org.apache.ambari.server.actionmanager.HostRoleCommand;
+import org.apache.ambari.server.actionmanager.HostRoleStatus;
 import org.apache.ambari.server.actionmanager.RequestStatus;
 import org.apache.ambari.server.actionmanager.Stage;
 import org.apache.ambari.server.actionmanager.StageFactory;
@@ -1487,10 +1488,9 @@ public class AmbariManagementControllerImpl implements
         }
       }
 
-      boolean activeComponentExists = checkIfActiveComponentsExist(cluster);
-      if (activeComponentExists) {
-        throw new AmbariException("Upgrade needs all services to be stopped.");
-      }
+      checkIfActiveComponentsExist(cluster, currentVersion);
+
+      checkIfAnotherUpgradeCommandIsActive();
 
       // TODO Ensure no other upgrade is active
       /**
@@ -1548,6 +1548,27 @@ public class AmbariManagementControllerImpl implements
     }
 
     return null;
+  }
+
+  private void checkIfAnotherUpgradeCommandIsActive() throws AmbariException {
+    List<Long> requestIds = actionManager.getRequestsByStatus(RequestStatus.IN_PROGRESS);
+    if (requestIds != null) {
+      for (Long requestId : requestIds) {
+        List<HostRoleCommand> commands = actionManager.getRequestTasks(requestId);
+        if (commands != null) {
+          for (HostRoleCommand command : commands) {
+            if (command.getRoleCommand() == RoleCommand.UPGRADE
+                && (command.getStatus() == HostRoleStatus.QUEUED
+                || command.getStatus() == HostRoleStatus.PENDING
+                || command.getStatus() == HostRoleStatus.IN_PROGRESS)) {
+              throw new AmbariException("A prior upgrade request with id " + requestId
+                  + " is in progress. Upgrade can "
+                  + "only be retried after the prior command has completed.");
+            }
+          }
+        }
+      }
+    }
   }
 
   private void addFinalizeUpgradeAction(Cluster cluster, List<Stage> stages) throws AmbariException {
@@ -1667,27 +1688,42 @@ public class AmbariManagementControllerImpl implements
     }
   }
 
-  private boolean checkIfActiveComponentsExist(Cluster c) {
-    boolean activeComponentExists = false;
+  private void checkIfActiveComponentsExist(Cluster c, StackId currentStackId)
+      throws AmbariException {
+    String stackName = currentStackId.getStackName();
+    String stackVersion = currentStackId.getStackVersion();
+    StringBuilder sb = new StringBuilder("Upgrade needs all services to be stopped. ");
     for (Service service : c.getServices().values()) {
-      if (activeComponentExists || service.getDesiredState() != State.INSTALLED) {
-        activeComponentExists = true;
-        break;
+      if (service.getDesiredState() != State.INSTALLED) {
+        sb.append("Service " + service.getName() + " is not stopped.");
+        throw new AmbariException(sb.toString());
       }
       for (ServiceComponent component : service.getServiceComponents().values()) {
-        if (activeComponentExists || component.getDesiredState() != State.INSTALLED) {
-          activeComponentExists = true;
-          break;
+        if (component.getDesiredState() != State.INSTALLED) {
+          sb.append("Component " + component.getName() + " of service "
+              + service.getName() + " is not stopped.");
+          throw new AmbariException(sb.toString());
         }
         for (ServiceComponentHost componentHost : component.getServiceComponentHosts().values()) {
-          if (activeComponentExists || componentHost.getDesiredState() != State.INSTALLED) {
-            activeComponentExists = true;
-            break;
+          if (componentHost.getDesiredState() != State.INSTALLED) {
+            sb.append("Component " + component.getName() + " of service "
+                + service.getName() +  " on host "
+                + componentHost.getHostName() + " is not stopped.");
+            throw new AmbariException(sb.toString());
+          }
+          if(componentHost.getState() == State.STARTED) {
+            ComponentInfo compInfo = ambariMetaInfo.getComponent(stackName, stackVersion,
+                componentHost.getServiceName(), componentHost.getServiceComponentName());
+            if(compInfo.isMaster()) {
+              sb.append("Component " + component.getName() + " of service "
+                  + service.getName() +  " on host "
+                  + componentHost.getHostName() + " is not yet stopped.");
+              throw new AmbariException(sb.toString());
+            }
           }
         }
       }
     }
-    return activeComponentExists;
   }
 
   // FIXME refactor code out of all update functions

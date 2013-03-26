@@ -12,6 +12,9 @@ Trunk (unreleased changes):
 
  NEW FEATURES
 
+ AMBARI-1707. Upgrade should check if another upgrade request is active as well as 
+ if any MASTER components have not stopped. (Sumit Mohanty via swagle)
+
  AMBARI-1673. Configuring Hue to work with a secure HDP cluster and making changes 
  to the Enable Security feature. (swagle)
 
