@@ -44,6 +44,7 @@ class hdp-nagios::server::config()
   hdp-nagios::server::check { 'check_oozie_status.sh': }
   hdp-nagios::server::check { 'check_templeton_status.sh': }
   hdp-nagios::server::check { 'check_hive_metastore_status.sh': }
+  hdp-nagios::server::check { 'check_ambari_agent_status.sh': }
 
   anchor{'hdp-nagios::server::config::begin':} -> Hdp-nagios::Server::Configfile<||> -> anchor{'hdp-nagios::server::config::end':}
   Anchor['hdp-nagios::server::config::begin'] -> Hdp-nagios::Server::Check<||> -> Anchor['hdp-nagios::server::config::end']

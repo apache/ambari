@@ -76,6 +76,18 @@ define service {
         max_check_attempts      3
 }
 
+# AMBARI AGENT Checks
+define service {
+        hostgroup_name          nagios-server
+        use                     hadoop-service
+        service_description     AMBARI::Check ambari-agent process
+        servicegroups           AMBARI
+        check_command           check_ambari_agent_status
+        normal_check_interval   5
+        retry_check_interval    0.5
+        max_check_attempts      2
+}
+
 # NAGIOS SERVER ZOOKEEPER Checks
 <%if scope.function_hdp_nagios_members_exist('zookeeper-servers')-%>
 define service {
