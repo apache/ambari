@@ -21,9 +21,14 @@ limitations under the License.
 from unittest import TestCase
 from ambari_agent.FileUtil import writeFile, createStructure, deleteStructure
 import os, errno
+import tempfile
+from ambari_agent  import AmbariConfig
 
 class TestFileUtil(TestCase):
+
   def test_createStructure(self):
+    tmpdir = tempfile.gettempdir()
+    AmbariConfig.config.set('agent', 'prefix', tmpdir)
     action = { 'clusterId' : 'abc', 'role' : 'hdfs', 'workDirComponent' : 'abc-hdfs' }
     result = {}
     result = createStructure(action, result)
@@ -35,7 +40,7 @@ class TestFileUtil(TestCase):
       "owner"      : os.getuid(),
       "group"      : os.getgid() ,
       "permission" : 0700,
-      "path"       : "/tmp/ambari_file_test/_file_write_test",
+      "path"       : os.path.join(tmpdir, "ambari_file_test/_file_write_test"),
       "umask"      : 022
     }
     action = {
