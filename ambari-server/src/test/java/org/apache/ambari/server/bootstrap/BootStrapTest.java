@@ -89,6 +89,7 @@ public class BootStrapTest extends TestCase {
     /* Note its an echo command so it should echo host1,host2 */
     Assert.assertTrue(status.getLog().contains("host1,host2"));
     Assert.assertEquals(BSStat.SUCCESS, status.getStatus());
+    Assert.assertFalse(new File(bootdir + File.separator + "1" + File.separator + "sshKey").exists());
   }
 
 

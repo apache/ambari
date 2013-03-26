@@ -527,6 +527,9 @@ Trunk (unreleased changes):
 
  BUG FIXES
 
+ AMBARI-1713. Need to delete private ssh key from /var/run/ambari-server
+ /bootstrap/* on Ambari Server after bootstrap is complete. (swagle)
+
  AMBARI-1711. Trunk is broken due  to invalid argument to a puppet custom 
  function hdp_default. (swagle)
 

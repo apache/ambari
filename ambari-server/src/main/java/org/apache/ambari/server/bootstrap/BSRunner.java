@@ -271,6 +271,12 @@ class BSRunner extends Thread {
       tmpStatus.setStatus(stat);
       bsImpl.updateStatus(requestId, tmpStatus);
       bsImpl.reset();
+      // Remove private ssh key after bootstrap is complete
+      try {
+        FileUtils.forceDelete(sshKeyFile);
+      } catch (IOException io) {
+        LOG.info(io.getMessage());
+      }
       finished();
     }
   }
