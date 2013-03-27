@@ -12,6 +12,9 @@ Trunk (unreleased changes):
 
  NEW FEATURES
 
+ AMBARI-1728. Cleanup INFO Logging at the ambari agent to make it more useful 
+ and less verbose. (swagle)
+
  AMBARI-1676. Ambari upgrade to 1.3.0 (core support). (smohanty)
 
  AMBARI-1708. Remove all hardcoded ports from agent scripts to read from 
