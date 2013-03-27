@@ -17,8 +17,16 @@
 --
 \connect ambari;
 
+-- Upgrade from 1.2.0
+ALTER TABLE ambari.hosts
+  ALTER COLUMN disks_info TYPE VARCHAR(10000);
+
+-- Upgrade to 1.3.0
 ALTER TABLE ambari.clusterstate
   ADD COLUMN current_stack_version VARCHAR(255) NOT NULL;
+
+CREATE TABLE ambari.metainfo ("metadata_name" VARCHAR(255), "metadata_value" VARCHAR, PRIMARY KEY("metadata_name"));
+GRANT ALL PRIVILEGES ON TABLE ambari.metainfo TO :username;
 
 CREATE TABLE ambari.clusterconfigmapping (cluster_id bigint NOT NULL, type_name VARCHAR(255) NOT NULL, version_tag VARCHAR(255) NOT NULL, create_timestamp BIGINT NOT NULL, selected INTEGER NOT NULL DEFAULT 0, PRIMARY KEY (cluster_id, type_name, create_timestamp));
 GRANT ALL PRIVILEGES ON TABLE ambari.clusterconfigmapping TO :username;
@@ -33,3 +41,10 @@ ALTER SEQUENCE ambari.host_role_command_task_id_seq INCREMENT BY 50;
 SELECT nextval('ambari.host_role_command_task_id_seq');
 
 ALTER TABLE ambari.stage ADD COLUMN request_context VARCHAR(255);
+
+BEGIN;
+
+insert into ambari.metainfo(metadata_name, metadata_value)
+select 'version','1.3.0';
+
+COMMIT;

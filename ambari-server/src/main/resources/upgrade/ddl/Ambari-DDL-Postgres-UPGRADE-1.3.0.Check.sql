@@ -17,5 +17,4 @@
 --
 \connect ambari;
 
-ALTER TABLE ambari.hosts
-  ALTER COLUMN disks_info TYPE VARCHAR(10000);
+COPY (SELECT count(*) FROM ambari.serviceconfigmapping WHERE service_name = 'MAPREDUCE') TO STDOUT WITH CSV;

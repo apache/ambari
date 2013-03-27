@@ -113,8 +113,10 @@ CREATE TABLE ambari.key_value_store ("key" VARCHAR(255), "value" VARCHAR, PRIMAR
 GRANT ALL PRIVILEGES ON TABLE ambari.key_value_store TO :username;
 
 CREATE TABLE ambari.hostconfigmapping (cluster_id bigint NOT NULL, host_name VARCHAR(255) NOT NULL, type_name VARCHAR(255) NOT NULL, version_tag VARCHAR(255) NOT NULL, service_name VARCHAR(255), create_timestamp BIGINT NOT NULL, selected INTEGER NOT NULL DEFAULT 0, PRIMARY KEY (cluster_id, host_name, type_name, create_timestamp));
-
 GRANT ALL PRIVILEGES ON TABLE ambari.hostconfigmapping TO :username;
+
+CREATE TABLE ambari.metainfo ("metadata_name" VARCHAR(255), "metadata_value" VARCHAR, PRIMARY KEY("metadata_name"));
+GRANT ALL PRIVILEGES ON TABLE ambari.metainfo TO :username;
 
 ALTER TABLE ambari.clusterconfig ADD CONSTRAINT FK_clusterconfig_cluster_id FOREIGN KEY (cluster_id) REFERENCES ambari.clusters (cluster_id);
 ALTER TABLE ambari.clusterservices ADD CONSTRAINT FK_clusterservices_cluster_id FOREIGN KEY (cluster_id) REFERENCES ambari.clusters (cluster_id);
@@ -169,6 +171,9 @@ select 'admin','538916f8943ec225d97a9a86a2c6ec0818c1cd400e09e03b660fdaaec4af29dd
 
 insert into ambari.user_roles(role_name, user_id)
 select 'admin',(select user_id from ambari.users where user_name='admin' and ldap_user=false);
+
+insert into ambari.metainfo(metadata_name, metadata_value)
+select 'version','1.3.0';
 
 COMMIT;
 

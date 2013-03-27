@@ -18,6 +18,8 @@
 
 package org.apache.ambari.server.state;
 
+import org.apache.ambari.server.utils.VersionUtils;
+
 public class StackId implements Comparable<StackId> {
 
   private static final String NAME_SEPARATOR = "-";
@@ -105,21 +107,7 @@ public class StackId implements Comparable<StackId> {
 
     int returnValue = getStackName().compareTo(other.getStackName());
     if (returnValue == 0) {
-      String[] thisVersionParts = getStackVersion().split("\\.");
-      String[] thatVersionParts = other.getStackVersion().split("\\.");
-      int length = Math.max(thisVersionParts.length, thatVersionParts.length);
-      for (int i = 0; i < length; i++) {
-        int stack1Part = i < thisVersionParts.length ?
-            Integer.parseInt(thisVersionParts[i]) : 0;
-        int stack2Part = i < thatVersionParts.length ?
-            Integer.parseInt(thatVersionParts[i]) : 0;
-        if (stack1Part < stack2Part) {
-          return -1;
-        }
-        if (stack1Part > stack2Part) {
-          return 1;
-        }
-      }
+      returnValue = VersionUtils.compareVersions(getStackVersion(), other.getStackVersion());
     } else {
       throw new RuntimeException("StackId with different names cannot be compared.");
     }

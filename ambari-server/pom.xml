@@ -253,13 +253,13 @@
               <groupname>root</groupname>
               <sources>
                 <source>
-                  <location>src/main/resources/upgrade/ddl/Ambari-DDL-Postgres-UPGRADE-1.2.2.sql</location>
+                  <location>src/main/resources/upgrade/ddl/Ambari-DDL-Postgres-UPGRADE-1.3.0.sql</location>
                 </source>
                 <source>
-                  <location>src/main/resources/upgrade/ddl/Ambari-DDL-Postgres-UPGRADE-1.2.2.Fix.sql</location>
+                  <location>src/main/resources/upgrade/ddl/Ambari-DDL-Postgres-UPGRADE-1.3.0.Fix.sql</location>
                 </source>
                 <source>
-                  <location>src/main/resources/upgrade/ddl/Ambari-DDL-Postgres-UPGRADE-1.2.2.Check.sql</location>
+                  <location>src/main/resources/upgrade/ddl/Ambari-DDL-Postgres-UPGRADE-1.3.0.Check.sql</location>
                 </source>
               </sources>
             </mapping>

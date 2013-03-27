@@ -32,6 +32,7 @@ public class Register {
   private HostInfo hardwareProfile;
   private String publicHostname;
   private AgentEnv agentEnv;
+  private String agentVersion;
 
   @JsonProperty("responseId")
   public int getResponseId() {
@@ -72,7 +73,7 @@ public class Register {
   }
   
   public void setPublicHostname(String name) {
-    publicHostname = name;
+    this.publicHostname = name;
   }
   
   public AgentEnv getAgentEnv() {
@@ -80,7 +81,15 @@ public class Register {
   }
   
   public void setAgentEnv(AgentEnv env) {
-    agentEnv = env;
+    this.agentEnv = env;
+  }
+
+  public String getAgentVersion() {
+    return agentVersion;
+  }
+
+  public void setAgentVersion(String agentVersion) {
+    this.agentVersion = agentVersion;
   }
 
   @Override

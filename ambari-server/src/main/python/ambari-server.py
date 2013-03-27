@@ -286,7 +286,7 @@ def check_db_consistency(args, file):
     # Assumes that the output is of the form ...\n<count>
     print_info_msg("Parsing output: " + outdata)
     lines = outdata.splitlines()
-    if (lines[-1] == '3'):
+    if (lines[-1] == '3' or lines[-1] == '0'):
       return 0
   return -1
 
@@ -1120,7 +1120,7 @@ def main():
                       help="File with drop script")
   parser.add_option('-u', '--upgrade-script-file', default="/var/lib/"
                               "ambari-server/resources/upgrade/ddl/"
-                              "Ambari-DDL-Postgres-UPGRADE-1.2.2.sql",
+                              "Ambari-DDL-Postgres-UPGRADE-1.3.0.sql",
                       help="File with upgrade script")
   parser.add_option('-t', '--upgrade-stack-script-file', default="/var/lib/"
                               "ambari-server/resources/upgrade/dml/"

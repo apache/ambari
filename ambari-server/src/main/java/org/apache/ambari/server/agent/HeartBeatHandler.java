@@ -407,7 +407,8 @@ public class HeartBeatHandler {
 
     hostObject.handleEvent(new HostRegistrationRequestEvent(hostname,
         null != register.getPublicHostname() ? register.getPublicHostname() : hostname,
-        new AgentVersion("v1"), now, register.getHardwareProfile(), register.getAgentEnv()));
+        new AgentVersion(register.getAgentVersion()), now, register.getHardwareProfile(),
+        register.getAgentEnv()));
     RegistrationResponse response = new RegistrationResponse();
     if (cmds.isEmpty()) {
       //No status commands needed let the fsm know that status step is done

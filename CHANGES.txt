@@ -12,6 +12,8 @@ Trunk (unreleased changes):
 
  NEW FEATURES
 
+ AMBARI-1676. Ambari upgrade to 1.3.0 (core support). (smohanty)
+
  AMBARI-1708. Remove all hardcoded ports from agent scripts to read from 
  configs. (swagle)
 
