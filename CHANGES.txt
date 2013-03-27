@@ -529,6 +529,9 @@ Trunk (unreleased changes):
 
  BUG FIXES
 
+ AMBARI-1724. Agent has it hard-coded that HDP repo file can only be 
+ downloaded once. (smohanty)
+
  AMBARI-1715. Ambari Agent Unit Test Failure: TestFileUtil.py. (smohanty)
 
  AMBARI-1533. Add Nagios check for ambari-agent process for each host in 

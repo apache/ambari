@@ -73,15 +73,23 @@ class PuppetExecutor:
       logger.info("Using default puppet on the host : " + puppetbin 
                   + " does not exist.")
       return "puppet"
-     
-  def deployRepos(self, command, tmpDir, modulesdir, taskId):
+
+  def discardInstalledRepos(self):
+    """
+    Makes agent to forget about installed repos.
+    So the next call of generate_repo_manifests() will definitely
+    install repos again
+    """
+    self.reposInstalled = False
+
+  def generate_repo_manifests(self, command, tmpDir, modulesdir, taskId):
     # Hack to only create the repo files once
-    result = []
+    manifest_list = []
     if not self.reposInstalled:
       repoInstaller = RepoInstaller(command, tmpDir, modulesdir, taskId, self.config)
-      result = repoInstaller.installRepos()
-    return result
-  
+      manifest_list = repoInstaller.generate_repo_manifests()
+    return manifest_list
+
   def puppetCommand(self, sitepp):
     modules = self.puppetModule
     puppetcommand = [self.getPuppetBinary(), "apply", "--confdir=" + modules, "--detailed-exitcodes", sitepp]
@@ -109,31 +117,16 @@ class PuppetExecutor:
   def isSuccessfull(self, returncode):
     return not self.last_puppet_has_been_killed and (returncode == 0 or returncode == 2)
 
-  def just_run_one_file(self, command, file, tmpout, tmperr):
-    result = {}
-    taskId = 0
-    if command.has_key("taskId"):
-      taskId = command['taskId']
-    #Install repos
-    self.deployRepos(command, self.tmpDir, self.modulesdir, taskId)
-    puppetEnv = os.environ
-    self.runPuppetFile(file, result, puppetEnv, tmpout, tmperr)
-    if self.isSuccessfull(result["exitcode"]):
-      # Check if all the repos were installed or not and reset the flag
-      self.reposInstalled = True
-    return result
-
-  def runCommand(self, command, tmpoutfile, tmperrfile):
+  def run_manifest(self, command, file, tmpoutfile, tmperrfile):
     result = {}
     taskId = 0
     if command.has_key("taskId"):
       taskId = command['taskId']
     puppetEnv = os.environ
     #Install repos
-    puppetFiles = self.deployRepos(command, self.tmpDir, self.modulesdir, taskId)
-    siteppFileName = os.path.join(self.tmpDir, "site-" + str(taskId) + ".pp") 
-    puppetFiles.append(siteppFileName)
-    generateManifest(command, siteppFileName, self.modulesdir, self.config)
+    repo_manifest_list = self.generate_repo_manifests(command, self.tmpDir, self.modulesdir, taskId)
+    puppetFiles = list(repo_manifest_list)
+    puppetFiles.append(file)
     #Run all puppet commands, from manifest generator and for repos installation
     #Appending outputs and errors, exitcode - maximal from all
     for puppetFile in puppetFiles:
@@ -145,8 +138,17 @@ class PuppetExecutor:
     if self.isSuccessfull(result["exitcode"]):
       # Check if all the repos were installed or not and reset the flag
       self.reposInstalled = True
-      
+
     logger.info("ExitCode : "  + str(result["exitcode"]))
+    return result
+
+  def runCommand(self, command, tmpoutfile, tmperrfile):
+    taskId = 0
+    if command.has_key("taskId"):
+      taskId = command['taskId']
+    siteppFileName = os.path.join(self.tmpDir, "site-" + str(taskId) + ".pp")
+    generateManifest(command, siteppFileName, self.modulesdir, self.config)
+    result = self.run_manifest(command, siteppFileName, tmpoutfile, tmperrfile)
     return result
 
   def runPuppetFile(self, puppetFile, result, puppetEnv, tmpoutfile, tmperrfile):

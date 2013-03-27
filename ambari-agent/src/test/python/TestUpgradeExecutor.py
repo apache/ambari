@@ -39,8 +39,9 @@ class TestUpgradeExecutor(TestCase):
   @patch.object(StackVersionsFileHandler, 'write_stack_version')
   @patch('os.path.isdir')
   def test_perform_stack_upgrade(self, isdir_method, write_stack_version_method):
+    puppetExecutor = MagicMock()
     executor = UpgradeExecutor.UpgradeExecutor('pythonExecutor',
-      'puppetExecutor', AmbariConfig.AmbariConfig().getConfig())
+      puppetExecutor, AmbariConfig.AmbariConfig().getConfig())
 
     # Checking matching versions
     command = {
@@ -171,7 +172,7 @@ class TestUpgradeExecutor(TestCase):
        'stdout'   : "stdout - six.py",
        'stderr'   : "stderr - six.py"},
     ]
-    puppetExecutor.just_run_one_file.side_effect = [
+    puppetExecutor.run_manifest.side_effect = [
       {'exitcode' : 0,
        'stdout'   : "stdout - second.pp",
        'stderr'   : "stderr - second.pp"},
@@ -202,7 +203,7 @@ class TestUpgradeExecutor(TestCase):
        'stdout'   : "stdout - python.py",
        'stderr'   : "stderr - python.py"},
     ]
-    puppetExecutor.just_run_one_file.side_effect = [
+    puppetExecutor.run_manifest.side_effect = [
       {'exitcode' : 0,
        'stdout'   : "stdout - puppet.pp",
        'stderr'   : "stderr - puppet.pp"},

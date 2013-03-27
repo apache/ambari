@@ -95,6 +95,8 @@ class UpgradeExecutor:
           'stdout'   : '',
           'stderr'   : ''
         }
+        # Request repos update (will be executed once before running any pp file)
+        self.puppetExecutor.discardInstalledRepos()
         for dir in self.SCRIPT_DIRS:
           if result['exitcode'] != 0:
             break
@@ -181,7 +183,7 @@ class UpgradeExecutor:
       filepath = os.path.join(dirpath, filename)
       if filename.endswith(".pp"):
         logger.info("Running puppet file %s" % filepath)
-        result = self.puppetExecutor.just_run_one_file(command, filepath,
+        result = self.puppetExecutor.run_manifest(command, filepath,
                                                                 tmpout, tmperr)
       elif filename.endswith(".py"):
         logger.info("Running python file %s" % filepath)

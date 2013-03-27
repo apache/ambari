@@ -89,7 +89,7 @@ class RepoInstaller:
 
     return repoPuppetFiles
 
-  def installRepos(self):
+  def generate_repo_manifests(self):
     self.prepareReposInfo()
     repoPuppetFiles = self.generateFiles()
     return repoPuppetFiles
@@ -102,7 +102,7 @@ def main():
   jsonStr = jsonFile.read() 
   parsedJson = json.loads(jsonStr)
   repoInstaller = RepoInstaller(parsedJson, '/tmp', '/home/centos/ambari_ws/ambari-agent/src/main/puppet/modules',0)
-  repoInstaller.installRepos()
+  repoInstaller.generate_repo_manifests()
   
 if __name__ == '__main__':
   main()

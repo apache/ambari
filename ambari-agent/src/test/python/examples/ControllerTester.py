@@ -92,9 +92,9 @@ responseId = Int(0)
 def main():
 
   if disable_python_and_puppet:
-    with patch.object(PuppetExecutor.PuppetExecutor, 'just_run_one_file') \
-                                          as just_run_one_file_pp_method:
-      just_run_one_file_pp_method.side_effect = \
+    with patch.object(PuppetExecutor.PuppetExecutor, 'run_manifest') \
+                                          as run_manifest_method:
+      run_manifest_method.side_effect = \
               lambda command, file, tmpout, tmperr: {
           'exitcode' : 0,
           'stdout'   : "Simulated run of pp %s" % file,

@@ -45,8 +45,8 @@ class TestRepoInstaller(TestCase):
   @patch.object(RepoInstaller, 'prepareReposInfo')
   @patch.object(RepoInstaller, 'generateFiles')
   def testInstallRepos(self, generateFilesMock, prepareReposInfoMock):
-    result = self.repoInstaller.installRepos()
+    result = self.repoInstaller.generate_repo_manifests()
     self.assertTrue(prepareReposInfoMock.called)
     self.assertTrue(generateFilesMock.called)
-    print('installRepos result: ' + result.__str__())
+    print('generate_repo_manifests result: ' + result.__str__())
     pass
