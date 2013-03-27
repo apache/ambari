@@ -80,17 +80,18 @@ def main():
   if options.verbose:
     logging.basicConfig(format=formatstr, level=logging.DEBUG, filename=logfile)
     logger.setLevel(logging.DEBUG)
+    logger.info("loglevel=logging.DEBUG")
   else:
     logging.basicConfig(format=formatstr, level=logging.INFO, filename=logfile)
     logger.setLevel(logging.INFO)
-
-  logger.debug("loglevel=logging.DEBUG")
+    logger.info("loglevel=logging.INFO")
 
   default_cfg = { 'agent' : { 'prefix' : '/home/ambari' } }
   config = ConfigParser.RawConfigParser(default_cfg)
   signal.signal(signal.SIGINT, signal_handler)
   signal.signal(signal.SIGTERM, signal_handler)
   signal.signal(signal.SIGUSR1, debug)
+
   if (len(sys.argv) >1) and sys.argv[1]=='stop':
     # stop existing Ambari agent
     pid = -1
@@ -142,6 +143,21 @@ def main():
   credential = None
 
   killstaleprocesses()
+
+  # Setting loglevel based on config file
+  try:
+    loglevel = config.get('agent', 'loglevel')
+    if loglevel is not None:
+      if loglevel == 'DEBUG':
+        logging.basicConfig(format=formatstr, level=logging.DEBUG, filename=logfile)
+        logger.setLevel(logging.DEBUG)
+        logger.info("Newloglevel=logging.DEBUG")
+      else:
+        logging.basicConfig(format=formatstr, level=logging.INFO, filename=logfile)
+        logger.setLevel(logging.INFO)
+        logger.debug("Newloglevel=logging.INFO")
+  except Exception, err:
+    logger.info("Default loglevel=DEBUG")
 
   server_url = 'https://' + config.get('server', 'hostname') + ':' + config.get('server', 'url_port')
   print("Connecting to the server at " + server_url + "...")

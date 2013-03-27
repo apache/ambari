@@ -157,7 +157,7 @@ class PuppetExecutor:
     rubyLib = ""
     if os.environ.has_key("RUBYLIB"):
       rubyLib = os.environ["RUBYLIB"]
-      logger.info("RUBYLIB from Env " + rubyLib)
+      logger.debug("RUBYLIB from Env " + rubyLib)
     if not (self.facterLib() in rubyLib):
       rubyLib = rubyLib + ":" + self.facterLib()
     if not (self.puppetLib() in rubyLib):
@@ -166,10 +166,10 @@ class PuppetExecutor:
     tmperr =  open(tmperrfile, 'w')
     puppetEnv["RUBYLIB"] = rubyLib
     puppetEnv = self.configureEnviron(puppetEnv)
-    logger.info("Setting RUBYLIB as: " + rubyLib)
+    logger.debug("Setting RUBYLIB as: " + rubyLib)
     logger.info("Running command " + pprint.pformat(puppetcommand))
     puppet = self.lauch_puppet_subprocess(puppetcommand,tmpout, tmperr, puppetEnv)
-    logger.info("Launching watchdog thread")
+    logger.debug("Launching watchdog thread")
     self.event.clear()
     self.last_puppet_has_been_killed = False
     thread = Thread(target =  self.puppet_watchdog_func, args = (puppet, ))

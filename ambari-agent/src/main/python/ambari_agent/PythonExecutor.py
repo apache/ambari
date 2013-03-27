@@ -53,7 +53,7 @@ class PythonExecutor:
     pythonCommand = self.pythonCommand(file)
     logger.info("Running command " + pprint.pformat(pythonCommand))
     process = self.lauch_python_subprocess(pythonCommand, tmpout, tmperr)
-    logger.info("Launching watchdog thread")
+    logger.debug("Launching watchdog thread")
     self.event.clear()
     self.python_process_has_been_killed = False
     thread = Thread(target =  self.python_watchdog_func, args = (process, ))

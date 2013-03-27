@@ -113,11 +113,11 @@ class Controller(threading.Thread):
     """ Put the required actions into the Queue """
     """ Verify if the action is to reboot or not """
     if not commands:
-      logger.info("No commands from the server : " + pprint.pformat(commands))
+      logger.debug("No commands from the server : " + pprint.pformat(commands))
     else:
       """Only add to the queue if not empty list """
       for command in commands:
-        logger.info("Adding command to the action queue: \n" +
+        logger.debug("Adding command to the action queue: \n" +\
                      pprint.pformat(command))
         self.actionQueue.put(command)
         pass
@@ -150,7 +150,7 @@ class Controller(threading.Thread):
         response = self.sendRequest(self.heartbeatUrl, data)
         response = json.loads(response)
 
-        logger.info('Got server response: ' + pprint.pformat(response))
+        logger.debug('Got server response: ' + pprint.pformat(response))
         
         serverId=int(response['responseId'])
 

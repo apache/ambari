@@ -41,14 +41,14 @@ class NetUtil:
     """Try to connect to a given url. Result is True if url returns HTTP code 200, in any other case
     (like unreachable server or wrong HTTP code) result will be False
     """
-    logger.info("DEBUG:: Connecting to the following url " + url);
+    logger.info("Connecting to the following url " + url);
     try:
       parsedurl = urlparse(url)
       ca_connection = httplib.HTTPSConnection(parsedurl[1])
       ca_connection.request("GET", parsedurl[2])
       response = ca_connection.getresponse()  
       status = response.status    
-      logger.info("DEBUG: Calling url received " + str(status))
+      logger.info("Calling url received " + str(status))
       
       if status == 200: 
         return True

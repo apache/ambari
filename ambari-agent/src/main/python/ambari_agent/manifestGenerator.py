@@ -25,7 +25,7 @@ from uuid import getnode as get_mac
 from shell import shellRunner
 from datetime import datetime
 import AmbariConfig
-
+import pprint
 
 logger = logging.getLogger()
 
@@ -47,8 +47,8 @@ def writeImports(outputFile, modulesdir, importsList):
 
 
 def generateManifest(parsedJson, fileName, modulesdir, ambariconfig):
-  logger.info("JSON Received:")
-  logger.info(json.dumps(parsedJson, sort_keys=True, indent=4))
+  logger.debug("JSON Received:")
+  logger.debug(json.dumps(parsedJson, sort_keys=True, indent=4))
 #reading json
   hostname = parsedJson['hostname']
   clusterHostInfo = {} 
@@ -164,6 +164,7 @@ def writeHostAttributes(outputFile, hostAttributes):
 #write flat configurations
 def writeFlatConfigurations(outputFile, flatConfigs):
   flatDict = {}
+  logger.info("Generating global configurations =>\n" + pprint.pformat(flatConfigs))
   for flatConfigName in flatConfigs.iterkeys():
     for flatConfig in flatConfigs[flatConfigName].iterkeys():
       flatDict[flatConfig] = flatConfigs[flatConfigName][flatConfig]
@@ -175,9 +176,8 @@ def writeNonGlobalConfigurations(outputFile, xmlConfigs):
   outputFile.write('$configuration =  {\n')
 
   for configName in xmlConfigs.iterkeys():
-
     config = xmlConfigs[configName]
-    
+    logger.info("Generating " + configName + ",configurations =>\n" + pprint.pformat(config))
     outputFile.write(configName + '=> {\n')
     coma = ''
     for configParam in config.iterkeys():
@@ -235,6 +235,7 @@ def writeTasks(outputFile, roles, ambariconfig, clusterHostInfo=None,
 
     stageNum = stageNum + 1
   outputFile.write('}\n')
+
 def normalizeTaskParams(taskParams):
   result = ''
   coma = ''

@@ -54,18 +54,21 @@ class Heartbeat:
                   'hostname'          : hostname.hostname(),
                   'nodeStatus'        : nodeStatus
                 }
+
+    if len(queueResult) != 0:
+      heartbeat['reports'] = queueResult['reports']
+      heartbeat['componentStatus'] = queueResult['componentStatus']
+      pass
+    logger.info("Heartbeat : " + pformat(heartbeat))
+
     if (int(id) >= 0) and state_interval > 0 and (int(id) % state_interval) == 0:
       hostInfo = HostInfo()
       nodeInfo = { }
       # for now, just do the same work as registration
       hostInfo.register(nodeInfo)
       heartbeat['agentEnv'] = nodeInfo
+      logger.debug("agentEnv : " + str(nodeInfo))
 
-    if len(queueResult) != 0:
-      heartbeat['reports'] = queueResult['reports']
-      heartbeat['componentStatus'] = queueResult['componentStatus']
-      pass
-    logger.info("Heartbeat dump: " + pformat(heartbeat))
     return heartbeat
 
 def main(argv=None):

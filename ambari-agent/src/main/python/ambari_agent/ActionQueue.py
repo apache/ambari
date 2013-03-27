@@ -81,7 +81,10 @@ class ActionQueue(threading.Thread):
     return self._stop.isSet()
 
   def put(self, command):
-    logger.info("The " + command['commandType'] + " from the server is \n" + pprint.pformat(command))
+    logger.info("Adding " + command['commandType'] + " for service " +\
+                command['serviceName'] + " of cluster " +\
+                command['clusterName'] + " to the queue.")
+    logger.debug(pprint.pformat(command))
     self.commandQueue.put(command)
     pass
 
@@ -90,7 +93,7 @@ class ActionQueue(threading.Thread):
     while not self.stopped():
       while not self.commandQueue.empty():
         command = self.commandQueue.get()
-        logger.info("Took an element of Queue: " + pprint.pformat(command))
+        logger.debug("Took an element of Queue: " + pprint.pformat(command))
         if command['commandType'] == self.EXECUTION_COMMAND:
           try:
             #pass a copy of action since we don't want anything to change in the
@@ -118,8 +121,10 @@ class ActionQueue(threading.Thread):
             livestatus = LiveStatus(cluster, service, component,
               globalConfig, self.config)
             result = livestatus.build()
-            logger.info("Got live status for component " + component + " of service " + str(service) +\
-                        " of cluster " + str(cluster) + "\n" + pprint.pformat(result))
+            logger.debug("Got live status for component " + component +\
+                         " of service " + str(service) +\
+                        " of cluster " + str(cluster))
+            logger.debug(pprint.pformat(result))
             if result is not None:
               self.resultQueue.put((ActionQueue.STATUS_COMMAND, result))
           except Exception, err:
@@ -172,7 +177,6 @@ class ActionQueue(threading.Thread):
     return result
 
   def executeCommand(self, command):
-    logger.info("Executing command \n" + pprint.pformat(command))
     clusterName = command['clusterName']
     commandId = command['commandId']
     hostname = command['hostname']
@@ -182,6 +186,11 @@ class ActionQueue(threading.Thread):
     serviceName = command['serviceName']
     configurations = command['configurations']
     result = []
+
+    logger.info("Executing command with id = " + str(commandId) +\
+                " for role = " + command['role'] + " of " +\
+                "cluster " + clusterName)
+    logger.debug(pprint.pformat(command))
 
     taskId = command['taskId']
     # Preparing 'IN_PROGRESS' report

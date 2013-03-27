@@ -125,8 +125,8 @@ class LiveStatus:
                                     read_stack_version(component["componentName"])
         }
         break
-    logger.info("The live status for component " + str(self.component) + " of service " + \
-                str(self.service) + " is " + str(livestatus))
+    logger.debug("The live status for component " + str(self.component) +\
+                " of service " + str(self.service) + " is " + str(livestatus))
     return livestatus
 
 def main(argv=None):

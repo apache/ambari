@@ -102,7 +102,7 @@ class StatusCheck:
     try:
       pidPath = None
       pidPattern = self.serToPidDict[serviceCode]
-      logger.info('pidPattern: ' + pidPattern)
+      logger.debug('pidPattern: ' + pidPattern)
     except KeyError as e:
       logger.warn('There is no mapping for ' + serviceCode)
       return None
@@ -110,7 +110,7 @@ class StatusCheck:
       for pidFile in self.pidFilesDict.keys():
         if re.match(pidPattern, pidFile):
           pidPath = self.pidFilesDict[pidFile]          
-      logger.info('pidPath: ' + str(pidPath))
+      logger.debug('pidPath: ' + str(pidPath))
       result = self.getIsLive(pidPath)
       return result
     except KeyError:
