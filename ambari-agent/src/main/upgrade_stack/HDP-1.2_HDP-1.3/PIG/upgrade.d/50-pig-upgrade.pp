@@ -18,5 +18,6 @@
 # under the License.
 #
 #
-
-notify {"Dummy notification":}
+Package { ensure => "latest" }
+$packages = [ "pig.noarch" ]
+package { $packages: }

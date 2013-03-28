@@ -165,8 +165,14 @@ class ActionScheduler implements Runnable {
         if (cmd.getRole() == Role.AMBARI_SERVER_ACTION) {
           try {
             long now = System.currentTimeMillis();
-            s.setStartTime(cmd.getHostname(), cmd.getRole().toString(), now);
-            s.setLastAttemptTime(cmd.getHostname(), cmd.getRole().toString(), now);
+            String hostName = cmd.getHostname();
+            String roleName = cmd.getRole().toString();
+
+            s.setStartTime(hostName, roleName, now);
+            s.setLastAttemptTime(hostName, roleName, now);
+            s.incrementAttemptCount(hostName, roleName);
+            s.setHostRoleStatus(hostName, roleName, HostRoleStatus.QUEUED);
+            db.hostRoleScheduled(s, hostName, roleName);
             String actionName = cmd.getRoleParams().get(ServerAction.ACTION_NAME);
             this.serverActionManager.executeAction(actionName, cmd.getCommandParams());
             reportServerActionSuccess(s, cmd);
