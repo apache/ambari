@@ -108,4 +108,17 @@ public interface ServiceComponentHost {
   public boolean canBeRemoved();
 
   public void delete() throws AmbariException;
+
+  /**
+   * Updates the tags that have been recognized by a START action.
+   * @param configTags
+   */
+  public void updateActualConfigs(Map<String, Map<String, String>> configTags);
+  
+  /**
+   * Gets the actual config tags, if known.
+   * @return the actual config map
+   */
+  public Map<String, DesiredConfig> getActualConfigs();
+  
 }

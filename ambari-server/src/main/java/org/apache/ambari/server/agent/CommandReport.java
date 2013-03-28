@@ -51,7 +51,7 @@ public class CommandReport {
     this.clusterName = clusterName;
   }
   
-  @JsonProperty("clusterName") 
+  @JsonProperty("clusterName")
   public String getClusterName() {
     return this.clusterName;
   }
@@ -127,7 +127,7 @@ public class CommandReport {
   }
 
   /**
-  * @param tags the config tags that match this command
+   * @param tags the config tags that match this command
    */
   public void setConfigTags(Map<String, Map<String,String>> tags) {
     configurationTags = tags;

@@ -217,7 +217,7 @@ public class TestHeartbeatHandler {
     // the heartbeat test passed if actual configs is populated
     Assert.assertNotNull(cluster.getActualConfigs());
     Assert.assertEquals(cluster.getActualConfigs().size(), 1);
-  }  
+  }
 
   @Test
   public void testStatusHeartbeat() throws Exception {
@@ -373,6 +373,12 @@ public class TestHeartbeatHandler {
     cr.setStdErr("");
     cr.setStdOut("");
     cr.setExitCode(215);
+    
+    cr.setConfigTags(new HashMap<String, Map<String,String>>() {{
+        put("global", new HashMap<String,String>() {{ put("tag", "version1"); }});
+      }});
+    
+    
     reports.add(cr);
     am.processTaskResponse(DummyHostname1, reports);
     assertEquals(215,

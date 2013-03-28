@@ -63,6 +63,7 @@
         "HostRoles/desired_configs",
         "HostRoles/stack_id",
         "HostRoles/desired_stack_id",
+        "HostRoles/actual_configs",
         "params/run_smoke_test",
         "_"
     ],

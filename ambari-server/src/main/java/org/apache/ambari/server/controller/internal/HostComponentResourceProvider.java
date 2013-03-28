@@ -26,6 +26,7 @@ import org.apache.ambari.server.controller.spi.*;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
 
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
@@ -62,6 +63,23 @@ class HostComponentResourceProvider extends AbstractControllerResourceProvider {
       = PropertyHelper.getPropertyId("HostRoles", "stack_id");
   protected static final String HOST_COMPONENT_DESIRED_STACK_ID_PROPERTY_ID
       = PropertyHelper.getPropertyId("HostRoles", "desired_stack_id");
+  protected static final String HOST_COMPONENT_ACTUAL_CONFIGS_PROPERTY_ID
+    = PropertyHelper.getPropertyId("HostRoles", "actual_configs");
+  
+  //Component name mappings
+  private static final Map<String, PropertyProvider> HOST_COMPONENT_PROPERTIES_PROVIDER = new HashMap<String, PropertyProvider>();
+  
+  private static final int HOST_COMPONENT_HTTP_PROPERTY_REQUEST_TIMEOUT = 1500;
+  
+  static {
+    HOST_COMPONENT_PROPERTIES_PROVIDER.put(
+        "NAGIOS_SERVER",
+        new HttpProxyPropertyProvider(new URLStreamProvider(
+            HOST_COMPONENT_HTTP_PROPERTY_REQUEST_TIMEOUT), PropertyHelper
+            .getPropertyId("HostRoles", "cluster_name"), PropertyHelper
+            .getPropertyId("HostRoles", "host_name"), PropertyHelper
+            .getPropertyId("HostRoles", "component_name")));
+  }
 
   //Parameters from the predicate
   private static final String QUERY_PARAMETERS_RUN_SMOKE_TEST_ID =
@@ -158,6 +176,17 @@ class HostComponentResourceProvider extends AbstractControllerResourceProvider {
           response.getConfigs(), requestedIds);
       setResourceProperty(resource, HOST_COMPONENT_DESIRED_CONFIGS_PROPERTY_ID,
           response.getDesiredConfigs(), requestedIds);
+      setResourceProperty(resource, HOST_COMPONENT_ACTUAL_CONFIGS_PROPERTY_ID,
+          response.getActualConfigs(), requestedIds);
+      
+      String componentName = (String)resource.getPropertyValue(HOST_COMPONENT_COMPONENT_NAME_PROPERTY_ID);
+      PropertyProvider propertyProvider = HOST_COMPONENT_PROPERTIES_PROVIDER.get(componentName);
+      if (propertyProvider != null) {
+        Set<Resource> resourcesToPopulate = new HashSet<Resource>();
+        resourcesToPopulate.add(resource);
+        propertyProvider.populateResources(resourcesToPopulate, request, predicate);
+      }
+      
       resources.add(resource);
     }
     return resources;

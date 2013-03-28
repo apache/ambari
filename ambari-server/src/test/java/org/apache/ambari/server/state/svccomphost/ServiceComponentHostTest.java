@@ -255,7 +255,7 @@ public class ServiceComponentHostTest {
       startTime = timestamp;
     // We need to allow install on a install.
       Assert.assertTrue("Exception not thrown on invalid event", !exceptionThrown);
-    } 
+    }
     else {
       Assert.assertTrue("Exception not thrown on invalid event", exceptionThrown);
     }
@@ -468,7 +468,33 @@ public class ServiceComponentHostTest {
     Assert.assertEquals("HDP-1.1.0",
         sch.getDesiredStackVersion().getStackId());
   }
-
+  
+  @Test
+  public void testActualConfigs() throws Exception {
+    ServiceComponentHost sch =
+        createNewServiceComponentHost("HDFS", "NAMENODE", "h1", false);
+    sch.setDesiredState(State.INSTALLED);
+    sch.setState(State.INSTALLING);
+    sch.setStackVersion(new StackId("HDP-1.0.0"));
+    sch.setDesiredStackVersion(new StackId("HDP-1.1.0"));
+    
+    Map<String, Map<String,String>> actual =
+        new HashMap<String, Map<String, String>>() {{
+          put("global", new HashMap<String,String>() {{ put("tag", "version1"); }});
+          put("core-site", new HashMap<String,String>() {{ put("tag", "version1"); put ("host_override_tag", "version2"); }});
+        }};
+        
+    sch.updateActualConfigs(actual);
+    
+    Map<String, DesiredConfig> confirm = sch.getActualConfigs();
+    
+    Assert.assertEquals(2, confirm.size());
+    Assert.assertTrue(confirm.containsKey("global"));
+    Assert.assertTrue(confirm.containsKey("core-site"));
+    Assert.assertEquals(1, confirm.get("core-site").getHostOverrides().size());
+    Assert.assertEquals("h1", confirm.get("core-site").getHostOverrides().get(0).getName());
+  }
+  
   @Test
   public void testConvertToResponse() throws AmbariException {
     ServiceComponentHost sch =

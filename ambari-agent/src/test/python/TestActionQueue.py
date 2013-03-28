@@ -111,7 +111,6 @@ class TestActionQueue(TestCase):
     executor_started_event = threading.Event()
     end_executor_event = threading.Event()
     actionQueue.puppetExecutor = FakeExecutor(executor_started_event, end_executor_event)
-    # before_start_result = actionQueue.result()
 
     command = {
       'commandId': 17,
@@ -134,11 +133,12 @@ class TestActionQueue(TestCase):
     actionQueue.start()
     executor_started_event.wait()
 
-
     end_executor_event.set()
     actionQueue.stop()
     actionQueue.join()
     after_start_result = actionQueue.result()
+
+    configname = os.path.join(tmpfile, 'config.json')
 
     self.assertEquals(len(after_start_result['componentStatus']), 0)
     self.assertEquals(len(after_start_result['reports']), 1)
@@ -147,6 +147,9 @@ class TestActionQueue(TestCase):
     self.assertEquals(after_start_result['reports'][0]['exitCode'], 0)
     self.assertEquals(after_start_result['reports'][0]['stderr'], 'returned stderr')
     self.assertEquals(len(after_start_result['reports'][0]['configurationTags']), 1)
+    self.assertEquals(True, os.path.isfile(configname))
+
+    os.remove(configname)
 
   @patch.object(ActionQueue, "executeCommand")
   @patch.object(ActionQueue, "stopped")

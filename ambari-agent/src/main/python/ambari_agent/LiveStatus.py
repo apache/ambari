@@ -27,6 +27,7 @@ import time
 import traceback
 from pprint import pprint, pformat
 from StackVersionsFileHandler import StackVersionsFileHandler
+from ActualConfigHandler import ActualConfigHandler
 
 logger = logging.getLogger()
 
@@ -99,7 +100,7 @@ class LiveStatus:
     self.globalConfig = globalConfig
     versionsFileDir = config.get('agent', 'prefix')
     self.versionsHandler = StackVersionsFileHandler(versionsFileDir)
-
+    self.actualConfigHandler = ActualConfigHandler(config)
 
   def belongsToService(self, component):
     #TODO: Should also check belonging of server to cluster
@@ -123,7 +124,10 @@ class LiveStatus:
                        "serviceName" : self.service,
                        "stackVersion": self.versionsHandler.
                                     read_stack_version(component["componentName"])
-        }
+                    }
+        active_config = self.actualConfigHandler.read_actual_component(component['componentName'])
+        if not active_config is None:
+          livestatus['configurationTags'] = active_config
         break
     logger.debug("The live status for component " + str(self.component) +\
                 " of service " + str(self.service) + " is " + str(livestatus))

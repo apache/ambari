@@ -85,7 +85,7 @@ public class HeartBeatHandler {
     injector.injectMembers(this);
   }
 
-  public void start() {     
+  public void start() {
     heartbeatMonitor.start();
   }
 
@@ -140,7 +140,7 @@ public class HeartBeatHandler {
             && hostObject.getState().equals(HostState.WAITING_FOR_HOST_STATUS_UPDATES)) {
       try {
         LOG.debug("Got component status updates");
-        hostObject.handleEvent(new HostStatusUpdatesReceivedEvent(hostname, now));   
+        hostObject.handleEvent(new HostStatusUpdatesReceivedEvent(hostname, now));
       } catch (InvalidStateTransitionException e) {
         LOG.warn("Failed to notify the host about component status updates", e);
       }
@@ -152,7 +152,7 @@ public class HeartBeatHandler {
             heartbeat.getAgentEnv()));
       } else {
         hostObject.handleEvent(new HostUnhealthyHeartbeatEvent(hostname, now,
-            null));       
+            null));
       }
       if(hostState != hostObject.getState()) scanner.updateHBaseMaster(hostObject);
     } catch (InvalidStateTransitionException ex) {
@@ -198,11 +198,16 @@ public class HeartBeatHandler {
           ServiceComponentHost scHost = svcComp.getServiceComponentHost(hostname);
           String schName = scHost.getServiceComponentName();
           State state = scHost.getState();
+          
           if (report.getStatus().equals("COMPLETED")) {
             // Updating stack version, if needed
             if (scHost.getState().equals(State.UPGRADING)) {
               scHost.setStackVersion(scHost.getDesiredStackVersion());
             }
+            else if (scHost.getState().equals(State.STARTING) && null != report.getConfigTags()) {
+              scHost.updateActualConfigs(report.getConfigTags());
+            }
+            
             scHost.handleEvent(new ServiceComponentHostOpSucceededEvent(schName,
                     hostname, now));
           } else if (report.getStatus().equals("FAILED")) {
@@ -266,8 +271,11 @@ public class HeartBeatHandler {
               if (null != status.getStackVersion() && !status.getStackVersion().isEmpty()) {
                 scHost.setStackVersion(gson.fromJson(status.getStackVersion(), StackId.class));
               }
+              
+              if (null != status.getConfigTags()) {
+                scHost.updateActualConfigs(status.getConfigTags());
+              }
 
-              // TODO need to get config version and stack version from live state
             } else {
               // TODO: What should be done otherwise?
             }

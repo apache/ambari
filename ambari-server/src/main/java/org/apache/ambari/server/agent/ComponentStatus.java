@@ -17,6 +17,8 @@
  */
 package org.apache.ambari.server.agent;
 
+import java.util.Map;
+
 
 
 public class ComponentStatus {
@@ -26,6 +28,7 @@ public class ComponentStatus {
   String serviceName;
   String clusterName;
   String stackVersion;
+  private Map<String, Map<String, String>> configurationTags;
 
   public String getComponentName() {
     return this.componentName;
@@ -81,6 +84,21 @@ public class ComponentStatus {
 
   public void setClusterName(String clusterName) {
     this.clusterName = clusterName;
+  }
+  
+  /**
+   * @param tags the config tags that match this status
+   */
+  public void setConfigTags(Map<String, Map<String,String>> tags) {
+    configurationTags = tags;
+  }
+  
+  /**
+   * @return the config tags that match this command, or <code>null</code>
+   * if none are present
+   */
+  public Map<String, Map<String,String>> getConfigTags() {
+    return configurationTags;
   }
 
   @Override

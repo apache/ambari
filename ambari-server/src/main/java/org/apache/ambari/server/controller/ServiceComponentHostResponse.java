@@ -20,6 +20,8 @@ package org.apache.ambari.server.controller;
 
 import java.util.Map;
 
+import org.apache.ambari.server.state.DesiredConfig;
+
 public class ServiceComponentHostResponse {
 
   private String clusterName; // REF
@@ -34,6 +36,9 @@ public class ServiceComponentHostResponse {
   private Map<String, String> configs;
 
   private Map<String, String> desiredConfigs;
+  
+  // type -> desired config
+  private Map<String, DesiredConfig> actualConfigs;
 
   private String liveState;
 
@@ -250,6 +255,20 @@ public class ServiceComponentHostResponse {
 
   public Map<String, String> getDesiredConfigs() {
     return desiredConfigs;
+  }
+
+  /**
+   * @param actualConfigs the actual configs
+   */
+  public void setActualConfigs(Map<String, DesiredConfig> configs) {
+    actualConfigs = configs;
+  }
+  
+  /**
+   * @return the actual configs
+   */
+  public Map<String, DesiredConfig> getActualConfigs() {
+    return actualConfigs;
   }
 
 }

@@ -38,6 +38,7 @@ import UpgradeExecutor
 import PythonExecutor
 import tempfile
 from Grep import Grep
+from ActualConfigHandler import ActualConfigHandler
 
 logger = logging.getLogger()
 installScriptHash = -1
@@ -127,6 +128,7 @@ class ActionQueue(threading.Thread):
             logger.debug(pprint.pformat(result))
             if result is not None:
               self.resultQueue.put((ActionQueue.STATUS_COMMAND, result))
+
           except Exception, err:
             traceback.print_exc()
             logger.warn(err)
@@ -231,8 +233,15 @@ class ActionQueue(threading.Thread):
       roleResult['stderr'] = 'None'
 
     # let ambari know that configuration tags were applied
-    if status == "COMPLETED" and command.has_key('configurationTags'):
-      roleResult['configurationTags'] = command['configurationTags']
+    if status == 'COMPLETED':
+      configHandler = ActualConfigHandler(self.config)
+      if command.has_key('configurationTags'):
+        configHandler.write_actual(command['configurationTags'])
+        roleResult['configurationTags'] = command['configurationTags']
+
+      if command.has_key('roleCommand') and command['roleCommand'] == 'START':
+        configHandler.copy_to_component(command['role'])
+        roleResult['configurationTags'] = configHandler.read_actual_component(command['role'])
 
     result.append(roleResult)
     return result

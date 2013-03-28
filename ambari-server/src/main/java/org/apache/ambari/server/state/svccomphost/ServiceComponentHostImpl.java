@@ -41,16 +41,8 @@ import org.apache.ambari.server.orm.entities.HostComponentStateEntityPK;
 import org.apache.ambari.server.orm.entities.HostEntity;
 import org.apache.ambari.server.orm.entities.ServiceComponentDesiredStateEntity;
 import org.apache.ambari.server.orm.entities.ServiceComponentDesiredStateEntityPK;
-import org.apache.ambari.server.state.Cluster;
-import org.apache.ambari.server.state.Clusters;
-import org.apache.ambari.server.state.Config;
-import org.apache.ambari.server.state.Host;
-import org.apache.ambari.server.state.ServiceComponent;
-import org.apache.ambari.server.state.ServiceComponentHost;
-import org.apache.ambari.server.state.ServiceComponentHostEvent;
-import org.apache.ambari.server.state.ServiceComponentHostEventType;
-import org.apache.ambari.server.state.StackId;
-import org.apache.ambari.server.state.State;
+import org.apache.ambari.server.state.*;
+import org.apache.ambari.server.state.DesiredConfig.HostOverride;
 import org.apache.ambari.server.state.fsm.InvalidStateTransitionException;
 import org.apache.ambari.server.state.fsm.SingleArcTransition;
 import org.apache.ambari.server.state.fsm.StateMachine;
@@ -108,6 +100,7 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
   private long lastOpEndTime;
   private long lastOpLastUpdateTime;
   private String ha_status = "passive";
+  private Map<String, DesiredConfig> actualConfigs = new HashMap<String, DesiredConfig>();
 
   private static final StateMachineFactory
   <ServiceComponentHostImpl, State,
@@ -1136,7 +1129,9 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
           getStackVersion().getStackId(),
           getDesiredState().toString(),
           getDesiredStackVersion().getStackId());
-          r.setHa_status(ha_status);
+      
+      r.setHa_status(ha_status);
+      r.setActualConfigs(actualConfigs);
       return r;
     }
     finally {
@@ -1309,6 +1304,35 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
     desiredPK.setHostName(desiredStateEntity.getHostName());
 
     hostComponentDesiredStateDAO.removeByPK(desiredPK);
+  }
+  
+  @Override
+  public void updateActualConfigs(Map<String, Map<String, String>> configTags) {
+    actualConfigs = new HashMap<String, DesiredConfig>();
+    
+    String hostName = getHostName();
+    
+    for (Entry<String, Map<String,String>> entry : configTags.entrySet()) {
+      String type = entry.getKey();
+      Map<String, String> values = entry.getValue();
+      
+      String tag = values.get("tag");
+      String hostTag = values.get("host_override_tag");
+      
+      DesiredConfig dc = new DesiredConfig();
+      dc.setVersion(tag);
+      actualConfigs.put(type, dc);
+      if (null != hostTag && null != hostName) {
+        List<HostOverride> list = new ArrayList<HostOverride>();
+        list.add (new HostOverride(hostName, hostTag));
+        dc.setHostOverrides(list);
+      }
+    }
+  }
+  
+  @Override
+  public Map<String, DesiredConfig> getActualConfigs() {
+    return actualConfigs;
   }
 
 }

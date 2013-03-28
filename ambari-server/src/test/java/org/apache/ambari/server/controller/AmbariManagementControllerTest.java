@@ -1911,6 +1911,11 @@ public class AmbariManagementControllerTest {
     sch1.setStackVersion(new StackId("HDP-0.1"));
 
     sch1.persist();
+    
+    sch1.updateActualConfigs(new HashMap<String, Map<String,String>>() {{
+      put("global", new HashMap<String,String>() {{ put("tag", "version1"); }});
+    }});
+    
 
     ServiceComponentHostRequest r =
         new ServiceComponentHostRequest(c1.getClusterName(),
@@ -1931,6 +1936,8 @@ public class AmbariManagementControllerTest {
         resp.getLiveState());
     Assert.assertEquals(sch1.getStackVersion().getStackId(),
         resp.getStackVersion());
+    Assert.assertNotNull(resp.getActualConfigs());
+    Assert.assertEquals(1, resp.getActualConfigs().size());
 
   }
 
