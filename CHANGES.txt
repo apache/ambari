@@ -532,6 +532,8 @@ Trunk (unreleased changes):
 
  BUG FIXES
 
+ AMBARI-1730. Hive Service check fails in non secure cluster. (jaimin)
+
  AMBARI-1724. Agent has it hard-coded that HDP repo file can only be 
  downloaded once. (smohanty)
 
