@@ -41,7 +41,10 @@ class hdp-oozie(
       group => $hdp::params::user_group,
       mode => '0660'
     }
+    $oozie-site = $configuration['oozie-site']
+    $oozie_principal = $oozie-site["oozie.service.HadoopAccessorService.kerberos.principal"]
   }
+  
 
   if ($service_state == 'uninstalled') {
     hdp::package { 'oozie-client' : 

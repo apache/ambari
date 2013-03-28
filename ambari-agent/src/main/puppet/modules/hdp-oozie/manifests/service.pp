@@ -37,7 +37,7 @@ class hdp-oozie::service(
 
   $security = $hdp::params::security_enabled
   $oozie_keytab = $hdp-oozie::params::oozie_service_keytab
-  $oozie_principal = $hdp-oozie::params::oozie_principal
+  $oozie_principal = $hdp-oozie::oozie_principal
 
   if ($security == true) {
     $kinit_if_needed = "${hdp::params::kinit_path_local} -kt ${oozie_keytab} ${oozie_principal}"

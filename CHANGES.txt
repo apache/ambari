@@ -532,6 +532,8 @@ Trunk (unreleased changes):
 
  BUG FIXES
 
+ AMBARI-1732. Oozie service check fails in secure cluster. (jaimin)
+
  AMBARI 1733. Add service/component specific upgrade puppet files. (smohanty)
 
  AMBARI-1731. WebHcat smoke test fails for the secure cluster. (jaimin)
