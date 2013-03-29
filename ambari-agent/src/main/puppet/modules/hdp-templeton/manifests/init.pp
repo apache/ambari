@@ -25,12 +25,22 @@ class hdp-templeton(
 {
 # Configs generation  
 
+  $webhcat_user = $hdp-templeton::params::webhcat_user
+  $templeton_config_dir = $hdp-templeton::params::conf_dir
+
   if has_key($configuration, 'webhcat-site') {
     configgenerator::configfile{'webhcat-site': 
-      modulespath => $hdp-templeton::params::conf_dir,
+      modulespath => $templeton_config_dir,
       filename => 'webhcat-site.xml',
       module => 'hdp-templeton',
-      configuration => $configuration['webhcat-site']
+      configuration => $configuration['webhcat-site'],
+      owner => $webhcat_user,
+      group => $hdp::params::user_group
+    }
+  } else {
+    file { "${templeton_config_dir}/webhcat-site.xml":
+      owner => $webhcat_user,
+      group => $hdp::params::user_group
     }
   }
 
@@ -41,9 +51,6 @@ class hdp-templeton(
   } else {
     $size = 32
   }
-
-  $webhcat_user = $hdp-templeton::params::webhcat_user
-  $templeton_config_dir = $hdp-templeton::params::conf_dir
 
   if ($service_state == 'uninstalled') {
       hdp::package { 'webhcat' :
@@ -68,7 +75,10 @@ class hdp-templeton(
 
     hdp::directory { $templeton_config_dir: 
       service_state => $service_state,
-      force => true
+      force => true,
+      owner => $webhcat_user,
+      group => $hdp::params::user_group,
+      override_owner => true
     }
 
     hdp-templeton::configfile { ['webhcat-env.sh']: }

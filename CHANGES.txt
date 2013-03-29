@@ -534,6 +534,9 @@ Trunk (unreleased changes):
 
  BUG FIXES
 
+ AMBARI-1747. File ownership needs more consistency for those installations 
+ where root access is hard to get. (smohanty)
+
  AMBARI-1561. API should return nagios_alerts as a JSON, not a stringified 
  JSON. (smohanty)
 

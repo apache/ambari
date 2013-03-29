@@ -61,11 +61,13 @@ class hdp-ganglia::monitor(
   
     class { 'hdp-ganglia::monitor::gmond': ensure => $service_state}
 
+    class { 'hdp-ganglia::monitor::ownership': }
+
     if ($hdp::params::service_exists['hdp-ganglia::server'] != true) {
       Class['hdp-ganglia'] -> Hdp::Package['ganglia-monitor'] -> Class['hdp-ganglia::config'] -> 
-      Class['hdp-ganglia::monitor::config-gen'] -> Class['hdp-ganglia::monitor::gmond']
+      Class['hdp-ganglia::monitor::config-gen'] -> Class['hdp-ganglia::monitor::gmond'] -> Class['hdp-ganglia::monitor::ownership']
     } else {
-      Hdp::Package['ganglia-monitor'] ->  Class['hdp-ganglia::monitor::config-gen'] -> Class['hdp-ganglia::monitor::gmond']
+      Hdp::Package['ganglia-monitor'] ->  Class['hdp-ganglia::monitor::config-gen'] -> Class['hdp-ganglia::monitor::gmond'] -> Class['hdp-ganglia::monitor::ownership']
     }
   }
 }
@@ -124,5 +126,28 @@ class hdp-ganglia::monitor::gmond(
       command => $command,
       path      => '/usr/sbin:/sbin:/usr/local/bin:/bin:/usr/bin'
     }
+  }
+}
+
+class hdp-ganglia::monitor::ownership() {
+
+  file { "${hdp-ganglia::params::ganglia_dir}/conf.d":
+    owner  => 'root',
+    group  => $hdp::params::user_group
+  }
+
+  file { "${hdp-ganglia::params::ganglia_dir}/conf.d/modgstatus.conf":
+    owner => 'root',
+    group => $hdp::params::user_group
+  }
+
+  file { "${hdp-ganglia::params::ganglia_dir}/conf.d/multicpu.conf":
+    owner => 'root',
+    group => $hdp::params::user_group
+  }
+
+  file { "${hdp-ganglia::params::ganglia_dir}/gmond.conf":
+    owner => 'root',
+    group => $hdp::params::user_group
   }
 }

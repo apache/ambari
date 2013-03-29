@@ -32,10 +32,16 @@ class hdp-hive(
 
   if has_key($configuration, 'hive-site') {
     configgenerator::configfile{'hive-site':
-      modulespath => $hdp-hive::params::hive_conf_dir, 
+      modulespath => $hive_config_dir, 
       filename => 'hive-site.xml',
       module => 'hdp-hive',
       configuration => $configuration['hive-site'],
+      owner => $hive_user,
+      group => $hdp::params::user_group,
+      mode => '0660'
+    }
+  } else {
+    file { "${hive_config_dir}/hive-site.xml":
       owner => $hive_user,
       group => $hdp::params::user_group,
       mode => '0660'
@@ -67,13 +73,18 @@ class hdp-hive(
   
     hdp::directory { $hive_config_dir: 
       service_state => $service_state,
-      force => true
+      force => true,
+      owner => $hive_user,
+      group => $hdp::params::user_group,
+      override_owner => true
     }
 
     hdp-hive::configfile { ['hive-env.sh']: }
+
+    hdp-hive::ownership { 'ownership': }
   
     Anchor['hdp-hive::begin'] -> Hdp::Package['hive'] -> Hdp::User[$hive_user] ->  
-     Hdp::Directory[$hive_config_dir] -> Hdp-hive::Configfile<||> ->  Anchor['hdp-hive::end']
+     Hdp::Directory[$hive_config_dir] -> Hdp-hive::Configfile<||> -> Hdp-hive::Ownership['ownership'] -> Anchor['hdp-hive::end']
 
      if ($server == true ) {
        Hdp::Package['hive'] -> Hdp::User[$hive_user] -> Class['hdp-hive::mysql-connector'] -> Anchor['hdp-hive::end']
@@ -92,5 +103,27 @@ define hdp-hive::configfile(
     owner            => $hdp-hive::params::hive_user,
     mode             => $mode,
     hive_server_host => $hive_server_host 
+  }
+}
+
+define hdp-hive::ownership {
+  file { "${hdp-hive::params::hive_conf_dir}/hive-default.xml.template":
+    owner => $hdp-hive::params::hive_user,
+    group => $hdp::params::user_group
+  }
+
+  file { "${hdp-hive::params::hive_conf_dir}/hive-env.sh.template":
+    owner => $hdp-hive::params::hive_user,
+    group => $hdp::params::user_group
+  }
+
+  file { "${hdp-hive::params::hive_conf_dir}/hive-exec-log4j.properties.template":
+    owner => $hdp-hive::params::hive_user,
+    group => $hdp::params::user_group
+  }
+
+  file { "${hdp-hive::params::hive_conf_dir}/hive-log4j.properties.template":
+    owner => $hdp-hive::params::hive_user,
+    group => $hdp::params::user_group
   }
 }

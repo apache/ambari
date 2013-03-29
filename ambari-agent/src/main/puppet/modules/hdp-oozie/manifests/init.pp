@@ -33,7 +33,7 @@ class hdp-oozie(
 
   if has_key($configuration, 'oozie-site') {
     configgenerator::configfile{'oozie-site':
-      modulespath => $hdp-oozie::params::conf_dir, 
+      modulespath => $oozie_config_dir, 
       filename => 'oozie-site.xml',
       module => 'hdp-oozie',
       configuration => $configuration['oozie-site'],
@@ -41,10 +41,16 @@ class hdp-oozie(
       group => $hdp::params::user_group,
       mode => '0660'
     }
-    $oozie-site = $configuration['oozie-site']
-    $oozie_principal = $oozie-site["oozie.service.HadoopAccessorService.kerberos.principal"]
+  } else {
+    file { "${oozie_config_dir}/oozie-site.xml":
+      owner => $oozie_user,
+      group => $hdp::params::user_group,
+      mode => '0660'
+    }
   }
-  
+
+  $oozie-site = $configuration['oozie-site']
+  $oozie_principal = $oozie-site["oozie.service.HadoopAccessorService.kerberos.principal"]
 
   if ($service_state == 'uninstalled') {
     hdp::package { 'oozie-client' : 
@@ -75,13 +81,18 @@ class hdp-oozie(
      hdp::user{ $oozie_user:}
 
      hdp::directory { $oozie_config_dir: 
-      service_state => $service_state,
-      force => true
-    }
+       service_state => $service_state,
+       force => true,
+       owner => $oozie_user,
+       group => $hdp::params::user_group,
+       override_owner => true
+     }
 
      hdp-oozie::configfile { ['oozie-env.sh','oozie-log4j.properties']: }
 
-    anchor { 'hdp-oozie::begin': } -> Hdp::Package['oozie-client'] -> Hdp::User[$oozie_user] -> Hdp::Directory[$oozie_config_dir] -> Hdp-oozie::Configfile<||> -> anchor { 'hdp-oozie::end': }
+     hdp-oozie::ownership { 'ownership': }
+
+    anchor { 'hdp-oozie::begin': } -> Hdp::Package['oozie-client'] -> Hdp::User[$oozie_user] -> Hdp::Directory[$oozie_config_dir] -> Hdp-oozie::Configfile<||> -> Hdp-oozie::Ownership['ownership'] -> anchor { 'hdp-oozie::end': }
 
      if ($server == true ) { 
        Hdp::Package['oozie-server'] -> Hdp::Package['oozie-client'] -> Hdp::User[$oozie_user] ->   Class['hdp-oozie::download-ext-zip'] ->  Anchor['hdp-oozie::end']
@@ -100,5 +111,32 @@ define hdp-oozie::configfile(
     owner           => $hdp-oozie::params::oozie_user,
     mode            => $mode,
     oozie_server    => $oozie_server
+  }
+}
+
+define hdp-oozie::ownership {
+  file { "${hdp-oozie::params::conf_dir}/adminusers.txt":
+    owner => $hdp-oozie::params::oozie_user,
+    group => $hdp::params::user_group
+  }
+
+  file { "${hdp-oozie::params::conf_dir}/hadoop-config.xml":
+    owner => $hdp-oozie::params::oozie_user,
+    group => $hdp::params::user_group
+  }
+
+  file { "${hdp-oozie::params::conf_dir}/oozie-default.xml":
+    owner => $hdp-oozie::params::oozie_user,
+    group => $hdp::params::user_group
+  }
+
+  file { "${hdp-oozie::params::conf_dir}/action-conf":
+    owner => $hdp-oozie::params::oozie_user,
+    group => $hdp::params::user_group
+  }
+
+  file { "${hdp-oozie::params::conf_dir}/action-conf/hive.xml":
+    owner => $hdp-oozie::params::oozie_user,
+    group => $hdp::params::user_group
   }
 }

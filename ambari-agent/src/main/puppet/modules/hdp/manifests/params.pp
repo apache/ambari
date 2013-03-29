@@ -134,6 +134,8 @@ class hdp::params()
 
   $smokeuser = hdp_default("smokeuser","ambari_qa")
   $smoke_user_group = hdp_default("smoke_user_group","users")
+
+  $sqoop_user = hdp_default("sqoop_user","sqoop")
   
   ############ Hdfs users directories
   $oozie_hdfs_user_dir = hdp_default("oozie_hdfs_user_dir", "/user/${oozie_user}")

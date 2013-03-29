@@ -49,7 +49,9 @@ class hdp-pig(
 
     hdp::directory { $pig_config_dir:
       service_state => $service_state,
-      force => true
+      force => true,
+      group => $hdp::params::user_group,
+      override_owner => true
     }
 
     hdp-pig::configfile { ['pig-env.sh','pig.properties','log4j.properties']:}

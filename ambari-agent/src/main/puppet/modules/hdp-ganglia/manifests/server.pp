@@ -88,10 +88,15 @@ class hdp-ganglia::server(
       ensure => 'present'
    }
 
+  file { "${hdp-ganglia::params::ganglia_dir}/gmetad.conf":
+    owner => 'root',
+    group => $hdp::params::user_group
+  }
+
   #top level does not need anchors
   Class['hdp-ganglia'] -> Class['hdp-ganglia::server::packages'] -> Class['hdp-ganglia::config'] ->
  Hdp-ganglia::Config::Generate_server<||> ->
- Class['hdp-ganglia::server::gmetad'] -> Class['hdp-ganglia::service::change_permission'] -> Class['hdp-ganglia::server::files'] -> Class['hdp-monitor-webserver']
+ Class['hdp-ganglia::server::gmetad'] -> File["${hdp-ganglia::params::ganglia_dir}/gmetad.conf"] -> Class['hdp-ganglia::service::change_permission'] -> Class['hdp-ganglia::server::files'] -> Class['hdp-monitor-webserver']
  }
 }
 

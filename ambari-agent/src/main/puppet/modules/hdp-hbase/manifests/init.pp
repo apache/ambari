@@ -37,18 +37,32 @@ class hdp-hbase(
       modulespath => $hdp-hbase::params::conf_dir,
       filename => 'hbase-site.xml',
       module => 'hdp-hbase',
-      configuration => $configuration['hbase-site']
-      }
+      configuration => $configuration['hbase-site'],
+      owner => $hbase_user,
+      group => $hdp::params::user_group
     }
+  } else { # Manually overriding ownership of file installed by hadoop package
+    file { "${hdp-hbase::params::conf_dir}/hbase-site.xml":
+      owner => $hbase_user,
+      group => $hdp::params::user_group
+    }
+  }
 
   if has_key($configuration, 'hbase-policy') {
     configgenerator::configfile{'hbase-policy': 
       modulespath => $hdp-hbase::params::conf_dir,
       filename => 'hbase-policy.xml',
       module => 'hdp-hbase',
-      configuration => $configuration['hbase-policy']
-      }
+      configuration => $configuration['hbase-policy'],
+      owner => $hbase_user,
+      group => $hdp::params::user_group
     }
+  } else { # Manually overriding ownership of file installed by hadoop package
+    file { "${hdp-hbase::params::conf_dir}/hbase-policy.xml":
+      owner => $hbase_user,
+      group => $hdp::params::user_group
+    }
+  }
 
   anchor{'hdp-hbase::begin':}
   anchor{'hdp-hbase::end':}
@@ -71,7 +85,10 @@ class hdp-hbase(
  
     hdp::directory { $config_dir: 
       service_state => $service_state,
-      force => true
+      force => true,
+      owner => $hbase_user,
+      group => $hdp::params::user_group,
+      override_owner => true
     }
 
    hdp-hbase::configfile { ['hbase-env.sh','log4j.properties','hadoop-metrics.properties']: 

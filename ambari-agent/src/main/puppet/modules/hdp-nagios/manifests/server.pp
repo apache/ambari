@@ -166,13 +166,18 @@ class hdp-nagios::server(
 
     class { 'hdp-nagios::server::web_permisssions': }
 
+    file { "$nagios_config_dir/command.cfg" :
+      owner => $hdp-nagios::params::nagios_user,
+      group => $hdp-nagios::params::nagios_group
+    }
+
     class { 'hdp-nagios::server::services': ensure => $service_state}
 	
 	
 	Class['hdp-nagios::server::packages'] -> Class['hdp-nagios::server::enable_snmp']-> Hdp::Directory[$nagios_config_dir] -> Hdp::Directory[$plugins_dir] -> Hdp::Directory_recursive_create[$nagios_pid_dir] ->
 	Hdp::Directory[$nagios_obj_dir] -> Hdp::Directory_Recursive_Create[$nagios_var_dir] ->
 	Hdp::Directory_Recursive_Create[$check_result_path] -> Hdp::Directory_Recursive_Create[$nagios_rw_dir] ->
-	Class['hdp-nagios::server::config'] -> Class['hdp-nagios::server::web_permisssions'] -> Class['hdp-nagios::server::services'] -> Class['hdp-monitor-webserver']
+	Class['hdp-nagios::server::config'] -> Class['hdp-nagios::server::web_permisssions'] -> File["$nagios_config_dir/command.cfg"] -> Class['hdp-nagios::server::services'] -> Class['hdp-monitor-webserver']
 
   } else {
     hdp_fail("TODO not implemented yet: service_state = ${service_state}")
@@ -210,6 +215,14 @@ class hdp-nagios::server::web_permisssions()
     command => $cmd,
     unless => $test
   }
+
+  file { "/etc/nagios/htpasswd.users" :
+    owner => $hdp-nagios::params::nagios_user,
+    group => $hdp-nagios::params::nagios_group,
+    mode  => '0750'
+  }
+
+  Hdp::Exec[$cmd] -> File["/etc/nagios/htpasswd.users"]
 }
 
 class hdp-nagios::server::services($ensure)

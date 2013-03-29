@@ -68,6 +68,11 @@ debug('##Configs generation for hdp-hadoop')
       owner => $hdp-hadoop::params::hdfs_user,
       group => $hdp::params::user_group
     }
+  } else { # Manually overriding ownership of file installed by hadoop package
+    file { "${hdp-hadoop::params::conf_dir}/hadoop-policy.xml":
+      owner => $hdp-hadoop::params::hdfs_user,
+      group => $hdp::params::user_group
+    }
   }
 
   if has_key($configuration, 'core-site') {
@@ -79,7 +84,12 @@ debug('##Configs generation for hdp-hadoop')
         owner => $hdp-hadoop::params::hdfs_user,
         group => $hdp::params::user_group
       }
+  } else { # Manually overriding ownership of file installed by hadoop package
+    file { "${hdp-hadoop::params::conf_dir}/core-site.xml":
+      owner => $hdp-hadoop::params::hdfs_user,
+      group => $hdp::params::user_group
     }
+  }
 
   if has_key($configuration, 'mapred-site') {
     configgenerator::configfile{'mapred-site': 
@@ -87,6 +97,11 @@ debug('##Configs generation for hdp-hadoop')
       filename => 'mapred-site.xml',
       module => 'hdp-hadoop',
       configuration => $configuration['mapred-site'],
+      owner => $hdp-hadoop::params::mapred_user,
+      group => $hdp::params::user_group
+    }
+  } else { # Manually overriding ownership of file installed by hadoop package
+    file { "${hdp-hadoop::params::conf_dir}/mapred-site.xml":
       owner => $hdp-hadoop::params::mapred_user,
       group => $hdp::params::user_group
     }
@@ -102,6 +117,11 @@ debug('##Configs generation for hdp-hadoop')
       owner => $hdp-hadoop::params::hdfs_user,
       group => $hdp::params::user_group,
     }
+  } else { # Manually overriding ownership of file installed by hadoop package
+    file { "${hdp-hadoop::params::conf_dir}/capacity-scheduler.xml":
+      owner => $hdp-hadoop::params::hdfs_user,
+      group => $hdp::params::user_group
+    }
   } 
 
 
@@ -111,6 +131,11 @@ debug('##Configs generation for hdp-hadoop')
       filename => 'hdfs-site.xml',
       module => 'hdp-hadoop',
       configuration => $configuration['hdfs-site'],
+      owner => $hdp-hadoop::params::hdfs_user,
+      group => $hdp::params::user_group
+    }
+  } else { # Manually overriding ownership of file installed by hadoop package
+    file { "${hdp-hadoop::params::conf_dir}/hdfs-site.xml":
       owner => $hdp-hadoop::params::hdfs_user,
       group => $hdp::params::user_group
     }
@@ -128,6 +153,31 @@ debug('##Configs generation for hdp-hadoop')
     ensure => 'link',
     target => '/usr/lib/hadoop/hadoop-tools.jar',
     mode => 755,
+  }
+
+  file { "${hdp-hadoop::params::conf_dir}/configuration.xsl":
+    owner => $hdp-hadoop::params::hdfs_user,
+    group => $hdp::params::user_group
+  }
+
+  file { "${hdp-hadoop::params::conf_dir}/fair-scheduler.xml":
+    owner => $hdp-hadoop::params::mapred_user,
+    group => $hdp::params::user_group
+  }
+
+  file { "${hdp-hadoop::params::conf_dir}/masters":
+    owner => $hdp-hadoop::params::hdfs_user,
+    group => $hdp::params::user_group
+  }
+
+  file { "${hdp-hadoop::params::conf_dir}/ssl-client.xml.example":
+    owner => $hdp-hadoop::params::mapred_user,
+    group => $hdp::params::user_group
+  }
+
+  file { "${hdp-hadoop::params::conf_dir}/ssl-server.xml.example":
+    owner => $hdp-hadoop::params::mapred_user,
+    group => $hdp::params::user_group
   }
 }
 
@@ -161,7 +211,9 @@ class hdp-hadoop(
 
     hdp::directory_recursive_create { $hadoop_config_dir:
       service_state => $service_state,
-      force => true
+      force => true,
+      owner => $hdfs_user,
+      group => $hdp::params::user_group
     }
  
     hdp::user{ $hdfs_user:}
@@ -210,7 +262,7 @@ class hdp-hadoop(
       owner => $hdfs_user,
     }
 
-    Anchor['hdp-hadoop::begin'] -> Hdp-hadoop::Package<||> ->  Hdp::Directory_recursive_create[$hadoop_config_dir] ->  Hdp::User<|title == $hdfs_user or title == $mapred_user|> 
+    Anchor['hdp-hadoop::begin'] -> Hdp-hadoop::Package<||> ->  Hdp::User<|title == $hdfs_user or title == $mapred_user|>  ->  Hdp::Directory_recursive_create[$hadoop_config_dir] 
     -> Hdp-hadoop::Configfile<|tag == 'common'|> -> Anchor['hdp-hadoop::end']
     Anchor['hdp-hadoop::begin'] -> Hdp::Directory_recursive_create[$logdirprefix] -> Anchor['hdp-hadoop::end']
     Anchor['hdp-hadoop::begin'] -> Hdp::Directory_recursive_create[$piddirprefix] -> Anchor['hdp-hadoop::end']

@@ -26,7 +26,7 @@ source ./gangliaLib.sh
 function usage()
 {
   cat << END_USAGE
-Usage: ${0} [-c <gmondClusterName> [-m]] [-t]
+Usage: ${0} [-c <gmondClusterName> [-m]] [-t] [-o <owner>] [-g <group>]
 
 Options:
   -c <gmondClusterName>   The name of the Ganglia Cluster whose gmond configuration we're here to generate.
@@ -36,6 +36,8 @@ Options:
 
   -t                      Whether this is a call to generate gmetad configuration (as opposed to the
                           gmond configuration that is generated without this).
+  -o <owner>              Owner
+  -g <group>              Group
 END_USAGE
 }
 
@@ -73,6 +75,8 @@ function instantiateGmondConf()
       generateGmondMasterConf ${gmondClusterName} > `getGmondMasterConfFileName ${gmondClusterName}`;
     fi
 
+    chown -R ${3}:${4} ${GANGLIA_CONF_DIR}/${gmondClusterName}
+
   else
     echo "No gmondClusterName passed in, nothing to instantiate";
   fi
@@ -83,8 +87,10 @@ function instantiateGmondConf()
 gmondClusterName=;
 isMasterGmond=0;
 configureGmetad=0;
+owner='root';
+group='root';
 
-while getopts ":c:mt" OPTION
+while getopts ":c:mto:g:" OPTION
 do
   case ${OPTION} in
     c) 
@@ -95,6 +101,12 @@ do
       ;;
     t)
       configureGmetad=1;
+      ;;
+    o)
+      owner=${OPTARG};
+      ;;
+    g)
+      group=${OPTARG};
       ;;
     ?)
       usage;
@@ -107,6 +119,7 @@ createDirectory ${GANGLIA_CONF_DIR};
 createDirectory ${GANGLIA_RUNTIME_DIR};
 # So rrdcached can drop its PID files in here.
 chmod a+w ${GANGLIA_RUNTIME_DIR};
+chown ${owner}:${group} ${GANGLIA_CONF_DIR};
 
 if [ -n "${gmondClusterName}" ]
 then
@@ -116,7 +129,7 @@ then
   then
     instantiateGmetadConf;
   else
-    instantiateGmondConf ${gmondClusterName} ${isMasterGmond};
+    instantiateGmondConf ${gmondClusterName} ${isMasterGmond} ${owner} ${group};
   fi
 
 elif [ "1" -eq "${configureGmetad}" ]

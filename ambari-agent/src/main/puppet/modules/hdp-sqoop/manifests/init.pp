@@ -44,9 +44,19 @@ class hdp-sqoop(
       hdp-sqoop::createsymlinks { ['/usr/lib/sqoop/conf']:}
     }
 
+    hdp::directory { $conf_dir:
+      service_state => $service_state,
+      force => true,
+      owner => $sqoop_user,
+      group => $hdp::params::user_group,
+      override_owner => true
+    }
+
     hdp-sqoop::configfile { ['sqoop-env.sh']:}
 
-    anchor { 'hdp-sqoop::begin': } -> Hdp::Package['sqoop'] -> Class['hdp-sqoop::mysql-connector'] -> Hdp-sqoop::Configfile<||> -> anchor { 'hdp-sqoop::end': }
+    hdp-sqoop::ownership { 'ownership': }
+
+    anchor { 'hdp-sqoop::begin': } -> Hdp::Package['sqoop'] -> Class['hdp-sqoop::mysql-connector'] -> Hdp::Directory[$conf_dir] -> Hdp-sqoop::Configfile<||> -> Hdp-sqoop::Ownership['ownership'] -> anchor { 'hdp-sqoop::end': }
  } else {
     hdp_fail("TODO not implemented yet: service_state = ${service_state}")
   }
@@ -71,9 +81,24 @@ define hdp-sqoop::createsymlinks()
 define hdp-sqoop::configfile()
 {
   hdp::configfile { "${hdp::params::sqoop_conf_dir}/${name}":
-    component => 'sqoop'
+    component => 'sqoop',
+    owner     => $hdp::params::sqoop_user
   }
 }
 
+define hdp-sqoop::ownership {
+  file { "${hdp::params::sqoop_conf_dir}/sqoop-env-template.sh":
+    owner => $hdp::params::sqoop_user,
+    group => $hdp::params::user_group
+  }
 
+  file { "${hdp::params::sqoop_conf_dir}/sqoop-site-template.xml":
+    owner => $hdp::params::sqoop_user,
+    group => $hdp::params::user_group
+  }
 
+  file { "${hdp::params::sqoop_conf_dir}/sqoop-site.xml":
+    owner => $hdp::params::sqoop_user,
+    group => $hdp::params::user_group
+  }
+}

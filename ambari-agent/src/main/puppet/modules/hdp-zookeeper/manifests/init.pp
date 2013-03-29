@@ -68,7 +68,8 @@ class hdp-zookeeper(
 
      hdp::directory_recursive_create { $zk_config_dir: 
       service_state => $service_state,
-      force => true
+      force => true,
+      owner => $zk_user
      }
 
      hdp-zookeeper::configfile { ['zoo.cfg','zookeeper-env.sh','configuration.xsl','log4j.properties']: }
@@ -93,8 +94,13 @@ class hdp-zookeeper(
         }
       }
 
+     file { "${zk_config_dir}/zoo_sample.cfg":
+       owner => $zk_user,
+       group => $hdp::params::user_group
+     }
+
       Anchor['hdp-zookeeper::begin'] -> Hdp::Package['zookeeper'] -> Hdp::User[$zk_user] -> 
-        Hdp::Directory_recursive_create[$zk_config_dir] -> Hdp-zookeeper::Configfile<||> -> Anchor['hdp-zookeeper::end']
+        Hdp::Directory_recursive_create[$zk_config_dir] -> Hdp-zookeeper::Configfile<||> -> File["${zk_config_dir}/zoo_sample.cfg"] -> Anchor['hdp-zookeeper::end']
       if ($type == 'server') {
         Hdp::Directory_recursive_create[$zk_config_dir] -> Hdp-zookeeper::Configfile<||> -> Class['hdp-zookeeper::service'] -> Anchor['hdp-zookeeper::end']
       }

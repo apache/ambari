@@ -57,7 +57,10 @@ class hdp-hcat(
 
     hdp::directory { $hcat_config_dir:
       service_state => $service_state,
-      force => true
+      force => true,
+      owner => $hcat_user,
+      group => $hdp::params::user_group,
+      override_owner => true
     }
 
     hdp::directory_recursive_create { $hcat_pid_dir:
@@ -85,6 +88,7 @@ class hdp-hcat(
 define hdp-hcat::configfile()
 {
   hdp::configfile { "${hdp::params::hcat_conf_dir}/${name}":
-    component => 'hcat'
+    component => 'hcat',
+    owner => $hdp::params::hcat_user
   }
 }
