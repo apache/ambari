@@ -534,6 +534,9 @@ Trunk (unreleased changes):
 
  BUG FIXES
 
+ AMBARI-1747. Added executable permission of generate monitor/server scripts.
+ (smohanty)
+
  AMBARI-1747. File ownership needs more consistency for those installations 
  where root access is hard to get. (smohanty)
 
