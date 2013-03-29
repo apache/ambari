@@ -534,6 +534,9 @@ Trunk (unreleased changes):
 
  BUG FIXES
 
+ AMBARI-1748. JDK option on the UI when used is not passed onto the global 
+ parameters. (srimanth)
+
  AMBARI-1747. Added executable permission of generate monitor/server scripts.
  (smohanty)
 
