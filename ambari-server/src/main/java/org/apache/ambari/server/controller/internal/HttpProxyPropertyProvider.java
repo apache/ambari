@@ -19,15 +19,12 @@ package org.apache.ambari.server.controller.internal;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.lang.reflect.Type;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-import org.apache.ambari.server.api.services.NamedPropertySet;
-import org.apache.ambari.server.api.services.RequestBody;
-import org.apache.ambari.server.api.services.parsers.BodyParseException;
-import org.apache.ambari.server.api.services.parsers.JsonRequestBodyParser;
 import org.apache.ambari.server.controller.spi.Predicate;
 import org.apache.ambari.server.controller.spi.PropertyProvider;
 import org.apache.ambari.server.controller.spi.Request;
@@ -38,6 +35,9 @@ import org.apache.ambari.server.controller.utilities.StreamProvider;
 import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 
 /**
  * Property provider that is used to read HTTP data from another server.
@@ -108,32 +108,25 @@ public class HttpProxyPropertyProvider extends BaseProvider implements PropertyP
     return resources;
   }
 
-  private void getHttpResponse(Resource r, String url, String propertyIdToSet) {
+  private void getHttpResponse(Resource r, String url, String propertyIdToSet) throws SystemException {
     
     InputStream in = null;
     try {
       in = streamProvider.readFrom(url);
-      //todo: should not use JsonRequestBodyParser as this is intended only for parsing http bodies.
-      RequestBody body = (new JsonRequestBodyParser().parse(IOUtils.toString(in, "UTF-8")));
-      Set<NamedPropertySet> setNamedProps = body.getNamedPropertySets();
-      Set<Map<String,Object>> setProps = new HashSet<Map<String, Object>>(setNamedProps.size());
-      for (NamedPropertySet ps : setNamedProps) {
-        setProps.add(ps.getProperties());
-      }
-      r.setProperty(propertyIdToSet, setProps);
+      Type mapType = new TypeToken<Map<String, Object>>(){}.getType();
+      Map<String, Object> propertyValueFromJson = new Gson().fromJson(IOUtils.toString(in, "UTF-8"), mapType);
+      r.setProperty(propertyIdToSet, propertyValueFromJson);
     }
     catch (IOException ioe) {
-      //todo: should not eat exception
       LOG.error("Error reading HTTP response from " + url);
-    } catch (BodyParseException e) {
-      LOG.error("Error Parsing Json.", e);
+      throw new SystemException("Unable to get property " + propertyIdToSet + "from URL " + url, ioe);
     } finally {
-      if (null != in) {
+      if (in != null) {
         try {
           in.close();
         }
         catch (IOException ioe) {
-          // 
+          throw new SystemException("Unable to close input stream", ioe);
         }
       }
     }

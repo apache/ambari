@@ -534,6 +534,9 @@ Trunk (unreleased changes):
 
  BUG FIXES
 
+ AMBARI-1561. API should return nagios_alerts as a JSON, not a stringified 
+ JSON. (smohanty)
+
  AMBARI-1507. Should not install HDPHBaseMaster, HDPNameNode and HDPJobTracker
  ganglia configs on every node. (smohanty)
 

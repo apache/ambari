@@ -224,6 +224,7 @@ function hdp_mon_generate_response( $response_data )
     if ($services_object["PUPPET"] >= 1) {
       $services_object["PUPPET"] = 1;
     }
+    $services_object = array_map('strval', $services_object);
     return $services_object;
   }
 
@@ -242,6 +243,7 @@ function hdp_mon_generate_response( $response_data )
     }
     $hostcounts_object['up_hosts'] = $up_hosts;
     $hostcounts_object['down_hosts'] = $down_hosts;
+    $hostcounts_object = array_map('strval', $hostcounts_object);
     return $hostcounts_object;
   }
 

@@ -23,6 +23,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -75,22 +76,37 @@ public class HttpPropertyProviderTest {
      resource.getPropertyValue(PROPERTY_ID_NAGIOS_ALERTS));        
   }
 
+  @SuppressWarnings("rawtypes")
   @Test
   public void testReadWithRequestedJson() throws Exception {
 
-  Set<String> propertyIds = new HashSet<String>();
-  propertyIds.add(PropertyHelper.getPropertyId("HostRoles", "nagios_alerts"));
-  propertyIds.add(PROPERTY_ID_COMPONENT_NAME);
-  Resource resource = doPopulate("NAGIOS_SERVER", propertyIds);
-  Object propertyValue = resource.getPropertyValue(PROPERTY_ID_NAGIOS_ALERTS);
+    Set<String> propertyIds = new HashSet<String>();
+    propertyIds.add(PropertyHelper.getPropertyId("HostRoles", "nagios_alerts"));
+    propertyIds.add(PROPERTY_ID_COMPONENT_NAME);
+    Resource resource = doPopulate("NAGIOS_SERVER", propertyIds);
+    Object propertyValue = resource.getPropertyValue(PROPERTY_ID_NAGIOS_ALERTS);
 
-  Assert.assertNotNull("Expected non-null for 'nagios_alerts'", propertyValue);
-  Assert.assertTrue("Expected Set for parsed JSON", propertyValue instanceof Set);
-
-  Object propertyEntry = ((Set) propertyValue).iterator().next();
-
-  Assert.assertTrue(propertyEntry instanceof Map);
-  Assert.assertEquals("Alert Body", ((Map) propertyEntry).get("nagios_alert"));
+    Assert.assertNotNull("Expected non-null for 'nagios_alerts'", propertyValue);
+    Assert.assertTrue("Expected Map for parsed JSON", propertyValue instanceof Map);
+    
+    Object alertsEntry = ((Map) propertyValue).get("alerts");
+    Object hostcountsEntry = ((Map) propertyValue).get("hostcounts");
+    
+    Assert.assertNotNull("Expected non-null for 'alerts' entry", alertsEntry);
+    Assert.assertNotNull("Expected non-null for 'hostcounts' entry", hostcountsEntry);
+    Assert.assertTrue("Expected List type for 'alerts' entry", alertsEntry instanceof List);
+    Assert.assertTrue("Expected Map type for 'hostcounts' entry", hostcountsEntry instanceof Map);
+    
+    List alertsList = (List) alertsEntry;
+    Map hostcountsMap = (Map) hostcountsEntry;
+    
+    Assert.assertEquals("Expected number of entries in 'alerts' is 1", 1, alertsList.size());
+    Assert.assertTrue("Expected Map type for 'alerts' element", alertsList.get(0) instanceof Map);
+    Assert.assertEquals("Body", ((Map) alertsList.get(0)).get("Alert Body"));
+    
+    Assert.assertEquals("Expected number of entries in 'hostcounts' is 2", 2, hostcountsMap.size());
+    Assert.assertEquals("1", hostcountsMap.get("up_hosts"));
+    Assert.assertEquals("0", hostcountsMap.get("down_hosts"));
   }
 
   @Test
@@ -130,7 +146,8 @@ public class HttpPropertyProviderTest {
 
     @Override
     public InputStream readFrom(String spec) throws IOException {
-        String responseStr = "[{\"nagios_alert\": \"Alert Body\"}]";
+      String responseStr = "{\"alerts\": [{\"Alert Body\": \"Body\"}],"
+          + " \"hostcounts\": {\"up_hosts\":\"1\", \"down_hosts\":\"0\"}}";
         return new ByteArrayInputStream(responseStr.getBytes("UTF-8"));
     }
   }
