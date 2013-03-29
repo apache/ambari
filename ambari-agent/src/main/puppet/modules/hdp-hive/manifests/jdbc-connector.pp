@@ -18,28 +18,41 @@
 # under the License.
 #
 #
-class hdp-hive::mysql-connector()
+class hdp-hive::jdbc-connector()
 {
   include hdp-hive::params
 
-  $hive_lib = $hdp-hive::params::hive_lib
-  $target = "${hive_lib}/mysql-connector-java.jar"
+  $jdbc_jar_name = $hdp-hive::params::jdbc_jar_name
   
-  anchor { 'hdp-hive::mysql-connector::begin':}
+  $hive_lib = $hdp-hive::params::hive_lib
+  $target = "${hive_lib}/${jdbc_jar_name}"
+  
+  anchor { 'hdp-hive::jdbc-connector::begin':}
 
    hdp::package { 'mysql-connector-java' :
-     require   => Anchor['hdp-hive::mysql-connector::begin']
+     require   => Anchor['hdp-hive::jdbc-connector::begin']
    }
 
-   hdp::exec { 'hive mkdir -p ${artifact_dir} ;  cp /usr/share/java/mysql-connector-java.jar  ${target}':
-       command => "mkdir -p ${artifact_dir} ;  cp /usr/share/java/mysql-connector-java.jar  ${target}",
+
+  if ($hive_ambari_database == "MySQL"){
+   hdp::exec { 'hive mkdir -p ${artifact_dir} ;  cp /usr/share/java/${jdbc_jar_name}  ${target}':
+       command => "mkdir -p ${artifact_dir} ;  cp /usr/share/java/${jdbc_jar_name}  ${target}",
        unless  => "test -f ${target}",
        creates => $target,
        path    => ["/bin","/usr/bin/"],
        require => Hdp::Package['mysql-connector-java'],
-       notify  =>  Anchor['hdp-hive::mysql-connector::end'],
+       notify  =>  Anchor['hdp-hive::jdbc-connector::end'],
    }
+  } elsif ($hive_ambari_database == "Oracle") {
+   hdp::exec { 'hive mkdir -p ${artifact_dir} ;  cp /usr/share/java/${jdbc_jar_name}  ${target}':
+       command => "mkdir -p ${artifact_dir} ;  cp /usr/share/java/${jdbc_jar_name}  ${target}",
+       unless  => "test -f ${target}",
+       path    => ["/bin","/usr/bin/"],
+       notify  =>  Anchor['hdp-hive::jdbc-connector::end'],
+     }  
+  }
 
-   anchor { 'hdp-hive::mysql-connector::end':}
+
+   anchor { 'hdp-hive::jdbc-connector::end':}
 
 }

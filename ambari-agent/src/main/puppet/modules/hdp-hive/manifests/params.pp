@@ -26,8 +26,15 @@ class hdp-hive::params() inherits hdp::params
   $hive_metastore_user_passwd = hdp_default("hadoop/hive-site/hive_metastore_user_passwd","dbpassword")
 
   ### users
-  $hive_user = $hdp::params::hive_user 
-
+  $hive_user = $hdp::params::hive_user
+  
+  ### JDBC driver jar name
+  if ($hive_ambari_database == "MySQL"){
+    $jdbc_jar_name = "mysql-connector-java.jar"
+  } elsif ($hive_ambari_database == "Oracle") {
+    $jdbc_jar_name = "ojdbc6.jar"  
+  }
+  
   ### common
   $hive_metastore_port = hdp_default("hive_metastore_port",9083)
   $hive_lib = hdp_default("hive_lib","/usr/lib/hive/lib/") #TODO: should I remove and just use hive_dbroot

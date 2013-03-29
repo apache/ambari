@@ -66,7 +66,7 @@ class hdp-hive(
   } else {
     hdp::package { 'hive' : }
     if ($server == true ) {
-      class { 'hdp-hive::mysql-connector': }
+      class { 'hdp-hive::jdbc-connector': }
     }
   
     hdp::user{ $hive_user:}
@@ -87,7 +87,7 @@ class hdp-hive(
      Hdp::Directory[$hive_config_dir] -> Hdp-hive::Configfile<||> -> Hdp-hive::Ownership['ownership'] -> Anchor['hdp-hive::end']
 
      if ($server == true ) {
-       Hdp::Package['hive'] -> Hdp::User[$hive_user] -> Class['hdp-hive::mysql-connector'] -> Anchor['hdp-hive::end']
+       Hdp::Package['hive'] -> Hdp::User[$hive_user] -> Class['hdp-hive::jdbc-connector'] -> Anchor['hdp-hive::end']
     }
   }
 }

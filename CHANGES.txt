@@ -12,6 +12,8 @@ Trunk (unreleased changes):
 
  NEW FEATURES
 
+ AMBARI-1752. Backend support for MySQL and Oracle for Oozie and Hive. (swagle)
+
  AMBARI-1751. Ambari oracle-linux as a supported OS type. (swagle)
 
  AMBARI-1728. Cleanup INFO Logging at the ambari agent to make it more useful 

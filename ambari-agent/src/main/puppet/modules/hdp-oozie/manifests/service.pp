@@ -38,6 +38,15 @@ class hdp-oozie::service(
   $security = $hdp::params::security_enabled
   $oozie_keytab = $hdp-oozie::params::oozie_service_keytab
   $oozie_principal = $hdp-oozie::oozie_principal
+  
+  $jdbc_driver_name = $configuration['oozie-site']['oozie.service.JPAService.jdbc.driver']
+  if ($jdbc_driver_name == "com.mysql.jdbc.Driver"){
+    $jdbc_driver_jar = "/usr/share/java/mysql-connector-java.jar"
+  } elsif($jdbc_driver_name == "oracle.jdbc.driver.OracleDriver") {
+      $jdbc_driver_jar = "/usr/share/java/ojdbc6.jar"
+  }
+  
+  
 
   if ($security == true) {
     $kinit_if_needed = "${hdp::params::kinit_path_local} -kt ${oozie_keytab} ${oozie_principal}"
@@ -51,10 +60,16 @@ class hdp-oozie::service(
     $lzo_jar_suffix = ""
   }
 
+     
+        
   $cmd1 = "cd /usr/lib/oozie && tar -xvf oozie-sharelib.tar.gz"
   $cmd2 =  "cd /usr/lib/oozie && mkdir -p ${oozie_tmp}"
-  $cmd3 =  "cd /usr/lib/oozie && chown ${user}:${hdp::params::user_group} ${oozie_tmp}"    
-  $cmd4 =  "cd ${oozie_tmp} && /usr/lib/oozie/bin/oozie-setup.sh -hadoop 0.20.200 $jar_location -extjs $ext_js_path $lzo_jar_suffix"
+  $cmd3 =  "cd /usr/lib/oozie && chown ${user}:${hdp::params::user_group} ${oozie_tmp}" 
+     
+  $cmd4 = $jdbc_driver_name ? {
+        /(com.mysql.jdbc.Driver|oracle.jdbc.driver.OracleDriver)/ => "cd ${oozie_tmp} && /usr/lib/oozie/bin/oozie-setup.sh -hadoop 0.20.200 $jar_location -jars $jdbc_driver_jar -extjs $ext_js_path $lzo_jar_suffix",
+        default            => "cd ${oozie_tmp} && /usr/lib/oozie/bin/oozie-setup.sh -hadoop 0.20.200 $jar_location -extjs $ext_js_path $lzo_jar_suffix",
+  }
   $cmd5 =  "cd ${oozie_tmp} && /usr/lib/oozie/bin/ooziedb.sh create -sqlfile oozie.sql -run ; echo 0"
   $cmd6 =  "su - ${user} -c '${kinit_if_needed}; hadoop dfs -put /usr/lib/oozie/share ${oozie_hdfs_user_dir} ; hadoop dfs -chmod -R 755 ${oozie_hdfs_user_dir}/share'"
   #$cmd7 = "/usr/lib/oozie/bin/oozie-start.sh"
