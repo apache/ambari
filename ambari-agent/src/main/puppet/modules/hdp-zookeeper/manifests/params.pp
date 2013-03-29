@@ -28,7 +28,7 @@ class hdp-zookeeper::params() inherits hdp::params
   $zk_data_dir = hdp_default("zk_data_dir","/var/lib/zookeeper/data")
   $zk_pid_dir = hdp_default("zk_pid_dir","/var/run/zookeeper")
   $zk_pid_file = "${zk_pid_dir}/zookeeper_server.pid"
-
+  $zk_server_heapsize = hdp_default("zk_server_heapsize","-Xmx1024m")
 
   $tickTime = hdp_default("tickTime","2000")
   $initLimit = hdp_default("initLimit","10")
