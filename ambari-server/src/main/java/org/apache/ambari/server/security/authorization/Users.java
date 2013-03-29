@@ -29,6 +29,8 @@ import org.apache.ambari.server.orm.entities.RoleEntity;
 import org.apache.ambari.server.orm.entities.UserEntity;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -53,6 +55,8 @@ public class Users {
   protected PasswordEncoder passwordEncoder;
   @Inject
   protected Configuration configuration;
+  @Inject
+  private  AmbariLdapAuthenticationProvider ldapAuthenticationProvider;
 
 
   public List<User> getAllUsers() {
@@ -113,10 +117,25 @@ public class Users {
     }
 
     UserEntity currentUserEntity = userDAO.findLocalUserByName(currentUserName);
+
+    //Authenticate LDAP admin user
+    boolean isLdapAdmin = false;
+    if (currentUserEntity == null) {
+      currentUserEntity = userDAO.findLdapUserByName(currentUserName);
+      try {
+        ldapAuthenticationProvider.authenticate(
+            new UsernamePasswordAuthenticationToken(currentUserName, currentUserPassword));
+      isLdapAdmin = true;
+      } catch (BadCredentialsException ex) {
+        throw new AmbariException("Incorrect password provided for LDAP user " +
+            currentUserName);
+      }
+    }
+
     UserEntity userEntity = userDAO.findLocalUserByName(userName);
 
     if ((userEntity != null) && (currentUserEntity != null)) {
-      if (passwordEncoder.matches(currentUserPassword, currentUserEntity.getUserPassword())) {
+      if (isLdapAdmin || passwordEncoder.matches(currentUserPassword, currentUserEntity.getUserPassword())) {
         userEntity.setUserPassword(passwordEncoder.encode(newPassword));
         userDAO.merge(userEntity);
       } else {
@@ -186,6 +205,12 @@ public class Users {
   public synchronized void addRoleToUser(User user, String role)
       throws AmbariException {
 
+    if (userDAO.findLdapUserByName(user.getUserName()) != null) {
+      LOG.warn("Trying to add a role to the LDAP user"
+          + ", user=" + user.getUserName());
+      throw new AmbariException("Roles are not editable for LDAP users");
+    }
+
     UserEntity userEntity = userDAO.findByPK(user.getUserId());
     if (userEntity == null) {
       throw new AmbariException("User " + user + " doesn't exist");
@@ -213,6 +238,13 @@ public class Users {
   @Transactional
   public synchronized void removeRoleFromUser(User user, String role)
       throws AmbariException {
+
+    if (userDAO.findLdapUserByName(user.getUserName()) != null) {
+      LOG.warn("Trying to add a role to the LDAP user"
+          + ", user=" + user.getUserName());
+      throw new AmbariException("Roles are not editable for LDAP users");
+    }
+
     UserEntity userEntity = userDAO.findByPK(user.getUserId());
     if (userEntity == null) {
       throw new AmbariException("User " + user + " doesn't exist");

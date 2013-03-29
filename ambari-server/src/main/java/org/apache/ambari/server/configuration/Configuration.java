@@ -86,6 +86,18 @@ public class Configuration {
       "authentication.ldap.managerPassword";
   public static final String LDAP_USERNAME_ATTRIBUTE_KEY =
       "authentication.ldap.usernameAttribute";
+  public static final String LDAP_GROUP_BASE_KEY =
+      "authorization.ldap.groupBase";
+  public static final String LDAP_GROUP_OBJECT_CLASS_KEY =
+      "authorization.ldap.groupObjectClass";
+  public static final String LDAP_GROUP_NAMING_ATTR_KEY =
+      "authorization.ldap.groupNamingAttr";
+  public static final String LDAP_GROUP_MEMEBERSHIP_ATTR_KEY =
+      "authorization.ldap.groupMembershipAttr";
+  public static final String LDAP_ADMIN_GROUP_MAPPING_RULES_KEY =
+      "authorization.ldap.adminGroupMappingRules";
+  public static final String LDAP_GROUP_SEARCH_FILTER_KEY =
+      "authorization.ldap.groupSearchFilter";
 
   public static final String USER_ROLE_NAME_KEY =
       "authorization.userRoleName";
@@ -138,6 +150,14 @@ public class Configuration {
   private static final String LDAP_PRIMARY_URL_DEFAULT = "localhost:33389";
   private static final String LDAP_BASE_DN_DEFAULT = "dc=ambari,dc=apache,dc=org";
   private static final String LDAP_USERNAME_ATTRIBUTE_DEFAULT = "uid";
+  private static final String LDAP_GROUP_BASE_DEFAULT =
+      "ou=groups,dc=ambari,dc=apache,dc=org";
+  private static final String LDAP_GROUP_OBJECT_CLASS_DEFAULT = "group";
+  private static final String LDAP_GROUP_NAMING_ATTR_DEFAULT = "cn";
+  private static final String LDAP_GROUP_MEMBERSHIP_ATTR_DEFAULT = "member";
+  private static final String LDAP_ADMIN_GROUP_MAPPING_RULES_DEFAULT =
+      "Ambari Administrators";
+  private static final String LDAP_GROUP_SEARCH_FILTER_DEFAULT = "";
 
   //TODO for development purposes only, should be changed to 'false'
   private static final String PERSISTENCE_IN_MEMORY_DEFAULT = "true";
@@ -409,6 +429,18 @@ public class Configuration {
         (LDAP_BASE_DN_KEY, LDAP_BASE_DN_DEFAULT));
     ldapServerProperties.setUsernameAttribute(properties.
         getProperty(LDAP_USERNAME_ATTRIBUTE_KEY, LDAP_USERNAME_ATTRIBUTE_DEFAULT));
+    ldapServerProperties.setGroupBase(properties.
+        getProperty(LDAP_GROUP_BASE_KEY, LDAP_GROUP_BASE_DEFAULT));
+    ldapServerProperties.setGroupObjectClass(properties.
+        getProperty(LDAP_GROUP_OBJECT_CLASS_KEY, LDAP_GROUP_OBJECT_CLASS_DEFAULT));
+    ldapServerProperties.setGroupMembershipAttr(properties.getProperty(
+        LDAP_GROUP_MEMEBERSHIP_ATTR_KEY, LDAP_GROUP_MEMBERSHIP_ATTR_DEFAULT));
+    ldapServerProperties.setGroupNamingAttr(properties.
+        getProperty(LDAP_GROUP_NAMING_ATTR_KEY, LDAP_GROUP_NAMING_ATTR_DEFAULT));
+    ldapServerProperties.setAdminGroupMappingRules(properties.getProperty(
+        LDAP_ADMIN_GROUP_MAPPING_RULES_KEY, LDAP_ADMIN_GROUP_MAPPING_RULES_DEFAULT));
+    ldapServerProperties.setGroupSearchFilter(properties.getProperty(
+        LDAP_GROUP_SEARCH_FILTER_KEY, LDAP_GROUP_SEARCH_FILTER_DEFAULT));
 
     return ldapServerProperties;
   }

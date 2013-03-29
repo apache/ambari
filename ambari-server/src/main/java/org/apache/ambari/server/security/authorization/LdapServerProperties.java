@@ -38,6 +38,14 @@ public class LdapServerProperties {
   private String userSearchBase = "";
   private String usernameAttribute;
 
+  //LDAP group properties
+  private String groupBase;
+  private String groupObjectClass;
+  private String groupMembershipAttr;
+  private String groupNamingAttr;
+  private String adminGroupMappingRules;
+  private String groupSearchFilter;
+
   private static final String userSearchFilter = "({attribute}={0})";
 
   public List<String> getLdapUrls() {
@@ -131,6 +139,54 @@ public class LdapServerProperties {
     this.usernameAttribute = usernameAttribute;
   }
 
+  public String getGroupBase() {
+    return groupBase;
+  }
+
+  public void setGroupBase(String groupBase) {
+    this.groupBase = groupBase;
+  }
+
+  public String getGroupObjectClass() {
+    return groupObjectClass;
+  }
+
+  public void setGroupObjectClass(String groupObjectClass) {
+    this.groupObjectClass = groupObjectClass;
+  }
+
+  public String getGroupMembershipAttr() {
+    return groupMembershipAttr;
+  }
+
+  public void setGroupMembershipAttr(String groupMembershipAttr) {
+    this.groupMembershipAttr = groupMembershipAttr;
+  }
+
+  public String getGroupNamingAttr() {
+    return groupNamingAttr;
+  }
+
+  public void setGroupNamingAttr(String groupNamingAttr) {
+    this.groupNamingAttr = groupNamingAttr;
+  }
+
+  public String getAdminGroupMappingRules() {
+    return adminGroupMappingRules;
+  }
+
+  public void setAdminGroupMappingRules(String adminGroupMappingRules) {
+    this.adminGroupMappingRules = adminGroupMappingRules;
+  }
+
+  public String getGroupSearchFilter() {
+    return groupSearchFilter;
+  }
+
+  public void setGroupSearchFilter(String groupSearchFilter) {
+    this.groupSearchFilter = groupSearchFilter;
+  }
+
   @Override
   public boolean equals(Object obj) {
     if (this == obj) return true;
@@ -150,6 +206,18 @@ public class LdapServerProperties {
       return false;
     if (usernameAttribute != null ? !usernameAttribute.equals(that.usernameAttribute) : that.usernameAttribute != null)
       return false;
+    if (groupBase != null ? !groupBase.equals(that.groupBase) :
+        that.groupBase != null) return false;
+    if (groupObjectClass != null ? !groupObjectClass.equals(that.groupObjectClass) :
+        that.groupObjectClass != null) return false;
+    if (groupMembershipAttr != null ? !groupMembershipAttr.equals(
+        that.groupMembershipAttr) : that.groupMembershipAttr != null) return false;
+    if (groupNamingAttr != null ? !groupNamingAttr.equals(that.groupNamingAttr) :
+        that.groupNamingAttr != null) return false;
+    if (adminGroupMappingRules != null ? !adminGroupMappingRules.equals(
+        that.adminGroupMappingRules) : that.adminGroupMappingRules != null) return false;
+    if (groupSearchFilter != null ? !groupSearchFilter.equals(
+        that.groupSearchFilter) : that.groupSearchFilter != null) return false;
 
     return true;
   }
@@ -165,6 +233,12 @@ public class LdapServerProperties {
     result = 31 * result + (baseDN != null ? baseDN.hashCode() : 0);
     result = 31 * result + (userSearchBase != null ? userSearchBase.hashCode() : 0);
     result = 31 * result + (usernameAttribute != null ? usernameAttribute.hashCode() : 0);
+    result = 31 * result + (groupBase != null ? groupBase.hashCode() : 0);
+    result = 31 * result + (groupObjectClass != null ? groupObjectClass.hashCode() : 0);
+    result = 31 * result + (groupMembershipAttr != null ? groupMembershipAttr.hashCode() : 0);
+    result = 31 * result + (groupNamingAttr != null ? groupNamingAttr.hashCode() : 0);
+    result = 31 * result + (adminGroupMappingRules != null ? adminGroupMappingRules.hashCode() : 0);
+    result = 31 * result + (groupSearchFilter != null ? groupSearchFilter.hashCode() : 0);
     return result;
   }
 

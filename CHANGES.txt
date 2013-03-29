@@ -534,6 +534,9 @@ Trunk (unreleased changes):
 
  BUG FIXES
 
+ AMBARI-1746. Backend support for LDAP Group to Ambari Role Mapping. 
+ (smohanty)
+
  AMBARI-1506. Installs HBase ganglia configs when HBase not installed.
  (smohanty)
 
