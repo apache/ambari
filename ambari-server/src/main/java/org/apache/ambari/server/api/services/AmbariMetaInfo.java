@@ -920,14 +920,16 @@ public class AmbariMetaInfo {
         if (type1.equals(type2)) {
             return true;
         }
-        if (type1.equals("redhat5") || type1.equals("centos5")) {
-            if (type2.equals("centos5")
-                    || type2.equals("redhat5")) {
+        if (type1.equals("redhat5") || type1.equals("centos5") ||
+            type1.equals("oraclelinux5")) {
+            if (type2.equals("centos5") || type2.equals("redhat5") ||
+                type2.equals("oraclelinux5")) {
                 return true;
             }
-        } else if (type1.equals("redhat6") || type1.equals("centos6")) {
-            if (type2.equals("centos6")
-                    || type2.equals("redhat6")) {
+        } else if (type1.equals("redhat6") || type1.equals("centos6") ||
+            type1.equals("oraclelinux6")) {
+            if (type2.equals("centos6") || type2.equals("redhat6") ||
+                type2.equals("oraclelinux6")) {
                 return true;
             }
         }

@@ -74,6 +74,12 @@ class hdp::params()
         /^6\..+$/: { $hdp_os_type = "redhat6" }
       }
     }
+    oraclelinux: {
+      case $::operatingsystemrelease {
+        /^5\..+$/: { $hdp_os_type = "oraclelinux5" }
+        /^6\..+$/: { $hdp_os_type = "oraclelinux6" }
+      }
+    }
     suse: {
       $hdp_os_type = "suse"
     }
@@ -332,7 +338,9 @@ class hdp::params()
         'centos6' => 'rrdtool-devel.i686',
         'centos5' => 'rrdtool-devel.i386',
         'redhat6' => 'rrdtool-devel.i686',
-        'redhat5' => 'rrdtool-devel.i386'
+        'redhat5' => 'rrdtool-devel.i386',
+        'oraclelinux6' => 'rrdtool-devel.i686',
+        'oraclelinux5' => 'rrdtool-devel.i386'
       }
     },
     # The 32bit version of package rrdtool is removed on centos 5/6 to prevent conflict ( BUG-2408)
@@ -342,7 +350,9 @@ class hdp::params()
         'centos6' => 'rrdtool.i686',
         'centos5' => 'rrdtool.i386',
         'redhat6' => 'rrdtool.i686',
-        'redhat5' => 'rrdtool.i386'
+        'redhat5' => 'rrdtool.i386',
+        'oraclelinux6' => 'rrdtool.i686',
+        'oraclelinux5' => 'rrdtool.i386'
        }
     },
     ambari-log4j => {
@@ -550,8 +560,10 @@ class hdp::params()
              suse => 'php5-json',
              centos6 => $NOTHING,
              redhat6 => $NOTHING,
+             oraclelinux6 => $NOTHING,
              centos5 => 'php-pecl-json.x86_64',
-             redhat5 => 'php-pecl-json.x86_64'}
+             redhat5 => 'php-pecl-json.x86_64',
+             oraclelinux5 => 'php-pecl-json.x86_64'}
     },
 
     ganglia-server => {
@@ -581,7 +593,9 @@ class hdp::params()
         'centos6' => 'rrdtool-devel.i686',
         'centos5' => 'rrdtool-devel.i386',
         'redhat6' => 'rrdtool-devel.i686',
-        'redhat5' => 'rrdtool-devel.i386'
+        'redhat5' => 'rrdtool-devel.i386',
+        'oraclelinux6' => 'rrdtool-devel.i686',
+        'oraclelinux5' => 'rrdtool-devel.i386'
         }
     },
 
@@ -592,7 +606,9 @@ class hdp::params()
         'centos6' => 'rrdtool.i686',
         'centos5' => 'rrdtool.i386',
         'redhat6' => 'rrdtool.i686',
-        'redhat5' => 'rrdtool.i386'
+        'redhat5' => 'rrdtool.i386',
+        'oraclelinux6' => 'rrdtool.i686',
+        'oraclelinux5' => 'rrdtool.i386'
         }
     },
 
@@ -616,7 +632,9 @@ class hdp::params()
     centos5 => '/etc/yum.repos.d',
     suse => '/etc/zypp/repos.d',
     redhat6 => '/etc/yum.repos.d',
-    redhat5 => '/etc/yum.repos.d'
+    redhat5 => '/etc/yum.repos.d',
+    oraclelinux6 => '/etc/yum.repos.d',
+    oraclelinux5 => '/etc/yum.repos.d'
   }
 
   $rrd_py_path =
@@ -625,7 +643,9 @@ class hdp::params()
     centos6 => '/var/www/cgi-bin',
     centos5 => '/var/www/cgi-bin',
     redhat6 => '/var/www/cgi-bin',
-    redhat5 => '/var/www/cgi-bin'
+    redhat5 => '/var/www/cgi-bin',
+    oraclelinux6 => '/var/www/cgi-bin',
+    oraclelinux5 => '/var/www/cgi-bin'
   }
   
   $nagios_lookup_daemon_strs = 
@@ -634,7 +654,9 @@ class hdp::params()
     centos6 => '/usr/bin/nagios',
     centos5 => '/usr/bin/nagios',
     redhat6 => '/usr/bin/nagios',
-    redhat5 => '/usr/bin/nagios'
+    redhat5 => '/usr/bin/nagios',
+    oraclelinux6 => '/usr/bin/nagios',
+    oraclelinux5 => '/usr/bin/nagios'
   }
 
 
