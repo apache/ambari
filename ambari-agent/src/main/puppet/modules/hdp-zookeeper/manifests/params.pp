@@ -35,9 +35,9 @@ class hdp-zookeeper::params() inherits hdp::params
   $syncLimit = hdp_default("syncLimit","5")
   $clientPort = hdp_default("clientPort","2181")
 
-  $zk_keytab_path = hdp_default("hadoop/zk-site/zk_service_keytab", "${keytab_path}/zk.keytab.file")
-  $zk_principal = hdp_default("hadoop/zk-site/zk_kerberos_prinicipal", "zk/_HOST@${kerberos_domain}")
+  $zk_keytab_path = hdp_default("zk_service_keytab", "${keytab_path}/zk.service.keytab")
+  $zk_principal = hdp_default("zk_kerberos_prinicipal", "zk/_HOST@${kerberos_domain}")
 
-  $zk_server_jaas_file = hdp_default("hadoop/zk-site/zk_server_jaas_conf_file", "${conf_dir}/zookeeper_jaas.conf")
-  $zk_client_jaas_file = hdp_default("hadoop/zk-site/zk_client_jaas_conf_file", "${conf_dir}/zookeeper_client_jaas.conf")
+  $zk_server_jaas_file = hdp_default("zk_server_jaas_conf_file", "${conf_dir}/zookeeper_jaas.conf")
+  $zk_client_jaas_file = hdp_default("zk_client_jaas_conf_file", "${conf_dir}/zookeeper_client_jaas.conf")
 }

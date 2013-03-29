@@ -534,6 +534,8 @@ Trunk (unreleased changes):
 
  BUG FIXES
 
+ AMBARI-1739. HBase and Zk failed to start on secure install. (swagle)
+
  AMBARI-1732. Oozie service check fails in secure cluster. (jaimin)
 
  AMBARI 1733. Add service/component specific upgrade puppet files. (smohanty)

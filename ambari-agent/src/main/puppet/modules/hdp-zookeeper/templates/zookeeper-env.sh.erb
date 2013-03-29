@@ -20,6 +20,6 @@ export JAVA=$JAVA_HOME/bin/java
 export CLASSPATH=$CLASSPATH:/usr/share/zookeeper/*
 
 <% if scope.function_hdp_template_var("security_enabled") == true %>
-export SERVER_JVMFLAGS ="$SERVER_JVMFLAGS -Djava.security.auth.login.config=<%=scope.function_hdp_template_var("::hdp-zookeeper::params::zk_server_jaas_file")%>"
-export CLIENT_JVMFLAGS ="$CLIENT_JVMFLAGS -Djava.security.auth.login.config=<%=scope.function_hdp_template_var("::hdp-zookeeper::params::zk_client_jaas_file")%>"
+export SERVER_JVMFLAGS="$SERVER_JVMFLAGS -Djava.security.auth.login.config=<%=scope.function_hdp_template_var("::hdp-zookeeper::params::zk_server_jaas_file")%>"
+export CLIENT_JVMFLAGS="$CLIENT_JVMFLAGS -Djava.security.auth.login.config=<%=scope.function_hdp_template_var("::hdp-zookeeper::params::zk_client_jaas_file")%>"
 <% end %>
