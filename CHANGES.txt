@@ -534,6 +534,9 @@ Trunk (unreleased changes):
 
  BUG FIXES
 
+ AMBARI-1506. Installs HBase ganglia configs when HBase not installed.
+ (smohanty)
+
  AMBARI-1739. HBase and Zk failed to start on secure install. (swagle)
 
  AMBARI-1732. Oozie service check fails in secure cluster. (jaimin)
