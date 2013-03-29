@@ -91,12 +91,15 @@ class hdp-ganglia::monitor::config-gen()
 #    hdp-ganglia::config::generate_monitor { 'HDPSlaves':}
 #  }
 
-  # FIXME
-  # this will be enable gmond for all clusters on the node
-  # should be selective based on roles present
-  hdp-ganglia::config::generate_monitor { 'HDPNameNode':}
-  hdp-ganglia::config::generate_monitor { 'HDPJobTracker':}
-  hdp-ganglia::config::generate_monitor { 'HDPHBaseMaster':}
+  if ($hdp::params::is_namenode_master) {
+    hdp-ganglia::config::generate_monitor { 'HDPNameNode':}
+  }
+  if ($hdp::params::is_jtnode_master) {
+    hdp-ganglia::config::generate_monitor { 'HDPJobTracker':}
+  }
+  if ($hdp::params::is_hbase_master) {
+    hdp-ganglia::config::generate_monitor { 'HDPHBaseMaster':}
+  }
   hdp-ganglia::config::generate_monitor { 'HDPSlaves':}
 
   Hdp-ganglia::Config::Generate_monitor<||>{

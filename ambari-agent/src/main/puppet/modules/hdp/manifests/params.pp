@@ -650,6 +650,10 @@ class hdp::params()
 ###### aux
   #used by ganglia monitor to tell what components and services are present
   $component_exists = {} 
-  $service_exists = {} 
+  $service_exists = {}
+
+  $is_namenode_master = $::fqdn in $namenode_host
+  $is_jtnode_master   = $::fqdn in $jtnode_host
+  $is_hbase_master    = $::fqdn in $hbase_master_hosts
 }
 

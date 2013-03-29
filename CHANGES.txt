@@ -534,6 +534,9 @@ Trunk (unreleased changes):
 
  BUG FIXES
 
+ AMBARI-1507. Should not install HDPHBaseMaster, HDPNameNode and HDPJobTracker
+ ganglia configs on every node. (smohanty)
+
  AMBARI-1746. Backend support for LDAP Group to Ambari Role Mapping. 
  (smohanty)
 
