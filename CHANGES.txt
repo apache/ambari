@@ -310,6 +310,9 @@ Trunk (unreleased changes):
 
  BUG FIXES
 
+ AMBARI-1748. JDK option on the UI when used is not passed onto the global 
+ parameters. (srimanth)
+ 
  AMBARI-1463. State of HBase region server not updated when instance is shut down on a cluster not installed via Ambari. (tbeerbower)
 
  AMBARI-1446. URL used by API to invoke Ganglia rrd script may exceed max length 

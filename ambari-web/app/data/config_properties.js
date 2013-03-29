@@ -1591,7 +1591,7 @@ module.exports =
       "isVisible": true,
       "serviceName": "MISC"
     },
-
+    */
     {
       "id": "puppet var",
       "name": "java64_home",
@@ -1605,7 +1605,6 @@ module.exports =
       "domain": "global",
       "serviceName": "MISC"
     },
-     */
     {
       "id": "puppet var",
       "name": "run_dir",
