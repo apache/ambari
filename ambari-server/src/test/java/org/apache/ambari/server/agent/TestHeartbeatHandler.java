@@ -139,6 +139,7 @@ public class TestHeartbeatHandler {
     hi.setOSRelease(DummyOSRelease);
     reg.setHostname(DummyHostname1);
     reg.setHardwareProfile(hi);
+    reg.setAgentVersion(metaInfo.getServerVersion());
     handler.handleRegistration(reg);
 
     hostObject.setState(HostState.UNHEALTHY);
@@ -424,6 +425,7 @@ public class TestHeartbeatHandler {
     hi.setOS(DummyOsType);
     reg.setHostname(DummyHostname1);
     reg.setHardwareProfile(hi);
+    reg.setAgentVersion(metaInfo.getServerVersion());
     handler.handleRegistration(reg);
     assertEquals(hostObject.getState(), HostState.HEALTHY);
     assertEquals(DummyOsType, hostObject.getOsType());
@@ -450,6 +452,7 @@ public class TestHeartbeatHandler {
     reg.setHostname(DummyHostname1);
     reg.setHardwareProfile(hi);
     reg.setPublicHostname(DummyHostname1 + "-public");
+    reg.setAgentVersion(metaInfo.getServerVersion());
     handler.handleRegistration(reg);
     assertEquals(hostObject.getState(), HostState.HEALTHY);
     assertEquals(DummyOsType, hostObject.getOsType());
@@ -480,9 +483,38 @@ public class TestHeartbeatHandler {
     hi.setOS("MegaOperatingSystem");
     reg.setHostname(DummyHostname1);
     reg.setHardwareProfile(hi);
+    reg.setAgentVersion(metaInfo.getServerVersion());
     try {
       handler.handleRegistration(reg);
       fail ("Expected failure for non matching os type");
+    } catch (AmbariException e) {
+      // Expected
+    }
+  }
+
+  @Test
+  public void testIncompatibleAgentRegistration() throws AmbariException,
+          InvalidStateTransitionException {
+
+    ActionManager am = getMockActionManager();
+    Clusters fsm = clusters;
+    HeartBeatHandler handler = new HeartBeatHandler(fsm, new ActionQueue(), am,
+            injector);
+    clusters.addHost(DummyHostname1);
+    Host hostObject = clusters.getHost(DummyHostname1);
+    hostObject.setIPv4("ipv4");
+    hostObject.setIPv6("ipv6");
+
+    Register reg = new Register();
+    HostInfo hi = new HostInfo();
+    hi.setHostName(DummyHostname1);
+    hi.setOS(DummyOsType);
+    reg.setHostname(DummyHostname1);
+    reg.setHardwareProfile(hi);
+    reg.setAgentVersion("0.0.0"); // Invalid agent version
+    try {
+      handler.handleRegistration(reg);
+      fail ("Expected failure for non compatible agent version");
     } catch (AmbariException e) {
       // Expected
     }
@@ -507,6 +539,7 @@ public class TestHeartbeatHandler {
     hi.setOS("redhat5");
     reg.setHostname(DummyHostname1);
     reg.setHardwareProfile(hi);
+    reg.setAgentVersion(metaInfo.getServerVersion());
     RegistrationResponse response = handler.handleRegistration(reg);
 
     assertEquals(hostObject.getState(), HostState.HEALTHY);
@@ -530,6 +563,7 @@ public class TestHeartbeatHandler {
     hi.setHostName(DummyHostname1);
     hi.setOS("redhat5");
     register.setHardwareProfile(hi);
+    register.setAgentVersion(metaInfo.getServerVersion());
     RegistrationResponse registrationResponse = heartBeatHandler.handleRegistration(register);
 
     assertEquals("ResponseId should start from zero", 0L, registrationResponse.getResponseId());
@@ -597,6 +631,7 @@ public class TestHeartbeatHandler {
     hi.setOS(DummyOsType);
     reg.setHostname(DummyHostname1);
     reg.setHardwareProfile(hi);
+    reg.setAgentVersion(metaInfo.getServerVersion());
     RegistrationResponse registrationResponse = handler.handleRegistration(reg);
     registrationResponse.getStatusCommands();
     assertTrue(registrationResponse.getStatusCommands().size() == 1);
@@ -1081,6 +1116,7 @@ public class TestHeartbeatHandler {
     reg.setHostname(DummyHostname1);
     reg.setResponseId(0);
     reg.setHardwareProfile(hi);
+    reg.setAgentVersion(metaInfo.getServerVersion());
     handler.handleRegistration(reg);
     return handler;
   }

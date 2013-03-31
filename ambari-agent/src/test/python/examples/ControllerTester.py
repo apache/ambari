@@ -13,7 +13,9 @@ logger=logging.getLogger()
 queue = Queue.Queue()
 
 # Set to True to replace python and puppet calls with mockups
-disable_python_and_puppet = False
+disable_python_and_puppet = True
+
+agent_version = "1.3.0"
 
 # Values from the list below are returned in responce to agent requests (one per
 # request). When every value has been returned, the last element of list is
@@ -127,13 +129,16 @@ def run_simulation():
     os.pardir, 'main', 'upgrade_stack')
   config.set('stack', 'upgradeScriptsDir', scriptsDir)
 
+  ver_file = os.path.join(tmpfile, "version")
+
+  with open(ver_file, "w") as text_file:
+      text_file.write(agent_version)
+
   controller = Controller.Controller(config)
   controller.sendRequest = sendRequest_method
   controller.netutil.HEARTBEAT_IDDLE_INTERVAL_SEC = 0.1
   controller.netutil.HEARTBEAT_NOT_IDDLE_INTERVAL_SEC = 0.1
   controller.range = 1
-
-
 
   for responce in responces:
     queue.put(responce)

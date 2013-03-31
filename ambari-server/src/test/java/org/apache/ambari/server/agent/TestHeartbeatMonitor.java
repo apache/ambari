@@ -111,6 +111,7 @@ public class TestHeartbeatMonitor {
     reg.setHostname(hostname1);
     reg.setResponseId(12);
     reg.setTimestamp(System.currentTimeMillis() - 300);
+    reg.setAgentVersion(ambariMetaInfo.getServerVersion());
     HostInfo hi = new HostInfo();
     hi.setOS("Centos5");
     reg.setHardwareProfile(hi);
@@ -180,6 +181,7 @@ public class TestHeartbeatMonitor {
     reg.setHostname(hostname1);
     reg.setResponseId(12);
     reg.setTimestamp(System.currentTimeMillis() - 15);
+    reg.setAgentVersion(ambariMetaInfo.getServerVersion());
     HostInfo hi = new HostInfo();
     hi.setOS("Centos5");
     reg.setHardwareProfile(hi);
@@ -223,6 +225,7 @@ public class TestHeartbeatMonitor {
     reg.setHostname(hostname);
     reg.setResponseId(12);
     reg.setTimestamp(System.currentTimeMillis() - 300);
+    reg.setAgentVersion(ambariMetaInfo.getServerVersion());
     HostInfo hi = new HostInfo();
     hi.setOS("Centos5");
     reg.setHardwareProfile(hi);

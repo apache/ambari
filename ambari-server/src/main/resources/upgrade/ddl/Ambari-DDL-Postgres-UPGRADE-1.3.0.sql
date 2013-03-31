@@ -25,7 +25,7 @@ ALTER TABLE ambari.hosts
 ALTER TABLE ambari.clusterstate
   ADD COLUMN current_stack_version VARCHAR(255) NOT NULL;
 
-CREATE TABLE ambari.metainfo ("metadata_name" VARCHAR(255), "metadata_value" VARCHAR, PRIMARY KEY("metadata_name"));
+CREATE TABLE ambari.metainfo ("metainfo_key" VARCHAR(255), "metainfo_value" VARCHAR, PRIMARY KEY("metainfo_key"));
 GRANT ALL PRIVILEGES ON TABLE ambari.metainfo TO :username;
 
 CREATE TABLE ambari.clusterconfigmapping (cluster_id bigint NOT NULL, type_name VARCHAR(255) NOT NULL, version_tag VARCHAR(255) NOT NULL, create_timestamp BIGINT NOT NULL, selected INTEGER NOT NULL DEFAULT 0, PRIMARY KEY (cluster_id, type_name, create_timestamp));
@@ -44,7 +44,7 @@ ALTER TABLE ambari.stage ADD COLUMN request_context VARCHAR(255);
 
 BEGIN;
 
-insert into ambari.metainfo(metadata_name, metadata_value)
+insert into ambari.metainfo(metainfo_key, metainfo_value)
 select 'version','1.3.0';
 
 COMMIT;

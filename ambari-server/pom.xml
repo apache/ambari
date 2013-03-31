@@ -78,6 +78,24 @@
           </excludes>
         </configuration>
       </plugin>
+      <!--<plugin>-->
+        <!-- Will be used for DDL file update on server version update-->
+        <!--<artifactId>maven-antrun-plugin</artifactId>-->
+        <!--<executions>-->
+          <!--<execution>-->
+            <!--<id>Copy-server-version-file</id>-->
+            <!--<phase>process-test-resources</phase>-->
+            <!--<configuration>-->
+              <!--<tasks>-->
+                <!--<copy file="../version" todir="${project.build.directory}/"/>-->
+              <!--</tasks>-->
+            <!--</configuration>-->
+            <!--<goals>-->
+              <!--<goal>run</goal>-->
+            <!--</goals>-->
+          <!--</execution>-->
+        <!--</executions>-->
+      <!--</plugin>-->
       <plugin>
         <groupId>org.codehaus.mojo</groupId>
         <artifactId>rpm-maven-plugin</artifactId>
@@ -313,6 +331,17 @@
               <sources>
                 <source>
                   <location>etc/init.d/ambari-server</location>
+                </source>
+              </sources>
+            </mapping>
+            <mapping>
+              <directory>/var/lib/ambari-server/resources</directory>
+              <filemode>755</filemode>
+              <username>root</username>
+              <groupname>root</groupname>
+              <sources>
+                <source>
+                  <location>../version</location>
                 </source>
               </sources>
             </mapping>

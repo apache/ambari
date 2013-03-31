@@ -19,14 +19,25 @@ limitations under the License.
 '''
 
 from unittest import TestCase
+import os
+import tempfile
+
 from ambari_agent.Register import Register
-import socket
-import os, pprint, json
+from ambari_agent.AmbariConfig import AmbariConfig
+
 
 class TestRegistration(TestCase):
 
   def test_registration_build(self):
-    register = Register()
+    config = AmbariConfig().getConfig()
+    tmpdir = tempfile.gettempdir()
+    config.set('agent', 'prefix', tmpdir)
+
+    ver_file = os.path.join(tmpdir, "version")
+    with open(ver_file, "w") as text_file:
+      text_file.write("1.3.0")
+
+    register = Register(config)
     data = register.build(1)
     #print ("Register: " + pprint.pformat(data))
     self.assertEquals(len(data['hardwareProfile']) > 0, True, "hardwareProfile should contain content")
@@ -35,4 +46,7 @@ class TestRegistration(TestCase):
     self.assertEquals(data['responseId'], 1)
     self.assertEquals(data['timestamp'] > 1353678475465L, True, "timestamp should not be empty")
     self.assertEquals(len(data['agentEnv']) > 0, True, "agentEnv should not be empty")
-    self.assertEquals(len(data), 6)
+    self.assertEquals(data['agentVersion'], '1.3.0', "agentVersion should not be empty")
+    self.assertEquals(len(data), 7)
+
+    os.remove(ver_file)

@@ -36,6 +36,7 @@ import org.apache.ambari.server.state.svccomphost.ServiceComponentHostOpFailedEv
 import org.apache.ambari.server.state.svccomphost.ServiceComponentHostOpInProgressEvent;
 import org.apache.ambari.server.state.svccomphost.ServiceComponentHostOpSucceededEvent;
 import org.apache.ambari.server.utils.StageUtils;
+import org.apache.ambari.server.utils.VersionUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -383,6 +384,21 @@ public class HeartBeatHandler {
     throws InvalidStateTransitionException, AmbariException {
     String hostname = register.getHostname();
     long now = System.currentTimeMillis();
+
+    String agentVersion = register.getAgentVersion();
+    String serverVersion = ambariMetaInfo.getServerVersion();
+    if (!VersionUtils.areVersionsCompatible(serverVersion, agentVersion)) {
+      LOG.warn("Received registration request from host with non compatible"
+              + " agent version"
+              + ", hostname=" + hostname
+              + ", agentVersion=" + agentVersion
+              + ", serverVersion=" + serverVersion);
+      throw new AmbariException("Cannot register host with non compatible"
+              + " agent version"
+              + ", hostname=" + hostname
+              + ", agentVersion=" + agentVersion
+              + ", serverVersion=" + serverVersion);
+    }
 
     String agentOsType = getOsType(register.getHardwareProfile().getOS(),
         register.getHardwareProfile().getOSRelease());

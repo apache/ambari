@@ -67,6 +67,8 @@ public class Configuration {
   public static final String PASSPHRASE_KEY = "security.server.passphrase";
   public static final String RESOURCES_DIR_KEY = "resources.dir";
   public static final String METADETA_DIR_PATH = "metadata.path";
+  public static final String SERVER_VERSION_FILE = "server.version.file";
+  public static final String SERVER_VERSION_KEY = "version";
 
 
   public static final String CLIENT_SECURITY_KEY = "client.security";
@@ -356,6 +358,10 @@ public class Configuration {
    */
   public String getMetadataPath() {
     return properties.getProperty(METADETA_DIR_PATH);
+  }
+
+  public String getServerVersionFilePath() {
+    return properties.getProperty(SERVER_VERSION_FILE);
   }
 
   /**

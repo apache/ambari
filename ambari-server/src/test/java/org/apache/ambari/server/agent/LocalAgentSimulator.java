@@ -36,6 +36,7 @@ public class LocalAgentSimulator implements Runnable {
   private long responseId = 1;
 
   private String hostname = "localhost";
+  private String agentVersion = "1.3.0";
 
   public LocalAgentSimulator(HeartBeatHandler hbh) {
     this.handler = hbh;
@@ -95,6 +96,7 @@ public class LocalAgentSimulator implements Runnable {
       reg = new Register();
       reg.setTimestamp(System.currentTimeMillis());
       reg.setHostname(this.hostname);
+      reg.setAgentVersion(this.agentVersion);
     }
     RegistrationResponse response;
     try {

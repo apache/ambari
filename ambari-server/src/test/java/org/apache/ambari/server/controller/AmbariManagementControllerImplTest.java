@@ -1477,6 +1477,8 @@ public class AmbariManagementControllerImplTest {
         properties.setProperty(Configuration.PERSISTENCE_IN_MEMORY_KEY, "true");
         properties.setProperty(Configuration.METADETA_DIR_PATH,
             "src/main/resources/stacks");
+        properties.setProperty(Configuration.SERVER_VERSION_FILE,
+                "../version");
         properties.setProperty(Configuration.OS_VERSION_KEY,
             "centos5");
         try {
