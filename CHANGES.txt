@@ -544,6 +544,9 @@ Trunk (unreleased changes):
 
  BUG FIXES
 
+ AMBARI-1765. Enable the Ganglia rrd files location to be configurable
+ when Ganglia is selected as service. (jaimin)
+
  AMBARI-1762. SUSE_Unable to start hive. (swagle)
 
  AMBARI-1761. Update the DDL update script to modify the table to
