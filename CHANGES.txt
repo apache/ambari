@@ -541,6 +541,8 @@ Trunk (unreleased changes):
 
  BUG FIXES
 
+ AMBARI-1759. Error in creating host component. (smohanty)
+
  AMBARI-1757. Add support for Stack 1.2.2 to Ambari. (smohanty)
 
  AMBARI-1749. Set default heap size for zookeeper. (swagle)

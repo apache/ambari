@@ -62,7 +62,7 @@ class Register:
     data_dir = self.config.get('agent', 'prefix')
     ver_file = os.path.join(data_dir, 'version')
     f = open(ver_file, "r")
-    version = f.read()
+    version = f.read().strip()
     f.close()
     return version
 

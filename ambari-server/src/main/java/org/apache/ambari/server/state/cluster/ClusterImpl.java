@@ -295,19 +295,19 @@ public class ClusterImpl implements Cluster {
       }
       if (!clusterFound) {
         throw new AmbariException("Host does not belong this cluster"
-                + ", hostname=" + hostname
-                + ", clusterName=" + getClusterName()
-                + ", clusterId=" + getClusterId());
+            + ", hostname=" + hostname
+            + ", clusterName=" + getClusterName()
+            + ", clusterId=" + getClusterId());
       }
 
-    if (!serviceComponentHosts.containsKey(serviceName)) {
-      serviceComponentHosts.put(serviceName,
-          new HashMap<String, Map<String,ServiceComponentHost>>());
-    }
-    if (!serviceComponentHosts.get(serviceName).containsKey(componentName)) {
-      serviceComponentHosts.get(serviceName).put(componentName,
-          new HashMap<String, ServiceComponentHost>());
-    }
+      if (!serviceComponentHosts.containsKey(serviceName)) {
+        serviceComponentHosts.put(serviceName,
+            new HashMap<String, Map<String, ServiceComponentHost>>());
+      }
+      if (!serviceComponentHosts.get(serviceName).containsKey(componentName)) {
+        serviceComponentHosts.get(serviceName).put(componentName,
+            new HashMap<String, ServiceComponentHost>());
+      }
 
       if (serviceComponentHosts.get(serviceName).get(componentName).
           containsKey(hostname)) {
@@ -334,6 +334,89 @@ public class ClusterImpl implements Cluster {
       serviceComponentHosts.get(serviceName).get(componentName).put(hostname,
           svcCompHost);
       serviceComponentHostsByHost.get(hostname).add(svcCompHost);
+    } finally {
+      writeLock.unlock();
+    }
+  }
+
+  public void removeServiceComponentHost(ServiceComponentHost svcCompHost)
+      throws AmbariException {
+    loadServiceHostComponents();
+    writeLock.lock();
+    try {
+      if (LOG.isDebugEnabled()) {
+        LOG.debug("Trying to remove ServiceComponentHost to ClusterHostMap cache"
+            + ", serviceName=" + svcCompHost.getServiceName()
+            + ", componentName=" + svcCompHost.getServiceComponentName()
+            + ", hostname=" + svcCompHost.getHostName());
+      }
+
+      final String hostname = svcCompHost.getHostName();
+      final String serviceName = svcCompHost.getServiceName();
+      final String componentName = svcCompHost.getServiceComponentName();
+      Set<Cluster> cs = clusters.getClustersForHost(hostname);
+      boolean clusterFound = false;
+      Iterator<Cluster> iter = cs.iterator();
+      while (iter.hasNext()) {
+        Cluster c = iter.next();
+        if (c.getClusterId() == this.getClusterId()) {
+          clusterFound = true;
+          break;
+        }
+      }
+      if (!clusterFound) {
+        throw new AmbariException("Host does not belong this cluster"
+            + ", hostname=" + hostname
+            + ", clusterName=" + getClusterName()
+            + ", clusterId=" + getClusterId());
+      }
+
+      if (!serviceComponentHosts.containsKey(serviceName)
+          || !serviceComponentHosts.get(serviceName).containsKey(componentName)
+          || !serviceComponentHosts.get(serviceName).get(componentName).
+          containsKey(hostname)) {
+        throw new AmbariException("Invalid entry for ServiceComponentHost"
+            + ", serviceName=" + serviceName
+            + ", serviceComponentName" + componentName
+            + ", hostname= " + hostname);
+      }
+      if (!serviceComponentHostsByHost.containsKey(hostname)) {
+        throw new AmbariException("Invalid host entry for ServiceComponentHost"
+            + ", serviceName=" + serviceName
+            + ", serviceComponentName" + componentName
+            + ", hostname= " + hostname);
+      }
+
+      ServiceComponentHost schToRemove = null;
+      for (ServiceComponentHost sch : serviceComponentHostsByHost.get(hostname)) {
+        if (sch.getServiceName().equals(serviceName)
+            && sch.getServiceComponentName().equals(componentName)
+            && sch.getHostName().equals(hostname)) {
+          schToRemove = sch;
+          break;
+        }
+      }
+
+      if (schToRemove == null) {
+        LOG.warn("Unavailable in per host cache. ServiceComponentHost"
+            + ", serviceName=" + serviceName
+            + ", serviceComponentName" + componentName
+            + ", hostname= " + hostname);
+      }
+
+      if (LOG.isDebugEnabled()) {
+        LOG.debug("Removing a ServiceComponentHost"
+            + ", clusterName=" + getClusterName()
+            + ", clusterId=" + getClusterId()
+            + ", serviceName=" + serviceName
+            + ", serviceComponentName" + componentName
+            + ", hostname= " + hostname);
+      }
+
+      serviceComponentHosts.get(serviceName).get(componentName).remove(hostname);
+      if(schToRemove != null) {
+        serviceComponentHostsByHost.get(hostname).remove(schToRemove);
+      }
     } finally {
       writeLock.unlock();
     }

@@ -3415,7 +3415,7 @@ public class AmbariManagementControllerImpl implements
       }
 
       if (LOG.isDebugEnabled()) {
-        LOG.debug("Received a createHostComponent DELETE request request"
+        LOG.debug("Received a hostComponent DELETE request"
             + ", clusterName=" + request.getClusterName()
             + ", serviceName=" + request.getServiceName()
             + ", componentName=" + request.getComponentName()
@@ -3424,9 +3424,7 @@ public class AmbariManagementControllerImpl implements
       }
 
       Service service = cluster.getService(request.getServiceName());
-
       ServiceComponent component = service.getServiceComponent(request.getComponentName());
-
       ServiceComponentHost componentHost = component.getServiceComponentHost(request.getHostname());
 
       if (!componentHost.canBeRemoved()) {
@@ -3438,19 +3436,17 @@ public class AmbariManagementControllerImpl implements
             + ", request=" + request);
       }
 
-
       //Only allow removing master components in MAINTENANCE state without stages generation
       if (component.isClientComponent() ||
           componentHost.getState() != State.MAINTENANCE) {
-        throw new AmbariException("Only master component in MAINTENANCE state can be removed");
+        throw new AmbariException("Only master or slave component can be removed. They must be in " +
+            "MAINTENANCE state in order to be removed.");
       }
 
       if (!safeToRemoveSCHs.containsKey(component)) {
         safeToRemoveSCHs.put(component, new HashSet<ServiceComponentHost>());
       }
-
       safeToRemoveSCHs.get(component).add(componentHost);
-
     }
 
     for (Entry<ServiceComponent, Set<ServiceComponentHost>> entry : safeToRemoveSCHs.entrySet()) {

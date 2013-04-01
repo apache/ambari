@@ -71,8 +71,6 @@ public class ServiceComponentImpl implements ServiceComponent {
 
   private final boolean isClientComponent;
 
-
-
   private void init() {
     // TODO load during restart
     // initialize from DB
@@ -117,7 +115,6 @@ public class ServiceComponentImpl implements ServiceComponent {
     this.service = service;
     this.desiredStateEntity = serviceComponentDesiredStateEntity;
 
-
     this.desiredConfigs = new HashMap<String, String>();
 
     this.hostComponents = new HashMap<String, ServiceComponentHost>();
@@ -133,7 +130,7 @@ public class ServiceComponentImpl implements ServiceComponent {
       hostComponents.put(hostComponentStateEntity.getHostName(),
           serviceComponentHostFactory.createExisting(this,
               hostComponentStateEntity, hostComponentDesiredStateEntity));
-   }
+    }
 
     for (ComponentConfigMappingEntity entity : desiredStateEntity.getComponentConfigMappingEntities()) {
       desiredConfigs.put(entity.getConfigType(), entity.getVersionTag());
@@ -516,6 +513,10 @@ public class ServiceComponentImpl implements ServiceComponent {
     }
     sch.delete();
     hostComponents.remove(hostname);
+
+    // FIXME need a better approach of caching components by host
+    ClusterImpl clusterImpl = (ClusterImpl) service.getCluster();
+    clusterImpl.removeServiceComponentHost(sch);
   }
 
   @Override

@@ -1532,7 +1532,6 @@ public class AmbariManagementControllerImplTest {
     );
     amc.createConfiguration(configurationRequest);
 
-
     serviceRequests.clear();
     serviceRequests.add(new ServiceRequest("c1", "HDFS",
         gson.<Map<String, String>>fromJson("{\"core-site\": \"version1\", \"hdfs-site\": \"version1\", \"global\" : \"version1\" }", confType)
@@ -1548,7 +1547,6 @@ public class AmbariManagementControllerImplTest {
 //        , null));
 
     amc.updateServices(serviceRequests, mapRequestProps, true);
-
 
     Set<ServiceComponentRequest> serviceComponentRequests = new HashSet<ServiceComponentRequest>();
     serviceComponentRequests.add(new ServiceComponentRequest("c1", "HDFS", "NAMENODE", null, null));
@@ -1571,7 +1569,6 @@ public class AmbariManagementControllerImplTest {
     componentHostRequests.add(new ServiceComponentHostRequest("c1", null, "SECONDARY_NAMENODE", "host1", null, null));
     componentHostRequests.add(new ServiceComponentHostRequest("c1", null, "DATANODE", "host2", null, null));
     componentHostRequests.add(new ServiceComponentHostRequest("c1", null, "DATANODE", "host3", null, null));
-
 
     amc.createHostComponents(componentHostRequests);
 
@@ -1654,11 +1651,26 @@ public class AmbariManagementControllerImplTest {
     componentHostRequests.add(new ServiceComponentHostRequest("c1", null, "NAMENODE", "host1", null, null));
 
     amc.deleteHostComponents(componentHostRequests);
-
     namenodes = cluster.getService("HDFS").getServiceComponent("NAMENODE").getServiceComponentHosts();
-
     assertEquals(1, namenodes.size());
 
+    // testing the behavior for runSmokeTest flag
+    // piggybacking on this test to avoid setting up the mock cluster
+    testRunSmokeTestFlag(mapRequestProps, amc, serviceRequests);
+
+    // should be able to add the host component back
+    componentHostRequests.clear();
+    componentHostRequests.add(new ServiceComponentHostRequest("c1", null, "NAMENODE", "host1", null, null));
+    amc.createHostComponents(componentHostRequests);
+    namenodes = cluster.getService("HDFS").getServiceComponent("NAMENODE").getServiceComponentHosts();
+    assertEquals(2, namenodes.size());
+  }
+
+  private void testRunSmokeTestFlag(Map<String, String> mapRequestProps,
+                                    AmbariManagementController amc,
+                                    Set<ServiceRequest> serviceRequests)
+      throws AmbariException {
+    RequestStatusResponse response;//Starting HDFS service. No run_smoke_test flag is set, smoke
 
     //Stopping HDFS service
     serviceRequests.clear();
