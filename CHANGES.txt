@@ -541,6 +541,9 @@ Trunk (unreleased changes):
 
  BUG FIXES
 
+ AMBARI-1761. Update the DDL update script to modify the table to
+ include ph_cpu_count. (smohanty)
+
  AMBARI-1759. Error in creating host component. (smohanty)
 
  AMBARI-1757. Add support for Stack 1.2.2 to Ambari. (smohanty)
