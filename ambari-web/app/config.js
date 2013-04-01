@@ -23,8 +23,8 @@ App.testModeDelayForActions = 10000;
 App.skipBootstrap = false;
 App.alwaysGoToInstaller = false;
 App.apiPrefix = '/api/v1';
-App.defaultStackVersion = 'HDP-1.2.2';
-App.defaultLocalStackVersion = 'HDPLocal-1.2.2';
+App.defaultStackVersion = 'HDP-1.2.1';
+App.defaultLocalStackVersion = 'HDPLocal-1.2.1';
 App.defaultJavaHome = '/usr/jdk/jdk1.6.0_31';
 App.addServicesEnabled = false;
 // default AJAX timeout

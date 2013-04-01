@@ -196,7 +196,7 @@
 
   <property>
     <name>mapred.jobtracker.completeuserjobs.maximum</name>
-    <value>0</value>
+    <value>100</value>
   </property>
 
   <property>
