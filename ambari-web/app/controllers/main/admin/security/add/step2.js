@@ -80,9 +80,12 @@ App.MainAdminSecurityAddStep2Controller = Em.Controller.extend({
         serviceName: _serviceConfig.serviceName,
         displayName: _serviceConfig.displayName,
         configCategories: _serviceConfig.configCategories,
-        showConfig: true,
+        showConfig: false,
         configs: []
       });
+      if (serviceConfigs.someProperty('serviceName', serviceConfig.serviceName)) {
+        serviceConfig.showConfig = true;
+      }
 
       this.loadComponentConfigs(_serviceConfig, serviceConfig);
 

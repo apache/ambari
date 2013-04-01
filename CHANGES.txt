@@ -12,6 +12,9 @@ Trunk (unreleased changes):
 
  NEW FEATURES
 
+ AMBARI-1763. Integrate Frontend security work to enable security on
+ HBase and ZooKeeper. (jaimin)
+
  AMBARI-1754. Add support to ensure that Ambari Server/Agent/Store are all of 
  compatible version. (smohanty)
 

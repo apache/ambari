@@ -28,7 +28,7 @@ class hdp-templeton::templeton::service_check()
   } else {
     $security = "false"
   }
-  $kinit_path_local = $hdp::param::kinit_path_local
+  $kinit_path_local = $hdp::params::kinit_path_local
   $smoke_user_keytab = "${hdp-templeton::params::keytab_path}/${smoke_test_user}.headless.keytab"
 
   $templeton_host = $hdp::params::webhcat_server_host

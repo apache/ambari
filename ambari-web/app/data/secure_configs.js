@@ -90,21 +90,17 @@ module.exports = [
       App.ServiceConfigCategory.create({ name: 'RegionServer', displayName: 'RegionServer'})
     ],
     sites: ['hbase-site'],
-
     configs: configProperties.filterProperty('serviceName', 'HBASE')
   },
-  /*
   {
     serviceName: 'ZOOKEEPER',
     displayName: 'ZooKeeper',
     configCategories: [
-      App.ServiceConfigCategory.create({ name: 'ZooKeeper'})
+      App.ServiceConfigCategory.create({ name: 'ZooKeeper Server'})
     ],
     configs: configProperties.filterProperty('serviceName', 'ZOOKEEPER')
 
   },
-   */
-
   {
     serviceName: 'OOZIE',
     displayName: 'Oozie',

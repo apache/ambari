@@ -149,20 +149,6 @@ module.exports =
       "serviceName": "HDFS",
       "category": "General"
     },
-    /*
-     {
-     "id": "puppet var",
-     "name": "snamenode_primary_name",
-     "displayName": "Primary name",
-     "value": "",
-     "defaultValue": "sn",
-     "description": "Primary name for SecondaryNameNode",
-     "displayType": "principal",
-     "isVisible": true,
-     "serviceName": "HDFS",
-     "category": "SNameNode"
-     },
-     */
     {
       "id": "puppet var",
       "name": "snamenode_keytab",
@@ -259,10 +245,10 @@ module.exports =
     //HBASE
     {
       "id": "puppet var",
-      "name": "hbase_master_primary_name",
+      "name": "hbase_primary_name",
       "displayName": "Primary name",
       "value": "",
-      "defaultValue": "hm",
+      "defaultValue": "hbase",
       "description": "Primary name for HBase master",
       "displayType": "principal",
       "isVisible": true,
@@ -275,7 +261,7 @@ module.exports =
       "name": "hbase_master_keytab",
       "displayName": "Path to Keytab file",
       "value": "",
-      "defaultValue": "/etc/security/keytabs",
+      "defaultValue": "/etc/security/keytabs/hm.service.keytab",
       "description": "keytab for HBase master",
       "displayType": "directory",
       "isVisible": true,
@@ -285,23 +271,10 @@ module.exports =
     },
     {
       "id": "puppet var",
-      "name": "regionserver_primary_name",
-      "displayName": "Primary name",
-      "value": "",
-      "defaultValue": "rs",
-      "description": "Primary name for regionServer",
-      "displayType": "principal",
-      "isVisible": true,
-      "isOverrideable": false,
-      "serviceName": "HBASE",
-      "category": "RegionServer"
-    },
-    {
-      "id": "puppet var",
       "name": "regionserver_keytab",
       "displayName": "Path to Keytab file",
       "value": "",
-      "defaultValue": "/etc/security/keytabs",
+      "defaultValue": "/etc/security/keytabs/rs.service.keytab",
       "description": "keytab for RegionServer",
       "displayType": "directory",
       "isVisible": true,
@@ -478,6 +451,34 @@ module.exports =
       "isOverrideable": false,
       "serviceName": "NAGIOS",
       "category": "General"
+    },
+
+    //ZooKeeper
+    {
+      "id": "puppet var",
+      "name": "zooKeeper_primary_name",
+      "displayName": "Primary name",
+      "value": "",
+      "defaultValue": "zk",
+      "description": "Primary name for ZooKeeper",
+      "displayType": "principal",
+      "isVisible": true,
+      "isOverrideable": false,
+      "serviceName": "ZOOKEEPER",
+      "category": "ZooKeeper Server"
+    },
+    {
+      "id": "puppet var",
+      "name": "zooKeeper_keytab",
+      "displayName": "Path to keytab file",
+      "value": "",
+      "defaultValue": "/etc/security/keytabs/zk.service.keytab",
+      "description": "Keytab for ZooKeeper",
+      "displayType": "directory",
+      "isVisible": true,
+      "isOverrideable": false,
+      "serviceName": "ZOOKEEPER",
+      "category": "ZooKeeper Server"
     }
 
   ]

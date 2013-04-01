@@ -37,7 +37,7 @@ class hdp-oozie::service(
 
   $security = $hdp::params::security_enabled
   $oozie_keytab = $hdp-oozie::params::oozie_service_keytab
-  $oozie_principal = $hdp-oozie::oozie_principal
+  $oozie_principal = $configuration['oozie-site']['oozie.service.HadoopAccessorService.kerberos.principal']
   
   $jdbc_driver_name = $configuration['oozie-site']['oozie.service.JPAService.jdbc.driver']
   if ($jdbc_driver_name == "com.mysql.jdbc.Driver"){

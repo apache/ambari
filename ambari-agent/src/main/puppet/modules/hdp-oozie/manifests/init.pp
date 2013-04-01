@@ -49,9 +49,6 @@ class hdp-oozie(
     }
   }
 
-  $oozie-site = $configuration['oozie-site']
-  $oozie_principal = $oozie-site["oozie.service.HadoopAccessorService.kerberos.principal"]
-
   if ($service_state == 'uninstalled') {
     hdp::package { 'oozie-client' : 
       ensure => 'uninstalled'
