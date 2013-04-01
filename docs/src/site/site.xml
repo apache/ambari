@@ -103,6 +103,7 @@
     </menu>
 
     <menu name="Releases">
+        <item name="1.2.1" href="http://www.apache.org/dist/incubator/ambari/ambari-1.2.1/"/>
         <item name="1.2.0" href="http://www.apache.org/dist/incubator/ambari/ambari-1.2.0/"/>
         <item name="0.9" href="http://www.apache.org/dist/incubator/ambari/ambari-0.9-incubating/"/>
     </menu>
