@@ -541,6 +541,8 @@ Trunk (unreleased changes):
 
  BUG FIXES
 
+ AMBARI-1762. SUSE_Unable to start hive. (swagle)
+
  AMBARI-1761. Update the DDL update script to modify the table to
  include ph_cpu_count. (smohanty)
 
