@@ -182,11 +182,13 @@
   # ------------------------------------------------------------------------
   [[smtp]]
 
+  <% if scope.function_hdp_template_var("::hdp-hue::params::hue_smtp_host") != "" %>
     # The SMTP server information for email notification delivery
     host=<%=scope.function_hdp_template_var("::hdp-hue::params::hue_smtp_host")%>
     port=<%=scope.function_hdp_template_var("::hdp-hue::params::hue_smtp_port")%>
     user=<%=scope.function_hdp_template_var("::hdp-hue::params::hue_smtp_user")%>
     password=<%=scope.function_hdp_template_var("::hdp-hue::params::hue_smtp_password")%>
+  <% end %>
 
     # Whether to use a TLS (secure) connection when talking to the SMTP server
     tls=<%=scope.function_hdp_template_var("::hdp-hue::params::hue_smtp_tls")%>
@@ -488,7 +490,7 @@
   ## default_user_group=default
 
 [hcatalog]
-  templeton_url=<%=scope.function_hdp_template_var("::hdp-hue::params::hue_templeton_url")
+  templeton_url=<%=scope.function_hdp_template_var("::hdp-hue::params::hue_templeton_url")%>
 
 [proxy]
 whitelist=<%=scope.function_hdp_template_var("::hdp-hue::params::hue_whitelist")%>

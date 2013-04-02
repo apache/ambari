@@ -359,7 +359,7 @@ class hdp::params()
       64 => ['ambari-log4j']
     },
     hue-server => {
-      64 => ['sandbox-hue-bin-1.2.1']
+      64 => ['hue.noarch']
     }
   }
   $packages = 'bigtop' 
@@ -389,6 +389,7 @@ class hdp::params()
     $hcat_server_host = hdp_default("hcat_server_host")
     $hcat_mysql_host = hdp_default("hcat_mysql_host")
     $hue_conf_dir = "/etc/hue/conf"
+    $hive_conf_dir = "/etc/hive/conf"
 
   } elsif ($packages == 'bigtop') {  
 
@@ -613,7 +614,7 @@ class hdp::params()
     },
 
     hue-server => {
-      64 => {'ALL' => 'sandbox-hue-bin-1.2.1'}
+      64 => {'ALL' => 'hue.noarch'}
     },
 
     ambari-log4j => {

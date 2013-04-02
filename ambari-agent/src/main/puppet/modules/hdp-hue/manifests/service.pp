@@ -26,7 +26,7 @@ class hdp-hue::service(
   include $hdp-hue::params
 
   $hue_user = $hdp-hue::params::hue_server_user
-  $hue_start_cmd = "/etc/init.d/hue start"
+  $hue_start_cmd = "/etc/init.d/hue start --USER=${hue_user} --LOGDIR=${hue_log_dir} --LOCKFILE=${hue_lock_file} --PIDFILE=${hue_pid_dir}/supervisor.pid"
   $hue_stop_cmd = "/etc/init.d/hue stop"
 
   $pid_dir = $hdp-hue::params::hue_pid_dir
