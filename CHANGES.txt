@@ -544,6 +544,9 @@ Trunk (unreleased changes):
 
  BUG FIXES
 
+ AMBARI-1771. On clicking master component host on Oozie and Hive
+ service page javascript error is encountered.(jaimin)
+
  AMBARI-1767. Add ability to customize "ambari_qa" user. (smohanty)
 
  AMBARI-1770. Hue installation fails due to manifest errors. (swagle)
