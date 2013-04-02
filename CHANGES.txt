@@ -544,6 +544,8 @@ Trunk (unreleased changes):
 
  BUG FIXES
 
+ AMBARI-1766. Hide Java Home option on step-7 of Installer wizard. (jaimin)
+
  AMBARI-1765. Enable the Ganglia rrd files location to be configurable
  when Ganglia is selected as service. (jaimin)
 

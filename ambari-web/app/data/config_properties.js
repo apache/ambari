@@ -1667,7 +1667,7 @@ module.exports =
       "isRequired": true,
       "isReconfigurable": false,
       "displayType": "directory",
-      "isVisible": true,
+      "isVisible": false,
       "domain": "global",
       "serviceName": "MISC"
     },
