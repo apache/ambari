@@ -123,7 +123,52 @@ public class RequestResourceProviderTest {
     }
 
     // verify
-    verify(managementController);  }
+    verify(managementController);
+  }
+
+  @Test
+  public void testGetResourcesOrPredicate() throws Exception {
+    Resource.Type type = Resource.Type.Request;
+
+    AmbariManagementController managementController = createMock(AmbariManagementController.class);
+
+    Set<RequestStatusResponse> allResponse = new HashSet<RequestStatusResponse>();
+    allResponse.add(new RequestStatusResponse(100L));
+
+    // set expectations
+    expect(managementController.getRequestStatus(AbstractResourceProviderTest.Matcher.getRequestRequest(100L))).
+        andReturn(allResponse).once();
+    expect(managementController.getRequestStatus(AbstractResourceProviderTest.Matcher.getRequestRequest(101L))).
+        andReturn(allResponse).once();
+
+    // replay
+    replay(managementController);
+
+    ResourceProvider provider = AbstractControllerResourceProvider.getResourceProvider(
+        type,
+        PropertyHelper.getPropertyIds(type),
+        PropertyHelper.getKeyPropertyIds(type),
+        managementController);
+
+    Set<String> propertyIds = new HashSet<String>();
+
+    propertyIds.add(RequestResourceProvider.REQUEST_ID_PROPERTY_ID);
+
+    Predicate predicate = new PredicateBuilder().property(RequestResourceProvider.REQUEST_ID_PROPERTY_ID).equals("100").
+        or().property(RequestResourceProvider.REQUEST_ID_PROPERTY_ID).equals("101").
+        toPredicate();
+    Request request = PropertyHelper.getReadRequest(propertyIds);
+    Set<Resource> resources = provider.getResources(request, predicate);
+
+    Assert.assertEquals(2, resources.size());
+    for (Resource resource : resources) {
+      long id = (Long) resource.getPropertyValue(RequestResourceProvider.REQUEST_ID_PROPERTY_ID);
+      Assert.assertTrue(id == 100L || id == 101L);
+    }
+
+    // verify
+    verify(managementController);
+  }
 
   @Test
   public void testUpdateResources() throws Exception {

@@ -29,10 +29,10 @@ import org.apache.ambari.server.controller.spi.RequestStatus;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.spi.SystemException;
 import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
-import org.apache.ambari.server.controller.utilities.PredicateHelper;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
 
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
@@ -79,31 +79,40 @@ class RequestResourceProvider extends AbstractControllerResourceProvider {
   public Set<Resource> getResources(Request request, Predicate predicate)
     throws SystemException, UnsupportedPropertyException, NoSuchResourceException, NoSuchParentResourceException {
 
-    Set<String>         requestedIds         = getRequestPropertyIds(request, predicate);
-    Map<String, Object> predicateProperties  = PredicateHelper.getProperties(predicate);
+    Set<Resource> resources    = new HashSet<Resource>();
+    Set<String>   requestedIds = getRequestPropertyIds(request, predicate);
 
-    final RequestStatusRequest requestStatusRequest = getRequest(predicateProperties);
+    // get the request objects by processing the given predicate
+    Map<String, Set<RequestStatusRequest>> requestStatusRequestSetMap = getRequests(getPropertyMaps(predicate));
 
-    String clusterName = (String) predicateProperties.get(REQUEST_CLUSTER_NAME_PROPERTY_ID);
+    for(Map.Entry<String, Set<RequestStatusRequest>> entry: requestStatusRequestSetMap.entrySet()) {
 
-    Set<RequestStatusResponse> responses = getResources(new Command<Set<RequestStatusResponse>>() {
-      @Override
-      public Set<RequestStatusResponse> invoke() throws AmbariException {
-        return getManagementController().getRequestStatus(requestStatusRequest);
+      String clusterName = entry.getKey();
+      Set<RequestStatusRequest> requestStatusRequestSet = entry.getValue();
+
+      for (RequestStatusRequest requestStatusRequest : requestStatusRequestSet){
+
+        // we need to make a separate request for each request object
+        final RequestStatusRequest finalRequest = requestStatusRequest;
+        Set<RequestStatusResponse> responses = getResources(new Command<Set<RequestStatusResponse>>() {
+          @Override
+          public Set<RequestStatusResponse> invoke() throws AmbariException {
+            return getManagementController().getRequestStatus(finalRequest);
+          }
+        });
+
+        for (RequestStatusResponse response : responses) {
+          Resource resource = new ResourceImpl(Resource.Type.Request);
+          setResourceProperty(resource, REQUEST_CLUSTER_NAME_PROPERTY_ID, clusterName, requestedIds);
+          setResourceProperty(resource, REQUEST_ID_PROPERTY_ID, response.getRequestId(), requestedIds);
+          setResourceProperty(resource, REQUEST_CONTEXT_ID, response.getRequestContext(), requestedIds);
+          if (requestStatusRequest.getRequestStatus() != null) {
+            setResourceProperty(resource, REQUEST_STATUS_PROPERTY_ID, requestStatusRequest.getRequestStatus(),
+                requestedIds);
+          }
+          resources.add(resource);
+        }
       }
-    });
-
-
-    Set<Resource> resources = new HashSet<Resource>();
-    for (RequestStatusResponse response : responses) {
-      Resource resource = new ResourceImpl(Resource.Type.Request);
-      setResourceProperty(resource, REQUEST_CLUSTER_NAME_PROPERTY_ID, clusterName, requestedIds);
-      setResourceProperty(resource, REQUEST_ID_PROPERTY_ID, response.getRequestId(), requestedIds);
-      setResourceProperty(resource, REQUEST_CONTEXT_ID, response.getRequestContext(), requestedIds);
-      if (requestStatusRequest.getRequestStatus() != null) {
-        setResourceProperty(resource, REQUEST_STATUS_PROPERTY_ID, requestStatusRequest.getRequestStatus(), requestedIds);
-      }
-      resources.add(resource);
     }
     return resources;
   }
@@ -128,22 +137,38 @@ class RequestResourceProvider extends AbstractControllerResourceProvider {
   }
 
   /**
-   * Get a component request object from a map of property values.
+   * Get a map of component request objects from the given maps of property values.
    *
-   * @param properties  the predicate
+   * @param propertiesSet  the set of property maps from the predicate
    *
-   * @return the component request object
+   * @return the map of component request objects keyed by cluster name
    */
-  private RequestStatusRequest getRequest(Map<String, Object> properties) {
-    Long requestId = null;
-    if (properties.get(REQUEST_ID_PROPERTY_ID) != null) {
-      requestId = Long.valueOf((String) properties
-          .get(REQUEST_ID_PROPERTY_ID));
+  private Map<String, Set<RequestStatusRequest>> getRequests(Set<Map<String, Object>> propertiesSet) {
+
+    Map<String, Set<RequestStatusRequest>> requestSetMap = new HashMap<String, Set<RequestStatusRequest>>();
+
+    for (Map<String, Object> properties : propertiesSet) {
+      Long   requestId   = null;
+      String clusterName = (String) properties.get(REQUEST_CLUSTER_NAME_PROPERTY_ID);
+
+      // group the requests by cluster name
+      Set<RequestStatusRequest> requestSet = requestSetMap.get(clusterName);
+
+      if (requestSet == null) {
+        requestSet = new HashSet<RequestStatusRequest>();
+        requestSetMap.put(clusterName, requestSet);
+      }
+
+      if (properties.get(REQUEST_ID_PROPERTY_ID) != null) {
+        requestId = Long.valueOf((String) properties
+            .get(REQUEST_ID_PROPERTY_ID));
+      }
+      String requestStatus = null;
+      if (properties.get(REQUEST_STATUS_PROPERTY_ID) != null) {
+        requestStatus = (String)properties.get(REQUEST_STATUS_PROPERTY_ID);
+      }
+      requestSet.add(new RequestStatusRequest(requestId, requestStatus));
     }
-    String requestStatus = null;
-    if (properties.get(REQUEST_STATUS_PROPERTY_ID) != null) {
-      requestStatus = (String)properties.get(REQUEST_STATUS_PROPERTY_ID);
-    }
-    return new RequestStatusRequest(requestId, requestStatus);
+    return requestSetMap;
   }
 }
