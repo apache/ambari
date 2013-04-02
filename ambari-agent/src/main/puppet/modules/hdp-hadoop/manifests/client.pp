@@ -44,9 +44,9 @@ class hdp-hadoop::client(
       $masterHost = $kerberos_adminclient_host[0]
       hdp::download_keytab { 'hadoop_client_ambari_qa_keytab' :
         masterhost => $masterHost,
-        keytabdst => "${$keytab_path}/ambari_qa.headless.keytab",
-        keytabfile => 'ambari_qa.headless.keytab',
-        owner => 'ambari_qa',
+        keytabdst => "${$keytab_path}/${smokeuser}.headless.keytab",
+        keytabfile => "${smokeuser}.headless.keytab",
+        owner => $smokeuser,
         hostnameInPrincipals => 'no'
       }
     }

@@ -544,6 +544,8 @@ Trunk (unreleased changes):
 
  BUG FIXES
 
+ AMBARI-1767. Add ability to customize "ambari_qa" user. (smohanty)
+
  AMBARI-1770. Hue installation fails due to manifest errors. (swagle)
 
  AMBARI-1764. Unable to get all tasks from more than one request_id by one
