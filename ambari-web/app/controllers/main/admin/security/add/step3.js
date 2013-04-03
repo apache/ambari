@@ -380,7 +380,7 @@ App.MainAdminSecurityAddStep3Controller = Em.Controller.extend({
     console.log("TRACE: In setServiceTagNames function:");
     //var serviceConfigTags = this.get('serviceConfigTags');
     for (var index in configs) {
-      if (secureService.sites.contains(index)) {
+      if (secureService.sites && secureService.sites.contains(index)) {
         var serviceConfigObj = {
           siteName: index,
           tagName: configs[index].tag,

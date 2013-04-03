@@ -544,6 +544,9 @@ Trunk (unreleased changes):
 
  BUG FIXES
 
+ AMBARI-1775. Security wizard - Javascript error is thrown when zooKeeper
+ is included as a secure service. (jaimin)
+
  AMBARI-1771. On clicking master component host on Oozie and Hive
  service page javascript error is encountered.(jaimin)
 

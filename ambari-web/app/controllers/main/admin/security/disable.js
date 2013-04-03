@@ -132,7 +132,7 @@ App.MainAdminSecurityDisableController = Em.Controller.extend({
    */
   setServiceTagNames: function (secureService, configs) {
     for (var index in configs) {
-      if (secureService.sites.contains(index)) {
+      if (secureService.sites && secureService.sites.contains(index)) {
         var serviceConfigObj = {
           siteName: index,
           tagName: configs[index].tag,
