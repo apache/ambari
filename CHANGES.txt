@@ -544,6 +544,8 @@ Trunk (unreleased changes):
 
  BUG FIXES
 
+ AMBARI-1780. POSTing new cluster returns 500 exception. (smohanty)
+
  AMBARI-1781. Ambari Server should work with MySQL and Oracle where the 
  Ambari Server data might be stored. (smohanty)
 

@@ -32,11 +32,11 @@ public class ClusterStateEntity {
 
   @Basic
   @Column(name = "current_cluster_state", insertable = true, updatable = true)
-  private String currentClusterState;
+  private String currentClusterState = "";
 
   @Basic
   @Column(name = "current_stack_version", insertable = true, updatable = true)
-  private String currentStackVersion;
+  private String currentStackVersion = "";
 
   @OneToOne
   @JoinColumn(name = "cluster_id", referencedColumnName = "cluster_id", nullable = false)
