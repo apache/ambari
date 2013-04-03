@@ -33,6 +33,7 @@ import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 
+import org.apache.ambari.eventdb.db.OracleConnector;
 import org.apache.ambari.eventdb.db.PostgresConnector;
 import org.apache.ambari.eventdb.model.DataTable;
 import org.apache.ambari.eventdb.model.Jobs;
@@ -45,6 +46,8 @@ import org.apache.ambari.eventdb.model.TaskLocalityData.DataPoint;
 import org.apache.ambari.eventdb.model.Workflows;
 import org.apache.ambari.eventdb.model.Workflows.WorkflowDBEntry;
 import org.apache.ambari.eventdb.model.Workflows.WorkflowDBEntry.WorkflowFields;
+import org.apache.ambari.server.configuration.Configuration;
+import org.apache.commons.lang.StringUtils;
 
 @Path("/jobhistory")
 public class WorkflowJsonService {
@@ -54,10 +57,10 @@ public class WorkflowJsonService {
   private static final String USERNAME = PREFIX + "db.user";
   private static final String PASSWORD = PREFIX + "db.password";
   
-  private static final String DEFAULT_HOSTNAME = "localhost";
-  private static final String DEFAULT_DBNAME = "ambarirca";
-  private static final String DEFAULT_USERNAME = "mapred";
-  private static final String DEFAULT_PASSWORD = "mapred";
+  private static String DEFAULT_DRIVER = "localhost";
+  private static String DEFAULT_URL = "ambarirca";
+  private static String DEFAULT_USERNAME = "mapred";
+  private static String DEFAULT_PASSWORD = "mapred";
   
   private static final Workflows EMPTY_WORKFLOWS = new Workflows();
   private static final List<JobDBEntry> EMPTY_JOBS = Collections.emptyList();
@@ -67,7 +70,19 @@ public class WorkflowJsonService {
   }
   
   PostgresConnector getConnector() throws IOException {
-    return new PostgresConnector(DEFAULT_HOSTNAME, DEFAULT_DBNAME, DEFAULT_USERNAME, DEFAULT_PASSWORD);
+    //TODO fix temp hack
+    if (StringUtils.contains(DEFAULT_DRIVER, "oracle")) {
+      return new OracleConnector(DEFAULT_DRIVER, DEFAULT_URL, DEFAULT_USERNAME, DEFAULT_PASSWORD);
+    } else {
+      return new PostgresConnector(DEFAULT_DRIVER, DEFAULT_URL, DEFAULT_USERNAME, DEFAULT_PASSWORD);
+    }
+  }
+
+  public static void setDBProperties(Configuration configuration) {
+    DEFAULT_DRIVER = configuration.getRcaDatabaseDriver();
+    DEFAULT_URL = configuration.getRcaDatabaseUrl();
+    DEFAULT_USERNAME = configuration.getRcaDatabaseUser();
+    DEFAULT_PASSWORD = configuration.getRcaDatabasePassword();
   }
   
   @Context

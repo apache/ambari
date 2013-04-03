@@ -19,6 +19,7 @@ package org.apache.ambari.server.security.authorization;
 
 import com.google.inject.AbstractModule;
 import org.apache.ambari.server.configuration.Configuration;
+import org.apache.ambari.server.controller.ControllerModule;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.crypto.password.StandardPasswordEncoder;
 
@@ -28,23 +29,20 @@ import java.util.Properties;
 public class AuthorizationTestModule extends AbstractModule {
   @Override
   protected void configure() {
-
-    bind(PasswordEncoder.class).to(StandardPasswordEncoder.class);
-    bind(Properties.class).toInstance(buildTestProperties());
-    bind(Configuration.class).toConstructor(getConfigurationConstructor());
-  }
-
-  protected Properties buildTestProperties() {
     Properties properties = new Properties();
     properties.setProperty(Configuration.CLIENT_SECURITY_KEY, "ldap");
-    return properties;
-  }
+    properties.setProperty(Configuration.SERVER_PERSISTENCE_TYPE_KEY, "in-memory");
+    properties.setProperty(Configuration.METADETA_DIR_PATH,
+        "src/test/resources/stacks");
+    properties.setProperty(Configuration.SERVER_VERSION_FILE,
+        "../version");
+    properties.setProperty(Configuration.OS_VERSION_KEY,
+        "centos5");
 
-  protected Constructor<Configuration> getConfigurationConstructor() {
     try {
-      return Configuration.class.getConstructor(Properties.class);
-    } catch (NoSuchMethodException e) {
-      throw new RuntimeException("Expected constructor not found in Configuration.java", e);
+      install(new ControllerModule(properties));
+    } catch (Exception e) {
+      throw new RuntimeException(e);
     }
   }
 }

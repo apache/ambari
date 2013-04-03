@@ -12,7 +12,7 @@
 <persistence xmlns="http://java.sun.com/xml/ns/persistence"
   version="2.0">
 
-  <persistence-unit name="ambari-postgres" transaction-type="RESOURCE_LOCAL">
+  <persistence-unit name="ambari-server" transaction-type="RESOURCE_LOCAL">
     <provider>org.eclipse.persistence.jpa.PersistenceProvider</provider>
     <class>org.apache.ambari.server.orm.entities.ClusterEntity</class>
     <class>org.apache.ambari.server.orm.entities.ClusterConfigEntity</class>
@@ -40,46 +40,46 @@
     <class>org.apache.ambari.server.orm.entities.MetainfoEntity</class>
 
     <properties>
-      <property name="javax.persistence.jdbc.url" value="jdbc:postgresql://localhost/ambari" />
-      <property name="javax.persistence.jdbc.driver" value="org.postgresql.Driver" />
+      <!--<property name="javax.persistence.jdbc.url" value="jdbc:postgresql://localhost/ambari" />-->
+      <!--<property name="javax.persistence.jdbc.driver" value="org.postgresql.Driver" />-->
       <property name="eclipselink.cache.size.default" value="3000" />
     </properties>
   </persistence-unit>
 
-  <persistence-unit name="ambari-javadb" transaction-type="RESOURCE_LOCAL">
-    <provider>org.eclipse.persistence.jpa.PersistenceProvider</provider>
-    <class>org.apache.ambari.server.orm.entities.ClusterEntity</class>
-    <class>org.apache.ambari.server.orm.entities.ClusterConfigEntity</class>
-    <class>org.apache.ambari.server.orm.entities.ClusterServiceEntity</class>
-    <class>org.apache.ambari.server.orm.entities.ClusterStateEntity</class>
-    <class>org.apache.ambari.server.orm.entities.ComponentConfigMappingEntity</class>
-    <class>org.apache.ambari.server.orm.entities.HostComponentConfigMappingEntity</class>
-    <class>org.apache.ambari.server.orm.entities.HostComponentDesiredConfigMappingEntity</class>
-    <class>org.apache.ambari.server.orm.entities.HostComponentDesiredStateEntity</class>
-    <class>org.apache.ambari.server.orm.entities.HostComponentStateEntity</class>
-    <class>org.apache.ambari.server.orm.entities.HostEntity</class>
-    <class>org.apache.ambari.server.orm.entities.HostStateEntity</class>
-    <class>org.apache.ambari.server.orm.entities.ServiceComponentDesiredStateEntity</class>
-    <class>org.apache.ambari.server.orm.entities.ServiceConfigMappingEntity</class>
-    <class>org.apache.ambari.server.orm.entities.ServiceDesiredStateEntity</class>
-    <class>org.apache.ambari.server.orm.entities.RoleEntity</class>
-    <class>org.apache.ambari.server.orm.entities.UserEntity</class>
-    <class>org.apache.ambari.server.orm.entities.ExecutionCommandEntity</class>
-    <class>org.apache.ambari.server.orm.entities.HostRoleCommandEntity</class>
-    <class>org.apache.ambari.server.orm.entities.RoleSuccessCriteriaEntity</class>
-    <class>org.apache.ambari.server.orm.entities.StageEntity</class>
-    <class>org.apache.ambari.server.orm.entities.KeyValueEntity</class>
-    <class>org.apache.ambari.server.orm.entities.ClusterConfigMappingEntity</class>
-    <class>org.apache.ambari.server.orm.entities.HostConfigMappingEntity</class>
-    <class>org.apache.ambari.server.orm.entities.MetainfoEntity</class>
+  <!--<persistence-unit name="ambari-javadb" transaction-type="RESOURCE_LOCAL">-->
+    <!--<provider>org.eclipse.persistence.jpa.PersistenceProvider</provider>-->
+    <!--<class>org.apache.ambari.server.orm.entities.ClusterEntity</class>-->
+    <!--<class>org.apache.ambari.server.orm.entities.ClusterConfigEntity</class>-->
+    <!--<class>org.apache.ambari.server.orm.entities.ClusterServiceEntity</class>-->
+    <!--<class>org.apache.ambari.server.orm.entities.ClusterStateEntity</class>-->
+    <!--<class>org.apache.ambari.server.orm.entities.ComponentConfigMappingEntity</class>-->
+    <!--<class>org.apache.ambari.server.orm.entities.HostComponentConfigMappingEntity</class>-->
+    <!--<class>org.apache.ambari.server.orm.entities.HostComponentDesiredConfigMappingEntity</class>-->
+    <!--<class>org.apache.ambari.server.orm.entities.HostComponentDesiredStateEntity</class>-->
+    <!--<class>org.apache.ambari.server.orm.entities.HostComponentStateEntity</class>-->
+    <!--<class>org.apache.ambari.server.orm.entities.HostEntity</class>-->
+    <!--<class>org.apache.ambari.server.orm.entities.HostStateEntity</class>-->
+    <!--<class>org.apache.ambari.server.orm.entities.ServiceComponentDesiredStateEntity</class>-->
+    <!--<class>org.apache.ambari.server.orm.entities.ServiceConfigMappingEntity</class>-->
+    <!--<class>org.apache.ambari.server.orm.entities.ServiceDesiredStateEntity</class>-->
+    <!--<class>org.apache.ambari.server.orm.entities.RoleEntity</class>-->
+    <!--<class>org.apache.ambari.server.orm.entities.UserEntity</class>-->
+    <!--<class>org.apache.ambari.server.orm.entities.ExecutionCommandEntity</class>-->
+    <!--<class>org.apache.ambari.server.orm.entities.HostRoleCommandEntity</class>-->
+    <!--<class>org.apache.ambari.server.orm.entities.RoleSuccessCriteriaEntity</class>-->
+    <!--<class>org.apache.ambari.server.orm.entities.StageEntity</class>-->
+    <!--<class>org.apache.ambari.server.orm.entities.KeyValueEntity</class>-->
+    <!--<class>org.apache.ambari.server.orm.entities.ClusterConfigMappingEntity</class>-->
+    <!--<class>org.apache.ambari.server.orm.entities.HostConfigMappingEntity</class>-->
+    <!--<class>org.apache.ambari.server.orm.entities.MetainfoEntity</class>-->
 
-    <properties>
-      <property name="javax.persistence.jdbc.url" value="jdbc:derby:memory:myDB;create=true" />
-      <property name="javax.persistence.jdbc.driver" value="org.apache.derby.jdbc.EmbeddedDriver" />
-      <property name="eclipselink.ddl-generation" value="drop-and-create-tables" />
-      <property name="eclipselink.orm.throw.exceptions" value="true" />
-      <property name="eclipselink.cache.size.default" value="3000" />
-      <!--<property name="eclipselink.logging.level" value="FINEST"/>-->
-    </properties>
-  </persistence-unit>
+    <!--<properties>-->
+      <!--<property name="javax.persistence.jdbc.url" value="jdbc:derby:memory:myDB/ambari;create=true" />-->
+      <!--<property name="javax.persistence.jdbc.driver" value="org.apache.derby.jdbc.EmbeddedDriver" />-->
+      <!--<property name="eclipselink.ddl-generation" value="drop-and-create-tables" />-->
+      <!--<property name="eclipselink.orm.throw.exceptions" value="true" />-->
+      <!--<property name="eclipselink.cache.size.default" value="3000" />-->
+      <!--&lt;!&ndash;<property name="eclipselink.logging.level" value="FINEST"/>&ndash;&gt;-->
+    <!--</properties>-->
+  <!--</persistence-unit>-->
 </persistence>

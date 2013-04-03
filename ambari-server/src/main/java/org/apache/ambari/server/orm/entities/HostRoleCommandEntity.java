@@ -21,20 +21,96 @@ package org.apache.ambari.server.orm.entities;
 import org.apache.ambari.server.Role;
 import org.apache.ambari.server.RoleCommand;
 import org.apache.ambari.server.actionmanager.HostRoleStatus;
+import org.apache.commons.lang.ArrayUtils;
 
 import javax.persistence.*;
 import java.util.Arrays;
 
-@Table(name = "host_role_command", schema = "ambari", catalog = "")
+import static org.apache.commons.lang.StringUtils.defaultString;
+
+@Table(name = "host_role_command")
 @Entity
 @Cacheable(false)
-@SequenceGenerator(name = "ambari.host_role_command_task_id_seq", allocationSize = 50)
+@TableGenerator(name = "host_role_command_id_generator",
+    table = "ambari_sequences", pkColumnName = "sequence_name", valueColumnName = "value"
+    , pkColumnValue = "host_role_command_id_seq"
+    , initialValue = 1
+    , allocationSize = 50
+)
+
 public class HostRoleCommandEntity {
-  private Long taskId;
 
   @Column(name = "task_id")
   @Id
-  @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "ambari.host_role_command_task_id_seq")
+  @GeneratedValue(strategy = GenerationType.TABLE, generator = "host_role_command_id_generator")
+  private Long taskId;
+
+  @Column(name = "request_id", insertable = false, updatable = false, nullable = false)
+  @Basic
+  private Long requestId;
+
+  @Column(name = "stage_id", insertable = false, updatable = false, nullable = false)
+  @Basic
+  private Long stageId;
+
+  @Column(name = "host_name", insertable = false, updatable = false, nullable = false)
+  @Basic
+  private String hostName;
+
+  @Column(name = "role")
+  @Enumerated(EnumType.STRING)
+  private Role role;
+
+  @Column(name = "event", length = 32000)
+  @Basic
+  @Lob
+  private String event = "";
+
+  @Column(name = "exitcode", nullable = false)
+  @Basic
+  private Integer exitcode = 0;
+
+  @Column(name = "status")
+  @Enumerated(EnumType.STRING)
+  private HostRoleStatus status;
+
+  @Column(name = "std_error")
+  @Lob
+  @Basic
+  private byte[] stdError = new byte[0];
+
+  @Column(name = "std_out")
+  @Lob
+  @Basic
+  private byte[] stdOut = new byte[0];
+
+  @Basic
+  @Column(name = "start_time", nullable = false)
+  private Long startTime = -1L;
+
+  @Basic
+  @Column(name = "last_attempt_time", nullable = false)
+  private Long lastAttemptTime = -1L;
+
+  @Basic
+  @Column(name = "attempt_count", nullable = false)
+  private Short attemptCount = 0;
+
+  @Column(name = "role_command")
+  @Enumerated(EnumType.STRING)
+  private RoleCommand roleCommand;
+
+  @OneToOne(mappedBy = "hostRoleCommand", cascade = CascadeType.REMOVE)
+  private ExecutionCommandEntity executionCommand;
+
+  @ManyToOne(cascade = {CascadeType.MERGE})
+  @JoinColumns({@JoinColumn(name = "request_id", referencedColumnName = "request_id", nullable = false), @JoinColumn(name = "stage_id", referencedColumnName = "stage_id", nullable = false)})
+  private StageEntity stage;
+
+  @ManyToOne(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
+  @JoinColumn(name = "host_name", referencedColumnName = "host_name", nullable = false)
+  private HostEntity host;
+
   public Long getTaskId() {
     return taskId;
   }
@@ -43,10 +119,6 @@ public class HostRoleCommandEntity {
     this.taskId = taskId;
   }
 
-  private Long requestId;
-
-  @Column(name = "request_id", insertable = false, updatable = false, nullable = false)
-  @Basic
   public Long getRequestId() {
     return requestId;
   }
@@ -55,10 +127,6 @@ public class HostRoleCommandEntity {
     this.requestId = requestId;
   }
 
-  private Long stageId;
-
-  @Column(name = "stage_id", insertable = false, updatable = false, nullable = false)
-  @Basic
   public Long getStageId() {
     return stageId;
   }
@@ -67,10 +135,6 @@ public class HostRoleCommandEntity {
     this.stageId = stageId;
   }
 
-  private String hostName;
-
-  @Column(name = "host_name", insertable = false, updatable = false, nullable = false)
-  @Basic
   public String getHostName() {
     return hostName;
   }
@@ -79,10 +143,6 @@ public class HostRoleCommandEntity {
     this.hostName = hostName;
   }
 
-  private Role role;
-
-  @Column(name = "role")
-  @Enumerated(EnumType.STRING)
   public Role getRole() {
     return role;
   }
@@ -91,22 +151,14 @@ public class HostRoleCommandEntity {
     this.role = role;
   }
 
-  private String event = "";
-
-  @Column(name = "event", nullable = false, length = 32000)
-  @Basic
   public String getEvent() {
-    return event;
+    return defaultString(event);
   }
 
   public void setEvent(String event) {
     this.event = event;
   }
 
-  private Integer exitcode = 0;
-
-  @Column(name = "exitcode", nullable = false)
-  @Basic
   public Integer getExitcode() {
     return exitcode;
   }
@@ -115,10 +167,6 @@ public class HostRoleCommandEntity {
     this.exitcode = exitcode;
   }
 
-  private HostRoleStatus status;
-
-  @Column(name = "status")
-  @Enumerated(EnumType.STRING)
   public HostRoleStatus getStatus() {
     return status;
   }
@@ -127,36 +175,22 @@ public class HostRoleCommandEntity {
     this.status = status;
   }
 
-  private byte[] stdError = new byte[0];
-
-  @Column(name = "std_error", nullable = false)
-  @Lob
-  @Basic
   public byte[] getStdError() {
-    return stdError;
+    return ArrayUtils.nullToEmpty(stdError);
   }
 
   public void setStdError(byte[] stdError) {
     this.stdError = stdError;
   }
 
-  private byte[] stdOut = new byte[0];
-
-  @Column(name = "std_out", nullable = false)
-  @Lob
-  @Basic
   public byte[] getStdOut() {
-    return stdOut;
+    return ArrayUtils.nullToEmpty(stdOut);
   }
 
   public void setStdOut(byte[] stdOut) {
     this.stdOut = stdOut;
   }
 
-  private Long startTime = -1L;
-
-  @Column(name = "start_time", nullable = false)
-  @Basic
   public Long getStartTime() {
     return startTime;
   }
@@ -165,10 +199,6 @@ public class HostRoleCommandEntity {
     this.startTime = startTime;
   }
 
-  private Long lastAttemptTime = -1L;
-
-  @Column(name = "last_attempt_time", nullable = false)
-  @Basic
   public Long getLastAttemptTime() {
     return lastAttemptTime;
   }
@@ -177,10 +207,6 @@ public class HostRoleCommandEntity {
     this.lastAttemptTime = lastAttemptTime;
   }
 
-  private Short attemptCount = 0;
-
-  @Column(name = "attempt_count", nullable = false)
-  @Basic
   public Short getAttemptCount() {
     return attemptCount;
   }
@@ -189,10 +215,6 @@ public class HostRoleCommandEntity {
     this.attemptCount = attemptCount;
   }
 
-  private RoleCommand roleCommand;
-
-  @Column(name = "role_command")
-  @Enumerated(EnumType.STRING)
   public RoleCommand getRoleCommand() {
     return roleCommand;
   }
@@ -244,9 +266,6 @@ public class HostRoleCommandEntity {
     return result;
   }
 
-  private ExecutionCommandEntity executionCommand;
-
-  @OneToOne(mappedBy = "hostRoleCommand", cascade = CascadeType.REMOVE)
   public ExecutionCommandEntity getExecutionCommand() {
     return executionCommand;
   }
@@ -255,10 +274,6 @@ public class HostRoleCommandEntity {
     this.executionCommand = executionCommandsByTaskId;
   }
 
-  private StageEntity stage;
-
-  @ManyToOne(cascade = {CascadeType.MERGE})
-  @JoinColumns({@JoinColumn(name = "request_id", referencedColumnName = "request_id", nullable = false), @JoinColumn(name = "stage_id", referencedColumnName = "stage_id", nullable = false)})
   public StageEntity getStage() {
     return stage;
   }
@@ -267,10 +282,6 @@ public class HostRoleCommandEntity {
     this.stage = stage;
   }
 
-  private HostEntity host;
-
-  @ManyToOne(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
-  @JoinColumn(name = "host_name", referencedColumnName = "host_name", nullable = false)
   public HostEntity getHost() {
     return host;
   }

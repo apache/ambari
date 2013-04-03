@@ -19,17 +19,43 @@
 package org.apache.ambari.server.orm.entities;
 
 import org.apache.ambari.server.state.State;
+import org.apache.commons.lang.StringUtils;
 
 import javax.persistence.*;
 
 @javax.persistence.IdClass(ServiceDesiredStateEntityPK.class)
-@javax.persistence.Table(name = "servicedesiredstate", schema = "ambari", catalog = "")
+@javax.persistence.Table(name = "servicedesiredstate")
 @Entity
 public class ServiceDesiredStateEntity {
+
+  @Column(name = "cluster_id", nullable = false, insertable = false, updatable = false, length = 10)
+  @Id
   private Long clusterId;
 
-  @javax.persistence.Column(name = "cluster_id", nullable = false, insertable = false, updatable = false, length = 10)
+  @Column(name = "service_name", nullable = false, insertable = false, updatable = false)
   @Id
+  private String serviceName;
+
+  @Column(name = "desired_state", nullable = false, insertable = true, updatable = true)
+  @Enumerated(value = EnumType.STRING)
+  private State desiredState = State.INIT;
+
+  @Column(name = "desired_host_role_mapping", nullable = false, insertable = true, updatable = true, length = 10)
+  @Basic
+  private int desiredHostRoleMapping = 0;
+
+  @Column(name = "desired_stack_version", insertable = true, updatable = true)
+  @Basic
+  private String desiredStackVersion = "";
+
+  @OneToOne
+  @javax.persistence.JoinColumns(
+      {
+          @JoinColumn(name = "cluster_id", referencedColumnName = "cluster_id", nullable = false),
+          @JoinColumn(name = "service_name", referencedColumnName = "service_name", nullable = false)
+      })
+  private ClusterServiceEntity clusterServiceEntity;
+
   public Long getClusterId() {
     return clusterId;
   }
@@ -38,10 +64,6 @@ public class ServiceDesiredStateEntity {
     this.clusterId = clusterId;
   }
 
-  private String serviceName;
-
-  @javax.persistence.Column(name = "service_name", nullable = false, insertable = false, updatable = false)
-  @Id
   public String getServiceName() {
     return serviceName;
   }
@@ -50,10 +72,6 @@ public class ServiceDesiredStateEntity {
     this.serviceName = serviceName;
   }
 
-  private State desiredState = State.INIT;
-
-  @javax.persistence.Column(name = "desired_state", nullable = false, insertable = true, updatable = true)
-  @Enumerated(value = EnumType.STRING)
   public State getDesiredState() {
     return desiredState;
   }
@@ -62,10 +80,6 @@ public class ServiceDesiredStateEntity {
     this.desiredState = desiredState;
   }
 
-  private int desiredHostRoleMapping = 0;
-
-  @javax.persistence.Column(name = "desired_host_role_mapping", nullable = false, insertable = true, updatable = true, length = 10)
-  @Basic
   public int getDesiredHostRoleMapping() {
     return desiredHostRoleMapping;
   }
@@ -74,12 +88,8 @@ public class ServiceDesiredStateEntity {
     this.desiredHostRoleMapping = desiredHostRoleMapping;
   }
 
-  private String desiredStackVersion = "";
-
-  @javax.persistence.Column(name = "desired_stack_version", nullable = false, insertable = true, updatable = true)
-  @Basic
   public String getDesiredStackVersion() {
-    return desiredStackVersion;
+    return StringUtils.defaultString(desiredStackVersion);
   }
 
   public void setDesiredStackVersion(String desiredStackVersion) {
@@ -112,14 +122,6 @@ public class ServiceDesiredStateEntity {
     return result;
   }
 
-  private ClusterServiceEntity clusterServiceEntity;
-
-  @OneToOne
-  @javax.persistence.JoinColumns(
-      {
-          @JoinColumn(name = "cluster_id", referencedColumnName = "cluster_id", nullable = false),
-          @JoinColumn(name = "service_name", referencedColumnName = "service_name", nullable = false)
-      })
   public ClusterServiceEntity getClusterServiceEntity() {
     return clusterServiceEntity;
   }

@@ -25,6 +25,7 @@ import com.google.inject.Injector;
 import com.google.inject.persist.jpa.JpaPersistModule;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
+import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
 import org.apache.ambari.server.orm.dao.RoleDAO;
 import org.apache.ambari.server.orm.dao.UserDAO;
 import org.apache.ambari.server.orm.entities.RoleEntity;
@@ -57,7 +58,7 @@ public class AmbariLdapAuthenticationProviderTest{
 
   @BeforeClass
   public static void beforeClass() throws Exception{
-    injector = Guice.createInjector(new AuthorizationTestModule(), new JpaPersistModule("ambari-javadb"));
+    injector = Guice.createInjector(new AuthorizationTestModule());
     injector.getInstance(GuiceJpaInitializer.class);
 
     apacheDSContainer = new ApacheDSContainer("dc=ambari,dc=apache,dc=org", "classpath:/users.ldif");

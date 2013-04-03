@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -19,15 +19,16 @@ package org.apache.ambari.server.orm.entities;
 
 import javax.persistence.Column;
 import javax.persistence.Id;
+import java.io.Serializable;
 
 /**
  * PK class for host config mappings.
  *
  */
-public class HostConfigMappingEntityPK {
+public class HostConfigMappingEntityPK implements Serializable {
   private Long clusterId;
   private String hostName;
-  private String typeName;
+  private String type;
   private Long createTimestamp;
 
   @Column(name = "cluster_id", nullable = false, insertable = true, updatable = true, length = 10)
@@ -53,11 +54,11 @@ public class HostConfigMappingEntityPK {
   @Column(name = "type_name", insertable = true, updatable = true, nullable = false)
   @Id
   public String getType() {
-    return typeName;
+    return type;
   }
   
   public void setType(String type) {
-    typeName = type;
+    this.type = type;
   }
   
   @Column(name = "create_timestamp", insertable = true, updatable = true, nullable = false)
@@ -81,7 +82,7 @@ public class HostConfigMappingEntityPK {
 
     if (clusterId != null ? !clusterId.equals(that.clusterId) : that.clusterId != null) return false;
     if (hostName != null ? !hostName.equals(that.hostName) : that.hostName != null) return false;
-    if (typeName != null ? !typeName.equals(that.typeName) : that.typeName != null) return false;
+    if (type != null ? !type.equals(that.type) : that.type != null) return false;
     if (createTimestamp != null ? !createTimestamp.equals (that.createTimestamp) : that.createTimestamp != null) return false;
 
     return true;
@@ -90,7 +91,7 @@ public class HostConfigMappingEntityPK {
   @Override
   public int hashCode() {
     int result = clusterId !=null ? clusterId.intValue() : 0;
-    result = 31 * result + (typeName != null ? typeName.hashCode() : 0);
+    result = 31 * result + (type != null ? type.hashCode() : 0);
     result = 31 * result + (hostName != null ? hostName.hashCode() : 0);
     result = 31 * result + createTimestamp.intValue();
     return result;

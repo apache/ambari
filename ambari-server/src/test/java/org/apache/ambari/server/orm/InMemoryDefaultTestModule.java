@@ -28,7 +28,8 @@ public class InMemoryDefaultTestModule extends AbstractModule {
   @Override
   protected void configure() {
     Properties properties = new Properties();
-    properties.setProperty(Configuration.PERSISTENCE_IN_MEMORY_KEY, "true");
+    properties.setProperty(Configuration.SERVER_PERSISTENCE_TYPE_KEY, "in-memory");
+//    properties.setProperty(Configuration.SERVER_PERSISTENCE_TYPE_KEY, "local");
     properties.setProperty(Configuration.METADETA_DIR_PATH,
         "src/test/resources/stacks");
     properties.setProperty(Configuration.SERVER_VERSION_FILE,

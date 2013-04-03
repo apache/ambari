@@ -1474,7 +1474,8 @@ public class AmbariManagementControllerImplTest {
       @Override
       protected void configure() {
         Properties properties = new Properties();
-        properties.setProperty(Configuration.PERSISTENCE_IN_MEMORY_KEY, "true");
+        properties.setProperty(Configuration.SERVER_PERSISTENCE_TYPE_KEY, "in-memory");
+
         properties.setProperty(Configuration.METADETA_DIR_PATH,
             "src/main/resources/stacks");
         properties.setProperty(Configuration.SERVER_VERSION_FILE,
@@ -1532,6 +1533,7 @@ public class AmbariManagementControllerImplTest {
     );
     amc.createConfiguration(configurationRequest);
 
+
     serviceRequests.clear();
     serviceRequests.add(new ServiceRequest("c1", "HDFS",
         gson.<Map<String, String>>fromJson("{\"core-site\": \"version1\", \"hdfs-site\": \"version1\", \"global\" : \"version1\" }", confType)
@@ -1547,6 +1549,7 @@ public class AmbariManagementControllerImplTest {
 //        , null));
 
     amc.updateServices(serviceRequests, mapRequestProps, true);
+
 
     Set<ServiceComponentRequest> serviceComponentRequests = new HashSet<ServiceComponentRequest>();
     serviceComponentRequests.add(new ServiceComponentRequest("c1", "HDFS", "NAMENODE", null, null));
@@ -1569,6 +1572,7 @@ public class AmbariManagementControllerImplTest {
     componentHostRequests.add(new ServiceComponentHostRequest("c1", null, "SECONDARY_NAMENODE", "host1", null, null));
     componentHostRequests.add(new ServiceComponentHostRequest("c1", null, "DATANODE", "host2", null, null));
     componentHostRequests.add(new ServiceComponentHostRequest("c1", null, "DATANODE", "host3", null, null));
+
 
     amc.createHostComponents(componentHostRequests);
 

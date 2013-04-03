@@ -177,7 +177,7 @@ public class TestStageUtils {
     addHdfsService(fsm.getCluster("c1"), hostList, injector);
     addHbaseService(fsm.getCluster("c1"), hostList, injector);
     Map<String, List<String>> info = StageUtils.getClusterHostInfo(fsm
-        .getCluster("c1"), new HostsMap(injector.getInstance(Configuration.class)));
+        .getCluster("c1"), new HostsMap(injector.getInstance(Configuration.class)), injector);
     assertEquals(2, info.get("slave_hosts").size());
     assertEquals(1, info.get("hbase_master_hosts").size());
     assertEquals("h1", info.get("hbase_master_hosts").get(0));

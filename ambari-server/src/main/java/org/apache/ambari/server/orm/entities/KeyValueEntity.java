@@ -19,20 +19,20 @@
 package org.apache.ambari.server.orm.entities;
 
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.Id;
-import javax.persistence.Table;
+import javax.persistence.*;
 
-@Table(name = "key_value_store", schema = "ambari", catalog = "")
+@Table(name = "key_value_store")
 @Entity
 public class KeyValueEntity {
 
-  private String key;
-  private String value;
-
   @Column(name = "\"key\"", length = 255)
   @Id
+  private String key;
+
+  @Column(name = "\"value\"", length = 32000)
+  @Lob
+  private String value;
+
   public String getKey() {
     return key;
   }
@@ -41,7 +41,6 @@ public class KeyValueEntity {
     this.key = key;
   }
 
-  @Column(name = "\"value\"", length = 32000)
   public String getValue() {
     return value;
   }

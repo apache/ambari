@@ -19,20 +19,21 @@
 package org.apache.ambari.server.orm.entities;
 
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.Id;
-import javax.persistence.Table;
+import javax.persistence.*;
 
-@Table(name = "metainfo", schema = "ambari", catalog = "")
+@Table(name = "metainfo")
 @Entity
 public class MetainfoEntity {
 
-  private String metainfoName;
-  private String metainfoValue;
-
   @Column(name = "\"metainfo_key\"", length = 255)
   @Id
+  private String metainfoName;
+
+  @Column(name = "\"metainfo_value\"", length = 32000)
+  @Basic
+  @Lob
+  private String metainfoValue;
+
   public String getMetainfoName() {
     return metainfoName;
   }
@@ -41,7 +42,6 @@ public class MetainfoEntity {
     this.metainfoName = metainfoName;
   }
 
-  @Column(name = "\"metainfo_value\"", length = 32000)
   public String getMetainfoValue() {
     return metainfoValue;
   }

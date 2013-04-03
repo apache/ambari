@@ -21,7 +21,9 @@ package org.apache.ambari.server.orm.entities;
 import javax.persistence.*;
 import java.util.Collection;
 
-@javax.persistence.Table(name = "clusters", schema = "ambari", catalog = "")
+import static org.apache.commons.lang.StringUtils.defaultString;
+
+@Table(name = "clusters")
 @NamedQueries({
     @NamedQuery(name = "clusterByName", query =
         "SELECT cluster " +
@@ -32,13 +34,54 @@ import java.util.Collection;
             "FROM ClusterEntity clusters")
 })
 @Entity
-@SequenceGenerator(name = "ambari.clusters_cluster_id_seq", allocationSize = 1)
+@TableGenerator(name = "cluster_id_generator",
+    table = "ambari_sequences", pkColumnName = "sequence_name", valueColumnName = "value"
+    , pkColumnValue = "cluster_id_seq"
+    , initialValue = 1
+    , allocationSize = 1
+)
 public class ClusterEntity {
+
+  @Id
+  @Column(name = "cluster_id", nullable = false, insertable = true, updatable = true)
+  @GeneratedValue(strategy = GenerationType.TABLE, generator = "cluster_id_generator")
   private Long clusterId;
 
-  @javax.persistence.Column(name = "cluster_id", nullable = false, insertable = true, updatable = true)
-  @Id
-  @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "ambari.clusters_cluster_id_seq")
+  @Basic
+  @Column(name = "cluster_name", nullable = false, insertable = true,
+      updatable = true, unique = true, length = 100)
+  private String clusterName;
+
+  @Basic
+  @Column(name = "desired_cluster_state", insertable = true, updatable = true)
+  private String desiredClusterState = "";
+
+  @Basic
+  @Column(name = "cluster_info", insertable = true, updatable = true)
+  private String clusterInfo = "";
+
+  @Basic
+  @Column(name = "desired_stack_version", insertable = true, updatable = true)
+  private String desiredStackVersion = "";
+
+  @OneToMany(mappedBy = "clusterEntity")
+  private Collection<ClusterServiceEntity> clusterServiceEntities;
+
+  @OneToOne(mappedBy = "clusterEntity", cascade = CascadeType.REMOVE)
+  private ClusterStateEntity clusterStateEntity;
+
+  @ManyToMany(mappedBy = "clusterEntities")
+  private Collection<HostEntity> hostEntities;
+
+  @OneToMany(mappedBy = "cluster", cascade = CascadeType.REMOVE)
+  private Collection<StageEntity> stages;
+
+  @OneToMany(mappedBy = "clusterEntity", cascade = CascadeType.ALL)
+  private Collection<ClusterConfigEntity> configEntities;
+
+  @OneToMany(mappedBy = "clusterEntity", cascade = CascadeType.ALL)
+  private Collection<ClusterConfigMappingEntity> configMappingEntities;
+
   public Long getClusterId() {
     return clusterId;
   }
@@ -47,11 +90,6 @@ public class ClusterEntity {
     this.clusterId = clusterId;
   }
 
-  private String clusterName;
-
-  @javax.persistence.Column(name = "cluster_name", nullable = false, insertable = true,
-          updatable = true, unique = true, length = 100)
-  @Basic
   public String getClusterName() {
     return clusterName;
   }
@@ -60,36 +98,24 @@ public class ClusterEntity {
     this.clusterName = clusterName;
   }
 
-  private String desiredClusterState = "";
-
-  @javax.persistence.Column(name = "desired_cluster_state", nullable = false, insertable = true, updatable = true)
-  @Basic
   public String getDesiredClusterState() {
-    return desiredClusterState;
+    return defaultString(desiredClusterState);
   }
 
   public void setDesiredClusterState(String desiredClusterState) {
     this.desiredClusterState = desiredClusterState;
   }
 
-  private String clusterInfo = "";
-
-  @javax.persistence.Column(name = "cluster_info", nullable = false, insertable = true, updatable = true)
-  @Basic
   public String getClusterInfo() {
-    return clusterInfo;
+    return defaultString(clusterInfo);
   }
 
   public void setClusterInfo(String clusterInfo) {
     this.clusterInfo = clusterInfo;
   }
 
-  private String desiredStackVersion = "";
-
-  @javax.persistence.Column(name = "desired_stack_version", nullable = false, insertable = true, updatable = true)
-  @Basic
   public String getDesiredStackVersion() {
-    return desiredStackVersion;
+    return defaultString(desiredStackVersion);
   }
 
   public void setDesiredStackVersion(String desiredStackVersion) {
@@ -124,9 +150,6 @@ public class ClusterEntity {
     return result;
   }
 
-  private Collection<ClusterServiceEntity> clusterServiceEntities;
-
-  @OneToMany(mappedBy = "clusterEntity")
   public Collection<ClusterServiceEntity> getClusterServiceEntities() {
     return clusterServiceEntities;
   }
@@ -135,9 +158,6 @@ public class ClusterEntity {
     this.clusterServiceEntities = clusterServiceEntities;
   }
 
-  private ClusterStateEntity clusterStateEntity;
-
-  @OneToOne(mappedBy = "clusterEntity", cascade = CascadeType.REMOVE)
   public ClusterStateEntity getClusterStateEntity() {
     return clusterStateEntity;
   }
@@ -146,9 +166,6 @@ public class ClusterEntity {
     this.clusterStateEntity = clusterStateEntity;
   }
 
-  private Collection<HostEntity> hostEntities;
-
-  @ManyToMany(mappedBy = "clusterEntities")
   public Collection<HostEntity> getHostEntities() {
     return hostEntities;
   }
@@ -157,9 +174,6 @@ public class ClusterEntity {
     this.hostEntities = hostEntities;
   }
 
-  private Collection<StageEntity> stages;
-
-  @OneToMany(mappedBy = "cluster", cascade = CascadeType.REMOVE)
   public Collection<StageEntity> getStages() {
     return stages;
   }
@@ -167,19 +181,15 @@ public class ClusterEntity {
   public void setStages(Collection<StageEntity> stages) {
     this.stages = stages;
   }
-  
-  private Collection<ClusterConfigEntity> configEntities;
-  @OneToMany(mappedBy = "clusterEntity", cascade = CascadeType.ALL)
+
   public Collection<ClusterConfigEntity> getClusterConfigEntities() {
     return configEntities;
   }
-  
+
   public void setClusterConfigEntities(Collection<ClusterConfigEntity> entities) {
     configEntities = entities;
   }
-  
-  private Collection<ClusterConfigMappingEntity> configMappingEntities;
-  @OneToMany(mappedBy = "clusterEntity", cascade = CascadeType.ALL)
+
   public Collection<ClusterConfigMappingEntity> getConfigMappingEntities() {
     return configMappingEntities;
   }

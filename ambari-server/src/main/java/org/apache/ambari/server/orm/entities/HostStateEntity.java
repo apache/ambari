@@ -19,16 +19,44 @@
 package org.apache.ambari.server.orm.entities;
 
 import org.apache.ambari.server.state.HostState;
+import org.apache.commons.lang.StringUtils;
 
 import javax.persistence.*;
 
-@javax.persistence.Table(name = "hoststate", schema = "ambari", catalog = "")
+import static org.apache.commons.lang.StringUtils.defaultString;
+
+@javax.persistence.Table(name = "hoststate")
 @Entity
 public class HostStateEntity {
-  private String hostName;
-
+  
   @javax.persistence.Column(name = "host_name", nullable = false, insertable = false, updatable = false)
   @Id
+  private String hostName;
+
+  @Column(name = "available_mem", nullable = false, insertable = true, updatable = true)
+  @Basic
+  private Long availableMem = 0L;
+
+  @javax.persistence.Column(name = "time_in_state", nullable = false, insertable = true, updatable = true)
+  @Basic
+  private Long timeInState = 0L;
+
+  @Column(name = "health_status", insertable = true, updatable = true)
+  @Basic
+  private String healthStatus;
+
+  @Column(name = "agent_version", insertable = true, updatable = true)
+  @Basic
+  private String agentVersion = "";
+
+  @Column(name = "current_state", nullable = false, insertable = true, updatable = true)
+  @Enumerated(value = EnumType.STRING)
+  private HostState currentState = HostState.INIT;
+
+  @OneToOne
+  @JoinColumn(name = "host_name", referencedColumnName = "host_name", nullable = false)
+  private HostEntity hostEntity;
+
   public String getHostName() {
     return hostName;
   }
@@ -37,10 +65,6 @@ public class HostStateEntity {
     this.hostName = hostName;
   }
 
-  private Long availableMem = 0L;
-
-  @Column(name = "available_mem", nullable = false, insertable = true, updatable = true)
-  @Basic
   public Long getAvailableMem() {
     return availableMem;
   }
@@ -49,10 +73,6 @@ public class HostStateEntity {
     this.availableMem = availableMem;
   }
 
-  private Long timeInState = 0L;
-
-  @javax.persistence.Column(name = "time_in_state", nullable = false, insertable = true, updatable = true, length = 10)
-  @Basic
   public Long getTimeInState() {
     return timeInState;
   }
@@ -61,10 +81,6 @@ public class HostStateEntity {
     this.timeInState = timeInState;
   }
 
-  private String healthStatus;
-
-  @Column(name = "health_status", insertable = true, updatable = true)
-  @Basic
   public String getHealthStatus() {
     return healthStatus;
   }
@@ -73,22 +89,14 @@ public class HostStateEntity {
     this.healthStatus = healthStatus;
   }
 
-  private String agentVersion = "";
-
-  @javax.persistence.Column(name = "agent_version", nullable = false, insertable = true, updatable = true)
-  @Basic
   public String getAgentVersion() {
-    return agentVersion;
+    return defaultString(agentVersion);
   }
 
   public void setAgentVersion(String agentVersion) {
     this.agentVersion = agentVersion;
   }
 
-  private HostState currentState = HostState.INIT;
-
-  @javax.persistence.Column(name = "current_state", nullable = false, insertable = true, updatable = true)
-  @Enumerated(value = EnumType.STRING)
   public HostState getCurrentState() {
     return currentState;
   }
@@ -123,22 +131,6 @@ public class HostStateEntity {
     return result;
   }
 
-//  private ClusterEntity clusterEntity;
-//
-//  @ManyToOne
-//  @javax.persistence.JoinColumn(name = "cluster_id", referencedColumnName = "cluster_id")
-//  public ClusterEntity getClusterEntity() {
-//    return clusterEntity;
-//  }
-//
-//  public void setClusterEntity(ClusterEntity clusterEntity) {
-//    this.clusterEntity = clusterEntity;
-//  }
-
-  private HostEntity hostEntity;
-
-  @OneToOne
-  @JoinColumn(name = "host_name", referencedColumnName = "host_name", nullable = false)
   public HostEntity getHostEntity() {
     return hostEntity;
   }

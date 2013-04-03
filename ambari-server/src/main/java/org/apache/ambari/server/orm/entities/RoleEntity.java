@@ -18,22 +18,23 @@
 
 package org.apache.ambari.server.orm.entities;
 
-import javax.persistence.CascadeType;
-import javax.persistence.Entity;
-import javax.persistence.Id;
-import javax.persistence.JoinColumn;
-import javax.persistence.JoinTable;
-import javax.persistence.ManyToMany;
+import javax.persistence.*;
 import java.util.Set;
 
-@javax.persistence.Table(name = "roles", schema = "ambari", catalog = "")
+@javax.persistence.Table(name = "roles")
 @Entity
 public class RoleEntity {
 
+  @Column(name = "role_name")
+  @Id
   private String roleName;
 
-  @javax.persistence.Column(name = "role_name")
-  @Id
+  @JoinTable(name = "user_roles",
+      joinColumns = {@JoinColumn(name = "role_name", referencedColumnName = "role_name")},
+      inverseJoinColumns = {@JoinColumn(name = "user_id", referencedColumnName = "user_id")})
+  @ManyToMany(cascade = CascadeType.ALL)
+  private Set<UserEntity> userEntities;
+
   public String getRoleName() {
     return roleName;
   }
@@ -59,12 +60,6 @@ public class RoleEntity {
     return roleName != null ? roleName.hashCode() : 0;
   }
 
-  private Set<org.apache.ambari.server.orm.entities.UserEntity> userEntities;
-
-  @JoinTable(name = "user_roles", catalog = "", schema = "ambari",
-      joinColumns = {@JoinColumn(name = "role_name", referencedColumnName = "role_name")},
-      inverseJoinColumns = {@JoinColumn(name = "user_id", referencedColumnName = "user_id")})
-  @ManyToMany(cascade = CascadeType.ALL)
   public Set<org.apache.ambari.server.orm.entities.UserEntity> getUserEntities() {
     return userEntities;
   }

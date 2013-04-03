@@ -18,6 +18,7 @@
 package org.apache.ambari.server.configuration;
 
 import com.google.inject.Singleton;
+import org.apache.ambari.server.orm.JPATableGenerationStrategy;
 import org.apache.ambari.server.orm.PersistenceType;
 import org.apache.ambari.server.security.ClientSecurityType;
 import org.apache.ambari.server.security.authorization.LdapServerProperties;
@@ -106,16 +107,37 @@ public class Configuration {
   public static final String ADMIN_ROLE_NAME_KEY =
       "authorization.adminRoleName";
 
-  public static final String PERSISTENCE_IN_MEMORY_KEY =
-      "server.persistence.inMemory";
-  public static final String SERVER_JDBC_USER_NAME_KEY =
-      "server.jdbc.user.name";
-  private static final String SERVER_JDBC_USER_NAME_DEFAULT =
-      "ambari-server";
-  public static final String SERVER_JDBC_USER_PASSWD_KEY =
-      "server.jdbc.user.passwd";
-  private static final String SERVER_JDBC_USER_PASSWD_DEFAULT =
-      "bigdata";
+  public static final String SERVER_PERSISTENCE_TYPE_KEY = "server.persistence.type";
+  public static final String SERVER_JDBC_USER_NAME_KEY = "server.jdbc.user.name";
+  public static final String SERVER_JDBC_USER_PASSWD_KEY = "server.jdbc.user.passwd";
+  public static final String SERVER_JDBC_DRIVER_KEY = "server.jdbc.driver";
+  public static final String SERVER_JDBC_URL_KEY = "server.jdbc.url";
+
+//  public static final String SERVER_RCA_PERSISTENCE_TYPE_KEY = "server.rca.persistence.type";
+  public static final String SERVER_JDBC_RCA_USER_NAME_KEY = "server.jdbc.rca.user.name";
+  public static final String SERVER_JDBC_RCA_USER_PASSWD_KEY = "server.jdbc.rca.user.passwd";
+  public static final String SERVER_JDBC_RCA_DRIVER_KEY = "server.jdbc.rca.driver";
+  public static final String SERVER_JDBC_RCA_URL_KEY = "server.jdbc.rca.url";
+
+
+  public static final String SERVER_JDBC_GENERATE_TABLES_KEY = "server.jdbc.generateTables";
+
+  public static final String JDBC_UNIT_NAME = "ambari-server";
+
+  public static final String JDBC_LOCAL_URL = "jdbc:postgresql://localhost/ambari";
+  public static final String JDBC_LOCAL_DRIVER = "org.postgresql.Driver";
+
+  public static final String JDBC_IN_MEMORY_URL = "jdbc:derby:memory:myDB/ambari;create=true";
+  public static final String JDBC_IN_MEMROY_DRIVER = "org.apache.derby.jdbc.EmbeddedDriver";
+
+  public static final String JDBC_RCA_LOCAL_URL = "jdbc:postgresql://localhost/ambarirca";
+  public static final String JDBC_RCA_LOCAL_DRIVER = "org.postgresql.Driver";
+
+  private static final String SERVER_JDBC_USER_NAME_DEFAULT = "ambari-server";
+  private static final String SERVER_JDBC_USER_PASSWD_DEFAULT = "bigdata";
+
+  private static final String SERVER_JDBC_RCA_USER_NAME_DEFAULT = "mapred";
+  private static final String SERVER_JDBC_RCA_USER_PASSWD_DEFAULT = "mapred";
 
   public static final String OS_VERSION_KEY =
       "server.os_type";
@@ -162,7 +184,7 @@ public class Configuration {
   private static final String LDAP_GROUP_SEARCH_FILTER_DEFAULT = "";
 
   //TODO for development purposes only, should be changed to 'false'
-  private static final String PERSISTENCE_IN_MEMORY_DEFAULT = "true";
+  private static final String SERVER_PERSISTENCE_TYPE_DEFAULT = "local";
 
 
 
@@ -380,14 +402,23 @@ public class Configuration {
     return ("true".equals(properties.getProperty(API_USE_SSL, "false")));
   }
 
-
+  /**
+   * Check persistence type Ambari Server should use. Possible values:
+   * in-memory - use in-memory Derby database to store data
+   * local - use local Postgres instance
+   * remote - use provided jdbc driver name and url to connect to database
+   */
   public PersistenceType getPersistenceType() {
-    String value = properties.getProperty(PERSISTENCE_IN_MEMORY_KEY, PERSISTENCE_IN_MEMORY_DEFAULT);
-    if ("true".equalsIgnoreCase(value)) {
-      return PersistenceType.IN_MEMORY;
-    } else {
-      return PersistenceType.POSTGRES;
-    }
+    String value = properties.getProperty(SERVER_PERSISTENCE_TYPE_KEY, SERVER_PERSISTENCE_TYPE_DEFAULT);
+    return PersistenceType.fromString(value);
+  }
+
+  public String getDatabaseDriver() {
+    return properties.getProperty(SERVER_JDBC_DRIVER_KEY);
+  }
+
+  public String getDatabaseUrl() {
+    return properties.getProperty(SERVER_JDBC_URL_KEY);
   }
 
   public String getDatabaseUser() {
@@ -396,9 +427,30 @@ public class Configuration {
 
   public String getDatabasePassword() {
     String filePath = properties.getProperty(SERVER_JDBC_USER_PASSWD_KEY);
+    return readPassword(filePath, SERVER_JDBC_USER_PASSWD_DEFAULT);
+  }
+
+  public String getRcaDatabaseDriver() {
+    return properties.getProperty(SERVER_JDBC_RCA_DRIVER_KEY, JDBC_RCA_LOCAL_DRIVER);
+  }
+
+  public String getRcaDatabaseUrl() {
+    return properties.getProperty(SERVER_JDBC_RCA_URL_KEY, JDBC_RCA_LOCAL_URL);
+  }
+
+  public String getRcaDatabaseUser() {
+    return properties.getProperty(SERVER_JDBC_RCA_USER_NAME_KEY, SERVER_JDBC_RCA_USER_NAME_DEFAULT);
+  }
+
+  public String getRcaDatabasePassword() {
+    String filePath = properties.getProperty(SERVER_JDBC_RCA_USER_PASSWD_KEY);
+    return readPassword(filePath, SERVER_JDBC_RCA_USER_PASSWD_DEFAULT);
+  }
+
+  private String readPassword(String filePath, String defaultPassword) {
     if (filePath == null) {
       LOG.debug("DB password file not specified - using default");
-      return SERVER_JDBC_USER_PASSWD_DEFAULT;
+      return defaultPassword;
     } else {
       LOG.debug("Reading password from file {}", filePath);
       String password;
@@ -410,6 +462,7 @@ public class Configuration {
       return password;
     }
   }
+
 
   /**
    * Gets parameters of LDAP server to connect to
@@ -462,6 +515,10 @@ public class Configuration {
 
   public int getClientApiPort() {
     return Integer.parseInt(properties.getProperty(CLIENT_API_PORT_KEY, String.valueOf(CLIENT_API_PORT_DEFAULT)));
+  }
+
+  public JPATableGenerationStrategy getJPATableGenerationStrategy() {
+    return JPATableGenerationStrategy.fromString(System.getProperty(SERVER_JDBC_GENERATE_TABLES_KEY));
   }
 
 }

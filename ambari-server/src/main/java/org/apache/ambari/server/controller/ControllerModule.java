@@ -75,15 +75,7 @@ public class ControllerModule extends AbstractModule {
     bind(HostsMap.class).toInstance(hostsMap);
     bind(PasswordEncoder.class).toInstance(new StandardPasswordEncoder());
 
-    JpaPersistModule jpaPersistModule = new JpaPersistModule(configuration.getPersistenceType().getUnitName());
-    if (configuration.getPersistenceType() == PersistenceType.POSTGRES) {
-      Properties properties = new Properties();
-      properties.setProperty("javax.persistence.jdbc.user", configuration.getDatabaseUser());
-      properties.setProperty("javax.persistence.jdbc.password", configuration.getDatabasePassword());
-      jpaPersistModule.properties(properties);
-    }
-
-    install(jpaPersistModule);
+    install(buildJpaPersistModule());
 
     bind(Gson.class).in(Scopes.SINGLETON);
     bind(Clusters.class).to(ClustersImpl.class);
@@ -92,8 +84,52 @@ public class ControllerModule extends AbstractModule {
     bindConstant().annotatedWith(Names.named("actionTimeout")).to(300000L);
     bind(AmbariManagementController.class)
         .to(AmbariManagementControllerImpl.class);
-    bind(HBaseMasterPortScanner.class).in(Singleton.class);;
+    bind(HBaseMasterPortScanner.class).in(Singleton.class);
     bind(ServerActionManager.class).to(ServerActionManagerImpl.class);
+  }
+
+  private JpaPersistModule buildJpaPersistModule() {
+    PersistenceType persistenceType = configuration.getPersistenceType();
+    JpaPersistModule jpaPersistModule = new JpaPersistModule(Configuration.JDBC_UNIT_NAME);
+
+    Properties properties = new Properties();
+
+    switch (persistenceType) {
+      case IN_MEMORY:
+        properties.put("javax.persistence.jdbc.url", Configuration.JDBC_IN_MEMORY_URL);
+        properties.put("javax.persistence.jdbc.driver", Configuration.JDBC_IN_MEMROY_DRIVER);
+        properties.put("eclipselink.ddl-generation", "drop-and-create-tables");
+        properties.put("eclipselink.orm.throw.exceptions", "true");
+        jpaPersistModule.properties(properties);
+        return jpaPersistModule;
+      case REMOTE:
+        properties.put("javax.persistence.jdbc.url", configuration.getDatabaseUrl());
+        properties.put("javax.persistence.jdbc.driver", configuration.getDatabaseDriver());
+        break;
+      case LOCAL:
+        properties.put("javax.persistence.jdbc.url", Configuration.JDBC_LOCAL_URL);
+        properties.put("javax.persistence.jdbc.driver", Configuration.JDBC_LOCAL_DRIVER);
+        break;
+    }
+
+    properties.setProperty("javax.persistence.jdbc.user", configuration.getDatabaseUser());
+    properties.setProperty("javax.persistence.jdbc.password", configuration.getDatabasePassword());
+
+    switch (configuration.getJPATableGenerationStrategy()) {
+      case CREATE:
+        properties.setProperty("eclipselink.ddl-generation", "create-tables");
+        break;
+      case DROP_AND_CREATE:
+        properties.setProperty("eclipselink.ddl-generation", "drop-and-create-tables");
+        break;
+    }
+    properties.setProperty("eclipselink.ddl-generation.output-mode", "both");
+    properties.setProperty("eclipselink.create-ddl-jdbc-file-name", "DDL-create.jdbc");
+    properties.setProperty("eclipselink.drop-ddl-jdbc-file-name", "DDL-drop.jdbc");
+
+    jpaPersistModule.properties(properties);
+
+    return jpaPersistModule;
   }
 
   private void installFactories() {

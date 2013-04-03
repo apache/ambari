@@ -53,8 +53,13 @@ public class HostDAO {
   @Transactional
   public List<HostEntity> findByStage(StageEntity stageEntity) {
     TypedQuery<HostEntity> query = entityManagerProvider.get().createQuery(
-        "SELECT DISTINCT host FROM HostEntity host JOIN host.hostRoleCommandEntities command JOIN command.stage stage " +
-            "WHERE stage=:stageEntity", HostEntity.class);
+        "SELECT host FROM HostEntity host " +
+            "WHERE host.hostName IN (" +
+            "SELECT DISTINCT host.hostName " +
+            "FROM HostEntity host " +
+            "JOIN host.hostRoleCommandEntities command " +
+            "JOIN command.stage stage " +
+            "WHERE stage=:stageEntity)", HostEntity.class);
     query.setParameter("stageEntity", stageEntity);
     try {
       return query.getResultList();

@@ -28,18 +28,41 @@ import javax.persistence.Table;
 
 @IdClass(ServiceConfigMappingEntityPK.class)
 @Entity
-@Table(name="serviceconfigmapping", schema="ambari", catalog="")
+@Table(name="serviceconfigmapping")
 public class ServiceConfigMappingEntity {
+
+  @Id
+  @Column(name = "cluster_id", nullable = false, insertable = false, updatable = false)
   private Long clusterId;
+
+  @Id
+  @Column(name = "service_name", nullable = false, insertable = false, updatable = false)
   private String serviceName;
+
+  @Id
+  @Column(name = "config_type", nullable = false, insertable = true, updatable = false)
   private String configType;
+
+  @Column(name = "config_tag", nullable = false, insertable = true, updatable = true)
   private String configVersion;
+
+  @Column(name = "timestamp", nullable = false, insertable = true, updatable = true)
   private Long timestamp;
+
+  @ManyToOne
+  @JoinColumns({
+      @JoinColumn(name = "cluster_id", referencedColumnName = "cluster_id", nullable = false),
+      @JoinColumn(name = "service_name", referencedColumnName = "service_name", nullable = false) })
   private ClusterServiceEntity serviceEntity;
+
+  @ManyToOne
+  @JoinColumns({
+      @JoinColumn(name = "cluster_id", referencedColumnName = "cluster_id", nullable = false, insertable = false, updatable = false),
+      @JoinColumn(name = "config_type", referencedColumnName = "type_name", nullable = false, insertable = false, updatable = false),
+      @JoinColumn(name = "config_tag", referencedColumnName = "version_tag", nullable = false, insertable = false, updatable = false)
+  })
   private ClusterConfigEntity clusterConfigEntity;
 
-  @Column(name = "cluster_id", nullable = false, insertable = false, updatable = false)
-  @Id
   public Long getClusterId() {
     return clusterId;
   }
@@ -48,8 +71,6 @@ public class ServiceConfigMappingEntity {
     clusterId = id;
   }
 
-  @Column(name = "service_name", nullable = false, insertable = false, updatable = false)
-  @Id
   public String getServiceName() {
     return serviceName;
   }
@@ -58,8 +79,6 @@ public class ServiceConfigMappingEntity {
     serviceName = name;
   }
 
-  @Column(name = "config_type", nullable = false, insertable = true, updatable = false)
-  @Id
   public String getConfigType() {
     return configType;
   }
@@ -68,7 +87,6 @@ public class ServiceConfigMappingEntity {
     configType = type;
   }
 
-  @Column(name = "config_tag", nullable = false, insertable = true, updatable = true)
   public String getVersionTag() {
     return configVersion;
   }
@@ -77,7 +95,6 @@ public class ServiceConfigMappingEntity {
     configVersion = tag;
   }
 
-  @Column(name = "timestamp", nullable = false, insertable = true, updatable = true)
   public Long getTimestamp() {
     return timestamp;
   }
@@ -86,10 +103,6 @@ public class ServiceConfigMappingEntity {
     timestamp = stamp;
   }
 
-  @ManyToOne
-  @JoinColumns({
-      @JoinColumn(name = "cluster_id", referencedColumnName = "cluster_id", nullable = false),
-      @JoinColumn(name = "service_name", referencedColumnName = "service_name", nullable = false) })
   public ClusterServiceEntity getServiceEntity() {
     return serviceEntity;
   }
@@ -98,12 +111,6 @@ public class ServiceConfigMappingEntity {
     serviceEntity = entity;
   }
 
-  @ManyToOne
-  @JoinColumns({
-      @JoinColumn(name = "cluster_id", referencedColumnName = "cluster_id", nullable = false, insertable = false, updatable = false),
-      @JoinColumn(name = "config_type", referencedColumnName = "type_name", nullable = false, insertable = false, updatable = false),
-      @JoinColumn(name = "config_tag", referencedColumnName = "version_tag", nullable = false, insertable = false, updatable = false)
-  })
   public ClusterConfigEntity getClusterConfigEntity() {
     return clusterConfigEntity;
   }

@@ -22,7 +22,7 @@ import javax.persistence.*;
 import java.util.Collection;
 
 @javax.persistence.IdClass(ClusterServiceEntityPK.class)
-@javax.persistence.Table(name = "clusterservices", schema = "ambari", catalog = "")
+@javax.persistence.Table(name = "clusterservices")
 @NamedQueries({
         @NamedQuery(name = "clusterServiceByClusterAndServiceNames", query =
                 "SELECT clusterService " +
@@ -32,10 +32,32 @@ import java.util.Collection;
 })
 @Entity
 public class ClusterServiceEntity {
+
+  @Id
+  @Column(name = "cluster_id", nullable = false, insertable = false, updatable = false, length = 10)
   private Long clusterId;
 
-  @javax.persistence.Column(name = "cluster_id", nullable = false, insertable = false, updatable = false, length = 10)
   @Id
+  @Column(name = "service_name", nullable = false, insertable = true, updatable = true)
+  private String serviceName;
+
+  @Basic
+  @Column(name = "service_enabled", nullable = false, insertable = true, updatable = true, length = 10)
+  private Integer serviceEnabled = 0;
+
+  @ManyToOne
+  @JoinColumn(name = "cluster_id", referencedColumnName = "cluster_id", nullable = false)
+  private ClusterEntity clusterEntity;
+
+  @OneToOne(mappedBy = "clusterServiceEntity", cascade = CascadeType.ALL)
+  private ServiceDesiredStateEntity serviceDesiredStateEntity;
+
+  @OneToMany(mappedBy = "clusterServiceEntity")
+  private Collection<ServiceComponentDesiredStateEntity> serviceComponentDesiredStateEntities;
+
+  @OneToMany(mappedBy = "serviceEntity", cascade = CascadeType.ALL)
+  private Collection<ServiceConfigMappingEntity> serviceConfigMappings;
+
   public Long getClusterId() {
     return clusterId;
   }
@@ -44,10 +66,6 @@ public class ClusterServiceEntity {
     this.clusterId = clusterId;
   }
 
-  private String serviceName;
-
-  @javax.persistence.Column(name = "service_name", nullable = false, insertable = true, updatable = true)
-  @Id
   public String getServiceName() {
     return serviceName;
   }
@@ -56,10 +74,6 @@ public class ClusterServiceEntity {
     this.serviceName = serviceName;
   }
 
-  private Integer serviceEnabled = 0;
-
-  @javax.persistence.Column(name = "service_enabled", nullable = false, insertable = true, updatable = true, length = 10)
-  @Basic
   public int getServiceEnabled() {
     return serviceEnabled;
   }
@@ -91,10 +105,6 @@ public class ClusterServiceEntity {
     return result;
   }
 
-  private ClusterEntity clusterEntity;
-
-  @ManyToOne
-  @javax.persistence.JoinColumn(name = "cluster_id", referencedColumnName = "cluster_id", nullable = false)
   public ClusterEntity getClusterEntity() {
     return clusterEntity;
   }
@@ -103,9 +113,6 @@ public class ClusterServiceEntity {
     this.clusterEntity = clusterEntity;
   }
 
-  private ServiceDesiredStateEntity serviceDesiredStateEntity;
-
-  @OneToOne(mappedBy = "clusterServiceEntity", cascade = CascadeType.ALL)
   public ServiceDesiredStateEntity getServiceDesiredStateEntity() {
     return serviceDesiredStateEntity;
   }
@@ -114,9 +121,6 @@ public class ClusterServiceEntity {
     this.serviceDesiredStateEntity = serviceDesiredStateEntity;
   }
 
-  private Collection<ServiceComponentDesiredStateEntity> serviceComponentDesiredStateEntities;
-
-  @OneToMany(mappedBy = "clusterServiceEntity")
   public Collection<ServiceComponentDesiredStateEntity> getServiceComponentDesiredStateEntities() {
     return serviceComponentDesiredStateEntities;
   }
@@ -125,8 +129,6 @@ public class ClusterServiceEntity {
     this.serviceComponentDesiredStateEntities = serviceComponentDesiredStateEntities;
   }
 
-  private Collection<ServiceConfigMappingEntity> serviceConfigMappings;
-  @OneToMany(mappedBy = "serviceEntity", cascade = CascadeType.ALL)
   public Collection<ServiceConfigMappingEntity> getServiceConfigMappings() {
     return serviceConfigMappings;
   }

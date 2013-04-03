@@ -25,6 +25,7 @@ import java.util.Map;
 
 import com.google.inject.persist.PersistFilter;
 import com.google.gson.Gson;
+import org.apache.ambari.eventdb.webservice.WorkflowJsonService;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.actionmanager.ActionManager;
 import org.apache.ambari.server.agent.HeartBeatHandler;
@@ -412,6 +413,9 @@ public class AmbariServer {
     AmbariMetaService.init(injector.getInstance(AmbariMetaInfo.class));
     BootStrapResource.init(injector.getInstance(BootStrapImpl.class));
     StageUtils.setGson(injector.getInstance(Gson.class));
+    WorkflowJsonService.setDBProperties(
+        injector.getInstance(Configuration.class)
+    );
   }
 
   public static void main(String[] args) throws Exception {

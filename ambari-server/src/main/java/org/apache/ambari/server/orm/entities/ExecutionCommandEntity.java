@@ -21,13 +21,23 @@ package org.apache.ambari.server.orm.entities;
 import javax.persistence.*;
 import java.util.Arrays;
 
-@Table(name = "execution_command", schema = "ambari", catalog = "")
+@Table(name = "execution_command")
 @Entity
 public class ExecutionCommandEntity {
+
+  @Id
+  @Column(name = "task_id")
   private Long taskId;
 
-  @Column(name = "task_id")
-  @Id
+  @Basic
+  @Lob
+  @Column(name = "command")
+  private byte[] command;
+
+  @OneToOne
+  @JoinColumn(name = "task_id", referencedColumnName = "task_id", nullable = false, insertable = false, updatable = false)
+  private HostRoleCommandEntity hostRoleCommand;
+
   public Long getTaskId() {
     return taskId;
   }
@@ -36,11 +46,6 @@ public class ExecutionCommandEntity {
     this.taskId = taskId;
   }
 
-  private byte[] command;
-
-  @Column(name = "command")
-  @Lob
-  @Basic
   public byte[] getCommand() {
     return command;
   }
@@ -69,10 +74,6 @@ public class ExecutionCommandEntity {
     return result;
   }
 
-  private HostRoleCommandEntity hostRoleCommand;
-
-  @OneToOne
-  @JoinColumn(name = "task_id", referencedColumnName = "task_id", nullable = false, insertable = false, updatable = false)
   public HostRoleCommandEntity getHostRoleCommand() {
     return hostRoleCommand;
   }

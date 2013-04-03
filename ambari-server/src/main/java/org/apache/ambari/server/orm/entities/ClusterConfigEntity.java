@@ -22,21 +22,46 @@ import javax.persistence.*;
 import java.util.Collection;
 
 @IdClass(ClusterConfigEntityPK.class)
-@Table(name = "clusterconfig", schema = "ambari", catalog = "")
+@Table(name = "clusterconfig")
 @Entity
 public class ClusterConfigEntity {
+
+  @Id
+  @Column(name = "cluster_id", nullable = false, insertable = false, updatable = false, length = 10)
   private Long clusterId;
-  private String configJson;
+
+  @Id
+  @Column(name = "type_name")
   private String type;
+
+  @Id
+  @Column(name = "version_tag")
   private String tag;
+
+  @Basic(fetch=FetchType.LAZY)
+  @Column(name = "config_data", nullable = false, insertable = true, updatable = false, length=32000)
+  @Lob
+  private String configJson;
+
+  @Column(name = "create_timestamp", nullable=false, insertable=true, updatable=false)
   private long timestamp;
+
+  @ManyToOne
+  @JoinColumn(name = "cluster_id", referencedColumnName = "cluster_id", nullable = false)
+  private ClusterEntity clusterEntity;
+
+  @OneToMany(mappedBy = "clusterConfigEntity")
   private Collection<HostComponentConfigMappingEntity> hostComponentConfigMappingEntities;
+
+  @OneToMany(mappedBy = "clusterConfigEntity")
   private Collection<ServiceConfigMappingEntity> serviceConfigMappingEntities;
+
+  @OneToMany(mappedBy = "clusterConfigEntity")
   private Collection<HostComponentDesiredConfigMappingEntity> hostComponentDesiredConfigMappingEntities;
+
+  @OneToMany(mappedBy = "clusterConfigEntity")
   private Collection<ComponentConfigMappingEntity> componentConfigMappingEntities;
   
-  @Column(name = "cluster_id", nullable = false, insertable = false, updatable = false, length = 10)
-  @Id
   public Long getClusterId() {
     return clusterId;
   }
@@ -45,8 +70,6 @@ public class ClusterConfigEntity {
     this.clusterId = clusterId;
   }
   
-  @Column(name = "type_name")
-  @Id
   public String getType() {
     return type;
   }
@@ -55,8 +78,6 @@ public class ClusterConfigEntity {
     type = typeName;
   }
   
-  @Column(name = "version_tag")
-  @Id
   public String getTag() {
     return tag;
   }
@@ -65,8 +86,6 @@ public class ClusterConfigEntity {
     tag = versionTag;
   }
 
-  @Column(name = "config_data", nullable = false, insertable = true, updatable = false, length=32000)
-  @Basic(fetch=FetchType.LAZY)
   public String getData() {
     return configJson;
   }
@@ -75,7 +94,6 @@ public class ClusterConfigEntity {
     this.configJson = data;
   }
   
-  @Column(name = "create_timestamp", nullable=false, insertable=true, updatable=false)
   public long getTimestamp() {
     return timestamp;
   }
@@ -105,10 +123,6 @@ public class ClusterConfigEntity {
     return result;
   }
 
-  private ClusterEntity clusterEntity;
-
-  @ManyToOne
-  @JoinColumn(name = "cluster_id", referencedColumnName = "cluster_id", nullable = false)
   public ClusterEntity getClusterEntity() {
     return clusterEntity;
   }
@@ -117,7 +131,6 @@ public class ClusterConfigEntity {
     this.clusterEntity = clusterEntity;
   }
 
-  @OneToMany(mappedBy = "clusterConfigEntity")
   public Collection<HostComponentConfigMappingEntity> getHostComponentConfigMappingEntities() {
     return hostComponentConfigMappingEntities;
   }
@@ -126,7 +139,6 @@ public class ClusterConfigEntity {
     this.hostComponentConfigMappingEntities = hostComponentConfigMappingEntities;
   }
 
-  @OneToMany(mappedBy = "clusterConfigEntity")
   public Collection<ServiceConfigMappingEntity> getServiceConfigMappingEntities() {
     return serviceConfigMappingEntities;
   }
@@ -135,7 +147,6 @@ public class ClusterConfigEntity {
     this.serviceConfigMappingEntities = serviceConfigMappingEntities;
   }
 
-  @OneToMany(mappedBy = "clusterConfigEntity")
   public Collection<HostComponentDesiredConfigMappingEntity> getHostComponentDesiredConfigMappingEntities() {
     return hostComponentDesiredConfigMappingEntities;
   }
@@ -144,7 +155,6 @@ public class ClusterConfigEntity {
     this.hostComponentDesiredConfigMappingEntities = hostComponentDesiredConfigMappingEntities;
   }
 
-  @OneToMany(mappedBy = "clusterConfigEntity")
   public Collection<ComponentConfigMappingEntity> getComponentConfigMappingEntities() {
     return componentConfigMappingEntities;
   }

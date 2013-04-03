@@ -22,20 +22,43 @@ import javax.persistence.*;
 import java.util.Date;
 import java.util.Set;
 
-@Table(name = "users", schema = "ambari", catalog = "", uniqueConstraints = {@UniqueConstraint(columnNames = {"user_name", "ldap_user"})})
+@Table(name = "users", uniqueConstraints = {@UniqueConstraint(columnNames = {"user_name", "ldap_user"})})
 @Entity
 @NamedQueries({
     @NamedQuery(name = "localUserByName", query = "SELECT user FROM UserEntity user where lower(user.userName)=:username AND user.ldapUser=false"),
     @NamedQuery(name = "ldapUserByName", query = "SELECT user FROM UserEntity user where lower(user.userName)=:username AND user.ldapUser=true")
 })
-@SequenceGenerator(name = "ambari.users_user_id_seq", allocationSize = 1)
+@TableGenerator(name = "user_id_generator",
+    table = "ambari_sequences", pkColumnName = "sequence_name", valueColumnName = "value"
+    , pkColumnValue = "user_id_seq"
+    , initialValue = 2
+    , allocationSize = 1
+    )
 public class UserEntity {
-
-  private Integer userId;
 
   @Id
   @Column(name = "user_id")
-  @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "ambari.users_user_id_seq")
+  @GeneratedValue(strategy = GenerationType.TABLE, generator = "user_id_generator")
+  private Integer userId;
+
+  @Column(name = "user_name")
+  private String userName;
+
+  @Column(name = "ldap_user")
+  private Integer ldapUser = 0;
+
+  @Column(name = "user_password")
+  @Basic
+  private String userPassword;
+
+  @Column(name = "create_time")
+  @Basic
+  @Temporal(value = TemporalType.TIMESTAMP)
+  private Date createTime = new Date();
+
+  @ManyToMany(mappedBy = "userEntities")
+  private Set<RoleEntity> roleEntities;
+
   public Integer getUserId() {
     return userId;
   }
@@ -44,9 +67,6 @@ public class UserEntity {
     this.userId = userId;
   }
 
-  private String userName;
-
-  @Column(name = "user_name")
   public String getUserName() {
     return userName;
   }
@@ -55,21 +75,18 @@ public class UserEntity {
     this.userName = userName;
   }
 
-  private Boolean ldapUser = false;
-
-  @Column(name = "ldap_user")
   public Boolean getLdapUser() {
-    return ldapUser;
+    return ldapUser == 0 ? Boolean.FALSE : Boolean.TRUE;
   }
 
   public void setLdapUser(Boolean ldapUser) {
-    this.ldapUser = ldapUser;
+    if (ldapUser == null) {
+      this.ldapUser = null;
+    } else {
+      this.ldapUser = ldapUser ? 1 : 0;
+    }
   }
 
-  private String userPassword;
-
-  @Column(name = "user_password")
-  @Basic
   public String getUserPassword() {
     return userPassword;
   }
@@ -78,11 +95,6 @@ public class UserEntity {
     this.userPassword = userPassword;
   }
 
-  private Date createTime = new Date();
-
-  @Column(name = "create_time")
-  @Basic
-  @Temporal(value = TemporalType.TIMESTAMP)
   public Date getCreateTime() {
     return createTime;
   }
@@ -117,9 +129,6 @@ public class UserEntity {
     return result;
   }
 
-  private Set<RoleEntity> roleEntities;
-
-  @ManyToMany(mappedBy = "userEntities")
   public Set<RoleEntity> getRoleEntities() {
     return roleEntities;
   }

@@ -22,6 +22,7 @@ import com.google.inject.Inject;
 import com.google.inject.Injector;
 import com.google.inject.persist.jpa.JpaPersistModule;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
+import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
 import org.apache.ambari.server.orm.OrmTestHelper;
 import org.apache.ambari.server.orm.dao.UserDAO;
 import org.apache.ambari.server.orm.entities.UserEntity;
@@ -49,7 +50,7 @@ public class AmbariLocalUserDetailsServiceTest {
 
   @BeforeClass
   public static void prepareData() {
-    injector = Guice.createInjector(new AuthorizationTestModule(), new JpaPersistModule("ambari-javadb"));
+    injector = Guice.createInjector(new AuthorizationTestModule());
     injector.getInstance(GuiceJpaInitializer.class);
     injector.getInstance(OrmTestHelper.class).createTestUsers();
   }

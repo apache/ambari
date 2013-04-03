@@ -21,13 +21,101 @@ package org.apache.ambari.server.orm.entities;
 import javax.persistence.*;
 import java.util.Collection;
 
-@javax.persistence.Table(name = "hosts", schema = "ambari", catalog = "")
+import static org.apache.commons.lang.StringUtils.defaultString;
+
+@javax.persistence.Table(name = "hosts")
 @Entity
 public class HostEntity {
+
+  @Id
+  @Column(name = "host_name", nullable = false, insertable = true, updatable = true)
   private String hostName;
 
-  @javax.persistence.Column(name = "host_name", nullable = false, insertable = true, updatable = true)
-  @Id
+  @Column(name = "ipv4", nullable = true, insertable = true, updatable = true)
+  @Basic
+  private String ipv4;
+
+  @Column(name = "ipv6", nullable = true, insertable = true, updatable = true)
+  @Basic
+  private String ipv6;
+
+  @Column(name="public_host_name", nullable = true, insertable = true, updatable = true)
+  @Basic
+  private String publicHostName;
+
+  @Column(name = "total_mem", nullable = false, insertable = true, updatable = true)
+  @Basic
+  private Long totalMem = 0L;
+
+  @Column(name = "cpu_count", nullable = false, insertable = true, updatable = true)
+  @Basic
+  private Integer cpuCount = 0;
+
+  @Column(name = "ph_cpu_count", nullable = false, insertable = true, updatable = true)
+  @Basic
+  private Integer phCpuCount = 0;
+
+  @Column(name = "cpu_info", insertable = true, updatable = true)
+  @Basic
+  private String cpuInfo = "";
+
+  @Column(name = "os_arch", insertable = true, updatable = true)
+  @Basic
+  private String osArch = "";
+
+  @Lob
+  @Column(name = "disks_info", nullable = false, insertable = true,
+      updatable = true, length = 10000)
+  @Basic
+  private String disksInfo = "";
+
+  @Column(name = "os_info", insertable = true, updatable = true,
+      length = 1000)
+  @Basic
+  private String osInfo = "";
+
+  @Column(name = "os_type", insertable = true, updatable = true)
+  @Basic
+  private String osType = "";
+
+  @Column(name = "discovery_status", insertable = true, updatable = true,
+      length = 2000)
+  @Basic
+  private String discoveryStatus = "";
+
+  @Column(name = "last_registration_time", nullable = false, insertable = true, updatable = true)
+  @Basic
+  private Long lastRegistrationTime = 0L;
+
+  @Column(name = "rack_info", nullable = false, insertable = true, updatable = true)
+  @Basic
+  private String rackInfo = "/default-rack";
+
+  @Column(name = "host_attributes", insertable = true, updatable = true,
+      length = 20000)
+  @Basic
+  @Lob
+  private String hostAttributes = "";
+
+  @OneToMany(mappedBy = "hostEntity")
+  private Collection<HostComponentDesiredStateEntity> hostComponentDesiredStateEntities;
+
+  @OneToMany(mappedBy = "hostEntity")
+  private Collection<HostComponentStateEntity> hostComponentStateEntities;
+
+  @ManyToMany
+  @JoinTable(name = "ClusterHostMapping",
+      joinColumns = {@JoinColumn(name = "host_name", referencedColumnName = "host_name")},
+      inverseJoinColumns = {@JoinColumn(name = "cluster_id", referencedColumnName = "cluster_id")}
+  )
+  private Collection<ClusterEntity> clusterEntities;
+
+  @OneToOne(mappedBy = "hostEntity")
+  private HostStateEntity hostStateEntity;
+
+  @OneToMany(mappedBy = "host")
+  private Collection<HostRoleCommandEntity> hostRoleCommandEntities;
+
   public String getHostName() {
     return hostName;
   }
@@ -36,10 +124,6 @@ public class HostEntity {
     this.hostName = hostName;
   }
 
-  private String ipv4;
-
-  @javax.persistence.Column(name = "ipv4", nullable = true, insertable = true, updatable = true)
-  @Basic
   public String getIpv4() {
     return ipv4;
   }
@@ -48,10 +132,6 @@ public class HostEntity {
     this.ipv4 = ipv4;
   }
 
-  private String ipv6;
-
-  @javax.persistence.Column(name = "ipv6", nullable = true, insertable = true, updatable = true)
-  @Basic
   public String getIpv6() {
     return ipv6;
   }
@@ -59,22 +139,15 @@ public class HostEntity {
   public void setIpv6(String ipv6) {
     this.ipv6 = ipv6;
   }
-  
-  private String publicHostName;
-  @Column(name="public_host_name", nullable = true, insertable = true, updatable = true)
-  @Basic
+
   public String getPublicHostName() {
     return publicHostName;
   }
-  
+
   public void setPublicHostName(String name) {
     publicHostName = name;
   }
 
-  private Long totalMem = 0L;
-
-  @javax.persistence.Column(name = "total_mem", nullable = false, insertable = true, updatable = true, length = 10)
-  @Basic
   public Long getTotalMem() {
     return totalMem;
   }
@@ -83,10 +156,6 @@ public class HostEntity {
     this.totalMem = totalMem;
   }
 
-  private Integer cpuCount = 0;
-
-  @javax.persistence.Column(name = "cpu_count", nullable = false, insertable = true, updatable = true, length = 10)
-  @Basic
   public Integer getCpuCount() {
     return cpuCount;
   }
@@ -94,11 +163,7 @@ public class HostEntity {
   public void setCpuCount(Integer cpuCount) {
     this.cpuCount = cpuCount;
   }
-
-  private Integer phCpuCount = 0;
-
-  @javax.persistence.Column(name = "ph_cpu_count", nullable = false, insertable = true, updatable = true, length = 10)
-  @Basic
+  
   public Integer getPhCpuCount() {
     return phCpuCount;
   }
@@ -107,87 +172,54 @@ public class HostEntity {
     this.phCpuCount = phCpuCount;
   }
   
-  
-  
-  private String cpuInfo = "";
-
-  @javax.persistence.Column(name = "cpu_info", nullable = false, insertable = true, updatable = true)
-  @Basic
   public String getCpuInfo() {
-    return cpuInfo;
+    return defaultString(cpuInfo);
   }
 
   public void setCpuInfo(String cpuInfo) {
     this.cpuInfo = cpuInfo;
   }
 
-  private String osArch = "";
-
-  @javax.persistence.Column(name = "os_arch", nullable = false, insertable = true, updatable = true)
-  @Basic
   public String getOsArch() {
-    return osArch;
+    return defaultString(osArch);
   }
 
   public void setOsArch(String osArch) {
     this.osArch = osArch;
   }
 
-  private String disksInfo = "";
-
-  @javax.persistence.Column(name = "disks_info", nullable = false, insertable = true,
-		  updatable = true, length = 2000)
-  @Basic
   public String getDisksInfo() {
-    return disksInfo;
+    return defaultString(disksInfo);
   }
 
   public void setDisksInfo(String disksInfo) {
     this.disksInfo = disksInfo;
   }
 
-  private String osInfo = "";
-
-  @javax.persistence.Column(name = "os_info", nullable = false, insertable = true, updatable = true,
-      length = 1000)
-  @Basic
   public String getOsInfo() {
-    return osInfo;
+    return defaultString(osInfo);
   }
 
   public void setOsInfo(String osInfo) {
     this.osInfo = osInfo;
   }
 
-  private String osType = "";
-
-  @javax.persistence.Column(name = "os_type", nullable = false, insertable = true, updatable = true)
-  @Basic
   public String getOsType() {
-    return osType;
+    return defaultString(osType);
   }
 
   public void setOsType(String osType) {
     this.osType = osType;
   }
 
-  private String discoveryStatus = "";
-
-  @javax.persistence.Column(name = "discovery_status", nullable = false, insertable = true, updatable = true,
-      length = 2000)
-  @Basic
   public String getDiscoveryStatus() {
-    return discoveryStatus;
+    return defaultString(discoveryStatus);
   }
 
   public void setDiscoveryStatus(String discoveryStatus) {
     this.discoveryStatus = discoveryStatus;
   }
 
-  private Long lastRegistrationTime = 0L;
-
-  @javax.persistence.Column(name = "last_registration_time", nullable = false, insertable = true, updatable = true, length = 10)
-  @Basic
   public Long getLastRegistrationTime() {
     return lastRegistrationTime;
   }
@@ -196,10 +228,6 @@ public class HostEntity {
     this.lastRegistrationTime = lastRegistrationTime;
   }
 
-  private String rackInfo = "/default-rack";
-
-  @javax.persistence.Column(name = "rack_info", nullable = false, insertable = true, updatable = true)
-  @Basic
   public String getRackInfo() {
     return rackInfo;
   }
@@ -208,13 +236,8 @@ public class HostEntity {
     this.rackInfo = rackInfo;
   }
 
-  private String hostAttributes = "";
-
-  @javax.persistence.Column(name = "host_attributes", nullable = false, insertable = true, updatable = true,
-      length = 20000)
-  @Basic
   public String getHostAttributes() {
-    return hostAttributes;
+    return defaultString(hostAttributes);
   }
 
   public void setHostAttributes(String hostAttributes) {
@@ -265,9 +288,6 @@ public class HostEntity {
     return result;
   }
 
-  private Collection<HostComponentDesiredStateEntity> hostComponentDesiredStateEntities;
-
-  @OneToMany(mappedBy = "hostEntity")
   public Collection<HostComponentDesiredStateEntity> getHostComponentDesiredStateEntities() {
     return hostComponentDesiredStateEntities;
   }
@@ -276,9 +296,6 @@ public class HostEntity {
     this.hostComponentDesiredStateEntities = hostComponentDesiredStateEntities;
   }
 
-  private Collection<HostComponentStateEntity> hostComponentStateEntities;
-
-  @OneToMany(mappedBy = "hostEntity")
   public Collection<HostComponentStateEntity> getHostComponentStateEntities() {
     return hostComponentStateEntities;
   }
@@ -287,15 +304,6 @@ public class HostEntity {
     this.hostComponentStateEntities = hostComponentStateEntities;
   }
 
-  private Collection<ClusterEntity> clusterEntities;
-
-  @ManyToMany
-//  @JoinColumn(name = "cluster_id", referencedColumnName = "cluster_id")
-  @JoinTable(name = "ClusterHostMapping", catalog = "", schema = "ambari",
-          joinColumns = {@JoinColumn(name = "host_name", referencedColumnName = "host_name")},
-          inverseJoinColumns = {@JoinColumn(name = "cluster_id", referencedColumnName = "cluster_id")}
-
-  )
   public Collection<ClusterEntity> getClusterEntities() {
     return clusterEntities;
   }
@@ -304,9 +312,6 @@ public class HostEntity {
     this.clusterEntities = clusterEntities;
   }
 
-  private HostStateEntity hostStateEntity;
-
-  @OneToOne(mappedBy = "hostEntity")
   public HostStateEntity getHostStateEntity() {
     return hostStateEntity;
   }
@@ -315,9 +320,6 @@ public class HostEntity {
     this.hostStateEntity = hostStateEntity;
   }
 
-  private Collection<HostRoleCommandEntity> hostRoleCommandEntities;
-
-  @OneToMany(mappedBy = "host")
   public Collection<HostRoleCommandEntity> getHostRoleCommandEntities() {
     return hostRoleCommandEntities;
   }
@@ -326,25 +328,4 @@ public class HostEntity {
     this.hostRoleCommandEntities = hostRoleCommandEntities;
   }
 
-  //  private Collection<ServiceComponentStateEntity> serviceComponentStateEntities;
-//
-//  @OneToMany(mappedBy = "hostEntity")
-//  public Collection<ServiceComponentStateEntity> getServiceComponentStateEntities() {
-//    return serviceComponentStateEntities;
-//  }
-//
-//  public void setServiceComponentStateEntities(Collection<ServiceComponentStateEntity> serviceComponentStateEntities) {
-//    this.serviceComponentStateEntities = serviceComponentStateEntities;
-//  }
-
-//  private Collection<ServiceStateEntity> serviceStateEntities;
-//
-//  @OneToMany(mappedBy = "hostEntity")
-//  public Collection<ServiceStateEntity> getServiceStateEntities() {
-//    return serviceStateEntities;
-//  }
-//
-//  public void setServiceStateEntities(Collection<ServiceStateEntity> serviceStateEntities) {
-//    this.serviceStateEntities = serviceStateEntities;
-//  }
 }

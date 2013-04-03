@@ -907,9 +907,10 @@ class TestAmbariServer(TestCase):
   @patch.object(ambari_server, "check_postgre_up")
   @patch.object(ambari_server, "check_iptables")
   @patch.object(ambari_server, "check_selinux")
-  def test_setup(self, check_selinux_mock, check_iptables_mock,
+  @patch.object(ambari_server, "setup_remote_db")
+  def test_setup(self, setup_remote_db_mock, check_selinux_mock, check_iptables_mock,
                  check_postgre_up_mock, setup_db_mock, configure_postgres_mock,
-                 download_jdk_mock, configure_os_settings_mock):
+                 download_jdk_mock, configure_os_settings_mock, ):
 
     out = StringIO.StringIO()
     sys.stdout = out
@@ -920,6 +921,7 @@ class TestAmbariServer(TestCase):
     check_iptables_mock.return_value = (0, "other")
     check_postgre_up_mock.return_value = 0
     setup_db_mock.return_value = 0
+    setup_remote_db_mock.return_value = 0
     configure_postgres_mock.return_value = 0
     download_jdk_mock.return_value = 0
     configure_os_settings_mock.return_value = 0

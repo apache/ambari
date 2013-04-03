@@ -33,10 +33,12 @@ import java.util.TreeMap;
 import javax.xml.bind.JAXBException;
 
 import com.google.gson.Gson;
+import com.google.inject.Injector;
 import org.apache.ambari.server.Role;
 import org.apache.ambari.server.RoleCommand;
 import org.apache.ambari.server.actionmanager.Stage;
 import org.apache.ambari.server.agent.ExecutionCommand;
+import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.HostsMap;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.ServiceComponent;
@@ -179,7 +181,7 @@ public class StageUtils {
   }
 
 
-  public static Map<String, List<String>> getClusterHostInfo(Cluster cluster, HostsMap hostsMap) {
+  public static Map<String, List<String>> getClusterHostInfo(Cluster cluster, HostsMap hostsMap, Injector injector) {
     Map<String, List<String>> info = new HashMap<String, List<String>>();
     if (cluster.getServices() != null) {
       for (String serviceName : cluster.getServices().keySet()) {
@@ -202,8 +204,14 @@ public class StageUtils {
               }
               info.put(clusterInfoKey, hostList);
             }
-            //Add ambari db server
-            info.put("ambari_db_server_host", Arrays.asList(hostsMap.getHostMap(getHostName())));
+            //Set up ambari-rca connection properties, is this a hack?
+//            info.put("ambari_db_server_host", Arrays.asList(hostsMap.getHostMap(getHostName())));
+            Configuration configuration = injector.getInstance(Configuration.class);
+            info.put("ambari_db_rca_url", Arrays.asList(configuration.getRcaDatabaseUrl()));
+            info.put("ambari_db_rca_driver", Arrays.asList(configuration.getRcaDatabaseDriver()));
+            info.put("ambari_db_rca_username", Arrays.asList(configuration.getRcaDatabaseUser()));
+            info.put("ambari_db_rca_password", Arrays.asList(configuration.getRcaDatabasePassword()));
+
           }
         }
       }

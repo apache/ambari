@@ -37,6 +37,7 @@ import getpass
 # debug settings
 VERBOSE = False
 SILENT = False
+REMOTE_DATABASE = False
 SERVER_START_DEBUG = False
 
 # action commands
@@ -117,6 +118,20 @@ PG_DEFAULT_PASSWORD = "bigdata"
 JDBC_USER_NAME_PROPERTY = "server.jdbc.user.name"
 JDBC_PASSWORD_FILE_PROPERTY = "server.jdbc.user.passwd"
 JDBC_PASSWORD_FILENAME = "password.dat"
+JDBC_RCA_PASSWORD_FILENAME = "rca_password.dat"
+
+PERSISTENCE_TYPE_PROPERTY = "server.persistence.type"
+JDBC_DRIVER_PROPERTY = "server.jdbc.driver"
+JDBC_URL_PROPERTY = "server.jdbc.url"
+
+JDBC_RCA_DRIVER_PROPERTY = "server.jdbc.rca.driver"
+JDBC_RCA_URL_PROPERTY = "server.jdbc.rca.url"
+JDBC_RCA_USER_NAME_PROPERTY = "server.jdbc.rca.user.name"
+JDBC_RCA_PASSWORD_FILE_PROPERTY = "server.jdbc.rca.user.passwd"
+
+DRIVER_NAMES = ["org.postgresql.Driver", "oracle.jdbc.driver.OracleDriver", "com.mysql.jdbc.Driver"]
+CONNECTION_STRINGS = ["jdbc:postgresql://{0}:{1}/{2}", "jdbc:oracle:thin:@{0}:{1}/{2}", "jdbc:mysql://{0}:{1}/{2}"]
+
 
 # jdk commands
 JDK_LOCAL_FILENAME = "jdk-6u31-linux-x64.bin"
@@ -255,6 +270,95 @@ def setup_db(args):
     print errdata
   return retcode
 
+def setup_remote_db(args):
+  print "WARNING! To use MySQL/Oracle database place JDBC driver to "+ get_ambari_jars()
+  print "Table structure in remote database should be created manually in this mode."
+  (driver_name, conn_url, username, password) = get_connection_properties()
+
+  write_property(PERSISTENCE_TYPE_PROPERTY, "remote")
+  write_property(JDBC_DRIVER_PROPERTY, driver_name)
+  write_property(JDBC_URL_PROPERTY, conn_url)
+  write_property(JDBC_USER_NAME_PROPERTY, username)
+  write_property(JDBC_PASSWORD_FILE_PROPERTY, store_password_file(password, JDBC_PASSWORD_FILENAME))
+
+  ok = get_YN_input("Enter separate configuration for RCA database [y/n] (n)? ", False)
+  if ok:
+    (driver_name, conn_url, username, password) = get_connection_properties()
+
+  write_property(JDBC_RCA_DRIVER_PROPERTY, driver_name)
+  write_property(JDBC_RCA_URL_PROPERTY, conn_url)
+  write_property(JDBC_RCA_USER_NAME_PROPERTY, username)
+  write_property(JDBC_RCA_PASSWORD_FILE_PROPERTY, store_password_file(password, JDBC_RCA_PASSWORD_FILENAME))
+
+  return 0
+
+def store_password_file(password, filename):
+  conf_file = search_file(AMBARI_PROPERTIES_FILE, get_conf_dir())
+  passFilePath = os.path.join(os.path.dirname(conf_file),
+    filename)
+
+  with open(passFilePath, 'w+') as passFile:
+    passFile.write(password)
+    pass
+  os.chmod(passFilePath, stat.S_IREAD | stat.S_IWRITE)
+
+  return passFilePath
+
+def get_connection_properties():
+  default_db_num="1"
+  default_host = "localhost"
+  default_schema = "ambari"
+
+  database_num = get_validated_string_input("Select database:\n1 - Postgres\n2 - Oracle\n3 - MySQL) \n["+str(default_db_num)+"]:",
+    default_db_num,
+    "^[123]$",
+    "Invalid number.",
+    False
+  )
+
+  db_host = get_validated_string_input("Hostname ["+default_host+"]:",
+    default_host,
+    "^[a-zA-Z0-9.\-]*$",
+    "Invalid hostname.",
+    False
+  )
+
+  default_port = None
+  if database_num == "1":
+    default_port = "5432"
+  elif database_num == "2":
+    default_port = "1521"
+  elif database_num == "3":
+    default_port = "3306"
+
+  db_port = get_validated_string_input("Port ["+ str(default_port) + "]:",
+    default_port,
+    "^[0-9]{1,5}$",
+    "Invalid port.",
+    False
+  )
+
+  if database_num == "2":
+    default_schema = "xe"
+
+  db_schema = get_validated_string_input("Database/schema/service name ["+ str(default_schema) + "]:",
+    default_schema,
+    "^[a-zA-z\-\"]+$",
+    "Invalid schema name.",
+    False
+  )
+
+  usernameDefault = 'ambari'
+  usernamePrompt = 'Username [' + usernameDefault + ']: '
+  usernamePattern = "^[a-zA-Z_][a-zA-Z0-9_\-]*$"
+  usernameDescr = "Invalid characters in username. Start with _ or alpha "\
+                  "followed by alphanumeric or _ or - characters"
+
+  username = get_validated_string_input(usernamePrompt, usernameDefault,
+    usernamePattern, usernameDescr, False)
+  password = configure_postgres_password()
+
+  return DRIVER_NAMES[int(database_num)-1], CONNECTION_STRINGS[int(database_num)-1].format(db_host, db_port, db_schema), username, password
 
 def execute_db_script(args, file):
   #password access to ambari-server and mapred
@@ -747,23 +851,32 @@ def setup(args):
     print_error_msg ('Failed to stop iptables. Exiting.')
     sys.exit(retcode)
 
-  print 'Checking PostgreSQL...'
-  retcode = check_postgre_up()
-  if not retcode == 0:
-    print_error_msg ('Unable to start PostgreSQL server. Exiting')
-    sys.exit(retcode)
+  if not REMOTE_DATABASE:
 
-  print 'Configuring database...'
-  retcode = setup_db(args)
-  if not retcode == 0:
-    print_error_msg  ('Running database init script was failed. Exiting.')
-    sys.exit(retcode)
-    
-  print 'Configuring PostgreSQL...'
-  retcode = configure_postgres()
-  if not retcode == 0:
-    print_error_msg ('Unable to configure PostgreSQL server. Exiting')
-    sys.exit(retcode)
+    print 'Checking PostgreSQL...'
+    retcode = check_postgre_up()
+    if not retcode == 0:
+      print_error_msg ('Unable to start PostgreSQL server. Exiting')
+      sys.exit(retcode)
+
+    print 'Configuring database...'
+    retcode = setup_db(args)
+    if not retcode == 0:
+      print_error_msg  ('Running database init script was failed. Exiting.')
+      sys.exit(retcode)
+
+    print 'Configuring PostgreSQL...'
+    retcode = configure_postgres()
+    if not retcode == 0:
+      print_error_msg ('Unable to configure PostgreSQL server. Exiting')
+      sys.exit(retcode)
+
+  else:
+    print 'Configuring remote database connection properties'
+    retcode = setup_remote_db(args)
+    if not retcode == 0:
+      print_error_msg ('Error while configuring connection properties. Exiting')
+      sys.exit(retcode)
   
   print 'Checking JDK...'
   retcode = download_jdk(args)
@@ -1135,6 +1248,10 @@ def main():
                   action="store_true", dest="silent", default=False,
                   help="Silently accepts default prompt values")
 
+  parser.add_option("-b", "--remote-database",
+      action="store_true", dest="remote_database", default=False,
+      help="Set up remote database instead of local")
+
   (options, args) = parser.parse_args()
 
   # set verbose
@@ -1144,6 +1261,12 @@ def main():
   # set silent
   global SILENT
   SILENT = options.silent
+
+  # skip local db setup
+  global REMOTE_DATABASE
+  REMOTE_DATABASE = options.remote_database
+
+
 
 
   

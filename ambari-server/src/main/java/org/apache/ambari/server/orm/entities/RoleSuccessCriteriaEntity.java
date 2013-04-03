@@ -23,13 +23,31 @@ import org.apache.ambari.server.Role;
 import javax.persistence.*;
 
 @IdClass(org.apache.ambari.server.orm.entities.RoleSuccessCriteriaEntityPK.class)
-@Table(name = "role_success_criteria", schema = "ambari", catalog = "")
+@Table(name = "role_success_criteria")
 @Entity
 public class RoleSuccessCriteriaEntity {
+
+  @Id
+  @Column(name = "request_id", insertable = false, updatable = false, nullable = false)
   private Long requestId;
 
-  @Column(name = "request_id", insertable = false, updatable = false, nullable = false)
   @Id
+  @Column(name = "stage_id", insertable = false, updatable = false, nullable = false)
+  private Long stageId;
+
+  @Id
+  @Column(name = "role")
+  @Enumerated(EnumType.STRING)
+  private Role role;
+
+  @Basic
+  @Column(name = "success_factor", nullable = false)
+  private Double successFactor = 1d;
+
+  @ManyToOne
+  @JoinColumns({@JoinColumn(name = "request_id", referencedColumnName = "request_id", nullable = false), @JoinColumn(name = "stage_id", referencedColumnName = "stage_id", nullable = false)})
+  private StageEntity stage;
+
   public Long getRequestId() {
     return requestId;
   }
@@ -38,10 +56,6 @@ public class RoleSuccessCriteriaEntity {
     this.requestId = requestId;
   }
 
-  private Long stageId;
-
-  @Column(name = "stage_id", insertable = false, updatable = false, nullable = false)
-  @Id
   public Long getStageId() {
     return stageId;
   }
@@ -50,11 +64,6 @@ public class RoleSuccessCriteriaEntity {
     this.stageId = stageId;
   }
 
-  private Role role;
-
-  @Column(name = "role")
-  @Enumerated(EnumType.STRING)
-  @Id
   public Role getRole() {
     return role;
   }
@@ -63,10 +72,6 @@ public class RoleSuccessCriteriaEntity {
     this.role = role;
   }
 
-  private Double successFactor = 1d;
-
-  @Column(name = "success_factor", nullable = false)
-  @Basic
   public Double getSuccessFactor() {
     return successFactor;
   }
@@ -99,10 +104,6 @@ public class RoleSuccessCriteriaEntity {
     return result;
   }
 
-  private StageEntity stage;
-
-  @ManyToOne
-  @JoinColumns({@JoinColumn(name = "request_id", referencedColumnName = "request_id", nullable = false), @JoinColumn(name = "stage_id", referencedColumnName = "stage_id", nullable = false)})
   public StageEntity getStage() {
     return stage;
   }

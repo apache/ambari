@@ -544,6 +544,9 @@ Trunk (unreleased changes):
 
  BUG FIXES
 
+ AMBARI-1781. Ambari Server should work with MySQL and Oracle where the 
+ Ambari Server data might be stored. (smohanty)
+
  AMBARI-1775. Security wizard - Javascript error is thrown when zooKeeper
  is included as a secure service. (jaimin)
 

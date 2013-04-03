@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -26,86 +26,90 @@ import javax.persistence.Table;
 /**
  * Entity that represents a host config mapping and override.
  */
-@Table(name = "hostconfigmapping", schema = "ambari", catalog = "")
+@Table(name = "hostconfigmapping")
 @Entity
 @IdClass(HostConfigMappingEntityPK.class)
 public class HostConfigMappingEntity {
-  private Long clusterId;
-  private String hostName;
-  private String typeName;
-  private String versionTag;
-  private String serviceName;
-  private Long createTimestamp;
-  private int selectedInd = 0;
-  
-  @Column(name = "cluster_id", insertable = true, updatable = false, nullable = false)
+
   @Id
+  @Column(name = "cluster_id", insertable = true, updatable = false, nullable = false)
+  private Long clusterId;
+
+  @Id
+  @Column(name = "host_name", insertable = true, updatable = false, nullable = false)
+  private String hostName;
+
+  @Id
+  @Column(name = "type_name", insertable = true, updatable = false, nullable = false)
+  private String type;
+
+  @Id
+  @Column(name = "create_timestamp", insertable = true, updatable = false, nullable = false)
+  private Long createTimestamp;
+
+  @Column(name = "version_tag", insertable = true, updatable = false, nullable = false)
+  private String versionTag;
+
+  @Column(name = "service_name", insertable = true, updatable = true)
+  private String serviceName;
+
+  @Column(name = "selected", insertable = true, updatable = true, nullable = false)
+  private int selected = 0;
+
   public Long getClusterId() {
     return clusterId;
   }
-  
+
   public void setClusterId(Long id) {
     clusterId = id;
   }
-  
-  @Column(name = "host_name", insertable = true, updatable = false, nullable = false)
-  @Id
+
   public String getHostName() {
     return hostName;
   }
-  
+
   public void setHostName(String name) {
     hostName = name;
   }
-  
-  @Column(name = "type_name", insertable = true, updatable = false, nullable = false)
-  @Id
+
   public String getType() {
-    return typeName;
+    return type;
   }
-  
+
   public void setType(String type) {
-    typeName = type;
+    this.type = type;
   }
-  
-  @Column(name = "create_timestamp", insertable = true, updatable = false, nullable = false)
-  @Id
+
   public Long getCreateTimestamp() {
     return createTimestamp;
   }
-  
+
   public void setCreateTimestamp(Long timestamp) {
     createTimestamp = timestamp;
   }
-  
-  
-  @Column(name = "version_tag", insertable = true, updatable = false, nullable = false)
+
   public String getVersion() {
     return versionTag;
   }
-  
+
   public void setVersion(String version) {
     versionTag = version;
   }
- 
 
-  @Column(name = "selected", insertable = true, updatable = true, nullable = false)
   public int isSelected() {
-    return selectedInd;
+    return selected;
   }
 
   public void setSelected(int selected) {
-    selectedInd = selected;
-  }  
-  
-  
-  @Column(name = "service_name", insertable = true, updatable = true)
+    this.selected = selected;
+  }
+
   public String getServiceName() {
     return serviceName;
   }
-  
+
   public void setServiceName(String name) {
     serviceName = name;
   }
-  
+
 }

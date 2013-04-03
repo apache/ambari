@@ -176,5 +176,10 @@ class hdp-hadoop::params(
   } else {
     $rca_prefix = "###"
   }
-  $ambari_db_server_host = hdp_default("ambari_db_server_host", "localhost")
+  # $ambari_db_server_host = hdp_default("ambari_db_server_host", "localhost")
+  $ambari_db_rca_url = hdp_default("ambari_db_rca_url", "jdbc:postgresql://localhost/ambarirca")
+  $ambari_db_rca_driver = hdp_default("ambari_db_rca_driver", "org.postgresql.Driver")
+  $ambari_db_rca_username = hdp_default("ambari_db_rca_username", "mapred")
+  $ambari_db_rca_password = hdp_default("ambari_db_rca_password", "mapred")
+
 }

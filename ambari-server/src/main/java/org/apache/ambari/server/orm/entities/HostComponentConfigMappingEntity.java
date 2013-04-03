@@ -27,21 +27,53 @@ import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 
 @IdClass(HostComponentConfigMappingEntityPK.class)
-@Table(name = "hostcomponentconfigmapping", schema = "ambari", catalog = "")
+@Table(name = "hostcomponentconfigmapping")
 @Entity
 public class HostComponentConfigMappingEntity {
+
+  @Id
+  @Column(name = "cluster_id", insertable = false, updatable = false, nullable = false)
   private Long clusterId;
+
+  @Id
+  @Column(name = "service_name", insertable = false, updatable = false, nullable = false)
   private String serviceName;
+
+  @Id
+  @Column(name = "component_name", insertable = false, updatable = false, nullable = false)
   private String componentName;
+
+  @Id
+  @Column(name = "host_name", insertable = false, updatable = false, nullable = false)
   private String hostName;
+
+  @Id
+  @Column(name = "config_type", insertable = true, updatable = false, nullable = false)
   private String configType;
+
+  @Column(name = "config_tag", nullable = false, insertable = true, updatable = true)
   private String configTag;
+
+  @Column(name="timestamp", nullable = false, insertable = true, updatable = true)
   private Long timestamp;
+
+  @ManyToOne
+  @JoinColumns({
+      @JoinColumn(name = "cluster_id", referencedColumnName = "cluster_id", nullable = false),
+      @JoinColumn(name = "service_name", referencedColumnName = "service_name", nullable = false),
+      @JoinColumn(name = "component_name", referencedColumnName = "component_name", nullable = false),
+      @JoinColumn(name = "host_name", referencedColumnName = "host_name", nullable = false) })
   private HostComponentStateEntity hostComponentStateEntity;
+
+  @ManyToOne
+  @JoinColumns({
+      @JoinColumn(name = "cluster_id", referencedColumnName = "cluster_id", nullable = false, insertable = false, updatable = false),
+      @JoinColumn(name = "config_type", referencedColumnName = "type_name", nullable = false, insertable = false, updatable = false),
+      @JoinColumn(name = "config_tag", referencedColumnName = "version_tag", nullable = false, insertable = false, updatable = false)
+  })
   private ClusterConfigEntity clusterConfigEntity;
 
-  @Column(name = "cluster_id", insertable = false, updatable = false, nullable = false)
-  @Id
+
   public Long getClusterId() {
     return clusterId;
   }
@@ -50,8 +82,6 @@ public class HostComponentConfigMappingEntity {
     clusterId = id;
   }
 
-  @Column(name = "service_name", insertable = false, updatable = false, nullable = false)
-  @Id
   public String getServiceName() {
     return serviceName;
   }
@@ -60,8 +90,6 @@ public class HostComponentConfigMappingEntity {
     serviceName = name;
   }
 
-  @Column(name = "component_name", insertable = false, updatable = false, nullable = false)
-  @Id
   public String getComponentName() {
     return componentName;
   }
@@ -70,8 +98,6 @@ public class HostComponentConfigMappingEntity {
     componentName = name;
   }
 
-  @Column(name = "host_name", insertable = false, updatable = false, nullable = false)
-  @Id
   public String getHostName() {
     return hostName;
   }
@@ -80,8 +106,6 @@ public class HostComponentConfigMappingEntity {
     hostName = name;
   }
 
-  @Column(name = "config_type", insertable = true, updatable = false, nullable = false)
-  @Id
   public String getConfigType() {
     return configType;
   }
@@ -90,7 +114,6 @@ public class HostComponentConfigMappingEntity {
     configType = type;
   }
 
-  @Column(name = "config_tag", nullable = false, insertable = true, updatable = true)
   public String getVersionTag() {
     return configTag;
   }
@@ -99,7 +122,6 @@ public class HostComponentConfigMappingEntity {
     configTag = tag;
   }
 
-  @Column(name="timestamp", nullable = false, insertable = true, updatable = true)
   public Long getTimestamp() {
     return timestamp;
   }
@@ -108,12 +130,6 @@ public class HostComponentConfigMappingEntity {
     timestamp = stamp;
   }
 
-  @ManyToOne
-  @JoinColumns({
-    @JoinColumn(name = "cluster_id", referencedColumnName = "cluster_id", nullable = false),
-    @JoinColumn(name = "service_name", referencedColumnName = "service_name", nullable = false),
-    @JoinColumn(name = "component_name", referencedColumnName = "component_name", nullable = false),
-    @JoinColumn(name = "host_name", referencedColumnName = "host_name", nullable = false) })
   public HostComponentStateEntity getHostComponentStateEntity() {
     return hostComponentStateEntity;
   }
@@ -122,12 +138,6 @@ public class HostComponentConfigMappingEntity {
     hostComponentStateEntity = entity;
   }
 
-  @ManyToOne
-  @JoinColumns({
-      @JoinColumn(name = "cluster_id", referencedColumnName = "cluster_id", nullable = false, insertable = false, updatable = false),
-      @JoinColumn(name = "config_type", referencedColumnName = "type_name", nullable = false, insertable = false, updatable = false),
-      @JoinColumn(name = "config_tag", referencedColumnName = "version_tag", nullable = false, insertable = false, updatable = false)
-  })
   public ClusterConfigEntity getClusterConfigEntity() {
     return clusterConfigEntity;
   }

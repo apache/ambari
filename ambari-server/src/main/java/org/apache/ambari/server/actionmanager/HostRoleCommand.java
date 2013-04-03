@@ -72,8 +72,8 @@ public class HostRoleCommand {
     this.hostName = hostRoleCommandEntity.getHostName();
     role = hostRoleCommandEntity.getRole();
     status = hostRoleCommandEntity.getStatus();
-    stdout = new String(hostRoleCommandEntity.getStdOut());
-    stderr = new String(hostRoleCommandEntity.getStdError());
+    stdout = hostRoleCommandEntity.getStdOut() != null ? new String(hostRoleCommandEntity.getStdOut()) : "";
+    stderr = hostRoleCommandEntity.getStdError() != null ? new String(hostRoleCommandEntity.getStdError()) : "";
     exitCode = hostRoleCommandEntity.getExitcode();
     startTime = hostRoleCommandEntity.getStartTime();
     lastAttemptTime = hostRoleCommandEntity.getLastAttemptTime();

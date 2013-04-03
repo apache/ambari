@@ -18,17 +18,48 @@
 
 package org.apache.ambari.server.orm.entities;
 
+import org.apache.commons.lang.StringUtils;
+
 import javax.persistence.*;
 import java.util.Collection;
 
+import static org.apache.commons.lang.StringUtils.defaultString;
+
 @IdClass(org.apache.ambari.server.orm.entities.StageEntityPK.class)
-@Table(name = "stage", schema = "ambari", catalog = "")
+@Table(name = "stage")
 @Entity
 public class StageEntity {
-  private Long clusterId;
 
   @Column(name = "cluster_id", insertable = false, updatable = false, nullable = false)
   @Basic
+  private Long clusterId;
+
+  @Column(name = "request_id")
+  @Id
+  private Long requestId;
+
+  @Column(name = "stage_id", nullable = false)
+  @Id
+  private Long stageId = 0L;
+
+  @Column(name = "log_info")
+  @Basic
+  private String logInfo = "";
+
+  @Column(name = "request_context")
+  @Basic
+  private String requestContext = "";
+
+  @ManyToOne(cascade = {CascadeType.MERGE})
+  @JoinColumn(name = "cluster_id", referencedColumnName = "cluster_id")
+  private ClusterEntity cluster;
+
+  @OneToMany(mappedBy = "stage", cascade = CascadeType.REMOVE)
+  private Collection<HostRoleCommandEntity> hostRoleCommands;
+
+  @OneToMany(mappedBy = "stage", cascade = CascadeType.REMOVE)
+  private Collection<RoleSuccessCriteriaEntity> roleSuccessCriterias;
+
   public Long getClusterId() {
     return clusterId;
   }
@@ -37,10 +68,6 @@ public class StageEntity {
     this.clusterId = clusterId;
   }
 
-  private Long requestId;
-
-  @Column(name = "request_id")
-  @Id
   public Long getRequestId() {
     return requestId;
   }
@@ -49,10 +76,6 @@ public class StageEntity {
     this.requestId = requestId;
   }
 
-  private Long stageId = 0L;
-
-  @Column(name = "stage_id", nullable = false)
-  @Id
   public Long getStageId() {
     return stageId;
   }
@@ -61,24 +84,16 @@ public class StageEntity {
     this.stageId = stageId;
   }
 
-  private String logInfo = "";
-
-  @Column(name = "log_info", nullable = false)
-  @Basic
   public String getLogInfo() {
-    return logInfo;
+    return defaultString(logInfo);
   }
 
   public void setLogInfo(String logInfo) {
     this.logInfo = logInfo;
   }
 
-  private String requestContext = "";
-
-  @Column(name = "request_context", nullable = true)
-  @Basic
   public String getRequestContext() {
-    return requestContext;
+    return defaultString(requestContext);
   }
 
   public void setRequestContext(String requestContext) {
@@ -112,10 +127,6 @@ public class StageEntity {
     return result;
   }
 
-  private ClusterEntity cluster;
-
-  @ManyToOne(cascade = {CascadeType.MERGE})
-  @JoinColumn(name = "cluster_id", referencedColumnName = "cluster_id")
   public ClusterEntity getCluster() {
     return cluster;
   }
@@ -124,9 +135,6 @@ public class StageEntity {
     this.cluster = cluster;
   }
 
-  private Collection<HostRoleCommandEntity> hostRoleCommands;
-
-  @OneToMany(mappedBy = "stage", cascade = CascadeType.REMOVE)
   public Collection<HostRoleCommandEntity> getHostRoleCommands() {
     return hostRoleCommands;
   }
@@ -135,9 +143,6 @@ public class StageEntity {
     this.hostRoleCommands = hostRoleCommands;
   }
 
-  private Collection<RoleSuccessCriteriaEntity> roleSuccessCriterias;
-
-  @OneToMany(mappedBy = "stage", cascade = CascadeType.REMOVE)
   public Collection<RoleSuccessCriteriaEntity> getRoleSuccessCriterias() {
     return roleSuccessCriterias;
   }

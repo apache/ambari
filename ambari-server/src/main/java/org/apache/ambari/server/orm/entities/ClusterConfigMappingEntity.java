@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -29,19 +29,32 @@ import javax.persistence.Table;
  * Entity that maps to a cluster config mapping.
  */
 @IdClass(ClusterConfigMappingEntityPK.class)
-@Table(name = "clusterconfigmapping", schema = "ambari", catalog = "")
+@Table(name = "clusterconfigmapping")
 @Entity
 public class ClusterConfigMappingEntity {
 
+  @Id
+  @Column(name = "cluster_id", insertable = false, updatable = false, nullable = false)
   private Long clusterId;
+
+  @Id
+  @Column(name = "type_name", insertable = true, updatable = false, nullable = false)
   private String typeName;
-  private String versionTag;
-  private int selectedInd = 0;
+
+  @Id
+  @Column(name = "create_timestamp", insertable = true, updatable = false, nullable = false)
   private Long createTimestamp;
+
+  @Column(name = "version_tag", insertable = true, updatable = false, nullable = false)
+  private String versionTag;
+
+  @Column(name = "selected", insertable = true, updatable = true, nullable = false)
+  private int selectedInd = 0;
+
+  @ManyToOne
+  @JoinColumn(name = "cluster_id", referencedColumnName = "cluster_id", nullable = false)
   private ClusterEntity clusterEntity;
   
-  @Column(name = "cluster_id", insertable = false, updatable = false, nullable = false)
-  @Id
   public Long getClusterId() {
     return clusterId;
   }
@@ -50,8 +63,6 @@ public class ClusterConfigMappingEntity {
     clusterId = id;
   }
   
-  @Column(name = "type_name", insertable = true, updatable = false, nullable = false)
-  @Id
   public String getType() {
     return typeName;
   }
@@ -59,8 +70,6 @@ public class ClusterConfigMappingEntity {
     typeName = type;
   }
 
-  @Column(name = "create_timestamp", insertable = true, updatable = false, nullable = false)
-  @Id
   public Long getCreateTimestamp() {
     return createTimestamp;
   }
@@ -69,7 +78,6 @@ public class ClusterConfigMappingEntity {
     createTimestamp = timestamp;
   }  
   
-  @Column(name = "version_tag", insertable = true, updatable = false, nullable = false)
   public String getVersion() {
     return versionTag;
   }
@@ -78,8 +86,6 @@ public class ClusterConfigMappingEntity {
     versionTag = version;
   }
  
-
-  @Column(name = "selected", insertable = true, updatable = true, nullable = false)
   public int isSelected() {
     return selectedInd;
   }
@@ -88,8 +94,6 @@ public class ClusterConfigMappingEntity {
     selectedInd = selected;
   }
   
-  @ManyToOne
-  @JoinColumn(name = "cluster_id", referencedColumnName = "cluster_id", nullable = false)
   public ClusterEntity getClusterEntity() {
     return clusterEntity;
   }

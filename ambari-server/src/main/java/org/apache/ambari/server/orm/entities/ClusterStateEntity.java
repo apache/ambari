@@ -18,21 +18,30 @@
 
 package org.apache.ambari.server.orm.entities;
 
-import javax.persistence.Basic;
-import javax.persistence.Entity;
-import javax.persistence.Id;
-import javax.persistence.OneToOne;
+import javax.persistence.*;
 
-@javax.persistence.Table(name = "clusterstate", schema = "ambari", catalog = "")
+import static org.apache.commons.lang.StringUtils.defaultString;
+
+@javax.persistence.Table(name = "clusterstate")
 @Entity
 public class ClusterStateEntity {
+
+  @Id
+  @Column(name = "cluster_id", nullable = false, insertable = false, updatable = false, length = 10)
   private Long clusterId;
-  private String currentClusterState = "";
-  private String currentStackVersion = "";
+
+  @Basic
+  @Column(name = "current_cluster_state", insertable = true, updatable = true)
+  private String currentClusterState;
+
+  @Basic
+  @Column(name = "current_stack_version", insertable = true, updatable = true)
+  private String currentStackVersion;
+
+  @OneToOne
+  @JoinColumn(name = "cluster_id", referencedColumnName = "cluster_id", nullable = false)
   private ClusterEntity clusterEntity;
 
-  @javax.persistence.Column(name = "cluster_id", nullable = false, insertable = false, updatable = false, length = 10)
-  @Id
   public Long getClusterId() {
     return clusterId;
   }
@@ -41,20 +50,16 @@ public class ClusterStateEntity {
     this.clusterId = clusterId;
   }
 
-  @javax.persistence.Column(name = "current_cluster_state", nullable = false, insertable = true, updatable = true)
-  @Basic
   public String getCurrentClusterState() {
-    return currentClusterState;
+    return defaultString(currentClusterState);
   }
 
   public void setCurrentClusterState(String currentClusterState) {
     this.currentClusterState = currentClusterState;
   }
 
-  @javax.persistence.Column(name = "current_stack_version", nullable = false, insertable = true, updatable = true)
-  @Basic
   public String getCurrentStackVersion() {
-    return currentStackVersion;
+    return defaultString(currentStackVersion);
   }
 
   public void setCurrentStackVersion(String currentStackVersion) {
@@ -84,8 +89,6 @@ public class ClusterStateEntity {
     return result;
   }
 
-  @OneToOne
-  @javax.persistence.JoinColumn(name = "cluster_id", referencedColumnName = "cluster_id", nullable = false)
   public ClusterEntity getClusterEntity() {
     return clusterEntity;
   }

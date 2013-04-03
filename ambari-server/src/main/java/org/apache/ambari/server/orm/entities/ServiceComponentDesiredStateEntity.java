@@ -19,18 +19,51 @@
 package org.apache.ambari.server.orm.entities;
 
 import org.apache.ambari.server.state.State;
+import org.apache.commons.lang.StringUtils;
 
 import javax.persistence.*;
 import java.util.Collection;
 
+import static org.apache.commons.lang.StringUtils.defaultString;
+
 @javax.persistence.IdClass(ServiceComponentDesiredStateEntityPK.class)
-@javax.persistence.Table(name = "servicecomponentdesiredstate", schema = "ambari", catalog = "")
+@javax.persistence.Table(name = "servicecomponentdesiredstate")
 @Entity
 public class ServiceComponentDesiredStateEntity {
+
+  @Column(name = "cluster_id", nullable = false, insertable = false, updatable = false, length = 10)
+  @Id
   private Long clusterId;
 
-  @javax.persistence.Column(name = "cluster_id", nullable = false, insertable = false, updatable = false, length = 10)
+  @Column(name = "service_name", nullable = false, insertable = false, updatable = false)
   @Id
+  private String serviceName;
+
+  @Column(name = "component_name", nullable = false, insertable = true, updatable = true)
+  @Id
+  private String componentName;
+
+  @Column(name = "desired_state", nullable = false, insertable = true, updatable = true)
+  @Enumerated(EnumType.STRING)
+  private State desiredState = State.INIT;
+
+  @Column(name = "desired_stack_version", insertable = true, updatable = true)
+  @Basic
+  private String desiredStackVersion = "";
+
+  @ManyToOne
+  @JoinColumns({@javax.persistence.JoinColumn(name = "cluster_id", referencedColumnName = "cluster_id", nullable = false), @JoinColumn(name = "service_name", referencedColumnName = "service_name", nullable = false)})
+  private ClusterServiceEntity clusterServiceEntity;
+
+  @OneToMany(mappedBy = "serviceComponentDesiredStateEntity")
+  private Collection<HostComponentStateEntity> hostComponentStateEntities;
+
+  @OneToMany(mappedBy = "serviceComponentDesiredStateEntity")
+  private Collection<HostComponentDesiredStateEntity> hostComponentDesiredStateEntities;
+
+  @OneToMany(mappedBy = "serviceComponentDesiredStateEntity", cascade = CascadeType.ALL)
+  private Collection<ComponentConfigMappingEntity> configMappingEntities;
+
   public Long getClusterId() {
     return clusterId;
   }
@@ -39,10 +72,6 @@ public class ServiceComponentDesiredStateEntity {
     this.clusterId = clusterId;
   }
 
-  private String serviceName;
-
-  @javax.persistence.Column(name = "service_name", nullable = false, insertable = false, updatable = false)
-  @Id
   public String getServiceName() {
     return serviceName;
   }
@@ -51,10 +80,6 @@ public class ServiceComponentDesiredStateEntity {
     this.serviceName = serviceName;
   }
 
-  private String componentName;
-
-  @javax.persistence.Column(name = "component_name", nullable = false, insertable = true, updatable = true)
-  @Id
   public String getComponentName() {
     return componentName;
   }
@@ -63,10 +88,6 @@ public class ServiceComponentDesiredStateEntity {
     this.componentName = componentName;
   }
 
-  private State desiredState = State.INIT;
-
-  @javax.persistence.Column(name = "desired_state", nullable = false, insertable = true, updatable = true)
-  @Enumerated(EnumType.STRING)
   public State getDesiredState() {
     return desiredState;
   }
@@ -75,12 +96,8 @@ public class ServiceComponentDesiredStateEntity {
     this.desiredState = desiredState;
   }
 
-  private String desiredStackVersion = "";
-
-  @javax.persistence.Column(name = "desired_stack_version", nullable = false, insertable = true, updatable = true)
-  @Basic
   public String getDesiredStackVersion() {
-    return desiredStackVersion;
+    return defaultString(desiredStackVersion);
   }
 
   public void setDesiredStackVersion(String desiredStackVersion) {
@@ -114,10 +131,6 @@ public class ServiceComponentDesiredStateEntity {
     return result;
   }
 
-  private ClusterServiceEntity clusterServiceEntity;
-
-  @ManyToOne
-  @javax.persistence.JoinColumns({@javax.persistence.JoinColumn(name = "cluster_id", referencedColumnName = "cluster_id", nullable = false), @javax.persistence.JoinColumn(name = "service_name", referencedColumnName = "service_name", nullable = false)})
   public ClusterServiceEntity getClusterServiceEntity() {
     return clusterServiceEntity;
   }
@@ -126,9 +139,6 @@ public class ServiceComponentDesiredStateEntity {
     this.clusterServiceEntity = clusterServiceEntity;
   }
 
-  private Collection<HostComponentStateEntity> hostComponentStateEntities;
-
-  @OneToMany(mappedBy = "serviceComponentDesiredStateEntity")
   public Collection<HostComponentStateEntity> getHostComponentStateEntities() {
     return hostComponentStateEntities;
   }
@@ -137,9 +147,6 @@ public class ServiceComponentDesiredStateEntity {
     this.hostComponentStateEntities = hostComponentStateEntities;
   }
 
-  private Collection<HostComponentDesiredStateEntity> hostComponentDesiredStateEntities;
-
-  @OneToMany(mappedBy = "serviceComponentDesiredStateEntity")
   public Collection<HostComponentDesiredStateEntity> getHostComponentDesiredStateEntities() {
     return hostComponentDesiredStateEntities;
   }
@@ -148,8 +155,6 @@ public class ServiceComponentDesiredStateEntity {
     this.hostComponentDesiredStateEntities = hostComponentDesiredStateEntities;
   }
 
-  private Collection<ComponentConfigMappingEntity> configMappingEntities;
-  @OneToMany(mappedBy = "serviceComponentDesiredStateEntity", cascade = CascadeType.ALL)
   public Collection<ComponentConfigMappingEntity> getComponentConfigMappingEntities() {
     return configMappingEntities;
   }

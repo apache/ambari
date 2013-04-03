@@ -57,7 +57,7 @@ public class PostgresConnector implements DBConnector {
   
   private static final ObjectMapper jsonMapper = new ObjectMapper();
   
-  private Connection db;
+  protected Connection db;
   
   public static enum Statements {
     SJ_INSERT_JOB_PS(""),
@@ -104,11 +104,10 @@ public class PostgresConnector implements DBConnector {
   
   private Map<Statements,PreparedStatement> preparedStatements = new EnumMap<Statements,PreparedStatement>(Statements.class);
   
-  public PostgresConnector(String hostname, String dbname, String username, String password) throws IOException {
-    String url = "jdbc:postgresql://" + hostname + "/" + dbname;
+  public PostgresConnector(String connectionURL, String driverName, String username, String password) throws IOException {
     try {
-      Class.forName("org.postgresql.Driver");
-      db = DriverManager.getConnection(url, username, password);
+      Class.forName(driverName);
+      db = DriverManager.getConnection(connectionURL, username, password);
     } catch (ClassNotFoundException e) {
       db = null;
       throw new IOException(e);
@@ -494,7 +493,7 @@ public class PostgresConnector implements DBConnector {
     }
   }
   
-  private PreparedStatement getQualifiedPS(Statements statement, String searchClause, WorkflowFields field, boolean sortAscending, int offset, int limit)
+  protected PreparedStatement getQualifiedPS(Statements statement, String searchClause, WorkflowFields field, boolean sortAscending, int offset, int limit)
       throws IOException {
     if (db == null)
       throw new IOException("postgres db not initialized");
