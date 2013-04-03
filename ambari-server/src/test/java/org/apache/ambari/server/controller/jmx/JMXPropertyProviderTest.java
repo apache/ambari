@@ -143,6 +143,14 @@ public class JMXPropertyProviderTest {
     properties.add(PropertyHelper.getPropertyId("metrics/mapred/shuffleOutput", "shuffle_failed_outputs"));
     properties.add(PropertyHelper.getPropertyId("metrics/mapred/shuffleOutput", "shuffle_output_bytes"));
     properties.add(PropertyHelper.getPropertyId("metrics/mapred/shuffleOutput", "shuffle_success_outputs"));
+    properties.add(PropertyHelper.getPropertyId("metrics/mapred/tasktracker", "maps_running"));
+    properties.add(PropertyHelper.getPropertyId("metrics/mapred/tasktracker", "reduces_running"));
+    properties.add(PropertyHelper.getPropertyId("metrics/mapred/tasktracker", "mapTaskSlots"));
+    properties.add(PropertyHelper.getPropertyId("metrics/mapred/tasktracker", "reduceTaskSlots"));
+    properties.add(PropertyHelper.getPropertyId("metrics/mapred/tasktracker", "failedDirs"));
+    properties.add(PropertyHelper.getPropertyId("metrics/mapred/tasktracker", "tasks_completed"));
+    properties.add(PropertyHelper.getPropertyId("metrics/mapred/tasktracker", "tasks_failed_timeout"));
+    properties.add(PropertyHelper.getPropertyId("metrics/mapred/tasktracker", "tasks_failed_ping"));
 
     request = PropertyHelper.getReadRequest(properties);
 
@@ -150,7 +158,7 @@ public class JMXPropertyProviderTest {
 
     Assert.assertEquals(propertyProvider.getSpec("domu-12-31-39-14-ee-b3.compute-1.internal", "50060"), streamProvider.getLastSpec());
 
-    Assert.assertEquals(10, PropertyHelper.getProperties(resource).size());
+    Assert.assertEquals(18, PropertyHelper.getProperties(resource).size());
     Assert.assertEquals(954466304, resource.getPropertyValue(PropertyHelper.getPropertyId("metrics/jvm", "HeapMemoryMax")));
     Assert.assertEquals(18330984, resource.getPropertyValue(PropertyHelper.getPropertyId("metrics/jvm", "HeapMemoryUsed")));
     Assert.assertEquals(136314880, resource.getPropertyValue(PropertyHelper.getPropertyId("metrics/jvm", "NonHeapMemoryMax")));
@@ -159,6 +167,15 @@ public class JMXPropertyProviderTest {
     Assert.assertEquals(0, resource.getPropertyValue(PropertyHelper.getPropertyId("metrics/mapred/shuffleOutput", "shuffle_failed_outputs")));
     Assert.assertEquals(1841, resource.getPropertyValue(PropertyHelper.getPropertyId("metrics/mapred/shuffleOutput", "shuffle_output_bytes")));
     Assert.assertEquals(1, resource.getPropertyValue(PropertyHelper.getPropertyId("metrics/mapred/shuffleOutput", "shuffle_success_outputs")));
+    Assert.assertEquals(1, resource.getPropertyValue(PropertyHelper.getPropertyId("metrics/mapred/tasktracker", "maps_running")));
+    Assert.assertEquals(1, resource.getPropertyValue(PropertyHelper.getPropertyId("metrics/mapred/tasktracker", "reduces_running")));
+    Assert.assertEquals(4, resource.getPropertyValue(PropertyHelper.getPropertyId("metrics/mapred/tasktracker", "mapTaskSlots")));
+    Assert.assertEquals(2, resource.getPropertyValue(PropertyHelper.getPropertyId("metrics/mapred/tasktracker", "reduceTaskSlots")));
+    Assert.assertEquals(1, resource.getPropertyValue(PropertyHelper.getPropertyId("metrics/mapred/tasktracker", "failedDirs")));
+    Assert.assertEquals(4, resource.getPropertyValue(PropertyHelper.getPropertyId("metrics/mapred/tasktracker", "tasks_completed")));
+    Assert.assertEquals(1, resource.getPropertyValue(PropertyHelper.getPropertyId("metrics/mapred/tasktracker", "tasks_failed_timeout")));
+    Assert.assertEquals(1, resource.getPropertyValue(PropertyHelper.getPropertyId("metrics/mapred/tasktracker", "tasks_failed_ping")));
+
 
     Assert.assertNull(resource.getPropertyValue(PropertyHelper.getPropertyId("metrics/jvm", "gcCount")));
 
