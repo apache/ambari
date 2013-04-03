@@ -544,6 +544,9 @@ Trunk (unreleased changes):
 
  BUG FIXES
 
+ AMBARI-1774. Ambari does not push the config updates to the client/gateway 
+ node. (swagle)
+
  AMBARI-1780. POSTing new cluster returns 500 exception. (smohanty)
 
  AMBARI-1781. Ambari Server should work with MySQL and Oracle where the 

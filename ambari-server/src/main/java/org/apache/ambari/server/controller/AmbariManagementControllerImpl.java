@@ -1748,6 +1748,162 @@ public class AmbariManagementControllerImpl implements
     return null;
   }
 
+  private Set<String> getServicesForSmokeTests(Cluster cluster,
+             Map<State, List<Service>> changedServices,
+             Map<String, Map<State, List<ServiceComponentHost>>> changedScHosts,
+             boolean runSmokeTest) throws AmbariException {
+
+    Set<String> smokeTestServices = new HashSet<String>();
+
+    if (changedServices != null) {
+      for (Entry<State, List<Service>> entry : changedServices.entrySet()) {
+        if (State.STARTED != entry.getKey()) {
+          continue;
+        }
+        for (Service s : entry.getValue()) {
+          if (runSmokeTest && (State.INSTALLED == s.getDesiredState())) {
+            smokeTestServices.add(s.getName());
+          }
+        }
+      }
+    }
+
+    Map<String, Map<String, Integer>> changedComponentCount =
+      new HashMap<String, Map<String, Integer>>();
+    for (Map<State, List<ServiceComponentHost>> stateScHostMap :
+      changedScHosts.values()) {
+      for (Entry<State, List<ServiceComponentHost>> entry :
+        stateScHostMap.entrySet()) {
+        if (State.STARTED != entry.getKey()) {
+          continue;
+        }
+        for (ServiceComponentHost sch : entry.getValue()) {
+          if (State.START_FAILED != sch.getState()
+            && State.INSTALLED != sch.getState()) {
+            continue;
+          }
+          if (!changedComponentCount.containsKey(sch.getServiceName())) {
+            changedComponentCount.put(sch.getServiceName(),
+              new HashMap<String, Integer>());
+          }
+          if (!changedComponentCount.get(sch.getServiceName())
+            .containsKey(sch.getServiceComponentName())) {
+            changedComponentCount.get(sch.getServiceName())
+              .put(sch.getServiceComponentName(), 1);
+          } else {
+            Integer i = changedComponentCount.get(sch.getServiceName())
+              .get(sch.getServiceComponentName());
+            changedComponentCount.get(sch.getServiceName())
+              .put(sch.getServiceComponentName(), ++i);
+          }
+        }
+      }
+    }
+
+    for (Entry<String, Map<String, Integer>> entry :
+      changedComponentCount.entrySet()) {
+      String serviceName = entry.getKey();
+      // smoke test service if more than one component is started
+      if (runSmokeTest && (entry.getValue().size() > 1)) {
+        smokeTestServices.add(serviceName);
+        continue;
+      }
+      for (String componentName :
+        changedComponentCount.get(serviceName).keySet()) {
+        ServiceComponent sc = cluster.getService(serviceName)
+          .getServiceComponent(componentName);
+        StackId stackId = sc.getDesiredStackVersion();
+        ComponentInfo compInfo = ambariMetaInfo.getComponentCategory(
+          stackId.getStackName(), stackId.getStackVersion(), serviceName,
+          componentName);
+        if (runSmokeTest && compInfo.isMaster()) {
+          smokeTestServices.add(serviceName);
+        }
+
+        // FIXME if master check if we need to run a smoke test for the master
+      }
+    }
+    return smokeTestServices;
+  }
+
+  private void addClientSchForReinstall(Cluster cluster,
+            Map<State, List<Service>> changedServices,
+            Map<String, Map<State, List<ServiceComponentHost>>> changedScHosts)
+            throws AmbariException {
+
+    Set<String> services = new HashSet<String>();
+
+    if (changedServices != null) {
+      for (Entry<State, List<Service>> entry : changedServices.entrySet()) {
+        if (State.STARTED != entry.getKey()) {
+          continue;
+        }
+        for (Service s : entry.getValue()) {
+          if (State.INSTALLED == s.getDesiredState()) {
+            services.add(s.getName());
+          }
+        }
+      }
+    }
+
+    if (services == null || services.isEmpty())
+      return;
+
+    // Flatten changed Schs that are going to be Started
+    List<ServiceComponentHost> existingSchs = new
+      ArrayList<ServiceComponentHost>();
+    if (changedScHosts != null && !changedScHosts.isEmpty()) {
+      for (String sc : changedScHosts.keySet()) {
+        for (State s : changedScHosts.get(sc).keySet())
+          if (s == State.STARTED)
+            existingSchs.addAll(changedScHosts.get(sc).get(s));
+      }
+    }
+
+    Map<String, List<ServiceComponentHost>> clientSchs = new
+      HashMap<String, List<ServiceComponentHost>>();
+
+    for (String serviceName : services) {
+      Service s = cluster.getService(serviceName);
+      for (String component : s.getServiceComponents().keySet()) {
+        List<ServiceComponentHost> potentialHosts = null;
+        ServiceComponent sc = s.getServiceComponents().get(component);
+        if (sc.isClientComponent()) {
+          potentialHosts = new ArrayList<ServiceComponentHost>();
+          // Check if the Client components are in the list of changed hosts
+          if (existingSchs != null && !existingSchs.isEmpty()) {
+            for (ServiceComponentHost potentialSch : sc
+              .getServiceComponentHosts().values()) {
+              boolean addSch = true;
+              // Ignore the Sch if same service has changed on the same host
+              for (ServiceComponentHost existingSch : existingSchs) {
+                if (potentialSch.getHostName().equals(existingSch
+                  .getHostName()) && potentialSch.getServiceName().equals
+                  (existingSch.getServiceName())) {
+                  addSch = false;
+                }
+              }
+              if (addSch)
+                potentialHosts.add(potentialSch);
+            }
+          }
+        }
+        if (potentialHosts != null && !potentialHosts.isEmpty()) {
+          clientSchs.put(sc.getName(), potentialHosts);
+        }
+      }
+    }
+    LOG.info("Client hosts for reinstall : " + clientSchs.size
+      ());
+
+    for (String sc : clientSchs.keySet()) {
+      Map<State, List<ServiceComponentHost>> schMap = new
+        HashMap<State, List<ServiceComponentHost>>();
+      schMap.put(State.INSTALLED, clientSchs.get(sc));
+      changedScHosts.put(sc, schMap);
+    }
+  }
+
   private List<Stage> doStageCreation(Cluster cluster,
       Map<State, List<Service>> changedServices,
       Map<State, List<ServiceComponent>> changedComps,
@@ -1770,80 +1926,14 @@ public class AmbariManagementControllerImpl implements
     }
 
     Long requestId = null;
-    List<Stage> stages = null;
-
-    Set<String> smokeTestServices =
-        new HashSet<String>();
 
     // smoke test any service that goes from installed to started
-    if (changedServices != null) {
-      for (Entry<State, List<Service>> entry : changedServices.entrySet()) {
-        if (State.STARTED != entry.getKey()) {
-          continue;
-        }
-        for (Service s : entry.getValue()) {
-          if (runSmokeTest && (State.INSTALLED == s.getDesiredState())) {
-            smokeTestServices.add(s.getName());
-          }
-        }
-      }
-    }
+    Set<String> smokeTestServices = getServicesForSmokeTests(cluster,
+      changedServices, changedScHosts, runSmokeTest);
 
-    Map<String, Map<String, Integer>> changedComponentCount =
-        new HashMap<String, Map<String, Integer>>();
-    for (Map<State, List<ServiceComponentHost>> stateScHostMap :
-      changedScHosts.values()) {
-      for (Entry<State, List<ServiceComponentHost>> entry :
-          stateScHostMap.entrySet()) {
-        if (State.STARTED != entry.getKey()) {
-          continue;
-        }
-        for (ServiceComponentHost sch : entry.getValue()) {
-          if (State.START_FAILED != sch.getState()
-              && State.INSTALLED != sch.getState()) {
-            continue;
-          }
-          if (!changedComponentCount.containsKey(sch.getServiceName())) {
-            changedComponentCount.put(sch.getServiceName(),
-                new HashMap<String, Integer>());
-          }
-          if (!changedComponentCount.get(sch.getServiceName())
-              .containsKey(sch.getServiceComponentName())) {
-            changedComponentCount.get(sch.getServiceName())
-                .put(sch.getServiceComponentName(), 1);
-          } else {
-            Integer i = changedComponentCount.get(sch.getServiceName())
-                .get(sch.getServiceComponentName());
-            changedComponentCount.get(sch.getServiceName())
-              .put(sch.getServiceComponentName(), ++i);
-          }
-        }
-      }
-    }
-
-    for (Entry<String, Map<String, Integer>> entry :
-        changedComponentCount.entrySet()) {
-      String serviceName = entry.getKey();
-      // smoke test service if more than one component is started
-      if (runSmokeTest && (entry.getValue().size() > 1)) {
-        smokeTestServices.add(serviceName);
-        continue;
-      }
-      for (String componentName :
-        changedComponentCount.get(serviceName).keySet()) {
-        ServiceComponent sc = cluster.getService(serviceName)
-            .getServiceComponent(componentName);
-        StackId stackId = sc.getDesiredStackVersion();
-        ComponentInfo compInfo = ambariMetaInfo.getComponentCategory(
-            stackId.getStackName(), stackId.getStackVersion(), serviceName,
-            componentName);
-        if (runSmokeTest && compInfo.isMaster()) {
-          smokeTestServices.add(serviceName);
-        }
-
-        // FIXME if master check if we need to run a smoke test for the master
-      }
-    }
+    // Re-install client only hosts to reattach changed configs on service
+    // restart
+    addClientSchForReinstall(cluster, changedServices, changedScHosts);
 
     if (!changedScHosts.isEmpty()
         || !smokeTestServices.isEmpty()) {
@@ -2530,8 +2620,8 @@ public class AmbariManagementControllerImpl implements
     Cluster cluster = clusters.getCluster(clusterNames.iterator().next());
 
     List<Stage> stages = doStageCreation(cluster, changedServices, changedComps,
-        changedScHosts, null, requestProperties.get(REQUEST_CONTEXT_PROPERTY),
-        runSmokeTest);
+      changedScHosts, null, requestProperties.get(REQUEST_CONTEXT_PROPERTY),
+      runSmokeTest);
     persistStages(stages);
     updateServiceStates(changedServices, changedComps, changedScHosts);
     if (stages == null || stages.isEmpty()) {
