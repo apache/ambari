@@ -34,7 +34,6 @@
     <final.name>${project.artifactId}-${project.version}</final.name>
     <package.release>1</package.release>
     <package.prefix>/usr</package.prefix>
-    <package.conf.dir>/etc/ambari-agent/conf</package.conf.dir>
     <package.log.dir>/var/log/ambari-agent</package.log.dir>
     <package.pid.dir>/var/run/ambari-agent</package.pid.dir>
     <skipTests>false</skipTests>
@@ -43,6 +42,7 @@
     <install.dir>/usr/lib/python2.6/site-packages/ambari_agent</install.dir>
     <ruby.tar>http://public-repo-1.hortonworks.com/HDP-UTILS-1.1.0.15/repos/centos6/ruby-1.8.7-p370.tar.gz</ruby.tar>
     <lib.dir>/usr/lib/ambari-agent/lib</lib.dir>
+    <python.ver>python &gt;= 2.6</python.ver>
   </properties>
   <profiles>
     <profile>
@@ -132,6 +132,7 @@
         <version>2.0.1</version>
         <executions>
           <execution>
+            <!-- unbinds rpm creation from maven lifecycle -->
             <phase>none</phase>
             <goals>
               <goal>rpm</goal>
@@ -147,7 +148,7 @@
             <require>zlib</require>
             <require>${python.ver}</require>
           </requires>
-           <postinstallScriptlet>
+          <postinstallScriptlet>
             <scriptFile>src/main/package/rpm/postinstall.sh</scriptFile>
             <fileEncoding>utf-8</fileEncoding>
           </postinstallScriptlet>
@@ -156,7 +157,8 @@
             <fileEncoding>utf-8</fileEncoding>
           </preinstallScriptlet>
           <preremoveScriptlet>
-            <script>mv /etc/ambari-agent/conf /etc/ambari-agent/conf.save</script>
+            <scriptFile>src/main/package/rpm/preremove.sh</scriptFile>
+            <fileEncoding>utf-8</fileEncoding>
           </preremoveScriptlet>
 
           <needarch>x86_64</needarch>
@@ -215,8 +217,7 @@
               </sources>
             </mapping>
             <mapping>
-              <directory>${package.conf.dir}</directory>
-              <configuration>true</configuration>
+              <directory>/etc/ambari-agent/conf</directory>
               <filemode>755</filemode>
               <username>root</username>
               <groupname>root</groupname>

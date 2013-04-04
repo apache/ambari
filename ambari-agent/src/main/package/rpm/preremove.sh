@@ -13,12 +13,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License
 
-getent group puppet >/dev/null || groupadd -r puppet
-getent passwd puppet >/dev/null || /usr/sbin/useradd -g puppet puppet
+# WARNING: This script is performed not only on uninstall, but also
+# during package update. See http://www.ibm.com/developerworks/library/l-rpm2/
+# for details
 
-BAK=/etc/ambari-agent/conf/ambari-agent.ini.old
-ORIG=/etc/ambari-agent/conf/ambari-agent.ini
-
-[ -f $ORIG ] && mv -f $ORIG $BAK
+if [ "$1" -eq 0 ]; # Action is uninstall
+then
+    mv /etc/ambari-agent/conf /etc/ambari-agent/conf.save
+fi
 
 exit 0

@@ -14,3 +14,14 @@
 # limitations under the License
 
 chmod 755 /usr/lib/ambari-agent/lib/facter-1.6.10/bin/facter /usr/lib/ambari-agent/lib/puppet-2.7.9/bin/filebucket /usr/lib/ambari-agent/lib/puppet-2.7.9/bin/pi /usr/lib/ambari-agent/lib/puppet-2.7.9/bin/puppet /usr/lib/ambari-agent/lib/puppet-2.7.9/bin/puppetdoc /usr/lib/ambari-agent/lib/puppet-2.7.9/bin/ralsh /usr/lib/ambari-agent/lib/ruby-1.8.7-p370/bin/*
+
+BAK=/etc/ambari-agent/conf/ambari-agent.ini.old
+ORIG=/etc/ambari-agent/conf/ambari-agent.ini
+
+if [ -f $BAK ];
+then
+  SERV_HOST=`grep -e hostname\s*= $BAK | sed -r -e 's/hostname\s*=//' -e 's/\./\\\./g'`
+  sed -i -r -e "s/(hostname\s*=).*/\1$SERV_HOST/" $ORIG
+  rm $BAK -f
+fi
+exit 0

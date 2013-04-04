@@ -110,12 +110,6 @@
           </execution>
         </executions>
         <configuration>
-          <!-- places rpm to specified folder -->
-          <!--
-          <workarea>
-            rpm-target
-          </workarea>
-          -->
           <copyright>2012, Apache Software Foundation</copyright>
           <version>${project.version}</version>
           <group>Development</group>
@@ -125,9 +119,19 @@
             <require>openssl</require>
             <require>${python.ver}</require>
           </requires>
+          <postinstallScriptlet>
+            <scriptFile>src/main/package/rpm/postinstall.sh</scriptFile>
+            <fileEncoding>utf-8</fileEncoding>
+          </postinstallScriptlet>
+          <preinstallScriptlet>
+            <scriptFile>src/main/package/rpm/preinstall.sh</scriptFile>
+            <fileEncoding>utf-8</fileEncoding>
+          </preinstallScriptlet>
           <preremoveScriptlet>
-            <script>mv /etc/ambari-server/conf /etc/ambari-server/conf.save</script>
+            <scriptFile>src/main/package/rpm/preremove.sh</scriptFile>
+            <fileEncoding>utf-8</fileEncoding>
           </preremoveScriptlet>
+
           <mappings>
             <mapping>
               <directory>/usr/lib/ambari-server</directory>
@@ -293,13 +297,25 @@
               </sources>
             </mapping>
             <mapping>
-              <directory>/var/lib/ambari-server/resources/stacks</directory>
+              <directory>/var/lib/ambari-server/resources/stacks/HDP</directory>
               <filemode>755</filemode>
               <username>root</username>
               <groupname>root</groupname>
               <sources>
                 <source>
-                  <location>src/main/resources/stacks</location>
+                  <location>src/main/resources/stacks/HDP</location>
+                </source>
+              </sources>
+            </mapping>
+            <mapping>
+              <directory>/var/lib/ambari-server/resources/stacks/HDPLocal</directory>
+              <filemode>755</filemode>
+              <username>root</username>
+              <groupname>root</groupname>
+              <configuration>noreplace</configuration>
+              <sources>
+                <source>
+                  <location>src/main/resources/stacks/HDPLocal</location>
                 </source>
               </sources>
             </mapping>

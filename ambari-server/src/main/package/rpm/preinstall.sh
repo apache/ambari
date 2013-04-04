@@ -13,12 +13,4 @@
 # See the License for the specific language governing permissions and
 # limitations under the License
 
-getent group puppet >/dev/null || groupadd -r puppet
-getent passwd puppet >/dev/null || /usr/sbin/useradd -g puppet puppet
-
-BAK=/etc/ambari-agent/conf/ambari-agent.ini.old
-ORIG=/etc/ambari-agent/conf/ambari-agent.ini
-
-[ -f $ORIG ] && mv -f $ORIG $BAK
-
 exit 0
