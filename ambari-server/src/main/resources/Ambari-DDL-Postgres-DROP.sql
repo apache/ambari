@@ -66,6 +66,7 @@ DROP TABLE ambari.clusterconfig CASCADE;
 DROP TABLE ambari.clusterconfigmapping CASCADE;
 DROP TABLE ambari.user_roles CASCADE;
 DROP TABLE ambari.key_value_store CASCADE;
+DROP TABLE ambari.ambari_sequences CASCADE;
 DROP TABLE ambari.metainfo CASCADE;
 DROP SEQUENCE ambari.host_role_command_task_id_seq;
 DROP SEQUENCE ambari.clusters_cluster_id_seq;
