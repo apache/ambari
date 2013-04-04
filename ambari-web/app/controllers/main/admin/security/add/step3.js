@@ -60,6 +60,7 @@ App.MainAdminSecurityAddStep3Controller = Em.Controller.extend({
   enableSubmit: function () {
     if (this.get('stages').someProperty('isError', true) || this.get('stages').everyProperty('isSuccess', true)) {
       this.set('isSubmitDisabled', false);
+      App.router.get('addSecurityController').setStepsEnable();
     }
   }.observes('stages.@each.isCompleted'),
 

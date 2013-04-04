@@ -178,6 +178,9 @@ Trunk (unreleased changes):
 
  IMPROVEMENTS
 
+ AMBARI-1782. Security wizard navigation: Restrict user on step3 until
+ the decision of the step is reached. (jaimin)
+
  AMBARI-1652. Background operation display enhancements. (yusaku)
 
  AMBARI-1686. Implement Test IvoryService to functional test mirroring API.

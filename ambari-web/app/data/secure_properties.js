@@ -75,7 +75,7 @@ module.exports =
       "value": "",
       "defaultValue": "EXAMPLE.COM",
       "description": "Realm name to be used for all principal names",
-      "displayType": "principal",
+      "displayType": "advanced",
       "isVisible": true,
       "isOverrideable": false,
       "serviceName": "GENERAL",
@@ -456,7 +456,7 @@ module.exports =
     //ZooKeeper
     {
       "id": "puppet var",
-      "name": "zooKeeper_primary_name",
+      "name": "zookeeper_primary_name",
       "displayName": "Primary name",
       "value": "",
       "defaultValue": "zk",
@@ -469,7 +469,7 @@ module.exports =
     },
     {
       "id": "puppet var",
-      "name": "zooKeeper_keytab",
+      "name": "zookeeper_keytab_path",
       "displayName": "Path to keytab file",
       "value": "",
       "defaultValue": "/etc/security/keytabs/zk.service.keytab",

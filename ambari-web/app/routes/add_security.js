@@ -15,10 +15,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+var App = require('app');
 
 module.exports = Em.Route.extend({
   route: '/addSecurity',
-  App: require('app'),
   enter: function (router) {
     console.log('in /security/add:enter');
 
@@ -45,12 +45,14 @@ module.exports = Em.Route.extend({
             router.transitionTo('adminSecurity.index');
           },
           onClose: function () {
-            this.hide();
-            App.router.get('updateController').set('isWorking', true);
-            mainAdminSecurityController.setAddSecurityWizardStatus(null);
-            router.get('addSecurityController').setCurrentStep(1);
-            router.get('addSecurityController.content').saveCurrentStage(2);
-            router.transitionTo('adminSecurity.index');
+            if (router.get('addSecurityController.currentStep') != 3 || (router.get('addSecurityController.currentStep') == 3 && router.get('mainAdminSecurityAddStep3Controller.isSubmitDisabled') === false)) {
+              this.hide();
+              App.router.get('updateController').set('isWorking', true);
+              mainAdminSecurityController.setAddSecurityWizardStatus(null);
+              router.get('addSecurityController').setCurrentStep(1);
+              router.get('addSecurityController.content').saveCurrentStage(2);
+              router.transitionTo('adminSecurity.index');
+            }
           },
           didInsertElement: function () {
             this.fitHeight();
@@ -110,9 +112,13 @@ module.exports = Em.Route.extend({
       var controller = router.get('addSecurityController');
       controller.dataLoading().done(function () {
         controller.setCurrentStep('3');
+        controller.setLowerStepsDisable(3);
         controller.loadAllPriorSteps();
         controller.connectOutlet('mainAdminSecurityAddStep3', controller.get('content'));
       })
+    },
+    unroutePath: function () {
+      return false;
     },
     back: function (router, context) {
       var controller = router.get('mainAdminSecurityAddStep3Controller');
