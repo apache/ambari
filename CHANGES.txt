@@ -549,6 +549,9 @@ Trunk (unreleased changes):
 
  BUG FIXES
 
+ AMBARI-1784. MapReduce service damaging after hadoop installation with 
+ custom MapReduce user which contains symbol '-'. (smohanty)
+
  AMBARI-1774. Ambari does not push the config updates to the client/gateway 
  node. (swagle)
 

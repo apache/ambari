@@ -130,25 +130,27 @@ serviceStates = {
 }
 
 servicesToPidNames = {
-  'NAMENODE': 'hadoop-[A-Za-z0-9_]+-namenode.pid$',
-  'SECONDARY_NAMENODE': 'hadoop-[A-Za-z0-9_]+-secondarynamenode.pid$',
-  'DATANODE': 'hadoop-[A-Za-z0-9_]+-datanode.pid$',
-  'JOBTRACKER': 'hadoop-[A-Za-z0-9_]+-jobtracker.pid$',
-  'TASKTRACKER': 'hadoop-[A-Za-z0-9_]+-tasktracker.pid$',
+  'NAMENODE': 'hadoop-{USER}-namenode.pid$',
+  'SECONDARY_NAMENODE': 'hadoop-{USER}-secondarynamenode.pid$',
+  'DATANODE': 'hadoop-{USER}-datanode.pid$',
+  'JOBTRACKER': 'hadoop-{USER}-jobtracker.pid$',
+  'TASKTRACKER': 'hadoop-{USER}-tasktracker.pid$',
   'OOZIE_SERVER': 'oozie.pid',
   'ZOOKEEPER_SERVER': 'zookeeper_server.pid',
   'TEMPLETON_SERVER': 'templeton.pid',
   'NAGIOS_SERVER': 'nagios.pid',
   'GANGLIA_SERVER': 'gmetad.pid',
   'GANGLIA_MONITOR': 'gmond.pid',
-  'HBASE_MASTER': 'hbase-[A-Za-z0-9_]+-master.pid',
-  'HBASE_REGIONSERVER': 'hbase-[A-Za-z0-9_]+-regionserver.pid',
+  'HBASE_MASTER': 'hbase-{USER}-master.pid',
+  'HBASE_REGIONSERVER': 'hbase-{USER}-regionserver.pid',
   'HCATALOG_SERVER': 'webhcat.pid',
   'KERBEROS_SERVER': 'kadmind.pid',
   'HIVE_SERVER': 'hive-server.pid',
   'HIVE_METASTORE': 'hive.pid',
   'MYSQL_SERVER': 'mysqld.pid'
 }
+
+linuxUserPattern = '[A-Za-z0-9_-]*[$]?'
 
 pidPathesVars = [
   {'var' : 'hadoop_pid_dir_prefix',

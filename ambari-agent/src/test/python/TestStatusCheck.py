@@ -17,78 +17,83 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 '''
-import tempfile
-import shutil
+import string
+import random
 import os
 from unittest import TestCase
 from ambari_agent.StatusCheck import StatusCheck
-import subprocess
-import signal
-from shell import shellRunner
+import AmbariConfig
+import logging
+from mock.mock import patch, Mock
 
 
-MAPPING_FILE_NAME='map.dict'
+USERNAME_LENGTH=10
+USERNAME_CHARS=string.ascii_uppercase +string.ascii_lowercase + string.digits + '-_'
+
+PID_DIR='/pids_dir'
 
 COMPONENT_LIVE = 'LIVE_COMPONENT'
-COMPONENT_LIVE_PID = 'live_comp.pid'
-COMPONENT_LIVE_CMD='''
-while [ 1==1 ]
-do
-   echo ok
-done
-'''
+COMPONENT_LIVE_PID = 'live_{USER}_comp.pid'
 
 COMPONENT_DEAD = 'DEAD_COMPONENT'
-COMPONENT_DEAD_PID = 'dead_comp.pid'
-DEAD_PID=0
-
+COMPONENT_DEAD_PID = 'dead_{USER}_comp.pid'
 
 class TestStatusCheck(TestCase):
 
+  logger = logging.getLogger()
+
+  def generateUserName(self):
+    return ''.join(random.choice(USERNAME_CHARS) for x in range(USERNAME_LENGTH))
+
   def setUp(self):
 
-    self.tmpdir = tempfile.mkdtemp()
+    self.pidPathesVars = [
+      {'var' : '',
+      'defaultValue' : PID_DIR}
+    ]
+
     self.serviceToPidDict = {
       COMPONENT_LIVE : COMPONENT_LIVE_PID,
       COMPONENT_DEAD : COMPONENT_DEAD_PID
     }
 
-    self.pidPathesVars = [
-      {'var' : '',
-      'defaultValue' : self.tmpdir}
-    ]
+    live_user = self.generateUserName()
+    self.logger.info('Live user: ' + live_user)
+    self.live_pid_file_name = string.replace(COMPONENT_LIVE_PID, '{USER}', live_user)
+    self.live_pid_full_path = PID_DIR + os.sep + self.live_pid_file_name
 
-    self.sh = shellRunner()
+    dead_user = self.generateUserName()
+    self.logger.info('Dead user: ' + live_user)
+    self.dead_pid_file_name = string.replace(COMPONENT_DEAD_PID, '{USER}', dead_user)
+    self.dead_pid_full_path = PID_DIR + os.sep + self.dead_pid_file_name
+
+    self.pidFilesDict = {self.live_pid_file_name : self.live_pid_full_path,
+                         self.dead_pid_file_name : self.dead_pid_full_path}
+
+    self.is_live_values = {self.live_pid_full_path : True,
+                      self.dead_pid_full_path : False}
+
     
-    #Launch eternal process
-    p = subprocess.Popen([COMPONENT_LIVE_CMD], stdout=subprocess.PIPE, 
-                         stderr=subprocess.PIPE, shell=True, close_fds=True)
-
-
-    #Write pid of live process to file
-    live_pid_file = open(self.tmpdir + os.sep + COMPONENT_LIVE_PID, 'w')
-    self.live_pid = p.pid
-    live_pid_file.write(str(self.live_pid))
-    live_pid_file.close()
-
-    #Write pid of dead process to file
-    dead_pid_file = open(self.tmpdir + os.sep + COMPONENT_DEAD_PID, 'w')
-    dead_pid_file.write(str(DEAD_PID))
-    dead_pid_file.close()
-
-    #Init status checker
-    self.statusCheck = StatusCheck(self.serviceToPidDict,self.pidPathesVars,{})
-
   # Ensure that status checker return True for running process
-  def test_live(self):
-    status = self.statusCheck.getStatus(COMPONENT_LIVE)
+  @patch.object(StatusCheck, 'getIsLive')
+  def test_live(self, get_is_live_mock):
+
+    statusCheck = StatusCheck(self.serviceToPidDict, self.pidPathesVars,{},AmbariConfig.linuxUserPattern)
+
+    statusCheck.pidFilesDict = self.pidFilesDict
+    
+    get_is_live_mock.side_effect = lambda pid_path : self.is_live_values[pid_path]
+    
+    status = statusCheck.getStatus(COMPONENT_LIVE)
     self.assertEqual(status, True)
 
   # Ensure that status checker return False for dead process
-  def test_dead(self):
-    status = self.statusCheck.getStatus(COMPONENT_DEAD)
-    self.assertEqual(status, False)
+  @patch.object(StatusCheck, 'getIsLive')
+  def test_dead(self, get_is_live_mock):
+    statusCheck = StatusCheck(self.serviceToPidDict, self.pidPathesVars,{},AmbariConfig.linuxUserPattern)
 
-  def tearDown(self):
-    os.kill(self.live_pid, signal.SIGKILL)
-    shutil.rmtree(self.tmpdir)
+    statusCheck.pidFilesDict = self.pidFilesDict
+    
+    get_is_live_mock.side_effect = lambda pid_path : self.is_live_values[pid_path]
+    status = statusCheck.getStatus(COMPONENT_DEAD)
+    self.assertEqual(status, False)

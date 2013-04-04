@@ -24,6 +24,7 @@ import logging.handlers
 import sys
 import os
 import re
+import string
 
 logger = logging.getLogger()
 
@@ -62,7 +63,7 @@ class StatusCheck:
     except Exception as e:
         logger.error("Error while filling directories values " + str(e))
         
-  def __init__(self, serviceToPidDict, pidPathesVars, globalConfig):
+  def __init__(self, serviceToPidDict, pidPathesVars, globalConfig, linuxUserPattern):
 
     self.serToPidDict = serviceToPidDict
     self.pidPathesVars = pidPathesVars
@@ -70,11 +71,15 @@ class StatusCheck:
     self.sh = shellRunner()
     self.pidFilesDict = {}
     self.globalConfig = globalConfig
+    self.linuxUserPattern = linuxUserPattern
     
     self.fillDirValues()
     
     for pidPath in self.pidPathes:
       self.listFiles(pidPath)
+
+    for service, pid in self.serToPidDict.items():
+      self.serToPidDict[service] = string.replace(pid, '{USER}', self.linuxUserPattern)
 
   def getIsLive(self, pidPath):
 
