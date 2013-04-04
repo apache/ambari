@@ -89,6 +89,7 @@ class hdp-zookeeper(
       if ($security_enabled == true) {
         if ($type == 'server') {
           hdp-zookeeper::configfile { 'zookeeper_jaas.conf' : }
+          hdp-zookeeper::configfile { 'zookeeper_client_jaas.conf' : }
         } else {
           hdp-zookeeper::configfile { 'zookeeper_client_jaas.conf' : }
         }

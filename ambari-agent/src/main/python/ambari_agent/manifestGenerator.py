@@ -26,11 +26,12 @@ from shell import shellRunner
 from datetime import datetime
 import AmbariConfig
 import pprint
+import hostname
 
 logger = logging.getLogger()
 
 non_global_configuration_types = ["hdfs-site", "core-site", 
-                          "mapred-queue-acls",
+                             "mapred-queue-acls",
                              "hadoop-policy", "mapred-site", 
                              "capacity-scheduler", "hbase-site",
                              "hbase-policy", "hive-site", "oozie-site", 
@@ -84,8 +85,7 @@ def generateManifest(parsedJson, fileName, modulesdir, ambariconfig):
   
   #writing params from map
   writeParams(manifest, params, modulesdir)
-  
-  
+
   nonGlobalConfigurations = {}
   flatConfigurations = {}
 
@@ -164,12 +164,16 @@ def writeHostAttributes(outputFile, hostAttributes):
 #write flat configurations
 def writeFlatConfigurations(outputFile, flatConfigs):
   flatDict = {}
+  fqdn = hostname.hostname()
+  public_fqdn = hostname.public_hostname()
   logger.info("Generating global configurations =>\n" + pprint.pformat(flatConfigs))
   for flatConfigName in flatConfigs.iterkeys():
     for flatConfig in flatConfigs[flatConfigName].iterkeys():
       flatDict[flatConfig] = flatConfigs[flatConfigName][flatConfig]
   for gconfigKey in flatDict.iterkeys():
     outputFile.write('$' + gconfigKey + ' = "' + flatDict[gconfigKey] + '"' + os.linesep)
+  outputFile.write('$myhostname' + " = '" + fqdn + "'" + os.linesep)
+  outputFile.write('$public_hostname' + " = '" + public_fqdn + "'" + os.linesep)
 
 #write xml configurations
 def writeNonGlobalConfigurations(outputFile, xmlConfigs):

@@ -12,6 +12,9 @@ Trunk (unreleased changes):
 
  NEW FEATURES
 
+ AMBARI-1776. ZooKeeper Servers needs to store correct kerberos principal 
+ in zookeeper_jaas.conf. (swagle)
+
  AMBARI-1424. Upgrade enhancements for Ambari 1.3.0. (smohanty)
 
  AMBARI-1763. Integrate Frontend security work to enable security on

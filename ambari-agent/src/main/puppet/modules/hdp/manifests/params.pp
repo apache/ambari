@@ -28,6 +28,10 @@ class hdp::params()
   $cluster_service_state = hdp_default("cluster_service_state","running")
   $cluster_client_state = hdp_default("cluster_client_state","installed_and_configured")
 
+  ## Hostname defaults
+  $hostname = hdp_default("myhostname", $::fqdn)
+  $public_hostname = hdp_default("public_hostname")
+
   ##### for secure install
   $security_enabled = hdp_default("security_enabled",false)
   $kerberos_domain = hdp_default("kerberos_domain","EXAMPLE.COM")
@@ -35,6 +39,7 @@ class hdp::params()
   ## $smoketest_user_secure_uid = 1012
   $kinit_path_local = hdp_default("kinit_path_local","/usr/bin/kinit")
   $keytab_path = hdp_default("keytab_path", "/etc/security/keytabs")
+  $use_hostname_in_principal = hdp_default("instance_name", false)
 
   ###### hostnames
   $namenode_host = hdp_default("namenode_host")
