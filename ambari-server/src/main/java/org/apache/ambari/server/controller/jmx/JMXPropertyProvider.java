@@ -289,7 +289,8 @@ public class JMXPropertyProvider extends AbstractPropertyProvider {
       if (e == null) {
         LOG.error("Caught exception getting JMX metrics : spec=" + error);
       } else {
-        LOG.error("Caught exception getting JMX metrics : spec=" + error, e);
+        LOG.error("Caught exception getting JMX metrics : spec=" + error);
+        LOG.debug("" + e);
       }
     }
   }
