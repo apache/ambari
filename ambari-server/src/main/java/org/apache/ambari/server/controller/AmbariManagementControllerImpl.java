@@ -4066,10 +4066,16 @@ public class AmbariManagementControllerImpl implements
   }
 
   @Override
-  public RequestStatusResponse createActions(Set<ActionRequest> request)
+  public RequestStatusResponse createActions(Set<ActionRequest> request, Map<String, String> requestProperties)
       throws AmbariException {
     String clusterName = null;
 
+    String requestContext = "";
+    
+    if (requestProperties != null)
+      requestContext = requestProperties.get(REQUEST_CONTEXT_PROPERTY);
+      
+    
     String logDir = ""; //TODO empty for now
 
     for (ActionRequest actionRequest : request) {
@@ -4089,9 +4095,10 @@ public class AmbariManagementControllerImpl implements
         throw new AmbariException("Requests for different clusters found");
       }
     }
-
+    
     Stage stage = stageFactory.createNew(actionManager.getNextRequestId(),
-        logDir, clusterName, "");
+        logDir, clusterName, requestContext);
+    
     stage.setStageId(0);
     for (ActionRequest actionRequest : request) {
       if (actionRequest.getActionName().contains("SERVICE_CHECK")) {

@@ -64,13 +64,16 @@ class ActionResourceProvider extends AbstractControllerResourceProvider {
              NoSuchParentResourceException {
 
     final Set<ActionRequest> requests = new HashSet<ActionRequest>();
+    
+    final Map<String, String> requestInfoProperties = request.getRequestInfoProperties();
+    
     for (Map<String, Object> propertyMap : request.getProperties()) {
       requests.add(getRequest(propertyMap));
     }
     return getRequestStatus(createResources(new Command<RequestStatusResponse>() {
       @Override
       public RequestStatusResponse invoke() throws AmbariException {
-        return getManagementController().createActions(requests);
+        return getManagementController().createActions(requests, requestInfoProperties);
       }
     }));
   }

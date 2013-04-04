@@ -42,6 +42,7 @@ import static org.easymock.EasyMock.createNiceMock;
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.replay;
 import static org.easymock.EasyMock.verify;
+import static org.easymock.EasyMock.eq;
 
 /**
  * ActionResourceProvider tests.
@@ -53,9 +54,12 @@ public class ActionResourceProviderTest {
 
     AmbariManagementController managementController = createMock(AmbariManagementController.class);
     RequestStatusResponse response = createNiceMock(RequestStatusResponse.class);
+    
+    Map<String, String> requestProperties = new HashMap<String, String>();
+    requestProperties.put("context", "Called from a test");
 
     expect(managementController.createActions(AbstractResourceProviderTest.Matcher.getActionRequestSet(
-        "Cluster100", "Service100", "Action100"))).andReturn(response);
+        "Cluster100", "Service100", "Action100"), eq(requestProperties))).andReturn(response);
 
     // replay
     replay(managementController, response);
@@ -80,7 +84,7 @@ public class ActionResourceProviderTest {
     propertySet.add(properties);
 
     // create the request
-    Request request = PropertyHelper.getCreateRequest(propertySet, null);
+    Request request = PropertyHelper.getCreateRequest(propertySet, requestProperties);
 
     provider.createResources(request);
 

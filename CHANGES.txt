@@ -552,6 +552,8 @@ Trunk (unreleased changes):
 
  BUG FIXES
 
+ AMBARI-1791. Can not specify request context for smoke test request. (swagle)
+
  AMBARI-1788. JMX getSpec error filling up server logs. (swagle)
 
  AMBARI-1787. Nagios script causes Datanode error. (swagle)

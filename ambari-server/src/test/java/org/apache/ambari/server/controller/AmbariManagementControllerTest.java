@@ -103,6 +103,8 @@ public class AmbariManagementControllerTest {
   private static final String NON_EXT_VALUE = "XXX";
 
   private static final String COMPONENT_NAME = "NAMENODE";
+  
+  private static final String REQUEST_CONTEXT_PROPERTY = "context";
 
   private AmbariManagementController controller;
   private Clusters clusters;
@@ -3472,13 +3474,18 @@ public class AmbariManagementControllerTest {
     }};
     ActionRequest actionRequest = new ActionRequest("c1", "HDFS", Role.HDFS_SERVICE_CHECK.name(), params);
     actionRequests.add(actionRequest);
+    
+    Map<String, String> requestProperties = new HashMap<String, String>();
+    requestProperties.put(REQUEST_CONTEXT_PROPERTY, "Called from a test");
 
-    RequestStatusResponse response = controller.createActions(actionRequests);
+    RequestStatusResponse response = controller.createActions(actionRequests, requestProperties);
     
     assertEquals(1, response.getTasks().size());
     ShortTaskStatus task = response.getTasks().get(0);
 
     List<HostRoleCommand> storedTasks = actionDB.getRequestTasks(response.getRequestId());
+    Stage stage = actionDB.getAllStages(response.getRequestId()).get(0);
+
     assertEquals(1, storedTasks.size());
     HostRoleCommand hostRoleCommand = storedTasks.get(0);
 
@@ -3490,10 +3497,12 @@ public class AmbariManagementControllerTest {
     assertEquals(actionRequest.getParameters(), hostRoleCommand.getExecutionCommandWrapper().getExecutionCommand().getRoleParams());
     assertNotNull(hostRoleCommand.getExecutionCommandWrapper().getExecutionCommand().getConfigurations());
     assertEquals(2, hostRoleCommand.getExecutionCommandWrapper().getExecutionCommand().getConfigurations().size());
-    
+    assertEquals(requestProperties.get(REQUEST_CONTEXT_PROPERTY), stage.getRequestContext());
     actionRequests.add(new ActionRequest("c1", "MAPREDUCE", Role.MAPREDUCE_SERVICE_CHECK.name(), null));
 
-    response = controller.createActions(actionRequests);
+
+
+    response = controller.createActions(actionRequests, requestProperties);
 
     assertEquals(2, response.getTasks().size());
 
