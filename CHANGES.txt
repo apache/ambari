@@ -549,6 +549,9 @@ Trunk (unreleased changes):
 
  BUG FIXES
 
+ AMBARI-1674. Jobtracker metric for maps_completed shows wrong value
+ (tbeerbower)
+
  AMBARI-1786. Ambari server start fail after reset. (smohanty)
 
  AMBARI-1784. MapReduce service damaging after hadoop installation with 

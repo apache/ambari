@@ -998,7 +998,7 @@
         "temporal" : false
       },
       "metrics/mapred/jobtracker/maps_completed":{
-        "metric" : "Hadoop:service=JobTracker,name=JobTrackerMetrics.maps_launched",
+        "metric" : "Hadoop:service=JobTracker,name=JobTrackerMetrics.maps_completed",
         "pointInTime" : true,
         "temporal" : false
       },
@@ -4644,7 +4644,7 @@
         "temporal" : false
       },
       "metrics/mapred/jobtracker/maps_completed":{
-        "metric" : "Hadoop:service=JobTracker,name=JobTrackerMetrics.maps_launched",
+        "metric" : "Hadoop:service=JobTracker,name=JobTrackerMetrics.maps_completed",
         "pointInTime" : true,
         "temporal" : false
       },
