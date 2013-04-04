@@ -549,6 +549,8 @@ Trunk (unreleased changes):
 
  BUG FIXES
 
+ AMBARI-1787. Nagios script causes Datanode error. (swagle)
+ 
  AMBARI-1674. Jobtracker metric for maps_completed shows wrong value
  (tbeerbower)
 
