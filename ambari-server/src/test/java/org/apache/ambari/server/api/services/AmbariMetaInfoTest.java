@@ -240,6 +240,28 @@ public class AmbariMetaInfoTest {
     assertEquals(3, centos6Cnt.size());
   }
 
+  
+  @Test
+  /**
+   * Make sure global mapping is avaliable when global.xml is 
+   * in the path.
+   * @throws Exception
+   */
+  public void testGlobalMapping() throws Exception {
+    ServiceInfo sinfo = metaInfo.getServiceInfo("HDP",
+        "0.2", "HDFS");
+    List<PropertyInfo> pinfo = sinfo.getProperties();
+    /** check all the config knobs and make sure the global one is there **/
+    boolean checkforglobal = false;
+    
+    for (PropertyInfo pinfol: pinfo) {
+      if ("global.xml".equals(pinfol.getFilename())) {
+        checkforglobal = true;
+      }
+    }
+    Assert.assertTrue(checkforglobal);
+  }
+  
   @Test
   public void testMetaInfoFileFilter() throws Exception {
     String buildDir = tmpFolder.getRoot().getAbsolutePath();

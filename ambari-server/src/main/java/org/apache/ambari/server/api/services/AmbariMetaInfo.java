@@ -55,7 +55,7 @@ public class AmbariMetaInfo {
   private static final String SERVICES_FOLDER_NAME = "services";
   private static final String SERVICE_METAINFO_FILE_NAME = "metainfo.xml";
   private static final String SERVICE_CONFIG_FOLDER_NAME = "configuration";
-  private static final String SERVICE_CONFIG_FILE_NAME_POSTFIX = "-site.xml";
+  private static final String SERVICE_CONFIG_FILE_NAME_POSTFIX = ".xml";
   private static final String REPOSITORY_FILE_NAME = "repoinfo.xml";
   private static final String REPOSITORY_FOLDER_NAME = "repos";
   private static final String REPOSITORY_XML_MAIN_BLOCK_NAME = "os";
