@@ -105,7 +105,10 @@ App.MainAdminSecurityAddStep3Controller = Em.Controller.extend({
           currentStage.set('isCompleted', true);
           this.moveToNextStage();
         } else {
-          this.loadClusterConfigs();
+          var self = this;
+          window.setTimeout(function () {
+            self.loadClusterConfigs();
+          }, 12000);
         }
       }
     }

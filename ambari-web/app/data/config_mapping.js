@@ -774,6 +774,34 @@ module.exports = [
     "filename": "hbase-site.xml"
   },
   {
+    "name": "hbase.security.authentication",
+    "templateName": [],
+    "foreignKey": null,
+    "value": "simple",
+    "filename": "hbase-site.xml"
+  },
+  {
+    "name": "hbase.rpc.engine",
+    "templateName": [],
+    "foreignKey": null,
+    "value": "org.apache.hadoop.hbase.ipc.WritableRpcEngine",
+    "filename": "hbase-site.xml"
+  },
+  {
+    "name": "hbase.security.authorization",
+    "templateName": [],
+    "foreignKey": null,
+    "value": "false",
+    "filename": "hbase-site.xml"
+  },
+  {
+    "name": "hbase.coprocessor.master.classes",
+    "templateName": [],
+    "foreignKey": null,
+    "value": "org.apache.hadoop.hbase.security.access.AccessController",
+    "filename": "hbase-site.xml"
+  },
+  {
     "name": "templeton.hive.properties",
     "templateName": ["hivemetastore_host"],
     "foreignKey": null,

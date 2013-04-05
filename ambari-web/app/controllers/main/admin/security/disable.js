@@ -74,7 +74,10 @@ App.MainAdminSecurityDisableController = Em.Controller.extend({
           currentStage.set('isCompleted', true);
           this.moveToNextStage();
         } else {
-          this.loadClusterConfigs();
+          var self = this;
+          window.setTimeout(function () {
+            self.loadClusterConfigs();
+          }, 12000);
         }
       }
     }
@@ -278,13 +281,29 @@ App.MainAdminSecurityDisableController = Em.Controller.extend({
         _serviceConfigTags.configs.security_enabled = false;
       } else {
         this.get('configMapping').filterProperty('filename', _serviceConfigTags.siteName + '.xml').forEach(function (_config) {
-          if (_config.name in _serviceConfigTags.configs) {
-            if (_config.name === 'dfs.datanode.address') {
-              _serviceConfigTags.configs[_config.name] = '0.0.0.0:50010';
-            } else if (_config.name === 'dfs.datanode.http.address') {
-              _serviceConfigTags.configs[_config.name] = '0.0.0.0:50075';
-            } else {
-              delete _serviceConfigTags.configs[_config.name];
+          var configName = _config.name;
+          if (configName in _serviceConfigTags.configs) {
+            switch (configName) {
+              case 'dfs.datanode.address':
+                _serviceConfigTags.configs[configName] = '0.0.0.0:50010';
+                break;
+              case 'dfs.datanode.http.address':
+                _serviceConfigTags.configs[configName] = '0.0.0.0:50075';
+                break;
+              case 'hbase.security.authentication':
+                _serviceConfigTags.configs[configName] = 'simple';
+                break;
+              case 'hbase.rpc.engine':
+                _serviceConfigTags.configs[configName] = 'org.apache.hadoop.hbase.ipc.WritableRpcEngine';
+                break;
+              case 'hbase.security.authorization':
+                _serviceConfigTags.configs[configName] = 'false';
+                break;
+              case 'hbase.coprocessor.master.classes':
+                _serviceConfigTags.configs[configName] = 'org.apache.hadoop.hbase.security.access.AccessController';
+                break;
+              default:
+                delete _serviceConfigTags.configs[configName];
             }
           }
           console.log("Not Deleted" + _config.name);

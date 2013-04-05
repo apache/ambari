@@ -558,6 +558,9 @@ Trunk (unreleased changes):
 
  BUG FIXES
 
+ AMBARI-1816. Security wizard: Add missing secure configs to Hbase service and
+ make "zookeeper" as default primary name for zookeeper principal. (jaimin)
+
  AMBARI-1791. Can not specify request context for smoke test request. (swagle)
 
  AMBARI-1788. JMX getSpec error filling up server logs. (swagle)
