@@ -18,7 +18,30 @@
 # under the License.
 #
 #
-class hdp-hue::service_check() inherits hdp-hue::params
+class hdp-hue::hue::service_check() inherits hdp-hue::params
 {
+  $status_check_cmd = "/etc/init.d/hue status | grep 'is running'"
+  $smoke_test_cmd = "${hue_home_dir}/build/env/bin/hue smoke_test"
 
+  anchor { 'hdp-hue::hue::service_check::begin' : }
+
+  exec { 'hue-status-check':
+    command   => $status_check_cmd,
+    tries     => 3,
+    try_sleep => 5,
+    path      => '/usr/sbin:/sbin:/usr/local/bin:/bin:/usr/bin',
+    logoutput => "true"
+  }
+
+  exec { 'hue-smoke-test':
+      command   => $smoke_test_cmd,
+      tries     => 3,
+      try_sleep => 5,
+      path      => '/usr/sbin:/sbin:/usr/local/bin:/bin:/usr/bin',
+      require   => Exec['hue-status-check'],
+      before    => Anchor['hdp-hue::hue::service_check::end'],
+      logoutput => "true"
+    }
+
+  anchor { 'hdp-hue::hue::service_check::end' : }
 }

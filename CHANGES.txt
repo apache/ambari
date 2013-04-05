@@ -12,6 +12,8 @@ Trunk (unreleased changes):
 
  NEW FEATURES
 
+ AMBARI-1729. Creating smoke test for Hue service. (swagle)
+
  AMBARI-1776. ZooKeeper Servers needs to store correct kerberos principal 
  in zookeeper_jaas.conf. (swagle)
 

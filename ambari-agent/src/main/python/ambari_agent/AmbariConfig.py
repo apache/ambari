@@ -147,7 +147,8 @@ servicesToPidNames = {
   'KERBEROS_SERVER': 'kadmind.pid',
   'HIVE_SERVER': 'hive-server.pid',
   'HIVE_METASTORE': 'hive.pid',
-  'MYSQL_SERVER': 'mysqld.pid'
+  'MYSQL_SERVER': 'mysqld.pid',
+  'HUE_SERVER': '/var/run/hue/supervisor.pid'
 }
 
 linuxUserPattern = '[A-Za-z0-9_-]*[$]?'
