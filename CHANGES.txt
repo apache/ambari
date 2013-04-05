@@ -558,6 +558,9 @@ Trunk (unreleased changes):
 
  BUG FIXES
 
+ AMBARI-1818. HBase master shuts down immediately after start in a secure 
+ cluster. (swagle)
+
  AMBARI-1816. Security wizard: Add missing secure configs to Hbase service and
  make "zookeeper" as default primary name for zookeeper principal. (jaimin)
 
