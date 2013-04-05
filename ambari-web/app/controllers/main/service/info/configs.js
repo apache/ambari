@@ -638,7 +638,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
       this.setConfigValue(uiConfig, _config);
       uiConfig.pushObject({
         "id": "site property",
-        "name": _config.name,
+        "name": _config._name || _config.name,
         "value": _config.value,
         "filename": _config.filename
       });
@@ -729,7 +729,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
         var index = parseInt(_fkValue.match(/\[([\d]*)(?=\])/)[1]);
         if (uiConfig.someProperty('name', config.foreignKey[index])) {
           var globalValue = uiConfig.findProperty('name', config.foreignKey[index]).value;
-          config.name = config.name.replace(_fkValue, globalValue);
+          config._name = config.name.replace(_fkValue, globalValue);
         } else if (this.get('globalConfigs').someProperty('name', config.foreignKey[index])) {
           var globalValue;
           if (this.get('globalConfigs').findProperty('name', config.foreignKey[index]).value === '') {
@@ -737,7 +737,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
           } else {
             globalValue = this.get('globalConfigs').findProperty('name', config.foreignKey[index]).value;
           }
-          config.name = config.name.replace(_fkValue, globalValue);
+          config._name = config.name.replace(_fkValue, globalValue);
         }
       }, this);
     }

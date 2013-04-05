@@ -270,7 +270,7 @@ App.WizardController = Em.Controller.extend({
     switch (this.get('content.controllerName')) {
       case 'addHostController':
         if (isRetry) {
-          url = App.apiPrefix + '/clusters/' + clusterName + '/host_components?HostRoles/state!=INSTALLED';
+          url = App.apiPrefix + '/clusters/' + clusterName + '/host_components?HostRoles/state=INSTALLED';
           data = '{"HostRoles": {"state": "INSTALLED"}}';
         } else {
           url = App.apiPrefix + '/clusters/' + clusterName + '/host_components?HostRoles/state=INIT';
