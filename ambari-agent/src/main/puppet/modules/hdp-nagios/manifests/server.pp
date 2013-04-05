@@ -227,10 +227,19 @@ class hdp-nagios::server::web_permisssions()
 
 class hdp-nagios::server::services($ensure)
 {
-  if ($ensure in ['running','stopped']) {
-    service { 'nagios': ensure => $ensure}
-    anchor{'hdp-nagios::server::services::begin':} ->  Service['nagios'] ->  anchor{'hdp-nagios::server::services::end':}
-  }
+   if ($ensure == 'running') {
+     $command = "service nagios start"
+   } elsif ($ensure == 'stopped') {
+     $command = "service nagios stop"
+   }
+
+   if ($ensure in ['running','stopped']) {
+     exec { "nagios":
+       command => $command,
+       path    => "/usr/local/bin/:/bin/:/sbin/",      
+     }
+     anchor{'hdp-nagios::server::services::begin':} ->  Exec['nagios'] ->  anchor{'hdp-nagios::server::services::end':}	
+   }
 }
 
 class hdp-nagios::server::enable_snmp() {

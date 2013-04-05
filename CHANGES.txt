@@ -560,6 +560,9 @@ Trunk (unreleased changes):
 
  BUG FIXES
 
+ AMBARI-1826. Use service stop and start for Nagios/Ganglia/MySQL rather than
+ puppet artifacts for starting stopping these services. (smohanty)
+
  AMBARI-1818. HBase master shuts down immediately after start in a secure 
  cluster. (swagle)
 

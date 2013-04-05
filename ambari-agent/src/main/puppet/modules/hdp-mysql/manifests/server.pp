@@ -79,19 +79,27 @@ class hdp-mysql::server(
       default =>  'stopped',
     }
 
+    if ($mysqld_state == 'running') {
+      $command = "service $service_name start"
+    } else {
+      $command = "service $service_name stop"
+    }
+
     if ($hdp::params::hdp_os_type == "suse") {
-      service {$service_name:
-        ensure => $mysqld_state,
+      exec { $service_name:
+        command => $command,
+        path    => "/usr/local/bin/:/bin/:/sbin/",
         require => File['/var/run/mysqld/mysqld.pid'],
         notify  => File['/tmp/addMysqlUser.sh']
-      }
-    } else {
-        service {$service_name:
-        ensure => $mysqld_state,
+       }
+     } else {
+      exec { $service_name:
+        command => $command,
+        path    => "/usr/local/bin/:/bin/:/sbin/", 
         require => Hdp::Package['mysql'],
         notify  => File['/tmp/addMysqlUser.sh']
-      }
-    }
+       }
+     }
 
 
     if ($service_state == 'installed_and_configured') {
@@ -100,7 +108,7 @@ class hdp-mysql::server(
         ensure => present,
         source => "puppet:///modules/hdp-mysql/addMysqlUser.sh",
         mode => '0755',
-        require => Service[$service_name],
+        require => Exec[$service_name],
         notify => Exec['/tmp/addMysqlUser.sh'],
       }
       # We start the DB and add a user
@@ -117,7 +125,7 @@ class hdp-mysql::server(
       # Now MySQL is running so we remove the temporary file
       file {'/tmp/addMysqlUser.sh':
         ensure => absent,
-        require => Service[$service_name],
+        require => Exec[$service_name],
         notify => Anchor['hdp-mysql::server::end'],
       }
     }
