@@ -119,6 +119,18 @@ public class ResourceInstanceFactoryImpl implements ResourceInstanceFactory {
         resourceDefinition = new InstanceResourceDefinition();
         break;
 
+      case Workflow:
+        resourceDefinition = new WorkflowResourceDefinition();
+        break;
+
+      case Job:
+        resourceDefinition = new JobResourceDefinition();
+        break;
+
+      case TaskAttempt:
+        resourceDefinition = new TaskAttemptResourceDefinition();
+        break;
+
       default:
         throw new IllegalArgumentException("Unsupported resource type: " + type);
     }

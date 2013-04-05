@@ -99,6 +99,9 @@ public interface Resource {
     StackServiceComponent,
     DRFeed,
     DRTargetCluster,
-    DRInstance
+    DRInstance,
+    Workflow,
+    Job,
+    TaskAttempt
   }
 }

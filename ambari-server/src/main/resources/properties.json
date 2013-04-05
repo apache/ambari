@@ -188,5 +188,52 @@
         "Instance/endTime",
         "Instance/details",
         "Instance/log"
-    ]
+    ],
+    "Workflow":[
+        "Workflow/cluster_name",
+        "Workflow/workflow_id",
+        "Workflow/name",
+        "Workflow/user_name",
+        "Workflow/start_time",
+        "Workflow/last_update_time",
+        "Workflow/elapsed_time",
+        "Workflow/input_bytes",
+        "Workflow/output_bytes",
+        "Workflow/num_jobs_total",
+        "Workflow/num_jobs_completed",
+        "Workflow/parent_id",
+        "Workflow/context"
+    ],
+    "Job":[
+        "Job/cluster_name",
+        "Job/workflow_id",
+        "Job/job_id",
+        "Job/name",
+        "Job/status",
+        "Job/user_name",
+        "Job/submit_time",
+        "Job/elapsed_time",
+        "Job/maps",
+        "Job/reduces",
+        "Job/input_bytes",
+        "Job/output_bytes",
+        "Job/conf_path",
+        "Job/workflow_entity_name"
+    ],
+    "TaskAttempt":[
+        "TaskAttempt/cluster_name",
+        "TaskAttempt/workflow_id",
+        "TaskAttempt/job_id",
+        "TaskAttempt/task_attempt_id",
+        "TaskAttempt/type",
+        "TaskAttempt/start_time",
+        "TaskAttempt/finish_time",
+        "TaskAttempt/map_finish_time",
+        "TaskAttempt/shuffle_finish_time",
+        "TaskAttempt/sort_finish_fime",
+        "TaskAttempt/input_bytes",
+        "TaskAttempt/output_bytes",
+        "TaskAttempt/status",
+        "TaskAttempt/locality"
+     ]
 }

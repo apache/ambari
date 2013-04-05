@@ -553,6 +553,9 @@ Trunk (unreleased changes):
  AMBARI-1797. For global site properties, need property to services effected
  map. (mahadev)
 
+ AMBARI-1384. WorkflowJsonService service doesn't use the API framework and is
+ inconsistent with other API's. (billie)
+
  BUG FIXES
 
  AMBARI-1791. Can not specify request context for smoke test request. (swagle)

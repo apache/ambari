@@ -172,6 +172,14 @@ public class ClusterService extends BaseService {
   }
 
   /**
+   * Gets the workflows sub-resource.
+   */
+  @Path("{clusterName}/workflows")
+  public WorkflowService getWorkflowHandler(@PathParam("clusterName") String clusterName) {
+    return new WorkflowService(clusterName);
+  }
+
+  /**
    * Create a cluster resource instance.
    *
    * @param clusterName cluster name

@@ -18,6 +18,9 @@
 
 package org.apache.ambari.server.controller.internal;
 
+import java.util.Map;
+import java.util.Set;
+
 import com.google.inject.Inject;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.AmbariServer;
@@ -48,7 +51,19 @@ public class DefaultProviderModule extends AbstractProviderModule {
 
   @Override
   protected ResourceProvider createResourceProvider(Resource.Type type) {
-    return AbstractControllerResourceProvider.getResourceProvider(type, PropertyHelper.getPropertyIds(type),
-        PropertyHelper.getKeyPropertyIds(type), managementController);
+    Set<String>               propertyIds    = PropertyHelper.getPropertyIds(type);
+    Map<Resource.Type,String> keyPropertyIds = PropertyHelper.getKeyPropertyIds(type);
+
+    switch (type) {
+      case Workflow:
+        return new WorkflowResourceProvider(propertyIds, keyPropertyIds);
+      case Job:
+        return new JobResourceProvider(propertyIds, keyPropertyIds);
+      case TaskAttempt:
+        return new TaskAttemptResourceProvider(propertyIds, keyPropertyIds);
+      default:
+        return AbstractControllerResourceProvider.getResourceProvider(type, propertyIds,
+            keyPropertyIds, managementController);
+    }
   }
 }

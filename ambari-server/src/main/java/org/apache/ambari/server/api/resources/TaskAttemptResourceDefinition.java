@@ -18,43 +18,27 @@
 
 package org.apache.ambari.server.api.resources;
 
-import java.util.HashSet;
-import java.util.Set;
 import org.apache.ambari.server.controller.spi.Resource;
 
 /**
- * Cluster resource definition.
+ * Task attempt resource definition.
  */
-public class ClusterResourceDefinition extends BaseResourceDefinition {
-
+public class TaskAttemptResourceDefinition extends BaseResourceDefinition {
 
   /**
    * Constructor.
    */
-  public ClusterResourceDefinition() {
-    super(Resource.Type.Cluster);
+  public TaskAttemptResourceDefinition() {
+    super(Resource.Type.TaskAttempt);
   }
-
 
   @Override
   public String getPluralName() {
-    return "clusters";
+    return "taskattempts";
   }
 
   @Override
   public String getSingularName() {
-    return "cluster";
-  }
-
-  @Override
-  public Set<SubResourceDefinition> getSubResourceDefinitions() {
-    Set<SubResourceDefinition> setChildren = new HashSet<SubResourceDefinition>();
-    setChildren.add(new SubResourceDefinition(Resource.Type.Service));
-    setChildren.add(new SubResourceDefinition(Resource.Type.Host));
-    setChildren.add(new SubResourceDefinition(Resource.Type.Configuration));
-    setChildren.add(new SubResourceDefinition(Resource.Type.Request));
-    setChildren.add(new SubResourceDefinition(Resource.Type.Workflow));
-
-    return setChildren;
+    return "taskattempt";
   }
 }

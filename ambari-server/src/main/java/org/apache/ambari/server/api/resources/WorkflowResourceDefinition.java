@@ -20,41 +20,35 @@ package org.apache.ambari.server.api.resources;
 
 import java.util.HashSet;
 import java.util.Set;
+
 import org.apache.ambari.server.controller.spi.Resource;
 
 /**
- * Cluster resource definition.
+ * Workflow resource definition.
  */
-public class ClusterResourceDefinition extends BaseResourceDefinition {
-
+public class WorkflowResourceDefinition extends BaseResourceDefinition {
 
   /**
    * Constructor.
    */
-  public ClusterResourceDefinition() {
-    super(Resource.Type.Cluster);
+  public WorkflowResourceDefinition() {
+    super(Resource.Type.Workflow);
   }
-
 
   @Override
   public String getPluralName() {
-    return "clusters";
+    return "workflows";
   }
 
   @Override
   public String getSingularName() {
-    return "cluster";
+    return "workflow";
   }
 
   @Override
   public Set<SubResourceDefinition> getSubResourceDefinitions() {
     Set<SubResourceDefinition> setChildren = new HashSet<SubResourceDefinition>();
-    setChildren.add(new SubResourceDefinition(Resource.Type.Service));
-    setChildren.add(new SubResourceDefinition(Resource.Type.Host));
-    setChildren.add(new SubResourceDefinition(Resource.Type.Configuration));
-    setChildren.add(new SubResourceDefinition(Resource.Type.Request));
-    setChildren.add(new SubResourceDefinition(Resource.Type.Workflow));
-
+    setChildren.add(new SubResourceDefinition(Resource.Type.Job));
     return setChildren;
   }
 }
