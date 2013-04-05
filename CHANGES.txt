@@ -560,6 +560,8 @@ Trunk (unreleased changes):
 
  BUG FIXES
 
+ AMBARI-1828. Clear text passwords appear in log files & config files. (swagle)
+
  AMBARI-1826. Use service stop and start for Nagios/Ganglia/MySQL rather than
  puppet artifacts for starting stopping these services. (smohanty)
 

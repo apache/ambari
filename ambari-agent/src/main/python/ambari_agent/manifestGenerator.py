@@ -166,7 +166,7 @@ def writeFlatConfigurations(outputFile, flatConfigs):
   flatDict = {}
   fqdn = hostname.hostname()
   public_fqdn = hostname.public_hostname()
-  logger.info("Generating global configurations =>\n" + pprint.pformat(flatConfigs))
+  logger.debug("Generating global configurations =>\n" + pprint.pformat(flatConfigs))
   for flatConfigName in flatConfigs.iterkeys():
     for flatConfig in flatConfigs[flatConfigName].iterkeys():
       flatDict[flatConfig] = flatConfigs[flatConfigName][flatConfig]
@@ -181,7 +181,7 @@ def writeNonGlobalConfigurations(outputFile, xmlConfigs):
 
   for configName in xmlConfigs.iterkeys():
     config = xmlConfigs[configName]
-    logger.info("Generating " + configName + ",configurations =>\n" + pprint.pformat(config))
+    logger.debug("Generating " + configName + ", configurations =>\n" + pprint.pformat(config))
     outputFile.write(configName + '=> {\n')
     coma = ''
     for configParam in config.iterkeys():
