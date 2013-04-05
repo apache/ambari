@@ -275,6 +275,18 @@
             </organization>            
         </developer>
         <developer>
+            <id>smohanty</id>
+            <name>Sumit Mohanty</name>
+            <email>smohanty@apache.org</email>
+            <timezone>-8</timezone>
+            <roles>
+                <role>Committer</role>
+            </roles>
+            <organization>
+                Hortonworks
+            </organization>
+        </developer>
+        <developer>
             <id>swagle</id>
             <name>Siddharth Wagle</name>
             <email>swagle@apache.org</email>
