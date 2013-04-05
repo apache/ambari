@@ -1,0 +1,84 @@
+{{!
+* Licensed to the Apache Software Foundation (ASF) under one
+* or more contributor license agreements.  See the NOTICE file
+* distributed with this work for additional information
+* regarding copyright ownership.  The ASF licenses this file
+* to you under the Apache License, Version 2.0 (the
+* "License"); you may not use this file except in compliance
+* with the License.  You may obtain a copy of the License at
+*
+*     http://www.apache.org/licenses/LICENSE-2.0
+*
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
+* limitations under the License.
+}}
+
+<h2>{{t installer.step5.header}}</h2>
+<div class="alert alert-info">
+  {{t installer.step5.body}}
+  {{#if hasHiveServer}}
+    <br>
+    {{t installer.step5.body.hive}}
+  {{/if}}
+</div>
+<div class="assign-masters">
+  <div class="select-hosts">
+    <form class="form-horizontal">
+      <!-- View for array controller -->
+      {{#each selectedServicesMasters}}
+      <div class="control-group">
+        <label class="control-label">{{display_name}}:</label>
+        {{#if isHiveCoHost}}
+          <label class="host-name">{{selectedHost}}<i class="icon-asterisks">&#10037</i></label>
+        {{else}}
+        <div class="controls">
+          {{view App.SelectHostView
+            contentBinding="availableHosts"
+            optionValuePath="content.host_name"
+            optionLabelPath="content.host_info"
+            selectedHostBinding="selectedHost"
+            serviceNameBinding="display_name"
+            zIdBinding="zId"
+            disabledBinding="isInstalled"
+          }}
+          {{#if showAddControl}}
+          {{view App.AddControlView
+            componentNameBinding="display_name"
+          }}
+          {{/if}}
+          {{#if showRemoveControl}}
+          {{view App.RemoveControlView
+            zIdBinding="zId"
+          }}
+          {{/if}}
+        </div>
+        {{/if}}
+      </div>
+      {{/each}}
+    </form>
+  </div>
+
+  <div class="host-assignments">
+    {{#each masterHostMapping}}
+    <div class="mapping-box round-corners well">
+      <div class="hostString"><span>{{hostInfo}}</span></div>
+      {{#each masterServices}}
+      <span class="assignedService round-corners">{{display_name}}</span>
+      {{/each}}
+    </div>
+    {{/each}}
+
+    {{#if remainingHosts}}
+    <div class="remaining-hosts round-corners well">
+      <span><strong>{{remainingHosts}}</strong> {{t installer.step5.attention}}</span></div>
+    {{/if}}
+  </div>
+  <div style="clear: both;"></div>
+</div>
+<div class="btn-area">
+  <a class="btn pull-left" {{action back href="true"}}>&larr; {{t common.back}}</a>
+  <a class="btn btn-success pull-right" {{action next}}>{{t common.next}} &rarr;</a>
+</div>

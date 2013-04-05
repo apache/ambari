@@ -1,0 +1,172 @@
+#!/usr/bin/env bash
+
+# Licensed to the Apache Software Foundation (ASF) under one or more
+# contributor license agreements.  See the NOTICE file distributed with
+# this work for additional information regarding copyright ownership.
+# The ASF licenses this file to You under the Apache License, Version 2.0
+# (the "License"); you may not use this file except in compliance with
+# the License.  You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific
+
+# description: ambari-agent daemon
+# processname: ambari-agent
+
+# /etc/init.d/ambari-agent
+
+export PATH=/usr/lib/ambari-server/*:$PATH
+export AMBARI_CONF_DIR=/etc/ambari-server/conf:$PATH
+
+AMBARI_AGENT=ambari-agent
+PIDFILE=/var/run/ambari-agent/$AMBARI_AGENT.pid
+LOGFILE=/var/log/ambari-agent/ambari-agent.out
+AGENT_SCRIPT=/usr/lib/python2.6/site-packages/ambari_agent/main.py
+OK=1
+NOTOK=0
+
+
+if [ -a /usr/bin/python2.6 ]; then
+  PYTHON=/usr/bin/python2.6
+fi
+
+if [ "x$PYTHON" == "x" ]; then
+  PYTHON=/usr/bin/python
+fi
+
+# Trying to read the passphrase from an environment
+if [ ! -z $AMBARI_PASSPHRASE ]; then
+  RESOLVED_AMBARI_PASSPHRASE=$AMBARI_PASSPHRASE
+fi
+
+# Reading the environment file
+if [ -a /var/lib/ambari-agent/ambari-env.sh ]; then
+  . /var/lib/ambari-agent/ambari-env.sh
+fi
+
+if [ -z $RESOLVED_AMBARI_PASSPHRASE ] &&  [ ! -z $AMBARI_PASSPHRASE ]; then
+  RESOLVED_AMBARI_PASSPHRASE=$AMBARI_PASSPHRASE
+  # If the passphrase is not defined yet, use the value from the env file
+elif [ -z $RESOLVED_AMBARI_PASSPHRASE ]; then
+  # Passphrase is not defined anywhere, set the default value
+  RESOLVED_AMBARI_PASSPHRASE="DEV"
+fi
+
+export AMBARI_PASSPHRASE=$RESOLVED_AMBARI_PASSPHRASE
+
+#echo $AMBARI_PASSPHRASE
+
+# check for version
+check_python_version ()
+{
+  echo "Verifying Python version compatibility..."
+  majversion=`$PYTHON -V 2>&1 | awk '{print $2}' | cut -d'.' -f1`
+  minversion=`$PYTHON -V 2>&1 | awk '{print $2}' | cut -d'.' -f2`
+  numversion=$(( 10 * $majversion + $minversion))
+  if (( $numversion < 26 )); then
+    echo "ERROR: Found Python version $majversion.$minversion. Ambari Agent requires Python version > 2.6"
+    return $NOTOK
+  fi
+  echo "Using python " $PYTHON
+  return $OK
+}
+
+case "$1" in
+  start)
+        check_python_version
+        if [ "$?" -eq "$NOTOK" ]; then
+          exit -1
+        fi
+        echo "Checking for previously running Ambari Agent..."
+        if [ -f $PIDFILE ]; then
+          PID=`cat $PIDFILE`
+          if [ -z "`ps ax -o pid | grep $PID`" ]; then
+            echo "$PIDFILE found with no process. Removing $PID..."
+            rm -f $PIDFILE
+          else
+            tput bold
+            echo "ERROR: $AMBARI_AGENT already running"
+            tput sgr0
+            echo "Check $PIDFILE for PID."
+            exit -1
+          fi
+        fi
+        echo "Starting ambari-agent"
+        nohup $PYTHON $AGENT_SCRIPT > $LOGFILE 2>&1 &
+        sleep 2
+        PID=$!
+        echo "Verifying $AMBARI_AGENT process status..."
+        if [ -z "`ps ax -o pid | grep $PID`" ]; then
+          echo "ERROR: $AMBARI_AGENT start failed for unknown reason"
+          exit -1
+        fi
+        tput bold
+        echo "Ambari Agent successfully started"
+        tput sgr0
+        echo "Agent PID at: $PIDFILE"
+        echo "Agent log at: $LOGFILE"
+        ;;
+  status)
+        if [ -f $PIDFILE ]; then
+          PID=`cat $PIDFILE`
+          echo "Found $AMBARI_AGENT PID: $PID"
+          if [ -z "`ps ax -o pid | grep $PID`" ]; then
+            echo "$AMBARI_AGENT not running. Stale PID File at: $PIDFILE"
+          else
+            tput bold
+            echo "$AMBARI_AGENT running."
+            tput sgr0
+            echo "Agent PID at: $PIDFILE"
+            echo "Agent log at: $LOGFILE"
+          fi
+        else
+          tput bold
+          echo "$AMBARI_AGENT currently not running"
+          tput sgr0
+          echo "Usage: /usr/sbin/ambari-agent {start|stop|restart|status}"
+        fi
+        ;;
+  stop)
+        check_python_version
+        if [ "$?" -eq "$NOTOK" ]; then
+          exit -1
+        fi
+        if [ -f $PIDFILE ]; then
+          PID=`cat $PIDFILE`
+          echo "Found $AMBARI_AGENT PID: $PID"
+          if [ -z "`ps ax -o pid | grep $PID`" ]; then
+            tput bold
+            echo "ERROR: $AMBARI_AGENT not running. Stale PID File at: $PIDFILE"
+            tput sgr0
+          else
+            echo "Stopping $AMBARI_AGENT"
+            $PYTHON $AGENT_SCRIPT stop
+          fi
+          echo "Removing PID file at $PIDFILE"
+          rm -f $PIDFILE
+          tput bold
+          echo "$AMBARI_AGENT successfully stopped"
+          tput sgr0
+        else
+          tput bold
+          echo "$AMBARI_AGENT is not running. No PID found at $PIDFILE"
+          tput sgr0
+        fi
+        ;;
+  restart)
+        echo -e "Restarting $AMBARI_AGENT"
+        $0 stop
+        $0 start
+        ;;     
+  *)
+        tput bold
+        echo "Usage: /usr/sbin/ambari-agent {start|stop|restart|status}"
+        tput sgr0
+        exit 1
+esac
+
+exit 0

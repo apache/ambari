@@ -1,0 +1,51 @@
+{{!
+* Licensed to the Apache Software Foundation (ASF) under one
+* or more contributor license agreements.  See the NOTICE file
+* distributed with this work for additional information
+* regarding copyright ownership.  The ASF licenses this file
+* to you under the Apache License, Version 2.0 (the
+* "License"); you may not use this file except in compliance
+* with the License.  You may obtain a copy of the License at
+*
+*     http://www.apache.org/licenses/LICENSE-2.0
+*
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
+* limitations under the License.
+}}
+
+<div class="rackHeader">
+  <div class="statusName clearfix">
+    <div {{bindAttr class="view.statusIndicator rack.status"}}></div>
+    <div class="rackName">{{rack.name}}</div>
+    <!--<a href="#" class="toggler" {{!action toggleRack target="view" on="click" }}>-->
+      <!--<span {{!bindAttr class="view.heatmapTogglerClass"}}></span>-->
+    <!--</a>-->
+  </div>
+</div>
+<!--<div class="hostsSummary clearfix">-->
+  <!--<div class="textBlock">Total hosts: {{!rack.hosts.length}}</div>-->
+  <!--{{!#if view.heatmapIsOpened}}-->
+    <!--<div class="textBlock">-->
+      <!--<div class="indicatorG"></div>-->
+      <!--Hosts in live state: {{!rack.liveHostsCount}}-->
+    <!--</div>-->
+    <!--<div class="textBlock">-->
+      <!--<div class="indicatorY"></div>-->
+      <!--Hosts in critical state: {{!rack.criticalHostsCount}}-->
+    <!--</div>-->
+    <!--<div class="textBlock">-->
+      <!--<div class="indicatorR"></div>-->
+      <!--Hosts in dead state: {{!rack.deadHostsCount}}-->
+    <!--</div>-->
+  <!--{{!/if}}-->
+<!--</div>-->
+<div {{bindAttr class="view.heatmapTogglerClass view.hostsBlockClass"}}>
+  {{#each rack.hosts}}
+    <div {{bindAttr style="view.hostCssStyle"}}>
+      {{view App.MainChartsHeatmapHostView contentBinding="this"}}
+    </div>
+  {{/each}}
+</div>

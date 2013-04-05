@@ -1,0 +1,512 @@
+{
+  "href" : "http://ec2-107-20-107-224.compute-1.amazonaws.com:8080/api/v1/hosts?fields=*",
+  "items" : [
+    {
+      "href" : "http://ec2-107-20-107-224.compute-1.amazonaws.com:8080/api/v1/hosts/ip-10-190-153-220.ec2.internal",
+      "Hosts" : {
+        "host_status" : "HEALTHY",
+        "public_host_name" : "ec2-50-19-188-43.compute-1.amazonaws.com",
+        "cpu_count" : 2,
+        "rack_info" : "/default-rack",
+        "host_health_report" : "",
+        "os_arch" : "x86_64",
+        "host_name" : "ip-10-190-153-220.ec2.internal",
+        "disk_info" : [
+          {
+            "available" : "3822572",
+            "used" : "2022188",
+            "percent" : "35%",
+            "size" : "5904748",
+            "type" : "ext3",
+            "mountpoint" : "/"
+          },
+          {
+            "available" : "3932160",
+            "used" : "0",
+            "percent" : "0%",
+            "size" : "3932160",
+            "type" : "tmpfs",
+            "mountpoint" : "/dev/shm"
+          },
+          {
+            "available" : "411234588",
+            "used" : "203012",
+            "percent" : "1%",
+            "size" : "433455904",
+            "type" : "ext3",
+            "mountpoint" : "/grid/0"
+          },
+          {
+            "available" : "411234588",
+            "used" : "203012",
+            "percent" : "1%",
+            "size" : "433455904",
+            "type" : "ext3",
+            "mountpoint" : "/grid/1"
+          }
+        ],
+        "ip" : "10.190.153.220",
+        "os_type" : "redhat5",
+        "last_heartbeat_time" : 1358871154566,
+        "host_state" : "HEALTHY",
+        "last_agent_env" : {
+          "paths" : [
+            {
+              "name" : "/etc/hadoop",
+              "type" : "not_exist"
+            },
+            {
+              "name" : "/etc/hadoop/conf",
+              "type" : "not_exist"
+            },
+            {
+              "name" : "/etc/hbase",
+              "type" : "not_exist"
+            },
+            {
+              "name" : "/etc/hcatalog",
+              "type" : "not_exist"
+            },
+            {
+              "name" : "/etc/hive",
+              "type" : "not_exist"
+            },
+            {
+              "name" : "/etc/oozie",
+              "type" : "not_exist"
+            },
+            {
+              "name" : "/etc/sqoop",
+              "type" : "not_exist"
+            },
+            {
+              "name" : "/etc/ganglia",
+              "type" : "not_exist"
+            },
+            {
+              "name" : "/etc/nagios",
+              "type" : "not_exist"
+            },
+            {
+              "name" : "/var/run/hadoop",
+              "type" : "not_exist"
+            },
+            {
+              "name" : "/var/run/zookeeper",
+              "type" : "not_exist"
+            },
+            {
+              "name" : "/var/run/hbase",
+              "type" : "not_exist"
+            },
+            {
+              "name" : "/var/run/templeton",
+              "type" : "not_exist"
+            },
+            {
+              "name" : "/var/run/oozie",
+              "type" : "not_exist"
+            },
+            {
+              "name" : "/var/log/hadoop",
+              "type" : "not_exist"
+            },
+            {
+              "name" : "/var/log/zookeeper",
+              "type" : "not_exist"
+            },
+            {
+              "name" : "/var/log/hbase",
+              "type" : "not_exist"
+            },
+            {
+              "name" : "/var/run/templeton",
+              "type" : "not_exist"
+            },
+            {
+              "name" : "/var/log/hive",
+              "type" : "not_exist"
+            },
+            {
+              "name" : "/var/log/nagios",
+              "type" : "not_exist"
+            }
+          ],
+          "javaProcs" : [ ],
+          "rpms" : [
+            {
+              "name" : "yum",
+              "installed" : true,
+              "version" : "yum-3.2.22-39.el5"
+            },
+            {
+              "name" : "rpm",
+              "installed" : true,
+              "version" : "rpm-4.4.2.3-27.el5"
+            },
+            {
+              "name" : "openssl",
+              "installed" : true,
+              "version" : "openssl-0.9.8e-22.el5\nopenssl-0.9.8e-22.el5"
+            },
+            {
+              "name" : "curl",
+              "installed" : true,
+              "version" : "curl-7.15.5-15.el5\ncurl-7.15.5-15.el5"
+            },
+            {
+              "name" : "wget",
+              "installed" : false
+            },
+            {
+              "name" : "net-snmp",
+              "installed" : true,
+              "version" : "net-snmp-5.3.2.2-17.el5"
+            },
+            {
+              "name" : "ntpd",
+              "installed" : false
+            },
+            {
+              "name" : "ruby",
+              "installed" : true,
+              "version" : "ruby-1.8.5-24.el5"
+            },
+            {
+              "name" : "puppet",
+              "installed" : false
+            },
+            {
+              "name" : "nagios",
+              "installed" : false
+            },
+            {
+              "name" : "ganglia",
+              "installed" : false
+            },
+            {
+              "name" : "passenger",
+              "installed" : false
+            },
+            {
+              "name" : "hadoop",
+              "installed" : false
+            },
+            {
+              "name" : "hbase",
+              "installed" : false
+            },
+            {
+              "name" : "oozie",
+              "installed" : false
+            },
+            {
+              "name" : "sqoop",
+              "installed" : false
+            },
+            {
+              "name" : "pig",
+              "installed" : false
+            },
+            {
+              "name" : "zookeeper",
+              "installed" : false
+            },
+            {
+              "name" : "hive",
+              "installed" : false
+            },
+            {
+              "name" : "libconfuse",
+              "installed" : false
+            },
+            {
+              "name" : "postgresql",
+              "installed" : true,
+              "version" : "postgresql-8.1.23-1.el5_7.3"
+            },
+            {
+              "name" : "httpd",
+              "installed" : true,
+              "version" : "httpd-2.2.3-63.el5"
+            },
+            {
+              "name" : "apache2",
+              "installed" : false
+            },
+            {
+              "name" : "http-server",
+              "installed" : false
+            }
+          ],
+          "varRunHadoopPidCount" : 0,
+          "varLogHadoopLogCount" : 0,
+          "etcAlternativesConf" : [ ],
+          "repoInfo" : "Loaded plugins: amazon-id, fastestmirror, rhui-lb, security\nrepo id                             repo name                             status\nAMBARI.dev-1.x                      Ambari 1.x                                6\nHDP-UTILS-1.1.0.15                  Hortonworks Data Platform Utils Versi    51\nepel                                Extra Packages for Enterprise Linux 5  7243\nrhui-us-east-client-config-server-5 Red Hat Update Infrastructure 2.0 Cli     1\nrhui-us-east-rhel-server            Red Hat Enterprise Linux Server 5 (RP 14819\nrepolist: 22120\n"
+        },
+        "last_registration_time" : 1358871040696,
+        "total_mem" : 7864320
+      }
+    },
+    {
+      "href" : "http://ec2-107-20-107-224.compute-1.amazonaws.com:8080/api/v1/hosts/domU-12-31-39-14-04-91.compute-1.internal",
+      "Hosts" : {
+        "host_status" : "HEALTHY",
+        "public_host_name" : "ec2-107-20-107-224.compute-1.amazonaws.com",
+        "cpu_count" : 2,
+        "rack_info" : "/default-rack",
+        "host_health_report" : "",
+        "os_arch" : "x86_64",
+        "host_name" : "domU-12-31-39-14-04-91.compute-1.internal",
+        "disk_info" : [
+          {
+            "available" : "3400492",
+            "used" : "2444268",
+            "percent" : "42%",
+            "size" : "5904748",
+            "type" : "ext3",
+            "mountpoint" : "/"
+          },
+          {
+            "available" : "3932160",
+            "used" : "0",
+            "percent" : "0%",
+            "size" : "3932160",
+            "type" : "tmpfs",
+            "mountpoint" : "/dev/shm"
+          },
+          {
+            "available" : "411234588",
+            "used" : "203012",
+            "percent" : "1%",
+            "size" : "433455904",
+            "type" : "ext3",
+            "mountpoint" : "/grid/0"
+          },
+          {
+            "available" : "411234588",
+            "used" : "203012",
+            "percent" : "1%",
+            "size" : "433455904",
+            "type" : "ext3",
+            "mountpoint" : "/grid/1"
+          }
+        ],
+        "ip" : "10.206.7.95",
+        "os_type" : "redhat5",
+        "last_heartbeat_time" : 1358871154070,
+        "host_state" : "HEALTHY",
+        "last_agent_env" : {
+          "paths" : [
+            {
+              "name" : "/etc/hadoop",
+              "type" : "directory"
+            },
+            {
+              "name" : "/etc/hadoop/conf",
+              "type" : "file"
+            },
+            {
+              "name" : "/etc/hbase",
+              "type" : "not_exist"
+            },
+            {
+              "name" : "/etc/hcatalog",
+              "type" : "not_exist"
+            },
+            {
+              "name" : "/etc/hive",
+              "type" : "not_exist"
+            },
+            {
+              "name" : "/etc/oozie",
+              "type" : "not_exist"
+            },
+            {
+              "name" : "/etc/sqoop",
+              "type" : "not_exist"
+            },
+            {
+              "name" : "/etc/ganglia",
+              "type" : "not_exist"
+            },
+            {
+              "name" : "/etc/nagios",
+              "type" : "not_exist"
+            },
+            {
+              "name" : "/var/run/hadoop",
+              "type" : "not_exist"
+            },
+            {
+              "name" : "/var/run/zookeeper",
+              "type" : "not_exist"
+            },
+            {
+              "name" : "/var/run/hbase",
+              "type" : "not_exist"
+            },
+            {
+              "name" : "/var/run/templeton",
+              "type" : "not_exist"
+            },
+            {
+              "name" : "/var/run/oozie",
+              "type" : "not_exist"
+            },
+            {
+              "name" : "/var/log/hadoop",
+              "type" : "not_exist"
+            },
+            {
+              "name" : "/var/log/zookeeper",
+              "type" : "not_exist"
+            },
+            {
+              "name" : "/var/log/hbase",
+              "type" : "not_exist"
+            },
+            {
+              "name" : "/var/run/templeton",
+              "type" : "not_exist"
+            },
+            {
+              "name" : "/var/log/hive",
+              "type" : "not_exist"
+            },
+            {
+              "name" : "/var/log/nagios",
+              "type" : "not_exist"
+            }
+          ],
+          "javaProcs" : [
+            {
+              "user" : "root",
+              "pid" : 2283,
+              "command" : "/bin/sh -c /usr/jdk64/jdk1.6.0_31/bin/java -server -XX:NewRatio=2 -XX:+UseConcMarkSweepGC -Xms512m -Xmx2048m -cp /etc/ambari-server/conf:/usr/lib/ambari-server/*:/usr/kerberos/sbin:/usr/kerberos/bin:/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin:/root/bin:/usr/lib/ambari-server/* org.apache.ambari.server.controller.AmbariServer >/var/log/ambari-server/ambari-server.out 2>&1",
+              "hadoop" : true
+            },
+            {
+              "user" : "root",
+              "pid" : 2284,
+              "command" : "/usr/jdk64/jdk1.6.0_31/bin/java -server -XX:NewRatio=2 -XX:+UseConcMarkSweepGC -Xms512m -Xmx2048m -cp /etc/ambari-server/conf:/usr/lib/ambari-server/*:/usr/kerberos/sbin:/usr/kerberos/bin:/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin:/root/bin:/usr/lib/ambari-server/* org.apache.ambari.server.controller.AmbariServer",
+              "hadoop" : false
+            }
+          ],
+          "rpms" : [
+            {
+              "name" : "yum",
+              "installed" : true,
+              "version" : "yum-3.2.22-39.el5"
+            },
+            {
+              "name" : "rpm",
+              "installed" : true,
+              "version" : "rpm-4.4.2.3-27.el5"
+            },
+            {
+              "name" : "openssl",
+              "installed" : true,
+              "version" : "openssl-0.9.8e-22.el5\nopenssl-0.9.8e-22.el5"
+            },
+            {
+              "name" : "curl",
+              "installed" : true,
+              "version" : "curl-7.15.5-15.el5\ncurl-7.15.5-15.el5"
+            },
+            {
+              "name" : "wget",
+              "installed" : false
+            },
+            {
+              "name" : "net-snmp",
+              "installed" : true,
+              "version" : "net-snmp-5.3.2.2-17.el5"
+            },
+            {
+              "name" : "ntpd",
+              "installed" : false
+            },
+            {
+              "name" : "ruby",
+              "installed" : true,
+              "version" : "ruby-1.8.5-24.el5"
+            },
+            {
+              "name" : "puppet",
+              "installed" : false
+            },
+            {
+              "name" : "nagios",
+              "installed" : false
+            },
+            {
+              "name" : "ganglia",
+              "installed" : false
+            },
+            {
+              "name" : "passenger",
+              "installed" : false
+            },
+            {
+              "name" : "hadoop",
+              "installed" : false
+            },
+            {
+              "name" : "hbase",
+              "installed" : false
+            },
+            {
+              "name" : "oozie",
+              "installed" : false
+            },
+            {
+              "name" : "sqoop",
+              "installed" : false
+            },
+            {
+              "name" : "pig",
+              "installed" : false
+            },
+            {
+              "name" : "zookeeper",
+              "installed" : false
+            },
+            {
+              "name" : "hive",
+              "installed" : false
+            },
+            {
+              "name" : "libconfuse",
+              "installed" : false
+            },
+            {
+              "name" : "postgresql",
+              "installed" : true,
+              "version" : "postgresql-8.1.23-6.el5_8"
+            },
+            {
+              "name" : "httpd",
+              "installed" : true,
+              "version" : "httpd-2.2.3-63.el5"
+            },
+            {
+              "name" : "apache2",
+              "installed" : false
+            },
+            {
+              "name" : "http-server",
+              "installed" : false
+            }
+          ],
+          "varRunHadoopPidCount" : 0,
+          "varLogHadoopLogCount" : 0,
+          "etcAlternativesConf" : [ ],
+          "repoInfo" : "Loaded plugins: amazon-id, fastestmirror, rhui-lb, security\nrepo id                             repo name                             status\nAMBARI.dev-1.x                      Ambari 1.x                                6\nHDP-UTILS-1.1.0.15                  Hortonworks Data Platform Utils Versi    51\nepel                                Extra Packages for Enterprise Linux 5  7243\nrhui-us-east-client-config-server-5 Red Hat Update Infrastructure 2.0 Cli     1\nrhui-us-east-rhel-server            Red Hat Enterprise Linux Server 5 (RP 14819\nrepolist: 22120\n"
+        },
+        "last_registration_time" : 1358870784262,
+        "total_mem" : 7864320
+      }
+    }
+  ]
+}

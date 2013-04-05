@@ -1,0 +1,347 @@
+{
+  "name" : "HDP",
+  "version" : "1.2.0",
+  "repositories" : [ {
+    "baseUrl" : "http://s3.amazonaws.com/dev.hortonworks.com/HDP-1.2.0/repos/centos6",
+    "osType" : "centos6",
+    "repoId" : "HDP-1.2.0",
+    "repoName" : "HDP",
+    "mirrorsList" : null
+  }, {
+    "baseUrl" : null,
+    "osType" : "centos6",
+    "repoId" : "HDP-epel",
+    "repoName" : "HDP-epel",
+    "mirrorsList" : "http://mirrors.fedoraproject.org/mirrorlist?repo=epel-6&arch=$basearch"
+  }, {
+    "baseUrl" : "http://s3.amazonaws.com/dev.hortonworks.com/HDP-1.2.0/repos/centos5",
+    "osType" : "centos5",
+    "repoId" : "HDP-1.2.0",
+    "repoName" : "HDP",
+    "mirrorsList" : null
+  }, {
+    "baseUrl" : null,
+    "osType" : "centos5",
+    "repoId" : "HDP-epel",
+    "repoName" : "HDP-epel",
+    "mirrorsList" : "http://mirrors.fedoraproject.org/mirrorlist?repo=epel-5&arch=$basearch"
+  }, {
+    "baseUrl" : "http://s3.amazonaws.com/dev.hortonworks.com/HDP-1.2.0/repos/centos6",
+    "osType" : "redhat6",
+    "repoId" : "HDP-1.2.0",
+    "repoName" : "HDP",
+    "mirrorsList" : null
+  }, {
+    "baseUrl" : null,
+    "osType" : "redhat6",
+    "repoId" : "HDP-epel",
+    "repoName" : "HDP-epel",
+    "mirrorsList" : "http://mirrors.fedoraproject.org/mirrorlist?repo=epel-6&arch=$basearch"
+  }, {
+    "baseUrl" : "http://s3.amazonaws.com/dev.hortonworks.com/HDP-1.2.0/repos/centos5",
+    "osType" : "redhat5",
+    "repoId" : "HDP-1.2.0",
+    "repoName" : "HDP",
+    "mirrorsList" : null
+  }, {
+    "baseUrl" : null,
+    "osType" : "redhat5",
+    "repoId" : "HDP-epel",
+    "repoName" : "HDP-epel",
+    "mirrorsList" : "http://mirrors.fedoraproject.org/mirrorlist?repo=epel-5&arch=$basearch"
+  }, {
+    "baseUrl" : "http://s3.amazonaws.com/dev.hortonworks.com/HDP-1.2.0/repos/suse11",
+    "osType" : "suse11",
+    "repoId" : "HDP-1.2.0",
+    "repoName" : "HDP",
+    "mirrorsList" : null
+  }, {
+    "baseUrl" : "http://s3.amazonaws.com/dev.hortonworks.com/HDP-UTILS-1.1.0.15/repos/suse11",
+    "osType" : "suse11",
+    "repoId" : "HDP-UTILS-1.1.0.15",
+    "repoName" : "HDP-UTILS",
+    "mirrorsList" : null
+  } ],
+  "services" : [ {
+    "name" : "WEBHCAT",
+    "version" : "0.1.4.1-1",
+    "user" : "root",
+    "comment" : "This is comment for WEBHCAT service",
+    "components" : [ {
+      "name" : "WEBHCAT_SERVER",
+      "category" : "MASTER",
+      "client" : false,
+      "master" : true
+    } ],
+    "clientOnlyService" : false,
+    "clientComponent" : {
+      "name" : "WEBHCAT_SERVER",
+      "category" : "MASTER",
+      "client" : false,
+      "master" : true
+    }
+  }, {
+    "name" : "SQOOP",
+    "version" : "1.4.2.1-1",
+    "user" : "root",
+    "comment" : "Tool for transferring bulk data between Apache Hadoop and structured data stores such as relational databases",
+    "components" : [ {
+      "name" : "SQOOP",
+      "category" : "CLIENT",
+      "client" : true,
+      "master" : false
+    } ],
+    "clientOnlyService" : true,
+    "clientComponent" : {
+      "name" : "SQOOP",
+      "category" : "CLIENT",
+      "client" : true,
+      "master" : false
+    }
+  }, {
+    "name" : "NAGIOS",
+    "version" : "1.0",
+    "user" : "root",
+    "comment" : "Nagios Monitoring and Alerting system",
+    "components" : [ {
+      "name" : "NAGIOS_SERVER",
+      "category" : "MASTER",
+      "client" : false,
+      "master" : true
+    } ],
+    "clientOnlyService" : false,
+    "clientComponent" : {
+      "name" : "NAGIOS_SERVER",
+      "category" : "MASTER",
+      "client" : false,
+      "master" : true
+    }
+  }, {
+    "name" : "HDFS",
+    "version" : "1.1.0.1-1",
+    "user" : "root",
+    "comment" : "Apache Hadoop Distributed File System",
+    "components" : [ {
+      "name" : "NAMENODE",
+      "category" : "MASTER",
+      "client" : false,
+      "master" : true
+    }, {
+      "name" : "DATANODE",
+      "category" : "SLAVE",
+      "client" : false,
+      "master" : false
+    }, {
+      "name" : "SECONDARY_NAMENODE",
+      "category" : "MASTER",
+      "client" : false,
+      "master" : true
+    }, {
+      "name" : "HDFS_CLIENT",
+      "category" : "CLIENT",
+      "client" : true,
+      "master" : false
+    } ],
+    "clientOnlyService" : false,
+    "clientComponent" : {
+      "name" : "HDFS_CLIENT",
+      "category" : "CLIENT",
+      "client" : true,
+      "master" : false
+    }
+  }, {
+    "name" : "PIG",
+    "version" : "0.10.0.1-1",
+    "user" : "root",
+    "comment" : "Scripting platform for analyzing large datasets",
+    "components" : [ {
+      "name" : "PIG",
+      "category" : "CLIENT",
+      "client" : true,
+      "master" : false
+    } ],
+    "clientOnlyService" : true,
+    "clientComponent" : {
+      "name" : "PIG",
+      "category" : "CLIENT",
+      "client" : true,
+      "master" : false
+    }
+  }, {
+    "name" : "HBASE",
+    "version" : "0.94.2.1-1",
+    "user" : "mapred",
+    "comment" : "Non-relational distributed database and centralized service for configuration management & synchronization",
+    "components" : [ {
+      "name" : "HBASE_MASTER",
+      "category" : "MASTER",
+      "client" : false,
+      "master" : true
+    }, {
+      "name" : "HBASE_REGIONSERVER",
+      "category" : "SLAVE",
+      "client" : false,
+      "master" : false
+    }, {
+      "name" : "HBASE_CLIENT",
+      "category" : "CLIENT",
+      "client" : true,
+      "master" : false
+    } ],
+    "clientOnlyService" : false,
+    "clientComponent" : {
+      "name" : "HBASE_CLIENT",
+      "category" : "CLIENT",
+      "client" : true,
+      "master" : false
+    }
+  }, {
+    "name" : "ZOOKEEPER",
+    "version" : "3.4.5.1-1",
+    "user" : "root",
+    "comment" : "This is comment for ZOOKEEPER service",
+    "components" : [ {
+      "name" : "ZOOKEEPER_SERVER",
+      "category" : "MASTER",
+      "client" : false,
+      "master" : true
+    }, {
+      "name" : "ZOOKEEPER_CLIENT",
+      "category" : "CLIENT",
+      "client" : true,
+      "master" : false
+    } ],
+    "clientOnlyService" : false,
+    "clientComponent" : {
+      "name" : "ZOOKEEPER_CLIENT",
+      "category" : "CLIENT",
+      "client" : true,
+      "master" : false
+    }
+  }, {
+    "name" : "GANGLIA",
+    "version" : "1.0",
+    "user" : "root",
+    "comment" : "Ganglia Metrics Collection system",
+    "components" : [ {
+      "name" : "GANGLIA_SERVER",
+      "category" : "MASTER",
+      "client" : false,
+      "master" : true
+    }, {
+      "name" : "GANGLIA_MONITOR",
+      "category" : "SLAVE",
+      "client" : false,
+      "master" : false
+    }, {
+      "name" : "MONITOR_WEBSERVER",
+      "category" : "MASTER",
+      "client" : false,
+      "master" : true
+    } ],
+    "clientOnlyService" : false,
+    "clientComponent" : {
+      "name" : "GANGLIA_SERVER",
+      "category" : "MASTER",
+      "client" : false,
+      "master" : true
+    }
+  }, {
+    "name" : "HCATALOG",
+    "version" : "0.4.0.1-1",
+    "user" : "root",
+    "comment" : "This is comment for HCATALOG service",
+    "components" : [ {
+      "name" : "HCAT",
+      "category" : "CLIENT",
+      "client" : true,
+      "master" : false
+    } ],
+    "clientOnlyService" : true,
+    "clientComponent" : {
+      "name" : "HCAT",
+      "category" : "CLIENT",
+      "client" : true,
+      "master" : false
+    }
+  }, {
+    "name" : "HIVE",
+    "version" : "0.9.0.1-1",
+    "user" : "root",
+    "comment" : "Data warehouse system for ad-hoc queries & analysis of large datasets and table & storage management service",
+    "components" : [ {
+      "name" : "HIVE_SERVER",
+      "category" : "MASTER",
+      "client" : false,
+      "master" : true
+    }, {
+      "name" : "MYSQL_SERVER",
+      "category" : "MASTER",
+      "client" : false,
+      "master" : true
+    }, {
+      "name" : "HIVE_CLIENT",
+      "category" : "CLIENT",
+      "client" : true,
+      "master" : false
+    } ],
+    "clientOnlyService" : false,
+    "clientComponent" : {
+      "name" : "HIVE_CLIENT",
+      "category" : "CLIENT",
+      "client" : true,
+      "master" : false
+    }
+  }, {
+    "name" : "OOZIE",
+    "version" : "3.2.0.1-1",
+    "user" : "root",
+    "comment" : "System for workflow coordination and execution of Apache Hadoop jobs",
+    "components" : [ {
+      "name" : "OOZIE_SERVER",
+      "category" : "MASTER",
+      "client" : false,
+      "master" : true
+    }, {
+      "name" : "OOZIE_CLIENT",
+      "category" : "CLIENT",
+      "client" : true,
+      "master" : false
+    } ],
+    "clientOnlyService" : false,
+    "clientComponent" : {
+      "name" : "OOZIE_CLIENT",
+      "category" : "CLIENT",
+      "client" : true,
+      "master" : false
+    }
+  }, {
+    "name" : "MAPREDUCE",
+    "version" : "1.1.0.1-1",
+    "user" : "mapred",
+    "comment" : "Apache Hadoop Distributed Processing Framework",
+    "components" : [ {
+      "name" : "JOBTRACKER",
+      "category" : "MASTER",
+      "client" : false,
+      "master" : true
+    }, {
+      "name" : "TASKTRACKER",
+      "category" : "SLAVE",
+      "client" : false,
+      "master" : false
+    }, {
+      "name" : "MAPREDUCE_CLIENT",
+      "category" : "CLIENT",
+      "client" : true,
+      "master" : false
+    } ],
+    "clientOnlyService" : false,
+    "clientComponent" : {
+      "name" : "MAPREDUCE_CLIENT",
+      "category" : "CLIENT",
+      "client" : true,
+      "master" : false
+    }
+  } ]
+}

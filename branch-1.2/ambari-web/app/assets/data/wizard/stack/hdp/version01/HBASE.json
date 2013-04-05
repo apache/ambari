@@ -1,0 +1,55 @@
+{
+  "name" : "HBASE",
+  "version" : "0.94.2.1-1",
+  "user" : "mapred",
+  "comment" : "This is comment for HBASE service",
+  "properties" : [ {
+    "name" : "hbase.cluster.distributed",
+    "value" : "true",
+    "description" : "The mode the cluster will be in. Possible values are\n      false for standalone mode and true for distributed mode.  If\n      false, startup will run all HBase and ZooKeeper daemons together\n      in the one JVM.\n    ",
+    "filename" : "hbase-site.xml"
+  }, {
+    "name" : "hbase.master.lease.thread.wakefrequency",
+    "value" : "3000",
+    "description" : "The interval between checks for expired region server leases.\n    This value has been reduced due to the other reduced values above so that\n    the master will notice a dead region server sooner. The default is 15 seconds.\n    ",
+    "filename" : "hbase-site.xml"
+  }, {
+    "name" : "hbase.superuser",
+    "value" : "hbase",
+    "description" : "List of users or groups (comma-separated), who are allowed\n    full privileges, regardless of stored ACLs, across the cluster.\n    Only used when HBase security is enabled.\n    ",
+    "filename" : "hbase-site.xml"
+  }, {
+    "name" : "hbase.zookeeper.property.clientPort",
+    "value" : "2181",
+    "description" : "Property from ZooKeeper's config zoo.cfg.\n    The port at which the clients will connect.\n    ",
+    "filename" : "hbase-site.xml"
+  }, {
+    "name" : "hbase.regionserver.optionalcacheflushinterval",
+    "value" : "10000",
+    "description" : "\n      Amount of time to wait since the last time a region was flushed before\n      invoking an optional cache flush. Default 60,000.\n    ",
+    "filename" : "hbase-site.xml"
+  } ],
+  "components" : [ {
+    "name" : "HBASE_MASTER",
+    "category" : "MASTER",
+    "client" : false,
+    "master" : true
+  }, {
+    "name" : "HBASE_REGIONSERVER",
+    "category" : "SLAVE",
+    "client" : false,
+    "master" : false
+  }, {
+    "name" : "HBASE_CLIENT",
+    "category" : "CLIENT",
+    "client" : true,
+    "master" : false
+  } ],
+  "clientOnlyService" : false,
+  "clientComponent" : {
+    "name" : "HBASE_CLIENT",
+    "category" : "CLIENT",
+    "client" : true,
+    "master" : false
+  }
+}

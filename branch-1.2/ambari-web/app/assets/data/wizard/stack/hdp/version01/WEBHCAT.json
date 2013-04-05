@@ -1,0 +1,40 @@
+{
+  "name" : "WEBHCAT",
+  "version" : "0.1.4.1-1",
+  "user" : "root",
+  "comment" : "This is comment for WEBHCAT service",
+  "properties" : [ {
+    "name" : "templeton.port",
+    "value" : "50111",
+    "description" : "The HTTP port for the main server.",
+    "filename" : "webhcat-site.xml"
+  }, {
+    "name" : "templeton.storage.class",
+    "value" : "org.apache.hcatalog.templeton.tool.ZooKeeperStorage",
+    "description" : "The class to use as storage",
+    "filename" : "webhcat-site.xml"
+  }, {
+    "name" : "templeton.override.enabled",
+    "value" : "false",
+    "description" : "\n     Enable the override path in templeton.override.jars\n   ",
+    "filename" : "webhcat-site.xml"
+  }, {
+    "name" : "templeton.streaming.jar",
+    "value" : "hdfs:///apps/templeton/hadoop-streaming.jar",
+    "description" : "The hdfs path to the Hadoop streaming jar file.",
+    "filename" : "webhcat-site.xml"
+  } ],
+  "components" : [ {
+    "name" : "WEBHCAT_SERVER",
+    "category" : "MASTER",
+    "client" : false,
+    "master" : true
+  } ],
+  "clientOnlyService" : false,
+  "clientComponent" : {
+    "name" : "WEBHCAT_SERVER",
+    "category" : "MASTER",
+    "client" : false,
+    "master" : true
+  }
+}

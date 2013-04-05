@@ -1,0 +1,306 @@
+{
+  "name" : "HDP",
+  "version" : "0.1",
+  "repositories" : [ {
+    "baseUrl" : "http://public-repo-1.hortonworks.com/HDP-1.1.1.16/repos/centos6",
+    "osType" : "centos6",
+    "repoId" : "HDP-1.1.1.16",
+    "repoName" : "HDP",
+    "mirrorsList" : null
+  }, {
+    "baseUrl" : "http://public-repo-1.hortonworks.com/HDP-UTILS-1.1.0.15/repos/centos6",
+    "osType" : "centos6",
+    "repoId" : "HDP-UTILS-1.1.0.15",
+    "repoName" : "HDP-UTILS",
+    "mirrorsList" : null
+  }, {
+    "baseUrl" : null,
+    "osType" : "centos6",
+    "repoId" : "epel",
+    "repoName" : "epel",
+    "mirrorsList" : "https://mirrors.fedoraproject.org/metalink?repo=epel-6&arch=$basearch"
+  }, {
+    "baseUrl" : "http://public-repo-1.hortonworks.com/HDP-1.1.1.16/repos/centos5",
+    "osType" : "centos5",
+    "repoId" : "HDP-1.1.1.16",
+    "repoName" : "HDP",
+    "mirrorsList" : null
+  }, {
+    "baseUrl" : "http://public-repo-1.hortonworks.com/HDP-UTILS-1.1.0.15/repos/centos5",
+    "osType" : "centos5",
+    "repoId" : "HDP-UTILS-1.1.0.15",
+    "repoName" : "HDP-UTILS",
+    "mirrorsList" : null
+  }, {
+    "baseUrl" : null,
+    "osType" : "centos5",
+    "repoId" : "epel",
+    "repoName" : "epel",
+    "mirrorsList" : "https://mirrors.fedoraproject.org/metalink?repo=epel-5&arch=$basearch"
+  } ],
+  "services" : [ {
+    "name" : "WEBHCAT",
+    "version" : "1.0",
+    "user" : "root",
+    "comment" : "This is comment for WEBHCAT service",
+    "components" : [ {
+      "name" : "WEBHCAT_SERVER",
+      "category" : "MASTER",
+      "client" : false,
+      "master" : true
+    } ],
+    "clientComponent" : {
+      "name" : "WEBHCAT_SERVER",
+      "category" : "MASTER",
+      "client" : false,
+      "master" : true
+    }
+  }, {
+    "name" : "SQOOP",
+    "version" : "1.0",
+    "user" : "root",
+    "comment" : "This is comment for SQOOP service",
+    "components" : [ {
+      "name" : "SQOOP",
+      "category" : "CLIENT",
+      "client" : true,
+      "master" : false
+    } ],
+    "clientComponent" : {
+      "name" : "SQOOP",
+      "category" : "CLIENT",
+      "client" : true,
+      "master" : false
+    }
+  }, {
+    "name" : "NAGIOS",
+    "version" : "1.0",
+    "user" : "root",
+    "comment" : "This is comment for NAGIOS service",
+    "components" : [ {
+      "name" : "NAGIOS_SERVER",
+      "category" : "MASTER",
+      "client" : false,
+      "master" : true
+    } ],
+    "clientComponent" : {
+      "name" : "NAGIOS_SERVER",
+      "category" : "MASTER",
+      "client" : false,
+      "master" : true
+    }
+  }, {
+    "name" : "HDFS",
+    "version" : "1.0",
+    "user" : "root",
+    "comment" : "This is comment for HDFS service",
+    "components" : [ {
+      "name" : "NAMENODE",
+      "category" : "MASTER",
+      "client" : false,
+      "master" : true
+    }, {
+      "name" : "DATANODE",
+      "category" : "SLAVE",
+      "client" : false,
+      "master" : false
+    }, {
+      "name" : "SECONDARY_NAMENODE",
+      "category" : "MASTER",
+      "client" : false,
+      "master" : true
+    }, {
+      "name" : "HDFS_CLIENT",
+      "category" : "CLIENT",
+      "client" : true,
+      "master" : false
+    } ],
+    "clientComponent" : {
+      "name" : "HDFS_CLIENT",
+      "category" : "CLIENT",
+      "client" : true,
+      "master" : false
+    }
+  }, {
+    "name" : "PIG",
+    "version" : "1.0",
+    "user" : "root",
+    "comment" : "This is comment for PIG service",
+    "components" : [ {
+      "name" : "PIG",
+      "category" : "CLIENT",
+      "client" : true,
+      "master" : false
+    } ],
+    "clientComponent" : {
+      "name" : "PIG",
+      "category" : "CLIENT",
+      "client" : true,
+      "master" : false
+    }
+  }, {
+    "name" : "HBASE",
+    "version" : "1.0",
+    "user" : "mapred",
+    "comment" : "This is comment for HBASE service",
+    "components" : [ {
+      "name" : "HBASE_MASTER",
+      "category" : "MASTER",
+      "client" : false,
+      "master" : true
+    }, {
+      "name" : "HBASE_REGIONSERVER",
+      "category" : "SLAVE",
+      "client" : false,
+      "master" : false
+    }, {
+      "name" : "HBASE_CLIENT",
+      "category" : "CLIENT",
+      "client" : true,
+      "master" : false
+    } ],
+    "clientComponent" : {
+      "name" : "HBASE_CLIENT",
+      "category" : "CLIENT",
+      "client" : true,
+      "master" : false
+    }
+  }, {
+    "name" : "ZOOKEEPER",
+    "version" : "1.0",
+    "user" : "root",
+    "comment" : "This is comment for ZOOKEEPER service",
+    "components" : [ {
+      "name" : "ZOOKEEPER_SERVER",
+      "category" : "MASTER",
+      "client" : false,
+      "master" : true
+    }, {
+      "name" : "ZOOKEEPER_CLIENT",
+      "category" : "CLIENT",
+      "client" : true,
+      "master" : false
+    } ],
+    "clientComponent" : {
+      "name" : "ZOOKEEPER_CLIENT",
+      "category" : "CLIENT",
+      "client" : true,
+      "master" : false
+    }
+  }, {
+    "name" : "GANGLIA",
+    "version" : "1.0",
+    "user" : "root",
+    "comment" : "This is comment for GANGLIA service",
+    "components" : [ {
+      "name" : "GANGLIA_SERVER",
+      "category" : "MASTER",
+      "client" : false,
+      "master" : true
+    }, {
+      "name" : "GANGLIA_MONITOR",
+      "category" : "SLAVE",
+      "client" : false,
+      "master" : false
+    }, {
+      "name" : "MONITOR_WEBSERVER",
+      "category" : "MASTER",
+      "client" : false,
+      "master" : true
+    } ],
+    "clientComponent" : {
+      "name" : "GANGLIA_SERVER",
+      "category" : "MASTER",
+      "client" : false,
+      "master" : true
+    }
+  }, {
+    "name" : "HCATALOG",
+    "version" : "1.0",
+    "user" : "root",
+    "comment" : "This is comment for HCATALOG service",
+    "components" : [ {
+      "name" : "HCAT",
+      "category" : "CLIENT",
+      "client" : true,
+      "master" : false
+    } ],
+    "clientComponent" : {
+      "name" : "HCAT",
+      "category" : "CLIENT",
+      "client" : true,
+      "master" : false
+    }
+  }, {
+    "name" : "HIVE",
+    "version" : "1.0",
+    "user" : "root",
+    "comment" : "This is comment for HIVE service",
+    "components" : [ {
+      "name" : "HIVE_SERVER",
+      "category" : "MASTER",
+      "client" : false,
+      "master" : true
+    }, {
+      "name" : "HIVE_CLIENT",
+      "category" : "CLIENT",
+      "client" : true,
+      "master" : false
+    } ],
+    "clientComponent" : {
+      "name" : "HIVE_CLIENT",
+      "category" : "CLIENT",
+      "client" : true,
+      "master" : false
+    }
+  }, {
+    "name" : "OOZIE",
+    "version" : "1.0",
+    "user" : "root",
+    "comment" : "This is comment for OOZIE service",
+    "components" : [ {
+      "name" : "OOZIE_SERVER",
+      "category" : "MASTER",
+      "client" : false,
+      "master" : true
+    }, {
+      "name" : "OOZIE_CLIENT",
+      "category" : "CLIENT",
+      "client" : true,
+      "master" : false
+    } ],
+    "clientComponent" : {
+      "name" : "OOZIE_CLIENT",
+      "category" : "CLIENT",
+      "client" : true,
+      "master" : false
+    }
+  }, {
+    "name" : "MAPREDUCE",
+    "version" : "1.0",
+    "user" : "mapred",
+    "comment" : "This is comment for MAPREDUCE service",
+    "components" : [ {
+      "name" : "JOBTRACKER",
+      "category" : "MASTER",
+      "client" : false,
+      "master" : true
+    }, {
+      "name" : "TASKTRACKER",
+      "category" : "SLAVE",
+      "client" : false,
+      "master" : false
+    }, {
+      "name" : "MAPREDUCE_CLIENT",
+      "category" : "CLIENT",
+      "client" : true,
+      "master" : false
+    } ],
+    "clientComponent" : {
+      "name" : "MAPREDUCE_CLIENT",
+      "category" : "CLIENT",
+      "client" : true,
+      "master" : false
+    }
+  } ]
+}

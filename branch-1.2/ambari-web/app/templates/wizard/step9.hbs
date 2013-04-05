@@ -1,0 +1,117 @@
+{{!
+* Licensed to the Apache Software Foundation (ASF) under one
+* or more contributor license agreements.  See the NOTICE file
+* distributed with this work for additional information
+* regarding copyright ownership.  The ASF licenses this file
+* to you under the Apache License, Version 2.0 (the
+* "License"); you may not use this file except in compliance
+* with the License.  You may obtain a copy of the License at
+*
+*     http://www.apache.org/licenses/LICENSE-2.0
+*
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
+* limitations under the License.
+}}
+
+<div id="deploy">
+
+  <h2>{{t installer.step9.header}}</h2>
+
+  <p class="alert alert-info">{{t installer.step9.body}}</p>
+
+  <div id="overallProgress">
+    {{view.isStepCompleted}}
+    <div class="row-fluid">
+      <div class="span10">
+        <div {{bindAttr class="isStepCompleted::progress-striped isStepCompleted::active view.barColor :progress"}}>
+          <div class="bar" {{bindAttr style="view.barWidth"}}>
+          </div>
+        </div>
+      </div>
+      <div class="span2">{{view.progressMessage}}</div>
+    </div>
+  </div>
+
+  <div class="box">
+    <div class="box-header">
+      <div class="pull-left">
+        {{#if controller.showRetry}}
+        <a class="btn btn-primary"
+           href="#" {{action retry}}><i class="icon-repeat icon-white"></i>
+          {{t common.retry}}
+        </a>
+        {{/if}}
+        {{#if App.testMode}}
+        <a class="btn btn-info" href="#" {{action mockBtn target="controller"}}>
+          {{t installer.mockData}}
+        </a>
+        <a class="btn btn-primary"
+           href="#" {{action pollBtn target="controller"}}><i class="icon-repeat icon-white"></i>
+          {{t installer.pollData}}
+        </a>
+        {{/if}}
+      </div>
+
+    </div>
+    <div class="pre-scrollable" style="max-height: 750px;">
+      <table id="deploy-status-by-host" class="table table-bordered table-striped">
+        <thead>
+        <tr>
+          <th class="host">
+            {{t common.host}}
+          </th>
+          <th class="status">{{t common.status}}</th>
+          <!--  given by the parsing function that parses data from bootstrap call -->
+          <th class="message">{{t common.message}}</th>
+          <!-- retrieved from local storage initially -->
+        </tr>
+        </thead>
+
+        <tbody>
+        {{#each host in controller.hosts}}
+        {{#view App.HostStatusView objBinding="host"}}
+        <td>
+          {{host.name}}
+        </td>
+        <td>
+          <div class="progress-bar pull-left">
+            <div {{bindAttr class="view.isHostCompleted::progress-striped view.isHostCompleted::active view.barColor :progress"}}>
+              <div class="bar" {{bindAttr style="view.barWidth"}}>
+              </div>
+            </div>
+          </div>
+          <div class="progress-percentage pull-left">{{host.progress}}%</div>
+        </td>
+        <td>
+          <a {{bindAttr class="view.isFailed:text-error view.isSuccess:text-success view.isWarning:text-warning"}}
+            href="javascript:void(null)"
+            data-toggle="modal" {{action hostLogPopup host target="view"}}>{{host.message}}</a>
+        </td>
+
+        {{/view}}
+        {{/each}}
+
+        </tbody>
+      </table>
+    </div>
+    <div class="box-footer">
+      <hr/>
+      <div class="footer-pagination">
+      </div>
+    </div>
+  </div>
+
+  <div>
+    {{#if view.resultMsg}}
+    <p {{bindAttr class="view.resultMsgColor :alert"}}>{{view.resultMsg}}</p>
+    {{/if}}
+    <div class="btn-area">
+      <a class="btn btn-success pull-right" {{bindAttr disabled="isSubmitDisabled"}} {{action submit target="controller"}}>{{t common.next}} &rarr;</a>
+    </div>
+  </div>
+
+</div>
+</div>

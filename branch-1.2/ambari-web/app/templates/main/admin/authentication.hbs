@@ -1,0 +1,48 @@
+{{!
+* Licensed to the Apache Software Foundation (ASF) under one
+* or more contributor license agreements.  See the NOTICE file
+* distributed with this work for additional information
+* regarding copyright ownership.  The ASF licenses this file
+* to you under the Apache License, Version 2.0 (the
+* "License"); you may not use this file except in compliance
+* with the License.  You may obtain a copy of the License at
+*
+*     http://www.apache.org/licenses/LICENSE-2.0
+*
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
+* limitations under the License.
+}}
+
+{{view App.FormFieldTemplate fieldBinding="view.form.field.method" id="user-auth-method"}}
+
+{{#if view.ldapChecked}}
+  {{view App.FormFieldTemplate fieldBinding="view.form.field.primaryServer"}}
+  {{view App.FormFieldTemplate fieldBinding="view.form.field.secondaryServer"}}
+  {{view App.FormFieldTemplate fieldBinding="view.form.field.useSsl"}}
+  {{view App.FormFieldTemplate fieldBinding="view.form.field.bindMethod"}}
+  {{#if view.useCredentials}}
+    {{view App.FormFieldTemplate fieldBinding="view.form.field.bindUser"}}
+    {{view App.FormFieldTemplate fieldBinding="view.form.field.password"}}
+    {{view App.FormFieldTemplate fieldBinding="view.form.field.passwordRetype"}}
+  {{/if}}
+
+    {{view App.FormFieldTemplate fieldBinding="view.form.field.searchBaseDn"}}
+    {{view App.FormFieldTemplate fieldBinding="view.form.field.usernameAttribute"}}
+
+    <h5>{{t admin.authentication.form.configurationTest}}</h5>
+    {{view App.FormFieldTemplate fieldBinding="view.form.field.userDN"}}
+    {{view App.FormFieldTemplate fieldBinding="view.form.field.userPassword"}}
+
+    <button {{action testConfiguration on="click" target="view.form" }} class="btn">{{t admin.authentication.form.testConfiguration}}</button>
+
+    {{#if view.form.testConfigurationMessage}}
+      <p {{bindAttr class="view.form.testConfigurationClass"}}>{{view.form.testConfigurationMessage}}</p>
+    {{/if}}
+{{/if}}
+<div style="margin:40px 0">
+  <button {{action updateValues target="view.form"}} class="btn">{{t form.cancel}}</button>
+  <button {{action save view.form target="App.router.mainAdminAuthenticationController"}} class="btn btn-primary">{{t form.save}}</button>
+</div>

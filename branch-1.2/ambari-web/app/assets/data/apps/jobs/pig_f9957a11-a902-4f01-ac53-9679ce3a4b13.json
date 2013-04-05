@@ -1,0 +1,19 @@
+{
+  "jobs": [
+    {
+      "jobId": "job_201301280808_0002",
+      "jobName": "PigLatin:pigSmoke\\.sh",
+      "status": "SUCCESS",
+      "userName": "ambari_qa",
+      "submitTime": 1359378741973,
+      "elapsedTime": 18125,
+      "maps": 1,
+      "reduces": 0,
+      "inputBytes": 2186,
+      "outputBytes": 253,
+      "confPath": "hdfs:\/\/ip-10-83-1-168\\.ec2\\.internal:8020\/user\/ambari_qa\/\\.staging\/job_201301280808_0002\/job\\.xml",
+      "workflowId": "pig_f9957a11-a902-4f01-ac53-9679ce3a4b13",
+      "workflowEntityName": "scope-5"
+    }
+  ]
+}
