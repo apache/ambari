@@ -323,11 +323,13 @@ App.format = {
       case 'GANGLIA_MONITOR':
         return 'Ganglia Monitor';
       case 'GMOND_SERVICE_CHECK':
-        return 'Gmond Check'
+        return 'Gmond Check';
       case 'GMETAD_SERVICE_CHECK':
         return 'Gmetad Check';
       case 'DECOMMISSION_DATANODE':
         return 'Decommission DataNode';
+      case 'HUE_SERVER':
+        return 'Hue Server';
     }
   },
 

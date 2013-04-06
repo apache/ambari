@@ -99,7 +99,7 @@ App.WizardStep6CheckboxView = Em.Checkbox.extend({
 
   checkedBinding: 'checkbox.checked',
 
-  disabledBinding: 'checkbox.disabled',
+  disabledBinding: 'checkbox.isInstalled',
 
   checkCallback: function() {
     var self = this;

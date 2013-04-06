@@ -91,7 +91,7 @@
         "attempt_cnt" : "0",
         "exit_code" : "999",
         "stdout" : "",
-        "status" : "UPGRADING",
+        "status" : "IN_PROGRESS",
         "command" : "UPGRADE",
         "start_time" : "-1",
         "role" : "GANGLIA_MONITOR",

@@ -16,8 +16,21 @@
 * limitations under the License.
 }}
 <div id="step14">
-  <div {{bindAttr class="view.statusClass :alert"}}>{{view.statusMessage}}</div>
-    {{#each task in tasks}}
+  <div {{bindAttr class="view.statusClass :alert"}}>
+    <p>{{view.statusMessage}}</p>
+    {{#if controller.showRetry}}
+    <p>{{t installer.step14.retry}}</p>
+      <a {{action retry target="controller"}} class="btn btn-primary">
+        <i class="icon-repeat icon-white"></i>
+        {{t common.retry}}
+      </a>
+      <a {{action abort target="controller"}} class="btn btn-warning">
+        <i class="icon-remove icon-white"></i>
+        {{t common.abort}}
+      </a>
+    {{/if}}
+  </div>
+    {{#each task in view.tasks}}
       {{#view view.taskView contentBinding="task"}}
         <div class="item">
           <i {{bindAttr class="view.icon view.iconColor"}}></i>
@@ -35,5 +48,5 @@
     {{/each}}
   </div>
   <div class="btn-area">
-    <a class="btn btn-success pull-right" {{bindAttr disabled="controller.isSubmitDisabled"}} {{action submit target="controller"}}>{{t common.next}} &rarr;</a>
+    <a class="btn btn-success pull-right" {{bindAttr disabled="controller.isSubmitDisabled"}} {{action complete}}>{{t common.complete}} &rarr;</a>
 </div>

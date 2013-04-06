@@ -61,6 +61,72 @@ App.WizardStep9Controller = Em.Controller.extend({
     return 'info';
   }.property('hosts.@each.status', 'progress'),
 
+  categoryObject: Em.Object.extend({
+    hostsCount: function () {
+      var category = this;
+      var hosts = this.get('controller.hosts').filter(function(_host) {
+        if(category.get('hostStatus') == 'inProgress'){   // queued, pending, in_progress map to inProgress
+          return (_host.get('status') !== 'success' && _host.get('status') !== 'failed' && _host.get('status') !== 'warning');
+        }
+        return (_host.get('status') == category.get('hostStatus'));
+      }, this);
+      return hosts.get('length');
+    }.property('controller.hosts.@each.status'),
+    label: function () {
+      return "%@ (%@)".fmt(this.get('value'), this.get('hostsCount'));
+    }.property('value', 'hostsCount')
+  }),
+  getCategory: function(field, value){
+    return this.get('categories').find(function(item){
+      return item.get(field) == value;
+    });
+  },
+
+  categories: function () {
+    var self = this;
+    self.categoryObject.reopen({
+      controller: self,
+      isActive: function(){
+        return this.get('controller.category') == this;
+      }.property('controller.category'),
+      itemClass: function(){
+        return this.get('isActive') ? 'active' : '';
+      }.property('isActive')
+    });
+
+    var categories = [
+      self.categoryObject.create({value: Em.I18n.t('common.all'), hostStatus:'all', hostsCount: function () {
+        return this.get('controller.hosts.length');
+      }.property('controller.hosts.length') }),
+      self.categoryObject.create({value: Em.I18n.t('installer.step9.hosts.status.label.inProgress'), hostStatus: 'inProgress'}),
+      self.categoryObject.create({value: Em.I18n.t('installer.step9.hosts.status.label.warning'), hostStatus: 'warning'}),
+      self.categoryObject.create({value: Em.I18n.t('common.success'), hostStatus: 'success'}),
+      self.categoryObject.create({value: Em.I18n.t('common.fail'), hostStatus: 'failed', last: true })
+    ];
+
+    this.set('category', categories.get('firstObject'));
+    return categories;
+  }.property(),
+
+  category: false,
+  visibleHosts: function(){
+    var targetStatus = this.get('category.hostStatus');
+    var visibleHosts =  this.get('hosts').filter(function(_host) {
+      if (targetStatus == 'all') {
+        return true;
+      }
+      if (targetStatus == 'inProgress') {   // queued, pending, in_progress map to inProgress
+        return (_host.get('status') !== 'success' && _host.get('status') !== 'failed' && _host.get('status') !== 'warning');
+      }
+      return (_host.get('status') == targetStatus);
+    }, this);
+    return visibleHosts;
+  }.property('category', 'hosts.@each.status'),
+
+  selectCategory: function(event){
+    this.set('category', event.context);
+  },
+
   showRetry: function () {
     return this.get('content.cluster.status') == 'INSTALL FAILED';
   }.property('content.cluster.status'),
@@ -268,7 +334,7 @@ App.WizardStep9Controller = Em.Controller.extend({
     var self = this;
     var clusterName = this.get('content.cluster.name');
     var url = App.apiPrefix + '/clusters/' + clusterName + '/services?ServiceInfo/state=INSTALLED';
-    var data = '{"ServiceInfo": {"state": "STARTED"}}';
+    var data = '{"RequestInfo": {"context": "'+Em.I18n.t("requestInfo.serviceStartCheck")+'"}, "Body": {"ServiceInfo": {"state": "STARTED"}}}';
     var method = 'PUT';
 
     if (this.get('content.controllerName') === 'addHostController') {

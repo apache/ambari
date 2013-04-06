@@ -19,6 +19,14 @@
 var App = require('app');
 
 App.MainMirroringController = Em.ArrayController.extend({
-  name:'mainMirroringController',
-  content: App.DataSet.find()
+  name: 'mainMirroringController',
+
+  datasets: function () {
+    return App.Dataset.find();
+  }.property(),
+
+  targetClusters: function () {
+    return App.TargetCluster.find();
+  }.property()
+
 });

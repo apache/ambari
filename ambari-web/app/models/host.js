@@ -187,6 +187,9 @@ App.Host = DS.Model.extend({
           output += (index == (hostComponents.length-1)) ? hc.get('displayName') : (hc.get('displayName')+", ");
         }, this);
         break;
+      case 'health-status-LIVE':
+        output = Em.I18n.t('hosts.host.healthStatus.allUp');
+        break;
     }
     return output;
   }.property('healthClass')

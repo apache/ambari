@@ -26,7 +26,7 @@
 
           {{#if isClusterDataLoaded}}
               <a class="brand cluster-name" href="javascript:void(null);" {{bindAttr title="clusterName"}}>
-                {{clusterDisplayName}}
+                <span {{action "showPopup" target="App.router.backgroundOperationsController"}} >{{clusterDisplayName}} </span>
 
                 {{#with App.router.backgroundOperationsController}}
                   {{#if allOperationsCount}}

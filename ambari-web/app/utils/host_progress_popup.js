@@ -68,25 +68,25 @@ App.HostPopup = Em.Object.create({
   /**
    * Depending on tasks status
    * @param tasks
-   * @return {Array} [Status, Icon type, Progressbar color]
+   * @return {Array} [Status, Icon type, Progressbar color, is IN_PROGRESS]
    */
   getStatus: function (tasks) {
     if (tasks.everyProperty('Tasks.status', 'COMPLETED')) {
-      return ['SUCCESS', 'icon-ok', 'progress-info'];
+      return ['SUCCESS', 'icon-ok', 'progress-success', false];
     }
     if (tasks.someProperty('Tasks.status', 'FAILED')) {
-      return ['FAILED', 'icon-exclamation-sign', 'progress-danger'];
+      return ['FAILED', 'icon-exclamation-sign', 'progress-danger', false];
     }
     if (tasks.someProperty('Tasks.status', 'ABORTED')) {
-      return ['CANCELLED', 'icon-minus', 'progress-warning'];
+      return ['CANCELLED', 'icon-minus', 'progress-warning', false];
     }
     if (tasks.someProperty('Tasks.status', 'TIMEDOUT')) {
-      return ['TIMEDOUT', 'icon-time', 'progress-warning'];
+      return ['TIMEDOUT', 'icon-time', 'progress-warning', false];
     }
-    if (tasks.someProperty('Tasks.status', 'IN_PROGRESS') || tasks.someProperty('Tasks.status', 'UPGRADING')) {
-      return ['IN_PROGRESS', 'icon-cogs', 'progress-info'];
+    if (tasks.someProperty('Tasks.status', 'IN_PROGRESS')) {
+      return ['IN_PROGRESS', 'icon-cogs', 'progress-info', true];
     }
-    return ['PENDING', 'icon-cog', 'progress-info'];
+    return ['PENDING', 'icon-cog', 'progress-info', true];
   },
 
   /**
@@ -102,9 +102,8 @@ App.HostPopup = Em.Object.create({
         + tasks.filterProperty('Tasks.status', 'ABORTED').length
         + tasks.filterProperty('Tasks.status', 'TIMEDOUT').length;
     var queuedActions = tasks.filterProperty('Tasks.status', 'QUEUED').length;
-    var inProgressActions = tasks.filterProperty('Tasks.status', 'UPGRADING').length;
+    var inProgressActions = tasks.filterProperty('Tasks.status', 'IN_PROGRESS').length;
     progress = Math.ceil(((queuedActions * 0.09) + (inProgressActions * 0.35) + completedActions ) / actionsNumber * 100);
-    console.log('--------INFO: progressPerHost is: ' + progress);
     return progress;
   },
 
@@ -113,7 +112,10 @@ App.HostPopup = Em.Object.create({
    */
   setBackgroundOperationHeader: function () {
     var allServices = this.get("servicesInfo");
-    var numRunning = allServices.filterProperty("status", App.format.taskStatus("IN_PROGRESS")).length;
+    var numRunning = 0;
+    numRunning = allServices.filterProperty("status", App.format.taskStatus("IN_PROGRESS")).length;
+    numRunning += allServices.filterProperty("status", App.format.taskStatus("QUEUED")).length;
+    numRunning += allServices.filterProperty("status", App.format.taskStatus("PENDING")).length;
     this.set("popupHeaderName", numRunning + " Background operations Running");
   },
 
@@ -151,6 +153,7 @@ App.HostPopup = Em.Object.create({
           newService.set('status', App.format.taskStatus(status[0]));
           newService.set('icon', status[1]);
           newService.set('barColor', status[2]);
+          newService.set('isInProgress', status[3]);
           newService.set('progress', progress);
           newService.set('barWidth', "width:" + progress + "%;");
         }
@@ -214,6 +217,7 @@ App.HostPopup = Em.Object.create({
           hostInfo.set('status', App.format.taskStatus(hostStatus[0]));
           hostInfo.set('icon', hostStatus[1]);
           hostInfo.set('barColor', hostStatus[2]);
+          hostInfo.set('isInProgress', hostStatus[3]);
           hostInfo.set('progress', hostProgress);
           hostInfo.set('barWidth', "width:" + hostProgress + "%;");
 
@@ -332,6 +336,7 @@ App.HostPopup = Em.Object.create({
          * When popup is opened, and data after polling has changed, update this data in component
          */
         updateHostInfo: function () {
+          //debugger;
           this.get("controller").set("inputData", null);
           this.get("controller").set("inputData", this.get("controller.serviceController.services"));
           this.set("hosts", this.get("controller.hosts"));
@@ -448,7 +453,7 @@ App.HostPopup = Em.Object.create({
         setSelectCount: function (obj) {
           if (!obj) return;
           var countAll = obj.length;
-          var countPending = obj.filterProperty("status", 'pending').length;
+          var countPending = obj.filterProperty("status", 'pending').length + obj.filterProperty("status", 'queued').length;
           var countInProgress = obj.filterProperty("status", 'in_progress').length;
           var countFailed = obj.filterProperty("status", 'failed').length;
           var countCompleted = obj.filterProperty("status", 'success').length + obj.filterProperty("status", 'completed').length;

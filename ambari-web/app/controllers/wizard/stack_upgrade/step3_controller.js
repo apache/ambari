@@ -23,63 +23,68 @@ App.StackUpgradeStep3Controller = Em.Controller.extend({
 
   POLL_INTERVAL: 4000,
   isPolling: false,
-  isUpgradeStarted: false,
-  servicesOrder: [
-    'HDFS',
-    'MAPREDUCE',
-    'ZOOKEEPER',
-    'HBASE',
-    'HIVE',
-    'OOZIE',
-    'NAGIOS',
-    'GANGLIA',
-    'PIG',
-    'SQOOP'
-  ],
-
   /**
-   * overall status of Upgrade
-   * FAILED - some service is FAILED
-   * SUCCESS - every services are SUCCESS
-   * WARNING - some service is WARNING and all the rest are SUCCESS
-   * IN_PROGRESS - when all services is stopped
+   * STOP_SERVICES internal statuses:
+   * - PENDING
+   * - IN_PROGRESS
+   * - SUCCESS
+   * - FAILED
+   * UPGRADE_SERVICES internal statuses:
+   * - PENDING
+   * - IN_PROGRESS
+   * - SUCCESS
+   * - FAILED
+   * - WARNING
    */
-  status: 'PENDING',
-  onStatus: function () {
-    var services = this.get('services');
-    var status = this.get('isServicesStopped') ? 'IN_PROGRESS' : 'PENDING';
-    var withoutWarning = [];
-    if (services.someProperty('status', 'FAILED')) {
-      this.set('isPolling', false);
-      status =  'FAILED';
-      this.setClusterStatus('STACK_UPGRADE_FAILED');
-    }
-    if (services.someProperty('status', 'WARNING')) {
-      withoutWarning = services.filter(function(service){
-        if(service.get('status') !== "WARNING"){
-          return true;
-        }
-      });
-      if(withoutWarning.everyProperty('status', 'SUCCESS')){
-        this.set('isPolling', false);
-        status = "WARNING";
-        this.setClusterStatus('STACK_UPGRADED');
-      }
-    }
-    if (services.everyProperty('status', 'SUCCESS')) {
-      this.set('isPolling', false);
-      status = 'SUCCESS';
-      this.set('content.cluster.isCompleted', true);
-      App.router.get(this.get('content.controllerName')).save('cluster');
-      this.setClusterStatus('STACK_UPGRADED');
-    }
-    this.set('status', status);
-  }.observes('services.@each.status'),
-  setClusterStatus: function(state){
+  processes:[
+    Em.Object.create({
+      name: 'STOP_SERVICES',
+      displayName: Em.I18n.t('installer.stackUpgrade.step3.stop.header'),
+      progress:0,
+      status: 'PENDING',
+      message: null,
+      isRunning: false,
+      hosts: [],
+      isRetry: false
+    }),
+    Em.Object.create({
+      name: 'UPGRADE_SERVICES',
+      displayName: Em.I18n.t('installer.stackUpgrade.step3.upgrade.header'),
+      progress: 0,
+      status: 'PENDING',
+      message:'',
+      isRunning: false,
+      hosts: [],
+      isRetry: false
+    })
+  ],
+  /**
+   * pass processes as services to popup
+   */
+  services: function(){
+    return this.get('processes');
+  }.property('processes'),
+  /**
+   * save current requestId and clusterState
+   * to localStorage and put it to server
+   *
+   * STOP_SERVICES cluster status:
+   * - STOPPING_SERVICES,
+   * UPGRADE_SERVICES cluster status:
+   * - STACK_UPGRADING,
+   * - STACK_UPGRADE_FAILED,
+   * - STACK_UPGRADED,
+   * - STACK_UPGRADE_COMPLETED
+   */
+  saveClusterStatus: function(clusterStatus){
+    var oldStatus = this.get('content.cluster');
+    clusterStatus = jQuery.extend(oldStatus, clusterStatus);
+    this.set('content.cluster', clusterStatus);
+    App.router.get(this.get('content.controllerName')).save('cluster');
     if(!App.testMode){
       App.clusterStatus.setClusterStatus({
         clusterName: this.get('content.cluster.name'),
-        clusterState: state,
+        clusterState: clusterStatus.status,
         wizardControllerName: 'stackUpgradeController',
         localdb: App.db.data
       });
@@ -88,267 +93,228 @@ App.StackUpgradeStep3Controller = Em.Controller.extend({
   // provide binding for Host Popup data
   serviceTimestamp: null,
   /**
-   * The dependence of the status of service to status of the tasks
-   * FAILED - any task is TIMEDOUT, ABORTED, FAILED (depends on component is master)
-   * WARNING - any task is TIMEDOUT, ABORTED, FAILED (depends on component is slave or client)
-   * SUCCESS - every tasks are COMPLETED
-   * IN_PROGRESS - any task is UPGRADING(IN_PROGRESS)
-   * PENDING - every tasks are QUEUED or PENDING
+   * load hosts for each process
    */
-  services: [],
-  /**
-   * load services, which installed on cluster
-   */
-  loadServices: function(){
-    var installedServices = App.testMode ? this.get('mockServices') : this.get('content.servicesInfo');
-    var services = [];
-    var order = this.get('servicesOrder');
-    installedServices.sort(function(a, b){
-      return order.indexOf(a.get('serviceName')) - order.indexOf(b.get('serviceName'));
+  loadHosts: function () {
+    var hosts = [];
+    var installedHosts = App.Host.find();
+    this.get('processes').forEach(function(process){
+      var hosts = [];
+      installedHosts.forEach(function (host) {
+        hosts.push(Em.Object.create({
+          name: host.get('hostName'),
+          publicName: host.get('publicHostName'),
+          logTasks: []
+        }));
+      });
+      process.set('hosts', hosts);
     });
-    installedServices.forEach(function(_service){
-      services.push(Em.Object.create({
-        name: _service.get('serviceName'),
-        displayName: _service.get('displayName'),
-        hosts: this.loadHosts(_service),
-        progress: 0,
-        message: function(){
-          switch(this.get('status')){
-            case "FAILED":
-              return Em.I18n.t('installer.stackUpgrade.step3.service.failedUpgrade').format(this.get('name'));
-              break;
-            case "WARNING":
-              return Em.I18n.t('installer.stackUpgrade.step3.service.upgraded').format(this.get('name'));
-              break;
-            case "SUCCESS":
-              return Em.I18n.t('installer.stackUpgrade.step3.service.upgraded').format(this.get('name'));
-              break;
-            case "IN_PROGRESS":
-              return Em.I18n.t('installer.stackUpgrade.step3.service.upgrading').format(this.get('name'));
-              break;
-            case "PENDING":
-            default:
-              return Em.I18n.t('installer.stackUpgrade.step3.service.pending').format(this.get('name'));
-              break;
-          }
-        }.property('status'),
-        status: "PENDING",
-        detailMessage:''
-      }));
-    }, this);
-    this.set('services', services);
   }.observes('content.servicesInfo'),
+  submitButton: null,
   /**
-   * load hosts as services property
-   * @param service
-   * @return {Array}
-   */
-  loadHosts: function(service){
-    var hostComponents = App.HostComponent.find().filterProperty('service.serviceName', service.get('serviceName'));
-    var hosts = hostComponents.mapProperty('host').uniq();
-    var result = [];
-    hosts.forEach(function(host){
-      result.push(Em.Object.create({
-        name: host.get('hostName'),
-        publicName: host.get('publicHostName'),
-        logTasks: [],
-        components: hostComponents.filterProperty('host.hostName', host.get('hostName')).mapProperty('componentName')
-      }));
-    });
-    return result;
-  },
-  /**
-   * upgrade status SUCCESS - submit button enabled with label "Done"
-   * upgrade status WARNING - submit button enabled with label "Proceed with Warning"
-   * upgrade status FAILED or IN_PROGRESS - submit button disabled
-   */
-  submitButton: function(){
-    if(this.get('status') == 'SUCCESS'){
-      return Em.I18n.t('common.done');
-    } else if(this.get('status') == 'WARNING'){
-      return Em.I18n.t('installer.stackUpgrade.step3.ProceedWithWarning');
-    } else {
-      return false;
-    }
-  }.property('status'),
-  showRetry: function () {
-    return (this.get('status') === 'FAILED' || this.get('status') === 'WARNING');
-  }.property('status'),
-  isServicesStopped: function(){
-    return this.get('servicesStopProgress') === 100;
-  }.property('servicesStopProgress'),
-  isServicesStopFailed: function(){
-    return this.get('servicesStopProgress') === false;
-  }.property('servicesStopProgress'),
-  installedServices: App.Service.find(),
-  /**
-   * progress of stopping services process
-   * check whether service stop fails
-   */
-  servicesStopProgress: function(){
-    var services = App.testMode ? this.get('mockServices') : this.get('installedServices').toArray();
-    var progress = 0;
-    var stopFailed = false;
-    services.forEach(function(service){
-      if(!stopFailed){
-        stopFailed = service.get('hostComponents').filterProperty('isMaster').someProperty('workStatus', 'STOP_FAILED');
-      }
-    });
-    if(stopFailed){
-      return false;
-    } else {
-      progress = (services.filterProperty('workStatus', 'STOPPING').length / services.length) * 0.2;
-      return Math.round((progress + services.filterProperty('workStatus', 'INSTALLED').length / services.length) * 100);
-    }
-  }.property('installedServices.@each.workStatus', 'mockServices.@each.workStatus'),
-  retryStopService: function(){
-    App.router.get(this.get('content.controllerName')).stopServices();
-  },
-  /**
-   * restart upgrade if fail or warning occurred
+   * restart upgrade
+   * restart stop services
    * @param event
    */
   retry: function(event){
-    this.set('isUpgradeStarted', false);
-    this.resetMockConfig(true);
-    this.loadServices();
-    this.runUpgrade();
+    var processName = event.context;
+    var process = this.get('processes').findProperty('name', processName);
+    this.resetProgress(process);
+    this.resetMockConfig();
+    if(processName == 'STOP_SERVICES'){
+      this.stopServices();
+    } else {
+      this.set('submitButton', false);
+      this.runUpgrade();
+    }
+  },
+  /**
+   * reset progress and status to retry
+   * @param process
+   */
+  resetProgress: function(process){
+    process.set('isRetry', false);
+    process.set('status', 'PENDING');
+    process.set('progress', 0);
+    process.get('hosts').forEach(function(host){host.get('logTasks').clear()});
+  },
+  /**
+   * run stop services
+   */
+  stopServices: function () {
+    var clusterName = this.get('content.cluster.name');
+    var url = App.apiPrefix + '/clusters/' + clusterName + '/services?ServiceInfo/state=STARTED';
+    var data = '{"RequestInfo": {"context": "'+ Em.I18n.t("requestInfo.stopAllServices") +'"}, "Body": {"ServiceInfo": {"state": "INSTALLED"}}}';
+    var method = 'PUT';
+    var process = this.get('processes').findProperty('name', 'STOP_SERVICES');
+    var self = this;
+    process.set('isRunning', true);
+    if (App.testMode) {
+      this.startPolling();
+      this.saveClusterStatus({
+        requestId: 1,
+        status: 'STOPPING_SERVICES',
+        isCompleted: false
+      });
+    } else {
+      $.ajax({
+        type: method,
+        url: url,
+        async: false,
+        data: data,
+        dataType: 'text',
+        timeout: App.timeout,
+        success: function (data) {
+          var requestId = jQuery.parseJSON(data).Requests.id;
+          var clusterStatus = {
+            requestId: requestId,
+            status: 'STOPPING_SERVICES',
+            isCompleted: false
+          };
+          process.set('status', 'IN_PROGRESS');
+          self.saveClusterStatus(clusterStatus);
+          self.startPolling();
+          console.log('Call to stop service successful')
+        },
+        error: function () {
+          self.finishProcess(process, 'FAILED');
+          process.set('status', 'FAILED');
+          console.log("Call to stop services failed");
+        },
+        statusCode: require('data/statusCodes')
+      });
+    }
   },
   /**
    * send request to run upgrade all services
    */
-  runUpgrade: function(){
-    // call to run upgrade on server
-    var method = App.testMode ? "GET" : "PUT";
-    var url = '';
-    var data = '';
+  runUpgrade: function () {
+    var method = "PUT";
+    var url = App.apiPrefix + '/clusters/' + this.get('content.cluster.name');
     var self = this;
-    if(this.get('isServicesStopped') && !this.get('isUpgradeStarted')){
-      //TODO remove assignment isUpgradeStarted true to Ajax success callback
-      this.set('isUpgradeStarted', true);
-      /* $.ajax({
-       type: method,
-       url: url,
-       data: data,
-       async: false,
-       dataType: 'text',
-       timeout: App.timeout,
-       success: function (data) {
-
-       },
-
-       error: function (request, ajaxOptions, error) {
-
-       },
-
-       statusCode: require('data/statusCodes')
-       });*/
-      /*App.clusterStatus.setClusterStatus({
-       clusterName: this.get('clusterName'),
-       clusterState: 'UPGRADING_STACK',
-       wizardControllerName: 'stackUpgradeController',
-       localdb: App.db.data
-       });*/
+    var data = '{"Clusters": {"version" : "' + this.get('content.upgradeVersion') + '"}}';
+    var process = this.get('processes').findProperty('name', 'UPGRADE_SERVICES');
+    process.set('isRunning', true);
+    if (App.testMode) {
       this.startPolling();
+      this.saveClusterStatus({
+        requestId: 1,
+        status: 'STACK_UPGRADING',
+        isCompleted: false
+      });
+    } else {
+      $.ajax({
+        type: method,
+        url: url,
+        async: false,
+        data: data,
+        dataType: 'text',
+        timeout: App.timeout,
+        success: function (data) {
+          var jsonData = jQuery.parseJSON(data);
+          var requestId = jsonData.Requests.id;
+          var clusterStatus = {
+            status: 'STACK_UPGRADING',
+            requestId: requestId,
+            isCompleted: false
+          };
+          process.set('status', 'IN_PROGRESS');
+          self.saveClusterStatus(clusterStatus);
+          self.startPolling();
+        },
+        error: function (request, ajaxOptions, error) {
+          self.finishProcess(process, 'FAILED');
+          process.set('status', 'FAILED');
+        },
+        statusCode: require('data/statusCodes')
+      });
     }
-  }.observes('isServicesStopped'),
+  },
   /**
-   * start polling on upgrade progress
+   * start polling tasks for current process
    */
   startPolling: function(){
-    //TODO set actual URL to poll upgrade progress
-    var url = '';
     if(!this.get('isPolling')){
       this.set('isPolling', true);
       if (App.testMode) {
         this.simulatePolling();
       } else {
         //pass an interval "1" to start poll immediately first time
-        this.doPoll(url, 1);
+        this.doPoll(1);
       }
     }
   },
-
-  mockServices: [
-    Em.Object.create({
-      serviceName: 'GANGLIA',
-      displayName: 'Ganglia',
-      workStatus: 'STARTED',
-      hostComponents: []
-    }),
-    Em.Object.create({
-      serviceName: 'HDFS',
-      displayName: 'HDFS',
-      workStatus: 'STARTED',
-      hostComponents: []
-    })
-  ],
   simulateAttempt:0,
+  mockUrl:'',
   /**
    * simulate actual poll, using mock data
    */
   simulatePolling: function(){
     var simulateAttempt = this.get('simulateAttempt');
-    var URLs = [
+    var process = this.get('processes').findProperty('isRunning', true);
+    var upgradeURLs = [
       '/data/wizard/upgrade/poll_1.json',
       '/data/wizard/upgrade/poll_2.json',
       '/data/wizard/upgrade/poll_3.json',
       '/data/wizard/upgrade/poll_4.json',
       '/data/wizard/upgrade/poll_5.json'
     ];
-    if(simulateAttempt < 5){
-      this.doPoll(URLs[simulateAttempt]);
-      this.set('simulateAttempt', ++simulateAttempt);
+    var stopURLs = [
+      '/data/wizard/stop_services/poll_1.json',
+      '/data/wizard/stop_services/poll_2.json',
+      '/data/wizard/stop_services/poll_3.json',
+      '/data/wizard/stop_services/poll_4.json'
+    ];
+    if(process.get('name') == 'STOP_SERVICES'){
+      if(simulateAttempt < 4){
+        this.set('mockUrl', stopURLs[simulateAttempt]);
+        this.doPoll();
+        this.set('simulateAttempt', ++simulateAttempt);
+      }
+    } else {
+      if(simulateAttempt < 5){
+        this.set('mockUrl', upgradeURLs[simulateAttempt]);
+        this.doPoll();
+        this.set('simulateAttempt', ++simulateAttempt);
+      }
     }
   },
-  /**
-   * simulate stopping services before upgrade,
-   * using mockServices data
-   */
-  simulateStopService: function(){
-    var services = this.get('mockServices');
-    var self = this;
-    setTimeout(function(){
-      services[0].set('workStatus', 'STOPPING');
-    }, 4000);
-    setTimeout(function(){
-      services[0].set('workStatus', 'INSTALLED');
-    }, 8000);
-    setTimeout(function(){
-      services[1].set('workStatus', 'STOPPING');
-    }, 12000);
-    setTimeout(function(){
-      services[1].set('workStatus', 'INSTALLED');
-      services.setEach('workStatus', 'INSTALLED');
-    }, 16000);
+  getUrl:function(){
+    var requestId = this.get('content.cluster.requestId');
+    var clusterName = this.get('content.cluster.name');
+    if(App.testMode){
+      return this.get('mockUrl');
+    }
+    return App.apiPrefix + '/clusters/' + clusterName + '/requests/' + requestId + '?fields=tasks/*';
   },
-
   /**
-   * poll server for tasks, which contain upgrade progress data
-   * @param url
+   * poll server for tasks, which contain process progress data
    * @param interval
    */
-  doPoll: function(url, interval){
+  doPoll: function(interval){
+    var url = this.getUrl();
     var self = this;
     var pollInterval = interval || self.POLL_INTERVAL;
     if (self.get('isPolling')) {
       setTimeout(function () {
         $.ajax({
-          utype: 'GET',
+          type: 'GET',
           url: url,
           async: true,
           timeout: App.timeout,
           dataType: 'json',
           success: function (data) {
             var result = self.parseTasks(data);
-            if (App.testMode) {
-              self.simulatePolling();
-            } else {
-              self.doPoll(url);
+            if(result){
+              if (App.testMode) {
+                self.simulatePolling();
+              } else {
+                self.doPoll();
+              }
             }
           },
           error: function () {
-
+            console.log('ERROR: poll request failed')
           },
           statusCode: require('data/statusCodes')
         }).retry({times: App.maxRetries, timeout: App.timeout}).then(null,
@@ -368,82 +334,29 @@ App.StackUpgradeStep3Controller = Em.Controller.extend({
    */
   parseTasks: function(data){
     var tasks = data.tasks || [];
-    this.get('services').forEach(function (service) {
-      var hosts = service.get('hosts');
-      var tasksPerService = [];
-      if(hosts.length){
-        hosts.forEach(function (host) {
-          var tasksPerHost = tasks.filter(function(task){
-            if(task.Tasks.host_name == host.name && host.get('components').contains(task.Tasks.role)){
-              return true;
-            }
-          });
-          if (tasksPerHost.length) {
-            this.setLogTasksStatePerHost(tasksPerHost, host);
-            tasksPerService = tasksPerService.concat(tasksPerHost);
-          }
-        }, this);
-        this.progressOnService(service, tasksPerService);
-        this.statusOnService(service, tasksPerService);
-      } else {
-        service.set('status', 'PENDING');
-        service.set('detailedMessage', Em.I18n.t('installer.stackUpgrade.step3.host.nothingToUpgrade'));
-        console.log('None tasks matched to service ' + service);
-      }
-    }, this);
-    this.set('serviceTimestamp', new Date().getTime());
-    return true;
-  },
-  /**
-   * evaluate status of service depending on the tasks
-   * also set detailMessage that show currently running process
-   * @param service
-   * @param actions
-   */
-  statusOnService: function(service, actions){
-    var status;
-    var errorActions = actions.filter(function(action){
-      if(action.Tasks.status == 'FAILED' || action.Tasks.status == 'ABORTED' || action.Tasks.status == 'TIMEDOUT'){
-        return true;
-      }
-    });
-    var masterComponents = ['NAMENODE', 'SECONDARY_NAMENODE', 'SNAMENODE', 'JOBTRACKER', 'ZOOKEEPER_SERVER', 'HIVE_SERVER',
-      'HIVE_METASTORE', 'MYSQL_SERVER', 'HBASE_MASTER', 'NAGIOS_SERVER', 'GANGLIA_SERVER', 'OOZIE_SERVER','WEBHCAT_SERVER'];
-    var failedComponents = errorActions.mapProperty('Tasks.role');
-    if(failedComponents.length){
-      for(var i = 0; i < failedComponents.length; i++){
-        if(masterComponents.contains(failedComponents[i])){
-          status = "FAILED";
-          break;
-        } else {
-          status = "WARNING";
+    var process = this.get('processes').findProperty('isRunning', true);
+    // if process was finished then it terminates next poll
+    var continuePolling = true;
+
+    this.progressOnProcess(tasks, process);
+    continuePolling = this.statusOnProcess(tasks, process);
+    if(process.get('hosts').length && tasks.length){
+      process.get('hosts').forEach(function (host) {
+        var tasksPerHost = tasks.filterProperty('Tasks.host_name', host.name);
+        if (tasksPerHost.length) {
+          this.setLogTasksStatePerHost(tasksPerHost, host);
         }
-      }
-    } else if(actions.everyProperty('Tasks.status', 'COMPLETED')){
-      status = 'SUCCESS';
-    } else {
-      var activeAction = actions.findProperty('Tasks.status', 'UPGRADING');
-      status = 'IN_PROGRESS';
-      if (activeAction === undefined || activeAction === null) {
-        activeAction = actions.findProperty('Tasks.status', 'QUEUED');
-        status = 'PENDING';
-      }
-      if (activeAction === undefined || activeAction === null) {
-        activeAction = actions.findProperty('Tasks.status', 'PENDING');
-        status = 'PENDING';
-      }
-      if(activeAction){
-        service.set('detailMessage', this.displayMessage(activeAction.Tasks));
-      }
+      }, this);
     }
-    service.set('status', status);
+    this.set('serviceTimestamp', new Date().getTime());
+    return continuePolling;
   },
   /**
-   * calculate progress of service depending on the tasks
-   * @param service
+   * calculate progress according to tasks status
    * @param actions
+   * @param process
    */
-  progressOnService: function(service, actions){
+  progressOnProcess: function(actions, process){
     var progress = 0;
     var actionsNumber = actions.length;
     var completedActions = actions.filterProperty('Tasks.status', 'COMPLETED').length
@@ -451,31 +364,109 @@ App.StackUpgradeStep3Controller = Em.Controller.extend({
       + actions.filterProperty('Tasks.status', 'ABORTED').length
       + actions.filterProperty('Tasks.status', 'TIMEDOUT').length;
     var queuedActions = actions.filterProperty('Tasks.status', 'QUEUED').length;
-    var inProgressActions = actions.filterProperty('Tasks.status', 'UPGRADING').length;
+    var inProgressActions = actions.filterProperty('Tasks.status', 'IN_PROGRESS').length;
     progress = Math.ceil(((queuedActions * 0.09) + (inProgressActions * 0.35) + completedActions ) / actionsNumber * 100);
-    console.log('INFO: progressPerService is: ' + progress);
-    service.set('progress', progress);
+    console.log('INFO: progress is: ' + progress);
+    process.set('progress', progress);
   },
   /**
-   * determine description of current running process
-   * @param task
-   * @return {*}
+   * evaluate status of process according to task status
+   * @param actions
+   * @param process
    */
-  displayMessage: function (task) {
-    var role = App.format.role(task.role);
-    // accept only default command - "UPGRADE"
-    console.log("In display message with task command value: " + task.command);
-    switch (task.status) {
-      case 'PENDING':
-        return Em.I18n.t('installer.step9.serviceStatus.upgrade.pending') + role;
-      case 'QUEUED' :
-        return Em.I18n.t('installer.step9.serviceStatus.upgrade.queued') + role;
-      case 'UPGRADING':
-        return Em.I18n.t('installer.step9.serviceStatus.upgrade.inProgress') + role;
-      case 'COMPLETED' :
-        return Em.I18n.t('installer.step9.serviceStatus.upgrade.completed') + role;
-      case 'FAILED':
-        return Em.I18n.t('installer.step9.serviceStatus.upgrade.failed') + role;
+  statusOnProcess: function(actions, process){
+    var status = null;
+    var message = '';
+    var continuePolling = true;
+    var errorActions = actions.filter(function (action) {
+      if (action.Tasks.status == 'FAILED' || action.Tasks.status == 'ABORTED' || action.Tasks.status == 'TIMEDOUT') {
+        return true;
+      }
+    });
+    var masterComponents = ['NAMENODE', 'SECONDARY_NAMENODE', 'SNAMENODE', 'JOBTRACKER', 'ZOOKEEPER_SERVER', 'HIVE_SERVER',
+      'HIVE_METASTORE', 'MYSQL_SERVER', 'HBASE_MASTER', 'NAGIOS_SERVER', 'GANGLIA_SERVER', 'OOZIE_SERVER', 'WEBHCAT_SERVER'];
+    var failedComponents = errorActions.mapProperty('Tasks.role');
+    if (failedComponents.length) {
+      for (var i = 0; i < failedComponents.length; i++) {
+        if (masterComponents.contains(failedComponents[i])) {
+          status = "FAILED";
+          continuePolling = false;
+          this.finishProcess(process, status);
+          break;
+        } else if(process.get('progress') == 100){
+          status = "WARNING";
+          if(process.get('name') == 'UPGRADE_SERVICES'){
+            continuePolling = false;
+            this.finishProcess(process, status);
+          }
+        }
+      }
+    }
+    if(!status || ((status == 'WARNING') && (process.get('name') == 'STOP_SERVICES'))){
+      if (actions.everyProperty('Tasks.status', 'COMPLETED')) {
+        status = 'SUCCESS';
+        continuePolling = false;
+        this.finishProcess(process, status);
+      } else {
+        var activeAction = actions.findProperty('Tasks.status', 'IN_PROGRESS');
+        status = 'IN_PROGRESS';
+        if (activeAction === undefined || activeAction === null) {
+          activeAction = actions.findProperty('Tasks.status', 'QUEUED');
+          status = 'PENDING';
+        }
+        if (activeAction === undefined || activeAction === null) {
+          activeAction = actions.findProperty('Tasks.status', 'PENDING');
+          status = 'PENDING';
+        }
+        if (activeAction) {
+          message = this.displayMessage(activeAction.Tasks);
+        }
+      }
+    }
+    console.log('INFO: status is: ' + status);
+    process.set('status', status);
+    process.set('message', message);
+    return continuePolling;
+  },
+  /**
+   * complete process phase
+   * accept FAILED, SUCCESS, WARNING process status
+   * @param process
+   * @param status
+   */
+  finishProcess: function(process, status){
+    this.set('isPolling', false);
+    if(process.get('name') == 'STOP_SERVICES'){
+      if(status == 'SUCCESS'){
+        process.set('isRunning', false);
+        this.resetMockConfig();
+        this.runUpgrade();
+      } else {
+        process.set('isRetry', true);
+      }
+    }
+    if(process.get('name') == 'UPGRADE_SERVICES'){
+      if(status == 'SUCCESS'){
+        this.set('submitButton', Em.I18n.t('common.done'));
+        this.saveClusterStatus({
+          status: 'STACK_UPGRADED',
+          isCompleted: true
+        })
+      } else if(status == 'FAILED') {
+        process.set('isRetry', true);
+        this.set('submitButton', false);
+        this.saveClusterStatus({
+          status: 'STACK_UPGRADE_FAILED',
+          isCompleted: false
+        })
+      } else if(status == 'WARNING'){
+        this.set('submitButton', Em.I18n.t('installer.stackUpgrade.step3.ProceedWithWarning'));
+        process.set('isRetry', true);
+        this.saveClusterStatus({
+          status: 'STACK_UPGRADED',
+          isCompleted: true
+        })
+      }
     }
   },
   /**
@@ -496,57 +487,87 @@ App.StackUpgradeStep3Controller = Em.Controller.extend({
     }, this);
   },
   /**
-   * clear config and data after completion of upgrade
-   */
-  clearStep: function(){
-    this.get('services').clear();
-    this.set('isUpgradeStarted', false);
-    this.resetMockConfig(false);
-  },
-  /**
    * reset mock configs to run upgrade simulation again
    */
   resetMockConfig: function(retry){
-    if(!retry){
-      this.get('mockServices').setEach('workStatus', 'STARTED');
-    }
     this.set('simulateAttempt', 0);
   },
   /**
-   * navigate to show current process depending on cluster status
+   * resume wizard on last operation
    */
-  navigateStep: function(){
+  resumeStep: function () {
     var clusterStatus = this.get('content.cluster.status');
-    var status = 'PENDING';
-    if (this.get('content.cluster.isCompleted') === false) {
-      if (this.get('isServicesStopped')){
-        this.startPolling();
-        if (clusterStatus === 'STACK_UPGRADING'){
-          // IN_PROGRESS
-          status = 'IN_PROGRESS';
-        } else if (clusterStatus === 'STACK_UPGRADE_FAILED'){
-          // FAILED
-          status = 'FAILED';
-          // poll only one time
-          this.set('isPolling', false);
-        } else {
-          // WARNING
-          status = 'WARNING';
-          // poll only one time
-          this.set('isPolling', false);
-        }
-      } else {
-        // services are stopping yet
+    var upgrade = this.get('processes').findProperty('name', 'UPGRADE_SERVICES');
+    var stop = this.get('processes').findProperty('name', 'STOP_SERVICES');
+    if(App.testMode){
+      if(this.get('processes').everyProperty('isRunning', false)){
+        stop.set('isRunning', true);
       }
-    } else {
-      status = 'SUCCESS';
+      clusterStatus = (this.get('processes').findProperty('name', 'UPGRADE_SERVICES').get('isRunning'))?
+       'STACK_UPGRADING':
+       'STOPPING_SERVICES';
+      upgrade.set('isRetry', false);
+      stop.set('isRetry', false);
     }
-    if (App.testMode) {
-      if(!this.get('isServicesStopped')){
-        this.simulateStopService();
+    if (clusterStatus == 'STOPPING_SERVICES') {
+      this.startPolling();
+      stop.set('isRunning', true);
+      upgrade.set('isRunning', false);
+    } else if(clusterStatus != 'PENDING'){
+      stop.set('status', 'SUCCESS');
+      stop.set('progress', 100);
+      stop.set('isRunning', false);
+      upgrade.set('isRunning', true);
+      if (clusterStatus == 'STACK_UPGRADING') {
+        upgrade.set('status', 'IN_PROGRESS');
+        this.startPolling();
+      } else if (clusterStatus == 'STACK_UPGRADE_FAILED') {
+        upgrade.set('status', 'FAILED');
+        upgrade.set('isRetry', true);
+      } else if (clusterStatus == 'STACK_UPGRADED') {
+        upgrade.set('status', 'SUCCESS');
+        upgrade.set('progress', 100);
+        this.startPolling();
+        this.set('isPolling', false);
       }
-    } else {
-      this.set('status', status);
+    }
+  },
+  /**
+   * determine description of current running process
+   * @param task
+   * @return {*}
+   */
+  displayMessage: function (task) {
+    var role = App.format.role(task.role);
+    console.log("In display message with task command value: " + task.command);
+    switch (task.command){
+      case 'UPGRADE':
+        switch (task.status) {
+          case 'PENDING':
+            return Em.I18n.t('installer.step9.serviceStatus.upgrade.pending') + role;
+          case 'QUEUED' :
+            return Em.I18n.t('installer.step9.serviceStatus.upgrade.queued') + role;
+          case 'IN_PROGRESS':
+            return Em.I18n.t('installer.step9.serviceStatus.upgrade.inProgress') + role;
+          case 'COMPLETED' :
+            return Em.I18n.t('installer.step9.serviceStatus.upgrade.completed') + role;
+          case 'FAILED':
+            return Em.I18n.t('installer.step9.serviceStatus.upgrade.failed') + role;
+        }
+        break;
+      case 'STOP' :
+        switch (task.status) {
+          case 'PENDING':
+            return Em.I18n.t('installer.step9.serviceStatus.stop.pending') + role;
+          case 'QUEUED' :
+            return Em.I18n.t('installer.step9.serviceStatus.stop.queued') + role;
+          case 'IN_PROGRESS':
+            return Em.I18n.t('installer.step9.serviceStatus.stop.inProgress') + role;
+          case 'COMPLETED' :
+            return role + Em.I18n.t('installer.step9.serviceStatus.stop.completed');
+          case 'FAILED':
+            return role + Em.I18n.t('installer.step9.serviceStatus.stop.failed');
+        }
     }
   }
 });

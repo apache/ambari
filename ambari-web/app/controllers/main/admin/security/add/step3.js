@@ -77,7 +77,7 @@ App.MainAdminSecurityAddStep3Controller = Em.Controller.extend({
         newService.hosts.push({
           name: name,
           publicName: name,
-          logTasks: stages.polledData
+          logTasks: stages.polledData.filterProperty("Tasks.host_name",name)
         });
       });
       services.push(newService);
@@ -152,7 +152,7 @@ App.MainAdminSecurityAddStep3Controller = Em.Controller.extend({
   addInfoToStage2: function () {
     var stage2 = this.get('stages').findProperty('stage', 'stage2');
     var url = (App.testMode) ? '/data/wizard/deploy/2_hosts/poll_1.json' : App.apiPrefix + '/clusters/' + App.router.getClusterName() + '/services';
-    var data = '{"ServiceInfo": {"state": "INSTALLED"}}';
+    var data = '{"RequestInfo": {"context" :"' + Em.I18n.t('requestInfo.stopAllServices') + '"}, "Body": {"ServiceInfo": {"state": "INSTALLED"}}}';
     stage2.set('url', url);
     stage2.set('data', data);
   },
@@ -164,7 +164,7 @@ App.MainAdminSecurityAddStep3Controller = Em.Controller.extend({
   addInfoToStage4: function () {
     var stage4 = this.get('stages').findProperty('stage', 'stage4');
     var url = (App.testMode) ? '/data/wizard/deploy/2_hosts/poll_1.json' : App.apiPrefix + '/clusters/' + App.router.getClusterName() + '/services';
-    var data = '{"ServiceInfo": {"state": "STARTED"}}';
+    var data = '{"RequestInfo": {"context": "' + Em.I18n.t('requestInfo.startAllServices') + '"}, "Body": {"ServiceInfo": {"state": "STARTED"}}}';
     stage4.set('url', url);
     stage4.set('data', data);
   },

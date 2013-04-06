@@ -74,11 +74,6 @@
     {{#view view.HostView contentBinding="host"}}
 
       <td class="first">
-        <script type="text/javascript">
-          $(function () {
-            $("[rel='HealthTooltip']").tooltip();
-          });
-        </script>
         <span rel="HealthTooltip" {{bindAttr class="host.healthClass"}} {{bindAttr title="host.healthToolTip" }}></span>
       </td>
 
@@ -93,11 +88,6 @@
       <td>{{host.memoryFormatted}}</td>
 
       <td>
-        <script type="text/javascript">
-          $(function () {
-            $("[rel='UsageTooltip']").tooltip();
-          });
-        </script>
         <div class="progress progress-info" title="{{unbound host.diskInfoBar}}" rel="UsageTooltip">
           <div class="bar" {{bindAttr style="view.usageStyle"}}></div>
         </div>
@@ -122,7 +112,7 @@
 
   <div class="page-bar">
     <div class="items-on-page">
-      <label>{{t common.show}}: {{view view.hostPerPageSelectView selectionBinding="view.displayLength"}}</label>
+      <label>{{t common.show}}: {{view view.rowsPerPageSelectView selectionBinding="view.displayLength"}}</label>
     </div>
     <div class="info">{{view.paginationInfo}}</div>
     <div class="paging_two_button">

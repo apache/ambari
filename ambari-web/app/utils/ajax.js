@@ -40,6 +40,11 @@ var urls = {
     'real': '/clusters/{clusterName}/requests/{requestId}/tasks/{taskId}',
     'testInProduction': true
   },
+  'background_operations.get_most_recent': {
+    'mock': '/data/background_operations/list_on_start.json',
+    'real': '/clusters/{clusterName}/requests?fields=*,tasks/Tasks/*',
+    'testInProduction': true
+  },
   'service.item.start_stop': {
     'mock': '/data/wizard/deploy/poll_1.json',
     'real': '/clusters/{clusterName}/services/{serviceName}',
@@ -47,8 +52,13 @@ var urls = {
       return {
         type: 'PUT',
         data: JSON.stringify({
-          ServiceInfo: {
-            state: data.state
+          RequestInfo : {
+            "context" : data.requestInfo
+          },
+          Body:{
+            ServiceInfo: {
+              state: data.state
+            }
           }
         })
       };
@@ -57,7 +67,167 @@ var urls = {
   'service.item.smoke': {
     'mock': '/data/wizard/deploy/poll_1.json',
     'real': '/clusters/{clusterName}/services/{serviceName}/actions/{serviceName}_SERVICE_CHECK',
-    'type': 'POST'
+    'format': function () {
+      return {
+        'type': 'POST',
+        data: JSON.stringify({
+          RequestInfo : {
+            "context" : "Smoke Test"
+          }
+        })
+      };
+    }
+  },
+  'reassign.stop_service': {
+    'mock': '/data/wizard/reassign/request_id.json',
+    'real': '/clusters/{clusterName}/services/{serviceName}',
+    'type': 'PUT',
+    'format': function (data) {
+      return {
+        data: JSON.stringify({
+          RequestInfo : {
+            "context" : "Stop service " + data.serviceName
+          },
+          Body:{
+            ServiceInfo: {
+              "state": "INSTALLED"
+            }
+          }
+        })
+      }
+    }
+  },
+  'reassign.create_master': {
+    'real': '/clusters/{clusterName}/hosts?Hosts/host_name={hostName}',
+    'type': 'POST',
+    'format': function (data) {
+      return {
+        data: JSON.stringify({
+          "host_components": [
+            {
+              "HostRoles": {
+                "component_name": data.componentName
+              }
+            }
+          ]
+        })
+      }
+    }
+  },
+  'reassign.maintenance_mode': {
+    'real': '/clusters/{clusterName}/hosts/{hostName}/host_components/{componentName}',
+    'type': 'PUT',
+    'format': function () {
+      return {
+        data: JSON.stringify(
+            {
+              "HostRoles": {
+                "state": "MAINTENANCE"
+              }
+            }
+        )
+      }
+    }
+  },
+  'reassign.install_component': {
+    'mock': '/data/wizard/reassign/request_id.json',
+    'real': '/clusters/{clusterName}/hosts/{hostName}/host_components/{componentName}',
+    'type': 'PUT',
+    'format': function (data) {
+      return {
+        data: JSON.stringify({
+          RequestInfo : {
+            "context" : "Install " + data.componentName
+          },
+          Body:{
+            "HostRoles": {
+              "state": "INSTALLED"
+            }
+          }
+        })
+      }
+    }
+  },
+  'reassign.start_components': {
+    'mock': '/data/wizard/reassign/request_id.json',
+    'real': '/clusters/{clusterName}/services/{serviceName}',
+    'type': 'PUT',
+    'format': function (data) {
+      return {
+        data: JSON.stringify({
+          RequestInfo : {
+            "context" : "Start service " + data.serviceName
+          },
+          Body:{
+            ServiceInfo: {
+              "state": "INSTALLED"
+            }
+          }
+        })
+      }
+    }
+  },
+  'reassign.remove_component': {
+    'real': '/clusters/{clusterName}/hosts/{hostName}/host_components/{componentName}',
+    'type': 'DELETE'
+  },
+  'reassign.get_logs': {
+    'real': '/clusters/{clusterName}/requests/{requestId}?fields=tasks/*',
+    'type': 'GET'
+  },
+  'reassign.create_configs': {
+    'real': '/clusters/{clusterName}/configurations',
+    'type': 'POST',
+    'format': function (data) {
+      return {
+        data: JSON.stringify(data.configs),
+        configs: data.configs
+      }
+    }
+  },
+  'reassign.check_configs': {
+    'real': '/clusters/{clusterName}/services/{serviceName}',
+    'type': 'GET'
+  },
+  'reassign.apply_configs': {
+    'real': '/clusters/{clusterName}/services/{serviceName}',
+    'type': 'PUT',
+    'format': function (data) {
+      return {
+        data: JSON.stringify(data.configs)
+      }
+    }
+  },
+  'config.advanced': {
+    'real': '{stackVersionUrl}/services/{serviceName}',
+    'mock': '/data/wizard/stack/hdp/version130/{serviceName}.json',
+    'format': function(data){
+      return {
+        async: false
+      };
+    }
+  },
+  'config.tags': {
+    'real': '/clusters/{clusterName}',
+    'mock': '/data/clusters/cluster.json'
+  },
+  'config.on-site': {
+    'real': '/clusters/{clusterName}/configurations?{params}',
+    'mock': '/data/configurations/cluster_level_configs.json?{params}',
+    'format': function(data){
+      return {
+        async: false
+      };
+    }
+  },
+  'config.host_overrides': {
+    'real': '/clusters/{clusterName}/configurations?{params}',
+    'mock': '/data/configurations/host_level_overrides_configs.json?{params}',
+    'format': function(data){
+      return {
+        async: false
+      };
+    }
   }
 };
 /**
@@ -69,6 +239,7 @@ var urls = {
  */
 var formatUrl = function(url, data) {
   var keys = url.match(/\{\w+\}/g);
+  keys = (keys === null) ? [] :  keys;
   keys.forEach(function(key){
     var raw_key = key.substr(1, key.length - 2);
     var replace;
@@ -95,7 +266,8 @@ var formatRequest = function(data) {
     statusCode: require('data/statusCodes')
   };
   if(App.testMode) {
-    opt.url = this.mock;
+    opt.url = formatUrl(this.mock, data);
+    opt.type = 'GET';
   }
   else {
     opt.url = App.apiPrefix + formatUrl(this.real, data);
@@ -123,6 +295,7 @@ App.ajax = {
    *  name - url-key in the urls-object *required*
    *  sender - object that send request (need for proper callback initialization) *required*
    *  data - object with data for url-format
+   *  beforeSend - method-name for ajax beforeSend response callback
    *  success - method-name for ajax success response callback
    *  error - method-name for ajax error response callback
    *  callback - callback from <code>App.updater.run</code> library
@@ -146,10 +319,15 @@ App.ajax = {
     var opt = {};
     opt = formatRequest.call(urls[config.name], params);
 
-    // object sender should be provided for processing success and error responses
+    // object sender should be provided for processing beforeSend, success and error responses
+    opt.beforeSend = function() {
+      if(config.beforeSend) {
+        config.sender[config.beforeSend](opt);
+      }
+    };
     opt.success = function(data) {
       if(config.success) {
-        config.sender[config.success](data, opt);
+        config.sender[config.success](data, opt, params);
       }
     };
     opt.error = function(request, ajaxOptions, error) {

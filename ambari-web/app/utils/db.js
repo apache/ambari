@@ -230,6 +230,12 @@ App.db.setMasterToReassign = function (masterComponent) {
   localStorage.setObject('ambari', App.db.data);
 };
 
+App.db.setReassignTasksStatuses = function (tasksStatuses) {
+  App.db.data = localStorage.getObject('ambari');
+  App.db.data.ReassignMaster.tasksStatuses = tasksStatuses;
+  localStorage.setObject('ambari', App.db.data);
+};
+
 /**
  * Set current step value for specified Wizard Type
  * @param wizardType
@@ -392,6 +398,11 @@ App.db.getCluster = function () {
 App.db.getMasterToReassign = function () {
   App.db.data = localStorage.getObject('ambari');
   return App.db.data.ReassignMaster.masterComponent;
+};
+
+App.db.getReassignTasksStatuses = function () {
+  App.db.data = localStorage.getObject('ambari');
+  return App.db.data.ReassignMaster.tasksStatuses;
 };
 
 App.db.getUpgradeOptions = function () {

@@ -5,9 +5,9 @@
  * licenses this file to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
  * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
@@ -21,6 +21,30 @@ var date = require('utils/date');
 App.MainDashboardServiceHbaseView = App.MainDashboardServiceView.extend({
   templateName: require('templates/main/dashboard/service/hbase'),
   serviceName: 'hbase',
+  /**
+   * All master components
+   */
+  masters: function () {
+    return this.get('service.hostComponents').filterProperty('isMaster', true);
+  }.property('service.hostComponents.@each'),
+  /**
+   * Passive master components
+   */
+  passiveMasters: function () {
+    return this.get('masters').filterProperty('haStatus', 'passive');
+  }.property('masters'),
+  /**
+   * Formatted output for passive master components
+   */
+  passiveMasterOutput: function () {
+    return Em.I18n.t('service.hbase.passiveMasters').format(this.get('passiveMasters').length);
+  }.property('passiveMasters'),
+  /**
+   * One(!) active master component
+   */
+  activeMaster: function () {
+    return this.get('masters').findProperty('haStatus', 'active');
+  }.property('masters'),
 
   masterServerHeapSummary: function () {
     var heapUsed = this.get('service').get('heapMemoryUsed');
@@ -31,7 +55,7 @@ App.MainDashboardServiceHbaseView = App.MainDashboardServiceView.extend({
     return this.t('dashboard.services.hbase.masterServerHeap.summary').format(heapString, heapMaxString, percent.toFixed(1));
   }.property('service.heapMemoryUsed', 'service.heapMemoryMax'),
 
-  version: function(){
+  version: function () {
     return this.formatUnavailable(this.get('service.version'));
   }.property('service.version'),
 
@@ -44,8 +68,10 @@ App.MainDashboardServiceHbaseView = App.MainDashboardServiceView.extend({
   }.property('service.regionServers', 'service.averageLoad'),
 
   hbaseMasterWebUrl: function () {
-    return "http://" + this.get('service').get('master').get('publicHostName') + ":60010";
-  }.property('service.master'),
+    if (this.get('activeMaster.host') && this.get('activeMaster.host').get('publicHostName')) {
+      return "http://" + this.get('activeMaster.host').get('publicHostName') + ":60010";
+    }
+  }.property('activeMaster'),
 
   averageLoad: function () {
     var avgLoad = this.get('service.averageLoad');

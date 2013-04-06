@@ -1,0 +1,60 @@
+{
+  "href" : "http://localhost:8080/api/clusters/mycluster/requests/1",
+  "Requests" : {
+    "id" : 1
+  },
+  "tasks" : [
+    {
+      "href" : "http://localhost:8080/api/clusters/mycluster/requests/1/tasks/1",
+      "Tasks" : {
+        "id" : "1",
+        "attempt_cnt" : "0",
+        "exit_code" : "999",
+        "stdout" : "",
+        "status" : "SUCCESS",
+        "command" : "CONNECT",
+        "start_time" : "-1",
+        "role" : "DATANODE",
+        "stderr" : "",
+        "type": "readonly",
+        "endpoint": "http://ec2...com:50070",
+        "version": "1.1.2.22"
+      }
+    },
+    {
+      "href" : "http://localhost:8080/api/clusters/mycluster/requests/1/tasks/1",
+      "Tasks" : {
+        "id" : "1",
+        "attempt_cnt" : "0",
+        "exit_code" : "999",
+        "stdout" : "",
+        "status" : "SUCCESS",
+        "command" : "CONNECT",
+        "start_time" : "-1",
+        "role" : "DATANODE",
+        "stderr" : "",
+        "type": "write",
+        "endpoint": "hdfs://ec2...com:8020",
+        "version": "1.1.2.22"
+      }
+    },
+    {
+      "href" : "http://localhost:8080/api/clusters/mycluster/requests/1/tasks/1",
+      "Tasks" : {
+        "id" : "1",
+        "attempt_cnt" : "0",
+        "exit_code" : "999",
+        "stdout" : "",
+        "status" : "SUCCESS",
+        "command" : "CONNECT",
+        "start_time" : "-1",
+        "role" : "DATANODE",
+        "stderr" : "",
+        "type": "workflow",
+        "endpoint": "http://ec2...com:11000/oozie/",
+        "version": "3.1"
+      }
+    }
+
+  ]
+}

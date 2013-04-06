@@ -262,21 +262,20 @@ App.WizardController = Em.Controller.extend({
     switch (this.get('content.controllerName')) {
       case 'addHostController':
         if (isRetry) {
-          url = App.apiPrefix + '/clusters/' + clusterName + '/host_components?HostRoles/state!=INSTALLED';
-          data = '{"HostRoles": {"state": "INSTALLED"}}';
+          url = App.apiPrefix + '/clusters/' + clusterName + '/host_components?HostRoles/state=INSTALLED';
         } else {
           url = App.apiPrefix + '/clusters/' + clusterName + '/host_components?HostRoles/state=INIT';
-          data = '{"HostRoles": {"state": "INSTALLED"}}';
         }
+        data = '{"RequestInfo": {"context" :"'+ Em.I18n.t('requestInfo.installComponents') +'"}, "Body": {"HostRoles": {"state": "INSTALLED"}}}';
         break;
       case 'installerController':
       default:
         if (isRetry) {
           url = (App.testMode) ? '/data/wizard/deploy/2_hosts/poll_1.json' : App.apiPrefix + '/clusters/' + clusterName + '/host_components?HostRoles/state!=INSTALLED';
-          data = '{"HostRoles": {"state": "INSTALLED"}}';
+          data = '{"RequestInfo": {"context" :"'+ Em.I18n.t('requestInfo.installComponents') +'"}, "Body": {"HostRoles": {"state": "INSTALLED"}}}';
         } else {
           url = (App.testMode) ? '/data/wizard/deploy/2_hosts/poll_1.json' : App.apiPrefix + '/clusters/' + clusterName + '/services?ServiceInfo/state=INIT';
-          data = '{"ServiceInfo": {"state": "INSTALLED"}}';
+          data = '{"RequestInfo": {"context" :"'+ Em.I18n.t('requestInfo.installServices') +'"}, "Body": {"ServiceInfo": {"state": "INSTALLED"}}}';
         }
         break;
     }
@@ -431,7 +430,7 @@ App.WizardController = Em.Controller.extend({
   loadServiceComponents: function (displayOrderConfig, apiUrl) {
     var result = null;
     var method = 'GET';
-    var testUrl = '/data/wizard/stack/hdp/version/1.2.0.json';
+    var testUrl = '/data/wizard/stack/hdp/version/1.3.0.json';
     var url = (App.testMode) ? testUrl : App.apiPrefix + apiUrl;
     $.ajax({
       type: method,
@@ -460,19 +459,23 @@ App.WizardController = Em.Controller.extend({
         // loop through all the service components
         for (var i = 0; i < displayOrderConfig.length; i++) {
           var entry = jsonData.services.findProperty("name", displayOrderConfig[i].serviceName);
+          if (entry) {
+            var myService = Service.create({
+              serviceName: entry.name,
+              displayName: displayOrderConfig[i].displayName,
+              isDisabled: i === 0,
+              isSelected: true,
+              isInstalled: false,
+              isHidden: displayOrderConfig[i].isHidden,
+              description: entry.comment,
+              version: entry.version
+            });
 
-          var myService = Service.create({
-            serviceName: entry.name,
-            displayName: displayOrderConfig[i].displayName,
-            isDisabled: i === 0,
-            isSelected: true,
-            isInstalled: false,
-            isHidden: displayOrderConfig[i].isHidden,
-            description: entry.comment,
-            version: entry.version
-          });
-
-          data.push(myService);
+            data.push(myService);
+          }
+          else {
+            console.warn('Service not found - ', displayOrderConfig[i].serviceName);
+          }
         }
 
         result = data;
@@ -585,7 +588,7 @@ App.WizardController = Em.Controller.extend({
           formattedHosts.get(header.get('name')).push({
             hostName: host.hostName,
             group: 'Default',
-            isInstalled: cb.get('installed')
+            isInstalled: cb.get('isInstalled')
           });
         }
       });
@@ -624,6 +627,83 @@ App.WizardController = Em.Controller.extend({
       },50);
     }
     return dfd.promise();
-  }
+  },
 
+  /**
+   * Save cluster status before going to deploy step
+   * @param name cluster state. Unique for every wizard
+   */
+  saveClusterState: function(name){
+    App.clusterStatus.setClusterStatus({
+      clusterName: this.get('content.cluster.name'),
+      clusterState: name,
+      wizardControllerName: this.get('content.controllerName'),
+      localdb: App.db.data
+    });
+  },
+
+  /**
+   * load advanced configs from server
+   */
+  loadAdvancedConfigs: function () {
+    var configs = (App.db.getAdvancedServiceConfig()) ? App.db.getAdvancedServiceConfig() : [];
+    this.get('content.services').filterProperty('isSelected', true).mapProperty('serviceName').forEach(function (_serviceName) {
+      var serviceComponents = App.config.loadAdvancedConfig(_serviceName);
+      if(serviceComponents){
+        configs = configs.concat(serviceComponents);
+      }
+    }, this);
+    this.set('content.advancedServiceConfig', configs);
+    App.db.setAdvancedServiceConfig(configs);
+  },
+  /**
+   * Load serviceConfigProperties to model
+   */
+  loadServiceConfigProperties: function () {
+    var serviceConfigProperties = App.db.getServiceConfigProperties();
+    this.set('content.serviceConfigProperties', serviceConfigProperties);
+    console.log("AddHostController.loadServiceConfigProperties: loaded config ", serviceConfigProperties);
+  },
+  /**
+   * Save config properties
+   * @param stepController Step7WizardController
+   */
+  saveServiceConfigProperties: function (stepController) {
+    var serviceConfigProperties = [];
+    stepController.get('stepConfigs').forEach(function (_content) {
+      _content.get('configs').forEach(function (_configProperties) {
+        var displayType = _configProperties.get('displayType');
+        if (displayType === 'directories' || displayType === 'directory') {
+          var value = _configProperties.get('value').trim().split(/\s+/g).join(',');
+          _configProperties.set('value', value);
+        }
+        var overrides = _configProperties.get('overrides');
+        var overridesArray = [];
+        if(overrides!=null){
+          overrides.forEach(function(override){
+            var overrideEntry = {
+              value: override.get('value'),
+              hosts: []
+            };
+            override.get('selectedHostOptions').forEach(function(host){
+              overrideEntry.hosts.push(host);
+            });
+            overridesArray.push(overrideEntry);
+          });
+        }
+        var configProperty = {
+          id: _configProperties.get('id'),
+          name: _configProperties.get('name'),
+          value: _configProperties.get('value'),
+          defaultValue: _configProperties.get('defaultValue'),
+          serviceName: _configProperties.get('serviceName'),
+          domain:  _configProperties.get('domain'),
+          filename: _configProperties.get('filename')
+        };
+        serviceConfigProperties.push(configProperty);
+      }, this);
+    }, this);
+    App.db.setServiceConfigProperties(serviceConfigProperties);
+    this.set('content.serviceConfigProperties', serviceConfigProperties);
+  }
 })

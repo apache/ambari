@@ -42,11 +42,19 @@ App.MainAdminClusterController = Em.Controller.extend({
         dataType: 'json',
         timeout: App.timeout,
         success: function (data) {
+          var currentVersion = App.currentStackVersion.replace(/HDP-/, '');
+          var minUpgradeVersion = currentVersion;
           upgradeVersion = upgradeVersion.replace(/HDP-/, '');
-          data.filterProperty('name', 'HDP').mapProperty('version').forEach(function(version){
+          data = data.filterProperty('name', 'HDP');
+          data.mapProperty('version').forEach(function(version){
             upgradeVersion = (upgradeVersion < version) ? version : upgradeVersion;
           });
-          installedServices = data.findProperty('version', App.currentStackVersion.replace(/HDP-/, ''));
+          //TODO remove hardcoded upgrade version
+          upgradeVersion = (App.testMode)?'1.3.0': upgradeVersion;
+          minUpgradeVersion = data.findProperty('version', upgradeVersion).minUpgradeVersion;
+          minUpgradeVersion = (minUpgradeVersion) ? minUpgradeVersion : currentVersion;
+          upgradeVersion = (minUpgradeVersion <= currentVersion) ? upgradeVersion : currentVersion;
+          installedServices = data.findProperty('version', currentVersion);
           newServices = data.findProperty('version', upgradeVersion);
           upgradeVersion = 'HDP-' + upgradeVersion;
         },
@@ -56,9 +64,13 @@ App.MainAdminClusterController = Em.Controller.extend({
         statusCode: require('data/statusCodes')
       });
       this.set('upgradeVersion', upgradeVersion);
-      this.parseServicesInfo(installedServices, newServices);
+      if(installedServices && newServices){
+        this.parseServicesInfo(installedServices, newServices);
+      } else {
+        console.log('HDP stack doesn\'t have services with defaultStackVersion');
+      }
     }
-  }.observes('App.router.clusterController.isLoaded'),
+  }.observes('App.router.clusterController.isLoaded', 'App.currentStackVersion'),
   /**
    * parse services info(versions, description) by version
    */
@@ -70,23 +82,28 @@ App.MainAdminClusterController = Em.Controller.extend({
       // loop through all the service components
       for (var i = 0; i < displayOrderConfig.length; i++) {
         var entry = oldServices.services.findProperty("name", displayOrderConfig[i].serviceName);
-        if (installedServices.contains(entry.name)) {
-          var myService = Em.Object.create({
-            serviceName: entry.name,
-            displayName: displayOrderConfig[i].displayName,
-            isDisabled: i === 0,
-            isSelected: true,
-            isInstalled: false,
-            isHidden: displayOrderConfig[i].isHidden,
-            description: entry.comment,
-            version: entry.version,
-            newVersion: newServices.services.findProperty("name", displayOrderConfig[i].serviceName).version
-          });
-          //From 1.3.0 for Hive we display only "Hive" (but it installes HCat and WebHCat as well)
-          if (this.get('upgradeVersion').replace(/HDP-/, '') >= '1.3.0' && displayOrderConfig[i].serviceName == 'HIVE') {
-            myService.set('displayName', 'Hive');
+        if (entry) {
+          if (installedServices.contains(entry.name)) {
+            var myService = Em.Object.create({
+              serviceName: entry.name,
+              displayName: displayOrderConfig[i].displayName,
+              isDisabled: i === 0,
+              isSelected: true,
+              isInstalled: false,
+              isHidden: displayOrderConfig[i].isHidden,
+              description: entry.comment,
+              version: entry.version,
+              newVersion: newServices.services.findProperty("name", displayOrderConfig[i].serviceName).version
+            });
+            //From 1.3.0 for Hive we display only "Hive" (but it installes HCat and WebHCat as well)
+            if (this.get('upgradeVersion').replace(/HDP-/, '') >= '1.3.0' && displayOrderConfig[i].serviceName == 'HIVE') {
+              myService.set('displayName', 'Hive');
+            }
+            result.push(myService);
           }
-          result.push(myService);
+        }
+        else {
+          console.warn('Service not found - ', displayOrderConfig[i].serviceName);
         }
       }
     }

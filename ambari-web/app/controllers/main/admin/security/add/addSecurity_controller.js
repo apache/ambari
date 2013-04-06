@@ -92,39 +92,6 @@ App.AddSecurityController = App.WizardController.extend({
   loadServiceConfigs: function () {
     var serviceConfigProperties = App.db.getServiceConfigProperties();
     this.set('content.serviceConfigProperties', serviceConfigProperties);
-  },
-
-  /**
-   * Save config properties
-   * @param stepController Step2AddSecurityController
-   */
-  saveServiceConfigProperties: function (stepController) {
-    var serviceConfigProperties = [];
-    stepController.get('stepConfigs').forEach(function (_content) {
-      _content.get('configs').forEach(function (_configProperties) {
-        var displayType = _configProperties.get('displayType');
-        if (displayType === 'directories' || displayType === 'directory') {
-          var value = _configProperties.get('value').trim().split(/\s+/g).join(',');
-          _configProperties.set('value', value);
-        }
-        if (_configProperties.get('value')) {
-          var configProperty = {
-            id: _configProperties.get('id'),
-            name: _configProperties.get('name'),
-            value: _configProperties.get('value'),
-            defaultValue: _configProperties.get('defaultValue'),
-            service: _configProperties.get('serviceName'),
-            filename: _configProperties.get('filename')
-          };
-          serviceConfigProperties.push(configProperty);
-        }
-      }, this);
-
-    }, this);
-
-    App.db.setServiceConfigProperties(serviceConfigProperties);
-    this.set('content.serviceConfigProperties', serviceConfigProperties);
   }
-
 });
 

@@ -33,6 +33,7 @@ require('router');
 
 require('utils/ajax');
 require('utils/updater');
+require('utils/config');
 
 require('mappers/server_data_mapper');
 require('mappers/status_mapper');

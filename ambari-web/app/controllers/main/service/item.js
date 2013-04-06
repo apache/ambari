@@ -49,7 +49,7 @@ App.MainServiceItemController = Em.Controller.extend({
    */
   ajaxSuccess: function(data, ajaxOptions) {
     if(data && data.Requests) {
-      this.ajaxCallBack(data.Requests.id, (JSON.parse(ajaxOptions.data)).ServiceInfo.state);
+      this.ajaxCallBack(data.Requests.id, (JSON.parse(ajaxOptions.data)).Body.ServiceInfo.state);
     }
     else {
       console.log('cannot get request id from ', data);
@@ -74,16 +74,6 @@ App.MainServiceItemController = Em.Controller.extend({
     }
     else {
       App.router.get('clusterController').loadUpdatedStatusDelayed(500);// @todo check working without param 500
-      App.router.get('backgroundOperationsController.eventsArray').push({
-        "when": function (controller) {
-          var result = (controller.getOperationsForRequestId(requestId).length == 0);
-          console.log(config.s + 'Service.when = ', result)
-          return result;
-        },
-        "do": function () {
-          App.router.get('clusterController').loadUpdatedStatus();
-        }
-      });
     }
     App.router.get('backgroundOperationsController').showPopup();
   },
@@ -103,11 +93,19 @@ App.MainServiceItemController = Em.Controller.extend({
   },
 
   startStopPopupPrimary: function(serviceHealth) {
+    var requestInfo = "";
+    if(serviceHealth == "STARTED"){
+      requestInfo = 'Start service ' + this.get('content.serviceName').toUpperCase() ;
+    }else{
+      requestInfo = 'Stop service ' + this.get('content.serviceName').toUpperCase() ;
+    }
+
     App.ajax.send({
       'name': 'service.item.start_stop',
       'sender': this,
       'success': 'ajaxSuccess',
       'data': {
+        'requestInfo':requestInfo,
         'serviceName': this.get('content.serviceName').toUpperCase(),
         'state': serviceHealth
       }

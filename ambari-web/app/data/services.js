@@ -101,4 +101,11 @@ module.exports = [
     isSelected: true,
     isHidden: true
   },
+  {
+    serviceName: 'HUE',
+    displayName: 'Hue',
+    isDisabled: false,
+    isSelected: true,
+    isHidden: false
+  }
 ]

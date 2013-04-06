@@ -53,6 +53,12 @@ App.ServiceConfigTextField = Ember.TextField.extend(App.ServiceConfigPopoverSupp
   classNameBindings: 'textFieldClassName',
   placeholderBinding: 'serviceConfig.defaultValue',
 
+  keyPress: function(event) {
+    if (event.keyCode == 13) {
+      return false;
+    }
+  },
+
   textFieldClassName: function () {
     // sets the width of the field depending on display type
     if (['directory', 'url', 'email', 'user', 'host'].contains(this.get('serviceConfig.displayType'))) {
@@ -101,10 +107,21 @@ App.ServiceConfigPasswordField = Ember.TextField.extend({
 
   template: Ember.Handlebars.compile('{{view view.retypePasswordView}}'),
 
+  keyPress: function(event) {
+    if (event.keyCode == 13) {
+      return false;
+    }
+  },
+
   retypePasswordView: Ember.TextField.extend({
     placeholder: Em.I18n.t('form.passwordRetype'),
     type: 'password',
     classNames: [ 'span3', 'retyped-password' ],
+    keyPress: function(event) {
+      if (event.keyCode == 13) {
+        return false;
+      }
+    },
     valueBinding: 'parentView.serviceConfig.retypedPassword'
   })
 
@@ -160,7 +177,7 @@ App.ServiceConfigRadioButtons = Ember.View.extend({
     '{{/each}}'
   ].join('\n')),
   serviceConfig: null,
-  categoryConfigs: null,
+  categoryConfigsAll: null,
   nameBinding: 'serviceConfig.radioName',
   optionsBinding: 'serviceConfig.options',
   disabled: function () {
@@ -191,16 +208,18 @@ App.ServiceConfigRadioButton = Ember.Checkbox.extend({
     this.set('parentView.serviceConfig.value', this.get('value'));
     var components = this.get('parentView.serviceConfig.options');
     components.forEach(function (_component) {
-      _component.foreignKeys.forEach(function (_componentName) {
-        if (this.get('parentView.categoryConfigs').someProperty('name', _componentName)) {
-          var component = this.get('parentView.categoryConfigs').findProperty('name', _componentName);
-          if (_component.displayName === this.get('value')) {
-            component.set('isVisible', true);
-          } else {
-            component.set('isVisible', false);
+      if(_component.foreignKeys){
+        _component.foreignKeys.forEach(function (_componentName) {
+          if (this.get('parentView.categoryConfigsAll').someProperty('name', _componentName)) {
+            var component = this.get('parentView.categoryConfigsAll').findProperty('name', _componentName);
+            if (_component.displayName === this.get('value')) {
+              component.set('isVisible', true);
+            } else {
+              component.set('isVisible', false);
+            }
           }
-        }
-      }, this);
+        }, this);
+      }
     }, this);
   }.observes('checked') ,
 
@@ -382,7 +401,25 @@ App.ServiceConfigSlaveHostsView = Ember.View.extend(App.ServiceConfigMultipleHos
 
   valueBinding: 'serviceConfig.value',
 
-  templateName: require('templates/wizard/slave_hosts')
+  templateName: require('templates/wizard/slave_hosts'),
+
+  /**
+   * Onclick handler for link
+   */
+  showHosts: function () {
+    var serviceConfig = this.get('serviceConfig');
+    App.ModalPopup.show({
+      header: Em.I18n.t('installer.controls.serviceConfigMasterHosts.header').format(serviceConfig.category),
+      bodyClass: Ember.View.extend({
+        serviceConfig: serviceConfig,
+        templateName: require('templates/wizard/master_hosts_popup')
+      }),
+      onPrimary: function () {
+        this.hide();
+      },
+      secondary: null
+    });
+  }
 
 });
 

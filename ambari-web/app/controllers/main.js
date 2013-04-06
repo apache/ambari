@@ -44,8 +44,15 @@ App.MainController = Em.Controller.extend({
    * run all processes and cluster's data loading
    */
   initialize: function(){
+    this.initAdmin();
     App.router.get('clusterController').loadClusterData();
     this.startPolling();
+  },
+  initAdmin: function(){
+    if(App.db && App.db.getUser() && App.db.getUser().admin) {
+      App.set('isAdmin', true);
+      console.log('Administrator logged in');
+    }
   },
   startPolling: function(){
     App.router.get('updateController').set('isWorking', true);

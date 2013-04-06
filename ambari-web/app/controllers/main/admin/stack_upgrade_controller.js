@@ -66,33 +66,6 @@ App.StackUpgradeController = App.WizardController.extend({
   upgradeOptionsTemplate:{
     localRepo: false
   },
-  /**
-   * run stop services before upgrade phase
-   */
-  stopServices: function () {
-    var clusterName = this.get('content.cluster.name');
-    var url = App.apiPrefix + '/clusters/' + clusterName + '/services?ServiceInfo/state=STARTED';
-    var data = '{"ServiceInfo": {"state": "INSTALLED"}}';
-    var method = (App.testMode) ? 'GET' : 'PUT';
-    $.ajax({
-      type: method,
-      url: url,
-      async: false,
-      data: data,
-      dataType: 'text',
-      timeout: App.timeout,
-      success: function (data) {
-        var jsonData = jQuery.parseJSON(data);
-        console.log("TRACE: Step3 -> In success function for the stopService call");
-        console.log("TRACE: Step3 -> value of the url is: " + url);
-        console.log("TRACE: Step3 -> value of the received data is: " + jsonData);
-      },
-      error: function () {
-        console.log("Call to stop services failed");
-      },
-      statusCode: require('data/statusCodes')
-    });
-  },
   clear: function () {
     this.set('content', Ember.Object.create({
       servicesInfo: function(){

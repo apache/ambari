@@ -70,7 +70,9 @@ App.SelectHostView = Em.Select.extend({
   },
 
   didInsertElement:function () {
-    this.filterContent();
+    if (!this.get('controller.isReassignWizard')) {
+      this.filterContent();
+    }
     this.set("value", this.get("selectedHost"));
   }
 });

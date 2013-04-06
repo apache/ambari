@@ -21,49 +21,81 @@ var App = require('app');
 
 App.StackUpgradeStep3View = Em.View.extend({
   templateName: require('templates/wizard/stack_upgrade/step3'),
+  overallStatus: Em.I18n.t('installer.stackUpgrade.step3.status.info'),
+  statusClass: 'alert-info',
   didInsertElement: function(){
-    this.get('controller').navigateStep();
+    this.get('controller').resumeStep();
     this.onStatus();
   },
-  statusMessage: null,
-  statusClass: 'alert-info',
-  barColor: '',
-  servicesStopWidth: function(){
-    return 'width: ' + this.get('controller.servicesStopProgress') + '%;';
-  }.property('controller.servicesStopProgress'),
-  /**
-   * change message of Upgrade status depending on the Upgrade status
-   */
   onStatus: function(){
-    switch (this.get('controller.status')){
-      case 'SUCCESS':
-        this.set('statusMessage', Em.I18n.t('installer.stackUpgrade.step3.status.success').format(this.get('controller.content.upgradeVersion')));
-        this.set('statusClass', 'alert-success');
-        break;
-      case 'FAILED':
-        this.set('statusMessage', Em.I18n.t('installer.stackUpgrade.step3.status.failed'));
-        this.set('statusClass', 'alert-error');
-        break;
-      case 'WARNING':
-        this.set('statusMessage', Em.I18n.t('installer.stackUpgrade.step3.status.warning').format(this.get('controller.content.upgradeVersion')));
-        this.set('statusClass', 'alert-block');
-        break;
-      case 'IN_PROGRESS':
-      default:
-        this.set('statusMessage', Em.I18n.t('installer.stackUpgrade.step3.status.info'));
-        this.set('statusClass', 'alert-info');
+    var currentProcess = this.get('controller.processes').findProperty('isRunning', true);
+    if(currentProcess && (currentProcess.get('name') == 'UPGRADE_SERVICES')){
+      switch (currentProcess.get('status')){
+        case 'SUCCESS':
+          this.set('overallStatus', Em.I18n.t('installer.stackUpgrade.step3.status.success').format(this.get('controller.content.upgradeVersion')));
+          this.set('statusClass', 'alert-success');
+          break;
+        case 'FAILED':
+          this.set('overallStatus', Em.I18n.t('installer.stackUpgrade.step3.status.failed'));
+          this.set('statusClass', 'alert-error');
+          break;
+        case 'WARNING':
+          this.set('overallStatus', Em.I18n.t('installer.stackUpgrade.step3.status.warning').format(this.get('controller.content.upgradeVersion')));
+          this.set('statusClass', 'alert-block');
+          break;
+        case 'IN_PROGRESS':
+        default:
+          this.set('overallStatus', Em.I18n.t('installer.stackUpgrade.step3.status.info'));
+          this.set('statusClass', 'alert-info');
+      }
+    } else {
+      this.set('overallStatus', Em.I18n.t('installer.stackUpgrade.step3.status.info'));
+      this.set('statusClass', 'alert-info');
     }
-  }.observes('controller.status'),
-
-  serviceView: Em.View.extend({
+  }.observes('controller.processes.@each.status'),
+  processView: Em.View.extend({
     barColor: '',
     icon:'',
     iconColor:'',
+    status: function(){
+      var process = this.get('content');
+      if(process.get('name') == 'STOP_SERVICES'){
+        switch(process.get('status')){
+          case 'IN_PROGRESS':
+            return Em.I18n.t('installer.stackUpgrade.step3.service.stopping');
+          case 'FAILED':
+            return Em.I18n.t('installer.stackUpgrade.step3.service.stopFail');
+          case 'SUCCESS':
+            return Em.I18n.t('installer.stackUpgrade.step3.service.stopped');
+          default:
+            return Em.I18n.t('installer.stackUpgrade.step3.service.stopPending');
+        }
+      } else {
+        switch(process.get('status')){
+          case 'IN_PROGRESS':
+            return Em.I18n.t('installer.stackUpgrade.step3.service.upgrading');
+          case 'WARNING':
+            return Em.I18n.t('installer.stackUpgrade.step3.service.upgraded');
+          case 'FAILED':
+            return Em.I18n.t('installer.stackUpgrade.step3.service.failedUpgrade');
+          case 'SUCCESS':
+            return Em.I18n.t('installer.stackUpgrade.step3.service.upgraded');
+          default:
+            return Em.I18n.t('installer.stackUpgrade.step3.service.pending');
+        }
+      }
+    }.property('content.status'),
     didInsertElement: function(){
       this.onStatus();
     },
-    isServiceCompleted: function(){
-      return this.get('content.status') === 'SUCCESS';
+    retryMessage: function(){
+      if(this.get('content.name') == 'STOP_SERVICES'){
+        return Em.I18n.t('installer.stackUpgrade.step3.retry.services');
+      }
+      return Em.I18n.t('installer.stackUpgrade.step3.retry.upgrade');
+    }.property('content.name'),
+    isProcessCompleted: function(){
+      return this.get('content.status') == 'SUCCESS' || this.get('content.status') === 'WARNING';
     }.property('content.status'),
     barWidth: function(){
       return 'width: ' + this.get('content.progress') + '%;';
@@ -95,7 +127,7 @@ App.StackUpgradeStep3View = Em.View.extend({
       }
     }.observes('content.status'),
     inProgress: function(){
-      return this.get('content.status') === "IN_PROGRESS";
+      return this.get('content.isRunning') && !this.get('content.isRetry');
     }.property('content.status'),
     /**
      * open popup with list of hosts, that associated to service

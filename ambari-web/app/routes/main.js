@@ -30,7 +30,8 @@ module.exports = Em.Route.extend({
       });
     }
   },
-  /*routePath: function(router,event) {
+  /*
+   routePath: function(router,event) {
    if (router.getAuthenticated()) {
    App.router.get('clusterController').loadClusterName(false);
    router.get('mainController').initialize();
@@ -102,10 +103,310 @@ module.exports = Em.Route.extend({
 
   mirroring: Em.Route.extend({
     route: '/mirroring',
-    connectOutlets: function (router) {
-      router.get('mainController').connectOutlet('mainMirroring');
+    index: Ember.Route.extend({
+      route: '/',
+      enter: function () {
+        this.setupController()
+      },
+      setupController: function () {
+        var controller = App.router.get('mainMirroringController');
+        var datasets = App.Dataset.find();
+        controller.set('datasets', datasets);
+      },
+      connectOutlets: function (router, context) {
+        console.debug('Inside connectOutlets in ' + App.get('router.currentState.path'));
+        router.get('mainController').connectOutlet('mainMirroring');
+      }
+    }),
+
+    addNewDataset: function (router) {
+      router.transitionTo('addNewDatasetRoute');
+    },
+
+    addTargetCluster: function (router, event) {
+      router.transitionTo('addTargetClusterRoute');
+    },
+
+    gotoShowJobs: function (router, event) {
+      router.transitionTo('showDatasetJobs', event.context);
+    },
+
+    showDatasetJobs: Em.Route.extend({
+      route: '/dataset/:dataset_id',
+      connectOutlets: function (router, dataset) {
+        router.get('mainController').connectOutlet('mainJobs', dataset);
+      }
+    }),
+
+    addNewDatasetRoute: Em.Route.extend({
+      route: '/dataset/add',
+
+      setupController: function (controller) {
+        controller.createNewDataSet();
+      },
+      enter: function (router) {
+        var controller = router.get('mainMirroringDataSetController');
+        // if we are coming from closing AddCluster popup
+        if (controller.isReturning) {
+          controller.isReturning = false;
+          return;
+        }
+
+        controller.set('isPopupForEdit', false);
+        this.setupController(controller);
+
+        var self = this;
+        App.ModalPopup.show({
+          classNames: ['sixty-percent-width-modal', 'hideCloseLink'],
+          header: Em.I18n.t('mirroring.dataset.newDataset'),
+          primary: Em.I18n.t('mirroring.dataset.save'),
+          secondary: Em.I18n.t('common.cancel'),
+          onPrimary: function () {
+            newDataSet = controller.getNewDataSet();
+            var schedule = newDataSet.get('schedule');
+            var targetCluster = newDataSet.get('targetCluster');
+            console.debug('Before setting, schedule = ' + schedule + " , targetCluster = " + targetCluster);
+            var scheduleRecord = App.Dataset.Schedule.createRecord(schedule);
+            var dataSetRecord = App.Dataset.createRecord(newDataSet);
+            scheduleRecord.set('dataset', dataSetRecord);
+            dataSetRecord.set('schedule', scheduleRecord);
+
+            console.debug('After setting, schedule = ' + dataSetRecord.get('schedule') + " , targetCluster = " + dataSetRecord.get('targetCluster'));
+            this.hide();
+            router.transitionTo('main.mirroring.index');
+          },
+          onSecondary: function () {
+            this.hide();
+            router.transitionTo('main.mirroring.index');
+          },
+          bodyClass: App.MainMirroringDataSetView.extend({
+            controller: router.get('mainMirroringDataSetController')
+          })
+        });
+      }
+    }),
+
+    editDataset: Em.Route.extend({
+      route: '/dataset/:dataset_id/edit',
+      setupController: function (controller, dataset) {
+        controller.setOriginalDataSetRecord(dataset);
+        controller.setDataSet(dataset);
+      },
+
+
+      connectOutlets: function (router, dataset) {
+        var controller = router.get('mainMirroringDataSetController');
+        // if we are coming from closing AddCluster popup
+        if (controller.isReturning) {
+          controller.isReturning = false;
+          return;
+        }
+        // for showing delete button
+        controller.set('isPopupForEdit', true);
+        this.setupController(controller, dataset);
+
+        var self = this;
+        controller.set('popup', App.ModalPopup.show({
+          classNames: ['sixty-percent-width-modal'],
+          header: Em.I18n.t('mirroring.dataset.editDataset'),
+          primary: Em.I18n.t('mirroring.dataset.save'),
+          secondary: Em.I18n.t('common.cancel'),
+          onPrimary: function () {
+            newDataSet = controller.getNewDataSet();
+
+            var originalRecord = controller.get('model.originalRecord');
+
+            originalRecord.set('name', newDataSet.get('name'));
+            originalRecord.set('sourceDir', newDataSet.get('sourceDir'));
+            originalRecord.set('targetCluster', newDataSet.get('targetCluster'));
+            originalRecord.set('targetDir', newDataSet.get('targetDir'));
+            originalRecord.set('schedule', newDataSet.get('schedule'));
+            this.hide();
+            router.transitionTo('main.mirroring.index');
+          },
+          onSecondary: function () {
+            this.hide();
+            router.transitionTo('main.mirroring.index');
+          },
+          bodyClass: App.MainMirroringDataSetView.extend({
+            controller: router.get('mainMirroringDataSetController')
+          })
+        })
+        );
+      }
+    }),
+
+    gotoEditDataset: function (router, event) {
+      router.transitionTo('editDataset', event.context);
+    },
+
+    addTargetClusterRoute: Ember.Route.extend({
+      route: '/targetCluster/add',
+      initialState: 'testConnectionRoute',
+      testConnectionRoute: Ember.Route.extend({
+        setupController: function (controller) {
+          controller.createTargetCluster();
+          controller.set('model.isPopupForEdit', false);
+
+        },
+
+        enter: function (router, context) {
+
+          console.debug('Inside connectOutlets in ' + App.get('router.currentState.path'));
+          var self = this;
+          var controller = App.router.get('mainMirroringTargetClusterController');
+          this.setupController(controller);
+
+          controller.set('popup', App.ModalPopup.show({
+            classNames: ['sixty-percent-width-modal', 'hideCloseLink'],
+            header: Em.I18n.t('mirroring.targetcluster.addCluster'),
+            primary: Em.I18n.t('mirroring.targetcluster.testConnection'),
+            onPrimary: function () {
+              App.router.transitionTo('testConnectionResultsRoute');
+            },
+            onSecondary: function () {
+              this.hide();
+
+              var dscontroller = App.router.get('mainMirroringDataSetController');
+              var tccontroller = App.router.get('mainMirroringTargetClusterController');
+              var returnRoute = tccontroller.get('returnRoute');
+              // if we have come from addNewDatasetRoute
+              if (returnRoute) {
+                dscontroller.isReturning = true;
+                App.router.transitionTo(returnRoute);
+              }
+              else
+                App.router.transitionTo('main.mirroring.index');
+            },
+            bodyClass: App.MainMirroringAddTargetClusterView.extend({
+              controller: App.router.get('mainMirroringTargetClusterController')
+            })
+          }));
+        },
+
+        connectOutlets: function (router, context) {
+          console.log("entering the connectOutlets method of testConnectionRoute.")
+          var parentController = router.get('mainMirroringTargetClusterController');
+          parentController.connectOutlet('testConnection', parentController.get('model'));
+        },
+
+        exit: function (stateManager) {
+          console.log("exiting the testConnectionRoute state")
+        }
+      }),
+      testConnectionResultsRoute: Ember.Route.extend({
+        enter: function (stateManager) {
+          console.log("entering the testConnectionResultsRoute state.")
+          // lets change the primary button
+          var controller = App.router.get('mainMirroringTargetClusterController');
+          var popup = controller.get('popup');
+          popup.set('primary', Em.I18n.t('common.save'));
+          popup.set('onPrimary',
+            function () {
+              var controller = App.router.get('testConnectionResultsController');
+              controller.saveClusterName();
+            }
+          );
+
+        },
+
+        connectOutlets: function (router, context) {
+          console.log("entering the connectOutlets method of testConnectionResultsRoute.")
+          var parentController = router.get('mainMirroringTargetClusterController');
+          parentController.connectOutlet('testConnectionResults', parentController.get('model'));
+        },
+
+        exit: function (stateManager) {
+          console.log("exiting the connectionSuccessRoute state")
+        }
+
+      })
+    }),
+    editTargetClusterRoute: Em.Route.extend({
+      route: '/targetCluster/:targetCluster_id/edit',
+
+      initialState: 'testConnectionRoute',
+
+      setupController: function (controller, targetCluster) {
+        controller.setOriginalRecord(targetCluster);
+        controller.setTargetCluster(targetCluster);
+      },
+
+      connectOutlets: function (router, targetCluster) {
+        // this connectOutlets is mainly to receive the 'targetCluster' argument
+        var controller = router.get('mainMirroringTargetClusterController');
+        // for showing delete button
+        controller.set('model.isPopupForEdit', true);
+        this.setupController(controller, targetCluster);
+      },
+
+      testConnectionRoute: Em.Route.extend({
+        connectOutlets: function (router, targetCluster) {
+          var controller = router.get('mainMirroringTargetClusterController');
+          controller.set('popup', App.ModalPopup.show({
+            classNames: ['sixty-percent-width-modal'],
+            header: Em.I18n.t('mirroring.dataset.editDataset'),
+            primary: Em.I18n.t('mirroring.targetcluster.testConnection'),
+            onPrimary: function () {
+              App.router.transitionTo('testConnectionResultsRoute');
+            },
+            secondary: Em.I18n.t('common.cancel'),
+            onSecondary: function () {
+              this.hide();
+              router.transitionTo('main.mirroring.index');
+            },
+            bodyClass: App.MainMirroringAddTargetClusterView.extend({
+              controller: App.router.get('mainMirroringTargetClusterController')
+            })
+          }));
+
+          console.log("entering the connectOutlets method of testConnectionRoute.")
+          var parentController = router.get('mainMirroringTargetClusterController');
+          parentController.connectOutlet('testConnection', parentController.get('model'));
+
+        }
+
+      }),
+      testConnection: function () {
+        App.router.transitionTo('testConnectionResultsRoute');
+      },
+      testConnectionResultsRoute: Ember.Route.extend({
+        enter: function (stateManager) {
+          console.log("entering the testConnectionResultsRoute state.")
+          // lets change the primary button
+          var controller = App.router.get('mainMirroringTargetClusterController');
+          var popup = controller.get('popup');
+          popup.set('primary', Em.I18n.t('common.save'));
+          popup.set('onPrimary',
+            function () {
+              var controller = App.router.get('testConnectionResultsController');
+              controller.saveClusterName();
+            }
+          );
+
+        },
+
+        connectOutlets: function (router, context) {
+          console.log("entering the connectOutlets method of testConnectionResultsRoute.");
+          var parentController = router.get('mainMirroringTargetClusterController');
+          parentController.connectOutlet('testConnectionResults', parentController.get('model'));
+        },
+
+        exit: function (stateManager) {
+          console.log("exiting the connectionSuccessRoute state")
+        }
+
+      })
+
+    }),
+
+    editTargetCluster: function (router, event) {
+      router.transitionTo('editTargetClusterRoute', event.context);
     }
+
+
   }),
+
 
   hosts: Em.Route.extend({
     route: '/hosts',
@@ -131,6 +432,13 @@ module.exports = Em.Route.extend({
         route: '/summary',
         connectOutlets: function (router, context) {
           router.get('mainHostDetailsController').connectOutlet('mainHostSummary');
+        }
+      }),
+
+      configs: Em.Route.extend({
+        route: '/configs',
+        connectOutlets: function (router, context) {
+          router.get('mainHostDetailsController').connectOutlet('mainHostConfigs');
         }
       }),
 
@@ -354,6 +662,14 @@ module.exports = Em.Route.extend({
       }
     }),
 
+    adminMisc: Em.Route.extend({
+      route: '/misc',
+      connectOutlets: function(router) {
+        router.set('mainAdminController.category', "misc");
+        router.get('mainAdminController').connectOutlet('mainAdminMisc');
+      }
+    }),
+
     adminAudit: Em.Route.extend({
       route: '/audit',
       connectOutlets: function (router) {
@@ -373,7 +689,7 @@ module.exports = Em.Route.extend({
     },
 
     //events
-    goToAdmin: function(router, event) {
+    goToAdmin: function (router, event) {
       router.transitionTo(event.context);
     }
 
@@ -462,8 +778,8 @@ module.exports = Em.Route.extend({
   }),
 
 
-  serviceAdd:require('routes/add_service_routes'),
-  reassignMaster:require('routes/reassign_master_routes'),
+  serviceAdd: require('routes/add_service_routes'),
+  reassignMaster: require('routes/reassign_master_routes'),
 
 
   selectService: Em.Route.transitionTo('services.service'),

@@ -44,7 +44,7 @@
               </a>
             </div>
             <div class="progress-bar span2">
-                <div {{bindAttr class="progress-striped active servicesInfo.barColor :progress"}}>
+                <div {{bindAttr class="servicesInfo.isInProgress:progress-striped :active servicesInfo.barColor :progress"}}>
                     <div class="bar" {{bindAttr style="servicesInfo.barWidth"}}></div>
                 </div>
             </div>
@@ -93,7 +93,7 @@
             </a>
           </div>
           <div class="progress-bar span2">
-              <div {{bindAttr class="progress-striped active hostInfo.barColor :progress"}}>
+              <div {{bindAttr class="hostInfo.isInProgress:progress-striped :active hostInfo.barColor :progress"}}>
                   <div class="bar" {{bindAttr style="hostInfo.barWidth"}}></div>
               </div>
           </div>

@@ -49,6 +49,10 @@ App.WizardStep6Controller = Em.Controller.extend({
     return this.get('content.controllerName') === 'addHostController';
   }.property('content.controllerName'),
 
+  isInstallerWizard: function(){
+    return this.get('content.controllerName') === 'installerController';
+  }.property('content.controllerName'),
+
   clearError: function () {
     var self = this;
     var isError = false;
@@ -310,6 +314,7 @@ App.WizardStep6Controller = Em.Controller.extend({
         host.isMaster = self.hasMasterComponents(host.hostName);
         var checkboxes = host.get('checkboxes');
         checkboxes.setEach('checked', !host.isMaster);
+        checkboxes.setEach('isInstalled', false);
         checkboxes.findProperty('title', headers.findProperty('name', 'CLIENT').get('label')).set('checked', false);
         // First not Master should have Client (only first!)
         if (!client_is_set) {
@@ -320,6 +325,11 @@ App.WizardStep6Controller = Em.Controller.extend({
           }
         }
       });
+
+      if(this.get('isInstallerWizard') && hostsObj.everyProperty('isMaster', true)){
+        var lastHost = hostsObj[hostsObj.length - 1];
+        lastHost.get('checkboxes').setEach('checked', true);
+      }
     }
     else {
       this.get('headers').forEach(function(header) {
@@ -329,7 +339,7 @@ App.WizardStep6Controller = Em.Controller.extend({
             var node = hostsObj.findProperty('hostName', _node.hostName);
             if (node) {
               node.get('checkboxes').findProperty('title', header.get('label')).set('checked', true);
-              node.get('checkboxes').findProperty('title', header.get('label')).set('installed', _node.isInstalled);
+              node.get('checkboxes').findProperty('title', header.get('label')).set('isInstalled', _node.isInstalled);
             }
           });
         }

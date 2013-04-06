@@ -35,7 +35,7 @@ App.MainMenuView = Em.CollectionView.extend({
       { label:Em.I18n.t('menu.item.mirroring'), routing:'mirroring'}
 
     ];
-      if(App.db.getUser().admin) result.push({ label:Em.I18n.t('menu.item.admin'), routing:'admin'});
+      if(App.get('isAdmin')) result.push({ label:Em.I18n.t('menu.item.admin'), routing:'admin'});
     return result;
   }.property(),
     /**

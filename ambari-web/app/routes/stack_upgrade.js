@@ -21,7 +21,6 @@ module.exports = Em.Route.extend({
 
   enter: function (router) {
     console.log('in /admin/cluster/upgrade:enter');
-    var self = this;
     Ember.run.next(function () {
       var stackUpgradeController = router.get('stackUpgradeController');
       App.router.get('updateController').set('isWorking', false);
@@ -41,7 +40,12 @@ module.exports = Em.Route.extend({
           this.fitHeight();
         }
       });
-
+      var statuses = ['STOPPING_SERVICES', 'STACK_UPGRADING', 'STACK_UPGRADE_FAILED', 'STACK_UPGRADED'];
+      var currentClusterStatus = App.clusterStatus.get('value');
+      App.db.data = currentClusterStatus.localdb;
+      if (statuses.contains(currentClusterStatus.clusterState)) {
+        stackUpgradeController.setCurrentStep(3);
+      }
       router.transitionTo('step' + stackUpgradeController.get('currentStep'));
     });
   },
@@ -73,17 +77,13 @@ module.exports = Em.Route.extend({
       var stepController = router.get('stackUpgradeStep3Controller');
       controller.save('upgradeOptions');
       router.transitionTo('step3');
-      if(App.testMode){
-        stepController.simulateStopService();
-      } else {
-        controller.stopServices();
-      }
       App.clusterStatus.setClusterStatus({
         clusterName: controller.get('content.cluster.name'),
         clusterState: 'PENDING',
         wizardControllerName: 'stackUpgradeController',
         localdb: App.db.data
       });
+      stepController.stopServices();
     }
   }),
 
@@ -100,7 +100,6 @@ module.exports = Em.Route.extend({
     finish: function (router, context) {
       var controller = router.get('stackUpgradeController');
       var stepController = router.get('stackUpgradeStep3Controller');
-      stepController.clearStep();
       controller.finish();
       $(context.currentTarget).parents("#modal").find(".close").trigger('click');
       App.clusterStatus.setClusterStatus({
@@ -110,7 +109,7 @@ module.exports = Em.Route.extend({
         localdb: App.db.data
       });
       App.router.get('updateController').updateAll();
-      //App.set('currentStackVersion', controller.get('content.upgradeVersion'));
+      App.set('currentStackVersion', controller.get('content.upgradeVersion'));
     }
   }),
   backToCluster: function(router, context){

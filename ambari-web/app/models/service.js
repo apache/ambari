@@ -28,6 +28,7 @@ App.Service = DS.Model.extend({
   alerts: DS.hasMany('App.Alert'),
   quickLinks: DS.hasMany('App.QuickLinks'),
   hostComponents: DS.hasMany('App.HostComponent'),
+  serviceConfigsTemplate: require('data/service_configs'),
   isStartDisabled: function () {
     return !(this.get('healthStatus') == 'red');
   }.property('healthStatus'),
@@ -98,11 +99,14 @@ App.Service = DS.Model.extend({
       "MAPREDUCE",
       "HBASE",
       "OOZIE",
+      "GANGLIA",
+      "NAGIOS",
       "HIVE",
       "WEBHCAT",
       "ZOOKEEPER",
       "PIG",
-      "SQOOP"
+      "SQOOP",
+      "HUE"
     ];
     return maintainedServices.contains(this.get('serviceName'));
   }.property('serviceName'),
@@ -118,7 +122,8 @@ App.Service = DS.Model.extend({
       "ZOOKEEPER",
       "PIG",
       "SQOOP",
-      "NAGIOS"
+      "NAGIOS",
+      "HUE"
     ];
     return configurableServices.contains(this.get('serviceName'));
   }.property('serviceName'),
@@ -149,9 +154,88 @@ App.Service = DS.Model.extend({
         return 'Ganglia';
       case 'nagios':
         return 'Nagios';
+      case 'hue':
+        return 'Hue';
     }
     return this.get('serviceName');
-  }.property('serviceName')
+  }.property('serviceName'),
+  
+  /**
+   * For each host-component, if the desired_configs dont match the
+   * actual_configs, then a restart is required. Except for Global site
+   * properties, which need to be checked with map.
+   */
+  isRestartRequired: function () {
+    var restartRequired = false;
+    var restartRequiredHostsAndComponents = {};
+    var clusterDesiredConfigs = App.router.get('mainServiceController.cluster.desiredConfigs');
+    var serviceTemplate = this.serviceConfigsTemplate.findProperty('serviceName', this.get('serviceName'));
+    if (clusterDesiredConfigs != null && serviceTemplate!=null) {
+      var clusterToDesiredMap = {};
+      clusterDesiredConfigs.forEach(function (config) {
+        clusterToDesiredMap[config.site] = config;
+      });
+      this.get('hostComponents').forEach(function(hostComponent){
+        var host = hostComponent.get('host');
+        var hostName = host.get('hostName');
+        hostComponent.get('actualConfigs').forEach(function(config){
+          if(serviceTemplate.sites.contains(config.site)){
+            var desiredClusterTag = clusterToDesiredMap[config.site].tag;
+            var desiredHostOverrideTag = clusterToDesiredMap[config.site].hostOverrides[hostName];
+            var actualClusterTag = config.tag;
+            var actualHostOverrideTag = config.hostOverrides[hostName];
+            if(actualClusterTag !== desiredClusterTag || actualHostOverrideTag !== desiredHostOverrideTag){
+              var publicHostName = host.get('publicHostName');
+              if(!(publicHostName in restartRequiredHostsAndComponents)){
+                restartRequiredHostsAndComponents[publicHostName] = [];
+              }
+              var hostComponentName = hostComponent.get('displayName');
+              if(restartRequiredHostsAndComponents[publicHostName].indexOf(hostComponentName)<0){
+                restartRequiredHostsAndComponents[publicHostName].push(hostComponentName);
+              }
+              restartRequired = true;
+            }
+          }
+        });
+      });
+    }
+    this.set('restartRequiredHostsAndComponents', restartRequiredHostsAndComponents);
+    return restartRequired;
+  }.property('serviceName', 'hostComponents', 'hostComponents.@each.actualConfigs', 'hostComponents.@each.actualConfigs.@each.tag', 
+      'App.router.mainServiceController.cluster.desiredConfigs', 'App.router.mainServiceController.cluster.desiredConfigs.@each.tag'),
+  
+  /**
+   * Contains a map of which hosts and host_components
+   * need a restart. This is populated when calculating
+   * #isRestartRequired()
+   * Example:
+   * {
+   *  'publicHostName1': ['TaskTracker'],
+   *  'publicHostName2': ['JobTracker', 'TaskTracker']
+   * }
+   */
+  restartRequiredHostsAndComponents: {},
+  
+  /**
+   * Based on the information in #restartRequiredHostsAndComponents
+   */
+  restartRequiredMessage: function () {
+    var restartHC = this.get('restartRequiredHostsAndComponents');
+    var hostCount = 0;
+    var hcCount = 0;
+    var hostsMsg = "<ul>";
+    for(var host in restartHC){
+      hostCount++;
+      hostsMsg += "<li>"+host+"</li><ul>";
+      restartHC[host].forEach(function(c){
+        hcCount++;
+        hostsMsg += "<li>"+c+"</li>";       
+      })
+      hostsMsg += "</ul>";
+    }
+    hostsMsg += "</ul>"
+    return this.t('services.service.config.restartService.TooltipMessage').format(hcCount, hostCount, hostsMsg);
+  }.property('restartRequiredHostsAndComponents')
 });
 
 App.Service.Health = {

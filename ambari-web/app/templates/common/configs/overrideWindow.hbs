@@ -19,8 +19,12 @@
 {{! #with view.categoryConfigProperty}}
   <form class="form-horizontal">
       <div class="override-controls">
-        <h4 class="message">Select hosts from the list of available hosts</h4>
-        
+        <h4 class="message">{{t hosts.selectHostsDialog.message}}</h4>
+        {{#if view.parentView.warningMessage}}
+	        <div class="text-warning">
+	          {{view.parentView.warningMessage}}
+	        </div>
+        {{/if}}
         <table style="width: 100%;">
           <tr>
             <td>
@@ -31,7 +35,7 @@
                 <div class="span2">
                   <!-- Filter text box with drop-down -->
 		              <div class="input-append">
-		                {{view Ember.TextField valueBinding="view.filterText" id="appendedDropdownButton" placeholder="Filter..." class="span2"}}
+		                {{view Ember.TextField valueBinding="view.filterText" id="appendedDropdownButton" placeholderBinding="view.filterTextPlaceholder" class="span2"}}
 		                <div class="btn-group">
 		                  <button class="btn dropdown-toggle" data-toggle="dropdown">
 		                    <span class="caret"></span>

@@ -258,14 +258,20 @@ App.Router = Em.Router.extend({
     }
     App.clusterStatus.updateFromServer();
     var clusterStatusOnServer = App.clusterStatus.get('value');
-    if (clusterStatusOnServer && (clusterStatusOnServer.clusterState === 'CLUSTER_STARTED_5' || clusterStatusOnServer.clusterState === 'ADD_HOSTS_COMPLETED_5' || clusterStatusOnServer.clusterState === 'STACK_UPGRADE_COMPLETED')) {
+    if (clusterStatusOnServer && (clusterStatusOnServer.clusterState === 'CLUSTER_STARTED_5' || clusterStatusOnServer.clusterState === 'ADD_HOSTS_COMPLETED_5' || clusterStatusOnServer.clusterState === 'STACK_UPGRADE_COMPLETED' || clusterStatusOnServer.clusterState === 'REASSIGN_MASTER_COMPLETED')) {
       return 'main.index';
     } else if (clusterStatusOnServer && clusterStatusOnServer.wizardControllerName === App.router.get('addHostController.name')) {
       // if wizardControllerName == "addHostController", then it means someone closed the browser or the browser was crashed when we were last in Add Hosts wizard
       return 'main.hostAdd';
+    } else if (clusterStatusOnServer && clusterStatusOnServer.wizardControllerName === App.router.get('addServiceController.name')) {
+      // if wizardControllerName == "addHostController", then it means someone closed the browser or the browser was crashed when we were last in Add Hosts wizard
+      return 'main.serviceAdd';
     } else if (clusterStatusOnServer && clusterStatusOnServer.wizardControllerName === App.router.get('stackUpgradeController.name')) {
       // if wizardControllerName == "stackUpgradeController", then it means someone closed the browser or the browser was crashed when we were last in Stack Upgrade wizard
       return 'main.stackUpgrade';
+    } else if (clusterStatusOnServer && clusterStatusOnServer.wizardControllerName === App.router.get('reassignMasterController.name')) {
+      // if wizardControllerName == "reassignMasterController", then it means someone closed the browser or the browser was crashed when we were last in Reassign Master wizard
+      return 'main.reassignMaster';
     } else {
       // if wizardControllerName == "installerController", then it means someone closed the browser or the browser was crashed when we were last in Installer wizard
       return 'installer';
@@ -281,6 +287,7 @@ App.Router = Em.Router.extend({
     // otherwise, this.set('installerController.currentStep, 0) would have no effect
     // since it's a computed property but we are not setting it as a dependent of App.db.
     App.db.cleanUp();
+    App.set('isAdmin', false);
     this.clearAllSteps();
     console.log("Log off: " + App.router.getClusterName());
     this.set('loginController.loginName', '');
@@ -346,7 +353,7 @@ App.Router = Em.Router.extend({
         console.log('/login:connectOutlet');
         console.log('currentStep is: ' + router.getInstallerCurrentStep());
         console.log('authenticated is: ' + router.getAuthenticated());
-        router.get('applicationController').connectOutlet('login', App.LoginView);
+        router.get('applicationController').connectOutlet('login');
       }
     }),
 

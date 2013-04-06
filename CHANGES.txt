@@ -12,6 +12,45 @@ Trunk (unreleased changes):
 
  NEW FEATURES
 
+ AMBARI-1800. Add "Admin > Misc" section to Ambari Web to show service user
+ accounts. (yusaku)
+
+ AMBARI-1756. Add ability to install and edit HUE as a service. (srimanth via 
+ yusaku)
+
+ AMBARI-1742. HDFS Mirroring: Edit/Delete Cluster. (Arun Kandregula via yusaku)
+
+ AMBARI-1723. HDFS Mirroring: Edit/Delete Data Set. (srimanth via yusaku)
+
+ AMBARI-1717. Add ability to start and stop all services from Services
+ page. (Xi Wang via yusaku)
+
+ AMBARI-1716. HDFS Mirroring: Add a cluster. (Arun Kandregula via yusaku)
+
+ AMBARI-1710. HDFS Mirroring: Edit/Delete Data Set. (srimanth via yusaku)
+
+ AMBARI-1699. HDFS Mirroring: Side Panel of individual jobs page.
+ (yusaku)
+
+ AMBARI-1698. Host Detail page needs to allow upgrade for host components
+ that failed to upgrade. (yusaku)
+
+ AMBARI-1696. Capacity Scheduler configuration UI. (yusaku)
+
+ AMBARI-1693. HDFS Mirroring: Display Jobs table. (yusaku)
+
+ AMBARI-1691. Add filtering by host-level status on Step 9 of Installer.
+ (Xi Wang via yusaku)
+
+ AMBARI-1668. HDFS Mirroring: Add Data Set Popup. (Arun Kandregula via
+ yusaku)
+
+ AMBARI-1650. Add Oracle and MySQL option for Oozie during Ambari cluster
+ install. (Xi Wang via yusaku)
+
+ AMBARI-1610. Expose ability to customize Hive Metastore log dir.
+ (yusaku)
+
  AMBARI-1729. Creating smoke test for Hue service. (swagle)
 
  AMBARI-1776. ZooKeeper Servers needs to store correct kerberos principal 
@@ -184,6 +223,63 @@ Trunk (unreleased changes):
  (Sumit Mohanty via mahadev)
 
  IMPROVEMENTS
+
+ AMBARI-1825. Minor label change for the buttons to start/stop all services
+ in the side nav. (yusaku)
+
+ AMBARI-1824. Background operations popup: progress bar styling. (yusaku)
+
+ AMBARI-1823. Add hover tooltip for the green host health status icon in
+ Hosts page and Host Detail page. (yusaku)
+
+ AMBARI-1815. After modifying custom configs, properties are shown as blank,
+ leading to corrupt core-site.xml upon save. (yusaku)
+
+ AMBARI-1814. Refactor configurations functionality. (yusaku)
+
+ AMBARI-1809. Specify request context for Smoke test. (yusaku)
+
+ AMBARI-1808. Add ability to customize the smoke test user (frontend changes).
+ (yusaku)
+
+ AMBARI-1807. Disallow $ from usernames created via Misc in Install Wizard.
+ (yusaku)
+
+ AMBARI-1805. Minor text change in the Assign Masters page. (yusaku)
+
+ AMBARI-1798. Explicitly state that FQDNs need to be used when specifying
+ hosts to add to the cluster. (yusaku)
+
+ AMBARI-1785. Provide restart service indicator to all services. (srimanth
+ via yusaku)
+
+ AMBARI-1773. Integrate MySQL/Oracle options for Hive and Oozie. (Xi Wang via
+ yusaku)
+
+ AMBARI-1758. Reassign Master Wizard: Integration and hardening. 
+ (srimanth via yusaku)
+
+ AMBARI-1743. Stack Upgade Wizard - integrate with Ambari 1.3.0 repo.
+ (srimanth via yusaku)
+
+ AMBARI-1741. Exceptions thrown when using host overrides during install.
+ (srimanth via yusaku)
+
+ AMBARI-1740. Provide restart message in service config page. (srimanth via
+ yusaku)
+
+ AMBARI-1722. Frontend support for LDAP Group to Ambari Role Mapping.
+ (srimanth via yusaku)
+
+ AMBARI-1718. If there is no HBase master in active status, show proper
+ error message. (jaimin via yusaku)
+
+ AMBARI-1701. Stack Upgrade Wizard: Integrate with API. (yusaku)
+ 
+ AMBARI-1700. HDFS Mirroring: Display Jobs table (refactor). (yusaku)
+
+ AMBARI-1697. UI changes on HBase service page for HBase Multi-master/HA.
+ (yusaku)
 
  AMBARI-1782. Security wizard navigation: Restrict user on step3 until
  the decision of the step is reached. (jaimin)
@@ -560,7 +656,68 @@ Trunk (unreleased changes):
 
  BUG FIXES
 
- AMBARI-1828. Clear text passwords appear in log files & config files. (swagle)
+ AMBARI-1822. Hue service link points to wrong URL and no smoke test drop
+ down is shown. (yusaku)
+
+ AMBARI-1821. Upgrading component is not very clear and Upgrade action
+ is not available. (yusaku)
+
+ AMBARI-1820. Installer Step 7 - DataNode hosts, TaskTracker hosts, and
+ RegionServer hosts not displayed correctly. (yusaku)
+
+ AMBARI-1819. Ambari Installer: page refreshes upon hitting enter in text
+ fields (Step 1 and Step 7). (yusaku)
+
+ AMBARI-1813. The back button seems disabled during host registration (step 3),
+ but you can actually click it to go back. (yusaku)
+
+ AMBARI-1812. Unable to re-configure core-site. (yusaku)
+
+ AMBARI-1811. Start/Stop service doesn't work. (yusaku)
+
+ AMBARI-1810. Security Wizard - Progress popup is not filtering tasks
+ correctly. (yusaku)
+
+ AMBARI-1806. Maintenance checks issued from frontend does not have request
+ context set appropriately. (yusaku)
+
+ AMBARI-1804. Reassign master should show only the hosts that do not have
+ another instance of the master for HBase. (yusaku)
+
+ AMBARI-1803. Reassign HBase master menu displays multiple entries with no
+ distinction when there are multiple HBase masters. (yusaku)
+
+ AMBARI-1802. Install wizard and subsequent reconfig screens lose 'confirm'
+ password content and show up as red even if the use is not editing these
+ fields. (yusaku)
+
+ AMBARI-1801. After adding hosts successfully, you need to refresh the hosts
+ page manually to see the new hosts. (yusaku)
+
+ AMBARI-1799. On service reconfig, Save button can be clicked even when there
+ are validation errors. (yusaku)
+
+ AMBARI-1796. Specific custom configs do not display after reload.
+ (srimanth via yusaku)
+
+ AMBARI-1768. Cluster install wizard does not succeed at service start.
+ (yusaku)
+
+ AMBARI-1755. Provide context for background operations. (srimanth via yusaku)
+
+ AMBARI-1744. isAdmin doesn't switch after login/out. (srimanth via yusaku)
+
+ AMBARI-1709. When all hosts are assigned a master component, the last host
+ should have all slave components and clients (Step 6). (srimanth via yusaku)
+
+ AMBARI-1695. Customize Services page - validation error count is not reflect
+ in the service tab for host exceptions. (yusaku)
+
+ AMBARI-1675. ASF license header missing from
+ app/templates/main/admin/security/add/step2.hbs. (yusaku)
+
+ AMBARI-1670. Changing service user name from web UI should also change
+ configuration properties that depends on those user name. (jaimin via yusaku)
 
  AMBARI-1826. Use service stop and start for Nagios/Ganglia/MySQL rather than
  puppet artifacts for starting stopping these services. (smohanty)

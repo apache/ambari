@@ -25,7 +25,12 @@ App.Cluster = DS.Model.extend({
   version: DS.attr('string'),
   hosts: DS.hasMany('App.Host'),
   racks: DS.hasMany('App.Rack'),
-  maxHostsPerRack: DS.attr('number')
+  maxHostsPerRack: DS.attr('number'),
+  /**
+   * Array containing desired configs. New array
+   * should be set by instances of class.
+   */
+  desiredConfigs: null
 });
 
 App.Cluster.FIXTURES = [/*

@@ -30,7 +30,13 @@
       <!-- View for array controller -->
       {{#each servicesMasters}}
       <div class="control-group">
-        <label class="control-label">{{display_name}}:</label>
+        <label class="control-label">
+          {{#if controller.isReassignHive}}
+            {{t installer.step5.hiveGroup}}
+          {{else}}
+            {{display_name}}:
+          {{/if}}
+        </label>
         {{#if isHiveCoHost}}
           <label class="host-name">{{selectedHost}}<i class="icon-asterisks">&#10037</i></label>
         {{else}}

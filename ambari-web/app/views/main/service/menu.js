@@ -33,6 +33,7 @@ App.MainServiceMenuView = Em.CollectionView.extend({
   didInsertElement:function () {
     App.router.location.addObserver('lastSetURL', this, 'renderOnRoute');
     this.renderOnRoute();
+    $(".restart-required-service").tooltip({html:true, placement:"right"});
   },
 
   activeServiceId:null,

@@ -28,10 +28,7 @@ module.exports = Em.Application.create({
       simulateRemoteResponse: false
     })
   }),
-  isAdmin : function(){
-    var user = this.db && this.db.getUser();
-    return user ? user.admin : false;
-  }.property(),
+  isAdmin: false,
   /**
    * return url prefix with number value of version of HDP stack
    */
@@ -40,10 +37,7 @@ module.exports = Em.Application.create({
     return '/stacks/HDP/version/' + stackVersion.replace(/HDP-/g, '');
   }.property('currentStackVersion'),
   clusterName: null,
-  currentStackVersion: null,
-  ready: function(){
-    this.set('currentStackVersion', this.get('defaultStackVersion'));
-  }
+  currentStackVersion: null
 });
 
 /**

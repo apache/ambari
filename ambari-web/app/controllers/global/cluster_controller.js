@@ -75,9 +75,7 @@ App.ClusterController = Em.Controller.extend({
       success:function (data) {
         self.set('cluster', data.items[0]);
         App.set('clusterName', data.items[0].Clusters.cluster_name);
-        if(data.items[0].Clusters.version){
-          App.set('currentStackVersion', data.items[0].Clusters.version);
-        }
+        App.set('currentStackVersion', data.items[0].Clusters.version);
       },
       error:function (request, ajaxOptions, error) {
         console.log('failed on loading cluster name');
@@ -85,6 +83,9 @@ App.ClusterController = Em.Controller.extend({
       },
       statusCode:require('data/statusCodes')
     });
+    if(!App.get('currentStackVersion')){
+      App.set('currentStackVersion', App.defaultStackVersion);
+    }
   },
 
   getUrl:function (testUrl, url) {
@@ -354,5 +355,12 @@ App.ClusterController = Em.Controller.extend({
 
   clusterName:function () {
     return (this.get('cluster')) ? this.get('cluster').Clusters.cluster_name : null;
-  }.property('cluster')
+  }.property('cluster'),
+  
+  updateClusterData: function () {
+    var clusterUrl = this.getUrl('/data/clusters/cluster.json', '?fields=Clusters');
+    App.HttpClient.get(clusterUrl, App.clusterMapper, {
+      complete:function(){}
+    });
+  }
 })

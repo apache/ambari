@@ -17,15 +17,15 @@
  */
 
 App.dataSetMapper = App.QuickDataMapper.create({
-  model: App.DataSet,
+  model: App.Dataset,
   Jobs_model: App.DataSetJob,
   config: {
     id: 'id', // approach 2 : to be calculated (TBC1)
     name: 'Feeds.name', // from json
     source_cluster_name: 'Feeds.clusters.cluster[0].name', // approach1 : from json
-    target_cluster_name: 'target_cluster_name', // approach 2 : to be calculated (TBC2)
+    $target_cluster: 'none', // will be loaded outside parser ( TBC2 ),
     source_dir: 'Feeds.locations.location.path',
-    schedule: 'Feeds.frequency',
+    $schedule_id: 'none', // will be loaded outside parser
     dataset_jobs: 'dataset_jobs', // TBC3 ( set of ids will be added )
 
     // all below are unknown at present and may be blank
@@ -40,12 +40,66 @@ App.dataSetMapper = App.QuickDataMapper.create({
   jobs_config: {
     $dataset_id: 'none', // will be loaded outside parser
     id: 'Instances.id',
-    start_date: 'start_date_str',
-    end_date: 'end_date_str',
+    start_date: 'start_date',
+    end_date: 'end_date',
     duration: 'duration'
     //data: 'Instances.details'
   },
 
+  schedule_config: {
+    $dataset_id: 'none', // will be loaded outside parser
+    id: 'id',
+    start_date : 'start_date',
+    end_date :  'end_date',
+    start_time : 'start_time',
+    end_time : 'end_time',
+    timezone : 'timezone',
+    frequency : 'frequency'
+  },
+
+  loadSchedule: function (datasetItemFromJson) {
+    var schedule = {};
+    schedule.id = datasetItemFromJson.id;
+    var source_cluster = datasetItemFromJson.Feeds.clusters.cluster.findProperty("type", "source");
+    var start_date = new Date(source_cluster.validity.start);
+    var end_date = new Date(source_cluster.validity.end);
+
+    var d = new Date();
+    console.debug(d.toString());
+    var start_mm = start_date.getMonth() + 1; // In future may consider using getUTCMonth()
+    var start_dd = start_date.getDay();
+    var start_yyyy = start_date.getFullYear();
+    var end_mm = end_date.getMonth() + 1;
+    var end_dd = end_date.getDay();
+    var end_yyyy = end_date.getFullYear();
+
+    schedule.start_date = start_mm + "/" + start_dd + "/" + start_yyyy;
+    schedule.end_date = end_mm + "/" + end_dd + "/" + end_yyyy;
+
+    var start_hh = start_date.getHours();
+    var start_mi = start_date.getMinutes();
+    var start_ampm = (start_hh < 12 ? 'AM' : 'PM');
+    var end_hh = end_date.getHours();
+    var end_mi = end_date.getMinutes();
+    var end_ampm = (end_hh < 12 ? 'AM' : 'PM');
+
+    if (start_hh) {
+      start_hh %= 12;
+    }
+
+    if (end_hh) {
+      end_hh %= 12;
+    }
+
+    schedule.start_time = start_hh + ":" + start_mi + ":" + start_ampm;
+    schedule.end_time = end_hh + ":" + end_mi + ":" + end_ampm;
+
+    schedule.frequency = datasetItemFromJson.Feeds.frequency;
+    schedule.timezone = datasetItemFromJson.Feeds.timezone;
+    schedule.dataset_id = datasetItemFromJson.id;
+
+    App.store.load(App.Dataset.Schedule, schedule);
+  },
   map: function (json) {
     if (!this.get('model')) {
       return;
@@ -58,9 +112,6 @@ App.dataSetMapper = App.QuickDataMapper.create({
           // TBC1
           var re = new RegExp(" ", "g");
           item.id = item.Feeds.name.replace(re, "_");
-
-          // TBC2
-          item.target_cluster_name = (item.Feeds.clusters.cluster.findProperty("type", "target")).name;
 
           // TBC3
           item.dataset_jobs = [];
@@ -107,14 +158,29 @@ App.dataSetMapper = App.QuickDataMapper.create({
           item.target_dir = '';
 
           var newitem = this.parseIt(item, this.config);
+
+          // TBC2 - but shd be loaded after parsing
+          var target_cluster_name = (item.Feeds.clusters.cluster.findProperty("type", "target")).name;
+          var target_cluster_id = (item.Feeds.clusters.cluster.findProperty("type", "target")).name;
+          var re = new RegExp(" ","g");
+
+          newitem.target_cluster_id = target_cluster_id.replace(re,"_");
+
+          newitem.schedule_id = newitem.id;
+
+          this.loadSchedule(item);
+
           dataset_results.push(newitem);
         } catch (ex) {
           console.debug('Exception occured : ' + ex);
         }
       }, this);
-      console.debug('Before load: App.DataSet.find().content : ' + App.DataSet.find().content);
+
+
+
+      console.debug('Before load: App.Dataset.find().content : ' + App.Dataset.find().content);
       App.store.loadMany(this.get('model'), dataset_results);
-      console.debug('After load: App.DataSet.find().content : ' + App.DataSet.find().content);
+      console.debug('After load: App.Dataset.find().content : ' + App.Dataset.find().content);
 
       try {
         // Child records
@@ -123,12 +189,9 @@ App.dataSetMapper = App.QuickDataMapper.create({
           item.instances.forEach(function (instance) {
             instance.Instances.start = new Date(instance.Instances.start); // neeed to be calulated end -start
             instance.Instances.end = new Date(instance.Instances.end); // neeed to be calulated end -start
-
-
             instance.duration = instance.Instances.end - instance.Instances.start;
-
-            instance.start_date_str = instance.Instances.start.toString();
-            instance.end_date_str = instance.Instances.end.toString();
+            instance.start_date = instance.Instances.start;
+            instance.end_date = instance.Instances.end;
 
             var result = this.parseIt(instance, this.jobs_config);
             result.dataset_id = item.id;

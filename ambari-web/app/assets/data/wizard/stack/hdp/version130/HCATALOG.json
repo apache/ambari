@@ -1,0 +1,20 @@
+{
+  "name" : "HCATALOG",
+  "version" : "0.5.0",
+  "user" : "root",
+  "comment" : "This is comment for HCATALOG service",
+  "properties" : [ ],
+  "components" : [ {
+    "name" : "HCAT",
+    "category" : "CLIENT",
+    "client" : true,
+    "master" : false
+  } ],
+  "clientOnlyService" : true,
+  "clientComponent" : {
+    "name" : "HCAT",
+    "category" : "CLIENT",
+    "client" : true,
+    "master" : false
+  }
+}

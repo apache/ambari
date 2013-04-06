@@ -831,32 +831,7 @@ module.exports =
       "serviceName": "HIVE",
       "category": "Hive Metastore"
     },
-    /* Comment out the other hive_database and uncomment this for Hive with Postgres support
-    {
-      "id": "puppet var",
-      "name": "hive_database",
-      "displayName": "Hive Database",
-      "value": "",
-      "defaultValue": "New PostgreSQL Database",
-      "options": [
-        {
-          displayName: 'New PostgreSQL Database',
-          foreignKeys: ['hive_ambari_database', 'hive_ambari_host']
-        },
-        {
-          displayName: 'Existing Database',
-          foreignKeys: ['hive_existing_database', 'hive_existing_host']
-        }
-      ],
-      "description": "PostgreSQL will be installed by Ambari. Any other database will have to be installed by the user.",
-      "displayType": "radio button",
-      "radioName": "hive-database",
-      "isVisible": true,
-      "domain": "global",
-      "serviceName": "HIVE",
-      "category": "Hive Metastore"
-    },
-    */
+
     {
       "id": "puppet var",
       "name": "hive_database",
@@ -903,40 +878,10 @@ module.exports =
       "serviceName": "HIVE",
       "category": "Hive Metastore"
     },
-    /* Uncomment for Hive with Postgres support
-    {
-      "id": "puppet var",
-      "name": "hive_existing_database",
-      "displayName": "Hive Database",
-      "value": "",
-      "defaultValue": "MySQL",
-      "description": "Select the database, if you already have existing one for Hive Metastore.",
-      "displayType": "string",
-      "isVisible": false,
-      "options": ['MySQL', 'PostgreSQL'],
-      "domain": "global",
-      "serviceName": "HIVE",
-      "category": "Hive Metastore"
-    },
-    {
-      "id": "puppet var",
-      "name": "hive_existing_database",
-      "displayName": "Hive Database",
-      "value": "",
-      "defaultValue": "MySQL",
-      "description": "Select the database, if you already have existing one for Hive Metastore.",
-      "displayType": "combobox",
-      "isVisible": false,
-      "options": ['MySQL', 'PostgreSQL'],
-      "domain": "global",
-      "serviceName": "HIVE",
-      "category": "Hive Metastore"
-    },
-    */
     {
       "id": "puppet var",
       "name": "hive_existing_mysql_host",
-      "displayName": "Database host",
+      "displayName": "Database Host",
       "description": "Specify the host on which the existing database is hosted",
       "defaultValue": "",
       "isReconfigurable": false,
@@ -966,7 +911,7 @@ module.exports =
     {
       "id": "puppet var",
       "name": "hive_existing_oracle_host",
-      "displayName": "Database host",
+      "displayName": "Database Host",
       "description": "Specify the host on which the existing database is hosted",
       "defaultValue": "",
       "isReconfigurable": false,
@@ -987,7 +932,7 @@ module.exports =
       "description": "MySQL will be installed by Ambari",
       "displayType": "masterHost",
       "isOverridable": false,
-      "isVisible": true,
+      "isVisible": false,
       "domain": "global",
       "serviceName": "HIVE",
       "category": "Hive Metastore"
@@ -997,12 +942,12 @@ module.exports =
       "name": "hive_ambari_host",
       "value": "",
       "defaultValue": "",
-      "displayName": "Database host",
+      "displayName": "Database Host",
       "description": "Host on which the database will be created by Ambari",
       "isReconfigurable": false,
       "displayType": "masterHost",
       "isOverridable": false,
-      "isVisible": true,
+      "isVisible": false,
       "domain": "global",
       "serviceName": "HIVE",
       "category": "Hive Metastore"
@@ -1010,7 +955,7 @@ module.exports =
     {
       "id": "puppet var",
       "name": "hive_database_name",
-      "displayName": "Database name",
+      "displayName": "Database Name",
       "description": "Database name used as the Hive Metastore",
       "defaultValue": "hive",
       "isReconfigurable": false,
@@ -1024,7 +969,7 @@ module.exports =
     {
       "id": "puppet var",
       "name": "hive_metastore_user_name",
-      "displayName": "Database user",
+      "displayName": "Database Username",
       "description": "Database user name to use to connect to the database",
       "defaultValue": "hive",
       "isReconfigurable": false,
@@ -1038,7 +983,7 @@ module.exports =
     {
       "id": "puppet var",
       "name": "hive_metastore_user_passwd",
-      "displayName": "Database password",
+      "displayName": "Database Password",
       "description": "Database password to use to connect to the PostgreSQL database",
       "defaultValue": "",
       "isReconfigurable": false,
@@ -1111,7 +1056,7 @@ module.exports =
       "isReconfigurable": false,
       "displayType": "directory",
       "isOverridable": false,
-      "isVisible": false,
+      "isVisible": true,
       "domain": "global",
       "serviceName": "HIVE",
       "category": "Advanced"
@@ -1727,6 +1672,130 @@ module.exports =
       "serviceName": "HDFS",
       "category": "Advanced"
     },
+    {
+      "id": "conf-site",
+      "name": "mapred.capacity-scheduler.maximum-system-jobs",
+      "displayName": "Max system jobs",
+      "displayType": "int",
+      "value": '3000',
+      "defaultValue": '3000',
+      "description": "Maximum number of jobs in the system which can be initialized, concurrently, by the " +
+        "CapacityScheduler. Individual queue limits on initialized jobs are directly proportional to their queue " +
+        "capacities.",
+      "isVisible": true,
+      "isRequired": true,
+      "serviceName": "MAPREDUCE",
+      "category": "CapacityScheduler",
+      "filename": "capacity-scheduler.xml"
+    },
+    /*{
+      "id": "conf-site",
+      "name": "mapred.cluster.map.memory.mb",
+      "displayName": "Map slot memory",
+      "displayType": "int",
+      "value": '-1',
+      "defaultValue": '-1',
+      "description": "The size, in terms of virtual memory, of a single map slot in the Map-Reduce framework, used by " +
+        "the scheduler. A job can ask for multiple slots for a single map task via \"Map task memory\", upto the limit " +
+        "specified by \"Max map task memory\", if the scheduler supports the feature. The value of -1 indicates that " +
+        "this feature is turned off.",
+      "isVisible": true,
+      "isRequired": true,
+      "serviceName": "MAPREDUCE",
+      "category": "CapacityScheduler",
+      "unit":"MB",
+      "filename": 'capacity-scheduler.xml'
+    },
+    {
+      "id": "conf-site",
+      "name": "mapred.cluster.reduce.memory.mb",
+      "displayName": "Reduce slot memory",
+      "displayType": "int",
+      "value": '-1',
+      "defaultValue": '-1',
+      "description": "The size, in terms of virtual memory, of a single reduce slot in the Map-Reduce framework, " +
+        "used by the scheduler. A job can ask for multiple slots for a single reduce task via \"Reduce task memory\", " +
+        "upto the limit specified by \"Max reduce task memory\", if the scheduler supports the feature.The value of " +
+        "-1 indicates that this feature is turned off.",
+      "isVisible": true,
+      "isRequired": true,
+      "serviceName": "MAPREDUCE",
+      "category": "CapacityScheduler",
+      "unit":"MB",
+      "filename": 'capacity-scheduler.xml'
+    },
+    {
+      "id": "conf-site",
+      "name": "mapred.cluster.max.map.memory.mb",
+      "displayName": "Max map task memory",
+      "displayType": "int",
+      "value": '-1',
+      "defaultValue": '-1',
+      "description": "The maximum size, in terms of virtual memory, of a single map task launched by the Map-Reduce " +
+        "framework, used by the scheduler. A job can ask for multiple slots for a single map task via " +
+        "\"Map task memory\", upto the limit specified by \"Max map task memory\", if the scheduler supports the " +
+        "feature. The value of -1 indicates that this feature is turned off.",
+      "isVisible": true,
+      "isRequired": true,
+      "serviceName": "MAPREDUCE",
+      "category": "CapacityScheduler",
+      "unit":"MB",
+      "filename": 'capacity-scheduler.xml'
+    },
+    {
+      "id": "conf-site",
+      "name": "mapred.cluster.max.reduce.memory.mb",
+      "displayName": "Max reduce task memory",
+      "displayType": "int",
+      "value": '-1',
+      "defaultValue": '-1',
+      "description": "The maximum size, in terms of virtual memory, of a single reduce task launched by the Map-Reduce " +
+        "framework, used by the scheduler. A job can ask for multiple slots for a single reduce task via \"Reduce task " +
+        "memory\", upto the limit specified by \"Max reduce task memory\", if the scheduler supports the feature. " +
+        "The value of -1 indicates that this feature is turned off.",
+      "isVisible": true,
+      "isRequired": true,
+      "serviceName": "MAPREDUCE",
+      "category": "CapacityScheduler",
+      "unit":"MB",
+      "filename": 'capacity-scheduler.xml'
+    },
+    {
+      "id": "conf-site",
+      "name": "mapred.job.map.memory.mb",
+      "displayName": "Map task memory",
+      "displayType": "int",
+      "value": '-1',
+      "defaultValue": '-1',
+      "description": "The size, in terms of virtual memory, of a single map task for the job. A job can ask for " +
+        "multiple slots for a single map task, rounded up to the next multiple of \"Map slot memory\" and upto " +
+        "the limit specified by \"Max map task memory\", if the scheduler supports the feature. The value of -1 " +
+        "indicates that this feature is turned off iff \"Map slot memory\" is also turned off.",
+      "isVisible": true,
+      "isRequired": true,
+      "serviceName": "MAPREDUCE",
+      "category": "CapacityScheduler",
+      "unit":"MB",
+      "filename": 'capacity-scheduler.xml'
+    },
+    {
+      "id": "conf-site",
+      "name": "mapred.job.reduce.memory.mb",
+      "displayName": "Reduce task memory",
+      "displayType": "int",
+      "value": '-1',
+      "defaultValue": '-1',
+      "description": "The size, in terms of virtual memory, of a single reduce task for the job. A job can ask for " +
+        "multiple slots for a single reduce task, rounded up to the next multiple of \"Reduce slot memory\" and upto " +
+        "the limit specified by \"Max reduce task memory\", if the scheduler supports the feature. The value of -1 " +
+        "indicates that this feature is turned off iff \"Task slot memory\" is also turned off.",
+      "isVisible": true,
+      "isRequired": true,
+      "serviceName": "MAPREDUCE",
+      "category": "CapacityScheduler",
+      "unit":"MB",
+      "filename": 'capacity-scheduler.xml'
+    },*/
     /*
     {
       "id": "puppet var",
@@ -1956,20 +2025,6 @@ module.exports =
       "category": "General"
     },
     */
-    {
-      "id": "puppet var",
-      "name": "pig_user",
-      "displayName": "Pig User",
-      "description": "User to run Pig as",
-      "defaultValue": "pig",
-      "isReconfigurable": false,
-      "displayType": "user",
-      "isOverridable": false,
-      "isVisible": true,
-      "domain": "global",
-      "serviceName": "MISC",
-      "category": "Users and Groups"
-    },
     /*
     {
       "id": "puppet var",
@@ -2000,10 +2055,10 @@ module.exports =
     */
     {
       "id": "puppet var",
-      "name": "sqoop_user",
-      "displayName": "Sqoop User",
-      "description": "User to run Sqoop as",
-      "defaultValue": "sqoop",
+      "name": "zk_user",
+      "displayName": "ZooKeeper User",
+      "description": "User to run ZooKeeper as",
+      "defaultValue": "zookeeper",
       "isReconfigurable": false,
       "displayType": "user",
       "isOverridable": false,
@@ -2014,10 +2069,10 @@ module.exports =
     },
     {
       "id": "puppet var",
-      "name": "zk_user",
-      "displayName": "ZooKeeper User",
-      "description": "User to run ZooKeeper as",
-      "defaultValue": "zookeeper",
+      "name": "smokeuser",
+      "displayName": "Smoke Test User",
+      "description": "The user used to run service smoke tests",
+      "defaultValue": "ambari-qa",
       "isReconfigurable": false,
       "displayType": "user",
       "isOverridable": false,
@@ -2118,64 +2173,204 @@ module.exports =
       "serviceName": "OOZIE",
       "category": "Oozie Server"
     },
-    /*
+    ////////
+//    {
+//      "id": "puppet var",
+//      "name": "oozie_database",
+//      "displayName": "Oozie Database",
+//      "value": "",
+//      "defaultValue": "New PostgreSQL Database",
+//      "options": [
+//        {
+//          displayName: 'New PostgreSQL Database',
+//          foreignKeys: ['oozie_ambari_database', 'oozie_ambari_host']
+//        },
+//        {
+//          displayName: 'Existing Database',
+//          foreignKeys: ['oozie_existing_database', 'oozie_existing_host']
+//        }
+//      ],
+//      "description": "PostgreSQL will be installed by ambari. Any other database will have to be installed by the user.",
+//      "displayType": "radio button",
+//      "radioName": "oozie-database",
+//      "isVisible": true,
+//      "serviceName": "OOZIE",
+//      "category": "Oozie Server"
+//    },
+//    {
+//      "id": "puppet var",
+//      "name": "oozie_existing_database",
+//      "displayName": "Oozie Database",
+//      "value": "",
+//      "defaultValue": "MySQL",
+//      "description": "Select the database, if you already have existing one for Oozie.",
+//      "displayType": "combobox",
+//      "isVisible": false,
+//      "options": ['MySQL', 'PostgreSQL'],
+//      "serviceName": "OOZIE",
+//      "category": "Oozie Server"
+//    },
+//    {
+//      "id": "puppet var",
+//      "name": "oozie_existing_host",
+//      "displayName": "Database Host",
+//      "description": "Select the host on which the existing database is hosted.",
+//      "defaultValue": "",
+//      "isReconfigurable": false,
+//      "displayType": "host",
+//      "isVisible": false,
+//      "serviceName": "OOZIE",
+//      "category": "Oozie Server"
+//    },
+//    {
+//      "id": "puppet var",
+//      "name": "oozie_ambari_database",
+//      "displayName": "Oozie Database",
+//      "value": "",
+//      "defaultValue": "PostgreSQL",
+//      "description": "PostgreSQL will be installed by ambari.",
+//      "displayType": "masterHost",
+//      "isVisible": true,
+//      "serviceName": "OOZIE",
+//      "category": "Oozie Server"
+//    },
+//    {
+//      "id": "puppet var",
+//      "name": "oozie_ambari_host",
+//      "value": "",
+//      "defaultValue": "",
+//      "displayName": "PostgreSQL host",
+//      "description": "Host  on which the PostgreSQL database will be created by ambari. ",
+//      "isReconfigurable": false,
+//      "displayType": "masterHost",
+//      "isVisible": true,
+//      "serviceName": "OOZIE",
+//      "category": "Oozie Server"
+//    },
+//
+
     {
       "id": "puppet var",
       "name": "oozie_database",
       "displayName": "Oozie Database",
       "value": "",
-      "defaultValue": "New PostgreSQL Database",
+      "defaultValue": "Current Derby Database",
       "options": [
         {
-          displayName: 'New PostgreSQL Database',
+          displayName: 'Current Derby Database',
+          foreignKeys: ['oozie_derby_database']
+        },
+        {
+          displayName: 'New MySQL Database',
           foreignKeys: ['oozie_ambari_database', 'oozie_ambari_host']
         },
         {
-          displayName: 'Existing Database',
-          foreignKeys: ['oozie_existing_database', 'oozie_existing_host']
+          displayName: 'Existing MySQL Database',
+          foreignKeys: ['oozie_existing_mysql_database', 'oozie_existing_mysql_host']
+        },
+        {
+          displayName: 'Existing Oracle Database',
+          foreignKeys: ['oozie_existing_oracle_database', 'oozie_existing_oracle_host']
         }
       ],
-      "description": "PostgreSQL will be installed by ambari. Any other database will have to be installed by the user.",
+      "description": "Current Derby Database will be installed by Ambari",
       "displayType": "radio button",
+      "isReconfigurable": false,
+      "isOverridable": false,
       "radioName": "oozie-database",
       "isVisible": true,
+      "domain": "global",
       "serviceName": "OOZIE",
       "category": "Oozie Server"
     },
+    // for current derby
     {
       "id": "puppet var",
-      "name": "oozie_existing_database",
-      "displayName": "Oozie Database",
+      "name": "oozie_derby_database",
+      "displayName": "Database Type",
+      "value": "",
+      "defaultValue": "Derby",
+      "description": "Using current Derby database for Oozie Metastore",
+      "displayType": "masterHost",
+      "isVisible": false,
+      "isReconfigurable": false,
+      "isOverridable": false,
+     // "domain": "global",
+      "serviceName": "OOZIE",
+      "category": "Oozie Server"
+    },
+    // for existing MySQL oozie
+    {
+      "id": "puppet var",
+      "name": "oozie_existing_mysql_database",
+      "displayName": "Database Type",
       "value": "",
       "defaultValue": "MySQL",
-      "description": "Select the database, if you already have existing one for Oozie.",
-      "displayType": "combobox",
+      "description": "Using an existing MySQL database for Oozie Metastore",
+      "displayType": "masterHost",
       "isVisible": false,
-      "options": ['MySQL', 'PostgreSQL'],
+      "isReconfigurable": false,
+      "isOverridable": false,
+     //"domain": "global",
       "serviceName": "OOZIE",
       "category": "Oozie Server"
     },
     {
       "id": "puppet var",
-      "name": "oozie_existing_host",
-      "displayName": "Database host",
-      "description": "Select the host on which the existing database is hosted.",
+      "name": "oozie_existing_mysql_host",
+      "displayName": "Database Host",
+      "description": "Specify the host on which the existing database is hosted",
       "defaultValue": "",
       "isReconfigurable": false,
+      "isOverridable": false,
       "displayType": "host",
       "isVisible": false,
+     //"domain": "global",
       "serviceName": "OOZIE",
       "category": "Oozie Server"
     },
+    // for existing Oracle
+    {
+      "id": "puppet var",
+      "name": "oozie_existing_oracle_database",
+      "displayName": "Database Type",
+      "value": "",
+      "defaultValue": "Oracle",
+      "description": "Using an existing Oracle database for Oozie Metastore",
+      "displayType": "masterHost",
+      "isVisible": false,
+      "isReconfigurable": false,
+      "isOverridable": false,
+    //"domain": "global",
+      "serviceName": "OOZIE",
+      "category": "Oozie Server"
+    },
+    {
+      "id": "puppet var",
+      "name": "oozie_existing_oracle_host",
+      "displayName": "Database Host",
+      "description": "Specify the host on which the existing database is hosted",
+      "defaultValue": "",
+      "isReconfigurable": false,
+      "isOverridable": false,
+      "displayType": "host",
+      "isVisible": false,
+    //"domain": "global",
+      "serviceName": "OOZIE",
+      "category": "Oozie Server"
+    },
+    // for new MySQL
     {
       "id": "puppet var",
       "name": "oozie_ambari_database",
-      "displayName": "Oozie Database",
+      "displayName": "Database Type",
       "value": "",
-      "defaultValue": "PostgreSQL",
-      "description": "PostgreSQL will be installed by ambari.",
+      "defaultValue": "MySQL",
+      "description": "MySQL will be installed by Ambari",
       "displayType": "masterHost",
-      "isVisible": true,
+      "isVisible": false,
+      "isOverridable": false,
+    // "domain": "global",
       "serviceName": "OOZIE",
       "category": "Oozie Server"
     },
@@ -2184,51 +2379,58 @@ module.exports =
       "name": "oozie_ambari_host",
       "value": "",
       "defaultValue": "",
-      "displayName": "PostgreSQL host",
-      "description": "Host  on which the PostgreSQL database will be created by ambari. ",
+      "displayName": "Database Host",
+      "description": "Host on which the database will be created by Ambari",
       "isReconfigurable": false,
+      "isOverridable": false,
       "displayType": "masterHost",
-      "isVisible": true,
+      "isVisible": false,
+     //"domain": "global",
       "serviceName": "OOZIE",
       "category": "Oozie Server"
     },
     {
       "id": "puppet var",
       "name": "oozie_database_name",
-      "displayName": "Database name",
+      "displayName": "Database Name",
       "description": "Database name used for the Oozie",
       "defaultValue": "oozie",
       "isReconfigurable": false,
+      "isOverridable": false,
       "displayType": "host",
       "isVisible": true,
+     //"domain": "global",
       "serviceName": "OOZIE",
       "category": "Oozie Server"
     },
     {
       "id": "puppet var",
       "name": "oozie_metastore_user_name",
-      "displayName": "Database user",
+      "displayName": "Database Username",
       "description": "Database user name to use to connect to the database",
       "defaultValue": "oozie",
       "isReconfigurable": false,
+      "isOverridable": false,
       "displayType": "user",
       "isVisible": true,
+     //"domain": "global",
       "serviceName": "OOZIE",
       "category": "Oozie Server"
     },
     {
       "id": "puppet var",
       "name": "oozie_metastore_user_passwd",
-      "displayName": "Database password",
-      "description": "Database password to use to connect to the PostgreSQL database",
+      "displayName": "Database Password",
+      "description": "Database password to use to connect to the database",
       "defaultValue": "",
       "isReconfigurable": false,
+      "isOverridable": false,
       "displayType": "password",
       "isVisible": true,
+    //"domain": "global",
       "serviceName": "OOZIE",
       "category": "Oozie Server"
     },
-    */
     {
       "id": "puppet var",
       "name": "oozie_data_dir",

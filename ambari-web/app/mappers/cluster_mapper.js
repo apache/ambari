@@ -25,6 +25,31 @@ App.clusterMapper = App.QuickDataMapper.create({
         var result = json;
         result = this.parseIt(result, this.config);
         App.store.load(this.get('model'), result);
+        
+        var cluster = App.Cluster.find(result.id);
+        var clusterDesiredConfigs = [];
+        // Create desired_configs_array
+        if(json.Clusters.desired_configs){
+          for(var site in json.Clusters.desired_configs){
+            var tag = json.Clusters.desired_configs[site].tag;
+            var configObj = App.ConfigSiteTag.create({
+              site: site,
+              tag: tag,
+              hostOverrides: {}
+            });
+            if(json.Clusters.desired_configs[site].host_overrides!=null){
+              var hostOverridesArray = {};
+              json.Clusters.desired_configs[site].host_overrides.forEach(function(override){
+                var hostname = override.host_name;
+                var tag = override.tag;
+                hostOverridesArray[hostname] = tag;
+              });
+              configObj.set('hostOverrides', hostOverridesArray);
+            }
+            clusterDesiredConfigs.push(configObj);
+          }
+        }
+        cluster.set('desiredConfigs', clusterDesiredConfigs);
       }
     },
     config : {
@@ -36,5 +61,4 @@ App.clusterMapper = App.QuickDataMapper.create({
       $racks: [1],
       max_hosts_per_rack: 'Clusters.max_hosts_per_rack'
     }
-
 });

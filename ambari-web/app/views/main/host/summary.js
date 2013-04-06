@@ -198,6 +198,16 @@ App.MainHostSummaryView = Em.View.extend({
       return 'health-status-' + App.HostComponentStatus.getKeyName(this.get('workStatus'));
     }.property('workStatus', 'isDataNodeRecommissionAvailable'),
     /**
+     * For Upgrade failed state
+     */
+    isUpgradeFailed:function(){
+      if(App.HostComponentStatus.getKeyName(this.get('workStatus')) == "upgrade_failed"){
+        return true;
+      }else{
+        return false;
+      }
+    }.property("workStatus"),
+    /**
      * Disable element while component is starting/stopping
      */
     disabledClass:function(){

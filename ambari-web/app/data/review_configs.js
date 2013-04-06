@@ -119,12 +119,12 @@ module.exports = [
           Ember.Object.create({
             display_name: 'Server',
             component_value: ''
-          })
+          }),
           // TODO: uncomment when ready to integrate with database other than Derby
-          // Ember.Object.create({
-          //   display_name: 'Database',
-          //   component_value: ''
-          // })
+          Ember.Object.create({
+             display_name: 'Database',
+             component_value: ''
+          })
         ]
       }),
       Ember.Object.create({
@@ -167,6 +167,16 @@ module.exports = [
         service_components: [
           Ember.Object.create({
 
+          })
+        ]
+      }),
+      Ember.Object.create({
+        service_name: 'HUE',
+        display_name: 'Hue',
+        service_components: [
+          Ember.Object.create({
+            display_name: 'Server',
+            component_value: ''
           })
         ]
       })

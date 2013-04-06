@@ -28,6 +28,20 @@
       </a>
     </div>
     {{/if}}
+      <div class="start-stop-all-service-button">
+        <a href="javascript:void(null)" {{bindAttr class=":btn controller.isStartAllDisabled:disabled:btn-success" }}
+           data-toggle="modal" {{action "startAllService" target="controller"}}>
+          <i class="icon-play"></i>
+          {{t services.service.startAll}}
+        </a>
+      </div>
+      <div class="start-stop-all-service-button">
+        <a href="javascript:void(null)" {{bindAttr class=":btn controller.isStopAllDisabled:disabled:btn-danger" }}
+           data-toggle="modal" {{action "stopAllService" target="controller"}}>
+          <i class="icon-stop icon-white"></i>
+          {{t services.service.stopAll}}
+        </a>
+      </div>
     {{/if}}
   </div>
   <div class="span10">

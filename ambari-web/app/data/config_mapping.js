@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-module.exports = [
+var configs = [
   {
     "name": "fs.default.name",
     "templateName": ["namenode_host"],
@@ -57,42 +57,48 @@ module.exports = [
     "templateName": ["proxyuser_group"],
     "foreignKey": ["hive_user"],
     "value": "<templateName[0]>",
-    "filename": "core-site.xml"
+    "filename": "core-site.xml",
+    "isOverridable" : true
   },
   {
     "name": "hadoop.proxyuser.<foreignKey[0]>.hosts",
     "templateName": ["hivemetastore_host"],
     "foreignKey": ["hive_user"],
     "value": "<templateName[0]>",
-    "filename": "core-site.xml"
+    "filename": "core-site.xml",
+    "isOverridable" : true
   },
   {
     "name": "hadoop.proxyuser.<foreignKey[0]>.groups",
     "templateName": ["proxyuser_group"],
     "foreignKey": ["oozie_user"],
     "value": "<templateName[0]>",
-    "filename": "core-site.xml"
+    "filename": "core-site.xml",
+    "isOverridable" : true
   },
   {
     "name": "hadoop.proxyuser.<foreignKey[0]>.hosts",
     "templateName": ["oozieserver_host"],
     "foreignKey": ["oozie_user"],
     "value": "<templateName[0]>",
-    "filename": "core-site.xml"
+    "filename": "core-site.xml",
+    "isOverridable" : true
   },
   {
     "name": "hadoop.proxyuser.<foreignKey[0]>.groups",
     "templateName": ["proxyuser_group"],
     "foreignKey": ["webhcat_user"],
     "value": "<templateName[0]>",
-    "filename": "core-site.xml"
+    "filename": "core-site.xml",
+    "isOverridable" : true
   },
   {
     "name": "hadoop.proxyuser.<foreignKey[0]>.hosts",
     "templateName": ["hivemetastore_host"],
     "foreignKey": ["webhcat_user"],
     "value": "<templateName[0]>",
-    "filename": "core-site.xml"
+    "filename": "core-site.xml",
+    "isOverridable" : true
   },
   {
     "name": "dfs.name.dir",
@@ -310,36 +316,59 @@ module.exports = [
     "value": "http://<templateName[0]>:11000/oozie",
     "filename": "oozie-site.xml"
   },
-  /*
-   {
-   "name": "oozie.service.JPAService.jdbc.password",
-   "templateName": [],
-   "foreignKey": null,
-   "value": " ",
-   "filename": "oozie-site.xml"
-   },
-   {
-   "name": "oozie.db.schema.name",
-   "templateName": [],
-   "foreignKey": null,
-   "value": "oozie",
-   "filename": "oozie-site.xml"
-   },
-   {
-   "name": "oozie.service.JPAService.jdbc.url",
-   "templateName": [],
-   "foreignKey": null,
-   "value": "jdbc:derby:/var/data/oozie/oozie-db;create=true",
-   "filename": "oozie-site.xml"
-   },
-   {
-   "name": "oozie.action.ssh.http.command.post.options",
-   "templateName": [],
-   "foreignKey": null,
-   "value": " ",
-   "filename": "oozie-site.xml"
-   },
-   */
+  {
+    "name": "oozie.service.JPAService.jdbc.password",
+    "templateName": ["oozie_metastore_user_passwd"],
+    "foreignKey": null,
+    "value": "<templateName[0]>",
+    "filename": "oozie-site.xml"
+  },
+  {
+    "name": "oozie.service.JPAService.jdbc.username",
+    "templateName": ["oozie_metastore_user_name"],
+    "foreignKey": null,
+    "value": "<templateName[0]>",
+    "filename": "oozie-site.xml"
+  },
+  {
+    "name": "oozie.service.JPAService.jdbc.driver",
+    "templateName": ["oozie_jdbc_driver"],
+    "foreignKey": null,
+    "value": "<templateName[0]>",
+    "filename": "oozie-site.xml"
+  },
+
+  {
+    "name": "oozie.service.JPAService.jdbc.url",  ///////////////
+    "templateName": ["oozie_database_type", "oozie_JPAService_url"], // 4 type database //
+    "foreignKey": null,
+    "value": "jdbc:<templateName[0]>:<templateName[1]>",
+    "filename": "oozie-site.xml"
+  },
+
+//  {
+//    "name": "oozie.service.JPAService.jdbc.url",
+//    "templateName": ["oozie_database_type", "oozie_hostname", "oozie_database_name"],
+//    "foreignKey": null,
+//    "value": "jdbc:<templateName[0]>://<templateName[1]>/<templateName[2]>?createDatabaseIfNotExist=true",
+//    "filename": "oozie-site.xml"
+//  },
+  
+//  {
+//    "name": "oozie.db.schema.name",
+//    "templateName": ["oozie_metastore_user_name"],
+//    "foreignKey": null,
+//    "value": "<templateName[0]>",
+//    "filename": "oozie-site.xml"
+//  },
+
+//  {
+//    "name": "oozie.action.ssh.http.command.post.options",
+//    "templateName": [],
+//    "foreignKey": null,
+//    "value": " ",
+//    "filename": "oozie-site.xml"
+//  },
   {
     "name": "javax.jdo.option.ConnectionURL",
     "templateName": ["hive_database_type", "hive_hostname", "hive_database_name"],
@@ -357,6 +386,13 @@ module.exports = [
   {
     "name": "javax.jdo.option.ConnectionPassword",
     "templateName": ["hive_metastore_user_passwd"],
+    "foreignKey": null,
+    "value": "<templateName[0]>",
+    "filename": "hive-site.xml"
+  },
+  {
+    "name": "javax.jdo.option.ConnectionDriverName",
+    "templateName": ["hive_jdbc_driver"],
     "foreignKey": null,
     "value": "<templateName[0]>",
     "filename": "hive-site.xml"
@@ -823,3 +859,21 @@ module.exports = [
     "filename": "hbase-site.xml"
   }
 ];
+
+/**
+ * Configs consists of 2 types: Computed values, which cannot be modified by user
+ * and overridable values, which user can modify. We provide interface how to get all of this
+ * configs separately
+ * @type {Object}
+ */
+module.exports = {
+  all : function(){
+    return configs.slice(0);
+  },
+  overridable: function(){
+    return configs.filterProperty("isOverridable", true);
+  },
+  computed: function(){
+    return configs.filterProperty("isOverridable", false);
+  }
+};

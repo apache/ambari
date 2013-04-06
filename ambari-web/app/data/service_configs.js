@@ -17,7 +17,7 @@
  */
 
 var App = require('app');
-require('models/service_config')
+require('models/service_config');
 
 var configProperties = App.ConfigProperties.create();
 
@@ -27,14 +27,15 @@ module.exports = [
     displayName: 'HDFS',
     filename: 'hdfs-site',
     configCategories: [
-      App.ServiceConfigCategory.create({ name: 'NameNode', displayName : 'NameNode'}),
-      App.ServiceConfigCategory.create({ name: 'SNameNode', displayName : 'Secondary Name Node'}),
-      App.ServiceConfigCategory.create({ name: 'DataNode', displayName : 'DataNode'}),
+      App.ServiceConfigCategory.create({ name: 'NameNode', displayName : 'NameNode', hostComponentNames : ['NAMENODE']}),
+      App.ServiceConfigCategory.create({ name: 'SNameNode', displayName : 'Secondary Name Node', hostComponentNames : ['SECONDARY_NAMENODE']}),
+      App.ServiceConfigCategory.create({ name: 'DataNode', displayName : 'DataNode', hostComponentNames : ['DATANODE']}),
       App.ServiceConfigCategory.create({ name: 'General', displayName : 'General'}),
       App.ServiceConfigCategory.create({ name: 'Advanced', displayName : 'Advanced'}),
       App.ServiceConfigCategory.create({ name: 'AdvancedCoreSite', displayName : 'Custom core-site.xml', siteFileName: 'core-site.xml', canAddProperty: true}),
       App.ServiceConfigCategory.create({ name: 'AdvancedHDFSSite', displayName : 'Custom hdfs-site.xml', siteFileName: 'hdfs-site.xml', canAddProperty: true})
     ],
+    sites: ['global', 'core-site', 'hdfs-site'],
     configs: configProperties.filterProperty('serviceName', 'HDFS')
   },
 
@@ -43,13 +44,14 @@ module.exports = [
     displayName: 'MapReduce',
     filename: 'mapred-site',
     configCategories: [
-      App.ServiceConfigCategory.create({ name: 'JobTracker', displayName : 'JobTracker'}),
-      App.ServiceConfigCategory.create({ name: 'TaskTracker', displayName : 'TaskTracker'}),
+      App.ServiceConfigCategory.create({ name: 'JobTracker', displayName : 'JobTracker', hostComponentNames : ['JOBTRACKER']}),
+      App.ServiceConfigCategory.create({ name: 'TaskTracker', displayName : 'TaskTracker', hostComponentNames : ['TASKTRACKER']}),
       App.ServiceConfigCategory.create({ name: 'General', displayName : 'General'}),
       App.ServiceConfigCategory.create({ name: 'Advanced', displayName : 'Advanced'}),
-      App.ServiceConfigCategory.create({ name: 'Capacity Scheduler', displayName : 'Capacity Scheduler'}),
+      App.ServiceConfigCategory.create({ name: 'CapacityScheduler', displayName : 'Capacity Scheduler', isCustomView: true, siteFileName: 'capacity-scheduler.xml', siteFileNames: ['capacity-scheduler.xml', 'mapred-queue-acls.xml'], canAddProperty: true}),
       App.ServiceConfigCategory.create({ name: 'AdvancedMapredSite', displayName : 'Custom mapred-site.xml', siteFileName: 'mapred-site.xml', canAddProperty: true})
     ],
+    sites: ['global', 'core-site', 'mapred-site', 'capacity-scheduler', 'mapred-queue-acls'],
     configs: configProperties.filterProperty('serviceName', 'MAPREDUCE')
   },
 
@@ -62,6 +64,7 @@ module.exports = [
       App.ServiceConfigCategory.create({ name: 'Advanced', displayName : 'Advanced'}),
       App.ServiceConfigCategory.create({ name: 'AdvancedHiveSite', displayName : 'Custom hive-site.xml', siteFileName: 'hive-site.xml', canAddProperty: true})
     ],
+    sites: ['global', 'hive-site'],
     configs: configProperties.filterProperty('serviceName', 'HIVE')
   },
 
@@ -73,6 +76,7 @@ module.exports = [
       App.ServiceConfigCategory.create({ name: 'Advanced', displayName : 'Advanced'}),
       App.ServiceConfigCategory.create({ name: 'AdvancedWebHCatSite', displayName : 'Custom webhcat-site.xml', siteFileName: 'webhcat-site.xml', canAddProperty: true})
     ],
+    sites: ['global', 'webhcat-site'],
     configs: configProperties.filterProperty('serviceName', 'WEBHCAT')
   },
 
@@ -87,6 +91,7 @@ module.exports = [
       App.ServiceConfigCategory.create({ name: 'Advanced', displayName : 'Advanced'}),
       App.ServiceConfigCategory.create({ name: 'AdvancedHbaseSite', displayName : 'Custom hbase-site.xml', siteFileName: 'hbase-site.xml', canAddProperty: true})
     ],
+    sites: ['global', 'hbase-site'],
     configs: configProperties.filterProperty('serviceName', 'HBASE')
   },
 
@@ -97,6 +102,7 @@ module.exports = [
       App.ServiceConfigCategory.create({ name: 'ZooKeeper Server', displayName : 'ZooKeeper Server'}),
       App.ServiceConfigCategory.create({ name: 'Advanced', displayName : 'Advanced'})
     ],
+    sites: ['global'],
     configs: configProperties.filterProperty('serviceName', 'ZOOKEEPER')
   },
 
@@ -109,6 +115,7 @@ module.exports = [
       App.ServiceConfigCategory.create({ name: 'Advanced', displayName : 'Advanced'}),
       App.ServiceConfigCategory.create({ name: 'AdvancedOozieSite', displayName : 'Custom oozie-site.xml', siteFileName: 'oozie-site.xml', canAddProperty: true})
     ],
+    sites: ['global', 'oozie-site'],
     configs: configProperties.filterProperty('serviceName', 'OOZIE')
   },
 
@@ -118,7 +125,19 @@ module.exports = [
     configCategories: [
       App.ServiceConfigCategory.create({ name: 'General', displayName : 'General'})
     ],
+    sites: ['global'],
     configs: configProperties.filterProperty('serviceName', 'NAGIOS')
+  },
+
+  {
+    serviceName: 'HUE',
+    displayName: 'Hue',
+    filename: 'hue-site',
+    configCategories: [
+      App.ServiceConfigCategory.create({ name: 'Advanced', displayName : 'Advanced'})
+    ],
+    sites: ['hue-site'],
+    configs: configProperties.filterProperty('serviceName', 'HUE')
   },
 
   {
@@ -128,6 +147,7 @@ module.exports = [
       App.ServiceConfigCategory.create({ name: 'General', displayName : 'General'}),
       App.ServiceConfigCategory.create({ name: 'Users and Groups', displayName : 'Users and Groups'})
     ],
+    sites: ['global'],
     configs: configProperties.filterProperty('serviceName', 'MISC')
   }
 

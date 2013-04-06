@@ -24,7 +24,7 @@ App.TargetCluster = DS.Model.extend({
   clusterName: DS.attr('string'),
   nameNodeWebUrl: DS.attr('string'),
   nameNodeRpcUrl: DS.attr('string'),
-  oozieServerUrl: DS.hasMany('string')
+  oozieServerUrl: DS.attr('string')
 });
 
 App.TargetCluster.FIXTURES = [/*

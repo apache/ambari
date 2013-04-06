@@ -22,7 +22,7 @@
         {{view.serviceConfigProperty.filename}}
       </div>
     </div>
-    <div {{bindAttr class="view.serviceConfigProperty.isKeyEmpty:error :each-row :control-group"}}>
+    <div {{bindAttr class="view.serviceConfigProperty.isKeyError:error :each-row :control-group"}}>
       <label class="control-label">Key</label>
       <div class="controls">
         {{view Ember.TextField valueBinding="view.serviceConfigProperty.name" class="span4"}}

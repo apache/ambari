@@ -21,8 +21,10 @@ var App = require('app');
 App.HostComponent = DS.Model.extend({
   workStatus: DS.attr('string'),
   componentName: DS.attr('string'),
+  haStatus: DS.attr('string'),
   host: DS.belongsTo('App.Host'),
   service: DS.belongsTo('App.Service'),
+  actualConfigs: null,
   isClient:function () {
     if(['PIG', 'SQOOP', 'HCAT'].contains(this.get('componentName'))){
       return true;
@@ -51,6 +53,7 @@ App.HostComponent = DS.Model.extend({
       case 'GANGLIA_SERVER':
       case 'OOZIE_SERVER':
       case 'WEBHCAT_SERVER':
+      case 'HUE_SERVER':
         return true;
       default:
         return false;
@@ -98,6 +101,7 @@ App.HostComponentStatus = {
   start_failed: "START_FAILED",
   install_failed: "INSTALL_FAILED",
   installing: "INSTALLING",
+  upgrade_failed: "UPGRADE_FAILED",
 
   getKeyName:function(value){
     switch(value){
@@ -117,6 +121,8 @@ App.HostComponentStatus = {
         return 'install_failed';
       case this.installing:
         return 'installing';
+      case this.upgrade_failed:
+        return 'upgrade_failed';
     }
     return 'none';
   }

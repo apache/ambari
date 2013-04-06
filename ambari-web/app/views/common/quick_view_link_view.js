@@ -23,7 +23,9 @@ App.QuickViewLinks = Em.View.extend({
   /**
    * Updated quick links. Here we put correct hostname to url
    */
-  quickLinks:function () {
+  errorFlag: false,
+
+  quickLinks: function () {
     var serviceName = this.get('content.serviceName');
     var components = this.get('content.hostComponents');
     var host;
@@ -33,7 +35,14 @@ App.QuickViewLinks = Em.View.extend({
     } else if (serviceName === 'MAPREDUCE') {
       host = components.findProperty('componentName', 'JOBTRACKER').get('host.publicHostName');
     } else if (serviceName === 'HBASE') {
-      host = components.findProperty('componentName', 'HBASE_MASTER').get('host.publicHostName');
+      if (components.filterProperty('componentName', 'HBASE_MASTER').someProperty('haStatus', 'active')) {
+        host = components.filterProperty('componentName', 'HBASE_MASTER').findProperty('haStatus', 'active').get('host.publicHostName');
+      } else {
+        // TODO: show error message
+        if (!this.get('errorFlag')) {
+          this.noActiveHbaseMasterError();
+        }
+      }
     }
     if (!host) {
       return [];
@@ -46,7 +55,7 @@ App.QuickViewLinks = Em.View.extend({
     });
   }.property('content.quickLinks.@each.label'),
 
-  linkTarget:function () {
+  linkTarget: function () {
     switch (this.get('content.serviceName').toLowerCase()) {
       case "hdfs":
       case "mapreduce":
@@ -57,6 +66,20 @@ App.QuickViewLinks = Em.View.extend({
         return "";
         break;
     }
-  }.property('service')
+  }.property('service'),
+
+  noActiveHbaseMasterError: function () {
+    this.set('errorFlag', true);
+    App.ModalPopup.show({
+      header: Em.I18n.translations['common.error'],
+      secondary: false,
+      onPrimary: function () {
+        this.hide();
+      },
+      bodyClass: Ember.View.extend({
+        template: Ember.Handlebars.compile('<p>{{t services.hbase.master.error}}</p>')
+      })
+    });
+  }
 
 });

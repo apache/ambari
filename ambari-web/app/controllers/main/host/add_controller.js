@@ -262,46 +262,6 @@ App.AddHostController = App.WizardController.extend({
   },
 
   /**
-   * Save config properties
-   * @param stepController Step7WizardController
-   */
-  saveServiceConfigProperties: function (stepController) {
-    var serviceConfigProperties = [];
-    stepController.get('stepConfigs').forEach(function (_content) {
-      _content.get('configs').forEach(function (_configProperties) {
-        var displayType = _configProperties.get('displayType');
-        if (displayType === 'directories' || displayType === 'directory') {
-          var value = _configProperties.get('value').trim().split(/\s+/g).join(',');
-          _configProperties.set('value', value);
-        }
-        var configProperty = {
-          id: _configProperties.get('id'),
-          name: _configProperties.get('name'),
-          value: _configProperties.get('value'),
-          defaultValue: _configProperties.get('defaultValue'),
-          service: _configProperties.get('serviceName'),
-          domain:  _configProperties.get('domain'),
-          filename: _configProperties.get('filename')
-        };
-        serviceConfigProperties.push(configProperty);
-      }, this);
-
-    }, this);
-
-    App.db.setServiceConfigProperties(serviceConfigProperties);
-    this.set('content.serviceConfigProperties', serviceConfigProperties);
-  },
-
-  /**
-   * Load serviceConfigProperties to model
-   */
-  loadServiceConfigProperties: function () {
-    var serviceConfigProperties = App.db.getServiceConfigProperties();
-    this.set('content.serviceConfigProperties', serviceConfigProperties);
-    console.log("AddHostController.loadServiceConfigProperties: loaded config ", serviceConfigProperties);
-  },
-
-  /**
    * Load information about hosts with clients components
    */
   loadClients: function () {
@@ -361,58 +321,6 @@ App.AddHostController = App.WizardController.extend({
         this.load('installOptions');
         this.load('cluster');
     }
-  },
-
-  /**
-   * load advanced configs for all selected services
-   */
-  loadAdvancedConfigs: function () {
-    this.get('content.services').filterProperty('isSelected', true).mapProperty('serviceName').forEach(function (_serviceName) {
-      this.loadAdvancedConfig(_serviceName);
-    }, this);
-  },
-
-  /**
-   * load advanced config for one service
-   * @param serviceName
-   */
-  loadAdvancedConfig: function (serviceName) {
-    var self = this;
-    var url = (App.testMode) ? '/data/wizard/stack/hdp/version01/' + serviceName + '.json' : App.apiPrefix + App.get('stackVersionURL') + '/services/' + serviceName; // TODO: get this url from the stack selected by the user in Install Options page
-    var method = 'GET';
-    $.ajax({
-      type: method,
-      url: url,
-      async: false,
-      dataType: 'text',
-      timeout: App.timeout,
-      success: function (data) {
-        var jsonData = jQuery.parseJSON(data);
-        console.log("TRACE: Step6 submit -> In success function for the loadAdvancedConfig call");
-        console.log("TRACE: Step6 submit -> value of the url is: " + url);
-        var serviceComponents = jsonData.properties;
-        serviceComponents.setEach('serviceName', serviceName);
-        var configs;
-        if (App.db.getAdvancedServiceConfig()) {
-          configs = App.db.getAdvancedServiceConfig();
-        } else {
-          configs = [];
-        }
-        configs = configs.concat(serviceComponents);
-        self.set('content.advancedServiceConfig', configs);
-        App.db.setAdvancedServiceConfig(configs);
-        console.log('TRACE: servicename: ' + serviceName);
-      },
-
-      error: function (request, ajaxOptions, error) {
-        console.log("TRACE: STep6 submit -> In error function for the loadAdvancedConfig call");
-        console.log("TRACE: STep6 submit-> value of the url is: " + url);
-        console.log("TRACE: STep6 submit-> error code status is: " + request.status);
-        console.log('Step6 submit: Error message is: ' + request.responseText);
-      },
-
-      statusCode: require('data/statusCodes')
-    });
   },
 
   /**

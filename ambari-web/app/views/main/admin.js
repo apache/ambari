@@ -36,6 +36,11 @@ App.MainAdminView = Em.View.extend({
       name: 'cluster',
       url: 'adminCluster',
       label: Em.I18n.t('common.cluster')
+    },
+    {
+      name: 'misc',
+      url: 'adminMisc',
+      label: Em.I18n.t('common.misc')
     }
   ],
   NavItemView: Ember.View.extend({

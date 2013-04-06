@@ -20,7 +20,7 @@
     {{! Here serviceConfigBinding should ideally be serviceConfigPropertyBinding }}
     <div {{bindAttr class="overriddenSCP.errorMessage:error: :control-group :overrideField"}}>
       {{view overriddenSCP.viewClass serviceConfigBinding="overriddenSCP" categoryConfigsBinding="view.categoryConfigs"}}
-      <a class="action" href="#" {{action showOverrideWindow overriddenSCP controller target="view" }} >{{overriddenSCP.selectedHostOptions.length}} hosts </a>
+      {{view view.hostsCountView overriddenSCPBinding="overriddenSCP"}}
       {{#if isNotDefaultValue}}
         <a class="action" {{action "doRestoreDefaultValue" this target="view" }} ><i class="icon-undo"></i>Undo</a>
       {{/if}}

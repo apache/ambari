@@ -16,9 +16,40 @@
 * limitations under the License.
 }}
 
+{{#if selectedService.restartRequired}}
+<div class="alert">
+  <div class="clearfix like_pointer" {{action toggleRestartMessageView target="view"}}>
+      {{#if view.isRestartMessageCollapsed}}
+        <i class="icon-caret-down pull-left"></i>
+      {{else}}
+        <i class="icon-caret-right pull-left"></i>
+      {{/if}}
+      <i class="icon-refresh"></i>
+      <strong>Restart Service</strong> {{selectedService.restartRequiredMessage}}
+  </div>
+  <div class="service-body">
+    <ul>
+    {{#each host in selectedService.restartRequiredHostsAndComponents}}
+      <li>
+        <a href="#" {{action showDetails host.hostData}}>{{host.hostData.publicHostName}}</a>
+        <ul>
+          {{#each component in host.components}}
+            <li>{{component.name}}</li>
+          {{/each}}
+        </ul>
+      </li>
+    {{/each}}
+    </ul>
+  </div>
+</div>
+{{/if}}
+          
 <div class="accordion">
   {{#each category in selectedService.configCategories}}
-    {{#view App.ServiceConfigsByCategoryView categoryBinding="category" serviceBinding="selectedService" serviceConfigsBinding="selectedService.configs"}}
+    {{#if category.isCustomView}}
+      {{view category.customView categoryBinding="category" serviceBinding="selectedService" serviceConfigsBinding="selectedService.configs"}}
+    {{else}}
+    {{#view App.ServiceConfigsByCategoryView categoryBinding="category" canEditBinding="view.canEdit" serviceBinding="selectedService" serviceConfigsBinding="selectedService.configs"}}
 
             <div class="accordion-heading" {{action "onToggleBlock" category target="view"}}>
                 <i {{bindAttr class=":pull-left :accordion-toggle category.isCollapsed:icon-caret-right:icon-caret-down"}}></i>
@@ -26,29 +57,36 @@
             </div>
 
             <div class="accordion-body collapse in">
-              <div class="accordion-inner">
+              <div class="accordion-inner service-config-section">
                 <form class="form-horizontal">
 
                   {{#each view.filteredCategoryConfigs}}
-                      <div class="entry-row">
+                      <div {{bindAttr class=":entry-row isOverridden:overridden-property"}}>
                           <span {{bindAttr class="errorMessage:error: :control-group :control-label-span"}}>
-                            <label class="control-label">{{displayName}}</label>
+                            <label class="control-label">
+	                            {{#if isRestartRequired}}
+	                              <i class="icon-refresh restart-required-property" rel="tooltip" {{bindAttr title="restartRequiredMessage"}}></i>
+	                            {{/if}}
+                              {{displayName}}
+                            </label>
                           </span>
                           <div class="controls">
                             {{! Here serviceConfigBinding should ideally be serviceConfigPropertyBinding }}
                               <div {{bindAttr class="errorMessage:error: :control-group"}}>
-                                {{view viewClass serviceConfigBinding="this" categoryConfigsBinding="view.categoryConfigs" }}
-                                {{#if isOverridable}}
-                                  <a class="action" {{action "createOverrideProperty" this target="view" }} ><i class="icon-plus-sign"></i>{{t common.exception}}</a>
-                                {{/if}}
-                                {{#if cantBeUndone}}
-                                {{else}}
-                                  {{#if isNotDefaultValue}}
-                                    <a class="action" {{action "doRestoreDefaultValue" this target="view" }} ><i class="icon-undo"></i>{{t common.undo}}</a>
-                                  {{/if}}
-                                {{/if}}
-                                {{#if isRemovable}}
-                                  <a class="action" {{action "removeProperty" this target="view" }} ><i class="icon-minus-sign"></i>{{t common.remove}}</a>
+                                {{view viewClass serviceConfigBinding="this" categoryConfigsAllBinding="view.categoryConfigsAll" }}
+                                {{#if view.canEdit}}
+	                                {{#if isPropertyOverridable}}
+	                                    <a class="action" {{action "createOverrideProperty" this target="view" }} ><i class="icon-plus-sign"></i>{{t common.exception}}</a>
+	                                {{/if}}
+	                                {{#if cantBeUndone}}
+	                                {{else}}
+	                                  {{#if isNotDefaultValue}}
+	                                      <a class="action" {{action "doRestoreDefaultValue" this target="view" }} ><i class="icon-undo"></i>{{t common.undo}}</a>
+	                                  {{/if}}
+	                                {{/if}}
+	                                {{#if isRemovable}}
+	                                    <a class="action" {{action "removeProperty" this target="view" }} ><i class="icon-minus-sign"></i>{{t common.remove}}</a>
+	                                {{/if}}
                                 {{/if}}
                                   <span class="help-inline">{{errorMessage}}</span>
                               </div>
@@ -60,16 +98,19 @@
                   {{/each}}
 
                   {{! For Advanced, Advanced Core Site, Advanced HDFS Site sections, show the 'Add Property' link.}}
-                  {{#if category.canAddProperty }}
-                      <div>
-                          <a href="#" {{action "showAddPropertyWindow" this target="view" }} >{{t installer.step7.config.addProperty}}...</a>
-                      </div>
-                  {{/if}}
+                  {{#if view.canEdit}}
+	                  {{#if category.canAddProperty }}
+	                      <div>
+	                          <a href="#" {{action "showAddPropertyWindow" this target="view" }} >{{t installer.step7.config.addProperty}}...</a>
+	                      </div>
+	                  {{/if}}
+	                {{/if}}
                 </form>
               </div>
             </div>
 
 
     {{/view}}
+    {{/if}}
   {{/each}}
 </div>

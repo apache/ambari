@@ -42,7 +42,8 @@ App.MainServiceInfoSummaryView = Em.View.extend({
     oozie:false,
     hive:false,
     ganglia:false,
-    nagios:false
+    nagios:false,
+    hue: false
   },
 
   clients: function () {
@@ -186,6 +187,9 @@ App.MainServiceInfoSummaryView = Em.View.extend({
   }.property('controller.content'),
   oozieServer:function(){
     return this.getServer("OOZIE");
+  }.property('controller.content'),
+  hueServer:function(){
+    return this.getServer("HUE");
   }.property('controller.content'),
 
   /**

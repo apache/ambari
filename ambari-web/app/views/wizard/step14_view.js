@@ -31,11 +31,15 @@ App.WizardStep14View = Em.View.extend({
   },
 
   tasks: function () {
-    return this.get('controller.tasks');
-  }.property('controller.tasks'),
+    var tasks = this.get('controller.tasks');
+    if (this.get('controller.service.serviceName') == 'GANGLIA') {
+      tasks = tasks.slice(0,2).concat(tasks.slice(4));
+    }
+    return tasks;
+  }.property('controller.tasks', 'controller.service'),
 
   onStatus: function () {
-    var master = this.get('controller.content.reassign.display_name');
+    var master = (this.get('controller.isCohosted')) ? Em.I18n.t('installer.step5.hiveGroup') : this.get('controller.content.reassign.display_name');
     switch (this.get('controller.status')) {
       case 'COMPLETED':
         this.set('statusMessage', Em.I18n.t('installer.step14.status.success').format(master));
