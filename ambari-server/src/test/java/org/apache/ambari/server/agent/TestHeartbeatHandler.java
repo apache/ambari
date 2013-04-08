@@ -315,8 +315,8 @@ public class TestHeartbeatHandler {
             getCluster(DummyCluster).getService(HDFS).
             getServiceComponent(NAMENODE).
             getServiceComponentHost(DummyHostname1);
-    serviceComponentHost1.setState(State.STOP_FAILED);
-    serviceComponentHost2.setState(State.STOP_FAILED);
+    serviceComponentHost1.setState(State.STARTED);
+    serviceComponentHost2.setState(State.STARTED);
 
     HeartBeat hb = new HeartBeat();
     hb.setTimestamp(System.currentTimeMillis());
@@ -876,8 +876,8 @@ public class TestHeartbeatHandler {
     cr.setExitCode(3);
 
     handler.handleHeartBeat(hb);
-    assertEquals("Host state should be " + State.UPGRADE_FAILED,
-        State.UPGRADE_FAILED, serviceComponentHost1.getState());
+    assertEquals("Host state should be " + State.UPGRADING,
+        State.UPGRADING, serviceComponentHost1.getState());
 
     // TODO What happens when there is a TIMEDOUT
 
@@ -1200,7 +1200,7 @@ public class TestHeartbeatHandler {
     HeartBeatHandler handler = getHeartBeatHandler(am, aq);
     handler.handleHeartBeat(hb);
     assertEquals("State of SCH should change after fail report",
-            State.UPGRADE_FAILED, serviceComponentHost1.getState());
+        State.UPGRADING, serviceComponentHost1.getState());
     assertEquals("State of SCH should change after fail report",
             State.INSTALL_FAILED, serviceComponentHost2.getState());
     assertEquals("Stack version of SCH should not change after fail report",

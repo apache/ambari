@@ -1778,8 +1778,7 @@ public class AmbariManagementControllerImpl implements
           continue;
         }
         for (ServiceComponentHost sch : entry.getValue()) {
-          if (State.START_FAILED != sch.getState()
-            && State.INSTALLED != sch.getState()) {
+          if (State.INSTALLED != sch.getState()) {
             continue;
           }
           if (!changedComponentCount.containsKey(sch.getServiceName())) {
@@ -1967,16 +1966,13 @@ public class AmbariManagementControllerImpl implements
                       nowTimestamp,
                       scHost.getDesiredStackVersion().getStackId());
                 } else if (oldSchState == State.STARTED
-                    || oldSchState == State.START_FAILED
                     || oldSchState == State.INSTALLED
-                    || oldSchState == State.STOP_FAILED
                     || oldSchState == State.STOPPING) {
                   roleCommand = RoleCommand.STOP;
                   event = new ServiceComponentHostStopEvent(
                       scHost.getServiceComponentName(), scHost.getHostName(),
                       nowTimestamp);
-                } else if (oldSchState == State.UPGRADE_FAILED
-                    || oldSchState == State.UPGRADING) {
+                } else if (oldSchState == State.UPGRADING) {
                   roleCommand = RoleCommand.UPGRADE;
                   event = new ServiceComponentHostUpgradeEvent(
                       scHost.getServiceComponentName(), scHost.getHostName(),
@@ -1999,7 +1995,7 @@ public class AmbariManagementControllerImpl implements
                     stackId.getStackName(), stackId.getStackVersion(), scHost.getServiceName(),
                     scHost.getServiceComponentName());
                 if (oldSchState == State.INSTALLED
-                    || oldSchState == State.START_FAILED || oldSchState == State.STARTING) {
+                    || oldSchState == State.STARTING) {
                   roleCommand = RoleCommand.START;
                   event = new ServiceComponentHostStartEvent(
                       scHost.getServiceComponentName(), scHost.getHostName(),
@@ -2024,7 +2020,7 @@ public class AmbariManagementControllerImpl implements
                 break;
               case UNINSTALLED:
                 if (oldSchState == State.INSTALLED
-                    || oldSchState == State.UNINSTALL_FAILED) {
+                    || oldSchState == State.UNINSTALLING) {
                   roleCommand = RoleCommand.UNINSTALL;
                   event = new ServiceComponentHostStartEvent(
                       scHost.getServiceComponentName(), scHost.getHostName(),
@@ -2238,10 +2234,7 @@ public class AmbariManagementControllerImpl implements
             || oldState == State.INSTALLED
             || oldState == State.INSTALLING
             || oldState == State.STARTED
-            || oldState == State.START_FAILED
             || oldState == State.INSTALL_FAILED
-            || oldState == State.STOP_FAILED
-            || oldState == State.UPGRADE_FAILED
             || oldState == State.UPGRADING
             || oldState == State.STOPPING
             || oldState == State.MAINTENANCE) {
@@ -2251,21 +2244,20 @@ public class AmbariManagementControllerImpl implements
       case STARTED:
         if (oldState == State.INSTALLED
             || oldState == State.STARTING
-            || oldState == State.STARTED
-            || oldState == State.START_FAILED) {
+            || oldState == State.STARTED) {
           return true;
         }
         break;
       case UNINSTALLED:
         if (oldState == State.INSTALLED
             || oldState == State.UNINSTALLED
-            || oldState == State.UNINSTALL_FAILED) {
+            || oldState == State.UNINSTALLING) {
           return true;
         }
       case INIT:
         if (oldState == State.UNINSTALLED
             || oldState == State.INIT
-            || oldState == State.WIPEOUT_FAILED) {
+            || oldState == State.WIPING_OUT) {
           return true;
         }
       case MAINTENANCE:
@@ -3371,8 +3363,7 @@ public class AmbariManagementControllerImpl implements
             "Component host can only be upgraded to the same version as the cluster");
       } else if (requestedStackId.compareTo(currentSchStackId) > 0) {
         isUpgradeRequest = true;
-        if (sch.getState() != State.INSTALLED && sch.getState() != State.UPGRADING
-            && sch.getState() != State.UPGRADE_FAILED) {
+        if (sch.getState() != State.INSTALLED && sch.getState() != State.UPGRADING) {
           throw getHostComponentUpgradeException(request, cluster, s, sc, sch,
               "Component host is in an invalid state for upgrade");
         }

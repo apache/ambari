@@ -656,6 +656,9 @@ Trunk (unreleased changes):
 
  BUG FIXES
 
+ AMBARI-1834. Reduce the number of states that a host component can be in.
+ (smohanty)
+
  AMBARI-1789. Stopping and then Starting all services doesn't start 
  NameNode. (smohanty)
 

@@ -261,11 +261,9 @@ public class HeartBeatHandler {
               State prevState = scHost.getState();
               State liveState = State.valueOf(State.class, status.getStatus());
               if (prevState.equals(State.INSTALLED)
-                  || prevState.equals(State.START_FAILED)
                   || prevState.equals(State.STARTED)
                   || prevState.equals(State.STARTING)
-                  || prevState.equals(State.STOPPING)
-                  || prevState.equals(State.STOP_FAILED)) {
+                  || prevState.equals(State.STOPPING)) {
                 scHost.setState(liveState);
                 if (!prevState.equals(liveState)) {
                   LOG.info("State of service component " + componentName

@@ -1577,7 +1577,6 @@ public class AmbariManagementControllerTest {
     statusResponses = controller.getRequestStatus(statusRequest);
     Assert.assertEquals(2, statusResponses.size());
 
-    int counter = 0;
     for (ServiceComponent sc :
       clusters.getCluster(clusterName).getService(serviceName)
       .getServiceComponents().values()) {
@@ -1585,18 +1584,7 @@ public class AmbariManagementControllerTest {
         if (sc.isClientComponent()) {
           sch.setState(State.INSTALLED);
         } else {
-          ++counter;
-          switch (counter%1) {
-            case 0:
-              sch.setState(State.START_FAILED);
-              break;
-            case 1:
-              sch.setState(State.STOP_FAILED);
-              break;
-            case 2:
-              sch.setState(State.STARTED);
-              break;
-          }
+          sch.setState(State.INSTALL_FAILED);
         }
       }
     }
@@ -2537,7 +2525,7 @@ public class AmbariManagementControllerTest {
     sch4.setDesiredState(State.STARTED);
     sch5.setDesiredState(State.STARTED);
     sch1.setState(State.INSTALLED);
-    sch2.setState(State.START_FAILED);
+    sch2.setState(State.INSTALLED);
     sch3.setState(State.INSTALLED);
     sch4.setState(State.STARTED);
     sch5.setState(State.INSTALLED);
@@ -2564,7 +2552,7 @@ public class AmbariManagementControllerTest {
     Assert.assertEquals(State.STARTED, sch5.getDesiredState());
     Assert.assertEquals(State.INSTALLED, sch6.getDesiredState());
     Assert.assertEquals(State.INSTALLED, sch1.getState());
-    Assert.assertEquals(State.START_FAILED, sch2.getState());
+    Assert.assertEquals(State.INSTALLED, sch2.getState());
     Assert.assertEquals(State.INSTALLED, sch3.getState());
     Assert.assertEquals(State.STARTED, sch4.getState());
     Assert.assertEquals(State.INSTALLED, sch5.getState());
@@ -2753,7 +2741,7 @@ public class AmbariManagementControllerTest {
     sch1.setState(State.STARTED);
     sch2.setState(State.INIT);
     sch3.setState(State.INSTALLED);
-    sch4.setState(State.STOP_FAILED);
+    sch4.setState(State.STARTED);
     sch5.setState(State.INIT);
 
     reqs.clear();
@@ -2780,7 +2768,7 @@ public class AmbariManagementControllerTest {
     Assert.assertEquals(State.STARTED, sch1.getState());
     Assert.assertEquals(State.INIT, sch2.getState());
     Assert.assertEquals(State.INSTALLED, sch3.getState());
-    Assert.assertEquals(State.STOP_FAILED, sch4.getState());
+    Assert.assertEquals(State.STARTED, sch4.getState());
     Assert.assertEquals(State.INIT, sch5.getState());
 
     long requestId = trackAction.getRequestId();
@@ -3057,7 +3045,7 @@ public class AmbariManagementControllerTest {
     c1.setCurrentStackVersion(newStack);
     c1.setDesiredStackVersion(newStack);
     sch1.setState(State.INSTALLED);
-    sch2.setState(State.UPGRADE_FAILED);
+    sch2.setState(State.UPGRADING);
     sch1.setDesiredState(State.INSTALLED);
     sch2.setDesiredState(State.INSTALLED);
 
@@ -3100,9 +3088,9 @@ public class AmbariManagementControllerTest {
 
     sch1.setState(State.INSTALLED);
     sch1.setDesiredState(State.INSTALLED);
-    sch2.setState(State.UPGRADE_FAILED);
+    sch2.setState(State.UPGRADING);
     sch2.setDesiredState(State.INSTALLED);
-    sch3.setState(State.UPGRADE_FAILED);
+    sch3.setState(State.UPGRADING);
     sch3.setDesiredState(State.INSTALLED);
 
     sch3.setStackVersion(oldStack);
@@ -3245,7 +3233,7 @@ public class AmbariManagementControllerTest {
     updateHostAndCompareExpectedFailure(reqs, "Component host is in an invalid state for upgrade");
 
     c1.setCurrentStackVersion(new StackId("HDP-0.2"));
-    sch1.setState(State.UPGRADE_FAILED);
+    sch1.setState(State.UPGRADING);
     reqs.clear();
     req1 = new ServiceComponentHostRequest(clusterName, serviceName1,
         componentName1, host1,
@@ -5091,9 +5079,9 @@ public class AmbariManagementControllerTest {
     validateGeneratedStages(stages, 5, expectedTasks);
 
     c.getService(mrServiceName).getServiceComponent(mrJobTrackerComp).getServiceComponentHost(host1)
-        .setState(State.UPGRADE_FAILED);
+        .setState(State.UPGRADING);
     c.getService(mrServiceName).getServiceComponent(mrTaskTrackerComp).getServiceComponentHost(host2)
-        .setState(State.UPGRADE_FAILED);
+        .setState(State.UPGRADING);
     actionDB.abortOperation(trackAction.getRequestId());
     trackAction = controller.updateCluster(r, mapRequestProps);
     stages = actionDB.getAllStages(trackAction.getRequestId());
