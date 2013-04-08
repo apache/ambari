@@ -800,7 +800,12 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
    * @param configs
    */
   saveSiteConfigs: function (configs) {
-    var storedConfigs = configs.filterProperty('id', 'site property').filterProperty('value');
+    //storedConfigs contains custom configs as well
+    var serviceConfigProperties = configs.filterProperty('id', 'site property');
+    serviceConfigProperties.forEach(function(_config){
+      if(typeof _config.get('value') === "boolean") _config.set('value', _config.value.toString());
+    });
+    var storedConfigs = serviceConfigProperties.filterProperty('value');
     var preConfigs = this.loadUiSideConfigs(this.get('configMapping').overridable());
     var postConfigs = this.loadUiSideConfigs(this.get('configMapping').computed());
     this.set('uiConfigs', preConfigs.concat(storedConfigs).concat(postConfigs));

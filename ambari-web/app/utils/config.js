@@ -128,7 +128,7 @@ App.config = Em.Object.create({
           serviceConfigObj.category = configsPropertyDef ? configsPropertyDef.category : null;
           serviceConfigObj.options = configsPropertyDef ? configsPropertyDef.options : null;
           globalConfigs.push(serviceConfigObj);
-        } else if (!this.get('configMapping').all().someProperty('name', index)) {
+        } else if (!this.get('configMapping').computed().someProperty('name', index)) {
           serviceConfigObj.id = 'site property';
           serviceConfigObj.displayType = 'advanced';
           serviceConfigObj.displayName = configsPropertyDef ? configsPropertyDef.displayName : index;
@@ -141,12 +141,8 @@ App.config = Em.Object.create({
           if (categoryMetaData != null) {
             serviceConfigObj.category = categoryMetaData.get('name');
             serviceConfigObj.isUserProperty = true;
-            configs.push(serviceConfigObj);
-          } else {
-            serviceConfigObj.id = 'conf-site';
-            serviceConfigObj.serviceName = serviceName;
-            customConfigs.push(serviceConfigObj);
           }
+          configs.push(serviceConfigObj);
         } else {
           mappingConfigs.push(serviceConfigObj);
         }
@@ -225,7 +221,7 @@ App.config = Em.Object.create({
     var configCategory = 'Advanced';
     advancedConfigs.forEach(function (_config) {
       if (_config) {
-        if (this.get('configMapping').all().someProperty('name', _config.name)) {
+        if (this.get('configMapping').computed().someProperty('name', _config.name)) {
         } else if (!(serviceConfigs.someProperty('name', _config.name))) {
           var categoryMetaData = this.identifyCategory(_config);
           if (categoryMetaData != null) {
@@ -269,49 +265,48 @@ App.config = Em.Object.create({
       queueProperties.setEach('isQueue', true);
     } else {
       queueProperties = preDefinedCustomConfigs.filterProperty('isQueue');
-      this.addDefaultQueue(configs, queueProperties);
+      queueProperties.forEach(function(customConfig){
+        this.setDefaultQueue(customConfig);
+        configs.push(customConfig);
+      }, this);
     }
   },
   /**
-   * add properties of default queue to configs
-   * @param configs
-   * @param queueProperties
+   * set values to properties of default queue
+   * @param customConfig
    */
-  addDefaultQueue: function (configs, queueProperties) {
-    queueProperties.forEach(function(customConfig){
-      customConfig.name = customConfig.name.replace(/<queue-name>/, 'default');
-      //values for default queue
-      switch (customConfig.name){
-        case 'mapred.capacity-scheduler.queue.default.capacity':
-          customConfig.value = '100';
-          break;
-        case 'mapred.capacity-scheduler.queue.default.maximum-capacity':
-          customConfig.value = '100';
-          break;
-        case 'mapred.capacity-scheduler.queue.default.minimum-user-limit-percent':
-          customConfig.value = '100';
-          break;
-        case 'mapred.capacity-scheduler.queue.default.user-limit-factor':
-          customConfig.value = '1';
-          break;
-        case 'mapred.capacity-scheduler.queue.default.maximum-initialized-active-tasks':
-          customConfig.value = '200000';
-          break;
-        case 'mapred.capacity-scheduler.queue.default.maximum-initialized-active-tasks-per-user':
-          customConfig.value = '100000';
-          break;
-        case 'mapred.capacity-scheduler.queue.default.init-accept-jobs-factor':
-          customConfig.value = '10';
-          break;
-        case 'mapred.queue.default.acl-submit-job':
-          customConfig.value = '* *';
-          break;
-        case 'mapred.queue.default.acl-administer-jobs':
-          customConfig.value = '* *';
-          break;
-      }
-      configs.push(customConfig);
-    });
+  setDefaultQueue: function (customConfig) {
+    customConfig.name = customConfig.name.replace(/<queue-name>/, 'default');
+    //values for default queue
+    switch (customConfig.name) {
+      case 'mapred.capacity-scheduler.queue.default.capacity':
+        customConfig.value = '100';
+        break;
+      case 'mapred.capacity-scheduler.queue.default.maximum-capacity':
+        customConfig.value = '100';
+        break;
+      case 'mapred.capacity-scheduler.queue.default.minimum-user-limit-percent':
+        customConfig.value = '100';
+        break;
+      case 'mapred.capacity-scheduler.queue.default.user-limit-factor':
+        customConfig.value = '1';
+        break;
+      case 'mapred.capacity-scheduler.queue.default.maximum-initialized-active-tasks':
+        customConfig.value = '200000';
+        break;
+      case 'mapred.capacity-scheduler.queue.default.maximum-initialized-active-tasks-per-user':
+        customConfig.value = '100000';
+        break;
+      case 'mapred.capacity-scheduler.queue.default.init-accept-jobs-factor':
+        customConfig.value = '10';
+        break;
+      case 'mapred.queue.default.acl-submit-job':
+        customConfig.value = '* *';
+        break;
+      case 'mapred.queue.default.acl-administer-jobs':
+        customConfig.value = '* *';
+        break;
+    }
   },
   /**
    * render configs, distribute them by service

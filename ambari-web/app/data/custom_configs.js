@@ -20,7 +20,7 @@
 module.exports =
   [
     {
-      "id": "conf-site",
+      "id": "site property",
       "name": "mapred.capacity-scheduler.queue.<queue-name>.capacity",
       "displayName": "Capacity",
       "value": '',
@@ -35,7 +35,7 @@ module.exports =
       "filename": 'capacity-scheduler.xml'
     },
     {
-      "id": "conf-site",
+      "id": "site property",
       "name": "mapred.capacity-scheduler.queue.<queue-name>.maximum-capacity",
       "displayName": "Max Capacity",
       "value": '',
@@ -58,7 +58,7 @@ module.exports =
       "filename": 'capacity-scheduler.xml'
     },
     {
-      "id": "conf-site",
+      "id": "site property",
       "name": "mapred.capacity-scheduler.queue.<queue-name>.minimum-user-limit-percent",
       "displayName": "Min User Limit",
       "value": '',
@@ -81,7 +81,7 @@ module.exports =
       "filename": 'capacity-scheduler.xml'
     },
     {
-      "id": "conf-site",
+      "id": "site property",
       "name": "mapred.capacity-scheduler.queue.<queue-name>.user-limit-factor",
       "displayName": "User Limit Factor",
       "value": '',
@@ -98,7 +98,7 @@ module.exports =
       "filename": 'capacity-scheduler.xml'
     },
     {
-      "id": "conf-site",
+      "id": "site property",
       "name": "mapred.capacity-scheduler.queue.<queue-name>.supports-priority",
       "displayName": "Supports Priority",
       "value": false,
@@ -113,7 +113,7 @@ module.exports =
       "filename": 'capacity-scheduler.xml'
     },
     {
-      "id": "conf-site",
+      "id": "site property",
       "name": "mapred.queue.<queue-name>.acl-submit-job",
       "displayName": "",
       "value": '',
@@ -127,7 +127,7 @@ module.exports =
       "filename": 'mapred-queue-acls.xml'
     },
     {
-      "id": "conf-site",
+      "id": "site property",
       "name": "mapred.queue.<queue-name>.acl-administer-jobs",
       "displayName": "",
       "value": '',
@@ -141,7 +141,7 @@ module.exports =
       "filename": 'mapred-queue-acls.xml'
     },
     {
-      "id": "conf-site",
+      "id": "site property",
       "name": "mapred.capacity-scheduler.queue.<queue-name>.maximum-initialized-active-tasks",
       "displayName": "Max initialized active tasks",
       "value": '',
@@ -157,7 +157,7 @@ module.exports =
       "filename": 'capacity-scheduler.xml'
     },
     {
-      "id": "conf-site",
+      "id": "site property",
       "name": "mapred.capacity-scheduler.queue.<queue-name>.maximum-initialized-active-tasks-per-user",
       "displayName": "Max initialized active tasks per user",
       "value": '',
@@ -173,7 +173,7 @@ module.exports =
       "filename": 'capacity-scheduler.xml'
     },
     {
-      "id": "conf-site",
+      "id": "site property",
       "name": "mapred.capacity-scheduler.queue.<queue-name>.init-accept-jobs-factor",
       "displayName": "Init accept jobs factor",
       "value": '',

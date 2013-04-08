@@ -173,10 +173,14 @@ App.WizardStep8Controller = Em.Controller.extend({
   },
 
   loadConfigs: function () {
-    var storedConfigs = this.get('content.serviceConfigProperties').filterProperty('id', 'site property').filterProperty('value');
+    //storedConfigs contains custom configs as well
+    var serviceConfigProperties = this.get('content.serviceConfigProperties').filterProperty('id', 'site property');
+    serviceConfigProperties.forEach(function(_config){
+      _config.value = (typeof _config.value === "boolean") ? _config.value.toString() : _config.value;
+    });
+    var storedConfigs = serviceConfigProperties.filterProperty('value');
     var uiConfigs = this.loadUiSideConfigs();
-    var customConfigs = this.loadCustomConfigs();
-    this.set('configs', storedConfigs.concat(uiConfigs, customConfigs));
+    this.set('configs', storedConfigs.concat(uiConfigs));
   },
 
   loadUiSideConfigs: function () {
@@ -317,24 +321,6 @@ App.WizardStep8Controller = Em.Controller.extend({
         }
       }, this);
     }
-  },
-
-
-  /**
-   * load custom configs
-   */
-  loadCustomConfigs: function () {
-    var configs = this.get('content.serviceConfigProperties').filterProperty('id', 'conf-site');
-    var customConfigs = [];
-    configs.forEach(function (_config) {
-      customConfigs.pushObject({
-        "id": "site property",
-        "name": _config.name,
-        "value": _config.value,
-        "filename": _config.filename
-      });
-    }, this);
-    return customConfigs;
   },
 
   getServiceInfo: function (componentName) {

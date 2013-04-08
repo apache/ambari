@@ -1673,7 +1673,7 @@ module.exports =
       "category": "Advanced"
     },
     {
-      "id": "conf-site",
+      "id": "site property",
       "name": "mapred.capacity-scheduler.maximum-system-jobs",
       "displayName": "Max system jobs",
       "displayType": "int",
@@ -1689,7 +1689,7 @@ module.exports =
       "filename": "capacity-scheduler.xml"
     },
     /*{
-      "id": "conf-site",
+      "id": "site property",
       "name": "mapred.cluster.map.memory.mb",
       "displayName": "Map slot memory",
       "displayType": "int",
@@ -1707,7 +1707,7 @@ module.exports =
       "filename": 'capacity-scheduler.xml'
     },
     {
-      "id": "conf-site",
+      "id": "site property",
       "name": "mapred.cluster.reduce.memory.mb",
       "displayName": "Reduce slot memory",
       "displayType": "int",
@@ -1725,7 +1725,7 @@ module.exports =
       "filename": 'capacity-scheduler.xml'
     },
     {
-      "id": "conf-site",
+      "id": "site property",
       "name": "mapred.cluster.max.map.memory.mb",
       "displayName": "Max map task memory",
       "displayType": "int",
@@ -1743,7 +1743,7 @@ module.exports =
       "filename": 'capacity-scheduler.xml'
     },
     {
-      "id": "conf-site",
+      "id": "site property",
       "name": "mapred.cluster.max.reduce.memory.mb",
       "displayName": "Max reduce task memory",
       "displayType": "int",
@@ -1761,7 +1761,7 @@ module.exports =
       "filename": 'capacity-scheduler.xml'
     },
     {
-      "id": "conf-site",
+      "id": "site property",
       "name": "mapred.job.map.memory.mb",
       "displayName": "Map task memory",
       "displayType": "int",
@@ -1779,7 +1779,7 @@ module.exports =
       "filename": 'capacity-scheduler.xml'
     },
     {
-      "id": "conf-site",
+      "id": "site property",
       "name": "mapred.job.reduce.memory.mb",
       "displayName": "Reduce task memory",
       "displayType": "int",

@@ -598,7 +598,29 @@ App.ServiceConfigCapacityScheduler = App.ServiceConfigsByCategoryView.extend({
         queue.push(config);
       }
     });
+    //each queue consists of 10 properties if less then add missing properties
+    if(queue.length < 10){
+      this.addMissingProperties(queue, queueName);
+    }
     return queue;
+  },
+  /**
+   * add missing properties to queue
+   * @param queue
+   * @param queueName
+   */
+  addMissingProperties: function(queue, queueName){
+    var customConfigs = this.get('customConfigs');
+    customConfigs.forEach(function(_config){
+      var serviceConfigProperty = $.extend({}, _config);
+      serviceConfigProperty.name = serviceConfigProperty.name.replace(/<queue-name>/, queueName);
+      if(!queue.someProperty('name', serviceConfigProperty.name)){
+        App.config.setDefaultQueue(serviceConfigProperty);
+        serviceConfigProperty = App.ServiceConfigProperty.create(serviceConfigProperty);
+        serviceConfigProperty.validate();
+        queue.push(serviceConfigProperty);
+      }
+    }, this);
   },
   /**
    * format table content from queues
@@ -890,7 +912,11 @@ App.ServiceConfigCapacityScheduler = App.ServiceConfigsByCategoryView.extend({
             });
           }
           if(config.name == 'mapred.capacity-scheduler.queue.' + content.name + '.supports-priority'){
-            config.set('value', (config.get('value') == 'true') ? true : false);
+            if(config.get('value') == 'true' || config.get('value') === true){
+              config.set('value', true);
+            } else {
+              config.set('value', false);
+            }
           }
           configs[index] = App.ServiceConfigProperty.create(config);
         });
