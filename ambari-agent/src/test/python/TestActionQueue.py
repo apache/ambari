@@ -227,7 +227,8 @@ class TestActionQueue(TestCase):
                         'status': 'COMPLETED',
                         'stderr': 'def',
                         'stdout': 'abc',
-                        'taskId': 'taskId'}]
+                        'taskId': 'taskId',
+                        'roleCommand': 'UPGRADE'}]
     self.assertEquals(result, expected_result)
 
 

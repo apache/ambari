@@ -206,7 +206,7 @@ public class TestHeartbeatHandler {
     cr.setExitCode(215);
     cr.setClusterName(DummyCluster);
     
-    cr.setConfigTags(new HashMap<String, Map<String,String>>() {{
+    cr.setConfigurationTags(new HashMap<String, Map<String,String>>() {{
       put("global", new HashMap<String,String>() {{ put("tag", "version1"); }});
     }});
     
@@ -375,7 +375,7 @@ public class TestHeartbeatHandler {
     cr.setStdOut("");
     cr.setExitCode(215);
     
-    cr.setConfigTags(new HashMap<String, Map<String,String>>() {{
+    cr.setConfigurationTags(new HashMap<String, Map<String,String>>() {{
         put("global", new HashMap<String,String>() {{ put("tag", "version1"); }});
       }});
     
@@ -394,7 +394,7 @@ public class TestHeartbeatHandler {
   }
 
   private void populateActionDB(ActionDBAccessor db, String DummyHostname1) {
-    Stage s = new Stage(requestId, "/a/b", DummyCluster, "heartbat handler test");
+    Stage s = new Stage(requestId, "/a/b", DummyCluster, "heartbeat handler test");
     s.setStageId(stageId);
     String filename = null;
     s.addHostRoleExecutionCommand(DummyHostname1, Role.HBASE_MASTER,
@@ -691,6 +691,128 @@ public class TestHeartbeatHandler {
     assertEquals("Host state should still be installing", State.INSTALLING, componentState1);
   }
 
+  /**
+   * Tests the fact that when START and STOP commands are in progress, and heartbeat
+   * forces the host component state to STARTED or INSTALLED, there are no undesired
+   * side effects.
+   * @throws AmbariException
+   * @throws InvalidStateTransitionException
+   */
+  @Test
+  public void testCommandReportOnHeartbeatUpdatedState()
+      throws AmbariException, InvalidStateTransitionException {
+    ActionManager am = getMockActionManager();
+    Cluster cluster = getDummyCluster();
+
+    @SuppressWarnings("serial")
+    Set<String> hostNames = new HashSet<String>() {{
+      add(DummyHostname1);
+    }};
+    clusters.mapHostsToCluster(hostNames, DummyCluster);
+    Service hdfs = cluster.addService(HDFS);
+    hdfs.persist();
+    hdfs.addServiceComponent(DATANODE).persist();
+    hdfs.getServiceComponent(DATANODE).addServiceComponentHost(DummyHostname1).persist();
+
+    ActionQueue aq = new ActionQueue();
+    HeartBeatHandler handler = getHeartBeatHandler(am, aq);
+
+    ServiceComponentHost serviceComponentHost1 = clusters.getCluster(DummyCluster).getService(HDFS).
+        getServiceComponent(DATANODE).getServiceComponentHost(DummyHostname1);
+    serviceComponentHost1.setState(State.INSTALLED);
+
+    HeartBeat hb = new HeartBeat();
+    hb.setTimestamp(System.currentTimeMillis());
+    hb.setResponseId(0);
+    hb.setHostname(DummyHostname1);
+    hb.setNodeStatus(new HostStatus(Status.HEALTHY, DummyHostStatus));
+
+    List<CommandReport> reports = new ArrayList<CommandReport>();
+    CommandReport cr = new CommandReport();
+    cr.setActionId(StageUtils.getActionId(requestId, stageId));
+    cr.setTaskId(1);
+    cr.setClusterName(DummyCluster);
+    cr.setServiceName(HDFS);
+    cr.setRole(DATANODE);
+    cr.setStatus(HostRoleStatus.IN_PROGRESS.toString());
+    cr.setStdErr("none");
+    cr.setStdOut("dummy output");
+    cr.setExitCode(777);
+    cr.setRoleCommand("START");
+    reports.add(cr);
+    hb.setReports(reports);
+    hb.setComponentStatus(new ArrayList<ComponentStatus>());
+
+    handler.handleHeartBeat(hb);
+    assertEquals("Host state should  be " + State.INSTALLED,
+        State.INSTALLED, serviceComponentHost1.getState());
+
+    hb.setTimestamp(System.currentTimeMillis());
+    hb.setResponseId(1);
+    cr.setStatus(HostRoleStatus.COMPLETED.toString());
+    cr.setExitCode(0);
+
+    handler.handleHeartBeat(hb);
+    assertEquals("Host state should be " + State.STARTED,
+        State.STARTED, serviceComponentHost1.getState());
+
+    hb.setTimestamp(System.currentTimeMillis());
+    hb.setResponseId(2);
+    cr.setStatus(HostRoleStatus.IN_PROGRESS.toString());
+    cr.setRoleCommand("STOP");
+    cr.setExitCode(777);
+
+    handler.handleHeartBeat(hb);
+    assertEquals("Host state should be " + State.STARTED,
+        State.STARTED, serviceComponentHost1.getState());
+
+    hb.setTimestamp(System.currentTimeMillis());
+    hb.setResponseId(3);
+    cr.setStatus(HostRoleStatus.COMPLETED.toString());
+    cr.setExitCode(0);
+
+    handler.handleHeartBeat(hb);
+    assertEquals("Host state should be " + State.INSTALLED,
+        State.INSTALLED, serviceComponentHost1.getState());
+
+    // validate the transitions when there is no heartbeat
+    serviceComponentHost1.setState(State.STARTING);
+    cr.setStatus(HostRoleStatus.IN_PROGRESS.toString());
+    cr.setExitCode(777);
+    cr.setRoleCommand("START");
+    hb.setResponseId(4);
+
+    handler.handleHeartBeat(hb);
+    assertEquals("Host state should be " + State.STARTING,
+        State.STARTING, serviceComponentHost1.getState());
+
+    cr.setStatus(HostRoleStatus.COMPLETED.toString());
+    cr.setExitCode(0);
+    hb.setResponseId(5);
+
+    handler.handleHeartBeat(hb);
+    assertEquals("Host state should be " + State.STARTED,
+        State.STARTED, serviceComponentHost1.getState());
+
+    serviceComponentHost1.setState(State.STOPPING);
+    cr.setStatus(HostRoleStatus.IN_PROGRESS.toString());
+    cr.setExitCode(777);
+    cr.setRoleCommand("STOP");
+    hb.setResponseId(6);
+
+    handler.handleHeartBeat(hb);
+    assertEquals("Host state should be " + State.STOPPING,
+        State.STOPPING, serviceComponentHost1.getState());
+
+    cr.setStatus(HostRoleStatus.COMPLETED.toString());
+    cr.setExitCode(0);
+    hb.setResponseId(7);
+
+    handler.handleHeartBeat(hb);
+    assertEquals("Host state should be " + State.INSTALLED,
+        State.INSTALLED, serviceComponentHost1.getState());
+  }
+
   @Test
   public void testUpgradeSpecificHandling() throws AmbariException, InvalidStateTransitionException {
     ActionManager am = getMockActionManager();
@@ -900,6 +1022,7 @@ public class TestHeartbeatHandler {
     cr1.setStdErr("none");
     cr1.setStdOut("dummy output");
     cr1.setExitCode(0);
+    cr1.setRoleCommand(RoleCommand.UPGRADE.toString());
 
     CommandReport cr2 = new CommandReport();
     cr2.setActionId(StageUtils.getActionId(requestId, stageId));
@@ -911,6 +1034,7 @@ public class TestHeartbeatHandler {
     cr2.setStdErr("none");
     cr2.setStdOut("dummy output");
     cr2.setExitCode(0);
+    cr2.setRoleCommand(RoleCommand.UPGRADE.toString());
     ArrayList<CommandReport> reports = new ArrayList<CommandReport>();
     reports.add(cr1);
     reports.add(cr2);

@@ -239,7 +239,7 @@ public class ServiceComponentImpl implements ServiceComponent {
           + ", hostname=" + hostName);
     }
     ServiceComponentHost hostComponent =
-        serviceComponentHostFactory.createNew(this, hostName, true);
+        serviceComponentHostFactory.createNew(this, hostName, this.isClientComponent());
     // FIXME need a better approach of caching components by host
     ClusterImpl clusterImpl = (ClusterImpl) service.getCluster();
     clusterImpl.addServiceComponentHost(hostComponent);

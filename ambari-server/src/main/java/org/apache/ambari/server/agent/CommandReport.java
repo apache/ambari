@@ -24,15 +24,16 @@ import org.codehaus.jackson.annotate.JsonProperty;
 
 public class CommandReport {
 
-  String role;
-  String actionId;
-  String stdout;
-  String stderr;
-  String status;
+  private String role;
+  private String actionId;
+  private String stdout;
+  private String stderr;
+  private String status;
   int exitCode;
   private String clusterName;
   private String serviceName;
   private long taskId;
+  private String roleCommand;
   
   private Map<String, Map<String, String>> configurationTags;
   
@@ -96,6 +97,16 @@ public class CommandReport {
     this.stdout = stdout;
   }
 
+  @JsonProperty("roleCommand")
+  public String getRoleCommand() {
+    return this.roleCommand;
+  }
+
+  @JsonProperty("roleCommand")
+  public void setRoleCommand(String roleCommand) {
+    this.roleCommand = roleCommand;
+  }
+
   @JsonProperty("role")
   public String getRole() {
     return role;
@@ -129,7 +140,8 @@ public class CommandReport {
   /**
    * @param tags the config tags that match this command
    */
-  public void setConfigTags(Map<String, Map<String,String>> tags) {
+  @JsonProperty("configurationTags")
+  public void setConfigurationTags(Map<String, Map<String,String>> tags) {
     configurationTags = tags;
   }
   
@@ -137,7 +149,8 @@ public class CommandReport {
    * @return the config tags that match this command, or <code>null</code>
    * if none are present
    */
-  public Map<String, Map<String,String>> getConfigTags() {
+  @JsonProperty("configurationTags")
+  public Map<String, Map<String,String>> getConfigurationTags() {
     return configurationTags;
   }
 
@@ -151,6 +164,8 @@ public class CommandReport {
             ", clusterName='" + clusterName + '\'' +
             ", serviceName='" + serviceName + '\'' +
             ", taskId=" + taskId +
+            ", roleCommand=" + roleCommand +
+            ", configurationTags=" + configurationTags +
             '}';
   }
 }

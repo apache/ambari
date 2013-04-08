@@ -167,10 +167,22 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
          State.STOPPING,
          ServiceComponentHostEventType.HOST_SVCCOMP_STOP,
          new ServiceComponentHostOpStartedTransition())
-    .addTransition(State.INSTALLED,
+     .addTransition(State.INSTALLED,
          State.UPGRADING,
          ServiceComponentHostEventType.HOST_SVCCOMP_UPGRADE,
          new ServiceComponentHostOpStartedTransition())
+     .addTransition(State.INSTALLED,
+          State.INSTALLED,
+          ServiceComponentHostEventType.HOST_SVCCOMP_OP_IN_PROGRESS,
+          new ServiceComponentHostOpInProgressTransition())
+     .addTransition(State.INSTALLED,
+          State.STARTED,
+          ServiceComponentHostEventType.HOST_SVCCOMP_STARTED,
+          new ServiceComponentHostOpCompletedTransition())
+     .addTransition(State.INSTALLED,
+          State.INSTALLED,
+          ServiceComponentHostEventType.HOST_SVCCOMP_STOPPED,
+          new ServiceComponentHostOpCompletedTransition())
 
      .addTransition(State.STARTING,
          State.STARTING,
@@ -181,10 +193,9 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
          State.STARTING,
          ServiceComponentHostEventType.HOST_SVCCOMP_START,
          new ServiceComponentHostOpStartedTransition())
-         
      .addTransition(State.STARTING,
          State.STARTED,
-         ServiceComponentHostEventType.HOST_SVCCOMP_OP_SUCCEEDED,
+         ServiceComponentHostEventType.HOST_SVCCOMP_STARTED,
          new ServiceComponentHostOpCompletedTransition())
          
      .addTransition(State.STARTING,
@@ -206,9 +217,21 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
          new ServiceComponentHostOpStartedTransition())
 
      .addTransition(State.STARTED,
+          State.STARTED,
+          ServiceComponentHostEventType.HOST_SVCCOMP_STARTED,
+          new ServiceComponentHostOpCompletedTransition())
+     .addTransition(State.STARTED,
          State.STOPPING,
          ServiceComponentHostEventType.HOST_SVCCOMP_STOP,
          new ServiceComponentHostOpStartedTransition())
+     .addTransition(State.STARTED,
+          State.STARTED,
+          ServiceComponentHostEventType.HOST_SVCCOMP_OP_IN_PROGRESS,
+          new ServiceComponentHostOpInProgressTransition())
+     .addTransition(State.STARTED,
+          State.INSTALLED,
+          ServiceComponentHostEventType.HOST_SVCCOMP_STOPPED,
+          new ServiceComponentHostOpCompletedTransition())
 
      .addTransition(State.STOPPING,
          State.STOPPING,
@@ -216,7 +239,7 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
          new ServiceComponentHostOpInProgressTransition())
      .addTransition(State.STOPPING,
          State.INSTALLED,
-         ServiceComponentHostEventType.HOST_SVCCOMP_OP_SUCCEEDED,
+         ServiceComponentHostEventType.HOST_SVCCOMP_STOPPED,
          new ServiceComponentHostOpCompletedTransition())
      .addTransition(State.STOPPING,
          State.STOP_FAILED,
@@ -563,6 +586,8 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
           break;
         case HOST_SVCCOMP_OP_FAILED:
         case HOST_SVCCOMP_OP_SUCCEEDED:
+        case HOST_SVCCOMP_STOPPED:
+        case HOST_SVCCOMP_STARTED:
           setLastOpLastUpdateTime(time);
           setLastOpEndTime(time);
           break;

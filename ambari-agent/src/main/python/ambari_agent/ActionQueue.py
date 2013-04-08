@@ -46,13 +46,13 @@ installScriptHash = -1
 class ActionQueue(threading.Thread):
   """ Action Queue for the agent. We pick one command at a time from the queue
   and execute that """
-  
+
   commandQueue = Queue.Queue()
   resultQueue = Queue.Queue()
 
-  STATUS_COMMAND='STATUS_COMMAND'
-  EXECUTION_COMMAND='EXECUTION_COMMAND'
-  UPGRADE_STATUS='UPGRADE'
+  STATUS_COMMAND = 'STATUS_COMMAND'
+  EXECUTION_COMMAND = 'EXECUTION_COMMAND'
+  UPGRADE_STATUS = 'UPGRADE'
 
   IDLE_SLEEP_TIME = 5
 
@@ -61,17 +61,17 @@ class ActionQueue(threading.Thread):
     self.config = config
     self.sh = shellRunner()
     self._stop = threading.Event()
-    self.maxRetries = config.getint('command', 'maxretries') 
+    self.maxRetries = config.getint('command', 'maxretries')
     self.sleepInterval = config.getint('command', 'sleepBetweenRetries')
     self.puppetExecutor = PuppetExecutor.PuppetExecutor(
-                                   config.get('puppet', 'puppetmodules'),
-                                   config.get('puppet', 'puppet_home'),
-                                   config.get('puppet', 'facter_home'),
-                                   config.get('agent', 'prefix'), config)
+      config.get('puppet', 'puppetmodules'),
+      config.get('puppet', 'puppet_home'),
+      config.get('puppet', 'facter_home'),
+      config.get('agent', 'prefix'), config)
     self.pythonExecutor = PythonExecutor.PythonExecutor(
-                                   config.get('agent', 'prefix'), config)
+      config.get('agent', 'prefix'), config)
     self.upgradeExecutor = UpgradeExecutor.UpgradeExecutor(self.pythonExecutor,
-                                   self.puppetExecutor, config)
+      self.puppetExecutor, config)
     self.tmpdir = config.get('agent', 'prefix')
     self.commandInProgress = None
 
@@ -124,7 +124,7 @@ class ActionQueue(threading.Thread):
             result = livestatus.build()
             logger.debug("Got live status for component " + component +\
                          " of service " + str(service) +\
-                        " of cluster " + str(cluster))
+                         " of cluster " + str(cluster))
             logger.debug(pprint.pformat(result))
             if result is not None:
               self.resultQueue.put((ActionQueue.STATUS_COMMAND, result))
@@ -132,9 +132,9 @@ class ActionQueue(threading.Thread):
           except Exception, err:
             traceback.print_exc()
             logger.warn(err)
-            pass
+          pass
         else:
-          logger.warn("Unrecognized command " + pprint.pformat(result))
+          logger.warn("Unrecognized command " + pprint.pformat(command))
       if not self.stopped():
         time.sleep(self.IDLE_SLEEP_TIME)
 
@@ -152,29 +152,30 @@ class ActionQueue(threading.Thread):
     # Building report for command in progress
     if self.commandInProgress is not None:
       try:
-        tmpout= open(self.commandInProgress['tmpout'], 'r').read()
-        tmperr= open(self.commandInProgress['tmperr'], 'r').read()
+        tmpout = open(self.commandInProgress['tmpout'], 'r').read()
+        tmperr = open(self.commandInProgress['tmperr'], 'r').read()
       except Exception, err:
         logger.warn(err)
-        tmpout='...'
-        tmperr='...'
+        tmpout = '...'
+        tmperr = '...'
       grep = Grep()
       output = grep.tail(tmpout, Grep.OUTPUT_LAST_LINES)
       inprogress = {
-        'role' : self.commandInProgress['role'],
-        'actionId' : self.commandInProgress['actionId'],
-        'taskId' : self.commandInProgress['taskId'],
-        'stdout' : grep.filterMarkup(output),
-        'clusterName' : self.commandInProgress['clusterName'],
-        'stderr' : tmperr,
-        'exitCode' : 777,
-        'serviceName' : self.commandInProgress['serviceName'],
-        'status' : 'IN_PROGRESS'
+        'role': self.commandInProgress['role'],
+        'actionId': self.commandInProgress['actionId'],
+        'taskId': self.commandInProgress['taskId'],
+        'stdout': grep.filterMarkup(output),
+        'clusterName': self.commandInProgress['clusterName'],
+        'stderr': tmperr,
+        'exitCode': 777,
+        'serviceName': self.commandInProgress['serviceName'],
+        'status': 'IN_PROGRESS',
+        'roleCommand': self.commandInProgress['roleCommand']
       }
       resultReports.append(inprogress)
-    result={
-      'reports' : resultReports,
-      'componentStatus' : resultComponentStatus
+    result = {
+      'reports': resultReports,
+      'componentStatus': resultComponentStatus
     }
     return result
 
@@ -197,36 +198,40 @@ class ActionQueue(threading.Thread):
     taskId = command['taskId']
     # Preparing 'IN_PROGRESS' report
     self.commandInProgress = {
-      'role' : command['role'],
-      'actionId' : commandId,
-      'taskId' : taskId,
-      'clusterName' : clusterName,
-      'serviceName' : serviceName,
+      'role': command['role'],
+      'actionId': commandId,
+      'taskId': taskId,
+      'clusterName': clusterName,
+      'serviceName': serviceName,
       'tmpout': self.tmpdir + os.sep + 'output-' + str(taskId) + '.txt',
-      'tmperr': self.tmpdir + os.sep + 'errors-' + str(taskId) + '.txt'
+      'tmperr': self.tmpdir + os.sep + 'errors-' + str(taskId) + '.txt',
+      'roleCommand': roleCommand
     }
     # running command
     if command['commandType'] == ActionQueue.EXECUTION_COMMAND:
       if command['roleCommand'] == ActionQueue.UPGRADE_STATUS:
-        commandresult = self.upgradeExecutor.perform_stack_upgrade(command, self.commandInProgress['tmpout'], self.commandInProgress['tmperr'])
+        commandresult = self.upgradeExecutor.perform_stack_upgrade(command, self.commandInProgress['tmpout'],
+          self.commandInProgress['tmperr'])
       else:
-        commandresult = self.puppetExecutor.runCommand(command, self.commandInProgress['tmpout'], self.commandInProgress['tmperr'])
-    # dumping results
+        commandresult = self.puppetExecutor.runCommand(command, self.commandInProgress['tmpout'],
+          self.commandInProgress['tmperr'])
+      # dumping results
     self.commandInProgress = None
     status = "COMPLETED"
     if commandresult['exitcode'] != 0:
       status = "FAILED"
-      
-    # assume some puppet pluing to run these commands
-    roleResult = {'role' : command['role'],
-                  'actionId' : commandId,
-                  'taskId' : command['taskId'],
-                  'stdout' : commandresult['stdout'],
-                  'clusterName' : clusterName,
-                  'stderr' : commandresult['stderr'],
-                  'exitCode' : commandresult['exitcode'],
-                  'serviceName' : serviceName,
-                  'status' : status}
+
+    # assume some puppet plumbing to run these commands
+    roleResult = {'role': command['role'],
+                  'actionId': commandId,
+                  'taskId': command['taskId'],
+                  'stdout': commandresult['stdout'],
+                  'clusterName': clusterName,
+                  'stderr': commandresult['stderr'],
+                  'exitCode': commandresult['exitcode'],
+                  'serviceName': serviceName,
+                  'status': status,
+                  'roleCommand': roleCommand}
     if roleResult['stdout'] == '':
       roleResult['stdout'] = 'None'
     if roleResult['stderr'] == '':

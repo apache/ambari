@@ -656,6 +656,9 @@ Trunk (unreleased changes):
 
  BUG FIXES
 
+ AMBARI-1789. Stopping and then Starting all services doesn't start 
+ NameNode. (smohanty)
+
  AMBARI-1822. Hue service link points to wrong URL and no smoke test drop
  down is shown. (yusaku)
 

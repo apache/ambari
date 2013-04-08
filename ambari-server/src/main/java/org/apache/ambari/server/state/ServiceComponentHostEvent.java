@@ -125,6 +125,10 @@ public abstract class ServiceComponentHostEvent
         return new ServiceComponentHostOpRestartedEvent(serviceComponentName, hostName, opTimestamp);
       case HOST_SVCCOMP_OP_SUCCEEDED:
         return new ServiceComponentHostOpSucceededEvent(serviceComponentName, hostName, opTimestamp);
+      case HOST_SVCCOMP_STOPPED:
+        return new ServiceComponentHostStoppedEvent(serviceComponentName, hostName, opTimestamp);
+      case HOST_SVCCOMP_STARTED:
+        return new ServiceComponentHostStartedEvent(serviceComponentName, hostName, opTimestamp);
       case HOST_SVCCOMP_START:
         return new ServiceComponentHostStartEvent(serviceComponentName, hostName, opTimestamp, configs);
       case HOST_SVCCOMP_STOP:

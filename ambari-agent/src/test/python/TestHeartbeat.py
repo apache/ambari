@@ -110,7 +110,8 @@ class TestHeartbeat(TestCase):
       'exitCode' : 777,
       'serviceName' : "serviceName",
       'status' : 'IN_PROGRESS',
-      'configurations':{'global' : {}}
+      'configurations':{'global' : {}},
+      'roleCommand' : 'START'
     }
     heartbeat = Heartbeat(actionQueue)
     result = heartbeat.build(100)
@@ -125,4 +126,5 @@ class TestHeartbeat(TestCase):
     self.assertEquals(result['reports'][0]['exitCode'], 777)
     self.assertEquals(result['reports'][0]['serviceName'], "serviceName")
     self.assertEquals(result['reports'][0]['status'], "IN_PROGRESS")
+    self.assertEquals(result['reports'][0]['roleCommand'], "START")
     pass

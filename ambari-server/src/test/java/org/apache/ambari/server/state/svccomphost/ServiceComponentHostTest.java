@@ -348,9 +348,19 @@ public class ServiceComponentHostTest {
     Assert.assertEquals(inProgressState,
         impl.getState());
 
-    ServiceComponentHostOpSucceededEvent succeededEvent = new
-        ServiceComponentHostOpSucceededEvent(impl.getServiceComponentName(),
-            impl.getHostName(), ++timestamp);
+    ServiceComponentHostEvent succeededEvent;
+    if (startEventType == ServiceComponentHostEventType.HOST_SVCCOMP_START) {
+      succeededEvent = new ServiceComponentHostStartedEvent(impl.getServiceComponentName(),
+          impl.getHostName(), ++timestamp);
+    } else if (startEventType == ServiceComponentHostEventType.HOST_SVCCOMP_STOP) {
+      succeededEvent = new ServiceComponentHostStoppedEvent(impl.getServiceComponentName(),
+          impl.getHostName(), ++timestamp);
+    } else {
+      succeededEvent = new
+          ServiceComponentHostOpSucceededEvent(impl.getServiceComponentName(),
+          impl.getHostName(), ++timestamp);
+    }
+
     endTime = timestamp;
     impl.handleEvent(succeededEvent);
     Assert.assertEquals(startTime, impl.getLastOpStartTime());
