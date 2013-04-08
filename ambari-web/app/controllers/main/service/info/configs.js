@@ -806,9 +806,8 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
       if(typeof _config.get('value') === "boolean") _config.set('value', _config.value.toString());
     });
     var storedConfigs = serviceConfigProperties.filterProperty('value');
-    var preConfigs = this.loadUiSideConfigs(this.get('configMapping').overridable());
-    var postConfigs = this.loadUiSideConfigs(this.get('configMapping').computed());
-    this.set('uiConfigs', preConfigs.concat(storedConfigs).concat(postConfigs));
+    var allUiConfigs = this.loadUiSideConfigs(this.get('configMapping').all());
+    this.set('uiConfigs', storedConfigs.concat(allUiConfigs));
   },
 
   /**
@@ -829,16 +828,6 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
           "filename": _config.filename
         });
       }
-    }, this);
-    var dependentConfig = configMapping.filterProperty('foreignKey');
-    dependentConfig.forEach(function (_config) {
-      this.setConfigValue(uiConfig, _config);
-      uiConfig.pushObject({
-        "id": "site property",
-        "name": _config._name || _config.name,
-        "value": _config.value,
-        "filename": _config.filename
-      });
     }, this);
     return uiConfig;
   },
@@ -895,62 +884,6 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
       }
     }, this);
     return value;
-  },
-  /**
-   * Set all site property that are derived from other site-properties
-   */
-  setConfigValue: function (uiConfig, config) {
-    if (config.value == null) {
-      return;
-    }
-    var fkValue = config.value.match(/<(foreignKey.*?)>/g);
-    if (fkValue) {
-      fkValue.forEach(function (_fkValue) {
-        var index = parseInt(_fkValue.match(/\[([\d]*)(?=\])/)[1]);
-        if (uiConfig.someProperty('name', config.foreignKey[index])) {
-          var globalValue = uiConfig.findProperty('name', config.foreignKey[index]).value;
-          config.value = config.value.replace(_fkValue, globalValue);
-        } else if (this.get('globalConfigs').someProperty('name', config.foreignKey[index])) {
-          var globalValue;
-          if (this.get('globalConfigs').findProperty('name', config.foreignKey[index]).value === '') {
-            globalValue = this.get('globalConfigs').findProperty('name', config.foreignKey[index]).defaultValue;
-          } else {
-            globalValue = this.get('globalConfigs').findProperty('name', config.foreignKey[index]).value;
-          }
-          config.value = config.value.replace(_fkValue, globalValue);
-        }
-      }, this);
-    }
-    if (fkValue = config.name.match(/<(foreignKey.*?)>/g)) {
-      fkValue.forEach(function (_fkValue) {
-        var index = parseInt(_fkValue.match(/\[([\d]*)(?=\])/)[1]);
-        if (uiConfig.someProperty('name', config.foreignKey[index])) {
-          var globalValue = uiConfig.findProperty('name', config.foreignKey[index]).value;
-          config._name = config.name.replace(_fkValue, globalValue);
-        } else if (this.get('globalConfigs').someProperty('name', config.foreignKey[index])) {
-          var globalValue;
-          if (this.get('globalConfigs').findProperty('name', config.foreignKey[index]).value === '') {
-            globalValue = this.get('globalConfigs').findProperty('name', config.foreignKey[index]).defaultValue;
-          } else {
-            globalValue = this.get('globalConfigs').findProperty('name', config.foreignKey[index]).value;
-          }
-          config._name = config.name.replace(_fkValue, globalValue);
-        }
-      }, this);
-    }
-    //For properties in the configMapping file having foreignKey and templateName properties.
-    var templateValue = config.value.match(/<(templateName.*?)>/g);
-    if (templateValue) {
-      templateValue.forEach(function (_value) {
-        var index = parseInt(_value.match(/\[([\d]*)(?=\])/)[1]);
-        if (this.get('globalConfigs').someProperty('name', config.templateName[index])) {
-          var globalValue = this.get('globalConfigs').findProperty('name', config.templateName[index]).value;
-          config.value = config.value.replace(_value, globalValue);
-        } else {
-          config.value = null;
-        }
-      }, this);
-    }
   },
 
   /**

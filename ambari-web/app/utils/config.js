@@ -88,7 +88,7 @@ App.config = Em.Object.create({
           defaultValue: properties[index],
           filename: _tag.siteName + ".xml",
           isUserProperty: false,
-          isOverrideable: true
+          isOverridable: true
         };
 
         if (configsPropertyDef) {
@@ -98,7 +98,7 @@ App.config = Em.Object.create({
           serviceConfigObj.isVisible = (configsPropertyDef.isVisible !== undefined) ? configsPropertyDef.isVisible : true;
           serviceConfigObj.unit = (configsPropertyDef.unit !== undefined) ? configsPropertyDef.unit : undefined;
           serviceConfigObj.description = (configsPropertyDef.description !== undefined) ? configsPropertyDef.description : undefined;
-          serviceConfigObj.isOverrideable = configsPropertyDef.isOverridable === undefined ? true : configsPropertyDef.isOverridable;
+          serviceConfigObj.isOverridable = configsPropertyDef.isOverridable === undefined ? true : configsPropertyDef.isOverridable;
         }
         if (_tag.siteName === 'global') {
           if (configsPropertyDef) {
