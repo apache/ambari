@@ -656,6 +656,8 @@ Trunk (unreleased changes):
 
  BUG FIXES
 
+ AMBARI-1836. Remove hard-coded ports from agent scripts. (swagle)
+
  AMBARI-1834. Reduce the number of states that a host component can be in.
  (smohanty)
 
