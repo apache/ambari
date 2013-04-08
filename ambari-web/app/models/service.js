@@ -184,16 +184,30 @@ App.Service = DS.Model.extend({
             var desiredHostOverrideTag = clusterToDesiredMap[config.site].hostOverrides[hostName];
             var actualClusterTag = config.tag;
             var actualHostOverrideTag = config.hostOverrides[hostName];
+            var siteRestartRequired = false;
             if(actualClusterTag !== desiredClusterTag || actualHostOverrideTag !== desiredHostOverrideTag){
               var publicHostName = host.get('publicHostName');
-              if(!(publicHostName in restartRequiredHostsAndComponents)){
-                restartRequiredHostsAndComponents[publicHostName] = [];
+              if(config.site=='global'){
+                var serviceName = hostComponent.get('service.serviceName');
+                if(actualClusterTag !== desiredClusterTag){
+                  siteRestartRequired = App.config.isServiceEffectedByGlobalChange(serviceName, actualClusterTag, desiredClusterTag);
+                }
+                if(actualHostOverrideTag !== desiredHostOverrideTag){
+                  siteRestartRequired = App.config.isServiceEffectedByGlobalChange(serviceName, actualHostOverrideTag, desiredHostOverrideTag);
+                }
+              }else{
+                siteRestartRequired = true
               }
-              var hostComponentName = hostComponent.get('displayName');
-              if(restartRequiredHostsAndComponents[publicHostName].indexOf(hostComponentName)<0){
-                restartRequiredHostsAndComponents[publicHostName].push(hostComponentName);
+              if(siteRestartRequired){
+                restartRequired = true;
+                if(!(publicHostName in restartRequiredHostsAndComponents)){
+                  restartRequiredHostsAndComponents[publicHostName] = [];
+                }
+                var hostComponentName = hostComponent.get('displayName');
+                if(restartRequiredHostsAndComponents[publicHostName].indexOf(hostComponentName)<0){
+                  restartRequiredHostsAndComponents[publicHostName].push(hostComponentName);
+                }
               }
-              restartRequired = true;
             }
           }
         });

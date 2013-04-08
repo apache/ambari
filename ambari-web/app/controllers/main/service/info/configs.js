@@ -292,25 +292,36 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
             var desiredConfigs = App.config.loadedConfigurationsCache[diffHostComponent.type + "_" + diffHostComponent.desiredConfigTags.tag];
             var diffs = self.getConfigDifferences(actualConfigs, desiredConfigs);
             if (!jQuery.isEmptyObject(diffs)) {
-              // Populate restartData.hostAndHostComponents
-              if (!(diffHostComponent.host in restartData.hostAndHostComponents)) {
-                restartData.hostAndHostComponents[diffHostComponent.host] = {};
+              var skip = false;
+              if (diffHostComponent.type == 'global') {
+                if(!App.config.isServiceEffectedByGlobalChange(
+                    diffHostComponent.serviceName, 
+                    diffHostComponent.desiredConfigTags.tag, 
+                    diffHostComponent.actualConfigTags.tag)){
+                  skip = true;
+                }
               }
-              if (!(diffHostComponent.componentName in restartData.hostAndHostComponents[diffHostComponent.host])) {
-                restartData.hostAndHostComponents[diffHostComponent.host][diffHostComponent.componentName] = {};
-              }
-              jQuery.extend(restartData.hostAndHostComponents[diffHostComponent.host][diffHostComponent.componentName], diffs);
+              if(!skip){
+                // Populate restartData.hostAndHostComponents
+                if (!(diffHostComponent.host in restartData.hostAndHostComponents)) {
+                  restartData.hostAndHostComponents[diffHostComponent.host] = {};
+                }
+                if (!(diffHostComponent.componentName in restartData.hostAndHostComponents[diffHostComponent.host])) {
+                  restartData.hostAndHostComponents[diffHostComponent.host][diffHostComponent.componentName] = {};
+                }
+                jQuery.extend(restartData.hostAndHostComponents[diffHostComponent.host][diffHostComponent.componentName], diffs);
 
-              // Populate restartData.propertyToHostAndComponent
-              for ( var diff in diffs) {
-                if (!(diff in restartData.propertyToHostAndComponent)) {
-                  restartData.propertyToHostAndComponent[diff] = {};
-                }
-                if (!(diffHostComponent.host in restartData.propertyToHostAndComponent[diff])) {
-                  restartData.propertyToHostAndComponent[diff][diffHostComponent.host] = [];
-                }
-                if (!(restartData.propertyToHostAndComponent[diff][diffHostComponent.host].contains(diffHostComponent.componentName))) {
-                  restartData.propertyToHostAndComponent[diff][diffHostComponent.host].push(diffHostComponent.componentName);
+                // Populate restartData.propertyToHostAndComponent
+                for ( var diff in diffs) {
+                  if (!(diff in restartData.propertyToHostAndComponent)) {
+                    restartData.propertyToHostAndComponent[diff] = {};
+                  }
+                  if (!(diffHostComponent.host in restartData.propertyToHostAndComponent[diff])) {
+                    restartData.propertyToHostAndComponent[diff][diffHostComponent.host] = [];
+                  }
+                  if (!(restartData.propertyToHostAndComponent[diff][diffHostComponent.host].contains(diffHostComponent.componentName))) {
+                    restartData.propertyToHostAndComponent[diff][diffHostComponent.host].push(diffHostComponent.componentName);
+                  }
                 }
               }
             }

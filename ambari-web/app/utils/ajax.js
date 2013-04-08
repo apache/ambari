@@ -207,6 +207,15 @@ var urls = {
       };
     }
   },
+  'config.advanced.global': {
+    'real': '{stack2VersionUrl}/stackServices?fields=configurations/StackConfigurations/filename',
+    'mock': '/data/wizard/stack/hdp/version130/global.json',
+    'format': function(data){
+      return {
+        async: false
+      };
+    }
+  },
   'config.tags': {
     'real': '/clusters/{clusterName}',
     'mock': '/data/clusters/cluster.json'

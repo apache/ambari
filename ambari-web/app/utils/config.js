@@ -20,6 +20,7 @@ var App = require('app');
 
 var serviceComponents = {};
 var configGroupsByTag = [];
+var globalPropertyToServicesMap = null;
 
 App.config = Em.Object.create({
 
@@ -42,6 +43,13 @@ App.config = Em.Object.create({
    * }
    */
   loadedConfigurationsCache: {},
+  /**
+   * Array of global "service/desired_tag/actual_tag" strings which
+   * indicate different configurations. We cache these so that 
+   * we dont have to recalculate if two tags are difference.
+   */
+  differentGlobalTagsCache:[],
+  
   identifyCategory: function(config){
     var category = null;
     var serviceConfigMetaData = this.get('preDefinedServiceConfigs').findProperty('serviceName', config.serviceName);
@@ -458,6 +466,100 @@ App.config = Em.Object.create({
     data.properties.setEach('serviceName', params.serviceName);
     serviceComponents[params.serviceName] = data.properties;
   },
+  
+  /**
+   * Determine the map which shows which services
+   * each global property effects.
+   *
+   * @return {*}
+   * Example:
+   * {
+   *  'hive_pid_dir': ['HIVE'],
+   *  ...
+   * }
+   */
+  loadGlobalPropertyToServicesMap: function () {
+    if (globalPropertyToServicesMap == null) {
+      App.ajax.send({
+        name: 'config.advanced.global',
+        sender: this,
+        data: {
+          stack2VersionUrl: App.get('stack2VersionURL')
+        },
+        success: 'loadGlobalPropertyToServicesMapSuccess'
+      });
+    }
+    return globalPropertyToServicesMap;
+  },
+  
+  loadGlobalPropertyToServicesMapSuccess: function (data) {
+    globalPropertyToServicesMap = {};
+    if(data.items!=null){
+      data.items.forEach(function(service){
+        service.configurations.forEach(function(config){
+          if("global.xml" === config.StackConfigurations.filename){
+            if(!(config.StackConfigurations.property_name in globalPropertyToServicesMap)){
+              globalPropertyToServicesMap[config.StackConfigurations.property_name] = [];
+            }
+            globalPropertyToServicesMap[config.StackConfigurations.property_name].push(service.StackServices.service_name);
+          }
+        });
+      });
+    }
+  },
+  
+  /**
+   * When global configuration changes, not all services are effected
+   * by all properties. This method determines if a given service
+   * is effected by the difference in desired and actual configs.
+   * 
+   * This method might make a call to server to determine the actual
+   * key/value pairs involved.
+   */
+  isServiceEffectedByGlobalChange: function (service, desiredTag, actualTag) {
+    var effected = false;
+    if (service != null && desiredTag != null && actualTag != null) {
+      if(this.differentGlobalTagsCache.indexOf(service+"/"+desiredTag+"/"+actualTag) < 0){
+        this.loadGlobalPropertyToServicesMap();
+        var desiredConfigs = this.loadedConfigurationsCache['global_' + desiredTag];
+        var actualConfigs = this.loadedConfigurationsCache['global_' + actualTag];
+        var requestTags = [];
+        if (!desiredConfigs) {
+          requestTags.push({
+            siteName: 'global',
+            tagName: desiredTag
+          });
+        }
+        if (!actualConfigs) {
+          requestTags.push({
+            siteName: 'global',
+            tagName: actualTag
+          });
+        }
+        if (requestTags.length > 0) {
+          this.loadConfigsByTags(requestTags);
+          desiredConfigs = this.loadedConfigurationsCache['global_' + desiredTag];
+          actualConfigs = this.loadedConfigurationsCache['global_' + actualTag];
+        }
+        if (desiredConfigs != null && actualConfigs != null) {
+          for ( var property in desiredConfigs) {
+            if (!effected) {
+              var dpv = desiredConfigs[property];
+              var apv = actualConfigs[property];
+              if (dpv !== apv && globalPropertyToServicesMap[property] != null) {
+                effected = globalPropertyToServicesMap[property].indexOf(serviceName) > -1;
+                this.differentGlobalTagsCache.push(service+"/"+desiredTag+"/"+actualTag);
+              }
+            }
+          }
+        }
+      }else{
+        effected = true; // We already know they are different
+      }
+    }
+    return effected;
+  },
+
   /**
    * Hosts can override service configurations per property. This method GETs
    * the overriden configurations and sets only the changed properties into

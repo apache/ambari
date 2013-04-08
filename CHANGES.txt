@@ -12,6 +12,9 @@ Trunk (unreleased changes):
 
  NEW FEATURES
 
+ AMBARI-1840. For global properties show restart for appropriate services 
+ only. (srimanth)
+
  AMBARI-1800. Add "Admin > Misc" section to Ambari Web to show service user
  accounts. (yusaku)
 
