@@ -55,8 +55,7 @@ exports.config =
           'vendor/scripts/workflow_visualization.js',
           'vendor/scripts/rickshaw.js',
           'vendor/scripts/spin.js',
-          'vendor/scripts/jquery.flexibleArea.js',
-          'test/utils/ajax_test.js'
+          'vendor/scripts/jquery.flexibleArea.js'
           ]
 
     stylesheets:

@@ -109,12 +109,10 @@ App.BackgroundOperationsController = Em.Controller.extend({
    * @return PopupObject For testing purposes
    */
   showPopup: function(){
-    if(App.testMode){
-      App.HostPopup.initPopup("", this, true);
-    }else{
+    if(!App.testMode){
       App.updater.immediateRun('requestMostRecent');
-      App.HostPopup.initPopup("", this, true);
     }
+    return App.HostPopup.initPopup("", this, true);
   }
 
 });

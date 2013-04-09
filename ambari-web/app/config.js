@@ -19,6 +19,9 @@
 var App = require('app');
 
 App.testMode = false;
+if(location.port == '3333'){
+  App.testMode = true;
+}
 App.testModeDelayForActions = 10000;
 App.skipBootstrap = false;
 App.alwaysGoToInstaller = false;

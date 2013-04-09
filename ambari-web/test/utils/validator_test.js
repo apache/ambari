@@ -203,7 +203,7 @@ describe('validator', function () {
       {m:'"" - invalid',i:'',e:false},
       {m:'"abc123" - valid',i:'abc123',e:true},
       {m:'"1abc123" - invalid',i:'1abc123',e:false},
-      {m:'"abc123$" - valid',i:'abc123$',e:true},
+      {m:'"abc123$" - invalid',i:'abc123$',e:false},
       {m:'"~1abc123" - invalid',i: '~1abc123',e:false},
       {m:'"abc12345679abc1234567890abc1234567890$" - invalid',i:'abc12345679abc1234567890abc1234567890$',e:false},
       {m:'"1abc123$$" - invalid',i:'1abc123$$',e:false},
