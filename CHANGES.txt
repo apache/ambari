@@ -659,8 +659,11 @@ Trunk (unreleased changes):
 
  BUG FIXES
 
+ AMBARI-1841. Properties that should be exposed in Advanced category
+ are populated in Custom categories. (jaimin)
+
  AMBARI-1837. Few core-site properties vanished after seemingly benign 
-reconfiguration. (jaimin)
+ reconfiguration. (jaimin)
 
  AMBARI-1838. Cluster Management > Services > MapReduce > Config throws JS error
  and the page comes up blank. (jaimin)

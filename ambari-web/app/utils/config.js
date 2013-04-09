@@ -53,9 +53,9 @@ App.config = Em.Object.create({
   identifyCategory: function(config){
     var category = null;
     var serviceConfigMetaData = this.get('preDefinedServiceConfigs').findProperty('serviceName', config.serviceName);
-    if(serviceConfigMetaData){
-      serviceConfigMetaData.configCategories.forEach(function(_category){
-        if(_category.siteFileNames && Array.isArray(_category.siteFileNames) && _category.siteFileNames.contains(config.filename)){
+    if (serviceConfigMetaData) {
+      serviceConfigMetaData.configCategories.forEach(function (_category) {
+        if (_category.siteFileNames && Array.isArray(_category.siteFileNames) && _category.siteFileNames.contains(config.filename)) {
           category = _category;
         }
       });
@@ -75,7 +75,7 @@ App.config = Em.Object.create({
    * @param serviceName
    * @return {object}
    */
-  mergePreDefinedWithLoaded: function(configGroups, advancedConfigs, tags, serviceName){
+  mergePreDefinedWithLoaded: function (configGroups, advancedConfigs, tags, serviceName) {
     var configs = [];
     var globalConfigs = [];
     var customConfigs = [];
@@ -83,7 +83,7 @@ App.config = Em.Object.create({
     var mappingConfigs = [];
 
     tags.forEach(function (_tag) {
-      var properties = configGroups.filter(function(serviceConfigProperties){
+      var properties = configGroups.filter(function (serviceConfigProperties) {
         return _tag.tagName === serviceConfigProperties.tag && _tag.siteName === serviceConfigProperties.type;
       });
 
@@ -141,14 +141,15 @@ App.config = Em.Object.create({
           serviceConfigObj.displayType = 'advanced';
           serviceConfigObj.displayName = configsPropertyDef ? configsPropertyDef.displayName : index;
           serviceConfigObj.serviceName = serviceName;
-          serviceConfigObj.category = 'Advanced';
           if (advancedConfigs.someProperty('name', index)) {
+            serviceConfigObj.category = 'Advanced';
             serviceConfigObj.filename = advancedConfigs.findProperty('name', index).filename;
-          }
-          var categoryMetaData = this.identifyCategory(serviceConfigObj);
-          if (categoryMetaData != null) {
-            serviceConfigObj.category = categoryMetaData.get('name');
-            serviceConfigObj.isUserProperty = true;
+          } else {
+            var categoryMetaData = this.identifyCategory(serviceConfigObj);
+            if (categoryMetaData != null) {
+              serviceConfigObj.category = categoryMetaData.get('name');
+              serviceConfigObj.isUserProperty = true;
+            }
           }
           configs.push(serviceConfigObj);
         } else {
@@ -169,27 +170,27 @@ App.config = Em.Object.create({
    * @param storedConfigs
    * @return {*}
    */
-  mergePreDefinedWithStored: function(storedConfigs){
+  mergePreDefinedWithStored: function (storedConfigs) {
     var mergedConfigs = [];
     var preDefinedConfigs = this.get('preDefinedConfigProperties');
     var preDefinedNames = [];
     var storedNames = [];
     var names = [];
 
-    if(storedConfigs){
+    if (storedConfigs) {
       preDefinedNames = this.get('preDefinedConfigProperties').mapProperty('name');
       storedNames = storedConfigs.mapProperty('name');
       names = preDefinedNames.concat(storedNames).uniq();
-      names.forEach(function(name){
+      names.forEach(function (name) {
         var stored = storedConfigs.findProperty('name', name);
         var preDefined = preDefinedConfigs.findProperty('name', name);
         var configData = {};
         var configCategory = 'Advanced';
-        if(preDefined && stored){
+        if (preDefined && stored) {
           configData = preDefined;
           configData.value = stored.value;
           configData.overrides = stored.overrides;
-        } else if(!preDefined && stored){
+        } else if (!preDefined && stored) {
           var categoryMetaData = this.identifyCategory(stored);
           if (categoryMetaData != null) {
             configCategory = categoryMetaData.get('name');
@@ -207,7 +208,7 @@ App.config = Em.Object.create({
             isUserProperty: true,
             isOverridable: true
           }
-        } else if(preDefined && !stored){
+        } else if (preDefined && !stored) {
           configData = preDefined;
         }
         mergedConfigs.push(configData);
@@ -259,21 +260,21 @@ App.config = Em.Object.create({
    */
   addCustomConfigs: function (configs) {
     var preDefinedCustomConfigs = $.extend(true, [], this.get('preDefinedCustomConfigs'));
-    var stored = configs.filter(function(_config){
-      if(this.get('categoriesWithCustom').contains(_config.category)) return true;
+    var stored = configs.filter(function (_config) {
+      if (this.get('categoriesWithCustom').contains(_config.category)) return true;
     }, this);
-    var queueProperties = stored.filter(function(_config){
-      if((_config.name.indexOf('mapred.capacity-scheduler.queue.') !== -1) ||
+    var queueProperties = stored.filter(function (_config) {
+      if ((_config.name.indexOf('mapred.capacity-scheduler.queue.') !== -1) ||
         (/mapred.queue.[a-z]([\_\-a-z0-9]{0,50}).acl-administer-jobs/i.test(_config.name)) ||
-        (/mapred.queue.[a-z]([\_\-a-z0-9]{0,50}).acl-submit-job/i.test(_config.name))){
+        (/mapred.queue.[a-z]([\_\-a-z0-9]{0,50}).acl-submit-job/i.test(_config.name))) {
         return true;
       }
     });
-    if(queueProperties.length){
+    if (queueProperties.length) {
       queueProperties.setEach('isQueue', true);
     } else {
       queueProperties = preDefinedCustomConfigs.filterProperty('isQueue');
-      queueProperties.forEach(function(customConfig){
+      queueProperties.forEach(function (customConfig) {
         this.setDefaultQueue(customConfig);
         configs.push(customConfig);
       }, this);
@@ -333,7 +334,7 @@ App.config = Em.Object.create({
     };
     var services = [];
 
-    this.get('preDefinedServiceConfigs').forEach(function(serviceConfig){
+    this.get('preDefinedServiceConfigs').forEach(function (serviceConfig) {
       if (allInstalledServiceNames.contains(serviceConfig.serviceName) || serviceConfig.serviceName === 'MISC') {
         console.log('pushing ' + serviceConfig.serviceName, serviceConfig);
         if (selectedServiceNames.contains(serviceConfig.serviceName) || serviceConfig.serviceName === 'MISC') {
@@ -369,16 +370,16 @@ App.config = Em.Object.create({
    * @param storedConfigProperty
    */
   updateHostOverrides: function (configProperty, storedConfigProperty) {
-    if(storedConfigProperty.overrides != null && storedConfigProperty.overrides.length > 0){
+    if (storedConfigProperty.overrides != null && storedConfigProperty.overrides.length > 0) {
       var overrides = [];
-      storedConfigProperty.overrides.forEach(function(overrideEntry){
+      storedConfigProperty.overrides.forEach(function (overrideEntry) {
         // create new override with new value
         var newSCP = App.ServiceConfigProperty.create(configProperty);
         newSCP.set('value', overrideEntry.value);
         newSCP.set('isOriginalSCP', false); // indicated this is overridden value,
         newSCP.set('parentSCP', configProperty);
         var hostsArray = Ember.A([]);
-        overrideEntry.hosts.forEach(function(host){
+        overrideEntry.hosts.forEach(function (host) {
           hostsArray.push(host);
         });
         newSCP.set('selectedHostOptions', hostsArray);
@@ -391,7 +392,7 @@ App.config = Em.Object.create({
    * create new ServiceConfig object by service name
    * @param serviceName
    */
-  createServiceConfig: function(serviceName){
+  createServiceConfig: function (serviceName) {
     var preDefinedServiceConfig = App.config.preDefinedServiceConfigs.findProperty('serviceName', serviceName);
     var serviceConfig = App.ServiceConfig.create({
       filename: preDefinedServiceConfig.filename,
@@ -414,10 +415,10 @@ App.config = Em.Object.create({
    *
    * @return Array of all site configs
    */
-  loadConfigsByTags: function(tags){
+  loadConfigsByTags: function (tags) {
     var urlParams = [];
     tags.forEach(function (_tag) {
-      urlParams.push('(type=' + _tag.siteName + '&tag=' + _tag.tagName+')');
+      urlParams.push('(type=' + _tag.siteName + '&tag=' + _tag.tagName + ')');
     });
     var params = urlParams.join('|');
     App.ajax.send({
@@ -435,7 +436,7 @@ App.config = Em.Object.create({
     if (data.items) {
       configGroupsByTag = [];
       data.items.forEach(function (item) {
-        this.loadedConfigurationsCache[item.type+"_"+item.tag] = item.properties;
+        this.loadedConfigurationsCache[item.type + "_" + item.tag] = item.properties;
         configGroupsByTag.push(item);
       }, this);
     }
@@ -447,7 +448,7 @@ App.config = Em.Object.create({
    * @param serviceName
    * @return {*}
    */
-  loadAdvancedConfig: function(serviceName){
+  loadAdvancedConfig: function (serviceName) {
     App.ajax.send({
       name: 'config.advanced',
       sender: this,
@@ -461,7 +462,7 @@ App.config = Em.Object.create({
     //TODO clean serviceComponents
   },
 
-  loadAdvancedConfigSuccess: function(data, opt, params){
+  loadAdvancedConfigSuccess: function (data, opt, params) {
     console.log("TRACE: In success function for the loadAdvancedConfig; url is ", opt.url);
     data.properties.setEach('serviceName', params.serviceName);
     serviceComponents[params.serviceName] = data.properties;

@@ -47,9 +47,9 @@ var configs = [
   },
   {
     "name": "fs.checkpoint.edits.dir",
-    "templateName": [],
-    "foreignKey": ["fs.checkpoint.dir"],
-    "value": "<foreignKey[0]>",
+    "templateName": ["fs_checkpoint_size"],
+    "foreignKey": null,
+    "value": "<templateName[0]>",
     "filename": "core-site.xml"
   },
   {
@@ -871,9 +871,9 @@ module.exports = {
     return configs.slice(0);
   },
   overridable: function(){
-    return configs.filterProperty("isOverridable", true);
+    return configs.filterProperty('foreignKey');
   },
   computed: function(){
-    return configs.filterProperty("isOverridable", false);
+    return configs.filterProperty('foreignKey', null);
   }
 };
