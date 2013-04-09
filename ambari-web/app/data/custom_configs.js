@@ -32,7 +32,8 @@ module.exports =
       "category": "CapacityScheduler",
       "unit": "%",
       "isQueue": true,
-      "filename": 'capacity-scheduler.xml'
+      "filename": 'capacity-scheduler.xml',
+      "index": 1
     },
     {
       "id": "site property",
@@ -55,7 +56,8 @@ module.exports =
       "unit": "%",
       "valueRange": [0, 100],
       "isQueue": true,
-      "filename": 'capacity-scheduler.xml'
+      "filename": 'capacity-scheduler.xml',
+      "index": 2
     },
     {
       "id": "site property",
@@ -78,7 +80,8 @@ module.exports =
       "unit": "%",
       "valueRange": [1, 100],
       "isQueue": true,
-      "filename": 'capacity-scheduler.xml'
+      "filename": 'capacity-scheduler.xml',
+      "index": 9
     },
     {
       "id": "site property",
@@ -95,7 +98,8 @@ module.exports =
       "serviceName": "MAPREDUCE",
       "category": "CapacityScheduler",
       "isQueue": true,
-      "filename": 'capacity-scheduler.xml'
+      "filename": 'capacity-scheduler.xml',
+      "index": 8
     },
     {
       "id": "site property",
@@ -110,7 +114,8 @@ module.exports =
       "serviceName": "MAPREDUCE",
       "category": "CapacityScheduler",
       "isQueue": true,
-      "filename": 'capacity-scheduler.xml'
+      "filename": 'capacity-scheduler.xml',
+      "index": 7
     },
     {
       "id": "site property",
@@ -124,7 +129,8 @@ module.exports =
       "serviceName": "MAPREDUCE",
       "category": "CapacityScheduler",
       "isQueue": true,
-      "filename": 'mapred-queue-acls.xml'
+      "filename": 'mapred-queue-acls.xml',
+      "index": 13
     },
     {
       "id": "site property",
@@ -138,7 +144,8 @@ module.exports =
       "serviceName": "MAPREDUCE",
       "category": "CapacityScheduler",
       "isQueue": true,
-      "filename": 'mapred-queue-acls.xml'
+      "filename": 'mapred-queue-acls.xml',
+      "index": 14
     },
     {
       "id": "site property",
@@ -154,7 +161,8 @@ module.exports =
       "serviceName": "MAPREDUCE",
       "category": "CapacityScheduler",
       "isQueue": true,
-      "filename": 'capacity-scheduler.xml'
+      "filename": 'capacity-scheduler.xml',
+      "index": 10
     },
     {
       "id": "site property",
@@ -170,7 +178,8 @@ module.exports =
       "serviceName": "MAPREDUCE",
       "category": "CapacityScheduler",
       "isQueue": true,
-      "filename": 'capacity-scheduler.xml'
+      "filename": 'capacity-scheduler.xml',
+      "index": 11
     },
     {
       "id": "site property",
@@ -187,6 +196,7 @@ module.exports =
       "serviceName": "MAPREDUCE",
       "category": "CapacityScheduler",
       "isQueue": true,
-      "filename": 'capacity-scheduler.xml'
+      "filename": 'capacity-scheduler.xml',
+      "index": 12
     }
   ]

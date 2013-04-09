@@ -552,7 +552,7 @@ App.config = Em.Object.create({
               var dpv = desiredConfigs[property];
               var apv = actualConfigs[property];
               if (dpv !== apv && globalPropertyToServicesMap[property] != null) {
-                effected = globalPropertyToServicesMap[property].indexOf(serviceName) > -1;
+                effected = globalPropertyToServicesMap[property].indexOf(service) > -1;
                 this.differentGlobalTagsCache.push(service+"/"+desiredTag+"/"+actualTag);
               }
             }

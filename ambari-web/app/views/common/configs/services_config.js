@@ -602,6 +602,7 @@ App.ServiceConfigCapacityScheduler = App.ServiceConfigsByCategoryView.extend({
           config.set('displayType', customConfig.displayType);
           config.set('valueRange', customConfig.valueRange);
           config.set('isVisible', customConfig.isVisible);
+          config.set('index', customConfig.index);
         }
         queue.push(config);
       }
@@ -872,9 +873,22 @@ App.ServiceConfigCapacityScheduler = App.ServiceConfigsByCategoryView.extend({
         }
         this.hide();
       },
+      /**
+       * Queue properties order:
+       * 1. Queue Name
+       * 2. Capacity
+       * 3. Max Capacity
+       * 4. Users
+       * 5. Groups
+       * 6. Admin Users
+       * 7. Admin Groups
+       * 8. Support Priority
+       * ...
+       */
       content: function(){
         var content = (queueName) ? self.get('queues').findProperty('name', queueName) : self.get('emptyQueue');
         var configs = [];
+        var tableContent = self.get('tableContent');
         // copy of queue configs
         content.configs.forEach(function (config, index) {
           if (config.name == 'mapred.capacity-scheduler.queue.' + content.name + '.capacity') {
@@ -884,13 +898,13 @@ App.ServiceConfigCapacityScheduler = App.ServiceConfigsByCategoryView.extend({
                 var isError = false;
                 var capacities = [];
                 var capacitySum = 0;
-                if(self.get('tableContent')){
-                  capacities = self.get('tableContent').mapProperty('capacity');
+                if(tableContent){
+                  capacities = tableContent.mapProperty('capacity');
                   for (var i = 0, l = capacities.length; i < l; i++) {
                     capacitySum += parseInt(capacities[i]);
                   }
                   if (content.name != '<queue-name>') {
-                    capacitySum = capacitySum - parseInt(self.get('tableContent').findProperty('name', content.name).capacity);
+                    capacitySum = capacitySum - parseInt(tableContent.findProperty('name', content.name).capacity);
                   }
                 }
                 if (value == '') {
@@ -932,7 +946,9 @@ App.ServiceConfigCapacityScheduler = App.ServiceConfigsByCategoryView.extend({
           name: content.name,
           configs: configs
         };
-        return this.insertExtraConfigs(content);
+        content = this.insertExtraConfigs(content);
+        content.configs = this.sortQueueProperties(content.configs);
+        return content;
       }.property(),
       footerClass: Ember.View.extend({
         classNames: ['modal-footer', 'host-checks-update'],
@@ -1023,7 +1039,8 @@ App.ServiceConfigCapacityScheduler = App.ServiceConfigsByCategoryView.extend({
             }
           }.observes('value'),
           isRequired: true,
-          isVisible: true
+          isVisible: true,
+          index: 0
         });
         newField.validate();
         content.configs.unshift(newField);
@@ -1035,7 +1052,8 @@ App.ServiceConfigCapacityScheduler = App.ServiceConfigsByCategoryView.extend({
           isRequired: true,
           isVisible: true,
           type: 'USERS',
-          "displayType": "UNIXList"
+          displayType: "UNIXList",
+          index: 3
         });
         newField.validate();
         content.configs.push(newField);
@@ -1047,7 +1065,8 @@ App.ServiceConfigCapacityScheduler = App.ServiceConfigsByCategoryView.extend({
           isRequired: true,
           isVisible: true,
           type: 'USERS',
-          "displayType": "UNIXList"
+          displayType: "UNIXList",
+          index: 5
         });
         newField.validate();
         content.configs.push(newField);
@@ -1059,7 +1078,8 @@ App.ServiceConfigCapacityScheduler = App.ServiceConfigsByCategoryView.extend({
           isRequired: true,
           isVisible: true,
           "displayType": "UNIXList",
-          type: 'GROUPS'
+          type: 'GROUPS',
+          index: 4
         });
         newField.validate();
         content.configs.push(newField);
@@ -1071,11 +1091,24 @@ App.ServiceConfigCapacityScheduler = App.ServiceConfigsByCategoryView.extend({
           isRequired: true,
           isVisible: true,
           "displayType": "UNIXList",
-          type: 'GROUPS'
+          type: 'GROUPS',
+          index: 6
         });
         newField.validate();
         content.configs.push(newField);
         return content;
+      },
+      sortQueueProperties: function(configs){
+        var sortedConfigs = [];
+        var skippedConfigs = [];
+        configs.forEach(function(_config){
+          if(isFinite(_config.index)){
+            sortedConfigs[_config.index] = _config;
+          } else {
+            skippedConfigs.push(_config);
+          }
+        });
+        return sortedConfigs.concat(skippedConfigs);
       }
     })
   }
