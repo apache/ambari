@@ -59,7 +59,7 @@ class Heartbeat:
       heartbeat['reports'] = queueResult['reports']
       heartbeat['componentStatus'] = queueResult['componentStatus']
       pass
-    logger.info("Heartbeat : " + pformat(heartbeat))
+    logger.debug("Heartbeat : " + pformat(heartbeat))
 
     if (int(id) >= 0) and state_interval > 0 and (int(id) % state_interval) == 0:
       hostInfo = HostInfo()

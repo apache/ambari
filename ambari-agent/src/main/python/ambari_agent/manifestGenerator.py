@@ -27,6 +27,7 @@ from datetime import datetime
 import AmbariConfig
 import pprint
 import hostname
+import stat
 
 logger = logging.getLogger()
 
@@ -75,6 +76,9 @@ def generateManifest(parsedJson, fileName, modulesdir, ambariconfig):
             'roleParams' : roleParams}]
   #writing manifest
   manifest = open(fileName, 'w')
+  #Change mode to make site.pp files readable to owner and group only
+  os.chmod(fileName, stat.S_IRWXU)
+
   #Check for Ambari Config and make sure you pick the right imports file
     
   #writing imports from external static file

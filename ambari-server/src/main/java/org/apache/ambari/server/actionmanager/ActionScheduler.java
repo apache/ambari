@@ -401,7 +401,7 @@ class ActionScheduler implements Runnable {
     }
     s.setLastAttemptTime(hostname, roleStr, now);
     s.incrementAttemptCount(hostname, roleStr);
-    LOG.info("Scheduling command: "+cmd.toString()+" for host: "+hostname);
+    LOG.debug("Scheduling command: "+cmd.toString()+" for host: "+hostname);
     /** change the hostname in the command for the host itself **/
     cmd.setHostname(hostsMap.getHostMap(hostname));
     actionQueue.enqueue(hostname, cmd);

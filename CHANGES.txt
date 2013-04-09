@@ -677,6 +677,9 @@ Trunk (unreleased changes):
 
  BUG FIXES
 
+ AMBARI-1862. Nagios credentials are freely available at ambari-agent.log. 
+ (smohanty)
+
  AMBARI-1726. It seems upgrades available at the FE is hard-coded to 1.3.0. 
  (yusaku via srimanth)
 

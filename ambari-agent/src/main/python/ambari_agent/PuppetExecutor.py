@@ -194,7 +194,7 @@ class PuppetExecutor:
     else:
       result["stderr"] = str(error)
     puppetOutput = open(tmpoutfile, 'r').read()
-    logger.info("Output from puppet :\n" + puppetOutput)
+    logger.debug("Output from puppet :\n" + puppetOutput)
     logger.info("Puppet exit code is " + str(returncode))
     if result.has_key("exitcode"):
       result["exitcode"] = max(returncode, result["exitcode"])
