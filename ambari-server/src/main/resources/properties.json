@@ -65,6 +65,7 @@
         "HostRoles/desired_stack_id",
         "HostRoles/actual_configs",
         "params/run_smoke_test",
+        "HostRoles/nagios_alerts",
         "_"
     ],
     "Configuration":[

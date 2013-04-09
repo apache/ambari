@@ -665,6 +665,8 @@ Trunk (unreleased changes):
 
  BUG FIXES
 
+ AMBARI-1859. Cannot load Nagios Alerts due to 400 Bad Request. (smohanty)
+
  AMBARI-1842. Collapsable service restart message section should have pointer 
  cursor. (srimanth)
 
