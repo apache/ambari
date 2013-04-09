@@ -45,9 +45,13 @@
       <tr>
         <td>{{t dashboard.services.hbase.masterServer}}</td>
         <td>
-            <a href="#" {{action showDetails view.activeMaster.host}}>{{t service.hbase.activeMaster}}</a>
-            {{#if view.passiveMasters.length}}
-                {{view.passiveMasterOutput}}
+            {{#if view.activeMaster}}
+              <a href="#" {{action showDetails view.activeMaster.host}}>{{t service.hbase.activeMaster}}</a>
+              {{#if view.passiveMasters.length}}
+                  {{view.passiveMasterOutput}}
+              {{/if}}
+            {{else}}
+              {{t dashboard.services.hbase.noMasterServer}}
             {{/if}}
         </td>
       </tr>
@@ -64,7 +68,12 @@
       <!-- HBaseMaster Web UI -->
       <tr>
         <td>{{t dashboard.services.hbase.masterWebUI}}</td>
-        <td><a {{bindAttr href="view.hbaseMasterWebUrl"}} target="_blank">{{view.activeMaster.host.publicHostName}}:60010</a>
+        <td>
+            {{#if view.activeMaster}}
+              <a {{bindAttr href="view.hbaseMasterWebUrl"}} target="_blank">{{view.activeMaster.host.publicHostName}}:60010</a>
+            {{else}}
+              {{t services.service.summary.notAvailable}}
+            {{/if}}
         </td>
       </tr>
       <!-- Regions in Transition -->

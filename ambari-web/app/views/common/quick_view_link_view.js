@@ -37,11 +37,9 @@ App.QuickViewLinks = Em.View.extend({
     } else if (serviceName === 'HBASE') {
       if (components.filterProperty('componentName', 'HBASE_MASTER').someProperty('haStatus', 'active')) {
         host = components.filterProperty('componentName', 'HBASE_MASTER').findProperty('haStatus', 'active').get('host.publicHostName');
-      } else {
-        // TODO: show error message
-        if (!this.get('errorFlag')) {
-          this.noActiveHbaseMasterError();
-        }
+      }
+      else {
+        this.set('errorFlag', true);
       }
     }
     if (!host) {
@@ -66,20 +64,6 @@ App.QuickViewLinks = Em.View.extend({
         return "";
         break;
     }
-  }.property('service'),
-
-  noActiveHbaseMasterError: function () {
-    this.set('errorFlag', true);
-    App.ModalPopup.show({
-      header: Em.I18n.translations['common.error'],
-      secondary: false,
-      onPrimary: function () {
-        this.hide();
-      },
-      bodyClass: Ember.View.extend({
-        template: Ember.Handlebars.compile('<p>{{t services.hbase.master.error}}</p>')
-      })
-    });
-  }
+  }.property('service')
 
 });

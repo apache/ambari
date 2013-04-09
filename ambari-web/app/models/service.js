@@ -61,6 +61,13 @@ App.Service = DS.Model.extend({
     } else {
       this.set('healthStatus', 'red-blinking');
     }
+
+    if (this.get('serviceName') === 'HBASE') {
+      var active = this.get('hostComponents').findProperty('haStatus', 'active');
+      if (!active) {
+        this.set('healthStatus', 'red');
+      }
+    }
   },
 
   /**
