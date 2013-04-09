@@ -207,7 +207,11 @@ public class StageUtils {
             //Set up ambari-rca connection properties, is this a hack?
 //            info.put("ambari_db_server_host", Arrays.asList(hostsMap.getHostMap(getHostName())));
             Configuration configuration = injector.getInstance(Configuration.class);
-            info.put("ambari_db_rca_url", Arrays.asList(configuration.getRcaDatabaseUrl()));
+            String url = configuration.getRcaDatabaseUrl();
+            if (url.contains(Configuration.HOSTNAME_MACRO)) {
+              url = url.replace(Configuration.HOSTNAME_MACRO, hostsMap.getHostMap(getHostName()));
+            }
+            info.put("ambari_db_rca_url", Arrays.asList(url));
             info.put("ambari_db_rca_driver", Arrays.asList(configuration.getRcaDatabaseDriver()));
             info.put("ambari_db_rca_username", Arrays.asList(configuration.getRcaDatabaseUser()));
             info.put("ambari_db_rca_password", Arrays.asList(configuration.getRcaDatabasePassword()));

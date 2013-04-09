@@ -18,8 +18,12 @@
 package org.apache.ambari.server.utils;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 import java.io.IOException;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -157,7 +161,7 @@ public class TestStageUtils {
   }
 
   @Test
-  public void testGetClusterHostInfo() throws AmbariException {
+  public void testGetClusterHostInfo() throws AmbariException, UnknownHostException {
     Clusters fsm = injector.getInstance(Clusters.class);
     fsm.addCluster("c1");
     fsm.addHost("h1");
@@ -181,5 +185,10 @@ public class TestStageUtils {
     assertEquals(2, info.get("slave_hosts").size());
     assertEquals(1, info.get("hbase_master_hosts").size());
     assertEquals("h1", info.get("hbase_master_hosts").get(0));
+
+    assertFalse(info.get("ambari_db_rca_url").get(0).contains(Configuration.HOSTNAME_MACRO));
+    String address = InetAddress.getLocalHost().getCanonicalHostName();
+    assertTrue(info.get("ambari_db_rca_url").get(0).contains(address));
+
   }
 }

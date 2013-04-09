@@ -130,7 +130,8 @@ public class Configuration {
   public static final String JDBC_IN_MEMORY_URL = "jdbc:derby:memory:myDB/ambari;create=true";
   public static final String JDBC_IN_MEMROY_DRIVER = "org.apache.derby.jdbc.EmbeddedDriver";
 
-  public static final String JDBC_RCA_LOCAL_URL = "jdbc:postgresql://localhost/ambarirca";
+  public static final String HOSTNAME_MACRO = "{hostname}";
+  public static final String JDBC_RCA_LOCAL_URL = "jdbc:postgresql://" + HOSTNAME_MACRO + "/ambarirca";
   public static final String JDBC_RCA_LOCAL_DRIVER = "org.postgresql.Driver";
 
   private static final String SERVER_JDBC_USER_NAME_DEFAULT = "ambari-server";

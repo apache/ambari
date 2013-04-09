@@ -81,6 +81,9 @@ public class WorkflowJsonService {
   public static void setDBProperties(Configuration configuration) {
     DEFAULT_DRIVER = configuration.getRcaDatabaseDriver();
     DEFAULT_URL = configuration.getRcaDatabaseUrl();
+    if (DEFAULT_URL.contains(Configuration.HOSTNAME_MACRO)) {
+      DEFAULT_URL = DEFAULT_URL.replace(Configuration.HOSTNAME_MACRO, "localhost");
+    }
     DEFAULT_USERNAME = configuration.getRcaDatabaseUser();
     DEFAULT_PASSWORD = configuration.getRcaDatabasePassword();
   }
