@@ -12,6 +12,8 @@ Trunk (unreleased changes):
 
  NEW FEATURES
 
+ AMBARI-1847. Make single PUT call for multiple host overrides. (srimanth)
+
  AMBARI-1857. Capacity Scheduler: field order for Add/Edit popup. (srimanth)
 
  AMBARI-1855. Capacity Scheduler: when adding a new queue, populate 

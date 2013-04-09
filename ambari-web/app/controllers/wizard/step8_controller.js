@@ -1474,33 +1474,41 @@ App.WizardStep8Controller = Em.Controller.extend({
    * 
    */
   createHostOverrideConfigurations: function () {
+    var singlePUTHostData = [];
     var savedHostSiteArray = [];
     for ( var host in this.savedHostToOverrideSiteToTagMap) {
       for ( var siteName in this.savedHostToOverrideSiteToTagMap[host]) {
         var tagName = this.savedHostToOverrideSiteToTagMap[host][siteName].tagName;
         var map = this.savedHostToOverrideSiteToTagMap[host][siteName].map;
         savedHostSiteArray.push(host + "///" + siteName);
-        var hostOverridenServerData = {
-          Hosts: {
-            desired_config: {
-              type: siteName,
-              tag: tagName,
-              properties: map
+        singlePUTHostData.push({
+          RequestInfo: {
+            query: 'Hosts/host_name='+host
+          },
+          Body: {
+            Hosts: {
+              desired_config: {
+                type: siteName,
+                tag: tagName,
+                properties: map
+              }
             }
-          }
-        };
-        console.log("createHostOverrideConfigSites(): PUTting host-override config for host=" + host + ", site=" + siteName + ", tag=" + tagName + ". Data=", hostOverridenServerData);
-        var url = App.apiPrefix + '/clusters/' + this.get('clusterName') + '/hosts/' + host;
-        this.ajax({
-          type: 'PUT',
-          url: url,
-          data: JSON.stringify(hostOverridenServerData),
-          dataType: 'text',
-          beforeSend: function () {
-            console.log("createHostOverrideConfigSites("+host+") override=", hostOverridenServerData);
           }
         });
       }
+    }
+    console.log("createHostOverrideConfigSites(): PUTting host-overrides. Data=", singlePUTHostData);
+    if(singlePUTHostData.length>0){
+      var url = App.apiPrefix + '/clusters/' + this.get('clusterName') + '/hosts';
+      this.ajax({
+        type: 'PUT',
+        url: url,
+        data: JSON.stringify(singlePUTHostData),
+        dataType: 'text',
+        beforeSend: function () {
+          console.log("createHostOverrideConfigSites() PUT override=", singlePUTHostData);
+        }
+      });
     }
   },
 

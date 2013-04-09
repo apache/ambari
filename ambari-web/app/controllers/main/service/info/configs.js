@@ -1011,14 +1011,18 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
    * 
    */
   doPUTHostOverridesConfigurationSites: function(){
-    var result = true;
+    var singlePUTHostData = [];
     var savedHostSiteArray = [];
     for ( var host in this.savedHostToOverrideSiteToTagMap) {
       for ( var siteName in this.savedHostToOverrideSiteToTagMap[host]) {
         var tagName = this.savedHostToOverrideSiteToTagMap[host][siteName].tagName;
         var map = this.savedHostToOverrideSiteToTagMap[host][siteName].map;
         savedHostSiteArray.push(host+"///"+siteName);
-        var hostOverridenServerData = {
+        singlePUTHostData.push({
+          RequestInfo: {
+            query: 'Hosts/host_name='+host
+          },
+          Body: {
             Hosts: {
               desired_config: {
                 type: siteName,
@@ -1026,32 +1030,8 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
                 properties: map
               }
             }
-        };
-        console.log("createHostOverrideConfigSites(): PUTting host-override config for host="+host+", site="+siteName+", tag="+tagName+". Data=",hostOverridenServerData);
-        var url = this.getUrl('', '/hosts/'+host);
-        var hostOverrideResult = true;
-        $.ajax({
-          type: 'PUT',
-          url: url,
-          data: JSON.stringify(hostOverridenServerData),
-          async: false,
-          dataType: 'text',
-          timeout: 5000,
-          success: function (data) {
-            var jsonData = jQuery.parseJSON(data);
-            hostOverrideResult = true;
-            console.log("createHostOverrideConfigSites(): SUCCESS:", url, ". RESPONSE:",jsonData);
-          },
-          error: function (request, ajaxOptions, error) {
-            hostOverrideResult = false;
-            console.log("createHostOverrideConfigSites(): ERROR:", url, ". RESPONSE:",request.responseText);
-          },
-          statusCode: require('data/statusCodes')
+          }
         });
-        result = result && hostOverrideResult;
-        if(!result){
-          return result;
-        }
       }
     }
     // Now cleanup removed overrides
@@ -1060,7 +1040,11 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
         if (!(savedHostSiteArray.contains(loadedHost + "///" + loadedSiteName))) {
           // This host-site combination was loaded, but not saved.
           // Meaning it is not needed anymore. Hence send a DELETE command.
-          var hostOverridenServerData = {
+          singlePUTHostData.push({
+            RequestInfo: {
+              query: 'Hosts/host_name='+loadedHost
+            },
+            Body: {
               Hosts: {
                 desired_config: {
                   type: loadedSiteName,
@@ -1068,31 +1052,36 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
                   selected: false
                 }
               }
-          };
-          var url = this.getUrl('', '/hosts/'+loadedHost);
-          $.ajax({
-            type: 'PUT',
-            url: url,
-            data: JSON.stringify(hostOverridenServerData),
-            async: false,
-            dataType: 'text',
-            timeout: 5000,
-            success: function (data) {
-              var jsonData = jQuery.parseJSON(data);
-              hostOverrideResult = true;
-              console.log("createHostOverrideConfigSites(): SUCCESS:", url, ". RESPONSE:",jsonData);
-            },
-            error: function (request, ajaxOptions, error) {
-              hostOverrideResult = false;
-              console.log("createHostOverrideConfigSites(): ERROR:", url, ". RESPONSE:",request.responseText);
-            },
-            statusCode: require('data/statusCodes')
+            }
           });
-          result = result && hostOverrideResult;
         }
       }
     }
-    return result;
+    console.debug("createHostOverrideConfigSites(): PUTting host-overrides. Data=",singlePUTHostData);
+    if(singlePUTHostData.length>0){
+      var url = this.getUrl('', '/hosts');
+      var hostOverrideResult = true;
+      $.ajax({
+        type: 'PUT',
+        url: url,
+        data: JSON.stringify(singlePUTHostData),
+        async: false,
+        dataType: 'text',
+        timeout: 5000,
+        success: function (data) {
+          var jsonData = jQuery.parseJSON(data);
+          hostOverrideResult = true;
+          console.log("createHostOverrideConfigSites(): SUCCESS:", url, ". RESPONSE:",jsonData);
+        },
+        error: function (request, ajaxOptions, error) {
+          hostOverrideResult = false;
+          console.log("createHostOverrideConfigSites(): ERROR:", url, ". RESPONSE:",request.responseText);
+        },
+        statusCode: require('data/statusCodes')
+      });
+      return hostOverrideResult;
+    }
+    return true;
   },
    
   /**
