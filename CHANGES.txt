@@ -670,6 +670,9 @@ Trunk (unreleased changes):
 
  BUG FIXES
 
+ AMBARI-1852. Upon clicking Services > Service > Config, a call to 
+ "configurations resource is made and the server throws 400. (srimanth)
+
  AMBARI-1851. Ambari Web behaves strangely when there is no Active HBase 
  Master. (srimanth)
 

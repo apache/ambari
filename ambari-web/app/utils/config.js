@@ -584,7 +584,7 @@ App.config = Em.Object.create({
       }
     }
     var params = urlParams.join('|');
-    if(urlParams.length || 1){
+    if(urlParams.length){
       App.ajax.send({
         name: 'config.host_overrides',
         sender: this,
