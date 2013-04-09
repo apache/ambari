@@ -670,6 +670,8 @@ Trunk (unreleased changes):
 
  BUG FIXES
 
+ AMBARI-1854. Wizards available for a non-administrator user. (srimanth)
+
  AMBARI-1852. Upon clicking Services > Service > Config, a call to 
  "configurations resource is made and the server throws 400. (srimanth)
 
