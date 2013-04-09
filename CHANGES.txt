@@ -659,6 +659,9 @@ Trunk (unreleased changes):
 
  BUG FIXES
 
+ AMBARI-1842. Collapsable service restart message section should have pointer 
+ cursor. (srimanth)
+
  AMBARI-1841. Properties that should be exposed in Advanced category
  are populated in Custom categories. (jaimin)
 

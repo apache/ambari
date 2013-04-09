@@ -18,7 +18,7 @@
 
 {{#if selectedService.restartRequired}}
 <div class="alert">
-  <div class="clearfix like_pointer" {{action toggleRestartMessageView target="view"}}>
+  <div class="clearfix like_pointer collapsable" {{action toggleRestartMessageView target="view"}}>
       {{#if view.isRestartMessageCollapsed}}
         <i class="icon-caret-down pull-left"></i>
       {{else}}
