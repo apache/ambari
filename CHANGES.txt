@@ -668,6 +668,8 @@ Trunk (unreleased changes):
 
  BUG FIXES
 
+ AMBARI-1849. Cosmetic problems on HBase Dashboard. (srimanth)
+
  AMBARI-1848. Install Wizard, Step 7: Oozie Database Derby option should say 
  "New Derby Database", not "Current Derby Database". (Xi Wang via srimanth)
 
