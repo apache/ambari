@@ -28,6 +28,7 @@ import java.util.Map;
 import java.util.Set;
 
 import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
 
 /**
  * Unit tests for JsonPropertyParser.
@@ -78,6 +79,39 @@ public class JsonRequestBodyParserTest {
       "    \"Category\" : { \"property2\" : \"prop2Value\"}" +
       "} }";
 
+  String multiBody = "[\n" +
+      "  {\n" +
+      "    \"RequestInfo\":{\n" +
+      "      \"query\":\"Hosts/host_name=h1\"\n" +
+      "    },\n" +
+      "    \"Body\":\n" +
+      "    {\n" +
+      "      \"Hosts\": {\n" +
+      "        \"desired_config\": {\n" +
+      "          \"type\": \"global\",\n" +
+      "          \"tag\": \"version20\",\n" +
+      "          \"properties\": { \"a\": \"b\", \"x\": \"y\" }\n" +
+      "        }\n" +
+      "      }\n" +
+      "    }\n" +
+      "  },\n" +
+      "  {\n" +
+      "    \"RequestInfo\":{\n" +
+      "      \"query\":\"Hosts/host_name=h2\"\n" +
+      "    },\n" +
+      "    \"Body\":\n" +
+      "    {\n" +
+      "      \"Hosts\": {\n" +
+      "        \"desired_config\": {\n" +
+      "          \"type\": \"global\",\n" +
+      "          \"tag\": \"version21\",\n" +
+      "          \"properties\": { \"a\": \"c\", \"x\": \"z\" }\n" +
+      "        }\n" +
+      "      }\n" +
+      "    }\n" +
+      "  }\n" +
+      "]\n";
+
   String queryPostJson = "{ \"services\" : [ {" +
       "\"ServiceInfo\" : {\n" +
       "    \"service_name\" : \"unitTestService1\"" +
@@ -117,7 +151,7 @@ public class JsonRequestBodyParserTest {
   @Test
   public void testParse() throws BodyParseException {
     RequestBodyParser parser = new JsonRequestBodyParser();
-    RequestBody body = parser.parse(serviceJson);
+    RequestBody body = parser.parse(serviceJson).iterator().next();
 
     Set<NamedPropertySet> setProps = body.getNamedPropertySets();
     assertEquals(1, setProps.size());
@@ -136,7 +170,7 @@ public class JsonRequestBodyParserTest {
 
     //assert body is correct by checking that properties match
     String b = body.getBody();
-    body = parser.parse(b);
+    body = parser.parse(b).iterator().next();
     Set<NamedPropertySet> setProps2 = body.getNamedPropertySets();
     assertEquals(mapExpected, setProps2.iterator().next().getProperties());
   }
@@ -144,7 +178,7 @@ public class JsonRequestBodyParserTest {
   @Test
   public void testParse_NullBody() throws BodyParseException {
     RequestBodyParser parser = new JsonRequestBodyParser();
-    RequestBody body = parser.parse(null);
+    RequestBody body = parser.parse(null).iterator().next();
 
     assertNotNull(body.getNamedPropertySets());
     assertEquals(0, body.getNamedPropertySets().size());
@@ -156,7 +190,7 @@ public class JsonRequestBodyParserTest {
   @Test
   public void testParse_EmptyBody() throws BodyParseException {
     RequestBodyParser parser = new JsonRequestBodyParser();
-    RequestBody body = parser.parse("");
+    RequestBody body = parser.parse("").iterator().next();
 
     assertNotNull(body.getNamedPropertySets());
     assertEquals(0, body.getNamedPropertySets().size());
@@ -166,9 +200,28 @@ public class JsonRequestBodyParserTest {
   }
 
   @Test
+  public void testParse_MultiBody() throws BodyParseException {
+    RequestBodyParser parser = new JsonRequestBodyParser();
+    Set<RequestBody> bodySet = parser.parse(multiBody);
+
+    assertEquals(2, bodySet.size());
+
+    for (RequestBody body : bodySet) {
+      Set<NamedPropertySet> setProps = body.getNamedPropertySets();
+      assertEquals(1, setProps.size());
+
+      Map<String, Object> mapProps = setProps.iterator().next().getProperties();
+
+      assertEquals(4, mapProps.size());
+
+      assertEquals("global", mapProps.get("Hosts/desired_config/type"));
+    }
+  }
+
+  @Test
   public void testParse_Array() throws BodyParseException {
     RequestBodyParser parser = new JsonRequestBodyParser();
-    RequestBody body = parser.parse(arrayJson);
+    RequestBody body = parser.parse(arrayJson).iterator().next();
 
     Set<NamedPropertySet> setProps = body.getNamedPropertySets();
 
@@ -210,7 +263,7 @@ public class JsonRequestBodyParserTest {
     //assert body is correct by checking that properties match
     String b = body.getBody();
 
-    body = parser.parse(b);
+    body = parser.parse(b).iterator().next();
 
     Set<NamedPropertySet> setProps2 = body.getNamedPropertySets();
     assertEquals(3, setProps2.size());
@@ -220,7 +273,7 @@ public class JsonRequestBodyParserTest {
   @Test
   public void testParse___Array_NoArrayBrackets() throws BodyParseException {
     RequestBodyParser parser = new JsonRequestBodyParser();
-    RequestBody body = parser.parse(arrayJson2);
+    RequestBody body = parser.parse(arrayJson2).iterator().next();
 
     Set<NamedPropertySet> setProps = body.getNamedPropertySets();
 
@@ -260,7 +313,7 @@ public class JsonRequestBodyParserTest {
 
     //assert body is correct by checking that properties match
     String b = body.getBody();
-    body = parser.parse(b);
+    body = parser.parse(b).iterator().next();
 
     Set<NamedPropertySet> setProps2 = body.getNamedPropertySets();
     assertEquals(3, setProps2.size());
@@ -270,7 +323,7 @@ public class JsonRequestBodyParserTest {
   @Test
   public void testParse_QueryInBody() throws BodyParseException {
     RequestBodyParser parser = new JsonRequestBodyParser();
-    RequestBody body = parser.parse(serviceJsonWithQuery);
+    RequestBody body = parser.parse(serviceJsonWithQuery).iterator().next();
 
 
     Set<NamedPropertySet> setProps = body.getNamedPropertySets();
@@ -291,7 +344,7 @@ public class JsonRequestBodyParserTest {
 
     //assert body is correct by checking that properties match
     String b = body.getBody();
-    body = parser.parse(b);
+    body = parser.parse(b).iterator().next();
 
     Set<NamedPropertySet> setProps2 = body.getNamedPropertySets();
     assertEquals(mapExpected, setProps2.iterator().next().getProperties());
@@ -300,7 +353,7 @@ public class JsonRequestBodyParserTest {
   @Test
   public void testParse_QueryPost() throws BodyParseException {
     RequestBodyParser parser = new JsonRequestBodyParser();
-    RequestBody body = parser.parse(queryPostJson);
+    RequestBody body = parser.parse(queryPostJson).iterator().next();
 
 
     Set<NamedPropertySet> setProperties = body.getNamedPropertySets();
@@ -339,7 +392,7 @@ public class JsonRequestBodyParserTest {
 
     //assert body is correct by checking that properties match
     String b = body.getBody();
-    body = parser.parse(b);
+    body = parser.parse(b).iterator().next();
 
     Set<NamedPropertySet> setProps2 = body.getNamedPropertySets();
     assertEquals(1, setProps2.size());
@@ -349,7 +402,7 @@ public class JsonRequestBodyParserTest {
   @Test
   public void testParse___QueryPost_multipleSubResTypes() throws BodyParseException {
     RequestBodyParser parser = new JsonRequestBodyParser();
-    RequestBody body = parser.parse(queryPostMultipleSubResourcesJson);
+    RequestBody body = parser.parse(queryPostMultipleSubResourcesJson).iterator().next();
 
 
     Set<NamedPropertySet> setProperties = body.getNamedPropertySets();
@@ -389,7 +442,7 @@ public class JsonRequestBodyParserTest {
 
     //assert body is correct by checking that properties match
     String b = body.getBody();
-    body = parser.parse(b);
+    body = parser.parse(b).iterator().next();
 
     Set<NamedPropertySet> setProps2 = body.getNamedPropertySets();
     assertEquals(1, setProps2.size());
@@ -400,7 +453,7 @@ public class JsonRequestBodyParserTest {
   public void testParse___QueryPost_QueryInBody() throws BodyParseException {
     RequestBodyParser parser = new JsonRequestBodyParser();
 
-    RequestBody body = parser.parse(queryPostJsonWithQuery);
+    RequestBody body = parser.parse(queryPostJsonWithQuery).iterator().next();
 
 
     Set<NamedPropertySet> setProperties = body.getNamedPropertySets();
@@ -446,7 +499,7 @@ public class JsonRequestBodyParserTest {
     String b = body.getBody();
     assertEquals(queryPostJsonWithQuery , b);
 
-    body = parser.parse(b);
+    body = parser.parse(b).iterator().next();
 
     Set<NamedPropertySet> setProps2 = body.getNamedPropertySets();
     assertEquals(1, setProps2.size());
@@ -457,7 +510,7 @@ public class JsonRequestBodyParserTest {
   public void testParse_QueryOnlyInBody() throws BodyParseException {
     RequestBodyParser parser = new JsonRequestBodyParser();
 
-    RequestBody body = parser.parse(bodyQueryOnly);
+    RequestBody body = parser.parse(bodyQueryOnly).iterator().next();
 
     assertEquals("foo=bar", body.getQueryString());
     assertEquals(bodyQueryOnly, body.getBody());
@@ -478,7 +531,7 @@ public class JsonRequestBodyParserTest {
   @Test
   public void testRequestInfoProps() throws Exception {
     RequestBodyParser parser = new JsonRequestBodyParser();
-    RequestBody body = parser.parse(bodyWithRequestInfoProperties);
+    RequestBody body = parser.parse(bodyWithRequestInfoProperties).iterator().next();
 
     Set<NamedPropertySet> setProps = body.getNamedPropertySets();
     assertEquals(1, setProps.size());
@@ -504,7 +557,7 @@ public class JsonRequestBodyParserTest {
 
     //assert body is correct by checking that properties match
     String b = body.getBody();
-    body = parser.parse(b);
+    body = parser.parse(b).iterator().next();
 
     Set<NamedPropertySet> setProps2 = body.getNamedPropertySets();
     assertEquals(mapExpected, setProps2.iterator().next().getProperties());
