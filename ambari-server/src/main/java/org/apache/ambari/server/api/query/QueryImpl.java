@@ -133,9 +133,9 @@ public class QueryImpl implements Query {
       m_mapSubResources.putAll(m_resource.getSubResources());
     }
 
-    if (LOG.isInfoEnabled()) {
+    if (LOG.isDebugEnabled()) {
       //todo: include predicate info.  Need to implement toString for all predicates.
-      LOG.info("Executing resource query: " + m_resource.getIds());
+      LOG.debug("Executing resource query: " + m_resource.getIds());
     }
 
     Predicate predicate = createPredicate(m_resource);

@@ -230,6 +230,9 @@ Trunk (unreleased changes):
  AMBARI-1844. Need ability to update multiple hosts in 1 PUT call.
  (tbeerbower)
 
+ AMBARI-1845. Server log is being flooded with log messages.
+ (tbeerbower)
+
  AMBARI-1825. Minor label change for the buttons to start/stop all services
  in the side nav. (yusaku)
 
