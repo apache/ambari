@@ -22,10 +22,11 @@ var date = require('utils/date');
 
 App.DataSetJob = DS.Model.extend({
   dataset: DS.belongsTo('App.Dataset'),
+  status: DS.attr('string'),
   startDate: DS.attr('number'),
   endDate: DS.attr('number'),
   duration: DS.attr('number'),
-  startDateFormatted: function() {
+  startDateFormatted: function () {
     return date.dateFormatShort(this.get('startDate'));
   }.property('startDate')
   //data : DS.attr('string')

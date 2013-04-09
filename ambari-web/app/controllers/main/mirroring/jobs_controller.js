@@ -20,7 +20,30 @@ var App = require('app');
 
 App.MainJobsController = Em.Controller.extend({
   name: 'mainJobsController',
-  jobs: function() {
+  jobs: function () {
     return App.DataSetJob.find().filterProperty('dataset', this.get('content'));
-  }.property('content')
+  }.property('content'),
+
+  actionDesc: function () {
+    var dataset_status = this.get('content.status');
+    if (dataset_status === "SCHEDULED") {
+      return "Suspend";
+    } else {
+      return "Schedule";
+    }
+  }.property('content.status'),
+
+  isScheduled: function () {
+    var dataset_status = this.get('content.status');
+    return dataset_status === "SCHEDULED";
+  }.property('content.status'),
+
+  suspend: function () {
+    this.set('content.status', 'SUSPENDED');
+  },
+
+  schedule: function () {
+    this.set('content.status', 'SCHEDULED');
+  }
+
 });

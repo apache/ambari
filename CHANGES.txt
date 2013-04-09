@@ -12,6 +12,9 @@ Trunk (unreleased changes):
 
  NEW FEATURES
 
+ AMBARI-1829. HDFS Mirroring: Display Status and handle maintenance operations 
+ like Stop, Suspend, Activate etc. (Arun Kandregula via srimanth)
+
  AMBARI-1840. For global properties show restart for appropriate services
  only. (srimanth)
 

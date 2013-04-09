@@ -27,6 +27,23 @@
       <p>{{t mirroring.dataset.dateCreated}}: <span class="pull-right">{{view.dataset.createdDate}}</span></p>
     </div>
     <div class="span10">
+      {{#if App.isAdmin}}
+          <div class="mirroring-top-nav button-section pull-right">
+            {{#if isScheduled}}
+                <span class="label label-success">{{content.status}}</span>
+              <a href="javascript:void(null)" data-toggle="modal" class="btn btn-danger" {{action "suspend" target="controller"}}>
+                <i class="icon-pause"></i>
+                {{actionDesc}}
+              </a>
+            {{else}}
+                <span class="label label-important">{{content.status}}</span>
+                <a href="javascript:void(null)" data-toggle="modal" class="btn btn-success" {{action "schedule" target="controller"}}>
+                    <i class="icon-play"></i>
+                  {{actionDesc}}
+                </a>
+            {{/if}}
+          </div>
+      {{/if}}
     <div id="mirroring">
       <table class="table table-bordered table-striped">
         <thead>
@@ -38,6 +55,10 @@
               {{view view.parentView.endSort}}
               {{view view.parentView.durationSort}}
               {{view view.parentView.dataSort}}
+              <th>
+                  {{t common.status}}
+              </th>
+
             {{/view}}
         </tr>
         <tr>
@@ -66,6 +87,28 @@
               </td>
 
               <td>{{job.data}}</td>
+              <td>
+
+                {{#if view.canActionBeTaken}}
+                    <div class="btn-group">
+                        <a {{bindAttr class="view.statusClass"}} data-toggle="dropdown" href="#">
+                            {{view.content.status}}
+                            <span class="caret"></span>
+                        </a>
+                        <ul class="dropdown-menu">
+                          {{#each view.listOfOptions}}
+                              <li><a href="#" {{action "changeStatus" this target="view" on="click"}}>{{title}}</a></li>
+                          {{/each}}
+                        </ul>
+                    </div>
+                 {{else}}
+                    {{#if view.isKilled}}
+                      <span class="label label-important">{{view.content.status}}</span>
+                    {{else}}
+                      <span class="label label-info">{{view.content.status}}</span>
+                    {{/if}}
+                {{/if}}
+              </td>
             {{/view}}
           {{/each}}
         {{else}}

@@ -22,6 +22,7 @@ App.dataSetMapper = App.QuickDataMapper.create({
   config: {
     id: 'id', // approach 2 : to be calculated (TBC1)
     name: 'Feeds.name', // from json
+    status: 'Feeds.status', // from json
     source_cluster_name: 'Feeds.clusters.cluster[0].name', // approach1 : from json
     $target_cluster: 'none', // will be loaded outside parser ( TBC2 ),
     source_dir: 'Feeds.locations.location.path',
@@ -40,6 +41,7 @@ App.dataSetMapper = App.QuickDataMapper.create({
   jobs_config: {
     $dataset_id: 'none', // will be loaded outside parser
     id: 'Instances.id',
+    status : 'Instances.status',
     start_date: 'start_date',
     end_date: 'end_date',
     duration: 'duration'
@@ -177,7 +179,7 @@ App.dataSetMapper = App.QuickDataMapper.create({
       }, this);
 
 
-
+      debugger;
       console.debug('Before load: App.Dataset.find().content : ' + App.Dataset.find().content);
       App.store.loadMany(this.get('model'), dataset_results);
       console.debug('After load: App.Dataset.find().content : ' + App.Dataset.find().content);

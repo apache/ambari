@@ -26,11 +26,11 @@ App.MainJobsView = App.TableView.extend({
     return this.get('controller.jobs');
   }.property('controller.jobs'),
 
-  didInsertElement: function() {
+  didInsertElement: function () {
     this.set('content', this.get('controller.jobs'));
   },
 
-  dataset: function() {
+  dataset: function () {
     return this.get('controller.content');
   }.property('controller.content'),
 
@@ -105,6 +105,84 @@ App.MainJobsView = App.TableView.extend({
   JobView: Em.View.extend({
     content: null,
     tagName: 'tr',
+    canActionBeTaken: function () {
+      var job_status = this.get('content.status');
+
+      if (job_status == "RUNNING" || job_status == "SUSPENDED") {
+        return true;
+      }
+
+      return false;
+
+    }.property('content.status'),
+
+    isKilled: function () {
+      var job_status = this.get('content.status');
+      return job_status == 'KILLED';
+    }.property(),
+
+    statusClass: function () {
+      var job_status = this.get('content.status');
+      switch (job_status) {
+        case 'RUNNING' :
+          return "btn btn-success dropdown-toggle";
+          break;
+        case 'SUSPENDED' :
+          return "btn btn-warning dropdown-toggle";
+          break;
+        case 'SUCCEEDED' :
+          return "label label-success";
+          break;
+        case 'KILLED' :
+          return "label label-important";
+          break;
+        case 'WAITING' :
+          return "label";
+          break;
+        case 'KILLED' :
+        case 'FAILED' :
+        case 'ERROR' :
+          return "label label-important";
+          break;
+        default :
+          return "label";
+          break;
+      }
+    }.property('content.status'),
+
+    listOfOptions: function () {
+      var listOfActions = [];
+      var status = this.get('content.status');
+      switch (status) {
+        case 'RUNNING' :
+          listOfActions.push({title: 'Suspend', value: 'Suspend'});
+          listOfActions.push({title: 'Abort', value: 'Abort'});
+          break;
+        case 'SUSPENDED' :
+          listOfActions.push({title: 'Resume', value: 'Resume'});
+          listOfActions.push({title: 'Abort', value: 'Abort'});
+          break;
+      }
+      return listOfActions;
+    }.property('content.status'),
+
+    changeStatus: function (event) {
+      var selected = event.context;
+      var self = this;
+      App.showConfirmationPopup(function () {
+        switch (selected.title) {
+          case 'Suspend' :
+            self.set('content.status', 'SUSPENDED');
+            break;
+          case 'Resume' :
+            self.set('content.status', 'RUNNING');
+            break;
+          case 'Abort' :
+            self.set('content.status', 'KILLED');
+            break;
+        }
+      });
+    },
 
     durationFormatted: function () {
       var milliseconds = this.get('content.duration');
@@ -139,5 +217,7 @@ App.MainJobsView = App.TableView.extend({
     associations[5] = 'data';
     return associations;
   }.property()
+
+
 
 });

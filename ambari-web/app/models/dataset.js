@@ -22,6 +22,7 @@ var App = require('app');
 App.Dataset = DS.Model.extend({
   id: DS.attr('string'),
   name: DS.attr('string'),
+  status: DS.attr('string'),
   sourceClusterName: DS.attr('string'),
   targetCluster: DS.belongsTo('App.TargetCluster'),
   sourceDir: DS.attr('string'),
@@ -38,13 +39,13 @@ App.Dataset = DS.Model.extend({
 
 App.Dataset.Schedule = DS.Model.extend({
   id: DS.attr('string'),
-  startDate : DS.attr('string'),
-  endDate :  DS.attr('string'),
-  startTime : DS.attr('string'),
-  endTime : DS.attr('string'),
-  timezone : DS.attr('string'),
-  frequency : DS.attr('string'),
-  dataset : DS.belongsTo('App.Dataset')
+  startDate: DS.attr('string'),
+  endDate: DS.attr('string'),
+  startTime: DS.attr('string'),
+  endTime: DS.attr('string'),
+  timezone: DS.attr('string'),
+  frequency: DS.attr('string'),
+  dataset: DS.belongsTo('App.Dataset')
 });
 
 App.Dataset.FIXTURES = [/*
