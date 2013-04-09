@@ -101,7 +101,7 @@ module.exports =
       "id": "site property",
       "name": "mapred.capacity-scheduler.queue.<queue-name>.supports-priority",
       "displayName": "Supports Priority",
-      "value": false,
+      "value": 'false',
       "defaultValue": false,
       "displayType": "checkbox",
       "description": "If true, priorities of jobs will be taken into account in scheduling decisions.",

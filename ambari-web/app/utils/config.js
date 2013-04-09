@@ -275,44 +275,48 @@ App.config = Em.Object.create({
     } else {
       queueProperties = preDefinedCustomConfigs.filterProperty('isQueue');
       queueProperties.forEach(function (customConfig) {
-        this.setDefaultQueue(customConfig);
+        this.setDefaultQueue(customConfig, 'default');
         configs.push(customConfig);
       }, this);
     }
   },
   /**
-   * set values to properties of default queue
+   * set values to properties of queue
    * @param customConfig
+   * @param queueName
    */
-  setDefaultQueue: function (customConfig) {
-    customConfig.name = customConfig.name.replace(/<queue-name>/, 'default');
-    //values for default queue
+  setDefaultQueue: function (customConfig, queueName) {
+    customConfig.name = customConfig.name.replace(/<queue-name>/, queueName);
+    //default values of queue
     switch (customConfig.name) {
-      case 'mapred.capacity-scheduler.queue.default.capacity':
+      case 'mapred.capacity-scheduler.queue.' + queueName + '.capacity':
         customConfig.value = '100';
         break;
-      case 'mapred.capacity-scheduler.queue.default.maximum-capacity':
+      case 'mapred.capacity-scheduler.queue.' + queueName + '.maximum-capacity':
         customConfig.value = '100';
         break;
-      case 'mapred.capacity-scheduler.queue.default.minimum-user-limit-percent':
+      case 'mapred.capacity-scheduler.queue.' + queueName + '.minimum-user-limit-percent':
         customConfig.value = '100';
         break;
-      case 'mapred.capacity-scheduler.queue.default.user-limit-factor':
+      case 'mapred.capacity-scheduler.queue.' + queueName + '.user-limit-factor':
         customConfig.value = '1';
         break;
-      case 'mapred.capacity-scheduler.queue.default.maximum-initialized-active-tasks':
+      case 'mapred.capacity-scheduler.queue.' + queueName + '.maximum-initialized-active-tasks':
         customConfig.value = '200000';
         break;
-      case 'mapred.capacity-scheduler.queue.default.maximum-initialized-active-tasks-per-user':
+      case 'mapred.capacity-scheduler.queue.' + queueName + '.maximum-initialized-active-tasks-per-user':
         customConfig.value = '100000';
         break;
-      case 'mapred.capacity-scheduler.queue.default.init-accept-jobs-factor':
+      case 'mapred.capacity-scheduler.queue.' + queueName + '.init-accept-jobs-factor':
         customConfig.value = '10';
         break;
-      case 'mapred.queue.default.acl-submit-job':
+      case 'mapred.capacity-scheduler.queue.' + queueName + '.supports-priority':
+        customConfig.value = 'false';
+        break;
+      case 'mapred.queue.' + queueName + '.acl-submit-job':
         customConfig.value = '* *';
         break;
-      case 'mapred.queue.default.acl-administer-jobs':
+      case 'mapred.queue.' + queueName + '.acl-administer-jobs':
         customConfig.value = '* *';
         break;
     }

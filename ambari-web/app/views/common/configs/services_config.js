@@ -529,27 +529,35 @@ App.ServiceConfigCapacityScheduler = App.ServiceConfigsByCategoryView.extend({
     if(isCollapsed){
       this.$('.accordion-body').hide();
     }
-    this.createEmptyQueue(this.get('queues')[0]);
+    this.createEmptyQueue(this.get('customConfigs').filterProperty('isQueue'));
   },
+  //list of fields which will be populated by default in a new queue
+  fieldsToPopulate: [
+    "mapred.capacity-scheduler.queue.<queue-name>.minimum-user-limit-percent",
+    "mapred.capacity-scheduler.queue.<queue-name>.user-limit-factor",
+    "mapred.capacity-scheduler.queue.<queue-name>.supports-priority",
+    "mapred.capacity-scheduler.queue.<queue-name>.maximum-initialized-active-tasks",
+    "mapred.capacity-scheduler.queue.<queue-name>.maximum-initialized-active-tasks-per-user",
+    "mapred.capacity-scheduler.queue.<queue-name>.init-accept-jobs-factor"
+  ],
   /**
    * create empty queue
    * take some queue then copy it and set all config values to null
-   * @param queue
+   * @param customConfigs
    */
-  createEmptyQueue: function(queue){
+  createEmptyQueue: function(customConfigs){
     var emptyQueue = {
       name: '<queue-name>',
       configs: []
     };
-    queue.configs.forEach(function(config){
-      var newConfig = App.ServiceConfigProperty.create(config);
-      if(newConfig.get('name') == 'mapred.capacity-scheduler.queue.' + queue.name + '.supports-priority'){
-        newConfig.set('value', false);
-      } else {
-        newConfig.set('value', '');
+    var fieldsToPopulate = this.get('fieldsToPopulate');
+    customConfigs.forEach(function(config){
+      var newConfig = $.extend({}, config);
+      if(fieldsToPopulate.contains(config.name)){
+        App.config.setDefaultQueue(newConfig, emptyQueue.name);
       }
-      //comparison executes including 'queue.<queue-name>' to avoid false matches
-      newConfig.set('name', newConfig.get('name').replace('queue.' + queue.name, 'queue.<queue-name>'));
+      newConfig = App.ServiceConfigProperty.create(newConfig);
+      newConfig.validate();
       emptyQueue.configs.push(newConfig);
     });
     this.set('emptyQueue', emptyQueue);
@@ -615,7 +623,7 @@ App.ServiceConfigCapacityScheduler = App.ServiceConfigsByCategoryView.extend({
       var serviceConfigProperty = $.extend({}, _config);
       serviceConfigProperty.name = serviceConfigProperty.name.replace(/<queue-name>/, queueName);
       if(!queue.someProperty('name', serviceConfigProperty.name)){
-        App.config.setDefaultQueue(serviceConfigProperty);
+        App.config.setDefaultQueue(serviceConfigProperty, queueName);
         serviceConfigProperty = App.ServiceConfigProperty.create(serviceConfigProperty);
         serviceConfigProperty.validate();
         queue.push(serviceConfigProperty);

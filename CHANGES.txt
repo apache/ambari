@@ -11,6 +11,9 @@ Trunk (unreleased changes):
  INCOMPATIBLE CHANGES 
 
  NEW FEATURES
+
+ AMBARI-1855. Capacity Scheduler: when adding a new queue, populate 
+ fields. (srimanth)
  
  AMBARI-1850. Update unit tests. (srimanth)
 
