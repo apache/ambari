@@ -178,8 +178,6 @@ App.dataSetMapper = App.QuickDataMapper.create({
         }
       }, this);
 
-
-      debugger;
       console.debug('Before load: App.Dataset.find().content : ' + App.Dataset.find().content);
       App.store.loadMany(this.get('model'), dataset_results);
       console.debug('After load: App.Dataset.find().content : ' + App.Dataset.find().content);

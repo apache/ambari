@@ -668,6 +668,9 @@ Trunk (unreleased changes):
 
  BUG FIXES
 
+ AMBARI-1848. Install Wizard, Step 7: Oozie Database Derby option should say 
+ "New Derby Database", not "Current Derby Database". (Xi Wang via srimanth)
+
  AMBARI-1860. Master broken - Cannot deploy services. (smohanty)
 
  AMBARI-1859. Cannot load Nagios Alerts due to 400 Bad Request. (smohanty)

@@ -2254,10 +2254,10 @@ module.exports =
       "name": "oozie_database",
       "displayName": "Oozie Database",
       "value": "",
-      "defaultValue": "Current Derby Database",
+      "defaultValue": "New Derby Database",
       "options": [
         {
-          displayName: 'Current Derby Database',
+          displayName: 'New Derby Database',
           foreignKeys: ['oozie_derby_database']
         },
         {

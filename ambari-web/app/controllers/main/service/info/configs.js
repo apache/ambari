@@ -769,7 +769,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
   setOozieHostName: function (globals) {
     if (globals.someProperty('name', 'oozie_database')) {
       var oozieDb = globals.findProperty('name', 'oozie_database');
-      if (oozieDb.value === 'Current Derby Database'){
+      if (oozieDb.value === 'New Derby Database'){
         globals = globals.without(globals.findProperty('name', 'oozie_ambari_host'));
         globals = globals.without(globals.findProperty('name', 'oozie_ambari_database'));
         globals = globals.without(globals.findProperty('name', 'oozie_existing_mysql_host'));

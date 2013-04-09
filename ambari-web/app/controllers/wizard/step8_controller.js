@@ -120,7 +120,7 @@ App.WizardStep8Controller = Em.Controller.extend({
       var oozieJdbcDriver = {name: 'oozie_jdbc_driver'};
       var oozieJPAServcieURL = {name: 'oozie_JPAService_url'};
 
-      if (oozieDb.value === 'Current Derby Database'){
+      if (oozieDb.value === 'New Derby Database'){
         oozieDbType.value = 'derby';
         oozieJdbcDriver.value = 'org.apache.derby.jdbc.EmbeddedDriver';
         oozieJPAServcieURL.value = '${oozie.data.dir}/${oozie.db.schema.name}-db;create=true';  ///////
@@ -699,7 +699,7 @@ App.WizardStep8Controller = Em.Controller.extend({
 
   loadOozieDbValue: function (dbComponent) {
     var oozieDb = App.db.getServiceConfigProperties().findProperty('name', 'oozie_database');
-    if (oozieDb.value === 'Current Derby Database'){
+    if (oozieDb.value === 'New Derby Database'){
       var db = App.db.getServiceConfigProperties().findProperty('name', 'oozie_derby_database');
       dbComponent.set('component_value', db.value + ' (' + oozieDb.value + ')');
     } else if (oozieDb.value === 'New MySQL Database') {
