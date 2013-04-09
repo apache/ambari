@@ -199,7 +199,7 @@ var urls = {
     }
   },
   'config.advanced': {
-    'real': '{stackVersionUrl}/services/{serviceName}',
+    'real': '{stack2VersionUrl}/stackServices/{serviceName}/configurations?fields=*',
     'mock': '/data/wizard/stack/hdp/version130/{serviceName}.json',
     'format': function(data){
       return {

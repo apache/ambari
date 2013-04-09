@@ -71,7 +71,7 @@ App.ReassignMasterController = App.WizardController.extend({
    */
   loadServicesFromServer: function() {
     var displayOrderConfig = require('data/services');
-    var apiUrl = App.get('stackVersionURL');
+    var apiUrl = App.get('stack2VersionURL');
     var apiService = this.loadServiceComponents(displayOrderConfig, apiUrl);
     //
     apiService.forEach(function(item, index){

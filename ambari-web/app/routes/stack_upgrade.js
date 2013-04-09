@@ -42,7 +42,7 @@ module.exports = Em.Route.extend({
       });
       var statuses = ['STOPPING_SERVICES', 'STACK_UPGRADING', 'STACK_UPGRADE_FAILED', 'STACK_UPGRADED'];
       var currentClusterStatus = App.clusterStatus.get('value');
-      App.db.data = currentClusterStatus.localdb;
+      if (currentClusterStatus.localdb) App.db.data = currentClusterStatus.localdb;
       if (statuses.contains(currentClusterStatus.clusterState)) {
         stackUpgradeController.setCurrentStep(3);
       }

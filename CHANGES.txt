@@ -14,12 +14,12 @@ Trunk (unreleased changes):
 
  AMBARI-1847. Make single PUT call for multiple host overrides. (srimanth)
 
- AMBARI-1857. Capacity Scheduler: field order for Add/Edit popup. (srimanth)
+ AMBARI-1857. Capacity Scheduler: field order for Add/Edit popup. (yusaku via srimanth)
 
  AMBARI-1855. Capacity Scheduler: when adding a new queue, populate 
- fields. (srimanth)
+ fields. (yusaku via srimanth)
  
- AMBARI-1850. Update unit tests. (srimanth)
+ AMBARI-1850. Update unit tests. (yusaku via srimanth)
 
  AMBARI-1829. HDFS Mirroring: Display Status and handle maintenance operations 
  like Stop, Suspend, Activate etc. (Arun Kandregula via srimanth)
@@ -677,15 +677,18 @@ Trunk (unreleased changes):
 
  BUG FIXES
 
- AMBARI-1854. Wizards available for a non-administrator user. (srimanth)
+ AMBARI-1726. It seems upgrades available at the FE is hard-coded to 1.3.0. 
+ (yusaku via srimanth)
+
+ AMBARI-1854. Wizards available for a non-administrator user. (yusaku via srimanth)
 
  AMBARI-1852. Upon clicking Services > Service > Config, a call to 
- "configurations resource is made and the server throws 400. (srimanth)
+ "configurations resource is made and the server throws 400. (yusaku via srimanth)
 
  AMBARI-1851. Ambari Web behaves strangely when there is no Active HBase 
- Master. (srimanth)
+ Master. (yusaku via srimanth)
 
- AMBARI-1849. Cosmetic problems on HBase Dashboard. (srimanth)
+ AMBARI-1849. Cosmetic problems on HBase Dashboard. (yusaku via srimanth)
 
  AMBARI-1848. Install Wizard, Step 7: Oozie Database Derby option should say 
  "New Derby Database", not "Current Derby Database". (Xi Wang via srimanth)

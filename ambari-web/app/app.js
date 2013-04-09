@@ -42,7 +42,7 @@ module.exports = Em.Application.create({
    */
   stack2VersionURL:function(){
     var stackVersion = this.get('currentStackVersion') || this.get('defaultStackVersion');
-    return '/stacks2/HDP/versions/1.3.0';//TODO + stackVersion.replace(/HDP-/g, '');
+    return '/stacks2/HDP/versions/' + stackVersion.replace(/HDP-/g, '');
   }.property('currentStackVersion'),
   clusterName: null,
   currentStackVersion: null

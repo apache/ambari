@@ -431,7 +431,7 @@ App.WizardController = Em.Controller.extend({
     var result = null;
     var method = 'GET';
     var testUrl = '/data/wizard/stack/hdp/version/1.3.0.json';
-    var url = (App.testMode) ? testUrl : App.apiPrefix + apiUrl;
+    var url = (App.testMode) ? testUrl : App.apiPrefix + apiUrl + '?fields=stackServices/StackServices';
     $.ajax({
       type: method,
       url: url,
@@ -458,17 +458,18 @@ App.WizardController = Em.Controller.extend({
 
         // loop through all the service components
         for (var i = 0; i < displayOrderConfig.length; i++) {
-          var entry = jsonData.services.findProperty("name", displayOrderConfig[i].serviceName);
+          var entry = jsonData.stackServices.findProperty("StackServices.service_name", displayOrderConfig[i].serviceName);
           if (entry) {
+            entry = entry.StackServices;
             var myService = Service.create({
-              serviceName: entry.name,
+              serviceName: entry.service_name,
               displayName: displayOrderConfig[i].displayName,
               isDisabled: i === 0,
               isSelected: true,
               isInstalled: false,
               isHidden: displayOrderConfig[i].isHidden,
-              description: entry.comment,
-              version: entry.version
+              description: entry.comments,
+              version: entry.service_version
             });
 
             data.push(myService);
@@ -501,7 +502,7 @@ App.WizardController = Em.Controller.extend({
       return;
     }
     var displayOrderConfig = require('data/services');
-    var apiUrl = App.get('stackVersionURL');
+    var apiUrl = App.get('stack2VersionURL');
     var apiService = this.loadServiceComponents(displayOrderConfig, apiUrl);
     this.set('content.services', apiService);
     App.db.setService(apiService);

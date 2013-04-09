@@ -458,7 +458,7 @@ App.config = Em.Object.create({
       sender: this,
       data: {
         serviceName: serviceName,
-        stackVersionUrl: App.get('stackVersionURL')
+        stack2VersionUrl: App.get('stack2VersionURL')
       },
       success: 'loadAdvancedConfigSuccess'
     });
@@ -468,10 +468,22 @@ App.config = Em.Object.create({
 
   loadAdvancedConfigSuccess: function (data, opt, params) {
     console.log("TRACE: In success function for the loadAdvancedConfig; url is ", opt.url);
-    data.properties.setEach('serviceName', params.serviceName);
-    serviceComponents[params.serviceName] = data.properties;
+    var properties = [];
+    if (data.items.length) {
+      data.items.forEach(function (item) {
+        item = item.StackConfigurations;
+        properties.push({
+          serviceName: item.service_name,
+          name: item.property_name,
+          value: item.property_value,
+          description: item.property_description,
+          filename: item.filename
+        });
+      }, this);
+      serviceComponents[data.items[0].StackConfigurations.service_name] = properties;
+    }
   },
-  
+
   /**
    * Determine the map which shows which services
    * each global property effects.
