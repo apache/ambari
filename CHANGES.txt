@@ -239,6 +239,8 @@ Trunk (unreleased changes):
 
  IMPROVEMENTS
 
+ AMBARI-1864. Remove package dependency on mocha-phantomjs. (yusaku)
+
  AMBARI-1844. Need ability to update multiple hosts in 1 PUT call.
  (tbeerbower)
 

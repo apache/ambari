@@ -26,7 +26,6 @@
     "chai":"*",
     "sinon":"*",
     "sinon-chai":"*",
-    "express":"2.5.8",
-    "mocha-phantomjs": "*"
+    "express":"2.5.8"
   }
 }
