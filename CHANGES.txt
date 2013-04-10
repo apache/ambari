@@ -681,6 +681,8 @@ Trunk (unreleased changes):
 
  BUG FIXES
 
+ AMBARI-1869. Permission on agent site.pp files needs to be 660. (swagle)
+
  AMBARI-1867. Processing API requests takes too long. (swagle)
 
  AMBARI-1856. Queries for metrics to populate the dashboard graphs don't work
