@@ -341,4 +341,14 @@ public class ActionDBAccessorImpl implements ActionDBAccessor {
     }
     return hostRoleCommandDAO.getRequestsByTaskStatus(statuses, match, checkAllTasks);
   }
+
+  @Override
+  public Map<Long, String> getRequestContext(List<Long> requestIds) {
+    return stageDAO.findRequestContext(requestIds);
+  }
+
+  @Override
+  public String getRequestContext(long requestId) {
+    return stageDAO.findRequestContext(requestId);
+  }
 }

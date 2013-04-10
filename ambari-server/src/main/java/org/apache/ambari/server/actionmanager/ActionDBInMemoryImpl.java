@@ -204,4 +204,22 @@ public class ActionDBInMemoryImpl implements ActionDBAccessor {
     // TODO
     throw new RuntimeException("Functionality not implemented");
   }
+
+  @Override
+  public Map<Long, String> getRequestContext(List<Long> requestIds) {
+    Map<Long, String> result = new HashMap<Long, String>();
+    for (Long requestId : requestIds) {
+      List<Stage> stages = getAllStages(requestId);
+      result.put(requestId, stages != null && !stages.isEmpty() ? stages.get
+        (0).getRequestContext() : "");
+    }
+    return result;
+  }
+
+  @Override
+  public String getRequestContext(long requestId) {
+    List<Stage> stages = getAllStages(requestId);
+    return stages != null && !stages.isEmpty() ? stages.get(0)
+      .getRequestContext() : "";
+  }
 }

@@ -679,6 +679,8 @@ Trunk (unreleased changes):
 
  BUG FIXES
 
+ AMBARI-1867. Processing API requests takes too long. (swagle)
+
  AMBARI-1856. Queries for metrics to populate the dashboard graphs don't work
  with updated Ganglia. (tbeerbower)
 

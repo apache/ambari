@@ -31,6 +31,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -179,4 +180,11 @@ public class ActionManager {
     return db.getRequestsByStatus(status);
   }
 
+  public Map<Long, String> getRequestContext(List<Long> requestIds) {
+    return db.getRequestContext(requestIds);
+  }
+
+  public String getRequestContext(long requestId) {
+    return db.getRequestContext(requestId);
+  }
 }

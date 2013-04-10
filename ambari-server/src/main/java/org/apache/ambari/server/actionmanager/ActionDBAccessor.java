@@ -19,6 +19,7 @@ package org.apache.ambari.server.actionmanager;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import org.apache.ambari.server.Role;
@@ -79,4 +80,8 @@ public interface ActionDBAccessor {
   public HostRoleCommand getTask(long taskId);
 
   public List<Long> getRequestsByStatus(RequestStatus status);
+
+  public Map<Long, String> getRequestContext(List<Long> requestIds);
+
+  public String getRequestContext(long requestId);
 }

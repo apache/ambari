@@ -47,6 +47,15 @@ class DaoUtils {
     }
   }
 
+  public <T> T selectOne(TypedQuery<T> query, Object... parameters) {
+    setParameters(query, parameters);
+    try {
+      return query.setMaxResults(1).getSingleResult();
+    } catch (NoResultException ignored) {
+      return null;
+    }
+  }
+
   public int executeUpdate(Query query, Object... parameters) {
     setParameters(query, parameters);
     return query.executeUpdate();

@@ -31,6 +31,7 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.TreeMap;
 
+import com.google.inject.persist.Transactional;
 import com.google.gson.Gson;
 import com.google.inject.Inject;
 import com.google.inject.Injector;
@@ -3586,16 +3587,35 @@ public class AmbariManagementControllerImpl implements
     return Collections.emptySet();
   }
 
+  @Transactional
+  Collection<RequestStatusResponse> getRequestStatusResponses(List<Long> requestIds) {
+    List<HostRoleCommand> hostRoleCommands = actionManager.getAllTasksByRequestIds(requestIds);
+    Map<Long, String> requestContexts = actionManager.getRequestContext(requestIds);
+    Map<Long, RequestStatusResponse> responseMap = new HashMap<Long, RequestStatusResponse>();
+
+    for (HostRoleCommand hostRoleCommand : hostRoleCommands) {
+      Long requestId = hostRoleCommand.getRequestId();
+      RequestStatusResponse response = responseMap.get(requestId);
+      if (response == null) {
+        response = new RequestStatusResponse(requestId);
+        response.setRequestContext(requestContexts.get(requestId));
+        response.setTasks(new ArrayList<ShortTaskStatus>());
+        responseMap.put(requestId, response);
+      }
+
+      response.getTasks().add(new ShortTaskStatus(hostRoleCommand));
+    }
+
+    return responseMap.values();
+  }
+
+
   private RequestStatusResponse getRequestStatusResponse(long requestId) {
     RequestStatusResponse response = new RequestStatusResponse(requestId);
     List<HostRoleCommand> hostRoleCommands =
         actionManager.getRequestTasks(requestId);
 
-    List<Stage> listStages = actionManager.getActions(requestId);
-    if (listStages != null && !listStages.isEmpty()) {
-      //todo: may not be necessary to check list size.
-      response.setRequestContext(listStages.get(0).getRequestContext());
-    }
+    response.setRequestContext(actionManager.getRequestContext(requestId));
     List<ShortTaskStatus> tasks = new ArrayList<ShortTaskStatus>();
 
     for (HostRoleCommand hostRoleCommand : hostRoleCommands) {
@@ -3621,9 +3641,8 @@ public class AmbariManagementControllerImpl implements
             + ", requestStatus=" + requestStatus);
       }
       List<Long> requestIds = actionManager.getRequestsByStatus(requestStatus);
-      for (Long requestId : requestIds) {
-        response.add(getRequestStatusResponse(requestId.longValue()));
-      }
+      response.addAll(getRequestStatusResponses(requestIds));
+
     } else {
       RequestStatusResponse requestStatusResponse = getRequestStatusResponse(
           request.getRequestId().longValue());
