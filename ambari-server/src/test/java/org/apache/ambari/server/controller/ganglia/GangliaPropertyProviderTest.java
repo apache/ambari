@@ -43,8 +43,8 @@ public class GangliaPropertyProviderTest {
   private static final String COMPONENT_NAME_PROPERTY_ID = PropertyHelper.getPropertyId("HostRoles", "component_name");
 
   @Test
-  public void testGetResources() throws Exception {
-    TestStreamProvider streamProvider  = new TestStreamProvider();
+  public void testPopulateResources() throws Exception {
+    TestStreamProvider streamProvider  = new TestStreamProvider("temporal_ganglia_data.txt");
     TestGangliaHostProvider hostProvider = new TestGangliaHostProvider();
 
     GangliaPropertyProvider propertyProvider = new GangliaHostComponentPropertyProvider(
@@ -116,8 +116,8 @@ public class GangliaPropertyProviderTest {
 
 
   @Test
-  public void testGetManyResources() throws Exception {
-    TestStreamProvider streamProvider  = new TestStreamProvider();
+  public void testPopulateManyResources() throws Exception {
+    TestStreamProvider streamProvider  = new TestStreamProvider("temporal_ganglia_data.txt");
     TestGangliaHostProvider hostProvider = new TestGangliaHostProvider();
 
     GangliaPropertyProvider propertyProvider = new GangliaHostPropertyProvider(
@@ -160,7 +160,7 @@ public class GangliaPropertyProviderTest {
 
   @Test
   public void testPopulateResources__LargeNumberOfHostResources() throws Exception {
-    TestStreamProvider streamProvider  = new TestStreamProvider();
+    TestStreamProvider streamProvider  = new TestStreamProvider("temporal_ganglia_data.txt");
     TestGangliaHostProvider hostProvider = new TestGangliaHostProvider();
 
     GangliaPropertyProvider propertyProvider = new GangliaHostPropertyProvider(

@@ -18,6 +18,9 @@
 
 package org.apache.ambari.server.controller.ganglia;
 
+import org.codehaus.jackson.annotate.JsonIgnoreProperties;
+@JsonIgnoreProperties(ignoreUnknown = true)
+
 
 /**
  * Data structure for temporal data returned from Ganglia Web.
