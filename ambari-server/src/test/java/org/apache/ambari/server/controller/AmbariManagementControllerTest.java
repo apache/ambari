@@ -4607,6 +4607,55 @@ public class AmbariManagementControllerTest {
         taskStatuses.get(0).getRole());
   }
 
+  @Test
+  public void testStackVersionAsHostLevelParams() throws AmbariException {
+    String clusterName = "foo1";
+    createCluster(clusterName);
+    clusters.getCluster(clusterName)
+      .setDesiredStackVersion(new StackId("HDP-0.1"));
+    String serviceName = "PIG";
+    createService(clusterName, serviceName, null);
+    String componentName1 = "PIG";
+    createServiceComponent(clusterName, serviceName, componentName1,
+      State.INIT);
+
+    String host1 = "h1";
+    clusters.addHost(host1);
+    clusters.getHost("h1").persist();
+    String host2 = "h2";
+    clusters.addHost(host2);
+    clusters.getHost("h2").persist();
+
+    clusters.getHost("h1").setOsType("centos5");
+    clusters.getHost("h2").setOsType("centos6");
+    clusters.mapHostToCluster(host1, clusterName);
+    clusters.mapHostToCluster(host2, clusterName);
+
+    Map<String, String> mapRequestProps = new HashMap<String, String>();
+    mapRequestProps.put("context", "Called from a test");
+
+    // null service should work
+    createServiceComponentHost(clusterName, null, componentName1,
+      host1, null);
+    createServiceComponentHost(clusterName, null, componentName1,
+      host2, null);
+
+    ServiceRequest r = new ServiceRequest(clusterName, serviceName, null,
+      State.INSTALLED.toString());
+    Set<ServiceRequest> requests = new HashSet<ServiceRequest>();
+    requests.add(r);
+
+    RequestStatusResponse trackAction =
+      controller.updateServices(requests, mapRequestProps, true);
+    Assert.assertEquals(State.INSTALLED,
+      clusters.getCluster(clusterName).getService(serviceName)
+        .getDesiredState());
+
+    List<Stage> stages = actionDB.getAllStages(trackAction.getRequestId());
+    Assert.assertEquals("0.1", stages.get(0).getOrderedHostRoleCommands().get
+      (0).getExecutionCommandWrapper().getExecutionCommand()
+      .getHostLevelParams().get("stack_version"));
+  }
 
   @Test
   public void testGetStacks() throws Exception {
