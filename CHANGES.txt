@@ -12,6 +12,8 @@ Trunk (unreleased changes):
 
  NEW FEATURES
 
+ AMBARI-1868. Include stack version as a parameter in manifest. (swagle)
+
  AMBARI-1847. Make single PUT call for multiple host overrides. (srimanth)
 
  AMBARI-1857. Capacity Scheduler: field order for Add/Edit popup. (yusaku via srimanth)

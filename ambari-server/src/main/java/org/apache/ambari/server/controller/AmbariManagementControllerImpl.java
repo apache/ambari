@@ -956,6 +956,7 @@ public class AmbariManagementControllerImpl implements
     Map<String, String> params = new TreeMap<String, String>();
     params.put("repo_info", repoInfo);
     params.put("jdk_location", this.jdkResourceUrl);
+    params.put("stack_version", stackId.getStackVersion());
     execCmd.setHostLevelParams(params);
 
     Map<String, String> roleParams = new TreeMap<String, String>();
@@ -4011,6 +4012,7 @@ public class AmbariManagementControllerImpl implements
 
     Map<String, String> params = new TreeMap<String, String>();
     params.put("jdk_location", this.jdkResourceUrl);
+    params.put("stack_version", cluster.getDesiredStackVersion().getStackVersion());
     execCmd.setHostLevelParams(params);
 
     // Generate cluster host info
@@ -4069,8 +4071,11 @@ public class AmbariManagementControllerImpl implements
 
     execCmd.setConfigurations(configurations);
 
+    Cluster cluster = clusters.getCluster(clusterName);
     Map<String, String> params = new TreeMap<String, String>();
     params.put("jdk_location", this.jdkResourceUrl);
+    params.put("stack_version", cluster.getDesiredStackVersion()
+      .getStackVersion());
     execCmd.setHostLevelParams(params);
 
   }
