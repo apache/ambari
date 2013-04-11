@@ -206,7 +206,8 @@ App.config = Em.Object.create({
             filename: stored.filename,
             category: configCategory,
             isUserProperty: true,
-            isOverridable: true
+            isOverridable: true,
+            overrides: stored.overrides
           }
         } else if (preDefined && !stored) {
           configData = preDefined;

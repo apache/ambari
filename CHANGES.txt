@@ -687,6 +687,9 @@ Trunk (unreleased changes):
 
  BUG FIXES
 
+ AMBARI-1878. Host overrides functionality broken in wizard Step7 controller.
+ (yusaku)
+
  AMBARI-1875. Restart Service tooltip overlaps another tooltip. (yusaku)
 
  AMBARI-1874. Add Service Wizard: remove the ability to install master

@@ -692,6 +692,7 @@ App.WizardController = Em.Controller.extend({
             overridesArray.push(overrideEntry);
           });
         }
+        overridesArray = (overridesArray.length) ? overridesArray : null;
         var configProperty = {
           id: _configProperties.get('id'),
           name: _configProperties.get('name'),
@@ -699,7 +700,8 @@ App.WizardController = Em.Controller.extend({
           defaultValue: _configProperties.get('defaultValue'),
           serviceName: _configProperties.get('serviceName'),
           domain:  _configProperties.get('domain'),
-          filename: _configProperties.get('filename')
+          filename: _configProperties.get('filename'),
+          overrides: overridesArray
         };
         serviceConfigProperties.push(configProperty);
       }, this);
