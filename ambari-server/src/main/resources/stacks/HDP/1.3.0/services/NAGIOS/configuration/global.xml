@@ -22,34 +22,29 @@
 
 <configuration>
   <property>
-    <name>ganglia_conf_dir</name>
-    <value>/etc/ganglia/hdp</value>
-    <description>Config directory for Ganglia</description>
+    <name>nagios_user</name>
+    <value>nagios</value>
+    <description>Nagios Username.</description>
   </property>
   <property>
-    <name>ganglia_runtime_dir</name>
-    <value>/var/run/ganglia/hdp</value>
-    <description>Run directories for Ganglia</description>
+    <name>nagios_group</name>
+    <value>nagios</value>
+    <description>Nagios Group.</description>
   </property>
   <property>
-    <name>ganglia_runtime_dir</name>
-    <value>/var/run/ganglia/hdp</value>
-    <description>Run directories for Ganglia</description>
+    <name>nagios_web_login</name>
+    <value>nagiosadmin</value>
+    <description>Nagios web user.</description>
   </property>
   <property>
-    <name>gmetad_user</name>
-    <value>nobody</value>
-    <description>User </description>
-  </property>
-    <property>
-    <name>gmond_user</name>
-    <value>nobody</value>
-    <description>User </description>
+    <name>nagios_web_password</name>
+    <value></value>
+    <description>Nagios Admin Password.</description>
   </property>
   <property>
-    <name>rrdcached_base_dir</name>
-    <value>/var/lib/ganglia/rrds</value>
-    <description>Default directory for saving the rrd files on ganglia server</description>
+    <name>nagios_contact</name>
+    <value></value>
+    <description>Hadoop Admin Email.</description>
   </property>
 
 </configuration>

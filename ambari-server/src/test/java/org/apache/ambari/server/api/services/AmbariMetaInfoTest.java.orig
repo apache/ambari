@@ -260,17 +260,6 @@ public class AmbariMetaInfoTest {
       }
     }
     Assert.assertTrue(checkforglobal);
-    sinfo = metaInfo.getServiceInfo("HDP",
-        "0.2", "MAPREDUCE");
-    boolean checkforhadoopheapsize = false;
-    pinfo = sinfo.getProperties();
-    for (PropertyInfo pinfol: pinfo) {
-      if ("global.xml".equals(pinfol.getFilename())) {
-        if ("hadoop_heapsize".equals(pinfol.getName()))
-          checkforhadoopheapsize = true;
-      }
-    }
-    Assert.assertTrue(checkforhadoopheapsize);
   }
   
   @Test
