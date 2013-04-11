@@ -681,6 +681,8 @@ Trunk (unreleased changes):
 
  BUG FIXES
 
+ AMBARI-1875. Restart Service tooltip overlaps another tooltip. (yusaku)
+
  AMBARI-1874. Add Service Wizard: remove the ability to install master
  components for already installed services. (yusaku)
 
