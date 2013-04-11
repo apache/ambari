@@ -46,11 +46,16 @@ import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceComponent;
 import org.apache.ambari.server.state.ServiceComponentHost;
+import org.apache.ambari.server.state.svccomphost.ServiceComponentHostInstallEvent;
 import org.apache.ambari.server.state.svccomphost.ServiceComponentHostUpgradeEvent;
 import org.apache.ambari.server.utils.StageUtils;
 import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class TestActionScheduler {
+
+  private static final Logger log = LoggerFactory.getLogger(TestActionScheduler.class);
 
   /**
    * This test sends a new action to the action scheduler and verifies that the action
@@ -272,6 +277,139 @@ public class TestActionScheduler {
     scheduler.doWork();
     Assert.assertEquals(HostRoleStatus.FAILED, stages.get(0).getHostRoleStatus(hostname, "NAMENODE"));
     Assert.assertEquals(HostRoleStatus.ABORTED, stages.get(1).getHostRoleStatus(hostname, "DATANODE"));
+  }
+
+  /**
+   * Tests that the whole request is aborted when there are no QUEUED tasks for a role and
+   * success factor is not met. As long as there is one QUEUED task the request is not
+   * aborted.
+   * @throws Exception
+   */
+  @Test
+  public void testRequestAbortsOnlyWhenNoQueuedTaskAndSuccessFactorUnmet() throws Exception {
+    ActionQueue aq = new ActionQueue();
+    Clusters fsm = mock(Clusters.class);
+    Cluster oneClusterMock = mock(Cluster.class);
+    Service serviceObj = mock(Service.class);
+    ServiceComponent scomp = mock(ServiceComponent.class);
+    ServiceComponentHost sch = mock(ServiceComponentHost.class);
+    when(fsm.getCluster(anyString())).thenReturn(oneClusterMock);
+    when(oneClusterMock.getService(anyString())).thenReturn(serviceObj);
+    when(serviceObj.getServiceComponent(anyString())).thenReturn(scomp);
+    when(scomp.getServiceComponentHost(anyString())).thenReturn(sch);
+    when(serviceObj.getCluster()).thenReturn(oneClusterMock);
+
+    ActionDBAccessor db = new ActionDBInMemoryImpl();
+    List<Stage> stages = new ArrayList<Stage>();
+
+    long now = System.currentTimeMillis();
+    Stage stage = new Stage(1, "/tmp", "cluster1", "testRequestFailureBasedOnSuccessFactor");
+    stage.setStageId(1);
+
+    addHostRoleExecutionCommand(now, stage, Role.SQOOP, Service.Type.SQOOP,
+        RoleCommand.INSTALL, "host1", "cluster1");
+
+    addHostRoleExecutionCommand(now, stage, Role.OOZIE_CLIENT, Service.Type.OOZIE,
+        RoleCommand.INSTALL, "host1", "cluster1");
+
+    addHostRoleExecutionCommand(now, stage, Role.MAPREDUCE_CLIENT, Service.Type.MAPREDUCE,
+        RoleCommand.INSTALL, "host1", "cluster1");
+
+    addHostRoleExecutionCommand(now, stage, Role.HBASE_CLIENT, Service.Type.HBASE,
+        RoleCommand.INSTALL, "host1", "cluster1");
+
+    addHostRoleExecutionCommand(now, stage, Role.GANGLIA_MONITOR, Service.Type.GANGLIA,
+        RoleCommand.INSTALL, "host1", "cluster1");
+
+    addHostRoleExecutionCommand(now, stage, Role.HBASE_CLIENT, Service.Type.HBASE,
+        RoleCommand.INSTALL, "host2", "cluster1");
+
+    addHostRoleExecutionCommand(now, stage, Role.GANGLIA_MONITOR, Service.Type.GANGLIA,
+        RoleCommand.INSTALL, "host2", "cluster1");
+
+    stages.add(stage);
+
+    HostRoleStatus[] statusesAtIterOne = {HostRoleStatus.QUEUED, HostRoleStatus.QUEUED,
+        HostRoleStatus.QUEUED, HostRoleStatus.QUEUED, HostRoleStatus.FAILED,
+        HostRoleStatus.FAILED, HostRoleStatus.QUEUED, HostRoleStatus.QUEUED};
+    for (int index = 0; index < stage.getOrderedHostRoleCommands().size(); index++) {
+      stage.getOrderedHostRoleCommands().get(index).setTaskId(index + 1);
+      stage.getOrderedHostRoleCommands().get(index).setStatus(statusesAtIterOne[index]);
+    }
+
+    stage.setLastAttemptTime("host1", Role.SQOOP.toString(), now);
+    stage.setLastAttemptTime("host1", Role.MAPREDUCE_CLIENT.toString(), now);
+    stage.setLastAttemptTime("host1", Role.OOZIE_CLIENT.toString(), now);
+    stage.setLastAttemptTime("host1", Role.GANGLIA_MONITOR.toString(), now);
+    stage.setLastAttemptTime("host1", Role.HBASE_CLIENT.toString(), now);
+    stage.setLastAttemptTime("host2", Role.GANGLIA_MONITOR.toString(), now);
+    stage.setLastAttemptTime("host2", Role.HBASE_CLIENT.toString(), now);
+
+    db.persistActions(stages);
+
+    ActionScheduler scheduler = new ActionScheduler(100, 10000, db, aq, fsm, 3,
+        new HostsMap((String) null), new ServerActionManagerImpl(fsm));
+    ActionManager am = new ActionManager(
+        2, 10000, aq, fsm, db, new HostsMap((String) null), new ServerActionManagerImpl(fsm));
+
+    scheduler.doWork();
+
+    // Request is not aborted because all roles are in progress
+    HostRoleStatus[] expectedStatusesAtIterOne = {HostRoleStatus.QUEUED, HostRoleStatus.QUEUED,
+        HostRoleStatus.QUEUED, HostRoleStatus.QUEUED, HostRoleStatus.FAILED,
+        HostRoleStatus.FAILED, HostRoleStatus.QUEUED, HostRoleStatus.QUEUED};
+    for (int index = 0; index < stage.getOrderedHostRoleCommands().size(); index++) {
+      log.info(stage.getOrderedHostRoleCommands().get(index).toString());
+      Assert.assertEquals(expectedStatusesAtIterOne[index],
+          stage.getOrderedHostRoleCommands().get(index).getStatus());
+    }
+
+    HostRoleStatus[] statusesAtIterTwo = {HostRoleStatus.QUEUED, HostRoleStatus.QUEUED,
+        HostRoleStatus.QUEUED, HostRoleStatus.QUEUED, HostRoleStatus.FAILED,
+        HostRoleStatus.FAILED, HostRoleStatus.QUEUED, HostRoleStatus.COMPLETED};
+    for (int index = 0; index < stage.getOrderedHostRoleCommands().size(); index++) {
+      stage.getOrderedHostRoleCommands().get(index).setStatus(statusesAtIterTwo[index]);
+    }
+
+    scheduler.doWork();
+
+    // Request is not aborted because GANGLIA_MONITOR's success factor (0.5) is met
+    HostRoleStatus[] expectedStatusesAtIterTwo = {HostRoleStatus.QUEUED, HostRoleStatus.QUEUED,
+        HostRoleStatus.QUEUED, HostRoleStatus.QUEUED, HostRoleStatus.FAILED,
+        HostRoleStatus.FAILED, HostRoleStatus.QUEUED, HostRoleStatus.COMPLETED};
+    for (int index = 0; index < stage.getOrderedHostRoleCommands().size(); index++) {
+      log.info(stage.getOrderedHostRoleCommands().get(index).toString());
+      Assert.assertEquals(expectedStatusesAtIterTwo[index],
+          stage.getOrderedHostRoleCommands().get(index).getStatus());
+    }
+
+    HostRoleStatus[] statusesAtIterThree = {HostRoleStatus.QUEUED, HostRoleStatus.QUEUED,
+        HostRoleStatus.QUEUED, HostRoleStatus.QUEUED, HostRoleStatus.FAILED,
+        HostRoleStatus.FAILED, HostRoleStatus.FAILED, HostRoleStatus.COMPLETED};
+    for (int index = 0; index < stage.getOrderedHostRoleCommands().size(); index++) {
+      stage.getOrderedHostRoleCommands().get(index).setStatus(statusesAtIterThree[index]);
+    }
+
+    scheduler.doWork();
+
+    // Request is aborted because HBASE_CLIENT's success factor (1) is not met
+    HostRoleStatus[] expectedStatusesAtIterThree = {HostRoleStatus.ABORTED, HostRoleStatus.ABORTED,
+        HostRoleStatus.ABORTED, HostRoleStatus.ABORTED, HostRoleStatus.FAILED,
+        HostRoleStatus.FAILED, HostRoleStatus.FAILED, HostRoleStatus.COMPLETED};
+    for (int index = 0; index < stage.getOrderedHostRoleCommands().size(); index++) {
+      log.info(stage.getOrderedHostRoleCommands().get(index).toString());
+      Assert.assertEquals(expectedStatusesAtIterThree[index],
+          stage.getOrderedHostRoleCommands().get(index).getStatus());
+    }
+  }
+
+  private void addHostRoleExecutionCommand(long now, Stage stage, Role role, Service.Type service,
+                                           RoleCommand command, String host, String cluster) {
+    stage.addHostRoleExecutionCommand(host, role, command,
+        new ServiceComponentHostInstallEvent(role.toString(), host, now, "HDP-0.2"),
+        cluster, service.toString());
+    stage.getExecutionCommandWrapper(host,
+        role.toString()).getExecutionCommand();
   }
 
   @Test

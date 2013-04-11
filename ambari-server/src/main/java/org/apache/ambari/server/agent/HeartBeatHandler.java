@@ -181,6 +181,7 @@ public class HeartBeatHandler {
       throws AmbariException {
     List<CommandReport> reports = heartbeat.getReports();
     for (CommandReport report : reports) {
+      LOG.debug("Received command report: " + report);
       Cluster cl = clusterFsm.getCluster(report.getClusterName());
       String service = report.getServiceName();
       if (service == null || "".equals(service)) {
