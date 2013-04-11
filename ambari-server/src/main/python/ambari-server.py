@@ -900,24 +900,22 @@ def setup(args):
 #
 def reset(args):
   okToRun = False
-  choice = raw_input("**** WARNING **** You are about to reset and clear the "
+  choice = get_YN_input("**** WARNING **** You are about to reset and clear the "
                      "Ambari Server database. This will remove all cluster "
                      "host and configuration information from the database. "
                      "You will be required to re-configure the Ambari server "
                      "and re-run the cluster wizard. \n"
                      "Are you SURE you want to perform the reset "
-                     "[yes/no]? ").lower()
-  if choice in set(['yes']):
-    okToRun = True
+                     "[yes/no]? ", True)
+  okToRun = choice
 
   if not okToRun:
     print "Ambari Server 'reset' cancelled"
     return -1
 
   okToRun = False
-  choice = raw_input("Confirm server reset [yes/no]? ").lower()
-  if choice in set(['yes']):
-    okToRun = True
+  choice = get_YN_input("Confirm server reset [yes/no]? ", True)
+  okToRun = choice
 
   if not okToRun:
     print "Ambari Server 'reset' cancelled"
