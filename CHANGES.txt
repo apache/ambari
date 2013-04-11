@@ -692,6 +692,8 @@ Trunk (unreleased changes):
 
  BUG FIXES
 
+ AMBARI-1898. Update stack definitions for 1.3.0. (smohanty)
+
  AMBARI-1886. Derived properties not being overridden for hosts. (srimanth)
 
  AMBARI-1896. Disable editing Capacity Scheduler on host configs. (srimanth)

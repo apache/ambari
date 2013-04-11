@@ -17,15 +17,14 @@
 -->
 <metainfo>
     <user>root</user>
-    <comment>This is comment for WEBHCAT service</comment>
-    <version>0.11.0.1.3.0.0</version>
+    <comment>Nagios Monitoring and Alerting system</comment>
+    <version>3.2.3</version>
 
     <components>
         <component>
-            <name>WEBHCAT_SERVER</name>
+            <name>NAGIOS_SERVER</name>
             <category>MASTER</category>
         </component>
     </components>
-
 
 </metainfo>

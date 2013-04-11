@@ -17,15 +17,24 @@
 -->
 <metainfo>
     <user>root</user>
-    <comment>This is comment for WEBHCAT service</comment>
-    <version>0.11.0.1.3.0.0</version>
+    <comment>Ganglia Metrics Collection system</comment>
+    <version>3.2.0</version>
 
     <components>
         <component>
-            <name>WEBHCAT_SERVER</name>
+            <name>GANGLIA_SERVER</name>
+            <category>MASTER</category>
+        </component>
+
+        <component>
+            <name>GANGLIA_MONITOR</name>
+            <category>SLAVE</category>
+        </component>
+
+        <component>
+            <name>MONITOR_WEBSERVER</name>
             <category>MASTER</category>
         </component>
     </components>
-
 
 </metainfo>

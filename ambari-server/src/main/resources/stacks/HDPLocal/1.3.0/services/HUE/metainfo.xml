@@ -17,15 +17,15 @@
 -->
 <metainfo>
     <user>root</user>
-    <comment>This is comment for WEBHCAT service</comment>
-    <version>0.11.0.1.3.0.0</version>
+    <comment>Hue is a graphical user interface to operate and develop
+      applications for Apache Hadoop.</comment>
+    <version>2.2.0</version>
 
     <components>
         <component>
-            <name>WEBHCAT_SERVER</name>
+            <name>HUE_SERVER</name>
             <category>MASTER</category>
         </component>
     </components>
-
 
 </metainfo>
