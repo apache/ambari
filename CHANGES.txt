@@ -690,6 +690,8 @@ Trunk (unreleased changes):
 
  BUG FIXES
 
+ AMBARI-1873. HUE pid and log dir labels are flip flopped. (yusaku)
+
  AMBARI-1878. Host overrides functionality broken in wizard Step7 controller.
  (yusaku)
 
