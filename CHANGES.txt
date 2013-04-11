@@ -690,6 +690,9 @@ Trunk (unreleased changes):
 
  BUG FIXES
 
+ AMBARI-1891. Impossibility to scroll metric window after browser width 
+ changing. (srimanth)
+
  AMBARI-1880. stacks2 API uses "type" to refer to config tags and no longer
  exposes "filename" as a property. (srimanth via yusaku)
 
