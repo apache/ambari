@@ -515,7 +515,7 @@ App.config = Em.Object.create({
     if(data.items!=null){
       data.items.forEach(function(service){
         service.configurations.forEach(function(config){
-          if("global.xml" === config.StackConfigurations.filename){
+          if("global.xml" === config.StackConfigurations.type){
             if(!(config.StackConfigurations.property_name in globalPropertyToServicesMap)){
               globalPropertyToServicesMap[config.StackConfigurations.property_name] = [];
             }

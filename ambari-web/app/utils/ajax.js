@@ -208,7 +208,7 @@ var urls = {
     }
   },
   'config.advanced.global': {
-    'real': '{stack2VersionUrl}/stackServices?fields=configurations/StackConfigurations/filename',
+    'real': '{stack2VersionUrl}/stackServices?fields=configurations/StackConfigurations/type',
     'mock': '/data/wizard/stack/hdp/version130/global.json',
     'format': function(data){
       return {

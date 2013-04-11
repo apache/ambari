@@ -690,6 +690,9 @@ Trunk (unreleased changes):
 
  BUG FIXES
 
+ AMBARI-1880. stacks2 API uses "type" to refer to config tags and no longer
+ exposes "filename" as a property. (srimanth via yusaku)
+
  AMBARI-1873. HUE pid and log dir labels are flip flopped. (yusaku)
 
  AMBARI-1878. Host overrides functionality broken in wizard Step7 controller.
