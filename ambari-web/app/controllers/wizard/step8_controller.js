@@ -187,12 +187,13 @@ App.WizardStep8Controller = Em.Controller.extend({
     var uiConfig = [];
     var configs = this.get('configMapping').filterProperty('foreignKey', null);
     configs.forEach(function (_config) {
-      var value = this.getGlobConfigValue(_config.templateName, _config.value, _config.name);
+      var valueWithOverrides = this.getGlobConfigValueWithOverrides(_config.templateName, _config.value, _config.name);
       uiConfig.pushObject({
         "id": "site property",
         "name": _config.name,
-        "value": value,
-        "filename": _config.filename
+        "value": valueWithOverrides.value,
+        "filename": _config.filename,
+        "overrides": valueWithOverrides.overrides
       });
     }, this);
     var dependentConfig = this.get('configMapping').filterProperty('foreignKey');
@@ -222,36 +223,47 @@ App.WizardStep8Controller = Em.Controller.extend({
 
   /**
    * Set all site property that are derived from other puppet-variable
+   * @return {
+   *   value: '...',
+   *   overrides: {
+   *    'value1': [h1, h2],
+   *    'value2': [h3]
+   *   }
+   * }
    */
 
-  getGlobConfigValue: function (templateName, expression, name) {
+  getGlobConfigValueWithOverrides: function (templateName, expression, name) {
     var express = expression.match(/<(.*?)>/g);
     var value = expression;
     if (express == null) {
       return expression;
     }
+    var overrideHostToValue = {};
     express.forEach(function (_express) {
       //console.log("The value of template is: " + _express);
       var index = parseInt(_express.match(/\[([\d]*)(?=\])/)[1]);
       if (this.get('globals').someProperty('name', templateName[index])) {
         //console.log("The name of the variable is: " + this.get('content.serviceConfigProperties').findProperty('name', templateName[index]).name);
-        var globValue = this.get('globals').findProperty('name', templateName[index]).value;
+        var globalObj = this.get('globals').findProperty('name', templateName[index]);
+        var globValue = globalObj.value;
         // Hack for templeton.zookeeper.hosts
+        var preReplaceValue = null;
         if (value !== null) {   // if the property depends on more than one template name like <templateName[0]>/<templateName[1]> then don't proceed to the next if the prior is null or not found in the global configs
-          if (name === "templeton.zookeeper.hosts" || name === 'hbase.zookeeper.quorum') {
-            // globValue is an array of ZooKeeper Server hosts
-            var zooKeeperPort = '2181';
-            if (name === "templeton.zookeeper.hosts") {
-              var zooKeeperServers = globValue.map(function (item) {
-                return item + ':' + zooKeeperPort;
-              }).join(',');
-              value = value.replace(_express, zooKeeperServers);
-            } else {
-              value = value.replace(_express, globValue.join(','));
-            }
-          } else {
-            value = value.replace(_express, globValue);
-          }
+          preReplaceValue = value;
+          value = this._replaceConfigValues(name, _express, value, globValue);
+        }
+        if(globalObj.overrides!=null){
+          globalObj.overrides.forEach(function(override){
+            var ov = override.value;
+            var hostsArray = override.hosts;
+            hostsArray.forEach(function(host){
+              if(!(host in overrideHostToValue)){
+                overrideHostToValue[host] = this._replaceConfigValues(name, _express, preReplaceValue, ov);
+              }else{
+                overrideHostToValue[host] = this._replaceConfigValues(name, _express, overrideHostToValue[host], ov);
+              }
+            }, this);
+          }, this);
         }
       } else {
         /*
@@ -263,8 +275,48 @@ App.WizardStep8Controller = Em.Controller.extend({
         value = null;
       }
     }, this);
+    
+    var valueWithOverrides = {
+        value: value,
+        overrides: []
+    };
+    var overrideValueToHostMap = {};
+    if(!jQuery.isEmptyObject(overrideHostToValue)){
+      for(var host in overrideHostToValue){
+        var hostVal = overrideHostToValue[host];
+        if(!(hostVal in overrideValueToHostMap)){
+          overrideValueToHostMap[hostVal] = [];
+        }
+        overrideValueToHostMap[hostVal].push(host);
+      }
+    }
+    for(var val in overrideValueToHostMap){
+      valueWithOverrides.overrides.push({
+        value: val,
+        hosts: overrideValueToHostMap[val]
+      });
+    }
+    return valueWithOverrides;
+  },
+  
+  _replaceConfigValues: function (name, express, value, globValue) {
+    if (name === "templeton.zookeeper.hosts" || name === 'hbase.zookeeper.quorum') {
+      // globValue is an array of ZooKeeper Server hosts
+      var zooKeeperPort = '2181';
+      if (name === "templeton.zookeeper.hosts") {
+        var zooKeeperServers = globValue.map(function (item) {
+          return item + ':' + zooKeeperPort;
+        }).join(',');
+        value = value.replace(express, zooKeeperServers);
+      } else {
+        value = value.replace(express, globValue.join(','));
+      }
+    } else {
+      value = value.replace(express, globValue);
+    }
     return value;
   },
+  
   /**
    * Set all site property that are derived from other site-properties
    */

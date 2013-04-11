@@ -213,7 +213,6 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
         hostAndHostComponents: {},
         propertyToHostAndComponent: {}
     };
-    var propertyDifferences = {};
     var self = this;
     var actualConfigsUrl = this.getUrl('/data/services/host_component_actual_configs.json', '/services?fields=components/host_components/HostRoles/actual_configs');
     $.ajax({
@@ -543,7 +542,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
           });
           message += "</ul></li>";
         }
-        message += "</ul>"
+        message += "</ul>";
         serviceConfigProperty.set('restartRequiredMessage', message);
       }
       if (serviceConfigProperty.get('serviceName') === this.get('content.serviceName')) {
@@ -600,13 +599,14 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
       message = result.message;
       value = result.value;
     }
-
+    var self = this;
     App.ModalPopup.show({
       header: header,
       primary: Em.I18n.t('ok'),
       secondary: null,
       onPrimary: function () {
         this.hide();
+        self.loadStep();
       },
       bodyClass: Ember.View.extend({
         flag: result.flag,
@@ -829,13 +829,14 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
     var uiConfig = [];
     var configs = configMapping.filterProperty('foreignKey', null);
     configs.forEach(function (_config) {
-      var value = this.getGlobConfigValue(_config.templateName, _config.value, _config.name);
-      if (value !== null) {
+      var valueWithOverrides = this.getGlobConfigValueWithOverrides(_config.templateName, _config.value, _config.name);
+      if (valueWithOverrides !== null) {
         uiConfig.pushObject({
           "id": "site property",
           "name": _config.name,
-          "value": value,
-          "filename": _config.filename
+          "value": valueWithOverrides.value,
+          "filename": _config.filename,
+          "overrides": valueWithOverrides.overrides
         });
       }
     }, this);
@@ -847,40 +848,44 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
    * @param templateName
    * @param expression
    * @param name
-   * @return {*}
+   * @return {
+   *   value: '...',
+   *   overrides: {
+   *    'value1': [h1, h2],
+   *    'value2': [h3]
+   *   }
+   * }
    */
-  getGlobConfigValue: function (templateName, expression, name) {
+  getGlobConfigValueWithOverrides: function (templateName, expression, name) {
     var express = expression.match(/<(.*?)>/g);
     var value = expression;
     if (express == null) {
       return expression;
     }
-
+    var overrideHostToValue = {};
     express.forEach(function (_express) {
       //console.log("The value of template is: " + _express);
       var index = parseInt(_express.match(/\[([\d]*)(?=\])/)[1]);
       if (this.get('globalConfigs').someProperty('name', templateName[index])) {
         //console.log("The name of the variable is: " + this.get('content.serviceConfigProperties').findProperty('name', templateName[index]).name);
-        var globValue = this.get('globalConfigs').findProperty('name', templateName[index]).value;
+        var globalObj = this.get('globalConfigs').findProperty('name', templateName[index]);
+        var globValue = globalObj.value;
         // Hack for templeton.zookeeper.hosts
+        var preReplaceValue = null;
         if (value !== null) {   // if the property depends on more than one template name like <templateName[0]>/<templateName[1]> then don't proceed to the next if the prior is null or not found in the global configs
-          if (name === "templeton.zookeeper.hosts" || name === 'hbase.zookeeper.quorum') {
-            var zooKeeperPort = '2181';
-            if (typeof globValue === 'string') {
-              var temp = [];
-              temp.push(globValue);
-              globValue = temp;
-            }
-            if (name === "templeton.zookeeper.hosts") {
-              var temp = [];
-              globValue.forEach(function (_host, index) {
-                temp.push(globValue[index] + ':' + zooKeeperPort);
-              }, this);
-              globValue = temp;
-            }
-            value = value.replace(_express, globValue.toString());
-          } else {
-            value = value.replace(_express, globValue);
+          preReplaceValue = value;
+          value = this._replaceConfigValues(name, _express, value, globValue);
+        }
+        if(globalObj.overrides!=null){
+          for(ov in globalObj.overrides){
+            var hostsArray = globalObj.overrides[ov];
+            hostsArray.forEach(function(host){
+              if(!(host in overrideHostToValue)){
+                overrideHostToValue[host] = this._replaceConfigValues(name, _express, preReplaceValue, ov);
+              }else{
+                overrideHostToValue[host] = this._replaceConfigValues(name, _express, overrideHostToValue[host], ov);
+              }
+            }, this);
           }
         }
       } else {
@@ -893,6 +898,42 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
         value = null;
       }
     }, this);
+
+    var valueWithOverrides = {
+        value: value,
+        overrides: {}
+    };
+    if(!jQuery.isEmptyObject(overrideHostToValue)){
+      for(var host in overrideHostToValue){
+        var hostVal = overrideHostToValue[host];
+        if(!(hostVal in valueWithOverrides.overrides)){
+          valueWithOverrides.overrides[hostVal] = [];
+        }
+        valueWithOverrides.overrides[hostVal].push(host);
+      }
+    }
+    return valueWithOverrides;
+  },
+  
+  _replaceConfigValues: function (name, express, value, globValue) {
+    if (name === "templeton.zookeeper.hosts" || name === 'hbase.zookeeper.quorum') {
+      var zooKeeperPort = '2181';
+      if (typeof globValue === 'string') {
+        var temp = [];
+        temp.push(globValue);
+        globValue = temp;
+      }
+      if (name === "templeton.zookeeper.hosts") {
+        var temp = [];
+        globValue.forEach(function (_host, index) {
+          temp.push(globValue[index] + ':' + zooKeeperPort);
+        }, this);
+        globValue = temp;
+      }
+      value = value.replace(express, globValue.toString());
+    } else {
+      value = value.replace(express, globValue);
+    }
     return value;
   },
 
