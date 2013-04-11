@@ -23,8 +23,6 @@ App.QuickViewLinks = Em.View.extend({
   /**
    * Updated quick links. Here we put correct hostname to url
    */
-  errorFlag: false,
-
   quickLinks: function () {
     var serviceName = this.get('content.serviceName');
     var components = this.get('content.hostComponents');
@@ -35,15 +33,18 @@ App.QuickViewLinks = Em.View.extend({
     } else if (serviceName === 'MAPREDUCE') {
       host = components.findProperty('componentName', 'JOBTRACKER').get('host.publicHostName');
     } else if (serviceName === 'HBASE') {
-      if (components.filterProperty('componentName', 'HBASE_MASTER').someProperty('haStatus', 'active')) {
-        host = components.filterProperty('componentName', 'HBASE_MASTER').findProperty('haStatus', 'active').get('host.publicHostName');
-      }
-      else {
-        this.set('errorFlag', true);
+      var component = components.filterProperty('componentName', 'HBASE_MASTER').findProperty('haStatus', 'active');
+      if(component){
+        host = component.get('host.publicHostName');
       }
     }
     if (!host) {
-      return [];
+      return [
+        {
+          label: this.t('quick.links.error.label'),
+          url: 'javascript:alert("' + this.t('contact.administrator') + '");return false;'
+        }
+      ];
     }
     return this.get('content.quickLinks').map(function (item) {
       if (item.get('url')) {

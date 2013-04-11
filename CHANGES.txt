@@ -241,6 +241,9 @@ Trunk (unreleased changes):
 
  IMPROVEMENTS
 
+ AMBARI-1879. Show error message when hostname is undefined for quick_links.
+ (yusaku)
+
  AMBARI-1877. Reassign Master Wizard, Step 2: prevent proceed next without
  changing target host. (yusaku)
 
