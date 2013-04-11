@@ -15,24 +15,27 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 }}
-
-{{#if securityEnabled}}
-  <div>
-    <p class="text-success">{{t admin.security.enabled}}
-      <a
-              class="btn btn-padding btn-warning" {{bindAttr disabled="isSubmitDisabled"}} {{action notifySecurityOffPopup target="controller"}}>{{t admin.security.button.disable}}
-      </a> <br/>
-    </p>
-  </div>
-  <div>
-    {{outlet}}
-  </div>
+{{#if dataIsLoaded}}
+  {{#if securityEnabled}}
+    <div>
+      <p class="text-success">{{t admin.security.enabled}}
+        <a
+                class="btn btn-padding btn-warning" {{bindAttr disabled="isSubmitDisabled"}} {{action notifySecurityOffPopup target="controller"}}>{{t admin.security.button.disable}}
+        </a> <br/>
+      </p>
+    </div>
+    <div>
+      {{outlet}}
+    </div>
+  {{else}}
+    <div>
+      <p class="text-error">{{t admin.security.disabled}}
+        <a
+                class="btn btn-padding btn-success" {{action addSecurity}}>{{t admin.security.button.enable}}
+        </a> <br/>
+      </p>
+    </div>
+  {{/if}}
 {{else}}
-  <div>
-    <p class="text-error">{{t admin.security.disabled}}
-      <a
-              class="btn btn-padding btn-success" {{action addSecurity}}>{{t admin.security.button.enable}}
-      </a> <br/>
-    </p>
-  </div>
+  <div class="spinner"></div>
 {{/if}}

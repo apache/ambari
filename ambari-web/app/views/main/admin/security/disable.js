@@ -20,7 +20,7 @@ var App = require('app');
 
 App.MainAdminSecurityDisableView = Em.View.extend({
 
-  templateName: require('templates/main/service/reconfigure'),
+  templateName: require('templates/main/admin/security/disable'),
 
   didInsertElement: function () {
     this.get('controller').loadStep();

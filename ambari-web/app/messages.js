@@ -566,6 +566,7 @@ Em.I18n.translations = {
   'admin.addSecurity.apply.stage3': '2. Saving Configurations',
   'admin.addSecurity.apply.stage4': '3. Starting Services',
   'admin.addSecurity.apply.stage5': '5. Smoke Test',
+  'admin.removeSecurity.header': 'Disable Security',
   'admin.security.status.error' : 'Error in retrieving cluster security status from Ambari server',
   'admin.users.ldapAuthentionUsed':'LDAP Authentication is being used to authenticate users',
   'admin.users.delete.yourself.message':'You can\'t delete yourself',

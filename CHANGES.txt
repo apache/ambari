@@ -243,6 +243,9 @@ Trunk (unreleased changes):
 
  IMPROVEMENTS
 
+ AMBARI-1892. Restrict user on a Disable security popup while the poccessi
+ is in progress. (jaimin)
+
  AMBARI-1879. Show error message when hostname is undefined for quick_links.
  (yusaku)
 

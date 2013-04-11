@@ -16,6 +16,8 @@
  * limitations under the License.
  */
 
+var App = require('app');
+
 module.exports = Em.Route.extend({
   route: '/main',
   enter: function (router) {
@@ -595,7 +597,6 @@ module.exports = Em.Route.extend({
     adminSecurity: Em.Route.extend({
       route: '/security',
       enter: function (router) {
-        //alert("1.. I am in enter path");
         router.set('mainAdminController.category', "security");
         var controller = router.get('mainAdminSecurityController');
         if (!(controller.getAddSecurityWizardStatus() === 'RUNNING')) {
@@ -614,23 +615,7 @@ module.exports = Em.Route.extend({
         connectOutlets: function (router, context) {
           var controller = router.get('mainAdminController');
           controller.set('category', "security");
-          controller.connectOutlet('loading');
-          var securityStatus = controller.securityStatusLoading();
-          securityStatus.done(function () {
-            controller.connectOutlet('mainAdminSecurity');
-          });
-          securityStatus.fail(function () {
-            App.ModalPopup.show({
-              header: Em.I18n.translations['common.error'],
-              secondary: false,
-              onPrimary: function () {
-                this.hide();
-              },
-              bodyClass: Ember.View.extend({
-                template: Ember.Handlebars.compile('<p>{{t admin.security.status.error}}</p>')
-              })
-            });
-          });
+          controller.connectOutlet('mainAdminSecurity');
         }
       }),
 
@@ -640,8 +625,43 @@ module.exports = Em.Route.extend({
 
       disableSecurity: Ember.Route.extend({
         route: '/',
-        connectOutlets: function (router, context) {
-          router.get('mainAdminSecurityController').connectOutlet('mainAdminSecurityDisable');
+        enter: function (router) {
+          Ember.run.next(function () {
+            App.router.get('updateController').set('isWorking', false);
+            App.ModalPopup.show({
+              classNames: ['full-width-modal'],
+              header: Em.I18n.t('admin.removeSecurity.header'),
+              bodyClass: App.MainAdminSecurityDisableView.extend({
+                controllerBinding: 'App.router.mainAdminSecurityDisableController'
+              }),
+              primary: Em.I18n.t('form.cancel'),
+              secondary: null,
+              showFooter: false,
+
+              onPrimary: function () {
+                this.hide();
+                App.router.get('updateController').set('isWorking', true);
+              },
+              onClose: function () {
+                if (router.get('mainAdminSecurityDisableController.isSubmitDisabled') === false) {
+                  this.hide();
+                  App.router.get('updateController').set('isWorking', true);
+                  router.transitionTo('adminSecurity.index');
+                }
+              },
+              didInsertElement: function () {
+                this.fitHeight();
+              }
+            });
+          });
+        },
+
+        unroutePath: function () {
+          return false;
+        },
+
+        done: function (router, context) {
+          $(context.currentTarget).parents("#modal").find(".close").trigger('click');
         }
       }),
 
@@ -665,7 +685,7 @@ module.exports = Em.Route.extend({
 
     adminMisc: Em.Route.extend({
       route: '/misc',
-      connectOutlets: function(router) {
+      connectOutlets: function (router) {
         router.set('mainAdminController.category', "misc");
         router.get('mainAdminController').connectOutlet('mainAdminMisc');
       }

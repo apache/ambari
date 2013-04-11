@@ -25,6 +25,7 @@ if(location.port == '3333'){
 App.testModeDelayForActions = 10000;
 App.skipBootstrap = false;
 App.alwaysGoToInstaller = false;
+App.testEnableSecurity = true;                          // By default enable security is tested
 App.apiPrefix = '/api/v1';
 App.defaultStackVersion = 'HDP-1.2.1';
 App.defaultLocalStackVersion = 'HDPLocal-1.2.1';

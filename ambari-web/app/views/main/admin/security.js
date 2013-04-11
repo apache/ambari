@@ -19,6 +19,9 @@
 var App = require('app');
 
 App.MainAdminSecurityView = Em.View.extend({
-  templateName: require('templates/main/admin/security')
+  templateName: require('templates/main/admin/security'),
+  didInsertElement: function() {
+    this.get('controller').setSecurityStatus();
+  }
 
 });

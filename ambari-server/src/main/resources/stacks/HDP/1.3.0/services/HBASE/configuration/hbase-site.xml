@@ -351,5 +351,15 @@
     not fail gracefully if multi-update is invoked (see ZOOKEEPER-1495).
     </description>
   </property>
-  
+  <property>
+    <name>zookeeper.znode.parent</name>
+    <value></value>
+    <description>Root ZNode for HBase in ZooKeeper. All of HBase's ZooKeeper
+      files that are configured with a relative path will go under this node.
+      By default, all of HBase's ZooKeeper file path are configured with a
+      relative path, so they will all go under this directory unless changed.
+    </description>
+  </property>
+
+
 </configuration>

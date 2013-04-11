@@ -20,7 +20,8 @@ var App = require('app');
 App.MainAdminSecurityDisableController = Em.Controller.extend({
 
   name: 'mainAdminSecurityDisableController',
-  configMapping: require('data/secure_mapping').slice(0),
+  secureMapping: require('data/secure_mapping'),
+  configMapping: require('data/config_mapping'),
   secureProperties: require('data/secure_properties').configProperties.slice(0),
   stages: [],
   configs: [],
@@ -28,6 +29,10 @@ App.MainAdminSecurityDisableController = Em.Controller.extend({
   secureServices: [],
   serviceConfigTags: [],
   globalProperties: [],
+  hasHostPopup: true,
+  services: [],
+  serviceTimestamp: null,
+  isSubmitDisabled: true,
 
   clearStep: function () {
     this.get('stages').clear();
@@ -57,10 +62,15 @@ App.MainAdminSecurityDisableController = Em.Controller.extend({
     var nextStage = this.get('stages').findProperty('isStarted', false);
     if (nextStage) {
       nextStage.set('isStarted', true);
-    } else {
-      this.set('isSubmitDisabled', false);
     }
   },
+
+  enableSubmit: function () {
+    if (this.get('stages').someProperty('isError', true) || this.get('stages').everyProperty('isSuccess', true)) {
+      this.set('isSubmitDisabled', false);
+      App.router.get('addSecurityController').setStepsEnable();
+    }
+  }.observes('stages.@each.isCompleted'),
 
   startStage: function () {
     var startedStages = this.get('stages').filterProperty('isStarted', true);
@@ -94,6 +104,26 @@ App.MainAdminSecurityDisableController = Em.Controller.extend({
     }
   }.observes('stages.@each.isCompleted'),
 
+  updateServices: function () {
+    this.services.clear();
+    var services = this.get("services");
+    this.get("stages").forEach(function (stages) {
+      var newService = Ember.Object.create({
+        name: stages.label,
+        hosts: []
+      });
+      var hostNames = stages.get("polledData").mapProperty('Tasks.host_name').uniq();
+      hostNames.forEach(function (name) {
+        newService.hosts.push({
+          name: name,
+          publicName: name,
+          logTasks: stages.polledData.filterProperty("Tasks.host_name", name)
+        });
+      });
+      services.push(newService);
+    });
+    this.set('serviceTimestamp', new Date().getTime());
+  }.observes("stages.@each.polledData"),
 
   addInfoToStages: function () {
     this.addInfoToStage2();
@@ -190,7 +220,7 @@ App.MainAdminSecurityDisableController = Em.Controller.extend({
     }
   },
 
-  getAllConfigurationsSuccessCallback: function(data) {
+  getAllConfigurationsSuccessCallback: function (data) {
     console.log("TRACE: In success function for the GET getServiceConfigsFromServer call");
     this.get('serviceConfigTags').forEach(function (_tag) {
       _tag.configs = data.items.findProperty('type', _tag.siteName).properties;
@@ -206,7 +236,7 @@ App.MainAdminSecurityDisableController = Em.Controller.extend({
   },
 
 
-loadSecureServices: function () {
+  loadSecureServices: function () {
     var secureServices = require('data/secure_configs');
     var installedServices = App.Service.find().mapProperty('serviceName');
     //General (only non service tab) tab is always displayed
@@ -255,14 +285,6 @@ loadSecureServices: function () {
     this.get('stages').findProperty('stage', 'stage3').set('isError', true);
   },
 
-  getAllConfigsFromServer: function () {
-    this.set('noOfWaitingAjaxCalls', this.get('serviceConfigTags').length - 1);
-    this.get('serviceConfigTags').forEach(function (_serviceConfigTags) {
-      if (_serviceConfigTags.serviceName !== 'MAPREDUCE' || _serviceConfigTags.siteName !== 'core-site') {   //skip MapReduce core-site configuration
-        this.getServiceConfigsFromServer(_serviceConfigTags);
-      }
-    }, this);
-  },
 
   removeSecureConfigs: function () {
     this.get('serviceConfigTags').forEach(function (_serviceConfigTags, index) {
@@ -275,7 +297,7 @@ loadSecureServices: function () {
         }, this);
         _serviceConfigTags.configs.security_enabled = false;
       } else {
-        this.get('configMapping').filterProperty('filename', _serviceConfigTags.siteName + '.xml').forEach(function (_config) {
+        this.get('secureMapping').filterProperty('filename', _serviceConfigTags.siteName + '.xml').forEach(function (_config) {
           var configName = _config.name;
           if (configName in _serviceConfigTags.configs) {
             switch (configName) {

@@ -38,7 +38,7 @@ App.MainAdminSecurityAddStep3Controller = Em.Controller.extend({
     return this.get('content.services').someProperty('serviceName', 'WEBHCAT');
   }.property('content.services'),
 
-  serviceUsersBinding: 'App.router.mainAdminController.serviceUsers',
+  serviceUsersBinding: 'App.router.mainAdminSecurityController.serviceUsers',
   hasHostPopup: true,
   services: [],
   serviceTimestamp: null,
@@ -329,7 +329,7 @@ App.MainAdminSecurityAddStep3Controller = Em.Controller.extend({
     if (!this.get('serviceUsers').length) {
       this.loadUsersFromServer();
     }
-    App.router.get('mainAdminController.serviceUsers').forEach(function (_user) {
+    App.router.get('mainAdminSecurityController.serviceUsers').forEach(function (_user) {
       this.get('globalProperties').pushObject(_user);
     }, this);
   },
@@ -343,7 +343,7 @@ App.MainAdminSecurityAddStep3Controller = Em.Controller.extend({
       serviceUsers.pushObject({id: 'puppet var', name: 'hbase_user', value: 'hbase'});
       serviceUsers.pushObject({id: 'puppet var', name: 'hive_user', value: 'hive'});
     } else {
-      App.router.get('mainAdminController').getSecurityStatusFromServer();
+      App.router.get('mainAdminSecurityController').getSecurityStatusFromServer();
     }
   },
 
