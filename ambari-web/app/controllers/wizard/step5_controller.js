@@ -30,11 +30,26 @@ App.WizardStep5Controller = Em.Controller.extend({
 
   isReassignWizard: function () {
     return this.get('content.controllerName') == 'reassignMasterController';
-  }.property(),
+  }.property('content.controllerName'),
 
   isReassignHive: function () {
     return this.get('servicesMasters').objectAt(0) && this.get('servicesMasters').objectAt(0).component_name == 'HIVE_SERVER' && this.get('isReassignWizard');
   }.property('isReassignWizard', 'servicesMasters'),
+
+  isSubmitDisabled: function () {
+    if (!this.get('isReassignWizard')) {
+      return false;
+    }
+    var reassigned = false;
+    var arr1 = App.HostComponent.find().filterProperty('componentName', this.get('content.reassign.component_name')).mapProperty('host.hostName');
+    var arr2 = this.get('servicesMasters').mapProperty('selectedHost');
+    arr1.forEach(function (host) {
+      if (!arr2.contains(host)) {
+        reassigned = true;
+      }
+    }, this);
+    return !reassigned;
+  }.property('servicesMasters.@each.selectedHost'),
 
   hosts:[],
 
@@ -636,6 +651,12 @@ App.WizardStep5Controller = Em.Controller.extend({
     }
     else {
       return -1;
+    }
+  },
+
+  submit: function () {
+    if (!this.get('isSubmitDisabled')){
+      App.router.send('next');
     }
   }
 });

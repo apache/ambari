@@ -241,6 +241,9 @@ Trunk (unreleased changes):
 
  IMPROVEMENTS
 
+ AMBARI-1877. Reassign Master Wizard, Step 2: prevent proceed next without
+ changing target host. (yusaku)
+
  AMBARI-1876. Capacity Scheduler: implement user/group and admin user/group
  validation rules. (yusaku)
 
