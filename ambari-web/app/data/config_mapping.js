@@ -47,7 +47,7 @@ var configs = [
   },
   {
     "name": "fs.checkpoint.edits.dir",
-    "templateName": ["fs_checkpoint_size"],
+    "templateName": ["fs_checkpoint_dir"],
     "foreignKey": null,
     "value": "<templateName[0]>",
     "filename": "core-site.xml"

@@ -681,6 +681,9 @@ Trunk (unreleased changes):
 
  BUG FIXES
 
+ AMBARI-1872. Ambari FE is not setting proper value for 
+ fs.checkpoint.edits.dir (jaimin)
+
  AMBARI-1869. Permission on agent site.pp files needs to be 660. (swagle)
 
  AMBARI-1867. Processing API requests takes too long. (swagle)
