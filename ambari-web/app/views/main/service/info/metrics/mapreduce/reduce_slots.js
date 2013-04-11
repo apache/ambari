@@ -30,8 +30,8 @@ App.ChartServiceMetricsMapReduce_ReduceSlots = App.ChartLinearTimeView.extend({
   id: "service-metrics-mapreduce-reduce-slots",
   title: Em.I18n.t('services.service.info.metrics.mapreduce.reduceSlots'),
   renderer: 'line',
-  sourceUrl: "/services/MAPREDUCE/components/JOBTRACKER?fields=metrics/mapred/jobtracker/occupied_reduce_slots[{fromSeconds},{toSeconds},{stepSeconds}],metrics/mapred/jobtracker/reserved_reduce_slots[{fromSeconds},{toSeconds},{stepSeconds}]",
-  mockUrl: "/data/services/metrics/mapreduce/reduce_slots.json",
+
+  ajaxIndex: 'service.metrics.mapreduce.reduce_slots',
 
   transformToSeries: function (jsonData) {
     var seriesArray = [];

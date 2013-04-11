@@ -30,8 +30,8 @@ App.ChartServiceMetricsMapReduce_RPC = App.ChartLinearTimeView.extend({
   id: "service-metrics-mapreduce-rpc",
   title: Em.I18n.t('services.service.info.metrics.mapreduce.rpc'),
   yAxisFormatter: App.ChartLinearTimeView.TimeElapsedFormatter,
-  sourceUrl: "/hosts/{jobTrackerNode}/host_components/JOBTRACKER?fields=metrics/rpc/RpcQueueTime_avg_time[{fromSeconds},{toSeconds},{stepSeconds}]",
-  mockUrl: "/data/services/metrics/mapreduce/rpc.json",
+
+  ajaxIndex: 'service.metrics.mapreduce.rpc',
 
   transformToSeries: function (jsonData) {
     var seriesArray = [];

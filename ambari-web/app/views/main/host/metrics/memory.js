@@ -31,8 +31,8 @@ App.ChartHostMetricsMemory = App.ChartLinearTimeView.extend({
   title: Em.I18n.t('hosts.host.metrics.memory'),
   yAxisFormatter: App.ChartLinearTimeView.BytesFormatter,
   renderer: 'line',
-  sourceUrl: "/hosts/{hostName}?fields=metrics/memory/swap_free[{fromSeconds},{toSeconds},{stepSeconds}],metrics/memory/mem_shared[{fromSeconds},{toSeconds},{stepSeconds}],metrics/memory/mem_free[{fromSeconds},{toSeconds},{stepSeconds}],metrics/memory/mem_cached[{fromSeconds},{toSeconds},{stepSeconds}],metrics/memory/mem_buffers[{fromSeconds},{toSeconds},{stepSeconds}]",
-  mockUrl: "/data/hosts/metrics/memory.json",
+
+  ajaxIndex: 'host.metrics.memory',
 
   transformToSeries: function (jsonData) {
     var seriesArray = [];

@@ -31,8 +31,8 @@ App.ChartServiceMetricsHDFS_IO = App.ChartLinearTimeView.extend({
   title: Em.I18n.t('services.service.info.metrics.hdfs.io'),
   yAxisFormatter: App.ChartLinearTimeView.BytesFormatter,
   renderer: 'line',
-  sourceUrl: "/services/HDFS/components/DATANODE?fields=metrics/dfs/datanode/bytes_written[{fromSeconds},{toSeconds},{stepSeconds}],metrics/dfs/datanode/bytes_read[{fromSeconds},{toSeconds},{stepSeconds}]",
-  mockUrl: "/data/services/metrics/hdfs/io.json",
+
+  ajaxIndex: 'service.metrics.hdfs.io',
 
   transformToSeries: function (jsonData) {
     var seriesArray = [];

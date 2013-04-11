@@ -253,105 +253,103 @@ App.WizardController = Em.Controller.extend({
     this.set('content.cluster.oldRequestsId', []);
     this.set('content.cluster.requestId', null);
 
-    var self = this;
     var clusterName = this.get('content.cluster.name');
-    var url;
-    var method = (App.testMode) ? 'GET' : 'PUT';
     var data;
+    var name;
 
     switch (this.get('content.controllerName')) {
       case 'addHostController':
         if (isRetry) {
-          url = App.apiPrefix + '/clusters/' + clusterName + '/host_components?HostRoles/state=INSTALLED';
-        } else {
-          url = App.apiPrefix + '/clusters/' + clusterName + '/host_components?HostRoles/state=INIT';
+          name = 'wizard.install_services.add_host_controller.is_retry';
+        }
+        else {
+          name = 'wizard.install_services.add_host_controller.not_is_retry';
         }
         data = '{"RequestInfo": {"context" :"'+ Em.I18n.t('requestInfo.installComponents') +'"}, "Body": {"HostRoles": {"state": "INSTALLED"}}}';
         break;
       case 'installerController':
       default:
         if (isRetry) {
-          url = (App.testMode) ? '/data/wizard/deploy/2_hosts/poll_1.json' : App.apiPrefix + '/clusters/' + clusterName + '/host_components?HostRoles/state!=INSTALLED';
+          name = 'wizard.install_services.installer_controller.is_retry';
           data = '{"RequestInfo": {"context" :"'+ Em.I18n.t('requestInfo.installComponents') +'"}, "Body": {"HostRoles": {"state": "INSTALLED"}}}';
-        } else {
-          url = (App.testMode) ? '/data/wizard/deploy/2_hosts/poll_1.json' : App.apiPrefix + '/clusters/' + clusterName + '/services?ServiceInfo/state=INIT';
+        }
+        else {
+          name = 'wizard.install_services.installer_controller.not_is_retry';
           data = '{"RequestInfo": {"context" :"'+ Em.I18n.t('requestInfo.installServices') +'"}, "Body": {"ServiceInfo": {"state": "INSTALLED"}}}';
         }
         break;
     }
 
-    $.ajax({
-      type: method,
-      url: url,
-      data: data,
-      async: false,
-      dataType: 'text',
-      timeout: App.timeout,
-      success: function (data) {
-        var jsonData = jQuery.parseJSON(data);
-        var installStartTime = new Date().getTime();
-        console.log("TRACE: In success function for the installService call");
-        console.log("TRACE: value of the url is: " + url);
-        if (jsonData) {
-          var requestId = jsonData.Requests.id;
-          console.log('requestId is: ' + requestId);
-          var clusterStatus = {
-            status: 'PENDING',
-            requestId: requestId,
-            isInstallError: false,
-            isCompleted: false,
-            installStartTime: installStartTime
-          };
-          self.saveClusterStatus(clusterStatus);
-        } else {
-          console.log('ERROR: Error occurred in parsing JSON data');
-        }
+    App.ajax.send({
+      name: name,
+      sender: this,
+      data: {
+        data: data,
+        cluster: clusterName
       },
-
-      error: function (request, ajaxOptions, error) {
-        console.log("TRACE: In error function for the installService call");
-        console.log("TRACE: value of the url is: " + url);
-        console.log("TRACE: error code status is: " + request.status);
-        console.log('Error message is: ' + request.responseText);
-        var clusterStatus = {
-          status: 'PENDING',
-          isInstallError: false,
-          isCompleted: false
-        };
-
-        self.saveClusterStatus(clusterStatus);
-      },
-
-      statusCode: require('data/statusCodes')
+      success: 'installServicesSuccessCallback',
+      error: 'installServicesErrorCallback'
     });
   },
+
+  installServicesSuccessCallback: function (jsonData) {
+    var installStartTime = new Date().getTime();
+    console.log("TRACE: In success function for the installService call");
+    if (jsonData) {
+      var requestId = jsonData.Requests.id;
+      console.log('requestId is: ' + requestId);
+      var clusterStatus = {
+        status: 'PENDING',
+        requestId: requestId,
+        isInstallError: false,
+        isCompleted: false,
+        installStartTime: installStartTime
+      };
+      this.saveClusterStatus(clusterStatus);
+    } else {
+      console.log('ERROR: Error occurred in parsing JSON data');
+    }
+  },
+
+  installServicesErrorCallback: function (request, ajaxOptions, error) {
+    console.log("TRACE: In error function for the installService call");
+    console.log("TRACE: error code status is: " + request.status);
+    console.log('Error message is: ' + request.responseText);
+    var clusterStatus = {
+      status: 'PENDING',
+      isInstallError: false,
+      isCompleted: false
+    };
+    this.saveClusterStatus(clusterStatus);
+  },
+
+  bootstrapRequestId: null,
 
   /*
    Bootstrap selected hosts.
    */
   launchBootstrap: function (bootStrapData) {
-    var self = this;
-    var requestId = null;
-    var method = App.testMode ? 'GET' : 'POST';
-    var url = App.testMode ? '/data/wizard/bootstrap/bootstrap.json' : App.apiPrefix + '/bootstrap';
-    $.ajax({
-      type: method,
-      url: url,
-      async: false,
-      data: bootStrapData,
-      timeout: App.timeout,
-      contentType: 'application/json',
-      success: function (data) {
-        console.log("TRACE: POST bootstrap succeeded");
-        requestId = data.requestId;
+    App.ajax.send({
+      name: 'wizard.launch_bootstrap',
+      sender: this,
+      data: {
+        bootStrapData: bootStrapData
       },
-      error: function () {
-        console.log("ERROR: POST bootstrap failed");
-        alert('Bootstrap call failed.  Please try again.');
-      },
-      statusCode: require('data/statusCodes')
+      success: 'launchBootstrapSuccessCallback',
+      error: 'launchBootstrapErrorCallback'
     });
-    return requestId;
+
+    return this.get('bootstrapRequestId');
+  },
+
+  launchBootstrapSuccessCallback: function (data) {
+    console.log("TRACE: POST bootstrap succeeded");
+    this.set('bootstrapRequestId', data.requestId);
+  },
+
+  launchBootstrapErrorCallback: function () {
+    console.log("ERROR: POST bootstrap failed");
+    alert('Bootstrap call failed. Please try again.');
   },
 
   /**
@@ -423,77 +421,75 @@ App.WizardController = Em.Controller.extend({
     sshKey: "", //string
     bootRequestId: null //string
   },
+
+  loadedServiceComponents: null,
+
   /**
    * Generate serviceComponents as pr the stack definition  and save it to localdata
    * called form stepController step4WizardController
    */
-  loadServiceComponents: function (displayOrderConfig, apiUrl) {
-    var result = null;
-    var method = 'GET';
-    var testUrl = '/data/wizard/stack/hdp/version/1.3.0.json';
-    var url = (App.testMode) ? testUrl : App.apiPrefix + apiUrl + '?fields=stackServices/StackServices';
-    $.ajax({
-      type: method,
-      url: url,
-      async: false,
-      dataType: 'text',
-      timeout: App.timeout,
-      success: function (data) {
-        var jsonData = jQuery.parseJSON(data);
-        console.log("TRACE: getService ajax call  -> In success function for the getServiceComponents call");
-        console.log("TRACE: jsonData.services : " + jsonData.services);
+  loadServiceComponents: function () {
+    App.ajax.send({
+      name: 'wizard.service_components',
+      sender: this,
+      data: {
+        stackUrl: App.get('stackVersionURL')
+      },
+      success: 'loadServiceComponentsSuccessCallback',
+      error: 'loadServiceComponentsErrorCallback'
+    });
+    return this.get('loadedServiceComponents');
+  },
 
-        // Creating Model
-        var Service = Ember.Object.extend({
-          serviceName: null,
-          displayName: null,
-          isDisabled: true,
+  loadServiceComponentsSuccessCallback: function (jsonData) {
+    var displayOrderConfig = require('data/services');
+    console.log("TRACE: getService ajax call  -> In success function for the getServiceComponents call");
+    console.log("TRACE: jsonData.services : " + jsonData.services);
+
+    // Creating Model
+    var Service = Ember.Object.extend({
+      serviceName: null,
+      displayName: null,
+      isDisabled: true,
+      isSelected: true,
+      isInstalled: false,
+      description: null,
+      version: null
+    });
+
+    var data = [];
+
+    // loop through all the service components
+    for (var i = 0; i < displayOrderConfig.length; i++) {
+      var entry = jsonData.services.findProperty("name", displayOrderConfig[i].serviceName);
+      if (entry) {
+        var myService = Service.create({
+          serviceName: entry.name,
+          displayName: displayOrderConfig[i].displayName,
+          isDisabled: i === 0,
           isSelected: true,
           isInstalled: false,
-          description: null,
-          version: null
+          isHidden: displayOrderConfig[i].isHidden,
+          description: entry.comment,
+          version: entry.version
         });
 
-        var data = [];
+        data.push(myService);
+      }
+      else {
+        console.warn('Service not found - ', displayOrderConfig[i].serviceName);
+      }
+    }
 
-        // loop through all the service components
-        for (var i = 0; i < displayOrderConfig.length; i++) {
-          var entry = jsonData.stackServices.findProperty("StackServices.service_name", displayOrderConfig[i].serviceName);
-          if (entry) {
-            entry = entry.StackServices;
-            var myService = Service.create({
-              serviceName: entry.service_name,
-              displayName: displayOrderConfig[i].displayName,
-              isDisabled: i === 0,
-              isSelected: true,
-              isInstalled: false,
-              isHidden: displayOrderConfig[i].isHidden,
-              description: entry.comments,
-              version: entry.service_version
-            });
+    this.set('loadedServiceComponents', data);
+    console.log('TRACE: service components: ' + JSON.stringify(data));
 
-            data.push(myService);
-          }
-          else {
-            console.warn('Service not found - ', displayOrderConfig[i].serviceName);
-          }
-        }
+  },
 
-        result = data;
-        console.log('TRACE: service components: ' + JSON.stringify(data));
-
-      },
-
-      error: function (request, ajaxOptions, error) {
-        console.log("TRACE: STep5 -> In error function for the getServiceComponents call");
-        console.log("TRACE: STep5 -> value of the url is: " + url);
-        console.log("TRACE: STep5 -> error code status is: " + request.status);
-        console.log('Step8: Error message is: ' + request.responseText);
-      },
-
-      statusCode: require('data/statusCodes')
-    });
-    return result;
+  loadServiceComponentsErrorCallback: function (request, ajaxOptions, error) {
+    console.log("TRACE: STep5 -> In error function for the getServiceComponents call");
+    console.log("TRACE: STep5 -> error code status is: " + request.status);
+    console.log('Step8: Error message is: ' + request.responseText);
   },
 
   loadServicesFromServer: function() {
@@ -501,9 +497,7 @@ App.WizardController = Em.Controller.extend({
     if (services) {
       return;
     }
-    var displayOrderConfig = require('data/services');
-    var apiUrl = App.get('stack2VersionURL');
-    var apiService = this.loadServiceComponents(displayOrderConfig, apiUrl);
+    var apiService = this.loadServiceComponents();
     this.set('content.services', apiService);
     App.db.setService(apiService);
   },

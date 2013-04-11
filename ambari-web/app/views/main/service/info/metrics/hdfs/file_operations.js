@@ -30,8 +30,8 @@ App.ChartServiceMetricsHDFS_FileOperations = App.ChartLinearTimeView.extend({
   id: "service-metrics-hdfs-file-operations",
   title: Em.I18n.t('services.service.info.metrics.hdfs.fileOperations'),
   renderer: 'line',
-  sourceUrl: "/hosts/{nameNodeName}/host_components/NAMENODE?fields=metrics/dfs/namenode/FileInfoOps[{fromSeconds},{toSeconds},{stepSeconds}],metrics/dfs/namenode/CreateFileOps[{fromSeconds},{toSeconds},{stepSeconds}]",
-  mockUrl: "/data/services/metrics/hdfs/file_operations.json",
+
+  ajaxIndex: 'service.metrics.hdfs.file_operations',
 
   transformToSeries: function (jsonData) {
     var seriesArray = [];

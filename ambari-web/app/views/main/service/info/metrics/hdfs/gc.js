@@ -31,8 +31,7 @@ App.ChartServiceMetricsHDFS_GC = App.ChartLinearTimeView.extend({
   title: Em.I18n.t('services.service.info.metrics.hdfs.gc'),
   yAxisFormatter: App.ChartLinearTimeView.TimeElapsedFormatter,
 
-  sourceUrl: "/hosts/{nameNodeName}/host_components/NAMENODE?fields=metrics/jvm/gcTimeMillis[{fromSeconds},{toSeconds},{stepSeconds}]",
-  mockUrl: "/data/services/metrics/hdfs/gc.json",
+  ajaxIndex: 'service.metrics.hdfs.gc',
 
   transformToSeries: function (jsonData) {
     var seriesArray = [];

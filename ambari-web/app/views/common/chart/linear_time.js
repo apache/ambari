@@ -142,26 +142,41 @@ App.ChartLinearTimeView = Ember.View.extend({
   },
 
   loadData: function() {
-    var validUrl = this.getFormattedUrl();
-    if (validUrl) {
-      var hash = {};
-      hash.url = validUrl;
-      hash.type = 'GET';
-      hash.dataType = 'json';
-      hash.contentType = 'application/json; charset=utf-8';
-      hash.context = this;
-      hash.success = this._refreshGraph,
-       hash.error = function(xhr, textStatus, errorThrown){
-        this.set('isReady', true);
-        if (xhr.readyState == 4 && xhr.status) {
-          textStatus = xhr.status + " " + textStatus;
-        }
-        this._showMessage('warn', this.t('graphs.error.title'), this.t('graphs.error.message').format(textStatus, errorThrown));
-        this.set('isPopup', false);
-        this.set('hasData', false);
-      }
-      jQuery.ajax(hash);
+    App.ajax.send({
+      name: this.get('ajaxIndex'),
+      sender: this,
+      data: this.getDataForAjaxRequest(),
+      success: '_refreshGraph',
+      error: 'loadDataErrorCallback'
+    });
+  },
+
+  getDataForAjaxRequest: function() {
+    var toSeconds = Math.round(new Date().getTime() / 1000);
+    var hostName = (this.get('content')) ? this.get('content.hostName') : "";
+
+    var HDFSService = App.HDFSService.find().objectAt(0);
+    var nameNodeName = HDFSService ? HDFSService.get('nameNode.hostName') : "";
+    var MapReduceService = App.MapReduceService.find().objectAt(0);
+    var jobTrackerNode = MapReduceService ? MapReduceService.get('jobTracker.hostName') : "";
+    var timeUnit = this.get('timeUnitSeconds');
+    return {
+      toSeconds: toSeconds,
+      fromSeconds: toSeconds - timeUnit,
+      stepSeconds: 15,
+      hostName: hostName,
+      nameNodeName: nameNodeName,
+      jobTrackerNode: jobTrackerNode
+    };
+  },
+  loadDataErrorCallback: function(xhr, textStatus, errorThrown){
+    this.set('isReady', true);
+    if (xhr.readyState == 4 && xhr.status) {
+      textStatus = xhr.status + " " + textStatus;
     }
+    this._showMessage('warn', this.t('graphs.error.title'), this.t('graphs.error.message').format(textStatus, errorThrown));
+    this.set('isPopup', false);
+    this.set('hasData', false);
   },
 
   /**
@@ -737,36 +752,6 @@ App.ChartLinearTimeView = Ember.View.extend({
       self.loadData();
       self.set('isPopupReady', false);
     });
-  },
-  /**
-   * return formatted URL that depends on timeUnit
-   * on host metrics depends on host name
-   * on MapReduce metrics depends on  jobTracker Node
-   * @return {String}
-   */
-  getFormattedUrl:function(){
-    var toSeconds = Math.round(new Date().getTime() / 1000);
-    var hostName = (this.get('content')) ? this.get('content.hostName') : "";
-    var nameNodeName = (App.HDFSService.find().objectAt(0)) ?
-      App.HDFSService.find().objectAt(0).get('nameNode').get('hostName') :
-      "";
-    var jobTrackerNode = (App.MapReduceService.find().objectAt(0))
-      ? App.MapReduceService.find().objectAt(0).get('jobTracker').get('hostName')
-      : "";
-    var timeUnit = this.get('timeUnitSeconds');
-
-    return App.formatUrl(
-      this.get('urlPrefix') + this.get('sourceUrl'),
-      {
-        toSeconds: toSeconds,
-        fromSeconds: toSeconds - timeUnit,
-        stepSeconds: 15,
-        hostName: hostName,
-        nameNodeName: nameNodeName,
-        jobTrackerNode: jobTrackerNode
-      },
-      this.get('mockUrl')
-    );
   },
   //60 minute interval on X axis.
   timeUnitSeconds: 3600

@@ -331,68 +331,59 @@ App.WizardStep9Controller = Em.Controller.extend({
    * run start/check services after installation phase
    */
   launchStartServices: function () {
-    var self = this;
-    var clusterName = this.get('content.cluster.name');
-    var url = App.apiPrefix + '/clusters/' + clusterName + '/services?ServiceInfo/state=INSTALLED';
     var data = '{"RequestInfo": {"context": "'+Em.I18n.t("requestInfo.serviceStartCheck")+'"}, "Body": {"ServiceInfo": {"state": "STARTED"}}}';
-    var method = 'PUT';
-
+    var name = 'wizard.step9.installer.launch_start_services';
     if (this.get('content.controllerName') === 'addHostController') {
-      url = App.apiPrefix + '/clusters/' + clusterName + '/host_components?(HostRoles/component_name=GANGLIA_MONITOR|HostRoles/component_name=HBASE_REGIONSERVER|HostRoles/component_name=DATANODE|HostRoles/component_name=TASKTRACKER)&(HostRoles/state=INSTALLED)';
       data = '{"HostRoles": {"state": "STARTED"}}';
+      name = 'wizard.step9.add_host.launch_start_services';
     }
-
     if (App.testMode) {
-      url = this.get('mockDataPrefix') + '/poll_6.json';
-      method = 'GET';
       this.numPolls = 6;
     }
 
-    $.ajax({
-      type: method,
-      url: url,
-      async: false,
-      data: data,
-      dataType: 'text',
-      timeout: App.timeout,
-      success: function (data) {
-        var jsonData = jQuery.parseJSON(data);
-        console.log("TRACE: Step9 -> In success function for the startService call");
-        console.log("TRACE: Step9 -> value of the url is: " + url);
-        console.log("TRACE: Step9 -> value of the received data is: " + jsonData);
-        var requestId = jsonData.Requests.id;
-        console.log('requestId is: ' + requestId);
-        var clusterStatus = {
-          status: 'INSTALLED',
-          requestId: requestId,
-          isStartError: false,
-          isCompleted: false
-        };
-
-        App.router.get(self.get('content.controllerName')).saveClusterStatus(clusterStatus);
-
-        // We need to do recovery if there is a browser crash
-        App.clusterStatus.setClusterStatus({
-          clusterState: 'SERVICE_STARTING_3',
-          localdb: App.db.data
-        });
-
-        self.startPolling();
+    App.ajax.send({
+      name: name,
+      sender: this,
+      data: {
+        data: data,
+        cluster: this.get('content.cluster.name')
       },
-
-      error: function () {
-        console.log("ERROR");
-        var clusterStatus = {
-          status: 'START FAILED',
-          isStartError: true,
-          isCompleted: false
-        };
-
-        App.router.get(self.get('content.controllerName')).saveClusterStatus(clusterStatus);
-      },
-
-      statusCode: require('data/statusCodes')
+      success: 'launchStartServicesSuccessCallback',
+      error: 'launchStartServicesErrorCallback'
     });
+  },
+
+  launchStartServicesSuccessCallback: function (jsonData) {
+    console.log("TRACE: Step9 -> In success function for the startService call");
+    console.log("TRACE: Step9 -> value of the received data is: " + jsonData);
+    var requestId = jsonData.Requests.id;
+    console.log('requestId is: ' + requestId);
+    var clusterStatus = {
+      status: 'INSTALLED',
+      requestId: requestId,
+      isStartError: false,
+      isCompleted: false
+    };
+
+    App.router.get(this.get('content.controllerName')).saveClusterStatus(clusterStatus);
+
+    // We need to do recovery if there is a browser crash
+    App.clusterStatus.setClusterStatus({
+      clusterState: 'SERVICE_STARTING_3',
+      localdb: App.db.data
+    });
+
+    this.startPolling();
+  },
+
+  launchStartServicesErrorCallback: function () {
+    console.log("ERROR");
+    var clusterStatus = {
+      status: 'START FAILED',
+      isStartError: true,
+      isCompleted: false
+    };
+    App.router.get(this.get('content.controllerName')).saveClusterStatus(clusterStatus);
   },
 
   // marks a host's status as "success" if all tasks are in COMPLETED state

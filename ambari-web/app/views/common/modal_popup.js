@@ -139,28 +139,6 @@ App.showConfirmationPopup = function(primary, body) {
     header: Em.I18n.t('popup.confirmation.commonHeader'),
     body: Em.I18n.t('question.sure').format(body || ''),
     onPrimary: function() {
-      primary();
-      this.hide();
-    }
-  });
-}
-/**
- * Show confirmation popup - hide the popup first then run the function
- *
- * @param {Function} primary - "OK" button click handler
- * @param {String} body - additional text constant. Will be placed in the popup-body
- * @return {*}
- */
-App.showConfirmationPopup2 = function(primary, body) {
-  if (!primary) {
-    return false;
-  }
-  return App.ModalPopup.show({
-    primary: Em.I18n.t('yes'),
-    secondary: Em.I18n.t('no'),
-    header: Em.I18n.t('popup.confirmation.commonHeader'),
-    body: Em.I18n.t('question.sure').format(body || ''),
-    onPrimary: function() {
       this.hide();
       primary();
     }

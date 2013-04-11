@@ -74,8 +74,8 @@ App.MainServiceController = Em.ArrayController.extend({
       return;
     }
     var self = this;
-    App.showConfirmationPopup2(function() {
-      self.startAllServicesCall('startAllService');
+    App.showConfirmationPopup(function() {
+      self.allServicesCall('startAllService');
     });
   },
 
@@ -87,51 +87,40 @@ App.MainServiceController = Em.ArrayController.extend({
       return;
     }
     var self = this;
-    App.showConfirmationPopup2(function() {
-      self.startAllServicesCall('stopAllService');
+    App.showConfirmationPopup(function() {
+      self.allServicesCall('stopAllService');
     });
   },
 
-  startAllServicesCall: function(state){
-    var clusterName = App.router.get('applicationController').get('clusterName');
-    var method = 'PUT';
-    var url = App.apiPrefix + '/clusters/' + clusterName + '/services?ServiceInfo';
+  allServicesCall: function(state) {
     var data;
-    if(state == 'stopAllService'){
+    if(state == 'stopAllService') {
       data = '{"RequestInfo": {"context" :"'+ Em.I18n.t('requestInfo.stopAllServices') +'"}, "Body": {"ServiceInfo": {"state": "INSTALLED"}}}';
-    }else{
+    }
+    else {
       data = '{"RequestInfo": {"context" :"'+ Em.I18n.t('requestInfo.startAllServices') +'"}, "Body": {"ServiceInfo": {"state": "STARTED"}}}';
     }
 
-    if (App.testMode) {
-      url = this.get('mockDataPrefix') + '/poll_6.json';
-      method = 'GET';
-      this.numPolls = 6;
-    }
-
-    $.ajax({
-      type: method,
-      url: url,
-      async: false,
-      data: data,
-      dataType: 'text',
-      timeout: App.timeout,
-      success: function (data) {
-        var jsonData = jQuery.parseJSON(data);
-        console.log("TRACE: Start/Stop all service -> In success function for the start/stop all Service call");
-        console.log("TRACE: Start/Stop all service -> value of the url is: " + url);
-        console.log("TRACE: Start/Stop all service -> value of the received data is: " + jsonData);
-        var requestId = jsonData.Requests.id;
-        console.log('requestId is: ' + requestId);
-
-        App.router.get('backgroundOperationsController').showPopup();
+    App.ajax.send({
+      name: 'service.start_stop',
+      sender: this,
+      data: {
+        data: data
       },
-      error: function () {
-        console.log("ERROR");
-      },
-
-      statusCode: require('data/statusCodes')
+      success: 'allServicesCallSuccessCallback',
+      error: 'allServicesCallErrorCallback'
     });
+  },
 
+  allServicesCallSuccessCallback: function(data) {
+    console.log("TRACE: Start/Stop all service -> In success function for the start/stop all Service call");
+    console.log("TRACE: Start/Stop all service -> value of the received data is: " + data);
+    var requestId = data.Requests.id;
+    console.log('requestId is: ' + requestId);
+
+    App.router.get('backgroundOperationsController').showPopup();
+  },
+  allServicesCallErrorCallback: function() {
+    console.log("ERROR");
   }
 })

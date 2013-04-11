@@ -12,6 +12,8 @@ Trunk (unreleased changes):
 
  NEW FEATURES
 
+ AMBARI-1895. Refactor ajax requests. (srimanth)
+
  AMBARI-1868. Include stack version as a parameter in manifest. (swagle)
 
  AMBARI-1847. Make single PUT call for multiple host overrides. (srimanth)

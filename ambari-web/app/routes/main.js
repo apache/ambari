@@ -614,6 +614,7 @@ module.exports = Em.Route.extend({
         connectOutlets: function (router, context) {
           var controller = router.get('mainAdminController');
           controller.set('category', "security");
+          controller.connectOutlet('loading');
           var securityStatus = controller.securityStatusLoading();
           securityStatus.done(function () {
             controller.connectOutlet('mainAdminSecurity');

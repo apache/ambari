@@ -61,6 +61,10 @@ App.MainHostServiceConfigsController = App.MainServiceInfoConfigsController.exte
     this._super(newServiceConfigs);
   },
 
+  typeTagToHostMap: null,
+
+  configKeyToConfigMap: null,
+
   /**
    * This method will *not load* the overridden properties. However it will
    * replace the value shown for properties which this host has override for.
@@ -83,55 +87,56 @@ App.MainHostServiceConfigsController = App.MainServiceInfoConfigsController.exte
         }
       }
     }
+    this.set('typeTagToHostMap', typeTagToHostMap);
+    this.set('configKeyToConfigMap', configKeyToConfigMap);
     if (urlParams.length > 0) {
-      var hostOverridesConfigsUrl = this.getUrl('', '/configurations?' + urlParams.join('|'));
-      $.ajax({
-        type: 'GET',
-        url: hostOverridesConfigsUrl,
-        async: false,
-        timeout: 10000,
-        dataType: 'json',
-        success: function (data) {
-          console.debug("loadServiceConfigHostsOverrides(" + hostOverridesConfigsUrl + "): Data=", data);
-          data.items.forEach(function (config) {
-            var hostname = typeTagToHostMap[config.type + "///" + config.tag];
-            var properties = config.properties;
-            for ( var prop in properties) {
-              var serviceConfig = configKeyToConfigMap[prop];
-              var hostOverrideValue = properties[prop];
-              if (serviceConfig && serviceConfig.displayType === 'int') {
-                if (/\d+m$/.test(hostOverrideValue)) {
-                  hostOverrideValue = hostOverrideValue.slice(0, hostOverrideValue.length - 1);
-                }
-              } else if (serviceConfig && serviceConfig.displayType === 'checkbox') {
-                switch (hostOverrideValue) {
-                  case 'true':
-                    hostOverrideValue = true;
-                    break;
-                  case 'false':
-                    hostOverrideValue = false;
-                    break;
-                }
-              }
-              if (serviceConfig) {
-                // Value of this property is different for this host.
-                console.log("loadServiceConfigHostsOverrides(" + thisHostName + "): [" + hostname + "] OVERRODE(" + serviceConfig.name + "): " + serviceConfig.value + " -> " + hostOverrideValue);
-                serviceConfig.value = hostOverrideValue;
-                serviceConfig.defaultValue = hostOverrideValue;
-                serviceConfig.isOriginalSCP = false;
-                serviceConfig.selectedHostOptions = [thisHostName];
-              }
-            }
-          });
-          console.log("loadServiceConfigHostsOverrides(" + thisHostName + "): Finished loading.");
+      App.ajax.send({
+        name: 'host.service_config_hosts_overrides',
+        sender: this,
+        data: {
+          urlParams: urlParams.join('|')
         },
-        error: function (request, ajaxOptions, error) {
-          console.log("TRACE: loadServiceConfigHostsOverrides(" + thisHostName + "): ERROR");
-          console.log("TRACE: value of the url is: " + hostOverridesConfigsUrl);
-          console.log("TRACE: error code status is: " + request.status);
-        },
-        statusCode: require('data/statusCodes')
+        success: 'loadServiceConfigHostsOverridesSuccessCallback',
+        error: 'loadServiceConfigHostsOverridesErrorCallback'
       });
     }
+  },
+  loadServiceConfigHostsOverridesSuccessCallback: function (data) {
+    var typeTagToHostMap = this.get('typeTagToHostMap');
+    var configKeyToConfigMap = this.get('configKeyToConfigMap');
+    data.items.forEach(function (config) {
+      var hostname = typeTagToHostMap[config.type + "///" + config.tag];
+      var properties = config.properties;
+      for ( var prop in properties) {
+        var serviceConfig = configKeyToConfigMap[prop];
+        var hostOverrideValue = properties[prop];
+        if (serviceConfig && serviceConfig.displayType === 'int') {
+          if (/\d+m$/.test(hostOverrideValue)) {
+            hostOverrideValue = hostOverrideValue.slice(0, hostOverrideValue.length - 1);
+          }
+        } else if (serviceConfig && serviceConfig.displayType === 'checkbox') {
+          switch (hostOverrideValue) {
+            case 'true':
+              hostOverrideValue = true;
+              break;
+            case 'false':
+              hostOverrideValue = false;
+              break;
+          }
+        }
+        if (serviceConfig) {
+          // Value of this property is different for this host.
+          console.log("loadServiceConfigHostsOverrides(" + this.get('host.hostName') + "): [" + hostname + "] OVERRODE(" + serviceConfig.name + "): " + serviceConfig.value + " -> " + hostOverrideValue);
+          serviceConfig.value = hostOverrideValue;
+          serviceConfig.defaultValue = hostOverrideValue;
+          serviceConfig.isOriginalSCP = false;
+          serviceConfig.selectedHostOptions = [this.get('host.hostName')];
+        }
+      }
+    });
+    console.log("loadServiceConfigHostsOverrides(" + this.get('host.hostName') + "): Finished loading.");
+  },
+  loadServiceConfigHostsOverridesErrorCallback: function (request, ajaxOptions, error) {
+    console.log("TRACE: error code status is: " + request.status);
   }
 });

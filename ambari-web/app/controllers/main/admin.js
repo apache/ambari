@@ -24,113 +24,96 @@ App.MainAdminController = Em.Controller.extend({
   securityEnabled: false,
   serviceUsers: [],
 
+  deferred: null,
+
+  tag: null,
+
   /**
    * return true if security status is loaded and false otherwise
    */
   securityStatusLoading: function () {
-    var dfd = $.Deferred();
-    this.connectOutlet('loading');
+    var self = this;
+    this.set('deferred', $.Deferred());
     if (App.testMode) {
       window.setTimeout(function () {
-        dfd.resolve();
+        self.get('deferred').resolve();
       }, 50);
-    } else {
-      this.getSecurityStatusFromServer(dfd);
     }
-    return dfd.promise();
+    else {
+      //get Security Status From Server
+      App.ajax.send({
+        name: 'admin.security_status',
+        sender: this,
+        success: 'getSecurityStatusFromServerSuccessCallback',
+        error: 'errorCallback'
+      });
+    }
+    return this.get('deferred').promise();
   },
 
-  /**
-   * return true if security status is loaded and false otherwise
-   */
-  getSecurityStatusFromServer: function (dfd) { //TODO: this should be obtain from cluster level config rather than HDFS global config
-    var self = this;
-    var url = App.apiPrefix + '/clusters/' + App.router.getClusterName();
-    $.ajax({
-      type: 'GET',
-      url: url,
-      async: false,    // we are retrieving user information that is used ahead in addSecurity/apply stage
-      timeout: 10000,
-      dataType: 'text',
-      success: function (data) {
-        console.log("TRACE: The url is: " + url);
-        var jsonData = jQuery.parseJSON(data);
-        var configs = jsonData.Clusters.desired_configs;
-        if ('global' in configs) {
-          self.getServiceConfigsFromServer(dfd, 'global', configs['global'].tag);
-        } else {
-          if (dfd) {
-            dfd.reject();
-          }
-        }
-      },
+  errorCallback: function() {
+    this.get('deferred').reject();
+  },
 
-      error: function (request, ajaxOptions, error) {
-        if (dfd) {
-          dfd.reject();
-        }
-      },
+  getSecurityStatusFromServerSuccessCallback: function (data) {
+    var configs = data.Clusters.desired_configs;
+    if ('global' in configs) {
+      this.set('tag', configs['global'].tag);
+      this.getServiceConfigsFromServer();
+    }
+    else {
+      this.get('deferred').reject();
+    }
+  },
 
-      statusCode: require('data/statusCodes')
+  getServiceConfigsFromServer: function () {
+    App.ajax.send({
+      name: 'admin.service_config',
+      sender: this,
+      data: {
+        siteName: 'global',
+        tagName: this.get('tag')
+      },
+      success: 'getServiceConfigsFromServerSuccessCallback',
+      error: 'errorCallback'
     });
   },
 
-  getServiceConfigsFromServer: function (dfd, siteName, tagName) {
-    var self = this;
-    var url = App.apiPrefix + '/clusters/' + App.router.getClusterName() + '/configurations/?type=' + siteName + '&tag=' + tagName;
-    $.ajax({
-      type: 'GET',
-      url: url,
-      async: false, // we are retrieving user information that is used ahead in addSecurity/apply stage
-      timeout: 10000,
-      dataType: 'json',
-      success: function (data) {
-        console.log("TRACE: In success function for the GET getServiceConfigsFromServer call");
-        console.log("TRACE: The url is: " + url);
-        var configs = data.items.findProperty('tag', tagName).properties;
-        if (configs && configs['security_enabled'] === 'true') {
-          self.set('securityEnabled', true);
-        } else {
-          self.loadUsers(configs);
-          self.set('securityEnabled', false);
-        }
-        if (dfd) {
-          dfd.resolve();
-        }
-      },
-
-      error: function (request, ajaxOptions, error) {
-        if (dfd) {
-          dfd.reject();
-        }
-      },
-
-      statusCode: require('data/statusCodes')
-    });
+  getServiceConfigsFromServerSuccessCallback: function (data) {
+    console.log("TRACE: In success function for the GET getServiceConfigsFromServer call");
+    var configs = data.items.findProperty('tag', this.get('tag')).properties;
+    if (configs && configs['security_enabled'] === 'true') {
+      this.set('securityEnabled', true);
+    }
+    else {
+      this.loadUsers(configs);
+      this.set('securityEnabled', false);
+    }
+    this.get('deferred').resolve();
   },
 
   loadUsers: function (configs) {
     var serviceUsers = this.get('serviceUsers');
-    if (configs['hdfs_user']) {
-      serviceUsers.pushObject({id: 'puppet var', name: 'hdfs_user', value: configs['hdfs_user']});
-    } else {
-      serviceUsers.pushObject({id: 'puppet var', name: 'hdfs_user', value: 'hdfs'});
-    }
-    if (configs['mapred_user']) {
-      serviceUsers.pushObject({id: 'puppet var', name: 'mapred_user', value: configs['mapred_user']});
-    } else {
-      serviceUsers.pushObject({id: 'puppet var', name: 'mapred_user', value: 'mapred'});
-    }
-    if (configs['hbase_user']) {
-      serviceUsers.pushObject({id: 'puppet var', name: 'hbase_user', value: configs['hbase_user']});
-    } else {
-      serviceUsers.pushObject({id: 'puppet var', name: 'hbase_user', value: 'hbase'});
-    }
-    if (configs['hive_user']) {
-      serviceUsers.pushObject({id: 'puppet var', name: 'hive_user', value: configs['hive_user']});
-    } else {
-      serviceUsers.pushObject({id: 'puppet var', name: 'hive_user', value: 'hive'});
-    }
+    serviceUsers.pushObject({
+      id: 'puppet var',
+      name: 'hdfs_user',
+      value: configs['hdfs_user'] ? configs['hdfs_user'] : 'hdfs'
+    });
+    serviceUsers.pushObject({
+      id: 'puppet var',
+      name: 'mapred_user',
+      value: configs['mapred_user'] ? configs['mapred_user'] : 'mapred'
+    });
+    serviceUsers.pushObject({
+      id: 'puppet var',
+      name: 'hbase_user',
+      value: configs['hbase_user'] ? configs['hbase_user'] : 'hbase'
+    });
+    serviceUsers.pushObject({
+      id: 'puppet var',
+      name: 'hive_user',
+      value: configs['hive_user'] ? configs['hive_user'] : 'hive'
+    });
   }
 
 });

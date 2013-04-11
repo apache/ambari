@@ -31,8 +31,8 @@ App.ChartServiceMetricsMapReduce_JVMHeap = App.ChartLinearTimeView.extend({
   title: Em.I18n.t('services.service.info.metrics.mapreduce.jvmHeap'),
   yAxisFormatter: App.ChartLinearTimeView.BytesFormatter,
   renderer: 'line',
-  sourceUrl: "/hosts/{jobTrackerNode}/host_components/JOBTRACKER?fields=metrics/jvm/memNonHeapUsedM[{fromSeconds},{toSeconds},{stepSeconds}],metrics/jvm/memNonHeapCommittedM[{fromSeconds},{toSeconds},{stepSeconds}],metrics/jvm/memHeapUsedM[{fromSeconds},{toSeconds},{stepSeconds}],metrics/jvm/memHeapCommittedM[{fromSeconds},{toSeconds},{stepSeconds}]",
-  mockUrl: "/data/services/metrics/mapreduce/jvm_heap.json",
+
+  ajaxIndex: 'service.metrics.mapreduce.jobs_heap',
 
   transformToSeries: function (jsonData) {
     var seriesArray = [];

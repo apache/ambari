@@ -878,47 +878,53 @@ App.WizardStep8Controller = Em.Controller.extend({
     return this.get('content.cluster.name');
   }.property('content.cluster.name'),
 
+  clusterNames: [],
+
   // returns an array of existing cluster names.
   // returns an empty array if there are no existing clusters.
   getExistingClusterNames: function () {
     var url = App.apiPrefix + '/clusters';
 
-    var clusterNames = [];
-
-    $.ajax({
-      type: 'GET',
-      url: url,
-      async: false,
-      success: function (data) {
-        var jsonData = jQuery.parseJSON(data);
-        clusterNames = jsonData.items.mapProperty('Clusters.cluster_name');
-        console.log("Got existing cluster names: " + clusterNames);
-      },
-      error: function () {
-        console.log("Failed to get existing cluster names");
-      }
+    App.ajax.send({
+      name: 'wizard.step8.existing_cluster_names',
+      sender: this,
+      success: 'getExistingClusterNamesSuccessCallBack',
+      error: 'getExistingClusterNamesErrorCallback'
     });
 
-    return clusterNames;
+    return this.get('clusterNames');
+  },
+
+  getExistingClusterNamesSuccessCallBack: function (data) {
+    var clusterNames = data.items.mapProperty('Clusters.cluster_name');
+    console.log("Got existing cluster names: " + clusterNames);
+    this.set('clusterNames', clusterNames);
+  },
+
+  getExistingClusterNamesErrorCallback: function () {
+    console.log("Failed to get existing cluster names");
+    this.set('clusterNames', []);
   },
 
   deleteClusters: function (clusterNames) {
     clusterNames.forEach(function (clusterName) {
-
-      var url = App.apiPrefix + '/clusters/' + clusterName;
-
-      $.ajax({
-        type: 'DELETE',
-        url: url,
-        async: false,
-        success: function () {
-          console.log('DELETE cluster ' + clusterName + ' succeeded');
+      App.ajax.send({
+        name: 'wizard.step8.delete_cluster',
+        sender: this,
+        data: {
+          name: clusterName
         },
-        error: function () {
-          console.log('DELETE cluster ' + clusterName + ' failed');
-        }
+        success: 'deleteClustersSuccessCallback',
+        error: 'deleteClustersErrorCallback'
       });
     });
+  },
+
+  deleteClustersSuccessCallback: function(data, opt) {
+    console.log('DELETE cluster ' + opt.data.name + ' succeeded');
+  },
+  deleteClustersErrorCallback: function(request, ajaxOptions, error, opt) {
+    console.log('DELETE cluster ' + opt.data.name + ' failed');
   },
 
   /**

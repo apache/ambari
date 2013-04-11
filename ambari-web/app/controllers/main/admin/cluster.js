@@ -27,49 +27,47 @@ App.MainAdminClusterController = Em.Controller.extend({
    */
   updateUpgradeVersion: function(){
     if(App.router.get('clusterController.isLoaded')){
-      var url = App.formatUrl(
-        App.apiPrefix + "/stacks2/HDP/versions?fields=stackServices/StackServices,Versions",
-        {},
-        '/data/wizard/stack/stacks.json'
-      );
-      var upgradeVersion = this.get('upgradeVersion') || App.defaultStackVersion;
-      var currentStack = {};
-      var upgradeStack = {};
-      $.ajax({
-        type: "GET",
-        url: url,
-        async: false,
-        dataType: 'json',
-        timeout: App.timeout,
-        success: function (data) {
-          var currentVersion = App.currentStackVersion.replace(/HDP-/, '');
-          var minUpgradeVersion = currentVersion;
-          upgradeVersion = upgradeVersion.replace(/HDP-/, '');
-          data.items.mapProperty('Versions.stack_version').forEach(function(version){
-            upgradeVersion = (upgradeVersion < version) ? version : upgradeVersion;
-          });
-          currentStack = data.items.findProperty('Versions.stack_version', currentVersion);
-          upgradeStack = data.items.findProperty('Versions.stack_version', upgradeVersion);
-          minUpgradeVersion = upgradeStack.Versions.min_upgrade_version;
-          if(minUpgradeVersion && (minUpgradeVersion > currentVersion)){
-            upgradeVersion = currentVersion;
-            upgradeStack = currentStack;
-          }
-          upgradeVersion = 'HDP-' + upgradeVersion;
-        },
-        error: function (request, ajaxOptions, error) {
-          console.log('Error message is: ' + request.responseText);
-        },
-        statusCode: require('data/statusCodes')
+      App.ajax.send({
+        name: 'cluster.update_upgrade_version',
+        sender: this,
+        success: 'updateUpgradeVersionSuccessCallback',
+        error: 'updateUpgradeVersionErrorCallback'
       });
-      this.set('upgradeVersion', upgradeVersion);
-      if(currentStack && upgradeStack){
-        this.parseServicesInfo(currentStack, upgradeStack);
-      } else {
-        console.log('HDP stack doesn\'t have services with defaultStackVersion');
-      }
     }
   }.observes('App.router.clusterController.isLoaded', 'App.currentStackVersion'),
+
+  updateUpgradeVersionSuccessCallback: function(data) {
+    var upgradeVersion = this.get('upgradeVersion') || App.defaultStackVersion;
+    var currentStack = {};
+    var upgradeStack = {};
+    var currentVersion = App.currentStackVersion.replace(/HDP-/, '');
+    var minUpgradeVersion = currentVersion;
+    upgradeVersion = upgradeVersion.replace(/HDP-/, '');
+    data.items.mapProperty('Versions.stack_version').forEach(function(version){
+      upgradeVersion = (upgradeVersion < version) ? version : upgradeVersion;
+    });
+    currentStack = data.items.findProperty('Versions.stack_version', currentVersion);
+    upgradeStack = data.items.findProperty('Versions.stack_version', upgradeVersion);
+    minUpgradeVersion = upgradeStack.Versions.min_upgrade_version;
+    if(minUpgradeVersion && (minUpgradeVersion > currentVersion)){
+      upgradeVersion = currentVersion;
+      upgradeStack = currentStack;
+    }
+    upgradeVersion = 'HDP-' + upgradeVersion;
+    this.set('upgradeVersion', upgradeVersion);
+    if(currentStack && upgradeStack) {
+      this.parseServicesInfo(currentStack, upgradeStack);
+    }
+    else {
+      console.log('HDP stack doesn\'t have services with defaultStackVersion');
+    }
+  },
+
+  updateUpgradeVersionErrorCallback: function(request, ajaxOptions, error) {
+    console.log('Error message is: ' + request.responseText);
+    console.log('HDP stack doesn\'t have services with defaultStackVersion');
+  },
+
   /**
    * parse services info(versions, description) by version
    */

@@ -64,28 +64,28 @@ App.ClusterController = Em.Controller.extend({
     if (this.get('clusterName') && !reload) {
       return;
     }
-    var self = this;
-    var url = (App.testMode) ? '/data/clusters/info.json' : App.apiPrefix + '/clusters';
-    $.ajax({
-      async:false,
-      type:"GET",
-      url:url,
-      dataType:'json',
-      timeout:App.timeout,
-      success:function (data) {
-        self.set('cluster', data.items[0]);
-        App.set('clusterName', data.items[0].Clusters.cluster_name);
-        App.set('currentStackVersion', data.items[0].Clusters.version);
-      },
-      error:function (request, ajaxOptions, error) {
-        console.log('failed on loading cluster name');
-        self.set('isLoaded', true);
-      },
-      statusCode:require('data/statusCodes')
+
+    App.ajax.send({
+      name: 'cluster.load_cluster_name',
+      sender: this,
+      success: 'loadClusterNameSuccessCallback',
+      error: 'loadClusterNameErrorCallback'
     });
+
     if(!App.get('currentStackVersion')){
       App.set('currentStackVersion', App.defaultStackVersion);
     }
+  },
+
+  loadClusterNameSuccessCallback: function (data) {
+    this.set('cluster', data.items[0]);
+    App.set('clusterName', data.items[0].Clusters.cluster_name);
+    App.set('currentStackVersion', data.items[0].Clusters.version);
+  },
+
+  loadClusterNameErrorCallback: function (request, ajaxOptions, error) {
+    console.log('failed on loading cluster name');
+    this.set('isLoaded', true);
   },
 
   getUrl:function (testUrl, url) {
@@ -213,7 +213,7 @@ App.ClusterController = Em.Controller.extend({
       };
       App.HttpClient.get(dataUrl, App.alertsMapper, ajaxOptions);
     } else {
-      console.log("No Nagios URL provided.")
+      console.log("No Nagios URL provided.");
       callback();
     }
   },
@@ -363,4 +363,4 @@ App.ClusterController = Em.Controller.extend({
       complete:function(){}
     });
   }
-})
+});

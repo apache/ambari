@@ -31,8 +31,8 @@ App.ChartHostMetricsNetwork = App.ChartLinearTimeView.extend({
   title: Em.I18n.t('hosts.host.metrics.network'),
   yAxisFormatter: App.ChartLinearTimeView.BytesFormatter,
   renderer: 'line',
-  sourceUrl: "/hosts/{hostName}?fields=metrics/network/bytes_in[{fromSeconds},{toSeconds},{stepSeconds}],metrics/network/bytes_out[{fromSeconds},{toSeconds},{stepSeconds}],metrics/network/pkts_in[{fromSeconds},{toSeconds},{stepSeconds}],metrics/network/pkts_out[{fromSeconds},{toSeconds},{stepSeconds}]",
-  mockUrl: "/data/hosts/metrics/network.json",
+
+  ajaxIndex: 'host.metrics.network',
 
   transformToSeries: function (jsonData) {
     var seriesArray = [];

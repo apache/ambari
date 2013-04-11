@@ -29,8 +29,9 @@ var App = require('app');
  */
 App.ChartClusterMetricsNetwork = App.ChartLinearTimeView.extend({
   id: "cluster-metrics-network",
-  sourceUrl: "?fields=metrics/network[{fromSeconds},{toSeconds},{stepSeconds}]",
-  mockUrl: "/data/cluster_metrics/network_1hr.json",
+
+  ajaxIndex: 'dashboard.cluster_metrics.network',
+
   isTimePagingDisable: true,
   title: Em.I18n.t('dashboard.clusterMetrics.network'),
   yAxisFormatter: App.ChartLinearTimeView.BytesFormatter,

@@ -150,68 +150,63 @@ App.MainAdminSecurityDisableController = Em.Controller.extend({
   },
 
   loadClusterConfigs: function () {
-    var self = this;
-    var url = App.apiPrefix + '/clusters/' + App.router.getClusterName();
-    $.ajax({
-      type: 'GET',
-      url: url,
-      timeout: 10000,
-      dataType: 'text',
-      success: function (data) {
-        var jsonData = jQuery.parseJSON(data);
-        //prepare tags to fetch all configuration for a service
-        self.get('secureServices').forEach(function (_secureService) {
-          self.setServiceTagNames(_secureService, jsonData.Clusters.desired_configs);
-        });
-        self.getAllConfigurations();
-      },
-
-      error: function (request, ajaxOptions, error) {
-        self.get('stages').findProperty('stage', 'stage3').set('isError', true);
-        console.log("TRACE: error code status is: " + request.status);
-      },
-
-      statusCode: require('data/statusCodes')
+    App.ajax.send({
+      name: 'admin.security.cluster_configs',
+      sender: this,
+      success: 'loadClusterConfigsSuccessCallback',
+      error: 'loadClusterConfigsErrorCallback'
     });
   },
 
-  getAllConfigurations: function () {
+  loadClusterConfigsSuccessCallback: function (jsonData) {
     var self = this;
+    //prepare tags to fetch all configuration for a service
+    this.get('secureServices').forEach(function (_secureService) {
+      self.setServiceTagNames(_secureService, jsonData.Clusters.desired_configs);
+    });
+    this.getAllConfigurations();
+  },
+
+  loadClusterConfigsErrorCallback: function (request, ajaxOptions, error) {
+    this.get('stages').findProperty('stage', 'stage3').set('isError', true);
+    console.log("TRACE: error code status is: " + request.status);
+  },
+
+  getAllConfigurations: function () {
     var urlParams = [];
     this.get('serviceConfigTags').forEach(function (_tag) {
       urlParams.push('(type=' + _tag.siteName + '&tag=' + _tag.tagName + ')');
     }, this);
-    var url = App.apiPrefix + '/clusters/' + App.router.getClusterName() + '/configurations?' + urlParams.join('|');
     if (urlParams.length > 0) {
-      $.ajax({
-        type: 'GET',
-        url: url,
-        async: true,
-        timeout: 10000,
-        dataType: 'json',
-        success: function (data) {
-          console.log("TRACE: In success function for the GET getServiceConfigsFromServer call");
-          console.log("TRACE: The url is: " + url);
-          self.get('serviceConfigTags').forEach(function (_tag) {
-            _tag.configs = data.items.findProperty('type', _tag.siteName).properties;
-          });
-          self.removeSecureConfigs();
-          self.applyConfigurationsToCluster();
+      App.ajax.send({
+        name: 'admin.security.all_configurations',
+        sender: this,
+        data: {
+          urlParams: urlParams.join('|')
         },
-
-        error: function (request, ajaxOptions, error) {
-          self.get('stages').findProperty('stage', 'stage3').set('isError', true);
-          console.log("TRACE: In error function for the getServiceConfigsFromServer call");
-          console.log("TRACE: value of the url is: " + url);
-          console.log("TRACE: error code status is: " + request.status);
-        },
-
-        statusCode: require('data/statusCodes')
+        success: 'getAllConfigurationsSuccessCallback',
+        error: 'getAllConfigurationsErrorCallback'
       });
     }
   },
 
-  loadSecureServices: function () {
+  getAllConfigurationsSuccessCallback: function(data) {
+    console.log("TRACE: In success function for the GET getServiceConfigsFromServer call");
+    this.get('serviceConfigTags').forEach(function (_tag) {
+      _tag.configs = data.items.findProperty('type', _tag.siteName).properties;
+    });
+    this.removeSecureConfigs();
+    this.applyConfigurationsToCluster();
+  },
+
+  getAllConfigurationsErrorCallback: function (request, ajaxOptions, error) {
+    this.get('stages').findProperty('stage', 'stage3').set('isError', true);
+    console.log("TRACE: In error function for the getServiceConfigsFromServer call");
+    console.log("TRACE: error code status is: " + request.status);
+  },
+
+
+loadSecureServices: function () {
     var secureServices = require('data/secure_configs');
     var installedServices = App.Service.find().mapProperty('serviceName');
     //General (only non service tab) tab is always displayed
@@ -231,33 +226,33 @@ App.MainAdminSecurityDisableController = Em.Controller.extend({
   },
 
   applyConfigurationToCluster: function (data) {
-    var self = this;
-    var url = App.apiPrefix + '/clusters/' + App.router.getClusterName();
     var clusterData = {
       Clusters: {
         desired_config: data
       }
     };
-    $.ajax({
-      type: 'PUT',
-      url: url,
-      async: false,
-      dataType: 'text',
-      data: JSON.stringify(clusterData),
-      timeout: 5000,
-      success: function (data) {
-        self.set('noOfWaitingAjaxCalls', self.get('noOfWaitingAjaxCalls') - 1);
-        if (self.get('noOfWaitingAjaxCalls') == 0) {
-          var currentStage = self.get('stages').findProperty('stage', 'stage3');
-          currentStage.set('isSuccess', true);
-          currentStage.set('isCompleted', true);
-        }
+    App.ajax.send({
+      name: 'admin.security.apply_configuration',
+      sender: this,
+      data: {
+        clusterData: clusterData
       },
-      error: function (request, ajaxOptions, error) {
-        self.get('stages').findProperty('stage', 'stage3').set('isError', true);
-      },
-      statusCode: require('data/statusCodes')
+      success: 'applyConfigurationToClusterSuccessCallback',
+      error: 'applyConfigurationToClusterErrorCallback'
     });
+  },
+
+  applyConfigurationToClusterSuccessCallback: function (data) {
+    this.set('noOfWaitingAjaxCalls', this.get('noOfWaitingAjaxCalls') - 1);
+    if (this.get('noOfWaitingAjaxCalls') == 0) {
+      var currentStage = this.get('stages').findProperty('stage', 'stage3');
+      currentStage.set('isSuccess', true);
+      currentStage.set('isCompleted', true);
+    }
+  },
+
+  applyConfigurationToClusterErrorCallback: function (request, ajaxOptions, error) {
+    this.get('stages').findProperty('stage', 'stage3').set('isError', true);
   },
 
   getAllConfigsFromServer: function () {
