@@ -47,7 +47,7 @@
 <div class="accordion">
   {{#each category in selectedService.configCategories}}
     {{#if category.isCustomView}}
-      {{view category.customView categoryBinding="category" serviceBinding="selectedService" serviceConfigsBinding="selectedService.configs"}}
+      {{view category.customView categoryBinding="category" serviceBinding="selectedService" canEditBinding="view.canEdit" serviceConfigsBinding="selectedService.configs"}}
     {{else}}
     {{#view App.ServiceConfigsByCategoryView categoryBinding="category" canEditBinding="view.canEdit" serviceBinding="selectedService" serviceConfigsBinding="selectedService.configs"}}
 

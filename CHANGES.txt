@@ -692,6 +692,8 @@ Trunk (unreleased changes):
 
  BUG FIXES
 
+ AMBARI-1896. Disable editing Capacity Scheduler on host configs. (srimanth)
+
  AMBARI-1894. Refactor configs of Capacity Scheduler category. (srimanth)
 
  AMBARI-1893. Parsing new alerts format fails. (srimanth)

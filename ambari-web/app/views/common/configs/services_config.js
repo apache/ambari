@@ -524,11 +524,7 @@ App.ServiceConfigCapacityScheduler = App.ServiceConfigsByCategoryView.extend({
     return this.get('categoryConfigs').filterProperty('isQueue', undefined) || [];
   }.property('categoryConfigs.@each'),
   didInsertElement: function(){
-    var isCollapsed = (this.get('category.name').indexOf('Advanced') != -1);
-    this.set('category.isCollapsed', isCollapsed);
-    if(isCollapsed){
-      this.$('.accordion-body').hide();
-    }
+    this._super();
     this.createEmptyQueue(this.get('customConfigs').filterProperty('isQueue'));
   },
   //list of fields which will be populated by default in a new queue
@@ -831,7 +827,7 @@ App.ServiceConfigCapacityScheduler = App.ServiceConfigsByCategoryView.extend({
         if(queueName){
           this.set('header', Em.I18n.t('services.mapReduce.config.editQueue'));
           this.set('secondary', Em.I18n.t('common.save'));
-          if(self.get('queues').length > 1){
+          if(self.get('queues').length > 1 && self.get('canEdit')){
             this.set('delete', Em.I18n.t('common.delete'));
           }
         }
@@ -841,6 +837,9 @@ App.ServiceConfigCapacityScheduler = App.ServiceConfigsByCategoryView.extend({
       primary: Em.I18n.t('common.cancel'),
       delete: null,
       isError: function(){
+        if(!self.get('canEdit')){
+          return true;
+        }
         var content = this.get('content');
         var configs = content.configs.filter(function(config){
           if((config.name == 'mapred.queue.' + content.name + '.acl-submit-job' ||
@@ -1041,6 +1040,7 @@ App.ServiceConfigCapacityScheduler = App.ServiceConfigsByCategoryView.extend({
           }.observes('value'),
           isRequired: true,
           isVisible: true,
+          isEditable: self.get('canEdit'),
           index: 0
         });
         newField.validate();
@@ -1055,6 +1055,7 @@ App.ServiceConfigCapacityScheduler = App.ServiceConfigsByCategoryView.extend({
           isVisible: true,
           type: 'USERS',
           displayType: "UNIXList",
+          isEditable: self.get('canEdit'),
           index: 3
         });
 
@@ -1067,6 +1068,7 @@ App.ServiceConfigCapacityScheduler = App.ServiceConfigsByCategoryView.extend({
           isVisible: true,
           "displayType": "UNIXList",
           type: 'GROUPS',
+          isEditable: self.get('canEdit'),
           index: 4
         });
 
@@ -1079,6 +1081,7 @@ App.ServiceConfigCapacityScheduler = App.ServiceConfigsByCategoryView.extend({
           isVisible: true,
           type: 'USERS',
           displayType: "UNIXList",
+          isEditable: self.get('canEdit'),
           index: 5
         });
 
@@ -1091,6 +1094,7 @@ App.ServiceConfigCapacityScheduler = App.ServiceConfigsByCategoryView.extend({
           isVisible: true,
           "displayType": "UNIXList",
           type: 'GROUPS',
+          isEditable: self.get('canEdit'),
           index: 6
         });
 

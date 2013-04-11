@@ -26,7 +26,9 @@
         <div class="row-fluid header">
             <div class="span1">{{t services.mapReduce.config.queue.header}}</div>
             <div class="offset9 span2">
-                <div class="btn pull-right" {{action queuePopup target="view"}}>{{t services.mapReduce.config.addQueue}}</div>
+                {{#if view.canEdit}}
+                    <div class="btn pull-right" {{action queuePopup target="view"}}>{{t services.mapReduce.config.addQueue}}</div>
+                {{/if}}
             </div>
         </div>
         <div>
