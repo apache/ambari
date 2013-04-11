@@ -690,6 +690,8 @@ Trunk (unreleased changes):
 
  BUG FIXES
 
+ AMBARI-1893. Parsing new alerts format fails. (srimanth)
+
  AMBARI-1891. Impossibility to scroll metric window after browser width 
  changing. (srimanth)
 

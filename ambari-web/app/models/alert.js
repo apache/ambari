@@ -61,6 +61,13 @@ App.Alert = DS.Model.extend({
   }.property('status'),
 
   /**
+   * Used to show correct icon in UI
+   */
+  isCritical: function() {
+    return this.get('status') == '2';
+  }.property('status'),
+
+  /**
    * Used to show only required alerts at the service level
    */
   ignoredForServices: function() {
@@ -89,6 +96,9 @@ App.Alert = DS.Model.extend({
           break;
         case "2":
           prefix = this.t('services.alerts.CRIT.timePrefix');
+          break;
+        case "3":
+          prefix = this.t('services.alerts.UNKNOWN.timePrefix');
           break;
       }
       var prevSuffix = $.timeago.settings.strings.suffixAgo;

@@ -191,6 +191,7 @@ Em.I18n.translations = {
   'services.alerts.OK.timePrefix': 'OK for ',
   'services.alerts.WARN.timePrefix': 'WARN for ',
   'services.alerts.CRIT.timePrefix': 'CRIT for ',
+  'services.alerts.UNKNOWN.timePrefix': 'UNKNOWN for ',
   'services.alerts.headingOfList': 'Alerts and Health Checks',
   'services.alerts.goToService': 'Go to Service',
   'services.alerts.goToNagios': 'Go to Nagios Web UI',

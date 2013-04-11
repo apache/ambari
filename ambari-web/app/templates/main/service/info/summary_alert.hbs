@@ -25,7 +25,11 @@
 	          {{#if isWarning}}
 	              <i class="icon-warning-sign icon-large"></i>
 	          {{else}}
-	              <i class="icon-remove icon-large"></i>
+              {{#if isCritical}}
+                  <i class="icon-remove icon-large"></i>
+              {{else}}
+                  <i class="icon-question-sign icon-large"></i>
+              {{/if}}
 	          {{/if}}
           {{/if}}
         </div>

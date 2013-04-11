@@ -42,8 +42,7 @@ App.alertsMapper = App.QuickDataMapper.create({
       return;
     }
     if (json && json.items && json.items.length>0 && json.items[0].HostRoles && json.items[0].HostRoles.nagios_alerts) {
-      var alertsString = json.items[0].HostRoles.nagios_alerts;
-      var alerts = jQuery.parseJSON(alertsString).alerts;
+      var alerts = json.items[0].HostRoles.nagios_alerts.alerts;
       if (App.Alert.find().content.length > 0) {
         this.update(alerts);
       } else {
@@ -60,6 +59,9 @@ App.alertsMapper = App.QuickDataMapper.create({
                 break;
               case "2":
                 applyConfig['date'] = 'last_time_critical';
+                break;
+              case "3":
+                applyConfig['date'] = 'last_time_unknown';
                 break;
             }
           }
@@ -91,6 +93,9 @@ App.alertsMapper = App.QuickDataMapper.create({
             case "2":
               applyConfig['date'] = 'last_time_critical';
               break;
+            case "3":
+              applyConfig['date'] = 'last_time_unknown';
+              break;
           }
         }
         newRecords.push(this.parseIt(item, applyConfig));
@@ -107,6 +112,9 @@ App.alertsMapper = App.QuickDataMapper.create({
               break;
             case "2":
               existAlert.set('date', DS.attr.transforms.date.from(item.last_time_critical));
+              break;
+            case "3":
+              existAlert.set('date', DS.attr.transforms.date.from(item.last_time_unknown));
               break;
             default:
               existAlert.set('date', DS.attr.transforms.date.from(item.last_hard_state_change));
