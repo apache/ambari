@@ -423,9 +423,8 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
 
     //var serviceConfigs = this.getSitesConfigProperties(advancedConfigs);
     var configs = configSet.configs;
-    //put global configs into globalConfigs to save them separetely
+    //put global configs into globalConfigs to save them separately
     this.set('globalConfigs', configSet.globalConfigs);
-    this.set('customConfig', configSet.customConfigs);
 
     //STEP 6: add advanced configs
     App.config.addAdvancedConfigs(configs, advancedConfigs, serviceName);

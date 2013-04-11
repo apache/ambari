@@ -30,6 +30,8 @@ App.config = Em.Object.create({
   preDefinedCustomConfigs: require('data/custom_configs'),
   //categories which contain custom configs
   categoriesWithCustom: ['CapacityScheduler'],
+  //configs with these filenames go to appropriate category not in Advanced
+  customFileNames: ['capacity-scheduler.xml', 'mapred-queue-acls.xml'],
   /**
    * Cache of loaded configurations. This is useful in not loading
    * same configuration multiple times. It is populated in multiple
@@ -78,11 +80,11 @@ App.config = Em.Object.create({
   mergePreDefinedWithLoaded: function (configGroups, advancedConfigs, tags, serviceName) {
     var configs = [];
     var globalConfigs = [];
-    var customConfigs = [];
     var preDefinedConfigs = this.get('preDefinedConfigProperties');
     var mappingConfigs = [];
 
     tags.forEach(function (_tag) {
+      var isAdvanced = null;
       var properties = configGroups.filter(function (serviceConfigProperties) {
         return _tag.tagName === serviceConfigProperties.tag && _tag.siteName === serviceConfigProperties.type;
       });
@@ -137,19 +139,20 @@ App.config = Em.Object.create({
           serviceConfigObj.options = configsPropertyDef ? configsPropertyDef.options : null;
           globalConfigs.push(serviceConfigObj);
         } else if (!this.get('configMapping').computed().someProperty('name', index)) {
+          isAdvanced = advancedConfigs.someProperty('name', index);
           serviceConfigObj.id = 'site property';
           serviceConfigObj.displayType = 'advanced';
           serviceConfigObj.displayName = configsPropertyDef ? configsPropertyDef.displayName : index;
           serviceConfigObj.serviceName = serviceName;
-          if (advancedConfigs.someProperty('name', index)) {
-            serviceConfigObj.category = 'Advanced';
-            serviceConfigObj.filename = advancedConfigs.findProperty('name', index).filename;
-          } else {
+          if (!isAdvanced || this.get('customFileNames').contains(serviceConfigObj.filename)) {
             var categoryMetaData = this.identifyCategory(serviceConfigObj);
             if (categoryMetaData != null) {
               serviceConfigObj.category = categoryMetaData.get('name');
-              serviceConfigObj.isUserProperty = true;
+              if(!isAdvanced) serviceConfigObj.isUserProperty = true;
             }
+          } else {
+            serviceConfigObj.category = 'Advanced';
+            serviceConfigObj.filename = isAdvanced && advancedConfigs.findProperty('name', index).filename;
           }
           configs.push(serviceConfigObj);
         } else {
@@ -160,63 +163,71 @@ App.config = Em.Object.create({
     return {
       configs: configs,
       globalConfigs: globalConfigs,
-      mappingConfigs: mappingConfigs,
-      customConfigs: customConfigs
+      mappingConfigs: mappingConfigs
     }
   },
 
   /**
    * merge stored configs with pre-defined
    * @param storedConfigs
+   * @param advancedConfigs
    * @return {*}
    */
-  mergePreDefinedWithStored: function (storedConfigs) {
+  mergePreDefinedWithStored: function (storedConfigs, advancedConfigs) {
     var mergedConfigs = [];
     var preDefinedConfigs = $.extend(true, [], this.get('preDefinedConfigProperties'));
     var preDefinedNames = [];
     var storedNames = [];
     var names = [];
+    var categoryMetaData = null;
+    storedConfigs = (storedConfigs) ? storedConfigs : [];
 
-    if (storedConfigs) {
-      preDefinedNames = this.get('preDefinedConfigProperties').mapProperty('name');
-      storedNames = storedConfigs.mapProperty('name');
-      names = preDefinedNames.concat(storedNames).uniq();
-      names.forEach(function (name) {
-        var stored = storedConfigs.findProperty('name', name);
-        var preDefined = preDefinedConfigs.findProperty('name', name);
-        var configData = {};
-        var configCategory = 'Advanced';
-        if (preDefined && stored) {
-          configData = preDefined;
-          configData.value = stored.value;
-          configData.overrides = stored.overrides;
-        } else if (!preDefined && stored) {
-          var categoryMetaData = this.identifyCategory(stored);
-          if (categoryMetaData != null) {
-            configCategory = categoryMetaData.get('name');
-          }
-          configData = {
-            id: stored.id,
-            name: stored.name,
-            displayName: stored.name,
-            serviceName: stored.serviceName,
-            value: stored.value,
-            defaultValue: stored.defaultValue,
-            displayType: "advanced",
-            filename: stored.filename,
-            category: configCategory,
-            isUserProperty: true,
-            isOverridable: true,
-            overrides: stored.overrides
-          }
-        } else if (preDefined && !stored) {
-          configData = preDefined;
+    preDefinedNames = this.get('preDefinedConfigProperties').mapProperty('name');
+    storedNames = storedConfigs.mapProperty('name');
+    names = preDefinedNames.concat(storedNames).uniq();
+    names.forEach(function (name) {
+      var stored = storedConfigs.findProperty('name', name);
+      var preDefined = preDefinedConfigs.findProperty('name', name);
+      var configData = {};
+      var configCategory = 'Advanced';
+      var isAdvanced = advancedConfigs.someProperty('name', name);
+      if (preDefined && stored) {
+        configData = preDefined;
+        configData.value = stored.value;
+        configData.overrides = stored.overrides;
+        if (isAdvanced) {
+          configData.category = (configData.category === undefined) ? configCategory : configData.category;
         }
-        mergedConfigs.push(configData);
-      }, this);
-    } else {
-      return preDefinedConfigs;
-    }
+      } else if (!preDefined && stored) {
+        configData = {
+          id: stored.id,
+          name: stored.name,
+          displayName: stored.name,
+          serviceName: stored.serviceName,
+          value: stored.value,
+          defaultValue: stored.defaultValue,
+          displayType: "advanced",
+          filename: stored.filename,
+          category: configCategory,
+          isUserProperty: stored.isUserProperty === true,
+          isOverridable: true,
+          overrides: stored.overrides
+        }
+        if (!isAdvanced || this.get('customFileNames').contains(configData.filename)) {
+          var categoryMetaData = this.identifyCategory(configData);
+          if (categoryMetaData != null) {
+            configData.category = categoryMetaData.get('name');
+            if(!isAdvanced) configData.isUserProperty = true;
+          }
+        }
+      } else if (preDefined && !stored) {
+        configData = preDefined;
+        if (isAdvanced) {
+          configData.category = (configData.category === undefined) ? configCategory : configData.category;
+        }
+      }
+      mergedConfigs.push(configData);
+    }, this);
     return mergedConfigs;
   },
   /**
@@ -228,14 +239,17 @@ App.config = Em.Object.create({
    */
   addAdvancedConfigs: function (serviceConfigs, advancedConfigs, serviceName) {
     serviceConfigs = (serviceName) ? serviceConfigs.filterProperty('serviceName', serviceName) : serviceConfigs;
-    var configCategory = 'Advanced';
     advancedConfigs.forEach(function (_config) {
+      var configCategory = 'Advanced';
+      var categoryMetaData = null;
       if (_config) {
         if (this.get('configMapping').computed().someProperty('name', _config.name)) {
         } else if (!(serviceConfigs.someProperty('name', _config.name))) {
-          var categoryMetaData = this.identifyCategory(_config);
-          if (categoryMetaData != null) {
-            configCategory = categoryMetaData.get('name');
+          if(this.get('customFileNames').contains(_config.filename)){
+            categoryMetaData = this.identifyCategory(_config);
+            if (categoryMetaData != null) {
+              configCategory = categoryMetaData.get('name');
+            }
           }
           _config.id = "site property";
           _config.category = configCategory;
