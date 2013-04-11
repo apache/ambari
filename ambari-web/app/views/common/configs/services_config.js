@@ -994,6 +994,7 @@ App.ServiceConfigCapacityScheduler = App.ServiceConfigsByCategoryView.extend({
        * @return {*}
        */
       insertExtraConfigs: function(content){
+        var that = this;
         var admin = content.configs.findProperty('name', 'mapred.queue.' + content.name + '.acl-administer-jobs').get('value');
         var submit = content.configs.findProperty('name', 'mapred.queue.' + content.name + '.acl-submit-job').get('value');
         admin = (admin) ? admin.split(' ') : [''];
@@ -1044,7 +1045,8 @@ App.ServiceConfigCapacityScheduler = App.ServiceConfigsByCategoryView.extend({
         });
         newField.validate();
         content.configs.unshift(newField);
-        newField = App.ServiceConfigProperty.create({
+
+        var submitUser = App.ServiceConfigProperty.create({
           name: 'mapred.queue.' + content.name + '.acl-submit-job',
           displayName: Em.I18n.t('common.users'),
           value: submit[0],
@@ -1055,22 +1057,8 @@ App.ServiceConfigCapacityScheduler = App.ServiceConfigsByCategoryView.extend({
           displayType: "UNIXList",
           index: 3
         });
-        newField.validate();
-        content.configs.push(newField);
-        newField = App.ServiceConfigProperty.create({
-          name: 'mapred.queue.' + content.name + '.acl-administer-jobs',
-          displayName: Em.I18n.t('services.mapReduce.config.queue.adminUsers'),
-          description: Em.I18n.t('services.mapReduce.description.queue.admin.user'),
-          value: admin[0],
-          isRequired: true,
-          isVisible: true,
-          type: 'USERS',
-          displayType: "UNIXList",
-          index: 5
-        });
-        newField.validate();
-        content.configs.push(newField);
-        newField = App.ServiceConfigProperty.create({
+
+        var submitGroup = App.ServiceConfigProperty.create({
           name: 'mapred.queue.' + content.name + '.acl-submit-job',
           displayName: Em.I18n.t('services.mapReduce.config.queue.groups'),
           description: Em.I18n.t('services.mapReduce.description.queue.submit.group'),
@@ -1081,9 +1069,20 @@ App.ServiceConfigCapacityScheduler = App.ServiceConfigsByCategoryView.extend({
           type: 'GROUPS',
           index: 4
         });
-        newField.validate();
-        content.configs.push(newField);
-        newField = App.ServiceConfigProperty.create({
+
+        var adminUser = App.ServiceConfigProperty.create({
+          name: 'mapred.queue.' + content.name + '.acl-administer-jobs',
+          displayName: Em.I18n.t('services.mapReduce.config.queue.adminUsers'),
+          description: Em.I18n.t('services.mapReduce.description.queue.admin.user'),
+          value: admin[0],
+          isRequired: true,
+          isVisible: true,
+          type: 'USERS',
+          displayType: "UNIXList",
+          index: 5
+        });
+
+        var adminGroup = App.ServiceConfigProperty.create({
           name: 'mapred.queue.' + content.name + '.acl-administer-jobs',
           displayName: Em.I18n.t('services.mapReduce.config.queue.adminGroups'),
           value: admin[1],
@@ -1094,10 +1093,42 @@ App.ServiceConfigCapacityScheduler = App.ServiceConfigsByCategoryView.extend({
           type: 'GROUPS',
           index: 6
         });
-        newField.validate();
-        content.configs.push(newField);
+
+        submitUser.reopen({
+          validate: function(){
+            that.userGroupValidation(this, submitGroup);
+          }.observes('value')
+        });
+        submitGroup.reopen({
+          validate: function(){
+            that.userGroupValidation(this, submitUser);
+          }.observes('value')
+        });
+        adminUser.reopen({
+          validate: function(){
+            that.userGroupValidation(this, adminGroup);
+          }.observes('value')
+        });
+        adminGroup.reopen({
+          validate: function(){
+            that.userGroupValidation(this, adminUser);
+          }.observes('value')
+        });
+
+        submitUser.validate();
+        adminUser.validate();
+        content.configs.push(submitUser);
+        content.configs.push(submitGroup);
+        content.configs.push(adminUser);
+        content.configs.push(adminGroup);
+
         return content;
       },
+      /**
+       * sort properties of queue by index
+       * @param configs
+       * @return {Array}
+       */
       sortQueueProperties: function(configs){
         var sortedConfigs = [];
         var skippedConfigs = [];
@@ -1109,6 +1140,27 @@ App.ServiceConfigCapacityScheduler = App.ServiceConfigsByCategoryView.extend({
           }
         });
         return sortedConfigs.concat(skippedConfigs);
+      },
+      /**
+       * Validate by follow rules:
+       * Users can be blank. If this is blank, Groups must not be blank.
+       * Groups can be blank. If this is blank, Users must not be blank.
+       * @param context
+       * @param boundConfig
+       */
+      userGroupValidation:  function(context, boundConfig){
+        if(context.get('value') == ''){
+          if(boundConfig.get('value') == ''){
+            context._super();
+          } else {
+            boundConfig.validate();
+          }
+        } else {
+          if(boundConfig.get('value') == ''){
+            boundConfig.set('errorMessage', '');
+          }
+          context._super();
+        }
       }
     })
   }

@@ -474,7 +474,11 @@ App.ServiceConfigProperty = Ember.Object.extend({
             values = value.split(',');
             for(var i = 0, l = values.length; i < l; i++){
               if(!validator.isValidUNIXUser(values[i])){
-                this.set('errorMessage', 'Must be a valid list of user names');
+                if(this.get('type') == 'USERS'){
+                  this.set('errorMessage', 'Must be a valid list of user names');
+                } else {
+                  this.set('errorMessage', 'Must be a valid list of group names');
+                }
                 isError = true;
               }
             }

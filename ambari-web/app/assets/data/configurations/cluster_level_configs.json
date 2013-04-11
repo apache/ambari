@@ -143,10 +143,10 @@
         "cluster_name" : "vmc"
       },
       "properties" : {
-        "mapred.queue.default.acl-submit-job" : "* *",
-        "mapred.queue.default.acl-administer-jobs" : "* *",
-        "mapred.queue.new_qeuue.acl-administer-jobs" : "* *",
-        "mapred.queue.new_qeuue.acl-submit-job" : "* *"
+        "mapred.queue.default.acl-submit-job" : "*",
+        "mapred.queue.default.acl-administer-jobs" : "*",
+        "mapred.queue.new_qeuue.acl-administer-jobs" : "*",
+        "mapred.queue.new_qeuue.acl-submit-job" : "*"
       }
     },
     {

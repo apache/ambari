@@ -172,7 +172,7 @@ App.config = Em.Object.create({
    */
   mergePreDefinedWithStored: function (storedConfigs) {
     var mergedConfigs = [];
-    var preDefinedConfigs = this.get('preDefinedConfigProperties');
+    var preDefinedConfigs = $.extend(true, [], this.get('preDefinedConfigProperties'));
     var preDefinedNames = [];
     var storedNames = [];
     var names = [];
@@ -314,10 +314,10 @@ App.config = Em.Object.create({
         customConfig.value = 'false';
         break;
       case 'mapred.queue.' + queueName + '.acl-submit-job':
-        customConfig.value = '* *';
+        customConfig.value = '*';
         break;
       case 'mapred.queue.' + queueName + '.acl-administer-jobs':
-        customConfig.value = '* *';
+        customConfig.value = '*';
         break;
     }
   },
@@ -477,7 +477,7 @@ App.config = Em.Object.create({
           name: item.property_name,
           value: item.property_value,
           description: item.property_description,
-          filename: item.filename
+          filename: item.filename || item.type
         });
       }, this);
       serviceComponents[data.items[0].StackConfigurations.service_name] = properties;
