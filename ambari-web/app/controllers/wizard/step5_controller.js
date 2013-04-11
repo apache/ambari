@@ -69,15 +69,20 @@ App.WizardStep5Controller = Em.Controller.extend({
    */
   updateComponent: function(componentName){
     var component = this.last(componentName);
+
+    var services = this.get('content.services').filterProperty('isInstalled', true).mapProperty('serviceName');
+    var currentService = componentName.split('_')[0];
+    var showControl = !services.contains(currentService);
+
     if (component) {
-      if (this.get("selectedServicesMasters").filterProperty("component_name", componentName).length < this.get("hosts.length") && !this.get('isReassignWizard')) {
-        component.set('showAddControl', true);
-      } else {
-        component.set('showRemoveControl', false);
+      if(showControl){
+        if (this.get("selectedServicesMasters").filterProperty("component_name", componentName).length < this.get("hosts.length") && !this.get('isReassignWizard')) {
+          component.set('showAddControl', true);
+        } else {
+          component.set('showRemoveControl', false);
+        }
       }
-      if(componentName == 'ZOOKEEPER_SERVER' || componentName == 'HBASE_MASTER'){
-        this.rebalanceComponentHosts(componentName);
-      }
+      this.rebalanceComponentHosts(componentName);
     }
   },
 

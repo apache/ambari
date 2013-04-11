@@ -681,6 +681,9 @@ Trunk (unreleased changes):
 
  BUG FIXES
 
+ AMBARI-1874. Add Service Wizard: remove the ability to install master
+ components for already installed services. (yusaku)
+
  AMBARI-1872. Ambari FE is not setting proper value for 
  fs.checkpoint.edits.dir (jaimin)
 
