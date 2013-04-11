@@ -943,6 +943,8 @@ Trunk (unreleased changes):
  AMBARI-1657. User directories on HDFS do not get created with custom names 
  provided from Ambari UI. (swagle)
 
+ AMBARI-1865. Fix for upgrade script to copy configurations. (ncole)
+
  AMBARI-1703. Fix for smoke tests getting configurations. (ncole)
 
  AMBARI-1678. Fix when there are no service overrides. (ncole)
