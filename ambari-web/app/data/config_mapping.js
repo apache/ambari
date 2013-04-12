@@ -857,6 +857,13 @@ var configs = [
     "foreignKey": null,
     "value": "<templateName[0]>",
     "filename": "hbase-site.xml"
+  },
+  {
+    "name": "zookeeper.znode.parent",
+    "templateName": [],
+    "foreignKey": null,
+    "value": "/hbase-unsecure",
+    "filename": "hbase-site.xml"
   }
 ];
 

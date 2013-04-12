@@ -354,6 +354,13 @@ module.exports = [
     "foreignKey": null,
     "value": "/apps/hbase/staging",
     "filename": "hbase-site.xml"
+  },
+  {
+    "name": "zookeeper.znode.parent",
+    "templateName": [],
+    "foreignKey": null,
+    "value": "/hbase-secure",
+    "filename": "hbase-site.xml"
   }
 ];
 
