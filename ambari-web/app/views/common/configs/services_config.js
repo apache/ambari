@@ -375,7 +375,7 @@ App.ServiceConfigsByCategoryView = Ember.View.extend({
         filterText: '',
         filterTextPlaceholder: Em.I18n.t('hosts.selectHostsDialog.filter.placeHolder'),
         availableHosts: availableHosts,
-        filterColumn: null,
+        filterColumn: Ember.Object.create({id:'ip', name:'IP Address', selected:false}),
         filterColumns: Ember.A([
            Ember.Object.create({id:'ip', name:'IP Address', selected:false}),
            Ember.Object.create({id:'cpu', name:'CPU', selected:false}),
@@ -385,11 +385,13 @@ App.ServiceConfigsByCategoryView = Ember.View.extend({
            Ember.Object.create({id:'osArch', name:'OS Architecture', selected:false}),
            Ember.Object.create({id:'osType', name:'OS Type', selected:false})
         ]),
+        showOnlySelectedHosts: false,
         filterComponents: validComponents,
         filterComponent: null,
         filteredHosts: function () {
           var hosts = this.get('availableHosts');
           var filterText = this.get('filterText');
+          var showOnlySelectedHosts = this.get('showOnlySelectedHosts');
           var filteredHosts = Ember.A([]);
           var self = this;
           hosts.forEach(function (host) {
@@ -422,12 +424,15 @@ App.ServiceConfigsByCategoryView = Ember.View.extend({
                 skip = true;
               }
             }
+            if (!skip && showOnlySelectedHosts && !host.get('selected')){
+              skip = true;
+            }
             if (!skip) {
               filteredHosts.pushObject(host);
             }
           });
           return filteredHosts;
-        }.property('availableHosts', 'filterText', 'filterColumn', 'filterComponent', 'filterComponent.componentName'),
+        }.property('availableHosts', 'filterText', 'filterColumn', 'filterComponent', 'filterComponent.componentName', 'showOnlySelectedHosts'),
         hostColumnValue: function(host, column){
           return host.get(column.id);
         },
@@ -471,13 +476,14 @@ App.ServiceConfigsByCategoryView = Ember.View.extend({
             this.get('availableHosts').setEach('selected', false);
           }
         }.observes('allHostsSelected'),
-        clearFilters: function () {
+        toggleShowSelectedHosts: function () {
           var currentFilter = this.get('filterComponent');
           if (currentFilter != null) {
             currentFilter.set('selected', false);
           }
           this.set('filterComponent', null);
           this.set('filterText', null);
+          this.set('showOnlySelectedHosts', !this.get('showOnlySelectedHosts'));
         }
       })
     });

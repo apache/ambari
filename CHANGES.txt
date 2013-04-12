@@ -695,6 +695,8 @@ Trunk (unreleased changes):
 
  BUG FIXES
 
+ AMBARI-1903. Host Exception Popup layout and cosmetic issues. (srimanth)
+
  AMBARI-1901. Add additional tests for verifying request behavior based on 
  host role command results. (smohanty)
 
