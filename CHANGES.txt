@@ -702,6 +702,9 @@ Trunk (unreleased changes):
 
  BUG FIXES
 
+ AMBARI-1917. Ambari Core-Site.xml Missing Property for LZO (enabled) -
+ io.compression.codecs (jaimin).
+
  AMBARI-1889. Added documentation for configuration (ncole)
 
  AMBARI-1912: HBase master doesn't come up after disabling security. (jaimin)

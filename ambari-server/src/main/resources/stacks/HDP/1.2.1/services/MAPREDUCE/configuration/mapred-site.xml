@@ -179,7 +179,7 @@
 
   <property>
     <name>mapred.map.output.compression.codec</name>
-    <value></value>
+    <value>org.apache.hadoop.io.compress.SnappyCodec</value>
     <description>If the map outputs are compressed, how should they be
       compressed
     </description>
