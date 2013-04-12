@@ -56,6 +56,7 @@ class hdp::params()
   $oozie_server =  hdp_default("oozie_server", "")
   $webhcat_server_host = hdp_default("webhcat_server_host", "")
   $gateway_host = hdp_default("gateway_host")
+  $hue_server_host = hdp_default("hue_server_host", "")
   
   $nagios_server_host = hdp_default("nagios_server_host")
   $ganglia_server_host = hdp_default("ganglia_server_host")

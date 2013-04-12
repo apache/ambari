@@ -483,3 +483,14 @@ define service {
         max_check_attempts      3
 }
 <%end-%>
+
+define service {
+        hostgroup_name          hue-server
+        use                     hadoop-service
+        service_description     HUE::Hue Server status check
+        servicegroups           HUE
+        check_command           check_hue_status
+        normal_check_interval   100
+        retry_check_interval    0.5
+        max_check_attempts      3
+}

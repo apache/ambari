@@ -11,6 +11,8 @@ Trunk (unreleased changes):
  INCOMPATIBLE CHANGES 
 
  NEW FEATURES
+ 
+ AMBARI-1914. Add Nagios alerts for Hue service. (swagle)
 
  AMBARI-1895. Refactor ajax requests. (srimanth)
 
