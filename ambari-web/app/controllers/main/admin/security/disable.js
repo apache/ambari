@@ -322,6 +322,9 @@ App.MainAdminSecurityDisableController = Em.Controller.extend({
               case 'zookeeper.znode.parent':
                 _serviceConfigTags.configs[configName] = '/hbase-unsecure';
                 break;
+              case 'oozie.service.AuthorizationService.authorization.enabled':
+                _serviceConfigTags.configs[configName] = 'false';
+                break;
               default:
                 delete _serviceConfigTags.configs[configName];
             }

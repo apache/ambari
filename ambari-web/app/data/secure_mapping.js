@@ -222,7 +222,7 @@ module.exports = [
     "filename": "hive-site.xml"
   },
   {
-    "name": "oozie.service.AuthorizationService.security.enabled",
+    "name": "oozie.service.AuthorizationService.authorization.enabled",
     "templateName": [],
     "foreignKey": null,
     "value": "true",

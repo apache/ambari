@@ -702,6 +702,9 @@ Trunk (unreleased changes):
 
  BUG FIXES
 
+ AMBARI-1918. Set correct Oozie property for security instead of deprecated
+ property. (jaimin)
+
  AMBARI-1917. Ambari Core-Site.xml Missing Property for LZO (enabled) -
  io.compression.codecs (jaimin).
 
