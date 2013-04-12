@@ -702,6 +702,8 @@ Trunk (unreleased changes):
 
  BUG FIXES
 
+ AMBARI-1889. Added documentation for configuration (ncole)
+
  AMBARI-1912: HBase master doesn't come up after disabling security. (jaimin)
 
  AMBARI-1902: RegionServer does not start in secure cluster. (jaimin)

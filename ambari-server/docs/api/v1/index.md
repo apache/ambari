@@ -78,6 +78,9 @@ There are 2 types of resources in the Ambari API:
 - [List host components](host-components.md)
 - [View host component information](host-component.md)
 
+### configurations
+- [Configuration](configuration.md)
+
 Partial Response
 ----
 
