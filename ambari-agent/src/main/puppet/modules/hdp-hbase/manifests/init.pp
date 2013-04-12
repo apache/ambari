@@ -101,7 +101,7 @@ class hdp-hbase(
       if ($type == 'master') {
         hdp-hbase::configfile { 'hbase_master_jaas.conf' : }
       } elsif ($type == 'regionserver') {
-        hdp-hbase::configfile { 'hbase_region_server_jaas.conf' : }
+        hdp-hbase::configfile { 'hbase_regionserver_jaas.conf' : }
       } else {
         hdp-hbase::configfile { 'hbase_client_jaas.conf' : }
       }
