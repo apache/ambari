@@ -236,8 +236,11 @@ App.HostStatusView = Em.View.extend({
         tasks: function () {
           var tasksArr = [];
           var tasks = this.getStartedTasks(host);
-          tasks = this.sortTasksById(tasks);
-          tasks = this.groupTasksByRole(tasks);
+          //tasks = this.sortTasksById(tasks);
+          tasks = tasks.sort(function(a,b){
+            return a.Tasks.id - b.Tasks.id;
+          });
+          //tasks = this.groupTasksByRole(tasks);
           if (tasks.length) {
             tasks.forEach(function (_task) {
               var taskInfo = Ember.Object.create({});

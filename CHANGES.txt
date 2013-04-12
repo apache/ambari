@@ -245,6 +245,8 @@ Trunk (unreleased changes):
 
  IMPROVEMENTS
 
+ AMBARI-1921. Change tasks order in popup on deploy page. (jaimin)
+
  AMBARI-1913. Security Wizard - "Kerberos security is disabled on the cluster"
  should not be shown in red. (jaimin)
 
