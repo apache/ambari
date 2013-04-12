@@ -20,6 +20,7 @@ package org.apache.ambari.server.api.services.serializers;
 
 import org.apache.ambari.server.api.services.ResultStatus;
 import org.apache.ambari.server.api.services.Result;
+import org.apache.ambari.server.api.util.TreeNodeImpl;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.api.util.TreeNode;
 import org.codehaus.jackson.JsonFactory;
@@ -29,6 +30,7 @@ import org.codehaus.jackson.util.DefaultPrettyPrinter;
 
 import java.io.*;
 import java.nio.charset.Charset;
+import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -114,7 +116,7 @@ public class JsonSerializer implements ResultSerializer {
       m_generator.writeStartObject();
       writeHref(node);
       // resource props
-      handleResourceProperties(r.getProperties());
+      handleResourceProperties(getTreeProperties(r.getPropertiesMap()));
     }
 
     for (TreeNode<Resource> child : node.getChildren()) {
@@ -131,6 +133,39 @@ public class JsonSerializer implements ResultSerializer {
     } else {
       m_generator.writeEndObject();
     }
+  }
+
+  private TreeNode<Map<String, Object>> getTreeProperties (Map<String, Map<String, Object>> propertiesMap) {
+    TreeNode<Map<String, Object>> treeProperties =
+        new TreeNodeImpl<Map<String, Object>>(null, new HashMap<String, Object>(), null);
+
+    for (Map.Entry<String, Map<String, Object>> entry : propertiesMap.entrySet()) {
+      String category = entry.getKey();
+      TreeNode<Map<String, Object>> node;
+      if (category == null) {
+        node = treeProperties;
+      } else {
+        node = treeProperties.getChild(category);
+        if (node == null) {
+          String[] tokens = category.split("/");
+          node = treeProperties;
+          for (String t : tokens) {
+            TreeNode<Map<String, Object>> child = node.getChild(t);
+            if (child == null) {
+              child = node.addChild(new HashMap<String, Object>(), t);
+            }
+            node = child;
+          }
+        }
+      }
+
+      Map<String, Object> properties = entry.getValue();
+
+      for (Map.Entry<String, Object> propertyEntry : properties.entrySet()) {
+        node.getObject().put(propertyEntry.getKey(), propertyEntry.getValue());
+      }
+    }
+    return treeProperties;
   }
 
   private void handleResourceProperties(TreeNode<Map<String, Object>> node) throws IOException {

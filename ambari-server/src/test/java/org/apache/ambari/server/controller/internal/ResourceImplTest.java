@@ -72,19 +72,11 @@ public class ResourceImplTest {
     Resource resource = new ResourceImpl(Resource.Type.Cluster);
 
     resource.addCategory("c1");
-    Assert.assertTrue(resource.getPropertiesMap().containsKey("c1"));
-
     resource.addCategory("c2/sub2");
-    Assert.assertTrue(resource.getPropertiesMap().containsKey("c1"));
-    Assert.assertTrue(resource.getPropertiesMap().containsKey("c2"));
-    Assert.assertTrue(resource.getPropertiesMap().containsKey("c2/sub2"));
-
     resource.addCategory("c3/sub3/sub3a");
+
     Assert.assertTrue(resource.getPropertiesMap().containsKey("c1"));
-    Assert.assertTrue(resource.getPropertiesMap().containsKey("c2"));
     Assert.assertTrue(resource.getPropertiesMap().containsKey("c2/sub2"));
-    Assert.assertTrue(resource.getPropertiesMap().containsKey("c3"));
-    Assert.assertTrue(resource.getPropertiesMap().containsKey("c3/sub3"));
     Assert.assertTrue(resource.getPropertiesMap().containsKey("c3/sub3/sub3a"));
   }
 

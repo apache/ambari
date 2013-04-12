@@ -243,6 +243,8 @@ Trunk (unreleased changes):
 
  IMPROVEMENTS
 
+ AMBARI-1403. Remove SPI dependencies on other code. (tbeerbower)
+
  AMBARI-1892. Restrict user on a Disable security popup while the poccessi
  is in progress. (jaimin)
 
