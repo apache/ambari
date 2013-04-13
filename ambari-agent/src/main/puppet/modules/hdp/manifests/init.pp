@@ -68,10 +68,6 @@ class hdp(
 
 
   #TODO: think not needed and also there seems to be a puppet bug around this and ldap
-  hdp::user { $hdp::params::hadoop_user:
-    gid => $hdp::params::user_group
-  }
-  Group[$hdp::params::user_group] -> Hdp::User[$hdp::params::hadoop_user] 
   class { 'hdp::snmp': service_state => 'running'}
 
   class { 'hdp::create_smoke_user': }
@@ -211,7 +207,7 @@ define hdp::user(
 
      
 define hdp::directory(
-  $owner = $hdp::params::hadoop_user,
+  $owner = undef,
   $group = $hdp::params::user_group,
   $mode  = undef,
   $ensure = directory,
@@ -248,7 +244,7 @@ define hdp::directory(
 }
 #TODO: check on -R flag and use of recurse
 define hdp::directory_recursive_create(
-  $owner = $hdp::params::hadoop_user,
+  $owner = undef,
   $group = $hdp::params::user_group,
   $mode = undef,
   $context_tag = undef,
@@ -277,7 +273,7 @@ define hdp::directory_recursive_create(
 }
 
 define hdp::directory_recursive_create_ignore_failure(
-  $owner = $hdp::params::hadoop_user,
+  $owner = undef,
   $group = $hdp::params::user_group,
   $mode = undef,
   $context_tag = undef,

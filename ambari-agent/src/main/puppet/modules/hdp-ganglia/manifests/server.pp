@@ -197,8 +197,9 @@ class hdp-ganglia::service::change_permission(
 {
   if ($ensure == 'running' or $ensure == 'installed_and_configured') {
     hdp::directory_recursive_create { '/var/lib/ganglia/dwoo' :
-      mode => '0777'
-      }
+      mode => '0777',
+      owner => $hdp-ganglia::params::gmetad_user
+    }
   }
 }
 

@@ -167,12 +167,6 @@ class hdp::params()
   $webhcat_apps_dir = hdp_default("webhcat_apps_dir", "/apps/webhcat")
   $hbase_hdfs_root_dir = hdp_default("hadoop/hbase-site/hbase_hdfs_root_dir","/apps/hbase/data")
 
-  #because of Puppet user resource issue make sure that $hadoop_user is different from user_group
-  if ($security_enabled == true) {
-    $hadoop_user = "root"
-  } else {
-    $hadoop_user = hdp_default("hadoop_user", "hadoop_deploy")
-  }
   $user_group = hdp_default("user_group","hadoop")
 
   $ganglia_enabled = hdp_default("ganglia_enabled",true) 

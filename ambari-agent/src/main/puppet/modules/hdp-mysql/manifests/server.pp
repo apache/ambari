@@ -43,7 +43,9 @@ class hdp-mysql::server(
       # On Suse, creating symlink from default mysqld pid file to expected /var/run location
 	  
       hdp::directory_recursive_create {'/var/run/mysqld/':
-        require => Hdp::Package['mysql']
+        require => Hdp::Package['mysql'],
+        owner => $mysql_user,
+        group => $mysql_group
       }
 	  
       file { '/var/run/mysqld/mysqld.pid':
