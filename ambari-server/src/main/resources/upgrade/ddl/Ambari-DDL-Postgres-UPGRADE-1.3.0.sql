@@ -19,7 +19,7 @@
 
 -- Upgrade from 1.2.0
 ALTER TABLE ambari.hosts
-  ADD COLUMN ph_cpu_count INTEGER NOT NULL,
+  ADD COLUMN ph_cpu_count INTEGER,
   ALTER COLUMN disks_info TYPE VARCHAR(10000);
 
 -- Upgrade to 1.3.0

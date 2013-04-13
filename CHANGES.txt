@@ -713,6 +713,9 @@ Trunk (unreleased changes):
 
  BUG FIXES
 
+ AMBARI-1900. Update the DDL update script to modify the table to includei
+ ph_cpu_count. (smohanty)
+
  AMBARI-1926. One HBase master should have active HA status at all time. 
  (smohanty)
 
