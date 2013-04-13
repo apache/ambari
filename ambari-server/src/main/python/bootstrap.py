@@ -35,7 +35,8 @@ HOST_BOOTSTRAP_TIMEOUT = 300
 class SCP(threading.Thread):
   """ SCP implementation that is thread based. The status can be returned using
    status val """
-  def __init__(self, sshKeyFile, host, inputFile, remote, bootdir):
+  def __init__(self, user, sshKeyFile, host, inputFile, remote, bootdir):
+    self.user = user
     self.sshKeyFile = sshKeyFile
     self.host = host
     self.inputFile = inputFile
@@ -58,7 +59,7 @@ class SCP(threading.Thread):
                   "-o", "ConnectTimeout=60",
                   "-o", "BatchMode=yes",
                   "-o", "StrictHostKeyChecking=no",
-                  "-i", self.sshKeyFile, self.inputFile, "root@" +
+                  "-i", self.sshKeyFile, self.inputFile, self.user + "@" +
                    self.host + ":" + self.remote]
     logging.info("Running scp command " + ' '.join(scpcommand))
     scpstat = subprocess.Popen(scpcommand, stdout=subprocess.PIPE,
@@ -67,19 +68,25 @@ class SCP(threading.Thread):
     self.ret["exitstatus"] = scpstat.returncode
     self.ret["log"] = "STDOUT\n" + log[0] + "\nSTDERR\n" + log[1]
     logFilePath = os.path.join(self.bootdir, self.host + ".log")
+    self.writeLogToFile(logFilePath)
+    logging.info("scp " + self.inputFile + " done for host " + self.host + ", exitcode=" + str(scpstat.returncode))
+    pass
+
+  def writeLogToFile(self, logFilePath):
     logFile = open(logFilePath, "a+")
     logFile.write(self.ret["log"])
     logFile.close
-    logging.info("scp " + self.inputFile + " done for host " + self.host + ", exitcode=" + str(scpstat.returncode))
     pass
 
 class SSH(threading.Thread):
   """ Ssh implementation of this """
-  def __init__(self, sshKeyFile, host, command, bootdir):
+  def __init__(self, user, sshKeyFile, host, command, bootdir, errorMessage = None):
+    self.user = user
     self.sshKeyFile = sshKeyFile
     self.host = host
     self.command = command
     self.bootdir = bootdir
+    self.errorMessage = errorMessage
     self.ret = {"exitstatus" : -1, "log": "FAILED"}
     threading.Thread.__init__(self)
     self.daemon = True
@@ -98,24 +105,35 @@ class SSH(threading.Thread):
                   "-o", "BatchMode=yes",
                   "-tt", # Should prevent "tput: No value for $TERM and no -T specified" warning
                   "-i", self.sshKeyFile,
-                  "root@" + self.host, self.command]
+                  self.user + "@" + self.host, self.command]
     logging.info("Running ssh command " + ' '.join(sshcommand))
     sshstat = subprocess.Popen(sshcommand, stdout=subprocess.PIPE,
                                   stderr=subprocess.PIPE)
     log = sshstat.communicate()
     self.ret["exitstatus"] = sshstat.returncode
-    self.ret["log"] = "STDOUT\n" + log[0] + "\nSTDERR\n" + log[1]
+    errorMsg = log[1]
+    if self.errorMessage and sshstat.returncode != 0:
+      errorMsg = self.errorMessage + "\n" + errorMsg
+    self.ret["log"] = "STDOUT\n" + log[0] + "\nSTDERR\n" + errorMsg
     logFilePath = os.path.join(self.bootdir, self.host + ".log")
+    self.writeLogToFile(logFilePath)
+
+    doneFilePath = os.path.join(self.bootdir, self.host + ".done")
+    self.writeDoneToFile(doneFilePath, str(sshstat.returncode))
+
+    logging.info("Setup agent done for host " + self.host + ", exitcode=" + str(sshstat.returncode))
+    pass
+
+  def writeLogToFile(self, logFilePath):
     logFile = open(logFilePath, "a+")
     logFile.write(self.ret["log"])
     logFile.close
+    pass
 
-    doneFilePath = os.path.join(self.bootdir, self.host + ".done")
+  def writeDoneToFile(self, doneFilePath, returncode):
     doneFile = open(doneFilePath, "w+")
-    doneFile.write(str(sshstat.returncode))
+    doneFile.write(str(returncode))
     doneFile.close()
-
-    logging.info("Setup agent done for host " + self.host + ", exitcode=" + str(sshstat.returncode))
     pass
 pass
 
@@ -154,11 +172,13 @@ def get_difference(list1, list2):
 
 class PSSH:
   """Run SSH in parallel for a given list of hosts"""
-  def __init__(self, hosts, sshKeyFile, command, bootdir):
+  def __init__(self, hosts, user, sshKeyFile, command, bootdir, errorMessage = None):
     self.hosts = hosts
+    self.user = user
     self.sshKeyFile = sshKeyFile
     self.command = command
     self.bootdir = bootdir
+    self.errorMessage = errorMessage
     self.ret = {}
     pass
     
@@ -171,7 +191,7 @@ class PSSH:
     for chunk in splitlist(self.hosts, 20):
       chunkstats = []
       for host in chunk:
-        ssh = SSH(self.sshKeyFile, host, self.command, self.bootdir)
+        ssh = SSH(self.user, self.sshKeyFile, host, self.command, self.bootdir, self.errorMessage)
         ssh.start()
         chunkstats.append(ssh)
         pass
@@ -191,8 +211,9 @@ pass
 
 class PSCP:
   """Run SCP in parallel for a given list of hosts"""
-  def __init__(self, hosts, sshKeyFile, inputfile, remote, bootdir):
+  def __init__(self, hosts, user, sshKeyFile, inputfile, remote, bootdir):
     self.hosts = hosts
+    self.user = user
     self.sshKeyFile = sshKeyFile
     self.inputfile = inputfile
     self.remote = remote
@@ -209,7 +230,7 @@ class PSCP:
     for chunk in splitlist(self.hosts, 20):
       chunkstats = []
       for host in chunk:
-        scp = SCP(self.sshKeyFile, host, self.inputfile, self.remote, self.bootdir)
+        scp = SCP(self.user, self.sshKeyFile, host, self.inputfile, self.remote, self.bootdir)
         scp.start()
         chunkstats.append(scp)
         pass
@@ -230,14 +251,17 @@ pass
     
 class BootStrap:
   """ BootStrapping the agents on a list of hosts"""
-  def __init__(self, hosts, sshkeyFile, scriptDir, boottmpdir, setupAgentFile, ambariServer):
+  def __init__(self, hosts, user, sshkeyFile, scriptDir, boottmpdir, setupAgentFile, ambariServer, passwordFile = None):
     self.hostlist = hosts
     self.successive_hostlist = hosts
+    self.hostlist_to_remove_password_file = None
+    self.user = user
     self.sshkeyFile = sshkeyFile
     self.bootdir = boottmpdir
     self.scriptDir = scriptDir
     self.setupAgentFile = setupAgentFile
     self.ambariServer = ambariServer
+    self.passwordFile = passwordFile
     self.statuses = None
     pass
 
@@ -261,22 +285,57 @@ class BootStrap:
   def getSetupScript(self):
     return os.path.join(self.scriptDir, "setupAgent.py")
 
+  def getPasswordFile(self):
+    return "/tmp/host_pass"
+
+  def hasPassword(self):
+    return self.passwordFile != None and self.passwordFile != 'null'
+
+  def getMoveRepoFileWithPasswordCommand(self, targetDir):
+    return "sudo -S mv /tmp/ambari.repo " + targetDir + " < " + self.getPasswordFile()
+
+  def getMoveRepoFileWithoutPasswordCommand(self, targetDir):
+    return "sudo mv /tmp/ambari.repo " + targetDir
+
+  def getMoveRepoFileCommand(self, targetDir):
+    if self.hasPassword():
+      return self.getMoveRepoFileWithPasswordCommand(targetDir)
+    else:
+      return self.getMoveRepoFileWithoutPasswordCommand(targetDir)
+
   def copyNeededFiles(self):
     try:
       # Copying the files
       fileToCopy = self.getRepoFile()
-      targetDir = self.getRepoDir()
-      pscp = PSCP(self.hostlist, self.sshkeyFile, fileToCopy, targetDir, self.bootdir)
+      logging.info("Copying repo file to 'tmp' folder...")
+      pscp = PSCP(self.successive_hostlist, self.user, self.sshkeyFile, fileToCopy, "/tmp", self.bootdir)
       pscp.run()
       out = pscp.getstatus()
       # Prepearing report about failed hosts
+      failed_current = get_difference(self.successive_hostlist, skip_failed_hosts(out))
       self.successive_hostlist = skip_failed_hosts(out)
       failed = get_difference(self.hostlist, self.successive_hostlist)
-      logging.info("Parallel scp returns for repo file. Failed hosts are: " + str(failed))
+      logging.info("Parallel scp returns for copying repo file. All failed hosts are: " + str(failed) +
+                   ". Failed on last step: " + str(failed_current))
       #updating statuses
-      self.statuses = out
+      self.statuses = unite_statuses(self.statuses, out)
 
-      pscp = PSCP(self.successive_hostlist, self.sshkeyFile, self.setupAgentFile, "/tmp", self.bootdir)
+      logging.info("Moving repo file...")
+      targetDir = self.getRepoDir()
+      command = self.getMoveRepoFileCommand(targetDir)
+      pssh = PSSH(self.successive_hostlist, self.user, self.sshkeyFile, command, self.bootdir)
+      pssh.run()
+      out = pssh.getstatus()
+      # Prepearing report about failed hosts
+      failed_current = get_difference(self.successive_hostlist, skip_failed_hosts(out))
+      self.successive_hostlist = skip_failed_hosts(out)
+      failed = get_difference(self.hostlist, self.successive_hostlist)
+      logging.info("Parallel scp returns for moving repo file. All failed hosts are: " + str(failed) +
+                   ". Failed on last step: " + str(failed_current))
+      #updating statuses
+      self.statuses = unite_statuses(self.statuses, out)
+
+      pscp = PSCP(self.successive_hostlist, self.user, self.sshkeyFile, self.setupAgentFile, "/tmp", self.bootdir)
       pscp.run()
       out = pscp.getstatus()
       # Prepearing report about failed hosts
@@ -300,10 +359,22 @@ class BootStrap:
 
     pass
 
+  def getRunSetupWithPasswordCommand(self):
+    return "sudo -S python /tmp/setupAgent.py " + os.environ[AMBARI_PASSPHRASE_VAR_NAME] + " " + self.ambariServer + " < " + self.getPasswordFile()
+
+  def getRunSetupWithoutPasswordCommand(self):
+    return "sudo python /tmp/setupAgent.py " + os.environ[AMBARI_PASSPHRASE_VAR_NAME] + " " + self.ambariServer
+
+  def getRunSetupCommand(self):
+    if self.hasPassword():
+      return self.getRunSetupWithPasswordCommand()
+    else:
+      return self.getRunSetupWithoutPasswordCommand()
+
   def runSetupAgent(self):
     logging.info("Running setup agent...")
-    command = "python /tmp/setupAgent.py " + os.environ[AMBARI_PASSPHRASE_VAR_NAME] + " " + self.ambariServer
-    pssh = PSSH(self.successive_hostlist, self.sshkeyFile, command, self.bootdir)
+    command = self.getRunSetupCommand()
+    pssh = PSSH(self.successive_hostlist, self.user, self.sshkeyFile, command, self.bootdir)
     pssh.run()
     out = pssh.getstatus()
 
@@ -334,13 +405,154 @@ class BootStrap:
         doneFile.close()
     pass
 
+  def checkSudoPackage(self):
+    try:
+      """ Checking 'sudo' package on remote hosts """
+      command = "rpm -qa | grep sudo"
+      pssh = PSSH(self.hostlist, self.user, self.sshkeyFile, command, self.bootdir, "Error: Sudo command is not available. Please install the sudo command.")
+      pssh.run()
+      out = pssh.getstatus()
+      # Prepearing report about failed hosts
+      self.successive_hostlist = skip_failed_hosts(out)
+      failed = get_difference(self.hostlist, self.successive_hostlist)
+      logging.info("Parallel ssh returns for checking 'sudo' package. Failed hosts are: " + str(failed))
+      #updating statuses
+      self.statuses = out
+
+      retstatus = 0
+      if not failed: 
+        retstatus = 0
+      else:
+        retstatus = 1
+      return retstatus
+
+    except Exception, e:
+      logging.info("Traceback " + traceback.format_exc())
+      pass
+    pass
+
+  def copyPasswordFile(self):
+    try:
+      # Copying the password file
+      logging.info("Copying password file to 'tmp' folder...")
+      pscp = PSCP(self.successive_hostlist, self.user, self.sshkeyFile, self.passwordFile, "/tmp", self.bootdir)
+      pscp.run()
+      out = pscp.getstatus()
+      # Prepearing report about failed hosts
+      failed_current = get_difference(self.successive_hostlist, skip_failed_hosts(out))
+      self.successive_hostlist = skip_failed_hosts(out)
+      self.hostlist_to_remove_password_file = self.successive_hostlist
+      failed = get_difference(self.hostlist, self.successive_hostlist)
+      logging.warn("Parallel scp returns for copying password file. All failed hosts are: " + str(failed) +
+                   ". Failed on last step: " + str(failed_current))
+      #updating statuses
+      self.statuses = unite_statuses(self.statuses, out)
+
+      # Change password file mode to 600
+      logging.info("Changing password file mode...")
+      targetDir = self.getRepoDir()
+      command = "chmod 600 " + self.getPasswordFile()
+      pssh = PSSH(self.successive_hostlist, self.user, self.sshkeyFile, command, self.bootdir)
+      pssh.run()
+      out = pssh.getstatus()
+      # Prepearing report about failed hosts
+      failed_current = get_difference(self.successive_hostlist, skip_failed_hosts(out))
+      self.successive_hostlist = skip_failed_hosts(out)
+      failed = get_difference(self.hostlist, self.successive_hostlist)
+      logging.warning("Parallel scp returns for copying password file. All failed hosts are: " + str(failed) +
+                   ". Failed on last step: " + str(failed_current))
+      #updating statuses
+      self.statuses = unite_statuses(self.statuses, out)
+
+      if not failed:
+        retstatus = 0
+      else:
+        retstatus = 1
+      return retstatus
+
+    except Exception, e:
+      logging.info("Traceback " + traceback.format_exc())
+      return 1
+    pass
+
+  def changePasswordFileModeOnHost(self):
+    try:
+      # Change password file mode to 600
+      logging.info("Changing password file mode...")
+      targetDir = self.getRepoDir()
+      command = "chmod 600 " + self.getPasswordFile()
+      pssh = PSSH(self.successive_hostlist, self.user, self.sshkeyFile, command, self.bootdir)
+      pssh.run()
+      out = pssh.getstatus()
+      # Prepearing report about failed hosts
+      failed_current = get_difference(self.successive_hostlist, skip_failed_hosts(out))
+      self.successive_hostlist = skip_failed_hosts(out)
+      failed = get_difference(self.hostlist, self.successive_hostlist)
+      logging.warning("Parallel scp returns for copying password file. All failed hosts are: " + str(failed) +
+                      ". Failed on last step: " + str(failed_current))
+      #updating statuses
+      self.statuses = unite_statuses(self.statuses, out)
+
+      if not failed:
+        retstatus = 0
+      else:
+        retstatus = 1
+      return retstatus
+
+    except Exception, e:
+      logging.info("Traceback " + traceback.format_exc())
+      return 1
+    pass
+
+  def deletePasswordFile(self):
+    try:
+      # Deleting the password file
+      logging.info("Deleting password file...")
+      targetDir = self.getRepoDir()
+      command = "rm " + self.getPasswordFile()
+      pssh = PSSH(self.hostlist_to_remove_password_file, self.user, self.sshkeyFile, command, self.bootdir)
+      pssh.run()
+      out = pssh.getstatus()
+      # Prepearing report about failed hosts
+      failed_current = get_difference(self.hostlist_to_remove_password_file, skip_failed_hosts(out))
+      self.successive_hostlist = skip_failed_hosts(out)
+      failed = get_difference(self.hostlist, self.successive_hostlist)
+      logging.warn("Parallel scp returns for deleting password file. All failed hosts are: " + str(failed) +
+                   ". Failed on last step: " + str(failed_current))
+      #updating statuses
+      self.statuses = unite_statuses(self.statuses, out)
+
+      if not failed:
+        retstatus = 0
+      else:
+        retstatus = 1
+      return retstatus
+
+    except Exception, e:
+      logging.info("Traceback " + traceback.format_exc())
+      return 1
+    pass
+
   def run(self):
     """ Copy files and run commands on remote hosts """
-    ret1 = self.copyNeededFiles()
+    ret1 = self.checkSudoPackage()
+    logging.info("Checking 'sudo' package finished")
+    ret2 = 0
+    ret3 = 0
+    if self.hasPassword():
+      ret2 = self.copyPasswordFile()
+      logging.info("Copying password file finished")
+      ret3 = self.changePasswordFileModeOnHost()
+      logging.info("Change password file mode on host finished")
+    ret4 = self.copyNeededFiles()
     logging.info("Copying files finished")
-    ret2 = self.runSetupAgent()
+    ret5 = self.runSetupAgent()
     logging.info("Running ssh command finished")
-    retcode = max(ret1, ret2)
+    ret6 = 0
+    if self.hasPassword() and self.hostlist_to_remove_password_file is not None:
+      ret6 = self.deletePasswordFile()
+      logging.info("Deleting password file finished")
+    retcode = max(ret1, ret2, ret3, ret4, ret5, ret6)
     self.createDoneFiles()
     return retcode
     pass
@@ -352,23 +564,29 @@ def main(argv=None):
   onlyargs = argv[1:]
   if len(onlyargs) < 3:
     sys.stderr.write("Usage: <comma separated hosts> "
-                     "<tmpdir for storage> <sshkeyFile> <agent setup script> <ambari-server name>\n")
+                     "<tmpdir for storage> <user> <sshkeyFile> <agent setup script> <ambari-server name> <passwordFile>\n")
     sys.exit(2)
     pass
   #Parse the input
   hostList = onlyargs[0].split(",")
   bootdir =  onlyargs[1]
-  sshKeyFile = onlyargs[2]
-  setupAgentFile = onlyargs[3]
-  ambariServer = onlyargs[4]
+  user = onlyargs[2]
+  sshKeyFile = onlyargs[3]
+  setupAgentFile = onlyargs[4]
+  ambariServer = onlyargs[5]
+  passwordFile = onlyargs[6]
 
   # ssh doesn't like open files
   stat = subprocess.Popen(["chmod", "600", sshKeyFile], stdout=subprocess.PIPE)
+
+  if passwordFile != None and passwordFile != 'null':
+    stat = subprocess.Popen(["chmod", "600", passwordFile], stdout=subprocess.PIPE)
   
   logging.info("BootStrapping hosts " + pprint.pformat(hostList) +
                "using " + scriptDir + 
-              " with sshKey File " + sshKeyFile + " using tmp dir " + bootdir + " ambari: " + ambariServer)
-  bootstrap = BootStrap(hostList, sshKeyFile, scriptDir, bootdir, setupAgentFile, ambariServer)
+              " with user '" + user + "' sshKey File " + sshKeyFile + " password File " + passwordFile +
+              " using tmp dir " + bootdir + " ambari: " + ambariServer)
+  bootstrap = BootStrap(hostList, user, sshKeyFile, scriptDir, bootdir, setupAgentFile, ambariServer, passwordFile)
   ret = bootstrap.run()
   #return  ret
   return 0 # Hack to comply with current usage

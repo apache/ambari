@@ -11,6 +11,9 @@ Trunk (unreleased changes):
  INCOMPATIBLE CHANGES 
 
  NEW FEATURES
+
+ AMBARI-1922. Support not root ssh via a user that can sudo in as root. 
+ (Sumit Mohanty via swagle)
  
  AMBARI-1914. Add Nagios alerts for Hue service. (swagle)
 

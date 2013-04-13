@@ -73,6 +73,8 @@ public class BootStrapTest extends TestCase {
     hosts.add("host1");
     hosts.add("host2");
     info.setHosts(hosts);
+    info.setUser("user");
+    info.setPassword("passwd");
     BSResponse response = impl.runBootStrap(info);
     LOG.info("Response id from bootstrap " + response.getRequestId());
     /* do a query */
@@ -90,6 +92,7 @@ public class BootStrapTest extends TestCase {
     Assert.assertTrue(status.getLog().contains("host1,host2"));
     Assert.assertEquals(BSStat.SUCCESS, status.getStatus());
     Assert.assertFalse(new File(bootdir + File.separator + "1" + File.separator + "sshKey").exists());
+    Assert.assertFalse(new File(bootdir + File.separator + "1" + File.separator + "host_pass").exists());
   }
 
 

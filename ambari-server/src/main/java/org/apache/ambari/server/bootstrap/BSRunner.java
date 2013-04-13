@@ -39,12 +39,15 @@ import org.apache.commons.logging.LogFactory;
 class BSRunner extends Thread {
   private static Log LOG = LogFactory.getLog(BSRunner.class);
 
+  private static final String DEFAULT_USER = "root";
+
   private  boolean finished = false;
   private SshHostInfo sshHostInfo;
   private File bootDir;
   private String bsScript;
   private File requestIdDir;
   private File sshKeyFile;
+  private File passwordFile;
   private int requestId;
   private String agentSetupScript;
   private String agentSetupPassword;
@@ -130,6 +133,10 @@ class BSRunner extends Thread {
     FileUtils.writeStringToFile(sshKeyFile, data);
   }
 
+  private void writePasswordFile(String data) throws IOException {
+    FileUtils.writeStringToFile(passwordFile, data);
+  }
+
   public synchronized void finished() {
     this.finished = true;
   }
@@ -137,7 +144,11 @@ class BSRunner extends Thread {
   @Override
   public void run() {
     String hostString = createHostString(sshHostInfo.getHosts());
-    String commands[] = new String[6];
+    String user = sshHostInfo.getUser();
+    if (user == null || user.isEmpty()) {
+      user = DEFAULT_USER;
+    }
+    String commands[] = new String[8];
     String shellCommand[] = new String[3];
     BSStat stat = BSStat.RUNNING;
     String scriptlog = "";
@@ -150,9 +161,19 @@ class BSRunner extends Thread {
             + sshHostInfo.getSshKey() + "\"");
       }
 
+      String password = sshHostInfo.getPassword();
+      if (password != null && !password.isEmpty()) {
+        this.passwordFile = new File(this.requestIdDir, "host_pass");
+        // TODO : line separator should be changed
+        // if we are going to support multi platform server-agent solution
+        String lineSeparator = System.getProperty("line.separator");
+        password = password + lineSeparator;
+        writePasswordFile(password);
+      }
+
       writeSshKeyFile(sshHostInfo.getSshKey());
       /* Running command:
-       * script hostlist bsdir sshkeyfile
+       * script hostlist bsdir user sshkeyfile
        */
       shellCommand[0] = "sh";
       shellCommand[1] = "-c";
@@ -160,11 +181,16 @@ class BSRunner extends Thread {
       commands[0] = this.bsScript;
       commands[1] = hostString;
       commands[2] = this.requestIdDir.toString();
-      commands[3] = this.sshKeyFile.toString();
-      commands[4] = this.agentSetupScript.toString();
-      commands[5] = this.ambariHostname;
+      commands[3] = user;
+      commands[4] = this.sshKeyFile.toString();
+      commands[5] = this.agentSetupScript.toString();
+      commands[6] = this.ambariHostname;
+      if (this.passwordFile != null) {
+        commands[7] = this.passwordFile.toString();
+      }
       LOG.info("Host= " + hostString + " bs=" + this.bsScript + " requestDir=" +
-          requestIdDir + " keyfile=" + this.sshKeyFile + " server=" + this.ambariHostname);
+          requestIdDir + " user=" + user + " keyfile=" + this.sshKeyFile +
+          " passwordFile " + this.passwordFile + " server=" + this.ambariHostname);
 
       String[] env = new String[] { "AMBARI_PASSPHRASE=" + agentSetupPassword };
       if (this.verbose)
@@ -275,7 +301,15 @@ class BSRunner extends Thread {
       try {
         FileUtils.forceDelete(sshKeyFile);
       } catch (IOException io) {
-        LOG.info(io.getMessage());
+        LOG.warn(io.getMessage());
+      }
+      if (passwordFile != null) {
+        // Remove password file after bootstrap is complete
+        try {
+          FileUtils.forceDelete(passwordFile);
+        } catch (IOException io) {
+          LOG.warn(io.getMessage());
+        }
       }
       finished();
     }
