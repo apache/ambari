@@ -704,6 +704,9 @@ Trunk (unreleased changes):
 
  BUG FIXES
 
+ AMBARI-1916. Filter for showing only properties which need restart is 
+ broken. (srimanth)
+
  AMBARI-1918. Set correct Oozie property for security instead of deprecated
  property. (jaimin)
 

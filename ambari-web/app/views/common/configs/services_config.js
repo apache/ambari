@@ -95,6 +95,7 @@ App.ServiceConfigsByCategoryView = Ember.View.extend({
     var filter = this.get('parentView.filter').toLowerCase();
     var isOnlyModified = this.get('parentView.columns').length && this.get('parentView.columns')[1].get('selected');
     var isOnlyOverridden = this.get('parentView.columns').length && this.get('parentView.columns')[0].get('selected');
+    var isOnlyRestartRequired = this.get('parentView.columns').length && this.get('parentView.columns')[2].get('selected');
     var filteredResult = this.get('categoryConfigs').filter(function(config){
 
       if(isOnlyModified && !config.get('isNotDefaultValue')){
@@ -102,6 +103,10 @@ App.ServiceConfigsByCategoryView = Ember.View.extend({
       }
       
       if(isOnlyOverridden && !config.get('isOverridden')){
+        return false;
+      }
+
+      if(isOnlyRestartRequired && !config.get('isRestartRequired')){
         return false;
       }
 
