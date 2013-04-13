@@ -224,6 +224,65 @@ public class TestActionDBAccessorImpl {
     assertEquals("Request IDs not matches", requestIds, requestIdsResult);
   }
 
+  @Test
+  public void testAbortRequest() throws AmbariException {
+    Stage s = new Stage(requestId, "/a/b", "cluster1", "action db accessor test");
+    s.setStageId(stageId);
+
+    clusters.addHost("host2");
+    clusters.getHost("host2").persist();
+    clusters.addHost("host3");
+    clusters.getHost("host3").persist();
+    clusters.addHost("host4");
+    clusters.getHost("host4").persist();
+
+    s.addHostRoleExecutionCommand("host1", Role.HBASE_MASTER,
+        RoleCommand.START,
+        new ServiceComponentHostStartEvent(Role.HBASE_MASTER.toString(),
+            "host1", System.currentTimeMillis(),
+            new HashMap<String, String>()), "cluster1", "HBASE");
+    s.addHostRoleExecutionCommand("host2", Role.HBASE_MASTER,
+        RoleCommand.START,
+        new ServiceComponentHostStartEvent(Role.HBASE_MASTER.toString(),
+            "host2", System.currentTimeMillis(),
+            new HashMap<String, String>()), "cluster1", "HBASE");
+    s.addHostRoleExecutionCommand(
+        "host3",
+        Role.HBASE_REGIONSERVER,
+        RoleCommand.START,
+        new ServiceComponentHostStartEvent(Role.HBASE_REGIONSERVER
+            .toString(), "host3", System.currentTimeMillis(),
+            new HashMap<String, String>()), "cluster1", "HBASE");
+    s.addHostRoleExecutionCommand(
+        "host4",
+        Role.HBASE_REGIONSERVER,
+        RoleCommand.START,
+        new ServiceComponentHostStartEvent(Role.HBASE_REGIONSERVER
+            .toString(), "host4", System.currentTimeMillis(),
+            new HashMap<String, String>()), "cluster1", "HBASE");
+    List<Stage> stages = new ArrayList<Stage>();
+    stages.add(s);
+    s.getOrderedHostRoleCommands().get(0).setStatus(HostRoleStatus.PENDING);
+    s.getOrderedHostRoleCommands().get(1).setStatus(HostRoleStatus.IN_PROGRESS);
+    s.getOrderedHostRoleCommands().get(2).setStatus(HostRoleStatus.QUEUED);
+
+    HostRoleCommand cmd = s.getOrderedHostRoleCommands().get(3);
+    String hostName = cmd.getHostName();
+    cmd.setStatus(HostRoleStatus.COMPLETED);
+
+    db.persistActions(stages);
+    db.abortOperation(requestId);
+
+    List<HostRoleCommand> commands = db.getRequestTasks(requestId);
+    for(HostRoleCommand command : commands) {
+      if(command.getHostName().equals(hostName)) {
+        assertEquals(HostRoleStatus.COMPLETED, command.getStatus());
+      } else {
+        assertEquals(HostRoleStatus.ABORTED, command.getStatus());
+      }
+    }
+  }
+
   private void populateActionDB(ActionDBAccessor db, String hostname,
       long requestId, long stageId) {
     Stage s = new Stage(requestId, "/a/b", "cluster1", "action db accessor test");

@@ -102,12 +102,21 @@ public class ActionDBAccessorImpl implements ActionDBAccessor {
    */
   @Override
   public void abortOperation(long requestId) {
-    Collection<HostRoleStatus> sourceStatuses =
-        Arrays.asList(HostRoleStatus.QUEUED, HostRoleStatus.IN_PROGRESS,
-            HostRoleStatus.PENDING);
-    int result = hostRoleCommandDAO.updateStatusByRequestId(requestId,
-        HostRoleStatus.ABORTED, sourceStatuses);
-    LOG.info("Aborted {} commands " + result);
+    List<HostRoleCommandEntity> commands =
+        hostRoleCommandDAO.findByRequest(requestId);
+    for (HostRoleCommandEntity command : commands) {
+      if(command.getStatus() == HostRoleStatus.QUEUED ||
+          command.getStatus() == HostRoleStatus.IN_PROGRESS ||
+          command.getStatus() == HostRoleStatus.PENDING) {
+        command.setStatus(HostRoleStatus.ABORTED);
+        hostRoleCommandDAO.merge(command);
+        LOG.info("Aborting command. Hostname " + command.getHostName()
+            + " role " + command.getRole()
+            + " requestId " + command.getRequestId()
+            + " taskId " + command.getTaskId()
+            + " stageId " + command.getStageId());
+      }
+    }
   }
 
   /* (non-Javadoc)

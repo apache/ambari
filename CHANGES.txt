@@ -713,6 +713,9 @@ Trunk (unreleased changes):
 
  BUG FIXES
 
+ AMBARI-1919. JobTracker History Server failed to come up on 1.3.0 stack
+ and the request for service stall is stalled. (smohanty)
+
  AMBARI-1900. Update the DDL update script to modify the table to includei
  ph_cpu_count. (smohanty)
 
