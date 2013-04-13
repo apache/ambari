@@ -147,7 +147,7 @@ status_update_interval=10
 # This determines the effective user that Nagios should run as.  
 # You can either supply a username or a UID.
 
-nagios_user=nagios
+nagios_user=<%=scope.function_hdp_template_var("nagios_user")%>
 
 
 

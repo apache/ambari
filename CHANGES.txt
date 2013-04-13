@@ -12,6 +12,9 @@ Trunk (unreleased changes):
 
  NEW FEATURES
 
+ AMBARI-1923. Allow for users to customize Nagios user accounts. 
+ (Sumit Mohanty via swagle)
+
  AMBARI-1922. Support not root ssh via a user that can sudo in as root. 
  (Sumit Mohanty via swagle)
  

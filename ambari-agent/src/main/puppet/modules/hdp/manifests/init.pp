@@ -164,7 +164,7 @@ class hdp::create_smoke_user()
    require => Hdp::User[$smoke_user]
   }
 
-  Group<||> -> Hdp::User[$smoke_user]
+  Group<|title == $smoke_group or title == $proxyuser_group|> -> Hdp::User[$smoke_user] 
 }
 
 

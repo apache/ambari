@@ -20,15 +20,19 @@
 #
 class hdp-nagios::params() inherits hdp::params
 {   
- 
-  $nagios_user = "nagios"
-  $nagios_group = hdp_default("smoke_user_group","nagios")
+  $nagios_default_user = "nagios"
+  $nagios_default_group = "nagios"
+  $nagios_user = hdp_default("nagios_user", $nagios_default_user)
+  $nagios_group = hdp_default("nagios_group",$nagios_default_group)
   
   $conf_dir = hdp_default("nagios_conf_dir","/etc/nagios")
 
   $plugins_dir = "/usr/lib64/nagios/plugins"
   $eventhandlers_dir = "/usr/lib64/nagios/eventhandlers"  # Does not exist yet
   $nagios_pid_dir = "/var/run/nagios"
+  $nagios_log_dir = '/var/log/nagios'
+  $nagios_log_archives_dir = "${nagios_log_dir}/archives"
+  
 
   $nagios_obj_dir = hdp_default("nagios_obj_dir","/etc/nagios/objects")
   $nagios_var_dir = hdp_default("nagios_var_dir","/var/nagios")
