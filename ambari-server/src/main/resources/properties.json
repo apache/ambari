@@ -17,6 +17,7 @@
         "Services/attributes",
         "ServiceInfo/desired_configs",
         "params/run_smoke_test",
+        "params/reconfigure_client",
         "_"
     ],
     "Host":[

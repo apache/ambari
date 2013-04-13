@@ -94,6 +94,7 @@ public class RequestImplTest {
     Assert.assertTrue(validPropertyIds.contains("Services/attributes"));
     Assert.assertTrue(validPropertyIds.contains("ServiceInfo/desired_configs"));
     Assert.assertTrue(validPropertyIds.contains("params/run_smoke_test"));
+    Assert.assertTrue(validPropertyIds.contains("params/reconfigure_client"));
 
     request = PropertyHelper.getReadRequest(PropertyHelper.getPropertyIds(Resource.Type.Host));
     validPropertyIds = request.getPropertyIds();

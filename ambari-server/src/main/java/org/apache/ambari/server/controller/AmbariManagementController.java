@@ -248,16 +248,19 @@ public interface AmbariManagementController {
    * values carried by the given request object.
    *
    *
+   *
    * @param requests    the request object which defines which service to
    *                   update and the values to set
    *
    * @param requestProperties
+   * @param reconfigureClients
    * @return a track action response
    *
    * @throws AmbariException thrown if the resource cannot be updated
    */
   public RequestStatusResponse updateServices(Set<ServiceRequest> requests,
-      Map<String, String> requestProperties, boolean runSmokeTest) throws AmbariException;
+      Map<String, String> requestProperties, boolean runSmokeTest,
+      boolean reconfigureClients) throws AmbariException;
 
   /**
    * Update the component identified by the given request object with the

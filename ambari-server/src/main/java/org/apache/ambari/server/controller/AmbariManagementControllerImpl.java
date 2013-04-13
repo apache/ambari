@@ -1535,7 +1535,8 @@ public class AmbariManagementControllerImpl implements
 
       LOG.info("Creating stages for upgrade.");
       List<Stage> stages = doStageCreation(cluster, changedServices, changedComps, changedScHosts,
-          requestParameters, requestProperties.get(REQUEST_CONTEXT_PROPERTY), false);
+          requestParameters, requestProperties.get(REQUEST_CONTEXT_PROPERTY),
+          false, false);
 
       if (stages == null || stages.isEmpty()) {
         return null;
@@ -1909,8 +1910,9 @@ public class AmbariManagementControllerImpl implements
       Map<State, List<Service>> changedServices,
       Map<State, List<ServiceComponent>> changedComps,
       Map<String, Map<State, List<ServiceComponentHost>>> changedScHosts,
-      Map<String, String> requestParameters, String requestContext, boolean runSmokeTest)
-          throws AmbariException {
+      Map<String, String> requestParameters, String requestContext,
+      boolean runSmokeTest, boolean reconfigureClients)
+      throws AmbariException {
 
     // TODO handle different transitions?
     // Say HDFS to stopped and MR to started, what order should actions be done
@@ -1932,9 +1934,11 @@ public class AmbariManagementControllerImpl implements
     Set<String> smokeTestServices = getServicesForSmokeTests(cluster,
       changedServices, changedScHosts, runSmokeTest);
 
-    // Re-install client only hosts to reattach changed configs on service
-    // restart
-    addClientSchForReinstall(cluster, changedServices, changedScHosts);
+    if (reconfigureClients) {
+      // Re-install client only hosts to reattach changed configs on service
+      // restart
+      addClientSchForReinstall(cluster, changedServices, changedScHosts);
+    }
 
     if (!changedScHosts.isEmpty()
         || !smokeTestServices.isEmpty()) {
@@ -2337,8 +2341,8 @@ public class AmbariManagementControllerImpl implements
 
   @Override
   public synchronized RequestStatusResponse updateServices(
-      Set<ServiceRequest> requests, Map<String, String> requestProperties,
-      boolean runSmokeTest) throws AmbariException {
+    Set<ServiceRequest> requests, Map<String, String> requestProperties,
+    boolean runSmokeTest, boolean reconfigureClients) throws AmbariException {
 
     if (requests.isEmpty()) {
       LOG.warn("Received an empty requests set");
@@ -2615,7 +2619,7 @@ public class AmbariManagementControllerImpl implements
 
     List<Stage> stages = doStageCreation(cluster, changedServices, changedComps,
       changedScHosts, null, requestProperties.get(REQUEST_CONTEXT_PROPERTY),
-      runSmokeTest);
+      runSmokeTest, reconfigureClients);
     persistStages(stages);
     updateServiceStates(changedServices, changedComps, changedScHosts);
     if (stages == null || stages.isEmpty()) {
@@ -2894,7 +2898,8 @@ public class AmbariManagementControllerImpl implements
     Cluster cluster = clusters.getCluster(clusterNames.iterator().next());
 
     List<Stage> stages = doStageCreation(cluster, null,
-        changedComps, changedScHosts, null, requestProperties.get(REQUEST_CONTEXT_PROPERTY), runSmokeTest);
+        changedComps, changedScHosts, null, requestProperties.get
+        (REQUEST_CONTEXT_PROPERTY), runSmokeTest, false);
     persistStages(stages);
     updateServiceStates(null, changedComps, changedScHosts);
     if (stages == null || stages.isEmpty()) {
@@ -3268,7 +3273,7 @@ public class AmbariManagementControllerImpl implements
       requestParameters.put(Configuration.UPGRADE_FROM_STACK, gson.toJson(fromStackVersion));
     }
     List<Stage> stages = doStageCreation(cluster, null, null, changedScHosts, requestParameters,
-        requestProperties.get(REQUEST_CONTEXT_PROPERTY), runSmokeTest);
+        requestProperties.get(REQUEST_CONTEXT_PROPERTY), runSmokeTest, false);
     persistStages(stages);
     updateServiceStates(null, null, changedScHosts);
     if (stages == null || stages.isEmpty()) {
