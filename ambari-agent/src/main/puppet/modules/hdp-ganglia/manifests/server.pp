@@ -176,6 +176,18 @@ class hdp-ganglia::server::files(
 
     File[$rrd_py_file_path] -> Hdp::Directory_recursive_create[$rrd_files_dir] -> File[$rrdcached_default_file_dir] -> Anchor['hdp-ganglia::server::files::end']
   }
+  elsif ($rrd_file_owner != $hdp::params::NOBODY_USER) {
+    #owner of rrdcached_default_file_dir is 'nobody' by default 
+    #need to change owner to gmetad_user for proper gmetad service start
+    
+    hdp::directory { $rrdcached_default_file_dir:
+      owner => $rrd_file_owner,
+      group => $rrd_file_owner,
+      override_owner => true
+    }
+    
+    File[$rrd_py_file_path] -> Hdp::Directory[$rrdcached_default_file_dir] -> Anchor['hdp-ganglia::server::files::end']
+  }
 }
 
 

@@ -23,6 +23,7 @@ class hdp::params()
 
   ##Constants##
   $NOTHING='NOTHING'
+  $NOBODY_USER='nobody'
 
   ##### global state defaults ####
   $cluster_service_state = hdp_default("cluster_service_state","running")
