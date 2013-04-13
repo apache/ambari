@@ -713,6 +713,9 @@ Trunk (unreleased changes):
 
  BUG FIXES
 
+ AMBARI-1926. One HBase master should have active HA status at all time. 
+ (smohanty)
+
  AMBARI-1925. Remove "hadoop_deploy" user. (smohanty)
 
  AMBARI-1915. Client install tasks are shown twice in install progress 
