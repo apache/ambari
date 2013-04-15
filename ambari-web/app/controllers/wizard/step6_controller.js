@@ -186,7 +186,7 @@ App.WizardStep6Controller = Em.Controller.extend({
     var headers = [];
 
     if (this.get('isMasters')) {
-      if (this.isServiceSelected('HBASE')) {
+      if (this.isServiceSelected('HBASE') && App.supports.multipleHBaseMasters) {
         headers.pushObject(Em.Object.create({
           name: 'HBASE_MASTER',
           label: self.getComponentDisplayName('HBASE_MASTER')
@@ -368,7 +368,10 @@ App.WizardStep6Controller = Em.Controller.extend({
       masterComponentHosts.forEach(function(item) {
         var host = hostsObj.findProperty('hostName', item.hostName);
         if (host) {
-          host.get('checkboxes').findProperty('title', item.display_name).set('checked', true);
+          var checkbox = host.get('checkboxes').findProperty('title', item.display_name);
+          if(checkbox){
+            checkbox.set('checked', true);
+          }
         }
       });
     }

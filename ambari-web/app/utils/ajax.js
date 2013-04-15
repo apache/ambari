@@ -598,7 +598,7 @@ var urls = {
     }
   },
   'wizard.step9.add_host.launch_start_services': {
-    'real': '/clusters/{cluste}/host_components?(HostRoles/component_name=GANGLIA_MONITOR|HostRoles/component_name=HBASE_REGIONSERVER|HostRoles/component_name=DATANODE|HostRoles/component_name=TASKTRACKER)&(HostRoles/state=INSTALLED)',
+    'real': '/clusters/{cluster}/host_components?(HostRoles/component_name=GANGLIA_MONITOR|HostRoles/component_name=HBASE_REGIONSERVER|HostRoles/component_name=DATANODE|HostRoles/component_name=TASKTRACKER)&(HostRoles/state=INSTALLED)',
     'mock': '/data/wizard/deploy/5_hosts/poll_6.json',
     'format': function (data, opt) {
       return {

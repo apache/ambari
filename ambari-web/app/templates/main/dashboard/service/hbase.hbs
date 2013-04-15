@@ -46,7 +46,7 @@
         <td>{{t dashboard.services.hbase.masterServer}}</td>
         <td>
             {{#if view.activeMaster}}
-              <a href="#" {{action showDetails view.activeMaster.host}}>{{t service.hbase.activeMaster}}</a>
+              <a href="#" {{action showDetails view.activeMaster.host}}>{{view.activeMasterTitle}}</a>
               {{#if view.passiveMasters.length}}
                   {{view.passiveMasterOutput}}
               {{/if}}

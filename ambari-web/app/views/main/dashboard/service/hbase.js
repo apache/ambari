@@ -31,7 +31,10 @@ App.MainDashboardServiceHbaseView = App.MainDashboardServiceView.extend({
    * Passive master components
    */
   passiveMasters: function () {
-    return this.get('masters').filterProperty('haStatus', 'passive');
+    if(App.supports.multipleHBaseMasters){
+      return this.get('masters').filterProperty('haStatus', 'passive');
+    }
+    return [];
   }.property('masters'),
   /**
    * Formatted output for passive master components
@@ -43,8 +46,20 @@ App.MainDashboardServiceHbaseView = App.MainDashboardServiceView.extend({
    * One(!) active master component
    */
   activeMaster: function () {
-    return this.get('masters').findProperty('haStatus', 'active');
+    if(App.supports.multipleHBaseMasters){
+      return this.get('masters').findProperty('haStatus', 'active');
+    } else {
+      return this.get('masters')[0];
+    }
   }.property('masters'),
+
+  activeMasterTitle: function(){
+    if(App.supports.multipleHBaseMasters){
+      return this.t('service.hbase.activeMaster');
+    } else {
+      return this.get('activeMaster.host.publicHostName');
+    }
+  }.property('activeMaster'),
 
   masterServerHeapSummary: function () {
     var heapUsed = this.get('service').get('heapMemoryUsed');

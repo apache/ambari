@@ -47,7 +47,8 @@ App.supports = {
   stackUpgrade: false,
   capacitySchedulerUi: false,
   startStopAllServices: false,
-  hiveOozieExtraDatabases: false
+  hiveOozieExtraDatabases: false,
+  multipleHBaseMasters: false
 };
 
 if (App.enableExperimental) {

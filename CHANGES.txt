@@ -258,6 +258,9 @@ Trunk (unreleased changes):
 
  IMPROVEMENTS
 
+ AMBARI-1941. Create a flag to toggle the support for multiple
+ HBase Masters. (jaimin)
+
  AMBARI-1940. Create a flag to toggle the support for additional database 
  support in Hive and Oozie. (jaimin)
 

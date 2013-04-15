@@ -71,7 +71,9 @@ App.WizardStep5Controller = Em.Controller.extend({
     this.renderComponents(this.loadComponents());
 
     this.updateComponent('ZOOKEEPER_SERVER');
-    this.updateComponent('HBASE_MASTER');
+    if(App.supports.multipleHBaseMasters){
+      this.updateComponent('HBASE_MASTER');
+    }
 
     if (!this.get("selectedServicesMasters").filterProperty('isInstalled', false).length) {
       console.log('no master components to add');
@@ -216,7 +218,7 @@ App.WizardStep5Controller = Em.Controller.extend({
       if (item.display_name === "ZooKeeper") {
         componentObj.set('zId', zid++);
         componentObj.set("showRemoveControl", showRemoveControlZk);
-      } else if(item.component_name === "HBASE_MASTER"){
+      } else if(App.supports.multipleHBaseMasters && item.component_name === "HBASE_MASTER"){
         componentObj.set('zId', hid++);
         componentObj.set("showRemoveControl", showRemoveControlHb);
       }

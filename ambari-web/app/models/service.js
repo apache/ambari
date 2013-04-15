@@ -48,7 +48,7 @@ App.Service = DS.Model.extend({
   updateHealthStatus: function () {
     // console.log('model:service.healthStatus ' + this.get('serviceName'));
     var components = this.get('hostComponents').filterProperty('isMaster', true);
-    var isGreen = (this.get('serviceName') === 'HBASE' ?
+    var isGreen = (this.get('serviceName') === 'HBASE' && App.supports.multipleHBaseMasters ?
       components.someProperty('workStatus', App.HostComponentStatus.started) :
       components.everyProperty('workStatus', App.HostComponentStatus.started)) ;
 
