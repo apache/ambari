@@ -44,15 +44,6 @@
           {{t common.retry}}
         </a>
         {{/if}}
-        {{#if App.testMode}}
-        <a class="btn btn-info" href="#" {{action mockBtn target="controller"}}>
-          {{t installer.mockData}}
-        </a>
-        <a class="btn btn-primary"
-           href="#" {{action pollBtn target="controller"}}><i class="icon-repeat icon-white"></i>
-          {{t installer.pollData}}
-        </a>
-        {{/if}}
       </div>
       <!-- filter by host level -->
       <div id="host-filter" class="pull-right">

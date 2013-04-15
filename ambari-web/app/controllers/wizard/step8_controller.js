@@ -867,15 +867,13 @@ App.WizardStep8Controller = Em.Controller.extend({
       default:
         break;
     }
-
     // delete any existing clusters to start from a clean slate
     // before creating a new cluster in install wizard
     // TODO: modify for multi-cluster support
-    if (this.get('content.controllerName') == 'installerController') {
+    if (this.get('content.controllerName') == 'installerController' && (!App.testMode)) {
       var clusterNames = this.getExistingClusterNames();
       this.deleteClusters(clusterNames);
     }
-
     this.createCluster();
     this.createSelectedServices();
     this.createConfigurations();

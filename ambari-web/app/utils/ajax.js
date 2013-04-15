@@ -52,10 +52,10 @@ var urls = {
       return {
         type: 'PUT',
         data: JSON.stringify({
-          RequestInfo : {
-            "context" : data.requestInfo
+          RequestInfo: {
+            "context": data.requestInfo
           },
-          Body:{
+          Body: {
             ServiceInfo: {
               state: data.state
             }
@@ -71,8 +71,8 @@ var urls = {
       return {
         'type': 'POST',
         data: JSON.stringify({
-          RequestInfo : {
-            "context" : "Smoke Test"
+          RequestInfo: {
+            "context": "Smoke Test"
           }
         })
       };
@@ -85,10 +85,10 @@ var urls = {
     'format': function (data) {
       return {
         data: JSON.stringify({
-          RequestInfo : {
-            "context" : "Stop service " + data.serviceName
+          RequestInfo: {
+            "context": "Stop service " + data.serviceName
           },
-          Body:{
+          Body: {
             ServiceInfo: {
               "state": "INSTALLED"
             }
@@ -120,11 +120,11 @@ var urls = {
     'format': function () {
       return {
         data: JSON.stringify(
-            {
-              "HostRoles": {
-                "state": "MAINTENANCE"
-              }
+          {
+            "HostRoles": {
+              "state": "MAINTENANCE"
             }
+          }
         )
       }
     }
@@ -136,10 +136,10 @@ var urls = {
     'format': function (data) {
       return {
         data: JSON.stringify({
-          RequestInfo : {
-            "context" : "Install " + data.componentName
+          RequestInfo: {
+            "context": "Install " + data.componentName
           },
-          Body:{
+          Body: {
             "HostRoles": {
               "state": "INSTALLED"
             }
@@ -155,10 +155,10 @@ var urls = {
     'format': function (data) {
       return {
         data: JSON.stringify({
-          RequestInfo : {
-            "context" : "Start service " + data.serviceName
+          RequestInfo: {
+            "context": "Start service " + data.serviceName
           },
-          Body:{
+          Body: {
             ServiceInfo: {
               "state": "INSTALLED"
             }
@@ -202,7 +202,7 @@ var urls = {
   'config.advanced': {
     'real': '{stack2VersionUrl}/stackServices/{serviceName}/configurations?fields=*',
     'mock': '/data/wizard/stack/hdp/version130/{serviceName}.json',
-    'format': function(data){
+    'format': function (data) {
       return {
         async: false
       };
@@ -211,7 +211,7 @@ var urls = {
   'config.advanced.global': {
     'real': '{stack2VersionUrl}/stackServices?fields=configurations/StackConfigurations/type',
     'mock': '/data/wizard/stack/hdp/version130/global.json',
-    'format': function(data){
+    'format': function (data) {
       return {
         async: false
       };
@@ -224,7 +224,7 @@ var urls = {
   'config.on-site': {
     'real': '/clusters/{clusterName}/configurations?{params}',
     'mock': '/data/configurations/cluster_level_configs.json?{params}',
-    'format': function(data){
+    'format': function (data) {
       return {
         async: false
       };
@@ -233,7 +233,7 @@ var urls = {
   'config.host_overrides': {
     'real': '/clusters/{clusterName}/configurations?{params}',
     'mock': '/data/configurations/host_level_overrides_configs.json?{params}',
-    'format': function(data){
+    'format': function (data) {
       return {
         async: false
       };
@@ -503,7 +503,7 @@ var urls = {
     }
   },
   'admin.stack_upgrade.run_upgrade': {
-    'real':'/clusters/{clusterName}',
+    'real': '/clusters/{clusterName}',
     'format': function (data, opt) {
       return {
         type: 'PUT',
@@ -590,11 +590,15 @@ var urls = {
     'real': '/clusters/{cluster}/services?ServiceInfo/state=INSTALLED&params/run_smoke_test=true',
     'mock': '/data/wizard/deploy/5_hosts/poll_6.json',
     'format': function (data, opt) {
-      return {
+      var data = {
         type: 'PUT',
         async: false,
         data: data.data
       };
+      if (App.testMode) {
+        data.type = 'GET';
+      }
+      return data;
     }
   },
   'wizard.step9.add_host.launch_start_services': {
@@ -670,11 +674,11 @@ var urls = {
  * @param {Object} data
  * @return {String}
  */
-var formatUrl = function(url, data) {
+var formatUrl = function (url, data) {
   var keys = url.match(/\{\w+\}/g);
-  keys = (keys === null) ? [] :  keys;
+  keys = (keys === null) ? [] : keys;
   if (keys) {
-    keys.forEach(function(key){
+    keys.forEach(function (key) {
       var raw_key = key.substr(1, key.length - 2);
       var replace;
       if (!data[raw_key]) {
@@ -693,14 +697,14 @@ var formatUrl = function(url, data) {
  * this = object from config
  * @return {Object}
  */
-var formatRequest = function(data) {
+var formatRequest = function (data) {
   var opt = {
-    type : this.type || 'GET',
-    timeout : App.timeout,
+    type: this.type || 'GET',
+    timeout: App.timeout,
     dataType: 'json',
     statusCode: require('data/statusCodes')
   };
-  if(App.testMode) {
+  if (App.testMode) {
     opt.url = formatUrl(this.mock, data);
     opt.type = 'GET';
   }
@@ -708,7 +712,7 @@ var formatRequest = function(data) {
     opt.url = App.apiPrefix + formatUrl(this.real, data);
   }
 
-  if(this.format) {
+  if (this.format) {
     jQuery.extend(opt, this.format(data, opt));
   }
   return opt;
@@ -735,7 +739,7 @@ App.ajax = {
    *  error - method-name for ajax error response callback
    *  callback - callback from <code>App.updater.run</code> library
    */
-  send: function(config) {
+  send: function (config) {
 
     console.warn('============== ajax ==============', config.name, config.data);
 
@@ -758,28 +762,28 @@ App.ajax = {
     opt = formatRequest.call(urls[config.name], params);
 
     // object sender should be provided for processing beforeSend, success and error responses
-    opt.beforeSend = function(xhr) {
-      if(config.beforeSend) {
+    opt.beforeSend = function (xhr) {
+      if (config.beforeSend) {
         config.sender[config.beforeSend](opt, xhr, params);
       }
     };
-    opt.success = function(data) {
+    opt.success = function (data) {
       console.log("TRACE: The url is: " + opt.url);
-      if(config.success) {
+      if (config.success) {
         config.sender[config.success](data, opt, params);
       }
     };
-    opt.error = function(request, ajaxOptions, error) {
+    opt.error = function (request, ajaxOptions, error) {
       if (config.error) {
         config.sender[config.error](request, ajaxOptions, error, opt);
       }
     };
-    opt.complete = function(){
-      if(config.callback){
+    opt.complete = function () {
+      if (config.callback) {
         config.callback();
       }
     };
-    if($.mocho){
+    if ($.mocho) {
       opt.url = 'http://' + $.hostName + opt.url;
     }
     return $.ajax(opt);

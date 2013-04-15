@@ -739,6 +739,8 @@ Trunk (unreleased changes):
 
  BUG FIXES
 
+ AMBARI-1937. Ambari-web installer wizard doesn't work in test mode. (jaimin)
+
  AMBARI-1927. In background operations popup, requests with same context
  are showing hosts/tasks info from last request. (yusaku via jaimin)
 

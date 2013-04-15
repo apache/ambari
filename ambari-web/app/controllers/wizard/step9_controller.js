@@ -151,6 +151,7 @@ App.WizardStep9Controller = Em.Controller.extend({
       // this is for repeatedly testing out installs in test mode
       this.set('content.cluster.status', 'PENDING');
       this.set('content.cluster.isCompleted', false);
+      this.set('content.cluster.requestId',1);
     }
     var clusterStatus = this.get('content.cluster.status');
     console.log('navigateStep: clusterStatus = ' + clusterStatus);
@@ -514,7 +515,7 @@ App.WizardStep9Controller = Em.Controller.extend({
           status: 'PENDING',
           requestId: requestId,
           isCompleted: false
-        }
+        };
         if (this.get('status') === 'failed') {
           clusterStatus.status = 'INSTALL FAILED';
           this.set('progress', '100');
@@ -634,14 +635,12 @@ App.WizardStep9Controller = Em.Controller.extend({
     var requestsId = App.db.getCluster().oldRequestsId;
     if (App.testMode) {
       this.POLL_INTERVAL = 1;
-      this.numPolls++;
     }
 
     requestsId.forEach(function(requestId) {
       url = this.getUrl(requestId);
       if (App.testMode) {
         this.POLL_INTERVAL = 1;
-
         url = this.get('mockDataPrefix') + '/poll_' + this.numPolls + '.json';
       }
       this.getLogsByRequest(url, false);
@@ -715,61 +714,5 @@ App.WizardStep9Controller = Em.Controller.extend({
     if (!this.get('isSubmitDisabled')) {
       App.router.send('back');
     }
-  },
-
-  mockBtn: function () {
-    this.set('isSubmitDisabled', false);
-    this.hosts.clear();
-    var hostInfo = this.mockHostData;
-    this.renderHosts(hostInfo);
-  },
-
-  pollBtn: function () {
-    this.set('isSubmitDisabled', false);
-    var data1 = require('data/mock/step9PolledData/pollData_1');
-    var data2 = require('data/mock/step9PolledData/pollData_2');
-    var data3 = require('data/mock/step9PolledData/pollData_3');
-    var data4 = require('data/mock/step9PolledData/pollData_4');
-    var data5 = require('data/mock/step9PolledData/pollData_5');
-    var data6 = require('data/mock/step9PolledData/pollData_6');
-    var data7 = require('data/mock/step9PolledData/pollData_7');
-    var data8 = require('data/mock/step9PolledData/pollData_8');
-    var data9 = require('data/mock/step9PolledData/pollData_9');
-    console.log("TRACE: In pollBtn function data1");
-    var counter = parseInt(this.get('pollDataCounter')) + 1;
-    this.set('pollDataCounter', counter.toString());
-    switch (this.get('pollDataCounter')) {
-      case '1':
-        this.parseHostInfo(data1);
-        break;
-      case '2':
-        this.parseHostInfo(data2);
-        break;
-      case '3':
-        this.parseHostInfo(data3);
-        break;
-      case '4':
-        this.parseHostInfo(data4);
-        break;
-      case '5':
-        this.parseHostInfo(data5);
-        break;
-      case '6':
-        this.set('content.cluster.status', 'INSTALLED');
-        this.parseHostInfo(data6);
-        break;
-      case '7':
-        this.parseHostInfo(data7);
-        break;
-      case '8':
-        this.parseHostInfo(data8);
-        break;
-      case '9':
-        this.parseHostInfo(data9);
-        break;
-      default:
-        break;
-    }
   }
-
 });
