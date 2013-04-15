@@ -169,11 +169,13 @@ App.ServiceConfigCheckbox = Ember.Checkbox.extend(App.ServiceConfigPopoverSuppor
 App.ServiceConfigRadioButtons = Ember.View.extend({
   template: Ember.Handlebars.compile([
     '{{#each option in view.options}}',
+    '{{#unless option.hidden}}',
     '<label class="radio">',
     '{{#view App.ServiceConfigRadioButton nameBinding = "view.name" valueBinding = "option.displayName"}}',
     '{{/view}}',
     '{{option.displayName}} &nbsp;',
     '</label>',
+    '{{/unless}}',
     '{{/each}}'
   ].join('\n')),
   serviceConfig: null,

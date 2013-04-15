@@ -849,7 +849,8 @@ module.exports =
         },
         {
           displayName: 'Existing Oracle Database',
-          foreignKeys: ['hive_existing_oracle_database', 'hive_existing_oracle_host']
+          foreignKeys: ['hive_existing_oracle_database', 'hive_existing_oracle_host'],
+          hidden: !App.supports.hiveOozieExtraDatabases
         }
       ],
       "description": "MySQL will be installed by Ambari",
@@ -2262,15 +2263,18 @@ module.exports =
         },
         {
           displayName: 'New MySQL Database',
-          foreignKeys: ['oozie_ambari_database', 'oozie_ambari_host']
+          foreignKeys: ['oozie_ambari_database', 'oozie_ambari_host'],
+          hidden: !App.supports.hiveOozieExtraDatabases
         },
         {
           displayName: 'Existing MySQL Database',
-          foreignKeys: ['oozie_existing_mysql_database', 'oozie_existing_mysql_host']
+          foreignKeys: ['oozie_existing_mysql_database', 'oozie_existing_mysql_host'],
+          hidden: !App.supports.hiveOozieExtraDatabases
         },
         {
           displayName: 'Existing Oracle Database',
-          foreignKeys: ['oozie_existing_oracle_database', 'oozie_existing_oracle_host']
+          foreignKeys: ['oozie_existing_oracle_database', 'oozie_existing_oracle_host'],
+          hidden: !App.supports.hiveOozieExtraDatabases
         }
       ],
       "description": "Current Derby Database will be installed by Ambari",
