@@ -711,6 +711,9 @@ Trunk (unreleased changes):
  AMBARI-1384. WorkflowJsonService service doesn't use the API framework and is
  inconsistent with other API's. (billie)
 
+ AMBARI-1871. ambari-agent RPM does not claim ownership of
+ /var/lib/ambari-agent. (Matthew Farrellee via mahadev)
+
  BUG FIXES
 
  AMBARI-1919. JobTracker History Server failed to come up on 1.3.0 stack

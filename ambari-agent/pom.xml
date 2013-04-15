@@ -239,7 +239,13 @@
               </sources>
             </mapping>
             <mapping>
-              <directory>/var/lib/ambari-agent</directory>
+              <directory>/var/lib/${project.artifactId}</directory>
+              <filemode>755</filemode>
+              <username>root</username>
+              <groupname>root</groupname>
+            </mapping>
+            <mapping>
+              <directory>/var/lib/${project.artifactId}</directory>
               <filemode>700</filemode>
               <username>root</username>
               <groupname>root</groupname>
