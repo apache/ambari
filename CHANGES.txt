@@ -730,6 +730,9 @@ Trunk (unreleased changes):
 
  BUG FIXES
 
+ AMBARI-1927. In background operations popup, requests with same context
+ are showing hosts/tasks info from last request. (yusaku via jaimin)
+
  AMBARI-1907. Service check commands are not getting created on a
  cluster install -> start. (yusaku via jaimin)
 

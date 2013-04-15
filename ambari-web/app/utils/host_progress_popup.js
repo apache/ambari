@@ -27,6 +27,7 @@ App.HostPopup = Em.Object.create({
   hosts: null,
   inputData: null,
   serviceName: "",
+  currentServiceId: null,
   popupHeaderName: "",
   serviceController: null,
   showServices: false,
@@ -130,6 +131,7 @@ App.HostPopup = Em.Object.create({
       this.set("servicesInfo", null);
       this.get("inputData").forEach(function (service) {
         var newService = Ember.Object.create({
+          id: service.id,
           displayName: service.displayName,
           detailMessage: service.detailMessage,
           message: service.message,
@@ -182,8 +184,16 @@ App.HostPopup = Em.Object.create({
           hosts.push.apply(hosts, host);
         });
       } else {
-        hostsData = hostsData.filterProperty("name", this.get("serviceName")).objectAt(0);
-        hosts = hostsData.hosts;
+        if(this.get("currentServiceId") != null){
+          hostsData = hostsData.filterProperty("id", this.get("currentServiceId")).objectAt(0);
+        }else{
+          hostsData = hostsData.filterProperty("name", this.get("serviceName")).objectAt(0);
+        }
+
+        if(hostsData.hosts){
+          hosts = hostsData.hosts;
+        }
+
         hosts.setEach("serviceName", this.get("serviceName"));
       }
     }
@@ -528,6 +538,7 @@ App.HostPopup = Em.Object.create({
          */
         gotoHosts: function (event, context) {
           this.get("controller").set("serviceName", event.context.get("name"));
+          this.get("controller").set("currentServiceId", event.context.get("id"));
           this.get("controller").onHostUpdate();
           var servicesInfo = this.get("controller.hosts");
           if (servicesInfo.length) {
