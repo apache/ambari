@@ -12,6 +12,8 @@ Trunk (unreleased changes):
 
  NEW FEATURES
 
+ AMBARI-1936. Support for installing on mixed OS versions install + mgmt. (swagle)
+
  AMBARI-1924. Allow for users to customize Ganglia gmetad + gmond user 
  accounts. (Sumit Mohanty via swagle)
 

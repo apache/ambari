@@ -31,6 +31,8 @@ from unittest import TestCase
 from subprocess import Popen
 from bootstrap import AMBARI_PASSPHRASE_VAR_NAME
 from mock.mock import MagicMock, call
+from mock.mock import patch
+from mock.mock import create_autospec
 
 class TestBootstrap(TestCase):
 
@@ -70,7 +72,7 @@ class TestBootstrap(TestCase):
     SCP.writeLogToFile = lambda self, logFilePath: None
     SSH.writeLogToFile = lambda self, logFilePath: None
     SSH.writeDoneToFile = lambda self, doneFilePath, returncode: None
-    bootstrap = BootStrap(["hostname"], "root", "sshKeyFile", "scriptDir", "bootdir", "setupAgentFile", "ambariServer")
+    bootstrap = BootStrap(["hostname"], "root", "sshKeyFile", "scriptDir", "bootdir", "setupAgentFile", "ambariServer", "centos6")
     ret = bootstrap.checkSudoPackage()
     self.assertTrue("Error: Sudo command is not available. Please install the sudo command." in bootstrap.statuses["hostname"]["log"])
 
@@ -96,7 +98,7 @@ class TestBootstrap(TestCase):
     BootStrap.changePasswordFileModeOnHost = changePasswordFileModeOnHost
 
     os.environ[AMBARI_PASSPHRASE_VAR_NAME] = ""
-    bootstrap = BootStrap(["hostname"], "user", "sshKeyFile", "scriptDir", "bootdir", "setupAgentFile", "ambariServer", "passwordFile")
+    bootstrap = BootStrap(["hostname"], "user", "sshKeyFile", "scriptDir", "bootdir", "setupAgentFile", "ambariServer", "centos6", "passwordFile")
     ret = bootstrap.run()
     self.assertTrue(bootstrap.copyPasswordFile_called)
     self.assertTrue(deletePasswordFile.called)
@@ -124,7 +126,7 @@ class TestBootstrap(TestCase):
     BootStrap.changePasswordFileModeOnHost = changePasswordFileModeOnHost
 
     os.environ[AMBARI_PASSPHRASE_VAR_NAME] = ""
-    bootstrap = BootStrap(["hostname"], "user", "sshKeyFile", "scriptDir", "bootdir", "setupAgentFile", "ambariServer")
+    bootstrap = BootStrap(["hostname"], "user", "sshKeyFile", "scriptDir", "bootdir", "setupAgentFile", "ambariServer", "centos6")
     bootstrap.copyPasswordFile_called = False
     ret = bootstrap.run()
     self.assertFalse(bootstrap.copyPasswordFile_called)
@@ -150,7 +152,7 @@ class TestBootstrap(TestCase):
     BootStrap.getMoveRepoFileWithPasswordCommand = getMoveRepoFileWithPasswordCommand
 
     os.environ[AMBARI_PASSPHRASE_VAR_NAME] = ""
-    bootstrap = BootStrap(["hostname"], "user", "sshKeyFile", "scriptDir", "bootdir", "setupAgentFile", "ambariServer", "passwordFile")
+    bootstrap = BootStrap(["hostname"], "user", "sshKeyFile", "scriptDir", "bootdir", "setupAgentFile", "ambariServer", "centos6", "passwordFile")
     ret = bootstrap.run()
     self.assertTrue(getRunSetupWithPasswordCommand.called)
     self.assertTrue(getMoveRepoFileWithPasswordCommand.called)
@@ -171,7 +173,110 @@ class TestBootstrap(TestCase):
     BootStrap.getMoveRepoFileWithoutPasswordCommand = getMoveRepoFileWithoutPasswordCommand
 
     os.environ[AMBARI_PASSPHRASE_VAR_NAME] = ""
-    bootstrap = BootStrap(["hostname"], "user", "sshKeyFile", "scriptDir", "bootdir", "setupAgentFile", "ambariServer")
+    bootstrap = BootStrap(["hostname"], "user", "sshKeyFile", "scriptDir", "bootdir", "setupAgentFile", "ambariServer", "centos6")
     ret = bootstrap.run()
     self.assertTrue(getRunSetupWithoutPasswordCommand.called)
     self.assertTrue(getMoveRepoFileWithoutPasswordCommand.called)
+
+
+  @patch.object(BootStrap, "runSetupAgent")
+  @patch.object(BootStrap, "copyNeededFiles")
+  @patch.object(BootStrap, "checkSudoPackage")
+  @patch.object(BootStrap, "runOsCheckScript")
+  @patch.object(BootStrap, "copyOsCheckScript")
+  def test_os_check_performed(self, copyOsCheckScript_method,
+                              runOsCheckScript_method, checkSudoPackage_method,
+                              copyNeededFiles_method, runSetupAgent_method):
+    BootStrap.createDoneFiles = lambda self: None
+
+    getRunSetupWithoutPasswordCommand = MagicMock()
+    getRunSetupWithoutPasswordCommand.return_value = ""
+    BootStrap.getRunSetupWithoutPasswordCommand = getRunSetupWithoutPasswordCommand
+
+    getMoveRepoFileWithoutPasswordCommand = MagicMock()
+    getMoveRepoFileWithoutPasswordCommand.return_value = ""
+    BootStrap.getMoveRepoFileWithoutPasswordCommand = getMoveRepoFileWithoutPasswordCommand
+
+    copyOsCheckScript_method.return_value = 0
+    runOsCheckScript_method.return_value = 0
+    checkSudoPackage_method.return_value = 0
+    copyNeededFiles_method.return_value = 0
+    runSetupAgent_method.return_value = 0
+
+    BootStrap.copyOsCheckScript = copyOsCheckScript_method
+    BootStrap.runOsCheckScript = runOsCheckScript_method
+    BootStrap.checkSudoPackage = checkSudoPackage_method
+    BootStrap.copyNeededFiles = copyNeededFiles_method
+    BootStrap.runSetupAgent = runSetupAgent_method
+
+    os.environ[AMBARI_PASSPHRASE_VAR_NAME] = ""
+    bootstrap = BootStrap(["hostname"], "user", "sshKeyFile", "scriptDir",
+                          "bootdir", "setupAgentFile", "ambariServer",
+                          "centos6")
+    ret = bootstrap.run()
+    self.assertTrue(copyOsCheckScript_method.called)
+    self.assertTrue(runOsCheckScript_method.called)
+    self.assertTrue(ret == 0)
+
+  @patch.object(PSCP, "run")
+  @patch.object(PSCP, "getstatus")
+  def test_copyOsCheckScript(self, getstatus_method, run_method):
+    getstatus_method.return_value = {
+      "hostname" : {
+        "exitstatus" : 0,
+        "log" : ""
+      }
+    }
+    os.environ[AMBARI_PASSPHRASE_VAR_NAME] = ""
+    bootstrap = BootStrap(["hostname"], "user", "sshKeyFile", "scriptDir",
+                          "bootdir", "setupAgentFile", "ambariServer",
+                          "centos6")
+    res = bootstrap.copyOsCheckScript()
+    self.assertTrue(run_method.called)
+    self.assertTrue(getstatus_method.called)
+    self.assertTrue(res == 0)
+    pass
+
+  @patch.object(PSSH, "run")
+  @patch.object(PSSH, "getstatus")
+  def test_runOsCheckScript_success(self, getstatus_method, run_method):
+    good_stats = {
+      "hostname" : {
+        "exitstatus" : 0,
+        "log" : ""
+      }
+    }
+    getstatus_method.return_value = good_stats
+    os.environ[AMBARI_PASSPHRASE_VAR_NAME] = ""
+    bootstrap = BootStrap(["hostname"], "user", "sshKeyFile", "scriptDir",
+                          "bootdir", "setupAgentFile", "ambariServer",
+                          "centos6")
+    bootstrap.statuses = good_stats
+    bootstrap.runOsCheckScript()
+
+    self.assertTrue(run_method.called)
+    self.assertTrue(getstatus_method.called)
+    self.assertTrue("hostname" in bootstrap.successive_hostlist)
+    pass
+
+  @patch.object(PSSH, "run")
+  @patch.object(PSSH, "getstatus")
+  def test_runOsCheckScript_fail(self, getstatus_method, run_method):
+    good_stats = {
+      "hostname" : {
+        "exitstatus" : 1,
+        "log" : ""
+      }
+    }
+    getstatus_method.return_value = good_stats
+    os.environ[AMBARI_PASSPHRASE_VAR_NAME] = ""
+    bootstrap = BootStrap(["hostname"], "user", "sshKeyFile", "scriptDir",
+                          "bootdir", "setupAgentFile", "ambariServer",
+                          "centos6")
+    bootstrap.statuses = good_stats
+    bootstrap.runOsCheckScript()
+
+    self.assertTrue(run_method.called)
+    self.assertTrue(getstatus_method.called)
+    self.assertTrue("hostname" not in bootstrap.successive_hostlist)
+    pass

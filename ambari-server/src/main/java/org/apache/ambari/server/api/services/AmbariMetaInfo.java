@@ -909,7 +909,8 @@ public class AmbariMetaInfo {
     return result;
   }
 
-  public boolean areOsTypesCompatible(String type1, String type2) {
+  //TODO: Method is unused as of now
+/*  public boolean areOsTypesCompatible(String type1, String type2) {
     if (type1 == null || type2 == null) {
       return false;
     }
@@ -928,7 +929,19 @@ public class AmbariMetaInfo {
           type2.equals("oraclelinux6")) {
         return true;
       }
+    } else if (type1.equals("suse11") || type1.equals("sles11")) {
+      if (type2.equals("suse11") || type2.equals("sles11")) {
+        return true;
+      }
     }
     return false;
+  }*/
+
+  public boolean isOsSupported(String osType) {
+    return osType.equals("redhat5") || osType.equals("centos5") ||
+            osType.equals("oraclelinux5") ||
+            osType.equals("redhat6") || osType.equals("centos6") ||
+            osType.equals("oraclelinux6") ||
+            osType.equals("suse11") || osType.equals("sles11");
   }
 }

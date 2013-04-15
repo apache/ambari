@@ -47,6 +47,7 @@ public class BootStrapImpl {
   /* Monotonically increasing requestid for the bootstrap api to query on */
   int requestId = 0;
   private FifoLinkedHashMap<Long, BootStrapStatus> bsStatus;
+  private final String clusterOsType;
 
 
   @Inject
@@ -58,6 +59,7 @@ public class BootStrapImpl {
     this.bsStatus = new FifoLinkedHashMap<Long, BootStrapStatus>();
     this.masterHostname = conf.getMasterHostname(
         InetAddress.getLocalHost().getCanonicalHostName());
+    this.clusterOsType = conf.getServerOsType();
   }
 
   /**
@@ -105,7 +107,7 @@ public class BootStrapImpl {
 
     bsRunner = new BSRunner(this, info, bootStrapDir.toString(),
         bootScript, bootSetupAgentScript, bootSetupAgentPassword, requestId, 0L,
-        this.masterHostname, info.isVerbose());
+        this.masterHostname, info.isVerbose(), this.clusterOsType);
     bsRunner.start();
     response.setStatus(BSRunStat.OK);
     response.setLog("Running Bootstrap now.");

@@ -251,7 +251,7 @@ pass
     
 class BootStrap:
   """ BootStrapping the agents on a list of hosts"""
-  def __init__(self, hosts, user, sshkeyFile, scriptDir, boottmpdir, setupAgentFile, ambariServer, passwordFile = None):
+  def __init__(self, hosts, user, sshkeyFile, scriptDir, boottmpdir, setupAgentFile, ambariServer, cluster_os_type, passwordFile = None):
     self.hostlist = hosts
     self.successive_hostlist = hosts
     self.hostlist_to_remove_password_file = None
@@ -261,6 +261,7 @@ class BootStrap:
     self.scriptDir = scriptDir
     self.setupAgentFile = setupAgentFile
     self.ambariServer = ambariServer
+    self.cluster_os_type = cluster_os_type
     self.passwordFile = passwordFile
     self.statuses = None
     pass
@@ -281,6 +282,9 @@ class BootStrap:
   def getRepoFile(self):
     """ Ambari repo file for Ambari."""
     return os.path.join(self.getRepoDir(), "ambari.repo")
+
+  def getOsCheckScript(self):
+    return os.path.join(self.scriptDir, "os_type_check.sh")
 
   def getSetupScript(self):
     return os.path.join(self.scriptDir, "setupAgent.py")
@@ -303,6 +307,35 @@ class BootStrap:
     else:
       return self.getMoveRepoFileWithoutPasswordCommand(targetDir)
 
+  OS_CHECK_SCRIPT_REMOTE_LOCATION = "/tmp/os_type_check.sh"
+
+  def copyOsCheckScript(self):
+    try:
+      # Copying the os check script file
+      fileToCopy = self.getOsCheckScript()
+      target = self.OS_CHECK_SCRIPT_REMOTE_LOCATION
+      pscp = PSCP(self.hostlist, self.user, self.sshkeyFile, fileToCopy, target, self.bootdir)
+      pscp.run()
+      out = pscp.getstatus()
+      # Preparing report about failed hosts
+      self.successive_hostlist = skip_failed_hosts(out)
+      failed = get_difference(self.hostlist, self.successive_hostlist)
+      logging.info("Parallel scp returns for os type check script. Failed hosts are: " + str(failed))
+      #updating statuses
+      self.statuses = out
+
+      if not failed:
+        retstatus = 0
+      else:
+        retstatus = 1
+      return retstatus
+
+    except Exception, e:
+      logging.info("Traceback " + traceback.format_exc())
+      pass
+
+    pass
+
   def copyNeededFiles(self):
     try:
       # Copying the files
@@ -311,7 +344,7 @@ class BootStrap:
       pscp = PSCP(self.successive_hostlist, self.user, self.sshkeyFile, fileToCopy, "/tmp", self.bootdir)
       pscp.run()
       out = pscp.getstatus()
-      # Prepearing report about failed hosts
+      # Preparing report about failed hosts
       failed_current = get_difference(self.successive_hostlist, skip_failed_hosts(out))
       self.successive_hostlist = skip_failed_hosts(out)
       failed = get_difference(self.hostlist, self.successive_hostlist)
@@ -338,7 +371,7 @@ class BootStrap:
       pscp = PSCP(self.successive_hostlist, self.user, self.sshkeyFile, self.setupAgentFile, "/tmp", self.bootdir)
       pscp.run()
       out = pscp.getstatus()
-      # Prepearing report about failed hosts
+      # Preparing report about failed hosts
       failed_current = get_difference(self.successive_hostlist, skip_failed_hosts(out))
       self.successive_hostlist = skip_failed_hosts(out)
       failed = get_difference(self.hostlist, self.successive_hostlist)
@@ -371,6 +404,32 @@ class BootStrap:
     else:
       return self.getRunSetupWithoutPasswordCommand()
 
+  def runOsCheckScript(self):
+    logging.info("Running os type check...")
+    command = "chmod a+x %s && %s %s" % \
+           (self.OS_CHECK_SCRIPT_REMOTE_LOCATION,
+            self.OS_CHECK_SCRIPT_REMOTE_LOCATION,  self.cluster_os_type)
+
+    pssh = PSSH(self.successive_hostlist, self.user, self.sshkeyFile, command, self.bootdir)
+    pssh.run()
+    out = pssh.getstatus()
+
+    # Preparing report about failed hosts
+    failed_current = get_difference(self.successive_hostlist, skip_failed_hosts(out))
+    self.successive_hostlist = skip_failed_hosts(out)
+    failed = get_difference(self.hostlist, self.successive_hostlist)
+    logging.info("Parallel ssh returns for setup agent. All failed hosts are: " + str(failed) +
+                 ". Failed on last step: " + str(failed_current))
+
+    #updating statuses
+    self.statuses = unite_statuses(self.statuses, out)
+    retstatus = 0
+    if not failed:
+      retstatus = 0
+    else:
+      retstatus = 1
+    pass
+
   def runSetupAgent(self):
     logging.info("Running setup agent...")
     command = self.getRunSetupCommand()
@@ -378,7 +437,7 @@ class BootStrap:
     pssh.run()
     out = pssh.getstatus()
 
-    # Prepearing report about failed hosts
+    # Preparing report about failed hosts
     failed_current = get_difference(self.successive_hostlist, skip_failed_hosts(out))
     self.successive_hostlist = skip_failed_hosts(out)
     failed = get_difference(self.hostlist, self.successive_hostlist)
@@ -535,24 +594,28 @@ class BootStrap:
 
   def run(self):
     """ Copy files and run commands on remote hosts """
-    ret1 = self.checkSudoPackage()
+    ret1 = self.copyOsCheckScript()
+    logging.info("Copying os type check script finished")
+    ret2 = self.runOsCheckScript()
+    logging.info("Running os type check  finished")
+    ret3 = self.checkSudoPackage()
     logging.info("Checking 'sudo' package finished")
-    ret2 = 0
-    ret3 = 0
+    ret4 = 0
+    ret5 = 0
     if self.hasPassword():
-      ret2 = self.copyPasswordFile()
+      ret4 = self.copyPasswordFile()
       logging.info("Copying password file finished")
-      ret3 = self.changePasswordFileModeOnHost()
+      ret5 = self.changePasswordFileModeOnHost()
       logging.info("Change password file mode on host finished")
-    ret4 = self.copyNeededFiles()
+    ret6 = self.copyNeededFiles()
     logging.info("Copying files finished")
-    ret5 = self.runSetupAgent()
+    ret7 = self.runSetupAgent()
     logging.info("Running ssh command finished")
-    ret6 = 0
+    ret8 = 0
     if self.hasPassword() and self.hostlist_to_remove_password_file is not None:
-      ret6 = self.deletePasswordFile()
+      ret8 = self.deletePasswordFile()
       logging.info("Deleting password file finished")
-    retcode = max(ret1, ret2, ret3, ret4, ret5, ret6)
+    retcode = max(ret1, ret2, ret3, ret4, ret5, ret6, ret7, ret8)
     self.createDoneFiles()
     return retcode
     pass
@@ -564,7 +627,7 @@ def main(argv=None):
   onlyargs = argv[1:]
   if len(onlyargs) < 3:
     sys.stderr.write("Usage: <comma separated hosts> "
-                     "<tmpdir for storage> <user> <sshkeyFile> <agent setup script> <ambari-server name> <passwordFile>\n")
+                     "<tmpdir for storage> <user> <sshkeyFile> <agent setup script> <ambari-server name> <cluster os type> <passwordFile>\n")
     sys.exit(2)
     pass
   #Parse the input
@@ -574,7 +637,8 @@ def main(argv=None):
   sshKeyFile = onlyargs[3]
   setupAgentFile = onlyargs[4]
   ambariServer = onlyargs[5]
-  passwordFile = onlyargs[6]
+  cluster_os_type = onlyargs[6]
+  passwordFile = onlyargs[7]
 
   # ssh doesn't like open files
   stat = subprocess.Popen(["chmod", "600", sshKeyFile], stdout=subprocess.PIPE)
@@ -583,10 +647,10 @@ def main(argv=None):
     stat = subprocess.Popen(["chmod", "600", passwordFile], stdout=subprocess.PIPE)
   
   logging.info("BootStrapping hosts " + pprint.pformat(hostList) +
-               "using " + scriptDir + 
+               "using " + scriptDir + " cluster primary OS: " + cluster_os_type +
               " with user '" + user + "' sshKey File " + sshKeyFile + " password File " + passwordFile +
               " using tmp dir " + bootdir + " ambari: " + ambariServer)
-  bootstrap = BootStrap(hostList, user, sshKeyFile, scriptDir, bootdir, setupAgentFile, ambariServer, passwordFile)
+  bootstrap = BootStrap(hostList, user, sshKeyFile, scriptDir, bootdir, setupAgentFile, ambariServer, cluster_os_type, passwordFile)
   ret = bootstrap.run()
   #return  ret
   return 0 # Hack to comply with current usage

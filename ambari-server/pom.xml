@@ -331,6 +331,9 @@
                 <source>
                   <location>src/main/python/setupAgent.py</location>
                 </source>
+                <source>
+                  <location>src/main/python/os_type_check.sh</location>
+                </source>
               </sources>
             </mapping>
             <mapping>

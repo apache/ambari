@@ -19,7 +19,6 @@ package org.apache.ambari.server.bootstrap;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.StringWriter;
 import java.util.List;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -28,7 +27,6 @@ import java.util.concurrent.TimeUnit;
 
 import org.apache.ambari.server.bootstrap.BootStrapStatus.BSStat;
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.IOUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -54,10 +52,11 @@ class BSRunner extends Thread {
   private String ambariHostname;
   private boolean verbose;
   private BootStrapImpl bsImpl;
+  private final String clusterOsType;
 
   public BSRunner(BootStrapImpl impl, SshHostInfo sshHostInfo, String bootDir,
       String bsScript, String agentSetupScript, String agentSetupPassword,
-      int requestId, long timeout, String hostName, boolean isVerbose)
+      int requestId, long timeout, String hostName, boolean isVerbose, String clusterOsType)
   {
     this.requestId = requestId;
     this.sshHostInfo = sshHostInfo;
@@ -69,6 +68,7 @@ class BSRunner extends Thread {
     this.agentSetupPassword = agentSetupPassword;
     this.ambariHostname = hostName;
     this.verbose = isVerbose;
+    this.clusterOsType = clusterOsType;
     this.bsImpl = impl;
     BootStrapStatus status = new BootStrapStatus();
     status.setLog("RUNNING");
@@ -148,7 +148,7 @@ class BSRunner extends Thread {
     if (user == null || user.isEmpty()) {
       user = DEFAULT_USER;
     }
-    String commands[] = new String[8];
+    String commands[] = new String[9];
     String shellCommand[] = new String[3];
     BSStat stat = BSStat.RUNNING;
     String scriptlog = "";
@@ -185,8 +185,9 @@ class BSRunner extends Thread {
       commands[4] = this.sshKeyFile.toString();
       commands[5] = this.agentSetupScript.toString();
       commands[6] = this.ambariHostname;
+      commands[7] = this.clusterOsType;
       if (this.passwordFile != null) {
-        commands[7] = this.passwordFile.toString();
+        commands[8] = this.passwordFile.toString();
       }
       LOG.info("Host= " + hostString + " bs=" + this.bsScript + " requestDir=" +
           requestIdDir + " user=" + user + " keyfile=" + this.sshKeyFile +
@@ -213,8 +214,7 @@ class BSRunner extends Thread {
       shellCommand[2] = commandString.toString();
       Process process = Runtime.getRuntime().exec(shellCommand, env);
 
-      /** Startup a scheduled executor service to look through the logs
-       */
+      // Startup a scheduled executor service to look through the logs
       ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
       BSStatusCollector statusCollector = new BSStatusCollector();
       ScheduledFuture<?> handle = scheduler.scheduleWithFixedDelay(statusCollector,
@@ -290,7 +290,8 @@ class BSRunner extends Thread {
     } catch(IOException io) {
       LOG.info("Error executing bootstrap " + io.getMessage());
       stat = BSStat.ERROR;
-    } finally {
+    }
+    finally {
       /* get the bstatus */
       BootStrapStatus tmpStatus = bsImpl.getStatus(requestId);
       tmpStatus.setLog(scriptlog);

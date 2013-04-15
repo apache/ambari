@@ -412,15 +412,14 @@ public class HeartBeatHandler {
 
     String agentOsType = getOsType(register.getHardwareProfile().getOS(),
         register.getHardwareProfile().getOSRelease());
-    if (!ambariMetaInfo.areOsTypesCompatible(
-        config.getServerOsType().toLowerCase(), agentOsType)) {
-      LOG.warn("Received registration request from host with non matching"
+    if (!ambariMetaInfo.isOsSupported(agentOsType)) {
+      LOG.warn("Received registration request from host with not supported"
           + " os type"
           + ", hostname=" + hostname
           + ", serverOsType=" + config.getServerOsType()
           + ", agentOstype=" + agentOsType);
-      throw new AmbariException("Cannot register host as it does not match"
-          + " server's os type"
+      throw new AmbariException("Cannot register host with not supported"
+          + " os type"
           + ", hostname=" + hostname
           + ", serverOsType=" + config.getServerOsType()
           + ", agentOstype=" + agentOsType);
