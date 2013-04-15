@@ -1466,6 +1466,8 @@ AMBARI-1.2.0 branch:
  AMBARI-1202. Unncessary use of xml tree python library in ambari-server
  setup. Its not being used. (Siddharth Wagle via mahadev)
 
+ AMBARI-1769. Python REST client to invoke REST calls. (Subin M via mahadev)
+
  IMPROVEMENTS
 
  BUG FIXES
