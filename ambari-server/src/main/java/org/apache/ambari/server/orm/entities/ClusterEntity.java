@@ -73,7 +73,7 @@ public class ClusterEntity {
   @ManyToMany(mappedBy = "clusterEntities")
   private Collection<HostEntity> hostEntities;
 
-  @OneToMany(mappedBy = "cluster", cascade = CascadeType.REMOVE)
+  @OneToMany(mappedBy = "cluster", cascade = {CascadeType.REMOVE, CascadeType.REFRESH})
   private Collection<StageEntity> stages;
 
   @OneToMany(mappedBy = "clusterEntity", cascade = CascadeType.ALL)

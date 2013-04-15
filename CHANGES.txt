@@ -719,6 +719,8 @@ Trunk (unreleased changes):
 
  BUG FIXES
 
+ AMBARI-1933. Test failure : testCascadeDeleteStages. (smohanty)
+
  AMBARI-1931. params/run_smoke_test=true is not taking effect. (smohanty)
 
  AMBARI-1919. JobTracker History Server failed to come up on 1.3.0 stack
