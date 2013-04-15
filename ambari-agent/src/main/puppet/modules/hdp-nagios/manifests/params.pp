@@ -26,6 +26,7 @@ class hdp-nagios::params() inherits hdp::params
   $nagios_group = hdp_default("nagios_group",$nagios_default_group)
   
   $conf_dir = hdp_default("nagios_conf_dir","/etc/nagios")
+  $httpd_conf_file = "/etc/httpd/conf.d/nagios.conf"
 
   $plugins_dir = "/usr/lib64/nagios/plugins"
   $eventhandlers_dir = "/usr/lib64/nagios/eventhandlers"  # Does not exist yet

@@ -28,6 +28,7 @@ class hdp-nagios::server(
   $plugins_dir = $hdp-nagios::params::plugins_dir
   $nagios_obj_dir = $hdp-nagios::params::nagios_obj_dir
   $check_result_path = $hdp-nagios::params::check_result_path
+  $nagios_httpd_config_file = $hdp-nagios::params::httpd_conf_file
 
 
   if hdp_is_empty($hdp::params::pathes[nagios_p1_pl]) {
@@ -107,7 +108,15 @@ class hdp-nagios::server(
     hdp::user { $nagios_user:
       gid => $nagios_group
     }
-    
+
+    file{ $nagios_httpd_config_file :
+      ensure => present,
+      owner => $nagios_user,
+      group => $nagios_group,
+      source => "puppet:///modules/hdp-nagios/nagios.conf",
+      mode   => '0644'
+    }
+
     hdp::directory { $nagios_config_dir:
       service_state => $service_state,
       force => true,

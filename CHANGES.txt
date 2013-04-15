@@ -719,6 +719,8 @@ Trunk (unreleased changes):
 
  BUG FIXES
 
+ AMBARI-1934. Security vulnerability with Ganglia and Nagios. (smohanty)
+
  AMBARI-1933. Test failure : testCascadeDeleteStages. (smohanty)
 
  AMBARI-1931. params/run_smoke_test=true is not taking effect. (smohanty)
