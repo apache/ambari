@@ -723,6 +723,8 @@ Trunk (unreleased changes):
 
  BUG FIXES
 
+ AMBARI-1942. Nagios server failed to start. (swagle)
+
  AMBARI-1938. Update mock data for stack HDP-1.3.0. (jaimin)
 
  AMBARI-1934. Security vulnerability with Ganglia and Nagios. (smohanty)
