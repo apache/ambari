@@ -232,6 +232,7 @@
               <filemode>755</filemode>
               <username>root</username>
               <groupname>root</groupname>
+	      <directoryIncluded>false</directoryIncluded>
               <sources>
                 <source>
                   <location>conf/unix/ambari-agent</location>

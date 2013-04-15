@@ -714,6 +714,9 @@ Trunk (unreleased changes):
  AMBARI-1871. ambari-agent RPM does not claim ownership of
  /var/lib/ambari-agent. (Matthew Farrellee via mahadev)
 
+ AMBARI-1870. ambari-agent RPM claims ownership of /usr/sbin. (Matthew
+ Farrellee via mahadev)
+
  BUG FIXES
 
  AMBARI-1919. JobTracker History Server failed to come up on 1.3.0 stack
