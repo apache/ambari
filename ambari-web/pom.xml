@@ -93,6 +93,11 @@
                 <exec dir="${basedir}" executable="brunch" failonerror="false">
                   <arg value="build"/>
                 </exec>
+                <!-- enables experimental features if enableExperimental is set to true -->
+                <exec dir="${basedir}" executable="sh" failonerror="false">
+                  <arg value="${basedir}/toggle-experimental.sh"/>
+                  <arg value="${enableExperimental}"/>
+                </exec>
                 <exec dir="${basedir}" executable="gzip" failonerror="false">
                   <arg value="public/javascripts/app.js"/>
                   <arg value="public/javascripts/vendor.js"/>

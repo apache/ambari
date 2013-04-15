@@ -35,22 +35,23 @@ App.contentUpdateInterval = 15000;
 App.maxRunsForAppBrowser = 500;
 App.pageReloadTime=3600000;
 
-App.disableAllSupports = false;
+// experimental features are automatically enabled if running on brunch server
+App.enableExperimental = (location.port == '3333');
 
 App.supports = {
   addServices: false,
-  hostOverrides: true,
-  mirroring: true,
-  secureCluster: true,
-  reassignMaster: true,
-  stackUpgrade: true,
-  capacitySchedulerUi: true,
-  startStopAllServices: true
+  hostOverrides: false,
+  mirroring: false,
+  secureCluster: false,
+  reassignMaster: false,
+  stackUpgrade: false,
+  capacitySchedulerUi: false,
+  startStopAllServices: false
 };
 
-if (App.disableAllSupports) {
+if (App.enableExperimental) {
   for (var support in App.supports) {
-    App.supports[support] = false;
+    App.supports[support] = true;
   }
 }
 
