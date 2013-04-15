@@ -46,7 +46,7 @@ var urls = {
     'testInProduction': true
   },
   'service.item.start_stop': {
-    'real': '/clusters/{clusterName}/services/{serviceName}',
+    'real': '/clusters/{clusterName}/services/{serviceName}?params/run_smoke_test=true',
     'mock': '/data/wizard/deploy/poll_1.json',
     'format': function (data, opt) {
       return {
@@ -587,7 +587,7 @@ var urls = {
     }
   },
   'wizard.step9.installer.launch_start_services': {
-    'real': '/clusters/{cluster}/services?ServiceInfo/state=INSTALLED',
+    'real': '/clusters/{cluster}/services?ServiceInfo/state=INSTALLED&params/run_smoke_test=true',
     'mock': '/data/wizard/deploy/5_hosts/poll_6.json',
     'format': function (data, opt) {
       return {
