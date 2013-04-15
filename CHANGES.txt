@@ -258,6 +258,8 @@ Trunk (unreleased changes):
 
  IMPROVEMENTS
 
+ AMBARI-1905. Test mode is broken. (yusaku via jaimin)
+
  AMBARI-1904. Update default stack version to 1.3.0. (yusaku via jaimin)
 
  AMBARI-1921. Change tasks order in popup on deploy page. (jaimin)
