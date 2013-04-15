@@ -1270,8 +1270,10 @@ App.WizardStep8Controller = Em.Controller.extend({
     }
     if (selectedServices.someProperty('serviceName', 'MAPREDUCE')) {
       this.applyConfigurationToSite(this.createMrSiteObj());
-      this.applyConfigurationToSite(this.createCapacityScheduler());
-      this.applyConfigurationToSite(this.createMapredQueueAcls());
+      if (App.supports.capacitySchedulerUi) {
+        this.applyConfigurationToSite(this.createCapacityScheduler());
+        this.applyConfigurationToSite(this.createMapredQueueAcls());
+      }
     }
     if (selectedServices.someProperty('serviceName', 'HBASE')) {
       this.applyConfigurationToSite(this.createHbaseSiteObj());

@@ -31,7 +31,13 @@ App.config = Em.Object.create({
   //categories which contain custom configs
   categoriesWithCustom: ['CapacityScheduler'],
   //configs with these filenames go to appropriate category not in Advanced
-  customFileNames: ['capacity-scheduler.xml', 'mapred-queue-acls.xml'],
+  customFileNames: function() {
+    if (App.supports.capacitySchedulerUi) {
+      return ['capacity-scheduler.xml', 'mapred-queue-acls.xml'];
+    } else {
+      return [];
+    }
+  }.property(''),
   /**
    * Cache of loaded configurations. This is useful in not loading
    * same configuration multiple times. It is populated in multiple

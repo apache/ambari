@@ -47,7 +47,9 @@
 <div class="accordion">
   {{#each category in selectedService.configCategories}}
     {{#if category.isCustomView}}
+      {{#if App.supports.capacityScheduler}}
       {{view category.customView categoryBinding="category" serviceBinding="selectedService" canEditBinding="view.canEdit" serviceConfigsBinding="selectedService.configs"}}
+      {{/if}}
     {{else}}
     {{#view App.ServiceConfigsByCategoryView categoryBinding="category" canEditBinding="view.canEdit" serviceBinding="selectedService" serviceConfigsBinding="selectedService.configs"}}
 
@@ -76,7 +78,9 @@
                                 {{view viewClass serviceConfigBinding="this" categoryConfigsAllBinding="view.categoryConfigsAll" }}
                                 {{#if view.canEdit}}
 	                                {{#if isPropertyOverridable}}
+                                    {{#if App.supports.hostOverrides}}
 	                                    <a class="action" {{action "createOverrideProperty" this target="view" }} ><i class="icon-plus-sign"></i>{{t common.exception}}</a>
+                                    {{/if}}
 	                                {{/if}}
 	                                {{#if cantBeUndone}}
 	                                {{else}}

@@ -20,7 +20,7 @@
   <div id="services-menu" class="well span2" style="padding: 8px 0">
     {{view App.MainServiceMenuView}}
     {{#if App.isAdmin}}
-    {{#if App.addServicesEnabled}}
+    {{#if App.supports.addServices}}
     <div class="add-service-button">
       <a class="btn" {{action addService href="true"}}>
         <i class="icon-plus"></i>
@@ -28,6 +28,7 @@
       </a>
     </div>
     {{/if}}
+    {{#if App.supports.startStopAllServices}}
       <div class="start-stop-all-service-button">
         <a href="javascript:void(null)" {{bindAttr class=":btn controller.isStartAllDisabled:disabled:btn-success" }}
            data-toggle="modal" {{action "startAllService" target="controller"}}>
@@ -42,6 +43,7 @@
           {{t services.service.stopAll}}
         </a>
       </div>
+    {{/if}}
     {{/if}}
   </div>
   <div class="span10">

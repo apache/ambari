@@ -48,7 +48,7 @@ module.exports = [
       App.ServiceConfigCategory.create({ name: 'TaskTracker', displayName : 'TaskTracker', hostComponentNames : ['TASKTRACKER']}),
       App.ServiceConfigCategory.create({ name: 'General', displayName : 'General'}),
       App.ServiceConfigCategory.create({ name: 'Advanced', displayName : 'Advanced'}),
-      App.ServiceConfigCategory.create({ name: 'CapacityScheduler', displayName : 'Capacity Scheduler', isCustomView: true, siteFileName: 'capacity-scheduler.xml', siteFileNames: ['capacity-scheduler.xml', 'mapred-queue-acls.xml'], canAddProperty: true}),
+      App.ServiceConfigCategory.create({ name: 'CapacityScheduler', displayName : 'Capacity Scheduler', isCapacityScheduler : true, isCustomView: true, siteFileName: 'capacity-scheduler.xml', siteFileNames: ['capacity-scheduler.xml', 'mapred-queue-acls.xml'], canAddProperty: true}),
       App.ServiceConfigCategory.create({ name: 'AdvancedMapredSite', displayName : 'Custom mapred-site.xml', siteFileName: 'mapred-site.xml', canAddProperty: true})
     ],
     sites: ['global', 'core-site', 'mapred-site', 'capacity-scheduler', 'mapred-queue-acls'],

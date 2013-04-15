@@ -257,6 +257,9 @@ Trunk (unreleased changes):
  (Sumit Mohanty via mahadev)
 
  IMPROVEMENTS
+ 
+ AMBARI-1906. Make experimental Ambari Web features toggleable 
+ (turned on/off via config file). (yusaku via jaimin)
 
  AMBARI-1905. Test mode is broken. (yusaku via jaimin)
 
