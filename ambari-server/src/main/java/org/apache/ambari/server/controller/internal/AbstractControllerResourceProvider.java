@@ -125,26 +125,33 @@ public abstract class AbstractControllerResourceProvider extends AbstractResourc
   }
 
   /**
-   * Extracting given query_paramater value from the predicate(parsed http body)
+   * Extracting given query_paramater value from the predicate
    * @param queryParameterId
    * @param predicate
    * @return
    */
   protected static Object getQueryParameterValue(String queryParameterId, Predicate predicate) {
 
+    Object result = null;
+
     if (predicate instanceof ArrayPredicate) {
       ArrayPredicate arrayPredicate  = (ArrayPredicate) predicate;
       for (Predicate predicateItem : arrayPredicate.getPredicates()) {
-        if (predicateItem instanceof ComparisonPredicate) {
-          EqualsPredicate equalsPredicate =
-              (EqualsPredicate) predicateItem;
-          if (queryParameterId.equals(equalsPredicate.getPropertyId())) {
-            return equalsPredicate.getValue();
+          if (predicateItem instanceof EqualsPredicate) {
+            EqualsPredicate equalsPredicate =
+                (EqualsPredicate) predicateItem;
+            if (queryParameterId.equals(equalsPredicate.getPropertyId())) {
+              return equalsPredicate.getValue();
+            }
+          } else {
+            result = getQueryParameterValue(queryParameterId, predicateItem);
+            if (result != null) {
+              return result;
           }
         }
       }
 
     }
-    return null;
+    return result;
   }
 }
