@@ -27,8 +27,8 @@ App.skipBootstrap = false;
 App.alwaysGoToInstaller = false;
 App.testEnableSecurity = true;                   // By default enable security is tested; turning it false tests disable security
 App.apiPrefix = '/api/v1';
-App.defaultStackVersion = 'HDP-1.2.1';
-App.defaultLocalStackVersion = 'HDPLocal-1.2.1';
+App.defaultStackVersion = 'HDP-1.3.0';
+App.defaultLocalStackVersion = 'HDPLocal-1.3.0';
 App.defaultJavaHome = '/usr/jdk/jdk1.6.0_31';
 App.addServicesEnabled = false;
 // default AJAX timeout
