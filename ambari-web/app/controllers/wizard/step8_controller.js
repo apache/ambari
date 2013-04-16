@@ -236,7 +236,7 @@ App.WizardStep8Controller = Em.Controller.extend({
     var express = expression.match(/<(.*?)>/g);
     var value = expression;
     if (express == null) {
-      return expression;
+      return { value : expression, overrides: []};      // if site property do not map any global property then return the value
     }
     var overrideHostToValue = {};
     express.forEach(function (_express) {
