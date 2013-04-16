@@ -745,6 +745,9 @@ Trunk (unreleased changes):
 
  BUG FIXES
 
+ AMBARI-1947. Oozie Smoke test fails with errors on the start services/install 
+ page. (swagle)
+
  AMBARI-1946. Heatmap memory should not include cached memory as part of
  "used". (Jeff Sposetti via yusaku)
 
