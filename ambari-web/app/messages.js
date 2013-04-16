@@ -731,6 +731,7 @@ Em.I18n.translations = {
   'services.service.info.summary.nagios.noAlerts':'No alerts',
   'services.service.info.summary.nagios.alerts':'Nagios service required for viewing alerts',
 
+  'services.service.config.startService':'Start Service',
   'services.service.config.restartService':'Restart Service',
   'services.service.config.restartService.TooltipMessage':'<b>Restart Service</b><br>Stale configuration used by {0} components on {1} hosts:{2}',
   'services.service.config.saveConfig':'Service configuration applied successfully',

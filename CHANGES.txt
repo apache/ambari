@@ -739,6 +739,9 @@ Trunk (unreleased changes):
 
  BUG FIXES
 
+ AMBARI-1939. Make service restart feedback based on supports functionality. 
+ (srimanth)
+
  AMBARI-1943. Properties that do not map to any global property are not being
  sent to server. (jaimin)
 

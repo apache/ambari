@@ -16,32 +16,34 @@
 * limitations under the License.
 }}
 
-{{#if selectedService.restartRequired}}
-<div class="alert">
-  <div class="clearfix like_pointer collapsable" {{action toggleRestartMessageView target="view"}}>
-      {{#if view.isRestartMessageCollapsed}}
-        <i class="icon-caret-down pull-left"></i>
-      {{else}}
-        <i class="icon-caret-right pull-left"></i>
-      {{/if}}
-      <i class="icon-refresh"></i>
-      <strong>Restart Service</strong> {{selectedService.restartRequiredMessage}}
-  </div>
-  <div class="service-body">
-    <ul>
-    {{#each host in selectedService.restartRequiredHostsAndComponents}}
-      <li>
-        <a href="#" {{action showDetails host.hostData}}>{{host.hostData.publicHostName}}</a>
-        <ul>
-          {{#each component in host.components}}
-            <li>{{component.name}}</li>
-          {{/each}}
-        </ul>
-      </li>
-    {{/each}}
-    </ul>
-  </div>
-</div>
+{{#if App.supports.hostOverrides}}
+  {{#if selectedService.restartRequired}}
+	<div class="alert">
+	  <div class="clearfix like_pointer collapsable" {{action toggleRestartMessageView target="view"}}>
+	      {{#if view.isRestartMessageCollapsed}}
+	        <i class="icon-caret-down pull-left"></i>
+	      {{else}}
+	        <i class="icon-caret-right pull-left"></i>
+	      {{/if}}
+	      <i class="icon-refresh"></i>
+	      <strong>Restart Service</strong> {{selectedService.restartRequiredMessage}}
+	  </div>
+	  <div class="service-body">
+	    <ul>
+	    {{#each host in selectedService.restartRequiredHostsAndComponents}}
+	      <li>
+	        <a href="#" {{action showDetails host.hostData}}>{{host.hostData.publicHostName}}</a>
+	        <ul>
+	          {{#each component in host.components}}
+	            <li>{{component.name}}</li>
+	          {{/each}}
+	        </ul>
+	      </li>
+	    {{/each}}
+	    </ul>
+	  </div>
+	</div>
+	{{/if}}
 {{/if}}
           
 <div class="accordion">
@@ -66,9 +68,11 @@
                       <div {{bindAttr class=":entry-row isOverridden:overridden-property"}}>
                           <span {{bindAttr class="errorMessage:error: :control-group :control-label-span"}}>
                             <label class="control-label">
-	                            {{#if isRestartRequired}}
-	                              <i class="icon-refresh restart-required-property" rel="tooltip" {{bindAttr title="restartRequiredMessage"}}></i>
-	                            {{/if}}
+                              {{#if App.supports.hostOverrides}}
+		                            {{#if isRestartRequired}}
+		                              <i class="icon-refresh restart-required-property" rel="tooltip" {{bindAttr title="restartRequiredMessage"}}></i>
+		                            {{/if}}
+		                          {{/if}}
                               {{displayName}}
                             </label>
                           </span>

@@ -589,16 +589,31 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
     var header;
     var message;
     var value;
-    var result = this.saveServiceConfigProperties();
-    App.router.get('clusterController').updateClusterData();
-    if (result.flag === true) {
-      header = Em.I18n.t('services.service.config.restartService');
-      message = Em.I18n.t('services.service.config.saveConfig');
+    var flag = false;
+    if (App.supports.hostOverrides || 
+        (this.get('content.serviceName') !== 'HDFS' && this.get('content.isStopped') === true) || 
+        ((this.get('content.serviceName') === 'HDFS') && this.get('content.isStopped') === true && (!App.Service.find().someProperty('id', 'MAPREDUCE') || App.Service.find('MAPREDUCE').get('isStopped')))) {
+      var result = this.saveServiceConfigProperties();
+      App.router.get('clusterController').updateClusterData();
+      flag = result.flag;
+      if (result.flag === true) {
+        header = App.supports.hostOverrides ? Em.I18n.t('services.service.config.restartService') : Em.I18n.t('services.service.config.startService');
+        message = Em.I18n.t('services.service.config.saveConfig');
+      } else {
+        header = Em.I18n.t('common.failure');
+        message = result.message;
+        value = result.value;
+      }
     } else {
-      header = Em.I18n.t('common.failure');
-      message = result.message;
-      value = result.value;
+      if (this.get('content.serviceName') !== 'HDFS' || (this.get('content.serviceName') === 'HDFS' && !App.Service.find().someProperty('id', 'MAPREDUCE'))) {
+        header = Em.I18n.t('services.service.config.stopService');
+        message = Em.I18n.t('services.service.config.msgServiceStop');
+      } else {
+        header = Em.I18n.t('services.service.config.stopService');
+        message = Em.I18n.t('services.service.config.msgHDFSMapRServiceStop');
+      }
     }
+    
     var self = this;
     App.ModalPopup.show({
       header: header,
@@ -606,10 +621,12 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
       secondary: null,
       onPrimary: function () {
         this.hide();
-        self.loadStep();
+        if (App.supports.hostOverrides) {
+          self.loadStep();
+        }
       },
       bodyClass: Ember.View.extend({
-        flag: result.flag,
+        flag: flag,
         message: message,
         siteProperties: value,
         getDisplayMessage: function () {

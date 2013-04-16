@@ -18,9 +18,11 @@
 
 <div id="serviceConfig">
   {{#if dataIsLoaded}}
-    <div class="pull-right">
-      {{view App.FilterComboboxView filterBinding="controller.filter" columnsBinding="controller.filterColumns" }}
-    </div>
+    {{#if App.supports.hostOverrides}}
+	    <div class="pull-right">
+	      {{view App.FilterComboboxView filterBinding="controller.filter" columnsBinding="controller.filterColumns" }}
+	    </div>
+	  {{/if}}
     <div class="clearfix"></div>
     {{view App.ServiceConfigView filterBinding="controller.filter" columnsBinding="controller.filterColumns"}}
     {{#if App.isAdmin}}
