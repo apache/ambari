@@ -190,7 +190,7 @@ public class AmbariManagementControllerTest {
   }
 
   private long stopService(String clusterName, String serviceName,
-                           boolean reconfigureClients) throws
+      boolean runSmokeTests, boolean reconfigureClients) throws
     AmbariException {
     ServiceRequest r = new ServiceRequest(clusterName, serviceName, null,
       State.INSTALLED.toString());
@@ -199,7 +199,7 @@ public class AmbariManagementControllerTest {
     Map<String, String> mapRequestProps = new HashMap<String, String>();
     mapRequestProps.put("context", "Called from a test");
     RequestStatusResponse resp = controller.updateServices(requests,
-      mapRequestProps, true, reconfigureClients);
+      mapRequestProps, runSmokeTests, reconfigureClients);
 
     Assert.assertEquals(State.INSTALLED,
       clusters.getCluster(clusterName).getService(serviceName)
@@ -218,7 +218,7 @@ public class AmbariManagementControllerTest {
   }
 
   private long startService(String clusterName, String serviceName,
-                            boolean reconfigureClients) throws
+      boolean runSmokeTests, boolean reconfigureClients) throws
     AmbariException {
     ServiceRequest r = new ServiceRequest(clusterName, serviceName, null,
       State.STARTED.toString());
@@ -227,7 +227,7 @@ public class AmbariManagementControllerTest {
     Map<String, String> mapRequestProps = new HashMap<String, String>();
     mapRequestProps.put("context", "Called from a test");
     RequestStatusResponse resp = controller.updateServices(requests,
-      mapRequestProps, true, reconfigureClients);
+      mapRequestProps, runSmokeTests, reconfigureClients);
 
     Assert.assertEquals(State.STARTED,
       clusters.getCluster(clusterName).getService(serviceName)
@@ -246,7 +246,7 @@ public class AmbariManagementControllerTest {
   }
 
   private long installService(String clusterName, String serviceName,
-                              boolean reconfigureClients) throws
+      boolean runSmokeTests, boolean reconfigureClients) throws
     AmbariException {
     ServiceRequest r = new ServiceRequest(clusterName, serviceName, null,
       State.INSTALLED.toString());
@@ -255,7 +255,7 @@ public class AmbariManagementControllerTest {
     Map<String, String> mapRequestProps = new HashMap<String, String>();
     mapRequestProps.put("context", "Called from a test");
     RequestStatusResponse resp = controller.updateServices(requests,
-      mapRequestProps, true, reconfigureClients);
+      mapRequestProps, runSmokeTests, reconfigureClients);
 
     Assert.assertEquals(State.INSTALLED,
       clusters.getCluster(clusterName).getService(serviceName)
@@ -4458,18 +4458,18 @@ public class AmbariManagementControllerTest {
     controller.updateCluster(crReq, null);
 
     // Install
-    long requestId1 = installService(clusterName, serviceName1, false);
+    long requestId1 = installService(clusterName, serviceName1, true, false);
 
     List<Stage> stages = actionDB.getAllStages(requestId1);
     Assert.assertEquals(2, stages.get(0).getOrderedHostRoleCommands().get(0)
       .getExecutionCommandWrapper().getExecutionCommand()
       .getConfigurationTags().size());
 
-    installService(clusterName, serviceName2, false);
+    installService(clusterName, serviceName2, false, false);
 
     // Start
-    startService(clusterName, serviceName1, false);
-    startService(clusterName, serviceName2, false);
+    startService(clusterName, serviceName1, true, false);
+    startService(clusterName, serviceName2, true, false);
 
     // Reconfigure
     configs.clear();
@@ -4481,12 +4481,12 @@ public class AmbariManagementControllerTest {
     controller.updateCluster(crReq, null);
 
     // Stop HDFS & MAPREDUCE
-    stopService(clusterName, serviceName1, false);
-    stopService(clusterName, serviceName2, false);
+    stopService(clusterName, serviceName1, false, false);
+    stopService(clusterName, serviceName2, false, false);
 
     // Start
-    long requestId2 = startService(clusterName, serviceName1, true);
-    long requestId3 = startService(clusterName, serviceName2, true);
+    long requestId2 = startService(clusterName, serviceName1, true, true);
+    long requestId3 = startService(clusterName, serviceName2, true, true);
 
     stages = actionDB.getAllStages(requestId2);
     stages.addAll(actionDB.getAllStages(requestId3));
@@ -4613,6 +4613,89 @@ public class AmbariManagementControllerTest {
     Assert.assertEquals(1, taskStatuses.size());
     Assert.assertEquals(Role.PIG_SERVICE_CHECK.toString(),
         taskStatuses.get(0).getRole());
+  }
+
+  @Test
+  public void testConfigsAttachedToServiceChecks() throws AmbariException {
+    String clusterName = "foo1";
+    createCluster(clusterName);
+    clusters.getCluster(clusterName)
+      .setDesiredStackVersion(new StackId("HDP-0.1"));
+    String serviceName = "HDFS";
+    createService(clusterName, serviceName, null);
+    String componentName1 = "NAMENODE";
+    String componentName2 = "DATANODE";
+    String componentName3 = "HDFS_CLIENT";
+
+    Map<String, String> mapRequestProps = new HashMap<String, String>();
+    mapRequestProps.put("context", "Called from a test");
+
+    createServiceComponent(clusterName, serviceName, componentName1,
+      State.INIT);
+    createServiceComponent(clusterName, serviceName, componentName2,
+      State.INIT);
+    createServiceComponent(clusterName, serviceName, componentName3,
+      State.INIT);
+
+    String host1 = "h1";
+    clusters.addHost(host1);
+    clusters.getHost("h1").setOsType("centos5");
+    clusters.getHost("h1").persist();
+    String host2 = "h2";
+    clusters.addHost(host2);
+    clusters.getHost("h2").setOsType("centos6");
+    clusters.getHost("h2").persist();
+
+    clusters.mapHostToCluster(host1, clusterName);
+    clusters.mapHostToCluster(host2, clusterName);
+
+
+    // null service should work
+    createServiceComponentHost(clusterName, null, componentName1,
+      host1, null);
+    createServiceComponentHost(clusterName, serviceName, componentName2,
+      host1, null);
+    createServiceComponentHost(clusterName, serviceName, componentName2,
+      host2, null);
+    createServiceComponentHost(clusterName, serviceName, componentName3,
+      host1, null);
+    createServiceComponentHost(clusterName, serviceName, componentName3,
+      host2, null);
+
+    // Create and attach config
+    Map<String, String> configs = new HashMap<String, String>();
+    configs.put("a", "b");
+
+    ConfigurationRequest cr1,cr2;
+    cr1 = new ConfigurationRequest(clusterName, "core-site","version1",
+      configs);
+    cr2 = new ConfigurationRequest(clusterName, "hdfs-site","version1",
+      configs);
+
+    ClusterRequest crReq = new ClusterRequest(null, clusterName, null, null);
+    crReq.setDesiredConfig(cr1);
+    controller.updateCluster(crReq, null);
+    crReq = new ClusterRequest(null, clusterName, null, null);
+    crReq.setDesiredConfig(cr2);
+    controller.updateCluster(crReq, null);
+
+    // Install
+    installService(clusterName, serviceName, false, false);
+    // Start
+    long requestId = startService(clusterName, serviceName, true, false);
+
+    List<Stage> stages = actionDB.getAllStages(requestId);
+    boolean serviceCheckFound = false;
+    for (Stage stage : stages) {
+      for (HostRoleCommand hrc : stage.getOrderedHostRoleCommands()) {
+        if (hrc.getRole().equals(Role.HDFS_SERVICE_CHECK)) {
+          serviceCheckFound = true;
+          Assert.assertEquals(2, hrc.getExecutionCommandWrapper()
+            .getExecutionCommand().getConfigurationTags().size());
+        }
+      }
+    }
+    Assert.assertEquals(true, serviceCheckFound);
   }
 
   @Test

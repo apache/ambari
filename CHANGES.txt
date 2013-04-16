@@ -745,6 +745,8 @@ Trunk (unreleased changes):
 
  BUG FIXES
 
+ AMBARI-1944. All Service Smoke tests fail when run with service start. (swagle)
+
  AMBARI-1939. Make service restart feedback based on supports functionality. 
  (srimanth)
 

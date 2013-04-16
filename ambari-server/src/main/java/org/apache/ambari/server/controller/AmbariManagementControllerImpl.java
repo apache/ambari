@@ -1906,6 +1906,54 @@ public class AmbariManagementControllerImpl implements
     }
   }
 
+  private void findConfigurationPropertiesWithOverrides(
+    Map<String, Map<String, String>> configurations,
+    Map<String, Map<String, String>> configTags,
+    Cluster cluster, String serviceName, String hostName) throws AmbariException {
+    // Do not use host component config mappings.  Instead, the rules are:
+    // 1) Use the cluster desired config
+    // 2) override (1) with service-specific overrides
+    // 3) override (2) with host-specific overrides
+
+    // since we are dealing with host components in this loop, get the
+    // config mappings for the service this host component applies to
+
+    for (Entry<String, DesiredConfig> entry : cluster.getDesiredConfigs().entrySet()) {
+      String type = entry.getKey();
+      String tag = entry.getValue().getVersion();
+      // 1) start with cluster config
+      Config config = cluster.getConfig(type, tag);
+
+      if (null == config)
+        continue;
+
+      Map<String, String> props = new HashMap<String, String>(config.getProperties());
+      Map<String, String> tags = new HashMap<String, String>();
+      tags.put("tag", config.getVersionTag());
+
+      // 2) apply the service overrides, if any are defined with different tags
+      Service service = cluster.getService(serviceName);
+      Config svcConfig = service.getDesiredConfigs().get(type);
+      if (null != svcConfig && !svcConfig.getVersionTag().equals(tag)) {
+        props.putAll(svcConfig.getProperties());
+      }
+
+      // 3) apply the host overrides, if any
+      Host host = clusters.getHost(hostName);
+      DesiredConfig dc = host.getDesiredConfigs(cluster.getClusterId()).get(type);
+      if (null != dc) {
+        Config hostConfig = cluster.getConfig(type, dc.getVersion());
+        if (null != hostConfig) {
+          props.putAll(hostConfig.getProperties());
+          tags.put("host_override_tag", hostConfig.getVersionTag());
+        }
+      }
+
+      configurations.put(type, props);
+      configTags.put(type, tags);
+    }
+  }
+
   private List<Stage> doStageCreation(Cluster cluster,
       Map<State, List<Service>> changedServices,
       Map<State, List<ServiceComponent>> changedComps,
@@ -2070,48 +2118,8 @@ public class AmbariManagementControllerImpl implements
             Map<String, Map<String, String>> configurations = new TreeMap<String, Map<String,String>>();
             Map<String, Map<String, String>> configTags = new HashMap<String, Map<String,String>>();
 
-            // Do not use host component config mappings.  Instead, the rules are:
-            // 1) Use the cluster desired config
-            // 2) override (1) with service-specific overrides
-            // 3) override (2) with host-specific overrides
-
-            // since we are dealing with host components in this loop, get the
-            // config mappings for the service this host component applies to
-
-            for (Entry<String, DesiredConfig> entry : cluster.getDesiredConfigs().entrySet()) {
-              String type = entry.getKey();
-              String tag = entry.getValue().getVersion();
-              // 1) start with cluster config
-              Config config = cluster.getConfig(type, tag);
-
-              if (null == config)
-                continue;
-
-              Map<String, String> props = new HashMap<String, String>(config.getProperties());
-              Map<String, String> tags = new HashMap<String, String>();
-              tags.put("tag", config.getVersionTag());
-
-              // 2) apply the service overrides, if any are defined with different tags
-              Service service = cluster.getService(scHost.getServiceName());
-              Config svcConfig = service.getDesiredConfigs().get(type);
-              if (null != svcConfig && !svcConfig.getVersionTag().equals(tag)) {
-                props.putAll(svcConfig.getProperties());
-              }
-
-              // 3) apply the host overrides, if any
-              Host host = clusters.getHost(scHost.getHostName());
-              DesiredConfig dc = host.getDesiredConfigs(scHost.getClusterId()).get(type);
-              if (null != dc) {
-                Config hostConfig = cluster.getConfig(type, dc.getVersion());
-                if (null != hostConfig) {
-                  props.putAll(hostConfig.getProperties());
-                  tags.put("host_override_tag", hostConfig.getVersionTag());
-                }
-              }
-
-              configurations.put(type, props);
-              configTags.put(type, tags);
-            }
+            findConfigurationPropertiesWithOverrides(configurations, configTags,
+              cluster, scHost.getServiceName(), scHost.getHostName());
 
             // HACK HACK HACK
             if ((!scHost.getHostName().equals(jobtrackerHost))
@@ -2153,18 +2161,20 @@ public class AmbariManagementControllerImpl implements
             new ServiceComponentHostOpInProgressEvent(null, clientHost,
                 nowTimestamp), cluster.getClusterName(), serviceName);
 
-        Map<String, Map<String, String>> configurations =
-            new TreeMap<String, Map<String, String>>();
-        Map<String, Config> allConfigs = cluster.getService(serviceName).getDesiredConfigs();
-        if (allConfigs != null) {
-          for (Map.Entry<String, Config> entry: allConfigs.entrySet()) {
-            configurations.put(entry.getValue().getType(), entry.getValue().getProperties());
-          }
-        }
+        // [ type -> [ key, value ] ]
+        Map<String, Map<String, String>> configurations = new TreeMap<String, Map<String,String>>();
+        Map<String, Map<String, String>> configTags = new HashMap<String, Map<String,String>>();
+
+        findConfigurationPropertiesWithOverrides(configurations, configTags,
+          cluster, serviceName, clientHost);
 
         stage.getExecutionCommandWrapper(clientHost,
             smokeTestRole).getExecutionCommand()
             .setConfigurations(configurations);
+
+        stage.getExecutionCommandWrapper(clientHost,
+          smokeTestRole).getExecutionCommand()
+          .setConfigurationTags(configTags);
 
         // Generate cluster host info
         stage.getExecutionCommandWrapper(clientHost, smokeTestRole)
@@ -3971,44 +3981,11 @@ public class AmbariManagementControllerImpl implements
     
     // [ type -> [ key, value ] ]
     Map<String, Map<String, String>> configurations = new TreeMap<String, Map<String,String>>();
+    Map<String, Map<String, String>> configTags = new TreeMap<String,
+      Map<String, String>>();
 
-    // Do not use service config mappings.  Instead, the rules are:
-    // 1) Use the cluster desired config
-    // 2) override (1) with service-specific overrides
-    // 3) override (2) with host-specific overrides
-    // Yes, we may be sending more configs than are actually used, but that is
-    // because of the new design
-
-    for (Entry<String, DesiredConfig> entry : cluster.getDesiredConfigs().entrySet()) {
-      String type = entry.getKey();
-      String tag = entry.getValue().getVersion();
-      // 1) start with cluster config
-      Config config = cluster.getConfig(type, tag);
-
-      if (null == config)
-        continue;
-
-      Map<String, String> props = new HashMap<String, String>(config.getProperties());
-
-      // 2) apply the service overrides, if any are defined with different tags
-      Service service = cluster.getService(actionRequest.getServiceName());
-      Config svcConfig = service.getDesiredConfigs().get(type);
-      if (null != svcConfig && !svcConfig.getVersionTag().equals(tag)) {
-        props.putAll(svcConfig.getProperties());
-      }
-
-      // 3) apply the host overrides, if any
-      Host host = clusters.getHost(hostName);
-      DesiredConfig dc = host.getDesiredConfigs(cluster.getClusterId()).get(type);
-      if (null != dc) {
-        Config hostConfig = cluster.getConfig(type, dc.getVersion());
-        if (null != hostConfig) {
-          props.putAll(hostConfig.getProperties());
-        }
-      }
-
-      configurations.put(type, props);
-    }
+    findConfigurationPropertiesWithOverrides(configurations, configTags,
+      cluster, actionRequest.getServiceName(), hostName);
 
     ExecutionCommand execCmd = stage.getExecutionCommandWrapper(hostName,
       actionRequest.getActionName()).getExecutionCommand();
