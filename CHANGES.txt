@@ -745,6 +745,8 @@ Trunk (unreleased changes):
 
  BUG FIXES
 
+ AMBARI-1948. System logs are not present on tasktracker. (swagle)
+
  AMBARI-1947. Oozie Smoke test fails with errors on the start services/install 
  page. (swagle)
 
