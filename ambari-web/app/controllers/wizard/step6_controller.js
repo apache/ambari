@@ -276,7 +276,7 @@ App.WizardStep6Controller = Em.Controller.extend({
         obj.checkboxes.pushObject(Em.Object.create({
           title: header.label,
           checked: false,
-          installed: false
+          isInstalled: false
         }));
       });
 

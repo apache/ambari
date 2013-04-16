@@ -66,4 +66,3 @@ $.ajaxSetup({
  * Test Mode values
  */
 App.test_hostname = 'hostname';
-

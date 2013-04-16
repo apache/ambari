@@ -1041,6 +1041,7 @@ Em.I18n.translations = {
   'apps.isRunning.popup.title':'Is running',
   'apps.isRunning.popup.content':'Job is running now',
 
+  'mirroring.dataset.AllDataSets':'All Datasets',
   'mirroring.dataset.createNewDataset':'Create New Dataset',
   'mirroring.dataset.newDataset':'New Dataset',
   'mirroring.dataset.editDataset':'Edit Dataset',
@@ -1048,7 +1049,7 @@ Em.I18n.translations = {
   'mirroring.dataset.name':'Name',
   'mirroring.dataset.save': 'Save & Run',
   'mirroring.dataset.sourceDir':'Source Cluster Directory',
-  'mirroring.dataset.target':'Target',
+  'mirroring.dataset.target':'Target Cluster',
   'mirroring.dataset.source':'Source',
   'mirroring.dataset.avgData':'Avg. Data',
   'mirroring.dataset.dateCreated':'Date Created',
@@ -1060,6 +1061,9 @@ Em.I18n.translations = {
   'mirroring.dataset.toggle.active':'Activate',
   'mirroring.dataset.toggle.suspended':'Suspend',
 
+  'mirroring.targetcluster.nameNodeWebUrl':'NameNode Web UI',
+  'mirroring.targetcluster.nameNodeRpcUrl':'NameNode RPC',
+  'mirroring.targetcluster.oozieServerUrl':'Oozie Server',
   'mirroring.targetcluster.addCluster':'Add Cluster',
   'mirroring.targetcluster.testConnection':'Test Connection',
   'mirroring.targetcluster.enterClusterName':'Name of the Target Cluster',
@@ -1081,6 +1085,10 @@ Em.I18n.translations = {
   'mirroring.sidebar.header.clusters': 'Target Clusters',
   'mirroring.sidebar.popup.clusters.header': 'Cluster management',
   'mirroring.sidebar.popup.clusters.body': 'Here will be some content',
+
+  'mirroring.required.error': 'This field is required',
+  'mirroring.dateOrder.error': 'End Date must be after Start Date',
+  'mirroring.required.invalidNumberError' : 'Enter valid number',
 
 
   'menu.item.dashboard':'Dashboard',

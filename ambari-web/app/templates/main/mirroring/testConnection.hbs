@@ -20,33 +20,38 @@
     <div class="add-cluster-1">
         <div class="add-cluster-1-1">
             <h4>Enter the URLs for the following</h4>
-            <div class="each-row">
-                NameNode Web UI
+
+            <div {{bindAttr class=" :each-row content.isNameNodeWebUrlError:error"}}>
+              {{t mirroring.targetcluster.nameNodeWebUrl}}
             </div>
-            <div class="each-row">
-              {{view Ember.TextField valueBinding="content.targetCluster.nameNodeWebUrl" class="span4"}}
+            <div {{bindAttr class=" :each-row content.isNameNodeWebUrlError:error"}}>
+              {{view Ember.TextField valueBinding="content.targetCluster.nameNodeWebUrl" class="span4" placeholder="http://[NameNode Web UI Server]:50070"}}
+                <span class="help-inline">{{content.nameNodeWebUrlErrorMessage}}</span>
             </div>
 
-            <div class="each-row">
-                NameNode RPC
+            <div {{bindAttr class=" :each-row content.isNameNodeRpcUrlError:error"}}>
+              {{t mirroring.targetcluster.nameNodeRpcUrl}}
             </div>
-            <div class="each-row">
-              {{view Ember.TextField valueBinding="content.targetCluster.nameNodeRpcUrl" class="span4"}}
+            <div {{bindAttr class=" :each-row content.isNameNodeRpcUrlError:error"}}>
+              {{view Ember.TextField valueBinding="content.targetCluster.nameNodeRpcUrl" class="span4" placeholder="http://[NameNode RPC Server]:8020"}}
+                <span class="help-inline">{{content.nameNodeRpcUrlErrorMessage}}</span>
             </div>
-            <div class="each-row">
-                Oozie Server
+            <div {{bindAttr class=" :each-row content.isOozieServerUrlError:error"}}>
+              {{t mirroring.targetcluster.oozieServerUrl}}
             </div>
-            <div class="each-row">
-              {{view Ember.TextField valueBinding="content.targetCluster.oozieServerUrl" class="span4"}}
-            </div>
-        </div>
-        {{#if view.parentView.parentView.controller.model.isPopupForEdit}}
-        <div class="add-cluster-1-3">
-            <div class="each-row pull-right">
-              <a {{action deleteTargetCluster target="view.parentView.parentView.controller"}} class="btn btn-danger">{{t common.delete}}</a>
+            <div {{bindAttr class=" :each-row content.isOozieServerUrlError:error"}}>
+              {{view Ember.TextField valueBinding="content.targetCluster.oozieServerUrl" class="span4" placeholder="http://[Oozie server]:11000"}}
+                <span class="help-inline">{{content.oozieServerUrlErrorMessage}}</span>
             </div>
         </div>
-        {{/if}}
+      {{#if view.parentView.parentView.controller.model.isPopupForEdit}}
+          <div class="add-cluster-1-3">
+              <div class="each-row pull-right">
+                  <a {{action deleteTargetCluster target="view.parentView.parentView.controller"}}
+                          class="btn btn-danger">{{t common.delete}}</a>
+              </div>
+          </div>
+      {{/if}}
 
     </div>
 </form>

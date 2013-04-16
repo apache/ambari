@@ -121,6 +121,9 @@ module.exports = Em.Route.extend({
       }
     }),
 
+    gotoMirroringHome : function(router){
+      router.transitionTo('mirroring/index');
+    },
     addNewDataset: function (router) {
       router.transitionTo('addNewDatasetRoute');
     },
@@ -128,17 +131,6 @@ module.exports = Em.Route.extend({
     addTargetCluster: function (router, event) {
       router.transitionTo('addTargetClusterRoute');
     },
-
-    gotoShowJobs: function (router, event) {
-      router.transitionTo('showDatasetJobs', event.context);
-    },
-
-    showDatasetJobs: Em.Route.extend({
-      route: '/dataset/:dataset_id',
-      connectOutlets: function (router, dataset) {
-        router.get('mainController').connectOutlet('mainJobs', dataset);
-      }
-    }),
 
     addNewDatasetRoute: Em.Route.extend({
       route: '/dataset/add',
@@ -158,12 +150,19 @@ module.exports = Em.Route.extend({
         this.setupController(controller);
 
         var self = this;
+        controller.set('isSubmitted', false);
         App.ModalPopup.show({
           classNames: ['sixty-percent-width-modal', 'hideCloseLink'],
           header: Em.I18n.t('mirroring.dataset.newDataset'),
           primary: Em.I18n.t('mirroring.dataset.save'),
           secondary: Em.I18n.t('common.cancel'),
           onPrimary: function () {
+            controller.set('isSubmitted', true);
+            var isValid = controller.validate();
+
+            if (!isValid) {
+              return;
+            }
             newDataSet = controller.getNewDataSet();
             var schedule = newDataSet.get('schedule');
             var targetCluster = newDataSet.get('targetCluster');
@@ -188,6 +187,17 @@ module.exports = Em.Route.extend({
       }
     }),
 
+    gotoShowJobs: function (router, event) {
+      router.transitionTo('showDatasetJobs', event.context);
+    },
+
+    showDatasetJobs: Em.Route.extend({
+      route: '/dataset/:dataset_id',
+      connectOutlets: function (router, dataset) {
+        router.get('mainController').connectOutlet('mainJobs', dataset);
+      }
+    }),
+
     editDataset: Em.Route.extend({
       route: '/dataset/:dataset_id/edit',
       setupController: function (controller, dataset) {
@@ -208,12 +218,19 @@ module.exports = Em.Route.extend({
         this.setupController(controller, dataset);
 
         var self = this;
+        controller.set('isSubmitted', false);
         controller.set('popup', App.ModalPopup.show({
           classNames: ['sixty-percent-width-modal'],
           header: Em.I18n.t('mirroring.dataset.editDataset'),
           primary: Em.I18n.t('mirroring.dataset.save'),
           secondary: Em.I18n.t('common.cancel'),
           onPrimary: function () {
+            controller.set('isSubmitted', true);
+            var isValid = controller.validate();
+
+            if (!isValid) {
+              return;
+            }
             newDataSet = controller.getNewDataSet();
 
             var originalRecord = controller.get('model.originalRecord');
@@ -259,11 +276,20 @@ module.exports = Em.Route.extend({
           var controller = App.router.get('mainMirroringTargetClusterController');
           this.setupController(controller);
 
+          controller.set('isSubmitted1', false);
+          controller.set('isSubmitted2', false);
           controller.set('popup', App.ModalPopup.show({
             classNames: ['sixty-percent-width-modal', 'hideCloseLink'],
             header: Em.I18n.t('mirroring.targetcluster.addCluster'),
             primary: Em.I18n.t('mirroring.targetcluster.testConnection'),
             onPrimary: function () {
+              controller.set('isSubmitted1', true);
+              var isValid = controller.validate1();
+
+              if (!isValid) {
+                return;
+              }
+
               App.router.transitionTo('testConnectionResultsRoute');
             },
             onSecondary: function () {
@@ -305,6 +331,14 @@ module.exports = Em.Route.extend({
           popup.set('primary', Em.I18n.t('common.save'));
           popup.set('onPrimary',
             function () {
+              var controller = App.router.get('mainMirroringTargetClusterController');
+              controller.set('isSubmitted2', true);
+              var isValid = controller.validate2();
+
+              if (!isValid) {
+                return;
+              }
+
               var controller = App.router.get('testConnectionResultsController');
               controller.saveClusterName();
             }
@@ -345,11 +379,22 @@ module.exports = Em.Route.extend({
       testConnectionRoute: Em.Route.extend({
         connectOutlets: function (router, targetCluster) {
           var controller = router.get('mainMirroringTargetClusterController');
+          controller.set('isSubmitted1', false);
+          controller.set('isSubmitted2', false);
+
           controller.set('popup', App.ModalPopup.show({
             classNames: ['sixty-percent-width-modal'],
             header: Em.I18n.t('mirroring.dataset.editDataset'),
             primary: Em.I18n.t('mirroring.targetcluster.testConnection'),
             onPrimary: function () {
+              var controller = App.router.get('mainMirroringTargetClusterController');
+              controller.set('isSubmitted1', true);
+              var isValid = controller.validate1();
+
+              if (!isValid) {
+                return;
+              }
+
               App.router.transitionTo('testConnectionResultsRoute');
             },
             secondary: Em.I18n.t('common.cancel'),
@@ -381,8 +426,15 @@ module.exports = Em.Route.extend({
           popup.set('primary', Em.I18n.t('common.save'));
           popup.set('onPrimary',
             function () {
-              var controller = App.router.get('testConnectionResultsController');
-              controller.saveClusterName();
+              var controller = App.router.get('mainMirroringTargetClusterController');
+              controller.set('isSubmitted2', true);
+              var isValid = controller.validate1();
+
+              if (!isValid) {
+                return;
+              }
+              var controller2 = App.router.get('testConnectionResultsController');
+              controller2.saveClusterName();
             }
           );
 

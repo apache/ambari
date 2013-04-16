@@ -718,9 +718,23 @@ a:focus {
         }
 
         .add-cluster-1-1{
-          width: 45%;
+          width: 100%;
           height : 100%;
           float: left;
+
+          div.error{
+            color: #b94a48;
+            .help-inline{
+              color: #b94a48;
+            }
+          }
+
+          div.error input{
+            border-color: #b94a48;
+            -webkit-box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075);
+            -moz-box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075);
+            box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075);
+          }
         }
         .add-cluster-1-3{
           width: 45%;
@@ -823,9 +837,22 @@ a:focus {
         }
 
           .add-cluster-1-1{
-            width: 50%;
+            width: 100%;
             height : 100%;
             float: left;
+            div.error{
+              color: #b94a48;
+              .help-inline{
+                color: #b94a48;
+              }
+            }
+
+            div.error input{
+              border-color: #b94a48;
+              -webkit-box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075);
+              -moz-box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075);
+              box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075);
+            }
           }
           .add-cluster-1-3{
             width: 45%;
@@ -866,7 +893,8 @@ a:focus {
 
       .add-cluster-2{
         margin : 0 auto;
-        height : 500px;
+        height : auto;
+        min-height : 350px;
         table{
           width : 60%;
           margin : 0 20%;
@@ -874,6 +902,21 @@ a:focus {
           .spacer{
             height: 20px;
           }
+
+          tr.error{
+            color: #b94a48;
+            .help-inline{
+              color: #b94a48;
+            }
+
+            input{
+              border-color: #b94a48;
+              -webkit-box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075);
+              -moz-box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075);
+              box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075);
+            }
+          }
+
           td {
             width : 50%;
             a.btn-success{
@@ -892,11 +935,46 @@ a:focus {
         table{
           width: 100%;
         }
+        tr.error{
+          color: #b94a48;
+          .help-inline{
+            color: #b94a48;
+          }
+        }
+
+        div.error{
+          color: #b94a48;
+          .help-inline{
+            color: #b94a48;
+          }
+        }
+
+        div.error input{
+          border-color: #b94a48;
+          -webkit-box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075);
+          -moz-box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075);
+          box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075);
+        }
         td.percent25 {
           width: 25%;
         }
         td.spacer{
           height: 10px;
+        }
+        td{
+          .btn-group{
+            display : inline;
+            span.caret{
+              float : right;
+            }
+            ul.dropdown-menu{
+              margin-top:15px;
+            }
+          }
+          .ember-view{
+            display : inline;
+          }
+
         }
 
         input.hyper-mini{
@@ -2773,6 +2851,32 @@ ul.filter {
   }
 }
 
+
+.jobs-sidebar{
+  width: 16%;
+  height: 100%;
+  float:left;
+  margin: 0 20px 0 0;
+  hr {
+    margin: 0;
+  }
+  ul {
+    margin: 0 0 20px 0;
+    li {
+      list-style: none;
+      margin: 8px 0;
+      a {
+        cursor: pointer;
+      }
+    }
+  }
+}
+.jobs-middleportion{
+  width: 80%;
+  height: 100%;
+  float:left;
+}
+
 /*End Mirroring*/
 
 .noDisplay {
@@ -3382,6 +3486,10 @@ i.icon-asterisks {
     margin-left: 0;
   }
 
+  .row-fluid .top-portion{
+    width : 100%;
+    height : 50px;
+  }
   .row-fluid .span12 {
     width: 100%;
     *width: 99.94680851063829%;

@@ -33,11 +33,260 @@ App.MainMirroringDataSetController = Ember.Controller.extend({
         return listOfClusterNames;
       }.property('newDataSet.targetCluster'),  // this property will be set when someone clicks the save button
 
-      originalRecord: null
-    }
+      originalRecord: null,
 
+      isNameError: function (key, value) {
+        if (value) {
+          return value;
+        }
+        var controller = App.router.get('mainMirroringDataSetController');
+        var isNameError = controller.checkNameErrors();
+        return isNameError;
+      }.property('newDataSet.name', 'model.newDataSet.name'),
+
+      isSourceDirError: function (key, value) {
+        if (value) {
+          return value;
+        }
+        var controller = App.router.get('mainMirroringDataSetController');
+        var isSourceDirError = controller.checkSourceDirErrors();
+        return isSourceDirError;
+      }.property('newDataSet.sourceDir', 'model.newDataSet.sourceDir'),
+
+
+      isTargetClusterError: function (key, value) {
+        if (value) {
+          return value;
+        }
+        var controller = App.router.get('mainMirroringDataSetController');
+        var isTargetClusterError = controller.checkTargetClusterErrors();
+        return isTargetClusterError;
+      }.property('newDataSet.targetCluster', 'model.newDataSet.targetCluster'),
+
+      isTargetDirError: function (key, value) {
+        if (value) {
+          return value;
+        }
+        var controller = App.router.get('mainMirroringDataSetController');
+        var isTargetDirError = controller.checkTargetDirErrors();
+        return isTargetDirError;
+      }.property('newDataSet.targetDir', 'model.newDataSet.targetDir'),
+
+      isStartDateError: function (key, value) {
+        if (value) {
+          return value;
+        }
+        var controller = App.router.get('mainMirroringDataSetController');
+        var isStartDateError = controller.checkStartDateErrors();
+        return isStartDateError;
+      }.property('newDataSet.schedule.startDate', 'model.newDataSet.schedule.startDate'),
+
+      isEndDateError: function (key, value) {
+        if (value) {
+          return value;
+        }
+        var controller = App.router.get('mainMirroringDataSetController');
+        var isEndDateError = controller.checkEndDateErrors();
+        return isEndDateError;
+      }.property('newDataSet.schedule.endDate', 'model.newDataSet.schedule.endDate'),
+
+      isFrequencyError: function (key, value) {
+        if (value) {
+          return value;
+        }
+        var controller = App.router.get('mainMirroringDataSetController');
+        var isFrequencyError = controller.checkFrequencyErrors();
+        return isFrequencyError;
+      }.property('newDataSet.schedule.frequency', 'model.newDataSet.schedule.frequency')
+
+
+    }
   ),
 
+  isSubmitted: null,
+
+  validate: function () {
+    var isNameError = this.checkNameErrors();
+    var isSourceDirError = this.checkSourceDirErrors();
+    var isTargetClusterError = this.checkTargetClusterErrors();
+    var isTargetDirError = this.checkTargetDirErrors();
+    var isStartDateError = this.checkStartDateErrors();
+    var isEndDateError = this.checkEndDateErrors();
+    var isFrequencyError = this.checkFrequencyErrors();
+
+    if (isNameError || isSourceDirError || isTargetClusterError || isTargetDirError || isStartDateError || isEndDateError || isFrequencyError) {
+      return false;
+    }
+    return true;
+  },
+
+  checkNameErrors: function () {
+    if (!this.get('isSubmitted')){
+      this.set('nameErrorMessage', "");
+      return false;
+    }
+    var name = this.get('model.newDataSet.name');
+    if (!name || name.trim() === "") {
+      this.set('model.isNameError', true);
+      this.set('nameErrorMessage', Em.I18n.t('mirroring.required.error'));
+      return true;
+    }
+    else {
+      this.set('nameErrorMessage', "");
+      return false;
+    }
+
+  },
+
+  checkSourceDirErrors: function () {
+    if (!this.get('isSubmitted')){
+      this.set('sourceDirErrorMessage', "");
+      return false;
+    }
+    var sourceDir = this.get('model.newDataSet.sourceDir');
+    if (!sourceDir || sourceDir.trim() === "") {
+      this.set('model.isSourceDirError', true);
+      this.set('sourceDirErrorMessage', Em.I18n.t('mirroring.required.error'));
+      return true;
+    }
+    else {
+      this.set('sourceDirErrorMessage', "");
+      return false;
+    }
+
+  },
+
+  checkTargetClusterErrors: function () {
+    if (!this.get('isSubmitted')){
+      this.set('targetClusterErrorMessage', "");
+      return false;
+    }
+    var targetCluster = this.get('model.newDataSet.targetCluster.clusterName');
+    if (!targetCluster || targetCluster.trim() === "") {
+      this.set('model.isTargetClusterError', true);
+      this.set('targetClusterErrorMessage', Em.I18n.t('mirroring.required.error'));
+      return true;
+    }
+    else {
+      this.set('targetClusterErrorMessage', "");
+      return false;
+    }
+
+
+  },
+  checkTargetDirErrors: function () {
+    if (!this.get('isSubmitted')){
+      this.set('targetDirErrorMessage', "");
+      return false;
+    }
+    var targetDir = this.get('model.newDataSet.targetDir');
+    if (!targetDir || targetDir.trim() === "") {
+      this.set('model.isTargetDirError', true);
+      this.set('targetDirErrorMessage', Em.I18n.t('mirroring.required.error'));
+      return true;
+    }
+    else {
+      this.set('targetDirErrorMessage', "");
+      return false;
+    }
+
+  },
+
+  checkStartDateErrors: function () {
+    if (!this.get('isSubmitted')){
+      this.set('startDateErrorMessage', "");
+      return false;
+    }
+    var startDate = this.get('model.newDataSet.schedule.startDate');
+    if (!startDate || startDate.trim() === "") {
+      this.set('model.isStartDateError', true);
+      this.set('startDateErrorMessage', Em.I18n.t('mirroring.required.error'));
+      return true;
+    }
+    else {
+      this.set('startDateErrorMessage', "");
+      return false;
+    }
+
+  },
+
+  checkEndDateErrors: function () {
+    if (!this.get('isSubmitted')){
+      this.set('endDateErrorMessage', "");
+      return false;
+    }
+    var startDate = this.get('model.newDataSet.schedule.startDate');
+    var endDate = this.get('model.newDataSet.schedule.endDate');
+    if (!endDate || endDate.trim() === "") {
+      this.set('model.isEndDateError', true);
+      this.set('endDateErrorMessage', Em.I18n.t('mirroring.required.error'));
+      return true;
+    }
+    else {
+
+      var sDate = new Date(this.get('model.newDataSet.schedule.startDate'));
+      var eDate = new Date(this.get('model.newDataSet.schedule.endDate'));
+      if(sDate > eDate){
+        this.set('model.isEndDateError', true);
+        this.set('endDateErrorMessage', Em.I18n.t('mirroring.dateOrder.error'));
+        return true;
+      }
+
+
+      this.set('endDateErrorMessage', "");
+      return false;
+    }
+
+  },
+
+  checkFrequencyErrors: function () {
+    if (!this.get('isSubmitted')){
+      this.set('frequencyErrorMessage', "");
+      return false;
+    }
+    var frequency = this.get('model.newDataSet.schedule.frequency');
+
+    if (!frequency || frequency.trim() === "") {
+      this.set('model.isFrequencyError', true);
+      this.set('frequencyErrorMessage', Em.I18n.t('mirroring.required.error'));
+      return true;
+    }
+    else {
+
+      var startParenthesisindex = frequency.indexOf('(');
+      var endParenthesisindex = frequency.indexOf(')');
+
+      if (endParenthesisindex - startParenthesisindex == 1) {
+        this.set('model.isFrequencyError', true);
+        this.set('frequencyErrorMessage', Em.I18n.t('mirroring.required.error'));
+        return true;
+      }
+      else {
+        var frequencyNum = frequency.substring(startParenthesisindex + 1, endParenthesisindex);
+
+        frequencyNum = parseInt(frequencyNum);
+
+        if (isNaN(frequencyNum)) {
+          this.set('model.isFrequencyError', true);
+          this.set('frequencyErrorMessage', Em.I18n.t('mirroring.required.invalidNumberError'));
+          return true;
+        }
+
+      }
+
+      this.set('frequencyErrorMessage', "");
+      return false;
+    }
+
+  },
+
+  nameErrorMessage: null,
+  sourceDirErrorMessage: null,
+  targetClusterErrorMessage: null,
+  targetDirErrorMessage: null,
+  startDateErrorMessage: null,
+  endDateErrorMessage: null,
+  frequencyErrorMessage: null,
   /**
    * Popup with add/edit form
    */
@@ -55,6 +304,7 @@ App.MainMirroringDataSetController = Ember.Controller.extend({
       sourceDir: null,
       targetCluster: Ember.Object.create(),
       targetDir: null,
+      status : 'SCHEDULED',
       schedule: Ember.Object.create()
     });
     this.set('model.newDataSet', newDataSet);
@@ -67,7 +317,9 @@ App.MainMirroringDataSetController = Ember.Controller.extend({
       sourceDir: dataset.get('sourceDir'),
       targetCluster: dataset.get('targetCluster'),
       targetDir: dataset.get('targetDir'),
-      schedule: dataset.get('schedule')
+      schedule: dataset.get('schedule'),
+      status: dataset.get('status')
+
     });
     this.set('model.newDataSet', newDataSet);
   },

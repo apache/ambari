@@ -19,11 +19,146 @@
 App.MainMirroringTargetClusterController = Ember.Controller.extend({
   name: 'mainMirroringTargetClusterController',
   model: Ember.Object.create({
-    targetCluster : null,
-    originalRecord : null,
-    isPopupForEdit : false // set the default to add scenario
+    targetCluster: null,
+    originalRecord: null,
+    isPopupForEdit: false, // set the default to add scenario
+    isNameNodeWebUrlError: function (key, value) {
+      if (value) {
+        return value;
+      }
+      var controller = App.router.get('mainMirroringTargetClusterController');
+      var isNameNodeWebUrlError = controller.checkNameNodeWebUrlErrors();
+      return isNameNodeWebUrlError;
+    }.property('targetCluster.nameNodeWebUrl', 'model.targetCluster.nameNodeWebUrl'),
+    isNameNodeRpcUrlError: function (key, value) {
+      if (value) {
+        return value;
+      }
+      var controller = App.router.get('mainMirroringTargetClusterController');
+      var isNameNodeRpcUrlError = controller.checkNameNodeRpcUrlErrors();
+      return isNameNodeRpcUrlError;
+    }.property('targetCluster.nameNodeRpcUrl', 'model.targetCluster.nameNodeRpcUrl'),
+
+    isOozieServerUrlError: function (key, value) {
+      if (value) {
+        return value;
+      }
+      var controller = App.router.get('mainMirroringTargetClusterController');
+      var isOozieServerUrlError = controller.checkOozieServerUrlErrors();
+      return isOozieServerUrlError;
+    }.property('targetCluster.oozieServerUrl', 'model.targetCluster.oozieServerUrl'),
+
+    isClusterNameError: function (key, value) {
+      if (value) {
+        return value;
+      }
+      var controller = App.router.get('mainMirroringTargetClusterController');
+      var isClusterNameError = controller.checkClusterNameErrors();
+      return isClusterNameError;
+    }.property('targetCluster.clusterName', 'model.targetCluster.clusterName'),
+
+    nameNodeWebUrlErrorMessage: null,
+    nameNodeRpcUrlErrorMessage: null,
+    oozieServerUrlErrorMessage: null,
+    clusterNameErrorMessage: null
   }),
-  setOriginalRecord : function(targetClusterRecord){
+
+  isSubmitted1: null,
+  isSubmitted2: null,
+
+  validate1: function () {
+    var isNameNodeWebUrlError = this.checkNameNodeWebUrlErrors();
+    var isNameNodeRpcUrlError = this.checkNameNodeRpcUrlErrors();
+    var isOozieServerUrlError = this.checkOozieServerUrlErrors();
+
+    if (isNameNodeWebUrlError || isNameNodeRpcUrlError || isOozieServerUrlError) {
+      return false;
+    }
+    return true;
+  },
+
+  validate2: function () {
+    var isClusterNameError = this.checkClusterNameErrors();
+
+    if (isClusterNameError) {
+      return false;
+    }
+    return true;
+  },
+
+  checkNameNodeWebUrlErrors: function () {
+    if (!this.get('isSubmitted1')){
+      this.set('model.nameNodeWebUrlErrorMessage', "");
+      return false;
+    }
+    var nameNodeWebUrl = this.get('model.targetCluster.nameNodeWebUrl');
+    if (!nameNodeWebUrl || nameNodeWebUrl.trim() === "") {
+      this.set('model.isNameNodeWebUrlError', true);
+      this.set('model.nameNodeWebUrlErrorMessage', Em.I18n.t('mirroring.required.error'));
+      return true;
+    }
+    else {
+      this.set('model.nameNodeWebUrlErrorMessage', "");
+      return false;
+    }
+
+  },
+
+  checkNameNodeRpcUrlErrors: function () {
+    if (!this.get('isSubmitted1')){
+      this.set('model.nameNodeRpcUrlErrorMessage', "");
+      return false;
+    }
+    var nameNodeRpcUrl = this.get('model.targetCluster.nameNodeRpcUrl');
+    if (!nameNodeRpcUrl || nameNodeRpcUrl.trim() === "") {
+      this.set('model.isNameNodeRpcUrlError', true);
+      this.set('model.nameNodeRpcUrlErrorMessage', Em.I18n.t('mirroring.required.error'));
+      return true;
+    }
+    else {
+      this.set('model.nameNodeRpcUrlErrorMessage', "");
+      return false;
+    }
+
+  },
+
+  checkOozieServerUrlErrors: function () {
+    if (!this.get('isSubmitted1')){
+      this.set('model.oozieServerUrlErrorMessage', "");
+      return false;
+    }
+    var oozieServerUrl = this.get('model.targetCluster.oozieServerUrl');
+    if (!oozieServerUrl || oozieServerUrl.trim() === "") {
+      this.set('model.isOozieServerUrlError', true);
+      this.set('model.oozieServerUrlErrorMessage', Em.I18n.t('mirroring.required.error'));
+      return true;
+    }
+    else {
+      this.set('model.oozieServerUrlErrorMessage', "");
+      return false;
+    }
+
+  },
+
+  checkClusterNameErrors: function () {
+    if (!this.get('isSubmitted1')){
+      this.set('model.clusterNameErrorMessage', "");
+      return false;
+    }
+    var clusterName = this.get('model.targetCluster.clusterName');
+    if (!clusterName || clusterName.trim() === "") {
+      this.set('model.isClusterNameError', true);
+      this.set('model.clusterNameErrorMessage', Em.I18n.t('mirroring.required.error'));
+      return true;
+    }
+    else {
+      this.set('model.clusterNameErrorMessage', "");
+      return false;
+    }
+
+  },
+
+  setOriginalRecord: function (targetClusterRecord) {
     this.set('model.originalRecord', targetClusterRecord);
   },
 
@@ -67,7 +202,7 @@ App.MainMirroringTargetClusterController = Ember.Controller.extend({
     return this.get('content.targetCluster');
   },
 
-  popup : null,
+  popup: null,
 
   /**
    * "Delete" button handler.

@@ -17,56 +17,58 @@
 }}
 
 <form class="form-horizontal">
-  <div class="add-cluster-2">
+    <div class="add-cluster-2">
 
-   <table>
-       <tr>
-           <td>NameNode Web UI..50070</td>
-           <td>
-             {{#if isNameNodeWebUIConnected}}
-             <i class="icon-ok"></i>
-             {{else}}
-                 Connecting...
-             {{/if}}
-           </td>
-       </tr>
-       <tr class="spacer">
-           <td colspan="2"/>
-       </tr>
-       <tr>
-           <td>NameNode RPC..8020</td>
-           <td>
-             {{#if isNameNodeRpcConnected}}
-                 <i class="icon-ok"></i>
-             {{else}}
-                 Connecting...
-             {{/if}}
-           </td>
-       </tr>
-       <tr class="spacer">
-           <td colspan="2"/>
-       </tr>
-       <tr>
-           <td>Oozie server..11000</td>
-           <td>
-             {{#if isOozieServerConnected}}
-                 <i class="icon-ok"></i>
-             {{else}}
-                 Connecting...
-             {{/if}}
-           </td>
-       </tr>
-       <tr class="spacer">
-           <td colspan="2"/>
-       </tr>
-       <tr>
-              <td>{{t mirroring.targetcluster.enterClusterName}}</td>
-              <td>{{view Ember.TextField valueBinding="content.targetCluster.clusterName" disabledBinding="shouldBeDisabled" }} </td>
-          </tr>
-       <tr class="spacer">
-           <td colspan="2" ></td>
-       </tr>
-   </table>
-  </div>
+        <table>
+            <tr>
+                <td>NameNode Web UI..50070</td>
+                <td>
+                  {{#if isNameNodeWebUIConnected}}
+                      <i class="icon-ok"></i>
+                  {{else}}
+                      Connecting...
+                  {{/if}}
+                </td>
+            </tr>
+            <tr class="spacer">
+                <td colspan="2"/>
+            </tr>
+            <tr>
+                <td>NameNode RPC..8020</td>
+                <td>
+                  {{#if isNameNodeRpcConnected}}
+                      <i class="icon-ok"></i>
+                  {{else}}
+                      Connecting...
+                  {{/if}}
+                </td>
+            </tr>
+            <tr class="spacer">
+                <td colspan="2"/>
+            </tr>
+            <tr>
+                <td>Oozie server..11000</td>
+                <td>
+                  {{#if isOozieServerConnected}}
+                      <i class="icon-ok"></i>
+                  {{else}}
+                      Connecting...
+                  {{/if}}
+                </td>
+            </tr>
+            <tr class="spacer">
+                <td colspan="2"/>
+            </tr>
+            <tr {{bindAttr class="content.isClusterNameError:error"}}>
+                <td>{{t mirroring.targetcluster.enterClusterName}}</td>
+                <td>{{view Ember.TextField valueBinding="content.targetCluster.clusterName" disabledBinding="shouldBeDisabled" }}
+                    <span class="help-inline">{{content.clusterNameErrorMessage}}</span>
+                </td>
+            </tr>
+            <tr class="spacer">
+                <td colspan="2"></td>
+            </tr>
+        </table>
+    </div>
 
 </form>

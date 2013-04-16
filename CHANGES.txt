@@ -12,9 +12,14 @@ Trunk (unreleased changes):
 
  NEW FEATURES
 
- AMBARI-1558. Script to add host components to existing hosts. (yusaku via jaimin)
+ AMBARI-1908. HDFS Mirroring: Add Bread Crumbs and Validation. (Arun Kandregula
+ via yusaku)
 
- AMBARI-1936. Support for installing on mixed OS versions install + mgmt. (swagle)
+ AMBARI-1558. Script to add host components to existing hosts.
+ (yusaku via jaimi)
+
+ AMBARI-1936. Support for installing on mixed OS versions install + mgmt.
+ (swagle)
 
  AMBARI-1924. Allow for users to customize Ganglia gmetad + gmond user 
  accounts. (Sumit Mohanty via swagle)
@@ -33,7 +38,8 @@ Trunk (unreleased changes):
 
  AMBARI-1847. Make single PUT call for multiple host overrides. (srimanth)
 
- AMBARI-1857. Capacity Scheduler: field order for Add/Edit popup. (yusaku via srimanth)
+ AMBARI-1857. Capacity Scheduler: field order for Add/Edit popup. (yusaku via
+ srimanth)
 
  AMBARI-1855. Capacity Scheduler: when adding a new queue, populate 
  fields. (yusaku via srimanth)

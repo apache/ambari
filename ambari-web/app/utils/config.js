@@ -51,6 +51,7 @@ App.config = Em.Object.create({
    * }
    */
   loadedConfigurationsCache: {},
+
   /**
    * Array of global "service/desired_tag/actual_tag" strings which
    * indicate different configurations. We cache these so that 
@@ -623,7 +624,7 @@ App.config = Em.Object.create({
       }
     }
     var params = urlParams.join('|');
-    if(urlParams.length){
+    if (urlParams.length) {
       App.ajax.send({
         name: 'config.host_overrides',
         sender: this,
