@@ -745,6 +745,9 @@ Trunk (unreleased changes):
 
  BUG FIXES
 
+ AMBARI-1950. Hadoop install was failed on SUSE-11.1sp1 cluster with all 
+ services except Hue. (smohanty)
+
  AMBARI-1949. Reconfiguration of Services has issues and the configurations 
  save button does not take affect. (srimanth)
 

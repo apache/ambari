@@ -26,7 +26,24 @@ class hdp-nagios::params() inherits hdp::params
   $nagios_group = hdp_default("nagios_group",$nagios_default_group)
   
   $conf_dir = hdp_default("nagios_conf_dir","/etc/nagios")
-  $httpd_conf_file = "/etc/httpd/conf.d/nagios.conf"
+
+  if hdp_is_empty($hdp::params::services_names[httpd]) {
+    hdp_fail("There is no service name for service httpd")
+  } else {
+    $service_name_by_os = $hdp::params::services_names[httpd]
+  }
+
+  if hdp_is_empty($service_name_by_os[$hdp::params::hdp_os_type]) {
+    if hdp_is_empty($service_name_by_os['ALL']) {
+      hdp_fail("There is no service name for service httpd")
+    } else {
+      $service_name = $service_name_by_os['ALL']
+    }
+  } else {
+    $service_name = $service_name_by_os[$hdp::params::hdp_os_type]
+  }
+
+  $httpd_conf_file = "/etc/${service_name}/conf.d/nagios.conf"
 
   $plugins_dir = "/usr/lib64/nagios/plugins"
   $eventhandlers_dir = "/usr/lib64/nagios/eventhandlers"  # Does not exist yet
