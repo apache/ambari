@@ -53,10 +53,12 @@ class BSRunner extends Thread {
   private boolean verbose;
   private BootStrapImpl bsImpl;
   private final String clusterOsType;
+  private String projectVersion;
 
   public BSRunner(BootStrapImpl impl, SshHostInfo sshHostInfo, String bootDir,
       String bsScript, String agentSetupScript, String agentSetupPassword,
-      int requestId, long timeout, String hostName, boolean isVerbose, String clusterOsType)
+      int requestId, long timeout, String hostName, boolean isVerbose, String clusterOsType,
+      String projectVersion)
   {
     this.requestId = requestId;
     this.sshHostInfo = sshHostInfo;
@@ -69,6 +71,7 @@ class BSRunner extends Thread {
     this.ambariHostname = hostName;
     this.verbose = isVerbose;
     this.clusterOsType = clusterOsType;
+    this.projectVersion = projectVersion;
     this.bsImpl = impl;
     BootStrapStatus status = new BootStrapStatus();
     status.setLog("RUNNING");
@@ -148,7 +151,7 @@ class BSRunner extends Thread {
     if (user == null || user.isEmpty()) {
       user = DEFAULT_USER;
     }
-    String commands[] = new String[9];
+    String commands[] = new String[10];
     String shellCommand[] = new String[3];
     BSStat stat = BSStat.RUNNING;
     String scriptlog = "";
@@ -186,12 +189,14 @@ class BSRunner extends Thread {
       commands[5] = this.agentSetupScript.toString();
       commands[6] = this.ambariHostname;
       commands[7] = this.clusterOsType;
+      commands[8] = this.projectVersion;
       if (this.passwordFile != null) {
-        commands[8] = this.passwordFile.toString();
+        commands[9] = this.passwordFile.toString();
       }
       LOG.info("Host= " + hostString + " bs=" + this.bsScript + " requestDir=" +
           requestIdDir + " user=" + user + " keyfile=" + this.sshKeyFile +
-          " passwordFile " + this.passwordFile + " server=" + this.ambariHostname);
+          " passwordFile " + this.passwordFile + " server=" + this.ambariHostname +
+          " version=" + projectVersion);
 
       String[] env = new String[] { "AMBARI_PASSPHRASE=" + agentSetupPassword };
       if (this.verbose)

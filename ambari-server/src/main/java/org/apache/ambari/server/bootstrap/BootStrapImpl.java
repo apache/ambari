@@ -24,6 +24,7 @@ import java.net.InetAddress;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.bootstrap.BSResponse.BSRunStat;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.commons.logging.Log;
@@ -48,10 +49,10 @@ public class BootStrapImpl {
   int requestId = 0;
   private FifoLinkedHashMap<Long, BootStrapStatus> bsStatus;
   private final String clusterOsType;
-
+  private String projectVersion;
 
   @Inject
-  public BootStrapImpl(Configuration conf) throws IOException {
+  public BootStrapImpl(Configuration conf, AmbariMetaInfo ambariMetaInfo) throws IOException {
     this.bootStrapDir = conf.getBootStrapDir();
     this.bootScript = conf.getBootStrapScript();
     this.bootSetupAgentScript = conf.getBootSetupAgentScript();
@@ -60,6 +61,7 @@ public class BootStrapImpl {
     this.masterHostname = conf.getMasterHostname(
         InetAddress.getLocalHost().getCanonicalHostName());
     this.clusterOsType = conf.getServerOsType();
+    this.projectVersion = ambariMetaInfo.getServerVersion();
   }
 
   /**
@@ -107,7 +109,7 @@ public class BootStrapImpl {
 
     bsRunner = new BSRunner(this, info, bootStrapDir.toString(),
         bootScript, bootSetupAgentScript, bootSetupAgentPassword, requestId, 0L,
-        this.masterHostname, info.isVerbose(), this.clusterOsType);
+        this.masterHostname, info.isVerbose(), this.clusterOsType, this.projectVersion);
     bsRunner.start();
     response.setStatus(BSRunStat.OK);
     response.setLog("Running Bootstrap now.");

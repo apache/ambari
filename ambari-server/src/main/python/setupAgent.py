@@ -48,9 +48,9 @@ def is_suse():
       return True
   return False
 
-def installAgentSuse():
+def installAgentSuse(projectVersion):
   """ Run zypper install and make sure the agent install alright """
-  zypperCommand = ["zypper", "install", "-y", "ambari-agent"]
+  zypperCommand = ["zypper", "install", "-y", "ambari-agent" + projectVersion]
   return execOsCommand(zypperCommand)
 
 def installPreReq():
@@ -64,10 +64,10 @@ def installPreReq():
     yumCommand = ["echo", "Epel already exists"]
   return execOsCommand(yumCommand)
 
-def installAgent():
+def installAgent(projectVersion):
   """ Run yum install and make sure the agent install alright """
   # The command doesn't work with file mask ambari-agent*.rpm, so rename it on agent host
-  rpmCommand = ["yum", "-y", "install", "--nogpgcheck", "ambari-agent"]
+  rpmCommand = ["yum", "-y", "install", "--nogpgcheck", "ambari-agent" + projectVersion]
   return execOsCommand(rpmCommand)
 
 def configureAgent(host):
@@ -96,22 +96,77 @@ def runAgent(passPhrase):
   except (Exception), e:
     return 1
 
+def getOptimalVersion(initialProjectVersion):
+  if initialProjectVersion == "":
+    return initialProjectVersion
+  optimalVersion = initialProjectVersion
+
+  if is_suse():
+    ret = checkAgentPackageAvailabilitySuse(optimalVersion)
+  else:
+    ret = checkAgentPackageAvailability(optimalVersion)
+
+  # Specified package version found
+  if ret["exitstatus"] == 0:
+    return optimalVersion
+
+  # Specified package version not found; find nearest version
+  optimalVersion = optimalVersion + "."
+
+  if is_suse():
+    ret = findNearestAgentPackageVersionSuse(optimalVersion)
+  else:
+    ret = findNearestAgentPackageVersion(optimalVersion)
+
+  if ret["exitstatus"] == 0 and ret["log"][0].strip() != "":
+    optimalVersion = ret["log"][0].strip()
+  else:
+    optimalVersion = ""
+
+  return optimalVersion
+
+def checkAgentPackageAvailabilitySuse(projectVersion):
+  zypperCommand = ["bash", "-c", "zypper search -s --match-exact ambari-agent | grep ' " + projectVersion + " '"]
+  return execOsCommand(zypperCommand)
+
+def checkAgentPackageAvailability(projectVersion):
+  yumCommand = ["bash", "-c", "yum list available ambari-agent | grep ' " + projectVersion + " '"]
+  return execOsCommand(yumCommand)
+
+def findNearestAgentPackageVersionSuse(projectVersion):
+  zypperCommand = ["bash", "-c", "zypper search -s --match-exact ambari-agent | grep ' " + projectVersion + "' | cut -d '|' -f 4 | head -n1"]
+  return execOsCommand(zypperCommand)
+
+def findNearestAgentPackageVersion(projectVersion):
+  yumCommand = ["bash", "-c", "yum list available ambari-agent | grep ' " + projectVersion + "' | sed -re 's/\s+/ /g' | cut -d ' ' -f 2 | head -n1"]
+  return execOsCommand(yumCommand)
+
 def main(argv=None):
   scriptDir = os.path.realpath(os.path.dirname(argv[0]))
   # Parse the input
   onlyargs = argv[1:]
   passPhrase = onlyargs[0]
   hostName = onlyargs[1]
+  projectVersion = None
+  if len(onlyargs) > 2:
+    projectVersion = onlyargs[2]
+
+  if projectVersion is None or projectVersion == "null":
+    projectVersion = ""
+
+  projectVersion = getOptimalVersion(projectVersion)
+  if projectVersion != "":
+    projectVersion = "-" + projectVersion
 
   if is_suse():
-    installAgentSuse()
+    installAgentSuse(projectVersion)
   else:
     installPreReq()
-    installAgent()
+    installAgent(projectVersion)
 
   configureAgent(hostName)
   sys.exit(runAgent(passPhrase))
-  
+
 if __name__ == '__main__':
   logging.basicConfig(level=logging.DEBUG)
   main(sys.argv)

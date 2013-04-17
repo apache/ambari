@@ -745,6 +745,9 @@ Trunk (unreleased changes):
 
  BUG FIXES
 
+ AMBARI-1951. Ambari agent setup during bootstrap should install the same
+ version of agent as the server. (smohanty)
+
  AMBARI-1950. Hadoop install was failed on SUSE-11.1sp1 cluster with all 
  services except Hue. (smohanty)
 

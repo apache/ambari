@@ -67,135 +67,164 @@ class TestBootstrap(TestCase):
     self.assertTrue(pscp.ret["hostname"]["log"] == "FAILED")
     self.assertTrue(pscp.ret["hostname"]["exitstatus"] == -1)
 
-  def test_return_error_message_for_missing_sudo_package(self):
-    Popen.communicate = lambda self: ("", "")
-    SCP.writeLogToFile = lambda self, logFilePath: None
-    SSH.writeLogToFile = lambda self, logFilePath: None
-    SSH.writeDoneToFile = lambda self, doneFilePath, returncode: None
-    bootstrap = BootStrap(["hostname"], "root", "sshKeyFile", "scriptDir", "bootdir", "setupAgentFile", "ambariServer", "centos6")
+  @patch.object(SCP, "writeLogToFile")
+  @patch.object(SSH, "writeLogToFile")
+  @patch.object(SSH, "writeDoneToFile")
+  @patch.object(Popen, "communicate")
+  def test_return_error_message_for_missing_sudo_package(self, communicate_method,
+                                                         SSH_writeDoneToFile_method,
+                                                         SSH_writeLogToFile_method,
+                                                         SCP_writeLogToFile_method):
+    SCP_writeLogToFile_method.return_value = None
+    SSH_writeLogToFile_method.return_value = None
+    SSH_writeDoneToFile_method.return_value = None
+    communicate_method.return_value = ("", "")
+    bootstrap = BootStrap(["hostname"], "root", "sshKeyFile", "scriptDir", "bootdir", "setupAgentFile", "ambariServer", "centos6", None)
     ret = bootstrap.checkSudoPackage()
     self.assertTrue("Error: Sudo command is not available. Please install the sudo command." in bootstrap.statuses["hostname"]["log"])
 
-  def test_copy_and_delete_password_file_methods_are_called_for_user_with_password(self):
-    Popen.communicate = lambda self: ("", "")
-    SCP.writeLogToFile = lambda self, logFilePath: None
-    SSH.writeLogToFile = lambda self, logFilePath: None
-    SSH.writeDoneToFile = lambda self, doneFilePath, returncode: None
-    BootStrap.createDoneFiles = lambda self: None
+  @patch.object(SCP, "writeLogToFile")
+  @patch.object(SSH, "writeLogToFile")
+  @patch.object(SSH, "writeDoneToFile")
+  @patch.object(Popen, "communicate")
+  @patch.object(BootStrap, "createDoneFiles")
+  @patch.object(BootStrap, "deletePasswordFile")
+  @patch.object(BootStrap, "changePasswordFileModeOnHost")
+  def test_copy_and_delete_password_file_methods_are_called_for_user_with_password(self,
+                                                                                   changePasswordFileModeOnHost_method,
+                                                                                   deletePasswordFile_method,
+                                                                                   createDoneFiles_method,
+                                                                                   communicate_method,
+                                                                                   SSH_writeDoneToFile_method,
+                                                                                   SSH_writeLogToFile_method,
+                                                                                   SCP_writeLogToFile_method):
+    SCP_writeLogToFile_method.return_value = None
+    SSH_writeLogToFile_method.return_value = None
+    SSH_writeDoneToFile_method.return_value = None
+    communicate_method.return_value = ("", "")
+    createDoneFiles_method.return_value = None
 
-    def side_effect(self):
-      self.copyPasswordFile_called = True
-      self.hostlist_to_remove_password_file = ["hostname"]
-      return 0
-    BootStrap.copyPasswordFile = side_effect
+    deletePasswordFile_method.return_value = 0
 
-    deletePasswordFile = MagicMock()
-    deletePasswordFile.return_value = 0
-    BootStrap.deletePasswordFile = deletePasswordFile
-
-    changePasswordFileModeOnHost = MagicMock()
-    changePasswordFileModeOnHost.return_value = 0
-    BootStrap.changePasswordFileModeOnHost = changePasswordFileModeOnHost
+    changePasswordFileModeOnHost_method.return_value = 0
 
     os.environ[AMBARI_PASSPHRASE_VAR_NAME] = ""
-    bootstrap = BootStrap(["hostname"], "user", "sshKeyFile", "scriptDir", "bootdir", "setupAgentFile", "ambariServer", "centos6", "passwordFile")
+    bootstrap = BootStrap(["hostname"], "user", "sshKeyFile", "scriptDir", "bootdir", "setupAgentFile", "ambariServer", "centos6", None, "passwordFile")
+    def side_effect():
+      bootstrap.copyPasswordFile_called = True
+      bootstrap.hostlist_to_remove_password_file = ["hostname"]
+      return 0
+    bootstrap.copyPasswordFile = side_effect
     ret = bootstrap.run()
     self.assertTrue(bootstrap.copyPasswordFile_called)
-    self.assertTrue(deletePasswordFile.called)
-    self.assertTrue(changePasswordFileModeOnHost.called)
+    self.assertTrue(deletePasswordFile_method.called)
+    self.assertTrue(changePasswordFileModeOnHost_method.called)
 
-  def test_copy_and_delete_password_file_methods_are_not_called_for_passwordless_user(self):
-    Popen.communicate = lambda self: ("", "")
-    SCP.writeLogToFile = lambda self, logFilePath: None
-    SSH.writeLogToFile = lambda self, logFilePath: None
-    SSH.writeDoneToFile = lambda self, doneFilePath, returncode: None
-    BootStrap.createDoneFiles = lambda self: None
+  @patch.object(SCP, "writeLogToFile")
+  @patch.object(SSH, "writeLogToFile")
+  @patch.object(SSH, "writeDoneToFile")
+  @patch.object(Popen, "communicate")
+  @patch.object(BootStrap, "createDoneFiles")
+  @patch.object(BootStrap, "deletePasswordFile")
+  @patch.object(BootStrap, "changePasswordFileModeOnHost")
+  def test_copy_and_delete_password_file_methods_are_not_called_for_passwordless_user(self,
+                                                                                      changePasswordFileModeOnHost_method,
+                                                                                      deletePasswordFile_method,
+                                                                                      createDoneFiles_method,
+                                                                                      communicate_method,
+                                                                                      SSH_writeDoneToFile_method,
+                                                                                      SSH_writeLogToFile_method,
+                                                                                      SCP_writeLogToFile_method):
+    SCP_writeLogToFile_method.return_value = None
+    SSH_writeLogToFile_method.return_value = None
+    SSH_writeDoneToFile_method.return_value = None
+    communicate_method.return_value = ("", "")
+    createDoneFiles_method.return_value = None
 
-    def side_effect(self):
-      self.copyPasswordFile_called = True
-      self.hostlist_to_remove_password_file = ["hostname"]
-      return 0
-    BootStrap.copyPasswordFile = side_effect
-
-    deletePasswordFile = MagicMock()
-    deletePasswordFile.return_value = 0
-    BootStrap.deletePasswordFile = deletePasswordFile
-
-    changePasswordFileModeOnHost = MagicMock()
-    changePasswordFileModeOnHost.return_value = 0
-    BootStrap.changePasswordFileModeOnHost = changePasswordFileModeOnHost
+    deletePasswordFile_method.return_value = 0
+    changePasswordFileModeOnHost_method.return_value = 0
 
     os.environ[AMBARI_PASSPHRASE_VAR_NAME] = ""
-    bootstrap = BootStrap(["hostname"], "user", "sshKeyFile", "scriptDir", "bootdir", "setupAgentFile", "ambariServer", "centos6")
+    bootstrap = BootStrap(["hostname"], "user", "sshKeyFile", "scriptDir", "bootdir", "setupAgentFile", "ambariServer", "centos6", None)
     bootstrap.copyPasswordFile_called = False
+    def side_effect():
+      bootstrap.copyPasswordFile_called = True
+      bootstrap.hostlist_to_remove_password_file = ["hostname"]
+      return 0
+    bootstrap.copyPasswordFile = side_effect
     ret = bootstrap.run()
     self.assertFalse(bootstrap.copyPasswordFile_called)
-    self.assertFalse(deletePasswordFile.called)
-    self.assertFalse(changePasswordFileModeOnHost.called)
+    self.assertFalse(deletePasswordFile_method.called)
+    self.assertFalse(changePasswordFileModeOnHost_method.called)
 
-  def test_commands_with_password_are_called_for_user_with_password(self):
-    def communicate(self, input=None, timeout=None):
-      self.returncode = 0
-      return ("", "")
-    Popen.communicate = communicate
-    SCP.writeLogToFile = lambda self, logFilePath: None
-    SSH.writeLogToFile = lambda self, logFilePath: None
-    SSH.writeDoneToFile = lambda self, doneFilePath, returncode: None
-    BootStrap.createDoneFiles = lambda self: None
+  @patch.object(SCP, "writeLogToFile")
+  @patch.object(SSH, "writeLogToFile")
+  @patch.object(SSH, "writeDoneToFile")
+  @patch.object(Popen, "communicate")
+  @patch.object(BootStrap, "createDoneFiles")
+  @patch.object(BootStrap, "getRunSetupWithPasswordCommand")
+  @patch.object(BootStrap, "getMoveRepoFileWithPasswordCommand")
+  def test_commands_with_password_are_called_for_user_with_password(self, getMoveRepoFileWithPasswordCommand_method,
+                                                                    getRunSetupWithPasswordCommand_method,
+                                                                    createDoneFiles_method,
+                                                                    communicate_method,
+                                                                    SSH_writeDoneToFile_method,
+                                                                    SSH_writeLogToFile_method,
+                                                                    SCP_writeLogToFile_method):
+    SCP_writeLogToFile_method.return_value = None
+    SSH_writeLogToFile_method.return_value = None
+    SSH_writeDoneToFile_method.return_value = None
+    communicate_method.return_value = ("", "")
+    createDoneFiles_method.return_value = None
 
-    getRunSetupWithPasswordCommand = MagicMock()
-    getRunSetupWithPasswordCommand.return_value = ""
-    BootStrap.getRunSetupWithPasswordCommand = getRunSetupWithPasswordCommand
-
-    getMoveRepoFileWithPasswordCommand = MagicMock()
-    getMoveRepoFileWithPasswordCommand.return_value = ""
-    BootStrap.getMoveRepoFileWithPasswordCommand = getMoveRepoFileWithPasswordCommand
-
-    os.environ[AMBARI_PASSPHRASE_VAR_NAME] = ""
-    bootstrap = BootStrap(["hostname"], "user", "sshKeyFile", "scriptDir", "bootdir", "setupAgentFile", "ambariServer", "centos6", "passwordFile")
-    ret = bootstrap.run()
-    self.assertTrue(getRunSetupWithPasswordCommand.called)
-    self.assertTrue(getMoveRepoFileWithPasswordCommand.called)
-
-  def test_commands_without_password_are_called_for_passwordless_user(self):
-    Popen.communicate = lambda self: ("", "")
-    SCP.writeLogToFile = lambda self, logFilePath: None
-    SSH.writeLogToFile = lambda self, logFilePath: None
-    SSH.writeDoneToFile = lambda self, doneFilePath, returncode: None
-    BootStrap.createDoneFiles = lambda self: None
-
-    getRunSetupWithoutPasswordCommand = MagicMock()
-    getRunSetupWithoutPasswordCommand.return_value = ""
-    BootStrap.getRunSetupWithoutPasswordCommand = getRunSetupWithoutPasswordCommand
-
-    getMoveRepoFileWithoutPasswordCommand = MagicMock()
-    getMoveRepoFileWithoutPasswordCommand.return_value = ""
-    BootStrap.getMoveRepoFileWithoutPasswordCommand = getMoveRepoFileWithoutPasswordCommand
+    getRunSetupWithPasswordCommand_method.return_value = ""
+    getMoveRepoFileWithPasswordCommand_method.return_value = ""
 
     os.environ[AMBARI_PASSPHRASE_VAR_NAME] = ""
-    bootstrap = BootStrap(["hostname"], "user", "sshKeyFile", "scriptDir", "bootdir", "setupAgentFile", "ambariServer", "centos6")
+    bootstrap = BootStrap(["hostname"], "user", "sshKeyFile", "scriptDir", "bootdir", "setupAgentFile", "ambariServer", "centos6", None, "passwordFile")
     ret = bootstrap.run()
-    self.assertTrue(getRunSetupWithoutPasswordCommand.called)
-    self.assertTrue(getMoveRepoFileWithoutPasswordCommand.called)
+    self.assertTrue(getRunSetupWithPasswordCommand_method.called)
+    self.assertTrue(getMoveRepoFileWithPasswordCommand_method.called)
 
+  @patch.object(SCP, "writeLogToFile")
+  @patch.object(SSH, "writeLogToFile")
+  @patch.object(SSH, "writeDoneToFile")
+  @patch.object(Popen, "communicate")
+  @patch.object(BootStrap, "createDoneFiles")
+  @patch.object(BootStrap, "getRunSetupWithoutPasswordCommand")
+  @patch.object(BootStrap, "getMoveRepoFileWithoutPasswordCommand")
+  def test_commands_without_password_are_called_for_passwordless_user(self, getMoveRepoFileWithoutPasswordCommand_method,
+                                                                      getRunSetupWithoutPasswordCommand_method,
+                                                                      createDoneFiles_method,
+                                                                      communicate_method,
+                                                                      SSH_writeDoneToFile_method,
+                                                                      SSH_writeLogToFile_method,
+                                                                      SCP_writeLogToFile_method):
+    SCP_writeLogToFile_method.return_value = None
+    SSH_writeLogToFile_method.return_value = None
+    SSH_writeDoneToFile_method.return_value = None
+    communicate_method.return_value = ("", "")
+    createDoneFiles_method.return_value = None
+
+    getRunSetupWithoutPasswordCommand_method.return_value = ""
+    getMoveRepoFileWithoutPasswordCommand_method.return_value = ""
+
+    os.environ[AMBARI_PASSPHRASE_VAR_NAME] = ""
+    bootstrap = BootStrap(["hostname"], "user", "sshKeyFile", "scriptDir", "bootdir", "setupAgentFile", "ambariServer", "centos6", None)
+    ret = bootstrap.run()
+    self.assertTrue(getRunSetupWithoutPasswordCommand_method.called)
+    self.assertTrue(getMoveRepoFileWithoutPasswordCommand_method.called)
 
   @patch.object(BootStrap, "runSetupAgent")
   @patch.object(BootStrap, "copyNeededFiles")
   @patch.object(BootStrap, "checkSudoPackage")
   @patch.object(BootStrap, "runOsCheckScript")
   @patch.object(BootStrap, "copyOsCheckScript")
-  def test_os_check_performed(self, copyOsCheckScript_method,
+  @patch.object(BootStrap, "createDoneFiles")
+  def test_os_check_performed(self, createDoneFiles_method, copyOsCheckScript_method,
                               runOsCheckScript_method, checkSudoPackage_method,
                               copyNeededFiles_method, runSetupAgent_method):
-    BootStrap.createDoneFiles = lambda self: None
-
-    getRunSetupWithoutPasswordCommand = MagicMock()
-    getRunSetupWithoutPasswordCommand.return_value = ""
-    BootStrap.getRunSetupWithoutPasswordCommand = getRunSetupWithoutPasswordCommand
-
-    getMoveRepoFileWithoutPasswordCommand = MagicMock()
-    getMoveRepoFileWithoutPasswordCommand.return_value = ""
-    BootStrap.getMoveRepoFileWithoutPasswordCommand = getMoveRepoFileWithoutPasswordCommand
+    createDoneFiles_method.return_value = None
 
     copyOsCheckScript_method.return_value = 0
     runOsCheckScript_method.return_value = 0
@@ -203,16 +232,10 @@ class TestBootstrap(TestCase):
     copyNeededFiles_method.return_value = 0
     runSetupAgent_method.return_value = 0
 
-    BootStrap.copyOsCheckScript = copyOsCheckScript_method
-    BootStrap.runOsCheckScript = runOsCheckScript_method
-    BootStrap.checkSudoPackage = checkSudoPackage_method
-    BootStrap.copyNeededFiles = copyNeededFiles_method
-    BootStrap.runSetupAgent = runSetupAgent_method
-
     os.environ[AMBARI_PASSPHRASE_VAR_NAME] = ""
     bootstrap = BootStrap(["hostname"], "user", "sshKeyFile", "scriptDir",
                           "bootdir", "setupAgentFile", "ambariServer",
-                          "centos6")
+                          "centos6", None)
     ret = bootstrap.run()
     self.assertTrue(copyOsCheckScript_method.called)
     self.assertTrue(runOsCheckScript_method.called)
@@ -230,7 +253,7 @@ class TestBootstrap(TestCase):
     os.environ[AMBARI_PASSPHRASE_VAR_NAME] = ""
     bootstrap = BootStrap(["hostname"], "user", "sshKeyFile", "scriptDir",
                           "bootdir", "setupAgentFile", "ambariServer",
-                          "centos6")
+                          "centos6", None)
     res = bootstrap.copyOsCheckScript()
     self.assertTrue(run_method.called)
     self.assertTrue(getstatus_method.called)
@@ -250,7 +273,7 @@ class TestBootstrap(TestCase):
     os.environ[AMBARI_PASSPHRASE_VAR_NAME] = ""
     bootstrap = BootStrap(["hostname"], "user", "sshKeyFile", "scriptDir",
                           "bootdir", "setupAgentFile", "ambariServer",
-                          "centos6")
+                          "centos6", None)
     bootstrap.statuses = good_stats
     bootstrap.runOsCheckScript()
 
@@ -272,7 +295,7 @@ class TestBootstrap(TestCase):
     os.environ[AMBARI_PASSPHRASE_VAR_NAME] = ""
     bootstrap = BootStrap(["hostname"], "user", "sshKeyFile", "scriptDir",
                           "bootdir", "setupAgentFile", "ambariServer",
-                          "centos6")
+                          "centos6", None)
     bootstrap.statuses = good_stats
     bootstrap.runOsCheckScript()
 
@@ -280,3 +303,47 @@ class TestBootstrap(TestCase):
     self.assertTrue(getstatus_method.called)
     self.assertTrue("hostname" not in bootstrap.successive_hostlist)
     pass
+
+  @patch.object(SCP, "writeLogToFile")
+  @patch.object(SSH, "writeLogToFile")
+  @patch.object(SSH, "writeDoneToFile")
+  @patch.object(Popen, "communicate")
+  @patch.object(BootStrap, "createDoneFiles")
+  def test_run_setup_agent_command_ends_with_project_version(self, createDoneFiles_method,
+                                                             communicate_method,
+                                                             SSH_writeDoneToFile_method,
+                                                             SSH_writeLogToFile_method,
+                                                             SCP_writeLogToFile_method):
+    SCP_writeLogToFile_method.return_value = None
+    SSH_writeLogToFile_method.return_value = None
+    SSH_writeDoneToFile_method.return_value = None
+    communicate_method.return_value = ("", "")
+    createDoneFiles_method.return_value = None
+
+    os.environ[AMBARI_PASSPHRASE_VAR_NAME] = ""
+    version = "1.1.1"
+    bootstrap = BootStrap(["hostname"], "user", "sshKeyFile", "scriptDir", "bootdir", "setupAgentFile", "ambariServer", "centos6", version)
+    runSetupCommand = bootstrap.getRunSetupCommand()
+    self.assertTrue(runSetupCommand.endswith(version))
+
+  @patch.object(SCP, "writeLogToFile")
+  @patch.object(SSH, "writeLogToFile")
+  @patch.object(SSH, "writeDoneToFile")
+  @patch.object(Popen, "communicate")
+  @patch.object(BootStrap, "createDoneFiles")
+  def test_agent_setup_command_without_project_version(self, createDoneFiles_method,
+                                                       communicate_method,
+                                                       SSH_writeDoneToFile_method,
+                                                       SSH_writeLogToFile_method,
+                                                       SCP_writeLogToFile_method):
+    SCP_writeLogToFile_method.return_value = None
+    SSH_writeLogToFile_method.return_value = None
+    SSH_writeDoneToFile_method.return_value = None
+    communicate_method.return_value = ("", "")
+    createDoneFiles_method.return_value = None
+
+    os.environ[AMBARI_PASSPHRASE_VAR_NAME] = ""
+    version = None
+    bootstrap = BootStrap(["hostname"], "user", "sshKeyFile", "scriptDir", "bootdir", "setupAgentFile", "ambariServer", "centos6", version)
+    runSetupCommand = bootstrap.getRunSetupCommand()
+    self.assertTrue(runSetupCommand.endswith("ambariServer "))

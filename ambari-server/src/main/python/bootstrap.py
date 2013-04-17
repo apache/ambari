@@ -251,7 +251,7 @@ pass
     
 class BootStrap:
   """ BootStrapping the agents on a list of hosts"""
-  def __init__(self, hosts, user, sshkeyFile, scriptDir, boottmpdir, setupAgentFile, ambariServer, cluster_os_type, passwordFile = None):
+  def __init__(self, hosts, user, sshkeyFile, scriptDir, boottmpdir, setupAgentFile, ambariServer, cluster_os_type, ambariVersion, passwordFile = None):
     self.hostlist = hosts
     self.successive_hostlist = hosts
     self.hostlist_to_remove_password_file = None
@@ -262,9 +262,16 @@ class BootStrap:
     self.setupAgentFile = setupAgentFile
     self.ambariServer = ambariServer
     self.cluster_os_type = cluster_os_type
+    self.ambariVersion = ambariVersion
     self.passwordFile = passwordFile
     self.statuses = None
     pass
+
+  # This method is needed  to implement the descriptor protocol (make object  to pass self reference to mockups)
+  def __get__(self, obj, objtype):
+    def _call(*args, **kwargs):
+      self(obj, *args, **kwargs)
+    return _call
 
   def is_suse(self):
     if os.path.isfile("/etc/issue"):
@@ -392,11 +399,19 @@ class BootStrap:
 
     pass
 
+  def getAmbariVersion(self):
+    if self.ambariVersion is None or self.ambariVersion == "null":
+      return ""
+    else:
+      return self.ambariVersion
+
   def getRunSetupWithPasswordCommand(self):
-    return "sudo -S python /tmp/setupAgent.py " + os.environ[AMBARI_PASSPHRASE_VAR_NAME] + " " + self.ambariServer + " < " + self.getPasswordFile()
+    return "sudo -S python /tmp/setupAgent.py " + os.environ[AMBARI_PASSPHRASE_VAR_NAME] + " " + self.ambariServer +\
+           " " + self.getAmbariVersion() + " < " + self.getPasswordFile()
 
   def getRunSetupWithoutPasswordCommand(self):
-    return "sudo python /tmp/setupAgent.py " + os.environ[AMBARI_PASSPHRASE_VAR_NAME] + " " + self.ambariServer
+    return "sudo python /tmp/setupAgent.py " + os.environ[AMBARI_PASSPHRASE_VAR_NAME] + " " + self.ambariServer +\
+           " " + self.getAmbariVersion()
 
   def getRunSetupCommand(self):
     if self.hasPassword():
@@ -627,7 +642,7 @@ def main(argv=None):
   onlyargs = argv[1:]
   if len(onlyargs) < 3:
     sys.stderr.write("Usage: <comma separated hosts> "
-                     "<tmpdir for storage> <user> <sshkeyFile> <agent setup script> <ambari-server name> <cluster os type> <passwordFile>\n")
+                     "<tmpdir for storage> <user> <sshkeyFile> <agent setup script> <ambari-server name> <cluster os type> <ambari version> <passwordFile>\n")
     sys.exit(2)
     pass
   #Parse the input
@@ -638,7 +653,8 @@ def main(argv=None):
   setupAgentFile = onlyargs[4]
   ambariServer = onlyargs[5]
   cluster_os_type = onlyargs[6]
-  passwordFile = onlyargs[7]
+  ambariVersion = onlyargs[7]
+  passwordFile = onlyargs[8]
 
   # ssh doesn't like open files
   stat = subprocess.Popen(["chmod", "600", sshKeyFile], stdout=subprocess.PIPE)
@@ -649,8 +665,8 @@ def main(argv=None):
   logging.info("BootStrapping hosts " + pprint.pformat(hostList) +
                "using " + scriptDir + " cluster primary OS: " + cluster_os_type +
               " with user '" + user + "' sshKey File " + sshKeyFile + " password File " + passwordFile +
-              " using tmp dir " + bootdir + " ambari: " + ambariServer)
-  bootstrap = BootStrap(hostList, user, sshKeyFile, scriptDir, bootdir, setupAgentFile, ambariServer, cluster_os_type, passwordFile)
+              " using tmp dir " + bootdir + " ambari: " + ambariServer + "; ambari version: " + ambariVersion)
+  bootstrap = BootStrap(hostList, user, sshKeyFile, scriptDir, bootdir, setupAgentFile, ambariServer, cluster_os_type, ambariVersion, passwordFile)
   ret = bootstrap.run()
   #return  ret
   return 0 # Hack to comply with current usage
