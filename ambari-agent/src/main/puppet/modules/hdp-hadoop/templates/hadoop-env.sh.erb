@@ -89,4 +89,5 @@ export HADOOP_IDENT_STRING=$USER
 # export HADOOP_NICENESS=10
 
 # Use libraries from standard classpath
-export HADOOP_CLASSPATH=/usr/share/java/*
+JAVA_JDBC_LIBS="/usr/share/java/*"
+export HADOOP_CLASSPATH=${HADOOP_CLASSPATH}:${JAVA_JDBC_LIBS}

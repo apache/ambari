@@ -760,6 +760,9 @@ Trunk (unreleased changes):
 
  BUG FIXES
 
+ AMBARI-1968. Hadoop Classpath is being overwridden which causes hive
+ server/metastore to fail. (smohanty)
+
  AMBARI-1973. log4j Appender for RCA should be able to write the same database
  being used for Ambari Server (oracle/MySql). (smohanty)
 
