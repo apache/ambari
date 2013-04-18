@@ -269,6 +269,9 @@ Trunk (unreleased changes):
 
  IMPROVEMENTS
 
+ AMBARI-1987. Add unit tests for admin/cluster page and cluster loading.
+ (yusaku)
+
  AMBARI-1929. Make the default stack and version configurable via mvn build.
  (yusaku)
 

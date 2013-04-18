@@ -197,7 +197,7 @@ describe('validator', function () {
     it('"55454" - invalid Domain Name', function () {
       expect(validator.isDomainName('55454')).to.equal(false);
     })
-  }),
+  })
   describe('#isValidUserName(value)', function() {
     var tests = [
       {m:'"" - invalid',i:'',e:false},
@@ -213,6 +213,43 @@ describe('validator', function () {
     tests.forEach(function(test) {
       it(test.m + ' ', function () {
         expect(validator.isValidUserName(test.i)).to.equal(test.e);
+      })
+    });
+  })
+  describe('#isValidUNIXUser(value)', function() {
+    var tests = [
+      {m:'"" - invalid',i:'',e:false},
+      {m:'"abc123" - valid',i:'abc123',e:true},
+      {m:'"1abc123" - invalid',i:'1abc123',e:false},
+      {m:'"abc123$" - invalid',i:'abc123$',e:false},
+      {m:'"~1abc123" - invalid',i: '~1abc123',e:false},
+      {m:'"abc12345679abc1234567890abc1234567890$" - invalid',i:'abc12345679abc1234567890abc1234567890$',e:false},
+      {m:'"1abc123$$" - invalid',i:'1abc123$$',e:false},
+      {m:'"a" - valid',i:'a',e:true},
+      {m:'"!" - invalid',i:'!',e:false},
+      {m:'"abc_" - valid',i:'abc_',e:true},
+      {m:'"_abc" - valid',i:'_abc',e:true},
+      {m:'"abc_abc" - valid',i:'_abc',e:true}
+    ];
+    tests.forEach(function(test) {
+      it(test.m + ' ', function () {
+        expect(validator.isValidUNIXUser(test.i)).to.equal(test.e);
+      })
+    });
+  })
+  describe('#isValidDir(value)', function() {
+    var tests = [
+      {m:'"dir" - invalid',i:'dir',e:false},
+      {m:'"/dir" - valid',i:'/dir',e:true},
+      {m:'"/dir1,dir2" - invalid',i:'/dir1,dir2',e:false},
+      {m:'"/dir1,/dir2" - valid',i:'/dir1,/dir2',e:true},
+      {m:'"/123" - valid',i:'/111',e:true},
+      {m:'"/abc" - valid',i:'/abc',e:true},
+      {m:'"/1a2b3c" - valid',i:'/1a2b3c',e:true}
+    ];
+    tests.forEach(function(test) {
+      it(test.m + ' ', function () {
+        expect(validator.isValidDir(test.i)).to.equal(test.e);
       })
     });
   })

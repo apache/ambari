@@ -18,8 +18,10 @@
 
 require('test/utils/ajax_test');
 require('test/controllers/global/background_operations_test');
+require('test/controllers/global/cluster_controller_test');
 require('test/controllers/main/app_contoller_test');
 require('test/controllers/main/charts/heatmap_metrics/heatmap_metric_test');
+require('test/controllers/main/admin/cluster_test');
 require('test/installer/step1_test');
 require('test/installer/step2_test');
 require('test/installer/step3_test');

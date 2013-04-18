@@ -30,11 +30,15 @@ App.ClusterController = Em.Controller.extend({
   updateLoadStatus:function (item) {
     var loadList = this.get('dataLoadList');
     var loaded = true;
-    var numLoaded= 0;
+    var numLoaded = 0;
+    var loadListLength = 0;
     loadList.set(item, true);
     for (var i in loadList) {
-      if (loadList.hasOwnProperty(i) && !loadList[i] && loaded) {
-        loaded = false;
+      if (loadList.hasOwnProperty(i)) {
+        loadListLength++;
+        if(!loadList[i] && loaded){
+          loaded = false;
+        }
       }
       // calculate the number of true
       if (loadList.hasOwnProperty(i) && loadList[i]){
@@ -42,7 +46,7 @@ App.ClusterController = Em.Controller.extend({
       }
     }
     this.set('isLoaded', loaded);
-    this.set('clusterDataLoadedPercent', 'width:' + (Math.floor(numLoaded/8*100)).toString() + '%');
+    this.set('clusterDataLoadedPercent', 'width:' + (Math.floor(numLoaded / loadListLength * 100)).toString() + '%');
   },
 
   dataLoadList:Em.Object.create({
