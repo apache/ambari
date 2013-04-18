@@ -264,6 +264,8 @@ Trunk (unreleased changes):
 
  IMPROVEMENTS
 
+ AMBARI-1958. Update alert icon legend on Hosts page. (yusaku)
+
  AMBARI-1955. Add ability to turn on/off HUE support. (yusaku)
 
  AMBARI-1941. Create a flag to toggle the support for multiple

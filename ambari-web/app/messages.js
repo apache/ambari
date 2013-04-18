@@ -860,7 +860,7 @@ Em.I18n.translations = {
   'hosts.host.healthStatusCategory.orange': "Slave Down",
   'hosts.host.healthStatusCategory.yellow': "No Heartbeat",
   'hosts.host.alerts.label': 'Alerts',
-  'hosts.host.alerts.st':'a!',
+  'hosts.host.alerts.st':'&nbsp;!&nbsp;',
   'hosts.decommission.popup.body':'Are you sure?',
   'hosts.decommission.popup.header':'Confirmation',
   'hosts.delete.popup.body':'Are you sure?',
