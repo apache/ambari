@@ -269,6 +269,9 @@ Trunk (unreleased changes):
 
  IMPROVEMENTS
 
+ AMBARI-1981. Expose ability to customize the username for running
+ Ganglia daemons. (yusaku)
+
  AMBARI-1987. Add unit tests for admin/cluster page and cluster loading.
  (yusaku)
 

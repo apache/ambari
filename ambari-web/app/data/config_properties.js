@@ -1154,34 +1154,6 @@ module.exports =
       "serviceName": "MISC",
       "category": "General"
     },
-    {
-      "id": "puppet var",
-      "name": "gmetad_user",
-      "displayName": "gmetad_user",
-      "description": "",
-      "defaultValue": "nobody",
-      "isReconfigurable": false,
-      "displayType": "advanced",
-      "isOverridable": false,
-      "isVisible": false,
-      "domain": "global",
-      "serviceName": "MISC",
-      "category": "Users and Groups"
-    },
-    {
-      "id": "puppet var",
-      "name": "gmond_user",
-      "displayName": "gmond_user",
-      "description": "",
-      "defaultValue": "nobody",
-      "isReconfigurable": false,
-      "displayType": "advanced",
-      "isOverridable": false,
-      "isVisible": false,
-      "domain": "global",
-      "serviceName":"MISC",
-      "category": "Users and Groups"
-    },
     /*
     {
       "id": "puppet var",
@@ -2066,6 +2038,34 @@ module.exports =
       "isVisible": true,
       "domain": "global",
       "serviceName": "MISC",
+      "category": "Users and Groups"
+    },
+    {
+      "id": "puppet var",
+      "name": "gmetad_user",
+      "displayName": "Ganglia User",
+      "description": "The user used to run Ganglia",
+      "defaultValue": "nobody",
+      "isReconfigurable": false,
+      "displayType": "advanced",
+      "isOverridable": false,
+      "isVisible": true,
+      "domain": "global",
+      "serviceName": "MISC",
+      "category": "Users and Groups"
+    },
+    {
+      "id": "puppet var",
+      "name": "gmond_user",
+      "displayName": "Gmond User",
+      "description": "The user used to run gmond for Ganglia",
+      "defaultValue": "nobody",
+      "isReconfigurable": false,
+      "displayType": "advanced",
+      "isOverridable": false,
+      "isVisible": false,
+      "domain": "global",
+      "serviceName":"MISC",
       "category": "Users and Groups"
     },
     {

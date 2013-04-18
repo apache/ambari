@@ -1329,6 +1329,8 @@ App.WizardStep8Controller = Em.Controller.extend({
       }
       this._recordHostOverrideFromObj(_globalSiteObj, 'global', 'version1', this);
     }, this);
+    // we don't expose gmond_user to the user; it needs to be the same as gmetad_user
+    globalSiteProperties['gmond_user'] = globalSiteProperties['gmetad_user'];
     return {"type": "global", "tag": "version1", "properties": globalSiteProperties};
   },
 
