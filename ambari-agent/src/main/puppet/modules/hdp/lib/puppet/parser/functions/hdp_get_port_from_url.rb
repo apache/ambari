@@ -21,6 +21,24 @@
 # to get Port from URL string
 module Puppet::Parser::Functions
   newfunction(:hdp_get_port_from_url, :type => :rvalue) do |args|
-    args.empty? ? "" : args.kind_of?(Array) ? args[0].split(":")[1] : args.split(":")[1]
+    def is_numeric?(s)
+       !!Integer(s) rescue false
+    end
+
+    var = args.empty? ? "" : args.kind_of?(Array) ? args[0].split(":")[1] : args.split(":")[1]
+    
+    if function_hdp_is_empty(var)
+       if args.kind_of?(Array)
+          if args.length > 1
+             var = args[1]        
+          else 
+             is_numeric?(args[0]) ? args[0] : ""
+          end
+       else 
+          is_numeric?(args) ? args : "";
+       end 
+    else 
+       var
+    end
   end
 end

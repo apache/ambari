@@ -760,6 +760,9 @@ Trunk (unreleased changes):
 
  BUG FIXES
 
+ AMBARI-1978. Deploying HDP-1.3.0 results in several alerts - is it related to 
+ hard-coded port. (swagle)
+
  AMBARI-1974. BootStrapTest is failing on the master build. (smohanty)
 
  AMBARI-1968. Hadoop Classpath is being overwridden which causes hive

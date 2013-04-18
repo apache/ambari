@@ -48,25 +48,14 @@ class hdp(
 
   if has_key($configuration, 'mapred-site') {
     $mapred-site = $configuration['mapred-site']
-    $jtnode_port = hdp_get_port_from_url($mapred-site["mapred.job.tracker.http.address"])
-    $tasktracker_port = hdp_get_port_from_url($mapred-site["mapred.task.tracker.http.address"])
-    $jobhistory_port = hdp_get_port_from_url($mapred-site["mapreduce.history.server.http.address"])
-  } else {
-    $jtnode_port = "50030"
-    $tasktracker_port = "50060"
-    $jobhistory_port = "51111"
+    $jtnode_port = hdp_get_port_from_url($mapred-site["mapred.job.tracker.http.address"],"50030")
+    $tasktracker_port = hdp_get_port_from_url($mapred-site["mapred.task.tracker.http.address"],"50060")
+    $jobhistory_port = hdp_get_port_from_url($mapred-site["mapreduce.history.server.http.address"],"51111")
   }
 
-  if has_key($configuration, 'hbase-site') {
-    $hbase-site = $configuration['hbase-site']
-    $hbase_master_port = $hbase-site["hbase.master.info.port"]
-    $hbase_rs_port = $hbase-site["hbase.regionserver.info.port"]
-  } else {
-    $hbase_master_port = "60010"
-    $hbase_rs_port = "60030"
-  }
-
-
+  $hbase_master_port = hdp_default("hadoop/hbase-site/hbase.master.info.port","60010")
+  $hbase_rs_port = hdp_default("hadoop/hbase-site/hbase.regionserver.info.port","60030")
+  
   #TODO: think not needed and also there seems to be a puppet bug around this and ldap
   class { 'hdp::snmp': service_state => 'running'}
 
