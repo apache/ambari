@@ -12,6 +12,8 @@ Trunk (unreleased changes):
 
  NEW FEATURES
 
+ AMBARI-1680. Add Hadoop 2.0 stack definition to Ambari. (swagle)
+
  AMBARI-1908. HDFS Mirroring: Add Bread Crumbs and Validation. (Arun Kandregula
  via yusaku)
 
