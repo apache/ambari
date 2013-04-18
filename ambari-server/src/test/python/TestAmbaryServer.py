@@ -619,6 +619,20 @@ class TestAmbariServer(TestCase):
 
 
   @patch.object(ambari_server, "print_info_msg")
+  def test_get_share_jars(self, printInfoMsg_mock):
+    expected = "/usr/share/java"
+    result = ambari_server.get_share_jars()
+    self.assertEqual(expected, result)
+
+  @patch.object(ambari_server, "print_info_msg")
+  def test_get_ambari_classpath(self, printInfoMsg_mock):
+    result = ambari_server.get_ambari_classpath()
+    print result
+    self.assertTrue(ambari_server.get_ambari_jars() in result)
+    self.assertTrue(ambari_server.get_share_jars() in result)
+
+
+  @patch.object(ambari_server, "print_info_msg")
   def test_get_conf_dir(self, printInfoMsg_mock):
 
     env = "/ambari/conf"

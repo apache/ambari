@@ -760,6 +760,9 @@ Trunk (unreleased changes):
 
  BUG FIXES
 
+ AMBARI-1973. log4j Appender for RCA should be able to write the same database
+ being used for Ambari Server (oracle/MySql). (smohanty)
+
  AMBARI-1972. Stacks2 api implemenation using the standard framework is not
  complete - does not show configuration tags. (smohanty)
 

@@ -54,6 +54,7 @@ public class PostgresConnector implements DBConnector {
   private static final String TASK_ATTEMPT_TABLE_NAME = "taskattempt";
   public static final String SORT_ASC = "ASC";
   public static final String SORT_DESC = "DESC";
+  protected static final int DEFAULT_LIMIT = 10;
   
   private static final ObjectMapper jsonMapper = new ObjectMapper();
   
@@ -482,7 +483,7 @@ public class PostgresConnector implements DBConnector {
     return preparedStatements.get(statement);
   }
   
-  private PreparedStatement getQualifiedPS(Statements statement, String searchClause) throws IOException {
+  protected PreparedStatement getQualifiedPS(Statements statement, String searchClause) throws IOException {
     if (db == null)
       throw new IOException("postgres db not initialized");
     try {

@@ -70,6 +70,7 @@ ambari_provider_module = os.environ.get('AMBARI_PROVIDER_MODULE')
 
 # constants
 STACK_NAME_VER_SEP = "-"
+JAVA_SHARE_PATH="/usr/share/java"
 
 if ambari_provider_module is not None:
   ambari_provider_module_option = "-Dprovider.module.class=" +\
@@ -82,17 +83,15 @@ SERVER_START_CMD="{0}" + os.sep + "bin" + os.sep +\
                  ambari_provider_module_option +\
                  os.getenv('AMBARI_JVM_ARGS','-Xms512m -Xmx2048m') +\
                  " -cp {1}"+ os.pathsep + "{2}" +\
-                 "/* org.apache.ambari.server.controller.AmbariServer "\
+                 " org.apache.ambari.server.controller.AmbariServer "\
                  ">/var/log/ambari-server/ambari-server.out 2>&1"
 SERVER_START_CMD_DEBUG="{0}" + os.sep + "bin" + os.sep +\
                        "java -server -XX:NewRatio=2 -XX:+UseConcMarkSweepGC " +\
                        ambari_provider_module_option +\
                        os.getenv('AMBARI_JVM_ARGS','-Xms512m -Xmx2048m') +\
                        " -Xdebug -Xrunjdwp:transport=dt_socket,address=5005,"\
-                       "server=y,suspend=n -cp {1}"+ os.pathsep + ".." +\
-                       os.sep + "lib" + os.sep + "ambari-server" +\
-                       os.sep +\
-                       "* org.apache.ambari.server.controller.AmbariServer"
+                       "server=y,suspend=n -cp {1}"+ os.pathsep + "{2}" +\
+                       " org.apache.ambari.server.controller.AmbariServer"
 
 AMBARI_CONF_VAR="AMBARI_CONF_DIR"
 AMBARI_SERVER_LIB="AMBARI_SERVER_LIB"
@@ -452,6 +451,14 @@ def get_ambari_jars():
                  + default_jar_location)
     return default_jar_location
 
+
+def get_share_jars():
+  return JAVA_SHARE_PATH
+
+def get_ambari_classpath():
+  ambari_cp = get_ambari_jars()+os.sep+"*"
+  share_cp = get_share_jars()+os.sep+"*"
+  return ambari_cp+os.pathsep+share_cp
 
 
 def get_conf_dir():
@@ -975,7 +982,7 @@ def start(args):
     print_error_msg ("Failed to stop iptables. Exiting")
     sys.exit(retcode)
 
-  command = SERVER_START_CMD.format(jdk_path, conf_dir, get_ambari_jars())
+  command = SERVER_START_CMD.format(jdk_path, conf_dir, get_ambari_classpath())
   print "Running server: " + command
   server_process = subprocess.Popen(["/bin/sh", "-c", command])
   f = open(PID_DIR + os.sep + PID_NAME, "w")
