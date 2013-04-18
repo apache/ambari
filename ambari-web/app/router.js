@@ -88,8 +88,29 @@ App.Router = Em.Router.extend({
   getAuthenticated: function () {
     var auth = App.db.getAuthenticated();
     var authResp = (auth && auth === true);
-    this.set('loggedIn', authResp);
-    return authResp;
+    if (authResp) {
+      App.ajax.send({
+        name: 'router.authentication',
+        sender: this,
+        success: 'onAuthenticationSuccess',
+        error: 'onAuthenticationError'
+      });
+    } else {
+      this.set('loggedIn', false);
+    }
+    return this.get('loggedIn');
+  },
+
+  onAuthenticationSuccess: function (data) {
+    this.set('loggedIn', true);
+  },
+
+  onAuthenticationError: function (data) {
+    if (data.status === 403) {
+      this.set('loggedIn', false);
+    } else {
+      console.log('error in getAuthenticated');
+    }
   },
 
   setAuthenticated: function (authenticated) {
@@ -120,17 +141,6 @@ App.Router = Em.Router.extend({
    */
   getUser: function () {
     return App.db.getUser();
-  },
-
-  resetAuth: function (authenticated) {
-    if (!authenticated) {
-      App.db.cleanUp();
-      this.set('loggedIn', false);
-      this.set('loginController.loginName', '');
-      this.set('loginController.password', '');
-      this.transitionTo('login');
-    }
-    return authenticated;
   },
 
   login: function () {
@@ -288,12 +298,13 @@ App.Router = Em.Router.extend({
     // since it's a computed property but we are not setting it as a dependent of App.db.
     App.db.cleanUp();
     App.set('isAdmin', false);
+    this.set('loggedIn', false);
     this.clearAllSteps();
     console.log("Log off: " + App.router.getClusterName());
     this.set('loginController.loginName', '');
     this.set('loginController.password', '');
-
-    if (!App.testMode) {
+    // When logOff is called by Sign Out button, context contains event object. As it is only case we should send logoff request, we are checking context below.
+    if (!App.testMode && context) {
       App.ajax.send({
         name: 'router.logoff',
         sender: this,

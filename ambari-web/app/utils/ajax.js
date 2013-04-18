@@ -657,7 +657,16 @@ var urls = {
   },
   'router.login': {
     'real': '/users/{loginName}',
-    'mock': '/data/users/user_{usr}.json'
+    'mock': '/data/users/user_{usr}.json',
+    'format': function (data, opt) {
+      var statusCode = jQuery.extend({}, require('data/statusCodes'));
+      statusCode['403'] = function () {
+        console.log("Error code 403: Forbidden.");
+      }
+      return {
+        statusCode: statusCode
+      };
+    }
   },
   'router.login2': {
     'real': '/clusters',
@@ -665,6 +674,15 @@ var urls = {
   },
   'router.logoff': {
     'real': '/logout'
+  },
+  'router.authentication': {
+    'real': '/clusters',
+    'mock': '/data/clusters/info.json',
+    'format': function (data, opt) {
+      return {
+        async: false
+      };
+    }
   }
 };
 /**
