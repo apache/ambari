@@ -765,6 +765,9 @@ Trunk (unreleased changes):
 
  BUG FIXES
 
+ AMBARI-1702. Ambari/GSInstallers need to set the value of 
+ mapred.jobtracker.completeuserjobs.maximum. New recommended value. (swagle)
+
  AMBARI-1983. Add new parameters to improve HBase MTTR. (swagle)
 
  AMBARI-1979. Last HeartBeat time and heartbeat status for agent take around 2-3 

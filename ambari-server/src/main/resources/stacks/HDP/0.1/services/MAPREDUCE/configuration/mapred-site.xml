@@ -394,7 +394,7 @@
 
 <property>
   <name>mapred.jobtracker.completeuserjobs.maximum</name>
-  <value>100</value>
+  <value>5</value>
   <description>The maximum number of complete jobs per user to keep around
   before delegating them to the job history.</description>
 </property>
