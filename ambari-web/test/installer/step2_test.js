@@ -193,17 +193,18 @@ describe('App.WizardStep2Controller', function () {
 
     it('should parse hosts from pattern expression to hostNameArr', function () {
       var controller = App.WizardStep2Controller.create({
-        hostNames: 'hots[0-10]'
+        hostNameArr: ['host[001-011]']
       });
       controller.patternExpression();
       var result = true;
       var hosts = controller.get('hostNameArr');
-      for (var i = 0; i<11; i++) {
-        if (hosts[i] !== 'host'+i) {
+      for (var i = 1; i<12; i++) {
+        var extra = (i.toString().length == 1) ? 0 : '';
+        if (hosts[i-1] !== 'host0' + extra + i) {
           result = false;
         }
       }
-      expect(result).to.equal(false);
+      expect(result).to.equal(true);
     })
   })
 

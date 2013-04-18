@@ -199,15 +199,15 @@ App.WizardStep2Controller = Em.Controller.extend({
         start=start[0].substr(1);
         end=end[0].substr(1);
 
-        if(parseInt(start) <= parseInt(end) && parseInt(start) >= 0){
+        if(parseInt(start) <= parseInt(end, 10) && parseInt(start, 10) >= 0){
           self.isPattern = true;
 
           if(start[0] == "0" && start.length > 1) {
             extra = start.match(/0*/);
           }
 
-          for (var i = parseInt(start); i < parseInt(end) + 1; i++) {
-            hostNames.push(a.replace(/\[\d*\-\d*\]/,extra[0].substring(1,1+extra[0].length-i.toString().length)+i))
+          for (var i = parseInt(start, 10); i < parseInt(end, 10) + 1; i++) {
+            hostNames.push(a.replace(/\[\d*\-\d*\]/,extra[0].substring(0,start.length-i.toString().length)+i))
           }
 
         }else{

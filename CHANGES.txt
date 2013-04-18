@@ -768,6 +768,8 @@ Trunk (unreleased changes):
 
  BUG FIXES
 
+ AMBARI-1988. Hostname pattern expression is broken. (yusaku)
+
  AMBARI-1986. HDFS General section has disappeared from Customize Services 
  step of the Install Wizard. (yusaku)
 
