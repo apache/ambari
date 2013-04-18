@@ -86,12 +86,11 @@
 	                                    <a class="action" {{action "createOverrideProperty" this target="view" }} ><i class="icon-plus-sign"></i>{{t common.exception}}</a>
                                     {{/if}}
 	                                {{/if}}
-	                                {{#if cantBeUndone}}
-	                                {{else}}
+	                                {{#unless cantBeUndone}}
 	                                  {{#if isNotDefaultValue}}
 	                                      <a class="action" {{action "doRestoreDefaultValue" this target="view" }} ><i class="icon-undo"></i>{{t common.undo}}</a>
 	                                  {{/if}}
-	                                {{/if}}
+	                                {{/unless}}
 	                                {{#if isRemovable}}
 	                                    <a class="action" {{action "removeProperty" this target="view" }} ><i class="icon-minus-sign"></i>{{t common.remove}}</a>
 	                                {{/if}}

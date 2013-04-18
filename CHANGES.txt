@@ -765,6 +765,8 @@ Trunk (unreleased changes):
 
  BUG FIXES
 
+ AMBARI-1985. Incorrect behavior of "Undo" button for password fields. (yusaku)
+
  AMBARI-1702. Ambari/GSInstallers need to set the value of 
  mapred.jobtracker.completeuserjobs.maximum. New recommended value. (swagle)
 

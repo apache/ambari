@@ -122,8 +122,15 @@ App.ServiceConfigPasswordField = Ember.TextField.extend({
         return false;
       }
     },
-    valueBinding: 'parentView.serviceConfig.retypedPassword'
-  })
+    valueBinding: 'parentView.serviceConfig.retypedPassword',
+    disabled: function () {
+      return !this.get('parentView.serviceConfig.isEditable');
+    }.property('parentView.serviceConfig.isEditable')
+  }),
+
+  disabled: function () {
+    return !this.get('serviceConfig.isEditable');
+  }.property('serviceConfig.isEditable')
 
 });
 

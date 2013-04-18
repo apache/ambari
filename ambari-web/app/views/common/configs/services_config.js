@@ -280,6 +280,9 @@ App.ServiceConfigsByCategoryView = Ember.View.extend({
     var value = serviceConfigProperty.get('value');
     var dValue = serviceConfigProperty.get('defaultValue');
     if (dValue != null) {
+      if(serviceConfigProperty.get('displayType') === 'password'){
+        serviceConfigProperty.set('retypedPassword', dValue);
+      }
       serviceConfigProperty.set('value', dValue);
     }
   },
@@ -796,7 +799,8 @@ App.ServiceConfigCapacityScheduler = App.ServiceConfigsByCategoryView.extend({
         data.push({
           label: Em.I18n.t('common.empty'),
           value: (100 - capacitiesSum),
-          color: 'transparent'
+          color: 'transparent',
+          isEmpty: true
         })
       }
       $(d3.select(this.get('selector'))[0]).children().remove();
@@ -809,7 +813,7 @@ App.ServiceConfigCapacityScheduler = App.ServiceConfigsByCategoryView.extend({
       this.get('arcs')
         .on("click", function(d,i) {
           var event = {context: d.data.label};
-          self.get('parentView').queuePopup(event);
+          if (d.data.isEmpty !== true) self.get('parentView').queuePopup(event);
         }).on('mouseover', function(d, i){
           var position = d3.svg.mouse(this);
           var label = $('#section_label');
