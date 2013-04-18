@@ -264,6 +264,9 @@ Trunk (unreleased changes):
 
  IMPROVEMENTS
 
+ AMBARI-1929. Make the default stack and version configurable via mvn build.
+ (yusaku)
+
  AMBARI-1967. Add smoke test user customization toggle via App.supports.
  (yusaku)
 
