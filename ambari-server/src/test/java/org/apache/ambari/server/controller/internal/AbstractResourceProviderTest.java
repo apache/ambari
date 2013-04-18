@@ -27,6 +27,7 @@ import org.apache.ambari.server.controller.RequestStatusRequest;
 import org.apache.ambari.server.controller.ServiceComponentHostRequest;
 import org.apache.ambari.server.controller.ServiceComponentRequest;
 import org.apache.ambari.server.controller.ServiceRequest;
+import org.apache.ambari.server.controller.StackConfigurationRequest;
 import org.apache.ambari.server.controller.TaskStatusRequest;
 import org.apache.ambari.server.controller.UserRequest;
 import org.apache.ambari.server.controller.spi.Resource;
@@ -205,6 +206,13 @@ public class AbstractResourceProviderTest {
     public static Set<UserRequest> getUserRequestSet(String name)
     {
       EasyMock.reportMatcher(new UserRequestSetMatcher(name));
+      return null;
+    }
+    
+    public static Set<StackConfigurationRequest> getStackConfigurationRequestSet(String stackName, String stackVersion,
+        String serviceName, String propertyName)
+    {
+      EasyMock.reportMatcher(new StackConfigurationRequestSetMatcher(stackName, stackVersion, serviceName, propertyName));
       return null;
     }
   }
@@ -556,6 +564,48 @@ public class AbstractResourceProviderTest {
     @Override
     public void appendTo(StringBuffer stringBuffer) {
       stringBuffer.append("UserRequestSetMatcher(").append(userRequest).append(")");
+    }
+  }
+  
+
+  /**
+   * Matcher for a Stack set containing a single request.
+   */
+  public static class StackConfigurationRequestSetMatcher extends HashSet<StackConfigurationRequest> implements IArgumentMatcher {
+
+    private final StackConfigurationRequest stackConfigurationRequest;
+
+    public StackConfigurationRequestSetMatcher(String stackName, String stackVersion,
+        String serviceName, String propertyName) {
+      this.stackConfigurationRequest = new StackConfigurationRequest(stackName, stackVersion, serviceName, propertyName);
+      add(this.stackConfigurationRequest);
+    }
+
+    @Override
+    public boolean matches(Object o) {
+
+      if (!(o instanceof Set)) {
+        return false;
+      }
+
+      Set set = (Set) o;
+
+      if (set.size() != 1) {
+        return false;
+      }
+
+      Object request = set.iterator().next();
+
+      return request instanceof StackConfigurationRequest &&
+          eq(((StackConfigurationRequest) request).getPropertyName(), stackConfigurationRequest.getPropertyName()) &&
+          eq(((StackConfigurationRequest) request).getServiceName(), stackConfigurationRequest.getServiceName()) &&
+          eq(((StackConfigurationRequest) request).getStackName(), stackConfigurationRequest.getStackName()) &&
+          eq(((StackConfigurationRequest) request).getStackVersion(), stackConfigurationRequest.getStackVersion());
+    }
+
+    @Override
+    public void appendTo(StringBuffer stringBuffer) {
+      stringBuffer.append("StackConfigurationRequestSetMatcher(").append(stackConfigurationRequest).append(")");
     }
   }
 

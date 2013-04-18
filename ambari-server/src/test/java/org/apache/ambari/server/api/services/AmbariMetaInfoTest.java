@@ -72,6 +72,7 @@ public class AmbariMetaInfoTest {
   private AmbariMetaInfo metaInfo = null;
   private final static Logger LOG =
       LoggerFactory.getLogger(AmbariMetaInfoTest.class);
+  private static final String FILE_NAME = "hbase-site.xml";
   
 
   @Rule
@@ -386,6 +387,7 @@ public class AmbariMetaInfoTest {
   public void testGetProperty() throws Exception {
     PropertyInfo property = metaInfo.getProperty(STACK_NAME_HDP, STACK_VERSION_HDP, SERVICE_NAME_HDFS, PROPERTY_NAME);
     Assert.assertEquals(property.getName(), PROPERTY_NAME);
+    Assert.assertEquals(property.getFilename(), FILE_NAME);
 
     try {
       metaInfo.getProperty(STACK_NAME_HDP, STACK_VERSION_HDP, SERVICE_NAME_HDFS, NON_EXT_VALUE);

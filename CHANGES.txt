@@ -760,6 +760,9 @@ Trunk (unreleased changes):
 
  BUG FIXES
 
+ AMBARI-1972. Stacks2 api implemenation using the standard framework is not
+ complete - does not show configuration tags. (smohanty)
+
  AMBARI-1954. Dashboard does not come up if the upgrade stack does not contain
  a service with the same name. (yusaku)
 
