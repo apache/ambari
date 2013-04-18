@@ -82,8 +82,10 @@ public class HeartbeatMonitor implements Runnable {
   public void run() {
     while (shouldRun) {
       try {
-        Thread.sleep(threadWakeupInterval);
         doWork();
+        LOG.trace("Putting monitor to sleep for " + threadWakeupInterval + " " +
+          "milliseconds");
+        Thread.sleep(threadWakeupInterval);
       } catch (InterruptedException ex) {
         LOG.warn("Scheduler thread is interrupted going to stop", ex);
         shouldRun = false;
@@ -133,6 +135,8 @@ public class HeartbeatMonitor implements Runnable {
 
       // Get status of service components
       List<StatusCommand> cmds = generateStatusCommands(hostname);
+      LOG.trace("Generated " + cmds.size() + " status commands for host: " +
+        hostname);
       if (cmds.isEmpty()) {
         // Nothing to do
       } else {

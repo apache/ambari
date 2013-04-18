@@ -25,9 +25,11 @@ from ambari_agent import Controller
 from ambari_agent import hostname
 import sys
 from mock.mock import patch, MagicMock, call
-
+import logging
 
 class TestController(unittest.TestCase):
+
+  logger = logging.getLogger()
 
   @patch("threading.Thread")
   @patch("threading.Lock")
@@ -175,6 +177,26 @@ class TestController(unittest.TestCase):
     self.controller.registerAndHeartbeat = \
       Controller.Controller.registerAndHeartbeat
 
+
+  @patch("time.sleep")
+  def test_registerAndHeartbeatWithException(self, sleepMock):
+
+    registerWithServer = MagicMock(name="registerWithServer")
+    registerWithServer.return_value = {"response":"resp"}
+    self.controller.registerWithServer = registerWithServer
+    heartbeatWithServer = MagicMock(name="heartbeatWithServer")
+    self.controller.heartbeatWithServer = heartbeatWithServer
+
+    Controller.Controller.__sendRequest__ = MagicMock(side_effect=Exception())
+
+    self.controller.registerAndHeartbeat()
+    registerWithServer.assert_called_once_with()
+    heartbeatWithServer.assert_called_once_with()
+
+    self.controller.registerWithServer =\
+    Controller.Controller.registerWithServer
+    self.controller.heartbeatWithServer =\
+    Controller.Controller.registerWithServer
 
   @patch("time.sleep")
   def test_registerAndHeartbeat(self, sleepMock):

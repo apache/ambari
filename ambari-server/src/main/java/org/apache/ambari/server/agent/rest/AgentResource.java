@@ -79,7 +79,7 @@ public class AgentResource {
     /* Call into the heartbeat handler */
 
     RegistrationResponse response = hh.handleRegistration(message);
-    LOG.debug("Sending registration responce " + hh);
+    LOG.debug("Sending registration response " + response);
     return response;
   }
 
@@ -106,7 +106,7 @@ public class AgentResource {
     HeartBeatResponse heartBeatResponse;
     try {
       heartBeatResponse = hh.handleHeartBeat(message);
-      LOG.debug("Sending heartbeat responce " + hh);
+      LOG.debug("Sending heartbeat response " + heartBeatResponse);
     } catch (Exception e) {
       LOG.info("Error in HeartBeat", e);
       throw new WebApplicationException(500);

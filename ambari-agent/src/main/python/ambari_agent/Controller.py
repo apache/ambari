@@ -46,7 +46,7 @@ logger = logging.getLogger()
 
 class Controller(threading.Thread):
 
-  def __init__(self, config, range=120):
+  def __init__(self, config, range=30):
     threading.Thread.__init__(self)
     logger.debug('Initializing Controller RPC thread.')
     self.lock = threading.Lock()

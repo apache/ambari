@@ -762,6 +762,9 @@ Trunk (unreleased changes):
 
  BUG FIXES
 
+ AMBARI-1979. Last HeartBeat time and heartbeat status for agent take around 2-3 
+ minutes to update on a server restart. (swagle)
+
  AMBARI-1978. Deploying HDP-1.3.0 results in several alerts - is it related to 
  hard-coded port. (swagle)
 
