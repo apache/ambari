@@ -138,7 +138,7 @@
       {{/if}}
     {{/if}}
   <div class="btn-area">
-    <a class="btn pull-left" {{bindAttr disabled="isInstallInProgress"}} {{action back controller}}>&larr; {{t common.back}}</a>
+    <a class="btn pull-left" {{bindAttr disabled="isInstallInProgress"}} {{action back target="controller"}}>&larr; {{t common.back}}</a>
     <a class="btn btn-success pull-right" {{bindAttr disabled="isSubmitDisabled"}} {{action submit target="controller"}}>{{t common.next}} &rarr;</a>
   </div>
 </div>

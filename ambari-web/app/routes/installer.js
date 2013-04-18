@@ -149,11 +149,8 @@ module.exports = Em.Route.extend({
       controller.loadAllPriorSteps();
       controller.connectOutlet('wizardStep3', controller.get('content'));
     },
-    back: function(router, event){
-      //if install not in progress
-      if(!$(event.target).attr('disabled')){
+    back: function(router){
         router.transitionTo('step2');
-      }
     },
     next: function (router, context) {
       var installerController = router.get('installerController');

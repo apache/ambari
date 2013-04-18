@@ -749,6 +749,9 @@ Trunk (unreleased changes):
 
  BUG FIXES
 
+ AMBARI-1960. "Back" button can be pressed while host registration is taking
+ process, even though the button seems disabled. (yusaku)
+
  AMBARI-1959. Cannot login to Ambari after login failure. (yusaku)
 
  AMBARI-1957. Hosts table: whether the alert filter is in effect or not is

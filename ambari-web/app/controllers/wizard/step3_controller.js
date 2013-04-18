@@ -948,6 +948,13 @@ App.WizardStep3Controller = Em.Controller.extend({
     if (this.parseHostInfo(mockHosts, selectedHosts)) {
       // this.saveHostInfoToDb();
     }
+  },
+
+  back: function () {
+    if (this.get('isInstallInProgress')) {
+      return false;
+    }
+    App.router.send('back');
   }
 
 });
