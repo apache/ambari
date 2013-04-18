@@ -765,6 +765,8 @@ Trunk (unreleased changes):
 
  BUG FIXES
 
+ AMBARI-1983. Add new parameters to improve HBase MTTR. (swagle)
+
  AMBARI-1979. Last HeartBeat time and heartbeat status for agent take around 2-3 
  minutes to update on a server restart. (swagle)
 

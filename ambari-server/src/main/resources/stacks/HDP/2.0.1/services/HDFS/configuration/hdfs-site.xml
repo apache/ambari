@@ -405,24 +405,34 @@ don't exist, they will be created with this permission.</description>
   </property>
 
   <property>
-  <name>dfs.access.time.precision</name>
-  <value>0</value>
-  <description>The access time for HDFS file is precise upto this value.
-               The default value is 1 hour. Setting a value of 0 disables
-               access times for HDFS.
-  </description>
-</property>
+    <name>dfs.access.time.precision</name>
+    <value>0</value>
+    <description>The access time for HDFS file is precise upto this value.
+                 The default value is 1 hour. Setting a value of 0 disables
+                 access times for HDFS.
+    </description>
+  </property>
 
-<property>
- <name>dfs.cluster.administrators</name>
- <value> hdfs</value>
- <description>ACL for who all can view the default servlets in the HDFS</description>
-</property>
+  <property>
+   <name>dfs.cluster.administrators</name>
+   <value> hdfs</value>
+   <description>ACL for who all can view the default servlets in the HDFS</description>
+  </property>
 
-<property>
-  <name>ipc.server.read.threadpool.size</name>
-  <value>5</value>
-  <description></description>
-</property>
+  <property>
+    <name>ipc.server.read.threadpool.size</name>
+    <value>5</value>
+    <description></description>
+  </property>
+
+  <property>
+    <name>dfs.namenode.check.stale.datanode</name>
+    <value>true</value>
+    <description>
+      With this setting, the datanodes that have not replied to the heartbeat
+      for more than 30s (i.e. in a stale state) are used for reads only if all
+      other remote replicas have failed.
+    </description>
+  </property>
 
 </configuration>
