@@ -60,11 +60,17 @@ public class BootStrapTest extends TestCase {
   public void testRun() throws Exception {
     Properties properties = new Properties();
     String bootdir =  temp.newFolder("bootdir").toString();
+    String metadetadir =  temp.newFolder("metadetadir").toString();
+    String serverVersionFilePath =  temp.newFolder("serverVersionFilePath").toString();
     LOG.info("Bootdir is " + bootdir);
+    LOG.info("Metadetadir is " + metadetadir);
+    LOG.info("ServerVersionFilePath is " + serverVersionFilePath);
     properties.setProperty(Configuration.BOOTSTRAP_DIR,
        bootdir);
     properties.setProperty(Configuration.BOOTSTRAP_SCRIPT, "echo");
     properties.setProperty(Configuration.SRVR_KSTR_DIR_KEY, "target" + File.separator + "classes");
+    properties.setProperty(Configuration.METADETA_DIR_PATH, metadetadir);
+    properties.setProperty(Configuration.SERVER_VERSION_FILE, serverVersionFilePath);
     Configuration conf = new Configuration(properties);
     AmbariMetaInfo ambariMetaInfo = new AmbariMetaInfo(conf);
     BootStrapImpl impl = new BootStrapImpl(conf, ambariMetaInfo);

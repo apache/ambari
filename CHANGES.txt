@@ -760,6 +760,8 @@ Trunk (unreleased changes):
 
  BUG FIXES
 
+ AMBARI-1974. BootStrapTest is failing on the master build. (smohanty)
+
  AMBARI-1968. Hadoop Classpath is being overwridden which causes hive
  server/metastore to fail. (smohanty)
 
