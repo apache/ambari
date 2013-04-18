@@ -771,6 +771,9 @@ Trunk (unreleased changes):
 
  BUG FIXES
 
+ AMBARI-1984. WebHCat log and pid dirs configs should be under WebHCat >
+ Advanced. (yusaku)
+
  AMBARI-1989. Add component shows the same component again even if the
  component is already added/installed/started. (yusaku)
 

@@ -1193,7 +1193,7 @@ module.exports =
       "isOverridable": false,
       "isVisible": true,
       "domain": "global",
-      "serviceName": "HIVE",
+      "serviceName": "WEBHCAT",
       "category": "Advanced"
     },
     {
@@ -1207,7 +1207,7 @@ module.exports =
       "isOverridable": false,
       "isVisible": true,
       "domain": "global",
-      "serviceName": "HIVE",
+      "serviceName": "WEBHCAT",
       "category": "Advanced"
     },
     {
