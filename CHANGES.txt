@@ -422,6 +422,8 @@ Trunk (unreleased changes):
 
  AMBARI-1546. Improve Cluster Management loading screen. (Xi Wang via yusaku)
 
+ ABMARI-1975. Add Clover coverage (ncole)
+
  AMBARI-1537. Constrain the width of all wizard popups. (Xi Wang via yusaku)
 
  AMBARI-1536. Hosts page layout fixes. (Xi Wang via yusaku)

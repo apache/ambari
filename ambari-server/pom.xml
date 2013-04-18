@@ -408,6 +408,16 @@
           </execution>
         </executions>
       </plugin>
+      <plugin>
+        <groupId>com.atlassian.maven.plugins</groupId>
+        <artifactId>maven-clover2-plugin</artifactId>
+        <version>3.1.11</version>
+        <!--
+        <configuration>
+          <licenseLocation>/path/to/clover.license</licenseLocation>
+        </configuration>
+        -->
+      </plugin>
     </plugins>
   </build>
   <profiles>
