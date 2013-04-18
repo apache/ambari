@@ -248,6 +248,7 @@ module.exports = Em.Route.extend({
           var isRetry = true;
           addServiceController.installServices(isRetry);
           addServiceController.setInfoForStep9();
+          wizardStep9Controller.resetHostsForRetry();
           // We need to do recovery based on whether we are in Add Host or Installer wizard
           addServiceController.saveClusterState('ADD_SERVICES_INSTALLING_3');
         }
