@@ -24,6 +24,7 @@ module.exports = [
     displayName: 'HDFS',
     isDisabled: true,
     isSelected: true,
+    canBeSelected: true,
     description: Em.I18n.t('services.hdfs.description')
   },
   {
@@ -31,6 +32,7 @@ module.exports = [
     displayName: 'MapReduce',
     isDisabled: false,
     isSelected: true,
+    canBeSelected: true,
     description: Em.I18n.t('services.mapreduce.description')
   },
   {
@@ -38,6 +40,7 @@ module.exports = [
     displayName: 'Nagios',
     isDisabled: false,
     isSelected: true,
+    canBeSelected: true,
     description: Em.I18n.t('services.nagios.description')
   },
   {
@@ -45,6 +48,7 @@ module.exports = [
     displayName: 'Ganglia',
     isDisabled: false,
     isSelected: true,
+    canBeSelected: true,
     description: Em.I18n.t('services.ganglia.description')
   },
   {
@@ -52,6 +56,7 @@ module.exports = [
     displayName: 'Hive + HCat + ZooKeeper',
     isDisabled: false,
     isSelected: true,
+    canBeSelected: true,
     description: Em.I18n.t('services.hive.description')
   },
   {
@@ -59,6 +64,7 @@ module.exports = [
     displayName: 'HCatalog',
     isDisabled: false,
     isSelected: true,
+    canBeSelected: true,
     isHidden: true
   },
   {
@@ -66,6 +72,7 @@ module.exports = [
     displayName: 'WebHCat',
     isDisabled: false,
     isSelected: true,
+    canBeSelected: true,
     isHidden: true
   },
   {
@@ -73,6 +80,7 @@ module.exports = [
     displayName: 'HBase + ZooKeeper',
     isDisabled: false,
     isSelected: true,
+    canBeSelected: true,
     description: Em.I18n.t('services.hbase.description')
   },
   {
@@ -80,6 +88,7 @@ module.exports = [
     displayName: 'Pig',
     isDisabled: false,
     isSelected: true,
+    canBeSelected: true,
     description: Em.I18n.t('services.pig.description')
   },
   {
@@ -87,6 +96,7 @@ module.exports = [
     displayName: 'Sqoop',
     isDisabled: false,
     isSelected: true,
+    canBeSelected: true,
     description: Em.I18n.t('services.sqoop.description')
   },
   {
@@ -94,6 +104,7 @@ module.exports = [
     displayName: 'Oozie',
     isDisabled: false,
     isSelected: true,
+    canBeSelected: true,
     description: Em.I18n.t('services.oozie.description')
   },
   {
@@ -101,6 +112,7 @@ module.exports = [
 	  displayName: 'ZooKeeper',
     isDisabled: false,
     isSelected: true,
+    canBeSelected: true,
     isHidden: true
   },
   {
@@ -108,6 +120,7 @@ module.exports = [
     displayName: 'Hue',
     isDisabled: false,
     isSelected: App.supports.hue,
+    canBeSelected: App.supports.hue,
     isHidden: !App.supports.hue
   }
 ]

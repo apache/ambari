@@ -749,6 +749,9 @@ Trunk (unreleased changes):
 
  BUG FIXES
 
+ AMBARI-1961. Select Services: clicking on "all" selects HUE even when HUE
+ support is toggled off. (yusaku)
+
  AMBARI-1960. "Back" button can be pressed while host registration is taking
  process, even though the button seems disabled. (yusaku)
 
