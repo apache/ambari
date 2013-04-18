@@ -269,6 +269,9 @@ Trunk (unreleased changes):
 
  IMPROVEMENTS
 
+ AMBARI-1982. Disallow editing Hadoop log/PID directories post install.
+ (yusaku)
+
  AMBARI-1981. Expose ability to customize the username for running
  Ganglia daemons. (yusaku)
 
