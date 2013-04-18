@@ -264,6 +264,9 @@ Trunk (unreleased changes):
 
  IMPROVEMENTS
 
+ AMBARI-1964. Add ability to toggle on/off assigning masters for new hosts
+ being added via Add Host wizard. (yusaku)
+
  AMBARI-1958. Update alert icon legend on Hosts page. (yusaku)
 
  AMBARI-1955. Add ability to turn on/off HUE support. (yusaku)

@@ -49,6 +49,7 @@ App.supports = {
   startStopAllServices: false,
   hiveOozieExtraDatabases: false,
   multipleHBaseMasters: false,
+  addMasters: false,
   hue: false
 };
 

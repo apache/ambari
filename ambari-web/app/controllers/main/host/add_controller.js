@@ -117,7 +117,7 @@ App.AddHostController = App.WizardController.extend({
     console.log('AddHostController.loadServices: loaded data ', servicesInfo);
     var serviceNames = servicesInfo.filterProperty('isSelected', true).mapProperty('serviceName');
     console.log('selected services ', serviceNames);
-    this.set('content.skipMasterStep', !serviceNames.contains('HBASE') && !serviceNames.contains('ZOOKEEPER'));
+    this.set('content.skipMasterStep', (!serviceNames.contains('HBASE') && !serviceNames.contains('ZOOKEEPER')) || !App.supports.addMasters);
   },
 
   /**
