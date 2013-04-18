@@ -752,6 +752,9 @@ Trunk (unreleased changes):
 
  BUG FIXES
 
+ AMBARI-1965. core-site properties are incorrectly populated in Advanced/
+ General category of MapReduce service. (yusaku)
+
  AMBARI-1963. Deploying progress bar shows 0 tasks after installation failure
  and going back to a previous step to retry. (yusaku)
 

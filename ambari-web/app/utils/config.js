@@ -105,7 +105,8 @@ App.config = Em.Object.create({
           defaultValue: properties[index],
           filename: _tag.siteName + ".xml",
           isUserProperty: false,
-          isOverridable: true
+          isOverridable: true,
+          serviceName: serviceName
         };
 
         if (configsPropertyDef) {
@@ -116,6 +117,10 @@ App.config = Em.Object.create({
           serviceConfigObj.unit = (configsPropertyDef.unit !== undefined) ? configsPropertyDef.unit : undefined;
           serviceConfigObj.description = (configsPropertyDef.description !== undefined) ? configsPropertyDef.description : undefined;
           serviceConfigObj.isOverridable = configsPropertyDef.isOverridable === undefined ? true : configsPropertyDef.isOverridable;
+          serviceConfigObj.serviceName = configsPropertyDef ? configsPropertyDef.serviceName : null;
+        }
+        if(serviceConfigObj.serviceName === 'MAPREDUCE' && serviceConfigObj.filename === 'core-site.xml'){
+          serviceConfigObj.isVisible = false;
         }
         if (_tag.siteName === 'global') {
           if (configsPropertyDef) {
@@ -140,7 +145,6 @@ App.config = Em.Object.create({
             }
           }
           serviceConfigObj.id = 'puppet var';
-          serviceConfigObj.serviceName = configsPropertyDef ? configsPropertyDef.serviceName : null;
           serviceConfigObj.displayName = configsPropertyDef ? configsPropertyDef.displayName : null;
           serviceConfigObj.category = configsPropertyDef ? configsPropertyDef.category : null;
           serviceConfigObj.options = configsPropertyDef ? configsPropertyDef.options : null;
@@ -150,7 +154,6 @@ App.config = Em.Object.create({
           serviceConfigObj.id = 'site property';
           serviceConfigObj.displayType = 'advanced';
           serviceConfigObj.displayName = configsPropertyDef ? configsPropertyDef.displayName : index;
-          serviceConfigObj.serviceName = serviceName;
           if (!isAdvanced || this.get('customFileNames').contains(serviceConfigObj.filename)) {
             var categoryMetaData = this.identifyCategory(serviceConfigObj);
             if (categoryMetaData != null) {
@@ -231,6 +234,7 @@ App.config = Em.Object.create({
         configData = preDefined;
         if (isAdvanced) {
           configData.category = (configData.category === undefined) ? configCategory : configData.category;
+          configData.filename = advancedConfigs.findProperty('name', configData.name).filename;
         }
       }
       mergedConfigs.push(configData);

@@ -49,7 +49,7 @@
 <div class="accordion">
   {{#each category in selectedService.configCategories}}
     {{#if category.isCustomView}}
-      {{#if App.supports.capacityScheduler}}
+      {{#if App.supports.capacitySchedulerUi}}
       {{view category.customView categoryBinding="category" serviceBinding="selectedService" canEditBinding="view.canEdit" serviceConfigsBinding="selectedService.configs"}}
       {{/if}}
     {{else}}
