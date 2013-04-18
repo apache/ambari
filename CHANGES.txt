@@ -747,6 +747,9 @@ Trunk (unreleased changes):
 
  BUG FIXES
 
+ AMBARI-1957. Hosts table: whether the alert filter is in effect or not is
+ not clear. (yusaku)
+
  AMBARI-1956. Wrong install status shown in Add Service Wizard. (yusaku)
 
  AMBARI-1951. Ambari agent setup during bootstrap should install the same

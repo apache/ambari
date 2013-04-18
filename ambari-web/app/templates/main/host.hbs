@@ -27,10 +27,12 @@
             {{category.label}}
           </a>
         </span>
-          {{#unless category.last}}
-            |
-          {{/unless}}
+        |
       {{/each}}
+      <span class="label label-important">{{t hosts.host.alerts.st}}</span>
+      <span {{bindAttr class="controller.filteredByAlerts:active"}}>
+        <a href="#" {{action filterByAlerts target="controller"}}>{{t hosts.host.alerts.label}} ({{view.hostsWithAlertsCount}})</a>
+      </span>
     </div>
 
     {{#if App.isAdmin}}

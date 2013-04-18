@@ -166,6 +166,43 @@ App.MainHostView = App.TableView.extend({
   },
 
   /**
+   * Deactivate Alerts filtering if some Health category is selected
+   */
+  deactivateAlertsFilter: function() {
+    if (this.get('category')) {
+      this.set('controller.filteredByAlerts', false);
+    }
+  }.observes('category'),
+
+  /**
+   * Count of the hosts with alerts
+   */
+  hostsWithAlertsCount: function() {
+    return this.get('content.length') - this.get('content').filterProperty('criticalAlertsCount', 0).length;
+  }.property('content.@each.criticalAlertsCount'),
+
+  /**
+   * Filter hosts by hosts with at least one alert
+   */
+  filterByAlerts:function() {
+    if (this.get('controller.filteredByAlerts')) {
+      this.updateFilter(0, '', 'string');
+      this.updateFilter(7, '>0', 'number');
+      this.get('categories').setEach('isActive', false);
+      this.set('category', false);
+    }
+    else {
+      this.updateFilter(7, '', 'number');
+      if (!this.get('category')) {
+        var category = this.get('categories').objectAt(0);
+        category.set('isActive', false);
+        this.set('category', category);
+      }
+    }
+  }.observes('controller.filteredByAlerts'),
+
+
+  /**
    * Filter view for name column
    * Based on <code>filters</code> library
    */
@@ -314,17 +351,6 @@ App.MainHostView = App.TableView.extend({
       this.get('parentView').updateFilter(6, this.get('value'), 'multiple');
     }
   }),
-
-  /**
-   * Filter hosts by hosts with at least one alert
-   */
-  filterByAlerts:function() {
-    if (this.get('controller.filteredByAlerts')) {
-      this.updateFilter(7, '>0', 'number')
-    } else {
-      this.updateFilter(7, '', 'number')
-    }
-  }.observes('controller.filteredByAlerts'),
 
   /**
    * associations between host property and column index
