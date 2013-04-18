@@ -30,7 +30,13 @@ define hdp-hadoop::hdfs::directory(
 {
  
   if ($service_state == 'running') {
-    $mkdir_cmd = "fs -mkdir ${name}"
+  
+  
+    if $stack_version in ("2.0.1") {
+      $mkdir_cmd = "fs -mkdir -p ${name}"
+    } else {
+      $mkdir_cmd = "fs -mkdir ${name}"
+    }
     hdp-hadoop::exec-hadoop { $mkdir_cmd:
       command => $mkdir_cmd,
       unless => "hadoop fs -ls ${name} >/dev/null 2>&1"

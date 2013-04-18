@@ -18,7 +18,7 @@
 # under the License.
 #
 #
-define hdp-hadoop::service(
+define hdp-yarn::service(
   $ensure = 'running',
   $user,
   $initial_wait = undef,
@@ -28,29 +28,18 @@ define hdp-hadoop::service(
 {
 
   $security_enabled = $hdp::params::security_enabled
-
-  #NOTE does not work if namenode and datanode are on same host 
-  $pid_dir = "${hdp-hadoop::params::hadoop_pid_dir_prefix}/${user}"
-  
-  $hadoop_libexec_dir = $hdp-hadoop::params::hadoop_libexec_dir
-  
-  if (($security_enabled == true) and ($name == 'datanode')) {
-    $run_as_root = true
-  } else {       
-    $run_as_root = false
-  }
-
-  if (($security_enabled == true) and ($name == 'datanode')) {
-    $hdfs_user = $hdp::params::hdfs_user
-    $pid_file = "${hdp-hadoop::params::hadoop_pid_dir_prefix}/${hdfs_user}/hadoop-${hdfs_user}-${name}.pid"
-  } else {
-    $pid_file = "${pid_dir}/hadoop-${user}-${name}.pid"
-  } 
-
-  $log_dir = "${hdp-hadoop::params::hdfs_log_dir_prefix}/${user}"
-  $hadoop_daemon = "export HADOOP_LIBEXEC_DIR=${hadoop_libexec_dir} && ${hdp::params::hadoop_bin}/hadoop-daemon.sh"
+  $log_dir = "${hdp-yarn::params::yarn_log_dir_prefix}"
+  $pid_dir = "${hdp-yarn::params::yarn_pid_dir_prefix}/${user}"
+  $yarn_daemon = "${hdp::params::yarn_bin}/yarn-daemon.sh"
+  $hadoop_libexec_dir = $hdp-yarn::params::hadoop_libexec_dir
    
-  $cmd = "${hadoop_daemon} --config ${hdp-hadoop::params::conf_dir}"
+  $cmd = "export HADOOP_LIBEXEC_DIR=${hadoop_libexec_dir} && ${yarn_daemon} --config ${hdp-yarn::params::conf_dir}"
+  
+  
+  $pid_file = "${pid_dir}/hadoop-${user}-${name}.pid"
+  
+  
+  
   if ($ensure == 'running') {
     if ($run_as_root == true) {
       $daemon_cmd = "${cmd} start ${name}"
@@ -69,23 +58,25 @@ define hdp-hadoop::service(
     $daemon_cmd = undef
   }
  
-  if ($create_pid_dir == true) {
+ 
+   if ($create_pid_dir == true) {
     hdp::directory_recursive_create { $pid_dir: 
       owner       => $user,
-      context_tag => 'hadoop_service',
+      context_tag => 'yarn_service',
       service_state => $service_state,
       force => true
     }
   }
-  
+ 
   if ($create_log_dir == true) {
     hdp::directory_recursive_create { $log_dir: 
       owner       => $user,
-      context_tag => 'hadoop_service',
+      context_tag => 'yarn_service',
       service_state => $service_state,
       force => true
     }
   }
+ 
   if ($daemon_cmd != undef) {  
     hdp::exec { $daemon_cmd:
       command      => $daemon_cmd,
@@ -94,17 +85,11 @@ define hdp-hadoop::service(
     }
   }
 
-  anchor{"hdp-hadoop::service::${name}::begin":}
-  anchor{"hdp-hadoop::service::${name}::end":}
+  anchor{"hdp-yarn::service::${name}::begin":}
+  anchor{"hdp-yarn::service::${name}::end":}
   if ($daemon_cmd != undef) {
-    Anchor["hdp-hadoop::service::${name}::begin"] -> Hdp::Exec[$daemon_cmd] -> Anchor["hdp-hadoop::service::${name}::end"]
+    Anchor["hdp-yarn::service::${name}::begin"] -> Hdp::Exec[$daemon_cmd] -> Anchor["hdp-yarn::service::${name}::end"]
 
-    if ($create_pid_dir == true) {
-      Anchor["hdp-hadoop::service::${name}::begin"] -> Hdp::Directory_recursive_create[$pid_dir] -> Hdp::Exec[$daemon_cmd] 
-    }
-     if ($create_log_dir == true) {
-      Anchor["hdp-hadoop::service::${name}::begin"] -> Hdp::Directory_recursive_create[$log_dir] -> Hdp::Exec[$daemon_cmd] 
-    }
   }
   if ($ensure == 'running') {
     #TODO: look at Puppet resource retry and retry_sleep
@@ -115,6 +100,6 @@ define hdp-hadoop::service(
       command => $post_check,
       unless  => $service_is_up
     }
-    Hdp::Exec[$daemon_cmd] -> Hdp::Exec[$post_check] -> Anchor["hdp-hadoop::service::${name}::end"]
+    Hdp::Exec[$daemon_cmd] -> Hdp::Exec[$post_check] -> Anchor["hdp-yarn::service::${name}::end"]
   }  
 }

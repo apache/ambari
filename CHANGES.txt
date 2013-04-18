@@ -12,6 +12,9 @@ Trunk (unreleased changes):
 
  NEW FEATURES
 
+ AMBARI-1679. Create ambari agent scripts for Hadoop 2.0 installation, 
+ configuration and management. (swagle)
+
  AMBARI-1680. Add Hadoop 2.0 stack definition to Ambari. (swagle)
 
  AMBARI-1908. HDFS Mirroring: Add Bread Crumbs and Validation. (Arun Kandregula

@@ -75,6 +75,8 @@ class hdp-hadoop::params(
 
   $namenode_opt_newsize = hdp_default("hadoop/hadoop-env/namenode_opt_newsize","640m")
   
+  $hadoop_libexec_dir = hdp_default("yarn/yarn-env/hadoop_libexec_dir","/usr/lib/hadoop/libexec")
+  
   ### compression related
   if (($hdp::params::lzo_enabled == true) and ($hdp::params::snappy_enabled == true)) {
     $mapred_compress_map_output = true

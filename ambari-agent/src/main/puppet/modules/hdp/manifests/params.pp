@@ -66,6 +66,10 @@ class hdp::params()
 
   $hdp_os = $::operatingsystem
   $hdp_os_version = $::operatingsystemrelease
+  
+  
+  ## Stack version
+  $stack_version = hdp_default("stack_version", "1.3.0")
 
   
   case $::operatingsystem {
@@ -131,6 +135,7 @@ class hdp::params()
 
   $hdfs_user = hdp_default("hdfs_user","hdfs")
   $mapred_user = hdp_default("mapred_user","mapred")
+  $yarn_user = hdp_default("yarn_user","yarn")
 
   $zk_user = hdp_default("zk_user","zookeeper") 
   $hbase_user = hdp_default("hbase_user","hbase")
@@ -229,143 +234,8 @@ class hdp::params()
   $apache_artifacts_download_url = hdp_default("apache_artifacts_download_url","")
   $gpl_artifacts_download_url = hdp_default("gpl_artifacts_download_url","") 
 
-  ### related to package resources  
-  #TODO: delete variable $package_names
-  $package_names = {
-   # hadoop => {
-   #   32 => 'hadoop.i386',
-   #   64 => 'hadoop.x86_64'
-   # },
-   # zookeeper => {
-   #   64 => 'zookeeper.x86_64'
-   # },
-   # hbase => {
-   #   64 => 'hbase.x86_64'
-   # },
-   # hcat-server => {
-   #   64 => 'hcatalog-server.x86_64'
-   # },
-   # hcat-base => {
-   #   64 => 'hcatalog.x86_64'
-   # },
-   # pig => {
-   #   32 => 'pig.i386'
-   # },
-    ganglia-monitor => {
-      64 => 'ganglia-gmond-3.2.0'
-    },
-    ganglia-server => {
-      64 => ['ganglia-gmetad-3.2.0']
-    },
-    ganglia-gweb => {
-      64 => 'gweb'
-    },
-    ganglia-hdp-gweb-addons => {
-      64 => 'hdp_mon_ganglia_addons'
-    },
-    glibc-rhel6 => {
-      32 => ['glibc','glibc.i686'],
-      64 => ['glibc','glibc.i686']
-    },
-    nagios-addons => {
-      64 => 'hdp_mon_nagios_addons'
-    },
-    nagios-server => {
-      64 => 'nagios-3.2.3'
-    },
-    nagios-plugins => {
-      64 => 'nagios-plugins'
-    },
-    nagios-fping => {
-      64 =>'fping'
-    },
-    nagios-php-pecl-json => {
-      64 => 'php-pecl-json.x86_64'
-    },
-    snmp => {
-      64 => ['net-snmp'],
-    },
-    dashboard => {
-      64 => 'hdp_mon_dashboard'
-    },
-    # sqoop => {
-    #   32 => 'sqoop-1.4.1-1.noarch'
-    #},
-    webhcat => {
-       32 => 'hcatalog',
-       64 => 'hcatalog'
-    },
-    oozie-client => {
-      64 => 'oozie-client'
-    },
-    oozie-server => {
-      64 => 'oozie'
-    },
-    lzo-rhel5 => {
-      32 => ['lzo','lzo.i386','lzo-devel','lzo-devel.i386'],
-      64 => ['lzo','lzo.i386','lzo-devel','lzo-devel.i386']
-    },
-    lzo-rhel6 => {
-      32 => ['lzo','lzo.i686','lzo-devel','lzo-devel.i686'],
-      64 => ['lzo','lzo.i686','lzo-devel','lzo-devel.i686']
-    },
-    #TODO: make these two consistent on whether case of 64/32 bits
-    snappy => {
-      32 =>  ['snappy','snappy-devel'],
-      64 => ['snappy','snappy-devel']
-    },
-    mysql => {
-      32 =>  ['mysql','mysql-server']
-    },
-    mysql-connector => {
-      64 =>  ['mysql-connector-java']
-    },
-    extjs => {
-      64 =>  ['extjs-2.2-1']
-    },
-    templeton-tar-hive => {
-      64 => ['templeton-tar-hive-0.0.1.14-1']
-    },
-    templeton-tar-pig => {
-      64 => ['templeton-tar-pig-0.0.1.14-1']
-    },
-    rrdtool-python => {
-      64 => ['python-rrdtool.x86_64']
-    },
-    # The 32bit version of package rrdtool-devel is removed on centos 5/6 to prevent conflict ( BUG-2881)
-    rrdtool-devel => {
-      64 => {
-        'ALL' => 'rrdtool-devel.i686',
-        'centos6' => 'rrdtool-devel.i686',
-        'centos5' => 'rrdtool-devel.i386',
-        'redhat6' => 'rrdtool-devel.i686',
-        'redhat5' => 'rrdtool-devel.i386',
-        'oraclelinux6' => 'rrdtool-devel.i686',
-        'oraclelinux5' => 'rrdtool-devel.i386'
-      }
-    },
-    # The 32bit version of package rrdtool is removed on centos 5/6 to prevent conflict ( BUG-2408)
-    rrdtool => {
-      64 => {
-        'ALL' => 'rrdtool.i686',
-        'centos6' => 'rrdtool.i686',
-        'centos5' => 'rrdtool.i386',
-        'redhat6' => 'rrdtool.i686',
-        'redhat5' => 'rrdtool.i386',
-        'oraclelinux6' => 'rrdtool.i686',
-        'oraclelinux5' => 'rrdtool.i386'
-       }
-    },
-    ambari-log4j => {
-      64 => ['ambari-log4j']
-    },
-    hue-server => {
-      64 => ['hue.noarch']
-    }
-  }
   $packages = 'bigtop' 
   if ($packages == 'hdp') {
-    $package_names[hadoop] = { 32 => ['hadoop.i386'], 64 => ['hadoop.x86_64']}
     $mapred_smoke_test_script = "/usr/sbin/hadoop-validate-setup.sh"
     $hadoop_bin = "/usr/sbin"
     $hadoop_conf_dir = "/etc/hadoop"
@@ -377,12 +247,6 @@ class hdp::params()
     $hadoop_jar_location = "/usr/share/hadoop"
     $hbase_daemon_script = "/usr/bin/hbase-daemon.sh"
     $use_32_bits_on_slaves = false
-    $package_names[zookeeper] = {64 => 'zookeeper.x86_64'}
-    $package_names[hbase] = {64 => 'hbase.x86_64'}
-    $package_names[sqoop] = {32 => 'sqoop-1.4.1-1.noarch'}
-    $package_names[pig] = { 32 => 'pig.i386'}
-    $package_names[hcat-server] = { 64 => 'hcatalog-server.x86_64'}
-    $package_names[hcat-base] = { 64 => 'hcatalog.x86_64'}
     $zk_bin = '/usr/sbin'
     $zk_smoke_test_script = '/usr/bin/zkCli.sh'
     $update_zk_shell_files = false
@@ -393,13 +257,17 @@ class hdp::params()
     $hive_conf_dir = "/etc/hive/conf"
 
   } elsif ($packages == 'bigtop') {  
-
-    $package_names[hadoop] = {32 => ['hadoop','hadoop-libhdfs.i386','hadoop-native.i386','hadoop-pipes.i386','hadoop-sbin.i386','hadoop-lzo', 'hadoop-lzo-native.i386'], 64 => ['hadoop','hadoop-libhdfs','hadoop-native','hadoop-pipes','hadoop-sbin','hadoop-lzo', 'hadoop-lzo-native']}
-    #$package_names[hadoop] = {32 => ['hadoop.i386','hadoop-native.i386'], 64 => ['hadoop.x86_64','hadoop-native.x86_64']}
    
     $mapred_smoke_test_script = "/usr/lib/hadoop/sbin/hadoop-validate-setup.sh"
-    $hadoop_bin = "/usr/lib/hadoop/bin"
+
+    if $stack_version in ("2.0.1") {
+      $hadoop_bin = "/usr/lib/hadoop/sbin"
+    } else {
+      $hadoop_bin = "/usr/lib/hadoop/bin"
+    }
+    $yarn_bin = "/usr/lib/hadoop-yarn/sbin"
     $hadoop_conf_dir = "/etc/hadoop/conf"
+    $yarn_conf_dir = "/etc/hadoop/conf"
     $zk_conf_dir = "/etc/zookeeper/conf"
     $hbase_conf_dir = "/etc/hbase/conf"
     $sqoop_conf_dir = "/usr/lib/sqoop/conf"
@@ -410,12 +278,6 @@ class hdp::params()
     $hadoop_jar_location = "/usr/lib/hadoop/"
     $hbase_daemon_script = "/usr/lib/hbase/bin/hbase-daemon.sh"
     $use_32_bits_on_slaves = false
-    $package_names[zookeeper] = {64 => ['zookeeper']}
-    $package_names[hbase] = {64 => ['hbase']}
-    $package_names[sqoop] = {32 => ['sqoop'], 64 => ['sqoop']}
-    $package_names[pig] = {32 => ['pig.noarch'], 64 => ['pig.noarch']}
-    $package_names[hcat] = {32 => ['hcatalog'], 64 => ['hcatalog']}
-    $package_names[hive] = {64 => ['hive']}
     $zk_bin = '/usr/lib/zookeeper/bin'
     $zk_smoke_test_script = "/usr/lib/zookeeper/bin/zkCli.sh"
     $update_zk_shell_files = false
@@ -450,182 +312,268 @@ class hdp::params()
 
     }
     
-
-    $alt_package_names = 
-{
-  snmp => 
-    { 64 => {suse =>['net-snmp'],
-             'ALL' => ['net-snmp', 'net-snmp-utils']}
-    },
-
-  oozie-server => 
+    # StackId => Arch => Os
+    $package_names = 
     {
-      64 => {'ALL' => 'oozie.noarch'}
+      snmp => {
+        'ALL' => {
+          64 => {
+            suse =>['net-snmp'],
+            'ALL' => ['net-snmp', 'net-snmp-utils']
+          }
+        }
+      },
+
+      oozie-server => {
+        'ALL' => {
+          64 => {
+            'ALL' => 'oozie.noarch'
+          }
+        }
+      },
+
+      snappy => {
+        'ALL' => {
+          64 => {
+            'ALL' => ['snappy','snappy-devel']
+          }
+        }
+      },
+
+      hadoop => {
+        'ALL' => {
+          32 => {
+            'ALL' => ['hadoop','hadoop-libhdfs.i386','hadoop-native.i386','hadoop-pipes.i386','hadoop-sbin.i386','hadoop-lzo', 'hadoop-lzo-native.i386']
+          },
+          64 => {
+            'ALL' => ['hadoop','hadoop-libhdfs','hadoop-native','hadoop-pipes','hadoop-sbin','hadoop-lzo', 'hadoop-lzo-native']
+          }
+        },
+        '2.0.1' => {
+          64 => {
+            'ALL' => ['hadoop','hadoop-libhdfs','hadoop-lzo', 'hadoop-lzo-native']
+          }
+        }
+      },
+
+    yarn-common => { 
+      'ALL' => {
+        64 => {
+          'ALL' => ['hadoop-yarn']
+        }
+      }
     },
 
-
-    snappy => {
-      64 => {'ALL' => ['snappy','snappy-devel']}
+    yarn-nodemanager => { 
+      'ALL' => {
+        64 => {
+          'ALL' => ['hadoop-yarn-nodemanager', 'hadoop-yarn-proxyserver', 'hadoop-yarn-resourcemanager']
+        }
+      }
     },
 
+    yarn-proxyserver => { 
+      'ALL' => {
+        64 => {
+          'ALL' => ['hadoop-yarn-proxyserver', 'hadoop-yarn-resourcemanager']
+        }
+      }
+    },
 
-    hadoop => {
-      32 => {'ALL' => ['hadoop','hadoop-libhdfs.i386','hadoop-native.i386','hadoop-pipes.i386','hadoop-sbin.i386','hadoop-lzo', 'hadoop-lzo-native.i386']},
-      64 => {'ALL' =>['hadoop','hadoop-libhdfs','hadoop-native','hadoop-pipes','hadoop-sbin','hadoop-lzo', 'hadoop-lzo-native']}
+    yarn-resourcemanager => { 
+      'ALL' => {
+        64 => {
+          'ALL' => ['hadoop-yarn-resourcemanager']
+        }
+      }
     },
 
     lzo => {
-      'ALL' => {'ALL' => ['lzo', 'lzo-devel'],
-                suse => ['lzo-devel']},
+      'ALL' => {
+        'ALL' => {
+          'ALL' => ['lzo', 'lzo-devel'],
+          suse => ['lzo-devel']
+        }
+      }
     },
 
     glibc=> {
-      'ALL' => {'ALL' => ['glibc','glibc.i686'],
-                suse => ['glibc']},
+      'ALL' => {
+        'ALL' => {
+          'ALL' => ['glibc','glibc.i686'],
+          suse => ['glibc']
+        }
+      }
     },
 
     zookeeper=> {
-      64 => {'ALL' => 'zookeeper'},
-    },
-    hbase=> {
-      64 => {'ALL' => 'hbase'},
+      'ALL' => {64 => {'ALL' => 'zookeeper'}}
     },
 
-    pig=> {
-      'ALL' => {'ALL'=>['pig.noarch']}
+    hbase=> {
+      'ALL' => {64 => {'ALL' => 'hbase'}}
+    },
+
+    pig=> { 
+      'ALL' => {'ALL' => {'ALL'=>['pig.noarch']}}
     },
 
     sqoop=> {
-      'ALL' =>{'ALL' => ['sqoop']}
+      'ALL' => {'ALL' =>{'ALL' => ['sqoop']}}
     },
 
     mysql-connector-java=> {
-      'ALL' =>{'ALL' => ['mysql-connector-java']}
+      'ALL' => {'ALL' =>{'ALL' => ['mysql-connector-java']}}
     },
     oozie-client=> {
-      '64' =>{'ALL' => ['oozie-client.noarch']}
+      'ALL' => {'64' =>{'ALL' => ['oozie-client.noarch']}}
     },
     extjs=> {
-      64 =>{'ALL' => ['extjs-2.2-1']}
+      'ALL' => {64 =>{'ALL' => ['extjs-2.2-1']}}
     },
     hive=> {
-      64 =>{'ALL' => ['hive']}
+      'ALL' => {64 =>{'ALL' => ['hive']}}
     },
     hcat=> {
-      'ALL' =>{'ALL' => ['hcatalog']}
+      'ALL' => {'ALL' =>{'ALL' => ['hcatalog']}}
     },
 
     mysql => {
-      64 =>  {'ALL' => ['mysql','mysql-server'],
-              suse => ['mysql-client','mysql']}
+      'ALL' => {
+        64 =>  {
+          'ALL' => ['mysql','mysql-server'],
+          suse => ['mysql-client','mysql']
+        }
+      }
     },
+
     webhcat => {
-      'ALL' => {'ALL' => 'hcatalog'}
+      'ALL' => {'ALL' => {'ALL' => 'hcatalog'}}
     },
+
     webhcat-tar-hive => {
-      64 => {'ALL' => 'webhcat-tar-hive'}
+      'ALL' => {64 => {'ALL' => 'webhcat-tar-hive'}}
     },
+
     webhcat-tar-pig => {
-      64 => {'ALL' =>'webhcat-tar-pig'}
+      'ALL' => {64 => {'ALL' =>'webhcat-tar-pig'}}
     },
+
     dashboard => {
-      64 => {'ALL' => 'hdp_mon_dashboard'}
+      'ALL' => {64 => {'ALL' => 'hdp_mon_dashboard'}}
     },
 
     perl =>
     {
-      64 => {'ALL' => 'perl'}
+      'ALL' => {64 => {'ALL' => 'perl'}}
     },
 
     perl-Net-SNMP =>
     {
-      64 => {'ALL' => 'perl-Net-SNMP'}
+      'ALL' => {64 => {'ALL' => 'perl-Net-SNMP'}}
     },
 
     nagios-server => {
-      64 => {'ALL' => 'nagios-3.2.3'}
+      'ALL' => {64 => {'ALL' => 'nagios-3.2.3'}}
     },
 
     nagios-fping => {
-      64 =>{'ALL' => 'fping'}
+      'ALL' => {64 =>{'ALL' => 'fping'}}
     },
 
     nagios-plugins => {
-      64 => {'ALL' => 'nagios-plugins-1.4.9'}
+      'ALL' => {64 => {'ALL' => 'nagios-plugins-1.4.9'}}
     },
 
     nagios-addons => {
-      64 => {'ALL' => 'hdp_mon_nagios_addons'}
+      'ALL' => {64 => {'ALL' => 'hdp_mon_nagios_addons'}}
     },
+
     nagios-php-pecl-json => {
-      64 => {'ALL' => $NOTHING,
-             suse => 'php5-json',
-             centos6 => $NOTHING,
-             redhat6 => $NOTHING,
-             oraclelinux6 => $NOTHING,
-             centos5 => 'php-pecl-json.x86_64',
-             redhat5 => 'php-pecl-json.x86_64',
-             oraclelinux5 => 'php-pecl-json.x86_64'}
+      'ALL' => {
+        64 => {
+          'ALL' => $NOTHING,
+          suse => 'php5-json',
+          centos6 => $NOTHING,
+          redhat6 => $NOTHING,
+          oraclelinux6 => $NOTHING,
+          centos5 => 'php-pecl-json.x86_64',
+          redhat5 => 'php-pecl-json.x86_64',
+          oraclelinux5 => 'php-pecl-json.x86_64'
+        }
+      }
     },
 
     ganglia-server => {
-      64 => {'ALL' => 'ganglia-gmetad-3.2.0'}
+      'ALL' => {64 => {'ALL' => 'ganglia-gmetad-3.2.0'}}
     },
 
     ganglia-gweb => {
-      64 => {'ALL' => 'gweb'}
+      'ALL' => {64 => {'ALL' => 'gweb'}}
     },
 
     ganglia-hdp-gweb-addons => {
-      64 => {'ALL' => 'hdp_mon_ganglia_addons'}
+      'ALL' => {64 => {'ALL' => 'hdp_mon_ganglia_addons'}}
     },
 
     ganglia-monitor => {
-      64 => {'ALL' =>'ganglia-gmond-3.2.0'}
+      'ALL' => {64 => {'ALL' =>'ganglia-gmond-3.2.0'}}
     },
-	
+
     rrdtool-python => {
-      64 => {'ALL' =>'python-rrdtool.x86_64'}
+      'ALL' => {64 => {'ALL' =>'python-rrdtool.x86_64'}}
     },
 
     # The 32bit version of package rrdtool-devel is removed on centos 5/6 to prevent conflict ( BUG-2881)
     rrdtool-devel => {
-      64 => {
-        'ALL' => 'rrdtool-devel.i686',
-        'centos6' => 'rrdtool-devel.i686',
-        'centos5' => 'rrdtool-devel.i386',
-        'redhat6' => 'rrdtool-devel.i686',
-        'redhat5' => 'rrdtool-devel.i386',
-        'oraclelinux6' => 'rrdtool-devel.i686',
-        'oraclelinux5' => 'rrdtool-devel.i386'
+      'ALL' => {
+        64 => {
+          'ALL' => 'rrdtool-devel.i686',
+          'centos6' => 'rrdtool-devel.i686',
+          'centos5' => 'rrdtool-devel.i386',
+          'redhat6' => 'rrdtool-devel.i686',
+          'redhat5' => 'rrdtool-devel.i386',
+          'oraclelinux6' => 'rrdtool-devel.i686',
+          'oraclelinux5' => 'rrdtool-devel.i386'
         }
+      }
     },
 
     # The 32bit version of package rrdtool is removed on centos 5/6 to prevent conflict ( BUG-2408)
     rrdtool => {
-      64 => {
-        'ALL' => 'rrdtool.i686',
-        'centos6' => 'rrdtool.i686',
-        'centos5' => 'rrdtool.i386',
-        'redhat6' => 'rrdtool.i686',
-        'redhat5' => 'rrdtool.i386',
-        'oraclelinux6' => 'rrdtool.i686',
-        'oraclelinux5' => 'rrdtool.i386'
+      'ALL' => {
+        64 => {
+          'ALL' => 'rrdtool.i686',
+          'centos6' => 'rrdtool.i686',
+          'centos5' => 'rrdtool.i386',
+          'redhat6' => 'rrdtool.i686',
+          'redhat5' => 'rrdtool.i386',
+          'oraclelinux6' => 'rrdtool.i686',
+          'oraclelinux5' => 'rrdtool.i386'
         }
+      }
     },
 
     hue-server => {
-      64 => {'ALL' => 'hue.noarch'}
+      'ALL' => {64 => {'ALL' => 'hue.noarch'}}
     },
 
     ambari-log4j => {
-      64 => {'ALL' =>'ambari-log4j'}
+      'ALL' => {
+        64 => {
+          'ALL' => 'ambari-log4j'
+        }
+      }
     },
+
     httpd => {
-      64 => {'ALL' =>'httpd',
-        suse => ['apache2', 'apache2-mod_php5']}
+      'ALL' => {
+        64 => {
+          'ALL' => 'httpd',
+          suse => ['apache2', 'apache2-mod_php5']
+        }
+      }
     }
-	
 }
 
   $repos_paths = 
