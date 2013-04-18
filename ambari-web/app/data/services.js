@@ -16,6 +16,8 @@
  * limitations under the License.
  */
 
+var App = require('app');
+
 module.exports = [
   {
     serviceName: 'HDFS',
@@ -105,7 +107,7 @@ module.exports = [
     serviceName: 'HUE',
     displayName: 'Hue',
     isDisabled: false,
-    isSelected: true,
-    isHidden: false
+    isSelected: App.supports.hue,
+    isHidden: !App.supports.hue
   }
 ]

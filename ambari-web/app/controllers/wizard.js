@@ -467,7 +467,7 @@ App.WizardController = Em.Controller.extend({
           serviceName: entry.name,
           displayName: displayOrderConfig[i].displayName,
           isDisabled: i === 0,
-          isSelected: true,
+          isSelected: displayOrderConfig[i].isSelected,
           isInstalled: false,
           isHidden: displayOrderConfig[i].isHidden,
           description: entry.comment,

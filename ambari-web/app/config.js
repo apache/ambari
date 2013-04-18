@@ -48,7 +48,8 @@ App.supports = {
   capacitySchedulerUi: false,
   startStopAllServices: false,
   hiveOozieExtraDatabases: false,
-  multipleHBaseMasters: false
+  multipleHBaseMasters: false,
+  hue: false
 };
 
 if (App.enableExperimental) {
