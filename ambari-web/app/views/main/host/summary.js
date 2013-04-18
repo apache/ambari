@@ -161,7 +161,7 @@ App.MainHostSummaryView = Em.View.extend({
       components.pushObject(this.addableComponentObject.create({ 'componentName': 'HBASE_REGIONSERVER' }));
     }
     return components;
-  }.property('content'),
+  }.property('content', 'content.hostComponents.length'),
 
   ComponentView: Em.View.extend({
     content: null,
