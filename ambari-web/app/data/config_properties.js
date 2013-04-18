@@ -2077,7 +2077,7 @@ module.exports =
       "isReconfigurable": false,
       "displayType": "user",
       "isOverridable": false,
-      "isVisible": true,
+      "isVisible": App.supports.customizeSmokeTestUser,
       "domain": "global",
       "serviceName": "MISC",
       "category": "Users and Groups"

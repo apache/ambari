@@ -264,6 +264,9 @@ Trunk (unreleased changes):
 
  IMPROVEMENTS
 
+ AMBARI-1967. Add smoke test user customization toggle via App.supports.
+ (yusaku)
+
  AMBARI-1964. Add ability to toggle on/off assigning masters for new hosts
  being added via Add Host wizard. (yusaku)
 

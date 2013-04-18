@@ -36,7 +36,7 @@ App.maxRunsForAppBrowser = 500;
 App.pageReloadTime=3600000;
 
 // experimental features are automatically enabled if running on brunch server
-App.enableExperimental = (location.port == '3333');
+App.enableExperimental = false;
 
 App.supports = {
   addServices: false,
@@ -50,6 +50,7 @@ App.supports = {
   hiveOozieExtraDatabases: false,
   multipleHBaseMasters: false,
   addMasters: false,
+  customizeSmokeTestUser: false,
   hue: false
 };
 
