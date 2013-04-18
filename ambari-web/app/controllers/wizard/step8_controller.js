@@ -967,14 +967,14 @@ App.WizardStep8Controller = Em.Controller.extend({
         success: 'deleteClustersSuccessCallback',
         error: 'deleteClustersErrorCallback'
       });
-    });
+    }, this);
   },
 
-  deleteClustersSuccessCallback: function(data, opt) {
-    console.log('DELETE cluster ' + opt.data.name + ' succeeded');
+  deleteClustersSuccessCallback: function(data, opt, params) {
+    console.log('DELETE cluster ' + params.name + ' succeeded');
   },
   deleteClustersErrorCallback: function(request, ajaxOptions, error, opt) {
-    console.log('DELETE cluster ' + opt.data.name + ' failed');
+    console.log('DELETE cluster failed');
   },
 
   /**

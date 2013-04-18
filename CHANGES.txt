@@ -749,6 +749,9 @@ Trunk (unreleased changes):
 
  BUG FIXES
 
+ AMBARI-1963. Deploying progress bar shows 0 tasks after installation failure
+ and going back to a previous step to retry. (yusaku)
+
  AMBARI-1962. Host Check popup keeps the "rerun check" button disabled even
  after it is done and its hard to know if its actually run or not. (yusaku)
 
