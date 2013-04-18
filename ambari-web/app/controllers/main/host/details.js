@@ -237,7 +237,7 @@ App.MainHostDetailsController = Em.Controller.extend({
 
           self.sendCommandToServer('/host_components?HostRoles/host_name=' + self.get('content.hostName') + '\&HostRoles/component_name=' + componentName + '\&HostRoles/state=INIT',{
               RequestInfo : {
-                "context" : Em.I18n.t('requestInfo.installingHostComponent')+ " " + componentName
+                "context" : Em.I18n.t('requestInfo.installNewHostComponent')+ " " + componentName
               },
               Body:{
                 HostRoles:{

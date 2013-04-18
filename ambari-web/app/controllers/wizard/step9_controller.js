@@ -332,10 +332,10 @@ App.WizardStep9Controller = Em.Controller.extend({
    * run start/check services after installation phase
    */
   launchStartServices: function () {
-    var data = '{"RequestInfo": {"context": "'+Em.I18n.t("requestInfo.serviceStartCheck")+'"}, "Body": {"ServiceInfo": {"state": "STARTED"}}}';
+    var data = '{"RequestInfo": {"context": "'+Em.I18n.t("requestInfo.startServices")+'"}, "Body": {"ServiceInfo": {"state": "STARTED"}}}';
     var name = 'wizard.step9.installer.launch_start_services';
     if (this.get('content.controllerName') === 'addHostController') {
-      data = '{"HostRoles": {"state": "STARTED"}}';
+      data = '{"RequestInfo": {"context": "'+Em.I18n.t("requestInfo.startHostComponents")+'"}, "Body": {"HostRoles": {"state": "STARTED"}}}';
       name = 'wizard.step9.add_host.launch_start_services';
     }
     if (App.testMode) {

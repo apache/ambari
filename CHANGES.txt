@@ -752,6 +752,9 @@ Trunk (unreleased changes):
 
  BUG FIXES
 
+ AMBARI-1953. On Add Hosts, the request context for the start phase shows up
+ as "Request Name Not Specified". (yusaku)
+
  AMBARI-1966. Client install tasks are shown twice in progress popup during
  start phase of install wizard (update API call to include
  params/reconfigure_client). (yusaku)
