@@ -604,7 +604,7 @@ App.WizardStep3Controller = Em.Controller.extend({
       clearInterval(interval);
       App.ajax.send({
         name: 'wizard.step3.rerun_checks',
-        sender: this,
+        sender: self,
         success: 'rerunChecksSuccessCallback',
         error: 'rerunChecksErrorCallback'
       });
@@ -613,10 +613,9 @@ App.WizardStep3Controller = Em.Controller.extend({
   },
 
   rerunChecksSuccessCallback: function (data) {
-    var jsonData = (App.testMode) ? data : jQuery.parseJSON(data);
     this.set('checksUpdateProgress', 100);
     this.set('checksUpdateStatus', 'SUCCESS');
-    this.parseWarnings(jsonData);
+    this.parseWarnings(data);
   },
 
   rerunChecksErrorCallback: function () {

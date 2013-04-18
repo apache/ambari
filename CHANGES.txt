@@ -749,6 +749,9 @@ Trunk (unreleased changes):
 
  BUG FIXES
 
+ AMBARI-1962. Host Check popup keeps the "rerun check" button disabled even
+ after it is done and its hard to know if its actually run or not. (yusaku)
+
  AMBARI-1961. Select Services: clicking on "all" selects HUE even when HUE
  support is toggled off. (yusaku)
 
