@@ -199,15 +199,11 @@ App.config = Em.Object.create({
       var stored = storedConfigs.findProperty('name', name);
       var preDefined = preDefinedConfigs.findProperty('name', name);
       var configData = {};
-      var configCategory = 'Advanced';
       var isAdvanced = advancedConfigs.someProperty('name', name);
       if (preDefined && stored) {
         configData = preDefined;
         configData.value = stored.value;
         configData.overrides = stored.overrides;
-        if (isAdvanced) {
-          configData.category = (configData.category === undefined) ? configCategory : configData.category;
-        }
       } else if (!preDefined && stored) {
         configData = {
           id: stored.id,
@@ -218,10 +214,11 @@ App.config = Em.Object.create({
           defaultValue: stored.defaultValue,
           displayType: "advanced",
           filename: stored.filename,
-          category: configCategory,
+          category: 'Advanced',
           isUserProperty: stored.isUserProperty === true,
           isOverridable: true,
-          overrides: stored.overrides
+          overrides: stored.overrides,
+          isRequired: !isAdvanced
         }
         if (!isAdvanced || this.get('customFileNames').contains(configData.filename)) {
           var categoryMetaData = this.identifyCategory(configData);
@@ -233,7 +230,6 @@ App.config = Em.Object.create({
       } else if (preDefined && !stored) {
         configData = preDefined;
         if (isAdvanced) {
-          configData.category = (configData.category === undefined) ? configCategory : configData.category;
           configData.filename = advancedConfigs.findProperty('name', configData.name).filename;
         }
       }

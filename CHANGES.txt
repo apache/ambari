@@ -765,6 +765,9 @@ Trunk (unreleased changes):
 
  BUG FIXES
 
+ AMBARI-1986. HDFS General section has disappeared from Customize Services 
+ step of the Install Wizard. (yusaku)
+
  AMBARI-1985. Incorrect behavior of "Undo" button for password fields. (yusaku)
 
  AMBARI-1702. Ambari/GSInstallers need to set the value of 
