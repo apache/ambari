@@ -109,7 +109,6 @@ public class HttpProxyPropertyProvider extends BaseProvider implements PropertyP
   }
 
   private void getHttpResponse(Resource r, String url, String propertyIdToSet) throws SystemException {
-    
     InputStream in = null;
     try {
       in = streamProvider.readFrom(url);
@@ -119,14 +118,14 @@ public class HttpProxyPropertyProvider extends BaseProvider implements PropertyP
     }
     catch (IOException ioe) {
       LOG.error("Error reading HTTP response from " + url);
-      throw new SystemException("Unable to get property " + propertyIdToSet + "from URL " + url, ioe);
+      r.setProperty(propertyIdToSet, null);
     } finally {
       if (in != null) {
         try {
           in.close();
         }
         catch (IOException ioe) {
-          throw new SystemException("Unable to close input stream", ioe);
+          LOG.error("Error closing HTTP response stream " + url);
         }
       }
     }

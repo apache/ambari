@@ -427,7 +427,7 @@ Trunk (unreleased changes):
 
  AMBARI-1546. Improve Cluster Management loading screen. (Xi Wang via yusaku)
 
- ABMARI-1975. Add Clover coverage (ncole)
+ AMBARI-1975. Add Clover coverage (ncole)
 
  AMBARI-1537. Constrain the width of all wizard popups. (Xi Wang via yusaku)
 
@@ -1185,6 +1185,8 @@ Trunk (unreleased changes):
 
  AMBARI-1657. User directories on HDFS do not get created with custom names 
  provided from Ambari UI. (swagle)
+
+ AMBARI-1980. Fix for nagios_alerts element when there is an error. (ncole)
 
  AMBARI-1865. Fix for upgrade script to copy configurations. (ncole)
 
