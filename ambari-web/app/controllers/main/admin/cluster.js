@@ -82,25 +82,28 @@ App.MainAdminClusterController = Em.Controller.extend({
           findProperty("StackServices.service_name", displayOrderConfig[i].serviceName);
         if (entry) {
           entry = entry.StackServices;
-        if (installedServices.contains(entry.service_name)) {
-          var myService = Em.Object.create({
-            serviceName: entry.service_name,
-            displayName: displayOrderConfig[i].displayName,
-            isDisabled: i === 0,
-            isSelected: true,
-            isInstalled: false,
-            isHidden: displayOrderConfig[i].isHidden,
-            description: entry.comments,
-            version: entry.service_version,
-            newVersion: upgradeStack.stackServices.
-              findProperty("StackServices.service_name", displayOrderConfig[i].serviceName).
-              StackServices.service_version
-          });
-          //From 1.3.0 for Hive we display only "Hive" (but it install HCat and WebHCat as well)
-          if (this.get('upgradeVersion').replace(/HDP-/, '') >= '1.3.0' && displayOrderConfig[i].serviceName == 'HIVE') {
-            myService.set('displayName', 'Hive');
-          }
-          result.push(myService);
+          if (installedServices.contains(entry.service_name)) {
+            var myService = Em.Object.create({
+              serviceName: entry.service_name,
+              displayName: displayOrderConfig[i].displayName,
+              isDisabled: i === 0,
+              isSelected: true,
+              isInstalled: false,
+              isHidden: displayOrderConfig[i].isHidden,
+              description: entry.comments,
+              version: entry.service_version,
+              newVersion: ''
+            });
+            // it's possible that there is no corresponding service in the new stack
+            var matchedService = upgradeStack.stackServices.findProperty("StackServices.service_name", displayOrderConfig[i].serviceName);
+            if (matchedService) {
+              myService.newVersion = matchedService.StackServices.service_version;
+            }
+            //From 1.3.0 for Hive we display only "Hive" (but it install HCat and WebHCat as well)
+            if (this.get('upgradeVersion').replace(/HDP-/, '') >= '1.3.0' && displayOrderConfig[i].serviceName == 'HIVE') {
+              myService.set('displayName', 'Hive');
+            }
+            result.push(myService);
           }
         }
         else {

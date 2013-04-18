@@ -752,6 +752,9 @@ Trunk (unreleased changes):
 
  BUG FIXES
 
+ AMBARI-1954. Dashboard does not come up if the upgrade stack does not contain
+ a service with the same name. (yusaku)
+
  AMBARI-1953. On Add Hosts, the request context for the start phase shows up
  as "Request Name Not Specified". (yusaku)
 
