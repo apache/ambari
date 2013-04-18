@@ -587,7 +587,7 @@ var urls = {
     }
   },
   'wizard.step9.installer.launch_start_services': {
-    'real': '/clusters/{cluster}/services?ServiceInfo/state=INSTALLED&params/run_smoke_test=true',
+    'real': '/clusters/{cluster}/services?ServiceInfo/state=INSTALLED&params/run_smoke_test=true&params/reconfigure_client=false',
     'mock': '/data/wizard/deploy/5_hosts/poll_6.json',
     'format': function (data, opt) {
       var data = {

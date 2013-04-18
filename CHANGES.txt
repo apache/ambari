@@ -752,6 +752,10 @@ Trunk (unreleased changes):
 
  BUG FIXES
 
+ AMBARI-1966. Client install tasks are shown twice in progress popup during
+ start phase of install wizard (update API call to include
+ params/reconfigure_client). (yusaku)
+
  AMBARI-1965. core-site properties are incorrectly populated in Advanced/
  General category of MapReduce service. (yusaku)
 
