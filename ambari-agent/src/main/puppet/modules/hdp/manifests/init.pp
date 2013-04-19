@@ -53,8 +53,8 @@ class hdp(
     $jobhistory_port = hdp_get_port_from_url($mapred-site["mapreduce.history.server.http.address"],"51111")
   }
 
-  $hbase_master_port = hdp_default("hadoop/hbase-site/hbase.master.info.port","60010")
-  $hbase_rs_port = hdp_default("hadoop/hbase-site/hbase.regionserver.info.port","60030")
+  $hbase_master_port = hdp_default("hbase-site/hbase.master.info.port","60010")
+  $hbase_rs_port = hdp_default("hbase-site/hbase.regionserver.info.port","60030")
   
   #TODO: think not needed and also there seems to be a puppet bug around this and ldap
   class { 'hdp::snmp': service_state => 'running'}

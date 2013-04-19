@@ -29,7 +29,7 @@ class hdp-ganglia::params() inherits hdp::params
   $gmetad_user = $hdp::params::gmetad_user
   $gmond_user = $hdp::params::gmond_user
 
-  $webserver_group = hdp_default("hadoop/gangliaEnv/webserver_group","apache")
+  $webserver_group = hdp_default("webserver_group","apache")
   $rrdcached_default_base_dir = "/var/lib/ganglia/rrds"
   $rrdcached_base_dir = hdp_default("rrdcached_base_dir", "/var/lib/ganglia/rrds")
 }

@@ -22,8 +22,8 @@ class hdp-hive::params() inherits hdp::params
 {
 
   #TODO: will move to globals
-  $hive_metastore_user_name = hdp_default("hadoop/hive-site/hive_metastore_user_name","dbusername")
-  $hive_metastore_user_passwd = hdp_default("hadoop/hive-site/hive_metastore_user_passwd","dbpassword")
+  $hive_metastore_user_name = hdp_default("hive_metastore_user_name","dbusername")
+  $hive_metastore_user_passwd = hdp_default("hive_metastore_user_passwd","dbpassword")
 
   ### users
   $hive_user = $hdp::params::hive_user
@@ -44,16 +44,16 @@ class hdp-hive::params() inherits hdp::params
   ### hive-env
   $hive_conf_dir = $hdp::params::hive_conf_dir
 
-  $hive_dbroot = hdp_default("hadoop/hive-env/hive_dbroot",$hive_lib)
+  $hive_dbroot = hdp_default("hive_dbroot",$hive_lib)
 
-  $hive_log_dir = hdp_default("hadoop/hive-env/hive_log_dir","/var/log/hive")
+  $hive_log_dir = hdp_default("hive_log_dir","/var/log/hive")
 
-  $hive_pid_dir = hdp_default("hadoop/hive-env/hive_pid_dir","/var/run/hive")
-  $hive_pid = hdp_default("hadoop/hive-env/hive_pid","hive-server.pid")
+  $hive_pid_dir = hdp_default("hive_pid_dir","/var/run/hive")
+  $hive_pid = hdp_default("hive_pid","hive-server.pid")
 
   
   ### hive-site
-  $hive_database_name = hdp_default("hadoop/hive-site/hive_database_name","hive")
+  $hive_database_name = hdp_default("hive-site/hive.database.name","hive")
 
   if ($hdp::params::security_enabled == true) {
     $hive_metastore_sasl_enabled = true
@@ -64,7 +64,7 @@ class hdp-hive::params() inherits hdp::params
   $keytab_path = hdp_default("keytab_path","/etc/security/keytabs")
 
   #TODO: using instead hive_server_host in hdp::params 
-  #$hive_metastore_server_host = hdp_default("hadoop/hive-site/hive_metastore_server_host")
+  #$hive_metastore_server_host = hdp_default("hive-site/hive.metastore.server.host")
   
   ###mysql connector
   $download_url = $hdp::params::gpl_artifacts_download_url

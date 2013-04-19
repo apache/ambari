@@ -25,6 +25,19 @@ class hdp::params()
   $NOTHING='NOTHING'
   $NOBODY_USER='nobody'
 
+  ###### environment variables
+  if (hdp_is_empty($configuration) == false) {
+    $core-site = $configuration['core-site']
+    $hbase-site = $configuration['hbase-site']
+    $hdfs-site = $configuration['hdfs-site']
+    $hive-site = $configuration['hive-site']
+    $hue-site = $configuration['hue-site']
+    $mapred-site = $configuration['mapred-site']
+    $oozie-site = $configuration['oozie-site']
+    $sqoop-site = $configuration['sqoop-site']
+    $webhcat-site = $configuration['webhcat-site']
+  }
+
   ##### global state defaults ####
   $cluster_service_state = hdp_default("cluster_service_state","running")
   $cluster_client_state = hdp_default("cluster_client_state","installed_and_configured")
@@ -170,7 +183,7 @@ class hdp::params()
   ############ Hdfs apps directories
   $hive_apps_whs_dir = hdp_default("hive_apps_whs_dir", "/apps/hive/warehouse")
   $webhcat_apps_dir = hdp_default("webhcat_apps_dir", "/apps/webhcat")
-  $hbase_hdfs_root_dir = hdp_default("hadoop/hbase-site/hbase_hdfs_root_dir","/apps/hbase/data")
+  $hbase_hdfs_root_dir = hdp_default("hbase-site/hbase.hdfs.root.dir","/apps/hbase/data")
 
   $user_group = hdp_default("user_group","hadoop")
 
@@ -225,7 +238,7 @@ class hdp::params()
   $exec_path = ["/bin","/usr/bin", "/usr/sbin"]
 
    #### params used on multiple modules
-  $dfs_data_dir = hdp_default("hadoop/hdfs-site/dfs_data_dir","/tmp/hadoop-hdfs/dfs/data")
+  $dfs_data_dir = hdp_default("hdfs-site/dfs.data.dir","/tmp/hadoop-hdfs/dfs/data")
 
   ### artifact dir
   $artifact_dir = hdp_default("artifact_dir","/tmp/HDP-artifacts/")
@@ -630,4 +643,3 @@ class hdp::params()
   $is_jtnode_master   = $::fqdn in $jtnode_host
   $is_hbase_master    = $::fqdn in $hbase_master_hosts
 }
-
