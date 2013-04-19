@@ -774,6 +774,10 @@ Trunk (unreleased changes):
 
  BUG FIXES
 
+ AMBARI-1990. After successful registration, going back to the Confirm Hosts
+ or re-installing agents from Install Options page causes host registration
+ to fail. (smohanty)
+
  AMBARI-1991. Remove unused python files from ambari-agent. (smohanty)
 
  AMBARI-1984. WebHCat log and pid dirs configs should be under WebHCat >

@@ -81,11 +81,6 @@ def runAgent(passPhrase):
   os.environ[AMBARI_PASSPHRASE_VAR] = passPhrase
   subprocess.call("/usr/sbin/ambari-agent start", shell=True)
   try:
-    # print this to the log.  despite the directory, machine.py works with Python 2.4
-    ret = execOsCommand(["python", "/usr/lib/python2.6/site-packages/ambari_agent/machine.py"])
-    if not 0 == ret['exitstatus']:
-      return ret['exitstatus']
-    print ret['log']
 
     ret = execOsCommand(["tail", "-20", "/var/log/ambari-agent/ambari-agent.log"])
     if not 0 == ret['exitstatus']:
