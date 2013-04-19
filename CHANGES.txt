@@ -774,6 +774,9 @@ Trunk (unreleased changes):
 
  BUG FIXES
 
+ AMBARI-1978. Deploying HDP-1.3.0 results in several alerts - is it related to 
+ hard-coded port. Incremental update. (swagle)
+
  AMBARI-1990. After successful registration, going back to the Confirm Hosts
  or re-installing agents from Install Options page causes host registration
  to fail. (smohanty)
