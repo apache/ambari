@@ -22,10 +22,6 @@ import json
 import logging
 from StatusCheck import StatusCheck
 import AmbariConfig
-import socket
-import time
-import traceback
-from pprint import pprint, pformat
 from StackVersionsFileHandler import StackVersionsFileHandler
 from ActualConfigHandler import ActualConfigHandler
 

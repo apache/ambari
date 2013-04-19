@@ -21,7 +21,6 @@ limitations under the License.
 from unittest import TestCase
 from ambari_agent.ActionQueue import ActionQueue
 from ambari_agent.AmbariConfig import AmbariConfig
-from ambari_agent.FileUtil import getFilePath
 from ambari_agent.UpgradeExecutor import UpgradeExecutor
 from ambari_agent.StackVersionsFileHandler import StackVersionsFileHandler
 import os, errno, time, pprint, tempfile, threading

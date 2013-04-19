@@ -19,10 +19,7 @@ limitations under the License.
 '''
 
 from pwd import getpwnam
-from grp import getgrnam
-import AmbariConfig
 import logging
-import logging.handlers
 import subprocess
 import os
 import tempfile
@@ -31,7 +28,8 @@ import sys
 import threading
 import time
 import traceback
-import shutil
+import AmbariConfig
+
 
 global serverTracker
 serverTracker = {}

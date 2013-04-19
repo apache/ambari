@@ -18,15 +18,14 @@ See the License for the specific language governing permissions and
 limitations under the License.
 '''
 
-import multiprocessing
-import platform
-import AmbariConfig
 import os.path
-import shell
 import logging
 import subprocess
 import pprint
 import traceback
+
+import AmbariConfig
+
 
 logger = logging.getLogger()
 

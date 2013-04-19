@@ -774,6 +774,8 @@ Trunk (unreleased changes):
 
  BUG FIXES
 
+ AMBARI-1991. Remove unused python files from ambari-agent. (smohanty)
+
  AMBARI-1984. WebHCat log and pid dirs configs should be under WebHCat >
  Advanced. (yusaku)
 

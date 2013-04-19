@@ -21,12 +21,11 @@ limitations under the License.
 import json
 import os.path
 import logging
-from uuid import getnode as get_mac
-from shell import shellRunner
 from datetime import datetime
-import AmbariConfig
 import pprint
+import AmbariConfig
 import hostname
+
 
 logger = logging.getLogger()
 

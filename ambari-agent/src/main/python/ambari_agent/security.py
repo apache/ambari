@@ -18,17 +18,17 @@
 
 import httplib
 import urllib2
-from urllib2 import Request
 import socket
-import hostname
 import ssl
 import os
 import logging
 from subprocess import Popen, PIPE
-import AmbariConfig
 import json
 import pprint
 import traceback
+import hostname
+import AmbariConfig
+
 logger = logging.getLogger()
 
 GEN_AGENT_KEY="openssl req -new -newkey rsa:1024 -nodes -keyout %(keysdir)s/%(hostname)s.key\

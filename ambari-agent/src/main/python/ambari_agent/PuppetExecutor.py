@@ -21,13 +21,15 @@ import json
 import os.path
 import logging
 import subprocess
+import pprint
+import threading
+from threading import Thread
+
 from manifestGenerator import generateManifest
 from RepoInstaller import RepoInstaller
-import pprint, threading
 from Grep import Grep
-from threading import Thread
 import shell
-import traceback
+
 
 logger = logging.getLogger()
 

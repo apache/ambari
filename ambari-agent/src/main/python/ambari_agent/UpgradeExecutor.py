@@ -20,17 +20,11 @@ limitations under the License.
 import json
 import os.path
 import logging
-import subprocess
-from manifestGenerator import generateManifest
-from RepoInstaller import RepoInstaller
-import pprint, threading
-from Grep import Grep
-from threading import Thread
-import shell
-import traceback
+import pprint
+import re
 from Grep import Grep
 from StackVersionsFileHandler import StackVersionsFileHandler
-import re, json
+
 
 logger = logging.getLogger()
 grep = Grep()

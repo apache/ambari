@@ -14,12 +14,9 @@
 # limitations under the License.
 
 
-from httplib import HTTPS
 from urlparse import urlparse
 import time
 import logging
-import pprint
-import traceback
 import httplib
 
 logger = logging.getLogger()

@@ -19,28 +19,24 @@ limitations under the License.
 '''
 
 import logging
-import logging.handlers
 import signal
 import json
-import hostname
-import sys, traceback
+import sys
 import time
 import threading
 import urllib2
-from urllib2 import Request, urlopen, URLError
-import httplib
-import ssl
-import AmbariConfig
 import pprint
+from random import randint
+
+import hostname
+import AmbariConfig
 import ProcessHelper
 from Heartbeat import Heartbeat
 from Register import Register
 from ActionQueue import ActionQueue
-from optparse import OptionParser
-from wsgiref.simple_server import ServerHandler
 import security
 from NetUtil import NetUtil
-from random import randrange, randint
+
 
 logger = logging.getLogger()
 

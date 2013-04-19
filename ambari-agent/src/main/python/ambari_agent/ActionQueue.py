@@ -20,25 +20,20 @@ limitations under the License.
 
 import logging
 import traceback
-import logging.handlers
 import Queue
 import threading
-import AmbariConfig
-from LiveStatus import LiveStatus
-from shell import shellRunner
-from FileUtil import writeFile, createStructure, deleteStructure, getFilePath, appendToFile
-import json
 import pprint
 import os
 import time
-import subprocess
-import copy
+
+from LiveStatus import LiveStatus
+from shell import shellRunner
 import PuppetExecutor
 import UpgradeExecutor
 import PythonExecutor
-import tempfile
 from Grep import Grep
 from ActualConfigHandler import ActualConfigHandler
+
 
 logger = logging.getLogger()
 installScriptHash = -1

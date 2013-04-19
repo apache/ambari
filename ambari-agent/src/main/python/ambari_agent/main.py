@@ -20,20 +20,20 @@ limitations under the License.
 
 import logging
 import logging.handlers
-import code
 import signal
 from optparse import OptionParser
-import sys, traceback
+import sys
+import traceback
 import os
 import time
 import ConfigParser
 import ProcessHelper
-from createDaemon import createDaemon
 from Controller import Controller
 from shell import killstaleprocesses
 import AmbariConfig
 from security import CertificateManager
 from NetUtil import NetUtil
+
 
 logger = logging.getLogger()
 agentPid = os.getpid()
@@ -136,7 +136,6 @@ def main():
     sys.exit(1)
   else:
     # Daemonize current instance of Ambari Agent
-    #retCode = createDaemon()
     pid = str(os.getpid())
     file(ProcessHelper.pidfile, 'w').write(pid)
 

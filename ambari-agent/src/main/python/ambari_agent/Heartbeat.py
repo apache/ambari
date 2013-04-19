@@ -20,16 +20,14 @@ limitations under the License.
 
 import json
 import logging
-from Hardware import Hardware
+import time
+from pprint import pformat
+
 from ActionQueue import ActionQueue
-from ServerStatus import ServerStatus
-import NetUtil
 import AmbariConfig
 import hostname
-import time
-import traceback
-from pprint import pprint, pformat
 from HostInfo import HostInfo
+
 
 logger = logging.getLogger()
 

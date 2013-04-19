@@ -20,11 +20,7 @@ limitations under the License.
 
 import os.path
 import logging
-import subprocess
-import pprint, threading
-from Grep import Grep
-from threading import Thread
-import shell
+import threading
 import traceback
 import shutil
 
