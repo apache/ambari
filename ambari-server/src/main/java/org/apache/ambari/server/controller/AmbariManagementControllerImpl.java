@@ -1915,9 +1915,6 @@ public class AmbariManagementControllerImpl implements
     // 2) override (1) with service-specific overrides
     // 3) override (2) with host-specific overrides
 
-    // since we are dealing with host components in this loop, get the
-    // config mappings for the service this host component applies to
-
     for (Entry<String, DesiredConfig> entry : cluster.getDesiredConfigs().entrySet()) {
       String type = entry.getKey();
       String tag = entry.getValue().getVersion();
@@ -1948,10 +1945,28 @@ public class AmbariManagementControllerImpl implements
           tags.put("host_override_tag", hostConfig.getVersionTag());
         }
       }
-
+      
       configurations.put(type, props);
       configTags.put(type, tags);
     }
+    
+    // HACK HACK HACK if the service has configs that are NOT included
+    // in cluster-level, then use them anyway.  THIS IS GENERALLY A BAD
+    // IDEA, but is included for backward compatability.  Do not check host
+    // overrides, because that wasn't in the version where this code would
+    // be the case.
+    Service service = cluster.getService(serviceName);
+    for (Config c : service.getDesiredConfigs().values()) {
+      String type = c.getType();
+      if (!configurations.containsKey(type)) {
+        configurations.put(type, new HashMap<String,String>(c.getProperties()));
+        
+        HashMap<String,String> tags = new HashMap<String,String>();
+        tags.put("tag", c.getVersionTag());
+        configTags.put(type, tags);
+      }
+    }
+    
   }
 
   private List<Stage> doStageCreation(Cluster cluster,
