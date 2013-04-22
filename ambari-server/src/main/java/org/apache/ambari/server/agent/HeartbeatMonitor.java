@@ -29,7 +29,10 @@ import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Config;
 import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.HostState;
+import org.apache.ambari.server.state.Service;
+import org.apache.ambari.server.state.ServiceComponent;
 import org.apache.ambari.server.state.ServiceComponentHost;
+import org.apache.ambari.server.state.State;
 import org.apache.ambari.server.state.fsm.InvalidStateTransitionException;
 import org.apache.ambari.server.state.host.HostHeartbeatLostEvent;
 import org.apache.ambari.server.state.svccomphost.HBaseMasterPortScanner;
@@ -118,7 +121,21 @@ public class HeartbeatMonitor implements Runnable {
         LOG.warn("Hearbeat lost from host "+host);
         //Heartbeat is expired
         hostObj.handleEvent(new HostHeartbeatLostEvent(host));
+        
+        // mark all components that are not clients with unknown status
+        for (Cluster cluster : fsm.getClustersForHost(hostObj.getHostName())) {
+          for (ServiceComponentHost sch : cluster.getServiceComponentHosts(hostObj.getHostName())) {
+            Service s = cluster.getService(sch.getServiceName());
+            ServiceComponent sc = s.getServiceComponent(sch.getServiceComponentName());
+            if (!sc.isClientComponent()) {
+              sch.setState(State.UNKNOWN);
+            }
+          }
+        }
+        
+        // hbase
         if(hostState != hostObj.getState() && scanner != null) scanner.updateHBaseMaster(hostObj);
+        
         //Purge action queue
         actionQueue.dequeueAll(host);
         //notify action manager
@@ -178,7 +195,7 @@ public class HeartbeatMonitor implements Runnable {
         statusCmd.setClusterName(cl.getClusterName());
         statusCmd.setServiceName(serviceName);
         statusCmd.setComponentName(sch.getServiceComponentName());
-        statusCmd.setConfigurations(configurations);			
+        statusCmd.setConfigurations(configurations);
         cmds.add(statusCmd);
       }
     }

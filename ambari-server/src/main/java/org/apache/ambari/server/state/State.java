@@ -66,7 +66,11 @@ public enum State {
   /**
    * Disabled master's backup state
    */
-  MAINTENANCE(11);
+  MAINTENANCE(11),
+  /**
+   * State could not be determined.
+   */
+  UNKNOWN(12);
 
   private final int state;
 

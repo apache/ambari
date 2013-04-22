@@ -1219,6 +1219,8 @@ Trunk (unreleased changes):
  AMBARI-1657. User directories on HDFS do not get created with custom names 
  provided from Ambari UI. (swagle)
 
+ AMBARI-1976. When host expires, update each component for host with unknown state. (ncole)
+
  AMBARI-1980. Fix for nagios_alerts element when there is an error. (ncole)
 
  AMBARI-1865. Fix for upgrade script to copy configurations. (ncole)

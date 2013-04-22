@@ -264,7 +264,8 @@ public class HeartBeatHandler {
               if (prevState.equals(State.INSTALLED)
                   || prevState.equals(State.STARTED)
                   || prevState.equals(State.STARTING)
-                  || prevState.equals(State.STOPPING)) {
+                  || prevState.equals(State.STOPPING)
+                  || prevState.equals(State.UNKNOWN)) {
                 scHost.setState(liveState);
                 if (!prevState.equals(liveState)) {
                   LOG.info("State of service component " + componentName
