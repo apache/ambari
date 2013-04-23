@@ -774,6 +774,9 @@ Trunk (unreleased changes):
 
  BUG FIXES
 
+ AMBARI-2001. Filtering on Jobs table does not work under certain situations.
+ (yusaku)
+
  AMBARI-2000. Undo links still remain after the config changes are saved.
  (yusaku)
 

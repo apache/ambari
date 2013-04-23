@@ -255,7 +255,7 @@ App.MainAppsView = Em.View.extend({
    */
   clickViewType: function (event) {
     this.set("controller.filterObject.viewTypeClickEvent", true);
-    if ($(event.target).hasClass("filtered")) {
+    if ($(event.target).hasClass("filtered") || $(event.target.parentNode).hasClass("filtered")) {
       this.set("controller.filterObject.viewType", "filtered");
     } else {
       this.set("controller.filterObject.allFilterActivated", true);
