@@ -28,22 +28,14 @@ App.MainHostView = App.TableView.extend({
   }.property('controller.content.length'),
 
   didInsertElement:function () {
-    this.filter();
+    this._super();
     if (this.get('controller.comeWithAlertsFilter')) {
       this.set('controller.comeWithAlertsFilter', false);
       this.set('controller.filteredByAlerts', true);
     } else {
       this.set('controller.filteredByAlerts', false);
     }
-    this.tooltipsUpdate();
   },
-
-  tooltipsUpdate: function () {
-    Ember.run.next(function(){
-      $("[rel='HealthTooltip']").tooltip();
-      $("[rel='UsageTooltip']").tooltip();
-    });
-  }.observes('controller.content.length'),
 
   sortView: sort.wrapperView,
   nameSort: sort.fieldView.extend({
@@ -77,6 +69,9 @@ App.MainHostView = App.TableView.extend({
   HostView:Em.View.extend({
     content:null,
     tagName: 'tr',
+    didInsertElement: function(){
+      this.$("[rel='HealthTooltip'], [rel='UsageTooltip']").tooltip();
+    },
     shortLabels: function() {
       var labels = this.get('content.hostComponents').getEach('displayName');
       var shortLabels = '';

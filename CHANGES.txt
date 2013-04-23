@@ -774,6 +774,8 @@ Trunk (unreleased changes):
 
  BUG FIXES
 
+ AMBARI-1997. Filtered hosts get out of sync with the filter selection. (yusaku)
+
  AMBARI-2009. task-log4j.properties file ownership should not be
  root. (smohanty)
 
