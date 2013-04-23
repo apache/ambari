@@ -269,6 +269,9 @@ Trunk (unreleased changes):
 
  IMPROVEMENTS
 
+ AMBARI-2002. Dashboard: remove "Version" row from HDFS, MapReduce, and
+ HBase dashboard summary. (yusaku)
+
  AMBARI-1982. Disallow editing Hadoop log/PID directories post install.
  (yusaku)
 

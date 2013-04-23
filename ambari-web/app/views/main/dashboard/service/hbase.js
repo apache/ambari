@@ -70,10 +70,6 @@ App.MainDashboardServiceHbaseView = App.MainDashboardServiceView.extend({
     return this.t('dashboard.services.hbase.masterServerHeap.summary').format(heapString, heapMaxString, percent.toFixed(1));
   }.property('service.heapMemoryUsed', 'service.heapMemoryMax'),
 
-  version: function () {
-    return this.formatUnavailable(this.get('service.version'));
-  }.property('service.version'),
-
   summaryHeader: function () {
     var avgLoad = this.get('service.averageLoad');
     if (avgLoad == null) {

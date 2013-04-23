@@ -36,9 +36,6 @@ App.MainDashboardServiceHdfsView = App.MainDashboardServiceView.extend({
     }.property('service.capacityUsed', 'service.capacityTotal')
   }),
 
-  version: function(){
-    return this.formatUnavailable(this.get('service.version'));
-  }.property('service.version'),
   dfsTotalBlocks: function(){
     return this.formatUnavailable(this.get('service.dfsTotalBlocks'));
   }.property('service.dfsTotalBlocks'),

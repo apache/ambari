@@ -31,10 +31,6 @@ App.MainDashboardServiceMapreduceView = App.MainDashboardServiceView.extend({
     }.property('_parentView.data.chart')
   }),
 
-  version: function(){
-    return this.formatUnavailable(this.get('service.version'));
-  }.property('service.version'),
-
   jobTrackerUptime: function () {
     var uptime = this.get('service').get('jobTrackerStartTime');
     if (uptime && uptime > 0){
