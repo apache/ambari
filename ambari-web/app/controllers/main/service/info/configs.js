@@ -1388,6 +1388,6 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
   }.property('App.router.mainHostController.content'),
   
   doCancel: function () {
-    location.reload();
+    this.loadStep();
   }
 });
