@@ -1004,7 +1004,7 @@ a:focus {
           }
         }
         #component-dropdown-div {
-          vertical-align: top; 
+          vertical-align: top;
           padding-left: 5px;
           .dropdown-menu {
             right: 0;
@@ -1691,11 +1691,11 @@ a:focus {
       }
     }
   }
-  
+
   .icon-refresh {
     color: #FDB82F;
   }
-  
+
   .add-service-button {
     margin: 20px 20px 10px;
   }
@@ -2092,140 +2092,133 @@ table.graphs {
 
   margin-top: 27px;
 
-/*
-.component-operation-button {
-  background-color: #E5E5E5;
-  background-image: -webkit-gradient(linear, 0 0, 0 100%, from(#E5E5E5), to(#F1F1F1));
-  background-image: -webkit-linear-gradient(top, #E5E5E5, #F1F1F1);
-  background-image: -o-linear-gradient(top, #E5E5E5, #F1F1F1);
-  background-image: linear-gradient(to bottom, #E5E5E5, #F1F1F1);
-  background-image: -moz-linear-gradient(top, #E5E5E5, #F1F1F1);
-  background-repeat: repeat-x;
-  color: #000000;
-}
-*/
+  /*
+  .component-operation-button {
+    background-color: #E5E5E5;
+    background-image: -webkit-gradient(linear, 0 0, 0 100%, from(#E5E5E5), to(#F1F1F1));
+    background-image: -webkit-linear-gradient(top, #E5E5E5, #F1F1F1);
+    background-image: -o-linear-gradient(top, #E5E5E5, #F1F1F1);
+    background-image: linear-gradient(to bottom, #E5E5E5, #F1F1F1);
+    background-image: -moz-linear-gradient(top, #E5E5E5, #F1F1F1);
+    background-repeat: repeat-x;
+    color: #000000;
+  }
+  */
   .caret {
     border-top-color: #000000;
     border-bottom-color: #000000;
   }
-}
 
-//hack to apply style only for firefox
-@-moz-document
-url-prefix
-
-(
-)
-{
-.host-components .caret {
-  margin-top: -12px !important;
-}
-
-}
-.marker {
-  background-repeat: no-repeat;
-  display: inline-block;
-  height: 13px;
-  width: 13px;
-}
-
-.components-health.icon-arrow-up{
-  color:red;
-}
-
-.health-status-started, .health-status-starting {
-  background-image: @status-live-marker;
-  .marker;
-}
-
-.health-status-installed, .health-status-stopping {
-  background-image: @status-dead-red-marker;
-  .marker;
-}
-
-.health-status-LIVE {
-  background-image: @status-live-marker;
-  .marker;
-}
-
-.health-status-DEAD-RED {
-  background-image: @status-dead-red-marker;
-  .marker;
-}
-
-.health-status-DEAD-ORANGE {
-  background-image: @status-dead-orange-marker;
-  .marker;
-}
-
-.health-status-DEAD-YELLOW {
-  background-image: @status-dead-yellow-marker;
-  .marker;
-}
-
-.back {
-  display: block;
-  width: 105px;
-  margin-bottom: 5px;
-}
-
-.box-header .host-title {
-  margin: 0;
-  padding-left: 17px;
-}
-
-.box-header .button-section {
-  margin-bottom: 5px;
-}
-
-hr {
-  margin-bottom: 0;
-  clear: both;
-}
-
-.content {
-  padding: 10px;
-}
-
-.host-configuration .dl-horizontal dt {
-  width: 90px;
-  line-height: 20px;
-}
-
-.host-configuration .dl-horizontal dd {
-  margin-left: 100px;
-  line-height: 20px;
-}
-
-.host-metrics {
-  [class*="span"] {
-    float: left;
-    margin: 0;
+  //hack to apply style only for firefox
+  .host-components .btn-group{
+   white-space: normal;
   }
-  .chart-container {
-    .chart-x-axis {
-      left: 30%;
-      width: 40%;
+
+
+  .marker {
+    background-repeat: no-repeat;
+    display: inline-block;
+    height: 13px;
+    width: 13px;
+  }
+
+  .components-health.icon-arrow-up{
+    color:red;
+  }
+
+  .health-status-started, .health-status-starting {
+    background-image: @status-live-marker;
+    .marker;
+  }
+
+  .health-status-installed, .health-status-stopping {
+    background-image: @status-dead-red-marker;
+    .marker;
+  }
+
+  .health-status-LIVE {
+    background-image: @status-live-marker;
+    .marker;
+  }
+
+  .health-status-DEAD-RED {
+    background-image: @status-dead-red-marker;
+    .marker;
+  }
+
+  .health-status-DEAD-ORANGE {
+    background-image: @status-dead-orange-marker;
+    .marker;
+  }
+
+  .health-status-DEAD-YELLOW {
+    background-image: @status-dead-yellow-marker;
+    .marker;
+  }
+
+  .back {
+    display: block;
+    width: 105px;
+    margin-bottom: 5px;
+  }
+
+  .box-header .host-title {
+    margin: 0;
+    padding-left: 17px;
+  }
+
+  .box-header .button-section {
+    margin-bottom: 5px;
+  }
+
+  hr {
+    margin-bottom: 0;
+    clear: both;
+  }
+
+  .content {
+    padding: 10px;
+  }
+
+  .host-configuration .dl-horizontal dt {
+    width: 90px;
+    line-height: 20px;
+  }
+
+  .host-configuration .dl-horizontal dd {
+    margin-left: 100px;
+    line-height: 20px;
+  }
+
+  .host-metrics {
+    [class*="span"] {
+      float: left;
+      margin: 0;
+    }
+    .chart-container {
+      .chart-x-axis {
+        left: 30%;
+        width: 40%;
+      }
     }
   }
-}
 
-.host-components {
-  padding: 10px;
-  padding-bottom: 0;
-  border: 1px solid #DEDEDE;
-  border-radius: 4px;
-  background: #FFF;
+  .host-components {
+    padding: 10px;
+    padding-bottom: 0;
+    border: 1px solid #DEDEDE;
+    border-radius: 4px;
+    background: #FFF;
 
-  #add_component{
-    width: 160px;
-    height: 30px;
+    #add_component{
+      width: 160px;
+      height: 30px;
+    }
   }
-}
 
-.host-components .btn-group {
-  margin: 0 5px 10px 0;
-
+  .host-components .btn-group {
+    margin: 0 5px 10px 0;
+  }
 }
 
 .background-operations {
