@@ -269,6 +269,9 @@ Trunk (unreleased changes):
 
  IMPROVEMENTS
 
+ AMBARI-2005. When adding a component to a host (after cluster deployment),
+ UI should warn that nagios server need to be restarted. (yusaku)
+
  AMBARI-2004. Background Operation Popup needs label/styling fixes.
  (yusaku)
 

@@ -216,57 +216,70 @@ App.MainHostDetailsController = Em.Controller.extend({
     var component = event.context;
     var componentName = component.get('componentName').toUpperCase().toString();
 
-    App.showConfirmationPopup(function() {
-
-      self.sendCommandToServer('/hosts?Hosts/host_name=' + self.get('content.hostName'),{
-        RequestInfo : {
-          "context" : Em.I18n.t('requestInfo.installHostComponent') + " " + componentName
-        },
-        Body:{
-          host_components: [{
-            HostRoles:{
-              component_name: componentName
-            }
-          }]
-        }
-      },
-        'POST',
-        function(requestId){
-
-          console.log('Send request for ADDING NEW COMPONENT successfully');
-
-          self.sendCommandToServer('/host_components?HostRoles/host_name=' + self.get('content.hostName') + '\&HostRoles/component_name=' + componentName + '\&HostRoles/state=INIT',{
-              RequestInfo : {
-                "context" : Em.I18n.t('requestInfo.installNewHostComponent')+ " " + componentName
-              },
-              Body:{
-                HostRoles:{
-                  state: 'INSTALLED'
-                }
-              }
+    App.ModalPopup.show({
+      primary: Em.I18n.t('yes'),
+      secondary: Em.I18n.t('no'),
+      header: Em.I18n.t('popup.confirmation.commonHeader'),
+      bodyClass: Ember.View.extend({
+        template: Ember.Handlebars.compile([
+          '{{t hosts.delete.popup.body}}<br><br>',
+          '{{t hosts.host.addComponent.note}}'
+        ].join(''))
+      }),
+      onPrimary: function () {
+        this.hide();
+        self.sendCommandToServer('/hosts?Hosts/host_name=' + self.get('content.hostName'), {
+            RequestInfo: {
+              "context": Em.I18n.t('requestInfo.installHostComponent') + " " + componentName
             },
-            'PUT',
-            function(requestId){
-              if(!requestId){
-                return;
-              }
+            Body: {
+              host_components: [
+                {
+                  HostRoles: {
+                    component_name: componentName
+                  }
+                }
+              ]
+            }
+          },
+          'POST',
+          function (requestId) {
 
-              console.log('Send request for INSTALLING NEW COMPONENT successfully');
+            console.log('Send request for ADDING NEW COMPONENT successfully');
 
-              if (App.testMode) {
-                component.set('workStatus', App.HostComponentStatus.installing);
-                setTimeout(function(){
-                  component.set('workStatus', App.HostComponentStatus.stopped);
-                },App.testModeDelayForActions);
-              } else {
-                App.router.get('clusterController').loadUpdatedStatus();
-              }
+            self.sendCommandToServer('/host_components?HostRoles/host_name=' + self.get('content.hostName') + '\&HostRoles/component_name=' + componentName + '\&HostRoles/state=INIT', {
+                RequestInfo: {
+                  "context": Em.I18n.t('requestInfo.installNewHostComponent') + " " + componentName
+                },
+                Body: {
+                  HostRoles: {
+                    state: 'INSTALLED'
+                  }
+                }
+              },
+              'PUT',
+              function (requestId) {
+                if (!requestId) {
+                  return;
+                }
 
-              App.router.get('backgroundOperationsController').showPopup();
+                console.log('Send request for INSTALLING NEW COMPONENT successfully');
 
-            });
-          return;
-        });
+                if (App.testMode) {
+                  component.set('workStatus', App.HostComponentStatus.installing);
+                  setTimeout(function () {
+                    component.set('workStatus', App.HostComponentStatus.stopped);
+                  }, App.testModeDelayForActions);
+                } else {
+                  App.router.get('clusterController').loadUpdatedStatus();
+                }
+
+                App.router.get('backgroundOperationsController').showPopup();
+
+              });
+            return;
+          });
+      }
     });
   },
   /**
