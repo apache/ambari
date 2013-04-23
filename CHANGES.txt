@@ -269,6 +269,9 @@ Trunk (unreleased changes):
 
  IMPROVEMENTS
 
+ AMBARI-2003. Hosts tab: clicking on red badge should not toggle "Alerts"
+ filter. (yusaku)
+
  AMBARI-2002. Dashboard: remove "Version" row from HDFS, MapReduce, and
  HBase dashboard summary. (yusaku)
 
