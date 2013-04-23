@@ -53,19 +53,7 @@ class hdp-hadoop::tasktracker(
       }
     }
 
-    $task_log4j_properties_location = "${conf_dir}/task-log4j.properties"
-
-    file { $task_log4j_properties_location:
-      owner   => $hdp-hadoop::params::mapred_user,
-      group   => $hdp::params::user_group,
-      mode    => 664,
-      ensure  => present,
-      source  => "puppet:///modules/hdp-hadoop/task-log4j.properties",
-      replace => false
-    }
-
-  
-    hdp-hadoop::tasktracker::create_local_dirs { $mapred_local_dir: 
+    hdp-hadoop::tasktracker::create_local_dirs { $mapred_local_dir:
       service_state => $service_state
     }
     
@@ -86,7 +74,7 @@ class hdp-hadoop::tasktracker(
   
     #top level does not need anchors
     Class['hdp-hadoop'] -> Hdp-hadoop::Service['tasktracker']
-    Hdp-hadoop::Tasktracker::Create_local_dirs<||> -> File[$task_log4j_properties_location]-> Hdp-hadoop::Service['tasktracker']
+    Hdp-hadoop::Tasktracker::Create_local_dirs<||> -> Hdp-hadoop::Service['tasktracker']
   } else {
     hdp_fail("TODO not implemented yet: service_state = ${service_state}")
   }

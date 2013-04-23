@@ -107,6 +107,16 @@ debug('##Configs generation for hdp-hadoop')
     }
   }
 
+  $task_log4j_properties_location = "${conf_dir}/task-log4j.properties"
+
+  file { $task_log4j_properties_location:
+    owner   => $hdp-hadoop::params::mapred_user,
+    group   => $hdp::params::user_group,
+    mode    => 644,
+    ensure  => present,
+    source  => "puppet:///modules/hdp-hadoop/task-log4j.properties",
+    replace => false
+  }
 
   if has_key($configuration, 'capacity-scheduler') {
     configgenerator::configfile{'capacity-scheduler':
