@@ -31,7 +31,6 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.TreeMap;
 
-import com.google.inject.persist.Transactional;
 import com.google.gson.Gson;
 import com.google.inject.Inject;
 import com.google.inject.Injector;
@@ -3618,11 +3617,15 @@ public class AmbariManagementControllerImpl implements
     return Collections.emptySet();
   }
 
-  @Transactional
-  Collection<RequestStatusResponse> getRequestStatusResponses(List<Long> requestIds) {
-    List<HostRoleCommand> hostRoleCommands = actionManager.getAllTasksByRequestIds(requestIds);
-    Map<Long, String> requestContexts = actionManager.getRequestContext(requestIds);
-    Map<Long, RequestStatusResponse> responseMap = new HashMap<Long, RequestStatusResponse>();
+  /**
+   * Get a collection of request responses for the given list of request ids.  Note that
+   * this method populates request resources only and does NOT populate the set of task
+   * sub-resources in each request response.
+   */
+  private Collection<RequestStatusResponse> getRequestStatusResponsesWithoutTasks(List<Long> requestIds) {
+    List<HostRoleCommand>            hostRoleCommands = actionManager.getAllTasksByRequestIds(requestIds);
+    Map<Long, String>                requestContexts  = actionManager.getRequestContext(requestIds);
+    Map<Long, RequestStatusResponse> responseMap      = new HashMap<Long, RequestStatusResponse>();
 
     for (HostRoleCommand hostRoleCommand : hostRoleCommands) {
       Long requestId = hostRoleCommand.getRequestId();
@@ -3630,17 +3633,17 @@ public class AmbariManagementControllerImpl implements
       if (response == null) {
         response = new RequestStatusResponse(requestId);
         response.setRequestContext(requestContexts.get(requestId));
-        response.setTasks(new ArrayList<ShortTaskStatus>());
         responseMap.put(requestId, response);
       }
-
-      response.getTasks().add(new ShortTaskStatus(hostRoleCommand));
     }
-
     return responseMap.values();
   }
 
-
+  /**
+   * Get a request response for the given request ids.  Note that this method
+   * fully populates a request resource including the set of task sub-resources
+   * in the request response.
+   */
   private RequestStatusResponse getRequestStatusResponse(long requestId) {
     RequestStatusResponse response = new RequestStatusResponse(requestId);
     List<HostRoleCommand> hostRoleCommands =
@@ -3660,8 +3663,10 @@ public class AmbariManagementControllerImpl implements
   @Override
   public Set<RequestStatusResponse> getRequestStatus(
       RequestStatusRequest request) throws AmbariException{
-    Set<RequestStatusResponse> response = new HashSet<RequestStatusResponse>();
-    if (request.getRequestId() == null) {
+    Set<RequestStatusResponse> response  = new HashSet<RequestStatusResponse>();
+    Long                       requestId = request.getRequestId();
+
+    if (requestId == null) {
       RequestStatus requestStatus = null;
       if (request.getRequestStatus() != null) {
         requestStatus = RequestStatus.valueOf(request.getRequestStatus());
@@ -3671,21 +3676,19 @@ public class AmbariManagementControllerImpl implements
             + ", requestId=null"
             + ", requestStatus=" + requestStatus);
       }
-      List<Long> requestIds = actionManager.getRequestsByStatus(requestStatus);
-      response.addAll(getRequestStatusResponses(requestIds));
-
+      response.addAll(getRequestStatusResponsesWithoutTasks(
+          actionManager.getRequestsByStatus(requestStatus)));
     } else {
-      RequestStatusResponse requestStatusResponse = getRequestStatusResponse(
-          request.getRequestId().longValue());
+      Collection<RequestStatusResponse> responses = getRequestStatusResponsesWithoutTasks(
+          Collections.singletonList(requestId.longValue()));
 
       //todo: correlate request with cluster
-      if (requestStatusResponse.getTasks().size() == 0) {
+      if (responses.isEmpty()) {
         //todo: should be thrown lower in stack but we only want to throw if id was specified
         //todo: and we currently iterate over all id's and invoke for each if id is not specified
         throw new ObjectNotFoundException("Request resource doesn't exist.");
-      } else {
-        response.add(requestStatusResponse);
       }
+      response.addAll(responses);
     }
     return response;
   }

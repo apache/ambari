@@ -1498,7 +1498,6 @@ public class AmbariManagementControllerTest {
     Assert.assertNotNull(statusResponse);
     Assert.assertEquals(trackAction.getRequestId(),
         statusResponse.getRequestId());
-    Assert.assertEquals(5, statusResponse.getTasks().size());
 
     Set<TaskStatusRequest> taskRequests = new HashSet<TaskStatusRequest>();
     TaskStatusRequest t1, t2;
@@ -3384,18 +3383,10 @@ public class AmbariManagementControllerTest {
     RequestStatusResponse requestStatusResponse =
         requestStatusResponses.iterator().next();
     assertEquals(requestId, requestStatusResponse.getRequestId());
-    assertEquals(2, requestStatusResponse.getTasks().size());
     assertEquals(context, requestStatusResponse.getRequestContext());
 
-    ShortTaskStatus task1 = requestStatusResponse.getTasks().get(0);
-    ShortTaskStatus task2 = requestStatusResponse.getTasks().get(1);
-
-    assertEquals(RoleCommand.START.toString(), task1.getCommand());
-    assertEquals(Role.HBASE_MASTER.toString(), task1.getRole());
-
     Set<TaskStatusRequest> taskStatusRequests = new HashSet<TaskStatusRequest>();
-    taskStatusRequests.add(new TaskStatusRequest(requestId, task1.getTaskId()));
-    taskStatusRequests.add(new TaskStatusRequest(requestId, task2.getTaskId()));
+    taskStatusRequests.add(new TaskStatusRequest(requestId, null));
     Set<TaskStatusResponse> taskStatusResponses =
         controller.getTaskStatus(taskStatusRequests);
 
