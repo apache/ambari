@@ -64,7 +64,12 @@ class hdp::params()
   $zookeeper_hosts = hdp_default("zookeeper_hosts")
 
   $hbase_master_hosts = hdp_default("hbase_master_hosts", "")
-  $hbase_rs_hosts = hdp_default("hbase_rs_hosts",$slave_hosts) #if hbase_rs_hosts not given it is assumed that region servers on same nodes as slaves
+
+  #if hbase_rs_hosts not given it is assumed that region servers on same nodes as slaves
+  $hbase_rs_hosts = hdp_default("hbase_rs_hosts", $slave_hosts)
+
+  #if mapred_tt_hosts not given it is assumed that tasktracker servers on same nodes as slaves
+  $mapred_tt_hosts = hdp_default("mapred_tt_hosts", $slave_hosts)
 
   $hive_server_host = hdp_default("hive_server_host", "")
   $oozie_server =  hdp_default("oozie_server", "")

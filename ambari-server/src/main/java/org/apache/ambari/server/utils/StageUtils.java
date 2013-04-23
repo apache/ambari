@@ -97,7 +97,7 @@ public class StageUtils {
     componentToClusterInfoKeyMap.put("GANGLIA_SERVER",
         "ganglia_server_host");
     componentToClusterInfoKeyMap.put("DATANODE", "slave_hosts");
-    componentToClusterInfoKeyMap.put("TASKTRACKER", "slave_hosts");
+    componentToClusterInfoKeyMap.put("TASKTRACKER", "mapred_tt_hosts");
     componentToClusterInfoKeyMap.put("HBASE_REGIONSERVER", "hbase_rs_hosts");
     componentToClusterInfoKeyMap.put("KERBEROS_SERVER", "kdc_host");
     componentToClusterInfoKeyMap.put("KERBEROS_ADMIN_CLIENT",

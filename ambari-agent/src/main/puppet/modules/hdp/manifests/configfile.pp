@@ -30,6 +30,7 @@ define hdp::configfile(
   $jtnode_host = $hdp::params::jtnode_host,
   $snamenode_host = $hdp::params::snamenode_host,
   $slave_hosts = $hdp::params::slave_hosts,
+  $mapred_tt_hosts = $hdp::params::mapred_tt_hosts,
   $hbase_rs_hosts = $hdp::params::hbase_rs_hosts,
   $zookeeper_hosts = $hdp::params::zookeeper_hosts,
   $hbase_master_hosts = $hdp::params::hbase_master_hosts,

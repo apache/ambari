@@ -774,6 +774,9 @@ Trunk (unreleased changes):
 
  BUG FIXES
 
+ AMBARI-1994. Adding component to Host should should wire-up + adjust
+ associated Nagios alerts. (smohanty)
+
  AMBARI-1753. Puppet paramter configuration not working as expected. (swagle)
 
  AMBARI-1978. Deploying HDP-1.3.0 results in several alerts - is it related to 

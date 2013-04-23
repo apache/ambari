@@ -121,6 +121,27 @@ public class TestStageUtils {
     }
   }
 
+  public static void addMapreduceService(Cluster cl, String [] hostList,
+                                     Injector injector) throws AmbariException {
+    cl.setDesiredStackVersion(new StackId("HDP-0.2"));
+    cl.addService("MAPREDUCE");
+    cl.getService("MAPREDUCE").addServiceComponent("JOBTRACKER");
+    cl.getService("MAPREDUCE").addServiceComponent("TASKTRACKER");
+    cl.getService("MAPREDUCE")
+        .getServiceComponent("JOBTRACKER")
+        .addServiceComponentHost(
+            serviceComponentHostFactory.createNew(cl.getService("MAPREDUCE")
+                .getServiceComponent("JOBTRACKER"), hostList[0], false));
+    for (int i = 1; i < hostList.length; i++) {
+      cl.getService("MAPREDUCE")
+          .getServiceComponent("TASKTRACKER")
+          .addServiceComponentHost(
+              serviceComponentHostFactory.createNew(cl.getService("MAPREDUCE")
+                  .getServiceComponent("TASKTRACKER"), hostList[i],
+                  false));
+    }
+  }
+
   @Test
   public void testGetATestStage() {
     Stage s = StageUtils.getATestStage(1, 2, "host2");
@@ -180,9 +201,12 @@ public class TestStageUtils {
     String [] hostList = {"h1", "h2", "h3" };
     addHdfsService(fsm.getCluster("c1"), hostList, injector);
     addHbaseService(fsm.getCluster("c1"), hostList, injector);
+    addMapreduceService(fsm.getCluster("c1"), hostList, injector);
     Map<String, List<String>> info = StageUtils.getClusterHostInfo(fsm
         .getCluster("c1"), new HostsMap(injector.getInstance(Configuration.class)), injector);
     assertEquals(2, info.get("slave_hosts").size());
+    assertEquals(2, info.get("mapred_tt_hosts").size());
+    assertEquals(2, info.get("hbase_rs_hosts").size());
     assertEquals(1, info.get("hbase_master_hosts").size());
     assertEquals("h1", info.get("hbase_master_hosts").get(0));
 

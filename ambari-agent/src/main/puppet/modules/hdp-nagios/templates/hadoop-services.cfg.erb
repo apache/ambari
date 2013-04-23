@@ -332,7 +332,7 @@ define service {
 
 # MAPREDUCE::TASKTRACKER Checks 
 define service {
-        hostgroup_name          slaves
+        hostgroup_name          tasktracker-servers
         use                     hadoop-service
         service_description     TASKTRACKER::TaskTracker process down
         servicegroups           MAPREDUCE
