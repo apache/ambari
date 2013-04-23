@@ -774,6 +774,8 @@ Trunk (unreleased changes):
 
  BUG FIXES
 
+ AMBARI-2007. Decom DataNode throws JS error. (smohanty)
+
  AMBARI-1994. Adding component to Host should should wire-up + adjust
  associated Nagios alerts. (smohanty)
 

@@ -3486,8 +3486,6 @@ public class AmbariManagementControllerTest {
     assertEquals(requestProperties.get(REQUEST_CONTEXT_PROPERTY), stage.getRequestContext());
     actionRequests.add(new ActionRequest("c1", "MAPREDUCE", Role.MAPREDUCE_SERVICE_CHECK.name(), null));
 
-
-
     response = controller.createActions(actionRequests, requestProperties);
 
     assertEquals(2, response.getTasks().size());
@@ -3495,6 +3493,11 @@ public class AmbariManagementControllerTest {
     List<HostRoleCommand> tasks = actionDB.getRequestTasks(response.getRequestId());
 
     assertEquals(2, tasks.size());
+
+    requestProperties.put(REQUEST_CONTEXT_PROPERTY, null);
+    response = controller.createActions(actionRequests, requestProperties);
+
+    assertEquals(2, response.getTasks().size());
   }
 
   private void createUser(String userName) throws Exception {

@@ -4086,11 +4086,15 @@ public class AmbariManagementControllerImpl implements
     String clusterName = null;
 
     String requestContext = "";
-    
-    if (requestProperties != null)
+
+    if (requestProperties != null) {
       requestContext = requestProperties.get(REQUEST_CONTEXT_PROPERTY);
-      
-    
+      if (requestContext == null) {
+        // guice needs a non-null value as there is no way to mark this parameter @Nullable
+        requestContext = "";
+      }
+    }
+
     String logDir = ""; //TODO empty for now
 
     for (ActionRequest actionRequest : request) {
@@ -4110,10 +4114,10 @@ public class AmbariManagementControllerImpl implements
         throw new AmbariException("Requests for different clusters found");
       }
     }
-    
+
     Stage stage = stageFactory.createNew(actionManager.getNextRequestId(),
         logDir, clusterName, requestContext);
-    
+
     stage.setStageId(0);
     for (ActionRequest actionRequest : request) {
       if (actionRequest.getActionName().contains("SERVICE_CHECK")) {
@@ -4134,7 +4138,6 @@ public class AmbariManagementControllerImpl implements
       throw new AmbariException("Stage was not created");
     }
   }
-
 
   @Override
   public Set<StackResponse> getStacks(Set<StackRequest> requests)
