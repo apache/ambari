@@ -80,6 +80,12 @@ class TestBootstrap(TestCase):
     SSH_writeDoneToFile_method.return_value = None
     communicate_method.return_value = ("", "")
     bootstrap = BootStrap(["hostname"], "root", "sshKeyFile", "scriptDir", "bootdir", "setupAgentFile", "ambariServer", "centos6", None)
+    bootstrap.statuses = {
+      "hostname" : {
+        "exitstatus" : 0,
+        "log" : ""
+      }
+    }
     ret = bootstrap.checkSudoPackage()
     self.assertTrue("Error: Sudo command is not available. Please install the sudo command." in bootstrap.statuses["hostname"]["log"])
 
@@ -347,3 +353,72 @@ class TestBootstrap(TestCase):
     bootstrap = BootStrap(["hostname"], "user", "sshKeyFile", "scriptDir", "bootdir", "setupAgentFile", "ambariServer", "centos6", version)
     runSetupCommand = bootstrap.getRunSetupCommand()
     self.assertTrue(runSetupCommand.endswith("ambariServer "))
+
+
+  @patch.object(BootStrap, "createDoneFiles")
+  @patch.object(PSCP, "getstatus")
+  @patch.object(PSCP, "run")
+  @patch.object(PSSH, "getstatus")
+  @patch.object(PSSH, "run")
+  def test_os_check_fail_fails_bootstrap_execution(self,
+      pssh_run_method, pssh_getstatus_method,
+      pscp_run_method, pscp_getstatus_method, createDoneFiles_method):
+
+    c6hstr = "cent6host"
+    c5hstr = "cent5host"
+
+    def pscp_statuses():
+      yield { # copyOsCheckScript call
+          c6hstr : {
+            "exitstatus" : 0,
+            "log" : ""
+          },
+          c5hstr : {
+            "exitstatus" : 0,
+            "log" : ""
+          },
+        }
+      while True:   # Next calls
+        d = {}
+        for host in bootstrap.successive_hostlist:
+          d[host] = {
+            "exitstatus" : 0,
+            "log" : ""
+          }
+        yield d
+
+    def pssh_statuses():
+      yield { # runOsCheckScript call
+          c6hstr : {
+            "exitstatus" : 0,
+            "log" : ""
+          },
+          c5hstr : {
+            "exitstatus" : 1,
+            "log" : ""
+          },
+        }
+      while True:   # Next calls
+        d = {}
+        for host in bootstrap.successive_hostlist:
+          d[host] = {
+            "exitstatus" : 0,
+            "log" : ""
+          }
+        yield d
+
+    pscp_getstatus_method.side_effect = pscp_statuses().next
+    pssh_getstatus_method.side_effect = pssh_statuses().next
+
+
+    os.environ[AMBARI_PASSPHRASE_VAR_NAME] = ""
+    bootstrap = BootStrap([c6hstr, c5hstr], "user", "sshKeyFile", "scriptDir",
+                          "bootdir", "setupAgentFile", "ambariServer",
+                          "centos6", None)
+    ret = bootstrap.run()
+
+    self.assertTrue(c5hstr not in bootstrap.successive_hostlist)
+    self.assertTrue(c6hstr in bootstrap.successive_hostlist)
+    self.assertTrue(pssh_run_method.call_count >= 2)
+    self.assertTrue(pssh_getstatus_method.call_count >= 2)
+    self.assertTrue(ret == 1)

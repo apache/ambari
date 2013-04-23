@@ -321,7 +321,7 @@ class BootStrap:
       # Copying the os check script file
       fileToCopy = self.getOsCheckScript()
       target = self.OS_CHECK_SCRIPT_REMOTE_LOCATION
-      pscp = PSCP(self.hostlist, self.user, self.sshkeyFile, fileToCopy, target, self.bootdir)
+      pscp = PSCP(self.successive_hostlist, self.user, self.sshkeyFile, fileToCopy, target, self.bootdir)
       pscp.run()
       out = pscp.getstatus()
       # Preparing report about failed hosts
@@ -366,7 +366,7 @@ class BootStrap:
       pssh = PSSH(self.successive_hostlist, self.user, self.sshkeyFile, command, self.bootdir)
       pssh.run()
       out = pssh.getstatus()
-      # Prepearing report about failed hosts
+      # Preparing report about failed hosts
       failed_current = get_difference(self.successive_hostlist, skip_failed_hosts(out))
       self.successive_hostlist = skip_failed_hosts(out)
       failed = get_difference(self.hostlist, self.successive_hostlist)
@@ -386,8 +386,8 @@ class BootStrap:
                    ". Failed on last step: " + str(failed_current))
       #updating statuses
       self.statuses = unite_statuses(self.statuses, out)
-      retstatus = 0
-      if not failed: 
+
+      if not failed:
         retstatus = 0
       else:
         retstatus = 1
@@ -438,7 +438,7 @@ class BootStrap:
 
     #updating statuses
     self.statuses = unite_statuses(self.statuses, out)
-    retstatus = 0
+
     if not failed:
       retstatus = 0
     else:
@@ -461,7 +461,7 @@ class BootStrap:
 
     #updating statuses
     self.statuses = unite_statuses(self.statuses, out)
-    retstatus = 0 
+
     if not failed:
       retstatus = 0
     else:
@@ -483,18 +483,19 @@ class BootStrap:
     try:
       """ Checking 'sudo' package on remote hosts """
       command = "rpm -qa | grep sudo"
-      pssh = PSSH(self.hostlist, self.user, self.sshkeyFile, command, self.bootdir, "Error: Sudo command is not available. Please install the sudo command.")
+      pssh = PSSH(self.successive_hostlist, self.user, self.sshkeyFile, command, self.bootdir, "Error: Sudo command is not available. Please install the sudo command.")
       pssh.run()
       out = pssh.getstatus()
-      # Prepearing report about failed hosts
+      # Preparing report about failed hosts
+      failed_current = get_difference(self.successive_hostlist, skip_failed_hosts(out))
       self.successive_hostlist = skip_failed_hosts(out)
       failed = get_difference(self.hostlist, self.successive_hostlist)
-      logging.info("Parallel ssh returns for checking 'sudo' package. Failed hosts are: " + str(failed))
+      logging.info("Parallel ssh returns for checking 'sudo' package. All failed hosts are: " + str(failed) +
+                   ". Failed on last step: " + str(failed_current))
       #updating statuses
-      self.statuses = out
+      self.statuses = unite_statuses(self.statuses, out)
 
-      retstatus = 0
-      if not failed: 
+      if not failed:
         retstatus = 0
       else:
         retstatus = 1
@@ -512,7 +513,7 @@ class BootStrap:
       pscp = PSCP(self.successive_hostlist, self.user, self.sshkeyFile, self.passwordFile, "/tmp", self.bootdir)
       pscp.run()
       out = pscp.getstatus()
-      # Prepearing report about failed hosts
+      # Preparing report about failed hosts
       failed_current = get_difference(self.successive_hostlist, skip_failed_hosts(out))
       self.successive_hostlist = skip_failed_hosts(out)
       self.hostlist_to_remove_password_file = self.successive_hostlist
@@ -529,7 +530,7 @@ class BootStrap:
       pssh = PSSH(self.successive_hostlist, self.user, self.sshkeyFile, command, self.bootdir)
       pssh.run()
       out = pssh.getstatus()
-      # Prepearing report about failed hosts
+      # Preparing report about failed hosts
       failed_current = get_difference(self.successive_hostlist, skip_failed_hosts(out))
       self.successive_hostlist = skip_failed_hosts(out)
       failed = get_difference(self.hostlist, self.successive_hostlist)
@@ -558,7 +559,7 @@ class BootStrap:
       pssh = PSSH(self.successive_hostlist, self.user, self.sshkeyFile, command, self.bootdir)
       pssh.run()
       out = pssh.getstatus()
-      # Prepearing report about failed hosts
+      # Preparing report about failed hosts
       failed_current = get_difference(self.successive_hostlist, skip_failed_hosts(out))
       self.successive_hostlist = skip_failed_hosts(out)
       failed = get_difference(self.hostlist, self.successive_hostlist)
@@ -587,7 +588,7 @@ class BootStrap:
       pssh = PSSH(self.hostlist_to_remove_password_file, self.user, self.sshkeyFile, command, self.bootdir)
       pssh.run()
       out = pssh.getstatus()
-      # Prepearing report about failed hosts
+      # Preparing report about failed hosts
       failed_current = get_difference(self.hostlist_to_remove_password_file, skip_failed_hosts(out))
       self.successive_hostlist = skip_failed_hosts(out)
       failed = get_difference(self.hostlist, self.successive_hostlist)

@@ -774,6 +774,8 @@ Trunk (unreleased changes):
 
  BUG FIXES
 
+ AMBARI-2008. Using mixed OS overwrites ambari.repo during install. (smohanty)
+
  AMBARI-1952. hadoop dependency version for ambari-log4j is hardcoded, making
  it regular expression based to pick latest from the repository. (smohanty)
 
