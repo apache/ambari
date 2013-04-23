@@ -269,6 +269,9 @@ Trunk (unreleased changes):
 
  IMPROVEMENTS
 
+ AMBARI-2004. Background Operation Popup needs label/styling fixes.
+ (yusaku)
+
  AMBARI-2003. Hosts tab: clicking on red badge should not toggle "Alerts"
  filter. (yusaku)
 

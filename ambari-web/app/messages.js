@@ -127,6 +127,7 @@ Em.I18n.translations = {
   'common.stats':'Stats',
   'common.abort': 'Abort',
   'common.misc': 'Misc',
+  'common.operations': 'Operations',
 
   'requestInfo.installComponents':'Install Components',
   'requestInfo.installServices':'Install Services',
