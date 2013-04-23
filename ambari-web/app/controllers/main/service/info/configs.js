@@ -621,7 +621,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
       secondary: null,
       onPrimary: function () {
         this.hide();
-        if (App.supports.hostOverrides) {
+        if (flag) {
           self.loadStep();
         }
       },

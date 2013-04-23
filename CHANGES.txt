@@ -774,6 +774,9 @@ Trunk (unreleased changes):
 
  BUG FIXES
 
+ AMBARI-2000. Undo links still remain after the config changes are saved.
+ (yusaku)
+
  AMBARI-1999. Clicking on Cancel on the Service Config page should not reload
  the entire app. (yusaku)
 
