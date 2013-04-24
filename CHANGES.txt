@@ -790,6 +790,8 @@ Trunk (unreleased changes):
  Farrellee via mahadev)
 
  BUG FIXES
+ 
+ AMBARI-2020. Incorrect behavior of "Services" page. (yusaku)
 
  AMBARI-2018. Hosts page: no filter selection is shown after clicking on
  "Alerts" filter, navigating away, and coming back to Hosts page. (yusaku)

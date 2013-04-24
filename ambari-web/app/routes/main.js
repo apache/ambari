@@ -783,17 +783,17 @@ module.exports = Em.Route.extend({
   services: Em.Route.extend({
     route: '/services',
     index: Ember.Route.extend({
-      route: '/'
+      route: '/',
+      enter: function (router) {
+        Ember.run.next(function () {
+          var service = router.get('mainServiceItemController.content');
+          if (!service) {
+            service = App.Service.find().objectAt(0); // getting the first service to display
+          }
+          router.transitionTo('service.summary', service);
+        });
+      }
     }),
-    enter: function (router) {
-      Ember.run.next(function () {
-        var service = router.get('mainServiceItemController.content');
-        if (!service) {
-          service = App.Service.find().objectAt(0); // getting the first service to display
-        }
-        router.transitionTo('service.summary', service);
-      });
-    },
     connectOutlets: function (router, context) {
       router.get('mainController').connectOutlet('mainService');
     },
