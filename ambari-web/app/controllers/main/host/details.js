@@ -158,7 +158,7 @@ App.MainHostDetailsController = Em.Controller.extend({
                 component.set('workStatus', App.HostComponentStatus.started);
               },App.testModeDelayForActions);
             } else {
-              App.router.get('clusterController').loadUpdatedStatus();
+              App.router.get('clusterController').loadUpdatedStatusDelayed(500);
             }
 
             App.router.get('backgroundOperationsController').showPopup();
@@ -197,7 +197,7 @@ App.MainHostDetailsController = Em.Controller.extend({
             component.set('workStatus', App.HostComponentStatus.stopped);
           },App.testModeDelayForActions);
         } else {
-          App.router.get('clusterController').loadUpdatedStatus();
+          App.router.get('clusterController').loadUpdatedStatusDelayed(500);
         }
 
         App.router.get('backgroundOperationsController').showPopup();
@@ -271,7 +271,7 @@ App.MainHostDetailsController = Em.Controller.extend({
                     component.set('workStatus', App.HostComponentStatus.stopped);
                   }, App.testModeDelayForActions);
                 } else {
-                  App.router.get('clusterController').loadUpdatedStatus();
+                  App.router.get('clusterController').loadUpdatedStatusDelayed(500);
                 }
 
                 App.router.get('backgroundOperationsController').showPopup();

@@ -789,6 +789,9 @@ Trunk (unreleased changes):
 
  BUG FIXES
 
+ AMBARI-2015. Host component start/stop causes "Uncaught TypeError: Cannot call
+ method 'call' of undefined". (yusaku)
+
  AMBARI-2011. Add Hosts gets stuck at 33% (some hosts in the cluster were
  down). (yusaku)
 
