@@ -444,7 +444,7 @@ App.WizardStep8Controller = Em.Controller.extend({
     this.get('clusterInfo').pushObject(Ember.Object.create(totalHostsObj));
 
     //repo
-    var repoOption = this.get('content.installOption.localRepo');
+    var repoOption = this.get('content.installOptions.localRepo');
     var repoObj = this.rawContent.findProperty('config_name', 'Repo');
     if (repoOption) {
       repoObj.config_value = 'Yes';

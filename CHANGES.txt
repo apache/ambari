@@ -789,6 +789,9 @@ Trunk (unreleased changes):
 
  BUG FIXES
 
+ AMBARI-2014. Install Wizard/Add Host Wizard Review page: local repo option
+ is always displayed as "No", even when it is enabled. (yusaku)
+
  AMBARI-2019. Cannot decommission data node (ensure recommission also works).
  (swagle)
  
