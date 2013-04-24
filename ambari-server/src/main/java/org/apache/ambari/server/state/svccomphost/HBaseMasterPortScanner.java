@@ -151,7 +151,7 @@ public class HBaseMasterPortScanner implements Runnable {
   public void updateHBaseMaster(Cluster cluster) {
     synchronized (wakeupSyncObject) {
       collectServiceComponentHostsForCluster(cluster);
-      if(!componentHostMap.isEmpty()){
+      if(componentHostMap!=null && !componentHostMap.isEmpty()){
         LOG.debug("HBaseMasterPortScanner start scanning for cluster " + cluster.getClusterName());
         activeAwakeRequest = true;
         wakeupSyncObject.notify();
@@ -171,7 +171,7 @@ public class HBaseMasterPortScanner implements Runnable {
       while (iter.hasNext()) {
         collectServiceComponentHostsForCluster(iter.next());
       }
-      if(!componentHostMap.isEmpty()){
+      if(componentHostMap!=null && !componentHostMap.isEmpty()){
         LOG.debug("HBaseMasterPortScanner start scanning for Host " + host.getHostName());
         activeAwakeRequest = true;
         wakeupSyncObject.notify();
@@ -187,7 +187,7 @@ public class HBaseMasterPortScanner implements Runnable {
         LOG.warn(ex);
         return;
       }
-      if(!componentHostMap.isEmpty()){
+      if(componentHostMap!=null && !componentHostMap.isEmpty()){
         LOG.debug("HBaseMasterPortScanner start scanning for ServiceComponentHost " + host.getServiceComponentName());
         activeAwakeRequest = true;
         wakeupSyncObject.notify();

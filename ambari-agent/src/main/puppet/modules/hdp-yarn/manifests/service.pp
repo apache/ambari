@@ -36,7 +36,7 @@ define hdp-yarn::service(
   $cmd = "export HADOOP_LIBEXEC_DIR=${hadoop_libexec_dir} && ${yarn_daemon} --config ${hdp-yarn::params::conf_dir}"
   
   
-  $pid_file = "${pid_dir}/hadoop-${user}-${name}.pid"
+  $pid_file = "${pid_dir}/yarn-${user}-${name}.pid"
   
   
   

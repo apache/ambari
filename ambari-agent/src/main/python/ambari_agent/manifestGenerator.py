@@ -174,7 +174,7 @@ def writeFlatConfigurations(outputFile, flatConfigs):
     for flatConfig in flatConfigs[flatConfigName].iterkeys():
       flatDict[flatConfig] = flatConfigs[flatConfigName][flatConfig]
   for gconfigKey in flatDict.iterkeys():
-    outputFile.write('$' + gconfigKey + ' = "' + flatDict[gconfigKey] + '"' + os.linesep)
+    outputFile.write('$' + gconfigKey + " = '" + flatDict[gconfigKey] + "'" + os.linesep)
   outputFile.write('$myhostname' + " = '" + fqdn + "'" + os.linesep)
   outputFile.write('$public_hostname' + " = '" + public_fqdn + "'" + os.linesep)
 

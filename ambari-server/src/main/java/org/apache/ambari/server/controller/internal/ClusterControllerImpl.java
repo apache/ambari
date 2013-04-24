@@ -89,6 +89,8 @@ public class ClusterControllerImpl implements ClusterController {
     if (provider == null) {
       resources = Collections.emptySet();
     } else {
+
+
       if (LOG.isDebugEnabled()) {
         LOG.debug("Using resource provider "
           + provider.getClass().getName()

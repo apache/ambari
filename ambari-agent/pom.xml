@@ -232,7 +232,6 @@
               <filemode>755</filemode>
               <username>root</username>
               <groupname>root</groupname>
-	      <directoryIncluded>false</directoryIncluded>
               <sources>
                 <source>
                   <location>conf/unix/ambari-agent</location>
@@ -240,13 +239,7 @@
               </sources>
             </mapping>
             <mapping>
-              <directory>/var/lib/${project.artifactId}</directory>
-              <filemode>755</filemode>
-              <username>root</username>
-              <groupname>root</groupname>
-            </mapping>
-            <mapping>
-              <directory>/var/lib/${project.artifactId}</directory>
+              <directory>/var/lib/ambari-agent</directory>
               <filemode>700</filemode>
               <username>root</username>
               <groupname>root</groupname>
