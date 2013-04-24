@@ -786,6 +786,9 @@ Trunk (unreleased changes):
 
  BUG FIXES
 
+ AMBARI-2012. Check Ambari-agent process - nagios alert is only being
+ configured on the nagios-server host. (smohanty)
+
  AMBARI-2001. Filtering on Jobs table does not work under certain situations.
  (yusaku)
 

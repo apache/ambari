@@ -76,6 +76,7 @@ class hdp-nagios::params() inherits hdp::params
     snamenode => {host_member_info => 'snamenode_host'},
     slaves => {host_member_info => 'slave_hosts'},
     tasktracker-servers => {host_member_info => 'mapred_tt_hosts'},
+    agent-servers => {host_member_info => 'all_hosts'},
     nagios-server => {host_member_info => 'nagios_server_host'},
     jobtracker  => {host_member_info => 'jtnode_host'},
     ganglia-server => {host_member_info => 'ganglia_server_host'},

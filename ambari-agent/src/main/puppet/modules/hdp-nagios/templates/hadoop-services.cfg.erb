@@ -78,7 +78,7 @@ define service {
 
 # AMBARI AGENT Checks
 define service {
-        hostgroup_name          nagios-server
+        hostgroup_name          agent-servers
         use                     hadoop-service
         service_description     AMBARI::Check ambari-agent process
         servicegroups           AMBARI

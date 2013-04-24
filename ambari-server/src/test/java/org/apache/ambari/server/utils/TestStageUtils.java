@@ -188,26 +188,31 @@ public class TestStageUtils {
     fsm.addHost("h1");
     fsm.addHost("h2");
     fsm.addHost("h3");
+    fsm.addHost("h4");
     fsm.getCluster("c1").setDesiredStackVersion(new StackId("HDP-0.1"));
     fsm.getHost("h1").setOsType("centos5");
     fsm.getHost("h2").setOsType("centos5");
     fsm.getHost("h3").setOsType("centos5");
+    fsm.getHost("h4").setOsType("centos5");
     fsm.getHost("h1").persist();
     fsm.getHost("h2").persist();
     fsm.getHost("h3").persist();
+    fsm.getHost("h4").persist();
     fsm.mapHostToCluster("h1", "c1");
     fsm.mapHostToCluster("h2", "c1");
     fsm.mapHostToCluster("h3", "c1");
+    fsm.mapHostToCluster("h4", "c1");
     String [] hostList = {"h1", "h2", "h3" };
     addHdfsService(fsm.getCluster("c1"), hostList, injector);
     addHbaseService(fsm.getCluster("c1"), hostList, injector);
     addMapreduceService(fsm.getCluster("c1"), hostList, injector);
-    Map<String, List<String>> info = StageUtils.getClusterHostInfo(fsm
-        .getCluster("c1"), new HostsMap(injector.getInstance(Configuration.class)), injector);
+    Map<String, List<String>> info = StageUtils.getClusterHostInfo(fsm.getHostsForCluster("c1"),
+        fsm.getCluster("c1"), new HostsMap(injector.getInstance(Configuration.class)), injector);
     assertEquals(2, info.get("slave_hosts").size());
     assertEquals(2, info.get("mapred_tt_hosts").size());
     assertEquals(2, info.get("hbase_rs_hosts").size());
     assertEquals(1, info.get("hbase_master_hosts").size());
+    assertEquals(4, info.get("all_hosts").size());
     assertEquals("h1", info.get("hbase_master_hosts").get(0));
 
     assertFalse(info.get("ambari_db_rca_url").get(0).contains(Configuration.HOSTNAME_MACRO));

@@ -71,6 +71,8 @@ class hdp::params()
   #if mapred_tt_hosts not given it is assumed that tasktracker servers on same nodes as slaves
   $mapred_tt_hosts = hdp_default("mapred_tt_hosts", $slave_hosts)
 
+  $all_hosts = hdp_default("all_hosts")
+
   $hive_server_host = hdp_default("hive_server_host", "")
   $oozie_server =  hdp_default("oozie_server", "")
   $webhcat_server_host = hdp_default("webhcat_server_host", "")
