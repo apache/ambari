@@ -67,7 +67,7 @@ App.ServiceConfigsByCategoryView = Ember.View.extend({
    * This method provides all the properties which apply
    * to this category, irrespective of visibility. This
    * is helpful in Oozie/Hive database configuration, where
-   * MySQL etc. database options dont show up, because
+   * MySQL etc. database options don't show up, because
    * they were not visible initially.
    */
   categoryConfigsAll: function () {
@@ -91,7 +91,7 @@ App.ServiceConfigsByCategoryView = Ember.View.extend({
   /**
    * Filtered <code>categoryConfigs</code> array. Used to show filtered result
    */
-  filteredCategoryConfigs: function(){
+  filteredCategoryConfigs: function() {
     var filter = this.get('parentView.filter').toLowerCase();
     var isOnlyModified = this.get('parentView.columns').length && this.get('parentView.columns')[1].get('selected');
     var isOnlyOverridden = this.get('parentView.columns').length && this.get('parentView.columns')[0].get('selected');
@@ -128,20 +128,22 @@ App.ServiceConfigsByCategoryView = Ember.View.extend({
       }, this);
       return sortedArray;
 
-    }else if(filteredResult.someProperty('displayName', 'Hive Database')) {
-      var displayNameArray = ['Hive Database', 'Database Type', 'Database Name', 'Database Username', 'Database Password', 'Database Host', 'Hive Metastore host'];
-      var sortedArray = [];
-      displayNameArray.forEach(function(item){
-        var obj = filteredResult.findProperty('displayName', item);
-        if(obj) {
-          sortedArray.push(obj);
-        }
-      }, this);
-      return sortedArray;
     }
-
-    else{
-      return filteredResult;
+    else {
+      if(filteredResult.someProperty('displayName', 'Hive Database')) {
+        var displayNameArray = ['Hive Database', 'Database Type', 'Database Name', 'Database Username', 'Database Password', 'Database Host', 'Hive Metastore host'];
+        var sortedArray = [];
+        displayNameArray.forEach(function(item){
+          var obj = filteredResult.findProperty('displayName', item);
+          if(obj) {
+            sortedArray.push(obj);
+          }
+        }, this);
+        return sortedArray;
+      }
+      else {
+        return filteredResult;
+      }
     }
 
   }.property('categoryConfigs','parentView.filter', 'parentView.columns.@each.selected'),
@@ -173,9 +175,6 @@ App.ServiceConfigsByCategoryView = Ember.View.extend({
   changeFlag: Ember.Object.create({
     val: 1
   }),
-  invokeMe: function () {
-    alert("parent");
-  },
   isOneOfAdvancedSections: function () {
     var category = this.get('category');
     return category.indexOf("Advanced") != -1;

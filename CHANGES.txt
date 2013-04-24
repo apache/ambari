@@ -269,6 +269,8 @@ Trunk (unreleased changes):
 
  IMPROVEMENTS
 
+ AMBARI-2017. Admin Misc page tweaks. (yusaku)
+
  AMBARI-2022. Service Component metric collection API takes over a minute
  on large cluster. (tbeerbower)
 

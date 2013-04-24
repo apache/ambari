@@ -596,7 +596,7 @@ Em.I18n.translations = {
   'admin.cluster.upgradeAvailable':'Upgrade available',
   'admin.cluster.upgradeUnavailable':'Upgrade unavailable',
 
-  'admin.misc.header': 'Service user accounts',
+  'admin.misc.header': 'Service Users and Groups',
   'admin.misc.nothingToShow': 'No user accounts to display',
 
   'services.service.start':'Start',

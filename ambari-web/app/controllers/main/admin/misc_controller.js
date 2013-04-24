@@ -27,7 +27,7 @@ App.MainAdminMiscController = App.MainServiceInfoConfigsController.extend({
     serviceName: 'MISC'
   },
   loadUsers: function() {
-    this.set('selectedService', 'MISC');
+    this.set('selectedService', this.get('content.serviceName'));
     this.loadServiceConfig();
   },
   loadServiceConfig: function() {
@@ -55,10 +55,21 @@ App.MainAdminMiscController = App.MainServiceInfoConfigsController.extend({
     var configGroups = App.config.loadConfigsByTags(this.get('serviceConfigTags'));
     var configSet = App.config.mergePreDefinedWithLoaded(configGroups, [], this.get('serviceConfigTags'), serviceName);
 
-    var misc_configs = configSet.globalConfigs.filterProperty('serviceName', 'MISC').filterProperty('category', 'Users and Groups').filterProperty('isVisible', true);
-    this.set('users', misc_configs);
+    var misc_configs = configSet.globalConfigs.filterProperty('serviceName', this.get('selectedService')).filterProperty('category', 'Users and Groups').filterProperty('isVisible', true);
+
+    var sortOrder = this.get('configs').filterProperty('serviceName', this.get('selectedService')).filterProperty('category', 'Users and Groups').filterProperty('isVisible', true).mapProperty('name');
+
+    var sorted = [];
+
+    if(sortOrder) {
+      sortOrder.forEach(function(name) {
+        sorted.push(misc_configs.findProperty('name', name));
+      });
+      this.set('users', sorted);
+    }
+    else {
+      this.set('users', misc_configs);
+    }
     this.set('dataIsLoaded', true);
-
   }
-
 });
