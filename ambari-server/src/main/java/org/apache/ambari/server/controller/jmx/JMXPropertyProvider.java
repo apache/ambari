@@ -57,6 +57,10 @@ public class JMXPropertyProvider extends AbstractPropertyProvider {
 
   private final String componentNamePropertyId;
 
+  private final String statePropertyId;
+
+  private final Set<String> healthyStates;
+
   private final static ObjectReader objectReader;
 
 
@@ -88,13 +92,17 @@ public class JMXPropertyProvider extends AbstractPropertyProvider {
    * @param clusterNamePropertyId    the cluster name property id
    * @param hostNamePropertyId       the host name property id
    * @param componentNamePropertyId  the component name property id
+   * @param statePropertyId          the state property id
+   * @param healthyStates            the set of healthy state values
    */
   public JMXPropertyProvider(Map<String, Map<String, PropertyInfo>> componentMetrics,
                              StreamProvider streamProvider,
                              JMXHostProvider jmxHostProvider,
                              String clusterNamePropertyId,
                              String hostNamePropertyId,
-                             String componentNamePropertyId) {
+                             String componentNamePropertyId,
+                             String statePropertyId,
+                             Set<String> healthyStates) {
 
     super(componentMetrics);
 
@@ -103,6 +111,8 @@ public class JMXPropertyProvider extends AbstractPropertyProvider {
     this.clusterNamePropertyId    = clusterNamePropertyId;
     this.hostNamePropertyId       = hostNamePropertyId;
     this.componentNamePropertyId  = componentNamePropertyId;
+    this.statePropertyId          = statePropertyId;
+    this.healthyStates            = healthyStates;
   }
 
 
@@ -144,14 +154,23 @@ public class JMXPropertyProvider extends AbstractPropertyProvider {
    * @param request   the request
    * @param predicate the predicate
    *
-   * @return true if the resource was successfully populated with the requested properties
+   * @return true if the resource should be part of the result set for the given predicate
    */
   private boolean populateResource(Resource resource, Request request, Predicate predicate)
       throws SystemException {
 
     Set<String> ids = getRequestPropertyIds(request, predicate);
     if (ids.isEmpty()) {
+      // no properties requested
       return true;
+    }
+
+    // Don't attempt to get the JMX properties if the resource is in an unhealthy state
+    if (statePropertyId != null) {
+      String state = (String) resource.getPropertyValue(statePropertyId);
+      if (state != null && !healthyStates.contains(state)) {
+        return true;
+      }
     }
 
     String componentName = (String) resource.getPropertyValue(componentNamePropertyId);

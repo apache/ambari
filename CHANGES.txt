@@ -269,6 +269,9 @@ Trunk (unreleased changes):
 
  IMPROVEMENTS
 
+ AMBARI-2022. Service Component metric collection API takes over a minute
+ on large cluster. (tbeerbower)
+
  AMBARI-2005. When adding a component to a host (after cluster deployment),
  UI should warn that nagios server need to be restarted. (yusaku)
 
