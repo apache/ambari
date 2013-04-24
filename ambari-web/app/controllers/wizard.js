@@ -259,13 +259,28 @@ App.WizardController = Em.Controller.extend({
 
     switch (this.get('content.controllerName')) {
       case 'addHostController':
+
+        var hostnames = [];
+        for (var hostname in App.db.getHosts()) {
+          hostnames.push(hostname);
+        }
+
         if (isRetry) {
           name = 'wizard.install_services.add_host_controller.is_retry';
         }
         else {
           name = 'wizard.install_services.add_host_controller.not_is_retry';
         }
-        data = '{"RequestInfo": {"context" :"'+ Em.I18n.t('requestInfo.installComponents') +'"}, "Body": {"HostRoles": {"state": "INSTALLED"}}}';
+        data = {
+          "RequestInfo": {
+            "context": Em.I18n.t('requestInfo.installComponents'),
+            "query": "HostRoles/host_name.in(" + hostnames.join(',') + ")"
+          },
+          "Body": {
+            "HostRoles": {"state": "INSTALLED"}
+          }
+        };
+        data = JSON.stringify(data);
         break;
       case 'installerController':
       default:

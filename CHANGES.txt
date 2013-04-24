@@ -789,6 +789,9 @@ Trunk (unreleased changes):
 
  BUG FIXES
 
+ AMBARI-2011. Add Hosts gets stuck at 33% (some hosts in the cluster were
+ down). (yusaku)
+
  AMBARI-2014. Install Wizard/Add Host Wizard Review page: local repo option
  is always displayed as "No", even when it is enabled. (yusaku)
 

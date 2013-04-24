@@ -536,7 +536,7 @@ var urls = {
     }
   },
   'wizard.install_services.add_host_controller.is_retry': {
-    'real': '/clusters/{cluster}/host_components?HostRoles/state=INSTALLED',
+    'real': '/clusters/{cluster}/host_components',
     'format': function (data, opt) {
       return {
         type: 'PUT',
@@ -546,7 +546,7 @@ var urls = {
     }
   },
   'wizard.install_services.add_host_controller.not_is_retry': {
-    'real': '/clusters/{cluster}/host_components?HostRoles/state=INIT',
+    'real': '/clusters/{cluster}/host_components',
     'format': function (data, opt) {
       return {
         type: 'PUT',
@@ -556,7 +556,7 @@ var urls = {
     }
   },
   'wizard.install_services.installer_controller.is_retry': {
-    'real': '/clusters/{cluster}/host_components?HostRoles/state!=INSTALLED',
+    'real': '/clusters/{cluster}/host_components?HostRoles/state=INSTALLED',
     'mock': '/data/wizard/deploy/2_hosts/poll_1.json',
     'format': function (data, opt) {
       return {
@@ -602,7 +602,7 @@ var urls = {
     }
   },
   'wizard.step9.add_host.launch_start_services': {
-    'real': '/clusters/{cluster}/host_components?(HostRoles/component_name=GANGLIA_MONITOR|HostRoles/component_name=HBASE_REGIONSERVER|HostRoles/component_name=DATANODE|HostRoles/component_name=TASKTRACKER)&(HostRoles/state=INSTALLED)',
+    'real': '/clusters/{cluster}/host_components',
     'mock': '/data/wizard/deploy/5_hosts/poll_6.json',
     'format': function (data, opt) {
       return {
