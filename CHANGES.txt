@@ -786,6 +786,8 @@ Trunk (unreleased changes):
 
  BUG FIXES
 
+ AMBARI-2010. Tasks do not timeout for failed hosts. (swagle)
+
  AMBARI-2012. Check Ambari-agent process - nagios alert is only being
  configured on the nagios-server host. (smohanty)
 

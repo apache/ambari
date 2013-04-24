@@ -31,7 +31,6 @@ import org.apache.ambari.server.state.fsm.InvalidStateTransitionException;
 import org.apache.ambari.server.state.svccomphost.ServiceComponentHostOpFailedEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import java.util.*;
 
 /**
@@ -279,7 +278,7 @@ class ActionScheduler implements Runnable {
    * has succeeded or failed.
    */
   private Map<String, RoleStats> processInProgressStage(Stage s,
-      List<ExecutionCommand> commandsToSchedule) {
+      List<ExecutionCommand> commandsToSchedule) throws AmbariException {
     // Map to track role status
     Map<String, RoleStats> roleStats = initRoleStats(s);
     long now = System.currentTimeMillis();
@@ -289,11 +288,14 @@ class ActionScheduler implements Runnable {
     }
     for (String host : s.getHosts()) {
       List<ExecutionCommandWrapper> commandWrappers = s.getExecutionCommands(host);
+      Cluster cluster = fsmObject.getCluster(s.getClusterName());
+      Host hostObj = fsmObject.getHost(host);
       for(ExecutionCommandWrapper wrapper : commandWrappers) {
         ExecutionCommand c = wrapper.getExecutionCommand();
         String roleStr = c.getRole().toString();
         HostRoleStatus status = s.getHostRoleStatus(host, roleStr);
-        if (timeOutActionNeeded(status, s, host, roleStr, now, taskTimeout)) {
+        if (timeOutActionNeeded(status, s, hostObj, roleStr, now,
+          taskTimeout)) {
           LOG.info("Host:" + host + ", role:" + roleStr + ", actionId:"
               + s.getActionId() + " timed out");
           if (s.getAttemptCount(host, roleStr) >= maxAttempts) {
@@ -307,7 +309,6 @@ class ActionScheduler implements Runnable {
                 new ServiceComponentHostOpFailedEvent(roleStr,
                     host, now);
             try {
-              Cluster cluster = fsmObject.getCluster(s.getClusterName());
               Service svc = cluster.getService(c.getServiceName());
               ServiceComponent svcComp = svc.getServiceComponent(
                   roleStr);
@@ -322,6 +323,8 @@ class ActionScheduler implements Runnable {
             } catch (AmbariException ex) {
               LOG.warn("Invalid live state", ex);
             }
+            // Dequeue command
+            actionQueue.dequeue(host, c.getCommandId());
           } else {
             commandsToSchedule.add(c);
           }
@@ -360,12 +363,19 @@ class ActionScheduler implements Runnable {
   }
 
   private boolean timeOutActionNeeded(HostRoleStatus status, Stage stage,
-      String host, String role, long currentTime, long taskTimeout) {
+      Host host, String role, long currentTime, long taskTimeout) throws
+    AmbariException {
     if (( !status.equals(HostRoleStatus.QUEUED) ) &&
         ( ! status.equals(HostRoleStatus.IN_PROGRESS) )) {
       return false;
     }
-    if (currentTime > stage.getLastAttemptTime(host, role)+taskTimeout) {
+    // Fast fail task if host state is unknown
+    if (host.getState().equals(HostState.HEARTBEAT_LOST)) {
+      LOG.debug("Timing out action since agent is not heartbeating.");
+      return true;
+    }
+    if (currentTime > stage.getLastAttemptTime(host.getHostName(),
+      role) + taskTimeout) {
       return true;
     }
     return false;

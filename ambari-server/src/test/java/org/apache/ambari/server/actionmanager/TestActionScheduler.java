@@ -43,12 +43,15 @@ import org.apache.ambari.server.serveraction.ServerAction;
 import org.apache.ambari.server.serveraction.ServerActionManagerImpl;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
+import org.apache.ambari.server.state.Host;
+import org.apache.ambari.server.state.HostState;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceComponent;
 import org.apache.ambari.server.state.ServiceComponentHost;
 import org.apache.ambari.server.state.svccomphost.ServiceComponentHostInstallEvent;
 import org.apache.ambari.server.state.svccomphost.ServiceComponentHostUpgradeEvent;
 import org.apache.ambari.server.utils.StageUtils;
+import org.easymock.EasyMock;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -74,10 +77,14 @@ public class TestActionScheduler {
     when(serviceObj.getServiceComponent(anyString())).thenReturn(scomp);
     when(scomp.getServiceComponentHost(anyString())).thenReturn(sch);
     when(serviceObj.getCluster()).thenReturn(oneClusterMock);
+    String hostname = "ahost.ambari.apache.org";
+    Host host = mock(Host.class);
+    when(fsm.getHost(anyString())).thenReturn(host);
+    when(host.getState()).thenReturn(HostState.HEALTHY);
+    when(host.getHostName()).thenReturn(hostname);
 
     ActionDBAccessor db = mock(ActionDBAccessorImpl.class);
     List<Stage> stages = new ArrayList<Stage>();
-    String hostname = "ahost.ambari.apache.org";
     Stage s = StageUtils.getATestStage(1, 977, hostname);
     stages.add(s);
     when(db.getStagesInProgress()).thenReturn(stages);
@@ -140,9 +147,13 @@ public class TestActionScheduler {
     when(serviceObj.getServiceComponent(anyString())).thenReturn(scomp);
     when(scomp.getServiceComponentHost(anyString())).thenReturn(sch);
     when(serviceObj.getCluster()).thenReturn(oneClusterMock);
+    String hostname = "ahost.ambari.apache.org";
+    Host host = mock(Host.class);
+    when(fsm.getHost(anyString())).thenReturn(host);
+    when(host.getState()).thenReturn(HostState.HEALTHY);
+    when(host.getHostName()).thenReturn(hostname);
 
     ActionDBAccessor db = new ActionDBInMemoryImpl();
-    String hostname = "ahost.ambari.apache.org";
     List<Stage> stages = new ArrayList<Stage>();
     Stage s = StageUtils.getATestStage(1, 977, hostname);
     stages.add(s);
@@ -161,6 +172,46 @@ public class TestActionScheduler {
     }
     assertEquals(stages.get(0).getHostRoleStatus(hostname, "NAMENODE"),
         HostRoleStatus.TIMEDOUT);
+  }
+
+  @Test
+  public void testActionTimeoutForLostHost() throws Exception {
+    ActionQueue aq = new ActionQueue();
+    Clusters fsm = mock(Clusters.class);
+    Cluster oneClusterMock = mock(Cluster.class);
+    Service serviceObj = mock(Service.class);
+    ServiceComponent scomp = mock(ServiceComponent.class);
+    ServiceComponentHost sch = mock(ServiceComponentHost.class);
+    when(fsm.getCluster(anyString())).thenReturn(oneClusterMock);
+    when(oneClusterMock.getService(anyString())).thenReturn(serviceObj);
+    when(serviceObj.getServiceComponent(anyString())).thenReturn(scomp);
+    when(scomp.getServiceComponentHost(anyString())).thenReturn(sch);
+    when(serviceObj.getCluster()).thenReturn(oneClusterMock);
+    String hostname = "ahost.ambari.apache.org";
+    Host host = mock(Host.class);
+    when(fsm.getHost(anyString())).thenReturn(host);
+    when(host.getState()).thenReturn(HostState.HEARTBEAT_LOST);
+    when(host.getHostName()).thenReturn(hostname);
+
+    ActionDBAccessor db = new ActionDBInMemoryImpl();
+    List<Stage> stages = new ArrayList<Stage>();
+    Stage s = StageUtils.getATestStage(1, 977, hostname);
+    stages.add(s);
+    db.persistActions(stages);
+
+    //Small action timeout to test rescheduling
+    ActionScheduler scheduler = new ActionScheduler(100, 50, db, aq, fsm, 3,
+      new HostsMap((String) null), null);
+    scheduler.setTaskTimeoutAdjustment(false);
+    // Start the thread
+    scheduler.start();
+
+    while (!stages.get(0).getHostRoleStatus(hostname, "NAMENODE")
+      .equals(HostRoleStatus.TIMEDOUT)) {
+      Thread.sleep(100L);
+    }
+    assertEquals(stages.get(0).getHostRoleStatus(hostname, "NAMENODE"),
+      HostRoleStatus.TIMEDOUT);
   }
 
   /**
@@ -298,6 +349,11 @@ public class TestActionScheduler {
     when(serviceObj.getServiceComponent(anyString())).thenReturn(scomp);
     when(scomp.getServiceComponentHost(anyString())).thenReturn(sch);
     when(serviceObj.getCluster()).thenReturn(oneClusterMock);
+    Host host = mock(Host.class);
+    when(fsm.getHost(anyString())).thenReturn(host);
+    when(host.getState()).thenReturn(HostState.HEALTHY);
+    when(host.getHostName()).thenReturn("host1");
+
 
     ActionDBAccessor db = new ActionDBInMemoryImpl();
     List<Stage> stages = new ArrayList<Stage>();
