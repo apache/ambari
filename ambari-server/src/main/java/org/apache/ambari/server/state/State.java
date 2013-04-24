@@ -143,6 +143,7 @@ public enum State {
       case INSTALLED:
       case INSTALL_FAILED:
       case UNINSTALLED:
+      case UNKNOWN:
       case MAINTENANCE:
         return true;
       default:

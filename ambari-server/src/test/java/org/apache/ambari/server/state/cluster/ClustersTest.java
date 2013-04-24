@@ -55,6 +55,7 @@ import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceComponent;
 import org.apache.ambari.server.state.ServiceComponentHost;
 import org.apache.ambari.server.state.StackId;
+import org.apache.ambari.server.state.State;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -356,12 +357,19 @@ public class ClustersTest {
     nameNode.persist();
     ServiceComponent dataNode = hdfs.addServiceComponent("DATANODE");
     dataNode.persist();
+    
+    ServiceComponent serviceCheckNode = hdfs.addServiceComponent("HDFS_CLIENT");
+    serviceCheckNode.persist();
 
     ServiceComponentHost nameNodeHost = nameNode.addServiceComponentHost(h1);
     nameNodeHost.persist();
 
     ServiceComponentHost dataNodeHost = dataNode.addServiceComponentHost(h2);
     dataNodeHost.persist();
+    
+    ServiceComponentHost serviceCheckNodeHost = serviceCheckNode.addServiceComponentHost(h2);
+    serviceCheckNodeHost.persist();
+    serviceCheckNodeHost.setState(State.UNKNOWN);
 
     HostComponentStateEntityPK hkspk = new HostComponentStateEntityPK();
     HostComponentDesiredStateEntityPK hkdspk = new HostComponentDesiredStateEntityPK();
