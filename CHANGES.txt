@@ -786,6 +786,8 @@ Trunk (unreleased changes):
 
  BUG FIXES
 
+ AMBARI-2021. Hadoop installation on cluster with SUSE-11 failed. (smohanty)
+
  AMBARI-2010. Tasks do not timeout for failed hosts. (swagle)
 
  AMBARI-2012. Check Ambari-agent process - nagios alert is only being
