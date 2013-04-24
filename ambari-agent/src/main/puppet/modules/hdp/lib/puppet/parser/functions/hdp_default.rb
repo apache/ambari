@@ -29,11 +29,8 @@ module Puppet::Parser::Functions
     # Lookup value inside a hash map.
     if var_parts.length > 1 and function_hdp_is_empty(val) and function_hdp_is_empty(lookupvar("configuration")) == false and function_hdp_is_empty(lookupvar("#{var_parts[-2]}")) == false
       keyHash = var_parts[-2]
-      puts "keyHash  #{keyHash}"      
       hashMap = lookupvar("#{keyHash}") 
-      puts "hashMap #{hashMap}"
-      puts "default #{default}"   
-      val = hashMap.fetch(var_name, default.to_s)      
+      val = hashMap.fetch(var_name, default.to_s)
     end
     # To workaround string-boolean comparison issues,
     # ensure that we return boolean result if the default value

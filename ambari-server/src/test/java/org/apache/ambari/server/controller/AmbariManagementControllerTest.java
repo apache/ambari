@@ -4610,6 +4610,104 @@ public class AmbariManagementControllerTest {
   }
 
   @Test
+  public void testDecommissonDatanodeAction() throws AmbariException {
+    String clusterName = "foo1";
+    createCluster(clusterName);
+    clusters.getCluster(clusterName)
+      .setDesiredStackVersion(new StackId("HDP-0.1"));
+    String serviceName = "HDFS";
+    createService(clusterName, serviceName, null);
+    String componentName1 = "NAMENODE";
+    String componentName2 = "DATANODE";
+    String componentName3 = "HDFS_CLIENT";
+
+    Map<String, String> mapRequestProps = new HashMap<String, String>();
+    mapRequestProps.put("context", "Called from a test");
+
+    createServiceComponent(clusterName, serviceName, componentName1,
+      State.INIT);
+    createServiceComponent(clusterName, serviceName, componentName2,
+      State.INIT);
+    createServiceComponent(clusterName, serviceName, componentName3,
+      State.INIT);
+
+    String host1 = "h1";
+    clusters.addHost(host1);
+    clusters.getHost("h1").setOsType("centos5");
+    clusters.getHost("h1").persist();
+    String host2 = "h2";
+    clusters.addHost(host2);
+    clusters.getHost("h2").setOsType("centos6");
+    clusters.getHost("h2").persist();
+
+    clusters.mapHostToCluster(host1, clusterName);
+    clusters.mapHostToCluster(host2, clusterName);
+
+    createServiceComponentHost(clusterName, serviceName, componentName1,
+      host1, null);
+    createServiceComponentHost(clusterName, serviceName, componentName2,
+      host1, null);
+    createServiceComponentHost(clusterName, serviceName, componentName2,
+      host2, null);
+    createServiceComponentHost(clusterName, serviceName, componentName3,
+      host1, null);
+    createServiceComponentHost(clusterName, serviceName, componentName3,
+      host2, null);
+
+    // Install
+    installService(clusterName, serviceName, false, false);
+
+    // Create and attach config
+    Map<String, String> configs = new HashMap<String, String>();
+    configs.put("a", "b");
+
+    ConfigurationRequest cr1,cr2;
+    cr1 = new ConfigurationRequest(clusterName, "hdfs-site","version1",
+      configs);
+    ClusterRequest crReq = new ClusterRequest(null, clusterName, null, null);
+    crReq.setDesiredConfig(cr1);
+    controller.updateCluster(crReq, null);
+    Map<String, String> props = new HashMap<String, String>();
+    props.put("datanodes", host2);
+    cr2 = new ConfigurationRequest(clusterName, "hdfs-exclude-file", "tag1",
+      props);
+    crReq = new ClusterRequest(null, clusterName, null, null);
+    crReq.setDesiredConfig(cr2);
+    controller.updateCluster(crReq, null);
+
+    // Start
+    startService(clusterName, serviceName, false, false);
+
+    Cluster cluster = clusters.getCluster(clusterName);
+    Service s = cluster.getService(serviceName);
+    Assert.assertEquals(State.STARTED, s.getDesiredState());
+
+    Set<ActionRequest> requests = new HashSet<ActionRequest>();
+    Map<String, String> params = new HashMap<String, String>(){{
+      put("test", "test");
+    }};
+    ActionRequest request = new ActionRequest(clusterName, "HDFS",
+      Role.DECOMMISSION_DATANODE.name(), params);
+    params.put("excludeFileTag", "tag1");
+    requests.add(request);
+
+    Map<String, String> requestProperties = new HashMap<String, String>();
+    requestProperties.put(REQUEST_CONTEXT_PROPERTY, "Called from a test");
+
+    RequestStatusResponse response = controller.createActions(requests,
+      requestProperties);
+
+    List<HostRoleCommand> storedTasks = actionDB.getRequestTasks(response.getRequestId());
+    ExecutionCommand execCmd = storedTasks.get(0).getExecutionCommandWrapper
+      ().getExecutionCommand();
+    assertNotNull(storedTasks);
+    Assert.assertNotNull(execCmd.getConfigurationTags().get("hdfs-site"));
+    Assert.assertEquals(1, storedTasks.size());
+    Assert.assertEquals(host2, execCmd.getConfigurations().get
+      ("hdfs-exclude-file").get("datanodes"));
+  }
+
+  @Test
   public void testConfigsAttachedToServiceChecks() throws AmbariException {
     String clusterName = "foo1";
     createCluster(clusterName);

@@ -4028,6 +4028,7 @@ public class AmbariManagementControllerImpl implements
       throws AmbariException {
     // Find hdfs admin host, just decommission from namenode.
     String clusterName = decommissionRequest.getClusterName();
+    Cluster cluster = clusters.getCluster(clusterName);
     String serviceName = decommissionRequest.getServiceName();
     String namenodeHost = clusters.getCluster(clusterName)
         .getService(serviceName).getServiceComponent(Role.NAMENODE.toString())
@@ -4052,14 +4053,11 @@ public class AmbariManagementControllerImpl implements
         new TreeMap<String, Map<String, String>>();
     configurations.put(config.getType(), config.getProperties());
 
-    Map<String, Config> hdfsSiteConfig = clusters.getCluster(clusterName).getService("HDFS")
-        .getDesiredConfigs();
-    if (hdfsSiteConfig != null) {
-      for (Map.Entry<String, Config> entry: hdfsSiteConfig.entrySet()) {
-        configurations
-          .put(entry.getValue().getType(), entry.getValue().getProperties());
-      }
-    }
+    Map<String, Map<String, String>> configTags = new TreeMap<String,
+      Map<String, String>>();
+
+    findConfigurationPropertiesWithOverrides(configurations, configTags,
+      cluster, serviceName, namenodeHost);
 
     stage.addHostRoleExecutionCommand(
         namenodeHost,
@@ -4073,8 +4071,8 @@ public class AmbariManagementControllerImpl implements
       Role.DECOMMISSION_DATANODE.toString()).getExecutionCommand();
 
     execCmd.setConfigurations(configurations);
+    execCmd.setConfigurationTags(configTags);
 
-    Cluster cluster = clusters.getCluster(clusterName);
     Map<String, String> params = new TreeMap<String, String>();
     params.put("jdk_location", this.jdkResourceUrl);
     params.put("stack_version", cluster.getDesiredStackVersion()
