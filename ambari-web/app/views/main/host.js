@@ -29,12 +29,6 @@ App.MainHostView = App.TableView.extend({
 
   didInsertElement:function () {
     this._super();
-    if (this.get('controller.comeWithAlertsFilter')) {
-      this.set('controller.comeWithAlertsFilter', false);
-      this.set('controller.filteredByAlerts', true);
-    } else {
-      this.set('controller.filteredByAlerts', false);
-    }
   },
 
   sortView: sort.wrapperView,
@@ -109,7 +103,10 @@ App.MainHostView = App.TableView.extend({
 
     hostsCount: function () {
       var statusString = this.get('healthStatusValue');
-      if (statusString == "") {
+      var alerts = this.get('alerts');
+      if(alerts){
+        return this.get('view.content').filterProperty('criticalAlertsCount').get('length');
+      } else if (statusString == "") {
         return this.get('view.content').get('length');
       } else {
         return this.get('view.content').filterProperty('healthClass', statusString ).get('length');
@@ -145,7 +142,8 @@ App.MainHostView = App.TableView.extend({
       self.categoryObject.create({value: Em.I18n.t('hosts.host.healthStatusCategory.green'), healthStatusValue: 'health-status-LIVE'}),
       self.categoryObject.create({value: Em.I18n.t('hosts.host.healthStatusCategory.red'), healthStatusValue: 'health-status-DEAD-RED'}),
       self.categoryObject.create({value: Em.I18n.t('hosts.host.healthStatusCategory.orange'), healthStatusValue: 'health-status-DEAD-ORANGE'}),
-      self.categoryObject.create({value: Em.I18n.t('hosts.host.healthStatusCategory.yellow'), healthStatusValue: 'health-status-DEAD-YELLOW', last: true })
+      self.categoryObject.create({value: Em.I18n.t('hosts.host.healthStatusCategory.yellow'), healthStatusValue: 'health-status-DEAD-YELLOW'}),
+      self.categoryObject.create({value: Em.I18n.t('hosts.host.alerts.label'), healthStatusValue: '', last: true, alerts: true })
     ];
 
     this.set('category', categories.get('firstObject'));
@@ -157,17 +155,15 @@ App.MainHostView = App.TableView.extend({
 
   selectCategory: function(event, context){
     this.set('category', event.context);
-    this.updateFilter(0, event.context.get('healthStatusValue'), 'string');
+    if(event.context.get('alerts')){
+      this.updateFilter(0, '', 'string');
+      this.updateFilter(7, '>0', 'number');
+    } else {
+      this.updateFilter(7, '', 'number');
+      this.updateFilter(0, event.context.get('healthStatusValue'), 'string');
+    }
   },
 
-  /**
-   * Deactivate Alerts filtering if some Health category is selected
-   */
-  deactivateAlertsFilter: function() {
-    if (this.get('category')) {
-      this.set('controller.filteredByAlerts', false);
-    }
-  }.observes('category'),
 
   /**
    * Count of the hosts with alerts
@@ -175,26 +171,6 @@ App.MainHostView = App.TableView.extend({
   hostsWithAlertsCount: function() {
     return this.get('content.length') - this.get('content').filterProperty('criticalAlertsCount', 0).length;
   }.property('content.@each.criticalAlertsCount'),
-
-  /**
-   * Filter hosts by hosts with at least one alert
-   */
-  filterByAlerts:function() {
-    if (this.get('controller.filteredByAlerts')) {
-      this.updateFilter(0, '', 'string');
-      this.updateFilter(7, '>0', 'number');
-      this.get('categories').setEach('isActive', false);
-      this.set('category', false);
-    }
-    else {
-      this.updateFilter(7, '', 'number');
-      if (!this.get('category')) {
-        var category = this.get('categories').objectAt(0);
-        category.set('isActive', false);
-        this.set('category', category);
-      }
-    }
-  }.observes('controller.filteredByAlerts'),
 
 
   /**
