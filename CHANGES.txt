@@ -789,6 +789,9 @@ Trunk (unreleased changes):
 
  BUG FIXES
 
+ AMBARI-2016. Hide Maintenance pulldown if no operation can be performed.
+ (yusaku)
+
  AMBARI-2015. Host component start/stop causes "Uncaught TypeError: Cannot call
  method 'call' of undefined". (yusaku)
 

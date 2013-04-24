@@ -65,9 +65,9 @@ App.MainServiceItemView = Em.View.extend({
     }
     return options;
   }.property('controller.content'),
-  hasMaintenanceControl: function(){
-    return this.get("controller.content.isMaintained");
-  }.property('controller.content.isMaintained'),
+  isMaintenanceActive: function() {
+    return this.get('maintenance').length !== 0;
+  }.property('maintenance'),
   hasConfigTab: function(){
     return this.get("controller.content.isConfigurable");
   }.property('controller.content.isConfigurable')

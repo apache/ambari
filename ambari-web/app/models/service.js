@@ -99,25 +99,6 @@ App.Service = DS.Model.extend({
       components.everyProperty('workStatus', App.HostComponentStatus.started)
     );
   },
-
-  isMaintained: function () {
-    var maintainedServices = [
-      "HDFS",
-      "MAPREDUCE",
-      "HBASE",
-      "OOZIE",
-      "GANGLIA",
-      "NAGIOS",
-      "HIVE",
-      "WEBHCAT",
-      "ZOOKEEPER",
-      "PIG",
-      "SQOOP",
-      "HUE"
-    ];
-    return maintainedServices.contains(this.get('serviceName'));
-  }.property('serviceName'),
-
   isConfigurable: function () {
     var configurableServices = [
       "HDFS",
