@@ -127,7 +127,11 @@ public class HeartbeatMonitor implements Runnable {
           for (ServiceComponentHost sch : cluster.getServiceComponentHosts(hostObj.getHostName())) {
             Service s = cluster.getService(sch.getServiceName());
             ServiceComponent sc = s.getServiceComponent(sch.getServiceComponentName());
-            if (!sc.isClientComponent()) {
+            if (!sc.isClientComponent() &&
+                !sch.getState().equals(State.INIT) &&
+                !sch.getState().equals(State.INSTALLING) &&
+                !sch.getState().equals(State.INSTALL_FAILED) &&
+                !sch.getState().equals(State.UNINSTALLED)) {
               sch.setState(State.UNKNOWN);
             }
           }

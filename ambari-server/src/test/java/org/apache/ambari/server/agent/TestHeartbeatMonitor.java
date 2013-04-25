@@ -25,7 +25,6 @@ import static org.mockito.Mockito.atLeast;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 
-import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -38,7 +37,6 @@ import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
-import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.HostState;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceComponent;
@@ -46,6 +44,9 @@ import org.apache.ambari.server.state.ServiceComponentHost;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.State;
 import org.apache.ambari.server.state.fsm.InvalidStateTransitionException;
+import org.apache.ambari.server.state.svccomphost.ServiceComponentHostInstallEvent;
+import org.apache.ambari.server.state.svccomphost.ServiceComponentHostOpSucceededEvent;
+import org.apache.ambari.server.state.svccomphost.ServiceComponentHostStartedEvent;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -257,11 +258,11 @@ public class TestHeartbeatMonitor {
   @Test
   public void testHeartbeatLossWithComponent() throws AmbariException, InterruptedException,
           InvalidStateTransitionException {
-    
     Clusters clusters = injector.getInstance(Clusters.class);
     clusters.addHost(hostname1);
     clusters.getHost(hostname1).setOsType("centos5");
     clusters.getHost(hostname1).persist();
+    
     clusters.addCluster(clusterName);
     Cluster cluster = clusters.getCluster(clusterName);
     cluster.setDesiredStackVersion(new StackId("HDP-0.1"));
@@ -293,11 +294,32 @@ public class TestHeartbeatMonitor {
     reg.setResponseId(12);
     reg.setTimestamp(System.currentTimeMillis() - 300);
     reg.setAgentVersion(ambariMetaInfo.getServerVersion());
-    
     HostInfo hi = new HostInfo();
     hi.setOS("Centos5");
     reg.setHardwareProfile(hi);
     handler.handleRegistration(reg);
+    
+    cluster = clusters.getClustersForHost(hostname1).iterator().next();
+    for (ServiceComponentHost sch : cluster.getServiceComponentHosts(hostname1)) {
+      if (sch.getServiceComponentName().equals("NAMENODE")) {
+        // installing
+        sch.handleEvent(new ServiceComponentHostInstallEvent(
+            sch.getServiceComponentName(), sch.getHostName(), System.currentTimeMillis(), "HDP-0.1"));
+        
+        // installed
+        sch.handleEvent(new ServiceComponentHostOpSucceededEvent(sch.getServiceComponentName(),
+            sch.getHostName(), System.currentTimeMillis()));
+        
+        // started
+        sch.handleEvent(new ServiceComponentHostStartedEvent(sch.getServiceComponentName(),
+            sch.getHostName(), System.currentTimeMillis()));
+      }
+      else if (sch.getServiceComponentName().equals("DATANODE")) {
+        // installing
+        sch.handleEvent(new ServiceComponentHostInstallEvent(
+            sch.getServiceComponentName(), sch.getHostName(), System.currentTimeMillis(), "HDP-0.1"));
+      }
+    }
     
     HeartBeat hb = new HeartBeat();
     hb.setHostname(hostname1);
@@ -305,72 +327,28 @@ public class TestHeartbeatMonitor {
     hb.setTimestamp(System.currentTimeMillis());
     hb.setResponseId(12);
     handler.handleHeartBeat(hb);
+    
     hm.start();
     aq.enqueue(hostname1, new ExecutionCommand());
     //Heartbeat will expire and action queue will be flushed
     while (aq.size(hostname1) != 0) {
       Thread.sleep(1);
     }
-
-    cluster = clusters.getClustersForHost(hostname1).iterator().next();
-    for (ServiceComponentHost sch : cluster.getServiceComponentHosts(hostname1)) {
-      Service s = cluster.getService(sch.getServiceName());
-      ServiceComponent sc = s.getServiceComponent(sch.getServiceComponentName());
-      if (!sc.isClientComponent())
-        assertEquals(State.UNKNOWN, sch.getState());
-      else
-        assertEquals(State.INIT, sch.getState());
-    }
-
-    // don't keep marking the host as down
     hm.shutdown();
     
-    // try to flip statuses back
-    hb = new HeartBeat();
-    hb.setHostname(hostname1);
-    hb.setNodeStatus(new HostStatus(HostStatus.Status.HEALTHY, "cool"));
-    hb.setTimestamp(System.currentTimeMillis());
-    hb.setResponseId(0);
-    
-    List<ComponentStatus> statuses = new ArrayList<ComponentStatus>();
-    ComponentStatus cs = new ComponentStatus();
-    cs.setClusterName(clusterName);
-    cs.setServiceName(Service.Type.HDFS.name());
-    cs.setStatus(State.STARTED.name());
-    cs.setComponentName(Role.DATANODE.name());
-    statuses.add(cs);
 
-    cs = new ComponentStatus();
-    cs.setClusterName(clusterName);
-    cs.setServiceName(Service.Type.HDFS.name());
-    cs.setStatus(State.STARTED.name());
-    cs.setComponentName(Role.NAMENODE.name());
-    statuses.add(cs);
-    
-    cs = new ComponentStatus();
-    cs.setClusterName(clusterName);
-    cs.setServiceName(Service.Type.HDFS.name());
-    cs.setStatus(State.STARTED.name());
-    cs.setComponentName(Role.SECONDARY_NAMENODE.name());
-    statuses.add(cs);
-    
-    hb.setComponentStatus(statuses);
-    
-    Host host = clusters.getHost(hostname1);
-    host.setState(HostState.HEALTHY);
-    hb.setTimestamp(System.currentTimeMillis() + Integer.MAX_VALUE);
-    host.setLastHeartbeatTime(System.currentTimeMillis() + Integer.MAX_VALUE);
-    handler.handleHeartBeat(hb);
-    
     cluster = clusters.getClustersForHost(hostname1).iterator().next();
     for (ServiceComponentHost sch : cluster.getServiceComponentHosts(hostname1)) {
       Service s = cluster.getService(sch.getServiceName());
       ServiceComponent sc = s.getServiceComponent(sch.getServiceComponentName());
-      if (!sc.isClientComponent())
-        assertEquals(State.STARTED, sch.getState());
-      else
-        assertEquals(State.INIT, sch.getState());
+      if (sch.getServiceComponentName().equals("NAMENODE"))
+        assertEquals(sch.getServiceComponentName(), State.UNKNOWN, sch.getState());
+      else if (sch.getServiceComponentName().equals("DATANODE"))
+        assertEquals(sch.getServiceComponentName(), State.INSTALLING, sch.getState());
+      else if (sc.isClientComponent())
+        assertEquals(sch.getServiceComponentName(), State.INIT, sch.getState());
     }
+
     
     
   }
