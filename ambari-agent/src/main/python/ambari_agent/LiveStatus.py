@@ -32,7 +32,7 @@ class LiveStatus:
   SERVICES = [
     "HDFS", "MAPREDUCE", "GANGLIA", "HBASE",
     "NAGIOS", "ZOOKEEPER", "OOZIE", "HCATALOG",
-    "KERBEROS", "TEMPLETON", "HIVE"
+    "KERBEROS", "TEMPLETON", "HIVE", "WEBHCAT"
   ]
 
   COMPONENTS = [
@@ -84,6 +84,8 @@ class LiveStatus:
        "componentName" : "HIVE_METASTORE"},
       {"serviceName" : "HIVE",               #!
        "componentName" : "MYSQL_SERVER"},
+      {"serviceName" : "WEBHCAT",
+       "componentName" : "WEBHCAT_SERVER"},
   ]
 
   LIVE_STATUS = "STARTED"

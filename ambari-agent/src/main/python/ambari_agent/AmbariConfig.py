@@ -148,7 +148,8 @@ servicesToPidNames = {
   'HIVE_SERVER': 'hive-server.pid',
   'HIVE_METASTORE': 'hive.pid',
   'MYSQL_SERVER': 'mysqld.pid',
-  'HUE_SERVER': '/var/run/hue/supervisor.pid'
+  'HUE_SERVER': '/var/run/hue/supervisor.pid',
+  'WEBHCAT_SERVER': 'webhcat.pid',
 }
 
 linuxUserPattern = '[A-Za-z0-9_-]*[$]?'
@@ -172,8 +173,10 @@ pidPathesVars = [
    'defaultValue' : '/var/run/webhcat'},                       
   {'var' : 'hive_pid_dir',
    'defaultValue' : '/var/run/hive'},                      
-   {'var' : 'mysqld_pid_dir',
-   'defaultValue' : '/var/run/mysqld'}
+  {'var' : 'mysqld_pid_dir',
+   'defaultValue' : '/var/run/mysqld'},
+  {'var' : 'webhcat_pid_dir',
+   'defaultValue' : '/var/run/webhcat'},                      
 ]
 
 class AmbariConfig:

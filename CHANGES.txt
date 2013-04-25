@@ -453,6 +453,8 @@ Trunk (unreleased changes):
 
  AMBARI-1546. Improve Cluster Management loading screen. (Xi Wang via yusaku)
 
+ AMBARI-2026. Add WebHCat to live status checks. (ncole)
+
  AMBARI-1975. Add Clover coverage (ncole)
 
  AMBARI-1537. Constrain the width of all wizard popups. (Xi Wang via yusaku)
