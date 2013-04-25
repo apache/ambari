@@ -187,7 +187,8 @@ public class Configuration {
   //TODO for development purposes only, should be changed to 'false'
   private static final String SERVER_PERSISTENCE_TYPE_DEFAULT = "local";
 
-
+  private static final String SERVER_CONNECTION_MAX_IDLE_TIME =
+    "server.connection.max.idle.millis";
 
 
   private static final Logger LOG = LoggerFactory.getLogger(
@@ -522,4 +523,8 @@ public class Configuration {
     return JPATableGenerationStrategy.fromString(System.getProperty(SERVER_JDBC_GENERATE_TABLES_KEY));
   }
 
+  public int getConnectionMaxIdleTime() {
+    return Integer.parseInt(properties.getProperty
+      (SERVER_CONNECTION_MAX_IDLE_TIME, String.valueOf("900000")));
+  }
 }

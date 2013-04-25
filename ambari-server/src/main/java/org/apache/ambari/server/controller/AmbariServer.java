@@ -291,11 +291,13 @@ public class AmbariServer {
         sapiConnector.setTrustPassword(srvrCrtPass);
         sapiConnector.setKeystoreType("PKCS12");
         sapiConnector.setTruststoreType("PKCS12");
+        sapiConnector.setMaxIdleTime(configs.getConnectionMaxIdleTime());
         apiConnector = sapiConnector;
       } 
       else  {
         apiConnector = new SelectChannelConnector();
         apiConnector.setPort(configs.getClientApiPort());
+        apiConnector.setMaxIdleTime(configs.getConnectionMaxIdleTime());
       }
 
       server.addConnector(apiConnector);

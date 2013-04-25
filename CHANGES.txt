@@ -791,6 +791,9 @@ Trunk (unreleased changes):
 
  BUG FIXES
  
+ AMBARI-2024. Ambari Server becomes unresponsive after crashing on http reads 
+ on jersey. (swagle)
+
  AMBARI-2020. Incorrect behavior of "Services" page. (yusaku)
 
  AMBARI-2018. Hosts page: no filter selection is shown after clicking on
