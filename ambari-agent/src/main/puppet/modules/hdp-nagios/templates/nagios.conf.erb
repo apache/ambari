@@ -26,6 +26,7 @@
 # needed to fit your system.
 #
 
+<% if scope.function_hdp_template_var("::hdp::params::hdp_os_type") != "suse"%>
 ScriptAlias /nagios/cgi-bin "/usr/lib64/nagios/cgi"
 
 <Directory "/usr/lib64/nagios/cgi">
@@ -42,6 +43,26 @@ ScriptAlias /nagios/cgi-bin "/usr/lib64/nagios/cgi"
    AuthUserFile /etc/nagios/htpasswd.users
    Require valid-user
 </Directory>
+<% end %>
+
+<% if scope.function_hdp_template_var("::hdp::params::hdp_os_type") == "suse"%>
+ScriptAlias /nagios/cgi-bin "/usr/lib/nagios/cgi"
+
+<Directory "/usr/lib/nagios/cgi">
+#  SSLRequireSSL
+   Options ExecCGI
+   AllowOverride None
+   Order allow,deny
+   Allow from all
+#  Order deny,allow
+#  Deny from all
+#  Allow from 127.0.0.1
+   AuthName "Nagios Access"
+   AuthType Basic
+   AuthUserFile /etc/nagios/htpasswd.users
+   Require valid-user
+</Directory>
+<% end %>
 
 Alias /nagios "/usr/share/nagios"
 

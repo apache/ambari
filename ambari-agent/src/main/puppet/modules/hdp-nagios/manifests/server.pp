@@ -113,7 +113,7 @@ class hdp-nagios::server(
       ensure => present,
       owner => $nagios_user,
       group => $nagios_group,
-      source => "puppet:///modules/hdp-nagios/nagios.conf",
+      content => template("hdp-nagios/nagios.conf.erb"),
       mode   => '0644'
     }
 
@@ -259,7 +259,7 @@ class hdp-nagios::server::web_permisssions()
   file { "/etc/nagios/htpasswd.users" :
     owner => $hdp-nagios::params::nagios_default_user,
     group => $hdp-nagios::params::nagios_default_group,
-    mode  => '0750'
+    mode  => '0644'
   }
 
   Hdp::Exec[$cmd] -> File["/etc/nagios/htpasswd.users"]

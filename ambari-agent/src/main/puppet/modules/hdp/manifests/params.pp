@@ -494,7 +494,12 @@ class hdp::params()
     },
 
     nagios-server => {
-      'ALL' => {64 => {'ALL' => 'nagios-3.2.3'}}
+      'ALL' => {
+        64 => {
+            'ALL' => 'nagios-3.2.3',
+            suse => ['nagios-3.2.3','nagios-www-3.2.3']
+          }
+        }
     },
 
     nagios-fping => {
