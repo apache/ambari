@@ -793,6 +793,9 @@ Trunk (unreleased changes):
 
  BUG FIXES
  
+ AMBARI-1924. Allow for users to customize Ganglia gmetad + gmond user
+ accounts. (smohanty)
+
  AMBARI-2024. Ambari Server becomes unresponsive after crashing on http reads 
  on jersey. (swagle)
 

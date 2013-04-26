@@ -26,12 +26,30 @@ class hdp-ganglia(
     include hdp-ganglia::params
     $gmetad_user = $hdp-ganglia::params::gmetad_user
     $gmond_user = $hdp-ganglia::params::gmond_user
-  
-    user { $gmond_user : shell => '/bin/bash'} #provision for nobody user
-    if ( $gmetad_user != $gmond_user) {
-      user { $gmetad_user : shell => '/bin/bash'} #provision for nobody user
+
+    group { $gmetad_user :
+      ensure => present
     }
-    anchor{'hdp-ganglia::begin':} -> User<|title == $gmond_user or title == $gmetad_user|> ->  anchor{'hdp-ganglia::end':}
+
+    if ($gmetad_user != $gmond_user) {
+      group { $gmond_user :
+        ensure => present
+      }
+    }
+
+    hdp::user { $gmond_user: 
+      gid    => $gmond_user,
+      groups => ["$gmond_user"]
+    }
+  
+    if ( $gmetad_user != $gmond_user) {
+      hdp::user { $gmetad_user: 
+        gid    => $gmetad_user,
+        groups => ["$gmetad_user"]
+      }
+    }
+
+    anchor{'hdp-ganglia::begin':} -> Group<|title == $gmond_user or title == $gmetad_user|> -> User<|title == $gmond_user or title == $gmetad_user|> ->  anchor{'hdp-ganglia::end':}
   }
 }
 
