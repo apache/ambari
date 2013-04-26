@@ -1298,6 +1298,8 @@ Trunk (unreleased changes):
  AMBARI-1657. User directories on HDFS do not get created with custom names 
  provided from Ambari UI. (swagle)
 
+ AMBARI-2036. Fix to send global configs with status_commands to agents. (ncole)
+
  AMBARI-2025. Fix to restrict how UNKNOWN is assigned to a host-component. (ncole)
 
  AMBARI-2013. Fix to delete cluster with components in unknown state. (ncole)

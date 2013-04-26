@@ -25,6 +25,7 @@ import static org.mockito.Mockito.atLeast;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -37,6 +38,8 @@ import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
+import org.apache.ambari.server.state.Config;
+import org.apache.ambari.server.state.ConfigFactory;
 import org.apache.ambari.server.state.HostState;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceComponent;
@@ -103,6 +106,15 @@ public class TestHeartbeatMonitor {
       add(hostname1);
       add(hostname2);
     }};
+    
+    ConfigFactory configFactory = injector.getInstance(ConfigFactory.class);
+    Config config = configFactory.createNew(cluster, "global",
+        new HashMap<String,String>() {{ put("a", "b"); }});
+    config.setVersionTag("version1");
+    cluster.addConfig(config);
+    cluster.addDesiredConfig(config);
+    
+    
     clusters.mapHostsToCluster(hostNames, clusterName);
     Service hdfs = cluster.addService(serviceName);
     hdfs.persist();
@@ -144,10 +156,12 @@ public class TestHeartbeatMonitor {
       containsDATANODEStatus |= cmd.getComponentName().equals("DATANODE");
       containsNAMENODEStatus |= cmd.getComponentName().equals("NAMENODE");
       containsSECONDARY_NAMENODEStatus |= cmd.getComponentName().equals("SECONDARY_NAMENODE");
+      assertTrue(cmd.getConfigurations().size() > 0);
     }
     assertEquals(true, containsDATANODEStatus);
     assertEquals(true, containsNAMENODEStatus);
     assertEquals(true, containsSECONDARY_NAMENODEStatus);
+    
     cmds = hm.generateStatusCommands(hostname2);
     assertTrue("HeartbeatMonitor should not generate StatusCommands for host2 because it has no services", cmds.isEmpty());
   }
