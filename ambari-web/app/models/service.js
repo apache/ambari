@@ -50,7 +50,7 @@ App.Service = DS.Model.extend({
     var components = this.get('hostComponents').filterProperty('isMaster', true);
     var isGreen = (this.get('serviceName') === 'HBASE' && App.supports.multipleHBaseMasters ?
       components.someProperty('workStatus', App.HostComponentStatus.started) :
-      components.everyProperty('workStatus', App.HostComponentStatus.started)) ;
+      components.everyProperty('workStatus', App.HostComponentStatus.started));
 
     if (isGreen) {
       this.set('healthStatus', 'green');
@@ -58,6 +58,8 @@ App.Service = DS.Model.extend({
       this.set('healthStatus', 'green-blinking');
     } else if (components.someProperty('workStatus', App.HostComponentStatus.stopped) || components.someProperty('workStatus', App.HostComponentStatus.start_failed)) {
       this.set('healthStatus', 'red');
+    } else if (components.someProperty('workStatus', App.HostComponentStatus.unknown)) {
+      this.set('healthStatus', 'yellow');
     } else {
       this.set('healthStatus', 'red-blinking');
     }
@@ -245,6 +247,7 @@ App.Service.Health = {
   dead: "DEAD-RED",
   starting: "STARTING",
   stopping: "STOPPING",
+  unknown: "DEAD-YELLOW",
 
   getKeyName: function (value) {
     switch (value) {
@@ -256,6 +259,8 @@ App.Service.Health = {
         return 'starting';
       case this.stopping:
         return 'stopping';
+      case this.unknown:
+        return 'unknown';
     }
     return 'none';
   }

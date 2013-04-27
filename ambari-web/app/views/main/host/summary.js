@@ -212,7 +212,7 @@ App.MainHostSummaryView = Em.View.extend({
      */
     disabledClass:function(){
       var workStatus = this.get('workStatus');
-      if([App.HostComponentStatus.starting, App.HostComponentStatus.stopping].contains(workStatus) ){
+      if([App.HostComponentStatus.starting, App.HostComponentStatus.stopping, App.HostComponentStatus.unknown].contains(workStatus) ){
         return 'disabled';
       } else {
         return '';

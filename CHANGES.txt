@@ -269,6 +269,9 @@ Trunk (unreleased changes):
 
  IMPROVEMENTS
 
+ AMBARI-2030. Make frontend changes to account for the host component status
+ UNKNOWN. (yusaku)
+
  AMBARI-2028. Customize Services: make the services display consistent.
  (yusaku)
 

@@ -1675,8 +1675,9 @@ a:focus {
       .tab-marker-position;
       background-image: @status-dead-red-marker;
     }
-    .health-status-undefined {
+    .health-status-DEAD-YELLOW {
       .tab-marker-position;
+      background-image: @status-dead-yellow-marker;
     }
     li {
       line-height: 24px;
@@ -2133,6 +2134,11 @@ table.graphs {
 
   .health-status-installed, .health-status-stopping {
     background-image: @status-dead-red-marker;
+    .marker;
+  }
+
+  .health-status-unknown {
+    background-image: @status-dead-yellow-marker;
     .marker;
   }
 

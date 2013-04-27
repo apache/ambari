@@ -65,6 +65,9 @@ App.MainDashboardServiceHealthView = Em.View.extend({
         status = App.Service.Health.dead;
         this.startBlink();
         break;
+      case 'yellow':
+        status = App.Service.Health.unknown;
+        break;
       default:
         status = App.Service.Health.dead;
         this.stopBlink();
