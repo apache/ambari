@@ -211,7 +211,6 @@ App.ServiceConfigsByCategoryView = Ember.View.extend({
         }
       }.observes("name")
     });
-    serviceConfigObj.observeAddPropertyValue();
 
     var category = this.get('category');
     serviceConfigObj.displayType = "advanced";
@@ -233,6 +232,7 @@ App.ServiceConfigsByCategoryView = Ember.View.extend({
       primary: 'Add',
       secondary: 'Cancel',
       onPrimary: function () {
+        serviceConfigObj.observeAddPropertyValue();
         /**
          * For the first entrance use this if (serviceConfigObj.name.trim() != "")
          */
