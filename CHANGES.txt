@@ -269,6 +269,9 @@ Trunk (unreleased changes):
 
  IMPROVEMENTS
 
+ AMBARI-2028. Customize Services: make the services display consistent.
+ (yusaku)
+
  AMBARI-2027. Add validation checks for Add Property on custom site configs.
  (yusaku)
 

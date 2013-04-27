@@ -73,6 +73,7 @@ module.exports = [
     displayName: 'WebHCat',
     filename: 'webhcat-site',
     configCategories: [
+      App.ServiceConfigCategory.create({ name: 'WebHCat Server', displayName : 'WebHCat Server'}),
       App.ServiceConfigCategory.create({ name: 'Advanced', displayName : 'Advanced'}),
       App.ServiceConfigCategory.create({ name: 'AdvancedWebHCatSite', displayName : 'Custom webhcat-site.xml', siteFileName: 'webhcat-site.xml', canAddProperty: true})
     ],
@@ -134,6 +135,7 @@ module.exports = [
     displayName: 'Hue',
     filename: 'hue-site',
     configCategories: [
+      App.ServiceConfigCategory.create({ name: 'Hue Server', displayName : 'Hue Server'}),
       App.ServiceConfigCategory.create({ name: 'Advanced', displayName : 'Advanced'})
     ],
     sites: ['hue-site'],

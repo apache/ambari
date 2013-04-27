@@ -115,37 +115,7 @@ App.ServiceConfigsByCategoryView = Ember.View.extend({
 
       return searchString.toLowerCase().indexOf(filter) > -1;
     });
-
-    // modify the display order of Oozie/Hive server category to make it look in the same order
-    if(filteredResult.someProperty('displayName', 'Oozie Database')) {
-      var displayNameArray = ['Oozie Database', 'Database Type', 'Database Name', 'Database Username', 'Database Password', 'Database Host', 'Oozie Data Dir', 'Oozie Server host'];
-      var sortedArray = [];
-      displayNameArray.forEach(function(item){
-        var obj = filteredResult.findProperty('displayName', item);
-        if(obj) {
-          sortedArray.push(obj);
-        }
-      }, this);
-      return sortedArray;
-
-    }
-    else {
-      if(filteredResult.someProperty('displayName', 'Hive Database')) {
-        var displayNameArray = ['Hive Database', 'Database Type', 'Database Name', 'Database Username', 'Database Password', 'Database Host', 'Hive Metastore host'];
-        var sortedArray = [];
-        displayNameArray.forEach(function(item){
-          var obj = filteredResult.findProperty('displayName', item);
-          if(obj) {
-            sortedArray.push(obj);
-          }
-        }, this);
-        return sortedArray;
-      }
-      else {
-        return filteredResult;
-      }
-    }
-
+    return filteredResult;
   }.property('categoryConfigs','parentView.filter', 'parentView.columns.@each.selected'),
 
   /**

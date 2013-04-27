@@ -1356,6 +1356,16 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
         hbaseMasterHost.defaultValue = this.get('content.hostComponents').filterProperty('componentName', 'HBASE_MASTER').mapProperty('host.hostName');
         globalConfigs.push(hbaseMasterHost);
         break;
+      case 'HUE':
+        var hueServerHost = serviceConfigs.findProperty('name', 'hueserver_host');
+        hueServerHost.defaultValue = this.get('content.hostComponents').findProperty('componentName', 'HUE_SERVER').get('host.hostName');
+        globalConfigs.push(hueServerHost);
+        break;
+      case 'WEBHCAT':
+        var webhcatMasterHost = serviceConfigs.findProperty('name', 'webhcatserver_host');
+        webhcatMasterHost.defaultValue = this.get('content.hostComponents').filterProperty('componentName', 'WEBHCAT_SERVER').mapProperty('host.hostName');
+        globalConfigs.push(webhcatMasterHost);
+        break;
     }
   },
   

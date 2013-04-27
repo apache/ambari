@@ -1186,6 +1186,20 @@ module.exports =
     */
     {
       "id": "puppet var",
+      "name": "webhcatserver_host",
+      "displayName": "WebHCat Server host",
+      "value": "",
+      "defaultValue": "",
+      "description": "The host that has been assigned to run WebHCat Server",
+      "displayType": "masterHost",
+      "isOverridable": false,
+      "isVisible": true,
+      "domain": "global",
+      "serviceName": "WEBHCAT",
+      "category": "WebHCat Server"
+    },
+    {
+      "id": "puppet var",
       "name": "hcat_log_dir",
       "displayName": "WebHCat Log Dir",
       "description": "Directory for WebHCat log files",
@@ -2628,6 +2642,20 @@ module.exports =
       "domain": "global",
       "serviceName": "MISC",
       "category": "General"
+    },
+    {
+      "id": "puppet var",
+      "name": "hueserver_host",
+      "displayName": "Hue Server host",
+      "value": "",
+      "defaultValue": "",
+      "description": "The host that has been assigned to run Hue Server",
+      "displayType": "masterHost",
+      "isOverridable": false,
+      "isVisible": true,
+      "domain": "global",
+      "serviceName": "HUE",
+      "category": "Hue Server"
     },
     {
       "id": "puppet var",
