@@ -508,6 +508,7 @@ Em.I18n.translations = {
   'form.item.placeholders.typePassword':'Type password',
 
   'form.validator.invalidIp':'Please enter valid ip address',
+  'form.validator.configKey':'Invalid Key. Only alphanumerics, hyphens, underscores, and periods are allowed.',
 
   'admin.advanced.title':'Advanced',
   'admin.advanced.caution':'This section is for advanced user only.<br/>Proceed with caution.',

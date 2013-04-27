@@ -180,7 +180,7 @@ App.ServiceConfigsByCategoryView = Ember.View.extend({
     return category.indexOf("Advanced") != -1;
   },
   showAddPropertyWindow: function (event) {
-
+    var serviceConfigNames = this.get('categoryConfigs').mapProperty('name');
     var serviceConfigObj = Ember.Object.create({
       name: '',
       value: '',
@@ -190,21 +190,28 @@ App.ServiceConfigsByCategoryView = Ember.View.extend({
       isKeyError:false,
       errorMessage:"",
       observeAddPropertyValue:function(){
-        if(this.get("name").trim() != ""){
-          var configMappingProperty = App.config.configMapping.all().findProperty('name', serviceConfigObj.get('name'));
-          if(configMappingProperty==null){
-            this.set("isKeyError", false);
-            this.set("errorMessage", "");
-          }else{
+        var name = this.get('name');
+        if(name.trim() != ""){
+          if(validator.isValidConfigKey(name)){
+            var configMappingProperty = App.config.configMapping.all().findProperty('name', name);
+            if((configMappingProperty == null) && (!serviceConfigNames.contains(name))){
+              this.set("isKeyError", false);
+              this.set("errorMessage", "");
+            } else {
+              this.set("isKeyError", true);
+              this.set("errorMessage", Em.I18n.t('services.service.config.addPropertyWindow.error.derivedKey'));
+            }
+          } else {
             this.set("isKeyError", true);
-            this.set("errorMessage", Em.I18n.t('services.service.config.addPropertyWindow.error.derivedKey'));
+            this.set("errorMessage", Em.I18n.t('form.validator.configKey'));
           }
-        }else{
+        } else {
           this.set("isKeyError", true);
           this.set("errorMessage", Em.I18n.t('services.service.config.addPropertyWindow.errorMessage'));
         }
       }.observes("name")
     });
+    serviceConfigObj.observeAddPropertyValue();
 
     var category = this.get('category');
     serviceConfigObj.displayType = "advanced";
@@ -230,23 +237,12 @@ App.ServiceConfigsByCategoryView = Ember.View.extend({
          * For the first entrance use this if (serviceConfigObj.name.trim() != "")
          */
         if (!serviceConfigObj.isKeyError) {
-          if (serviceConfigObj.name.trim() != "") {
-            var configMappingProperty = App.config.configMapping.all().findProperty('name', serviceConfigObj.get('name'));
-            if (configMappingProperty == null) {
-              serviceConfigObj.displayName = serviceConfigObj.name;
-              serviceConfigObj.id = 'site property';
-              serviceConfigObj.serviceName = serviceName;
-              var serviceConfigProperty = App.ServiceConfigProperty.create(serviceConfigObj);
-              self.get('serviceConfigs').pushObject(serviceConfigProperty);
-              this.hide();
-            } else {
-              serviceConfigObj.set("isKeyError", true);
-              serviceConfigObj.set("errorMessage", Em.I18n.t('services.service.config.addPropertyWindow.error.derivedKey'));
-            }
-          } else {
-            serviceConfigObj.set("isKeyError", true);
-            serviceConfigObj.set("errorMessage", Em.I18n.t('services.service.config.addPropertyWindow.errorMessage'));
-          }
+          serviceConfigObj.displayName = serviceConfigObj.name;
+          serviceConfigObj.id = 'site property';
+          serviceConfigObj.serviceName = serviceName;
+          var serviceConfigProperty = App.ServiceConfigProperty.create(serviceConfigObj);
+          self.get('serviceConfigs').pushObject(serviceConfigProperty);
+          this.hide();
         }
       },
       onSecondary: function () {

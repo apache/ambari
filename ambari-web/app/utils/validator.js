@@ -96,6 +96,16 @@ module.exports = {
     return usernameRegex.test(value);
   },
 
+  /**
+   * validate key of configurations
+   * @param value
+   * @return {Boolean}
+   */
+  isValidConfigKey: function(value) {
+    var configKeyRegex = /^[0-9a-z_\-\.]+$/i;
+    return configKeyRegex.test(value);
+  },
+
   empty:function (e) {
     switch (e) {
       case "":
