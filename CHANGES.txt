@@ -802,6 +802,9 @@ Trunk (unreleased changes):
 
  BUG FIXES
 
+ AMBARI-2039. Service check should be scheduled on a client that is on
+ a host in HEALTHY state - use correct state enum. (smohanty)
+
  AMBARI-2035. "Add local user" button is enabled but nothing happens upon
  clicking it under certain conditions. (yusaku)
 

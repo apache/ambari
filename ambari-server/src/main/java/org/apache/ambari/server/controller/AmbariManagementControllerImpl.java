@@ -65,7 +65,7 @@ import org.apache.ambari.server.state.Config;
 import org.apache.ambari.server.state.ConfigFactory;
 import org.apache.ambari.server.state.DesiredConfig;
 import org.apache.ambari.server.state.Host;
-import org.apache.ambari.server.state.HostHealthStatus;
+import org.apache.ambari.server.state.HostState;
 import org.apache.ambari.server.state.OperatingSystemInfo;
 import org.apache.ambari.server.state.PropertyInfo;
 import org.apache.ambari.server.state.RepositoryInfo;
@@ -3952,8 +3952,7 @@ public class AmbariManagementControllerImpl implements
     for (String candidateHostName : hostList) {
       hostName = candidateHostName;
       Host candidateHost = clusters.getHost(hostName);
-      if (candidateHost.getHealthStatus().getHealthStatus()
-          == HostHealthStatus.HealthStatus.HEALTHY) {
+      if (candidateHost.getState() == HostState.HEALTHY) {
         break;
       }
     }

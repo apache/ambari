@@ -60,7 +60,7 @@ import org.apache.ambari.server.state.Config;
 import org.apache.ambari.server.state.ConfigFactory;
 import org.apache.ambari.server.state.ConfigImpl;
 import org.apache.ambari.server.state.Host;
-import org.apache.ambari.server.state.HostHealthStatus;
+import org.apache.ambari.server.state.HostState;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceComponent;
 import org.apache.ambari.server.state.ServiceComponentFactory;
@@ -4656,11 +4656,9 @@ public class AmbariManagementControllerTest {
         host3, null);
 
     // Install
-    HostHealthStatus healthy = new HostHealthStatus(HostHealthStatus.HealthStatus.HEALTHY, "");
-    HostHealthStatus unhealthy = new HostHealthStatus(HostHealthStatus.HealthStatus.UNHEALTHY, "");
     installService(clusterName, serviceName, false, false);
-    clusters.getHost("h3").setHealthStatus(unhealthy);
-    clusters.getHost("h2").setHealthStatus(healthy);
+    clusters.getHost("h3").setState(HostState.UNHEALTHY);
+    clusters.getHost("h2").setState(HostState.HEALTHY);
 
     // Start
     long requestId = startService(clusterName, serviceName, true, false);
@@ -4677,8 +4675,8 @@ public class AmbariManagementControllerTest {
 
     stopService(clusterName, serviceName, false, false);
 
-    clusters.getHost("h3").setHealthStatus(healthy);
-    clusters.getHost("h2").setHealthStatus(unhealthy);
+    clusters.getHost("h3").setState(HostState.HEALTHY);
+    clusters.getHost("h2").setState(HostState.HEARTBEAT_LOST);
 
     requestId = startService(clusterName, serviceName, true, false);
     commands = actionDB.getRequestTasks(requestId);
@@ -4710,8 +4708,8 @@ public class AmbariManagementControllerTest {
     Assert.assertEquals("Expect only one service check.", 1, commandCount);
 
     // When both are unhealthy then just pick one
-    clusters.getHost("h3").setHealthStatus(unhealthy);
-    clusters.getHost("h2").setHealthStatus(unhealthy);
+    clusters.getHost("h3").setState(HostState.WAITING_FOR_HOST_STATUS_UPDATES);
+    clusters.getHost("h2").setState(HostState.INIT);
     response = controller.createActions(actionRequests, requestProperties);
     commands = actionDB.getRequestTasks(response.getRequestId());
     commandCount = 0;
