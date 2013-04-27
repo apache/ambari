@@ -302,22 +302,24 @@ App.MainHostDetailsController = Em.Controller.extend({
         if (index < 0) {
           decommissionHostNames.push(hostName);
         }
-        self.doDatanodeDecommission(decommissionHostNames);
+        self.doDatanodeDecommission(decommissionHostNames, true);
       }
       App.router.get('backgroundOperationsController').showPopup();
     });
   },
 
   /**
-   * Performs either Decommission or Recommision by updating the hosts list on
+   * Performs either Decommission or Recommission by updating the hosts list on
    * server.
+   * @param decommission defines context for request (true for decommission and false for recommission)
    */
-  doDatanodeDecommission: function(decommissionHostNames){
+  doDatanodeDecommission: function(decommissionHostNames, decommission){
     var self = this;
     if (decommissionHostNames == null) {
       decommissionHostNames = [];
     }
     var invocationTag = String(new Date().getTime());
+    var context = decommission ? Em.I18n.t('hosts.host.datanode.decommission') : Em.I18n.t('hosts.host.datanode.recommission');
     var clusterName = App.router.get('clusterController.clusterName');
     var clusterUrl = App.apiPrefix + '/clusters/' + clusterName;
     var configsUrl = clusterUrl + '/configurations';
@@ -337,10 +339,14 @@ App.MainHostDetailsController = Em.Controller.extend({
       success: function(){
         var actionsUrl = clusterUrl + '/services/HDFS/actions/DECOMMISSION_DATANODE';
         var actionsData = {
-          parameters: {
-            excludeFileTag: invocationTag
+          RequestInfo: {
+            context: context},
+          Body: {
+            parameters: {
+              excludeFileTag: invocationTag
+            }
           }
-        }
+        };
         var actionsAjax = {
           type: 'POST',
           url: actionsUrl,
@@ -398,7 +404,7 @@ App.MainHostDetailsController = Em.Controller.extend({
         var hostName = self.get('content.hostName');
         var index = decommissionHostNames.indexOf(hostName);
         decommissionHostNames.splice(index, 1);
-        self.doDatanodeDecommission(decommissionHostNames);
+        self.doDatanodeDecommission(decommissionHostNames, false);
       }
       App.router.get('backgroundOperationsController').showPopup();
     });

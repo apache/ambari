@@ -802,6 +802,9 @@ Trunk (unreleased changes):
 
  BUG FIXES
 
+ AMBARI-2033. Decommission DataNode does not have any request context.
+ (yusaku)
+
  AMBARI-2029. Error when loading /main/services directly. (yusaku)
  
  AMBARI-2039. Service check should be scheduled on a client that is on

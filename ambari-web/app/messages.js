@@ -851,6 +851,9 @@ Em.I18n.translations = {
   'host.host.componentFilter.slave':'Slave Components',
   'host.host.componentFilter.client':'Client Components',
   'hosts.host.addComponent.note':'Note: After this component is installed, go to Services -> Nagios to restart the Nagios service.  This is required for the alerts and notifications to work properly.',
+  'hosts.host.datanode.decommission':'Decommission DataNode',
+  'hosts.host.datanode.recommission':'Recommission DataNode',
+
 
   'hosts.host.alert.noAlerts':'No alerts',
   'hosts.host.alert.noAlerts.message':'There are no alerts for this host.',
