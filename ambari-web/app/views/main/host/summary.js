@@ -129,7 +129,9 @@ App.MainHostSummaryView = Em.View.extend({
       return App.format.role(this.get('componentName'));
     }.property('componentName')
   }),
-
+  isAddComponent: function(){
+    return this.get('content.healthClass') !== 'health-status-DEAD-YELLOW';
+  }.property('content.healthClass'),
   addableComponents:function(){
     var components = [];
     var services = App.Service.find();

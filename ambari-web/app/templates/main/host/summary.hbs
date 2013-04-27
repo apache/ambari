@@ -120,22 +120,24 @@
               {{/if}}
             </div>
             <div class="span5 row">
-              {{#if view.addableComponents.length}}
-                <div class="btn-group">
-                  <button id="add_component" class="btn btn-info dropdown-toggle" data-toggle="dropdown">
-                    {{t common.addComponent}}
-                    <span class="caret pull-right"></span>
-                  </button>
-                  <ul class="dropdown-menu">
-                    {{#each component in view.addableComponents}}
-                      <li>
-                      <a href="javascript:void(null)" data-toggle="modal" {{action addComponent component target="controller"}}>
-                        {{component.displayName}}
-                      </a>
-                      </li>
-                    {{/each}}
-                  </ul>
-                </div>
+              {{#if view.isAddComponent}}
+                {{#if view.addableComponents.length}}
+                    <div class="btn-group">
+                        <button id="add_component" class="btn btn-info dropdown-toggle" data-toggle="dropdown">
+                          {{t common.addComponent}}
+                            <span class="caret pull-right"></span>
+                        </button>
+                        <ul class="dropdown-menu">
+                          {{#each component in view.addableComponents}}
+                              <li>
+                                  <a href="javascript:void(null)" data-toggle="modal" {{action addComponent component target="controller"}}>
+                                    {{component.displayName}}
+                                  </a>
+                              </li>
+                          {{/each}}
+                        </ul>
+                    </div>
+                {{/if}}
               {{/if}}
             </div>
           </div>
