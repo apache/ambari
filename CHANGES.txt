@@ -793,6 +793,9 @@ Trunk (unreleased changes):
 
  BUG FIXES
  
+ AMBARI-2039. Service check should be scheduled on a client that is on
+ a host in HEALTHY state. (smohanty)
+
  AMBARI-2037. Nagios web not installing as expected on Sles11. (swagle)
 
  AMBARI-1924. Allow for users to customize Ganglia gmetad + gmond user

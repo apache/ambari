@@ -65,6 +65,7 @@ import org.apache.ambari.server.state.Config;
 import org.apache.ambari.server.state.ConfigFactory;
 import org.apache.ambari.server.state.DesiredConfig;
 import org.apache.ambari.server.state.Host;
+import org.apache.ambari.server.state.HostHealthStatus;
 import org.apache.ambari.server.state.OperatingSystemInfo;
 import org.apache.ambari.server.state.PropertyInfo;
 import org.apache.ambari.server.state.RepositoryInfo;
@@ -3918,8 +3919,7 @@ public class AmbariManagementControllerImpl implements
         ServiceComponent serviceComponent =
             service.getServiceComponent(compInfo.getName());
         if (!serviceComponent.getServiceComponentHosts().isEmpty()) {
-          return serviceComponent.getServiceComponentHosts()
-              .keySet().iterator().next();
+          return getHealthyHost(serviceComponent.getServiceComponentHosts().keySet());
         }
       } catch (ServiceComponentNotFoundException e) {
         LOG.warn("Could not find required component to run action"
@@ -3941,10 +3941,23 @@ public class AmbariManagementControllerImpl implements
       if (serviceComponent.getServiceComponentHosts().isEmpty()) {
         continue;
       }
-      return serviceComponent.getServiceComponentHosts()
-          .keySet().iterator().next();
+      return getHealthyHost(serviceComponent.getServiceComponentHosts().keySet());
     }
     return null;
+  }
+
+  private String getHealthyHost(Set<String> hostList) throws AmbariException {
+    // Return a healthy host if found otherwise any random host
+    String hostName = null;
+    for (String candidateHostName : hostList) {
+      hostName = candidateHostName;
+      Host candidateHost = clusters.getHost(hostName);
+      if (candidateHost.getHealthStatus().getHealthStatus()
+          == HostHealthStatus.HealthStatus.HEALTHY) {
+        break;
+      }
+    }
+    return hostName;
   }
 
   private void addServiceCheckAction(ActionRequest actionRequest, Stage stage)
@@ -3964,8 +3977,7 @@ public class AmbariManagementControllerImpl implements
             + componentName + ", service=" + actionRequest.getServiceName()
             + ", cluster=" + clusterName);
       }
-
-      hostName = components.keySet().iterator().next();
+      hostName = getHealthyHost(components.keySet());
     } else {
       Map<String, ServiceComponent> components = clusters
           .getCluster(clusterName).getService(actionRequest.getServiceName())

@@ -60,6 +60,7 @@ import org.apache.ambari.server.state.Config;
 import org.apache.ambari.server.state.ConfigFactory;
 import org.apache.ambari.server.state.ConfigImpl;
 import org.apache.ambari.server.state.Host;
+import org.apache.ambari.server.state.HostHealthStatus;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceComponent;
 import org.apache.ambari.server.state.ServiceComponentFactory;
@@ -233,7 +234,7 @@ public class AmbariManagementControllerTest {
       clusters.getCluster(clusterName).getService(serviceName)
         .getDesiredState());
 
-    // manually change live state to stopped as no running action manager
+    // manually change live state to started as no running action manager
     for (ServiceComponent sc :
       clusters.getCluster(clusterName).getService(serviceName)
         .getServiceComponents().values()) {
@@ -4607,6 +4608,122 @@ public class AmbariManagementControllerTest {
     Assert.assertEquals(1, taskStatuses.size());
     Assert.assertEquals(Role.PIG_SERVICE_CHECK.toString(),
         taskStatuses.get(0).getRole());
+  }
+
+  @Test
+  public void testServiceCheckWhenHostIsUnhealthy() throws AmbariException {
+    String clusterName = "foo1";
+    createCluster(clusterName);
+    clusters.getCluster(clusterName)
+        .setDesiredStackVersion(new StackId("HDP-0.1"));
+    String serviceName = "HDFS";
+    createService(clusterName, serviceName, null);
+    String componentName1 = "NAMENODE";
+    String componentName2 = "DATANODE";
+    String componentName3 = "HDFS_CLIENT";
+
+    createServiceComponent(clusterName, serviceName, componentName1,
+        State.INIT);
+    createServiceComponent(clusterName, serviceName, componentName2,
+        State.INIT);
+    createServiceComponent(clusterName, serviceName, componentName3,
+        State.INIT);
+
+    String host1 = "h1";
+    clusters.addHost(host1);
+    clusters.getHost("h1").setOsType("centos5");
+    clusters.getHost("h1").persist();
+    String host2 = "h2";
+    clusters.addHost(host2);
+    clusters.getHost("h2").setOsType("centos6");
+    clusters.getHost("h2").persist();
+    String host3 = "h3";
+    clusters.addHost(host3);
+    clusters.getHost("h3").setOsType("centos6");
+    clusters.getHost("h3").persist();
+
+    clusters.mapHostToCluster(host1, clusterName);
+    clusters.mapHostToCluster(host2, clusterName);
+    clusters.mapHostToCluster(host3, clusterName);
+
+    createServiceComponentHost(clusterName, serviceName, componentName1,
+        host1, null);
+    createServiceComponentHost(clusterName, serviceName, componentName2,
+        host1, null);
+    createServiceComponentHost(clusterName, serviceName, componentName3,
+        host2, null);
+    createServiceComponentHost(clusterName, serviceName, componentName3,
+        host3, null);
+
+    // Install
+    HostHealthStatus healthy = new HostHealthStatus(HostHealthStatus.HealthStatus.HEALTHY, "");
+    HostHealthStatus unhealthy = new HostHealthStatus(HostHealthStatus.HealthStatus.UNHEALTHY, "");
+    installService(clusterName, serviceName, false, false);
+    clusters.getHost("h3").setHealthStatus(unhealthy);
+    clusters.getHost("h2").setHealthStatus(healthy);
+
+    // Start
+    long requestId = startService(clusterName, serviceName, true, false);
+    List<HostRoleCommand> commands = actionDB.getRequestTasks(requestId);
+    int commandCount = 0;
+    for(HostRoleCommand command : commands) {
+      if(command.getRoleCommand() == RoleCommand.EXECUTE &&
+          command.getRole() == Role.HDFS_SERVICE_CHECK) {
+        Assert.assertTrue(command.getHostName().equals("h2"));
+        commandCount++;
+      }
+    }
+    Assert.assertEquals("Expect only one service check.", 1, commandCount);
+
+    stopService(clusterName, serviceName, false, false);
+
+    clusters.getHost("h3").setHealthStatus(healthy);
+    clusters.getHost("h2").setHealthStatus(unhealthy);
+
+    requestId = startService(clusterName, serviceName, true, false);
+    commands = actionDB.getRequestTasks(requestId);
+    commandCount = 0;
+    for(HostRoleCommand command : commands) {
+      if(command.getRoleCommand() == RoleCommand.EXECUTE &&
+          command.getRole() == Role.HDFS_SERVICE_CHECK) {
+        Assert.assertTrue(command.getHostName().equals("h3"));
+        commandCount++;
+      }
+    }
+    Assert.assertEquals("Expect only one service check.", 1, commandCount);
+
+    Set<ActionRequest> actionRequests = new HashSet<ActionRequest>();
+    ActionRequest actionRequest = new ActionRequest("foo1", "HDFS", Role.HDFS_SERVICE_CHECK.name(), null);
+    actionRequests.add(actionRequest);
+    Map<String, String> requestProperties = new HashMap<String, String>();
+
+    RequestStatusResponse response = controller.createActions(actionRequests, requestProperties);
+    commands = actionDB.getRequestTasks(response.getRequestId());
+    commandCount = 0;
+    for(HostRoleCommand command : commands) {
+      if(command.getRoleCommand() == RoleCommand.EXECUTE &&
+          command.getRole() == Role.HDFS_SERVICE_CHECK) {
+        Assert.assertTrue(command.getHostName().equals("h3"));
+        commandCount++;
+      }
+    }
+    Assert.assertEquals("Expect only one service check.", 1, commandCount);
+
+    // When both are unhealthy then just pick one
+    clusters.getHost("h3").setHealthStatus(unhealthy);
+    clusters.getHost("h2").setHealthStatus(unhealthy);
+    response = controller.createActions(actionRequests, requestProperties);
+    commands = actionDB.getRequestTasks(response.getRequestId());
+    commandCount = 0;
+    for(HostRoleCommand command : commands) {
+      if(command.getRoleCommand() == RoleCommand.EXECUTE &&
+          command.getRole() == Role.HDFS_SERVICE_CHECK) {
+        Assert.assertTrue(command.getHostName().equals("h3") ||
+            command.getHostName().equals("h2"));
+        commandCount++;
+      }
+    }
+    Assert.assertEquals("Expect only one service check.", 1, commandCount);
   }
 
   @Test
