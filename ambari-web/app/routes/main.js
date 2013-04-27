@@ -548,26 +548,21 @@ module.exports = Em.Route.extend({
   admin: Em.Route.extend({
     route: '/admin',
     enter: function (router, transition) {
-      var controller = router.get('mainAdminController');
-      if (!App.db.getUser().admin) {
+      if (!App.isAdmin) {
         Em.run.next(function () {
           router.transitionTo('main.dashboard');
         });
-      } else {
-        // Em.run.next(function () {
-        // router.transitionTo('admin' + controller.get('category').capitalize());
-        //});
       }
     },
 
     routePath: function (router, event) {
-      if (!App.db.getUser().admin) {
+      if (!App.isAdmin) {
         Em.run.next(function () {
           App.router.transitionTo('main.dashboard');
         });
       } else {
-        // var controller = router.get('mainAdminController');
-        //router.transitionTo('admin' + controller.get('category').capitalize());
+        var controller = router.get('mainAdminController');
+        router.transitionTo('admin' + controller.get('category').capitalize());
       }
     },
     connectOutlets: function (router, context) {
