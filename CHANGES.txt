@@ -798,6 +798,8 @@ Trunk (unreleased changes):
  Farrellee via mahadev)
 
  BUG FIXES
+
+ AMBARI-2029. Error when loading /main/services directly. (yusaku)
  
  AMBARI-2039. Service check should be scheduled on a client that is on
  a host in HEALTHY state. (smohanty)

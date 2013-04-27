@@ -54,6 +54,23 @@ App.MainController = Em.Controller.extend({
       console.log('Administrator logged in');
     }
   },
+
+  dataLoading: function () {
+    var self = this;
+    var dfd = $.Deferred();
+    if (App.router.get('clusterController.isLoaded')) {
+      dfd.resolve();
+    } else {
+      var interval = setInterval(function () {
+        if (self.get('isClusterDataLoaded')) {
+          dfd.resolve();
+          clearInterval(interval);
+        }
+      }, 50);
+    }
+    return dfd.promise();
+  },
+
   startPolling: function(){
     App.router.get('updateController').set('isWorking', true);
     App.router.get('backgroundOperationsController').set('isWorking', true);

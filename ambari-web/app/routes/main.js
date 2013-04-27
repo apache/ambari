@@ -785,13 +785,16 @@ module.exports = Em.Route.extend({
     index: Ember.Route.extend({
       route: '/',
       enter: function (router) {
-        Ember.run.next(function () {
+        Ember.run.next(function(){
+        var controller = router.get('mainController');
+        controller.dataLoading().done(function () {
           var service = router.get('mainServiceItemController.content');
           if (!service) {
             service = App.Service.find().objectAt(0); // getting the first service to display
           }
           router.transitionTo('service.summary', service);
         });
+      });
       }
     }),
     connectOutlets: function (router, context) {
