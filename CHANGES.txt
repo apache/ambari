@@ -269,6 +269,8 @@ Trunk (unreleased changes):
 
  IMPROVEMENTS
 
+ AMBARI-1388. Document management API. (tbeerbower)
+
  AMBARI-2030. Make frontend changes to account for the host component status
  UNKNOWN. (yusaku)
 
