@@ -4763,6 +4763,80 @@ public class AmbariManagementControllerTest {
   }
 
   @Test
+  public void testReInstallForInstallFailedClient() throws AmbariException {
+    String clusterName = "foo1";
+    createCluster(clusterName);
+    clusters.getCluster(clusterName)
+      .setDesiredStackVersion(new StackId("HDP-0.1"));
+    String serviceName = "HDFS";
+    createService(clusterName, serviceName, null);
+    String componentName1 = "NAMENODE";
+    String componentName2 = "DATANODE";
+    String componentName3 = "HDFS_CLIENT";
+
+    createServiceComponent(clusterName, serviceName, componentName1,
+      State.INIT);
+    createServiceComponent(clusterName, serviceName, componentName2,
+      State.INIT);
+    createServiceComponent(clusterName, serviceName, componentName3,
+      State.INIT);
+
+    String host1 = "h1";
+    clusters.addHost(host1);
+    clusters.getHost("h1").setOsType("centos5");
+    clusters.getHost("h1").persist();
+    String host2 = "h2";
+    clusters.addHost(host2);
+    clusters.getHost("h2").setOsType("centos6");
+    clusters.getHost("h2").persist();
+    String host3 = "h3";
+    clusters.addHost(host3);
+    clusters.getHost("h3").setOsType("centos6");
+    clusters.getHost("h3").persist();
+
+    clusters.mapHostToCluster(host1, clusterName);
+    clusters.mapHostToCluster(host2, clusterName);
+    clusters.mapHostToCluster(host3, clusterName);
+
+    createServiceComponentHost(clusterName, serviceName, componentName1,
+      host1, null);
+    createServiceComponentHost(clusterName, serviceName, componentName2,
+      host1, null);
+    createServiceComponentHost(clusterName, serviceName, componentName3,
+      host2, null);
+    createServiceComponentHost(clusterName, serviceName, componentName3,
+      host3, null);
+
+    // Install
+    installService(clusterName, serviceName, false, false);
+
+    // Mark client as install failed.
+    Cluster cluster = clusters.getCluster(clusterName);
+    Service s = cluster.getService(serviceName);
+    ServiceComponent sc3 = s.getServiceComponent(componentName3);
+    for(ServiceComponentHost sch : sc3.getServiceComponentHosts().values()) {
+      if (sch.getHostName().equals(host3)) {
+        sch.setState(State.INSTALL_FAILED);
+      }
+    }
+
+    // Start
+    long requestId = startService(clusterName, serviceName, false, true);
+    List<Stage> stages = actionDB.getAllStages(requestId);
+    HostRoleCommand clientReinstallCmd = null;
+    for (Stage stage : stages) {
+      for (HostRoleCommand hrc : stage.getOrderedHostRoleCommands()) {
+        if (hrc.getHostName().equals(host3) && hrc.getRole().toString()
+          .equals("HDFS_CLIENT")) {
+          clientReinstallCmd = hrc;
+          break;
+        }
+      }
+    }
+    Assert.assertNotNull(clientReinstallCmd);
+  }
+
+  @Test
   public void testDecommissonDatanodeAction() throws AmbariException {
     String clusterName = "foo1";
     createCluster(clusterName);
@@ -4853,7 +4927,7 @@ public class AmbariManagementControllerTest {
     List<HostRoleCommand> storedTasks = actionDB.getRequestTasks(response.getRequestId());
     ExecutionCommand execCmd = storedTasks.get(0).getExecutionCommandWrapper
       ().getExecutionCommand();
-    assertNotNull(storedTasks);
+    Assert.assertNotNull(storedTasks);
     Assert.assertNotNull(execCmd.getConfigurationTags().get("hdfs-site"));
     Assert.assertEquals(1, storedTasks.size());
     Assert.assertEquals(host2, execCmd.getConfigurations().get

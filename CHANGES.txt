@@ -804,6 +804,9 @@ Trunk (unreleased changes):
 
  BUG FIXES
 
+ AMBARI-2045. Add Unit test to verify, client re-install for install failed 
+ client. (swagle)
+
  AMBARI-2044. hive-site.xml permission denied exception. (swagle)
 
  AMBARI-2041. If a host that has a service client installed and the host is down, 
