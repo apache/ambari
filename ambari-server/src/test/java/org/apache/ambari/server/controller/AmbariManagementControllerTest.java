@@ -4434,6 +4434,8 @@ public class AmbariManagementControllerTest {
       host2, null);
     createServiceComponentHost(clusterName, serviceName1, componentName3,
       host3, null);
+    createServiceComponentHost(clusterName, serviceName2, componentName6,
+      host3, null);
 
     // Create and attach config
     Map<String, String> configs = new HashMap<String, String>();
@@ -4485,21 +4487,32 @@ public class AmbariManagementControllerTest {
 
     stages = actionDB.getAllStages(requestId2);
     stages.addAll(actionDB.getAllStages(requestId3));
-    HostRoleCommand hdfsCmd = null;
-    HostRoleCommand mapRedCmd = null;
+    HostRoleCommand hdfsCmdHost3 = null;
+    HostRoleCommand hdfsCmdHost2 = null;
+    HostRoleCommand mapRedCmdHost2 = null;
+    HostRoleCommand mapRedCmdHost3 = null;
     for (Stage stage : stages) {
       List<HostRoleCommand> hrcs = stage.getOrderedHostRoleCommands();
 
       for (HostRoleCommand hrc : hrcs) {
         LOG.debug("role: " + hrc.getRole());
-        if (hrc.getRole().toString().equals("HDFS_CLIENT"))
-          hdfsCmd = hrc;
-        if (hrc.getRole().toString().equals("MAPREDUCE_CLIENT"))
-          mapRedCmd = hrc;
+        if (hrc.getRole().toString().equals("HDFS_CLIENT")) {
+          if (hrc.getHostName().equals(host3))
+            hdfsCmdHost3 = hrc;
+          else if (hrc.getHostName().equals(host2))
+            hdfsCmdHost2 = hrc;
+        }
+        if (hrc.getRole().toString().equals("MAPREDUCE_CLIENT")) {
+          if (hrc.getHostName().equals(host2))
+            mapRedCmdHost2 = hrc;
+          else if (hrc.getHostName().equals(host3))
+            mapRedCmdHost3 = hrc;
+        }
       }
     }
-    Assert.assertNotNull(hdfsCmd);
-    ExecutionCommand execCmd = hdfsCmd.getExecutionCommandWrapper()
+    Assert.assertNotNull(hdfsCmdHost3);
+    Assert.assertNull(hdfsCmdHost2);
+    ExecutionCommand execCmd = hdfsCmdHost3.getExecutionCommandWrapper()
       .getExecutionCommand();
     Assert.assertEquals(2, execCmd.getConfigurationTags().size());
     Assert.assertEquals("version122", execCmd.getConfigurationTags().get
@@ -4507,7 +4520,32 @@ public class AmbariManagementControllerTest {
     Assert.assertEquals("d", execCmd.getConfigurations().get("core-site")
       .get("c"));
     // Check if MapReduce client is reinstalled
-    Assert.assertNotNull(mapRedCmd);
+    Assert.assertNotNull(mapRedCmdHost2);
+    Assert.assertNotNull(mapRedCmdHost3);
+
+    /**
+     * Test for lost host
+     */
+    // Stop HDFS & MAPREDUCE
+    stopService(clusterName, serviceName1, false, false);
+    stopService(clusterName, serviceName2, false, false);
+
+    clusters.getHost(host2).setState(HostState.HEARTBEAT_LOST);
+
+    // Start
+    requestId2 = startService(clusterName, serviceName1, true, true);
+    requestId3 = startService(clusterName, serviceName2, true, true);
+    stages = actionDB.getAllStages(requestId2);
+    stages.addAll(actionDB.getAllStages(requestId3));
+    HostRoleCommand clientWithHostDown = null;
+    for (Stage stage : stages) {
+      for (HostRoleCommand hrc : stage.getOrderedHostRoleCommands()) {
+        if (hrc.getRole().toString().equals("MAPREDUCE_CLIENT") && hrc
+          .getHostName().equals(host2))
+          clientWithHostDown = hrc;
+      }
+    }
+    Assert.assertNull(clientWithHostDown);
   }
 
   @Test

@@ -804,6 +804,9 @@ Trunk (unreleased changes):
 
  BUG FIXES
 
+ AMBARI-2041. If a host that has a service client installed and the host is down, 
+ service start will fail. (swagle)
+
  AMBARI-2039. Service check should be scheduled on a client that is on
  a host in HEALTHY state - use correct state enum. (smohanty)
 

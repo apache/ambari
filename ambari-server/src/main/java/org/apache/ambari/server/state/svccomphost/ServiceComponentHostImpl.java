@@ -1348,4 +1348,8 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
     return actualConfigs;
   }
 
+  @Override
+  public HostState getHostState() {
+    return host.getState();
+  }
 }

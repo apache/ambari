@@ -1882,13 +1882,16 @@ public class AmbariManagementControllerImpl implements
               // Ignore the Sch if same service has changed on the same host
               for (ServiceComponentHost existingSch : existingSchs) {
                 if (potentialSch.getHostName().equals(existingSch
-                  .getHostName()) && potentialSch.getServiceName().equals
-                  (existingSch.getServiceName())) {
+                    .getHostName()) && potentialSch.getServiceName().equals
+                    (existingSch.getServiceName())) {
                   addSch = false;
+                  break;
                 }
               }
-              if (addSch)
+              if (addSch && !potentialSch.getHostState().equals(HostState
+                .HEARTBEAT_LOST)) {
                 potentialHosts.add(potentialSch);
+              }
             }
           }
         }
