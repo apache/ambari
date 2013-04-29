@@ -48,6 +48,17 @@ class hdp-hive(
     }
   }
 
+  $inited_nagios_user = hdp_user("nagios_user")
+
+  if ($inited_nagios_user != undef and $service_state in ['running','stopped','installed_and_configured']) {
+    exec { 'add_permissions_for_nagios_user':
+      command => "setfacl -m user:${inited_nagios_user}:r-- ${hdp::params::hive_conf_dir}/hive-site.xml",
+      onlyif  => "getent passwd ${inited_nagios_user} >/dev/null",
+      path    => '/usr/sbin:/sbin:/usr/local/bin:/bin:/usr/bin',
+      require => Configgenerator::Configfile['hive-site']
+    }
+  }
+
   anchor { 'hdp-hive::begin': }
   anchor { 'hdp-hive::end': } 
 
