@@ -818,6 +818,8 @@ Trunk (unreleased changes):
 
  BUG FIXES
 
+ AMBARI-2059. Add dependency for Nagios server on Hive Client install. (swagle)
+
  AMBARI-2044. hive-site.xml permission denied exception. (swagle)
 
  AMBARI-2057. Gmond left in init after install. (smohanty)

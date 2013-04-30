@@ -84,6 +84,17 @@ public class RoleCommandOrder {
   }
 
   public static void initialize() {
+    // Installs
+    addDependency(Role.NAGIOS_SERVER, RoleCommand.INSTALL, Role.HIVE_CLIENT,
+      RoleCommand.INSTALL);
+    addDependency(Role.NAGIOS_SERVER, RoleCommand.INSTALL, Role.HCAT,
+      RoleCommand.INSTALL);
+    addDependency(Role.NAGIOS_SERVER, RoleCommand.INSTALL, Role.MAPREDUCE_CLIENT,
+      RoleCommand.INSTALL);
+    addDependency(Role.NAGIOS_SERVER, RoleCommand.INSTALL, Role.OOZIE_CLIENT,
+      RoleCommand.INSTALL);
+
+    // Starts
     addDependency(Role.SECONDARY_NAMENODE, RoleCommand.START, Role.NAMENODE,
         RoleCommand.START);
     addDependency(Role.RESOURCEMANAGER, RoleCommand.START, Role.NAMENODE,
