@@ -12,6 +12,9 @@ Trunk (unreleased changes):
 
  NEW FEATURES
 
+ AMBARI-2031. AMBARI-2031. Add clover code coverage profile. 
+ (Giridharan Kesavan via swagle)
+
  AMBARI-2050. Create smoke test for RESOURCEMANAGER component. (swagle)
 
  AMBARI-2049. Create ambari agent scripts for MAPREDUCEv2_CLIENT. (swagle)
