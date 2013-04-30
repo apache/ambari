@@ -72,10 +72,11 @@ class hdp-ganglia::server(
   class { 'hdp-ganglia::server::gmetad': ensure => $service_state}
 
   class { 'hdp-ganglia::service::change_permission': ensure => $service_state }
-  
+
   if ($service_state == 'installed_and_configured') {
     $webserver_state = 'restart'
   } elsif ($service_state == 'running') {
+    class { 'hdp-ganglia::server::delete_default_gmond_process': }
     $webserver_state = 'running'
   } else {
     # We are never stopping httpd
@@ -84,9 +85,9 @@ class hdp-ganglia::server(
 
   class { 'hdp-monitor-webserver': service_state => $webserver_state}
 
-   class { 'hdp-ganglia::server::files':
-      ensure => 'present'
-   }
+  class { 'hdp-ganglia::server::files':
+     ensure => 'present'
+  }
 
   file { "${hdp-ganglia::params::ganglia_dir}/gmetad.conf":
     owner => 'root',
@@ -217,5 +218,13 @@ class hdp-ganglia::server::gmetad(
       command => "$command",
       path      => '/usr/sbin:/sbin:/usr/local/bin:/bin:/usr/bin'
     }
+  }
+}
+
+class hdp-ganglia::server::delete_default_gmond_process() {
+  hdp::exec { "delete_default_gmond_process" :
+    command => "chkconfig --del gmond",
+    path => '/usr/sbin:/sbin:/usr/local/bin:/bin:/usr/bin',
+    require => Class['hdp-ganglia::server::packages']
   }
 }
