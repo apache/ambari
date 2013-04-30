@@ -167,14 +167,37 @@ define hdp-hadoop::namenode::create_app_directories($service_state)
     }
 
     if $stack_version in ("2.0.1") {
-      if ($hdp::params::yarn_log_aggregation_enabled == "true") {
-        $yarn_user = $hdp::params::yarn_user
-        $yarn_nm_app_log_dir = $hdp::params::yarn_nm_app_log_dir
+      if ($hdp::params::nm_host != "") {
+        if ($hdp::params::yarn_log_aggregation_enabled == "true") {
+          $yarn_user = $hdp::params::yarn_user
+          $yarn_nm_app_log_dir = $hdp::params::yarn_nm_app_log_dir
 
-        hdp-hadoop::hdfs::directory{ $yarn_nm_app_log_dir:
+          hdp-hadoop::hdfs::directory{ $yarn_nm_app_log_dir:
+            service_state => $service_state,
+            owner => $yarn_user,
+            mode  => '744',
+            recursive_chmod => true
+          }
+        }
+      }
+
+
+      if ($hdp::params::hs_host != "") {
+        $mapred_user = $hdp::params::mapred_user
+        $mapreduce_jobhistory_intermediate_done_dir = $hdp::params::mapreduce_jobhistory_intermediate_done_dir
+        $mapreduce_jobhistory_done_dir = $hdp::params::mapreduce_jobhistory_done_dir
+
+        hdp-hadoop::hdfs::directory{ $mapreduce_jobhistory_intermediate_done_dir:
           service_state => $service_state,
-          owner => $yarn_user,
-          mode  => '744',
+          owner => $mapred_user,
+          mode  => '777',
+          recursive_chmod => true
+        }
+
+        hdp-hadoop::hdfs::directory{ $mapreduce_jobhistory_done_dir:
+          service_state => $service_state,
+          owner => $mapred_user,
+          mode  => '750',
           recursive_chmod => true
         }
       }

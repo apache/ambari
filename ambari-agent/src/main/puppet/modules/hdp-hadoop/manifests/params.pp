@@ -79,6 +79,10 @@ class hdp-hadoop::params(
   
   $mapreduce_libs_path = hdp_default("mapreduce_libs_path","/usr/lib/hadoop-mapreduce/*")
   
+  $mapred_log_dir_prefix = hdp_default("mapred_log_dir_prefix","/var/log/hadoop-mapreduce")
+
+  $mapred_pid_dir_prefix = hdp_default("mapreduce_libs_path","/var/run/hadoop-mapreduce")
+
   ### compression related
   if (($hdp::params::lzo_enabled == true) and ($hdp::params::snappy_enabled == true)) {
     $mapred_compress_map_output = true

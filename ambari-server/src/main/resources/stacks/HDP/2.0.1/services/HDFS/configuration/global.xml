@@ -37,6 +37,21 @@
     <description>Secondary NameNode.</description>
   </property>
   <property>
+    <name>rm_host</name>
+    <value></value>
+    <description>Resource Manager.</description>
+  </property>
+  <property>
+    <name>nm_hosts</name>
+    <value></value>
+    <description>List of Node Manager Hosts.</description>
+  </property>
+  <property>
+    <name>hs_host</name>
+    <value></value>
+    <description>History Server.</description>
+  </property>
+  <property>
     <name>fs_checkpoint_dir</name>
     <value>/hadoop/hdfs/namesecondary</value>
     <description>Secondary NameNode checkpoint dir.</description>

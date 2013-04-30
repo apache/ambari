@@ -18,21 +18,31 @@
 # under the License.
 #
 #
-class hdp-yarn::params(
-) inherits hdp-hadoop::params 
+class hdp-yarn::historyserver(
+  $service_state = $hdp::params::cluster_service_state,
+  $opts = {}
+) inherits hdp-yarn::params
 {
+  $mapred_user = $hdp-yarn::params::mapred_user
+  
+  if ($service_state == 'no_op') {
+  } elsif ($service_state in 'installed_and_configured') {
+  
+    include hdp-yarn::initialize
 
-  $conf_dir = $hdp::params::yarn_conf_dir 
-    
-  ## yarn-env 
-  $hadoop_libexec_dir = hdp_default("yarn/yarn-env/hadoop_libexec_dir","/usr/lib/hadoop/libexec")
-  
-  $hadoop_common_home = hdp_default("yarn/yarn-env/hadoop_common_home","/usr/lib/hadoop")
-  $hadoop_hdfs_home = hdp_default("yarn/yarn-env/hadoop_hdfs_home","/usr/lib/hadoop-hdfs")
-  $hadoop_mapred_home = hdp_default("yarn/yarn-env/hadoop_mapred_home","/usr/lib/hadoop-yarn")
-  $hadoop_yarn_home = hdp_default("yarn/yarn-env/hadoop_yarn_home","/usr/lib/hadoop-yarn")
-  
-  $yarn_log_dir_prefix = hdp_default("hadoop/yarn-env/yarn_log_dir_prefix","/var/log/hadoop-yarn")
-  $yarn_pid_dir_prefix = hdp_default("hadoop/yarn-env/yarn_pid_dir_prefix","/var/run/hadoop-yarn")
+    ##Process package
+    hdp-yarn::package{'mapreduce-historyserver':}
+
+  } elsif ($service_state in ['running','stopped']) {
+
+    include hdp-yarn::initialize
  
+    hdp-yarn::service{ 'historyserver':
+      ensure       => $service_state,
+      user         => $mapred_user
+    }
+
+  } else {
+    hdp_fail("TODO not implemented yet: service_state = ${service_state}")
+  }
 }
