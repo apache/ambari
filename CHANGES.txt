@@ -12,6 +12,8 @@ Trunk (unreleased changes):
 
  NEW FEATURES
 
+ AMBARI-2047. Create ambari agent scripts for yarn client. (swagle)
+
  AMBARI-1679. Create ambari agent scripts for Hadoop 2.0 installation, 
  configuration and management. (swagle)
 

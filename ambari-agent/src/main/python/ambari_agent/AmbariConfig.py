@@ -83,8 +83,12 @@ rolesToClass = {
   'JOBTRACKER': 'hdp-hadoop::jobtracker',
   'TASKTRACKER': 'hdp-hadoop::tasktracker',
   'RESOURCEMANAGER': 'hdp-yarn::resourcemanager',
+  'NODEMANAGER': 'hdp-yarn::nodemanager',
+  'HISTORYSERVER': 'hdp-yarn::historyserver',
+  'YARN_CLIENT': 'hdp-yarn::yarn_client',
   'HDFS_CLIENT': 'hdp-hadoop::client',
   'MAPREDUCE_CLIENT': 'hdp-hadoop::client',
+  'MAPREDUCEv2_CLIENT': 'hdp-yarn::mapreducev2_client',
   'ZOOKEEPER_SERVER': 'hdp-zookeeper',
   'ZOOKEEPER_CLIENT': 'hdp-zookeeper::client',
   'HBASE_MASTER': 'hdp-hbase::master',
@@ -119,7 +123,8 @@ rolesToClass = {
   'WEBHCAT_SERVICE_CHECK': 'hdp-templeton::templeton::service_check',
   'DASHBOARD_SERVICE_CHECK': 'hdp-dashboard::dashboard::service_check',
   'DECOMMISSION_DATANODE': 'hdp-hadoop::hdfs::decommission',
-  'HUE_SERVICE_CHECK': 'hdp-hue::service_check'
+  'HUE_SERVICE_CHECK': 'hdp-hue::service_check',
+  'RESOURCEMANAGER_SERVICE_CHECK': 'hdp-yarn::resourcemanager::service_check'
 }
 
 serviceStates = {
@@ -135,6 +140,8 @@ servicesToPidNames = {
   'JOBTRACKER': 'hadoop-{USER}-jobtracker.pid$',
   'TASKTRACKER': 'hadoop-{USER}-tasktracker.pid$',
   'RESOURCEMANAGER': 'yarn-{USER}-resourcemanager.pid$',
+  'NODEMANAGER': 'yarn-{USER}-nodemanager.pid$',
+  'HISTORYSERVER': 'mapred-{USER}-historyserver.pid$',
   'OOZIE_SERVER': 'oozie.pid',
   'ZOOKEEPER_SERVER': 'zookeeper_server.pid',
   'TEMPLETON_SERVER': 'templeton.pid',
