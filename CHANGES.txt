@@ -818,6 +818,8 @@ Trunk (unreleased changes):
 
  BUG FIXES
 
+ AMBARI-2044. hive-site.xml permission denied exception. (swagle)
+
  AMBARI-2057. Gmond left in init after install. (smohanty)
 
  AMBARI-2051. Remove hard-coded ports from agent scripts - Nagios. (swagle)
