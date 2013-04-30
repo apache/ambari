@@ -124,7 +124,7 @@ define service {
         use                     hadoop-service
         service_description     GANGLIA::Ganglia [gmetad] process down
         servicegroups           GANGLIA
-        check_command           check_tcp!8651!-w 1 -c 1
+        check_command           check_tcp!<%=scope.function_hdp_template_var("ganglia_port")%>!-w 1 -c 1
         normal_check_interval   0.25
         retry_check_interval    0.25
         max_check_attempts      4
@@ -135,7 +135,7 @@ define service {
         use                     hadoop-service
         service_description     GANGLIA::Ganglia Collector [gmond] process down alert for slaves
         servicegroups           GANGLIA
-        check_command           check_tcp!8660!-w 1 -c 1
+        check_command           check_tcp!<%=scope.function_hdp_template_var("ganglia_collector_slaves_port")%>!-w 1 -c 1
         normal_check_interval   0.25
         retry_check_interval    0.25
         max_check_attempts      4
@@ -146,7 +146,7 @@ define service {
         use                     hadoop-service
         service_description     GANGLIA::Ganglia Collector [gmond] process down alert for NameNode
         servicegroups           GANGLIA
-        check_command           check_tcp!8661!-w 1 -c 1
+        check_command           check_tcp!<%=scope.function_hdp_template_var("ganglia_collector_namenode_port")%>!-w 1 -c 1
         normal_check_interval   0.25
         retry_check_interval    0.25
         max_check_attempts      4
@@ -157,7 +157,7 @@ define service {
         use                     hadoop-service
         service_description     GANGLIA::Ganglia Collector [gmond] process down alert for JobTracker
         servicegroups           GANGLIA
-        check_command           check_tcp!8662!-w 1 -c 1
+        check_command           check_tcp!<%=scope.function_hdp_template_var("ganglia_collector_jobtracker_port")%>!-w 1 -c 1
         normal_check_interval   0.25
         retry_check_interval    0.25
         max_check_attempts      4
@@ -169,7 +169,7 @@ define service {
         use                     hadoop-service
         service_description     GANGLIA::Ganglia Collector [gmond] process down alert for HBase Master
         servicegroups           GANGLIA
-        check_command           check_tcp!8663!-w 1 -c 1
+        check_command           check_tcp!<%=scope.function_hdp_template_var("ganglia_collector_hbase_port")%>!-w 1 -c 1
         normal_check_interval   0.25
         retry_check_interval    0.25
         max_check_attempts      4
@@ -231,7 +231,7 @@ define service {
         use                     hadoop-service
         service_description     NAMENODE::NameNode process down
         servicegroups           HDFS
-        check_command           check_tcp!8020!-w 1 -c 1
+        check_command           check_tcp!<%=scope.function_hdp_template_var("namenode_metadata_port")%>!-w 1 -c 1
         normal_check_interval   0.5
         retry_check_interval    0.25
         max_check_attempts      3
@@ -377,7 +377,7 @@ define service {
         use                     hadoop-service
         service_description     ZOOKEEPER::ZooKeeper Server process down
         servicegroups           ZOOKEEPER
-        check_command           check_tcp!2181!-w 1 -c 1
+        check_command           check_tcp!<%=scope.function_hdp_template_var("clientPort")%>!-w 1 -c 1
         normal_check_interval   1
         retry_check_interval    0.5
         max_check_attempts      3
@@ -440,9 +440,9 @@ define service {
         service_description     HIVE-METASTORE::Hive Metastore status check
         servicegroups           HIVE-METASTORE
         <%if scope.function_hdp_template_var("security_enabled")-%>
-        check_command           check_hive_metastore_status!9083!<%=scope.function_hdp_template_var("java64_home")%>!true!<%=scope.function_hdp_template_var("keytab_path")%>/<%=scope.function_hdp_template_var("nagios_user")%>.headless.keytab!<%=scope.function_hdp_template_var("nagios_user")%>!<%=scope.function_hdp_template_var("kinit_path_local")%>/"/usr/bin/kinit"
+        check_command           check_hive_metastore_status!<%=scope.function_hdp_template_var("hive_metastore_port")%>!<%=scope.function_hdp_template_var("java64_home")%>!true!<%=scope.function_hdp_template_var("keytab_path")%>/<%=scope.function_hdp_template_var("nagios_user")%>.headless.keytab!<%=scope.function_hdp_template_var("nagios_user")%>!<%=scope.function_hdp_template_var("kinit_path_local")%>/"/usr/bin/kinit"
         <%else-%>
-        check_command           check_hive_metastore_status!9083!<%=scope.function_hdp_template_var("java64_home")%>!false
+        check_command           check_hive_metastore_status!<%=scope.function_hdp_template_var("hive_metastore_port")%>!<%=scope.function_hdp_template_var("java64_home")%>!false
         <%end-%>
         normal_check_interval   0.5
         retry_check_interval    0.5
@@ -457,9 +457,9 @@ define service {
         service_description     OOZIE::Oozie Server status check
         servicegroups           OOZIE
         <%if scope.function_hdp_template_var("security_enabled")-%>
-        check_command           check_oozie_status!11000!<%=scope.function_hdp_template_var("java64_home")%>!true!<%=scope.function_hdp_template_var("keytab_path")%>/<%=scope.function_hdp_template_var("nagios_user")%>.headless.keytab!<%=scope.function_hdp_template_var("nagios_user")%>!<%=scope.function_hdp_template_var("kinit_path_local")%>/"/usr/bin/kinit"
+        check_command           check_oozie_status!<%=scope.function_hdp_template_var("oozie_server_port")%>!<%=scope.function_hdp_template_var("java64_home")%>!true!<%=scope.function_hdp_template_var("keytab_path")%>/<%=scope.function_hdp_template_var("nagios_user")%>.headless.keytab!<%=scope.function_hdp_template_var("nagios_user")%>!<%=scope.function_hdp_template_var("kinit_path_local")%>/"/usr/bin/kinit"
         <%else-%>
-        check_command           check_oozie_status!11000!<%=scope.function_hdp_template_var("java64_home")%>!false
+        check_command           check_oozie_status!<%=scope.function_hdp_template_var("oozie_server_port")%>!<%=scope.function_hdp_template_var("java64_home")%>!false
         <%end-%>
         normal_check_interval   1
         retry_check_interval    1
@@ -474,9 +474,9 @@ define service {
         service_description     WEBHCAT::WebHCat Server status check
         servicegroups           WEBHCAT 
         <%if scope.function_hdp_template_var("security_enabled")-%>
-        check_command           check_templeton_status!50111!v1!true!<%=scope.function_hdp_template_var("keytab_path")%>/<%=scope.function_hdp_template_var("nagios_user")%>.headless.keytab!<%=scope.function_hdp_template_var("nagios_user")%>!<%=scope.function_hdp_template_var("kinit_path_local")%>/"/usr/bin/kinit"
+        check_command           check_templeton_status!<%=scope.function_hdp_template_var("templeton_port")%>!v1!true!<%=scope.function_hdp_template_var("keytab_path")%>/<%=scope.function_hdp_template_var("nagios_user")%>.headless.keytab!<%=scope.function_hdp_template_var("nagios_user")%>!<%=scope.function_hdp_template_var("kinit_path_local")%>/"/usr/bin/kinit"
         <%else-%>
-        check_command           check_templeton_status!50111!v1!false
+        check_command           check_templeton_status!<%=scope.function_hdp_template_var("templeton_port")%>!v1!false
         <%end-%>
         normal_check_interval   1
         retry_check_interval    0.5

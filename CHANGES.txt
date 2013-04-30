@@ -815,6 +815,8 @@ Trunk (unreleased changes):
 
  BUG FIXES
 
+ AMBARI-2051. Remove hard-coded ports from agent scripts - Nagios. (swagle)
+
  AMBARI-2045. Add Unit test to verify, client re-install for install failed 
  client. (swagle)
 
