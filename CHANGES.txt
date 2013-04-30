@@ -12,6 +12,8 @@ Trunk (unreleased changes):
 
  NEW FEATURES
 
+ AMBARI-2050. Create smoke test for RESOURCEMANAGER component. (swagle)
+
  AMBARI-2049. Create ambari agent scripts for MAPREDUCEv2_CLIENT. (swagle)
 
  AMBARI-2048. Create ambari agent scripts for historyserver. (swagle)

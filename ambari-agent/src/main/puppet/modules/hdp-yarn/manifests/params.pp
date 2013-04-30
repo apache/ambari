@@ -34,5 +34,8 @@ class hdp-yarn::params(
   
   $yarn_log_dir_prefix = hdp_default("hadoop/yarn-env/yarn_log_dir_prefix","/var/log/hadoop-yarn")
   $yarn_pid_dir_prefix = hdp_default("hadoop/yarn-env/yarn_pid_dir_prefix","/var/run/hadoop-yarn")
+  
+  ## yarn-site
+  $yarn_webui_port = hdp_default("yarn-site/yarn.resourcemanager.webapp.address", "8088")
  
 }
