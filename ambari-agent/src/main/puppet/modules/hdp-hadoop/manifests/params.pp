@@ -77,6 +77,8 @@ class hdp-hadoop::params(
   
   $hadoop_libexec_dir = hdp_default("hadoop_libexec_dir","/usr/lib/hadoop/libexec")
   
+  $mapreduce_libs_path = hdp_default("mapreduce_libs_path","/usr/lib/hadoop-mapreduce/*")
+  
   ### compression related
   if (($hdp::params::lzo_enabled == true) and ($hdp::params::snappy_enabled == true)) {
     $mapred_compress_map_output = true

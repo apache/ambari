@@ -36,6 +36,7 @@ class hdp::params()
     $oozie-site = $configuration['oozie-site']
     $sqoop-site = $configuration['sqoop-site']
     $webhcat-site = $configuration['webhcat-site']
+    $yarn-site = $configuration['yarn-site']
   }
 
   ##### global state defaults ####
@@ -191,6 +192,10 @@ class hdp::params()
   $hive_apps_whs_dir = hdp_default("hive_apps_whs_dir", "/apps/hive/warehouse")
   $webhcat_apps_dir = hdp_default("webhcat_apps_dir", "/apps/webhcat")
   $hbase_hdfs_root_dir = hdp_default("hbase-site/hbase.hdfs.root.dir","/apps/hbase/data")
+  
+  $yarn_nm_app_log_dir = hdp_default("yarn-site/yarn.nodemanager.remote-app-log-dir","/app-logs")
+  
+  $yarn_log_aggregation_enabled = hdp_default("yarn-site/yarn.log-aggregation-enable","true")
 
   $user_group = hdp_default("user_group","hadoop")
 
@@ -387,7 +392,7 @@ class hdp::params()
     yarn-nodemanager => { 
       'ALL' => {
         64 => {
-          'ALL' => ['hadoop-yarn-nodemanager', 'hadoop-yarn-proxyserver', 'hadoop-yarn-resourcemanager']
+          'ALL' => ['hadoop-yarn-nodemanager']
         }
       }
     },
@@ -395,7 +400,7 @@ class hdp::params()
     yarn-proxyserver => { 
       'ALL' => {
         64 => {
-          'ALL' => ['hadoop-yarn-proxyserver', 'hadoop-yarn-resourcemanager']
+          'ALL' => ['hadoop-yarn-proxyserver']
         }
       }
     },
@@ -403,7 +408,7 @@ class hdp::params()
     yarn-resourcemanager => { 
       'ALL' => {
         64 => {
-          'ALL' => ['hadoop-yarn-resourcemanager']
+          'ALL' => ['hadoop-yarn-resourcemanager', 'hadoop-mapreduce']
         }
       }
     },

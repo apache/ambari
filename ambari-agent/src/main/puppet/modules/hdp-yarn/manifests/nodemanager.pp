@@ -18,7 +18,7 @@
 # under the License.
 #
 #
-class hdp-yarn::resourcemanager(
+class hdp-yarn::nodemanager(
   $service_state = $hdp::params::cluster_service_state,
   $opts = {}
 ) inherits hdp-yarn::params
@@ -31,13 +31,13 @@ class hdp-yarn::resourcemanager(
     include hdp-yarn::initialize
 
     ##Process package
-    hdp-yarn::package{'yarn-resourcemanager':}
+    hdp-yarn::package{'yarn-nodemanager':}
 
   } elsif ($service_state in ['running','stopped']) {
-  
+
     include hdp-yarn::initialize
  
-    hdp-yarn::service{ 'resourcemanager':
+    hdp-yarn::service{ 'nodemanager':
       ensure       => $service_state,
       user         => $yarn_user
     }
