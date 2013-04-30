@@ -12,7 +12,9 @@ Trunk (unreleased changes):
 
  NEW FEATURES
 
- AMBARI-2047. Create ambari agent scripts for historyserver. (swagle)
+ AMBARI-2049. Create ambari agent scripts for MAPREDUCEv2_CLIENT. (swagle)
+
+ AMBARI-2048. Create ambari agent scripts for historyserver. (swagle)
 
  AMBARI-2046. Create ambari agent scripts for Hadoop 2.0 installation, node 
  manager. (swagle)

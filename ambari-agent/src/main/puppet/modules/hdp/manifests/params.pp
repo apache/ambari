@@ -396,6 +396,14 @@ class hdp::params()
         }
       },
 
+    hadoop-mapreduce-client => {
+      'ALL' => {
+        64 => {
+          'ALL' => ['hadoop-mapreduce']
+        }
+      }
+    },
+
     yarn-common => { 
       'ALL' => {
         64 => {
