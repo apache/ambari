@@ -803,13 +803,6 @@ var configs = [
     "filename": "hbase-site.xml"
   },
   {
-    "name": "dfs.client.read.shortcircuit.skip.checksum",
-    "templateName": ["hdfs_enable_shortcircuit_skipchecksum"],
-    "foreignKey": null,
-    "value": "<templateName[0]>",
-    "filename": "hbase-site.xml"
-  },
-  {
     "name": "hbase.security.authentication",
     "templateName": [],
     "foreignKey": null,

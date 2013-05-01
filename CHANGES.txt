@@ -825,6 +825,8 @@ Trunk (unreleased changes):
 
  BUG FIXES
 
+ AMBARI-2066. HDFS shortcircuit skip checksum should be removed. (smohanty)
+
  AMBARI-2056. Show proper error message while user tries to save configurations 
  of partially stopped service. (srimanth)
 

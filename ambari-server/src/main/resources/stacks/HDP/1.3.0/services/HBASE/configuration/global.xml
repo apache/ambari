@@ -127,11 +127,6 @@
     <description>HDFS Short Circuit Read</description>
   </property>
    <property>
-    <name>hdfs_enable_shortcircuit_skipchecksum</name>
-    <value>false</value>
-    <description>HDFS shortcircuit skip checksum.</description>
-  </property>
-   <property>
     <name>hdfs_support_append</name>
     <value>true</value>
     <description>HDFS append support</description>

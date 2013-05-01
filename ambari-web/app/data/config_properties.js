@@ -1251,19 +1251,6 @@ module.exports =
     },
     {
       "id": "puppet var",
-      "name": "hdfs_enable_shortcircuit_skipchecksum",
-      "displayName": "HDFS shortcircuit skip checksum",
-      "description": "skip checksum for short circuit read",
-      "defaultValue": false,
-      "isRequired": false,
-      "displayType": "checkbox",
-      "isVisible": true,
-      "domain": "global",
-      "serviceName": "HBASE",
-      "category": "Advanced"
-    },
-    {
-      "id": "puppet var",
       "name": "hdfs_support_append",
       "displayName": "HDFS append support",
       "description": "HDFS append support",
