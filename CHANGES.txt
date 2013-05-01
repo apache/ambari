@@ -823,6 +823,9 @@ Trunk (unreleased changes):
 
  BUG FIXES
 
+ AMBARI-2054. If "Install from Local Repository" selected in install wizard,
+ Add Host wizard not working. (yusaku)
+
  AMBARI-2053. Align "add hosts" button vertically with host health filter.
  (yusaku)
 

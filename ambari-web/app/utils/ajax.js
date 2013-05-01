@@ -578,7 +578,7 @@ var urls = {
     }
   },
   'wizard.service_components': {
-    'real': '{stackUrl}',
+    'real': '{stackUrl}/stackServices?fields=StackServices',
     'mock': '/data/wizard/stack/hdp/version/1.3.0.json',
     'format': function (data, opt) {
       return {

@@ -448,7 +448,7 @@ App.WizardController = Em.Controller.extend({
       name: 'wizard.service_components',
       sender: this,
       data: {
-        stackUrl: App.get('stackVersionURL')
+        stackUrl: App.get('stack2VersionURL')
       },
       success: 'loadServiceComponentsSuccessCallback',
       error: 'loadServiceComponentsErrorCallback'
@@ -459,7 +459,7 @@ App.WizardController = Em.Controller.extend({
   loadServiceComponentsSuccessCallback: function (jsonData) {
     var displayOrderConfig = require('data/services');
     console.log("TRACE: getService ajax call  -> In success function for the getServiceComponents call");
-    console.log("TRACE: jsonData.services : " + jsonData.services);
+    console.log("TRACE: jsonData.services : " + jsonData.items);
 
     // Creating Model
     var Service = Ember.Object.extend({
@@ -476,18 +476,18 @@ App.WizardController = Em.Controller.extend({
 
     // loop through all the service components
     for (var i = 0; i < displayOrderConfig.length; i++) {
-      var entry = jsonData.services.findProperty("name", displayOrderConfig[i].serviceName);
+      var entry = jsonData.items.findProperty("StackServices.service_name", displayOrderConfig[i].serviceName);
       if (entry) {
         var myService = Service.create({
-          serviceName: entry.name,
+          serviceName: entry.StackServices.service_name,
           displayName: displayOrderConfig[i].displayName,
           isDisabled: i === 0,
           isSelected: displayOrderConfig[i].isSelected,
           canBeSelected: displayOrderConfig[i].canBeSelected,
           isInstalled: false,
           isHidden: displayOrderConfig[i].isHidden,
-          description: entry.comment,
-          version: entry.version
+          description: entry.StackServices.comments,
+          version: entry.StackServices.service_version
         });
 
         data.push(myService);

@@ -34,6 +34,9 @@ module.exports = Em.Application.create({
    */
   stackVersionURL:function(){
     var stackVersion = this.get('currentStackVersion') || this.get('defaultStackVersion');
+    if(stackVersion.indexOf('HDPLocal') !== -1){
+      return '/stacks/HDPLocal/version/' + stackVersion.replace(/HDPLocal-/g, '');
+    }
     return '/stacks/HDP/version/' + stackVersion.replace(/HDP-/g, '');
   }.property('currentStackVersion'),
   
@@ -42,6 +45,9 @@ module.exports = Em.Application.create({
    */
   stack2VersionURL:function(){
     var stackVersion = this.get('currentStackVersion') || this.get('defaultStackVersion');
+    if(stackVersion.indexOf('HDPLocal') !== -1){
+      return '/stacks2/HDPLocal/versions/' + stackVersion.replace(/HDPLocal-/g, '');
+    }
     return '/stacks2/HDP/versions/' + stackVersion.replace(/HDP-/g, '');
   }.property('currentStackVersion'),
   clusterName: null,
