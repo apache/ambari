@@ -39,4 +39,5 @@ require('test/main/item_test');
 require('test/utils/form_field_test');
 require('test/utils/misc_test');
 require('test/utils/validator_test');
+require('test/utils/config_test');
 require('test/views/common/chart/linear_time_test');

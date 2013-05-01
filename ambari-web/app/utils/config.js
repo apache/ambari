@@ -73,6 +73,40 @@ App.config = Em.Object.create({
     return category;
   },
   /**
+   * additional handling for special properties such as
+   * checkbox and digital which values with 'm' at the end
+   * @param config
+   */
+  handleSpecialProperties: function(config){
+    if (config.displayType === 'int' && /\d+m$/.test(config.value)) {
+      config.value = config.value.slice(0, config.value.length - 1);
+      config.defaultValue = config.value;
+    }
+    if (config.displayType === 'checkbox') {
+      config.value = (config.value === 'true') ? config.defaultValue = true : config.defaultValue = false;
+    }
+  },
+  /**
+   * calculate config properties:
+   * category, filename, isRequired, isUserProperty
+   * @param config
+   * @param isAdvanced
+   * @param advancedConfigs
+   */
+  calculateConfigProperties: function(config, isAdvanced, advancedConfigs){
+    if (!isAdvanced || this.get('customFileNames').contains(config.filename)) {
+      var categoryMetaData = this.identifyCategory(config);
+      if (categoryMetaData != null) {
+        config.category = categoryMetaData.get('name');
+        if(!isAdvanced) config.isUserProperty = true;
+      }
+    } else {
+      config.category = 'Advanced';
+      config.filename = isAdvanced && advancedConfigs.findProperty('name', config.name).filename;
+      config.isRequired = false;
+    }
+  },
+  /**
    * return:
    *   configs,
    *   globalConfigs,
@@ -119,30 +153,13 @@ App.config = Em.Object.create({
           serviceConfigObj.isOverridable = configsPropertyDef.isOverridable === undefined ? true : configsPropertyDef.isOverridable;
           serviceConfigObj.serviceName = configsPropertyDef ? configsPropertyDef.serviceName : null;
         }
+        // MAPREDUCE contains core-site properties but doesn't show them
         if(serviceConfigObj.serviceName === 'MAPREDUCE' && serviceConfigObj.filename === 'core-site.xml'){
           serviceConfigObj.isVisible = false;
         }
         if (_tag.siteName === 'global') {
           if (configsPropertyDef) {
-            if (configsPropertyDef.displayType === 'int') {
-              if (/\d+m$/.test(properties[index])) {
-
-                serviceConfigObj.value = properties[index].slice(0, properties[index].length - 1);
-                serviceConfigObj.defaultValue = serviceConfigObj.value;
-              }
-            }
-            if (configsPropertyDef.displayType === 'checkbox') {
-              switch (properties[index]) {
-                case 'true' :
-                  serviceConfigObj.value = true;
-                  serviceConfigObj.defaultValue = true;
-                  break;
-                case 'false' :
-                  serviceConfigObj.value = false;
-                  serviceConfigObj.defaultValue = false;
-                  break;
-              }
-            }
+            this.handleSpecialProperties(serviceConfigObj);
           }
           serviceConfigObj.id = 'puppet var';
           serviceConfigObj.displayName = configsPropertyDef ? configsPropertyDef.displayName : null;
@@ -154,16 +171,7 @@ App.config = Em.Object.create({
           serviceConfigObj.id = 'site property';
           serviceConfigObj.displayType = 'advanced';
           serviceConfigObj.displayName = configsPropertyDef ? configsPropertyDef.displayName : index;
-          if (!isAdvanced || this.get('customFileNames').contains(serviceConfigObj.filename)) {
-            var categoryMetaData = this.identifyCategory(serviceConfigObj);
-            if (categoryMetaData != null) {
-              serviceConfigObj.category = categoryMetaData.get('name');
-              if(!isAdvanced) serviceConfigObj.isUserProperty = true;
-            }
-          } else {
-            serviceConfigObj.category = 'Advanced';
-            serviceConfigObj.filename = isAdvanced && advancedConfigs.findProperty('name', index).filename;
-          }
+          this.calculateConfigProperties(serviceConfigObj, isAdvanced, advancedConfigs);
           configs.push(serviceConfigObj);
         } else {
           mappingConfigs.push(serviceConfigObj);
@@ -219,14 +227,8 @@ App.config = Em.Object.create({
           isOverridable: true,
           overrides: stored.overrides,
           isRequired: !isAdvanced
-        }
-        if (!isAdvanced || this.get('customFileNames').contains(configData.filename)) {
-          var categoryMetaData = this.identifyCategory(configData);
-          if (categoryMetaData != null) {
-            configData.category = categoryMetaData.get('name');
-            if(!isAdvanced) configData.isUserProperty = true;
-          }
-        }
+        };
+        this.calculateConfigProperties(configData, isAdvanced, advancedConfigs);
       } else if (preDefined && !stored) {
         configData = preDefined;
         if (isAdvanced) {

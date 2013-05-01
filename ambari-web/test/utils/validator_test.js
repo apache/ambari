@@ -253,5 +253,22 @@ describe('validator', function () {
       })
     });
   })
-
+  describe('#isValidConfigKey(value)', function() {
+    var tests = [
+      {m:'"123" - valid',i:'123',e:true},
+      {m:'"abc" - valid',i:'abc',e:true},
+      {m:'"abc123" - valid',i:'abc123',e:true},
+      {m:'".abc." - valid',i:'.abc.',e:true},
+      {m:'"_abc_" - valid',i:'_abc_',e:true},
+      {m:'"-abc-" - valid',i:'-abc-',e:true},
+      {m:'"abc 123" - invalid',i:'abc 123',e:false},
+      {m:'"a"b" - invalid',i:'a"b',e:false},
+      {m:'"a\'b" - invalid',i:'a\'b',e:false}
+    ];
+    tests.forEach(function(test) {
+      it(test.m + ' ', function () {
+        expect(validator.isValidConfigKey(test.i)).to.equal(test.e);
+      })
+    });
+  })
 })

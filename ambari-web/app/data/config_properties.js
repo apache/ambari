@@ -65,6 +65,9 @@
  *     E.g., "General", "Advanced", "NameNode", "DataNode"
  */
 
+var App = require('app');
+require('config');
+
 module.exports =
 {
   "configProperties": [
