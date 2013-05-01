@@ -823,6 +823,8 @@ Trunk (unreleased changes):
 
  BUG FIXES
 
+ AMBARI-2052. Fix delete user popup. (yusaku)
+
  AMBARI-2065. Hadoop group customization does not take affect. (smohanty)
 
  AMBARI-2062. Service versions shown during install dont match installed
