@@ -81,7 +81,9 @@ class hdp-hbase(
   } else {  
     hdp::package { 'hbase': }
   
-    hdp::user{ $hbase_user:}
+    hdp::user{ $hbase_user:
+      groups => [$hdp::params::user_group, $hbase_user]
+    }
  
     hdp::directory { $config_dir: 
       service_state => $service_state,

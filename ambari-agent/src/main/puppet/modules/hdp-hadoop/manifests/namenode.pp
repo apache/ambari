@@ -60,7 +60,7 @@ class hdp-hadoop::namenode(
         keytabfile => 'spnego.service.keytab', 
         owner => $hdp-hadoop::params::hdfs_user, 
         mode => '0440',
-        group => 'hadoop'
+        group => $hdp::params::user_group
       }
     }
  

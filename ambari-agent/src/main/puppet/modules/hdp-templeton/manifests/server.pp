@@ -49,7 +49,7 @@ class hdp-templeton::server(
          keytabdst => "${$keytab_path}/spnego.service.keytab",
          keytabfile => 'spnego.service.keytab',
          owner => $hdp::params::templeton_user,
-         group => 'hadoop',
+         group => $hdp::params::user_group,
          mode => '0440'
        }
      }

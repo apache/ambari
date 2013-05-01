@@ -226,9 +226,13 @@ class hdp-hadoop(
       group => $hdp::params::user_group
     }
  
-    hdp::user{ $hdfs_user:}
+    hdp::user{ $hdfs_user:
+      groups => [$hdp::params::user_group, $hdfs_user]
+    }
     if ($hdfs_user != $mapred_user) {
-      hdp::user { $mapred_user:}
+      hdp::user { $mapred_user:
+        groups => [$hdp::params::user_group, $mapred_user]
+      }
     }
 
     $logdirprefix = $hdp-hadoop::params::hdfs_log_dir_prefix
