@@ -162,6 +162,7 @@ App.ServiceConfigProperty = Ember.Object.extend({
   overrideErrorTrigger: 0, //Trigger for overrridable property error
   isRestartRequired: false,
   restartRequiredMessage: 'Restart required',
+  index: null, //sequence number in category
 
   /**
    * On Overridable property error message, change overrideErrorTrigger value to recount number of errors service have

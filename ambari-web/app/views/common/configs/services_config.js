@@ -115,9 +115,35 @@ App.ServiceConfigsByCategoryView = Ember.View.extend({
 
       return searchString.toLowerCase().indexOf(filter) > -1;
     });
+    filteredResult = this.sortByIndex(filteredResult);
     return filteredResult;
   }.property('categoryConfigs','parentView.filter', 'parentView.columns.@each.selected'),
 
+  /**
+   * sort configs in current category by index
+   * @param configs
+   * @return {*}
+   */
+  sortByIndex: function(configs){
+    var sortedConfigs = [];
+    var unSorted = [];
+    if (!configs.someProperty('index')) {
+      return configs;
+    }
+    configs.forEach(function (config) {
+      var index = config.get('index');
+      if ((index !== null) && isFinite(index)) {
+        sortedConfigs[index] ? sortedConfigs.splice(index, 0 ,config) : sortedConfigs[index] = config;
+      } else {
+        unSorted.push(config);
+      }
+    });
+    // remove undefined elements from array
+    sortedConfigs = sortedConfigs.filter(function(config){
+      if(config !== undefined) return true;
+    });
+    return sortedConfigs.concat(unSorted);
+  },
   /**
    * Onclick handler for Config Group Header. Used to show/hide block
    */
@@ -926,7 +952,7 @@ App.ServiceConfigCapacityScheduler = App.ServiceConfigsByCategoryView.extend({
           configs: configs
         };
         content = this.insertExtraConfigs(content);
-        content.configs = this.sortQueueProperties(content.configs);
+        content.configs = self.sortByIndex(content.configs);
         return content;
       }.property(),
       footerClass: Ember.View.extend({
@@ -1107,23 +1133,6 @@ App.ServiceConfigCapacityScheduler = App.ServiceConfigsByCategoryView.extend({
         content.configs.push(adminGroup);
 
         return content;
-      },
-      /**
-       * sort properties of queue by index
-       * @param configs
-       * @return {Array}
-       */
-      sortQueueProperties: function(configs){
-        var sortedConfigs = [];
-        var skippedConfigs = [];
-        configs.forEach(function(_config){
-          if(isFinite(_config.index)){
-            sortedConfigs[_config.index] = _config;
-          } else {
-            skippedConfigs.push(_config);
-          }
-        });
-        return sortedConfigs.concat(skippedConfigs);
       },
       /**
        * Validate by follow rules:

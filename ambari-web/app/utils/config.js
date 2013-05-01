@@ -130,7 +130,7 @@ App.config = Em.Object.create({
         return _tag.tagName === serviceConfigProperties.tag && _tag.siteName === serviceConfigProperties.type;
       });
 
-      properties = (properties.length) ? properties = properties.objectAt(0).properties : {};
+      properties = (properties.length) ? properties.objectAt(0).properties : {};
       for (var index in properties) {
         var configsPropertyDef = preDefinedConfigs.findProperty('name', index) || null;
         var serviceConfigObj = {
@@ -152,6 +152,7 @@ App.config = Em.Object.create({
           serviceConfigObj.description = (configsPropertyDef.description !== undefined) ? configsPropertyDef.description : undefined;
           serviceConfigObj.isOverridable = configsPropertyDef.isOverridable === undefined ? true : configsPropertyDef.isOverridable;
           serviceConfigObj.serviceName = configsPropertyDef ? configsPropertyDef.serviceName : null;
+          serviceConfigObj.index = configsPropertyDef.index;
         }
         // MAPREDUCE contains core-site properties but doesn't show them
         if(serviceConfigObj.serviceName === 'MAPREDUCE' && serviceConfigObj.filename === 'core-site.xml'){

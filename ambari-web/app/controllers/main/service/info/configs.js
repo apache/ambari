@@ -821,21 +821,28 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
     if (globals.someProperty('name', 'hive_database')) {
       var hiveDb = globals.findProperty('name', 'hive_database');
       if (hiveDb.value === 'New MySQL Database') {
-        if (globals.someProperty('name', 'hive_ambari_host')) {
-          globals.findProperty('name', 'hive_ambari_host').name = 'hive_hostname';
+        var ambariHost = globals.findProperty('name', 'hive_ambari_host');
+        if (ambariHost) {
+          ambariHost.name = 'hive_hostname';
         }
         globals = globals.without(globals.findProperty('name', 'hive_existing_mysql_host'));
         globals = globals.without(globals.findProperty('name', 'hive_existing_mysql_database'));
         globals = globals.without(globals.findProperty('name', 'hive_existing_oracle_host'));
         globals = globals.without(globals.findProperty('name', 'hive_existing_oracle_database'));
       } else if (hiveDb.value === 'Existing MySQL Database'){
-        globals.findProperty('name', 'hive_existing_mysql_host').name = 'hive_hostname';
+        var existingMySqlHost = globals.findProperty('name', 'hive_existing_mysql_host');
+        if (existingMySqlHost) {
+          existingMySqlHost.name = 'hive_hostname';
+        }
         globals = globals.without(globals.findProperty('name', 'hive_ambari_host'));
         globals = globals.without(globals.findProperty('name', 'hive_ambari_database'));
         globals = globals.without(globals.findProperty('name', 'hive_existing_oracle_host'));
         globals = globals.without(globals.findProperty('name', 'hive_existing_oracle_database'));
-      } else{ //existing oracle database
-        globals.findProperty('name', 'hive_existing_oracle_host').name = 'hive_hostname';
+      } else { //existing oracle database
+        var existingOracleHost = globals.findProperty('name', 'hive_existing_oracle_host');
+        if (existingOracleHost) {
+          existingOracleHost.name = 'hive_hostname';
+        }
         globals = globals.without(globals.findProperty('name', 'hive_ambari_host'));
         globals = globals.without(globals.findProperty('name', 'hive_ambari_database'));
         globals = globals.without(globals.findProperty('name', 'hive_existing_mysql_host'));
@@ -846,7 +853,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
   },
 
   /**
-   * set hive hostnames in global configs
+   * set oozie hostnames in global configs
    * @param globals
    */
   setOozieHostName: function (globals) {
@@ -860,8 +867,9 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
         globals = globals.without(globals.findProperty('name', 'oozie_existing_oracle_host'));
         globals = globals.without(globals.findProperty('name', 'oozie_existing_oracle_database'));
       } else if (oozieDb.value === 'New MySQL Database') {
-        if (globals.someProperty('name', 'oozie_ambari_host')) {
-          globals.findProperty('name', 'oozie_ambari_host').name = 'oozie_hostname';
+        var ambariHost = globals.findProperty('name', 'oozie_ambari_host');
+        if (ambariHost) {
+          ambariHost.name = 'oozie_hostname';
         }
         globals = globals.without(globals.findProperty('name', 'oozie_existing_mysql_host'));
         globals = globals.without(globals.findProperty('name', 'oozie_existing_mysql_database'));
@@ -869,16 +877,21 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
         globals = globals.without(globals.findProperty('name', 'oozie_existing_oracle_database'));
         globals = globals.without(globals.findProperty('name', 'oozie_derby_database'));
 
-      } else if (oozieDb.value === 'Existing MySQL Database'){
-
-        globals.findProperty('name', 'oozie_existing_mysql_host').name = 'oozie_hostname';
+      } else if (oozieDb.value === 'Existing MySQL Database') {
+        var existingMySqlHost = globals.findProperty('name', 'oozie_existing_mysql_host');
+        if (existingMySqlHost) {
+          existingMySqlHost.name = 'oozie_hostname';
+        }
         globals = globals.without(globals.findProperty('name', 'oozie_ambari_host'));
         globals = globals.without(globals.findProperty('name', 'oozie_ambari_database'));
         globals = globals.without(globals.findProperty('name', 'oozie_existing_oracle_host'));
         globals = globals.without(globals.findProperty('name', 'oozie_existing_oracle_database'));
         globals = globals.without(globals.findProperty('name', 'oozie_derby_database'));
       } else{ //existing oracle database
-        globals.findProperty('name', 'oozie_existing_oracle_host').name = 'oozie_hostname';
+        var existingOracleHost = globals.findProperty('name', 'oozie_existing_oracle_host');
+        if (existingOracleHost) {
+          existingOracleHost.name = 'oozie_hostname';
+        }
         globals = globals.without(globals.findProperty('name', 'oozie_ambari_host'));
         globals = globals.without(globals.findProperty('name', 'oozie_ambari_database'));
         globals = globals.without(globals.findProperty('name', 'oozie_existing_mysql_host'));
