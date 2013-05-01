@@ -818,6 +818,9 @@ Trunk (unreleased changes):
 
  BUG FIXES
 
+ AMBARI-2038. Services links on Dashboard connected to incorrect pages.
+ (yusaku)
+
  AMBARI-2059. Add dependency for Nagios server on Hive Client install. (swagle)
 
  AMBARI-2044. hive-site.xml permission denied exception. (swagle)

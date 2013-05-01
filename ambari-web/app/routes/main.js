@@ -853,7 +853,7 @@ module.exports = Em.Route.extend({
   reassignMaster: require('routes/reassign_master_routes'),
 
 
-  selectService: Em.Route.transitionTo('services.service'),
+  selectService: Em.Route.transitionTo('services.service.summary'),
   selectHost: function (router, event) {
     router.get('mainHostDetailsController').setBack(false);
     router.transitionTo('hosts.hostDetails.index', event.context);
