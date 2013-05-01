@@ -19,7 +19,7 @@
 <div id="hosts">
 
   <div class="box-header row">
-    <div class="health-status-bar span8" >
+    <div class="health-status-bar pull-left" >
       {{#each category in view.categories}}
         <span {{bindAttr class="category.itemClass"}}>
         {{#if category.alerts}}
@@ -36,7 +36,7 @@
     </div>
 
     {{#if App.isAdmin}}
-    <div class="button-section pull-right span4">
+    <div class="pull-right">
       <button class="btn btn-inverse add-host-button" {{action addHost}}>
         <i class="icon-plus icon-white"></i>
         {{t hosts.host.add}}

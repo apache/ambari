@@ -823,6 +823,9 @@ Trunk (unreleased changes):
 
  BUG FIXES
 
+ AMBARI-2053. Align "add hosts" button vertically with host health filter.
+ (yusaku)
+
  AMBARI-2052. Fix delete user popup. (yusaku)
 
  AMBARI-2065. Hadoop group customization does not take affect. (smohanty)
