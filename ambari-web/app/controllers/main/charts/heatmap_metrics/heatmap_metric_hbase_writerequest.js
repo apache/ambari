@@ -24,6 +24,6 @@ App.MainChartHeatmapHbaseWriteReqCount = App.MainChartHeatmapHbaseMetrics.extend
   name: Em.I18n.t('charts.heatmap.metrics.HbaseRegionServerWriteCount'),
   maximumValue: 200,
   defaultMetric: 'metrics.hbase.regionserver.writeRequestsCount',
-  units: 'counts',
-  slotDefinitionLabelSuffix: ' '
+  units: '',
+  slotDefinitionLabelSuffix: ''
 });

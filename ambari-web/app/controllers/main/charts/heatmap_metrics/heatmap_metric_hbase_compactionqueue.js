@@ -24,6 +24,6 @@ App.MainChartHeatmapHbaseCompactionQueueSize = App.MainChartHeatmapHbaseMetrics.
   name: Em.I18n.t('charts.heatmap.metrics.HbaseRegionServerCompactionQueueSize'),
   maximumValue: 10,
   defaultMetric: 'metrics.hbase.regionserver.compactionQueueSize',
-  units: ' ',
-  slotDefinitionLabelSuffix: ' '
+  units: '',
+  slotDefinitionLabelSuffix: ''
 });

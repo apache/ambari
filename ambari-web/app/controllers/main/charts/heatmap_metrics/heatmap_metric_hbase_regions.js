@@ -24,6 +24,6 @@ App.MainChartHeatmapHbaseRegions = App.MainChartHeatmapHbaseMetrics.extend({
   name: Em.I18n.t('charts.heatmap.metrics.HbaseRegionServerRegions'),
   maximumValue: 10,
   defaultMetric: 'metrics.hbase.regionserver.regions',
-  units: 'regions',
-  slotDefinitionLabelSuffix: 'region'
+  units: '',
+  slotDefinitionLabelSuffix: ''
 });
