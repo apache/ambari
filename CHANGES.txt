@@ -823,6 +823,9 @@ Trunk (unreleased changes):
 
  BUG FIXES
 
+ AMBARI-2060. Initiate a recommission, on success, the operations dialog says
+ decommission, not recommission. (yusaku)
+
  AMBARI-2058. Host Detail page: if the host component is in INSTALL_FAILED
  state, we should let the user reinstall it. (yusaku)
 

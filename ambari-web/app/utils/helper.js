@@ -327,7 +327,7 @@ App.format = {
       case 'GMETAD_SERVICE_CHECK':
         return 'Gmetad Check';
       case 'DECOMMISSION_DATANODE':
-        return 'Decommission DataNode';
+        return 'Update Exclude File';
       case 'HUE_SERVER':
         return 'Hue Server';
     }
