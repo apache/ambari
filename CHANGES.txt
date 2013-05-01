@@ -823,6 +823,9 @@ Trunk (unreleased changes):
 
  BUG FIXES
 
+ AMBARI-2062. Service versions shown during install dont match installed
+ versions. (smohanty)
+
  AMBARI-2038. Services links on Dashboard connected to incorrect pages.
  (yusaku)
 
