@@ -86,7 +86,7 @@
                       {{t common.stop}}
                     </a>
                   </li>
-                  <li {{bindAttr class="view.isStart:hidden:"}}>
+                  <li {{bindAttr class="view.isStart:hidden: view.isInstallFailed:hidden"}}>
                     <a href="javascript:void(null)" data-toggle="modal" {{action "startComponent" view.content target="controller"}}>
                       {{t common.start}}
                     </a>
@@ -94,6 +94,11 @@
                   <li {{bindAttr class="view.isUpgradeFailed::hidden"}}>
                     <a href="javascript:void(null)" data-toggle="modal" {{action "upgradeComponent" view.content target="controller"}}>
                       {{t common.upgrade}}
+                    </a>
+                  </li>
+                  <li {{bindAttr class="view.isInstallFailed::hidden"}}>
+                    <a href="javascript:void(null)" data-toggle="modal" {{action "installComponent" view.content target="controller"}}>
+                      {{t common.install}}
                     </a>
                   </li>
                 </ul>

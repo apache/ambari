@@ -28,7 +28,7 @@
                 "cluster_name" : "cl1",
                 "desired_configs" : { },
                 "desired_state" : "INSTALLED",
-                "state" : "STARTED",
+                "state" : "INSTALL_FAILED",
                 "component_name" : "HBASE_REGIONSERVER",
                 "host_name" : "domU-12-31-39-0E-E6-01.compute-1.internal"
               }
@@ -740,22 +740,6 @@
                 "state" : "STARTED",
                 "component_name" : "TASKTRACKER",
                 "host_name" : "domU-12-31-39-16-48-4B.compute-1.internal"
-              }
-            },
-            {
-              "href" : "http://ec2-184-73-46-113.compute-1.amazonaws.com:8080/api/v1/clusters/cl1/hosts/domU-12-31-39-0E-E6-01.compute-1.internal/host_components/TASKTRACKER",
-              "HostRoles" : {
-                "configs" : {
-                  "mapred-site" : "version1",
-                  "global" : "version1",
-                  "core-site" : "version1"
-                },
-                "cluster_name" : "cl1",
-                "desired_configs" : { },
-                "desired_state" : "STARTED",
-                "state" : "STARTED",
-                "component_name" : "TASKTRACKER",
-                "host_name" : "domU-12-31-39-0E-E6-01.compute-1.internal"
               }
             },
             {

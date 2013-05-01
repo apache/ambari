@@ -197,17 +197,22 @@ App.MainHostSummaryView = Em.View.extend({
           return 'health-status-DEAD-ORANGE';
         }
       }
+      if(this.get('workStatus') === App.HostComponentStatus.install_failed){
+        return 'icon-remove';
+      }
       return 'health-status-' + App.HostComponentStatus.getKeyName(this.get('workStatus'));
     }.property('workStatus', 'isDataNodeRecommissionAvailable'),
     /**
      * For Upgrade failed state
      */
     isUpgradeFailed:function(){
-      if(App.HostComponentStatus.getKeyName(this.get('workStatus')) == "upgrade_failed"){
-        return true;
-      }else{
-        return false;
-      }
+      return App.HostComponentStatus.getKeyName(this.get('workStatus')) === "upgrade_failed";
+    }.property("workStatus"),
+    /**
+     * For Install failed state
+     */
+    isInstallFailed:function(){
+      return App.HostComponentStatus.getKeyName(this.get('workStatus')) === "install_failed";
     }.property("workStatus"),
     /**
      * Disable element while component is starting/stopping

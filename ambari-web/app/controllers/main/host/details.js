@@ -283,6 +283,61 @@ App.MainHostDetailsController = Em.Controller.extend({
     });
   },
   /**
+   * send command to server to install selected host component
+   * @param event
+   * @param context
+   */
+  installComponent: function (event, context) {
+    var self = this;
+    var component = event.context;
+    var componentName = component.get('componentName').toUpperCase().toString();
+
+    App.ModalPopup.show({
+      primary: Em.I18n.t('yes'),
+      secondary: Em.I18n.t('no'),
+      header: Em.I18n.t('popup.confirmation.commonHeader'),
+      bodyClass: Ember.View.extend({
+        template: Ember.Handlebars.compile([
+          '{{t hosts.delete.popup.body}}<br /><br />',
+          '{{t hosts.host.addComponent.note}}'
+        ].join(''))
+      }),
+      onPrimary: function () {
+        this.hide();
+        self.sendCommandToServer('/hosts/' + self.get('content.hostName') + '/host_components/' + component.get('componentName').toUpperCase(), {
+            RequestInfo: {
+              "context": Em.I18n.t('requestInfo.installHostComponent') + " " + componentName
+            },
+            Body: {
+              HostRoles: {
+                state: 'INSTALLED'
+              }
+            }
+          },
+          'PUT',
+          function (requestId) {
+            if (!requestId) {
+              return;
+            }
+
+            console.log('Send request for REINSTALL COMPONENT successfully');
+
+            if (App.testMode) {
+              component.set('workStatus', App.HostComponentStatus.installing);
+              setTimeout(function () {
+                component.set('workStatus', App.HostComponentStatus.stopped);
+              }, App.testModeDelayForActions);
+            } else {
+              App.router.get('clusterController').loadUpdatedStatusDelayed(500);
+            }
+
+            App.router.get('backgroundOperationsController').showPopup();
+
+          });
+      }
+    });
+  },
+  /**
    * send command to server to run decommission on DATANODE
    * @param event
    */

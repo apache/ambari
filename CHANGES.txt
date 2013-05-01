@@ -823,6 +823,9 @@ Trunk (unreleased changes):
 
  BUG FIXES
 
+ AMBARI-2058. Host Detail page: if the host component is in INSTALL_FAILED
+ state, we should let the user reinstall it. (yusaku)
+
  AMBARI-2055. Oozie reconfig forces the user to enter bogus values for two
  parameters in order to save any changes. (yusaku)
 
