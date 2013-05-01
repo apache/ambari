@@ -29,6 +29,7 @@ App.Service = DS.Model.extend({
   quickLinks: DS.hasMany('App.QuickLinks'),
   hostComponents: DS.hasMany('App.HostComponent'),
   serviceConfigsTemplate: require('data/service_configs'),
+  runningHostComponents: null,
   isStartDisabled: function () {
     return !(this.get('healthStatus') == 'red');
   }.property('healthStatus'),
@@ -87,11 +88,14 @@ App.Service = DS.Model.extend({
   updateIsStopped: function () {
     var components = this.get('hostComponents');
     var flag = true;
+    var runningHCs = Ember.A([]);
     components.forEach(function (_component) {
       if (_component.get('workStatus') !== App.HostComponentStatus.stopped && _component.get('workStatus') !== App.HostComponentStatus.install_failed) {
         flag = false;
+        runningHCs.addObject(_component);
       }
     }, this);
+    this.set('runningHostComponents', runningHCs);
     this.set('isStopped', flag);
   },
 

@@ -825,6 +825,9 @@ Trunk (unreleased changes):
 
  BUG FIXES
 
+ AMBARI-2056. Show proper error message while user tries to save configurations 
+ of partially stopped service. (srimanth)
+
  AMBARI-2064. Legend for zoomed-in graphs do not render properly in IE9.
  (yusaku)
 

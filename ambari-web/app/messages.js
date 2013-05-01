@@ -746,6 +746,7 @@ Em.I18n.translations = {
   'services.service.config.failSaveConfigHostExceptions':'Failure in applying service configuration host exceptions',
   'services.service.config.addPropertyWindow.errorMessage':'This is required',
   'services.service.config.addPropertyWindow.error.derivedKey':'Cannot add a known derived property',
+  'services.service.config.stopService.runningHostComponents':'{0} components on {1} hosts are still running',
 
   'services.add.header':'Add Service Wizard',
   'services.reassign.header':'Reassign Master Wizard',

@@ -580,6 +580,52 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
   },
 
   /**
+   * Determines which host components are running on each host.
+   * @return Returned in the following format:
+   * {
+   *  runningHosts: {
+   *    'hostname1': 'NameNode, DataNode, JobTracker',
+   *    'hostname2': 'DataNode',
+   *  },
+   *  runningComponentCount: 5
+   * }
+   */
+  getRunningHostComponents: function (services) {
+    var runningHosts = [];
+    var runningComponentCount = 0;
+    var hostToIndexMap = {};
+    services.forEach(function (service) {
+      var runningHostComponents = service.get('runningHostComponents');
+      if (runningHostComponents != null) {
+        runningHostComponents.forEach(function (hc) {
+          var hostName = hc.get('host.publicHostName');
+          var componentName = hc.get('displayName');
+          runningComponentCount++;
+          if (!(hostName in hostToIndexMap)) {
+            runningHosts.push({
+              name: hostName,
+              components: ""
+            });
+            hostToIndexMap[hostName] = runningHosts.length - 1;
+          }
+          var hostObj = runningHosts[hostToIndexMap[hostName]];
+          if (hostObj.components.length > 0)
+            hostObj.components += ", " + componentName;
+          else
+            hostObj.components += componentName;
+        });
+        runningHosts.sort(function (a, b) {
+          return a.name.localeCompare(b.name);
+        });
+      }
+    });
+    return {
+      runningHosts: runningHosts,
+      runningComponentCount: runningComponentCount
+    };
+  },
+  
+  /**
    * open popup with appropriate message
    */
   restartServicePopup: function (event) {
@@ -590,6 +636,8 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
     var message;
     var value;
     var flag = false;
+    var runningHosts = null;
+    var runningComponentCount = 0;
     if (App.supports.hostOverrides || 
         (this.get('content.serviceName') !== 'HDFS' && this.get('content.isStopped') === true) || 
         ((this.get('content.serviceName') === 'HDFS') && this.get('content.isStopped') === true && (!App.Service.find().someProperty('id', 'MAPREDUCE') || App.Service.find('MAPREDUCE').get('isStopped')))) {
@@ -605,13 +653,18 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
         value = result.value;
       }
     } else {
+      var rhc;
       if (this.get('content.serviceName') !== 'HDFS' || (this.get('content.serviceName') === 'HDFS' && !App.Service.find().someProperty('id', 'MAPREDUCE'))) {
+        rhc = this.getRunningHostComponents([this.get('content')]);
         header = Em.I18n.t('services.service.config.stopService');
         message = Em.I18n.t('services.service.config.msgServiceStop');
       } else {
+        rhc = this.getRunningHostComponents([this.get('content'), App.Service.find('MAPREDUCE')]);
         header = Em.I18n.t('services.service.config.stopService');
         message = Em.I18n.t('services.service.config.msgHDFSMapRServiceStop');
       }
+      runningHosts = rhc.runningHosts;
+      runningComponentCount = rhc.runningComponentCount;
     }
     
     var self = this;
@@ -628,6 +681,8 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
       bodyClass: Ember.View.extend({
         flag: flag,
         message: message,
+        runningHosts: runningHosts,
+        runningComponentCount: runningComponentCount,
         siteProperties: value,
         getDisplayMessage: function () {
           var displayMsg = [];
@@ -662,20 +717,32 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
           return displayMsg;
 
         }.property('siteProperties'),
+        getRunningHostsMessage: function () {
+          return Em.I18n.t('services.service.config.stopService.runningHostComponents').format(this.get('runningComponentCount'), this.get('runningHosts.length'));
+        }.property('runningComponentCount', 'runningHosts.length'), 
         template: Ember.Handlebars.compile([
           '<h5>{{view.message}}</h5>',
           '{{#unless view.flag}}',
-          '<br/>',
-          '<div class="pre-scrollable" style="max-height: 250px;">',
-          '<ul>',
-          '{{#each val in view.getDisplayMessage}}',
-          '<li>',
-          '{{val}}',
-          '</li>',
-          '{{/each}}',
-          '</ul>',
-          '</div>',
-          '{{/unless}}'
+          ' <br/>',
+          ' <div class="pre-scrollable" style="max-height: 250px;">',
+          '   <ul>',
+          '   {{#each val in view.getDisplayMessage}}',
+          '     <li>',
+          '       {{val}}',
+          '     </li>',
+          '   {{/each}}',
+          '   </ul>',
+          ' </div>',
+          '{{/unless}}',
+          '{{#if view.runningHosts}}',
+          ' <i class="icon-warning-sign"></i>  {{view.getRunningHostsMessage}}',
+          ' <table class="table-striped running-host-components-table">',
+          '   <tr><th>{{t common.host}}</th><th>{{t common.components}}</th></tr>',
+          '   {{#each host in view.runningHosts}}',
+          '     <tr><td>{{host.name}}</td><td>{{host.components}}</td></tr>',
+          '   {{/each}}',
+          ' </table>',
+          '{{/if}}'
         ].join('\n'))
       })
     });
