@@ -825,6 +825,9 @@ Trunk (unreleased changes):
 
  BUG FIXES
 
+ AMBARI-2063. Admin features not available for user with admin rights under
+ certain conditions. (yusaku)
+
  AMBARI-2060. Initiate a recommission, on success, the operations dialog says
  decommission, not recommission. (yusaku)
 
