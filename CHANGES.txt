@@ -283,6 +283,8 @@ Trunk (unreleased changes):
 
  IMPROVEMENTS
 
+ AMBARI-2042. Update Ambari logo. (yusaku)
+
  AMBARI-2040. Customize Services page: reduce padding to prevent tabs from
  wrapping. (yusaku)
 
