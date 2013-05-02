@@ -117,7 +117,7 @@ App.HostPopup = Em.Object.create({
     numRunning = allServices.filterProperty("status", App.format.taskStatus("IN_PROGRESS")).length;
     numRunning += allServices.filterProperty("status", App.format.taskStatus("QUEUED")).length;
     numRunning += allServices.filterProperty("status", App.format.taskStatus("PENDING")).length;
-    this.set("popupHeaderName", numRunning + " Background operations Running");
+    this.set("popupHeaderName", numRunning + " Background Operations Running");
   },
 
   /**

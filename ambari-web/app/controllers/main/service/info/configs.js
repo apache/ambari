@@ -634,116 +634,161 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
     }
     var header;
     var message;
+    var messageClass;
     var value;
     var flag = false;
     var runningHosts = null;
     var runningComponentCount = 0;
+
+    var dfd = $.Deferred();
+    var self = this;
+    var serviceName = this.get('content.serviceName');
+    var displayName = this.get('content.displayName');
+
     if (App.supports.hostOverrides || 
-        (this.get('content.serviceName') !== 'HDFS' && this.get('content.isStopped') === true) || 
-        ((this.get('content.serviceName') === 'HDFS') && this.get('content.isStopped') === true && (!App.Service.find().someProperty('id', 'MAPREDUCE') || App.Service.find('MAPREDUCE').get('isStopped')))) {
-      var result = this.saveServiceConfigProperties();
-      App.router.get('clusterController').updateClusterData();
-      flag = result.flag;
-      if (result.flag === true) {
-        header = App.supports.hostOverrides ? Em.I18n.t('services.service.config.restartService') : Em.I18n.t('services.service.config.startService');
-        message = Em.I18n.t('services.service.config.saveConfig');
-      } else {
-        header = Em.I18n.t('common.failure');
-        message = result.message;
-        value = result.value;
+        (serviceName !== 'HDFS' && this.get('content.isStopped') === true) ||
+        ((serviceName === 'HDFS') && this.get('content.isStopped') === true && (!App.Service.find().someProperty('id', 'MAPREDUCE') || App.Service.find('MAPREDUCE').get('isStopped')))) {
+
+      var dirChanged = false;
+
+      if (serviceName === 'HDFS') {
+        var hdfsConfigs = self.get('stepConfigs').findProperty('serviceName', 'HDFS').get('configs');
+        if (
+          hdfsConfigs.findProperty('name', 'dfs_name_dir').get('isNotDefaultValue') ||
+          hdfsConfigs.findProperty('name', 'fs_checkpoint_dir').get('isNotDefaultValue') ||
+          hdfsConfigs.findProperty('name', 'dfs_data_dir').get('isNotDefaultValue')
+        ) {
+          dirChanged = true;
+        }
+      } else if (serviceName === 'MAPREDUCE') {
+        var mapredConfigs = self.get('stepConfigs').findProperty('serviceName', 'MAPREDUCE').get('configs');
+        if (
+          mapredConfigs.findProperty('name', 'mapred_local_dir').get('isNotDefaultValue') ||
+          mapredConfigs.findProperty('name', 'mapred_system_dir').get('isNotDefaultValue')
+        ) {
+          dirChanged = true;
+        }
       }
+
+      if (dirChanged) {
+        App.showConfirmationPopup(function() {
+          dfd.resolve();
+        }, Em.I18n.t('services.service.config.confirmDirectoryChange').format(displayName));
+      } else {
+        dfd.resolve();
+      }
+
+      dfd.done(function() {
+        var result = self.saveServiceConfigProperties();
+        App.router.get('clusterController').updateClusterData();
+        flag = result.flag;
+        if (result.flag === true) {
+          header = Em.I18n.t('services.service.config.saved');
+          message = Em.I18n.t('services.service.config.saved.message');
+          messageClass = 'alert alert-success';
+        } else {
+          header = Em.I18n.t('common.failure');
+          message = result.message;
+          messageClass = 'alert alert-error';
+          value = result.value;
+        }
+      });
     } else {
       var rhc;
       if (this.get('content.serviceName') !== 'HDFS' || (this.get('content.serviceName') === 'HDFS' && !App.Service.find().someProperty('id', 'MAPREDUCE'))) {
         rhc = this.getRunningHostComponents([this.get('content')]);
-        header = Em.I18n.t('services.service.config.stopService');
+        header = Em.I18n.t('services.service.config.notSaved');
         message = Em.I18n.t('services.service.config.msgServiceStop');
       } else {
         rhc = this.getRunningHostComponents([this.get('content'), App.Service.find('MAPREDUCE')]);
-        header = Em.I18n.t('services.service.config.stopService');
+        header = Em.I18n.t('services.service.config.notSaved');
         message = Em.I18n.t('services.service.config.msgHDFSMapRServiceStop');
       }
+      messageClass = 'alert alert-error';
       runningHosts = rhc.runningHosts;
       runningComponentCount = rhc.runningComponentCount;
+      dfd.resolve();
     }
-    
-    var self = this;
-    App.ModalPopup.show({
-      header: header,
-      primary: Em.I18n.t('ok'),
-      secondary: null,
-      onPrimary: function () {
-        this.hide();
-        if (flag) {
-          self.loadStep();
-        }
-      },
-      bodyClass: Ember.View.extend({
-        flag: flag,
-        message: message,
-        runningHosts: runningHosts,
-        runningComponentCount: runningComponentCount,
-        siteProperties: value,
-        getDisplayMessage: function () {
-          var displayMsg = [];
-          var siteProperties = this.get('siteProperties');
-          if (siteProperties) {
-            siteProperties.forEach(function (_siteProperty) {
-              var displayProperty = _siteProperty.siteProperty;
-              var displayNames = _siteProperty.displayNames;
-              /////////
-              if (displayNames && displayNames.length) {
-                if (displayNames.length === 1) {
-                  displayMsg.push(displayProperty + Em.I18n.t('as') + displayNames[0]);
-                } else {
-                  var name;
-                  displayNames.forEach(function (_name, index) {
-                    if (index === 0) {
-                      name = _name;
-                    } else if (index === siteProperties.length - 1) {
-                      name = name + Em.I18n.t('and') + _name;
-                    } else {
-                      name = name + ', ' + _name;
-                    }
-                  }, this);
-                  displayMsg.push(displayProperty + Em.I18n.t('as') + name);
 
-                }
-              } else {
-                displayMsg.push(displayProperty);
-              }
-            }, this);
+    dfd.done(function () {
+      App.ModalPopup.show({
+        header: header,
+        primary: Em.I18n.t('ok'),
+        secondary: null,
+        onPrimary: function () {
+          this.hide();
+          if (flag) {
+            self.loadStep();
           }
-          return displayMsg;
+        },
+        bodyClass: Ember.View.extend({
+          flag: flag,
+          message: message,
+          messageClass: messageClass,
+          runningHosts: runningHosts,
+          runningComponentCount: runningComponentCount,
+          siteProperties: value,
+          getDisplayMessage: function () {
+            var displayMsg = [];
+            var siteProperties = this.get('siteProperties');
+            if (siteProperties) {
+              siteProperties.forEach(function (_siteProperty) {
+                var displayProperty = _siteProperty.siteProperty;
+                var displayNames = _siteProperty.displayNames;
+                /////////
+                if (displayNames && displayNames.length) {
+                  if (displayNames.length === 1) {
+                    displayMsg.push(displayProperty + Em.I18n.t('as') + displayNames[0]);
+                  } else {
+                    var name;
+                    displayNames.forEach(function (_name, index) {
+                      if (index === 0) {
+                        name = _name;
+                      } else if (index === siteProperties.length - 1) {
+                        name = name + Em.I18n.t('and') + _name;
+                      } else {
+                        name = name + ', ' + _name;
+                      }
+                    }, this);
+                    displayMsg.push(displayProperty + Em.I18n.t('as') + name);
 
-        }.property('siteProperties'),
-        getRunningHostsMessage: function () {
-          return Em.I18n.t('services.service.config.stopService.runningHostComponents').format(this.get('runningComponentCount'), this.get('runningHosts.length'));
-        }.property('runningComponentCount', 'runningHosts.length'), 
-        template: Ember.Handlebars.compile([
-          '<h5>{{view.message}}</h5>',
-          '{{#unless view.flag}}',
-          ' <br/>',
-          ' <div class="pre-scrollable" style="max-height: 250px;">',
-          '   <ul>',
-          '   {{#each val in view.getDisplayMessage}}',
-          '     <li>',
-          '       {{val}}',
-          '     </li>',
-          '   {{/each}}',
-          '   </ul>',
-          ' </div>',
-          '{{/unless}}',
-          '{{#if view.runningHosts}}',
-          ' <i class="icon-warning-sign"></i>  {{view.getRunningHostsMessage}}',
-          ' <table class="table-striped running-host-components-table">',
-          '   <tr><th>{{t common.host}}</th><th>{{t common.components}}</th></tr>',
-          '   {{#each host in view.runningHosts}}',
-          '     <tr><td>{{host.name}}</td><td>{{host.components}}</td></tr>',
-          '   {{/each}}',
-          ' </table>',
-          '{{/if}}'
-        ].join('\n'))
+                  }
+                } else {
+                  displayMsg.push(displayProperty);
+                }
+              }, this);
+            }
+            return displayMsg;
+
+          }.property('siteProperties'),
+          getRunningHostsMessage: function () {
+            return Em.I18n.t('services.service.config.stopService.runningHostComponents').format(this.get('runningComponentCount'), this.get('runningHosts.length'));
+          }.property('runningComponentCount', 'runningHosts.length'),
+          template: Ember.Handlebars.compile([
+            '<div class="{{unbound view.messageClass}}" style="margin-bottom:0">{{view.message}}</div>',
+            '{{#unless view.flag}}',
+            ' <br/>',
+            ' <div class="pre-scrollable" style="max-height: 250px;">',
+            '   <ul>',
+            '   {{#each val in view.getDisplayMessage}}',
+            '     <li>',
+            '       {{val}}',
+            '     </li>',
+            '   {{/each}}',
+            '   </ul>',
+            ' </div>',
+            '{{/unless}}',
+            '{{#if view.runningHosts}}',
+            ' <i class="icon-warning-sign"></i>  {{view.getRunningHostsMessage}}',
+            ' <table class="table-striped running-host-components-table">',
+            '   <tr><th>{{t common.host}}</th><th>{{t common.components}}</th></tr>',
+            '   {{#each host in view.runningHosts}}',
+            '     <tr><td>{{host.name}}</td><td>{{host.components}}</td></tr>',
+            '   {{/each}}',
+            ' </table>',
+            '{{/if}}'
+          ].join('\n'))
+        })
       })
     });
   },

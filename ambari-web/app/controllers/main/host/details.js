@@ -95,7 +95,7 @@ App.MainHostDetailsController = Em.Controller.extend({
 
       self.sendCommandToServer('/hosts/' + self.get('content.hostName') + '/host_components/' + component.get('componentName').toUpperCase(),{
         RequestInfo : {
-          "context" : Em.I18n.t('requestInfo.startHostComponent') + " " + component.get('componentName').toUpperCase()
+          "context" : Em.I18n.t('requestInfo.startHostComponent') + " " + component.get('displayName')
         },
         Body:{
           HostRoles:{
@@ -136,7 +136,7 @@ App.MainHostDetailsController = Em.Controller.extend({
     App.showConfirmationPopup(function() {
       self.sendCommandToServer('/hosts/' + self.get('content.hostName') + '/host_components/' + component.get('componentName').toUpperCase(),{
             RequestInfo : {
-              "context" : Em.I18n.t('requestInfo.upgradeHostComponent') + " " + component.get('componentName').toUpperCase()
+              "context" : Em.I18n.t('requestInfo.upgradeHostComponent') + " " + component.get('displayName')
             },
             Body:{
               HostRoles:{
@@ -176,7 +176,7 @@ App.MainHostDetailsController = Em.Controller.extend({
       var component = event.context;
       self.sendCommandToServer('/hosts/' + self.get('content.hostName') + '/host_components/' + component.get('componentName').toUpperCase(),{
         RequestInfo : {
-          "context" : Em.I18n.t('requestInfo.stopHostComponent')+ " " + component.get('componentName').toUpperCase()
+          "context" : Em.I18n.t('requestInfo.stopHostComponent')+ " " + component.get('displayName')
         },
         Body:{
           HostRoles:{
@@ -215,6 +215,7 @@ App.MainHostDetailsController = Em.Controller.extend({
     var self = this;
     var component = event.context;
     var componentName = component.get('componentName').toUpperCase().toString();
+    var displayName = component.get('displayName');
 
     App.ModalPopup.show({
       primary: Em.I18n.t('yes'),
@@ -230,7 +231,7 @@ App.MainHostDetailsController = Em.Controller.extend({
         this.hide();
         self.sendCommandToServer('/hosts?Hosts/host_name=' + self.get('content.hostName'), {
             RequestInfo: {
-              "context": Em.I18n.t('requestInfo.installHostComponent') + " " + componentName
+              "context": Em.I18n.t('requestInfo.installHostComponent') + " " + displayName
             },
             Body: {
               host_components: [
@@ -249,7 +250,7 @@ App.MainHostDetailsController = Em.Controller.extend({
 
             self.sendCommandToServer('/host_components?HostRoles/host_name=' + self.get('content.hostName') + '\&HostRoles/component_name=' + componentName + '\&HostRoles/state=INIT', {
                 RequestInfo: {
-                  "context": Em.I18n.t('requestInfo.installNewHostComponent') + " " + componentName
+                  "context": Em.I18n.t('requestInfo.installNewHostComponent') + " " + displayName
                 },
                 Body: {
                   HostRoles: {
@@ -291,6 +292,7 @@ App.MainHostDetailsController = Em.Controller.extend({
     var self = this;
     var component = event.context;
     var componentName = component.get('componentName').toUpperCase().toString();
+    var displayName = component.get('displayName');
 
     App.ModalPopup.show({
       primary: Em.I18n.t('yes'),
@@ -306,7 +308,7 @@ App.MainHostDetailsController = Em.Controller.extend({
         this.hide();
         self.sendCommandToServer('/hosts/' + self.get('content.hostName') + '/host_components/' + component.get('componentName').toUpperCase(), {
             RequestInfo: {
-              "context": Em.I18n.t('requestInfo.installHostComponent') + " " + componentName
+              "context": Em.I18n.t('requestInfo.installHostComponent') + " " + displayName
             },
             Body: {
               HostRoles: {

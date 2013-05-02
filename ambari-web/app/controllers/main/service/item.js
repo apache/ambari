@@ -95,9 +95,9 @@ App.MainServiceItemController = Em.Controller.extend({
   startStopPopupPrimary: function(serviceHealth) {
     var requestInfo = "";
     if(serviceHealth == "STARTED"){
-      requestInfo = 'Start service ' + this.get('content.serviceName').toUpperCase() ;
+      requestInfo = 'Start ' + this.get('content.displayName');
     }else{
-      requestInfo = 'Stop service ' + this.get('content.serviceName').toUpperCase() ;
+      requestInfo = 'Stop ' + this.get('content.displayName');
     }
 
     App.ajax.send({

@@ -283,6 +283,9 @@ Trunk (unreleased changes):
 
  IMPROVEMENTS
 
+ AMBARI-2070. Changing service directories should popup a confirmation/warning
+ dialog upon save. (yusaku)
+
  AMBARI-2061. HBase Heatmaps: clean up labels and units. (yusaku)
 
  AMBARI-2042. Update Ambari logo. (yusaku)
