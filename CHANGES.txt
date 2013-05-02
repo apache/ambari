@@ -825,6 +825,9 @@ Trunk (unreleased changes):
 
  BUG FIXES
 
+ AMBARI-2068. "Preparing to install <component>" message needs spacing.
+ (yusaku)
+
  AMBARI-1979. Last HeartBeat time and heartbeat status for agent take around 2-3 
  minutes to update on a server restart. (swagle)
 
