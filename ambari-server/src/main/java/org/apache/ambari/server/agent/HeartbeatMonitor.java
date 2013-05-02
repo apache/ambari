@@ -119,7 +119,7 @@ public class HeartbeatMonitor implements Runnable {
       } catch (AmbariException e) {
         LOG.warn("Exception in getting host object; Is it fatal?", e);
       }
-      if (lastHeartbeat + 5*threadWakeupInterval < now) {
+      if (lastHeartbeat + 2*threadWakeupInterval < now) {
         LOG.warn("Hearbeat lost from host "+host);
         //Heartbeat is expired
         hostObj.handleEvent(new HostHeartbeatLostEvent(host));
