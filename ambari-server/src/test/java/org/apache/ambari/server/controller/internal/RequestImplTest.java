@@ -79,7 +79,6 @@ public class RequestImplTest {
     Assert.assertTrue(validPropertyIds.contains("Clusters/version"));
     Assert.assertTrue(validPropertyIds.contains("Clusters/state"));
     Assert.assertTrue(validPropertyIds.contains("Clusters/desired_configs"));
-    Assert.assertTrue(validPropertyIds.contains("Clusters/actual_configs"));
 
     request = PropertyHelper.getReadRequest(PropertyHelper.getPropertyIds(Resource.Type.Service));
     validPropertyIds = request.getPropertyIds();

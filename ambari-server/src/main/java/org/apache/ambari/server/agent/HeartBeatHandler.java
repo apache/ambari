@@ -191,10 +191,6 @@ public class HeartBeatHandler {
         LOG.info(report.getRole() + " is an action - skip component lookup");
       } else {
         try {
-          if (null != report.getConfigurationTags() && !report.getConfigurationTags().isEmpty()) {
-            cl.updateActualConfigs(hostname, report.getConfigurationTags());
-          }
-
           Service svc = cl.getService(service);
           ServiceComponent svcComp = svc.getServiceComponent(report.getRole());
           ServiceComponentHost scHost = svcComp.getServiceComponentHost(hostname);
@@ -206,7 +202,8 @@ public class HeartBeatHandler {
             if (scHost.getState().equals(State.UPGRADING)) {
               scHost.setStackVersion(scHost.getDesiredStackVersion());
             } else if (report.getRoleCommand().equals(RoleCommand.START.toString())
-                && null != report.getConfigurationTags()) {
+                && null != report.getConfigurationTags()
+                && !report.getConfigurationTags().isEmpty()) {
               LOG.info("Updating applied config on service " + scHost.getServiceName() +
               ", component " + scHost.getServiceComponentName() + ", host " + scHost.getHostName());
               scHost.updateActualConfigs(report.getConfigurationTags());
@@ -285,7 +282,6 @@ public class HeartBeatHandler {
 
               if (null != status.getConfigTags()) {
                 scHost.updateActualConfigs(status.getConfigTags());
-                cl.updateActualConfigs(hostname, status.getConfigTags());
               }
 
             } else {

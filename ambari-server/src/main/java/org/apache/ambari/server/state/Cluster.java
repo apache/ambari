@@ -196,17 +196,4 @@ public interface Cluster {
    */
   Service addService(String serviceName) throws AmbariException;
 
-  /**
-   * Gets the mapping of actual configurations as reported by a host.
-   * @return the map of actual configs
-   */
-  public Map<String, DesiredConfig> getActualConfigs();
-
-  /**
-   * Updates the actual configs as reported by the host
-   * @param hostName the host that reported a successful configuration change
-   * @param configTags the tags from the host as applied to the cluster
-   */
-  public void updateActualConfigs(String hostName, Map<String, Map<String,String>> configTags);
-
 }

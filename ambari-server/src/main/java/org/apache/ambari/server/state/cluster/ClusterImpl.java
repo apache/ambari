@@ -86,11 +86,6 @@ public class ClusterImpl implements Cluster {
   private Map<String, Map<String, Config>> allConfigs;
   
   /**
-   * [ type -> DesiredConfig ]
-   */
-  private Map<String, DesiredConfig> actualConfig = new HashMap<String, DesiredConfig>();
-
-  /**
    * [ ServiceName -> [ ServiceComponentName -> [ HostName -> [ ... ] ] ] ]
    */
   private Map<String, Map<String, Map<String, ServiceComponentHost>>>
@@ -834,66 +829,6 @@ public class ClusterImpl implements Cluster {
 
   }
   
-  
-  @Override
-  public void updateActualConfigs(String hostName, Map<String, Map<String,String>> configTags) {
-    readWriteLock.writeLock().lock();
-    try {
-
-      for (Entry<String, Map<String,String>> entry : configTags.entrySet()) {
-        String type = entry.getKey();
-        Map<String, String> values = entry.getValue();
-        
-        String tag = values.get("tag");
-        String hostTag = values.get("host_override_tag");
-  
-        if (actualConfig.containsKey(type)) {
-          DesiredConfig dc = actualConfig.get(type);
-          dc.setVersion(tag);
-          
-          boolean needNew = false;
-          Iterator<HostOverride> it = dc.getHostOverrides().iterator();
-          while (it.hasNext()) {
-            HostOverride override = it.next();
-            if (null != hostName && override.getName().equals(hostName)) {
-              needNew = true;
-              it.remove();
-            }
-          }
-          
-          if (null != hostTag && null != hostName) {
-            dc.getHostOverrides().add(new HostOverride(hostName, hostTag));
-          }
-        }
-        else {
-          DesiredConfig dc = new DesiredConfig();
-          dc.setVersion(tag);
-          actualConfig.put(type, dc);
-          if (null != hostTag && null != hostName) {
-            List<HostOverride> list = new ArrayList<HostOverride>();
-            list.add (new HostOverride(hostName, hostTag));
-            dc.setHostOverrides(list);
-          }
-        }
-        
-        DesiredConfig dc = actualConfig.get(type);
-        if (null == dc) {
-          dc = new DesiredConfig();
-          dc.setVersion(tag);
-          actualConfig.put(type, dc);
-        }
-      }
-    }
-    finally {
-      readWriteLock.writeLock().unlock();
-    }
-  }
-  
-  @Override
-  public Map<String, DesiredConfig> getActualConfigs() {
-    return actualConfig;
-  }
-
   @Override
   public Map<String, DesiredConfig> getDesiredConfigs() {
 
@@ -924,7 +859,6 @@ public class ClusterImpl implements Cluster {
 
     return map;
   }
-
 
   @Override
   public Config getDesiredConfigByType(String configType) {

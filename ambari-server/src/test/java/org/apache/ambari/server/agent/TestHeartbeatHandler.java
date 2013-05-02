@@ -199,11 +199,12 @@ public class TestHeartbeatHandler {
     cr.setActionId(StageUtils.getActionId(requestId, stageId));
     cr.setServiceName(HDFS);
     cr.setTaskId(1);
-    cr.setRole(HDFS);
+    cr.setRole(DATANODE);
     cr.setStatus("COMPLETED");
     cr.setStdErr("");
     cr.setStdOut("");
     cr.setExitCode(215);
+    cr.setRoleCommand("START");
     cr.setClusterName(DummyCluster);
     
     cr.setConfigurationTags(new HashMap<String, Map<String,String>>() {{
@@ -216,8 +217,8 @@ public class TestHeartbeatHandler {
     handler.handleHeartBeat(hb);
 
     // the heartbeat test passed if actual configs is populated
-    Assert.assertNotNull(cluster.getActualConfigs());
-    Assert.assertEquals(cluster.getActualConfigs().size(), 1);
+    Assert.assertNotNull(serviceComponentHost1.getActualConfigs());
+    Assert.assertEquals(serviceComponentHost1.getActualConfigs().size(), 1);
   }
 
   @Test

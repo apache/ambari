@@ -983,14 +983,12 @@ public class AmbariManagementControllerImpl implements
       Cluster c = clusters.getCluster(request.getClusterName());
       ClusterResponse cr = c.convertToResponse();
       cr.setDesiredConfigs(c.getDesiredConfigs());
-      cr.setActualConfigs(c.getActualConfigs());
       response.add(cr);
       return response;
     } else if (request.getClusterId() != null) {
       Cluster c = clusters.getClusterById(request.getClusterId());
       ClusterResponse cr = c.convertToResponse();
       cr.setDesiredConfigs(c.getDesiredConfigs());
-      cr.setActualConfigs(c.getActualConfigs());
       response.add(cr);
       return response;
     }
