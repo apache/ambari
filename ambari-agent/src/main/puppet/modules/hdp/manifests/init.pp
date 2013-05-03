@@ -153,15 +153,25 @@ class hdp::create_smoke_user()
 
   ## Set smoke user uid to > 1000 for enable security feature
   $secure_uid = $hdp::params::smoketest_user_secure_uid
-  $cmd_set_uid = "usermod -u ${secure_uid} ${smoke_user}"
+  $changeUid_path = "/tmp/changeUid.sh"
+  $smoke_user_dirs = "/tmp/${smoke_user},/home/${smoke_user},/var/spool/mail/${smoke_user}"
+  $cmd_set_uid = "$changeUid_path ${smoke_user} ${secure_uid} ${smoke_user_dirs}"
   $cmd_set_uid_check = "id -u ${smoke_user} | grep ${secure_uid}"
+
+  file { $changeUid_path :
+    ensure => present,
+    source => "puppet:///modules/hdp/changeUid.sh",
+    mode => '0755'
+  }
+
   hdp::exec{ $cmd_set_uid:
    command => $cmd_set_uid,
    unless => $cmd_set_uid_check,
-   require => Hdp::User[$smoke_user]
+   require => File[$changeUid_path]
   }
 
-  Group<|title == $smoke_group or title == $proxyuser_group|> -> Hdp::User[$smoke_user] 
+  Group<|title == $smoke_group or title == $proxyuser_group|> ->
+  Hdp::User[$smoke_user] -> Hdp::Exec[$cmd_set_uid]
 }
 
 

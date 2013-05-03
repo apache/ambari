@@ -828,6 +828,9 @@ Trunk (unreleased changes):
 
  BUG FIXES
 
+ AMBARI-2073. After Ambari upgrade to 1.2.3, MapReduce service check fails 
+ because uid of ambari_qa changed. (swagle)
+
  AMBARI-2067. hive-site.xml cannot be readonly for clients. (swagle)
 
  AMBARI-2068. "Preparing to install <component>" message needs spacing.
