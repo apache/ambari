@@ -94,7 +94,17 @@ export HADOOP_IDENT_STRING=$USER
 # export HADOOP_NICENESS=10
 
 # Use libraries from standard classpath
-JAVA_JDBC_LIBS="/usr/share/java/*"
+JAVA_JDBC_LIBS=""
+#Add libraries required by mysql connector
+for jarFile in `ls /usr/share/java/*mysql*`
+do
+  JAVA_JDBC_LIBS=${JAVA_JDBC_LIBS}:$jarFile
+done
+#Add libraries required by oracle connector
+for jarFile in `ls /usr/share/java/*oracle*`
+do
+  JAVA_JDBC_LIBS=${JAVA_JDBC_LIBS}:$jarFile
+done
 #Add libraries required by nodemanager
 MAPREDUCE_LIBS=<%=scope.function_hdp_template_var("mapreduce_libs_path")%> 
-export HADOOP_CLASSPATH=${HADOOP_CLASSPATH}:${JAVA_JDBC_LIBS}:${MAPREDUCE_LIBS}
+export HADOOP_CLASSPATH=${HADOOP_CLASSPATH}${JAVA_JDBC_LIBS}:${MAPREDUCE_LIBS}
