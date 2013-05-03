@@ -46,6 +46,7 @@ import org.apache.ambari.server.actionmanager.HostRoleStatus;
 import org.apache.ambari.server.actionmanager.Stage;
 import org.apache.ambari.server.agent.ExecutionCommand;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
+import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
 import org.apache.ambari.server.orm.dao.RoleDAO;
@@ -93,7 +94,7 @@ public class AmbariManagementControllerTest {
   private static final String REPO_ID = "HDP-1.1.1.16";
   private static final String PROPERTY_NAME = "hbase.regionserver.msginterval";
   private static final String SERVICE_NAME = "HDFS";
-  private static final int STACK_VERSIONS_CNT = 2;
+  private static final int STACK_VERSIONS_CNT = 3;
   private static final int REPOS_CNT = 3;
   private static final int STACKS_CNT = 1;
   private static final int STACK_SERVICES_CNT = 5 ;
@@ -4834,6 +4835,79 @@ public class AmbariManagementControllerTest {
       }
     }
     Assert.assertNotNull(clientReinstallCmd);
+  }
+
+  @Test
+  public void testHivePasswordAbsentInConfigs() throws AmbariException {
+    String clusterName = "c1";
+    String serviceName = "HIVE";
+    createCluster(clusterName);
+    clusters.getCluster(clusterName)
+      .setDesiredStackVersion(new StackId("HDP-1.2.0"));
+    createService(clusterName, serviceName, null);
+
+    String componentName1 = "HIVE_METASTORE";
+    String componentName2 = "HIVE_SERVER";
+    String componentName3 = "HIVE_CLIENT";
+
+    createServiceComponent(clusterName, serviceName, componentName1,
+      State.INIT);
+    createServiceComponent(clusterName, serviceName, componentName2,
+      State.INIT);
+    createServiceComponent(clusterName, serviceName, componentName3,
+      State.INIT);
+
+    String host1 = "h1";
+    String host2 = "h2";
+    clusters.addHost(host1);
+    clusters.getHost("h1").setOsType("centos5");
+    clusters.getHost("h1").persist();
+    clusters.addHost(host2);
+    clusters.getHost("h2").setOsType("centos5");
+    clusters.getHost("h2").persist();
+    clusters.mapHostToCluster(host1, clusterName);
+    clusters.mapHostToCluster(host2, clusterName);
+
+    createServiceComponentHost(clusterName, serviceName, componentName1,
+      host1, null);
+    createServiceComponentHost(clusterName, serviceName, componentName2,
+      host1, null);
+    createServiceComponentHost(clusterName, serviceName, componentName3,
+      host1, null);
+    createServiceComponentHost(clusterName, serviceName, componentName3,
+      host2, null);
+
+    Map<String, String> configs = new HashMap<String, String>();
+    configs.put("a", "b");
+    configs.put(Configuration.HIVE_METASTORE_PASSWORD_PROPERTY, "aaa");
+
+    ConfigurationRequest cr1;
+    cr1 = new ConfigurationRequest(clusterName, "hive-site","version1",
+      configs);
+    ClusterRequest crReq = new ClusterRequest(null, clusterName, null, null);
+    crReq.setDesiredConfig(cr1);
+    controller.updateCluster(crReq, null);
+
+    // Install
+    installService(clusterName, serviceName, false, false);
+    // Start
+    long requestId = startService(clusterName, serviceName, false, false);
+
+    String passwordInConfig = null;
+    List<Stage> stages = actionDB.getAllStages(requestId);
+    for (Stage s : stages) {
+      for (HostRoleCommand hrc : s.getOrderedHostRoleCommands()) {
+        if (hrc.getRole().equals(Role.HIVE_CLIENT.toString())) {
+          Map<String, String> hiveSite = hrc.getExecutionCommandWrapper()
+            .getExecutionCommand().getConfigurations().get("hive-site");
+          Assert.assertNotNull(hiveSite);
+          Assert.assertEquals("b", hiveSite.get("a"));
+          passwordInConfig = hiveSite.get(Configuration
+            .HIVE_METASTORE_PASSWORD_PROPERTY);
+        }
+      }
+    }
+    Assert.assertNull(passwordInConfig);
   }
 
   @Test

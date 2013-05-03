@@ -209,15 +209,9 @@ class hdp-nagios::server(
     }
 
     class { 'hdp-nagios::server::services': ensure => $service_state}
-	
-    exec { 'add_permissions_to_hive_site':
-      command => "setfacl -m user:${nagios_user}:r-- ${hdp::params::hive_conf_dir}/hive-site.xml",
-      onlyif  => "[ -f ${hdp::params::hive_conf_dir}/hive-site.xml ]",
-      path    => '/usr/sbin:/sbin:/usr/local/bin:/bin:/usr/bin'
-    }
 
     Class['hdp-nagios::server::packages'] -> Class['hdp-nagios::server::enable_snmp']->
-    Group[$nagios_group] -> Hdp::User[$nagios_user] -> Exec['add_permissions_to_hive_site'] ->
+    Group[$nagios_group] -> Hdp::User[$nagios_user] ->
     Hdp::Directory[$nagios_config_dir] -> Hdp::Directory[$plugins_dir] -> Hdp::Directory_recursive_create[$nagios_pid_dir] ->
     Hdp::Directory[$nagios_obj_dir] -> Hdp::Directory_Recursive_Create[$nagios_var_dir] ->
     Hdp::Directory_Recursive_Create[$check_result_path] -> Hdp::Directory_Recursive_Create[$nagios_rw_dir] ->

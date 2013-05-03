@@ -24,6 +24,7 @@ class hdp-hive::params() inherits hdp::params
   #TODO: will move to globals
   $hive_metastore_user_name = hdp_default("hive_metastore_user_name","dbusername")
   $hive_metastore_user_passwd = hdp_default("hive_metastore_user_passwd","dbpassword")
+  $hive_server_conf_dir = hdp_default("hive_server_conf_dir", "/etc/hive/conf.server")
 
   ### users
   $hive_user = $hdp::params::hive_user

@@ -18,5 +18,5 @@
 # under the License.
 #
 #
-hive --service metastore > $1 2> $2 &
+HIVE_CONF_DIR=$4 hive --service metastore > $1 2> $2 &
 echo $!|cat>$3

@@ -928,6 +928,15 @@ public class AmbariManagementControllerImpl implements
 
     Host host = clusters.getHost(scHost.getHostName());
 
+    // Hack - Remove passwords from configs
+    if (event.getServiceComponentName().equals(Role.HIVE_CLIENT.toString())) {
+      Map<String, String> hiveConfigs = configurations.get(Configuration
+        .HIVE_CONFIG_TAG);
+      if (hiveConfigs != null) {
+        hiveConfigs.remove(Configuration.HIVE_METASTORE_PASSWORD_PROPERTY);
+      }
+    }
+
     execCmd.setConfigurations(configurations);
     execCmd.setConfigurationTags(configTags);
     execCmd.setCommandParams(commandParams);

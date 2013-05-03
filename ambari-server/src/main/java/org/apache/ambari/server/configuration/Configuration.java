@@ -190,6 +190,9 @@ public class Configuration {
   private static final String SERVER_CONNECTION_MAX_IDLE_TIME =
     "server.connection.max.idle.millis";
 
+  public static final String HIVE_CONFIG_TAG = "hive-site";
+  public static final String HIVE_METASTORE_PASSWORD_PROPERTY =
+    "javax.jdo.option.ConnectionPassword";
 
   private static final Logger LOG = LoggerFactory.getLogger(
       Configuration.class);

@@ -828,6 +828,8 @@ Trunk (unreleased changes):
 
  BUG FIXES
 
+ AMBARI-2067. hive-site.xml cannot be readonly for clients. (swagle)
+
  AMBARI-2068. "Preparing to install <component>" message needs spacing.
  (yusaku)
 
