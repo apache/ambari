@@ -828,6 +828,9 @@ Trunk (unreleased changes):
 
  BUG FIXES
 
+ AMBARI-2077. Update stack mock data to make testMode functional on step4 of
+ installer wizard. (jaimin)
+
  AMBARI-2076. DataNode install failed with custom users. (smohanty)
 
  AMBARI-2074. Deployment of HDP 1.2.1 fails on Sles. (smohanty)
