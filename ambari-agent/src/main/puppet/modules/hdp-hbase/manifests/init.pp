@@ -82,7 +82,7 @@ class hdp-hbase(
     hdp::package { 'hbase': }
   
     hdp::user{ $hbase_user:
-      groups => [$hdp::params::user_group, $hbase_user]
+      groups => [$hdp::params::user_group]
     }
  
     hdp::directory { $config_dir: 
