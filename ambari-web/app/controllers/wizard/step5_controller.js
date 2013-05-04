@@ -245,7 +245,7 @@ App.WizardStep5Controller = Em.Controller.extend({
     var hiveMetastore = this.get('selectedServicesMasters').findProperty('component_name', 'HIVE_METASTORE');
     var webHCatServer = this.get('selectedServicesMasters').findProperty('component_name', 'WEBHCAT_SERVER');
     if (hiveServer && hiveMetastore && webHCatServer) {
-      if (!this.get('isReassignHive') && this.get('servicesMasters').objectAt(0) && !this.get('servicesMasters').objectAt(0).component_name == 'HIVE_METASTORE') {
+      if (!this.get('isReassignHive') && this.get('servicesMasters').objectAt(0) && !(this.get('servicesMasters').objectAt(0).component_name == 'HIVE_METASTORE')) {
         this.get('selectedServicesMasters').findProperty('component_name', 'HIVE_METASTORE').set('selectedHost', hiveServer.get('selectedHost'))
       }
       this.get('selectedServicesMasters').findProperty('component_name', 'WEBHCAT_SERVER').set('selectedHost', hiveServer.get('selectedHost'));
