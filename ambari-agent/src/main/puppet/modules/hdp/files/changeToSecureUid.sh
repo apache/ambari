@@ -21,7 +21,7 @@
 
 username=$1
 newUid=$2
-dirs=$3
+directories=$3
 
 function find_available_uid() {
  for ((i=1001; i<=2000; i++))
@@ -35,7 +35,7 @@ function find_available_uid() {
  done
 }
 
-grep -q $i /etc/passwd
+grep -q $newUid /etc/passwd
 if [ "$?" != 0 ]
 then
   echo "Uid $newUid is available for $username"
@@ -50,7 +50,7 @@ then
   exit 1
 fi
 
-dir_array=($(echo $dirs | sed 's/,/\n/g'))
+dir_array=($(echo $directories | sed 's/,/\n/g'))
 old_uid=$(id -u $username)
 echo "Changing uid of $username from $old_uid to $newUid"
 echo "Changing directory permisions for ${dir_array[@]}"

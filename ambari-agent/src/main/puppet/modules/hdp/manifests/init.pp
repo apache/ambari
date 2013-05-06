@@ -158,7 +158,7 @@ class hdp::create_smoke_user()
   ## Set smoke user uid to > 1000 for enable security feature
   $secure_uid = $hdp::params::smoketest_user_secure_uid
   $changeUid_path = "/tmp/changeUid.sh"
-  $smoke_user_dirs = "/tmp/${smoke_user},/home/${smoke_user},/var/spool/mail/${smoke_user}"
+  $smoke_user_dirs = "/tmp/hadoop-${smoke_user},/tmp/hsperfdata_${smoke_user},/home/${smoke_user}"
   $cmd_set_uid = "$changeUid_path ${smoke_user} ${secure_uid} ${smoke_user_dirs}"
   $cmd_set_uid_check = "test $(id -u ${smoke_user}) -gt 1000"
 
