@@ -90,7 +90,7 @@ App.Service = DS.Model.extend({
     var flag = true;
     var runningHCs = [];
     var unknownHCs = [];
-    debugger;
+
     components.forEach(function (_component) {
       if (
         _component.get('workStatus') !== App.HostComponentStatus.stopped &&

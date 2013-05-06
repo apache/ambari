@@ -769,10 +769,10 @@ module.exports =
       "name": "lzo_enabled",
       "displayName": "LZO compression",
       "description": "LZO compression enabled",
-      "defaultValue": false,
+      "defaultValue": true,
       "displayType": "checkbox",
       "isOverridable": false,
-      "isVisible": true,
+      "isVisible": false,
       "domain": "global",
       "serviceName": "MAPREDUCE",
       "index": 11
@@ -786,7 +786,7 @@ module.exports =
       "isReconfigurable": false,
       "displayType": "checkbox",
       "isOverridable": false,
-      "isVisible": true,
+      "isVisible": false,
       "domain": "global",
       "serviceName": "MAPREDUCE",
       "index": 12
