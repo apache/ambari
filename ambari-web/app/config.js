@@ -51,7 +51,8 @@ App.supports = {
   multipleHBaseMasters: false,
   addMasters: false,
   customizeSmokeTestUser: false,
-  hue: false
+  hue: false,
+  ldapGroupMapping: false
 };
 
 if (App.enableExperimental) {

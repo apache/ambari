@@ -62,7 +62,7 @@ App.EditUserForm = App.Form.extend({
   disableAdminCheckbox:function () {
     var object = this.get('object');
     if (object) {
-      if((object.get('userName') == App.get('router').getLoginName()) || object.get("isLdap")){
+      if ((object.get('userName') == App.get('router').getLoginName()) || App.supports.ldapGroupMapping && object.get("isLdap")) {
         this.getField("admin").set("disabled", true);
       } else {
         this.getField("admin").set("disabled", false);
