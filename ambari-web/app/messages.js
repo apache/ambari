@@ -734,10 +734,10 @@ Em.I18n.translations = {
   'services.service.info.summary.nagios.noAlerts':'No alerts',
   'services.service.info.summary.nagios.alerts':'Nagios service required for viewing alerts',
 
-  'services.service.config.saved':'Saved Configurations Changes',
+  'services.service.config.saved':'Saved Configuration Changes',
   'services.service.config.notSaved':'Unable to Save Configuration Changes',
   'services.service.config.restartService.TooltipMessage':'<b>Restart Service</b><br>Stale configuration used by {0} components on {1} hosts:{2}',
-  'services.service.config.saved.message':'Service configuration saved successfully.',
+  'services.service.config.saved.message':'Service configuration changes saved successfully.',
   'services.service.config.msgServiceStop':'Could not save configuration changes.  Please stop the service first. You will be able to save configuration changes after all of its components are stopped.',
   'services.service.config.msgHDFSMapRServiceStop':'Could not save configuration changes.  Please stop both HDFS and MapReduce first.  You will be able to save configuration changes after all HDFS and MapReduce components are stopped.',
   'services.service.config.failCreateConfig' : 'Failure in creating service configuration',
@@ -746,6 +746,7 @@ Em.I18n.translations = {
   'services.service.config.addPropertyWindow.errorMessage':'This is required',
   'services.service.config.addPropertyWindow.error.derivedKey':'This property is already defined',
   'services.service.config.stopService.runningHostComponents':'{0} components on {1} hosts are still running',
+  'services.service.config.stopService.unknownHostComponents':'{0} components on {1} hosts are in unknown state.  These components might actually be running and need restarting later to make the changes effective.',
   'services.service.config.confirmDirectoryChange':'You are about to make changes to service directories that are core to {0}. Before you proceed, be absolutely certain of the implications and that you have taken necessary manual steps, if any, for the changes. Are you sure you want to proceed?',
 
   'services.add.header':'Add Service Wizard',

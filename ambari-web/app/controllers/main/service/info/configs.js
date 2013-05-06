@@ -581,6 +581,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
 
   /**
    * Determines which host components are running on each host.
+   * @param status 'running' or 'unknown'
    * @return Returned in the following format:
    * {
    *  runningHosts: {
@@ -590,38 +591,38 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
    *  runningComponentCount: 5
    * }
    */
-  getRunningHostComponents: function (services) {
-    var runningHosts = [];
-    var runningComponentCount = 0;
+  getHostComponentsByStatus: function (services, status) {
+    var hosts = [];
+    var componentCount = 0;
     var hostToIndexMap = {};
     services.forEach(function (service) {
-      var runningHostComponents = service.get('runningHostComponents');
-      if (runningHostComponents != null) {
-        runningHostComponents.forEach(function (hc) {
+      var hostComponents = (status == App.HostComponentStatus.started) ? service.get('runningHostComponents') : service.get('unknownHostComponents');
+      if (hostComponents != null) {
+        hostComponents.forEach(function (hc) {
           var hostName = hc.get('host.publicHostName');
           var componentName = hc.get('displayName');
-          runningComponentCount++;
+          componentCount++;
           if (!(hostName in hostToIndexMap)) {
-            runningHosts.push({
+            hosts.push({
               name: hostName,
               components: ""
             });
-            hostToIndexMap[hostName] = runningHosts.length - 1;
+            hostToIndexMap[hostName] = hosts.length - 1;
           }
-          var hostObj = runningHosts[hostToIndexMap[hostName]];
+          var hostObj = hosts[hostToIndexMap[hostName]];
           if (hostObj.components.length > 0)
             hostObj.components += ", " + componentName;
           else
             hostObj.components += componentName;
         });
-        runningHosts.sort(function (a, b) {
+        hosts.sort(function (a, b) {
           return a.name.localeCompare(b.name);
         });
       }
     });
     return {
-      runningHosts: runningHosts,
-      runningComponentCount: runningComponentCount
+      hosts: hosts,
+      componentCount: componentCount
     };
   },
   
@@ -635,10 +636,13 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
     var header;
     var message;
     var messageClass;
+    var hasUnknown = false;
     var value;
     var flag = false;
     var runningHosts = null;
     var runningComponentCount = 0;
+    var unknownHosts = null;
+    var unknownComponentCount = 0;
 
     var dfd = $.Deferred();
     var self = this;
@@ -649,6 +653,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
         (serviceName !== 'HDFS' && this.get('content.isStopped') === true) ||
         ((serviceName === 'HDFS') && this.get('content.isStopped') === true && (!App.Service.find().someProperty('id', 'MAPREDUCE') || App.Service.find('MAPREDUCE').get('isStopped')))) {
 
+      // warn the user if any service directories are being changed
       var dirChanged = false;
 
       if (serviceName === 'HDFS') {
@@ -686,6 +691,16 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
           header = Em.I18n.t('services.service.config.saved');
           message = Em.I18n.t('services.service.config.saved.message');
           messageClass = 'alert alert-success';
+          // warn the user if any of the components are in UNKNOWN state
+          var uhc;
+          if (self.get('content.serviceName') !== 'HDFS' || (self.get('content.serviceName') === 'HDFS' && !App.Service.find().someProperty('id', 'MAPREDUCE'))) {
+            uhc = self.getHostComponentsByStatus([self.get('content')], App.HostComponentStatus.unknown);
+          } else {
+            uhc = self.getHostComponentsByStatus([self.get('content'), App.Service.find('MAPREDUCE')], App.HostComponentStatus.unknown);
+          }
+          debugger;
+          unknownHosts = uhc.hosts;
+          unknownComponentCount = uhc.componentCount;
         } else {
           header = Em.I18n.t('common.failure');
           message = result.message;
@@ -696,17 +711,17 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
     } else {
       var rhc;
       if (this.get('content.serviceName') !== 'HDFS' || (this.get('content.serviceName') === 'HDFS' && !App.Service.find().someProperty('id', 'MAPREDUCE'))) {
-        rhc = this.getRunningHostComponents([this.get('content')]);
+        rhc = this.getHostComponentsByStatus([this.get('content')], App.HostComponentStatus.started);
         header = Em.I18n.t('services.service.config.notSaved');
         message = Em.I18n.t('services.service.config.msgServiceStop');
       } else {
-        rhc = this.getRunningHostComponents([this.get('content'), App.Service.find('MAPREDUCE')]);
+        rhc = this.getHostComponentsByStatus([this.get('content'), App.Service.find('MAPREDUCE')], App.HostComponentStatus.started);
         header = Em.I18n.t('services.service.config.notSaved');
         message = Em.I18n.t('services.service.config.msgHDFSMapRServiceStop');
       }
       messageClass = 'alert alert-error';
-      runningHosts = rhc.runningHosts;
-      runningComponentCount = rhc.runningComponentCount;
+      runningHosts = rhc.hosts;
+      runningComponentCount = rhc.componentCount;
       dfd.resolve();
     }
 
@@ -727,6 +742,8 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
           messageClass: messageClass,
           runningHosts: runningHosts,
           runningComponentCount: runningComponentCount,
+          unknownHosts: unknownHosts,
+          unknownComponentCount: unknownComponentCount,
           siteProperties: value,
           getDisplayMessage: function () {
             var displayMsg = [];
@@ -761,33 +778,16 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
             return displayMsg;
 
           }.property('siteProperties'),
-          getRunningHostsMessage: function () {
+
+          runningHostsMessage: function () {
             return Em.I18n.t('services.service.config.stopService.runningHostComponents').format(this.get('runningComponentCount'), this.get('runningHosts.length'));
           }.property('runningComponentCount', 'runningHosts.length'),
-          template: Ember.Handlebars.compile([
-            '<div class="{{unbound view.messageClass}}" style="margin-bottom:0">{{view.message}}</div>',
-            '{{#unless view.flag}}',
-            ' <br/>',
-            ' <div class="pre-scrollable" style="max-height: 250px;">',
-            '   <ul>',
-            '   {{#each val in view.getDisplayMessage}}',
-            '     <li>',
-            '       {{val}}',
-            '     </li>',
-            '   {{/each}}',
-            '   </ul>',
-            ' </div>',
-            '{{/unless}}',
-            '{{#if view.runningHosts}}',
-            ' <i class="icon-warning-sign"></i>  {{view.getRunningHostsMessage}}',
-            ' <table class="table-striped running-host-components-table">',
-            '   <tr><th>{{t common.host}}</th><th>{{t common.components}}</th></tr>',
-            '   {{#each host in view.runningHosts}}',
-            '     <tr><td>{{host.name}}</td><td>{{host.components}}</td></tr>',
-            '   {{/each}}',
-            ' </table>',
-            '{{/if}}'
-          ].join('\n'))
+
+          unknownHostsMessage: function () {
+            return Em.I18n.t('services.service.config.stopService.unknownHostComponents').format(this.get('unknownComponentCount'), this.get('unknownHosts.length'));
+          }.property('unknownComponentCount', 'unknownHosts.length'),
+
+          templateName: require('templates/main/service/info/configs_save_popup')
         })
       })
     });

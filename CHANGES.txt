@@ -828,6 +828,9 @@ Trunk (unreleased changes):
 
  BUG FIXES
 
+ AMBARI-2079. Can't change service configuration if heartbeat lost from
+ service component host. (yusaku)
+
  AMBARI-2075. Admin role can't be assigned to LDAP user. (yusaku)
 
  AMBARI-2080. Cluster name and Background operations indicator should

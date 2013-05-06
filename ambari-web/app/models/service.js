@@ -88,14 +88,23 @@ App.Service = DS.Model.extend({
   updateIsStopped: function () {
     var components = this.get('hostComponents');
     var flag = true;
-    var runningHCs = Ember.A([]);
+    var runningHCs = [];
+    var unknownHCs = [];
+    debugger;
     components.forEach(function (_component) {
-      if (_component.get('workStatus') !== App.HostComponentStatus.stopped && _component.get('workStatus') !== App.HostComponentStatus.install_failed) {
+      if (
+        _component.get('workStatus') !== App.HostComponentStatus.stopped &&
+        _component.get('workStatus') !== App.HostComponentStatus.install_failed &&
+        _component.get('workStatus') !== App.HostComponentStatus.unknown
+      ) {
         flag = false;
         runningHCs.addObject(_component);
+      } else if (_component.get('workStatus') == App.HostComponentStatus.unknown) {
+        unknownHCs.addObject(_component);
       }
     }, this);
     this.set('runningHostComponents', runningHCs);
+    this.set('unknownHostComponents', unknownHCs);
     this.set('isStopped', flag);
   },
 
@@ -105,6 +114,7 @@ App.Service = DS.Model.extend({
       components.everyProperty('workStatus', App.HostComponentStatus.started)
     );
   },
+
   isConfigurable: function () {
     var configurableServices = [
       "HDFS",
