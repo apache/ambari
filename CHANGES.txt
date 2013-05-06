@@ -828,6 +828,8 @@ Trunk (unreleased changes):
 
  BUG FIXES
 
+ AMBARI-2081. changeUid.sh failing during installation. (swagle)
+
  AMBARI-2079. Can't change service configuration if heartbeat lost from
  service component host. (yusaku)
 

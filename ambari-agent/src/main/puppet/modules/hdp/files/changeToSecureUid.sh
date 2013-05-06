@@ -23,8 +23,36 @@ username=$1
 newUid=$2
 dirs=$3
 
+function find_available_uid() {
+ for ((i=1001; i<=2000; i++))
+ do
+   grep -q $i /etc/passwd
+   if [ "$?" != 0 ]
+   then
+    newUid=$i
+    break
+   fi
+ done
+}
+
+grep -q $i /etc/passwd
+if [ "$?" != 0 ]
+then
+  echo "Uid $newUid is available for $username"
+else
+  newUid=0
+  find_available_uid
+fi
+
+if [ $newUid == 0 ]
+then
+  echo "Failed to find Uid between 1000 and 2000"
+  exit 1
+fi
+
 dir_array=($(echo $dirs | sed 's/,/\n/g'))
 old_uid=$(id -u $username)
 echo "Changing uid of $username from $old_uid to $newUid"
 echo "Changing directory permisions for ${dir_array[@]}"
 usermod -u $newUid $username && for dir in ${dir_array[@]} ; do chown -Rh $newUid $dir ; done
+exit 0

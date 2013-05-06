@@ -160,11 +160,11 @@ class hdp::create_smoke_user()
   $changeUid_path = "/tmp/changeUid.sh"
   $smoke_user_dirs = "/tmp/${smoke_user},/home/${smoke_user},/var/spool/mail/${smoke_user}"
   $cmd_set_uid = "$changeUid_path ${smoke_user} ${secure_uid} ${smoke_user_dirs}"
-  $cmd_set_uid_check = "id -u ${smoke_user} | grep ${secure_uid}"
+  $cmd_set_uid_check = "test $(id -u ${smoke_user}) -gt 1000"
 
   file { $changeUid_path :
     ensure => present,
-    source => "puppet:///modules/hdp/changeUid.sh",
+    source => "puppet:///modules/hdp/changeToSecureUid.sh",
     mode => '0755'
   }
 
