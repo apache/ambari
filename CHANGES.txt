@@ -828,6 +828,9 @@ Trunk (unreleased changes):
 
  BUG FIXES
 
+ AMBARI-2080. Cluster name and Background operations indicator should
+ disappear on logout. (jaimin)
+
  AMBARI-2078. Hive Metastore host not changing on Assign Masters page. (jaimin)
 
  AMBARI-2077. Update stack mock data to make testMode functional on step4 of
