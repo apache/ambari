@@ -453,12 +453,21 @@ def get_ambari_jars():
 
 
 def get_share_jars():
-  return JAVA_SHARE_PATH
+  share_jars = ""
+  file_list = []
+  file_list.extend(glob.glob(JAVA_SHARE_PATH + os.sep + "*mysql*"))
+  file_list.extend(glob.glob(JAVA_SHARE_PATH + os.sep + "*oracle*"))
+  if len(file_list) > 0:
+    share_jars = string.join(file_list, os.pathsep)
+  return share_jars
+
 
 def get_ambari_classpath():
-  ambari_cp = get_ambari_jars()+os.sep+"*"
-  share_cp = get_share_jars()+os.sep+"*"
-  return ambari_cp+os.pathsep+share_cp
+  ambari_cp = get_ambari_jars() + os.sep + "*"
+  share_cp = get_share_jars()
+  if len(share_cp) > 0:
+    ambari_cp = ambari_cp + os.pathsep + share_cp
+  return ambari_cp
 
 
 def get_conf_dir():

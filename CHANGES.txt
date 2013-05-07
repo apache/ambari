@@ -828,6 +828,8 @@ Trunk (unreleased changes):
 
  BUG FIXES
 
+ AMBARI-2083. Upgrade fails on Sles. (smohanty)
+
  AMBARI-2082. Oozie service check fails. (jaimin)
 
  AMBARI-2081. changeUid.sh failing during installation. (swagle)

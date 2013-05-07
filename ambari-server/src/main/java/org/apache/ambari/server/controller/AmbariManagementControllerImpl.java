@@ -1404,11 +1404,9 @@ public class AmbariManagementControllerImpl implements
           + " should not be null");
     }
 
-    if (LOG.isDebugEnabled()) {
-      LOG.debug("Received a updateCluster request"
-          + ", clusterName=" + request.getClusterName()
-          + ", request=" + request);
-    }
+    LOG.info("Received a updateCluster request"
+        + ", clusterName=" + request.getClusterName()
+        + ", request=" + request);
 
     final Cluster cluster = clusters.getCluster(request.getClusterName());
 
@@ -2407,12 +2405,10 @@ public class AmbariManagementControllerImpl implements
             + " and service name should be provided to update services");
       }
 
-      if (LOG.isDebugEnabled()) {
-        LOG.debug("Received a updateService request"
-            + ", clusterName=" + request.getClusterName()
-            + ", serviceName=" + request.getServiceName()
-            + ", request=" + request.toString());
-      }
+      LOG.info("Received a updateService request"
+          + ", clusterName=" + request.getClusterName()
+          + ", serviceName=" + request.getServiceName()
+          + ", request=" + request.toString());
 
       clusterNames.add(request.getClusterName());
 
@@ -4142,6 +4138,11 @@ public class AmbariManagementControllerImpl implements
 
     stage.setStageId(0);
     for (ActionRequest actionRequest : request) {
+      LOG.info("Received a createAction request"
+          + ", clusterName=" + actionRequest.getClusterName()
+          + ", serviceName=" + actionRequest.getServiceName()
+          + ", request=" + actionRequest.toString());
+
       if (actionRequest.getActionName().contains("SERVICE_CHECK")) {
         addServiceCheckAction(actionRequest, stage);
       } else if (actionRequest.getActionName().equals("DECOMMISSION_DATANODE")) {

@@ -618,18 +618,32 @@ class TestAmbariServer(TestCase):
     self.assertTrue(printInfoMsg_mock.called)
 
 
+  @patch("glob.glob")
   @patch.object(ambari_server, "print_info_msg")
-  def test_get_share_jars(self, printInfoMsg_mock):
-    expected = "/usr/share/java"
+  def test_get_share_jars(self, printInfoMsg_mock, globMock):
+    globMock.return_value = ["one", "two"]
+    expected = "one:two:one:two"
+    result = ambari_server.get_share_jars()
+    self.assertEqual(expected, result)
+    globMock.return_value = []
+    expected = ""
     result = ambari_server.get_share_jars()
     self.assertEqual(expected, result)
 
+
+  @patch("glob.glob")
   @patch.object(ambari_server, "print_info_msg")
-  def test_get_ambari_classpath(self, printInfoMsg_mock):
+  def test_get_ambari_classpath(self, printInfoMsg_mock, globMock):
+    globMock.return_value = ["one"]
     result = ambari_server.get_ambari_classpath()
     print result
     self.assertTrue(ambari_server.get_ambari_jars() in result)
     self.assertTrue(ambari_server.get_share_jars() in result)
+    globMock.return_value = []
+    result = ambari_server.get_ambari_classpath()
+    print result
+    self.assertTrue(ambari_server.get_ambari_jars() in result)
+    self.assertFalse(":" in result)
 
 
   @patch.object(ambari_server, "print_info_msg")
