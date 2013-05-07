@@ -33,11 +33,6 @@ class hdp(
     ensure => present
   }
 
-  group { $hdp::params::mapred_group :
-    ensure => present
-  }
-
-
  ## Port settings
   if has_key($configuration, 'hdfs-site') {
     $hdfs-site = $configuration['hdfs-site']

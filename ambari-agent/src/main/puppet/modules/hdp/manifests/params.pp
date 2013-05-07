@@ -212,7 +212,6 @@ class hdp::params()
   $mapreduce_jobhistory_done_dir = hdp_default("mapred-site/mapreduce.jobhistory.done-dir","/mr-history/done")
   
   $user_group = hdp_default("user_group","hadoop")
-  $mapred_group = hdp_default("mapred_group","hadoop")
 
   $ganglia_enabled = hdp_default("ganglia_enabled",true) 
 

@@ -830,6 +830,8 @@ Trunk (unreleased changes):
 
  BUG FIXES
 
+ AMBARI-2076. DataNode install failed with custom users. (swagle)
+
  AMBARI-2085. UI allows user to set empty value for configs in
  Advanced category. (jaimin)
 
