@@ -488,6 +488,8 @@ Trunk (unreleased changes):
 
  AMBARI-1546. Improve Cluster Management loading screen. (Xi Wang via yusaku)
 
+ AMBARI-1890. Add configuration to test_api.sh script (ncole)
+
  AMBARI-2026. Add WebHCat to live status checks. (ncole)
 
  AMBARI-1975. Add Clover coverage (ncole)
