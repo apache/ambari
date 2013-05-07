@@ -830,6 +830,8 @@ Trunk (unreleased changes):
 
  BUG FIXES
 
+ AMBARI-2088. Cluster installation times out at server side too fast. (swagle)
+
  AMBARI-2083. Upgrade fails on Sles. (smohanty)
 
  AMBARI-2082. Oozie service check fails. (jaimin)

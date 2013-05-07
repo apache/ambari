@@ -81,7 +81,7 @@ public class ControllerModule extends AbstractModule {
     bind(Clusters.class).to(ClustersImpl.class);
     bind(ActionDBAccessor.class).to(ActionDBAccessorImpl.class);
     bindConstant().annotatedWith(Names.named("schedulerSleeptime")).to(10000L);
-    bindConstant().annotatedWith(Names.named("actionTimeout")).to(300000L);
+    bindConstant().annotatedWith(Names.named("actionTimeout")).to(600000L);
     bind(AmbariManagementController.class)
         .to(AmbariManagementControllerImpl.class);
     bind(HBaseMasterPortScanner.class).in(Singleton.class);
