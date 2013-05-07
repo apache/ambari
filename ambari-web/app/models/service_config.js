@@ -439,14 +439,13 @@ App.ServiceConfigProperty = Ember.Object.extend({
   }.property('displayType'),
 
   validate: function () {
-
     var value = this.get('value');
     var valueRange = this.get('valueRange');
     var values = [];//value split by "," to check UNIX users, groups list
 
     var isError = false;
 
-    if (typeof value === 'string' && value.trim().length === 0) {
+    if (typeof value === 'string' && value.length === 0) {
       if (this.get('isRequired')) {
         this.set('errorMessage', 'This is required');
         isError = true;

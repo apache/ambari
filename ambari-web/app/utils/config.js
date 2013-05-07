@@ -103,7 +103,7 @@ App.config = Em.Object.create({
     } else {
       config.category = 'Advanced';
       config.filename = isAdvanced && advancedConfigs.findProperty('name', config.name).filename;
-      config.isRequired = false;
+      config.isRequired = true;
     }
   },
   /**
@@ -227,7 +227,7 @@ App.config = Em.Object.create({
           isUserProperty: stored.isUserProperty === true,
           isOverridable: true,
           overrides: stored.overrides,
-          isRequired: !isAdvanced
+          isRequired: true
         };
         this.calculateConfigProperties(configData, isAdvanced, advancedConfigs);
       } else if (preDefined && !stored) {
@@ -272,7 +272,7 @@ App.config = Em.Object.create({
            * false; _config.value = ''; } else if
            * (/^\s+$/.test(_config.value)) { _config.isRequired = false; }
            */
-          _config.isRequired = false;
+          _config.isRequired = true;
           _config.isVisible = true;
           _config.displayType = 'advanced';
           serviceConfigs.push(_config);

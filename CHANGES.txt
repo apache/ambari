@@ -830,6 +830,9 @@ Trunk (unreleased changes):
 
  BUG FIXES
 
+ AMBARI-2085. UI allows user to set empty value for configs in
+ Advanced category. (jaimin)
+
  AMBARI-2087. Tasks are not filtered by parent request id. (smohanty)
 
  AMBARI-2086. Agent on host with clients and DATANODE only seems to schedule 
