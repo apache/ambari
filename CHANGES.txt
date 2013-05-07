@@ -830,6 +830,9 @@ Trunk (unreleased changes):
 
  BUG FIXES
 
+ AMBARI-2086. Agent on host with clients and DATANODE only seems to schedule 
+ STATUS commands for several other services. (swagle)
+
  AMBARI-2088. Cluster installation times out at server side too fast. (swagle)
 
  AMBARI-2083. Upgrade fails on Sles. (smohanty)
