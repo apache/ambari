@@ -125,6 +125,7 @@ rolesToClass = {
   'DECOMMISSION_DATANODE': 'hdp-hadoop::hdfs::decommission',
   'HUE_SERVICE_CHECK': 'hdp-hue::service_check',
   'RESOURCEMANAGER_SERVICE_CHECK': 'hdp-yarn::resourcemanager::service_check',
+  'NODEMANAGER_SERVICE_CHECK': 'hdp-yarn::nodemanager::service_check',
   'TEZ_CLIENT': 'hdp-tez::tez_client'
 }
 

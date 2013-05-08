@@ -12,6 +12,9 @@ Trunk (unreleased changes):
 
  NEW FEATURES
 
+ AMBARI-2094. Create smoke test for NODEMANAGER component as a part of 
+ MapReduce V2 Service check. (swagle)
+
  AMBARI-2093. Add Tez as a configurable Service in Hadoop 2.0 stack. (swagle)
 
  AMBARI-2031. AMBARI-2031. Add clover code coverage profile. 

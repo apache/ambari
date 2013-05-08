@@ -18,7 +18,7 @@
 # under the License.
 #
 #
-class hdp-yarn::resourcemanager::service_check() inherits hdp-yarn::params
+class hdp-yarn::nodemanager::service_check() inherits hdp-yarn::params
 {
   class { 'hdp-yarn::smoketest': component_name => 'resourcemanager'}
 }
