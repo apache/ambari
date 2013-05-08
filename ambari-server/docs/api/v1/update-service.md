@@ -1,4 +1,3 @@
-
 <!---
 Licensed to the Apache Software Foundation (ASF) under one or more
 contributor license agreements. See the NOTICE file distributed with
@@ -21,6 +20,7 @@ Update Service
 
 [Back to Resources](index.md#resources)
 
+###Start the HDFS Service
 Start the HDFS service (update the state of the HDFS service to be ‘STARTED’).
 
 
@@ -42,6 +42,32 @@ Start the HDFS service (update the state of the HDFS service to be ‘STARTED’
       "href" : "http://your.ambari.server/api/v1/clusters/c1/requests/3",
       "Requests" : {
         "id" : 3,
+        "status" : "InProgress"
+      } 
+    }
+
+###Stop the HDFS Service
+Stop the HDFS service (update the state of the HDFS service to be ‘INSTALLED’).
+
+
+    PUT /clusters/c1/services/HDFS/
+
+**Body**
+
+    {
+      "ServiceInfo": {
+        "state" : "INSTALLED”
+      }
+    }
+
+
+**Response**
+
+    202 Accepted
+    {
+      "href" : "http://your.ambari.server/api/v1/clusters/c1/requests/3",
+      "Requests" : {
+        "id" : 4,
         "status" : "InProgress"
       } 
     }
