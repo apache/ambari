@@ -18,7 +18,7 @@
 # under the License.
 #
 #
-class hdp-yarn::nodemanager::service_check() inherits hdp-yarn::params
+class hdp-yarn::historyserver::service_check() inherits hdp-yarn::params
 {
-  class { 'hdp-yarn::smoketest': component_name => 'resourcemanager'}
+  class { 'hdp-yarn::smoketest': component_name => 'historyserver'}
 }

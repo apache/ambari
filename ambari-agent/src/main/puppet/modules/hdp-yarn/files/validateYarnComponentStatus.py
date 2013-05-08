@@ -23,11 +23,11 @@ import urllib2, urllib
 import json
 
 RESOURCEMANAGER = 'rm'
-NODEMANAGER = 'nm'
+HISTORYSERVER ='hs'
 
 STARTED_STATE = 'STARTED'
 
-def validate(path, port):
+def validate(component, path, port):
 
   try:
     url = 'http://localhost:' + str(port) + path
@@ -35,18 +35,36 @@ def validate(path, port):
     urllib2.install_opener(opener)
     request = urllib2.Request(url)
     handler = urllib2.urlopen(request)
-    cluster_info = json.loads(handler.read())
-    component_state = cluster_info['clusterInfo']['state']
-  
-    if component_state == STARTED_STATE:
-      print 'Component''s state is: ' + str(component_state)
+    response = json.loads(handler.read())
+    is_valid = validateResponse(component, response)
+    if is_valid:
       exit(0)
     else:
-      print 'Component''s state is not' + STARTED_STATE
       exit(1)
   except Exception as e:
     print 'Error checking status of component', e
     exit(1)
+
+
+def validateResponse(component, response):
+  try:
+    if component == RESOURCEMANAGER:
+      rm_state = response['clusterInfo']['state']
+      if rm_state == STARTED_STATE:
+        return True
+      else:
+        return False
+    elif component == HISTORYSERVER:
+      hs_start_time = response['historyInfo']['startedOn']
+      if hs_start_time > 0:
+        return True
+      else:
+        return False
+    else:
+      return False
+  except Exception as e:
+    print 'Error validation of response', e
+    return False
 
 #
 # Main.
@@ -64,12 +82,12 @@ def main():
   
   if component == RESOURCEMANAGER:
     path = '/ws/v1/cluster/info'
-  elif component == NODEMANAGER:
-    path = '/ws/v1/node/info'
+  elif component == HISTORYSERVER:
+    path = '/ws/v1/history/info'
   else:
     parser.error("Invalid component")
 
-  validate(path, port)
+  validate(component, path, port)
 
 if __name__ == "__main__":
   main()

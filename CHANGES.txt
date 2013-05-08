@@ -12,6 +12,8 @@ Trunk (unreleased changes):
 
  NEW FEATURES
 
+ AMBARI-2096. Create smoke test for HISTORYSERVER. (swagle)
+
  AMBARI-2094. Create smoke test for NODEMANAGER component as a part of 
  MapReduce V2 Service check. (swagle)
 
