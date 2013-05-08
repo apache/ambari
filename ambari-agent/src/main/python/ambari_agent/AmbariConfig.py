@@ -124,7 +124,8 @@ rolesToClass = {
   'DASHBOARD_SERVICE_CHECK': 'hdp-dashboard::dashboard::service_check',
   'DECOMMISSION_DATANODE': 'hdp-hadoop::hdfs::decommission',
   'HUE_SERVICE_CHECK': 'hdp-hue::service_check',
-  'RESOURCEMANAGER_SERVICE_CHECK': 'hdp-yarn::resourcemanager::service_check'
+  'RESOURCEMANAGER_SERVICE_CHECK': 'hdp-yarn::resourcemanager::service_check',
+  'TEZ_CLIENT': 'hdp-tez::tez_client'
 }
 
 serviceStates = {

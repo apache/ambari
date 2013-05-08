@@ -444,6 +444,14 @@ class hdp::params()
       }
     },
 
+    tez_client => { 
+      'ALL' => {
+        64 => {
+          'ALL' => ['tez']
+        }
+      }
+    },
+
     lzo => {
       'ALL' => {
         'ALL' => {
