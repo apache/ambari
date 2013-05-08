@@ -837,6 +837,9 @@ Trunk (unreleased changes):
 
  BUG FIXES
 
+ AMBARI-2098. Customizing webcat pid run directory fails service status. 
+ (swagle)
+
  AMBARI-2076. DataNode install failed with custom users. (swagle)
 
  AMBARI-2085. UI allows user to set empty value for configs in

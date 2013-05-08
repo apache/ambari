@@ -34,9 +34,9 @@ class hdp-templeton::params() inherits hdp::params
   $conf_dir = hdp_default("conf_dir","/etc/hcatalog/conf")
 
   ### templeton-env
-  $templeton_log_dir = hdp_default("templeton_log_dir","/var/log/webhcat")
+  $templeton_log_dir = hdp_default("hcat_log_dir","/var/log/webhcat")
 
-  $templeton_pid_dir = hdp_default("templeton_pid_dir","/var/run/webhcat")
+  $templeton_pid_dir = hdp_default("hcat_pid_dir","/var/run/webhcat")
 
 #  $templeton_jar_name= hdp_default("templeton_jar_name","templeton-0.1.4.14.jar")
  
