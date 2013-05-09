@@ -123,7 +123,7 @@ App.WizardStep8Controller = Em.Controller.extend({
       if (oozieDb.value === 'New Derby Database'){
         oozieDbType.value = 'derby';
         oozieJdbcDriver.value = 'org.apache.derby.jdbc.EmbeddedDriver';
-        oozieJPAServcieURL.value = '${oozie.data.dir}/${oozie.db.schema.name}-db;create=true';  ///////
+        oozieJPAServcieURL.value = '${oozie.data.dir}/${oozie.db.schema.name}-db;create=true';
 
         globals = globals.without(globals.findProperty('name', 'oozie_ambari_host'));
         globals = globals.without(globals.findProperty('name', 'oozie_ambari_database'));
@@ -1432,7 +1432,31 @@ App.WizardStep8Controller = Em.Controller.extend({
       oozieProperties[_configProperty.name] = _configProperty.value;
       this._recordHostOverrideFromObj(_configProperty, 'oozie-site', 'version1', this);
     }, this);
-
+    var globals = this.get('content.serviceConfigProperties').filterProperty('id', 'puppet var');
+    if (globals.someProperty('name', 'oozie_database')) {
+      var oozieDb = globals.findProperty('name', 'oozie_database');
+      var oozieHost = null;
+      if(globals.someProperty('name', 'oozie_hostname')){
+        oozieHost = globals.findProperty('name', 'oozie_hostname').value;
+      }
+      var oozieDbName = globals.findProperty('name', 'oozie_database_name').value;
+      if (oozieDb.value === 'New Derby Database'){
+        oozieProperties["oozie.service.JPAService.jdbc.url"] = "jdbc:derby:${oozie.data.dir}/${oozie.db.schema.name}-db;create=true";
+        oozieProperties["oozie.service.JPAService.jdbc.driver"] = "org.apache.derby.jdbc.EmbeddedDriver";
+      }else if (oozieDb.value === 'New MySQL Database') {
+        oozieProperties["oozie.service.JPAService.jdbc.url"] = "jdbc:mysql://" + oozieHost + "/" + oozieDbName + "?createDatabaseIfNotExist=true";
+        oozieProperties["oozie.service.JPAService.jdbc.driver"] = "com.mysql.jdbc.Driver";
+      } else if (oozieDb.value === 'Existing MySQL Database'){
+        oozieProperties["oozie.service.JPAService.jdbc.url"] = "jdbc:mysql://" + oozieHost + "/" + oozieDbName + "?createDatabaseIfNotExist=true";
+        oozieProperties["oozie.service.JPAService.jdbc.driver"] = "com.mysql.jdbc.Driver";
+      } else{ //existing oracle database
+        oozieProperties["oozie.service.JPAService.jdbc.url"] = "jdbc:oracle://" + oozieHost + "/" + oozieDbName + "?createDatabaseIfNotExist=true";
+        oozieProperties["oozie.service.JPAService.jdbc.driver"] = "oracle.jdbc.driver.OracleDriver";
+      }
+      //set oozie username and password
+      oozieProperties["oozie.service.JPAService.jdbc.username"] = globals.findProperty('name', 'oozie_metastore_user_name').value;
+      oozieProperties["oozie.service.JPAService.jdbc.password"] = globals.findProperty('name', 'oozie_metastore_user_passwd').value;
+    }
     return {type: 'oozie-site', tag: 'version1', properties: oozieProperties};
   },
 
@@ -1443,7 +1467,22 @@ App.WizardStep8Controller = Em.Controller.extend({
       hiveProperties[_configProperty.name] = _configProperty.value;
       this._recordHostOverrideFromObj(_configProperty, 'hive-site', 'version1', this);
     }, this);
-
+    var globals = this.get('content.serviceConfigProperties').filterProperty('id', 'puppet var');
+    if (globals.someProperty('name', 'hive_database')) {
+      var hiveDb = globals.findProperty('name', 'hive_database');
+      var hiveHost = globals.findProperty('name', 'hive_hostname').value;
+      var hiveDbName = globals.findProperty('name', 'hive_database_name').value;
+      if (hiveDb.value === 'New MySQL Database') {
+        hiveProperties["javax.jdo.option.ConnectionURL"] = "jdbc:mysql://"+ hiveHost + "/" + hiveDbName + "?createDatabaseIfNotExist=true";
+        hiveProperties["javax.jdo.option.ConnectionDriverName"] = "com.mysql.jdbc.Driver";
+      } else if (hiveDb.value === 'Existing MySQL Database'){
+        hiveProperties["javax.jdo.option.ConnectionURL"] = "jdbc:mysql://"+ hiveHost + "/" + hiveDbName + "?createDatabaseIfNotExist=true";
+        hiveProperties["javax.jdo.option.ConnectionDriverName"] = "com.mysql.jdbc.Driver";
+      } else{ //existing oracle database
+        hiveProperties["javax.jdo.option.ConnectionURL"] = "jdbc:oracle://"+ hiveHost + "/" + hiveDbName + "?createDatabaseIfNotExist=true";
+        hiveProperties["javax.jdo.option.ConnectionDriverName"] = "oracle.jdbc.driver.OracleDriver";
+      }
+    }
     return {type: 'hive-site', tag: 'version1', properties: hiveProperties};
   },
 

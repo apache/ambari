@@ -317,66 +317,6 @@ var configs = [
     "filename": "oozie-site.xml"
   },
   {
-    "name": "oozie.service.JPAService.jdbc.password",
-    "templateName": ["oozie_metastore_user_passwd"],
-    "foreignKey": null,
-    "value": "<templateName[0]>",
-    "filename": "oozie-site.xml"
-  },
-  {
-    "name": "oozie.service.JPAService.jdbc.username",
-    "templateName": ["oozie_metastore_user_name"],
-    "foreignKey": null,
-    "value": "<templateName[0]>",
-    "filename": "oozie-site.xml"
-  },
-  {
-    "name": "oozie.service.JPAService.jdbc.driver",
-    "templateName": ["oozie_jdbc_driver"],
-    "foreignKey": null,
-    "value": "<templateName[0]>",
-    "filename": "oozie-site.xml"
-  },
-
-  {
-    "name": "oozie.service.JPAService.jdbc.url",  ///////////////
-    "templateName": ["oozie_database_type", "oozie_JPAService_url"], // 4 type database //
-    "foreignKey": null,
-    "value": "jdbc:<templateName[0]>:<templateName[1]>",
-    "filename": "oozie-site.xml"
-  },
-
-//  {
-//    "name": "oozie.service.JPAService.jdbc.url",
-//    "templateName": ["oozie_database_type", "oozie_hostname", "oozie_database_name"],
-//    "foreignKey": null,
-//    "value": "jdbc:<templateName[0]>://<templateName[1]>/<templateName[2]>?createDatabaseIfNotExist=true",
-//    "filename": "oozie-site.xml"
-//  },
-  
-//  {
-//    "name": "oozie.db.schema.name",
-//    "templateName": ["oozie_metastore_user_name"],
-//    "foreignKey": null,
-//    "value": "<templateName[0]>",
-//    "filename": "oozie-site.xml"
-//  },
-
-//  {
-//    "name": "oozie.action.ssh.http.command.post.options",
-//    "templateName": [],
-//    "foreignKey": null,
-//    "value": " ",
-//    "filename": "oozie-site.xml"
-//  },
-  {
-    "name": "javax.jdo.option.ConnectionURL",
-    "templateName": ["hive_database_type", "hive_hostname", "hive_database_name"],
-    "foreignKey": null,
-    "value": "jdbc:<templateName[0]>://<templateName[1]>/<templateName[2]>?createDatabaseIfNotExist=true",
-    "filename": "hive-site.xml"
-  },
-  {
     "name": "javax.jdo.option.ConnectionUserName",
     "templateName": ["hive_metastore_user_name"],
     "foreignKey": null,
@@ -390,13 +330,7 @@ var configs = [
     "value": "<templateName[0]>",
     "filename": "hive-site.xml"
   },
-  {
-    "name": "javax.jdo.option.ConnectionDriverName",
-    "templateName": ["hive_jdbc_driver"],
-    "foreignKey": null,
-    "value": "<templateName[0]>",
-    "filename": "hive-site.xml"
-  },
+
   {
     "name": "hive.metastore.uris",
     "templateName": ["hivemetastore_host"],
