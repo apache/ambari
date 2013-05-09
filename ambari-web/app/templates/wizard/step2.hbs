@@ -95,7 +95,7 @@
         {{t installer.step2.localRepo.tooltip.title}}</a>
       {{t installer.step2.localRepo.label_instead}}
     </label>
-
+    {{#if isInstaller}}
     <label {{bindAttr class=":checkbox"}}>
       <div class="java-home">
       {{view Ember.Checkbox checkedBinding="content.installOptions.isJavaHome"}}
@@ -107,6 +107,7 @@
       </div>
       {{view App.WizardTextField valueBinding="content.installOptions.javaHome" placeholder="/usr/jdk/jdk1.6.0_31"}}
     </label>
+    {{/if}}
   </div>
   <div class="btn-area">
     {{#unless view.parentView.controller.hideBackButton}}

@@ -837,6 +837,8 @@ Trunk (unreleased changes):
 
  BUG FIXES
 
+ AMBARI-2091. Custom JDK path not used when adding new hosts. (yusaku)
+
  AMBARI-2089. Post Ambari upgrade, Hive and Oozie fail to start after
  reconfigure. (Xi Wang via yusaku)
 

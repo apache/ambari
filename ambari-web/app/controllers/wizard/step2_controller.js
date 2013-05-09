@@ -26,6 +26,11 @@ App.WizardStep2Controller = Em.Controller.extend({
   bootRequestId:  null,
   hasSubmitted: false,
   inputtedAgainHostNames: [],
+
+  isInstaller: function () {
+    return this.get('content.controllerName') == 'installerController';
+  }.property('content.controllerName'),
+
   hostNames: function () {
     return this.get('content.installOptions.hostNames');
   }.property('content.installOptions.hostNames'),
