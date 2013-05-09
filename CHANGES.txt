@@ -837,6 +837,9 @@ Trunk (unreleased changes):
 
  BUG FIXES
 
+ AMBARI-2095. It's possible to get into a state where install retry is not
+ possible if the agent stops heartbeating. (jaimin via yusaku)
+
  AMBARI-2091. Custom JDK path not used when adding new hosts. (yusaku)
 
  AMBARI-2089. Post Ambari upgrade, Hive and Oozie fail to start after

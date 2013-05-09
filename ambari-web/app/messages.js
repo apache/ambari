@@ -129,6 +129,7 @@ Em.I18n.translations = {
   'common.misc': 'Misc',
   'common.operations': 'Operations',
   'common.install': 'Install',
+  'common.errorPopup.header': 'An error has been encountered',
 
   'requestInfo.installComponents':'Install Components',
   'requestInfo.installServices':'Install Services',
@@ -1117,6 +1118,6 @@ Em.I18n.translations = {
 
   'quick.links.error.label': 'Hostname is undefined',
 
-  'contact.administrator': 'Contact System Administrator for more information!'
+  'contact.administrator': 'Contact System Administrator for more information'
 
 };

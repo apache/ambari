@@ -144,3 +144,26 @@ App.showConfirmationPopup = function(primary, body, template) {
     }
   });
 }
+
+/**
+ * Show alert popup
+ *
+ * @param {String} header - header of the popup
+ * @param {String} body - body of the popup
+ * @param {Function} primary - function to call upon clicking the OK button
+ * @return {*}
+ */
+App.showAlertPopup = function(header, body, primary) {
+  return App.ModalPopup.show({
+    primary: Em.I18n.t('ok'),
+    secondary: null,
+    header: header,
+    body: body,
+    onPrimary: function() {
+      this.hide();
+      if (primary) {
+        primary();
+      }
+    }
+  });
+}

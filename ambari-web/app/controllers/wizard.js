@@ -251,8 +251,6 @@ App.WizardController = Em.Controller.extend({
     // clear requests since we are installing services
     // and we don't want to get tasks for previous install attempts
     this.set('content.cluster.oldRequestsId', []);
-    this.set('content.cluster.requestId', null);
-
     var clusterName = this.get('content.cluster.name');
     var data;
     var name;
@@ -332,10 +330,12 @@ App.WizardController = Em.Controller.extend({
     console.log('Error message is: ' + request.responseText);
     var clusterStatus = {
       status: 'PENDING',
-      isInstallError: false,
+      requestId: this.get('content.cluster.requestId'),
+      isInstallError: true,
       isCompleted: false
     };
     this.saveClusterStatus(clusterStatus);
+    App.showAlertPopup(Em.I18n.t('common.errorPopup.header'), request.responseText);
   },
 
   bootstrapRequestId: null,
