@@ -837,6 +837,8 @@ Trunk (unreleased changes):
 
  BUG FIXES
 
+ AMBARI-2084. Wrong host mapping in Assign Masters step. (yusaku)
+
  AMBARI-2098. Customizing webcat pid run directory fails service status. 
  (swagle)
 

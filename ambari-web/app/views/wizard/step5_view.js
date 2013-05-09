@@ -36,43 +36,11 @@ App.SelectHostView = Em.Select.extend({
   componentName:null,
   attributeBindings:['disabled'],
 
-  filterContent:function () {
-    this.get('content').sort(function (a, b) {
-      if (a.get('memory') == b.get('memory')) {
-        if (a.get('cpu') == b.get('cpu')) {
-
-//          try to compare as ipaddresses
-          if (a.get('host_name').ip2long() && b.get('host_name').ip2long()) {
-            return a.get('host_name').ip2long() - b.get('host_name').ip2long(); // hostname asc
-          }
-
-//          try to compare as strings
-          if (a.get('host_name') > b.get('host_name')) {
-            return 1;
-          }
-
-          if (b.get('host_name') > a.get('host_name')) {
-            return -1;
-          }
-
-          return 0;
-        }
-        return b.get('cpu') - a.get('cpu'); // cores desc
-      }
-
-      return b.get('memory') - a.get('memory'); // ram desc
-    });
-
-  }.observes('content'),
-
   change:function () {
     this.get('controller').assignHostToMaster(this.get("componentName"), this.get("value"), this.get("zId"));
   },
 
   didInsertElement:function () {
-    if (!this.get('controller.isReassignWizard')) {
-      this.filterContent();
-    }
     this.set("value", this.get("selectedHost"));
   }
 });

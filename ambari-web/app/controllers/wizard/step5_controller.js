@@ -125,6 +125,19 @@ App.WizardStep5Controller = Em.Controller.extend({
       }
     }
     this.set("hosts", result);
+    this.sortHosts(this.get('hosts'));
+  },
+
+  sortHosts: function (hosts) {
+    hosts.sort(function (a, b) {
+      if (a.get('memory') == b.get('memory')) {
+        if (a.get('cpu') == b.get('cpu')) {
+          return a.get('host_name').localeCompare(b.get('host_name')); // hostname asc
+        }
+        return b.get('cpu') - a.get('cpu'); // cores desc
+      }
+      return b.get('memory') - a.get('memory'); // ram desc
+    });
   },
 
   /**
@@ -218,7 +231,7 @@ App.WizardStep5Controller = Em.Controller.extend({
       if (item.display_name === "ZooKeeper") {
         componentObj.set('zId', zid++);
         componentObj.set("showRemoveControl", showRemoveControlZk);
-      } else if(App.supports.multipleHBaseMasters && item.component_name === "HBASE_MASTER"){
+      } else if (App.supports.multipleHBaseMasters && item.component_name === "HBASE_MASTER") {
         componentObj.set('zId', hid++);
         componentObj.set("showRemoveControl", showRemoveControlHb);
       }
