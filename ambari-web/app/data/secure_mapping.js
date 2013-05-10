@@ -314,6 +314,13 @@ module.exports = [
     "filename": "webhcat-site.xml"
   },
   {
+    "name": "hbase.coprocessor.master.classes",
+    "templateName": [],
+    "foreignKey": null,
+    "value": "org.apache.hadoop.hbase.security.access.AccessController",
+    "filename": "hbase-site.xml"
+  },
+  {
     "name": "hbase.coprocessor.region.classes",
     "templateName": [],
     "foreignKey": null,

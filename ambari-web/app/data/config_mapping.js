@@ -758,13 +758,6 @@ var configs = [
     "filename": "hbase-site.xml"
   },
   {
-    "name": "hbase.coprocessor.master.classes",
-    "templateName": [],
-    "foreignKey": null,
-    "value": "org.apache.hadoop.hbase.security.access.AccessController",
-    "filename": "hbase-site.xml"
-  },
-  {
     "name": "templeton.hive.properties",
     "templateName": ["hivemetastore_host"],
     "foreignKey": null,

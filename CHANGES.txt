@@ -837,6 +837,8 @@ Trunk (unreleased changes):
 
  BUG FIXES
 
+ AMBARI-2100. HBase throws AccessDeniedException. (yusaku)
+
  AMBARI-2099. Cluster install failed due to timeout and the user can proceed
  to cluster management; the user was not presented an option to retry install.
  (yusaku)
