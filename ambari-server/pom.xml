@@ -400,7 +400,7 @@
               </environmentVariables>
               <skip>${skipTests}</skip>
             </configuration>
-            <id>default-cli</id>
+            <id>python-test</id>
             <phase>test</phase>
             <goals>
               <goal>exec</goal>

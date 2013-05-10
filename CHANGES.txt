@@ -837,6 +837,8 @@ Trunk (unreleased changes):
 
  BUG FIXES
 
+ AMBARI-2107. Cluster CPU Chart is off the charts. (swagle)
+
  AMBARI-2102. Confusing message "ls: cannot access /usr/share/java/*oracle*:
  No such file or directory". (smohanty)
 
