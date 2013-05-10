@@ -416,6 +416,8 @@ App.WizardStep9Controller = Em.Controller.extend({
   },
 
   // marks a host's status as "warning" if at least one of the tasks is FAILED, ABORTED, or TIMEDOUT and marks host's status as "failed" if at least one master component install task is FAILED.
+  // note that if the master failed to install because of ABORTED or TIMEDOUT, we don't mark it as failed, because this would mark all hosts as "failed" and makes it difficult for the user
+  // to find which host FAILED occurred on, if any
   onErrorPerHost: function (actions, contentHost) {
     if (actions.someProperty('Tasks.status', 'FAILED') || actions.someProperty('Tasks.status', 'ABORTED') || actions.someProperty('Tasks.status', 'TIMEDOUT')) {
       contentHost.set('status', 'warning');
@@ -492,19 +494,33 @@ App.WizardStep9Controller = Em.Controller.extend({
     return polledData.everyProperty('Tasks.status', 'COMPLETED');
   },
 
-  //return true if at least 50% of the slave host components for the particular service component fails to install
+  /**
+   * return true if:
+   *  1. any of the master/client components failed to install
+   *  OR
+   *  2. at least 50% of the slave host components for the particular service component fails to install
+   */
   isStepFailed: function () {
     var failed = false;
     var polledData = this.get('polledData');
     polledData.filterProperty('Tasks.command', 'INSTALL').mapProperty('Tasks.role').uniq().forEach(function (role) {
+      if (failed) {
+        return;
+      }
+      var actionsPerRole = polledData.filterProperty('Tasks.role', role);
       if (['DATANODE', 'TASKTRACKER', 'HBASE_REGIONSERVER', 'GANGLIA_MONITOR'].contains(role)) {
-        var actionsPerRole = polledData.filterProperty('Tasks.role', role);
+        // check slave components for success factor.
+        // partial failure for slave components are allowed.
         var actionsFailed = actionsPerRole.filterProperty('Tasks.status', 'FAILED');
         var actionsAborted = actionsPerRole.filterProperty('Tasks.status', 'ABORTED');
         var actionsTimedOut = actionsPerRole.filterProperty('Tasks.status', 'TIMEDOUT');
         if ((((actionsFailed.length + actionsAborted.length + actionsTimedOut.length) / actionsPerRole.length) * 100) > 50) {
           failed = true;
         }
+      } else if (actionsPerRole.someProperty('Tasks.status', 'FAILED') || actionsPerRole.someProperty('Tasks.status', 'ABORTED') ||
+        actionsPerRole.someProperty('Tasks.status', 'TIMEDOUT')) {
+        // check non-salve components (i.e., masters and clients).  all of these must be successfully installed.
+        failed = true;
       }
     }, this);
     return failed;
