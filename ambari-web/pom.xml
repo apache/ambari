@@ -150,6 +150,7 @@
         <artifactId>apache-rat-plugin</artifactId>
         <configuration>
           <excludes>
+            <exclude>.idea/**</exclude>
             <exclude>package.json</exclude>
             <exclude>public/**</exclude>
             <exclude>app/assets/**</exclude>
