@@ -836,6 +836,9 @@ Trunk (unreleased changes):
  Farrellee via mahadev)
 
  BUG FIXES
+ 
+ AMBARI-2108. Fix apache rat check issues for ambari (top-level dir).
+ (yusaku)
 
  AMBARI-2105. Assign Slaves page allows the user to specify a host with no
  components on it. (jaimin)
