@@ -837,6 +837,9 @@ Trunk (unreleased changes):
 
  BUG FIXES
 
+ AMBARI-2106. Fix apache rat check issues for ambari-server and ambari-agent.
+ (swagle)
+
  AMBARI-2107. Cluster CPU Chart is off the charts. (swagle)
 
  AMBARI-2102. Confusing message "ls: cannot access /usr/share/java/*oracle*:
