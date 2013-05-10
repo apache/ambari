@@ -837,6 +837,9 @@ Trunk (unreleased changes):
 
  BUG FIXES
 
+ AMBARI-2102. Confusing message "ls: cannot access /usr/share/java/*oracle*:
+ No such file or directory". (smohanty)
+
  AMBARI-2104. Fix apache rat check issues for ambari-web. (yusaku)
 
  AMBARI-2100. HBase throws AccessDeniedException. (yusaku)
