@@ -837,6 +837,9 @@ Trunk (unreleased changes):
 
  BUG FIXES
 
+ AMBARI-2101. Hive service check (still) failing with file permissions.
+ (swagle)
+
  AMBARI-2095. It's possible to get into a state where install retry is not
  possible if the agent stops heartbeating. (jaimin via yusaku)
 

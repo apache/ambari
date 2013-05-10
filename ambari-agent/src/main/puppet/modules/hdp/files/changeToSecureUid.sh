@@ -27,7 +27,7 @@ function find_available_uid() {
  for ((i=1001; i<=2000; i++))
  do
    grep -q $i /etc/passwd
-   if [ "$?" != 0 ]
+   if [ "$?" -ne 0 ]
    then
     newUid=$i
     break
@@ -36,7 +36,7 @@ function find_available_uid() {
 }
 
 grep -q $newUid /etc/passwd
-if [ "$?" != 0 ]
+if [ "$?" -ne 0 ]
 then
   echo "Uid $newUid is available for $username"
 else
@@ -44,7 +44,7 @@ else
   find_available_uid
 fi
 
-if [ $newUid == 0 ]
+if [ $newUid -eq 0 ]
 then
   echo "Failed to find Uid between 1000 and 2000"
   exit 1
