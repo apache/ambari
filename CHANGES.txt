@@ -837,6 +837,9 @@ Trunk (unreleased changes):
 
  BUG FIXES
 
+ AMBARI-2105. Assign Slaves page allows the user to specify a host with no
+ components on it. (jaimin)
+
  AMBARI-2106. Fix apache rat check issues for ambari-server and ambari-agent.
  (swagle)
 
