@@ -836,6 +836,8 @@ Trunk (unreleased changes):
  Farrellee via mahadev)
 
  BUG FIXES
+
+ AMBARI-2109. Sanitize KEYS and NOTICE.txt on trunk. (yusaku)
  
  AMBARI-2108. Fix apache rat check issues for ambari (top-level dir).
  (yusaku)
