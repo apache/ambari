@@ -36,6 +36,7 @@ class hdp::params()
     $oozie-site = $configuration['oozie-site']
     $sqoop-site = $configuration['sqoop-site']
     $webhcat-site = $configuration['webhcat-site']
+    $yarn-site = $configuration['yarn-site']
   }
 
   ##### global state defaults ####
@@ -60,6 +61,10 @@ class hdp::params()
   $snamenode_host = hdp_default("snamenode_host")
   $jtnode_host = hdp_default("jtnode_host")
   $slave_hosts = hdp_default("slave_hosts")
+
+  $rm_host = hdp_default("rm_host")
+  $nm_hosts = hdp_default("nm_hosts")
+  $hs_host = hdp_default("hs_host")
 
   $zookeeper_hosts = hdp_default("zookeeper_hosts")
 
@@ -126,6 +131,9 @@ class hdp::params()
   if ($hostAttributes != undef) {
     $public_namenode_host = hdp_host_attribute($hostAttributes,"publicfqdn",$namenode_host)
     $public_snamenode_host = hdp_host_attribute($hostAttributes,"publicfqdn",$snamenode_host)
+    $public_rm_host = hdp_host_attribute($hostAttributes,"publicfqdn",$rm_host)
+    $public_nm_hosts = hdp_host_attribute($hostAttributes,"publicfqdn",$nm_hosts)
+    $public_hs_host = hdp_host_attribute($hostAttributes,"publicfqdn",$hs_host)
     $public_jtnode_host = hdp_host_attribute($hostAttributes,"publicfqdn",$jtnode_host)
     $public_hbase_master_hosts = hdp_host_attribute($hostAttributes,"publicfqdn",$hbase_master_hosts)
     $public_zookeeper_hosts = hdp_host_attribute($hostAttributes,"publicfqdn",$zookeeper_hosts)
@@ -138,6 +146,9 @@ class hdp::params()
   } else {
     $public_namenode_host = hdp_default("namenode_host")
     $public_snamenode_host = hdp_default("snamenode_host")
+    $public_rm_host = hdp_default("rm_host")
+    $public_nm_hosts = hdp_default("nm_hosts")
+    $public_hs_host = hdp_default("hs_host")
     $public_jtnode_host = hdp_default("jtnode_host")
     $public_hbase_master_hosts = hdp_default("hbase_master_hosts")
     $public_zookeeper_hosts = hdp_default("zookeeper_hosts")
@@ -192,6 +203,14 @@ class hdp::params()
   $webhcat_apps_dir = hdp_default("webhcat_apps_dir", "/apps/webhcat")
   $hbase_hdfs_root_dir = hdp_default("hbase-site/hbase.hdfs.root.dir","/apps/hbase/data")
 
+  $yarn_nm_app_log_dir = hdp_default("yarn-site/yarn.nodemanager.remote-app-log-dir","/app-logs")
+
+  $yarn_log_aggregation_enabled = hdp_default("yarn-site/yarn.log-aggregation-enable","true")
+
+  $mapreduce_jobhistory_intermediate_done_dir = hdp_default("mapred-site/mapreduce.jobhistory.intermediate-done-dir","/mr-history/tmp")
+  
+  $mapreduce_jobhistory_done_dir = hdp_default("mapred-site/mapreduce.jobhistory.done-dir","/mr-history/done")
+  
   $user_group = hdp_default("user_group","hadoop")
 
   $ganglia_enabled = hdp_default("ganglia_enabled",true) 
@@ -286,6 +305,7 @@ class hdp::params()
       $hadoop_bin = "/usr/lib/hadoop/bin"
     }
     $yarn_bin = "/usr/lib/hadoop-yarn/sbin"
+    $mapred_bin = "/usr/lib/hadoop-mapreduce/sbin"
     $hadoop_conf_dir = "/etc/hadoop/conf"
     $yarn_conf_dir = "/etc/hadoop/conf"
     $zk_conf_dir = "/etc/zookeeper/conf"
@@ -376,6 +396,14 @@ class hdp::params()
         }
       },
 
+    hadoop-mapreduce-client => {
+      'ALL' => {
+        64 => {
+          'ALL' => ['hadoop-mapreduce']
+        }
+      }
+    },
+
     yarn-common => { 
       'ALL' => {
         64 => {
@@ -387,7 +415,7 @@ class hdp::params()
     yarn-nodemanager => { 
       'ALL' => {
         64 => {
-          'ALL' => ['hadoop-yarn-nodemanager', 'hadoop-yarn-proxyserver', 'hadoop-yarn-resourcemanager']
+          'ALL' => ['hadoop-yarn-nodemanager']
         }
       }
     },
@@ -395,7 +423,7 @@ class hdp::params()
     yarn-proxyserver => { 
       'ALL' => {
         64 => {
-          'ALL' => ['hadoop-yarn-proxyserver', 'hadoop-yarn-resourcemanager']
+          'ALL' => ['hadoop-yarn-proxyserver']
         }
       }
     },
@@ -403,7 +431,23 @@ class hdp::params()
     yarn-resourcemanager => { 
       'ALL' => {
         64 => {
-          'ALL' => ['hadoop-yarn-resourcemanager']
+          'ALL' => ['hadoop-yarn-resourcemanager', 'hadoop-mapreduce']
+        }
+      }
+    },
+
+    mapreduce-historyserver => { 
+      'ALL' => {
+        64 => {
+          'ALL' => ['hadoop-mapreduce-historyserver']
+        }
+      }
+    },
+
+    tez_client => { 
+      'ALL' => {
+        64 => {
+          'ALL' => ['tez']
         }
       }
     },

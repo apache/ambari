@@ -36,6 +36,7 @@ import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.ClusterNotFoundException;
 import org.apache.ambari.server.DuplicateResourceException;
 import org.apache.ambari.server.ParentObjectNotFoundException;
+import org.apache.ambari.server.ObjectNotFoundException;
 import org.apache.ambari.server.Role;
 import org.apache.ambari.server.RoleCommand;
 import org.apache.ambari.server.StackAccessException;
@@ -74,7 +75,9 @@ import org.apache.ambari.server.state.svccomphost.ServiceComponentHostStartEvent
 import org.apache.ambari.server.utils.StageUtils;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import com.google.inject.Guice;
@@ -118,6 +121,9 @@ public class AmbariManagementControllerTest {
   private AmbariMetaInfo ambariMetaInfo;
   private Users users;
   private EntityManager entityManager;
+
+  @Rule
+  public ExpectedException expectedException = ExpectedException.none();
 
   @Before
   public void setup() throws Exception {
@@ -6040,6 +6046,130 @@ public class AmbariManagementControllerTest {
         }
       }
     }
+  }
+
+  @Test
+  public void testGetTasksByRequestId() throws AmbariException {
+    final long requestId1 = 1;
+    final long requestId2 = 2;
+    final String clusterName = "c1";
+    final String hostName1 = "h1";
+    final String context = "Test invocation";
+
+    clusters.addCluster(clusterName);
+    clusters.getCluster(clusterName).setDesiredStackVersion(new StackId("HDP-0.1"));
+    clusters.addHost(hostName1);
+    clusters.getHost("h1").setOsType("centos5");
+    clusters.getHost(hostName1).persist();
+
+    clusters.mapHostsToCluster(new HashSet<String>(){
+      {add(hostName1);}}, clusterName);
+
+
+    List<Stage> stages = new ArrayList<Stage>();
+    stages.add(new Stage(requestId1, "/a1", clusterName, context));
+    stages.get(0).setStageId(1);
+    stages.get(0).addHostRoleExecutionCommand(hostName1, Role.HBASE_MASTER,
+            RoleCommand.START,
+            new ServiceComponentHostStartEvent(Role.HBASE_MASTER.toString(),
+                    hostName1, System.currentTimeMillis(),
+                    new HashMap<String, String>()),
+            clusterName, "HBASE");
+
+    stages.add(new Stage(requestId1, "/a2", clusterName, context));
+    stages.get(1).setStageId(2);
+    stages.get(1).addHostRoleExecutionCommand(hostName1, Role.HBASE_CLIENT,
+            RoleCommand.START,
+            new ServiceComponentHostStartEvent(Role.HBASE_CLIENT.toString(),
+                    hostName1, System.currentTimeMillis(),
+                    new HashMap<String, String>()), clusterName, "HBASE");
+
+    stages.add(new Stage(requestId1, "/a3", clusterName, context));
+    stages.get(2).setStageId(3);
+    stages.get(2).addHostRoleExecutionCommand(hostName1, Role.HBASE_CLIENT,
+            RoleCommand.START,
+            new ServiceComponentHostStartEvent(Role.HBASE_CLIENT.toString(),
+                    hostName1, System.currentTimeMillis(),
+                    new HashMap<String, String>()), clusterName, "HBASE");
+
+
+    stages.add(new Stage(requestId2, "/a4", clusterName, context));
+    stages.get(3).setStageId(4);
+    stages.get(3).addHostRoleExecutionCommand(hostName1, Role.HBASE_CLIENT,
+            RoleCommand.START,
+            new ServiceComponentHostStartEvent(Role.HBASE_CLIENT.toString(),
+                    hostName1, System.currentTimeMillis(),
+                    new HashMap<String, String>()), clusterName, "HBASE");
+
+    stages.add(new Stage(requestId2, "/a5", clusterName, context));
+    stages.get(4).setStageId(5);
+    stages.get(4).addHostRoleExecutionCommand(hostName1, Role.HBASE_CLIENT,
+            RoleCommand.START,
+            new ServiceComponentHostStartEvent(Role.HBASE_CLIENT.toString(),
+                    hostName1, System.currentTimeMillis(),
+                    new HashMap<String, String>()), clusterName, "HBASE");
+
+    actionDB.persistActions(stages);
+
+    Set<TaskStatusRequest> taskStatusRequests;
+    Set<TaskStatusResponse> taskStatusResponses;
+
+    //check count of tasks by requestId1
+    taskStatusRequests = new HashSet<TaskStatusRequest>(){
+      {
+        add(new TaskStatusRequest(requestId1, null));
+      }
+    };
+    taskStatusResponses = controller.getTaskStatus(taskStatusRequests);
+    assertEquals(3, taskStatusResponses.size());
+
+    //check a taskId that requested by requestId1 and task id
+    taskStatusRequests = new HashSet<TaskStatusRequest>(){
+      {
+        add(new TaskStatusRequest(requestId1, 2L));
+      }
+    };
+    taskStatusResponses = controller.getTaskStatus(taskStatusRequests);
+    assertEquals(1, taskStatusResponses.size());
+    assertEquals(2L, taskStatusResponses.iterator().next().getTaskId());
+
+    //check count of tasks by requestId2
+    taskStatusRequests = new HashSet<TaskStatusRequest>(){
+      {
+        add(new TaskStatusRequest(requestId2, null));
+      }
+    };
+    taskStatusResponses = controller.getTaskStatus(taskStatusRequests);
+    assertEquals(2, taskStatusResponses.size());
+
+    //check a taskId that requested by requestId2 and task id
+    taskStatusRequests = new HashSet<TaskStatusRequest>(){
+      {
+        add(new TaskStatusRequest(requestId2, 5L));
+      }
+    };
+    taskStatusResponses = controller.getTaskStatus(taskStatusRequests);
+    assertEquals(5L, taskStatusResponses.iterator().next().getTaskId());
+
+    //verify that task from second request (requestId2) does not present in first request (requestId1)
+    taskStatusRequests = new HashSet<TaskStatusRequest>(){
+      {
+        add(new TaskStatusRequest(requestId1, 5L));
+      }
+    };
+    expectedException.expect(ObjectNotFoundException.class);
+    expectedException.expectMessage("Task resource doesn't exist.");
+    controller.getTaskStatus(taskStatusRequests);
+
+    //verify that task from first request (requestId1) does not present in second request (requestId2)
+    taskStatusRequests = new HashSet<TaskStatusRequest>(){
+      {
+        add(new TaskStatusRequest(requestId2, 2L));
+      }
+    };
+    expectedException.expect(ObjectNotFoundException.class);
+    expectedException.expectMessage("Task resource doesn't exist.");
+    controller.getTaskStatus(taskStatusRequests);
   }
 
 }

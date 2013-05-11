@@ -413,20 +413,13 @@ public abstract class GangliaPropertyProvider extends AbstractPropertyProvider {
 
           String val = reader.readLine();
           while(! val.equals("[AMBARI_DP_END]")) {
-            listTemporalMetrics.add(
-                new GangliaMetric.TemporalMetric(convertToNumber(val), time));
+            GangliaMetric.TemporalMetric tm = new GangliaMetric.TemporalMetric(val, time);
+            if (!tm.isIsInvalid()) listTemporalMetrics.add(tm);
             time += step;
             val = reader.readLine();
           }
 
-          //todo: change setter in GangliaMetric to take collection
-          Number[][] datapointsArray = new Number[listTemporalMetrics.size()][2];
-          for (int i = 0; i < listTemporalMetrics.size(); ++i) {
-            GangliaMetric.TemporalMetric m = listTemporalMetrics.get(i);
-            datapointsArray[i][0] = m.getValue();
-            datapointsArray[i][1] = m.getTime();
-          }
-          metric.setDatapoints(datapointsArray);
+          metric.setDatapointsFromList(listTemporalMetrics);
 
           ResourceKey key = new ResourceKey(metric.getHost_name(), metric.getCluster_name());
           Set<Resource> resourceSet = resources.get(key);

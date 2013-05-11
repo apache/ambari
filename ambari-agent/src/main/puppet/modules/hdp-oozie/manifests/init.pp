@@ -39,13 +39,13 @@ class hdp-oozie(
       configuration => $configuration['oozie-site'],
       owner => $oozie_user,
       group => $hdp::params::user_group,
-      mode => '0664'
+      mode => '0660'
     }
   } else {
     file { "${oozie_config_dir}/oozie-site.xml":
       owner => $oozie_user,
       group => $hdp::params::user_group,
-      mode => '0664'
+      mode => '0660'
     }
   }
 

@@ -3713,7 +3713,8 @@ public class AmbariManagementControllerImpl implements
     for (TaskStatusRequest request : requests) {
       if (request.getTaskId() != null) {
         taskIds.add(request.getTaskId());
-      } else {
+      }
+      if (request.getRequestId() != null) {
         requestIds.add(request.getRequestId());
       }
     }
@@ -3721,6 +3722,10 @@ public class AmbariManagementControllerImpl implements
     Set<TaskStatusResponse> responses = new HashSet<TaskStatusResponse>();
     for (HostRoleCommand command : actionManager.getTasksByRequestAndTaskIds(requestIds, taskIds)) {
       responses.add(new TaskStatusResponse(command));
+    }
+
+    if (responses.size() == 0) {
+      throw new ObjectNotFoundException("Task resource doesn't exist.");
     }
 
     return responses;

@@ -18,6 +18,10 @@
 
 package org.apache.ambari.server.controller.ganglia;
 
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 import org.codehaus.jackson.annotate.JsonIgnoreProperties;
 @JsonIgnoreProperties(ignoreUnknown = true)
 
@@ -58,6 +62,22 @@ public class GangliaMetric {
    * The temporal data points.
    */
   private Number[][] datapoints;
+  
+  
+  private static final Set<String> PERCENTAGE_METRIC;
+
+  //BUG-3386 Cluster CPU Chart is off the charts
+  // Here can be added other percentage metrics
+  static {
+    Set<String> temp = new HashSet<String>();
+    temp.add("cpu_wio");
+    /*temp.add("cpu_idle");
+    temp.add("cpu_nice");
+    temp.add("cpu_aidle");
+    temp.add("cpu_system");
+    temp.add("cpu_user");*/
+    PERCENTAGE_METRIC = Collections.unmodifiableSet(temp);
+  }
 
 
   // ----- GangliaMetric -----------------------------------------------------
@@ -106,10 +126,45 @@ public class GangliaMetric {
     return datapoints;
   }
 
+
   public void setDatapoints(Number[][] datapoints) {
     this.datapoints = datapoints;
-  }
+  } 
+  
+  public void setDatapointsFromList(List<GangliaMetric.TemporalMetric> listTemporalMetrics) { 
+    //this.datapoints = datapoints;
+    Number[][] datapointsArray = new Number[listTemporalMetrics.size()][2];
+    int cnt = 0;
+    if (PERCENTAGE_METRIC.contains(metric_name)) {
+      int firstIndex = 0;
+      int lastIndex = listTemporalMetrics.size() - 1;
+      for (int i = firstIndex; i <= lastIndex; ++i) {
+        GangliaMetric.TemporalMetric m = listTemporalMetrics.get(i);
+        Number val = m.getValue();
+        if (100.0 >= val.doubleValue()) {
+          datapointsArray[cnt][0] = val;
+          datapointsArray[cnt][1] = m.getTime();
+          cnt++;
+        }
+      }
+    } else {
+      int firstIndex = 0;
+      int lastIndex = listTemporalMetrics.size() - 1;
+      for (int i = firstIndex; i <= lastIndex; ++i) {
+        GangliaMetric.TemporalMetric m = listTemporalMetrics.get(i);
+        datapointsArray[i][0] = m.getValue();
+        datapointsArray[i][1] = m.getTime();
+        cnt++;
+      }
+    }
 
+    this.datapoints = new Number[cnt][2];
+    for (int i = 0; i < this.datapoints.length; i++) {
+      this.datapoints[i][0] = datapointsArray[i][0];
+      this.datapoints[i][1] = datapointsArray[i][1];
+    }
+
+  }
 
   // ----- Object overrides --------------------------------------------------
 
@@ -159,9 +214,19 @@ public class GangliaMetric {
   public static class TemporalMetric {
     private Number m_value;
     private Number m_time;
+    private boolean isInvalid;
 
-    public TemporalMetric(Number value, Number time) {
-      m_value = value;
+    public boolean isIsInvalid() {
+      return isInvalid;
+    }
+
+    public TemporalMetric(String value, Number time) {
+      isInvalid = false;
+      try{
+        m_value = convertToNumber(value);
+      } catch (NumberFormatException e) {
+        isInvalid = true;
+      }
       m_time = time;
     }
 
@@ -172,5 +237,21 @@ public class GangliaMetric {
     public Number getTime() {
       return m_time;
     }
+    
+    private Number convertToNumber(String s) throws NumberFormatException {
+      Number res;
+      if(s.contains(".")){
+        Double d = Double.parseDouble(s);
+        if(d.isNaN() || d.isInfinite()){
+          throw new NumberFormatException(s);
+        } else {
+          res = d;
+        } 
+      } else {
+        res = Long.parseLong(s);
+      }
+      return res;
+    }
+    
   }
 }

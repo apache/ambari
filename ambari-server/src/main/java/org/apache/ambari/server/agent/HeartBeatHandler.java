@@ -105,10 +105,12 @@ public class HeartBeatHandler {
       return createRegisterCommand();
     }
 
-    LOG.info("Received heartbeat from host"
-        + ", hostname=" + hostname
-        + ", currentResponseId=" + currentResponseId
-        + ", receivedResponseId=" + heartbeat.getResponseId());
+    if (LOG.isDebugEnabled()) {
+      LOG.debug("Received heartbeat from host"
+          + ", hostname=" + hostname
+          + ", currentResponseId=" + currentResponseId
+          + ", receivedResponseId=" + heartbeat.getResponseId());
+    }
 
     if (heartbeat.getResponseId() == currentResponseId - 1) {
       LOG.warn("Old responseId received - response was lost - returning cached response");

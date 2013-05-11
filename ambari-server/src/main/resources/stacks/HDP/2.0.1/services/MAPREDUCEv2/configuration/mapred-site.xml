@@ -528,4 +528,22 @@ user)</description>
   <description> Comma separated list of queues configured for this jobtracker.</description>
 </property>
 
+<property>
+  <name>mapreduce.shuffle.port</name>
+  <value>8081</value>
+  <description>Default port that the ShuffleHandler will run on. ShuffleHandler is a service run at the NodeManager to facilitate transfers of intermediate Map outputs to requesting Reducers.</description>
+</property>
+
+<property>
+  <name>mapreduce.jobhistory.intermediate-done-dir</name>
+  <value>/mr-history/tmp</value>
+  <description>Directory where history files are written by MapReduce jobs.</description>
+</property>
+
+<property>
+  <name>mapreduce.jobhistory.done-dir</name>
+  <value>/mr-history/done</value>
+  <description>Directory where history files are managed by the MR JobHistory Server.</description>
+</property>
+
 </configuration>

@@ -35,11 +35,6 @@ class hdp-yarn::resourcemanager(
 
   } elsif ($service_state in ['running','stopped']) {
   
-    if ( ($service_state == 'installed_and_configured') and
-         ($security_enabled == true) and ($kerberos_install_type == "AMBARI_SET_KERBEROS") ) {
-      hdp_fail("Security not yet implemented for resource manager")
-    }
-
     include hdp-yarn::initialize
  
     hdp-yarn::service{ 'resourcemanager':

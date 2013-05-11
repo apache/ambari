@@ -1,0 +1,85 @@
+~~ Licensed to the Apache Software Foundation (ASF) under one or more
+~~ contributor license agreements.  See the NOTICE file distributed with
+~~ this work for additional information regarding copyright ownership.
+~~ The ASF licenses this file to You under the Apache License, Version 2.0
+~~ (the "License"); you may not use this file except in compliance with
+~~ the License.  You may obtain a copy of the License at
+~~
+~~     http://www.apache.org/licenses/LICENSE-2.0
+~~
+~~ Unless required by applicable law or agreed to in writing, software
+~~ distributed under the License is distributed on an "AS IS" BASIS,
+~~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+~~ See the License for the specific language governing permissions and
+~~ limitations under the License.
+~~
+Introduction
+
+  The Apache Ambari project is aimed at making Hadoop management simpler by developing software for provisioning, managing, and monitoring Apache Hadoop clusters.
+  Ambari provides an intuitive, easy-to-use Hadoop management web UI backed by its RESTful APIs.
+
+  The set of Hadoop components that are currently supported by Ambari includes:
+
+  {{{http://hadoop.apache.org/docs/hdfs} HDFS}},
+  {{{http://hadoop.apache.org/docs/mapreduce} MapReduce}}
+  {{{http://hive.apache.org} Hive}},
+  {{{http://incubator.apache.org/hcatalog} HCatalog}},
+  {{{http://hbase.apache.org} HBase}},
+  {{{http://zookeeper.apache.org} ZooKeeper}},
+  {{{http://incubator.apache.org/oozie/} Oozie}},
+  {{{http://pig.apache.org} Pig}},
+  {{{http://sqoop.apache.org} Sqoop}}
+
+  []
+
+  Ambari enables System Administrators to:
+
+  * Provision a Hadoop Cluster
+  
+    * Ambari provides a step-by-step wizard for installing Hadoop services across any number of hosts.
+    
+    * Ambari handles configuration of Hadoop services for the cluster.
+
+  []
+
+  * Manage a Hadoop Cluster
+  
+    * Ambari provides central management for starting, stopping, and reconfiguring Hadoop services across the entire cluster.
+
+  []
+
+  * Monitor a Hadoop Cluster
+  
+    * Ambari provides a dashboard for monitoring health and status of the Hadoop cluster.
+
+    * Ambari leverages {{{http://ganglia.sourceforge.net/} Ganglia}} for metrics collection.
+
+    * Ambari leverages {{{http://www.nagios.org/} Nagios}} for system alerting and will send emails when your attention is needed (e.g., a node goes down, remaining disk space is low, etc).
+
+  []
+
+  Ambari enables Application Developers and System Integrators to:
+
+  * Easily integrate Hadoop provisioning, management, and monitoring capabilities to their own applications with the {{{https://github.com/apache/ambari/blob/trunk/ambari-server/docs/api/v1/index.md} Ambari REST APIs}}.
+
+Getting Started with Ambari
+
+  Follow the {{{./1.2.2/installing-hadoop-using-ambari/content/index.html} installation guide for Ambari 1.2.2}}.
+
+  Note: Ambari currently supports 64-bit RHEL/CentOS 5 + 6 and SLES 11.
+
+Get Involved
+
+  Visit the {{{https://cwiki.apache.org/confluence/display/AMBARI/Ambari} Ambari Wiki}} for design documents, roadmap, development guidelines, etc.
+
+  The first {{{http://www.meetup.com/Apache-Ambari-User-Group} Ambari User Group Meetup}} took place on April 2 in Palo Alto, California, USA.  {{{http://www.meetup.com/Apache-Ambari-User-Group/events/109316812/} See the slides and WebEx session from the Meetup}}.  
+
+What's New?
+
+  Check out the work going on for the {{{./whats-new.html} upcoming 1.3.0 release}}.
+
+Disclaimer
+
+  Apache Ambari is an effort undergoing incubation at The Apache Software Foundation (ASF) sponsored by the Apache Incubator PMC. Incubation is required of all newly accepted projects until a further review indicates that the infrastructure, communications, and decision making process have stabilized in a manner consistent with other successful ASF projects. While incubation status is not necessarily a reflection of the completeness or stability of the code, it does indicate that the project has yet to be fully endorsed by the ASF.
+
+

@@ -12,8 +12,19 @@ Trunk (unreleased changes):
 
  NEW FEATURES
 
+ AMBARI-2096. Create smoke test for HISTORYSERVER. (swagle)
+
+ AMBARI-2094. Create smoke test for NODEMANAGER component as a part of 
+ MapReduce V2 Service check. (swagle)
+
+ AMBARI-2093. Add Tez as a configurable Service in Hadoop 2.0 stack. (swagle)
+
  AMBARI-2031. AMBARI-2031. Add clover code coverage profile. 
  (Giridharan Kesavan via swagle)
+
+ AMBARI-2050. Create smoke test for RESOURCEMANAGER component. (swagle)
+
+ AMBARI-2049. Create ambari agent scripts for MAPREDUCEv2_CLIENT. (swagle)
 
  AMBARI-2048. Create ambari agent scripts for historyserver. (swagle)
 
@@ -278,6 +289,8 @@ Trunk (unreleased changes):
  (Sumit Mohanty via mahadev)
 
  IMPROVEMENTS
+
+ AMBARI-2111. Enable customization of smoke test user. (yusaku)
 
  AMBARI-2110. Update hive-site.xml, set fs.file.impl.disable.cache=true.
  (mahadev)
@@ -839,6 +852,8 @@ Trunk (unreleased changes):
 
  AMBARI-2106. Fix apache rat check issues for ambari-server and ambari-agent.
  (swagle)
+
+ AMBARI-2107. Cluster CPU Chart is off the charts. (swagle)
 
  AMBARI-2102. Confusing message "ls: cannot access /usr/share/java/*oracle*:
  No such file or directory". (smohanty)

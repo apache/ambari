@@ -62,6 +62,8 @@ export HADOOP_SSH_OPTS="-o ConnectTimeout=5 -o SendEnv=HADOOP_CONF_DIR"
 # Where log files are stored.  $HADOOP_HOME/logs by default.
 export HADOOP_LOG_DIR=<%=scope.function_hdp_template_var("hdfs_log_dir_prefix")%>/$USER
 
+# History server logs
+export HADOOP_MAPRED_LOG_DIR=<%=scope.function_hdp_template_var("mapred_log_dir_prefix")%>/$USER
 
 # Where log files are stored in the secure data environment.
 export HADOOP_SECURE_DN_LOG_DIR=<%=scope.function_hdp_template_var("hdfs_log_dir_prefix")%>/$HADOOP_SECURE_DN_USER
@@ -80,6 +82,9 @@ export HADOOP_SECURE_DN_LOG_DIR=<%=scope.function_hdp_template_var("hdfs_log_dir
 # The directory where pid files are stored. /tmp by default.
 export HADOOP_PID_DIR=<%=scope.function_hdp_template_var("hadoop_pid_dir_prefix")%>/$USER
 export HADOOP_SECURE_DN_PID_DIR=<%=scope.function_hdp_template_var("hadoop_pid_dir_prefix")%>/$HADOOP_SECURE_DN_USER
+
+# History server pid
+export HADOOP_MAPRED_PID_DIR=<%=scope.function_hdp_template_var("mapred_pid_dir_prefix")%>/$USER
 
 # A string representing this instance of hadoop. $USER by default.
 export HADOOP_IDENT_STRING=$USER
@@ -101,4 +106,5 @@ do
   JAVA_JDBC_LIBS=${JAVA_JDBC_LIBS}:$jarFile
 done
 #Add libraries required by nodemanager
-export HADOOP_CLASSPATH=${HADOOP_CLASSPATH}${JAVA_JDBC_LIBS}
+MAPREDUCE_LIBS=<%=scope.function_hdp_template_var("mapreduce_libs_path")%> 
+export HADOOP_CLASSPATH=${HADOOP_CLASSPATH}${JAVA_JDBC_LIBS}:${MAPREDUCE_LIBS}

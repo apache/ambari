@@ -19,12 +19,12 @@
 #
 #
 class hdp-yarn::params(
-) inherits hdp::params 
+) inherits hdp-hadoop::params 
 {
 
   $conf_dir = $hdp::params::yarn_conf_dir 
-  
-  ## yarn-env
+    
+  ## yarn-env 
   $hadoop_libexec_dir = hdp_default("yarn/yarn-env/hadoop_libexec_dir","/usr/lib/hadoop/libexec")
   
   $hadoop_common_home = hdp_default("yarn/yarn-env/hadoop_common_home","/usr/lib/hadoop")
@@ -34,5 +34,10 @@ class hdp-yarn::params(
   
   $yarn_log_dir_prefix = hdp_default("hadoop/yarn-env/yarn_log_dir_prefix","/var/log/hadoop-yarn")
   $yarn_pid_dir_prefix = hdp_default("hadoop/yarn-env/yarn_pid_dir_prefix","/var/run/hadoop-yarn")
- 
+  
+  ## yarn-site
+  $rm_webui_port = hdp_default("yarn-site/yarn.resourcemanager.webapp.address", "8088")
+  $nm_webui_port = hdp_default("yarn-site/yarn.nodemanager.webapp.address", "8042")
+  $hs_webui_port = hdp_default("yarn-site/mapreduce.jobhistory.address", "19888")
+
 }

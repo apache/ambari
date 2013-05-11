@@ -381,11 +381,11 @@ function hdp_mon_generate_response( $response_data )
         $pieces[0] = "HIVE";
         break;
       case "ZKSERVERS":
-	      $pieces[0] = "ZOOKEEPER";
+	    $pieces[0] = "ZOOKEEPER";
         break;
       case "AMBARI":
-	      $pieces[0] = "AMBARI";
-        break;
+	    $pieces[0] = "AMBARI";
+      break;      
       case "NAGIOS":
       case "HDFS":
       case "MAPREDUCE":

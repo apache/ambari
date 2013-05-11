@@ -144,6 +144,11 @@ OS_TYPE_PROPERTY = "server.os_type"
 JDK_DOWNLOAD_CMD = "curl --create-dirs -o {0} {1}"
 JDK_DOWNLOAD_SIZE_CMD = "curl -I {0}"
 
+#JCE Policy files
+JCE_POLICY_FILENAME = "jce_policy-6.zip"
+JCE_DOWNLOAD_CMD = "curl -o {0} {1}"
+JCE_MIN_FILESIZE = 5000
+
 def configure_pg_hba_ambaridb_users():
   args = optparse.Values()
   configure_postgres_username_password(args)
@@ -564,6 +569,10 @@ def download_jdk(args):
   if args.java_home and os.path.exists(args.java_home):
     print_warning_msg("JAVA_HOME " + args.java_home
                     + " must be valid on ALL hosts")
+    print_warning_msg("Please make sure the JCE Unlimited Strength "
+                      "Jurisdiction Policy Files 6, "
+                      "are dwonloaded on all "
+                      "hosts")
     write_property(JAVA_HOME_PROPERTY, args.java_home)
     return 0
 
@@ -647,7 +656,74 @@ def download_jdk(args):
       format(JDK_INSTALL_DIR, jdk_version)
   write_property(JAVA_HOME_PROPERTY, "{0}/{1}".
       format(JDK_INSTALL_DIR, jdk_version))
+  jce_download = download_jce_policy(properties, ok)
+  if (jce_download == -1):
+    print "JCE Policy files are required for secure HDP setup. Please ensure " \
+          " all hosts have the JCE unlimited strength policy 6, files."
   return 0
+
+def download_jce_policy(properties, accpeted_bcl):
+  try:
+    jce_url = properties['jce_policy.url']
+    resources_dir = properties['resources.dir']
+  except (KeyError), e:
+    print 'Property ' + str(e) + ' is not defined in properties file'
+    return -1
+  dest_file = resources_dir + os.sep + JCE_POLICY_FILENAME
+  if not os.path.exists(dest_file):
+    print 'Downloading JCE Policy archive from ' + jce_url + ' to ' + dest_file
+    try:
+      size_command = JDK_DOWNLOAD_SIZE_CMD.format(jce_url);
+      #Get Header from url,to get file size then
+      retcode, out, err = run_os_command(size_command)
+      if out.find("Content-Length") == -1:
+        print "Request header doesn't contain Content-Length";
+        return -1
+      start_with = int(out.find("Content-Length") + len("Content-Length") + 2)
+      end_with = out.find("\r\n", start_with)
+      src_size = int(out[start_with:end_with])
+      print_info_msg('JCE zip distribution size is ' + str(src_size) + 'bytes')
+      file_exists = os.path.isfile(dest_file)
+      file_size = -1
+      if file_exists:
+        file_size = os.stat(dest_file).st_size
+      if file_exists and file_size == src_size:
+        print_info_msg("File already exists")
+      else:
+        #BCL license before download
+        jce_download_cmd = JCE_DOWNLOAD_CMD.format(dest_file, jce_url)
+        print_info_msg("JCE download cmd: " + jce_download_cmd)
+        if (accpeted_bcl == True):
+          retcode, out, err = run_os_command(jce_download_cmd)
+          if retcode == 0:
+            print 'Successfully downloaded JCE Policy archive to ' + dest_file
+          else:
+            return -1
+        else:
+          ok = get_YN_input("To download the JCE Policy archive you must "
+                            "accept the license terms found at "
+                            "http://www.oracle.com/technetwork/java/javase"
+                            "/terms/license/index.html"
+                            "Not accepting might result in failure when "
+                            "setting up HDP security. \nDo you accept the "
+                            "Oracle Binary Code License Agreement [y/n] (y)? ", True)
+          if (ok == True):
+            retcode, out, err = run_os_command(jce_download_cmd)
+            if retcode == 0:
+              print 'Successfully downloaded JCE Policy archive to ' + dest_file
+          else:
+            return -1
+    except Exception, e:
+      print_error_msg('Failed to download JCE Policy archive: ' + str(e))
+      return -1
+    downloaded_size = os.stat(dest_file).st_size
+    if downloaded_size != src_size or downloaded_size < JCE_MIN_FILESIZE:
+      print_error_msg('Size of downloaded JCE Policy archive is '
+                      + str(downloaded_size) + ' bytes, it is probably \
+                    damaged or incomplete')
+      return -1
+  else:
+    print "JCE Policy archive already exists, using " + dest_file
 
 class RetCodeException(Exception): pass
 

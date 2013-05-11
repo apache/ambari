@@ -205,6 +205,11 @@ public class Users {
   public synchronized void addRoleToUser(User user, String role)
       throws AmbariException {
 
+    if (userDAO.findLdapUserByName(user.getUserName()) != null) {
+      LOG.warn("Trying to add a role to the LDAP user"
+          + ", user=" + user.getUserName());
+      throw new AmbariException("Roles are not editable for LDAP users");
+    }
 
     UserEntity userEntity = userDAO.findByPK(user.getUserId());
     if (userEntity == null) {
@@ -234,6 +239,11 @@ public class Users {
   public synchronized void removeRoleFromUser(User user, String role)
       throws AmbariException {
 
+    if (userDAO.findLdapUserByName(user.getUserName()) != null) {
+      LOG.warn("Trying to add a role to the LDAP user"
+          + ", user=" + user.getUserName());
+      throw new AmbariException("Roles are not editable for LDAP users");
+    }
 
     UserEntity userEntity = userDAO.findByPK(user.getUserId());
     if (userEntity == null) {

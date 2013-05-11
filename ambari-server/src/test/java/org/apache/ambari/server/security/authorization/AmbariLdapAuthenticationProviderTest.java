@@ -97,6 +97,38 @@ public class AmbariLdapAuthenticationProviderTest{
     Assert.assertTrue(auth == null);
   }
 
+  @Test
+  public void testLdapAdminGroupToRolesMapping() throws Exception {
+
+    Authentication authentication;
+
+    authentication =
+        new UsernamePasswordAuthenticationToken("allowedAdmin", "password");
+    Authentication result = authenticationProvider.authenticate(authentication);
+    assertTrue(result.isAuthenticated());
+
+    UserEntity allowedAdminEntity = userDAO.findLdapUserByName("allowedAdmin");
+
+    authentication =
+        new UsernamePasswordAuthenticationToken("allowedUser", "password");
+    authenticationProvider.authenticate(authentication);
+    UserEntity allowedUserEntity = userDAO.findLdapUserByName("allowedUser");
+
+
+    RoleEntity adminRole = roleDAO.findByName(
+        configuration.getConfigsMap().get(Configuration.ADMIN_ROLE_NAME_KEY));
+    RoleEntity userRole = roleDAO.findByName(
+        configuration.getConfigsMap().get(Configuration.USER_ROLE_NAME_KEY));
+
+
+    assertTrue(allowedAdminEntity.getRoleEntities().contains(userRole));
+    assertTrue(allowedAdminEntity.getRoleEntities().contains(adminRole));
+
+    assertTrue(allowedUserEntity.getRoleEntities().contains(userRole));
+    assertFalse(allowedUserEntity.getRoleEntities().contains(adminRole));
+
+
+  }
 
   @AfterClass
   public static void afterClass() {

@@ -17,12 +17,12 @@
 -->
 <metainfo>
     <user>root</user>
-    <comment>This is comment for TEZ service</comment>
+    <comment>Tez is the next generation Hadoop Query Processing framework written on top of YARN</comment>
     <version>0.1.0.22-1</version>
 
     <components>
         <component>
-            <name>TEZ</name>
+            <name>TEZ_CLIENT</name>
             <category>CLIENT</category>
         </component>
     </components>
