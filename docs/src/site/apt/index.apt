@@ -15,20 +15,26 @@
 ~~
 Introduction
 
-  The Apache Ambari project is aimed at making Hadoop management simpler by developing software for provisioning, managing, and monitoring Apache Hadoop clusters.
-  Ambari provides an intuitive, easy-to-use Hadoop management web UI backed by its RESTful APIs.
+  Apache Ambari is a web-based tool for provisioning, managing, and monitoring Apache Hadoop clusters. The set of
+  Hadoop components that are currently supported by Ambari includes:
 
-  The set of Hadoop components that are currently supported by Ambari includes:
+  * {{{http://hadoop.apache.org/docs/hdfs} Apache Hadoop - HDFS}}
 
-  {{{http://hadoop.apache.org/docs/hdfs} HDFS}},
-  {{{http://hadoop.apache.org/docs/mapreduce} MapReduce}}
-  {{{http://hive.apache.org} Hive}},
-  {{{http://incubator.apache.org/hcatalog} HCatalog}},
-  {{{http://hbase.apache.org} HBase}},
-  {{{http://zookeeper.apache.org} ZooKeeper}},
-  {{{http://incubator.apache.org/oozie/} Oozie}},
-  {{{http://pig.apache.org} Pig}},
-  {{{http://sqoop.apache.org} Sqoop}}
+  * {{{http://hadoop.apache.org/docs/mapreduce} Apache Hadoop - MapReduce}}
+
+  * {{{http://hive.apache.org} Apache Hive}}
+
+  * {{{http://incubator.apache.org/hcatalog} Apache HCatalog}}
+
+  * {{{http://hbase.apache.org} Apache HBase}}
+
+  * {{{http://zookeeper.apache.org} Apache Zookeeper}}
+
+  * {{{http://incubator.apache.org/oozie/} Apache Oozie}}
+
+  * {{{http://pig.apache.org} Apache Pig}}
+
+  * {{{http://sqoop.apache.org} Apache Sqoop}}
 
   []
 
@@ -36,7 +42,7 @@ Introduction
 
   * Provision a Hadoop Cluster
   
-    * Ambari provides a step-by-step wizard for installing Hadoop services across any number of hosts.
+    * Ambari provides an easy-to-use, step-by-step wizard for installing Hadoop services across any number of hosts.
     
     * Ambari handles configuration of Hadoop services for the cluster.
 
@@ -55,31 +61,52 @@ Introduction
     * Ambari leverages {{{http://ganglia.sourceforge.net/} Ganglia}} for metrics collection.
 
     * Ambari leverages {{{http://www.nagios.org/} Nagios}} for system alerting and will send emails when your attention is needed (e.g., a node goes down, remaining disk space is low, etc).
+  
+  []
+
+Ambari Source
+
+  Follow the  {{{./1.2.0/installing-hadoop-using-ambari/content/index.html} installation guide for 1.2.0 (stable)}} or check out the work going on in {{{./whats-new.html} trunk}} for the upcoming 1.2.1 release.
+
+Roadmap
+
+  * Support for additional Operating Systems
+
+    * Ambari currently supports 64-bit RHEL/CentOS 5 + 6 and SLES 11
 
   []
 
-  Ambari enables Application Developers and System Integrators to:
+  * RESTful API for integration
+  
+    * Ambari will expose a unified, RESTful API to enable third-party applications to integrate
+      Hadoop cluster management and monitoring capabilities (1.2.0)
 
-  * Easily integrate Hadoop provisioning, management, and monitoring capabilities to their own applications with the {{{https://github.com/apache/ambari/blob/trunk/ambari-server/docs/api/v1/index.md} Ambari REST APIs}}.
+  []
 
-Getting Started with Ambari
+  * Granular configurations
 
-  Follow the {{{./1.2.2/installing-hadoop-using-ambari/content/index.html} installation guide for Ambari 1.2.2}}.
+      * Ambari currently applies service configurations at the cluster-level. For more
+        flexibility, Ambari will allow for configurations in a more granular manner, such as
+        applying a set of configurations to a specific group of hosts.
 
-  Note: Ambari currently supports 64-bit RHEL/CentOS 5 + 6 and SLES 11.
+  []
 
-Get Involved
+  * Security
 
-  Visit the {{{https://cwiki.apache.org/confluence/display/AMBARI/Ambari} Ambari Wiki}} for design documents, roadmap, development guidelines, etc.
+      * Installation of secure Hadoop clusters (Kerberos-based)
 
-  The first {{{http://www.meetup.com/Apache-Ambari-User-Group} Ambari User Group Meetup}} took place on April 2 in Palo Alto, California, USA.  {{{http://www.meetup.com/Apache-Ambari-User-Group/events/109316812/} See the slides and WebEx session from the Meetup}}.  
+      * Role-based user authentication, authorization, and auditing
 
-What's New?
+      * Support for LDAP and Active Directory (1.2.0)
 
-  Check out the work going on for the {{{./whats-new.html} upcoming 1.3.0 release}}.
+  []
 
-Disclaimer
+  * Visualization
 
-  Apache Ambari is an effort undergoing incubation at The Apache Software Foundation (ASF) sponsored by the Apache Incubator PMC. Incubation is required of all newly accepted projects until a further review indicates that the infrastructure, communications, and decision making process have stabilized in a manner consistent with other successful ASF projects. While incubation status is not necessarily a reflection of the completeness or stability of the code, it does indicate that the project has yet to be fully endorsed by the ASF.
+      * Interactive visualization of the current state of the cluster for a number of key metrics (1.2.0)
 
+      * Interactive visualization of historical states of the cluster for a number of key metrics
 
+      * Interactive visualization of Pig, Hive, and MapReduce jobs (1.2.0)
+
+  []

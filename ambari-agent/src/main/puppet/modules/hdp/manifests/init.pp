@@ -55,18 +55,6 @@ class hdp(
   $hbase_master_port = hdp_default("hbase-site/hbase.master.info.port","60010")
   $hbase_rs_port = hdp_default("hbase-site/hbase.regionserver.info.port","60030")
   
-  $ganglia_port = hdp_default("ganglia_port","8651")
-  $ganglia_collector_slaves_port = hdp_default("ganglia_collector_slaves_port","8660")
-  $ganglia_collector_namenode_port = hdp_default("ganglia_collector_namenode_port","8661")
-  $ganglia_collector_jobtracker_port = hdp_default("ganglia_collector_jobtracker_port","8662")
-  $ganglia_collector_hbase_port = hdp_default("ganglia_collector_hbase_port","8663")
-
-  $oozie_server_port = hdp_default("oozie_server_port","11000")
-
-  $templeton_port = hdp_default("webhcat-site/templeton.port","50111")
-
-  $namenode_metadata_port = hdp_default("namenode_metadata_port","8020")
-  
   #TODO: think not needed and also there seems to be a puppet bug around this and ldap
   class { 'hdp::snmp': service_state => 'running'}
 

@@ -22,16 +22,12 @@
 class hdp-yarn::initialize()
 {
   $yarn_user = $hdp-yarn::params::yarn_user
-  $mapred_user = $hdp-yarn::params::mapred_user
   
   ##Process package
   hdp-yarn::package{'yarn-common':}
   
-  # Create yarn user
+  # Create user
   hdp::user { $yarn_user:}
-  
-  # Create mapred user
-  hdp::user { $mapred_user:}
   
   #Generate common configs
   hdp-yarn::generate_common_configs{'yarn-common-configs':}

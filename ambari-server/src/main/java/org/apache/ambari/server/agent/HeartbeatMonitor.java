@@ -178,62 +178,59 @@ public class HeartbeatMonitor implements Runnable {
     List<StatusCommand> cmds = new ArrayList<StatusCommand>();
     
     for (Cluster cl : fsm.getClustersForHost(hostname)) {
+      
       for (ServiceComponentHost sch : cl.getServiceComponentHosts(hostname)) {
         String serviceName = sch.getServiceName();
-        Service service = cl.getService(sch.getServiceName());
-        ServiceComponent sc = service.getServiceComponent(sch
-          .getServiceComponentName());
-        // Do not send status commands for client components
-        if (!sc.isClientComponent()) {
-          if (LOG.isDebugEnabled()) {
-            LOG.debug("Live status will include status of service " + serviceName + " of cluster " + cl.getClusterName());
-          }
-
-          Map<String, Map<String, String>> configurations = new TreeMap<String, Map<String, String>>();
-
-          // get the cluster config for type 'global'
-          // apply service overrides, if the tag is not the same
-          // apply host overrides, if any
-
-          Config clusterConfig = cl.getDesiredConfigByType("global");
-          if (null != clusterConfig) {
-            // cluster config for 'global'
-            Map<String, String> props = new HashMap<String, String>(clusterConfig.getProperties());
-
-            // apply service overrides, only if the tag is not the same (for when service configs are overrides)
-            Config svcConfig = service.getDesiredConfigs().get("global");
-            if (null != svcConfig && !svcConfig.getVersionTag().equals(clusterConfig.getVersionTag())) {
-              props.putAll(svcConfig.getProperties());
-            }
-
-            // apply host overrides, if any
-            Host host = fsm.getHost(hostname);
-            DesiredConfig dc = host.getDesiredConfigs(cl.getClusterId()).get("global");
-            if (null != dc) {
-              Config hostConfig = cl.getConfig("global", dc.getVersion());
-              if (null != hostConfig) {
-                props.putAll(hostConfig.getProperties());
-              }
-            }
-
-            configurations.put("global", props);
-          }
-
-          // HACK - if any service exists with global tag, and we have none, use
-          // that instead
-          if (configurations.isEmpty()) {
-            Config config = service.getDesiredConfigs().get("global");
-            if (null != config)
-              configurations.put("global", new HashMap<String, String>(config.getProperties()));
-          }
-
-          StatusCommand statusCmd = new StatusCommand();
-          statusCmd.setClusterName(cl.getClusterName());
-          statusCmd.setServiceName(serviceName);
-          statusCmd.setComponentName(sch.getServiceComponentName());
-          statusCmd.setConfigurations(configurations);
-          cmds.add(statusCmd);
+        if (LOG.isDebugEnabled()) {
+          LOG.debug("Live status will include status of service " + serviceName + " of cluster " + cl.getClusterName());
         }
+        
+        Map<String, Map<String, String>> configurations = new TreeMap<String, Map<String, String>>();
+        
+        // get the cluster config for type 'global'
+        // apply service overrides, if the tag is not the same
+        // apply host overrides, if any
+        
+        Config clusterConfig = cl.getDesiredConfigByType("global");
+        if (null != clusterConfig) {
+          // cluster config for 'global'
+          Map<String,String> props = new HashMap<String, String>(clusterConfig.getProperties());
+
+          // apply service overrides, only if the tag is not the same (for when service configs are overrides)
+          Service service = cl.getService(sch.getServiceName());
+          Config svcConfig = service.getDesiredConfigs().get("global");
+          if (null != svcConfig && !svcConfig.getVersionTag().equals(clusterConfig.getVersionTag())) {
+            props.putAll(svcConfig.getProperties());
+          }
+          
+          // apply host overrides, if any
+          Host host = fsm.getHost(hostname);
+          DesiredConfig dc = host.getDesiredConfigs(cl.getClusterId()).get("global");
+          if (null != dc) {
+            Config hostConfig = cl.getConfig("global", dc.getVersion());
+            if (null != hostConfig) {
+              props.putAll(hostConfig.getProperties());
+            }
+          }
+          
+          configurations.put("global", props);
+        }
+        
+        // HACK - if any service exists with global tag, and we have none, use
+        // that instead
+        if (configurations.isEmpty()) {
+          Service service = cl.getService(sch.getServiceName());
+          Config config = service.getDesiredConfigs().get("global");
+          if (null != config)
+            configurations.put("global", new HashMap<String,String>(config.getProperties()));
+        }
+        
+        StatusCommand statusCmd = new StatusCommand();
+        statusCmd.setClusterName(cl.getClusterName());
+        statusCmd.setServiceName(serviceName);
+        statusCmd.setComponentName(sch.getServiceComponentName());
+        statusCmd.setConfigurations(configurations);
+        cmds.add(statusCmd);
       }
     }
     return cmds;

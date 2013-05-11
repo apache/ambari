@@ -412,14 +412,4 @@ don't exist, they will be created with this permission.</description>
   <description>Number of failed disks datanode would tolerate</description>
 </property>
 
-  <property>
-    <name>dfs.namenode.check.stale.datanode</name>
-    <value>true</value>
-    <description>
-      With this setting, the datanodes that have not replied to the heartbeat
-      for more than 30s (i.e. in a stale state) are used for reads only if all
-      other remote replicas have failed.
-    </description>
-  </property>
-
 </configuration>

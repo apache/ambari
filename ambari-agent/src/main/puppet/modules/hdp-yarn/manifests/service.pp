@@ -28,25 +28,15 @@ define hdp-yarn::service(
 {
 
   $security_enabled = $hdp::params::security_enabled
-  
-  if ($name == 'historyserver') {
-    $log_dir = "${hdp-yarn::params::mapred_log_dir_prefix}"
-    $pid_dir = "${hdp-yarn::params::mapred_pid_dir_prefix}/${user}"
-    $daemon = "${hdp::params::mapred_bin}/mr-jobhistory-daemon.sh"
-    $pid_file = "${pid_dir}/mapred-${user}-${name}.pid"
-  } else {
-    $log_dir = "${hdp-yarn::params::yarn_log_dir_prefix}"
-    $pid_dir = "${hdp-yarn::params::yarn_pid_dir_prefix}/${user}"
-    $daemon = "${hdp::params::yarn_bin}/yarn-daemon.sh"
-    $pid_file = "${pid_dir}/yarn-${user}-${name}.pid"
-  }
-  
+  $log_dir = "${hdp-yarn::params::yarn_log_dir_prefix}"
+  $pid_dir = "${hdp-yarn::params::yarn_pid_dir_prefix}/${user}"
+  $yarn_daemon = "${hdp::params::yarn_bin}/yarn-daemon.sh"
   $hadoop_libexec_dir = $hdp-yarn::params::hadoop_libexec_dir
    
-  $cmd = "export HADOOP_LIBEXEC_DIR=${hadoop_libexec_dir} && ${daemon} --config ${hdp-yarn::params::conf_dir}"
+  $cmd = "export HADOOP_LIBEXEC_DIR=${hadoop_libexec_dir} && ${yarn_daemon} --config ${hdp-yarn::params::conf_dir}"
   
   
-
+  $pid_file = "${pid_dir}/yarn-${user}-${name}.pid"
   
   
   

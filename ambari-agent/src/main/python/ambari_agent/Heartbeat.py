@@ -57,6 +57,8 @@ class Heartbeat:
       heartbeat['reports'] = queueResult['reports']
       heartbeat['componentStatus'] = queueResult['componentStatus']
       pass
+    logger.info("Sending heartbeat with response id: " + str(id) + " and "
+      "timestamp: " + str(timestamp))
     logger.debug("Heartbeat : " + pformat(heartbeat))
 
     if (int(id) >= 0) and state_interval > 0 and (int(id) % state_interval) == 0:

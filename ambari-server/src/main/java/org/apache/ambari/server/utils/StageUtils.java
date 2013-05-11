@@ -86,9 +86,6 @@ public class StageUtils {
     componentToClusterInfoKeyMap.put("NAMENODE", "namenode_host");
     componentToClusterInfoKeyMap.put("JOBTRACKER", "jtnode_host");
     componentToClusterInfoKeyMap.put("SNAMENODE", "snamenode_host");
-    componentToClusterInfoKeyMap.put("RESOURCEMANAGER", "rm_host");
-    componentToClusterInfoKeyMap.put("NODEMANAGER", "nm_hosts");
-    componentToClusterInfoKeyMap.put("HISTORYSERVER", "hs_host");
     componentToClusterInfoKeyMap.put("ZOOKEEPER_SERVER", "zookeeper_hosts");
     componentToClusterInfoKeyMap.put("HBASE_MASTER", "hbase_master_hosts");
     componentToClusterInfoKeyMap.put("HBASE_REGIONSERVER", "hbase_rs_hosts");

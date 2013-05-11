@@ -73,7 +73,7 @@ public class HostRoleCommandDAO {
   public List<HostRoleCommandEntity> findByRequestAndTaskIds(Collection<Long> requestIds, Collection<Long> taskIds) {
     TypedQuery<HostRoleCommandEntity> query = entityManagerProvider.get().createQuery(
         "SELECT DISTINCT task FROM HostRoleCommandEntity task " +
-            "WHERE task.requestId IN ?1 AND task.taskId IN ?2 " +
+            "WHERE task.requestId IN ?1 OR task.taskId IN ?2 " +
             "ORDER BY task.taskId", HostRoleCommandEntity.class
     );
     return daoUtils.selectList(query, requestIds, taskIds);
