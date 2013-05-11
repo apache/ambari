@@ -1,0 +1,496 @@
+# Licensed to the Apache Software Foundation (ASF) under one
+# or more contributor license agreements. See the NOTICE file
+# distributed with this work for additional information
+# regarding copyright ownership. The ASF licenses this file
+# to you under the Apache License, Version 2.0 (the
+# "License"); you may not use this file except in compliance
+# with the License. You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+
+# Hue configuration file
+# ===================================
+#
+# For complete documentation about the contents of this file, run
+#       $ <hue_root>/build/env/bin/hue config_help
+#
+# All .ini files under the current directory are treated equally.  Their
+# contents are merged to form the Hue configuration, which can
+# can be viewed on the Hue at
+#       http://<hue_host>:<port>/dump_config
+
+
+###########################################################################
+# General configuration for core Desktop features (authentication, etc)
+###########################################################################
+
+[desktop]
+
+  send_dbug_messages=<%=scope.function_hdp_template_var("::hdp-hue::params::hue_debug_messages")%>
+
+  # To show database transactions, set database_logging to 1
+  database_logging=<%=scope.function_hdp_template_var("::hdp-hue::params::hue_database_logging")%>
+
+  # Set this to a random string, the longer the better.
+  # This is used for secure hashing in the session store.
+  secret_key=<%=scope.function_hdp_template_var("::hdp-hue::params::hue_secret_key")%>
+
+  # Webserver listens on this address and port
+  http_host=<%=scope.function_hdp_template_var("::hdp-hue::params::hue_http_host")%>
+  http_port=<%=scope.function_hdp_template_var("::hdp-hue::params::hue_http_port")%>
+
+  # Time zone name
+  time_zone=<%=scope.function_hdp_template_var("::hdp-hue::params::hue_time_zone")%>
+
+  # Turn off debug
+  django_debug_mode=<%=scope.function_hdp_template_var("::hdp-hue::params::hue_django_debug_mode")%>
+
+  # Turn off backtrace for server error
+  http_500_debug_mode=<%=scope.function_hdp_template_var("::hdp-hue::params::hue_http_500_debug_mode")%>
+
+  # Server email for internal error messages
+  ## django_server_email='hue@localhost.localdomain'
+
+  # Email backend
+  ## django_email_backend=django.core.mail.backends.smtp.EmailBackend
+
+  # Set to true to use CherryPy as the webserver, set to false
+  # to use Spawning as the webserver. Defaults to Spawning if
+  # key is not specified.
+  use_cherrypy_server = <%=scope.function_hdp_template_var("::hdp-hue::params::hue_use_cherrypy_server")%>
+
+  # Webserver runs as this user
+  server_user=<%=scope.function_hdp_template_var("::hdp-hue::params::hue_server_user")%>
+  server_group=<%=scope.function_hdp_template_var("::hdp-hue::params::hue_server_group")%>
+
+  # If set to false, runcpserver will not actually start the web server.
+  # Used if Apache is being used as a WSGI container.
+  ## enable_server=yes
+
+  # Number of threads used by the CherryPy web server
+  #cherrypy_server_threads=2
+
+  # Filename of SSL Certificate
+  ## ssl_certificate=
+
+  # Filename of SSL RSA Private Key
+  ## ssl_private_key=
+
+  # Default encoding for site data
+  ## default_site_encoding=utf-8
+
+  # Administrators
+  # ----------------
+  [[django_admins]]
+    ## [[[admin1]]]
+    ## name=john
+    ## email=john@doe.com
+
+  # UI customizations
+  # -------------------
+  [[custom]]
+
+  # Top banner HTML code
+  ## banner_top_html=
+
+  # Configuration options for user authentication into the web application
+  # ------------------------------------------------------------------------
+  [[auth]]
+
+    # Authentication backend. Common settings are:
+    # - django.contrib.auth.backends.ModelBackend (entirely Django backend)
+    # - desktop.auth.backend.AllowAllBackend (allows everyone)
+    # - desktop.auth.backend.AllowFirstUserDjangoBackend
+    #     (Default. Relies on Django and user manager, after the first login)
+    # - desktop.auth.backend.LdapBackend
+    # - desktop.auth.backend.PamBackend
+    backend=<%=scope.function_hdp_template_var("::hdp-hue::params::hue_backend_auth_policy")%>
+
+    ## pam_service=login
+
+  # Configuration options for connecting to LDAP and Active Directory
+  # -------------------------------------------------------------------
+  [[ldap]]
+
+  # The search base for finding users and groups
+  ## base_dn="DC=mycompany,DC=com"
+
+  # The NT domain to connect to (only for use with Active Directory)
+  ## nt_domain=mycompany.com
+
+  # URL of the LDAP server
+  ## ldap_url=ldap://auth.mycompany.com
+
+  # Path to certificate for authentication over TLS
+  ## ldap_cert=
+
+  # Distinguished name of the user to bind as -- not necessary if the LDAP server
+  # supports anonymous searches
+  ## bind_dn="CN=ServiceAccount,DC=mycompany,DC=com"
+
+  # Password of the bind user -- not necessary if the LDAP server supports
+  # anonymous searches
+  ## bind_password=
+
+  # Pattern for searching for usernames -- Use <username> for the parameter
+  # For use when using LdapBackend for Hue authentication
+  ## ldap_username_pattern="uid=<username>,ou=People,dc=mycompany,dc=com"
+
+      [[[users]]]
+
+      # Base filter for searching for users
+      ## user_filter="objectclass=*"
+
+      # The username attribute in the LDAP schema
+      ## user_name_attr=sAMAccountName
+
+      [[[groups]]]
+
+      # Base filter for searching for groups
+      ## group_filter="objectclass=*"
+
+      # The username attribute in the LDAP schema
+      ## group_name_attr=cn
+
+  # Configuration options for specifying the Desktop Database.  For more info,
+  # see http://docs.djangoproject.com/en/1.1/ref/settings/#database-engine
+  # ------------------------------------------------------------------------
+  [[database]]
+    # Database engine is typically one of:
+    # postgresql, mysql, sqlite3, or oracle
+    #
+    # Note that for sqlite3, 'name', below is a filename;
+    # for other backends, it is the database name.
+  <% if scope.function_hdp_template_var("::hdp-hue::params::hue_db_engine") != "" %>
+    engine=<%=scope.function_hdp_template_var("::hdp-hue::params::hue_db_engine")%>
+    host=<%=scope.function_hdp_template_var("::hdp-hue::params::hue_db_port")%>
+    port=<%=scope.function_hdp_template_var("::hdp-hue::params::hue_db_host")%>
+    user=<%=scope.function_hdp_template_var("::hdp-hue::params::hue_db_user")%>
+    password=<%=scope.function_hdp_template_var("::hdp-hue::params::hue_db_password")%>
+    name=<%=scope.function_hdp_template_var("::hdp-hue::params::hue_db_name")%>
+  <% end %>
+
+
+  # Configuration options for connecting to an external SMTP server
+  # ------------------------------------------------------------------------
+  [[smtp]]
+
+  <% if scope.function_hdp_template_var("::hdp-hue::params::hue_smtp_host") != "" %>
+    # The SMTP server information for email notification delivery
+    host=<%=scope.function_hdp_template_var("::hdp-hue::params::hue_smtp_host")%>
+    port=<%=scope.function_hdp_template_var("::hdp-hue::params::hue_smtp_port")%>
+    user=<%=scope.function_hdp_template_var("::hdp-hue::params::hue_smtp_user")%>
+    password=<%=scope.function_hdp_template_var("::hdp-hue::params::hue_smtp_password")%>
+  <% end %>
+
+    # Whether to use a TLS (secure) connection when talking to the SMTP server
+    tls=<%=scope.function_hdp_template_var("::hdp-hue::params::hue_smtp_tls")%>
+
+    # Default email address to use for various automated notification from Hue
+    default_from_email=<%=scope.function_hdp_template_var("::hdp-hue::params::hue_default_from_email")%>
+
+
+  # Configuration options for Kerberos integration for secured Hadoop clusters
+  # ------------------------------------------------------------------------
+  [[kerberos]]
+
+  <% if scope.function_hdp_template_var("::hdp::params::security_enabled") == true %>
+    # Path to Hue's Kerberos keytab file
+    hue_keytab=<%=scope.function_hdp_template_var("::hdp-hue::params::hue_keytab_path")%>
+    # Kerberos principal name for Hue
+    hue_principal=<%=scope.function_hdp_template_var("::hdp-hue::params::hue_principal")%>
+    # Path to kinit
+    kinit_path=<%=scope.function_hdp_template_var("::hdp::params::kinit_path_local")%>
+  <% end %>
+
+###########################################################################
+# Settings to configure your Hadoop cluster.
+###########################################################################
+
+[hadoop]
+
+  # Configuration for HDFS NameNode
+  # ------------------------------------------------------------------------
+  [[hdfs_clusters]]
+
+    [[[default]]]
+      # Enter the filesystem uri
+      fs_defaultfs=<%=scope.function_hdp_template_var("::hdp-hue::params::hue_hadoop_fs_defaultfs")%>
+
+      # Use WebHdfs/HttpFs as the communication mechanism. To fallback to
+      # using the Thrift plugin (used in Hue 1.x), this must be uncommented
+      # and explicitly set to the empty value.
+      webhdfs_url=<%=scope.function_hdp_template_var("::hdp-hue::params::hue_hadoop_webhdfs_url")%>
+
+      security_enabled=<%=scope.function_hdp_template_var("::hdp-hue::params::security_enabled")%>
+
+      # Settings about this HDFS cluster. If you install HDFS in a
+      # different location, you need to set the following.
+
+      # Defaults to $HADOOP_HDFS_HOME or /usr/lib/hadoop-hdfs
+      hadoop_hdfs_home=<%=scope.function_hdp_template_var("::hdp-hue::params::hue_hadoop_home")%>
+
+      # Defaults to $HADOOP_BIN or /usr/bin/hadoop
+      ## hadoop_bin=/usr/bin/hadoop
+
+      # Defaults to $HADOOP_CONF_DIR or /etc/hadoop/conf
+      ## hadoop_conf_dir=/etc/hadoop/conf
+
+  # Configuration for MapReduce JobTracker
+  # ------------------------------------------------------------------------
+  [[mapred_clusters]]
+
+    [[[default]]]
+      # Enter the host on which you are running the Hadoop JobTracker
+      jobtracker_host=<%=scope.function_hdp_template_var("::hdp-hue::params::hue_hadoop_jt_host")%>
+      # The port where the JobTracker IPC listens on
+      jobtracker_port=<%=scope.function_hdp_template_var("::hdp-hue::params::hue_hadoop_jt_port")%>
+      # Thrift plug-in port for the JobTracker
+      ## thrift_port=9290
+      # Whether to submit jobs to this cluster
+      ## submit_to=False
+
+      ## security_enabled=false
+
+      # Settings about this MR1 cluster. If you install MR1 in a
+      # different location, you need to set the following.
+
+      # Defaults to $HADOOP_MR1_HOME or /usr/lib/hadoop-0.20-mapreduce
+      hadoop_mapred_home=<%=scope.function_hdp_template_var("::hdp-hue::params::hue_hadoop_mapred_home")%>
+
+      # Defaults to $HADOOP_BIN or /usr/bin/hadoop
+      ## hadoop_bin=/usr/bin/hadoop
+
+      # Defaults to $HADOOP_CONF_DIR or /etc/hadoop/conf
+      ## hadoop_conf_dir=/etc/hadoop/conf
+
+  # Configuration for Yarn
+  # ------------------------------------------------------------------------
+  [[yarn_clusters]]
+
+    [[[default]]]
+      # Enter the host on which you are running the ResourceManager
+      resourcemanager_host=<%=scope.function_hdp_template_var("::hdp-hue::params::hue_hadoop_yarn_host")%>
+      # The port where the ResourceManager IPC listens on
+      resourcemanager_port=<%=scope.function_hdp_template_var("::hdp-hue::params::hue_hadoop_yarn_port")%>
+      # Whether to submit jobs to this cluster
+      ## submit_to=False
+
+      ## security_enabled=false
+
+      # Settings about this MR2 cluster. If you install MR2 in a
+      # different location, you need to set the following.
+
+      # Defaults to $HADOOP_MR2_HOME or /usr/lib/hadoop-mapreduce
+      hadoop_mapred_home=/usr/lib/hadoop/lib
+
+      # Defaults to $HADOOP_BIN or /usr/bin/hadoop
+      ## hadoop_bin=/usr/bin/hadoop
+
+      # Defaults to $HADOOP_CONF_DIR or /etc/hadoop/conf
+      ## hadoop_conf_dir=/etc/hadoop/conf
+
+
+###########################################################################
+# Settings to configure liboozie
+###########################################################################
+
+[liboozie]
+  # The URL where the Oozie service runs on. This is required in order for
+  # users to submit jobs.
+  ## oozie_url=http://localhost:11000/oozie
+
+  ## security_enabled=false
+
+  # Location on HDFS where the workflows/coordinator are deployed when submitted.
+  ## remote_deployement_dir=/user/hue/oozie/deployments
+
+
+###########################################################################
+# Settings to configure the Oozie app
+###########################################################################
+
+[oozie]
+  # Location on local FS where the examples are stored.
+  ## local_data_dir=..../examples
+
+  # Location on local FS where the data for the examples is stored.
+  ## sample_data_dir=...thirdparty/sample_data
+
+  # Location on HDFS where the oozie examples and workflows are stored.
+  ## remote_data_dir=/user/hue/oozie/workspaces
+
+  # Share workflows and coordinators information with all users. If set to false,
+  # they will be visible only to the owner and administrators.
+  ## share_jobs=True
+
+  # Maximum of Oozie workflows or coodinators to retrieve in one API call.
+  ## oozie_jobs_count=100
+
+
+###########################################################################
+# Settings to configure Beeswax
+###########################################################################
+
+[beeswax]
+
+  # Deprecated! Will be removed in Hue 3
+  # Multiple sections are now available in query_servers
+  # Host where Beeswax internal metastore Thrift daemon is running
+  ## beeswax_meta_server_host=localhost
+
+  # Deprecated! Will be removed in Hue 3
+  # Multiple sections are now available in query_servers
+  # Configure the port the internal metastore daemon runs on. Used only if
+  # hive.metastore.local is true.
+  ## beeswax_meta_server_port=8003
+
+  # Host where Beeswax internal metastore Thrift daemon is running
+  ## beeswax_meta_server_host=localhost
+
+  # Configure the port the internal metastore daemon runs on. Used only if
+  # hive.metastore.local is true.
+  ## beeswax_meta_server_port=8003
+
+  # Hive home directory
+  hive_home_dir=<%=scope.function_hdp_template_var("::hdp-hue::params::hue_hive_home_dir")%>
+
+  # Hive configuration directory, where hive-site.xml is located
+  hive_conf_dir=<%=scope.function_hdp_template_var("::hdp-hue::params::hue_hive_conf_dir")%>
+
+  # Timeout in seconds for thrift calls to beeswax service
+  ## beeswax_server_conn_timeout=120
+
+  # Timeout in seconds for thrift calls to the hive metastore
+  ## metastore_conn_timeout=10
+
+  # Maximum Java heapsize (in megabytes) used by Beeswax Server.
+  # Note that the setting of HADOOP_HEAPSIZE in $HADOOP_CONF_DIR/hadoop-env.sh
+  # may override this setting.
+  ## beeswax_server_heapsize=1000
+
+  # Share saved queries with all users. If set to false, saved queries are
+  # visible only to the owner and administrators.
+  ## share_saved_queries=true
+
+ # One entry for each Query Server that can execute some SQL queries.
+ # This must be in the bottom of the [beewax] section.
+ [[query_servers]]
+
+   [[[default]]]
+   # Host where the Query Server Thrift daemon is running
+   ## server_host=localhost
+   # Configure the port the Query Server Thrift server
+   ## server_port=8002
+   # If DDL queries are supported (e.g. DROP can be sent directly to this server)
+   ## support_ddl=True
+
+###########################################################################
+# Settings to configure Job Designer
+###########################################################################
+
+[jobsub]
+  # Location on HDFS where the jobsub examples and templates are stored.
+  ## remote_data_dir=/user/hue/jobsub
+
+  # Location on local FS where examples and template are stored.
+  ## local_data_dir=..../data
+
+  # Location on local FS where sample data is stored
+  ## sample_data_dir=...thirdparty/sample_data
+
+
+###########################################################################
+# Settings to configure Job Browser
+###########################################################################
+
+[jobbrowser]
+  # Share submitted jobs information with all users. If set to false,
+  # submitted jobs are visible only to the owner and administrators.
+  ## share_jobs=true
+
+
+###########################################################################
+# Settings to configure the Shell application
+###########################################################################
+
+[shell]
+  # The shell_buffer_amount specifies the number of bytes of output per shell
+  # that the Shell app will keep in memory. If not specified, it defaults to
+  # 524288 (512 MiB).
+  ## shell_buffer_amount=100
+
+  # If you run Hue against a Hadoop cluster with Kerberos security enabled, the
+  # Shell app needs to acquire delegation tokens for the subprocesses to work
+  # correctly. These delegation tokens are stored as temporary files in some
+  # directory. You can configure this directory here. If not specified, it
+  # defaults to /tmp/hue_delegation_tokens.
+  ## shell_delegation_token_dir=/tmp/hue_delegation_tokens
+
+  [[ shelltypes ]]
+
+    # Define and configure a new shell type "flume"
+    # ------------------------------------------------------------------------
+    #[[[ flume ]]]
+    #  nice_name = "Flume Shell"
+    # command = "/usr/bin/flume shell"
+    # help = "The command-line Flume client interface."
+
+    #  [[[[ environment ]]]]
+        # You can specify environment variables for the Flume shell
+        # in this section.
+
+    # Define and configure a new shell type "pig"
+    # ------------------------------------------------------------------------
+    [[[ pig ]]]
+      nice_name = "Pig Shell (Grunt)"
+      command = <%=scope.function_hdp_template_var("::hdp-hue::params::hue_pig_shell_command")%>
+      help = "The command-line interpreter for Pig"
+
+      [[[[ environment ]]]]
+        # You can specify environment variables for the Pig shell
+        # in this section. Note that JAVA_HOME must be configured
+        # for the Pig shell to run.
+
+        [[[[[ JAVA_HOME ]]]]]
+          value = <%=scope.function_hdp_template_var("::hdp-hue::params::hue_pig_java_home")%>
+
+    # Define and configure a new shell type "hbase"
+    # ------------------------------------------------------------------------
+    [[[ hbase ]]]
+      nice_name = "HBase Shell"
+      command = <%=scope.function_hdp_template_var("::hdp-hue::params::hue_hbase_shell_command")%>
+      help = "The command-line HBase client interface."
+
+      [[[[ environment ]]]]
+        # You can configure environment variables for the HBase shell
+        # in this section.
+
+    # Define and configure a new shell type "bash" for testing only
+    # ------------------------------------------------------------------------
+    [[[ bash ]]]
+      nice_name = "Bash (Test only!!!)"
+      command = <%=scope.function_hdp_template_var("::hdp-hue::params::hue_bash_shell_command")%>
+      help = "A shell that does not depend on Hadoop components"
+
+
+###########################################################################
+# Settings for the User Admin application
+###########################################################################
+
+[useradmin]
+  # The name of the default user group that users will be a member of
+  ## default_user_group=default
+
+[hcatalog]
+  templeton_url=<%=scope.function_hdp_template_var("::hdp-hue::params::hue_templeton_url")%>
+
+[proxy]
+whitelist=<%=scope.function_hdp_template_var("::hdp-hue::params::hue_whitelist")%>

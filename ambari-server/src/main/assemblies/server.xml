@@ -1,0 +1,107 @@
+<?xml version="1.0"?>
+<!--
+  Licensed to the Apache Software Foundation (ASF) under one
+  or more contributor license agreements.  See the NOTICE file
+  distributed with this work for additional information
+  regarding copyright ownership.  The ASF licenses this file
+  to you under the Apache License, Version 2.0 (the
+  "License"); you may not use this file except in compliance
+  with the License.  You may obtain a copy of the License at
+  
+       http://www.apache.org/licenses/LICENSE-2.0
+  
+  Unless required by applicable law or agreed to in writing, software
+  distributed under the License is distributed on an "AS IS" BASIS,
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  See the License for the specific language governing permissions and
+  limitations under the License.
+-->
+<assembly>
+  <id>dist</id>
+  <formats>
+    <format>dir</format>
+    <format>tar.gz</format>
+  </formats>
+  <includeBaseDirectory>false</includeBaseDirectory>
+  <files>
+    <file>
+      <source>${project.build.directory}/${artifact.artifactId}-${artifact.version}.jar</source>
+      <outputDirectory>ambari-server-${project.version}/lib/ambari-server</outputDirectory>
+    </file>
+   <file>
+      <source>${basedir}/src/main/python/ambari-server.py</source>
+      <outputDirectory>/ambari-server-${project.version}/sbin</outputDirectory>
+    </file>
+    <file>
+      <source>${basedir}/src/main/python/bootstrap.py</source>
+      <outputDirectory>/ambari-server-${project.version}/sbin</outputDirectory>
+    </file>
+    <file>
+      <source>${basedir}/src/main/python/setupAgent.py</source>
+      <outputDirectory>/ambari-server-${project.version}/sbin</outputDirectory>
+    </file>
+  </files>
+  <fileSets>
+    <!-- Distro files, readme, licenses, etc -->
+    <fileSet>
+      <directory>${basedir}/../</directory>
+      <outputDirectory>ambari-server-${project.version}/</outputDirectory>
+      <includes>
+        <include>*.txt</include>
+      </includes>
+    </fileSet>
+     <!--
+    <fileSet>
+      <directory>${project.build.directory}/web/</directory>
+      <outputDirectory>ambari-server-${project.version}/web/</outputDirectory>
+      <includes>
+        <include>*</include>
+      </includes>
+    </fileSet>
+    -->
+    <!--
+    <fileSet>
+      <directory>${basedir}/src/main/bin</directory>
+      <outputDirectory>ambari-server-${project.version}/bin</outputDirectory>
+      <includes>
+        <include>*</include>
+      </includes>
+      <fileMode>0755</fileMode>
+    </fileSet>
+    -->
+    <fileSet>
+      <directory>${basedir}/src/main/resources/</directory>
+      <outputDirectory>/ambari-server-${project.version}/keystore</outputDirectory>
+      <includes>
+        <include>db/*</include>
+        <include>ca.config</include>
+        <include>pass.txt</include>
+      </includes>
+    </fileSet>
+    <fileSet>
+      <directory>${basedir}/../ambari-web/public</directory>
+      <outputDirectory>ambari-server-${project.version}/web</outputDirectory>
+      <includes>
+        <include>**</include>
+      </includes>
+    </fileSet>
+    <fileSet>
+      <directory>src/main/conf</directory>
+      <outputDirectory>/ambari-server-${project.version}/etc/ambari-server/conf</outputDirectory>
+    </fileSet>
+    <fileSet>
+      <directory>src/main/resources</directory>
+      <outputDirectory>/ambari-server-${project.version}/var/lib/ambari-server/resources/</outputDirectory>
+      <includes>
+        <include>stacks/**</include>
+      </includes>
+    </fileSet>
+  </fileSets>
+  <dependencySets>
+    <dependencySet>
+      <outputDirectory>ambari-server-${project.version}/lib/ambari-server</outputDirectory>
+      <unpack>false</unpack>
+      <scope>compile</scope>
+    </dependencySet>
+  </dependencySets>
+</assembly>

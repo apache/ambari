@@ -1,0 +1,194 @@
+{
+  "href": "http://ec2...com:8080/api/v1/targets",
+  "items": [
+    {
+      "href": "http://ec2...com:8080/api/v1/targets/drtarget1",
+      "Clusters": {
+        "colo": "gs1",
+        "name": "drtarget1",
+        "interfaces": {
+          "interface": [
+            {
+              "type": "readonly",
+              "endpoint": "http://ec2...com:50070",
+              "version": "1.1.2.22"
+            },
+            {
+              "type": "write",
+              "endpoint": "hdfs://ec2...com:8020",
+              "version": "1.1.2.22"
+            },
+            {
+              "type": "execute",
+              "endpoint": "ec2...com:8021",
+              "version": "0.20.2"
+            },
+            {
+              "type": "workflow",
+              "endpoint": "http://ec2...com:11000/oozie/",
+              "version": "3.1"
+            },
+            {
+              "type": "messaging",
+              "endpoint": "tcp://ec2...com:61616?daemon=true",
+              "version": "5.1.6"
+            },
+            {
+              "type": "registry",
+              "endpoint": "Hcat",
+              "version": "1"
+            }
+          ]
+        },
+        "locations": {
+          "location": [
+            {
+              "name": "temp",
+              "path": "/tmp"
+            },
+            {
+              "name": "working",
+              "path": "/projects/ivory/working"
+            },
+            {
+              "name": "staging",
+              "path": "/projects/ivory/staging"
+            }
+          ]
+        },
+        "properties": {
+          "property": {
+            "name": "separator",
+            "value": ""
+          }
+        }
+      }
+    },
+    {
+      "href": "http://ec2...com:8080/api/v1/targets/drtarget2",
+      "Clusters": {
+        "colo": "gs2",
+        "name": "drtarget2",
+        "interfaces": {
+          "interface": [
+            {
+              "type": "readonly",
+              "endpoint": "http://ec2...com:50070",
+              "version": "1.1.2.22"
+            },
+            {
+              "type": "write",
+              "endpoint": "hdfs://ec2...com:8020",
+              "version": "1.1.2.22"
+            },
+            {
+              "type": "execute",
+              "endpoint": "ec2...com:8021",
+              "version": "0.20.2"
+            },
+            {
+              "type": "workflow",
+              "endpoint": "http://ec2...com:11000/oozie/",
+              "version": "3.1"
+            },
+            {
+              "type": "messaging",
+              "endpoint": "tcp://ec2...com:61616?daemon=true",
+              "version": "5.1.6"
+            },
+            {
+              "type": "registry",
+              "endpoint": "Hcat",
+              "version": "1"
+            }
+          ]
+        },
+        "locations": {
+          "location": [
+            {
+              "name": "temp",
+              "path": "/tmp"
+            },
+            {
+              "name": "working",
+              "path": "/projects/ivory/working"
+            },
+            {
+              "name": "staging",
+              "path": "/projects/ivory/staging"
+            }
+          ]
+        },
+        "properties": {
+          "property": {
+            "name": "separator",
+            "value": ""
+          }
+        }
+      }
+    },
+    {
+      "href": "http://ec2...com:8080/api/v1/targets/drtarget3",
+      "Clusters": {
+        "colo": "gs3",
+        "name": "drtarget3",
+        "interfaces": {
+          "interface": [
+            {
+              "type": "readonly",
+              "endpoint": "http://ec2...com:50070",
+              "version": "1.1.2.22"
+            },
+            {
+              "type": "write",
+              "endpoint": "hdfs://ec2...com:8020",
+              "version": "1.1.2.22"
+            },
+            {
+              "type": "execute",
+              "endpoint": "ec2...com:8021",
+              "version": "0.20.2"
+            },
+            {
+              "type": "workflow",
+              "endpoint": "http://ec2...com:11000/oozie/",
+              "version": "3.1"
+            },
+            {
+              "type": "messaging",
+              "endpoint": "tcp://ec2...com:61616?daemon=true",
+              "version": "5.1.6"
+            },
+            {
+              "type": "registry",
+              "endpoint": "Hcat",
+              "version": "1"
+            }
+          ]
+        },
+        "locations": {
+          "location": [
+            {
+              "name": "temp",
+              "path": "/tmp"
+            },
+            {
+              "name": "working",
+              "path": "/projects/ivory/working"
+            },
+            {
+              "name": "staging",
+              "path": "/projects/ivory/staging"
+            }
+          ]
+        },
+        "properties": {
+          "property": {
+            "name": "separator",
+            "value": ""
+          }
+        }
+      }
+    }
+  ]
+}

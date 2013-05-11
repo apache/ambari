@@ -1,0 +1,50 @@
+{{!
+* Licensed to the Apache Software Foundation (ASF) under one
+* or more contributor license agreements.  See the NOTICE file
+* distributed with this work for additional information
+* regarding copyright ownership.  The ASF licenses this file
+* to you under the Apache License, Version 2.0 (the
+* "License"); you may not use this file except in compliance
+* with the License.  You may obtain a copy of the License at
+*
+*     http://www.apache.org/licenses/LICENSE-2.0
+*
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
+* limitations under the License.
+}}
+<div id="deploy">
+    <div {{bindAttr class="view.statusClass :alert"}}>{{view.overallStatus}}</div>
+    <div class="service">
+      {{#each process in processes}}
+        {{#view view.processView contentBinding="process"}}
+            <div class="item">
+                <i {{bindAttr class="view.icon view.iconColor"}}></i>
+                <a href="javascript:void(0)" {{action "hostsLogPopup" process.name target="view"}}>{{view.status}}</a>
+            </div>
+          {{#if process.isRetry}}
+              <a class="btn btn-primary" {{action retry process.name target="controller" href="true"}}>
+                  <i class="icon-repeat icon-white"></i>
+                {{view.retryMessage}}
+              </a>
+          {{/if}}
+            <div {{bindAttr class="view.inProgress::hide :row :span12" }}>
+                <div class="progress-bar span4">
+                    <div {{bindAttr class="view.isProcessCompleted::progress-striped view.isProcessCompleted::active view.barColor :progress"}}>
+                        <div class="bar" {{bindAttr style="view.barWidth"}}></div>
+                    </div>
+                </div>
+                <div class="span1">{{process.progress}}&#37;</div>
+                <div class="span7">{{process.message}}</div>
+            </div>
+        {{/view}}
+      {{/each}}
+    </div>
+    <div class="btn-area">
+      {{#if submitButton}}
+          <a class="btn btn-success pull-right" {{action finish}}>{{submitButton}}</a>
+      {{/if}}
+    </div>
+</div>

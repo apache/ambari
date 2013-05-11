@@ -1,0 +1,80 @@
+{
+  "name" : "HIVE",
+  "version" : "0.9.0.1-1",
+  "user" : "root",
+  "comment" : "This is comment for HIVE service",
+  "properties" : [ {
+    "name" : "hive.metastore.local",
+    "value" : "false",
+    "description" : "controls whether to connect to remove metastore server or\n    open a new metastore server in Hive Client JVM",
+    "filename" : "hive-site.xml"
+  }, {
+    "name" : "javax.jdo.option.ConnectionDriverName",
+    "value" : "com.mysql.jdbc.Driver",
+    "description" : "Driver class name for a JDBC metastore",
+    "filename" : "hive-site.xml"
+  }, {
+    "name" : "hive.metastore.warehouse.dir",
+    "value" : "/apps/hive/warehouse",
+    "description" : "location of default database for the warehouse",
+    "filename" : "hive-site.xml"
+  }, {
+    "name" : "hive.metastore.cache.pinobjtypes",
+    "value" : "Table,Database,Type,FieldSchema,Order",
+    "description" : "List of comma separated metastore object types that should be pinned in the cache",
+    "filename" : "hive-site.xml"
+  }, {
+    "name" : "hive.semantic.analyzer.factory.impl",
+    "value" : "org.apache.hivealog.cli.HCatSemanticAnalyzerFactory",
+    "description" : "controls which SemanticAnalyzerFactory implemenation class is used by CLI",
+    "filename" : "hive-site.xml"
+  }, {
+    "name" : "hadoop.clientside.fs.operations",
+    "value" : "true",
+    "description" : "FS operations are owned by client",
+    "filename" : "hive-site.xml"
+  }, {
+    "name" : "hive.metastore.client.socket.timeout",
+    "value" : "60",
+    "description" : "MetaStore Client socket timeout in seconds",
+    "filename" : "hive-site.xml"
+  }, {
+    "name" : "hive.metastore.execute.setugi",
+    "value" : "true",
+    "description" : "In unsecure mode, setting this property to true will cause the metastore to execute DFS operations using the client's reported user and group permissions. Note that this property must be set on both the client and     server sides. Further note that its best effort. If client sets its to true and server sets it to false, client setting will be ignored.",
+    "filename" : "hive-site.xml"
+  }, {
+    "name" : "hive.security.authorization.enabled",
+    "value" : "true",
+    "description" : "enable or disable the hive client authorization",
+    "filename" : "hive-site.xml"
+  }, {
+    "name" : "hive.security.authorization.manager",
+    "value" : "org.apache.hcatalog.security.HdfsAuthorizationProvider",
+    "description" : "the hive client authorization manager class name.\n    The user defined authorization class should implement interface org.apache.hadoop.hive.ql.security.authorization.HiveAuthorizationProvider.  ",
+    "filename" : "hive-site.xml"
+  } ],
+  "components" : [ {
+    "name" : "HIVE_SERVER",
+    "category" : "MASTER",
+    "client" : false,
+    "master" : true
+  }, {
+    "name" : "MYSQL_SERVER",
+    "category" : "MASTER",
+    "client" : false,
+    "master" : true
+  }, {
+    "name" : "HIVE_CLIENT",
+    "category" : "CLIENT",
+    "client" : true,
+    "master" : false
+  } ],
+  "clientOnlyService" : false,
+  "clientComponent" : {
+    "name" : "HIVE_CLIENT",
+    "category" : "CLIENT",
+    "client" : true,
+    "master" : false
+  }
+}

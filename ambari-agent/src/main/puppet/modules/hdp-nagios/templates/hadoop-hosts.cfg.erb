@@ -1,0 +1,16 @@
+<%scope.function_hdp_nagios_all_hosts().each do |host|-%>
+define host {
+        alias        <%=host%>
+        host_name    <%=host%>
+        use          linux-server
+        address      <%=host%>
+        check_interval         0.25
+        retry_interval         0.25
+        max_check_attempts     4
+        notifications_enabled     1
+        first_notification_delay  0     # Send notification soon after change in the hard state
+        notification_interval     0     # Send the notification once
+        notification_options      d,u,r
+}
+
+<%end%>

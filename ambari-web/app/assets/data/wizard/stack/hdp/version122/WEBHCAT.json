@@ -1,0 +1,90 @@
+{
+  "name" : "WEBHCAT",
+  "version" : "0.5.0",
+  "user" : "root",
+  "comment" : "This is comment for WEBHCAT service",
+  "properties" : [ {
+    "name" : "templeton.port",
+    "value" : "50111",
+    "description" : "The HTTP port for the main server.",
+    "filename" : "webhcat-site.xml"
+  }, {
+    "name" : "templeton.hadoop.conf.dir",
+    "value" : "/etc/hadoop/conf",
+    "description" : "The path to the Hadoop configuration.",
+    "filename" : "webhcat-site.xml"
+  }, {
+    "name" : "templeton.jar",
+    "value" : "/usr/lib/hcatalog/share/webhcat/svr/webhcat.jar",
+    "description" : "The path to the Templeton jar file.",
+    "filename" : "webhcat-site.xml"
+  }, {
+    "name" : "templeton.libjars",
+    "value" : "/usr/lib/zookeeper/zookeeper.jar",
+    "description" : "Jars to add the the classpath.",
+    "filename" : "webhcat-site.xml"
+  }, {
+    "name" : "templeton.hadoop",
+    "value" : "/usr/bin/hadoop",
+    "description" : "The path to the Hadoop executable.",
+    "filename" : "webhcat-site.xml"
+  }, {
+    "name" : "templeton.pig.archive",
+    "value" : "hdfs:///apps/webhcat/pig.tar.gz",
+    "description" : "The path to the Pig archive.",
+    "filename" : "webhcat-site.xml"
+  }, {
+    "name" : "templeton.pig.path",
+    "value" : "pig.tar.gz/pig/bin/pig",
+    "description" : "The path to the Pig executable.",
+    "filename" : "webhcat-site.xml"
+  }, {
+    "name" : "templeton.hcat",
+    "value" : "/usr/bin/hcat",
+    "description" : "The path to the hcatalog executable.",
+    "filename" : "webhcat-site.xml"
+  }, {
+    "name" : "templeton.hive.archive",
+    "value" : "hdfs:///apps/webhcat/hive.tar.gz",
+    "description" : "The path to the Hive archive.",
+    "filename" : "webhcat-site.xml"
+  }, {
+    "name" : "templeton.hive.path",
+    "value" : "hive.tar.gz/hive/bin/hive",
+    "description" : "The path to the Hive executable.",
+    "filename" : "webhcat-site.xml"
+  }, {
+    "name" : "templeton.storage.class",
+    "value" : "org.apache.hcatalog.templeton.tool.ZooKeeperStorage",
+    "description" : "The class to use as storage",
+    "filename" : "webhcat-site.xml"
+  }, {
+    "name" : "templeton.override.enabled",
+    "value" : "false",
+    "description" : "\n     Enable the override path in templeton.override.jars\n   ",
+    "filename" : "webhcat-site.xml"
+  }, {
+    "name" : "templeton.streaming.jar",
+    "value" : "hdfs:///apps/webhcat/hadoop-streaming.jar",
+    "description" : "The hdfs path to the Hadoop streaming jar file.",
+    "filename" : "webhcat-site.xml"
+  }, {
+    "name" : "templeton.exec.timeout",
+    "value" : "60000",
+    "description" : "Time out for templeton api",
+    "filename" : "webhcat-site.xml"
+  } ],
+  "components" : [ {
+    "name" : "WEBHCAT_SERVER",
+    "category" : "MASTER",
+    "client" : false,
+    "master" : true
+  } ],
+  "clientOnlyService" : false,
+  "clientComponent" : {
+    "name" : "WEBHCAT_SERVER",
+    "category" : "MASTER",
+    "client" : false,
+    "master" : true
+  }
+}

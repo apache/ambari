@@ -1,0 +1,640 @@
+{
+  "name" : "OOZIE",
+  "version" : "3.2.0.1-1",
+  "user" : "root",
+  "comment" : "This is comment for OOZIE service",
+  "properties" : [ {
+    "name" : "oozie.base.url",
+    "value" : "http://localhost:8080/oozie",
+    "description" : "\n      Base Oozie URL.\n    ",
+    "filename" : "oozie-site.xml"
+  }, {
+    "name" : "oozie.system.id",
+    "value" : "oozie-${user.name}",
+    "description" : "\n      The Oozie system ID.\n    ",
+    "filename" : "oozie-site.xml"
+  }, {
+    "name" : "oozie.systemmode",
+    "value" : "NORMAL",
+    "description" : "\n      System mode for Oozie at startup.\n    ",
+    "filename" : "oozie-site.xml"
+  }, {
+    "name" : "oozie.delete.runtime.dir.on.shutdown",
+    "value" : "true",
+    "description" : "\n      If the runtime directory should be kept after Oozie shutdowns down.\n    ",
+    "filename" : "oozie-site.xml"
+  }, {
+    "name" : "oozie.services",
+    "value" : "\n      org.apache.oozie.service.SchedulerService,\n      org.apache.oozie.service.InstrumentationService,\n      org.apache.oozie.service.CallableQueueService,\n      org.apache.oozie.service.UUIDService,\n      org.apache.oozie.service.ELService,\n      org.apache.oozie.service.AuthorizationService,\n      org.apache.oozie.service.HadoopAccessorService,\n      org.apache.oozie.service.MemoryLocksService,\n      org.apache.oozie.service.DagXLogInfoService,\n      org.apache.oozie.service.SchemaService,\n      org.apache.oozie.service.LiteWorkflowAppService,\n      org.apache.oozie.service.JPAService,\n      org.apache.oozie.service.StoreService,\n      org.apache.oozie.service.CoordinatorStoreService,\n      org.apache.oozie.service.SLAStoreService,\n      org.apache.oozie.service.DBLiteWorkflowStoreService,\n      org.apache.oozie.service.CallbackService,\n      org.apache.oozie.service.ActionService,\n      org.apache.oozie.service.ActionCheckerService,\n      org.apache.oozie.service.RecoveryService,\n      org.apache.oozie.service.PurgeService,\n      org.apache.oozie.service.CoordinatorEngineService,\n      org.apache.oozie.service.BundleEngineService,\n      org.apache.oozie.service.DagEngineService,\n      org.apache.oozie.service.CoordMaterializeTriggerService,\n      org.apache.oozie.service.StatusTransitService,\n      org.apache.oozie.service.PauseTransitService,\n      org.apache.oozie.service.GroupsService,\n      org.apache.oozie.service.ProxyUserService\n    ",
+    "description" : "\n      All services to be created and managed by Oozie Services singleton.\n      Class names must be separated by commas.\n    ",
+    "filename" : "oozie-site.xml"
+  }, {
+    "name" : "oozie.service.ConfigurationService.ignore.system.properties",
+    "value" : "\n      oozie.service.AuthorizationService.security.enabled\n    ",
+    "description" : "\n      Specifies \"oozie.*\" properties to cannot be overridden via Java system properties.\n      Property names must be separted by commas.\n    ",
+    "filename" : "oozie-site.xml"
+  }, {
+    "name" : "oozie.service.SchedulerService.threads",
+    "value" : "5",
+    "description" : "\n      The number of threads to be used by the SchedulerService to run deamon tasks.\n      If maxed out, scheduled daemon tasks will be queued up and delayed until threads become available.\n    ",
+    "filename" : "oozie-site.xml"
+  }, {
+    "name" : "oozie.service.AuthorizationService.authorization.enabled",
+    "value" : "false",
+    "description" : "\n      Specifies whether security (user name/admin role) is enabled or not.\n      If disabled any user can manage Oozie system and manage any job.\n    ",
+    "filename" : "oozie-site.xml"
+  }, {
+    "name" : "oozie.service.AuthorizationService.default.group.as.acl",
+    "value" : "false",
+    "description" : "\n      Enables old behavior where the User's default group is the job's ACL.\n    ",
+    "filename" : "oozie-site.xml"
+  }, {
+    "name" : "oozie.service.InstrumentationService.logging.interval",
+    "value" : "60",
+    "description" : "\n      Interval, in seconds, at which instrumentation should be logged by the InstrumentationService.\n      If set to 0 it will not log instrumentation data.\n    ",
+    "filename" : "oozie-site.xml"
+  }, {
+    "name" : "oozie.service.PurgeService.older.than",
+    "value" : "30",
+    "description" : "\n      Completed workflow jobs older than this value, in days, will be purged by the PurgeService.\n    ",
+    "filename" : "oozie-site.xml"
+  }, {
+    "name" : "oozie.service.PurgeService.coord.older.than",
+    "value" : "7",
+    "description" : "\n      Completed coordinator jobs older than this value, in days, will be purged by the PurgeService.\n    ",
+    "filename" : "oozie-site.xml"
+  }, {
+    "name" : "oozie.service.PurgeService.bundle.older.than",
+    "value" : "7",
+    "description" : "\n      Completed bundle jobs older than this value, in days, will be purged by the PurgeService.\n    ",
+    "filename" : "oozie-site.xml"
+  }, {
+    "name" : "oozie.service.PurgeService.purge.limit",
+    "value" : "100",
+    "description" : "\n      Completed Actions purge - limit each purge to this value\n    ",
+    "filename" : "oozie-site.xml"
+  }, {
+    "name" : "oozie.service.PurgeService.purge.interval",
+    "value" : "3600",
+    "description" : "\n      Interval at which the purge service will run, in seconds.\n    ",
+    "filename" : "oozie-site.xml"
+  }, {
+    "name" : "oozie.service.RecoveryService.wf.actions.older.than",
+    "value" : "120",
+    "description" : "\n      Age of the actions which are eligible to be queued for recovery, in seconds.\n    ",
+    "filename" : "oozie-site.xml"
+  }, {
+    "name" : "oozie.service.RecoveryService.callable.batch.size",
+    "value" : "10",
+    "description" : "\n      This value determines the number of callable which will be batched together\n      to be executed by a single thread.\n    ",
+    "filename" : "oozie-site.xml"
+  }, {
+    "name" : "oozie.service.RecoveryService.interval",
+    "value" : "60",
+    "description" : "\n      Interval at which the RecoverService will run, in seconds.\n    ",
+    "filename" : "oozie-site.xml"
+  }, {
+    "name" : "oozie.service.RecoveryService.coord.older.than",
+    "value" : "600",
+    "description" : "\n      Age of the Coordinator jobs or actions which are eligible to be queued for recovery, in seconds.\n    ",
+    "filename" : "oozie-site.xml"
+  }, {
+    "name" : "oozie.service.RecoveryService.bundle.older.than",
+    "value" : "600",
+    "description" : "\n      Age of the Bundle jobs which are eligible to be queued for recovery, in seconds.\n    ",
+    "filename" : "oozie-site.xml"
+  }, {
+    "name" : "oozie.service.CallableQueueService.queue.size",
+    "value" : "10000",
+    "description" : "Max callable queue size",
+    "filename" : "oozie-site.xml"
+  }, {
+    "name" : "oozie.service.CallableQueueService.threads",
+    "value" : "10",
+    "description" : "Number of threads used for executing callables",
+    "filename" : "oozie-site.xml"
+  }, {
+    "name" : "oozie.service.CallableQueueService.callable.concurrency",
+    "value" : "3",
+    "description" : "\n      Maximum concurrency for a given callable type.\n      Each command is a callable type (submit, start, run, signal, job, jobs, suspend,resume, etc).\n      Each action type is a callable type (Map-Reduce, Pig, SSH, FS, sub-workflow, etc).\n      All commands that use action executors (action-start, action-end, action-kill and action-check) use\n      the action type as the callable type.\n    ",
+    "filename" : "oozie-site.xml"
+  }, {
+    "name" : "oozie.service.CallableQueueService.callable.next.eligible",
+    "value" : "true",
+    "description" : "\n      If true, when a callable in the queue has already reached max concurrency,\n      Oozie continuously find next one which has not yet reach max concurrency.\n    ",
+    "filename" : "oozie-site.xml"
+  }, {
+    "name" : "oozie.service.CallableQueueService.InterruptMapMaxSize",
+    "value" : "500",
+    "description" : "\n      Maximum Size of the Interrupt Map, the interrupt element will not be inserted in the map if exceeded the size.\n    ",
+    "filename" : "oozie-site.xml"
+  }, {
+    "name" : "oozie.service.CallableQueueService.InterruptTypes",
+    "value" : "\n      kill,resume,suspend,bundle_kill,bundle_resume,bundle_suspend,coord_kill,coord_change,coord_resume,coord_suspend\n    ",
+    "description" : "\n      Getting the types of XCommands that are considered to be of Interrupt type\n    ",
+    "filename" : "oozie-site.xml"
+  }, {
+    "name" : "oozie.service.CoordMaterializeTriggerService.lookup.interval\n    ",
+    "value" : "300",
+    "description" : "Coordinator Job Lookup trigger command is scheduled at\n      this \"interval\" (in seconds).\n    ",
+    "filename" : "oozie-site.xml"
+  }, {
+    "name" : "oozie.service.CoordMaterializeTriggerService.materialization.window\n    ",
+    "value" : "3600",
+    "description" : "Coordinator Job Lookup command materialized each job for\n      this next \"window\" duration\n    ",
+    "filename" : "oozie-site.xml"
+  }, {
+    "name" : "oozie.service.CoordMaterializeTriggerService.callable.batch.size",
+    "value" : "10",
+    "description" : "\n      This value determines the number of callable which will be batched together\n      to be executed by a single thread.\n    ",
+    "filename" : "oozie-site.xml"
+  }, {
+    "name" : "oozie.service.CoordMaterializeTriggerService.materialization.system.limit",
+    "value" : "50",
+    "description" : "\n      This value determines the number of coordinator jobs to be materialized at a given time.\n    ",
+    "filename" : "oozie-site.xml"
+  }, {
+    "name" : "oozie.service.coord.normal.default.timeout\n    ",
+    "value" : "10080",
+    "description" : "Default timeout for a coordinator action input check (in minutes) for normal job.\n    ",
+    "filename" : "oozie-site.xml"
+  }, {
+    "name" : "oozie.service.coord.default.max.timeout\n    ",
+    "value" : "86400",
+    "description" : "Default maximum timeout for a coordinator action input check (in minutes). 86400= 60days\n    ",
+    "filename" : "oozie-site.xml"
+  }, {
+    "name" : "oozie.service.coord.input.check.requeue.interval\n    ",
+    "value" : "60000",
+    "description" : "Command re-queue interval for coordinator data input check (in millisecond).\n    ",
+    "filename" : "oozie-site.xml"
+  }, {
+    "name" : "oozie.service.coord.default.concurrency\n    ",
+    "value" : "1",
+    "description" : "Default concurrency for a coordinator job to determine how many maximum action should\n      be executed at the same time. -1 means infinite concurrency.\n    ",
+    "filename" : "oozie-site.xml"
+  }, {
+    "name" : "oozie.service.coord.default.throttle\n    ",
+    "value" : "12",
+    "description" : "Default throttle for a coordinator job to determine how many maximum action should\n      be in WAITING state at the same time.\n    ",
+    "filename" : "oozie-site.xml"
+  }, {
+    "name" : "oozie.service.coord.materialization.throttling.factor\n    ",
+    "value" : "0.05",
+    "description" : "Determine how many maximum actions should be in WAITING state for a single job at any time. The value\n      is calculated by\n      this factor X the total queue size.\n    ",
+    "filename" : "oozie-site.xml"
+  }, {
+    "name" : "oozie.service.ELService.groups",
+    "value" : "\n      workflow,wf-sla-submit,coord-job-submit-freq,coord-job-submit-nofuncs,coord-job-submit-data,coord-job-submit-instances,coord-sla-submit,coord-action-create,coord-action-create-inst,coord-sla-create,coord-action-start\n    ",
+    "description" : "List of groups for different ELServices",
+    "filename" : "oozie-site.xml"
+  }, {
+    "name" : "oozie.service.ELService.constants.workflow",
+    "value" : "\n      KB=org.apache.oozie.util.ELConstantsFunctions#KB,\n      MB=org.apache.oozie.util.ELConstantsFunctions#MB,\n      GB=org.apache.oozie.util.ELConstantsFunctions#GB,\n      TB=org.apache.oozie.util.ELConstantsFunctions#TB,\n      PB=org.apache.oozie.util.ELConstantsFunctions#PB,\n      RECORDS=org.apache.oozie.action.hadoop.HadoopELFunctions#RECORDS,\n      MAP_IN=org.apache.oozie.action.hadoop.HadoopELFunctions#MAP_IN,\n      MAP_OUT=org.apache.oozie.action.hadoop.HadoopELFunctions#MAP_OUT,\n      REDUCE_IN=org.apache.oozie.action.hadoop.HadoopELFunctions#REDUCE_IN,\n      REDUCE_OUT=org.apache.oozie.action.hadoop.HadoopELFunctions#REDUCE_OUT,\n      GROUPS=org.apache.oozie.action.hadoop.HadoopELFunctions#GROUPS\n    ",
+    "description" : "\n      EL constant declarations, separated by commas, format is [PREFIX:]NAME=CLASS#CONSTANT.\n    ",
+    "filename" : "oozie-site.xml"
+  }, {
+    "name" : "oozie.service.ELService.functions.workflow",
+    "value" : "\n      firstNotNull=org.apache.oozie.util.ELConstantsFunctions#firstNotNull,\n      concat=org.apache.oozie.util.ELConstantsFunctions#concat,\n      trim=org.apache.oozie.util.ELConstantsFunctions#trim,\n      timestamp=org.apache.oozie.util.ELConstantsFunctions#timestamp,\n      urlEncode=org.apache.oozie.util.ELConstantsFunctions#urlEncode,\n      toJsonStr=org.apache.oozie.util.ELConstantsFunctions#toJsonStr,\n      toPropertiesStr=org.apache.oozie.util.ELConstantsFunctions#toPropertiesStr,\n      toConfigurationStr=org.apache.oozie.util.ELConstantsFunctions#toConfigurationStr,\n      wf:id=org.apache.oozie.DagELFunctions#wf_id,\n      wf:name=org.apache.oozie.DagELFunctions#wf_name,\n      wf:appPath=org.apache.oozie.DagELFunctions#wf_appPath,\n      wf:conf=org.apache.oozie.DagELFunctions#wf_conf,\n      wf:user=org.apache.oozie.DagELFunctions#wf_user,\n      wf:group=org.apache.oozie.DagELFunctions#wf_group,\n      wf:callback=org.apache.oozie.DagELFunctions#wf_callback,\n      wf:transition=org.apache.oozie.DagELFunctions#wf_transition,\n      wf:lastErrorNode=org.apache.oozie.DagELFunctions#wf_lastErrorNode,\n      wf:errorCode=org.apache.oozie.DagELFunctions#wf_errorCode,\n      wf:errorMessage=org.apache.oozie.DagELFunctions#wf_errorMessage,\n      wf:run=org.apache.oozie.DagELFunctions#wf_run,\n      wf:actionData=org.apache.oozie.DagELFunctions#wf_actionData,\n      wf:actionExternalId=org.apache.oozie.DagELFunctions#wf_actionExternalId,\n      wf:actionTrackerUri=org.apache.oozie.DagELFunctions#wf_actionTrackerUri,\n      wf:actionExternalStatus=org.apache.oozie.DagELFunctions#wf_actionExternalStatus,\n      hadoop:counters=org.apache.oozie.action.hadoop.HadoopELFunctions#hadoop_counters,\n      fs:exists=org.apache.oozie.action.hadoop.FsELFunctions#fs_exists,\n      fs:isDir=org.apache.oozie.action.hadoop.FsELFunctions#fs_isDir,\n      fs:dirSize=org.apache.oozie.action.hadoop.FsELFunctions#fs_dirSize,\n      fs:fileSize=org.apache.oozie.action.hadoop.FsELFunctions#fs_fileSize,\n      fs:blockSize=org.apache.oozie.action.hadoop.FsELFunctions#fs_blockSize\n    ",
+    "description" : "\n      EL functions declarations, separated by commas, format is [PREFIX:]NAME=CLASS#METHOD.\n    ",
+    "filename" : "oozie-site.xml"
+  }, {
+    "name" : "oozie.service.WorkflowAppService.WorkflowDefinitionMaxLength",
+    "value" : "100000",
+    "description" : "\n      The maximum length of the workflow definition in bytes\n      An error will be reported if the length exceeds the given maximum\n    ",
+    "filename" : "oozie-site.xml"
+  }, {
+    "name" : "oozie.service.ELService.ext.functions.workflow",
+    "value" : "\n    ",
+    "description" : "\n      EL functions declarations, separated by commas, format is [PREFIX:]NAME=CLASS#METHOD.\n      This property is a convenience property to add extensions to the built in executors without having to\n      include all the built in ones.\n    ",
+    "filename" : "oozie-site.xml"
+  }, {
+    "name" : "oozie.service.ELService.constants.wf-sla-submit",
+    "value" : "\n      MINUTES=org.apache.oozie.util.ELConstantsFunctions#SUBMIT_MINUTES,\n      HOURS=org.apache.oozie.util.ELConstantsFunctions#SUBMIT_HOURS,\n      DAYS=org.apache.oozie.util.ELConstantsFunctions#SUBMIT_DAYS\n    ",
+    "description" : "\n      EL constant declarations, separated by commas, format is [PREFIX:]NAME=CLASS#CONSTANT.\n    ",
+    "filename" : "oozie-site.xml"
+  }, {
+    "name" : "oozie.service.ELService.ext.functions.wf-sla-submit",
+    "value" : "\n    ",
+    "description" : "\n      EL functions declarations, separated by commas, format is [PREFIX:]NAME=CLASS#METHOD.\n      This property is a convenience property to add extensions to the built in executors without having to\n      include all the built in ones.\n    ",
+    "filename" : "oozie-site.xml"
+  }, {
+    "name" : "oozie.service.ELService.functions.coord-job-submit-freq",
+    "value" : "\n      coord:days=org.apache.oozie.coord.CoordELFunctions#ph1_coord_days,\n      coord:months=org.apache.oozie.coord.CoordELFunctions#ph1_coord_months,\n      coord:hours=org.apache.oozie.coord.CoordELFunctions#ph1_coord_hours,\n      coord:minutes=org.apache.oozie.coord.CoordELFunctions#ph1_coord_minutes,\n      coord:endOfDays=org.apache.oozie.coord.CoordELFunctions#ph1_coord_endOfDays,\n      coord:endOfMonths=org.apache.oozie.coord.CoordELFunctions#ph1_coord_endOfMonths,\n      coord:conf=org.apache.oozie.coord.CoordELFunctions#coord_conf,\n      coord:user=org.apache.oozie.coord.CoordELFunctions#coord_user\n    ",
+    "description" : "\n      EL functions declarations, separated by commas, format is [PREFIX:]NAME=CLASS#METHOD.\n    ",
+    "filename" : "oozie-site.xml"
+  }, {
+    "name" : "oozie.service.ELService.ext.functions.coord-job-submit-freq",
+    "value" : "\n    ",
+    "description" : "\n      EL functions declarations, separated by commas, format is [PREFIX:]NAME=CLASS#METHOD.\n      This property is a convenience property to add extensions to the built in executors without having to\n      include all the built in ones.\n    ",
+    "filename" : "oozie-site.xml"
+  }, {
+    "name" : "oozie.service.ELService.constants.coord-job-submit-nofuncs",
+    "value" : "\n      MINUTE=org.apache.oozie.coord.CoordELConstants#SUBMIT_MINUTE,\n      HOUR=org.apache.oozie.coord.CoordELConstants#SUBMIT_HOUR,\n      DAY=org.apache.oozie.coord.CoordELConstants#SUBMIT_DAY,\n      MONTH=org.apache.oozie.coord.CoordELConstants#SUBMIT_MONTH,\n      YEAR=org.apache.oozie.coord.CoordELConstants#SUBMIT_YEAR\n    ",
+    "description" : "\n      EL constant declarations, separated by commas, format is [PREFIX:]NAME=CLASS#CONSTANT.\n    ",
+    "filename" : "oozie-site.xml"
+  }, {
+    "name" : "oozie.service.ELService.functions.coord-job-submit-nofuncs",
+    "value" : "\n      coord:conf=org.apache.oozie.coord.CoordELFunctions#coord_conf,\n      coord:user=org.apache.oozie.coord.CoordELFunctions#coord_user\n    ",
+    "description" : "\n      EL functions declarations, separated by commas, format is [PREFIX:]NAME=CLASS#METHOD.\n    ",
+    "filename" : "oozie-site.xml"
+  }, {
+    "name" : "oozie.service.ELService.functions.coord-job-submit-instances",
+    "value" : "\n      coord:hoursInDay=org.apache.oozie.coord.CoordELFunctions#ph1_coord_hoursInDay_echo,\n      coord:daysInMonth=org.apache.oozie.coord.CoordELFunctions#ph1_coord_daysInMonth_echo,\n      coord:tzOffset=org.apache.oozie.coord.CoordELFunctions#ph1_coord_tzOffset_echo,\n      coord:current=org.apache.oozie.coord.CoordELFunctions#ph1_coord_current_echo,\n      coord:latest=org.apache.oozie.coord.CoordELFunctions#ph1_coord_latest_echo,\n      coord:future=org.apache.oozie.coord.CoordELFunctions#ph1_coord_future_echo,\n      coord:formatTime=org.apache.oozie.coord.CoordELFunctions#ph1_coord_formatTime_echo,\n      coord:conf=org.apache.oozie.coord.CoordELFunctions#coord_conf,\n      coord:user=org.apache.oozie.coord.CoordELFunctions#coord_user\n    ",
+    "description" : "\n      EL functions declarations, separated by commas, format is [PREFIX:]NAME=CLASS#METHOD.\n    ",
+    "filename" : "oozie-site.xml"
+  }, {
+    "name" : "oozie.service.ELService.ext.functions.coord-job-submit-instances",
+    "value" : "\n    ",
+    "description" : "\n      EL functions declarations, separated by commas, format is [PREFIX:]NAME=CLASS#METHOD.\n      This property is a convenience property to add extensions to the built in executors without having to\n      include all the built in ones.\n    ",
+    "filename" : "oozie-site.xml"
+  }, {
+    "name" : "oozie.service.ELService.functions.coord-job-submit-data",
+    "value" : "\n      coord:dataIn=org.apache.oozie.coord.CoordELFunctions#ph1_coord_dataIn_echo,\n      coord:dataOut=org.apache.oozie.coord.CoordELFunctions#ph1_coord_dataOut_echo,\n      coord:nominalTime=org.apache.oozie.coord.CoordELFunctions#ph1_coord_nominalTime_echo_wrap,\n      coord:actualTime=org.apache.oozie.coord.CoordELFunctions#ph1_coord_actualTime_echo_wrap,\n      coord:dateOffset=org.apache.oozie.coord.CoordELFunctions#ph1_coord_dateOffset_echo,\n      coord:formatTime=org.apache.oozie.coord.CoordELFunctions#ph1_coord_formatTime_echo,\n      coord:actionId=org.apache.oozie.coord.CoordELFunctions#ph1_coord_actionId_echo,\n      coord:name=org.apache.oozie.coord.CoordELFunctions#ph1_coord_name_echo,\n      coord:conf=org.apache.oozie.coord.CoordELFunctions#coord_conf,\n      coord:user=org.apache.oozie.coord.CoordELFunctions#coord_user\n    ",
+    "description" : "\n      EL functions declarations, separated by commas, format is [PREFIX:]NAME=CLASS#METHOD.\n    ",
+    "filename" : "oozie-site.xml"
+  }, {
+    "name" : "oozie.service.ELService.ext.functions.coord-job-submit-data",
+    "value" : "\n    ",
+    "description" : "\n      EL functions declarations, separated by commas, format is [PREFIX:]NAME=CLASS#METHOD.\n      This property is a convenience property to add extensions to the built in executors without having to\n      include all the built in ones.\n    ",
+    "filename" : "oozie-site.xml"
+  }, {
+    "name" : "oozie.service.ELService.constants.coord-sla-submit",
+    "value" : "\n      MINUTES=org.apache.oozie.coord.CoordELConstants#SUBMIT_MINUTES,\n      HOURS=org.apache.oozie.coord.CoordELConstants#SUBMIT_HOURS,\n      DAYS=org.apache.oozie.coord.CoordELConstants#SUBMIT_DAYS\n    ",
+    "description" : "\n      EL constant declarations, separated by commas, format is [PREFIX:]NAME=CLASS#CONSTANT.\n    ",
+    "filename" : "oozie-site.xml"
+  }, {
+    "name" : "oozie.service.ELService.functions.coord-sla-submit",
+    "value" : "\n      coord:nominalTime=org.apache.oozie.coord.CoordELFunctions#ph1_coord_nominalTime_echo_fixed,\n      coord:conf=org.apache.oozie.coord.CoordELFunctions#coord_conf,\n      coord:user=org.apache.oozie.coord.CoordELFunctions#coord_user\n    ",
+    "description" : "\n      EL functions declarations, separated by commas, format is [PREFIX:]NAME=CLASS#METHOD.\n    ",
+    "filename" : "oozie-site.xml"
+  }, {
+    "name" : "oozie.service.ELService.ext.functions.coord-sla-submit",
+    "value" : "\n    ",
+    "description" : "\n      EL functions declarations, separated by commas, format is [PREFIX:]NAME=CLASS#METHOD.\n      This property is a convenience property to add extensions to the built in executors without having to\n      include all the built in ones.\n    ",
+    "filename" : "oozie-site.xml"
+  }, {
+    "name" : "oozie.service.ELService.constants.coord-action-create",
+    "value" : "\n    ",
+    "description" : "\n      EL constant declarations, separated by commas, format is [PREFIX:]NAME=CLASS#CONSTANT.\n    ",
+    "filename" : "oozie-site.xml"
+  }, {
+    "name" : "oozie.service.ELService.functions.coord-action-create",
+    "value" : "\n      coord:hoursInDay=org.apache.oozie.coord.CoordELFunctions#ph2_coord_hoursInDay,\n      coord:daysInMonth=org.apache.oozie.coord.CoordELFunctions#ph2_coord_daysInMonth,\n      coord:tzOffset=org.apache.oozie.coord.CoordELFunctions#ph2_coord_tzOffset,\n      coord:current=org.apache.oozie.coord.CoordELFunctions#ph2_coord_current,\n      coord:latest=org.apache.oozie.coord.CoordELFunctions#ph2_coord_latest_echo,\n      coord:future=org.apache.oozie.coord.CoordELFunctions#ph2_coord_future_echo,\n      coord:actionId=org.apache.oozie.coord.CoordELFunctions#ph2_coord_actionId,\n      coord:name=org.apache.oozie.coord.CoordELFunctions#ph2_coord_name,\n      coord:formatTime=org.apache.oozie.coord.CoordELFunctions#ph2_coord_formatTime,\n      coord:conf=org.apache.oozie.coord.CoordELFunctions#coord_conf,\n      coord:user=org.apache.oozie.coord.CoordELFunctions#coord_user\n    ",
+    "description" : "\n      EL functions declarations, separated by commas, format is [PREFIX:]NAME=CLASS#METHOD.\n    ",
+    "filename" : "oozie-site.xml"
+  }, {
+    "name" : "oozie.service.ELService.ext.functions.coord-action-create",
+    "value" : "\n    ",
+    "description" : "\n      EL functions declarations, separated by commas, format is [PREFIX:]NAME=CLASS#METHOD.\n      This property is a convenience property to add extensions to the built in executors without having to\n      include all the built in ones.\n    ",
+    "filename" : "oozie-site.xml"
+  }, {
+    "name" : "oozie.service.ELService.constants.coord-action-create-inst",
+    "value" : "\n    ",
+    "description" : "\n      EL constant declarations, separated by commas, format is [PREFIX:]NAME=CLASS#CONSTANT.\n    ",
+    "filename" : "oozie-site.xml"
+  }, {
+    "name" : "oozie.service.ELService.functions.coord-action-create-inst",
+    "value" : "\n      coord:hoursInDay=org.apache.oozie.coord.CoordELFunctions#ph2_coord_hoursInDay,\n      coord:daysInMonth=org.apache.oozie.coord.CoordELFunctions#ph2_coord_daysInMonth,\n      coord:tzOffset=org.apache.oozie.coord.CoordELFunctions#ph2_coord_tzOffset,\n      coord:current=org.apache.oozie.coord.CoordELFunctions#ph2_coord_current_echo,\n      coord:latest=org.apache.oozie.coord.CoordELFunctions#ph2_coord_latest_echo,\n      coord:future=org.apache.oozie.coord.CoordELFunctions#ph2_coord_future_echo,\n      coord:formatTime=org.apache.oozie.coord.CoordELFunctions#ph2_coord_formatTime,\n      coord:conf=org.apache.oozie.coord.CoordELFunctions#coord_conf,\n      coord:user=org.apache.oozie.coord.CoordELFunctions#coord_user\n    ",
+    "description" : "\n      EL functions declarations, separated by commas, format is [PREFIX:]NAME=CLASS#METHOD.\n    ",
+    "filename" : "oozie-site.xml"
+  }, {
+    "name" : "oozie.service.ELService.ext.functions.coord-action-create-inst",
+    "value" : "\n    ",
+    "description" : "\n      EL functions declarations, separated by commas, format is [PREFIX:]NAME=CLASS#METHOD.\n      This property is a convenience property to add extensions to the built in executors without having to\n      include all the built in ones.\n    ",
+    "filename" : "oozie-site.xml"
+  }, {
+    "name" : "oozie.service.ELService.ext.constants.coord-sla-create",
+    "value" : "\n      MINUTES=org.apache.oozie.coord.CoordELConstants#SUBMIT_MINUTES,\n      HOURS=org.apache.oozie.coord.CoordELConstants#SUBMIT_HOURS,\n      DAYS=org.apache.oozie.coord.CoordELConstants#SUBMIT_DAYS\n    ",
+    "description" : "\n      EL constant declarations, separated by commas, format is [PREFIX:]NAME=CLASS#CONSTANT.\n      This property is a convenience property to add extensions to the built in executors without having to\n      include all the built in ones.\n    ",
+    "filename" : "oozie-site.xml"
+  }, {
+    "name" : "oozie.service.ELService.functions.coord-sla-create",
+    "value" : "\n      coord:nominalTime=org.apache.oozie.coord.CoordELFunctions#ph2_coord_nominalTime,\n      coord:conf=org.apache.oozie.coord.CoordELFunctions#coord_conf,\n      coord:user=org.apache.oozie.coord.CoordELFunctions#coord_user\n    ",
+    "description" : "\n      EL functions declarations, separated by commas, format is [PREFIX:]NAME=CLASS#METHOD.\n    ",
+    "filename" : "oozie-site.xml"
+  }, {
+    "name" : "oozie.service.ELService.ext.functions.coord-sla-create",
+    "value" : "\n    ",
+    "description" : "\n      EL functions declarations, separated by commas, format is [PREFIX:]NAME=CLASS#METHOD.\n      This property is a convenience property to add extensions to the built in executors without having to\n      include all the built in ones.\n    ",
+    "filename" : "oozie-site.xml"
+  }, {
+    "name" : "oozie.service.ELService.constants.coord-action-start",
+    "value" : "\n    ",
+    "description" : "\n      EL constant declarations, separated by commas, format is [PREFIX:]NAME=CLASS#CONSTANT.\n    ",
+    "filename" : "oozie-site.xml"
+  }, {
+    "name" : "oozie.service.ELService.functions.coord-action-start",
+    "value" : "\n      coord:hoursInDay=org.apache.oozie.coord.CoordELFunctions#ph3_coord_hoursInDay,\n      coord:daysInMonth=org.apache.oozie.coord.CoordELFunctions#ph3_coord_daysInMonth,\n      coord:tzOffset=org.apache.oozie.coord.CoordELFunctions#ph3_coord_tzOffset,\n      coord:latest=org.apache.oozie.coord.CoordELFunctions#ph3_coord_latest,\n      coord:future=org.apache.oozie.coord.CoordELFunctions#ph3_coord_future,\n      coord:dataIn=org.apache.oozie.coord.CoordELFunctions#ph3_coord_dataIn,\n      coord:dataOut=org.apache.oozie.coord.CoordELFunctions#ph3_coord_dataOut,\n      coord:nominalTime=org.apache.oozie.coord.CoordELFunctions#ph3_coord_nominalTime,\n      coord:actualTime=org.apache.oozie.coord.CoordELFunctions#ph3_coord_actualTime,\n      coord:dateOffset=org.apache.oozie.coord.CoordELFunctions#ph3_coord_dateOffset,\n      coord:formatTime=org.apache.oozie.coord.CoordELFunctions#ph3_coord_formatTime,\n      coord:actionId=org.apache.oozie.coord.CoordELFunctions#ph3_coord_actionId,\n      coord:name=org.apache.oozie.coord.CoordELFunctions#ph3_coord_name,\n      coord:conf=org.apache.oozie.coord.CoordELFunctions#coord_conf,\n      coord:user=org.apache.oozie.coord.CoordELFunctions#coord_user\n    ",
+    "description" : "\n      EL functions declarations, separated by commas, format is [PREFIX:]NAME=CLASS#METHOD.\n    ",
+    "filename" : "oozie-site.xml"
+  }, {
+    "name" : "oozie.service.ELService.ext.functions.coord-action-start",
+    "value" : "\n    ",
+    "description" : "\n      EL functions declarations, separated by commas, format is [PREFIX:]NAME=CLASS#METHOD.\n      This property is a convenience property to add extensions to the built in executors without having to\n      include all the built in ones.\n    ",
+    "filename" : "oozie-site.xml"
+  }, {
+    "name" : "oozie.service.UUIDService.generator",
+    "value" : "counter",
+    "description" : "\n      random : generated UUIDs will be random strings.\n      counter: generated UUIDs generated will be a counter postfixed with the system startup time.\n    ",
+    "filename" : "oozie-site.xml"
+  }, {
+    "name" : "oozie.service.DBLiteWorkflowStoreService.status.metrics.collection.interval",
+    "value" : "5",
+    "description" : "Workflow Status metrics collection interval in minutes.",
+    "filename" : "oozie-site.xml"
+  }, {
+    "name" : "oozie.service.DBLiteWorkflowStoreService.status.metrics.window",
+    "value" : "3600",
+    "description" : "\n      Workflow Status metrics collection window in seconds. Workflow status will be instrumented for the window.\n    ",
+    "filename" : "oozie-site.xml"
+  }, {
+    "name" : "oozie.db.schema.name",
+    "value" : "oozie",
+    "description" : "\n      Oozie DataBase Name\n    ",
+    "filename" : "oozie-site.xml"
+  }, {
+    "name" : "oozie.service.JPAService.create.db.schema",
+    "value" : "true",
+    "description" : "\n      Creates Oozie DB.\n\n      If set to true, it creates the DB schema if it does not exist. If the DB schema exists is a NOP.\n      If set to false, it does not create the DB schema. If the DB schema does not exist it fails start up.\n    ",
+    "filename" : "oozie-site.xml"
+  }, {
+    "name" : "oozie.service.JPAService.validate.db.connection",
+    "value" : "false",
+    "description" : "\n      Validates DB connections from the DB connection pool.\n      If the 'oozie.service.JPAService.create.db.schema' property is set to true, this property is ignored.\n    ",
+    "filename" : "oozie-site.xml"
+  }, {
+    "name" : "oozie.service.JPAService.validate.db.connection.eviction.interval",
+    "value" : "300000",
+    "description" : "\n      Validates DB connections from the DB connection pool.\n      When validate db connection 'TestWhileIdle' is true, the number of milliseconds to sleep\n      between runs of the idle object evictor thread.\n    ",
+    "filename" : "oozie-site.xml"
+  }, {
+    "name" : "oozie.service.JPAService.validate.db.connection.eviction.num",
+    "value" : "10",
+    "description" : "\n      Validates DB connections from the DB connection pool.\n      When validate db connection 'TestWhileIdle' is true, the number of objects to examine during\n      each run of the idle object evictor thread.\n    ",
+    "filename" : "oozie-site.xml"
+  }, {
+    "name" : "oozie.service.JPAService.connection.data.source",
+    "value" : "org.apache.commons.dbcp.BasicDataSource",
+    "description" : "\n      DataSource to be used for connection pooling.\n    ",
+    "filename" : "oozie-site.xml"
+  }, {
+    "name" : "oozie.service.JPAService.jdbc.driver",
+    "value" : "org.apache.derby.jdbc.EmbeddedDriver",
+    "description" : "\n      JDBC driver class.\n    ",
+    "filename" : "oozie-site.xml"
+  }, {
+    "name" : "oozie.service.JPAService.jdbc.url",
+    "value" : "jdbc:derby:${oozie.data.dir}/${oozie.db.schema.name}-db;create=true",
+    "description" : "\n      JDBC URL.\n    ",
+    "filename" : "oozie-site.xml"
+  }, {
+    "name" : "oozie.service.JPAService.jdbc.username",
+    "value" : "sa",
+    "description" : "\n      DB user name.\n    ",
+    "filename" : "oozie-site.xml"
+  }, {
+    "name" : "oozie.service.JPAService.pool.max.active.conn",
+    "value" : "10",
+    "description" : "\n      Max number of connections.\n    ",
+    "filename" : "oozie-site.xml"
+  }, {
+    "name" : "oozie.service.SchemaService.wf.ext.schemas",
+    "value" : "oozie-sla-0.1.xsd",
+    "description" : "\n      Schemas for additional actions types.\n\n      IMPORTANT: if there are no schemas leave a 1 space string, the service trims the value,\n      if empty Configuration assumes it is NULL.\n    ",
+    "filename" : "oozie-site.xml"
+  }, {
+    "name" : "oozie.service.SchemaService.coord.ext.schemas",
+    "value" : "oozie-sla-0.1.xsd",
+    "description" : "\n      Schemas for additional actions types.\n\n      IMPORTANT: if there are no schemas leave a 1 space string, the service trims the value,\n      if empty Configuration assumes it is NULL.\n    ",
+    "filename" : "oozie-site.xml"
+  }, {
+    "name" : "oozie.service.CallbackService.base.url",
+    "value" : "${oozie.base.url}/callback",
+    "description" : "\n      Base callback URL used by ActionExecutors.\n    ",
+    "filename" : "oozie-site.xml"
+  }, {
+    "name" : "oozie.servlet.CallbackServlet.max.data.len",
+    "value" : "2048",
+    "description" : "\n      Max size in characters for the action completion data output.\n    ",
+    "filename" : "oozie-site.xml"
+  }, {
+    "name" : "oozie.external.stats.max.size",
+    "value" : "-1",
+    "description" : "\n      Max size in bytes for action stats. -1 means infinite value.\n    ",
+    "filename" : "oozie-site.xml"
+  }, {
+    "name" : "oozie.JobCommand.job.console.url",
+    "value" : "${oozie.base.url}?job=",
+    "description" : "\n      Base console URL for a workflow job.\n    ",
+    "filename" : "oozie-site.xml"
+  }, {
+    "name" : "oozie.service.ActionService.executor.classes",
+    "value" : "\n      org.apache.oozie.action.decision.DecisionActionExecutor,\n      org.apache.oozie.action.hadoop.JavaActionExecutor,\n      org.apache.oozie.action.hadoop.FsActionExecutor,\n      org.apache.oozie.action.hadoop.MapReduceActionExecutor,\n      org.apache.oozie.action.hadoop.PigActionExecutor,\n      org.apache.oozie.action.ssh.SshActionExecutor,\n      org.apache.oozie.action.oozie.SubWorkflowActionExecutor\n    ",
+    "description" : "\n      List of ActionExecutors classes (separated by commas).\n      Only action types with associated executors can be used in workflows.\n    ",
+    "filename" : "oozie-site.xml"
+  }, {
+    "name" : "oozie.service.ActionCheckerService.action.check.interval",
+    "value" : "60",
+    "description" : "\n      The frequency at which the ActionCheckService will run.\n    ",
+    "filename" : "oozie-site.xml"
+  }, {
+    "name" : "oozie.service.ActionCheckerService.action.check.delay",
+    "value" : "600",
+    "description" : "\n      The time, in seconds, between an ActionCheck for the same action.\n    ",
+    "filename" : "oozie-site.xml"
+  }, {
+    "name" : "oozie.service.ActionCheckerService.callable.batch.size",
+    "value" : "10",
+    "description" : "\n      This value determines the number of actions which will be batched together\n      to be executed by a single thread.\n    ",
+    "filename" : "oozie-site.xml"
+  }, {
+    "name" : "oozie.service.StatusTransitService.statusTransit.interval",
+    "value" : "60",
+    "description" : "\n      The frequency in seconds at which the StatusTransitService will run.\n    ",
+    "filename" : "oozie-site.xml"
+  }, {
+    "name" : "oozie.service.StatusTransitService.backward.support.for.coord.status",
+    "value" : "false",
+    "description" : "\n      true, if coordinator job submits using 'uri:oozie:coordinator:0.1' namespace and wants to keep Oozie 2.x status\n      transit.\n      if set true,\n      1. SUCCEEDED state in coordinator job means materialization done.\n      2. No DONEWITHERROR state in coordinator job\n      3. No PAUSED or PREPPAUSED state in coordinator job\n      4. PREPSUSPENDED becomes SUSPENDED in coordinator job\n    ",
+    "filename" : "oozie-site.xml"
+  }, {
+    "name" : "oozie.service.PauseTransitService.PauseTransit.interval",
+    "value" : "60",
+    "description" : "\n      The frequency in seconds at which the PauseTransitService will run.\n    ",
+    "filename" : "oozie-site.xml"
+  }, {
+    "name" : "oozie.action.retries.max",
+    "value" : "3",
+    "description" : "\n      The number of retries for executing an action in case of failure\n    ",
+    "filename" : "oozie-site.xml"
+  }, {
+    "name" : "oozie.action.hadoop.delete.hdfs.tmp.dir",
+    "value" : "false",
+    "description" : "\n      If set to true, it will delete temporary directory at the end of execution of map reduce action.\n    ",
+    "filename" : "oozie-site.xml"
+  }, {
+    "name" : "oozie.action.pig.delete.hdfs.tmp.dir",
+    "value" : "false",
+    "description" : "\n      If set to true, it will delete temporary directory at the end of execution of pig action.\n    ",
+    "filename" : "oozie-site.xml"
+  }, {
+    "name" : "oozie.action.ssh.delete.remote.tmp.dir",
+    "value" : "false",
+    "description" : "\n      If set to true, it will delete temporary directory at the end of execution of ssh action.\n    ",
+    "filename" : "oozie-site.xml"
+  }, {
+    "name" : "oozie.action.ssh.http.command",
+    "value" : "curl",
+    "description" : "\n      Command to use for callback to oozie, normally is 'curl' or 'wget'.\n      The command must available in PATH environment variable of the USER@HOST box shell.\n    ",
+    "filename" : "oozie-site.xml"
+  }, {
+    "name" : "oozie.action.ssh.http.command.post.options",
+    "value" : "--data-binary @#stdout --request POST --header \"content-type:text/plain\"",
+    "description" : "\n      The callback command POST options.\n      Used when the ouptut of the ssh action is captured.\n    ",
+    "filename" : "oozie-site.xml"
+  }, {
+    "name" : "oozie.action.ssh.allow.user.at.host",
+    "value" : "true",
+    "description" : "\n      Specifies whether the user specified by the ssh action is allowed or is to be replaced\n      by the Job user\n    ",
+    "filename" : "oozie-site.xml"
+  }, {
+    "name" : "oozie.service.HadoopAccessorService.kerberos.enabled",
+    "value" : "false",
+    "description" : "\n      Indicates if Oozie is configured to use Kerberos.\n    ",
+    "filename" : "oozie-site.xml"
+  }, {
+    "name" : "local.realm",
+    "value" : "LOCALHOST",
+    "description" : "\n      Kerberos Realm used by Oozie and Hadoop. Using 'local.realm' to be aligned with Hadoop configuration\n    ",
+    "filename" : "oozie-site.xml"
+  }, {
+    "name" : "oozie.service.HadoopAccessorService.keytab.file",
+    "value" : "${user.home}/oozie.keytab",
+    "description" : "\n      Location of the Oozie user keytab file.\n    ",
+    "filename" : "oozie-site.xml"
+  }, {
+    "name" : "oozie.service.HadoopAccessorService.kerberos.principal",
+    "value" : "${user.name}/localhost@${local.realm}",
+    "description" : "\n      Kerberos principal for Oozie service.\n    ",
+    "filename" : "oozie-site.xml"
+  }, {
+    "name" : "oozie.service.HadoopAccessorService.hadoop.configurations",
+    "value" : "*=/etc/hadoop/conf",
+    "description" : "\n      Comma separated AUTHORITY=HADOOP_CONF_DIR, where AUTHORITY is the HOST:PORT of\n      the Hadoop service (JobTracker, YARN, HDFS). The wildcard '*' configuration is\n      used when there is no exact match for an authority. The HADOOP_CONF_DIR contains\n      the relevant Hadoop *-site.xml files. If the path is relative is looked within\n      the Oozie configuration directory; though the path can be absolute (i.e. to point\n      to Hadoop client conf/ directories in the local filesystem.\n    ",
+    "filename" : "oozie-site.xml"
+  }, {
+    "name" : "oozie.service.HadoopAccessorService.action.configurations",
+    "value" : "*=action-conf",
+    "description" : "\n      Comma separated AUTHORITY=ACTION_CONF_DIR, where AUTHORITY is the HOST:PORT of\n      the Hadoop MapReduce service (JobTracker, YARN). The wildcard '*' configuration is\n      used when there is no exact match for an authority. The ACTION_CONF_DIR may contain\n      ACTION.xml files where ACTION is the action type ('java', 'map-reduce', 'pig',\n      'hive', 'sqoop', etc.). If the ACTION.xml file exists, its properties will be used\n      as defaults properties for the action. If the path is relative is looked within\n      the Oozie configuration directory; though the path can be absolute (i.e. to point\n      to Hadoop client conf/ directories in the local filesystem.\n    ",
+    "filename" : "oozie-site.xml"
+  }, {
+    "name" : "oozie.actions.main.classnames",
+    "value" : "distcp=org.apache.hadoop.tools.DistCp",
+    "description" : "\n      A list of class name mapping for Action classes\n    ",
+    "filename" : "oozie-site.xml"
+  }, {
+    "name" : "oozie.service.WorkflowAppService.system.libpath",
+    "value" : "/user/${user.name}/share/lib",
+    "description" : "\n      System library path to use for workflow applications.\n      This path is added to workflow application if their job properties sets\n      the property 'oozie.use.system.libpath' to true.\n    ",
+    "filename" : "oozie-site.xml"
+  }, {
+    "name" : "use.system.libpath.for.mapreduce.and.pig.jobs",
+    "value" : "false",
+    "description" : "\n      If set to true, submissions of MapReduce and Pig jobs will include\n      automatically the system library path, thus not requiring users to\n      specify where the Pig JAR files are. Instead, the ones from the system\n      library path are used.\n    ",
+    "filename" : "oozie-site.xml"
+  }, {
+    "name" : "oozie.command.default.lock.timeout",
+    "value" : "5000",
+    "description" : "\n      Default timeout (in milliseconds) for commands for acquiring an exclusive lock on an entity.\n    ",
+    "filename" : "oozie-site.xml"
+  }, {
+    "name" : "oozie.service.LiteWorkflowStoreService.user.retry.max",
+    "value" : "3",
+    "description" : "\n      Automatic retry max count for workflow action is 3 in default.\n    ",
+    "filename" : "oozie-site.xml"
+  }, {
+    "name" : "oozie.service.LiteWorkflowStoreService.user.retry.inteval",
+    "value" : "10",
+    "description" : "\n      Automatic retry interval for workflow action is in minutes and the default value is 10 minutes.\n    ",
+    "filename" : "oozie-site.xml"
+  }, {
+    "name" : "oozie.service.LiteWorkflowStoreService.user.retry.error.code",
+    "value" : "JA008,JA009,JA017,JA018,JA019,FS009,FS008",
+    "description" : "\n      Automatic retry interval for workflow action is handled for these specified error code:\n      FS009, FS008 is file exists error when using chmod in fs action.\n      JA018 is output directory exists error in workflow map-reduce action.\n      JA019 is error while executing distcp action.\n      JA017 is job not exists error in action executor.\n      JA008 is FileNotFoundException in action executor.\n      JA009 is IOException in action executor.\n    ",
+    "filename" : "oozie-site.xml"
+  }, {
+    "name" : "oozie.service.LiteWorkflowStoreService.node.def.version",
+    "value" : "_oozie_inst_v_1",
+    "description" : "\n      NodeDef default version, _oozie_inst_v_0 or _oozie_inst_v_1\n    ",
+    "filename" : "oozie-site.xml"
+  }, {
+    "name" : "oozie.authentication.type",
+    "value" : "simple",
+    "description" : "\n      Defines authentication used for Oozie HTTP endpoint.\n      Supported values are: simple | kerberos | #AUTHENTICATION_HANDLER_CLASSNAME#\n    ",
+    "filename" : "oozie-site.xml"
+  }, {
+    "name" : "oozie.authentication.token.validity",
+    "value" : "36000",
+    "description" : "\n      Indicates how long (in seconds) an authentication token is valid before it has\n      to be renewed.\n    ",
+    "filename" : "oozie-site.xml"
+  }, {
+    "name" : "oozie.authentication.signature.secret",
+    "value" : "oozie",
+    "description" : "\n      The signature secret for signing the authentication tokens.\n      If not set a random secret is generated at startup time.\n      In order to authentiation to work correctly across multiple hosts\n      the secret must be the same across al the hosts.\n    ",
+    "filename" : "oozie-site.xml"
+  }, {
+    "name" : "oozie.authentication.simple.anonymous.allowed",
+    "value" : "true",
+    "description" : "\n      Indicates if anonymous requests are allowed when using 'simple' authentication.\n    ",
+    "filename" : "oozie-site.xml"
+  }, {
+    "name" : "oozie.authentication.kerberos.principal",
+    "value" : "HTTP/localhost@${local.realm}",
+    "description" : "\n      Indicates the Kerberos principal to be used for HTTP endpoint.\n      The principal MUST start with 'HTTP/' as per Kerberos HTTP SPNEGO specification.\n    ",
+    "filename" : "oozie-site.xml"
+  }, {
+    "name" : "oozie.authentication.kerberos.keytab",
+    "value" : "${oozie.service.HadoopAccessorService.keytab.file}",
+    "description" : "\n      Location of the keytab file with the credentials for the principal.\n      Referring to the same keytab file Oozie uses for its Kerberos credentials for Hadoop.\n    ",
+    "filename" : "oozie-site.xml"
+  }, {
+    "name" : "oozie.authentication.kerberos.name.rules",
+    "value" : "DEFAULT",
+    "description" : "\n      The kerberos names rules is to resolve kerberos principal names, refer to Hadoop's\n      KerberosName for more details.\n    ",
+    "filename" : "oozie-site.xml"
+  }, {
+    "name" : "oozie.coord.actions.default.length",
+    "value" : "1000",
+    "description" : "\n      Default number of coordinator actions to be retrieved by the info command\n    ",
+    "filename" : "oozie-site.xml"
+  }, {
+    "name" : "oozie.validate.ForkJoin",
+    "value" : "true",
+    "description" : "\n      If true, fork and join should be validated at wf submission time.\n    ",
+    "filename" : "oozie-site.xml"
+  }, {
+    "name" : "oozie.coord.action.get.all.attributes",
+    "value" : "false",
+    "description" : "\n      Setting to true is not recommended as coord job/action info will bring all columns of the action in memory.\n      Set it true only if backward compatibility for action/job info is required.\n    ",
+    "filename" : "oozie-site.xml"
+  } ],
+  "components" : [ {
+    "name" : "OOZIE_SERVER",
+    "category" : "MASTER",
+    "client" : false,
+    "master" : true
+  }, {
+    "name" : "OOZIE_CLIENT",
+    "category" : "CLIENT",
+    "client" : true,
+    "master" : false
+  } ],
+  "clientOnlyService" : false,
+  "clientComponent" : {
+    "name" : "OOZIE_CLIENT",
+    "category" : "CLIENT",
+    "client" : true,
+    "master" : false
+  }
+}

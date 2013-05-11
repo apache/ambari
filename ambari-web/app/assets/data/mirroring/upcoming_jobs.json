@@ -1,0 +1,20 @@
+{
+  "datasetJobs" : [
+    {
+      "dataset_id" : "dataset1",
+      "job_id" : "1",
+      "start_date" : 0,
+      "end_date" : 0,
+      "duration" : 1,
+      "data" : 100
+    },
+    {
+      "dataset_id" : "dataset2",
+      "job_id" : "1",
+      "start_date" : 0,
+      "end_date" : 0,
+      "duration" : 1,
+      "data" : 100
+    }
+  ]
+}

@@ -1,0 +1,123 @@
+{{!
+* Licensed to the Apache Software Foundation (ASF) under one
+* or more contributor license agreements.  See the NOTICE file
+* distributed with this work for additional information
+* regarding copyright ownership.  The ASF licenses this file
+* to you under the Apache License, Version 2.0 (the
+* "License"); you may not use this file except in compliance
+* with the License.  You may obtain a copy of the License at
+*
+*     http://www.apache.org/licenses/LICENSE-2.0
+*
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
+* limitations under the License.
+}}
+
+{{#if App.supports.hostOverrides}}
+  {{#if selectedService.restartRequired}}
+	<div class="alert">
+	  <div class="clearfix like_pointer collapsable" {{action toggleRestartMessageView target="view"}}>
+	      {{#if view.isRestartMessageCollapsed}}
+	        <i class="icon-caret-down pull-left"></i>
+	      {{else}}
+	        <i class="icon-caret-right pull-left"></i>
+	      {{/if}}
+	      <i class="icon-refresh"></i>
+	      <strong>Restart Service</strong> {{selectedService.restartRequiredMessage}}
+	  </div>
+	  <div class="service-body">
+	    <ul>
+	    {{#each host in selectedService.restartRequiredHostsAndComponents}}
+	      <li>
+	        <a href="#" {{action showDetails host.hostData}}>{{host.hostData.publicHostName}}</a>
+	        <ul>
+	          {{#each component in host.components}}
+	            <li>{{component.name}}</li>
+	          {{/each}}
+	        </ul>
+	      </li>
+	    {{/each}}
+	    </ul>
+	  </div>
+	</div>
+	{{/if}}
+{{/if}}
+          
+<div class="accordion">
+  {{#each category in selectedService.configCategories}}
+    {{#if category.isCustomView}}
+      {{#if App.supports.capacitySchedulerUi}}
+        {{view category.customView categoryBinding="category" serviceBinding="selectedService" canEditBinding="view.canEdit" serviceConfigsBinding="selectedService.configs"}}
+      {{/if}}
+    {{else}}
+    {{#view App.ServiceConfigsByCategoryView categoryBinding="category" canEditBinding="view.canEdit" serviceBinding="selectedService" serviceConfigsBinding="selectedService.configs"}}
+
+            <div class="accordion-heading" {{action "onToggleBlock" category target="view"}}>
+                <i {{bindAttr class=":pull-left :accordion-toggle category.isCollapsed:icon-caret-right:icon-caret-down"}}></i>
+                <a class="accordion-toggle">{{category.displayName}}</a>
+            </div>
+
+            <div class="accordion-body collapse in">
+              <div class="accordion-inner service-config-section">
+                <form class="form-horizontal">
+
+                  {{#each view.filteredCategoryConfigs}}
+                      <div {{bindAttr class=":entry-row isOverridden:overridden-property"}}>
+                          <span {{bindAttr class="errorMessage:error: :control-group :control-label-span"}}>
+                            <label class="control-label">
+                              {{#if App.supports.hostOverrides}}
+		                            {{#if isRestartRequired}}
+		                              <i class="icon-refresh restart-required-property" rel="tooltip" {{bindAttr title="restartRequiredMessage"}}></i>
+		                            {{/if}}
+		                          {{/if}}
+                              {{displayName}}
+                            </label>
+                          </span>
+                          <div class="controls">
+                            {{! Here serviceConfigBinding should ideally be serviceConfigPropertyBinding }}
+                              <div {{bindAttr class="errorMessage:error: :control-group"}}>
+                                {{view viewClass serviceConfigBinding="this" categoryConfigsAllBinding="view.categoryConfigsAll" }}
+                                {{#if view.canEdit}}
+	                                {{#if isPropertyOverridable}}
+                                    {{#if App.supports.hostOverrides}}
+	                                    <a class="action" {{action "createOverrideProperty" this target="view" }} ><i class="icon-plus-sign"></i>{{t common.exception}}</a>
+                                    {{/if}}
+	                                {{/if}}
+	                                {{#unless cantBeUndone}}
+	                                  {{#if isNotDefaultValue}}
+	                                      <a class="action" {{action "doRestoreDefaultValue" this target="view" }} ><i class="icon-undo"></i>{{t common.undo}}</a>
+	                                  {{/if}}
+	                                {{/unless}}
+	                                {{#if isRemovable}}
+	                                    <a class="action" {{action "removeProperty" this target="view" }} ><i class="icon-minus-sign"></i>{{t common.remove}}</a>
+	                                {{/if}}
+                                {{/if}}
+                                  <span class="help-inline">{{errorMessage}}</span>
+                              </div>
+                            {{#if this.isOverridden}}
+                              {{view App.ServiceConfigView.SCPOverriddenRowsView serviceConfigPropertyBinding="this"}}
+                            {{/if}}
+                          </div>
+                      </div>
+                  {{/each}}
+
+                  {{! For Advanced, Advanced Core Site, Advanced HDFS Site sections, show the 'Add Property' link.}}
+                  {{#if view.canEdit}}
+	                  {{#if category.canAddProperty }}
+	                      <div>
+	                          <a href="#" {{action "showAddPropertyWindow" this target="view" }} >{{t installer.step7.config.addProperty}}...</a>
+	                      </div>
+	                  {{/if}}
+	                {{/if}}
+                </form>
+              </div>
+            </div>
+
+
+    {{/view}}
+    {{/if}}
+  {{/each}}
+</div>

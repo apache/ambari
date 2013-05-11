@@ -1,0 +1,59 @@
+{{!
+* Licensed to the Apache Software Foundation (ASF) under one
+* or more contributor license agreements.  See the NOTICE file
+* distributed with this work for additional information
+* regarding copyright ownership.  The ASF licenses this file
+* to you under the Apache License, Version 2.0 (the
+* "License"); you may not use this file except in compliance
+* with the License.  You may obtain a copy of the License at
+*
+*     http://www.apache.org/licenses/LICENSE-2.0
+*
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
+* limitations under the License.
+}}
+
+<div class="box alert-info">
+  <div>
+  {{t installer.stackUpgrade.step1.description}}
+  </div>
+  <br/>
+  <div>
+    <div>{{t installer.stackUpgrade.step1.installedStackVersion}}: {{App.currentStackVersion}}</div>
+    <div>{{t installer.stackUpgrade.step1.upgradeStackVersion}}: {{content.upgradeVersion}}</div>
+  </div>
+</div>
+<div>
+    <table class="table table-bordered table-striped">
+      <thead>
+      <tr>
+        <th>{{t common.service}}</th>
+        <th>{{t installer.stackUpgrade.step1.installedVersion}}</th>
+        <th>{{t installer.stackUpgrade.step1.newVersion}}</th>
+        <th>{{t common.description}}</th>
+      </tr>
+      </thead>
+      <tbody>
+        {{#each service in content.servicesInfo}}
+        {{#unless service.isHidden}}
+          <tr>
+            <td>{{service.displayName}}</td>
+            <td>{{service.version}}</td>
+            <td>{{service.newVersion}}</td>
+            <td>{{service.description}}</td>
+          </tr>
+        {{/unless}}
+        {{/each}}
+      </tbody>
+    </table>
+</div>
+<div class="btn-area">
+  <a class="btn pull-left" {{action backToCluster}}>{{t common.cancel}}</a>
+  <a class="btn btn-success pull-right" {{action next}}>{{t common.next}}</a>
+</div>
+
+
+

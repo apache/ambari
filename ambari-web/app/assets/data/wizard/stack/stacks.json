@@ -1,0 +1,584 @@
+{
+  "href" : "http://dev.hortonworks.com:8080/api/v1/stacks2/HDP/versions?fields=stackServices/StackServices,Versions",
+  "items" : [
+    {
+      "href" : "http://dev.hortonworks.com:8080/api/v1/stacks2/HDP/versions/1.3.0",
+      "Versions" : {
+        "stack_version" : "1.3.0",
+        "stack_name" : "HDP",
+        "min_upgrade_version" : "1.2.0"
+      },
+      "stackServices" : [
+        {
+          "href" : "http://dev.hortonworks.com:8080/api/v1/stacks2/HDP/versions/1.3.0/stackServices/OOZIE",
+          "StackServices" : {
+            "user_name" : "root",
+            "stack_version" : "1.3.0",
+            "service_name" : "OOZIE",
+            "stack_name" : "HDP",
+            "service_version" : "3.2.0",
+            "comments" : "System for workflow coordination and execution of Apache Hadoop jobs"
+          }
+        },
+        {
+          "href" : "http://dev.hortonworks.com:8080/api/v1/stacks2/HDP/versions/1.3.0/stackServices/HCATALOG",
+          "StackServices" : {
+            "user_name" : "root",
+            "stack_version" : "1.3.0",
+            "service_name" : "HCATALOG",
+            "stack_name" : "HDP",
+            "service_version" : "0.5.0",
+            "comments" : "This is comment for HCATALOG service"
+          }
+        },
+        {
+          "href" : "http://dev.hortonworks.com:8080/api/v1/stacks2/HDP/versions/1.3.0/stackServices/MAPREDUCE",
+          "StackServices" : {
+            "user_name" : "mapred",
+            "stack_version" : "1.3.0",
+            "service_name" : "MAPREDUCE",
+            "stack_name" : "HDP",
+            "service_version" : "1.1.2",
+            "comments" : "Apache Hadoop Distributed Processing Framework"
+          }
+        },
+        {
+          "href" : "http://dev.hortonworks.com:8080/api/v1/stacks2/HDP/versions/1.3.0/stackServices/HBASE",
+          "StackServices" : {
+            "user_name" : "mapred",
+            "stack_version" : "1.3.0",
+            "service_name" : "HBASE",
+            "stack_name" : "HDP",
+            "service_version" : "0.94.5",
+            "comments" : "Non-relational distributed database and centralized service for configuration management & synchronization"
+          }
+        },
+        {
+          "href" : "http://dev.hortonworks.com:8080/api/v1/stacks2/HDP/versions/1.3.0/stackServices/ZOOKEEPER",
+          "StackServices" : {
+            "user_name" : "root",
+            "stack_version" : "1.3.0",
+            "service_name" : "ZOOKEEPER",
+            "stack_name" : "HDP",
+            "service_version" : "3.4.5",
+            "comments" : "This is comment for ZOOKEEPER service"
+          }
+        },
+        {
+          "href" : "http://dev.hortonworks.com:8080/api/v1/stacks2/HDP/versions/1.3.0/stackServices/HUE",
+          "StackServices" : {
+            "user_name" : "root",
+            "stack_version" : "1.3.0",
+            "service_name" : "HUE",
+            "stack_name" : "HDP",
+            "service_version" : "2.2.0",
+            "comments" : "Hue is a graphical user interface to operate and develop\n      applications for Apache Hadoop."
+          }
+        },
+        {
+          "href" : "http://dev.hortonworks.com:8080/api/v1/stacks2/HDP/versions/1.3.0/stackServices/HDFS",
+          "StackServices" : {
+            "user_name" : "root",
+            "stack_version" : "1.3.0",
+            "service_name" : "HDFS",
+            "stack_name" : "HDP",
+            "service_version" : "1.1.2",
+            "comments" : "Apache Hadoop Distributed File System"
+          }
+        },
+        {
+          "href" : "http://dev.hortonworks.com:8080/api/v1/stacks2/HDP/versions/1.3.0/stackServices/GANGLIA",
+          "StackServices" : {
+            "user_name" : "root",
+            "stack_version" : "1.3.0",
+            "service_name" : "GANGLIA",
+            "stack_name" : "HDP",
+            "service_version" : "3.2.0",
+            "comments" : "Ganglia Metrics Collection system"
+          }
+        },
+        {
+          "href" : "http://dev.hortonworks.com:8080/api/v1/stacks2/HDP/versions/1.3.0/stackServices/WEBHCAT",
+          "StackServices" : {
+            "user_name" : "root",
+            "stack_version" : "1.3.0",
+            "service_name" : "WEBHCAT",
+            "stack_name" : "HDP",
+            "service_version" : "0.5.0",
+            "comments" : "This is comment for WEBHCAT service"
+          }
+        },
+        {
+          "href" : "http://dev.hortonworks.com:8080/api/v1/stacks2/HDP/versions/1.3.0/stackServices/SQOOP",
+          "StackServices" : {
+            "user_name" : "root",
+            "stack_version" : "1.3.0",
+            "service_name" : "SQOOP",
+            "stack_name" : "HDP",
+            "service_version" : "1.4.2",
+            "comments" : "Tool for transferring bulk data between Apache Hadoop and structured data stores such as relational databases"
+          }
+        },
+        {
+          "href" : "http://dev.hortonworks.com:8080/api/v1/stacks2/HDP/versions/1.3.0/stackServices/NAGIOS",
+          "StackServices" : {
+            "user_name" : "root",
+            "stack_version" : "1.3.0",
+            "service_name" : "NAGIOS",
+            "stack_name" : "HDP",
+            "service_version" : "3.2.3",
+            "comments" : "Nagios Monitoring and Alerting system"
+          }
+        },
+        {
+          "href" : "http://dev.hortonworks.com:8080/api/v1/stacks2/HDP/versions/1.3.0/stackServices/PIG",
+          "StackServices" : {
+            "user_name" : "root",
+            "stack_version" : "1.3.0",
+            "service_name" : "PIG",
+            "stack_name" : "HDP",
+            "service_version" : "0.10.1",
+            "comments" : "Scripting platform for analyzing large datasets"
+          }
+        },
+        {
+          "href" : "http://dev.hortonworks.com:8080/api/v1/stacks2/HDP/versions/1.3.0/stackServices/HIVE",
+          "StackServices" : {
+            "user_name" : "root",
+            "stack_version" : "1.3.0",
+            "service_name" : "HIVE",
+            "stack_name" : "HDP",
+            "service_version" : "0.10.0",
+            "comments" : "Data warehouse system for ad-hoc queries & analysis of large datasets and table & storage management service"
+          }
+        }
+      ]
+    },
+    {
+      "href" : "http://dev.hortonworks.com:8080/api/v1/stacks2/HDP/versions/1.2.1",
+      "Versions" : {
+        "stack_version" : "1.2.1",
+        "stack_name" : "HDP",
+        "min_upgrade_version" : null
+      },
+      "stackServices" : [
+        {
+          "href" : "http://dev.hortonworks.com:8080/api/v1/stacks2/HDP/versions/1.2.1/stackServices/HIVE",
+          "StackServices" : {
+            "user_name" : "root",
+            "stack_version" : "1.2.1",
+            "service_name" : "HIVE",
+            "stack_name" : "HDP",
+            "service_version" : "0.10.0",
+            "comments" : "Data warehouse system for ad-hoc queries & analysis of large datasets and table & storage management service"
+          }
+        },
+        {
+          "href" : "http://dev.hortonworks.com:8080/api/v1/stacks2/HDP/versions/1.2.1/stackServices/HBASE",
+          "StackServices" : {
+            "user_name" : "mapred",
+            "stack_version" : "1.2.1",
+            "service_name" : "HBASE",
+            "stack_name" : "HDP",
+            "service_version" : "0.94.5",
+            "comments" : "Non-relational distributed database and centralized service for configuration management & synchronization"
+          }
+        },
+        {
+          "href" : "http://dev.hortonworks.com:8080/api/v1/stacks2/HDP/versions/1.2.1/stackServices/ZOOKEEPER",
+          "StackServices" : {
+            "user_name" : "root",
+            "stack_version" : "1.2.1",
+            "service_name" : "ZOOKEEPER",
+            "stack_name" : "HDP",
+            "service_version" : "3.4.5",
+            "comments" : "This is comment for ZOOKEEPER service"
+          }
+        },
+        {
+          "href" : "http://dev.hortonworks.com:8080/api/v1/stacks2/HDP/versions/1.2.1/stackServices/HCATALOG",
+          "StackServices" : {
+            "user_name" : "root",
+            "stack_version" : "1.2.1",
+            "service_name" : "HCATALOG",
+            "stack_name" : "HDP",
+            "service_version" : "0.5.0",
+            "comments" : "This is comment for HCATALOG service"
+          }
+        },
+        {
+          "href" : "http://dev.hortonworks.com:8080/api/v1/stacks2/HDP/versions/1.2.1/stackServices/HDFS",
+          "StackServices" : {
+            "user_name" : "root",
+            "stack_version" : "1.2.1",
+            "service_name" : "HDFS",
+            "stack_name" : "HDP",
+            "service_version" : "1.1.2",
+            "comments" : "Apache Hadoop Distributed File System"
+          }
+        },
+        {
+          "href" : "http://dev.hortonworks.com:8080/api/v1/stacks2/HDP/versions/1.2.1/stackServices/NAGIOS",
+          "StackServices" : {
+            "user_name" : "root",
+            "stack_version" : "1.2.1",
+            "service_name" : "NAGIOS",
+            "stack_name" : "HDP",
+            "service_version" : "3.2.3",
+            "comments" : "Nagios Monitoring and Alerting system"
+          }
+        },
+        {
+          "href" : "http://dev.hortonworks.com:8080/api/v1/stacks2/HDP/versions/1.2.1/stackServices/OOZIE",
+          "StackServices" : {
+            "user_name" : "root",
+            "stack_version" : "1.2.1",
+            "service_name" : "OOZIE",
+            "stack_name" : "HDP",
+            "service_version" : "3.2.0",
+            "comments" : "System for workflow coordination and execution of Apache Hadoop jobs"
+          }
+        },
+        {
+          "href" : "http://dev.hortonworks.com:8080/api/v1/stacks2/HDP/versions/1.2.1/stackServices/GANGLIA",
+          "StackServices" : {
+            "user_name" : "root",
+            "stack_version" : "1.2.1",
+            "service_name" : "GANGLIA",
+            "stack_name" : "HDP",
+            "service_version" : "3.2.0",
+            "comments" : "Ganglia Metrics Collection system"
+          }
+        },
+        {
+          "href" : "http://dev.hortonworks.com:8080/api/v1/stacks2/HDP/versions/1.2.1/stackServices/PIG",
+          "StackServices" : {
+            "user_name" : "root",
+            "stack_version" : "1.2.1",
+            "service_name" : "PIG",
+            "stack_name" : "HDP",
+            "service_version" : "0.10.1",
+            "comments" : "Scripting platform for analyzing large datasets"
+          }
+        },
+        {
+          "href" : "http://dev.hortonworks.com:8080/api/v1/stacks2/HDP/versions/1.2.1/stackServices/MAPREDUCE",
+          "StackServices" : {
+            "user_name" : "mapred",
+            "stack_version" : "1.2.1",
+            "service_name" : "MAPREDUCE",
+            "stack_name" : "HDP",
+            "service_version" : "1.1.2",
+            "comments" : "Apache Hadoop Distributed Processing Framework"
+          }
+        },
+        {
+          "href" : "http://dev.hortonworks.com:8080/api/v1/stacks2/HDP/versions/1.2.1/stackServices/WEBHCAT",
+          "StackServices" : {
+            "user_name" : "root",
+            "stack_version" : "1.2.1",
+            "service_name" : "WEBHCAT",
+            "stack_name" : "HDP",
+            "service_version" : "0.5.0",
+            "comments" : "This is comment for WEBHCAT service"
+          }
+        },
+        {
+          "href" : "http://dev.hortonworks.com:8080/api/v1/stacks2/HDP/versions/1.2.1/stackServices/SQOOP",
+          "StackServices" : {
+            "user_name" : "root",
+            "stack_version" : "1.2.1",
+            "service_name" : "SQOOP",
+            "stack_name" : "HDP",
+            "service_version" : "1.4.2",
+            "comments" : "Tool for transferring bulk data between Apache Hadoop and structured data stores such as relational databases"
+          }
+        }
+      ]
+    },
+    {
+      "href" : "http://dev.hortonworks.com:8080/api/v1/stacks2/HDP/versions/1.2.0",
+      "Versions" : {
+        "stack_version" : "1.2.0",
+        "stack_name" : "HDP",
+        "min_upgrade_version" : null
+      },
+      "stackServices" : [
+        {
+          "href" : "http://dev.hortonworks.com:8080/api/v1/stacks2/HDP/versions/1.2.0/stackServices/PIG",
+          "StackServices" : {
+            "user_name" : "root",
+            "stack_version" : "1.2.0",
+            "service_name" : "PIG",
+            "stack_name" : "HDP",
+            "service_version" : "0.10.1",
+            "comments" : "Scripting platform for analyzing large datasets"
+          }
+        },
+        {
+          "href" : "http://dev.hortonworks.com:8080/api/v1/stacks2/HDP/versions/1.2.0/stackServices/SQOOP",
+          "StackServices" : {
+            "user_name" : "root",
+            "stack_version" : "1.2.0",
+            "service_name" : "SQOOP",
+            "stack_name" : "HDP",
+            "service_version" : "1.4.2",
+            "comments" : "Tool for transferring bulk data between Apache Hadoop and structured data stores such as relational databases"
+          }
+        },
+        {
+          "href" : "http://dev.hortonworks.com:8080/api/v1/stacks2/HDP/versions/1.2.0/stackServices/GANGLIA",
+          "StackServices" : {
+            "user_name" : "root",
+            "stack_version" : "1.2.0",
+            "service_name" : "GANGLIA",
+            "stack_name" : "HDP",
+            "service_version" : "3.2.0",
+            "comments" : "Ganglia Metrics Collection system"
+          }
+        },
+        {
+          "href" : "http://dev.hortonworks.com:8080/api/v1/stacks2/HDP/versions/1.2.0/stackServices/ZOOKEEPER",
+          "StackServices" : {
+            "user_name" : "root",
+            "stack_version" : "1.2.0",
+            "service_name" : "ZOOKEEPER",
+            "stack_name" : "HDP",
+            "service_version" : "3.4.5",
+            "comments" : "This is comment for ZOOKEEPER service"
+          }
+        },
+        {
+          "href" : "http://dev.hortonworks.com:8080/api/v1/stacks2/HDP/versions/1.2.0/stackServices/NAGIOS",
+          "StackServices" : {
+            "user_name" : "root",
+            "stack_version" : "1.2.0",
+            "service_name" : "NAGIOS",
+            "stack_name" : "HDP",
+            "service_version" : "3.2.3",
+            "comments" : "Nagios Monitoring and Alerting system"
+          }
+        },
+        {
+          "href" : "http://dev.hortonworks.com:8080/api/v1/stacks2/HDP/versions/1.2.0/stackServices/HCATALOG",
+          "StackServices" : {
+            "user_name" : "root",
+            "stack_version" : "1.2.0",
+            "service_name" : "HCATALOG",
+            "stack_name" : "HDP",
+            "service_version" : "0.5.0",
+            "comments" : "This is comment for HCATALOG service"
+          }
+        },
+        {
+          "href" : "http://dev.hortonworks.com:8080/api/v1/stacks2/HDP/versions/1.2.0/stackServices/WEBHCAT",
+          "StackServices" : {
+            "user_name" : "root",
+            "stack_version" : "1.2.0",
+            "service_name" : "WEBHCAT",
+            "stack_name" : "HDP",
+            "service_version" : "0.5.0",
+            "comments" : "This is comment for WEBHCAT service"
+          }
+        },
+        {
+          "href" : "http://dev.hortonworks.com:8080/api/v1/stacks2/HDP/versions/1.2.0/stackServices/HIVE",
+          "StackServices" : {
+            "user_name" : "root",
+            "stack_version" : "1.2.0",
+            "service_name" : "HIVE",
+            "stack_name" : "HDP",
+            "service_version" : "0.10.0",
+            "comments" : "Data warehouse system for ad-hoc queries & analysis of large datasets and table & storage management service"
+          }
+        },
+        {
+          "href" : "http://dev.hortonworks.com:8080/api/v1/stacks2/HDP/versions/1.2.0/stackServices/HBASE",
+          "StackServices" : {
+            "user_name" : "mapred",
+            "stack_version" : "1.2.0",
+            "service_name" : "HBASE",
+            "stack_name" : "HDP",
+            "service_version" : "0.94.2",
+            "comments" : "Non-relational distributed database and centralized service for configuration management & synchronization"
+          }
+        },
+        {
+          "href" : "http://dev.hortonworks.com:8080/api/v1/stacks2/HDP/versions/1.2.0/stackServices/MAPREDUCE",
+          "StackServices" : {
+            "user_name" : "mapred",
+            "stack_version" : "1.2.0",
+            "service_name" : "MAPREDUCE",
+            "stack_name" : "HDP",
+            "service_version" : "1.1.2",
+            "comments" : "Apache Hadoop Distributed Processing Framework"
+          }
+        },
+        {
+          "href" : "http://dev.hortonworks.com:8080/api/v1/stacks2/HDP/versions/1.2.0/stackServices/HDFS",
+          "StackServices" : {
+            "user_name" : "root",
+            "stack_version" : "1.2.0",
+            "service_name" : "HDFS",
+            "stack_name" : "HDP",
+            "service_version" : "1.1.2",
+            "comments" : "Apache Hadoop Distributed File System"
+          }
+        },
+        {
+          "href" : "http://dev.hortonworks.com:8080/api/v1/stacks2/HDP/versions/1.2.0/stackServices/OOZIE",
+          "StackServices" : {
+            "user_name" : "root",
+            "stack_version" : "1.2.0",
+            "service_name" : "OOZIE",
+            "stack_name" : "HDP",
+            "service_version" : "3.2.0",
+            "comments" : "System for workflow coordination and execution of Apache Hadoop jobs"
+          }
+        }
+      ]
+    },
+    {
+      "href" : "http://dev.hortonworks.com:8080/api/v1/stacks2/HDP/versions/0.1",
+      "Versions" : {
+        "stack_version" : "0.1",
+        "stack_name" : "HDP",
+        "min_upgrade_version" : null
+      },
+      "stackServices" : [
+        {
+          "href" : "http://dev.hortonworks.com:8080/api/v1/stacks2/HDP/versions/0.1/stackServices/GANGLIA",
+          "StackServices" : {
+            "user_name" : "root",
+            "stack_version" : "0.1",
+            "service_name" : "GANGLIA",
+            "stack_name" : "HDP",
+            "service_version" : "1.0",
+            "comments" : "This is comment for GANGLIA service"
+          }
+        },
+        {
+          "href" : "http://dev.hortonworks.com:8080/api/v1/stacks2/HDP/versions/0.1/stackServices/HIVE",
+          "StackServices" : {
+            "user_name" : "root",
+            "stack_version" : "0.1",
+            "service_name" : "HIVE",
+            "stack_name" : "HDP",
+            "service_version" : "1.0",
+            "comments" : "This is comment for HIVE service"
+          }
+        },
+        {
+          "href" : "http://dev.hortonworks.com:8080/api/v1/stacks2/HDP/versions/0.1/stackServices/TEMPLETON",
+          "StackServices" : {
+            "user_name" : "root",
+            "stack_version" : "0.1",
+            "service_name" : "TEMPLETON",
+            "stack_name" : "HDP",
+            "service_version" : "1.0",
+            "comments" : "This is comment for TEMPLETON service"
+          }
+        },
+        {
+          "href" : "http://dev.hortonworks.com:8080/api/v1/stacks2/HDP/versions/0.1/stackServices/OOZIE",
+          "StackServices" : {
+            "user_name" : "root",
+            "stack_version" : "0.1",
+            "service_name" : "OOZIE",
+            "stack_name" : "HDP",
+            "service_version" : "1.0",
+            "comments" : "This is comment for OOZIE service"
+          }
+        },
+        {
+          "href" : "http://dev.hortonworks.com:8080/api/v1/stacks2/HDP/versions/0.1/stackServices/ZOOKEEPER",
+          "StackServices" : {
+            "user_name" : "root",
+            "stack_version" : "0.1",
+            "service_name" : "ZOOKEEPER",
+            "stack_name" : "HDP",
+            "service_version" : "1.0",
+            "comments" : "This is comment for ZOOKEEPER service"
+          }
+        },
+        {
+          "href" : "http://dev.hortonworks.com:8080/api/v1/stacks2/HDP/versions/0.1/stackServices/SQOOP",
+          "StackServices" : {
+            "user_name" : "root",
+            "stack_version" : "0.1",
+            "service_name" : "SQOOP",
+            "stack_name" : "HDP",
+            "service_version" : "1.0",
+            "comments" : "This is comment for SQOOP service"
+          }
+        },
+        {
+          "href" : "http://dev.hortonworks.com:8080/api/v1/stacks2/HDP/versions/0.1/stackServices/MAPREDUCE",
+          "StackServices" : {
+            "user_name" : "mapred",
+            "stack_version" : "0.1",
+            "service_name" : "MAPREDUCE",
+            "stack_name" : "HDP",
+            "service_version" : "1.0",
+            "comments" : "This is comment for MAPREDUCE service"
+          }
+        },
+        {
+          "href" : "http://dev.hortonworks.com:8080/api/v1/stacks2/HDP/versions/0.1/stackServices/HCATALOG",
+          "StackServices" : {
+            "user_name" : "root",
+            "stack_version" : "0.1",
+            "service_name" : "HCATALOG",
+            "stack_name" : "HDP",
+            "service_version" : "1.0",
+            "comments" : "This is comment for HCATALOG service"
+          }
+        },
+        {
+          "href" : "http://dev.hortonworks.com:8080/api/v1/stacks2/HDP/versions/0.1/stackServices/HDFS",
+          "StackServices" : {
+            "user_name" : "root",
+            "stack_version" : "0.1",
+            "service_name" : "HDFS",
+            "stack_name" : "HDP",
+            "service_version" : "1.0",
+            "comments" : "This is comment for HDFS service"
+          }
+        },
+        {
+          "href" : "http://dev.hortonworks.com:8080/api/v1/stacks2/HDP/versions/0.1/stackServices/HBASE",
+          "StackServices" : {
+            "user_name" : "mapred",
+            "stack_version" : "0.1",
+            "service_name" : "HBASE",
+            "stack_name" : "HDP",
+            "service_version" : "1.0",
+            "comments" : "This is comment for HBASE service"
+          }
+        },
+        {
+          "href" : "http://dev.hortonworks.com:8080/api/v1/stacks2/HDP/versions/0.1/stackServices/PIG",
+          "StackServices" : {
+            "user_name" : "root",
+            "stack_version" : "0.1",
+            "service_name" : "PIG",
+            "stack_name" : "HDP",
+            "service_version" : "1.0",
+            "comments" : "This is comment for PIG service"
+          }
+        },
+        {
+          "href" : "http://dev.hortonworks.com:8080/api/v1/stacks2/HDP/versions/0.1/stackServices/NAGIOS",
+          "StackServices" : {
+            "user_name" : "root",
+            "stack_version" : "0.1",
+            "service_name" : "NAGIOS",
+            "stack_name" : "HDP",
+            "service_version" : "1.0",
+            "comments" : "This is comment for NAGIOS service"
+          }
+        }
+      ]
+    }
+  ]
+}

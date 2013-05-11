@@ -1,0 +1,97 @@
+{
+  "config_version": 1,
+  "stack_version": "1.0.2",
+  "overall": {
+    "cluster_name": "<%=scope.function_hdp_template_var("hdp_cluster_name")%>",
+    "dashboard_host": "<%=scope.function_hdp_host("public_dashboard_host")%>",
+    "dashboard_port": 80,
+    "dataservices_host": "<%=scope.function_hdp_host("public_dashboard_host")%>",
+    "dataservices_port": 80,
+    "ganglia" : {
+      "web_host": "<%=scope.function_hdp_host("public_ganglia_server_host")%>",
+      "web_port": 80,
+      "web_root": "/ganglia/?t=yes",
+      "grid_name": "HDP_GRID"
+    },
+    "nagios": {
+      "nagiosserver_host": "<%=scope.function_hdp_host("public_nagios_server_host")%>",
+      "nagiosserver_port": 80,
+      "web_root": "/nagios"
+    },
+    "jmx": {
+      "timeout": 3
+    },
+    "services": {
+	  "HDFS" : [
+        {
+          "installed": true,
+          "name": "HDFS",
+          "namenode_host": "<%=scope.function_hdp_host("public_namenode_host")%>",
+          "namenode_port": 50070,
+          "snamenode_host": "<%=scope.function_hdp_host("public_snamenode_host")%>",
+          "snamenode_port": 50090,
+          "total_datanodes": "<%=h=scope.function_hdp_template_var("slave_hosts");h.kind_of?(Array) ? h.size : ''%>",
+          "ganglia_clusters": {
+            "slaves": "HDPSlaves",
+            "namenode": "HDPNameNode"
+          }
+        }
+      ],
+      "MAPREDUCE" : [
+        {
+          "installed": true,
+          "name": "MAPREDUCE",
+          "jobtracker_host": "<%=scope.function_hdp_host("public_jtnode_host")%>",
+          "jobtracker_port": 50030,
+          "total_tasktrackers": "<%=h=scope.function_hdp_template_var("slave_hosts");h.kind_of?(Array) ? h.size : ''%>",
+          "jobhistory_host": "<%=scope.function_hdp_host("public_jtnode_host")%>",
+          "jobhistory_port": 51111,
+          "ganglia_clusters": {
+            "slaves": "HDPSlaves",
+            "jobtracker": "HDPJobTracker"
+          },
+          "scheduler_type": "<%=scope.function_hdp_template_var("scheduler_name")%>"
+        }
+      ],
+      "HBASE" : [
+        {
+          "installed": <%=not scope.function_hdp_no_hosts("public_hbase_master_hosts")%>,
+          "name": "HBASE",
+          "hbasemasters_hosts": "<%=scope.function_hdp_host("public_hbase_master_hosts")%>",
+          "hbasemasters_port": 60010,
+          "total_regionservers": "<%=h=scope.function_hdp_template_var("slave_hosts");h.kind_of?(Array) ? h.size : ''%>",
+          "ganglia_clusters": {
+            "slaves": "HDPSlaves",
+            "hbasemasters": "HDPHBaseMaster"
+          }
+        }
+      ],
+      "ZOOKEEPER" : [
+        {
+          "installed": <%=not scope.function_hdp_no_hosts("public_zookeeper_hosts")%>,
+          "name": "ZOOKEEPER"
+        }
+      ],
+      "HIVE" : [
+        {
+          "installed": <%=not scope.function_hdp_no_hosts("public_hive_server_host")%>,
+          "name": "HIVE"
+        }
+      ],
+      "TEMPLETON" : [
+        {
+          "installed": <%=not scope.function_hdp_no_hosts("public_webhcat_server_host")%>,
+          "name": "TEMPLETON"
+        }
+      ],
+      "OOZIE" : [
+        {
+          "installed": <%=not scope.function_hdp_no_hosts("public_oozie_server")%>,
+          "name": "OOZIE",
+          "oozie_host": "<%=scope.function_hdp_host("public_oozie_server")%>",
+          "oozie_port": 11000
+        }
+      ]
+    }
+  }
+}

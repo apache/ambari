@@ -1,0 +1,49 @@
+{{!
+* Licensed to the Apache Software Foundation (ASF) under one
+* or more contributor license agreements.  See the NOTICE file
+* distributed with this work for additional information
+* regarding copyright ownership.  The ASF licenses this file
+* to you under the Apache License, Version 2.0 (the
+* "License"); you may not use this file except in compliance
+* with the License.  You may obtain a copy of the License at
+*
+*     http://www.apache.org/licenses/LICENSE-2.0
+*
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
+* limitations under the License.
+}}
+
+<div class="box alert-info">
+  <div>
+  {{t installer.stackUpgrade.step2.notice.header}}
+  </div>
+  <br/>
+  <ul class="unstyled">
+      <li>1&#41;&nbsp;{{t installer.stackUpgrade.step2.notice.first}}</li>
+      <li>2&#41;&nbsp;{{t installer.stackUpgrade.step2.notice.second}}</li>
+      <li>3&#41;&nbsp;{{t installer.stackUpgrade.step2.notice.third}}</li>
+  </ul>
+  <div>
+      <strong>{{t installer.stackUpgrade.step2.notice.complete}}</strong>
+  </div>
+</div>
+<div class="control-group">
+    <label><strong>
+      {{t installer.stackUpgrade.step2.advancedOption}}
+      <i href="javascript:void(null)" class="icon-question-sign"
+         rel="popover"
+         {{translateAttr title="installer.step2.localRepo.tooltip.title" data-content="installer.step2.localRepo.tooltip.content"}}>
+      </i>
+    </strong></label>
+    <label class="checkbox">
+      {{view Ember.Checkbox checkedBinding="content.upgradeOptions.localRepo"}}
+      {{t installer.stackUpgrade.step2.localRepository}}
+    </label>
+</div>
+<div class="btn-area">
+  <a class="btn pull-left" {{action back}}>{{t common.back}}</a>
+  <a class="btn btn-success pull-right" {{action upgradeAction target="controller"}}>{{t common.upgrade}}</a>
+</div>

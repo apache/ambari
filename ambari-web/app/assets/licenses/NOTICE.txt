@@ -1,0 +1,42 @@
+Apache Ambari Web
+Copyright 2012 The Apache Software Foundation
+
+This product includes software developed by The Apache Software Foundation (http://www.apache.org/).
+
+This product includes jQuery (http://jquery.org - MIT license)
+Copyright (c) 2012, John Resig.
+
+This product includes Ember.js (http://emberjs.com - https://github.com/emberjs/ember.js/blob/master/LICENSE)
+Copyright (c) 2011, Yehuda Katz, Tom Dale, Charles Jolley and Ember.js contributors
+
+This product was generated using Brunch (https://github.com/brunch/brunch/blob/master/LICENSE)
+Copyright (c) 2011, Allan Berger, Jan Monschke, Martin Schürrer, Thomas Schranz, Nik Graf, Paul Miller
+
+This product includes Twitter Bootstrap 2 (http://twitter.github.com/bootstrap/ - Apache License v2.0.)
+
+This product, as part of Twitter Bootstrap 2, includes GLYPHICONS FREE (http://glyphicons.com - Apache License v2.0.)
+
+This product includes LESS (http://lesscss.org - Apache License v2.0.)
+
+This product includes Sinon.JS (http://sinonjs.org - BSD license)
+Copyright (c) 2010-2012, Christian Johansen.
+
+This product includes ember-i18n (http://github.com/zendesk/ember-i18n - MIT license)
+Copyright (c) 2011 by James A. Rosen; Zendesk, Inc.
+
+This product includes D3.js (http://d3js.org - BSD license)
+Copyright (c) 2012, Michael Bostock.
+
+This product includes bootstrap-datepicker.js (http://www.eyecon.ro/bootstrap-datepicker - Apache License, Version 2.0)
+Copyright (c) 2012 Stefan Petre
+
+This product includes Font Awesome 2.0 (http://fortawesome.github.com/Font-Awesome - Creative Commons 3.0)
+
+This product incudes Rickshaw 1.1.2 (http://code.shutterstock.com/rickshaw/ - MIT License)
+Copyright (C) 2011 by Shutterstock Images, LLC
+
+This product includes Timeago (http://timeago.yarp.com/ - MIT License)
+Copyright (c) 2008-2012, Ryan McGeary (ryan -[at]- mcgeary [*dot*] org)
+
+This product includes Spin.js (http://fgnass.github.com/spin.js/ - MIT license)
+Copyright (c) 2011 Felix Gnass [fgnass at neteye dot de]
