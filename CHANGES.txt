@@ -290,6 +290,9 @@ Trunk (unreleased changes):
 
  IMPROVEMENTS
 
+ AMBARI-2110. Update hive-site.xml, set fs.file.impl.disable.cache=true.
+ (mahadev)
+
  AMBARI-2070. Changing service directories should popup a confirmation/warning
  dialog upon save. (yusaku)
 

@@ -135,4 +135,10 @@ limitations under the License.
     <value>true</value>
   </property>
 
+ <property>
+    <name>fs.file.impl.disable.cache</name>
+    <value>true</value>
+  </property>
+
+
 </configuration>
