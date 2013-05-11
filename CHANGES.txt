@@ -290,6 +290,8 @@ Trunk (unreleased changes):
 
  IMPROVEMENTS
 
+ AMBARI-2111. Enable customization of smoke test user. (yusaku)
+
  AMBARI-2110. Update hive-site.xml, set fs.file.impl.disable.cache=true.
  (mahadev)
 

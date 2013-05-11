@@ -50,7 +50,7 @@ App.supports = {
   hiveOozieExtraDatabases: false,
   multipleHBaseMasters: false,
   addMasters: false,
-  customizeSmokeTestUser: false,
+  customizeSmokeTestUser: true,
   hue: false,
   ldapGroupMapping: false
 };
