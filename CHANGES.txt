@@ -842,6 +842,8 @@ Trunk (unreleased changes):
 
  BUG FIXES
 
+ AMBARI-2116. Add parameters to improve HIVE performance. (swagle)
+
  AMBARI-2117. Set jobtracker retire interval. (swagle)
 
  AMBARI-2109. Sanitize KEYS and NOTICE.txt on trunk. (yusaku)

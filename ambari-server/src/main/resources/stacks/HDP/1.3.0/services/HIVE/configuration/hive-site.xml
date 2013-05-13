@@ -135,10 +135,74 @@ limitations under the License.
     <value>true</value>
   </property>
 
- <property>
+  <property>
     <name>fs.file.impl.disable.cache</name>
     <value>true</value>
   </property>
 
+  <property>
+    <name>hive.enforce.bucketing</name>
+    <value>true</value>
+  </property>
+
+  <property>
+    <name>hive.enforce.sorting</name>
+    <value>true</value>
+  </property>
+
+  <property>
+    <name>hive.map.aggr</name>
+    <value>true</value>
+  </property>
+
+  <property>
+    <name>hive.optimize.bucketmapjoin</name>
+    <value>true</value>
+  </property>
+
+  <property>
+    <name>hive.optimize.bucketmapjoin.sortedmerge</name>
+    <value>true</value>
+  </property>
+
+  <property>
+    <name>hive.mapred.reduce.tasks.speculative.execution</name>
+    <value>false</value>
+  </property>
+
+  <property>
+    <name>hive.auto.convert.join</name>
+    <value>true</value>
+  </property>
+
+  <property>
+    <name>hive.auto.convert.sortmerge.join</name>
+    <value>true</value>
+  </property>
+
+  <property>
+    <name>hive.auto.convert.sortmerge.join.noconditionaltask</name>
+    <value>true</value>
+  </property>
+
+  <property>
+    <name>hive.auto.convert.join.noconditionaltask</name>
+    <value>true</value>
+  </property>
+
+  <property>
+    <name>hive.auto.convert.join.noconditionaltask.size</name>
+    <value>1000000000</value>
+  </property>
+
+  <property>
+    <name>hive.optimize.reducededuplication.min.reducer</name>
+    <value>1</value>
+  </property>
+
+  <property>
+    <name>hive.optimize.mapjoin.mapreduce</name>
+    <value>true</value>
+  </property>
 
 </configuration>
