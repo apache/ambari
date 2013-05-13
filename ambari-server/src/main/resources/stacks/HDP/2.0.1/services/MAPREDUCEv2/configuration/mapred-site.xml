@@ -371,7 +371,7 @@
 
 <property>
   <name>mapred.jobtracker.retirejob.interval</name>
-  <value>0</value>
+  <value>21600000</value>
 </property>
 
 <property>

@@ -842,6 +842,8 @@ Trunk (unreleased changes):
 
  BUG FIXES
 
+ AMBARI-2117. Set jobtracker retire interval. (swagle)
+
  AMBARI-2109. Sanitize KEYS and NOTICE.txt on trunk. (yusaku)
  
  AMBARI-2108. Fix apache rat check issues for ambari (top-level dir).
