@@ -842,6 +842,9 @@ Trunk (unreleased changes):
 
  BUG FIXES
 
+ AMBARI-2120. Add few logs to allow root-cause the issue where agent seems
+ to unable to communicate with the server. (smohanty)
+
  AMBARI-2116. Add parameters to improve HIVE performance. (swagle)
 
  AMBARI-2117. Set jobtracker retire interval. (swagle)

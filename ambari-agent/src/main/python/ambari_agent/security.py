@@ -81,7 +81,7 @@ class CachedHTTPSConnection:
         self.httpsconn = VerifiedHTTPSConnection(self.server, self.port)
         self.httpsconn.connect()
         self.connected = True
-      # possible exceptions are catched and processed in Controller
+      # possible exceptions are caught and processed in Controller
 
   
   def forceClear(self):
@@ -96,9 +96,10 @@ class CachedHTTPSConnection:
       response = self.httpsconn.getresponse()
       readResponse = response.read()
     except Exception as ex:
-      # This exception is catched later in Controller
+      # This exception is caught later in Controller
       logger.debug("Error in sending/receving data from the server " +
                    traceback.format_exc())
+      logger.info("Encountered communication error. Details: " + repr(ex))
       self.connected = False
       raise IOError("Error occured during connecting to the server: " + str(ex))
     return readResponse

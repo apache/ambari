@@ -106,7 +106,10 @@ public class AgentResource {
     HeartBeatResponse heartBeatResponse;
     try {
       heartBeatResponse = hh.handleHeartBeat(message);
-      LOG.debug("Sending heartbeat response " + heartBeatResponse);
+      LOG.info("Sending heartbeat response with response id " + heartBeatResponse.getResponseId());
+      if (LOG.isDebugEnabled()) {
+        LOG.debug("Response details " + heartBeatResponse);
+      }
     } catch (Exception e) {
       LOG.info("Error in HeartBeat", e);
       throw new WebApplicationException(500);
