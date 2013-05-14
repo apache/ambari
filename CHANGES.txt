@@ -850,6 +850,8 @@ Trunk (unreleased changes):
 
  BUG FIXES
 
+ AMBARI-2114. Refresh on the Service page always activates summary tab. (jaimin)
+
  AMBARI-2120. Add few logs to allow root-cause the issue where agent seems
  to unable to communicate with the server. (smohanty)
 
