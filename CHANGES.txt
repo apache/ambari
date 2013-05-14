@@ -850,6 +850,9 @@ Trunk (unreleased changes):
 
  BUG FIXES
 
+ AMBARI-2116. Add parameters to improve HIVE performance. With decriptions. 
+ (swagle)
+
  AMBARI-2127. Service check should not emit log with Exceptions considering
  its a positive scenario. (smohanty)
 

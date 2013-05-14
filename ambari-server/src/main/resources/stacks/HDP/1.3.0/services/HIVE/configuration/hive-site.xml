@@ -143,16 +143,19 @@ limitations under the License.
   <property>
     <name>hive.enforce.bucketing</name>
     <value>true</value>
+    <description>Whether bucketing is enforced. If true, while inserting into the table, bucketing is enforced.</description>
   </property>
 
   <property>
     <name>hive.enforce.sorting</name>
     <value>true</value>
+    <description>Whether sorting is enforced. If true, while inserting into the table, sorting is enforced.</description>
   </property>
 
   <property>
     <name>hive.map.aggr</name>
     <value>true</value>
+    <description>Whether to use map-side aggregation in Hive Group By queries.</description>
   </property>
 
   <property>
@@ -168,16 +171,22 @@ limitations under the License.
   <property>
     <name>hive.mapred.reduce.tasks.speculative.execution</name>
     <value>false</value>
+    <description>Whether speculative execution for reducers should be turned on.</description>
   </property>
 
   <property>
     <name>hive.auto.convert.join</name>
     <value>true</value>
+    <description>Whether Hive enable the optimization about converting common
+      join into mapjoin based on the input file size.</description>
   </property>
 
   <property>
     <name>hive.auto.convert.sortmerge.join</name>
     <value>true</value>
+    <description>Will the join be automatically converted to a sort-merge join, if the joined tables pass
+      the criteria for sort-merge join.
+    </description>
   </property>
 
   <property>
@@ -188,21 +197,38 @@ limitations under the License.
   <property>
     <name>hive.auto.convert.join.noconditionaltask</name>
     <value>true</value>
+    <description>Whether Hive enable the optimization about converting common join into mapjoin based on the input file
+      size. If this paramater is on, and the sum of size for n-1 of the tables/partitions for a n-way join is smaller than the
+      specified size, the join is directly converted to a mapjoin (there is no conditional task).
+    </description>
   </property>
 
   <property>
     <name>hive.auto.convert.join.noconditionaltask.size</name>
     <value>1000000000</value>
+    <description>If hive.auto.convert.join.noconditionaltask is off, this parameter does not take affect. However, if it
+      is on, and the sum of size for n-1 of the tables/partitions for a n-way join is smaller than this size, the join is directly
+      converted to a mapjoin(there is no conditional task). The default is 10MB.
+    </description>
   </property>
 
   <property>
     <name>hive.optimize.reducededuplication.min.reducer</name>
     <value>1</value>
+    <description>Reduce deduplication merges two RSs by moving key/parts/reducer-num of the child RS to parent RS.
+      That means if reducer-num of the child RS is fixed (order by or forced bucketing) and small, it can make very slow, single MR.
+      The optimization will be disabled if number of reducers is less than specified value.
+    </description>
   </property>
 
   <property>
     <name>hive.optimize.mapjoin.mapreduce</name>
     <value>true</value>
+    <description>If hive.auto.convert.join is off, this parameter does not take
+      affect. If it is on, and if there are map-join jobs followed by a map-reduce
+      job (for e.g a group by), each map-only job is merged with the following
+      map-reduce job.
+    </description>
   </property>
 
 </configuration>
