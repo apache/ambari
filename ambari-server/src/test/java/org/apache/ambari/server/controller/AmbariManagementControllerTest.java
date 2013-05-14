@@ -2485,7 +2485,7 @@ public class AmbariManagementControllerTest {
     sch4.setState(State.INSTALLED);
     sch5.setState(State.INSTALLED);
     sch6.setState(State.INSTALLED);
-
+    
     Set<ServiceRequest> reqs = new HashSet<ServiceRequest>();
     ServiceRequest req1, req2;
     try {
@@ -2701,11 +2701,17 @@ public class AmbariManagementControllerTest {
     sch2.setState(State.INSTALLED);
     sch3.setState(State.STARTED);
     sch4.setState(State.INSTALLED);
-    sch5.setState(State.INSTALLED);
+    sch5.setState(State.UNKNOWN);
 
     Set<ServiceComponentRequest> reqs =
         new HashSet<ServiceComponentRequest>();
     ServiceComponentRequest req1, req2, req3;
+
+    // confirm an UNKOWN doesn't fail
+    req1 = new ServiceComponentRequest(clusterName, serviceName1,
+        sc3.getName(), null, State.INSTALLED.toString());
+    reqs.add(req1);
+    controller.updateComponents(reqs, Collections.<String, String>emptyMap(), true);
     try {
       reqs.clear();
       req1 = new ServiceComponentRequest(clusterName, serviceName1,
@@ -6172,4 +6178,166 @@ public class AmbariManagementControllerTest {
     controller.getTaskStatus(taskStatusRequests);
   }
 
+  @Test
+  public void testUpdateHostComponentsBadState() throws AmbariException {
+    String clusterName = "foo1";
+    createCluster(clusterName);
+    clusters.getCluster(clusterName)
+      .setDesiredStackVersion(new StackId("HDP-0.1"));
+    String serviceName = "HDFS";
+    createService(clusterName, serviceName, null);
+    String componentName1 = "NAMENODE";
+    String componentName2 = "DATANODE";
+    String componentName3 = "HDFS_CLIENT";
+    createServiceComponent(clusterName, serviceName, componentName1,
+      State.INIT);
+    createServiceComponent(clusterName, serviceName, componentName2,
+      State.INIT);
+    createServiceComponent(clusterName, serviceName, componentName3,
+      State.INIT);
+
+    String host1 = "h1";
+    clusters.addHost(host1);
+    clusters.getHost("h1").setOsType("centos5");
+    clusters.getHost("h1").persist();
+    String host2 = "h2";
+    clusters.addHost(host2);
+    clusters.getHost("h2").setOsType("centos6");
+    clusters.getHost("h2").persist();
+
+    clusters.mapHostToCluster(host1, clusterName);
+    clusters.mapHostToCluster(host2, clusterName);
+
+    Map<String, String> mapRequestProps = new HashMap<String, String>();
+    mapRequestProps.put("context", "Called from a test");
+
+    // null service should work
+    createServiceComponentHost(clusterName, null, componentName1,
+      host1, null);
+    createServiceComponentHost(clusterName, serviceName, componentName2,
+      host1, null);
+    createServiceComponentHost(clusterName, serviceName, componentName2,
+      host2, null);
+    createServiceComponentHost(clusterName, serviceName, componentName3,
+      host1, null);
+    createServiceComponentHost(clusterName, serviceName, componentName3,
+      host2, null);
+
+    Assert.assertNotNull(clusters.getCluster(clusterName).getService(serviceName)
+      .getServiceComponent(componentName1)
+      .getServiceComponentHost(host1));
+    Assert.assertNotNull(clusters.getCluster(clusterName).getService(serviceName)
+      .getServiceComponent(componentName2)
+      .getServiceComponentHost(host1));
+    Assert.assertNotNull(clusters.getCluster(clusterName).getService(serviceName)
+      .getServiceComponent(componentName2)
+      .getServiceComponentHost(host2));
+    Assert.assertNotNull(clusters.getCluster(clusterName).getService(serviceName)
+      .getServiceComponent(componentName3)
+      .getServiceComponentHost(host1));
+    Assert.assertNotNull(clusters.getCluster(clusterName).getService(serviceName)
+      .getServiceComponent(componentName3)
+      .getServiceComponentHost(host2));
+    
+    
+    
+    // Install
+    ServiceRequest r = new ServiceRequest(clusterName, serviceName, null,
+      State.INSTALLED.toString());
+    Set<ServiceRequest> requests = new HashSet<ServiceRequest>();
+    requests.add(r);
+
+    RequestStatusResponse trackAction =
+      controller.updateServices(requests, mapRequestProps, true, false);
+    Assert.assertEquals(State.INSTALLED,
+      clusters.getCluster(clusterName).getService(serviceName)
+        .getDesiredState());
+    
+    // set host components on host1 to INSTALLED
+    for (ServiceComponentHost sch : clusters.getCluster(clusterName).getServiceComponentHosts(host1)) {
+      sch.setState(State.INSTALLED);
+    }
+    
+    // set the host components on host2 to UNKNOWN state to simulate a lost host
+    for (ServiceComponentHost sch : clusters.getCluster(clusterName).getServiceComponentHosts(host2)) {
+      sch.setState(State.UNKNOWN);
+    }
+    
+    // issue an installed state request without failure
+    ServiceComponentHostRequest schr = new ServiceComponentHostRequest(clusterName, "HDFS", "DATANODE", host2, new HashMap<String,String>(), "INSTALLED");
+    controller.updateHostComponents(Collections.singleton(schr), new HashMap<String,String>(), false);
+
+    // set the host components on host2 to UNKNOWN state to simulate a lost host
+    for (ServiceComponentHost sch : clusters.getCluster(clusterName).getServiceComponentHosts(host2)) {
+      Assert.assertEquals(State.UNKNOWN, sch.getState());
+    }
+
+  }
+  
+  @Test
+  public void testServiceUpdateRecursiveBadHostComponent() throws Exception {
+    String clusterName = "foo1";
+    createCluster(clusterName);
+    clusters.getCluster(clusterName)
+        .setDesiredStackVersion(new StackId("HDP-0.2"));
+    
+    String serviceName1 = "HDFS";
+    createService(clusterName, serviceName1, null);
+
+    String componentName1 = "NAMENODE";
+    String componentName2 = "DATANODE";
+    String componentName3 = "HDFS_CLIENT";
+
+    Map<String, String> mapRequestProps = new HashMap<String, String>();
+    mapRequestProps.put("context", "Called from a test");
+
+    createServiceComponent(clusterName, serviceName1, componentName1, State.INIT);
+    createServiceComponent(clusterName, serviceName1, componentName2, State.INIT);
+    createServiceComponent(clusterName, serviceName1, componentName3, State.INIT);
+    String host1 = "h1";
+    clusters.addHost(host1);
+    clusters.getHost("h1").setOsType("centos5");
+    clusters.getHost("h1").persist();
+    clusters.mapHostToCluster(host1, clusterName);
+
+    Set<ServiceComponentHostRequest> set1 =  new HashSet<ServiceComponentHostRequest>();
+    ServiceComponentHostRequest r1 = new ServiceComponentHostRequest(clusterName, serviceName1,
+        componentName1, host1, null, State.INIT.toString());
+    ServiceComponentHostRequest r2 = new ServiceComponentHostRequest(clusterName, serviceName1,
+        componentName2, host1, null, State.INIT.toString());
+    ServiceComponentHostRequest r3 = new ServiceComponentHostRequest(clusterName, serviceName1,
+        componentName3, host1, null, State.INIT.toString());
+
+    set1.add(r1);
+    set1.add(r2);
+    set1.add(r3);
+    controller.createHostComponents(set1);
+
+    Cluster c1 = clusters.getCluster(clusterName);
+    Service s1 = c1.getService(serviceName1);
+
+    ServiceComponent sc1 = s1.getServiceComponent(componentName1);
+    ServiceComponent sc2 = s1.getServiceComponent(componentName2);
+    ServiceComponent sc3 = s1.getServiceComponent(componentName3);
+    ServiceComponentHost sch1 = sc1.getServiceComponentHost(host1);
+    ServiceComponentHost sch2 = sc2.getServiceComponentHost(host1);
+    ServiceComponentHost sch3 = sc3.getServiceComponentHost(host1);
+
+    s1.setDesiredState(State.INSTALLED);
+    sc1.setDesiredState(State.STARTED);
+    sc2.setDesiredState(State.INIT);
+    sc3.setDesiredState(State.INSTALLED);
+    sch1.setDesiredState(State.INSTALLED);
+    sch2.setDesiredState(State.INSTALLED);
+    sch3.setDesiredState(State.INSTALLED);
+    sch1.setState(State.INSTALLED);
+    sch2.setState(State.UNKNOWN);
+    sch3.setState(State.INSTALLED);
+    
+    // an UNKOWN failure will throw an exception
+    ServiceRequest req = new ServiceRequest(clusterName, serviceName1, null,
+        State.INSTALLED.toString());
+    controller.updateServices(Collections.singleton(req), Collections.<String, String>emptyMap(), true, false);
+  }
+  
 }

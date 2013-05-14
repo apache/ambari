@@ -2518,7 +2518,7 @@ public class AmbariManagementControllerImpl implements
         }
         for (ServiceComponentHost sch : sc.getServiceComponentHosts().values()){
           State oldSchState = sch.getState();
-          if (oldSchState == State.MAINTENANCE) {
+          if (oldSchState == State.MAINTENANCE || oldSchState == State.UNKNOWN) {
             //Ignore host components updates in this state
             if (LOG.isDebugEnabled()) {
               LOG.debug("Ignoring ServiceComponentHost"
@@ -2819,7 +2819,7 @@ public class AmbariManagementControllerImpl implements
 
       for (ServiceComponentHost sch : sc.getServiceComponentHosts().values()) {
         State oldSchState = sch.getState();
-        if (oldSchState == State.MAINTENANCE) {
+        if (oldSchState == State.MAINTENANCE || oldSchState == State.UNKNOWN) {
           if (LOG.isDebugEnabled()) {
             LOG.debug("Ignoring ServiceComponentHost"
                 + ", clusterName=" + request.getClusterName()
@@ -3031,7 +3031,7 @@ public class AmbariManagementControllerImpl implements
       }
 
       if (LOG.isDebugEnabled()) {
-        LOG.debug("Received a createHostComponent request"
+        LOG.debug("Received a updateHostComponent request"
             + ", clusterName=" + request.getClusterName()
             + ", serviceName=" + request.getServiceName()
             + ", componentName=" + request.getComponentName()
@@ -3111,13 +3111,14 @@ public class AmbariManagementControllerImpl implements
       // If upgrade request comes without state information then its an error
       boolean upgradeRequest = checkIfUpgradeRequestAndValidate(request, cluster, s, sc, sch);
 
-      if (newState == null) {
+      if (newState == null || oldState.equals(State.UNKNOWN)) {
         if (LOG.isDebugEnabled()) {
           LOG.debug("Nothing to do for new updateServiceComponentHost request"
               + ", clusterName=" + request.getClusterName()
               + ", serviceName=" + request.getServiceName()
               + ", componentName=" + request.getComponentName()
               + ", hostname=" + request.getHostname()
+              + ", oldState=" + oldState
               + ", newDesiredState=null");
         }
         continue;
