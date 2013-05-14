@@ -503,6 +503,7 @@
         "namenode_opt_maxnewsize" : "640m",
         "regionserver_memstore_lab" : "true",
         "namenode_opt_newsize" : "200m",
+        "smokeuser" : "ambari-qa",
         "mapreduce_userlog_retainhours" : "24",
         "hcat_conf_dir" : "",
         "nagios_user" : "nagios",

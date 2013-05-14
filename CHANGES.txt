@@ -290,6 +290,8 @@ Trunk (unreleased changes):
 
  IMPROVEMENTS
 
+ AMBARI-2121. Allow Nagios user to be customized during install. (yusaku)
+
  AMBARI-2111. Enable customization of smoke test user. (yusaku)
 
  AMBARI-2110. Update hive-site.xml, set fs.file.impl.disable.cache=true.
