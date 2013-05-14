@@ -23,7 +23,7 @@
   {{else}}
     <span class="label label-success alerts-count" {{action "showAlertsPopup" content target="App.router.mainHostController"}}>{{t hosts.host.alert.noAlerts}}</span>
   {{/if}}
-  <div><a href="javascript:void(null)" data-toggle="modal" {{action backToHostsList}}><i class="icon-arrow-left"></i>&nbsp;{{t hosts.host.back}}</a></div>
+  <div><a href="javascript:void(null)" data-toggle="modal" {{action back}}><i class="icon-arrow-left"></i>&nbsp;{{t common.back}}</a></div>
 <!--   {{#if App.isAdmin}} -->
 <!--   <div class="host-maintenance"> -->
 <!--     <div class="host-maintenance-btn btn-group display-inline-block"> -->

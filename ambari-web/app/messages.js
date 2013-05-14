@@ -816,7 +816,6 @@ Em.I18n.translations = {
   'services.hbase.master.error':'None of the HBase masters is active',
 
   'hosts.host.add':'Add New Hosts',
-  'hosts.host.back':'Back to Hosts',
   'hosts.table.noHosts':'No hosts to display',
   
   'hosts.selectHostsDialog.title': 'Select Exception Hosts',

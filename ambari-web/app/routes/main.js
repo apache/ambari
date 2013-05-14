@@ -518,8 +518,8 @@ module.exports = Em.Route.extend({
       }
     }),
 
-    backToHostsList: function (router, event) {
-      router.transitionTo('hosts.index');
+    back: function (router, event) {
+      window.history.back();
     },
 
     showDetails: function (router, event) {

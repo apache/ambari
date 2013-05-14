@@ -293,6 +293,9 @@ Trunk (unreleased changes):
 
  IMPROVEMENTS
 
+ AMBARI-2122. Improve navigation when jumping from one page to Host Details
+ page and back. (yusaku)
+
  AMBARI-2121. Allow Nagios user to be customized during install. (yusaku)
 
  AMBARI-2111. Enable customization of smoke test user. (yusaku)
