@@ -20,16 +20,17 @@
 # Set Hadoop-specific environment variables here.
 
 #Set path to where bin/hadoop is available
-export HADOOP_HOME=${HADOOP_HOME:-<%=scope.function_hdp_template_var("::hdp::params::hadoop_home")%>}
+#Set path to where bin/hadoop is available
+export HADOOP_HOME=${HADOOP_HOME:-/usr/lib/hadoop}
 
 #set the path to where bin/hbase is available
-export HBASE_HOME=${HBASE_HOME:-<%=scope.function_hdp_template_var("hbase_home")%>}
+export HBASE_HOME=${HBASE_HOME:-/usr/lib/hbase}
 
 #Set the path to where bin/hive is available
-export HIVE_HOME=${HIVE_HOME:-<%=scope.function_hdp_template_var("hive_home")%>}
+export HIVE_HOME=${HIVE_HOME:-/usr/lib/hive}
+
+#Set the path for where zookeper config dir is
+export ZOOCFGDIR=${ZOOCFGDIR:-/etc/zookeeper/conf}
 
 # add libthrift in hive to sqoop class path first so hive imports work
 export SQOOP_USER_CLASSPATH="`ls ${HIVE_HOME}/lib/libthrift-*.jar 2> /dev/null`:${SQOOP_USER_CLASSPATH}"
-
-#Set the path for where zookeper config dir is
-export ZOOCFGDIR=${ZOOCFGDIR:-<%=scope.function_hdp_template_var("zoo_conf_dir")%>}

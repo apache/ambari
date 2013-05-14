@@ -852,6 +852,9 @@ Trunk (unreleased changes):
 
  BUG FIXES
 
+ AMBARI-2136. Home paths are not set correctly in /etc/sqoop/conf/sqoop-env.sh
+ (mahadev)
+
  AMBARI-2135. Ambari agent start say to look at .out, not .log. (smohanty)
 
  AMBARI-2134. Set default value of oozie property
