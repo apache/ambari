@@ -852,6 +852,9 @@ Trunk (unreleased changes):
 
  BUG FIXES
 
+ AMBARI-2134. Set default value of oozie property
+ "oozie.service.AuthorizationService.authorization.enabled" to true. (jaimin)
+
  AMBARI-2132. Error during "HDFS" service starting. (swagle)
 
  AMBARI-2116. Add parameters to improve HIVE performance. With decriptions. 
