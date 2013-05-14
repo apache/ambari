@@ -28,6 +28,9 @@ define hdp-hadoop::hdfs::directory(
   $recursive_chmod = false
 ) 
 {
+  $unless_cmd = "hadoop fs -ls ${name} >/dev/null 2>&1"
+  $tries = 30
+  $try_sleep = 10
  
   if ($service_state == 'running') {
   
@@ -38,8 +41,10 @@ define hdp-hadoop::hdfs::directory(
       $mkdir_cmd = "fs -mkdir ${name}"
     }
     hdp-hadoop::exec-hadoop { $mkdir_cmd:
-      command => $mkdir_cmd,
-      unless => "hadoop fs -ls ${name} >/dev/null 2>&1"
+      command   => $mkdir_cmd,
+      unless    => $unless_cmd,
+      try_sleep => $try_sleep,
+      tries     => $tries
     }
     if ($owner == unset) {
       $chown = ""
@@ -59,7 +64,10 @@ define hdp-hadoop::hdfs::directory(
         $chown_cmd = "fs -chown ${chown} ${name}"
       }
       hdp-hadoop::exec-hadoop {$chown_cmd :
-        command => $chown_cmd
+        command   => $chown_cmd,
+        unless    => $unless_cmd,
+        try_sleep => $try_sleep,
+        tries     => $tries
       }
       Hdp-hadoop::Exec-hadoop[$mkdir_cmd] -> Hdp-hadoop::Exec-hadoop[$chown_cmd]
     }
@@ -72,7 +80,10 @@ define hdp-hadoop::hdfs::directory(
         $chmod_cmd = "fs -chmod ${mode} ${name}"
       }
       hdp-hadoop::exec-hadoop {$chmod_cmd :
-        command => $chmod_cmd
+        command   => $chmod_cmd,
+        unless    => $unless_cmd,
+        try_sleep => $try_sleep,
+        tries     => $tries
       }
       Hdp-hadoop::Exec-hadoop[$mkdir_cmd] -> Hdp-hadoop::Exec-hadoop[$chmod_cmd]
     }

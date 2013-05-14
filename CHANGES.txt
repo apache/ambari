@@ -850,6 +850,8 @@ Trunk (unreleased changes):
 
  BUG FIXES
 
+ AMBARI-2132. Error during "HDFS" service starting. (swagle)
+
  AMBARI-2116. Add parameters to improve HIVE performance. With decriptions. 
  (swagle)
 
