@@ -130,6 +130,7 @@ Em.I18n.translations = {
   'common.operations': 'Operations',
   'common.install': 'Install',
   'common.errorPopup.header': 'An error has been encountered',
+  'common.use': 'Use',
 
   'requestInfo.installComponents':'Install Components',
   'requestInfo.installServices':'Install Services',
@@ -263,10 +264,11 @@ Em.I18n.translations = {
   'installer.step2.javaHome.label' : 'Path to 64-bit JDK',
   'installer.step2.javaHome.tooltip.title' : 'JAVA_HOME',
   'installer.step2.javaHome.tooltip.content' : 'Path to 64-bit JAVA_HOME. /usr/jdk/jdk1.6.0_31 is the default used by Ambari. You can override this to a specific path that contains the JDK. <br/> Note: the path must be valid on <b>ALL</b> hosts in your cluster.',
+  'installer.step2.javaHome.tooltip.placeholder' : '/usr/jdk/jdk1.6.0_31',
   'installer.step2.useSsh.provide' : 'Provide your',
-  'installer.step2.useSsh.provide_id_rsa' : '(id_rsa for root) and use SSH to automatically register hosts',
+  'installer.step2.useSsh.provide_id_rsa' : ' to automatically register hosts',
   'installer.step2.useSsh.tooltip.title':'SSH Private Key',
-  'installer.step2.useSsh.tooltip.content':'The <b>SSH Private Key File</b> is used for the root access to the target hosts in your cluster.',
+  'installer.step2.useSsh.tooltip.content':'The <b>SSH Private Key File</b> is used to connect to the target hosts in your cluster to install the Ambari Agent.',
   'installer.step2.manualInstall.perform':'Perform',
   'installer.step2.manualInstall.perform_on_hosts':'on hosts and do not use SSH',
   'installer.step2.manualInstall.tooltip.title':'manual registration',
@@ -278,6 +280,12 @@ Em.I18n.translations = {
   'installer.step2.evaluateStep.installedHosts':'These hosts are already installed on the cluster and will be ignored:',
   'installer.step2.evaluateStep.continueConfirm':'Do you want to continue?',
   'installer.step2.evaluateStep.hostRegInProgress':'Host Registration is currently in progress.  Please try again later.',
+  'installer.step2.sshUser':'SSH user (root or',
+  'installer.step2.sshUser.link':'passwordless sudo',
+  'installer.step2.sshUser.account':'account)',
+  'installer.step2.sshUser.toolTip':'An account that can execute sudo without entering a password',
+  'installer.step2.sshUser.placeholder':'Enter user name',
+  'installer.step2.sshUser.required':'User name is required',
 
   'installer.step3.header':'Confirm Hosts',
   'installer.step3.body':'Registering your hosts.<br>' +
@@ -1119,6 +1127,6 @@ Em.I18n.translations = {
 
   'quick.links.error.label': 'Hostname is undefined',
 
-  'contact.administrator': 'Contact System Administrator for more information'
+  'contact.administrator': 'Contact System Administrator for more information!'
 
 };

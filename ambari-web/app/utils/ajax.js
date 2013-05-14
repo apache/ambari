@@ -447,9 +447,9 @@ var urls = {
   'wizard.launch_bootstrap': {
     'real': '/bootstrap',
     'mock': '/data/wizard/bootstrap/bootstrap.json',
+    'type': 'POST',
     'format': function (data) {
       return {
-        type: 'POST',
         async: false,
         contentType: 'application/json',
         data: data.bootStrapData

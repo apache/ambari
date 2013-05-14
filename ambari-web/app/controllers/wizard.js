@@ -434,7 +434,8 @@ App.WizardController = Em.Controller.extend({
     javaHome: App.defaultJavaHome, //string
     localRepo: false, //true, false
     sshKey: "", //string
-    bootRequestId: null //string
+    bootRequestId: null, //string
+    sshUser: "root" //string
   },
 
   loadedServiceComponents: null,

@@ -12,6 +12,9 @@ Trunk (unreleased changes):
 
  NEW FEATURES
 
+ AMBARI-2123. Allow the user to specify a non-root ssh user in Install Options.
+ (yusaku)
+
  AMBARI-2096. Create smoke test for HISTORYSERVER. (swagle)
 
  AMBARI-2094. Create smoke test for NODEMANAGER component as a part of 

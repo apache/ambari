@@ -43,16 +43,6 @@ App.SshKeyFileUploader = Ember.View.extend({
   }
 });
 
-//TODO: move it to App.WizardStep2View
-App.WizardTextField = Ember.TextField.extend({
-  disabled: function(){
-    return !this.get('controller.content.installOptions.isJavaHome');
-  }.property('controller.content.installOptions.isJavaHome'),
-  click: function(){
-    return false;
-  }
-})
-
 App.WizardStep2View = Em.View.extend({
 
   templateName: require('templates/wizard/step2'),
@@ -117,6 +107,12 @@ App.WizardStep2View = Em.View.extend({
       this.set('controller.content.installOptions.manualInstall', true);
       this.set('controller.content.installOptions.useSsh', false);
     }
+  }),
+
+  textFieldView: Ember.TextField.extend({
+    disabled: function(){
+      return !this.get('controller.content.installOptions.useSsh');
+    }.property('controller.content.installOptions.useSsh')
   })
 });
 
