@@ -175,6 +175,46 @@ define service {
         max_check_attempts      4
 }
 <%end-%>
+
+<%if scope.function_hdp_nagios_members_exist('resorcemanager')-%>
+define service {
+        hostgroup_name          resorcemanager
+        use                     hadoop-service
+        service_description     GANGLIA::Ganglia Collector [gmond] process down alert for Resource Manager
+        servicegroups           GANGLIA
+        check_command           check_tcp!<%=scope.function_hdp_template_var("ganglia_collector_rm_port")%>!-w 1 -c 1
+        normal_check_interval   0.25
+        retry_check_interval    0.25
+        max_check_attempts      4
+}
+<%end-%>
+
+<%if scope.function_hdp_nagios_members_exist('nodemanagers')-%>
+define service {
+        hostgroup_name          nodemanagers
+        use                     hadoop-service
+        service_description     GANGLIA::Ganglia Collector [gmond] process down alert for Node Manager
+        servicegroups           GANGLIA
+        check_command           check_tcp!<%=scope.function_hdp_template_var("ganglia_collector_nm_port")%>!-w 1 -c 1
+        normal_check_interval   0.25
+        retry_check_interval    0.25
+        max_check_attempts      4
+}
+<%end-%>
+
+<%if scope.function_hdp_nagios_members_exist('historyserver2')-%>
+define service {
+        hostgroup_name          historyserver2
+        use                     hadoop-service
+        service_description     GANGLIA::Ganglia Collector [gmond] process down alert for History Server 2
+        servicegroups           GANGLIA
+        check_command           check_tcp!<%=scope.function_hdp_template_var("ganglia_collector_hs_port")%>!-w 1 -c 1
+        normal_check_interval   0.25
+        retry_check_interval    0.25
+        max_check_attempts      4
+}
+<%end-%>
+
 <%end-%>
 
 <%if scope.function_hdp_nagios_members_exist('snamenode')-%>
@@ -343,6 +383,94 @@ define service {
 }
 
 <%end-%>
+
+<%if scope.function_hdp_nagios_members_exist('resorcemanager')-%>
+# YARN::RESOURCEMANAGER Checks 
+define service {
+        hostgroup_name          resorcemanager
+        use                     hadoop-service
+        service_description     RESOURCEMANAGER::Resource Manager Web UI down
+        servicegroups           YARN
+        check_command           check_webui!resorcemanager!<%=scope.function_hdp_template_var("rm_port")%>
+        normal_check_interval   1
+        retry_check_interval    1
+        max_check_attempts      3
+}
+
+define service {
+        hostgroup_name          resorcemanager
+        use                     hadoop-service
+        service_description     RESOURCEMANAGER::Resource Manager CPU utilization
+        servicegroups           YARN
+        check_command           check_cpu!200%!250%
+        normal_check_interval   5
+        retry_check_interval    2 
+        max_check_attempts      5
+}
+
+define service {
+        hostgroup_name          resorcemanager
+        use                     hadoop-service
+        service_description     RESOURCEMANAGER::Resource Manager RPC latency
+        servicegroups           YARN
+        check_command           check_rpcq_latency!ResorceManager!<%=scope.function_hdp_template_var("rm_port")%>!3000!5000
+        normal_check_interval   5
+        retry_check_interval    1 
+        max_check_attempts      5
+}
+
+<% end %>
+
+<%if scope.function_hdp_nagios_members_exist('nodemanagers')-%>
+# YARN::NODEMANAGER Checks
+define service {
+        hostgroup_name          nodemanagers
+        use                     hadoop-service
+        service_description     NODEMANAGER::Node Manager process down
+        servicegroups           YARN
+        check_command           check_tcp!<%=scope.function_hdp_template_var("nm_port")%>!-w 1 -c 1
+        normal_check_interval   1
+        retry_check_interval    0.5
+        max_check_attempts      3
+}
+<% end %>
+
+<%if scope.function_hdp_nagios_members_exist('historyserver2')-%>
+# MAPREDUCE::HISTORYSERVER2 Checks
+define service {
+        hostgroup_name          historyserver2
+        use                     hadoop-service
+        service_description     HISTORYSERVER2::History Server 2 Web UI down
+        servicegroups           MAPREDUCE
+        check_command           check_webui!historyserver2!<%=scope.function_hdp_template_var("hs_port")%>
+        normal_check_interval   1
+        retry_check_interval    1
+        max_check_attempts      3
+}
+
+define service {
+        hostgroup_name          historyserver2
+        use                     hadoop-service
+        service_description     HISTORYSERVER::History Server 2 CPU utilization
+        servicegroups           MAPREDUCE
+        check_command           check_cpu!200%!250%
+        normal_check_interval   5
+        retry_check_interval    2 
+        max_check_attempts      5
+}
+
+define service {
+        hostgroup_name          historyserver2
+        use                     hadoop-service
+        service_description     HISTORYSERVER::History Server 2 RPC latency
+        servicegroups           MAPREDUCE
+        check_command           check_rpcq_latency!JobHistoryServer!<%=scope.function_hdp_template_var("hs_port")%>!3000!5000
+        normal_check_interval   5
+        retry_check_interval    1 
+        max_check_attempts      5
+}
+
+<% end %>
 
 <%if scope.function_hdp_nagios_members_exist('slaves')-%>
 # HDFS::DATANODE Checks

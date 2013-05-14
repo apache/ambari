@@ -86,6 +86,9 @@ class hdp-nagios::params() inherits hdp::params
     region-servers => {host_member_info => 'hbase_rs_hosts'},
     oozie-server => {host_member_info => 'oozie_server'},
     webhcat-server => {host_member_info => 'webhcat_server_host'},
-    hue-server => {host_member_info => 'hue_server_host'}
+    hue-server => {host_member_info => 'hue_server_host'},
+    resorcemanager => {host_member_info => 'rm_host'},
+    nodemanagers => {host_member_info => 'nm_hosts'},
+    historyserver2 => {host_member_info => 'hs_host'}
   }
 }

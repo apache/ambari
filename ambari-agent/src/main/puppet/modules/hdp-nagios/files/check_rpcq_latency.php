@@ -21,7 +21,7 @@
  * It checks the rpc wait time in the queue, RpcQueueTime_avg_time
  * check_rpcq_latency -h hostaddress -p port -t ServiceName -w 1 -c 1
  * Warning and Critical values are in seconds
- * Service Name = JobTracker, NameNode
+ * Service Name = JobTracker, NameNode, JobHistoryServer
  */
 
   $options = getopt ("h:p:w:c:n:");
@@ -62,6 +62,6 @@
 
   /* print usage */
   function usage () {
-    echo "Usage: $0 -h <host> -p port -n <JobTracker/NameNode> -w <warn_in_sec> -c <crit_in_sec>\n";
+    echo "Usage: $0 -h <host> -p port -n <JobTracker/NameNode/JobHistoryServer> -w <warn_in_sec> -c <crit_in_sec>\n";
   }
 ?>

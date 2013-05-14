@@ -50,6 +50,14 @@ class hdp(
     $jtnode_port = hdp_get_port_from_url($mapred-site["mapred.job.tracker.http.address"],"50030")
     $tasktracker_port = hdp_get_port_from_url($mapred-site["mapred.task.tracker.http.address"],"50060")
     $jobhistory_port = hdp_get_port_from_url($mapred-site["mapreduce.history.server.http.address"],"51111")
+
+    $hs_port = hdp_get_port_from_url($mapred-site["mapreduce.jobhistory.webapp.address"],"19888")
+  }
+
+  if has_key($configuration, 'yarn-site') {
+    $yarn-site = $configuration['yarn-site']
+    $rm_port = hdp_get_port_from_url($yarn-site["yarn.resourcemanager.webapp.address"],"8088")
+    $nm_port = hdp_get_port_from_url($yarn-site["yarn.nodemanager.webapp.address"],"8042")
   }
 
   $hbase_master_port = hdp_default("hbase-site/hbase.master.info.port","60010")
@@ -60,6 +68,9 @@ class hdp(
   $ganglia_collector_namenode_port = hdp_default("ganglia_collector_namenode_port","8661")
   $ganglia_collector_jobtracker_port = hdp_default("ganglia_collector_jobtracker_port","8662")
   $ganglia_collector_hbase_port = hdp_default("ganglia_collector_hbase_port","8663")
+  $ganglia_collector_rm_port = hdp_default("ganglia_collector_rm_port","8664")
+  $ganglia_collector_nm_port = hdp_default("ganglia_collector_nm_port","8665")
+  $ganglia_collector_hs_port = hdp_default("ganglia_collector_hs_port","8666")
 
   $oozie_server_port = hdp_default("oozie_server_port","11000")
 

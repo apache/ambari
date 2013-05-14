@@ -31,10 +31,6 @@
             <category>SLAVE</category>
         </component>
 
-        <component>
-            <name>MONITOR_WEBSERVER</name>
-            <category>MASTER</category>
-        </component>
     </components>
 
 </metainfo>

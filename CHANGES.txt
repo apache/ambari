@@ -12,6 +12,8 @@ Trunk (unreleased changes):
 
  NEW FEATURES
 
+ AMBARI-2133. Add Nagios alerts for Hadoop 2.0 in Ambari. (swagle)
+
  AMBARI-2123. Allow the user to specify a non-root ssh user in Install Options.
  (yusaku)
 
