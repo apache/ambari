@@ -18,7 +18,6 @@
 package org.apache.ambari.server.api.predicate.operators;
 
 import org.apache.ambari.server.api.predicate.InvalidQueryException;
-import org.apache.ambari.server.controller.predicate.BasePredicate;
 import org.apache.ambari.server.controller.predicate.EqualsPredicate;
 import org.apache.ambari.server.controller.predicate.OrPredicate;
 import org.apache.ambari.server.controller.spi.Predicate;
@@ -61,7 +60,7 @@ public class InOperator extends AbstractOperator implements RelationalOperator {
   }
 
   private OrPredicate buildOrPredicate(List<EqualsPredicate> listPredicates) {
-    return new OrPredicate(listPredicates.toArray(new BasePredicate[listPredicates.size()]));
+    return new OrPredicate(listPredicates.toArray(new Predicate[listPredicates.size()]));
   }
 
   @Override

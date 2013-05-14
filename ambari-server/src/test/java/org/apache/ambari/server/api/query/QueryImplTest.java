@@ -22,7 +22,6 @@ import org.apache.ambari.server.api.resources.ResourceDefinition;
 import org.apache.ambari.server.api.util.TreeNode;
 import org.apache.ambari.server.api.util.TreeNodeImpl;
 import org.apache.ambari.server.controller.predicate.AndPredicate;
-import org.apache.ambari.server.controller.predicate.BasePredicate;
 import org.apache.ambari.server.controller.spi.*;
 import org.apache.ambari.server.controller.utilities.PredicateBuilder;
 import org.apache.ambari.server.api.resources.ResourceInstance;
@@ -317,7 +316,7 @@ public class QueryImplTest {
     Predicate userPredicate = pb.property("foo").equals("bar").toPredicate();
     // combine internal predicate and user predicate
     //todo: for now, need to cast to BasePredicate
-    Predicate predicate = new AndPredicate((BasePredicate) internalPredicate, (BasePredicate) userPredicate);
+    Predicate predicate = new AndPredicate(internalPredicate, userPredicate);
 
     // expectations
     expect(componentResource.getType()).andReturn(Resource.Type.Component).anyTimes();

@@ -18,7 +18,6 @@
 
 package org.apache.ambari.server.api.predicate.operators;
 
-import org.apache.ambari.server.controller.predicate.BasePredicate;
 import org.apache.ambari.server.controller.predicate.NotPredicate;
 import org.apache.ambari.server.controller.spi.Predicate;
 
@@ -53,7 +52,7 @@ public class NotOperator extends AbstractOperator implements LogicalOperator {
 
   @Override
   public Predicate toPredicate(Predicate left, Predicate right) {
-    return new NotPredicate((BasePredicate) right);
+    return new NotPredicate(right);
   }
 
   @Override

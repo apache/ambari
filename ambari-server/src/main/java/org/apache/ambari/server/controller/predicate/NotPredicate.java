@@ -17,6 +17,7 @@
  */
 package org.apache.ambari.server.controller.predicate;
 
+import org.apache.ambari.server.controller.spi.Predicate;
 import org.apache.ambari.server.controller.spi.Resource;
 
 /**
@@ -24,7 +25,7 @@ import org.apache.ambari.server.controller.spi.Resource;
  */
 public class NotPredicate extends UnaryPredicate {
 
-  public NotPredicate(BasePredicate predicate) {
+  public NotPredicate(Predicate predicate) {
     super(predicate);
   }
 

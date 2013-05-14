@@ -31,7 +31,6 @@ import org.apache.ambari.server.ObjectNotFoundException;
 import org.apache.ambari.server.ParentObjectNotFoundException;
 import org.apache.ambari.server.controller.ConfigurationRequest;
 import org.apache.ambari.server.controller.RequestStatusResponse;
-import org.apache.ambari.server.controller.predicate.BasePredicate;
 import org.apache.ambari.server.controller.spi.*;
 import org.apache.ambari.server.controller.utilities.PredicateHelper;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
@@ -150,11 +149,11 @@ public abstract class AbstractResourceProvider extends BaseProvider implements R
 
     SimplifyingPredicateVisitor visitor = new SimplifyingPredicateVisitor(this);
     PredicateHelper.visit(givenPredicate, visitor);
-    List<BasePredicate> predicates = visitor.getSimplifiedPredicates();
+    List<Predicate> predicates = visitor.getSimplifiedPredicates();
 
     Set<Map<String, Object>> propertyMaps = new HashSet<Map<String, Object>>();
 
-    for (BasePredicate predicate : predicates) {
+    for (Predicate predicate : predicates) {
       propertyMaps.add(PredicateHelper.getProperties(predicate));
     }
     return propertyMaps;
