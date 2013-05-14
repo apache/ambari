@@ -850,6 +850,9 @@ Trunk (unreleased changes):
 
  BUG FIXES
 
+ AMBARI-2124. Hive client is not getting reconfigured when it is co-hosted with 
+ hive server/metastore. (swagle)
+
  AMBARI-2114. Refresh on the Service page always activates summary tab. (jaimin)
 
  AMBARI-2120. Add few logs to allow root-cause the issue where agent seems
