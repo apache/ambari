@@ -20,11 +20,51 @@ List Host Components
 
 [Back to Resources](index.md#resources)
 
+**Summary**
+
 Returns a collection of components running on a given host.
 
     GET /clusters/:name/hosts/:hostName/host_components
 
 **Response**
+<table>
+  <tr>
+    <th>HTTP CODE</th>
+    <th>Description</th>
+  </tr>
+  <tr>
+    <td>200</td>
+    <td>OK</td>  
+  </tr>
+  <tr>
+    <td>400</td>
+    <td>Bad Request</td>  
+  </tr>
+  <tr>
+    <td>401</td>
+    <td>Unauthorized</td>  
+  </tr>
+  <tr>
+    <td>403</td>
+    <td>Forbidden</td>  
+  </tr> 
+  <tr>
+    <td>404</td>
+    <td>Not Found</td>  
+  </tr>
+  <tr>
+    <td>500</td>
+    <td>Internal Server Error</td>  
+  </tr>
+</table>
+
+
+
+**Example**
+
+Returns a collection of components running on a the host named "h1" on the cluster named "c1".
+
+    GET /clusters/c1/hosts/h1/host_components
 
     200 OK
     {

@@ -1,4 +1,3 @@
-
 <!---
 Licensed to the Apache Software Foundation (ASF) under one or more
 contributor license agreements. See the NOTICE file distributed with
@@ -18,10 +17,51 @@ limitations under the License.
 
 Update Host Component
 =====
-
 [Back to Resources](index.md#resources)
 
-###Start the NameNode Component
+**Summary**
+
+Update a host component for a given host and component.
+
+    PUT api/v1/clusters/:name/hosts/:hostName/host_components/:hostComponentName
+
+**Response**
+
+<table>
+  <tr>
+    <th>HTTP CODE</th>
+    <th>Description</th>
+  </tr>
+  <tr>
+    <td>200</td>
+    <td>OK</td>  
+  </tr>
+  <tr>
+    <td>202</td>
+    <td>Accepted</td>  
+  </tr>
+  <tr>
+    <td>400</td>
+    <td>Bad Request</td>  
+  </tr>
+  <tr>
+    <td>401</td>
+    <td>Unauthorized</td>  
+  </tr>
+  <tr>
+    <td>403</td>
+    <td>Forbidden</td>  
+  </tr> 
+  <tr>
+    <td>500</td>
+    <td>Internal Server Error</td>  
+  </tr>
+</table>
+
+
+
+**Example 1**
+
 Start the NAMENODE component by updating its state to 'STARTED'.
 
 
@@ -34,8 +74,6 @@ Start the NAMENODE component by updating its state to 'STARTED'.
     }
 
 
-**Response**
-
     202 Accepted
     {
       "href" : "http://your.ambari.server:8080/api/v1/clusters/c1/requests/12",
@@ -45,7 +83,8 @@ Start the NAMENODE component by updating its state to 'STARTED'.
       }
     }
     
-###Stop the NameNode Component
+**Example 2 **
+
 Stop the NAMENODE component by updating its state to 'INSTALLED'.
 
 
@@ -58,8 +97,6 @@ Stop the NAMENODE component by updating its state to 'INSTALLED'.
     }
 
 
-**Response**
-
     202 Accepted
     {
       "href" : "http://your.ambari.server:8080/api/v1/clusters/c1/requests/13",
@@ -69,7 +106,8 @@ Stop the NAMENODE component by updating its state to 'INSTALLED'.
       }
     }
     
-###Set MAINTENANCE Mode    
+**Example 3 **
+
 Put the NAMENODE component into 'MAINTENANCE' mode.
 
 
@@ -81,8 +119,6 @@ Put the NAMENODE component into 'MAINTENANCE' mode.
       }
     }
 
-
-**Response**
 
     202 Accepted
     {

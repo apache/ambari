@@ -18,14 +18,47 @@ limitations under the License.
 # Service Resources
 Service resources are services of a Hadoop cluster (e.g. HDFS, MapReduce and Ganglia).  Service resources are sub-resources of clusters. 
 
+###API Summary
+
+- [List services](services.md)
+- [View service information](services-service.md)
+- [Create service](create-service.md)
+- [Update services](update-services.md)
+- [Update service](update-service.md)
+
+###Properties
+
+<table>
+  <tr>
+    <th>Property</th>
+    <th>Description</th>
+  </tr>
+  <tr>
+    <td>ServiceInfo/service_name</td>
+    <td>The service name</td>  
+  </tr>
+  <tr>
+    <td>ServiceInfo/cluster_name</td>
+    <td>The parent cluster name</td>  
+  </tr>
+  <tr>
+    <td>ServiceInfo/state</td>
+    <td>The current state of the service</td>  
+  </tr>
+  <tr>
+    <td>ServiceInfo/desired_configs</td>
+    <td>The desired configurations</td>  
+  </tr>
+</table>
+
+
+
 ###States
 
 The current state of a service resource can be determined by looking at the ServiceInfo/state property.
 
 
     GET api/v1/clusters/c1/services/HDFS?fields=ServiceInfo/state
-
-**Response**
 
     200 OK
     {
@@ -98,17 +131,11 @@ The following table lists the possible values of the service resource ServiceInf
   </tr>
 </table>
 
-###Starting
+###Starting a Service
 A service can be started through the API by setting its state to be STARTED (see [update service](update-service.md)).
 
-###Starting
+###Stopping a Service
 A service can be stopped through the API by setting its state to be INSTALLED (see [update service](update-service.md)).
 
-###Examples
 
-- [List services](services.md)
-- [View service information](services-service.md)
-- [Create service](create-service.md)
-- [Update services](update-services.md)
-- [Update service](update-service.md)
 

@@ -1,4 +1,3 @@
-
 <!---
 Licensed to the Apache Software Foundation (ASF) under one or more
 contributor license agreements. See the NOTICE file distributed with
@@ -21,13 +20,55 @@ Create Host Component
 
 [Back to Resources](index.md#resources)
 
-Create the NAMENODE host component on your.ambari.host.
+
+**Summary**
+
+Create the host component named ":componentName" on the host named ":hostName".
 
 
-    POST clusters/c1/hosts/your.ambari.host/host_components/NAMENODE
+    POST clusters/:clusterName/hosts/:hostName/host_components/:componentName
 
 
 **Response**
 
-    200 OK
+<table>
+  <tr>
+    <th>HTTP CODE</th>
+    <th>Description</th>
+  </tr>
+  <tr>
+    <td>201</td>
+    <td>Created</td>  
+  </tr>
+  <tr>
+    <td>202</td>
+    <td>Accepted</td>  
+  </tr>
+  <tr>
+    <td>400</td>
+    <td>Bad Request</td>  
+  </tr>
+  <tr>
+    <td>401</td>
+    <td>Unauthorized</td>  
+  </tr>
+  <tr>
+    <td>403</td>
+    <td>Forbidden</td>  
+  </tr> 
+  <tr>
+    <td>500</td>
+    <td>Internal Server Error</td>  
+  </tr>
+</table>
+
+
+**Example**
+
+Create the NAMENODE host component on the host named "h1".
+
+
+    POST clusters/c1/hosts/h1/host_components/NAMENODE
+ 
+    201 Created
     

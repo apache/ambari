@@ -1,4 +1,3 @@
-
 <!---
 Licensed to the Apache Software Foundation (ASF) under one or more
 contributor license agreements. See the NOTICE file distributed with
@@ -21,12 +20,51 @@ Create Cluster
 
 [Back to Resources](index.md#resources)
 
+
+**Summary**
+
+Create a cluster identified by ":name".
+
+    POST /clusters/:name
+
+**Response**
+
+<table>
+  <tr>
+    <th>HTTP CODE</th>
+    <th>Description</th>
+  </tr>
+  <tr>
+    <td>201</td>
+    <td>Created</td>  
+  </tr>
+  <tr>
+    <td>202</td>
+    <td>Accepted</td>  
+  </tr>
+  <tr>
+    <td>400</td>
+    <td>Bad Request</td>  
+  </tr>
+  <tr>
+    <td>401</td>
+    <td>Unauthorized</td>  
+  </tr>
+  <tr>
+    <td>403</td>
+    <td>Forbidden</td>  
+  </tr> 
+  <tr>
+    <td>500</td>
+    <td>Internal Server Error</td>  
+  </tr>
+</table>
+
+**Example**
+
 Create a cluster named ‘c1’ with the property ‘Clusters/version’ = ‘HDP-1.2.0’.
 
-
     POST /clusters/c1
-
-**Body**
 
     {
       "Clusters": {
@@ -34,7 +72,6 @@ Create a cluster named ‘c1’ with the property ‘Clusters/version’ = ‘HD
       }
     }
 
-**Response**
 
-    200 OK
+    201 Created
     

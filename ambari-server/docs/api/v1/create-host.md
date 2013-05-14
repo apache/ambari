@@ -1,4 +1,3 @@
-
 <!---
 Licensed to the Apache Software Foundation (ASF) under one or more
 contributor license agreements. See the NOTICE file distributed with
@@ -21,13 +20,52 @@ Create Host
 
 [Back to Resources](index.md#resources)
 
-Create the host named your.ambari.host.
 
+**Summary**
 
-    POST /clusters/c1/hosts/your.ambari.host
+Create a host resource identified by ":hostName" in the cluster identified by ":clusterName".
 
-
+    POST /clusters/:clusterName/hosts/:hostName
+    
 **Response**
 
-    200 OK
+<table>
+  <tr>
+    <th>HTTP CODE</th>
+    <th>Description</th>
+  </tr>
+  <tr>
+    <td>201</td>
+    <td>Created</td>  
+  </tr>
+  <tr>
+    <td>202</td>
+    <td>Accepted</td>  
+  </tr>
+  <tr>
+    <td>400</td>
+    <td>Bad Request</td>  
+  </tr>
+  <tr>
+    <td>401</td>
+    <td>Unauthorized</td>  
+  </tr>
+  <tr>
+    <td>403</td>
+    <td>Forbidden</td>  
+  </tr> 
+  <tr>
+    <td>500</td>
+    <td>Internal Server Error</td>  
+  </tr>
+</table>
+
+
+**Example**
+    
+Create the host named 'host1' in cluster 'c1'.
+    
+    POST /clusters/c1/hosts/host1
+
+    201 Created
     

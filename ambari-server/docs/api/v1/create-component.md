@@ -1,4 +1,3 @@
-
 <!---
 Licensed to the Apache Software Foundation (ASF) under one or more
 contributor license agreements. See the NOTICE file distributed with
@@ -21,13 +20,54 @@ Create Component
 
 [Back to Resources](index.md#resources)
 
-Create the NAMENODE component.
+**Summary**
 
+Create the component identified by ":componentName" for for the service identifired by ":serviceName" and the cluster identified by ":clusterName".
 
-    POST /clusters/c1/services/HDFS/components/NAMENODE
+    POST /clusters/:clusterName/services/:serviceName/components/:componentName
+    
+    
 
 
 **Response**
+
+<table>
+  <tr>
+    <th>HTTP CODE</th>
+    <th>Description</th>
+  </tr>
+  <tr>
+    <td>201</td>
+    <td>Created</td>  
+  </tr>
+  <tr>
+    <td>202</td>
+    <td>Accepted</td>  
+  </tr>
+  <tr>
+    <td>400</td>
+    <td>Bad Request</td>  
+  </tr>
+  <tr>
+    <td>401</td>
+    <td>Unauthorized</td>  
+  </tr>
+  <tr>
+    <td>403</td>
+    <td>Forbidden</td>  
+  </tr> 
+  <tr>
+    <td>500</td>
+    <td>Internal Server Error</td>  
+  </tr>
+</table>
+
+
+**Example**
+
+Create the NAMENODE component of the HDFS service
+
+    POST /clusters/c1/services/HDFS/components/NAMENODE
 
     200 OK
     

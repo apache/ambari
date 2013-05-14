@@ -1,4 +1,3 @@
-
 <!---
 Licensed to the Apache Software Foundation (ASF) under one or more
 contributor license agreements. See the NOTICE file distributed with
@@ -21,12 +20,53 @@ Update Services
 
 [Back to Resources](index.md#resources)
 
-)Update the state ofall ‘INSTALLED’  servicse to be ‘STARTED’.
+**Summary**
+
+Update all services of the cluster identified by ":clusterName".
+
+
+    PUT/clusters/:clusterName/services
+
+**Response**
+
+<table>
+  <tr>
+    <th>HTTP CODE</th>
+    <th>Description</th>
+  </tr>
+  <tr>
+    <td>200</td>
+    <td>OK</td>  
+  </tr>
+  <tr>
+    <td>202</td>
+    <td>Accepted</td>  
+  </tr>
+  <tr>
+    <td>400</td>
+    <td>Bad Request</td>  
+  </tr>
+  <tr>
+    <td>401</td>
+    <td>Unauthorized</td>  
+  </tr>
+  <tr>
+    <td>403</td>
+    <td>Forbidden</td>  
+  </tr> 
+  <tr>
+    <td>500</td>
+    <td>Internal Server Error</td>  
+  </tr>
+</table>
+
+
+**Example**
+
+Update the state of all ‘INSTALLED’ services to be ‘STARTED’ for the cluster "c1".
 
 
     PUT/clusters/c1/services?ServiceInfo/state=INSTALLED/
-
-**Body**
 
     {
       "ServiceInfo": {
@@ -34,8 +74,6 @@ Update Services
       }
     }
 
-
-**Response**
 
     202 Accepted
     {

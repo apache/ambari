@@ -20,20 +20,24 @@ Update Service
 
 [Back to Resources](index.md#resources)
 
-###Start the HDFS Service
-Start the HDFS service (update the state of the HDFS service to be ‘STARTED’).
+**Summary**
 
 
     PUT /clusters/c1/services/HDFS/
 
 **Body**
 
+Start the HDFS service (update the state of the HDFS service to be ‘STARTED’).
+
+
+    PUT /clusters/c1/services/HDFS
     {
       "ServiceInfo": {
         "state" : "STARTED”
       }
     }
 
+Update the service identified by ":serviceName" of the cluster identified by ":clusterName".
 
 **Response**
 
@@ -46,13 +50,49 @@ Start the HDFS service (update the state of the HDFS service to be ‘STARTED’
       } 
     }
 
-###Stop the HDFS Service
+**Example 2**
+
 Stop the HDFS service (update the state of the HDFS service to be ‘INSTALLED’).
 
 
-    PUT /clusters/c1/services/HDFS/
+    PUT /clusters/:clusterName/services/:serviceName
 
-**Body**
+
+**Response**
+
+<table>
+  <tr>
+    <th>HTTP CODE</th>
+    <th>Description</th>
+  </tr>
+  <tr>
+    <td>200</td>
+    <td>OK</td>  
+  </tr>
+  <tr>
+    <td>202</td>
+    <td>Accepted</td>  
+  </tr>
+  <tr>
+    <td>400</td>
+    <td>Bad Request</td>  
+  </tr>
+  <tr>
+    <td>401</td>
+    <td>Unauthorized</td>  
+  </tr>
+  <tr>
+    <td>403</td>
+    <td>Forbidden</td>  
+  </tr> 
+  <tr>
+    <td>500</td>
+    <td>Internal Server Error</td>  
+  </tr>
+</table>
+
+
+**Example 1**
 
     {
       "ServiceInfo": {
@@ -60,12 +100,9 @@ Stop the HDFS service (update the state of the HDFS service to be ‘INSTALLED�
       }
     }
 
-
-**Response**
-
     202 Accepted
     {
-      "href" : "http://your.ambari.server/api/v1/clusters/c1/requests/3",
+      "href" : "http://your.ambari.server/api/v1/clusters/c1/requests/4",
       "Requests" : {
         "id" : 4,
         "status" : "InProgress"
