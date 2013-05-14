@@ -4512,7 +4512,7 @@ public class AmbariManagementControllerTest {
       }
     }
     Assert.assertNotNull(hdfsCmdHost3);
-    Assert.assertNull(hdfsCmdHost2);
+    Assert.assertNotNull(hdfsCmdHost2);
     ExecutionCommand execCmd = hdfsCmdHost3.getExecutionCommandWrapper()
       .getExecutionCommand();
     Assert.assertEquals(2, execCmd.getConfigurationTags().size());

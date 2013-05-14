@@ -1875,28 +1875,15 @@ public class AmbariManagementControllerImpl implements
     for (String serviceName : services) {
       Service s = cluster.getService(serviceName);
       for (String component : s.getServiceComponents().keySet()) {
-        List<ServiceComponentHost> potentialHosts = null;
+        List<ServiceComponentHost> potentialHosts = new
+          ArrayList<ServiceComponentHost>();
         ServiceComponent sc = s.getServiceComponents().get(component);
         if (sc.isClientComponent()) {
-          potentialHosts = new ArrayList<ServiceComponentHost>();
-          // Check if the Client components are in the list of changed hosts
-          if (existingSchs != null && !existingSchs.isEmpty()) {
-            for (ServiceComponentHost potentialSch : sc
-              .getServiceComponentHosts().values()) {
-              boolean addSch = true;
-              // Ignore the Sch if same service has changed on the same host
-              for (ServiceComponentHost existingSch : existingSchs) {
-                if (potentialSch.getHostName().equals(existingSch
-                    .getHostName()) && potentialSch.getServiceName().equals
-                    (existingSch.getServiceName())) {
-                  addSch = false;
-                  break;
-                }
-              }
-              if (addSch && !potentialSch.getHostState().equals(HostState
-                .HEARTBEAT_LOST)) {
-                potentialHosts.add(potentialSch);
-              }
+          for (ServiceComponentHost potentialSch : sc
+            .getServiceComponentHosts().values()) {
+            if (!potentialSch.getHostState().equals(HostState
+              .HEARTBEAT_LOST)) {
+              potentialHosts.add(potentialSch);
             }
           }
         }
@@ -1905,8 +1892,7 @@ public class AmbariManagementControllerImpl implements
         }
       }
     }
-    LOG.info("Client hosts for reinstall : " + clientSchs.size
-      ());
+    LOG.info("Client hosts for reinstall : " + clientSchs.size());
 
     for (String sc : clientSchs.keySet()) {
       Map<State, List<ServiceComponentHost>> schMap = new

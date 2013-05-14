@@ -630,6 +630,9 @@ Trunk (unreleased changes):
 
  BUG FIXES
 
+ AMBARI-2124. Hive client is not getting reconfigured when it is co-hosted 
+ with hive server/metastore. (swagle)
+
  AMBARI-2072. Fix to remove actual_configs from cluster response. (ncole)
 
  AMBARI-2036. Fix to send global configs with status_commands to agents. (ncole)
