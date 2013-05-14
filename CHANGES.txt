@@ -850,6 +850,9 @@ Trunk (unreleased changes):
 
  BUG FIXES
 
+ AMBARI-2127. Service check should not emit log with Exceptions considering
+ its a positive scenario. (smohanty)
+
  AMBARI-2124. Hive client is not getting reconfigured when it is co-hosted with 
  hive server/metastore. (swagle)
 

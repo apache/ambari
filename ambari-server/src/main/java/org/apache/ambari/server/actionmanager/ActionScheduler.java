@@ -316,7 +316,8 @@ class ActionScheduler implements Runnable {
                   svcComp.getServiceComponentHost(host);
               svcCompHost.handleEvent(timeoutEvent);
             } catch (ServiceComponentNotFoundException scnex) {
-              LOG.info("Not a service component, assuming its an action", scnex);
+              LOG.debug("Not a service component, assuming its an action. Details: "
+                  + scnex.getMessage());
             } catch (InvalidStateTransitionException e) {
               LOG.info("Transition failed for host: " + host + ", role: "
                   + roleStr, e);
