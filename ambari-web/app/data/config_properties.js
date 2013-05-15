@@ -228,7 +228,7 @@ module.exports =
       "name": "dfs_webhdfs_enabled",
       "displayName": "WebHDFS enabled",
       "description": "Whether to enable WebHDFS feature",
-      "defaultValue": false,
+      "defaultValue": true,
       "displayType": "checkbox",
       "isOverridable": false,
       "isVisible": true,
