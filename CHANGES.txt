@@ -852,6 +852,8 @@ Trunk (unreleased changes):
 
  BUG FIXES
 
+ AMBARI-2138. HBase smoke test fails on secure cluster. (swagle)
+
  AMBARI-2136. Home paths are not set correctly in /etc/sqoop/conf/sqoop-env.sh
  (mahadev)
 

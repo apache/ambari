@@ -99,4 +99,6 @@ class hdp-hbase::params() inherits hdp::params
   } else {
     $hbase_jaas_princ = "${hbase_primary_name}@${kerberos_domain}"
   }
+
+  $smokeuser_permissions = hdp_default("smokeuser_permissions", "RWXCA")
 }

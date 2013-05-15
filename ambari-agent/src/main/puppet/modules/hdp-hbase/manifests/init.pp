@@ -28,7 +28,7 @@ class hdp-hbase(
   $config_dir = $hdp-hbase::params::conf_dir
   
   $hdp::params::component_exists['hdp-hbase'] = true
-
+  $smokeuser = $hdp::params::smokeuser
 
   #Configs generation  
 
@@ -102,6 +102,24 @@ class hdp-hbase(
     if ($security_enabled == true) {
       if ($type == 'master') {
         hdp-hbase::configfile { 'hbase_master_jaas.conf' : }
+
+        $hbase_grant_premissions_file = '/tmp/hbase_grant_permissions.sh'
+
+        file { $hbase_grant_premissions_file:
+          owner   => $hbase_user,
+          group   => $hdp::params::user_group,
+          mode => '0644',
+          content => template('hdp-hbase/hbase_grant_permissions.erb')
+        }
+
+        hdp::exec { '${smokeuser}_grant_privileges' :
+          command => "su - ${smoke_test_user} -c 'hbase --config $conf_dir shell ${hbase_grant_premissions_file}'",
+          require => File[$hbase_grant_premissions_file]
+        }
+
+        Hdp-hbase::Configfile<||> -> File[$hbase_grant_premissions_file] ->
+        Hdp::Exec['${smokeuser}_grant_privileges'] -> Anchor['hdp-hbase::end']
+
       } elsif ($type == 'regionserver') {
         hdp-hbase::configfile { 'hbase_regionserver_jaas.conf' : }
       } else {
