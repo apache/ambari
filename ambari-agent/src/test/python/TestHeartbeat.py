@@ -28,8 +28,21 @@ import os
 import time
 from mock.mock import patch, MagicMock, call
 from ambari_agent.StackVersionsFileHandler import StackVersionsFileHandler
+import StringIO
+import sys
 
 class TestHeartbeat(TestCase):
+
+  def setUp(self):
+    # disable stdout
+    out = StringIO.StringIO()
+    sys.stdout = out
+
+
+  def tearDown(self):
+    # enable stdout
+    sys.stdout = sys.__stdout__
+
 
   def test_build(self):
     actionQueue = ActionQueue(AmbariConfig.AmbariConfig().getConfig())

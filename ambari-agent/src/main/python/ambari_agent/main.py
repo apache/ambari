@@ -33,10 +33,13 @@ from shell import killstaleprocesses
 import AmbariConfig
 from security import CertificateManager
 from NetUtil import NetUtil
+import security
 
 
 logger = logging.getLogger()
+formatstr = "%(levelname)s %(asctime)s %(filename)s:%(lineno)d - %(message)s"
 agentPid = os.getpid()
+configFile = "/etc/ambari-agent/conf/ambari-agent.ini"
 
 if 'AMBARI_LOG_DIR' in os.environ:
   logfile = os.environ['AMBARI_LOG_DIR'] + "/ambari-agent.log"
@@ -46,38 +49,30 @@ else:
 def signal_handler(signum, frame):
   #we want the handler to run only for the agent process and not
   #for the children (e.g. namenode, etc.)
-  if (os.getpid() != agentPid):
+  if os.getpid() != agentPid:
     os._exit(0)
   logger.info('signal received, exiting.')
   ProcessHelper.stopAgent()
 
 def debug(sig, frame):
-    """Interrupt running process, and provide a python prompt for
-    interactive debugging."""
-    d={'_frame':frame}         # Allow access to frame object.
-    d.update(frame.f_globals)  # Unless shadowed by global
-    d.update(frame.f_locals)
+  """Interrupt running process, and provide a python prompt for
+  interactive debugging."""
+  d={'_frame':frame}         # Allow access to frame object.
+  d.update(frame.f_globals)  # Unless shadowed by global
+  d.update(frame.f_locals)
 
-    message  = "Signal received : entering python shell.\nTraceback:\n"
-    message += ''.join(traceback.format_stack(frame))
-    logger.info(message)
-
-
+  message  = "Signal received : entering python shell.\nTraceback:\n"
+  message += ''.join(traceback.format_stack(frame))
+  logger.info(message)
 
 
-def main():
-  global config
-  parser = OptionParser()
-  parser.add_option("-v", "--verbose", dest="verbose", action="store_true", help="verbose log output", default=False)
-  (options, args) = parser.parse_args()
-
-  formatstr = "%(levelname)s %(asctime)s %(filename)s:%(lineno)d - %(message)s"
+def setup_logging(verbose):
   formatter = logging.Formatter(formatstr)
   rotateLog = logging.handlers.RotatingFileHandler(logfile, "a", 10000000, 25)
   rotateLog.setFormatter(formatter)
   logger.addHandler(rotateLog)
 
-  if options.verbose:
+  if verbose:
     logging.basicConfig(format=formatstr, level=logging.DEBUG, filename=logfile)
     logger.setLevel(logging.DEBUG)
     logger.info("loglevel=logging.DEBUG")
@@ -86,63 +81,8 @@ def main():
     logger.setLevel(logging.INFO)
     logger.info("loglevel=logging.INFO")
 
-  default_cfg = { 'agent' : { 'prefix' : '/home/ambari' } }
-  config = ConfigParser.RawConfigParser(default_cfg)
-  signal.signal(signal.SIGINT, signal_handler)
-  signal.signal(signal.SIGTERM, signal_handler)
-  signal.signal(signal.SIGUSR1, debug)
 
-  if (len(sys.argv) >1) and sys.argv[1]=='stop':
-    # stop existing Ambari agent
-    pid = -1
-    try:
-      f = open(ProcessHelper.pidfile, 'r')
-      pid = f.read()
-      pid = int(pid)
-      f.close()
-      os.kill(pid, signal.SIGTERM)
-      time.sleep(5)
-      if os.path.exists(ProcessHelper.pidfile):
-        raise Exception("PID file still exists.")
-      os._exit(0)
-    except Exception, err:
-      if pid == -1:
-        print ("Agent process is not running")
-      else:
-        os.kill(pid, signal.SIGKILL)
-      os._exit(1)
-
-  # Check for ambari configuration file.
-  try:
-    config = AmbariConfig.config
-    if os.path.exists('/etc/ambari-agent/conf/ambari-agent.ini'):
-      config.read('/etc/ambari-agent/conf/ambari-agent.ini')
-      AmbariConfig.setConfig(config)
-    else:
-      raise Exception("No config found, use default")
-  except Exception, err:
-    logger.warn(err)
-
-  # Check if there is another instance running
-  if os.path.isfile(ProcessHelper.pidfile):
-    print("%s already exists, exiting" % ProcessHelper.pidfile)
-    sys.exit(1)
-  # check if ambari prefix exists
-  elif not os.path.isdir(config.get("agent", "prefix")):
-    msg = "Ambari prefix dir %s does not exists, can't continue" \
-          % config.get("agent", "prefix")
-    logger.error(msg)
-    print(msg)
-    sys.exit(1)
-  else:
-    # Daemonize current instance of Ambari Agent
-    pid = str(os.getpid())
-    file(ProcessHelper.pidfile, 'w').write(pid)
-
-  credential = None
-
-  killstaleprocesses()
-
+def update_log_level(config):
   # Setting loglevel based on config file
   try:
     loglevel = config.get('agent', 'loglevel')
@@ -158,6 +98,94 @@ def main():
   except Exception, err:
     logger.info("Default loglevel=DEBUG")
 
+
+def bind_signal_handlers():
+  signal.signal(signal.SIGINT, signal_handler)
+  signal.signal(signal.SIGTERM, signal_handler)
+  signal.signal(signal.SIGUSR1, debug)
+
+
+def resolve_ambari_config():
+  try:
+    config = AmbariConfig.config
+    if os.path.exists(configFile):
+      config.read(configFile)
+      AmbariConfig.setConfig(config)
+    else:
+      raise Exception("No config found, use default")
+
+  except Exception, err:
+    logger.warn(err)
+  return config
+
+
+def perform_prestart_checks():
+  # Check if there is another instance running
+  if os.path.isfile(ProcessHelper.pidfile):
+    print("%s already exists, exiting" % ProcessHelper.pidfile)
+    sys.exit(1)
+  # check if ambari prefix exists
+  elif not os.path.isdir(config.get("agent", "prefix")):
+    msg = "Ambari prefix dir %s does not exists, can't continue" \
+          % config.get("agent", "prefix")
+    logger.error(msg)
+    print(msg)
+    sys.exit(1)
+
+
+def daemonize():
+  # Daemonize current instance of Ambari Agent
+  # Currently daemonization is done via /usr/sbin/ambari-agent script (nohup)
+  # and agent only dumps self pid to file
+  pid = str(os.getpid())
+  file(ProcessHelper.pidfile, 'w').write(pid)
+
+
+def stop_agent():
+# stop existing Ambari agent
+  pid = -1
+  try:
+    f = open(ProcessHelper.pidfile, 'r')
+    pid = f.read()
+    pid = int(pid)
+    f.close()
+    os.kill(pid, signal.SIGTERM)
+    time.sleep(5)
+    if os.path.exists(ProcessHelper.pidfile):
+      raise Exception("PID file still exists.")
+    os._exit(0)
+  except Exception, err:
+    if pid == -1:
+      print ("Agent process is not running")
+    else:
+      os.kill(pid, signal.SIGKILL)
+    os._exit(1)
+
+
+def main():
+  global config
+  parser = OptionParser()
+  parser.add_option("-v", "--verbose", dest="verbose", action="store_true", help="verbose log output", default=False)
+  (options, args) = parser.parse_args()
+
+  setup_logging(options.verbose)
+
+  default_cfg = { 'agent' : { 'prefix' : '/home/ambari' } }
+  config = ConfigParser.RawConfigParser(default_cfg)
+  bind_signal_handlers()
+
+  if (len(sys.argv) >1) and sys.argv[1]=='stop':
+    stop_agent()
+
+  # Check for ambari configuration file.
+  config = resolve_ambari_config()
+  perform_prestart_checks()
+  daemonize()
+
+  killstaleprocesses()
+
+  update_log_level(config)
+
   server_url = 'https://' + config.get('server', 'hostname') + ':' + config.get('server', 'url_port')
   print("Connecting to the server at " + server_url + "...")
   logger.info('Connecting to the server at: ' + server_url)
@@ -169,15 +197,13 @@ def main():
   #Initiate security
   """ Check if security is enable if not then disable it"""
   logger.info("Creating certs")
-  certMan = CertificateManager(config)
+  certMan = security.CertificateManager(config)
   certMan.initSecurity()
-  
+
   # Launch Controller communication
   controller = Controller(config)
   controller.start()
-  # TODO: is run() call necessary?
-  controller.run()
   logger.info("finished")
-    
+
 if __name__ == "__main__":
   main()

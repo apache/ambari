@@ -139,9 +139,9 @@ class UpgradeExecutor:
     stack_name = verdict["stackName"].strip()
 
     matchObj = re.match( r'(\d+).(\d+)', verdict["stackVersion"].strip(), re.M|re.I)
-    stack_major_ver = matchObj.group(1)
-    stack_minor_ver = matchObj.group(2)
     if matchObj:
+      stack_major_ver = matchObj.group(1)
+      stack_minor_ver = matchObj.group(2)
       return stack_name, stack_major_ver, stack_minor_ver
     else:
       return None

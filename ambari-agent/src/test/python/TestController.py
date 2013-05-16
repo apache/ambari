@@ -21,7 +21,7 @@ limitations under the License.
 
 import StringIO
 import unittest
-from ambari_agent import Controller
+from ambari_agent import Controller, ActionQueue
 from ambari_agent import hostname
 import sys
 from mock.mock import patch, MagicMock, call
@@ -50,20 +50,6 @@ class TestController(unittest.TestCase):
     self.controller.netutil.HEARTBEAT_IDDLE_INTERVAL_SEC = 0.1
     self.controller.netutil.HEARTBEAT_NOT_IDDLE_INTERVAL_SEC = 0.1
 
-
-  @patch.object(Controller, "Heartbeat")
-  @patch.object(Controller, "Register")
-  @patch.object(Controller, "ActionQueue")
-  def test_start(self, ActionQueue_mock, Register_mock, Heartbeat_mock):
-
-    aq = MagicMock()
-    ActionQueue_mock.return_value = aq
-
-    self.controller.start()
-    self.assertTrue(ActionQueue_mock.called)
-    self.assertTrue(aq.start.called)
-    self.assertTrue(Register_mock.called)
-    self.assertTrue(Heartbeat_mock.called)
 
   @patch("json.dumps")
   @patch("json.loads")
@@ -128,7 +114,10 @@ class TestController(unittest.TestCase):
 
   @patch("urllib2.build_opener")
   @patch("urllib2.install_opener")
-  def test_run(self, installMock, buildMock):
+  @patch.object(Controller, "ActionQueue")
+  def test_run(self, ActionQueue_mock, installMock, buildMock):
+    aq = MagicMock()
+    ActionQueue_mock.return_value = aq
 
     buildMock.return_value = "opener"
     registerAndHeartbeat  = MagicMock("registerAndHeartbeat")
@@ -152,8 +141,15 @@ class TestController(unittest.TestCase):
     self.controller.run()
     self.assertEqual(3, registerAndHeartbeat.call_count)
 
+    # Action queue should be started during calls
+    self.assertTrue(ActionQueue_mock.called)
+    self.assertTrue(aq.start.called)
 
-  def test_heartbeatWithServer(self, installMock, buildMock):
+
+  @patch("urllib2.build_opener")
+  @patch("urllib2.install_opener")
+  @patch.object(ActionQueue.ActionQueue, "run")
+  def test_repeatRegistration(self, run_mock, installMock, buildMock):
 
     registerAndHeartbeat = MagicMock(name="registerAndHeartbeat")
 

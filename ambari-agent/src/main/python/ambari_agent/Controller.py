@@ -59,13 +59,6 @@ class Controller(threading.Thread):
     self.cachedconnect = None
     self.range = range
 
-  def start(self):
-    self.actionQueue = ActionQueue(self.config)
-    self.actionQueue.start()
-    self.register = Register(self.config)
-    self.heartbeat = Heartbeat(self.actionQueue)
-    pass
-  
   def __del__(self):
     logger.info("Server connection disconnected.")
     pass
@@ -206,6 +199,11 @@ class Controller(threading.Thread):
     pass
 
   def run(self):
+    self.actionQueue = ActionQueue(self.config)
+    self.actionQueue.start()
+    self.register = Register(self.config)
+    self.heartbeat = Heartbeat(self.actionQueue)
+
     opener = urllib2.build_opener()
     urllib2.install_opener(opener)
 

@@ -19,7 +19,7 @@ limitations under the License.
 '''
 
 from unittest import TestCase
-from PuppetExecutor import PuppetExecutor
+from ambari_agent.PuppetExecutor import PuppetExecutor
 from pprint import pformat
 import socket
 import os

@@ -22,7 +22,7 @@ import socket
 import ssl
 import os
 import logging
-from subprocess import Popen, PIPE
+import subprocess
 import json
 import pprint
 import traceback
@@ -41,8 +41,8 @@ class VerifiedHTTPSConnection(httplib.HTTPSConnection):
   def __init__(self, host, port=None, key_file=None, cert_file=None,
                      strict=None, timeout=socket._GLOBAL_DEFAULT_TIMEOUT):
     httplib.HTTPSConnection.__init__(self, host, port=port)
-    pass
-     
+    self.certMan = CertificateManager(AmbariConfig.config)
+
   def connect(self):
     if self.sock:
       self.sock.close()
@@ -52,12 +52,9 @@ class VerifiedHTTPSConnection(httplib.HTTPSConnection):
     if self._tunnel_host:
       self.sock = sock
       self._tunnel()
-    agent_key = AmbariConfig.config.get('security', 'keysdir') + os.sep + \
-     hostname.hostname() + ".key"
-    agent_crt = AmbariConfig.config.get('security', 'keysdir') + os.sep \
-    + hostname.hostname() + ".crt" 
-    server_crt = AmbariConfig.config.get('security', 'keysdir') + os.sep \
-    + "ca.crt"
+    agent_key = self.certMan.getAgentKeyName()
+    agent_crt = self.certMan.getAgentCrtName()
+    server_crt = self.certMan.getSrvrCrtName()
     
     self.sock = ssl.wrap_socket(sock,
                                 keyfile=agent_key,
@@ -77,11 +74,12 @@ class CachedHTTPSConnection:
     self.connect()
   
   def connect(self):
-      if  not self.connected:
-        self.httpsconn = VerifiedHTTPSConnection(self.server, self.port)
-        self.httpsconn.connect()
-        self.connected = True
-      # possible exceptions are caught and processed in Controller
+    if  not self.connected:
+      self.httpsconn = VerifiedHTTPSConnection(self.server, self.port)
+      self.httpsconn.connect()
+      self.connected = True
+    # possible exceptions are caught and processed in Controller
+
 
   
   def forceClear(self):
@@ -115,12 +113,15 @@ class CertificateManager():
   def getAgentKeyName(self):
     keysdir = self.config.get('security', 'keysdir')
     return keysdir + os.sep + hostname.hostname() + ".key"
+
   def getAgentCrtName(self):
     keysdir = self.config.get('security', 'keysdir')
     return keysdir + os.sep + hostname.hostname() + ".crt"
+
   def getAgentCrtReqName(self):
     keysdir = self.config.get('security', 'keysdir')
     return keysdir + os.sep + hostname.hostname() + ".csr"
+
   def getSrvrCrtName(self):
     keysdir = self.config.get('security', 'keysdir')
     return keysdir + os.sep + "ca.crt"
@@ -148,10 +149,10 @@ class CertificateManager():
     agent_crt_exists = os.path.exists(self.getAgentCrtName())
     
     if not agent_crt_exists:
-        logger.info("Agent certificate not exists, sending sign request")
-        self.reqSignCrt()
+      logger.info("Agent certificate not exists, sending sign request")
+      self.reqSignCrt()
     else:
-        logger.info("Agent certificate exists, ok")
+      logger.info("Agent certificate exists, ok")
             
   def loadSrvrCrt(self):
     get_ca_url = self.server_url + '/cert/ca/'
@@ -183,14 +184,15 @@ class CertificateManager():
       agentCrtF = open(self.getAgentCrtName(), "w")
       agentCrtF.write(agentCrtContent)
     else:
+      # Possible exception is catched higher at Controller
       logger.error("Certificate signing failed")
 
   def genAgentCrtReq(self):
     generate_script = GEN_AGENT_KEY % {'hostname': hostname.hostname(),
                                      'keysdir' : self.config.get('security', 'keysdir')}
     logger.info(generate_script)
-    p = Popen([generate_script], shell=True, stdout=PIPE)
-    p.wait()
+    p = subprocess.Popen([generate_script], shell=True, stdout=subprocess.PIPE)
+    p.communicate()
       
   def initSecurity(self):
     self.checkCertExists()

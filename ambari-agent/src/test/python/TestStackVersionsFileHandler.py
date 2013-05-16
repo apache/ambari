@@ -82,5 +82,35 @@ class TestStackVersionsFileHandler(TestCase):
     self.assertEqual(result, True)
 
 
+  def test_write_stack_version(self):
+    #saving old values
+    oldFilePathValue = stackVersionsFileHandler.versionsFilePath
+    oldversionsFileDir = stackVersionsFileHandler.versionsFileDir
+    oldVerFile = stackVersionsFileHandler.VER_FILE
+    #preparations and invocation
+    tmpfile = tempfile.mktemp()
+    stackVersionsFileHandler.versionsFilePath = tmpfile
+    stackVersionsFileHandler.VER_FILE = \
+      os.path.basename(tmpfile)
+    stackVersionsFileHandler.versionsFileDir = \
+      os.path.dirname(tmpfile)
+    stackVersionsFileHandler.touch_file()
+    stackVersionsFileHandler.write_stack_version(
+      "NAGIOS_SERVER", '"stackVersion":"1.3.0"')
+    # Checking if backup file exists
+    expectedBackupFile = tmpfile + ".bak"
+    self.assertTrue(os.path.isfile(expectedBackupFile))
+    os.remove(expectedBackupFile)
+    # Checking content of created file
+    content = stackVersionsFileHandler.read_all_stack_versions()
+    self.assertEquals(len(content), 1)
+    self.assertEqual(content['NAGIOS_SERVER'], '"stackVersion":"1.3.0"')
+    self.assertTrue(os.path.isfile(tmpfile))
+    os.remove(tmpfile)
+    # Restoring old values
+    stackVersionsFileHandler.versionsFilePath = oldFilePathValue
+    stackVersionsFileHandler.versionsFileDir = oldversionsFileDir
+    stackVersionsFileHandler.VER_FILE = oldVerFile
+
 if __name__ == "__main__":
   unittest.main(verbosity=2)

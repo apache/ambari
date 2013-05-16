@@ -22,9 +22,20 @@ from unittest import TestCase
 from ambari_agent.LiveStatus import LiveStatus
 from ambari_agent.AmbariConfig import AmbariConfig
 import socket
-import os
+import os, sys, StringIO
 
 class TestLiveStatus(TestCase):
+
+  def setUp(self):
+    # disable stdout
+    out = StringIO.StringIO()
+    sys.stdout = out
+
+
+  def tearDown(self):
+    # enable stdout
+    sys.stdout = sys.__stdout__
+
   def test_build(self):
     for component in LiveStatus.COMPONENTS:
       config = AmbariConfig().getConfig()

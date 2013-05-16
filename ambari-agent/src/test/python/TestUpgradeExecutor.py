@@ -67,6 +67,30 @@ class TestUpgradeExecutor(TestCase):
     result = executor.perform_stack_upgrade(command, 'tmpout', 'tmperr')
     self.assertTrue('not supported' in result['stderr'])
     self.assertFalse(write_stack_version_method.called)
+    # Checking wrong source version
+    write_stack_version_method.reset()
+    command = {
+      'commandParams' :	{
+        'source_stack_version' : '{\"stackName\":\"HDP\",\"stackVersion\":\"Wrong\"}',
+        'target_stack_version' : '{\"stackName\":\"HDP\",\"stackVersion\":\"1.3.0\"}',
+        },
+      'role' : 'HDFS'
+    }
+    result = executor.perform_stack_upgrade(command, 'tmpout', 'tmperr')
+    self.assertTrue('does not match pattern' in result['stderr'])
+    self.assertFalse(write_stack_version_method.called)
+    # Checking wrong target version
+    write_stack_version_method.reset()
+    command = {
+      'commandParams' :	{
+        'source_stack_version' : '{\"stackName\":\"HDP\",\"stackVersion\":\"1.3.0\"}',
+        'target_stack_version' : '{\"stackName\":\"HDP\",\"stackVersion\":\"Wrong\"}',
+        },
+      'role' : 'HDFS'
+    }
+    result = executor.perform_stack_upgrade(command, 'tmpout', 'tmperr')
+    self.assertTrue('does not match pattern' in result['stderr'])
+    self.assertFalse(write_stack_version_method.called)
     # Checking successful result
     write_stack_version_method.reset()
     command = {
@@ -138,6 +162,8 @@ class TestUpgradeExecutor(TestCase):
     self.assertEquals(result, ('HDP', '1', '3'))
     result = executor.split_stack_version('{\"stackName\":\"ComplexStackVersion\",\"stackVersion\":\"1.3.4.2.2\"}')
     self.assertEquals(result, ('ComplexStackVersion', '1', '3'))
+    result = executor.split_stack_version('{\"stackName\":\"HDP\",\"stackVersion\":\"1\"}')
+    self.assertEquals(result, None)
     pass
 
 
@@ -185,6 +211,23 @@ class TestUpgradeExecutor(TestCase):
     self.assertEquals(result['exitcode'],1)
     self.assertEquals(result['stdout'],"\nstdout - first.py\nstdout - second.pp\nstdout - third.py\nUnrecognized file type, skipping: basedir/dir/fourth.nm\nstdout - fifth-failing.py")
     self.assertEquals(result['stderr'],"\nstderr - first.py\nstderr - second.pp\nstderr - third.py\nNone\nstderr - fifth-failing.py")
+
+
+  @patch('os.path.isdir')
+  def test_execute_dir_not_existing(self, isdir_method):
+    pythonExecutor = MagicMock()
+    puppetExecutor = MagicMock()
+
+    command = {'debug': 'command'}
+    isdir_method.return_value = False
+
+    executor = UpgradeExecutor.UpgradeExecutor(pythonExecutor,
+        puppetExecutor, AmbariConfig.AmbariConfig().getConfig())
+
+    result= executor.execute_dir(command, 'basedir', 'not_existing_dir', 'tmpout', 'tmperr')
+    self.assertEquals(result['exitcode'],0)
+    self.assertEquals(result['stdout'],'Script directory basedir/not_existing_dir does not exist, skipping')
+    self.assertEquals(result['stderr'],'None')
 
 
   @patch('os.listdir')
