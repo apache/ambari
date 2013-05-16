@@ -859,6 +859,9 @@ Trunk (unreleased changes):
 
  BUG FIXES
 
+ AMBARI-2149. Ambari needs to set right path for GC log directory of Hbase
+ process. (mahadev)
+
  AMBARI-2116. Add parameters to improve HIVE performance. Missing property. 
  (swagle)
 
