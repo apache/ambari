@@ -51,6 +51,7 @@ import java.util.Set;
 
 import javax.xml.bind.JAXBException;
 
+import com.google.inject.persist.UnitOfWork;
 import junit.framework.Assert;
 
 import org.apache.ambari.server.AmbariException;
@@ -103,6 +104,7 @@ public class TestHeartbeatHandler {
   AmbariMetaInfo metaInfo;
   @Inject
   Configuration config;
+  private UnitOfWork unitOfWork;
 
   @Before
   public void setup() throws Exception {
@@ -112,6 +114,7 @@ public class TestHeartbeatHandler {
     injector.injectMembers(this);
     metaInfo.init();
     log.debug("Using server os type=" + config.getServerOsType());
+    unitOfWork = injector.getInstance(UnitOfWork.class);
   }
 
   @After
@@ -360,7 +363,7 @@ public class TestHeartbeatHandler {
     clusters.addCluster(DummyCluster);
     ActionDBAccessor db = injector.getInstance(ActionDBAccessorImpl.class);
     ActionManager am = new ActionManager(5000, 1200000, new ActionQueue(), clusters, db,
-        new HostsMap((String) null), null);
+        new HostsMap((String) null), null, unitOfWork);
     populateActionDB(db, DummyHostname1);
     Stage stage = db.getAllStages(requestId).get(0);
     Assert.assertEquals(stageId, stage.getStageId());
@@ -1214,7 +1217,7 @@ public class TestHeartbeatHandler {
 
   private ActionManager getMockActionManager() {
     return new ActionManager(0, 0, null, null,
-              new ActionDBInMemoryImpl(), new HostsMap((String) null), null);
+              new ActionDBInMemoryImpl(), new HostsMap((String) null), null, unitOfWork);
   }
 
 

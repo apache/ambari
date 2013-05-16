@@ -856,6 +856,8 @@ Trunk (unreleased changes):
 
  BUG FIXES
 
+ AMBARI-2142. Unecessary use of @Transactional on all DAO methods. (swagle)
+
  AMBARI-2107. Cluster CPU Chart is off the charts. Reopened. (swagle)
 
  AMBARI-2139. Hive Service check fails on secure cluster. (jaimin)

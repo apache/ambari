@@ -30,6 +30,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 
+import com.google.inject.persist.UnitOfWork;
 import junit.framework.Assert;
 
 import org.apache.ambari.server.AmbariException;
@@ -63,6 +64,7 @@ public class TestActionManager {
   private String clusterName = "cluster1";
 
   private Clusters clusters;
+  private UnitOfWork unitOfWork;
 
   @Before
   public void setup() throws AmbariException {
@@ -72,6 +74,7 @@ public class TestActionManager {
     clusters.addHost(hostname);
     clusters.getHost(hostname).persist();
     clusters.addCluster(clusterName);
+    unitOfWork = injector.getInstance(UnitOfWork.class);
   }
 
   @After
@@ -83,7 +86,7 @@ public class TestActionManager {
   public void testActionResponse() {
     ActionDBAccessor db = injector.getInstance(ActionDBAccessorImpl.class);
     ActionManager am = new ActionManager(5000, 1200000, new ActionQueue(),
-        clusters, db, new HostsMap((String) null), null);
+        clusters, db, new HostsMap((String) null), null, unitOfWork);
     populateActionDB(db, hostname);
     Stage stage = db.getAllStages(requestId).get(0);
     Assert.assertEquals(stageId, stage.getStageId());
@@ -119,7 +122,7 @@ public class TestActionManager {
   public void testLargeLogs() {
     ActionDBAccessor db = injector.getInstance(ActionDBAccessorImpl.class);
     ActionManager am = new ActionManager(5000, 1200000, new ActionQueue(),
-        clusters, db, new HostsMap((String) null), null);
+        clusters, db, new HostsMap((String) null), null, unitOfWork);
     populateActionDB(db, hostname);
     Stage stage = db.getAllStages(requestId).get(0);
     Assert.assertEquals(stageId, stage.getStageId());
@@ -204,7 +207,7 @@ public class TestActionManager {
 
     replay(queue, db, clusters);
 
-    ActionManager manager = new ActionManager(0, 0, queue, clusters, db, null, null);
+    ActionManager manager = new ActionManager(0, 0, queue, clusters, db, null, null, unitOfWork);
     assertSame(listStages, manager.getActions(requestId));
 
     verify(queue, db, clusters);

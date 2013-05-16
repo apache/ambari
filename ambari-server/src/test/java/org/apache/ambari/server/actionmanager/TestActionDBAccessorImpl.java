@@ -21,6 +21,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
+import com.google.inject.persist.UnitOfWork;
 import junit.framework.Assert;
 
 import org.apache.ambari.server.AmbariException;
@@ -79,7 +80,7 @@ public class TestActionDBAccessorImpl {
     db = injector.getInstance(ActionDBAccessorImpl.class);
     
     am = new ActionManager(5000, 1200000, new ActionQueue(), clusters, db,
-        new HostsMap((String) null), null);
+        new HostsMap((String) null), null, injector.getInstance(UnitOfWork.class));
   }
 
   @After

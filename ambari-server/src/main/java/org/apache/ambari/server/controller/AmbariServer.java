@@ -173,8 +173,9 @@ public class AmbariServer {
       DelegatingFilterProxy springSecurityFilter = new DelegatingFilterProxy();
       springSecurityFilter.setTargetBeanName("springSecurityFilterChain");
 
-      //session-per-request strategy for api
+      //session-per-request strategy for api and agents
       root.addFilter(new FilterHolder(injector.getInstance(AmbariPersistFilter.class)), "/api/*", 1);
+      agentroot.addFilter(new FilterHolder(injector.getInstance(AmbariPersistFilter.class)), "/agent/*", 1);
 
       if (configs.getApiAuthentication()) {
         root.addFilter(new FilterHolder(springSecurityFilter), "/api/*", 1);
