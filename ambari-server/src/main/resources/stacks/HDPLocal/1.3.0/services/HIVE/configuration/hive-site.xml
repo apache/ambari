@@ -231,4 +231,13 @@ limitations under the License.
     </description>
   </property>
 
+  <property>
+    <name>hive.mapjoin.bucket.cache.size</name>
+    <value>10000</value>
+    <description>
+      Size per reducer.The default is 1G, i.e if the input size is 10G, it
+      will use 10 reducers.
+    </description>
+  </property>
+
 </configuration>

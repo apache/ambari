@@ -856,6 +856,9 @@ Trunk (unreleased changes):
 
  BUG FIXES
 
+ AMBARI-2116. Add parameters to improve HIVE performance. Missing property. 
+ (swagle)
+
  AMBARI-2146. When hive and oozie users have been changed after upgrade hive
  metastore and oozie cannot start properly. (smohanty)
 
