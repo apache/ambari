@@ -71,11 +71,11 @@ public class GangliaMetric {
   static {
     Set<String> temp = new HashSet<String>();
     temp.add("cpu_wio");
-    /*temp.add("cpu_idle");
+    temp.add("cpu_idle");
     temp.add("cpu_nice");
     temp.add("cpu_aidle");
     temp.add("cpu_system");
-    temp.add("cpu_user");*/
+    temp.add("cpu_user");
     PERCENTAGE_METRIC = Collections.unmodifiableSet(temp);
   }
 
@@ -214,18 +214,18 @@ public class GangliaMetric {
   public static class TemporalMetric {
     private Number m_value;
     private Number m_time;
-    private boolean isInvalid;
+    private boolean valid;
 
-    public boolean isIsInvalid() {
-      return isInvalid;
+    public boolean isValid() {
+      return valid;
     }
 
     public TemporalMetric(String value, Number time) {
-      isInvalid = false;
+      valid = true;
       try{
         m_value = convertToNumber(value);
       } catch (NumberFormatException e) {
-        isInvalid = true;
+        valid = false;
       }
       m_time = time;
     }

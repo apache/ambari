@@ -97,7 +97,7 @@ public class GangliaMetricTest {
     System.out.println("GangliaMetric.TemporalMetric");
     GangliaMetric.TemporalMetric tm;
     tm = new GangliaMetric.TemporalMetric("100", new Long(1362440880));
-    assertFalse("GangliaMetric.TemporalMetric is valid", tm.isIsInvalid());
+    assertTrue("GangliaMetric.TemporalMetric is valid", tm.isValid());
   }
 
     /**
@@ -108,7 +108,7 @@ public class GangliaMetricTest {
     System.out.println("GangliaMetric.TemporalMetric");
     GangliaMetric.TemporalMetric tm;
     tm = new GangliaMetric.TemporalMetric("any string", new Long(1362440880));
-    assertTrue("GangliaMetric.TemporalMetric is invalid", tm.isIsInvalid());
+    assertFalse("GangliaMetric.TemporalMetric is invalid", tm.isValid());
   }
   
 

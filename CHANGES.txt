@@ -854,6 +854,8 @@ Trunk (unreleased changes):
 
  BUG FIXES
 
+ AMBARI-2107. Cluster CPU Chart is off the charts. Reopened. (swagle)
+
  AMBARI-2139. Hive Service check fails on secure cluster. (jaimin)
 
  AMBARI-2138. HBase smoke test fails on secure cluster. (swagle)

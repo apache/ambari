@@ -414,7 +414,7 @@ public abstract class GangliaPropertyProvider extends AbstractPropertyProvider {
           String val = reader.readLine();
           while(! val.equals("[AMBARI_DP_END]")) {
             GangliaMetric.TemporalMetric tm = new GangliaMetric.TemporalMetric(val, time);
-            if (!tm.isIsInvalid()) listTemporalMetrics.add(tm);
+            if (tm.isValid()) listTemporalMetrics.add(tm);
             time += step;
             val = reader.readLine();
           }
