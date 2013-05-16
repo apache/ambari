@@ -28,7 +28,7 @@ define hdp-hadoop::hdfs::directory(
   $recursive_chmod = false
 ) 
 {
-  $unless_cmd = "hadoop fs -ls ${name} >/dev/null 2>&1"
+  $dir_exists = "hadoop fs -ls ${name} >/dev/null 2>&1"
   $tries = 30
   $try_sleep = 10
  
@@ -42,7 +42,7 @@ define hdp-hadoop::hdfs::directory(
     }
     hdp-hadoop::exec-hadoop { $mkdir_cmd:
       command   => $mkdir_cmd,
-      unless    => $unless_cmd,
+      unless    => $dir_exists,
       try_sleep => $try_sleep,
       tries     => $tries
     }
@@ -65,7 +65,7 @@ define hdp-hadoop::hdfs::directory(
       }
       hdp-hadoop::exec-hadoop {$chown_cmd :
         command   => $chown_cmd,
-        unless    => $unless_cmd,
+        onlyif    => $dir_exists,
         try_sleep => $try_sleep,
         tries     => $tries
       }
@@ -81,7 +81,7 @@ define hdp-hadoop::hdfs::directory(
       }
       hdp-hadoop::exec-hadoop {$chmod_cmd :
         command   => $chmod_cmd,
-        unless    => $unless_cmd,
+        onlyif    => $dir_exists,
         try_sleep => $try_sleep,
         tries     => $tries
       }

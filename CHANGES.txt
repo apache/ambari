@@ -856,6 +856,8 @@ Trunk (unreleased changes):
 
  BUG FIXES
 
+ AMBARI-2143. HBASE fails to start on master. (smohanty
+
  AMBARI-2141. When hbase user is changed hbase does not start properly
  after upgrade. (smohanty)
 

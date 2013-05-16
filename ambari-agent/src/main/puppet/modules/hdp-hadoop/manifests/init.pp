@@ -340,7 +340,8 @@ define hdp-hadoop::exec-hadoop(
   $timeout = 900,
   $try_sleep = undef,
   $user = undef,
-  $logoutput = undef
+  $logoutput = undef,
+  $onlyif = undef
 )
 {
   include hdp-hadoop::params
@@ -382,6 +383,7 @@ define hdp-hadoop::exec-hadoop(
     tries       => $tries,
     timeout     => $timeout,
     try_sleep   => $try_sleep,
-    logoutput   => $logoutput
+    logoutput   => $logoutput,
+    onlyif      => $onlyif
   }
 }
