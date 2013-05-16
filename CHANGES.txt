@@ -856,6 +856,8 @@ Trunk (unreleased changes):
 
  BUG FIXES
 
+ AMBARI-2145. Create script for deploying all new services for UI. (smohanty)
+
  AMBARI-2144. Installation with existing Oracle DB fails. (swagle)
 
  AMBARI-2143. HBASE fails to start on master. (smohanty
