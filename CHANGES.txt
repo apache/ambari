@@ -856,6 +856,9 @@ Trunk (unreleased changes):
 
  BUG FIXES
 
+ AMBARI-2146. When hive and oozie users have been changed after upgrade hive
+ metastore and oozie cannot start properly. (smohanty)
+
  AMBARI-2145. Create script for deploying all new services for UI. (smohanty)
 
  AMBARI-2144. Installation with existing Oracle DB fails. (swagle)

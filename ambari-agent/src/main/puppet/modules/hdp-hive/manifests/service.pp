@@ -94,7 +94,7 @@ class hdp-hive::service(
     ensure => $pid_file_state
   }
 
-    Hdp-hive::Service::Directory<||> File[ $start_metastore_path]-> File[ $start_hiveserver2_path]-> Hdp::Exec[$daemon_cmd] -> File[$pid_file] -> Anchor['hdp-hive::service::end']
+    Hdp-hive::Service::Directory<||> -> File[ $start_metastore_path]-> File[ $start_hiveserver2_path]-> Hdp::Exec[$daemon_cmd] -> File[$pid_file] -> Anchor['hdp-hive::service::end']
   }
 }
 

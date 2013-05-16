@@ -111,6 +111,7 @@ class hdp-oozie::service(
       initial_wait => $initial_wait,
       require => Exec["exec $cmd6"]
     }
+    Hdp-oozie::Service::Directory<||> -> Hdp::Exec["exec $cmd6"] -> Hdp::Exec["exec $start_cmd"] -> Anchor['hdp-oozie::service::end']
   } elsif ($ensure == 'stopped') {
     hdp::exec { "exec $stop_cmd":
       command => $stop_cmd,
