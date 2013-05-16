@@ -64,13 +64,14 @@ define hdp-hbase::service(
     }
   }
 
-  anchor{"hdp-hbase::service::${name}::begin":} -> Hdp::Directory_recursive_create<|tag == $tag|> -> anchor{"hdp-hbase::service::${name}::end":}
   if ($daemon_cmd != undef) { 
     hdp::exec { $daemon_cmd:
       command      => $daemon_cmd,
       unless       => $no_op_test,
       initial_wait => $initial_wait
     }
-    Hdp::Directory_recursive_create<|context_tag == 'hbase_service'|> -> Hdp::Exec[$daemon_cmd] -> Anchor["hdp-hbase::service::${name}::end"]
+    anchor{"hdp-hbase::service::${name}::begin":} -> Hdp::Directory_recursive_create<|tag == $tag|> -> Hdp::Exec[$daemon_cmd] -> anchor{"hdp-hbase::service::${name}::end":}
+  } else {
+    anchor{"hdp-hbase::service::${name}::begin":} -> Hdp::Directory_recursive_create<|tag == $tag|> -> anchor{"hdp-hbase::service::${name}::end":}  
   }
 }
