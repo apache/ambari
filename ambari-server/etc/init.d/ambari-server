@@ -19,6 +19,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+NAME=ambari-server
+PIDFILE=/var/run/$NAME/$NAME.pid
+
 case "$1" in
   start)
         /usr/sbin/ambari-server $@
@@ -27,7 +30,20 @@ case "$1" in
         /usr/sbin/ambari-server $@
         ;;
   status)
-        /usr/sbin/ambari-server $@
+        printf "%-50s" "Checking $NAME..."
+        if [ -f $PIDFILE ]; then
+          PID=`cat $PIDFILE`
+           if [ -z "`ps axf | grep ${PID} | grep -v grep`" ]; then
+             printf "%s\n" "Process dead but pidfile exists"
+             exit 1
+           else
+            echo "Running"
+            exit 0
+          fi
+        else
+          printf "%s\n" "Service not running"
+          exit 1
+        fi
         ;;
   restart)
         $0 stop
