@@ -30,9 +30,9 @@ class hdp-hive::params() inherits hdp::params
   $hive_user = $hdp::params::hive_user
   
   ### JDBC driver jar name
-  if ($hive_ambari_database == "MySQL"){
+  if ($hive_jdbc_driver == "com.mysql.jdbc.Driver"){
     $jdbc_jar_name = "mysql-connector-java.jar"
-  } elsif ($hive_ambari_database == "Oracle") {
+  } elsif ($hive_jdbc_driver == "oracle.jdbc.driver.OracleDriver") {
     $jdbc_jar_name = "ojdbc6.jar"  
   }
   
