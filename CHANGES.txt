@@ -297,6 +297,9 @@ Trunk (unreleased changes):
 
  IMPROVEMENTS
 
+ AMBARI-1887. Heatmap should display full details on mapped metric.
+ (Sandeep Baldawa via yusaku)
+
  AMBARI-2137. Enable WebHDFS by default. (yusaku)
 
  AMBARI-2122. Improve navigation when jumping from one page to Host Details
