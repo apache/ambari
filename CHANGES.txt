@@ -862,6 +862,9 @@ Trunk (unreleased changes):
 
  BUG FIXES
 
+ AMBARI-2152. Sometimes stale host / host component indicators are shown.
+ (yusaku)
+
  AMBARI-2151. Incorrect error message for invalid user name. (yusaku)
 
  AMBARI-2149. Ambari needs to set right path for GC log directory of Hbase

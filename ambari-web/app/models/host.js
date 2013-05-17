@@ -192,7 +192,7 @@ App.Host = DS.Model.extend({
         break;
     }
     return output;
-  }.property('healthClass')
+  }.property('hostComponents.@each.workStatus')
 });
 
 App.Host.FIXTURES = [];
