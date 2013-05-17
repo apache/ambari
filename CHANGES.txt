@@ -862,6 +862,9 @@ Trunk (unreleased changes):
 
  BUG FIXES
 
+ AMBARI-2153. Reassign Master Wizard: Background Operations popup should show
+ display names for services and components. (yusaku)
+
  AMBARI-2152. Sometimes stale host / host component indicators are shown.
  (yusaku)
 

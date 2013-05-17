@@ -86,7 +86,7 @@ var urls = {
       return {
         data: JSON.stringify({
           RequestInfo: {
-            "context": "Stop service " + data.serviceName
+            "context": "Stop service " + data.displayName
           },
           Body: {
             ServiceInfo: {
@@ -137,7 +137,7 @@ var urls = {
       return {
         data: JSON.stringify({
           RequestInfo: {
-            "context": "Install " + data.componentName
+            "context": "Install " + data.displayName
           },
           Body: {
             "HostRoles": {
@@ -156,7 +156,7 @@ var urls = {
       return {
         data: JSON.stringify({
           RequestInfo: {
-            "context": "Start service " + data.serviceName
+            "context": "Start service " + data.displayName
           },
           Body: {
             ServiceInfo: {

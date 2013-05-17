@@ -213,7 +213,8 @@ App.WizardStep14Controller = Em.Controller.extend({
         name: 'reassign.stop_service',
         sender: this,
         data: {
-          serviceName: serviceName
+          serviceName: serviceName,
+          displayName: App.Service.find().findProperty('serviceName', serviceName).get('displayName')
         },
         beforeSend: 'onStopServiceBeforeSend',
         success: 'onStopServiceSuccess',
@@ -660,7 +661,8 @@ App.WizardStep14Controller = Em.Controller.extend({
         sender: this,
         data: {
           hostName: hostName,
-          componentName: componentName
+          componentName: componentName,
+          displayName: App.format.role(componentName)
         },
         beforeSend: 'onInstallComponentBeforeSend',
         success: 'onInstallComponentSuccess',
@@ -701,7 +703,8 @@ App.WizardStep14Controller = Em.Controller.extend({
         name: 'reassign.start_components',
         sender: this,
         data: {
-          serviceName: serviceName
+          serviceName: serviceName,
+          displayName: App.Service.find().findProperty('serviceName', serviceName).get('displayName')
         },
         beforeSend: 'onStartComponentsBeforeSend',
         success: 'onStartComponentsSuccess',
