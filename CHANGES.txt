@@ -297,6 +297,9 @@ Trunk (unreleased changes):
 
  IMPROVEMENTS
 
+ AMBARI-2150. Reassign Master Wizard: start the service after reassigning the
+ master. (yusaku)
+
  AMBARI-1887. Heatmap should display full details on mapped metric.
  (Sandeep Baldawa via yusaku)
 

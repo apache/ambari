@@ -160,7 +160,7 @@ var urls = {
           },
           Body: {
             ServiceInfo: {
-              "state": "INSTALLED"
+              "state": "STARTED"
             }
           }
         })
