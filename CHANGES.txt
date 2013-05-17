@@ -862,6 +862,8 @@ Trunk (unreleased changes):
 
  BUG FIXES
 
+ AMBARI-2154. Unwanted auto scrolling on the Host detail page. (yusaku)
+
  AMBARI-2153. Reassign Master Wizard: Background Operations popup should show
  display names for services and components. (yusaku)
 

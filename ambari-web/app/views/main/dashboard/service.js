@@ -17,6 +17,7 @@
  */
 
 var App = require('app');
+var uiEffects = require('utils/ui_effects');
 
 require('models/alert');
 
@@ -38,10 +39,10 @@ App.MainDashboardServiceHealthView = Em.View.extend({
   },
 
   doBlink: function () {
+    var self = this;
     if (this.get('blink') && (this.get("state") == "inDOM")) {
-      this.$().effect("pulsate", { times: 1 }, "slow", function () {
-        var view = Em.View.views[$(this).attr('id')];
-        view.doBlink();
+      uiEffects.pulsate(self.$(), 1000, function(){
+        self.doBlink();
       });
     }
   }.observes('blink'),

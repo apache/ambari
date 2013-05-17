@@ -17,6 +17,7 @@
  */
 
 var App = require('app');
+var uiEffects = require('utils/ui_effects');
 
 App.MainHostSummaryView = Em.View.extend({
   templateName: require('templates/main/host/summary'),
@@ -177,7 +178,7 @@ App.MainHostSummaryView = Em.View.extend({
       var serviceComponent = this.get('content');
       var host = App.router.get('mainHostDetailsController.content');
       if(host){
-        var hostComponent = host.get('hostComponents').findProperty('componentName', serviceComponent.get('componentName'));
+        hostComponent = host.get('hostComponents').findProperty('componentName', serviceComponent.get('componentName'));
       }
       return hostComponent;
     }.property('content', 'App.router.mainHostDetailsController.content'),
@@ -237,8 +238,10 @@ App.MainHostSummaryView = Em.View.extend({
         if (dataNodeComponent)
           pulsate = dataNodeComponent.get('isDecommissioning');
       }
-      if (pulsate) {
-        this.$('.components-health').effect("pulsate", null, 1000, function () {
+      if (pulsate && !self.get('isBlinking')) {
+        self.set('isBlinking', true);
+        uiEffects.pulsate(self.$('.components-health'), 1000, function(){
+          !self.get('isDestroyed') && self.set('isBlinking', false);
           self.doBlinking();
         });
       }
