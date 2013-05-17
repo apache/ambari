@@ -862,6 +862,8 @@ Trunk (unreleased changes):
 
  BUG FIXES
 
+ AMBARI-2151. Incorrect error message for invalid user name. (yusaku)
+
  AMBARI-2149. Ambari needs to set right path for GC log directory of Hbase
  process. (mahadev)
 

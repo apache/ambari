@@ -46,7 +46,6 @@ App.HttpClient = Em.Object.create({
    * @param {Object} ajaxOptions
    * @param {App.ServerDataMapper} mapper - json processor
    * @param {function} errorHandler
-   * @param {number} interval - frequecy request
    */
   request: function (url, ajaxOptions, mapper, errorHandler) {
 
@@ -133,19 +132,4 @@ App.HttpClient = Em.Object.create({
   post: function (url, data, mapper, errorHandler, interval) {
     this.get(url, data, mapper, errorHandler, interval);
   }
-
-//  not realized yet
-//  put:function (url, mapper, errorHandler) {
-//    this.request(url, {}, mapper, errorHandler);
-//  },
-//
-//  delete:function (url, mapper, errorHandler) {
-//    this.request(url, {}, mapper, errorHandler);
-//  }
 });
-
-/*App.HttpClient.get(
- 'http://nagiosserver/hdp/nagios/nagios_alerts.php?q1=alerts&alert_type=all',
- App.alertsMapper,
- { dataType: 'jsonp', jsonp: 'jsonp' }
- );*/

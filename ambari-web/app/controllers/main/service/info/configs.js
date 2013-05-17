@@ -698,7 +698,6 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
           } else {
             uhc = self.getHostComponentsByStatus([self.get('content'), App.Service.find('MAPREDUCE')], App.HostComponentStatus.unknown);
           }
-          debugger;
           unknownHosts = uhc.hosts;
           unknownComponentCount = uhc.componentCount;
         } else {

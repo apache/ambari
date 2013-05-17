@@ -177,7 +177,7 @@ Em.I18n.translations = {
   'graphs.timeRange.month': 'Last 1 month',
   'graphs.timeRange.year': 'Last 1 year',
 
-  'users.userName.validationFail': 'Value should contains only letters and digits and start with letter',
+  'users.userName.validationFail': 'Only lowercase letters and numbers are allowed; must start with a letter',
 
   'services.nagios.description':'Nagios Monitoring and Alerting system',
   'services.ganglia.description':'Ganglia Metrics Collection system',
