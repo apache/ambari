@@ -862,6 +862,9 @@ Trunk (unreleased changes):
 
  BUG FIXES
 
+ AMBARI-2155. Incorrect page display after closing Reassign Master Wizard.
+ (yusaku)
+
  AMBARI-2154. Unwanted auto scrolling on the Host detail page. (yusaku)
 
  AMBARI-2153. Reassign Master Wizard: Background Operations popup should show
