@@ -297,6 +297,9 @@ Trunk (unreleased changes):
 
  IMPROVEMENTS
 
+ AMBARI-2158. Certain queries with metrics takes a long time (3 minutes on
+ a 450-node cluster). (tbeerbower)
+
  AMBARI-2150. Reassign Master Wizard: start the service after reassigning the
  master. (yusaku)
 

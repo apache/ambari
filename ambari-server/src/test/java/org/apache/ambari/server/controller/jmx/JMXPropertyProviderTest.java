@@ -39,6 +39,8 @@ public class JMXPropertyProviderTest {
   protected static final String HOST_COMPONENT_COMPONENT_NAME_PROPERTY_ID = PropertyHelper.getPropertyId("HostRoles", "component_name");
   protected static final String HOST_COMPONENT_STATE_PROPERTY_ID = PropertyHelper.getPropertyId("HostRoles", "state");
 
+  public static final int NUMBER_OF_RESOURCES = 400;
+
   @Test
   public void testPopulateResources() throws Exception {
     TestStreamProvider  streamProvider = new TestStreamProvider();
@@ -292,6 +294,50 @@ public class JMXPropertyProviderTest {
 
     // Assert that the stream provider was never called.
     Assert.assertNull(streamProvider.getLastSpec());
+  }
+
+  @Test
+  public void testPopulateResourcesMany() throws Exception {
+    // Set the provider to take 50 millis to return the JMX values
+    TestStreamProvider  streamProvider = new TestStreamProvider(50L);
+    TestJMXHostProvider hostProvider = new TestJMXHostProvider(true);
+    Set<Resource> resources = new HashSet<Resource>();
+
+    JMXPropertyProvider propertyProvider = new JMXPropertyProvider(
+        PropertyHelper.getJMXPropertyIds(Resource.Type.HostComponent),
+        streamProvider,
+        hostProvider,
+        PropertyHelper.getPropertyId("HostRoles", "cluster_name"),
+        PropertyHelper.getPropertyId("HostRoles", "host_name"),
+        PropertyHelper.getPropertyId("HostRoles", "component_name"),
+        PropertyHelper.getPropertyId("HostRoles", "state"),
+        Collections.singleton("STARTED"));
+
+    for (int i = 0; i < NUMBER_OF_RESOURCES; ++i) {
+      // datanode
+      Resource resource = new ResourceImpl(Resource.Type.HostComponent);
+
+      resource.setProperty(HOST_COMPONENT_HOST_NAME_PROPERTY_ID, "domu-12-31-39-14-ee-b3.compute-1.internal");
+      resource.setProperty(HOST_COMPONENT_COMPONENT_NAME_PROPERTY_ID, "DATANODE");
+
+      resources.add(resource);
+    }
+
+    // request with an empty set should get all supported properties
+    Request request = PropertyHelper.getReadRequest(Collections.<String>emptySet());
+
+    Set<Resource> resourceSet = propertyProvider.populateResources(resources, request, null);
+
+    Assert.assertEquals(NUMBER_OF_RESOURCES, resourceSet.size());
+
+    for (Resource resource : resourceSet) {
+      // see test/resources/hdfs_datanode_jmx.json for values
+      Assert.assertEquals(856,  resource.getPropertyValue(PropertyHelper.getPropertyId("metrics/rpc", "ReceivedBytes")));
+      Assert.assertEquals(954466304, resource.getPropertyValue(PropertyHelper.getPropertyId("metrics/jvm", "HeapMemoryMax")));
+      Assert.assertEquals(9772616, resource.getPropertyValue(PropertyHelper.getPropertyId("metrics/jvm", "HeapMemoryUsed")));
+      Assert.assertEquals(136314880, resource.getPropertyValue(PropertyHelper.getPropertyId("metrics/jvm", "NonHeapMemoryMax")));
+      Assert.assertEquals(21933376, resource.getPropertyValue(PropertyHelper.getPropertyId("metrics/jvm", "NonHeapMemoryUsed")));
+    }
   }
 
   private static class TestJMXHostProvider implements JMXHostProvider {
