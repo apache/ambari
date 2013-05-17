@@ -862,6 +862,9 @@ Trunk (unreleased changes):
 
  BUG FIXES
 
+ AMBARI-2160. zookeeper smoke test fails with unknown host exception for
+ secure cluster.(jaimin)
+
  AMBARI-2155. Incorrect page display after closing Reassign Master Wizard.
  (yusaku)
 
