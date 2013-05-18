@@ -65,7 +65,7 @@ var urls = {
     }
   },
   'service.item.smoke': {
-    'real': '/clusters/{clusterName}/services/{serviceName}/actions/{serviceName}_SERVICE_CHECK',
+    'real': '/clusters/{clusterName}/services/{serviceName}/actions/{actionName}',
     'mock': '/data/wizard/deploy/poll_1.json',
     'format': function () {
       return {
