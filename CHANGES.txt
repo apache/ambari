@@ -865,6 +865,8 @@ Trunk (unreleased changes):
 
  BUG FIXES
 
+ AMBARI-2161. Datanode Start fails in secure cluster. (jaimin)
+
  AMBARI-2160. zookeeper smoke test fails with unknown host exception for
  secure cluster.(jaimin)
 

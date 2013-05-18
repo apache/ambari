@@ -53,14 +53,14 @@ define hdp-hadoop::service(
   $cmd = "${hadoop_daemon} --config ${hdp-hadoop::params::conf_dir}"
   if ($ensure == 'running') {
     if ($run_as_root == true) {
-      $daemon_cmd = "${cmd} start ${name}"
+      $daemon_cmd = "su - root -c  '${cmd} start ${name}'"
     } else {
       $daemon_cmd = "su - ${user} -c  '${cmd} start ${name}'"
     }
     $service_is_up = "ls ${pid_file} >/dev/null 2>&1 && ps `cat ${pid_file}` >/dev/null 2>&1"
   } elsif ($ensure == 'stopped') {
     if ($run_as_root == true) {
-      $daemon_cmd = "${cmd} stop ${name}"
+      $daemon_cmd = "su - root -c  '${cmd} stop ${name}'"
     } else {
       $daemon_cmd = "su - ${user} -c  '${cmd} stop ${name}'"
     }
