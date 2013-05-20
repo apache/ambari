@@ -13,4 +13,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License
 
+if [ -d "/etc/ambari-server/conf.save" ]
+then
+    mv /etc/ambari-server/conf.save /etc/ambari-server/conf_$(date '+%d_%m_%y_%H_%M').save
+fi
+
 exit 0

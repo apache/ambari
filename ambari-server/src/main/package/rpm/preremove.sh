@@ -19,6 +19,10 @@
 
 if [ "$1" -eq 0 ]; # Action is uninstall
 then
+    if [ -d "/etc/ambari-server/conf.save" ]
+    then
+        mv /etc/ambari-server/conf.save /etc/ambari-server/conf_$(date '+%d_%m_%y_%H_%M').save
+    fi
     mv /etc/ambari-server/conf /etc/ambari-server/conf.save
 fi
 
