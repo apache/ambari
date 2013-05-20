@@ -54,7 +54,7 @@ class hdp-hadoop::params(
   $dtnode_heapsize = hdp_default("dtnode_heapsize","1024m")
   $ttnode_heapsize = hdp_default("ttnode_heapsize","1024m")
 
-  $hadoop_heapsize = hdp_default("hadoop_heapsize","1024m")
+  $hadoop_heapsize = hdp_default("hadoop_heapsize","1024")
 
   $hdfs_log_dir_prefix = hdp_default("hdfs_log_dir_prefix","/var/log/hadoop")
 
