@@ -867,6 +867,10 @@ Trunk (unreleased changes):
 
  BUG FIXES
 
+ AMBARI-2164. START_FAILED and STOP_FAILED no longer exist, the upgrade 
+ script should repair hostcomponentstate table to convert these to i
+ INSTALLED. (smohanty)
+
  AMBARI-2156. zookeeper service check fails when zk client is not co-hosted
  with zk server. (jaimin)
 

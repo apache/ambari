@@ -76,3 +76,6 @@ insert into ambari.metainfo(metainfo_key, metainfo_value)
 select 'version','1.3.0';
 
 COMMIT;
+
+UPDATE ambari.hostcomponentstate SET current_state = 'INSTALLED' WHERE current_state like 'STOP_FAILED';
+UPDATE ambari.hostcomponentstate SET current_state = 'INSTALLED' WHERE current_state like 'START_FAILED';
